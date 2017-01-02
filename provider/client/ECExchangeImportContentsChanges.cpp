@@ -901,35 +901,30 @@ static HRESULT HrRestrictionContains(const SRestriction *lpRestriction,
 	HRESULT hr = MAPI_E_NOT_FOUND;
 
 	switch (lpRestriction->rt) {
-		case RES_AND:
-			for (ULONG i = 0; hr != hrSuccess && i < lpRestriction->res.resAnd.cRes; ++i)
-				hr = HrRestrictionContains(&lpRestriction->res.resAnd.lpRes[i], lstEntryIds);
-			break;
-
-		case RES_OR:
-			for (ULONG i = 0; hr != hrSuccess && i < lpRestriction->res.resOr.cRes; ++i)
-				hr = HrRestrictionContains(&lpRestriction->res.resOr.lpRes[i], lstEntryIds);
-			break;
-
-		case RES_NOT:
-			hr = HrRestrictionContains(lpRestriction->res.resNot.lpRes, lstEntryIds);
-			break;
-
-		case RES_PROPERTY:
-			if (lpRestriction->res.resProperty.ulPropTag == PR_PARENT_ENTRYID) {
-				for (auto i = lstEntryIds.begin(); i != lstEntryIds.cend(); ++i) {
-					if (Util::CompareSBinary(lpRestriction->res.resProperty.lpProp->Value.bin, *i) == 0) {
-						lstEntryIds.erase(i);
-						break;
-					}
+	case RES_AND:
+		for (ULONG i = 0; hr != hrSuccess && i < lpRestriction->res.resAnd.cRes; ++i)
+			hr = HrRestrictionContains(&lpRestriction->res.resAnd.lpRes[i], lstEntryIds);
+		break;
+	case RES_OR:
+		for (ULONG i = 0; hr != hrSuccess && i < lpRestriction->res.resOr.cRes; ++i)
+			hr = HrRestrictionContains(&lpRestriction->res.resOr.lpRes[i], lstEntryIds);
+		break;
+	case RES_NOT:
+		return HrRestrictionContains(lpRestriction->res.resNot.lpRes, lstEntryIds);
+	case RES_PROPERTY:
+		if (lpRestriction->res.resProperty.ulPropTag == PR_PARENT_ENTRYID) {
+			for (auto i = lstEntryIds.begin(); i != lstEntryIds.cend(); ++i) {
+				if (Util::CompareSBinary(lpRestriction->res.resProperty.lpProp->Value.bin, *i) == 0) {
+					lstEntryIds.erase(i);
+					break;
 				}
-				if (lstEntryIds.empty())
-					hr = hrSuccess;
 			}
-			break;
-
-		default:
-			break;
+			if (lstEntryIds.empty())
+				hr = hrSuccess;
+		}
+		break;
+	default:
+		break;
 	}
 
 	return hr;

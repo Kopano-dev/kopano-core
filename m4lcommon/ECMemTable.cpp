@@ -562,24 +562,24 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 	}
 	
 	switch(ulTableEvent) {
-		case TABLE_ROW_ADDED:
-		case TABLE_ROW_MODIFIED:
-			if (lpsRowItem == NULL) {
-				hr = MAPI_E_INVALID_PARAMETER;
-				goto exit;
-			}
+	case TABLE_ROW_ADDED:
+	case TABLE_ROW_MODIFIED:
+		if (lpsRowItem == NULL) {
+			hr = MAPI_E_INVALID_PARAMETER;
+			goto exit;
+		}
 
-			sRowList.push_back(*lpsRowItem);
+		sRowList.push_back(*lpsRowItem);
 
-			hr = QueryRowData(&sRowList, &lpRows);
-			if(hr != hrSuccess)
-				goto exit;
+		hr = QueryRowData(&sRowList, &lpRows);
+		if(hr != hrSuccess)
+			goto exit;
 
-			lpNotification->info.tab.row.cValues = lpRows->aRow[0].cValues;
-			lpNotification->info.tab.row.lpProps = lpRows->aRow[0].lpProps;
-			break;
-		default:
-			break;// no row needed
+		lpNotification->info.tab.row.cValues = lpRows->aRow[0].cValues;
+		lpNotification->info.tab.row.lpProps = lpRows->aRow[0].lpProps;
+		break;
+	default:
+		break;// no row needed
 	}
 
 	// Push the notifications

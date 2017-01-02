@@ -333,413 +333,363 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		// assume a numeric index
 		lpPropValue[cvalues].ulPropTag = numIndex;
 		switch(PROP_TYPE(numIndex))	{
-			case PT_SHORT:
-				convert_to_long_ex(entry);
-				lpPropValue[cvalues++].Value.i = (short) entry[0]->value.lval;
-				break;
+		case PT_SHORT:
+			convert_to_long_ex(entry);
+			lpPropValue[cvalues++].Value.i = (short)entry[0]->value.lval;
+			break;
+		case PT_LONG:
+			convert_to_long_ex(entry);
+			lpPropValue[cvalues++].Value.l = entry[0]->value.lval;
+			break;
+		case PT_FLOAT:
+			convert_to_double_ex(entry);
+			lpPropValue[cvalues++].Value.flt = (float)entry[0]->value.dval;
+			break;
+		case PT_DOUBLE:
+			convert_to_double_ex(entry);
+			lpPropValue[cvalues++].Value.dbl = entry[0]->value.dval;
+			break;
+		case PT_LONGLONG:
+			convert_to_double_ex(entry);
+			lpPropValue[cvalues++].Value.li.QuadPart = (LONGLONG)entry[0]->value.dval;
+			break;
+		case PT_BOOLEAN:
+			convert_to_boolean_ex(entry);
+			// lval will be 1 or 0 for true or false
+			lpPropValue[cvalues++].Value.b = (unsigned short)entry[0]->value.lval;
+			break;
+		case PT_SYSTIME:
+			convert_to_long_ex(entry);
+			// convert timestamp to windows FileTime
+			UnixTimeToFileTime(entry[0]->value.lval, &lpPropValue[cvalues++].Value.ft);
+			break;
+		case PT_BINARY:
+			convert_to_string_ex(entry);
 
-			case PT_LONG:
-				convert_to_long_ex(entry);
-				lpPropValue[cvalues++].Value.l = entry[0]->value.lval;
-				break;
+			// Allocate and copy data
+			MAPI_G(hr) = MAPIAllocateMore(entry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.bin.lpb);
+			if (MAPI_G(hr) != hrSuccess)
+				return MAPI_G(hr);
+			memcpy(lpPropValue[cvalues].Value.bin.lpb, entry[0]->value.str.val, entry[0]->value.str.len);
+			lpPropValue[cvalues++].Value.bin.cb =  entry[0]->value.str.len;
+			break;
+		case PT_STRING8:
+			convert_to_string_ex(entry);
 
-			case PT_FLOAT:
-				convert_to_double_ex(entry);
-				lpPropValue[cvalues++].Value.flt = (float) entry[0]->value.dval;
-				break;
-
-			case PT_DOUBLE:
-				convert_to_double_ex(entry);
-				lpPropValue[cvalues++].Value.dbl = entry[0]->value.dval;
-				break;
-
-			case PT_LONGLONG:
-				convert_to_double_ex(entry);
-				lpPropValue[cvalues++].Value.li.QuadPart = (LONGLONG)entry[0]->value.dval;
-				break;
-
-			case PT_BOOLEAN:
-				convert_to_boolean_ex(entry);
-				// lval will be 1 or 0 for true or false
-				lpPropValue[cvalues++].Value.b = (unsigned short) entry[0]->value.lval;
-				break;
-
-			case PT_SYSTIME:
-				convert_to_long_ex(entry);
-				// convert timestamp to windows FileTime
-				UnixTimeToFileTime(entry[0]->value.lval, &lpPropValue[cvalues++].Value.ft);
-				break;
-
-			case PT_BINARY:
-				convert_to_string_ex(entry);
-				
-				// Allocate and copy data
-				MAPI_G(hr) = MAPIAllocateMore(entry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **) &lpPropValue[cvalues].Value.bin.lpb);
-				if(MAPI_G(hr) != hrSuccess)
-					return MAPI_G(hr);
-				memcpy(lpPropValue[cvalues].Value.bin.lpb, entry[0]->value.str.val,  entry[0]->value.str.len);
-				lpPropValue[cvalues++].Value.bin.cb =  entry[0]->value.str.len;
-				break;
-
-			case PT_STRING8:
-				convert_to_string_ex(entry);
-
-				// Allocate and copy data
-				MAPI_G(hr) = MAPIAllocateMore(entry[0]->value.str.len+1, lpBase ? lpBase : lpPropValue, (void **) &lpPropValue[cvalues].Value.lpszA);
-				if(MAPI_G(hr) != hrSuccess)
-					return MAPI_G(hr);
-				strncpy(lpPropValue[cvalues++].Value.lpszA, entry[0]->value.str.val, entry[0]->value.str.len+1);
-				break;
-
-			case PT_APPTIME:
-				convert_to_double_ex(entry);
-				lpPropValue[cvalues++].Value.at = entry[0]->value.dval;
-				break;
-
-			case PT_CLSID:
-				convert_to_string_ex(entry);
-				if(entry[0]->value.str.len != sizeof(GUID)) {
-					php_error_docref(NULL TSRMLS_CC, E_WARNING, "GUID must be 16 bytes");
-					return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-				}
-				
-				MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID), lpBase ? lpBase : lpPropValue, (void **) &lpPropValue[cvalues].Value.lpguid);
-				if(MAPI_G(hr) != hrSuccess)
-					return MAPI_G(hr);
-				memcpy(lpPropValue[cvalues++].Value.lpguid, entry[0]->value.str.val, sizeof(GUID));
-				break;
+			// Allocate and copy data
+			MAPI_G(hr) = MAPIAllocateMore(entry[0]->value.str.len+1, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.lpszA);
+			if (MAPI_G(hr) != hrSuccess)
+				return MAPI_G(hr);
+			strncpy(lpPropValue[cvalues++].Value.lpszA, entry[0]->value.str.val, entry[0]->value.str.len + 1);
+			break;
+		case PT_APPTIME:
+			convert_to_double_ex(entry);
+			lpPropValue[cvalues++].Value.at = entry[0]->value.dval;
+			break;
+		case PT_CLSID:
+			convert_to_string_ex(entry);
+			if (entry[0]->value.str.len != sizeof(GUID)) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "GUID must be 16 bytes");
+				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+			}
+			MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID), lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.lpguid);
+			if (MAPI_G(hr) != hrSuccess)
+				return MAPI_G(hr);
+			memcpy(lpPropValue[cvalues++].Value.lpguid, entry[0]->value.str.val, sizeof(GUID));
+			break;
 
 #define GET_MV_HASH() \
-				{ \
-					dataHash = HASH_OF(entry[0]); \
-					if (!dataHash) { \
-						php_error_docref(NULL TSRMLS_CC, E_WARNING, "No MV dataHash"); \
-						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER; \
-					} \
-				} 
+	{ \
+		dataHash = HASH_OF(entry[0]); \
+		if (!dataHash) { \
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "No MV dataHash"); \
+			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER; \
+		} \
+	}
 
 #define CHECK_EMPTY_MV_ARRAY(mapimvmember, mapilpmember) \
-				{ \
-					countarray = zend_hash_num_elements(dataHash); \
-					if (countarray == 0) { \
-						lpPropValue[cvalues].Value.mapimvmember.cValues = 0;  \
-						lpPropValue[cvalues].Value.mapimvmember.mapilpmember = NULL; \
-						break; \
-					} \
-					zend_hash_internal_pointer_reset(dataHash); \
-				}
-				
+	{ \
+		countarray = zend_hash_num_elements(dataHash); \
+		if (countarray == 0) { \
+			lpPropValue[cvalues].Value.mapimvmember.cValues = 0;  \
+			lpPropValue[cvalues].Value.mapimvmember.mapilpmember = NULL; \
+			break; \
+		} \
+		zend_hash_internal_pointer_reset(dataHash); \
+	}
+
 #define COPY_MV_PROPS(type, mapimvmember, mapilpmember, phpmember) \
-				GET_MV_HASH() \
-				CHECK_EMPTY_MV_ARRAY(mapimvmember, mapilpmember) \
-				lpPropValue[cvalues].Value.mapimvmember.cValues = countarray; \
-				MAPI_G(hr) = MAPIAllocateMore(sizeof(lpPropValue[cvalues].Value.mapimvmember.mapilpmember[0]) * countarray, lpBase ? lpBase : lpPropValue, (void**)&lpPropValue[cvalues].Value.mapimvmember.mapilpmember); \
-				for (j = 0; j < countarray; ++j) { \
-					zend_hash_get_current_data(dataHash, (void **) &dataEntry); \
-					convert_to_##type##_ex(dataEntry); \
-					lpPropValue[cvalues].Value.mapimvmember.mapilpmember[j] = dataEntry[0]->value.phpmember; \
-					zend_hash_move_forward(dataHash); \
-				} 
+	GET_MV_HASH() \
+	CHECK_EMPTY_MV_ARRAY(mapimvmember, mapilpmember) \
+	lpPropValue[cvalues].Value.mapimvmember.cValues = countarray; \
+	MAPI_G(hr) = MAPIAllocateMore(sizeof(lpPropValue[cvalues].Value.mapimvmember.mapilpmember[0]) * countarray, lpBase ? lpBase : lpPropValue, (void**)&lpPropValue[cvalues].Value.mapimvmember.mapilpmember); \
+	for (j = 0; j < countarray; ++j) { \
+		zend_hash_get_current_data(dataHash, (void **) &dataEntry); \
+		convert_to_##type##_ex(dataEntry); \
+		lpPropValue[cvalues].Value.mapimvmember.mapilpmember[j] = dataEntry[0]->value.phpmember; \
+		zend_hash_move_forward(dataHash); \
+	}
 
-			case PT_MV_I2:
-				COPY_MV_PROPS(long, MVi, lpi, lval);
-				++cvalues;
-				break;
+		case PT_MV_I2:
+			COPY_MV_PROPS(long, MVi, lpi, lval);
+			++cvalues;
+			break;
+		case PT_MV_LONG:
+			COPY_MV_PROPS(long, MVl, lpl, lval);
+			++cvalues;
+			break;
+		case PT_MV_R4:
+			COPY_MV_PROPS(double, MVflt, lpflt, dval);
+			++cvalues;
+			break;
+		case PT_MV_DOUBLE:
+			COPY_MV_PROPS(double, MVdbl, lpdbl, dval);
+			++cvalues;
+			break;
+		case PT_MV_APPTIME:
+			COPY_MV_PROPS(double, MVat, lpat, dval);
+			++cvalues;
+			break;
+		case PT_MV_SYSTIME:
+			GET_MV_HASH();
+			CHECK_EMPTY_MV_ARRAY(MVft, lpft);
 
-			case PT_MV_LONG:
-				COPY_MV_PROPS(long, MVl, lpl, lval);
-				++cvalues;
-				break;
-
-			case PT_MV_R4:
-				COPY_MV_PROPS(double, MVflt, lpflt, dval);
-				++cvalues;
-				break;
-
-			case PT_MV_DOUBLE:
-				COPY_MV_PROPS(double, MVdbl, lpdbl, dval);
-				++cvalues;
-				break;
-
-			case PT_MV_APPTIME:
-				COPY_MV_PROPS(double, MVat, lpat, dval);
-				++cvalues;
-				break;
-
-			case PT_MV_SYSTIME:
-				GET_MV_HASH();
-				CHECK_EMPTY_MV_ARRAY(MVft, lpft);
-
-				lpPropValue[cvalues].Value.MVft.cValues = countarray;
-				if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(FILETIME) * countarray, lpBase ? lpBase : lpPropValue, (void**)&lpPropValue[cvalues].Value.MVft.lpft)) != hrSuccess)
+			lpPropValue[cvalues].Value.MVft.cValues = countarray;
+			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(FILETIME) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVft.lpft)) != hrSuccess)
+				return MAPI_G(hr);
+			for (j = 0; j < countarray; ++j) {
+				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
+				convert_to_long_ex(dataEntry);
+				UnixTimeToFileTime(dataEntry[0]->value.lval, &lpPropValue[cvalues].Value.MVft.lpft[j]);
+				zend_hash_move_forward(dataHash);
+			}
+			++cvalues;
+			break;
+		case PT_MV_UNICODE: // PT_MV_UNICODE is binary-compatible with PT_MV_BINARY in this case ..
+		case PT_MV_BINARY:
+			GET_MV_HASH();
+			CHECK_EMPTY_MV_ARRAY(MVbin, lpbin);
+			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(SBinary) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVbin.lpbin)) != hrSuccess)
+				return MAPI_G(hr);
+			for (h = 0, j = 0; j < countarray; ++j) {
+				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
+				convert_to_string_ex(dataEntry);
+				lpPropValue[cvalues].Value.MVbin.lpbin[h].cb = dataEntry[0]->value.str.len;
+				MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVbin.lpbin[h].lpb);
+				if (MAPI_G(hr) != hrSuccess)
 					return MAPI_G(hr);
-				for (j = 0; j < countarray; ++j) {
-					zend_hash_get_current_data(dataHash, (void **) &dataEntry);
-					convert_to_long_ex(dataEntry);
-					UnixTimeToFileTime(dataEntry[0]->value.lval, &lpPropValue[cvalues].Value.MVft.lpft[j]);
-					zend_hash_move_forward(dataHash);
-				}
-				++cvalues;
-				break;
-
-			case PT_MV_UNICODE: // PT_MV_UNICODE is binary-compatible with PT_MV_BINARY in this case ..
-			case PT_MV_BINARY:
-				GET_MV_HASH();
-				CHECK_EMPTY_MV_ARRAY(MVbin, lpbin);
-
-				if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(SBinary) * countarray, lpBase ? lpBase : lpPropValue, (void**)&lpPropValue[cvalues].Value.MVbin.lpbin)) != hrSuccess)
+				memcpy(lpPropValue[cvalues].Value.MVbin.lpbin[h++].lpb, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
+				zend_hash_move_forward(dataHash);
+			}
+			lpPropValue[cvalues++].Value.MVbin.cValues = h;
+			break;
+		case PT_MV_STRING8:
+			GET_MV_HASH();
+			CHECK_EMPTY_MV_ARRAY(MVszA, lppszA);
+			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(char*) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVszA.lppszA)) != hrSuccess)
+				return MAPI_G(hr);
+			for (h = 0, j = 0; j < countarray; ++j) {
+				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
+				convert_to_string_ex(dataEntry);
+				MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len+1, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVszA.lppszA[h]);
+				if (MAPI_G(hr) != hrSuccess)
 					return MAPI_G(hr);
-				for (h = 0, j = 0; j < countarray; ++j) {
-					zend_hash_get_current_data(dataHash, (void **) &dataEntry);
-					convert_to_string_ex(dataEntry);
-					lpPropValue[cvalues].Value.MVbin.lpbin[h].cb = dataEntry[0]->value.str.len;
-					
-					MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **) &lpPropValue[cvalues].Value.MVbin.lpbin[h].lpb);
-					if(MAPI_G(hr) != hrSuccess)
-						return MAPI_G(hr);
-					memcpy(lpPropValue[cvalues].Value.MVbin.lpbin[h++].lpb, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
-					zend_hash_move_forward(dataHash);
-				}
-				lpPropValue[cvalues++].Value.MVbin.cValues = h;
+				strncpy(lpPropValue[cvalues].Value.MVszA.lppszA[h++], dataEntry[0]->value.str.val, dataEntry[0]->value.str.len + 1);
+				zend_hash_move_forward(dataHash);
+			}
+			lpPropValue[cvalues++].Value.MVszA.cValues = h;
+			break;
+		case PT_MV_CLSID:
+			GET_MV_HASH();
+			CHECK_EMPTY_MV_ARRAY(MVguid, lpguid);
+			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVguid.lpguid)) != hrSuccess)
+				return MAPI_G(hr);
+			for (h = 0, j = 0; j < countarray; ++j) {
+				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
+				convert_to_string_ex(dataEntry);
+				if (dataEntry[0]->value.str.len != sizeof(GUID))
+					php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid value for PT_MV_CLSID property in proptag 0x%08X, position %d,%d", lpPropValue[cvalues].ulPropTag, i, j);
+				else
+					memcpy(&lpPropValue[cvalues].Value.MVguid.lpguid[h++], dataEntry[0]->value.str.val, sizeof(GUID));
+				zend_hash_move_forward(dataHash);
+			}
+			lpPropValue[cvalues++].Value.MVguid.cValues = h;
+			break;
+		case PT_MV_I8:
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_MV_I8 not supported");
+			return MAPI_G(hr) = MAPI_E_NO_SUPPORT;
+		case PT_MV_CURRENCY:
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_MV_CURRENCY not supported");
+			return MAPI_G(hr) = MAPI_E_NO_SUPPORT;
+		case PT_ACTIONS:
+			dataHash = HASH_OF(entry[0]);
+			if (!dataHash)
 				break;
+			zend_hash_internal_pointer_reset(dataHash);
+			countarray = zend_hash_num_elements(dataHash); // # of actions
+			if (countarray == 0) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_ACTIONS is empty");
+				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+			}
+			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(ACTIONS), lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.lpszA)) != hrSuccess)
+				return MAPI_G(hr);
+			lpActions = (ACTIONS*)lpPropValue[cvalues].Value.lpszA;
+			lpActions->ulVersion = EDK_RULES_VERSION;
+			lpActions->cActions = countarray;
+			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(ACTION) * lpActions->cActions, lpBase ? lpBase : lpPropValue, (void**)&lpActions->lpAction)) != hrSuccess)
+				return MAPI_G(hr);
+			memset(lpActions->lpAction, 0, sizeof(ACTION) * lpActions->cActions);
 
-			case PT_MV_STRING8:
-				GET_MV_HASH();
-				CHECK_EMPTY_MV_ARRAY(MVszA, lppszA);
-
-				if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(char*) * countarray, lpBase ? lpBase : lpPropValue, (void**)&lpPropValue[cvalues].Value.MVszA.lppszA)) != hrSuccess)
-					return MAPI_G(hr);
-				for (h = 0, j = 0; j < countarray; ++j) {
-					zend_hash_get_current_data(dataHash, (void **) &dataEntry);
-					convert_to_string_ex(dataEntry);
-					
-					MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len+1, lpBase ? lpBase : lpPropValue, (void **) &lpPropValue[cvalues].Value.MVszA.lppszA[h]);
-					if (MAPI_G(hr) != hrSuccess)
-						return MAPI_G(hr);
-					strncpy(lpPropValue[cvalues].Value.MVszA.lppszA[h++], dataEntry[0]->value.str.val, dataEntry[0]->value.str.len+1);
-					zend_hash_move_forward(dataHash);
+			for (j = 0; j < countarray; ++j) {
+				zend_hash_get_current_data(dataHash, (void **)&entry);
+				actionHash = HASH_OF(entry[0]);
+				if (!actionHash) {
+					php_error_docref(NULL TSRMLS_CC, E_WARNING, "ACTIONS structure has a wrong ACTION");
+					return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 				}
-				lpPropValue[cvalues++].Value.MVszA.cValues = h;
-				break;
-
-			case PT_MV_CLSID:
-				GET_MV_HASH();
-				CHECK_EMPTY_MV_ARRAY(MVguid, lpguid);
-
-				if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID) * countarray, lpBase ? lpBase : lpPropValue, (void**)&lpPropValue[cvalues].Value.MVguid.lpguid)) != hrSuccess)
-					return MAPI_G(hr);
-				for (h = 0, j = 0; j < countarray; ++j) {
-					zend_hash_get_current_data(dataHash, (void **) &dataEntry);
-					convert_to_string_ex(dataEntry);
-					if (dataEntry[0]->value.str.len != sizeof(GUID))
-						php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid value for PT_MV_CLSID property in proptag 0x%08X, position %d,%d", lpPropValue[cvalues].ulPropTag, i, j);
-					else
-						memcpy(&lpPropValue[cvalues].Value.MVguid.lpguid[h++], dataEntry[0]->value.str.val, sizeof(GUID));
-					zend_hash_move_forward(dataHash);
-				}
-				lpPropValue[cvalues++].Value.MVguid.cValues = h;
-				break;
-
-			case PT_MV_I8:
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_MV_I8 not supported");
-				return MAPI_G(hr) = MAPI_E_NO_SUPPORT;
-			case PT_MV_CURRENCY:
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_MV_CURRENCY not supported");
-				return MAPI_G(hr) = MAPI_E_NO_SUPPORT;
-			case PT_ACTIONS:
-				dataHash = HASH_OF(entry[0]);
-				if (!dataHash)
-					break;
-
-				zend_hash_internal_pointer_reset(dataHash);
-				countarray = zend_hash_num_elements(dataHash); // # of actions
-
-				if(countarray == 0) {
-					php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_ACTIONS is empty");
+				if (zend_hash_find(actionHash, "action", sizeof("action"), (void **)&dataEntry) != SUCCESS) {
+					php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_ACTIONS type has no action type in array");
 					return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 				}
 
-				if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(ACTIONS), lpBase ? lpBase : lpPropValue, (void**)&lpPropValue[cvalues].Value.lpszA)) != hrSuccess)
-					return MAPI_G(hr);
-				lpActions = (ACTIONS*)lpPropValue[cvalues].Value.lpszA;
-				lpActions->ulVersion = EDK_RULES_VERSION;
-				lpActions->cActions = countarray;
+				convert_to_long_ex(dataEntry);
+				lpActions->lpAction[j].acttype = (ACTTYPE)Z_LVAL_PP(dataEntry);
 
-				if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(ACTION)*lpActions->cActions, lpBase ? lpBase : lpPropValue, (void**)&lpActions->lpAction)) != hrSuccess)
-					return MAPI_G(hr);
-				memset(lpActions->lpAction, 0, sizeof(ACTION)*lpActions->cActions);
-
-				for (j = 0; j < countarray; ++j) {
-					zend_hash_get_current_data(dataHash, (void**) &entry);
-					actionHash = HASH_OF(entry[0]);
-					if (!actionHash) {
-						php_error_docref(NULL TSRMLS_CC, E_WARNING, "ACTIONS structure has a wrong ACTION");
-						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-					}
-
-					if (zend_hash_find(actionHash, "action", sizeof("action"), (void**)&dataEntry) != SUCCESS) {
-						php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_ACTIONS type has no action type in array");
-						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-					}
-						
+				// Option field user defined flags, default 0
+				if (zend_hash_find(actionHash, "flags", sizeof("flags"), (void **)&dataEntry) == SUCCESS) {
 					convert_to_long_ex(dataEntry);
-					lpActions->lpAction[j].acttype = (ACTTYPE)Z_LVAL_PP(dataEntry);
+					lpActions->lpAction[j].ulFlags = Z_LVAL_PP(dataEntry);
+				}
 
-					// Option field user defined flags, default 0
-					if (zend_hash_find(actionHash, "flags", sizeof("flags"), (void**)&dataEntry) == SUCCESS) {
-						convert_to_long_ex(dataEntry);
-						lpActions->lpAction[j].ulFlags = Z_LVAL_PP(dataEntry);
+				// Option field used with OP_REPLAY and OP_FORWARD, default 0
+				if (zend_hash_find(actionHash, "flavor", sizeof("flavor"), (void **)&dataEntry) == SUCCESS) {
+					convert_to_long_ex(dataEntry);
+					lpActions->lpAction[j].ulActionFlavor = Z_LVAL_PP(dataEntry);
+				}
+
+				switch (lpActions->lpAction[j].acttype) {
+				case OP_MOVE:
+				case OP_COPY:
+					if (zend_hash_find(actionHash, "storeentryid", sizeof("storeentryid"), (void **)&dataEntry) != SUCCESS) {
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_COPY/OP_MOVE but no storeentryid entry");
+						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+					}
+					convert_to_string_ex(dataEntry);
+					lpActions->lpAction[j].actMoveCopy.cbStoreEntryId = dataEntry[0]->value.str.len;
+					MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **)&lpActions->lpAction[j].actMoveCopy.lpStoreEntryId);
+					if (MAPI_G(hr) != hrSuccess)
+						return MAPI_G(hr);
+					memcpy(lpActions->lpAction[j].actMoveCopy.lpStoreEntryId, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
+					if (zend_hash_find(actionHash, "folderentryid", sizeof("folderentryid"), (void **)&dataEntry) != SUCCESS) {
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_COPY/OP_MOVE but no folderentryid entry");
+						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 					}
 
-					// Option field used with OP_REPLAY and OP_FORWARD, default 0
-					if (zend_hash_find(actionHash, "flavor", sizeof("flavor"), (void**)&dataEntry) == SUCCESS) {
-						convert_to_long_ex(dataEntry);
-						lpActions->lpAction[j].ulActionFlavor = Z_LVAL_PP(dataEntry);
+					convert_to_string_ex(dataEntry);
+					lpActions->lpAction[j].actMoveCopy.cbFldEntryId = dataEntry[0]->value.str.len;
+					MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **)&lpActions->lpAction[j].actMoveCopy.lpFldEntryId);
+					if (MAPI_G(hr) != hrSuccess)
+						return MAPI_G(hr);
+					memcpy(lpActions->lpAction[j].actMoveCopy.lpFldEntryId, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
+					break;
+				case OP_REPLY:
+				case OP_OOF_REPLY:
+					if (zend_hash_find(actionHash, "replyentryid", sizeof("replyentryid"), (void **)&dataEntry) != SUCCESS) {
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_REPLY but no replyentryid entry");
+						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 					}
+					convert_to_string_ex(dataEntry);
+					lpActions->lpAction[j].actReply.cbEntryId = dataEntry[0]->value.str.len;
+					MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **)&lpActions->lpAction[j].actReply.lpEntryId);
+					if (MAPI_G(hr) != hrSuccess)
+						return MAPI_G(hr);
+					memcpy(lpActions->lpAction[j].actReply.lpEntryId, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
 
-					switch (lpActions->lpAction[j].acttype) {
-					case OP_MOVE:
-					case OP_COPY:
-						if (zend_hash_find(actionHash, "storeentryid", sizeof("storeentryid"), (void**)&dataEntry) != SUCCESS) {
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_COPY/OP_MOVE but no storeentryid entry");
-							return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-						}
-						
+					// optional field
+					if (zend_hash_find(actionHash, "replyguid", sizeof("replyguid"), (void **)&dataEntry) == SUCCESS) {
 						convert_to_string_ex(dataEntry);
-						lpActions->lpAction[j].actMoveCopy.cbStoreEntryId = dataEntry[0]->value.str.len;
-						
-						MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **) &lpActions->lpAction[j].actMoveCopy.lpStoreEntryId);
-						if(MAPI_G(hr) != hrSuccess)
-							return MAPI_G(hr);
-						memcpy(lpActions->lpAction[j].actMoveCopy.lpStoreEntryId, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
-
-						if (zend_hash_find(actionHash, "folderentryid", sizeof("folderentryid"), (void**)&dataEntry) != SUCCESS) {
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_COPY/OP_MOVE but no folderentryid entry");
+						if (dataEntry[0]->value.str.len != sizeof(GUID)) {
+							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_REPLY replyguid not sizeof(GUID)");
 							return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 						}
-						
-						convert_to_string_ex(dataEntry);
-						
-						lpActions->lpAction[j].actMoveCopy.cbFldEntryId = dataEntry[0]->value.str.len;
-						
-						MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **) &lpActions->lpAction[j].actMoveCopy.lpFldEntryId);
-						if(MAPI_G(hr) != hrSuccess)
-							return MAPI_G(hr);
-						memcpy(lpActions->lpAction[j].actMoveCopy.lpFldEntryId, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
-						break;
+						memcpy(&lpActions->lpAction[j].actReply.guidReplyTemplate, dataEntry[0]->value.str.val, sizeof(GUID));
+					}
+					break;
+				case OP_DEFER_ACTION:
+					if (zend_hash_find(actionHash, "dam", sizeof("dam"), (void **)&dataEntry) != SUCCESS) {
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_DEFER_ACTION but no dam entry");
+						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+					}
+					convert_to_string_ex(dataEntry);
+					lpActions->lpAction[j].actDeferAction.cbData = dataEntry[0]->value.str.len;
+					MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **)&lpActions->lpAction[j].actDeferAction.pbData);
+					if (MAPI_G(hr) != hrSuccess)
+						return MAPI_G(hr);
+					memcpy(lpActions->lpAction[j].actDeferAction.pbData, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
+					break;
+				case OP_BOUNCE:
+					if (zend_hash_find(actionHash, "code", sizeof("code"), (void **)&dataEntry) != SUCCESS) {
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_BOUNCE but no code entry");
+						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+					}
+					convert_to_long_ex(dataEntry);
+					lpActions->lpAction[j].scBounceCode = Z_LVAL_PP(dataEntry);
+					break;
+				case OP_FORWARD:
+				case OP_DELEGATE:
+					if (zend_hash_find(actionHash, "adrlist", sizeof("adrlist"), (void **)&dataEntry) != SUCCESS) {
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_FORWARD/OP_DELEGATE but no adrlist entry");
+						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+					}
+					if (dataEntry[0]->type != IS_ARRAY) {
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_FORWARD/OP_DELEGATE adrlist entry must be an array");
+						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+					}
+					MAPI_G(hr) = PHPArraytoAdrList(dataEntry[0], lpBase ? lpBase : lpPropValue, &lpActions->lpAction[j].lpadrlist TSRMLS_CC);
+					if (MAPI_G(hr) != hrSuccess)
+						return MAPI_G(hr);
+					if (MAPI_G(hr) != hrSuccess){
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_DELEGATE/OP_FORWARD wrong data in adrlist entry");
+						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+					}
+					break;
+				case OP_TAG:
+					if (zend_hash_find(actionHash, "proptag", sizeof("proptag"), (void **)&dataEntry) != SUCCESS) {
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_TAG but no proptag entry");
+						return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+					}
+					MAPI_G(hr) = PHPArraytoPropValueArray(dataEntry[0], lpBase ? lpBase : lpPropValue, &ulCountTmp, &lpPropTmp TSRMLS_CC);
+					if (MAPI_G(hr) != hrSuccess)
+						return MAPI_G(hr);
+					if (ulCountTmp > 1)
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_TAG has 'proptag' member which contains more than one property. Using the first in the array.");
+					lpActions->lpAction[j].propTag = *lpPropTmp;
+					break;
+				case OP_DELETE:
+				case OP_MARK_AS_READ:
+					// Nothing to do
+					break;
+				};
+				zend_hash_move_forward(dataHash);
+			}
+			++cvalues;
+			break;
 
-					case OP_REPLY:
-					case OP_OOF_REPLY:
-						if (zend_hash_find(actionHash, "replyentryid", sizeof("replyentryid"), (void**)&dataEntry) != SUCCESS) {
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_REPLY but no replyentryid entry");
-							return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-						}
-						convert_to_string_ex(dataEntry);
-
-						lpActions->lpAction[j].actReply.cbEntryId = dataEntry[0]->value.str.len;
-
-						MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **) &lpActions->lpAction[j].actReply.lpEntryId);
-						if(MAPI_G(hr) != hrSuccess)
-							return MAPI_G(hr);
-						memcpy(lpActions->lpAction[j].actReply.lpEntryId, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
-
-						// optional field
-						if (zend_hash_find(actionHash, "replyguid", sizeof("replyguid"), (void**)&dataEntry) == SUCCESS) {
-							convert_to_string_ex(dataEntry);
-							if (dataEntry[0]->value.str.len != sizeof(GUID)) {
-								php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_REPLY replyguid not sizeof(GUID)");
-								return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-							}
-							memcpy(&lpActions->lpAction[j].actReply.guidReplyTemplate, dataEntry[0]->value.str.val, sizeof(GUID));
-						} 
-						break;
-
-					case OP_DEFER_ACTION:
-						if (zend_hash_find(actionHash, "dam", sizeof("dam"), (void**)&dataEntry) != SUCCESS) {
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_DEFER_ACTION but no dam entry");
-							return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-						}
-						convert_to_string_ex(dataEntry);
-						lpActions->lpAction[j].actDeferAction.cbData = dataEntry[0]->value.str.len;
-						
-						MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **)&lpActions->lpAction[j].actDeferAction.pbData);
-						if(MAPI_G(hr) != hrSuccess)
-							return MAPI_G(hr);
-						memcpy(lpActions->lpAction[j].actDeferAction.pbData, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
-						break;
-
-					case OP_BOUNCE:
-						if (zend_hash_find(actionHash, "code", sizeof("code"), (void**)&dataEntry) != SUCCESS) {
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_BOUNCE but no code entry");
-							return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-						}
-						convert_to_long_ex(dataEntry);
-						lpActions->lpAction[j].scBounceCode = Z_LVAL_PP(dataEntry);
-						break;
-
-					case OP_FORWARD:
-					case OP_DELEGATE:
-						if (zend_hash_find(actionHash, "adrlist", sizeof("adrlist"), (void**)&dataEntry) != SUCCESS) {
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_FORWARD/OP_DELEGATE but no adrlist entry");
-							return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-						}
-
-						if(dataEntry[0]->type != IS_ARRAY) {
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_FORWARD/OP_DELEGATE adrlist entry must be an array");
-							return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-						}
-
-						MAPI_G(hr) = PHPArraytoAdrList(dataEntry[0], lpBase ? lpBase : lpPropValue, &lpActions->lpAction[j].lpadrlist TSRMLS_CC);
-						if(MAPI_G(hr) != hrSuccess)
-							return MAPI_G(hr);
-						if(MAPI_G(hr) != hrSuccess){
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_DELEGATE/OP_FORWARD wrong data in adrlist entry");
-							return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-						}
-
-						break;
-					case OP_TAG:
-						if (zend_hash_find(actionHash, "proptag", sizeof("proptag"), (void**)&dataEntry) != SUCCESS) {
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_TAG but no proptag entry");
-							return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-						}
-
-						MAPI_G(hr) = PHPArraytoPropValueArray(dataEntry[0], lpBase ? lpBase : lpPropValue, &ulCountTmp, &lpPropTmp TSRMLS_CC);
-						if(MAPI_G(hr) != hrSuccess)
-							return MAPI_G(hr);
-						if(ulCountTmp > 1) 
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_TAG has 'proptag' member which contains more than one property. Using the first in the array.");
-
-						lpActions->lpAction[j].propTag = *lpPropTmp;
-						break;
-					case OP_DELETE:
-					case OP_MARK_AS_READ:
-						// Nothing to do
-						break;
-					};
-
-					zend_hash_move_forward(dataHash);
-				}
-				++cvalues;
-				break;
-
-			case PT_SRESTRICTION:
-				MAPI_G(hr) = PHPArraytoSRestriction(entry[0], lpBase ? lpBase : lpPropValue, &lpRestriction TSRMLS_CC);
-				if (MAPI_G(hr) != hrSuccess) {
-					php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArray to SRestriction failed");
-					return MAPI_G(hr);
-				}
-				lpPropValue[cvalues++].Value.lpszA = (char*)lpRestriction;
-				break;
-				
-			case PT_ERROR:
-				convert_to_long_ex(entry);
-				lpPropValue[cvalues].Value.err = entry[0]->value.lval;
-				break;
-				
-			default:
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown property type %08X", PROP_TYPE(numIndex));
-				return MAPI_G(hr) = MAPI_E_INVALID_TYPE;
+		case PT_SRESTRICTION:
+			MAPI_G(hr) = PHPArraytoSRestriction(entry[0], lpBase ? lpBase : lpPropValue, &lpRestriction TSRMLS_CC);
+			if (MAPI_G(hr) != hrSuccess) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArray to SRestriction failed");
+				return MAPI_G(hr);
+			}
+			lpPropValue[cvalues++].Value.lpszA = (char *)lpRestriction;
+			break;
+		case PT_ERROR:
+			convert_to_long_ex(entry);
+			lpPropValue[cvalues].Value.err = entry[0]->value.lval;
+			break;
+		default:
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown property type %08X", PROP_TYPE(numIndex));
+			return MAPI_G(hr) = MAPI_E_INVALID_TYPE;
 		}
 
 		// move the pointer to the next entry
@@ -2071,38 +2021,37 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, LPNOTIFICATION lpNotifs, zval **p
 		
 		add_assoc_long(zvalNotif, "eventtype", lpNotifs[i].ulEventType);
 		switch(lpNotifs[i].ulEventType) {
-			case fnevNewMail:
-				add_assoc_stringl(zvalNotif, "entryid", (char *)lpNotifs[i].info.newmail.lpEntryID, lpNotifs[i].info.newmail.cbEntryID, 1);
-				add_assoc_stringl(zvalNotif, "parentid", (char *)lpNotifs[i].info.newmail.lpParentID, lpNotifs[i].info.newmail.cbParentID, 1);
-				add_assoc_long(zvalNotif, "flags", lpNotifs[i].info.newmail.ulFlags);
-				add_assoc_string(zvalNotif, "messageclass", (char *)lpNotifs[i].info.newmail.lpszMessageClass, 1);
-				add_assoc_long(zvalNotif, "messageflags", lpNotifs[i].info.newmail.ulMessageFlags);
-				break;
-			case fnevObjectCreated:
-			case fnevObjectDeleted:
-			case fnevObjectModified:
-			case fnevObjectMoved:
-			case fnevObjectCopied:
-			case fnevSearchComplete:
-				if(lpNotifs[i].info.obj.lpEntryID)
-					add_assoc_stringl(zvalNotif, "entryid", (char *)lpNotifs[i].info.obj.lpEntryID, lpNotifs[i].info.obj.cbEntryID, 1);
-				add_assoc_long(zvalNotif, "objtype", lpNotifs[i].info.obj.ulObjType);
-				if(lpNotifs[i].info.obj.lpParentID)
-					add_assoc_stringl(zvalNotif, "parentid", (char *)lpNotifs[i].info.obj.lpParentID, lpNotifs[i].info.obj.cbParentID, 1);
-				if(lpNotifs[i].info.obj.lpOldID)
-					add_assoc_stringl(zvalNotif, "oldid", (char *)lpNotifs[i].info.obj.lpOldID, lpNotifs[i].info.obj.cbOldID, 1);
-				if(lpNotifs[i].info.obj.lpOldParentID)
-					add_assoc_stringl(zvalNotif, "oldparentid", (char *)lpNotifs[i].info.obj.lpOldParentID, lpNotifs[i].info.obj.cbOldParentID, 1);
-	
-				if(lpNotifs[i].info.obj.lpPropTagArray) {
-					MAPI_G(hr) = PropTagArraytoPHPArray(lpNotifs[i].info.obj.lpPropTagArray->cValues, lpNotifs[i].info.obj.lpPropTagArray, &zvalProps TSRMLS_CC);
-					if(MAPI_G(hr) != hrSuccess)
-						return MAPI_G(hr);
-					add_assoc_zval(zvalNotif, "proptagarray", zvalProps);
-				}
-				break;
-			default:
-				break;
+		case fnevNewMail:
+			add_assoc_stringl(zvalNotif, "entryid", (char *)lpNotifs[i].info.newmail.lpEntryID, lpNotifs[i].info.newmail.cbEntryID, 1);
+			add_assoc_stringl(zvalNotif, "parentid", (char *)lpNotifs[i].info.newmail.lpParentID, lpNotifs[i].info.newmail.cbParentID, 1);
+			add_assoc_long(zvalNotif, "flags", lpNotifs[i].info.newmail.ulFlags);
+			add_assoc_string(zvalNotif, "messageclass", (char *)lpNotifs[i].info.newmail.lpszMessageClass, 1);
+			add_assoc_long(zvalNotif, "messageflags", lpNotifs[i].info.newmail.ulMessageFlags);
+			break;
+		case fnevObjectCreated:
+		case fnevObjectDeleted:
+		case fnevObjectModified:
+		case fnevObjectMoved:
+		case fnevObjectCopied:
+		case fnevSearchComplete:
+			if (lpNotifs[i].info.obj.lpEntryID)
+				add_assoc_stringl(zvalNotif, "entryid", (char *)lpNotifs[i].info.obj.lpEntryID, lpNotifs[i].info.obj.cbEntryID, 1);
+			add_assoc_long(zvalNotif, "objtype", lpNotifs[i].info.obj.ulObjType);
+			if (lpNotifs[i].info.obj.lpParentID)
+				add_assoc_stringl(zvalNotif, "parentid", (char *)lpNotifs[i].info.obj.lpParentID, lpNotifs[i].info.obj.cbParentID, 1);
+			if (lpNotifs[i].info.obj.lpOldID)
+				add_assoc_stringl(zvalNotif, "oldid", (char *)lpNotifs[i].info.obj.lpOldID, lpNotifs[i].info.obj.cbOldID, 1);
+			if (lpNotifs[i].info.obj.lpOldParentID)
+				add_assoc_stringl(zvalNotif, "oldparentid", (char *)lpNotifs[i].info.obj.lpOldParentID, lpNotifs[i].info.obj.cbOldParentID, 1);
+			if (lpNotifs[i].info.obj.lpPropTagArray) {
+				MAPI_G(hr) = PropTagArraytoPHPArray(lpNotifs[i].info.obj.lpPropTagArray->cValues, lpNotifs[i].info.obj.lpPropTagArray, &zvalProps TSRMLS_CC);
+				if (MAPI_G(hr) != hrSuccess)
+					return MAPI_G(hr);
+				add_assoc_zval(zvalNotif, "proptagarray", zvalProps);
+			}
+			break;
+		default:
+			break;
 		}
 			
 		add_next_index_zval(zvalRet, zvalNotif);

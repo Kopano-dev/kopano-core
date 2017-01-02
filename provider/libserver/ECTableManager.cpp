@@ -174,15 +174,15 @@ void ECTableManager::AddTableEntry(TABLE_ENTRY *lpEntry, unsigned int *lpulTable
 
 	// Subscribe to events for this table, if needed
 	switch(lpEntry->ulTableType) {
-	    case TABLE_ENTRY::TABLE_TYPE_GENERIC:
+	case TABLE_ENTRY::TABLE_TYPE_GENERIC:
         	lpSession->GetSessionManager()->SubscribeTableEvents(lpEntry->ulTableType,
-																 lpEntry->sTable.sGeneric.ulParentId, lpEntry->sTable.sGeneric.ulObjectType,
-																 lpEntry->sTable.sGeneric.ulObjectFlags, lpSession->GetSessionId());
+			lpEntry->sTable.sGeneric.ulParentId, lpEntry->sTable.sGeneric.ulObjectType,
+			lpEntry->sTable.sGeneric.ulObjectFlags, lpSession->GetSessionId());
         	break;
-	    case TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE:
+	case TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE:
 	        lpSession->GetSessionManager()->SubscribeTableEvents(lpEntry->ulTableType,
-																 lpEntry->sTable.sOutgoingQueue.ulFlags & EC_SUBMIT_MASTER ? 0 : lpEntry->sTable.sOutgoingQueue.ulStoreId,
-																 MAPI_MESSAGE, lpEntry->sTable.sOutgoingQueue.ulFlags, lpSession->GetSessionId());
+			lpEntry->sTable.sOutgoingQueue.ulFlags & EC_SUBMIT_MASTER ? 0 : lpEntry->sTable.sOutgoingQueue.ulStoreId,
+			MAPI_MESSAGE, lpEntry->sTable.sOutgoingQueue.ulFlags, lpSession->GetSessionId());
 	        break;
         default:
             // Other table types don't need updates from other sessions

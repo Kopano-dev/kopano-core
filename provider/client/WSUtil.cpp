@@ -265,57 +265,55 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 			lpDstAction->flags = lpSrcAction->ulFlags;
 
 			switch(lpSrcActions->lpAction[i].acttype) {
-				case OP_MOVE:
-				case OP_COPY:
-					lpDstAction->__union = SOAP_UNION__act_moveCopy;
+			case OP_MOVE:
+			case OP_COPY:
+				lpDstAction->__union = SOAP_UNION__act_moveCopy;
 
-					lpDstAction->act.moveCopy.store.__ptr = new unsigned char [lpSrcAction->actMoveCopy.cbStoreEntryId];
-					memcpy(lpDstAction->act.moveCopy.store.__ptr, lpSrcAction->actMoveCopy.lpStoreEntryId, lpSrcAction->actMoveCopy.cbStoreEntryId);
-					lpDstAction->act.moveCopy.store.__size = lpSrcAction->actMoveCopy.cbStoreEntryId;
+				lpDstAction->act.moveCopy.store.__ptr = new unsigned char [lpSrcAction->actMoveCopy.cbStoreEntryId];
+				memcpy(lpDstAction->act.moveCopy.store.__ptr, lpSrcAction->actMoveCopy.lpStoreEntryId, lpSrcAction->actMoveCopy.cbStoreEntryId);
+				lpDstAction->act.moveCopy.store.__size = lpSrcAction->actMoveCopy.cbStoreEntryId;
 
-					lpDstAction->act.moveCopy.folder.__ptr = new unsigned char [lpSrcAction->actMoveCopy.cbFldEntryId];
-					memcpy(lpDstAction->act.moveCopy.folder.__ptr, lpSrcAction->actMoveCopy.lpFldEntryId, lpSrcAction->actMoveCopy.cbFldEntryId);
-					lpDstAction->act.moveCopy.folder.__size = lpSrcAction->actMoveCopy.cbFldEntryId;
+				lpDstAction->act.moveCopy.folder.__ptr = new unsigned char [lpSrcAction->actMoveCopy.cbFldEntryId];
+				memcpy(lpDstAction->act.moveCopy.folder.__ptr, lpSrcAction->actMoveCopy.lpFldEntryId, lpSrcAction->actMoveCopy.cbFldEntryId);
+				lpDstAction->act.moveCopy.folder.__size = lpSrcAction->actMoveCopy.cbFldEntryId;
 
-					break;
-				case OP_REPLY:
-				case OP_OOF_REPLY:
-					lpDstAction->__union = SOAP_UNION__act_reply;
-					lpDstAction->act.reply.message.__ptr = new unsigned char [lpSrcAction->actReply.cbEntryId];
-					memcpy(lpDstAction->act.reply.message.__ptr, lpSrcAction->actReply.lpEntryId, lpSrcAction->actReply.cbEntryId);
-					lpDstAction->act.reply.message.__size = lpSrcAction->actReply.cbEntryId;
-
-					lpDstAction->act.reply.guid.__size = sizeof(GUID);
-					lpDstAction->act.reply.guid.__ptr = new unsigned char [ sizeof(GUID) ];
-					memcpy(lpDstAction->act.reply.guid.__ptr, &lpSrcAction->actReply.guidReplyTemplate, sizeof(GUID));
-
-					break;
-				case OP_DEFER_ACTION:
-					lpDstAction->__union = SOAP_UNION__act_defer;
-					lpDstAction->act.defer.bin.__ptr = new unsigned char [ lpSrcAction->actDeferAction.cbData ];
-					lpDstAction->act.defer.bin.__size = lpSrcAction->actDeferAction.cbData;
-					memcpy(lpDstAction->act.defer.bin.__ptr,lpSrcAction->actDeferAction.pbData, lpSrcAction->actDeferAction.cbData);
-					break;
-				case OP_BOUNCE:
-					lpDstAction->__union = SOAP_UNION__act_bouncecode;
-					lpDstAction->act.bouncecode = lpSrcAction->scBounceCode;
-					break;
-				case OP_FORWARD:
-				case OP_DELEGATE:
-					lpDstAction->__union = SOAP_UNION__act_adrlist;
-					hr = CopyMAPIRowSetToSOAPRowSet((LPSRowSet)lpSrcAction->lpadrlist, &lpDstAction->act.adrlist, lpConverter);
-					if(hr != hrSuccess)
-						return hr;
-					break;
-				case OP_TAG:
-					lpDstAction->__union = SOAP_UNION__act_prop;
-					lpDstAction->act.prop = new propVal;
-					hr = CopyMAPIPropValToSOAPPropVal(lpDstAction->act.prop, &lpSrcAction->propTag, lpConverter);
-					break;
-				case OP_DELETE:
-				case OP_MARK_AS_READ:
-					// no other data needed
-					break;
+				break;
+			case OP_REPLY:
+			case OP_OOF_REPLY:
+				lpDstAction->__union = SOAP_UNION__act_reply;
+				lpDstAction->act.reply.message.__ptr = new unsigned char[lpSrcAction->actReply.cbEntryId];
+				memcpy(lpDstAction->act.reply.message.__ptr, lpSrcAction->actReply.lpEntryId, lpSrcAction->actReply.cbEntryId);
+				lpDstAction->act.reply.message.__size = lpSrcAction->actReply.cbEntryId;
+				lpDstAction->act.reply.guid.__size = sizeof(GUID);
+				lpDstAction->act.reply.guid.__ptr = new unsigned char[sizeof(GUID)];
+				memcpy(lpDstAction->act.reply.guid.__ptr, &lpSrcAction->actReply.guidReplyTemplate, sizeof(GUID));
+				break;
+			case OP_DEFER_ACTION:
+				lpDstAction->__union = SOAP_UNION__act_defer;
+				lpDstAction->act.defer.bin.__ptr = new unsigned char[lpSrcAction->actDeferAction.cbData];
+				lpDstAction->act.defer.bin.__size = lpSrcAction->actDeferAction.cbData;
+				memcpy(lpDstAction->act.defer.bin.__ptr,lpSrcAction->actDeferAction.pbData, lpSrcAction->actDeferAction.cbData);
+				break;
+			case OP_BOUNCE:
+				lpDstAction->__union = SOAP_UNION__act_bouncecode;
+				lpDstAction->act.bouncecode = lpSrcAction->scBounceCode;
+				break;
+			case OP_FORWARD:
+			case OP_DELEGATE:
+				lpDstAction->__union = SOAP_UNION__act_adrlist;
+				hr = CopyMAPIRowSetToSOAPRowSet((LPSRowSet)lpSrcAction->lpadrlist, &lpDstAction->act.adrlist, lpConverter);
+				if(hr != hrSuccess)
+					return hr;
+				break;
+			case OP_TAG:
+				lpDstAction->__union = SOAP_UNION__act_prop;
+				lpDstAction->act.prop = new propVal;
+				hr = CopyMAPIPropValToSOAPPropVal(lpDstAction->act.prop, &lpSrcAction->propTag, lpConverter);
+				break;
+			case OP_DELETE:
+			case OP_MARK_AS_READ:
+				// no other data needed
+				break;
 			}
 		}
 		break;
@@ -627,59 +625,55 @@ HRESULT CopySOAPPropValToMAPIPropVal(LPSPropValue lpPropValDst,
 				lpDstAction->lpPropTagArray = NULL;
 
 				switch(lpSrcAction->acttype) {
-					case OP_MOVE:
-					case OP_COPY:
-						lpDstAction->actMoveCopy.cbStoreEntryId = lpSrcAction->act.moveCopy.store.__size;
-						ECAllocateMore(lpSrcAction->act.moveCopy.store.__size, lpBase, (void **)&lpDstAction->actMoveCopy.lpStoreEntryId);
-						memcpy(lpDstAction->actMoveCopy.lpStoreEntryId, lpSrcAction->act.moveCopy.store.__ptr, lpSrcAction->act.moveCopy.store.__size);
+				case OP_MOVE:
+				case OP_COPY:
+					lpDstAction->actMoveCopy.cbStoreEntryId = lpSrcAction->act.moveCopy.store.__size;
+					ECAllocateMore(lpSrcAction->act.moveCopy.store.__size, lpBase, (void **)&lpDstAction->actMoveCopy.lpStoreEntryId);
+					memcpy(lpDstAction->actMoveCopy.lpStoreEntryId, lpSrcAction->act.moveCopy.store.__ptr, lpSrcAction->act.moveCopy.store.__size);
+					lpDstAction->actMoveCopy.cbFldEntryId = lpSrcAction->act.moveCopy.folder.__size;
+					ECAllocateMore(lpSrcAction->act.moveCopy.folder.__size, lpBase, (void **)&lpDstAction->actMoveCopy.lpFldEntryId);
+					memcpy(lpDstAction->actMoveCopy.lpFldEntryId, lpSrcAction->act.moveCopy.folder.__ptr, lpSrcAction->act.moveCopy.folder.__size);
+					break;
+				case OP_REPLY:
+				case OP_OOF_REPLY:
+					lpDstAction->actReply.cbEntryId = lpSrcAction->act.reply.message.__size;
+					ECAllocateMore(lpSrcAction->act.reply.message.__size, lpBase, (void **)&lpDstAction->actReply.lpEntryId);
+					memcpy(lpDstAction->actReply.lpEntryId, lpSrcAction->act.reply.message.__ptr, lpSrcAction->act.reply.message.__size);
+					if (lpSrcAction->act.reply.guid.__size != sizeof(GUID))
+						return MAPI_E_CORRUPT_DATA;
+					memcpy(&lpDstAction->actReply.guidReplyTemplate, lpSrcAction->act.reply.guid.__ptr, lpSrcAction->act.reply.guid.__size);
+					break;
+				case OP_DEFER_ACTION:
+					ECAllocateMore(lpSrcAction->act.defer.bin.__size, lpBase, (void **)&lpDstAction->actDeferAction.pbData);
+					lpDstAction->actDeferAction.cbData = lpSrcAction->act.defer.bin.__size;
+					memcpy(lpDstAction->actDeferAction.pbData, lpSrcAction->act.defer.bin.__ptr,lpSrcAction->act.defer.bin.__size);
+					break;
+				case OP_BOUNCE:
+					lpDstAction->scBounceCode = lpSrcAction->act.bouncecode;
+					break;
+				case OP_FORWARD:
+				case OP_DELEGATE:
+					if (lpSrcAction->act.adrlist == NULL)
+						return MAPI_E_CORRUPT_DATA;
 
-						lpDstAction->actMoveCopy.cbFldEntryId = lpSrcAction->act.moveCopy.folder.__size;
-						ECAllocateMore(lpSrcAction->act.moveCopy.folder.__size, lpBase, (void **)&lpDstAction->actMoveCopy.lpFldEntryId);
-						memcpy(lpDstAction->actMoveCopy.lpFldEntryId, lpSrcAction->act.moveCopy.folder.__ptr, lpSrcAction->act.moveCopy.folder.__size);
-						break;
-					case OP_REPLY:
-					case OP_OOF_REPLY:
-						lpDstAction->actReply.cbEntryId = lpSrcAction->act.reply.message.__size;
-						ECAllocateMore(lpSrcAction->act.reply.message.__size, lpBase, (void **)&lpDstAction->actReply.lpEntryId);
-						memcpy(lpDstAction->actReply.lpEntryId, lpSrcAction->act.reply.message.__ptr, lpSrcAction->act.reply.message.__size);
+					ECAllocateMore(CbNewADRLIST(lpSrcAction->act.adrlist->__size), lpBase, reinterpret_cast<void **>(&lpDstAction->lpadrlist));
+					lpDstAction->lpadrlist->cEntries = lpSrcAction->act.adrlist->__size;
 
-						if (lpSrcAction->act.reply.guid.__size != sizeof(GUID))
-							return MAPI_E_CORRUPT_DATA;
-						memcpy(&lpDstAction->actReply.guidReplyTemplate, lpSrcAction->act.reply.guid.__ptr, lpSrcAction->act.reply.guid.__size);
-						break;
-					case OP_DEFER_ACTION:
-						ECAllocateMore(lpSrcAction->act.defer.bin.__size, lpBase, (void **)&lpDstAction->actDeferAction.pbData);
-						lpDstAction->actDeferAction.cbData = lpSrcAction->act.defer.bin.__size;
-						memcpy(lpDstAction->actDeferAction.pbData, lpSrcAction->act.defer.bin.__ptr,lpSrcAction->act.defer.bin.__size);
-						break;
-					case OP_BOUNCE:
-						lpDstAction->scBounceCode = lpSrcAction->act.bouncecode;
-						break;
-					case OP_FORWARD:
-					case OP_DELEGATE:
-						if (lpSrcAction->act.adrlist == NULL)
-							return MAPI_E_CORRUPT_DATA;
+					for (gsoap_size_t j = 0; j < lpSrcAction->act.adrlist->__size; ++j) {
+						lpDstAction->lpadrlist->aEntries[j].ulReserved1 = 0;
+						lpDstAction->lpadrlist->aEntries[j].cValues = lpSrcAction->act.adrlist->__ptr[j].__size;
 
-						ECAllocateMore(CbNewADRLIST(lpSrcAction->act.adrlist->__size), lpBase, reinterpret_cast<void **>(&lpDstAction->lpadrlist));
-						lpDstAction->lpadrlist->cEntries = lpSrcAction->act.adrlist->__size;
-
-						for (gsoap_size_t j = 0; j < lpSrcAction->act.adrlist->__size; ++j) {
-							lpDstAction->lpadrlist->aEntries[j].ulReserved1 = 0;
-							lpDstAction->lpadrlist->aEntries[j].cValues = lpSrcAction->act.adrlist->__ptr[j].__size;
-
-							// new rowset allocate more on old rowset, so we can just call FreeProws once
-							ECAllocateMore(sizeof(SPropValue) * lpSrcAction->act.adrlist->__ptr[j].__size, lpBase, (void **)&lpDstAction->lpadrlist->aEntries[j].rgPropVals);
-
-							hr = CopySOAPRowToMAPIRow(&lpSrcAction->act.adrlist->__ptr[j], lpDstAction->lpadrlist->aEntries[j].rgPropVals, lpBase, lpConverter);
-							if(hr != hrSuccess)
-								return hr;
-						}
-						// FIXME rowset is not coupled to action -> leaks!
-
-						break;
-					case OP_TAG:
-						hr = CopySOAPPropValToMAPIPropVal(&lpDstAction->propTag, lpSrcAction->act.prop, lpBase, lpConverter);
-						break;
+						// new rowset allocate more on old rowset, so we can just call FreeProws once
+						ECAllocateMore(sizeof(SPropValue) * lpSrcAction->act.adrlist->__ptr[j].__size, lpBase, (void **)&lpDstAction->lpadrlist->aEntries[j].rgPropVals);
+						hr = CopySOAPRowToMAPIRow(&lpSrcAction->act.adrlist->__ptr[j], lpDstAction->lpadrlist->aEntries[j].rgPropVals, lpBase, lpConverter);
+						if (hr != hrSuccess)
+							return hr;
+					}
+					// FIXME rowset is not coupled to action -> leaks!
+					break;
+				case OP_TAG:
+					hr = CopySOAPPropValToMAPIPropVal(&lpDstAction->propTag, lpSrcAction->act.prop, lpBase, lpConverter);
+					break;
 				}
 			}
 		}else {
@@ -716,31 +710,31 @@ HRESULT CopySOAPRowToMAPIRow(void *lpProvider,
 			continue;
 
 		switch(ulType) {
-			case MAPI_FOLDER:
-				// Then, try the specialized TableRowGetProp for the type of table we're handling
-				if(ECMAPIFolder::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
-					continue;
-				break;
-			case MAPI_MESSAGE:
-				if(ECMessage::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
-					continue;
-				break;
-			case MAPI_MAILUSER:
-				if(ECMailUser::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
-					continue;
-				break;
-			case MAPI_DISTLIST:
-				if(ECDistList::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
-					continue;
-				break;
-			case MAPI_ABCONT:
-				if(ECABContainer::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
-					continue;
-				break;
-			case MAPI_STORE:
-				if (ECMsgStore::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
-					continue;
-				break;
+		case MAPI_FOLDER:
+			// Then, try the specialized TableRowGetProp for the type of table we're handling
+			if (ECMAPIFolder::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
+				continue;
+			break;
+		case MAPI_MESSAGE:
+			if (ECMessage::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
+				continue;
+			break;
+		case MAPI_MAILUSER:
+			if (ECMailUser::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
+				continue;
+			break;
+		case MAPI_DISTLIST:
+			if (ECDistList::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
+				continue;
+			break;
+		case MAPI_ABCONT:
+			if (ECABContainer::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
+				continue;
+			break;
+		case MAPI_STORE:
+			if (ECMsgStore::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
+				continue;
+			break;
 		}
 
 		if (ECGenericProp::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
@@ -2206,89 +2200,81 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notifica
 	lpNotification->ulEventType = lpSrc->ulEventType;
 
 	switch(lpSrc->ulEventType){
-		case fnevCriticalError:// ERROR_NOTIFICATION
-			hr = MAPI_E_INVALID_PARAMETER;
-			break;
-		case fnevNewMail://NEWMAIL_NOTIFICATION
-			if (lpSrc->newmail->pEntryId != nullptr)
-				// Ignore error now
-				// FIXME: This must exist, so maybe give an error or skip them
-				CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pEntryId, &lpNotification->info.newmail.cbEntryID, &lpNotification->info.newmail.lpEntryID, (void **)lpNotification);
-			if (lpSrc->newmail->pParentId != nullptr)
-				// Ignore error
-				CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pParentId, &lpNotification->info.newmail.cbParentID, &lpNotification->info.newmail.lpParentID, (void **)lpNotification);
+	case fnevCriticalError:// ERROR_NOTIFICATION
+		hr = MAPI_E_INVALID_PARAMETER;
+		break;
+	case fnevNewMail://NEWMAIL_NOTIFICATION
+		if (lpSrc->newmail->pEntryId != nullptr)
+			// Ignore error now
+			// FIXME: This must exist, so maybe give an error or skip them
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pEntryId, &lpNotification->info.newmail.cbEntryID, &lpNotification->info.newmail.lpEntryID, (void **)lpNotification);
+		if (lpSrc->newmail->pParentId != nullptr)
+			// Ignore error
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pParentId, &lpNotification->info.newmail.cbParentID, &lpNotification->info.newmail.lpParentID, (void **)lpNotification);
+		if(lpSrc->newmail->lpszMessageClass != NULL) {
+			nLen = strlen(lpSrc->newmail->lpszMessageClass)+1;
+			ECAllocateMore(nLen, lpNotification, (void**)&lpNotification->info.newmail.lpszMessageClass);
+			memcpy(lpNotification->info.newmail.lpszMessageClass, lpSrc->newmail->lpszMessageClass, nLen);
+		}
+		lpNotification->info.newmail.ulFlags = 0;
+		lpNotification->info.newmail.ulMessageFlags = lpSrc->newmail->ulMessageFlags;
+		break;
+	case fnevObjectCreated:// OBJECT_NOTIFICATION
+	case fnevObjectDeleted:
+	case fnevObjectModified:
+	case fnevObjectCopied:
+	case fnevObjectMoved:
+	case fnevSearchComplete:
+		// FIXME for each if statement below, check the ELSE .. we can't send a TABLE_ROW_ADDED without lpProps for example ..
+		lpNotification->info.obj.ulObjType = lpSrc->obj->ulObjType;
 
-			if(lpSrc->newmail->lpszMessageClass != NULL) {
-				nLen = strlen(lpSrc->newmail->lpszMessageClass)+1;
-				ECAllocateMore(nLen, lpNotification, (void**)&lpNotification->info.newmail.lpszMessageClass);
-				memcpy(lpNotification->info.newmail.lpszMessageClass, lpSrc->newmail->lpszMessageClass, nLen);
-			}
+		// All errors of CopySOAPEntryIdToMAPIEntryId are ignored
+		if (lpSrc->obj->pEntryId != NULL)
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pEntryId, &lpNotification->info.obj.cbEntryID, &lpNotification->info.obj.lpEntryID, (void **)lpNotification);
+		if (lpSrc->obj->pParentId != NULL)
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pParentId, &lpNotification->info.obj.cbParentID, &lpNotification->info.obj.lpParentID, (void **)lpNotification);
+		if (lpSrc->obj->pOldId != NULL)
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldId, &lpNotification->info.obj.cbOldID, &lpNotification->info.obj.lpOldID, (void **)lpNotification);
+		if (lpSrc->obj->pOldParentId != NULL)
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldParentId, &lpNotification->info.obj.cbOldParentID, &lpNotification->info.obj.lpOldParentID, (void **)lpNotification);
+		if (lpSrc->obj->pPropTagArray != nullptr)
+			// ignore errors
+			CopySOAPPropTagArrayToMAPIPropTagArray(lpSrc->obj->pPropTagArray, &lpNotification->info.obj.lpPropTagArray, (void **)lpNotification);
+		break;
+	case fnevTableModified:// TABLE_NOTIFICATION
+		lpNotification->info.tab.ulTableEvent = lpSrc->tab->ulTableEvent;
+		lpNotification->info.tab.propIndex.ulPropTag = lpSrc->tab->propIndex.ulPropTag;
 
-			lpNotification->info.newmail.ulFlags = 0;
-			lpNotification->info.newmail.ulMessageFlags = lpSrc->newmail->ulMessageFlags;
+		if (lpSrc->tab->propIndex.Value.bin){
+			lpNotification->info.tab.propIndex.Value.bin.cb = lpSrc->tab->propIndex.Value.bin->__size;
+			ECAllocateMore(lpNotification->info.tab.propIndex.Value.bin.cb, lpNotification, (void**)&lpNotification->info.tab.propIndex.Value.bin.lpb);
+			memcpy(lpNotification->info.tab.propIndex.Value.bin.lpb, lpSrc->tab->propIndex.Value.bin->__ptr, lpSrc->tab->propIndex.Value.bin->__size);
+		}
 
-			break;
-		case fnevObjectCreated:// OBJECT_NOTIFICATION
-		case fnevObjectDeleted:
-		case fnevObjectModified:
-		case fnevObjectCopied:
-		case fnevObjectMoved:
-		case fnevSearchComplete:
-			// FIXME for each if statement below, check the ELSE .. we can't send a TABLE_ROW_ADDED without lpProps for example ..
-			lpNotification->info.obj.ulObjType = lpSrc->obj->ulObjType;
+		lpNotification->info.tab.propPrior.ulPropTag = lpSrc->tab->propPrior.ulPropTag;
 
-			// All errors of CopySOAPEntryIdToMAPIEntryId are ignored
-			if (lpSrc->obj->pEntryId != NULL)
-				CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pEntryId, &lpNotification->info.obj.cbEntryID, &lpNotification->info.obj.lpEntryID, (void **)lpNotification);
-			if (lpSrc->obj->pParentId != NULL)
-				CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pParentId, &lpNotification->info.obj.cbParentID, &lpNotification->info.obj.lpParentID, (void **)lpNotification);
-			if (lpSrc->obj->pOldId != NULL)
-				CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldId, &lpNotification->info.obj.cbOldID, &lpNotification->info.obj.lpOldID, (void **)lpNotification);
-			if (lpSrc->obj->pOldParentId != NULL)
-				CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldParentId, &lpNotification->info.obj.cbOldParentID, &lpNotification->info.obj.lpOldParentID, (void **)lpNotification);
-			if (lpSrc->obj->pPropTagArray != nullptr)
-				// ignore errors
-				CopySOAPPropTagArrayToMAPIPropTagArray(lpSrc->obj->pPropTagArray, &lpNotification->info.obj.lpPropTagArray, (void **)lpNotification);
-			break;
-		case fnevTableModified:// TABLE_NOTIFICATION
-			lpNotification->info.tab.ulTableEvent = lpSrc->tab->ulTableEvent;
-			lpNotification->info.tab.propIndex.ulPropTag = lpSrc->tab->propIndex.ulPropTag;
+		if (lpSrc->tab->propPrior.Value.bin){
+			lpNotification->info.tab.propPrior.Value.bin.cb = lpSrc->tab->propPrior.Value.bin->__size;
+			ECAllocateMore(lpNotification->info.tab.propPrior.Value.bin.cb, lpNotification, (void**)&lpNotification->info.tab.propPrior.Value.bin.lpb);
+			memcpy(lpNotification->info.tab.propPrior.Value.bin.lpb, lpSrc->tab->propPrior.Value.bin->__ptr, lpSrc->tab->propPrior.Value.bin->__size);
+		}
 
-			if(lpSrc->tab->propIndex.Value.bin){
-				lpNotification->info.tab.propIndex.Value.bin.cb = lpSrc->tab->propIndex.Value.bin->__size;
-				ECAllocateMore(lpNotification->info.tab.propIndex.Value.bin.cb, lpNotification, (void**)&lpNotification->info.tab.propIndex.Value.bin.lpb);
-
-				memcpy(lpNotification->info.tab.propIndex.Value.bin.lpb, lpSrc->tab->propIndex.Value.bin->__ptr, lpSrc->tab->propIndex.Value.bin->__size);
-			}
-
-			lpNotification->info.tab.propPrior.ulPropTag = lpSrc->tab->propPrior.ulPropTag;
-
-			if(lpSrc->tab->propPrior.Value.bin){
-				lpNotification->info.tab.propPrior.Value.bin.cb = lpSrc->tab->propPrior.Value.bin->__size;
-				ECAllocateMore(lpNotification->info.tab.propPrior.Value.bin.cb, lpNotification, (void**)&lpNotification->info.tab.propPrior.Value.bin.lpb);
-
-				memcpy(lpNotification->info.tab.propPrior.Value.bin.lpb, lpSrc->tab->propPrior.Value.bin->__ptr, lpSrc->tab->propPrior.Value.bin->__size);
-			}
-
-			if(lpSrc->tab->pRow)
-			{
-
-				lpNotification->info.tab.row.cValues = lpSrc->tab->pRow->__size;
-				ECAllocateMore(sizeof(SPropValue)*lpNotification->info.tab.row.cValues, lpNotification, (void**)&lpNotification->info.tab.row.lpProps);
-
-				CopySOAPRowToMAPIRow(lpProvider, lpSrc->tab->pRow, lpNotification->info.tab.row.lpProps, (void **)lpNotification, lpSrc->tab->ulObjType, lpConverter);
-
-			}
-			break;
-		case fnevStatusObjectModified: // STATUS_OBJECT_NOTIFICATION
-			hr = MAPI_E_INVALID_PARAMETER;
-			break;
-		case fnevExtended: // EXTENDED_NOTIFICATION
-			hr = MAPI_E_INVALID_PARAMETER;
-			break;
-		default:
-			hr = MAPI_E_INVALID_PARAMETER;
-			break;
+		if(lpSrc->tab->pRow)
+		{
+			lpNotification->info.tab.row.cValues = lpSrc->tab->pRow->__size;
+			ECAllocateMore(sizeof(SPropValue)*lpNotification->info.tab.row.cValues, lpNotification, (void**)&lpNotification->info.tab.row.lpProps);
+			CopySOAPRowToMAPIRow(lpProvider, lpSrc->tab->pRow, lpNotification->info.tab.row.lpProps, (void **)lpNotification, lpSrc->tab->ulObjType, lpConverter);
+		}
+		break;
+	case fnevStatusObjectModified: // STATUS_OBJECT_NOTIFICATION
+		hr = MAPI_E_INVALID_PARAMETER;
+		break;
+	case fnevExtended: // EXTENDED_NOTIFICATION
+		hr = MAPI_E_INVALID_PARAMETER;
+		break;
+	default:
+		hr = MAPI_E_INVALID_PARAMETER;
+		break;
 	}
 
 	if(hr != hrSuccess)

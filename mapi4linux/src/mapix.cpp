@@ -674,13 +674,13 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(LPMAPIUID lpUID) {
 	scoped_rlock l_srv(m_mutexserviceadmin);
 
 	for (i = services.begin(); i != services.end(); ++i) {
-		if (memcmp(&(*i)->muid, lpUID, sizeof(MAPIUID)) == 0) {
-			name = (*i)->servicename;
-			(*i)->provideradmin->Release();
-			delete *i;
-			services.erase(i);
-			break;
-		}
+		if (memcmp(&(*i)->muid, lpUID, sizeof(MAPIUID)) != 0)
+			continue;
+		name = (*i)->servicename;
+		(*i)->provideradmin->Release();
+		delete *i;
+		services.erase(i);
+		break;
 	}
     
     if(name.empty()) {
@@ -691,14 +691,14 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(LPMAPIUID lpUID) {
     
     p = providers.begin();
     while (p != providers.end()) {
-		if ((*p)->servicename == name) {
-			pNext = p;
-			++pNext;
-			(*p)->profilesection->Release();
-			delete *p;
-			providers.erase(p);
-			p = pNext;
-		}
+		if ((*p)->servicename != name)
+			continue;
+		pNext = p;
+		++pNext;
+		(*p)->profilesection->Release();
+		delete *p;
+		providers.erase(p);
+		p = pNext;
     }
 
 exit:
@@ -787,7 +787,6 @@ HRESULT M4LMsgServiceAdmin::OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterfa
 
 	if(lpUID && memcmp(lpUID, pbGlobalProfileSectionGuid, sizeof(MAPIUID)) == 0) {
 		hr = this->profilesection->QueryInterface( (lpInterface)?*lpInterface:IID_IProfSect, (void**)lppProfSect);
-		goto exit;
 	} else if (lpUID && memcmp(lpUID, &MUID_PROFILE_INSTANCE, sizeof(MAPIUID)) == 0) {
 		// hack to support MUID_PROFILE_INSTANCE
 		*lppProfSect = new M4LProfSect();
@@ -812,29 +811,20 @@ HRESULT M4LMsgServiceAdmin::OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterfa
 			ec_log_err("M4LMsgServiceAdmin::OpenProfileSection(): SetProps fail %x: %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
 		}
-		
-		goto exit;
+	} else if (lpUID == nullptr) {
+		// Profile section NULL, create a temporary profile section that will be discarded
+		*lppProfSect = new M4LProfSect();
+		(*lppProfSect)->AddRef();
 	} else {
-		if (lpUID)
-			entry = findProvider(lpUID);
-		else {
-			// Profile section NULL, create a temporary profile section that will be discarded
-			*lppProfSect = new M4LProfSect();
-			(*lppProfSect)->AddRef();
-
+		entry = findProvider(lpUID);
+		if (!entry) {
+			hr = MAPI_E_NOT_FOUND;
 			goto exit;
 		}
+		hr = entry->profilesection->QueryInterface((lpInterface) ? *lpInterface : IID_IProfSect, (void **)lppProfSect);
+		if (hr != hrSuccess)
+			ec_log_err("M4LMsgServiceAdmin::OpenProfileSection(): QueryInterface fail(2) %x: %s", hr, GetMAPIErrorMessage(hr));
 	}
-
-	if (!entry) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	hr = entry->profilesection->QueryInterface( (lpInterface)?*lpInterface:IID_IProfSect, (void**)lppProfSect);
-	if (hr != hrSuccess)
-		ec_log_err("M4LMsgServiceAdmin::OpenProfileSection(): QueryInterface fail(2) %x: %s", hr, GetMAPIErrorMessage(hr));
-
 exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMsgServiceAdmin::OpenProfileSection", "0x%08x", hr);
     return hr;
@@ -1184,13 +1174,12 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 			
 		if(lpsRows->cRows != 1)
 			break;
-			
-		if(lpsRows->aRow[0].lpProps[0].ulPropTag == PR_RECORD_KEY && 
-			lpsRows->aRow[0].lpProps[0].Value.bin.cb == sizeof(GUID) &&
-		   memcmp(lpsRows->aRow[0].lpProps[0].Value.bin.lpb, reinterpret_cast<char *>(lpStoreEntryID.get()) + 4, sizeof(GUID)) == 0) {
-				// Found it
-				memcpy(&sProviderUID, lpsRows->aRow[0].lpProps[1].Value.bin.lpb, sizeof(MAPIUID));
-				break;
+		if (lpsRows->aRow[0].lpProps[0].ulPropTag == PR_RECORD_KEY && 
+		    lpsRows->aRow[0].lpProps[0].Value.bin.cb == sizeof(GUID) &&
+		    memcmp(lpsRows->aRow[0].lpProps[0].Value.bin.lpb, reinterpret_cast<char *>(lpStoreEntryID.get()) + 4, sizeof(GUID)) == 0) {
+			// Found it
+			memcpy(&sProviderUID, lpsRows->aRow[0].lpProps[1].Value.bin.lpb, sizeof(MAPIUID));
+			break;
 			
 		}
 		FreeProws(lpsRows);

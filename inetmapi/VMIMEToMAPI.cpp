@@ -3128,62 +3128,62 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 			// Set the values depending on the type
 			switch(rec.ulRecurFrequency) {
-				case RF_DAILY:
-					if (rec.ulPatternType == PT_DAY) {
-						// Daily
-						sMeetingProps[4].Value.i = rec.ulPeriod / 1440; // DayInterval
-						sMeetingProps[11].Value.i = 64;					// RecurrenceType
-					} else {
-						// Every workday, actually a weekly recurrence (weekly every workday)
-						sMeetingProps[5].Value.i = 1;					// WeekInterval
-						sMeetingProps[8].Value.ul = 62; // Mo-Fri
-						sMeetingProps[11].Value.i = 48;	// Weekly	
-					}
-					break;
-				case RF_WEEKLY:
-					sMeetingProps[5].Value.i = rec.ulPeriod;			// WeekInterval
-					sMeetingProps[8].Value.ul = rec.ulWeekDays;			// DayOfWeekMask
-					sMeetingProps[11].Value.i = 48;						// RecurrenceType
-					break;
-				case RF_MONTHLY:
-					sMeetingProps[6].Value.i = rec.ulPeriod;			// MonthInterval
-					if (rec.ulPatternType == PT_MONTH_NTH) { // Every Nth [weekday] of the month
-						sMeetingProps[5].Value.ul = rec.ulWeekNumber;	// WeekInterval
-						sMeetingProps[8].Value.ul = rec.ulWeekDays;		// DayOfWeekMask
-						sMeetingProps[11].Value.i = 56;					// RecurrenceType
-					} else {
-						sMeetingProps[9].Value.ul = 1 << (rec.ulDayOfMonth-1); // day of month 1..31 mask
-						sMeetingProps[11].Value.i = 12;					// RecurrenceType
-					}
-					break;
-				case RF_YEARLY:
-					sMeetingProps[6].Value.i = rec.ulPeriod;			// YearInterval
-					sMeetingProps[7].Value.i = rec.ulPeriod / 12;		// MonthInterval
-					/*
-					 * The following calculation is needed because the month of the year is encoded as minutes since
-					 * the beginning of a (non-leap-year) year until the beginning of the month. We can therefore 
-					 * divide the minutes by the minimum number of minutes in one month (24*60*29) and round down 
-					 * (which is automatic since it is an int), giving us month 0-11.
-					 *
-					 * Put a different way, lets just ASSUME each month has 29 days. Let X be the minute-offset, and M the
-					 * month (0-11), then M = X/(24*60*29). In real life though, some months have more than 29 days, so X will
-					 * actually be larger. Due to rounding, this keeps working until we have more then 29 days of error. In a 
-					 * year, you will have a maximum of 17 ((31-29)+(29-29)+(31-29)+(30-29)...etc) days of error which is under
-					 * so this formula always gives a correct value if 0 < M < 12.
-					 */
-					sMeetingProps[10].Value.ul = 1 << ((rec.ulFirstDateTime/(24*60*29)) % 12); // month of year (minutes since beginning of the year)
-					
-					if (rec.ulPatternType == PT_MONTH_NTH) { // Every Nth [weekday] in Month X
-						sMeetingProps[5].Value.ul = rec.ulWeekNumber;	// WeekInterval
-						sMeetingProps[8].Value.ul = rec.ulWeekDays;		// DayOfWeekMask
-						sMeetingProps[11].Value.i = 51;					// RecurrenceType
-					} else {
-						sMeetingProps[9].Value.ul = 1 << (rec.ulDayOfMonth-1); // day of month 1..31 mask
-						sMeetingProps[11].Value.i = 7;					// RecurrenceType
-					}
-					break;
-				default:
-					break;
+			case RF_DAILY:
+				if (rec.ulPatternType == PT_DAY) {
+					// Daily
+					sMeetingProps[4].Value.i = rec.ulPeriod / 1440; // DayInterval
+					sMeetingProps[11].Value.i = 64; // RecurrenceType
+				} else {
+					// Every workday, actually a weekly recurrence (weekly every workday)
+					sMeetingProps[5].Value.i = 1; // WeekInterval
+					sMeetingProps[8].Value.ul = 62; // Mo-Fri
+					sMeetingProps[11].Value.i = 48; // Weekly
+				}
+				break;
+			case RF_WEEKLY:
+				sMeetingProps[5].Value.i = rec.ulPeriod; // WeekInterval
+				sMeetingProps[8].Value.ul = rec.ulWeekDays; // DayOfWeekMask
+				sMeetingProps[11].Value.i = 48; // RecurrenceType
+				break;
+			case RF_MONTHLY:
+				sMeetingProps[6].Value.i = rec.ulPeriod; // MonthInterval
+				if (rec.ulPatternType == PT_MONTH_NTH) { // Every Nth [weekday] of the month
+					sMeetingProps[5].Value.ul = rec.ulWeekNumber; // WeekInterval
+					sMeetingProps[8].Value.ul = rec.ulWeekDays; // DayOfWeekMask
+					sMeetingProps[11].Value.i = 56; // RecurrenceType
+				} else {
+					sMeetingProps[9].Value.ul = 1 << (rec.ulDayOfMonth - 1); // day of month 1..31 mask
+					sMeetingProps[11].Value.i = 12; // RecurrenceType
+				}
+				break;
+			case RF_YEARLY:
+				sMeetingProps[6].Value.i = rec.ulPeriod; // YearInterval
+				sMeetingProps[7].Value.i = rec.ulPeriod / 12; // MonthInterval
+				/*
+				 * The following calculation is needed because the month of the year is encoded as minutes since
+				 * the beginning of a (non-leap-year) year until the beginning of the month. We can therefore
+				 * divide the minutes by the minimum number of minutes in one month (24*60*29) and round down
+				 * (which is automatic since it is an int), giving us month 0-11.
+				 *
+				 * Put a different way, lets just ASSUME each month has 29 days. Let X be the minute-offset, and M the
+				 * month (0-11), then M = X/(24*60*29). In real life though, some months have more than 29 days, so X will
+				 * actually be larger. Due to rounding, this keeps working until we have more then 29 days of error. In a
+				 * year, you will have a maximum of 17 ((31-29)+(29-29)+(31-29)+(30-29)...etc) days of error which is under
+				 * so this formula always gives a correct value if 0 < M < 12.
+				 */
+				sMeetingProps[10].Value.ul = 1 << ((rec.ulFirstDateTime/(24*60*29)) % 12); // month of year (minutes since beginning of the year)
+
+				if (rec.ulPatternType == PT_MONTH_NTH) { // Every Nth [weekday] in Month X
+					sMeetingProps[5].Value.ul = rec.ulWeekNumber; // WeekInterval
+					sMeetingProps[8].Value.ul = rec.ulWeekDays; // DayOfWeekMask
+					sMeetingProps[11].Value.i = 51; // RecurrenceType
+				} else {
+					sMeetingProps[9].Value.ul = 1 << (rec.ulDayOfMonth - 1); // day of month 1..31 mask
+					sMeetingProps[11].Value.i = 7; // RecurrenceType
+				}
+				break;
+			default:
+				break;
 			}
 			
 			hr = lpMessage->SetProps(14, sMeetingProps, NULL);

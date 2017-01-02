@@ -422,37 +422,37 @@ std::string urlEncode(const std::string &input)
 
 	output.reserve(input.length());
 	for (size_t i = 0; i < input.length(); ++i) {
-		if (input[i] <= 127) {
-			switch (input[i]) {
-			case ':':
-			case '/':
-			case '?':
-			case '#':
-			case '[':
-			case ']':
-			case '@':
-			case '!':
-			case '$':
-			case '&':
-			case '\'':
-			case '(':
-			case ')':
-			case '*':
-			case '+':
-			case ',':
-			case ';':
-			case '=':
-				output += '%';
-				output += digits[input[i]>>4];
-				output += digits[input[i]&0x0F];
-				break;
-			default:
-				output += input[i];
-			}
-		} else {
+		if (input[i] >= 128) {
 			output += '%';
-			output += digits[input[i]>>4];
-			output += digits[input[i]&0x0F];
+			output += digits[input[i] >> 4];
+			output += digits[input[i] & 0x0F];
+			continue;
+		}
+		switch (input[i]) {
+		case ':':
+		case '/':
+		case '?':
+		case '#':
+		case '[':
+		case ']':
+		case '@':
+		case '!':
+		case '$':
+		case '&':
+		case '\'':
+		case '(':
+		case ')':
+		case '*':
+		case '+':
+		case ',':
+		case ';':
+		case '=':
+			output += '%';
+			output += digits[input[i] >> 4];
+			output += digits[input[i] & 0x0F];
+			break;
+		default:
+			output += input[i];
 		}
 	}
 

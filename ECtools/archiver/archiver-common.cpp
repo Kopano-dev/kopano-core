@@ -109,11 +109,11 @@ int abentryid_t::compare(const abentryid_t &other) const
 eResult MAPIErrorToArchiveError(HRESULT hr)
 {
 	switch (hr) {
-		case hrSuccess:					return Success;
-		case MAPI_E_NOT_ENOUGH_MEMORY:	return OutOfMemory;
-		case MAPI_E_INVALID_PARAMETER:	return InvalidParameter;
-		case MAPI_W_PARTIAL_COMPLETION:	return PartialCompletion;
-		default: 						return Failure;
+	case hrSuccess:			return Success;
+	case MAPI_E_NOT_ENOUGH_MEMORY:	return OutOfMemory;
+	case MAPI_E_INVALID_PARAMETER:	return InvalidParameter;
+	case MAPI_W_PARTIAL_COMPLETION:	return PartialCompletion;
+	default:			return Failure;
 	}
 }
 

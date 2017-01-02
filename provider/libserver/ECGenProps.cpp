@@ -52,34 +52,34 @@ ECRESULT ECGenProps::GetMVPropSubquery(unsigned int ulPropTagRequested, std::str
 
 	//skip MV_INSTANCE
 	switch(ulType) {
-		case PT_MV_I2:
-		case PT_MV_LONG:
-			subquery = "SELECT concat(count(*), ':', group_concat(length(val_ulong),':',val_ulong ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		case PT_MV_R4:
-		case PT_MV_DOUBLE:
-		case PT_MV_APPTIME:
-			subquery = "SELECT concat(count(*), ':', group_concat(length(val_double),':',val_double ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		case PT_MV_CURRENCY:
-		case PT_MV_SYSTIME:
-			subquery = "SELECT group_concat(count(*),':',length(val_hi),':',val_hi ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			subquery += "),(SELECT group_concat(count(*),':',length(val_lo),':',val_lo ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		case PT_MV_BINARY:
-		case PT_MV_CLSID:
-			subquery = "SELECT concat(count(*), ':', group_concat(length(val_binary),':',val_binary ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		case PT_MV_STRING8:
-		case PT_MV_UNICODE:
-			subquery = "SELECT concat(count(*), ':', group_concat(char_length(val_string),':',val_string ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		case PT_MV_I8:
-			subquery = "SELECT concat(count(*), ':', group_concat(length(val_longint),':',val_longint ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		default:
-			er = KCERR_NOT_FOUND;
-			break;
+	case PT_MV_I2:
+	case PT_MV_LONG:
+		subquery = "SELECT concat(count(*), ':', group_concat(length(val_ulong),':',val_ulong ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	case PT_MV_R4:
+	case PT_MV_DOUBLE:
+	case PT_MV_APPTIME:
+		subquery = "SELECT concat(count(*), ':', group_concat(length(val_double),':',val_double ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	case PT_MV_CURRENCY:
+	case PT_MV_SYSTIME:
+		subquery = "SELECT group_concat(count(*),':',length(val_hi),':',val_hi ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		subquery += "),(SELECT group_concat(count(*),':',length(val_lo),':',val_lo ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	case PT_MV_BINARY:
+	case PT_MV_CLSID:
+		subquery = "SELECT concat(count(*), ':', group_concat(length(val_binary),':',val_binary ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	case PT_MV_STRING8:
+	case PT_MV_UNICODE:
+		subquery = "SELECT concat(count(*), ':', group_concat(char_length(val_string),':',val_string ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	case PT_MV_I8:
+		subquery = "SELECT concat(count(*), ':', group_concat(length(val_longint),':',val_longint ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	default:
+		er = KCERR_NOT_FOUND;
+		break;
 	}
 	
 
@@ -137,17 +137,17 @@ ECRESULT ECGenProps::GetPropSubstitute(unsigned int ulObjType, unsigned int ulPr
 	unsigned int ulPropTagRequired = 0;
 
 	switch(PROP_ID(ulPropTagRequested)) {
-		case PROP_ID(PR_NORMALIZED_SUBJECT):
-			ulPropTagRequired = PR_SUBJECT;
-			break;
-		case PROP_ID(PR_CONTENT_UNREAD):
-			if(ulObjType == MAPI_MESSAGE)
-				ulPropTagRequired = PR_MESSAGE_FLAGS;
-			else
-				return KCERR_NOT_FOUND;
-			break;
-		default:
+	case PROP_ID(PR_NORMALIZED_SUBJECT):
+		ulPropTagRequired = PR_SUBJECT;
+		break;
+	case PROP_ID(PR_CONTENT_UNREAD):
+		if (ulObjType == MAPI_MESSAGE)
+			ulPropTagRequired = PR_MESSAGE_FLAGS;
+		else
 			return KCERR_NOT_FOUND;
+		break;
+	default:
+		return KCERR_NOT_FOUND;
 	}
 
 	*lpulPropTagRequired = ulPropTagRequired;
@@ -157,90 +157,58 @@ ECRESULT ECGenProps::GetPropSubstitute(unsigned int ulObjType, unsigned int ulPr
 // This should be synchronized with GetPropComputed
 ECRESULT ECGenProps::IsPropComputed(unsigned int ulPropTag, unsigned int ulObjType)
 {
-	ECRESULT		er = erSuccess;
-
 	switch(ulPropTag) {
-		case PR_MSG_STATUS:
-		case PR_EC_IMAP_ID:
-		case PR_NORMALIZED_SUBJECT_A:
-		case PR_NORMALIZED_SUBJECT_W:
-		case PR_SUBMIT_FLAGS:
-		    er = erSuccess;
-		    break;
-		case PR_CONTENT_UNREAD:
-			if(ulObjType == MAPI_MESSAGE)
-				er = erSuccess;
-			else
-				er = KCERR_NOT_FOUND;
-			break;
-		case PR_RECORD_KEY:
-			if (ulObjType == MAPI_ATTACH)
-				er = KCERR_NOT_FOUND;
-			else
-				er = erSuccess;
-			break;
-		default:
-			er = KCERR_NOT_FOUND;
-			break;
+	case PR_MSG_STATUS:
+	case PR_EC_IMAP_ID:
+	case PR_NORMALIZED_SUBJECT_A:
+	case PR_NORMALIZED_SUBJECT_W:
+	case PR_SUBMIT_FLAGS:
+		return erSuccess;
+	case PR_CONTENT_UNREAD:
+		return ulObjType == MAPI_MESSAGE ? erSuccess : KCERR_NOT_FOUND;
+	case PR_RECORD_KEY:
+		return ulObjType == MAPI_ATTACH ? KCERR_NOT_FOUND : erSuccess;
+	default:
+		return KCERR_NOT_FOUND;
 	}
-
-	return er;
 }
 
 // This should be synchronized with GetPropComputedUncached
 ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int ulObjType)
 {
-    ECRESULT er = erSuccess;
-    
     switch(PROP_ID(ulPropTag)) {
         case PROP_ID(PR_LONGTERM_ENTRYID_FROM_TABLE):
-		case PROP_ID(PR_ENTRYID):
-		case PROP_ID(PR_PARENT_ENTRYID): 
-		case PROP_ID(PR_STORE_ENTRYID):
-		case PROP_ID(PR_STORE_RECORD_KEY):
-		case PROP_ID(PR_USER_NAME):
-		case PROP_ID(PR_MAILBOX_OWNER_NAME):
-		case PROP_ID(PR_USER_ENTRYID):
-		case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
-		case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT):
-		case PROP_ID(PR_EC_HIERARCHYID):
-		case PROP_ID(PR_EC_STORETYPE):
-		case PROP_ID(PR_INSTANCE_KEY):
-		case PROP_ID(PR_OBJECT_TYPE):
-		case PROP_ID(PR_SOURCE_KEY):
-		case PROP_ID(PR_PARENT_SOURCE_KEY):
-		case PROP_ID(PR_RIGHTS):
-		case PROP_ID(PR_ACCESS_LEVEL):
-		case PROP_ID(PR_ACCESS):
-		case PROP_ID(PR_ROW_TYPE):
-		case PROP_ID(PR_MAPPING_SIGNATURE):
-		    er = erSuccess;
-		    break;
-		case PROP_ID(PR_RECORD_KEY):
-			if (ulObjType == MAPI_ATTACH)
-				er = KCERR_NOT_FOUND;
-			else
-				er = erSuccess;
-			break;
-		case PROP_ID(PR_DISPLAY_NAME): // only the store property is generated
-		case PROP_ID(PR_EC_DELETED_STORE):
-		    if(ulObjType == MAPI_STORE)
-    			er = erSuccess;
-            else
-                er = KCERR_NOT_FOUND;
-			break;
-		case PROP_ID(PR_CONTENT_COUNT):
-			if (ulObjType == MAPI_MESSAGE)
-				er = erSuccess;
-			else
-				er = KCERR_NOT_FOUND;
-			break;
+	case PROP_ID(PR_ENTRYID):
+	case PROP_ID(PR_PARENT_ENTRYID):
+	case PROP_ID(PR_STORE_ENTRYID):
+	case PROP_ID(PR_STORE_RECORD_KEY):
+	case PROP_ID(PR_USER_NAME):
+	case PROP_ID(PR_MAILBOX_OWNER_NAME):
+	case PROP_ID(PR_USER_ENTRYID):
+	case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
+	case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT):
+	case PROP_ID(PR_EC_HIERARCHYID):
+	case PROP_ID(PR_EC_STORETYPE):
+	case PROP_ID(PR_INSTANCE_KEY):
+	case PROP_ID(PR_OBJECT_TYPE):
+	case PROP_ID(PR_SOURCE_KEY):
+	case PROP_ID(PR_PARENT_SOURCE_KEY):
+	case PROP_ID(PR_RIGHTS):
+	case PROP_ID(PR_ACCESS_LEVEL):
+	case PROP_ID(PR_ACCESS):
+	case PROP_ID(PR_ROW_TYPE):
+	case PROP_ID(PR_MAPPING_SIGNATURE):
+		return erSuccess;
+	case PROP_ID(PR_RECORD_KEY):
+		return ulObjType == MAPI_ATTACH ? KCERR_NOT_FOUND : erSuccess;
+	case PROP_ID(PR_DISPLAY_NAME): // only the store property is generated
+	case PROP_ID(PR_EC_DELETED_STORE):
+		return ulObjType == MAPI_STORE ? erSuccess : KCERR_NOT_FOUND;
+	case PROP_ID(PR_CONTENT_COUNT):
+		return ulObjType == MAPI_MESSAGE ? erSuccess : KCERR_NOT_FOUND;
         default:
-            er = KCERR_NOT_FOUND;
-            break;
+		return KCERR_NOT_FOUND;
     }
-    
-    return er;
 }
 
 // These are properties that are never written to the 'properties' table; ie they are never directly queried. This
@@ -248,46 +216,36 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 // property. 
 ECRESULT ECGenProps::IsPropRedundant(unsigned int ulPropTag, unsigned int ulObjType)
 {
-    ECRESULT er = erSuccess;
-    
     switch(PROP_ID(ulPropTag)) {
-		case PROP_ID(PR_ACCESS):					// generated from ACLs
-		case PROP_ID(PR_USER_NAME):				// generated from owner (hierarchy)
-		case PROP_ID(PR_MAILBOX_OWNER_NAME):		// generated from owner (hierarchy)
-		case PROP_ID(PR_USER_ENTRYID):			// generated from owner (hierarchy)
-		case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):	// generated from owner (hierarchy)
-		case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT): // generated from owner (hierarchy)
-		case PROP_ID(PR_EC_HIERARCHYID):			// generated from hierarchy
-		case PROP_ID(PR_SUBFOLDERS):				// generated from hierarchy
-		case PROP_ID(PR_HASATTACH):				// generated from hierarchy
-		case PROP_ID(PR_LONGTERM_ENTRYID_FROM_TABLE): // generated from hierarchy
-		case PROP_ID(PR_ENTRYID):				// generated from hierarchy
-		case PROP_ID(PR_PARENT_ENTRYID): 		// generated from hierarchy
-		case PROP_ID(PR_STORE_ENTRYID):			// generated from store id
-		case PROP_ID(PR_STORE_RECORD_KEY):		// generated from store id
-		case PROP_ID(PR_INSTANCE_KEY):			// table data only
-		case PROP_ID(PR_OBJECT_TYPE):			// generated from hierarchy
-		case PROP_ID(PR_CONTENT_COUNT):			// generated from hierarchy
-		case PROP_ID(PR_CONTENT_UNREAD):			// generated from hierarchy
-		case PROP_ID(PR_RIGHTS):					// generated from security system
-		case PROP_ID(PR_ACCESS_LEVEL):			// generated from security system
-		case PROP_ID(PR_PARENT_SOURCE_KEY):		// generated from ics system
-		case PROP_ID(PR_FOLDER_TYPE):			// generated from hierarchy (CreateFolder)
-		case PROP_ID(PR_EC_IMAP_ID):				// generated for each new mail and updated on move by the server
-		    er = erSuccess;
-		    break;
-		case PROP_ID(PR_RECORD_KEY):				// generated from hierarchy except for attachments
-			if (ulObjType == MAPI_ATTACH)
-				er = KCERR_NOT_FOUND;
-			else
-				er = erSuccess;
-			break;
-		default:
-			er = KCERR_NOT_FOUND;
-			break;
+	case PROP_ID(PR_ACCESS):					// generated from ACLs
+	case PROP_ID(PR_USER_NAME):				// generated from owner (hierarchy)
+	case PROP_ID(PR_MAILBOX_OWNER_NAME):		// generated from owner (hierarchy)
+	case PROP_ID(PR_USER_ENTRYID):			// generated from owner (hierarchy)
+	case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):	// generated from owner (hierarchy)
+	case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT): // generated from owner (hierarchy)
+	case PROP_ID(PR_EC_HIERARCHYID):			// generated from hierarchy
+	case PROP_ID(PR_SUBFOLDERS):				// generated from hierarchy
+	case PROP_ID(PR_HASATTACH):				// generated from hierarchy
+	case PROP_ID(PR_LONGTERM_ENTRYID_FROM_TABLE): // generated from hierarchy
+	case PROP_ID(PR_ENTRYID):				// generated from hierarchy
+	case PROP_ID(PR_PARENT_ENTRYID): 		// generated from hierarchy
+	case PROP_ID(PR_STORE_ENTRYID):			// generated from store id
+	case PROP_ID(PR_STORE_RECORD_KEY):		// generated from store id
+	case PROP_ID(PR_INSTANCE_KEY):			// table data only
+	case PROP_ID(PR_OBJECT_TYPE):			// generated from hierarchy
+	case PROP_ID(PR_CONTENT_COUNT):			// generated from hierarchy
+	case PROP_ID(PR_CONTENT_UNREAD):			// generated from hierarchy
+	case PROP_ID(PR_RIGHTS):					// generated from security system
+	case PROP_ID(PR_ACCESS_LEVEL):			// generated from security system
+	case PROP_ID(PR_PARENT_SOURCE_KEY):		// generated from ics system
+	case PROP_ID(PR_FOLDER_TYPE):			// generated from hierarchy (CreateFolder)
+	case PROP_ID(PR_EC_IMAP_ID):				// generated for each new mail and updated on move by the server
+		return erSuccess;
+	case PROP_ID(PR_RECORD_KEY):				// generated from hierarchy except for attachments
+		return ulObjType == MAPI_ATTACH ? KCERR_NOT_FOUND : erSuccess;
+	default:
+		return KCERR_NOT_FOUND;
     }
-    
-    return er;
 }
 
 ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, unsigned int ulPropTagRequested, unsigned int ulObjId, struct propVal *lpPropVal)
@@ -296,33 +254,26 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 
 	switch(PROP_ID(ulPropTagRequested)) {
 	case PROP_ID(PR_MSG_STATUS):
-		if(lpPropVal->ulPropTag != ulPropTagRequested) {
-			lpPropVal->ulPropTag = PR_MSG_STATUS;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
-
-			lpPropVal->Value.ul = 0;
-		} else {
-			er = KCERR_NOT_FOUND;
-		}
+		if (lpPropVal->ulPropTag == ulPropTagRequested)
+			return KCERR_NOT_FOUND;
+		lpPropVal->ulPropTag = PR_MSG_STATUS;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		lpPropVal->Value.ul = 0;
 		break;
     case PROP_ID(PR_EC_IMAP_ID):
-    	if(lpPropVal->ulPropTag != ulPropTagRequested) {
-			lpPropVal->ulPropTag = PR_EC_IMAP_ID;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
-			lpPropVal->Value.ul = ulObjId;
-		} else {
-			er = KCERR_NOT_FOUND;
-		}
+		if (lpPropVal->ulPropTag == ulPropTagRequested)
+			return KCERR_NOT_FOUND;
+		lpPropVal->ulPropTag = PR_EC_IMAP_ID;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		lpPropVal->Value.ul = ulObjId;
 		break;
 	case PROP_ID(PR_CONTENT_UNREAD):
 		// Convert from PR_MESSAGE_FLAGS to PR_CONTENT_UNREAD
-		if(ulObjType == MAPI_MESSAGE && lpPropVal->ulPropTag != PR_CONTENT_UNREAD) {
-			lpPropVal->ulPropTag = PR_CONTENT_UNREAD;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
-			lpPropVal->Value.ul = lpPropVal->Value.ul & MSGFLAG_READ ? 0 : 1;
-		} else {
-			er = KCERR_NOT_FOUND;
-		}
+		if (ulObjType != MAPI_MESSAGE || lpPropVal->ulPropTag == PR_CONTENT_UNREAD)
+			return KCERR_NOT_FOUND;
+		lpPropVal->ulPropTag = PR_CONTENT_UNREAD;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		lpPropVal->Value.ul = lpPropVal->Value.ul & MSGFLAG_READ ? 0 : 1;
 		break;
     case PROP_ID(PR_NORMALIZED_SUBJECT):
     	if(lpPropVal->ulPropTag != PR_SUBJECT) {
@@ -363,17 +314,14 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 		}
 		break;
 	case PROP_ID(PR_RECORD_KEY):
-		if (ulObjType == MAPI_ATTACH && lpPropVal->ulPropTag != ulPropTagRequested) {
-			lpPropVal->ulPropTag = PR_RECORD_KEY;
-			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
-			
-			lpPropVal->Value.bin->__size = sizeof(ULONG);
-			memcpy(lpPropVal->Value.bin->__ptr, &ulObjId, sizeof(ULONG));
-		} else
-			er = KCERR_NOT_FOUND;
+		if (ulObjType != MAPI_ATTACH || lpPropVal->ulPropTag == ulPropTagRequested)
+			return KCERR_NOT_FOUND;
+		lpPropVal->ulPropTag = PR_RECORD_KEY;
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin->__size = sizeof(ULONG);
+		memcpy(lpPropVal->Value.bin->__ptr, &ulObjId, sizeof(ULONG));
 		break;
 	default:
 		return KCERR_NOT_FOUND;
@@ -397,412 +345,373 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 	struct propTagArray sPropTagArray{__gszeroinit};
 
 	switch(PROP_ID(ulPropTag)) {
-		case PROP_ID(PR_LONGTERM_ENTRYID_FROM_TABLE):
-		case PROP_ID(PR_ENTRYID):
-		case PROP_ID(PR_PARENT_ENTRYID): 
-		case PROP_ID(PR_STORE_ENTRYID):
-		case PROP_ID(PR_RECORD_KEY):
-		{
-			entryId sEntryId;
-			unsigned int ulEidFlags = 0;
+	case PROP_ID(PR_LONGTERM_ENTRYID_FROM_TABLE):
+	case PROP_ID(PR_ENTRYID):
+	case PROP_ID(PR_PARENT_ENTRYID):
+	case PROP_ID(PR_STORE_ENTRYID):
+	case PROP_ID(PR_RECORD_KEY):
+	{
+		entryId sEntryId;
+		unsigned int ulEidFlags = 0;
 
-			if (ulPropTag == PR_PARENT_ENTRYID) {
-				if(ulParentId == 0) {
-					er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParentId);
-					if(er != erSuccess)
-						goto exit;
-				}
-
-                er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulParentId, NULL, NULL, &ulFlags, &ulObjType);
-                if(er != erSuccess)
-                    goto exit;
-                if (ulObjType == MAPI_FOLDER)
-                    ulObjId = ulParentId;
-			}else if (ulPropTag == PR_STORE_ENTRYID || ulObjId == ulStoreId) {
-				ulObjId = ulStoreId;
-				if(lpODStore && lpODStore->ulTableFlags & TABLE_FLAG_OVERRIDE_HOME_MDB)
-    				ulEidFlags = OPENSTORE_OVERRIDE_HOME_MDB;
-			}
-
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetEntryIdFromObject(ulObjId, soap, ulEidFlags, &sEntryId);
-			if(er != erSuccess) {
-				// happens on recipients, attachments and msg-in-msg .. TODO: add strict type checking?
-				//assert(false);
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
-			sPropVal.ulPropTag = ulPropTag;
-
-			sPropVal.__union = SOAP_UNION_propValData_bin;
-			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-
-			sPropVal.Value.bin->__ptr = sEntryId.__ptr;
-			sPropVal.Value.bin->__size = sEntryId.__size;
-
-			break;
-		}
-		case PROP_ID(PR_STORE_RECORD_KEY):
-		    sPropVal.__union = SOAP_UNION_propValData_bin;
-		    
-		    sPropVal.ulPropTag = ulPropTag;
-		    sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		    sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
-		    sPropVal.Value.bin->__size = sizeof(GUID);
-		    er = lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulStoreId, 0, (GUID *)sPropVal.Value.bin->__ptr);
-		    if(er != erSuccess) {
-		        er = KCERR_NOT_FOUND;
-		        goto exit;
-            }
-		    break;
-		    
-		case PROP_ID(PR_USER_ENTRYID):
-			sPropTagArray.__ptr = new unsigned int[1];
-			sPropTagArray.__ptr[0] = PR_ENTRYID;
-			sPropTagArray.__size = 1;
-
-			ulUserId = lpSession->GetSecurity()->GetUserId();
-			if(	lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
-				sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ENTRYID)
-			{
-				sPropVal.__union = sPropValArray.__ptr[0].__union;
-				sPropVal.ulPropTag = PR_USER_ENTRYID;
-				sPropVal.Value.bin = sPropValArray.__ptr[0].Value.bin; // memory is allocated in GetUserData(..)
-			}else{
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
-			break;
-		case PROP_ID(PR_USER_NAME):
-			sPropTagArray.__ptr = new unsigned int[1];
-			sPropTagArray.__ptr[0] = PR_ACCOUNT;
-			sPropTagArray.__size = 1;
-
-			ulUserId = lpSession->GetSecurity()->GetUserId();
-			if(	lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
-				sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ACCOUNT)
-			{
-				sPropVal.__union = sPropValArray.__ptr[0].__union;
-				sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_USER_NAME, (PROP_TYPE(ulPropTag)));
-				sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA;// memory is allocated in GetUserData(..)
-			}else{
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
-			break;
-		case PROP_ID(PR_DISPLAY_NAME):
-		{
-			unsigned int ulStoreType = 0;
-
-			if(ulObjType != MAPI_STORE) {
-			    er = KCERR_NOT_FOUND;
-			    goto exit;
-	        }
-
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
-			if (er != erSuccess)
-				goto exit;
-        
-			er = GetStoreName(soap, lpSession, ulObjId, ulStoreType, &lpStoreName);
-			if(er != erSuccess)
-				goto exit;
-		
-			sPropVal.__union = SOAP_UNION_propValData_lpszA;
-			sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_DISPLAY_NAME, (PROP_TYPE(ulPropTag)));
-			sPropVal.Value.lpszA = lpStoreName;
-		}
-		break;
-		case PROP_ID(PR_MAILBOX_OWNER_NAME):
-			sPropTagArray.__ptr = new unsigned int[1];
-			sPropTagArray.__ptr[0] = PR_DISPLAY_NAME;
-			sPropTagArray.__size = 1;
-
-			if(lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
-				lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
-				sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_DISPLAY_NAME)
-			{
-				sPropVal.__union = sPropValArray.__ptr[0].__union;
-				sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_MAILBOX_OWNER_NAME, (PROP_TYPE(ulPropTag)));
-				sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
-			}else{
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
-		break;
-		case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
-			sPropTagArray.__ptr = new unsigned int[1];
-			sPropTagArray.__ptr[0] = PR_ENTRYID;
-			sPropTagArray.__size = 1;
-
-			if(lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
-				lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
-				sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ENTRYID)
-			{
-				sPropVal.__union = sPropValArray.__ptr[0].__union;
-				sPropVal.ulPropTag = PR_MAILBOX_OWNER_ENTRYID;
-				sPropVal.Value.bin = sPropValArray.__ptr[0].Value.bin;// memory is allocated in GetUserData(..)
-			}else{
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
-			break;
-		case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT):
-			sPropTagArray.__ptr = new unsigned int[1];
-			sPropTagArray.__ptr[0] = PR_ACCOUNT;
-			sPropTagArray.__size = 1;
-
-			if (lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
-				lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
-				sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ACCOUNT) {
-
-				sPropVal.__union = sPropValArray.__ptr[0].__union;
-				sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_EC_MAILBOX_OWNER_ACCOUNT, (PROP_TYPE(ulPropTag)));
-				sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
-			} else {
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
-			break;
-        case PROP_ID(PR_EC_HIERARCHYID):
-			sPropVal.ulPropTag = ulPropTag;
-			sPropVal.__union = SOAP_UNION_propValData_ul;
-			
-			sPropVal.Value.ul = ulObjId;
-            break;
-        case PROP_ID(PR_EC_STORETYPE): {
-			unsigned int ulStoreType = 0;
-
-			if(ulObjType != MAPI_STORE) {
-			    er = KCERR_NOT_FOUND;
-			    goto exit;
-	        }
-
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
-			if (er != erSuccess)
-				goto exit;
-			
-			sPropVal.ulPropTag = ulPropTag;
-			sPropVal.__union = SOAP_UNION_propValData_ul;
-
-			sPropVal.Value.ul = ulStoreType;
-            break;
-        }
-		case PROP_ID(PR_INSTANCE_KEY):
-			sPropVal.ulPropTag = ulPropTag;
-			sPropVal.__union = SOAP_UNION_propValData_bin;
-			
-			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG)*2);
-			
-			sPropVal.Value.bin->__size = sizeof(ULONG)*2;
-			memcpy(sPropVal.Value.bin->__ptr, &ulObjId, sizeof(ULONG));
-			memcpy(sPropVal.Value.bin->__ptr+sizeof(ULONG), &ulOrderId, sizeof(ULONG));
-			break;
-		case PROP_ID(PR_OBJECT_TYPE):
-			sPropVal.ulPropTag = PR_OBJECT_TYPE;
-			sPropVal.__union = SOAP_UNION_propValData_ul;
-			sPropVal.Value.ul = ulObjType;
-			break;
-		case PROP_ID(PR_SOURCE_KEY):
-			sPropVal.ulPropTag = PR_SOURCE_KEY;
-			sPropVal.__union = SOAP_UNION_propValData_bin;
-			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			sPropVal.Value.bin->__size = 0;
-			sPropVal.Value.bin->__ptr = NULL;
-
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulObjId, soap, (unsigned int*)&sPropVal.Value.bin->__size, &sPropVal.Value.bin->__ptr);
-			break;
-		case PROP_ID(PR_PARENT_SOURCE_KEY):
-			sPropVal.ulPropTag = PR_PARENT_SOURCE_KEY;
-			sPropVal.__union = SOAP_UNION_propValData_bin;
-			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			sPropVal.Value.bin->__size = 0;
-			sPropVal.Value.bin->__ptr = NULL;
-
+		if (ulPropTag == PR_PARENT_ENTRYID) {
 			if(ulParentId == 0) {
-				er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, NULL, NULL);
+				er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParentId);
 				if(er != erSuccess)
 					goto exit;
 			}
-			
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulParentId, soap, (unsigned int*)&sPropVal.Value.bin->__size, &sPropVal.Value.bin->__ptr);
-			if(er != erSuccess)
+			er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulParentId, NULL, NULL, &ulFlags, &ulObjType);
+			if (er != erSuccess)
 				goto exit;
-
-			break;
-		case PROP_ID(PR_CONTENT_COUNT):
-			if(ulObjType == MAPI_MESSAGE) {
-				sPropVal.ulPropTag = ulPropTag;
-				sPropVal.__union = SOAP_UNION_propValData_ul;
-				sPropVal.Value.ul = 1;
-			} else {
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
-			break;
-		case PROP_ID(PR_RIGHTS):
-			if(ulObjType != MAPI_FOLDER)
-			{
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
-
-			sPropVal.ulPropTag = PR_RIGHTS;
-			sPropVal.__union = SOAP_UNION_propValData_ul;
-		
-			if(lpSession->GetSecurity()->IsStoreOwner(ulObjId) == erSuccess || lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess)
-				sPropVal.Value.ul = ecRightsAll;
-			else if(lpSession->GetSecurity()->GetObjectPermission(ulObjId, &ulRights) == hrSuccess)
-				sPropVal.Value.ul = ulRights;
-			else
-				sPropVal.Value.ul = 0;
-
-			break;
-		case PROP_ID(PR_ACCESS):
-			if(ulObjType == MAPI_STORE || ulObjType == MAPI_ATTACH)
-			{
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
-
-			sPropVal.ulPropTag = PR_ACCESS;
-			sPropVal.__union = SOAP_UNION_propValData_ul;
-			sPropVal.Value.ul = 0;
-
-			// Optimize: for a message, the rights are equal to that of the parent. It is more efficient for
-			// the cache to check the folder permissions than the message permissions
-			if (ulObjType == MAPI_MESSAGE && ulParentId)
+			if (ulObjType == MAPI_FOLDER)
 				ulObjId = ulParentId;
+		} else if (ulPropTag == PR_STORE_ENTRYID || ulObjId == ulStoreId) {
+			ulObjId = ulStoreId;
+			if (lpODStore && lpODStore->ulTableFlags & TABLE_FLAG_OVERRIDE_HOME_MDB)
+				ulEidFlags = OPENSTORE_OVERRIDE_HOME_MDB;
+		}
 
-			// if the requested object is from the owners store, return all permissions	
-			if (lpSession->GetSecurity()->IsStoreOwner(ulObjId) == erSuccess ||
-				lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess) {
-				switch(ulObjType) {
-					case MAPI_FOLDER:
-						sPropVal.Value.ul = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
-						if(ulFlags != FOLDER_SEARCH) //FOLDER_GENERIC, FOLDER_ROOT 
-							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_HIERARCHY | MAPI_ACCESS_CREATE_CONTENTS | MAPI_ACCESS_CREATE_ASSOCIATED;
-						break;
-					case MAPI_MESSAGE:
-						sPropVal.Value.ul = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
-						break;
-					case MAPI_ATTACH:
-					case MAPI_STORE:
-					default:
-						er = KCERR_NOT_FOUND;
-						goto exit;
-				}
+		er = lpSession->GetSessionManager()->GetCacheManager()->GetEntryIdFromObject(ulObjId, soap, ulEidFlags, &sEntryId);
+		if (er != erSuccess) {
+			// happens on recipients, attachments and msg-in-msg .. TODO: add strict type checking?
+			//assert(false);
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		sPropVal.ulPropTag = ulPropTag;
+		sPropVal.__union = SOAP_UNION_propValData_bin;
+		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		sPropVal.Value.bin->__ptr = sEntryId.__ptr;
+		sPropVal.Value.bin->__size = sEntryId.__size;
+		break;
+	}
+	case PROP_ID(PR_STORE_RECORD_KEY):
+		sPropVal.__union = SOAP_UNION_propValData_bin;
+		sPropVal.ulPropTag = ulPropTag;
+		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		sPropVal.Value.bin->__size = sizeof(GUID);
+		er = lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulStoreId, 0, (GUID *)sPropVal.Value.bin->__ptr);
+		if (er != erSuccess) {
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		break;
+	case PROP_ID(PR_USER_ENTRYID):
+		sPropTagArray.__ptr = new unsigned int[1];
+		sPropTagArray.__ptr[0] = PR_ENTRYID;
+		sPropTagArray.__size = 1;
+		ulUserId = lpSession->GetSecurity()->GetUserId();
+		if (lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
+		    sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ENTRYID)
+		{
+			sPropVal.__union = sPropValArray.__ptr[0].__union;
+			sPropVal.ulPropTag = PR_USER_ENTRYID;
+			sPropVal.Value.bin = sPropValArray.__ptr[0].Value.bin; // memory is allocated in GetUserData(..)
+		} else {
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		break;
+	case PROP_ID(PR_USER_NAME):
+		sPropTagArray.__ptr = new unsigned int[1];
+		sPropTagArray.__ptr[0] = PR_ACCOUNT;
+		sPropTagArray.__size = 1;
+		ulUserId = lpSession->GetSecurity()->GetUserId();
+		if (lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
+		    sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ACCOUNT)
+		{
+			sPropVal.__union = sPropValArray.__ptr[0].__union;
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_USER_NAME, (PROP_TYPE(ulPropTag)));
+			sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA;// memory is allocated in GetUserData(..)
+		} else {
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		break;
+	case PROP_ID(PR_DISPLAY_NAME):
+	{
+		unsigned int ulStoreType = 0;
 
-				break;
-			}
+		if (ulObjType != MAPI_STORE) {
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		er = lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
+		if (er != erSuccess)
+			goto exit;
+		er = GetStoreName(soap, lpSession, ulObjId, ulStoreType, &lpStoreName);
+		if (er != erSuccess)
+			goto exit;
+		sPropVal.__union = SOAP_UNION_propValData_lpszA;
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_DISPLAY_NAME, (PROP_TYPE(ulPropTag)));
+		sPropVal.Value.lpszA = lpStoreName;
+		break;
+	}
+	case PROP_ID(PR_MAILBOX_OWNER_NAME):
+		sPropTagArray.__ptr = new unsigned int[1];
+		sPropTagArray.__ptr[0] = PR_DISPLAY_NAME;
+		sPropTagArray.__size = 1;
 
-			// someone else is accessing your store, so check their rights
-			ulRights = 0;
+		if (lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
+		    lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
+		    sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_DISPLAY_NAME)
+		{
+			sPropVal.__union = sPropValArray.__ptr[0].__union;
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_MAILBOX_OWNER_NAME, (PROP_TYPE(ulPropTag)));
+			sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
+		} else {
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		break;
+	case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
+		sPropTagArray.__ptr = new unsigned int[1];
+		sPropTagArray.__ptr[0] = PR_ENTRYID;
+		sPropTagArray.__size = 1;
 
-			lpSession->GetSecurity()->GetObjectPermission(ulObjId, &ulRights);// skip error checking, ulRights = 0
+		if (lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
+		    lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
+		    sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ENTRYID)
+		{
+			sPropVal.__union = sPropValArray.__ptr[0].__union;
+			sPropVal.ulPropTag = PR_MAILBOX_OWNER_ENTRYID;
+			sPropVal.Value.bin = sPropValArray.__ptr[0].Value.bin;// memory is allocated in GetUserData(..)
+		} else {
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		break;
+	case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT):
+		sPropTagArray.__ptr = new unsigned int[1];
+		sPropTagArray.__ptr[0] = PR_ACCOUNT;
+		sPropTagArray.__size = 1;
 
-			// will be false when someone else created this object in this store (or true if you're that someone)
-			bOwner = (lpSession->GetSecurity()->IsOwner(ulObjId) == erSuccess);
+		if (lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
+		    lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
+		    sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ACCOUNT) {
+			sPropVal.__union = sPropValArray.__ptr[0].__union;
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_EC_MAILBOX_OWNER_ACCOUNT, (PROP_TYPE(ulPropTag)));
+			sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
+		} else {
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		break;
+	case PROP_ID(PR_EC_HIERARCHYID):
+		sPropVal.ulPropTag = ulPropTag;
+		sPropVal.__union = SOAP_UNION_propValData_ul;
+		sPropVal.Value.ul = ulObjId;
+		break;
+	case PROP_ID(PR_EC_STORETYPE): {
+		unsigned int ulStoreType = 0;
 
-			switch(ulObjType) {
-				case MAPI_FOLDER:
-					if( (ulRights&ecRightsReadAny)==ecRightsReadAny)
-						sPropVal.Value.ul |= MAPI_ACCESS_READ;
-
-					if( bOwner == true || (ulRights&ecRightsFolderAccess) == ecRightsFolderAccess)
-						sPropVal.Value.ul |= MAPI_ACCESS_DELETE | MAPI_ACCESS_MODIFY;
-					
-					if(ulFlags != FOLDER_SEARCH) //FOLDER_GENERIC, FOLDER_ROOT 
-					{
-						if( (ulRights&ecRightsCreateSubfolder) == ecRightsCreateSubfolder)
-							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_HIERARCHY;
-							
-						if( (ulRights&ecRightsCreate) == ecRightsCreate)
-							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;
-
-						// olk2k7 fix: if we have delete access, we must set create contents access (eventhough an actual saveObject will still be denied) for deletes to work.
-						if( (ulRights&ecRightsDeleteAny) == ecRightsDeleteAny || (bOwner == true && (ulRights&ecRightsDeleteOwned) == ecRightsDeleteOwned) )
-							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;
-							
-						if( (ulRights&ecRightsFolderAccess) == ecRightsFolderAccess)
-							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_ASSOCIATED;
-					}
-
-					break;
-				case MAPI_MESSAGE:
-					if( (ulRights&ecRightsReadAny)==ecRightsReadAny)
-						sPropVal.Value.ul |= MAPI_ACCESS_READ;
-
-					if( (ulRights&ecRightsEditAny)==ecRightsEditAny || (bOwner == true && (ulRights&ecRightsEditOwned) == ecRightsEditOwned) )
-						sPropVal.Value.ul |= MAPI_ACCESS_MODIFY;
-
-					if( (ulRights&ecRightsDeleteAny) == ecRightsDeleteAny || (bOwner == true && (ulRights&ecRightsDeleteOwned) == ecRightsDeleteOwned) )
-						sPropVal.Value.ul |= MAPI_ACCESS_DELETE;
-
-					break;
-				case MAPI_ATTACH:
-				case MAPI_STORE:
-				default:
-					er = KCERR_NOT_FOUND;
-					goto exit;
-			}
-			break;
-		case PROP_ID(PR_ACCESS_LEVEL):
-			{
-				sPropVal.ulPropTag = PR_ACCESS_LEVEL;
-				sPropVal.__union = SOAP_UNION_propValData_ul;
-				sPropVal.Value.ul = 0;
-
-				ulRights = 0;
-
-				// @todo if store only open with read rights, access level = 0
-				if(lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess)
-					bAdmin = true; // Admin of all stores
-				else if(lpSession->GetSecurity()->IsStoreOwner(ulObjId) == erSuccess)
-					bAdmin = true; // Admin of your one store
-				else {
-					lpSession->GetSecurity()->GetObjectPermission(ulObjId, &ulRights); // skip error checking, ulRights = 0
-
-					bOwner = lpSession->GetSecurity()->IsOwner(ulObjId) == erSuccess; // owner of this particular object in someone else's store
-				}
-				if (bAdmin || ulRights & ecRightsCreate || ulRights & ecRightsEditAny || ulRights & ecRightsDeleteAny || ulRights & ecRightsCreateSubfolder ||
-				   (bOwner && (ulRights & ecRightsEditOwned || ulRights & ecRightsDeleteOwned)))
-					sPropVal.Value.ul = MAPI_MODIFY;
-			}
-			break;
-        case PROP_ID(PR_ROW_TYPE):
+		if (ulObjType != MAPI_STORE) {
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		er = lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
+		if (er != erSuccess)
+			goto exit;
+		sPropVal.ulPropTag = ulPropTag;
+		sPropVal.__union = SOAP_UNION_propValData_ul;
+		sPropVal.Value.ul = ulStoreType;
+		break;
+	}
+	case PROP_ID(PR_INSTANCE_KEY):
+		sPropVal.ulPropTag = ulPropTag;
+		sPropVal.__union = SOAP_UNION_propValData_bin;
+		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG) * 2);
+		sPropVal.Value.bin->__size = sizeof(ULONG) * 2;
+		memcpy(sPropVal.Value.bin->__ptr, &ulObjId, sizeof(ULONG));
+		memcpy(sPropVal.Value.bin->__ptr+sizeof(ULONG), &ulOrderId, sizeof(ULONG));
+		break;
+	case PROP_ID(PR_OBJECT_TYPE):
+		sPropVal.ulPropTag = PR_OBJECT_TYPE;
+		sPropVal.__union = SOAP_UNION_propValData_ul;
+		sPropVal.Value.ul = ulObjType;
+		break;
+	case PROP_ID(PR_SOURCE_KEY):
+		sPropVal.ulPropTag = PR_SOURCE_KEY;
+		sPropVal.__union = SOAP_UNION_propValData_bin;
+		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		sPropVal.Value.bin->__size = 0;
+		sPropVal.Value.bin->__ptr = NULL;
+		er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulObjId, soap, (unsigned int *)&sPropVal.Value.bin->__size, &sPropVal.Value.bin->__ptr);
+		break;
+	case PROP_ID(PR_PARENT_SOURCE_KEY):
+		sPropVal.ulPropTag = PR_PARENT_SOURCE_KEY;
+		sPropVal.__union = SOAP_UNION_propValData_bin;
+		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		sPropVal.Value.bin->__size = 0;
+		sPropVal.Value.bin->__ptr = NULL;
+		if (ulParentId == 0) {
+			er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, NULL, NULL);
+			if (er != erSuccess)
+				goto exit;
+		}
+		er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulParentId, soap, (unsigned int *)&sPropVal.Value.bin->__size, &sPropVal.Value.bin->__ptr);
+		if (er != erSuccess)
+			goto exit;
+		break;
+	case PROP_ID(PR_CONTENT_COUNT):
+		if (ulObjType == MAPI_MESSAGE) {
 			sPropVal.ulPropTag = ulPropTag;
 			sPropVal.__union = SOAP_UNION_propValData_ul;
-			sPropVal.Value.ul = TBL_LEAF_ROW;
-            break;
+			sPropVal.Value.ul = 1;
+		} else {
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		break;
+	case PROP_ID(PR_RIGHTS):
+		if (ulObjType != MAPI_FOLDER)
+		{
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
 
-		case PROP_ID(PR_MAPPING_SIGNATURE):
-			sPropVal.ulPropTag = ulPropTag;
+		sPropVal.ulPropTag = PR_RIGHTS;
+		sPropVal.__union = SOAP_UNION_propValData_ul;
 
-			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		if (lpSession->GetSecurity()->IsStoreOwner(ulObjId) == erSuccess || lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess)
+			sPropVal.Value.ul = ecRightsAll;
+		else if (lpSession->GetSecurity()->GetObjectPermission(ulObjId, &ulRights) == hrSuccess)
+			sPropVal.Value.ul = ulRights;
+		else
+			sPropVal.Value.ul = 0;
+		break;
+	case PROP_ID(PR_ACCESS):
+		if (ulObjType == MAPI_STORE || ulObjType == MAPI_ATTACH)
+		{
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
 
-			sPropVal.__union = SOAP_UNION_propValData_bin;
-			sPropVal.Value.bin->__size = sizeof(GUID);
+		sPropVal.ulPropTag = PR_ACCESS;
+		sPropVal.__union = SOAP_UNION_propValData_ul;
+		sPropVal.Value.ul = 0;
 
-			er = lpSession->GetServerGUID((GUID*)sPropVal.Value.bin->__ptr);
-			if(er != erSuccess){
+		// Optimize: for a message, the rights are equal to that of the parent. It is more efficient for
+		// the cache to check the folder permissions than the message permissions
+		if (ulObjType == MAPI_MESSAGE && ulParentId)
+			ulObjId = ulParentId;
+
+		// if the requested object is from the owners store, return all permissions
+		if (lpSession->GetSecurity()->IsStoreOwner(ulObjId) == erSuccess ||
+			lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess) {
+			switch (ulObjType) {
+			case MAPI_FOLDER:
+				sPropVal.Value.ul = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
+				if (ulFlags != FOLDER_SEARCH) //FOLDER_GENERIC, FOLDER_ROOT
+					sPropVal.Value.ul |= MAPI_ACCESS_CREATE_HIERARCHY | MAPI_ACCESS_CREATE_CONTENTS | MAPI_ACCESS_CREATE_ASSOCIATED;
+				break;
+			case MAPI_MESSAGE:
+				sPropVal.Value.ul = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
+				break;
+			case MAPI_ATTACH:
+			case MAPI_STORE:
+			default:
 				er = KCERR_NOT_FOUND;
 				goto exit;
 			}
 			break;
-		case PROP_ID(PR_EC_DELETED_STORE):
-			sPropVal.ulPropTag = PR_EC_DELETED_STORE;
-			sPropVal.__union = SOAP_UNION_propValData_b;
+		}
 
-			er = IsOrphanStore(lpSession, ulObjId, &sPropVal.Value.b);
-			if(er != erSuccess){
-				er = KCERR_NOT_FOUND;
-				goto exit;
+		// someone else is accessing your store, so check their rights
+		ulRights = 0;
+		lpSession->GetSecurity()->GetObjectPermission(ulObjId, &ulRights); // skip error checking, ulRights = 0
+
+		// will be false when someone else created this object in this store (or true if you're that someone)
+		bOwner = (lpSession->GetSecurity()->IsOwner(ulObjId) == erSuccess);
+
+		switch (ulObjType) {
+		case MAPI_FOLDER:
+			if ((ulRights & ecRightsReadAny) == ecRightsReadAny)
+				sPropVal.Value.ul |= MAPI_ACCESS_READ;
+			if (bOwner == true || (ulRights & ecRightsFolderAccess) == ecRightsFolderAccess)
+				sPropVal.Value.ul |= MAPI_ACCESS_DELETE | MAPI_ACCESS_MODIFY;
+
+			if (ulFlags != FOLDER_SEARCH) //FOLDER_GENERIC, FOLDER_ROOT
+			{
+				if ((ulRights & ecRightsCreateSubfolder) == ecRightsCreateSubfolder)
+					sPropVal.Value.ul |= MAPI_ACCESS_CREATE_HIERARCHY;
+				if ((ulRights & ecRightsCreate) == ecRightsCreate)
+					sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;
+
+				// olk2k7 fix: if we have delete access, we must set create contents access (eventhough an actual saveObject will still be denied) for deletes to work.
+				if ((ulRights & ecRightsDeleteAny) == ecRightsDeleteAny || (bOwner == true && (ulRights & ecRightsDeleteOwned) == ecRightsDeleteOwned))
+					sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;
+				if ((ulRights & ecRightsFolderAccess) == ecRightsFolderAccess)
+					sPropVal.Value.ul |= MAPI_ACCESS_CREATE_ASSOCIATED;
 			}
 			break;
+		case MAPI_MESSAGE:
+			if ((ulRights & ecRightsReadAny) == ecRightsReadAny)
+				sPropVal.Value.ul |= MAPI_ACCESS_READ;
+			if ((ulRights & ecRightsEditAny) == ecRightsEditAny || (bOwner == true && (ulRights & ecRightsEditOwned) == ecRightsEditOwned))
+				sPropVal.Value.ul |= MAPI_ACCESS_MODIFY;
+			if ((ulRights & ecRightsDeleteAny) == ecRightsDeleteAny || (bOwner == true && (ulRights & ecRightsDeleteOwned) == ecRightsDeleteOwned))
+				sPropVal.Value.ul |= MAPI_ACCESS_DELETE;
+			break;
+		case MAPI_ATTACH:
+		case MAPI_STORE:
 		default:
 			er = KCERR_NOT_FOUND;
 			goto exit;
+		}
+		break;
+	case PROP_ID(PR_ACCESS_LEVEL):
+	{
+		sPropVal.ulPropTag = PR_ACCESS_LEVEL;
+		sPropVal.__union = SOAP_UNION_propValData_ul;
+		sPropVal.Value.ul = 0;
+		ulRights = 0;
+
+		// @todo if store only open with read rights, access level = 0
+		if (lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess)
+			bAdmin = true; // Admin of all stores
+		else if (lpSession->GetSecurity()->IsStoreOwner(ulObjId) == erSuccess)
+			bAdmin = true; // Admin of your one store
+		else {
+			lpSession->GetSecurity()->GetObjectPermission(ulObjId, &ulRights); // skip error checking, ulRights = 0
+			bOwner = lpSession->GetSecurity()->IsOwner(ulObjId) == erSuccess; // owner of this particular object in someone else's store
+		}
+		if (bAdmin || ulRights & ecRightsCreate || ulRights & ecRightsEditAny || ulRights & ecRightsDeleteAny || ulRights & ecRightsCreateSubfolder ||
+		   (bOwner && (ulRights & ecRightsEditOwned || ulRights & ecRightsDeleteOwned)))
+			sPropVal.Value.ul = MAPI_MODIFY;
+		break;
+	}
+	case PROP_ID(PR_ROW_TYPE):
+		sPropVal.ulPropTag = ulPropTag;
+		sPropVal.__union = SOAP_UNION_propValData_ul;
+		sPropVal.Value.ul = TBL_LEAF_ROW;
+		break;
+	case PROP_ID(PR_MAPPING_SIGNATURE):
+		sPropVal.ulPropTag = ulPropTag;
+		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		sPropVal.__union = SOAP_UNION_propValData_bin;
+		sPropVal.Value.bin->__size = sizeof(GUID);
+		er = lpSession->GetServerGUID((GUID *)sPropVal.Value.bin->__ptr);
+		if (er != erSuccess){
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		break;
+	case PROP_ID(PR_EC_DELETED_STORE):
+		sPropVal.ulPropTag = PR_EC_DELETED_STORE;
+		sPropVal.__union = SOAP_UNION_propValData_b;
+		er = IsOrphanStore(lpSession, ulObjId, &sPropVal.Value.b);
+		if (er != erSuccess){
+			er = KCERR_NOT_FOUND;
+			goto exit;
+		}
+		break;
+	default:
+		er = KCERR_NOT_FOUND;
+		goto exit;
 	}
 
 	*lpPropVal = std::move(sPropVal);

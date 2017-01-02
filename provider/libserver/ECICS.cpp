@@ -64,18 +64,18 @@ typedef std::list<ABChangeRecord> ABChangeRecordList;
 static bool isICSChange(unsigned int ulChange)
 {
 	switch(ulChange){
-		case ICS_MESSAGE_CHANGE:
-		case ICS_MESSAGE_FLAG:
-		case ICS_MESSAGE_SOFT_DELETE:
-		case ICS_MESSAGE_HARD_DELETE:
-		case ICS_MESSAGE_NEW:
-		case ICS_FOLDER_CHANGE:
-		case ICS_FOLDER_SOFT_DELETE:
-		case ICS_FOLDER_HARD_DELETE:
-		case ICS_FOLDER_NEW:
-			return true;
-		default:
-			return false;
+	case ICS_MESSAGE_CHANGE:
+	case ICS_MESSAGE_FLAG:
+	case ICS_MESSAGE_SOFT_DELETE:
+	case ICS_MESSAGE_HARD_DELETE:
+	case ICS_MESSAGE_NEW:
+	case ICS_FOLDER_CHANGE:
+	case ICS_FOLDER_SOFT_DELETE:
+	case ICS_FOLDER_HARD_DELETE:
+	case ICS_FOLDER_NEW:
+		return true;
+	default:
+		return false;
 	}
 }
 

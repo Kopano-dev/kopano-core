@@ -185,73 +185,71 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	//TODO: check entryid serverside?
 
 	switch(lpABeid->ulType) {
-		case MAPI_ABCONT:
-			hr = ECABContainer::Create(this, MAPI_ABCONT, fModifyObject, &~lpABContainer);
-			if(hr != hrSuccess)
-				return hr;
-			hr = lpABContainer->SetEntryId(cbEntryID, lpEntryID);
-			if(hr != hrSuccess)
-				return hr;
-			AddChild(lpABContainer);
-			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
-			if(hr != hrSuccess)
-				return hr;
-			hr = lpABContainer->HrSetPropStorage(lpPropStorage, TRUE);
-			if(hr != hrSuccess)
-				return hr;
-			if(lpInterface)
-				hr = lpABContainer->QueryInterface(*lpInterface,(void **)lppUnk);
-			else
-				hr = lpABContainer->QueryInterface(IID_IABContainer, (void **)lppUnk);
-			if(hr != hrSuccess)
-				return hr;
-			break;
-		case MAPI_MAILUSER:
-			hr = ECMailUser::Create(this, fModifyObject, &~lpMailUser);
-			if(hr != hrSuccess)
-				return hr;
-			hr = lpMailUser->SetEntryId(cbEntryID, lpEntryID);
-			if(hr != hrSuccess)
-				return hr;
-			AddChild(lpMailUser);
-			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
-			if(hr != hrSuccess)
-				return hr;
-			hr = lpMailUser->HrSetPropStorage(lpPropStorage, TRUE);
-			if(hr != hrSuccess)
-				return hr;
-			if(lpInterface)
-				hr = lpMailUser->QueryInterface(*lpInterface,(void **)lppUnk);
-			else
-				hr = lpMailUser->QueryInterface(IID_IMailUser, (void **)lppUnk);
-
-			if(hr != hrSuccess)
-				return hr;
-			break;
-		case MAPI_DISTLIST:
-			hr = ECDistList::Create(this, fModifyObject, &~lpDistList);
-			if(hr != hrSuccess)
-				return hr;
-			hr = lpDistList->SetEntryId(cbEntryID, lpEntryID);
-			if(hr != hrSuccess)
-				return hr;
-			AddChild(lpDistList);
-			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
-			if(hr != hrSuccess)
-				return hr;
-			hr = lpDistList->HrSetPropStorage(lpPropStorage, TRUE);
-			if(hr != hrSuccess)
-				return hr;
-			if(lpInterface)
-				hr = lpDistList->QueryInterface(*lpInterface,(void **)lppUnk);
-			else
-				hr = lpDistList->QueryInterface(IID_IDistList, (void **)lppUnk);
-
-			if(hr != hrSuccess)
-				return hr;
-			break;
-		default:
-			return MAPI_E_NOT_FOUND;
+	case MAPI_ABCONT:
+		hr = ECABContainer::Create(this, MAPI_ABCONT, fModifyObject, &~lpABContainer);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpABContainer->SetEntryId(cbEntryID, lpEntryID);
+		if (hr != hrSuccess)
+			return hr;
+		AddChild(lpABContainer);
+		hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpABContainer->HrSetPropStorage(lpPropStorage, TRUE);
+		if (hr != hrSuccess)
+			return hr;
+		if (lpInterface)
+			hr = lpABContainer->QueryInterface(*lpInterface,(void **)lppUnk);
+		else
+			hr = lpABContainer->QueryInterface(IID_IABContainer, (void **)lppUnk);
+		if (hr != hrSuccess)
+			return hr;
+		break;
+	case MAPI_MAILUSER:
+		hr = ECMailUser::Create(this, fModifyObject, &~lpMailUser);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpMailUser->SetEntryId(cbEntryID, lpEntryID);
+		if (hr != hrSuccess)
+			return hr;
+		AddChild(lpMailUser);
+		hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpMailUser->HrSetPropStorage(lpPropStorage, TRUE);
+		if (hr != hrSuccess)
+			return hr;
+		if (lpInterface)
+			hr = lpMailUser->QueryInterface(*lpInterface,(void **)lppUnk);
+		else
+			hr = lpMailUser->QueryInterface(IID_IMailUser, (void **)lppUnk);
+		if (hr != hrSuccess)
+			return hr;
+		break;
+	case MAPI_DISTLIST:
+		hr = ECDistList::Create(this, fModifyObject, &~lpDistList);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpDistList->SetEntryId(cbEntryID, lpEntryID);
+		if (hr != hrSuccess)
+			return hr;
+		AddChild(lpDistList);
+		hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpDistList->HrSetPropStorage(lpPropStorage, TRUE);
+		if (hr != hrSuccess)
+			return hr;
+		if (lpInterface)
+			hr = lpDistList->QueryInterface(*lpInterface, (void **)lppUnk);
+		else
+			hr = lpDistList->QueryInterface(IID_IDistList, (void **)lppUnk);
+		if (hr != hrSuccess)
+			return hr;
+		break;
+	default:
+		return MAPI_E_NOT_FOUND;
 	}
 
 	if(lpulObjType)

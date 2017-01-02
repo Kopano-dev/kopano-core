@@ -102,31 +102,24 @@ HRESULT ECMsgStorePublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULON
 
 	switch(ulPropTag) {
 	case PR_IPM_SUBTREE_ENTRYID:
-		hr = ::GetPublicEntryId(ePE_IPMSubtree, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
-		break;
+		return ::GetPublicEntryId(ePE_IPMSubtree, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
 	case PR_IPM_PUBLIC_FOLDERS_ENTRYID:
-		hr = ::GetPublicEntryId(ePE_PublicFolders, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
-		break;
+		return ::GetPublicEntryId(ePE_PublicFolders, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
 	case PR_IPM_FAVORITES_ENTRYID:
-		hr = ::GetPublicEntryId(ePE_Favorites, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
-		break;
+		return ::GetPublicEntryId(ePE_Favorites, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
 	case PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID:
 		hr = lpStore->HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, ulFlags, lpBase, lpsPropValue);
 		if (hr == hrSuccess)
 			lpsPropValue->ulPropTag = PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID;
-		break;
+		return hr;
 	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
+		return MAPI_E_NOT_FOUND;
 	}
-
-	return hr;
 }
 
 HRESULT ECMsgStorePublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropValue;
 
 	ECMsgStorePublic *lpStore = (ECMsgStorePublic *)lpParam;
@@ -135,14 +128,10 @@ HRESULT ECMsgStorePublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 	case PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID:
 		sPropValue.ulPropTag = PR_IPM_SUBTREE_ENTRYID;
 		sPropValue.Value = lpsPropValue->Value;	// Cheap copy
-		hr = lpStore->HrSetRealProp(&sPropValue);
-		break;
+		return lpStore->HrSetRealProp(&sPropValue);
 	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
+		return MAPI_E_NOT_FOUND;
 	}
-
-	return hr;
 }
 
 HRESULT ECMsgStorePublic::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)

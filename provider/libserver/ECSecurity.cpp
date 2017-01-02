@@ -449,47 +449,47 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 
 	ulACL = 0;
 	switch(ulecRights){
-		case ecSecurityRead:// 1
-			ulACL |= ecRightsReadAny;
-			nCheckType = 1;
-			break;
-		case ecSecurityCreate:// 2
-			ulACL |= ecRightsCreate;
-			nCheckType = 1;
-			break;
-		case ecSecurityEdit:// 3
-			ulACL |= ecRightsEditAny;
-			if(bOwnerFound)
-				ulACL |= ecRightsEditOwned;
-			nCheckType = 1;
-			break;
-		case ecSecurityDelete:// 4
-			ulACL |= ecRightsDeleteAny;
-			if(bOwnerFound)
-				ulACL |= ecRightsDeleteOwned;
-			nCheckType = 1;
-			break;
-		case ecSecurityCreateFolder:// 5
-			ulACL |= ecRightsCreateSubfolder;
-			nCheckType = 1;
-			break;
-		case ecSecurityFolderVisible:// 6
-			ulACL |= ecRightsFolderVisible;
-			nCheckType = 1;
-			break;
-		case ecSecurityFolderAccess: // 7
-			if(bOwnerFound == false || ulStoreType == ECSTORE_TYPE_ARCHIVE)
-				ulACL |= ecRightsFolderAccess;
-			nCheckType = 1;
-			break;
-		case ecSecurityOwner:// 8
-			nCheckType = 2;
-			break;
-		case ecSecurityAdmin:// 9
-			nCheckType = 3;
-			break;
-		default:
-			nCheckType = 0;//  No rights
+	case ecSecurityRead: // 1
+		ulACL |= ecRightsReadAny;
+		nCheckType = 1;
+		break;
+	case ecSecurityCreate: // 2
+		ulACL |= ecRightsCreate;
+		nCheckType = 1;
+		break;
+	case ecSecurityEdit: // 3
+		ulACL |= ecRightsEditAny;
+		if(bOwnerFound)
+			ulACL |= ecRightsEditOwned;
+		nCheckType = 1;
+		break;
+	case ecSecurityDelete: // 4
+		ulACL |= ecRightsDeleteAny;
+		if(bOwnerFound)
+			ulACL |= ecRightsDeleteOwned;
+		nCheckType = 1;
+		break;
+	case ecSecurityCreateFolder: // 5
+		ulACL |= ecRightsCreateSubfolder;
+		nCheckType = 1;
+		break;
+	case ecSecurityFolderVisible: // 6
+		ulACL |= ecRightsFolderVisible;
+		nCheckType = 1;
+		break;
+	case ecSecurityFolderAccess: // 7
+		if (bOwnerFound == false || ulStoreType == ECSTORE_TYPE_ARCHIVE)
+			ulACL |= ecRightsFolderAccess;
+		nCheckType = 1;
+		break;
+	case ecSecurityOwner: // 8
+		nCheckType = 2;
+		break;
+	case ecSecurityAdmin: // 9
+		nCheckType = 3;
+		break;
+	default:
+		nCheckType = 0; // No rights
 		break;
 	}
 

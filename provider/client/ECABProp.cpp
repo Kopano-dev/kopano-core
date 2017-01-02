@@ -88,18 +88,15 @@ HRESULT ECABProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSr
 	HRESULT hr = hrSuccess;
 
 	switch(lpsPropValSrc->ulPropTag) {
-		case PROP_TAG(PT_ERROR,PROP_ID(PR_AB_PROVIDER_ID)):
-			lpsPropValDst->ulPropTag = PR_AB_PROVIDER_ID;
-
-			lpsPropValDst->Value.bin.cb = sizeof(GUID);
-			ECAllocateMore(sizeof(GUID), lpBase, (void**)&lpsPropValDst->Value.bin.lpb);
-
-			memcpy(lpsPropValDst->Value.bin.lpb, &MUIDECSAB, sizeof(GUID));
-
-			break;
-		default:
-			hr = MAPI_E_NOT_FOUND;
-			break;
+	case PROP_TAG(PT_ERROR,PROP_ID(PR_AB_PROVIDER_ID)):
+		lpsPropValDst->ulPropTag = PR_AB_PROVIDER_ID;
+		lpsPropValDst->Value.bin.cb = sizeof(GUID);
+		ECAllocateMore(sizeof(GUID), lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+		memcpy(lpsPropValDst->Value.bin.lpb, &MUIDECSAB, sizeof(GUID));
+		break;
+	default:
+		hr = MAPI_E_NOT_FOUND;
+		break;
 	}
 
 	return hr;

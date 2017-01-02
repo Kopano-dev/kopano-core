@@ -245,21 +245,21 @@
 			
 			// Set correct taskmode and taskhistory depending on response type
 			switch($props[PR_MESSAGE_CLASS]) {
-				case 'IPM.TaskRequest.Accept':
-					$taskhistory = thAccepted;
-					$taskstate = tdsACC;
-					$delegationstate =  olTaskDelegationAccepted;
-					break;
-				case 'IPM.TaskRequest.Decline':
-					$taskhistory = thDeclined;
-					$taskstate = tdsDEC;
-					$delegationstate =  olTaskDelegationDeclined;
-					break;
-				case 'IPM.TaskRequest.Update':
-					$taskhistory = thUpdated;
-					$taskstate = tdsACC; // Doesn't actually change anything
-					$delegationstate =  olTaskDelegationAccepted;
-					break;
+			case 'IPM.TaskRequest.Accept':
+				$taskhistory = thAccepted;
+				$taskstate = tdsACC;
+				$delegationstate =  olTaskDelegationAccepted;
+				break;
+			case 'IPM.TaskRequest.Decline':
+				$taskhistory = thDeclined;
+				$taskstate = tdsDEC;
+				$delegationstate =  olTaskDelegationDeclined;
+				break;
+			case 'IPM.TaskRequest.Update':
+				$taskhistory = thUpdated;
+				$taskstate = tdsACC; // Doesn't actually change anything
+				$delegationstate =  olTaskDelegationAccepted;
+				break;
 			}
 
 			// Update taskstate (what the task looks like) and task history (last action done by the assignee)
@@ -617,15 +617,15 @@
 			if (!$this->setRecipientsForResponse($outgoing, $type)) return false;
 
 			switch($type) {
-				case tdmtTaskAcc:
-					$messageclass = "IPM.TaskRequest.Accept"; 
-					break;
-				case tdmtTaskDec:
-					$messageclass = "IPM.TaskRequest.Decline"; 
-					break;
-				case tdmtTaskUpd:
-					$messageclass = "IPM.TaskRequest.Update"; 
-					break;
+			case tdmtTaskAcc:
+				$messageclass = "IPM.TaskRequest.Accept";
+				break;
+			case tdmtTaskDec:
+				$messageclass = "IPM.TaskRequest.Decline";
+				break;
+			case tdmtTaskUpd:
+				$messageclass = "IPM.TaskRequest.Update";
+				break;
 			};
 			
 			mapi_savechanges($sub);

@@ -38,31 +38,31 @@
 
 			switch($this->getCode()) 
 			{
-				case MAPI_E_NO_ACCESS:
-					return dgettext("kopano","You have insufficient privileges to open this object.");
-				case MAPI_E_LOGON_FAILED:
-				case MAPI_E_UNCONFIGURED:
-					return dgettext("kopano","Logon Failed. Please check your name/password.");
-				case MAPI_E_NETWORK_ERROR:
-					return dgettext("kopano","Can not connect to storage server.");
-				case MAPI_E_UNKNOWN_ENTRYID:
-					return dgettext("kopano","Can not open object with provided id.");
-				case MAPI_E_NO_RECIPIENTS:
-					return dgettext("kopano","There are no recipients in the message.");
-				case MAPI_E_NOT_FOUND:
-					return dgettext("kopano","Can not find object.");
-				case MAPI_E_INTERFACE_NOT_SUPPORTED:
-				case MAPI_E_INVALID_PARAMETER:
-				case MAPI_E_INVALID_ENTRYID:
-				case MAPI_E_INVALID_OBJECT:
-				case MAPI_E_TOO_COMPLEX:
-				case MAPI_E_CORRUPT_DATA:
-				case MAPI_E_END_OF_SESSION:
-				case MAPI_E_AMBIGUOUS_RECIP:
-				case MAPI_E_COLLISION:
-				case MAPI_E_UNCONFIGURED:
-				default :
-					return sprintf(dgettext("kopano","Unknown MAPI Error: %s"), get_mapi_error_name($this->getCode()));
+			case MAPI_E_NO_ACCESS:
+				return dgettext("kopano","You have insufficient privileges to open this object.");
+			case MAPI_E_LOGON_FAILED:
+			case MAPI_E_UNCONFIGURED:
+				return dgettext("kopano","Logon Failed. Please check your name/password.");
+			case MAPI_E_NETWORK_ERROR:
+				return dgettext("kopano","Can not connect to storage server.");
+			case MAPI_E_UNKNOWN_ENTRYID:
+				return dgettext("kopano","Can not open object with provided id.");
+			case MAPI_E_NO_RECIPIENTS:
+				return dgettext("kopano","There are no recipients in the message.");
+			case MAPI_E_NOT_FOUND:
+				return dgettext("kopano","Can not find object.");
+			case MAPI_E_INTERFACE_NOT_SUPPORTED:
+			case MAPI_E_INVALID_PARAMETER:
+			case MAPI_E_INVALID_ENTRYID:
+			case MAPI_E_INVALID_OBJECT:
+			case MAPI_E_TOO_COMPLEX:
+			case MAPI_E_CORRUPT_DATA:
+			case MAPI_E_END_OF_SESSION:
+			case MAPI_E_AMBIGUOUS_RECIP:
+			case MAPI_E_COLLISION:
+			case MAPI_E_UNCONFIGURED:
+			default:
+				return sprintf(dgettext("kopano","Unknown MAPI Error: %s"), get_mapi_error_name($this->getCode()));
 			}
 		}
 	}

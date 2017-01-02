@@ -647,54 +647,50 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	case MSG_SERVICE_DELETE:
 		hr = hrSuccess;
 		break;
-	case MSG_SERVICE_PROVIDER_CREATE:
-		if(cvals && pvals) {
-			const SPropValue *lpsPropName = NULL;
-			auto lpsPropValueFind = PCpropFindProp(pvals, cvals, PR_PROVIDER_UID);
-			if(lpsPropValueFind == NULL || lpsPropValueFind->Value.bin.cb == 0)
-			{
-				//FIXME: give the right error?
-				hr = MAPI_E_UNCONFIGURED;
-				goto exit;
-			}
-
-			// PR_EC_USERNAME is the user we're adding ...
-			lpsPropName = PCpropFindProp(pvals, cvals, CHANGE_PROP_TYPE(PR_EC_USERNAME_A, PT_UNSPECIFIED));
-			if(lpsPropName == NULL || lpsPropName->Value.bin.cb == 0)
-			{
-				hr = MAPI_E_UNCONFIGURED;
-				goto exit;
-			}
-
-			//Open profile section
-			hr = lpAdminProviders->OpenProfileSection((MAPIUID *)lpsPropValueFind->Value.bin.lpb, nullptr, MAPI_MODIFY, &~ptrProfSect);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = HrSetOneProp(ptrProfSect, lpsPropName);
-			if(hr != hrSuccess)
-				goto exit;
-			hr = lpAdminProviders->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, nullptr, MAPI_MODIFY , &~ptrGlobalProfSect);
-			if(hr != hrSuccess)
-				goto exit;
-
-			// Get username/pass settings
-			hr = ClientUtil::GetGlobalProfileProperties(ptrGlobalProfSect, &sProfileProps);
-			if(hr != hrSuccess)
-				goto exit;
-
-			if(sProfileProps.strUserName.empty() || sProfileProps.strServerPath.empty()) {
-				hr = MAPI_E_UNCONFIGURED; // @todo: check if this is the right error
-				goto exit;
-			}
-
-			hr = InitializeProvider(lpAdminProviders, ptrProfSect, sProfileProps, NULL, NULL, NULL);
-			if (hr != hrSuccess)
-				goto exit;
-		
+	case MSG_SERVICE_PROVIDER_CREATE: {
+		if (cvals == 0 || pvals == nullptr)
+			break;
+		const SPropValue *lpsPropName = NULL;
+		auto lpsPropValueFind = PCpropFindProp(pvals, cvals, PR_PROVIDER_UID);
+		if (lpsPropValueFind == NULL || lpsPropValueFind->Value.bin.cb == 0)
+		{
+			//FIXME: give the right error?
+			hr = MAPI_E_UNCONFIGURED;
+			goto exit;
 		}
 
+		// PR_EC_USERNAME is the user we're adding ...
+		lpsPropName = PCpropFindProp(pvals, cvals, CHANGE_PROP_TYPE(PR_EC_USERNAME_A, PT_UNSPECIFIED));
+		if (lpsPropName == NULL || lpsPropName->Value.bin.cb == 0)
+		{
+			hr = MAPI_E_UNCONFIGURED;
+			goto exit;
+		}
+
+		//Open profile section
+		hr = lpAdminProviders->OpenProfileSection((MAPIUID *)lpsPropValueFind->Value.bin.lpb, nullptr, MAPI_MODIFY, &~ptrProfSect);
+		if (hr != hrSuccess)
+			goto exit;
+		hr = HrSetOneProp(ptrProfSect, lpsPropName);
+		if (hr != hrSuccess)
+			goto exit;
+		hr = lpAdminProviders->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
+		if (hr != hrSuccess)
+			goto exit;
+
+		// Get username/pass settings
+		hr = ClientUtil::GetGlobalProfileProperties(ptrGlobalProfSect, &sProfileProps);
+		if (hr != hrSuccess)
+			goto exit;
+		if (sProfileProps.strUserName.empty() || sProfileProps.strServerPath.empty()) {
+			hr = MAPI_E_UNCONFIGURED; // @todo: check if this is the right error
+			goto exit;
+		}
+		hr = InitializeProvider(lpAdminProviders, ptrProfSect, sProfileProps, NULL, NULL, NULL);
+		if (hr != hrSuccess)
+			goto exit;
 		break;
+	}
 	case MSG_SERVICE_PROVIDER_DELETE:
 		hr = hrSuccess;
 

@@ -192,19 +192,11 @@ HRESULT ECMAPIFolder::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ul
 HRESULT	ECMAPIFolder::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
-	HRESULT hr = hrSuccess;
 	ECMAPIFolder *lpFolder = (ECMAPIFolder *)lpParam;
 
-	switch(ulPropTag) {
-	case PR_ACL_DATA:
-		hr = lpFolder->SetSerializedACLData(lpsPropValue);
-		break;
-	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
-	}
-
-	return hr;
+	if (ulPropTag == PR_ACL_DATA)
+		return lpFolder->SetSerializedACLData(lpsPropValue);
+	return MAPI_E_NOT_FOUND;
 }
 
 // This is similar to GetPropHandler, but works is a static function, and therefore cannot access

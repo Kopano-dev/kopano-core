@@ -2178,19 +2178,19 @@ HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, ica
 		ulBusyStatus = lpSpropVal->Value.ul;
 
 	switch (ulBusyStatus) {
-		case 0:
-			lpicProp = icalproperty_new_x("FREE");
-			break;
-		case 1:
-			lpicProp = icalproperty_new_x("TENTATIVE");
-			break;
-		default:
-		case 2:
-			lpicProp = icalproperty_new_x("BUSY");
-			break;
-		case 3:
-			lpicProp = icalproperty_new_x("OOF");
-			break;
+	case 0:
+		lpicProp = icalproperty_new_x("FREE");
+		break;
+	case 1:
+		lpicProp = icalproperty_new_x("TENTATIVE");
+		break;
+	default:
+	case 2:
+		lpicProp = icalproperty_new_x("BUSY");
+		break;
+	case 3:
+		lpicProp = icalproperty_new_x("OOF");
+		break;
 	}
 	
 	icalproperty_set_x_name(lpicProp, "X-MICROSOFT-CDO-INTENDEDSTATUS"); 

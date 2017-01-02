@@ -1048,17 +1048,17 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID, GUID guidStore, void 
 	EID eid = EID(MAPI_FOLDER, guidStore, guidEmpty);
 
 	switch (ePublicEntryID) {
-		case ePE_IPMSubtree:
-			eid.uniqueId.Data4[7] = 1;
-			break;
-		case ePE_Favorites:
-			eid.uniqueId.Data4[7] = 2;
-			break;
-		case ePE_PublicFolders:
-			eid.uniqueId.Data4[7] = 3;
-			break;
-		default:
-			return MAPI_E_INVALID_PARAMETER;
+	case ePE_IPMSubtree:
+		eid.uniqueId.Data4[7] = 1;
+		break;
+	case ePE_Favorites:
+		eid.uniqueId.Data4[7] = 2;
+		break;
+	case ePE_PublicFolders:
+		eid.uniqueId.Data4[7] = 3;
+		break;
+	default:
+		return MAPI_E_INVALID_PARAMETER;
 	}
 
 	if (lpcbEntryID == NULL || lppEntryID == NULL)

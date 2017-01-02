@@ -256,12 +256,12 @@ HRESULT	ECAttach::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 {
 	ECAttach *lpAttach = (ECAttach *)lpParam;
 	switch (ulPropTag) {
-		case PR_ATTACH_DATA_BIN:
-			return lpAttach->HrSetRealProp(lpsPropValue);
-		case PR_ATTACH_DATA_OBJ:
-			return MAPI_E_COMPUTED;
-		default:
-			return MAPI_E_NOT_FOUND;
+	case PR_ATTACH_DATA_BIN:
+		return lpAttach->HrSetRealProp(lpsPropValue);
+	case PR_ATTACH_DATA_OBJ:
+		return MAPI_E_COMPUTED;
+	default:
+		return MAPI_E_NOT_FOUND;
 	}
 	return MAPI_E_NOT_FOUND;
 }

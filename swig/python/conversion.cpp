@@ -268,127 +268,123 @@ PyObject *Object_from_SPropValue(const SPropValue *lpProp)
 
 	ulPropTag = PyLong_FromUnsignedLong(lpProp->ulPropTag);
 	switch(PROP_TYPE(lpProp->ulPropTag)) {
-
-		case PT_STRING8:
-			Value = PyString_FromString(lpProp->Value.lpszA);
-			break;
-		case PT_UNICODE:
-			Value = PyUnicode_FromWideChar(lpProp->Value.lpszW, wcslen(lpProp->Value.lpszW));
-			break;
-		case PT_BINARY:
-			Value = PyString_FromStringAndSize((const char*)lpProp->Value.bin.lpb, lpProp->Value.bin.cb);
-			break;
-		case PT_SHORT:
-			Value = PyLong_FromLong(lpProp->Value.i);
-			break;
-		case PT_ERROR:
-			Value = PyLong_FromUnsignedLong((unsigned int)lpProp->Value.err);
-			break;
-		case PT_LONG:
-			Value = PyLong_FromLongLong(lpProp->Value.l); // We have to use LongLong since it could be either PT_LONG or PT_ULONG. 'Long' doesn't cover the range
-			break;
-		case PT_FLOAT:
-			Value = PyFloat_FromDouble(lpProp->Value.flt);
-			break;
-		case PT_APPTIME:
-		case PT_DOUBLE:
-			Value = PyFloat_FromDouble(lpProp->Value.dbl);
-			break;
-		case PT_LONGLONG:
-		case PT_CURRENCY:
-			Value = PyLong_FromLongLong(lpProp->Value.cur.int64);
-			break;
-		case PT_BOOLEAN:
-			Value = PyBool_FromLong(lpProp->Value.b);
-			break;
-		case PT_SYSTIME:
-			Value = Object_from_FILETIME(lpProp->Value.ft);
-			break;
-		case PT_CLSID:
-			Value = PyString_FromStringAndSize((const char*)lpProp->Value.lpguid, sizeof(GUID));
-			break;
-		case PT_OBJECT:
-			Py_INCREF(Py_None);
-			Value = Py_None;
-			break;
-
-		case PT_SRESTRICTION:
-			Value = Object_from_LPSRestriction((LPSRestriction)lpProp->Value.lpszA);
-			break;
-
-		case PT_ACTIONS:
-			Value = Object_from_LPACTIONS((ACTIONS*)lpProp->Value.lpszA);
-			break;
+	case PT_STRING8:
+		Value = PyString_FromString(lpProp->Value.lpszA);
+		break;
+	case PT_UNICODE:
+		Value = PyUnicode_FromWideChar(lpProp->Value.lpszW, wcslen(lpProp->Value.lpszW));
+		break;
+	case PT_BINARY:
+		Value = PyString_FromStringAndSize((const char *)lpProp->Value.bin.lpb, lpProp->Value.bin.cb);
+		break;
+	case PT_SHORT:
+		Value = PyLong_FromLong(lpProp->Value.i);
+		break;
+	case PT_ERROR:
+		Value = PyLong_FromUnsignedLong((unsigned int)lpProp->Value.err);
+		break;
+	case PT_LONG:
+		Value = PyLong_FromLongLong(lpProp->Value.l); // We have to use LongLong since it could be either PT_LONG or PT_ULONG. 'Long' doesn't cover the range
+		break;
+	case PT_FLOAT:
+		Value = PyFloat_FromDouble(lpProp->Value.flt);
+		break;
+	case PT_APPTIME:
+	case PT_DOUBLE:
+		Value = PyFloat_FromDouble(lpProp->Value.dbl);
+		break;
+	case PT_LONGLONG:
+	case PT_CURRENCY:
+		Value = PyLong_FromLongLong(lpProp->Value.cur.int64);
+		break;
+	case PT_BOOLEAN:
+		Value = PyBool_FromLong(lpProp->Value.b);
+		break;
+	case PT_SYSTIME:
+		Value = Object_from_FILETIME(lpProp->Value.ft);
+		break;
+	case PT_CLSID:
+		Value = PyString_FromStringAndSize((const char *)lpProp->Value.lpguid, sizeof(GUID));
+		break;
+	case PT_OBJECT:
+		Py_INCREF(Py_None);
+		Value = Py_None;
+		break;
+	case PT_SRESTRICTION:
+		Value = Object_from_LPSRestriction((LPSRestriction)lpProp->Value.lpszA);
+		break;
+	case PT_ACTIONS:
+		Value = Object_from_LPACTIONS((ACTIONS *)lpProp->Value.lpszA);
+		break;
 
 #define BASE(x) x
 #define INT64(x) x.int64
 #define QUADPART(x) x.QuadPart
 #define PT_MV_CASE(MVname,MVelem,From,Sub) \
-			Value = PyList_New(0); \
-			for (unsigned int i = 0; i < lpProp->Value.MV##MVname.cValues; ++i) { \
-				PyObject *elem = From(Sub(lpProp->Value.MV##MVname.lp##MVelem[i])); \
-				PyList_Append(Value, elem); \
-				Py_DECREF(elem); \
-			} \
-			break;
+	Value = PyList_New(0); \
+	for (unsigned int i = 0; i < lpProp->Value.MV##MVname.cValues; ++i) { \
+		PyObject *elem = From(Sub(lpProp->Value.MV##MVname.lp##MVelem[i])); \
+		PyList_Append(Value, elem); \
+		Py_DECREF(elem); \
+	} \
+	break;
 
-		case PT_MV_SHORT:
-			PT_MV_CASE(i,i,PyLong_FromLong,BASE)
-		case PT_MV_LONG:
-			PT_MV_CASE(l,l,PyLong_FromLong,BASE)
-		case PT_MV_FLOAT:
-			PT_MV_CASE(flt,flt,PyFloat_FromDouble,BASE)
-		case PT_MV_DOUBLE:
-			PT_MV_CASE(dbl,dbl,PyFloat_FromDouble,BASE)
-		case PT_MV_CURRENCY:
-			PT_MV_CASE(cur,cur,PyLong_FromLongLong,INT64)
-		case PT_MV_APPTIME:
-			PT_MV_CASE(at,at,PyFloat_FromDouble,BASE)
-		case PT_MV_LONGLONG:
-			PT_MV_CASE(li,li,PyLong_FromLongLong,QUADPART)
-		case PT_MV_SYSTIME:
-			Value = PyList_New(0);
-			for (unsigned int i = 0; i < lpProp->Value.MVft.cValues; ++i) {
-				PyObject *elem = Object_from_FILETIME(lpProp->Value.MVft.lpft[i]);
-				PyList_Append(Value, elem);
-				Py_DECREF(elem);
-			}
-			break;
-		case PT_MV_STRING8:
-			PT_MV_CASE(szA,pszA,PyString_FromString,BASE)
-		case PT_MV_BINARY:
-			Value = PyList_New(0);
-			for (unsigned int i = 0; i < lpProp->Value.MVbin.cValues; ++i) {
-				PyObject *elem = PyString_FromStringAndSize((const char *)lpProp->Value.MVbin.lpbin[i].lpb, lpProp->Value.MVbin.lpbin[i].cb);
-				PyList_Append(Value, elem);
-				Py_DECREF(elem);
-			}
-			break;
-		case PT_MV_UNICODE:
-			Value = PyList_New(0);
-			for (unsigned int i = 0; i < lpProp->Value.MVszW.cValues; ++i) {
-				int len = wcslen(lpProp->Value.MVszW.lppszW[i]);
-				PyObject *elem = PyUnicode_FromWideChar(lpProp->Value.MVszW.lppszW[i], len);
-				PyList_Append(Value, elem);
-				Py_DECREF(elem);
-			}
-			break;
-		case PT_MV_CLSID:
-			Value = PyList_New(0);
-			for (unsigned int i = 0; i < lpProp->Value.MVguid.cValues; ++i) {
-				PyObject *elem = PyString_FromStringAndSize((const char *)&lpProp->Value.MVguid.lpguid[i], sizeof(GUID));
-				PyList_Append(Value, elem);
-				Py_DECREF(elem);
-			}
-			break;
-		case PT_NULL:
-			Py_INCREF(Py_None);
-			Value = Py_None;
-			break;
-
-		default:
-			PyErr_Format(PyExc_RuntimeError, "Bad property type %x", PROP_TYPE(lpProp->ulPropTag));
-			break;
+	case PT_MV_SHORT:
+		PT_MV_CASE(i, i, PyLong_FromLong,BASE)
+	case PT_MV_LONG:
+		PT_MV_CASE(l, l, PyLong_FromLong,BASE)
+	case PT_MV_FLOAT:
+		PT_MV_CASE(flt, flt, PyFloat_FromDouble,BASE)
+	case PT_MV_DOUBLE:
+		PT_MV_CASE(dbl, dbl, PyFloat_FromDouble,BASE)
+	case PT_MV_CURRENCY:
+		PT_MV_CASE(cur, cur, PyLong_FromLongLong,INT64)
+	case PT_MV_APPTIME:
+		PT_MV_CASE(at, at, PyFloat_FromDouble,BASE)
+	case PT_MV_LONGLONG:
+		PT_MV_CASE(li, li, PyLong_FromLongLong,QUADPART)
+	case PT_MV_SYSTIME:
+		Value = PyList_New(0);
+		for (unsigned int i = 0; i < lpProp->Value.MVft.cValues; ++i) {
+			PyObject *elem = Object_from_FILETIME(lpProp->Value.MVft.lpft[i]);
+			PyList_Append(Value, elem);
+			Py_DECREF(elem);
+		}
+		break;
+	case PT_MV_STRING8:
+		PT_MV_CASE(szA, pszA, PyString_FromString, BASE)
+	case PT_MV_BINARY:
+		Value = PyList_New(0);
+		for (unsigned int i = 0; i < lpProp->Value.MVbin.cValues; ++i) {
+			PyObject *elem = PyString_FromStringAndSize((const char *)lpProp->Value.MVbin.lpbin[i].lpb, lpProp->Value.MVbin.lpbin[i].cb);
+			PyList_Append(Value, elem);
+			Py_DECREF(elem);
+		}
+		break;
+	case PT_MV_UNICODE:
+		Value = PyList_New(0);
+		for (unsigned int i = 0; i < lpProp->Value.MVszW.cValues; ++i) {
+			int len = wcslen(lpProp->Value.MVszW.lppszW[i]);
+			PyObject *elem = PyUnicode_FromWideChar(lpProp->Value.MVszW.lppszW[i], len);
+			PyList_Append(Value, elem);
+			Py_DECREF(elem);
+		}
+		break;
+	case PT_MV_CLSID:
+		Value = PyList_New(0);
+		for (unsigned int i = 0; i < lpProp->Value.MVguid.cValues; ++i) {
+			PyObject *elem = PyString_FromStringAndSize((const char *)&lpProp->Value.MVguid.lpguid[i], sizeof(GUID));
+			PyList_Append(Value, elem);
+			Py_DECREF(elem);
+		}
+		break;
+	case PT_NULL:
+		Py_INCREF(Py_None);
+		Value = Py_None;
+		break;
+	default:
+		PyErr_Format(PyExc_RuntimeError, "Bad property type %x", PROP_TYPE(lpProp->ulPropTag));
+		break;
 	}
 	if (PyErr_Occurred())
 		goto exit;
@@ -490,260 +486,245 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 	lpProp->dwAlignPad = 0;
 	lpProp->ulPropTag = (ULONG)PyLong_AsUnsignedLong(ulPropTag);
 	switch(PROP_TYPE(lpProp->ulPropTag)) {
-		case PT_NULL:
-			lpProp->Value.x = 0;
-			break;
-		case PT_STRING8:
-			if (ulFlags == CONV_COPY_SHALLOW)
-				lpProp->Value.lpszA = PyString_AsString(Value);
-			else {
-				PyString_AsStringAndSize(Value, &lpstr, &size);
-				if (MAPIAllocateMore(size + 1, lpBase, (LPVOID*)&lpProp->Value.lpszA) != hrSuccess)
-					goto exit;
-				memcpy(lpProp->Value.lpszA, lpstr, size + 1);
-			}
-			break;
-		case PT_UNICODE:
-			// @todo add PyUnicode_Check call?
-			if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
-				lpProp->Value.lpszW = (WCHAR*)PyUnicode_AsUnicode(Value);
-			else {
-			    CopyPyUnicode(&lpProp->Value.lpszW, Value, lpBase);
-			}
-			break;
-		case PT_ERROR:
-			lpProp->Value.ul = (ULONG)PyLong_AsUnsignedLong(Value);
-			break;
-		case PT_SHORT:
-			lpProp->Value.i = (short int)PyLong_AsLong(Value);
-			break;
-		case PT_LONG:
-			lpProp->Value.ul = (ULONG)PyLong_AsLongLong(Value); // We have to use LongLong since it could be either PT_LONG or PT_ULONG. 'Long' doesn't cover the range
-			break;
-		case PT_FLOAT:
-			lpProp->Value.flt = (float)PyFloat_AsDouble(Value);
-			break;
-		case PT_APPTIME:
-		case PT_DOUBLE:
-			lpProp->Value.dbl = PyFloat_AsDouble(Value);
-			break;
-		case PT_LONGLONG:
-		case PT_CURRENCY:
-			lpProp->Value.cur.int64 = PyLong_AsINT64(Value);
-			break;
-		case PT_BOOLEAN:
-			lpProp->Value.b = (Value == Py_True);
-			break;
-		case PT_OBJECT:
-			lpProp->Value.lpszA = NULL;
-			break;
-		case PT_SYSTIME:
-			lpProp->Value.ft = Object_to_FILETIME(Value);
-			break;
-		case PT_CLSID:
+	case PT_NULL:
+		lpProp->Value.x = 0;
+		break;
+	case PT_STRING8:
+		if (ulFlags == CONV_COPY_SHALLOW)
+			lpProp->Value.lpszA = PyString_AsString(Value);
+		else {
 			PyString_AsStringAndSize(Value, &lpstr, &size);
-			if(size == sizeof(GUID)) {
-				if (ulFlags == CONV_COPY_SHALLOW)
-					lpProp->Value.lpguid = (LPGUID)lpstr;
-				else {
-					if (MAPIAllocateMore(sizeof(GUID), lpBase, (LPVOID*)&lpProp->Value.lpguid) != hrSuccess)
-						goto exit;
-					memcpy(lpProp->Value.lpguid, lpstr, sizeof(GUID));
-				}
-			}
-			else
-				PyErr_Format(PyExc_TypeError, "PT_CLSID Value must be exactly %d bytes", (int)sizeof(GUID));
-			break;
-		case PT_BINARY:
-			PyString_AsStringAndSize(Value, &lpstr, &size);
+			if (MAPIAllocateMore(size + 1, lpBase, (LPVOID *)&lpProp->Value.lpszA) != hrSuccess)
+				goto exit;
+			memcpy(lpProp->Value.lpszA, lpstr, size + 1);
+		}
+		break;
+	case PT_UNICODE:
+		// @todo add PyUnicode_Check call?
+		if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
+			lpProp->Value.lpszW = (WCHAR *)PyUnicode_AsUnicode(Value);
+		else {
+			CopyPyUnicode(&lpProp->Value.lpszW, Value, lpBase);
+		}
+		break;
+	case PT_ERROR:
+		lpProp->Value.ul = (ULONG)PyLong_AsUnsignedLong(Value);
+		break;
+	case PT_SHORT:
+		lpProp->Value.i = (short int)PyLong_AsLong(Value);
+		break;
+	case PT_LONG:
+		lpProp->Value.ul = (ULONG)PyLong_AsLongLong(Value); // We have to use LongLong since it could be either PT_LONG or PT_ULONG. 'Long' doesn't cover the range
+		break;
+	case PT_FLOAT:
+		lpProp->Value.flt = (float)PyFloat_AsDouble(Value);
+		break;
+	case PT_APPTIME:
+	case PT_DOUBLE:
+		lpProp->Value.dbl = PyFloat_AsDouble(Value);
+		break;
+	case PT_LONGLONG:
+	case PT_CURRENCY:
+		lpProp->Value.cur.int64 = PyLong_AsINT64(Value);
+		break;
+	case PT_BOOLEAN:
+		lpProp->Value.b = (Value == Py_True);
+		break;
+	case PT_OBJECT:
+		lpProp->Value.lpszA = NULL;
+		break;
+	case PT_SYSTIME:
+		lpProp->Value.ft = Object_to_FILETIME(Value);
+		break;
+	case PT_CLSID:
+		PyString_AsStringAndSize(Value, &lpstr, &size);
+		if (size == sizeof(GUID)) {
 			if (ulFlags == CONV_COPY_SHALLOW)
-				lpProp->Value.bin.lpb = (LPBYTE)lpstr;
+				lpProp->Value.lpguid = (LPGUID)lpstr;
 			else {
-				if (MAPIAllocateMore(size, lpBase, (LPVOID*)&lpProp->Value.bin.lpb) != hrSuccess)
+				if (MAPIAllocateMore(sizeof(GUID), lpBase, (LPVOID *)&lpProp->Value.lpguid) != hrSuccess)
 					goto exit;
-				memcpy(lpProp->Value.bin.lpb, lpstr, size);
+				memcpy(lpProp->Value.lpguid, lpstr, sizeof(GUID));
 			}
-			lpProp->Value.bin.cb = size;
-			break;
-		case PT_SRESTRICTION:
-			if (MAPIAllocateMore(sizeof(SRestriction), lpBase, (void**)&lpProp->Value.lpszA) != hrSuccess)
+		}
+		else
+			PyErr_Format(PyExc_TypeError, "PT_CLSID Value must be exactly %d bytes", (int)sizeof(GUID));
+		break;
+	case PT_BINARY:
+		PyString_AsStringAndSize(Value, &lpstr, &size);
+		if (ulFlags == CONV_COPY_SHALLOW)
+			lpProp->Value.bin.lpb = (LPBYTE)lpstr;
+		else {
+			if (MAPIAllocateMore(size, lpBase, (LPVOID *)&lpProp->Value.bin.lpb) != hrSuccess)
 				goto exit;
-			Object_to_LPSRestriction(Value, (LPSRestriction)lpProp->Value.lpszA, lpBase);
-			break;
-		case PT_ACTIONS:
-			if (MAPIAllocateMore(sizeof(ACTIONS), lpBase, (void**)&lpProp->Value.lpszA) != hrSuccess)
-				goto exit;
-			Object_to_LPACTIONS(Value, (ACTIONS*)lpProp->Value.lpszA, lpBase);
-			break;
+			memcpy(lpProp->Value.bin.lpb, lpstr, size);
+		}
+		lpProp->Value.bin.cb = size;
+		break;
+	case PT_SRESTRICTION:
+		if (MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **)&lpProp->Value.lpszA) != hrSuccess)
+			goto exit;
+		Object_to_LPSRestriction(Value, (LPSRestriction)lpProp->Value.lpszA, lpBase);
+		break;
+	case PT_ACTIONS:
+		if (MAPIAllocateMore(sizeof(ACTIONS), lpBase, (void **)&lpProp->Value.lpszA) != hrSuccess)
+			goto exit;
+		Object_to_LPACTIONS(Value, (ACTIONS*)lpProp->Value.lpszA, lpBase);
+		break;
 
 #undef PT_MV_CASE
 #define PT_MV_CASE(MVname,MVelem,As,Sub) \
-		{ \
-			Py_ssize_t len = PyObject_Size(Value); \
-			PyObject *iter = PyObject_GetIter(Value); \
-			PyObject *elem = NULL; \
-			int n = 0; \
-			\
-			if (len) { \
-				if (MAPIAllocateMore(sizeof(*lpProp->Value.MV##MVname.lp##MVelem) * len, lpBase, (void **)&lpProp->Value.MV##MVname.lp##MVelem) != hrSuccess) \
-					goto exit; \
-				while((elem = PyIter_Next(iter))) {						\
-					Sub(lpProp->Value.MV##MVname.lp##MVelem[n]) = As(elem); \
-					Py_DECREF(elem);									\
-					++n;												\
-				}														\
-			}															\
-			lpProp->Value.MV##MVname.cValues = n; \
-			Py_DECREF(iter); \
-			break; \
+	{ \
+		Py_ssize_t len = PyObject_Size(Value); \
+		PyObject *iter = PyObject_GetIter(Value); \
+		PyObject *elem = NULL; \
+		int n = 0; \
+		\
+		if (len) { \
+			if (MAPIAllocateMore(sizeof(*lpProp->Value.MV##MVname.lp##MVelem) * len, lpBase, (void **)&lpProp->Value.MV##MVname.lp##MVelem) != hrSuccess) \
+				goto exit; \
+			while ((elem = PyIter_Next(iter))) {						\
+				Sub(lpProp->Value.MV##MVname.lp##MVelem[n]) = As(elem); \
+				Py_DECREF(elem);									\
+				++n;												\
+			}														\
+		}															\
+		lpProp->Value.MV##MVname.cValues = n; \
+		Py_DECREF(iter); \
+		break; \
+	}
+	case PT_MV_SHORT:
+		PT_MV_CASE(i,i,PyLong_AsLong,BASE)
+	case PT_MV_LONG:
+		PT_MV_CASE(l,l,PyLong_AsLong,BASE)
+	case PT_MV_FLOAT:
+		PT_MV_CASE(flt,flt,PyFloat_AsDouble,BASE)
+	case PT_MV_DOUBLE:
+		PT_MV_CASE(dbl,dbl,PyFloat_AsDouble,BASE)
+	case PT_MV_CURRENCY:
+		PT_MV_CASE(cur,cur,PyLong_AsINT64,INT64)
+	case PT_MV_APPTIME:
+		PT_MV_CASE(at,at,PyFloat_AsDouble,BASE)
+	case PT_MV_LONGLONG:
+		PT_MV_CASE(li,li,PyLong_AsINT64,QUADPART)
+	case PT_MV_SYSTIME:
+	{
+		Py_ssize_t len = PyObject_Size(Value);
+		PyObject *iter = PyObject_GetIter(Value);
+		PyObject *elem = NULL;
+		int n = 0;
+
+		if (MAPIAllocateMore(sizeof(SDateTimeArray) * len, lpBase, (void **)&lpProp->Value.MVft.lpft) != hrSuccess)
+			goto exit;
+		while ((elem = PyIter_Next(iter))) {
+			lpProp->Value.MVft.lpft[n] = Object_to_FILETIME(elem);
+			Py_DECREF(elem);
+			++n;
 		}
+		lpProp->Value.MVft.cValues = n;
+		Py_DECREF(iter);
+		break;
+	}
+	case PT_MV_STRING8:
+	{
+		Py_ssize_t len = PyObject_Size(Value);
+		PyObject *iter = PyObject_GetIter(Value);
+		PyObject *elem = NULL;
+		int n = 0;
 
-		case PT_MV_SHORT:
-			PT_MV_CASE(i,i,PyLong_AsLong,BASE)
-		case PT_MV_LONG:
-			PT_MV_CASE(l,l,PyLong_AsLong,BASE)
-		case PT_MV_FLOAT:
-			PT_MV_CASE(flt,flt,PyFloat_AsDouble,BASE)
-		case PT_MV_DOUBLE:
-			PT_MV_CASE(dbl,dbl,PyFloat_AsDouble,BASE)
-		case PT_MV_CURRENCY:
-			PT_MV_CASE(cur,cur,PyLong_AsINT64,INT64)
-		case PT_MV_APPTIME:
-			PT_MV_CASE(at,at,PyFloat_AsDouble,BASE)
-		case PT_MV_LONGLONG:
-			PT_MV_CASE(li,li,PyLong_AsINT64,QUADPART)
-		case PT_MV_SYSTIME:
-		{
-			Py_ssize_t len = PyObject_Size(Value);
-			PyObject *iter = PyObject_GetIter(Value);
-			PyObject *elem = NULL;
-			int n = 0;
-
-			if (MAPIAllocateMore(sizeof(SDateTimeArray) * len, lpBase, (void **)&lpProp->Value.MVft.lpft) != hrSuccess)
-				goto exit;
-			while((elem = PyIter_Next(iter))) {
-				lpProp->Value.MVft.lpft[n] = Object_to_FILETIME(elem);
-				Py_DECREF(elem);
-				++n;
-			}
-
-			lpProp->Value.MVft.cValues = n;
-			Py_DECREF(iter);
-			break;
-		}
-
-		case PT_MV_STRING8:
-		{
-			Py_ssize_t len = PyObject_Size(Value);
-			PyObject *iter = PyObject_GetIter(Value);
-			PyObject *elem = NULL;
-			int n = 0;
-
-			if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszA.lppszA) * len, lpBase, (LPVOID*)&lpProp->Value.MVszA.lppszA) != hrSuccess)
-				goto exit;
-			while((elem = PyIter_Next(iter))) {
-				if (ulFlags == CONV_COPY_SHALLOW)
-					lpProp->Value.MVszA.lppszA[n] = PyString_AsString(elem);
-				else {
-					PyString_AsStringAndSize(elem, &lpstr, &size);
-					if (MAPIAllocateMore(size+1, lpBase, (LPVOID*)&lpProp->Value.MVszA.lppszA[n]) != hrSuccess)
-						goto exit;
-					memcpy(lpProp->Value.MVszA.lppszA[n], lpstr, size+1);
-				}
-
-				Py_DECREF(elem);
-				++n;
-			}
-
-			lpProp->Value.MVszA.cValues = n;
-			Py_DECREF(iter);
-			break;
-		}
-
-		case PT_MV_BINARY:
-		{
-			Py_ssize_t len = PyObject_Size(Value);
-			PyObject *iter = PyObject_GetIter(Value);
-			PyObject *elem = NULL;
-			int n = 0;
-
-			if (MAPIAllocateMore(sizeof(SBinaryArray) * len, lpBase, (void **)&lpProp->Value.MVbin.lpbin) != hrSuccess)
-				goto exit;
-			while((elem = PyIter_Next(iter))) {
+		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszA.lppszA) * len, lpBase, (LPVOID *)&lpProp->Value.MVszA.lppszA) != hrSuccess)
+			goto exit;
+		while ((elem = PyIter_Next(iter))) {
+			if (ulFlags == CONV_COPY_SHALLOW)
+				lpProp->Value.MVszA.lppszA[n] = PyString_AsString(elem);
+			else {
 				PyString_AsStringAndSize(elem, &lpstr, &size);
-				if (ulFlags == CONV_COPY_SHALLOW)
-					lpProp->Value.MVbin.lpbin[n].lpb = (LPBYTE)lpstr;
-				else {
-					if (MAPIAllocateMore(size, lpBase, (LPVOID*)&lpProp->Value.MVbin.lpbin[n].lpb) != hrSuccess)
-						goto exit;
-					memcpy(lpProp->Value.MVbin.lpbin[n].lpb, lpstr, size);
-				}
-				lpProp->Value.MVbin.lpbin[n].cb = size;
-
-				Py_DECREF(elem);
-				++n;
+				if (MAPIAllocateMore(size+1, lpBase, (LPVOID *)&lpProp->Value.MVszA.lppszA[n]) != hrSuccess)
+					goto exit;
+				memcpy(lpProp->Value.MVszA.lppszA[n], lpstr, size+1);
 			}
-
-			lpProp->Value.MVbin.cValues = n;
-			Py_DECREF(iter);
-			break;
+			Py_DECREF(elem);
+			++n;
 		}
+		lpProp->Value.MVszA.cValues = n;
+		Py_DECREF(iter);
+		break;
+	}
+	case PT_MV_BINARY:
+	{
+		Py_ssize_t len = PyObject_Size(Value);
+		PyObject *iter = PyObject_GetIter(Value);
+		PyObject *elem = NULL;
+		int n = 0;
 
-		case PT_MV_UNICODE:
-		{
-			Py_ssize_t len = PyObject_Size(Value);
-			PyObject *iter = PyObject_GetIter(Value);
-			PyObject *elem = NULL;
-			int n = 0;
-
-			if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszW.lppszW) * len, lpBase, (LPVOID*)&lpProp->Value.MVszW.lppszW) != hrSuccess)
-				goto exit;
-			while((elem = PyIter_Next(iter))) {
-				if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
-					lpProp->Value.MVszW.lppszW[n] = (WCHAR*)PyUnicode_AsUnicode(elem);
-				else {
-				    CopyPyUnicode(&lpProp->Value.MVszW.lppszW[n], Value, lpBase);
-				}
-
-				Py_DECREF(elem);
-				++n;
+		if (MAPIAllocateMore(sizeof(SBinaryArray) * len, lpBase, (void **)&lpProp->Value.MVbin.lpbin) != hrSuccess)
+			goto exit;
+		while ((elem = PyIter_Next(iter))) {
+			PyString_AsStringAndSize(elem, &lpstr, &size);
+			if (ulFlags == CONV_COPY_SHALLOW)
+				lpProp->Value.MVbin.lpbin[n].lpb = (LPBYTE)lpstr;
+			else {
+				if (MAPIAllocateMore(size, lpBase, (LPVOID *)&lpProp->Value.MVbin.lpbin[n].lpb) != hrSuccess)
+					goto exit;
+				memcpy(lpProp->Value.MVbin.lpbin[n].lpb, lpstr, size);
 			}
-
-			lpProp->Value.MVszW.cValues = n;
-			Py_DECREF(iter);
-			break;
+			lpProp->Value.MVbin.lpbin[n].cb = size;
+			Py_DECREF(elem);
+			++n;
 		}
+		lpProp->Value.MVbin.cValues = n;
+		Py_DECREF(iter);
+		break;
+	}
+	case PT_MV_UNICODE:
+	{
+		Py_ssize_t len = PyObject_Size(Value);
+		PyObject *iter = PyObject_GetIter(Value);
+		PyObject *elem = NULL;
+		int n = 0;
 
-		case PT_MV_CLSID:
-		{
-			Py_ssize_t len = PyObject_Size(Value);
-			PyObject *iter = PyObject_GetIter(Value);
-			PyObject *elem = NULL;
-			int n = 0;
-			char *guid;
-
-			if (MAPIAllocateMore(sizeof(GUID) * len, lpBase, (void **)&lpProp->Value.MVguid.lpguid) != hrSuccess)
-				goto exit;
-			while((elem = PyIter_Next(iter))) {
-				PyString_AsStringAndSize(elem, &guid, &size);
-				if(size != sizeof(GUID)) {
-					PyErr_Format(PyExc_TypeError, "PT_CLSID Value must be exactly %d bytes", (int)sizeof(GUID));
-					break;
-				}
-				memcpy(&lpProp->Value.MVguid.lpguid[n], guid, size);
-
-				Py_DECREF(elem);
-				++n;
+		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszW.lppszW) * len, lpBase, (LPVOID *)&lpProp->Value.MVszW.lppszW) != hrSuccess)
+			goto exit;
+		while((elem = PyIter_Next(iter))) {
+			if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
+				lpProp->Value.MVszW.lppszW[n] = (WCHAR*)PyUnicode_AsUnicode(elem);
+			else {
+				CopyPyUnicode(&lpProp->Value.MVszW.lppszW[n], Value, lpBase);
 			}
-
-			lpProp->Value.MVguid.cValues = n;
-			Py_DECREF(iter);
-			break;
+			Py_DECREF(elem);
+			++n;
 		}
+		lpProp->Value.MVszW.cValues = n;
+		Py_DECREF(iter);
+		break;
+	}
+	case PT_MV_CLSID:
+	{
+		Py_ssize_t len = PyObject_Size(Value);
+		PyObject *iter = PyObject_GetIter(Value);
+		PyObject *elem = NULL;
+		int n = 0;
+		char *guid;
 
-		default:
-			PyErr_Format(PyExc_TypeError, "ulPropTag has unknown type %x", PROP_TYPE(lpProp->ulPropTag));
-			break;
+		if (MAPIAllocateMore(sizeof(GUID) * len, lpBase, (void **)&lpProp->Value.MVguid.lpguid) != hrSuccess)
+			goto exit;
+		while ((elem = PyIter_Next(iter))) {
+			PyString_AsStringAndSize(elem, &guid, &size);
+			if (size != sizeof(GUID)) {
+				PyErr_Format(PyExc_TypeError, "PT_CLSID Value must be exactly %d bytes", (int)sizeof(GUID));
+				break;
+			}
+			memcpy(&lpProp->Value.MVguid.lpguid[n], guid, size);
+			Py_DECREF(elem);
+			++n;
+		}
+		lpProp->Value.MVguid.cValues = n;
+		Py_DECREF(iter);
+		break;
+	}
+	default:
+		PyErr_Format(PyExc_TypeError, "ulPropTag has unknown type %x", PROP_TYPE(lpProp->ulPropTag));
+		break;
 	}
 
 exit:
@@ -2212,56 +2193,51 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 	}
 
 	switch(lpNotif->ulEventType) {
-		case fnevObjectCopied:
-		case fnevObjectCreated:
-		case fnevObjectDeleted:
-		case fnevObjectModified:
-		case fnevObjectMoved:
-		case fnevSearchComplete:
-			proptags = List_from_LPSPropTagArray(lpNotif->info.obj.lpPropTagArray);
+	case fnevObjectCopied:
+	case fnevObjectCreated:
+	case fnevObjectDeleted:
+	case fnevObjectModified:
+	case fnevObjectMoved:
+	case fnevSearchComplete:
+		proptags = List_from_LPSPropTagArray(lpNotif->info.obj.lpPropTagArray);
 
-			if(!proptags)
-				return NULL;
-
-			elem = PyObject_CallFunction(PyTypeOBJECT_NOTIFICATION, "(ls#ls#s#s#O)",
-												lpNotif->ulEventType,
-												lpNotif->info.obj.lpEntryID, lpNotif->info.obj.cbEntryID,
-												lpNotif->info.obj.ulObjType,
-												lpNotif->info.obj.lpParentID, lpNotif->info.obj.cbParentID,
-												lpNotif->info.obj.lpOldID, lpNotif->info.obj.cbOldID,
-												lpNotif->info.obj.lpOldParentID, lpNotif->info.obj.cbOldParentID,
-												proptags);
-
-			Py_DECREF(proptags);
-			break;
-		case fnevTableModified:
-			index = Object_from_LPSPropValue(&lpNotif->info.tab.propIndex);
-			if(!index)
-				return NULL;
-			prior = Object_from_LPSPropValue(&lpNotif->info.tab.propPrior);
-			if(!prior)
-				return NULL;
-			row = List_from_LPSPropValue(lpNotif->info.tab.row.lpProps, lpNotif->info.tab.row.cValues);
-			if(!row)
-				return NULL;
-			elem = PyObject_CallFunction(PyTypeTABLE_NOTIFICATION, "(lIOOO)", lpNotif->info.tab.ulTableEvent, lpNotif->info.tab.hResult, index, prior, row);
-
-			Py_DECREF(index);
-			Py_DECREF(prior);
-			Py_DECREF(row);
-
-			break;
-		case fnevNewMail:
-			elem = PyObject_CallFunction(PyTypeNEWMAIL_NOTIFICATION, "(s#s#lsl)", lpNotif->info.newmail.lpEntryID, lpNotif->info.newmail.cbEntryID,
-																					lpNotif->info.newmail.lpParentID, lpNotif->info.newmail.cbParentID,
-																					lpNotif->info.newmail.ulFlags,
-																					lpNotif->info.newmail.lpszMessageClass,
-																					lpNotif->info.newmail.ulMessageFlags);
-
-			break;
-		default:
-			PyErr_Format(PyExc_RuntimeError, "Bad notification type %x", lpNotif->ulEventType);
-			break;
+		if (!proptags)
+			return NULL;
+		elem = PyObject_CallFunction(PyTypeOBJECT_NOTIFICATION, "(ls#ls#s#s#O)",
+			lpNotif->ulEventType,
+			lpNotif->info.obj.lpEntryID, lpNotif->info.obj.cbEntryID,
+			lpNotif->info.obj.ulObjType,
+			lpNotif->info.obj.lpParentID, lpNotif->info.obj.cbParentID,
+			lpNotif->info.obj.lpOldID, lpNotif->info.obj.cbOldID,
+			lpNotif->info.obj.lpOldParentID, lpNotif->info.obj.cbOldParentID,
+			proptags);
+		Py_DECREF(proptags);
+		break;
+	case fnevTableModified:
+		index = Object_from_LPSPropValue(&lpNotif->info.tab.propIndex);
+		if (!index)
+			return NULL;
+		prior = Object_from_LPSPropValue(&lpNotif->info.tab.propPrior);
+		if (!prior)
+			return NULL;
+		row = List_from_LPSPropValue(lpNotif->info.tab.row.lpProps, lpNotif->info.tab.row.cValues);
+		if (!row)
+			return NULL;
+		elem = PyObject_CallFunction(PyTypeTABLE_NOTIFICATION, "(lIOOO)", lpNotif->info.tab.ulTableEvent, lpNotif->info.tab.hResult, index, prior, row);
+		Py_DECREF(index);
+		Py_DECREF(prior);
+		Py_DECREF(row);
+		break;
+	case fnevNewMail:
+		elem = PyObject_CallFunction(PyTypeNEWMAIL_NOTIFICATION, "(s#s#lsl)", lpNotif->info.newmail.lpEntryID, lpNotif->info.newmail.cbEntryID,
+			lpNotif->info.newmail.lpParentID, lpNotif->info.newmail.cbParentID,
+			lpNotif->info.newmail.ulFlags,
+			lpNotif->info.newmail.lpszMessageClass,
+			lpNotif->info.newmail.ulMessageFlags);
+		break;
+	default:
+		PyErr_Format(PyExc_RuntimeError, "Bad notification type %x", lpNotif->ulEventType);
+		break;
 	}
 	return elem;
 }

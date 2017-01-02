@@ -296,61 +296,60 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to check server quota, error code 0x%08X", hr);
 			return hr;
 		}
+		return hrSuccess;
+	}
+	lpszServersConfig = m_lpThreadMonitor->lpConfig->GetSetting("servers","",NULL);
+	if(lpszServersConfig) {
+		// split approach taken from kopano-backup/backup.cpp
+		boost::algorithm::split(setServersConfig, lpszServersConfig, boost::algorithm::is_any_of("\t "), boost::algorithm::token_compress_on);
+		setServersConfig.erase(string());
+	}
 
-	} else {
-		lpszServersConfig = m_lpThreadMonitor->lpConfig->GetSetting("servers","",NULL);
-		if(lpszServersConfig) {
-			// split approach taken from kopano-backup/backup.cpp
-			boost::algorithm::split(setServersConfig, lpszServersConfig, boost::algorithm::is_any_of("\t "), boost::algorithm::token_compress_on);
-			setServersConfig.erase(string());
+	for (const auto &server : setServers) {
+		if (!setServersConfig.empty() &&
+		    setServersConfig.find(server.c_str()) == setServersConfig.cend())
+			continue;
+		hr = lpServiceAdmin->ResolvePseudoUrl(std::string("pseudo://" + server).c_str(), &~lpszConnection, &bIsPeer);
+		if (hr != hrSuccess) {
+			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to resolve servername %s, error code 0x%08X", server.c_str(), hr);
+			++m_ulFailed;
+			continue;
 		}
 
-		for (const auto &server : setServers) {
-			if (!setServersConfig.empty() &&
-			    setServersConfig.find(server.c_str()) == setServersConfig.cend())
-                                continue;
-			hr = lpServiceAdmin->ResolvePseudoUrl(std::string("pseudo://" + server).c_str(), &~lpszConnection, &bIsPeer);
+		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Connecting to server %s using url %s", server.c_str(), lpszConnection.get());
+
+		// call server function with new lpMDBAdmin / lpServiceAdmin
+		/* 2nd Server connection */
+		object_ptr<IMAPISession> lpSession;
+		object_ptr<IMsgStore> lpAdminStore;
+
+		if (bIsPeer) {
+			// query interface
+			hr = m_lpMDBAdmin->QueryInterface(IID_IMsgStore, &~lpAdminStore);
 			if (hr != hrSuccess) {
-				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to resolve servername %s, error code 0x%08X", server.c_str(), hr);
+				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get service interface again, error code 0x%08X", hr);
 				++m_ulFailed;
 				continue;
 			}
-
-			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Connecting to server %s using url %s", server.c_str(), lpszConnection.get());
-
-			// call server function with new lpMDBAdmin / lpServiceAdmin
-			/* 2nd Server connection */
-			object_ptr<IMAPISession> lpSession;
-			object_ptr<IMsgStore> lpAdminStore;
-
-			if (bIsPeer) {
-				// query interface
-				hr = m_lpMDBAdmin->QueryInterface(IID_IMsgStore, &~lpAdminStore);
-				if (hr != hrSuccess) {
-					m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get service interface again, error code 0x%08X", hr);
-					++m_ulFailed;
-					continue;
-				}
-			} else {				
-				hr = HrOpenECAdminSession(&~lpSession, "kopano-monitor:check-company", PROJECT_SVN_REV_STR, lpszConnection, 0, m_lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", nullptr), m_lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", nullptr));
-				if (hr != hrSuccess) {
-					m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to connect to server %s, error code 0x%08X", lpszConnection.get(), hr);
-					++m_ulFailed;
-					continue;
-				}
-				hr = HrOpenDefaultStore(lpSession, &~lpAdminStore);
-				if (hr != hrSuccess) {
-					m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open admin store on server %s, error code 0x%08X", lpszConnection.get(), hr);
-					++m_ulFailed;
-					continue;
-				}
-			}
-
-			hr = CheckServerQuota(cUsers, lpsUserList, lpecCompany, lpAdminStore);
+		} else {
+			hr = HrOpenECAdminSession(&~lpSession, "kopano-monitor:check-company", PROJECT_SVN_REV_STR, lpszConnection, 0, m_lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", nullptr), m_lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", nullptr));
 			if (hr != hrSuccess) {
-				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to check quota on server %s, error code 0x%08X", lpszConnection.get(), hr);
+				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to connect to server %s, error code 0x%08X", lpszConnection.get(), hr);
 				++m_ulFailed;
+				continue;
 			}
+			hr = HrOpenDefaultStore(lpSession, &~lpAdminStore);
+			if (hr != hrSuccess) {
+				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open admin store on server %s, error code 0x%08X", lpszConnection.get(), hr);
+				++m_ulFailed;
+				continue;
+			}
+		}
+
+		hr = CheckServerQuota(cUsers, lpsUserList, lpecCompany, lpAdminStore);
+		if (hr != hrSuccess) {
+			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to check quota on server %s, error code 0x%08X", lpszConnection.get(), hr);
+			++m_ulFailed;
 		}
 	}
 	return hrSuccess;

@@ -219,56 +219,51 @@ HRESULT ECABContainer::TableRowGetProp(void* lpProvider, struct propVal *lpsProp
 	ULONG size = 0;
 
 	switch(lpsPropValSrc->ulPropTag) {
-		case PR_ACCOUNT_W:
-		case PR_NORMALIZED_SUBJECT_W:
-		case PR_DISPLAY_NAME_W:
-		case PR_TRANSMITABLE_DISPLAY_NAME_W:
-			{
-				LPWSTR lpszW = NULL;
-				if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Book" ) == 0)
-					lpszW = _W("Global Address Book");
-				else if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Lists" ) == 0)
-					lpszW = _W("Global Address Lists");
-				else if (strcmp(lpsPropValSrc->Value.lpszA, "All Address Lists" ) == 0)
-					lpszW = _W("All Address Lists");
-				else
-					return MAPI_E_NOT_FOUND;
-				size = (wcslen(lpszW) + 1) * sizeof(WCHAR);
-				hr = MAPIAllocateMore(size, lpBase, (void **)&lpsPropValDst->Value.lpszW);
-				if (hr != hrSuccess)
-					return hr;
-
-				memcpy(lpsPropValDst->Value.lpszW, lpszW, size);
-				lpsPropValDst->ulPropTag = lpsPropValSrc->ulPropTag;
-			}
-			break;
-		case PR_ACCOUNT_A:
-		case PR_NORMALIZED_SUBJECT_A:
-		case PR_DISPLAY_NAME_A:
-		case PR_TRANSMITABLE_DISPLAY_NAME_A:
-			{
-				LPSTR lpszA = NULL;
-				if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Book" ) == 0)
-					lpszA = _A("Global Address Book");
-				else if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Lists" ) == 0)
-					lpszA = _A("Global Address Lists");
-				else if (strcmp(lpsPropValSrc->Value.lpszA, "All Address Lists" ) == 0)
-					lpszA = _A("All Address Lists");
-				else
-					return MAPI_E_NOT_FOUND;
-				
-				size = (strlen(lpszA) + 1) * sizeof(CHAR);
-				hr = MAPIAllocateMore(size, lpBase, (void **)&lpsPropValDst->Value.lpszA);
-				if (hr != hrSuccess)
-					return hr;
-
-				memcpy(lpsPropValDst->Value.lpszA, lpszA, size);
-				lpsPropValDst->ulPropTag = lpsPropValSrc->ulPropTag;
-			}
-			break;
-		default:
-			hr = MAPI_E_NOT_FOUND;
-			break;
+	case PR_ACCOUNT_W:
+	case PR_NORMALIZED_SUBJECT_W:
+	case PR_DISPLAY_NAME_W:
+	case PR_TRANSMITABLE_DISPLAY_NAME_W: {
+		LPWSTR lpszW = NULL;
+		if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Book" ) == 0)
+			lpszW = _W("Global Address Book");
+		else if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Lists" ) == 0)
+			lpszW = _W("Global Address Lists");
+		else if (strcmp(lpsPropValSrc->Value.lpszA, "All Address Lists" ) == 0)
+			lpszW = _W("All Address Lists");
+		else
+			return MAPI_E_NOT_FOUND;
+		size = (wcslen(lpszW) + 1) * sizeof(WCHAR);
+		hr = MAPIAllocateMore(size, lpBase, (void **)&lpsPropValDst->Value.lpszW);
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpsPropValDst->Value.lpszW, lpszW, size);
+		lpsPropValDst->ulPropTag = lpsPropValSrc->ulPropTag;
+		break;
+	}
+	case PR_ACCOUNT_A:
+	case PR_NORMALIZED_SUBJECT_A:
+	case PR_DISPLAY_NAME_A:
+	case PR_TRANSMITABLE_DISPLAY_NAME_A: {
+		LPSTR lpszA = NULL;
+		if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Book" ) == 0)
+			lpszA = _A("Global Address Book");
+		else if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Lists" ) == 0)
+			lpszA = _A("Global Address Lists");
+		else if (strcmp(lpsPropValSrc->Value.lpszA, "All Address Lists" ) == 0)
+			lpszA = _A("All Address Lists");
+		else
+			return MAPI_E_NOT_FOUND;
+		size = (strlen(lpszA) + 1) * sizeof(CHAR);
+		hr = MAPIAllocateMore(size, lpBase, (void **)&lpsPropValDst->Value.lpszA);
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpsPropValDst->Value.lpszA, lpszA, size);
+		lpsPropValDst->ulPropTag = lpsPropValSrc->ulPropTag;
+		break;
+	}
+	default:
+		hr = MAPI_E_NOT_FOUND;
+		break;
 	}
 	return hr;
 }

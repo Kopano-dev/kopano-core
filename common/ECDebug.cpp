@@ -1979,135 +1979,135 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 
 	switch(lpRestriction->rt)
 	{
-		case RES_OR:
-			strResult = "RES_OR: ("+stringify(lpRestriction->res.resOr.cRes)+")\n";
-			for (i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
-				for (j = 0; j < indent + 1; ++j)
-					strResult += "  ";
-				strResult += "Restriction: "+ RestrictionToString(&lpRestriction->res.resOr.lpRes[i], indent+1)+"\n";
-			}
-			for (j = 0; j < indent; ++j)
+	case RES_OR:
+		strResult = "RES_OR: ("+stringify(lpRestriction->res.resOr.cRes)+")\n";
+		for (i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
+			for (j = 0; j < indent + 1; ++j)
 				strResult += "  ";
-			return strResult + "---or---\n";
-		case RES_AND:
-			strResult = "RES_AND: ("+stringify(lpRestriction->res.resAnd.cRes)+")\n";
-			for (i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
-				for (j = 0; j < indent + 1; ++j)
-					strResult += "  ";
-				strResult += "Restriction: " + RestrictionToString(&lpRestriction->res.resAnd.lpRes[i], indent+1);
-			}
-			for (j = 0; j < indent; ++j)
+			strResult += "Restriction: "+ RestrictionToString(&lpRestriction->res.resOr.lpRes[i], indent+1)+"\n";
+		}
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "---or---\n";
+	case RES_AND:
+		strResult = "RES_AND: ("+stringify(lpRestriction->res.resAnd.cRes)+")\n";
+		for (i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
+			for (j = 0; j < indent + 1; ++j)
 				strResult += "  ";
-			return strResult + "---and---\n";
-		case RES_BITMASK:
-			strResult = "RES_BITMASK:\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			switch(lpRestriction->res.resBitMask.relBMR){
-				case BMR_EQZ:
-					strResult+= "BMR: R_EQZ\n";
-					break;
-				case BMR_NEZ:
-					strResult+= "BMR: R_NEZ\n";
-					break;
-				default:
-					strResult+= "BMR: Not specified("+stringify(lpRestriction->res.resBitMask.relBMR)+")\n";
-					break;
-			}
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resBitMask.ulPropTag)+"\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			return strResult + "mask: " + stringify(lpRestriction->res.resBitMask.ulMask)+"\n";
-		case RES_COMMENT:
-			strResult = "RES_COMMENT:\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			strResult += "props: " + PropNameFromPropArray(lpRestriction->res.resComment.cValues, lpRestriction->res.resComment.lpProp)+"\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			return strResult + "restriction: " + RestrictionToString(lpRestriction->res.resComment.lpRes, indent + 1) + "\n";
-		case RES_COMPAREPROPS:
-			strResult = "RES_COMPAREPROPS:\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			strResult += "relop: ";
-			strResult += RelationalOperatorToString(lpRestriction->res.resCompareProps.relop);
-			strResult += "\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			strResult += "proptag1: "+PropNameFromPropTag(lpRestriction->res.resCompareProps.ulPropTag1)+"\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			return strResult + "proptag2: " + PropNameFromPropTag(lpRestriction->res.resCompareProps.ulPropTag2) + "\n";
-		case RES_CONTENT:
-			strResult = "RES_CONTENT:\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			strResult += "FuzzyLevel: "+FuzzyLevelToString(lpRestriction->res.resContent.ulFuzzyLevel)+"\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resContent.ulPropTag)+"\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			return strResult + "props: " + PropNameFromPropArray(1, lpRestriction->res.resContent.lpProp) + "\n";
-		case RES_EXIST:
-			strResult = "RES_EXIST:\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			return strResult + "proptag: " + PropNameFromPropTag(lpRestriction->res.resExist.ulPropTag) + "\n";
-		case RES_NOT:
-			strResult = "RES_NOT:\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			return strResult + "restriction: " + RestrictionToString(lpRestriction->res.resNot.lpRes, indent + 1) + "\n";
-		case RES_PROPERTY:
-			strResult = "RES_PROPERTY:\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			strResult += "relop: ";
-			strResult += RelationalOperatorToString(lpRestriction->res.resProperty.relop);
-			strResult += "\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resProperty.ulPropTag)+((lpRestriction->res.resProperty.ulPropTag&MV_FLAG)?" (MV_PROP)":"")+"\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			return strResult + "props: " + PropNameFromPropArray(1, lpRestriction->res.resProperty.lpProp) + ((lpRestriction->res.resProperty.lpProp->ulPropTag & MV_FLAG) ? " (MV_PROP)" : "") + "\n";
-		case RES_SIZE:
-			strResult = "RES_SIZE:\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			strResult += "relop: ";
-			strResult += RelationalOperatorToString(lpRestriction->res.resSize.relop);
-			strResult += "\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resSize.ulPropTag)+"\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			return strResult + "sizeofprop: " + stringify(lpRestriction->res.resSize.cb) + "\n";
-		case RES_SUBRESTRICTION:
-			strResult = "RES_SUBRESTRICTION:\n";
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			switch(lpRestriction->res.resSub.ulSubObject) {
-				case PR_MESSAGE_RECIPIENTS:
-					strResult+= "subobject: PR_MESSAGE_RECIPIENTS\n";
-					break;
-				case PR_MESSAGE_ATTACHMENTS:
-					strResult+= "subobject: PR_MESSAGE_ATTACHMENTS\n";
-					break;
-				default:
-					strResult += "subobject: Not specified("+stringify(lpRestriction->res.resSub.ulSubObject)+")\n";
-					break;
-			}
-			for (j = 0; j < indent; ++j)
-				strResult += "  ";
-			return strResult + "Restriction: " + RestrictionToString(lpRestriction->res.resSub.lpRes, indent + 1) + "\n";
+			strResult += "Restriction: " + RestrictionToString(&lpRestriction->res.resAnd.lpRes[i], indent+1);
+		}
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "---and---\n";
+	case RES_BITMASK:
+		strResult = "RES_BITMASK:\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		switch (lpRestriction->res.resBitMask.relBMR){
+		case BMR_EQZ:
+			strResult += "BMR: R_EQZ\n";
+			break;
+		case BMR_NEZ:
+			strResult += "BMR: R_NEZ\n";
+			break;
 		default:
-			return "UNKNOWN TYPE:\n";
+			strResult += "BMR: Not specified("+stringify(lpRestriction->res.resBitMask.relBMR)+")\n";
+			break;
+		}
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resBitMask.ulPropTag)+"\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "mask: " + stringify(lpRestriction->res.resBitMask.ulMask)+"\n";
+	case RES_COMMENT:
+		strResult = "RES_COMMENT:\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		strResult += "props: " + PropNameFromPropArray(lpRestriction->res.resComment.cValues, lpRestriction->res.resComment.lpProp)+"\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "restriction: " + RestrictionToString(lpRestriction->res.resComment.lpRes, indent + 1) + "\n";
+	case RES_COMPAREPROPS:
+		strResult = "RES_COMPAREPROPS:\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		strResult += "relop: ";
+		strResult += RelationalOperatorToString(lpRestriction->res.resCompareProps.relop);
+		strResult += "\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		strResult += "proptag1: "+PropNameFromPropTag(lpRestriction->res.resCompareProps.ulPropTag1)+"\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "proptag2: " + PropNameFromPropTag(lpRestriction->res.resCompareProps.ulPropTag2) + "\n";
+	case RES_CONTENT:
+		strResult = "RES_CONTENT:\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		strResult += "FuzzyLevel: "+FuzzyLevelToString(lpRestriction->res.resContent.ulFuzzyLevel)+"\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resContent.ulPropTag)+"\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "props: " + PropNameFromPropArray(1, lpRestriction->res.resContent.lpProp) + "\n";
+	case RES_EXIST:
+		strResult = "RES_EXIST:\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "proptag: " + PropNameFromPropTag(lpRestriction->res.resExist.ulPropTag) + "\n";
+	case RES_NOT:
+		strResult = "RES_NOT:\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "restriction: " + RestrictionToString(lpRestriction->res.resNot.lpRes, indent + 1) + "\n";
+	case RES_PROPERTY:
+		strResult = "RES_PROPERTY:\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		strResult += "relop: ";
+		strResult += RelationalOperatorToString(lpRestriction->res.resProperty.relop);
+		strResult += "\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resProperty.ulPropTag)+((lpRestriction->res.resProperty.ulPropTag&MV_FLAG)?" (MV_PROP)":"")+"\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "props: " + PropNameFromPropArray(1, lpRestriction->res.resProperty.lpProp) + ((lpRestriction->res.resProperty.lpProp->ulPropTag & MV_FLAG) ? " (MV_PROP)" : "") + "\n";
+	case RES_SIZE:
+		strResult = "RES_SIZE:\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		strResult += "relop: ";
+		strResult += RelationalOperatorToString(lpRestriction->res.resSize.relop);
+		strResult += "\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resSize.ulPropTag)+"\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "sizeofprop: " + stringify(lpRestriction->res.resSize.cb) + "\n";
+	case RES_SUBRESTRICTION:
+		strResult = "RES_SUBRESTRICTION:\n";
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		switch (lpRestriction->res.resSub.ulSubObject) {
+		case PR_MESSAGE_RECIPIENTS:
+			strResult += "subobject: PR_MESSAGE_RECIPIENTS\n";
+			break;
+		case PR_MESSAGE_ATTACHMENTS:
+			strResult += "subobject: PR_MESSAGE_ATTACHMENTS\n";
+			break;
+		default:
+			strResult += "subobject: Not specified("+stringify(lpRestriction->res.resSub.ulSubObject)+")\n";
+			break;
+		}
+		for (j = 0; j < indent; ++j)
+			strResult += "  ";
+		return strResult + "Restriction: " + RestrictionToString(lpRestriction->res.resSub.lpRes, indent + 1) + "\n";
+	default:
+		return "UNKNOWN TYPE:\n";
 	}
 }
 
@@ -2120,77 +2120,77 @@ std::string PropValueToString(const SPropValue *lpPropValue)
 		return "NULL";
 
 	switch(PROP_TYPE(lpPropValue->ulPropTag)) {	
-		case PT_I2:
-			return "PT_I2: " + stringify(lpPropValue->Value.i) + ", " + stringify(lpPropValue->Value.i, true);
-		case PT_LONG:
-			return "PT_LONG: " + stringify(lpPropValue->Value.ul) + ", " + stringify(lpPropValue->Value.ul, true);
-		case PT_BOOLEAN:
-			return "PT_BOOLEAN: " + stringify(lpPropValue->Value.b);
-		case PT_R4:
-			return "PT_R4: " + stringify_float(lpPropValue->Value.flt);
-		case PT_DOUBLE:
-			return "PT_DOUBLE: " + stringify_double(lpPropValue->Value.dbl);
-		case PT_APPTIME:
-			return "PT_APPTIME: " + stringify_double(lpPropValue->Value.at);
-		case PT_CURRENCY:
-			return "PT_CURRENCY: lo=" + stringify(lpPropValue->Value.cur.Lo) + " hi=" + stringify(lpPropValue->Value.cur.Hi);
-		case PT_SYSTIME:
-			return "PT_SYSTIME: fth=" + stringify(lpPropValue->Value.ft.dwHighDateTime) + " ftl=" + stringify(lpPropValue->Value.ft.dwLowDateTime);
-		case PT_I8:
-			return "PT_I8: " + stringify(lpPropValue->Value.li.HighPart) + "," + stringify(lpPropValue->Value.li.LowPart);
-		case PT_UNICODE:
-			return "PT_UNICODE: " + convert_to<std::string>("UTF-8", lpPropValue->Value.lpszW, rawsize(lpPropValue->Value.lpszW), CHARSET_WCHAR);
-		case PT_STRING8:
-			return "PT_STRING8: " + (lpPropValue->Value.lpszA ? (std::string)lpPropValue->Value.lpszA : std::string("NULL"));
-		case PT_BINARY:
-			return "PT_BINARY: cb=" + stringify(lpPropValue->Value.bin.cb) +
-				" Data=" + (lpPropValue->Value.bin.lpb ? bin2hex(lpPropValue->Value.bin.cb, lpPropValue->Value.bin.lpb) : std::string("NULL"));
-		case PT_CLSID:
-			return "PT_CLSID: (Skip)";
-		case PT_NULL:
-			return "PT_NULL: ";
-		case PT_UNSPECIFIED:
-			return "PT_UNSPECIFIED: ";
-		case PT_ERROR:
-			return "PT_ERROR: " + GetMAPIErrorDescription(lpPropValue->Value.err);
-		case PT_SRESTRICTION:
-			return "PT_SRESTRICTION: structure...";
-		case PT_ACTIONS:
-			return "PT_ACTIONS: structure...";
-		case PT_OBJECT:
-			return "<OBJECT>";
-		case PT_MV_I2:
-			return "PT_MV_I2[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-		case PT_MV_LONG:
-			return "PT_MV_LONG[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-		case PT_MV_R4:
-			return "PT_MV_R4[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-		case PT_MV_DOUBLE:
-			return "PT_MV_DOUBLE[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-		case PT_MV_APPTIME:
-			return "PT_MV_APPTIME[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-		case PT_MV_CURRENCY:
-			return "PT_MV_CURRENCY[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-		case PT_MV_SYSTIME:
-			return "PT_MV_SYSTIME[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-		case PT_MV_I8:
-			return "PT_MV_I8[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-		case PT_MV_UNICODE:
-			strResult = "PT_MV_UNICODE[" + stringify(lpPropValue->Value.MVi.cValues) + "]" + "\n";
-			for (unsigned int i = 0; i < lpPropValue->Value.MVi.cValues; ++i)
-				strResult += std::string("\t") + convert_to<std::string>(lpPropValue->Value.MVszW.lppszW[i]) + "\n";
-			return strResult;
-		case PT_MV_STRING8:
-			strResult = "PT_MV_STRING8[" + stringify(lpPropValue->Value.MVi.cValues) + "]" + "\n";
-			for (unsigned int i = 0; i < lpPropValue->Value.MVi.cValues; ++i)
-				strResult += std::string("\t") + lpPropValue->Value.MVszA.lppszA[i] + "\n";
-			return strResult;
-		case PT_MV_BINARY:
-			return "PT_MV_BINARY[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-		case PT_MV_CLSID:
-			return "PT_MV_CLSID[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-		default:
-			return "<UNKNOWN>";
+	case PT_I2:
+		return "PT_I2: " + stringify(lpPropValue->Value.i) + ", " + stringify(lpPropValue->Value.i, true);
+	case PT_LONG:
+		return "PT_LONG: " + stringify(lpPropValue->Value.ul) + ", " + stringify(lpPropValue->Value.ul, true);
+	case PT_BOOLEAN:
+		return "PT_BOOLEAN: " + stringify(lpPropValue->Value.b);
+	case PT_R4:
+		return "PT_R4: " + stringify_float(lpPropValue->Value.flt);
+	case PT_DOUBLE:
+		return "PT_DOUBLE: " + stringify_double(lpPropValue->Value.dbl);
+	case PT_APPTIME:
+		return "PT_APPTIME: " + stringify_double(lpPropValue->Value.at);
+	case PT_CURRENCY:
+		return "PT_CURRENCY: lo=" + stringify(lpPropValue->Value.cur.Lo) + " hi=" + stringify(lpPropValue->Value.cur.Hi);
+	case PT_SYSTIME:
+		return "PT_SYSTIME: fth=" + stringify(lpPropValue->Value.ft.dwHighDateTime) + " ftl=" + stringify(lpPropValue->Value.ft.dwLowDateTime);
+	case PT_I8:
+		return "PT_I8: " + stringify(lpPropValue->Value.li.HighPart) + "," + stringify(lpPropValue->Value.li.LowPart);
+	case PT_UNICODE:
+		return "PT_UNICODE: " + convert_to<std::string>("UTF-8", lpPropValue->Value.lpszW, rawsize(lpPropValue->Value.lpszW), CHARSET_WCHAR);
+	case PT_STRING8:
+		return "PT_STRING8: " + (lpPropValue->Value.lpszA ? (std::string)lpPropValue->Value.lpszA : std::string("NULL"));
+	case PT_BINARY:
+		return "PT_BINARY: cb=" + stringify(lpPropValue->Value.bin.cb) +
+			" Data=" + (lpPropValue->Value.bin.lpb ? bin2hex(lpPropValue->Value.bin.cb, lpPropValue->Value.bin.lpb) : std::string("NULL"));
+	case PT_CLSID:
+		return "PT_CLSID: (Skip)";
+	case PT_NULL:
+		return "PT_NULL: ";
+	case PT_UNSPECIFIED:
+		return "PT_UNSPECIFIED: ";
+	case PT_ERROR:
+		return "PT_ERROR: " + GetMAPIErrorDescription(lpPropValue->Value.err);
+	case PT_SRESTRICTION:
+		return "PT_SRESTRICTION: structure...";
+	case PT_ACTIONS:
+		return "PT_ACTIONS: structure...";
+	case PT_OBJECT:
+		return "<OBJECT>";
+	case PT_MV_I2:
+		return "PT_MV_I2[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
+	case PT_MV_LONG:
+		return "PT_MV_LONG[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
+	case PT_MV_R4:
+		return "PT_MV_R4[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
+	case PT_MV_DOUBLE:
+		return "PT_MV_DOUBLE[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
+	case PT_MV_APPTIME:
+		return "PT_MV_APPTIME[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
+	case PT_MV_CURRENCY:
+		return "PT_MV_CURRENCY[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
+	case PT_MV_SYSTIME:
+		return "PT_MV_SYSTIME[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
+	case PT_MV_I8:
+		return "PT_MV_I8[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
+	case PT_MV_UNICODE:
+		strResult = "PT_MV_UNICODE[" + stringify(lpPropValue->Value.MVi.cValues) + "]" + "\n";
+		for (unsigned int i = 0; i < lpPropValue->Value.MVi.cValues; ++i)
+			strResult += std::string("\t") + convert_to<std::string>(lpPropValue->Value.MVszW.lppszW[i]) + "\n";
+		return strResult;
+	case PT_MV_STRING8:
+		strResult = "PT_MV_STRING8[" + stringify(lpPropValue->Value.MVi.cValues) + "]" + "\n";
+		for (unsigned int i = 0; i < lpPropValue->Value.MVi.cValues; ++i)
+			strResult += std::string("\t") + lpPropValue->Value.MVszA.lppszA[i] + "\n";
+		return strResult;
+	case PT_MV_BINARY:
+		return "PT_MV_BINARY[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
+	case PT_MV_CLSID:
+		return "PT_MV_CLSID[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
+	default:
+		return "<UNKNOWN>";
 	}
 }
 
@@ -2210,14 +2210,14 @@ std::string RowToString(const SRow *lpRow)
 static const char *ABFlags(ULONG ulFlag)
 {
 	switch(ulFlag) {
-		case MAPI_UNRESOLVED:
-			return "MAPI_UNRESOLVED";
-		case MAPI_AMBIGUOUS:
-			return "MAPI_AMBIGUOUS";
-		case MAPI_RESOLVED:
-			return "MAPI_RESOLVED";
-		default:
-			return "UNKNOWN";
+	case MAPI_UNRESOLVED:
+		return "MAPI_UNRESOLVED";
+	case MAPI_AMBIGUOUS:
+		return "MAPI_AMBIGUOUS";
+	case MAPI_RESOLVED:
+		return "MAPI_RESOLVED";
+	default:
+		return "UNKNOWN";
 	}
 	return NULL;
 }
@@ -2300,14 +2300,14 @@ std::string SortOrderToString(const SSortOrder *lpSort)
 	strResult += ", Order: ";
 	switch(lpSort->ulOrder)
 	{
-		case TABLE_SORT_ASCEND:
-			return strResult + "TABLE_SORT_ASCEND";
-		case TABLE_SORT_COMBINE:
-			return strResult + "TABLE_SORT_COMBINE";
-		case TABLE_SORT_DESCEND:
-			return strResult + "TABLE_SORT_DESCEND";
-		default:
-			return strResult + "<UNKNOWN> " + stringify(lpSort->ulOrder);
+	case TABLE_SORT_ASCEND:
+		return strResult + "TABLE_SORT_ASCEND";
+	case TABLE_SORT_COMBINE:
+		return strResult + "TABLE_SORT_COMBINE";
+	case TABLE_SORT_DESCEND:
+		return strResult + "TABLE_SORT_DESCEND";
+	default:
+		return strResult + "<UNKNOWN> " + stringify(lpSort->ulOrder);
 	}
 }
 
@@ -2428,26 +2428,26 @@ static const char *TableEventToString(ULONG ulTableEvent)
 {
 	switch(ulTableEvent) 
 	{
-		case TABLE_CHANGED:
-			return "TABLE_CHANGED";
-		case TABLE_ERROR:
-			return "TABLE_ERROR";
-		case TABLE_ROW_ADDED:
-			return "TABLE_ROW_ADDED";
-		case TABLE_ROW_DELETED:
-			return "TABLE_ROW_DELETED";
-		case TABLE_ROW_MODIFIED:
-			return "TABLE_ROW_MODIFIED";
-		case TABLE_SORT_DONE:
-			return "TABLE_SORT_DONE";
-		case TABLE_RESTRICT_DONE:
-			return "TABLE_RESTRICT_DONE";
-		case TABLE_SETCOL_DONE:
-			return "TABLE_SETCOL_DONE";
-		case TABLE_RELOAD:
-			return "TABLE_RELOAD";
-		default:
-			return "<invalidate TYPE>";
+	case TABLE_CHANGED:
+		return "TABLE_CHANGED";
+	case TABLE_ERROR:
+		return "TABLE_ERROR";
+	case TABLE_ROW_ADDED:
+		return "TABLE_ROW_ADDED";
+	case TABLE_ROW_DELETED:
+		return "TABLE_ROW_DELETED";
+	case TABLE_ROW_MODIFIED:
+		return "TABLE_ROW_MODIFIED";
+	case TABLE_SORT_DONE:
+		return "TABLE_SORT_DONE";
+	case TABLE_RESTRICT_DONE:
+		return "TABLE_RESTRICT_DONE";
+	case TABLE_SETCOL_DONE:
+		return "TABLE_SETCOL_DONE";
+	case TABLE_RELOAD:
+		return "TABLE_RELOAD";
+	default:
+		return "<invalidate TYPE>";
 	}
 	return NULL;
 }
@@ -2517,31 +2517,31 @@ static const char *EventTypeToString(ULONG ulEventType)
 {
 	switch(ulEventType)
 	{
-		case fnevCriticalError: // ERROR_NOTIFICATION err;
-			return "CriticalError";
-		case fnevNewMail:
-			return "NewMail";
-		case fnevObjectCreated:
-			return "ObjectCreated";
-		case fnevObjectDeleted:
-			return "ObjectDeleted";
-		case fnevObjectModified:
-			return "ObjectModified";
-		case fnevObjectMoved:
-			return "ObjectMoved";
-		case fnevObjectCopied:
-			return "ObjectCopied";
-		case fnevSearchComplete:
-			return "SearchComplete";
-		case fnevTableModified:
-			return "TableModified";
-		case fnevStatusObjectModified:// STATUS_OBJECT_NOTIFICATION statobj;
-			return "StatusObjectModified";
-		case fnevExtended:// EXTENDED_NOTIFICATION ext;
-			return "Extended";
-		case fnevReservedForMapi:
-		default:
-			return "Unknown";
+	case fnevCriticalError: // ERROR_NOTIFICATION err;
+		return "CriticalError";
+	case fnevNewMail:
+		return "NewMail";
+	case fnevObjectCreated:
+		return "ObjectCreated";
+	case fnevObjectDeleted:
+		return "ObjectDeleted";
+	case fnevObjectModified:
+		return "ObjectModified";
+	case fnevObjectMoved:
+		return "ObjectMoved";
+	case fnevObjectCopied:
+		return "ObjectCopied";
+	case fnevSearchComplete:
+		return "SearchComplete";
+	case fnevTableModified:
+		return "TableModified";
+	case fnevStatusObjectModified:// STATUS_OBJECT_NOTIFICATION statobj;
+		return "StatusObjectModified";
+	case fnevExtended:// EXTENDED_NOTIFICATION ext;
+		return "Extended";
+	case fnevReservedForMapi:
+	default:
+		return "Unknown";
 	}
 	return NULL;
 }
@@ -2563,33 +2563,33 @@ std::string NotificationToString(ULONG cNotification,
 		str += " )\n";
 		switch(lpNotification[i].ulEventType)
 		{
-			case fnevCriticalError: // ERROR_NOTIFICATION err;
-				str += Notification_ErrorToString(&lpNotification[i].info.err);
-				break;
-			case fnevNewMail: // NEWMAIL_NOTIFICATION newmail;
-				str += Notification_NewMailToString(&lpNotification[i].info.newmail);
-				break;
-			case fnevObjectCreated: //OBJECT_NOTIFICATION obj;
-			case fnevObjectDeleted:
-			case fnevObjectModified:
-			case fnevObjectMoved:
-			case fnevObjectCopied:
-			case fnevSearchComplete:
-				str += Notification_ObjectToString(&lpNotification[i].info.obj);
-				break;
-			case fnevTableModified:// TABLE_NOTIFICATION tab;
-				str += Notification_TableToString(&lpNotification[i].info.tab);
-				break;
-			case fnevStatusObjectModified:// STATUS_OBJECT_NOTIFICATION statobj;
-				str += Notification_StatusObjToString(&lpNotification[i].info.statobj);
-				break;
-			case fnevExtended:// EXTENDED_NOTIFICATION ext;
-				str += Notification_ExtendedToString(&lpNotification[i].info.ext);
-				break;
-			case fnevReservedForMapi:
-			default:
-				str += "Unknown";
-				break;
+		case fnevCriticalError: // ERROR_NOTIFICATION err;
+			str += Notification_ErrorToString(&lpNotification[i].info.err);
+			break;
+		case fnevNewMail: // NEWMAIL_NOTIFICATION newmail;
+			str += Notification_NewMailToString(&lpNotification[i].info.newmail);
+			break;
+		case fnevObjectCreated: //OBJECT_NOTIFICATION obj;
+		case fnevObjectDeleted:
+		case fnevObjectModified:
+		case fnevObjectMoved:
+		case fnevObjectCopied:
+		case fnevSearchComplete:
+			str += Notification_ObjectToString(&lpNotification[i].info.obj);
+			break;
+		case fnevTableModified:// TABLE_NOTIFICATION tab;
+			str += Notification_TableToString(&lpNotification[i].info.tab);
+			break;
+		case fnevStatusObjectModified:// STATUS_OBJECT_NOTIFICATION statobj;
+			str += Notification_StatusObjToString(&lpNotification[i].info.statobj);
+			break;
+		case fnevExtended:// EXTENDED_NOTIFICATION ext;
+			str += Notification_ExtendedToString(&lpNotification[i].info.ext);
+			break;
+		case fnevReservedForMapi:
+		default:
+			str += "Unknown";
+			break;
 		}
 
 		if (cNotification > 1)

@@ -4625,16 +4625,16 @@ ECRESULT ECUserManagement::SyncAllObjects()
 			return er;
 		}
 		ec_log_info("Synchronized user list");
-	} else {
-		// per company, get all users
-		for (const auto &com : *lplstCompanyObjects) {
-			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, com.ulId, &unique_tie(lplstUserObjects), ulFlags);
-			if (er != erSuccess) {
-				ec_log_err("Error synchronizing user list for company %d: %08X", com.ulId, er);
-				return er;
-			}
-			ec_log_info("Synchronized list for company %d", com.ulId);
+		return erSuccess;
+	}
+	// per company, get all users
+	for (const auto &com : *lplstCompanyObjects) {
+		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, com.ulId, &unique_tie(lplstUserObjects), ulFlags);
+		if (er != erSuccess) {
+			ec_log_err("Error synchronizing user list for company %d: %08X", com.ulId, er);
+			return er;
 		}
+		ec_log_info("Synchronized list for company %d", com.ulId);
 	}
 	return erSuccess;
 }

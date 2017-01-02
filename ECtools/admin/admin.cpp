@@ -746,28 +746,28 @@ static void print_group_settings(const ECGROUP *lpECGroup)
 static string ClassToString(objectclass_t eClass)
 {
 	switch (eClass) {
-		case ACTIVE_USER:
-			return string("User");
-		case NONACTIVE_USER:
-			return string("Shared store");
-		case NONACTIVE_ROOM:
-			return string("Room");
-		case NONACTIVE_EQUIPMENT:
-			return string("Equipment");
-		case NONACTIVE_CONTACT:
-			return string("Contact");
-		case DISTLIST_GROUP:
-			return string("Group");
-		case DISTLIST_SECURITY:
-			return string("Security group");
-		case DISTLIST_DYNAMIC:
-			return string("Dynamic group");
-		case CONTAINER_COMPANY:
-			return string("Company");
-		case CONTAINER_ADDRESSLIST:
-			return string("Addresslist");
-		default:
-			return string("Unknown");
+	case ACTIVE_USER:
+		return string("User");
+	case NONACTIVE_USER:
+		return string("Shared store");
+	case NONACTIVE_ROOM:
+		return string("Room");
+	case NONACTIVE_EQUIPMENT:
+		return string("Equipment");
+	case NONACTIVE_CONTACT:
+		return string("Contact");
+	case DISTLIST_GROUP:
+		return string("Group");
+	case DISTLIST_SECURITY:
+		return string("Security group");
+	case DISTLIST_DYNAMIC:
+		return string("Dynamic group");
+	case CONTAINER_COMPANY:
+		return string("Company");
+	case CONTAINER_ADDRESSLIST:
+		return string("Addresslist");
+	default:
+		return string("Unknown");
 	};
 }
 
@@ -1157,31 +1157,28 @@ static HRESULT GetPublicStore(LPMAPISESSION lpSession, LPMDB lpMsgStore,
 	memory_ptr<ENTRYID> lpEntryID;
 	object_ptr<IExchangeManageStore> lpIEMS;
 
-	if (!strCompanyname.empty())
-	{
-		hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
-		if (hr != hrSuccess)
-			return hr;
-		hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)strCompanyname.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
-		if (hr != hrSuccess)
-			return hr;
-		return lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, lppPublicStore);
-	} else {
+	if (strCompanyname.empty())
 		return HrOpenECPublicStore(lpSession, lppPublicStore);
-	}
+	hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)strCompanyname.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
+	if (hr != hrSuccess)
+		return hr;
+	return lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, lppPublicStore);
 }
 
 static const char *StoreTypeToString(ULONG ulStoreType)
 {
 	switch (ulStoreType) {
-		case ECSTORE_TYPE_PRIVATE:
-			return "private";
-		case ECSTORE_TYPE_ARCHIVE:
-			return "archive";
-		case ECSTORE_TYPE_PUBLIC:
-			return "public";
-		default:
-			return "unknown";
+	case ECSTORE_TYPE_PRIVATE:
+		return "private";
+	case ECSTORE_TYPE_ARCHIVE:
+		return "archive";
+	case ECSTORE_TYPE_PUBLIC:
+		return "public";
+	default:
+		return "unknown";
 	};
 }
 
@@ -1542,42 +1539,43 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 		cout << endl;
 	}
 
-	if (lpECUser) {
-		LPMVPROPMAPENTRY lpArchiveServers = FindMVPropmapEntry(lpECUser, PR_EC_ARCHIVE_SERVERS_A);
-		if (lpArchiveServers && lpArchiveServers->cValues) {
-			MsgStorePtr ptrAdminStore;
+	if (lpECUser == nullptr)
+		return hr;
 
-			hr = lpECMsgStore->QueryInterface(IID_IMsgStore, &~ptrAdminStore);
-			if (hr != hrSuccess)
-				return hr;
+	LPMVPROPMAPENTRY lpArchiveServers = FindMVPropmapEntry(lpECUser, PR_EC_ARCHIVE_SERVERS_A);
+	if (lpArchiveServers == nullptr || lpArchiveServers->cValues == 0)
+		return hr;
 
-			for (int i = 0; i < lpArchiveServers->cValues; ++i) {
-				MsgStorePtr ptrRemoteAdminStore;
-				SPropValuePtr ptrPropValue;
-				IECUnknown *lpECRemoteAdminStore = NULL;
-				HRESULT hrTmp;
+	MsgStorePtr ptrAdminStore;
+	hr = lpECMsgStore->QueryInterface(IID_IMsgStore, &~ptrAdminStore);
+	if (hr != hrSuccess)
+		return hr;
 
-				cout << "Archive details on node '" << (LPSTR)lpArchiveServers->lpszValues[i] << "':" << endl;
-				hrTmp = HrGetRemoteAdminStore(lpSession, ptrAdminStore, lpArchiveServers->lpszValues[i], 0, &~ptrRemoteAdminStore);
-				if (FAILED(hrTmp)) {
-					cerr << "Unable to access node '" <<
-						(LPSTR)lpArchiveServers->lpszValues[i] <<
-						"': " << GetMAPIErrorMessage(hr) <<
-						"(" << stringify(hrTmp, true) <<
-						")" << endl;
-					continue;
-				}
-				hr = HrGetOneProp(ptrRemoteAdminStore, PR_EC_OBJECT, &~ptrPropValue);
-				if (hr != hrSuccess || !ptrPropValue || !ptrPropValue->Value.lpszA) {
-					cerr << "Admin object not found." << endl;
-					return hr;
-				}
+	for (int i = 0; i < lpArchiveServers->cValues; ++i) {
+		MsgStorePtr ptrRemoteAdminStore;
+		SPropValuePtr ptrPropValue;
+		IECUnknown *lpECRemoteAdminStore = NULL;
+		HRESULT hrTmp;
 
-				lpECRemoteAdminStore = reinterpret_cast<IECUnknown *>(ptrPropValue->Value.lpszA);
-				print_archive_details(lpSession, lpECRemoteAdminStore, lpszName);
-				cout << endl;
-			}
+		cout << "Archive details on node '" << (LPSTR)lpArchiveServers->lpszValues[i] << "':" << endl;
+		hrTmp = HrGetRemoteAdminStore(lpSession, ptrAdminStore, lpArchiveServers->lpszValues[i], 0, &~ptrRemoteAdminStore);
+		if (FAILED(hrTmp)) {
+			cerr << "Unable to access node '" <<
+				(LPSTR)lpArchiveServers->lpszValues[i] <<
+				"': " << GetMAPIErrorMessage(hr) <<
+				"(" << stringify(hrTmp, true) <<
+				")" << endl;
+			continue;
 		}
+		hr = HrGetOneProp(ptrRemoteAdminStore, PR_EC_OBJECT, &~ptrPropValue);
+		if (hr != hrSuccess || !ptrPropValue || !ptrPropValue->Value.lpszA) {
+			cerr << "Admin object not found." << endl;
+			return hr;
+		}
+
+		lpECRemoteAdminStore = reinterpret_cast<IECUnknown *>(ptrPropValue->Value.lpszA);
+		print_archive_details(lpSession, lpECRemoteAdminStore, lpszName);
+		cout << endl;
 	}
 	return hr;
 }
@@ -2302,304 +2300,304 @@ int main(int argc, char* argv[])
 		if (c == -1)
 			break;
 		switch (c) {
-			case OPT_VERBOSITY:
-				loglevel = strtoul(optarg, NULL, 0);
-				break;
-			case 'v':
-				if (loglevel < EC_LOGLEVEL_DEBUG + 1)
-					++loglevel;
-				break;
-			case 'l':
-				mode = MODE_LIST_USERS;
-				break;
-			case 's':
-				mode = MODE_CREATE_PUBLIC;
-				break;
-			case 'c':
-				mode = MODE_CREATE_USER;
-				username = validateInput(optarg);
-				break;
-			case 'u':
-				if (mode != MODE_HOOK_STORE)
-					mode = MODE_UPDATE_USER;
-				username = validateInput(optarg);
-				break;
-			case 'd':
-				mode = MODE_DELETE_USER;
-				username = validateInput(optarg);
-				break;
-			case 'g':
-				mode = MODE_CREATE_GROUP;
-				groupname = validateInput(optarg);
-				break;
-			case 'G':
-				mode = MODE_DELETE_GROUP;
-				groupname = validateInput(optarg);
-				break;
-			case 'L':
-				mode = MODE_LIST_GROUP;
-				break;
-			case 'b':
-				mode = MODE_ADDUSER_GROUP;
-				username = validateInput(optarg);
-				break;
-			case 'B':
-				mode = MODE_DELETEUSER_GROUP;
-				username = validateInput(optarg);
-				break;
-			case 'U':
-				new_username = validateInput(optarg);
-				break;
-			case 'P':
-				passprompt = 1;
-				break;
-			case 'p':
-				password = validateInput(optarg);
-				break;
-			case 'f':
-				fullname = validateInput(optarg);
-				break;
-			case 'e':
-				emailadr = validateInput(optarg);
-				break;
-			case 'a':
-				isadmin = atoi(optarg);
-				if (isadmin == 0)
-					isadmin = parse_yesno(optarg);
-				else
-					isadmin = min(2, isadmin);
-				break;
-			case 'n':
-				isnonactive = parse_yesno(optarg);
-				break;
-			case 'i':
-				groupname = validateInput(optarg);
-				break;
-			case 'I':
-				companyname = validateInput(optarg);
-				break;
-				// error handling?
-			case '?':
-				break;
-			case OPT_HOST:
-			case 'h':
-				path = validateInput(optarg);
-				break;
-			case OPT_HELP:
-				mode = MODE_HELP;
-				break;
-			case OPT_CREATE_STORE:
-				mode = MODE_CREATE_STORE;
-				username = validateInput(optarg);
-				break;
-			case OPT_DELETE_STORE:
-				mode = MODE_DELETE_STORE;
-				username = validateInput(optarg);
-				break;
-			case OPT_HOOK_STORE:
-				mode = MODE_HOOK_STORE;
-				storeguid = validateInput(optarg);
-				break;
-			case OPT_UNHOOK_STORE:
-				mode = MODE_UNHOOK_STORE;
-				username = validateInput(optarg);
-				break;
-			case OPT_REMOVE_STORE:
-				mode = MODE_REMOVE_STORE;
-				storeguid = validateInput(optarg);
-				break;
-			case OPT_COPYTO_PUBLIC:
-				bCopyToPublic = true;
-				break;
-			case OPT_SYNC_USERS:
-				mode = MODE_SYNC_USERS;
-				break;
-			case OPT_DETAILS:
-				mode = MODE_DETAILS;
-				username = validateInput(optarg);
-				break;
-			case OPT_DETAILS_TYPE:
-				detailstype = validateInput(optarg);
-				break;
-				// Make values from Mb to bytes which the server wants
-			case OPT_USER_QUOTA_HARD:
-				quotahard = atoll(optarg) *1024*1024;
-				break;
-			case OPT_USER_QUOTA_SOFT:
-				quotasoft = atoll(optarg) *1024*1024;
-				break;
-			case OPT_USER_QUOTA_WARN:
-				quotawarn = atoll(optarg) *1024*1024;
-				break;
-			case OPT_USER_QUOTA_OVERRIDE:
-				quota = parse_yesno(optarg);
-				break;
-			case OPT_USER_DEFAULT_QUOTA_HARD:
-				ud_quotahard = atoll(optarg) * 1024 * 1024;
-				break;
-			case OPT_USER_DEFAULT_QUOTA_SOFT:
-				ud_quotasoft = atoll(optarg) * 1024 * 1024;
-				break;
-			case OPT_USER_DEFAULT_QUOTA_WARN:
-				ud_quotawarn = atoll(optarg) * 1024 * 1024;
-				break;
-			case OPT_USER_DEFAULT_QUOTA_OVERRIDE:
-				ud_quota = parse_yesno(optarg);
-				break;
-			case OPT_LANG:
-				// Use alternate language
-				lang = validateInput(optarg);
-				break;
-			case OPT_MR_ACCEPT:
-				mr_accept = parse_yesno(optarg);
-				break;
-			case OPT_MR_DECLINE_CONFLICT:
-				mr_decline_conflict = parse_yesno(optarg);
-				break;
-			case OPT_MR_DECLINE_RECURRING:
-				mr_decline_recurring = parse_yesno(optarg);
-				break;
-			case OPT_LIST_SENDAS:
-				mode = MODE_LIST_SENDAS;
-				username = validateInput(optarg);
-				break;
-			case OPT_ADD_SENDAS:
-				sendas_user = validateInput(optarg);
-				sendas_action = 1;
-				break;
-			case OPT_DEL_SENDAS:
-				sendas_user = validateInput(optarg);
-				sendas_action = 0;
-				break;
-			case OPT_UPDATE_GROUP:
-				mode = MODE_UPDATE_GROUP;
-				groupname = validateInput(optarg);
-				break;
-			case OPT_CREATE_COMPANY:
-				mode = MODE_CREATE_COMPANY;
-				companyname = validateInput(optarg);
-				break;
-			case OPT_UPDATE_COMPANY:
-				mode = MODE_UPDATE_COMPANY;
-				companyname = validateInput(optarg);
-				break;
-			case OPT_DELETE_COMPANY:
-				mode = MODE_DELETE_COMPANY;
-				companyname = validateInput(optarg);
-				break;
-			case OPT_LIST_COMPANY:
-				mode = MODE_LIST_COMPANY;
-				break;
-			case OPT_ADD_VIEW:
-				mode = MODE_ADD_VIEW;
-				set_companyname = validateInput(optarg);
-				break;
-			case OPT_DEL_VIEW:
-				mode = MODE_DEL_VIEW;
-				set_companyname = validateInput(optarg);
-				break;
-			case OPT_LIST_VIEW:
-				mode = MODE_LIST_VIEW;
-				break;
-			case OPT_ADD_ADMIN:
-				mode = MODE_ADD_ADMIN;
-				username = validateInput(optarg);
-				break;
-			case OPT_DEL_ADMIN:
-				mode = MODE_DEL_ADMIN;
-				username = validateInput(optarg);
-				break;
-			case OPT_LIST_ADMIN:
-				mode = MODE_LIST_ADMIN;
-				break;
-			case OPT_SYSTEM_ADMIN:
-				mode = MODE_SYSTEM_ADMIN;
-				username = validateInput(optarg);
-				break;
-			case OPT_ADD_UQUOTA_RECIPIENT:
-				mode = MODE_ADD_USERQUOTA_RECIPIENT;
-				username = validateInput(optarg);
-				break;
-			case OPT_DEL_UQUOTA_RECIPIENT:
-				mode = MODE_DEL_USERQUOTA_RECIPIENT;
-				username = validateInput(optarg);
-				break;
-			case OPT_LIST_UQUOTA_RECIPIENT:
-				mode = MODE_LIST_USERQUOTA_RECIPIENT;
-				break;
-			case OPT_ADD_CQUOTA_RECIPIENT:
-				mode = MODE_ADD_COMPANYQUOTA_RECIPIENT;
-				username = validateInput(optarg);
-				break;
-			case OPT_DEL_CQUOTA_RECIPIENT:
-				mode = MODE_DEL_COMPANYQUOTA_RECIPIENT;
-				username = validateInput(optarg);
-				break;
-			case OPT_LIST_CQUOTA_RECIPIENT:
-				mode = MODE_LIST_COMPANYQUOTA_RECIPIENT;
-				break;
-			case OPT_PURGE_SOFTDELETE:
-				ulDays = atoui(optarg);
-				mode = MODE_PURGE_SOFTDELETE;
-				break;
-			case OPT_CLEAR_CACHE:
-				mode = MODE_CLEAR_CACHE;
-				if (optarg)
-					ulCachePurgeMode = strtol(optarg, NULL, 0);
-				break;
-			case OPT_PURGE_DEFERRED:
-				mode = MODE_PURGE_DEFERRED;
-				break;
-			case OPT_LIST_ORPHANS:
-				mode = MODE_LIST_ORPHANS;
-				break;
-			case OPT_CONFIG:
-				szConfig = validateInput(optarg);
-				bExplicitConfig = true;
-				break;
-			case OPT_UTF8: {
-					       // set early, so other arguments are parsed in this charset.
-					       std::string locale;
-					       if (!forceUTF8Locale(false, &locale)) {
-						       cerr << "Your system does not have the '" << locale << "' locale installed." << endl;
-						       cerr << "Please install this locale before creating new users." << endl;
-						       return 1;
-					       }
-					       break;
-				       }
-			case OPT_FORCE_RESYNC:
-				       mode = MODE_FORCE_RESYNC;
-				       break;
-			case OPT_USER_COUNT:
-				       mode = MODE_USER_COUNT;
-				       break;
-			case OPT_ENABLE_FEATURE:
-			case OPT_DISABLE_FEATURE:
-				       if (feature) {
-					       cerr << "Only one feature can be enabled/disabled at a time" << endl;
-					       break;
-				       }
-				       if (!isFeature(optarg)) {
-					       cerr << optarg << " is not a valid kopano feature" << endl;
-					       break;
-				       }
-				       feature = optarg;
-				       bFeature = (c == OPT_ENABLE_FEATURE);
-				       break;
-			case OPT_VERSION:
-			case 'V':
-				       cout << "Product version:\t" << PROJECT_VERSION_PROFADMIN_STR << endl
-					       << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
-				       return EXIT_SUCCESS;
-			case OPT_SELECT_NODE:
-				       node = validateInput(optarg);
-				       break;
-			case OPT_RESET_FOLDER_COUNT:
-				       mode = MODE_RESET_FOLDER_COUNT;
-				       username = validateInput(optarg);
-				       break;
-			default:
-				       break;
+		case OPT_VERBOSITY:
+			loglevel = strtoul(optarg, NULL, 0);
+			break;
+		case 'v':
+			if (loglevel < EC_LOGLEVEL_DEBUG + 1)
+				++loglevel;
+			break;
+		case 'l':
+			mode = MODE_LIST_USERS;
+			break;
+		case 's':
+			mode = MODE_CREATE_PUBLIC;
+			break;
+		case 'c':
+			mode = MODE_CREATE_USER;
+			username = validateInput(optarg);
+			break;
+		case 'u':
+			if (mode != MODE_HOOK_STORE)
+				mode = MODE_UPDATE_USER;
+			username = validateInput(optarg);
+			break;
+		case 'd':
+			mode = MODE_DELETE_USER;
+			username = validateInput(optarg);
+			break;
+		case 'g':
+			mode = MODE_CREATE_GROUP;
+			groupname = validateInput(optarg);
+			break;
+		case 'G':
+			mode = MODE_DELETE_GROUP;
+			groupname = validateInput(optarg);
+			break;
+		case 'L':
+			mode = MODE_LIST_GROUP;
+			break;
+		case 'b':
+			mode = MODE_ADDUSER_GROUP;
+			username = validateInput(optarg);
+			break;
+		case 'B':
+			mode = MODE_DELETEUSER_GROUP;
+			username = validateInput(optarg);
+			break;
+		case 'U':
+			new_username = validateInput(optarg);
+			break;
+		case 'P':
+			passprompt = 1;
+			break;
+		case 'p':
+			password = validateInput(optarg);
+			break;
+		case 'f':
+			fullname = validateInput(optarg);
+			break;
+		case 'e':
+			emailadr = validateInput(optarg);
+			break;
+		case 'a':
+			isadmin = atoi(optarg);
+			if (isadmin == 0)
+				isadmin = parse_yesno(optarg);
+			else
+				isadmin = min(2, isadmin);
+			break;
+		case 'n':
+			isnonactive = parse_yesno(optarg);
+			break;
+		case 'i':
+			groupname = validateInput(optarg);
+			break;
+		case 'I':
+			companyname = validateInput(optarg);
+			break;
+			// error handling?
+		case '?':
+			break;
+		case OPT_HOST:
+		case 'h':
+			path = validateInput(optarg);
+			break;
+		case OPT_HELP:
+			mode = MODE_HELP;
+			break;
+		case OPT_CREATE_STORE:
+			mode = MODE_CREATE_STORE;
+			username = validateInput(optarg);
+			break;
+		case OPT_DELETE_STORE:
+			mode = MODE_DELETE_STORE;
+			username = validateInput(optarg);
+			break;
+		case OPT_HOOK_STORE:
+			mode = MODE_HOOK_STORE;
+			storeguid = validateInput(optarg);
+			break;
+		case OPT_UNHOOK_STORE:
+			mode = MODE_UNHOOK_STORE;
+			username = validateInput(optarg);
+			break;
+		case OPT_REMOVE_STORE:
+			mode = MODE_REMOVE_STORE;
+			storeguid = validateInput(optarg);
+			break;
+		case OPT_COPYTO_PUBLIC:
+			bCopyToPublic = true;
+			break;
+		case OPT_SYNC_USERS:
+			mode = MODE_SYNC_USERS;
+			break;
+		case OPT_DETAILS:
+			mode = MODE_DETAILS;
+			username = validateInput(optarg);
+			break;
+		case OPT_DETAILS_TYPE:
+			detailstype = validateInput(optarg);
+			break;
+			// Make values from Mb to bytes which the server wants
+		case OPT_USER_QUOTA_HARD:
+			quotahard = atoll(optarg) *1024*1024;
+			break;
+		case OPT_USER_QUOTA_SOFT:
+			quotasoft = atoll(optarg) *1024*1024;
+			break;
+		case OPT_USER_QUOTA_WARN:
+			quotawarn = atoll(optarg) *1024*1024;
+			break;
+		case OPT_USER_QUOTA_OVERRIDE:
+			quota = parse_yesno(optarg);
+			break;
+		case OPT_USER_DEFAULT_QUOTA_HARD:
+			ud_quotahard = atoll(optarg) * 1024 * 1024;
+			break;
+		case OPT_USER_DEFAULT_QUOTA_SOFT:
+			ud_quotasoft = atoll(optarg) * 1024 * 1024;
+			break;
+		case OPT_USER_DEFAULT_QUOTA_WARN:
+			ud_quotawarn = atoll(optarg) * 1024 * 1024;
+			break;
+		case OPT_USER_DEFAULT_QUOTA_OVERRIDE:
+			ud_quota = parse_yesno(optarg);
+			break;
+		case OPT_LANG:
+			// Use alternate language
+			lang = validateInput(optarg);
+			break;
+		case OPT_MR_ACCEPT:
+			mr_accept = parse_yesno(optarg);
+			break;
+		case OPT_MR_DECLINE_CONFLICT:
+			mr_decline_conflict = parse_yesno(optarg);
+			break;
+		case OPT_MR_DECLINE_RECURRING:
+			mr_decline_recurring = parse_yesno(optarg);
+			break;
+		case OPT_LIST_SENDAS:
+			mode = MODE_LIST_SENDAS;
+			username = validateInput(optarg);
+			break;
+		case OPT_ADD_SENDAS:
+			sendas_user = validateInput(optarg);
+			sendas_action = 1;
+			break;
+		case OPT_DEL_SENDAS:
+			sendas_user = validateInput(optarg);
+			sendas_action = 0;
+			break;
+		case OPT_UPDATE_GROUP:
+			mode = MODE_UPDATE_GROUP;
+			groupname = validateInput(optarg);
+			break;
+		case OPT_CREATE_COMPANY:
+			mode = MODE_CREATE_COMPANY;
+			companyname = validateInput(optarg);
+			break;
+		case OPT_UPDATE_COMPANY:
+			mode = MODE_UPDATE_COMPANY;
+			companyname = validateInput(optarg);
+			break;
+		case OPT_DELETE_COMPANY:
+			mode = MODE_DELETE_COMPANY;
+			companyname = validateInput(optarg);
+			break;
+		case OPT_LIST_COMPANY:
+			mode = MODE_LIST_COMPANY;
+			break;
+		case OPT_ADD_VIEW:
+			mode = MODE_ADD_VIEW;
+			set_companyname = validateInput(optarg);
+			break;
+		case OPT_DEL_VIEW:
+			mode = MODE_DEL_VIEW;
+			set_companyname = validateInput(optarg);
+			break;
+		case OPT_LIST_VIEW:
+			mode = MODE_LIST_VIEW;
+			break;
+		case OPT_ADD_ADMIN:
+			mode = MODE_ADD_ADMIN;
+			username = validateInput(optarg);
+			break;
+		case OPT_DEL_ADMIN:
+			mode = MODE_DEL_ADMIN;
+			username = validateInput(optarg);
+			break;
+		case OPT_LIST_ADMIN:
+			mode = MODE_LIST_ADMIN;
+			break;
+		case OPT_SYSTEM_ADMIN:
+			mode = MODE_SYSTEM_ADMIN;
+			username = validateInput(optarg);
+			break;
+		case OPT_ADD_UQUOTA_RECIPIENT:
+			mode = MODE_ADD_USERQUOTA_RECIPIENT;
+			username = validateInput(optarg);
+			break;
+		case OPT_DEL_UQUOTA_RECIPIENT:
+			mode = MODE_DEL_USERQUOTA_RECIPIENT;
+			username = validateInput(optarg);
+			break;
+		case OPT_LIST_UQUOTA_RECIPIENT:
+			mode = MODE_LIST_USERQUOTA_RECIPIENT;
+			break;
+		case OPT_ADD_CQUOTA_RECIPIENT:
+			mode = MODE_ADD_COMPANYQUOTA_RECIPIENT;
+			username = validateInput(optarg);
+			break;
+		case OPT_DEL_CQUOTA_RECIPIENT:
+			mode = MODE_DEL_COMPANYQUOTA_RECIPIENT;
+			username = validateInput(optarg);
+			break;
+		case OPT_LIST_CQUOTA_RECIPIENT:
+			mode = MODE_LIST_COMPANYQUOTA_RECIPIENT;
+			break;
+		case OPT_PURGE_SOFTDELETE:
+			ulDays = atoui(optarg);
+			mode = MODE_PURGE_SOFTDELETE;
+			break;
+		case OPT_CLEAR_CACHE:
+			mode = MODE_CLEAR_CACHE;
+			if (optarg)
+				ulCachePurgeMode = strtol(optarg, NULL, 0);
+			break;
+		case OPT_PURGE_DEFERRED:
+			mode = MODE_PURGE_DEFERRED;
+			break;
+		case OPT_LIST_ORPHANS:
+			mode = MODE_LIST_ORPHANS;
+			break;
+		case OPT_CONFIG:
+			szConfig = validateInput(optarg);
+			bExplicitConfig = true;
+			break;
+		case OPT_UTF8: {
+			// set early, so other arguments are parsed in this charset.
+			std::string locale;
+			if (!forceUTF8Locale(false, &locale)) {
+				cerr << "Your system does not have the '" << locale << "' locale installed." << endl;
+				cerr << "Please install this locale before creating new users." << endl;
+				return 1;
+			}
+			break;
+		}
+		case OPT_FORCE_RESYNC:
+			mode = MODE_FORCE_RESYNC;
+			break;
+		case OPT_USER_COUNT:
+			mode = MODE_USER_COUNT;
+			break;
+		case OPT_ENABLE_FEATURE:
+		case OPT_DISABLE_FEATURE:
+			if (feature) {
+			       cerr << "Only one feature can be enabled/disabled at a time" << endl;
+			       break;
+			}
+			if (!isFeature(optarg)) {
+			       cerr << optarg << " is not a valid kopano feature" << endl;
+			       break;
+			}
+			feature = optarg;
+			bFeature = (c == OPT_ENABLE_FEATURE);
+			break;
+		case OPT_VERSION:
+		case 'V':
+			cout << "Product version:\t" << PROJECT_VERSION_PROFADMIN_STR << endl
+			     << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
+			return EXIT_SUCCESS;
+		case OPT_SELECT_NODE:
+			node = validateInput(optarg);
+			break;
+		case OPT_RESET_FOLDER_COUNT:
+			mode = MODE_RESET_FOLDER_COUNT;
+			username = validateInput(optarg);
+			break;
+		default:
+			break;
 		};
 		if (validateInput.Failed()) {
 			cerr << "Invalid input '" << optarg << "' found." << endl;
@@ -2970,18 +2968,18 @@ int main(int argc, char* argv[])
 			GetMAPIErrorMessage(hr) << " (" <<
 			stringify(hr, true) << ")" << endl;
 		switch (hr) {
-			case MAPI_E_NETWORK_ERROR:
-				cerr << "The server is not running, or not accessible";
-				if (path != NULL && *path != '\0')
-					cerr << " through \"" << path << "\"";
-				cerr << "." << endl;
-				break;
-			case MAPI_E_LOGON_FAILED:
-			case MAPI_E_NO_ACCESS:
-				cerr << "Access was denied on " << path << "." << endl;
-				break;
-			default:
-				break;
+		case MAPI_E_NETWORK_ERROR:
+			cerr << "The server is not running, or not accessible";
+			if (path != NULL && *path != '\0')
+				cerr << " through \"" << path << "\"";
+			cerr << "." << endl;
+			break;
+		case MAPI_E_LOGON_FAILED:
+		case MAPI_E_NO_ACCESS:
+			cerr << "Access was denied on " << path << "." << endl;
+			break;
+		default:
+			break;
 		};
 		goto exit;
 	}
@@ -3003,18 +3001,18 @@ int main(int argc, char* argv[])
 				GetMAPIErrorMessage(hr) << " (" <<
 				stringify(hr, true) << ")" << endl;
 			switch (hr) {
-				case MAPI_E_NETWORK_ERROR:
-					cerr << "The server is not running, or not accessible." << endl;
-					break;
-				case MAPI_E_LOGON_FAILED:
-				case MAPI_E_NO_ACCESS:
-					cerr << "Access was denied." << endl;
-					break;
-				case MAPI_E_NOT_FOUND:
-					cerr << "Node '" << node << "' is unknown." << endl;
-					break;
-				default:
-					break;
+			case MAPI_E_NETWORK_ERROR:
+				cerr << "The server is not running, or not accessible." << endl;
+				break;
+			case MAPI_E_LOGON_FAILED:
+			case MAPI_E_NO_ACCESS:
+				cerr << "Access was denied." << endl;
+				break;
+			case MAPI_E_NOT_FOUND:
+				cerr << "Node '" << node << "' is unknown." << endl;
+				break;
+			default:
+				break;
 			}
 			goto exit;
 		}
@@ -3098,1004 +3096,957 @@ int main(int argc, char* argv[])
 	// fully logged on, action!
 
 	switch(mode) {
-		case MODE_LIST_USERS:
-			hr = ForEachCompany(lpServiceAdmin, companyname, ListUsers);
-			if (hr != hrSuccess)
-				goto exit;
-			break;
-		case MODE_LIST_ORPHANS:
-			hr = list_orphans(lpServiceAdmin);
-			if (hr != hrSuccess)
-				goto exit;
-			break;
+	case MODE_LIST_USERS:
+		hr = ForEachCompany(lpServiceAdmin, companyname, ListUsers);
+		if (hr != hrSuccess)
+			goto exit;
+		break;
+	case MODE_LIST_ORPHANS:
+		hr = list_orphans(lpServiceAdmin);
+		if (hr != hrSuccess)
+			goto exit;
+		break;
 
-		case MODE_DETAILS:
-			if (detailstype == NULL || strcasecmp(detailstype, "user") == 0)
-				ulClass = ACTIVE_USER;
-			else if (strcasecmp(detailstype, "group") == 0)
-				ulClass = DISTLIST_GROUP;
-			else if (strcasecmp(detailstype, "company") == 0)
-				ulClass = CONTAINER_COMPANY;
-			else if (strcasecmp(detailstype, "archive") != 0) {
-				hr = MAPI_E_INVALID_TYPE;
-				cerr << "Unknown userobject type \"" << detailstype << "\"" << endl;
+	case MODE_DETAILS:
+		if (detailstype == NULL || strcasecmp(detailstype, "user") == 0)
+			ulClass = ACTIVE_USER;
+		else if (strcasecmp(detailstype, "group") == 0)
+			ulClass = DISTLIST_GROUP;
+		else if (strcasecmp(detailstype, "company") == 0)
+			ulClass = CONTAINER_COMPANY;
+		else if (strcasecmp(detailstype, "archive") != 0) {
+			hr = MAPI_E_INVALID_TYPE;
+			cerr << "Unknown userobject type \"" << detailstype << "\"" << endl;
+			goto exit;
+		}
+		if (detailstype && strcasecmp(detailstype, "archive") == 0)
+			hr = print_archive_details(lpSession, lpECMsgStore, username);
+		else
+			hr = print_details(lpSession, lpECMsgStore, ulClass, username);
+		if (hr != hrSuccess)
+			goto exit;
+		break;
+
+	case MODE_CREATE_PUBLIC:
+		/* The public store is created for a particular company, to do this correctly we will
+		 * pass the company id as the group id for the store. */
+		hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PUBLIC, cbCompanyId, lpCompanyId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
+		if(hr != hrSuccess) {
+			cerr << "Unable to create store, " << getMapiCodeString(hr, "public") << endl;
+			goto exit;
+		} else {
+			cout << "Public created." << endl;
+		}
+		break;
+
+	case MODE_CREATE_USER:
+		memset(&sECUser, 0, sizeof(sECUser));
+
+		sECUser.sUserId.cb = g_cbDefaultEid;
+		sECUser.sUserId.lpb = g_lpDefaultEid;
+		sECUser.lpszUsername = (LPTSTR)username;
+
+		if (passprompt && isnonactive != 1) {
+			sECUser.lpszPassword = (LPTSTR)get_password();
+
+			if (sECUser.lpszPassword == NULL) {
+				cerr << "Passwords don't match" << endl;
+				return 1;
+			}
+			if (sECUser.lpszPassword[0] == 0x00) {
+				cerr << "Password cannot be empty" << endl;
+				return 1;
+			}
+		}
+		else if (isnonactive == 1)
+			sECUser.lpszPassword = NULL;
+		else
+			sECUser.lpszPassword = (LPTSTR)password;
+
+		sECUser.lpszMailAddress = (LPTSTR)emailadr;
+		sECUser.lpszFullName = (LPTSTR)fullname;
+		sECUser.ulIsAdmin = (isadmin != -1)?isadmin:0;
+		// FIXME: create user, room or equipment!
+		sECUser.ulObjClass = ACTIVE_USER;
+		if (isnonactive == 1)
+			sECUser.ulObjClass = NONACTIVE_USER; // NONACTIVE_ROOM, NONACTIVE_EQUIPMENT, (NONACTIVE_CONTACT?)
+
+		hr = lpServiceAdmin->CreateUser(&sECUser, 0, &cbUserId, &~lpUserId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to create user, " << getMapiCodeString(hr, username) << endl;
+			cerr << "Check server.log for details." << endl;
+			goto exit;
+		}
+
+		// set quota data
+		if (quota != -1 || quotahard != -1 || quotasoft != -1 || quotawarn != -1) {
+			hr = setQuota(lpServiceAdmin, cbUserId, lpUserId, quota, false, quotawarn, quotasoft, quotahard);
+			if(hr != hrSuccess)
+				goto exit;
+		}
+		cout << "User created." << endl;
+		break;
+
+	case MODE_CREATE_STORE:
+		hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PRIVATE, cbUserId, lpUserId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to create store, " << getMapiCodeString(hr, "store") << endl;
+			goto exit;
+		}
+		cout << "User store '" << username << "' created." << endl;
+		break;
+
+	case MODE_DELETE_USER:
+		hr = lpServiceAdmin->DeleteUser(cbUserId, lpUserId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to delete user, " << getMapiCodeString(hr, username) << endl;
+			goto exit;
+		}
+		cout << "User deleted." << endl;
+
+		break;
+
+	case MODE_DELETE_STORE:
+		// happy compiler
+		break;
+	case MODE_HOOK_STORE:
+		hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (&~lpGUID).as<unsigned char>());
+		if (hr != hrSuccess) {
+			cerr << "Incorrect store guid '" << storeguid << "'" << endl;
+			goto exit;
+		}
+
+		if (bCopyToPublic == true) {
+			// Find store entryid
+			hr = GetOrphanStoreInfo(lpServiceAdmin, lpGUID, path, strUsername, strCompanyName, &cbEntryID, &~lpEntryID);
+			if (hr != hrSuccess) {
+				cerr << "Unable to get the store information. store guid '" << storeguid << "'" << endl;
 				goto exit;
 			}
 
-			if (detailstype && strcasecmp(detailstype, "archive") == 0)
-				hr = print_archive_details(lpSession, lpECMsgStore, username);
+			// Open store the orphan store
+			hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, nullptr, MAPI_BEST_ACCESS, &~lpUserStore);
+			if (hr != hrSuccess) {
+				cerr << "Unable to open the orphan store, " << getMapiCodeString(hr) << endl;
+				goto exit;
+			}
+
+			// Open the root container for copy the folders
+			hr = lpUserStore->OpenEntry(0, nullptr, nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpRootFolder);
+			if (hr != hrSuccess) {
+				cerr << "Unable to open root folder of the orphan store, " << getMapiCodeString(hr) << endl;
+				goto exit;
+			}
+
+			hr = HrGetOneProp(lpUserStore, PR_IPM_SUBTREE_ENTRYID, &~lpPropValue);
+			if (hr != hrSuccess) {
+				cerr << "Unable to open the orphans store sub-entry, " << getMapiCodeString(hr) << endl;
+				goto exit;
+			}
+
+			// Open the public store
+			hr = GetPublicStore(lpSession, lpUserStore, strCompanyName, &~lpPublicStore);
+			if (hr != hrSuccess) {
+				cerr << "Unable to open the public store, " << getMapiCodeString(hr) << endl;
+				goto exit;
+			}
+
+			// open/create folders admin/stores
+			hr = OpenDeletedStoresFolder(lpPublicStore, &~lpDeletedStoresFolder);
+			if (hr != hrSuccess) {
+				cerr << "Unable to open the folder \"deleted stores\", " << getMapiCodeString(hr) << endl;
+				goto exit;
+			}
+
+			// Copy everything to the public
+			strStorename = L"Deleted User - ";
+			if (strUsername.empty())
+				strStorename += convert_to<wstring>(storeguid);
 			else
-				hr = print_details(lpSession, lpECMsgStore, ulClass, username);
-			if (hr != hrSuccess)
-				goto exit;
-			break;
+				strStorename += strUsername;
 
-		case MODE_CREATE_PUBLIC:
-			/* The public store is created for a particular company, to do this correctly we will
-			 * pass the company id as the group id for the store. */
-			hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PUBLIC, cbCompanyId, lpCompanyId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
-			if(hr != hrSuccess) {
-				cerr << "Unable to create store, " << getMapiCodeString(hr, "public") << endl;
-				goto exit;
-			} else {
-				cout << "Public created." << endl;
+			cerr << "Start to copy the orphan store to the public store to the folder '" << convert_to<string>(strStorename) << "'" << endl;
+
+			strStorenameTMP = strStorename;
+			nFolderId = 1;
+			while (true)
+			{
+				hr = lpRootFolder->CopyFolder(lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb,
+					NULL, lpDeletedStoresFolder, (LPTSTR)strStorenameTMP.c_str(), 0, NULL, COPY_SUBFOLDERS | MAPI_UNICODE);
+
+				if (hr == MAPI_E_COLLISION) {
+					if (nFolderId < 1000) { // Max 999 folders
+						strStorenameTMP = strStorename + wstringify(nFolderId);
+						++nFolderId;
+						cerr << "Folder already exist, retrying with foldername '" << convert_to<string>(strStorenameTMP) << "'" << endl;
+					} else {
+						cerr << "Unable to copy the store to the public, maximum folder collisions exceeded" << endl;
+						goto exit;
+					}
+				} else if (FAILED(hr)) {
+					cerr << "Unable to copy the store to the public," << getMapiCodeString(hr) << endl;
+					goto exit;
+				} else if (hr != hrSuccess) {
+					cerr << "Warning, the copy succeeded, but not all entries were copied (" << getMapiCodeString(hr) << ")" << endl;
+					break;
+				} else {
+					cerr << "Copy succeeded" << endl;
+					break;
+				}
 			}
-			break;
+		} else {
+			ULONG ulStoreType;
 
-		case MODE_CREATE_USER:
+			if (detailstype == NULL)
+				detailstype = "user";
+			if (strcmp(detailstype, "user") == 0) {
+				ulStoreType = ECSTORE_TYPE_PRIVATE;
+				hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+			} else if (strcmp(detailstype, "archive") == 0) {
+				ulStoreType = ECSTORE_TYPE_ARCHIVE;
+				hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+			} else if (strcmp(detailstype, "group") == 0) {
+				ulStoreType = ECSTORE_TYPE_PUBLIC;
+				hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+			} else if (strcmp(detailstype, "company") == 0) {
+				ulStoreType = ECSTORE_TYPE_PUBLIC;
+				hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+			} else {
+				cerr << "Unknown store type: '" << detailstype << "'." << endl;
+				goto exit;
+			}
+			if (hr != hrSuccess) {
+				cerr << "Unable to find " << detailstype << ", " << getMapiCodeString(hr, username) << endl;
+				goto exit;
+			}
+
+			if (strcmp(detailstype, "user") == 0) {
+				// check if this user should exist on the connected server. depending on --force, print a warning or an error
+				hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
+				if (hr != hrSuccess) {
+					cerr << "Unable to load details, " << getMapiCodeString(hr, username) << endl;
+					goto exit;
+				}
+
+				// homeserver on single server installations is empty
+				if (lpECUser->lpszServername != NULL && *reinterpret_cast<LPSTR>(lpECUser->lpszServername) != '\0') {
+					// note, this has to be mapi allocated because GetServerDetails does a More allocation on this base pointer
+					if (MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpsServer) != hrSuccess ||
+					    MAPIAllocateMore(sizeof(LPTSTR), lpsServer, (void**)&lpsServer->lpszaServer) != hrSuccess) {
+						hr = MAPI_E_NOT_ENOUGH_MEMORY;
+						cerr << "Unable to allocate memory for server details" << endl;
+						goto exit;
+					}
+					lpsServer->cServers = 1;
+					lpsServer->lpszaServer[0] = lpECUser->lpszServername;
+					hr = lpServiceAdmin->GetServerDetails(lpsServer, 0, &~lpServerDetails);
+					if (hr != hrSuccess) {
+						cerr << "Unable to load server details, " << getMapiCodeString(hr, (char*)lpECUser->lpszServername) << endl;
+						goto exit;
+					}
+
+					if ((lpServerDetails->lpsaServer[0].ulFlags & EC_SDFLAG_IS_PEER) == 0) {
+						// since we don't know which server we're connected to, don't print a server name.
+						cerr << "WARNING: Hooking store on non-homeserver of " << username << endl;
+					}
+				}
+			}
+
+			// the server won't let you hook public stores to users and vice-versa.
+			hr = lpServiceAdmin->HookStore(ulStoreType, cbUserId, lpUserId, lpGUID);
+			if (hr != hrSuccess) {
+				cerr << "Unable to hook store, " << getMapiCodeString(hr) << endl;
+				goto exit;
+			}
+			cout << "Store hooked." << endl;
+		}
+		break;
+	case MODE_UNHOOK_STORE: {
+		ULONG ulStoreType;
+
+		if (detailstype == NULL)
+			detailstype = "user";
+
+		if (strcmp(detailstype, "user") == 0) {
+			ulStoreType = ECSTORE_TYPE_PRIVATE;
+			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+		} else if (strcmp(detailstype, "archive") == 0) {
+			ulStoreType = ECSTORE_TYPE_ARCHIVE;
+			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+		} else if (strcmp(detailstype, "group") == 0) {
+			ulStoreType = ECSTORE_TYPE_PUBLIC;
+			hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+		} else if (strcmp(detailstype, "company") == 0) {
+			ulStoreType = ECSTORE_TYPE_PUBLIC;
+			strCompanyName = convert_to<wstring>(username);
+			hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+		} else {
+			cerr << "Unknown store type: '" << detailstype << "'." << endl;
+			goto exit;
+		}
+		if (hr != hrSuccess) {
+			cerr << "Unable to find " << detailstype << ", " << getMapiCodeString(hr, username) << endl;
+			goto exit;
+		}
+
+		if (ulStoreType != ECSTORE_TYPE_PUBLIC) {
+			if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
+				hr = lpServiceAdmin->GetArchiveStoreEntryID(reinterpret_cast<LPTSTR>(username), NULL, 0, &cbStoreId, &~lpStoreId);
+				if (hr != hrSuccess) {
+					cout << "Unable to unhook store, unable to retrieve store entryid, " << getMapiCodeString(hr, "entryid") << endl;
+					goto exit;
+				}
+			} else {
+				hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
+				if (hr != hrSuccess)
+					goto exit;
+
+				// do not redirect to another server, unhook works on the server it's connected to
+				hr = lpIEMS->CreateStoreEntryID(NULL, reinterpret_cast<LPTSTR>(username), OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~lpStoreId);
+				if (hr != hrSuccess) {
+					if (hr == MAPI_E_NOT_FOUND)
+						cout << "Unable to unhook store. User '" << username << "' has no store attached." << endl;
+					else
+						cout << "Unable to unhook store. Can not create store entryid, " << getMapiCodeString(hr, "store") << endl;
+					goto exit;
+				}
+			}
+
+			hr = UnWrapStoreEntryID(cbStoreId, lpStoreId, &cbUnWrappedEntry, &~lpUnWrappedEntry);
+			if (hr != hrSuccess) {
+				cout << "Unable to unhook store. Unable to unwrap the store entryid, " << getMapiCodeString(hr, "entryid") << endl;
+				goto exit;
+			}
+		} else {
+			// ns__resolveUserStore (CreateStoreEntryID) does not work with normal (non-company) public store
+			hr = GetPublicStore(lpSession, lpMsgStore, strCompanyName, &~lpPublicStore);
+			if (hr != hrSuccess) {
+				cerr << "Unable to open public store, " << getMapiCodeString(hr, "public") << endl;
+				goto exit;
+			}
+			hr = HrGetOneProp(lpPublicStore, PR_STORE_ENTRYID, &~lpPropValue);
+			if (hr != hrSuccess) {
+				cerr << "Unable to get public store entryid, " << getMapiCodeString(hr, "store") << endl;
+				goto exit;
+			}
+			hr = UnWrapStoreEntryID(lpPropValue->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue->Value.bin.lpb), &cbUnWrappedEntry, &~lpUnWrappedEntry);
+			if (hr != hrSuccess) {
+				cout << "Unable to unhook store. Unable to unwrap the store entryid, " << getMapiCodeString(hr, "entryid") << endl;
+				goto exit;
+			}
+		}
+
+		hr = lpServiceAdmin->UnhookStore(ulStoreType, cbUserId, lpUserId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to unhook store, " << getMapiCodeString(hr) << endl;
+			goto exit;
+		}
+
+		cout << "Store unhooked. Store guid is " << bin2hex(sizeof(GUID), (unsigned char*)lpUnWrappedEntry->ab) << endl;
+		break;
+	}
+	case MODE_REMOVE_STORE:
+		hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (&~lpGUID).as<unsigned char>());
+		if (hr != hrSuccess) {
+			cerr << "Incorrect store guid '" << storeguid << "'" << endl;
+			goto exit;
+		}
+		hr = lpServiceAdmin->RemoveStore(lpGUID);
+		if (hr != hrSuccess) {
+			cerr << "Unable to remove store, " << getMapiCodeString(hr) << endl;
+			goto exit;
+		}
+		cout << "Store removed." << endl;
+		break;
+	case MODE_UPDATE_USER:
+		if (new_username) {
+			memory_ptr<ENTRYID> userid;
+			ULONG usize;
+			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(new_username), 0, &usize, &~userid);
+			if (hr == hrSuccess) {
+				cerr << "User with name '" << new_username << "' is already present." << endl;
+				hr = MAPI_E_COLLISION;
+				goto exit;
+			}
+		}
+		// get old features. we need these, because not setting them would mean: remove
+		hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
+		if (hr != hrSuccess) {
+			cerr << "Unable to get user details, " << getMapiCodeString(hr, username) << endl;
+			goto exit;
+		}
+
+		// lpECUser memory will be kept alive to let the SetUser() call work
+		for (ULONG i = 0; i < lpECUser->sMVPropmap.cEntries; ++i) {
+			if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_ENABLED_FEATURES_A) {
+				sEnabled.insert((char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues,
+						(char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues + lpECUser->sMVPropmap.lpEntries[i].cValues);
+			} else if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_DISABLED_FEATURES_A) {
+				sDisabled.insert((char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues,
+						(char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues + lpECUser->sMVPropmap.lpEntries[i].cValues);
+			}
+		}
+
+		if (feature) {
+			if (bFeature) {
+				sEnabled.insert(feature);
+				sDisabled.erase(feature);
+			} else {
+				sEnabled.erase(feature);
+				sDisabled.insert(feature);
+			}
+		}
+
+		if (new_username || password || passprompt || emailadr || fullname || isadmin != -1 || isnonactive != -1 || feature) {
 			memset(&sECUser, 0, sizeof(sECUser));
 
-			sECUser.sUserId.cb = g_cbDefaultEid;
-			sECUser.sUserId.lpb = g_lpDefaultEid;
-			sECUser.lpszUsername = (LPTSTR)username;
+			// if the user did not select an active/inactive state on the command-line,
+			// then check what the status was before admin started; that status
+			// will then be re-used
+			if (isnonactive == -1)
+				isnonactive = lpECUser -> ulObjClass == NONACTIVE_USER;
 
-			if(passprompt && isnonactive != 1) {
+			// copy static info
+			sECUser.sUserId.cb = cbUserId;
+			sECUser.sUserId.lpb = reinterpret_cast<unsigned char *>(lpUserId.get());
+			// possibly set new values
+			sECUser.lpszUsername = (LPTSTR)(new_username ? new_username : username);
+			if (passprompt) {
 				sECUser.lpszPassword = (LPTSTR)get_password();
-
-				if (sECUser.lpszPassword == NULL) {
+				if (sECUser.lpszPassword == NULL)
+				{
 					cerr << "Passwords don't match" << endl;
 					return 1;
 				}
-				if (sECUser.lpszPassword[0] == 0x00) {
+				if (sECUser.lpszPassword[0] == 0)
+				{
 					cerr << "Password cannot be empty" << endl;
 					return 1;
 				}
-			}
-			else if (isnonactive == 1)
-				sECUser.lpszPassword = NULL;
-			else
+			} else
 				sECUser.lpszPassword = (LPTSTR)password;
-
 			sECUser.lpszMailAddress = (LPTSTR)emailadr;
 			sECUser.lpszFullName = (LPTSTR)fullname;
-			sECUser.ulIsAdmin = (isadmin != -1)?isadmin:0;
-			// FIXME: create user, room or equipment!
+			sECUser.ulIsAdmin = isadmin;
 			sECUser.ulObjClass = ACTIVE_USER;
 			if (isnonactive == 1)
-				sECUser.ulObjClass = NONACTIVE_USER; // NONACTIVE_ROOM, NONACTIVE_EQUIPMENT, (NONACTIVE_CONTACT?)
+				sECUser.ulObjClass = NONACTIVE_USER;
 
-			hr = lpServiceAdmin->CreateUser(&sECUser, 0, &cbUserId, &~lpUserId);
-			if(hr != hrSuccess) {
-				cerr << "Unable to create user, " << getMapiCodeString(hr, username) << endl;
-				cerr << "Check server.log for details." << endl;
-				goto exit;
-			}
-
-			// set quota data
-			if (quota != -1 || quotahard != -1 || quotasoft != -1 || quotawarn != -1) {
-				hr = setQuota(lpServiceAdmin, cbUserId, lpUserId, quota, false, quotawarn, quotasoft, quotahard);
-				if(hr != hrSuccess)
-					goto exit;
-			}
-
-			cout << "User created." << endl;
-			break;
-
-		case MODE_CREATE_STORE:
-			hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PRIVATE, cbUserId, lpUserId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
-			if(hr != hrSuccess) {
-				cerr << "Unable to create store, " << getMapiCodeString(hr, "store") << endl;
-				goto exit;
-			}
-			cout << "User store '" << username << "' created." << endl;
-			break;
-
-		case MODE_DELETE_USER:
-			hr = lpServiceAdmin->DeleteUser(cbUserId, lpUserId);
-			if(hr != hrSuccess) {
-				cerr << "Unable to delete user, " << getMapiCodeString(hr, username) << endl;
-				goto exit;
-			}
-			cout << "User deleted." << endl;
-
-			break;
-
-		case MODE_DELETE_STORE:
-			// happy compiler
-			break;
-		case MODE_HOOK_STORE:
-			hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (&~lpGUID).as<unsigned char>());
+			// sEnabled to sECUser.sMVPropmap ergens
+			sECUser.sMVPropmap.cEntries = 2; // @note: if we have more mv props than the feature lists, adjust this value!
+			// mapi allocate more on lpECUser, so this will be freed automatically at exit.
+			hr = MAPIAllocateMore(sizeof(MVPROPMAPENTRY) * sECUser.sMVPropmap.cEntries, lpECUser, (void**)&sECUser.sMVPropmap.lpEntries);
 			if (hr != hrSuccess) {
-				cerr << "Incorrect store guid '" << storeguid << "'" << endl;
+				cerr << "Memory error" << endl;
 				goto exit;
 			}
-
-			if (bCopyToPublic == true) {
-				// Find store entryid
-				hr = GetOrphanStoreInfo(lpServiceAdmin, lpGUID, path, strUsername, strCompanyName, &cbEntryID, &~lpEntryID);
-				if (hr != hrSuccess) {
-					cerr << "Unable to get the store information. store guid '" << storeguid << "'" << endl;
-					goto exit;
-				}
-
-				// Open store the orphan store
-				hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, nullptr, MAPI_BEST_ACCESS, &~lpUserStore);
-				if (hr != hrSuccess) {
-					cerr << "Unable to open the orphan store, " << getMapiCodeString(hr) << endl;
-					goto exit;
-				}
-
-				// Open the root container for copy the folders
-				hr = lpUserStore->OpenEntry(0, nullptr, nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpRootFolder);
-				if (hr != hrSuccess) {
-					cerr << "Unable to open root folder of the orphan store, " << getMapiCodeString(hr) << endl;
-					goto exit;
-				}
-
-				hr = HrGetOneProp(lpUserStore, PR_IPM_SUBTREE_ENTRYID, &~lpPropValue);
-				if (hr != hrSuccess) {
-					cerr << "Unable to open the orphans store sub-entry, " << getMapiCodeString(hr) << endl;
-					goto exit;
-				}
-
-				// Open the public store
-				hr = GetPublicStore(lpSession, lpUserStore, strCompanyName, &~lpPublicStore);
-				if (hr != hrSuccess) {
-					cerr << "Unable to open the public store, " << getMapiCodeString(hr) << endl;
-					goto exit;
-				}
-
-				// open/create folders admin/stores
-				hr = OpenDeletedStoresFolder(lpPublicStore, &~lpDeletedStoresFolder);
-				if (hr != hrSuccess) {
-					cerr << "Unable to open the folder \"deleted stores\", " << getMapiCodeString(hr) << endl;
-					goto exit;
-				}
-
-				// Copy everything to the public
-				strStorename = L"Deleted User - ";
-				if (strUsername.empty())
-					strStorename += convert_to<wstring>(storeguid);
-				else
-					strStorename += strUsername;
-
-				cerr << "Start to copy the orphan store to the public store to the folder '" << convert_to<string>(strStorename) << "'" << endl;
-
-				strStorenameTMP = strStorename;
-				nFolderId = 1;
-				while(true)
-				{
-					hr = lpRootFolder->CopyFolder(lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb,
-							NULL, lpDeletedStoresFolder, (LPTSTR)strStorenameTMP.c_str(), 0, NULL, COPY_SUBFOLDERS | MAPI_UNICODE);
-
-					if (hr == MAPI_E_COLLISION) {
-						if (nFolderId < 1000) { // Max 999 folders
-							strStorenameTMP = strStorename + wstringify(nFolderId);
-							++nFolderId;
-							cerr << "Folder already exist, retrying with foldername '" << convert_to<string>(strStorenameTMP) << "'" << endl;
-						} else {
-							cerr << "Unable to copy the store to the public, maximum folder collisions exceeded" << endl;
-							goto exit;
-						}
-					} else if (FAILED(hr)) {
-						cerr << "Unable to copy the store to the public," << getMapiCodeString(hr) << endl;
-						goto exit;
-					} else if (hr != hrSuccess) {
-						cerr << "Warning, the copy succeeded, but not all entries were copied (" << getMapiCodeString(hr) << ")" << endl;
-						break;
-					} else {
-						cerr << "Copy succeeded" << endl;
-						break;
-					}
-				}
-
-			} else {
-				ULONG ulStoreType;
-
-				if (detailstype == NULL)
-					detailstype = "user";
-
-				if (strcmp(detailstype, "user") == 0) {
-					ulStoreType = ECSTORE_TYPE_PRIVATE;
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-				} else if (strcmp(detailstype, "archive") == 0) {
-					ulStoreType = ECSTORE_TYPE_ARCHIVE;
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-				} else if (strcmp(detailstype, "group") == 0) {
-					ulStoreType = ECSTORE_TYPE_PUBLIC;
-					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-				} else if (strcmp(detailstype, "company") == 0) {
-					ulStoreType = ECSTORE_TYPE_PUBLIC;
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-				} else {
-					cerr << "Unknown store type: '" << detailstype << "'." << endl;
-					goto exit;
-				}
-				if (hr != hrSuccess) {
-					cerr << "Unable to find " << detailstype << ", " << getMapiCodeString(hr, username) << endl;
-					goto exit;
-				}
-
-				if (strcmp(detailstype, "user") == 0) {
-					// check if this user should exist on the connected server. depending on --force, print a warning or an error
-					hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
-					if (hr != hrSuccess) {
-						cerr << "Unable to load details, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-
-					// homeserver on single server installations is empty
-					if (lpECUser->lpszServername != NULL && *reinterpret_cast<LPSTR>(lpECUser->lpszServername) != '\0') {
-						// note, this has to be mapi allocated because GetServerDetails does a More allocation on this base pointer
-						if (MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpsServer) != hrSuccess ||
-								MAPIAllocateMore(sizeof(LPTSTR), lpsServer, (void**)&lpsServer->lpszaServer) != hrSuccess) {
-							hr = MAPI_E_NOT_ENOUGH_MEMORY;
-							cerr << "Unable to allocate memory for server details" << endl;
-							goto exit;
-						}
-						lpsServer->cServers = 1;
-						lpsServer->lpszaServer[0] = lpECUser->lpszServername;
-						hr = lpServiceAdmin->GetServerDetails(lpsServer, 0, &~lpServerDetails);
-						if (hr != hrSuccess) {
-							cerr << "Unable to load server details, " << getMapiCodeString(hr, (char*)lpECUser->lpszServername) << endl;
-							goto exit;
-						}
-
-						if ((lpServerDetails->lpsaServer[0].ulFlags & EC_SDFLAG_IS_PEER) == 0) {
-							// since we don't know which server we're connected to, don't print a server name.
-							cerr << "WARNING: Hooking store on non-homeserver of " << username << endl;
-						}
-					}
-				}
-
-				// the server won't let you hook public stores to users and vice-versa.
-				hr = lpServiceAdmin->HookStore(ulStoreType, cbUserId, lpUserId, lpGUID);
-				if (hr != hrSuccess) {
-					cerr << "Unable to hook store, " << getMapiCodeString(hr) << endl;
-					goto exit;
-				}
-				cout << "Store hooked." << endl;
+			if (fillMVPropmap(sECUser, PR_EC_ENABLED_FEATURES_A, 0, sEnabled, lpECUser) != hrSuccess ||
+			    fillMVPropmap(sECUser, PR_EC_DISABLED_FEATURES_A, 1, sDisabled, lpECUser) != hrSuccess)
+				goto exit;
+			hr = lpServiceAdmin->SetUser(&sECUser, 0);
+			if (hr != hrSuccess) {
+				cerr << "Unable to update user information, " << getMapiCodeString(hr) << endl;
+				goto exit;
 			}
-
-			break;
-		case MODE_UNHOOK_STORE: {
-						ULONG ulStoreType;
-
-						if (detailstype == NULL)
-							detailstype = "user";
-
-						if (strcmp(detailstype, "user") == 0) {
-							ulStoreType = ECSTORE_TYPE_PRIVATE;
-							hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-						} else if (strcmp(detailstype, "archive") == 0) {
-							ulStoreType = ECSTORE_TYPE_ARCHIVE;
-							hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-						} else if (strcmp(detailstype, "group") == 0) {
-							ulStoreType = ECSTORE_TYPE_PUBLIC;
-							hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-						} else if (strcmp(detailstype, "company") == 0) {
-							ulStoreType = ECSTORE_TYPE_PUBLIC;
-							strCompanyName = convert_to<wstring>(username);
-							hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-						} else {
-							cerr << "Unknown store type: '" << detailstype << "'." << endl;
-							goto exit;
-						}
-						if (hr != hrSuccess) {
-							cerr << "Unable to find " << detailstype << ", " << getMapiCodeString(hr, username) << endl;
-							goto exit;
-						}
-
-						if (ulStoreType != ECSTORE_TYPE_PUBLIC) {
-							if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
-								hr = lpServiceAdmin->GetArchiveStoreEntryID(reinterpret_cast<LPTSTR>(username), NULL, 0, &cbStoreId, &~lpStoreId);
-								if (hr != hrSuccess) {
-									cout << "Unable to unhook store, unable to retrieve store entryid, " << getMapiCodeString(hr, "entryid") << endl;
-									goto exit;
-								}
-							} else {
-								hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
-								if (hr != hrSuccess)
-									goto exit;
-
-								// do not redirect to another server, unhook works on the server it's connected to
-								hr = lpIEMS->CreateStoreEntryID(NULL, reinterpret_cast<LPTSTR>(username), OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~lpStoreId);
-								if (hr != hrSuccess) {
-									if (hr == MAPI_E_NOT_FOUND)
-										cout << "Unable to unhook store. User '" << username << "' has no store attached." << endl;
-									else
-										cout << "Unable to unhook store. Can not create store entryid, " << getMapiCodeString(hr, "store") << endl;
-									goto exit;
-								}
-							}
-
-							hr = UnWrapStoreEntryID(cbStoreId, lpStoreId, &cbUnWrappedEntry, &~lpUnWrappedEntry);
-							if (hr != hrSuccess) {
-								cout << "Unable to unhook store. Unable to unwrap the store entryid, " << getMapiCodeString(hr, "entryid") << endl;
-								goto exit;
-							}
-						} else {
-							// ns__resolveUserStore (CreateStoreEntryID) does not work with normal (non-company) public store
-							hr = GetPublicStore(lpSession, lpMsgStore, strCompanyName, &~lpPublicStore);
-							if (hr != hrSuccess) {
-								cerr << "Unable to open public store, " << getMapiCodeString(hr, "public") << endl;
-								goto exit;
-							}
-
-							hr = HrGetOneProp(lpPublicStore, PR_STORE_ENTRYID, &~lpPropValue);
-							if (hr != hrSuccess) {
-								cerr << "Unable to get public store entryid, " << getMapiCodeString(hr, "store") << endl;
-								goto exit;
-							}
-
-							hr = UnWrapStoreEntryID(lpPropValue->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue->Value.bin.lpb), &cbUnWrappedEntry, &~lpUnWrappedEntry);
-							if (hr != hrSuccess) {
-								cout << "Unable to unhook store. Unable to unwrap the store entryid, " << getMapiCodeString(hr, "entryid") << endl;
-								goto exit;
-							}
-						}
-
-						hr = lpServiceAdmin->UnhookStore(ulStoreType, cbUserId, lpUserId);
-						if (hr != hrSuccess) {
-							cerr << "Unable to unhook store, " << getMapiCodeString(hr) << endl;
-							goto exit;
-						}
-
-						cout << "Store unhooked. Store guid is " << bin2hex(sizeof(GUID), (unsigned char*)lpUnWrappedEntry->ab) << endl;
-					}
-					break;
-		case MODE_REMOVE_STORE:
-					hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (&~lpGUID).as<unsigned char>());
-					if (hr != hrSuccess) {
-						cerr << "Incorrect store guid '" << storeguid << "'" << endl;
-						goto exit;
-					}
-
-					hr = lpServiceAdmin->RemoveStore(lpGUID);
-					if (hr != hrSuccess) {
-						cerr << "Unable to remove store, " << getMapiCodeString(hr) << endl;
-						goto exit;
-					}
-					cout << "Store removed." << endl;
-					break;
-
-		case MODE_UPDATE_USER:
-					if(new_username) {
-						memory_ptr<ENTRYID> userid;
-						ULONG usize;
-						hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(new_username), 0, &usize, &~userid);
-						if (hr == hrSuccess) {
-							cerr << "User with name '" << new_username << "' is already present." << endl;
-							hr = MAPI_E_COLLISION;
-							goto exit;
-						}
-					}
-					// get old features. we need these, because not setting them would mean: remove
-					hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
-					if (hr != hrSuccess) {
-						cerr << "Unable to get user details, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-
-					// lpECUser memory will be kept alive to let the SetUser() call work
-					for (ULONG i = 0; i < lpECUser->sMVPropmap.cEntries; ++i) {
-						if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_ENABLED_FEATURES_A) {
-							sEnabled.insert((char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues,
-									(char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues + lpECUser->sMVPropmap.lpEntries[i].cValues);
-						} else if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_DISABLED_FEATURES_A) {
-							sDisabled.insert((char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues,
-									(char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues + lpECUser->sMVPropmap.lpEntries[i].cValues);
-						}
-					}
-
-					if (feature) {
-						if (bFeature) {
-							sEnabled.insert(feature);
-							sDisabled.erase(feature);
-						} else {
-							sEnabled.erase(feature);
-							sDisabled.insert(feature);
-						}
-					}
-
-					if(new_username || password || passprompt || emailadr || fullname || isadmin != -1 || isnonactive != -1 || feature) {
-						memset(&sECUser, 0, sizeof(sECUser));
-
-						// if the user did not select an active/inactive state on the command-line,
-						// then check what the status was before admin started; that status
-						// will then be re-used
-						if (isnonactive == -1)
-							isnonactive = lpECUser -> ulObjClass == NONACTIVE_USER;
-
-						// copy static info
-						sECUser.sUserId.cb = cbUserId;
-						sECUser.sUserId.lpb = reinterpret_cast<unsigned char *>(lpUserId.get());
-						// possibly set new values
-						sECUser.lpszUsername = (LPTSTR)(new_username ? new_username : username);
-						if(passprompt) {
-							sECUser.lpszPassword = (LPTSTR)get_password();
-							if (sECUser.lpszPassword == NULL)
-							{
-								cerr << "Passwords don't match" << endl;
-								return 1;
-							}
-							if (sECUser.lpszPassword[0] == 0)
-							{
-								cerr << "Password cannot be empty" << endl;
-								return 1;
-							}
-						} else
-							sECUser.lpszPassword = (LPTSTR)password;
-						sECUser.lpszMailAddress = (LPTSTR)emailadr;
-						sECUser.lpszFullName = (LPTSTR)fullname;
-						sECUser.ulIsAdmin = isadmin;
-						sECUser.ulObjClass = ACTIVE_USER;
-						if (isnonactive == 1)
-							sECUser.ulObjClass = NONACTIVE_USER;
-
-						{
-							// sEnabled to sECUser.sMVPropmap ergens
-							sECUser.sMVPropmap.cEntries = 2; // @note: if we have more mv props than the feature lists, adjust this value!
-							// mapi allocate more on lpECUser, so this will be freed automatically at exit.
-							hr = MAPIAllocateMore(sizeof(MVPROPMAPENTRY) * sECUser.sMVPropmap.cEntries, lpECUser, (void**)&sECUser.sMVPropmap.lpEntries);
-							if (hr != hrSuccess) {
-								cerr << "Memory error" << endl;
-								goto exit;
-							}
-							if (fillMVPropmap(sECUser, PR_EC_ENABLED_FEATURES_A, 0, sEnabled, lpECUser) != hrSuccess ||
-									fillMVPropmap(sECUser, PR_EC_DISABLED_FEATURES_A, 1, sDisabled, lpECUser) != hrSuccess)
-								goto exit;
-						}
-
-						hr = lpServiceAdmin->SetUser(&sECUser, 0);
-						if(hr != hrSuccess) {
-							cerr << "Unable to update user information, " << getMapiCodeString(hr) << endl;
-							goto exit;
-						}
-					}
-
-					// update quota data
-					if (quota != -1 || quotahard != -1 || quotasoft != -1 || quotawarn != -1) {
-						hr = setQuota(lpServiceAdmin, cbUserId, lpUserId, quota, false, quotawarn, quotasoft, quotahard, true);
-						if (hr != hrSuccess)
-							goto exit;
-					}
-
-					if(mr_accept != -1 || mr_decline_conflict != -1 || mr_decline_recurring != -1)
-					{
-						hr = lpECMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
-						if (hr != hrSuccess) {
-							cerr << "Unable to get admin interface." << endl;
-							goto exit;
-						}
-						hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", (LPTSTR)username, 0, &cbEntryID, &~lpEntryID);
-						if (hr != hrSuccess) {
-							cerr << "Unable to get user store entry id. User has possibly has not store." << endl;
-							goto exit;
-						}
-						hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, &~lpUserStore);
-						if (hr != hrSuccess) {
-							cerr << "Unable to open user store." << endl;
-							goto exit;
-						}
-
-						hr = GetAutoAcceptSettings(lpUserStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
-						if (hr != hrSuccess)
-							// ignore and assume 'false' for all values
-							hr = hrSuccess;
-
-						if(mr_accept != -1)
-							bAutoAccept = mr_accept;
-						if(mr_decline_conflict != -1)
-							bDeclineConflict = mr_decline_conflict;
-						if(mr_decline_recurring != -1)
-							bDeclineRecurring = mr_decline_recurring;
-
-						hr = SetAutoAcceptSettings(lpUserStore, bAutoAccept, bDeclineConflict, bDeclineRecurring);
-						if(hr != hrSuccess) {
-							cerr << "Unable to set auto-accept settings." << endl;
-							goto exit;
-						}
-					}
-
-					if (sendas_user) {
-						hr = lpServiceAdmin->ResolveUserName((LPTSTR)sendas_user, 0, &cbSenderId, &~lpSenderId);
-						if (hr != hrSuccess) {
-							cerr << "Unable to update user, sendas user not available, " << getMapiCodeString(hr, sendas_user) << endl;
-							goto exit;
-						}
-						if (sendas_action == 0)
-							// delete sendas user
-							hr = lpServiceAdmin->DelSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
-						else if (sendas_action == 1)
-							// add sendas user
-							hr = lpServiceAdmin->AddSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
-
-						switch (hr) {
-							case MAPI_E_NOT_FOUND:
-								// on del, not in list
-								if (sendas_action == 0)
-									cerr << "Unable to update user, sender " << sendas_user << " not found in sendas list" << endl;
-								else
-									cerr << "Unable to update user, sender " << sendas_user << " not allowed in sendas list" << endl;
-								goto exit;
-							case MAPI_E_COLLISION:
-								// on add, already added ... too bad an insert collision does not return this error :|
-								cerr << "Unable to update user, sender " << sendas_user << " already in sendas list" << endl;
-								goto exit;
-							default:
-								if (hr != hrSuccess) {
-									cerr << "Unable to update user, unable to update sendas list, " << getMapiCodeString(hr, username) << endl;
-									goto exit;
-								}
-								break;
-						};
-					}
-
-					cout << "User information updated." << endl;
-
-					break;
-
-		case MODE_CREATE_COMPANY:
-					memset(&sECCompany, 0, sizeof(sECCompany));
-
-					sECCompany.lpszCompanyname = (LPTSTR)companyname;
-					hr = lpServiceAdmin->CreateCompany(&sECCompany, 0, &cbCompanyId, &~lpCompanyId);
-					if(hr != hrSuccess) {
-						cerr << "Unable to create company, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-
-					if (quota != -1) {
-						// this is the company public quota, and only contains a warning, nothing more.
-						hr = setQuota(lpServiceAdmin, cbCompanyId, lpCompanyId, quota, false, quotawarn, 0, 0, false, true);
-						if(hr != hrSuccess)
-							goto exit;
-					}
-
-					if (ud_quota != -1) {
-						hr = setQuota(lpServiceAdmin, cbCompanyId, lpCompanyId, ud_quota, true, ud_quotawarn, ud_quotasoft, ud_quotahard);
-						if (hr != hrSuccess)
-							goto exit;
-					}
-
-					cout << "Company created" << endl;
-					break;
-
-		case MODE_UPDATE_COMPANY:
-					if (quota != -1 || quotahard != -1 || quotasoft != -1 || quotawarn != -1) {
-						hr = setQuota(lpServiceAdmin, cbCompanyId, lpCompanyId, quota, false, quotawarn, quotasoft, quotahard, true, true);
-						if (hr != hrSuccess)
-							goto exit;
-					}
-
-					if (ud_quota != -1 || ud_quotahard != -1 || ud_quotasoft != -1 || ud_quotawarn != -1) {
-						hr = setQuota(lpServiceAdmin, cbCompanyId, lpCompanyId, ud_quota, true, ud_quotawarn, ud_quotasoft, ud_quotahard);
-						if (hr != hrSuccess)
-							goto exit;
-					}
-
-					break;
-
-		case MODE_DELETE_COMPANY:
-					hr = lpServiceAdmin->DeleteCompany(cbCompanyId, lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to delete company, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-					cout << "Company deleted" << endl;
-					break;
-
-		case MODE_LIST_COMPANY:
-					hr = lpServiceAdmin->GetCompanyList(0, &cCompanies, &lpECCompanies);
-					if(hr != hrSuccess) {
-						cerr << "Unable to list companies, " << getMapiCodeString(hr) << endl;
-						goto exit;
-					}
-
-					cout << "Company list ("<< cCompanies <<"):" << endl;
-					ct.Resize(cCompanies, 2);
-					ct.SetHeader(0, "Companyname");
-					ct.SetHeader(1, "System administrator");
-					for (unsigned int i = 0; i < cCompanies; ++i) {
-						ct.AddColumn(0, (LPSTR)lpECCompanies[i].lpszCompanyname);
-						hr = lpServiceAdmin->GetUser(lpECCompanies[i].sAdministrator.cb, reinterpret_cast<ENTRYID *>(lpECCompanies[i].sAdministrator.lpb), 0, &~lpECUser);
-						if (hr != hrSuccess) {
-							cerr << "Unable to get administrator details, " << getMapiCodeString(hr, "administrator") << endl;
-							goto exit;
-						}
-						ct.AddColumn(1, (LPSTR)lpECUser->lpszUsername);
-					}
-					ct.PrintTable();
-					break;
-
-		case MODE_CREATE_GROUP:
-					memset(&sECGroup, 0, sizeof(sECGroup));
-
-					sECGroup.lpszGroupname = (LPTSTR)groupname;
-					sECGroup.lpszFullname = (LPTSTR)groupname;
-					sECGroup.lpszFullEmail = (LPTSTR)emailadr;
-
-					hr = lpServiceAdmin->CreateGroup(&sECGroup, 0, &cbGroupId, &~lpGroupId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to create group, " << getMapiCodeString(hr, groupname) << endl;
-						goto exit;
-					}
-					cout << "Group created." << endl;
-					break;
-
-		case MODE_UPDATE_GROUP:
-					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to update group, " << getMapiCodeString(hr, groupname) << endl;
-						goto exit;
-					}
-
-					if(emailadr) {
-						memset(&sECGroup, 0, sizeof(sECGroup));
-
-						// copy static info
-						sECGroup.sGroupId.cb = cbGroupId;
-						sECGroup.sGroupId.lpb = reinterpret_cast<unsigned char *>(lpGroupId.get());
-						// possibly set new values
-						sECGroup.lpszFullEmail = (LPTSTR)emailadr;
-						sECGroup.lpszGroupname = (LPTSTR)groupname;
-						sECGroup.lpszFullname = (LPTSTR)groupname;
-
-						hr = lpServiceAdmin->SetGroup(&sECGroup, 0);
-						if (hr != hrSuccess) {
-							cerr << "Unable to update group information, " << getMapiCodeString(hr) << endl;
-							goto exit;
-						}
-					}
-
-					if (sendas_user) {
-						hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(sendas_user), 0, &cbSenderId, &~lpSenderId);
-						if (hr != hrSuccess) {
-							cerr << "Unable to update group, sendas user not available, " << getMapiCodeString(hr, sendas_user) << endl;
-							goto exit;
-						}
-
-						if (sendas_action == 0)
-							// delete sendas user
-							hr = lpServiceAdmin->DelSendAsUser(cbGroupId, lpGroupId, cbSenderId, lpSenderId);
-						else if (sendas_action == 1)
-							// add sendas user
-							hr = lpServiceAdmin->AddSendAsUser(cbGroupId, lpGroupId, cbSenderId, lpSenderId);
-
-						switch (hr) {
-							case MAPI_E_NOT_FOUND:
-								// on del, not in list
-								if (sendas_action == 0)
-									cerr << "Unable to update group, sender " << sendas_user << " not found in sendas list" << endl;
-								else
-									cerr << "Unable to update group, sender " << sendas_user << " not allowed in sendas list" << endl;
-								goto exit;
-							case MAPI_E_COLLISION:
-								// on add, already added ... too bad an insert collision does not return this error :|
-								cerr << "Unable to update group, sender " << sendas_user << " already in sendas list" << endl;
-								goto exit;
-							default:
-								if (hr != hrSuccess) {
-									cerr << "Unable to update group, unable to update sendas list, " << getMapiCodeString(hr, username) << endl;
-									goto exit;
-								}
-								break;
-						};
-					}
-
-					cout << "Group information updated." << endl;
-					break;
-
-		case MODE_DELETE_GROUP:
-					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to delete group, " << getMapiCodeString(hr, groupname) << endl;
-						goto exit;
-					}
-
-					hr = lpServiceAdmin->DeleteGroup(cbGroupId, lpGroupId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to delete group." << endl;
-						goto exit;
-					}
-					cout << "Group deleted." << endl;
-					break;
-
-		case MODE_LIST_GROUP:
-					hr = ForEachCompany(lpServiceAdmin, companyname, ListGroups);
-					if (hr != hrSuccess)
-						goto exit;
-					break;
-
-		case MODE_ADDUSER_GROUP:
-					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to add user to group, " << getMapiCodeString(hr, groupname) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->AddGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to add user to group." << endl;
-						goto exit;
-					}
-					cout << "User added to group." << endl;
-					break;
-
-		case MODE_DELETEUSER_GROUP:
-					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to remove user from group, " << getMapiCodeString(hr, groupname) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->DeleteGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to remove user from group." << endl;
-						goto exit;
-					}
-					cout << "User removed from group." << endl;
-					break;
-
-		case MODE_SYNC_USERS:
-					hr = SyncUsers(lpServiceAdmin);
-					if (hr != hrSuccess)
-						goto exit;
-
-					cout << "Users and groups synchronized." << endl;
-
-					break;
-		case MODE_ADD_VIEW:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(set_companyname), 0, &cbSetCompanyId, &~lpSetCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, set_companyname) << endl;
-						goto exit;
-					}
-
-					hr = lpServiceAdmin->AddCompanyToRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to add company to remote-view list" << endl;
-						goto exit;
-					}
-					cout << "Company " << set_companyname << " added to the remote-view list of " << companyname << endl;
-					break;
-		case MODE_DEL_VIEW:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(set_companyname), 0, &cbSetCompanyId, &~lpSetCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, set_companyname) << endl;
-						goto exit;
-					}
-
-					hr = lpServiceAdmin->DelCompanyFromRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to remove company from remote-view list, " << getMapiCodeString(hr) << endl;
-						goto exit;
-					}
-					cout << "Company " << set_companyname << " removed from the remote-view list of " << companyname << endl;
-					break;
-		case MODE_LIST_VIEW:
-					hr = lpServiceAdmin->GetRemoteViewList(cbCompanyId, lpCompanyId, 0, &cCompanies, &lpECCompanies);
-					if (hr != hrSuccess) {
-						cerr << "Unable to display remote-view list, " << getMapiCodeString(hr) << endl;
-						goto exit;
-					}
-
-					cout << "remote-view list ("<< cCompanies <<"):" << endl;
-					cout << "\t" << "companyname" << "" << endl;
-					cout << "\t-------------------------------------" << endl;
-					print_companies(cCompanies, lpECCompanies, true);
-					break;
-		case MODE_ADD_ADMIN:
-					hr = lpServiceAdmin->AddUserToRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to add user to remote-admin list, " << getMapiCodeString(hr) << endl;
-						goto exit;
-					}
-					cout << "User " << username << " added to the remote-admin list of " << companyname << endl;
-					break;
-		case MODE_DEL_ADMIN:
-					hr = lpServiceAdmin->DelUserFromRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to delete user from remote-admin list, " << getMapiCodeString(hr) << endl;
-						goto exit;
-					}
-					cout << "User " << username << " removed from the remote-admin list of " << companyname << endl;
-					break;
-		case MODE_LIST_ADMIN:
-					hr = lpServiceAdmin->GetRemoteAdminList(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
-					if (hr != hrSuccess) {
-						cerr << "Unable to display remote-admin list, " << getMapiCodeString(hr) << endl;
-						goto exit;
-					}
-
-					cout << "remote-admin list ("<< cUsers <<"):" << endl;
-					print_users(cUsers, lpECUser);
-					break;
-		case MODE_SYSTEM_ADMIN:
-					memset(&sECCompany, 0, sizeof(sECCompany));
-
-					sECCompany.sAdministrator.cb = cbUserId;
-					sECCompany.sAdministrator.lpb = reinterpret_cast<unsigned char *>(lpUserId.get());
-					sECCompany.lpszCompanyname = (LPTSTR)companyname;
-					sECCompany.sCompanyId.cb = cbCompanyId;
-					sECCompany.sCompanyId.lpb = reinterpret_cast<unsigned char *>(lpCompanyId.get());
-
-					hr = lpServiceAdmin->SetCompany(&sECCompany, 0);
-					if (hr != hrSuccess) {
-						cerr << "Failed to set company system administrator" << endl;
-						goto exit;
-					}
-					cout << "User " << username << " is set as admin of company " << companyname << endl;
-					break;
-		case MODE_ADD_USERQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->AddQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, ACTIVE_USER);
-					if (hr != hrSuccess) {
-						cerr << "Failed to add recipient to quota list." << endl;
-						goto exit;
-					}
-					cout << "User " << username << " added to user quota recipients list for company " << companyname << endl;
-					break;
-		case MODE_DEL_USERQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->DeleteQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, ACTIVE_USER);
-					if (hr != hrSuccess) {
-						cerr << "Failed to remove company from quota list." << endl;
-						goto exit;
-					}
-					cout << "User " << username << " removed from user quota recipients list for company " << companyname << endl;
-					break;
-		case MODE_LIST_USERQUOTA_RECIPIENT:
-					/* HACK: request a user from the specified company, and request the recipients for that user. */
-					hr = lpServiceAdmin->GetUserList(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
-					if (hr != hrSuccess || cUsers <= 1) /* First user is always SYSTEM */ {
-						cerr << "Failed to get quota recipient list" << endl;
-						goto exit;
-					}
-
-					cbUserId = lpECUser[1].sUserId.cb;
-					hr = MAPIAllocateBuffer(cbUserId, &~lpUserId);
-					if (hr != hrSuccess)
-						goto exit;
-					memcpy(lpUserId, lpECUser[1].sUserId.lpb, cbUserId);
-					hr = lpServiceAdmin->GetQuotaRecipients(cbUserId, lpUserId, 0, &cUsers, &~lpECUser);
-					if (hr != hrSuccess) {
-						cerr << "Failed to get quota recipient list" << endl;
-						goto exit;
-					}
-
-					cout << "Recipient list ("<< cUsers-1 <<"):" << endl;
-					/* Skip the dummy entry we used to obtain the list */
-					print_users(cUsers - 1, &lpECUser[1]);
-					break;
-		case MODE_ADD_COMPANYQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->AddQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, CONTAINER_COMPANY);
-					if (hr != hrSuccess) {
-						cerr << "Failed to add recipient to quota list." << endl;
-						goto exit;
-					}
-					cout << "User " << username << " added to company quota recipients list for company " << companyname << endl;
-					break;
-		case MODE_DEL_COMPANYQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->DeleteQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, CONTAINER_COMPANY);
-					if (hr != hrSuccess) {
-						cerr << "Failed to delete recipient to quota list." << endl;
-						goto exit;
-					}
-					cout << "User " << username << " removed from company quota recipients list for company " << companyname << endl;
-					break;
-		case MODE_LIST_COMPANYQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->GetQuotaRecipients(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
-					if (hr != hrSuccess) {
-						cerr << "Failed to get quota recipient list." << endl;
-						goto exit;
-					}
-
-					cout << "Recipient list ("<< cUsers-1 <<"):" << endl;
-					/* Skipt first entry, that is the company itself which will not get the mail */
-					print_users(cUsers - 1, &lpECUser[1]);
-					break;
-		case MODE_LIST_SENDAS:
-
-					if (detailstype == NULL || strcasecmp(detailstype, "user") == 0) {
-						hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-						detailstype = "user";
-					} else if (strcasecmp(detailstype, "group") == 0) {
-						hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					} else {
-						hr = MAPI_E_INVALID_TYPE;
-						cerr << "Unknown object type \"" << detailstype << "\"" << endl;
-						goto exit;
-					}
-
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve "<< detailstype <<" name, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->GetSendAsList(cbUserId, lpUserId, 0, &cSenders, &~lpSenders);
-					if (hr != hrSuccess) {
-						cerr << "Failed to retrieve send-as list for " << detailstype << " " << username << endl;
-						goto exit;
-					}
-
-					cout << "Send-as list ("<< cSenders <<") for " << detailstype << " " << username << ":" << endl;
-					print_users(cSenders, lpSenders);
-					break;
-		case MODE_PURGE_SOFTDELETE:
-					hr = lpServiceAdmin->PurgeSoftDelete(ulDays);
-					if (hr != hrSuccess) {
-						cerr << "Softdelete purge failed" << endl;
-						goto exit;
-					}
-					cout << "Softdelete purge done." << endl;
-					break;
-		case MODE_CLEAR_CACHE:
-					hr = lpServiceAdmin->PurgeCache(ulCachePurgeMode);
-					if (hr != hrSuccess) {
-						cerr << "Cache clear failed" << endl;
-						goto exit;
-					}
-					if (ulCachePurgeMode != PURGE_CACHE_ALL) {
-						cout << "Cache cleared with flags " << ulCachePurgeMode << endl;
-					} else {
-						cout << "Cache cleared." << endl;
-					}
-					break;
-		case MODE_PURGE_DEFERRED:
-					while(1) {
-						ULONG ulRemaining;
-						hr = lpServiceAdmin->PurgeDeferredUpdates(&ulRemaining);
-						if(hr == MAPI_E_NOT_FOUND)
-							break;
-
-						if(hr != hrSuccess) {
-							cerr << "Purge failed." << endl;
-							break;
-						}
-						cerr << "Remaining deferred records: " << ulRemaining << "       \r";
-					}
-					cerr << endl;
-					cerr << "Done." << endl;
-					break;
-		case MODE_FORCE_RESYNC:
-					if (lstUsernames.empty())
-						hr = ForceResyncAll(lpSession, lpMsgStore);
-					else
-						hr = ForceResync(lpSession, lpMsgStore, lstUsernames);
-					if (hr != hrSuccess) {
-						cerr << "Failed to force resync." << endl;
-						goto exit;
-					}
-					cerr << "Successfully forced resync." << endl;
-					break;
-		case MODE_USER_COUNT:
-					hr = DisplayUserCount(lpMsgStore);
-					if (hr != hrSuccess) {
-						cerr << "Failed to get user statistics." << endl;
-						goto exit;
-					}
-					break;
-		case MODE_RESET_FOLDER_COUNT:
-					hr = ResetFolderCount(lpSession, lpMsgStore, username);
-					if (FAILED(hr)) {
-						cerr << "Failed to reset folder counters." << endl;
-						goto exit;
-					} else if (hr != hrSuccess) {
-						cerr << "Some folder counters could not be reset." << endl;
-					} else {
-						cerr << "Successfully reset folder counters." << endl;
-					}
-		case MODE_INVALID:
-		case MODE_HELP:
-					// happy compiler
-					break;
+		}
+
+		// update quota data
+		if (quota != -1 || quotahard != -1 || quotasoft != -1 || quotawarn != -1) {
+			hr = setQuota(lpServiceAdmin, cbUserId, lpUserId, quota, false, quotawarn, quotasoft, quotahard, true);
+			if (hr != hrSuccess)
+				goto exit;
+		}
+
+		if (mr_accept != -1 || mr_decline_conflict != -1 || mr_decline_recurring != -1)
+		{
+			hr = lpECMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
+			if (hr != hrSuccess) {
+				cerr << "Unable to get admin interface." << endl;
+				goto exit;
+			}
+			hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", (LPTSTR)username, 0, &cbEntryID, &~lpEntryID);
+			if (hr != hrSuccess) {
+				cerr << "Unable to get user store entry id. User has possibly has not store." << endl;
+				goto exit;
+			}
+			hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, &~lpUserStore);
+			if (hr != hrSuccess) {
+				cerr << "Unable to open user store." << endl;
+				goto exit;
+			}
+			hr = GetAutoAcceptSettings(lpUserStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
+			if (hr != hrSuccess)
+				// ignore and assume 'false' for all values
+				hr = hrSuccess;
+			if (mr_accept != -1)
+				bAutoAccept = mr_accept;
+			if (mr_decline_conflict != -1)
+				bDeclineConflict = mr_decline_conflict;
+			if (mr_decline_recurring != -1)
+				bDeclineRecurring = mr_decline_recurring;
+
+			hr = SetAutoAcceptSettings(lpUserStore, bAutoAccept, bDeclineConflict, bDeclineRecurring);
+			if (hr != hrSuccess) {
+				cerr << "Unable to set auto-accept settings." << endl;
+				goto exit;
+			}
+		}
+
+		if (sendas_user) {
+			hr = lpServiceAdmin->ResolveUserName((LPTSTR)sendas_user, 0, &cbSenderId, &~lpSenderId);
+			if (hr != hrSuccess) {
+				cerr << "Unable to update user, sendas user not available, " << getMapiCodeString(hr, sendas_user) << endl;
+				goto exit;
+			}
+			if (sendas_action == 0)
+				// delete sendas user
+				hr = lpServiceAdmin->DelSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
+			else if (sendas_action == 1)
+				// add sendas user
+				hr = lpServiceAdmin->AddSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
+
+			switch (hr) {
+			case MAPI_E_NOT_FOUND:
+				// on del, not in list
+				if (sendas_action == 0)
+					cerr << "Unable to update user, sender " << sendas_user << " not found in sendas list" << endl;
+				else
+					cerr << "Unable to update user, sender " << sendas_user << " not allowed in sendas list" << endl;
+				goto exit;
+			case MAPI_E_COLLISION:
+				// on add, already added ... too bad an insert collision does not return this error :|
+				cerr << "Unable to update user, sender " << sendas_user << " already in sendas list" << endl;
+				goto exit;
+			default:
+				if (hr != hrSuccess) {
+					cerr << "Unable to update user, unable to update sendas list, " << getMapiCodeString(hr, username) << endl;
+					goto exit;
+				}
+				break;
+			};
+		}
+		cout << "User information updated." << endl;
+		break;
+	case MODE_CREATE_COMPANY:
+		memset(&sECCompany, 0, sizeof(sECCompany));
+		sECCompany.lpszCompanyname = (LPTSTR)companyname;
+		hr = lpServiceAdmin->CreateCompany(&sECCompany, 0, &cbCompanyId, &~lpCompanyId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to create company, " << getMapiCodeString(hr, companyname) << endl;
+			goto exit;
+		}
+		if (quota != -1) {
+			// this is the company public quota, and only contains a warning, nothing more.
+			hr = setQuota(lpServiceAdmin, cbCompanyId, lpCompanyId, quota, false, quotawarn, 0, 0, false, true);
+			if(hr != hrSuccess)
+				goto exit;
+		}
+		if (ud_quota != -1) {
+			hr = setQuota(lpServiceAdmin, cbCompanyId, lpCompanyId, ud_quota, true, ud_quotawarn, ud_quotasoft, ud_quotahard);
+			if (hr != hrSuccess)
+				goto exit;
+		}
+		cout << "Company created" << endl;
+		break;
+	case MODE_UPDATE_COMPANY:
+		if (quota != -1 || quotahard != -1 || quotasoft != -1 || quotawarn != -1) {
+			hr = setQuota(lpServiceAdmin, cbCompanyId, lpCompanyId, quota, false, quotawarn, quotasoft, quotahard, true, true);
+			if (hr != hrSuccess)
+				goto exit;
+		}
+		if (ud_quota != -1 || ud_quotahard != -1 || ud_quotasoft != -1 || ud_quotawarn != -1) {
+			hr = setQuota(lpServiceAdmin, cbCompanyId, lpCompanyId, ud_quota, true, ud_quotawarn, ud_quotasoft, ud_quotahard);
+			if (hr != hrSuccess)
+				goto exit;
+		}
+		break;
+	case MODE_DELETE_COMPANY:
+		hr = lpServiceAdmin->DeleteCompany(cbCompanyId, lpCompanyId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to delete company, " << getMapiCodeString(hr, companyname) << endl;
+			goto exit;
+		}
+		cout << "Company deleted" << endl;
+		break;
+	case MODE_LIST_COMPANY:
+		hr = lpServiceAdmin->GetCompanyList(0, &cCompanies, &lpECCompanies);
+		if(hr != hrSuccess) {
+			cerr << "Unable to list companies, " << getMapiCodeString(hr) << endl;
+			goto exit;
+		}
+
+		cout << "Company list ("<< cCompanies <<"):" << endl;
+		ct.Resize(cCompanies, 2);
+		ct.SetHeader(0, "Companyname");
+		ct.SetHeader(1, "System administrator");
+		for (unsigned int i = 0; i < cCompanies; ++i) {
+			ct.AddColumn(0, (LPSTR)lpECCompanies[i].lpszCompanyname);
+			hr = lpServiceAdmin->GetUser(lpECCompanies[i].sAdministrator.cb, reinterpret_cast<ENTRYID *>(lpECCompanies[i].sAdministrator.lpb), 0, &~lpECUser);
+			if (hr != hrSuccess) {
+				cerr << "Unable to get administrator details, " << getMapiCodeString(hr, "administrator") << endl;
+				goto exit;
+			}
+			ct.AddColumn(1, (LPSTR)lpECUser->lpszUsername);
+		}
+		ct.PrintTable();
+		break;
+	case MODE_CREATE_GROUP:
+		memset(&sECGroup, 0, sizeof(sECGroup));
+		sECGroup.lpszGroupname = (LPTSTR)groupname;
+		sECGroup.lpszFullname = (LPTSTR)groupname;
+		sECGroup.lpszFullEmail = (LPTSTR)emailadr;
+		hr = lpServiceAdmin->CreateGroup(&sECGroup, 0, &cbGroupId, &~lpGroupId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to create group, " << getMapiCodeString(hr, groupname) << endl;
+			goto exit;
+		}
+		cout << "Group created." << endl;
+		break;
+	case MODE_UPDATE_GROUP:
+		hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to update group, " << getMapiCodeString(hr, groupname) << endl;
+			goto exit;
+		}
+
+		if (emailadr) {
+			memset(&sECGroup, 0, sizeof(sECGroup));
+
+			// copy static info
+			sECGroup.sGroupId.cb = cbGroupId;
+			sECGroup.sGroupId.lpb = reinterpret_cast<unsigned char *>(lpGroupId.get());
+			// possibly set new values
+			sECGroup.lpszFullEmail = (LPTSTR)emailadr;
+			sECGroup.lpszGroupname = (LPTSTR)groupname;
+			sECGroup.lpszFullname = (LPTSTR)groupname;
+
+			hr = lpServiceAdmin->SetGroup(&sECGroup, 0);
+			if (hr != hrSuccess) {
+				cerr << "Unable to update group information, " << getMapiCodeString(hr) << endl;
+				goto exit;
+			}
+		}
+
+		if (sendas_user) {
+			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(sendas_user), 0, &cbSenderId, &~lpSenderId);
+			if (hr != hrSuccess) {
+				cerr << "Unable to update group, sendas user not available, " << getMapiCodeString(hr, sendas_user) << endl;
+				goto exit;
+			}
+			if (sendas_action == 0)
+				// delete sendas user
+				hr = lpServiceAdmin->DelSendAsUser(cbGroupId, lpGroupId, cbSenderId, lpSenderId);
+			else if (sendas_action == 1)
+				// add sendas user
+				hr = lpServiceAdmin->AddSendAsUser(cbGroupId, lpGroupId, cbSenderId, lpSenderId);
+
+			switch (hr) {
+			case MAPI_E_NOT_FOUND:
+				// on del, not in list
+				if (sendas_action == 0)
+					cerr << "Unable to update group, sender " << sendas_user << " not found in sendas list" << endl;
+				else
+					cerr << "Unable to update group, sender " << sendas_user << " not allowed in sendas list" << endl;
+				goto exit;
+			case MAPI_E_COLLISION:
+				// on add, already added ... too bad an insert collision does not return this error :|
+				cerr << "Unable to update group, sender " << sendas_user << " already in sendas list" << endl;
+				goto exit;
+			default:
+				if (hr != hrSuccess) {
+					cerr << "Unable to update group, unable to update sendas list, " << getMapiCodeString(hr, username) << endl;
+					goto exit;
+				}
+				break;
+			};
+		}
+		cout << "Group information updated." << endl;
+		break;
+	case MODE_DELETE_GROUP:
+		hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to delete group, " << getMapiCodeString(hr, groupname) << endl;
+			goto exit;
+		}
+		hr = lpServiceAdmin->DeleteGroup(cbGroupId, lpGroupId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to delete group." << endl;
+			goto exit;
+		}
+		cout << "Group deleted." << endl;
+		break;
+	case MODE_LIST_GROUP:
+		hr = ForEachCompany(lpServiceAdmin, companyname, ListGroups);
+		if (hr != hrSuccess)
+			goto exit;
+		break;
+	case MODE_ADDUSER_GROUP:
+		hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to add user to group, " << getMapiCodeString(hr, groupname) << endl;
+			goto exit;
+		}
+		hr = lpServiceAdmin->AddGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to add user to group." << endl;
+			goto exit;
+		}
+		cout << "User added to group." << endl;
+		break;
+	case MODE_DELETEUSER_GROUP:
+		hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to remove user from group, " << getMapiCodeString(hr, groupname) << endl;
+			goto exit;
+		}
+		hr = lpServiceAdmin->DeleteGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
+		if (hr != hrSuccess) {
+			cerr << "Unable to remove user from group." << endl;
+			goto exit;
+		}
+		cout << "User removed from group." << endl;
+		break;
+	case MODE_SYNC_USERS:
+		hr = SyncUsers(lpServiceAdmin);
+		if (hr != hrSuccess)
+			goto exit;
+		cout << "Users and groups synchronized." << endl;
+		break;
+	case MODE_ADD_VIEW:
+		hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(set_companyname), 0, &cbSetCompanyId, &~lpSetCompanyId);
+		if (hr != hrSuccess) {
+			cerr << "Failed to resolve company name, " << getMapiCodeString(hr, set_companyname) << endl;
+			goto exit;
+		}
+		hr = lpServiceAdmin->AddCompanyToRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
+		if (hr != hrSuccess) {
+			cerr << "Failed to add company to remote-view list" << endl;
+			goto exit;
+		}
+		cout << "Company " << set_companyname << " added to the remote-view list of " << companyname << endl;
+		break;
+	case MODE_DEL_VIEW:
+		hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(set_companyname), 0, &cbSetCompanyId, &~lpSetCompanyId);
+		if (hr != hrSuccess) {
+			cerr << "Failed to resolve company name, " << getMapiCodeString(hr, set_companyname) << endl;
+			goto exit;
+		}
+		hr = lpServiceAdmin->DelCompanyFromRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
+		if (hr != hrSuccess) {
+			cerr << "Failed to remove company from remote-view list, " << getMapiCodeString(hr) << endl;
+			goto exit;
+		}
+		cout << "Company " << set_companyname << " removed from the remote-view list of " << companyname << endl;
+		break;
+	case MODE_LIST_VIEW:
+		hr = lpServiceAdmin->GetRemoteViewList(cbCompanyId, lpCompanyId, 0, &cCompanies, &lpECCompanies);
+		if (hr != hrSuccess) {
+			cerr << "Unable to display remote-view list, " << getMapiCodeString(hr) << endl;
+			goto exit;
+		}
+		cout << "remote-view list ("<< cCompanies <<"):" << endl;
+		cout << "\t" << "companyname" << "" << endl;
+		cout << "\t-------------------------------------" << endl;
+		print_companies(cCompanies, lpECCompanies, true);
+		break;
+	case MODE_ADD_ADMIN:
+		hr = lpServiceAdmin->AddUserToRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
+		if (hr != hrSuccess) {
+			cerr << "Failed to add user to remote-admin list, " << getMapiCodeString(hr) << endl;
+			goto exit;
+		}
+		cout << "User " << username << " added to the remote-admin list of " << companyname << endl;
+		break;
+	case MODE_DEL_ADMIN:
+		hr = lpServiceAdmin->DelUserFromRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
+		if (hr != hrSuccess) {
+			cerr << "Failed to delete user from remote-admin list, " << getMapiCodeString(hr) << endl;
+			goto exit;
+		}
+		cout << "User " << username << " removed from the remote-admin list of " << companyname << endl;
+		break;
+	case MODE_LIST_ADMIN:
+		hr = lpServiceAdmin->GetRemoteAdminList(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
+		if (hr != hrSuccess) {
+			cerr << "Unable to display remote-admin list, " << getMapiCodeString(hr) << endl;
+			goto exit;
+		}
+		cout << "remote-admin list ("<< cUsers <<"):" << endl;
+		print_users(cUsers, lpECUser);
+		break;
+	case MODE_SYSTEM_ADMIN:
+		memset(&sECCompany, 0, sizeof(sECCompany));
+
+		sECCompany.sAdministrator.cb = cbUserId;
+		sECCompany.sAdministrator.lpb = reinterpret_cast<unsigned char *>(lpUserId.get());
+		sECCompany.lpszCompanyname = (LPTSTR)companyname;
+		sECCompany.sCompanyId.cb = cbCompanyId;
+		sECCompany.sCompanyId.lpb = reinterpret_cast<unsigned char *>(lpCompanyId.get());
+		hr = lpServiceAdmin->SetCompany(&sECCompany, 0);
+		if (hr != hrSuccess) {
+			cerr << "Failed to set company system administrator" << endl;
+			goto exit;
+		}
+		cout << "User " << username << " is set as admin of company " << companyname << endl;
+		break;
+	case MODE_ADD_USERQUOTA_RECIPIENT:
+		hr = lpServiceAdmin->AddQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, ACTIVE_USER);
+		if (hr != hrSuccess) {
+			cerr << "Failed to add recipient to quota list." << endl;
+			goto exit;
+		}
+		cout << "User " << username << " added to user quota recipients list for company " << companyname << endl;
+		break;
+	case MODE_DEL_USERQUOTA_RECIPIENT:
+		hr = lpServiceAdmin->DeleteQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, ACTIVE_USER);
+		if (hr != hrSuccess) {
+			cerr << "Failed to remove company from quota list." << endl;
+			goto exit;
+		}
+		cout << "User " << username << " removed from user quota recipients list for company " << companyname << endl;
+		break;
+	case MODE_LIST_USERQUOTA_RECIPIENT:
+		/* HACK: request a user from the specified company, and request the recipients for that user. */
+		hr = lpServiceAdmin->GetUserList(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
+		if (hr != hrSuccess || cUsers <= 1) /* First user is always SYSTEM */ {
+			cerr << "Failed to get quota recipient list" << endl;
+			goto exit;
+		}
+
+		cbUserId = lpECUser[1].sUserId.cb;
+		hr = MAPIAllocateBuffer(cbUserId, &~lpUserId);
+		if (hr != hrSuccess)
+			goto exit;
+		memcpy(lpUserId, lpECUser[1].sUserId.lpb, cbUserId);
+		hr = lpServiceAdmin->GetQuotaRecipients(cbUserId, lpUserId, 0, &cUsers, &~lpECUser);
+		if (hr != hrSuccess) {
+			cerr << "Failed to get quota recipient list" << endl;
+			goto exit;
+		}
+
+		cout << "Recipient list ("<< cUsers-1 <<"):" << endl;
+		/* Skip the dummy entry we used to obtain the list */
+		print_users(cUsers - 1, &lpECUser[1]);
+		break;
+	case MODE_ADD_COMPANYQUOTA_RECIPIENT:
+		hr = lpServiceAdmin->AddQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, CONTAINER_COMPANY);
+		if (hr != hrSuccess) {
+			cerr << "Failed to add recipient to quota list." << endl;
+			goto exit;
+		}
+		cout << "User " << username << " added to company quota recipients list for company " << companyname << endl;
+		break;
+	case MODE_DEL_COMPANYQUOTA_RECIPIENT:
+		hr = lpServiceAdmin->DeleteQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, CONTAINER_COMPANY);
+		if (hr != hrSuccess) {
+			cerr << "Failed to delete recipient to quota list." << endl;
+			goto exit;
+		}
+		cout << "User " << username << " removed from company quota recipients list for company " << companyname << endl;
+		break;
+	case MODE_LIST_COMPANYQUOTA_RECIPIENT:
+		hr = lpServiceAdmin->GetQuotaRecipients(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
+		if (hr != hrSuccess) {
+			cerr << "Failed to get quota recipient list." << endl;
+			goto exit;
+		}
+
+		cout << "Recipient list ("<< cUsers-1 <<"):" << endl;
+		/* Skipt first entry, that is the company itself which will not get the mail */
+		print_users(cUsers - 1, &lpECUser[1]);
+		break;
+	case MODE_LIST_SENDAS:
+		if (detailstype == NULL || strcasecmp(detailstype, "user") == 0) {
+			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+			detailstype = "user";
+		} else if (strcasecmp(detailstype, "group") == 0) {
+			hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+		} else {
+			hr = MAPI_E_INVALID_TYPE;
+			cerr << "Unknown object type \"" << detailstype << "\"" << endl;
+			goto exit;
+		}
+
+		if (hr != hrSuccess) {
+			cerr << "Failed to resolve "<< detailstype <<" name, " << getMapiCodeString(hr, username) << endl;
+			goto exit;
+		}
+		hr = lpServiceAdmin->GetSendAsList(cbUserId, lpUserId, 0, &cSenders, &~lpSenders);
+		if (hr != hrSuccess) {
+			cerr << "Failed to retrieve send-as list for " << detailstype << " " << username << endl;
+			goto exit;
+		}
+
+		cout << "Send-as list ("<< cSenders <<") for " << detailstype << " " << username << ":" << endl;
+		print_users(cSenders, lpSenders);
+		break;
+	case MODE_PURGE_SOFTDELETE:
+		hr = lpServiceAdmin->PurgeSoftDelete(ulDays);
+		if (hr != hrSuccess) {
+			cerr << "Softdelete purge failed" << endl;
+			goto exit;
+		}
+		cout << "Softdelete purge done." << endl;
+		break;
+	case MODE_CLEAR_CACHE:
+		hr = lpServiceAdmin->PurgeCache(ulCachePurgeMode);
+		if (hr != hrSuccess) {
+			cerr << "Cache clear failed" << endl;
+			goto exit;
+		}
+		if (ulCachePurgeMode != PURGE_CACHE_ALL) {
+			cout << "Cache cleared with flags " << ulCachePurgeMode << endl;
+		} else {
+			cout << "Cache cleared." << endl;
+		}
+		break;
+	case MODE_PURGE_DEFERRED:
+		while(1) {
+			ULONG ulRemaining;
+			hr = lpServiceAdmin->PurgeDeferredUpdates(&ulRemaining);
+			if(hr == MAPI_E_NOT_FOUND)
+				break;
+			if(hr != hrSuccess) {
+				cerr << "Purge failed." << endl;
+				break;
+			}
+			cerr << "Remaining deferred records: " << ulRemaining << "       \r";
+		}
+		cerr << endl;
+		cerr << "Done." << endl;
+		break;
+	case MODE_FORCE_RESYNC:
+		if (lstUsernames.empty())
+			hr = ForceResyncAll(lpSession, lpMsgStore);
+		else
+			hr = ForceResync(lpSession, lpMsgStore, lstUsernames);
+		if (hr != hrSuccess) {
+			cerr << "Failed to force resync." << endl;
+			goto exit;
+		}
+		cerr << "Successfully forced resync." << endl;
+		break;
+	case MODE_USER_COUNT:
+		hr = DisplayUserCount(lpMsgStore);
+		if (hr != hrSuccess) {
+			cerr << "Failed to get user statistics." << endl;
+			goto exit;
+		}
+		break;
+	case MODE_RESET_FOLDER_COUNT:
+		hr = ResetFolderCount(lpSession, lpMsgStore, username);
+		if (FAILED(hr)) {
+			cerr << "Failed to reset folder counters." << endl;
+			goto exit;
+		} else if (hr != hrSuccess) {
+			cerr << "Some folder counters could not be reset." << endl;
+		} else {
+			cerr << "Successfully reset folder counters." << endl;
+		}
+	case MODE_INVALID:
+	case MODE_HELP:
+		// happy compiler
+		break;
 	};
 
 exit:
