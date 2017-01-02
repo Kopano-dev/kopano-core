@@ -799,7 +799,8 @@ HRESULT CalDAV::HrHandleDelete()
 	memory_ptr<SPropValue> lpProps, lpPropWstBxEID;
 	memory_ptr<ENTRYLIST> lpEntryList;
 	bool bisFolder = false;
-	SizedSPropTagArray(3, lpPropTagArr) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, PR_DISPLAY_NAME_W}};
+	static constexpr const SizedSPropTagArray(3, lpPropTagArr) =
+		{3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, PR_DISPLAY_NAME_W}};
 
 	m_lpRequest->HrGetUrl(&strUrl);
 	bisFolder = m_ulUrlFlag & REQ_COLLECTION;
@@ -1720,7 +1721,8 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 	time_t tModTime = 0;
 	SBinary sbEid = {0};
 	eIcalType etype = VEVENT;	
-	SizedSPropTagArray(2, sPropTagArr) = {2, {PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID}};
+	static constexpr const SizedSPropTagArray(2, sPropTagArr) =
+		{2, {PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID}};
 
 	hr = lpIcalToMapi->GetItemInfo( 0, &etype, &tModTime, &sbEid);
 	if ( hr != hrSuccess || etype != VEVENT)

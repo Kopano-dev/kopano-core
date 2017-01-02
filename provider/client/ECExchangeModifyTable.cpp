@@ -107,9 +107,9 @@ HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, UL
 	ECExchangeModifyTable *obj = NULL;
 	object_ptr<ECMemTable> lpecTable;
 	ULONG ulUniqueId = 1;
-	SizedSPropTagArray(4, sPropACLs) = {4, 
-										 { PR_MEMBER_ID, PR_MEMBER_ENTRYID, 
-										 PR_MEMBER_RIGHTS, PR_MEMBER_NAME } };
+	static constexpr const SizedSPropTagArray(4, sPropACLs) =
+		{4, { PR_MEMBER_ID, PR_MEMBER_ENTRYID, PR_MEMBER_RIGHTS,
+		PR_MEMBER_NAME}};
 
 	// Although PR_RULE_ID is PT_I8, it does not matter, since the low count comes first in memory
 	// This will break on a big-endian system though
@@ -134,9 +134,10 @@ HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, 
 	ULONG ulRead;
 	object_ptr<ECMemTable> ecTable;
 	ULONG ulRuleId = 1;
-	SizedSPropTagArray(7, sPropRules) = {7, 
-										 { PR_RULE_ID, PR_RULE_SEQUENCE, PR_RULE_STATE, PR_RULE_CONDITION,
-										 PR_RULE_ACTIONS, PR_RULE_USER_FLAGS, PR_RULE_PROVIDER } };
+	static constexpr const SizedSPropTagArray(7, sPropRules) =
+		{7, {PR_RULE_ID, PR_RULE_SEQUENCE, PR_RULE_STATE,
+		PR_RULE_CONDITION, PR_RULE_ACTIONS, PR_RULE_USER_FLAGS,
+		PR_RULE_PROVIDER}};
 
 	// Although PR_RULE_ID is PT_I8, it does not matter, since the low count comes first in memory
 	// This will break on a big-endian system though

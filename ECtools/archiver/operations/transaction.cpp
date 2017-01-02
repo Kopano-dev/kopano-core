@@ -120,8 +120,8 @@ HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 	ULONG cMsgProps;
 	ULONG ulType;
 	DelEntry entry;
-
-	SizedSPropTagArray(2, sptaMsgProps) = {2, {PR_ENTRYID, PR_PARENT_ENTRYID}};
+	static constexpr const SizedSPropTagArray(2, sptaMsgProps) =
+		{2, {PR_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_PARENT_ENTRYID};
 
 	if (lpMessage == NULL)

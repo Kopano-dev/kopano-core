@@ -4021,7 +4021,11 @@ ZEND_FUNCTION(mapi_rules_gettable) {
 	// return value
 	object_ptr<IMAPITable> lpRulesView;
 	// locals
-	SizedSPropTagArray(11, sptaRules) = {11, { PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE, PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS, PR_RULE_PROVIDER, PR_RULE_NAME, PR_RULE_LEVEL, PR_RULE_PROVIDER_DATA } };
+	static constexpr const SizedSPropTagArray(11, sptaRules) =
+		{11, {PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
+		PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
+		PR_RULE_PROVIDER, PR_RULE_NAME, PR_RULE_LEVEL,
+		PR_RULE_PROVIDER_DATA}};
 	static constexpr const SizedSSortOrderSet(1, sosRules) =
 		{1, 0, 0, {{PR_RULE_SEQUENCE, TABLE_SORT_ASCEND}}};
 	ECRulesTableProxy *lpRulesTableProxy = NULL;

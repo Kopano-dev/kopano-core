@@ -550,8 +550,8 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 	MAPIFolderPtr ptrFolder;
 	ULONG cValues = 0;
 	ULONG ulType = 0;
-	
-	SizedSPropTagArray(2, sptaProps) = {2, {PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
+	static constexpr const SizedSPropTagArray(2, sptaProps) =
+		{2, {PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
 	
 	if (ptrSession == NULL)
 		return MAPI_E_INVALID_PARAMETER;

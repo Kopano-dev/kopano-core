@@ -275,7 +275,8 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			goto exit;
 
 		if (m_mailState.bAttachSignature && !m_dopt.parse_smime_signed) {
-			SizedSPropTagArray (2, sptaAttach) = { 2, { PR_ATTACH_NUM, PR_ATTACHMENT_HIDDEN } };
+			static constexpr const SizedSPropTagArray(2, sptaAttach) =
+				{2, {PR_ATTACH_NUM, PR_ATTACHMENT_HIDDEN}};
 			// Remove the parsed attachments since the client should be reading them from the 
 			// signed rfc822 data we are about to add.
 			
@@ -571,13 +572,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 	ULONG			ulRecipProps;
 
 	// order and types are important for modifyFromAddressBook()
-	SizedSPropTagArray(7, sptaRecipPropsSentRepr) = { 7, {
+	static constexpr const SizedSPropTagArray(7, sptaRecipPropsSentRepr) = {7, {
 		PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W,
 		PR_NULL /* PR_xxx_DISPLAY_TYPE not available */,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID,
 		PR_SENT_REPRESENTING_SEARCH_KEY, PR_NULL /* PR_xxx_SMTP_ADDRESS not available */
 	} };
-	SizedSPropTagArray(7, sptaRecipPropsSender) = { 7, {
+	static constexpr const SizedSPropTagArray(7, sptaRecipPropsSender) = {7, {
 		PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W,
 		PR_NULL /* PR_xxx_DISPLAY_TYPE not available */,
 		PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID,
@@ -1193,8 +1194,10 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 	unsigned int 	iRecipNum		= 0;
 
 	// order and types are important for modifyFromAddressBook()
-	SizedSPropTagArray(7, sptaRecipientProps) = { 7, { PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_DISPLAY_TYPE, PR_EMAIL_ADDRESS_W, PR_ENTRYID,
-													   PR_SEARCH_KEY, PR_SMTP_ADDRESS_W } };
+	static constexpr const SizedSPropTagArray(7, sptaRecipientProps) =
+		{7, {PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_DISPLAY_TYPE,
+		PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_SEARCH_KEY,
+		PR_SMTP_ADDRESS_W}};
 
 	// walk through all recipients
 	for (int iRecip = 0; iRecip < iAddressCount; ++iRecip) {
@@ -1354,7 +1357,10 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	const SPropValue *lpProp = nullptr;
 	SPropValue sRecipProps[9]; // 8 from addressbook + PR_RECIPIENT_TYPE == max
 	ULONG cValues = 0;
-	SizedSPropTagArray(8, sptaAddress) = { 8, { PR_SMTP_ADDRESS_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_DISPLAY_TYPE, PR_DISPLAY_NAME_W, PR_ENTRYID, PR_SEARCH_KEY, PR_OBJECT_TYPE } };
+	static constexpr const SizedSPropTagArray(8, sptaAddress) =
+		{8, {PR_SMTP_ADDRESS_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W,
+		PR_DISPLAY_TYPE, PR_DISPLAY_NAME_W, PR_ENTRYID, PR_SEARCH_KEY,
+		PR_OBJECT_TYPE}};
 
 	if (!m_lpAdrBook) {
 		hr = MAPI_E_NOT_FOUND;

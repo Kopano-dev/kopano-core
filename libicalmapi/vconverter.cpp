@@ -1136,7 +1136,8 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			strName = strEmail; // set email as name OL does not display organiser name if not set.
 
 		if (bIsUserLoggedIn(strEmail)) {
-			SizedSPropTagArray(4, sPropTags) = {4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID} };
+			static constexpr const SizedSPropTagArray(4, sPropTags) =
+				{4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID}};
 			ULONG count;
 
 			hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~lpsPropVal);
@@ -1181,7 +1182,8 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			hr = HrAddOrganizer(lpIcalItem, lplstMsgProps, strEmail, strName, strType, cbEntryID, lpEntryID);
 	} else if (!m_bNoRecipients && m_lpMailUser) {
 		// single item from caldav without organizer, no need to set recipients, only organizer to self
-		SizedSPropTagArray(4, sPropTags) = {4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID} };
+		static constexpr const SizedSPropTagArray(4, sPropTags) =
+			{4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID}};
 		ULONG count;
 
 		hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~lpsPropVal);
@@ -2060,9 +2062,10 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	LPSRowSet lpRows = NULL;
 	ULONG ulCount = 0;
 	wstring strName, strType, strEmailAddress;
-	SizedSPropTagArray(7, sptaRecipProps) = {7, { PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_EMAIL_ADDRESS_A,
-												  PR_RECIPIENT_FLAGS, PR_RECIPIENT_TYPE, PR_RECIPIENT_TRACKSTATUS }
-	};
+	static constexpr const SizedSPropTagArray(7, sptaRecipProps) =
+		{7, {PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A,
+		PR_EMAIL_ADDRESS_A, PR_RECIPIENT_FLAGS, PR_RECIPIENT_TYPE,
+		PR_RECIPIENT_TRACKSTATUS}};
 
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)

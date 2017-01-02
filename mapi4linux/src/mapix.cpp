@@ -515,8 +515,10 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	int n = 0;
 	std::wstring wServiceName, wDisplayName;
 	convert_context converter;
-	SizedSPropTagArray(3, sptaProviderColsUnicode) = {3, {PR_SERVICE_UID, PR_SERVICE_NAME_W, PR_DISPLAY_NAME_W} };
-	SizedSPropTagArray(3, sptaProviderColsAscii) = {3, {PR_SERVICE_UID, PR_SERVICE_NAME_A, PR_DISPLAY_NAME_A} };
+	static constexpr const SizedSPropTagArray(3, sptaProviderColsUnicode) =
+		{3, {PR_SERVICE_UID, PR_SERVICE_NAME_W, PR_DISPLAY_NAME_W}};
+	static constexpr const SizedSPropTagArray(3, sptaProviderColsAscii) =
+		{3, {PR_SERVICE_UID, PR_SERVICE_NAME_A, PR_DISPLAY_NAME_A}};
 	ulock_rec l_srv(m_mutexserviceadmin);
 
 	if (ulFlags & MAPI_UNICODE)

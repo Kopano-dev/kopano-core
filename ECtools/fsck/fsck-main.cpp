@@ -109,15 +109,8 @@ static HRESULT DetectFolderEntryDetails(LPMESSAGE lpMessage, string *lpName,
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropertyArray;
 	ULONG ulPropertyCount;
-
-	SizedSPropTagArray(3, PropertyTagArray) = {
-		3,
-		{
-			PR_SUBJECT_A,
-			PR_NORMALIZED_SUBJECT_A,
-			PR_MESSAGE_CLASS_A,
-		}
-	};
+	static constexpr const SizedSPropTagArray(3, PropertyTagArray) =
+		{3, {PR_SUBJECT_A, PR_NORMALIZED_SUBJECT_A, PR_MESSAGE_CLASS_A}};
 
 	hr = lpMessage->GetProps(PropertyTagArray, 0, &ulPropertyCount,
 	     &~lpPropertyArray);
@@ -364,8 +357,8 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 	object_ptr<IMAPITable> lpTable;
     ULONG cRows = 0;
     SRowSet *pRows = NULL;
-
-	SizedSPropTagArray(2, sptaProps) = {2, {PR_ATTACH_NUM, PR_ATTACH_METHOD}};
+	static constexpr const SizedSPropTagArray(2, sptaProps) =
+		{2, {PR_ATTACH_NUM, PR_ATTACH_METHOD}};
 
 	hr = lpMessage->GetAttachmentTable(0, &~lpTable);
 	if (hr != hrSuccess)
@@ -442,8 +435,9 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 	SRowSet *pRows = NULL;
 	std::string strData;
 	unsigned int i = 0;
-
-	SizedSPropTagArray(5, sptaProps) = {5, {PR_ROWID, PR_DISPLAY_NAME_A, PR_EMAIL_ADDRESS_A, PR_RECIPIENT_TYPE, PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(5, sptaProps) =
+		{5, {PR_ROWID, PR_DISPLAY_NAME_A, PR_EMAIL_ADDRESS_A,
+		PR_RECIPIENT_TYPE, PR_ENTRYID}};
 
 	HRESULT hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)

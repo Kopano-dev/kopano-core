@@ -445,7 +445,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 	std::string strUrl;
 	memory_ptr<SRestriction> lpsRestriction;
 	MAPITablePtr ptrContents;	
-	SizedSPropTagArray(1, sPropEntryIdcol) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sPropEntryIdcol) = {1, {PR_ENTRYID}};
 	ULONG ulRows = 0;
 
 	if (m_lpUsrFld == nullptr)

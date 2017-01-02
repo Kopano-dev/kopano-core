@@ -239,7 +239,8 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	ECVMIMESender		*mailer	= dynamic_cast<ECVMIMESender*>(mailer_base);
 	wstring			wstrError;
 	SPropArrayPtr	ptrProps;
-	SizedSPropTagArray(2, sptaForwardProps) = { 2, { PR_AUTO_FORWARDED, PR_INTERNET_MESSAGE_ID_A } };
+	static constexpr const SizedSPropTagArray(2, sptaForwardProps) =
+		{2, {PR_AUTO_FORWARDED, PR_INTERNET_MESSAGE_ID_A}};
 	ULONG cValues = 0;
 
 	if (mailer == nullptr)

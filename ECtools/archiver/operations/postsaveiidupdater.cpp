@@ -38,8 +38,7 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 	SPropValuePtr ptrDestServerUID;
 	ULONG cbDestInstanceID = 0;
 	EntryIdPtr ptrDestInstanceID;
-
-	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
+	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 	
 	hr = GetUniqueIDs(m_ptrSourceAttach, &~ptrSourceServerUID, &cbSourceInstanceID, &~ptrSourceInstanceID);
 	if (hr != hrSuccess)

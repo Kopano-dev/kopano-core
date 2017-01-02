@@ -209,15 +209,8 @@ static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropertyArray;
 	ULONG ulPropertyCount = 0;
-
-	SizedSPropTagArray(3, PropertyTagArray) = {
-		3,
-		{
-			PR_DISPLAY_NAME_A,
-			PR_CONTAINER_CLASS_A,
-			PR_FOLDER_TYPE,
-		}
-	};
+	static constexpr const SizedSPropTagArray(3, PropertyTagArray) =
+		{3, {PR_DISPLAY_NAME_A, PR_CONTAINER_CLASS_A, PR_FOLDER_TYPE}};
 
 	hr = lpFolder->GetProps(PropertyTagArray, 0, &ulPropertyCount,
 	     &~lpPropertyArray);

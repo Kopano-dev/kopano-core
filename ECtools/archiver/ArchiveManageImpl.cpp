@@ -605,8 +605,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		MAPIFolderPtr ptrArchiveFolder;
 		SPropValuePtr ptrPropValue;
 		ULONG ulCompareResult = FALSE;
-
-		SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
+		static constexpr const SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
 		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID, IDX_STORE_RECORD_KEY};
 
 		entry.Rights = ARCHIVE_RIGHTS_ERROR;
@@ -798,8 +797,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	MAPITablePtr ptrACLTable;
 	SPropValue sPropUser;
 	SRowSetPtr ptrRows;
-
-	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
+	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
 
 	if (lpFolder == NULL || lpulRights == NULL)
 		return MAPI_E_INVALID_PARAMETER;

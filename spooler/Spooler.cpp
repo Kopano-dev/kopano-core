@@ -665,16 +665,9 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	object_ptr<IMAPITable> lpTable;
 	object_ptr<IMAPIAdviseSink> lpAdviseSink;
 	ULONG				ulConnection	= 0;
-
-	SizedSPropTagArray(5, sOutgoingCols) = {
-		5, {
-			PR_EC_MAILBOX_OWNER_ACCOUNT_W,
-			PR_STORE_ENTRYID,
-			PR_ENTRYID,
-			PR_EC_OUTGOING_FLAGS,
-			PR_DEFERRED_SEND_TIME,
-		}
-	};
+	static constexpr const SizedSPropTagArray(5, sOutgoingCols) =
+		{5, {PR_EC_MAILBOX_OWNER_ACCOUNT_W, PR_STORE_ENTRYID,
+		PR_ENTRYID, PR_EC_OUTGOING_FLAGS, PR_DEFERRED_SEND_TIME}};
 	static constexpr const SizedSSortOrderSet(1, sSort) =
 		{1, 0, 0, {{PR_EC_HIERARCHYID, TABLE_SORT_ASCEND}}};
 

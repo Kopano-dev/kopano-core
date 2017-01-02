@@ -247,8 +247,9 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	SPropValue sPropDispType;
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRows;
-
-	SizedSPropTagArray(4, sptaUserProps) = {4, {PR_ENTRYID, PR_ACCOUNT, PR_EC_ARCHIVE_SERVERS, PR_EC_ARCHIVE_COUPLINGS}};
+	static constexpr const SizedSPropTagArray(4, sptaUserProps) =
+		{4, {PR_ENTRYID, PR_ACCOUNT, PR_EC_ARCHIVE_SERVERS,
+		PR_EC_ARCHIVE_COUPLINGS}};
 	enum {IDX_ENTRYID, IDX_ACCOUNT, IDX_EC_ARCHIVE_SERVERS, IDX_EC_ARCHIVE_COUPLINGS};
 
 

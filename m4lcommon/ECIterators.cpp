@@ -40,8 +40,7 @@ void ECHierarchyIteratorBase::increment()
 
 	if (!m_ptrTable) {
 		SPropValuePtr ptrFolderType;
-
-		SizedSPropTagArray(1, sptaColumnProps) = {1, {PR_ENTRYID}};
+		static constexpr const SizedSPropTagArray(1, sptaColumnProps) = {1, {PR_ENTRYID}};
 
 		hr = HrGetOneProp(m_ptrContainer, PR_FOLDER_TYPE, &~ptrFolderType);
 		if (hr == hrSuccess && ptrFolderType->Value.ul == FOLDER_SEARCH) {
@@ -119,7 +118,7 @@ void ECContentsIteratorBase::increment()
 	enum {IDX_ENTRYID};
 
 	if (!m_ptrTable) {
-		SizedSPropTagArray(1, sptaColumnProps) = {1, {PR_ENTRYID}};
+		static constexpr const SizedSPropTagArray(1, sptaColumnProps) = {1, {PR_ENTRYID}};
 
 		hr = m_ptrContainer->GetContentsTable(0, &~m_ptrTable);
 		if (hr != hrSuccess)

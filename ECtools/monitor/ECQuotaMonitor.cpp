@@ -374,15 +374,10 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 	LPSRowSet lpRowSet = NULL;
 	ECQUOTASTATUS sQuotaStatus;
 	ULONG i, u;
-	SizedSPropTagArray(5, sCols) = {
-		5, {
-			PR_EC_USERNAME_A,
-			PR_MESSAGE_SIZE_EXTENDED,
-			PR_QUOTA_WARNING_THRESHOLD,
-			PR_QUOTA_SEND_THRESHOLD,
-			PR_QUOTA_RECEIVE_THRESHOLD,
-		}
-	};
+	static constexpr const SizedSPropTagArray(5, sCols) =
+		{5, {PR_EC_USERNAME_A, PR_MESSAGE_SIZE_EXTENDED,
+		PR_QUOTA_WARNING_THRESHOLD, PR_QUOTA_SEND_THRESHOLD,
+		PR_QUOTA_RECEIVE_THRESHOLD}};
 
 	hr = lpAdminStore->OpenProperty(PR_EC_STATSTABLE_USERS, &IID_IMAPITable, 0, 0, &~lpTable);
 	if (hr != hrSuccess) {

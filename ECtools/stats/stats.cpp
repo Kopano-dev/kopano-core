@@ -229,7 +229,8 @@ static void showtop(LPMDB lpStore)
 	bool bColumns[] = {false,false,true,true,true,true,true,true,true,true,true,true}; // key 1 through err?
 	static constexpr const SortFuncPtr fSort[] = {nullptr, sort_sessionid, sort_version, sort_user, sort_ippeer, sort_app, nullptr}; // key a through g
 	bool bReverse = false;
-	SizedSPropTagArray (2, sptaSystem) = { 2, { PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE } };
+	static constexpr const SizedSPropTagArray(2, sptaSystem) =
+		{2, {PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE}};
 
     // Init ncurses
     win = initscr(); 

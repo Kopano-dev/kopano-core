@@ -205,7 +205,7 @@ HRESULT ECXPLogon::TransportLogoff(ULONG ulFlags)
 HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 {
 	HRESULT hr = hrSuccess;
-	SizedSPropTagArray(1, sptDelete) = {1,{PR_ENTRYID} };
+	static constexpr const SizedSPropTagArray(1, sptDelete) = {1, {PR_ENTRYID}};
 	MAPITablePtr	ptrContentsTable;
 	memory_ptr<ENTRYLIST> lpDeleteItemEntryList;
 	SPropValue		sPropDelAfterSubmit = {0};
@@ -279,8 +279,9 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	ENTRYLIST sDelete;
 	object_ptr<IMsgStore> lpMsgStore;
 	ULONG ulType = 0;
-
-	SizedSPropTagArray(6, sptExcludeProps) = {6,{PR_SENTMAIL_ENTRYID, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_ENTRYID, PR_SUBMIT_FLAGS}};
+	static constexpr const SizedSPropTagArray(6, sptExcludeProps) =
+		{6, {PR_SENTMAIL_ENTRYID, PR_SOURCE_KEY, PR_CHANGE_KEY,
+		PR_PREDECESSOR_CHANGE_LIST, PR_ENTRYID, PR_SUBMIT_FLAGS}};
 
 	// Un-cancel
 	ulock_normal l_exit(m_hExitMutex);
@@ -447,7 +448,7 @@ exit:
 }
 
 #define OUT_MSG_PROPS 2
-static const SizedSPropTagArray(OUT_MSG_PROPS, sptOutMsgProps) =
+static constexpr const SizedSPropTagArray(OUT_MSG_PROPS, sptOutMsgProps) =
 {
     OUT_MSG_PROPS,
     {

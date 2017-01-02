@@ -97,7 +97,7 @@ private:
 };
 
 HRESULT	DataCollector::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
-	static SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_DISPLAY_NAME}};
+	static constexpr const SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_DISPLAY_NAME}};
 	return Util::HrCopyPropTagArray(sptaDefaultProps, lppPropTagArray);
 }
 
@@ -146,7 +146,8 @@ UserListCollector<string_type, prAccount>::UserListCollector(IMAPISession *lpSes
 
 template<typename string_type, ULONG prAccount>
 HRESULT	UserListCollector<string_type, prAccount>::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
-	static SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_MAILBOX_OWNER_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sptaDefaultProps) =
+		{1, {PR_MAILBOX_OWNER_ENTRYID}};
 	return Util::HrCopyPropTagArray(sptaDefaultProps, lppPropTagArray);
 }
 
@@ -244,7 +245,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	convert_context		converter;
 	KCHL::memory_ptr<ECSVRNAMELIST> lpSrvNameList;
 	KCHL::memory_ptr<ECSERVERLIST> lpSrvList;
-	SizedSPropTagArray(1, sCols) = {1, { PR_ENTRYID } };
+	static constexpr const SizedSPropTagArray(1, sCols) = {1, {PR_ENTRYID}};
 
 	if (lpMapiSession == nullptr || lpCollector == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -464,8 +465,8 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	SPropValue sPropUser;
 	SPropValue sPropDisplayType;
 	SRestriction sResSub[2];
-
-	SizedSPropTagArray(2, sCols) = {2, { PR_EC_HOMESERVER_NAME_W, PR_DISPLAY_NAME_W } };
+	static constexpr const SizedSPropTagArray(2, sCols) =
+		{2, {PR_EC_HOMESERVER_NAME_W, PR_DISPLAY_NAME_W}};
 
 	sPropDisplayType.ulPropTag = PR_DISPLAY_TYPE;
 	sPropDisplayType.Value.ul = DT_REMOTE_MAILUSER;

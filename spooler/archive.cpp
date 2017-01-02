@@ -91,8 +91,8 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	ArchiveResult result;
 	ObjectEntryList lstReferences;
 	MAPIPropHelperPtr ptrMsgHelper;
-
-	SizedSPropTagArray(3, sptaMessageProps) = {3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
+	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
+		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
 
 	if (lpMessage == NULL) {
@@ -232,8 +232,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	HelperPtr ptrHelper;
 	list<pair<MessagePtr,PostSaveActionPtr> > lstArchivedMessages;
 	ArchiveResult result;
-
-	SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
+	static constexpr const SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
 	enum {IDX_STORE_ENTRYID};
 
 	if (lpMessage == NULL) {

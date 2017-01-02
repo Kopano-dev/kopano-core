@@ -835,7 +835,10 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
     const ArchiveList &lstArchives, const ECUSERCLIENTUPDATESTATUS *lpECUCUS)
 {
 	memory_ptr<SPropValue> lpProps;
-	SizedSPropTagArray(5, sptaProps) = {5, { PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME, PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL } };
+	static constexpr const SizedSPropTagArray(5, sptaProps) =
+		{5, {PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME,
+		PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM,
+		PR_EC_OUTOFOFFICE_UNTIL}};
 	ULONG cValues = 0;
 
 	if (lpStore)
@@ -1754,10 +1757,10 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	SRowSetPtr	ptrRows;
 	ULONG			ulType = 0;
 	bool			bFail = false;
-
-	SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue			  sGALPropVal;
-	SizedSPropTagArray(2, sContentsProps) = {2, {PR_ACCOUNT, PR_EMS_AB_HOME_MDB}};
+	static constexpr const SizedSPropTagArray(2, sContentsProps) =
+		{2, {PR_ACCOUNT, PR_EMS_AB_HOME_MDB}};
 	SPropValue			  sObjTypePropVal;
 	SPropValue			  sDispTypePropVal;
 
@@ -1891,8 +1894,8 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	ConsoleTable ct(3, 4);
 	ULONG ulExtraRow = 0;
 	ULONG ulExtraRows = 0;
-
-	SizedSPropTagArray(2, sptaStatsProps) = {2, {PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE}};
+	static constexpr const SizedSPropTagArray(2, sptaStatsProps) =
+		{2, {PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE}};
 	enum {IDX_DISPLAY_NAME_A, IDX_EC_STATS_SYSTEM_VALUE};
 	enum {COL_ALLOWED=1, COL_USED, COL_AVAILABLE};
 
@@ -2030,8 +2033,8 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	ULONG ulTotalUpdates = 0;
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRows;
-
-	SizedSPropTagArray(2, sptaTableProps) = {2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(2, sptaTableProps) =
+		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
 	enum {IDX_DISPLAY_NAME, IDX_ENTRYID};
 
 	hr = lpAdminStore->QueryInterface(ptrEMS.iid(), &~ptrEMS);

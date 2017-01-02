@@ -408,8 +408,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	ULONG cMaxProps = 0;
 	ULONG ulRowId = 0;
 	SPropValue sKeyProp;
-
-	SizedSPropTagArray(13, sPropsHierarchyColumns) = {13, {
+	static constexpr const SizedSPropTagArray(13, sPropsHierarchyColumns) = {13, {
 			PR_ENTRYID, PR_DISPLAY_NAME_W,
 			PR_CONTENT_COUNT, PR_CONTENT_UNREAD,
 			PR_STORE_ENTRYID, PR_STORE_RECORD_KEY,

@@ -2718,7 +2718,8 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRowSet = NULL;
-	SizedSPropTagArray(2, sptaName) = { 2, { PR_DISPLAY_NAME_W, PR_ENTRYID } };
+	static constexpr const SizedSPropTagArray(2, sptaName) =
+		{2, {PR_DISPLAY_NAME_W, PR_ENTRYID}};
 	object_ptr<IMAPIFolder> lpSrcParam, lpDestParam;
 	ULONG ulObj;
 
@@ -2804,7 +2805,7 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRowSet = NULL;
-	SizedSPropTagArray(1, sptaEntryID) = { 1, { PR_ENTRYID } };
+	static constexpr const SizedSPropTagArray(1, sptaEntryID) = {1, {PR_ENTRYID}};
 	ULONG ulObj;
 	memory_ptr<ENTRYLIST> lpDeleteEntries;
 
@@ -3571,12 +3572,9 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IStream> lpSrcStream, lpDestStream;
-	SizedSPropTagArray(3, sptaIMAP) = {
-		3, { PR_EC_IMAP_EMAIL_SIZE,
-			 PR_EC_IMAP_BODY,
-			 PR_EC_IMAP_BODYSTRUCTURE
-		}
-	};
+	static constexpr const SizedSPropTagArray(3, sptaIMAP) =
+		{3, {PR_EC_IMAP_EMAIL_SIZE, PR_EC_IMAP_BODY,
+		PR_EC_IMAP_BODYSTRUCTURE}};
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> lpIMAPProps;
 
@@ -3604,14 +3602,9 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 
 HRESULT Util::HrDeleteIMAPData(LPMESSAGE lpMsg)
 {
-	SizedSPropTagArray(4, sptaIMAP) = {
-		4, { PR_EC_IMAP_EMAIL_SIZE,
-			 PR_EC_IMAP_EMAIL,
-			 PR_EC_IMAP_BODY,
-			 PR_EC_IMAP_BODYSTRUCTURE
-		}
-	};
-
+	static constexpr const SizedSPropTagArray(4, sptaIMAP) =
+		{4, { PR_EC_IMAP_EMAIL_SIZE,  PR_EC_IMAP_EMAIL,
+		 PR_EC_IMAP_BODY, PR_EC_IMAP_BODYSTRUCTURE}};
 	return lpMsg->DeleteProps(sptaIMAP, NULL);
 }
 
@@ -3630,7 +3623,7 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 	HRESULT			hr = hrSuccess;
 	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
 	memory_ptr<SPropValue> lpProps;
-    SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_SIZE_EXTENDED}};
+	static constexpr const SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_SIZE_EXTENDED}};
     ULONG 			cValues = 0;
 	
 	if (lpMsgStore == nullptr || lppsQuotaStatus == nullptr)
@@ -3780,8 +3773,7 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 {
 	MAPITablePtr ptrAttachTable;
 	SRowSetPtr ptrRows;
-
-	SizedSPropTagArray(1, sptaAttachNum) = {1, {PR_ATTACH_NUM}};
+	static constexpr const SizedSPropTagArray(1, sptaAttachNum) = {1, {PR_ATTACH_NUM}};
 
 	if (lpMsg == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -3804,8 +3796,7 @@ HRESULT Util::HrDeleteRecipients(LPMESSAGE lpMsg)
 {
 	MAPITablePtr ptrRecipTable;
 	SRowSetPtr ptrRows;
-
-	SizedSPropTagArray(1, sptaRowId) = {1, {PR_ROWID}};
+	static constexpr const SizedSPropTagArray(1, sptaRowId) = {1, {PR_ROWID}};
 
 	if (lpMsg == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -3826,8 +3817,8 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 	ULONG ulType;
 	MAPIFolderPtr ptrFolder;
 	ENTRYLIST entryList = {1, NULL};
-
-	SizedSPropTagArray(3, sptaMessageProps) = {3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
+	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
+		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
 
 	HRESULT hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);

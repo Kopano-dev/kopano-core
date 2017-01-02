@@ -120,7 +120,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	if(hr != hrSuccess)
 		return hr;
 
-	static constexpr SizedSPropTagArray(2, proptags) =
+	static constexpr const SizedSPropTagArray(2, proptags) =
 		{2, {PR_MDB_PROVIDER, PR_RESOURCE_FLAGS}};
 	hr = lpProfSect->GetProps(proptags, 0, &cValues, &~lpsPropArray);
 	if (FAILED(hr))
@@ -224,7 +224,7 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 	if(hr != hrSuccess)
 		return hr;
 
-	static constexpr SizedSPropTagArray(2, proptags) =
+	static constexpr const SizedSPropTagArray(2, proptags) =
 		{2, {PR_MDB_PROVIDER, PR_RESOURCE_FLAGS}};
 
 	// Get the MDBProvider from the profile settings

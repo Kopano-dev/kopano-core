@@ -815,7 +815,8 @@ HRESULT POP3::HrMakeMailList() {
 	object_ptr<IMAPITable> lpTable;
 	MailListItem sMailListItem;
 	enum { EID, SIZE, NUM_COLS };
-	SizedSPropTagArray(NUM_COLS, spt) = { NUM_COLS, {PR_ENTRYID, PR_MESSAGE_SIZE} };
+	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
+		{NUM_COLS, {PR_ENTRYID, PR_MESSAGE_SIZE}};
 	static constexpr const SizedSSortOrderSet(1, tableSort) =
 		{1, 0, 0, {{PR_CREATION_TIME, TABLE_SORT_ASCEND}}};
 

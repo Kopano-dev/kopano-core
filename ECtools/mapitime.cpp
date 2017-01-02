@@ -168,7 +168,7 @@ static int mpt_main_vft(void)
 		return EXIT_FAILURE;
 
 	struct mpt_stat_entry dp;
-	static constexpr SizedSPropTagArray(1, spta) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, spta) = {1, {PR_ENTRYID}};
 	ECMemTable *mt;
 	ret = ECMemTable::Create(spta, PT_LONG, &mt);
 	if (ret != hrSuccess) {

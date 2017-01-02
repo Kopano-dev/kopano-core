@@ -102,18 +102,9 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 	LPSRowSet		lpsRowSet = NULL;
 	ULONG			ulObj = 0;
 	bool			bExpandSub = recurrence;
-
-	SizedSPropTagArray(7, sptaColumns) = {
-		7, {
-			PR_ROWID,
-			PR_DISPLAY_NAME_W,
-			PR_SMTP_ADDRESS_W,
-			PR_RECIPIENT_TYPE,
-			PR_OBJECT_TYPE,
-			PR_DISPLAY_TYPE,
-			PR_ENTRYID,
-		}
-	};
+	static constexpr const SizedSPropTagArray(7, sptaColumns) =
+		{7, {PR_ROWID, PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W,
+		PR_RECIPIENT_TYPE, PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_ENTRYID}};
 
 	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess) {
@@ -391,7 +382,9 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 	ULONG		cValues;
 
 	// contab email_offset: 0: business, 1: home, 2: primary (outlook uses string 'other')
-	SizedSPropTagArray(3, sptaFaxNumbers) = { 3, {PR_BUSINESS_FAX_NUMBER_A, PR_HOME_FAX_NUMBER_A, PR_PRIMARY_FAX_NUMBER_A } };
+	static constexpr const SizedSPropTagArray(3, sptaFaxNumbers) =
+		{ 3, {PR_BUSINESS_FAX_NUMBER_A, PR_HOME_FAX_NUMBER_A,
+		PR_PRIMARY_FAX_NUMBER_A}};
 
 	if (!lpszFaxDomain || strcmp(lpszFaxDomain, "") == 0)
 		goto exit;
@@ -533,14 +526,8 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 	LPSRowSet		lpRowSet = NULL;
 	string			strEmail;
 	ULONG			ulRecipType = 0;
-
-	SizedSPropTagArray(3, sptaColumns) = {
-		3, {
-			PR_ROWID,
-			PR_SMTP_ADDRESS_A,
-			PR_RECIPIENT_TYPE,
-		}
-	};
+	static constexpr const SizedSPropTagArray(3, sptaColumns) =
+		{3, {PR_ROWID, PR_SMTP_ADDRESS_A, PR_RECIPIENT_TYPE}};
 	static constexpr const SizedSSortOrderSet(2, sosOrder) = {
 		2, 0, 0, {
 			{ PR_SMTP_ADDRESS_A, TABLE_SORT_ASCEND },
@@ -601,14 +588,8 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet		lpRowSet = NULL;
 	wstring			strEmail;
-
-	SizedSPropTagArray(3, sptaColumns) = {
-		3, {
-			PR_ROWID,
-			PR_EMAIL_ADDRESS_W,
-			PR_RECIPIENT_TYPE,
-		}
-	};
+	static constexpr const SizedSPropTagArray(3, sptaColumns) =
+		{3, {PR_ROWID, PR_EMAIL_ADDRESS_W, PR_RECIPIENT_TYPE}};
 
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess) {
@@ -772,7 +753,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	};
 
 	// These props are on purpose without _A and _W
-	SizedSPropTagArray(16, sPropsOriginal) = {
+	static constexpr const SizedSPropTagArray(16, sPropsOriginal) = {
 		16,
 		{ PR_DISPLAY_TO, PR_DISPLAY_CC,
 		  PR_DISPLAY_BCC, PR_SEARCH_KEY,
@@ -783,8 +764,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		  PR_SENT_REPRESENTING_NAME, PR_SENT_REPRESENTING_SEARCH_KEY,
 		  PR_SUBJECT_W, PR_CLIENT_SUBMIT_TIME }
 	};
-
-	SizedSPropTagArray(7, sPropTagRecipient) = {
+	static constexpr const SizedSPropTagArray(7, sPropTagRecipient) = {
 		7,
 		{ PR_RECIPIENT_TYPE, PR_DISPLAY_NAME, PR_DISPLAY_TYPE,
 		  PR_ADDRTYPE, PR_EMAIL_ADDRESS,
@@ -1393,7 +1373,8 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 	object_ptr<IDistList> lpDistList;
 	object_ptr<IMAPITable> lpMembersTable;
 	LPSRowSet lpRowSet = NULL;
-	SizedSPropTagArray(2, sptaIDProps) = { 2, { PR_ENTRYID, PR_OBJECT_TYPE } };
+	static constexpr const SizedSPropTagArray(2, sptaIDProps) =
+		{2, {PR_ENTRYID, PR_OBJECT_TYPE}};
 
 	if (lpulCmp == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -1610,7 +1591,9 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	memory_ptr<SPropValue> lpOwnerProps, lpRepresentProps;
 	SPropValue sSpoofEID = {0};
 	ULONG ulCmpRes = 0;
-	SizedSPropTagArray(3, sptaIDProps) = { 3, { PR_DISPLAY_NAME_W, PR_EC_SENDAS_USER_ENTRYIDS, PR_DISPLAY_TYPE } };
+	static constexpr const SizedSPropTagArray(3, sptaIDProps) =
+		{3, {PR_DISPLAY_NAME_W, PR_EC_SENDAS_USER_ENTRYIDS,
+		PR_DISPLAY_TYPE}};
 	ULONG cValues = 0;
 
 	hr = SMTPToZarafa(lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
@@ -1924,11 +1907,11 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	memory_ptr<ENTRYID> lpOwner;
 	memory_ptr<ECUSER> lpUser;
 	SPropValue		sPropSender[4];
-
-	SizedSPropTagArray(5, sptaMoveReprProps) = {
-		5, { PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W,
-			 PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_SEARCH_KEY }
-	};
+	static constexpr const SizedSPropTagArray(5, sptaMoveReprProps) =
+		{5, {PR_SENT_REPRESENTING_NAME_W,
+		PR_SENT_REPRESENTING_ADDRTYPE_W,
+		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
+		PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_SEARCH_KEY}};
 	memory_ptr<SPropValue> lpMoveReprProps, lpPropOwner;
 	ULONG			cValuesMoveProps = 0;
 	bool			bAllowSendAs = false;
