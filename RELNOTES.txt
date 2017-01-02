@@ -22,6 +22,7 @@ Fixes:
 * server: equalize fs permissions for attachments [KC-380]
 * migration-pst: resolve tracebacks [KC-372,KC-373,KC-377]
 Enhancements:
+* client: Kerberos/GSSAPI support [KC-396]
 * PST importer [KC-59]
 * Python 3 support [KC-48,KC-267]
 * search: files are now compacted, and their uid/gid checked [KC-188]

@@ -383,7 +383,7 @@ libkcclient_la_SOURCES = \
 libkcclient_la_LIBADD = \
 	libkcmapi.la libkcssl.la libkcutil.la libkcfreebusy.la libkcsync.la \
 	libmapi.la libkcsoap.la -lstdc++ \
-	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${UUID_LIBS}
+	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${UUID_LIBS} ${KRB5_LIBS}
 libkcclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
 	-Wl,--version-script=provider/provider.sym
 EXTRA_libkcclient_la_DEPENDENCIES = provider/provider.sym

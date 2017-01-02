@@ -59,6 +59,9 @@
 #include <kopano/mapi_ptr.h>
 #include "WSMessageStreamExporter.h"
 #include "WSMessageStreamImporter.h"
+#ifdef HAVE_GSSAPI
+#	include <gssapi/gssapi.h>
+#endif
 
 using namespace std;
 
@@ -247,14 +250,12 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		 */
 		if(! (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_COMPRESSION))
 			ulCapabilities |= KOPANO_CAP_COMPRESSION; // only to remote server .. windows?
-
-		// try single signon logon
-		er = TrySSOLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, ulCapabilities, m_ecSessionGroupId, (char *)GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
-		if (er == erSuccess)
-			goto auth;
-	} else if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_UID_AUTH) {
-		ulLogonFlags |= KOPANO_LOGON_NO_UID_AUTH;
 	}
+
+	// try single signon logon
+	er = TrySSOLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, ulCapabilities, m_ecSessionGroupId, (char *)GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
+	if (er == erSuccess)
+		goto auth;
 	
 	// Login with username and password
 	if (SOAP_OK != lpCmd->ns__logon(const_cast<char *>(strUserName.c_str()),
@@ -454,8 +455,72 @@ HRESULT WSTransport::HrReLogon()
 
 ECRESULT WSTransport::TrySSOLogon(KCmd* lpCmd, LPCSTR szServer, utf8string strUsername, utf8string strImpersonateUser, unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId, char *szAppName, ECSESSIONID* lpSessionId, unsigned int* lpulServerCapabilities, unsigned long long *lpllFlags, LPGUID lpsServerGuid, const std::string appVersion, const std::string appMisc)
 {
-	ECRESULT		er = KCERR_LOGON_FAILED;
+#define KOPANO_GSS_SERVICE "kopano"
+	ECRESULT er = KCERR_LOGON_FAILED;
+#ifdef HAVE_GSSAPI
+	OM_uint32 minor, major;
+	gss_buffer_desc pr_buf;
+	gss_name_t principal = GSS_C_NO_NAME;
+	gss_ctx_id_t gss_ctx = GSS_C_NO_CONTEXT;
+	gss_OID_desc mech_spnego = {6, const_cast<char *>("\053\006\001\005\005\002")};
+	gss_buffer_desc secbufout, secbufin;
+	struct xsd__base64Binary sso_data;
+	struct ssoLogonResponse resp;
+	struct xsd__base64Binary licreq = {0, 0};
+
+	pr_buf.value = const_cast<char *>(KOPANO_GSS_SERVICE);
+	pr_buf.length = sizeof(KOPANO_GSS_SERVICE) - 1;
+	/* GSSAPI automagically appends @server */
+	major = gss_import_name(&minor, &pr_buf,
+	        GSS_C_NT_HOSTBASED_SERVICE, &principal);
+	if (GSS_ERROR(major))
+		goto exit;
+
+	resp.ulSessionId = 0;
+	do {
+		major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL,
+		        &gss_ctx, principal, &mech_spnego, GSS_C_CONF_FLAG,
+		        GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS,
+		        resp.ulSessionId == 0 ? GSS_C_NO_BUFFER : &secbufin,
+		        nullptr, &secbufout, nullptr, nullptr);
+		if (GSS_ERROR(major))
+			goto exit;
+
+		/* Send GSS state to kopano-server */
+		sso_data.__ptr = reinterpret_cast<unsigned char *>(secbufout.value);
+		sso_data.__size = secbufout.length;
+
+		if (lpCmd->ns__ssoLogon(resp.ulSessionId,
+		    const_cast<char *>(strUsername.c_str()),
+		    const_cast<char *>(strImpersonateUser.c_str()), &sso_data,
+		    const_cast<char *>(PROJECT_VERSION_CLIENT_STR),
+		    ulCapabilities, licreq, ecSessionGroupId, szAppName,
+		    const_cast<char *>(appVersion.c_str()),
+		    const_cast<char *>(appMisc.c_str()), &resp) != SOAP_OK)
+			goto exit;
+		if (resp.er != KCERR_SSO_CONTINUE)
+			break;
+
+		secbufin.value = static_cast<void *>(resp.lpOutput->__ptr);
+		secbufin.length = resp.lpOutput->__size;
+		gss_release_buffer(&minor, &secbufout);
+		/* Return kopano-server response to GSS */
+	} while (true);
+	er = resp.er;
+	if (er != erSuccess)
+		goto exit;
+	*lpSessionId = resp.ulSessionId;
+	*lpulServerCapabilities = resp.ulCapabilities;
+	if (resp.sServerGuid.__ptr != nullptr &&
+	    resp.sServerGuid.__size == sizeof(*lpsServerGuid))
+		memcpy(lpsServerGuid, resp.sServerGuid.__ptr, sizeof(*lpsServerGuid));
+ exit:
+	gss_release_buffer(&minor, &secbufout);
+	gss_delete_sec_context(&minor, &gss_ctx, nullptr);
+	gss_release_name(&minor, &principal);
+#endif
 	return er;
+#undef KOPANO_GSS_SERVICE
 }
 
 HRESULT WSTransport::HrGetPublicStore(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID, string *lpstrRedirServer)
