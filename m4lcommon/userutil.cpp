@@ -457,10 +457,8 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 {
 	SRowSetPtr ptrRows;
 	MAPITablePtr ptrTable;
-	SRestriction sResAllUsers;
 	SPropValue sPropUser;
 	SPropValue sPropDisplayType;
-	SRestriction sResSub[2];
 	static constexpr const SizedSPropTagArray(2, sCols) =
 		{2, {PR_EC_HOMESERVER_NAME_W, PR_DISPLAY_NAME_W}};
 
@@ -469,20 +467,6 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 
 	sPropUser.ulPropTag = PR_OBJECT_TYPE;
 	sPropUser.Value.ul = MAPI_MAILUSER;
-
-	sResSub[0].rt = RES_PROPERTY;
-	sResSub[0].res.resProperty.relop = RELOP_NE;
-	sResSub[0].res.resProperty.ulPropTag = PR_DISPLAY_TYPE;
-	sResSub[0].res.resProperty.lpProp = &sPropDisplayType;
-
-	sResSub[1].rt = RES_PROPERTY;
-	sResSub[1].res.resProperty.relop = RELOP_EQ;
-	sResSub[1].res.resProperty.ulPropTag = PR_OBJECT_TYPE;
-	sResSub[1].res.resProperty.lpProp = &sPropUser;
-
-	sResAllUsers.rt = RES_AND;
-	sResAllUsers.res.resAnd.cRes = 2;
-	sResAllUsers.res.resAnd.lpRes = sResSub;
 
 	HRESULT hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
 	if(hr != hrSuccess) {
@@ -496,7 +480,10 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	}
 
 	// Restrict to users (not groups) 
-	hr = ptrTable->Restrict(&sResAllUsers, TBL_BATCH);
+	hr = ECAndRestriction(
+		ECPropertyRestriction(RELOP_NE, PR_DISPLAY_TYPE, &sPropDisplayType, ECRestriction::Cheap) +
+		ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &sPropUser, ECRestriction::Cheap))
+	.RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to get total user count: 0x%08X", hr);
 		return hr;

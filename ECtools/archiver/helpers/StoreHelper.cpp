@@ -354,13 +354,7 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFo
 	MAPIFolderPtr ptrSubFolder;
 	ULONG ulType = 0;
 	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
-	SRestriction			sRestriction = {0};
 	SPropValue				sResPropValue = {0};
-	
-	sRestriction.rt = RES_PROPERTY;
-	sRestriction.res.resProperty.relop = RELOP_EQ;
-	sRestriction.res.resProperty.ulPropTag = PR_DISPLAY_NAME;
-	sRestriction.res.resProperty.lpProp = &sResPropValue;
 	
 	sResPropValue.ulPropTag = PR_DISPLAY_NAME;
 	sResPropValue.Value.LPSZ = (LPTSTR)strFolder.c_str();
@@ -371,8 +365,8 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFo
 	hr = ptrTable->SetColumns(sptaFolderProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	
-	hr = ptrTable->FindRow(&sRestriction, BOOKMARK_BEGINNING, 0);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_NAME, &sResPropValue, ECRestriction::Cheap)
+	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {
 		hr = ptrTable->QueryRows(1, TBL_NOADVANCE, &ptrRowSet);
 		if (hr != hrSuccess)

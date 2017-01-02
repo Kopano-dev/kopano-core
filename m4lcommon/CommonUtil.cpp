@@ -544,7 +544,6 @@ HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProvid
 	HRESULT			hr = hrSuccess;
 	object_ptr<IMsgServiceAdmin> lpMsgServiceAdmin;
 	object_ptr<IMAPITable> lpServiceTable;
-	SRestriction	sRestrict;
 	SPropValue		sPropRestrict;
 	rowset_ptr lpsRowSet;
 	const SPropValue *lpProviderUID = NULL;
@@ -562,12 +561,9 @@ HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProvid
 	// restrict the table
 	sPropRestrict.ulPropTag = PR_SERVICE_NAME_A;
 	sPropRestrict.Value.lpszA = const_cast<char *>("ZARAFA6");
-	sRestrict.res.resContent.ulFuzzyLevel = FL_FULLSTRING;
-	sRestrict.res.resContent.ulPropTag = PR_SERVICE_NAME_A;
-	sRestrict.res.resContent.lpProp = &sPropRestrict;
-	sRestrict.rt = RES_CONTENT;
-
-	hr = lpServiceTable->Restrict(&sRestrict,0);
+	hr = ECContentRestriction(FL_FULLSTRING, PR_SERVICE_NAME_A,
+	     &sPropRestrict, ECRestriction::Cheap)
+	     .RestrictTable(lpServiceTable, 0);
 	if(hr != hrSuccess)
 		return hr;
 	

@@ -1269,7 +1269,6 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 {
 	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrTable;
-	SRestriction resHierarchy = {0};
 	static constexpr const SizedSSortOrderSet(1, ssosHierarchy) = {1, 0, 0, {PR_DEPTH, TABLE_SORT_ASCEND}};
 	SizedSPropTagArray(5, sptaHierarchyProps) = {5, {PR_NULL, PR_ENTRYID, PR_CONTENT_COUNT, PR_FOLDER_CHILD_COUNT, PR_DISPLAY_NAME}};
 	enum {IDX_REF_ITEM_ENTRYID, IDX_ENTRYID, IDX_CONTENT_COUNT, IDX_FOLDER_CHILD_COUNT, IDX_DISPLAY_NAME};
@@ -1279,16 +1278,14 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	PROPMAP_INIT(lpArchiveRoot)
 	
 	sptaHierarchyProps.aulPropTag[IDX_REF_ITEM_ENTRYID] = PROP_REF_ITEM_ENTRYID;
-	
-	resHierarchy.rt = RES_EXIST;
-	resHierarchy.res.resExist.ulPropTag = PROP_REF_ITEM_ENTRYID;
 	hr = lpArchiveRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
 		goto exitpm;
 	hr = ptrTable->SetColumns(sptaHierarchyProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exitpm;
-	hr = ptrTable->Restrict(&resHierarchy, TBL_BATCH);
+	hr = ECExistRestriction(PROP_REF_ITEM_ENTRYID)
+	     .RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exitpm;
 	hr = ptrTable->SortTable(ssosHierarchy, TBL_BATCH);

@@ -24,6 +24,7 @@
 #include "MAPISMTPTransport.h"
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
+#include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
 
@@ -240,8 +241,6 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
     bool bAlwaysExpandDistrList)
 {
 	HRESULT hr = hrSuccess;
-	SRestriction sRestriction;
-	SPropValue sRestrictProp;
 	object_ptr<IMAPITable> lpRTable;
 	bool bResend = false;
 	std::set<std::wstring> setGroups; // Set of groups to make sure we don't get into an expansion-loop
@@ -259,15 +258,13 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 
 	// When resending, only send to MAPI_P1 recipients
 	if(bResend) {
-		sRestriction.rt = RES_PROPERTY;
-		sRestriction.res.resProperty.relop = RELOP_EQ;
-		sRestriction.res.resProperty.ulPropTag = PR_RECIPIENT_TYPE;
-		sRestriction.res.resProperty.lpProp = &sRestrictProp;
-
+		SPropValue sRestrictProp;
 		sRestrictProp.ulPropTag = PR_RECIPIENT_TYPE;
 		sRestrictProp.Value.ul = MAPI_P1;
 
-		hr = lpRTable->Restrict(&sRestriction, TBL_BATCH);
+		hr = ECPropertyRestriction(RELOP_EQ, PR_RECIPIENT_TYPE,
+		     &sRestrictProp, ECRestriction::Cheap)
+		     .RestrictTable(lpRTable, TBL_BATCH);
 		if (hr != hrSuccess)
 			return hr;
 	}

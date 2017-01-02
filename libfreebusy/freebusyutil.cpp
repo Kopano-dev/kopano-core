@@ -21,6 +21,7 @@
 #include <mapidefs.h>
 #include <mapix.h>
 #include <mapiutil.h>
+#include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
 #include "freebusyutil.h"
 #include <kopano/stringutil.h>
@@ -106,7 +107,6 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	HRESULT			hr = S_OK;
 	object_ptr<IMAPIFolder> lpFreeBusyFolder;
 	object_ptr<IMAPITable> lpMapiTable;
-	SRestriction	sRestriction;
 	SPropValue		sPropUser;
 	rowset_ptr lpRows;
 	ULONG			ulObjType = 0;
@@ -137,13 +137,8 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	sPropUser.ulPropTag = PR_ADDRESS_BOOK_ENTRYID;
 	sPropUser.Value.bin.cb = cbUserEntryID;
 	sPropUser.Value.bin.lpb = (LPBYTE)lpUserEntryID;
-
-	sRestriction.rt = RES_PROPERTY;
-	sRestriction.res.resProperty.ulPropTag = PR_ADDRESS_BOOK_ENTRYID;
-	sRestriction.res.resProperty.relop = RELOP_EQ;
-	sRestriction.res.resProperty.lpProp = &sPropUser;
-
-	hr = lpMapiTable->Restrict(&sRestriction, TBL_BATCH);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_ADDRESS_BOOK_ENTRYID, &sPropUser, ECRestriction::Cheap)
+	     .RestrictTable(lpMapiTable, TBL_BATCH);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpMapiTable->SetColumns(sPropsFreebusyTable, TBL_BATCH);

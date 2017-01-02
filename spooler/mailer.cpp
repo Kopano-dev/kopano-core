@@ -30,6 +30,7 @@
 #include <mapi.h>
 
 #include <kopano/ECLogger.h>
+#include <kopano/ECRestriction.h>
 #include <kopano/ECConfig.h>
 #include <kopano/IECUnknown.h>
 #include <kopano/ecversion.h>
@@ -620,24 +621,19 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
-	SRestriction sRestriction;
 	SPropValue sPropRestrict;
 	
 	sPropRestrict.ulPropTag = PR_RECIPIENT_TYPE;
 	sPropRestrict.Value.ul = MAPI_P1;
-	
-	sRestriction.rt = RES_PROPERTY;
-	sRestriction.res.resProperty.relop = RELOP_EQ;
-	sRestriction.res.resProperty.ulPropTag = PR_RECIPIENT_TYPE;
-	sRestriction.res.resProperty.lpProp = &sPropRestrict;
-	
+
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): GetRecipientTable failed %x", hr);
 		return hr;
 	}
-		
-	hr = lpTable->Restrict(&sRestriction, 0);
+	
+	hr = ECPropertyRestriction(RELOP_EQ, PR_RECIPIENT_TYPE,
+	     &sPropRestrict, ECRestriction::Cheap).RestrictTable(lpTable, 0);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): Restrict failed %x", hr);
 		return hr;

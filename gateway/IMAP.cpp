@@ -1592,7 +1592,6 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 	memory_ptr<SPropValue> lpPropCounters, lpPropMaxID;
 	wstring strIMAPFolder;
 	SPropValue sPropMaxID;
-    SRestriction sRestrictRecent;
     
 	if (!lpSession) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no session");
@@ -1665,13 +1664,8 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 
                 sPropMaxID.ulPropTag = PR_EC_IMAP_ID;
                 sPropMaxID.Value.ul = lpPropMaxID->Value.ul;
-                
-                sRestrictRecent.rt = RES_PROPERTY;
-                sRestrictRecent.res.resProperty.ulPropTag = PR_EC_IMAP_ID;
-                sRestrictRecent.res.resProperty.relop = RELOP_GT;
-                sRestrictRecent.res.resProperty.lpProp = &sPropMaxID;
-                
-                hr = lpTable->Restrict(&sRestrictRecent, TBL_BATCH);
+                hr = ECPropertyRestriction(RELOP_GT, PR_EC_IMAP_ID, &sPropMaxID, ECRestriction::Cheap)
+                     .RestrictTable(lpTable, TBL_BATCH);
                 if(hr != hrSuccess) {
                     hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error getting recent");
 					return hr2 != hrSuccess ? hr2 : hr;
@@ -3598,7 +3592,6 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 	LONG nRow = -1;
 	ULONG ulDataItemNr;
 	string strDataItem;
-	SRestriction sRestriction;
 	SPropValue sPropVal;
 	string strResponse;
 	memory_ptr<SPropTagArray> lpPropTags;
@@ -3731,11 +3724,8 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 	}
 
 	// Setup a find restriction that we modify for each row
-	sRestriction.rt = RES_PROPERTY;
-	sRestriction.res.resProperty.relop = RELOP_EQ;
-	sRestriction.res.resProperty.ulPropTag = PR_INSTANCE_KEY;
-	sRestriction.res.resProperty.lpProp = &sPropVal;
 	sPropVal.ulPropTag = PR_INSTANCE_KEY;
+	ECPropertyRestriction sRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropVal, ECRestriction::Cheap);
     
 	// Loop through all requested rows, and get the data for each (FIXME: slow for large requests)
 	for (auto mail_idx : lstMails) {
@@ -3761,7 +3751,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 				lpRows.reset();
                 
                 // Row was not found in our current data, request new data
-				if (m_lpTable->FindRow(&sRestriction, BOOKMARK_CURRENT, 0) == hrSuccess &&
+				if (sRestriction.FindRowIn(m_lpTable, BOOKMARK_CURRENT, 0) == hrSuccess &&
 				    m_lpTable->QueryRows(ulReadAhead, 0, &~lpRows) == hrSuccess &&
 				    lpRows->cRows != 0) {
 					// The row we want is the first returned row
@@ -6135,7 +6125,6 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
 {
     HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-    SRestriction sRestrict;
     SPropValue sProp;
 	static constexpr const SizedSPropTagArray(2, sptaCols) =
 		{2, {PR_ENTRYID, PR_DISPLAY_NAME_W}};
@@ -6144,12 +6133,7 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
 	memory_ptr<SPropValue> lpProp;
 	object_ptr<IMAPIFolder> lpSubTree;
     ULONG ulObjType = 0;
-    
-    sRestrict.rt = RES_PROPERTY;
-    sRestrict.res.resProperty.ulPropTag = PR_DISPLAY_NAME_W;
-    sRestrict.res.resProperty.relop = RELOP_EQ;
-    sRestrict.res.resProperty.lpProp = &sProp;
-    
+
     sProp.ulPropTag = PR_DISPLAY_NAME_W;
     sProp.Value.lpszW = (WCHAR *)strFolder.c_str();
     
@@ -6198,9 +6182,9 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
     hr = lpTable->SetColumns(sptaCols, 0);
     if(hr != hrSuccess)
 		return hr;
-        
-    hr = lpTable->Restrict(&sRestrict, TBL_BATCH);
-    if(hr != hrSuccess)
+	hr = ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_NAME_W, &sProp, ECRestriction::Cheap)
+	     .RestrictTable(lpTable, TBL_BATCH);
+	if (hr != hrSuccess)
 		return hr;
 
 	rowset_ptr lpRowSet;
