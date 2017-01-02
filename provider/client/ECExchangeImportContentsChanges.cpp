@@ -939,7 +939,7 @@ static HRESULT HrRestrictionContains(const SRestriction *lpRestriction,
  * to be valid.
  *
  * @param[in]	lpRestriction		The restriction that is to be verified.
- * @param[in]	lpAdditionalREN		An MV_BINARY property that contains the entryids of the three
+ * @param[in]	lpAdditionalREN		A MV_BINARY property that contains the entryids of the three
  *									three conflict folders.
  *
  * @retval	hrSuccess			The restriction is valid for the passed AdditionalREN. This means that

@@ -44,7 +44,7 @@ function make_mapi_e($code)
 
 
 /**
-* Function to make an warning
+* Function to make a warning
 */
 function make_mapi_s($code)
 {

@@ -1542,7 +1542,7 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 }
 
 /** 
- * Make an MAPI exception message, and add this to the previous parsed
+ * Make a MAPI exception message, and add this to the previous parsed
  * icalitem (which is the main ical item).
  * 
  * @param[in] lpEventRoot		The top ical event which is recurring

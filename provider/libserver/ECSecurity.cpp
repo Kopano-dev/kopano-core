@@ -949,7 +949,7 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags, list<localobjectdet
 	if (er != erSuccess)
 		return er;
 
-	/* A user is only admin over an company when he has privileges to view the company */
+	/* A user is only admin over a company when he has privileges to view the company */
 	for (auto iterObjects = lpObjects->begin(); iterObjects != lpObjects->cend(); ) {
 		if (IsUserObjectVisible(iterObjects->ulId) != erSuccess) {
 			auto iterObjectsRemove = iterObjects;

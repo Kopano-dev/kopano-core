@@ -2531,7 +2531,7 @@ exit:
 }
 
 /** 
- * Copy an single-instance id to another object, if possible.
+ * Copy a single-instance id to another object, if possible.
  * 
  * @param lpSrc Source object (message or attachment)
  * @param lpDst Destination object to have the same contents as source
@@ -3149,7 +3149,7 @@ exit:
 }
 
 /**
- * Check if the interface is an validate IMAPIProp interface
+ * Check if the interface is a valid IMAPIProp interface
  *
  * @param[in] lpInterface Pointer to an interface GUID
  *
@@ -3553,7 +3553,7 @@ exit:
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 	if (hr == hrSuccess && lppProblems != nullptr)
-		// may not return a problem set when we have an warning/error code in hr
+		// may not return a problem set when we have a warning/error code in hr
 		*lppProblems = lpProblems.release();
 	return hr;
 }

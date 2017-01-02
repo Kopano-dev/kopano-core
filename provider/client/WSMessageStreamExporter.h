@@ -29,7 +29,7 @@ class WSTransport;
 class WSSerializedMessage;
 
 /**
- * This object encapsulates an set of exported streams. It allows the user to request each individual stream. The
+ * This object encapsulates a set of exported streams. It allows the user to request each individual stream. The
  * streams must be requested in the correct sequence.
  */
 class WSMessageStreamExporter _kc_final : public ECUnknown {

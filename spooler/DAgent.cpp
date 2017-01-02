@@ -2575,7 +2575,7 @@ static void RespondMessageExpired(recipients_t::const_iterator iter,
  *
  * @param[in] lpUserSession optional session of one user the message is being delivered to (cmdline dagent, NULL on LMTP mode)
  * @param[in] lpMessage an already delivered message
- * @param[in] bFallbackDelivery already delivered message is an fallback message
+ * @param[in] bFallbackDelivery already delivered message is a fallback message
  * @param[in] strMail the rfc2822 received email
  * @param[in] strServer uri of the storage server to connect to
  * @param[in] listRecipients list of recipients present on the server connecting to

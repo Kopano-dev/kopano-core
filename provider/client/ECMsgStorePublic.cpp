@@ -256,7 +256,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 		if(hr != hrSuccess)
 			return hr;
 
-		// Get the parent entryid of a folder an check if this is the online subtree entryid. When it is, 
+		// Get the parent entryid of a folder a check if this is the online subtree entryid. When it is, 
 		// change the parent to the static parent entryid
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 		if(hr != hrSuccess)

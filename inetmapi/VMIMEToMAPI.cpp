@@ -174,7 +174,7 @@ VMIMEToMAPI::~VMIMEToMAPI()
 }
 
 /** 
- * Parse a RFC-822 email, and return the IMAP BODY and BODYSTRUCTURE
+ * Parse a RFC 2822 email, and return the IMAP BODY and BODYSTRUCTURE
  * fetch values.
  * 
  * @param[in] input The email to parse
@@ -198,7 +198,7 @@ HRESULT VMIMEToMAPI::createIMAPProperties(const std::string &input, std::string 
 }
 
 /** 
- * Entry point for the conversion from RFC822 mail to IMessage MAPI object.
+ * Entry point for the conversion from RFC 2822 mail to IMessage MAPI object.
  *
  * Finds the first block of headers to place in the
  * PR_TRANSPORT_MESSAGE_HEADERS property. Then it lets libvmime parse
@@ -206,7 +206,7 @@ HRESULT VMIMEToMAPI::createIMAPProperties(const std::string &input, std::string 
  * fillMAPIMail. Afterwards it may handle signed messages, and set an
  * extra flag when all attachments were marked hidden.
  *
- * @param[in]	input	std::string containing the RFC822 mail.
+ * @param[in]	input	std::string containing the RFC 2822 mail.
  * @param[out]	lpMessage	Pointer to a message which was already created on a IMAPIFolder.
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
@@ -278,7 +278,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			static constexpr const SizedSPropTagArray(2, sptaAttach) =
 				{2, {PR_ATTACH_NUM, PR_ATTACHMENT_HIDDEN}};
 			// Remove the parsed attachments since the client should be reading them from the 
-			// signed rfc822 data we are about to add.
+			// signed RFC 2822 data we are about to add.
 			
 			hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 			if(hr != hrSuccess)
@@ -293,7 +293,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 					goto exit;
 			}
 			
-			// Include the entire rfc822 data in an attachment for the client to check
+			// Include the entire RFC 2822 data in an attachment for the client to check
 			auto vmHeader = vmMessage->getHeader();
 			object_ptr<IAttach> lpAtt;
 			hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~lpAtt);
@@ -680,8 +680,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			}
 		}
 		// When parse_smime_signed = True, we don't want to change the delivery date, since otherwise
-		// clients which decode an signed email using mapi_inetmapi_imtomapi() will have a different deliver time
-		// when opening an signed email in for example the WebApp
+		// clients which decode a signed email using mapi_inetmapi_imtomapi() will have a different deliver time
+		// when opening a signed email in for example the WebApp
 		if (!m_dopt.parse_smime_signed && (!m_mailState.ulMsgInMsg || found_date)) {
 			msgProps[nProps].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(date);
@@ -1840,7 +1840,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
  *
  * composite:
  *	multipart			mixed, alternative, digest ( contains message ), paralell, 
- *	message				rfc822, partial ( please no fragmentation and reassembly ), external-body
+ *	message				rfc 2822, partial ( please no fragmentation and reassembly ), external-body
  *
  * @param[in]	vmHeader		vmime header part which describes the contents of the body in vmBody.
  * @param[in]	vmBody			a body part of the mail.
@@ -2589,7 +2589,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 			attProps[nProps++].Value.lpszA = (char*)strLocation.c_str();
 		}
 
-		// make hidden when inline, is an image or text, has an content id or location, is an HTML mail,
+		// make hidden when inline, is an image or text, has a content id or location, is an HTML mail,
 		// has a CID reference in the HTML or has a location reference in the HTML.
 		if (cdv->getName() == vmime::contentDispositionTypes::INLINE &&
 			(mt->getType() == vmime::mediaTypes::IMAGE || mt->getType() == vmime::mediaTypes::TEXT) &&
@@ -3219,7 +3219,7 @@ static std::string StringEscape(const char *input, const char *tokens,
 }
 
 /** 
- * Convert an vmime mailbox to an IMAP envelope list part
+ * Convert a vmime mailbox to an IMAP envelope list part
  * 
  * @param[in] mbox vmime mailbox (email address) to convert
  * 
@@ -3257,7 +3257,7 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbo
 }
 
 /** 
- * Convert an vmime addresslist (To/Cc/Bcc) to an IMAP envelope list part.
+ * Convert a vmime addresslist (To/Cc/Bcc) to an IMAP envelope list part.
  * 
  * @param[in] aList vmime addresslist to convert
  * 

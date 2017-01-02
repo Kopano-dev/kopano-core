@@ -468,9 +468,9 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 }
 
 /**
- * Return an mimetype for filename of an attachment.
+ * Return a MIME type for the filename of an attachment.
  *
- * Mimetype is found by using the extension. Also returns if the
+ * The MIME type is found using the extension. Also returns if the
  * attachment should be attached in text or binary mode. Currently
  * only edifact files (.edi) are forced as text attachment.
  *
@@ -677,7 +677,7 @@ HRESULT MAPIToVMIME::setBoundaries(vmime::shared_ptr<vmime::header> vmHeader,
 }
 
 /**
- * Build a normal vmime message from an MAPI lpMessage.
+ * Build a normal vmime message from a MAPI lpMessage.
  *
  * @param[in]	lpMessage		MAPI message to convert
  * @param[in]	bSkipContent	set to true if only the headers of the e-mail are required to obtain
@@ -796,7 +796,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 }
 
 /**
- * Build an MDN vmime message from an MAPI lpMessage.
+ * Build an MDN vmime message from a MAPI lpMessage.
  *
  * MDN (Mail Disposition Notification) is a read receipt message,
  * which notifies a sender that the e-mail was read.
@@ -1314,7 +1314,7 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 		// if mailing to a group without email address
 		vmMailboxNew = vmime::make_shared<vmime::mailboxGroup>(getVmimeTextFromWide(strName));
 	} else if (sopt.no_recipients_workaround == true) {
-		// gateway must always return an mailbox object
+		// gateway must always return a mailbox object
 		if (strEmail.empty())
 			strEmail = L"@";	// force having an address to avoid vmime problems
 		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail));
@@ -1569,7 +1569,7 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
  * \li Thread-Index
  * \li Thread-Topic
  * \li Sensitivity
- * \li Expity-Time
+ * \li Expiry-Time
  *  
  * @param[in]	lpMessage	Message to convert extra headers for
  * @param[in]	charset		Charset to use in Thread-Topic header
@@ -1868,7 +1868,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 /**
  * Set Reply-To header.
  *
- * @note In RFC-822 and MAPI, you can set multiple Reply-To
+ * @note In RFC 2822 and MAPI, you can set multiple Reply-To
  * values. However, in vmime this is currently not possible, so we
  * only convert the first.
  *

@@ -134,7 +134,7 @@ const char* GetMAPIErrorMessage(HRESULT errorCode)
 }
 
 /**
- * Prints a user friendly string for an given HRESULT value.
+ * Prints a user friendly string for a given HRESULT value.
  *
  * We should try to be as informative as possible to the user, try to
  * get a nice descriptive message for the error and in the last case

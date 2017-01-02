@@ -918,7 +918,7 @@ exit:
  * - mapi_logon_zarafa() creates a session and returns this
  * - mapi_getmsgstorestable() to get the entryid of the default and public store
  * - mapi_openmsgstore() to open the default user store + public store
- * - mapi_msgstore_createentryid() retuns an store entryid of requested user
+ * - mapi_msgstore_createentryid() retuns a store entryid of requested user
  * - store entryid can be used with mapi_openmsgstore() to open
  *
  * Removed, how it did work in the far past:
@@ -3056,7 +3056,7 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 	zval		*res		= NULL;
 	LPMAPIPROP	lpMapiProp	= NULL;
 	long		proptag		= 0, flags = 0; // open default readable
-	char		*guidStr	= NULL; // guid is given as an char array
+	char		*guidStr	= NULL; // guid is given as a char array
 	ULONG		guidLen		= 0;
 	// return value
 	LPSTREAM	pStream		= NULL;
@@ -3566,7 +3566,7 @@ ZEND_FUNCTION(mapi_openproperty)
 	zval		*res		= NULL;
 	LPMAPIPROP	lpMapiProp	= NULL;
 	long		proptag		= 0, flags = 0, interfaceflags = 0; // open default readable
-	char		*guidStr	= NULL; // guid is given as an char array
+	char		*guidStr	= NULL; // guid is given as a char array
 	ULONG		guidLen		= 0;
 	// return value
 	IUnknown*	lpUnk		= NULL;

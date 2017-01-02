@@ -280,7 +280,7 @@ HRESULT PHPArraytoPropTagArray(zval * prop_value_array, void *lpBase, LPSPropTag
 }
 
 /*
-* Converts an PHP property value array to a MAPI property value structure
+* Converts a PHP property value array to a MAPI property value structure
 */
 HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues, LPSPropValue *lppPropValArray TSRMLS_DC)
 {
@@ -1566,7 +1566,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zv
 		* PHP wants a string as array key. PHP will transform this to zval integer when possible.
 		* Because MAPI works with ULONGS, some properties (namedproperties) are bigger than LONG_MAX
 		* and they will be stored as a zval string.
-		* To prevent this we cast the ULONG to an signed long. The number will look a bit weird but it
+		* To prevent this we cast the ULONG to a signed long. The number will look a bit weird but it
 		* will work.
 		*/
 		sprintf(pulproptag, "%i",PropTagToPHPTag(pPropValue->ulPropTag));

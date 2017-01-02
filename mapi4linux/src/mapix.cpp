@@ -1904,7 +1904,7 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpIn
 	}
 
 	if (lpEntryID == NULL && (lpInterface == NULL || *lpInterface == IID_IABContainer)) {
-		// 2.1a1: open root container, make an M4LABContainer which have the ABContainers of all providers as hierarchy entries.
+		// 2.1a1: open root container, make a M4LABContainer which have the ABContainers of all providers as hierarchy entries.
 		M4LABContainer *lpCont = NULL;
 		SPropValue sPropObjectType;
 		lpCont = new M4LABContainer(m_lABProviders);

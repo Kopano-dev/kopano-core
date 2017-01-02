@@ -190,7 +190,7 @@ SCODE CreateIProp(LPCIID             lpInterface,
 
 /*
  *  Type definition for idle functions.  An idle function takes one
- *  parameter, an PV, and returns a BOOL value.
+ *  parameter, a PV, and returns a BOOL value.
  */
 
 typedef BOOL (FNIDLE)(LPVOID);

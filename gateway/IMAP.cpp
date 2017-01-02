@@ -1767,7 +1767,7 @@ exit:
  *
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strFolderParam the folder to create the message in, in IMAP UTF-7 charset
- * @param[in] strData the RFC-822 formatted email to save
+ * @param[in] strData the RFC 2822 formatted email to save
  * @param[in] strFlags optional, contains a list of extra flags to save on the message (eg. \Seen)
  * @param[in] strTime optional, a timestamp for the message: internal date is received date
  * 
@@ -2422,7 +2422,7 @@ exit:
 }
 
 /** 
- * Convert an MAPI array of properties (from a table) to an IMAP FLAGS list.
+ * Convert a MAPI array of properties (from a table) to an IMAP FLAGS list.
  * 
  * @todo, flags always are in a list, so this function should add the ()
  *
@@ -2609,7 +2609,7 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 
 	// Outlook (express) IDLEs without selecting a folder.
 	// When sending an error from this command, Outlook loops on the IDLE command forever :(
-	// Therefore, we can never return an HrResultBad() or ...No() here, so we always "succeed"
+	// Therefore, we can never return a HrResultBad() or ...No() here, so we always "succeed"
 
 	m_strIdleTag = strTag;
 	m_bIdleMode = true;
@@ -4455,7 +4455,7 @@ HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool b
  *
  */
 /** 
- * Returns a body part of an RFC-822 message
+ * Returns a body part of an RFC 2822 message
  * 
  * @param[out] strMessagePart The requested message part
  * @param[in] strMessage The full mail to scan for the part
@@ -5598,7 +5598,7 @@ string IMAP::GetHeaderValue(const string &strMessage, const string &strHeader, c
  * Create a bodystructure (RFC 3501). Since this is parsed from a
  * VMIME generated message, this function has alot of assumptions. It
  * will still fail to correctly generate a body structure in the case
- * when an email contains another (quoted) RFC-822 email.
+ * when an email contains another (quoted) RFC 2822 email.
  * 
  * @param[in] bExtended generate BODYSTRUCTURE (true) or BODY (false) version 
  * @param[out] strBodyStructure The generated body structure
@@ -5614,7 +5614,7 @@ HRESULT IMAP::HrGetBodyStructure(bool bExtended, string &strBodyStructure, const
 
 /** 
  * Convert a MAPI FILETIME structure to a IMAP string. This string is
- * slightly differently formatted than an RFC-822 string.
+ * slightly differently formatted than an RFC 2822 string.
  *
  * Format: 01-Jan-2006 00:00:00 +0000
  * 
@@ -5954,7 +5954,7 @@ bool IMAP::MatchFolderPath(wstring strFolder, const wstring& strPattern)
 }
 
 /** 
- * Parse RFC-822 email headers in to a list of string <name, value> pairs.
+ * Parse RFC 2822 email headers in to a list of string <name, value> pairs.
  * 
  * @param[in] strHeaders Email headers to parse (this data will be modified and should not be used after this function)
  * @param[out] lstHeaders list of headers, in header / value pairs

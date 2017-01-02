@@ -861,7 +861,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	if (er != erSuccess)
 		goto exit;
 
-	// Although it doesn't make sence for the message deleter to include EC_DELETE_FOLDERS, it doesn't hurt either, since they shouldn't be there
+	// Although it doesn't make sense for the message deleter to include EC_DELETE_FOLDERS, it doesn't hurt either, since they shouldn't be there
 	// and we really want to delete all the softdeleted items anyway.
 	ulDeleteFlags = EC_DELETE_CONTAINER | EC_DELETE_FOLDERS | EC_DELETE_MESSAGES | EC_DELETE_RECIPIENTS | EC_DELETE_ATTACHMENTS | EC_DELETE_HARD_DELETE;
 

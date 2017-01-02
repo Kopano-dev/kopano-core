@@ -1467,7 +1467,7 @@ ECLocale::ECLocale(int category, const char *locale)
 {
 	if (!m_locale) {
 		/* Three things might have happened here:
-		 * 1. The passed locale makes no sence or is not installed on the system
+		 * 1. The passed locale makes no sense or is not installed on the system
 		 * 2. No charset was specified, and the default charset for a locale is
 		 *    not installed while the utf-8 charset is.
 		 * 3. A specific charset is specified, which is not installed while the

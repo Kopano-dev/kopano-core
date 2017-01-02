@@ -1936,7 +1936,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	}
 
 	/**
-	 * Function which returns basedate of an changed occurrance from globalID of meeting request.
+	 * Function which returns basedate of a changed occurrance from globalID of meeting request.
 	 *@param binary $goid globalID
 	 *@return boolean true if basedate is found else false it not found
 	 */

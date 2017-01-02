@@ -287,7 +287,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 /** 
  * Create BODY and BODYSTRUCTURE strings for IMAP.
  * 
- * @param[in] input an RFC-822 email
+ * @param[in] input an RFC 2822 email
  * @param[out] lpSimple optional BODY result
  * @param[out] lpExtended optional BODYSTRUCTURE result
  * 
