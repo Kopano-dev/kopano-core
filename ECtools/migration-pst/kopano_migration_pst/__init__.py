@@ -31,7 +31,8 @@ class Service(kopano.Service):
                 self.import_attachments(submessage, submapiobj)
                 self.import_recipients(submessage, submapiobj)
             elif isinstance(parent, pst.Attachment) or embedded or PROP_TAG(proptype, propid) != PR_ATTACH_NUM: # work around webapp bug? KC-390
-                props2.append(SPropValue(PROP_TAG(proptype, propid), value))
+                if proptype not in (PT_CURRENCY, PT_MV_CURRENCY, PT_ACTIONS, PT_SRESTRICT, PT_SVREID): # unsupported by parser
+                    props2.append(SPropValue(PROP_TAG(proptype, propid), value))
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 

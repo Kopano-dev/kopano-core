@@ -720,7 +720,8 @@ class PType:
         elif self.ptype == PTypeEnum.PtypFloating64:
             return struct.unpack('d', bytes)[0]
         elif self.ptype == PTypeEnum.PtypCurrency:
-            raise PSTException('PtypCurrency value not implemented')
+            return None
+#            raise PSTException('PtypCurrency value not implemented')
         elif self.ptype == PTypeEnum.PtypFloatingTime:
             return self.get_floating_time(bytes)
         elif self.ptype == PTypeEnum.PtypErrorCode:
@@ -738,11 +739,14 @@ class PType:
         elif self.ptype == PTypeEnum.PtypGuid:
             return bytes
         elif self.ptype == PTypeEnum.PtypServerId:
-            raise PSTException('PtypServerId value not implemented')
+            return None
+#            raise PSTException('PtypServerId value not implemented')
         elif self.ptype == PTypeEnum.PtypRestriction:
-            raise PSTException('PtypRestriction value not implemented')
+            return None
+#            raise PSTException('PtypRestriction value not implemented')
         elif self.ptype == PTypeEnum.PtypRuleAction:
-            raise PSTException('PtypRuleAction value not implemented')
+            return None
+#            raise PSTException('PtypRuleAction value not implemented')
         elif self.ptype == PTypeEnum.PtypBinary:
             #count = struct.unpack('H', bytes[:2])[0]
             return bytes
@@ -759,7 +763,8 @@ class PType:
             ccount = len(bytes) / 8
             return [struct.unpack('d', bytes[i*8:(i+1)*8])[0] for i in range(count)]
         elif self.ptype == PTypeEnum.PtypMultipleCurrency:
-            raise PSTException('PtypMultipleCurrency value not implemented')
+            return None
+#            raise PSTException('PtypMultipleCurrency value not implemented')
         elif self.ptype == PTypeEnum.PtypMultipleFloatingTime:
             count = len(bytes) / 8
             return [self.get_floating_time(bytes[i*8:(i+1)*8]) for i in range(count)]
