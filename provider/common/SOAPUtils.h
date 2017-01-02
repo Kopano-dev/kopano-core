@@ -80,8 +80,6 @@ ECRESULT			CopyNotificationStruct(struct soap *, const notification *from, notif
 ECRESULT			FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bFreeBase);
 ECRESULT			CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notificationArray *lpNotifyArrayTo);
 
-ECRESULT			FreeUserObjectArray(struct userobjectArray *lpUserobjectArray, bool bFreeBase);
-
 // Rights
 ECRESULT			FreeRightsArray(struct rightsArray *lpRights);
 ECRESULT			CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsArraySrc, struct rightsArray **lppRightsArrayDst);
@@ -97,8 +95,6 @@ ECRESULT			CopyCompanyDetailsToSoap(unsigned int ulId, entryId *lpCompanyEid, un
 											 const objectdetails_t &details, bool bCopyBinary, struct soap *soap, struct company *lpCompany);
 ECRESULT			CopyCompanyDetailsFromSoap(struct company *lpCompany, std::string *lpstrExternId, unsigned int ulAdmin,
 											   objectdetails_t *details, struct soap *soap);
-
-ECRESULT			FreeNamedPropArray(struct namedPropArray *array, bool bFreeBase);
 
 ULONG 				NormalizePropTag(ULONG ulPropTag);
 
