@@ -31,11 +31,6 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
-
-// string.hpp doesn't always include all subincludes
-#include <boost/algorithm/string/replace.hpp>
-
-// vmime
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>
 #include <vmime/contentTypeField.hpp>
@@ -3309,7 +3304,7 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::ref<vmime::mailbox> mbox)
 	buffer = "\"" + mbox->getEmail() + "\"";
 	pos = buffer.find("@");
 	if (pos != string::npos)
-		boost::algorithm::replace_first(buffer, "@", "\" \"");
+		buffer.replace(pos, 1, "\" \"");
 	lMBox.push_back(buffer);
 	if (pos == string::npos)
 		lMBox.push_back("NIL");	// domain was missing
