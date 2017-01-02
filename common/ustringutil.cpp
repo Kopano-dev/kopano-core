@@ -1161,22 +1161,6 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
 	return erSuccess;
 }
 
-ECRESULT LocaleIdToLocaleName(const char *lpszLocaleID, const char **lppszLocaleName)
-{
-	const struct localemap *lpMapEntry = NULL;
-	assert(lpszLocaleID != NULL);
-	assert(lppszLocaleName != NULL);
-
-	for (unsigned i = 0; !lpMapEntry && i < arraySize(localeMap); ++i)
-		if (strcasecmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
-			lpMapEntry = &localeMap[i];
-
-	if (lpMapEntry == NULL)
-		return KCERR_NOT_FOUND;
-	*lppszLocaleName = lpMapEntry->lpszLocaleName;
-	return erSuccess;
-}
-
 #ifdef ZCP_USES_ICU
 /**
  * Create a locale independant blob that can be used to sort

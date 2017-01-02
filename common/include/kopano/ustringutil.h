@@ -111,7 +111,6 @@ extern _kc_export unsigned int u8_len(const char *);
 extern _kc_export ECLocale createLocaleFromName(const char *);
 extern _kc_export ECRESULT LocaleIdToLCID(const char *locale, ULONG *id);
 extern _kc_export ECRESULT LCIDToLocaleId(ULONG id, const char **locale);
-ECRESULT LocaleIdToLocaleName(const char *lpszLocaleID, const char **lppszLocaleName);
 
 extern _kc_export void createSortKeyDataFromUTF8(const char *s, int ncap, const ECLocale &, unsigned int *keysize, unsigned char **key);
 extern _kc_export ECSortKey createSortKeyFromUTF8(const char *s, int ncap, const ECLocale &);
