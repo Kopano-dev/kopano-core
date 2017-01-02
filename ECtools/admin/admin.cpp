@@ -3276,7 +3276,7 @@ int main(int argc, char* argv[])
 
 				if (hr == MAPI_E_COLLISION) {
 					if (nFolderId < 1000) { // Max 999 folders
-						strStorenameTMP = strStorename + wstringify(nFolderId);
+						strStorenameTMP = strStorename + std::to_wstring(nFolderId);
 						++nFolderId;
 						cerr << "Folder already exist, retrying with foldername '" << convert_to<string>(strStorenameTMP) << "'" << endl;
 					} else {

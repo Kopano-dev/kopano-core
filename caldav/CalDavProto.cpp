@@ -873,7 +873,7 @@ HRESULT CalDAV::HrHandleDelete()
 		if (hr == MAPI_E_COLLISION) {
 			// rename the folder if same folder name is present in Deleted items folder
 			if (nFldId < 1000) { // Max 999 folders
-				wstrFldTmpName = wstrFldName + wstringify(nFldId);
+				wstrFldTmpName = wstrFldName + std::to_wstring(nFldId);
 				++nFldId;
 			} else {
 				ec_log_err("Error Deleting Folder error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
