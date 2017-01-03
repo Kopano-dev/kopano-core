@@ -177,7 +177,7 @@ namespace details {
 						const char *lpEntity;
 						
 						memcpy(&code, lpSrc, sizeof(code));
-						wstrEntity += wstringify(code);
+						wstrEntity += std::to_wstring(code);
 						wstrEntity += L";";
 						cbEntity = wstrEntity.size() * sizeof(wchar_t);
 						lpEntity = (const char *)wstrEntity.c_str();

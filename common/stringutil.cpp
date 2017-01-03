@@ -94,53 +94,6 @@ std::wstring wstringify(unsigned int x, bool usehex, bool _signed)
 	return s.str();
 }
 
-std::wstring wstringify_int64(int64_t x, bool usehex)
-{
-	std::wostringstream s;
-
-	if (usehex) {
-		s.flags(std::ios::showbase);
-		s.setf(std::ios::hex, std::ios::basefield);	// showbase && basefield: add 0x prefix
-		s.setf(std::ios::uppercase);
-	}
-	s << x;
-
-	return s.str();
-}
-
-std::wstring wstringify_uint64(uint64_t x, bool usehex)
-{
-	std::wostringstream s;
-
-	if (usehex) {
-		s.flags(std::ios::showbase);
-		s.setf(std::ios::hex, std::ios::basefield);	// showbase && basefield: add 0x prefix
-		s.setf(std::ios::uppercase);
-	}
-	s << x;
-
-	return s.str();
-}
-
-std::wstring wstringify_float(float x)
-{
-	std::wostringstream s;
-
-	s << x;
-
-	return s.str();
-}
-
-std::wstring wstringify_double(double x, int prec)
-{
-	std::wostringstream s;
-
-	s.precision(prec);
-	s << x;
-
-	return s.str();
-}
-
 unsigned int xtoi(const char *lpszHex)
 {
 	unsigned int ulHex = 0;

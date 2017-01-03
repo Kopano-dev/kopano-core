@@ -82,7 +82,6 @@ extern _kc_export bool str_equals(const char *, const char *, const ECLocale &);
 extern _kc_export bool str_iequals(const char *, const char *, const ECLocale &);
 extern _kc_export bool str_startswith(const char *, const char *, const ECLocale &);
 extern _kc_export bool str_istartswith(const char *, const char *, const ECLocale &);
-int str_compare(const char *s1, const char *s2, const ECLocale &locale);
 extern _kc_export int str_icompare(const char *, const char *, const ECLocale &);
 extern _kc_export bool str_contains(const char *haystack, const char *needle, const ECLocale &);
 extern _kc_export bool str_icontains(const char *haystack, const char *needle, const ECLocale &);
@@ -92,7 +91,6 @@ extern _kc_export bool wcs_equals(const wchar_t *s1, const wchar_t *s2, const EC
 extern _kc_export bool wcs_iequals(const wchar_t *, const wchar_t *, const ECLocale &);
 extern _kc_export bool wcs_startswith(const wchar_t *, const wchar_t *, const ECLocale &);
 extern _kc_export bool wcs_istartswith(const wchar_t *, const wchar_t *, const ECLocale &);
-int wcs_compare(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale);
 extern _kc_export int wcs_icompare(const wchar_t *, const wchar_t *, const ECLocale &);
 extern _kc_export bool wcs_contains(const wchar_t *haystack, const wchar_t *needle, const ECLocale &);
 extern _kc_export bool wcs_icontains(const wchar_t *haystack, const wchar_t *needle, const ECLocale &);
@@ -113,7 +111,6 @@ extern _kc_export unsigned int u8_len(const char *);
 extern _kc_export ECLocale createLocaleFromName(const char *);
 extern _kc_export ECRESULT LocaleIdToLCID(const char *locale, ULONG *id);
 extern _kc_export ECRESULT LCIDToLocaleId(ULONG id, const char **locale);
-ECRESULT LocaleIdToLocaleName(const char *lpszLocaleID, const char **lppszLocaleName);
 
 extern _kc_export void createSortKeyDataFromUTF8(const char *s, int ncap, const ECLocale &, unsigned int *keysize, unsigned char **key);
 extern _kc_export ECSortKey createSortKeyFromUTF8(const char *s, int ncap, const ECLocale &);

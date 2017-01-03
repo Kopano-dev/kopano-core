@@ -2327,24 +2327,6 @@ std::string SortOrderSetToString(const SSortOrderSet *lpSortCriteria)
 	return strResult;
 }
 
-std::string EntryListToString(const ENTRYLIST *lpMsgList)
-{
-	std::string str;
-
-	if(lpMsgList == NULL)
-		return "NULL";
-
-	str = "values: "+stringify(lpMsgList->cValues);
-	str+= "\n";
-
-	for (ULONG i = 0; i < lpMsgList->cValues; ++i) {
-		str+= "cb="+stringify(lpMsgList->lpbin[i].cb)+" lpb="+((lpMsgList->lpbin[i].lpb)?bin2hex(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb) : std::string("NULL"));
-		str+= "\n";
-	}
-
-	return str;
-}
-
 static const std::string
 Notification_ErrorToString(const ERROR_NOTIFICATION *lpErr)
 {
@@ -2596,31 +2578,6 @@ std::string NotificationToString(ULONG cNotification,
 			str += ")\n";
 
 	}
-
-	return str;
-}
-
-std::string PermissionRulesToString(ULONG cPermissions,
-    const ECPERMISSION *lpECPermissions)
-{
-	std::string		str;
-	unsigned int	ulUserId = 0;
-
-	if(lpECPermissions == NULL)
-		return "NULL";
-
-	str = "( \n";
-	for (ULONG ci = 0; ci<cPermissions; ++ci) {
-		if (GetNonPortableObjectId(lpECPermissions[ci].sUserId.cb, (LPENTRYID)lpECPermissions[ci].sUserId.lpb, &ulUserId) == hrSuccess)
-			str += "{ Userid=" + stringify(ulUserId) + "\n";
-		else
-			str += "{ Userid=unknown\n";
-		str += "  Type=" + stringify(lpECPermissions[ci].ulType) + "\n";
-		str += "  Rights=" + stringify(lpECPermissions[ci].ulRights) + "\n";
-		str += "  State=" + stringify(lpECPermissions[ci].ulState) + " }\n";
-
-	}
-	str += "}\n";
 
 	return str;
 }

@@ -75,8 +75,6 @@ const char *ResourceTypeToString(ULONG ulResourceType);
 extern _kc_export const char *RelationalOperatorToString(ULONG relop);
 extern _kc_export std::string FuzzyLevelToString(ULONG lvl);
 extern _kc_export std::string PropValueToString(const SPropValue *);
-std::string EntryListToString(const ENTRYLIST *lpMsgList);
-std::string PermissionRulesToString(ULONG cPermissions, const ECPERMISSION *lpECPermissions);
 
 } /* namespace */
 

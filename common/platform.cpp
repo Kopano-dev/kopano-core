@@ -135,26 +135,6 @@ HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime)
 	return hrSuccess;
 }
 
-// time only, not date!
-time_t SystemTimeToUnixTime(const SYSTEMTIME &stime)
-{
-	return stime.wSecond + (stime.wMinute*60) + ((stime.wHour)*60*60);
-}
-
-SYSTEMTIME TMToSystemTime(const struct tm &t)
-{
-	SYSTEMTIME stime = {0};
-	stime.wYear = t.tm_year;
-	stime.wMonth = t.tm_mon;
-	stime.wDayOfWeek = t.tm_wday;
-	stime.wDay = t.tm_mday;
-	stime.wHour = t.tm_hour;
-	stime.wMinute = t.tm_min;
-	stime.wSecond = t.tm_sec;
-	stime.wMilliseconds = 0;
-	return stime;	
-}
-
 /* The 'IntDate' and 'IntTime' date and time encoding are used for some CDO calculations. They
  * are basically a date or time encoded in a bitshifted way, packed so that it uses the least amount
  * of bits. Eg. a date (day,month,year) is encoded as 5 bits for the day (1-31), 4 bits for the month (1-12),

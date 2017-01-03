@@ -108,7 +108,6 @@ ECRESULT AddABChange(BTSession *lpecSession, unsigned int ulChange, SOURCEKEY sS
 ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sSourceKeyFolder, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct restrictTable *lpsRestrict, unsigned int *lpulMaxChangeId, icsChangesArray **lppChanges);
 ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncId, syncStateArray *lpsaSyncState);
 extern _kc_export void *CleanupSyncsTable(void *);
-void* CleanupChangesTable(void* lpTmpMain);
 extern _kc_export void *CleanupSyncedMessagesTable(void *);
 
 /**

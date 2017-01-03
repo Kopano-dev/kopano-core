@@ -1614,22 +1614,6 @@ ECRESULT CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notif
 	return erSuccess;
 }
 
-ECRESULT FreeUserObjectArray(struct userobjectArray *lpUserobjectArray, bool bFreeBase)
-{
-	if(lpUserobjectArray == NULL)
-		return erSuccess;
-
-	for (gsoap_size_t i = 0; i < lpUserobjectArray->__size; ++i)
-		delete[] lpUserobjectArray->__ptr[i].lpszName;
-	delete [] lpUserobjectArray->__ptr;
-
-	if(bFreeBase)
-		delete lpUserobjectArray;
-	else
-		lpUserobjectArray->__size = 0;
-	return erSuccess;
-}
-
 ECRESULT FreeEntryId(entryId* lpEntryId, bool bFreeBase)
 {
 	if(lpEntryId == NULL)
@@ -2405,30 +2389,6 @@ ULONG NormalizePropTag(ULONG ulPropTag)
 		return CHANGE_PROP_TYPE(ulPropTag, PT_MV_TSTRING);
 	}
 	return ulPropTag;
-}
-
-/**
- * Frees a namedPropArray struct
- *
- * @param array Struct to free
- * @param bFreeBase Free passed pointer too
- */
-ECRESULT FreeNamedPropArray(struct namedPropArray *array, bool bFreeBase)
-{
-	for (gsoap_size_t i = 0; i < array->__size; ++i) {
-		delete array->__ptr[i].lpId;
-		delete array->__ptr[i].lpString;
-		if(array->__ptr[i].lpguid) {
-			delete[] array->__ptr[i].lpguid->__ptr;
-			delete array->__ptr[i].lpguid;
-		}
-	}
-	
-	delete[] array->__ptr;
-	if(bFreeBase)
-		delete array;
-
-	return erSuccess;
 }
 
 /** 
