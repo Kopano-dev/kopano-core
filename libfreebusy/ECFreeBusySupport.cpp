@@ -122,7 +122,7 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 		if(hr != hrSuccess)
 			return hr;
 	}
-	return hrSuccess;
+	return hr;
 }
 
 HRESULT ECFreeBusySupport::Close()
@@ -158,10 +158,7 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 	ULONG			i;
 
 	if((cMax > 0 && rgfbuser == NULL) || prgfbdata == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 
 	for (i = 0; i < cMax; ++i) {
 		object_ptr<IMessage> lpMessage;
@@ -174,29 +171,24 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 
 			hr = GetFreeBusyMessageData(lpMessage, &rtmStart, &rtmEnd, &fbBlockList);
 			if(hr != hrSuccess)
-			{
-				//FIXME: ?
-			}
+				return hr;
 
 			// Add fbdata
 			lpECFreeBusyData->Init(rtmStart, rtmEnd, &fbBlockList);
 			hr = lpECFreeBusyData->QueryInterface(IID_IFreeBusyData, (void**)&prgfbdata[i]);
 			if(hr != hrSuccess)
-				goto exit;
-			
+				return hr;
+
 			++ulFindUsers;
 		}// else No free busy information, gives the empty class
 		else
 			prgfbdata[i] = NULL;
-
-		//if(phrStatus)
-		//	phrStatus[i] = hr;
 	}
 
 	if(pcRead)
 		*pcRead = ulFindUsers;
-exit:
-	return S_OK;
+
+	return hr;
 }
 
 HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4)
