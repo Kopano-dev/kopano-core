@@ -63,16 +63,15 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 		lpFbUsers[i].m_lpEid = entryid;
 		++i;
 
-		Py_DECREF(elem);
+		Py_XDECREF(elem);
 		elem = nullptr;
 	}
 
 	*cValues = i;
  exit:
-	if(elem != nullptr)
-		Py_DECREF(elem);
-	if(iter != nullptr)
-		Py_DECREF(iter);
+	Py_XDECREF(elem);
+	Py_XDECREF(iter);
+
 	if (PyErr_Occurred() && lpFbUsers) {
 		MAPIFreeBuffer(lpFbUsers);
 		lpFbUsers = nullptr;
@@ -107,19 +106,23 @@ LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 		lpFBBlocks[i].m_tmStart = PyLong_AsLong(start);
 		lpFBBlocks[i].m_tmEnd = PyLong_AsLong(end);
 		lpFBBlocks[i].m_fbstatus = FBStatus(PyLong_AsLong(status));
+
 		i++;
 
-		Py_DECREF(elem);
+		Py_XDECREF(elem);
+		Py_XDECREF(start);
+		Py_XDECREF(end);
+		Py_XDECREF(status);
+
 		elem = nullptr;
 	}
 
 	*nBlocks = i;
 
  exit:
-	if(elem != nullptr)
-		Py_DECREF(elem);
-	if(iter != nullptr)
-		Py_DECREF(iter);
+	Py_XDECREF(elem);
+	Py_XDECREF(iter);
+
 	if (PyErr_Occurred() && lpFBBlocks) {
 		MAPIFreeBuffer(lpFBBlocks);
 		lpFBBlocks = nullptr;
@@ -147,17 +150,15 @@ PyObject* Object_from_FBBlock_1(FBBlock_1 const& sFBBlock) {
 	object = PyObject_CallFunction(PyTypeFreeBusyBlock, "(OOO)", start, end, status);
 
  exit:
-	if (start != nullptr)
-		Py_DECREF(start);
-	if (end != nullptr)
-		Py_DECREF(end);
-	if (status != nullptr)
-		Py_DECREF(status);
-	if (PyErr_Occurred())
-		if(object != nullptr) {
-			Py_DECREF(object);
-			object = nullptr;
-		}
+	Py_XDECREF(start);
+	Py_XDECREF(end);
+	Py_XDECREF(status);
+
+	if (PyErr_Occurred()) {
+		Py_XDECREF(object);
+		object = nullptr;
+	}
+
 	return object;
 }
 
@@ -175,18 +176,16 @@ PyObject* List_from_FBBlock_1(LPFBBlock_1 lpFBBlocks, LONG* nBlocks) {
 
 		PyList_Append(list, elem);
 
-		Py_DECREF(elem);
+		Py_XDECREF(elem);
 		elem = nullptr;
 	}
  exit:
-	if (elem != nullptr)
-		Py_DECREF(elem);
+	Py_XDECREF(elem);
 
-	if (PyErr_Occurred())
-		if(list != nullptr) {
-			Py_DECREF(list);
-			list = nullptr;
-		}
+	if (PyErr_Occurred()) {
+		Py_XDECREF(list);
+		list = nullptr;
+	}
 
 	return list;
 }
