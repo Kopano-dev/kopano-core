@@ -414,20 +414,6 @@ CXXFLAGS="$CXXFLAGS_system $ZCXXFLAGS"
 LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
 
-VMIME_CFLAGS=""
-VMIME_LIBS=""
-
-AC_ARG_WITH(vmime-prefix,
-  AS_HELP_STRING([--with-vmime-prefix=PATH], [libvmime prefix, e.g. /usr/local, default /usr]),
-  [
-  VMIME_PREFIX="$withval"
-  VMIME_CFLAGS="$VMIME_CFLAGS -I$VMIME_PREFIX/include"
-  VMIME_LIBS="-L$VMIME_PREFIX/lib -L$VMIME_PREFIX/lib64 -R$VMIME_PREFIX/lib -R$VMIME_PREFIX/lib64"
-  ])
-VMIME_LIBS="$VMIME_LIBS -lvmime"
-AC_SUBST(VMIME_CFLAGS)
-AC_SUBST(VMIME_LIBS)
-
 dnl Stupid gsoap not abstracting properly! If our -Ds do not match with what
 dnl gsoap was compiled with, we are in trouble.
 GSOAP_CFLAGS="-DWITH_OPENSSL -DWITH_GZIP -DHAVE_OPENSSL_SSL_H -DHAVE_ZLIB_H"
@@ -452,6 +438,7 @@ PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal], [], [:])
 CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
 AC_CHECK_HEADERS([gperftools/malloc_extension.h google/malloc_extension.h])
 CPPFLAGS="$CPPFLAGS_system"
+PKG_CHECK_MODULES([VMIME], [vmime >= 0.9.2])
 
 
 #
