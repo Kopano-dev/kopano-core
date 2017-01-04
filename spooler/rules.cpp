@@ -894,7 +894,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 	ULONG ulObjType;
 	bool bAddFwdFlag = false;
 	bool bMoved = false;
-    LPSRowSet lpRowSet = NULL;
+	LPSRowSet lpRowSet = NULL;
 	static constexpr const SizedSPropTagArray(11, sptaRules) =
 		{11, {PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
 		PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
@@ -903,8 +903,8 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 	static constexpr const SizedSSortOrderSet(1, sosRules) =
 		{1, 0, 0, {{PR_RULE_SEQUENCE, TABLE_SORT_ASCEND}}};
 	std::string strRule;
-    LPSRestriction lpCondition = NULL;
-    ACTIONS* lpActions = NULL;
+	LPSRestriction lpCondition = NULL;
+	ACTIONS* lpActions = NULL;
 
 	SPropValue sForwardProps[4];
 	object_ptr<IECExchangeModifyTable> lpECModifyTable;
@@ -951,15 +951,15 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		goto exit;
 	}
 
-	while (TRUE) {
+	while (1) {
 		const SPropValue *lpProp = NULL;
-        hr = lpView->QueryRows(1, 0, &lpRowSet);
-	if (hr != hrSuccess) {
-		ec_log_err("HrProcessRules(): QueryRows failed %x", hr);
-			goto exit;
-	}
-        if (lpRowSet->cRows == 0)
-            break;
+	        hr = lpView->QueryRows(1, 0, &lpRowSet);
+		if (hr != hrSuccess) {
+			ec_log_err("HrProcessRules(): QueryRows failed %x", hr);
+				goto exit;
+		}
+	        if (lpRowSet->cRows == 0)
+			break;
 
 		sc -> countAdd("rules", "n_rules", int64_t(lpRowSet->cRows));
 		auto lpRuleName = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8));
