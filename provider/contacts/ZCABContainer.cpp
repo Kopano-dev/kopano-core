@@ -73,18 +73,16 @@ ZCABContainer::~ZCABContainer()
 
 HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	if (m_lpDistList == NULL) {
+	if (m_lpDistList == NULL)
 		REGISTER_INTERFACE2(ZCABContainer, this);
-	} else {
+	else
 		REGISTER_INTERFACE(IID_ZCDistList, this);
-	}
 	REGISTER_INTERFACE2(ECUnknown, this);
 
-	if (m_lpDistList == NULL) {
+	if (m_lpDistList == NULL)
 		REGISTER_INTERFACE2(IABContainer, &this->m_xABContainer);
-	} else {
+	else
 		REGISTER_INTERFACE(IID_IDistList, &this->m_xABContainer);
-	}
 	REGISTER_INTERFACE2(IMAPIProp, &this->m_xABContainer);
 	REGISTER_INTERFACE2(IUnknown, &this->m_xABContainer);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
@@ -171,8 +169,11 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 #define I_NCOLS 11
 	// data from the contact
-	SizedSPropTagArray(I_NCOLS, inputCols) = {I_NCOLS, {PR_DISPLAY_NAME, PR_ADDRTYPE, PR_EMAIL_ADDRESS, PR_NORMALIZED_SUBJECT, PR_ENTRYID, PR_MESSAGE_CLASS, PR_ORIGINAL_DISPLAY_NAME,
-														PR_PARENT_ENTRYID, PR_SOURCE_KEY, PR_PARENT_SOURCE_KEY, PR_CHANGE_KEY}};
+	static constexpr const SizedSPropTagArray(I_NCOLS, inputCols) =
+		{I_NCOLS, {PR_DISPLAY_NAME, PR_ADDRTYPE, PR_EMAIL_ADDRESS,
+		PR_NORMALIZED_SUBJECT, PR_ENTRYID, PR_MESSAGE_CLASS,
+		PR_ORIGINAL_DISPLAY_NAME, PR_PARENT_ENTRYID, PR_SOURCE_KEY,
+		PR_PARENT_SOURCE_KEY, PR_CHANGE_KEY}};
 	// I_MV_INDEX is dispidABPEmailList from mnNamedProps
 	enum {I_DISPLAY_NAME = 0, I_ADDRTYPE, I_EMAIL_ADDRESS, I_NORMALIZED_SUBJECT, I_ENTRYID, I_MESSAGE_CLASS, I_ORIGINAL_DISPLAY_NAME, 
 		  I_PARENT_ENTRYID, I_SOURCE_KEY, I_PARENT_SOURCE_KEY, I_CHANGE_KEY, I_MV_INDEX, I_NAMEDSTART};
@@ -180,9 +181,14 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 #define O_NCOLS 21
 	// data for the table
-	SizedSPropTagArray(O_NCOLS, outputCols) = {O_NCOLS, {PR_DISPLAY_NAME, PR_ADDRTYPE, PR_EMAIL_ADDRESS, PR_NORMALIZED_SUBJECT, PR_ENTRYID, PR_DISPLAY_TYPE, PR_OBJECT_TYPE, PR_ORIGINAL_DISPLAY_NAME, 
-														 PR_ZC_ORIGINAL_ENTRYID, PR_ZC_ORIGINAL_PARENT_ENTRYID, PR_ZC_ORIGINAL_SOURCE_KEY, PR_ZC_ORIGINAL_PARENT_SOURCE_KEY, PR_ZC_ORIGINAL_CHANGE_KEY,
-														 PR_SEARCH_KEY, PR_INSTANCE_KEY, PR_ROWID}};
+	static constexpr const SizedSPropTagArray(O_NCOLS, outputCols) =
+		{O_NCOLS, {PR_DISPLAY_NAME, PR_ADDRTYPE, PR_EMAIL_ADDRESS,
+		PR_NORMALIZED_SUBJECT, PR_ENTRYID, PR_DISPLAY_TYPE,
+		PR_OBJECT_TYPE, PR_ORIGINAL_DISPLAY_NAME,
+		PR_ZC_ORIGINAL_ENTRYID, PR_ZC_ORIGINAL_PARENT_ENTRYID,
+		PR_ZC_ORIGINAL_SOURCE_KEY, PR_ZC_ORIGINAL_PARENT_SOURCE_KEY,
+		PR_ZC_ORIGINAL_CHANGE_KEY, PR_SEARCH_KEY, PR_INSTANCE_KEY,
+		PR_ROWID}};
 	enum {O_DISPLAY_NAME = 0, O_ADDRTYPE, O_EMAIL_ADDRESS, O_NORMALIZED_SUBJECT, O_ENTRYID, O_DISPLAY_TYPE, O_OBJECT_TYPE, O_ORIGINAL_DISPLAY_NAME, 
 		  O_ZC_ORIGINAL_ENTRYID, O_ZC_ORIGINAL_PARENT_ENTRYID, O_ZC_ORIGINAL_SOURCE_KEY, O_ZC_ORIGINAL_PARENT_SOURCE_KEY, O_ZC_ORIGINAL_CHANGE_KEY,
 		  O_SEARCH_KEY, O_INSTANCE_KEY, O_ROWID};
@@ -387,28 +393,25 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 			ulOffset += I_NAMEDSTART;
 
 			lpColData[O_DISPLAY_NAME].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_DISPLAY_NAME], PROP_TYPE(ptrRows[i].lpProps[ulOffset + 0].ulPropTag));
-			if (PROP_TYPE(lpColData[O_DISPLAY_NAME].ulPropTag) == PT_ERROR) {
+			if (PROP_TYPE(lpColData[O_DISPLAY_NAME].ulPropTag) == PT_ERROR)
 				// Email#Display not available, fallback to normal PR_DISPLAY_NAME
 				lpColData[O_DISPLAY_NAME] = ptrRows[i].lpProps[I_DISPLAY_NAME];
-			} else {
+			else
 				lpColData[O_DISPLAY_NAME].Value = ptrRows[i].lpProps[ulOffset + 0].Value;
-			}
 
 			lpColData[O_EMAIL_ADDRESS].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_EMAIL_ADDRESS], PROP_TYPE(ptrRows[i].lpProps[ulOffset + 2].ulPropTag));
-			if (PROP_TYPE(lpColData[O_EMAIL_ADDRESS].ulPropTag) == PT_ERROR) {
+			if (PROP_TYPE(lpColData[O_EMAIL_ADDRESS].ulPropTag) == PT_ERROR)
 				// Email#Address not available, fallback to normal PR_EMAIL_ADDRESS
 				lpColData[O_EMAIL_ADDRESS] = ptrRows[i].lpProps[I_EMAIL_ADDRESS];
-			} else {
+			else
 				lpColData[O_EMAIL_ADDRESS].Value = ptrRows[i].lpProps[ulOffset + 2].Value;
-			}
 
 			lpColData[O_NORMALIZED_SUBJECT].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_NORMALIZED_SUBJECT], PROP_TYPE(ptrRows[i].lpProps[ulOffset + 3].ulPropTag));
-			if (PROP_TYPE(lpColData[O_NORMALIZED_SUBJECT].ulPropTag) == PT_ERROR) {
+			if (PROP_TYPE(lpColData[O_NORMALIZED_SUBJECT].ulPropTag) == PT_ERROR)
 				// Email#OriginalDisplayName not available, fallback to normal PR_NORMALIZED_SUBJECT
 				lpColData[O_NORMALIZED_SUBJECT] = ptrRows[i].lpProps[I_NORMALIZED_SUBJECT];
-			} else {
+			else
 				lpColData[O_NORMALIZED_SUBJECT].Value = ptrRows[i].lpProps[ulOffset + 3].Value;
-			}
 
 			lpColData[O_ORIGINAL_DISPLAY_NAME].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ORIGINAL_DISPLAY_NAME], PROP_TYPE(ptrRows[i].lpProps[I_DISPLAY_NAME].ulPropTag));
 			lpColData[O_ORIGINAL_DISPLAY_NAME].Value = ptrRows[i].lpProps[I_DISPLAY_NAME].Value;
@@ -474,10 +477,12 @@ done:
 HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT hr = hrSuccess;
-	SizedSPropTagArray(13, sptaCols) = {13, {PR_NULL /* reserve for PR_ROWID */,
-											 PR_ADDRTYPE, PR_DISPLAY_NAME, PR_DISPLAY_TYPE, PR_EMAIL_ADDRESS, PR_ENTRYID,
-											 PR_INSTANCE_KEY, PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY, PR_SEND_INTERNET_ENCODING,
-											 PR_SEND_RICH_INFO, PR_TRANSMITABLE_DISPLAY_NAME }};
+	static constexpr const SizedSPropTagArray(13, sptaCols) =
+		{13, {PR_NULL /* reserve for PR_ROWID */, PR_ADDRTYPE,
+		PR_DISPLAY_NAME, PR_DISPLAY_TYPE, PR_EMAIL_ADDRESS, PR_ENTRYID,
+		PR_INSTANCE_KEY, PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY,
+		PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO,
+		PR_TRANSMITABLE_DISPLAY_NAME}};
 	SPropTagArrayPtr ptrCols;
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
@@ -951,8 +956,14 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 {
 	HRESULT hr;
 	// only columns we can set from our contents table
-	SizedSPropTagArray(7, sptaDefault) = {7, {PR_ADDRTYPE_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TYPE, PR_EMAIL_ADDRESS_A, PR_ENTRYID, PR_INSTANCE_KEY, PR_OBJECT_TYPE}};
-	SizedSPropTagArray(7, sptaUnicode) = {7, {PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_DISPLAY_TYPE, PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_INSTANCE_KEY, PR_OBJECT_TYPE}};
+	static constexpr const SizedSPropTagArray(7, sptaDefault) =
+		{7, {PR_ADDRTYPE_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TYPE,
+		PR_EMAIL_ADDRESS_A, PR_ENTRYID, PR_INSTANCE_KEY,
+		PR_OBJECT_TYPE}};
+	static constexpr const SizedSPropTagArray(7, sptaUnicode) =
+		{7, {PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_DISPLAY_TYPE,
+		PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_INSTANCE_KEY,
+		PR_OBJECT_TYPE}};
 	ULONG i;
 	SRowSetPtr	ptrRows;
 

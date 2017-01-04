@@ -360,21 +360,18 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 
 	auto iIterSession = m_mapSessions.begin();
 	while (iIterSession != m_mapSessions.cend()) {
-		if(iIterSession->first != sessionIDException) {
-			lpSession = iIterSession->second;
-			auto iSessionNext = iIterSession;
-			++iSessionNext;
-			// Tell the notification manager to wake up anyone waiting for this session
-			m_lpNotificationManager->NotifyChange(iIterSession->first);
-			
-			m_mapSessions.erase(iIterSession);
-
-			iIterSession = iSessionNext;
-
-			lstSessions.push_back(lpSession);
-		} else {
+		if (iIterSession->first == sessionIDException) {
 			++iIterSession;
+			continue;
 		}
+		lpSession = iIterSession->second;
+		auto iSessionNext = iIterSession;
+		++iSessionNext;
+		// Tell the notification manager to wake up anyone waiting for this session
+		m_lpNotificationManager->NotifyChange(iIterSession->first);
+		m_mapSessions.erase(iIterSession);
+		iIterSession = iSessionNext;
+		lstSessions.push_back(lpSession);
 	}
 
 	// Release ownership of the mutex object.

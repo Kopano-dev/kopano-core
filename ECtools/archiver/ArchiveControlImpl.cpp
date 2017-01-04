@@ -349,7 +349,7 @@ ArchiveControlImpl::purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& st
 		return hr;
         }
 
-        SizedSPropTagArray(1, props) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, props) = {1, {PR_ENTRYID}};
         if ((hr = table->SetColumns(props, 0)) != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set columns on table. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
@@ -680,8 +680,8 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 	MessagePtr ptrMessage;
 	bool bHaveErrors = false;
 	const tstring strFolderRestore = m_lpLogger->GetFolder();
-
-	SizedSPropTagArray(3, sptaProps) = {3, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
+	static constexpr const SizedSPropTagArray(3, sptaProps) =
+		{3, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
 
 	hr = ptrFolder->GetContentsTable(fMapiDeferredErrors, &~ptrTable);
 	if (hr != hrSuccess) {
@@ -766,8 +766,8 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	SPropValue sPropCreationTime;
 	ULARGE_INTEGER li;
 	SRowSetPtr ptrRowSet;
-
-	SizedSPropTagArray(2, sptaFolderProps) = {2, {PR_ENTRYID, PR_DISPLAY_NAME}};
+	static constexpr const SizedSPropTagArray(2, sptaFolderProps) =
+		{2, {PR_ENTRYID, PR_DISPLAY_NAME}};
     enum {IDX_ENTRYID, IDX_DISPLAY_NAME};
 
 	// Create the common restriction that determines which messages are old enough to purge.
@@ -872,8 +872,8 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 	SRowSetPtr ptrRows;
 	EntryListPtr ptrEntryList;
 	ULONG ulIdx = 0;
+	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
-	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 	hr = ptrArchive->OpenEntry(folderEntryID.size(), folderEntryID, &ptrFolder.iid(), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrFolder);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive folder. (entryid=%s, hr=%s)", folderEntryID.tostring().c_str(), stringify(hr, true).c_str());
@@ -1089,7 +1089,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 {
 	HRESULT hr = hrSuccess;
 	BYTE prefixData[4 + sizeof(GUID)] = {0};
-	static const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
+	static constexpr const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
 	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
 
 	PROPMAP_START(1)
@@ -1212,8 +1212,7 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrTable;
 	ECAndRestriction resContent;
-	
-	SizedSPropTagArray(1, sptaContentProps) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sptaContentProps) = {1, {PR_ENTRYID}};
 	
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
@@ -1274,8 +1273,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrTable;
 	SRestriction resHierarchy = {0};
-	
-	SizedSSortOrderSet(1, ssosHierarchy) = {0};
+	static constexpr const SizedSSortOrderSet(1, ssosHierarchy) = {1, 0, 0, {PR_DEPTH, TABLE_SORT_ASCEND}};
 	SizedSPropTagArray(5, sptaHierarchyProps) = {5, {PR_NULL, PR_ENTRYID, PR_CONTENT_COUNT, PR_FOLDER_CHILD_COUNT, PR_DISPLAY_NAME}};
 	enum {IDX_REF_ITEM_ENTRYID, IDX_ENTRYID, IDX_CONTENT_COUNT, IDX_FOLDER_CHILD_COUNT, IDX_DISPLAY_NAME};
 	
@@ -1287,13 +1285,6 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	
 	resHierarchy.rt = RES_EXIST;
 	resHierarchy.res.resExist.ulPropTag = PROP_REF_ITEM_ENTRYID;
-	
-	ssosHierarchy.cSorts = 1;
-	ssosHierarchy.cCategories = 0;
-	ssosHierarchy.cExpanded = 0;
-	ssosHierarchy.aSort[0].ulPropTag = PR_DEPTH;
-	ssosHierarchy.aSort[0].ulOrder = TABLE_SORT_ASCEND;
-
 	hr = lpArchiveRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
 		goto exitpm;
@@ -1591,8 +1582,7 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
 	HRESULT hr;
 	SPropValuePtr ptrProp;
 	MAPITablePtr ptrTable;
-	
-	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 	
 	hr = HrGetOneProp(lpBase, PR_ENTRYID, &~ptrProp);
 	if (hr != hrSuccess)

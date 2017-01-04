@@ -36,7 +36,7 @@ using namespace KCHL;
 
 namespace KC {
 
-static SizedSPropTagArray(SHORTCUT_NUM, sPropsShortcuts) = {SHORTCUT_NUM, {
+static constexpr const SizedSPropTagArray(SHORTCUT_NUM, sPropsShortcuts) = {SHORTCUT_NUM, {
 	PR_INSTANCE_KEY, PR_FAV_PUBLIC_SOURCE_KEY, PR_FAV_PARENT_SOURCE_KEY,
 	PR_FAV_DISPLAY_NAME, PR_FAV_DISPLAY_ALIAS, PR_FAV_LEVEL_MASK,
 	PR_FAV_CONTAINER_CLASS}};
@@ -155,7 +155,8 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	object_ptr<IMAPITable> lpTable;
 	SRowSet *lpRows = NULL;
 	memory_ptr<ENTRYLIST> lpsMsgList;
-	SizedSPropTagArray(2, sPropDelFavo) = {2, { PR_ENTRYID, PR_FAV_PUBLIC_SOURCE_KEY }};
+	static constexpr const SizedSPropTagArray(2, sPropDelFavo) =
+		{2, {PR_ENTRYID, PR_FAV_PUBLIC_SOURCE_KEY}};
 	std::list<string>	listSourceKey;
 	string strSourceKey;
 	SPropValue sPropSourceKey;
@@ -375,8 +376,9 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 
 	ULONG ulFolderFlags = 0;
 	ULONG cValues = 0;
-
-	SizedSPropTagArray(5, sPropsFolderInfo) = {5, { PR_DEPTH, PR_SOURCE_KEY, PR_PARENT_SOURCE_KEY, PR_DISPLAY_NAME, PR_CONTAINER_CLASS}};
+	static constexpr const SizedSPropTagArray(5, sPropsFolderInfo) =
+		{5, {PR_DEPTH, PR_SOURCE_KEY, PR_PARENT_SOURCE_KEY,
+		PR_DISPLAY_NAME, PR_CONTAINER_CLASS}};
 
 // FIXME: check vaiables
 

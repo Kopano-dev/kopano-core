@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include <kopano/Trace.h>
 #include "ZCABLogon.h"
 #include "ZCABContainer.h"
@@ -131,8 +132,7 @@ HRESULT ZCABLogon::AddFolder(const WCHAR* lpwDisplayName, ULONG cbStore, LPBYTE 
 	if (hr != hrSuccess)
 		return hr;
 	memcpy(entry.lpFolder, lpFolder, cbFolder);
-
-	m_lFolders.push_back(entry);
+	m_lFolders.push_back(std::move(entry));
 	return hrSuccess;
 }
 
@@ -173,7 +173,9 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	object_ptr<IProfSect> lpProfileSection;
 	memory_ptr<SPropValue> lpFolderProps;
 	ULONG cValues = 0;
-	SizedSPropTagArray(3, sptaFolderProps) = {3, {PR_ZC_CONTACT_STORE_ENTRYIDS, PR_ZC_CONTACT_FOLDER_ENTRYIDS, PR_ZC_CONTACT_FOLDER_NAMES_W}};
+	static constexpr const SizedSPropTagArray(3, sptaFolderProps) =
+		{3, {PR_ZC_CONTACT_STORE_ENTRYIDS,
+		PR_ZC_CONTACT_FOLDER_ENTRYIDS, PR_ZC_CONTACT_FOLDER_NAMES_W}};
 	
 	// Check input/output variables 
 	if (lpulObjType == nullptr || lppUnk == nullptr)
@@ -239,11 +241,9 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	}
 	if(hr != hrSuccess)
 		return hr;
-
-	if (!lpContact) {
+	if (lpContact == nullptr)
 		// root container has pointer to my m_lFolders
 		AddChild(lpRootContainer);
-	}
 	return hrSuccess;
 }
 

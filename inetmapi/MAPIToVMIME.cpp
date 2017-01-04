@@ -71,7 +71,7 @@ namespace KC {
  */
 
 // Since UNICODE is defined, the strings will be PT_UNICODE, as required by ECTNEF::AddProps()
-SizedSPropTagArray(54, sptaExclude) = {
+static constexpr const SizedSPropTagArray(54, sptaExclude) = {
     54, 	{
         PR_BODY,
         PR_HTML,
@@ -190,8 +190,10 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 	LPSRowSet		pRows				= NULL;
 	bool			fToFound			= false;
 	bool			hasRecips			= false;
-	
-	SizedSPropTagArray(7, sPropRecipColumns) = {7, { PR_ENTRYID, PR_EMAIL_ADDRESS_W, PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE, PR_SMTP_ADDRESS_W, PR_ADDRTYPE_W, PR_OBJECT_TYPE} };
+	static constexpr const SizedSPropTagArray(7, sPropRecipColumns) =
+		{7, {PR_ENTRYID, PR_EMAIL_ADDRESS_W, PR_DISPLAY_NAME_W,
+		PR_RECIPIENT_TYPE, PR_SMTP_ADDRESS_W, PR_ADDRTYPE_W,
+		PR_OBJECT_TYPE}};
 
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE | MAPI_DEFERRED_ERRORS, &~lpRecipientTable);
 	if (hr != hrSuccess) {
@@ -355,13 +357,11 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		hr = HrGetOneProp(lpAttachedMessage, PR_MESSAGE_CLASS_A, &~lpAMClass);
 		if (hr == hrSuccess &&
 			strcmp(lpAMClass->Value.lpszA, "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}") == 0)
-		{
 				// This is an exception message. We might get here because kopano-ical is able to
 				// SubmitMessage for Mac Ical meeting requests. The way Outlook does this, is
 				// send a message for each exception itself. We just ignore this exception, since
 				// it's already in the main ical data on the top level message.
 			return hr;
-		}
 
 		// sub objects do not necessarily need to have valid recipients, so disable the test
 		sopt_keep = sopt;
@@ -378,10 +378,9 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 		// recursive processing of embedded message as a new e-mail
 		hr = convertMAPIToVMIME(lpAttachedMessage, &vmNewMess);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			// Logging has been done by convertMAPIToVMIME()
 			return hr;
-		}
 		sopt = sopt_keep;
 
 		vmMsgAtt = vmime::make_shared<vmime::parsedMessageAttachment>(vmNewMess);
@@ -469,9 +468,9 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 }
 
 /**
- * Return an mimetype for filename of an attachment.
+ * Return a MIME type for the filename of an attachment.
  *
- * Mimetype is found by using the extension. Also returns if the
+ * The MIME type is found using the extension. Also returns if the
  * attachment should be attached in text or binary mode. Currently
  * only edifact files (.edi) are forced as text attachment.
  *
@@ -678,7 +677,7 @@ HRESULT MAPIToVMIME::setBoundaries(vmime::shared_ptr<vmime::header> vmHeader,
 }
 
 /**
- * Build a normal vmime message from an MAPI lpMessage.
+ * Build a normal vmime message from a MAPI lpMessage.
  *
  * @param[in]	lpMessage		MAPI message to convert
  * @param[in]	bSkipContent	set to true if only the headers of the e-mail are required to obtain
@@ -797,7 +796,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 }
 
 /**
- * Build an MDN vmime message from an MAPI lpMessage.
+ * Build an MDN vmime message from a MAPI lpMessage.
  *
  * MDN (Mail Disposition Notification) is a read receipt message,
  * which notifies a sender that the e-mail was read.
@@ -1011,7 +1010,8 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 	object_ptr<IAttach> lpAttach;
 	object_ptr<IStream> lpStream;
 	STATSTG					sStreamStat;
-	SizedSPropTagArray(2, sPropAttachColumns) = {2, { PR_ATTACH_NUM, PR_ATTACH_MIME_TAG} };
+	static constexpr const SizedSPropTagArray(2, sPropAttachColumns) =
+		{2, { PR_ATTACH_NUM, PR_ATTACH_MIME_TAG}};
 
 	if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) != hrSuccess) {
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpMsgClass);
@@ -1314,7 +1314,7 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 		// if mailing to a group without email address
 		vmMailboxNew = vmime::make_shared<vmime::mailboxGroup>(getVmimeTextFromWide(strName));
 	} else if (sopt.no_recipients_workaround == true) {
-		// gateway must always return an mailbox object
+		// gateway must always return a mailbox object
 		if (strEmail.empty())
 			strEmail = L"@";	// force having an address to avoid vmime problems
 		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail));
@@ -1569,7 +1569,7 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
  * \li Thread-Index
  * \li Thread-Topic
  * \li Sensitivity
- * \li Expity-Time
+ * \li Expiry-Time
  *  
  * @param[in]	lpMessage	Message to convert extra headers for
  * @param[in]	charset		Charset to use in Thread-Topic header
@@ -1780,8 +1780,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	// sender information
 	std::wstring strEmail, strName, strType;
 	std::wstring strResEmail, strResName, strResType;
-
-	static constexpr SizedSPropTagArray(4, sender_proptags) =
+	static constexpr const SizedSPropTagArray(4, sender_proptags) =
 		{4, {PR_SENDER_ENTRYID, PR_SENDER_NAME_W,
 		PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W}};
 	HRESULT hr = lpMessage->GetProps(sender_proptags, 0, &cValues, &~lpProps);
@@ -1799,7 +1798,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	}
 
 	// -- sender
-	static constexpr SizedSPropTagArray(4, repr_proptags) =
+	static constexpr const SizedSPropTagArray(4, repr_proptags) =
 		{4, {PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W,
 		PR_SENT_REPRESENTING_ADDRTYPE_W,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W}};
@@ -1855,11 +1854,10 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 				mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strResEmail)));
 			else
 				mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strResName), m_converter.convert_to<string>(strResEmail)));
+		} else if (strName.empty() || strName == strEmail) {
+			mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail)));
 		} else {
-			if (strName.empty() || strName == strEmail)
-				mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail)));
-			else
-				mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
+			mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
 		}
 		vmHeader->DispositionNotificationTo()->setValue(mbl);
 	}
@@ -1869,7 +1867,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 /**
  * Set Reply-To header.
  *
- * @note In RFC-822 and MAPI, you can set multiple Reply-To
+ * @note In RFC 2822 and MAPI, you can set multiple Reply-To
  * values. However, in vmime this is currently not possible, so we
  * only convert the first.
  *
@@ -2041,8 +2039,11 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 	std::list<ULONG> lstOLEAttach; // list of OLE attachments that must be sent via TNEF
 	object_ptr<IMAPITable> lpAttachTable;
 	LPSRowSet		lpAttachRows = NULL;
-	SizedSPropTagArray(2, sptaAttachProps) = {2, {PR_ATTACH_METHOD, PR_ATTACH_NUM }};
-	SizedSPropTagArray(5, sptaOLEAttachProps) = {5, {PR_ATTACH_FILENAME, PR_ATTACH_LONG_FILENAME, PR_ATTACH_DATA_OBJ, PR_ATTACH_CONTENT_ID, PR_ATTACHMENT_HIDDEN}};
+	static constexpr const SizedSPropTagArray(2, sptaAttachProps) =
+		{2, {PR_ATTACH_METHOD, PR_ATTACH_NUM}};
+	static constexpr const SizedSPropTagArray(5, sptaOLEAttachProps) =
+		{5, {PR_ATTACH_FILENAME, PR_ATTACH_LONG_FILENAME,
+		PR_ATTACH_DATA_OBJ, PR_ATTACH_CONTENT_ID, PR_ATTACHMENT_HIDDEN}};
 	static constexpr const SizedSSortOrderSet(1, sosRTFSeq) =
 		{1, 0, 0, {{PR_RENDERING_POSITION, TABLE_SORT_ASCEND}}};
 
@@ -2056,14 +2057,11 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
         if(hr != hrSuccess)
             goto exit;
             
-        for ( unsigned int i = 0; i < lpAttachRows->cRows; ++i) {
+        for (unsigned int i = 0; i < lpAttachRows->cRows; ++i)
             if(lpAttachRows->aRow[i].lpProps[0].ulPropTag == PR_ATTACH_METHOD && 
                 lpAttachRows->aRow[i].lpProps[1].ulPropTag == PR_ATTACH_NUM &&
                 lpAttachRows->aRow[i].lpProps[0].Value.ul == ATTACH_OLE)
-            {
                 lstOLEAttach.push_back(lpAttachRows->aRow[i].lpProps[1].Value.ul);
-            }
-        }
 	
         // Start processing TNEF properties
 		if (HrGetOneProp(lpMessage, PR_EC_SEND_AS_ICAL, &~lpSendAsICal) != hrSuccess)

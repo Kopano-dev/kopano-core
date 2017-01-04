@@ -256,7 +256,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 		if(hr != hrSuccess)
 			return hr;
 
-		// Get the parent entryid of a folder an check if this is the online subtree entryid. When it is, 
+		// Get the parent entryid of a folder a check if this is the online subtree entryid. When it is, 
 		// change the parent to the static parent entryid
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 		if(hr != hrSuccess)
@@ -408,8 +408,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	ULONG cMaxProps = 0;
 	ULONG ulRowId = 0;
 	SPropValue sKeyProp;
-
-	SizedSPropTagArray(13, sPropsHierarchyColumns) = {13, {
+	static constexpr const SizedSPropTagArray(13, sPropsHierarchyColumns) = {13, {
 			PR_ENTRYID, PR_DISPLAY_NAME_W,
 			PR_CONTENT_COUNT, PR_CONTENT_UNREAD,
 			PR_STORE_ENTRYID, PR_STORE_RECORD_KEY,

@@ -861,7 +861,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	if (er != erSuccess)
 		goto exit;
 
-	// Although it doesn't make sence for the message deleter to include EC_DELETE_FOLDERS, it doesn't hurt either, since they shouldn't be there
+	// Although it doesn't make sense for the message deleter to include EC_DELETE_FOLDERS, it doesn't hurt either, since they shouldn't be there
 	// and we really want to delete all the softdeleted items anyway.
 	ulDeleteFlags = EC_DELETE_CONTAINER | EC_DELETE_FOLDERS | EC_DELETE_MESSAGES | EC_DELETE_RECIPIENTS | EC_DELETE_ATTACHMENTS | EC_DELETE_HARD_DELETE;
 
@@ -5371,11 +5371,10 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
-	if (ulCompanyId == 0) {
+	if (ulCompanyId == 0)
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-	} else {
+	else
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
-	}
 	if (er != erSuccess)
 		goto exit;
 	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_USER, ulCompanyId, &unique_tie(lpUsers), 0);
@@ -5967,11 +5966,10 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
-	if (ulCompanyId == 0) {
+	if (ulCompanyId == 0)
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-	} else {
+	else
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
-	}
 	if (er != erSuccess)
 		goto exit;
 	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_DISTLIST, ulCompanyId, &unique_tie(lpGroups), 0);
@@ -6365,11 +6363,10 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId, entryId 
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
-	if (ulCompanyId == 0) {
+	if (ulCompanyId == 0)
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-	} else {
+	else
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
-	}
 	if (er != erSuccess)
 		goto exit;
 	er = lpecSession->GetUserManagement()->GetObjectDetails(ulCompanyId, &details);
@@ -6569,11 +6566,10 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
-	if (ulCompanyId == 0) {
+	if (ulCompanyId == 0)
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-	} else {
+	else
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
-	}
 	if (er != erSuccess)
 		goto exit;
 	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, &unique_tie(lpCompanies));
@@ -6689,11 +6685,10 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
-	if (ulCompanyId == 0) {
+	if (ulCompanyId == 0)
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-	} else {
+	else
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
-	}
 	if (er != erSuccess)
 		goto exit;
 

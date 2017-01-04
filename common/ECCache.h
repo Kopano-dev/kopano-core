@@ -22,6 +22,7 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <utility>
 #include <cassert>
 
 #include <kopano/platform.h>
@@ -232,7 +233,7 @@ private:
 			KeyEntry<key_type> k;
 			k.key = im.first;
 			k.ulLastAccess = im.second.ulLastAccess;
-			lstEntries.push_back(k);
+			lstEntries.push_back(std::move(k));
 		}
 
 		lstEntries.sort(KeyEntryOrder<key_type>);

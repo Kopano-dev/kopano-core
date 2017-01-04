@@ -918,7 +918,7 @@ exit:
  * - mapi_logon_zarafa() creates a session and returns this
  * - mapi_getmsgstorestable() to get the entryid of the default and public store
  * - mapi_openmsgstore() to open the default user store + public store
- * - mapi_msgstore_createentryid() retuns an store entryid of requested user
+ * - mapi_msgstore_createentryid() retuns a store entryid of requested user
  * - store entryid can be used with mapi_openmsgstore() to open
  *
  * Removed, how it did work in the far past:
@@ -3056,7 +3056,7 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 	zval		*res		= NULL;
 	LPMAPIPROP	lpMapiProp	= NULL;
 	long		proptag		= 0, flags = 0; // open default readable
-	char		*guidStr	= NULL; // guid is given as an char array
+	char		*guidStr	= NULL; // guid is given as a char array
 	ULONG		guidLen		= 0;
 	// return value
 	LPSTREAM	pStream		= NULL;
@@ -3088,13 +3088,11 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 	if (guidStr == NULL) {
 		// when no guidstring is provided default to IStream
 		lpGuid = (LPGUID)&IID_IStream;
+	} else if (guidLen == sizeof(GUID)) { // assume we have a guid if the length is right
+		lpGuid = (LPGUID)guidStr;
 	} else {
-		if (guidLen == sizeof(GUID)) { // assume we have a guid if the length is right
-			lpGuid = (LPGUID)guidStr;
-		} else {
-			php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Using the default GUID because the given GUIDs length is not right");
-			lpGuid = (LPGUID)&IID_IStream;
-		}
+		php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Using the default GUID because the given GUIDs length is not right");
+		lpGuid = (LPGUID)&IID_IStream;
 	}
 
 	MAPI_G(hr) = lpMapiProp->OpenProperty(proptag, lpGuid, 0, flags, (LPUNKNOWN *) &pStream);
@@ -3566,7 +3564,7 @@ ZEND_FUNCTION(mapi_openproperty)
 	zval		*res		= NULL;
 	LPMAPIPROP	lpMapiProp	= NULL;
 	long		proptag		= 0, flags = 0, interfaceflags = 0; // open default readable
-	char		*guidStr	= NULL; // guid is given as an char array
+	char		*guidStr	= NULL; // guid is given as a char array
 	ULONG		guidLen		= 0;
 	// return value
 	IUnknown*	lpUnk		= NULL;
@@ -3590,8 +3588,8 @@ ZEND_FUNCTION(mapi_openproperty)
 		interfaceflags = 0;
 		flags = 0;
 
-	} else {
-		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlsll", &res, &proptag, &guidStr, &guidLen, &interfaceflags, &flags) == FAILURE) return;
+	} else if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlsll", &res, &proptag, &guidStr, &guidLen, &interfaceflags, &flags) == FAILURE) {
+		return;
 	}
 
 	zend_list_find(res->value.lval, &type);
@@ -4021,7 +4019,11 @@ ZEND_FUNCTION(mapi_rules_gettable) {
 	// return value
 	object_ptr<IMAPITable> lpRulesView;
 	// locals
-	SizedSPropTagArray(11, sptaRules) = {11, { PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE, PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS, PR_RULE_PROVIDER, PR_RULE_NAME, PR_RULE_LEVEL, PR_RULE_PROVIDER_DATA } };
+	static constexpr const SizedSPropTagArray(11, sptaRules) =
+		{11, {PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
+		PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
+		PR_RULE_PROVIDER, PR_RULE_NAME, PR_RULE_LEVEL,
+		PR_RULE_PROVIDER_DATA}};
 	static constexpr const SizedSSortOrderSet(1, sosRules) =
 		{1, 0, 0, {{PR_RULE_SEQUENCE, TABLE_SORT_ASCEND}}};
 	ECRulesTableProxy *lpRulesTableProxy = NULL;

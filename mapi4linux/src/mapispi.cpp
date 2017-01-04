@@ -406,12 +406,7 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 	KCHL::memory_ptr<SPropValue> lpSourceName;
 	ULONG ulObjType  = 0;
 	ULONG ulFolderFlags = 0;
-
-	SizedSPropTagArray (1, sExcludeProps) = {
-		1, {
-			PR_DISPLAY_NAME_A,
-		}
-	};
+	static constexpr const SizedSPropTagArray (1, sExcludeProps) = {1, {PR_DISPLAY_NAME_A}};
 
 	if (!lpSrcInterface || !lpSrcFolder || cbEntryID == 0 || !lpEntryID || !lpDestFolder) {
 		hr = MAPI_E_INVALID_PARAMETER;

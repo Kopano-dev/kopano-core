@@ -145,18 +145,10 @@ struct TABLECHANGENOTIFICATION {
 
 class PARENTINFO _kc_final {
 public:
-    PARENTINFO() : lItems(0), lFolders(0), lAssoc(0), lDeleted(0), lDeletedFolders(0), lDeletedAssoc(0), lUnread(0), ulStoreId(0) { }
-    ~PARENTINFO() { }
-	int lItems;
-	int lFolders;
-	int lAssoc;
-
-	int lDeleted;
-	int lDeletedFolders;
-	int lDeletedAssoc;
-
-	int lUnread;
-	unsigned int ulStoreId;
+	int lItems = 0, lFolders = 0, lAssoc = 0;
+	int lDeleted = 0, lDeletedFolders = 0, lDeletedAssoc = 0;
+	int lUnread = 0;
+	unsigned int ulStoreId = 0;
 };
 
 #define EC_DELETE_FOLDERS		0x00000001

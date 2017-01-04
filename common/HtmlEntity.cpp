@@ -601,9 +601,8 @@ bool CHtmlEntity::CharToHtmlEntity(WCHAR c, std::wstring &strHTML)
 		bHTML = true;
 		break;
 	}
-	if (!bHTML) {
+	if (!bHTML)
 		strHTML = c;
-	}
 	return bHTML;
 }
 

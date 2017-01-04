@@ -651,9 +651,8 @@ HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOri
 	sExtException.ulOriginalStartDate = sException.ulOriginalStartDate = rOrig;
 	sExtException.ulChangeHighlightValue = 0;
 
-	m_sRecState.lstExceptions.push_back(sException);
-	m_sRecState.lstExtendedExceptions.push_back(sExtException);
-
+	m_sRecState.lstExceptions.push_back(std::move(sException));
+	m_sRecState.lstExtendedExceptions.push_back(std::move(sExtException));
 	*lpid = id;
 
 	return hr;

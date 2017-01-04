@@ -50,7 +50,7 @@ public:
 		return s;
 	}
 
-	utf8string(): m_bNull(false) {}
+	utf8string(void) = default;
 	utf8string(const utf8string &other): m_bNull(other.m_bNull), m_str(other.m_str) {}
 	utf8string(size_t n, char c): m_bNull(false), m_str(n, c) {}
 	
@@ -107,7 +107,7 @@ public:
 	}
 	
 private:
-	bool m_bNull;
+	bool m_bNull = false;
 	std::string	m_str;
 };
 

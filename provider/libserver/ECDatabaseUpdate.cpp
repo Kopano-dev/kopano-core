@@ -15,6 +15,7 @@
  *
  */
 #include <kopano/zcdefs.h>
+#include <utility>
 #include <kopano/platform.h>
 
 #include "ECDatabase.h"
@@ -1199,7 +1200,7 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 								   lpDatabase->EscapeBinary((unsigned char*)lpDBRow[2], lpDBLen[2]) + ", " +
 								   lpDBRow[3];
 		strQuery += ")";
-        queries.push_back(strQuery);
+		queries.push_back(std::move(strQuery));
 	}
 	lpDatabase->FreeResult(lpResult);
 	lpResult = NULL;
@@ -1359,13 +1360,13 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 			"UPDATE `users` SET `objectclass`=" + stringify(p.second) + " "
 			"WHERE `externid` IN " + strUpdate + " "
 			"AND `objectclass` = " + stringify(p.first);
-		lstUpdates.push_back(strQuery);
+		lstUpdates.push_back(std::move(strQuery));
 
 		strQuery =
 			"UPDATE `object` SET `objectclass`=" + stringify(p.second) + " "
 			"WHERE `externid` IN " + strUpdate + " "
 			"AND `objectclass` = " + stringify(p.first);
-		lstUpdates.push_back(strQuery);
+		lstUpdates.push_back(std::move(strQuery));
 	}
 
 	// process all type updates

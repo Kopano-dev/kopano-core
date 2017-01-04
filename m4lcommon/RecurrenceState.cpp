@@ -17,7 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
+#include <utility>
 #include <cstdio>
 #include <mapi.h>
 #include <mapix.h>
@@ -115,9 +115,6 @@ private:
 
 class BinWriter _kc_final {
 public:
-    BinWriter() {};
-    ~BinWriter() {};
-    
     void GetData(char **lppData, unsigned int *lpulLen, void *base) {
         char *lpData;
 
@@ -312,7 +309,7 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
             READLONG(sException.ulSubType);
         if (sException.ulOverrideFlags & ARO_APPTCOLOR)
             READLONG(sException.ulAppointmentColor);
-        lstExceptions.push_back(sException);
+        lstExceptions.push_back(std::move(sException));
     }
     
     bReadValid  = true;
@@ -364,8 +361,7 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
             READLONG(ulReservedBlock2Size);
             READSTRING(sExtendedException.strReservedBlock2, ulReservedBlock2Size);
         }
-        
-        lstExtendedExceptions.push_back(sExtendedException);
+        lstExtendedExceptions.push_back(std::move(sExtendedException));
     }
 	bExtended = true;
 

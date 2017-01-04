@@ -132,8 +132,6 @@ private:
 class DynamicPropTagArray _kc_final {
 public:
     DynamicPropTagArray(struct soap *soap);
-    ~DynamicPropTagArray();
-    
     ECRESULT AddPropTag(unsigned int ulPropTag);
     BOOL HasPropTag(unsigned int ulPropTag) const;
     

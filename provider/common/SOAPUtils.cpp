@@ -200,7 +200,7 @@ void FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase)
 }
 
 /**
- * Finds a specific property tag in an soap propValArray.
+ * Finds a specific property tag in a soap propValArray.
  *
  * @param[in]	lpPropValArray	SOAP propValArray
  * @param[in]	ulPropTagq		Property to search for in array, type may also be PT_UNSPECIFIED to find the first match on the PROP_ID
@@ -2128,8 +2128,6 @@ DynamicPropTagArray::DynamicPropTagArray(struct soap *soap)
 {
     m_soap = soap;
 }
-
-DynamicPropTagArray::~DynamicPropTagArray() { }
 
 ECRESULT DynamicPropTagArray::AddPropTag(unsigned int ulPropTag) {
     m_lstPropTags.push_back(ulPropTag);

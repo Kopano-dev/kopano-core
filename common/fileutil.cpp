@@ -188,7 +188,7 @@ static HRESULT HrUnmapFileBuffer(char *lpBuffer, int ulSize, bool bImmap)
 }
 
 /** 
- * Reads a file into an std::string using file mapping if possible.
+ * Reads a file into a std::string using file mapping if possible.
  *
  * @todo doesn't the std::string undermine the whole idea of mapping?
  * @todo std::string has a length method, so what's with the lpSize parameter?

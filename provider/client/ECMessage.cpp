@@ -49,8 +49,15 @@ using namespace KCHL;
 
 #define MAX_TABLE_PROPSIZE 8192
 
-SizedSPropTagArray(15, sPropRecipColumns) = {15, { PR_7BIT_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_SEARCH_KEY, PR_SEND_RICH_INFO, PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE, PR_ROWID, PR_DISPLAY_TYPE, PR_ENTRYID, PR_SPOOLER_STATUS, PR_OBJECT_TYPE, PR_ADDRTYPE_W, PR_RESPONSIBILITY } };
-SizedSPropTagArray(8, sPropAttachColumns) = {8, { PR_ATTACH_NUM, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_RENDERING_POSITION, PR_ATTACH_FILENAME_W, PR_ATTACH_METHOD, PR_DISPLAY_NAME_W, PR_ATTACH_LONG_FILENAME_W } };
+static constexpr const SizedSPropTagArray(15, sPropRecipColumns) =
+	{15, {PR_7BIT_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_INSTANCE_KEY,
+	PR_RECORD_KEY, PR_SEARCH_KEY, PR_SEND_RICH_INFO, PR_DISPLAY_NAME_W,
+	PR_RECIPIENT_TYPE, PR_ROWID, PR_DISPLAY_TYPE, PR_ENTRYID,
+	PR_SPOOLER_STATUS, PR_OBJECT_TYPE, PR_ADDRTYPE_W, PR_RESPONSIBILITY}};
+static constexpr const SizedSPropTagArray(8, sPropAttachColumns) =
+	{8, {PR_ATTACH_NUM, PR_INSTANCE_KEY, PR_RECORD_KEY,
+	PR_RENDERING_POSITION, PR_ATTACH_FILENAME_W, PR_ATTACH_METHOD,
+	PR_DISPLAY_NAME_W, PR_ATTACH_LONG_FILENAME_W}};
 
 HRESULT ECMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lpMessage) const
 {
@@ -1492,7 +1499,7 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	}
 
 	// see if read receipts are requested
-	static constexpr SizedSPropTagArray(2, proptags) =
+	static constexpr const SizedSPropTagArray(2, proptags) =
 		{2, {PR_MESSAGE_FLAGS, PR_READ_RECEIPT_REQUESTED}};
 	hr = ECMAPIProp::GetProps(proptags, 0, &cValues, &lpReadReceiptRequest);
 	if(hr == hrSuccess && (!(ulFlags&(SUPPRESS_RECEIPT|CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING)) || (ulFlags&GENERATE_RECEIPT_ONLY )) &&
@@ -1590,7 +1597,8 @@ HRESULT ECMessage::SyncRecips()
 	SPropValue sPropRecip;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
-	SizedSPropTagArray(2, sPropDisplay) = {2, { PR_RECIPIENT_TYPE, PR_DISPLAY_NAME_W} };
+	static constexpr const SizedSPropTagArray(2, sPropDisplay) =
+		{2, {PR_RECIPIENT_TYPE, PR_DISPLAY_NAME_W}};
 
 	if (this->lpRecips) {
 		hr = GetRecipientTable(fMapiUnicode, &~lpTable);
@@ -1931,8 +1939,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 
 	// Property change of a new item
 	if (fNew && this->GetMsgStore()->IsSpooler() == TRUE) {
-		static constexpr SizedSPropTagArray(1, proptag) =
-			{1, {PR_MESSAGE_FLAGS}};
+		static constexpr const SizedSPropTagArray(1, proptag) = {1, {PR_MESSAGE_FLAGS}};
 		hr = ECMAPIProp::GetProps(proptag, 0, &cValues, &lpsPropMessageFlags);
 		if(hr != hrSuccess)
 			goto exit;
@@ -1997,8 +2004,8 @@ HRESULT ECMessage::SyncSubject()
 	WCHAR*			lpszColon = NULL;
 	WCHAR*			lpszEnd = NULL;
 	int				sizePrefix1 = 0;
-
-	SizedSPropTagArray(2, sPropSubjects) = {2, { PR_SUBJECT_W, PR_SUBJECT_PREFIX_W} };
+	static constexpr const SizedSPropTagArray(2, sPropSubjects) =
+		{2, {PR_SUBJECT_W, PR_SUBJECT_PREFIX_W}};
 
 	hr1 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED), &bDirtySubject);
 	hr2 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), &bDirtySubjectPrefix);
@@ -2477,7 +2484,8 @@ HRESULT ECMessage::HrLoadProps()
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpsBodyProps = NULL;
-	SizedSPropTagArray(3, sPropBodyTags) = { 3, { PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML } };
+	static constexpr const SizedSPropTagArray(3, sPropBodyTags) =
+		{3, {PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML}};
 	ULONG cValues = 0;
 	BOOL fBodyOK = FALSE;
 	BOOL fRTFOK = FALSE;

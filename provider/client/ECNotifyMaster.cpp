@@ -249,7 +249,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 	if (m_lpTransport) {
 		/* Get another transport so we can tell the server to end the session. We 
 		 * can't use our own m_lpTransport since it is probably in a blocking getNextNotify()
-		 * call. Seems like a bit of a shame to open an new connection, but there's no
+		 * call. Seems like a bit of a shame to open a new connection, but there's no
 		 * other option */
 		hr = m_lpTransport->HrClone(&~lpTransport);
 		if (hr != hrSuccess) {

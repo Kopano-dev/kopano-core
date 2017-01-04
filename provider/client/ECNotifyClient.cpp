@@ -15,6 +15,7 @@
  */
 #include <kopano/platform.h>
 #include <stdexcept>
+#include <utility>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <mapispi.h>
@@ -353,7 +354,7 @@ HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
 		if (hr != hrSuccess)
 			goto exit;
 		sSyncAdvise.sSyncState = state;
-		lstAdvises.push_back(sSyncAdvise);
+		lstAdvises.push_back(std::move(sSyncAdvise));
 	}
 
 	hr = m_lpTransport->HrSubscribeMulti(lstAdvises, fnevKopanoIcsChange);

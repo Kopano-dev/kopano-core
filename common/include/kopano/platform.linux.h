@@ -385,8 +385,7 @@ typedef struct TZREG *PTZREG;
 /* IUnknown Interface */
 class IUnknown {
 public:
-    virtual ~IUnknown() {};
-
+	virtual ~IUnknown(void) = default;
     virtual ULONG AddRef() = 0;
     virtual ULONG Release() = 0;
     virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) = 0;

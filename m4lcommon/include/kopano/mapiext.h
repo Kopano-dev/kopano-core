@@ -53,7 +53,7 @@
 #define PR_USER_X509_CERTIFICATE (PROP_TAG(PT_MV_BINARY,0x3a70))
 #endif
 
-// it seems this is not an named prop?!
+// it seems this is not a named prop?!
 #ifndef PR_EMS_AB_X509_CERT
 #define PR_EMS_AB_X509_CERT PROP_TAG(PT_MV_BINARY, 0x8c6a)
 #endif

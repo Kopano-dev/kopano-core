@@ -37,14 +37,14 @@ namespace KC {
 
 class localobjectdetails_t _kc_final : public objectdetails_t {
 public:
-    localobjectdetails_t() : objectdetails_t(), ulId(0) {};
+	localobjectdetails_t(void) = default;
 	localobjectdetails_t(unsigned int id, objectclass_t objclass) : objectdetails_t(objclass), ulId(id) {};
 	localobjectdetails_t(unsigned int id, const objectdetails_t &details) : objectdetails_t(details), ulId(id) {};
 
 	bool operator==(const localobjectdetails_t &obj) const { return ulId == obj.ulId; };
 	bool operator<(const localobjectdetails_t &obj) const { return ulId < obj.ulId; } ;
 
-	unsigned int ulId;
+	unsigned int ulId = 0;
 };
 
 class usercount_t _kc_final {
@@ -59,7 +59,8 @@ public:
 		ucMAX = ucNonActiveTotal	// Must be very last
 	};
 
-	usercount_t(): m_bValid(false) {
+	usercount_t(void)
+	{
 		memset(m_ulCounts, 0, sizeof(m_ulCounts));
 	}
 	
@@ -118,7 +119,7 @@ public:
 	}
 
 private:
-	bool			m_bValid;
+	bool m_bValid = false;
 	unsigned int	m_ulCounts[ucMAX];
 };
 

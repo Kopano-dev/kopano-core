@@ -30,7 +30,7 @@ class ECConfig;
 class ECLogger;
 
 /**
- * The ArchiverSession class wraps the MAPISession an provides commonly used operations. It also
+ * The ArchiverSession class wraps the MAPISession and provides commonly used operations. It also
  * checks the license. This way the license doesn't need to be checked all over the place.
  */
 class _kc_export ArchiverSession _kc_final {

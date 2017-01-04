@@ -658,39 +658,33 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 			++szInput;
 		} else if (*szInput == '\r' || *szInput == '\n') {
 			++szInput;
-		} else {
-			if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {
-				if(bPar == false){
-					sState[ulState].output.append("<P>");
-					bPar = true;
-				}
-				// Change space to &nbsp; . The last space is a real space like "&nbsp;&nbsp; " or " "
-				if(*szInput == ' ') {
-					++szInput;
-
-					while(*szInput == ' ') {
-						sState[ulState].output.append("&nbsp;");
-						++szInput;
-					}
-
-					sState[ulState].output.append(1, ' ');
-				} else {
-					std::wstring entity;
-
-					if (! CHtmlEntity::CharToHtmlEntity((WCHAR)*szInput, entity))
-						sState[ulState].output.append(1, *szInput);
-					else
-						sState[ulState].output.append(entity.begin(), entity.end());
-
+		} else if (!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {
+			if (bPar == false) {
+				sState[ulState].output.append("<P>");
+				bPar = true;
+			}
+			// Change space to &nbsp; . The last space is a real space like "&nbsp;&nbsp; " or " "
+			if (*szInput == ' ') {
+				++szInput;
+				while (*szInput == ' ') {
+					sState[ulState].output.append("&nbsp;");
 					++szInput;
 				}
-
-				++nLineChar;
+				sState[ulState].output.append(1, ' ');
 			} else {
-				if (sState[ulState].ulSkipChars)
-					--sState[ulState].ulSkipChars;
+				std::wstring entity;
+
+				if (!CHtmlEntity::CharToHtmlEntity((WCHAR)*szInput, entity))
+					sState[ulState].output.append(1, *szInput);
+				else
+					sState[ulState].output.append(entity.begin(), entity.end());
 				++szInput;
 			}
+			++nLineChar;
+		} else {
+			if (sState[ulState].ulSkipChars)
+				--sState[ulState].ulSkipChars;
+			++szInput;
 		}
 	}
 
@@ -1306,9 +1300,9 @@ HRESULT HrExtractBODYFromTextRTF(const std::string &lpStrRTFIn,
 		} else if(*szInput == '\r' || *szInput == '\n') {
 			++szInput;
 		} else {
-			if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {
+			if (!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars)
 				sState[ulState].output.append(1,*szInput);
-			} else if (sState[ulState].ulSkipChars)
+			else if (sState[ulState].ulSkipChars)
 				--sState[ulState].ulSkipChars;
 			++szInput;
 		}

@@ -725,25 +725,14 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
-
-	SizedSPropTagArray(5, sptMessageExcludes) = { 5, {
-		PR_MESSAGE_SIZE,
-		PR_MESSAGE_RECIPIENTS,
-		PR_MESSAGE_ATTACHMENTS,
-		PR_ATTACH_SIZE,
-		PR_PARENT_SOURCE_KEY
-	} };
-
-	SizedSPropTagArray(7, sptImportProps) = { 7, {
-		PR_SOURCE_KEY,
-		PR_LAST_MODIFICATION_TIME,
-		PR_CHANGE_KEY,
-		PR_PARENT_SOURCE_KEY,
-		PR_PREDECESSOR_CHANGE_LIST,
-		PR_ENTRYID,
-		PR_ASSOCIATED
-	} };
-	SizedSPropTagArray(1, sptAttach) = { 1, {PR_ATTACH_NUM} };
+	static constexpr const SizedSPropTagArray(5, sptMessageExcludes) =
+		{5, {PR_MESSAGE_SIZE, PR_MESSAGE_RECIPIENTS,
+		PR_MESSAGE_ATTACHMENTS, PR_ATTACH_SIZE, PR_PARENT_SOURCE_KEY}};
+	static constexpr const SizedSPropTagArray(7, sptImportProps) =
+		{7, {PR_SOURCE_KEY, PR_LAST_MODIFICATION_TIME, PR_CHANGE_KEY,
+		PR_PARENT_SOURCE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_ENTRYID,
+		PR_ASSOCIATED}};
+	static constexpr const SizedSPropTagArray(1, sptAttach) = {1, {PR_ATTACH_NUM}};
 
 	while(m_ulStep < m_lstChange.size() && (m_ulBufferSize == 0 || ulSteps < m_ulBufferSize)){
 		ulFlags = 0;
@@ -989,8 +978,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	const SPropValue *lpPropVal = NULL;
 	ULONG ulFlags = 0;
 	StreamPtr ptrDestStream;
-
-	SizedSPropTagArray(11, sptImportProps) = { 11, {
+	static constexpr const SizedSPropTagArray(11, sptImportProps) = { 11, {
 		PR_SOURCE_KEY,
 		PR_LAST_MODIFICATION_TIME,
 		PR_CHANGE_KEY,
@@ -1003,8 +991,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		PR_EC_HIERARCHYID,
 		PR_EC_PARENT_HIERARCHYID
 	} };
-
-	SizedSPropTagArray(7, sptImportPropsServerWide) = { 7, {
+	static constexpr const SizedSPropTagArray(7, sptImportPropsServerWide) = { 7, {
 		PR_SOURCE_KEY,
 		PR_PARENT_SOURCE_KEY,
 		PR_STORE_RECORD_KEY,

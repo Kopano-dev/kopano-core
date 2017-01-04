@@ -37,7 +37,7 @@ typedef std::shared_ptr<ECLockManager> ECLockManagerPtr;
 ///////////////
 class ECObjectLock _kc_final {
 public:
-	ECObjectLock();
+	ECObjectLock(void) = default;
 	ECObjectLock(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
 	ECObjectLock(const ECObjectLock &other);
 	ECObjectLock(ECObjectLock &&);
@@ -54,8 +54,6 @@ private:
 ///////////////////////
 // ECObjectLock inlines
 ///////////////////////
-inline ECObjectLock::ECObjectLock() {}
-
 inline ECObjectLock::ECObjectLock(const ECObjectLock &other): m_ptrImpl(other.m_ptrImpl) {}
 
 inline ECObjectLock::ECObjectLock(ECObjectLock &&other) : m_ptrImpl(std::move(other.m_ptrImpl)) {}

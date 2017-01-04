@@ -220,7 +220,7 @@ This description of options are reproduced here:
                        host1 server. Useful for backup or pre-sync.
  --delete2duplicates : Delete messages in host2 that are duplicates.
                        Works only without --useuid since duplicates are
-                       detected with an header part of each message.
+                       detected with a header part of each message.
 
  --delete2folders    : Delete folders in host2 that are not in host1 server.
                        For safety, first try it like this (it is safe):
@@ -1118,7 +1118,7 @@ $pipemesscheck = ( defined  $pipemesscheck  ) ? $pipemesscheck : 1 ;
 if ( @pipemess and $pipemesscheck ) {
 	myprint( 'Checking each --pipemess command, '
                 . join( q{, }, @pipemess )
-                . ", with an space string. ( Can avoid this check with --nopipemesscheck )\n" ) ;
+                . ", with a space string. ( Can avoid this check with --nopipemesscheck )\n" ) ;
 	my $string = pipemess( q{ }, @pipemess ) ;
         # string undef means something was bad.
         if ( not ( defined  $string  ) ) {
@@ -1128,7 +1128,7 @@ if ( @pipemess and $pipemesscheck ) {
 }
 
 if ( $maxlinelengthcmd ) {
-	myprint( "Checking  --maxlinelengthcmd command,  $maxlinelengthcmd, with an space string.\n"  ) ;
+	myprint( "Checking  --maxlinelengthcmd command,  $maxlinelengthcmd, with a space string.\n"  ) ;
 	my $string = pipemess( q{ }, $maxlinelengthcmd ) ;
         # string undef means something was bad.
         if ( not ( defined  $string  ) ) {
@@ -1139,7 +1139,7 @@ if ( $maxlinelengthcmd ) {
 
 if ( @regexmess ) {
 	my $string = regexmess( q{ } ) ;
-	myprint( "Checking each --regexmess command with an space string.\n"  ) ;
+	myprint( "Checking each --regexmess command with a space string.\n"  ) ;
         # string undef means one of the eval regex was bad.
         if ( not ( defined  $string  ) ) {
 		die_clean( 'Error: one of --regexmess option is bad, check it' ) ;
@@ -1148,7 +1148,7 @@ if ( @regexmess ) {
 }
 
 if ( @skipmess ) {
-	myprint( "Checking each --skipmess command with an space string.\n"  ) ;
+	myprint( "Checking each --skipmess command with a space string.\n"  ) ;
 	my $match = skipmess( q{ } ) ;
         # match undef means one of the eval regex was bad.
         if ( not ( defined  $match  ) ) {
@@ -1158,7 +1158,7 @@ if ( @skipmess ) {
 }
 
 if ( @regexflag ) {
-	myprint( "Checking each --regexflag command with an space string.\n"  ) ;
+	myprint( "Checking each --regexflag command with a space string.\n"  ) ;
 	my $string = flags_regex( q{ } ) ;
 	# string undef means one of the eval regex was bad.
 	if ( not ( defined  $string  ) ) {
@@ -8524,7 +8524,7 @@ sub usage {
                        host1 server. Useful for backup or pre-sync.
  --delete2duplicates : Delete messages in host2 that are duplicates.
                        Works only without --useuid since duplicates are
-                       detected with an header part of each message.
+                       detected with a header part of each message.
 
  --delete2folders    : Delete folders in host2 that are not in host1 server.
                        For safety, first try it like this (it is safe):

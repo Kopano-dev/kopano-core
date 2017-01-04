@@ -76,7 +76,7 @@ enum {
 };
 
 /* Newmail Notify columns */
-static const SizedSPropTagArray(4, sPropNewMailColumns) = {
+static constexpr const SizedSPropTagArray(4, sPropNewMailColumns) = {
 	4,
 	{
 		PR_ENTRYID,
@@ -657,7 +657,7 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 		return hr;
 
 	// The the prop value PR_STORE_PROVIDERS
-	static constexpr SizedSPropTagArray(1, proptag) = {1, {PR_STORE_PROVIDERS}};
+	static constexpr const SizedSPropTagArray(1, proptag) = {1, {PR_STORE_PROVIDERS}};
 	hr = lpGlobalProfSect->GetProps(proptag, 0, &cValues, &~lpGlobalProps);
 	if(hr == hrSuccess && lpGlobalProps->Value.bin.cb >= sizeof(MAPIUID)) 
 	{
@@ -700,8 +700,7 @@ static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewP
 	SPropValuePtr		ptrGlobalProps;
 	ULONG				csNewMapiUID;
 	SPropValuePtr		ptrNewProp;
-
-	SizedSPropTagArray(1, sptaGlobalProps) = {1, {PR_STORE_PROVIDERS}};
+	static constexpr const SizedSPropTagArray(1, sptaGlobalProps) = {1, {PR_STORE_PROVIDERS}};
 
 	//Open global profile, add the store.(for show list, delete etc)
 	HRESULT hr = lpProviderAdmin->OpenProfileSection(reinterpret_cast<MAPIUID *>(const_cast<char *>(pbGlobalProfileSectionGuid)),
@@ -1491,7 +1490,9 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, 
 	ULONG		ulType = 0;
 	ULONG		cMailUserValues = 0;
 	memory_ptr<SPropValue> lpMailUserProps;
-	SizedSPropTagArray(4, sptaAddressProps) = { 4, { PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W } };
+	static constexpr const SizedSPropTagArray(4, sptaAddressProps) =
+		{4, {PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W,
+		PR_SMTP_ADDRESS_W}};
 
 	if (lpAdrBook == nullptr || lpEntryID == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -1526,7 +1527,9 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 	ULONG			ulType = 0;
 	
 	enum esPropDoSentMail{ DSM_ENTRYID, DSM_PARENT_ENTRYID, DSM_SENTMAIL_ENTRYID, DSM_DELETE_AFTER_SUBMIT, DSM_STORE_ENTRYID};
-	SizedSPropTagArray(5, sPropDoSentMail) = {5, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_SENTMAIL_ENTRYID, PR_DELETE_AFTER_SUBMIT, PR_STORE_ENTRYID} };
+	static constexpr const SizedSPropTagArray(5, sPropDoSentMail) =
+		{5, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_SENTMAIL_ENTRYID,
+		PR_DELETE_AFTER_SUBMIT, PR_STORE_ENTRYID}};
 
 	assert(lpSession != NULL || lpMDBParam != NULL);
     
@@ -2069,7 +2072,8 @@ HRESULT FindFolder(LPMAPITABLE lpTable, const WCHAR *folder, LPSPropValue *lppFo
 	HRESULT hr;
 	LPSRowSet		lpRowSet = NULL;
 	ULONG nValues;
-	SizedSPropTagArray(2, sptaName) = { 2, { PR_DISPLAY_NAME_W, PR_ENTRYID } };
+	static constexpr const SizedSPropTagArray(2, sptaName) =
+		{2, {PR_DISPLAY_NAME_W, PR_ENTRYID}};
 
 	hr = lpTable->SetColumns(sptaName, 0);
 	if (hr != hrSuccess)
@@ -2577,9 +2581,7 @@ HRESULT DoAddress(IAddrBook *lpAdrBook, ULONG* hWnd, LPADRPARM lpAdrParam, LPADR
 		// Same for lpAdrParam
 		for (unsigned int i = 0; i < sAdrParam.cDestFields; ++i) {
 			std::string strField = convert_to<string>((LPWSTR)sAdrParam.lppszDestTitles[i]);
-
-			vDestFields.push_back(strField);
-
+			vDestFields.push_back(std::move(strField));
 			sAdrParam.lppszDestTitles[i] = (LPTSTR)vDestFields.back().c_str();
 
 		}
@@ -2908,7 +2910,10 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpLocalFBMessage;
 	memory_ptr<SPropValue> lpProps;
-	SizedSPropTagArray(3, sptaFBProps) = {3, {PR_PROCESS_MEETING_REQUESTS, PR_DECLINE_CONFLICTING_MEETING_REQUESTS, PR_DECLINE_RECURRING_MEETING_REQUESTS}};
+	static constexpr const SizedSPropTagArray(3, sptaFBProps) =
+		{3, {PR_PROCESS_MEETING_REQUESTS,
+		PR_DECLINE_CONFLICTING_MEETING_REQUESTS,
+		PR_DECLINE_RECURRING_MEETING_REQUESTS}};
 	ULONG cValues = 0;
 
 	bool bAutoAccept = false;
@@ -2986,8 +2991,7 @@ HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
 
 	SPropValue propDisplayType;
 	SPropValue propEmsAbContainerid;
-
-	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
 	if (lpAddrBook == NULL || lppGAB == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -3045,7 +3049,8 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	SPropValue propSubject;
 	SRowSetPtr ptrRows;
 	MessagePtr ptrMessage;
-	SizedSPropTagArray(2, sptaTreeProps) = {2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
+	static constexpr const SizedSPropTagArray(2, sptaTreeProps) =
+		{2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 
 	HRESULT hr = lpStore->GetProps(sptaTreeProps, 0, &cValues, &~ptrEntryIDs);
 	if (FAILED(hr))

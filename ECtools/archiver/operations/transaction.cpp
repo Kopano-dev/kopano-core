@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include "transaction.h"
 #include "ArchiverSession.h"
 
@@ -100,7 +101,7 @@ HRESULT Transaction::Save(IMessage *lpMessage, bool bDeleteOnFailure, const Post
 	se.bDeleteOnFailure = bDeleteOnFailure;
 	se.ptrMessage.reset(lpMessage, false);
 	se.ptrPSAction = ptrPSAction;
-	m_lstSave.push_back(se);
+	m_lstSave.push_back(std::move(se));
 	return hrSuccess;
 }
 
@@ -109,7 +110,7 @@ HRESULT Transaction::Delete(const SObjectEntry &objectEntry, bool bDeferredDelet
 	DelEntry de;
 	de.objectEntry = objectEntry;
 	de.bDeferredDelete = bDeferredDelete;
-	m_lstDelete.push_back(de);
+	m_lstDelete.push_back(std::move(de));
 	return hrSuccess;
 }
 
@@ -120,8 +121,8 @@ HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 	ULONG cMsgProps;
 	ULONG ulType;
 	DelEntry entry;
-
-	SizedSPropTagArray(2, sptaMsgProps) = {2, {PR_ENTRYID, PR_PARENT_ENTRYID}};
+	static constexpr const SizedSPropTagArray(2, sptaMsgProps) =
+		{2, {PR_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_PARENT_ENTRYID};
 
 	if (lpMessage == NULL)

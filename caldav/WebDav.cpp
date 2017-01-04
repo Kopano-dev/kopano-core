@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include "WebDav.h"
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
@@ -124,7 +125,7 @@ HRESULT WebDav::HrPropfind()
 		WEBDAVPROPERTY sProperty;
 		
 		HrSetDavPropName(&(sProperty.sPropName),lpXmlNode);
-		sDavPropRet.lstProps.push_back(sProperty);
+		sDavPropRet.lstProps.push_back(std::move(sProperty));
 		lpXmlNode = lpXmlNode->next;
 	}
 
@@ -457,7 +458,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 				WEBDAVPROPERTY sWebProperty;
 
 				HrSetDavPropName(&(sWebProperty.sPropName),lpXmlChildNode);
-				sReptQuery.sProp.lstProps.push_back(sWebProperty);
+				sReptQuery.sProp.lstProps.push_back(std::move(sWebProperty));
 				lpXmlChildNode = lpXmlChildNode->next;
 			}
 		} else {
@@ -544,7 +545,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 		WEBDAVPROPERTY sWebProperty;
 	
 		HrSetDavPropName(&(sWebProperty.sPropName),lpXmlChildNode);
-		sRptMGet.sProp.lstProps.push_back(sWebProperty);
+		sRptMGet.sProp.lstProps.push_back(std::move(sWebProperty));
 		lpXmlChildNode = lpXmlChildNode->next;
 	}
 	
@@ -579,8 +580,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 		strGuid.erase(strGuid.length() - 4);
 		strGuid = urlDecode(strGuid);
 		sWebVal.strValue = strGuid;
-
-		sRptMGet.lstWebVal.push_back(sWebVal);
+		sRptMGet.lstWebVal.push_back(std::move(sWebVal));
 		lpXmlChildNode = lpXmlChildNode->next;
 	}
 
@@ -781,7 +781,7 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 			sWebResPonse.lstProps.push_back(sWebProperty);
 		}
 
-		sWebMStatus.lstResp.push_back(sWebResPonse);
+		sWebMStatus.lstResp.push_back(std::move(sWebResPonse));
 	}
 
 	hr = RespStructToXml(&sWebMStatus, &strXml);
@@ -1347,8 +1347,7 @@ HRESULT WebDav::HrPropPatch()
 		    lpXmlNode->children->content != nullptr)
 			sProperty.strValue = (char *)lpXmlNode->children->content;
 
-		sDavProp.lstProps.push_back(sProperty);
-
+		sDavProp.lstProps.push_back(std::move(sProperty));
 		lpXmlNode = lpXmlNode->next;
 	}	
 
@@ -1466,9 +1465,7 @@ HRESULT WebDav::HrMkCalendar()
 				lpXmlChild = lpXmlChild->next;
 			}
 		}
-
-		sDavProp.lstProps.push_back(sProperty);	
-
+		sDavProp.lstProps.push_back(std::move(sProperty));
 		lpXmlNode = lpXmlNode->next;
 	}
 

@@ -55,8 +55,7 @@ public:
 	};
 
 	typedef std::unique_ptr<ArchiveManage> auto_ptr_type;
-
-	virtual ~ArchiveManage() {};
+	virtual ~ArchiveManage(void) = default;
 	_kc_export static HRESULT Create(LPMAPISESSION, ECLogger *, const TCHAR *user, auto_ptr_type *manage);
 	virtual eResult AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned int ulFlags) = 0;
 	virtual eResult DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder) = 0;
@@ -68,7 +67,7 @@ public:
 	virtual eResult AutoAttach(unsigned int ulFlags) = 0;
 
 protected:
-	ArchiveManage() {};
+	ArchiveManage(void) = default;
 };
 
 typedef ArchiveManage::auto_ptr_type	ArchiveManagePtr;

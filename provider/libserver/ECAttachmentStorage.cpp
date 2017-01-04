@@ -46,7 +46,7 @@ namespace KC {
 // chunk size for attachment blobs, must be equal or larger than MAX, MAX may never shrink below 384*1024.
 #define CHUNK_SIZE (384 * 1024)
 
-// as adviced by http://www.zlib.net/manual.html we use an 128KB buffer; default is only 8KB
+// as adviced by http://www.zlib.net/manual.html we use a 128KB buffer; default is only 8KB
 #define ZLIB_BUFFER_SIZE std::max(CHUNK_SIZE, 128 * 1024)
 
 /*
@@ -1397,7 +1397,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 	my_readahead(fd);
 
 	/*
-	 * CreateAttachmentFilename Already checked if we are working with an compressed or uncompressed file,
+	 * CreateAttachmentFilename Already checked if we are working with a compressed or uncompressed file,
 	 * no need to perform retries when our first guess (which is based on CreateAttachmentFilename) fails.
 	 */
 	if (bCompressed) {

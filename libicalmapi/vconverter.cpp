@@ -1136,7 +1136,8 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			strName = strEmail; // set email as name OL does not display organiser name if not set.
 
 		if (bIsUserLoggedIn(strEmail)) {
-			SizedSPropTagArray(4, sPropTags) = {4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID} };
+			static constexpr const SizedSPropTagArray(4, sPropTags) =
+				{4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID}};
 			ULONG count;
 
 			hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~lpsPropVal);
@@ -1181,7 +1182,8 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			hr = HrAddOrganizer(lpIcalItem, lplstMsgProps, strEmail, strName, strType, cbEntryID, lpEntryID);
 	} else if (!m_bNoRecipients && m_lpMailUser) {
 		// single item from caldav without organizer, no need to set recipients, only organizer to self
-		SizedSPropTagArray(4, sPropTags) = {4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID} };
+		static constexpr const SizedSPropTagArray(4, sPropTags) =
+			{4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID}};
 		ULONG count;
 
 		hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~lpsPropVal);
@@ -1218,9 +1220,8 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			continue;
 
 		icrAttendee.strEmail = m_converter.convert_to<wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
-		if (wcsncasecmp(icrAttendee.strEmail.c_str(), L"mailto:", 7) == 0) {
+		if (wcsncasecmp(icrAttendee.strEmail.c_str(), L"mailto:", 7) == 0)
 			icrAttendee.strEmail.erase(0, 7);
-		}
 
 		// @todo: Add organiser details if required.
 		if(icrAttendee.strEmail == strEmail) // remove organiser from attendee list.
@@ -1320,9 +1321,8 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 		if (lpicProp) {
 			const char *lpszProp = icalproperty_get_attendee(lpicProp);
 			strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
-			if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0) {
+			if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 				strEmail.erase(0, 7);
-			}
 
 			lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
 			if (lpicParam) {
@@ -1542,7 +1542,7 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 }
 
 /** 
- * Make an MAPI exception message, and add this to the previous parsed
+ * Make a MAPI exception message, and add this to the previous parsed
  * icalitem (which is the main ical item).
  * 
  * @param[in] lpEventRoot		The top ical event which is recurring
@@ -1582,8 +1582,7 @@ HRESULT VConverter::HrAddException(icalcomponent *lpEventRoot, icalcomponent *lp
 	hr = HrAddBaseProperties(icMethod, lpEvent, lpPrevItem->base, true, &ex.lstMsgProps);
 	if (hr != hrSuccess)
 		return hr;
-
-	lpPrevItem->lstExceptionAttachments.push_back(ex);
+	lpPrevItem->lstExceptionAttachments.push_back(std::move(ex));
 	return hrSuccess;
 }
 
@@ -2062,9 +2061,10 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	LPSRowSet lpRows = NULL;
 	ULONG ulCount = 0;
 	wstring strName, strType, strEmailAddress;
-	SizedSPropTagArray(7, sptaRecipProps) = {7, { PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_EMAIL_ADDRESS_A,
-												  PR_RECIPIENT_FLAGS, PR_RECIPIENT_TYPE, PR_RECIPIENT_TRACKSTATUS }
-	};
+	static constexpr const SizedSPropTagArray(7, sptaRecipProps) =
+		{7, {PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A,
+		PR_EMAIL_ADDRESS_A, PR_RECIPIENT_FLAGS, PR_RECIPIENT_TYPE,
+		PR_RECIPIENT_TRACKSTATUS}};
 
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)

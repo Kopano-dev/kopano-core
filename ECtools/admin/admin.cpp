@@ -835,7 +835,10 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
     const ArchiveList &lstArchives, const ECUSERCLIENTUPDATESTATUS *lpECUCUS)
 {
 	memory_ptr<SPropValue> lpProps;
-	SizedSPropTagArray(5, sptaProps) = {5, { PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME, PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL } };
+	static constexpr const SizedSPropTagArray(5, sptaProps) =
+		{5, {PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME,
+		PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM,
+		PR_EC_OUTOFOFFICE_UNTIL}};
 	ULONG cValues = 0;
 
 	if (lpStore)
@@ -1754,10 +1757,10 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	SRowSetPtr	ptrRows;
 	ULONG			ulType = 0;
 	bool			bFail = false;
-
-	SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue			  sGALPropVal;
-	SizedSPropTagArray(2, sContentsProps) = {2, {PR_ACCOUNT, PR_EMS_AB_HOME_MDB}};
+	static constexpr const SizedSPropTagArray(2, sContentsProps) =
+		{2, {PR_ACCOUNT, PR_EMS_AB_HOME_MDB}};
 	SPropValue			  sObjTypePropVal;
 	SPropValue			  sDispTypePropVal;
 
@@ -1891,8 +1894,8 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	ConsoleTable ct(3, 4);
 	ULONG ulExtraRow = 0;
 	ULONG ulExtraRows = 0;
-
-	SizedSPropTagArray(2, sptaStatsProps) = {2, {PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE}};
+	static constexpr const SizedSPropTagArray(2, sptaStatsProps) =
+		{2, {PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE}};
 	enum {IDX_DISPLAY_NAME_A, IDX_EC_STATS_SYSTEM_VALUE};
 	enum {COL_ALLOWED=1, COL_USED, COL_AVAILABLE};
 
@@ -2030,8 +2033,8 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	ULONG ulTotalUpdates = 0;
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRows;
-
-	SizedSPropTagArray(2, sptaTableProps) = {2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(2, sptaTableProps) =
+		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
 	enum {IDX_DISPLAY_NAME, IDX_ENTRYID};
 
 	hr = lpAdminStore->QueryInterface(ptrEMS.iid(), &~ptrEMS);
@@ -2106,8 +2109,6 @@ exit:
 
 class InputValidator {
 	public:
-		InputValidator(): m_bFailure(false) { }
-
 		bool Failed() const { return m_bFailure; }
 
 		/**
@@ -2136,7 +2137,7 @@ class InputValidator {
 		}
 
 	private:
-		bool	m_bFailure;
+		bool m_bFailure = false;
 };
 
 // compare function for set<tstring, ltstr>, fixes default wchar_t compare, and makes it case-insensitive
@@ -3344,11 +3345,9 @@ int main(int argc, char* argv[])
 						cerr << "Unable to load server details, " << getMapiCodeString(hr, (char*)lpECUser->lpszServername) << endl;
 						goto exit;
 					}
-
-					if ((lpServerDetails->lpsaServer[0].ulFlags & EC_SDFLAG_IS_PEER) == 0) {
+					if ((lpServerDetails->lpsaServer[0].ulFlags & EC_SDFLAG_IS_PEER) == 0)
 						// since we don't know which server we're connected to, don't print a server name.
 						cerr << "WARNING: Hooking store on non-homeserver of " << username << endl;
-					}
 				}
 			}
 
@@ -3478,13 +3477,12 @@ int main(int argc, char* argv[])
 
 		// lpECUser memory will be kept alive to let the SetUser() call work
 		for (ULONG i = 0; i < lpECUser->sMVPropmap.cEntries; ++i) {
-			if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_ENABLED_FEATURES_A) {
+			if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_ENABLED_FEATURES_A)
 				sEnabled.insert((char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues,
 						(char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues + lpECUser->sMVPropmap.lpEntries[i].cValues);
-			} else if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_DISABLED_FEATURES_A) {
+			else if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_DISABLED_FEATURES_A)
 				sDisabled.insert((char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues,
 						(char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues + lpECUser->sMVPropmap.lpEntries[i].cValues);
-			}
 		}
 
 		if (feature) {
@@ -3994,11 +3992,10 @@ int main(int argc, char* argv[])
 			cerr << "Cache clear failed" << endl;
 			goto exit;
 		}
-		if (ulCachePurgeMode != PURGE_CACHE_ALL) {
+		if (ulCachePurgeMode != PURGE_CACHE_ALL)
 			cout << "Cache cleared with flags " << ulCachePurgeMode << endl;
-		} else {
+		else
 			cout << "Cache cleared." << endl;
-		}
 		break;
 	case MODE_PURGE_DEFERRED:
 		while(1) {

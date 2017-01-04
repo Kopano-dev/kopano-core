@@ -153,7 +153,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	ULONG cbEntryID = 0;
 	LPENTRYID lpEntryID = NULL;
 	LPSPropValue lpOutbox = NULL;
-	SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
 	auto wstrFldId = wstrFldIdOrig;
 
 	// wstrFldId can be:
@@ -668,7 +668,7 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 	object_ptr<IMAPITable> lpTable;
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
-	SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
 	
 	HRESULT hr = HrMakeRestriction(strGuid, lpNamedProps, &~lpsRoot);
 	if (hr != hrSuccess)

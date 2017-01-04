@@ -20,6 +20,7 @@
 #include <memory>
 #include <new>
 #include <ostream>
+#include <utility>
 #include "ArchiveManage.h"
 #include "ArchiveManageImpl.h"
 #include "ArchiverSession.h"
@@ -308,7 +309,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		return hr;
 	}
 
-	lstArchives.push_back(objectEntry);
+	lstArchives.push_back(std::move(objectEntry));
 	lstArchives.sort();
 	lstArchives.unique();
 	
@@ -605,8 +606,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		MAPIFolderPtr ptrArchiveFolder;
 		SPropValuePtr ptrPropValue;
 		ULONG ulCompareResult = FALSE;
-
-		SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
+		static constexpr const SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
 		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID, IDX_STORE_RECORD_KEY};
 
 		entry.Rights = ARCHIVE_RIGHTS_ERROR;
@@ -615,7 +615,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open store (hr=%s)", stringify(hrTmp, true).c_str());
 			entry.StoreName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
-			lstEntries.push_back(entry);
+			lstEntries.push_back(std::move(entry));
 			continue;
 		}
 		
@@ -666,7 +666,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open folder (hr=%s)", stringify(hrTmp, true).c_str());
 			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
-			lstEntries.push_back(entry);
+			lstEntries.push_back(std::move(entry));
 			continue;
 		}
 		
@@ -688,7 +688,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		} else
 			entry.Rights = ARCHIVE_RIGHTS_ABSENT;
 
-		lstEntries.push_back(entry);
+		lstEntries.push_back(std::move(entry));
 	}
 
 	lplstArchives->swap(lstEntries);
@@ -798,8 +798,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	MAPITablePtr ptrACLTable;
 	SPropValue sPropUser;
 	SRowSetPtr ptrRows;
-
-	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
+	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
 
 	if (lpFolder == NULL || lpulRights == NULL)
 		return MAPI_E_INVALID_PARAMETER;

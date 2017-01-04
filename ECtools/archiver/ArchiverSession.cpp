@@ -380,8 +380,8 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 		MailUserPtr ptrUser;
 		ULONG cValues = 0;
 		SPropArrayPtr ptrUserProps;
-
-		SizedSPropTagArray(2, sptaUserProps) = {2, {PR_DISPLAY_NAME, PR_DISPLAY_TYPE_EX}};
+		static constexpr const SizedSPropTagArray(2, sptaUserProps) =
+			{2, {PR_DISPLAY_NAME, PR_DISPLAY_TYPE_EX}};
 		enum {IDX_DISPLAY_NAME, IDX_DISPLAY_TYPE_EX};
 
 		hr = m_ptrSession->OpenEntry(cbEntryId, ptrEntryId, &IID_IMailUser, 0, &ulType, &~ptrUser);
@@ -428,8 +428,8 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 	MAPIPropPtr ptrUser;
 	ULONG cUserProps = 0;
 	SPropArrayPtr ptrUserProps;
-
-	SizedSPropTagArray(2, sptaUserProps) = {2, {PR_ACCOUNT, PR_DISPLAY_NAME}};
+	static constexpr const SizedSPropTagArray(2, sptaUserProps) =
+		{2, {PR_ACCOUNT, PR_DISPLAY_NAME}};
 	enum {IDX_ACCOUNT, IDX_DISPLAY_NAME};
 
 	hr = m_ptrSession->OpenEntry(sEntryId.size(), sEntryId, nullptr, MAPI_DEFERRED_ERRORS, &ulType, &~ptrUser);
@@ -471,8 +471,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	MAPITablePtr	ptrABRCTable;
 	SRowSetPtr		ptrRows;
 	ULONG			ulType = 0;
-
-	SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue			  sGALPropVal = {0};
 	SRestriction		  sGALRestrict = {0};
 

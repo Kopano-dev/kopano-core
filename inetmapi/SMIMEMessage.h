@@ -41,7 +41,7 @@ namespace KC {
  * -----------------------
  *
  * This class works just like a vmime::message instance, except that when then 'SMIMEBody' is set, it will
- * use that body (including some headers!) to generate the RFC822 message. All other methods are inherited
+ * use that body (including some headers!) to generate the RFC 2822 message. All other methods are inherited
  * directly from vmime::message.
  *
  * Note that any other body data set will be override by the SMIMEBody.

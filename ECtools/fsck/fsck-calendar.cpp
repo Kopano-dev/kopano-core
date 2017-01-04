@@ -18,7 +18,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
-
+#include <utility>
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
@@ -469,7 +469,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 					TryConvert(convertContext, iEx->strLocation, rawsize(iEx->strLocation), "windows-1252", wstr);
 	                ex.strWideCharLocation.assign(wstr.c_str(), wstr.size());
 	                
-	                r.lstExtendedExceptions.push_back(ex);
+	                r.lstExtendedExceptions.push_back(std::move(ex));
 	                ++iEx;
                 }
                 

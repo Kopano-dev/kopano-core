@@ -1946,7 +1946,7 @@ class Store(object):
             pass
 
     def delete(self, props):
-        """Delete properties from an Store
+        """Delete properties from a Store
 
         :param props: The properties to remove
         """
@@ -3242,7 +3242,7 @@ class Item(object):
             self._arch_item.DeleteAttach(attach_id, 0, None, 0)
 
         # XXX: refresh the mapiobj since PR_ATTACH_NUM is updated when opening
-        # an message? PR_HASATTACH is also updated by the server.
+        # a message? PR_HASATTACH is also updated by the server.
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def _convert_to_smtp(self, props, tag_data):
@@ -4111,7 +4111,7 @@ class User(object):
         :param feature: the to be removed feature
         """
 
-        # Copy features otherwise we will miss an disabled feature.
+        # Copy features otherwise we will miss a disabled feature.
         # XXX: improvement?
         features = self.features[:]
         try:

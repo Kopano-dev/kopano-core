@@ -93,7 +93,7 @@ public:
 	typedef typename details::traits<_T>		_traits;
 	typedef typename _traits::set_pointer_type	set_pointer_type;
 
-	mapi_rowset_ptr(): m_lpsRowSet(NULL) {}
+	mapi_rowset_ptr(void) = default;
 	mapi_rowset_ptr(set_pointer_type lpsRowSet): m_lpsRowSet(lpsRowSet) {}
 
 	mapi_rowset_ptr(const mapi_rowset_ptr &other): m_lpsRowSet(NULL) {
@@ -171,7 +171,7 @@ public:
 	}
 
 private:
-	set_pointer_type	m_lpsRowSet;
+	set_pointer_type m_lpsRowSet = nullptr;
 };
 
 } /* namespace */

@@ -47,8 +47,7 @@ namespace KC {
 
 class mapiTimeoutHandler : public vmime::net::timeoutHandler {
 public:
-	mapiTimeoutHandler() : m_last(0) {};
-	virtual ~mapiTimeoutHandler() {};
+	virtual ~mapiTimeoutHandler(void) = default;
 
 	// @todo add logging
 	virtual bool isTimeOut() { return getTime() >= (m_last + 5*60); };
@@ -60,7 +59,7 @@ public:
 	}
 
 private:
-	unsigned int m_last;
+	unsigned int m_last = 0;
 };
 
 class mapiTimeoutHandlerFactory : public vmime::net::timeoutHandlerFactory {
@@ -148,13 +147,11 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 					error = std::wstring(L"Error in group '") + lpGroupName->Value.lpszW + L"', unable to send e-mail";
 					goto exit;
 				}
-			} else {
-				if (setRecips.find(strEmail) == setRecips.end()) {
-					recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
-					setRecips.insert(strEmail);
-					ec_log_debug("Sending to group-address %s instead of expanded list",
-						convert_to<std::string>(strEmail).c_str());
-				}
+			} else if (setRecips.find(strEmail) == setRecips.end()) {
+				recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
+				setRecips.insert(strEmail);
+				ec_log_debug("Sending to group-address %s instead of expanded list",
+					convert_to<std::string>(strEmail).c_str());
 			}
 		}
 	}

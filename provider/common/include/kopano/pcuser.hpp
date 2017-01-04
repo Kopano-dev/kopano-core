@@ -29,17 +29,19 @@ namespace KC {
 
 /* Extern object */
 struct objectid_t {
-	objectid_t(const std::string &id, objectclass_t objclass);
+	objectid_t(void) = default;
+	objectid_t(objectclass_t xoc) : objclass(xoc) {}
+	objectid_t(const std::string &xid, objectclass_t xoc) :
+		id(xid), objclass(xoc)
+	{}
 	explicit objectid_t(const std::string &str);
-	objectid_t(objectclass_t objclass);
-	objectid_t();
 
 	bool operator==(const objectid_t &x) const;
 	bool operator!=(const objectid_t &x) const;
 	std::string tostring() const;
 
 	std::string id;
-	objectclass_t objclass;
+	objectclass_t objclass = OBJECTCLASS_UNKNOWN;
 };
 
 inline bool operator < (const objectid_t &a, const objectid_t &b) {
@@ -91,9 +93,9 @@ typedef std::map<property_key_t, std::list<std::string> > property_mv_map;
  */
 class objectdetails_t {
 public:
-	objectdetails_t(const objectdetails_t &objdetails);
-	objectdetails_t(objectclass_t objclass);
-	objectdetails_t();
+	objectdetails_t(void) = default;
+	objectdetails_t(const objectdetails_t &o) = default;
+	objectdetails_t(objectclass_t xoc) : m_objclass(xoc) {}
 
 	unsigned int 			GetPropInt(property_key_t propname) const;
 	bool					GetPropBool(property_key_t propname) const;
@@ -129,7 +131,7 @@ public:
 	std::string ToStr(void) const;
 
 private:
-	objectclass_t m_objclass;
+	objectclass_t m_objclass = OBJECTCLASS_UNKNOWN;
 	property_map m_mapProps;
 	property_mv_map m_mapMVProps;
 };
@@ -138,15 +140,9 @@ private:
  */
 class quotadetails_t {
 public:
-	quotadetails_t() : 
-		bUseDefaultQuota(true), bIsUserDefaultQuota(false),
-		llWarnSize(0), llSoftSize(0), llHardSize(0) {}
-
-	bool bUseDefaultQuota;
-	bool bIsUserDefaultQuota; /* Default quota for users within company */
-	long long llWarnSize;
-	long long llSoftSize;
-	long long llHardSize;
+	bool bUseDefaultQuota = true;
+	bool bIsUserDefaultQuota = false; /* Default quota for users within company */
+	long long llWarnSize = 0, llSoftSize = 0, llHardSize = 0;
 };
 
 /** Server Details

@@ -357,11 +357,9 @@ HRESULT ECChannel::HrWriteString(const char *szBuffer)
 		if (SSL_write(lpSSL, szBuffer, (int)strlen(szBuffer)) < 1)
 			hr = MAPI_E_CALL_FAILED;
 	}
-	else {
-		if (send(fd, szBuffer, (int)strlen(szBuffer), 0) < 1)
-			hr = MAPI_E_CALL_FAILED;
+	else if (send(fd, szBuffer, (int)strlen(szBuffer), 0) < 1) {
+		hr = MAPI_E_CALL_FAILED;
 	}
-
 	return hr;
 }
 
@@ -371,11 +369,9 @@ HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
 	if (lpSSL) {
 		if (SSL_write(lpSSL, strBuffer.c_str(), (int)strBuffer.size()) < 1)
 			hr = MAPI_E_CALL_FAILED;
-	} else {
-		if (send(fd, strBuffer.c_str(), (int)strBuffer.size(), 0) < 1)
-			hr = MAPI_E_CALL_FAILED;
+	} else if (send(fd, strBuffer.c_str(), (int)strBuffer.size(), 0) < 1) {
+		hr = MAPI_E_CALL_FAILED;
 	}
-
 	return hr;
 }
 

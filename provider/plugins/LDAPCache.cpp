@@ -187,7 +187,7 @@ LDAPCache::getDNForObject(const std::unique_ptr<dn_cache_t> &lpCache,
 bool LDAPCache::isDNInList(const std::unique_ptr<dn_list_t> &lpList,
     const std::string &dn)
 {
-	/* We were given an DN, check if a parent of that dn is listed as filterd */
+	/* We were given a DN, check if a parent of that dn is listed as filterd */
 	for (const auto &i : *lpList)
 		/* Key should be larger or equal then user DN */
 		/* If key matches the end of the user dn, we have a positive match */

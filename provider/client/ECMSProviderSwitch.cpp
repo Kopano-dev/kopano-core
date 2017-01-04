@@ -131,7 +131,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 		cbEntryID = cbStoreID;
 	}
 
-	static constexpr SizedSPropTagArray(1, proptag) = {1, {PR_MDB_PROVIDER}};
+	static constexpr const SizedSPropTagArray(1, proptag) = {1, {PR_MDB_PROVIDER}};
 	hr = lpProfSect->GetProps(proptag, 0, &cValues, &~lpsPropArray);
 	if (hr == hrSuccess && lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER &&
 	    (CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &KOPANO_SERVICE_GUID) ||

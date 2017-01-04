@@ -115,7 +115,8 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 	}
 
 	{
-		SizedSPropTagArray(2, sptaProps) = {2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
+		static constexpr const SizedSPropTagArray(2, sptaProps) =
+			{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
 		
 		SPropArrayPtr props;
 		ULONG cb;
@@ -199,8 +200,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	SPropValuePtr ptrSourceServerUID;
 	SPropValuePtr ptrDestServerUID;
 	TaskList lstDeferred;
-
-	SizedSPropTagArray(1, sptaAttachProps) = {1, {PR_ATTACH_NUM}};
+	static constexpr const SizedSPropTagArray(1, sptaAttachProps) = {1, {PR_ATTACH_NUM}};
 	enum {IDX_ATTACH_NUM};
 
 	if (lpSource == NULL || lpDest == NULL)

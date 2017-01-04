@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/tie.hpp>
 #include "ECDatabase.h"
 
@@ -107,8 +108,7 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 	root.ulId = lpODAB->ulABParentId;
 	root.ulDepth = -1; // Our children are at depth 0, so the root object is depth -1. Note that this object is not actually added as a row in the end.
 	root.strPath = "";
-	
-	lstObjects.push_back(root);
+	lstObjects.push_back(std::move(root));
 
     // 'Recursively' loop through all our containers and add each of those children to our object list
 	for (const auto &obj : lstObjects) {
@@ -120,7 +120,7 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 			folder.ulId = subobj.ulId;
 			folder.ulDepth = obj.ulDepth + 1;
 			folder.strPath = obj.strPath + "/" + subobj.GetPropString(OB_PROP_S_LOGIN);
-			lstObjects.push_back(folder);
+			lstObjects.push_back(std::move(folder));
 		}
     }
 

@@ -77,8 +77,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	ULONG ulAttachNum = 0;
 	MAPIPropHelperPtr ptrMsgHelper;
 	ObjectEntryList lstMsgArchives;
-
-	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
+	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
 	assert(lpMessage != NULL);
 	if (lpMessage == NULL)

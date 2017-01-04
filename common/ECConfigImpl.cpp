@@ -17,7 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
+#include <utility>
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
@@ -314,7 +314,7 @@ list<configsetting_t> ECConfigImpl::GetSettingGroup(unsigned int ulGroup)
 	for (const auto &s : m_mapSettings)
 		if ((s.first.ulGroup & ulGroup) == ulGroup &&
 		    CopyConfigSetting(&s.first, s.second, &sSetting))
-			lGroup.push_back(sSetting);
+			lGroup.push_back(std::move(sSetting));
 	return lGroup;
 }
 
@@ -325,7 +325,7 @@ std::list<configsetting_t> ECConfigImpl::GetAllSettings()
 
 	for (const auto &s : m_mapSettings)
 		if (CopyConfigSetting(&s.first, s.second, &sSetting))
-			lSettings.push_back(sSetting);
+			lSettings.push_back(std::move(sSetting));
 	return lSettings;
 }
 

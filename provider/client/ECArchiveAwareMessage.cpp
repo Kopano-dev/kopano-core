@@ -97,8 +97,11 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 		ECMsgStore *lpMsgStore = GetMsgStore();
 
 		// @todo: Put in MergePropsFromStub
-		SizedSPropTagArray(4, sptaDeleteProps) = {4, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX}};
-		SizedSPropTagArray(6, sptaRestoreProps) = {6, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX, PR_MESSAGE_CLASS, PR_MESSAGE_SIZE}};
+		static constexpr const SizedSPropTagArray(4, sptaDeleteProps) =
+			{4, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX}};
+		static constexpr const SizedSPropTagArray(6, sptaRestoreProps) =
+			{6, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX,
+			PR_MESSAGE_CLASS, PR_MESSAGE_SIZE}};
 
 		if (!m_ptrArchiveMsg) {
 			ECArchiveAwareMsgStore *lpStore = dynamic_cast<ECArchiveAwareMsgStore*>(lpMsgStore);

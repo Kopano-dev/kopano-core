@@ -42,7 +42,8 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet		lpRows = NULL;
 	const SPropValue *lpServiceUID = nullptr;
-	SizedSPropTagArray(2, sptaMsgServiceCols) = { 2, { PR_SERVICE_NAME_A, PR_SERVICE_UID }};
+	static constexpr const SizedSPropTagArray(2, sptaMsgServiceCols) =
+		{2, {PR_SERVICE_NAME_A, PR_SERVICE_UID}};
 
 	// Get the MAPI Profile administration object
 	hr = MAPIAdminProfiles(0, &~lpProfAdmin);

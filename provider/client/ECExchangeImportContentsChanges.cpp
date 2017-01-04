@@ -500,7 +500,9 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	LPSBinary lpEntryIds = NULL;
 	ULONG ulCount = 0;
 	ULONG ulObjType = 0;
-	SizedSPropTagArray(5, excludeProps) = { 5, {PR_ENTRYID, PR_CONFLICT_ITEMS, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST} };
+	static constexpr const SizedSPropTagArray(5, excludeProps) =
+		{5, {PR_ENTRYID, PR_CONFLICT_ITEMS, PR_SOURCE_KEY,
+		PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST}};
 
 	//open the conflicts folder
 	hr = m_lpFolder->GetMsgStore()->OpenEntry(0, nullptr, &IID_IMAPIFolder, 0, &ulObjType, &~lpRootFolder);
@@ -937,7 +939,7 @@ static HRESULT HrRestrictionContains(const SRestriction *lpRestriction,
  * to be valid.
  *
  * @param[in]	lpRestriction		The restriction that is to be verified.
- * @param[in]	lpAdditionalREN		An MV_BINARY property that contains the entryids of the three
+ * @param[in]	lpAdditionalREN		A MV_BINARY property that contains the entryids of the three
  *									three conflict folders.
  *
  * @retval	hrSuccess			The restriction is valid for the passed AdditionalREN. This means that
@@ -979,8 +981,8 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	SPropValue sPropValConflicts = {PR_PARENT_ENTRYID, 0};
 	SPropValue sPropValLocalFailures = {PR_PARENT_ENTRYID, 0};
 	SPropValue sPropValServerFailures = {PR_PARENT_ENTRYID, 0};
-
-	SizedSPropTagArray(2, sptaREMProps) = {2, {PR_REM_ONLINE_ENTRYID, PR_REM_OFFLINE_ENTRYID}};
+	static constexpr const SizedSPropTagArray(2, sptaREMProps) =
+		{2, {PR_REM_ONLINE_ENTRYID, PR_REM_OFFLINE_ENTRYID}};
 
 	hr = lpRootFolder->GetProps(sptaREMProps, 0, &cREMProps, &~ptrREMProps);
 	if (FAILED(hr))

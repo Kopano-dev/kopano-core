@@ -148,7 +148,7 @@ public:
 
 class ECsIndexProp _kc_final : public ECsCacheEntry {
 public:
-	ECsIndexProp(void) : ECsCacheEntry() {}
+	ECsIndexProp(void) = default;
 	~ECsIndexProp() {
 		delete[] lpData;
 	}
@@ -251,9 +251,7 @@ public:
 
 class ECsCells _kc_final : public ECsCacheEntry {
 public:
-    ECsCells() : ECsCacheEntry() { 
-    	m_bComplete = false; 
-	};
+	ECsCells(void) = default;
     ~ECsCells() {
 		for (auto &p : mapPropVals)
 			FreePropVal(&p.second, false);
@@ -368,13 +366,12 @@ public:
     
     // All properties for this object; propTag => propVal
     std::map<unsigned int, struct propVal> mapPropVals;
-    
-    bool m_bComplete;
+	bool m_bComplete = false;
 };
 
 class ECsACLs _kc_final : public ECsCacheEntry {
 public:
-	ECsACLs(void) : ECsCacheEntry(), ulACLs(0) {}
+	ECsACLs(void) = default;
 	ECsACLs(const ECsACLs &src) : ulACLs(src.ulACLs)
 	{
 		aACL.reset(new ACL[ulACLs]);
@@ -388,7 +385,7 @@ public:
 		}
 		return *this;
     };
-    unsigned int 	ulACLs;
+	unsigned int ulACLs = 0;
     struct ACL {
         unsigned int ulType;
         unsigned int ulMask;
@@ -436,9 +433,6 @@ namespace HASH_NAMESPACE {
 	template<>
 	struct hash<ECsIndexProp> {
 		public:
-			hash() {};
-			~hash() {};
-
 			size_t operator() (const ECsIndexProp &value) const { return IPRSHash(value); }
 	};
 
@@ -446,8 +440,6 @@ namespace HASH_NAMESPACE {
 	template<>
 	struct hash<ECsIndexObject> {
 		public:
-			hash() {};
-			~hash() {};
 			size_t operator() (const ECsIndexObject &value) const {
 					hash<unsigned int> hasher;
 					// @TODO check the hash function!

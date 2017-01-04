@@ -325,7 +325,8 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	SizedSPropTagArray(2, sptaProps) = { 2, { PR_RESPONSE_REQUESTED, PR_MESSAGE_CLASS } };
+	static constexpr const SizedSPropTagArray(2, sptaProps) =
+		{2, {PR_RESPONSE_REQUESTED, PR_MESSAGE_CLASS}};
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
@@ -361,7 +362,7 @@ static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 static bool FNeedsAutoProcessing(IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	SizedSPropTagArray(1, sptaProps) = { 1, { PR_MESSAGE_CLASS } };
+	static constexpr const SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_CLASS}};
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
 
@@ -656,7 +657,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	HRESULT hr = hrSuccess;
 	LPADRLIST lpAdrList	= NULL;   
 	memory_ptr<FlagList> lpFlagList;
-	SizedSPropTagArray(13, sptaAddress) = {	13,
+	static constexpr const SizedSPropTagArray(13, sptaAddress) = {13,
 	{ PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ACCOUNT_W, PR_SMTP_ADDRESS_A,
 	  PR_ADDRTYPE_A, PR_EMAIL_ADDRESS_W, PR_DISPLAY_TYPE, PR_SEARCH_KEY,
 	  PR_EC_COMPANY_NAME_W,	PR_EC_HOMESERVER_NAME_W, PR_EC_ADMINISTRATOR, 
@@ -1387,12 +1388,12 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
     const std::string &strBaseCommand)
 {
 	HRESULT hr = hrSuccess;
-	SizedSPropTagArray(5, sptaStoreProps) = {5, {
+	static constexpr const SizedSPropTagArray(5, sptaStoreProps) = {5, {
 		PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_MSG_W,
 		PR_EC_OUTOFOFFICE_SUBJECT_W,
 		PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,
 	}};
-	SizedSPropTagArray(5, sptaMessageProps) = {5, {
+	static constexpr const SizedSPropTagArray(5, sptaMessageProps) = {5, {
 		PR_TRANSPORT_MESSAGE_HEADERS_A, PR_MESSAGE_TO_ME,
 		PR_MESSAGE_CC_ME, PR_SUBJECT_W, PR_EC_MESSAGE_BCC_ME,
 	}};
@@ -1825,13 +1826,8 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 	bool bToMe = false;
 	bool bCcMe = false, bBccMe = false;
 	bool bRecipMe = false;
-
-	SizedSPropTagArray(2, sptaColumns) = {
-		2, {
-			PR_RECIPIENT_TYPE,
-			PR_ENTRYID,
-		}
-	};
+	static constexpr const SizedSPropTagArray(2, sptaColumns) =
+		{2, {PR_RECIPIENT_TYPE, PR_ENTRYID}};
 
 	hr = lpMessage->GetRecipientTable (0, &~lpRecipTable);
 	if (hr != hrSuccess) {
@@ -2065,8 +2061,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IMAPIFolder> lpFolder;
 	helpers::MAPIPropHelperPtr ptrArchiveHelper;
-
-	SizedSPropTagArray(13, sptaReceivedBy) = {
+	static constexpr const SizedSPropTagArray(13, sptaReceivedBy) = {
 		13, {
 			/* Overriden by HrOverrideRecipProps() */
 			PR_MESSAGE_RECIP_ME,
@@ -2084,8 +2079,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 			PR_ICON_INDEX,
 		}
 	};
-
-	SizedSPropTagArray(12, sptaFallback) = {
+	static constexpr const SizedSPropTagArray(12, sptaFallback) = {
 		12, {
 			/* Overriden by HrOverrideFallbackProps() */
 			PR_SENDER_ADDRTYPE,
@@ -2581,7 +2575,7 @@ static void RespondMessageExpired(recipients_t::const_iterator iter,
  *
  * @param[in] lpUserSession optional session of one user the message is being delivered to (cmdline dagent, NULL on LMTP mode)
  * @param[in] lpMessage an already delivered message
- * @param[in] bFallbackDelivery already delivered message is an fallback message
+ * @param[in] bFallbackDelivery already delivered message is a fallback message
  * @param[in] strMail the rfc2822 received email
  * @param[in] strServer uri of the storage server to connect to
  * @param[in] listRecipients list of recipients present on the server connecting to
@@ -2791,13 +2785,12 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 		     lpMasterMessage, bFallbackDelivery, strMail,
 		     convert_to<std::string>(iter.first), iter.second,
 		     lpAdrBook, lpArgs, &~lpMessageTmp, &bFallbackDeliveryTmp);
-		if (hr == MAPI_W_CANCEL_MESSAGE) {
+		if (hr == MAPI_W_CANCEL_MESSAGE)
 			bExpired =  true;
 			/* Don't report the error further (ignore it) */
-		} else if (hr != hrSuccess) {
+		else if (hr != hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to deliver all messages for server '%ls'",
 				iter.first.c_str());
-		}
 
 		/* lpMessage is our base message which we will copy to each server/recipient */
 		if (lpMessageTmp == nullptr)
@@ -3119,19 +3112,17 @@ static void *HandlerLMTP(void *lpArg)
 						lOrderedRecipients.push_back(strMailAddress);
 						lmtp.HrResponse("250 2.1.5 Ok");
 					}
-				} else {
-					if (hr == MAPI_E_NOT_FOUND) {
-						if (lpRecipient->ulResolveFlags == MAPI_AMBIGUOUS) {
-							g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' resolves to multiple users.", strMailAddress.c_str());
-							lmtp.HrResponse("503 5.1.4 Destination mailbox address ambiguous");
-						} else {
-							g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' does not resolve to a user.", strMailAddress.c_str());
-							lmtp.HrResponse("503 5.1.1 User does not exist");
-						}
+				} else if (hr == MAPI_E_NOT_FOUND) {
+					if (lpRecipient->ulResolveFlags == MAPI_AMBIGUOUS) {
+						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' resolves to multiple users.", strMailAddress.c_str());
+						lmtp.HrResponse("503 5.1.4 Destination mailbox address ambiguous");
 					} else {
-						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to lookup email address, error: 0x%08X", hr);
-						lmtp.HrResponse("503 5.1.1 Connection error: "+stringify(hr,1));
+						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' does not resolve to a user.", strMailAddress.c_str());
+						lmtp.HrResponse("503 5.1.1 User does not exist");
 					}
+				} else {
+					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to lookup email address, error: 0x%08X", hr);
+					lmtp.HrResponse("503 5.1.1 Connection error: "+stringify(hr,1));
 				}
 
 				/*

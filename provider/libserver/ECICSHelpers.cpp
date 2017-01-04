@@ -46,7 +46,7 @@ extern ECSessionManager*	g_lpSessionManager;
  **/
 class IDbQueryCreator {
 public:
-	virtual ~IDbQueryCreator() {};
+	virtual ~IDbQueryCreator(void) = default;
 	virtual std::string CreateQuery() = 0;
 };
 
@@ -238,7 +238,7 @@ std::string NullQueryCreator::CreateOrderQuery()
  **/
 class IMessageProcessor {
 public:
-	virtual ~IMessageProcessor() {};
+	virtual ~IMessageProcessor(void) = default;
 	virtual ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) = 0;
 	virtual ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) = 0;
 	virtual ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) = 0;

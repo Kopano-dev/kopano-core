@@ -446,9 +446,10 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 	ULONG cValues = 0;
 	SPropArrayPtr ptrPropArray;
 	SObjectEntry objectEntry;
-	
-	SizedSPropTagArray(3, sptaFolderPropsForCreate) = {3, {PR_CONTAINER_CLASS, PR_DISPLAY_NAME, PR_COMMENT}};
-	SizedSPropTagArray(2, sptaFolderPropsForReference) = {2, {PR_ENTRYID, PR_STORE_ENTRYID}};
+	static constexpr const SizedSPropTagArray(3, sptaFolderPropsForCreate) =
+		{3, {PR_CONTAINER_CLASS, PR_DISPLAY_NAME, PR_COMMENT}};
+	static constexpr const SizedSPropTagArray(2, sptaFolderPropsForReference) =
+		{2, {PR_ENTRYID, PR_STORE_ENTRYID}};
 	
 	hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &~ptrStoreEntryId);
 	if (hr != hrSuccess)

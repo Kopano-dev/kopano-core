@@ -52,7 +52,7 @@ private:
 typedef KCHL::object_ptr<WSMessageStreamSink> WSMessageStreamSinkPtr;
 
 /**
- * This class is used to perform an message stream import to the server.
+ * This class is used to perform a message stream import to the server.
  * The actual import call to the server is deferred until StartTransfer is called. When that
  * happens, the actual transfer is done on a worker thread so the calling thread can start writing
  * data in the returned WSMessageStreamSink. Once the returned stream is deleted, GetAsyncResult can

@@ -17,7 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
+#include <utility>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <kopano/ECLogger.h>
@@ -72,12 +72,11 @@ static HRESULT UpdateServerList(IABContainer *lpContainer, std::set<servername> 
 
 class UserCountCollector _kc_final : public DataCollector {
 public:
-	UserCountCollector();
 	virtual HRESULT CollectData(LPMAPITABLE store_table) _kc_override;
 	unsigned int result() const;
 
 private:
-	unsigned int m_ulUserCount;
+	unsigned int m_ulUserCount = 0;
 };
 
 template <typename string_type, ULONG prAccount>
@@ -97,7 +96,7 @@ private:
 };
 
 HRESULT	DataCollector::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
-	static SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_DISPLAY_NAME}};
+	static constexpr const SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_DISPLAY_NAME}};
 	return Util::HrCopyPropTagArray(sptaDefaultProps, lppPropTagArray);
 }
 
@@ -125,8 +124,6 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 	return hr;
 }
 
-UserCountCollector::UserCountCollector(): m_ulUserCount(0) {}
-
 HRESULT UserCountCollector::CollectData(LPMAPITABLE lpStoreTable) {
 	ULONG ulCount = 0;
 	HRESULT hr = lpStoreTable->GetRowCount(0, &ulCount);
@@ -146,7 +143,8 @@ UserListCollector<string_type, prAccount>::UserListCollector(IMAPISession *lpSes
 
 template<typename string_type, ULONG prAccount>
 HRESULT	UserListCollector<string_type, prAccount>::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
-	static SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_MAILBOX_OWNER_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sptaDefaultProps) =
+		{1, {PR_MAILBOX_OWNER_ENTRYID}};
 	return Util::HrCopyPropTagArray(sptaDefaultProps, lppPropTagArray);
 }
 
@@ -160,21 +158,20 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 			return hr;
 
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-			if (ptrRows[i].lpProps[0].ulPropTag == PR_MAILBOX_OWNER_ENTRYID) {
-				HRESULT hrTmp;
-				ULONG ulType;
-				MAPIPropPtr ptrUser;
-				SPropValuePtr ptrAccount;
+			if (ptrRows[i].lpProps[0].ulPropTag != PR_MAILBOX_OWNER_ENTRYID)
+				continue;
+			HRESULT hrTmp;
+			ULONG ulType;
+			MAPIPropPtr ptrUser;
+			SPropValuePtr ptrAccount;
 
-				hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb), &ptrUser.iid(), 0, &ulType, &~ptrUser);
-				if (hrTmp != hrSuccess)
-					continue;
-				hrTmp = HrGetOneProp(ptrUser, prAccount, &~ptrAccount);
-				if (hrTmp != hrSuccess)
-					continue;
-
-				push_back(ptrAccount);
-			}
+			hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb), &ptrUser.iid(), 0, &ulType, &~ptrUser);
+			if (hrTmp != hrSuccess)
+				continue;
+			hrTmp = HrGetOneProp(ptrUser, prAccount, &~ptrAccount);
+			if (hrTmp != hrSuccess)
+				continue;
+			push_back(std::move(ptrAccount));
 		}
 
 		if (ptrRows.size() < 50)
@@ -244,7 +241,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	convert_context		converter;
 	KCHL::memory_ptr<ECSVRNAMELIST> lpSrvNameList;
 	KCHL::memory_ptr<ECSERVERLIST> lpSrvList;
-	SizedSPropTagArray(1, sCols) = {1, { PR_ENTRYID } };
+	static constexpr const SizedSPropTagArray(1, sCols) = {1, {PR_ENTRYID}};
 
 	if (lpMapiSession == nullptr || lpCollector == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -464,8 +461,8 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	SPropValue sPropUser;
 	SPropValue sPropDisplayType;
 	SRestriction sResSub[2];
-
-	SizedSPropTagArray(2, sCols) = {2, { PR_EC_HOMESERVER_NAME_W, PR_DISPLAY_NAME_W } };
+	static constexpr const SizedSPropTagArray(2, sCols) =
+		{2, {PR_EC_HOMESERVER_NAME_W, PR_DISPLAY_NAME_W}};
 
 	sPropDisplayType.ulPropTag = PR_DISPLAY_TYPE;
 	sPropDisplayType.Value.ul = DT_REMOTE_MAILUSER;

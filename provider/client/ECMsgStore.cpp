@@ -71,7 +71,7 @@ using namespace KCHL;
 // FIXME: from libserver/ECMAPI.h
 #define MSGFLAG_DELETED                           ((ULONG) 0x00000400)
 
-const static SizedSPropTagArray(NUM_RFT_PROPS, sPropRFTColumns) =
+static constexpr const SizedSPropTagArray(NUM_RFT_PROPS, sPropRFTColumns) =
 {
 	NUM_RFT_PROPS,
 	{
@@ -947,8 +947,8 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 	ULONG			cValue = 0;
 	ULONG			ulSubmitFlag = 0;
 	ECMessagePtr	ptrECMessage;
-
-	SizedSPropTagArray(2, sptaMessageProps) = {2, {PR_SUBMIT_FLAGS, PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(2, sptaMessageProps) =
+		{2, {PR_SUBMIT_FLAGS, PR_ENTRYID}};
 	enum {IDX_SUBMIT_FLAGS, IDX_ENTRYID};
 
 	// Only supported by the MAPI spooler

@@ -161,20 +161,18 @@ unsigned int rtf_decompress(char *lpDest, char *lpSrc, unsigned int ulBufSize)
 		// Get next bit from flags
 		ulFlags = ulFlagNr++ % 8 == 0 ? *lpSrc++ : ulFlags >> 1;
 
-		if (lpSrc >= lpStart + ulBufSize) {
+		if (lpSrc >= lpStart + ulBufSize)
 			// Reached the end of the input buffer somehow. We currently return OK
 			// and the decoded data up to now.
 			break;
-		}
 		if (!(ulFlags & 1)) {
 			*lpWrite++ = *lpSrc++;
 			if (lpSrc >= lpStart + ulBufSize)
 				break;
 			continue;
 		}
-		if (lpSrc+2 >= lpStart + ulBufSize) {
+		if (lpSrc + 2 >= lpStart + ulBufSize)
 			break;
-		}
 		// Reference to existing data
 		c1 = *lpSrc++;
 		c2 = *lpSrc++;

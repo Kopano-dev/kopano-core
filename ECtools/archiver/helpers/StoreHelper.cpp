@@ -353,8 +353,7 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFo
 	SRowSetPtr ptrRowSet;
 	MAPIFolderPtr ptrSubFolder;
 	ULONG ulType = 0;
-	
-	SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
+	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
 	SRestriction			sRestriction = {0};
 	SPropValue				sResPropValue = {0};
 	

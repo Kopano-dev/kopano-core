@@ -76,10 +76,8 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 		}
 	}
 
-	if (!s_lpLogger) {
+	if (!s_lpLogger)
 		s_lpLogger = new ECLogger_Syslog(EC_LOGLEVEL_DEBUG, "kclibsync", LOG_MAIL);
-	}
-
 	*lppLogger = s_lpLogger;
 
 	s_lpLogger->AddRef();
