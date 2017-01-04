@@ -34,6 +34,8 @@ class Service(kopano.Service):
                 if propid == (PR_SUBJECT>>16) and value and ord(value[0]) == 0x01:
                     value = value[2:] # PR_SUBJECT may contain \x01 plus another char to indicate normalized-subject-prefix-length..
                 props2.append(SPropValue(PROP_TAG(proptype, propid), value))
+                if proptype not in (PT_CURRENCY, PT_MV_CURRENCY, PT_ACTIONS, PT_SRESTRICT, PT_SVREID): # unsupported by parser
+                    props2.append(SPropValue(PROP_TAG(proptype, propid), value))
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -112,6 +114,7 @@ class Service(kopano.Service):
 
     def main(self):
         self.stats = {'messages': 0, 'errors': 0}
+        pst.set_log(self.log, self.stats)
         self.unresolved = set()
         t0 = time.time()
         for arg in self.args:

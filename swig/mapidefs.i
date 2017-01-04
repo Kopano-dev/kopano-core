@@ -63,6 +63,9 @@
 #define PT_UNICODE      (0x001F)
 #define PT_SYSTIME      (0x0040)
 #define PT_CLSID        (0x0048)
+#define PT_SVREID       (0x00FB)
+#define PT_SRESTRICT    (0x00FD)
+#define PT_ACTIONS      (0x00FE)
 #define PT_BINARY       (0x0102)
 
 #define PT_I2	PT_SHORT

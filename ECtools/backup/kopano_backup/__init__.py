@@ -535,13 +535,14 @@ def dump_acl(folder, user, server, stats, log):
         acl_table = folder.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
         table = acl_table.GetTable(0)
         for row in table.QueryRows(-1,0):
+            entryid = row[1].Value
             try:
-                row[1].Value = ('user', server.sa.GetUser(row[1].Value, MAPI_UNICODE).Username)
+                row[1].Value = ('user', server.sa.GetUser(entryid, MAPI_UNICODE).Username)
             except MAPIErrorNotFound:
                 try:
-                    row[1].Value = ('group', server.sa.GetGroup(row[1].Value, MAPI_UNICODE).Groupname)
+                    row[1].Value = ('group', server.sa.GetGroup(entryid, MAPI_UNICODE).Groupname)
                 except MAPIErrorNotFound:
-                    log.warning("skipping access control entry for unknown user/group '%s'" % row[1].Value)
+                    log.warning("skipping access control entry for unknown user/group %s" % entryid.encode('hex').upper())
                     continue
             rows.append(row)
     return pickle.dumps(rows)
@@ -562,7 +563,7 @@ def load_acl(folder, user, server, data, stats, log):
                 row[1].Value = entryid.decode('hex')
                 rows.append(row)
             except kopano.NotFoundError:
-                log.warning("skipping access control entry for unknown user/group '%s'" % row[1].Value)
+                log.warning("skipping access control entry for unknown user/group '%s'" % value)
         acltab = folder.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
         acltab.ModifyTable(0, [ROWENTRY(ROW_ADD, row) for row in rows])
 
