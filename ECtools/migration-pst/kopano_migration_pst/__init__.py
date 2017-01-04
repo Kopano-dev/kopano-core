@@ -31,6 +31,8 @@ class Service(kopano.Service):
                 self.import_attachments(submessage, submapiobj)
                 self.import_recipients(submessage, submapiobj)
             elif isinstance(parent, pst.Attachment) or embedded or PROP_TAG(proptype, propid) != PR_ATTACH_NUM: # work around webapp bug? KC-390
+                if propid == (PR_SUBJECT>>16) and value and ord(value[0]) == 0x01:
+                    value = value[2:] # PR_SUBJECT may contain \x01 plus another char to indicate normalized-subject-prefix-length..
                 props2.append(SPropValue(PROP_TAG(proptype, propid), value))
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
