@@ -422,4 +422,11 @@ class SYSTEMTIME(MAPIStruct):
         self.wSecond = wSecond
         self.wMilliseconds = wMilliseconds
 
+class FreeBusyBlock(MAPIStruct):
+    def __init__(self, start, end, status):
+        self.start = start
+        self.end = end
+        self.status = status
+
+
 MAPIError._initialize_errors()

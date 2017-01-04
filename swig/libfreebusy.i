@@ -42,6 +42,17 @@ enum FBStatus {
 };
 
 %apply (ULONG, MAPIARRAY) { (ULONG cMax, FBUser *rgfbuser), (ULONG cUsers, FBUser *lpUsers) };
+%apply (MAPIARRAY, ULONG) { (FBBlock_1 *lpBlocks, ULONG nBlocks), (FBBlock_1 *lpBlocks, ULONG nBlocks) }
+
+%typemap(in) (LONG, FBBLOCK)
+{
+	$1 = PyLong_AsLong($input);
+	MAPIAllocateBuffer($1 * sizeof(FBBlock_1), (void**) &$2);
+}
+
+%apply (LONG, FBBLOCK) { (LONG celt, FBBlock_1 *pblk), (ULONG celt, FBBlock_1 *pblk) }
+%apply (MAPIARRAY, LONG) { (FBBlock_1 *pblk, LONG* pcfetch), (FBBlock_1 *pblk, LONG* pcfetch) }
+
 
 
 class IUnknown {
@@ -53,6 +64,9 @@ virtual HRESULT QueryInterface(const IID& USE_IID_FOR_OUTPUT, void **OUTPUT_USE_
 ~IUnknown() { self->Release(); }
 };
 
+%init %{
+	InitFreebusy();
+%}
 
 %{
 swig_type_info *TypeFromIID(REFIID iid)
