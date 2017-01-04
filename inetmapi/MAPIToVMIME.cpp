@@ -1490,7 +1490,7 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 	HRESULT hr;
 	ULONG i;
 	ULONG cValues;
-	LPSPropTagArray lpsNamedTags = NULL;
+	memory_ptr<SPropTagArray> lpsNamedTags;
 	memory_ptr<SPropTagArray> lpsAllTags;
 	memory_ptr<SPropValue> lpPropArray;
 	ULONG cNames;
@@ -1511,7 +1511,7 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 	// no string named properties found, we're done.
 	if (cNames == 0)
 		return hr;
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cNames), (void **)&lpsNamedTags);
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cNames), &~lpsNamedTags);
 	if (hr != hrSuccess)
 		return hr;
 	lpsNamedTags->cValues = cNames;
@@ -1522,7 +1522,7 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 		if (PROP_ID(lpsAllTags->aulPropTag[i]) >= 0x8000 && PROP_TYPE(lpsAllTags->aulPropTag[i]) == PT_STRING8)
 			lpsNamedTags->aulPropTag[cNames++] = lpsAllTags->aulPropTag[i];
 	
-	hr = lpMessage->GetNamesFromIDs(&lpsNamedTags, NULL, 0, &cNames, &~lppNames);
+	hr = lpMessage->GetNamesFromIDs(&+lpsNamedTags, NULL, 0, &cNames, &~lppNames);
 	if (FAILED(hr))
 		return hr;
 	hr = lpMessage->GetProps(lpsNamedTags, 0, &cValues, &~lpPropArray);
