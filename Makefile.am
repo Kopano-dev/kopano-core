@@ -440,13 +440,15 @@ EXTRA_libkchl_la_DEPENDENCIES = mapi4linux/src/libkchl.sym
 libkcicalmapidir = ${includedir}/icalmapi
 libkcicalmapi_HEADERS = \
 	libicalmapi/ICalToMAPI.h libicalmapi/MAPIToICal.h \
-	libicalmapi/icalitem.h \
+	libicalmapi/MAPIToVCF.h libicalmapi/icalitem.h \
+	libicalmapi/VCFToMAPI.h \
 	libicalmapi/icalrecurrence.h libicalmapi/icaluid.h \
 	libicalmapi/nameids.h libicalmapi/valarm.h libicalmapi/vconverter.h \
 	libicalmapi/vevent.h libicalmapi/vfreebusy.h libicalmapi/vtimezone.h \
 	libicalmapi/vtodo.h
 libkcicalmapi_la_SOURCES = \
 	libicalmapi/ICalToMAPI.cpp libicalmapi/MAPIToICal.cpp \
+	libicalmapi/MAPIToVCF.cpp libicalmapi/VCFToMAPI.cpp \
 	libicalmapi/icalinit.cpp libicalmapi/icalrecurrence.cpp \
 	libicalmapi/icaluid.cpp libicalmapi/nameids.cpp \
 	libicalmapi/valarm.cpp libicalmapi/vconverter.cpp \
