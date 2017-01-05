@@ -422,7 +422,7 @@ AC_SUBST(GSOAP_CFLAGS)
 AC_SUBST(GSOAP_LIBS)
 
 ICAL_CFLAGS=""
-ICAL_LIBS="-lical -licalss"
+ICAL_LIBS="-lical -licalss -licalvcal"
 AC_ARG_WITH(ical-prefix,
   AS_HELP_STRING([--with-ical-prefix=PATH], [libical prefix, e.g. /usr/local, default /usr]),
   [
