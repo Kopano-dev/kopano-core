@@ -808,7 +808,7 @@ SPropValue *List_to_p_SPropValue(PyObject *object, ULONG *cValues,
 	*cValues = size;
 
 exit:
-	if (PyErr_Occurred() && lpBase != NULL)
+	if (PyErr_Occurred() && lpBase == nullptr)
 		MAPIFreeBuffer(lpProps);
 	if (elem != nullptr)
 		Py_DECREF(elem);
