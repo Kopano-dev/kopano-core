@@ -34,7 +34,8 @@ ECUnknown::ECUnknown(const char *szClassName)
 	this->lpParent = NULL;
 }
 
-ECUnknown::~ECUnknown() {
+ECUnknown::~ECUnknown() noexcept
+{
 	if(this->lpParent) {
 		assert(false);	// apparently, we're being destructed with delete() while
 						// a parent was set up, so we should be deleted via Suicide() !

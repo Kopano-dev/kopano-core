@@ -77,7 +77,7 @@ namespace KC {
 class _kc_export ECUnknown : public IECUnknown {
 public:
 	ECUnknown(const char *szClassName = NULL);
-	virtual ~ECUnknown();
+	virtual ~ECUnknown(void) noexcept;
 	virtual ULONG AddRef(void) _kc_override;
 	virtual ULONG Release(void) _kc_override;
 	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
