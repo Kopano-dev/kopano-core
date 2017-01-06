@@ -24,6 +24,7 @@
 #include <mapix.h>
 #include <kopano/memory.hpp>
 #include <kopano/platform.h>
+#include <kopano/mapiguidext.h>
 #include "mapitovcf.hpp"
 
 namespace KC {
@@ -34,6 +35,8 @@ class mapitovcf_impl _kc_final : public mapitovcf {
 	HRESULT finalize(std::string *) _kc_override;
 
 	private:
+	VObject *to_unicode_prop(VObject *node, const char *prop, wchar_t const *value);
+
 	std::string m_result;
 	/*
 	 * Since we do not want downstream projects to add include paths for
@@ -45,6 +48,14 @@ HRESULT create_mapitovcf(mapitovcf **ret)
 {
 	*ret = new(std::nothrow) mapitovcf_impl();
 	return *ret != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
+}
+
+VObject *mapitovcf_impl::to_unicode_prop(VObject *node, const char *prop,
+    const wchar_t *value)
+{
+	char plain[128];
+	wcstombs(plain, value, sizeof(plain));
+	return addPropValue(node, prop, plain);
 }
 
 HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
@@ -64,31 +75,40 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	KCHL::memory_ptr<SPropValue> msgprop;
 	hr = HrGetOneProp(lpMessage, PR_GIVEN_NAME, &~msgprop);
 	if (hr == hrSuccess) {
-		char plain[128];
-		std::wcstombs(plain, msgprop->Value.lpszW, 128);
-
 		auto node = addProp(root, VCNameProp);
-		addPropValue(node, VCGivenNameProp, plain);
+		to_unicode_prop(node, VCGivenNameProp, msgprop->Value.lpszW);
 		hr = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop);
-		if (hr == hrSuccess) {
-			wcstombs(plain, msgprop->Value.lpszW, 128);
-			addPropValue(node, VCFamilyNameProp, plain);
-		} else if (hr != MAPI_E_NOT_FOUND) {
+		if (hr == hrSuccess)
+			to_unicode_prop(node, VCFamilyNameProp, msgprop->Value.lpszW);
+		else if (hr != MAPI_E_NOT_FOUND)
 			return hr;
-		}
 	} else if (hr != MAPI_E_NOT_FOUND) {
 		return hr;
 	}
 
 	hr = HrGetOneProp(lpMessage, PR_DISPLAY_NAME, &~msgprop);
+	if (hr == hrSuccess)
+		to_unicode_prop(root, VCFullNameProp, msgprop->Value.lpszW);
+	else if (hr != MAPI_E_NOT_FOUND)
+		return hr;
+
+	hr = HrGetOneProp(lpMessage, PR_HOME_TELEPHONE_NUMBER, &~msgprop);
 	if (hr == hrSuccess) {
-		char plain[128];
-		wcstombs(plain, msgprop->Value.lpszW, sizeof(plain));
-		addPropValue(root, VCFullNameProp, plain);
+		auto node = to_unicode_prop(root, VCTelephoneProp, msgprop->Value.lpszW);
+		to_unicode_prop(node, "TYPE", L"HOME");
 	} else if (hr != MAPI_E_NOT_FOUND) {
 		return hr;
 	}
 
+	hr = HrGetOneProp(lpMessage, PR_MOBILE_TELEPHONE_NUMBER, &~msgprop);
+	if (hr == hrSuccess) {
+		auto node = to_unicode_prop(root, VCTelephoneProp, msgprop->Value.lpszW);
+		to_unicode_prop(node, "TYPE", L"MOBILE");
+	} else if (hr != MAPI_E_NOT_FOUND) {
+		return hr;
+	}
+
+	/* Write memobject */
 	int len = 0;
 	auto cresult = writeMemVObject(nullptr, &len, root);
 	if (cresult == nullptr)
