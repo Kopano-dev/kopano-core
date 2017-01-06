@@ -41,6 +41,8 @@ public:
 	HRESULT ResetObject(void) _kc_override;
 
 private:
+	VObject* to_unicode_prop(VObject *node, const char *prop, wchar_t const *value); 
+
 	std::string result;
 	LPSPropTagArray m_lpNamedProps;
 	/* since we don't want depending projects to add include paths for libical, this is only in the implementation version */
@@ -81,6 +83,12 @@ MapiToVCFImpl::~MapiToVCFImpl()
 	MAPIFreeBuffer(m_lpNamedProps);
 }
 
+VObject* MapiToVCFImpl::to_unicode_prop(VObject *node, const char *prop, wchar_t const* value) {
+	char plain[128];
+	std::wcstombs(plain, value, 128);
+	return addPropValue(node, prop, plain);
+}
+
 /** 
  * Add a MAPI message to the ical VCALENDAR object.
  * 
@@ -116,16 +124,11 @@ HRESULT MapiToVCFImpl::AddMessage(LPMESSAGE lpMessage)
 	KCHL::memory_ptr<SPropValue> msgprop;
 	hr = HrGetOneProp(lpMessage, PR_GIVEN_NAME, &~msgprop);
 	if(hr == hrSuccess) {
-		char plain[128];
-		std::wcstombs(plain, msgprop->Value.lpszW, 128);
-
 		VObject* node = addProp(root, VCNameProp);
-		addPropValue(node, VCGivenNameProp, plain);
-
+		to_unicode_prop(node, VCGivenNameProp, msgprop->Value.lpszW);
 		hr = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop);
 		if(hr == hrSuccess) {
-			std::wcstombs(plain, msgprop->Value.lpszW, 128);
-			addPropValue(node, VCFamilyNameProp, plain);
+			to_unicode_prop(node, VCFamilyNameProp, msgprop->Value.lpszW);
 		}
 		else if(hr != MAPI_E_NOT_FOUND)
 			return hr;
@@ -135,14 +138,49 @@ HRESULT MapiToVCFImpl::AddMessage(LPMESSAGE lpMessage)
 
 	hr = HrGetOneProp(lpMessage, PR_DISPLAY_NAME, &~msgprop);
 	if(hr == hrSuccess) {
-		char plain[128];
-		std::wcstombs(plain, msgprop->Value.lpszW, 128);
-
-		addPropValue(root, VCFullNameProp, plain);
+		to_unicode_prop(root, VCFullNameProp, msgprop->Value.lpszW);
 	}
 	else if(hr != MAPI_E_NOT_FOUND)
 		return hr;
 
+	hr = HrGetOneProp(lpMessage, PR_HOME_TELEPHONE_NUMBER, &~msgprop);
+	if(hr == hrSuccess) {
+		VObject* node = to_unicode_prop(root, VCTelephoneProp, msgprop->Value.lpszW);
+		to_unicode_prop(node, "TYPE", L"HOME");
+	}
+	else if(hr != MAPI_E_NOT_FOUND)
+		return hr;
+
+	hr = HrGetOneProp(lpMessage, PR_MOBILE_TELEPHONE_NUMBER, &~msgprop);
+	if(hr == hrSuccess) {
+		VObject* node = to_unicode_prop(root, VCTelephoneProp, msgprop->Value.lpszW);
+		to_unicode_prop(node, "TYPE", L"MOBILE");
+	}
+	else if(hr != MAPI_E_NOT_FOUND)
+		return hr;
+
+	/* Email */ 
+	MAPINAMEID sNameID;
+	sNameID.lpguid = (GUID*)&PSETID_Address;
+	sNameID.ulKind = MNID_ID;
+	sNameID.Kind.lID = 0x8083;
+
+	LPMAPINAMEID lpNameID = &sNameID;
+	KCHL::memory_ptr<SPropTagArray> lpPropTag;
+	hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTag);
+	if (hr != hrSuccess) {
+		return hr;
+	}
+
+	ULONG propType = CHANGE_PROP_TYPE(lpPropTag->aulPropTag[0], PT_UNICODE);
+	hr = HrGetOneProp(lpMessage, propType, &~msgprop);
+	if(hr == hrSuccess) {
+		to_unicode_prop(root, VCEmailAddressProp, msgprop->Value.lpszW);
+	}
+	else if(hr != MAPI_E_NOT_FOUND)
+		return hr;
+
+	/* Write memobject */
 	int len = 0;
 	char* cresult = writeMemVObject(NULL, &len, root);
 	if(cresult == nullptr) {
