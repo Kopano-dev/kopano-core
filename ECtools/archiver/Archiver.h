@@ -49,7 +49,7 @@ public:
 	static const char *GetConfigPath(void);
 	_kc_hidden static const configsetting_t *GetConfigDefaults(void);
 	static eResult Create(auto_ptr_type *);
-	_kc_hidden virtual ~Archiver(void) {};
+	_kc_hidden virtual ~Archiver(void) = default;
 	_kc_hidden virtual eResult Init(const char *app_name, const char *config, const configsetting_t *extra_opts = nullptr, unsigned int flags = 0) = 0;
 	_kc_hidden virtual eResult GetControl(ArchiveControlPtr *, bool force_cleanup = false) = 0;
 	_kc_hidden virtual eResult GetManage(const TCHAR *user, ArchiveManagePtr *) = 0;

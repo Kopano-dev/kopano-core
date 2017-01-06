@@ -53,8 +53,7 @@ struct config_check_t {
 class ECConfigCheck {
 public:
 	ECConfigCheck(const char *lpszName, const char *lpszConfigFile);
-	virtual ~ECConfigCheck(void) {}
-
+	virtual ~ECConfigCheck(void) = default;
 	/* Must be overwritten by subclass */
 	virtual void loadChecks() = 0;
 

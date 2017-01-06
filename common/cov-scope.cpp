@@ -15,7 +15,7 @@
 using namespace KC;
 class I {
 	public:
-	virtual ~I(void) {}
+	virtual ~I(void) = default;
 	/* ptr-to-non-const on purpose */
 	virtual void SetProps(SPropValue *, size_t) {}
 };

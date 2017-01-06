@@ -35,7 +35,7 @@ protected:
 	 * \param ulFlags		Flags.
 	 */
 	_kc_hidden ECArchiveAwareMessage(ECArchiveAwareMsgStore *, BOOL fNew, BOOL modify, ULONG flags);
-	_kc_hidden virtual ~ECArchiveAwareMessage(void);
+	_kc_hidden virtual ~ECArchiveAwareMessage(void) = default;
 
 public:
 	/**

@@ -50,7 +50,7 @@ protected:
 
 public:
 	_kc_hidden ECSender(const std::string &smtphost, int port);
-	_kc_hidden virtual ~ECSender(void) {}
+	_kc_hidden virtual ~ECSender(void) = default;
 	_kc_hidden virtual int getSMTPResult(void);
 	_kc_hidden virtual const wchar_t *getErrorString(void);
 	_kc_hidden virtual void setError(const std::wstring &);

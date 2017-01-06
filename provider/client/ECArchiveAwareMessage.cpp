@@ -72,10 +72,6 @@ ECArchiveAwareMessage::ECArchiveAwareMessage(ECArchiveAwareMsgStore *lpMsgStore,
 	this->HrAddPropHandlers(PR_MESSAGE_SIZE, ECMessage::GetPropHandler, SetPropHandler, (void*)this, FALSE, FALSE);
 }
 
-ECArchiveAwareMessage::~ECArchiveAwareMessage()
-{
-}
-
 HRESULT	ECArchiveAwareMessage::Create(ECArchiveAwareMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, ECMessage **lppMessage)
 {
 	ECArchiveAwareMessage *lpMessage = new ECArchiveAwareMessage(lpMsgStore, fNew, fModify, ulFlags);

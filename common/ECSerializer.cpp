@@ -173,7 +173,7 @@ ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode)
 	m_ulRead = m_ulWritten = 0;
 }
 
-ECFifoSerializer::~ECFifoSerializer()
+ECFifoSerializer::~ECFifoSerializer(void) noexcept
 {
 	if (m_lpBuffer) {
 		ECFifoBuffer::close_flags flags = (m_mode == serialize ? ECFifoBuffer::cfWrite : ECFifoBuffer::cfRead);

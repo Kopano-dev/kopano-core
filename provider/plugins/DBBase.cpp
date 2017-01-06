@@ -31,9 +31,9 @@ DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 	UserPlugin(pluginlock, shareddata), m_lpDatabase(NULL) {
 }
 
-DBPlugin::~DBPlugin() {
-    // Do not delete m_lpDatabase as it is freed when the thread exits
-}
+//DBPlugin::~DBPlugin() {
+//    // Do not delete m_lpDatabase as it is freed when the thread exits
+//}
 
 void DBPlugin::InitPlugin() {
 

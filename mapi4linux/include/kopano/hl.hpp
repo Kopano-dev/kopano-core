@@ -65,7 +65,7 @@ class _kc_export KEntryId _kc_final {
 class _kc_export_throw KMAPIError _kc_final : public std::exception {
 	public:
 	KMAPIError(HRESULT = hrSuccess);
-	virtual ~KMAPIError(void) noexcept {}
+	virtual ~KMAPIError(void) noexcept = default;
 	HRESULT code(void) const noexcept { return m_code; }
 	virtual const char *what(void) const noexcept;
 

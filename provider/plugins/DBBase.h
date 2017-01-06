@@ -134,7 +134,6 @@ public:
 	 * @throw std::exception
 	 */
 	DBPlugin(std::mutex &, ECPluginSharedData *shareddata);
-	virtual ~DBPlugin();
 
 	/**
 	 * Initialize plugin

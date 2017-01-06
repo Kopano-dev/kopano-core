@@ -57,7 +57,7 @@ public:
 	typedef unsigned long		count_type;
 		typedef uint64_t	size_type;
 
-	_kc_hidden virtual ~ECCacheBase(void) {}
+	_kc_hidden virtual ~ECCacheBase(void) = default;
 	_kc_hidden virtual count_type ItemCount(void) const = 0;
 	_kc_hidden virtual size_type Size(void) const = 0;
 	_kc_hidden size_type MaxSize(void) const { return m_ulMaxSize; }

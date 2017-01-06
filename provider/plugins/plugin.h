@@ -137,7 +137,7 @@ public:
 		m_bDistributed(shareddata->IsDistributed())
 	{}
 
-	virtual ~UserPlugin(void) {}
+	virtual ~UserPlugin(void) = default;
 
 	/**
 	 * Initialize plugin
