@@ -35,6 +35,8 @@
 #include "ECRulesTableProxy.h"
 #include <ICalToMAPI.h>
 #include <MAPIToICal.h>
+#include <libicalmapi/mapitovcf.hpp>
+#include <libicalmapi/vcftomapi.hpp>
 
 #define LOGFILE_PATH "/var/log/kopano"
 
@@ -460,7 +462,10 @@ zend_function_entry mapi_functions[] =
 
 	ZEND_FE(mapi_icaltomapi, nullptr)
 	ZEND_FE(mapi_mapitoical, nullptr)
-	
+
+	ZEND_FE(mapi_vcftomapi, nullptr)
+	ZEND_FE(mapi_mapitovcf, nullptr)
+
 	ZEND_FE(mapi_enable_exceptions, NULL)
 
     ZEND_FE(mapi_feature, NULL)
@@ -7487,6 +7492,83 @@ ZEND_FUNCTION(mapi_mapitoical)
 		goto exit;
 	MAPI_G(hr) = lpMtIcal->Finalize(0, &method, &strical);
 	RETVAL_STRING(strical.c_str());
+ exit:
+	LOG_END();
+	THROW_ON_ERROR();
+}
+
+ZEND_FUNCTION(mapi_vcftomapi)
+{
+	zval *resSession;
+	zval *resStore;
+	zval *resMessage;
+	ULONG cbString = 0;
+	char *szString = nullptr;
+	IMAPISession *lpMAPISession = nullptr;
+	IMessage *lpMessage = nullptr;
+	IMsgStore *lpMsgStore = nullptr;
+	std::unique_ptr<vcftomapi> conv;
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrrs",
+	    &resSession, &resStore, &resMessage, &szString,
+	    &cbString) == FAILURE)
+		return;
+	ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
+	ZEND_FETCH_RESOURCE_C(lpMsgStore, IMsgStore *, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
+	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
+
+	std::string vcfMsg(szString, cbString);
+
+	create_vcftomapi(lpMsgStore, &unique_tie(conv));
+	if (conv == nullptr) {
+		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
+	MAPI_G(hr) = conv->parse_vcf(vcfMsg);
+	if (MAPI_G(hr) != hrSuccess)
+		goto exit;
+	MAPI_G(hr) = conv->get_item(lpMessage);
+	if (MAPI_G(hr) != hrSuccess)
+		goto exit;
+ exit:
+	RETVAL_TRUE;
+	LOG_END();
+	THROW_ON_ERROR();
+	return;
+}
+
+ZEND_FUNCTION(mapi_mapitovcf)
+{
+	PMEASURE_FUNC;
+	LOG_BEGIN();
+	zval *resSession;
+	zval *resAddrBook;
+	zval *resMessage;
+	zval *resOptions;
+	IMAPISession *lpMAPISession = nullptr;
+	IMessage *lpMessage = nullptr;
+	std::unique_ptr<mapitovcf> conv;
+	std::string vcf;
+
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra",
+	    &resSession, &resAddrBook, &resMessage, &resOptions) == FAILURE)
+		return;
+	ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
+	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
+
+	create_mapitovcf(&unique_tie(conv));
+	if (conv == nullptr) {
+		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
+	MAPI_G(hr) = conv->add_message(lpMessage);
+	if (MAPI_G(hr) != hrSuccess)
+		goto exit;
+	MAPI_G(hr) = conv->finalize(&vcf);
+	RETVAL_STRING(vcf.c_str());
  exit:
 	LOG_END();
 	THROW_ON_ERROR();
