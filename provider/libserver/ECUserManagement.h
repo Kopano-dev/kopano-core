@@ -142,7 +142,7 @@ private:
 class _kc_export ECUserManagement _kc_final {
 public:
 	_kc_hidden ECUserManagement(BTSession *, ECPluginFactory *, ECConfig *);
-	_kc_hidden virtual ~ECUserManagement(void) = default;
+	_kc_hidden virtual ~ECUserManagement(void) _kc_impdtor;
 
 	// Authenticate a user
 	_kc_hidden virtual ECRESULT AuthUserAndSync(const char *user, const char *pass, unsigned int *user_id);

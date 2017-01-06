@@ -31,7 +31,7 @@
 class ECMAPIContainer : public ECMAPIProp {
 public:
 	ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, const char *szClassName);
-	virtual ~ECMAPIContainer(void) = default;
+	virtual ~ECMAPIContainer(void) _kc_impdtor;
 
 	// IUnknown
 	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;

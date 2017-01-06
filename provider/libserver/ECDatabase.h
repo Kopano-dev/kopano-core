@@ -18,6 +18,7 @@
 #ifndef ECDATABASE_H
 #define ECDATABASE_H
 
+#include <kopano/zcdefs.h>
 #include <kopano/ECConfig.h>
 #include <kopano/kcodes.h>
 
@@ -43,7 +44,7 @@ protected:
 	bool m_bForceUpdate;
 
 public:
-	virtual ~ECDatabase(void) = default;
+	virtual ~ECDatabase(void) _kc_impdtor;
 	virtual ECRESULT		Connect() = 0;
 	virtual ECRESULT		Close() = 0;
 

@@ -43,7 +43,7 @@ class MessageState;
 class _kc_export MAPIPropHelper {
 public:
 	static HRESULT Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper);
-	_kc_hidden virtual ~MAPIPropHelper(void) = default;
+	_kc_hidden virtual ~MAPIPropHelper(void) _kc_impdtor;
 	HRESULT GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState);
 	HRESULT GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey = false);
 	HRESULT SetArchiveList(const ObjectEntryList &lstArchives, bool bExplicitCommit = false);

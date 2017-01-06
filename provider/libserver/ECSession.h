@@ -72,7 +72,7 @@ struct BUSYSTATE {
 class _kc_export BTSession {
 public:
 	_kc_hidden BTSession(const char *addr, ECSESSIONID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps);
-	_kc_hidden virtual ~BTSession(void) = default;
+	_kc_hidden virtual ~BTSession(void) _kc_impdtor;
 	_kc_hidden virtual ECRESULT Shutdown(unsigned int timeout);
 	_kc_hidden virtual ECRESULT ValidateOriginator(struct soap *);
 	_kc_hidden virtual ECSESSIONID GetSessionId(void) const { return m_sessionID; }

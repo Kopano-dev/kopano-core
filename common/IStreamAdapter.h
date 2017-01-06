@@ -25,7 +25,7 @@ namespace KC {
 class _kc_export IStreamAdapter _kc_final : public IStream {
 public:
     IStreamAdapter(std::string& str);
-	_kc_hidden virtual ~IStreamAdapter(void) = default;
+	_kc_hidden virtual ~IStreamAdapter(void) _kc_impdtor;
 	_kc_hidden virtual HRESULT QueryInterface(REFIID iid, void **pv) _kc_override;
 	_kc_hidden virtual ULONG AddRef(void) _kc_override { return 1; }
 	_kc_hidden virtual ULONG Release(void) _kc_override { return 1; }

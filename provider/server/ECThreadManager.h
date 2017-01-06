@@ -78,7 +78,7 @@ public:
 
 protected:
     // The destructor is protected since we self-cleanup; you cannot delete this object externally.
-	virtual ~ECWorkerThread(void) = default;
+	virtual ~ECWorkerThread(void) _kc_impdtor;
     static void *Work(void *param);
 
     pthread_t m_thread;
@@ -160,7 +160,7 @@ typedef SOAP_SOCKET (*CREATEPIPESOCKETCALLBACK)(void *lpParam);
 class ECDispatcher {
 public:
 	ECDispatcher(ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
-	virtual ~ECDispatcher(void) = default;
+	virtual ~ECDispatcher(void) _kc_impdtor;
     
     // Statistics
     ECRESULT GetIdle(unsigned int *lpulIdle); 				// Idle threads

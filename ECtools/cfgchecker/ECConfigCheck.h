@@ -18,6 +18,7 @@
 #ifndef ECCONFIGCHECK_H
 #define ECCONFIGCHECK_H
 
+#include <kopano/zcdefs.h>
 #include <list>
 #include <map>
 #include <string>
@@ -53,7 +54,7 @@ struct config_check_t {
 class ECConfigCheck {
 public:
 	ECConfigCheck(const char *lpszName, const char *lpszConfigFile);
-	virtual ~ECConfigCheck(void) = default;
+	virtual ~ECConfigCheck(void) _kc_impdtor;
 	/* Must be overwritten by subclass */
 	virtual void loadChecks() = 0;
 

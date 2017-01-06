@@ -18,6 +18,8 @@
 #ifndef IECUNKNOWN_H
 #define IECUNKNOWN_H
 
+#include <kopano/zcdefs.h>
+
 /* needed for windows */
 #ifndef METHOD_PROLOGUE_
 #define METHOD_PROLOGUE_(theClass, localClass) \
@@ -32,7 +34,7 @@ namespace KC {
 
 class IECUnknown {
 public:
-	virtual ~IECUnknown(void) = default;
+	virtual ~IECUnknown(void) _kc_impdtor;
 	virtual ULONG AddRef() = 0;
 	virtual ULONG Release() = 0;
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) = 0;

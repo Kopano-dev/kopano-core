@@ -70,7 +70,7 @@ public:
 	virtual ECRESULT Rollback() = 0;
 
 protected:
-	virtual ~ECAttachmentStorage(void) = default;
+	virtual ~ECAttachmentStorage(void) _kc_impdtor;
 	
 	/* Single Instance Attachment handlers (must be overridden by subclasses) */
 	virtual ECRESULT LoadAttachmentInstance(struct soap *soap, ULONG ulInstanceId, size_t *lpiSize, unsigned char **lppData) = 0;

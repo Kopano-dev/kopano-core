@@ -18,6 +18,7 @@
 #ifndef postsaveaction_INCLUDED
 #define postsaveaction_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include <memory>
 
 namespace KC { namespace operations {
@@ -28,7 +29,7 @@ namespace KC { namespace operations {
  */
 class IPostSaveAction {
 public:
-	virtual ~IPostSaveAction(void) = default;
+	virtual ~IPostSaveAction(void) _kc_impdtor;
 	virtual HRESULT Execute() = 0;
 };
 typedef std::shared_ptr<IPostSaveAction> PostSaveActionPtr;

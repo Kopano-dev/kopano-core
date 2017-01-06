@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 
 #include <memory>
@@ -47,7 +47,7 @@ namespace KC {
 
 class mapiTimeoutHandler : public vmime::net::timeoutHandler {
 public:
-	virtual ~mapiTimeoutHandler(void) = default;
+	virtual ~mapiTimeoutHandler(void) _kc_impdtor;
 
 	// @todo add logging
 	virtual bool isTimeOut() { return getTime() >= (m_last + 5*60); };

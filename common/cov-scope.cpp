@@ -8,6 +8,7 @@
  *	 escape: The internal representation of local `hel_w` escapes into
  *	 `prop[x].Value.lpszW`, but is destroyed when it exits scope."
  */
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <string>
 #include <cstdlib>
@@ -15,7 +16,7 @@
 using namespace KC;
 class I {
 	public:
-	virtual ~I(void) = default;
+	virtual ~I(void) _kc_impdtor;
 	/* ptr-to-non-const on purpose */
 	virtual void SetProps(SPropValue *, size_t) {}
 };

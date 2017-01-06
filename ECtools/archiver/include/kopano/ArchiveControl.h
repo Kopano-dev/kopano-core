@@ -21,6 +21,7 @@
 #ifndef ARCHIVECONTROL_H_INCLUDED
 #define ARCHIVECONTROL_H_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include <memory>
 #include <kopano/tstring.h>
 
@@ -40,7 +41,7 @@ enum eResult {
 class ArchiveControl {
 public:
 	typedef std::unique_ptr<ArchiveControl> auto_ptr_type;
-	virtual ~ArchiveControl(void) = default;
+	virtual ~ArchiveControl(void) _kc_impdtor;
 	virtual eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags) = 0;
 	virtual eResult Archive(const tstring& strUser, bool bAutoAttach, unsigned int ulFlags) = 0;
 	virtual eResult CleanupAll(bool bLocalOnly) = 0;

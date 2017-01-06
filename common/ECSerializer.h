@@ -35,7 +35,7 @@ class ECFifoBuffer;
 
 class ECSerializer {
 public:
-	virtual ~ECSerializer(void) = default;
+	virtual ~ECSerializer(void) _kc_impdtor;
 	virtual ECRESULT SetBuffer(void *lpBuffer) = 0;
 
 	virtual ECRESULT Write(const void *ptr, size_t size, size_t nmemb) = 0;
@@ -68,7 +68,7 @@ public:
 	enum eMode { serialize, deserialize };
 
 	ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode);
-	_kc_hidden virtual ~ECFifoSerializer(void) noexcept;
+	_kc_hidden virtual ~ECFifoSerializer(void);
 	_kc_hidden ECRESULT SetBuffer(void *) _kc_override;
 	_kc_hidden ECRESULT Write(const void *ptr, size_t size, size_t nmemb) _kc_override;
 	_kc_hidden ECRESULT Read(void *ptr, size_t size, size_t nmemb) _kc_override;

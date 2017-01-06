@@ -24,7 +24,7 @@
 class ECABProvider _kc_final : public ECUnknown {
 protected:
 	ECABProvider(ULONG ulFlags, const char *szClassName);
-	virtual ~ECABProvider(void) = default;
+	virtual ~ECABProvider(void) _kc_impdtor;
 public:
 	static  HRESULT Create(ECABProvider **lppECABProvider);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;

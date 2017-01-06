@@ -18,6 +18,7 @@
 #ifndef GATEWAY_COMMON_H
 #define GATEWAY_COMMON_H
 
+#include <kopano/zcdefs.h>
 #include <string>
 #include <kopano/ECChannel.h>
 #include <kopano/ECLogger.h>
@@ -30,7 +31,7 @@ public:
 	ClientProto(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig) :
 	m_strPath(szServerPath), lpChannel(lpChannel), lpLogger(lpLogger), lpConfig(lpConfig), m_ulFailedLogins(0)
 	{};
-	virtual ~ClientProto(void) = default;
+	virtual ~ClientProto(void) _kc_impdtor;
 	virtual int getTimeoutMinutes() = 0;
 	virtual bool isContinue() { return false; }; // imap only
 
