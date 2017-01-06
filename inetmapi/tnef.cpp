@@ -314,7 +314,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 	SPropValue sProp;
 	std::unique_ptr<char[]> szSClass;
 	// Attachments props
-	LPSPropValue lpProp;
+	memory_ptr<SPropValue> lpProp;
 	tnefattachment* lpTnefAtt = NULL;
 
 	hr = HrReadDWord(m_lpStream, &ulSignature);
@@ -439,13 +439,14 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 				goto exit;
 			}
 
-			if ((hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpProp)) != hrSuccess)
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpProp);
+			if (hr != hrSuccess)
 				goto exit;
 			lpProp->ulPropTag = PR_ATTACH_FILENAME_A;
 			if ((hr = MAPIAllocateMore(ulSize, lpProp, (void**)&lpProp->Value.lpszA)) != hrSuccess)
 				goto exit;
 			memcpy(lpProp->Value.lpszA, lpBuffer, ulSize);
-			lpTnefAtt->lstProps.push_back(lpProp);
+			lpTnefAtt->lstProps.push_back(lpProp.release());
 			break;
 
 		case ATT_ATTACH_META_FILE:
@@ -455,14 +456,15 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 				goto exit;
 			}
 
-			if ((hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpProp)) != hrSuccess)
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpProp);
+			if (hr != hrSuccess)
 				goto exit;
 			lpProp->ulPropTag = PR_ATTACH_RENDERING;
 			if ((hr = MAPIAllocateMore(ulSize, lpProp, (void**)&lpProp->Value.bin.lpb)) != hrSuccess)
 				goto exit;
 			lpProp->Value.bin.cb = ulSize;
 			memcpy(lpProp->Value.bin.lpb, lpBuffer, ulSize);
-			lpTnefAtt->lstProps.push_back(lpProp);
+			lpTnefAtt->lstProps.push_back(lpProp.release());
 			break;
 
 		case ATT_ATTACH_DATA:
