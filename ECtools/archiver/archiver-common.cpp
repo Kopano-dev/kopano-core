@@ -17,8 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/archiver-common.h>
-#include <boost/algorithm/string/predicate.hpp>
-namespace ba = boost::algorithm;
+#include <kopano/stringutil.h>
 
 bool entryid_t::operator==(const entryid_t &other) const
 {
@@ -37,9 +36,9 @@ bool entryid_t::operator>(const entryid_t &other) const
 
 bool entryid_t::wrap(const std::string &strPath)
 {
-	if (!ba::istarts_with(strPath, "file://") &&
-		!ba::istarts_with(strPath, "http://") &&
-		!ba::istarts_with(strPath, "https://"))
+	if (!kc_istarts_with(strPath, "file://") &&
+	    !kc_istarts_with(strPath, "http://") &&
+	    !kc_istarts_with(strPath, "https://"))
 		return false;
 	
 	m_vEntryId.insert(m_vEntryId.begin(), (LPBYTE)strPath.c_str(), (LPBYTE)strPath.c_str() + strPath.size() + 1);	// Include NULL terminator
@@ -67,9 +66,9 @@ bool entryid_t::isWrapped() const
 	// ba::istarts_with doesn't work well on unsigned char. So we use a temporary instead.
 	const std::string strEntryId((char*)&m_vEntryId.front(), m_vEntryId.size());
 
-	return (ba::istarts_with(strEntryId, "file://") ||
-			ba::istarts_with(strEntryId, "http://") ||
-			ba::istarts_with(strEntryId, "https://"));
+	return kc_istarts_with(strEntryId, "file://") ||
+	       kc_istarts_with(strEntryId, "http://") ||
+	       kc_istarts_with(strEntryId, "https://");
 }
 
 entryid_t entryid_t::getUnwrapped() const

@@ -22,10 +22,10 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/stringutil.h>
 #include <mapiutil.h>
 #include <mapix.h>
 #include <kopano/namedprops.h>
-#include <boost/algorithm/string/predicate.hpp>
 #include "fsck.h"
 
 HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
@@ -117,11 +117,11 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		}
 
 		/* If a prefix and suffix were provided, strip them from the fullname */
-		if (!result[E_PREFIX].empty() && boost::algorithm::starts_with(result[E_FULLNAME], result[E_PREFIX])) {
+		if (!result[E_PREFIX].empty() && kc_starts_with(result[E_FULLNAME], result[E_PREFIX])) {
             result[E_FULLNAME].erase(0, result[E_PREFIX].size());
         }
 
-		if (!result[E_SUFFIX].empty() && boost::algorithm::ends_with(result[E_FULLNAME], result[E_SUFFIX])) {
+		if (!result[E_SUFFIX].empty() && kc_ends_with(result[E_FULLNAME], result[E_SUFFIX])) {
             result[E_FULLNAME].erase(result[E_FULLNAME].size() - result[E_SUFFIX].size(), std::string::npos);
 		}
 

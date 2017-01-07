@@ -16,6 +16,8 @@
  */
 
 #include <kopano/platform.h>
+#include <algorithm>
+#include <string>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <sstream>
@@ -650,4 +652,25 @@ char *kc_strlcpy(char *dest, const char *src, size_t n)
 	strncpy(dest, src, n);
 	dest[n-1] = '\0';
 	return dest;
+}
+
+bool kc_starts_with(const std::string &full, const std::string &prefix)
+{
+	return full.compare(0, prefix.size(), prefix) == 0;
+}
+
+bool kc_istarts_with(const std::string &full, const std::string &needle)
+{
+	std::string h = full, n = needle;
+	std::transform(h.begin(), h.end(), h.begin(), ::tolower);
+	std::transform(n.begin(), n.end(), n.begin(), ::tolower);
+	return kc_starts_with(h, n);
+}
+
+bool kc_ends_with(const std::string &full, const std::string &prefix)
+{
+	size_t fz = full.size(), pz = prefix.size();
+	if (fz < pz)
+		 return false;
+	return full.compare(fz - pz, pz, prefix);
 }
