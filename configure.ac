@@ -650,7 +650,6 @@ AC_SUBST(EPOLL_CFLAGS)
 
 # Boost
 BOOST_REQUIRE([1.35])
-BOOST_FILESYSTEM([mt])
 
 dnl The "Locale" class is in icu-uc.
 dnl The "CollationKey" class is in icu-i18n.
@@ -822,8 +821,6 @@ TCMalloc lib	:	$TCMALLOC_LIBS
 S3 lib		:	$s3_LIBS
 Boost		:
  Flags		:	$BOOST_CPPFLAGS
- FS ldflags	:	$BOOST_FILESYSTEM_LDFLAGS
- FS libs	:	$BOOST_FILESYSTEM_LIBS
 ICU libs	:	$icu_uc_LIBS $icu_i18n_LIBS
 Python flags	:	$PYTHON_INCLUDES
 Python libs	:	$PYTHON_LIBS

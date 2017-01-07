@@ -16,9 +16,15 @@
  */
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <utility>
+#include <cerrno>
+#include <cstring>
+#include <dirent.h>
+#include <sys/stat.h>
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>
+#include <kopano/UnixUtil.h>
 #include "soapH.h"
 #include "ECClientUpdate.h"
 #include "ECLicenseClient.h"
@@ -26,17 +32,12 @@
 #include <kopano/base64.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
-
-#include <boost/filesystem.hpp>
-namespace bfs = boost::filesystem;
-
 #include "SOAPUtils.h"
 #include "SOAPHelpers.h"
 
 #include "ECSessionManager.h"
 #include "ECDatabase.h"
 #include "ECStatsCollector.h"
-#include <kopano/boost_compat.h>
 #include "../libserver/cmd.hpp"
 #include "ECNotificationManager.h"
 
@@ -294,54 +295,43 @@ static bool GetLatestVersionAtServer(const char *szUpdatePath,
 {
 	ClientVersion tempVersion = {0};
 	ClientVersion latestVersion = {0};
-	std::string strFileStart = "zarafaclient-";
-
+	const char ds_prefix[] = "zarafaclient-";
 	bool bRet = false;
 
 	if (szUpdatePath == NULL)
 		return false;
-
-	try {
-		bfs::path updatesdir = szUpdatePath;
-		if (!bfs::exists(updatesdir)) {
-			ec_log_err("Client update: trackid: 0x%08X, Unable to open client_update_path directory", ulTrackid);
-			return false;
-		}
-
-		bfs::directory_iterator update_last;
-		for (bfs::directory_iterator update(updatesdir);
-		     update != update_last; ++update) {
-			const bfs::file_type file_type = update->status().type();
-			if (file_type != bfs::regular_file && file_type != bfs::symlink_file)
-				continue;
-
-			const std::string strFilename = filename_from_path(update->path());
-			if (!kc_starts_with(strFilename, strFileStart)) {
-				ec_log_debug("Client update: trackid: 0x%08X, Ignoring file %s for client update", ulTrackid, strFilename.c_str());
-				continue;
-			}
-
-			ec_log_info("Client update: trackid: 0x%08X, Update Name: %s", ulTrackid, strFilename.c_str());
-
-			const char *pTemp = strFilename.c_str() + strFileStart.length();
-			if (!GetVersionFromMSIName(pTemp, &tempVersion))
-			{
-				ec_log_warn("Client update: trackid: 0x%08X, Failed in getting version from string '%s'", ulTrackid, pTemp);
-				continue;
-			}
-
-			// first time, latestVersion will be 0, so always older
-			if (CompareVersions(latestVersion, tempVersion) < 0) {
-				bRet = true;
-				latestVersion = tempVersion;
-			}
-		}
-	} catch (const bfs::filesystem_error &e) {
-		ec_log_info("Client update: trackid: 0x%08X, Boost exception during certificate validation: %s", ulTrackid, e.what());
-	} catch (const std::exception &e) {
-		ec_log_info("Client update: trackid: 0x%08X, STD exception during certificate validation: %s", ulTrackid, e.what());
+	std::unique_ptr<DIR, fs_deleter> dh(opendir(szUpdatePath));
+	if (dh == nullptr) {
+		ec_log_err("Client update: trackid: 0x%08X, Unable to open client_update_path directory \"%s\": %s",
+			ulTrackid, szUpdatePath, strerror(errno));
+		return false;
 	}
 
+	for (const struct dirent *dentry = readdir(dh.get());
+	     dentry != nullptr; dentry = readdir(dh.get())) {
+		const char *bname = dentry->d_name;
+		auto fullpath = std::string(szUpdatePath) + "/" + bname;
+		struct stat sb;
+
+		if (stat(fullpath.c_str(), &sb) < 0 || !S_ISREG(sb.st_mode))
+			continue;
+		if (strncmp(bname, ds_prefix, std::min(strlen(bname), strlen(ds_prefix))) != 0) {
+			ec_log_debug("Client update: trackid: 0x%08X, Ignoring file %s for client update", ulTrackid, bname);
+			continue;
+		}
+		ec_log_info("Client update: trackid: 0x%08X, Update Name: %s", ulTrackid, bname);
+		const char *pTemp = bname + strlen(ds_prefix);
+		if (!GetVersionFromMSIName(pTemp, &tempVersion))
+		{
+			ec_log_warn("Client update: trackid: 0x%08X, Failed in getting version from string '%s'", ulTrackid, pTemp);
+			continue;
+		}
+		// first time, latestVersion will be 0, so always older
+		if (CompareVersions(latestVersion, tempVersion) < 0) {
+			bRet = true;
+			latestVersion = tempVersion;
+		}
+	}
 	if (bRet)
 		*lpLatestVersion = latestVersion;
 	return bRet;

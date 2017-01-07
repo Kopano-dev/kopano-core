@@ -59,10 +59,7 @@
 
 #include "TmpPath.h"
 #include "ECICS.h"
-
-#include <boost/filesystem.hpp>
 #include <openssl/ssl.h>
-namespace bfs = boost::filesystem;
 
 // The following value is based on:
 // http://dev.mysql.com/doc/refman/5.0/en/server-system-variables.html#sysvar_thread_stack

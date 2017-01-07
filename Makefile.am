@@ -244,10 +244,10 @@ kopano_server_SOURCES = \
 kopano_server_LDADD = \
 	libkcutil.la libkcmapi.la libkcssl.la \
 	libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
-	${PROG_LIBS} ${BOOST_FILESYSTEM_LIBS} ${BOOST_SYSTEM_LIBS} \
+	${PROG_LIBS} ${BOOST_SYSTEM_LIBS} \
 	${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} -lrt
-kopano_server_LDFLAGS = ${AM_LDFLAGS} ${BOOST_FILESYSTEM_LDFLAGS}
+kopano_server_LDFLAGS = ${AM_LDFLAGS}
 
 
 #
@@ -652,7 +652,7 @@ libkcutil_la_SOURCES = \
 	common/charset/convstring.cpp common/charset/traits.cpp \
 	common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
-	-lpthread -lz ${BOOST_FILESYSTEM_LIBS} ${CRYPTO_LIBS} ${UUID_LIBS}
+	-lpthread -lz ${CRYPTO_LIBS} ${UUID_LIBS}
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=common/libkcutil.sym
 EXTRA_libkcutil_la_DEPENDENCIES = common/libkcutil.sym
@@ -675,9 +675,9 @@ libmapi_la_SOURCES = \
 	mapi4linux/src/m4l.mapisvc.cpp mapi4linux/src/m4l.mapisvc.h
 libmapi_la_LIBADD = \
 	libkcutil.la libkcmapi.la libm4lcommon.la \
-	${BOOST_FILESYSTEM_LIBS} ${BOOST_SYSTEM_LIBS} ${PROG_LIBS} ${DL_LIBS}
+	${BOOST_SYSTEM_LIBS} ${PROG_LIBS} ${DL_LIBS}
 libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
-	-Wl,--version-script=mapi4linux/src/libmapi.sym ${BOOST_FILESYSTEM_LDFLAGS}
+	-Wl,--version-script=mapi4linux/src/libmapi.sym
 EXTRA_libmapi_la_DEPENDENCIES = mapi4linux/src/libmapi.sym
 
 mapi4linux/src/libmapi.sym: ${top_builddir}/config.status
