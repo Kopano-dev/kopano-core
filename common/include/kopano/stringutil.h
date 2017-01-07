@@ -161,6 +161,9 @@ _Tp join(_InputIterator __first, _InputIterator __last, _Tp __sep)
 
 extern _kc_export std::string format(const char *fmt, ...) __LIKE_PRINTF(1, 2);
 extern _kc_export char *kc_strlcpy(char *dst, const char *src, size_t n);
+extern _kc_export bool kc_starts_with(const std::string &, const std::string &);
+extern _kc_export bool kc_istarts_with(const std::string &, const std::string &);
+extern _kc_export bool kc_ends_with(const std::string &, const std::string &);
 
 } /* namespace */
 

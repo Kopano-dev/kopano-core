@@ -30,9 +30,6 @@
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;
 
-#include <boost/algorithm/string/predicate.hpp>
-namespace ba = boost::algorithm;
-
 #include "SOAPUtils.h"
 #include "SOAPHelpers.h"
 
@@ -319,7 +316,7 @@ static bool GetLatestVersionAtServer(const char *szUpdatePath,
 				continue;
 
 			const std::string strFilename = filename_from_path(update->path());
-			if (!ba::starts_with(strFilename, strFileStart)) {
+			if (!kc_starts_with(strFilename, strFileStart)) {
 				ec_log_debug("Client update: trackid: 0x%08X, Ignoring file %s for client update", ulTrackid, strFilename.c_str());
 				continue;
 			}
