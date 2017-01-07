@@ -31,10 +31,6 @@
 #include <iostream>
 #include <arpa/inet.h>
 #include <climits>
-
-#include <boost/algorithm/string.hpp>
-namespace ba = boost::algorithm;
-
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;
 
@@ -205,7 +201,7 @@ vector<string> INFLoader::GetINFPaths()
 	vector<string> ret;
 	char *env = getenv("MAPI_CONFIG_PATH");
 	if (env)
-		ba::split(ret, env, ba::is_any_of(":"), ba::token_compress_on);
+		ret = tokenize(env, ':', true);
 	else
 	// @todo, load both, or just one?
 		ret.push_back(MAPICONFIGDIR);
@@ -233,10 +229,8 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 	case PT_LONG:
 	{
 		// either a definition, or a hexed network order value
-		set<string> vValues;
 		sProp.Value.ul = 0;
-		ba::split(vValues, strData, ba::is_any_of("| \t"), ba::token_compress_on);
-		for (const auto &val : vValues)
+		for (const auto &val : tokenize(strData, "| \t"))
 			sProp.Value.ul |= DefinitionFromString(val, false);
 		break;
 	}
@@ -375,9 +369,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 		if (sp.first.compare("Providers") == 0) {
 			// make new providers list
 			// *new function, new loop
-			ba::split(prop, sp.second, ba::is_any_of(", \t"), ba::token_compress_on);
-
-			for (const auto &i : prop) {
+			for (const auto &i : tokenize(sp.second, ", \t")) {
 				infProvider = cINF.GetSection(i);
 
 				auto prov = m_sProviders.insert(make_pair(i, new SVCProvider));

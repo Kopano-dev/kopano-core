@@ -33,7 +33,6 @@
 
 // string.hpp doesn't always include all subincludes
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 // vmime
 #include <vmime/vmime.hpp>

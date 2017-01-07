@@ -17,7 +17,9 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 #include <kopano/MAPIErrors.h>
 
 // vmime
@@ -34,7 +36,6 @@
 #include <edkmdb.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/mapi_ptr.h>
-#include <boost/algorithm/string.hpp>
 #include "tnef.h"
 
 // inetmapi
@@ -1593,8 +1594,7 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 
 	// Outlook never adds this property
 	if (HrGetOneProp(lpMessage, PR_INTERNET_REFERENCES_A, &~ptrMessageId) == hrSuccess && ptrMessageId->Value.lpszA[0]) {
-		std::vector<std::string> ids;
-		boost::split(ids, ptrMessageId->Value.lpszA, boost::is_any_of(" "));
+		std::vector<std::string> ids = tokenize(ptrMessageId->Value.lpszA, ' ', true);
 
 		const size_t n = ids.size();
 		for (size_t i = 0; i < n; ++i) {
