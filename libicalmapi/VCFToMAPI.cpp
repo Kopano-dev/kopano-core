@@ -50,6 +50,7 @@ public:
 
 	HRESULT ParseVCF(const std::string& strVCF) _kc_override;
 	HRESULT GetItem(LPMESSAGE lpMessage) _kc_override;
+
 private:
 	HRESULT SaveProps(const std::list<SPropValue> *lpPropList, LPMAPIPROP lpMapiProp);
 
@@ -109,11 +110,11 @@ void VCFToMapiImpl::handle_N(VObject* v) {
 		const char *name = vObjectName(vv);
 		SPropValue s;
 
-		if (!strcmp(name, "F")) {
+		if (!strcmp(name, VCFamilyNameProp)) {
 			vobject_to_prop(vv, s, PR_SURNAME);
 			props.push_back(s);
 		}
-		else if (!strcmp(name, "G")) {
+		else if (!strcmp(name, VCGivenNameProp)) {
 			vobject_to_prop(vv, s, PR_GIVEN_NAME);
 			props.push_back(s);
 		}
@@ -121,7 +122,7 @@ void VCFToMapiImpl::handle_N(VObject* v) {
 }
 
 void VCFToMapiImpl::handle_TEL_EMAIL(VObject* v) {
-	bool tel = !strcmp(vObjectName(v), "TEL");
+	bool tel = !strcmp(vObjectName(v), VCTelephoneProp);
 
 	VObjectIterator t;
 	initPropIterator(&t, v);
@@ -190,20 +191,23 @@ HRESULT VCFToMapiImpl::ParseVCF(const std::string& strIcal)
 	initPropIterator(&t, v);
 
 	while (moreIteration(&t)) {
-		v = nextVObject(&t);
-		const char* name = vObjectName(v);
+		VObject* vv = nextVObject(&t);
+		const char* name = vObjectName(vv);
 
-		if (!strcmp(name, "N")) {
-			handle_N(v);
+		if (!strcmp(name, VCNameProp)) {
+			handle_N(vv);
 		}
-		else if (!strcmp(name, "FN")) {
-			vobject_to_prop(v, s, PR_DISPLAY_NAME);
+		else if (!strcmp(name, VCFullNameProp)) {
+			vobject_to_prop(vv, s, PR_DISPLAY_NAME);
 			props.push_back(s);
 		}
-		else if (!strcmp(name, "TEL") || !strcmp(name, "EMAIL")) {
-			handle_TEL_EMAIL(v);
+		else if (!strcmp(name, VCTelephoneProp) ||
+			 !strcmp(name, VCEmailAddressProp)) {
+			handle_TEL_EMAIL(vv);
 		}
 	}
+
+	cleanVObject(v);
 
 	return hr;
 }
@@ -212,11 +216,11 @@ void VCFToMapiImpl::vobject_to_prop(VObject *v, SPropValue &s, ULONG propType) {
         switch(vObjectValueType(v)) {
 	case VCVT_STRINGZ:
 		s.ulPropTag = CHANGE_PROP_TYPE(propType, PT_STRING8);
-		s.Value.lpszA = (char*) vObjectStringZValue(v);
+		s.Value.lpszA = strdup(vObjectStringZValue(v));
 		break;
 	case VCVT_USTRINGZ:
 		s.ulPropTag = CHANGE_PROP_TYPE(propType, PT_UNICODE);
-		s.Value.lpszW = (wchar_t*) vObjectUStringZValue(v);
+		s.Value.lpszW = wcsdup(vObjectUStringZValue(v));
 		break;
 	}
 }
@@ -257,7 +261,7 @@ HRESULT VCFToMapiImpl::unicode_to_named_prop(wchar_t* v, SPropValue &s, ULONG na
 	}
 
 	s.ulPropTag = CHANGE_PROP_TYPE(lpPropTag->aulPropTag[0], PT_UNICODE);
-	s.Value.lpszW = v;
+	s.Value.lpszW = wcsdup(v);
 
 	return hrSuccess;
 }
@@ -321,7 +325,17 @@ HRESULT VCFToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
 	i = 0;
 	for (const auto &prop : *lpPropList)
 		lpsPropVals[i++] = prop;
-	return lpMapiProp->SetProps(i, lpsPropVals, NULL);
+
+	auto retval = lpMapiProp->SetProps(i, lpsPropVals, NULL);
+
+	for (const auto &prop : *lpPropList) {
+		if(PROP_TYPE(prop.ulPropTag) == PT_UNICODE)
+			delete prop.Value.lpszW;
+		if(PROP_TYPE(prop.ulPropTag) == PT_STRING8)
+			delete prop.Value.lpszA;
+	}
+
+	return retval;
 }
 
 

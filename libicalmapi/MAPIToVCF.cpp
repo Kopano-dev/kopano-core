@@ -85,8 +85,18 @@ MapiToVCFImpl::~MapiToVCFImpl()
 
 VObject* MapiToVCFImpl::to_unicode_prop(VObject *node, const char *prop, wchar_t const* value) {
 	char plain[128];
+	VObject *newnode;
+
 	std::wcstombs(plain, value, 128);
-	return addPropValue(node, prop, plain);
+
+	newnode = addProp(node, prop);
+	if(newnode == nullptr) {
+		return nullptr;
+	}
+
+	setVObjectStringZValue(newnode, plain);
+
+	return newnode;
 }
 
 /** 
@@ -101,17 +111,12 @@ VObject* MapiToVCFImpl::to_unicode_prop(VObject *node, const char *prop, wchar_t
  */
 HRESULT MapiToVCFImpl::AddMessage(LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	KCHL::memory_ptr<SPropValue> lpMessageClass;
 
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	if (m_lpNamedProps == nullptr) {
-		//hr = HrLookupNames(lpMessage, &m_lpNamedProps);
-		if (hr != hrSuccess)
-			return hr;
-	}
-	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
+
+	HRESULT hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -120,20 +125,17 @@ HRESULT MapiToVCFImpl::AddMessage(LPMESSAGE lpMessage)
 	}
 
 	VObject* root = newVObject(VCCardProp);
+	VObject* node = nullptr;
 
-	KCHL::memory_ptr<SPropValue> msgprop;
+	KCHL::memory_ptr<SPropValue> msgprop, msgprop2;
+
 	hr = HrGetOneProp(lpMessage, PR_GIVEN_NAME, &~msgprop);
-	if(hr == hrSuccess) {
-		VObject* node = addProp(root, VCNameProp);
+	HRESULT hr2 = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop2);
+	if(hr == hrSuccess && hr2 == hrSuccess) {
+		node = addGroup(root, VCNameProp);
 		to_unicode_prop(node, VCGivenNameProp, msgprop->Value.lpszW);
-		hr = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop);
-		if(hr == hrSuccess) {
-			to_unicode_prop(node, VCFamilyNameProp, msgprop->Value.lpszW);
-		}
-		else if(hr != MAPI_E_NOT_FOUND)
-			return hr;
-
-	} else if(hr != MAPI_E_NOT_FOUND)
+		to_unicode_prop(node, VCFamilyNameProp, msgprop2->Value.lpszW);
+	} else if(hr != MAPI_E_NOT_FOUND || hr2 != MAPI_E_NOT_FOUND)
 		return hr;
 
 	hr = HrGetOneProp(lpMessage, PR_DISPLAY_NAME, &~msgprop);
@@ -159,7 +161,7 @@ HRESULT MapiToVCFImpl::AddMessage(LPMESSAGE lpMessage)
 	else if(hr != MAPI_E_NOT_FOUND)
 		return hr;
 
-	/* Email */ 
+	/* Email */
 	MAPINAMEID sNameID;
 	sNameID.lpguid = (GUID*)&PSETID_Address;
 	sNameID.ulKind = MNID_ID;
@@ -189,6 +191,8 @@ HRESULT MapiToVCFImpl::AddMessage(LPMESSAGE lpMessage)
 
 	result = cresult;
 	delete cresult;
+
+	cleanVObject(root);
 
 	return hrSuccess;
 }
