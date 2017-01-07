@@ -42,6 +42,7 @@
 #include <vector>
 #include <list>
 #include <set>
+#include <unordered_set>
 #include <map>
 #include <algorithm>
 #include <kopano/base64.h>
@@ -57,7 +58,6 @@
 #include "ECFeatures.h"
 
 #include <boost/algorithm/string/join.hpp>
-#include <boost/unordered_set.hpp>
 #include <kopano/mapi_ptr.h>
 
 #include "IMAP.h"
@@ -4631,7 +4631,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
             }
         } else {
             vector<string> lstReqFields;
-            boost::unordered_set<std::string> seen;
+            std::unordered_set<std::string> seen;
 
             // Get fields as vector
 			lstReqFields = tokenize(strFields, " ");
