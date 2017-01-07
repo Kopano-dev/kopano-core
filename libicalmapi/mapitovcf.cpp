@@ -55,7 +55,11 @@ VObject *mapitovcf_impl::to_unicode_prop(VObject *node, const char *prop,
 {
 	char plain[128];
 	wcstombs(plain, value, sizeof(plain));
-	return addPropValue(node, prop, plain);
+	auto newnode = addProp(node, prop);
+	if (newnode == nullptr)
+		return nullptr;
+	setVObjectStringZValue(newnode, plain);
+	return newnode;
 }
 
 HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
@@ -72,18 +76,17 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return MAPI_E_INVALID_PARAMETER;
 
 	auto root = newVObject(VCCardProp);
-	KCHL::memory_ptr<SPropValue> msgprop;
+	KCHL::memory_ptr<SPropValue> msgprop, msgprop2;
 	hr = HrGetOneProp(lpMessage, PR_GIVEN_NAME, &~msgprop);
-	if (hr == hrSuccess) {
-		auto node = addProp(root, VCNameProp);
+	HRESULT hr2 = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop2);
+	if (hr == hrSuccess || hr2 == hrSuccess) {
+		auto node = addGroup(root, VCNameProp);
 		to_unicode_prop(node, VCGivenNameProp, msgprop->Value.lpszW);
-		hr = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop);
-		if (hr == hrSuccess)
-			to_unicode_prop(node, VCFamilyNameProp, msgprop->Value.lpszW);
-		else if (hr != MAPI_E_NOT_FOUND)
-			return hr;
+		to_unicode_prop(node, VCFamilyNameProp, msgprop2->Value.lpszW);
 	} else if (hr != MAPI_E_NOT_FOUND) {
 		return hr;
+	} else if (hr2 != MAPI_E_NOT_FOUND) {
+		return hr2;
 	}
 
 	hr = HrGetOneProp(lpMessage, PR_DISPLAY_NAME, &~msgprop);
@@ -134,6 +137,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	m_result = cresult;
 	free(cresult);
+	cleanVObject(root);
 	return hrSuccess;
 }
 

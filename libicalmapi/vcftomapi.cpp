@@ -76,10 +76,10 @@ void vcftomapi_impl::handle_N(VObject *v)
 		auto name = vObjectName(vv);
 		SPropValue s;
 
-		if (strcmp(name, "F") == 0) {
+		if (strcmp(name, VCFamilyNameProp) == 0) {
 			vobject_to_prop(vv, s, PR_SURNAME);
 			props.push_back(s);
-		} else if (strcmp(name, "G") == 0) {
+		} else if (strcmp(name, VCGivenNameProp) == 0) {
 			vobject_to_prop(vv, s, PR_GIVEN_NAME);
 			props.push_back(s);
 		}
@@ -88,7 +88,7 @@ void vcftomapi_impl::handle_N(VObject *v)
 
 void vcftomapi_impl::handle_TEL_EMAIL(VObject *v)
 {
-	bool tel = strcmp(vObjectName(v), "TEL") == 0;
+	bool tel = strcmp(vObjectName(v), VCTelephoneProp) == 0;
 	VObjectIterator t;
 
 	for (initPropIterator(&t, v); moreIteration(&t); ) {
@@ -136,16 +136,18 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 		v = nextVObject(&t);
 		auto name = vObjectName(v);
 
-		if (strcmp(name, "N") == 0) {
+		if (strcmp(name, VCNameProp) == 0) {
 			handle_N(v);
-		} else if (strcmp(name, "FN") == 0) {
+		} else if (strcmp(name, VCFullNameProp) == 0) {
 			SPropValue s;
 			vobject_to_prop(v, s, PR_DISPLAY_NAME);
 			props.push_back(s);
-		} else if (strcmp(name, "TEL") == 0 || strcmp(name, "EMAIL") == 0) {
+		} else if (strcmp(name, VCTelephoneProp) == 0 ||
+		    strcmp(name, VCEmailAddressProp) == 0) {
 			handle_TEL_EMAIL(v);
 		}
 	}
+	cleanVObject(v);
 	return hr;
 }
 
@@ -154,11 +156,11 @@ void vcftomapi_impl::vobject_to_prop(VObject *v, SPropValue &s, ULONG proptype)
         switch (vObjectValueType(v)) {
 	case VCVT_STRINGZ:
 		s.ulPropTag = CHANGE_PROP_TYPE(proptype, PT_STRING8);
-		s.Value.lpszA = const_cast<char *>(vObjectStringZValue(v));
+		s.Value.lpszA = strdup(vObjectStringZValue(v));
 		break;
 	case VCVT_USTRINGZ:
 		s.ulPropTag = CHANGE_PROP_TYPE(proptype, PT_UNICODE);
-		s.Value.lpszW = const_cast<wchar_t *>(vObjectUStringZValue(v));
+		s.Value.lpszW = wcsdup(vObjectUStringZValue(v));
 		break;
 	}
 }
@@ -197,7 +199,7 @@ HRESULT vcftomapi_impl::unicode_to_named_prop(const wchar_t *v, SPropValue &s,
 	if (hr != hrSuccess)
 		return hr;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
-	s.Value.lpszW = const_cast<wchar_t *>(v);
+	s.Value.lpszW = wcsdup(v);
 	return hrSuccess;
 }
 
@@ -239,7 +241,14 @@ HRESULT vcftomapi_impl::save_props(const std::list<SPropValue> &proplist,
 	size_t i = 0;
 	for (const auto &prop : proplist)
 		propvals[i++] = prop;
-	return mapiprop->SetProps(i, propvals, nullptr);
+	auto ret = mapiprop->SetProps(i, propvals, nullptr);
+	for (const auto &prop : proplist) {
+		if (PROP_TYPE(prop.ulPropTag) == PT_UNICODE)
+			free(prop.Value.lpszW);
+		else if (PROP_TYPE(prop.ulPropTag) == PT_STRING8)
+			free(prop.Value.lpszA);
+	}
+	return ret;
 }
 
 } /* namespace */
