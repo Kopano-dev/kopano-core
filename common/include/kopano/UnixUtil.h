@@ -19,9 +19,19 @@
 #define __UNIXUTIL_H
 
 #include <sys/resource.h>
+#include <dirent.h>
 
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
+
+class fs_deleter {
+	public:
+	void operator()(DIR *d)
+	{
+		if (d != nullptr)
+			closedir(d);
+	}
+};
 
 struct popen_rlimit {
 	int resource;

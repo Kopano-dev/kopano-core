@@ -19,11 +19,14 @@
 #include <new>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <cerrno>
+#include <cstring>
 #include <pwd.h>
 #include <dirent.h>
+#include <sys/stat.h>
 #include <mapidefs.h>
 #include <mapitags.h>
-
+#include <kopano/UnixUtil.h>
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
@@ -45,11 +48,6 @@
 
 #include "pthreadutil.h"
 #include <kopano/threadutil.h>
-#include <kopano/boost_compat.h>
-
-#include <boost/filesystem.hpp>
-namespace bfs = boost::filesystem;
-
 #if defined LINUX || !defined UNICODE
 #define WHITESPACE " \t\n\r"
 #else
@@ -943,11 +941,7 @@ ECRESULT ECAuthSession::ValidateUserCertificate(struct soap* soap, const char* l
 	int				res = -1;
 
 	const char *sslkeys_path = m_lpSessionManager->GetConfig()->GetSetting("sslkeys_path", "", NULL);
-	BIO 			*biofile = NULL;
-
-	bfs::path		keysdir;
-	bfs::directory_iterator key_last;
-
+	std::unique_ptr<DIR, fs_deleter> dh;
 	if (!soap) {
 		ec_log_err("Invalid argument \"soap\" in call to ECAuthSession::ValidateUserCertificate()");
 		er = KCERR_INVALID_PARAMETER;
@@ -981,53 +975,46 @@ ECRESULT ECAuthSession::ValidateUserCertificate(struct soap* soap, const char* l
 		ec_log_info("No public key in certificate.");
 		goto exit;
 	}
+	dh.reset(opendir(sslkeys_path));
+	if (dh == nullptr) {
+		ec_log_info("Cannot read directory \"%s\": %s", sslkeys_path, strerror(errno));
+		er = KCERR_LOGON_FAILED;
+		goto exit;
+	}
 
-	try {
-		keysdir = sslkeys_path;
-		if (!bfs::exists(keysdir)) {
-			ec_log_info("Certificate path \"%s\" is not present.", sslkeys_path);
-			er = KCERR_LOGON_FAILED;
-			goto exit;
+	for (const struct dirent *dentry = readdir(dh.get());
+	     dentry != nullptr; dentry = readdir(dh.get())) {
+		const char *bname = dentry->d_name;
+		auto fullpath = std::string(sslkeys_path) + "/" + bname;
+		struct stat sb;
+
+		if (stat(fullpath.c_str(), &sb) < 0 || !S_ISREG(sb.st_mode))
+			continue;
+		auto biofile = BIO_new_file(fullpath.c_str(), "r");
+		if (!biofile) {
+			ec_log_info("Unable to create BIO for \"%s\": %s", bname, ERR_error_string(ERR_get_error(), NULL));
+			continue;
 		}
 
-		for (bfs::directory_iterator key(keysdir); key != key_last; ++key) {
-			if (is_directory(key->status()))
-				continue;
-
-			std::string filename = path_to_string(key->path());
-			const char *lpFileName = filename.c_str();
-
-			biofile = BIO_new_file(lpFileName, "r");
-			if (!biofile) {
-				ec_log_info("Unable to create BIO for \"%s\": %s", lpFileName, ERR_error_string(ERR_get_error(), NULL));
-				continue;
-			}
-
-			storedkey = PEM_read_bio_PUBKEY(biofile, NULL, NULL, NULL);
-			if (!storedkey) {
-				ec_log_info("Unable to read PUBKEY from \"%s\": %s", lpFileName, ERR_error_string(ERR_get_error(), NULL));
-				BIO_free(biofile);
-				continue;
-			}
-
-			res = EVP_PKEY_cmp(pubkey, storedkey);
-
+		storedkey = PEM_read_bio_PUBKEY(biofile, NULL, NULL, NULL);
+		if (!storedkey) {
+			ec_log_info("Unable to read PUBKEY from \"%s\": %s", bname, ERR_error_string(ERR_get_error(), NULL));
 			BIO_free(biofile);
-			EVP_PKEY_free(storedkey);
-
-			if (res <= 0) {
-				ec_log_info("Certificate \"%s\" does not match.", lpFileName);
-			} else {
-				er = erSuccess;
-				ec_log_info("Accepted certificate \"%s\" from client.", lpFileName);
-				break;
-			}
+			continue;
 		}
-	} catch (const bfs::filesystem_error&) {
-		// @todo: use get_error_info ?
-		ec_log_info("Boost exception during certificate validation.");
-	} catch (const std::exception& e) {
-		ec_log_info("STD exception during certificate validation: %s", e.what());
+
+		res = EVP_PKEY_cmp(pubkey, storedkey);
+
+		BIO_free(biofile);
+		EVP_PKEY_free(storedkey);
+
+		if (res <= 0) {
+			ec_log_info("Certificate \"%s\" does not match.", bname);
+		} else {
+			er = erSuccess;
+			ec_log_info("Accepted certificate \"%s\" from client.", bname);
+			break;
+		}
 	}
 	if (er != erSuccess)
 		goto exit;

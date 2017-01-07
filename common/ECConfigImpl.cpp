@@ -17,35 +17,26 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
+#include <memory>
+#include <cerrno>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <algorithm>
 #include <cassert>
-#include <climits>
+#include <sys/stat.h>
 #include <kopano/stringutil.h>
 #include "ECConfigImpl.h"
 
 #include <kopano/charset/convert.h>
-#include <kopano/boost_compat.h>
 
 using namespace std;
-
-#include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
 
 const directive_t ECConfigImpl::s_sDirectives[] = {
 	{ "include",	&ECConfigImpl::HandleInclude },
 	{ "propmap",	&ECConfigImpl::HandlePropMap },
 	{ NULL }
-};
-
-class PathCompare _zcp_final {
-public:
-	PathCompare(const fs::path &ref): m_ref(ref) {}
-	bool operator()(const fs::path &other) const { return fs::equivalent(m_ref, other); }
-private:
-	const fs::path &m_ref;
 };
 
 // Configuration file parser
@@ -377,7 +368,8 @@ bool ECConfigImpl::InitConfigFile(unsigned int ulFlags)
 	return bResult;
 }
 
-bool ECConfigImpl::ReadConfigFile(const path_type &file, unsigned int ulFlags, unsigned int ulGroup)
+bool ECConfigImpl::ReadConfigFile(const std::string &file,
+    unsigned int ulFlags, unsigned int ulGroup)
 {
 	FILE *fp = NULL;
 	bool bReturn = false;
@@ -388,31 +380,36 @@ bool ECConfigImpl::ReadConfigFile(const path_type &file, unsigned int ulFlags, u
 	string strValue;
 	size_t pos;
 
-	// Store the path of the previous file in case we're recursively processing files.
-	fs::path prevFile = m_currentFile;
-	
-	// We need to keep track of the current path so we can handle relative includes in HandleInclude
-	m_currentFile = file;
+	struct stat sb;
+	if (stat(file.c_str(), &sb) < 0) {
+		errors.push_back("Config file \"" + file + "\" cannot be read: " + strerror(errno));
+		return false;
+	}
+	if (!S_ISREG(sb.st_mode)) {
+		errors.push_back("Config file \"" + file + "\" is not a file");
+		return false;
+	}
+	std::unique_ptr<char> normalized_file(realpath(file.c_str(), nullptr));
+	if (normalized_file == nullptr) {
+		errors.push_back(std::string("realpath: ") + strerror(errno));
+		return false;
+	}
 
-	if (!exists(file)) {
-		errors.push_back("Config file '" + path_to_string(file) + "' does not exist.");
-		goto exit;
-	}
-	if (is_directory(file)) {
-		errors.push_back("Config file '" + path_to_string(file) + "' is a directory.");
-		goto exit;
-	}
+	// Store the path of the previous file in case we're recursively processing files.
+	// We need to keep track of the current path so we can handle relative includes in HandleInclude
+	std::string prevFile = m_currentFile;
+	m_currentFile = normalized_file.get();
 
 	/* Check if we read this file before. */
-	if (find_if(m_readFiles.begin(), m_readFiles.end(), PathCompare(file)) != m_readFiles.end()) {
+	if (std::find(m_readFiles.cbegin(), m_readFiles.cend(), m_currentFile) != m_readFiles.cend()) {
 		bReturn = true;
 		goto exit;
 	}
 
-    m_readFiles.insert(file);
-
-	if(!(fp = fopen(path_to_string(file).c_str(), "rt"))) {
-		errors.push_back("Unable to open config file '" + path_to_string(file) + "'");
+	m_readFiles.insert(m_currentFile);
+	fp = fopen(file.c_str(), "rt");
+	if (fp == nullptr) {
+		errors.push_back("Unable to open config file \"" + file + "\"");
 		goto exit;
 	}
 
@@ -500,13 +497,15 @@ bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ulFlags)
 bool ECConfigImpl::HandleInclude(const char *lpszArgs, unsigned int ulFlags)
 {
 	string strValue;
-	path_type file;
+	std::string file;
 	
 	file = (strValue = trim(lpszArgs, " \t\r\n"));
-	if (!file.is_complete()) {
-		// Rebuild the path
-		file = remove_filename_from_path(m_currentFile);
-		file /= strValue;
+	if (file[0] != PATH_SEPARATOR) {
+		// Rebuild the path. m_currentFile is always a normalized path.
+		auto pos = m_currentFile.find_last_of(PATH_SEPARATOR);
+		file = (pos != std::string::npos) ? m_currentFile.substr(0, pos) : ".";
+		file += PATH_SEPARATOR;
+		file += strValue;
 	}
 	
 	return ReadConfigFile(file, ulFlags);

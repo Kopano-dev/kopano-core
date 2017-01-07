@@ -30,9 +30,6 @@ using namespace std;
 #include <string>
 #include <cstring>
 #include <pthread.h>
-
-#include <boost/filesystem/path.hpp>
-
 #include <iostream>
 #include <fstream>
 
@@ -97,12 +94,9 @@ public:
 	const std::list<std::string> *GetErrors(void) _kc_override { return &errors; }
 
 private:
-	typedef boost::filesystem::path path_type;
-
 	bool	InitDefaults(unsigned int ulFlags);
 	bool	InitConfigFile(unsigned int ulFlags);
-	bool	ReadConfigFile(const path_type &file, unsigned int ulFlags, unsigned int ulGroup = 0);
-
+	bool	ReadConfigFile(const std::string &file, unsigned int ulFlags, unsigned int ulGroup = 0);
 	bool	HandleDirective(const std::string &strLine, unsigned int ulFlags);
 	bool	HandleInclude(const char *lpszArgs, unsigned int ulFlags);
 	bool	HandlePropMap(const char *lpszArgs, unsigned int ulFlags);
@@ -132,9 +126,8 @@ private:
 	settingmap_t			m_mapAliases;
 	std::list<std::string>	warnings;
 	std::list<std::string>	errors;
-	
-	path_type			m_currentFile;
-	std::set<path_type>	m_readFiles;
+	std::string m_currentFile;
+	std::set<std::string> m_readFiles;
 
 	typedef std::map<const char*, std::wstring>	ConvertCache;
 	ConvertCache		m_convertCache;

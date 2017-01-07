@@ -16,6 +16,9 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
+#include <dirent.h>
+#include <sys/stat.h>
 #include <kopano/stringutil.h>
 
 #include "m4l.mapisvc.h"
@@ -24,15 +27,12 @@
 #include <mapicode.h>
 #include <mapitags.h>
 #include <mapiutil.h>
-#include <kopano/boost_compat.h>
-
 #include <kopano/Util.h>
 
 #include <iostream>
 #include <arpa/inet.h>
 #include <climits>
-#include <boost/filesystem.hpp>
-namespace bfs = boost::filesystem;
+#include <kopano/UnixUtil.h>
 
 using namespace std;
 
@@ -77,28 +77,27 @@ HRESULT INFLoader::LoadINFs()
 	HRESULT hr;
 	vector<string> paths = GetINFPaths();
 
-	for (std::vector<std::string>::const_iterator i = paths.begin();
-	     i != paths.end(); ++i)
-	{
-		bfs::path infdir(*i);
-		if (!bfs::exists(infdir))
+	for (const auto &path : paths) {
+		struct stat sb;
+		if (stat(path.c_str(), &sb) != 0 || !S_ISDIR(sb.st_mode))
 			// silently continue or print init error?
 			continue;
+		std::unique_ptr<DIR, fs_deleter> dh(opendir(path.c_str()));
+		if (dh == nullptr)
+			continue;
 
-		bfs::directory_iterator inffile_last;
-		for (bfs::directory_iterator inffile(infdir);
-		     inffile != inffile_last; ++inffile) {
-			if (is_directory(inffile->status()))
+		for (const struct dirent *dentry = readdir(dh.get());
+		     dentry != nullptr; dentry = readdir(dh.get())) {
+			std::string strFilename = path + PATH_SEPARATOR + dentry->d_name;
+			if (stat(strFilename.c_str(), &sb) < 0 || !S_ISREG(sb.st_mode))
 				continue;
 
- 			string strFilename = path_to_string(inffile->path());
 			string::size_type pos = strFilename.rfind(".inf", strFilename.size(), strlen(".inf"));
 
 			if (pos == string::npos || strFilename.size() - pos != strlen(".inf"))
 				// silently skip files not ending in pos
 				continue;
-
-			hr = LoadINF(path_to_string(inffile->path()).c_str());
+			hr = LoadINF(strFilename.c_str());
 			if (hr != hrSuccess)
 				return hr;
 		}

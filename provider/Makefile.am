@@ -40,13 +40,13 @@ sampleconf_DATA = client/kopano.inf contacts/zcontacts.inf
 # "searchfolder_restart_required", "_Z23kopano_get_server_statsPjPdS_S_"
 # and "_Z18kopano_notify_doneP4soap"
 #
-kopano_server_LDFLAGS = ${AM_LDFLAGS} -Wl,-E ${BOOST_FILESYSTEM_LDFLAGS}
+kopano_server_LDFLAGS = ${AM_LDFLAGS} -Wl,-E
 kopano_server_LDADD = \
 	libkcserver.la ${GSOAP_LIBS} libkcsoapserver.la libkccommon.la \
 	${top_builddir}/common/libkcutil.la \
 	${top_builddir}/common/libkcmapi.la \
 	${top_builddir}/common/libkcssl.la \
-	${PROG_LIBS} ${BOOST_FILESYSTEM_LIBS} ${BOOST_SYSTEM_LIBS} \
+	${PROG_LIBS} ${BOOST_SYSTEM_LIBS} \
 	${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} -lrt
 kopano_server_SOURCES = \

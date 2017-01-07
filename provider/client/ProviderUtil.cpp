@@ -44,15 +44,6 @@
 
 #include <kopano/charset/convert.h>
 
-#include <boost/filesystem.hpp>
-namespace bfs = boost::filesystem;
-
-#ifdef UNICODE
-typedef bfs::wpath path;
-#else
-typedef bfs::path path;
-#endif
-
 using namespace std;
 
 HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
