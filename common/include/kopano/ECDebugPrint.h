@@ -24,9 +24,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/ECDebug.h>
 
-#include <boost/type_traits/is_convertible.hpp>
-#include <boost/utility/enable_if.hpp>
-
 class ECDebugPrintBase {
 public:
 	enum DerefMode {
@@ -159,7 +156,8 @@ public:
 	}
 
 	template <typename T>
-	static string_type toString(T& a, typename boost::disable_if<boost::is_convertible<T, LPUNKNOWN> >::type* = 0) {
+	static string_type toString(T& a, typename std::enable_if<!std::is_convertible<T, IUnknown *>::value>::type * = nullptr)
+	{
 		return details::makeDefaultPrinter<deref_mode, string_type>(a).toString();
 	}
 
