@@ -184,4 +184,22 @@ extern bool kc_starts_with(const std::string &, const std::string &);
 extern bool kc_istarts_with(const std::string &, const std::string &);
 extern bool kc_ends_with(const std::string &, const std::string &);
 
+template<typename T> std::string kc_join(const T &v, const char *sep)
+{
+	/* This is faster than std::copy(,,ostream_iterator(stringstream)); on glibc */
+	std::string s;
+	size_t z = 0;
+	for (const auto i : v)
+		z += i.size() + 1;
+	s.reserve(z);
+	for (const auto i : v) {
+		s += i;
+		s += sep;
+	}
+	z = strlen(sep);
+	if (s.size() > z)
+		s.erase(s.size() - z, z);
+	return s;
+}
+
 #endif

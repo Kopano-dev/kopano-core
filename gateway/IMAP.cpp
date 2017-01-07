@@ -54,8 +54,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/namedprops.h>
 #include "ECFeatures.h"
-
-#include <boost/algorithm/string/join.hpp>
 #include <kopano/mapi_ptr.h>
 
 #include "IMAP.h"
@@ -4562,7 +4560,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	if (!strFlags.empty())
 		vProps.push_back(strFlags);
 
-	strResponse += boost::algorithm::join(vProps, " ");
+	strResponse += kc_join(vProps, " ");
 	strResponse += ")";
 
 	if(lpMessage)

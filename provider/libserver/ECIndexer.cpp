@@ -32,8 +32,6 @@
 #include <new>
 #include <string>
 #include <list>
-#include <boost/algorithm/string/join.hpp>
-#include <sys/time.h>
 
 /**
  * Returns TRUE if the restriction is always FALSE.
