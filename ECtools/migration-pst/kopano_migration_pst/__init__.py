@@ -16,26 +16,35 @@ def _encode(s):
 class Service(kopano.Service):
     def import_props(self, parent, mapiobj, embedded=False):
         props2 = []
+        attach_method = subnode_nid = None
         for k, v in parent.pc.props.items():
             propid, proptype, value = k, v.wPropType, v.value
-            if proptype == PT_SYSTIME:
-                value = MAPI.Time.FileTime(value)
+            if proptype in (PT_CURRENCY, PT_MV_CURRENCY, PT_ACTIONS, PT_SRESTRICT, PT_SVREID):
+                continue # unsupported by parser
+
             nameid = self.propid_nameid.get(propid)
             if nameid:
                 propid = PROP_ID(mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], 0)[0])
-            if propid == PR_ATTACH_DATA_OBJ >> 16 and len(value) == 4: # XXX why not 4
+
+            if propid == (PR_SUBJECT>>16) and value and ord(value[0]) == 0x01:
+                value = value[2:] # \x01 plus another char indicates normalized-subject-prefix-length
+            elif proptype == PT_SYSTIME:
+                value = MAPI.Time.FileTime(value)
+            elif propid == PR_ATTACH_METHOD >> 16:
+                attach_method = value
+            elif propid == PR_ATTACH_DATA_OBJ >> 16 and len(value) == 4: # XXX why not 4?
                 subnode_nid = struct.unpack('I', value)[0]
-                submessage = pst.Message(subnode_nid, self.ltp, self.nbd, parent)
-                submapiobj = mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
-                self.import_props(submessage, submapiobj, embedded=True)
-                self.import_attachments(submessage, submapiobj)
-                self.import_recipients(submessage, submapiobj)
-            elif isinstance(parent, pst.Attachment) or embedded or PROP_TAG(proptype, propid) != PR_ATTACH_NUM: # work around webapp bug? KC-390
-                if propid == (PR_SUBJECT>>16) and value and ord(value[0]) == 0x01:
-                    value = value[2:] # PR_SUBJECT may contain \x01 plus another char to indicate normalized-subject-prefix-length..
+
+            if isinstance(parent, pst.Attachment) or embedded or PROP_TAG(proptype, propid) != PR_ATTACH_NUM: # work around webapp bug? KC-390
                 props2.append(SPropValue(PROP_TAG(proptype, propid), value))
-                if proptype not in (PT_CURRENCY, PT_MV_CURRENCY, PT_ACTIONS, PT_SRESTRICT, PT_SVREID): # unsupported by parser
-                    props2.append(SPropValue(PROP_TAG(proptype, propid), value))
+
+        if attach_method == ATTACH_EMBEDDED_MSG and subnode_nid is not None:
+            submessage = pst.Message(subnode_nid, self.ltp, self.nbd, parent)
+            submapiobj = mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
+            self.import_props(submessage, submapiobj, embedded=True)
+            self.import_attachments(submessage, submapiobj)
+            self.import_recipients(submessage, submapiobj)
+
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -95,7 +104,7 @@ class Service(kopano.Service):
                     folder2.container_class = folder.ContainerClass
                 for message in pst.message_generator(folder):
                     with log_exc(self.log, self.stats):
-                        self.log.debug("importing message '%s'" % message.Subject)
+                        self.log.debug("importing message '%s'" % (message.Subject or ''))
                         message2 = folder2.create_item()
                         self.import_props(message, message2.mapiobj)
                         self.import_attachments(message, message2.mapiobj)
@@ -145,7 +154,7 @@ def show_contents(args, options):
                 writer.writerow([_encode(path), folder.ContentCount])
             elif options.index:
                 for message in p.message_generator(folder):
-                    writer.writerow([_encode(path), _encode(message.Subject)])
+                    writer.writerow([_encode(path), _encode(message.Subject or '')])
 
 def main():
     parser = kopano.parser('cflskpUPu', usage='kopano-migration-pst PATH [-u NAME]')
