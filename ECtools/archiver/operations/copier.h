@@ -26,7 +26,6 @@
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include <kopano/archiver-common.h>
 #include <map>
-#include <boost/smart_ptr.hpp>
 
 class ECConfig;
 

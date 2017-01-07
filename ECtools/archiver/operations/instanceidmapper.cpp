@@ -21,7 +21,6 @@
 #include "Archiver.h"
 #include "ECDatabase.h"
 #include <kopano/stringutil.h>
-#include <boost/utility.hpp>
 
 namespace za { namespace operations {
 
@@ -49,7 +48,7 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 	hr = lpMapper->Init(lpLocalConfig);
 	if (hr != hrSuccess)
 		goto exit;
-	lpptrMapper->reset(lpMapper.release(), boost::checked_deleter<InstanceIdMapper>());
+	lpptrMapper->reset(lpMapper.release());
 exit:
 	if (lpConfig == NULL) {
 		ASSERT(lpLocalConfig != NULL);

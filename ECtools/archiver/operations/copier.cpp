@@ -379,10 +379,11 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 		}
 	}
 
+	static_assert(sizeof(PostSaveInstanceIdUpdater) || true, "incomplete type must not be used");
 	if (lstDeferred.empty())
 		lpptrPSAction->reset();
 	else
-		lpptrPSAction->reset(new PostSaveInstanceIdUpdater(PR_ATTACH_DATA_BIN, m_ptrMapper, lstDeferred), boost::checked_deleter<PostSaveInstanceIdUpdater>());
+		lpptrPSAction->reset(new PostSaveInstanceIdUpdater(PR_ATTACH_DATA_BIN, m_ptrMapper, lstDeferred));
 	return hrSuccess;
 }
 
