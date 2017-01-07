@@ -71,18 +71,20 @@ class Service(kopano.Service):
                     if key not in self.unresolved:
                         self.log.warning("could not resolve user '%s'" % key)
                         self.unresolved.add(key)
-
-            recipients.append([
-                SPropValue(PR_RECIPIENT_TYPE, r.RecipientType),
-                SPropValue(PR_ADDRTYPE_W, u'ZARAFA' if user else r.AddressType),
-                SPropValue(PR_DISPLAY_NAME_W, user.fullname if user else r.DisplayName),
-            ])
+            props = []
+            if r.RecipientType is not None:
+                props.append(SPropValue(PR_RECIPIENT_TYPE, r.RecipientType))
+            if user or r.AddressType is not None:
+                props.append(SPropValue(PR_ADDRTYPE_W, u'ZARAFA' if user else r.AddressType))
+            if user or r.DisplayName is not None:
+                props.append(SPropValue(PR_DISPLAY_NAME_W, user.fullname if user else r.DisplayName))
             if r.DisplayType is not None:
-                recipients[-1].append(SPropValue(PR_DISPLAY_TYPE, r.DisplayType))
+                props.append(SPropValue(PR_DISPLAY_TYPE, r.DisplayType))
             if user or r.EmailAddress:
-                recipients[-1].append(SPropValue(PR_EMAIL_ADDRESS_W, user.name if user else r.EmailAddress)),
+                props.append(SPropValue(PR_EMAIL_ADDRESS_W, user.name if user else r.EmailAddress))
             if user:
-                recipients[-1].append(SPropValue(PR_ENTRYID, user.userid.decode('hex'))) # XXX what about SMTP?
+                props.append(SPropValue(PR_ENTRYID, user.userid.decode('hex')))
+            recipients.append(props)
         mapiobj.ModifyRecipients(0, recipients)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
