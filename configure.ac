@@ -650,7 +650,6 @@ AC_SUBST(EPOLL_CFLAGS)
 
 # Boost
 BOOST_REQUIRE([1.35])
-BOOST_SMART_PTR
 BOOST_FILESYSTEM([mt])
 
 dnl The "Locale" class is in icu-uc.

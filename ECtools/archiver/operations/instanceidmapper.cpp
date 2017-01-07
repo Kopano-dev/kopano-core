@@ -23,7 +23,6 @@
 #include "Archiver.h"
 #include "arc_database.hpp"
 #include <kopano/stringutil.h>
-#include <boost/utility.hpp>
 
 namespace KC { namespace operations {
 
@@ -49,7 +48,8 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 	hr = lpMapper->Init(lpLocalConfig);
 	if (hr != hrSuccess)
 		goto exit;
-	lpptrMapper->reset(lpMapper.release(), boost::checked_deleter<InstanceIdMapper>());
+	static_assert(sizeof(InstanceIdMapper) || true, "incomplete type must not be used");
+	lpptrMapper->reset(lpMapper.release());
 exit:
 	if (lpConfig == NULL) {
 		assert(lpLocalConfig != NULL);
