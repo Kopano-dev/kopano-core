@@ -48,11 +48,11 @@
 #include "ECMonitorDefs.h"
 #include "ECQuotaMonitor.h"
 
+#include <iterator>
 #include <set>
 #include <string>
+#include <vector>
 using namespace std;
-
-#include <boost/algorithm/string.hpp>
 
 #define QUOTA_CONFIG_MSG "Kopano.Quota"
 
@@ -340,8 +340,8 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 		lpszServersConfig = m_lpThreadMonitor->lpConfig->GetSetting("servers","",NULL);
 		if(lpszServersConfig) {
 			// split approach taken from varafa-backup/backup.cpp
-			boost::algorithm::split(setServersConfig, lpszServersConfig, boost::algorithm::is_any_of("\t "), boost::algorithm::token_compress_on);
-			setServersConfig.erase(string());
+			std::vector<std::string> ddv = tokenize(lpszServersConfig, "\t ");
+			std::move(ddv.begin(), ddv.end(), std::inserter(setServersConfig, setServersConfig.begin()));
 		}
 
 		for (iServers = setServers.begin(); iServers != setServers.end(); ++iServers)

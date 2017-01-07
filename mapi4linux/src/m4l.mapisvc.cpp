@@ -31,10 +31,6 @@
 #include <iostream>
 #include <arpa/inet.h>
 #include <climits>
-
-#include <boost/algorithm/string.hpp>
-namespace ba = boost::algorithm;
-
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;
 
@@ -210,7 +206,7 @@ vector<string> INFLoader::GetINFPaths()
 	vector<string> ret;
 	char *env = getenv("MAPI_CONFIG_PATH");
 	if (env)
-		ba::split(ret, env, ba::is_any_of(":"), ba::token_compress_on);
+		ret = tokenize(env, ':', true);
 	else
 	// @todo, load both, or just one?
 		ret.push_back(MAPICONFIGDIR);
@@ -238,12 +234,9 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 	case PT_LONG:
 	{
 		// either a definition, or a hexed network order value
-		set<string> vValues;
 		sProp.Value.ul = 0;
-		ba::split(vValues, strData, ba::is_any_of("| \t"), ba::token_compress_on);
-		for (std::set<std::string>::const_iterator i = vValues.begin();
-		     i != vValues.end(); ++i)
-			sProp.Value.ul |= DefinitionFromString(*i, false);
+		for (const auto &val : tokenize(strData, "| \t"))
+			sProp.Value.ul |= DefinitionFromString(val, false);
 		break;
 	}
 	case PT_UNICODE:
@@ -380,20 +373,16 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	if (hr != hrSuccess)
 		return hr;
 
-	for (m_cValues = 0, iSection = infService->begin();
-	     iSection != infService->end(); ++iSection) {
+	m_cValues = 0;
+	for (const auto &sp : *infService) {
 		// convert section to class
-		if (iSection->first.compare("Providers") == 0) {
+		if (sp.first.compare("Providers") == 0) {
 			// make new providers list
 			// *new function, new loop
-			ba::split(prop, iSection->second, ba::is_any_of(", \t"), ba::token_compress_on);
+			for (const auto &i : tokenize(sp.second, ", \t")) {
+				infProvider = cINF.GetSection(i);
 
-			for (std::vector<std::string>::const_iterator i = prop.begin();
-			     i != prop.end(); ++i)
-			{
-				infProvider = cINF.GetSection(*i);
-
-				std::pair<std::map<std::string, SVCProvider *>::const_iterator, bool> prov = m_sProviders.insert(make_pair(*i, new SVCProvider()));
+				auto prov = m_sProviders.insert(make_pair(i, new SVCProvider));
 				if (prov.second == false)
 					continue;	// already exists
 
@@ -401,7 +390,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 			}
 		} else {
 			// add properties to list
-			if (cINF.MakeProperty(iSection->first, iSection->second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
+			if (cINF.MakeProperty(sp.first, sp.second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
 				++m_cValues;
 		}
 	}
