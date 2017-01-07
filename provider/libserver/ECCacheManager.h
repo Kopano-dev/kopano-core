@@ -34,25 +34,12 @@
 
 #include <kopano/ECKeyTable.h>
 
-#if __cplusplus >= 201100L
 #include <unordered_map>
-#define HASH_NAMESPACE std
 
 template<typename Key, typename T>
 struct hash_map {
 	typedef std::unordered_map<Key, T, std::hash<Key>, std::equal_to<Key>> Type;
 };
-
-#else
-#include <boost/unordered_map.hpp>
-#define HASH_NAMESPACE boost
-
-template <typename Key, typename T>
-struct hash_map {
-	typedef boost::unordered_map<Key, T, boost::hash<Key>, std::equal_to<Key> > Type;
-};
-
-#endif
 
 class ECSessionManager;
 
@@ -438,7 +425,7 @@ inline unsigned int IPRSHash(const ECsIndexProp& _Keyval1)
 	return hash;
 }
 
-namespace HASH_NAMESPACE {
+namespace std {
 	// hash function for type ECsIndexProp
 	template<>
 	struct hash<ECsIndexProp> {
