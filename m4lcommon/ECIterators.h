@@ -19,7 +19,6 @@
 #define ECIterators_INCLUDED
 
 #include <kopano/zcdefs.h>
-#include <boost/iterator/iterator_facade.hpp>
 #include <kopano/mapi_ptr.h>
 
 namespace KC {
@@ -47,8 +46,6 @@ public:
 	}
 
 private:
-	friend class boost::iterator_core_access;
-
 	MAPIContainerPtr	m_ptrContainer;
 	ULONG				m_ulFlags;
 	ULONG				m_ulDepth;
@@ -58,19 +55,28 @@ private:
 	MAPIContainerPtr	m_ptrCurrent;
 };
 
-template<typename ContainerPtrType> class ECHierarchyIterator _kc_final
-	: public boost::iterator_facade<
-		ECHierarchyIterator<ContainerPtrType>,
-		ContainerPtrType,
-		boost::single_pass_traversal_tag>
-	, public ECHierarchyIteratorBase
+template<typename ContainerPtrType> class ECHierarchyIterator _kc_final :
+    public ECHierarchyIteratorBase
 {
 public:
 	ECHierarchyIterator(void) = default;
 	ECHierarchyIterator(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0, ULONG ulDepth = 0)
 		: ECHierarchyIteratorBase(lpContainer, ulFlags, ulDepth) {}
 
-	ContainerPtrType& dereference() const
+	bool operator==(const ECHierarchyIterator<ContainerPtrType> &r) const
+	{
+		return ECHierarchyIteratorBase::equal(r);
+	}
+	bool operator!=(const ECHierarchyIterator<ContainerPtrType> &r) const
+	{
+		return !operator==(r);
+	}
+	ECHierarchyIterator<ContainerPtrType> &operator++(void)
+	{
+		ECHierarchyIteratorBase::increment();
+		return *this;
+	}
+	ContainerPtrType &operator*(void) const
 	{
 		ECHierarchyIteratorBase::dereference().QueryInterface(m_ptr);
 		return m_ptr;
