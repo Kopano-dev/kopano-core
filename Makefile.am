@@ -264,7 +264,8 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/helpers/ArchiveHelper.cpp ECtools/archiver/helpers/ArchiveHelper.h \
 	ECtools/archiver/helpers/StoreHelper.cpp ECtools/archiver/helpers/StoreHelper.h \
 	ECtools/archiver/helpers/MAPIPropHelper.cpp ECtools/archiver/helpers/MAPIPropHelper.h \
-	ECtools/archiver/ECArchiverLogger.cpp ECtools/archiver/ECArchiverLogger.h
+	ECtools/archiver/ECArchiverLogger.cpp ECtools/archiver/ECArchiverLogger.h \
+	ECtools/archiver/ECIterators.cpp ECtools/archiver/ECIterators.h
 libkcarchiver_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
 libkcarchiver_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la
@@ -690,7 +691,6 @@ libm4lcommon_HEADERS = m4lcommon/include/edkguid.h
 libm4lcommon_la_SOURCES = \
 	m4lcommon/CommonUtil.cpp \
 	m4lcommon/ECFeatureList.h m4lcommon/ECInvariantChecker.h \
-	m4lcommon/ECIterators.cpp m4lcommon/ECIterators.h \
 	m4lcommon/ECMAPIDebug.cpp m4lcommon/ECMAPIDebug.h \
 	m4lcommon/ECMemTable.cpp m4lcommon/HrException.h \
 	m4lcommon/IECChangeAdviseSink.h \
