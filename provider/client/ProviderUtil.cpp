@@ -41,15 +41,6 @@
 
 #include <kopano/charset/convert.h>
 
-#include <boost/filesystem.hpp>
-namespace bfs = boost::filesystem;
-
-#ifdef UNICODE
-typedef bfs::wpath path;
-#else
-typedef bfs::path path;
-#endif
-
 using namespace std;
 using namespace KCHL;
 

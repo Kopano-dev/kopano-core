@@ -33,7 +33,6 @@
 #include <new>
 #include <string>
 #include <list>
-#include <boost/algorithm/string/join.hpp>
 
 namespace KC {
 

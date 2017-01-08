@@ -2220,8 +2220,10 @@ HRESULT	Util::HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int ulCodepage)
  * 
  * @return MAPI error code
  */
-HRESULT Util::bin2hex(ULONG inLength, LPBYTE input, char **output, void *parent) {
-	const char digits[] = "0123456789ABCDEF";
+HRESULT Util::bin2hex(ULONG inLength, const BYTE *input, char **output,
+    void *parent)
+{
+	static const char digits[] = "0123456789ABCDEF";
 	char *buffer = NULL;
 	HRESULT hr;
 	ULONG i, j;

@@ -18,11 +18,21 @@
 #ifndef __UNIXUTIL_H
 #define __UNIXUTIL_H
 
-#include <sys/resource.h>
 #include <kopano/zcdefs.h>
+#include <dirent.h>
+#include <sys/resource.h>
 #include <kopano/ECConfig.h>
 
 namespace KC {
+
+class fs_deleter {
+	public:
+	void operator()(DIR *d)
+	{
+		if (d != nullptr)
+			closedir(d);
+	}
+};
 
 struct popen_rlimit {
 	int resource;

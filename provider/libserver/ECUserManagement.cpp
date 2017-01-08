@@ -18,8 +18,11 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <stdexcept>
+#include <string>
 #include <utility>
+#include <vector>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
@@ -50,8 +53,6 @@
 
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
-#include <boost/algorithm/string.hpp>
-namespace ba = boost::algorithm;
 
 #ifndef AB_UNICODE_OK
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
@@ -2172,12 +2173,10 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 	}
 
 	set<string> defaultEnabled = getFeatures();
-	set<string> defaultDisabled;
 	list<string> userEnabled = lpDetails->GetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A);
 	list<string> userDisabled = lpDetails->GetPropListString((property_key_t)PR_EC_DISABLED_FEATURES_A);
-	string config = m_lpConfig->GetSetting("disabled_features");
-
-	ba::split(defaultDisabled, config, ba::is_any_of("\t "), ba::token_compress_on);
+	std::vector<std::string> ddv = tokenize(m_lpConfig->GetSetting("disabled_features"), "\t ");
+	std::set<std::string> defaultDisabled(ddv.begin(), ddv.end());
 
 	for (auto i = defaultDisabled.cbegin(); i != defaultDisabled.cend(); ) {
 		if (i->empty()) {
@@ -2235,12 +2234,11 @@ ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails)
 		return erSuccess;
 
 	set<string> defaultEnabled = getFeatures();
-	set<string> defaultDisabled;
 	list<string> userEnabled = lpDetails->GetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A);
 	list<string> userDisabled = lpDetails->GetPropListString((property_key_t)PR_EC_DISABLED_FEATURES_A);
-	string config = m_lpConfig->GetSetting("disabled_features");
 
-	ba::split(defaultDisabled, config, ba::is_any_of("\t "));
+	std::vector<std::string> ddv = tokenize(m_lpConfig->GetSetting("disabled_features"), "\t ");
+	std::set<std::string> defaultDisabled(ddv.begin(), ddv.end());
 
 	// remove all default disabled from enabled and user explicit list
 	for (const auto &s : defaultDisabled) {

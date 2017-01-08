@@ -68,12 +68,12 @@ time_t icaltime_as_timet_with_server_zone(const struct icaltimetype tt)
 }
 
 // time only, not date!
-time_t SystemTimeToUnixTime(const SYSTEMTIME &stime)
+static time_t SystemTimeToUnixTime(const SYSTEMTIME &stime)
 {
 	return stime.wSecond + (stime.wMinute*60) + ((stime.wHour)*60*60);
 }
 
-SYSTEMTIME TMToSystemTime(const struct tm &t)
+static SYSTEMTIME TMToSystemTime(const struct tm &t)
 {
 	SYSTEMTIME stime = {0};
 	stime.wYear = t.tm_year;

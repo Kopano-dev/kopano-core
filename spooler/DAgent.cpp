@@ -181,7 +181,7 @@ public:
  */
 class ECRecipient {
 public:
-	ECRecipient(std::wstring wstrName)
+	ECRecipient(const std::wstring &wstrName)
 	{
 		/* strRCPT much match recipient string from LMTP caller */
 		wstrRCPT = wstrName;

@@ -245,8 +245,6 @@ struct timespec GetDeadline(unsigned int ulTimeoutMs)
 }
 
 // Does mkdir -p <path>
-// Needed because boost::filesystem::create_directories is too old on
-// RHEL6 for error handling
 int CreatePath(const char *createpath)
 {
 	struct stat s;

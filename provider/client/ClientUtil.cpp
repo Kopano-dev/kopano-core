@@ -16,7 +16,9 @@
  */
 
 #include <kopano/platform.h>
+#include <algorithm>
 #include <memory>
+#include <cctype>
 #include "ClientUtil.h"
 
 #include <kopano/ECGetText.h>
@@ -40,8 +42,6 @@
 
 #include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
-
-#include <boost/algorithm/string/case_conv.hpp>
 
 using namespace std;
 using namespace KCHL;
@@ -155,7 +155,8 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	strProfileSenderSearchKey.reserve(_tcslen(TRANSPORT_ADDRESS_TYPE_ZARAFA) + 1 + _tcslen(lpUser->lpszMailAddress));
 	strProfileSenderSearchKey = TRANSPORT_ADDRESS_TYPE_ZARAFA;
 	strProfileSenderSearchKey += ':';
-	boost::algorithm::to_upper_copy(std::back_inserter(strProfileSenderSearchKey), lpUser->lpszMailAddress);
+	strProfileSenderSearchKey += lpUser->lpszMailAddress;
+	std::transform(strProfileSenderSearchKey.begin(), strProfileSenderSearchKey.end(), strProfileSenderSearchKey.begin(), ::toupper);
 
 	lpIdentityProps[XPID_EID].ulPropTag = PR_SENDER_ENTRYID;
 	lpIdentityProps[XPID_EID].Value.bin.cb = lpUser->sUserId.cb;

@@ -28,7 +28,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/libfreebusy \
 	-I${top_srcdir}/libicalmapi \
 	-I${top_srcdir}/ECtools/archiver \
-	${BOOST_CPPFLAGS} ${CRYPTO_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
+	${CRYPTO_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${VMIME_CFLAGS} ${XML2_CFLAGS}
 AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare -fvisibility=hidden \
@@ -244,10 +244,9 @@ kopano_server_SOURCES = \
 kopano_server_LDADD = \
 	libkcutil.la libkcmapi.la libkcssl.la \
 	libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
-	${PROG_LIBS} ${BOOST_FILESYSTEM_LIBS} ${BOOST_SYSTEM_LIBS} \
-	${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
+	${PROG_LIBS} ${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} -lrt
-kopano_server_LDFLAGS = ${AM_LDFLAGS} ${BOOST_FILESYSTEM_LDFLAGS}
+kopano_server_LDFLAGS = ${AM_LDFLAGS}
 
 
 #
@@ -265,7 +264,8 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/helpers/ArchiveHelper.cpp ECtools/archiver/helpers/ArchiveHelper.h \
 	ECtools/archiver/helpers/StoreHelper.cpp ECtools/archiver/helpers/StoreHelper.h \
 	ECtools/archiver/helpers/MAPIPropHelper.cpp ECtools/archiver/helpers/MAPIPropHelper.h \
-	ECtools/archiver/ECArchiverLogger.cpp ECtools/archiver/ECArchiverLogger.h
+	ECtools/archiver/ECArchiverLogger.cpp ECtools/archiver/ECArchiverLogger.h \
+	ECtools/archiver/ECIterators.cpp ECtools/archiver/ECIterators.h
 libkcarchiver_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
 libkcarchiver_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la
@@ -652,7 +652,7 @@ libkcutil_la_SOURCES = \
 	common/charset/convstring.cpp common/charset/traits.cpp \
 	common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
-	-lpthread -lz ${BOOST_FILESYSTEM_LIBS} ${CRYPTO_LIBS} ${UUID_LIBS}
+	-lpthread -lz ${CRYPTO_LIBS} ${UUID_LIBS}
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=common/libkcutil.sym
 EXTRA_libkcutil_la_DEPENDENCIES = common/libkcutil.sym
@@ -674,10 +674,9 @@ libmapi_la_SOURCES = \
 	mapi4linux/src/m4l.mapix.h mapi4linux/src/mapi4linux.h mapi4linux/src/m4l.debug.h mapi4linux/src/rtf.h \
 	mapi4linux/src/m4l.mapisvc.cpp mapi4linux/src/m4l.mapisvc.h
 libmapi_la_LIBADD = \
-	libkcutil.la libkcmapi.la libm4lcommon.la \
-	${BOOST_FILESYSTEM_LIBS} ${BOOST_SYSTEM_LIBS} ${PROG_LIBS} ${DL_LIBS}
+	libkcutil.la libkcmapi.la libm4lcommon.la ${PROG_LIBS} ${DL_LIBS}
 libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
-	-Wl,--version-script=mapi4linux/src/libmapi.sym ${BOOST_FILESYSTEM_LDFLAGS}
+	-Wl,--version-script=mapi4linux/src/libmapi.sym
 EXTRA_libmapi_la_DEPENDENCIES = mapi4linux/src/libmapi.sym
 
 mapi4linux/src/libmapi.sym: ${top_builddir}/config.status
@@ -692,7 +691,6 @@ libm4lcommon_HEADERS = m4lcommon/include/edkguid.h
 libm4lcommon_la_SOURCES = \
 	m4lcommon/CommonUtil.cpp \
 	m4lcommon/ECFeatureList.h m4lcommon/ECInvariantChecker.h \
-	m4lcommon/ECIterators.cpp m4lcommon/ECIterators.h \
 	m4lcommon/ECMAPIDebug.cpp m4lcommon/ECMAPIDebug.h \
 	m4lcommon/ECMemTable.cpp m4lcommon/HrException.h \
 	m4lcommon/IECChangeAdviseSink.h \

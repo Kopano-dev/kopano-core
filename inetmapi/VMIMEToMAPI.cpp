@@ -30,13 +30,6 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
-
-// string.hpp doesn't always include all subincludes
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/join.hpp>
-
-// vmime
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>
 #include <vmime/contentTypeField.hpp>
@@ -3247,11 +3240,11 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbo
 	buffer = "\"" + mbox->getEmail().toString() + "\"";
 	pos = buffer.find("@");
 	if (pos != string::npos)
-		boost::algorithm::replace_first(buffer, "@", "\" \"");
+		buffer.replace(pos, 1, "\" \"");
 	lMBox.push_back(std::move(buffer));
 	if (pos == string::npos)
 		lMBox.push_back("NIL");	// domain was missing
-	return "(" + boost::algorithm::join(lMBox, " ") + ")";
+	return "(" + kc_join(lMBox, " ") + ")";
 }
 
 /** 
@@ -3444,8 +3437,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 		lItems.push_back("NIL");
 	}
 	buffer.clear();
-
-	return boost::algorithm::join(lItems, " ");
+	return kc_join(lItems, " ");
 }
 
 /** 
@@ -3528,8 +3520,8 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
 				strBodyStructure.clear();
 			}
 			// concatenate without spaces, result: ((text)(html))
-			strBody = boost::algorithm::join(lBody, "");
-			strBodyStructure = boost::algorithm::join(lBodyStructure, "");
+			strBody = kc_join(lBody, "");
+			strBodyStructure = kc_join(lBodyStructure, "");
 
 			lBody.clear();
 			lBody.push_back(std::move(strBody));
@@ -3548,10 +3540,9 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
 			lBodyStructure.push_back(getStructureExtendedFields(vmHeaderPart));
 
 			if (lpSimple)
-				*lpSimple = "(" + boost::algorithm::join(lBody, " ") + ")";
-
+				*lpSimple = "(" + kc_join(lBody, " ") + ")";
 			if (lpExtended)
-				*lpExtended = "(" + boost::algorithm::join(lBodyStructure, " ") + ")";
+				*lpExtended = "(" + kc_join(lBodyStructure, " ") + ")";
 		} else {
 			// just one part
 			bodyPartToStructure(input, vmBodyPart, lpSimple, lpExtended);
@@ -3675,7 +3666,7 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 
 nil:
 	if (lpSimple)
-		*lpSimple = "(" + boost::algorithm::join(lBody, " ") + ")";
+		*lpSimple = "(" + kc_join(lBody, " ") + ")";
 
 	// just push some NIL's or also inbetween?
 	lBodyStructure.push_back("NIL");	// MD5 of body (use Content-MD5 header?)
@@ -3683,7 +3674,7 @@ nil:
 	lBodyStructure.push_back(getStructureExtendedFields(vmHeaderPart));
 
 	if (lpExtended)
-		*lpExtended = "(" + boost::algorithm::join(lBodyStructure, " ") + ")";
+		*lpExtended = "(" + kc_join(lBodyStructure, " ") + ")";
 
 	return hrSuccess;
 }
@@ -3725,8 +3716,7 @@ std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::hea
 	catch (vmime::exception &e) {
 		lItems.push_back("NIL");
 	}
-
-	return boost::algorithm::join(lItems, " ");
+	return kc_join(lItems, " ");
 }
 
 /** 
@@ -3755,7 +3745,7 @@ std::string VMIMEToMAPI::parameterizedFieldToStructure(vmime::shared_ptr<vmime::
 	}
 	if (lParams.empty())
 		return "NIL";
-	return "(" + boost::algorithm::join(lParams, " ") + ")";
+	return "(" + kc_join(lParams, " ") + ")";
 }
 
 /** 

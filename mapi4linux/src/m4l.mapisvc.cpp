@@ -16,6 +16,9 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
+#include <dirent.h>
+#include <sys/stat.h>
 #include <kopano/stringutil.h>
 
 #include "m4l.mapisvc.h"
@@ -24,19 +27,12 @@
 #include <mapicode.h>
 #include <mapitags.h>
 #include <mapiutil.h>
-#include <kopano/boost_compat.h>
-
 #include <kopano/Util.h>
 
 #include <iostream>
 #include <arpa/inet.h>
 #include <climits>
-
-#include <boost/algorithm/string.hpp>
-namespace ba = boost::algorithm;
-
-#include <boost/filesystem.hpp>
-namespace bfs = boost::filesystem;
+#include <kopano/UnixUtil.h>
 
 using namespace std;
 
@@ -82,25 +78,26 @@ HRESULT INFLoader::LoadINFs()
 	vector<string> paths = GetINFPaths();
 
 	for (const auto &path : paths) {
-		bfs::path infdir(path);
-		if (!bfs::exists(infdir))
+		struct stat sb;
+		if (stat(path.c_str(), &sb) != 0 || !S_ISDIR(sb.st_mode))
 			// silently continue or print init error?
 			continue;
+		std::unique_ptr<DIR, fs_deleter> dh(opendir(path.c_str()));
+		if (dh == nullptr)
+			continue;
 
-		bfs::directory_iterator inffile_last;
-		for (bfs::directory_iterator inffile(infdir);
-		     inffile != inffile_last; ++inffile) {
-			if (is_directory(inffile->status()))
+		for (const struct dirent *dentry = readdir(dh.get());
+		     dentry != nullptr; dentry = readdir(dh.get())) {
+			std::string strFilename = path + PATH_SEPARATOR + dentry->d_name;
+			if (stat(strFilename.c_str(), &sb) < 0 || !S_ISREG(sb.st_mode))
 				continue;
 
- 			string strFilename = path_to_string(inffile->path());
 			string::size_type pos = strFilename.rfind(".inf", strFilename.size(), strlen(".inf"));
 
 			if (pos == string::npos || strFilename.size() - pos != strlen(".inf"))
 				// silently skip files not ending in pos
 				continue;
-
-			hr = LoadINF(path_to_string(inffile->path()).c_str());
+			hr = LoadINF(strFilename.c_str());
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -205,7 +202,7 @@ vector<string> INFLoader::GetINFPaths()
 	vector<string> ret;
 	char *env = getenv("MAPI_CONFIG_PATH");
 	if (env)
-		ba::split(ret, env, ba::is_any_of(":"), ba::token_compress_on);
+		ret = tokenize(env, ':', true);
 	else
 	// @todo, load both, or just one?
 		ret.push_back(MAPICONFIGDIR);
@@ -233,10 +230,8 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 	case PT_LONG:
 	{
 		// either a definition, or a hexed network order value
-		set<string> vValues;
 		sProp.Value.ul = 0;
-		ba::split(vValues, strData, ba::is_any_of("| \t"), ba::token_compress_on);
-		for (const auto &val : vValues)
+		for (const auto &val : tokenize(strData, "| \t"))
 			sProp.Value.ul |= DefinitionFromString(val, false);
 		break;
 	}
@@ -375,9 +370,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 		if (sp.first.compare("Providers") == 0) {
 			// make new providers list
 			// *new function, new loop
-			ba::split(prop, sp.second, ba::is_any_of(", \t"), ba::token_compress_on);
-
-			for (const auto &i : prop) {
+			for (const auto &i : tokenize(sp.second, ", \t")) {
 				infProvider = cINF.GetSection(i);
 
 				auto prov = m_sProviders.insert(make_pair(i, new SVCProvider));
