@@ -5,7 +5,7 @@ The codebase has a lot of libraries, components and, for example, scripts.
 Each top level directory is listed below with a description of what it does.
 
 
-autoconf/    - m4 code for autoconf to detect php, boost and swig
+autoconf/    - m4 code for autoconf to detect php and swig
 caldav/      - iCal server implementation which uses kopano-server as backend
 common/      - Unorganized shared code that is used more or less everywhere
 doc/         - Kopano manpages

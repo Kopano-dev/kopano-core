@@ -28,7 +28,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/libfreebusy \
 	-I${top_srcdir}/libicalmapi \
 	-I${top_srcdir}/ECtools/archiver \
-	${BOOST_CPPFLAGS} ${CRYPTO_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
+	${CRYPTO_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${VMIME_CFLAGS} ${XML2_CFLAGS}
 AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare -fvisibility=hidden \
@@ -244,8 +244,7 @@ kopano_server_SOURCES = \
 kopano_server_LDADD = \
 	libkcutil.la libkcmapi.la libkcssl.la \
 	libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
-	${PROG_LIBS} ${BOOST_SYSTEM_LIBS} \
-	${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
+	${PROG_LIBS} ${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} -lrt
 kopano_server_LDFLAGS = ${AM_LDFLAGS}
 
@@ -674,8 +673,7 @@ libmapi_la_SOURCES = \
 	mapi4linux/src/m4l.mapix.h mapi4linux/src/mapi4linux.h mapi4linux/src/m4l.debug.h mapi4linux/src/rtf.h \
 	mapi4linux/src/m4l.mapisvc.cpp mapi4linux/src/m4l.mapisvc.h
 libmapi_la_LIBADD = \
-	libkcutil.la libkcmapi.la libm4lcommon.la \
-	${BOOST_SYSTEM_LIBS} ${PROG_LIBS} ${DL_LIBS}
+	libkcutil.la libkcmapi.la libm4lcommon.la ${PROG_LIBS} ${DL_LIBS}
 libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
 	-Wl,--version-script=mapi4linux/src/libmapi.sym
 EXTRA_libmapi_la_DEPENDENCIES = mapi4linux/src/libmapi.sym
