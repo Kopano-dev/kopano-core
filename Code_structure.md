@@ -8,7 +8,7 @@ The codebase has a lot of libraries, components and for example scripts.
 Each top level directory is listed below with a clear description of what it does.
 
 
-autoconf     - helpers for autoconf: php, boost and swig
+autoconf     - helpers for autoconf: php and swig
 caldav       - Ical server implementation which uses kopano-server as backend
 common       - commonly used libraries for everything except server/client. There are three different "common" utils: util, ssl and mapi.
 doc          - Kopano documentation and manpages

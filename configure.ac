@@ -663,10 +663,6 @@ EPOLL_CFLAGS=
 fi
 AC_SUBST(EPOLL_CFLAGS)
 
-# Boost
-BOOST_REQUIRE([1.35])
-BOOST_DATE_TIME([mt])
-
 dnl The "Locale" class is in icu-uc.
 dnl The "CollationKey" class is in icu-i18n.
 req_icu_uc="icu-uc"
@@ -844,8 +840,6 @@ Pam libs	:	$PAM_LIBS
 Krb5 libs	:	$KRB5_LIBS
 TCMalloc lib	:	$TCMALLOC_LIBS
 S3 lib		:	$s3_LIBS
-Boost		:
- Flags		:	$BOOST_CPPFLAGS
 ICU libs	:	$icu_uc_LIBS $icu_i18n_LIBS
 Python flags	:	$PYTHON_INCLUDES
 Python libs	:	$PYTHON_LIBS
