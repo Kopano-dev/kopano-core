@@ -240,7 +240,7 @@ public:
 	_kc_hidden ECNotRestriction(ECRestriction &&o) :
 		m_ptrRestriction(std::move(o).Clone())
 	{}
-	constexpr ECNotRestriction(std::nullptr_t) {}
+	ECNotRestriction(std::nullptr_t) {}
 
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
@@ -284,7 +284,7 @@ private:
 
 class _kc_export ECBitMaskRestriction _kc_final : public ECRestriction {
 public:
-	_kc_hidden constexpr ECBitMaskRestriction(ULONG relBMR, ULONG ulPropTag, ULONG ulMask)
+	_kc_hidden ECBitMaskRestriction(ULONG relBMR, ULONG ulPropTag, ULONG ulMask)
 	: m_relBMR(relBMR)
 	, m_ulPropTag(ulPropTag)
 	, m_ulMask(ulMask) 
@@ -321,7 +321,7 @@ private:
 
 class _kc_export ECComparePropsRestriction _kc_final : public ECRestriction {
 public:
-	_kc_hidden constexpr ECComparePropsRestriction(ULONG relop, ULONG ulPropTag1, ULONG ulPropTag2)
+	_kc_hidden ECComparePropsRestriction(ULONG relop, ULONG ulPropTag1, ULONG ulPropTag2)
 	: m_relop(relop)
 	, m_ulPropTag1(ulPropTag1)
 	, m_ulPropTag2(ulPropTag2)
@@ -341,7 +341,7 @@ private:
 
 class _kc_export ECExistRestriction _kc_final : public ECRestriction {
 public:
-	_kc_hidden constexpr ECExistRestriction(ULONG ulPropTag)
+	_kc_hidden ECExistRestriction(ULONG ulPropTag)
 	: m_ulPropTag(ulPropTag) 
 	{ }
 
