@@ -15,7 +15,7 @@
  *
  */
 
-
+#include <kopano/memory.hpp>
 #include "libfreebusy_conv.h"
 
 static PyObject *PyTypeFreeBusyBlock;
@@ -31,8 +31,8 @@ void InitFreebusy() {
 }
 
 LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
-	LPFBUser lpFbUsers = NULL;
-	LPENTRYID entryid = NULL;
+	KCHL::memory_ptr<FBUser> lpFbUsers;
+	LPENTRYID entryid = nullptr;
 	PyObject *iter = NULL;
 	PyObject *elem = NULL;
 	char *buf = 0 ;
@@ -48,7 +48,7 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 		goto exit;
 
 	len = PyObject_Length(list);
-	if (MAPIAllocateBuffer(len * sizeof(FBUser), (void **)&lpFbUsers) != hrSuccess)
+	if (MAPIAllocateBuffer(len * sizeof(FBUser), &~lpFbUsers) != hrSuccess)
 		goto exit;
 
 	while ((elem = PyIter_Next(iter))) {
@@ -72,17 +72,15 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 	Py_XDECREF(elem);
 	Py_XDECREF(iter);
 
-	if (PyErr_Occurred() && lpFbUsers) {
-		MAPIFreeBuffer(lpFbUsers);
-		lpFbUsers = nullptr;
-	}
-
-	return lpFbUsers;
+	if (PyErr_Occurred() && lpFbUsers != nullptr)
+		return nullptr;
+	return lpFbUsers.release();
 }
 
 LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
-	LPFBBlock_1 lpFBBlocks = nullptr;
-	PyObject *iter, *elem, *start, *end, *status;
+	KCHL::memory_ptr<FBBlock_1> lpFBBlocks;
+	PyObject *iter = nullptr, *elem = nullptr;
+	PyObject *start, *end, *status;
 	size_t i, len;
 
 	if (list == Py_None)
@@ -93,7 +91,7 @@ LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 		goto exit;
 
 	len = PyObject_Length(list);
-	if (MAPIAllocateBuffer(len * sizeof(FBBlock_1), (void **)&lpFBBlocks) != hrSuccess)
+	if (MAPIAllocateBuffer(len * sizeof(FBBlock_1), &~lpFBBlocks) != hrSuccess)
 		goto exit;
 
 	i=0;
@@ -123,12 +121,9 @@ LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 	Py_XDECREF(elem);
 	Py_XDECREF(iter);
 
-	if (PyErr_Occurred() && lpFBBlocks) {
-		MAPIFreeBuffer(lpFBBlocks);
-		lpFBBlocks = nullptr;
-	}
-
-	return lpFBBlocks;
+	if (PyErr_Occurred() && lpFBBlocks != nullptr)
+		return nullptr;
+	return lpFBBlocks.release();
 }
 
 PyObject* Object_from_FBBlock_1(FBBlock_1 const& sFBBlock) {
@@ -163,12 +158,10 @@ PyObject* Object_from_FBBlock_1(FBBlock_1 const& sFBBlock) {
 }
 
 PyObject* List_from_FBBlock_1(LPFBBlock_1 lpFBBlocks, LONG* nBlocks) {
-	size_t i;
-	PyObject *list = nullptr, *elem = nullptr;
+	PyObject *elem = nullptr;
+	PyObject *list = PyList_New(0);
 
-	list = PyList_New(0);
-
-	for (i = 0; i < *nBlocks; i++) {
+	for (size_t i = 0; i < *nBlocks; ++i) {
 		elem = Object_from_FBBlock_1(lpFBBlocks[i]);
 
 		if(PyErr_Occurred())
