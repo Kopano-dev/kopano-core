@@ -35,7 +35,8 @@ class mapitovcf_impl _kc_final : public mapitovcf {
 	HRESULT finalize(std::string *) _kc_override;
 
 	private:
-	VObject *to_unicode_prop(VObject *node, const char *prop, wchar_t const *value);
+	VObject *to_prop(VObject *node, const char *prop, const SPropValue &value);
+	VObject *to_prop(VObject *node, const char *prop, const wchar_t *value);
 
 	std::string m_result;
 	/*
@@ -50,14 +51,28 @@ HRESULT create_mapitovcf(mapitovcf **ret)
 	return *ret != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
 }
 
-VObject *mapitovcf_impl::to_unicode_prop(VObject *node, const char *prop,
+VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
+    const SPropValue &s)
+{
+	char plain[128];
+	if (PROP_TYPE(s.ulPropTag) == PT_UNICODE)
+		wcstombs(plain, s.Value.lpszW, sizeof(plain));
+	else if (PROP_TYPE(s.ulPropTag) == PT_STRING8)
+		strncpy(plain, s.Value.lpszA, sizeof(plain));
+
+	auto newnode = addProp(node, prop);
+	if (newnode == nullptr)
+		return nullptr;
+	setVObjectStringZValue(newnode, plain);
+	return newnode;
+}
+
+VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
     const wchar_t *value)
 {
 	char plain[128];
 	wcstombs(plain, value, sizeof(plain));
 	auto newnode = addProp(node, prop);
-	if (newnode == nullptr)
-		return nullptr;
 	setVObjectStringZValue(newnode, plain);
 	return newnode;
 }
@@ -81,8 +96,8 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	HRESULT hr2 = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop2);
 	if (hr == hrSuccess || hr2 == hrSuccess) {
 		auto node = addGroup(root, VCNameProp);
-		to_unicode_prop(node, VCGivenNameProp, msgprop->Value.lpszW);
-		to_unicode_prop(node, VCFamilyNameProp, msgprop2->Value.lpszW);
+		to_prop(node, VCGivenNameProp, *msgprop);
+		to_prop(node, VCFamilyNameProp, *msgprop2);
 	} else if (hr != MAPI_E_NOT_FOUND) {
 		return hr;
 	} else if (hr2 != MAPI_E_NOT_FOUND) {
@@ -91,22 +106,22 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 
 	hr = HrGetOneProp(lpMessage, PR_DISPLAY_NAME, &~msgprop);
 	if (hr == hrSuccess)
-		to_unicode_prop(root, VCFullNameProp, msgprop->Value.lpszW);
+		to_prop(root, VCFullNameProp, *msgprop);
 	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
 
 	hr = HrGetOneProp(lpMessage, PR_HOME_TELEPHONE_NUMBER, &~msgprop);
 	if (hr == hrSuccess) {
-		auto node = to_unicode_prop(root, VCTelephoneProp, msgprop->Value.lpszW);
-		to_unicode_prop(node, "TYPE", L"HOME");
+		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+		to_prop(node, "TYPE", L"HOME");
 	} else if (hr != MAPI_E_NOT_FOUND) {
 		return hr;
 	}
 
 	hr = HrGetOneProp(lpMessage, PR_MOBILE_TELEPHONE_NUMBER, &~msgprop);
 	if (hr == hrSuccess) {
-		auto node = to_unicode_prop(root, VCTelephoneProp, msgprop->Value.lpszW);
-		to_unicode_prop(node, "TYPE", L"MOBILE");
+		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+		to_prop(node, "TYPE", L"MOBILE");
 	} else if (hr != MAPI_E_NOT_FOUND) {
 		return hr;
 	}
@@ -126,7 +141,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
 	hr = HrGetOneProp(lpMessage, proptype, &~msgprop);
 	if (hr == hrSuccess)
-		to_unicode_prop(root, VCEmailAddressProp, msgprop->Value.lpszW);
+		to_prop(root, VCEmailAddressProp, *msgprop);
 	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
 
