@@ -26,8 +26,8 @@ namespace KC {
 class MapiToVCF {
 public:
 	virtual ~MapiToVCF(void) = default;
-	virtual HRESULT AddMessage(LPMESSAGE lpMessage) = 0;
-	virtual HRESULT Finalize(std::string *strVCF) = 0;
+	virtual HRESULT AddMessage(LPMESSAGE message) = 0;
+	virtual HRESULT Finalize(std::string *str_vcf) = 0;
 	virtual HRESULT ResetObject() = 0;
 };
 

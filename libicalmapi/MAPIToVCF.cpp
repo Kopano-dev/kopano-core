@@ -33,161 +33,135 @@ namespace KC {
 
 class MapiToVCFImpl _kc_final : public MapiToVCF {
 public:
-	MapiToVCFImpl();
-	virtual ~MapiToVCFImpl();
-
-	HRESULT AddMessage(LPMESSAGE lpMessage) _kc_override;
-	HRESULT Finalize(std::string *strIcal) _kc_override;
+	HRESULT AddMessage(LPMESSAGE message) _kc_override;
+	HRESULT Finalize(std::string *str_vcf) _kc_override;
 	HRESULT ResetObject(void) _kc_override;
 
 private:
-	VObject* to_unicode_prop(VObject *node, const char *prop, wchar_t const *value); 
+	VObject* to_prop(VObject *node, const char *prop, SPropValue const &value);
+	VObject* to_prop(VObject *node, const char *prop, wchar_t const *value);
 
 	std::string result;
-	LPSPropTagArray m_lpNamedProps;
-	/* since we don't want depending projects to add include paths for libical, this is only in the implementation version */
 };
 
-/** 
- * Create a class implementing the MapiToICal "interface".
- * 
- * @param[in]  lpAdrBook MAPI addressbook
- * @param[in]  strCharset charset of the ical returned by this class
- * @param[out] lppMapiToICal The conversion class
+/**
+ * Create a class implementing the MapiToVCF "interface".
+ *
+ * @param[out] lppMapiToVCF The conversion class
  */
-HRESULT CreateMapiToVCF(MapiToVCF **lppMapiToVCF)
+HRESULT CreateMapiToVCF(MapiToVCF **mapi_to_vcf)
 {
-	*lppMapiToVCF = new(std::nothrow) MapiToVCFImpl();
-	if (*lppMapiToVCF == nullptr)
+	*mapi_to_vcf = new(std::nothrow) MapiToVCFImpl();
+	if (*mapi_to_vcf == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	return hrSuccess;
 }
 
-/** 
- * Init MapiToICal class
- * 
- * @param[in] lpAdrBook MAPI addressbook
- * @param[in] strCharset charset of the ical returned by this class
- */
-MapiToVCFImpl::MapiToVCFImpl()
-{
-	m_lpNamedProps = NULL;
-}
-
-/** 
- * Frees all used memory in conversion
- * 
- */
-MapiToVCFImpl::~MapiToVCFImpl()
-{
-	MAPIFreeBuffer(m_lpNamedProps);
-}
-
-VObject* MapiToVCFImpl::to_unicode_prop(VObject *node, const char *prop, wchar_t const* value) {
+VObject* MapiToVCFImpl::to_prop(VObject *node, const char *prop, SPropValue const &s) {
 	char plain[128];
-	VObject *newnode;
 
-	std::wcstombs(plain, value, 128);
+	if(PROP_TYPE(s.ulPropTag) == PT_UNICODE)
+		std::wcstombs(plain, s.Value.lpszW, 128);
+	else if(PROP_TYPE(s.ulPropTag) == PT_UNICODE)
+		strncpy(plain, s.Value.lpszA, 128);
 
-	newnode = addProp(node, prop);
-	if(newnode == nullptr) {
+	auto newnode = addProp(node, prop);
+	if(newnode == nullptr)
 		return nullptr;
-	}
 
 	setVObjectStringZValue(newnode, plain);
 
 	return newnode;
 }
 
-/** 
- * Add a MAPI message to the ical VCALENDAR object.
- * 
- * @param[in] lpMessage Convert this MAPI message to ICal
- * @param[in] strSrvTZ Use this timezone, used for Tasks only (or so it seems)
- * @param[in] ulFlags Conversion flags:
- * @arg @c M2IC_CENSOR_PRIVATE Privacy sensitive data will not be present in the ICal
- * 
+VObject* MapiToVCFImpl::to_prop(VObject *node, const char *prop, const wchar_t *value) {
+	char plain[128];
+
+	std::wcstombs(plain, value, 128);
+	auto newnode = addProp(node, prop);
+	setVObjectStringZValue(newnode, plain);
+
+	return newnode;
+}
+
+/**
+ * Add a MAPI message to the VCF object.
+ *
+ * @param[in] lpMessage Convert this MAPI message to VCF
+ *
  * @return MAPI error code
  */
-HRESULT MapiToVCFImpl::AddMessage(LPMESSAGE lpMessage)
+HRESULT MapiToVCFImpl::AddMessage(LPMESSAGE message)
 {
-	KCHL::memory_ptr<SPropValue> lpMessageClass;
+	KCHL::memory_ptr<SPropValue> msgprop, msgprop2;
 
-	if (lpMessage == nullptr)
+	if (message == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
+	HRESULT hr = HrGetOneProp(message, PR_MESSAGE_CLASS_A, &~msgprop);
 	if (hr != hrSuccess)
 		return hr;
 
-	if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Contact") != 0) {
+	if (strcasecmp(msgprop->Value.lpszA, "IPM.Contact") != 0)
 		return MAPI_E_INVALID_PARAMETER;
-	}
 
-	VObject* root = newVObject(VCCardProp);
-	VObject* node = nullptr;
+	auto root = newVObject(VCCardProp);
 
-	KCHL::memory_ptr<SPropValue> msgprop, msgprop2;
-
-	hr = HrGetOneProp(lpMessage, PR_GIVEN_NAME, &~msgprop);
-	HRESULT hr2 = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop2);
-	if(hr == hrSuccess && hr2 == hrSuccess) {
-		node = addGroup(root, VCNameProp);
-		to_unicode_prop(node, VCGivenNameProp, msgprop->Value.lpszW);
-		to_unicode_prop(node, VCFamilyNameProp, msgprop2->Value.lpszW);
-	} else if(hr != MAPI_E_NOT_FOUND || hr2 != MAPI_E_NOT_FOUND)
+	hr = HrGetOneProp(message, PR_GIVEN_NAME, &~msgprop);
+	HRESULT hr2 = HrGetOneProp(message, PR_SURNAME, &~msgprop2);
+	if (hr == hrSuccess && hr2 == hrSuccess) {
+		auto node = addGroup(root, VCNameProp);
+		to_prop(node, VCGivenNameProp, *msgprop);
+		to_prop(node, VCFamilyNameProp, *msgprop2);
+	} else if (hr != MAPI_E_NOT_FOUND || hr2 != MAPI_E_NOT_FOUND)
 		return hr;
 
-	hr = HrGetOneProp(lpMessage, PR_DISPLAY_NAME, &~msgprop);
-	if(hr == hrSuccess) {
-		to_unicode_prop(root, VCFullNameProp, msgprop->Value.lpszW);
-	}
-	else if(hr != MAPI_E_NOT_FOUND)
+	hr = HrGetOneProp(message, PR_DISPLAY_NAME, &~msgprop);
+	if (hr == hrSuccess)
+		to_prop(root, VCFullNameProp, *msgprop);
+	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
 
-	hr = HrGetOneProp(lpMessage, PR_HOME_TELEPHONE_NUMBER, &~msgprop);
-	if(hr == hrSuccess) {
-		VObject* node = to_unicode_prop(root, VCTelephoneProp, msgprop->Value.lpszW);
-		to_unicode_prop(node, "TYPE", L"HOME");
+	hr = HrGetOneProp(message, PR_HOME_TELEPHONE_NUMBER, &~msgprop);
+	if (hr == hrSuccess) {
+		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+		to_prop(node, "TYPE", L"HOME");
 	}
-	else if(hr != MAPI_E_NOT_FOUND)
+	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
 
-	hr = HrGetOneProp(lpMessage, PR_MOBILE_TELEPHONE_NUMBER, &~msgprop);
-	if(hr == hrSuccess) {
-		VObject* node = to_unicode_prop(root, VCTelephoneProp, msgprop->Value.lpszW);
-		to_unicode_prop(node, "TYPE", L"MOBILE");
+	hr = HrGetOneProp(message, PR_MOBILE_TELEPHONE_NUMBER, &~msgprop);
+	if (hr == hrSuccess) {
+		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+		to_prop(node, "TYPE", L"MOBILE");
 	}
-	else if(hr != MAPI_E_NOT_FOUND)
+	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
 
 	/* Email */
-	MAPINAMEID sNameID;
-	sNameID.lpguid = (GUID*)&PSETID_Address;
-	sNameID.ulKind = MNID_ID;
-	sNameID.Kind.lID = 0x8083;
+	MAPINAMEID name_id;
+	name_id.lpguid = const_cast<GUID*>(&PSETID_Address);
+	name_id.ulKind = MNID_ID;
+	name_id.Kind.lID = 0x8083;
 
-	LPMAPINAMEID lpNameID = &sNameID;
-	KCHL::memory_ptr<SPropTagArray> lpPropTag;
-	hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTag);
-	if (hr != hrSuccess) {
+	LPMAPINAMEID name_id_ptr = &name_id;
+	KCHL::memory_ptr<SPropTagArray> proptag;
+	hr = message->GetIDsFromNames(1, &name_id_ptr, MAPI_CREATE, &~proptag);
+	if (hr != hrSuccess)
 		return hr;
-	}
 
-	ULONG propType = CHANGE_PROP_TYPE(lpPropTag->aulPropTag[0], PT_UNICODE);
-	hr = HrGetOneProp(lpMessage, propType, &~msgprop);
-	if(hr == hrSuccess) {
-		to_unicode_prop(root, VCEmailAddressProp, msgprop->Value.lpszW);
-	}
-	else if(hr != MAPI_E_NOT_FOUND)
+	ULONG prop_type = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
+	hr = HrGetOneProp(message, prop_type, &~msgprop);
+	if (hr == hrSuccess)
+		to_prop(root, VCEmailAddressProp, *msgprop);
+	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
 
 	/* Write memobject */
 	int len = 0;
-	char* cresult = writeMemVObject(NULL, &len, root);
-	if(cresult == nullptr) {
+	auto cresult = writeMemVObject(NULL, &len, root);
+	if (cresult == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
 
 	result = cresult;
 	delete cresult;
@@ -197,36 +171,30 @@ HRESULT MapiToVCFImpl::AddMessage(LPMESSAGE lpMessage)
 	return hrSuccess;
 }
 
-/** 
- * Create the actual ICal data.
- * 
- * @param[in]  ulFlags Conversion flags
- * @arg @c M2IC_NO_VTIMEZONE Skip the VTIMEZONE parts in the output
- * @param[out] strMethod ICal method (eg. PUBLISH)
- * @param[out] strIcal The ICal data in 8bit string, charset given in constructor
- * 
+/**
+ * Create the actual VCF data.
+ *
+ * @param[out] strVCF The VCF data in 8bit string
+ *
  * @return MAPI error code
  */
-HRESULT MapiToVCFImpl::Finalize(std::string *strVCF)
+HRESULT MapiToVCFImpl::Finalize(std::string *str_vcf)
 {
-	HRESULT hr = hrSuccess;
-
-	if (strVCF == nullptr) {
+	if (str_vcf == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	}
 
-	*strVCF = result;
-
-	return hr;
+	*str_vcf = result;
+	return hrSuccess;
 }
 
-/** 
+/**
  * Reset this class to be used for starting a new series of conversions.
- * 
+ *
  * @return always hrSuccess
  */
 HRESULT MapiToVCFImpl::ResetObject()
 {
+	result = "";
 	return hrSuccess;
 }
 

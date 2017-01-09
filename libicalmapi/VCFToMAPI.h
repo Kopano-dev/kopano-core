@@ -28,16 +28,15 @@ namespace KC {
 
 class VCFToMapi {
 public:
-	VCFToMapi(IMAPIProp *lpPropObj) : m_lpPropObj(lpPropObj) {};
-	virtual ~VCFToMapi(void) = default;
-	virtual HRESULT ParseVCF(const std::string& strVCF) = 0;
-	virtual HRESULT GetItem(LPMESSAGE lpMessage) = 0;
+	VCFToMapi(IMAPIProp *prop_obj) : prop_obj(prop_obj) {};
+	virtual HRESULT ParseVCF(const std::string &str_vcf) = 0;
+	virtual HRESULT GetItem(LPMESSAGE message) = 0;
 protected:
-	LPMAPIPROP m_lpPropObj;
+	LPMAPIPROP prop_obj;
 	std::list<SPropValue> props;
 };
 
-extern _kc_export HRESULT CreateVCFToMapi(IMAPIProp *propobj, VCFToMapi **ret);
+extern _kc_export HRESULT CreateVCFToMapi(IMAPIProp *prop_obj, VCFToMapi **vcf_to_mapi);
 
 } /* namespace */
 

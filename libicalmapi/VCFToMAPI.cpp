@@ -41,73 +41,56 @@ namespace KC {
 
 class VCFToMapiImpl _kc_final : public VCFToMapi {
 public:
-	/*
-	    - lpPropObj to lookup named properties
-	    - Addressbook (Global AddressBook for looking up users)
-	 */
-	VCFToMapiImpl(IMAPIProp *lpPropObj);
-	virtual ~VCFToMapiImpl();
+	VCFToMapiImpl(IMAPIProp *prop_obj);
 
-	HRESULT ParseVCF(const std::string& strVCF) _kc_override;
-	HRESULT GetItem(LPMESSAGE lpMessage) _kc_override;
+	HRESULT ParseVCF(const std::string &str_vcf) _kc_override;
+	HRESULT GetItem(LPMESSAGE message) _kc_override;
 
 private:
-	HRESULT SaveProps(const std::list<SPropValue> *lpPropList, LPMAPIPROP lpMapiProp);
+	HRESULT SaveProps(const std::list<SPropValue> &props, LPMAPIPROP mapiobj);
 
-	void handle_N(VObject* v);
-	void handle_TEL_EMAIL(VObject* v);
+	void handle_N(VObject *v);
+	void handle_TEL_EMAIL(VObject *v);
 
-	void vobject_to_prop(VObject* v, SPropValue &s, ULONG propType);
-	HRESULT vobject_to_named_prop(VObject* v, SPropValue &s, ULONG namedPropType);
-	HRESULT unicode_to_named_prop(wchar_t* v, SPropValue &s, ULONG namedPropType);
+	void vobject_to_prop(VObject *v, SPropValue &s, ULONG prop_type);
+	HRESULT vobject_to_named_prop(VObject *v, SPropValue &s, ULONG named_prop_type);
+	HRESULT unicode_to_named_prop(wchar_t *v, SPropValue &s, ULONG named_prop_type);
 };
 
-/** 
- * Create a class implementing the ICalToMapi "interface".
- * 
+/**
+ * Create a class implementing the ICalToVCF "interface".
+ *
  * @param[in]  lpPropObj MAPI object used to find named properties
- * @param[in]  lpAdrBook MAPI Addressbook
- * @param[in]  bNoRecipients Skip recipients from ical. Used for DAgent, which uses the mail recipients
- * @param[out] lppICalToMapi The ICalToMapi class
+ * @param[out] lppICalToMapi The VCFToMapi class
  */
-HRESULT CreateVCFToMapi(IMAPIProp *lpPropObj, VCFToMapi **lppICalToMapi)
+HRESULT CreateVCFToMapi(IMAPIProp *prop_obj, VCFToMapi **vcf_to_mapi)
 {
-	if (lpPropObj == nullptr || lppICalToMapi == nullptr)
+	if (prop_obj == nullptr || vcf_to_mapi == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	*lppICalToMapi = new(std::nothrow) VCFToMapiImpl(lpPropObj);
-	if (*lppICalToMapi == nullptr)
+	*vcf_to_mapi = new(std::nothrow) VCFToMapiImpl(prop_obj);
+	if (*vcf_to_mapi == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 
 	return hrSuccess;
 }
 
-/** 
- * Init ICalToMapi class
- * 
+/**
+ * Init VCFToMapi class
+ *
  * @param[in] lpPropObj passed to super class
- * @param[in] lpAdrBook passed to super class
- * @param[in] bNoRecipients passed to super class
  */
-VCFToMapiImpl::VCFToMapiImpl(IMAPIProp *lpPropObj) : VCFToMapi(lpPropObj)
+VCFToMapiImpl::VCFToMapiImpl(IMAPIProp *prop_obj) : VCFToMapi(prop_obj)
 {
 }
 
-/** 
- * Frees all used memory of the ICalToMapi class
- */
-VCFToMapiImpl::~VCFToMapiImpl()
-{
-}
+void VCFToMapiImpl::handle_N(VObject *v) {
+	VObjectIterator t;
 
-void VCFToMapiImpl::handle_N(VObject* v) {
-	VObjectIterator tt;
+	for (initPropIterator(&t, v); moreIteration(&t);) {
+		auto vv = nextVObject(&t);
+		auto name = vObjectName(vv);
 
-	initPropIterator(&tt, v);
-
-	while (moreIteration(&tt)) {
-		VObject *vv = nextVObject(&tt);
-		const char *name = vObjectName(vv);
 		SPropValue s;
 
 		if (!strcmp(name, VCFamilyNameProp)) {
@@ -121,15 +104,14 @@ void VCFToMapiImpl::handle_N(VObject* v) {
 	}
 }
 
-void VCFToMapiImpl::handle_TEL_EMAIL(VObject* v) {
+void VCFToMapiImpl::handle_TEL_EMAIL(VObject *v) {
 	bool tel = !strcmp(vObjectName(v), VCTelephoneProp);
 
 	VObjectIterator t;
-	initPropIterator(&t, v);
 
-	while (moreIteration(&t)) {
-		VObject *vv = nextVObject(&t);
-		const char *name = vObjectName(vv);
+	for (initPropIterator(&t, v); moreIteration(&t);) {
+		auto vv = nextVObject(&t);
+		auto name = vObjectName(vv);
 
 		const char *namep = NULL;
 		if (!strcmp(name, "TYPE"))
@@ -147,16 +129,16 @@ void VCFToMapiImpl::handle_TEL_EMAIL(VObject* v) {
 				vobject_to_prop(v, s, PR_HOME_TELEPHONE_NUMBER);
 				props.push_back(s);
 			}
-			if(tel &&
+			else if(tel &&
 			   !strcasecmp(token.c_str(), "MOBILE")) {
 				vobject_to_prop(v, s, PR_MOBILE_TELEPHONE_NUMBER);
 				props.push_back(s);
 			}
 			/* email */
-			if(!tel) {
+			else if(!tel) {
 				vobject_to_named_prop(v, s, 0x8083);
 				props.push_back(s);
-				unicode_to_named_prop(L"SMTP", s, 0x8082);
+				unicode_to_named_prop(const_cast<wchar_t *>(L"SMTP"), s, 0x8082);
 				props.push_back(s);
 			}
 
@@ -164,46 +146,38 @@ void VCFToMapiImpl::handle_TEL_EMAIL(VObject* v) {
 	}
 }
 
-/** 
- * Parses an ICal string (with a certain charset) and converts the
+/**
+ * Parses an VCF string and converts the
  * data in memory. The real MAPI object can be retrieved using
  * GetItem().
- * 
+ *
  * @param[in] strIcal The ICal data to parse
- * @param[in] strCharset The charset of strIcal (usually UTF-8)
- * @param[in] strServerTZparam ID of default timezone to use if ICal data didn't specify
- * @param[in] lpMailUser IMailUser object of the current user (CalDav: the user logged in, DAgent: the user being delivered for)
- * @param[in] ulFlags Conversion flags - currently unused
- * 
+ *
  * @return MAPI error code
  */
-HRESULT VCFToMapiImpl::ParseVCF(const std::string& strIcal)
+HRESULT VCFToMapiImpl::ParseVCF(const std::string &str_vcf)
 {
 	HRESULT hr = hrSuccess;
 
-	VObject *v = Parse_MIME(strIcal.c_str(), strIcal.length());
+	auto v = Parse_MIME(str_vcf.c_str(), str_vcf.length());
 	if (v == nullptr)
 		return MAPI_E_CORRUPT_DATA;
 
 	VObjectIterator t;
 	SPropValue s;
 
-	initPropIterator(&t, v);
+	for(initPropIterator(&t, v); moreIteration(&t);) {
+		auto vv = nextVObject(&t);
+		auto name = vObjectName(vv);
 
-	while (moreIteration(&t)) {
-		VObject* vv = nextVObject(&t);
-		const char* name = vObjectName(vv);
-
-		if (!strcmp(name, VCNameProp)) {
+		if (!strcmp(name, VCNameProp))
 			handle_N(vv);
-		}
+		else if (!strcmp(name, VCTelephoneProp) ||
+			 !strcmp(name, VCEmailAddressProp))
+			handle_TEL_EMAIL(vv);
 		else if (!strcmp(name, VCFullNameProp)) {
 			vobject_to_prop(vv, s, PR_DISPLAY_NAME);
 			props.push_back(s);
-		}
-		else if (!strcmp(name, VCTelephoneProp) ||
-			 !strcmp(name, VCEmailAddressProp)) {
-			handle_TEL_EMAIL(vv);
 		}
 	}
 
@@ -212,123 +186,113 @@ HRESULT VCFToMapiImpl::ParseVCF(const std::string& strIcal)
 	return hr;
 }
 
-void VCFToMapiImpl::vobject_to_prop(VObject *v, SPropValue &s, ULONG propType) {
+void VCFToMapiImpl::vobject_to_prop(VObject *v, SPropValue &s, ULONG prop_type) {
         switch(vObjectValueType(v)) {
 	case VCVT_STRINGZ:
-		s.ulPropTag = CHANGE_PROP_TYPE(propType, PT_STRING8);
+		s.ulPropTag = CHANGE_PROP_TYPE(prop_type, PT_STRING8);
 		s.Value.lpszA = strdup(vObjectStringZValue(v));
 		break;
 	case VCVT_USTRINGZ:
-		s.ulPropTag = CHANGE_PROP_TYPE(propType, PT_UNICODE);
+		s.ulPropTag = CHANGE_PROP_TYPE(prop_type, PT_UNICODE);
 		s.Value.lpszW = wcsdup(vObjectUStringZValue(v));
 		break;
 	}
 }
 
-HRESULT VCFToMapiImpl::vobject_to_named_prop(VObject *v, SPropValue &s, ULONG namedPropType) {
+HRESULT VCFToMapiImpl::vobject_to_named_prop(VObject *v, SPropValue &s, ULONG named_prop_type) {
 	HRESULT hr;
-        MAPINAMEID sNameID;
-	LPMAPINAMEID lpNameID = &sNameID;
-	memory_ptr<SPropTagArray> lpPropTag;
+        MAPINAMEID name_id;
+	LPMAPINAMEID name_id_ptr = &name_id;
+	memory_ptr<SPropTagArray> proptag;
 
-	sNameID.lpguid = (GUID*)&PSETID_Address;
-	sNameID.ulKind = MNID_ID;
-	sNameID.Kind.lID = namedPropType;
+	name_id.lpguid = const_cast<GUID *>(&PSETID_Address);
+	name_id.ulKind = MNID_ID;
+	name_id.Kind.lID = named_prop_type;
 
-	hr = m_lpPropObj->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTag);
-	if (hr != hrSuccess) {
+	hr = prop_obj->GetIDsFromNames(1, &name_id_ptr, MAPI_CREATE, &~proptag);
+	if (hr != hrSuccess)
 		return hr;
-	}
 
- 	vobject_to_prop(v, s, lpPropTag->aulPropTag[0]);
+ 	vobject_to_prop(v, s, proptag->aulPropTag[0]);
 
 	return hrSuccess;
 }
 
-HRESULT VCFToMapiImpl::unicode_to_named_prop(wchar_t* v, SPropValue &s, ULONG namedPropType) {
+HRESULT VCFToMapiImpl::unicode_to_named_prop(wchar_t *v, SPropValue &s, ULONG named_prop_type) {
 	HRESULT hr;
-        MAPINAMEID sNameID;
-	LPMAPINAMEID lpNameID = &sNameID;
-	memory_ptr<SPropTagArray> lpPropTag;
+        MAPINAMEID name_id;
+	LPMAPINAMEID name_id_ptr = &name_id;
+	memory_ptr<SPropTagArray> proptag;
 
-	sNameID.lpguid = (GUID*)&PSETID_Address;
-	sNameID.ulKind = MNID_ID;
-	sNameID.Kind.lID = namedPropType;
+	name_id.lpguid = const_cast<GUID *>(&PSETID_Address);
+	name_id.ulKind = MNID_ID;
+	name_id.Kind.lID = named_prop_type;
 
-	hr = m_lpPropObj->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTag);
-	if (hr != hrSuccess) {
+	hr = prop_obj->GetIDsFromNames(1, &name_id_ptr, MAPI_CREATE, &~proptag);
+	if (hr != hrSuccess)
 		return hr;
-	}
 
-	s.ulPropTag = CHANGE_PROP_TYPE(lpPropTag->aulPropTag[0], PT_UNICODE);
+	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
 	s.Value.lpszW = wcsdup(v);
 
 	return hrSuccess;
 }
 
 /**
- * Sets mapi properties in Imessage object from the icalitem.
+ * Sets mapi properties in Imessage object from the vcfitem.
  *
- * @param[in]		ulPosition		specifies the message that is to be retrieved
- * @param[in]		ulFlags			conversion flags
- * @arg @c IC2M_NO_RECIPIENTS skip recipients in conversion from ICal to MAPI
- * @arg @c IC2M_APPEND_ONLY	do not delete properties in lpMessage that are not present in ICal, but possebly are in lpMessage
  * @param[in,out]	lpMessage		IMessage in which properties has to be set
  *
  * @return			MAPI error code
- * @retval			MAPI_E_INVALID_PARAMETER	invalid position set in ulPosition or NULL IMessage parameter
+ * @retval			MAPI_E_INVALID_PARAMETER	NULL IMessage parameter
  */
-HRESULT VCFToMapiImpl::GetItem(LPMESSAGE lpMessage)
+HRESULT VCFToMapiImpl::GetItem(LPMESSAGE message)
 {
 	HRESULT hr = hrSuccess;
 
-	if (lpMessage == NULL)
+	if (message == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
 	SPropValue s;
 	s.ulPropTag = PR_MESSAGE_CLASS_A;
 	s.Value.lpszA = const_cast<char *>("IPM.Contact");
 
-	hr = HrSetOneProp(lpMessage, &s);
+	hr = HrSetOneProp(message, &s);
 	if (hr != hrSuccess)
 		return hr;
 
-	hr = SaveProps(&props, lpMessage);
+	hr = SaveProps(props, message);
 	if (hr != hrSuccess)
 		return hr;
 
 	return hr;
 }
 
-/** 
+/**
  * Helper function for GetItem. Saves all properties converted from
- * ICal to MAPI in the MAPI object. Does not call SaveChanges.
- * 
- * @param[in] lpPropList list of properties to save in lpMapiProp
- * @param[in] lpMapiProp The MAPI object to save properties in
- * 
+ * VCF to MAPI in the MAPI object. Does not call SaveChanges.
+ *
+ * @param[in] props list of properties to save in mapiobj
+ * @param[in] mapiobj The MAPI object to save properties in
+ *
  * @return MAPI error code
  */
-HRESULT VCFToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
-    LPMAPIPROP lpMapiProp)
+HRESULT VCFToMapiImpl::SaveProps(const std::list<SPropValue> &props,
+    LPMAPIPROP mapiobj)
 {
-	HRESULT hr = hrSuccess;
-	memory_ptr<SPropValue> lpsPropVals;
-	int i;
+	memory_ptr<SPropValue> propvals;
 
-	// all props to message
-	hr = MAPIAllocateBuffer(lpPropList->size() * sizeof(SPropValue), &~lpsPropVals);
+	auto hr = MAPIAllocateBuffer(props.size() * sizeof(SPropValue), &~propvals);
 	if (hr != hrSuccess)
 		return hr;
 
-	// @todo: add exclude list or something? might set props the caller doesn't want (see vevent::HrAddTimes())
-	i = 0;
-	for (const auto &prop : *lpPropList)
-		lpsPropVals[i++] = prop;
+	size_t i = 0;
+	for (const auto &prop : props)
+		propvals[i++] = prop;
 
-	auto retval = lpMapiProp->SetProps(i, lpsPropVals, NULL);
+	auto retval = mapiobj->SetProps(i, propvals, NULL);
 
-	for (const auto &prop : *lpPropList) {
+	for (const auto &prop : props) {
 		if(PROP_TYPE(prop.ulPropTag) == PT_UNICODE)
 			delete prop.Value.lpszW;
 		if(PROP_TYPE(prop.ulPropTag) == PT_STRING8)
