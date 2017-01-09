@@ -16,23 +16,35 @@ def _encode(s):
 class Service(kopano.Service):
     def import_props(self, parent, mapiobj, embedded=False):
         props2 = []
+        attach_method = subnode_nid = None
         for k, v in parent.pc.props.items():
             propid, proptype, value = k, v.wPropType, v.value
-            if proptype == PT_SYSTIME:
-                value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
+            if proptype in (PT_CURRENCY, PT_MV_CURRENCY, PT_ACTIONS, PT_SRESTRICT, PT_SVREID):
+                continue # unsupported by parser
+
             nameid = self.propid_nameid.get(propid)
             if nameid:
                 propid = PROP_ID(mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], 0)[0])
-            if propid == PR_ATTACH_DATA_OBJ >> 16 and len(value) == 4: # XXX why not 4
+
+            if propid == (PR_SUBJECT>>16) and value and ord(value[0]) == 0x01:
+                value = value[2:] # \x01 plus another char indicates normalized-subject-prefix-length
+            elif proptype == PT_SYSTIME:
+                value = MAPI.Time.FileTime(value)
+            elif propid == PR_ATTACH_METHOD >> 16:
+                attach_method = value
+            elif propid == PR_ATTACH_DATA_OBJ >> 16 and len(value) == 4: # XXX why not 4?
                 subnode_nid = struct.unpack('I', value)[0]
-                submessage = pst.Message(subnode_nid, self.ltp, self.nbd, parent)
-                submapiobj = mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
-                self.import_props(submessage, submapiobj, embedded=True)
-                self.import_attachments(submessage, submapiobj)
-                self.import_recipients(submessage, submapiobj)
-            elif isinstance(parent, pst.Attachment) or embedded or PROP_TAG(proptype, propid) != PR_ATTACH_NUM: # work around webapp bug? KC-390
-                if proptype not in (PT_CURRENCY, PT_MV_CURRENCY, PT_ACTIONS, PT_SRESTRICT, PT_SVREID): # unsupported by parser
-                    props2.append(SPropValue(PROP_TAG(proptype, propid), value))
+
+            if isinstance(parent, pst.Attachment) or embedded or PROP_TAG(proptype, propid) != PR_ATTACH_NUM: # work around webapp bug? KC-390
+                props2.append(SPropValue(PROP_TAG(proptype, propid), value))
+
+        if attach_method == ATTACH_EMBEDDED_MSG and subnode_nid is not None:
+            submessage = pst.Message(subnode_nid, self.ltp, self.nbd, parent)
+            submapiobj = mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
+            self.import_props(submessage, submapiobj, embedded=True)
+            self.import_attachments(submessage, submapiobj)
+            self.import_recipients(submessage, submapiobj)
+
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -47,10 +59,11 @@ class Service(kopano.Service):
         for r in message.subrecipients:
             user = None
             key = None
-            if r.AddressType == 'EX' and r.ObjectType==6 and r.DisplayType==0:
-                key = r.DisplayName
-            elif r.AddressType == 'ZARAFA' and r.ObjectType==6 and r.DisplayType==0:
-                key = r.EmailAddress
+            if r.ObjectType == 6 and r.DisplayType == 0:
+                if r.AddressType == 'EX' or not r.AddressType: # missing addr type observed in the wild
+                    key = r.DisplayName or r.EmailAddress
+                elif r.AddressType == 'ZARAFA':
+                    key = r.EmailAddress or r.DisplayName
             if key:
                 try:
                     user = self.server.user(email=key) # XXX using email arg for name/fullname/email
@@ -58,18 +71,20 @@ class Service(kopano.Service):
                     if key not in self.unresolved:
                         self.log.warning("could not resolve user '%s'" % key)
                         self.unresolved.add(key)
-
-            recipients.append([
-                SPropValue(PR_RECIPIENT_TYPE, r.RecipientType),
-                SPropValue(PR_ADDRTYPE_W, u'ZARAFA' if user else r.AddressType),
-                SPropValue(PR_DISPLAY_NAME_W, user.fullname if user else r.DisplayName),
-            ])
+            props = []
+            if r.RecipientType is not None:
+                props.append(SPropValue(PR_RECIPIENT_TYPE, r.RecipientType))
+            if user or r.AddressType is not None:
+                props.append(SPropValue(PR_ADDRTYPE_W, u'ZARAFA' if user else r.AddressType))
+            if user or r.DisplayName is not None:
+                props.append(SPropValue(PR_DISPLAY_NAME_W, user.fullname if user else r.DisplayName))
             if r.DisplayType is not None:
-                recipients[-1].append(SPropValue(PR_DISPLAY_TYPE, r.DisplayType))
+                props.append(SPropValue(PR_DISPLAY_TYPE, r.DisplayType))
             if user or r.EmailAddress:
-                recipients[-1].append(SPropValue(PR_EMAIL_ADDRESS_W, user.name if user else r.EmailAddress)),
+                props.append(SPropValue(PR_EMAIL_ADDRESS_W, user.name if user else r.EmailAddress))
             if user:
-                recipients[-1].append(SPropValue(PR_ENTRYID, user.userid.decode('hex'))) # XXX what about SMTP?
+                props.append(SPropValue(PR_ENTRYID, user.userid.decode('hex')))
+            recipients.append(props)
         mapiobj.ModifyRecipients(0, recipients)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -91,7 +106,7 @@ class Service(kopano.Service):
                     folder2.container_class = folder.ContainerClass
                 for message in pst.message_generator(folder):
                     with log_exc(self.log, self.stats):
-                        self.log.debug("importing message '%s'" % message.Subject)
+                        self.log.debug("importing message '%s'" % (message.Subject or ''))
                         message2 = folder2.create_item()
                         self.import_props(message, message2.mapiobj)
                         self.import_attachments(message, message2.mapiobj)
@@ -141,13 +156,13 @@ def show_contents(args, options):
                 writer.writerow([_encode(path), folder.ContentCount])
             elif options.index:
                 for message in p.message_generator(folder):
-                    writer.writerow([_encode(path), _encode(message.Subject)])
+                    writer.writerow([_encode(path), _encode(message.Subject or '')])
 
 def main():
-    parser = kopano.parser('cflskpUPu', usage='kopano-pst PATH [-u NAME]')
+    parser = kopano.parser('cflskpUPu', usage='kopano-migration-pst PATH [-u NAME]')
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
-    parser.add_option('', '--import-root', dest='import_root', action='store', help='list items for PATH', metavar='PATH')
+    parser.add_option('', '--import-root', dest='import_root', action='store', help='import under specific folder', metavar='PATH')
 
     options, args = parser.parse_args()
     options.service = False
