@@ -86,8 +86,6 @@ void SSL_library_cleanup()
 	CRYPTO_cleanup_all_ex_data();
 
 	CONF_modules_unload(0);
-
-	sk_SSL_COMP_free(SSL_COMP_get_compression_methods());
 }
 
 void ssl_random_init()
