@@ -114,22 +114,18 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		ptrArchiveFolder = iArchiveFolder->second;
 	}
 
-	{
-		static constexpr const SizedSPropTagArray(2, sptaProps) =
-			{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
-		
-		SPropArrayPtr props;
-		ULONG cb;
-		HRESULT hrTmp = ptrArchiveFolder->GetProps(sptaProps, 0, &cb, &~props);
-		if (!FAILED(hrTmp)) {
-			if (PROP_TYPE(props[0].ulPropTag) != PT_ERROR)
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder: %s", props[0].Value.lpszA);
-			else
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder: has no name");
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder entryid: %s", bin2hex(props[1].Value.bin.cb, props[1].Value.bin.lpb).c_str());
-		}
+	static constexpr const SizedSPropTagArray(2, sptaProps) =
+		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
+	SPropArrayPtr props;
+	ULONG cb;
+	HRESULT hrTmp = ptrArchiveFolder->GetProps(sptaProps, 0, &cb, &~props);
+	if (!FAILED(hrTmp)) {
+		if (PROP_TYPE(props[0].ulPropTag) != PT_ERROR)
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder: %s", props[0].Value.lpszA);
+		else
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder: has no name");
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder entryid: %s", bin2hex(props[1].Value.bin.cb, props[1].Value.bin.lpb).c_str());
 	}
-
 	return ptrArchiveFolder->QueryInterface(IID_IMAPIFolder,
 		reinterpret_cast<LPVOID *>(lppArchiveFolder));
 }

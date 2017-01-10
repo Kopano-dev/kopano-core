@@ -401,28 +401,22 @@ HRESULT WebDav::HrHandleRptCalQry()
 			sReptQuery.sFilter.lstFilters.push_back((char *)lpXmlChildAttr->content);
 
 			lpXmlChildNode = lpXmlChildNode->children;
-			if (lpXmlChildNode->properties && lpXmlChildNode->properties->children)
-			{
-				lpXmlAttr = lpXmlChildNode->properties;
-				lpXmlChildAttr = lpXmlAttr->children;
-			}
-			else
-			{
+			if (lpXmlChildNode->properties == nullptr || lpXmlChildNode->properties->children == nullptr) {
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
-
+			lpXmlAttr = lpXmlChildNode->properties;
+			lpXmlChildAttr = lpXmlAttr->children;
 			if (lpXmlChildAttr == NULL || lpXmlChildAttr->content == NULL) {
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
-
-			if (xmlStrcmp( lpXmlChildAttr->content, (const xmlChar *)"VTODO") == 0 || xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VEVENT") == 0) {
-				sReptQuery.sFilter.lstFilters.push_back((char *)lpXmlChildAttr->content);
-			} else {
+			if (xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VTODO") != 0 &&
+			    xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VEVENT") != 0) {
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
+			sReptQuery.sFilter.lstFilters.push_back((char *)lpXmlChildAttr->content);
 
 			// filter not done here.., time-range in lpXmlChildNode->children.
 			if (lpXmlChildNode->children) {

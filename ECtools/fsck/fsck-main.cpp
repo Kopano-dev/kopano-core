@@ -86,20 +86,18 @@ static HRESULT FixProperty(LPMESSAGE lpMessage, const std::string &strName,
 	ErrorProp.Value = Value;
 	/* NOTE: Named properties don't have the PT value set by default,
 	   The caller of this function should have taken care of this. */
-	if (PROP_ID(ulTag) && PROP_TYPE(ulTag)) {
-		hr = lpMessage->SetProps(1, &ErrorProp, NULL);
-		if (hr != hrSuccess) {
-			cout << "Failed to fix broken property." << endl;
-			return hr;
-		}
-
-		hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
-		if (hr != hrSuccess)
-			cout << "Failed to save changes to fix broken property";
-	} else {
+	if (PROP_ID(ulTag) == 0 || PROP_TYPE(ulTag) == 0) {
 		cout << "Invalid property tag: " << stringify(ulTag, true) << endl;
-		hr = MAPI_E_INVALID_PARAMETER;
+		return MAPI_E_INVALID_PARAMETER;
 	}
+	hr = lpMessage->SetProps(1, &ErrorProp, NULL);
+	if (hr != hrSuccess) {
+		cout << "Failed to fix broken property." << endl;
+		return hr;
+	}
+	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
+	if (hr != hrSuccess)
+		cout << "Failed to save changes to fix broken property";
 	return hr;
 }
 

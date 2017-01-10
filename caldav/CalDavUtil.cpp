@@ -793,16 +793,16 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		const SPropValue *lpEntryID = nullptr;
 		if (ptrFlagList->ulFlag[cUsers] == MAPI_RESOLVED)
 			lpEntryID = PpropFindProp(lpAdrList->aEntries[cUsers].rgPropVals, lpAdrList->aEntries[cUsers].cValues, PR_ENTRYID);
-		if (lpEntryID) {
-			lpUsers[cUsers].m_cbEid = lpEntryID->Value.bin.cb;
-			hr = MAPIAllocateMore(lpEntryID->Value.bin.cb, lpUsers, (void**)&lpUsers[cUsers].m_lpEid);
-			if (hr != hrSuccess)
-				goto exit;
-			memcpy(lpUsers[cUsers].m_lpEid, lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb);
-		} else {
+		if (lpEntryID == nullptr) {
 			lpUsers[cUsers].m_cbEid = 0;
 			lpUsers[cUsers].m_lpEid = NULL;
+			continue;
 		}
+		lpUsers[cUsers].m_cbEid = lpEntryID->Value.bin.cb;
+		hr = MAPIAllocateMore(lpEntryID->Value.bin.cb, lpUsers, (void**)&lpUsers[cUsers].m_lpEid);
+		if (hr != hrSuccess)
+			goto exit;
+		memcpy(lpUsers[cUsers].m_lpEid, lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb);
 	}
 
 	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void **)&lppFBData);

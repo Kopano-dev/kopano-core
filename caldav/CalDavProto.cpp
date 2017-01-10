@@ -874,14 +874,12 @@ HRESULT CalDAV::HrHandleDelete()
 		hr = m_lpIPMSubtree->CopyFolder(sbEid.cb, (LPENTRYID)sbEid.lpb, NULL, lpWastBoxFld, (LPTSTR)wstrFldTmpName.c_str(), 0, NULL, MAPI_MOVE | MAPI_UNICODE);
 		if (hr == MAPI_E_COLLISION) {
 			// rename the folder if same folder name is present in Deleted items folder
-			if (nFldId < 1000) { // Max 999 folders
-				wstrFldTmpName = wstrFldName + std::to_wstring(nFldId);
-				++nFldId;
-			} else {
+			if (nFldId >= 1000) { // Max 999 folders
 				ec_log_err("Error Deleting Folder error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 				goto exit;
 			}
-
+			wstrFldTmpName = wstrFldName + std::to_wstring(nFldId);
+			++nFldId;
 		} else if (hr != hrSuccess ) {
 			ec_log_err("Error Deleting Folder error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
