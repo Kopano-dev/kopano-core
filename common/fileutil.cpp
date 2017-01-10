@@ -161,13 +161,12 @@ static HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize,
 		free(lpBuffer);
 		*lppBuffer = NULL;
 		*lpSize = 0;
-	} else {
-		/* Add terminate character */
-		lpBuffer[offset] = 0;
-
-		*lppBuffer = lpBuffer;
-		*lpSize = offset;
+		return hrSuccess;
 	}
+	/* Add terminate character */
+	lpBuffer[offset] = 0;
+	*lppBuffer = lpBuffer;
+	*lpSize = offset;
 	return hrSuccess;
 }
 

@@ -300,13 +300,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 					sState[ulState].ulSkipChars += sState[ulState].ulUnicodeSkip;
 				}
 				else if(strcmp(szCommand,"htmlrtf") == 0) {
-					if(lArg != 0) {
-						// \\htmlrtf
-						sState[ulState].bRTFOnly = true;
-					} else {
-						// \\htmlrtf0
-						sState[ulState].bRTFOnly = false;
-					}
+					sState[ulState].bRTFOnly = lArg != 0;
 				}else if(isRTFIgnoreCommand(szCommand)) {
 					sState[ulState].bInSkipTbl = true;
 				}
@@ -561,13 +555,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 					sState[ulState].ulSkipChars += sState[ulState].ulUnicodeSkip;
 				}
 				else if(strcmp(szCommand,"htmlrtf") == 0) {
-					if(lArg != 0) {
-						// \\htmlrtf
-						sState[ulState].bRTFOnly = true;
-					} else {
-						// \\htmlrtf0
-						sState[ulState].bRTFOnly = false;
-					}
+					sState[ulState].bRTFOnly = lArg != 0;
 				} else if(isRTFIgnoreCommand(szCommand)) {
 					sState[ulState].bInSkipTbl = true;
 				}
@@ -878,13 +866,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 					sState[ulState].ulSkipChars += sState[ulState].ulUnicodeSkip;
 				}
 				else if(strcmp(szCommand,"htmlrtf") == 0) {
-					if(lArg != 0) {
-						// \\htmlrtf
-						sState[ulState].bRTFOnly = true;
-					} else {
-						// \\htmlrtf0
-						sState[ulState].bRTFOnly = false;
-					}
+					sState[ulState].bRTFOnly = lArg != 0;
 				}
 				/*else if(strcmp(szCommand,"b") == 0) {
 				  if( lArg == -1)
@@ -1210,13 +1192,7 @@ HRESULT HrExtractBODYFromTextRTF(const std::string &lpStrRTFIn,
 					sState[ulState].ulSkipChars += sState[ulState].ulUnicodeSkip;
 				}
 				else if(strcmp(szCommand,"htmlrtf") == 0) {
-					if(lArg != 0) {
-						// \\htmlrtf
-						sState[ulState].bRTFOnly = true;
-					} else {
-						// \\htmlrtf0
-						sState[ulState].bRTFOnly = false;
-					}
+					sState[ulState].bRTFOnly = lArg != 0;
 				}
 				else if(strcmp(szCommand,"generator") == 0){
 					while (*szInput != ';' && *szInput != '}' && *szInput)
