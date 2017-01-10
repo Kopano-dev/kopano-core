@@ -203,10 +203,8 @@ ECLogger_File::~ECLogger_File() {
 	// not required at this stage but only added here for consistency
 	pthread_rwlock_rdlock(&handle_lock);
 
-	if (prevcount > 1) {
+	if (prevcount > 1)
 		fnPrintf(log, "%sPrevious message logged %d times\n", DoPrefix().c_str(), prevcount);
-	}
-
 	if (log && fnClose)
 		fnClose(log);
 

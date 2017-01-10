@@ -122,11 +122,10 @@ class BaseException extends Exception {
 	 */
 	public function _getPrevious()
 	{
-		if (version_compare(PHP_VERSION, '5.3.0', '<')) {
+		if (version_compare(PHP_VERSION, '5.3.0', '<'))
 			return $this->_previous;
-		} else {
+		else
 			return parent::getPrevious();
-		}
 	}
 
 	/**

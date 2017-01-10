@@ -190,9 +190,8 @@ namespace details {
 				// Since we don't know in what charset we are outputting, we have to send
 				// the entity through iconv so that it can convert it to the target charset.
 				err = iconv(m_cd, ICONV_HACK(&lpEntity), &cbEntity, &lpDst, &cbDst);
-				if (err == (size_t)(-1)) {
+				if (err == static_cast<size_t>(-1))
 					assert(false); // This will should never fail
-				}
 				lpSrc += sizeof(wchar_t);
 				cbSrc -= sizeof(wchar_t);
 			} else if (m_bForce) {

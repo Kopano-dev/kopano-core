@@ -192,11 +192,10 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		goto exit;
 	}
 
-	if (strcmp(lpConfig->GetSetting("ssl_verify_client"), "yes") == 0) {
+	if (strcmp(lpConfig->GetSetting("ssl_verify_client"), "yes") == 0)
 		SSL_CTX_set_verify(lpCTX, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, 0);
-	} else {
+	else
 		SSL_CTX_set_verify(lpCTX, SSL_VERIFY_NONE, 0);
-	}
 
 	if (lpConfig->GetSetting("ssl_verify_file")[0])
 		szFile = lpConfig->GetSetting("ssl_verify_file");

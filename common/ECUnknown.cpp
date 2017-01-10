@@ -34,10 +34,9 @@ ECUnknown::ECUnknown(const char *szClassName)
 
 ECUnknown::~ECUnknown()
 {
-	if(this->lpParent) {
+	if (this->lpParent != nullptr)
 		assert(false);	// apparently, we're being destructed with delete() while
 						// a parent was set up, so we should be deleted via Suicide() !
-	}
 }
 
 ULONG ECUnknown::AddRef() {

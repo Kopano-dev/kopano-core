@@ -3190,11 +3190,10 @@ ZEND_FUNCTION(mapi_attach_openobj)
 
 	MAPI_G(hr) = pAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, ulFlags, (LPUNKNOWN *) &lpMessage);
 
-	if (FAILED(MAPI_G(hr))) {
+	if (FAILED(MAPI_G(hr)))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Fetching attachmentdata as object failed");
-	} else {
+	else
 		UOBJ_REGISTER_RESOURCE(return_value, lpMessage, le_mapi_message);
-	}
 
 	LOG_END();
 	THROW_ON_ERROR();
@@ -3498,11 +3497,10 @@ ZEND_FUNCTION(mapi_savechanges)
 
 	MAPI_G(hr) = lpMapiProp->SaveChanges(flags);
 
-	if (FAILED(MAPI_G(hr))) {
+	if (FAILED(MAPI_G(hr)))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to save the object %08X", MAPI_G(hr));
-	} else {
+	else
 		RETVAL_TRUE;
-	}
 
 exit:
 	LOG_END();

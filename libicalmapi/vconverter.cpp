@@ -722,14 +722,14 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 	if (lpicProp) {
 		lPriority = icalproperty_get_priority(lpicProp);
 		// @todo: test input and output!
-		if (lPriority == 0) {
-		} else if (lPriority < 5) {
+		if (lPriority == 0)
+			;
+		else if (lPriority < 5)
 			lPriority = 1;
-		} else if (lPriority > 5) {
+		else if (lPriority > 5)
 			lPriority = -1;
-		} else {
+		else
 			lPriority = 0;
-		}
 		
 		sPropVal.ulPropTag = PR_IMPORTANCE;
 		sPropVal.Value.ul = lPriority + 1;

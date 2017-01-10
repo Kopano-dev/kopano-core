@@ -176,15 +176,14 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 		}
 
 		if (!ptrArchiveMsg) {
-			if (ulState & MessageState::msStubbed) {
+			if (ulState & MessageState::msStubbed)
 				return MAPI_E_NOT_FOUND;
-			} else {
+			else
 				/*
 				 * We were unable to open any archived message, but the message is
 				 * not stubbed anyway. Just mark it as a copy.
 				 */
 				ulState |= MessageState::msCopy;
-			}
 		} else {
 			hr = MAPIPropHelper::Create(ptrArchiveMsg.as<MAPIPropPtr>(), &ptrArchiveHelper);
 			if (hr != hrSuccess)
