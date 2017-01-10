@@ -19,7 +19,7 @@
 %typemap(in) (const void *pv, ULONG cb) (int res, char *buf = 0, Py_ssize_t size, int alloc = 0)
 {
   if(PyBytes_AsStringAndSize($input, &buf, &size) == -1)
-    %argument_fail(res,"$type",$symname, $argnum);
+    %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
 
   $1 = %reinterpret_cast(buf, $1_ltype);
   $2 = %numeric_cast(size, $2_ltype);
@@ -106,7 +106,7 @@
     $2 = NULL;
   } else {
     if(PyBytes_AsStringAndSize($input, &buf, (Py_ssize_t *)&size) == -1) {
-      %argument_fail(res,"$type",$symname, $argnum);
+      %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
     }
     $1 = %numeric_cast(size, $1_ltype);
     $2 = %reinterpret_cast(buf, $2_ltype);
@@ -188,7 +188,7 @@
     $1 = 0;
   else {
     if(PyBytes_AsStringAndSize($input, &buf, (Py_ssize_t *)&size) == -1 || size != sizeof(MAPIUID)) {
-      %argument_fail(res,"$type",$symname, $argnum);
+      %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
     }
     $1 = %reinterpret_cast(buf, $1_ltype);
   }
@@ -200,7 +200,7 @@
       $1 = 0;
   else {
       if(!(buf = PyBytes_AsString($input))) {
-        %argument_fail(res, "$type", $symname, $argnum);
+        %argument_fail(SWIG_ERROR, "$type", $symname, $argnum);
       }
       $1 = %reinterpret_cast(buf, $1_ltype);
   }
