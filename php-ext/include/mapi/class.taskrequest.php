@@ -175,36 +175,30 @@
 
 			// Find the task by looking for the taskglobalobjid
 			$restriction = array(RES_PROPERTY, array(RELOP => RELOP_EQ, ULPROPTAG => $this->props['taskglobalobjid'], VALUE => $globalobjid));
-			
 			$contents = mapi_folder_getcontentstable($tfolder);
-			
 			$rows = mapi_table_queryallrows($contents, array(PR_ENTRYID), $restriction);
-			
-			if(empty($rows)) {
-				// None found, create one if possible
-				if(!$create)
-					return false;
-					
-				$task = mapi_folder_createmessage($tfolder);
-				
-				$sub = $this->getEmbeddedTask($this->message);
-				mapi_copyto($sub, array(), array(), $task);
-				
-				// Copy sender information from the e-mail
-				$senderprops = mapi_getprops($this->message, array(PR_SENT_REPRESENTING_NAME, PR_SENT_REPRESENTING_EMAIL_ADDRESS, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_ADDRTYPE, PR_SENT_REPRESENTING_SEARCH_KEY));
-				mapi_setprops($task, $senderprops);
-
-				$senderprops = mapi_getprops($this->message, array(PR_SENDER_NAME, PR_SENDER_EMAIL_ADDRESS, PR_SENDER_ENTRYID, PR_SENDER_ADDRTYPE, PR_SENDER_SEARCH_KEY));
-				mapi_setprops($task, $senderprops);
-				
-			} else {
+			if (!empty($rows)) {
 				// If there are multiple, just use the first
 				$entryid = $rows[0][PR_ENTRYID];
 
-				$store = $this->getTaskFolderStore(); 
-				$task = mapi_msgstore_openentry($store, $entryid);
+				$store = $this->getTaskFolderStore();
+				return mapi_msgstore_openentry($store, $entryid);
 			}
+			// None found, create one if possible
+			if(!$create)
+				return false;
+				
+			$task = mapi_folder_createmessage($tfolder);
 			
+			$sub = $this->getEmbeddedTask($this->message);
+			mapi_copyto($sub, array(), array(), $task);
+			
+			// Copy sender information from the e-mail
+			$senderprops = mapi_getprops($this->message, array(PR_SENT_REPRESENTING_NAME, PR_SENT_REPRESENTING_EMAIL_ADDRESS, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_ADDRTYPE, PR_SENT_REPRESENTING_SEARCH_KEY));
+			mapi_setprops($task, $senderprops);
+
+			$senderprops = mapi_getprops($this->message, array(PR_SENDER_NAME, PR_SENDER_EMAIL_ADDRESS, PR_SENDER_ENTRYID, PR_SENDER_ADDRTYPE, PR_SENDER_SEARCH_KEY));
+			mapi_setprops($task, $senderprops);
 			return $task;
 		}
 
@@ -505,25 +499,21 @@
 			$rcvdprops = mapi_getprops($this->message, array(PR_RCVD_REPRESENTING_ENTRYID));
 			if (isset($rcvdprops[PR_RCVD_REPRESENTING_ENTRYID]))
 				$ownerentryid = $rcvdprops;
+			if (!$ownerentryid)
+				return $this->store;
+			$ab = mapi_openaddressbook($session);
+			if (!$ab)
+				return false;
 			
-			if(!$ownerentryid) {
-				$store = $this->store;
-			} else {
-				$ab = mapi_openaddressbook($session);
-				if(!$ab) return false;
-				
-				$mailuser = mapi_ab_openentry($ab, $ownerentryid);
-				if(!$mailuser) return false;
-				
-				$mailuserprops = mapi_getprops($mailuser, array(PR_EMAIL_ADDRESS));
-				if(!isset($mailuserprops[PR_EMAIL_ADDRESS])) return false;
-				
-				$storeid = mapi_msgstore_createentryid($this->store, $mailuserprops[PR_EMAIL_ADDRESS]);
-				
-				$store = mapi_openmsgstore($this->session, $storeid);
-				
-			}
-			return $store;
+			$mailuser = mapi_ab_openentry($ab, $ownerentryid);
+			if (!$mailuser)
+				return false;
+			$mailuserprops = mapi_getprops($mailuser, array(PR_EMAIL_ADDRESS));
+			if (!isset($mailuserprops[PR_EMAIL_ADDRESS]))
+				return false;
+			
+			$storeid = mapi_msgstore_createentryid($this->store, $mailuserprops[PR_EMAIL_ADDRESS]);
+			return mapi_openmsgstore($this->session, $storeid);
 		}
 			
 		/* Open the default task folder for the current user, or the specified user if passed

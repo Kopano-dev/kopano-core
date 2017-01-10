@@ -6049,27 +6049,21 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		data = HASH_OF(entry);
 		zend_hash_internal_pointer_reset(data);
 
-		if ((value = zend_hash_find(data, str_userid)) != NULL) {
-		    convert_to_string_ex(value);
-			lpECPerms[j].sUserId.cb = Z_STRLEN_P(value);
-			lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_P(value);
-		} else {
+		if ((value = zend_hash_find(data, str_userid)) == nullptr)
 			continue;
-		}
+		convert_to_string_ex(value);
+		lpECPerms[j].sUserId.cb = Z_STRLEN_P(value);
+		lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_P(value);
 
-		if ((value = zend_hash_find(data, str_type)) != NULL) {
-		    convert_to_long_ex(value);
-			lpECPerms[j].ulType = Z_LVAL_P(value);
-		} else {
+		if ((value = zend_hash_find(data, str_type)) == nullptr)
 			continue;
-		}
+		convert_to_long_ex(value);
+		lpECPerms[j].ulType = Z_LVAL_P(value);
 
-		if ((value = zend_hash_find(data, str_rights)) != NULL) {
-		    convert_to_long_ex(value);
-			lpECPerms[j].ulRights = Z_LVAL_P(value);
-		} else {
+		if ((value = zend_hash_find(data, str_rights)) == nullptr)
 			continue;
-		}
+		convert_to_long_ex(value);
+		lpECPerms[j].ulRights = Z_LVAL_P(value);
 
 		if ((value = zend_hash_find(data, str_state)) != NULL) {
 		    convert_to_long_ex(value);

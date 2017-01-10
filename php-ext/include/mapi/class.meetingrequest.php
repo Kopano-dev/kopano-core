@@ -396,12 +396,10 @@ class Meetingrequest {
 			mapi_message_savechanges($calendaritem);
 
 			$attach = $recurr->getExceptionAttachment($basedate);
-			if ($attach) {
-				$recurringItem = $calendaritem;
-				$calendaritem = mapi_attach_openobj($attach, MAPI_MODIFY);
-			} else {
-				return false;
-			}
+			if (!$attach)
+				return $false;
+			$recurringItem = $calendaritem;
+			$calendaritem = mapi_attach_openobj($attach, MAPI_MODIFY);
 		}
 	
 		// Get the recipients of the calendar item
@@ -646,10 +644,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			if(isset($messageprops[PR_PROCESSED]) && $messageprops[PR_PROCESSED] == true) {
 				// if meeting request is already processed then don't do anything
 				return false;
-			} else {
-				mapi_setprops($this->message, Array(PR_PROCESSED => true));
-				mapi_message_savechanges($this->message);
 			}
+			mapi_setprops($this->message, Array(PR_PROCESSED => true));
+			mapi_message_savechanges($this->message);
 		}
 
 		// If this meeting request is received by a delegate then open delegator's store.
@@ -1267,11 +1264,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 					foreach($exceptions as $exceptionBasedate) {
 						$attach = $recurr->getExceptionAttachment($exceptionBasedate);
 
-						if ($attach) {
-							$occurrenceItem = mapi_attach_openobj($attach, MAPI_MODIFY);
-							$this->submitMeetingRequest($occurrenceItem, $cancel, false, $exceptionBasedate, $recurr, false, $deletedRecips);
-							mapi_savechanges($attach);
-						}
+						if (!$attach)
+							continue;
+						$occurrenceItem = mapi_attach_openobj($attach, MAPI_MODIFY);
+						$this->submitMeetingRequest($occurrenceItem, $cancel, false, $exceptionBasedate, $recurr, false, $deletedRecips);
+						mapi_savechanges($attach);
 					}
 				}
 			}
@@ -1366,14 +1363,14 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 		if(!isset($messageprops[$this->proptags['last_updatecounter']]) || !isset($messageprops[$this->proptags['goid']])) {
 			$this->setMeetingRequest($basedate);
-		} else {
-			$counter = $messageprops[$this->proptags['last_updatecounter']] + 1;
-
-			// increment value of last_updatecounter, last_updatecounter will be common for recurring series
-			// so even if you sending an exception only you need to update the last_updatecounter in the recurring series message
-			// this way we can make sure that everytime we will be using a uniwue number for every operation
-			mapi_setprops($this->message, Array($this->proptags['last_updatecounter'] => $counter));
+			return;
 		}
+		$counter = $messageprops[$this->proptags['last_updatecounter']] + 1;
+
+		// increment value of last_updatecounter, last_updatecounter will be common for recurring series
+		// so even if you sending an exception only you need to update the last_updatecounter in the recurring series message
+		// this way we can make sure that everytime we will be using a uniwue number for every operation
+		mapi_setprops($this->message, Array($this->proptags['last_updatecounter'] => $counter));
 	}
 	
 	/**
@@ -2761,26 +2758,22 @@ If it is the first time this attendee has proposed a new date/time, increment th
 							mapi_savechanges($this->message);
 							$result = true;
 						}
-					} else {
+					} else if ((isset($calendarItemProps[$this->proptags['updatecounter']]) && $props[$this->proptags['updatecounter']] < $calendarItemProps[$this->proptags['updatecounter']]) ||
+					    (isset($calendarItemProps[$this->proptags['owner_critical_change']]) && $props[$this->proptags['owner_critical_change']] < $calendarItemProps[$this->proptags['owner_critical_change']])) {
 						// we are not able to find exception, could mean that a significant change has occurred on series
 						// and it deleted all exceptions, so compare with series
-						if ((isset($calendarItemProps[$this->proptags['updatecounter']]) && $props[$this->proptags['updatecounter']] < $calendarItemProps[$this->proptags['updatecounter']]) 
-							|| (isset($calendarItemProps[$this->proptags['owner_critical_change']]) && $props[$this->proptags['owner_critical_change']] < $calendarItemProps[$this->proptags['owner_critical_change']])) {
-
-							mapi_setprops($this->message, array($this->proptags['meetingtype'] => mtgOutOfDate, PR_ICON_INDEX => 1033));
-							mapi_savechanges($this->message);
-							$result = true;
-						}
-					}
-				} else {
-					// normal / recurring series
-					if ((isset($calendarItemProps[$this->proptags['updatecounter']]) && $props[$this->proptags['updatecounter']] < $calendarItemProps[$this->proptags['updatecounter']]) 
-							|| (isset($calendarItemProps[$this->proptags['owner_critical_change']]) && $props[$this->proptags['owner_critical_change']] < $calendarItemProps[$this->proptags['owner_critical_change']])) {
 
 						mapi_setprops($this->message, array($this->proptags['meetingtype'] => mtgOutOfDate, PR_ICON_INDEX => 1033));
 						mapi_savechanges($this->message);
 						$result = true;
 					}
+				} else if ((isset($calendarItemProps[$this->proptags['updatecounter']]) && $props[$this->proptags['updatecounter']] < $calendarItemProps[$this->proptags['updatecounter']]) ||
+				    (isset($calendarItemProps[$this->proptags['owner_critical_change']]) && $props[$this->proptags['owner_critical_change']] < $calendarItemProps[$this->proptags['owner_critical_change']])) {
+					// normal / recurring series
+
+					mapi_setprops($this->message, array($this->proptags['meetingtype'] => mtgOutOfDate, PR_ICON_INDEX => 1033));
+					mapi_savechanges($this->message);
+					$result = true;
 				}
 			}
 		}
@@ -2965,20 +2958,19 @@ If it is the first time this attendee has proposed a new date/time, increment th
 					$calendarItems = $recurr->getCalendarItems($userStore, $calFolder, $item[$this->proptags['startdate']], $item[$this->proptags['duedate']], array($this->proptags['goid'], $this->proptags['busystatus'], PR_OWNER_APPT_ID));
 
 					foreach ($calendarItems as $calendarItem) {
-						if ($calendarItem[$this->proptags['busystatus']] != fbFree) {
-							/**
-							 * Only meeting requests have globalID, normal appointments do not have globalID
-							 * so if any normal appointment if found then it is assumed to be conflict.
-							 */
-							if(isset($calendarItem[$this->proptags['goid']])) {
-								if ($calendarItem[$this->proptags['goid']] !== $msgprops[$this->proptags['goid']]) {
-									$noOfInstances++;
-									break;
-								}
-							} else {
-								$noOfInstances++;
-								break;
-							}
+						if ($calendarItem[$this->proptags['busystatus']] == fbFree)
+							continue;
+						/**
+						 * Only meeting requests have globalID, normal appointments do not have globalID
+						 * so if any normal appointment if found then it is assumed to be conflict.
+						 */
+						if (!isset($calendarItem[$this->proptags['goid']])) {
+							$noOfInstances++;
+							break;
+						}
+						if ($calendarItem[$this->proptags['goid']] !== $msgprops[$this->proptags['goid']]) {
+							$noOfInstances++;
+							break;
 						}
 					}
 				}
@@ -2989,17 +2981,16 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				$items = getCalendarItems($userStore, $calFolder, $msgprops[$this->proptags['startdate']], $msgprops[$this->proptags['duedate']], array($this->proptags['goid'], $this->proptags['busystatus'], PR_OWNER_APPT_ID));
 
 				foreach($items as $item) {
-					if ($item[$this->proptags['busystatus']] != fbFree) {
-						if(isset($item[$this->proptags['goid']])) {
-							if (($item[$this->proptags['goid']] !== $msgprops[$this->proptags['goid']])
-								&& ($item[$this->proptags['goid']] !== $msgprops[$this->proptags['goid2']])) { 
-								$conflicting = true;
-								break;
-							}
-						} else {
-							$conflicting = true;
-							break;
-						}
+					if ($item[$this->proptags['busystatus']] == fbFree)
+						continue;
+					if (!isset($item[$this->proptags['goid']])) {
+						$conflicting = true;
+						break;
+					}
+					if (($item[$this->proptags['goid']] !== $msgprops[$this->proptags['goid']])
+						&& ($item[$this->proptags['goid']] !== $msgprops[$this->proptags['goid2']])) {
+						$conflicting = true;
+						break;
 					}
 				}
 
