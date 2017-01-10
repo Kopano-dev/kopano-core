@@ -84,11 +84,8 @@ ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *
 , m_lpConfig(lpConfig)
 , m_lpLogger(new ECArchiverLogger(lpLogger))
 , m_cleanupAction(caStore)
-, m_bCleanupFollowPurgeAfter(false)
 , m_bForceCleanup(bForceCleanup), __propmap(5)
 {
-	m_ftCurrent.dwLowDateTime = 0;
-	m_ftCurrent.dwHighDateTime = 0;
 }
 
 ArchiveControlImpl::~ArchiveControlImpl()

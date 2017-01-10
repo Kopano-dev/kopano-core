@@ -40,6 +40,12 @@ typedef unsigned long *	DB_LENGTHS;
 // The max length of a group_concat function
 #define MAX_GROUP_CONCAT_LEN		32768
 
+enum {
+	// The maximum packet size. This is automatically also the maximum
+	// size of a single entry in the database.
+	KC_DFL_MAX_PACKET_SIZE = 16777216,
+};
+
 struct sKCMSQLDatabase_t {
 	const char *lpComment;
 	const char *lpSQL;
@@ -98,13 +104,11 @@ private:
 	bool isConnected();
 
 private:
-	bool				m_bMysqlInitialize;
-	bool				m_bConnected;
+	bool m_bMysqlInitialize = false, m_bConnected = false;
+	bool m_bAutoLock = true, m_bLocked = false;
+	unsigned int m_ulMaxAllowedPacket = KC_DFL_MAX_PACKET_SIZE;
 	MYSQL				m_lpMySQL;
 	std::recursive_mutex m_hMutexMySql;
-	bool				m_bAutoLock;
-	unsigned int 		m_ulMaxAllowedPacket;
-	bool				m_bLocked;
 };
 
 } /* namespace */

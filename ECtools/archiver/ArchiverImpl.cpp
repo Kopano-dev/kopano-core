@@ -30,14 +30,6 @@
 
 namespace KC {
 
-ArchiverImpl::ArchiverImpl()
-: m_lpsConfig(NULL)
-, m_lpLogger(NULL)
-, m_lpLogLogger(NULL)
-, m_lpDefaults(NULL)
-{
-}
-
 ArchiverImpl::~ArchiverImpl()
 {
 	if (m_lpLogger)

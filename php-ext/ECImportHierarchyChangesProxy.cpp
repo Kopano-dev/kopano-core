@@ -63,9 +63,9 @@ extern "C" {
 #include "ECImportHierarchyChangesProxy.h"
 #include "typeconversion.h"
 
-ECImportHierarchyChangesProxy::ECImportHierarchyChangesProxy(zval *lpObj TSRMLS_DC) {
-    this->m_cRef = 1; // Object is in use when created!
-    this->m_lpObj = lpObj;
+ECImportHierarchyChangesProxy::ECImportHierarchyChangesProxy(zval *lpObj TSRMLS_DC) :
+	m_cRef(1), m_lpObj(lpObj)
+{
 #if ZEND_MODULE_API_NO >= 20071006
     Z_ADDREF_P(m_lpObj);
 #else
