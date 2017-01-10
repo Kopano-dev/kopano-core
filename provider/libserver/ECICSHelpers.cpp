@@ -556,20 +556,14 @@ ECRESULT ECGetContentChangesHelper::Create(struct soap *soap, ECSession *lpSessi
 	return erSuccess;
 }
 
-ECGetContentChangesHelper::ECGetContentChangesHelper(struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulFlags, struct restrictTable *lpsRestrict)
-	: m_lpQueryCreator(NULL)
-	, m_lpMsgProcessor(NULL)
-	, m_soap(soap)
-	, m_lpSession(lpSession)
-	, m_lpDatabase(lpDatabase)
-	, m_lpsRestrict(lpsRestrict)
-	, m_lpChanges(NULL)
-	, m_sFolderSourceKey(sFolderSourceKey)
-	, m_ulSyncId(ulSyncId)
-	, m_ulChangeId(ulChangeId)
-	, m_ulChangeCnt(0)
-	, m_ulMaxFolderChange(0)
-	, m_ulFlags(ulFlags)
+ECGetContentChangesHelper::ECGetContentChangesHelper(struct soap *soap,
+    ECSession *lpSession, ECDatabase *lpDatabase,
+    const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId,
+    unsigned int ulChangeId, unsigned int ulFlags,
+    struct restrictTable *lpsRestrict) :
+	m_soap(soap), m_lpSession(lpSession), m_lpDatabase(lpDatabase),
+	m_lpsRestrict(lpsRestrict), m_sFolderSourceKey(sFolderSourceKey),
+	m_ulSyncId(ulSyncId), m_ulChangeId(ulChangeId), m_ulFlags(ulFlags)
 { }
 
 ECRESULT ECGetContentChangesHelper::Init()

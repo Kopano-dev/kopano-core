@@ -61,11 +61,8 @@ void (*kopano_notify_done)(struct soap *) = [](struct soap *) {};
 
 ECNotificationManager::ECNotificationManager(void)
 {
-    m_bExit = false;
     pthread_create(&m_thread, NULL, Thread, this);
     set_thread_name(m_thread, "NotificationManager");
-
-    m_ulTimeout = 60; // Currently hardcoded at 60s, see comment in Work()    
 }
 
 ECNotificationManager::~ECNotificationManager()

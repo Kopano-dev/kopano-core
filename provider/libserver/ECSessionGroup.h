@@ -136,22 +136,22 @@ private:
 
 	/* Notifications */
 	ECNOTIFICATIONLIST m_listNotification;
-	double				m_dblLastQueryTime;
+	double m_dblLastQueryTime = 0;
 
 	/* Notifications lock/event */
 	std::mutex m_hNotificationLock;
 	std::condition_variable m_hNewNotificationEvent;
-	ECSESSIONID			m_getNotifySession;
+	ECSESSIONID m_getNotifySession = 0;
 
 	/* Thread safety mutex/event */
-	unsigned int		m_ulRefCount;
+	unsigned int m_ulRefCount = 0;
 	std::mutex m_hThreadReleasedMutex;
 	std::condition_variable m_hThreadReleased;
 
 	/* Set to TRUE if no more GetNextNotifyItems() should be done on this group since the main
 	 * session has exited
 	 */
-	bool				m_bExit;
+	bool m_bExit = false;
 	
 	/* Reference to the session manager needed to notify changes in our queue */
 	ECSessionManager *	m_lpSessionManager;

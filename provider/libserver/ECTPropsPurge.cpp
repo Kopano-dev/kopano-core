@@ -32,12 +32,10 @@ namespace KC {
 
 extern ECStatsCollector*     g_lpStatsCollector;
 
-ECTPropsPurge::ECTPropsPurge(ECConfig *lpConfig, ECDatabaseFactory *lpDatabaseFactory)
+ECTPropsPurge::ECTPropsPurge(ECConfig *lpConfig,
+    ECDatabaseFactory *lpDatabaseFactory) :
+	m_lpConfig(lpConfig), m_lpDatabaseFactory(lpDatabaseFactory)
 {
-    m_lpConfig = lpConfig;
-    m_lpDatabaseFactory = lpDatabaseFactory;
-    m_bExit = false;
-    
     // Start our purge thread
     pthread_create(&m_hThread, NULL, Thread, (void *)this);
     set_thread_name(m_hThread, "TPropsPurge");

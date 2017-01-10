@@ -38,13 +38,12 @@ public:
 	void		SignalPlugins(int signal);
 
 private:
-	UserPlugin* (*m_getUserPluginInstance)(std::mutex &, ECPluginSharedData*);
-	void (*m_deleteUserPluginInstance)(UserPlugin*);
-
+	UserPlugin *(*m_getUserPluginInstance)(std::mutex &, ECPluginSharedData *) = nullptr;
+	void (*m_deleteUserPluginInstance)(UserPlugin *) = nullptr;
 	ECPluginSharedData *m_shareddata;
 	ECConfig *m_config;
 	std::mutex m_plugin_lock;
-	DLIB m_dl;
+	DLIB m_dl = nullptr;
 };
 
 extern ECRESULT GetThreadLocalPlugin(ECPluginFactory *lpPluginFactory, UserPlugin **lppPlugin);

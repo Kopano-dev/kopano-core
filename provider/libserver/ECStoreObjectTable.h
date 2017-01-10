@@ -78,9 +78,8 @@ private:
 	virtual ECRESULT ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag);
 	virtual ECRESULT CheckPermissions(unsigned int ulObjId);
 
-	unsigned int ulPermission;
-	bool		 fPermissionRead;
-
+	unsigned int ulPermission = 0;
+	bool fPermissionRead = false;
 };
 
 ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId, std::list<unsigned int> *lpDeferred);

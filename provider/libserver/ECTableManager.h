@@ -96,7 +96,7 @@ private:
 
 	ECSession								*lpSession;
 	TABLEENTRYMAP							mapTable;
-	unsigned int							ulNextTableId;
+	unsigned int ulNextTableId = 1;
 	std::recursive_mutex hListMutex;
 };
 

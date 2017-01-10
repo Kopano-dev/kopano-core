@@ -44,18 +44,14 @@ using namespace KCHL;
 namespace KC {
 
 ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
-    bool bHostedKopano, bool bDistributedKopano)
+    bool bHostedKopano, bool bDistributedKopano) :
+	m_lpConfig(lpConfig), m_lpAudit(lpAudit),
+	m_bHostedKopano(bHostedKopano),
+	m_bDistributedKopano(bDistributedKopano)
 {
 	int err = 0;
-
-	bExit					= FALSE;
-	m_lpConfig				= lpConfig;
-	m_lpAudit				= lpAudit;
 	if (m_lpAudit)
 		m_lpAudit->AddRef();
-	m_bHostedKopano			= bHostedKopano;
-	m_bDistributedKopano	= bDistributedKopano;
-	m_lpDatabase			= NULL;
 
 	// Create a rwlock with no initial owner.
 	pthread_rwlock_init(&m_hCacheRWLock, NULL);
@@ -67,13 +63,6 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	m_lpTPropsPurge = new ECTPropsPurge(lpConfig, m_lpDatabaseFactory);
 	m_ptrLockManager = ECLockManager::Create();
 	
-	m_lpServerGuid = NULL;
-	m_ullSourceKeyAutoIncrement = 0;
-	m_ulSourceKeyQueue = 0;
-
-	m_ulSeqIMAP = 0;
-	m_ulSeqIMAPQueue = 0;
-
 	// init SSL randomness for session IDs
 	ssl_random_init();
 

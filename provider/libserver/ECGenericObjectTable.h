@@ -84,10 +84,7 @@ public:
     unsigned int m_ulDepth;
     unsigned int m_ulCategory;
     bool m_fExpanded;
-    
-    unsigned int m_ulUnread;
-    unsigned int m_ulLeafs;
-
+	unsigned int m_ulUnread = 0, m_ulLeafs = 0;
 	const ECLocale& m_locale;
 
 	std::map<sObjectTableKey, struct propVal *> m_mapMinMax;
@@ -218,22 +215,22 @@ protected:
 	// Constants
 	ECSession*					lpSession;
 	ECKeyTable*					lpKeyTable;
-	unsigned int				m_ulTableId;	// Id of the table from ECTableManager
-	void*						m_lpObjectData;
+	unsigned int m_ulTableId = -1; /* id of the table from ECTableManager */
+	void *m_lpObjectData = nullptr;
 
 	std::recursive_mutex m_hLock; /* Lock for locked internals */
 
 	// Locked internals
-	struct sortOrderArray*		lpsSortOrderArray;	// Stored sort order
-	struct propTagArray*		lpsPropTagArray;	// Stored column set
-	struct restrictTable*		lpsRestrict;		// Stored restriction
+	struct sortOrderArray *lpsSortOrderArray = nullptr; /* Stored sort order */
+	struct propTagArray *lpsPropTagArray = nullptr; /* Stored column set */
+	struct restrictTable *lpsRestrict = nullptr; /* Stored restriction */
 	ECObjectTableMap			mapObjects;			// Map of all objects in this table
 	ECListInt					m_listMVSortCols;	// List of MV sort columns
-	bool						m_bMVCols;			// Are there MV props in the column list
-	bool						m_bMVSort;			// Are there MV props in the sort order
+	bool m_bMVCols = false; /* Are there MV props in the column list */
+	bool m_bMVSort = false; /* Are there MV props in the sort order */
 	unsigned int				m_ulObjType;
 	unsigned int				m_ulFlags;			//< flags from client
-	QueryRowDataCallBack		m_lpfnQueryRowData;
+	QueryRowDataCallBack m_lpfnQueryRowData = nullptr;
 	
 protected:
 	virtual ECRESULT			AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bInitialLoad, bool bOverride, struct restrictTable *lpOverrideRestrict);
@@ -243,11 +240,9 @@ protected:
 	ECCategoryMap				m_mapCategories;	// Map between instance key of category and category struct
 	ECSortedCategoryMap			m_mapSortedCategories; // Map between category sort keys and instance key. This is where we track which categories we have
 	ECLeafMap					m_mapLeafs;			// Map between object instance key and LEAFINFO (contains unread flag and category pointer)
-	unsigned int				m_ulCategory;
-	unsigned int				m_ulCategories;
-	unsigned int				m_ulExpanded;
-	bool						m_bPopulated;
-	
+	unsigned int m_ulCategory = 1, m_ulCategories = 0;
+	unsigned int m_ulExpanded = 0;
+	bool m_bPopulated = false;
 	ECLocale					m_locale;
 };
 
