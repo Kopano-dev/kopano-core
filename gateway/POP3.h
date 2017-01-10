@@ -84,10 +84,10 @@ private:
 	std::string DotFilter(const char *input);
 	BOOL IsAuthorized() { return !!lpStore; }
 
-	IMAPISession	*lpSession;
-	IMsgStore		*lpStore;
-	IMAPIFolder		*lpInbox;
-	IAddrBook		*lpAddrBook;
+	IMAPISession *lpSession = nullptr;
+	IMsgStore *lpStore = nullptr;
+	IMAPIFolder *lpInbox = nullptr;
+	IAddrBook *lpAddrBook = nullptr;
 	sending_options sopt;
 
 	std::string szUser;

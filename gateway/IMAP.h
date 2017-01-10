@@ -255,44 +255,41 @@ private:
 		}
 	};
 
-	IMAPISession *lpSession;
-	IAddrBook *lpAddrBook;
+	IMAPISession *lpSession = nullptr;
+	IAddrBook *lpAddrBook = nullptr;
 	KCHL::memory_ptr<SPropTagArray> m_lpsIMAPTags;
 
 	// current folder name
 	wstring strCurrentFolder;
-	IMAPITable* m_lpTable;		/* current contents table */
+	IMAPITable *m_lpTable = nullptr; /* current contents table */
 	vector<string> m_vTableDataColumns; /* current dataitems that caused the setcolumns on the table */
 
 	// true if folder is opened with examine
-	bool bCurrentFolderReadOnly;
+	bool bCurrentFolderReadOnly = false;
 
 	// vector of mails in the current folder. The index is used for mail number.
 	vector<SMail> lstFolderMailEIDs;
-	IMsgStore *lpStore;
-	IMsgStore *lpPublicStore;
+	IMsgStore *lpStore = nullptr, *lpPublicStore = nullptr;
 
 	// special folder entryids (not able to move/delete inbox and such ...)
 	set<BinaryArray, lessBinaryArray> lstSpecialEntryIDs;
 
 	// Message cache
 	string m_strCache;
-	ULONG m_ulCacheUID;
+	ULONG m_ulCacheUID = 0;
 
 	// HrResponseContinuation state, used for HrCmdAuthenticate
-	bool m_bContinue;
+	bool m_bContinue = false;
 	string m_strContinueTag;
 	
 	// Idle mode variables
-	bool m_bIdleMode;
-	IMAPIAdviseSink *m_lpIdleAdviseSink;
-	ULONG m_ulIdleAdviseConnection;
+	bool m_bIdleMode = false;
+	IMAPIAdviseSink *m_lpIdleAdviseSink = nullptr;
+	ULONG m_ulIdleAdviseConnection = 0;
 	string m_strIdleTag;
-	IMAPITable *m_lpIdleTable;
+	IMAPITable *m_lpIdleTable = nullptr;
 	std::mutex m_mIdleLock;
-	ULONG m_ulLastUid;
-	ULONG m_ulErrors;
-
+	ULONG m_ulLastUid = 0, m_ulErrors = 0;
 	wstring m_strwUsername;
 
 	delivery_options dopt;

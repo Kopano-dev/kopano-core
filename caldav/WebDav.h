@@ -135,7 +135,7 @@ protected:
 	virtual HRESULT HrHandleDelete() = 0;
 
 private:
-	xmlDoc *m_lpXmlDoc;
+	xmlDoc *m_lpXmlDoc = nullptr;
 	std::map <std::string,std::string> m_mapNs;
 
 	HRESULT HrParseXml();
