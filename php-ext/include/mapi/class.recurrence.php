@@ -591,7 +591,6 @@
 						$pattern = sprintf(dgettext("kopano","Occurs every %s effective %s until %s from %s to %s."), $type, $start, $end, $startocc, $endocc);
 					else
 						$pattern = sprintf(dgettext("kopano","Occurs every %s %s effective %s until %s from %s to %s."), $everyn, $type, $start, $end, $startocc, $endocc);
-					}
 				} else {
 					if ($occSingleDayRank)
 						$pattern = sprintf(dgettext("kopano","Occurs every %s effective %s until %s."), $type, $start, $end);
