@@ -80,7 +80,7 @@ private:
 
 	ECProperty		*lpProperty;
 	ULONG			ulPropTag;
-	BOOL			fDirty;
+	BOOL fDirty = true;
 };
 
 #endif

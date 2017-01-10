@@ -39,23 +39,9 @@ ECGenericProp::ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
     const char *szClassName) :
 	ECUnknown(szClassName)
 {
-	this->lstProps		= NULL;
-	this->lpStorage		= NULL;
-	this->fSaved		= false; // not saved until we either read or write from/to disk
 	this->ulObjType		= ulObjType;
 	this->fModify		= fModify;
-	this->dwLastError	= hrSuccess;
 	this->lpProvider	= lpProvider;
-	this->isTransactedObject = TRUE; // only ECMsgStore and ECMAPIFolder are not transacted
-	this->ulObjFlags	= 0;
-	this->m_sMapiObject = NULL;
-	this->m_ulMaxPropSize = 8192;
-
-	m_lpEntryId = NULL;
-	m_cbEntryId = 0;
-	m_bReload = FALSE;
-	m_bLoading = FALSE;
-
 	this->HrAddPropHandlers(PR_EC_OBJECT,				DefaultGetProp,			DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 	this->HrAddPropHandlers(PR_NULL,					DefaultGetProp,			DefaultSetPropIgnore,	(void*) this, FALSE, TRUE);
 	this->HrAddPropHandlers(PR_OBJECT_TYPE,				DefaultGetProp,			DefaultSetPropComputed, (void*) this);

@@ -52,9 +52,6 @@ bool ECChangeAdvisor::CompareSyncId(const ConnectionMap::value_type &sConnection
 
 ECChangeAdvisor::ECChangeAdvisor(ECMsgStore *lpMsgStore)
 	: m_lpMsgStore(lpMsgStore)
-	, m_lpChangeAdviseSink(NULL)
-	, m_ulFlags(0)
-	, m_ulReloadId(0)
 { 
 	ECSyncLog::GetLogger(&m_lpLogger);
 

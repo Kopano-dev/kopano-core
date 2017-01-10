@@ -178,21 +178,15 @@ private:
 	
 	BOOL			fNew;
 	BOOL			m_bEmbedded;
-	BOOL			m_bExplicitSubjectPrefix;
-	BOOL			m_bRecipsDirty;
-
-	eBodyType		m_ulBodyType;
-	BOOL			m_bInhibitSync;
+	BOOL m_bExplicitSubjectPrefix = false;
+	BOOL m_bRecipsDirty = false, m_bInhibitSync = false;
+	eBodyType m_ulBodyType = bodyTypeUnknown;
 
 public:
-	ULONG			m_cbParentID;
-	LPENTRYID		m_lpParentID; // For new messages
-
-	ECMemTable		*lpRecips;
-	ECMemTable		*lpAttachments;
-
-	ULONG			ulNextAttUniqueId;
-	ULONG			ulNextRecipUniqueId;
+	ULONG m_cbParentID = 0;
+	ENTRYID *m_lpParentID = nullptr; // For new messages
+	ECMemTable *lpRecips = nullptr, *lpAttachments = nullptr;
+	ULONG ulNextRecipUniqueId = 0, ulNextAttUniqueId = 0;
 };
 
 class ECMessageFactory _kc_final : public IMessageFactory {

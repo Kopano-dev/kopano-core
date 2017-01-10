@@ -35,21 +35,14 @@
 WSTableView::WSTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
     std::recursive_mutex &data_lock, ECSESSIONID ecSessionId, ULONG cbEntryId,
     LPENTRYID lpEntryId, WSTransport *lpTransport, const char *szClassName) :
-	ECUnknown(szClassName), lpDataLock(data_lock)
+	ECUnknown(szClassName), lpDataLock(data_lock),
+	m_lpTransport(lpTransport)
 {
 	this->ulType = ulType;
 	this->ulFlags = ulFlags;
 
 	this->lpCmd = lpCmd;
 	this->ecSessionId = ecSessionId;
-	this->ulTableId = 0;
-	this->m_lpTransport = lpTransport;
-	this->m_lpsPropTagArray = NULL;
-	this->m_lpsRestriction = NULL;
-	this->m_lpsSortOrderSet = NULL;
-	this->m_lpCallback = NULL;
-	this->m_lpParam = NULL;
-
 	m_lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);

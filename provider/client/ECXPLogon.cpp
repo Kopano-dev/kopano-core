@@ -63,15 +63,12 @@ static HRESULT HrGetECMsgStore(IMAPIProp *lpProp, ECMsgStore **lppECMsgStore)
 	return hrSuccess;
 }
 
-ECXPLogon::ECXPLogon(const std::string &strProfileName, BOOL bOffline, ECXPProvider *lpXPProvider, LPMAPISUP lpMAPISup) : ECUnknown("IXPLogon")
+ECXPLogon::ECXPLogon(const std::string &strProfileName, BOOL bOffline,
+    ECXPProvider *lpXPProvider, LPMAPISUP lpMAPISup) :
+	ECUnknown("IXPLogon"), m_lpMAPISup(lpMAPISup),
+	m_lpXPProvider(lpXPProvider), m_bOffline(bOffline)
 {
-	m_lppszAdrTypeArray = NULL;
-	m_ulTransportStatus = 0;
-	m_lpMAPISup = lpMAPISup;
-	m_lpXPProvider = lpXPProvider;
 	m_lpMAPISup->AddRef();
-	m_bCancel = false;
-	m_bOffline = bOffline;
 }
 
 ECXPLogon::~ECXPLogon()

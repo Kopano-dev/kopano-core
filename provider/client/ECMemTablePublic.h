@@ -57,11 +57,10 @@ public:
 	HRESULT AdviseFolder(ULONG cbSourceKey, LPBYTE lpbSourceKey, LPMAPIFOLDER lpFolder);
 
 	ECMAPIFolderPublic *m_lpECParentFolder;
-	LPMAPIADVISESINK	m_lpShortCutAdviseSink;
-	ULONG				m_ulFlags; //UNICODE flags
-	LPMAPITABLE			m_lpShortcutTable;
-
-	ULONG				m_ulRowId;
+	IMAPIAdviseSink *m_lpShortCutAdviseSink = nullptr;
+	ULONG m_ulFlags = 0; //UNICODE flags
+	IMAPITable *m_lpShortcutTable = nullptr;
+	ULONG m_ulRowId = 1;
 	ECMAPFolderRelation	m_mapRelation; //Relation between shortcut instancekey and rowid
 
 };

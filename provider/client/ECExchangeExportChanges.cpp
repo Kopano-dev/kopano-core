@@ -59,28 +59,11 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std:
 	m_strDisplay = szDisplay ? szDisplay : L"<Unknown>";
 	m_ulSyncType = ulSyncType;
 
-	m_bConfiged = false;
-	m_lpStream = NULL;
-	m_lpImportContents = NULL;
-	m_lpImportStreamedContents = NULL;
-	m_lpImportHierarchy = NULL;
-	m_ulFlags = 0;
-	m_ulSyncId = 0;
-	m_ulChangeId = 0;
-	m_ulStep = 0;
 	// In server-side sync, only use a batch size of 1.
 	if (m_sourcekey.empty())
 		m_ulBatchSize = 1;
 	else
 		m_ulBatchSize = 256;
-	m_ulBufferSize = 0;
-	m_ulChanges = 0;
-	m_lpChanges = NULL;
-	m_lpRestrict = NULL;
-	m_ulMaxChangeId = 0;
-	m_ulEntryPropTag = PR_SOURCE_KEY; 		// This is normally the tag that is sent to exportMessageChangeAsStream()
-
-	m_clkStart = 0;
 	memset(&m_tmsStart, 0, sizeof(m_tmsStart));
 
 	m_lpStore->AddRef();

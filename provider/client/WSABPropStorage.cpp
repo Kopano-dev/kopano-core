@@ -38,14 +38,13 @@
 WSABPropStorage::WSABPropStorage(ULONG cbEntryId, LPENTRYID lpEntryId,
     KCmd *lpCmd, std::recursive_mutex &data_lock, ECSESSIONID ecSessionId,
     WSTransport *lpTransport) :
-	ECUnknown("WSABPropStorage"), lpDataLock(data_lock)
+	ECUnknown("WSABPropStorage"), lpDataLock(data_lock),
+	m_lpTransport(lpTransport)
 {
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 
 	this->lpCmd = lpCmd;
 	this->ecSessionId = ecSessionId;
-	this->m_lpTransport = lpTransport;
-	
     lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 	    
 }

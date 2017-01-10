@@ -108,9 +108,8 @@ public:
 
 protected:
 	WSMAPIFolderOps	*	lpFolderOps;
-
-	LPMAPIADVISESINK	m_lpFolderAdviseSink;
-	ULONG				m_ulConnection;
+	IMAPIAdviseSink *m_lpFolderAdviseSink = nullptr;
+	ULONG m_ulConnection = 0;
 
 	friend class		ECExchangeImportHierarchyChanges;	// Allowed access to lpFolderOps
 };

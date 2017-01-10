@@ -153,13 +153,12 @@ private:
 	} m_xECChangeAdvisor;
 
 	ECMsgStore				*m_lpMsgStore;
-	IECChangeAdviseSink *m_lpChangeAdviseSink;
-	ULONG					m_ulFlags;
+	IECChangeAdviseSink *m_lpChangeAdviseSink = nullptr;
+	ULONG m_ulFlags = 0, m_ulReloadId = 0;
 	std::recursive_mutex m_hConnectionLock;
 	ConnectionMap			m_mapConnections;
 	SyncStateMap			m_mapSyncStates;
 	ECLogger				*m_lpLogger;
-	ULONG					m_ulReloadId;
 };
 
 #endif // ndef ECCHANGEADVISOR_H

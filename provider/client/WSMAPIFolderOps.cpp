@@ -43,12 +43,11 @@
 WSMAPIFolderOps::WSMAPIFolderOps(KCmd *lpCmd, std::recursive_mutex &data_lock,
     ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId,
     WSTransport *lpTransport) :
-	ECUnknown("WSMAPIFolderOps"), lpDataLock(data_lock)
+	ECUnknown("WSMAPIFolderOps"), lpDataLock(data_lock),
+	m_lpTransport(lpTransport)
 {
 	this->lpCmd = lpCmd;
 	this->ecSessionId = ecSessionId;
-	this->m_lpTransport = lpTransport;
-
 	lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);

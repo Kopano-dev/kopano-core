@@ -40,8 +40,7 @@ public:
 		virtual HRESULT __stdcall TransportLogon(LPMAPISUP, ULONG ui_param, LPTSTR profname, ULONG *flags, LPMAPIERROR *err, LPXPLOGON *) _kc_override;
 	} m_xXPProvider;
 	
-	LPSPropValue	m_lpIdentityProps;
-
+	SPropValue *m_lpIdentityProps = nullptr;
 };
 
 #endif // #ifndef ECXPPROVIDER_H

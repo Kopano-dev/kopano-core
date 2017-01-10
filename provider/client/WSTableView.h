@@ -63,7 +63,7 @@ public:
 	virtual HRESULT SetReloadCallback(RELOADCALLBACK callback, void *lpParam);
 
 public:
-	ULONG		ulTableId;
+	ULONG ulTableId = 0;
 
 protected:
 	virtual HRESULT LockSoap();
@@ -78,16 +78,14 @@ protected:
 	ULONG			m_ulTableType;
 	ULONG			m_ulSessionReloadCallback;
 	WSTransport*	m_lpTransport;
-
-	LPSPropTagArray m_lpsPropTagArray;
-	LPSSortOrderSet m_lpsSortOrderSet;
-	LPSRestriction	m_lpsRestriction;
-
+	SPropTagArray *m_lpsPropTagArray = nullptr;
+	SSortOrderSet *m_lpsSortOrderSet = nullptr;
+	SRestriction *m_lpsRestriction = nullptr;
 	ULONG		ulFlags;
 	ULONG		ulType;
 
-	void *			m_lpParam;
-	RELOADCALLBACK  m_lpCallback;
+	void *m_lpParam = nullptr;
+	RELOADCALLBACK m_lpCallback = nullptr;
 };
 
 #endif

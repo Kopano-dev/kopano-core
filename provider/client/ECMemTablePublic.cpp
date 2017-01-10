@@ -38,16 +38,11 @@ using namespace KCHL;
 //FIXME: add the classname "ECMemTablePublic"
 ECMemTablePublic::ECMemTablePublic(ECMAPIFolderPublic *lpECParentFolder,
     const SPropTagArray *lpsPropTags, ULONG ulRowPropTag) :
-	ECMemTable(lpsPropTags, ulRowPropTag)
+	ECMemTable(lpsPropTags, ulRowPropTag),
+	m_lpECParentFolder(lpECParentFolder)
 {
-	m_lpECParentFolder = lpECParentFolder;
 	if (m_lpECParentFolder)
 		m_lpECParentFolder->AddRef();
-
-	m_lpShortCutAdviseSink = NULL;
-	m_lpShortcutTable = NULL;
-	m_ulFlags = 0;
-	m_ulRowId = 1;
 }
 
 ECMemTablePublic::~ECMemTablePublic(void)

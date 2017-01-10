@@ -52,7 +52,7 @@ public:
 
 	LPMAPISUP			m_lpMAPISup;
 	WSTransport*		m_lpTransport;
-	ECNotifyClient*		m_lpNotifyClient;
+	ECNotifyClient *m_lpNotifyClient = nullptr;
 	//ECNamedProp*		m_lpNamedProp;
 
 	GUID				m_guid;

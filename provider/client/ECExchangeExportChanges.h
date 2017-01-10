@@ -80,25 +80,21 @@ private:
 	HRESULT ChangesToEntrylist(std::list<ICSCHANGE> * lpLstChanges, LPENTRYLIST * lppEntryList);
 
 	unsigned long	m_ulSyncType;
-	bool			m_bConfiged;
+	bool m_bConfiged = false;
 	ECMsgStore*		m_lpStore;
 	std::string		m_sourcekey;
 	std::wstring	m_strDisplay;
-	LPSTREAM		m_lpStream;
-	ULONG			m_ulFlags;
-	ULONG			m_ulSyncId;
-	ULONG			m_ulChangeId;
-	ULONG			m_ulStep;
-	ULONG			m_ulBatchSize;
-	ULONG			m_ulBufferSize;
-	ULONG			m_ulEntryPropTag;
+	IStream *m_lpStream = nullptr;
+	ULONG m_ulFlags = 0;
+	ULONG m_ulSyncId = 0, m_ulChangeId = 0;
+	ULONG m_ulStep = 0, m_ulBatchSize;
+	ULONG m_ulBufferSize = 0;
+	ULONG m_ulEntryPropTag = PR_SOURCE_KEY; // This is normally the tag that is sent to exportMessageChangeAsStream()
 
 	IID				m_iidMessage;
-
-	LPEXCHANGEIMPORTCONTENTSCHANGES		m_lpImportContents;
-	IECImportContentsChanges *m_lpImportStreamedContents;
-	LPEXCHANGEIMPORTHIERARCHYCHANGES	m_lpImportHierarchy;
-	
+	IExchangeImportContentsChanges *m_lpImportContents = nullptr;
+	IECImportContentsChanges *m_lpImportStreamedContents = nullptr;
+	IExchangeImportHierarchyChanges *m_lpImportHierarchy = nullptr;
 	WSMessageStreamExporterPtr			m_ptrStreamExporter;
 	
 	std::vector<ICSCHANGE> m_lstChange;
@@ -112,14 +108,11 @@ private:
 	typedef std::set<std::pair<unsigned int, std::string> > PROCESSEDCHANGESSET;
 	
 	PROCESSEDCHANGESSET m_setProcessedChanges;
-
-	ICSCHANGE *			m_lpChanges;
-	ULONG				m_ulChanges;
-	ULONG				m_ulMaxChangeId;
-	LPSRestriction		m_lpRestrict;
-
+	ICSCHANGE *m_lpChanges = nullptr;
+	ULONG m_ulChanges = 0, m_ulMaxChangeId = 0;
+	SRestriction *m_lpRestrict = nullptr;
 	ECLogger			*m_lpLogger;
-	clock_t				m_clkStart;
+	clock_t m_clkStart = 0;
 	struct tms			m_tmsStart;
 	
 	HRESULT AddProcessedChanges(ChangeList &lstChanges);

@@ -64,7 +64,7 @@ public:
 	} m_xABContainer;
 
 private:
-    IECImportAddressbookChanges *m_lpImporter;
+	IECImportAddressbookChanges *m_lpImporter = nullptr;
 };
 
 #endif

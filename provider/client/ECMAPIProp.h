@@ -106,10 +106,9 @@ public:
 	} m_xECSecurity;
 
 private:
-	BOOL		m_bICSObject; // coming from the ICS system
-	ULONG		m_ulSyncId;
-	ULONG		m_cbParentID;
-	LPENTRYID	m_lpParentID; // Overrides the parentid from the server
+	BOOL m_bICSObject = false; // coming from the ICS system
+	ULONG m_ulSyncId = 0, m_cbParentID = 0;
+	ENTRYID *m_lpParentID = nullptr; // Overrides the parentid from the server
 
 public:
 	ECMAPIProp *m_lpRoot;		// Points to the 'root' object that was opened by OpenEntry; normally points to 'this' except for Attachments and Submessages

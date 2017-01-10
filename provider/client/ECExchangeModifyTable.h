@@ -65,7 +65,7 @@ private:
 	ULONG	m_ulFlags;
 	ECMAPIProp *m_lpParent;
 	ECMemTable *m_ecTable;
-	bool	m_bPushToServer;
+	bool m_bPushToServer = true;
 };
 
 class ECExchangeRuleAction _kc_final : public ECUnknown {

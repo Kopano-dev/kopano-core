@@ -51,11 +51,9 @@ using namespace KCHL;
 typedef KCHL::memory_ptr<ECUSER> ECUserPtr;
 
 ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
-    ECUnknown(szClassName)
+	ECUnknown(szClassName), m_ulFlags(ulFlags)
 {
 	TRACE_MAPI(TRACE_ENTRY, "ECMSProvider::ECMSProvider","");
-	
-	m_ulFlags = ulFlags;
 }
 
 ECMSProvider::~ECMSProvider()

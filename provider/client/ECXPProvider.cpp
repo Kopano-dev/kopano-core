@@ -41,7 +41,6 @@ using namespace KCHL;
 
 ECXPProvider::ECXPProvider() : ECUnknown("IXPProvider")
 {
-	m_lpIdentityProps = NULL;
 }
 
 ECXPProvider::~ECXPProvider()

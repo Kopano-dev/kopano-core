@@ -104,13 +104,11 @@ private:
 	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;
 	unsigned int	ulServerCapabilities;
-	ULONG			m_ulSyncId;
-	ULONG			m_ulConnection;
-	ULONG			m_ulEventMask;
+	ULONG m_ulSyncId = 0, m_ulConnection = 0, m_ulEventMask = 0;
 	ULONG			m_ulFlags;
 	ULONG			m_ulSessionReloadCallback;
 	WSTransport		*m_lpTransport;
-	bool			m_bSubscribed;
+	bool m_bSubscribed = false;
 };
 
 

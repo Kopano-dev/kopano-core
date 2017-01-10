@@ -37,21 +37,18 @@
 
 using namespace KCHL;
 
-ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGUID) : ECUnknown("IABLogon")
+ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport *lpTransport,
+    ULONG ulProfileFlags, GUID *lpGUID) :
+	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup),
+	m_lpTransport(lpTransport)
 {
 	// The 'legacy' guid used normally (all AB entryIDs have this GUID)
 	m_guid = MUIDECSAB;
 
 	// The specific GUID for *this* addressbook provider, if available
 	m_ABPGuid = (lpGUID != nullptr) ? *lpGUID : GUID_NULL;
-
-	m_lpNotifyClient = NULL;
-
-	m_lpTransport = lpTransport;
 	if(m_lpTransport)
 		m_lpTransport->AddRef();
-
-	m_lpMAPISup = lpMAPISup;
 	if(m_lpMAPISup)
 		m_lpMAPISup->AddRef();
 
@@ -70,12 +67,8 @@ ECABLogon::~ECABLogon()
 
 	if(m_lpNotifyClient)
 		m_lpNotifyClient->Release();
-
-	if(m_lpMAPISup) {
+	if (m_lpMAPISup != nullptr)
 		m_lpMAPISup->Release();
-		m_lpMAPISup = NULL;
-	}
-
 	if(m_lpTransport)
 		m_lpTransport->Release();
 }

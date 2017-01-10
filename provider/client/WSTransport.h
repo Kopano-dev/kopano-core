@@ -313,15 +313,15 @@ private:
 	std::string GetAppName();
 
 protected:
-	KCmd*		m_lpCmd;
+	KCmd *m_lpCmd = nullptr;
 	std::recursive_mutex m_hDataLock;
-	ECSESSIONID		m_ecSessionId;
-	ECSESSIONGROUPID m_ecSessionGroupId;
+	ECSESSIONID m_ecSessionId = 0;
+	ECSESSIONGROUPID m_ecSessionGroupId = 0;
 	SESSIONRELOADLIST m_mapSessionReload;
 	std::recursive_mutex m_mutexSessionReload;
-	unsigned int	m_ulReloadId;
-	unsigned int	m_ulServerCapabilities;
-	unsigned long long m_llFlags;	// license flags
+	unsigned int m_ulReloadId = 1;
+	unsigned int m_ulServerCapabilities = 0;
+	unsigned long long m_llFlags = 0; // license flags
 	ULONG			m_ulUIFlags;	// UI flags for logon
 	sGlobalProfileProps m_sProfileProps;
 	std::string		m_strAppName;

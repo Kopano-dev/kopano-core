@@ -49,11 +49,11 @@ inline bool ECNotifySink::IsClient(const ECNotifyClient *lpClient) const
 	return lpClient == m_lpClient;
 }
 
-ECNotifyMaster::ECNotifyMaster(SessionGroupData *lpData)
+ECNotifyMaster::ECNotifyMaster(SessionGroupData *lpData) :
+	m_lpSessionGroupData(lpData /* no addref */)
 {
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::ECNotifyMaster", "");
 	memset(&m_hThread, 0, sizeof(m_hThread));
-	m_lpSessionGroupData = lpData; /* DON'T AddRef() */
 	m_ulConnection = 1;
 
 	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::ECNotifyMaster", "");
