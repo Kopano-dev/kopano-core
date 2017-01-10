@@ -141,8 +141,6 @@ ECSyncContext::ECSyncContext(LPMDB lpStore, ECLogger *lpLogger)
 	: m_lpStore(lpStore)
 	, m_lpLogger(lpLogger)
 	, m_lpSettings(ECSyncSettings::GetInstance())
-	, m_lpChangeAdvisor(NULL)
-	, m_lpChangeAdviseSink(NULL)
 {
 	m_lpLogger->AddRef();
 	m_lpStore->AddRef();

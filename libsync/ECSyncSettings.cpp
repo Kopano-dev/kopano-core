@@ -32,13 +32,8 @@ ECSyncSettings* ECSyncSettings::GetInstance()
 	return s_lpInstance;
 }
 
-ECSyncSettings::ECSyncSettings()
-: m_ulSyncLog(0)
-, m_ulSyncLogLevel(EC_LOGLEVEL_INFO)
-, m_ulSyncOpts(EC_SYNC_OPT_ALL)
-, m_ulStreamTimeout(30000)
-, m_ulStreamBufferSize(131072)
-, m_ulStreamBatchSize(256)
+ECSyncSettings::ECSyncSettings(void) :
+	m_ulSyncLogLevel(EC_LOGLEVEL_INFO)
 {
 	char *env = getenv("KOPANO_SYNC_LOGLEVEL");
 	if (env && env[0] != '\0') {

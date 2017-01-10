@@ -27,10 +27,9 @@ using namespace KCHL;
 
 namespace KC {
 
-ECFreeBusyUpdate::ECFreeBusyUpdate(IMessage* lpMessage)
+ECFreeBusyUpdate::ECFreeBusyUpdate(IMessage *lpMessage) :
+	m_lpMessage(lpMessage)
 {
-	m_lpMessage = lpMessage;
-
 	if(m_lpMessage)
 		m_lpMessage->AddRef();
 }

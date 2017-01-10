@@ -35,7 +35,7 @@ public:
 	virtual bool eof(void) const _kc_override { return this->ateof; }
 
 private:
-	bool	ateof;
+	bool ateof = false;
 	IStream *lpStream;
 };
 
