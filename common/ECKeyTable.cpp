@@ -87,13 +87,6 @@ ECTableRow::ECTableRow(sObjectTableKey sKey, unsigned int ulSortCols,
     unsigned char **lppSortData, bool fHidden)
 {
 	this->sKey = sKey;
-	this->lpParent = NULL;
-	this->lpLeft = NULL;
-	this->lpRight = NULL;
-	this->fLeft = 0;
-	this->ulBranchCount = 0;
-	this->fRoot = false;
-	this->ulHeight = 0;
 	this->fHidden = fHidden;
 
 	initSortCols(ulSortCols, reinterpret_cast<const int *>(lpSortLen),

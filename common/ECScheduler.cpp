@@ -26,10 +26,9 @@
 
 namespace KC {
 
-ECScheduler::ECScheduler(ECLogger *lpLogger)
+ECScheduler::ECScheduler(ECLogger *lpLogger) :
+	m_lpLogger(lpLogger)
 {
-	m_bExit = FALSE;
-	m_lpLogger = lpLogger;
 	m_lpLogger->AddRef();
 	//Create Scheduler thread
 	pthread_create(&m_hMainThread, NULL, ScheduleThread, (void*)this);

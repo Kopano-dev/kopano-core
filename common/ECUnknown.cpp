@@ -29,9 +29,7 @@ namespace KC {
 
 ECUnknown::ECUnknown(const char *szClassName)
 {
-	this->m_cRef = 0;
 	this->szClassName = szClassName;
-	this->lpParent = NULL;
 }
 
 ECUnknown::~ECUnknown()

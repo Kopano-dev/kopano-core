@@ -45,12 +45,10 @@ const directive_t ECConfigImpl::s_sDirectives[] = {
 // Configuration file parser
 
 ECConfigImpl::ECConfigImpl(const configsetting_t *lpDefaults,
-    const char *const *lpszDirectives)
+    const char *const *lpszDirectives) :
+	m_lpDefaults(lpDefaults)
 {
 	pthread_rwlock_init(&m_settingsRWLock, NULL);
-	m_szConfigFile = NULL;
-	m_lpDefaults = lpDefaults;
-
 	// allowed directives in this config object
 	for (int i = 0; lpszDirectives != NULL && lpszDirectives[i] != NULL; ++i)
 		m_lDirectives.push_back(lpszDirectives[i]);

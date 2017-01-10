@@ -62,7 +62,7 @@ private:
 	ECScheduleList		m_listScheduler;
 	ECLogger *			m_lpLogger;
 
-	bool				m_bExit;
+	bool m_bExit = false;
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
 	std::condition_variable m_hExitSignal; /* Signal that should be send to the Scheduler when to exit */
 	std::recursive_mutex m_hSchedulerMutex; /* Mutex for the locking of the scheduler */

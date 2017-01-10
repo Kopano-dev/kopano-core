@@ -40,14 +40,14 @@ protected:
 	_kc_hidden ECRESULT ConnectSocket(void);
 	_kc_hidden ECRESULT ConnectHttp(void);
 
-	unsigned int m_ulTimeout; ///< Response timeout in second
+	unsigned int m_ulTimeout = 5; ///< Response timeout in second
 
 private:
 	std::string m_strTokenizer;
 	std::string m_strPath;
 	bool m_bSocket;
 	uint16_t m_ulPort;
-	ECChannel *m_lpChannel;
+	ECChannel *m_lpChannel = nullptr;
 };
 
 } /* namespace */

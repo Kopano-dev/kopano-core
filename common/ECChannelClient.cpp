@@ -48,9 +48,6 @@ ECChannelClient::ECChannelClient(const char *szPath, const char *szTokenizer)
 		m_bSocket = false;
 		m_ulPort = atoi(GetServerPortFromPath(szPath).c_str());
 	}
-
-	m_lpChannel = NULL;
-	m_ulTimeout = 5;
 }
 
 ECChannelClient::~ECChannelClient()

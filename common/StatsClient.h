@@ -42,7 +42,7 @@ private:
 
 	pthread_t countsSubmitThread;
 public:
-	std::atomic<bool> terminate;
+	std::atomic<bool> terminate{false};
 	std::mutex mapsLock;
 	std::map<std::string, double> countsMapDouble;
 	std::map<std::string, int64_t> countsMapInt64;

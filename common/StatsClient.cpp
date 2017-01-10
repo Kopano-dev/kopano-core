@@ -67,7 +67,7 @@ static void *submitThread(void *p)
 }
 
 StatsClient::StatsClient(ECLogger *l) :
-    logger(l), terminate(false)
+	logger(l)
 {
 	memset(&addr, 0, sizeof(addr));
 	memset(&countsSubmitThread, 0, sizeof(countsSubmitThread));

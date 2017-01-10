@@ -89,7 +89,7 @@ public:
 	} m_xUnknown;
 
 	// lpParent is public because it is always thread-safe and valid
-	ECUnknown				*lpParent;
+	ECUnknown *lpParent = nullptr;
 	virtual BOOL IsParentOf(const ECUnknown *lpObject);
 	virtual BOOL IsChildOf(const ECUnknown *lpObject);
 
@@ -100,7 +100,7 @@ protected:
 	// Kills itself when lstChildren.empty() AND m_cREF == 0
 	virtual HRESULT			Suicide();
 
-	ULONG					m_cRef;
+	ULONG m_cRef = 0;
 	const char *szClassName;
 	std::list<ECUnknown *>	lstChildren; 
 	std::mutex mutex;

@@ -48,10 +48,8 @@ public:
 	virtual char *GetBuffer(void) { return lpCurrent; }
 
 private:
-	char *	lpCurrent;
-	ULONG	cbCurrent, cbTotal;
-	char *	lpOriginal;
-	ULONG	cbOriginal;
+	char *lpCurrent = nullptr, *lpOriginal = nullptr;
+	ULONG cbCurrent = 0, cbOriginal = 0, cbTotal = 0;
 	ULONG	ulFlags;
 };
 
@@ -99,7 +97,7 @@ private:
 	CommitFunc		lpCommitFunc;
 	DeleteFunc		lpDeleteFunc;
 	void *			lpParam;
-	BOOL			fDirty;
+	BOOL fDirty = false;
 	ULONG			ulFlags;
 };
 
