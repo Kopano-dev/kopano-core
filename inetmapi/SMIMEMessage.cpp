@@ -25,7 +25,11 @@ void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
     vmime::utility::outputStream &os, size_t curLinePos,
     size_t *newLinePos) const
 {
-    if(!m_body.empty()) {
+	if (m_body.empty()) {
+		// Normal generation
+		vmime::bodyPart::generateImpl(ctx, os, curLinePos, newLinePos);
+		return;
+	}
         // Generate headers
         getHeader()->generate(ctx, os);
 
@@ -34,10 +38,6 @@ void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
         
     	if (newLinePos)
 	    	*newLinePos = 0;
-    } else {
-        // Normal generation
-        vmime::bodyPart::generateImpl(ctx, os, curLinePos, newLinePos);
-    }
 }
 
 } /* namespace */

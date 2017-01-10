@@ -2052,11 +2052,11 @@ DynamicPropValArray::DynamicPropValArray(struct soap *soap,
 
 DynamicPropValArray::~DynamicPropValArray()
 {
-	if(m_lpPropVals && !m_soap) {
-		for (unsigned int i = 0; i < m_ulPropCount; ++i)
-			FreePropVal(&m_lpPropVals[i], false);
-		delete [] m_lpPropVals;
-	}
+	if (m_lpPropVals == nullptr || m_soap != nullptr)
+		return;
+	for (unsigned int i = 0; i < m_ulPropCount; ++i)
+		FreePropVal(&m_lpPropVals[i], false);
+	delete[] m_lpPropVals;
 }
     
 ECRESULT DynamicPropValArray::AddPropVal(struct propVal &propVal)

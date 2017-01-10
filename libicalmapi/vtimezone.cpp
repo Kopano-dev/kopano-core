@@ -215,34 +215,31 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 	memset(lpSysTime, 0, sizeof(SYSTEMTIME));
 
 	// eg. japan doesn't have daylight saving switches.
-	if (rRule) {
-		recur = icalproperty_get_rrule(rRule);
-
-		// can daylight saving really be !yearly ??
-		if (recur.freq != ICAL_YEARLY_RECURRENCE ||	recur.by_month[0] == ICAL_RECURRENCE_ARRAY_MAX || recur.by_month[1] != ICAL_RECURRENCE_ARRAY_MAX)
-			return hrSuccess;
-
+	if (!rRule) {
 		stRecurTime = TMToSystemTime(UTC_ICalTime2UnixTime(icTime));
-		lpSysTime->wHour = stRecurTime.wHour;
-		lpSysTime->wMinute = stRecurTime.wMinute;
-
-		lpSysTime->wMonth = recur.by_month[0];
-
-		if (icalrecurrencetype_day_position(recur.by_day[0]) == -1)
-			lpSysTime->wDay = 5;	// last day of month
-		else
-			lpSysTime->wDay = icalrecurrencetype_day_position(recur.by_day[0]); // 1..4
-
-		lpSysTime->wDayOfWeek = icalrecurrencetype_day_day_of_week(recur.by_day[0]) -1;
-	} else {
-		stRecurTime = TMToSystemTime(UTC_ICalTime2UnixTime(icTime));
-
-		lpSysTime->wMonth = stRecurTime.wMonth+1; // fix for -1 in UTC_ICalTime2UnixTime, since TMToSystemTime doesn't do +1
+		lpSysTime->wMonth = stRecurTime.wMonth + 1; // fix for -1 in UTC_ICalTime2UnixTime, since TMToSystemTime doesn't do +1
 		lpSysTime->wDayOfWeek = stRecurTime.wDayOfWeek;
 		lpSysTime->wDay = int(stRecurTime.wDay / 7.0) + 1;
 		lpSysTime->wHour = stRecurTime.wHour;
 		lpSysTime->wMinute = stRecurTime.wMinute;
+		return hrSuccess;
 	}
+	recur = icalproperty_get_rrule(rRule);
+	// can daylight saving really be !yearly ??
+	if (recur.freq != ICAL_YEARLY_RECURRENCE ||
+	    recur.by_month[0] == ICAL_RECURRENCE_ARRAY_MAX ||
+	    recur.by_month[1] != ICAL_RECURRENCE_ARRAY_MAX)
+		return hrSuccess;
+
+	stRecurTime = TMToSystemTime(UTC_ICalTime2UnixTime(icTime));
+	lpSysTime->wHour = stRecurTime.wHour;
+	lpSysTime->wMinute = stRecurTime.wMinute;
+	lpSysTime->wMonth = recur.by_month[0];
+	if (icalrecurrencetype_day_position(recur.by_day[0]) == -1)
+		lpSysTime->wDay = 5;	// last day of month
+	else
+		lpSysTime->wDay = icalrecurrencetype_day_position(recur.by_day[0]); // 1..4
+	lpSysTime->wDayOfWeek = icalrecurrencetype_day_day_of_week(recur.by_day[0]) - 1;
 	return hrSuccess;
 }
 
