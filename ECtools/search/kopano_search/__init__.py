@@ -90,6 +90,13 @@ def db_put(db_path, key, value):
         with closing(dbhash.open(db_path, 'c')) as db:
             db[key] = value
 
+if sys.hexversion >= 0x03000000:
+    def _is_str(s):
+        return isinstance(s, str)
+else:
+    def _is_str(s):
+        return isinstance(s, (str, unicode))
+
 class SearchWorker(kopano.Worker):
     """ process which handles search requests coming from outlook/webapp, according to our internal protocol """
 
@@ -210,11 +217,11 @@ class FolderImporter:
             doc = {'serverid': self.serverid, 'storeid': storeid, 'folderid': folderid, 'docid': docid, 'sourcekey': item.sourcekey}
             for prop in item.props():
                 if prop.id_ not in self.excludes:
-                    if kopano._is_str(prop.value): # XXX
+                    if _is_str(prop.value):
                         if prop.value:
                             doc['mapi%d' % prop.id_] = prop.value
                     elif isinstance(prop.value, list):
-                        doc['mapi%d' % prop.id_] = u' '.join(x for x in prop.value if kopano._is_str(x))
+                        doc['mapi%d' % prop.id_] = u' '.join(x for x in prop.value if _is_str(x))
             attach_text = []
             if self.config['index_attachments']:
                 for a in item.attachments():
