@@ -39,15 +39,14 @@ public:
 	virtual HRESULT __stdcall GetNotifications(ULONG *n, LPNOTIFICATION *notif, BOOL fNonBlock, ULONG timeout);
 
 private:
-	_kc_hidden MAPINotifSink(void);
+	_kc_hidden MAPINotifSink(void) = default;
 	_kc_hidden virtual ~MAPINotifSink(void);
 
 	std::mutex m_hMutex;
 	std::condition_variable m_hCond;
-    bool			m_bExit;
     std::list<NOTIFICATION *> m_lstNotifs;
-    
-    unsigned int	m_cRef;
+	bool m_bExit = false;
+	unsigned int m_cRef = 0;
 };
 
 

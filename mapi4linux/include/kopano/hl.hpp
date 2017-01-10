@@ -82,7 +82,7 @@ class _kc_export KDeleter _kc_final {
 
 class _kc_export KFolder _kc_final {
 	public:
-	KFolder(void) {}
+	KFolder(void) = default;
 	KFolder(IMAPIFolder *);
 	KFolder(KFolder &&);
 	~KFolder(void);
@@ -99,7 +99,7 @@ class _kc_export KFolder _kc_final {
 
 class _kc_export KMessage _kc_final {
 	public:
-	KMessage(void) {}
+	KMessage(void) = default;
 	KMessage(IMessage *);
 	KMessage(KMessage &&);
 	~KMessage(void);
@@ -129,7 +129,7 @@ class _kc_export KSession _kc_final {
 	KStore open_default_store(void);
 
 	protected:
-	IMAPISession *m_session;
+	IMAPISession *m_session = nullptr;
 };
 
 class _kc_export KStore _kc_final {

@@ -63,21 +63,19 @@ private:
 class SVCProvider _kc_final {
 public:
 	/* ZARAFA6_ABP, ZARAFA6_MSMDB_private, ZARAFA6_MSMDB_public */
-	SVCProvider();
 	~SVCProvider();
 
 	HRESULT Init(const INFLoader& cINF, const inf_section* infService);
 	void GetProps(ULONG *lpcValues, LPSPropValue *lppPropValues);
 
 private:
-	ULONG m_cValues;
-	LPSPropValue m_lpProps; /* PR_* tags from file */
+	ULONG m_cValues = 0;
+	SPropValue *m_lpProps = nullptr; /* PR_* tags from file */
 };
 
 class SVCService _kc_final {
 public:
 	/* ZARAFA6, ZCONTACTS */
-	SVCService();
 	~SVCService();
 
 	HRESULT Init(const INFLoader& cINF, const inf_section* infService);
@@ -93,21 +91,19 @@ public:
 	SVC_ABProviderInit ABProviderInit();
 
 private:
-	DLIB m_dl;
-	SVC_MSGServiceEntry m_fnMSGServiceEntry;
-	SVC_MSProviderInit m_fnMSProviderInit;
-	SVC_ABProviderInit m_fnABProviderInit;
+	DLIB m_dl = nullptr;
+	SVC_MSGServiceEntry m_fnMSGServiceEntry = nullptr;
+	SVC_MSProviderInit m_fnMSProviderInit = nullptr;
+	SVC_ABProviderInit m_fnABProviderInit = nullptr;
 
 	/* PR_* tags from file */
-	LPSPropValue m_lpProps;
-	ULONG m_cValues;
-
+	SPropValue *m_lpProps = nullptr;
+	ULONG m_cValues = 0;
 	std::map<std::string, SVCProvider*> m_sProviders;
 };
 
 class MAPISVC _kc_final {
 public:
-	MAPISVC();
 	~MAPISVC();
 
 	HRESULT Init();

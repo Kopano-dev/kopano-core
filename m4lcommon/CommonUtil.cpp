@@ -2256,23 +2256,26 @@ HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, LPMDB lpStore, WCHAR *lpszUs
  * NAMED PROPERTY util functions (used with PROPMAP_* macro's)
  */
 
-ECPropMapEntry::ECPropMapEntry(GUID guid, ULONG ulId) { 
+ECPropMapEntry::ECPropMapEntry(GUID guid, ULONG ulId) :
+	m_sGuid(guid)
+{
     m_sMAPINameId.ulKind = MNID_ID; 
-    m_sGuid = guid;  
     m_sMAPINameId.lpguid = &m_sGuid; 
     m_sMAPINameId.Kind.lID = ulId; 
 }
     
-ECPropMapEntry::ECPropMapEntry(GUID guid, const char *strId)
+ECPropMapEntry::ECPropMapEntry(GUID guid, const char *strId) :
+	m_sGuid(guid)
 {
     m_sMAPINameId.ulKind = MNID_STRING; 
-    m_sGuid = guid;  
     m_sMAPINameId.lpguid = &m_sGuid; 
     m_sMAPINameId.Kind.lpwstrName = new WCHAR[strlen(strId)+1];
     mbstowcs(m_sMAPINameId.Kind.lpwstrName, strId, strlen(strId)+1);
 }
     
-ECPropMapEntry::ECPropMapEntry(const ECPropMapEntry &other) { 
+ECPropMapEntry::ECPropMapEntry(const ECPropMapEntry &other) :
+	m_sGuid(other.m_sGuid)
+{
     m_sMAPINameId.ulKind = other.m_sMAPINameId.ulKind;
     m_sGuid = other.m_sGuid;
     m_sMAPINameId.lpguid = &m_sGuid;
@@ -2284,10 +2287,10 @@ ECPropMapEntry::ECPropMapEntry(const ECPropMapEntry &other) {
     }
 }
 
-ECPropMapEntry::ECPropMapEntry(ECPropMapEntry &&other)
+ECPropMapEntry::ECPropMapEntry(ECPropMapEntry &&other) :
+	m_sGuid(other.m_sGuid)
 {
 	m_sMAPINameId.ulKind = other.m_sMAPINameId.ulKind;
-	m_sGuid = other.m_sGuid;
 	m_sMAPINameId.lpguid = &m_sGuid;
 	if (other.m_sMAPINameId.ulKind == MNID_ID) {
 		m_sMAPINameId.Kind.lID = other.m_sMAPINameId.Kind.lID;

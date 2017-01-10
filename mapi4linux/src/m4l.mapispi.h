@@ -83,7 +83,7 @@ private:
 	SVCService*			service;
 	std::mutex m_advises_mutex;
 	M4LSUPPORTADVISES	m_advises;
-	ULONG				m_connections;
+	ULONG m_connections = 0;
 
 public:
 	M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID sProviderUID, SVCService* lpService);

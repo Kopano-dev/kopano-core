@@ -143,12 +143,12 @@ private:
 	_kc_hidden HRESULT Notify(ULONG table_event, sObjectTableKey *row_item, sObjectTableKey *prev_row);
 
 	ECKeyTable *			lpKeyTable;
-	LPSSortOrderSet			lpsSortOrderSet;
+	SSortOrderSet *lpsSortOrderSet = nullptr;
 	LPSPropTagArray			lpsPropTags;		// Columns
-	LPSRestriction			lpsRestriction;
+	SRestriction *lpsRestriction = nullptr;
 	ECMemTable *			lpMemTable;
 	ECMapMemAdvise			m_mapAdvise;
-	ULONG					m_ulConnection; // Next advise id
+	ULONG m_ulConnection = 1; // Next advise id
 	ECLocale				m_locale;
 	ULONG					m_ulFlags;
 
