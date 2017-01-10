@@ -61,8 +61,8 @@ private:
 	} m_xMAPIProp;
 
 private:
-	LPSPropValue m_base;
-	WCHAR empty[1];
+	SPropValue *m_base = nullptr;
+	WCHAR empty[1] = {0};
 	std::map<short, SPropValue> m_mapProperties;
 	ULONG m_ulObject;
 };

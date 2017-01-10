@@ -36,8 +36,6 @@
 ZCMAPIProp::ZCMAPIProp(ULONG ulObjType, const char *szClassName) :
     ECUnknown(szClassName), m_ulObject(ulObjType)
 {
-	m_base = NULL;
-	empty[0] = 0;
 }
 
 ZCMAPIProp::~ZCMAPIProp()

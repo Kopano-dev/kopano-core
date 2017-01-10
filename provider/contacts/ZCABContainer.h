@@ -78,7 +78,7 @@ private:
 	void *m_lpProvider;
 
 	/* distlist version of this container */
-	IMAPIProp *m_lpDistList;
+	IMAPIProp *m_lpDistList = nullptr;
 };
 
 #endif

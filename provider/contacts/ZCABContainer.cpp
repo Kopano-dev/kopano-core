@@ -46,15 +46,11 @@ using namespace KCHL;
 ZCABContainer::ZCABContainer(std::vector<zcabFolderEntry> *lpFolders,
     IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider,
     const char *szClassName) :
-	ECUnknown(szClassName)
+	ECUnknown(szClassName), m_lpFolders(lpFolders),
+	m_lpContactFolder(lpContacts), m_lpMAPISup(lpMAPISup),
+	m_lpProvider(lpProvider)
 {
 	assert(!(lpFolders != NULL && lpContacts != NULL));
-	m_lpFolders = lpFolders;
-	m_lpContactFolder = lpContacts;
-	m_lpMAPISup = lpMAPISup;
-	m_lpProvider = lpProvider;
-	m_lpDistList = NULL;
-
 	if (m_lpMAPISup)
 		m_lpMAPISup->AddRef();
 	if (m_lpContactFolder)
