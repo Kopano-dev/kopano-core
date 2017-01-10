@@ -166,6 +166,7 @@ ECMsgStore::~ECMsgStore() {
 	if(lpStorage) {
 		// Release our propstorage since it is registered on lpTransport
 		lpStorage->Release();
+		/* needed because base (~ECGenericProp) also tries to release it */
 		lpStorage = NULL;
 	}
 

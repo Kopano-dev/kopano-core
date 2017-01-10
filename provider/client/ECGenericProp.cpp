@@ -50,8 +50,6 @@ ECGenericProp::ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
 
 ECGenericProp::~ECGenericProp()
 {
-	ECPropertyEntryIterator iterProps;
-
 	if (m_sMapiObject)
 		FreeMapiObject(m_sMapiObject);
 

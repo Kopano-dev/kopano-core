@@ -238,7 +238,6 @@ ECChannel::~ECChannel() {
 	if (lpSSL) {
 		SSL_shutdown(lpSSL);
 		SSL_free(lpSSL);
-		lpSSL = NULL;
 	}
 	close(fd);
 }

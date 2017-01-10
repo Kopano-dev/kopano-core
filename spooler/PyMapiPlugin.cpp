@@ -134,10 +134,8 @@ static HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
 
 PyMapiPlugin::~PyMapiPlugin(void)
 { 
-	if (m_lpLogger) {
+	if (m_lpLogger != nullptr)
 		m_lpLogger->Release();
-		m_lpLogger = NULL;
-	}
 }
 
 /**
@@ -285,11 +283,8 @@ PyMapiPluginFactory::~PyMapiPluginFactory()
 		m_ptrModMapiPlugin = NULL;
 		Py_Finalize();
 	}
-	
-	if (m_lpLogger) {
+	if (m_lpLogger != nullptr)
 		m_lpLogger->Release();
-		m_lpLogger = NULL;
-	}
 }
 
 HRESULT PyMapiPluginFactory::Init(ECConfig* lpConfig, ECLogger *lpLogger)

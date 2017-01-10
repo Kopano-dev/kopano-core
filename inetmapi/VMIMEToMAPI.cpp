@@ -3434,7 +3434,6 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 	} catch (vmime::exception &e) {
 		lItems.push_back("NIL");
 	}
-	buffer.clear();
 	return kc_join(lItems, " ");
 }
 

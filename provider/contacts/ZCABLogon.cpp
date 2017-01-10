@@ -48,10 +48,8 @@ ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) :
 ZCABLogon::~ZCABLogon()
 {
 	ClearFolderList();
-	if(m_lpMAPISup) {
+	if (m_lpMAPISup != nullptr)
 		m_lpMAPISup->Release();
-		m_lpMAPISup = NULL;
-	}
 }
 
 HRESULT ZCABLogon::Create(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGuid, ZCABLogon **lppZCABLogon)
