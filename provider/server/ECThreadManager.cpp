@@ -275,11 +275,9 @@ done:
 }
 
 ECThreadManager::ECThreadManager(ECDispatcher *lpDispatcher,
-    unsigned int ulThreads)
+    unsigned int ulThreads) :
+	m_lpDispatcher(lpDispatcher), m_ulThreads(ulThreads)
 {
-    m_lpDispatcher = lpDispatcher;
-    m_ulThreads = ulThreads;
-
 	scoped_lock l_thr(m_mutexThreads);
     // Start our worker threads
 	m_lpPrioWorker = new ECPriorityWorkerThread(this, lpDispatcher);
@@ -368,13 +366,10 @@ ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
 }
 
 ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher,
-    ECThreadManager *lpThreadManager)
+    ECThreadManager *lpThreadManager) :
+	m_lpConfig(lpConfig), m_lpDispatcher(lpDispatcher),
+	m_lpThreadManager(lpThreadManager)
 {
-    m_lpConfig = lpConfig;
-    m_lpDispatcher = lpDispatcher;
-    m_lpThreadManager = lpThreadManager;
-    m_bExit = false;
-    
     if (pthread_create(&m_thread, NULL, ECWatchDog::Watch, this) != 0)
 		ec_log_crit("Unable to start watchdog thread: %s", strerror(errno));
     else
