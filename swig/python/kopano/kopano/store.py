@@ -386,7 +386,7 @@ class Store(object):
                     companyname = PpropFindProp(row, PR_EC_COMPANY_NAME_W)
                 return self.server.company(companyname.Value)
         else:
-            return self.server.companies().next()
+            return next(self.server.companies())
 
     @property
     def orphan(self):
