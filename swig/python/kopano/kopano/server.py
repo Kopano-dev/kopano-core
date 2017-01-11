@@ -22,7 +22,8 @@ from .store import Store
 from .errors import *
 from .defs import *
 
-from .utils import unhex as _unhex, decode as _decode, state as _state, sync as _sync, repr as _repr
+from .compat import unhex as _unhex, decode as _decode, repr as _repr
+from .utils import state as _state, sync as _sync
 
 def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     # used with permission from will mcgugan, https://www.willmcgugan.com

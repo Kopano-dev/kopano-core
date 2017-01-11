@@ -8,7 +8,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 import optparse
 
 from .errors import *
-from . import utils
+from .compat import decode as _decode
 
 def _parse_date(option, opt_str, value, parser):
     setattr(parser.values, option.dest, datetime.datetime.strptime(value, '%Y-%m-%d'))
@@ -17,10 +17,10 @@ def _parse_loglevel(option, opt_str, value, parser):
     setattr(parser.values, option.dest, value.upper())
 
 def _parse_str(option, opt_str, value, parser):
-    setattr(parser.values, option.dest, utils.decode(value))
+    setattr(parser.values, option.dest, _decode(value))
 
 def _parse_list_str(option, opt_str, value, parser):
-    getattr(parser.values, option.dest).append(utils.decode(value))
+    getattr(parser.values, option.dest).append(_decode(value))
 
 def _parse_bool(option, opt_str, value, parser):
     assert value in ('yes', 'no'), "error: %s option requires 'yes' or 'no' as argument" % opt_str

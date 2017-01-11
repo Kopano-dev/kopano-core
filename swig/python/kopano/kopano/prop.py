@@ -11,8 +11,8 @@ import datetime
 from MAPI.Util import *
 
 from .defs import *
-
-from utils import repr as _repr, stream as _stream 
+from .compat import repr as _repr
+from .utils import stream as _stream
 
 class SPropDelayedValue(SPropValue):
     def __init__(self, mapiobj, proptag):

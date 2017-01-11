@@ -17,7 +17,8 @@ from .group import Group
 from .defs import *
 from .errors import *
 
-from .utils import unhex as _unhex, prop as _prop, props as _props, repr as _repr
+from .compat import unhex as _unhex, repr as _repr
+from .utils import prop as _prop, props as _props
 
 class Company(object):
     """Company class"""

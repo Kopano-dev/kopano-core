@@ -10,10 +10,10 @@ import datetime
 from dateutil.rrule import WEEKLY, DAILY, MONTHLY, MO, TU, TH, FR, WE, SA, SU, rrule, rruleset
 from datetime import timedelta
 
-from utils import (
+from .compat import repr as _repr
+from .utils import (
     unpack_short as _unpack_short, unpack_long as _unpack_long,
     unpack_string as _unpack_string, rectime_to_unixtime as _rectime_to_unixtime,
-    repr as _repr
 )
 
 from .defs import *

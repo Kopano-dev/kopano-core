@@ -13,10 +13,11 @@ from .permission import Permission
 from .defs import *
 from .errors import *
 
-from utils import (
-    openentry_raw as _openentry_raw, unhex as _unhex, prop as _prop, props as _props,
+from .compat import unhex as _unhex, repr as _repr
+from .utils import (
+    openentry_raw as _openentry_raw, prop as _prop, props as _props,
     create_prop as _create_prop, state as _state, sync as _sync, permissions as _permissions,
-    permission as _permission, repr as _repr
+    permission as _permission
 )
 
 from MAPI.Util import *

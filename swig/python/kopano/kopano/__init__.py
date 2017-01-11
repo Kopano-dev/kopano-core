@@ -78,7 +78,8 @@ import time
 from MAPI.Util import *
 
 from .defs import *
-from .utils import human_to_bytes as _human_to_bytes, decode as _decode
+from .compat import decode as _decode
+from .utils import human_to_bytes as _human_to_bytes
 from .errors import *
 
 from .server import Server

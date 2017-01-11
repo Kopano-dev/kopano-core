@@ -27,10 +27,13 @@ import _MAPICore
 import inetmapi
 import icalmapi
 
+from .compat import (
+    unhex as _unhex, is_str as _is_str, repr as _repr, pickle_load as _pickle_load,
+    pickle_loads as _pickle_loads
+)
 from .utils import (
     create_prop as _create_prop, prop as _prop, props as _props, stream as _stream,
-    unhex as _unhex, is_str as _is_str, repr as _repr,
-    bestbody as _bestbody, pickle_load as _pickle_load, pickle_loads as _pickle_loads
+    bestbody as _bestbody,
 )
 
 from .attachment import Attachment

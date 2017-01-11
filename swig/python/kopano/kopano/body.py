@@ -7,7 +7,8 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 from MAPI.Util import *
 
-from .utils import bestbody as _bestbody, stream as _stream, repr as _repr
+from .compat import repr as _repr
+from .utils import bestbody as _bestbody, stream as _stream
 
 class Body:
     """Item Body class"""

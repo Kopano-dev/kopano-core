@@ -7,7 +7,8 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 from MAPI.Util import *
 
-from .utils import prop as _prop, props as _props, repr as _repr, stream as _stream
+from .compat import repr as _repr
+from .utils import prop as _prop, props as _props, stream as _stream
 
 class Attachment(object):
     """Attachment class"""

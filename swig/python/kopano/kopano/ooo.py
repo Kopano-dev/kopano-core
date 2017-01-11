@@ -12,7 +12,7 @@ import MAPI
 
 from MAPI.Util import *
 
-from .utils import repr as _repr
+from .compat import repr as _repr
 
 class Outofoffice(object):
     """Outofoffice class

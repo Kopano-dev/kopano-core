@@ -10,7 +10,8 @@ from MAPI.Util import *
 from .errors import *
 from .defs import *
 
-from utils import repr as _repr, prop as _prop, props as _props
+from .compat import repr as _repr
+from .utils import prop as _prop, props as _props
 
 class Group(object):
     """Group class"""

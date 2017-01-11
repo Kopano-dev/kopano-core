@@ -13,7 +13,8 @@ from .defs import *
 
 from MAPI.Util import *
 
-from utils import prop as _prop, props as _props, unhex as _unhex, repr as _repr
+from .compat import unhex as _unhex, repr as _repr
+from .utils import prop as _prop, props as _props
 
 class User(object):
     """User class"""

@@ -15,7 +15,7 @@ from MAPI.Util import *
 from .defs import *
 from .errors import *
 
-from .compat import *
+from .compat import is_int as _is_int, unhex as _unhex
 
 class TrackingContentsImporter(ECImportContentsChanges):
     def __init__(self, server, importer, log, stats):
@@ -120,7 +120,7 @@ def stream(mapiobj, proptag):
     return data
 
 def create_prop(self, mapiobj, proptag, value, proptype=None):
-    if is_int(proptag):
+    if _is_int(proptag):
         if PROP_TYPE(proptag) == PT_SYSTIME:
             value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
         # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
@@ -151,7 +151,7 @@ def create_prop(self, mapiobj, proptag, value, proptype=None):
     return prop(self, mapiobj, proptag)
 
 def prop(self, mapiobj, proptag, create=False):
-    if is_int(proptag):
+    if _is_int(proptag):
         try:
             sprop = HrGetOneProp(mapiobj, proptag)
         except MAPIErrorNotEnoughMemory:
@@ -204,7 +204,7 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
     exporter = syncobj.OpenProperty(PR_CONTENTS_SYNCHRONIZER, IID_IExchangeExportChanges, 0, 0)
 
     stream = IStream()
-    stream.Write(unhex(state))
+    stream.Write(_unhex(state))
     stream.Seek(0, MAPI.STREAM_SEEK_SET)
 
     restriction = None
@@ -385,7 +385,7 @@ def permission(obj, member, create):
                 memberid = member.groupid
             else:
                 memberid = member.companyid
-            acl_table.ModifyTable(0, [ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, unhex(memberid)), SPropValue(PR_MEMBER_RIGHTS, 0)])])
+            acl_table.ModifyTable(0, [ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, _unhex(memberid)), SPropValue(PR_MEMBER_RIGHTS, 0)])])
             return obj.permission(member)
         else:
             raise NotFoundError("no permission entry for '%s'" % member.name)

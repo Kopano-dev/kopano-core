@@ -16,10 +16,12 @@ from .item import Item
 from .errors import *
 from .defs import *
 
+from .compat import unhex as _unhex, decode as _decode
 from .utils import (
-    extract_ipm_ol2007_entryids as _extract_ipm_ol2007_entryids, unhex as _unhex,
-    decode as _decode, openentry_raw as _openentry_raw, create_prop as _create_prop,
-    prop as _prop, props as _props, permissions as _permissions, permission as _permission
+    extract_ipm_ol2007_entryids as _extract_ipm_ol2007_entryids,
+    openentry_raw as _openentry_raw, create_prop as _create_prop,
+    prop as _prop, props as _props, permissions as _permissions, 
+    permission as _permission
 )
 
 try:

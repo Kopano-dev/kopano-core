@@ -9,8 +9,7 @@ from MAPI.Util import *
 
 from .defs import *
 from .errors import *
-
-from utils import repr as _repr
+from .compat import repr as _repr
 
 class Permission(object):
     """Permission class"""
