@@ -22,7 +22,10 @@ from .store import Store
 from .errors import *
 from .defs import *
 
-from .compat import unhex as _unhex, decode as _decode, repr as _repr
+from .compat import (
+    unhex as _unhex, decode as _decode, repr as _repr,
+    fake_unicode as _unicode
+)
 from .utils import state as _state, sync as _sync
 
 def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
@@ -261,16 +264,16 @@ class Server(object):
         :param create_store: should a store be created for the new user
         :return: :class:`<User>`
         """
-        name = unicode(name)
-        fullname = unicode(fullname or '')
+        name = _unicode(name)
+        fullname = _unicode(fullname or '')
         if email:
-            email = unicode(email)
+            email = _unicode(email)
         else:
             email = u'%s@%s' % (name, socket.gethostname())
         if password:
-            password = unicode(password)
+            password = _unicode(password)
         if company:
-            company = unicode(company)
+            company = _unicode(company)
         if company and company != u'Default':
             usereid = self.sa.CreateUser(ECUSER(u'%s@%s' % (name, company), password, email, fullname), MAPI_UNICODE)
             user = self.company(company).user(u'%s@%s' % (name, company))
@@ -351,7 +354,7 @@ class Server(object):
             yield Company(u'Default', self)
 
     def create_company(self, name): # XXX deprecated because of company(create=True)?
-        name = unicode(name)
+        name = _unicode(name)
         try:
             companyeid = self.sa.CreateCompany(ECCOMPANY(name, None), MAPI_UNICODE)
         except MAPIErrorCollision:
@@ -391,9 +394,9 @@ class Server(object):
         return Group(name, self)
 
     def create_group(self, name, fullname='', email='', hidden = False, groupid = None):
-        name = unicode(name) # XXX: fullname/email unicode?
-        email = unicode(email)
-        fullname = unicode(fullname)
+        name = _unicode(name) # XXX: fullname/email unicode?
+        email = _unicode(email)
+        fullname = _unicode(fullname)
         try:
             companyeid = self.sa.CreateGroup(ECGROUP(name, fullname, email, int(hidden), groupid), MAPI_UNICODE)
         except MAPIErrorCollision:
@@ -435,7 +438,7 @@ class Server(object):
     def store(self, guid=None, entryid=None):
         """ Return :class:`store <Store>` with given GUID """
 
-        if unicode(guid).split('@')[0] == 'public':
+        if _unicode(guid).split('@')[0] == 'public':
             return self._pubstore(guid)
         else:
             return Store(guid=guid, entryid=entryid, server=self)

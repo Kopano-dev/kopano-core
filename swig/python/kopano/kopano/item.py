@@ -29,7 +29,7 @@ import icalmapi
 
 from .compat import (
     unhex as _unhex, is_str as _is_str, repr as _repr, pickle_load as _pickle_load,
-    pickle_loads as _pickle_loads
+    pickle_loads as _pickle_loads, fake_unicode as _unicode
 )
 from .utils import (
     create_prop as _create_prop, prop as _prop, props as _props, stream as _stream,
@@ -103,7 +103,7 @@ class Item(object):
             elif vcf is not None:
                 import vobject
                 v = vobject.readOne(vcf)
-                fullname, email = unicode(v.fn.value), str(v.email.value)
+                fullname, email = _unicode(v.fn.value), str(v.email.value)
                 self.mapiobj.SetProps([ # XXX fix/remove non-essential props, figure out hardcoded numbers
                     SPropValue(PR_ADDRTYPE, 'SMTP'), SPropValue(PR_BODY, ''),
                     SPropValue(PR_LOCALITY, ''), SPropValue(PR_STATE_OR_PROVINCE, ''),
@@ -183,7 +183,7 @@ class Item(object):
 
     @subject.setter
     def subject(self, x):
-        self.mapiobj.SetProps([SPropValue(PR_SUBJECT_W, unicode(x))])
+        self.mapiobj.SetProps([SPropValue(PR_SUBJECT_W, _unicode(x))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
@@ -214,12 +214,12 @@ class Item(object):
         * IPM.Appointment                - appointment
         * IPM.Task                       - task
         """
-        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, unicode(messageclass))])
+        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, _unicode(messageclass))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @body.setter
     def body(self, x):
-        self.mapiobj.SetProps([SPropValue(PR_BODY_W, unicode(x))])
+        self.mapiobj.SetProps([SPropValue(PR_BODY_W, _unicode(x))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
@@ -362,7 +362,7 @@ class Item(object):
 
         # XXX: use file object instead of data?
         (id_, attach) = self.mapiobj.CreateAttach(None, 0)
-        name = unicode(name)
+        name = _unicode(name)
         props = [SPropValue(PR_ATTACH_LONG_FILENAME_W, name), SPropValue(PR_ATTACH_METHOD, ATTACH_BY_VALUE)]
         attach.SetProps(props)
         stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, STGM_WRITE|STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
@@ -451,7 +451,7 @@ class Item(object):
     def from_(self, addr):
         pr_addrtype, pr_dispname, pr_email, pr_entryid = self._addr_props(addr)
         self.mapiobj.SetProps([
-            SPropValue(PR_SENT_REPRESENTING_ADDRTYPE_W, unicode(pr_addrtype)), # XXX pr_addrtype should be unicode already
+            SPropValue(PR_SENT_REPRESENTING_ADDRTYPE_W, _unicode(pr_addrtype)), # XXX pr_addrtype should be unicode already
             SPropValue(PR_SENT_REPRESENTING_NAME_W, pr_dispname),
             SPropValue(PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, pr_email),
             SPropValue(PR_SENT_REPRESENTING_ENTRYID, pr_entryid),
@@ -528,11 +528,11 @@ class Item(object):
             pr_email = addr.email
             pr_entryid = _unhex(addr.userid)
         else:
-            addr = unicode(addr)
+            addr = _unicode(addr)
             pr_addrtype = 'SMTP'
             pr_dispname, pr_email = email.utils.parseaddr(addr)
             pr_dispname = pr_dispname or u'nobody'
-            pr_entryid = self.server.ab.CreateOneOff(pr_dispname, u'SMTP', unicode(pr_email), MAPI_UNICODE)
+            pr_entryid = self.server.ab.CreateOneOff(pr_dispname, u'SMTP', _unicode(pr_email), MAPI_UNICODE)
         return pr_addrtype, pr_dispname, pr_email, pr_entryid
 
     @to.setter
@@ -540,7 +540,7 @@ class Item(object):
         from .user import User
 
         if _is_str(addrs):
-            addrs = unicode(addrs).split(';')
+            addrs = _unicode(addrs).split(';')
         elif isinstance(addrs, User):
             addrs = [addrs]
         names = []
@@ -549,8 +549,8 @@ class Item(object):
             names.append([
                 SPropValue(PR_RECIPIENT_TYPE, MAPI_TO), 
                 SPropValue(PR_DISPLAY_NAME_W, pr_dispname),
-                SPropValue(PR_ADDRTYPE_W, unicode(pr_addrtype)),
-                SPropValue(PR_EMAIL_ADDRESS_W, unicode(pr_email)),
+                SPropValue(PR_ADDRTYPE_W, _unicode(pr_addrtype)),
+                SPropValue(PR_EMAIL_ADDRESS_W, _unicode(pr_email)),
                 SPropValue(PR_ENTRYID, pr_entryid),
             ])
         self.mapiobj.ModifyRecipients(0, names)

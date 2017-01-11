@@ -7,13 +7,13 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 from MAPI.Util import *
 
-from .compat import repr as _repr
+from .compat import repr as _repr, fake_unicode as _unicode
 
 class Rule(object):
     def __init__(self, mapirow):
         self.mapirow = mapirow
         name, state = mapirow[PR_RULE_NAME], mapirow[PR_RULE_STATE]
-        self.name = unicode(name)
+        self.name = _unicode(name)
         self.active = bool(state & ST_ENABLED)
 
     def __unicode__(self):

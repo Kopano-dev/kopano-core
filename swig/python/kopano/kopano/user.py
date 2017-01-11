@@ -13,7 +13,7 @@ from .defs import *
 
 from MAPI.Util import *
 
-from .compat import unhex as _unhex, repr as _repr
+from .compat import unhex as _unhex, repr as _repr, fake_unicode as _unicode
 from .utils import prop as _prop, props as _props
 
 class User(object):
@@ -27,11 +27,11 @@ class User(object):
 
         if email:
             try:
-                self._name = unicode(server.gab.ResolveNames([PR_EMAIL_ADDRESS_W], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME_W, unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
+                self._name = _unicode(server.gab.ResolveNames([PR_EMAIL_ADDRESS_W], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME_W, _unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
             except (MAPIErrorNotFound, MAPIErrorInvalidParameter, IndexError):
                 raise NotFoundError("no such user '%s'" % email)
         else:
-            self._name = unicode(name)
+            self._name = _unicode(name)
 
         try:
             self._ecuser = self.server.sa.GetUser(self.server.sa.ResolveUserName(self._name, MAPI_UNICODE), MAPI_UNICODE)
@@ -73,7 +73,7 @@ class User(object):
 
     @name.setter
     def name(self, value):
-        self._update(username=unicode(value))
+        self._update(username=_unicode(value))
 
     @property
     def fullname(self):
@@ -83,7 +83,7 @@ class User(object):
 
     @fullname.setter
     def fullname(self, value):
-        self._update(fullname=unicode(value))
+        self._update(fullname=_unicode(value))
 
     @property
     def email(self):
@@ -93,7 +93,7 @@ class User(object):
 
     @email.setter
     def email(self, value):
-        self._update(email=unicode(value))
+        self._update(email=_unicode(value))
 
     @property
     def password(self): # XXX not coming through SWIG?
@@ -101,7 +101,7 @@ class User(object):
 
     @password.setter
     def password(self, value):
-        self._update(password=unicode(value))
+        self._update(password=_unicode(value))
 
     @property
     def features(self):
@@ -139,7 +139,7 @@ class User(object):
         :param feature: the new feature
         """
 
-        feature = unicode(feature)
+        feature = _unicode(feature)
         if feature in self.features:
             raise DuplicateError("feature '%s' already enabled for user '%s'" % (feature, self.name))
         self.features = self.features + [feature]
@@ -154,7 +154,7 @@ class User(object):
         # XXX: improvement?
         features = self.features[:]
         try:
-            features.remove(unicode(feature))
+            features.remove(_unicode(feature))
         except ValueError:
             raise NotFoundError("no feature '%s' enabled for user '%s'" % (feature, self.name))
         self.features = features
@@ -288,8 +288,8 @@ class User(object):
     def _update(self, **kwargs):
         username = kwargs.get('username', self.name)
         password = kwargs.get('password', self._ecuser.Password)
-        email = kwargs.get('email', unicode(self._ecuser.Email))
-        fullname = kwargs.get('fullname', unicode(self._ecuser.FullName))
+        email = kwargs.get('email', _unicode(self._ecuser.Email))
+        fullname = kwargs.get('fullname', _unicode(self._ecuser.FullName))
         user_class = kwargs.get('user_class', self._ecuser.Class)
         admin = kwargs.get('admin', self._ecuser.IsAdmin)
 

@@ -10,7 +10,7 @@ from MAPI.Util import *
 from .errors import *
 from .defs import *
 
-from .compat import repr as _repr
+from .compat import repr as _repr, fake_unicode as _unicode
 from .utils import prop as _prop, props as _props
 
 class Group(object):
@@ -20,7 +20,7 @@ class Group(object):
         from . import Server
 
         self.server = server or Server()
-        self._name = unicode(name)
+        self._name = _unicode(name)
         try:
             self._ecgroup = self.server.sa.GetGroup(self.server.sa.ResolveGroupName(self._name, MAPI_UNICODE), MAPI_UNICODE)
         except (MAPIErrorNotFound, MAPIErrorInvalidParameter):
@@ -75,7 +75,7 @@ class Group(object):
 
     @name.setter
     def name(self, value):
-        self._update(name=unicode(value))
+        self._update(name=_unicode(value))
 
     @property
     def email(self):
@@ -83,7 +83,7 @@ class Group(object):
 
     @email.setter
     def email(self, value):
-        self._update(email=unicode(value))
+        self._update(email=_unicode(value))
 
     @property
     def fullname(self):
@@ -91,7 +91,7 @@ class Group(object):
 
     @fullname.setter
     def fullname(self, value):
-        self._update(fullname=unicode(value))
+        self._update(fullname=_unicode(value))
 
     @property
     def hidden(self):

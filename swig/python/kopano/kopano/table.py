@@ -13,6 +13,7 @@ except ImportError:
     from io import StringIO
 
 from .defs import *
+from .compat import fake_unicode as _unicode
 from .prop import Property
 
 from MAPI.Util import *
@@ -33,7 +34,7 @@ class Table(object):
 
     @property
     def header(self):
-        return [unicode(REV_TAG.get(c, hex(c))) for c in self.mapitable.QueryColumns(0)]
+        return [_unicode(REV_TAG.get(c, hex(c))) for c in self.mapitable.QueryColumns(0)]
 
     def rows(self):
         try:

@@ -11,7 +11,7 @@ import datetime
 from MAPI.Util import *
 
 from .defs import *
-from .compat import repr as _repr
+from .compat import repr as _repr, fake_unicode as _unicode
 from .utils import stream as _stream
 
 class SPropDelayedValue(SPropValue):
@@ -121,7 +121,7 @@ class Property(object):
             elif v is None:
                 return ''
             else:
-                return unicode(v)
+                return _unicode(v)
         return flatten(self.value)
 
     def __lt__(self, prop):

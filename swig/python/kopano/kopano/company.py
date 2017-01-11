@@ -17,7 +17,7 @@ from .group import Group
 from .defs import *
 from .errors import *
 
-from .compat import unhex as _unhex, repr as _repr
+from .compat import unhex as _unhex, repr as _repr, fake_unicode as _unicode
 from .utils import prop as _prop, props as _props
 
 class Company(object):
@@ -27,7 +27,7 @@ class Company(object):
         from .server import Server
         self.server = server or Server()
 
-        self._name = name = unicode(name)
+        self._name = name = _unicode(name)
         if name != u'Default': # XXX
             try:
                 self._eccompany = self.server.sa.GetCompany(self.server.sa.ResolveCompanyName(self._name, MAPI_UNICODE), MAPI_UNICODE)
@@ -73,7 +73,7 @@ class Company(object):
 
     @name.setter
     def name(self, value):
-        value = unicode(value)
+        value = _unicode(value)
         self._eccompany.Companyname = value
         self._name = value
         self.server.sa.SetCompany(self._eccompany, MAPI_UNICODE)
@@ -177,7 +177,7 @@ class Company(object):
     def user(self, name, create=False):
         """ Return :class:`user <User>` with given name; raise exception if not found """
 
-        name = unicode(name)
+        name = _unicode(name)
         for user in self.users(): # XXX slow
             if user.name == name:
                 return User(name, self.server)

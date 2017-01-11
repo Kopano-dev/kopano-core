@@ -10,6 +10,7 @@ try:
 except ImportError:
     import pickle
 
+import codecs
 import sys
 
 # Python 3
@@ -32,7 +33,7 @@ if sys.hexversion >= 0x03000000:
     def repr(o):
         return o.__unicode__()
 
-    def unicode(s):
+    def fake_unicode(s):
         return str(s)
 
     def decode(s):
@@ -64,3 +65,6 @@ else:
 
     def repr(o):
         return encode(unicode(o))
+
+    def fake_unicode(u):
+        return unicode(u)

@@ -13,7 +13,7 @@ from .permission import Permission
 from .defs import *
 from .errors import *
 
-from .compat import unhex as _unhex, repr as _repr
+from .compat import unhex as _unhex, repr as _repr, fake_unicode as _unicode
 from .utils import (
     openentry_raw as _openentry_raw, prop as _prop, props as _props,
     create_prop as _create_prop, state as _state, sync as _sync, permissions as _permissions,
@@ -96,7 +96,7 @@ class Folder(object):
 
     @name.setter
     def name(self, name):
-        self.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME_W, unicode(name))])
+        self.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME_W, _unicode(name))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
@@ -120,7 +120,7 @@ class Folder(object):
 
     @container_class.setter
     def container_class(self, value):
-        self.mapiobj.SetProps([SPropValue(PR_CONTAINER_CLASS_W, unicode(value))])
+        self.mapiobj.SetProps([SPropValue(PR_CONTAINER_CLASS_W, _unicode(value))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
@@ -311,7 +311,7 @@ class Folder(object):
         if len(matches) == 0:
             if create:
                 name = path.replace('\\/', '/')
-                mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, unicode(name), u'', None, MAPI_UNICODE)
+                mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, _unicode(name), u'', None, MAPI_UNICODE)
                 return Folder(self.store, HrGetOneProp(mapifolder, PR_ENTRYID).Value)
             else:
                 raise NotFoundError("no such folder: '%s'" % path)
@@ -476,9 +476,9 @@ class Folder(object):
     def search_start(self, folders, text, recurse=False):
         # specific restriction format, needed to reach indexer
         restriction = SOrRestriction([
-                        SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_SUBJECT_W, SPropValue(PR_SUBJECT_W, unicode(text))),
-                        SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_BODY_W, SPropValue(PR_BODY_W, unicode(text))),
-                        SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_DISPLAY_TO_W, SPropValue(PR_DISPLAY_TO_W, unicode(text))),
+                        SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_SUBJECT_W, SPropValue(PR_SUBJECT_W, _unicode(text))),
+                        SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_BODY_W, SPropValue(PR_BODY_W, _unicode(text))),
+                        SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_DISPLAY_TO_W, SPropValue(PR_DISPLAY_TO_W, _unicode(text))),
                         # XXX add all default fields.. BUT perform full-text search by default!
         ])
         if isinstance(folders, Folder):

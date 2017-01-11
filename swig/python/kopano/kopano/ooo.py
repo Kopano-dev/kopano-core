@@ -12,7 +12,7 @@ import MAPI
 
 from MAPI.Util import *
 
-from .compat import repr as _repr
+from .compat import repr as _repr, fake_unicode as _unicode
 
 class Outofoffice(object):
     """Outofoffice class
@@ -50,7 +50,7 @@ class Outofoffice(object):
 
     @subject.setter
     def subject(self, value):
-        self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_SUBJECT_W, unicode(value))])
+        self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_SUBJECT_W, _unicode(value))])
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
@@ -64,7 +64,7 @@ class Outofoffice(object):
 
     @message.setter
     def message(self, value):
-        self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_MSG_W, unicode(value))])
+        self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_MSG_W, _unicode(value))])
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
