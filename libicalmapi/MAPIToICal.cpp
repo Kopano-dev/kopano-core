@@ -49,13 +49,12 @@ private:
 	LPADRBOOK m_lpAdrBook;
 	std::string m_strCharset;
 
-	LPSPropTagArray m_lpNamedProps;
+	SPropTagArray *m_lpNamedProps = nullptr;
 	/* since we don't want depending projects to add include paths for libical, this is only in the implementation version */
-	icalcomponent *m_lpicCalender;
-	icalproperty_method m_icMethod;
+	icalcomponent *m_lpicCalender = nullptr;
+	icalproperty_method m_icMethod = ICAL_METHOD_NONE;
 	timezone_map m_tzMap;			// contains all used timezones
-
-	ULONG m_ulEvents;
+	ULONG m_ulEvents = 0;
 
 	HRESULT HrInitializeVCal();
 };
@@ -83,16 +82,10 @@ HRESULT CreateMapiToICal(LPADRBOOK lpAdrBook, const std::string &strCharset, Map
  * @param[in] lpAdrBook MAPI addressbook
  * @param[in] strCharset charset of the ical returned by this class
  */
-MapiToICalImpl::MapiToICalImpl(LPADRBOOK lpAdrBook, const std::string &strCharset)
+MapiToICalImpl::MapiToICalImpl(LPADRBOOK lpAdrBook,
+    const std::string &strCharset) :
+	m_lpAdrBook(lpAdrBook), m_strCharset(strCharset)
 {
-	m_lpAdrBook = lpAdrBook;
-	m_strCharset = strCharset;
-
-	m_lpNamedProps = NULL;
-	m_lpicCalender = NULL;
-	m_icMethod = ICAL_METHOD_NONE;
-	m_ulEvents = 0;
-
 	// initialize empty ical data
 	HrInitializeVCal();
 }

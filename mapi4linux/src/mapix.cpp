@@ -1004,8 +1004,6 @@ M4LMAPISession::M4LMAPISession(LPTSTR new_profileName, M4LMsgServiceAdmin *new_s
 	profileName = (char*)new_profileName;
 	serviceAdmin = new_serviceAdmin;
 	serviceAdmin->AddRef();
-	m_cValuesStatus = 0;
-	m_lpPropsStatus = NULL;
 }
 
 M4LMAPISession::~M4LMAPISession() {
@@ -1738,11 +1736,11 @@ HRESULT M4LMAPISession::setStatusRow(ULONG cValues, LPSPropValue lpProps)
 // ---
 // M4LAddrBook
 // ---
-M4LAddrBook::M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin, LPMAPISUP newlpMAPISup) {
-	serviceAdmin = new_serviceAdmin;
-	m_lpMAPISup = newlpMAPISup;
+M4LAddrBook::M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin,
+    LPMAPISUP newlpMAPISup) :
+	serviceAdmin(new_serviceAdmin), m_lpMAPISup(newlpMAPISup)
+{
 	m_lpMAPISup->AddRef();
-	m_lpSavedSearchPath = NULL;
 }
 
 M4LAddrBook::~M4LAddrBook() {

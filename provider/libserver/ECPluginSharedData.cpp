@@ -27,16 +27,10 @@ std::mutex ECPluginSharedData::m_SingletonLock;
 std::mutex ECPluginSharedData::m_CreateConfigLock;
 
 ECPluginSharedData::ECPluginSharedData(ECConfig *lpParent,
-    ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed)
+    ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed) :
+	m_lpParentConfig(lpParent), m_lpStatsCollector(lpStatsCollector),
+	m_bHosted(bHosted), m_bDistributed(bDistributed)
 {
-	m_ulRefCount = 0;
-	m_lpConfig = NULL;
-	m_lpDefaults = NULL;
-	m_lpszDirectives = NULL;
-	m_lpParentConfig = lpParent;
-	m_lpStatsCollector = lpStatsCollector;
-	m_bHosted = bHosted;
-	m_bDistributed = bDistributed;
 }
 
 ECPluginSharedData::~ECPluginSharedData()

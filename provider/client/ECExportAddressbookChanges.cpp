@@ -35,9 +35,10 @@
 
 #include <edkmdb.h>
 
-ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) {
+ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) :
+	m_lpMsgStore(lpStore)
+{
 	ECSyncLog::GetLogger(&m_lpLogger);
-	m_lpMsgStore = lpStore;
 }
 
 ECExportAddressbookChanges::~ECExportAddressbookChanges() {

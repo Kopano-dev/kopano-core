@@ -402,13 +402,10 @@ HRESULT ECMemTable::HrClear()
  * the actual sorting, etc.
  */
 
-ECMemTableView::ECMemTableView(ECMemTable *lpMemTable, const ECLocale &locale, ULONG ulFlags) : ECUnknown("ECMemTableView")
+ECMemTableView::ECMemTableView(ECMemTable *lpMemTable, const ECLocale &locale,
+    ULONG ulFlags) :
+	ECUnknown("ECMemTableView"), lpKeyTable(new ECKeyTable)
 {
-	this->lpsSortOrderSet = NULL;
-	this->lpsRestriction = NULL;
-
-	this->lpKeyTable = new ECKeyTable();
-
 	this->lpMemTable = lpMemTable;
 
 	this->lpsPropTags = (LPSPropTagArray) new BYTE[CbNewSPropTagArray(lpMemTable->lpsColumns->cValues)];

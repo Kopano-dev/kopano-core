@@ -61,12 +61,9 @@ private:
 	_kc_hidden ECSyncSettings(void);
 
 private:
-	ULONG	m_ulSyncLog;
-	ULONG	m_ulSyncLogLevel;
-	ULONG	m_ulSyncOpts;
-	ULONG	m_ulStreamTimeout;
-	ULONG	m_ulStreamBufferSize;
-	ULONG	m_ulStreamBatchSize;
+	ULONG m_ulSyncLog = 0, m_ulSyncLogLevel;
+	ULONG m_ulSyncOpts = EC_SYNC_OPT_ALL, m_ulStreamTimeout = 30000;
+	ULONG m_ulStreamBufferSize = 131072, m_ulStreamBatchSize = 256;
 
 	static std::mutex s_hMutex;
 	static ECSyncSettings *s_lpInstance;

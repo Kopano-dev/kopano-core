@@ -166,11 +166,10 @@ ECRESULT ECStreamSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
 	return erSuccess;
 }
 
-ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode)
+ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode) :
+	m_mode(mode)
 {
 	SetBuffer(lpBuffer);
-	m_mode = mode;
-	m_ulRead = m_ulWritten = 0;
 }
 
 ECFifoSerializer::~ECFifoSerializer(void)

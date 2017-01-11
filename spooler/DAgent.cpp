@@ -3236,8 +3236,6 @@ static void *HandlerLMTP(void *lpArg)
 
 exit:
 	FreeServerRecipients(&mapRCPT);
-	lOrderedRecipients.clear();
-	mapRecipientResults.clear();
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "LMTP thread exiting");
 
 	delete lpArgs;

@@ -63,10 +63,9 @@ private:
     static void * Thread(void *lpParam);
     void * Work();
     
-    bool		m_bExit;
+	bool m_bExit = false;
     pthread_t 	m_thread;
-    
-    unsigned int m_ulTimeout;
+	unsigned int m_ulTimeout = 60; /* Currently hardcoded at 60s, see comment in Work() */
 
     // A map of all sessions that are waiting for a SOAP response to be sent (an item can be in here for up to 60 seconds)
     std::map<ECSESSIONID, NOTIFREQUEST> 	m_mapRequests;

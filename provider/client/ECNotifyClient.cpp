@@ -58,15 +58,14 @@ static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &s
 	return std::make_pair(sSyncAdvise.sSyncState.ulSyncId,sSyncAdvise.ulConnection);
 }
 
-ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport) : ECUnknown("ECNotifyClient")
+ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider,
+    ULONG ulFlags, LPMAPISUP lpSupport) :
+	ECUnknown("ECNotifyClient"), m_lpSupport(lpSupport),
+	m_lpProvider(lpProvider), m_ulProviderType(ulProviderType)
 {
 	TRACE_MAPI(TRACE_ENTRY, "ECNotifyClient::ECNotifyClient","");
 
 	ECSESSIONID ecSessionId;
-
-	m_lpProvider		= lpProvider;
-	m_ulProviderType	= ulProviderType;
-	m_lpSupport			= lpSupport;
 
 	if(m_ulProviderType == MAPI_STORE)
 		m_lpTransport = ((ECMsgStore*)m_lpProvider)->lpTransport;

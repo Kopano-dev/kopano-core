@@ -51,8 +51,7 @@ private:
 	std::mutex m_hMutexExit;
 	std::condition_variable m_hCondExit;
     pthread_t			m_hThread;
-    bool				m_bExit;
-
+	bool m_bExit = false;
     ECConfig *m_lpConfig;    
     ECDatabaseFactory *m_lpDatabaseFactory;
 };

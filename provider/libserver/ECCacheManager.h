@@ -612,7 +612,7 @@ private:
 	std::mutex m_hExcludedIndexPropertiesMutex;
 	
 	// Testing
-	bool						m_bCellCacheDisabled;
+	bool m_bCellCacheDisabled = false;
 };
 
 } /* namespace */

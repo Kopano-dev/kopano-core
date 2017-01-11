@@ -71,7 +71,7 @@ public:
 private:
 	delivery_options m_dopt;
 	LPADRBOOK m_lpAdrBook;
-	IABContainer *m_lpDefaultDir;
+	IABContainer *m_lpDefaultDir = nullptr;
 	sMailState m_mailState;
 	convert_context m_converter;
 

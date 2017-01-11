@@ -28,13 +28,10 @@
 namespace KC {
 
 ECPluginFactory::ECPluginFactory(ECConfig *config, ECStatsCollector *lpStatsCollector,
-    bool bHosted, bool bDistributed)
+    bool bHosted, bool bDistributed) :
+	m_config(config)
 {
-	m_getUserPluginInstance = NULL;
-	m_deleteUserPluginInstance = NULL;
-	m_config = config;
 	ECPluginSharedData::GetSingleton(&m_shareddata, m_config, lpStatsCollector, bHosted, bDistributed);
-	m_dl = NULL;
 }
 
 ECPluginFactory::~ECPluginFactory() {

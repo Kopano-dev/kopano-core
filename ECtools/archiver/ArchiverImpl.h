@@ -30,7 +30,8 @@ namespace KC {
 
 class ArchiverImpl _kc_final : public Archiver {
 public:
-	ArchiverImpl();
+	ArchiverImpl(void) = default;
+	ArchiverImpl(const ArchiverImpl &) = delete;
 	~ArchiverImpl();
 	eResult Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags) _kc_override;
 	eResult GetControl(ArchiveControlPtr *lpptrControl, bool bForceCleanup) _kc_override;
@@ -45,11 +46,11 @@ private:
 
 private:
 	KCHL::AutoMAPI m_MAPI;
-	ECConfig		*m_lpsConfig;
-	ECLogger		*m_lpLogger;
-    ECLogger        *m_lpLogLogger; // Logs only to the log specified in the config
+	ECConfig *m_lpsConfig = nullptr;
+	ECLogger *m_lpLogger = nullptr;
+	ECLogger *m_lpLogLogger = nullptr; // Logs only to the log specified in the config
 	ArchiverSessionPtr 		m_ptrSession;
-	configsetting_t	*m_lpDefaults;
+	configsetting_t	*m_lpDefaults = nullptr;
 };
 
 } /* namespace */

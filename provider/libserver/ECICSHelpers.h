@@ -73,20 +73,19 @@ private:
 	
 private:
 	// Interfaces for delegated processing
-	IDbQueryCreator		*m_lpQueryCreator;
-	IMessageProcessor	*m_lpMsgProcessor;
+	IDbQueryCreator *m_lpQueryCreator = nullptr;
+	IMessageProcessor *m_lpMsgProcessor = nullptr;
 	
 	// Internal variables
 	soap			*m_soap;
 	ECSession		*m_lpSession;
 	ECDatabase		*m_lpDatabase;
 	restrictTable	*m_lpsRestrict;
-	icsChangesArray *m_lpChanges;
+	icsChangesArray *m_lpChanges = nullptr;
 	const SOURCEKEY	&m_sFolderSourceKey;
 	unsigned int	m_ulSyncId;
 	unsigned int	m_ulChangeId;
-	unsigned int	m_ulChangeCnt;
-	unsigned int	m_ulMaxFolderChange;
+	unsigned int m_ulChangeCnt = 0, m_ulMaxFolderChange = 0;
 	unsigned int	m_ulFlags;
 	MESSAGESET		m_setLegacyMessages;
 	MESSAGESET		m_setNewMessages;

@@ -70,8 +70,10 @@ unsigned int GetCacheAdditionalSize(const ECsUEIdKey &val) {
 	return MEMORY_USAGE_STRING(val.strExternId);
 }
 
-ECCacheManager::ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabaseFactory)
-: m_QuotaCache("quota", atoi(lpConfig->GetSetting("cache_quota_size")), atoi(lpConfig->GetSetting("cache_quota_lifetime")) * 60)
+ECCacheManager::ECCacheManager(ECConfig *lpConfig,
+    ECDatabaseFactory *lpDatabaseFactory) :
+	m_lpDatabaseFactory(lpDatabaseFactory),
+	m_QuotaCache("quota", atoi(lpConfig->GetSetting("cache_quota_size")), atoi(lpConfig->GetSetting("cache_quota_lifetime")) * 60)
 , m_QuotaUserDefaultCache("uquota", atoi(lpConfig->GetSetting("cache_quota_size")), atoi(lpConfig->GetSetting("cache_quota_lifetime")) * 60)
 , m_ObjectsCache("obj", atoll(lpConfig->GetSetting("cache_object_size")), 0)
 , m_StoresCache("store", atoi(lpConfig->GetSetting("cache_store_size")), 0)
@@ -84,10 +86,6 @@ ECCacheManager::ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabase
 , m_PropToObjectCache("index1", atoll(lpConfig->GetSetting("cache_indexedobject_size")), 0)
 , m_ObjectToPropCache("index2", atoll(lpConfig->GetSetting("cache_indexedobject_size")), 0)
 {
- 	/* Initialization of constants */
- 	m_lpDatabaseFactory = lpDatabaseFactory;
- 	m_bCellCacheDisabled = false;
-
 	/* Initial cleaning/initialization of cache */
 	PurgeCache(PURGE_CACHE_ALL);
 }

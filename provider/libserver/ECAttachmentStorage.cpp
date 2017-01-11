@@ -1195,16 +1195,13 @@ ECRESULT ECDatabaseAttachment::Rollback()
 ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase,
     const std::string &basepath, unsigned int ulCompressionLevel,
     const bool force_changes_to_disk) :
-	ECAttachmentStorage(lpDatabase, ulCompressionLevel)
+	ECAttachmentStorage(lpDatabase, ulCompressionLevel),
+	m_basepath(basepath)
 {
-	m_basepath = basepath;
 	if (m_basepath.empty())
 		m_basepath = "/var/lib/kopano";
 
 	this -> force_changes_to_disk = force_changes_to_disk;
-	m_dirFd = -1;
-	m_dirp = NULL;
-
 	if (force_changes_to_disk) {
 		m_dirp = opendir(m_basepath.c_str());
 
@@ -1215,8 +1212,6 @@ ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase,
 			ec_log_warn("Problem opening directory file \"%s\": %s - attachment storage atomicity not guaranteed", m_basepath.c_str(), strerror(errno));
 	}
 	attachment_size_safety_limit = 512 * 1024 * 1024; // FIXME make configurable
-	
-	m_bTransaction = false;
 }
 
 ECFileAttachment::~ECFileAttachment()

@@ -133,35 +133,16 @@ static inline bool match(unsigned int relop, int equality)
  * @param[in] ulObjType
  *					The Object type of the objects in the table
  */
-ECGenericObjectTable::ECGenericObjectTable(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale)
+ECGenericObjectTable::ECGenericObjectTable(ECSession *lpSession,
+    unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) :
+	m_ulObjType(ulObjType), m_ulFlags(ulFlags), m_locale(locale)
 {
 	this->lpSession			= lpSession;
 	this->lpKeyTable		= new ECKeyTable;
-	this->lpsPropTagArray	= NULL;
-	this->lpsRestrict		= NULL;
-	this->m_lpObjectData	= NULL;			// Must be set on the parent class
-	this->m_lpfnQueryRowData= NULL;			// Must be set on the parent class
-	this->m_ulCategories 	= 0;
-	this->m_ulExpanded		= 0;
-	this->m_ulCategory		= 1;
-	this->m_ulObjType		= ulObjType;
-	this->m_bPopulated		= false;
-	this->m_ulFlags			= ulFlags;
-
-	this->m_locale = locale;
-	
-	// No sort order by default
-	this->lpsSortOrderArray	= NULL;
-
 	// No columns by default
 	this->lpsPropTagArray = new struct propTagArray;
 	this->lpsPropTagArray->__size = 0;
 	this->lpsPropTagArray->__ptr = NULL;
-
-	m_bMVCols = false;
-	m_bMVSort = false;
-
-	m_ulTableId = -1;
 }
 
 /**
@@ -2952,7 +2933,11 @@ size_t ECGenericObjectTable::GetObjectSize(void)
 	return ulSize;
 }
 
-ECCategory::ECCategory(unsigned int ulCategory, struct propVal *lpProps, unsigned int cProps, unsigned int nProps, ECCategory *lpParent, unsigned int ulDepth, bool fExpanded, const ECLocale &locale) : m_locale(locale)
+ECCategory::ECCategory(unsigned int ulCategory, struct propVal *lpProps,
+    unsigned int cProps, unsigned int nProps, ECCategory *lpParent,
+    unsigned int ulDepth, bool fExpanded, const ECLocale &locale) :
+	m_cProps(nProps), m_lpParent(lpParent), m_ulDepth(ulDepth),
+	m_ulCategory(ulCategory), m_fExpanded(fExpanded), m_locale(locale)
 {
     unsigned int i;
 
@@ -2964,15 +2949,6 @@ ECCategory::ECCategory(unsigned int ulCategory, struct propVal *lpProps, unsigne
     	m_lpProps[i].Value.ul = 0;
     	m_lpProps[i].__union = SOAP_UNION_propValData_ul;
     }
-        
-    m_cProps = nProps;
-    
-    m_lpParent = lpParent;
-    m_ulDepth = ulDepth;
-    m_ulUnread = 0;
-    m_ulLeafs = 0;
-    m_fExpanded = fExpanded;
-    m_ulCategory = ulCategory;
 }
 
 ECCategory::~ECCategory()

@@ -547,9 +547,9 @@ void ECLogger_Tee::AddLogger(ECLogger *lpLogger) {
 	m_loggers.push_back(lpLogger);
 }
 
-ECLogger_Pipe::ECLogger_Pipe(int fd, pid_t childpid, int loglevel) : ECLogger(loglevel) {
-	m_fd = fd;
-	m_childpid = childpid;
+ECLogger_Pipe::ECLogger_Pipe(int fd, pid_t childpid, int loglevel) :
+	ECLogger(loglevel), m_fd(fd), m_childpid(childpid)
+{
 }
 
 ECLogger_Pipe::~ECLogger_Pipe() {

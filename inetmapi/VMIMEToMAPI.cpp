@@ -153,11 +153,9 @@ VMIMEToMAPI::VMIMEToMAPI()
  * @param[in]	lpAdrBook	Addressbook of a user.
  * @param[in]	dopt		delivery options handle differences in DAgent and Gateway behaviour.
  */
-VMIMEToMAPI::VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt)
+VMIMEToMAPI::VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt) :
+	m_dopt(dopt), m_lpAdrBook(lpAdrBook)
 {
-	m_dopt = dopt;
-	m_lpAdrBook = lpAdrBook;
-	m_lpDefaultDir = NULL;
 }
 
 VMIMEToMAPI::~VMIMEToMAPI()
@@ -3436,7 +3434,6 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 	} catch (vmime::exception &e) {
 		lItems.push_back("NIL");
 	}
-	buffer.clear();
 	return kc_join(lItems, " ");
 }
 

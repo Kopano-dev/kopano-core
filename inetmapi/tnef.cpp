@@ -124,11 +124,10 @@ static bool PropTagInPropList(ULONG ulPropTag, const SPropTagArray *lpPropList)
  * @param[in,out]	lpMessage	TNEF properties will be saved to this message, and attachments will be create under this message.
  * @param[in]		lpStream	IStream object to the TNEF data
  */
-ECTNEF::ECTNEF(ULONG ulFlags, IMessage *lpMessage, IStream *lpStream)
+ECTNEF::ECTNEF(ULONG ulFlags, IMessage *lpMessage, IStream *lpStream) :
+	m_lpStream(lpStream), m_lpMessage(lpMessage)
 {
 	this->ulFlags = ulFlags;
-	this->m_lpMessage = lpMessage;
-	this->m_lpStream = lpStream;
 }
 
 /**

@@ -26,18 +26,14 @@
 #include "SessionGroupData.h"
 #include "WSTransport.h"
 
-SessionGroupData::SessionGroupData(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps)
+SessionGroupData::SessionGroupData(ECSESSIONGROUPID ecSessionGroupId,
+    ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps) :
+	m_ecSessionGroupId(ecSessionGroupId), m_sProfileProps(sProfileProps)
 {
-	m_ecSessionGroupId = ecSessionGroupId;
-
 	if (lpInfo) {
 		m_ecSessionGroupInfo.strServer = lpInfo->strServer;
 		m_ecSessionGroupInfo.strProfile = lpInfo->strProfile;
 	}
-
-	m_lpNotifyMaster = NULL;
-	m_sProfileProps = sProfileProps;
-	m_cRef = 0;
 }
 
 SessionGroupData::~SessionGroupData(void)

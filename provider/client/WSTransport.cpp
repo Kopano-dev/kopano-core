@@ -90,17 +90,10 @@ using namespace KCHL;
 	if(hr != hrSuccess) \
 		goto exitm;
 
-WSTransport::WSTransport(ULONG ulUIFlags)  
-: ECUnknown("WSTransport")
-, m_ResolveResultCache("ResolveResult", 4096, 300), m_has_session(false)
+WSTransport::WSTransport(ULONG ulUIFlags) :
+	ECUnknown("WSTransport"), m_ulUIFlags(ulUIFlags),
+	m_ResolveResultCache("ResolveResult", 4096, 300), m_has_session(false)
 {
-	m_lpCmd = NULL;
-	m_ecSessionGroupId = 0;
-	m_ecSessionId = 0;
-	m_ulReloadId = 1;
-	m_ulServerCapabilities = 0;
-	m_llFlags = 0;
-	m_ulUIFlags = ulUIFlags;
 	memset(&m_sServerGuid, 0, sizeof(m_sServerGuid));
 }
 

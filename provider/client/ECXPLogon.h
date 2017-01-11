@@ -87,10 +87,10 @@ private:
 	HRESULT ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder);
 private:
 	LPMAPISUP		m_lpMAPISup;
-	LPTSTR			*m_lppszAdrTypeArray;
-	ULONG			m_ulTransportStatus;
+	TCHAR **m_lppszAdrTypeArray = nullptr;
+	ULONG m_ulTransportStatus = 0;
 	ECXPProvider	*m_lpXPProvider;
-	bool			m_bCancel;
+	bool m_bCancel = false;
 	std::condition_variable m_hExitSignal;
 	std::mutex m_hExitMutex;
 	ULONG			m_bOffline;

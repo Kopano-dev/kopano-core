@@ -46,12 +46,9 @@ struct THREADINFO {
 };
 
 ECSearchFolders::ECSearchFolders(ECSessionManager *lpSessionManager,
-    ECDatabaseFactory *lpFactory)
+    ECDatabaseFactory *lpFactory) :
+	m_lpDatabaseFactory(lpFactory), m_lpSessionManager(lpSessionManager)
 {
-    this->m_lpSessionManager = lpSessionManager;
-    this->m_lpDatabaseFactory = lpFactory;
-    this->m_bExitThread = false;
-    this->m_bRunning = false;
     pthread_create(&m_threadProcess, NULL, ECSearchFolders::ProcessThread, (void *)this);
     set_thread_name(m_threadProcess, "SearchFolders");
 }

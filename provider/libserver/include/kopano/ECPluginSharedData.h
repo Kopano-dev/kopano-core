@@ -53,7 +53,7 @@ private:
 	/**
 	 * Reference count, used to destroy object when no users are left.
 	 */
-	unsigned int m_ulRefCount;
+	unsigned int m_ulRefCount = 0;
 
 	/**
 	 * @param[in]	lpParent
@@ -148,7 +148,7 @@ private:
 	/**
 	 * Plugin configuration file
 	 */
-	ECConfig *m_lpConfig;
+	ECConfig *m_lpConfig = nullptr;
 
 	/**
 	 * Server configuration file
@@ -173,12 +173,12 @@ private:
 	/**
 	 * Copy of plugin defaults, stored in the singleton
 	 */
-	configsetting_t *m_lpDefaults;
+	configsetting_t *m_lpDefaults = nullptr;
 
 	/**
 	 * Copy of plugin directives, stored in the singleton
 	 */
-	char **m_lpszDirectives;
+	char **m_lpszDirectives = nullptr;
 };
 
 } /* namespace */

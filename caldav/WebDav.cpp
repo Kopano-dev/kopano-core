@@ -32,7 +32,6 @@ WebDav::WebDav(Http *lpRequest, IMAPISession *lpSession,
     const std::string &strSrvTz, const std::string &strCharset) :
 	ProtocolBase(lpRequest, lpSession, strSrvTz, strCharset)
 {	
-	m_lpXmlDoc  = NULL;
 }
 
 WebDav::~WebDav()

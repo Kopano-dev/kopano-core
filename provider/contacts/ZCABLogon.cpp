@@ -32,7 +32,8 @@
 
 using namespace KCHL;
 
-ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) : ECUnknown("IABLogon")
+ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) :
+	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup)
 {
 	// The specific GUID for *this* addressbook provider, if available
 	if (lpGUID) {
@@ -40,8 +41,6 @@ ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) : 
 	} else {
 		m_ABPGuid = GUID_NULL;
 	}
-
-	m_lpMAPISup = lpMAPISup;
 	if(m_lpMAPISup)
 		m_lpMAPISup->AddRef();
 }
@@ -49,10 +48,8 @@ ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) : 
 ZCABLogon::~ZCABLogon()
 {
 	ClearFolderList();
-	if(m_lpMAPISup) {
+	if (m_lpMAPISup != nullptr)
 		m_lpMAPISup->Release();
-		m_lpMAPISup = NULL;
-	}
 }
 
 HRESULT ZCABLogon::Create(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGuid, ZCABLogon **lppZCABLogon)

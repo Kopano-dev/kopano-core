@@ -33,19 +33,12 @@
 #define DEBUG_TRANSACTION 0
 #endif
 
-// The maximum packet size. This is automatically also the maximum
-// size of a single entry in the database.
-#define MAX_ALLOWED_PACKET			16777216
+#define MAX_ALLOWED_PACKET KC_DFL_MAX_PACKET_SIZE
 
 namespace KC {
 
 KCMDatabaseMySQL::KCMDatabaseMySQL(void)
 {
-	m_bMysqlInitialize	= false;
-	m_bConnected		= false;
-	m_bLocked			= false;
-	m_bAutoLock			= true;
-	m_ulMaxAllowedPacket = MAX_ALLOWED_PACKET;
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
 }
 

@@ -214,9 +214,9 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 	return erSuccess;
 }
 
-ECSoapServerConnection::ECSoapServerConnection(ECConfig *lpConfig)
+ECSoapServerConnection::ECSoapServerConnection(ECConfig *lpConfig) :
+	m_lpConfig(lpConfig)
 {
-	m_lpConfig = lpConfig;
 #ifdef USE_EPOLL
 	m_lpDispatcher = new ECDispatcherEPoll(lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
 	ec_log_info("Using epoll events");

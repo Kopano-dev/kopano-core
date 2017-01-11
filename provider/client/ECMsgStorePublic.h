@@ -55,20 +55,14 @@ public:
 	virtual HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
 
 protected:	
-	LPENTRYID m_lpIPMSubTreeID;
-	LPENTRYID m_lpIPMFavoritesID;
-	LPENTRYID m_lpIPMPublicFoldersID;
-
-	ULONG m_cIPMSubTreeID;
-	ULONG m_cIPMFavoritesID;
-	ULONG m_cIPMPublicFoldersID;
-
+	ENTRYID *m_lpIPMSubTreeID = nullptr, *m_lpIPMFavoritesID = nullptr;
+	ENTRYID *m_lpIPMPublicFoldersID = nullptr;
+	ULONG m_cIPMSubTreeID = 0, m_cIPMFavoritesID = 0;
+	ULONG m_cIPMPublicFoldersID = 0;
+	ECMemTable *m_lpIPMSubTree = nullptr; // Build-in IPM subtree
+	IMsgStore *m_lpDefaultMsgStore = nullptr;
 
 	HRESULT BuildIPMSubTree();
-
-	ECMemTable *m_lpIPMSubTree; // Build-in IPM subtree
-
-	IMsgStore *m_lpDefaultMsgStore;
 	// entryid : level
 
 };

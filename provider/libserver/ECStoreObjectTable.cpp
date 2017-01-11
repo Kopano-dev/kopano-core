@@ -105,7 +105,11 @@ static bool IsTruncated(const struct propVal *lpsPropVal)
 	return false;		
 }
 
-ECStoreObjectTable::ECStoreObjectTable(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, ulObjType, ulFlags, locale)
+ECStoreObjectTable::ECStoreObjectTable(ECSession *lpSession,
+    unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,
+    unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags,
+    const ECLocale &locale) :
+	ECGenericObjectTable(lpSession, ulObjType, ulFlags, locale)
 {
 	ECODStore* lpODStore = new ECODStore;
 
@@ -127,9 +131,6 @@ ECStoreObjectTable::ECStoreObjectTable(ECSession *lpSession, unsigned int ulStor
 
 	// Set callback function for queryrowdata
 	m_lpfnQueryRowData = QueryRowData;
-	
-	ulPermission = 0;
-	fPermissionRead = false;
 }
 
 ECStoreObjectTable::~ECStoreObjectTable()

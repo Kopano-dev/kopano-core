@@ -171,7 +171,7 @@ private:
 	ArchiverSessionPtr m_ptrSession;
 	ECConfig *m_lpConfig = nullptr;
 	ECArchiverLogger *m_lpLogger = nullptr;
-	FILETIME m_ftCurrent;
+	FILETIME m_ftCurrent = {0, 0};
 	bool m_bArchiveEnable = true;
 	int m_ulArchiveAfter = 30;
 	bool m_bDeleteEnable = false;
@@ -183,7 +183,7 @@ private:
 	bool m_bPurgeEnable = false;
 	int m_ulPurgeAfter = 2555;
 	eCleanupAction m_cleanupAction;
-	bool m_bCleanupFollowPurgeAfter;
+	bool m_bCleanupFollowPurgeAfter = false;
 	bool m_bForceCleanup;
 	
 	PROPMAP_DECL()

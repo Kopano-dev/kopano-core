@@ -240,19 +240,12 @@ ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
     const std::string &cl_ver, const std::string &cl_app,
     const std::string &cl_app_ver, const std::string &cl_app_misc) :
 	BTSession(src_addr, sessionID, lpDatabaseFactory, lpSessionManager,
-	    ulCapabilities)
+	    ulCapabilities),
+	m_ulAuthMethod(ulAuthMethod), m_ulConnectingPid(pid),
+	m_ecSessionGroupId(ecSessionGroupId), m_strClientVersion(cl_ver),
+	m_ulClientVersion(KOPANO_VERSION_UNKNOWN), m_strClientApp(cl_app)
 {
 	m_lpTableManager		= new ECTableManager(this);
-	m_lpEcSecurity			= NULL;
-	m_dblUser				= 0;
-	m_dblSystem				= 0;
-	m_dblReal				= 0;
-	m_ulAuthMethod			= ulAuthMethod;
-	m_ulConnectingPid		= pid;
-	m_ecSessionGroupId		= ecSessionGroupId;
-	m_strClientVersion		= cl_ver;
-	m_ulClientVersion		= KOPANO_VERSION_UNKNOWN;
-	m_strClientApp			= cl_app;
 	m_strClientApplicationVersion   = cl_app_ver;
 	m_strClientApplicationMisc	= cl_app_misc;
 

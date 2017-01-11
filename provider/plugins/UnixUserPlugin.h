@@ -312,7 +312,7 @@ public:
 										 const objectid_t &parentobject, const objectid_t &childobject);
 
 private:
-	ECIConv *m_iconv;
+	ECIConv *m_iconv = nullptr;
 
 	/**
 	 * Find a user with specific name

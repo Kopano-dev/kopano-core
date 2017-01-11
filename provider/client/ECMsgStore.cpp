@@ -89,7 +89,9 @@ static constexpr const SizedSPropTagArray(NUM_RFT_PROPS, sPropRFTColumns) =
 ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
     WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags,
     BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore) :
-	ECMAPIProp(NULL, MAPI_STORE, fModify, NULL, "IMsgStore")
+	ECMAPIProp(NULL, MAPI_STORE, fModify, NULL, "IMsgStore"),
+	m_ulProfileFlags(ulProfileFlags), m_fIsSpooler(fIsSpooler),
+	m_fIsDefaultStore(fIsDefaultStore), m_bOfflineStore(bOfflineStore)
 {
 	TRACE_MAPI(TRACE_ENTRY, "ECMsgStore::ECMsgStore","");
 
@@ -138,12 +140,6 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
 	SetProvider(this);
 
 	this->lpNamedProp = new ECNamedProp(lpTransport);
-
-	this->m_ulProfileFlags = ulProfileFlags;
-
-	m_fIsSpooler = fIsSpooler;
-	m_fIsDefaultStore = fIsDefaultStore;
-	m_bOfflineStore = bOfflineStore;
 	this->isTransactedObject = FALSE;
 	GetClientVersion(&this->m_ulClientVersion); //Ignore errors
 	assert(lpszProfname != NULL);
@@ -170,6 +166,7 @@ ECMsgStore::~ECMsgStore() {
 	if(lpStorage) {
 		// Release our propstorage since it is registered on lpTransport
 		lpStorage->Release();
+		/* needed because base (~ECGenericProp) also tries to release it */
 		lpStorage = NULL;
 	}
 

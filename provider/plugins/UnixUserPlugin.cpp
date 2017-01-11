@@ -70,8 +70,9 @@ UserPlugin *getUserPluginInstance(std::mutex &pluginlock,
 	}
 }
 
-UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata)
-	: DBPlugin(pluginlock, shareddata), m_iconv(NULL)
+UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
+    ECPluginSharedData *shareddata) :
+	DBPlugin(pluginlock, shareddata)
 {
 	const configsetting_t lpDefaults [] = {
 		{ "fullname_charset", "iso-8859-15" }, // US-ASCII compatible with support for high characters

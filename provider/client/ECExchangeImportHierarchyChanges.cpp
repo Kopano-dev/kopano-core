@@ -41,8 +41,9 @@
 
 using namespace KCHL;
 
-ECExchangeImportHierarchyChanges::ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder){
-	m_lpFolder = lpFolder;
+ECExchangeImportHierarchyChanges::ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder) :
+	m_lpFolder(lpFolder)
+{
 	m_lpFolder->AddRef();
 }
 

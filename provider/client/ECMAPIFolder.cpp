@@ -98,9 +98,6 @@ ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL fModify,
 		lpFolderOps->AddRef();
 
 	this->isTransactedObject = FALSE;
-
-	m_lpFolderAdviseSink = NULL;
-	m_ulConnection = 0;
 }
 
 ECMAPIFolder::~ECMAPIFolder()

@@ -65,16 +65,10 @@ using namespace KCHL;
  * Takes an extra reference to the passed MAPI objects which have refcounting.
  */
 ECQuotaMonitor::ECQuotaMonitor(ECTHREADMONITOR *lpThreadMonitor,
-    LPMAPISESSION lpMAPIAdminSession, LPMDB lpMDBAdmin)
+    LPMAPISESSION lpMAPIAdminSession, LPMDB lpMDBAdmin) :
+	m_lpThreadMonitor(lpThreadMonitor),
+	m_lpMAPIAdminSession(lpMAPIAdminSession), m_lpMDBAdmin(lpMDBAdmin)
 {
-	m_lpThreadMonitor = lpThreadMonitor;
-
-	m_lpMAPIAdminSession = lpMAPIAdminSession;
-	m_lpMDBAdmin = lpMDBAdmin;
-	
-	m_ulProcessed = 0;
-	m_ulFailed = 0;
-
 	if(lpMAPIAdminSession)
 		lpMAPIAdminSession->AddRef();
 	if(lpMDBAdmin)

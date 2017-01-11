@@ -434,8 +434,7 @@ private:
     pthread_t m_threadProcess;
     
     // Exit request for processing thread
-    bool m_bExitThread;
-	bool m_bRunning;
+	bool m_bExitThread = false, m_bRunning = false;
 };
 
 } /* namespace */

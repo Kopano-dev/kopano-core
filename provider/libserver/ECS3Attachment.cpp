@@ -213,7 +213,7 @@ ECS3Attachment::ECS3Attachment(ECDatabase *database, const char *protocol,
     const char *uri_style, const char *access_key_id,
     const char *secret_access_key, const char *bucket_name, const char *region,
     const char *basepath, unsigned int complvl) :
-	ECAttachmentStorage(database, complvl)
+	ECAttachmentStorage(database, complvl), m_basepath(basepath)
 {
 	memset(&m_bucket_ctx, 0, sizeof(m_bucket_ctx));
 	m_bucket_ctx.bucketName = bucket_name;
@@ -222,9 +222,6 @@ ECS3Attachment::ECS3Attachment(ECDatabase *database, const char *protocol,
 	m_bucket_ctx.accessKeyId = access_key_id;
 	m_bucket_ctx.secretAccessKey = secret_access_key;
 	m_bucket_ctx.authRegion = region;
-
-	m_basepath = basepath;
-	m_transact = false;
 
 	/* Set the handlers */
 	m_response_handler.propertiesCallback = &ECS3Attachment::response_prop_cb;

@@ -45,18 +45,6 @@ ECMsgStorePublic::ECMsgStorePublic(char *lpszProfname, LPMAPISUP lpSupport, WSTr
 	HrAddPropHandlers(PR_IPM_PUBLIC_FOLDERS_ENTRYID,	GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	HrAddPropHandlers(PR_IPM_FAVORITES_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	HrAddPropHandlers(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID,	GetPropHandler, SetPropHandler,			(void*) this, FALSE, TRUE);
-
-	m_lpIPMSubTreeID = NULL;
-	m_lpIPMFavoritesID = NULL;
-	m_lpIPMPublicFoldersID = NULL;
-
-	m_cIPMSubTreeID = 0;
-	m_cIPMFavoritesID = 0;
-	m_cIPMPublicFoldersID = 0;
-
-	m_lpIPMSubTree = NULL;
-	m_lpDefaultMsgStore = NULL;
-
 	TRACE_MAPI(TRACE_RETURN, "ECMsgStorePublic::ECMsgStorePublic","");
 }
 

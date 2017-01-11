@@ -62,11 +62,10 @@ namespace KC {
  * @param[in] lpLogger log object for normal logging
  * @param[in] lpAudit optional log object for auditing
  */
-ECSecurity::ECSecurity(ECSession *lpSession, ECConfig *lpConfig, ECLogger *lpAudit)
+ECSecurity::ECSecurity(ECSession *lpSession, ECConfig *lpConfig,
+    ECLogger *lpAudit) :
+	m_lpSession(lpSession), m_lpAudit(lpAudit), m_lpConfig(lpConfig)
 {
-	m_lpSession = lpSession;
-	m_lpConfig = lpConfig;
-	m_lpAudit = lpAudit;
 	if (m_lpAudit != NULL)
 		m_lpAudit->AddRef();
 	m_bRestrictedAdmin = parseBool(lpConfig->GetSetting("restrict_admin_permissions"));

@@ -89,9 +89,7 @@ namespace smtp {
 
 MAPISMTPTransport::MAPISMTPTransport(vmime::shared_ptr<session> sess,
     vmime::shared_ptr<security::authenticator> auth, const bool secured) :
-	transport(sess, getInfosInstance(), auth), m_socket(NULL),
-	m_authentified(false), m_extendedSMTP(false), m_timeoutHandler(NULL),
-	m_isSMTPS(secured), m_secured(false), m_bDSNRequest(false)
+	transport(sess, getInfosInstance(), auth), m_isSMTPS(secured)
 {
 }
 

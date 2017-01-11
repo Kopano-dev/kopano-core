@@ -145,7 +145,7 @@ private:
     ECDispatcher *		m_lpDispatcher;
     ECThreadManager*	m_lpThreadManager;
     pthread_t			m_thread;
-    bool				m_bExit;
+	bool m_bExit = false;
 	std::mutex m_mutexExit;
 	std::condition_variable m_condExit;
 };

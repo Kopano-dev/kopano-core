@@ -188,7 +188,7 @@ protected:
 	pthread_t			m_hSessionCleanerThread;///< Thread that is used for the sessioncleaner
 	bool				m_bTerminateThread;
 	ECConfig*			m_lpConfig;
-	bool				bExit;
+	bool bExit = false;
 	ECCacheManager*		m_lpECCacheManager;
 	ECLogger*			m_lpAudit;
 	ECDatabaseFactory*	m_lpDatabaseFactory;
@@ -196,11 +196,11 @@ protected:
 	ECSearchFolders*	m_lpSearchFolders;
 	bool				m_bHostedKopano;
 	bool				m_bDistributedKopano;
-	GUID*				m_lpServerGuid;
-	unsigned long long	m_ullSourceKeyAutoIncrement;
-	unsigned int		m_ulSourceKeyQueue;
+	GUID *m_lpServerGuid = nullptr;
+	unsigned long long m_ullSourceKeyAutoIncrement = 0;
+	unsigned int m_ulSourceKeyQueue = 0;
 	std::mutex m_hSourceKeyAutoIncrementMutex;
-	ECDatabase *		m_lpDatabase;
+	ECDatabase *m_lpDatabase = nullptr;
 
 	std::mutex m_mutexPersistent;
 	PERSISTENTBYSESSION m_mapPersistentBySession; ///< map of all persistent sessions mapped to their connection id
@@ -219,8 +219,8 @@ protected:
 
 	// Sequences
 	std::mutex m_hSeqMutex;
-	unsigned long long 	m_ulSeqIMAP;
-	unsigned int		m_ulSeqIMAPQueue;
+	unsigned long long m_ulSeqIMAP = 0;
+	unsigned int m_ulSeqIMAPQueue = 0;
 };
 
 extern _kc_export ECSessionManager *g_lpSessionManager;

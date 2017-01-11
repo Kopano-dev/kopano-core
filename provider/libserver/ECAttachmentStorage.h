@@ -144,8 +144,8 @@ private:
 	_kc_hidden std::string CreateAttachmentFilename(ULONG instance, bool compressed);
 
 	size_t attachment_size_safety_limit;
-	int m_dirFd;
-	DIR *m_dirp;
+	int m_dirFd = -1;
+	DIR *m_dirp = nullptr;
 	bool force_changes_to_disk;
 
 	/* helper functions for transacted deletion */
@@ -155,7 +155,7 @@ private:
 	_kc_hidden bool VerifyInstanceSize(ULONG instance, size_t expected_size, const std::string &filename);
 
 	std::string m_basepath;
-	bool m_bTransaction;
+	bool m_bTransaction = false;
 	std::set<ULONG> m_setNewAttachment;
 	std::set<ULONG> m_setDeletedAttachment;
 	std::set<ULONG> m_setMarkedAttachment;

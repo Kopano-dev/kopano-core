@@ -68,7 +68,7 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	std::set<ULONG> m_new_att;
 	std::set<ULONG> m_deleted_att;
 	std::set<ULONG> m_marked_att;
-	bool m_transact;
+	bool m_transact = false;
 
 	/*
 	 * The Request Context and Response Handler variables are responsible

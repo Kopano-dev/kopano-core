@@ -67,11 +67,11 @@ public:
 
 private:
 	int fd;
-	SSL *lpSSL;
+	SSL *lpSSL = nullptr;
 	static SSL_CTX *lpCTX;
 	char peer_atxt[256+16];
 	struct sockaddr_storage peer_sockaddr;
-	socklen_t peer_salen;
+	socklen_t peer_salen = 0;
 
 	_kc_hidden char *fd_gets(char *buf, int *len);
 	_kc_hidden char *SSL_gets(char *buf, int *len);

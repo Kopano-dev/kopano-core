@@ -26,7 +26,6 @@ inputStreamMAPIAdapter::inputStreamMAPIAdapter(IStream *lpStream)
 	this->lpStream = lpStream;
 	if (lpStream)
 		lpStream->AddRef();
-	this->ateof = false;
 }
 
 inputStreamMAPIAdapter::~inputStreamMAPIAdapter()

@@ -51,8 +51,6 @@ ECABContainer::ECABContainer(void *lpProvider, ULONG ulObjType, BOOL fModify,
 	this->HrAddPropHandlers(PR_NORMALIZED_SUBJECT,	DefaultABContainerGetProp, DefaultSetPropIgnore, (void*) this);
 	this->HrAddPropHandlers(PR_DISPLAY_NAME,	DefaultABContainerGetProp, DefaultSetPropIgnore, (void*) this);
 	this->HrAddPropHandlers(PR_TRANSMITABLE_DISPLAY_NAME,	DefaultABContainerGetProp, DefaultSetPropIgnore, (void*) this);
-
-	m_lpImporter = NULL;
 }
 
 ECABContainer::~ECABContainer()

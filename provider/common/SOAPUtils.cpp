@@ -2043,12 +2043,10 @@ ECRESULT CopyCompanyDetailsFromSoap(struct company *lpCompany, string *lpstrExte
 	return er;
 }
 
-DynamicPropValArray::DynamicPropValArray(struct soap *soap, unsigned int ulHint)
+DynamicPropValArray::DynamicPropValArray(struct soap *soap,
+    unsigned int ulHint) :
+	m_soap(soap), m_ulCapacity(ulHint)
 {
-    m_ulCapacity = ulHint;
-    m_ulPropCount = 0;
-    m_soap = soap;
-
     m_lpPropVals = s_alloc<struct propVal>(m_soap, m_ulCapacity);
 }
 

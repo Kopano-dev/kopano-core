@@ -66,8 +66,7 @@ void KDeleter::operator()(SRowSet *p)
 	FreeProws(p);
 }
 
-KEntryId::KEntryId(void) :
-	m_eid(NULL), m_size(0)
+KEntryId::KEntryId(void)
 {
 }
 
@@ -199,7 +198,6 @@ HRESULT KMessage::set_read_flag(unsigned int f)
 
 KSession::KSession(void)
 {
-	m_session = NULL;
 	const char *sock = getenv("KOPANO_SOCKET");
 	if (sock == NULL)
 		sock = "default:";

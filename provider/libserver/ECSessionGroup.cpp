@@ -47,16 +47,10 @@ private:
 	unsigned int	m_ulConnection;
 };
 
-ECSessionGroup::ECSessionGroup(ECSESSIONGROUPID sessionGroupId, ECSessionManager *lpSessionManager)
+ECSessionGroup::ECSessionGroup(ECSESSIONGROUPID sessionGroupId,
+    ECSessionManager *lpSessionManager) :
+	m_sessionGroupId(sessionGroupId), m_lpSessionManager(lpSessionManager)
 {
-	m_sessionGroupId = sessionGroupId;
-
-	m_dblLastQueryTime = 0;
-	m_getNotifySession = 0;
-	m_bExit = false;
-	m_lpSessionManager = lpSessionManager;
-
-	m_ulRefCount = 0;
 }
 
 ECSessionGroup::~ECSessionGroup()

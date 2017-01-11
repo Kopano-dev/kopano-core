@@ -34,12 +34,10 @@ DEF_INVARIANT_CHECK(ECPropertyEntry) {
 	assert(PROP_TYPE(ulPropTag) != PT_MV_STRING8);
 }
 
-ECPropertyEntry::ECPropertyEntry(ULONG ulPropTag)
+ECPropertyEntry::ECPropertyEntry(ULONG ulPropTag) :
+	lpProperty(nullptr)
 {
 	this->ulPropTag = ulPropTag;
-	this->lpProperty = NULL;
-	this->fDirty = TRUE;
-	
 	DEBUG_CHECK_INVARIANT;
 }
 
@@ -47,8 +45,6 @@ ECPropertyEntry::ECPropertyEntry(ECProperty *property)
 {
 	this->ulPropTag = property->GetPropTag();
 	this->lpProperty = property;
-	this->fDirty = TRUE;
-
 	DEBUG_CHECK_INVARIANT;
 }
 

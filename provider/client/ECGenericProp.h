@@ -139,30 +139,27 @@ public:
 	} m_xECSingleInstance;
 
 protected:
-	ECPropertyEntryMap*		lstProps;
+	ECPropertyEntryMap *lstProps = nullptr;
 	std::set<ULONG>			m_setDeletedProps;
 	ECPropCallBackMap		lstCallBack;
-	DWORD					dwLastError;
-	BOOL					fSaved;			// only 0 if just created
+	DWORD dwLastError = hrSuccess;
+	BOOL fSaved = false; // only 0 if just created, // not saved until we either read or write from/to disk
 	ULONG					ulObjType;
-	ULONG					ulObjFlags;		// message: MAPI_ASSOCIATED, folder: FOLDER_SEARCH (last?)
+	ULONG ulObjFlags = 0; // message: MAPI_ASSOCIATED, folder: FOLDER_SEARCH (last?)
 
 	BOOL					fModify;
 	void*					lpProvider;
-	BOOL					isTransactedObject;
-	ULONG					m_ulMaxPropSize;
+	BOOL isTransactedObject = true; // only ECMsgStore and ECMAPIFolder are not transacted
+	ULONG m_ulMaxPropSize = 8192;
 
 public:
 	// Current entryid of object
-	ULONG					m_cbEntryId;
-	LPENTRYID				m_lpEntryId;
-
-	MAPIOBJECT				*m_sMapiObject;
+	ULONG m_cbEntryId = 0;
+	ENTRYID *m_lpEntryId = nullptr;
+	MAPIOBJECT *m_sMapiObject = nullptr;
 	std::recursive_mutex m_hMutexMAPIObject; /* Mutex for locking the MAPIObject */
-	BOOL					m_bReload;
-	BOOL					m_bLoading;
-
-	IECPropStorage*			lpStorage;
+	BOOL m_bReload = false, m_bLoading = false;
+	IECPropStorage *lpStorage = nullptr;
 };
 
 

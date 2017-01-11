@@ -126,7 +126,7 @@ private:
     struct soap *m_soap;
     struct propVal *m_lpPropVals;
     unsigned int m_ulCapacity;
-    unsigned int m_ulPropCount;
+	unsigned int m_ulPropCount = 0;
 };
 
 class DynamicPropTagArray _kc_final {

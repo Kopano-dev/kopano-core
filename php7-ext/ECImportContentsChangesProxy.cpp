@@ -68,11 +68,11 @@ extern "C" {
 static char *name_mapi_message;
 static int le_mapi_message;
 
-ECImportContentsChangesProxy::ECImportContentsChangesProxy(const zval *v TSRMLS_DC)
+ECImportContentsChangesProxy::ECImportContentsChangesProxy(const zval *v TSRMLS_DC) :
+	m_cRef(1)
 {
 	ZVAL_OBJ(&m_lpObj, Z_OBJ_P(v));
 	Z_ADDREF(m_lpObj);
-	this->m_cRef = 1; // Object is in use when created!
 }
 
 ECImportContentsChangesProxy::~ECImportContentsChangesProxy() {

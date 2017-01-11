@@ -59,8 +59,7 @@ public:
 
 private:
 	IStream *m_lpBuffer;
-	ULONG m_ulRead;
-	ULONG m_ulWritten;
+	ULONG m_ulRead = 0, m_ulWritten = 0;
 };
 
 class _kc_export ECFifoSerializer _kc_final : public ECSerializer {

@@ -35,10 +35,6 @@ namespace KC {
 
 ECFreeBusySupport::ECFreeBusySupport(void)
 {
-	m_lpSession = NULL;
-	m_lpPublicStore = NULL;
-	m_lpUserStore = NULL;
-	m_lpFreeBusyFolder = NULL;
 	GetClientVersion(&m_ulOutlookVersion);
 }
 

@@ -27,16 +27,13 @@
 #include "WSUtil.h"
 #include <kopano/Util.h>
 
-ECParentStorage::ECParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage)
+ECParentStorage::ECParentStorage(ECGenericProp *lpParentObject,
+    ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage) :
+	m_lpParentObject(lpParentObject), m_ulObjId(ulObjId),
+	m_ulUniqueId(ulUniqueId), m_lpServerStorage(lpServerStorage)
 {
-	m_lpParentObject = lpParentObject;
 	if (m_lpParentObject)
 		m_lpParentObject->AddRef();
-
-	m_ulObjId = ulObjId;
-	m_ulUniqueId = ulUniqueId;
-
-	m_lpServerStorage = lpServerStorage;
 	if (m_lpServerStorage)
 		m_lpServerStorage->AddRef();
 }

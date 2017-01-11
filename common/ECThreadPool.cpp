@@ -31,7 +31,6 @@ namespace KC {
  * @param[in]	ulThreadCount	The amount of worker hreads to create.
  */
 ECThreadPool::ECThreadPool(unsigned ulThreadCount)
-: m_ulTermReq(0)
 {
 	setThreadCount(ulThreadCount);	
 }

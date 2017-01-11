@@ -31,11 +31,6 @@ namespace KC {
 ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG ulFlags) :
     ECUnknown("ECMemBlock")
 {
-	this->cbTotal = 0;
-	this->cbCurrent = 0;
-	this->lpCurrent = NULL;
-	this->cbOriginal = 0;
-	this->lpOriginal = NULL;
 	this->ulFlags = ulFlags;
 
 	if (ulDataLen == 0)
@@ -179,7 +174,6 @@ ECMemStream::ECMemStream(char *buffer, ULONG ulDataLen, ULONG ulFlags, CommitFun
 	this->lpCommitFunc = lpCommitFunc;
 	this->lpDeleteFunc = lpDeleteFunc;
 	this->lpParam = lpParam;
-	this->fDirty = FALSE;
 	this->ulFlags = ulFlags;
 }
 
@@ -192,7 +186,6 @@ ECMemStream::ECMemStream(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lpCom
 	this->lpCommitFunc = lpCommitFunc;
 	this->lpDeleteFunc = lpDeleteFunc;
 	this->lpParam = lpParam;
-	this->fDirty = FALSE;
 	this->ulFlags = ulFlags;
 }
 

@@ -320,10 +320,8 @@ private:	// members
 	LPMDB					m_lpStore;
 	ECLogger				*m_lpLogger;
 	ECSyncSettings			*m_lpSettings;
-
-	IECChangeAdvisor *m_lpChangeAdvisor;
-	IECChangeAdviseSink *m_lpChangeAdviseSink;
-
+	IECChangeAdvisor *m_lpChangeAdvisor = nullptr;
+	IECChangeAdviseSink *m_lpChangeAdviseSink = nullptr;
 	StatusStreamMap			m_mapSyncStatus;
 	SyncStateMap			m_mapStates;
 	NotifiedSyncIdMap		m_mapNotifiedSyncIds;

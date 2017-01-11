@@ -76,10 +76,10 @@ HRESULT M4LMAPIGetSession::QueryInterface(REFIID refiid, void **lpvoid) {
 	return hr;
 }
 
-M4LMAPISupport::M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID lpUid, SVCService* lpService) {
-	session = new_session;
-	service = lpService;
-	m_connections = 0;
+M4LMAPISupport::M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID lpUid,
+    SVCService *lpService) :
+	session(new_session), service(lpService)
+{
 	if(lpUid) {
     	this->lpsProviderUID = new MAPIUID;
         memcpy(this->lpsProviderUID, lpUid, sizeof(MAPIUID));

@@ -176,8 +176,8 @@ public:
 private:
     std::map<GUID, IMsgStore *> mapStores;
 	/* @todo need a status row per provider */
-	ULONG m_cValuesStatus;
-	LPSPropValue m_lpPropsStatus;
+	ULONG m_cValuesStatus = 0;
+	SPropValue *m_lpPropsStatus = nullptr;
 	std::mutex m_mutexStatusRow;
 
 public:
@@ -236,8 +236,7 @@ private:
 	LPMAPISUP m_lpMAPISup;
 
 	std::list<abEntry> m_lABProviders;
-
-	LPSRowSet m_lpSavedSearchPath;
+	SRowSet *m_lpSavedSearchPath = nullptr;
 	HRESULT getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath);
 
 public:

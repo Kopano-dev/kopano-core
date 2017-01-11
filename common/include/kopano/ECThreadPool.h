@@ -75,7 +75,7 @@ private:
 	ECThreadPool(const ECThreadPool &) = delete;
 	ECThreadPool &operator=(const ECThreadPool &) = delete;
 	
-	unsigned	m_ulTermReq;
+	unsigned int m_ulTermReq = 0;
 };
 
 /**

@@ -204,11 +204,6 @@ HRESULT MAPINotifSink::Create(MAPINotifSink **lppSink)
     return hrSuccess;
 }
 
-MAPINotifSink::MAPINotifSink() {
-    m_bExit = false;
-    m_cRef = 0;
-}
-
 MAPINotifSink::~MAPINotifSink() {
     m_bExit = true;
 	m_hCond.notify_all();

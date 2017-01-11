@@ -40,7 +40,7 @@ public:
 	HRESULT GetSerializedMessage(ULONG ulIndex, WSSerializedMessage **lppSerializedMessage);
 
 private:
-	WSMessageStreamExporter();
+	WSMessageStreamExporter(void) = default;
 	~WSMessageStreamExporter();
 
 	// Inhibit copying
@@ -57,9 +57,7 @@ private:
 	};
 	typedef std::map<ULONG, StreamInfo*>	StreamInfoMap;
 
-
-	ULONG			m_ulExpectedIndex;
-	ULONG			m_ulMaxIndex;
+	ULONG m_ulExpectedIndex = 0, m_ulMaxIndex = 0;
 	WSTransportPtr	m_ptrTransport;
 	StreamInfoMap	m_mapStreamInfo;
 };

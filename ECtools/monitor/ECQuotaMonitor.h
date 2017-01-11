@@ -66,8 +66,7 @@ private:
 	ECTHREADMONITOR *m_lpThreadMonitor;
 	LPMAPISESSION		m_lpMAPIAdminSession;
 	LPMDB				m_lpMDBAdmin;
-	ULONG				m_ulProcessed;
-	ULONG				m_ulFailed;
+	ULONG m_ulProcessed = 0, m_ulFailed = 0;
 };
 
 

@@ -27,12 +27,10 @@ using namespace std;
 using namespace KCHL;
 
 ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
-    const std::string &strSrvTz, const std::string &strCharset)
+    const std::string &strSrvTz, const std::string &strCharset) :
+	m_lpRequest(lpRequest), m_lpSession(lpSession), m_strSrvTz(strSrvTz),
+	m_strCharset(strCharset)
 {
-	m_lpRequest = lpRequest;
-	m_lpSession = lpSession;
-	m_strSrvTz = strSrvTz;
-	m_strCharset = strCharset;
 }
 
 ProtocolBase::~ProtocolBase()

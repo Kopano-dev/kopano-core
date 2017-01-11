@@ -113,7 +113,7 @@ private:
 
 private:
 	const configsetting_t	*m_lpDefaults;
-	const char*				m_szConfigFile;
+	const char *m_szConfigFile = nullptr;
 	std::list<std::string>	m_lDirectives;
 
 	/* m_mapSettings & m_mapAliases are protected by m_settingsLock */

@@ -98,10 +98,9 @@ public:
 	} m_xFreeBusySupportOutlook2000;
 
 private:
-	IMAPISession*	m_lpSession;
-	IMsgStore*		m_lpPublicStore;
-	IMsgStore*		m_lpUserStore;
-	IMAPIFolder*	m_lpFreeBusyFolder;
+	IMAPISession *m_lpSession = nullptr;
+	IMsgStore *m_lpPublicStore = nullptr, *m_lpUserStore = nullptr;
+	IMAPIFolder *m_lpFreeBusyFolder = nullptr;
 	unsigned int	m_ulOutlookVersion;
 };
 

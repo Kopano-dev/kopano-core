@@ -48,11 +48,9 @@
 using namespace KCHL;
 
 ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder)
-: m_iidMessage(IID_IMessage)
+: m_lpFolder(lpFolder), m_iidMessage(IID_IMessage)
 {
 	ECSyncLog::GetLogger(&m_lpLogger);
-
-	m_lpFolder = lpFolder;
 	m_lpFolder->AddRef();
 }
 

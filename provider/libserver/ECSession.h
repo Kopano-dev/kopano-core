@@ -175,14 +175,12 @@ public:
 private:
 	ECTableManager		*m_lpTableManager;
 	ECSessionGroup		*m_lpSessionGroup;
-	ECSecurity		*m_lpEcSecurity;
+	ECSecurity *m_lpEcSecurity = nullptr;
 
 	std::mutex m_hStateLock;
 	typedef std::map<pthread_t, BUSYSTATE> BusyStateMap;
 	BusyStateMap		m_mapBusyStates; /* which thread does what function */
-	double			m_dblUser;
-	double			m_dblSystem;
-	double			m_dblReal;
+	double m_dblUser = 0, m_dblSystem = 0, m_dblReal = 0;
 	AUTHMETHOD		m_ulAuthMethod;
 	int			m_ulConnectingPid;
 	ECSESSIONGROUPID m_ecSessionGroupId;

@@ -132,25 +132,10 @@ static HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
 	} \
 }
 
-PyMapiPlugin::PyMapiPlugin(void)
-{
-	m_lpLogger = NULL;
-
-	type_p_ECLogger = NULL;
-	type_p_IAddrBook = NULL;
-	type_p_IMAPIFolder = NULL;
-	type_p_IMAPISession = NULL;
-	type_p_IMsgStore = NULL;
-	type_p_IMessage = NULL;
-	type_p_IExchangeModifyTable = NULL;
-}
-
 PyMapiPlugin::~PyMapiPlugin(void)
 { 
-	if (m_lpLogger) {
+	if (m_lpLogger != nullptr)
 		m_lpLogger->Release();
-		m_lpLogger = NULL;
-	}
 }
 
 /**
@@ -292,23 +277,14 @@ HRESULT PyMapiPlugin::RequestCallExecution(const char *lpFunctionName, IMAPISess
 	return hr;
 }
 
-PyMapiPluginFactory::PyMapiPluginFactory()
-	: m_ptrModMapiPlugin(NULL)
-	, m_bEnablePlugin(false)
-	, m_lpLogger(NULL)
-{ }
-
 PyMapiPluginFactory::~PyMapiPluginFactory()
 {
 	if (m_ptrModMapiPlugin != NULL) {
 		m_ptrModMapiPlugin = NULL;
 		Py_Finalize();
 	}
-	
-	if (m_lpLogger) {
+	if (m_lpLogger != nullptr)
 		m_lpLogger->Release();
-		m_lpLogger = NULL;
-	}
 }
 
 HRESULT PyMapiPluginFactory::Init(ECConfig* lpConfig, ECLogger *lpLogger)

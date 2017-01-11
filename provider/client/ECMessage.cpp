@@ -64,21 +64,14 @@ HRESULT ECMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify
 	return ECMessage::Create(lpMsgStore, fNew, fModify, ulFlags, bEmbedded, lpRoot, lpMessage);
 }
 
-ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot) : ECMAPIProp(lpMsgStore, MAPI_MESSAGE, fModify, lpRoot, "IMessage")
+ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify,
+    ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot) :
+	ECMAPIProp(lpMsgStore, MAPI_MESSAGE, fModify, lpRoot, "IMessage"),
+	m_bEmbedded(bEmbedded)
 {
-	this->m_lpParentID = NULL;
-	this->m_cbParentID = 0;
 	this->ulObjFlags = ulFlags & MAPI_ASSOCIATED;
-	this->lpRecips = NULL;
-	this->lpAttachments = NULL;
-	this->ulNextAttUniqueId = 0;
-	this->ulNextRecipUniqueId = 0;
 	this->fNew = fNew;
 	this->m_bEmbedded = bEmbedded;
-	this->m_bExplicitSubjectPrefix = FALSE;
-	this->m_ulBodyType = bodyTypeUnknown;
-	this->m_bInhibitSync = FALSE;
-	this->m_bRecipsDirty = FALSE;
 
 	// proptag, getprop, setprops, class, bRemovable, bHidden
 

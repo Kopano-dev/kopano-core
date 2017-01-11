@@ -142,7 +142,6 @@ static const struct propTagArray sPropTagArrayServerStats =
 ECTableManager::ECTableManager(ECSession *lpSession)
 {
 	this->lpSession = lpSession;
-	this->ulNextTableId = 1;
 }
 
 ECTableManager::~ECTableManager()

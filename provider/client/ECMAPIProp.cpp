@@ -108,11 +108,6 @@ ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
 	// Used for loadsim
 	this->HrAddPropHandlers(0x664B0014/*PR_REPLICA_VERSION*/,		DefaultMAPIGetProp	,DefaultSetPropIgnore,		(void*) this, FALSE, FALSE);
 
-	m_bICSObject = FALSE;
-	m_ulSyncId = 0;
-	m_cbParentID = 0;
-	m_lpParentID = NULL;
-
 	// Track 'root object'. This is the object that was opened via OpenEntry or OpenMsgStore, so normally
 	// lpRoot == this, but in the case of attachments and submessages it points to the top-level message
 	if(lpRoot)

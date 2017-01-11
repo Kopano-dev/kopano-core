@@ -63,7 +63,7 @@ private:
 	ECSessionGroupInfo	m_ecSessionGroupInfo;
 
 	/* Notification information */
-	ECNotifyMaster*		m_lpNotifyMaster;
+	ECNotifyMaster *m_lpNotifyMaster = nullptr;
 
 	/* Mutex */
 	std::recursive_mutex m_hMutex;
@@ -71,7 +71,7 @@ private:
 
 	/* Refcounting */
 	std::recursive_mutex m_hRefMutex;
-	ULONG				m_cRef;
+	ULONG m_cRef = 0;
 
 public:
 	SessionGroupData(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps);

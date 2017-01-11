@@ -281,12 +281,6 @@ ULONG INFLoader::DefinitionFromString(const std::string& strDef, bool bProp) con
 	return (ULONG)ntohl(hex);
 }
 
-SVCProvider::SVCProvider()
-{
-	m_cValues = 0;
-	m_lpProps = NULL;
-}
-
 SVCProvider::~SVCProvider()
 {
 	MAPIFreeBuffer(m_lpProps);
@@ -317,18 +311,6 @@ HRESULT SVCProvider::Init(const INFLoader& cINF, const inf_section* infProvider)
 		if (cINF.MakeProperty(sp.first, sp.second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
 			++m_cValues;
 	return hrSuccess;
-}
-
-SVCService::SVCService()
-{
-	m_dl = NULL;
-
-	m_fnMSGServiceEntry = NULL;
-	m_fnMSProviderInit = NULL;
-	m_fnABProviderInit = NULL;
-
-	m_cValues = 0;
-	m_lpProps = NULL;
 }
 
 SVCService::~SVCService()
@@ -474,10 +456,6 @@ SVC_MSProviderInit SVCService::MSProviderInit()
 SVC_ABProviderInit SVCService::ABProviderInit()
 {
 	return m_fnABProviderInit;
-}
-
-MAPISVC::MAPISVC()
-{
 }
 
 MAPISVC::~MAPISVC()

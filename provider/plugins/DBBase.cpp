@@ -28,7 +28,8 @@
 #include "ECServerEntrypoint.h"
 
 DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
-	UserPlugin(pluginlock, shareddata), m_lpDatabase(NULL) {
+	UserPlugin(pluginlock, shareddata)
+{
 }
 
 //DBPlugin::~DBPlugin() {

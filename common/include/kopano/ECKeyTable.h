@@ -114,13 +114,13 @@ public:
 	unsigned char *lpFlags;
 
 	// b-tree data
-	ECTableRow *lpParent;
-	ECTableRow *lpLeft;			// All nodes in left are such that *left < *this
-	ECTableRow *lpRight;		// All nodes in right are such that *this <= *right
-	unsigned int ulBranchCount;	// Count of all nodes in this branch (including this node)
-	unsigned int ulHeight;		// For AVL
-	unsigned int fLeft;			// 1 if this is a left node
-	bool		fRoot;			// Only the root node has TRUE here
+	ECTableRow *lpParent = nullptr;
+	ECTableRow *lpLeft = nullptr; // All nodes in left are such that *left < *this
+	ECTableRow *lpRight = nullptr; // All nodes in right are such that *this <= *right
+	unsigned int ulBranchCount = 0; // Count of all nodes in this branch (including this node)
+	unsigned int ulHeight = 0; // For AVL
+	unsigned int fLeft = 0; // 1 if this is a left node
+	bool fRoot = false; // Only the root node has TRUE here
 	bool		fHidden;		// The row is hidden (is it non-existent for all purposes)
 };
 

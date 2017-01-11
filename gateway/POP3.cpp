@@ -52,11 +52,6 @@ using namespace KCHL;
  */
 
 POP3::POP3(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig) : ClientProto(szServerPath, lpChannel, lpLogger, lpConfig) {
-	lpSession = NULL;
-	lpStore = NULL;
-	lpInbox = NULL;
-	lpAddrBook = NULL;
-
 	imopt_default_sending_options(&sopt);
 	sopt.no_recipients_workaround = true;	// do not stop processing mail on empty recipient table
 	sopt.add_received_date = true;			// add Received header (outlook uses this)

@@ -400,7 +400,7 @@ protected:
 	 */
 	virtual void addSendAsToDetails(const objectid_t &objectid, objectdetails_t *lpDetails);
 
-	ECDatabase *m_lpDatabase;
+	ECDatabase *m_lpDatabase = nullptr;
 };
 /** @} */
 
