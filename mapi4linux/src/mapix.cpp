@@ -1738,7 +1738,7 @@ HRESULT M4LMAPISession::setStatusRow(ULONG cValues, LPSPropValue lpProps)
 // ---
 M4LAddrBook::M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin,
     LPMAPISUP newlpMAPISup) :
-	serviceAdmin(new_serviceAdmin), m_lpMAPISup(newlpMAPISup)
+	m_lpMAPISup(newlpMAPISup)
 {
 	m_lpMAPISup->AddRef();
 }

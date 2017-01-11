@@ -136,7 +136,6 @@ private:
 
 	/* Notifications */
 	ECNOTIFICATIONLIST m_listNotification;
-	double m_dblLastQueryTime = 0;
 
 	/* Notifications lock/event */
 	std::mutex m_hNotificationLock;
