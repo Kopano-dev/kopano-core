@@ -20,6 +20,7 @@
 #include <kopano/zcdefs.h>
 #include <type_traits> /* std::is_base_of */
 #include <utility> /* std::swap */
+#include <cstdlib>
 #include <mapiutil.h> /* MAPIFreeBuffer */
 #include <kopano/ECGuid.h>
 #include <kopano/ECTags.h>
@@ -306,6 +307,11 @@ template<typename _T, REFIID _R = GUID_NULL> class object_ptr {
 	void operator&(void) const noexcept {} /* flag everyone */
 
 	_T *_m_ptr = nullptr;
+};
+
+class cstdlib_deleter {
+	public:
+	void operator()(void *x) { free(x); }
 };
 
 template<typename _T> inline void

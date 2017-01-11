@@ -27,12 +27,14 @@
 #include <algorithm>
 #include <cassert>
 #include <sys/stat.h>
+#include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include "ECConfigImpl.h"
 
 #include <kopano/charset/convert.h>
 
 using namespace std;
+using namespace KCHL;
 
 namespace KC {
 
@@ -380,7 +382,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 		errors.push_back("Config file \"" + file + "\" is not a file");
 		return false;
 	}
-	std::unique_ptr<char> normalized_file(realpath(file.c_str(), nullptr));
+	std::unique_ptr<char, cstdlib_deleter> normalized_file(realpath(file.c_str(), nullptr));
 	if (normalized_file == nullptr) {
 		errors.push_back(std::string("realpath: ") + strerror(errno));
 		return false;
