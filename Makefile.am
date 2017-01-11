@@ -59,7 +59,6 @@ pkglibexec_PROGRAMS = mapitime
 # so the order of lib_LTLIBRARIES is important! Dependant libs go to the right.
 # (Order was previously implied by the SUBDIRS variable.)
 #
-noinst_LTLIBRARIES = libm4lcommon.la
 lib_LTLIBRARIES = \
 	libkcutil.la libkcmapi.la libkcssl.la libmapi.la libkchl.la \
 	libkcfreebusy.la libkcsync.la libkcsoap.la libkcserver.la \
@@ -672,27 +671,14 @@ libmapi_la_SOURCES = \
 	mapi4linux/src/mapix.cpp mapi4linux/src/rtf.cpp mapi4linux/src/imessage.cpp mapi4linux/src/m4l.common.h \
 	mapi4linux/src/m4l.mapidefs.h mapi4linux/src/m4l.mapispi.h mapi4linux/src/m4l.mapiutil.h \
 	mapi4linux/src/m4l.mapix.h mapi4linux/src/mapi4linux.h mapi4linux/src/m4l.debug.h mapi4linux/src/rtf.h \
-	mapi4linux/src/m4l.mapisvc.cpp mapi4linux/src/m4l.mapisvc.h
-libmapi_la_LIBADD = \
-	libkcutil.la libkcmapi.la libm4lcommon.la ${PROG_LIBS} ${DL_LIBS}
-libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
-	-Wl,--version-script=mapi4linux/src/libmapi.sym
-EXTRA_libmapi_la_DEPENDENCIES = mapi4linux/src/libmapi.sym
-
-mapi4linux/src/libmapi.sym: ${top_builddir}/config.status
-
-
-#
-# libm4lcommon
-#
-libm4lcommondir = ${includedir}/mapi4linux
-libm4lcommon_HEADERS = m4lcommon/include/edkguid.h
-# These were split off libcommon_mapi
-libm4lcommon_la_SOURCES = \
+	mapi4linux/src/m4l.mapisvc.cpp mapi4linux/src/m4l.mapisvc.h \
 	m4lcommon/CommonUtil.cpp \
+	m4lcommon/ECFeatures.cpp m4lcommon/ECFeatures.h \
 	m4lcommon/ECFeatureList.h m4lcommon/ECInvariantChecker.h \
 	m4lcommon/ECMAPIDebug.cpp m4lcommon/ECMAPIDebug.h \
 	m4lcommon/ECMemTable.cpp m4lcommon/HrException.h \
+	m4lcommon/ECRestriction.cpp \
+	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp \
 	m4lcommon/IECChangeAdviseSink.h \
 	m4lcommon/IECChangeAdvisor.h \
 	m4lcommon/IECExchangeModifyTable.h \
@@ -707,11 +693,7 @@ libm4lcommon_la_SOURCES = \
 	m4lcommon/MAPINotifSink.cpp m4lcommon/MAPINotifSink.h \
 	m4lcommon/Util.cpp \
 	m4lcommon/favoritesutil.cpp m4lcommon/favoritesutil.h \
-	m4lcommon/mapicontact.h
-# These were split off the old libcommon_util
-noinst_HEADERS += \
-	m4lcommon/ECFeatures.h
-noinst_HEADERS += \
+	m4lcommon/mapicontact.h \
 	m4lcommon/include/kopano/xclsfrag/IABContainer.hpp \
 	m4lcommon/include/kopano/xclsfrag/IABLogon.hpp \
 	m4lcommon/include/kopano/xclsfrag/IABProvider.hpp \
@@ -736,11 +718,16 @@ noinst_HEADERS += \
 	m4lcommon/include/kopano/xclsfrag/ISequentialStream.hpp \
 	m4lcommon/include/kopano/xclsfrag/IStream.hpp \
 	m4lcommon/include/kopano/xclsfrag/IUnknown.hpp
-libm4lcommon_la_SOURCES += \
-	m4lcommon/ECFeatures.cpp m4lcommon/ECRestriction.cpp \
-	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp
-libm4lcommon_la_LIBADD = \
-	libkcutil.la libkcmapi.la -lpthread
+libmapi_la_LIBADD = \
+	libkcutil.la libkcmapi.la -lpthread ${PROG_LIBS} ${DL_LIBS}
+libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
+	-Wl,--version-script=mapi4linux/src/libmapi.sym
+EXTRA_libmapi_la_DEPENDENCIES = mapi4linux/src/libmapi.sym
+
+mapi4linux/src/libmapi.sym: ${top_builddir}/config.status
+
+libm4lcommondir = ${includedir}/mapi4linux
+libm4lcommon_HEADERS = m4lcommon/include/edkguid.h
 
 
 #
