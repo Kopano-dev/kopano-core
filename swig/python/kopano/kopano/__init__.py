@@ -233,8 +233,8 @@ Example usage::
 
 """
     try: yield
-    except Exception as e:
-        log.error(traceback.format_exc(e))
+    except Exception:
+        log.error(traceback.format_exc())
         if stats:
             stats['errors'] += 1
 

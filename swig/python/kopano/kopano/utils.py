@@ -58,12 +58,12 @@ class TrackingContentsImporter(ECImportContentsChanges):
             except (MAPIErrorNotFound, MAPIErrorNoAccess): # XXX, mail already deleted, can we do this in a cleaner way?
                 if self.log:
                     self.log.debug('received change for entryid %s, but it could not be opened' % bin2hex(entryid.Value))
-        except Exception as e:
+        except Exception:
             if self.log:
                 self.log.error('could not process change for entryid %s (%r):' % (bin2hex(entryid.Value), props))
-                self.log.error(traceback.format_exc(e))
+                self.log.error(traceback.format_exc())
             else:
-                traceback.print_exc(e)
+                traceback.print_exc()
             if self.stats:
                 self.stats['errors'] += 1
         raise MAPIError(SYNC_E_IGNORE)
@@ -80,12 +80,12 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 item._sourcekey = bin2hex(entry)
                 if hasattr(self.importer, 'delete'):
                     self.importer.delete(item, flags)
-        except Exception as e:
+        except Exception:
             if self.log:
                 self.log.error('could not process delete for entries: %s' % [bin2hex(entry) for entry in entries])
-                self.log.error(traceback.format_exc(e))
+                self.log.error(traceback.format_exc())
             else:
-                traceback.print_exc(e)
+                traceback.print_exc()
             if self.stats:
                 self.stats['errors'] += 1
 
