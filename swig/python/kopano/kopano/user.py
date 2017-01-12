@@ -7,6 +7,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 from .store import Store
 from .group import Group
+from .quota import Quota
 
 from .errors import *
 from .defs import *

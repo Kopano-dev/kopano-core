@@ -38,7 +38,7 @@ from .utils import (
 
 from .attachment import Attachment
 from .body import Body
-from .recurrence import Recurrence
+from .recurrence import Recurrence, Occurrence
 from .prop import Property
 from .address import Address
 from .table import Table

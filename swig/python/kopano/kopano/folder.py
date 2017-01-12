@@ -10,6 +10,8 @@ import mailbox
 
 from .item import Item
 from .permission import Permission
+from .rule import Rule
+from .table import Table
 from .defs import *
 from .errors import *
 
