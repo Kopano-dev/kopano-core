@@ -72,7 +72,6 @@ private:
 
 	HRESULT HrResponse(const std::string &strResult, const std::string &strResponse);
 
-private:
 	struct MailListItem {
 		SBinary sbEntryID;
 		ULONG ulSize;

@@ -88,7 +88,6 @@ private:
 	static HRESULT HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder, const SPropValue *);
 	friend class ECExchangeImportHierarchyChanges;
 
-private:
 	ECLogger *m_lpLogger = nullptr;
 	ECMAPIFolder *m_lpFolder = nullptr;
 	SPropValue *m_lpSourceKey = nullptr;

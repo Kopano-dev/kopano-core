@@ -261,7 +261,6 @@ public:
 private:
 	_kc_hidden ECNotRestriction(ResPtr restriction);
 
-private:
 	ResPtr	m_ptrRestriction;
 };
 
@@ -315,7 +314,6 @@ public:
 private:
 	_kc_hidden ECPropertyRestriction(ULONG relop, ULONG proptag, PropPtr prop);
 
-private:
 	ULONG	m_relop;
 	ULONG	m_ulPropTag;
 	PropPtr	m_ptrProp;
@@ -374,7 +372,6 @@ private:
 	typedef std::shared_ptr<SRestriction> RawResPtr;
 	_kc_hidden ECRawRestriction(RawResPtr restriction);
 
-private:
 	RawResPtr	m_ptrRestriction;
 };
 

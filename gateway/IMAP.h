@@ -216,7 +216,6 @@ private:
 	HRESULT HrResponse(const string &strResult, const string &strTag, const string& strResponse);
 	static LONG __stdcall IdleAdviseCallback(void *ctx, ULONG numnotif, LPNOTIFICATION);
 
-private:
 	bool bOnlyMailFolders;
 	bool bShowPublicFolder;
 

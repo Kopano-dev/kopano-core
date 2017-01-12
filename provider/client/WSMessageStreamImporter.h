@@ -44,7 +44,6 @@ private:
 	WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter);
 	~WSMessageStreamSink();
 
-private:
 	ECFifoBuffer	*m_lpFifoBuffer;
 	WSMessageStreamImporter *m_lpImporter;
 };
@@ -80,8 +79,6 @@ private:
 	size_t MTOMRead(struct soap *soap, void *handle, char *buf, size_t len);
 	void   MTOMReadClose(struct soap *soap, void *handle);
 
-
-private:
 	ULONG m_ulFlags;
 	ULONG m_ulSyncId;
 	entryId m_sEntryId;

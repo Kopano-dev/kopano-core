@@ -48,7 +48,6 @@ private:
 	DECL_INVARIANT_GUARD(ECProperty)
 	HRESULT CopyFromInternal(const SPropValue *);
 
-private:
 	ULONG ulSize;
 	ULONG ulPropTag;
 	union __UPV Value;

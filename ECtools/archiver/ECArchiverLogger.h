@@ -40,12 +40,9 @@ public:
 private:
 	_kc_hidden std::string CreateFormat(const char *fmt);
 	_kc_hidden std::string EscapeFormatString(const std::string &fmt);
-
-private:
 	ECArchiverLogger(const ECArchiverLogger &) = delete;
 	ECArchiverLogger &operator=(const ECArchiverLogger &) = delete;
 
-private:
 	ECLogger	*m_lpLogger;
 	tstring		m_strUser;
 	tstring		m_strFolder;
@@ -60,7 +57,6 @@ private:
 	ScopedUserLogging(const ScopedUserLogging &) = delete;
 	ScopedUserLogging &operator=(const ScopedUserLogging &) = delete;
 
-private:
 	ECArchiverLogger *m_lpLogger;
 	const tstring m_strPrevUser;
 };
@@ -74,7 +70,6 @@ private:
 	ScopedFolderLogging(const ScopedFolderLogging &) = delete;
 	ScopedFolderLogging &operator=(const ScopedFolderLogging &) = delete;
 
-private:
 	ECArchiverLogger *m_lpLogger;
 	const tstring m_strPrevFolder;
 };

@@ -203,7 +203,6 @@ public:
 	BOOL IsOfflineStore() { return m_bOfflineStore; }
 	LPCSTR GetProfileName() const { return m_strProfname.c_str(); }
 
-public:
 	const GUID& GetStoreGuid();
 	HRESULT GetWrappedStoreEntryID(ULONG* lpcbWrapped, LPENTRYID* lppWrapped);
 	//Special wrapper for the spooler vs outgoing queue

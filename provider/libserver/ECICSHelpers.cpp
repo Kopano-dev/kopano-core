@@ -65,7 +65,6 @@ private:
 	virtual std::string CreateBaseQuery() = 0;
 	virtual std::string CreateOrderQuery() = 0;
 	
-private:
 	unsigned int m_ulFlags;
 };
 
@@ -104,7 +103,6 @@ private:
 	std::string CreateBaseQuery(void) _kc_override;
 	std::string CreateOrderQuery(void) _kc_override;
 	
-private:
 	ECDatabase		*m_lpDatabase;
 	unsigned int	m_ulSyncId;
 	unsigned int	m_ulChangeId;
@@ -168,7 +166,6 @@ private:
 	std::string CreateBaseQuery(void) _kc_override;
 	std::string CreateOrderQuery(void) _kc_override;
 	
-private:
 	ECDatabase		*m_lpDatabase;
 	const SOURCEKEY	&m_sFolderSourceKey;
 	unsigned int	m_ulFilteredSourceSync;

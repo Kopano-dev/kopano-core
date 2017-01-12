@@ -47,7 +47,6 @@ private:
 	int		MTOMWrite(struct soap *soap, void *handle, const char *buf, size_t len);
 	void	MTOMWriteClose(struct soap *soap, void *handle);
 
-private:
 	soap				*m_lpSoap;
 	const std::string	m_strStreamId;
 	ULONG				m_cbProps;

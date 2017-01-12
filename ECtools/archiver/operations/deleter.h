@@ -39,7 +39,6 @@ private:
 	HRESULT DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps) _kc_override;
 	HRESULT PurgeQueuedMessages();
 	
-private:
 	std::list<entryid_t> m_lstEntryIds;
 };
 

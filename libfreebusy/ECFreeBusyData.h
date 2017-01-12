@@ -60,7 +60,6 @@ public:
 	virtual HRESULT NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) { return E_NOTIMPL; }
 	virtual HRESULT GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd);
 
-public:
 	class xFreeBusyData _kc_final : public IFreeBusyData {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IFreeBusyData.hpp>

@@ -90,7 +90,6 @@ public:
 private:
 	void push_back(LPSPropValue lpPropAccount);
 
-private:
 	std::list<string_type> m_lstUsers;
 	MAPISessionPtr m_ptrSession;
 };

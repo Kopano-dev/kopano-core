@@ -232,7 +232,6 @@ protected:
 	unsigned int				m_ulFlags;			//< flags from client
 	QueryRowDataCallBack m_lpfnQueryRowData = nullptr;
 	
-protected:
 	virtual ECRESULT			AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bInitialLoad, bool bOverride, struct restrictTable *lpOverrideRestrict);
     virtual ECRESULT			AddCategoryBeforeAddRow(sObjectTableKey sObjKey, struct propVal *lpProps, unsigned int cProps, unsigned int ulFlags, bool fUnread, bool *lpfHidden, ECCategory **lppCategory);
     virtual ECRESULT			RemoveCategoryAfterRemoveRow(sObjectTableKey sObjKey, unsigned int ulFlags);

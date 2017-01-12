@@ -111,7 +111,6 @@ private:
 	bool	CopyConfigSetting(const configsetting_t *lpsSetting, settingkey_t *lpsKey);
 	bool	CopyConfigSetting(const settingkey_t *lpsKey, const char *szValue, configsetting_t *lpsSetting);
 
-private:
 	const configsetting_t	*m_lpDefaults;
 	const char *m_szConfigFile = nullptr;
 	std::list<std::string>	m_lDirectives;

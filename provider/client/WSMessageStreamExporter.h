@@ -47,7 +47,6 @@ private:
 	WSMessageStreamExporter(const WSMessageStreamExporter &) = delete;
 	WSMessageStreamExporter &operator=(const WSMessageStreamExporter &) = delete;
 
-private:
 	typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
 
 	struct StreamInfo {

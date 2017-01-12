@@ -50,7 +50,6 @@ private:
 	template<typename T> _kc_hidden T convert_to(void) const;
 	template<typename T> _kc_hidden T convert_to(const char *tocode) const;
 
-private:
 	const TCHAR *m_lpsz;
 	ULONG		m_ulFlags;
 	tstring		m_str;

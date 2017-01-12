@@ -114,7 +114,6 @@ private:
 		}
 	} m_xECChangeAdviseSink;
 
-private:
 	ECSyncContext	*m_lpsSyncContext;
 	NOTIFYCALLBACK	m_fnCallback;
 };

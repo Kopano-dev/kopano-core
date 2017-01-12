@@ -58,7 +58,6 @@ public:
 	 */
 	virtual void InitPlugin();
 
-public:
 	/**
 	 * Resolve name and company to objectsignature
 	 *

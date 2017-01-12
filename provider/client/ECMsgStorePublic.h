@@ -39,7 +39,6 @@ public:
 	static HRESULT	Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore, ECMsgStore **lppECMsgStore);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
-public:
 	virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk);
 	virtual HRESULT SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId);
 

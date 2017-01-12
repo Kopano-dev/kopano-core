@@ -53,7 +53,6 @@ public:
 	virtual HRESULT Clone(IEnumFBBlock **) { return E_NOTIMPL; }
 	virtual HRESULT Restrict(FILETIME ftmStart, FILETIME ftmEnd);
 
-public:
 	/* IEnumFBBlock wrapper class */
 	class xEnumFBBlock _kc_final : public IEnumFBBlock {
 		#include <kopano/xclsfrag/IUnknown.hpp>

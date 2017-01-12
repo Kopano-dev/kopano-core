@@ -89,7 +89,6 @@ private:
 	_kc_hidden HRESULT CreateSpecialFolder(eSpecFolder sf_which, LPMAPIFOLDER *spc_folder);
 	_kc_hidden HRESULT IsSpecialFolder(eSpecFolder sf_which, LPMAPIFOLDER, bool *res);
 
-private:
 	MsgStorePtr	m_ptrArchiveStore;
 	MAPIFolderPtr m_ptrArchiveFolder;
 	tstring	m_strFolder;

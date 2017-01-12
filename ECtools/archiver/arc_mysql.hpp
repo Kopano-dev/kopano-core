@@ -103,7 +103,6 @@ private:
 	// Connection methods
 	bool isConnected();
 
-private:
 	bool m_bMysqlInitialize = false, m_bConnected = false;
 	bool m_bAutoLock = true, m_bLocked = false;
 	unsigned int m_ulMaxAllowedPacket = KC_DFL_MAX_PACKET_SIZE;

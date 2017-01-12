@@ -42,7 +42,6 @@ class _kc_export InstanceIdMapper _kc_final {
 	_kc_hidden InstanceIdMapper(ECLogger *);
 	_kc_hidden HRESULT Init(ECConfig *);
 
-	private:
 		DatabasePtr m_ptrDatabase;
 };
 

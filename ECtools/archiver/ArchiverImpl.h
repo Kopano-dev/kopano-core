@@ -44,7 +44,6 @@ private:
 	configsetting_t* ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2);
 	unsigned CountSettings(const configsetting_t *lpSettings);
 
-private:
 	KCHL::AutoMAPI m_MAPI;
 	ECConfig *m_lpsConfig = nullptr;
 	ECLogger *m_lpLogger = nullptr;

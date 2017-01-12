@@ -62,7 +62,6 @@ private:
 
 	HRESULT Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany, ECQUOTASTATUS *lpecQuotaStatus, LPMDB lpStore);
 
-private:
 	ECTHREADMONITOR *m_lpThreadMonitor;
 	LPMAPISESSION		m_lpMAPIAdminSession;
 	LPMDB				m_lpMDBAdmin;

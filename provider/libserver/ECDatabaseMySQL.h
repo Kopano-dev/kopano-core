@@ -85,7 +85,6 @@ public:
 	ECRESULT CheckExistColumn(const std::string &table, const std::string &column, bool *exist) _kc_override;
 	ECRESULT CheckExistIndex(const std::string &table, const std::string &key, bool *exist) _kc_override;
 
-public:
 	// Freememory methods
 	void FreeResult(DB_RESULT sResult) _kc_override;
 
@@ -116,7 +115,6 @@ private:
 	ECRESULT IsUpdateDone(unsigned int ulDatabaseRevision, unsigned int ulRevision=0);
 	ECRESULT GetFirstUpdate(unsigned int *lpulDatabaseRevision);
 
-private:
 	bool m_bMysqlInitialize = false;
 	bool m_bConnected = false;
 	MYSQL m_lpMySQL;

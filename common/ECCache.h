@@ -265,7 +265,6 @@ private:
 		return erSuccess;
 	}
 
-private:
 	_MapType			m_map;	
 	size_type			m_ulSize;
 };

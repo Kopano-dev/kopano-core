@@ -67,7 +67,6 @@ private:
 	PyObjectAPtr m_ptrMapiPluginManager{nullptr};
 	ECLogger *m_lpLogger = nullptr;
 
-private:
 	// Inhibit (accidental) copying
 	PyMapiPlugin(const PyMapiPlugin &) = delete;
 	PyMapiPlugin &operator=(const PyMapiPlugin &) = delete;
@@ -87,7 +86,6 @@ private:
 	std::string m_strPluginPath;
 	ECLogger *m_lpLogger = nullptr;
 
-private:
 	// Inhibit (accidental) copying
 	PyMapiPluginFactory(const PyMapiPluginFactory &) = delete;
 	PyMapiPluginFactory &operator=(const PyMapiPluginFactory &) = delete;

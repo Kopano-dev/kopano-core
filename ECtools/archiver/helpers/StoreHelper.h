@@ -60,7 +60,6 @@ private:
 	_kc_hidden HRESULT GetClassCheckRestriction(ECOrRestriction *class_chk);
 	_kc_hidden HRESULT GetArchiveCheckRestriction(ECAndRestriction *arc_chk);
 
-private:
 	typedef HRESULT(StoreHelper::*fn_setup_t)(LPMAPIFOLDER, const ECRestriction *, const ECRestriction *);
 	struct search_folder_info_t {
 		LPCTSTR		lpszName;
