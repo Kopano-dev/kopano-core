@@ -49,9 +49,7 @@ private:
 	
 	storage_type	m_storage;
 	size_type		m_ulMaxSize;
-	bool			m_bReaderClosed;
-	bool            m_bWriterClosed;
-
+	bool m_bReaderClosed = false, m_bWriterClosed = false;
 	std::mutex m_hMutex;
 	std::condition_variable m_hCondNotEmpty, m_hCondNotFull, m_hCondFlushed;
 };

@@ -217,9 +217,6 @@ namespace details {
 	
 } // namespace details
 
-convert_context::convert_context()
-{}
-
 convert_context::~convert_context()
 {
 	for (auto &ictx : m_contexts)

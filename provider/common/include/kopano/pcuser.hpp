@@ -171,8 +171,7 @@ private:
 	std::string m_strServerName;
 	std::string m_strHostAddress;
 	std::string m_strFilePath;
-	unsigned	m_ulHttpPort;
-	unsigned	m_ulSslPort;
+	unsigned int m_ulHttpPort = 0, m_ulSslPort = 0;
 	std::string	m_strProxyPath;
 };
 

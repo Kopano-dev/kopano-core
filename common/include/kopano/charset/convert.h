@@ -307,7 +307,7 @@ public:
 	/**
 	 * @brief Constructor.
 	 */
-	convert_context();
+	convert_context(void) = default;
 	
 	/**
 	 * @brief Destructor.

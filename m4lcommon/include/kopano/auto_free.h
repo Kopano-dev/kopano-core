@@ -60,7 +60,7 @@ class auto_free _kc_final {
 	typedef _T* pointer;
 	typedef const _T* const_pointer;
 public:
-	auto_free() { data = NULL; }
+	auto_free(void) = default;
 	auto_free( pointer p ) : data(p) {}
 	~auto_free() {
 		free();
@@ -128,7 +128,7 @@ private: // Disable copying, need ref counting
 			data = NULL;
 		}
 	}
-	pointer data;
+	pointer data = nullptr;
 };
 
 } /* namespace */

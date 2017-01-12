@@ -28,8 +28,6 @@ ECCacheBase::ECCacheBase(const std::string &strCachename, size_type ulMaxSize, l
 	: m_strCachename(strCachename)
 	, m_ulMaxSize(ulMaxSize)
 	, m_lMaxAge(lMaxAge)
-	, m_ulCacheHit(0)
-	, m_ulCacheValid(0)
 { }
 
 void ECCacheBase::RequestStats(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)

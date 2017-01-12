@@ -24,8 +24,6 @@ namespace KC {
 
 ECFifoBuffer::ECFifoBuffer(size_type ulMaxSize)
 	: m_ulMaxSize(ulMaxSize)
-	, m_bReaderClosed(false)
-	, m_bWriterClosed(false)
 {
 }
 

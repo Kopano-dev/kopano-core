@@ -50,7 +50,7 @@ class _kc_export KAttach _kc_final {
 
 class _kc_export KEntryId _kc_final {
 	public:
-	KEntryId(void);
+	KEntryId(void) = default;
 	KEntryId(KEntryId &&);
 	KEntryId(ENTRYID *, size_t);
 	~KEntryId(void);

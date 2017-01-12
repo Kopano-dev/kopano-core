@@ -42,7 +42,7 @@ public:
 	_kc_hidden virtual HRESULT Clone(IStream **) _kc_override { return MAPI_E_NO_SUPPORT; }
 	_kc_hidden IStream *get(void) { return this; }
 private:
-    size_t	m_pos;
+	size_t m_pos = 0;
     std::string& m_str;
 };
 

@@ -58,21 +58,14 @@ convstring convstring::from_SPropValue(const SPropValue &sPropVal)
 	return from_SPropValue(&sPropVal);
 }
 
-convstring::convstring()
-: m_lpsz(NULL)
-, m_ulFlags(0)
-{}
-
 /**
  * Create a new convstring object based on another convstring object.
  *
  * @param[in]	other
  *			The convstring object to base the new object on.
  */
-convstring::convstring(const convstring &other)
-: m_lpsz(NULL)
-, m_ulFlags(other.m_ulFlags)
-, m_str(other.m_str)
+convstring::convstring(const convstring &other) :
+	m_ulFlags(other.m_ulFlags), m_str(other.m_str)
 {
 	// We create a new convert_context as the context of other contains
 	// nothing we really need. If we would copy its map with iconv_context's, we would
@@ -94,7 +87,6 @@ convstring::convstring(const convstring &other)
  */
 convstring::convstring(const char *lpsz)
 : m_lpsz(reinterpret_cast<const TCHAR*>(lpsz))
-, m_ulFlags(0)
 {
 }
 

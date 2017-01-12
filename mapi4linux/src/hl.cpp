@@ -66,10 +66,6 @@ void KDeleter::operator()(SRowSet *p)
 	FreeProws(p);
 }
 
-KEntryId::KEntryId(void)
-{
-}
-
 KEntryId::KEntryId(ENTRYID *eid, size_t size) :
 	m_eid(eid), m_size(size)
 {

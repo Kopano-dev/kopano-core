@@ -47,9 +47,7 @@ unsigned int GetCacheAdditionalSize(const Value &val) {
 
 class ECsCacheEntry {
 public:
-	ECsCacheEntry() { ulLastAccess = 0; }
-
-	time_t 	ulLastAccess;
+	time_t ulLastAccess = 0;
 };
 
 class _kc_export ECCacheBase {
@@ -88,8 +86,7 @@ private:
 	const std::string	m_strCachename;
 	const size_type		m_ulMaxSize;
 	const long			m_lMaxAge;
-	size_type			m_ulCacheHit;
-	size_type			m_ulCacheValid;
+	size_type m_ulCacheHit = 0, m_ulCacheValid = 0;
 };
 
 
