@@ -254,7 +254,7 @@ class Folder(object):
             return 0
 
     def recount(self):
-        self.server.sa.ResetFolderCount(self.entryid.decode('hex'))
+        self.server.sa.ResetFolderCount(_unhex(self.entryid))
 
     def _get_entryids(self, items):
         if isinstance(items, (Item, Folder, Permission)):
@@ -471,7 +471,7 @@ class Folder(object):
         searchfolder.search_wait()
         for item in searchfolder:
             yield item
-        self.store.findroot.mapiobj.DeleteFolder(searchfolder.entryid.decode('hex'), 0, None, 0) # XXX store.findroot
+        self.store.findroot.mapiobj.DeleteFolder(_unhex(searchfolder.entryid), 0, None, 0) # XXX store.findroot
 
     def search_start(self, folders, text, recurse=False):
         # specific restriction format, needed to reach indexer
