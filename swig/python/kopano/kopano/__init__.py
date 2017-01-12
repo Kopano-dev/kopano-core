@@ -91,7 +91,7 @@ from .company import Company
 from .folder import Folder
 from .group import Group
 from .item import Item
-from .ooo import Outofoffice
+from .outofoffice import Outofoffice
 from .prop import Property
 from .permission import Permission
 from .quota import Quota

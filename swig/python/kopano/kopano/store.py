@@ -10,7 +10,7 @@ import uuid
 
 from .folder import Folder
 from .autoaccept import AutoAccept
-from .ooo import Outofoffice
+from .outofoffice import Outofoffice
 from .prop import Property
 from .item import Item
 from .errors import *
