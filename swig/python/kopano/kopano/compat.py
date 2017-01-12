@@ -39,6 +39,9 @@ if sys.hexversion >= 0x03000000:
     def decode(s):
         return s
 
+    def encode(s):
+        return s.encode()
+
 # Python 2
 else:
     def is_str(s):

@@ -16,11 +16,11 @@ from .item import Item
 from .errors import *
 from .defs import *
 
-from .compat import unhex as _unhex, decode as _decode
+from .compat import unhex as _unhex, decode as _decode, encode as _encode
 from .utils import (
     extract_ipm_ol2007_entryids as _extract_ipm_ol2007_entryids,
     openentry_raw as _openentry_raw, create_prop as _create_prop,
-    prop as _prop, props as _props, permissions as _permissions, 
+    prop as _prop, props as _props, permissions as _permissions,
     permission as _permission
 )
 
@@ -405,7 +405,7 @@ class Store(object):
         return _props(self.mapiobj, namespace=namespace)
 
     def create_searchfolder(self, text=None): # XXX store.findroot.create_folder()?
-        mapiobj = self.findroot.mapiobj.CreateFolder(FOLDER_SEARCH, str(uuid.uuid4()), 'comment', None, 0)
+        mapiobj = self.findroot.mapiobj.CreateFolder(FOLDER_SEARCH, _encode(str(uuid.uuid4())), _encode('comment'), None, 0)
         return Folder(self, mapiobj=mapiobj)
 
     def permissions(self):
