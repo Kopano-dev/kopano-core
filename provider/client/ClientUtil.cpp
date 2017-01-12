@@ -299,7 +299,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 
 	GetSystemTimeAsFileTime(&ft);
 
-	if((ulFlags&MAPI_NON_READ) == MAPI_NON_READ) {
+	if (ulFlags & MAPI_NON_READ) {
 		lpMsgClass = _T("REPORT.IPM.Note.IPNNRN");
 		lpReadText = _("Not read:");
 		lpReportText = _("was not read because it expired before reading at time");

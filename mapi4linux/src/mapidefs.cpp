@@ -827,7 +827,7 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues,
 		++nProps;
 		lpResource = PCpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_FLAGS);
 		sProps[nProps].ulPropTag = PR_DEFAULT_STORE;
-		sProps[nProps].Value.b = (lpResource && (lpResource->Value.ul & STATUS_DEFAULT_STORE) == STATUS_DEFAULT_STORE);
+		sProps[nProps].Value.b = lpResource && lpResource->Value.ul & STATUS_DEFAULT_STORE;
 		++nProps;
 	} else if (lpResource->Value.ul == MAPI_AB_PROVIDER) {
 		sProps[nProps].ulPropTag = PR_OBJECT_TYPE;

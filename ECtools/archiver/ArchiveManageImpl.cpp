@@ -176,7 +176,7 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 		return hr;
 	}
 
-	if ((ulFlags & UseIpmSubtree) == UseIpmSubtree)
+	if (ulFlags & UseIpmSubtree)
 		strFoldername.clear();	// Empty folder name indicates the IPM subtree.
 	else if (lpszFolder)
 		strFoldername.assign(lpszFolder);

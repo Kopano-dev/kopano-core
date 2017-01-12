@@ -126,7 +126,8 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 	TRACE_MAPI(TRACE_ENTRY, "ECMSProvider::Logon::MDB", "PR_MDB_PROVIDER = %s", lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER ? DBGGUIDToString(*(IID*)lpsPropArray[0].Value.bin.lpb).c_str() : "<Unknown>");
 
-	if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS && (lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE) == STATUS_DEFAULT_STORE)
+	if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS &&
+	    lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE)
 		fIsDefaultStore = TRUE;
 	// Create a transport for this message store
 	hr = WSTransport::Create(ulFlags, &~lpTransport);

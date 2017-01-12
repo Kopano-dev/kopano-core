@@ -530,7 +530,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		goto exit;
 
     // CHeck if the client understands the new ABEID.
-	if ((lpSession->GetCapabilities() & KOPANO_CAP_MULTI_SERVER) == KOPANO_CAP_MULTI_SERVER)
+	if (lpSession->GetCapabilities() & KOPANO_CAP_MULTI_SERVER)
 		bAcceptABEID = true;
 
 	if(ulChangeType != ICS_SYNC_AB) {

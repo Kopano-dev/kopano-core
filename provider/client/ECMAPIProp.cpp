@@ -454,8 +454,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	lpStreamData->ulPropTag = ulPropTag;
 	lpStreamData->lpProp = this;
 
-	if ((ulFlags & MAPI_CREATE) == MAPI_CREATE)
-	{
+	if (ulFlags & MAPI_CREATE) {
 		hr = ECMemStream::Create(NULL, 0, ulInterfaceOptions,
 		     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
 	} else {

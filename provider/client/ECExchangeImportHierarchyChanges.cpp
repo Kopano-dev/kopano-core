@@ -83,7 +83,7 @@ HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ul
 	if(hr != hrSuccess)
 		goto exit;
 
-	if ((ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
+	if (ulFlags & MAPI_UNICODE) {
 		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
 		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
 

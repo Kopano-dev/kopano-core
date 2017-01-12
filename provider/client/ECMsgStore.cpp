@@ -818,7 +818,7 @@ HRESULT ECMsgStore::GetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULO
 	
 	if (lppszExplicitClass == nullptr)
 		return hrSuccess;
-	if ((ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
+	if (ulFlags & MAPI_UNICODE) {
 		std::wstring dst = convert_to<std::wstring>(strExplicitClass);
 
 		hr = MAPIAllocateBuffer(sizeof(std::wstring::value_type) * (dst.length() + 1), (void **)lppszExplicitClass);
@@ -2346,8 +2346,7 @@ HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp 
 	if(hr != hrSuccess)
 		goto exit;
 
-	if( (PROP_TYPE(ulPropTag)&MV_FLAG) == MV_FLAG)
-	{
+	if (PROP_TYPE(ulPropTag) & MV_FLAG) {
 		ECAllocateBuffer(sizeof(SPropValue), (void**)&lpPropMVValueNew);
 		memset(lpPropMVValueNew, 0, sizeof(SPropValue));
 

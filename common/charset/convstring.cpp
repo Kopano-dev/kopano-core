@@ -137,8 +137,7 @@ template <typename T>
 T convstring::convert_to() const {
 	if (m_lpsz == NULL)
 		return T();
-	
-	if ((m_ulFlags & MAPI_UNICODE) == MAPI_UNICODE)
+	if (m_ulFlags & MAPI_UNICODE)
 		return m_converter.convert_to<T>(reinterpret_cast<const wchar_t*>(m_lpsz));
 	else
 		return m_converter.convert_to<T>(reinterpret_cast<const char*>(m_lpsz));
@@ -158,8 +157,7 @@ template<typename T>
 T convstring::convert_to(const char *tocode) const {
 	if (m_lpsz == NULL)
 		return T();
-	
-	if ((m_ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
+	if (m_ulFlags & MAPI_UNICODE) {
 		const wchar_t *lpszw = reinterpret_cast<const wchar_t*>(m_lpsz);
 		return m_converter.convert_to<T>(tocode, lpszw, rawsize(lpszw), CHARSET_WCHAR);
 	} else {
@@ -178,8 +176,7 @@ bool convstring::null_or_empty() const
 {
 	if (m_lpsz == NULL)
 		return true;
-	
-	if ((m_ulFlags & MAPI_UNICODE) == MAPI_UNICODE)
+	if (m_ulFlags & MAPI_UNICODE)
 		return *reinterpret_cast<const wchar_t*>(m_lpsz) == L'\0';
 	else
 		return *reinterpret_cast<const char*>(m_lpsz) == '\0';

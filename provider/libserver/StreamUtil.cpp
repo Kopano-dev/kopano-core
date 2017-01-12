@@ -1428,7 +1428,7 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 			goto next_property;
 		}
 
-		if ((PROP_TYPE(lpsPropval->ulPropTag) & MV_FLAG) == MV_FLAG) {
+		if (PROP_TYPE(lpsPropval->ulPropTag) & MV_FLAG) {
 			nMVItems = GetMVItemCount(lpsPropval);
 			for (gsoap_size_t j = 0; j < nMVItems; ++j) {
 				er = CopySOAPPropValToDatabaseMVPropVal(lpsPropval, j, strColName, strColData, lpDatabase);
