@@ -514,12 +514,12 @@ HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
 		if (hr != hrSuccess)
 			return hr;
 		(*lppMsgStore)->AddRef();
-
+		return hrSuccess;
 	} else if (HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue) == hrSuccess) {
 		lpECMsgStore = (IECUnknown *)lpPropValue->Value.lpszA;
 		if (lpECMsgStore == nullptr)
 			return MAPI_E_INVALID_PARAMETER;
-		hr = lpECMsgStore->QueryInterface(IID_IMsgStore, (void**)lppMsgStore);
+		return lpECMsgStore->QueryInterface(IID_IMsgStore, (void**)lppMsgStore);
 	} else {
 		// Possible object already wrapped, gives the original object back
 		(*lppMsgStore) = lpMsgStore;

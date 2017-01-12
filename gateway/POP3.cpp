@@ -136,7 +136,7 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		if (vWords.size() != 1)
 			return HrResponse(POP3_RESP_ERR,
 			       "CAPA command must have 0 arguments");
-		hr = HrCmdCapability();
+		return HrCmdCapability();
 	} else if (strCommand.compare("STLS") == 0) {
 		if (vWords.size() != 1)
 			return HrResponse(POP3_RESP_ERR,
@@ -144,77 +144,78 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		if (HrCmdStarttls() != hrSuccess)
 			// log ?
 			// let the gateway quit from the socket read loop
-			hr = MAPI_E_END_OF_SESSION;
+			return MAPI_E_END_OF_SESSION;
+		return hr;
 	} else if (strCommand.compare("USER") == 0) {
 		if (vWords.size() != 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "User command must have 1 argument");
-		hr = HrCmdUser(vWords[1]);
+		return HrCmdUser(vWords[1]);
 	} else if (strCommand.compare("PASS") == 0) {
 		if (vWords.size() < 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "Pass command must have 1 argument");
 		string strPass = strInput;
 		strPass.erase(0, strCommand.length()+1);
-		hr = HrCmdPass(strPass);
+		return HrCmdPass(strPass);
 	} else if (strCommand.compare("QUIT") == 0) {
-        hr = HrCmdQuit();
-        // let the gateway quit from the socket read loop
-        hr = MAPI_E_END_OF_SESSION;
+		HrCmdQuit();
+		// let the gateway quit from the socket read loop
+		return MAPI_E_END_OF_SESSION;
     } else if (!IsAuthorized()) {
-		hr = HrResponse(POP3_RESP_ERR, "Invalid command");
+		HrResponse(POP3_RESP_ERR, "Invalid command");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Not authorized for command: %s", vWords[0].c_str());
-		hr = MAPI_E_CALL_FAILED;
+		return MAPI_E_CALL_FAILED;
 	} else if (strCommand.compare("STAT") == 0) {
 		if (vWords.size() != 1)
 			return HrResponse(POP3_RESP_ERR,
 			       "Stat command has no arguments");
-		hr = HrCmdStat();
+		return HrCmdStat();
 	} else if (strCommand.compare("LIST") == 0) {
 		if (vWords.size() > 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "List must have 0 or 1 arguments");
 		if (vWords.size() == 2)
-			hr = HrCmdList(strtoul(vWords[1].c_str(), NULL, 0));
+			return HrCmdList(strtoul(vWords[1].c_str(), NULL, 0));
 		else
-			hr = HrCmdList();
+			return HrCmdList();
 	} else if (strCommand.compare("RETR") == 0) {
 		if (vWords.size() != 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "RETR must have 1 argument");
-		hr = HrCmdRetr(strtoul(vWords[1].c_str(), NULL, 0));
+		return HrCmdRetr(strtoul(vWords[1].c_str(), NULL, 0));
 	} else if (strCommand.compare("DELE") == 0) {
 		if (vWords.size() != 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "DELE must have 1 argument");
-		hr = HrCmdDele(strtoul(vWords[1].c_str(), NULL, 0));
+		return HrCmdDele(strtoul(vWords[1].c_str(), NULL, 0));
 	} else if (strCommand.compare("NOOP") == 0) {
 		if (vWords.size() > 1)
 			return HrResponse(POP3_RESP_ERR,
 			       "NOOP must have 0 arguments");
-		hr = HrCmdNoop();
+		return HrCmdNoop();
 	} else if (strCommand.compare("RSET") == 0) {
 		if (vWords.size() > 1)
 			return HrResponse(POP3_RESP_ERR,
 			       "RSET must have 0 arguments");
-		hr = HrCmdRset();
+		return HrCmdRset();
 	} else if (strCommand.compare("TOP") == 0) {
 		if (vWords.size() != 3)
 			return HrResponse(POP3_RESP_ERR,
 			       "TOP must have 2 arguments");
-		hr = HrCmdTop(strtoul(vWords[1].c_str(), NULL, 0), strtoul(vWords[2].c_str(), NULL, 0));
+		return HrCmdTop(strtoul(vWords[1].c_str(), NULL, 0), strtoul(vWords[2].c_str(), NULL, 0));
 	} else if (strCommand.compare("UIDL") == 0) {
 		if (vWords.size() > 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "UIDL must have 0 or 1 arguments");
 		if (vWords.size() == 2)
-			hr = HrCmdUidl(strtoul(vWords[1].c_str(), NULL, 0));
+			return HrCmdUidl(strtoul(vWords[1].c_str(), NULL, 0));
 		else
-			hr = HrCmdUidl();
+			return HrCmdUidl();
 	} else {
-		hr = HrResponse(POP3_RESP_ERR, "Function not (yet) implemented");
+		HrResponse(POP3_RESP_ERR, "Function not (yet) implemented");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "non-existing function called: %s", vWords[0].c_str());
-		hr = MAPI_E_CALL_FAILED;
+		return MAPI_E_CALL_FAILED;
 	}
 	return hr;
 }
@@ -331,14 +332,15 @@ HRESULT POP3::HrCmdUser(const string &strUser) {
 		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed plaintext auth)",
 					  lpChannel->peer_addr(), strUser.c_str());
+		return hr;
 	} else if (lpStore != NULL) {
-		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Can't login twice");
+		return HrResponse(POP3_RESP_AUTH_ERROR, "Can't login twice");
 	} else if (strUser.length() > POP3_MAX_RESPONSE_LENGTH) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Username too long: %d > %d", (int)strUser.length(), POP3_MAX_RESPONSE_LENGTH);
-		hr = HrResponse(POP3_RESP_PERMFAIL, "Username too long");
+		return HrResponse(POP3_RESP_PERMFAIL, "Username too long");
 	} else {
 		szUser = strUser;
-		hr = HrResponse(POP3_RESP_OK, "Waiting for password");
+		return HrResponse(POP3_RESP_OK, "Waiting for password");
 	}
 	return hr;
 }
@@ -364,13 +366,14 @@ HRESULT POP3::HrCmdPass(const string &strPass) {
 		else
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed "
 							 "plaintext auth)", lpChannel->peer_addr(), szUser.c_str());
+		return hr;
 	} else if (lpStore != NULL) {
-		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Can't login twice");
+		return HrResponse(POP3_RESP_AUTH_ERROR, "Can't login twice");
 	} else if (strPass.length() > POP3_MAX_RESPONSE_LENGTH) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Password too long: %d > %d", (int)strPass.length(), POP3_MAX_RESPONSE_LENGTH);
-		hr = HrResponse(POP3_RESP_PERMFAIL, "Password too long");
+		return HrResponse(POP3_RESP_PERMFAIL, "Password too long");
 	} else if (szUser.empty()) {
-		hr = HrResponse(POP3_RESP_ERR, "Give username first");
+		return HrResponse(POP3_RESP_ERR, "Give username first");
 	} else {
 		hr = this->HrLogin(szUser, strPass);
 		if (hr != hrSuccess) {
@@ -386,8 +389,7 @@ HRESULT POP3::HrCmdPass(const string &strPass) {
 			HrResponse(POP3_RESP_ERR, "Can't get mail list");
 			return hr;
 		}
-
-		hr = HrResponse(POP3_RESP_OK, "Username and password accepted");
+		return HrResponse(POP3_RESP_OK, "Username and password accepted");
 	}
 	return hr;
 }
