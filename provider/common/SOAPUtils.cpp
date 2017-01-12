@@ -27,7 +27,6 @@
 #include "SOAPAlloc.h"
 #include <kopano/stringutil.h>
 #include <kopano/ustringutil.h>
-#include <kopano/base64.h>
 
 using namespace std;
 

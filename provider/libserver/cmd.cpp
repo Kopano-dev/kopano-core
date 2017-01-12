@@ -62,8 +62,6 @@
 
 #include "kcore.hpp"
 #include "pcutil.hpp"
-#include <kopano/md5.h>
-
 #include "ECAttachmentStorage.h"
 #include "ECGenProps.h"
 #include "ECUserManagement.h"

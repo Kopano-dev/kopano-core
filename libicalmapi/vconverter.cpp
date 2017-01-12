@@ -34,7 +34,6 @@
 #include <ctime>
 #include <kopano/mapi_ptr.h>
 #include <kopano/namedprops.h>
-#include <kopano/base64.h>
 
 using namespace std;
 using namespace KCHL;

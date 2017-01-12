@@ -644,8 +644,8 @@ libkcutil_la_SOURCES = \
 	common/ECGetText.cpp common/ECIConv.cpp common/ECLogger.cpp \
 	common/ECScheduler.cpp common/ECSerializer.cpp common/ECThreadPool.cpp \
 	common/StatsClient.cpp common/SymmetricCrypt.cpp common/TimeUtil.cpp \
-	common/TmpPath.cpp common/Trace.cpp common/UnixUtil.cpp common/base64.cpp \
-	common/fileutil.cpp common/md5.cpp common/my_getopt.cpp common/platform.cpp \
+	common/TmpPath.cpp common/Trace.cpp common/UnixUtil.cpp \
+	common/fileutil.cpp common/my_getopt.cpp common/platform.cpp \
 	common/platform.linux.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
 	common/charset/convstring.cpp common/charset/traits.cpp \

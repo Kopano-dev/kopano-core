@@ -31,7 +31,6 @@
 #include <kopano/ECPluginSharedData.h>
 
 #include <kopano/stringutil.h>
-#include <kopano/md5.h>
 
 using namespace std;
 #include "ECDatabaseFactory.h"

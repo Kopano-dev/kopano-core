@@ -28,8 +28,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/Trace.h>
 #include "kcore.hpp"
-#include <kopano/md5.h>
-
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>

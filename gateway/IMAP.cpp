@@ -45,7 +45,6 @@
 #include <unordered_set>
 #include <map>
 #include <algorithm>
-#include <kopano/base64.h>
 #include <inetmapi/options.h>
 
 #include <edkmdb.h>

@@ -109,8 +109,6 @@
 #include "helpers/MAPIPropHelper.h"
 #include <inetmapi/options.h>
 #include <kopano/charset/convert.h>
-#include <kopano/base64.h>
-
 #include <kopano/IECServiceAdmin.h>
 #include <kopano/IECUnknown.h>
 #include <kopano/ECTags.h>

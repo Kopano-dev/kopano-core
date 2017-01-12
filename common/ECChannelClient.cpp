@@ -26,7 +26,6 @@
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <sys/socket.h>
-#include <kopano/base64.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECDefs.h>
 #include <kopano/stringutil.h>

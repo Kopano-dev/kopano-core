@@ -20,8 +20,6 @@
 #include "pcutil.hpp"
 #include <mapicode.h>
 #include <kopano/stringutil.h>
-#include <kopano/base64.h>
-
 #include <mapidefs.h>
 #include <kopano/ECGuid.h>
 #include "versions.h"
