@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <new>
 #include "ECPropertyEntry.h"
 #include "Mem.h"
 #include <kopano/charset/convert.h>
@@ -207,8 +207,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		ulNewSize = wstrTmp.length() + 1;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.lpszW;
-			this->Value.lpszW = new WCHAR[ulNewSize];
-
+			this->Value.lpszW = new(std::nothrow) WCHAR[ulNewSize];
 			if (this->Value.lpszW == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -236,8 +235,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.bin.lpb;
-			this->Value.bin.lpb = new BYTE[ulNewSize];
-
+			this->Value.bin.lpb = new(std::nothrow) BYTE[ulNewSize];
 			if (this->Value.bin.lpb == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -255,8 +253,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		ulNewSize = wcslen(lpsProp->Value.lpszW)+1;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.lpszW;
-			this->Value.lpszW = new WCHAR[ulNewSize];
-
+			this->Value.lpszW = new(std::nothrow) WCHAR[ulNewSize];
 			if (this->Value.lpszW == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -273,8 +270,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if(ulSize != sizeof(GUID)) {
 			ulSize = sizeof(GUID);
-			this->Value.lpguid = new GUID;			
-
+			this->Value.lpguid = new(std::nothrow) GUID;
 			if (this->Value.lpguid == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -295,8 +291,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVi.lpi;
-			this->Value.MVi.lpi = new short int[lpsProp->Value.MVi.cValues];
-		
+			this->Value.MVi.lpi = new(std::nothrow) short int[lpsProp->Value.MVi.cValues];
 			if (this->Value.MVi.lpi == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -316,8 +311,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVl.lpl;
-			this->Value.MVl.lpl = new LONG[lpsProp->Value.MVl.cValues];
-
+			this->Value.MVl.lpl = new(std::nothrow) LONG[lpsProp->Value.MVl.cValues];
 			if (this->Value.MVl.lpl == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -337,8 +331,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVflt.lpflt;
-			this->Value.MVflt.lpflt = new float[lpsProp->Value.MVflt.cValues];
-
+			this->Value.MVflt.lpflt = new(std::nothrow) float[lpsProp->Value.MVflt.cValues];
 			if (this->Value.MVflt.lpflt == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -358,8 +351,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVdbl.lpdbl;
-			this->Value.MVdbl.lpdbl = new double[lpsProp->Value.MVdbl.cValues];
-
+			this->Value.MVdbl.lpdbl = new(std::nothrow) double[lpsProp->Value.MVdbl.cValues];
 			if (this->Value.MVdbl.lpdbl == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -379,8 +371,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVcur.lpcur;
-			this->Value.MVcur.lpcur = new CURRENCY[lpsProp->Value.MVcur.cValues];
-			
+			this->Value.MVcur.lpcur = new(std::nothrow) CURRENCY[lpsProp->Value.MVcur.cValues];
 			if (this->Value.MVcur.lpcur == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -401,9 +392,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if(ulSize < ulNewSize) {
 			if(this->Value.MVat.lpat)
 				delete[] this->Value.MVat.lpat;
-
-			this->Value.MVat.lpat = new double[lpsProp->Value.MVat.cValues];
-			
+			this->Value.MVat.lpat = new(std::nothrow) double[lpsProp->Value.MVat.cValues];
 			if (this->Value.MVat.lpat == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -423,8 +412,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVft.lpft;
-			this->Value.MVft.lpft = new FILETIME[lpsProp->Value.MVft.cValues];
-
+			this->Value.MVft.lpft = new(std::nothrow) FILETIME[lpsProp->Value.MVft.cValues];
 			if (this->Value.MVft.lpft == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -449,9 +437,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 					delete[] this->Value.MVbin.lpbin[i].lpb;
 				delete[] this->Value.MVbin.lpbin;
 			}
-
-			this->Value.MVbin.lpbin = new SBinary[lpsProp->Value.MVbin.cValues];
-
+			this->Value.MVbin.lpbin = new(std::nothrow) SBinary[lpsProp->Value.MVbin.cValues];
 			if (this->Value.MVbin.lpbin == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 
@@ -501,9 +487,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 					delete [] this->Value.MVszW.lppszW[i];
 				delete [] this->Value.MVszW.lppszW;
 			}
-
-			this->Value.MVszW.lppszW = new WCHAR *[lpsProp->Value.MVszA.cValues];
-
+			this->Value.MVszW.lppszW = new(std::nothrow) wchar_t *[lpsProp->Value.MVszA.cValues];
 			if (this->Value.MVszW.lppszW == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 
@@ -548,9 +532,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 					delete[] this->Value.MVszW.lppszW[i];
 				delete[] this->Value.MVszW.lppszW;
 			}
-
-			this->Value.MVszW.lppszW = new WCHAR *[lpsProp->Value.MVszW.cValues];
-
+			this->Value.MVszW.lppszW = new(std::nothrow) wchar_t *[lpsProp->Value.MVszW.cValues];
 			if (this->Value.MVszW.lppszW == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 
@@ -585,8 +567,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVguid.lpguid;
-			this->Value.MVguid.lpguid = new GUID[lpsProp->Value.MVguid.cValues];
-
+			this->Value.MVguid.lpguid = new(std::nothrow) GUID[lpsProp->Value.MVguid.cValues];
 			if (this->Value.MVguid.lpguid == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
@@ -606,8 +587,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVli.lpli;
-			this->Value.MVli.lpli = new LARGE_INTEGER[lpsProp->Value.MVli.cValues];
-
+			this->Value.MVli.lpli = new(std::nothrow) LARGE_INTEGER[lpsProp->Value.MVli.cValues];
 			if (this->Value.MVli.lpli == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
