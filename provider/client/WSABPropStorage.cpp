@@ -282,13 +282,13 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	ECAllocateBuffer(sizeof(SPropValue) * sResponse.aPropVal.__size, (void **)&lpProp);
 
 	for (gsoap_size_t i = 0; i < sResponse.aPropTag.__size; ++i)
-		mo->lstAvailable->push_back(sResponse.aPropTag.__ptr[i]);
+		mo->lstAvailable.push_back(sResponse.aPropTag.__ptr[i]);
 
 	for (gsoap_size_t i = 0; i < sResponse.aPropVal.__size; ++i) {
 		hr = CopySOAPPropValToMAPIPropVal(lpProp, &sResponse.aPropVal.__ptr[i], lpProp, &converter);
 		if (hr != hrSuccess)
 			goto exit;
-		mo->lstProperties->push_back(lpProp);
+		mo->lstProperties.push_back(lpProp);
 	}
 
 	*lppsMapiObject = mo;

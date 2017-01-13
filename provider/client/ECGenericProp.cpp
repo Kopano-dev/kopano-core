@@ -410,11 +410,11 @@ HRESULT ECGenericProp::HrRemoveModifications(MAPIOBJECT *lpsMapiObject, ULONG ul
 {
 	HRESULT hr = hrSuccess;
 
-	lpsMapiObject->lstDeleted->remove(ulPropTag);
-	for (auto iterProps = lpsMapiObject->lstModified->begin();
-	     iterProps != lpsMapiObject->lstModified->end(); ++iterProps)
+	lpsMapiObject->lstDeleted.remove(ulPropTag);
+	for (auto iterProps = lpsMapiObject->lstModified.begin();
+	     iterProps != lpsMapiObject->lstModified.end(); ++iterProps)
 		if(iterProps->GetPropTag() == ulPropTag) {
-			lpsMapiObject->lstModified->erase(iterProps);
+			lpsMapiObject->lstModified.erase(iterProps);
 			break;
 		}
 	return hr;
@@ -506,7 +506,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	for (auto l : m_setDeletedProps) {
 		// Make sure the property is not present in deleted/modified list
 		HrRemoveModifications(m_sMapiObject, l);
-		m_sMapiObject->lstDeleted->push_back(l);
+		m_sMapiObject->lstDeleted.push_back(l);
 	}
 
 	for (auto &p : *lstProps) {
@@ -517,17 +517,17 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 			// Make sure the property is not present in deleted/modified list
 			HrRemoveModifications(m_sMapiObject, p.second.GetPropTag());
 			// Save modified property
-			m_sMapiObject->lstModified->push_back(*p.second.GetProperty());
+			m_sMapiObject->lstModified.push_back(*p.second.GetProperty());
 			// Save in the normal properties list
-			m_sMapiObject->lstProperties->push_back(*p.second.GetProperty());
+			m_sMapiObject->lstProperties.push_back(*p.second.GetProperty());
 			continue;
 		}
 
 		// Normal property: either non-loaded or loaded
 		if (!p.second.FIsLoaded())	// skip pt_error anyway
-			m_sMapiObject->lstAvailable->push_back(p.second.GetPropTag());
+			m_sMapiObject->lstAvailable.push_back(p.second.GetPropTag());
 		else
-			m_sMapiObject->lstProperties->push_back(*p.second.GetProperty());
+			m_sMapiObject->lstProperties.push_back(*p.second.GetProperty());
 	}
 
 	m_sMapiObject->bChanged = true;
@@ -545,7 +545,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	// that save to ECParentStorage, the object will be untouched. The code below will do nothing.
 
 	// Large properties received
-	for (auto tag : *m_sMapiObject->lstAvailable) {
+	for (auto tag : m_sMapiObject->lstAvailable) {
 		// ONLY if not present
 		auto ip = lstProps->find(PROP_ID(tag));
 		if (ip == lstProps->cend() || ip->second.GetPropTag() != tag) {
@@ -553,10 +553,10 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 			lstProps->insert(std::make_pair(PROP_ID(tag), entry));
 		}
 	}
-	m_sMapiObject->lstAvailable->clear();
+	m_sMapiObject->lstAvailable.clear();
 
 	// Normal properties with value
-	for (const auto &pv : *m_sMapiObject->lstProperties)
+	for (const auto &pv : m_sMapiObject->lstProperties)
 		// don't add any 'error' types ... (the storage object shouldn't really give us these anyway ..)
 		if (PROP_TYPE(pv.GetPropTag()) != PT_ERROR) {
 			SPropValue tmp = pv.GetMAPIPropValRef();
@@ -566,8 +566,8 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	// Note that we currently don't support the server removing properties after the SaveObject call
 
 	// We have loaded all properties, so clear the properties in the m_sMapiObject
-	m_sMapiObject->lstProperties->clear();
-	m_sMapiObject->lstAvailable->clear();
+	m_sMapiObject->lstProperties.clear();
+	m_sMapiObject->lstAvailable.clear();
 
 	// We are now in sync with the server again, so set everything as clean
 	HrSetClean();
@@ -723,13 +723,13 @@ HRESULT ECGenericProp::HrLoadProps()
 
 	// Add *all* the entries as with empty values; values for these properties will be
 	// retrieved on-demand
-	for (auto tag : *m_sMapiObject->lstAvailable) {
+	for (auto tag : m_sMapiObject->lstAvailable) {
 		ECPropertyEntry entry(tag);
 		lstProps->insert(std::make_pair(PROP_ID(tag), entry));
 	}
 
 	// Load properties
-	for (const auto &pv : *m_sMapiObject->lstProperties)
+	for (const auto &pv : m_sMapiObject->lstProperties)
 		// don't add any 'error' types ... (the storage object shouldn't really give us these anyway ..)
 		if (PROP_TYPE(pv.GetPropTag()) != PT_ERROR) {
 			SPropValue tmp = pv.GetMAPIPropValRef();
@@ -737,8 +737,8 @@ HRESULT ECGenericProp::HrLoadProps()
 		}
 
 	// remove copied proptags, subobjects are still present
-	m_sMapiObject->lstAvailable->clear();
-	m_sMapiObject->lstProperties->clear(); // pointers are now only present in lstProps (this removes memory usage!)
+	m_sMapiObject->lstAvailable.clear();
+	m_sMapiObject->lstProperties.clear(); // pointers are now only present in lstProps (this removes memory usage!)
 
 	// at this point: children still known, ulObjId and ulObjType too
 
