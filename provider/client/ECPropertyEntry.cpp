@@ -457,6 +457,10 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 			memset(this->Value.MVbin.lpbin, 0, sizeof(SBinary) * lpsProp->Value.MVbin.cValues);
 		}
+		else {
+			for(unsigned int i = lpsProp->Value.MVbin.cValues; i < this->Value.MVbin.cValues; ++i)
+				delete[] this->Value.MVbin.lpbin[i].lpb;
+		}
 
 		ulSize = ulNewSize;
 
@@ -505,6 +509,10 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 			memset(this->Value.MVszW.lppszW, 0, sizeof(wchar_t *) * lpsProp->Value.MVszA.cValues);
 		}
+		else {
+			for(unsigned int i = lpsProp->Value.MVszW.cValues; i < this->Value.MVszW.cValues; ++i)
+				delete[] this->Value.MVszW.lppszW[i];
+		}
 
 		ulSize = ulNewSize;
 
@@ -547,6 +555,10 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 
 			memset(this->Value.MVszW.lppszW, 0, sizeof(WCHAR *) * lpsProp->Value.MVszW.cValues);
+		}
+		else {
+			for(unsigned int i = lpsProp->Value.MVszW.cValues; i < this->Value.MVszW.cValues; ++i)
+				delete[] this->Value.MVszW.lppszW[i];
 		}
 		
 		ulSize = ulNewSize;
@@ -623,8 +635,7 @@ ECProperty::~ECProperty()
 {
 	DEBUG_GUARD;
 
-	if(dwLastError == hrSuccess) {
-		switch(PROP_TYPE(ulPropTag)) {
+	switch(PROP_TYPE(ulPropTag)) {
 		case PT_I2:
 		case PT_I4:
 		case PT_R4:
@@ -694,7 +705,6 @@ ECProperty::~ECProperty()
 			break;
 		default:
 			break;
-		}
 	}
 }
 
