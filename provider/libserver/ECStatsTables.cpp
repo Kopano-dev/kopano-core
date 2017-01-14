@@ -113,6 +113,7 @@ void ECSystemStatsTable::load_tcmalloc(void)
 
 ECRESULT ECSystemStatsTable::Load()
 {
+	ECConfig *lpConfig;
 	ECRESULT er = erSuccess;
 	sObjectTableKey sRowItem;
 	unsigned int i;
@@ -159,6 +160,10 @@ ECRESULT ECSystemStatsTable::Load()
 	struct mallinfo malloc_info = mallinfo();
 	GetStatsCollectorData("pt_allocated", "Current allocated memory by libc ptmalloc, in bytes", stringify_int64(malloc_info.uordblks), this);
 #endif
+	// Configuration data
+	lpConfig = lpSession->GetSessionManager()->GetConfig();
+	GetStatsCollectorData("userplugin", "User plugin used", lpConfig->GetSetting("user_plugin"), this);
+
 	// add all items to the keytable
 	for (i = 0; i < id; ++i)
 		// Use MAPI_STATUS as ulObjType for the key table .. this param may be removed in the future..?
