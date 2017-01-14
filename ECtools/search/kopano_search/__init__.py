@@ -90,6 +90,25 @@ def db_put(db_path, key, value):
         with closing(dbhash.open(db_path, 'c')) as db:
             db[key] = value
 
+if sys.hexversion >= 0x03000000:
+    def _is_unicode(s):
+        return isinstance(s, str)
+
+    def _decode(s):
+        return s
+
+    def _encode(s):
+        return s.encode()
+else:
+    def _is_unicode(s):
+        return isinstance(s, unicode)
+
+    def _decode(s):
+        return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
+
+    def _encode(s):
+        return s.encode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
+
 class SearchWorker(kopano.Worker):
     """ process which handles search requests coming from outlook/webapp, according to our internal protocol """
 
@@ -97,14 +116,14 @@ class SearchWorker(kopano.Worker):
         config, plugin = self.service.config, self.service.plugin
         def response(conn, msg):
             self.log.info('Response: ' + msg)
-            conn.sendall(msg.encode('utf-8')+'\r\n')
+            conn.sendall(_encode(msg) + _encode('\r\n'))
         s = kopano.server_socket(config['server_bind_name'], ssl_key=config['ssl_private_key_file'], ssl_cert=config['ssl_certificate_file'], log=self.log)
         while True:
             with log_exc(self.log):
                 conn, _ = s.accept()
                 fields_terms = []
                 for data in conn.makefile():
-                    data = data.strip().decode('utf-8')
+                    data = _decode(data.strip())
                     self.log.info('Command: ' + data)
                     cmd, args = data.split()[0], data.split()[1:]
                     if cmd == 'PROPS':
@@ -210,11 +229,11 @@ class FolderImporter:
             doc = {'serverid': self.serverid, 'storeid': storeid, 'folderid': folderid, 'docid': docid, 'sourcekey': item.sourcekey}
             for prop in item.props():
                 if prop.id_ not in self.excludes:
-                    if kopano._is_str(prop.value): # XXX
+                    if _is_unicode(prop.value):
                         if prop.value:
                             doc['mapi%d' % prop.id_] = prop.value
                     elif isinstance(prop.value, list):
-                        doc['mapi%d' % prop.id_] = u' '.join(x for x in prop.value if kopano._is_str(x))
+                        doc['mapi%d' % prop.id_] = u' '.join(x for x in prop.value if _is_unicode(x))
             attach_text = []
             if self.config['index_attachments']:
                 for a in item.attachments():
@@ -231,7 +250,7 @@ class FolderImporter:
             doc['data'] = 'subject: %s\n' % item.subject
             db_put(self.mapping_db, item.sourcekey, '%s %s' % (storeid, item.folder.entryid)) # ICS doesn't remember which store a change belongs to..
             self.plugin.update(doc)
-            self.term_cache_size += sum(len(v) for k, v in iter(doc.items()) if k.startswith('mapi'))
+            self.term_cache_size += sum(len(v) for k, v in doc.items() if k.startswith('mapi'))
             if (8*self.term_cache_size) > self.config['term_cache_size']:
                 self.plugin.commit(self.suggestions)
                 self.term_cache_size = 0
