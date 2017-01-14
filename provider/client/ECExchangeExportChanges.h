@@ -54,7 +54,6 @@ public:
 private:
 	void LogMessageProps(int loglevel, ULONG cValues, LPSPropValue lpPropArray);
 
-private:
 	class xECExportChanges _kc_final : public IECExportChanges {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 

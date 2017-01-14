@@ -87,7 +87,6 @@ public:
 private:
 	ECLockManager();
 
-private:
 	// Map object ids to session IDs.
 	typedef std::map<unsigned int, ECSESSIONID>	LockMap;
 

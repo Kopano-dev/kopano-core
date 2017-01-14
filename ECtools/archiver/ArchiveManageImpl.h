@@ -50,7 +50,6 @@ private:
 	_kc_hidden static UserEntry MakeUserEntry(const std::string &user);
 	_kc_hidden HRESULT GetRights(LPMAPIFOLDER folder, unsigned int *right);
 
-private:
 	ArchiverSessionPtr	m_ptrSession;
 	ECConfig	*m_lpConfig;
 	tstring	m_strUser;

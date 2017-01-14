@@ -316,7 +316,6 @@ private:	// methods
 	 */
 	HRESULT HrReleaseChangeAdvisor();
 
-private:	// members
 	LPMDB					m_lpStore;
 	ECLogger				*m_lpLogger;
 	ECSyncSettings			*m_lpSettings;

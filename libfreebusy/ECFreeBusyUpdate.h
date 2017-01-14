@@ -60,7 +60,6 @@ public:
 	virtual HRESULT GetFBTimes(void) { return S_OK; }
 	virtual HRESULT Intersect(void) { return S_OK; }
 
-public:
 	class xFreeBusyUpdate _kc_final : public IFreeBusyUpdate {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IFreeBusyUpdate.hpp>

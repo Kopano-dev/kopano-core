@@ -80,7 +80,6 @@ public:
 	virtual HRESULT GetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK);
 	virtual HRESULT UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter);
 
-public:
 	class xMAPIFolder _kc_final : public IMAPIFolder {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>

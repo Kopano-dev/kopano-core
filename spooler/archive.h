@@ -58,7 +58,6 @@ private:
 	Archive(const Archive &) = delete;
 	Archive &operator=(const Archive &) = delete;
 
-private:
 	MAPISessionPtr	m_ptrSession;
 	tstring			m_strErrorMessage;
 };

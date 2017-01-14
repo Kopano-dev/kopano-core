@@ -88,7 +88,6 @@ private:
 		return memcmp(&lhs, &rhs, sizeof(IID)) < 0;
 	}
 
-private:
 	std::set<IID, bool(*)(REFIID,REFIID)> m_interfaces;
 };
 

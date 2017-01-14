@@ -110,7 +110,6 @@ class _kc_export ECLogger {
 		locale_t datalocale;
 		logprefix prefix;
 
-	protected:
 		/**
 		 * Constructor of ECLogger. Implementations should open the log they're writing to.
 		 *

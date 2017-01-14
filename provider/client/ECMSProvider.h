@@ -39,13 +39,11 @@ public:
 private:
 	static HRESULT LogonByEntryID(WSTransport **lppTransport, sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID, LPENTRYID lpEntryID);
 
-private:
 	class xMSProvider _kc_final : public IMSProvider {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMSProvider.hpp>
 	} m_xMSProvider;
 
-private:
 	ULONG			m_ulFlags;
 	std::string		m_strLastUser;
 	std::string		m_strLastPassword;

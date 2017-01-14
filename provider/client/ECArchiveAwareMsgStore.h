@@ -46,7 +46,6 @@ private:
 	_kc_hidden HRESULT CreateCacheBasedReorderedList(SBinaryArray b_store_eids, SBinaryArray b_item_eids, BinaryList *store_eids, BinaryList *item_eids);
 	_kc_hidden HRESULT GetArchiveStore(LPSBinary store_eid, ECMsgStore **ret);
 
-private:
 	MsgStoreMap	m_mapStores;
 };
 

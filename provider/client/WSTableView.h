@@ -62,14 +62,12 @@ public:
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionID);
 	virtual HRESULT SetReloadCallback(RELOADCALLBACK callback, void *lpParam);
 
-public:
 	ULONG ulTableId = 0;
 
 protected:
 	virtual HRESULT LockSoap();
 	virtual HRESULT UnLockSoap();
 
-protected:
 	KCmd*		lpCmd;
 	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;

@@ -145,7 +145,6 @@ private:
 	 */
 	virtual HRESULT DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps) = 0;
 	
-private:
 	SPropValuePtr m_ptrCurFolderEntryId;
 	MAPIFolderPtr m_ptrCurFolder;
 };

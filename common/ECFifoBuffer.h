@@ -33,7 +33,6 @@ public:
 	typedef storage_type::size_type		size_type;
 	enum close_flags { cfRead = 1, cfWrite = 2 };
 
-public:
 	ECFifoBuffer(size_type ulMaxSize = 131072);
 	ECRESULT Write(const void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbWritten);
 	ECRESULT Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbRead);
@@ -48,12 +47,9 @@ private:
 	ECFifoBuffer(const ECFifoBuffer &) = delete;
 	ECFifoBuffer &operator=(const ECFifoBuffer &) = delete;
 	
-private:
 	storage_type	m_storage;
 	size_type		m_ulMaxSize;
-	bool			m_bReaderClosed;
-	bool            m_bWriterClosed;
-
+	bool m_bReaderClosed = false, m_bWriterClosed = false;
 	std::mutex m_hMutex;
 	std::condition_variable m_hCondNotEmpty, m_hCondNotFull, m_hCondFlushed;
 };

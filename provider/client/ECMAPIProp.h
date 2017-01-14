@@ -74,7 +74,6 @@ protected:
 	HRESULT SetSerializedACLData(const SPropValue *lpsPropValue);
 	HRESULT	UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms);
 
-protected:
 	// IECServiceAdmin and IECSecurity
 	virtual HRESULT GetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers);
 	virtual HRESULT GetGroupList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups);
@@ -87,8 +86,6 @@ protected:
 public:
 	ECMsgStore*				GetMsgStore();
 
-
-public:	
 	class xMAPIProp _kc_final : public IMAPIProp {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>

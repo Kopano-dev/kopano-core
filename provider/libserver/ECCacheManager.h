@@ -128,7 +128,6 @@ public:
 		return false;
 	}
 
-public:
 	unsigned int ulObjId;
 	unsigned int ulTag;
 };
@@ -570,7 +569,6 @@ private:
 	// Cache Index properties
 	ECRESULT _AddIndexData(const ECsIndexObject *lpObject, const ECsIndexProp *lpProp);
 
-private:
 	ECDatabaseFactory*	m_lpDatabaseFactory;
 	std::recursive_mutex m_hCacheMutex; /* Store, Object, User, ACL, server cache */
 	std::recursive_mutex m_hCacheCellsMutex; /* Cell cache */

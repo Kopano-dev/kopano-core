@@ -44,7 +44,6 @@ public:
 	_kc_hidden ~ArchiveStateCollector(void);
 	HRESULT GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater);
 
-public:
 	struct ArchiveInfo {
 		tstring userName;
 		entryid_t storeId;
@@ -59,7 +58,6 @@ private:
 	_kc_hidden HRESULT PopulateUserList(void);
 	_kc_hidden HRESULT PopulateFromContainer(LPABCONT container);
 
-private:
 	ArchiverSessionPtr m_ptrSession;
 	ECArchiverLogger *m_lpLogger;
 

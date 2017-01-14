@@ -140,7 +140,6 @@ template<typename _T> class memory_ptr {
 	operator _T *(void) const noexcept { return _m_ptr; }
 	_T &operator[](size_t __n) const noexcept { return _m_ptr[__n]; }
 	_T *operator+(size_t __n) const noexcept { return _m_ptr + __n; }
-	public:
 	/* Modifiers */
 	_T *release(void) noexcept
 	{
@@ -263,7 +262,6 @@ template<typename _T, REFIID _R = GUID_NULL> class object_ptr {
 		return tmp;
 	}
 
-	public:
 	/* Modifiers */
 	_T *release(void) noexcept
 	{

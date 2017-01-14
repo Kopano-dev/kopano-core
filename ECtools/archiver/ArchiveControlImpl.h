@@ -127,7 +127,6 @@ private:
 		}
 	};
 	
-private:
 	typedef HRESULT(ArchiveControlImpl::*fnProcess_t)(const tstring&);
 	typedef std::set<entryid_t> EntryIDSet;
 	typedef std::set<std::pair<entryid_t, entryid_t>, ReferenceLessCompare> ReferenceSet;
@@ -165,7 +164,6 @@ private:
     tstring getfoldername(LPMAPIFOLDER folder);
     HRESULT purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& strUser);
 	
-private:
 	enum eCleanupAction { caDelete, caStore, caNone };
 
 	ArchiverSessionPtr m_ptrSession;

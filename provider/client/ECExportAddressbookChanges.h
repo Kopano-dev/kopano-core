@@ -43,7 +43,6 @@ public:
 private:
 	static bool LeftPrecedesRight(const ICSCHANGE &left, const ICSCHANGE &right);
 
-private:
 	class xECExportAddressbookChanges _kc_final :
 	    public IECExportAddressbookChanges {
 		#include <kopano/xclsfrag/IUnknown.hpp>
@@ -53,7 +52,6 @@ private:
 		virtual HRESULT __stdcall UpdateState(LPSTREAM lpState) _kc_override;
 	} m_xECExportAddressbookChanges;
 	
-private:
 	IECImportAddressbookChanges *m_lpImporter = nullptr;
 	unsigned int m_ulChangeId = 0;
 	ECMsgStore *m_lpMsgStore = nullptr;

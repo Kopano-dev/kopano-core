@@ -72,7 +72,6 @@ private:
 	_kc_hidden std::string CreateErrorBodyUtf8(HRESULT);
 	_kc_hidden std::string CreateOfflineWarnBodyUtf8(void);
 
-private:
 	bool	m_bLoading;
 
 	bool	m_bNamedPropsMapped;

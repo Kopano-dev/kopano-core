@@ -81,7 +81,6 @@ private:
 	virtual HRESULT LockSoap();
 	virtual HRESULT UnLockSoap();
 
-private:
 	entryId			m_sEntryId;		// Entryid of the folder
 	KCmd*		lpCmd;			// command object
 	std::recursive_mutex &lpDataLock;

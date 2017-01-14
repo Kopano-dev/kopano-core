@@ -38,8 +38,6 @@ protected:
 public:
 	static HRESULT Create(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableOutGoingQueue **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
-
-public:
 	virtual HRESULT HrOpenTable();
 };
 

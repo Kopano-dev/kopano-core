@@ -71,7 +71,6 @@ private:
 	static bool CompareMessageEntry(const MESSAGESET::value_type &lhs, const MESSAGESET::value_type &rhs);
 	bool MessageSetsDiffer() const;
 	
-private:
 	// Interfaces for delegated processing
 	IDbQueryCreator *m_lpQueryCreator = nullptr;
 	IMessageProcessor *m_lpMsgProcessor = nullptr;

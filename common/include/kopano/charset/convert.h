@@ -110,12 +110,10 @@ namespace details {
 		 */
 		_kc_hidden virtual void append(const char *buf, size_t bufsize) = 0;
 		
-	private:
 		iconv_t	m_cd;
 		bool m_bForce;
 		bool m_bHTML;
 		
-	private:	// Disallow copying
 		iconv_context_base(const iconv_context_base &) = delete;
 		iconv_context_base &operator=(const iconv_context_base &) = delete;
 	};
@@ -189,7 +187,6 @@ namespace details {
 			m_to.append(reinterpret_cast<typename _To_Type::const_pointer>(lpBuf), cbBuf / sizeof(typename _To_Type::value_type));
 		}
 
-	private:
 		_To_Type	m_to;
 	};
 
@@ -310,7 +307,7 @@ public:
 	/**
 	 * @brief Constructor.
 	 */
-	convert_context();
+	convert_context(void) = default;
 	
 	/**
 	 * @brief Destructor.
@@ -588,7 +585,6 @@ private:
 	 */
 	typedef std::set<const char*> code_set;
 	
-private:
 	/**
 	 * @brief Obtains an iconv_context object.
 	 *
@@ -705,14 +701,12 @@ private:
 	 */
 	wchar_t *persist_string(const std::wstring &wstrValue);
 	
-private:
 	code_set	m_codes;
 	context_map	m_contexts;
 	std::list<std::string>	m_lstStrings;
 	std::list<std::wstring>	m_lstWstrings;
 	
 // a convert_context is not supposed to be copyable.
-private:
 	convert_context(const convert_context &) = delete;
 	convert_context &operator=(const convert_context &) = delete;
 };

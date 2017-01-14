@@ -56,12 +56,9 @@ public:
 private:	// methods
 	_kc_hidden virtual bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
 	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
-	
-private:	// static methods
 	_kc_hidden static void *threadFunc(void *);
 	_kc_hidden static bool isCurrentThread(const pthread_t &);
 	
-private:	// members
 	ThreadSet	m_setThreads;
 	ThreadSet	m_setTerminated;
 	TaskList	m_listTasks;
@@ -71,7 +68,6 @@ private:	// members
 	std::condition_variable m_hCondTerminated;
 	mutable std::condition_variable m_hCondTaskDone;
 
-private:
 	ECThreadPool(const ECThreadPool &) = delete;
 	ECThreadPool &operator=(const ECThreadPool &) = delete;
 	
@@ -139,7 +135,6 @@ public:
 		Done = 4
 	};
 	
-public:
 	virtual ~ECWaitableTask();
 	virtual void execute(void) _kc_override;
 	_kc_hidden bool done(void) const;

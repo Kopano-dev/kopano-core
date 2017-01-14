@@ -280,8 +280,6 @@ std::string objectdetails_t::ToStr(void) const
 
 serverdetails_t::serverdetails_t(const std::string &servername)
 : m_strServerName(servername)
-, m_ulHttpPort(0)
-, m_ulSslPort(0)
 { }
 
 void serverdetails_t::SetHostAddress(const std::string &hostaddress) {

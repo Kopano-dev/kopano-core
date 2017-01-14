@@ -142,8 +142,6 @@ public:
 	 */	
 	virtual void InitPlugin();
 
-public:
-
 	/**
 	 * Request a list of objects for a particular company and specified objectclass.
 	 *

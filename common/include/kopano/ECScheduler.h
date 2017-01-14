@@ -58,7 +58,6 @@ private:
 	_kc_hidden static bool hasExpired(time_t ttime, ECSCHEDULE *);
 	_kc_hidden static void *ScheduleThread(void *tmp_scheduler);
 
-private:
 	ECScheduleList		m_listScheduler;
 	ECLogger *			m_lpLogger;
 

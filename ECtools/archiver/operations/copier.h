@@ -60,7 +60,6 @@ public:
 	 */
 	_kc_hidden void SetStubOperation(StubberPtr);
 
-public:
 	class _kc_export Helper { // For lack of a better name
 	public:
 		Helper(ArchiverSessionPtr, ECLogger *, const InstanceIdMapperPtr &, const SPropTagArray *exclprop, LPMAPIFOLDER folder);
@@ -119,7 +118,6 @@ private:
 	_kc_hidden HRESULT LeaveFolder(void) _kc_override;
 	_kc_hidden HRESULT DoProcessEntry(ULONG n, const LPSPropValue &prop) _kc_override;
 
-private:
 	/**
 	 * Perform an initial archive of a message. This will be used to archive
 	 * a message that has not been archived before.
@@ -204,7 +202,6 @@ private:
 	 */
 	_kc_hidden HRESULT UpdateHistoryRefs(LPMESSAGE arc_msg, const SObjectEntry &ref_msg_entry, TransactionPtr);
 
-private:
 	ArchiverSessionPtr m_ptrSession;
 	ECConfig *m_lpConfig;
 	ObjectEntryList m_lstArchives;

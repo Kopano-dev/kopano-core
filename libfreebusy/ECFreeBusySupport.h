@@ -81,7 +81,6 @@ public:
 		_kc_hidden virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd);
 		_kc_hidden virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
 
-public:
 	// Interface for Outlook 2002 and up
 	class _kc_hidden xFreeBusySupport _kc_final : public IFreeBusySupport {
 		#include <kopano/xclsfrag/IUnknown.hpp>

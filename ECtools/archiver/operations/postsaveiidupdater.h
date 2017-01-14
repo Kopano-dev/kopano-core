@@ -38,7 +38,6 @@ private:
 	HRESULT GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID);
 	virtual HRESULT DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) = 0;
 
-private:
 	AttachPtr	m_ptrSourceAttach;
 	MessagePtr	m_ptrDestMsg;
 	ULONG 	m_ulDestAttachIdx;

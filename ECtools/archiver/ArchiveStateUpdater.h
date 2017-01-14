@@ -48,7 +48,6 @@ private:
 	_kc_hidden HRESULT VerifyAndUpdate(const abentryid_t &user_id, const ArchiveInfo &, unsigned int attach_flags);
 	_kc_hidden HRESULT FindArchiveEntry(const tstring &archive, const tstring &folder, SObjectEntry *obj_entry);
 
-private:
 	ArchiverSessionPtr	m_ptrSession;
 	ECLogger	*m_lpLogger;
 

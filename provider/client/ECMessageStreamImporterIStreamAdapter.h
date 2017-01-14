@@ -56,7 +56,6 @@ private:
 	ECMessageStreamImporterIStreamAdapter(WSMessageStreamImporter *lpStreamImporter);
 	~ECMessageStreamImporterIStreamAdapter();
 
-private:
 	class xSequentialStream _kc_final : public ISequentialStream {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/ISequentialStream.hpp>
@@ -68,7 +67,6 @@ private:
 		#include <kopano/xclsfrag/IStream.hpp>
 	} m_xStream;
 
-private:
 	WSMessageStreamImporterPtr	m_ptrStreamImporter;
 	WSMessageStreamSinkPtr		m_ptrSink;
 };

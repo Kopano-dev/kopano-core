@@ -232,7 +232,6 @@ public:
 
 private:
 	// variables
-	M4LMsgServiceAdmin *serviceAdmin; /* from session object */
 	LPMAPISUP m_lpMAPISup;
 
 	std::list<abEntry> m_lABProviders;

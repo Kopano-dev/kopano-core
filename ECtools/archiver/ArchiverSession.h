@@ -63,7 +63,6 @@ private:
 	_kc_hidden HRESULT Init(const MAPISessionPtr &, const char *ssl_path, const char *ssl_pass);
 	_kc_hidden HRESULT CreateArchiveStore(const tstring &user, const tstring &server, LPMDB *arc_store);
 
-private:
 	MAPISessionPtr	m_ptrSession;
 	MsgStorePtr		m_ptrAdminStore;
 	ECLogger		*m_lpLogger;

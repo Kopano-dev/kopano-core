@@ -2088,16 +2088,11 @@ std::string MapiNameIdToString(const MAPINAMEID *pNameId)
 		return "NULL";
 
 	str = DBGGUIDToString(*pNameId->lpguid) + " -> ";
-
-	if(pNameId->ulKind == MNID_ID) {
-		str += "ID    = "+stringify(pNameId->Kind.lID);
-	} else if(pNameId->ulKind == MNID_STRING) {
-		str += "String= " + bin2hex(wcslen(pNameId->Kind.lpwstrName)*sizeof(WCHAR), (BYTE *)pNameId->Kind.lpwstrName);
-	} else {
-		str += "Unknown kind";
-	}
-
-	return str;
+	if (pNameId->ulKind == MNID_ID)
+		return str += "ID    = " + stringify(pNameId->Kind.lID);
+	else if (pNameId->ulKind == MNID_STRING)
+		return str += "String= " + bin2hex(wcslen(pNameId->Kind.lpwstrName) * sizeof(WCHAR), (BYTE *)pNameId->Kind.lpwstrName);
+	return str += "Unknown kind";
 }
 
 std::string MapiNameIdListToString(ULONG cNames,
