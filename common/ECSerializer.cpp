@@ -27,7 +27,6 @@ namespace KC {
 ECStreamSerializer::ECStreamSerializer(IStream *lpBuffer)
 {
 	SetBuffer(lpBuffer);
-	m_ulRead = m_ulWritten = 0;
 }
 
 ECRESULT ECStreamSerializer::SetBuffer(void *lpBuffer)

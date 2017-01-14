@@ -78,8 +78,7 @@ public:
 private:
 	ECFifoBuffer *m_lpBuffer;
 	eMode m_mode;
-	ULONG m_ulRead;
-	ULONG m_ulWritten;
+	ULONG m_ulRead = 0, m_ulWritten = 0;
 };
 
 } /* namespace */
