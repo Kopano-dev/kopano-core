@@ -1500,16 +1500,15 @@ bool recurrence::CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd,
 	time_t tsOccStart = 0;
 	time_t tsOccEnd = 0;
 	ec_log_debug("Testing match: %lu ==> %s", tsNow, ctime(&tsNow));
-        if(isOccurrenceValid(UTCToLocal(tsStart, ttZinfo), UTCToLocal(tsEnd, ttZinfo) , tsNow + getStartTimeOffset())) {
-                tsOccStart = LocalToUTC(tsNow + getStartTimeOffset(), ttZinfo);
-                tsOccEnd = LocalToUTC(tsNow + getEndTimeOffset(), ttZinfo);
-		ec_log_debug("Adding match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
-                AddValidOccr(tsOccStart, tsOccEnd, ulBusyStatus, lppOccrInfoAll, lpcValues);
-                return true;
-        } else {
+	if (!isOccurrenceValid(UTCToLocal(tsStart, ttZinfo), UTCToLocal(tsEnd, ttZinfo), tsNow + getStartTimeOffset())) {
 		ec_log_debug("Skipping match: %lu ==> %s", tsNow, ctime(&tsNow));
-                return false;
-        }
+		return false;
+	}
+	tsOccStart = LocalToUTC(tsNow + getStartTimeOffset(), ttZinfo);
+	tsOccEnd = LocalToUTC(tsNow + getEndTimeOffset(), ttZinfo);
+	ec_log_debug("Adding match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
+	AddValidOccr(tsOccStart, tsOccEnd, ulBusyStatus, lppOccrInfoAll, lpcValues);
+	return true;
 }
 
 /**
@@ -1572,6 +1571,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 				for (tsNow = tsDayStart; tsNow <= tsDayEnd; tsNow += m_sRecState.ulPeriod * 60)
 					CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
                         }
+                        break;
 		}
 		// daily, but every weekday (outlook)
 		else if (last) {
@@ -1583,13 +1583,13 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 				    CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues))
 					break;
 			}
-		} else {
-			for (tsNow = tsDayStart ;tsNow <= tsDayEnd; tsNow += 60 * 1440) { //604800 = 60*60*24*7
-				tm sTm;
-				gmtime_safe(&tsNow, &sTm);
-				if (sTm.tm_wday > 0 && sTm.tm_wday < 6)
-					CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
-			}
+			break;
+		}
+		for (tsNow = tsDayStart ;tsNow <= tsDayEnd; tsNow += 60 * 1440) { //604800 = 60*60*24*7
+			tm sTm;
+			gmtime_safe(&tsNow, &sTm);
+			if (sTm.tm_wday > 0 && sTm.tm_wday < 6)
+				CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
 		}
 		break;// CASE : DAILY
 
@@ -1618,19 +1618,19 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 				if (found)
 					break;
                         }
-                } else {
-                        for(tsNow = tsDayStart; tsNow <= tsDayEnd; tsNow += (m_sRecState.ulPeriod * 604800)) { //604800 = 60*60*24*7 
-                                // Loop through the whole following week to the first occurrence of the week, add each day that is specified
-                                for (int i = 0; i < 7; ++i) {
-                                        ULONG ulWday = 0;
-                            
-                                        tsDayNow = tsNow + i * 1440 * 60; // 60 * 60 * 24 = 1440
-					ec_log_debug("Checking for weekly tsDayNow: %s", ctime(&tsDayNow));
-                                        ulWday = WeekDayFromTime(tsDayNow);
-					if (m_sRecState.ulWeekDays & (1 << ulWday))
-						CheckAddValidOccr(tsDayNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
-                                }
-                        }            
+                        break;
+                }
+		for (tsNow = tsDayStart; tsNow <= tsDayEnd; tsNow += (m_sRecState.ulPeriod * 604800)) { //604800 = 60*60*24*7
+			// Loop through the whole following week to the first occurrence of the week, add each day that is specified
+			for (int i = 0; i < 7; ++i) {
+				ULONG ulWday = 0;
+
+				tsDayNow = tsNow + i * 1440 * 60; // 60 * 60 * 24 = 1440
+				ec_log_debug("Checking for weekly tsDayNow: %s", ctime(&tsDayNow));
+				ulWday = WeekDayFromTime(tsDayNow);
+				if (m_sRecState.ulWeekDays & (1 << ulWday))
+					CheckAddValidOccr(tsDayNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
+			}
 		}
 		break;// CASE : WEEKLY
 

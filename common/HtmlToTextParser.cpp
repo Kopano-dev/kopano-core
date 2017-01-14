@@ -94,28 +94,29 @@ bool CHtmlToTextParser::Parse(const WCHAR *lpwHTML)
 				fAddSpace = false;
 
 			++lpwHTML;
+			continue;
 		} else if(*lpwHTML == '<' && *lpwHTML+1 != ' ') { // The next char can not be a space!
 			++lpwHTML;
 			parseTag(lpwHTML);
+			continue;
 		} else if(*lpwHTML == ' ' && !fPreMode) {
 			fTextMode = true;
 			addSpace(false);
 			++lpwHTML;
-		} else {
-			if (fTextMode && fAddSpace)
-				addSpace(false);
-
-			fAddSpace = false;
-			fTextMode = true;
-
-			// if (skippable and not parsed)
-			if (!(fScriptMode || fHeadMode || fStyleMode)) {
-				if (parseEntity(lpwHTML))
-					continue;
-				addChar(*lpwHTML);
-			}
-			++lpwHTML;
+			continue;
 		}
+		if (fTextMode && fAddSpace)
+			addSpace(false);
+		fAddSpace = false;
+		fTextMode = true;
+
+		// if (skippable and not parsed)
+		if (!(fScriptMode || fHeadMode || fStyleMode)) {
+			if (parseEntity(lpwHTML))
+				continue;
+			addChar(*lpwHTML);
+		}
+		++lpwHTML;
 	}
 
 	return true;
@@ -217,18 +218,19 @@ void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 			}
 
 			while (*lpwHTML != 0) {
-				if (*lpwHTML == '>') {
-					if(fCommentMode) {
-						if (*(lpwHTML-1) == '-' && *(lpwHTML-2) == '-' ) {
-							++lpwHTML; // comment ends with -->
-							return;
-						}
-					} else {
-						++lpwHTML; // all others end on the first >
+				if (*lpwHTML != '>') {
+					++lpwHTML;
+					continue;
+				}
+				if (fCommentMode) {
+					if (*(lpwHTML-1) == '-' && *(lpwHTML-2) == '-' ) {
+						++lpwHTML; // comment ends with -->
 						return;
 					}
+				} else {
+					++lpwHTML; // all others end on the first >
+					return;
 				}
-
 				++lpwHTML;
 			}
 		} else if (*lpwHTML == '>') {

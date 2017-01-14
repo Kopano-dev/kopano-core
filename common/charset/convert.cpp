@@ -163,47 +163,47 @@ namespace details {
 			cbDst = sizeof(buf);
 			err = iconv(m_cd, ICONV_HACK(&lpSrc), &cbSrc, &lpDst, &cbDst);
 			
-			if (err == (size_t)(-1) && cbDst == sizeof(buf)) {
-				if(m_bHTML) {
-					if(cbSrc < sizeof(wchar_t)) {
-						// Do what //IGNORE would have done
-						++lpSrc;
-						--cbSrc;
-					} else {
-						// Convert the codepoint to '&#12345;'
-						std::wstring wstrEntity = L"&#";
-						size_t cbEntity;
-						wchar_t code;
-						const char *lpEntity;
-						
-						memcpy(&code, lpSrc, sizeof(code));
-						wstrEntity += std::to_wstring(code);
-						wstrEntity += L";";
-						cbEntity = wstrEntity.size() * sizeof(wchar_t);
-						lpEntity = (const char *)wstrEntity.c_str();
-						
-						// Since we don't know in what charset we are outputting, we have to send
-						// the entity through iconv so that it can convert it to the target charset.
-						
-						err = iconv(m_cd, ICONV_HACK(&lpEntity), &cbEntity, &lpDst, &cbDst);
-						
-						if(err == (size_t)(-1)) {
-							assert(false); // This will should never fail
-						}
-						
-						lpSrc += sizeof(wchar_t);
-						cbSrc -= sizeof(wchar_t);
-					}
-				} else if(m_bForce) {
-					// Force conversion by skipping this character
-					if(cbSrc) {
-						++lpSrc;
-						--cbSrc;
-					}
-				} else {
-					throw illegal_sequence_exception(strerror(errno));
+			if (err != static_cast<size_t>(-1) || cbDst != sizeof(buf)) {
+				// buf now contains converted chars, append them to output
+				append(buf, sizeof(buf) - cbDst);
+				continue;
+			}
+			if (m_bHTML) {
+				if(cbSrc < sizeof(wchar_t)) {
+					// Do what //IGNORE would have done
+					++lpSrc;
+					--cbSrc;
+					continue;
 				}
-			}			
+				// Convert the codepoint to '&#12345;'
+				std::wstring wstrEntity = L"&#";
+				size_t cbEntity;
+				wchar_t code;
+				const char *lpEntity;
+
+				memcpy(&code, lpSrc, sizeof(code));
+				wstrEntity += std::to_wstring(code);
+				wstrEntity += L";";
+				cbEntity = wstrEntity.size() * sizeof(wchar_t);
+				lpEntity = (const char *)wstrEntity.c_str();
+
+				// Since we don't know in what charset we are outputting, we have to send
+				// the entity through iconv so that it can convert it to the target charset.
+				err = iconv(m_cd, ICONV_HACK(&lpEntity), &cbEntity, &lpDst, &cbDst);
+				if (err == (size_t)(-1)) {
+					assert(false); // This will should never fail
+				}
+				lpSrc += sizeof(wchar_t);
+				cbSrc -= sizeof(wchar_t);
+			} else if (m_bForce) {
+				// Force conversion by skipping this character
+				if (cbSrc) {
+					++lpSrc;
+					--cbSrc;
+				}
+			} else {
+				throw illegal_sequence_exception(strerror(errno));
+			}
 			// buf now contains converted chars, append them to output
 			append(buf, sizeof(buf) - cbDst);
 		}

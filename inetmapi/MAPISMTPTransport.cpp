@@ -618,12 +618,12 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 	{
 		internalDisconnect();
 		throw exceptions::command_error("DATA", format("%d %s", resp->getCode(), resp->getText().c_str()));
-	} else {
-		// postfix: 2.0.0 Ok: queued as B36E73608E
-		// qmail: ok 1295860788 qp 29154
-		// exim: OK id=1PhIZ9-0002Ko-Q8
-		ec_log_debug("SMTP: %s", resp->getText().c_str());
+		return;
 	}
+	// postfix: 2.0.0 Ok: queued as B36E73608E
+	// qmail: ok 1295860788 qp 29154
+	// exim: OK id=1PhIZ9-0002Ko-Q8
+	ec_log_debug("SMTP: %s", resp->getText().c_str());
 }
 
 void MAPISMTPTransport::requestDSN(BOOL bRequest, const std::string &strTrackid)

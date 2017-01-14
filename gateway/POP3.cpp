@@ -177,8 +177,7 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 			       "List must have 0 or 1 arguments");
 		if (vWords.size() == 2)
 			return HrCmdList(strtoul(vWords[1].c_str(), NULL, 0));
-		else
-			return HrCmdList();
+		return HrCmdList();
 	} else if (strCommand.compare("RETR") == 0) {
 		if (vWords.size() != 2)
 			return HrResponse(POP3_RESP_ERR,
@@ -210,14 +209,11 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 			       "UIDL must have 0 or 1 arguments");
 		if (vWords.size() == 2)
 			return HrCmdUidl(strtoul(vWords[1].c_str(), NULL, 0));
-		else
-			return HrCmdUidl();
-	} else {
-		HrResponse(POP3_RESP_ERR, "Function not (yet) implemented");
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "non-existing function called: %s", vWords[0].c_str());
-		return MAPI_E_CALL_FAILED;
+		return HrCmdUidl();
 	}
-	return hr;
+	HrResponse(POP3_RESP_ERR, "Function not (yet) implemented");
+	lpLogger->Log(EC_LOGLEVEL_ERROR, "non-existing function called: %s", vWords[0].c_str());
+	return MAPI_E_CALL_FAILED;
 }
 
 /** 
@@ -338,11 +334,9 @@ HRESULT POP3::HrCmdUser(const string &strUser) {
 	} else if (strUser.length() > POP3_MAX_RESPONSE_LENGTH) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Username too long: %d > %d", (int)strUser.length(), POP3_MAX_RESPONSE_LENGTH);
 		return HrResponse(POP3_RESP_PERMFAIL, "Username too long");
-	} else {
-		szUser = strUser;
-		return HrResponse(POP3_RESP_OK, "Waiting for password");
 	}
-	return hr;
+	szUser = strUser;
+	return HrResponse(POP3_RESP_OK, "Waiting for password");
 }
 
 /** 
@@ -374,24 +368,21 @@ HRESULT POP3::HrCmdPass(const string &strPass) {
 		return HrResponse(POP3_RESP_PERMFAIL, "Password too long");
 	} else if (szUser.empty()) {
 		return HrResponse(POP3_RESP_ERR, "Give username first");
-	} else {
-		hr = this->HrLogin(szUser, strPass);
-		if (hr != hrSuccess) {
-			if (hr == MAPI_E_LOGON_FAILED)
-				HrResponse(POP3_RESP_AUTH_ERROR, "Wrong username or password");
-			else
-				HrResponse(POP3_RESP_TEMPFAIL, "Internal error: HrLogin failed");
-			return hr;
-		}
-
-		hr = this->HrMakeMailList();
-		if (hr != hrSuccess) {
-			HrResponse(POP3_RESP_ERR, "Can't get mail list");
-			return hr;
-		}
-		return HrResponse(POP3_RESP_OK, "Username and password accepted");
 	}
-	return hr;
+	hr = this->HrLogin(szUser, strPass);
+	if (hr != hrSuccess) {
+		if (hr == MAPI_E_LOGON_FAILED)
+			HrResponse(POP3_RESP_AUTH_ERROR, "Wrong username or password");
+		else
+			HrResponse(POP3_RESP_TEMPFAIL, "Internal error: HrLogin failed");
+		return hr;
+	}
+	hr = this->HrMakeMailList();
+	if (hr != hrSuccess) {
+		HrResponse(POP3_RESP_ERR, "Can't get mail list");
+		return hr;
+	}
+	return HrResponse(POP3_RESP_OK, "Username and password accepted");
 }
 
 /** 

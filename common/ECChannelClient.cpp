@@ -44,10 +44,10 @@ ECChannelClient::ECChannelClient(const char *szPath, const char *szTokenizer)
 	if (strncmp(szPath, "file", 4) == 0 || szPath[0] == PATH_SEPARATOR) {
 		m_bSocket = true;
 		m_ulPort = 0;
-	} else {
-		m_bSocket = false;
-		m_ulPort = atoi(GetServerPortFromPath(szPath).c_str());
+		return;
 	}
+	m_bSocket = false;
+	m_ulPort = atoi(GetServerPortFromPath(szPath).c_str());
 }
 
 ECChannelClient::~ECChannelClient()

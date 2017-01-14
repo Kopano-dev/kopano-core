@@ -122,11 +122,10 @@ private: // Disable copying, need ref counting
 	auto_free& operator=(const auto_free &other);
 
 	void free() {
-		if (data) {
-			dealloc::free(data);
-
-			data = NULL;
-		}
+		if (data == nullptr)
+			return;
+		dealloc::free(data);
+		data = NULL;
 	}
 	pointer data = nullptr;
 };

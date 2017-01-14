@@ -135,11 +135,11 @@ ECStoreObjectTable::ECStoreObjectTable(ECSession *lpSession,
 
 ECStoreObjectTable::~ECStoreObjectTable()
 {
-	if(m_lpObjectData) {
-		ECODStore* lpODStore = (ECODStore*)m_lpObjectData;
-		delete lpODStore->lpGuid;
-		delete lpODStore;
-	}
+	if (m_lpObjectData == nullptr)
+		return;
+	ECODStore *lpODStore = (ECODStore *)m_lpObjectData;
+	delete lpODStore->lpGuid;
+	delete lpODStore;
 }
 
 ECRESULT ECStoreObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale, ECStoreObjectTable **lppTable)

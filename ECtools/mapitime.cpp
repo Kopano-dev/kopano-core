@@ -114,10 +114,10 @@ static int mpt_main_login(void)
 		if (ret != hrSuccess) {
 			fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
 			sleep(1);
-		} else {
-			mpt_stat_record(dp);
-			ses->Release();
+			continue;
 		}
+		mpt_stat_record(dp);
+		ses->Release();
 	}
 	MAPIUninitialize();
 	return EXIT_SUCCESS;
@@ -145,11 +145,11 @@ static int mpt_main_lilo(void)
 		if (ret != hrSuccess) {
 			fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
 			sleep(1);
-		} else {
-			ses->Release();
-			clock_gettime(CLOCK_MONOTONIC, &dp.stop);
-			mpt_stat_record(dp);
+			continue;
 		}
+		ses->Release();
+		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		mpt_stat_record(dp);
 	}
 	MAPIUninitialize();
 	return EXIT_SUCCESS;

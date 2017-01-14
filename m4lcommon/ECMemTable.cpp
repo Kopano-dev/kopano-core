@@ -221,11 +221,11 @@ HRESULT ECMemTable::HrSetClean()
 			MAPIFreeBuffer(iterRows->second.lpsID);
 			MAPIFreeBuffer(iterRows->second.lpsPropVal);
 			mapRows.erase(iterRows);
-		} else {
-			iterRows->second.fDeleted = false;
-			iterRows->second.fDirty = false;
-			iterRows->second.fNew = false;
+			continue;
 		}
+		iterRows->second.fDeleted = false;
+		iterRows->second.fDirty = false;
+		iterRows->second.fNew = false;
 	}
 	return hr;
 }
@@ -500,17 +500,14 @@ HRESULT ECMemTableView::Unadvise(ULONG ulConnection)
 
 	// Remove notify from list
 	ECMapMemAdvise::const_iterator iterAdvise = m_mapAdvise.find(ulConnection);
-	if (iterAdvise != m_mapAdvise.cend()) {
-		if (iterAdvise->second->lpAdviseSink != NULL)
-			iterAdvise->second->lpAdviseSink->Release();
-
-		delete iterAdvise->second;
-		
-		m_mapAdvise.erase(iterAdvise);
-	} else {
+	if (iterAdvise == m_mapAdvise.cend()) {
 		assert(false);
+		return hr;
 	}
-	
+	if (iterAdvise->second->lpAdviseSink != NULL)
+		iterAdvise->second->lpAdviseSink->Release();
+	delete iterAdvise->second;
+	m_mapAdvise.erase(iterAdvise);
 	return hr;
 }
 

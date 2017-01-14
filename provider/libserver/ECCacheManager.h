@@ -146,10 +146,10 @@ public:
     }
     
     ECsIndexProp& operator=(const ECsIndexProp &src) {
-        if(this != &src) {
-			Free();
-			Copy(&src, this);
-		}
+		if (this == &src)
+			return *this;
+		Free();
+		Copy(&src, this);
 		return *this;
     }
 
@@ -159,21 +159,19 @@ public:
 
 		if(cbData < other.cbData)
 			return true;
-
-		if(cbData == other.cbData) {
-			if(lpData == NULL && other.lpData)
-				return true;
-			else if (lpData != NULL && other.lpData == NULL)
-				return false;
-			else if (lpData == NULL && other.lpData == NULL)
-				return false;
-			int c = memcmp(lpData, other.lpData, cbData);
-			if(c < 0)
-				return true;
-			else if(c == 0 && ulTag < other.ulTag)
-				return true;
-		}
-
+		if (cbData != other.cbData)
+			return false;
+		if (lpData == NULL && other.lpData)
+			return true;
+		else if (lpData != NULL && other.lpData == NULL)
+			return false;
+		else if (lpData == NULL && other.lpData == NULL)
+			return false;
+		int c = memcmp(lpData, other.lpData, cbData);
+		if (c < 0)
+			return true;
+		else if (c == 0 && ulTag < other.ulTag)
+			return true;
 		return false;
 	}
 

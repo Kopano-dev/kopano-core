@@ -634,17 +634,10 @@ bool CHtmlEntity::validateHtmlEntity(const std::wstring &strEntity)
 
 		if(str[0] == 'x')
 			base = 16;
-		
-		if (wcstoul(str.c_str()+1, NULL, base) != 0)
-				return true;
-	} else {
-		str = strEntity.substr(1, pos-2);
-
-		if(CHtmlEntity::toChar(str.c_str()) > 0)
-			return true;
+		return wcstoul(str.c_str() + 1, NULL, base) != 0;
 	}
-
-	return false;
+	str = strEntity.substr(1, pos - 2);
+	return CHtmlEntity::toChar(str.c_str()) > 0;
 }
 
 /** 
@@ -658,41 +651,36 @@ WCHAR CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
 {
 	unsigned int ulCode;
 
-	if (strEntity[0] == '#')
-	{
-		// We have a unicode number, use iconv to get the WCHAR
-
-		std::string strUnicode;
-		int base = 10;
-		const WCHAR *pNum = (const WCHAR *)strEntity.c_str() + 1;
-
-		if (strEntity.size() > 2 && strEntity[1] == 'x') {
-			base = 16;
-			++pNum;
-		}
-		ulCode = wcstoul(pNum, NULL, base);
-
-		if (ulCode > 0xFFFF /*max size of short*/) {
-			strUnicode.append(1,(ulCode & 0xff));
-			strUnicode.append(1,(ulCode >> 8) & 0xff);
-			strUnicode.append(1,(ulCode >> 16) & 0xff);
-			strUnicode.append(1,(ulCode >> 24) & 0xff);
-
-			try {
-				return convert_to<std::wstring>(CHARSET_WCHAR, strUnicode, 4, "UCS-4LE")[0];
-			} catch(const illegal_sequence_exception &) {
-				// iconv doesn't seem to like certain sequences. one of them is 0x92000000 (LE).
-				return L'?';
-			}
-		} else {
-			return (WCHAR)ulCode;
-		}
-	} else {
+	if (strEntity[0] != '#') {
 		ulCode = toChar(strEntity.c_str());
 		if (ulCode > 0)
 			return (WCHAR)ulCode;
+		return '?';
 	}
+	// We have a unicode number, use iconv to get the WCHAR
 
+	std::string strUnicode;
+	int base = 10;
+	const WCHAR *pNum = (const WCHAR *)strEntity.c_str() + 1;
+
+	if (strEntity.size() > 2 && strEntity[1] == 'x') {
+		base = 16;
+		++pNum;
+	}
+	ulCode = wcstoul(pNum, NULL, base);
+	if (ulCode <= 0xFFFF /*USHRT_MAX*/)
+		return (WCHAR)ulCode;
+
+	strUnicode.append(1, (ulCode & 0xff));
+	strUnicode.append(1, (ulCode >> 8) & 0xff);
+	strUnicode.append(1, (ulCode >> 16) & 0xff);
+	strUnicode.append(1, (ulCode >> 24) & 0xff);
+	try {
+		return convert_to<std::wstring>(CHARSET_WCHAR, strUnicode, 4, "UCS-4LE")[0];
+	} catch (const illegal_sequence_exception &) {
+		// iconv doesn't seem to like certain sequences. one of them is 0x92000000 (LE).
+		return L'?';
+	}
 	return '?';
 }
 

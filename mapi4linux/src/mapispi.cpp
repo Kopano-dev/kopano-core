@@ -83,9 +83,9 @@ M4LMAPISupport::M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID lpUid,
 	if(lpUid) {
     	this->lpsProviderUID = new MAPIUID;
         memcpy(this->lpsProviderUID, lpUid, sizeof(MAPIUID));
-    } else {
+		return;
+	}
         this->lpsProviderUID = NULL;
-    }
 }
 
 M4LMAPISupport::~M4LMAPISupport() {

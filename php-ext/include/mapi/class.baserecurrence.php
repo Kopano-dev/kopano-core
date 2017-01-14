@@ -823,13 +823,13 @@
 						for ($i = 0; $i < $monthIndex; $i++)
 							$firstocc += $this->getMonthInSeconds(1601 + floor($i / 12), ($i % 12) + 1) / 60;
 						$rdata .= pack("VVVVV", $firstocc, $everyn, 0, $weekdays, $nday);
-					} else {
-						// Calc first occ
-						$monthIndex = (int) gmdate("n", $this->recur["start"]);
-						for ($i = 1; $i < $monthIndex; $i++)
-							$firstocc += $this->getMonthInSeconds(1601 + floor($i / 12), $i) / 60;
-						$rdata .= pack("VVVVV", $firstocc, $everyn, 0, $weekdays, $nday);
+						break;
 					}
+					// Calc first occ
+					$monthIndex = (int) gmdate("n", $this->recur["start"]);
+					for ($i = 1; $i < $monthIndex; $i++)
+						$firstocc += $this->getMonthInSeconds(1601 + floor($i / 12), $i) / 60;
+					$rdata .= pack("VVVVV", $firstocc, $everyn, 0, $weekdays, $nday);
 					break;
 				}
 				break;
@@ -915,26 +915,25 @@
 
 				switch ((int) $this->recur["type"]) {
 				case 0x0A: //daily
-					if ($this->recur["subtype"] == 1) {
-						// Daily every workday
-						$restocc = (int) $this->recur["numoccur"];
-
-						// Get starting weekday
-						$nowtime = $this->gmtime($occenddate);
-						$j = $nowtime["tm_wday"];
-
-						while(1)
-						{
-							if (($j % 7) > 0 && ($j % 7) < 6)
-								$restocc--;
-							$j++;
-							if ($restocc <= 0)
-								break;
-							$occenddate += 24 * 60 * 60;
-						}
-					} else {
+					if ($this->recur["subtype"] != 1) {
 						// -1 because the first day already counts (from 1-1-1980 to 1-1-1980 is 1 occurrence)
 						$occenddate += (((int) $this->recur["everyn"]) * 60 * (((int) $this->recur["numoccur"] - 1)));
+						break;
+					}
+					// Daily every workday
+					$restocc = (int) $this->recur["numoccur"];
+					// Get starting weekday
+					$nowtime = $this->gmtime($occenddate);
+					$j = $nowtime["tm_wday"];
+
+					while (1)
+					{
+						if (($j % 7) > 0 && ($j % 7) < 6)
+							$restocc--;
+						$j++;
+						if ($restocc <= 0)
+							break;
+						$occenddate += 24 * 60 * 60;
 					}
 					break;
 				case 0x0B: //weekly
@@ -1541,14 +1540,14 @@
 						for($now = $daystart; $now <= $dayend && ($limit == 0 || count($items) < $limit); $now += 60 * $this->recur["everyn"]) {
 							$this->processOccurrenceItem($items, $start, $end, $now, $this->recur["startocc"], $this->recur["endocc"], $this->tz, $remindersonly);
 						}
-					} else {
-						// Every workday
-						for($now = $daystart; $now <= $dayend && ($limit == 0 || count($items) < $limit); $now += 60 * 1440)
-						{
-							$nowtime = $this->gmtime($now);
-							if ($nowtime["tm_wday"] > 0 && $nowtime["tm_wday"] < 6) // only add items in the given timespace
-								$this->processOccurrenceItem($items, $start, $end, $now, $this->recur["startocc"], $this->recur["endocc"], $this->tz, $remindersonly);
-						}
+						break;
+					}
+					// Every workday
+					for ($now = $daystart; $now <= $dayend && ($limit == 0 || count($items) < $limit); $now += 60 * 1440)
+					{
+						$nowtime = $this->gmtime($now);
+						if ($nowtime["tm_wday"] > 0 && $nowtime["tm_wday"] < 6) // only add items in the given timespace
+							$this->processOccurrenceItem($items, $start, $end, $now, $this->recur["startocc"], $this->recur["endocc"], $this->tz, $remindersonly);
 					}
 					break;
 				case 11:
@@ -1563,18 +1562,18 @@
 					{
 						if ($this->recur['regen']) {
 							$this->processOccurrenceItem($items, $start, $end, $now, $this->recur["startocc"], $this->recur["endocc"], $this->tz, $remindersonly);
-						} else {
-							// Loop through the whole following week to the first occurrence of the week, add each day that is specified
-							for($wday = 0; $wday < 7; $wday++)
-							{
-								$daynow = $now + $wday * 60 * 60 * 24;
-								//checks weather the next coming day in recurring pattern is less than or equal to end day of the recurring item
-								if ($daynow <= $dayend){
-									$nowtime = $this->gmtime($daynow); // Get the weekday of the current day
-									if (($this->recur["weekdays"] &(1 << $nowtime["tm_wday"]))) // Selected ?
-										$this->processOccurrenceItem($items, $start, $end, $daynow, $this->recur["startocc"], $this->recur["endocc"], $this->tz, $remindersonly);
-								}
-							}
+							continue;
+						}
+						// Loop through the whole following week to the first occurrence of the week, add each day that is specified
+						for ($wday = 0; $wday < 7; $wday++)
+						{
+							$daynow = $now + $wday * 60 * 60 * 24;
+							//checks weather the next coming day in recurring pattern is less than or equal to end day of the recurring item
+							if ($daynow > $dayend)
+								continue;
+							$nowtime = $this->gmtime($daynow); // Get the weekday of the current day
+							if (($this->recur["weekdays"] &(1 << $nowtime["tm_wday"]))) // Selected ?
+								$this->processOccurrenceItem($items, $start, $end, $daynow, $this->recur["startocc"], $this->recur["endocc"], $this->tz, $remindersonly);
 						}
 					}
 					break;

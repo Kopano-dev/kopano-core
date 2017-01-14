@@ -738,14 +738,14 @@ namespace PrivatePipe {
 				l = *p++;
 				--ret;
 				s = strlen(p);	// find string in read buffer
-				if (s) {
-					lpFileLogger->Log(l, string(p, s));
-					++s;		// add \0
-					p += s;		// skip string
-					ret -= s;
-				} else {
+				if (s == 0) {
 					p = NULL;
+					continue;
 				}
+				lpFileLogger->Log(l, string(p, s));
+				++s;		// add \0
+				p += s;		// skip string
+				ret -= s;
 			}
 		}
 		// we need to stop fetching signals
