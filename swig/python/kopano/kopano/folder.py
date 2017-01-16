@@ -7,13 +7,45 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import codecs
 import mailbox
+import time
+
+from MAPI import (
+    MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE,
+    TABLE_SORT_DESCEND, RELOP_GT, RELOP_LT, RELOP_EQ,
+    DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES,
+    BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
+    FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
+    SEARCH_RECURSIVE, SEARCH_REBUILD, PT_MV_BINARY, PT_BINARY
+)
+from MAPI.Tags import (
+    PR_ENTRYID, IID_IMAPIFolder, SHOW_SOFT_DELETES, PR_SOURCE_KEY,
+    PR_PARENT_ENTRYID, PR_EC_HIERARCHYID, PR_FOLDER_CHILD_COUNT,
+    PR_DISPLAY_NAME_W, PR_CONTAINER_CLASS_W, PR_CONTENT_UNREAD,
+    PR_MESSAGE_DELIVERY_TIME, MNID_ID, PT_SYSTIME, PT_BOOLEAN,
+    DELETE_HARD_DELETE, PR_MESSAGE_SIZE, PR_ACL_TABLE,
+    PR_MEMBER_ID, PR_RULES_TABLE, IID_IExchangeModifyTable,
+    IID_IMAPITable, PR_CONTAINER_CONTENTS,
+    PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
+    PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME
+)
+from MAPI.Defs import HrGetOneProp, PpropFindProp, CHANGE_PROP_TYPE
+from MAPI.Struct import (
+    MAPIErrorNoAccess, MAPIErrorNotFound, MAPIErrorNoSupport,
+    MAPIErrorInvalidEntryid, SPropValue, SSortOrderSet, SSort,
+    MAPINAMEID, SOrRestriction, SAndRestriction, SPropertyRestriction,
+    SContentRestriction, ROWENTRY
+)
+from MAPI.Time import unixtime
 
 from .item import Item
 from .permission import Permission
 from .rule import Rule
 from .table import Table
-from .defs import *
-from .errors import *
+from .defs import (
+    bin2hex, PSETID_Appointment, UNESCAPED_SLASH_RE,
+    ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
+)
+from .errors import NotFoundError, Error
 
 from .compat import unhex as _unhex, repr as _repr, fake_unicode as _unicode
 from .utils import (
@@ -21,8 +53,6 @@ from .utils import (
     create_prop as _create_prop, state as _state, sync as _sync, permissions as _permissions,
     permission as _permission
 )
-
-from MAPI.Util import *
 
 class Folder(object):
     """Folder class"""
@@ -39,7 +69,7 @@ class Folder(object):
                 self.mapiobj = store.mapiobj.OpenEntry(entryid, IID_IMAPIFolder, MAPI_MODIFY)
             except MAPIErrorNoAccess: # XXX XXX
                 self.mapiobj = store.mapiobj.OpenEntry(entryid, IID_IMAPIFolder, 0)
-        self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0) 
+        self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
 
     @property
     def entryid(self):
@@ -176,12 +206,12 @@ class Folder(object):
             restriction = SOrRestriction([
                 SOrRestriction([
                     SAndRestriction([
-                        SPropertyRestriction(RELOP_GT, duedate, SPropValue(duedate, MAPI.Time.unixtime(startstamp))),
-                        SPropertyRestriction(RELOP_LT, startdate, SPropValue(startdate, MAPI.Time.unixtime(endstamp))),
+                        SPropertyRestriction(RELOP_GT, duedate, SPropValue(duedate, unixtime(startstamp))),
+                        SPropertyRestriction(RELOP_LT, startdate, SPropValue(startdate, unixtime(endstamp))),
                     ]),
                     SAndRestriction([
-                        SPropertyRestriction(RELOP_EQ, startdate, SPropValue(startdate, MAPI.Time.unixtime(startstamp))),
-                        SPropertyRestriction(RELOP_EQ, duedate, SPropValue(duedate, MAPI.Time.unixtime(startstamp))),
+                        SPropertyRestriction(RELOP_EQ, startdate, SPropValue(startdate, unixtime(startstamp))),
+                        SPropertyRestriction(RELOP_EQ, duedate, SPropValue(duedate, unixtime(startstamp))),
                     ]),
                 ]),
                 SAndRestriction([
@@ -273,7 +303,7 @@ class Folder(object):
         if item_entryids:
             self.mapiobj.DeleteMessages(item_entryids, 0, None, DELETE_HARD_DELETE)
         for entryid in folder_entryids:
-            self.mapiobj.DeleteFolder(entryid, 0, None, DEL_FOLDERS|DEL_MESSAGES)
+            self.mapiobj.DeleteFolder(entryid, 0, None, DEL_FOLDERS | DEL_MESSAGES)
         for perm in perms:
             acl_table = self.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
             acl_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE, [SPropValue(PR_MEMBER_ID, perm.mapirow[PR_MEMBER_ID])])])
@@ -350,7 +380,7 @@ class Folder(object):
             folder.depth = depth
             yield folder
             if recurse:
-                for subfolder in folder.folders(depth=depth+1):
+                for subfolder in folder.folders(depth=depth + 1):
                     yield subfolder
 
     def create_folder(self, path, **kwargs):
@@ -403,13 +433,13 @@ class Folder(object):
         """
 
         if state is None:
-            state = codecs.encode(8*b'\0', 'hex').upper()
+            state = codecs.encode(8 * b'\0', 'hex').upper()
         importer.store = self.store
         return _sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
 
     def readmbox(self, location):
         for message in mailbox.mbox(location):
-            newitem = Item(self, eml=message.__str__(), create=True)
+            Item(self, eml=message.__str__(), create=True)
 
     def mbox(self, location): # FIXME: inconsistent with maildir()
         mboxfile = mailbox.mbox(location)
@@ -427,7 +457,7 @@ class Folder(object):
 
     def read_maildir(self, location):
         for message in mailbox.MH(location):
-            newitem = Item(self, eml=message.__str__(), create=True)
+            Item(self, eml=message.__str__(), create=True)
 
     @property
     def associated(self):
@@ -478,10 +508,10 @@ class Folder(object):
     def search_start(self, folders, text, recurse=False):
         # specific restriction format, needed to reach indexer
         restriction = SOrRestriction([
-                        SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_SUBJECT_W, SPropValue(PR_SUBJECT_W, _unicode(text))),
-                        SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_BODY_W, SPropValue(PR_BODY_W, _unicode(text))),
-                        SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_DISPLAY_TO_W, SPropValue(PR_DISPLAY_TO_W, _unicode(text))),
-                        # XXX add all default fields.. BUT perform full-text search by default!
+            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_SUBJECT_W, SPropValue(PR_SUBJECT_W, _unicode(text))),
+            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_BODY_W, SPropValue(PR_BODY_W, _unicode(text))),
+            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_DISPLAY_TO_W, SPropValue(PR_DISPLAY_TO_W, _unicode(text))),
+            # XXX add all default fields.. BUT perform full-text search by default!
         ])
         if isinstance(folders, Folder):
             folders = [folders]

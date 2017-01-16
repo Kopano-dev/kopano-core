@@ -5,7 +5,10 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-from MAPI.Util import *
+from MAPI.Tags import (
+    PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED
+)
+from MAPI.Struct import MAPIErrorNotFound
 
 from .compat import repr as _repr
 from .utils import bestbody as _bestbody, stream as _stream

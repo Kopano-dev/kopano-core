@@ -5,7 +5,12 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-from MAPI.Util import *
+from MAPI.Tags import (
+    PR_EC_HIERARCHYID, PR_ATTACH_NUM, PR_ATTACH_MIME_TAG_W,
+    PR_ATTACH_LONG_FILENAME_W, PR_ATTACH_SIZE, PR_ATTACH_DATA_BIN
+)
+from MAPI.Defs import HrGetOneProp
+from MAPI.Struct import MAPIErrorNotFound
 
 from .compat import repr as _repr
 from .utils import prop as _prop, props as _props, stream as _stream
