@@ -907,7 +907,7 @@ static int running_server(char *szName, const char *szConfig,
 		{ "loginname_format",			"%u" },
 
 		// internal server contols
-		{ "softdelete_lifetime",		"0" },							// time expressed in days, 0 == never delete anything
+		{ "softdelete_lifetime",		"0", CONFIGSETTING_RELOADABLE },	// time expressed in days, 0 == never delete anything
 		{ "cache_cell_size",			"16M", CONFIGSETTING_SIZE },	// default 16 Mb, default in config 256M
 		{ "cache_object_size",		"16M", CONFIGSETTING_SIZE },
 		{ "cache_indexedobject_size",	"32M", CONFIGSETTING_SIZE },
