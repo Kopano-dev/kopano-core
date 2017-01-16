@@ -63,26 +63,26 @@ public:
 		if (cbData == 0) {
 			cb = 0;
 			lpb = NULL;
-		} else {
-			if (!bcheap) {
-				lpb = new BYTE[cbData];
-				memcpy(lpb, lpData, cbData);
-			} else {
-				lpb = lpData;
-			}
-			cb = cbData;
+			return;
 		}
+		if (!bcheap) {
+			lpb = new BYTE[cbData];
+			memcpy(lpb, lpData, cbData);
+		} else {
+			lpb = lpData;
+		}
+		cb = cbData;
 	}
 	BinaryArray(const BinaryArray &old) {
 		bcheap = false;
 		if (old.cb == 0) {
 			cb = 0;
 			lpb = NULL;
-		} else {
-			cb = old.cb;
-			lpb = new BYTE[cb];
-			memcpy(lpb, old.lpb, cb);
+			return;
 		}
+		cb = old.cb;
+		lpb = new BYTE[cb];
+		memcpy(lpb, old.lpb, cb);
 	}
 	BinaryArray(BinaryArray &&o) :
 	    lpb(o.lpb), cb(o.cb), bcheap(o.bcheap)
@@ -96,11 +96,11 @@ public:
 		if (bin.cb == 0) {
 			cb = 0;
 			lpb = NULL;
-		} else {
-			lpb = new BYTE[bin.cb];
-			memcpy(lpb, bin.lpb, bin.cb);
-			cb = bin.cb;
+			return;
 		}
+		lpb = new BYTE[bin.cb];
+		memcpy(lpb, bin.lpb, bin.cb);
+		cb = bin.cb;
 	}
 	BinaryArray(SBinary &&o) :
 	    lpb(o.lpb), cb(o.cb), bcheap(false)

@@ -30,10 +30,10 @@ SessionGroupData::SessionGroupData(ECSESSIONGROUPID ecSessionGroupId,
     ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps) :
 	m_ecSessionGroupId(ecSessionGroupId), m_sProfileProps(sProfileProps)
 {
-	if (lpInfo) {
-		m_ecSessionGroupInfo.strServer = lpInfo->strServer;
-		m_ecSessionGroupInfo.strProfile = lpInfo->strProfile;
-	}
+	if (lpInfo == nullptr)
+		return;
+	m_ecSessionGroupInfo.strServer = lpInfo->strServer;
+	m_ecSessionGroupInfo.strProfile = lpInfo->strProfile;
 }
 
 SessionGroupData::~SessionGroupData(void)

@@ -6026,29 +6026,23 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		data = HASH_OF(entry[0]);
 		zend_hash_internal_pointer_reset(data);
 
-		if (zend_hash_find(data, "userid", sizeof("userid"), (void**)&value) == SUCCESS) {
-		    convert_to_string_ex(value);
-			lpECPerms[j].sUserId.cb = Z_STRLEN_PP(value);
-			lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_PP(value);
-		} else {
+		if (zend_hash_find(data, "userid", sizeof("userid"), (void **)&value) != SUCCESS)
 			continue;
-		}
+		convert_to_string_ex(value);
+		lpECPerms[j].sUserId.cb = Z_STRLEN_PP(value);
+		lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_PP(value);
 
-		if (zend_hash_find(data, "type", sizeof("type"), (void**)&value) == SUCCESS) {
-		    convert_to_long_ex(value);
-			lpECPerms[j].ulType = Z_LVAL_PP(value);
-		} else {
+		if (zend_hash_find(data, "type", sizeof("type"), (void **)&value) != SUCCESS)
 			continue;
-		}
+		convert_to_long_ex(value);
+		lpECPerms[j].ulType = Z_LVAL_PP(value);
 
-		if (zend_hash_find(data, "rights", sizeof("rights"), (void**)&value) == SUCCESS) {
-		    convert_to_long_ex(value);
-			lpECPerms[j].ulRights = Z_LVAL_PP(value);
-		} else {
+		if (zend_hash_find(data, "rights", sizeof("rights"), (void **)&value) != SUCCESS)
 			continue;
-		}
+		convert_to_long_ex(value);
+		lpECPerms[j].ulRights = Z_LVAL_PP(value);
 
-		if (zend_hash_find(data, "state", sizeof("state"), (void**)&value) == SUCCESS) {
+		if (zend_hash_find(data, "state", sizeof("state"), (void **)&value) != SUCCESS) {
 		    convert_to_long_ex(value);
 			lpECPerms[j].ulState = Z_LVAL_PP(value);
 		} else {
@@ -6569,27 +6563,23 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		data = HASH_OF(entry[0]);
 		zend_hash_internal_pointer_reset(data);
 
-		if (zend_hash_find(data, "start", sizeof("start"), (void**)&value) == SUCCESS) {
-			UnixTimeToRTime(Z_LVAL_PP(value), &lpBlocks[i].m_tmStart);
-		} else {
+		if (zend_hash_find(data, "start", sizeof("start"), reinterpret_cast<void **>(&value)) != SUCCESS) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
+		UnixTimeToRTime(Z_LVAL_PP(value), &lpBlocks[i].m_tmStart);
 
-		if (zend_hash_find(data, "end", sizeof("end"), (void**)&value) == SUCCESS) {
-			UnixTimeToRTime(Z_LVAL_PP(value), &lpBlocks[i].m_tmEnd);
-		} else {
+		if (zend_hash_find(data, "end", sizeof("end"), reinterpret_cast<void **>(&value)) != SUCCESS) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
+		UnixTimeToRTime(Z_LVAL_PP(value), &lpBlocks[i].m_tmEnd);
 
-		if (zend_hash_find(data, "status", sizeof("status"), (void**)&value) == SUCCESS) {
-			lpBlocks[i].m_fbstatus = (enum FBStatus)Z_LVAL_PP(value);
-		} else {
+		if (zend_hash_find(data, "status", sizeof("status"), reinterpret_cast<void **>(&value)) != SUCCESS) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-
+		lpBlocks[i].m_fbstatus = (enum FBStatus)Z_LVAL_PP(value);
 		zend_hash_move_forward(target_hash);
 	}
 

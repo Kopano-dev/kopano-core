@@ -296,12 +296,12 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 			break;
 		}
 
-	if (lpFsck)
+	if (lpFsck != nullptr) {
 		lpFsck->ValidateFolder(lpFolder, strName);
-	else {
-		cout << "Ignoring folder: ";
-		cout << "\"" << strName << "\" (" << strClass << ")" << endl;
+		return hrSuccess;
 	}
+	cout << "Ignoring folder: ";
+	cout << "\"" << strName << "\" (" << strClass << ")" << endl;
 	return hrSuccess;
 }
 

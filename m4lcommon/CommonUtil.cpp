@@ -411,25 +411,22 @@ HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG 
 		goto exit;
 
 	while(TRUE) {
-			hr = lpStoreTable->QueryRows(1, 0, &lpRows);
-
-			if (hr != hrSuccess || lpRows->cRows != 1) {
-				hr = MAPI_E_NOT_FOUND;
+		hr = lpStoreTable->QueryRows(1, 0, &lpRows);
+		if (hr != hrSuccess || lpRows->cRows != 1) {
+			hr = MAPI_E_NOT_FOUND;
+			break;
+		}
+		if (bPublic) {
+			auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_MDB_PROVIDER);
+			if (lpStoreProp != NULL && memcmp(lpStoreProp->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0 )
 				break;
-			}
-
-			if (bPublic) {
-				auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_MDB_PROVIDER);
-				if (lpStoreProp != NULL && memcmp(lpStoreProp->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0 )
-					break;
-			} else {
-				auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_RESOURCE_FLAGS);
-				if (lpStoreProp != NULL && lpStoreProp->Value.ul & STATUS_DEFAULT_STORE)
-					break;
-			}
-
-			FreeProws(lpRows);
-			lpRows = NULL;
+		} else {
+			auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_RESOURCE_FLAGS);
+			if (lpStoreProp != NULL && lpStoreProp->Value.ul & STATUS_DEFAULT_STORE)
+				break;
+		}
+		FreeProws(lpRows);
+		lpRows = NULL;
 	}
 
 	if (hr != hrSuccess)
@@ -520,12 +517,11 @@ HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
 		if (lpECMsgStore == nullptr)
 			return MAPI_E_INVALID_PARAMETER;
 		return lpECMsgStore->QueryInterface(IID_IMsgStore, (void**)lppMsgStore);
-	} else {
-		// Possible object already wrapped, gives the original object back
-		(*lppMsgStore) = lpMsgStore;
-		(*lppMsgStore)->AddRef();
 	}
-	return hr;
+	// Possible object already wrapped, gives the original object back
+	(*lppMsgStore) = lpMsgStore;
+	(*lppMsgStore)->AddRef();
+	return hrSuccess;
 }
 
 HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore **lppMsgStore) {
@@ -1024,59 +1020,61 @@ std::string ToQuotedPrintable(const std::string &input,
 			tmp.push_back(digits[((unsigned char)input[i]>>4)]);
 			tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
 			qp = true;
-		} else {
-			switch ((unsigned char)input[i]) {
-			case ' ':
-				if (header)
-					tmp.push_back('_'); // only email headers need this, don't set qp marker if only spaces are found
-				else
-					tmp.push_back(input[i]); // leave email body unaffected
-				break;
-			case '\r':
-			case '\n':
-				// no idea how a user would enter a \r\n in the subject, but it s doable of course ;)
-				if (header) {
-					tmp.push_back('=');
-					tmp.push_back(digits[((unsigned char)input[i]>>4)]);
-					tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
-					qp = true;
-				} else
-					tmp.push_back(input[i]); // leave email body unaffected
-				break;
-			case '\t':
-			case ',':
-			case ';':
-			case ':':
-			case '_':
-			case '@':
-			case '(':
-			case ')':
-			case '<':
-			case '>':
-			case '[':
-			case ']':
-			case '?':
-			case '=':
-				tmp.push_back('=');
-				tmp.push_back(digits[((unsigned char)input[i]>>4)]);
-				tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
-				qp = true;
-				break;
-			case '\\':
-			case '"':
-				// IMAP requires encoding of these 2 characters
-				if (imap) {
-					tmp.push_back('=');
-					tmp.push_back(digits[((unsigned char)input[i]>>4)]);
-					tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
-					qp = true;
-				} else
-					tmp.push_back(input[i]);
-				break;
-			default:
-				tmp.push_back(input[i]);
-			};
+			continue;
 		}
+		switch ((unsigned char)input[i]) {
+		case ' ':
+			if (header)
+				tmp.push_back('_'); // only email headers need this, don't set qp marker if only spaces are found
+			else
+				tmp.push_back(input[i]); // leave email body unaffected
+			break;
+		case '\r':
+		case '\n':
+			// no idea how a user would enter a \r\n in the subject, but it s doable of course ;)
+			if (!header) {
+				tmp.push_back(input[i]); // leave email body unaffected
+				break;
+			}
+			tmp.push_back('=');
+			tmp.push_back(digits[((unsigned char)input[i]>>4)]);
+			tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
+			qp = true;
+			break;
+		case '\t':
+		case ',':
+		case ';':
+		case ':':
+		case '_':
+		case '@':
+		case '(':
+		case ')':
+		case '<':
+		case '>':
+		case '[':
+		case ']':
+		case '?':
+		case '=':
+			tmp.push_back('=');
+			tmp.push_back(digits[((unsigned char)input[i]>>4)]);
+			tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
+			qp = true;
+			break;
+		case '\\':
+		case '"':
+			// IMAP requires encoding of these 2 characters
+			if (!imap) {
+				tmp.push_back(input[i]);
+				break;
+			}
+			tmp.push_back('=');
+			tmp.push_back(digits[((unsigned char)input[i]>>4)]);
+			tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
+			qp = true;
+			break;
+		default:
+			tmp.push_back(input[i]);
+		};
 	}
 
 	if (header)
@@ -1624,25 +1622,21 @@ public:
 		for (i = 0; i<lpTags->cValues; ++i) {
 			bError = FALSE;
 			auto lpFind = PCpropFindProp(m_lpProps, m_cValues, CHANGE_PROP_TYPE(lpTags->aulPropTag[i], PT_UNSPECIFIED));
-			if(lpFind && PROP_TYPE(lpFind->ulPropTag) != PT_ERROR) {
-				
-				if (PROP_TYPE(lpFind->ulPropTag) == PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) == PT_UNICODE) {
-					lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-					std::wstring wstrTmp = converter.convert_to<std::wstring>(lpFind->Value.lpszA);
-					MAPIAllocateMore((wstrTmp.length() + 1) * sizeof *lpProps[i].Value.lpszW, lpProps, (LPVOID*)&lpProps[i].Value.lpszW);
-					wcscpy(lpProps[i].Value.lpszW, wstrTmp.c_str());
-				} else if (PROP_TYPE(lpFind->ulPropTag) ==  PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) == PT_STRING8) {
-					lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-					std::string strTmp = converter.convert_to<std::string>(lpFind->Value.lpszW);
-					MAPIAllocateMore(strTmp.length() + 1, lpProps, (LPVOID*)&lpProps[i].Value.lpszA);
-					strcpy(lpProps[i].Value.lpszA, strTmp.c_str());
-				} else if (PROP_TYPE(lpFind->ulPropTag) != PROP_TYPE(lpTags->aulPropTag[i])) {
-					bError = TRUE;
-				} else if(Util::HrCopyProperty(&lpProps[i], lpFind, lpProps) != hrSuccess) {
-					bError = TRUE;
-				}
-
-			} else {
+			if (lpFind == nullptr || PROP_TYPE(lpFind->ulPropTag) == PT_ERROR) {
+				bError = true;
+			} else if (PROP_TYPE(lpFind->ulPropTag) == PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) == PT_UNICODE) {
+				lpProps[i].ulPropTag = lpTags->aulPropTag[i];
+				std::wstring wstrTmp = converter.convert_to<std::wstring>(lpFind->Value.lpszA);
+				MAPIAllocateMore((wstrTmp.length() + 1) * sizeof *lpProps[i].Value.lpszW, lpProps, (LPVOID *)&lpProps[i].Value.lpszW);
+				wcscpy(lpProps[i].Value.lpszW, wstrTmp.c_str());
+			} else if (PROP_TYPE(lpFind->ulPropTag) ==  PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) == PT_STRING8) {
+				lpProps[i].ulPropTag = lpTags->aulPropTag[i];
+				std::string strTmp = converter.convert_to<std::string>(lpFind->Value.lpszW);
+				MAPIAllocateMore(strTmp.length() + 1, lpProps, (LPVOID *)&lpProps[i].Value.lpszA);
+				strcpy(lpProps[i].Value.lpszA, strTmp.c_str());
+			} else if (PROP_TYPE(lpFind->ulPropTag) != PROP_TYPE(lpTags->aulPropTag[i])) {
+				bError = TRUE;
+			} else if (Util::HrCopyProperty(&lpProps[i], lpFind, lpProps) != hrSuccess) {
 				bError = TRUE;
 			}
 			
@@ -1837,13 +1831,8 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 	case RES_NOT:
 		hr = TestRestriction(lpCondition->res.resNot.lpRes, lpMessage, locale, ulLevel+1);
 		if (hr != MAPI_E_TOO_COMPLEX) {
-			if (hr == hrSuccess) {
-				hr = MAPI_E_NOT_FOUND;
-				fMatch = false;
-			} else {
-				hr = hrSuccess;
-				fMatch = true;
-			}
+			fMatch = hr != hrSuccess;
+			hr = fMatch ? hrSuccess : MAPI_E_NOT_FOUND;
 		}
 		break;
 
@@ -2281,10 +2270,10 @@ ECPropMapEntry::ECPropMapEntry(const ECPropMapEntry &other) :
     m_sMAPINameId.lpguid = &m_sGuid;
     if(other.m_sMAPINameId.ulKind == MNID_ID) {
         m_sMAPINameId.Kind.lID = other.m_sMAPINameId.Kind.lID;
-    } else {
+		return;
+	}
         m_sMAPINameId.Kind.lpwstrName = new WCHAR[wcslen( other.m_sMAPINameId.Kind.lpwstrName )+1];
         wcscpy(m_sMAPINameId.Kind.lpwstrName, other.m_sMAPINameId.Kind.lpwstrName);
-    }
 }
 
 ECPropMapEntry::ECPropMapEntry(ECPropMapEntry &&other) :
@@ -2294,10 +2283,10 @@ ECPropMapEntry::ECPropMapEntry(ECPropMapEntry &&other) :
 	m_sMAPINameId.lpguid = &m_sGuid;
 	if (other.m_sMAPINameId.ulKind == MNID_ID) {
 		m_sMAPINameId.Kind.lID = other.m_sMAPINameId.Kind.lID;
-	} else {
-		m_sMAPINameId.Kind.lpwstrName = other.m_sMAPINameId.Kind.lpwstrName;
-		other.m_sMAPINameId.Kind.lpwstrName = nullptr;
+		return;
 	}
+	m_sMAPINameId.Kind.lpwstrName = other.m_sMAPINameId.Kind.lpwstrName;
+	other.m_sMAPINameId.Kind.lpwstrName = nullptr;
 }
 
 ECPropMapEntry::~ECPropMapEntry()

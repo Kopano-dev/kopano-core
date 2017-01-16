@@ -245,27 +245,21 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	__UPV Value;
 	Value.l = (*lpEnd - *lpStart) / 60;
 
-	if (PROP_TYPE(lpPropertyArray[E_DURATION].ulPropTag) == PT_ERROR) {
-		hr = AddMissingProperty(lpMessage, "dispidApptDuration",
+	if (PROP_TYPE(lpPropertyArray[E_DURATION].ulPropTag) == PT_ERROR)
+		return AddMissingProperty(lpMessage, "dispidApptDuration",
 					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_DURATION], PT_LONG),
 					Value);
-		if (hr != hrSuccess)
-			return hr;
-	} else {
-		ulDuration = lpPropertyArray[E_DURATION].Value.l;
-		/*
-		 * We already compared duration between common and start,
-		 * now we have to check if that duration also equals what was set.
-		 */
-		if (ulDuration != Value.l) {
-			hr = ReplaceProperty(lpMessage, "dispidApptDuration",
-					     CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_DURATION], PT_LONG),
-					     "Duration does not match (End - Start / 60)",
-					     Value);
-			if (hr != hrSuccess)
-				return hr;
-		}
-	}
+
+	ulDuration = lpPropertyArray[E_DURATION].Value.l;
+	/*
+	 * We already compared duration between common and start,
+	 * now we have to check if that duration also equals what was set.
+	 */
+	if (ulDuration != Value.l)
+		return ReplaceProperty(lpMessage, "dispidApptDuration",
+		       CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_DURATION], PT_LONG),
+		       "Duration does not match (End - Start / 60)",
+		       Value);
 	return hrSuccess;
 }
 

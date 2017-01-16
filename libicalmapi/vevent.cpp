@@ -240,15 +240,12 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 	lstMsgProps->push_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_ICON_INDEX;
-	if (bMeeting) {
-		if (icMethod == ICAL_METHOD_CANCEL) {
-			sPropVal.Value.ul = ICON_APPT_MEETING_CANCEL;
-		} else {
-			sPropVal.Value.ul = ICON_APPT_MEETING_SINGLE;
-		}
-	} else {
+	if (!bMeeting)
 		sPropVal.Value.ul = ICON_APPT_APPOINTMENT;
-	}
+	else if (icMethod == ICAL_METHOD_CANCEL)
+		sPropVal.Value.ul = ICON_APPT_MEETING_CANCEL;
+	else
+		sPropVal.Value.ul = ICON_APPT_MEETING_SINGLE;
 
 	// 1024: normal calendar item
 	// 1025: recurring item

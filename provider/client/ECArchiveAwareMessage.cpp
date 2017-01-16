@@ -81,6 +81,8 @@ HRESULT	ECArchiveAwareMessage::Create(ECArchiveAwareMsgStore *lpMsgStore, BOOL f
 HRESULT ECArchiveAwareMessage::HrLoadProps()
 {
 	HRESULT hr = hrSuccess;
+	BOOL fModifyCopy;
+	ECMsgStore *lpMsgStore;
 
 	m_bLoading = true;
 	hr = ECMessage::HrLoadProps();
@@ -88,68 +90,67 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 		goto exit;
 
 	// If we noticed we are stubbed, we need to perform a merge here.
-	if (m_mode == MODE_STUBBED) {
-		const BOOL fModifyCopy = this->fModify;
-		ECMsgStore *lpMsgStore = GetMsgStore();
-
-		// @todo: Put in MergePropsFromStub
-		static constexpr const SizedSPropTagArray(4, sptaDeleteProps) =
-			{4, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX}};
-		static constexpr const SizedSPropTagArray(6, sptaRestoreProps) =
-			{6, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX,
-			PR_MESSAGE_CLASS, PR_MESSAGE_SIZE}};
-
-		if (!m_ptrArchiveMsg) {
-			ECArchiveAwareMsgStore *lpStore = dynamic_cast<ECArchiveAwareMsgStore*>(lpMsgStore);
-			if (lpStore == NULL) {
-				// This is quite a serious error since an ECArchiveAwareMessage can only be created by an
-				// ECArchiveAwareMsgStore. We won't just die here though...
-				hr = MAPI_E_NOT_FOUND;
-				goto exit;
-			}
-			hr = lpStore->OpenItemFromArchive(m_ptrStoreEntryIDs, m_ptrItemEntryIDs, &~m_ptrArchiveMsg);
-			if (hr != hrSuccess) {
-				hr = CreateInfoMessage(sptaDeleteProps, CreateErrorBodyUtf8(hr));
-				goto exit;
-			}
-		}
-
-		// Now merge the properties and reconstruct the attachment table.
-		// We'll copy the PR_RTF_COMPRESSED property from the archive to the stub as PR_RTF_COMPRESSED is
-		// obtained anyway to determine the type of the body.
-		// Also if the stub's PR_MESSAGE_CLASS equals IPM.Zarafa.Stub (old migrator behaviour), we'll overwrite
-		// that with the archive's PR_MESSAGE_CLASS and overwrite the PR_ICON_INDEX.
-
-		// We need to temporary enable write access on the underlying objects in order for the following
-		// 5 calls to succeed.
-		this->fModify = TRUE;
-		hr = DeleteProps(sptaDeleteProps, NULL);
-		if (hr != hrSuccess) {
-			this->fModify = fModifyCopy;
-			goto exit;
-		}
-		hr = Util::DoCopyProps(&IID_IMAPIProp, &m_ptrArchiveMsg->m_xMAPIProp,
-		     sptaRestoreProps, 0, NULL, &IID_IMAPIProp,
-		     &this->m_xMAPIProp, 0, NULL);
-		if (hr != hrSuccess) {
-			this->fModify = fModifyCopy;
-			goto exit;
-		}
-
-		// Now remove any dummy attachment(s) and copy the attachments from the archive (except the properties
-		// that are too big in the firt place).
-		hr = Util::HrDeleteAttachments(&m_xMessage);
-		if (hr != hrSuccess) {
-			this->fModify = fModifyCopy;
-			goto exit;
-		}
-
-		hr = Util::CopyAttachments(&m_ptrArchiveMsg->m_xMessage, &m_xMessage, NULL);
-		this->fModify = fModifyCopy;
-		if (hr != hrSuccess)
-			goto exit;
+	if (m_mode != MODE_STUBBED) {
+		m_bLoading = false;
+		return hr;
 	}
 
+	fModifyCopy = this->fModify;
+	lpMsgStore = GetMsgStore();
+	// @todo: Put in MergePropsFromStub
+	static constexpr const SizedSPropTagArray(4, sptaDeleteProps) =
+		{4, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX}};
+	static constexpr const SizedSPropTagArray(6, sptaRestoreProps) =
+		{6, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX,
+		PR_MESSAGE_CLASS, PR_MESSAGE_SIZE}};
+
+	if (!m_ptrArchiveMsg) {
+		ECArchiveAwareMsgStore *lpStore = dynamic_cast<ECArchiveAwareMsgStore *>(lpMsgStore);
+		if (lpStore == NULL) {
+			// This is quite a serious error since an ECArchiveAwareMessage can only be created by an
+			// ECArchiveAwareMsgStore. We won't just die here though...
+			hr = MAPI_E_NOT_FOUND;
+			goto exit;
+		}
+		hr = lpStore->OpenItemFromArchive(m_ptrStoreEntryIDs, m_ptrItemEntryIDs, &~m_ptrArchiveMsg);
+		if (hr != hrSuccess) {
+			hr = CreateInfoMessage(sptaDeleteProps, CreateErrorBodyUtf8(hr));
+			goto exit;
+		}
+	}
+
+	// Now merge the properties and reconstruct the attachment table.
+	// We'll copy the PR_RTF_COMPRESSED property from the archive to the stub as PR_RTF_COMPRESSED is
+	// obtained anyway to determine the type of the body.
+	// Also if the stub's PR_MESSAGE_CLASS equals IPM.Zarafa.Stub (old migrator behaviour), we'll overwrite
+	// that with the archive's PR_MESSAGE_CLASS and overwrite the PR_ICON_INDEX.
+
+	// We need to temporary enable write access on the underlying objects in order for the following
+	// 5 calls to succeed.
+	this->fModify = TRUE;
+	hr = DeleteProps(sptaDeleteProps, NULL);
+	if (hr != hrSuccess) {
+		this->fModify = fModifyCopy;
+		goto exit;
+	}
+	hr = Util::DoCopyProps(&IID_IMAPIProp, &m_ptrArchiveMsg->m_xMAPIProp,
+	     sptaRestoreProps, 0, NULL, &IID_IMAPIProp,
+	     &this->m_xMAPIProp, 0, NULL);
+	if (hr != hrSuccess) {
+		this->fModify = fModifyCopy;
+		goto exit;
+	}
+
+	// Now remove any dummy attachment(s) and copy the attachments from the archive (except the properties
+	// that are too big in the firt place).
+	hr = Util::HrDeleteAttachments(&m_xMessage);
+	if (hr != hrSuccess) {
+		this->fModify = fModifyCopy;
+		goto exit;
+	}
+
+	hr = Util::CopyAttachments(&m_ptrArchiveMsg->m_xMessage, &m_xMessage, NULL);
+	this->fModify = fModifyCopy;
 exit:
 	m_bLoading = false;
 

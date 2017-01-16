@@ -811,58 +811,54 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(TIMEZONE_STRUCT sTimeZone, bo
 		break;
 	case recurrence::MONTHLY:
 		icRec.freq = ICAL_MONTHLY_RECURRENCE;
-		if (lpRecurrence->getWeekNumber() != 0) {
-			// mapi patterntype == 3
-			// only 1 day should be set!
-			if(lpRecurrence->getWeekDays() == 127) {
-				// All Weekdays are set for recurrence type "second" "day" of month.
-				// SU,MO,TU,WE,TH,FR,SA -> weekdays = 127.
-				icRec.by_month_day[0] = lpRecurrence->getWeekNumber() == 5 ? -1: lpRecurrence->getWeekNumber(); // hack to handle nth day month type of rec.
-				icRec.by_month_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
-				break;
-			} else if (lpRecurrence->getWeekDays() == 62 || lpRecurrence->getWeekDays() == 65){
-				// Recurrence of type '3rd weekday'/'last weekend'
-				// MO,TU,WE,TH,FR -> 62 and SU,SA -> 65 
-				icRec.by_set_pos[0] = lpRecurrence->getWeekNumber();
-				icRec.by_set_pos[1] = ICAL_RECURRENCE_ARRAY_MAX;
-				WeekDaysToICalArray(lpRecurrence->getWeekDays(), &icRec);
-			} else if (lpRecurrence->getWeekNumber() == 5) {
-				icRec.by_day[0] = (round(log((double)lpRecurrence->getWeekDays())/log(2.0)) + 8 + 1 ) * -1;  // corrected last weekday
-				icRec.by_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
-			} else {
-				icRec.by_day[0] =  round(log((double)lpRecurrence->getWeekDays())/log(2.0)) + (8 * lpRecurrence->getWeekNumber() ) +1; // +1 because outlook starts on sunday
-				icRec.by_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
-			}
-
-		} else {
+		if (lpRecurrence->getWeekNumber() == 0) {
 			// mapi patterntype == 2
 			icRec.by_month_day[0] = lpRecurrence->getDayOfMonth();
 			icRec.by_month_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
+			break;
+		}
+		// mapi patterntype == 3
+		// only 1 day should be set!
+		if (lpRecurrence->getWeekDays() == 127) {
+			// All Weekdays are set for recurrence type "second" "day" of month.
+			// SU,MO,TU,WE,TH,FR,SA -> weekdays = 127.
+			icRec.by_month_day[0] = lpRecurrence->getWeekNumber() == 5 ? -1 : lpRecurrence->getWeekNumber(); // hack to handle nth day month type of rec.
+			icRec.by_month_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
+			break;
+		} else if (lpRecurrence->getWeekDays() == 62 || lpRecurrence->getWeekDays() == 65) {
+			// Recurrence of type '3rd weekday'/'last weekend'
+			// MO,TU,WE,TH,FR -> 62 and SU,SA -> 65
+			icRec.by_set_pos[0] = lpRecurrence->getWeekNumber();
+			icRec.by_set_pos[1] = ICAL_RECURRENCE_ARRAY_MAX;
+			WeekDaysToICalArray(lpRecurrence->getWeekDays(), &icRec);
+		} else if (lpRecurrence->getWeekNumber() == 5) {
+			icRec.by_day[0] = (round(log((double)lpRecurrence->getWeekDays()) / log(2.0)) + 8 + 1) * -1;  // corrected last weekday
+			icRec.by_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
+		} else {
+			icRec.by_day[0] = round(log((double)lpRecurrence->getWeekDays()) / log(2.0)) + (8 * lpRecurrence->getWeekNumber()) + 1; // +1 because outlook starts on sunday
+			icRec.by_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
 		}
 		break;
 	case recurrence::YEARLY:
 		icRec.freq = ICAL_YEARLY_RECURRENCE;
-		if (lpRecurrence->getWeekNumber() != 0) {
-			// mapi patterntype == 3
-			// only 1 day should be set!
-			if (lpRecurrence->getWeekNumber() == 5)
-				icRec.by_day[0] = ((log((double)lpRecurrence->getWeekDays())/log(2.0)) + 8 + 1 ) * -1; 
-			else
-				icRec.by_day[0] = (int)(log((double)lpRecurrence->getWeekDays())/log(2.0)) + (8 * lpRecurrence->getWeekNumber() ) +1; // +1 because outlook starts on sunday
-
-			icRec.by_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
-
-			icRec.by_month[0] = lpRecurrence->getMonth();
-			icRec.by_month[1] = ICAL_RECURRENCE_ARRAY_MAX;
-		} else {
+		if (lpRecurrence->getWeekNumber() == 0) {
 			// mapi patterntype == 2
 			icRec.by_month_day[0] = lpRecurrence->getDayOfMonth();
 			icRec.by_month_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
 
 			icRec.by_month[0] = lpRecurrence->getMonth();
 			icRec.by_month[1] = ICAL_RECURRENCE_ARRAY_MAX;
+			break;
 		}
-
+		// mapi patterntype == 3
+		// only 1 day should be set!
+		if (lpRecurrence->getWeekNumber() == 5)
+			icRec.by_day[0] = ((log((double)lpRecurrence->getWeekDays())/log(2.0)) + 8 + 1 ) * -1;
+		else
+			icRec.by_day[0] = (int)(log((double)lpRecurrence->getWeekDays())/log(2.0)) + (8 * lpRecurrence->getWeekNumber() ) +1; // +1 because outlook starts on sunday
+		icRec.by_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
+		icRec.by_month[0] = lpRecurrence->getMonth();
+		icRec.by_month[1] = ICAL_RECURRENCE_ARRAY_MAX;
 		break;
 	default:
 		return MAPI_E_INVALID_PARAMETER;

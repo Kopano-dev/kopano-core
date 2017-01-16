@@ -370,33 +370,31 @@ bool unix_system(const char *lpszLogName, const char *lpszCommand, const char **
 	
 	waitpid(pid, &status, 0);
 
-	if(status != -1) {
+	if (status == -1) {
+		ec_log_err(string("System call \"system\" failed: ") + strerror(errno));
+		return false;
+	}
 #ifdef WEXITSTATUS
-		if(WIFEXITED(status)) { /* Child exited by itself */
-			if(WEXITSTATUS(status)) {
-				ec_log_err("Command `%s` exited with non-zero status %d", lpszCommand, WEXITSTATUS(status));
-				rv = false;
-			}
-			else
-				ec_log_info("Command `%s` ran successfully", lpszCommand);
-		} else if(WIFSIGNALED(status)) {        /* Child was killed by a signal */
-			ec_log_err("Command `%s` was killed by signal %d", lpszCommand, WTERMSIG(status));
-			rv = false;
-		} else {                        /* Something strange happened */
-			ec_log_err(string("Command `") + lpszCommand + "` terminated abnormally");
+	if (WIFEXITED(status)) { /* Child exited by itself */
+		if (WEXITSTATUS(status)) {
+			ec_log_err("Command `%s` exited with non-zero status %d", lpszCommand, WEXITSTATUS(status));
 			rv = false;
 		}
-#else
-		if (status)
-			ec_log_err("Command `%s` exited with status %d", lpszCommand, status);
 		else
 			ec_log_info("Command `%s` ran successfully", lpszCommand);
-#endif
-	} else {
-		ec_log_err(string("System call \"system\" failed: ") + strerror(errno));
+	} else if (WIFSIGNALED(status)) {        /* Child was killed by a signal */
+		ec_log_err("Command `%s` was killed by signal %d", lpszCommand, WTERMSIG(status));
+		rv = false;
+	} else {                        /* Something strange happened */
+		ec_log_err(string("Command `") + lpszCommand + "` terminated abnormally");
 		rv = false;
 	}
-	
+#else
+	if (status)
+		ec_log_err("Command `%s` exited with status %d", lpszCommand, status);
+	else
+		ec_log_info("Command `%s` ran successfully", lpszCommand);
+#endif
 	return rv;
 }
 

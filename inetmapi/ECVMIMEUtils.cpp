@@ -112,47 +112,49 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 				setRecips.insert(strEmail);
 				ec_log_debug("RCPT TO: %ls", strEmail.c_str());	
 			}
+			continue;
 		}
-		else if (lpPropObjectType != nullptr &&
-		    lpPropObjectType->Value.ul == MAPI_DISTLIST) {
-			// Group
-			auto lpGroupName = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EMAIL_ADDRESS_W);
-			auto lpGroupEntryID = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);
-			if (lpGroupName == NULL || lpGroupEntryID == NULL) {
-				hr = MAPI_E_NOT_FOUND;
+		if (lpPropObjectType == nullptr ||
+		    lpPropObjectType->Value.ul != MAPI_DISTLIST)
+			continue;
+
+		// Group
+		auto lpGroupName = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EMAIL_ADDRESS_W);
+		auto lpGroupEntryID = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);
+		if (lpGroupName == NULL || lpGroupEntryID == NULL) {
+			hr = MAPI_E_NOT_FOUND;
+			goto exit;
+		}
+	
+		if (bAllowEveryone == false) {
+			bool bEveryone = false;
+			
+			if (EntryIdIsEveryone(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, &bEveryone) == hrSuccess && bEveryone) {
+				ec_log_err("Denying send to Everyone");
+				error = std::wstring(L"You are not allowed to send to the 'Everyone' group");
+				hr = MAPI_E_NO_ACCESS;
 				goto exit;
 			}
-	
-			if(bAllowEveryone == false) {
-				bool bEveryone = false;
-				
-				if(EntryIdIsEveryone(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, &bEveryone) == hrSuccess && bEveryone) {
-					ec_log_err("Denying send to Everyone");
-					error = std::wstring(L"You are not allowed to send to the 'Everyone' group");
-					hr = MAPI_E_NO_ACCESS;
-					goto exit;
-				}
-			}
+		}
 
-			if (bAlwaysExpandDistributionList || !bAddrFetchSuccess || wcscasecmp(strType.c_str(), L"SMTP") != 0) {
-				// Recursively expand all recipients in the group
-				hr = HrExpandGroup(lpAdrBook, lpGroupName, lpGroupEntryID, recipients, setGroups, setRecips, bAllowEveryone);
+		if (bAlwaysExpandDistributionList || !bAddrFetchSuccess || wcscasecmp(strType.c_str(), L"SMTP") != 0) {
+			// Recursively expand all recipients in the group
+			hr = HrExpandGroup(lpAdrBook, lpGroupName, lpGroupEntryID, recipients, setGroups, setRecips, bAllowEveryone);
 
-				if (hr == MAPI_E_TOO_COMPLEX || hr == MAPI_E_INVALID_PARAMETER) {
-					// ignore group nesting loop and non user/group types (eg. companies)
-					hr = hrSuccess;
-				} else if (hr != hrSuccess) {
-					// eg. MAPI_E_NOT_FOUND
-					ec_log_err("Error while expanding group. Group: %ls, error: 0x%08x", lpGroupName->Value.lpszW, hr);
-					error = std::wstring(L"Error in group '") + lpGroupName->Value.lpszW + L"', unable to send e-mail";
-					goto exit;
-				}
-			} else if (setRecips.find(strEmail) == setRecips.end()) {
-				recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
-				setRecips.insert(strEmail);
-				ec_log_debug("Sending to group-address %s instead of expanded list",
-					convert_to<std::string>(strEmail).c_str());
+			if (hr == MAPI_E_TOO_COMPLEX || hr == MAPI_E_INVALID_PARAMETER) {
+				// ignore group nesting loop and non user/group types (eg. companies)
+				hr = hrSuccess;
+			} else if (hr != hrSuccess) {
+				// eg. MAPI_E_NOT_FOUND
+				ec_log_err("Error while expanding group. Group: %ls, error: 0x%08x", lpGroupName->Value.lpszW, hr);
+				error = std::wstring(L"Error in group '") + lpGroupName->Value.lpszW + L"', unable to send e-mail";
+				goto exit;
 			}
+		} else if (setRecips.find(strEmail) == setRecips.end()) {
+			recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
+			setRecips.insert(strEmail);
+			ec_log_debug("Sending to group-address %s instead of expanded list",
+				convert_to<std::string>(strEmail).c_str());
 		}
 	}
 

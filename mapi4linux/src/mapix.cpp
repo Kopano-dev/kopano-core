@@ -111,19 +111,19 @@ static HRESULT HrCreateM4LServices(void)
 		m4l_lpConfig->LoadSettings(configfile.c_str());
 	}
 
-	if (!ec_log_has_target()) {
-		m4l_lpLogger = CreateLogger(m4l_lpConfig, "exchange-redirector", "ExchangeRedirector");
-		if (!m4l_lpLogger)
-			return MAPI_E_NOT_ENOUGH_MEMORY;
-		/*
-		 * You already knew that MAPIInitialize() could only be called
-		 * from single-threaded context.
-		 */
-		ec_log_set(m4l_lpLogger);
-	} else {
+	if (ec_log_has_target()) {
 		m4l_lpLogger = ec_log_get();
 		m4l_lpLogger->AddRef();
+		return hrSuccess;
 	}
+	m4l_lpLogger = CreateLogger(m4l_lpConfig, "exchange-redirector", "ExchangeRedirector");
+	if (!m4l_lpLogger)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	/*
+	 * You already knew that MAPIInitialize() could only be called
+	 * from single-threaded context.
+	 */
+	ec_log_set(m4l_lpLogger);
 	return hrSuccess;
 }
 

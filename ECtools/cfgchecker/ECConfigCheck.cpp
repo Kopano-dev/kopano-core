@@ -247,29 +247,26 @@ int ECConfigCheck::testCharset(const config_check_t *check)
 	std::transform(v1.begin(), v1.end(), v1.begin(), ::toupper);
 	fp = popen(("iconv -l | grep -x \"" + v1 + "//\"").c_str(), "r");
 
-	if (fp) {
-		char buffer[50];
-		string output;
-
-		memset(buffer, 0, sizeof(buffer));
-		if (fgets(buffer, sizeof(buffer), fp) == nullptr) {
-			printWarning(check->option1, "unable to validate charset: \"" + v1 + "\"");
-			pclose(fp);
-			return CHECK_WARNING;
-		}
-		output = buffer;
-
-		pclose(fp);
-
-		if (output.find(v1) == string::npos) {
-			printError(check->option1, "contains unknown chartype \"" + v1 + "\"");
-			return CHECK_ERROR;
-		}
-	} else {
+	if (fp == nullptr) {
 		printWarning(check->option1, "Failed to validate charset");
 		return CHECK_WARNING;
 	}
 
+	char buffer[50];
+	string output;
+
+	memset(buffer, 0, sizeof(buffer));
+	if (fgets(buffer, sizeof(buffer), fp) == nullptr) {
+		printWarning(check->option1, "unable to validate charset: \"" + v1 + "\"");
+		pclose(fp);
+		return CHECK_WARNING;
+	}
+	output = buffer;
+	pclose(fp);
+	if (output.find(v1) == string::npos) {
+		printError(check->option1, "contains unknown chartype \"" + v1 + "\"");
+		return CHECK_ERROR;
+	}
 	return CHECK_OK;
 }
 

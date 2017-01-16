@@ -416,158 +416,130 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	} else if (strCommand.compare("LOGOUT") == 0) {
 		if (!strvResult.empty()) {
 			return HrResponse(RESP_TAGGED_BAD, strTag, "LOGOUT must have 0 arguments");
-		} else {
-			HrCmdLogout(strTag);
-			// let the gateway quit from the socket read loop
-			return MAPI_E_END_OF_SESSION;
 		}
+		HrCmdLogout(strTag);
+		// let the gateway quit from the socket read loop
+		return MAPI_E_END_OF_SESSION;
 	} else if (strCommand.compare("STARTTLS") == 0) {
 		if (!strvResult.empty()) {
 			return HrResponse(RESP_TAGGED_BAD, strTag, "STARTTLS must have 0 arguments");
-		} else {
-			hr = HrCmdStarttls(strTag);
-			if (hr != hrSuccess)
-				// log ?
-				// let the gateway quit from the socket read loop
-				return MAPI_E_END_OF_SESSION;
-			return hr;
 		}
+		hr = HrCmdStarttls(strTag);
+		if (hr != hrSuccess)
+			// log ?
+			// let the gateway quit from the socket read loop
+			return MAPI_E_END_OF_SESSION;
+		return hr;
 	} else if (strCommand.compare("AUTHENTICATE") == 0) {
 		if (strvResult.size() == 1)
 			return HrCmdAuthenticate(strTag, strvResult[0], string());
 		else if (strvResult.size() == 2)
 			return HrCmdAuthenticate(strTag, strvResult[0], strvResult[1]);
-		else
-			return HrResponse(RESP_TAGGED_BAD, strTag, "AUTHENTICATE must have 1 or 2 arguments");
+		return HrResponse(RESP_TAGGED_BAD, strTag, "AUTHENTICATE must have 1 or 2 arguments");
 	} else if (strCommand.compare("LOGIN") == 0) {
 		if (strvResult.size() != 2)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "LOGIN must have 2 arguments");
-		else
-			return HrCmdLogin(strTag, strvResult[0], strvResult[1]);
+		return HrCmdLogin(strTag, strvResult[0], strvResult[1]);
 	} else if (strCommand.compare("SELECT") == 0) {
 		if (strvResult.size() != 1)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "SELECT must have 1 argument");
-		else
-			return HrCmdSelect(strTag, strvResult[0], false);
+		return HrCmdSelect(strTag, strvResult[0], false);
 	} else if (strCommand.compare("EXAMINE") == 0) {
 		if (strvResult.size() != 1)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "EXAMINE must have 1 argument");
-		else
-			return HrCmdSelect(strTag, strvResult[0], true);
+		return HrCmdSelect(strTag, strvResult[0], true);
 	} else if (strCommand.compare("CREATE") == 0) {
 		if (strvResult.size() != 1)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "CREATE must have 1 argument");
-		else
-			return HrCmdCreate(strTag, strvResult[0]);
+		return HrCmdCreate(strTag, strvResult[0]);
 	} else if (strCommand.compare("DELETE") == 0) {
 		if (strvResult.size() != 1)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "DELETE must have 1 argument");
-		else
-			return HrCmdDelete(strTag, strvResult[0]);
+		return HrCmdDelete(strTag, strvResult[0]);
 	} else if (strCommand.compare("RENAME") == 0) {
 		if (strvResult.size() != 2)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "RENAME must have 2 arguments");
-		else
-			return HrCmdRename(strTag, strvResult[0], strvResult[1]);
+		return HrCmdRename(strTag, strvResult[0], strvResult[1]);
 	} else if (strCommand.compare("SUBSCRIBE") == 0) {
 		if (strvResult.size() != 1)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "SUBSCRIBE must have 1 arguments");
-		else
-			return HrCmdSubscribe(strTag, strvResult[0], true);
+		return HrCmdSubscribe(strTag, strvResult[0], true);
 	} else if (strCommand.compare("UNSUBSCRIBE") == 0) {
 		if (strvResult.size() != 1)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "UNSUBSCRIBE must have 1 arguments");
-		else
-			return HrCmdSubscribe(strTag, strvResult[0], false);
+		return HrCmdSubscribe(strTag, strvResult[0], false);
 	} else if (strCommand.compare("LIST") == 0) {
 		if (strvResult.size() != 2)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "LIST must have 2 arguments");
-		else
-			return HrCmdList(strTag, strvResult[0], strvResult[1], false);
+		return HrCmdList(strTag, strvResult[0], strvResult[1], false);
 	} else if (strCommand.compare("LSUB") == 0) {
 		if (strvResult.size() != 2)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "LSUB must have 2 arguments");
-		else
-			return HrCmdList(strTag, strvResult[0], strvResult[1], true);
+		return HrCmdList(strTag, strvResult[0], strvResult[1], true);
 	} else if (strCommand.compare("STATUS") == 0) {
 		if (strvResult.size() != 2)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "STATUS must have 2 arguments");
-		else
-			return HrCmdStatus(strTag, strvResult[0], strvResult[1]);
+		return HrCmdStatus(strTag, strvResult[0], strvResult[1]);
 	} else if (strCommand.compare("APPEND") == 0) {
 		if (strvResult.size() == 2) {
 			return HrCmdAppend(strTag, strvResult[0], strvResult[1]);
 		} else if (strvResult.size() == 3) {
 			if (strvResult[1][0] == '(')
 				return HrCmdAppend(strTag, strvResult[0], strvResult[2], strvResult[1]);
-			else
-				return HrCmdAppend(strTag, strvResult[0], strvResult[2], string(), strvResult[1]);
+			return HrCmdAppend(strTag, strvResult[0], strvResult[2], string(), strvResult[1]);
 		} else if (strvResult.size() == 4) {
 			// if both flags and time are given, it must be in that order
 			return HrCmdAppend(strTag, strvResult[0], strvResult[3], strvResult[1], strvResult[2]);
-		} else {
-			return HrResponse(RESP_TAGGED_BAD, strTag, "APPEND must have 2, 3 or 4 arguments");
 		}
+		return HrResponse(RESP_TAGGED_BAD, strTag, "APPEND must have 2, 3 or 4 arguments");
 	} else if (strCommand.compare("CHECK") == 0) {
 		if (!strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag, "CHECK must have 0 arguments");
-		else
-			return HrCmdCheck(strTag);
+		return HrCmdCheck(strTag);
 	} else if (strCommand.compare("CLOSE") == 0) {
 		if (!strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag, "CLOSE must have 0 arguments");
-		else
-			return HrCmdClose(strTag);
+		return HrCmdClose(strTag);
 	} else if (strCommand.compare("EXPUNGE") == 0) {
 		if (!strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag, "EXPUNGE must have 0 arguments");
-		else
-			return HrCmdExpunge(strTag, string());
+		return HrCmdExpunge(strTag, string());
 	} else if (strCommand.compare("SEARCH") == 0) {
 		if (strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag, "SEARCH must have 1 or more arguments");
-		else
-			return HrCmdSearch(strTag, strvResult, false);
+		return HrCmdSearch(strTag, strvResult, false);
 	} else if (strCommand.compare("FETCH") == 0) {
 		if (strvResult.size() != 2)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "FETCH must have 2 arguments");
-		else
-			return HrCmdFetch(strTag, strvResult[0], strvResult[1], false);
+		return HrCmdFetch(strTag, strvResult[0], strvResult[1], false);
 	} else if (strCommand.compare("STORE") == 0) {
 		if (strvResult.size() != 3)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "STORE must have 3 arguments");
-		else
-			return HrCmdStore(strTag, strvResult[0], strvResult[1], strvResult[2], false);
+		return HrCmdStore(strTag, strvResult[0], strvResult[1], strvResult[2], false);
 	} else if (strCommand.compare("COPY") == 0) {
 		if (strvResult.size() != 2)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "COPY must have 2 arguments");
-		else
-			return HrCmdCopy(strTag, strvResult[0], strvResult[1], false);
+		return HrCmdCopy(strTag, strvResult[0], strvResult[1], false);
 	} else if (strCommand.compare("IDLE") == 0) {
 		if (!strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag, "IDLE must have 0 arguments");
-		else
-			return HrCmdIdle(strTag);
+		return HrCmdIdle(strTag);
 	} else if (strCommand.compare("NAMESPACE") == 0) {
 		if (!strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag, "NAMESPACE must have 0 arguments");
-		else
-			return HrCmdNamespace(strTag);
+		return HrCmdNamespace(strTag);
 	} else if (strCommand.compare("GETQUOTAROOT") == 0) {
 		if (strvResult.size() != 1)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "GETQUOTAROOT must have 1 arguments");
-		else
-			return HrCmdGetQuotaRoot(strTag, strvResult[0]);
+		return HrCmdGetQuotaRoot(strTag, strvResult[0]);
 	} else if (strCommand.compare("GETQUOTA") == 0) {
 		if (strvResult.size() != 1)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "GETQUOTA must have 1 arguments");
-		else
-			return HrCmdGetQuota(strTag, strvResult[0]);
+		return HrCmdGetQuota(strTag, strvResult[0]);
 	} else if (strCommand.compare("SETQUOTA") == 0) {
 		if (strvResult.size() != 2)
 			return HrResponse(RESP_TAGGED_BAD, strTag, "SETQUOTA must have 2 arguments");
-		else
-			return HrCmdSetQuota(strTag, strvResult[0], strvResult[1]);
+		return HrCmdSetQuota(strTag, strvResult[0], strvResult[1]);
 	} else if (strCommand.compare("UID") == 0) {
 		if (strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag,
@@ -580,41 +552,31 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		if (strCommand.compare("SEARCH") == 0) {
 			if (strvResult.empty())
 				return HrResponse(RESP_TAGGED_BAD, strTag, "UID SEARCH must have 1 or more arguments");
-			else
-				return HrCmdSearch(strTag, strvResult, true);
+			return HrCmdSearch(strTag, strvResult, true);
 		} else if (strCommand.compare("FETCH") == 0) {
 			if (strvResult.size() != 2)
 				return HrResponse(RESP_TAGGED_BAD, strTag, "UID FETCH must have 2 arguments");
-			else
-				return HrCmdFetch(strTag, strvResult[0], strvResult[1], true);
+			return HrCmdFetch(strTag, strvResult[0], strvResult[1], true);
 		} else if (strCommand.compare("STORE") == 0) {
 			if (strvResult.size() != 3)
 				return HrResponse(RESP_TAGGED_BAD, strTag, "UID STORE must have 3 arguments");
-			else
-				return HrCmdStore(strTag, strvResult[0], strvResult[1], strvResult[2], true);
+			return HrCmdStore(strTag, strvResult[0], strvResult[1], strvResult[2], true);
 		} else if (strCommand.compare("COPY") == 0) {
 			if (strvResult.size() != 2)
 				return HrResponse(RESP_TAGGED_BAD, strTag, "UID COPY must have 2 arguments");
-			else
-				return HrCmdCopy(strTag, strvResult[0], strvResult[1], true);
+			return HrCmdCopy(strTag, strvResult[0], strvResult[1], true);
 		} else if (strCommand.compare("XAOL-MOVE") == 0) {
 			if (strvResult.size() != 2)
 				return HrResponse(RESP_TAGGED_BAD, strTag, "UID XAOL-MOVE must have 2 arguments");
-			else
-				return HrCmdUidXaolMove(strTag, strvResult[0], strvResult[1]);
+			return HrCmdUidXaolMove(strTag, strvResult[0], strvResult[1]);
 		} else if (strCommand.compare("EXPUNGE") == 0) {
 			if (strvResult.size() != 1)
 				return HrResponse(RESP_TAGGED_BAD, strTag, "UID EXPUNGE must have 1 argument");
-			else
-				return HrCmdExpunge(strTag, strvResult[0]);
-		} else {
-			return HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
+			return HrCmdExpunge(strTag, strvResult[0]);
 		}
-
-	} else {
-		return HrResponse(RESP_TAGGED_BAD, strTag, "Command not supported");
+		return HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
 	}
-	return hr;
+	return HrResponse(RESP_TAGGED_BAD, strTag, "Command not supported");
 }
 
 /** 
@@ -2796,9 +2758,8 @@ HRESULT IMAP::HrCmdGetQuota(const string &strTag, const string &strQuotaRoot)
 		if (hr != hrSuccess)
 			return hr;
 		return HrResponse(RESP_TAGGED_OK, strTag, "GetQuota complete");
-	} else {
-		return HrResponse(RESP_TAGGED_NO, strTag, "Quota root does not exist");
 	}
+	return HrResponse(RESP_TAGGED_NO, strTag, "Quota root does not exist");
 }
 
 HRESULT IMAP::HrCmdSetQuota(const string &strTag, const string &strQuotaRoot, const string &strQuotaList)
@@ -3349,13 +3310,12 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 			if (hr != hrSuccess)
 				goto exit;
             lstFolderMailEIDs.erase(lstFolderMailEIDs.begin() + ulMailnr);
-        } else {
-            if(lstFolderMailEIDs[ulMailnr].bRecent)
-                ++ulRecent;
-                
-            ++iterMail;
-            ++ulMailnr;
+            continue;
         }
+        if (lstFolderMailEIDs[ulMailnr].bRecent)
+            ++ulRecent;
+        ++iterMail;
+        ++ulMailnr;
     }
     
     if (bNewMail || bInitialLoad) {
@@ -5837,35 +5797,35 @@ HRESULT IMAP::IMAP2MAPICharset(const string& input, wstring& output) {
 	for (i = 0; i < input.length(); ++i) {
 		if (input[i] < 0 || input[i] > 127)
 			return MAPI_E_BAD_CHARWIDTH;
-		if (input[i] == '&') {
-			if (i+1 >= input.length()) {
-				// premature end of string
-				output += input[i];
-				break;
-			}
-			if (input[i+1] == '-') {
-				output += '&';
-				++i; // skip '-'
-			} else {
-				string conv = "+";
-				++i; // skip imap '&', is a '+' in utf-7
-				while (i < input.length() && input[i] != '-') {
-					if (input[i] == ',')
-						conv += '/'; // , -> / for utf-7
-					else
-						conv += input[i];
-					++i;
-				}
-				try {
-					output += converter.convert_to<wstring>(CHARSET_WCHAR, conv, rawsize(conv), "UTF-7");
-				} catch(...) {
-					return MAPI_E_BAD_CHARWIDTH;
-				}
-			}
-		} else {
+		if (input[i] != '&') {
 			if (input[i] == '\\' && i+1 < input.length() && (input[i+1] == '"' || input[i+1] == '\\'))
 				++i;
 			output += input[i];
+			continue;
+		}
+		if (i+1 >= input.length()) {
+			// premature end of string
+			output += input[i];
+			break;
+		}
+		if (input[i+1] == '-') {
+			output += '&';
+			++i; // skip '-'
+			continue;
+		}
+		string conv = "+";
+		++i; // skip imap '&', is a '+' in utf-7
+		while (i < input.length() && input[i] != '-') {
+			if (input[i] == ',')
+				conv += '/'; // , -> / for utf-7
+			else
+				conv += input[i];
+			++i;
+		}
+		try {
+			output += converter.convert_to<wstring>(CHARSET_WCHAR, conv, rawsize(conv), "UTF-7");
+		} catch(...) {
+			return MAPI_E_BAD_CHARWIDTH;
 		}
 	}
 	return hrSuccess;

@@ -361,10 +361,9 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 
 				prov.first->second->Init(cINF, infProvider);
 			}
-		} else {
+		} else if (cINF.MakeProperty(sp.first, sp.second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess) {
 			// add properties to list
-			if (cINF.MakeProperty(sp.first, sp.second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
-				++m_cValues;
+			++m_cValues;
 		}
 	}
 

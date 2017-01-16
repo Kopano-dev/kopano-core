@@ -227,14 +227,11 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	}
 
 	// ICal file did not send any timezone information
-	if (tzMap.empty() && strServerTimeZone.empty())
-	{
-		// find timezone from given server timezone
-		if (HrGetTzStruct(strServerTZparam, &ttServerTZ) == hrSuccess)
-		{
-			strServerTimeZone = strServerTZparam;
-			tzMap[strServerTZparam] = ttServerTZ;
-		}
+	if (tzMap.empty() && strServerTimeZone.empty() &&
+	    // find timezone from given server timezone
+	    HrGetTzStruct(strServerTZparam, &ttServerTZ) == hrSuccess) {
+		strServerTimeZone = strServerTZparam;
+		tzMap[strServerTZparam] = ttServerTZ;
 	}
 
 	// find all "messages" vevent, vtodo, vjournal, ...?

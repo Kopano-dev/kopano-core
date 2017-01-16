@@ -249,13 +249,12 @@ bool ECTableRow::rowcompare(unsigned int ulSortColsA, const int *lpSortLenA,
 			return false;
 		// unequal number of sort columns, the item with the least sort columns comes first, independent of asc/desc
 		return ulSortColsA < ulSortColsB;
-	} else {
-	    // Unequal, flip order if desc
-		if(!fIgnoreOrder && lpSortFlagsA && (lpSortFlagsA[i] & TABLEROW_FLAG_DESC))
-			return !ret;
-		else
-			return ret;
 	}
+	// Unequal, flip order if desc
+	if (!fIgnoreOrder && lpSortFlagsA && (lpSortFlagsA[i] & TABLEROW_FLAG_DESC))
+		return !ret;
+	else
+		return ret;
 }
 
 // Compares a row by looking only at a certain prefix of sort columns
@@ -523,21 +522,17 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 				// Delete the unused new node
 				delete lpNewRow;
 				return er;
-			} else {
-				// new row data is different, so delete the old row now
-				er = UpdateRow(TABLE_ROW_DELETE, lpsRowItem, 0, NULL, NULL, NULL, NULL);
-
-				if(er != erSuccess){
-					// Delete the unused new node
-					delete lpNewRow;
-					return er;
-				}
 			}
-
-		} else {
+			// new row data is different, so delete the old row now
+			er = UpdateRow(TABLE_ROW_DELETE, lpsRowItem, 0, NULL, NULL, NULL, NULL);
+			if (er != erSuccess) {
+				// Delete the unused new node
+				delete lpNewRow;
+				return er;
+			}
 			// Indicate that we are adding a new row
-			if(lpulAction)
-				*lpulAction = TABLE_ROW_ADD;
+		} else if (lpulAction != nullptr) {
+			*lpulAction = TABLE_ROW_ADD;
 		}
 
 		// Create the row that we will be inserting
@@ -552,13 +547,13 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 					break;
 				}
 				lpRow = lpRow->lpLeft;
-			} else {
-				if(lpRow->lpRight == NULL) {
-					fLeft = 0;
-					break;
-				}
-				lpRow = lpRow->lpRight;
+				continue;
 			}
+			if (lpRow->lpRight == NULL) {
+				fLeft = 0;
+				break;
+			}
+			lpRow = lpRow->lpRight;
 		}
 			
 		// lpRow now points to our parent, fLeft is whether we're the new left or right node of this parent
@@ -733,12 +728,12 @@ ECRESULT ECKeyTable::InvalidateBookmark(ECTableRow *lpRow)
 
 	for(iPosition = m_mapBookmarks.begin(); iPosition != m_mapBookmarks.end(); )
 	{
-		if (lpRow == iPosition->second.lpPosition) {
-			iRemove = iPosition++;
-			m_mapBookmarks.erase(iRemove);
-		} else {
+		if (lpRow != iPosition->second.lpPosition) {
 			++iPosition;
+			continue;
 		}
+		iRemove = iPosition++;
+		m_mapBookmarks.erase(iRemove);
 	}
 	return erSuccess;
 }
@@ -821,22 +816,22 @@ ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSou
 		else if(lpRow->lpLeft && lpRow->lpRight == NULL) {
 			// Follow the left branche
 			lpRow = lpRow->lpLeft;
+			continue;
 		}
 		else if(lpRow->lpLeft == NULL && lpRow->lpRight) {
 			// Follow the right branche
 			lDestRow -= lpRow->fHidden ? 0 : 1;
 			lpRow = lpRow->lpRight;
+			continue;
 		}
-		else {
-			// There is both a left and a right branch ...
-			if(lpRow->lpLeft->ulBranchCount < (ULONG)lDestRow) {
-				// ... in which our row doesn't exist, so go to the right branch
-				lDestRow -= lpRow->lpLeft->ulBranchCount+ (lpRow->fHidden ? 0 : 1);
-				lpRow = lpRow->lpRight;
-			} else {
-				// ... in which we should be looking
-				lpRow = lpRow->lpLeft;
-			}
+		// There is both a left and a right branch ...
+		if (lpRow->lpLeft->ulBranchCount < (ULONG)lDestRow) {
+			// ... in which our row doesn't exist, so go to the right branch
+			lDestRow -= lpRow->lpLeft->ulBranchCount + (lpRow->fHidden ? 0 : 1);
+			lpRow = lpRow->lpRight;
+		} else {
+			// ... in which we should be looking
+			lpRow = lpRow->lpLeft;
 		}
 	}
 
@@ -942,15 +937,13 @@ void ECKeyTable::Next()
         // go to leftmost node in right tree
         while(lpCurrent->lpLeft)
             lpCurrent = lpCurrent->lpLeft;
-    } else {
-        // Find node to top right from here
-        while(lpCurrent && !lpCurrent->fLeft)
-            lpCurrent = lpCurrent->lpParent;
-
-        if(lpCurrent)
-            lpCurrent = lpCurrent->lpParent;
-
+        return;
     }
+        // Find node to top right from here
+	while (lpCurrent && !lpCurrent->fLeft)
+		lpCurrent = lpCurrent->lpParent;
+	if (lpCurrent)
+		lpCurrent = lpCurrent->lpParent;
 }
 
 void ECKeyTable::Prev()
@@ -958,19 +951,19 @@ void ECKeyTable::Prev()
     if(lpCurrent == NULL) {
         // Past end, seek back one row
         SeekRow(EC_SEEK_END, -1, NULL);
+		return;
     } else if(lpCurrent->lpLeft) {
             lpCurrent = lpCurrent->lpLeft;
             // Go to rightmost node in left tree
             while(lpCurrent->lpRight)
-                lpCurrent = lpCurrent->lpRight;
-        } else {
-            // Find node to top left from here
-            while(lpCurrent && lpCurrent->fLeft)
-                lpCurrent = lpCurrent->lpParent;
-
-            if(lpCurrent)
-                lpCurrent = lpCurrent->lpParent;
-        }
+			lpCurrent = lpCurrent->lpRight;
+		return;
+	}
+	// Find node to top left from here
+	while (lpCurrent && lpCurrent->fLeft)
+		lpCurrent = lpCurrent->lpParent;
+	if (lpCurrent)
+		lpCurrent = lpCurrent->lpParent;
 }
 
 ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTableKey *lpsPrev)
@@ -1291,15 +1284,13 @@ ECRESULT ECKeyTable::LowerBound(unsigned int ulSortCols, int *lpSortLen, unsigne
             } else {
                 lpCurrent = lpCurrent->lpRight;
             }
-	    } else {
-	        // Value we're looking for is left
-	        if(lpCurrent->lpLeft == NULL) {
-	            // Found it, if the value is left, then we're just 'right' of that value now.
-	            break;
-	        } else {
-	            lpCurrent = lpCurrent->lpLeft;
-            }
-        }
+		} else if (lpCurrent->lpLeft == nullptr) {
+			// Value we're looking for is left
+			// Found it, if the value is left, then we're just 'right' of that value now.
+			break;
+		} else {
+			lpCurrent = lpCurrent->lpLeft;
+		}
 	}
 	return erSuccess;
 }

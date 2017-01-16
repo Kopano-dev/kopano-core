@@ -3135,9 +3135,8 @@ int main(int argc, char* argv[])
 		if(hr != hrSuccess) {
 			cerr << "Unable to create store, " << getMapiCodeString(hr, "public") << endl;
 			goto exit;
-		} else {
-			cout << "Public created." << endl;
 		}
+		cout << "Public created." << endl;
 		break;
 
 	case MODE_CREATE_USER:
@@ -3276,14 +3275,13 @@ int main(int argc, char* argv[])
 					NULL, lpDeletedStoresFolder, (LPTSTR)strStorenameTMP.c_str(), 0, NULL, COPY_SUBFOLDERS | MAPI_UNICODE);
 
 				if (hr == MAPI_E_COLLISION) {
-					if (nFolderId < 1000) { // Max 999 folders
-						strStorenameTMP = strStorename + std::to_wstring(nFolderId);
-						++nFolderId;
-						cerr << "Folder already exist, retrying with foldername '" << convert_to<string>(strStorenameTMP) << "'" << endl;
-					} else {
+					if (nFolderId >= 1000) {
 						cerr << "Unable to copy the store to the public, maximum folder collisions exceeded" << endl;
 						goto exit;
 					}
+					strStorenameTMP = strStorename + std::to_wstring(nFolderId);
+					++nFolderId;
+					cerr << "Folder already exist, retrying with foldername '" << convert_to<string>(strStorenameTMP) << "'" << endl;
 				} else if (FAILED(hr)) {
 					cerr << "Unable to copy the store to the public," << getMapiCodeString(hr) << endl;
 					goto exit;

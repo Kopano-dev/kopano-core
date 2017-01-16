@@ -1837,12 +1837,11 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 			else
 				vmHeader->Sender()->setValue(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
 		}
-	} else {
+	} else if (strName.empty() || strName == strEmail) {
 		// Set store owner as from, sender does not need to be set
-		if (strName.empty() || strName == strEmail) 
-			vmHeader->From()->setValue(vmime::mailbox(m_converter.convert_to<string>(strEmail)));
-		else
-			vmHeader->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
+		vmHeader->From()->setValue(vmime::mailbox(m_converter.convert_to<string>(strEmail)));
+	} else {
+		vmHeader->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
 	}
 
 	// read receipt request

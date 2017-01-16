@@ -1348,16 +1348,16 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 
 		// escape some characters in HTML
 		for (i = 0; i < cRead; ++i) {
-			if (lpBuffer[i] == ' ') {
-				if ((i+1) < cRead && lpBuffer[i+1] == ' ')
-					strHtml += L"&nbsp;";
-				else
-					strHtml += L" ";
-			} else {
+			if (lpBuffer[i] != ' ') {
 				std::wstring str;
 				CHtmlEntity::CharToHtmlEntity(lpBuffer[i], str);
 				strHtml += str;
+				continue;
 			}
+			if ((i + 1) < cRead && lpBuffer[i+1] == ' ')
+				strHtml += L"&nbsp;";
+			else
+				strHtml += L" ";
 		}
 
 		// convert WCHAR to wanted (8bit) charset 
@@ -1376,20 +1376,20 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 			if (hr != hrSuccess)
 				goto exit;
 
-			if (err == (size_t)-1) {
-				// make html number from WCHAR entry
-				std::string strHTMLUnicode = "&#";
-				strHTMLUnicode += stringify(*(WCHAR*)readBuffer);
-				strHTMLUnicode += ";";
+			if (err != static_cast<size_t>(-1))
+				continue;
+			// make html number from WCHAR entry
+			std::string strHTMLUnicode = "&#";
+			strHTMLUnicode += stringify(*(WCHAR*)readBuffer);
+			strHTMLUnicode += ";";
 
-				hr = html->Write(strHTMLUnicode.c_str(), strHTMLUnicode.length(), NULL);
-				if (hr != hrSuccess)
-					goto exit;
+			hr = html->Write(strHTMLUnicode.c_str(), strHTMLUnicode.length(), NULL);
+			if (hr != hrSuccess)
+				goto exit;
 
-				// skip unknown character
-				readBuffer += sizeof(WCHAR);
-				stRead -= sizeof(WCHAR);
-			}
+			// skip unknown character
+			readBuffer += sizeof(WCHAR);
+			stRead -= sizeof(WCHAR);
 		}
 	}
 	// @todo, run through iconv?
@@ -1427,16 +1427,16 @@ HRESULT Util::HrTextToHtml(const WCHAR *text, std::string &strHTML, ULONG ulCode
 
 	// escape some characters in HTML
 	for (ULONG i = 0; text[i] != '\0'; ++i) {
-		if (text[i] == ' ') {
-			if (text[i+1] == ' ')
-				wHTML += L"&nbsp;";
-			else
-				wHTML += L" ";
-		} else {
+		if (text[i] != ' ') {
 			std::wstring str;
 			CHtmlEntity::CharToHtmlEntity(text[i], str);
 			wHTML += str;
+			continue;
 		}
+		if (text[i+1] == ' ')
+			wHTML += L"&nbsp;";
+		else
+			wHTML += L" ";
 	}
 
 	try {
@@ -1768,21 +1768,17 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 		// getsize, getbuffer, assign
 		strOutput.append(lpMemStream->GetBuffer(), lpMemStream->GetSize());
 		lpMemStream->Release();
-	} else {
-		// manual copy
-
-		hr = sInput->Seek(zero, SEEK_SET, NULL);
-		if (hr != hrSuccess)
-			return hr;
-
-		while(1) {
-			hr = sInput->Read(buffer, BUFSIZE, &ulRead);
-
-			if(hr != hrSuccess || ulRead == 0)
-				break;
-
-			strOutput.append(buffer, ulRead);
-		}
+		return hr;
+	}
+	// manual copy
+	hr = sInput->Seek(zero, SEEK_SET, NULL);
+	if (hr != hrSuccess)
+		return hr;
+	while (1) {
+		hr = sInput->Read(buffer, BUFSIZE, &ulRead);
+		if (hr != hrSuccess || ulRead == 0)
+			break;
+		strOutput.append(buffer, ulRead);
 	}
 	return hr;
 }
@@ -1809,21 +1805,17 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 		// getsize, getbuffer, assign
 		strOutput.append((WCHAR*)lpMemStream->GetBuffer(), lpMemStream->GetSize() / sizeof(WCHAR));
 		lpMemStream->Release();
-	} else {
-		// manual copy
-
-		hr = sInput->Seek(zero, SEEK_SET, NULL);
-		if (hr != hrSuccess)
-			return hr;
-
-		while(1) {
-			hr = sInput->Read(buffer, BUFSIZE, &ulRead);
-
-			if(hr != hrSuccess || ulRead == 0)
-				break;
-
-			strOutput.append((WCHAR*)buffer, ulRead / sizeof(WCHAR));
-		}
+		return hr;
+	}
+	// manual copy
+	hr = sInput->Seek(zero, SEEK_SET, NULL);
+	if (hr != hrSuccess)
+		return hr;
+	while (1) {
+		hr = sInput->Read(buffer, BUFSIZE, &ulRead);
+		if (hr != hrSuccess || ulRead == 0)
+			break;
+		strOutput.append((WCHAR*)buffer, ulRead / sizeof(WCHAR));
 	}
 	return hr;
 }

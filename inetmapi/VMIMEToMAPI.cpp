@@ -3578,15 +3578,14 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 	vmime::shared_ptr<vmime::mediaType> mt;
 
 	auto vmHeaderPart = vmBodyPart->getHeader();
-	if (vmHeaderPart->hasField(vmime::fields::CONTENT_TYPE)) {
-		ctf = vmime::dynamicCast<vmime::contentTypeField>(vmHeaderPart->findField(vmime::fields::CONTENT_TYPE));
-		mt = vmime::dynamicCast<vmime::mediaType>(ctf->getValue());
-	} else {
+	if (!vmHeaderPart->hasField(vmime::fields::CONTENT_TYPE)) {
 		// create with text/plain; charset=us-ascii ?
 		lBody.push_back("NIL");
 		lBodyStructure.push_back("NIL");
 		goto nil;
 	}
+	ctf = vmime::dynamicCast<vmime::contentTypeField>(vmHeaderPart->findField(vmime::fields::CONTENT_TYPE));
+	mt = vmime::dynamicCast<vmime::mediaType>(ctf->getValue());
 
 	lBody.push_back("\"" + mt->getType() + "\"");
 	lBody.push_back("\"" + mt->getSubType() + "\"");

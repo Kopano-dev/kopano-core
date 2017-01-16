@@ -816,25 +816,24 @@ HRESULT ECMsgStore::GetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULO
 		*lppEntryID = NULL;
 	}
 	
-	if (lppszExplicitClass) {
-		if ((ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
-			std::wstring dst = convert_to<std::wstring>(strExplicitClass);
-			
-			hr = MAPIAllocateBuffer(sizeof(std::wstring::value_type) * (dst.length() + 1), (void**)lppszExplicitClass);
-			if (hr != hrSuccess)
-				return hr;
-			
-			wcscpy((wchar_t*)*lppszExplicitClass, dst.c_str());
-		} else {
-			std::string dst = convert_to<std::string>(strExplicitClass);
-			
-			hr = MAPIAllocateBuffer(dst.length() + 1, (void**)lppszExplicitClass);
-			if (hr != hrSuccess)
-				return hr;
-			
-			strcpy((char*)*lppszExplicitClass, dst.c_str());
-		}
+	if (lppszExplicitClass == nullptr)
+		return hrSuccess;
+	if ((ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
+		std::wstring dst = convert_to<std::wstring>(strExplicitClass);
+
+		hr = MAPIAllocateBuffer(sizeof(std::wstring::value_type) * (dst.length() + 1), (void **)lppszExplicitClass);
+		if (hr != hrSuccess)
+			return hr;
+		wcscpy((wchar_t *)*lppszExplicitClass, dst.c_str());
+		return hrSuccess;
 	}
+
+	std::string dst = convert_to<std::string>(strExplicitClass);
+
+	hr = MAPIAllocateBuffer(dst.length() + 1, (void **)lppszExplicitClass);
+	if (hr != hrSuccess)
+		return hr;
+	strcpy((char *)*lppszExplicitClass, dst.c_str());
 	return hrSuccess;
 }
 

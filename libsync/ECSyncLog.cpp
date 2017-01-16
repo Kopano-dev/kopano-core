@@ -101,12 +101,12 @@ std::mutex ECSyncLog::s_hMutex;
 ECLogger		*ECSyncLog::s_lpLogger = NULL;
 
 ECSyncLog::__initializer::~__initializer() {
-	if (ECSyncLog::s_lpLogger) {
-		unsigned ulRef = ECSyncLog::s_lpLogger->Release();
-		// Make sure all references are released so compressed logs don't get corrupted.
-		while (ulRef)
-			ulRef = ECSyncLog::s_lpLogger->Release();
-	}
+	if (ECSyncLog::s_lpLogger == nullptr)
+		return;
+	unsigned ulRef = ECSyncLog::s_lpLogger->Release();
+	// Make sure all references are released so compressed logs don't get corrupted.
+	while (ulRef)
+		ulRef = ECSyncLog::s_lpLogger->Release();
 }
 
 ECSyncLog::__initializer ECSyncLog::__i;

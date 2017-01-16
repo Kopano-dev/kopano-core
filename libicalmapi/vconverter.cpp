@@ -833,23 +833,24 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 		while (lpicProp) {
 			// X-MICROSOFT-CDO-INTENDEDBUSYSTATUS:FREE
-			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-INTENDEDSTATUS") == 0) {
-				const char *lpVal = icalproperty_get_x(lpicProp);
-				if (lpVal == NULL)
-					sPropVal.Value.ul = 2; /* like else case */
-				else if (strcmp(lpVal, "FREE") == 0)
-					sPropVal.Value.ul = 0;
-				else if (strcmp(lpVal, "TENTATIVE") == 0)
-					sPropVal.Value.ul = 1;
-				else if(strcmp(lpVal, "BUSY") == 0)
-					sPropVal.Value.ul = 2;
-				else if (strcmp(lpVal, "OOF") == 0)
-					sPropVal.Value.ul = 3;
-				else
-					sPropVal.Value.ul = 2;
-				break;
+			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-INTENDEDSTATUS") != 0) {
+				lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
+				continue;
 			}
-			lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
+			const char *lpVal = icalproperty_get_x(lpicProp);
+			if (lpVal == NULL)
+				sPropVal.Value.ul = 2; /* like else case */
+			else if (strcmp(lpVal, "FREE") == 0)
+				sPropVal.Value.ul = 0;
+			else if (strcmp(lpVal, "TENTATIVE") == 0)
+				sPropVal.Value.ul = 1;
+			else if(strcmp(lpVal, "BUSY") == 0)
+				sPropVal.Value.ul = 2;
+			else if (strcmp(lpVal, "OOF") == 0)
+				sPropVal.Value.ul = 3;
+			else
+				sPropVal.Value.ul = 2;
+			break;
 		}
 		// if the value wasn't updated, it still contains the PROP_INTENDEDBUSYSTATUS value, which is what we want.
 	}
