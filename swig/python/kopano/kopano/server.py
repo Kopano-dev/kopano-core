@@ -18,6 +18,7 @@ from .table import Table
 from .company import Company
 from .group import Group
 from .store import Store
+from .config import Config
 
 from .errors import *
 from .defs import *
@@ -97,12 +98,12 @@ class Server(object):
                 pass
             elif getattr(self.options, 'config_file', None):
                 config_file = os.path.abspath(self.options.config_file)
-                config = globals()['Config'](None, filename=self.options.config_file) # XXX snarf
+                config = Config(None, filename=self.options.config_file)
             else:
                 config_file = '/etc/kopano/admin.cfg'
                 try:
                     open(config_file) # check if accessible
-                    config = globals()['Config'](None, filename=config_file) # XXX snarf
+                    config = Config(None, filename=config_file)
                 except IOError:
                     pass
             self.config = config
