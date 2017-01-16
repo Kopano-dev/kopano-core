@@ -7,10 +7,26 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import codecs
 import datetime
+import time
 
-from MAPI.Util import *
+from MAPI import (
+    PT_ERROR, PT_BINARY, PT_MV_BINARY, PT_UNICODE,
+    PT_SYSTIME, MAPI_E_NOT_ENOUGH_MEMORY, KEEP_OPEN_READWRITE,
+    MNID_STRING
+)
+from MAPI.Defs import (
+    PROP_ID, PROP_TAG, PROP_TYPE, HrGetOneProp, bin2hex
+)
+from MAPI.Struct import (
+    SPropValue, MAPIErrorNotFound, MAPIErrorNoSupport,
+    MAPIErrorNotEnoughMemory
+)
+from MAPI.Tags import (
+    PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED
+)
+from MAPI.Time import unixtime
 
-from .defs import *
+from .defs import REV_TAG, REV_TYPE, GUID_NAMESPACE
 from .compat import repr as _repr, fake_unicode as _unicode
 from .utils import stream as _stream
 
@@ -102,7 +118,7 @@ class Property(object):
         self._value = value
         if self.type_ == PT_SYSTIME:
             # Timezones are handled.
-            value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
+            value = unixtime(time.mktime(value.timetuple()))
         self._parent_mapiobj.SetProps([SPropValue(self.proptag, value)])
         self._parent_mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
     value = property(get_value, set_value)

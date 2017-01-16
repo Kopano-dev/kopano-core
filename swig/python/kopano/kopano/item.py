@@ -6,6 +6,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import codecs
+import datetime
 
 import email.parser
 import email.utils
@@ -19,32 +20,65 @@ try:
 except ImportError:
     import pickle
 
-from MAPI.Util import *
-from MAPI.Util.Generators import *
-
-import _MAPICore
-
 import inetmapi
 import icalmapi
 
-from .compat import (
-    unhex as _unhex, is_str as _is_str, repr as _repr, pickle_load as _pickle_load,
-    pickle_loads as _pickle_loads, fake_unicode as _unicode
+from MAPI import (
+    KEEP_OPEN_READWRITE, PT_MV_BINARY, PT_BOOLEAN, MSGFLAG_READ,
+    CLEAR_READ_FLAG, PT_MV_STRING8, PT_BINARY, PT_LONG,
+    MAPI_CREATE, MAPI_MODIFY, MAPI_DEFERRED_ERRORS, TBL_BATCH,
+    ATTACH_BY_VALUE, ATTACH_EMBEDDED_MSG, STGM_WRITE, STGM_TRANSACTED,
+    MAPI_UNICODE, MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_E_NOT_FOUND,
+    MAPI_E_NOT_ENOUGH_MEMORY
 )
-from .utils import (
-    create_prop as _create_prop, prop as _prop, props as _props, stream as _stream,
-    bestbody as _bestbody,
+from MAPI.Defs import HrGetOneProp, CHANGE_PROP_TYPE, bin2hex
+from MAPI.Struct import (
+    SPropValue, MAPIErrorNotFound, MAPIErrorUnknownEntryid,
+    MAPIErrorInterfaceNotSupported
+)
+from MAPI.Tags import (
+    PR_ADDRTYPE, PR_BODY, PR_LOCALITY, PR_STATE_OR_PROVINCE,
+    PR_BUSINESS_FAX_NUMBER, PR_COMPANY_NAME, PR_GIVEN_NAME,
+    PR_MIDDLE_NAME, PR_NORMALIZED_SUBJECT, PR_TITLE,
+    PR_TRANSMITABLE_DISPLAY_NAME, PR_DISPLAY_NAME_W,
+    PR_MESSAGE_CLASS_W, PR_CONTAINER_CLASS, PR_ENTRYID,
+    PR_EC_HIERARCHYID, PR_SOURCE_KEY, PR_SUBJECT_W,
+    PR_MESSAGE_SIZE, PR_BODY_W, PR_CREATION_TIME,
+    PR_MESSAGE_DELIVERY_TIME, PR_LAST_MODIFICATION_TIME,
+    PR_MESSAGE_FLAGS, PR_PARENT_ENTRYID, PR_IMPORTANCE,
+    PR_ATTACH_NUM, PR_ATTACH_METHOD, PR_ATTACH_LONG_FILENAME_W,
+    PR_ATTACH_DATA_BIN, PR_TRANSPORT_MESSAGE_HEADERS_W,
+    PR_EC_IMAP_EMAIL, PR_SENTMAIL_ENTRYID, PR_DELETE_AFTER_SUBMIT,
+    PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W,
+    PR_SENDER_ENTRYID, PR_SENT_REPRESENTING_ADDRTYPE_W,
+    PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
+    PR_SENT_REPRESENTING_ENTRYID, PR_MESSAGE_RECIPIENTS,
+    PR_MESSAGE_ATTACHMENTS, PR_RECIPIENT_TYPE, PR_ADDRTYPE_W,
+    PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W, PR_NULL, PR_HTML,
+    PR_RTF_COMPRESSED, PR_ATTACH_DATA_OBJ, PR_ICON_INDEX
 )
 
+from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
+
+from .compat import (
+    unhex as _unhex, is_str as _is_str, repr as _repr,
+    pickle_load as _pickle_load, pickle_loads as _pickle_loads,
+    fake_unicode as _unicode
+)
+from .utils import (
+    create_prop as _create_prop, prop as _prop, props as _props,
+    stream as _stream, bestbody as _bestbody
+)
+from .defs import (
+    NAMED_PROPS_ARCHIVER, NAMED_PROP_CATEGORY, ADDR_PROPS,
+    PSETID_Archive
+)
 from .attachment import Attachment
 from .body import Body
 from .recurrence import Recurrence, Occurrence
 from .prop import Property
 from .address import Address
 from .table import Table
-
-from .errors import *
-from .defs import *
 
 class PersistentList(list):
     def __init__(self, mapiobj, proptag, *args, **kwargs):
@@ -53,6 +87,7 @@ class PersistentList(list):
         for attr in ('append', 'extend', 'insert', 'pop', 'remove', 'reverse', 'sort'):
             setattr(self, attr, self._autosave(getattr(self, attr)))
         list.__init__(self, *args, **kwargs)
+
     def _autosave(self, func):
         @wraps(func)
         def _func(*args, **kwargs):
@@ -115,7 +150,7 @@ class Item(object):
                     SPropValue(PR_NORMALIZED_SUBJECT, ''), SPropValue(PR_TITLE, ''),
                     SPropValue(PR_TRANSMITABLE_DISPLAY_NAME, ''),
                     SPropValue(PR_DISPLAY_NAME_W, fullname),
-                    SPropValue(0x80D81003, [0]), SPropValue(0x80D90003, 1), 
+                    SPropValue(0x80D81003, [0]), SPropValue(0x80D90003, 1),
                     SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Contact'),
                 ])
 
@@ -130,7 +165,7 @@ class Item(object):
                 except MAPIErrorNotFound:
                     self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Note')])
                 else:
-                    if container_class == 'IPF.Contact': # XXX just skip first 4 chars? 
+                    if container_class == 'IPF.Contact': # XXX just skip first 4 chars?
                         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Contact')]) # XXX set default props
                     elif container_class == 'IPF.Appointment':
                         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')]) # XXX set default props
@@ -365,7 +400,7 @@ class Item(object):
         name = _unicode(name)
         props = [SPropValue(PR_ATTACH_LONG_FILENAME_W, name), SPropValue(PR_ATTACH_METHOD, ATTACH_BY_VALUE)]
         attach.SetProps(props)
-        stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, STGM_WRITE|STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
+        stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
         stream.Write(data)
         stream.Commit(0)
         attach.SaveChanges(KEEP_OPEN_READWRITE)
@@ -443,7 +478,7 @@ class Item(object):
     def from_(self):
         """ From :class:`Address` """
 
-        addrprops= (PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID)
+        addrprops = (PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID)
         args = [self.get_prop(p).value if self.get_prop(p) else None for p in addrprops]
         return Address(self.server, *args)
 
@@ -509,7 +544,7 @@ class Item(object):
                 if start and end:
                     recurrences = recurrences.between(start, end)
                 for d in recurrences:
-                    occ = Occurrence(self, d, d+datetime.timedelta(hours=1)) # XXX
+                    occ = Occurrence(self, d, d + datetime.timedelta(hours=1)) # XXX
                     if (not start or occ.start >= start) and (not end or occ.end < end): # XXX slow for now; overlaps with start, end?
                         yield occ
             else:
@@ -547,7 +582,7 @@ class Item(object):
         for addr in addrs:
             pr_addrtype, pr_dispname, pr_email, pr_entryid = self._addr_props(addr)
             names.append([
-                SPropValue(PR_RECIPIENT_TYPE, MAPI_TO), 
+                SPropValue(PR_RECIPIENT_TYPE, MAPI_TO),
                 SPropValue(PR_DISPLAY_NAME_W, pr_dispname),
                 SPropValue(PR_ADDRTYPE_W, _unicode(pr_addrtype)),
                 SPropValue(PR_EMAIL_ADDRESS_W, _unicode(pr_email)),
@@ -582,7 +617,7 @@ class Item(object):
         if not hasattr(self.server, '_smtp_cache'): # XXX speed hack, discuss
             self.server._smtp_cache = {}
         for addrtype, email, entryid, name, searchkey in ADDR_PROPS:
-            if addrtype not in tag_data or entryid not in tag_data or name not in tag_data: 
+            if addrtype not in tag_data or entryid not in tag_data or name not in tag_data:
                 continue
             if tag_data[addrtype][1] in (u'SMTP', u'MAPIPDL'): # XXX MAPIPDL==distlist.. can we just dump this?
                 continue
@@ -606,7 +641,7 @@ class Item(object):
             else:
                 props.append([email, email_addr, None])
             tag_data[entryid][1] = self.server.ab.CreateOneOff(tag_data[name][1], u'SMTP', email_addr, MAPI_UNICODE)
-            key = b'SMTP:'+email_addr.upper().encode('ascii')
+            key = b'SMTP:' + email_addr.upper().encode('ascii')
             if searchkey in tag_data: # XXX probably need to create, also email
                 tag_data[searchkey][1] = key
             else:
@@ -690,7 +725,7 @@ class Item(object):
         for proptag, value, nameid in d[b'props']:
             if nameid is not None:
                 proptag = self.mapiobj.GetIDsFromNames([nameid], MAPI_CREATE)[0] | (proptag & 0xffff)
-            if (proptag >> 16) not in (PR_BODY>>16, PR_HTML>>16, PR_RTF_COMPRESSED>>16) or \
+            if (proptag >> 16) not in (PR_BODY >> 16, PR_HTML >> 16, PR_RTF_COMPRESSED >> 16) or \
                value not in (MAPI_E_NOT_FOUND, MAPI_E_NOT_ENOUGH_MEMORY): # XXX why do we backup these errors
                 props.append(SPropValue(proptag, value))
         self.mapiobj.SetProps(props)
@@ -709,7 +744,7 @@ class Item(object):
                 item = Item(mapiobj=msg)
                 item._load(data, attachments) # recursion
             elif attachments:
-                stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, STGM_WRITE|STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
+                stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
                 stream.Write(data)
                 stream.Commit(0)
             attach.SaveChanges(KEEP_OPEN_READWRITE)
