@@ -37,17 +37,24 @@ class Property(object):
         self.proptag = mapiobj.ulPropTag
 
         if PROP_TYPE(mapiobj.ulPropTag) == PT_ERROR and mapiobj.Value == MAPI_E_NOT_ENOUGH_MEMORY:
-            for proptype in (PT_BINARY, PT_UNICODE): # XXX slow, incomplete?
-                proptag = (mapiobj.ulPropTag & 0xffff0000) | proptype
-                try:
-                    HrGetOneProp(parent_mapiobj, proptag) # XXX: Unicode issue?? calls GetProps([proptag], 0)
-                    self.proptag = proptag # XXX isn't it strange we can get here
-                except MAPIErrorNotEnoughMemory:
-                    mapiobj = SPropDelayedValue(parent_mapiobj, proptag)
-                    self.proptag = proptag
-                    break
-                except MAPIErrorNotFound:
-                    pass
+            if PROP_ID(self.proptag) == PROP_ID(PR_BODY_W): # avoid slow guessing
+                self.proptag = PR_BODY_W
+                mapiobj = SPropDelayedValue(parent_mapiobj, self.proptag)
+            elif PROP_ID(self.proptag) in (PROP_ID(PR_RTF_COMPRESSED), PROP_ID(PR_HTML)):
+                self.proptag = PROP_TAG(PT_BINARY, PROP_ID(self.proptag))
+                mapiobj = SPropDelayedValue(parent_mapiobj, self.proptag)
+            else: # XXX possible to use above trick to infer all proptags?
+                for proptype in (PT_BINARY, PT_UNICODE): # XXX slow, incomplete?
+                    proptag = (mapiobj.ulPropTag & 0xffff0000) | proptype
+                    try:
+                        HrGetOneProp(parent_mapiobj, proptag) # XXX: Unicode issue?? calls GetProps([proptag], 0)
+                        self.proptag = proptag # XXX isn't it strange we can get here
+                    except MAPIErrorNotEnoughMemory:
+                        mapiobj = SPropDelayedValue(parent_mapiobj, proptag)
+                        self.proptag = proptag
+                        break
+                    except MAPIErrorNotFound:
+                        pass
 
         self.id_ = self.proptag >> 16
         self.mapiobj = mapiobj
