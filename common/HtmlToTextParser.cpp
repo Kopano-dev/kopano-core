@@ -16,6 +16,8 @@
  */
 
 #include <kopano/platform.h>
+#include <algorithm>
+#include <cwctype>
 #include <utility>
 #include "HtmlToTextParser.h"
 #include "HtmlEntity.h"
@@ -123,6 +125,20 @@ bool CHtmlToTextParser::Parse(const WCHAR *lpwHTML)
 }
 
 std::wstring& CHtmlToTextParser::GetText() {
+	/*
+	 * Remove all trailing whitespace, but remember if there was the usual
+	 * final newline (since it too counts as whitespace) and retain/restore
+	 * it afterwards.
+	 */
+	bool lf = false;
+	auto r = strText.rbegin();
+	for (; r != strText.rend() && iswspace(*r); ++r)
+		if (*r == L'\n')
+			/* \n is sufficient — no need to test for \r too */
+			lf = true;
+	strText.erase(r.base(), strText.end());
+	if (lf)
+		strText += L"\r\n";
 	return strText;
 }
 
