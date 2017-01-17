@@ -2310,7 +2310,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 			strTnefReason = "Force TNEF because of voting request";
 		}
 
-		if (iUseTnef <= 0 && has_reminder(lpMessage)) {
+		if (iUseTnef == 0 && has_reminder(lpMessage)) {
 			iUseTnef = 1;
 			strTnefReason = "Force TNEF because of reminder";
 		}
