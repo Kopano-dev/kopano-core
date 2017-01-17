@@ -8,14 +8,14 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 import re
 import struct
 
-import _MAPICore
-
 from MAPI.Util import *
 
 try:
     REV_TYPE
 except NameError:
     REV_TYPE = {}
+
+    import _MAPICore
     for K, V in _MAPICore.__dict__.items():
         if K.startswith('PT_'):
             REV_TYPE[V] = K
@@ -37,7 +37,7 @@ PSETID_Address = DEFINE_OLEGUID(0x00062004, 0, 0)
 PSETID_Common = DEFINE_OLEGUID(0x00062008, 0, 0)
 PSETID_Log = DEFINE_OLEGUID(0x0006200A, 0, 0)
 PSETID_Note = DEFINE_OLEGUID(0x0006200E, 0, 0)
-PSETID_Meeting = DEFINE_GUID(0x6ED8DA90, 0x450B, 0x101B,0x98, 0xDA, 0x00, 0xAA, 0x00, 0x3F, 0x13, 0x05)
+PSETID_Meeting = DEFINE_GUID(0x6ED8DA90, 0x450B, 0x101B, 0x98, 0xDA, 0x00, 0xAA, 0x00, 0x3F, 0x13, 0x05)
 
 NAMED_PROPS_INTERNET_HEADERS = [
     MAPINAMEID(PS_INTERNET_HEADERS, MNID_STRING, u'x-original-to'),
@@ -66,7 +66,7 @@ GUID_NAMESPACE = {
     PSETID_Meeting: 'meeting',
     PS_EC_IMAP: 'imap',
 }
-NAMESPACE_GUID = dict((b,a) for (a,b) in GUID_NAMESPACE.items())
+NAMESPACE_GUID = dict((b, a) for (a, b) in GUID_NAMESPACE.items())
 
 # XXX copied from common/ECDefs.h
 def OBJECTCLASS(__type, __class):
@@ -96,12 +96,12 @@ ADDR_PROPS = [
 
 # Common/RecurrenceState.h
 # Defines for recurrence exceptions
-ARO_SUBJECT =	0x0001
+ARO_SUBJECT = 0x0001
 ARO_MEETINGTYPE = 0x0002
 ARO_REMINDERDELTA = 0x0004
-ARO_REMINDERSET	= 0x0008
+ARO_REMINDERSET = 0x0008
 ARO_LOCATION = 0x0010
-ARO_BUSYSTATUS	= 0x0020
+ARO_BUSYSTATUS = 0x0020
 ARO_ATTACHMENT = 0x0040
 ARO_SUBTYPE = 0x0080
 ARO_APPTCOLOR = 0x0100
@@ -139,4 +139,4 @@ RIGHT_NAME = {
     0x400: 'folder_visible',
 }
 
-NAME_RIGHT = dict((b,a) for (a,b) in RIGHT_NAME.items())
+NAME_RIGHT = dict((b, a) for (a, b) in RIGHT_NAME.items())

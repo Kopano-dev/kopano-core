@@ -6,16 +6,44 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import codecs
-import sys
 import traceback
 import time
+import struct
 
-from MAPI.Util import *
+from MAPI import (
+    ECImportContentsChanges, SYNC_E_IGNORE, WrapStoreEntryID,
+    WrapCompressedRTFStream, PT_UNICODE, PT_SYSTIME, PT_LONG,
+    MNID_ID, MNID_STRING, KEEP_OPEN_READWRITE, MAPI_UNICODE,
+    SYNC_NORMAL, SYNC_ASSOCIATED, SYNC_CATCHUP, SYNC_UNICODE, IStream,
+    STREAM_SEEK_SET, RELOP_GE, RELOP_LT, PT_ERROR,
+    MAPI_E_NOT_ENOUGH_MEMORY, MAPI_E_NOT_FOUND, ROW_ADD
+)
+from MAPI.Defs import (
+    PpropFindProp, bin2hex, PROP_TYPE, CHANGE_PROP_TYPE, HrGetOneProp
+)
+from MAPI.Tags import (
+    PR_ENTRYID, PR_STORE_ENTRYID, PR_EC_PARENT_HIERARCHYID,
+    PR_EC_HIERARCHYID, PR_STORE_RECORD_KEY, PR_RTF_COMPRESSED,
+    PR_CONTENTS_SYNCHRONIZER, PR_MESSAGE_DELIVERY_TIME, PR_BODY_W,
+    PR_HTML, PR_RTF_IN_SYNC, PR_NULL, PR_ACL_TABLE, PR_MEMBER_ENTRYID,
+    PR_MEMBER_RIGHTS
+)
+from MAPI.Tags import (
+    IID_IExchangeImportContentsChanges, IID_IECImportContentsChanges,
+    IID_IStream, IID_IExchangeExportChanges, IID_IECMessageRaw,
+    IID_IExchangeModifyTable
+)
+from MAPI.Struct import (
+    MAPIError, MAPIErrorNotFound, MAPIErrorNoAccess,
+    MAPIErrorNotEnoughMemory, MAPIErrorInterfaceNotSupported,
+    SPropValue, MAPINAMEID, SPropertyRestriction, SAndRestriction,
+    ROWENTRY
+)
+from MAPI.Time import unixtime
 
-from .defs import *
-from .errors import *
-
+from .defs import NAMESPACE_GUID
 from .compat import is_int as _is_int, unhex as _unhex
+from .errors import Error, NotFoundError
 
 class TrackingContentsImporter(ECImportContentsChanges):
     def __init__(self, server, importer, log, stats):
@@ -41,7 +69,7 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 mapistore = self.importer.store.mapiobj
             else:
                 store_entryid = PpropFindProp(props, PR_STORE_ENTRYID).Value
-                store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', store_entryid[:-4])+self.server.pseudo_url+b'\x00'
+                store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', store_entryid[:-4]) + self.server.pseudo_url + b'\x00'
                 mapistore = self.server.mapisession.OpenMsgStore(0, store_entryid, None, 0) # XXX cache
             item = Item()
             item.server = self.server
@@ -51,7 +79,7 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 item.folderid = PpropFindProp(props, PR_EC_PARENT_HIERARCHYID).Value
                 props = item.mapiobj.GetProps([PR_EC_HIERARCHYID, PR_EC_PARENT_HIERARCHYID, PR_STORE_RECORD_KEY], 0) # XXX properties don't exist?
                 item.docid = props[0].Value
-                # item.folderid = props[1].Value # XXX 
+                # item.folderid = props[1].Value # XXX
                 item.storeid = bin2hex(props[2].Value)
                 if hasattr(self.importer, 'update'):
                     self.importer.update(item, flags)
@@ -122,7 +150,7 @@ def stream(mapiobj, proptag):
 def create_prop(self, mapiobj, proptag, value, proptype=None):
     if _is_int(proptag):
         if PROP_TYPE(proptag) == PT_SYSTIME:
-            value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
+            value = unixtime(time.mktime(value.timetuple()))
         # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
         try:
             mapiobj.SetProps([SPropValue(proptag, value)])
@@ -135,7 +163,7 @@ def create_prop(self, mapiobj, proptag, value, proptype=None):
             name = int(name)
 
         if proptype == PT_SYSTIME:
-            value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
+            value = unixtime(time.mktime(value.timetuple()))
         if not proptype:
             raise Error('Missing type to create named Property') # XXX exception too general?
 
@@ -196,7 +224,7 @@ def state(mapiobj, associated=False):
         steps, step = exporter.Synchronize(step)
     stream = IStream()
     exporter.UpdateState(stream)
-    stream.Seek(0, MAPI.STREAM_SEEK_SET)
+    stream.Seek(0, STREAM_SEEK_SET)
     return bin2hex(stream.Read(0xFFFFF))
 
 def sync(server, syncobj, importer, state, log, max_changes, associated=False, window=None, begin=None, end=None, stats=None):
@@ -205,21 +233,21 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
 
     stream = IStream()
     stream.Write(_unhex(state))
-    stream.Seek(0, MAPI.STREAM_SEEK_SET)
+    stream.Seek(0, STREAM_SEEK_SET)
 
     restriction = None
     if window:
         # sync window of last N seconds
-        propval = SPropValue(PR_MESSAGE_DELIVERY_TIME, MAPI.Time.unixtime(int(time.time()) - window))
+        propval = SPropValue(PR_MESSAGE_DELIVERY_TIME, unixtime(int(time.time()) - window))
         restriction = SPropertyRestriction(RELOP_GE, PR_MESSAGE_DELIVERY_TIME, propval)
 
     elif begin or end:
         restrs = []
         if begin:
-            propval = SPropValue(PR_MESSAGE_DELIVERY_TIME, MAPI.Time.unixtime(time.mktime(begin.timetuple())))
+            propval = SPropValue(PR_MESSAGE_DELIVERY_TIME, unixtime(time.mktime(begin.timetuple())))
             restrs.append(SPropertyRestriction(RELOP_GE, PR_MESSAGE_DELIVERY_TIME, propval))
         if end:
-            propval = SPropValue(PR_MESSAGE_DELIVERY_TIME, MAPI.Time.unixtime(time.mktime(end.timetuple())))
+            propval = SPropValue(PR_MESSAGE_DELIVERY_TIME, unixtime(time.mktime(end.timetuple())))
             restrs.append(SPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, propval))
         if len(restrs) == 1:
             restriction = restrs[0]
@@ -238,7 +266,7 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
         syncid, changeid = struct.unpack('<II', state.decode('hex'))
         stream = IStream()
         stream.Write(struct.pack('<II', 0, changeid))
-        stream.Seek(0, MAPI.STREAM_SEEK_SET)
+        stream.Seek(0, STREAM_SEEK_SET)
 
         exporter.Config(stream, flags, importer, restriction, None, None, 0)
 
@@ -281,7 +309,7 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
 
     exporter.UpdateState(stream)
 
-    stream.Seek(0, MAPI.STREAM_SEEK_SET)
+    stream.Seek(0, STREAM_SEEK_SET)
     return bin2hex(stream.Read(0xFFFFF))
 
 def openentry_raw(mapistore, entryid, flags): # avoid underwater action for archived items
@@ -308,13 +336,13 @@ def bestbody(mapiobj): # XXX we may want to use the swigged version in libcommon
     elif((props[1].ulPropTag == PR_HTML or (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_ENOUGH_MEMORY)) and
          (PROP_TYPE(props[0].ulPropTag) == PT_ERROR and props[0].Value == MAPI_E_NOT_ENOUGH_MEMORY) and
          (PROP_TYPE(props[2].ulPropTag) == PT_ERROR and props[2].Value == MAPI_E_NOT_ENOUGH_MEMORY) and
-         props[3].Value == False):
+         not props[3].Value):
         tag = PR_HTML
 
     elif((props[2].ulPropTag == PR_RTF_COMPRESSED or (PROP_TYPE(props[2].ulPropTag) == PT_ERROR and props[2].Value == MAPI_E_NOT_ENOUGH_MEMORY)) and
          (PROP_TYPE(props[0].ulPropTag) == PT_ERROR and props[0].Value == MAPI_E_NOT_ENOUGH_MEMORY) and
          (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_FOUND) and
-         props[3].Value == True):
+         props[3].Value):
         tag = PR_RTF_COMPRESSED
 
     return tag
@@ -335,7 +363,7 @@ def rectime_to_unixtime(t):
     return (t - 194074560) * 60
 
 def unixtime_to_rectime(t):
-    return int(t/60) + 194074560
+    return int(t / 60) + 194074560
 
 def extract_ipm_ol2007_entryids(blob, offset):
     # Extracts entryids from PR_IPM_OL2007_ENTRYIDS blob using
@@ -354,7 +382,7 @@ def extract_ipm_ol2007_entryids(blob, offset):
             pos += 2 # skip check
             sublen = unpack_short(blob, pos)
             pos += 2
-            return codecs.encode(blob[pos:pos+sublen], 'hex').upper()
+            return codecs.encode(blob[pos:pos + sublen], 'hex').upper()
         else:
             pos += totallen
 
@@ -394,7 +422,7 @@ def bytes_to_human(b):
     suffixes = ['b', 'kb', 'mb', 'gb', 'tb', 'pb']
     if b == 0: return '0 b'
     i = 0
-    len_suffixes = len(suffixes)-1
+    len_suffixes = len(suffixes) - 1
     while b >= 1024 and i < len_suffixes:
         b /= 1024
         i += 1
@@ -421,7 +449,7 @@ def human_to_bytes(s):
             break
     else:
         raise ValueError("can't interpret %r" % init)
-    prefix = {sset[0]:1}
+    prefix = {sset[0]: 1}
     for i, s in enumerate(sset[1:]):
-        prefix[s] = 1 << (i+1)*10
+        prefix[s] = 1 << (i + 1) * 10
     return int(num * prefix[letter])

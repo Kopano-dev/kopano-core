@@ -51,13 +51,12 @@ Main classes:
 import collections
 import contextlib
 try:
-    from . import daemon
-    from .daemon import pidlockfile
+    import daemon
+    import daemon.pidlockfile
 except ImportError:
     pass
 
 import errno
-import fnmatch
 import grp
 import logging.handlers
 from multiprocessing import Process, Queue
@@ -73,14 +72,11 @@ import threading
 import traceback
 import signal
 import ssl
-import time
 
-from MAPI.Util import *
-
-from .defs import *
 from .compat import decode as _decode
-from .utils import human_to_bytes as _human_to_bytes
-from .errors import *
+from .errors import (
+    Error, ConfigError, NotFoundError, LogonError, NotSupportedError
+)
 from .config import Config, CONFIG
 from .server import Server
 from .address import Address
@@ -210,7 +206,7 @@ def logger(service, options=None, stdout=False, config=None, name=''):
         fh.setLevel(log_level)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
-    if getattr(options, 'service', True) == False:
+    if not getattr(options, 'service', True):
         ch = logging.StreamHandler(sys.stdout)
         ch.setLevel(log_level)
         ch.setFormatter(formatter)
