@@ -9,9 +9,38 @@ import datetime
 import os
 import time
 import socket
+import fnmatch
 
-from MAPI.Util import *
+from MAPI import (
+    MAPI_UNICODE, MDB_WRITE, RELOP_EQ, RELOP_RE,
+    TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS
+)
+from MAPI.Util import AddressBook, GetDefaultStore, OpenECSession
+from MAPI.Defs import HrGetOneProp, bin2hex
+from MAPI.Struct import (
+    SPropertyRestriction, SPropValue, ECCOMPANY, ECGROUP, ECUSER,
+    MAPIErrorNotFound, MAPIErrorNoSupport, MAPIErrorCollision,
+    MAPIErrorLogonFailed, MAPIErrorNetworkError, MAPIErrorDiskError
+)
+from MAPI.Tags import (
+    PR_ACCOUNT_W, PURGE_CACHE_ALL, PR_DISPLAY_NAME_W,
+    PR_DISPLAY_NAME_A, PR_ENTRYID, PR_STORE_RECORD_KEY,
+    PR_MAPPING_SIGNATURE, PR_CONTAINER_CONTENTS,
+    PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,
+    PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY,
+    PR_EC_STATSTABLE_SERVERS, PR_EC_STATS_SERVER_HTTPSURL,
+    PR_STORE_ENTRYID, EC_PROFILE_FLAGS_NO_UID_AUTH,
+    EC_PROFILE_FLAGS_NO_NOTIFICATIONS
+)
+from MAPI.Tags import (
+    IID_IMsgStore, IID_IMAPITable, IID_IExchangeManageStore,
+    IID_IECServiceAdmin
+)
 
+from .errors import (
+    Error, NotFoundError, DuplicateError, NotSupportedError,
+    LogonError
+)
 from .parser import parser
 from .user import User
 from .table import Table
@@ -19,9 +48,6 @@ from .company import Company
 from .group import Group
 from .store import Store
 from .config import Config
-
-from .errors import *
-from .defs import *
 
 from .compat import (
     unhex as _unhex, decode as _decode, repr as _repr,
@@ -46,7 +72,7 @@ def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
             t = datetime.datetime.now()
             updated = updates.get(key, t)
 
-            if key not in results or t-updated > time_delta:
+            if key not in results or t - updated > time_delta:
                 # calculate
                 updates[key] = t
                 result = f(*args, **kwargs)
@@ -234,7 +260,7 @@ class Server(object):
                 if '*' in username or '?' in username: # XXX unicode.. need to use something like boost::wregex in ZCP?
                     regex = username.replace('*', '.*').replace('?', '.')
                     restriction = SPropertyRestriction(RELOP_RE, PR_DISPLAY_NAME_A, SPropValue(PR_DISPLAY_NAME_A, regex))
-                    for match in MAPI.Util.AddressBook.GetAbObjectList(self.mapisession, restriction):
+                    for match in AddressBook.GetAbObjectList(self.mapisession, restriction):
                         if fnmatch.fnmatch(match, username):
                             yield User(match, self)
                 else:
@@ -245,7 +271,7 @@ class Server(object):
                 for user in Company(name, self).users(): # XXX remote/system check
                     yield user
         except MAPIErrorNoSupport:
-            for username in MAPI.Util.AddressBook.GetUserList(self.mapisession, None, MAPI_UNICODE):
+            for username in AddressBook.GetUserList(self.mapisession, None, MAPI_UNICODE):
                 user = User(username, self)
                 if system or username != u'SYSTEM':
                     if remote or user._ecuser.Servername in (self.name, ''):
@@ -276,11 +302,11 @@ class Server(object):
         if company:
             company = _unicode(company)
         if company and company != u'Default':
-            usereid = self.sa.CreateUser(ECUSER(u'%s@%s' % (name, company), password, email, fullname), MAPI_UNICODE)
+            self.sa.CreateUser(ECUSER(u'%s@%s' % (name, company), password, email, fullname), MAPI_UNICODE)
             user = self.company(company).user(u'%s@%s' % (name, company))
         else:
             try:
-                usereid = self.sa.CreateUser(ECUSER(name, password, email, fullname), MAPI_UNICODE)
+                self.sa.CreateUser(ECUSER(name, password, email, fullname), MAPI_UNICODE)
             except MAPIErrorCollision:
                 raise DuplicateError("user '%s' already exists" % name)
             user = self.user(name)
@@ -323,7 +349,7 @@ class Server(object):
 
     def _companylist(self): # XXX fix self.sa.GetCompanyList(MAPI_UNICODE)? looks like it's not swigged correctly?
         self.sa.GetCompanyList(MAPI_UNICODE) # XXX exception for single-tenant....
-        return MAPI.Util.AddressBook.GetCompanyList(self.mapisession, MAPI_UNICODE)
+        return AddressBook.GetCompanyList(self.mapisession, MAPI_UNICODE)
 
     @property
     def multitenant(self):
@@ -357,7 +383,7 @@ class Server(object):
     def create_company(self, name): # XXX deprecated because of company(create=True)?
         name = _unicode(name)
         try:
-            companyeid = self.sa.CreateCompany(ECCOMPANY(name, None), MAPI_UNICODE)
+            self.sa.CreateCompany(ECCOMPANY(name, None), MAPI_UNICODE)
         except MAPIErrorCollision:
             raise DuplicateError("company '%s' already exists" % name)
         except MAPIErrorNoSupport:
@@ -386,7 +412,7 @@ class Server(object):
     def groups(self):
         """ Return all :class:`groups <Group>` on server """
 
-        for name in MAPI.Util.AddressBook.GetGroupList(self.mapisession, None, MAPI_UNICODE):
+        for name in AddressBook.GetGroupList(self.mapisession, None, MAPI_UNICODE):
             yield Group(name, self)
 
     def group(self, name):
@@ -394,12 +420,12 @@ class Server(object):
 
         return Group(name, self)
 
-    def create_group(self, name, fullname='', email='', hidden = False, groupid = None):
+    def create_group(self, name, fullname='', email='', hidden=False, groupid=None):
         name = _unicode(name) # XXX: fullname/email unicode?
         email = _unicode(email)
         fullname = _unicode(fullname)
         try:
-            companyeid = self.sa.CreateGroup(ECGROUP(name, fullname, email, int(hidden), groupid), MAPI_UNICODE)
+            self.sa.CreateGroup(ECGROUP(name, fullname, email, int(hidden), groupid), MAPI_UNICODE)
         except MAPIErrorCollision:
             raise DuplicateError("group '%s' already exists" % name)
 

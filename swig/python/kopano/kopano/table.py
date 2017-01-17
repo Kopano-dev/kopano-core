@@ -12,11 +12,15 @@ try:
 except ImportError:
     from io import StringIO
 
-from .defs import *
+from MAPI import (
+    TBL_ALL_COLUMNS, TABLE_SORT_ASCEND, TABLE_SORT_DESCEND
+)
+from MAPI.Defs import PpropFindProp
+from MAPI.Struct import MAPIErrorNotFound, SSort, SSortOrderSet
+
+from .defs import REV_TAG
 from .compat import fake_unicode as _unicode
 from .prop import Property
-
-from MAPI.Util import *
 
 class Table(object):
     """Table class"""
@@ -28,8 +32,8 @@ class Table(object):
         if columns:
             mapitable.SetColumns(columns, 0)
         else:
-            cols = mapitable.QueryColumns(TBL_ALL_COLUMNS) # some columns are hidden by default XXX result (if at all) depends on table implementation 
-            cols = cols or mapitable.QueryColumns(0) # fall-back 
+            cols = mapitable.QueryColumns(TBL_ALL_COLUMNS) # some columns are hidden by default XXX result (if at all) depends on table implementation
+            cols = cols or mapitable.QueryColumns(0) # fall-back
             mapitable.SetColumns(cols, 0)
 
     @property
