@@ -257,7 +257,8 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 					}
 				} else if(strcmp(szCommand,"htmltag") == 0) {
 				} else if(strcmp(szCommand,"mhtmltag") == 0) {
-				} else if(strcmp(szCommand,"pard") == 0 || strcmp(szCommand,"par") == 0) {
+				} else if (strcmp(szCommand,"pard") == 0) {
+				} else if (strcmp(szCommand,"par") == 0) {
 					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {		
 						sState[ulState].output.append(1,'\r');
 						sState[ulState].output.append(1,'\n');
