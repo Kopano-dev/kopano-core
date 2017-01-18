@@ -20,9 +20,11 @@ class Group(object):
     """Group class"""
 
     def __init__(self, name, server=None):
-        from . import Server
+        if not server:
+            from .server import Server
+            server = Server()
 
-        self.server = server or Server()
+        self.server = server
         self._name = _unicode(name)
         try:
             self._ecgroup = self.server.sa.GetGroup(self.server.sa.ResolveGroupName(self._name, MAPI_UNICODE), MAPI_UNICODE)

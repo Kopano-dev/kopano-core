@@ -35,9 +35,11 @@ class User(object):
     """User class"""
 
     def __init__(self, name=None, server=None, email=None):
-        from .server import Server
+        if not server:
+            from .server import Server
+            server = Server()
 
-        server = server or Server()
+        server = server
         self.server = server
 
         if email:
