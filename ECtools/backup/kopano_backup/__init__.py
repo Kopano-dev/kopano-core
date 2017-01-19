@@ -71,8 +71,8 @@ class BackupWorker(kopano.Worker):
             self.service.stats = stats # XXX generalize
             with log_exc(self.log, stats):
                 # get store from input queue
-                (storeguid, username, path) = self.iqueue.get()
-                store = server.store(storeguid)
+                (store_entryid, username, path) = self.iqueue.get()
+                store = server.store(entryid=store_entryid.decode('hex')) # XXX fix pyko for decode
                 user = store.user
 
                 # create main directory
@@ -241,7 +241,7 @@ class Service(kopano.Service):
         user = store.user
 
         # start restore
-        self.log.info('restoring to store %s' % store.guid)
+        self.log.info('restoring to store %s' % store.entryid)
         t0 = time.time()
         stats = {'changes': 0, 'errors': 0}
 
@@ -359,10 +359,10 @@ class Service(kopano.Service):
                 if store.public:
                     target = 'public' + ('@'+store.company.name if store.company.name != 'Default' else '')
                 else:
-                    target = store.guid
+                    target = store.entryid
                 jobs.append((store, None, os.path.join(output_dir, target)))
 
-        return [(job[0].guid,)+job[1:] for job in sorted(jobs, reverse=True, key=lambda x: x[0].size)]
+        return [(job[0].entryid,)+job[1:] for job in sorted(jobs, reverse=True, key=lambda x: x[0].size)]
 
     def restore_folder(self, folder, path, data_path, store, subtree, stats, user, server):
         """ restore single folder (or item in folder) """
@@ -584,7 +584,7 @@ def dump_rules(folder, user, server, stats, log):
                         s = movecopy.findall('store')[0]
                         store = server.mapisession.OpenMsgStore(0, s.text.decode('base64'), None, 0)
                         guid = HrGetOneProp(store, PR_STORE_RECORD_KEY).Value.encode('hex')
-                        store = server.store(guid)
+                        store = server.store(guid) # XXX guid doesn't work for multiserver?
                         if store.public:
                             s.text = 'public'
                         else:
