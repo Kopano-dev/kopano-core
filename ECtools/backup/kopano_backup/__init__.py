@@ -72,7 +72,7 @@ class BackupWorker(kopano.Worker):
             with log_exc(self.log, stats):
                 # get store from input queue
                 (store_entryid, username, path) = self.iqueue.get()
-                store = server.store(entryid=store_entryid.decode('hex')) # XXX fix pyko for decode
+                store = server.store(entryid=store_entryid)
                 user = store.user
 
                 # create main directory

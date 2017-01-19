@@ -24,6 +24,9 @@ if sys.hexversion >= 0x03000000:
     def pickle_loads(s):
         return pickle.loads(s, encoding='bytes')
 
+    def hex(s):
+        return codecs.encode(s, 'hex').upper()
+
     def unhex(s):
         return codecs.decode(s, 'hex')
 
@@ -53,6 +56,9 @@ else:
     def pickle_loads(s):
         return pickle.loads(s)
 
+    def hex(s):
+        return s.encode('hex').upper()
+
     def unhex(s):
         return s.decode('hex')
 
@@ -71,3 +77,5 @@ else:
 
     def fake_unicode(u):
         return unicode(u)
+
+

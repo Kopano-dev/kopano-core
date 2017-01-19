@@ -27,7 +27,7 @@ from .quota import Quota
 from .defs import ACTIVE_USER, NONACTIVE_USER
 from .errors import NotFoundError, NotSupportedError, DuplicateError
 from .compat import (
-    unhex as _unhex, repr as _repr, fake_unicode as _unicode
+    hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
 )
 from .utils import prop as _prop, props as _props
 
@@ -203,7 +203,7 @@ class User(object):
         except MAPIErrorCollision:
             raise DuplicateError("user '%s' already has store" % self.name)
         store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid_rootid[0][:-4]) + self.server.pseudo_url + b'\x00'
-        return Store(entryid=store_entryid, server=self.server)
+        return Store(entryid=_hex(store_entryid), server=self.server)
 
     @property
     def store(self):
@@ -211,7 +211,7 @@ class User(object):
 
         try:
             entryid = self.server.ems.CreateStoreEntryID(None, self._name, MAPI_UNICODE)
-            return Store(entryid=entryid, server=self.server)
+            return Store(entryid=_hex(entryid), server=self.server)
         except MAPIErrorNotFound:
             pass
 

@@ -47,7 +47,7 @@ from .defs import (
 )
 from .errors import NotFoundError, Error
 
-from .compat import unhex as _unhex, repr as _repr, fake_unicode as _unicode
+from .compat import hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
 from .utils import (
     openentry_raw as _openentry_raw, prop as _prop, props as _props,
     create_prop as _create_prop, state as _state, sync as _sync, permissions as _permissions,
@@ -558,7 +558,7 @@ class Folder(object):
         except MAPIErrorNotFound:
             return
 
-        return Store(entryid=entryid, server=self.server)
+        return Store(entryid=_hex(entryid), server=self.server)
 
     @property
     def primary_folder(self):

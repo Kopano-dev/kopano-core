@@ -26,7 +26,7 @@ from .group import Group
 
 from .defs import bin2hex, EID_EVERYONE
 from .errors import Error, NotFoundError, DuplicateError
-from .compat import unhex as _unhex, repr as _repr, fake_unicode as _unicode
+from .compat import hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
 from .utils import prop as _prop, props as _props
 
 class Company(object):
@@ -130,7 +130,7 @@ class Company(object):
                 except MAPIErrorNotFound:
                     self._public_store = None
                 else:
-                    self._public_store = Store(entryid=entryid, server=self.server)
+                    self._public_store = Store(entryid=_hex(entryid), server=self.server)
 
         return self._public_store
 
@@ -148,7 +148,7 @@ class Company(object):
 
         store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid_rootid[0][:-4]) + self.server.pseudo_url + b'\x00'
 
-        self._public_store = Store(entryid=store_entryid, server=self.server)
+        self._public_store = Store(entryid=_hex(store_entryid), server=self.server)
         return self._public_store
 
     def create_store(self, public=False): # XXX deprecated?

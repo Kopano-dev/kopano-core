@@ -51,9 +51,10 @@ from .prop import Property
 from .item import Item
 
 from .compat import (
-    unhex as _unhex, decode as _decode, encode as _encode,
+    hex as _hex, unhex as _unhex, decode as _decode, encode as _encode,
     repr as _repr
 )
+
 from .utils import (
     extract_ipm_ol2007_entryids as _extract_ipm_ol2007_entryids,
     openentry_raw as _openentry_raw, create_prop as _create_prop,
@@ -76,7 +77,7 @@ class Store(object):
         if guid:
             mapiobj = self.server._store(guid)
         elif entryid:
-            mapiobj = self.server._store2(entryid)
+            mapiobj = self.server._store2(entryid.decode('hex'))
         self.mapiobj = mapiobj
         # XXX: fails if store is orphaned and guid is given..
         self._root = self.mapiobj.OpenEntry(None, None, 0)
@@ -377,7 +378,7 @@ class Store(object):
         except MAPIErrorNotFound:
             return
 
-        return Store(entryid=entryid, server=self.server) # XXX server?
+        return Store(entryid=_hex(entryid), server=self.server) # XXX server?
 
     @archive_store.setter
     def archive_store(self, store):
