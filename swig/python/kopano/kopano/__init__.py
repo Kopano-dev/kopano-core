@@ -59,6 +59,7 @@ from .attachment import Attachment
 from .autoaccept import AutoAccept
 from .body import Body
 from .company import Company
+from .delegation import Delegation
 from .folder import Folder
 from .group import Group
 from .item import Item
