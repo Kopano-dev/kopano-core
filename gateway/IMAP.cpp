@@ -1595,35 +1595,32 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
     SRestriction sRestrictRecent;
     
 	if (!lpSession) {
-		hr = MAPI_E_CALL_FAILED;
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no session");
-		goto exit;
+		return hr2 != hrSuccess ? hr2 : MAPI_E_CALL_FAILED;
 	}
 
 	hr = IMAP2MAPICharset(strFolder, strIMAPFolder);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS invalid folder name");
-		goto exit;
+		return hr2 != hrSuccess ? hr2 : hr;
 	}
 
 	ToUpper(strStatusData);
 	ToUpper(strIMAPFolder);
 	hr = HrFindFolder(strIMAPFolder, false, &~lpStatusFolder);
 	if(hr != hrSuccess) {
-		hr = MAPI_E_CALL_FAILED;
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error finding folder");
-		goto exit;
+		return hr2 != hrSuccess ? hr2 : MAPI_E_CALL_FAILED;
 	}
 
 	if (!IsMailFolder(lpStatusFolder)) {
-		hr = MAPI_E_CALL_FAILED;
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no mail folder");
-		goto exit;
+		return hr2 != hrSuccess ? hr2 : MAPI_E_CALL_FAILED;
 	}
 	hr = lpStatusFolder->GetProps(sPropsFolderCounters, 0, &cValues, &~lpPropCounters);
 	if (FAILED(hr)) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error fetching folder content counters");
-		goto exit;
+		return hr2 != hrSuccess ? hr2 : hr;
 	}
 	hr = hrSuccess;
 
@@ -1663,7 +1660,7 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
                 hr = lpStatusFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~lpTable);
                 if(hr != hrSuccess) {
                     hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error getting contents");
-                    goto exit;
+                    return hr2 != hrSuccess ? hr2 : hr;
                 }
 
                 sPropMaxID.ulPropTag = PR_EC_IMAP_ID;
@@ -1677,13 +1674,13 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
                 hr = lpTable->Restrict(&sRestrictRecent, TBL_BATCH);
                 if(hr != hrSuccess) {
                     hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error getting recent");
-                    goto exit;
+					return hr2 != hrSuccess ? hr2 : hr;
                 }
                 
                 hr = lpTable->GetRowCount(0, &ulRecent);
                 if(hr != hrSuccess) {
                     hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error getting row count for recent");
-                    goto exit;
+					return hr2 != hrSuccess ? hr2 : hr;
                 }
             } else {
                 // No max id, all messages are Recent
@@ -1715,8 +1712,6 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 	hr = HrResponse(RESP_UNTAGGED, strResponse);
 	if (hr == hrSuccess)
 		hr = HrResponse(RESP_TAGGED_OK, strTag, "STATUS completed");
-
-exit:
 	if (hr2 != hrSuccess)
 		return hr2;
 	return hr;
