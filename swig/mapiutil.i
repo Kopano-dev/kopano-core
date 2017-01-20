@@ -4,3 +4,11 @@ HRESULT WrapStoreEntryID(ULONG ulFlags, LPTSTR lpszDLLName, ULONG cbOrigEntry, L
 // HRESULT UnWrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, ULONG *OUTPUT, LPENTRYID *OUTPUT);
 
 HRESULT WrapCompressedRTFStream(IStream *lpCompressedRTFStream, ULONG ulFlags, IStream ** lppUncompressedStream);
+
+%typemap(in,numinputs=0)    const ECLocale & (ECLocale bert)
+{
+    bert = createLocaleFromName("");
+    $1 = &bert;
+}
+
+HRESULT TestRestriction(LPSRestriction lpRestriction, IMessage *lpMessage, const ECLocale &);

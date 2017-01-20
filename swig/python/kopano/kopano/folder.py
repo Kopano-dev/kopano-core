@@ -140,13 +140,16 @@ class Folder(object):
         item.mapiobj = _openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
         return item
 
-    def items(self):
+    def items(self, restriction=None):
         """ Return all :class:`items <Item>` in folder, reverse sorted on received date """
 
         try:
             table = self.mapiobj.GetContentsTable(self.content_flag)
         except MAPIErrorNoSupport:
             return
+
+        if restriction:
+            table.Restrict(restriction.mapiobj, 0)
 
         table.SortTable(SSortOrderSet([SSort(PR_MESSAGE_DELIVERY_TIME, TABLE_SORT_DESCEND)], 0, 0), 0) # XXX configure
         while True:

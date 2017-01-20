@@ -578,6 +578,9 @@ class Item(object):
         # a message? PR_HASATTACH is also updated by the server.
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
+    def match(self, restriction):
+        return restriction.match(self)
+
     def _convert_to_smtp(self, props, tag_data):
         if not hasattr(self.server, '_smtp_cache'): # XXX speed hack, discuss
             self.server._smtp_cache = {}
