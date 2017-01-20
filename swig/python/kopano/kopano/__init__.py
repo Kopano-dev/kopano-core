@@ -35,7 +35,7 @@ Main classes:
 
 :class:`Address`
 
-:class:`Outofoffice`
+:class:`OutOfOffice`
 
 :class:`Quota`
 
@@ -87,7 +87,7 @@ from .company import Company
 from .folder import Folder
 from .group import Group
 from .item import Item
-from .outofoffice import Outofoffice
+from .outofoffice import OutOfOffice
 from .prop import Property
 from .permission import Permission
 from .quota import Quota
@@ -464,20 +464,20 @@ def client_socket(addr, ssl_cert=None, log=None):
     return s
 
 # interactive shortcuts
-def user(name):
-    return Server().user(name)
+def user(*args, **kwargs):
+    return Server().user(*args, **kwargs)
 
 def users(*args, **kwargs):
     return Server().users(*args, **kwargs)
 
-def store(guid):
-    return Server().store(guid)
+def store(*args, **kwargs):
+    return Server().store(*args, **kwargs)
 
 def stores(*args, **kwargs):
     return Server().stores(*args, **kwargs)
 
-def company(name):
-    return Server().company(name)
+def company(*args, **kwargs):
+    return Server().company(*args, **kwargs)
 
 def companies(*args, **kwargs):
     return Server().companies(*args, **kwargs)

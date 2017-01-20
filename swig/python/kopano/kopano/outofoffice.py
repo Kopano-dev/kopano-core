@@ -19,8 +19,8 @@ from MAPI.Time import unixtime
 
 from .compat import repr as _repr, fake_unicode as _unicode
 
-class Outofoffice(object):
-    """Outofoffice class
+class OutOfOffice(object):
+    """OutOfOffice class
 
     Class which contains a :class:`store <Store>` out of office properties and
     can set out-of-office status, message and subject.
@@ -127,7 +127,7 @@ class Outofoffice(object):
         return True
 
     def __unicode__(self):
-        return u'Outofoffice(%s)' % self.subject
+        return u'OutOfOffice(%s)' % self.subject
 
     def __repr__(self):
         return _repr(self)

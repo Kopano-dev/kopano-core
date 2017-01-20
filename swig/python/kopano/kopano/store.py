@@ -46,7 +46,7 @@ from .defs import (
 from .errors import NotFoundError
 from .folder import Folder
 from .autoaccept import AutoAccept
-from .outofoffice import Outofoffice
+from .outofoffice import OutOfOffice
 from .prop import Property
 from .item import Item
 
@@ -345,10 +345,10 @@ class Store(object):
 
     @property
     def outofoffice(self):
-        """ Return :class:`Outofoffice` """
+        """ Return :class:`OutOfOffice` """
 
         # FIXME: If store is public store, return None?
-        return Outofoffice(self)
+        return OutOfOffice(self)
 
     @property
     def autoaccept(self):
