@@ -318,7 +318,7 @@ private:
 
 	HRESULT HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bShowUID, unsigned int *lpulUnseen, ULONG *lpulUIDValidity = NULL);
 
-	HRESULT HrGetSubTree(list<SFolder> &lstFolders, SBinary &sEntryID, wstring strFolderName, list<SFolder>::const_iterator lpParentFolder, bool bSubfolders = true, bool bIsEmailFolder = true);
+	HRESULT HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, const wstring &in_folder_name, list<SFolder>::const_iterator parent_folder);
 	HRESULT HrGetFolderPath(list<SFolder>::const_iterator lpFolder, list<SFolder> &lstFolder, wstring &strPath);
 	HRESULT HrGetDataItems(string strMsgDataItemNames, vector<string> &lstDataItems);
 	HRESULT HrSemicolonToComma(string &strData);

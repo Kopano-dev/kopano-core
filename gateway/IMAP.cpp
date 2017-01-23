@@ -3380,105 +3380,131 @@ HRESULT IMAP::HrGetFolderPath(list<SFolder>::const_iterator lpFolder, list<SFold
  * @param[in] sEntryID Folder EntryID to add to list, and to process for subfolders
  * @param[in] strFolderName The name of the folder to add to the list
  * @param[in] lpParentFolder iterator in lstFolders to set as the parent folder
- * @param[in] bSubfolders marker if this folder has subfolders
- * @param[in] bMailFolder marker if this folder contains emails
- * 
+ *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrGetSubTree(list<SFolder> &lstFolders, SBinary &sEntryID, wstring strFolderName, list<SFolder>::const_iterator lpParentFolder,
-						   bool bSubfolders, bool bMailFolder) {
-	HRESULT hr = hrSuccess;
-	object_ptr<IMAPIFolder> lpFolder;
-	object_ptr<IMAPITable> lpTable;
-	ULONG ulObjType;
-	SFolder sFolder;
-	SBinary sChildEntryID;
-	list<SFolder>::const_iterator lpNewParent;
-	string strClass;
-	vector<BinaryArray>::const_iterator iFolder;
-
-	enum { EID, NAME, IMAPID, SUBFOLDERS, CONTAINERCLASS, NUM_COLS };
-	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
-		{NUM_COLS, {PR_ENTRYID, PR_DISPLAY_NAME_W, PR_EC_IMAP_ID,
-		PR_SUBFOLDERS, PR_CONTAINER_CLASS_A}};
-
+HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, const wstring &in_folder_name, list<SFolder>::const_iterator parent_folder)
+{
 	if (lpSession == nullptr)
 		return MAPI_E_CALL_FAILED;
-	while (strFolderName.find(IMAP_HIERARCHY_DELIMITER) != string::npos)
-		strFolderName.erase(strFolderName.find(IMAP_HIERARCHY_DELIMITER), 1);
 
-	iFolder = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), BinaryArray(sEntryID));
-	sFolder.bActive = iFolder != m_vSubscriptions.cend();
-	sFolder.bSpecialFolder = IsSpecialFolder(sEntryID.cb, (LPENTRYID)sEntryID.lpb);
-	sFolder.bMailFolder = true;
-	sFolder.lpParentFolder = lpParentFolder;
-	sFolder.strFolderName = strFolderName;
-	sFolder.sEntryID = sEntryID;
-	sFolder.bMailFolder = bMailFolder;
-	sFolder.bHasSubfolders = bSubfolders;
+	SFolder folder;
+	folder.bActive = true;
+	folder.bSpecialFolder = IsSpecialFolder(in_entry_id.cb, reinterpret_cast<ENTRYID *>(in_entry_id.lpb));
+	folder.bMailFolder = false;
+	folder.lpParentFolder = parent_folder;
+	folder.strFolderName = in_folder_name;
+	folder.bHasSubfolders = true;
 
-	lstFolders.push_front(sFolder);
-	lpNewParent = lstFolders.cbegin();
-	
-	if(!bSubfolders)
-		return hr;
-	hr = lpSession->OpenEntry(sEntryID.cb, reinterpret_cast<ENTRYID *>(sEntryID.lpb), &IID_IMAPIFolder, 0, &ulObjType, &~lpFolder);
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpFolder->GetHierarchyTable(0, &~lpTable);
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpTable->SetColumns(spt, 0);
+	folders.push_front(folder);
+	parent_folder = folders.cbegin();
+
+	ULONG obj_type;
+	object_ptr<IMAPIFolder> mapi_folder;
+	HRESULT hr = lpSession->OpenEntry(in_entry_id.cb, reinterpret_cast<ENTRYID *>(in_entry_id.lpb), &IID_IMAPIFolder, 0, &obj_type, &~mapi_folder);
 	if (hr != hrSuccess)
 		return hr;
 
-	LPSRowSet lpRows = nullptr;
-	hr = lpTable->QueryRows(-1, 0, &lpRows);
+	object_ptr<IMAPITable> mapi_table;
+	hr = mapi_folder->GetHierarchyTable(CONVENIENT_DEPTH, &~mapi_table);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-	for (ULONG i = 0; i < lpRows->cRows; ++i) {
-		if (PROP_TYPE(lpRows->aRow[i].lpProps[EID].ulPropTag) != PT_BINARY)
-			continue;			// no entryid, no folder
+	enum { EID, PEID, NAME, IMAPID, SUBFOLDERS, CONTAINERCLASS, NUM_COLS };
+	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
+		{NUM_COLS, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W, PR_EC_IMAP_ID,
+		PR_SUBFOLDERS, PR_CONTAINER_CLASS_A}};
 
-		if (PROP_TYPE(lpRows->aRow[i].lpProps[IMAPID].ulPropTag) != PT_LONG) {
+	hr = mapi_table->SetColumns(spt, 0);
+	if (hr != hrSuccess)
+		return hr;
+
+	static constexpr const SizedSSortOrderSet(1, mapi_sort_criteria) =
+		{1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
+
+	hr = mapi_table->SortTable(mapi_sort_criteria, 0);
+	if (hr != hrSuccess) {
+		return hr;
+	}
+
+	SRowSet *rows = nullptr;
+	hr = mapi_table->QueryRows(-1, 0, &rows);
+	if (hr != hrSuccess) {
+		if (rows)
+			FreeProws(rows);
+		return hr;
+	}
+
+	for (ULONG i = 0; i < rows->cRows; ++i) {
+		// no entryid, no folder
+		if (PROP_TYPE(rows->aRow[i].lpProps[EID].ulPropTag) != PT_BINARY)
+			continue;
+		if (PROP_TYPE(rows->aRow[i].lpProps[PEID].ulPropTag) != PT_BINARY)
+			continue;
+
+		if (PROP_TYPE(rows->aRow[i].lpProps[IMAPID].ulPropTag) != PT_LONG) {
 		    lpLogger->Log(EC_LOGLEVEL_FATAL, "Server does not support PR_EC_IMAP_ID. Please update the storage server.");
 		    break;
-        }
+		}
 
-		const wchar_t *foldername = L"";
-		bSubfolders = true;
-		bMailFolder = true;
+		wstring foldername = L"";
+		bool subfolders = true;
+		bool mailfolder = true;
 
-		if (PROP_TYPE(lpRows->aRow[i].lpProps[NAME].ulPropTag) == PT_UNICODE)
-			foldername = lpRows->aRow[i].lpProps[NAME].Value.lpszW;
+		if (PROP_TYPE(rows->aRow[i].lpProps[NAME].ulPropTag) == PT_UNICODE)
+			foldername = rows->aRow[i].lpProps[NAME].Value.lpszW;
 
-		if (PROP_TYPE(lpRows->aRow[i].lpProps[SUBFOLDERS].ulPropTag) == PT_BOOLEAN)
-			bSubfolders = lpRows->aRow[i].lpProps[SUBFOLDERS].Value.b;
+		if (PROP_TYPE(rows->aRow[i].lpProps[SUBFOLDERS].ulPropTag) == PT_BOOLEAN)
+			subfolders = rows->aRow[i].lpProps[SUBFOLDERS].Value.b;
 
-		if (PROP_TYPE(lpRows->aRow[i].lpProps[CONTAINERCLASS].ulPropTag) == PT_STRING8){
-			strClass = lpRows->aRow[i].lpProps[CONTAINERCLASS].Value.lpszA;
+		if (PROP_TYPE(rows->aRow[i].lpProps[CONTAINERCLASS].ulPropTag) == PT_STRING8){
+			string container_class = rows->aRow[i].lpProps[CONTAINERCLASS].Value.lpszA;
 
-			ToUpper(strClass);
-			
-			if (!strClass.empty() && strClass.compare(0, 3, "IPM") != 0 && strClass.compare("IPF.NOTE") != 0){
+			ToUpper(container_class);
+
+			if (!container_class.empty() &&
+			    container_class.compare(0, 3, "IPM") != 0 &&
+			    container_class.compare("IPF.NOTE") != 0) {
+
 				if (bOnlyMailFolders)
 					continue;
-				bMailFolder = false;
+				mailfolder = false;
 			}
 		}
 
-		sChildEntryID = lpRows->aRow[i].lpProps[EID].Value.bin;
-		HrGetSubTree(lstFolders, sChildEntryID, foldername, lpNewParent, bSubfolders, bMailFolder);
+		SBinary entry_id = rows->aRow[i].lpProps[EID].Value.bin;
+		SBinary parent_entry_id = rows->aRow[i].lpProps[PEID].Value.bin;
+
+		while (foldername.find(IMAP_HIERARCHY_DELIMITER) != string::npos)
+			foldername.erase(foldername.find(IMAP_HIERARCHY_DELIMITER), 1);
+
+		list<SFolder>::const_iterator tmp_parent_folder = parent_folder;
+		for (auto iter = folders.cbegin(); iter != folders.cend(); iter++) {
+			if (iter->sEntryID == parent_entry_id) {
+				tmp_parent_folder = iter;
+				break;
+			}
+		}
+
+		auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), BinaryArray(entry_id));
+		folder.bActive = subscribed_iter != m_vSubscriptions.cend();
+		folder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb));
+		folder.bMailFolder = mailfolder;
+		folder.lpParentFolder = tmp_parent_folder;
+		folder.strFolderName = foldername;
+		folder.sEntryID = entry_id;
+		folder.bHasSubfolders = subfolders;
+
+		folders.push_front(folder);
 	}
 
-exit:
-	if (lpRows)
-		FreeProws(lpRows);
+	if (rows)
+		FreeProws(rows);
+
 	return hr;
 }
 
-/** 
+/**
  * Extends IMAP shortcuts into real full IMAP proptags, and returns an
  * vector of all separate and capitalized items.
  * 
@@ -6032,36 +6058,46 @@ HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder
 HRESULT IMAP::HrFindFolderEntryID(const wstring& strFolder, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
     HRESULT hr = hrSuccess;
-    vector<wstring> vFolders;
-    ULONG cbEntryID = 0;
-	memory_ptr<ENTRYID> lpEntryID;
-	object_ptr<IMAPIFolder> lpFolder;
-    ULONG ulObjType = 0;
-    
-    hr = HrSplitPath(strFolder, vFolders);
-    if(hr != hrSuccess)
-		return hr;
-        
-    for (unsigned int i = 0; i < vFolders.size(); ++i) {
-        hr = HrFindSubFolder(lpFolder, vFolders[i], &cbEntryID, &~lpEntryID);
-        if(hr != hrSuccess)
-			return hr;
-            
-        if(i == vFolders.size() - 1)
-            break;
-        hr = lpSession->OpenEntry(cbEntryID, lpEntryID, nullptr, MAPI_MODIFY, &ulObjType, &~lpFolder);
-        if(hr != hrSuccess)
-			return hr;
-		if (ulObjType != MAPI_FOLDER)
-			return MAPI_E_INVALID_PARAMETER;
+
+    list<SFolder> folders;
+    HrGetFolderList(folders);
+
+    wstring find_folder = strFolder;
+    if (find_folder.length() == 0)
+	    return MAPI_E_NOT_FOUND;
+
+    if (find_folder[0] != '/')
+	    find_folder = wstring(L"/") + find_folder;
+
+    ToUpper(find_folder);
+
+    auto iter = folders.cbegin();
+    for (; iter != folders.cend(); iter++) {
+	    wstring folder_name;
+
+	    hr = HrGetFolderPath(iter, folders, folder_name);
+	    if (hr != hrSuccess)
+		    return hr;
+
+	    ToUpper(folder_name);
+	    if (folder_name == find_folder)
+		    break;
     }
-    
-    *lpcbEntryID = cbEntryID;
-	*lppEntryID = lpEntryID.release();
-	return hrSuccess;
+
+    if (iter == folders.cend())
+	    return MAPI_E_NOT_FOUND;
+
+    *lpcbEntryID = iter->sEntryID.cb;
+
+    hr = MAPIAllocateBuffer(*lpcbEntryID, (void **)lppEntryID);
+    if (hr != hrSuccess)
+	    return hr;
+
+    memcpy(*lppEntryID, iter->sEntryID.lpb, *lpcbEntryID);
+    return hrSuccess;
 }
 
-/** 
+/**
  * Find the EntryID for a named subfolder in a given MAPI Folder
  *
  * @param[in] lpFolder The parent folder to find strFolder in, or NULL when no parent is present yet.
