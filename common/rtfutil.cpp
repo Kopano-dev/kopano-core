@@ -257,7 +257,8 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 					}
 				} else if(strcmp(szCommand,"htmltag") == 0) {
 				} else if(strcmp(szCommand,"mhtmltag") == 0) {
-				} else if(strcmp(szCommand,"pard") == 0 || strcmp(szCommand,"par") == 0) {
+				} else if (strcmp(szCommand,"pard") == 0) {
+				} else if (strcmp(szCommand,"par") == 0) {
 					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {		
 						sState[ulState].output.append(1,'\r');
 						sState[ulState].output.append(1,'\n');
@@ -809,8 +810,8 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 				} else if (strcmp(szCommand,"par") == 0) {
 					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {		
 						if (bPar)
-							sState[ulState].output.append("</p>");
-						sState[ulState].output.append("<p>\r\n");
+							sState[ulState].output.append("</p>\r\n\r\n");
+						sState[ulState].output.append("<p>");
 						bPar = true;
 					}
 				} else if(strcmp(szCommand,"tab") == 0) {
