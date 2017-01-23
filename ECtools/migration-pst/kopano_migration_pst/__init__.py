@@ -88,14 +88,12 @@ class Service(kopano.Service):
         mapiobj.ModifyRecipients(0, recipients)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
-    def import_pst(self, pst, user):
-        for folder in pst.folder_generator():
+    def import_pst(self, p, user):
+        folders = p.folder_generator()
+        root_path = folders.next().path # skip root
+        for folder in folders:
             with log_exc(self.log, self.stats):
-                path = folder.path[1:]
-                if (path+'/').startswith('Top of Outlook data file/'):
-                    path = path[25:]
-                if not path:
-                    continue
+                path = folder.path[len(root_path)+1:]
                 if self.options.folders and path not in self.options.folders:
                     continue
                 self.log.info("importing folder '%s'" % path)
@@ -104,7 +102,7 @@ class Service(kopano.Service):
                 folder2 = user.folder(path, create=True)
                 if folder.ContainerClass:
                     folder2.container_class = folder.ContainerClass
-                for message in pst.message_generator(folder):
+                for message in p.message_generator(folder):
                     with log_exc(self.log, self.stats):
                         self.log.debug("importing message '%s'" % (message.Subject or ''))
                         message2 = folder2.create_item()
@@ -113,9 +111,9 @@ class Service(kopano.Service):
                         self.import_recipients(message, message2.mapiobj)
                         self.stats['messages'] += 1
 
-    def get_named_property_map(self, pst):
+    def get_named_property_map(self, p):
         propid_nameid = {}
-        for nameid in pst.messaging.nameid_entries:
+        for nameid in p.messaging.nameid_entries:
             propid_nameid[nameid.NPID] = (
                 nameid.guid,
                 MNID_STRING if nameid.N==1 else MNID_ID,
@@ -144,12 +142,10 @@ def show_contents(args, options):
     writer = csv.writer(sys.stdout)
     for arg in args:
         p = pst.PST(arg)
-        for folder in p.folder_generator():
-            path = folder.path[1:]
-            if (path+'/').startswith('Top of Outlook data file/'): # XXX copy-paste
-                path = path[25:]
-            if not path:
-                continue
+        folders = p.folder_generator()
+        root_path = folders.next().path # skip root
+        for folder in folders:
+            path = folder.path[len(root_path)+1:]
             if options.folders and path not in options.folders:
                 continue
             if options.stats:
