@@ -309,18 +309,16 @@ class Folder(object):
         if self == self.store.subtree and path in ENGLISH_FOLDER_MAP: # XXX depth==0?
             path = getattr(self.store, ENGLISH_FOLDER_MAP[path]).name
 
-        matches = [f for f in self.folders(recurse=recurse) if f.name == path]
-        if len(matches) == 0:
+        matches = [f for f in self.folders(recurse=recurse) if f.name.lower() == path.lower()]
+        if matches:
+            return matches[0]
+        else:
             if create:
                 name = path.replace('\\/', '/')
                 mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, _unicode(name), u'', None, MAPI_UNICODE)
                 return Folder(self.store, HrGetOneProp(mapifolder, PR_ENTRYID).Value)
             else:
                 raise NotFoundError("no such folder: '%s'" % path)
-        elif len(matches) > 1:
-            raise NotFoundError("multiple folders with name '%s'" % path)
-        else:
-            return matches[0]
 
     def get_folder(self, path=None, entryid=None):
         """ Return :class:`folder <Folder>` with given name/entryid or *None* if not found """
