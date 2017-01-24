@@ -2680,6 +2680,7 @@ static const struct {
 	const char *original;
 	const char *update;
 } vtm_cs_upgrade_list[] = {
+	{"cp-850", "cp850"},
 	{"gb2312", "gb18030"},			// gb18030 is an extended version of gb2312
 	{"x-gbk", "gb18030"},			// gb18030 > gbk > gb2312. x-gbk is an alias of gbk, which is not listed in iconv.
 	{"ks_c_5601-1987", "cp949"},	// cp949 is euc-kr with UHC extensions
