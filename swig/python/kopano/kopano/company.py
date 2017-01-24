@@ -211,9 +211,13 @@ class Company(object):
                 yield User(username, self.server)
             return
 
-        for username in AddressBook.GetUserList(self.server.mapisession, self._name if self._name != u'Default' else None, MAPI_UNICODE): # XXX serviceadmin?
-            if username != 'SYSTEM':
-                yield User(username, self.server)
+        if self._name == u'Default':
+            for user in self.server.users():
+                yield user
+        else:
+            for ecuser in self.server.sa.GetUserList(self._eccompany.CompanyID, MAPI_UNICODE):
+                if ecuser.Username != 'SYSTEM':
+                    yield User(ecuser.Username, self.server)
 
     def admins(self):
         for ecuser in self.server.sa.GetRemoteAdminList(self._eccompany.CompanyID, MAPI_UNICODE):
