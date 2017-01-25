@@ -2172,13 +2172,16 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sending_options sopt;
 
 	imopt_default_sending_options(&sopt);
-	// optional force sending with TNEF
-	if (strcmp(g_lpConfig->GetSetting("always_send_tnef"), "minimal") == 0)
+
+	// When sending messages, we want to minimize the use of tnef.
+	// In case always_send_tnef is set to yes, we force tnef, otherwise we
+	// minimize (set to no or minimal).
+	if (!strcmp(g_lpConfig->GetSetting("always_send_tnef"), "minimal") ||
+	    !parseBool(g_lpConfig->GetSetting("always_send_tnef")))
 		sopt.use_tnef = -1;
-	else if (strcmp(g_lpConfig->GetSetting("always_send_tnef"), "auto") == 0)
-		sopt.use_tnef = 0;
 	else
-		sopt.use_tnef = parseBool(g_lpConfig->GetSetting("always_send_tnef"));
+		sopt.use_tnef = 1;
+
 	sopt.force_utf8 = parseBool(g_lpConfig->GetSetting("always_send_utf8"));
 	sopt.allow_send_to_everyone = parseBool(g_lpConfig->GetSetting("allow_send_to_everyone"));
 
