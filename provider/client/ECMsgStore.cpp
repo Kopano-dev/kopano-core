@@ -588,7 +588,7 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULON
 		*lpulResult = false;
 	// Apparently BlackBerry CALHelper.exe needs this
 	if ((cbEntryID1 == 0 && cbEntryID2 != 0) || (cbEntryID1 != 0 && cbEntryID2 == 0))
-		goto exit;
+		return hrSuccess;
 	if (lpEntryID1 == nullptr || lpEntryID2 == nullptr ||
 	    lpulResult == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -596,37 +596,29 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULON
 	// Check if one or both of the entry identifiers contains the store guid.
 	if (memcmp(&lpStoreId->guid, &peid1->guid, sizeof(GUID)) != 0 ||
 	    memcmp(&lpStoreId->guid, &peid2->guid, sizeof(GUID)) != 0)
-		goto exit;
-
+		return hrSuccess;
 	if(cbEntryID1 != cbEntryID2)
-		goto exit;
-
+		return hrSuccess;
 	if(memcmp(peid1->abFlags, peid2->abFlags, 4) != 0)
-		goto exit;
-
+		return hrSuccess;
 	if(peid1->ulVersion != peid2->ulVersion)
-		goto exit;
-
+		return hrSuccess;
 	if(peid1->usType != peid2->usType)
-		goto exit;
+		return hrSuccess;
 
 	if(peid1->ulVersion == 0) {
 
 		if(cbEntryID1 != sizeof(EID_V0))
-			goto exit;
-
+			return hrSuccess;
 		if( ((EID_V0*)lpEntryID1)->ulId != ((EID_V0*)lpEntryID2)->ulId )
-			goto exit;
-
+			return hrSuccess;
 	}else {
 		if(cbEntryID1 != CbNewEID(""))
-			goto exit;
-
+			return hrSuccess;
 		if(peid1->uniqueId != peid2->uniqueId) //comp. with the old ulId
-			goto exit;
+			return hrSuccess;
 	}
 	*lpulResult = true;
-exit:
 	return hrSuccess;
 }
 
