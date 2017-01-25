@@ -594,10 +594,13 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULON
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Check if one or both of the entry identifiers contains the store guid.
+	if (cbEntryID1 != cbEntryID2)
+		return hrSuccess;
+	if (cbEntryID1 < offsetof(EID, usFlags) + sizeof(peid1->usFlags) ||
+	    cbEntryID2 < offsetof(EID, usFlags) + sizeof(peid2->usFlags))
+		return hrSuccess;
 	if (memcmp(&lpStoreId->guid, &peid1->guid, sizeof(GUID)) != 0 ||
 	    memcmp(&lpStoreId->guid, &peid2->guid, sizeof(GUID)) != 0)
-		return hrSuccess;
-	if(cbEntryID1 != cbEntryID2)
 		return hrSuccess;
 	if(memcmp(peid1->abFlags, peid2->abFlags, 4) != 0)
 		return hrSuccess;
