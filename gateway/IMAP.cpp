@@ -808,6 +808,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	size_t i;
 	wstring strwUsername;
 	wstring strwPassword;
+	unsigned int flags;
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	// strUser isn't sent in imap style utf-7, but \ is escaped, so strip those
@@ -852,10 +853,15 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 		goto exitpm;
 	}
 
+	flags = EC_PROFILE_FLAGS_NO_COMPRESSION;
+
+	if (!parseBool(lpConfig->GetSetting("bypass_auth")))
+		flags |= EC_PROFILE_FLAGS_NO_UID_AUTH;
+
 	// do not disable notifications for imap connections, may be idle and sessions on the storage server will disappear.
 	hr = HrOpenECSession(&lpSession, "gateway/imap", PROJECT_SVN_REV_STR,
 	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
-	     EC_PROFILE_FLAGS_NO_COMPRESSION, NULL, NULL);
+	     flags, NULL, NULL);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%08X",
 					  lpChannel->peer_addr(), strUsername.c_str(), hr);

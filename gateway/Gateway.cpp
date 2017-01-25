@@ -315,6 +315,7 @@ int main(int argc, char *argv[]) {
 		{ "log_timestamp", "1" },
 		{ "log_buffer_size", "0" },
 		{ "tmp_path", "/tmp" },
+		{"bypass_auth", "no"},
 		{ NULL, NULL },
 	};
 	enum {
@@ -391,6 +392,9 @@ int main(int argc, char *argv[]) {
 
 	if (!TmpPath::getInstance() -> OverridePath(g_lpConfig))
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Ignoring invalid path-setting!");
+
+	if (parseBool(g_lpConfig->GetSetting("bypass_auth")))
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Gateway is started with bypass_auth=yes meaning username and password will not be checked.");
 
 	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0) {
 		bThreads = true;
