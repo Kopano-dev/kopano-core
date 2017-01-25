@@ -580,23 +580,18 @@ HRESULT ECMsgStore::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
  */
 HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
 {
-	HRESULT hr = hrSuccess;
-	BOOL fTheSame = FALSE;
-
 	PEID peid1 = (PEID)lpEntryID1;
 	PEID peid2 = (PEID)lpEntryID2;
 	PEID lpStoreId = (PEID)m_lpEntryId;
 
+	if (lpulResult != nullptr)
+		*lpulResult = false;
 	// Apparently BlackBerry CALHelper.exe needs this
-	if((cbEntryID1 == 0 && cbEntryID2 != 0) || (cbEntryID1 != 0 && cbEntryID2 == 0)) {
-		fTheSame = FALSE;
+	if ((cbEntryID1 == 0 && cbEntryID2 != 0) || (cbEntryID1 != 0 && cbEntryID2 == 0))
 		goto exit;
-	}
-
-	if(lpEntryID1 == NULL || lpEntryID2 == NULL || lpulResult == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpEntryID1 == nullptr || lpEntryID2 == nullptr ||
+	    lpulResult == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Check if one or both of the entry identifiers contains the store guid.
 	if (memcmp(&lpStoreId->guid, &peid1->guid, sizeof(GUID)) != 0 ||
@@ -630,14 +625,9 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULON
 		if(peid1->uniqueId != peid2->uniqueId) //comp. with the old ulId
 			goto exit;
 	}
-
-	fTheSame = TRUE;
-
+	*lpulResult = true;
 exit:
-	if(lpulResult)
-		*lpulResult = fTheSame;
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
