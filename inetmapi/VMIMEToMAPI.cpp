@@ -2416,6 +2416,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Charset is \"%s\" (case #8).", mime_charset.getName().c_str());
 			html_charset = mime_charset;
 		}
+		mime_charset = vtm_upgrade_charset(mime_charset);
+		html_charset = vtm_upgrade_charset(html_charset);
 
 		/* Add secondary candidates and try all in order */
 		std::vector<std::string> cs_cand;
