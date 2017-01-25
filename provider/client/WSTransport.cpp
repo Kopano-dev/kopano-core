@@ -250,6 +250,8 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		 */
 		if(! (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_COMPRESSION))
 			ulCapabilities |= KOPANO_CAP_COMPRESSION; // only to remote server .. windows?
+	} else if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_UID_AUTH) {
+		ulLogonFlags |= KOPANO_LOGON_NO_UID_AUTH;
 	}
 
 	// try single signon logon
