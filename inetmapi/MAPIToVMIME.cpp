@@ -27,6 +27,7 @@
 #include <vmime/platforms/posix/posixHandler.hpp>
 #include <vmime/contentTypeField.hpp>
 #include <vmime/parsedMessageAttachment.hpp>
+#include <vmime/emptyContentHandler.hpp>
 
 // mapi
 #include <kopano/memory.hpp>
@@ -413,7 +414,8 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
         	
 		try {
 			// add ref to lpStream
-			inputDataStream = vmime::make_shared<inputStreamMAPIAdapter>(lpStream);
+			if (lpStream != nullptr)
+				inputDataStream = vmime::make_shared<inputStreamMAPIAdapter>(lpStream);
 
 			// Set filename
 			szFilename = L"data.bin";
@@ -427,6 +429,9 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 			if (HrGetOneProp(lpAttach, PR_ATTACH_MIME_TAG_A, &~lpMIMETag) == hrSuccess)
 				vmMIMEType = lpMIMETag->Value.lpszA;
 
+			static const char absent_note[] = "Attachment is missing.";
+			vmime::mediaType note_type("text/plain");
+
 			// inline attachments: Only make attachments inline if they are hidden and have a content-id or content-location.
 			if ((!strContentId.empty() || !strContentLocation.empty()) && bHidden &&
 				lpVMMessageBuilder->getTextPart()->getType() == vmime::mediaType(vmime::mediaTypes::TEXT, vmime::mediaTypes::TEXT_HTML))
@@ -435,8 +440,11 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				vmime::mapiTextPart& textPart = dynamic_cast<vmime::mapiTextPart&>(*lpVMMessageBuilder->getTextPart());
 				// had szFilename .. but how, on inline?
 				// @todo find out how Content-Disposition receives highchar filename... always UTF-8?
-				textPart.addObject(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0), vmime::encoding("base64"), vmMIMEType, strContentId, string(), strContentLocation);
-			} else {
+				if (inputDataStream != nullptr)
+					textPart.addObject(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0), vmime::encoding("base64"), vmMIMEType, strContentId, string(), strContentLocation);
+				else
+					textPart.addObject(vmime::make_shared<vmime::stringContentHandler>(absent_note), vmime::encoding("base64"), note_type, strContentId, std::string(), strContentLocation);
+			} else if (inputDataStream != nullptr) {
 				vmMapiAttach = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
 				               bSendBinary ? vmime::encoding("base64") : vmime::encoding("quoted-printable"),
 				               vmMIMEType, strContentId,
@@ -444,6 +452,12 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 				// add to message (copies pointer, not data)
 				lpVMMessageBuilder->appendAttachment(vmMapiAttach); 
+			} else {
+				vmMapiAttach = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::stringContentHandler>(absent_note),
+				               bSendBinary ? vmime::encoding("base64") : vmime::encoding("quoted-printable"),
+				               note_type, strContentId,
+				               vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(), szFilename, rawsize(szFilename), CHARSET_WCHAR), m_vmCharset));
+				lpVMMessageBuilder->appendAttachment(vmMapiAttach);
 			}
 		}
 		catch (vmime::exception& e) {
@@ -2091,7 +2105,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 			strTnefReason = "Force TNEF because of voting request";
 		}
 
-		if (iUseTnef <= 0 && has_reminder(lpMessage)) {
+		if (iUseTnef == 0 && has_reminder(lpMessage)) {
 			iUseTnef = 1;
 			strTnefReason = "Force TNEF because of reminder";
 		}
