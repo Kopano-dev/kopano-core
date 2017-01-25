@@ -1786,7 +1786,15 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		goto exit;
 	}
 
-	hr = lpIcalMapi->GetItem(0, IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY, lpIcalMessage);
+	if (lpIcalMessage != lpMessage) {
+		hr = lpIcalMapi->GetItem(0, 0, lpIcalMessage);
+		if (hr != hrSuccess) {
+			ec_log_err("dissect_ical-1833: Error while converting ical to mapi: %s (%x)", GetMAPIErrorMessage(hr), hr);
+			return hr;
+		}
+	}
+	/* Calendar properties need to be on the main message in any case. */
+	hr = lpIcalMapi->GetItem(0, IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY | IC2M_NO_BODY, lpMessage);
 	if (hr != hrSuccess) {
 		ec_log_err("dissect_ical-1834: Error while converting ical to mapi: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		goto exit;

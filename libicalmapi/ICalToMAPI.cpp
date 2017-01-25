@@ -52,7 +52,7 @@ private:
 	void Clean();
 
 	HRESULT SaveAttendeesString(const std::list<icalrecip> *lplstRecip, LPMESSAGE lpMessage);
-	HRESULT SaveProps(const std::list<SPropValue> *lpPropList, LPMAPIPROP lpMapiProp);
+	HRESULT SaveProps(const std::list<SPropValue> *lpPropList, IMAPIProp *, unsigned int flags = 0);
 	HRESULT SaveRecipList(const std::list<icalrecip> *lplstRecip, ULONG ulFlag, LPMESSAGE lpMessage);
 	SPropTagArray *m_lpNamedProps = nullptr;
 	ULONG m_ulErrorCount = 0;
@@ -417,7 +417,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 			goto exit;
 	}
 
-	hr = SaveProps(&(lpItem->lstMsgProps), lpMessage);
+	hr = SaveProps(&lpItem->lstMsgProps, lpMessage, ulFlags);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -563,7 +563,7 @@ exit:
  * @return MAPI error code
  */
 HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
-    LPMAPIPROP lpMapiProp)
+    LPMAPIPROP lpMapiProp, unsigned int flags)
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpsPropVals = NULL;
@@ -576,8 +576,11 @@ HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
 
 	// @todo: add exclude list or something? might set props the caller doesn't want (see vevent::HrAddTimes())
 	i = 0;
-	for (const auto &prop : *lpPropList)
+	for (const auto &prop : *lpPropList) {
+		if (flags & IC2M_NO_BODY && PROP_ID(prop.ulPropTag) == PR_BODY)
+			continue;
 		lpsPropVals[i++] = prop;
+	}
 	hr = lpMapiProp->SetProps(i, lpsPropVals, NULL);
 	if (FAILED(hr))
 		goto exit;
