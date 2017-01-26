@@ -7,16 +7,25 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import codecs
 
-from MAPI.Util import *
+from MAPI import (
+    MAPI_UNICODE, RELOP_EQ, TBL_BATCH, ECSTORE_TYPE_PUBLIC,
+    WrapStoreEntryID
+)
+from MAPI.Defs import PpropFindProp
+from MAPI.Struct import (
+    MAPIErrorNotFound, SPropertyRestriction, SPropValue,
+    MAPIErrorCollision
+)
+from MAPI.Tags import PR_EC_COMPANY_NAME_W, PR_EC_STOREGUID
+from MAPI.Util import GetPublicStore, AddressBook
 
 from .store import Store
 from .user import User
 from .quota import Quota
 from .group import Group
 
-from .defs import *
-from .errors import *
-
+from .defs import bin2hex, EID_EVERYONE
+from .errors import Error, NotFoundError, DuplicateError
 from .compat import unhex as _unhex, repr as _repr, fake_unicode as _unicode
 from .utils import prop as _prop, props as _props
 
@@ -62,7 +71,7 @@ class Company(object):
     @property
     def hidden(self):
         if self._name != u'Default':
-            return self._eccompany.IsHidden == True
+            return self._eccompany.IsHidden
         # XXX
 
     @property
@@ -90,7 +99,7 @@ class Company(object):
         if self.server.multitenant:
             table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
             table.Restrict(SPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_W, SPropValue(PR_EC_COMPANY_NAME_W, self.name)), TBL_BATCH)
-            for row in table.QueryRows(-1,0):
+            for row in table.QueryRows(-1, 0):
                 prop = PpropFindProp(row, PR_EC_STOREGUID)
                 if prop:
                     yield Store(codecs.encode(prop.Value, 'hex'), self.server)
@@ -137,7 +146,7 @@ class Company(object):
             except MAPIErrorCollision:
                 raise DuplicateError("public store already exists for company '%s'" % self.name)
 
-        store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid_rootid[0][:-4])+self.server.pseudo_url+b'\x00'
+        store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid_rootid[0][:-4]) + self.server.pseudo_url + b'\x00'
 
         self._public_store = Store(entryid=store_entryid, server=self.server)
         return self._public_store
@@ -202,7 +211,7 @@ class Company(object):
                 yield User(username, self.server)
             return
 
-        for username in MAPI.Util.AddressBook.GetUserList(self.server.mapisession, self._name if self._name != u'Default' else None, MAPI_UNICODE): # XXX serviceadmin?
+        for username in AddressBook.GetUserList(self.server.mapisession, self._name if self._name != u'Default' else None, MAPI_UNICODE): # XXX serviceadmin?
             if username != 'SYSTEM':
                 yield User(username, self.server)
 

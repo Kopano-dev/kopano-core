@@ -5,11 +5,14 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-from MAPI.Util import *
+from MAPI import MAPI_UNICODE
+from MAPI.Struct import (
+    ECGROUP, MAPIErrorNotFound, MAPIErrorInvalidParameter,
+    MAPIErrorCollision
+)
+from MAPI.Defs import bin2hex
 
-from .errors import *
-from .defs import *
-
+from .errors import NotFoundError, DuplicateError
 from .compat import repr as _repr, fake_unicode as _unicode
 from .utils import prop as _prop, props as _props
 
@@ -95,7 +98,7 @@ class Group(object):
 
     @property
     def hidden(self):
-        return self._ecgroup.IsHidden == True
+        return self._ecgroup.IsHidden
 
     @hidden.setter
     def hidden(self, value):

@@ -5,16 +5,30 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+from MAPI import (
+    MAPI_UNICODE, MAPI_UNRESOLVED, ECSTORE_TYPE_PRIVATE,
+    WrapStoreEntryID
+)
+from MAPI.Defs import bin2hex, HrGetOneProp
+from MAPI.Struct import (
+    SPropValue, MAPIErrorNotFound, MAPIErrorInvalidParameter,
+    MAPIErrorCollision, MAPIErrorNoSupport, ECUSER
+)
+from MAPI.Tags import (
+    PR_EMAIL_ADDRESS_W, PR_DISPLAY_NAME_W, PR_EC_ENABLED_FEATURES_W,
+    PR_EC_DISABLED_FEATURES_W, PR_EC_COMPANY_NAME_W,
+    PR_MAPPING_SIGNATURE, PR_EC_ARCHIVE_SERVERS,
+    EMS_AB_ADDRESS_LOOKUP
+)
+
 from .store import Store
 from .group import Group
 from .quota import Quota
-
-from .errors import *
-from .defs import *
-
-from MAPI.Util import *
-
-from .compat import unhex as _unhex, repr as _repr, fake_unicode as _unicode
+from .defs import ACTIVE_USER, NONACTIVE_USER
+from .errors import NotFoundError, NotSupportedError, DuplicateError
+from .compat import (
+    unhex as _unhex, repr as _repr, fake_unicode as _unicode
+)
 from .utils import prop as _prop, props as _props
 
 class User(object):
@@ -64,7 +78,7 @@ class User(object):
 
     @property
     def hidden(self):
-        return self._ecuser.IsHidden == True
+        return self._ecuser.IsHidden
 
     @property
     def name(self):
@@ -188,8 +202,8 @@ class User(object):
             storeid_rootid = self.server.sa.CreateStore(ECSTORE_TYPE_PRIVATE, self._ecuser.UserID)
         except MAPIErrorCollision:
             raise DuplicateError("user '%s' already has store" % self.name)
-        store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid_rootid[0][:-4])+self.server.pseudo_url+b'\x00'
-        return Store(entryid=store_entryid, server = self.server)
+        store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid_rootid[0][:-4]) + self.server.pseudo_url + b'\x00'
+        return Store(entryid=store_entryid, server=self.server)
 
     @property
     def store(self):
@@ -297,16 +311,26 @@ class User(object):
         try:
             # Pass the MVPropMAP otherwise the set values are reset
             if hasattr(self._ecuser, 'MVPropMap'):
-                usereid = self.server.sa.SetUser(ECUSER(Username=username, Password=password, Email=email, FullName=fullname,
-                                             Class=user_class, UserID=self._ecuser.UserID, IsAdmin=admin, MVPropMap = self._ecuser.MVPropMap), MAPI_UNICODE)
+                self.server.sa.SetUser(ECUSER(
+                    Username=username, Password=password,
+                    Email=email, FullName=fullname,
+                    Class=user_class, UserID=self._ecuser.UserID,
+                    IsAdmin=admin, MVPropMap=self._ecuser.MVPropMap
+                ), MAPI_UNICODE)
 
             else:
-                usereid = self.server.sa.SetUser(ECUSER(Username=username, Password=password, Email=email, FullName=fullname,
-                                             Class=user_class, UserID=self._ecuser.UserID, IsAdmin=admin), MAPI_UNICODE)
+                self.server.sa.SetUser(ECUSER(
+                    Username=username, Password=password, Email=email,
+                    FullName=fullname, Class=user_class,
+                    UserID=self._ecuser.UserID, IsAdmin=admin
+                ), MAPI_UNICODE)
         except MAPIErrorNoSupport:
             pass
 
-        self._ecuser = self.server.sa.GetUser(self.server.sa.ResolveUserName(username, MAPI_UNICODE), MAPI_UNICODE)
+        self._ecuser = self.server.sa.GetUser(
+            self.server.sa.ResolveUserName(username, MAPI_UNICODE),
+            MAPI_UNICODE
+        )
         self._name = username
 
     def __getattr__(self, x): # XXX add __setattr__, e.g. for 'user.archive_store = None'

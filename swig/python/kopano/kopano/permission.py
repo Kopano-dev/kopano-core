@@ -5,11 +5,13 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-from MAPI.Util import *
+from MAPI import MAPI_UNICODE, ROW_MODIFY
+from MAPI.Struct import MAPIErrorNotFound, ROWENTRY, SPropValue
+from MAPI.Tags import PR_MEMBER_ENTRYID, PR_MEMBER_RIGHTS, PR_MEMBER_ID
 
-from .defs import *
-from .errors import *
 from .compat import repr as _repr
+from .defs import RIGHT_NAME, NAME_RIGHT
+from .errors import NotFoundError
 
 class Permission(object):
     """Permission class"""

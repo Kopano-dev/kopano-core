@@ -8,15 +8,52 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 import codecs
 import uuid
 
+from MAPI import (
+    MAPI_UNICODE, MAPI_MODIFY, KEEP_OPEN_READWRITE, PT_MV_BINARY,
+    RELOP_EQ, TBL_BATCH, ECSTORE_TYPE_PUBLIC, FOLDER_SEARCH,
+    MAPI_ASSOCIATED
+)
+from MAPI.Defs import (
+    bin2hex, HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
+)
+from MAPI.Tags import (
+    PR_ENTRYID, PR_MDB_PROVIDER, ZARAFA_STORE_PUBLIC_GUID,
+    PR_STORE_RECORD_KEY, PR_EC_HIERARCHYID,
+    PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_SUBTREE_ENTRYID,
+    PR_FINDER_ENTRYID, PR_ADDITIONAL_REN_ENTRYIDS,
+    PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_OUTBOX_ENTRYID,
+    PR_IPM_CONTACT_ENTRYID, PR_COMMON_VIEWS_ENTRYID,
+    PR_IPM_DRAFTS_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID,
+    PR_IPM_JOURNAL_ENTRYID, PR_IPM_NOTE_ENTRYID,
+    PR_IPM_SENTMAIL_ENTRYID, PR_IPM_TASK_ENTRYID,
+    PR_IPM_OL2007_ENTRYIDS, PR_MESSAGE_SIZE_EXTENDED,
+    PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME,
+    PR_MAILBOX_OWNER_ENTRYID, PR_EC_STOREGUID, PR_EC_STORETYPE,
+    PR_EC_USERNAME_W, PR_EC_COMPANY_NAME_W, PR_MESSAGE_CLASS,
+    PR_SUBJECT, PR_WLINK_FLAGS, PR_WLINK_ORDINAL,
+    PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE, PR_WLINK_ENTRYID,
+    PR_FOLDER_DISPLAY_FLAGS, PR_WB_SF_ID
+)
+from MAPI.Struct import (
+    SPropertyRestriction, SPropValue,
+    MAPIErrorNotFound, MAPIErrorInvalidEntryid
+)
+
+from .defs import (
+    RSF_PID_SUGGESTED_CONTACTS, RSF_PID_RSS_SUBSCRIPTION,
+    NAMED_PROPS_ARCHIVER
+)
+from .errors import NotFoundError
 from .folder import Folder
 from .autoaccept import AutoAccept
 from .outofoffice import Outofoffice
 from .prop import Property
 from .item import Item
-from .errors import *
-from .defs import *
 
-from .compat import unhex as _unhex, decode as _decode, encode as _encode
+from .compat import (
+    unhex as _unhex, decode as _decode, encode as _encode,
+    repr as _repr
+)
 from .utils import (
     extract_ipm_ol2007_entryids as _extract_ipm_ol2007_entryids,
     openentry_raw as _openentry_raw, create_prop as _create_prop,
@@ -28,8 +65,6 @@ try:
     import libcommon # XXX distribute with python-mapi? or rewrite functionality here?
 except ImportError:
     pass
-
-from MAPI.Util import *
 
 class Store(object):
     """Store class"""
@@ -64,7 +99,7 @@ class Store(object):
 
     @property
     def hierarchyid(self):
-        return  self.prop(PR_EC_HIERARCHYID).value
+        return self.prop(PR_EC_HIERARCHYID).value
 
     @property
     def root(self):
@@ -266,7 +301,6 @@ class Store(object):
         """
 
         # parse=True
-        filter_names = None
         if parse and getattr(self.server.options, 'folders', None):
             for path in self.server.options.folders:
                 yield self.folder(_decode(path)) # XXX can optparse output unicode?
@@ -376,7 +410,7 @@ class Store(object):
         if self.server.multitenant:
             table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
             table.Restrict(SPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, SPropValue(PR_EC_STOREGUID, _unhex(self.guid))), TBL_BATCH)
-            for row in table.QueryRows(1,0):
+            for row in table.QueryRows(1, 0):
                 storetype = PpropFindProp(row, PR_EC_STORETYPE)
                 if storetype.Value == ECSTORE_TYPE_PUBLIC:
                     companyname = PpropFindProp(row, PR_EC_USERNAME_W) # XXX bug in ECUserStoreTable.cpp?
@@ -398,6 +432,7 @@ class Store(object):
 
     def create_prop(self, proptag, value, proptype=None):
         return _create_prop(self, self.mapiobj, proptag, value, proptype)
+
     def prop(self, proptag):
         return _prop(self, self.mapiobj, proptag)
 
@@ -422,7 +457,7 @@ class Store(object):
         table.Restrict(SPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, SPropValue(PR_MESSAGE_CLASS, "IPM.Microsoft.WunderBar.Link")), TBL_BATCH)
 
         for row in table.QueryRows(-1, 0):
-            entryid = bin2hex(row[2].Value)
+            # entryid = bin2hex(row[2].Value)
             store_entryid = bin2hex(row[5].Value)
 
             if store_entryid == self.entryid: # XXX: Handle favorites from public stores
@@ -436,8 +471,8 @@ class Store(object):
         pos = 0
         while pos < len(value):
             id_ = ord(value[pos])
-            cb = ord(value[pos+1])
-            result[id_] = value[pos+2:pos+2+cb]
+            cb = ord(value[pos + 1])
+            result[id_] = value[pos + 2:pos + 2 + cb]
             pos += 2 + cb
         return result
 
@@ -464,7 +499,7 @@ class Store(object):
         for row in table.QueryRows(-1, 0):
             try:
                 yield guid_folder[row[1].Value]
-            except KeyError :
+            except KeyError:
                 pass
 
     def __eq__(self, s): # XXX check same server?

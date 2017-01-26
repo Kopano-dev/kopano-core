@@ -5,7 +5,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-from MAPI.Util import *
+from MAPI.Tags import PR_RULE_NAME, PR_RULE_STATE, ST_ENABLED
 
 from .compat import repr as _repr, fake_unicode as _unicode
 

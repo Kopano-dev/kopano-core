@@ -5,9 +5,9 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import datetime
 import optparse
 
-from .errors import *
 from .compat import decode as _decode
 
 def parse_date(option, opt_str, value, parser):
@@ -24,7 +24,7 @@ def parse_list_str(option, opt_str, value, parser):
 
 def parse_bool(option, opt_str, value, parser):
     assert value in ('yes', 'no'), "error: %s option requires 'yes' or 'no' as argument" % opt_str
-    setattr(parser.values, option.dest, value=='yes')
+    setattr(parser.values, option.dest, value == 'yes')
 
 def parser(options='cskpUPufmvCGSlbe', usage=None):
     """

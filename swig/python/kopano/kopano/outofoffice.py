@@ -8,9 +8,14 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 import time
 import datetime
 
-import MAPI
-
-from MAPI.Util import *
+from MAPI import KEEP_OPEN_READWRITE
+from MAPI.Tags import (
+    PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_SUBJECT_W,
+    PR_EC_OUTOFOFFICE_MSG_W, PR_EC_OUTOFOFFICE_FROM,
+    PR_EC_OUTOFOFFICE_UNTIL
+)
+from MAPI.Struct import SPropValue, MAPIErrorNotFound
+from MAPI.Time import unixtime
 
 from .compat import repr as _repr, fake_unicode as _unicode
 
@@ -80,7 +85,7 @@ class Outofoffice(object):
         if value is None:
             self.store.mapiobj.DeleteProps([PR_EC_OUTOFOFFICE_FROM])
         else:
-            value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
+            value = unixtime(time.mktime(value.timetuple()))
             self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_FROM, value)])
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -97,7 +102,7 @@ class Outofoffice(object):
         if value is None:
             self.store.mapiobj.DeleteProps([PR_EC_OUTOFOFFICE_UNTIL])
         else:
-            value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
+            value = unixtime(time.mktime(value.timetuple()))
             self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_UNTIL, value)])
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 

@@ -5,8 +5,12 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+from MAPI.Struct import ECQUOTA, MAPIErrorNotFound, MAPIErrorCollision
+
+from .defs import CONTAINER_COMPANY, ACTIVE_USER
 from .utils import bytes_to_human as _bytes_to_human
 from .compat import repr as _repr
+from .errors import NotFoundError, DuplicateError
 
 class Quota(object):
     """Quota class

@@ -7,16 +7,21 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import datetime
 
-from dateutil.rrule import WEEKLY, DAILY, MONTHLY, MO, TU, TH, FR, WE, SA, SU, rrule, rruleset
+from dateutil.rrule import (
+    WEEKLY, MONTHLY, MO, TU, TH, FR, WE, SA, SU, rrule, rruleset
+)
 from datetime import timedelta
 
 from .compat import repr as _repr
+from .defs import (
+    ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
+    ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
+    ARO_APPTCOLOR
+)
 from .utils import (
     unpack_short as _unpack_short, unpack_long as _unpack_long,
     unpack_string as _unpack_string, rectime_to_unixtime as _rectime_to_unixtime,
 )
-
-from .defs import *
 
 class Recurrence:
     def __init__(self, item): # XXX just readable start/end for now
@@ -24,13 +29,13 @@ class Recurrence:
         self.item = item
         value = item.prop('appointment:33302').value # recurrencestate
         SHORT, LONG = 2, 4
-        pos = 5 * SHORT + 3 * LONG 
+        pos = 5 * SHORT + 3 * LONG
 
         self.recurrence_frequency = _unpack_short(value, 2 * SHORT)
         self.patterntype = _unpack_short(value, 3 * SHORT)
         self.calendar_type = _unpack_short(value, 4 * SHORT)
         self.first_datetime = _unpack_long(value, 5 * SHORT)
-        self.period = _unpack_long(value , 5 * SHORT + LONG) # 12 for year, coincedence?
+        self.period = _unpack_long(value, 5 * SHORT + LONG) # 12 for year, coincedence?
 
         if self.patterntype == 1: # Weekly recurrence
             self.pattern = _unpack_long(value, pos) # WeekDays
@@ -147,7 +152,6 @@ class Recurrence:
 
             self.exceptions.append(exception)
 
-
         # FIXME: move to class Item? XXX also some of these properties do not seem to exist when syncing over Z-push
 #        self.clipend = item.prop('appointment:33334').value
 #        self.clipstart = item.prop('appointment:33333').value
@@ -171,12 +175,12 @@ class Recurrence:
             rule.rrule(rrule(WEEKLY, dtstart=self.start, until=self.end + timedelta(days=1), byweekday=byweekday))
 
             self.recurrences = rule
-            #self.recurrences = rrule(WEEKLY, dtstart=self.start, until=self.end, byweekday=byweekday)
+            # self.recurrences = rrule(WEEKLY, dtstart=self.start, until=self.end, byweekday=byweekday)
         elif self.patterntype == 2: # MONTHLY
             # X Day of every Y month(s)
             # The Xnd Y (day) of every Z Month(s)
             self.recurrences = rrule(MONTHLY, dtstart=self.start, until=self.end, bymonthday=self.pattern, interval=self.period)
-            # self.pattern is either day of month or 
+            # self.pattern is either day of month or
         elif self.patterntype == 3: # MONTHY, YEARLY
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
@@ -189,13 +193,12 @@ class Recurrence:
         for del_date in self.del_recurrences:
             # XXX: Somehow rule.rdate does not work in combination with rule.exdate
             del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self.start.hour, self.start.minute)
-            if not del_date in self.mod_recurrences:
+            if del_date not in self.mod_recurrences:
                 rule.exdate(del_date)
 
         # add exceptions
         for exception in self.exceptions:
             rule.rdate(exception['startdatetime'])
-
 
     def __unicode__(self):
         return u'Recurrence(start=%s - end=%s)' % (self.start, self.end)

@@ -5,7 +5,14 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-from MAPI.Util import *
+from MAPI.Tags import (
+    PR_FREEBUSY_ENTRYIDS, PR_PROCESS_MEETING_REQUESTS,
+    PR_DECLINE_CONFLICTING_MEETING_REQUESTS,
+    PR_DECLINE_RECURRING_MEETING_REQUESTS
+)
+from MAPI.Defs import HrGetOneProp
+from MAPI.Struct import SPropValue
+from MAPI import MAPI_MODIFY, KEEP_OPEN_READWRITE
 
 class AutoAccept(object):
     def __init__(self, store):
