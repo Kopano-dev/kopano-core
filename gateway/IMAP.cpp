@@ -90,6 +90,7 @@ IMAP::IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger,
 
 	bOnlyMailFolders = parseBool(lpConfig->GetSetting("imap_only_mailfolders"));
 	bShowPublicFolder = parseBool(lpConfig->GetSetting("imap_public_folders"));
+	cache_folders_time_limit = atoui(lpConfig->GetSetting("imap_cache_folders_time_limit"));
 }
 
 IMAP::~IMAP() {
@@ -1100,6 +1101,8 @@ HRESULT IMAP::HrCmdCreate(const string &strTag, const string &strFolderParam) {
 	hr = HrResponse(RESP_TAGGED_OK, strTag, "CREATE completed");
 
 exit:
+	cached_folders.clear();
+
 	if (hr2 != hrSuccess)
 		return hr2;
 	return hr;
@@ -1184,6 +1187,8 @@ HRESULT IMAP::HrCmdDelete(const string &strTag, const string &strFolderParam) {
 	hr = HrResponse(RESP_TAGGED_OK, strTag, "DELETE completed");
 
 exit:
+	cached_folders.clear();
+
 	if (hr2 != hrSuccess)
 		return hr2;
 	return hr;
@@ -1334,6 +1339,8 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 	hr = HrResponse(RESP_TAGGED_OK, strTag, "RENAME completed");
 
 exit:
+	cached_folders.clear();
+
 	if (hr2 != hrSuccess)
 		return hr2;
 	return hr;
@@ -1432,7 +1439,6 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 	string strListProps;
 	string strCompare;
 	wstring strFolderPath;
-	list<SFolder> lstFolders;
 
 	if (bSubscribedOnly)
 		strAction = "LSUB";
@@ -1473,9 +1479,20 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 		return hr;
 	}
 	ToUpper(strPattern);
-	
+
+	list<SFolder> *folders = &cached_folders;
+	list<SFolder> tmp_folders;
+	if (cache_folders_time_limit > 0) {
+		hr = HrGetFolderList(cached_folders);
+		cache_folders_last_used = std::time(nullptr);
+	}
+	else {
+		hr = HrGetFolderList(tmp_folders);
+		folders = &tmp_folders;
+	}
+
 	// Get all folders
-	hr = HrGetFolderList(lstFolders);
+
 	if(hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strAction+" unable to list folders");
 		if (hr2 != hrSuccess)
@@ -1484,7 +1501,7 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 	}
 
 	// Loop through all folders to see if they match
-	for (auto iFld = lstFolders.cbegin(); iFld != lstFolders.cend(); ++iFld) {
+	for (auto iFld = folders->cbegin(); iFld != folders->cend(); ++iFld) {
 		if (bSubscribedOnly && !iFld->bActive && !iFld->bSpecialFolder)
 		    // Folder is not subscribed to
 		    continue;
@@ -1492,7 +1509,7 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 		// Get full path name
 		strFolderPath.clear();
 		// if path is empty, we're probably dealing the IPM_SUBTREE entry
-		if(HrGetFolderPath(iFld, lstFolders, strFolderPath) != hrSuccess || strFolderPath.empty())
+		if(HrGetFolderPath(iFld, *folders, strFolderPath) != hrSuccess || strFolderPath.empty())
 		    continue;
 		    
 		if (!strFolderPath.empty())
@@ -2932,6 +2949,7 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 	memory_ptr<ENTRYID> lpEntryID;
 
 	lstFolders.clear();
+
 	hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &~lpPropVal);
 	if (hr != hrSuccess)
 		return hr;
@@ -2952,6 +2970,7 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 
 	if(!lpPublicStore)
 		return hr;
+
 	hr = HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropVal);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuration, but Public Folders inside public store could not be found.");
@@ -2962,6 +2981,7 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 	hr = HrGetSubTree(lstFolders, lpPropVal->Value.bin, PUBLIC_FOLDERS_NAME, --lstFolders.end());
 	if (hr != hrSuccess)
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuration, but Public Folders inside public store could not be found.");
+
 	return hrSuccess;
 }
 
@@ -3356,7 +3376,7 @@ exit:
  * @return MAPI Error code
  * @retval MAPI_E_NOT_FOUND lpFolder is not a valid iterator in lstFolders
  */
-HRESULT IMAP::HrGetFolderPath(list<SFolder>::const_iterator lpFolder, list<SFolder> &lstFolders, wstring &strPath) {
+HRESULT IMAP::HrGetFolderPath(list<SFolder>::const_iterator lpFolder, const list<SFolder> &lstFolders, wstring &strPath) {
 	if (lpFolder == lstFolders.cend())
 		return MAPI_E_NOT_FOUND;
 
@@ -6059,8 +6079,21 @@ HRESULT IMAP::HrFindFolderEntryID(const wstring& strFolder, ULONG *lpcbEntryID, 
 {
     HRESULT hr = hrSuccess;
 
-    list<SFolder> folders;
-    HrGetFolderList(folders);
+    list<SFolder> tmp_folders;
+    list<SFolder> *folders = &cached_folders;
+
+    bool should_cache_folders = cache_folders_time_limit > 0;
+    time_t expire_time = cache_folders_last_used + cache_folders_time_limit;
+
+    if (should_cache_folders &&
+       (std::time(nullptr) > expire_time || !cached_folders.size())) {
+	    HrGetFolderList(cached_folders);
+	    cache_folders_last_used = std::time(nullptr);
+    }
+    else if (!should_cache_folders) {
+	    HrGetFolderList(tmp_folders);
+	    folders = &tmp_folders;
+    }
 
     wstring find_folder = strFolder;
     if (find_folder.length() == 0)
@@ -6071,11 +6104,11 @@ HRESULT IMAP::HrFindFolderEntryID(const wstring& strFolder, ULONG *lpcbEntryID, 
 
     ToUpper(find_folder);
 
-    auto iter = folders.cbegin();
-    for (; iter != folders.cend(); iter++) {
+    auto iter = folders->cbegin();
+    for (; iter != folders->cend(); iter++) {
 	    wstring folder_name;
 
-	    hr = HrGetFolderPath(iter, folders, folder_name);
+	    hr = HrGetFolderPath(iter, *folders, folder_name);
 	    if (hr != hrSuccess)
 		    return hr;
 
@@ -6084,7 +6117,7 @@ HRESULT IMAP::HrFindFolderEntryID(const wstring& strFolder, ULONG *lpcbEntryID, 
 		    break;
     }
 
-    if (iter == folders.cend())
+    if (iter == folders->cend())
 	    return MAPI_E_NOT_FOUND;
 
     *lpcbEntryID = iter->sEntryID.cb;
