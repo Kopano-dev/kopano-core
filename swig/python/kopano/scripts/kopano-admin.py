@@ -7,13 +7,17 @@ import traceback
 from MAPI.Tags import PR_EC_STATSTABLE_SYSTEM, PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE, PR_EC_RESYNC_ID
 
 import kopano
+from kopano.parser import (
+    parse_str as _parse_str, parse_bool as _parse_bool,
+    parse_list_str as _parse_list_str
+)
 
 _true = lambda : {'action': 'store_true'} # XXX move into python-kopano?
 _int = lambda : {'type': int, 'metavar': 'N'}
-_name = lambda : {'type': 'str', 'action': 'callback', 'callback': kopano._parse_str, 'metavar': 'NAME'}
-_guid = lambda : {'type': 'str', 'action': 'callback', 'callback': kopano._parse_str, 'metavar': 'GUID'}
-_bool = lambda : {'type': 'str', 'action': 'callback', 'callback': kopano._parse_bool, 'metavar': 'YESNO'}
-_list_name = lambda : {'type': 'str', 'default': [], 'action': 'callback', 'callback': kopano._parse_list_str, 'metavar': 'NAME'}
+_name = lambda : {'type': 'str', 'action': 'callback', 'callback': _parse_str, 'metavar': 'NAME'}
+_guid = lambda : {'type': 'str', 'action': 'callback', 'callback': _parse_str, 'metavar': 'GUID'}
+_bool = lambda : {'type': 'str', 'action': 'callback', 'callback': _parse_bool, 'metavar': 'YESNO'}
+_list_name = lambda : {'type': 'str', 'default': [], 'action': 'callback', 'callback': _parse_list_str, 'metavar': 'NAME'}
 
 def parser_opt_args():
     parser = kopano.parser('skpcuGC')

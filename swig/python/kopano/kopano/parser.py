@@ -10,19 +10,19 @@ import optparse
 from .errors import *
 from .compat import decode as _decode
 
-def _parse_date(option, opt_str, value, parser):
+def parse_date(option, opt_str, value, parser):
     setattr(parser.values, option.dest, datetime.datetime.strptime(value, '%Y-%m-%d'))
 
-def _parse_loglevel(option, opt_str, value, parser):
+def parse_loglevel(option, opt_str, value, parser):
     setattr(parser.values, option.dest, value.upper())
 
-def _parse_str(option, opt_str, value, parser):
+def parse_str(option, opt_str, value, parser):
     setattr(parser.values, option.dest, _decode(value))
 
-def _parse_list_str(option, opt_str, value, parser):
+def parse_list_str(option, opt_str, value, parser):
     getattr(parser.values, option.dest).append(_decode(value))
 
-def _parse_bool(option, opt_str, value, parser):
+def parse_bool(option, opt_str, value, parser):
     assert value in ('yes', 'no'), "error: %s option requires 'yes' or 'no' as argument" % opt_str
     setattr(parser.values, option.dest, value=='yes')
 
@@ -75,9 +75,9 @@ Available options:
 
     parser = optparse.OptionParser(formatter=optparse.IndentedHelpFormatter(max_help_position=42), usage=usage)
 
-    kw_str = {'type': 'str', 'action': 'callback', 'callback': _parse_str}
-    kw_date = {'type': 'str', 'action': 'callback', 'callback': _parse_date}
-    kw_list_str = {'type': 'str', 'action': 'callback', 'callback': _parse_list_str}
+    kw_str = {'type': 'str', 'action': 'callback', 'callback': parse_str}
+    kw_date = {'type': 'str', 'action': 'callback', 'callback': parse_date}
+    kw_list_str = {'type': 'str', 'action': 'callback', 'callback': parse_list_str}
 
     if 'c' in options: parser.add_option('-c', '--config', dest='config_file', help='load settings from FILE', metavar='FILE', **kw_str)
 
@@ -99,7 +99,7 @@ Available options:
     if 'F' in options: parser.add_option('-F', '--foreground', dest='foreground', action='store_true', help='run program in foreground')
 
     if 'm' in options: parser.add_option('-m', '--modify', dest='modify', action='store_true', help='enable database modification')
-    if 'l' in options: parser.add_option('-l', '--log-level', dest='loglevel', action='callback', default='INFO', type='str', callback=_parse_loglevel, help='set log level (CRITICAL, ERROR, WARNING, INFO, DEBUG)', metavar='LEVEL')
+    if 'l' in options: parser.add_option('-l', '--log-level', dest='loglevel', action='callback', default='INFO', type='str', callback=parse_loglevel, help='set log level (CRITICAL, ERROR, WARNING, INFO, DEBUG)', metavar='LEVEL')
     if 'v' in options: parser.add_option('-v', '--verbose', dest='verbose', action='store_true', help='enable verbose output')
     if 'V' in options: parser.add_option('-V', '--version', dest='version', action='store_true', help='show program version')
 
