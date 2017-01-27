@@ -257,7 +257,8 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 			continue;
 		hr = HrCopyProperty(&lpDest[n], &lpSrc[i], lpDest);
 		if (hr == MAPI_E_INVALID_PARAMETER)
-			/* traditionally ignored */;
+			/* traditionally ignored */
+			continue;
 		else if (hr != hrSuccess)
 			return hr; /* give back memory errors */
 		++n;
