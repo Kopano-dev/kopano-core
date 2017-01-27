@@ -368,16 +368,18 @@ class Folder(object):
         """
 
         try:
-            table = self.mapiobj.GetHierarchyTable(MAPI_UNICODE)
+            table = self.mapiobj.GetHierarchyTable(MAPI_UNICODE | self.content_flag)
         except MAPIErrorNoSupport: # XXX webapp search folder?
             return
 
         table.SetColumns([PR_ENTRYID], 0)
         rows = table.QueryRows(-1, 0)
         for row in rows:
-            subfolder = self.mapiobj.OpenEntry(row[0].Value, None, MAPI_MODIFY)
-            entryid = subfolder.GetProps([PR_ENTRYID], MAPI_UNICODE)[0].Value
-            folder = Folder(self.store, entryid)
+            try:
+                mapiobj = self.mapiobj.OpenEntry(row[0].Value, None, MAPI_MODIFY | self.content_flag)
+            except MAPIErrorNoAccess:
+                mapiobj = self.mapiobj.OpenEntry(row[0].Value, None, self.content_flag)
+            folder = Folder(self.store, mapiobj=mapiobj)
             folder.depth = depth
             yield folder
             if recurse:
