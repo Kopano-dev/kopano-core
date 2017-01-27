@@ -802,7 +802,7 @@ EXTRA_mapi_la_DEPENDENCIES = ${srcdir}/php-ext/mapi.sym
 #
 # PHP classes, config files
 #
-phpdatadir = ${datarootdir}/php/mapi
+phpdatadir = ${datarootdir}/kopano/php/mapi
 dist_phpdata_DATA = \
 	php-ext/include/mapi/class.baseexception.php \
 	php-ext/include/mapi/class.baserecurrence.php \
