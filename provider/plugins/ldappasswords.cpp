@@ -16,7 +16,6 @@
  */
 
 #include <kopano/platform.h>
-#include <kopano/base64.h>
 #include "plugin.h"
 
 #include <openssl/des.h>
@@ -27,7 +26,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
+#include <kopano/stringutil.h>
 #include "ldappasswords.h"
 
 using namespace std;

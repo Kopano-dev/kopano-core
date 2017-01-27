@@ -78,10 +78,10 @@ private:
 
 class MessageState _kc_final {
 public:
-	bool isStubbed() const { return (m_ulState & msStubbed) != 0; }
-	bool isDirty() const { return (m_ulState & msDirty) != 0; }
-	bool isCopy() const { return (m_ulState & msCopy) != 0; }
-	bool isMove() const { return (m_ulState & msMove) != 0; }
+	bool isStubbed() const { return m_ulState & msStubbed; }
+	bool isDirty() const { return m_ulState & msDirty; }
+	bool isCopy() const { return m_ulState & msCopy; }
+	bool isMove() const { return m_ulState & msMove; }
 
 private:
 	enum msFlags {

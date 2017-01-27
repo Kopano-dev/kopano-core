@@ -571,7 +571,8 @@ ECRESULT ECGetContentChangesHelper::Init()
 	std::string	strQuery;
 
 	assert(m_lpDatabase != NULL);
-	if (m_sFolderSourceKey.empty() && m_ulChangeId == 0 && (m_ulFlags & SYNC_CATCHUP) != SYNC_CATCHUP) {
+	if (m_sFolderSourceKey.empty() && m_ulChangeId == 0 &&
+	    !(m_ulFlags & SYNC_CATCHUP)) {
 		// Disallow full initial exports on server level since they are insanely large
 		er = KCERR_NO_SUPPORT;
 		goto exit;
@@ -605,7 +606,7 @@ ECRESULT ECGetContentChangesHelper::Init()
 		 */
 	    if(m_sFolderSourceKey.empty()) {
 			// Optimization: when doing SYNC_CATCHUP on a non-filtered sync, we can skip looking for any changes
-			assert((m_ulFlags & SYNC_CATCHUP) == SYNC_CATCHUP);
+			assert(m_ulFlags & SYNC_CATCHUP);
 			m_lpQueryCreator = new NullQueryCreator();
 		} else {
 			m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId);

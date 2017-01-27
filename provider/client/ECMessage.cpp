@@ -857,7 +857,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		// table received from the server through m_sMapiObject, but the PR_ATTACH_NUM is re-generated locally
 		if (!fNew) {
 			// existing message has "table" in m_sMapiObject data
-			for (const auto &obj : *m_sMapiObject->lstChildren) {
+			for (const auto &obj : m_sMapiObject->lstChildren) {
 				if (obj->ulObjType != MAPI_ATTACH)
 					continue;
 				if (obj->bDelete)
@@ -866,7 +866,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				this->ulNextAttUniqueId = obj->ulUniqueId > this->ulNextAttUniqueId ? obj->ulUniqueId : this->ulNextAttUniqueId;
 				++this->ulNextAttUniqueId;
 
-				ULONG ulProps = obj->lstProperties->size();
+				ULONG ulProps = obj->lstProperties.size();
 				LPSPropValue lpProps = NULL;
 				SPropValue sKeyProp;
 				ULONG i;
@@ -879,7 +879,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				lpPropType = NULL;
 
 				i = 0;
-				for (const auto &pv : *obj->lstProperties) {
+				for (const auto &pv : obj->lstProperties) {
 					pv.CopyToByRef(&lpProps[i]);
 					if (lpProps[i].ulPropTag == PR_ATTACH_NUM) {
 						lpPropID = &lpProps[i];
@@ -1107,7 +1107,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		// Get the existing table for this message (there is none if the message is unsaved)
 		if (!fNew) {
 			// existing message has "table" in m_sMapiObject data
-			for (const auto &obj : *m_sMapiObject->lstChildren) {
+			for (const auto &obj : m_sMapiObject->lstChildren) {
 				// The only valid types are MAPI_MAILUSER and MAPI_DISTLIST. However some MAPI clients put in other
 				// values as object type. We know about the existence of MAPI_ATTACH as another valid subtype for
 				// Messages, so we'll skip those, treat MAPI_DISTLIST as MAPI_DISTLIST and anything else as
@@ -1120,7 +1120,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				this->ulNextRecipUniqueId = obj->ulUniqueId > this->ulNextRecipUniqueId ? obj->ulUniqueId : this->ulNextRecipUniqueId;
 				++this->ulNextRecipUniqueId;
 
-				ULONG ulProps = obj->lstProperties->size();
+				ULONG ulProps = obj->lstProperties.size();
 				LPSPropValue lpProps = NULL;
 				SPropValue sKeyProp;
 				ULONG i = 0;
@@ -1130,7 +1130,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				// +1 for maybe missing PR_ROWID property
 				// +1 for maybe missing PR_OBJECT_TYPE property
 				ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
-				for (const auto &pv : *obj->lstProperties) {
+				for (const auto &pv : obj->lstProperties) {
 					pv.CopyToByRef(&lpProps[i]);
 					if (lpProps[i].ulPropTag == PR_ROWID)
 						lpPropID = &lpProps[i];
@@ -1699,10 +1699,10 @@ HRESULT ECMessage::SaveRecips()
 			mo->bChanged = true;
 			for (j = 0; j < lpRowSet->aRow[i].cValues; ++j)
 				if(PROP_TYPE(lpRowSet->aRow[i].lpProps[j].ulPropTag) != PT_NULL) {
-					mo->lstModified->push_back(ECProperty(&lpRowSet->aRow[i].lpProps[j]));
+					mo->lstModified.push_back(ECProperty(&lpRowSet->aRow[i].lpProps[j]));
 					// as in ECGenericProp.cpp, we also save the properties to the known list,
 					// since this is used when we reload the object from memory.
-					mo->lstProperties->push_back(ECProperty(&lpRowSet->aRow[i].lpProps[j]));
+					mo->lstProperties.push_back(ECProperty(&lpRowSet->aRow[i].lpProps[j]));
 				}
 		} else if (lpulStatus[i] == ECROW_DELETED) {
 			mo->bDelete = true;
@@ -1710,17 +1710,16 @@ HRESULT ECMessage::SaveRecips()
 			// ECROW_NORMAL, untouched recipient
 			for (j = 0; j < lpRowSet->aRow[i].cValues; ++j)
 				if(PROP_TYPE(lpRowSet->aRow[i].lpProps[j].ulPropTag) != PT_NULL)
-					mo->lstProperties->push_back(ECProperty(&lpRowSet->aRow[i].lpProps[j]));
+					mo->lstProperties.push_back(ECProperty(&lpRowSet->aRow[i].lpProps[j]));
 		}
 
 		// find old recipient in child list, and remove if present
-		auto iterSObj = m_sMapiObject->lstChildren->find(mo);
-		if (iterSObj != m_sMapiObject->lstChildren->cend()) {
+		auto iterSObj = m_sMapiObject->lstChildren.find(mo);
+		if (iterSObj != m_sMapiObject->lstChildren.cend()) {
 			FreeMapiObject(*iterSObj);
-			m_sMapiObject->lstChildren->erase(iterSObj);
+			m_sMapiObject->lstChildren.erase(iterSObj);
 		}
-
-		m_sMapiObject->lstChildren->insert(mo);
+		m_sMapiObject->lstChildren.insert(mo);
 	}
 
 	hr = lpRecips->HrSetClean();
@@ -1741,11 +1740,11 @@ exit:
 
 void ECMessage::RecursiveMarkDelete(MAPIOBJECT *lpObj) {
 	lpObj->bDelete = true;
-	lpObj->lstDeleted->clear();
-	lpObj->lstAvailable->clear();
-	lpObj->lstModified->clear();
-	lpObj->lstProperties->clear();
-	for (const auto &obj : *lpObj->lstChildren)
+	lpObj->lstDeleted.clear();
+	lpObj->lstAvailable.clear();
+	lpObj->lstModified.clear();
+	lpObj->lstProperties.clear();
+	for (const auto &obj : lpObj->lstChildren)
 		RecursiveMarkDelete(obj);
 }
 
@@ -1766,13 +1765,12 @@ BOOL ECMessage::HasAttachment()
 		}
 	}
 
-	for (iterObjects = m_sMapiObject->lstChildren->cbegin();
-	     iterObjects != m_sMapiObject->lstChildren->cend(); ++iterObjects)
+	for (iterObjects = m_sMapiObject->lstChildren.cbegin();
+	     iterObjects != m_sMapiObject->lstChildren.cend(); ++iterObjects)
 		if ((*iterObjects)->ulObjType == MAPI_ATTACH)
 			break;
 
-	bRet = (iterObjects != m_sMapiObject->lstChildren->end());
-
+	bRet = iterObjects != m_sMapiObject->lstChildren.cend();
 exit:
 	if(hr != hrSuccess)
 		bRet = FALSE;
@@ -1813,8 +1811,8 @@ HRESULT ECMessage::SyncAttachments()
 
 		// delete complete attachment
 		MAPIOBJECT find(lpObjType->Value.ul, lpAttachNum->Value.ul);
-		auto iterSObj = m_sMapiObject->lstChildren->find(&find);
-		if (iterSObj != m_sMapiObject->lstChildren->cend())
+		auto iterSObj = m_sMapiObject->lstChildren.find(&find);
+		if (iterSObj != m_sMapiObject->lstChildren.cend())
 			RecursiveMarkDelete(*iterSObj);
 	}
 
@@ -1848,7 +1846,7 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 		return MAPI_E_INVALID_PARAMETER;
 
 	// update hierarchy id in table
-	for (const auto &obj : *m_sMapiObject->lstChildren) {
+	for (const auto &obj : m_sMapiObject->lstChildren) {
 		memory_ptr<SPropValue> lpProps, lpNewProps, lpAllProps;
 
 		if (obj->ulObjType != ulObjType)
@@ -1862,7 +1860,7 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 		if (hr != hrSuccess)
 			return hr;
 		// put new server props in table too
-		ulProps = obj->lstProperties->size();
+		ulProps = obj->lstProperties.size();
 		if (ulProps == 0)
 			continue;
 		// retrieve old row from table
@@ -1874,7 +1872,7 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 		if (hr != hrSuccess)
 			return hr;
 		i = 0;
-		for (const auto &pv : *obj->lstProperties) {
+		for (const auto &pv : obj->lstProperties) {
 			pv.CopyToByRef(&lpNewProps[i]);
 			if (PROP_ID(lpNewProps[i].ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ)) {
 				lpNewProps[i].ulPropTag = CHANGE_PROP_TYPE(lpNewProps[i].ulPropTag, PT_ERROR);
@@ -2600,9 +2598,9 @@ static HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, const MAPIOBJECT *lpSrc)
 
     lpDest->ulObjId = lpSrc->ulObjId;
 
-	for (const auto &src : *lpSrc->lstChildren) {
-		auto iterDest = lpDest->lstChildren->find(src);
-		if (iterDest != lpDest->lstChildren->cend()) {
+	for (const auto &src : lpSrc->lstChildren) {
+		auto iterDest = lpDest->lstChildren.find(src);
+		if (iterDest != lpDest->lstChildren.cend()) {
 			hr = HrCopyObjIDs(*iterDest, src);
             if(hr != hrSuccess)
                 return hr;
@@ -2653,8 +2651,8 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 	// Replace the attachment in the object hierarchy with this one, but preserve server object id. This is needed
 	// if the entire object has been saved to the server in the mean time.
-	iterSObj = m_sMapiObject->lstChildren->find(lpsMapiObject);
-	if (iterSObj != m_sMapiObject->lstChildren->cend()) {
+	iterSObj = m_sMapiObject->lstChildren.find(lpsMapiObject);
+	if (iterSObj != m_sMapiObject->lstChildren.cend()) {
 		// Preserve server IDs
 		hr = HrCopyObjIDs(lpsMapiObject, (*iterSObj));
 		if(hr != hrSuccess)
@@ -2662,20 +2660,20 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 		// Remove item
 		FreeMapiObject(*iterSObj);
-		m_sMapiObject->lstChildren->erase(iterSObj);
+		m_sMapiObject->lstChildren.erase(iterSObj);
 	}
 
-	m_sMapiObject->lstChildren->insert(new MAPIOBJECT(lpsMapiObject));
+	m_sMapiObject->lstChildren.insert(new MAPIOBJECT(lpsMapiObject));
 
 	// Update the attachment table. The attachment table contains all properties of the attachments
-	ulProps = lpsMapiObject->lstProperties->size();
+	ulProps = lpsMapiObject->lstProperties.size();
 
 	// +2 for maybe missing PR_ATTACH_NUM and PR_OBJECT_TYPE properties
 	ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
 
 	lpPropID = NULL;
 	i = 0;
-	for (const auto &pv : *lpsMapiObject->lstProperties) {
+	for (const auto &pv : lpsMapiObject->lstProperties) {
 		pv.CopyToByRef(&lpProps[i]);
 		if (lpProps[i].ulPropTag == PR_ATTACH_NUM) {
 			lpPropID = &lpProps[i];

@@ -122,11 +122,10 @@ HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
     MAKE_STD_ZVAL(pvalArgs[0]);
     MAKE_STD_ZVAL(pvalArgs[1]);
 
-    if(lpStream) {
+    if (lpStream != nullptr)
         ZVAL_RESOURCE(pvalArgs[0], (long)lpStream);
-    } else {
+    else
         ZVAL_NULL(pvalArgs[0]);
-    }
     
     ZVAL_LONG(pvalArgs[1], ulFlags);
     
@@ -163,11 +162,10 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
     
     MAKE_STD_ZVAL(pvalArgs[0]);
 
-    if(lpStream) {
+    if (lpStream != nullptr)
         ZVAL_RESOURCE(pvalArgs[0], (long)lpStream);
-    } else {
+    else
         ZVAL_NULL(pvalArgs[0]);
-    }
     
     ZVAL_STRING(pvalFuncName, "UpdateState" , 1);
     

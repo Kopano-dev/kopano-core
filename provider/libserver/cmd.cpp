@@ -62,8 +62,6 @@
 
 #include "kcore.hpp"
 #include "pcutil.hpp"
-#include <kopano/md5.h>
-
 #include "ECAttachmentStorage.h"
 #include "ECGenProps.h"
 #include "ECUserManagement.h"
@@ -1551,7 +1549,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 		goto exit;
 
 	if (ulPropTag != PR_ATTACH_DATA_BIN && ulPropTag != PR_EC_IMAP_EMAIL) {
-		if((ulPropTag&MV_FLAG) == MV_FLAG)
+		if (ulPropTag & MV_FLAG)
 			strQuery = "SELECT " + (std::string)MVPROPCOLORDER + " FROM mvproperties WHERE hierarchyid="+stringify(ulObjId)+ " AND tag = " + stringify(PROP_ID(ulPropTag))+" GROUP BY hierarchyid, tag";
 		else
 			strQuery = "SELECT " PROPCOLORDER " FROM properties WHERE hierarchyid = " + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(ulPropTag));
@@ -2015,7 +2013,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		if (lpfHaveChangeKey && lpPropValArray->__ptr[i].ulPropTag == PR_CHANGE_KEY)
 			*lpfHaveChangeKey = true;
 
-		if((PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) & MV_FLAG) == MV_FLAG) {
+		if (PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) & MV_FLAG) {
 			// Make sure string prop_types become PT_MV_STRING8
 			if (PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) == PT_MV_UNICODE)
 				lpPropValArray->__ptr[i].ulPropTag = CHANGE_PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag, PT_MV_STRING8);
@@ -4193,8 +4191,7 @@ SOAP_ENTRY_START(emptyFolder, *result, entryId sEntryId, unsigned int ulFlags, u
 	lObjectIds.push_back(ulId);
 
 	ulDeleteFlags = EC_DELETE_MESSAGES | EC_DELETE_FOLDERS | EC_DELETE_RECIPIENTS | EC_DELETE_ATTACHMENTS;
-
-	if((ulFlags & DELETE_HARD_DELETE) == DELETE_HARD_DELETE)
+	if (ulFlags & DELETE_HARD_DELETE)
 		ulDeleteFlags |= EC_DELETE_HARD_DELETE;
 
 	if((ulFlags&DEL_ASSOCIATED) == 0)
@@ -5086,8 +5083,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		if (ulFlagsAdd & MSGFLAG_READ &&
 		    (op.second & MSGFLAG_READ) == 0)
 			--mapParents[ulParent]; // Decrease unread count
-		if (ulFlagsRemove & MSGFLAG_READ &&
-		    (op.second & MSGFLAG_READ) == MSGFLAG_READ)
+		if (ulFlagsRemove & MSGFLAG_READ && op.second & MSGFLAG_READ)
 			++mapParents[ulParent]; // Increase unread count
 	}
 	
@@ -7451,7 +7447,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 			ulItemSize += (lpDBRow[5] != NULL)? atoi(lpDBRow[5]) : 0;
 
 			// check if it a deleted item
-			if(lpDBRow[3] != NULL && (atoi(lpDBRow[3])&MSGFLAG_DELETED ) == MSGFLAG_DELETED)
+			if (lpDBRow[3] != NULL && atoi(lpDBRow[3]) & MSGFLAG_DELETED)
 				bUpdateDeletedSize = true;
 		}else {
 			bPartialCompletion = true;
@@ -7648,7 +7644,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 
 		// Track folder count changes
 		if (cop.ulType == MAPI_MESSAGE) {
-			if ((cop.ulFlags & MSGFLAG_DELETED) == MSGFLAG_DELETED) {
+			if (cop.ulFlags & MSGFLAG_DELETED) {
 				// Undelete
 				if (cop.ulFlags & MAPI_ASSOCIATED) {
 					// Associated message undeleted
@@ -8791,7 +8787,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		AddChange(lpecSession, ulSyncId, sSourceKey, sDestSourceKey, ICS_FOLDER_CHANGE);
 
 		// Update folder counters
-		if((ulObjFlags & MSGFLAG_DELETED) == MSGFLAG_DELETED) {
+		if (ulObjFlags & MSGFLAG_DELETED) {
 			// Undelete
 			er = UpdateFolderCount(lpDatabase, ulOldParent, PR_DELETED_FOLDER_COUNT, -1);
 			if (er == erSuccess)
@@ -10391,19 +10387,15 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 			// note: "contains a public of a company" is also a possibility
 			if (!strPublicServer.empty() && strcasecmp(sDetails.GetServerName().c_str(), strPublicServer.c_str()) == 0)
 				lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_HAS_PUBLIC;
-				
-			if ((ulFlags & EC_SERVERDETAIL_NO_NAME) != EC_SERVERDETAIL_NO_NAME)
+			if (ulFlags & EC_SERVERDETAIL_NO_NAME)
 				lpsResponse->sServerList.__ptr[i].lpszName = STROUT_FIX_CPY(sDetails.GetServerName().c_str());
-				
-			if ((ulFlags & EC_SERVERDETAIL_FILEPATH) == EC_SERVERDETAIL_FILEPATH)
+			if (ulFlags & EC_SERVERDETAIL_FILEPATH)
 				lpsResponse->sServerList.__ptr[i].lpszFilePath = STROUT_FIX_CPY(sDetails.GetFilePath().c_str());
-				
-			if ((ulFlags & EC_SERVERDETAIL_HTTPPATH) == EC_SERVERDETAIL_HTTPPATH)
+			if (ulFlags & EC_SERVERDETAIL_HTTPPATH)
 				lpsResponse->sServerList.__ptr[i].lpszHttpPath = STROUT_FIX_CPY(sDetails.GetHttpPath().c_str());
-				
-			if ((ulFlags & EC_SERVERDETAIL_SSLPATH) == EC_SERVERDETAIL_SSLPATH)
+			if (ulFlags & EC_SERVERDETAIL_SSLPATH)
 				lpsResponse->sServerList.__ptr[i].lpszSslPath = STROUT_FIX_CPY(sDetails.GetSslPath().c_str());
-			if ((ulFlags & EC_SERVERDETAIL_PREFEREDPATH) == EC_SERVERDETAIL_PREFEREDPATH &&
+			if (ulFlags & EC_SERVERDETAIL_PREFEREDPATH &&
 			    GetBestServerPath(soap, lpecSession, sDetails.GetServerName(), &strServerPath) == erSuccess)
 				lpsResponse->sServerList.__ptr[i].lpszPreferedPath = STROUT_FIX_CPY(strServerPath.c_str());
 		}

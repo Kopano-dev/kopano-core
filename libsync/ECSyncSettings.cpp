@@ -66,19 +66,19 @@ ULONG ECSyncSettings::SyncLogLevel() const {
 }
 
 bool ECSyncSettings::ContinuousLogging() const {
-	return (m_ulSyncOpts & EC_SYNC_OPT_CONTINUOUS) == EC_SYNC_OPT_CONTINUOUS;
+	return m_ulSyncOpts & EC_SYNC_OPT_CONTINUOUS;
 }
 
 bool ECSyncSettings::SyncStreamEnabled() const {
-	return (m_ulSyncOpts & EC_SYNC_OPT_STREAM) == EC_SYNC_OPT_STREAM;
+	return m_ulSyncOpts & EC_SYNC_OPT_STREAM;
 }
 
 bool ECSyncSettings::ChangeNotificationsEnabled() const {
-	return (m_ulSyncOpts & EC_SYNC_OPT_CHANGENOTIF) == EC_SYNC_OPT_CHANGENOTIF;
+	return m_ulSyncOpts & EC_SYNC_OPT_CHANGENOTIF;
 }
 
 bool ECSyncSettings::StateCollectorEnabled() const {
-	return (m_ulSyncOpts & EC_SYNC_OPT_STATECOLLECT) == EC_SYNC_OPT_STATECOLLECT;
+	return m_ulSyncOpts & EC_SYNC_OPT_STATECOLLECT;
 }
 
 ULONG ECSyncSettings::StreamTimeout() const {

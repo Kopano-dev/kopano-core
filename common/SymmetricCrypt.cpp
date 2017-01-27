@@ -16,9 +16,8 @@
  */
 
 #include <kopano/platform.h>
-#include <kopano/base64.h>
-
 #include <string>
+#include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <cassert>
 #include "SymmetricCrypt.h"

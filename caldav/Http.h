@@ -21,7 +21,6 @@
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapicode.h>
-#include <kopano/base64.h>
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECChannel.h>

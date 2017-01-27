@@ -39,7 +39,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
-#include <kopano/base64.h>
 #include <kopano/mapi_ptr.h>
 
 #include <kopano/charset/convert.h>

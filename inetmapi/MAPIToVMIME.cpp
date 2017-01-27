@@ -160,13 +160,11 @@ MAPIToVMIME::MAPIToVMIME(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 {
 	srand((unsigned)time(NULL));
 	this->sopt = sopt;
-	if (lpSession && !lpAddrBook) {
+	if (lpSession != nullptr && lpAddrBook == nullptr)
 		lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &m_lpAdrBook);
 		// ignore error
-	} else {
+	else
 		lpAddrBook->QueryInterface(IID_IAddrBook, (void**)&m_lpAdrBook);
-	}
-
 	m_lpSession = lpSession;
 }
 

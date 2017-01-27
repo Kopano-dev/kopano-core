@@ -69,9 +69,8 @@ function get_mapi_error_name($errcode=null)
 			continue;
 		// Check that we have an actual MAPI error or warning definition
 		$prefix = substr($key, 0, 7);
-		if ($prefix == "MAPI_E_" || $prefix == "MAPI_W_") {
+		if ($prefix == "MAPI_E_" || $prefix == "MAPI_W_")
 			return $key;
-		}
 	}
 
 	// error code not found, return hex value (this is a fix for 64-bit systems, we can't use the dechex() function for this)
@@ -108,17 +107,15 @@ function getPropIdsFromStrings($store, $mapping)
 			continue;
 		}
 
-		if (substr($split[2], 0, 2) == "0x") {
+		if (substr($split[2], 0, 2) == "0x")
 			$id = hexdec(substr($split[2], 2));
-		} else {
+		else
 			$id = $split[2];
-		}
 
 		// have we used this guid before?
 		if (!defined($split[1])) {
-			if (!array_key_exists($split[1], $guids)) {
+			if (!array_key_exists($split[1], $guids))
 				$guids[$split[1]] = makeguid($split[1]);
-			}
 			$guid = $guids[$split[1]];
 		} else {
 			$guid = constant($split[1]);
@@ -132,15 +129,13 @@ function getPropIdsFromStrings($store, $mapping)
 		$num++;
 	}
 	
-	if (empty($ids["id"])){
+	if (empty($ids["id"]))
 		return $props;
-	}
 
 	// get the ids
 	$named = mapi_getidsfromnames($store, $ids["id"], $ids["guid"]);
-	foreach($named as $num=>$prop){
+	foreach($named as $num=>$prop)
 		$props[$ids["name"][$num]] = mapi_prop_tag(constant($ids["type"][$num]), mapi_prop_id($prop));
-	}
 
 	return $props;
 }
@@ -158,11 +153,9 @@ function getPropIdsFromStrings($store, $mapping)
  */
 function propIsError($property, $propArray)
 {
-	if (array_key_exists(mapi_prop_tag(PT_ERROR, mapi_prop_id($property)), $propArray)) {
+	if (array_key_exists(mapi_prop_tag(PT_ERROR, mapi_prop_id($property)), $propArray))
 		return $propArray[mapi_prop_tag(PT_ERROR, mapi_prop_id($property))];
-	} else {
-		return false;
-	}
+	return false;
 }
 
 /******** Macro Functions for PR_DISPLAY_TYPE_EX values *********/

@@ -129,9 +129,9 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	if(ulAttachType == ATTACH_EMBEDDED_MSG && (PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ) && *lpiid == IID_IMessage)) {
 		// Client is opening an IMessage submessage
 
-		if (!m_sMapiObject->lstChildren->empty()) {
+		if (!m_sMapiObject->lstChildren.empty()) {
 			fNew = FALSE;			// Create the submessage object from my sSavedObject data
-			ulObjId = (*m_sMapiObject->lstChildren->begin())->ulObjId;
+			ulObjId = (*m_sMapiObject->lstChildren.begin())->ulObjId;
 		} else {
 			if(!fModify || !(ulFlags & MAPI_CREATE)) {
 				hr = MAPI_E_NO_ACCESS;
@@ -307,13 +307,12 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 		return MAPI_E_INVALID_OBJECT;
 
 	// attachments can only have 1 sub-message
-	iterSObj = m_sMapiObject->lstChildren->cbegin();
-	if (iterSObj != m_sMapiObject->lstChildren->cend()) {
+	iterSObj = m_sMapiObject->lstChildren.cbegin();
+	if (iterSObj != m_sMapiObject->lstChildren.cend()) {
 		FreeMapiObject(*iterSObj);
-		m_sMapiObject->lstChildren->erase(iterSObj);
+		m_sMapiObject->lstChildren.erase(iterSObj);
 	}
-
-	m_sMapiObject->lstChildren->insert(new MAPIOBJECT(lpsMapiObject));
+	m_sMapiObject->lstChildren.insert(new MAPIOBJECT(lpsMapiObject));
 	return hrSuccess;
 }
 

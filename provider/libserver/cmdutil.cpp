@@ -232,8 +232,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 
 		if((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
 			strQuery += " AND (h.flags&"+stringify(MSGFLAG_DELETED)+") !="+stringify(MSGFLAG_DELETED);
-
-		if ((ulFlags & EC_DELETE_CONTAINER) == 0 && (ulFlags & EC_DELETE_NOT_ASSOCIATED_MSG) == EC_DELETE_NOT_ASSOCIATED_MSG)
+		if ((ulFlags & (EC_DELETE_CONTAINER | EC_DELETE_NOT_ASSOCIATED_MSG)) == EC_DELETE_NOT_ASSOCIATED_MSG)
 			strQuery += " AND (h.flags&"+stringify(MSGFLAG_ASSOCIATED)+") !="+stringify(MSGFLAG_ASSOCIATED);
 
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -845,7 +844,7 @@ ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, ECL
 		if (di.fRoot)
 			lpCacheManager->Update(fnevObjectModified, di.ulParent);
 		// Update cache, Remove index properties
-		if((ulFlags & EC_DELETE_HARD_DELETE) == EC_DELETE_HARD_DELETE)
+		if (ulFlags & EC_DELETE_HARD_DELETE)
 			lpCacheManager->RemoveIndexData(di.ulId);
 	}
 	return erSuccess;
@@ -1420,7 +1419,7 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 			// Update in-memory outgoing tables
 			g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_ADD, ulStoreId, ulObjId, EC_SUBMIT_LOCAL, MAPI_MESSAGE);
 
-		} else if (((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) == 0) && ulPrevSubmitFlag == 1) {
+		} else if ((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) == 0 && ulPrevSubmitFlag == 1) {
 			// Message was previously submitted, but is not submitted any more. Remove it from the outgoing queue and remove the flags.
 
 			strQuery = "DELETE FROM outgoingqueue WHERE hierarchy_id = " + stringify(ulObjId);

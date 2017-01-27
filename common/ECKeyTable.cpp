@@ -980,11 +980,10 @@ ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTa
     while (lpCurrent && lpCurrent->fHidden)
         Prev();
     
-    if(lpCurrent) {
+    if (lpCurrent != nullptr)
         *lpsPrev = lpCurrent->sKey;
-    } else {
+    else
         er = KCERR_NOT_FOUND;
-    }
     
     // Go back to the previous cursor position
     lpCurrent = lpPos;
@@ -1098,23 +1097,21 @@ void ECKeyTable::Restructure(ECTableRow *lpPivot)
 	if(balance > 1) {
 		// Unbalanced (too much on the left)
 		balance = GetBalance(lpPivot->lpLeft);
-		if(balance >= 0) {
+		if (balance >= 0)
 			// Subtree unbalanced in same direction
 			RotateL(lpPivot);
-		} else {
+		else
 			// Subtree unbalanced in the other direction
 			RotateLR(lpPivot->lpLeft);
-		}
 	} else if(balance < -1) {
 		// Unbalanced (too much on the right)
 		balance = GetBalance(lpPivot->lpRight);
-		if(balance <= 0) {
+		if (balance <= 0)
 			// Subtree unbalanced in the same direction
 			RotateR(lpPivot);
-		} else {
+		else
 			// Subtree unbalanced in the other direction
 			RotateRL(lpPivot->lpRight);
-		}
 	}
 }
 

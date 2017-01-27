@@ -76,27 +76,21 @@ struct MAPIOBJECT {
 		Util::HrCopyEntryId(lpSource->cbInstanceID, (LPENTRYID)lpSource->lpInstanceID,
 							&this->cbInstanceID, (LPENTRYID *)&this->lpInstanceID);
 
-		this->lstChildren = new std::set<MAPIOBJECT*, CompareMAPIOBJECT>;
-		this->lstDeleted = new std::list<ULONG>;
-		this->lstAvailable = new std::list<ULONG>;
-		this->lstModified = new std::list<ECProperty>;
-		this->lstProperties = new std::list<ECProperty>;
+		this->lstDeleted = lpSource->lstDeleted;
+		this->lstModified = lpSource->lstModified;
+		this->lstProperties = lpSource->lstProperties;
+		this->lstAvailable = lpSource->lstAvailable;
 
-		*this->lstDeleted = *lpSource->lstDeleted;
-		*this->lstModified = *lpSource->lstModified;
-		*this->lstProperties = *lpSource->lstProperties;
-		*this->lstAvailable = *lpSource->lstAvailable;
-
-		for (const auto &i : *lpSource->lstChildren)
-			this->lstChildren->insert(new MAPIOBJECT(i));
+		for (const auto &i : lpSource->lstChildren)
+			this->lstChildren.insert(new MAPIOBJECT(i));
 	};
 
 	/* data */
-	std::set<MAPIOBJECT *, CompareMAPIOBJECT> *lstChildren = nullptr; /* ECSavedObjects */
-	std::list<ULONG> *lstDeleted = nullptr; /* proptags client->server only */
-	std::list<ULONG> *lstAvailable = nullptr; /* proptags server->client only */
-	std::list<ECProperty> *lstModified = nullptr; /* propval client->server only */
-	std::list<ECProperty> *lstProperties = nullptr; /* propval client->server but not serialized and server->client  */
+	std::set<MAPIOBJECT *, CompareMAPIOBJECT> lstChildren; /* ECSavedObjects */
+	std::list<ULONG> lstDeleted; /* proptags client->server only */
+	std::list<ULONG> lstAvailable; /* proptags server->client only */
+	std::list<ECProperty> lstModified; /* propval client->server only */
+	std::list<ECProperty> lstProperties; /* propval client->server but not serialized and server->client  */
 	LPSIEID lpInstanceID = nullptr; /* Single Instance ID */
 	ULONG cbInstanceID = 0; /* Single Instance ID length */
 	BOOL bChangedInstance = false; /* Single Instance ID changed */

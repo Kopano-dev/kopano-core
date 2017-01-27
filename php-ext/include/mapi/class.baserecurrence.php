@@ -1537,9 +1537,8 @@
 						
 					if($this->recur["subtype"] == 0) {
 						// Every Nth day
-						for($now = $daystart; $now <= $dayend && ($limit == 0 || count($items) < $limit); $now += 60 * $this->recur["everyn"]) {
+						for ($now = $daystart; $now <= $dayend && ($limit == 0 || count($items) < $limit); $now += 60 * $this->recur["everyn"])
 							$this->processOccurrenceItem($items, $start, $end, $now, $this->recur["startocc"], $this->recur["endocc"], $this->tz, $remindersonly);
-						}
 						break;
 					}
 					// Every workday

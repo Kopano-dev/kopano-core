@@ -128,13 +128,13 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 	if (PROP_TYPE(ptrMessageProps[IDX_STUBBED].ulPropTag) != PT_ERROR && ptrMessageProps[IDX_STUBBED].Value.b == TRUE)
 		ulState |= MessageState::msStubbed;
 
-	if (PROP_TYPE(ptrMessageProps[IDX_DIRTY].ulPropTag) != PT_ERROR && ptrMessageProps[IDX_DIRTY].Value.b == TRUE) {
+	if (PROP_TYPE(ptrMessageProps[IDX_DIRTY].ulPropTag) != PT_ERROR &&
+	    ptrMessageProps[IDX_DIRTY].Value.b == TRUE &&
+	    !(ulState & MessageState::msStubbed))
 		// If, for some reason, both dirty and stubbed are set, it is safest to mark the message
 		// as stubbed. That might cause the archive to miss out some changes, but if we marked
 		// it as dirty, we might be rearchiving a stub, loosing all interesting information.
-		if ((ulState & MessageState::msStubbed) == 0)
-			ulState |= MessageState::msDirty;
-	}
+		ulState |= MessageState::msDirty;
 
 	// Determine copy / move state.
 	if (PROP_TYPE(ptrMessageProps[IDX_ORIGINAL_SOURCEKEY].ulPropTag) == PT_ERROR) {
@@ -176,15 +176,14 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 		}
 
 		if (!ptrArchiveMsg) {
-			if (ulState & MessageState::msStubbed) {
+			if (ulState & MessageState::msStubbed)
 				return MAPI_E_NOT_FOUND;
-			} else {
+			else
 				/*
 				 * We were unable to open any archived message, but the message is
 				 * not stubbed anyway. Just mark it as a copy.
 				 */
 				ulState |= MessageState::msCopy;
-			}
 		} else {
 			hr = MAPIPropHelper::Create(ptrArchiveMsg.as<MAPIPropPtr>(), &ptrArchiveHelper);
 			if (hr != hrSuccess)

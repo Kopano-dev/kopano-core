@@ -217,12 +217,10 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	lpicComponent = icalcomponent_get_first_component(lpicCalendar, ICAL_VTIMEZONE_COMPONENT);
 	while (lpicComponent) {
 		hr = HrParseVTimeZone(lpicComponent, &strTZID, &ttTimeZone);
-		if (hr != hrSuccess) {
-			// log warning?
-		} else {
+		if (hr != hrSuccess)
+			/* log warning? */ ;
+		else
 			tzMap[strTZID] = ttTimeZone;
-		}
-
 		lpicComponent = icalcomponent_get_next_component(lpicCalendar, ICAL_VTIMEZONE_COMPONENT);
 	}
 

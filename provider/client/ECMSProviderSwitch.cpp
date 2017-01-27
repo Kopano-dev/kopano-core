@@ -154,8 +154,9 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	// - Profile is not offline capable
 	// - Store being opened is not the user's default store
 
-	if ((ulFlags & MDB_ONLINE) == MDB_ONLINE || (sProviderInfo.ulProfileFlags&EC_PROFILE_FLAGS_OFFLINE) != EC_PROFILE_FLAGS_OFFLINE || bIsDefaultStore == false)
-	{
+	if ((ulFlags & MDB_ONLINE) ||
+	    !(sProviderInfo.ulProfileFlags & EC_PROFILE_FLAGS_OFFLINE) ||
+	    bIsDefaultStore == false) {
 		bool fDone = false;
 
 		while(!fDone) {

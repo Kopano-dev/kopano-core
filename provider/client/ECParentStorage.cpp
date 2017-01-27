@@ -113,12 +113,11 @@ HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	{
 		MAPIOBJECT find(MAPI_MESSAGE, m_ulUniqueId);
 		MAPIOBJECT findAtt(MAPI_ATTACH, m_ulUniqueId);
-		iterSObj = m_lpParentObject->m_sMapiObject->lstChildren->find(&find);
-		if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren->cend())
-			iterSObj = m_lpParentObject->m_sMapiObject->lstChildren->find(&findAtt);
+		iterSObj = m_lpParentObject->m_sMapiObject->lstChildren.find(&find);
+		if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren.cend())
+			iterSObj = m_lpParentObject->m_sMapiObject->lstChildren.find(&findAtt);
 	}
-    	
-	if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren->cend())
+	if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren.cend())
 		return MAPI_E_NOT_FOUND;
 	// make a complete copy of the object, because of close / re-open
 	*lppsMapiObject = new MAPIOBJECT(*iterSObj);

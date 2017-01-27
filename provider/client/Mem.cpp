@@ -57,19 +57,7 @@ HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid) {
 
 HRESULT AllocNewMapiObject(ULONG ulUniqueId, ULONG ulObjId, ULONG ulObjType, MAPIOBJECT **lppMapiObject)
 {
-	MAPIOBJECT *sMapiObject;
-
-	sMapiObject = new MAPIOBJECT;
-	sMapiObject->lstChildren = new ECMapiObjects;
-	sMapiObject->lstDeleted = new std::list<ULONG>;
-	sMapiObject->lstAvailable = new std::list<ULONG>;
-	sMapiObject->lstModified = new std::list<ECProperty>;
-	sMapiObject->lstProperties = new std::list<ECProperty>;
-	sMapiObject->lpInstanceID = NULL;
-	sMapiObject->cbInstanceID = 0;
-	sMapiObject->bChangedInstance = false;
-	sMapiObject->bChanged = false;
-	sMapiObject->bDelete = false;
+	auto sMapiObject = new MAPIOBJECT;
 	sMapiObject->ulUniqueId = ulUniqueId;
 	sMapiObject->ulObjId = ulObjId;
 	sMapiObject->ulObjType = ulObjType;
@@ -80,15 +68,8 @@ HRESULT AllocNewMapiObject(ULONG ulUniqueId, ULONG ulObjId, ULONG ulObjType, MAP
 
 HRESULT FreeMapiObject(MAPIOBJECT *lpsObject)
 {
-	delete lpsObject->lstAvailable;
-	delete lpsObject->lstDeleted;
-	delete lpsObject->lstModified;
-	delete lpsObject->lstProperties;
-
-	for (const auto &obj : *lpsObject->lstChildren)
+	for (const auto &obj : lpsObject->lstChildren)
 		FreeMapiObject(obj);
-	delete lpsObject->lstChildren;
-
 	if (lpsObject->lpInstanceID)
 		ECFreeBuffer(lpsObject->lpInstanceID);
 

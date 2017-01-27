@@ -36,11 +36,7 @@ ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) :
 	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup)
 {
 	// The specific GUID for *this* addressbook provider, if available
-	if (lpGUID) {
-		m_ABPGuid = *lpGUID;
-	} else {
-		m_ABPGuid = GUID_NULL;
-	}
+	m_ABPGuid = lpGUID != nullptr ? *lpGUID : GUID_NULL;
 	if(m_lpMAPISup)
 		m_lpMAPISup->AddRef();
 }

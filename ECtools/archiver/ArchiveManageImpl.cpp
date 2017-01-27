@@ -176,7 +176,7 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 		return hr;
 	}
 
-	if ((ulFlags & UseIpmSubtree) == UseIpmSubtree)
+	if (ulFlags & UseIpmSubtree)
 		strFoldername.clear();	// Empty folder name indicates the IPM subtree.
 	else if (lpszFolder)
 		strFoldername.assign(lpszFolder);
@@ -656,10 +656,8 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 					ulCompareResult = FALSE;	// Let's assume it's not the IPM Subtree.
 				}
 			}
-
-			if (ptrStoreProps[IDX_STORE_RECORD_KEY].ulPropTag == PR_STORE_RECORD_KEY) {
+			if (ptrStoreProps[IDX_STORE_RECORD_KEY].ulPropTag == PR_STORE_RECORD_KEY)
 				entry.StoreGuid = bin2hex(ptrStoreProps[IDX_STORE_RECORD_KEY].Value.bin.cb, ptrStoreProps[IDX_STORE_RECORD_KEY].Value.bin.lpb);
-			}
 		}
 
 		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &ptrArchiveFolder.iid(), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);

@@ -24,6 +24,7 @@
 #include <vector>
 #include <algorithm>
 #include <kopano/platform.h>
+#include <openssl/md5.h>
 
 namespace KC {
 
@@ -182,6 +183,10 @@ template<typename T> std::string kc_join(const T &v, const char *sep)
 		s.erase(s.size() - z, z);
 	return s;
 }
+
+extern _kc_export std::string base64_encode(const unsigned char *, unsigned int);
+extern _kc_export std::string base64_decode(const std::string &);
+extern _kc_export std::string zcp_md5_final_hex(MD5_CTX *);
 
 } /* namespace */
 

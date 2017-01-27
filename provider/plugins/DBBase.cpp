@@ -22,9 +22,7 @@
 #include <kopano/ECDefs.h>
 #include <kopano/EMSAbTag.h>
 #include <kopano/stringutil.h>
-#include <kopano/md5.h>
 #include <mapidefs.h>
-#include <kopano/base64.h>
 #include "ECServerEntrypoint.h"
 
 DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :

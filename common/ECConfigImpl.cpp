@@ -371,18 +371,18 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 	string strValue;
 	size_t pos;
 
+	std::unique_ptr<char, cstdlib_deleter> normalized_file(realpath(file.c_str(), nullptr));
+	if (normalized_file == nullptr) {
+		errors.push_back("Cannot normalize path \"" + file + "\": " + strerror(errno));
+		return false;
+	}
 	struct stat sb;
-	if (stat(file.c_str(), &sb) < 0) {
+	if (stat(normalized_file.get(), &sb) < 0) {
 		errors.push_back("Config file \"" + file + "\" cannot be read: " + strerror(errno));
 		return false;
 	}
 	if (!S_ISREG(sb.st_mode)) {
 		errors.push_back("Config file \"" + file + "\" is not a file");
-		return false;
-	}
-	std::unique_ptr<char, cstdlib_deleter> normalized_file(realpath(file.c_str(), nullptr));
-	if (normalized_file == nullptr) {
-		errors.push_back(std::string("realpath: ") + strerror(errno));
 		return false;
 	}
 

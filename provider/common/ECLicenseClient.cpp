@@ -24,7 +24,6 @@
 #include <sys/socket.h>
 #include <kopano/ECDefs.h>
 #include <kopano/ECChannel.h>
-#include <kopano/base64.h>
 #include <kopano/stringutil.h>
 
 #include "ECLicenseClient.h"

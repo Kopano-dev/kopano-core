@@ -42,8 +42,6 @@
 #include "ECPamAuth.h"
 #include "ECKrbAuth.h"
 #include <kopano/UnixUtil.h>
-#include <kopano/base64.h>
-
 #include "ECICS.h"
 #include "ics.h"
 #include <kopano/ECGuid.h>

@@ -675,7 +675,7 @@
 			// to change an existing exception.
 			// remove mv properties when needed
 			foreach ($props as $propTag=>$propVal)
-				if ((mapi_prop_type($propTag) & MV_FLAG) == MV_FLAG && is_null($propVal))
+				if (mapi_prop_type($propTag) & MV_FLAG && is_null($propVal))
 					unset($props[$propTag]);
 
 			mapi_message_setprops($imessage, $props);

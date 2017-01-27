@@ -29,7 +29,6 @@
 #include "ECClientUpdate.h"
 #include "ECLicenseClient.h"
 #include <kopano/stringutil.h>
-#include <kopano/base64.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include "SOAPUtils.h"

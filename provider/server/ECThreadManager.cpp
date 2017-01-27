@@ -979,7 +979,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 				epevent.data.fd = iterSockets->second.soap->socket; 
 				epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
 
-				if ((epevents[i].events & EPOLLHUP) == EPOLLHUP) {
+				if (epevents[i].events & EPOLLHUP) {
 					kopano_end_soap_connection(iterSockets->second.soap);
 					soap_free(iterSockets->second.soap);
 					m_setSockets.erase(iterSockets);
