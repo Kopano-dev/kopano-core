@@ -198,8 +198,11 @@ def logger(service, options=None, stdout=False, config=None, name=''):
     if name:
         log_file = log_file.replace(service, name) # XXX
     fh = None
-    if log_method == 'file' and log_file != '-':
-        fh = logging.handlers.WatchedFileHandler(log_file)
+    if log_method == 'file':
+        if log_file == '-':
+            fh = logging.StreamHandler(sys.stderr)
+        else:
+            fh = logging.handlers.WatchedFileHandler(log_file)
     elif log_method == 'syslog':
         fh = logging.handlers.SysLogHandler(address='/dev/log')
     if fh:
