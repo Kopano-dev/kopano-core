@@ -7,6 +7,7 @@
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiutil.h>
+#include <kopano/CommonUtil.h>
 #include <kopano/IECServiceAdmin.h>
 #include "IECSpooler.h"
 #include "IECTestProtocol.h"
