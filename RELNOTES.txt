@@ -19,14 +19,18 @@ Fixes:
 Changes:
 * server: compressed attachments now get the same permissions as uncompressed
   ones [KC-380]
+* server: make softdelete_lifetime config setting a reloadable
+  property [KC-472]
+* icalmapi: handle missing timezone for RRULE [KC-414]
 * backup: maintain deleted folders and add --purge N option [KC-376]
+* migration-pst: filter metadata at start of subject [KC-424]
 Of special mention:
 * search: python3 support (but requires new python-xapian and,
   as a result, a db migration or full reindexing)
 Developer/packager notes:
 * KC variables and functions now live in the KC:: C++ namespace [KC-369]
-* xmlto no longer needed for build [KC-384]
-* gsoap >= 2.8.39 is required [KC-335]
+* Build-time requirements: gsoap >= 2.8.39 [KC-335], libvmime >= 0.9.2,
+  boost no longer needed at all [KC-451], xmlto no longer needed at all.
 
 
 Release notes for 8.2.0
