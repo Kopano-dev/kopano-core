@@ -26,6 +26,7 @@ Fixes:
 * php: fix crash by adding missing pointer type conversions [KC-274]
 * dagent: the "Received" debugging header had the wrong target address
 * gateway: do not emit an X-Mailer field when retrieving mail [KC-277]
+* gateway: report missing attachments over IMAP better [KC-436]
 * server/ldap: report empty ldap_search_base setting
 * client: verify peer's SSL certificate name [KC-156,KC-409]
 * admin: support unwrapping "default:" type URLs [KC-289]
@@ -40,9 +41,11 @@ Fixes:
 * icalmapi: handle RRULE with missing timezone [KC-341]
 * inetmapi: avoid an infinite recursion on SMIME handling [KC-366]
 * inetmapi: avoid buffer overread when generating NDR [KC-398]
+* inetmapi: avoid overzealously generating winmail.dat [KC-348]
 * server: equalize fs permissions for attachments [KC-380]
 * migration-pst: resolve tracebacks [KC-372,KC-373,KC-377]
 * migration-pst: do not skip folder when items unprocessible [KC-417]
+* common: fix spurious crash in sk_SSL_COMP_free on shutdown [KC-443]
 Enhancements:
 * client: Kerberos/GSSAPI support [KC-396]
 * PST importer [KC-59]
@@ -61,6 +64,7 @@ Enhancements:
 * Improved PHP7 support [*,KC-330]
 * backup: backup deleted items and folders [KC-376]
 * backup: add --purge option [KC-376]
+* backup: improved logging when ACL does not resolve to user/group [KC-431]
 Changes:
 * Non-Delivery Reports now originate from "Mail Delivery System"
   (like postfix) instead of yourself [KC-309]
