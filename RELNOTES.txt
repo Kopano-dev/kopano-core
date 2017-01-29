@@ -6,16 +6,27 @@ Enhancements:
 * swig: expose group and company properties in Python [KC-320]
 * xapian-compact.py: new -c option to specify config file [KC-205]
 * utils: support setting out-of-office without an until-date [KC-275]
+* gateway, server: reload SSL certificates on SIGHUP [KC-301]
+* dagent: log_raw_message option can now be used selectively on users [KC-370]
 Fixes:
 * pyko: do not throw backtraces on log messages [KC-340]
 * server: Ctrl-C now works in gdb [KC-171]
 * ics: make creation of new syncids work incrementally [KC-208]
 * libserver: change incorrect compare operator for EID_V0 [KC-365]
+* migration-pst: show usage, not traceback, for invalid options [KC-372]
+* inetmapi: avoid buffer overread on rejected recipients
+  (showed garbage in logs) [KC-398]
+Changes:
+* server: compressed attachments now get the same permissions as uncompressed
+  ones [KC-380]
+* backup: maintain deleted folders and add --purge N option [KC-376]
 Of special mention:
 * search: python3 support (but requires new python-xapian and,
   as a result, a db migration or full reindexing)
 Developer/packager notes:
 * KC variables and functions now live in the KC:: C++ namespace [KC-369]
+* xmlto no longer needed for build [KC-384]
+* gsoap >= 2.8.39 is required [KC-335]
 
 
 Release notes for 8.2.0
