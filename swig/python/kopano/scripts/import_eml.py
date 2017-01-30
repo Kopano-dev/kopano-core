@@ -7,4 +7,4 @@
 import sys
 import kopano
 
-kopano.User(sys.argv[1]).store.inbox.create_item(eml=open(sys.argv[2]).read())
+kopano.User(sys.argv[1]).store.inbox.create_item(eml=open(sys.argv[2]))

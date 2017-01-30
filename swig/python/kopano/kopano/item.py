@@ -102,6 +102,14 @@ class Item(object):
 
     def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None):
         # TODO: self.folder fix this!
+
+        if isinstance(eml, file):
+            eml = eml.read()
+        if isinstance(ics, file):
+            ics = ics.read()
+        if isinstance(vcf, file):
+            vcf = vcf.read()
+
         self.emlfile = eml
         self._folder = None
 
