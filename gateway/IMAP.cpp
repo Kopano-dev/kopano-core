@@ -2133,6 +2133,29 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 	return hr;
 }
 
+HRESULT IMAP::fetch_uid_flags_fast(const std::list<ULONG> &mails) {
+	ULONG mailnr = 1;
+
+	for (auto mail_idx : mails) {
+		if (mail_idx >= lstFolderMailEIDs.size())
+			continue;
+
+		ULONG uid = lstFolderMailEIDs[mail_idx].ulUid;
+		std::string flags = lstFolderMailEIDs[mail_idx].strFlags;
+
+		char buf[IMAP_RESP_MAX + 1];
+		snprintf(buf, sizeof(buf), "%u FETCH (UID %u FLAGS (%s))", mailnr, uid, flags.c_str());
+
+		HRESULT hr = HrResponse(RESP_UNTAGGED, buf);
+		if (hr != hrSuccess)
+			return hr;
+
+		mailnr++;
+	}
+
+	return hrSuccess;
+}
+
 /** 
  * @brief Handles the FETCH command
  * 
@@ -2181,7 +2204,13 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const st
 		goto exit;
 	}
 
-	hr = HrPropertyFetch(lstMails, lstDataItems);
+	if (lstDataItems.size() == 2 &&
+	   std::find(lstDataItems.cbegin(), lstDataItems.cend(), "UID") != lstDataItems.cend() &&
+	   std::find(lstDataItems.cbegin(), lstDataItems.cend(), "FLAGS") != lstDataItems.cend())
+	        hr = fetch_uid_flags_fast(lstMails);
+	else
+		hr = HrPropertyFetch(lstMails, lstDataItems);
+
 	if (hr != hrSuccess)
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+"FETCH failed");
 	else

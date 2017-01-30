@@ -200,6 +200,7 @@ private:
 	HRESULT HrCmdClose(const string &strTag);
 	HRESULT HrCmdExpunge(const string &strTag, const string &strSeqSet);
 	HRESULT HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteria, bool bUidMode);
+	HRESULT fetch_uid_flags_fast(const std::list<ULONG> &mails);
 	HRESULT HrCmdFetch(const string &strTag, const string &strSeqSet, const string &strMsgDataItemNames, bool bUidMode);
 	HRESULT HrCmdStore(const string &strTag, const string &strSeqSet, const string &strMsgDataItemName, const string &strMsgDataItemValue, bool bUidMode);
 	HRESULT HrCmdCopy(const string &strTag, const string &strSeqSet, const string &strFolder, bool bUidMode);
