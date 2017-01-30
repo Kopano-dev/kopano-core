@@ -580,64 +580,49 @@ HRESULT ECMsgStore::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
  */
 HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
 {
-	HRESULT hr = hrSuccess;
-	BOOL fTheSame = FALSE;
-
 	PEID peid1 = (PEID)lpEntryID1;
 	PEID peid2 = (PEID)lpEntryID2;
 	PEID lpStoreId = (PEID)m_lpEntryId;
 
+	if (lpulResult != nullptr)
+		*lpulResult = false;
 	// Apparently BlackBerry CALHelper.exe needs this
-	if((cbEntryID1 == 0 && cbEntryID2 != 0) || (cbEntryID1 != 0 && cbEntryID2 == 0)) {
-		fTheSame = FALSE;
-		goto exit;
-	}
-
-	if(lpEntryID1 == NULL || lpEntryID2 == NULL || lpulResult == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if ((cbEntryID1 == 0 && cbEntryID2 != 0) || (cbEntryID1 != 0 && cbEntryID2 == 0))
+		return hrSuccess;
+	if (lpEntryID1 == nullptr || lpEntryID2 == nullptr ||
+	    lpulResult == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Check if one or both of the entry identifiers contains the store guid.
+	if (cbEntryID1 != cbEntryID2)
+		return hrSuccess;
+	if (cbEntryID1 < offsetof(EID, usFlags) + sizeof(peid1->usFlags) ||
+	    cbEntryID2 < offsetof(EID, usFlags) + sizeof(peid2->usFlags))
+		return hrSuccess;
 	if (memcmp(&lpStoreId->guid, &peid1->guid, sizeof(GUID)) != 0 ||
 	    memcmp(&lpStoreId->guid, &peid2->guid, sizeof(GUID)) != 0)
-		goto exit;
-
-	if(cbEntryID1 != cbEntryID2)
-		goto exit;
-
+		return hrSuccess;
 	if(memcmp(peid1->abFlags, peid2->abFlags, 4) != 0)
-		goto exit;
-
+		return hrSuccess;
 	if(peid1->ulVersion != peid2->ulVersion)
-		goto exit;
-
+		return hrSuccess;
 	if(peid1->usType != peid2->usType)
-		goto exit;
+		return hrSuccess;
 
 	if(peid1->ulVersion == 0) {
 
 		if(cbEntryID1 != sizeof(EID_V0))
-			goto exit;
-
+			return hrSuccess;
 		if( ((EID_V0*)lpEntryID1)->ulId != ((EID_V0*)lpEntryID2)->ulId )
-			goto exit;
-
+			return hrSuccess;
 	}else {
 		if(cbEntryID1 != CbNewEID(""))
-			goto exit;
-
+			return hrSuccess;
 		if(peid1->uniqueId != peid2->uniqueId) //comp. with the old ulId
-			goto exit;
+			return hrSuccess;
 	}
-
-	fTheSame = TRUE;
-
-exit:
-	if(lpulResult)
-		*lpulResult = fTheSame;
-
-	return hr;
+	*lpulResult = true;
+	return hrSuccess;
 }
 
 HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
