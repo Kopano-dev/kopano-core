@@ -11,7 +11,7 @@ from MAPI import (
     MAPI_UNICODE, RELOP_EQ, TBL_BATCH, ECSTORE_TYPE_PUBLIC,
     WrapStoreEntryID
 )
-from MAPI.Defs import PpropFindProp
+from MAPI.Defs import bin2hex, PpropFindProp
 from MAPI.Struct import (
     MAPIErrorNotFound, SPropertyRestriction, SPropValue,
     MAPIErrorCollision
@@ -24,17 +24,24 @@ from .user import User
 from .quota import Quota
 from .group import Group
 
-from .defs import bin2hex, EID_EVERYONE
-from .errors import Error, NotFoundError, DuplicateError
-from .compat import hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
+from .defs import EID_EVERYONE
+from .errors import (
+    Error, NotFoundError, DuplicateError
+)
+from .compat import (
+    hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
+)
 from .utils import prop as _prop, props as _props
 
 class Company(object):
     """Company class"""
 
     def __init__(self, name, server=None):
-        from .server import Server
-        self.server = server or Server()
+        if not server:
+            from .server import Server
+            server = Server()
+
+        self.server = server
 
         self._name = name = _unicode(name)
         if name != u'Default': # XXX

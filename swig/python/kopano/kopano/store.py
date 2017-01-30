@@ -71,8 +71,11 @@ class Store(object):
     """Store class"""
 
     def __init__(self, guid=None, entryid=None, mapiobj=None, server=None):
-        from . import Server
-        self.server = server or Server()
+        if not server:
+            from .server import Server
+            server = Server()
+
+        self.server = server
 
         if guid:
             mapiobj = self.server._store(guid)

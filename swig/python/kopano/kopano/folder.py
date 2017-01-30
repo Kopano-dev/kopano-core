@@ -28,7 +28,9 @@ from MAPI.Tags import (
     PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
     PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME
 )
-from MAPI.Defs import HrGetOneProp, PpropFindProp, CHANGE_PROP_TYPE
+from MAPI.Defs import (
+    bin2hex, HrGetOneProp, PpropFindProp, CHANGE_PROP_TYPE
+)
 from MAPI.Struct import (
     MAPIErrorNoAccess, MAPIErrorNotFound, MAPIErrorNoSupport,
     MAPIErrorInvalidEntryid, SPropValue, SSortOrderSet, SSort,
@@ -42,7 +44,7 @@ from .permission import Permission
 from .rule import Rule
 from .table import Table
 from .defs import (
-    bin2hex, PSETID_Appointment, UNESCAPED_SLASH_RE,
+    PSETID_Appointment, UNESCAPED_SLASH_RE,
     ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
 )
 from .errors import NotFoundError, Error
