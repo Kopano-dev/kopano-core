@@ -18,15 +18,15 @@
  * 
  */
 
-include('/usr/share/php/mapi/mapi.util.php');
-include('/usr/share/php/mapi/mapidefs.php');
-include('/usr/share/php/mapi/mapicode.php');
-include('/usr/share/php/mapi/mapitags.php');
-include('/usr/share/php/mapi/mapiguid.php');
+include('mapi/mapi.util.php');
+include('mapi/mapidefs.php');
+include('mapi/mapicode.php');
+include('mapi/mapitags.php');
+include('mapi/mapiguid.php');
 
-include('/usr/share/php/mapi/class.meetingrequest.php');
-include('/usr/share/php/mapi/class.recurrence.php');
-include('/usr/share/php/mapi/class.freebusypublish.php');
+include('mapi/class.meetingrequest.php');
+include('mapi/class.recurrence.php');
+include('mapi/class.freebusypublish.php');
 
 define('RECURRENCE_AVAILABILITY_RANGE', 60 * 60 * 24 * 180); // 180 days
 
