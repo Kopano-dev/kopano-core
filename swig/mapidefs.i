@@ -214,7 +214,7 @@ class MAPIAdviseSink : public IMAPIAdviseSink {
 public:
 	MAPIAdviseSink(ULONG cInterfaces, LPCIID lpInterfaces);
 	%extend {
-		virtual ~MAPIAdviseSink() { self->Release(); }
+		virtual ~MAPIAdviseSink() { delete self; }
 	}
 };
 
