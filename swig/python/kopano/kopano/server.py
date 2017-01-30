@@ -257,24 +257,18 @@ class Server(object):
 
         if parse and getattr(self.options, 'users', None):
             for username in self.options.users:
-                if '*' in username or '?' in username: # XXX unicode.. need to use something like boost::wregex in ZCP?
-                    regex = username.replace('*', '.*').replace('?', '.')
-                    restriction = SPropertyRestriction(RELOP_RE, PR_DISPLAY_NAME_A, SPropValue(PR_DISPLAY_NAME_A, regex))
-                    for match in AddressBook.GetAbObjectList(self.mapisession, restriction):
-                        if fnmatch.fnmatch(match, username):
-                            yield User(match, self)
-                else:
-                    yield User(_decode(username), self) # XXX can optparse output unicode?
+                yield User(_decode(username), self)
             return
         try:
             for name in self._companylist():
                 for user in Company(name, self).users(): # XXX remote/system check
                     yield user
         except MAPIErrorNoSupport:
-            for username in AddressBook.GetUserList(self.mapisession, None, MAPI_UNICODE):
+            for ecuser in self.sa.GetUserList(None, MAPI_UNICODE):
+                username = ecuser.Username
                 user = User(username, self)
                 if system or username != u'SYSTEM':
-                    if remote or user._ecuser.Servername in (self.name, ''):
+                    if remote or ecuser.Servername in (self.name, ''):
                         yield user
                     # XXX following two lines not necessary with python-mapi from trunk
                     elif not remote and user.local: # XXX check if GetUserList can filter local/remote users
@@ -347,9 +341,8 @@ class Server(object):
         else:
             self.sa.DeleteCompany(company._eccompany.CompanyID)
 
-    def _companylist(self): # XXX fix self.sa.GetCompanyList(MAPI_UNICODE)? looks like it's not swigged correctly?
-        self.sa.GetCompanyList(MAPI_UNICODE) # XXX exception for single-tenant....
-        return AddressBook.GetCompanyList(self.mapisession, MAPI_UNICODE)
+    def _companylist(self):
+        return [eccompany.Companyname for eccompany in self.sa.GetCompanyList(MAPI_UNICODE)]
 
     @property
     def multitenant(self):
@@ -412,8 +405,11 @@ class Server(object):
     def groups(self):
         """ Return all :class:`groups <Group>` on server """
 
-        for name in AddressBook.GetGroupList(self.mapisession, None, MAPI_UNICODE):
-            yield Group(name, self)
+        try:
+            for ecgroup in self.sa.GetGroupList(None, MAPI_UNICODE):
+                yield Group(ecgroup.Groupname, self)
+        except MAPIErrorNotFound: # XXX what to do here (single-tenant..), as groups do exist?
+            pass
 
     def group(self, name):
         """ Return :class:`group <Group>` with given name """
