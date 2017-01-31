@@ -108,6 +108,25 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return hr;
 	}
 
+	/* Email */
+	MAPINAMEID name;
+	MAPINAMEID *namep = &name;
+	name.lpguid = const_cast<GUID *>(&PSETID_Address);
+	name.ulKind = MNID_ID;
+	name.Kind.lID = 0x8083;
+
+	KCHL::memory_ptr<SPropTagArray> proptag;
+	hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
+	if (hr != hrSuccess)
+		return hr;
+
+	ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
+	hr = HrGetOneProp(lpMessage, proptype, &~msgprop);
+	if (hr == hrSuccess)
+		to_unicode_prop(root, VCEmailAddressProp, msgprop->Value.lpszW);
+	else if (hr != MAPI_E_NOT_FOUND)
+		return hr;
+
 	/* Write memobject */
 	int len = 0;
 	auto cresult = writeMemVObject(nullptr, &len, root);
