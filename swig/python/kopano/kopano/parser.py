@@ -26,6 +26,27 @@ def parse_bool(option, opt_str, value, parser):
     assert value in ('yes', 'no'), "error: %s option requires 'yes' or 'no' as argument" % opt_str
     setattr(parser.values, option.dest, value == 'yes')
 
+def _true():
+    return {'action': 'store_true'}
+
+def _int():
+    return {'type': int, 'metavar': 'N'}
+
+def _guid():
+    return {'type': 'str', 'action': 'callback', 'callback': parse_str, 'metavar': 'GUID'}
+
+def _name():
+    return {'type': 'str', 'action': 'callback', 'callback': parse_str, 'metavar': 'NAME'}
+
+def _bool():
+    return {'type': 'str', 'action': 'callback', 'callback': parse_bool, 'metavar': 'YESNO'}
+
+def _list_name():
+    return {'type': 'str', 'default': [], 'action': 'callback', 'callback': parse_list_str, 'metavar': 'NAME'}
+
+def _date():
+    return {'type': 'str', 'action': 'callback', 'callback': parse_date, 'metavar': 'DATE'}
+
 def parser(options='cskpUPufmvCGSlbe', usage=None):
     """
 Return OptionParser instance from the standard ``optparse`` module, containing common kopano command-line options
@@ -87,14 +108,14 @@ Available options:
     if 'U' in options: parser.add_option('-U', '--auth-user', dest='auth_user', help='login as user', metavar='NAME', **kw_str)
     if 'P' in options: parser.add_option('-P', '--auth-pass', dest='auth_pass', help='login with password', metavar='PASS', **kw_str)
 
-    if 'G' in options: parser.add_option('-G', '--group', dest='groups', default=[], help='run program for specific group', metavar='NAME', **kw_list_str)
-    if 'C' in options: parser.add_option('-C', '--company', dest='companies', default=[], help='run program for specific company', metavar='NAME', **kw_list_str)
-    if 'u' in options: parser.add_option('-u', '--user', dest='users', default=[], help='run program for specific user', metavar='NAME', **kw_list_str)
-    if 'S' in options: parser.add_option('-S', '--store', dest='stores', default=[], help='run program for specific store', metavar='GUID', **kw_list_str)
-    if 'f' in options: parser.add_option('-f', '--folder', dest='folders', default=[], help='run program for specific folder', metavar='NAME', **kw_list_str)
+    if 'G' in options: parser.add_option('-G', '--group', dest='groups', default=[], help='Specify group', metavar='NAME', **kw_list_str)
+    if 'C' in options: parser.add_option('-C', '--company', dest='companies', default=[], help='Specify company', metavar='NAME', **kw_list_str)
+    if 'u' in options: parser.add_option('-u', '--user', dest='users', default=[], help='Specify user', metavar='NAME', **kw_list_str)
+    if 'S' in options: parser.add_option('-S', '--store', dest='stores', default=[], help='Specify store', metavar='GUID', **kw_list_str)
+    if 'f' in options: parser.add_option('-f', '--folder', dest='folders', default=[], help='Specify folder', metavar='NAME', **kw_list_str)
 
-    if 'b' in options: parser.add_option('-b', '--period-begin', dest='period_begin', help='run program for specific period', metavar='DATE', **kw_date)
-    if 'e' in options: parser.add_option('-e', '--period-end', dest='period_end', help='run program for specific period', metavar='DATE', **kw_date)
+    if 'b' in options: parser.add_option('-b', '--period-begin', dest='period_begin', help='Specify period', metavar='DATE', **kw_date)
+    if 'e' in options: parser.add_option('-e', '--period-end', dest='period_end', help='Specify period', metavar='DATE', **kw_date)
 
     if 'F' in options: parser.add_option('-F', '--foreground', dest='foreground', action='store_true', help='run program in foreground')
 

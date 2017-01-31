@@ -33,7 +33,9 @@ from MAPI.Tags import (
     PR_EC_USERNAME_W, PR_EC_COMPANY_NAME_W, PR_MESSAGE_CLASS,
     PR_SUBJECT, PR_WLINK_FLAGS, PR_WLINK_ORDINAL,
     PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE, PR_WLINK_ENTRYID,
-    PR_FOLDER_DISPLAY_FLAGS, PR_WB_SF_ID
+    PR_FOLDER_DISPLAY_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
+    PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES,
+    PR_DELEGATE_FLAGS
 )
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue,
@@ -466,33 +468,33 @@ class Store(object):
         try:
             entryids = HrGetOneProp(fbmsg, PR_SCHDINFO_DELEGATE_ENTRYIDS)
             names = HrGetOneProp(fbmsg, PR_SCHDINFO_DELEGATE_NAMES)
-            flagss = HrGetOneProp(fbmsg, PR_DELEGATE_FLAGS)
+            flags = HrGetOneProp(fbmsg, PR_DELEGATE_FLAGS)
         except MAPIErrorNotFound:
             entryids = SPropValue(PR_SCHDINFO_DELEGATE_ENTRYIDS, [])
             names = SPropValue(PR_SCHDINFO_DELEGATE_NAMES, [])
-            flagss = SPropValue(PR_DELEGATE_FLAGS, [])
+            flags = SPropValue(PR_DELEGATE_FLAGS, [])
 
-        return fbmsg, (entryids, names, flagss)
+        return fbmsg, (entryids, names, flags)
 
     def delegations(self):
-        fbmsg, (entryids, names, flagss) = self._fbmsg_delgs()
+        fbmsg, (entryids, names, flags) = self._fbmsg_delgs()
 
         for entryid in entryids.Value:
             username = self.server.sa.GetUser(entryid, MAPI_UNICODE).Username
             yield Delegation(self, self.server.user(username))
 
-    def delegation(self, user, create=False):
+    def delegation(self, user, create=False, see_private=False):
         for delegation in self.delegations():
             if delegation.user == user:
                 return delegation
         if create:
-            fbmsg, (entryids, names, flagss) = self._fbmsg_delgs()
+            fbmsg, (entryids, names, flags) = self._fbmsg_delgs()
 
             entryids.Value.append(user.userid.decode('hex'))
             names.Value.append(user.name)
-            flagss.Value.append(0)
+            flags.Value.append(1 if see_private else 0)
 
-            fbmsg.SetProps([entryids, names, flagss])
+            fbmsg.SetProps([entryids, names, flags])
             fbmsg.SaveChanges(KEEP_OPEN_READWRITE)
 
             return Delegation(self, user)
