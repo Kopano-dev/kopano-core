@@ -35,7 +35,7 @@ define('SEVERITY_ERROR',     1);
 /* from winerror.h */ 
 
 /**
-* Function to make a error
+* Function to make an error
 */
 function make_mapi_e($code)
 {

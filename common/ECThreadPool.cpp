@@ -47,7 +47,7 @@ ECThreadPool::~ECThreadPool()
 /**
  * Dispatch a task object on the threadpool instance.
  * @param[in]	lpTask			The task object to dispatch.
- * @param[in]	bTakeOwnership	Boolean parameter specifying wether the threadpool
+ * @param[in]	bTakeOwnership	Boolean parameter specifying whether the threadpool
  *                              should take ownership of the task object, and thus
  *                              is responsible for deleting the object when done.
  * @returns true if the task was successfully queued, false otherwise.
