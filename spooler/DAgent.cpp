@@ -1362,6 +1362,16 @@ static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_s
 	"List-Archive",
 };
 
+/* A list of prefix searches for entire header-value lines */
+static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_stopreply_hdr2 = {
+	/* From the package "vacation" */
+	"X-Spam-Flag: YES",
+	/* From openSUSE's vacation package */
+	"X-Is-Junk: YES",
+	"X-AMAZON",
+	"X-LinkedIn",
+};
+
 /**
  * Determines from a set of lines from internet headers (can be wrapped or
  * not) whether to inhibit autoreplies.
@@ -1376,6 +1386,9 @@ static bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
 			continue;
 		if (kc_stopreply_hdr.find(line.substr(0, pos)) != kc_stopreply_hdr.cend())
 			return true;
+		for (const auto &elem : kc_stopreply_hdr2)
+			if (kc_stopreply_hdr2.find(line.substr(0, elem.size())) != kc_stopreply_hdr2.cend())
+				return true;
 	}
 	return false;
 }
