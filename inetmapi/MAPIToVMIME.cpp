@@ -501,7 +501,7 @@ HRESULT MAPIToVMIME::parseMimeTypeFromFilename(std::wstring strFilename, vmime::
 	bool bSendBinary = true;
 
 	// to lowercase
-	transform(strFilename.begin(), strFilename.end(), strFilename.begin(), ::tolower);
+	transform(strFilename.begin(), strFilename.end(), strFilename.begin(), ::towlower);
 	strExt = m_converter.convert_to<string>(m_strCharset.c_str(), strFilename, rawsize(strFilename), CHARSET_WCHAR);
 	strExt.erase(0, strExt.find_last_of(".")+1);
 

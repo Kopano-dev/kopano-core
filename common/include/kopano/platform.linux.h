@@ -306,9 +306,11 @@ typedef wchar_t 	WCHAR;
 #ifdef UNICODE
   typedef WCHAR		TCHAR;
 #define _T(x) L##x
+#define tstring_toupper towupper
 #else
   typedef char		TCHAR;
 #define _T(x) x
+#define tstring_toupper toupper
 #endif
 typedef unsigned char	TBYTE;
 
