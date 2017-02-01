@@ -129,9 +129,7 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 	if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
 		lpLogger->Log(EC_LOGLEVEL_DEBUG, "Command received: %s", vWords[0].c_str());
 
-	strCommand = vWords[0];
-	transform(strCommand.begin(), strCommand.end(), strCommand.begin(), ::toupper);
-
+	strCommand = strToUpper(vWords[0]);
 	if (strCommand.compare("CAPA") == 0) {
 		if (vWords.size() != 1)
 			return HrResponse(POP3_RESP_ERR,

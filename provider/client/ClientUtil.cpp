@@ -152,12 +152,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 		return hr;
 	memset(lpIdentityProps, 0, sizeof(SPropValue) * cValues);
 
-	strProfileSenderSearchKey.reserve(_tcslen(TRANSPORT_ADDRESS_TYPE_ZARAFA) + 1 + _tcslen(lpUser->lpszMailAddress));
-	strProfileSenderSearchKey = TRANSPORT_ADDRESS_TYPE_ZARAFA;
-	strProfileSenderSearchKey += ':';
-	strProfileSenderSearchKey += lpUser->lpszMailAddress;
-	std::transform(strProfileSenderSearchKey.begin(), strProfileSenderSearchKey.end(), strProfileSenderSearchKey.begin(), tstring_toupper);
-
+	strProfileSenderSearchKey = strToUpper(tstring(TRANSPORT_ADDRESS_TYPE_ZARAFA) + _T(":") + lpUser->lpszMailAddress);
 	lpIdentityProps[XPID_EID].ulPropTag = PR_SENDER_ENTRYID;
 	lpIdentityProps[XPID_EID].Value.bin.cb = lpUser->sUserId.cb;
 	hr = MAPIAllocateMore(lpUser->sUserId.cb, (LPVOID)lpIdentityProps, (void**)&lpIdentityProps[XPID_EID].Value.bin.lpb);

@@ -306,11 +306,9 @@ typedef wchar_t 	WCHAR;
 #ifdef UNICODE
   typedef WCHAR		TCHAR;
 #define _T(x) L##x
-#define tstring_toupper towupper
 #else
   typedef char		TCHAR;
 #define _T(x) x
-#define tstring_toupper toupper
 #endif
 namespace KC {
 typedef std::basic_string<TCHAR> tstring;

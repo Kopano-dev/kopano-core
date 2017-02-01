@@ -430,15 +430,14 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 			// @note, outlook seems to set the gab original search key (if possible, otherwise SMTP). The IMessage contact in the folder contains some unusable binary blob.
 			if (PROP_TYPE(lpColData[O_ADDRTYPE].ulPropTag) == PT_STRING8 &&
 			    PROP_TYPE(lpColData[O_EMAIL_ADDRESS].ulPropTag) == PT_STRING8)
-				strSearchKey = string(lpColData[O_ADDRTYPE].Value.lpszA) + ":" + lpColData[O_EMAIL_ADDRESS].Value.lpszA;
+				strSearchKey = strToUpper(std::string(lpColData[O_ADDRTYPE].Value.lpszA) + ":" + lpColData[O_EMAIL_ADDRESS].Value.lpszA);
 			else if (PROP_TYPE(lpColData[O_ADDRTYPE].ulPropTag) == PT_UNICODE &&
 			    PROP_TYPE(lpColData[O_EMAIL_ADDRESS].ulPropTag) == PT_UNICODE)
-				strSearchKey = convert_to<std::string>(std::wstring(lpColData[O_ADDRTYPE].Value.lpszW) + L":" + lpColData[O_EMAIL_ADDRESS].Value.lpszW);
+				strSearchKey = strToUpper(convert_to<std::string>(std::wstring(lpColData[O_ADDRTYPE].Value.lpszW) + L":" + lpColData[O_EMAIL_ADDRESS].Value.lpszW));
 			else
 				// eg. distlists
 				hr = MAPI_E_NOT_FOUND;
 			if (hr == hrSuccess) {
-				transform(strSearchKey.begin(), strSearchKey.end(), strSearchKey.begin(), ::toupper);
 				lpColData[O_SEARCH_KEY].ulPropTag = PR_SEARCH_KEY;
 				lpColData[O_SEARCH_KEY].Value.bin.cb = strSearchKey.length()+1;
 				lpColData[O_SEARCH_KEY].Value.bin.lpb = (BYTE*)strSearchKey.data();

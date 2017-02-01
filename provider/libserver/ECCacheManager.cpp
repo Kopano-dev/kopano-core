@@ -1503,16 +1503,9 @@ ECRESULT ECCacheManager::_DelCell(unsigned int ulObjId)
 
 ECRESULT ECCacheManager::GetServerDetails(const std::string &strServerId, serverdetails_t *lpsDetails)
 {
-	ECRESULT er;
 	ECsServerDetails	*sEntry;
-	std::string			strServerIdLc;
-
-	// make the key lowercase
-	strServerIdLc.reserve(strServerId.size());
-	std::transform(strServerId.begin(), strServerId.end(), std::back_inserter(strServerIdLc), ::tolower);
-
 	scoped_rlock lock(m_hCacheMutex);
-	er = m_ServerDetailsCache.GetCacheItem(strServerIdLc, &sEntry);
+	ECRESULT er = m_ServerDetailsCache.GetCacheItem(strToLower(strServerId), &sEntry);
 	if (er != erSuccess)
 		return er;
 	if (lpsDetails)
@@ -1523,16 +1516,10 @@ ECRESULT ECCacheManager::GetServerDetails(const std::string &strServerId, server
 ECRESULT ECCacheManager::SetServerDetails(const std::string &strServerId, const serverdetails_t &sDetails)
 {
 	ECsServerDetails	sEntry;
-	std::string			strServerIdLc;
-
-	// make the key lowercase
-	strServerIdLc.reserve(strServerId.size());
-	std::transform(strServerId.begin(), strServerId.end(), std::back_inserter(strServerIdLc), ::tolower);
-
 	sEntry.sDetails = sDetails;
 
 	scoped_rlock lock(m_hCacheMutex);
-	return m_ServerDetailsCache.AddCacheItem(strServerIdLc, sEntry);
+	return m_ServerDetailsCache.AddCacheItem(strToLower(strServerId), sEntry);
 }
 
 ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)

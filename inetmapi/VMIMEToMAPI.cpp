@@ -706,8 +706,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS_A;
 				msgProps[nProps++].Value.lpszA = (char*)strFromEmail.c_str();
 
-				strFromSearchKey = "SMTP:"+strFromEmail;
-				transform(strFromSearchKey.begin(), strFromSearchKey.end(), strFromSearchKey.begin(), ::toupper);
+				strFromSearchKey = strToUpper("SMTP:" + strFromEmail);
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
 				msgProps[nProps].Value.bin.cb = strFromSearchKey.size()+1; // include string terminator
 				msgProps[nProps++].Value.bin.lpb = (BYTE*)strFromSearchKey.c_str();
@@ -755,8 +754,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				msgProps[nProps].ulPropTag = PR_SENDER_EMAIL_ADDRESS_A;
 				msgProps[nProps++].Value.lpszA = (char*)strSenderEmail.c_str();
 
-				strSenderSearchKey = "SMTP:"+strSenderEmail;
-				transform(strSenderSearchKey.begin(), strSenderSearchKey.end(), strSenderSearchKey.begin(), ::toupper);
+				strSenderSearchKey = strToUpper("SMTP:" + strSenderEmail);
 				msgProps[nProps].ulPropTag = PR_SENDER_SEARCH_KEY;
 				msgProps[nProps].Value.bin.cb = strSenderSearchKey.size()+1; // include string terminator
 				msgProps[nProps++].Value.bin.lpb = (BYTE*)strSenderSearchKey.c_str();
@@ -825,10 +823,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			SPropValue sPriority[2];
 			sPriority[0].ulPropTag = PR_PRIORITY;
 			sPriority[1].ulPropTag = PR_IMPORTANCE;
-			string importance = vmHeader->findField("Importance")->getValue()->generate();
-			
-			std::transform(importance.begin(), importance.end(), importance.begin(), ::tolower);
-
+			auto importance = strToLower(vmHeader->findField("Importance")->getValue()->generate());
 			if(importance.compare("high") == 0) {
 				sPriority[0].Value.ul = PRIO_URGENT;
 				sPriority[1].Value.ul = IMPORTANCE_HIGH;
@@ -887,9 +882,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		// Sensitivity header
 		if (vmHeader->hasField("Sensitivity")) {
 			SPropValue sSensitivity[1];
-			string sensitivity = vmHeader->findField("Sensitivity")->getValue()->generate();
-			transform(sensitivity.begin(), sensitivity.end(), sensitivity.begin(), ::tolower);
-
+			auto sensitivity = strToLower(vmHeader->findField("Sensitivity")->getValue()->generate());
 			sSensitivity[0].ulPropTag = PR_SENSITIVITY;
 			if (sensitivity.compare("personal") == 0)
 				sSensitivity[0].Value.ul = SENSITIVITY_PERSONAL;
@@ -970,8 +963,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			// exclusion list?
 			if (name == "X-Priority")
 				continue;
-
-			transform(name.begin(), name.end(), name.begin(), ::tolower);
+			name = strToLower(name);
 
 			memory_ptr<MAPINAMEID> lpNameID;
 			memory_ptr<SPropTagArray> lpPropTags;
@@ -1297,8 +1289,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 			lpRecipients->aEntries[iRecipNum].rgPropVals[4].ulPropTag	= PR_ADDRTYPE_W;
 			lpRecipients->aEntries[iRecipNum].rgPropVals[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 
-			strSearch = "SMTP:"+strEmail;
-			transform(strSearch.begin(), strSearch.end(), strSearch.begin(), ::toupper);
+			strSearch = strToUpper("SMTP:" + strEmail);
 			lpRecipients->aEntries[iRecipNum].rgPropVals[5].ulPropTag	= PR_SEARCH_KEY;
 			lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.cb = strSearch.size() + 1; // we include the trailing 0 as MS does this also
 			hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
