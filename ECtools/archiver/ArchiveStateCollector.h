@@ -23,7 +23,6 @@
 #include <kopano/zcdefs.h>
 #include "archivestateupdater_fwd.h"
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
-#include <kopano/tstring.h>
 #include <kopano/archiver-common.h>
 #include "ECArchiverLogger.h"
 

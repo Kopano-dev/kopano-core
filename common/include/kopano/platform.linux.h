@@ -312,6 +312,9 @@ typedef wchar_t 	WCHAR;
 #define _T(x) x
 #define tstring_toupper toupper
 #endif
+namespace KC {
+typedef std::basic_string<TCHAR> tstring;
+}
 typedef unsigned char	TBYTE;
 
 typedef WCHAR*			LPWSTR;

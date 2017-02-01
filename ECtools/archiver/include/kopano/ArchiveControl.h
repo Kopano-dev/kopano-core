@@ -23,7 +23,6 @@
 
 #include <kopano/zcdefs.h>
 #include <memory>
-#include <kopano/tstring.h>
 
 namespace KC {
 

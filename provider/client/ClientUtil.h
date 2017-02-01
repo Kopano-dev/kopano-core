@@ -22,7 +22,6 @@
 #include <string>
 #include <kopano/ECTags.h>
 #include <edkmdb.h>
-#include <kopano/tstring.h>
 #include <kopano/zcdefs.h>
 
 class WSTransport;

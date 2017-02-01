@@ -51,7 +51,6 @@
 #include "ECSoapServerConnection.h"
 #include <libintl.h>
 #include <map>
-#include <kopano/tstring.h>
 #include <kopano/charset/convstring.h>
 #ifdef KC_USES_ICU
 #include <unicode/uclean.h>
