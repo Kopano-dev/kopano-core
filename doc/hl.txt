@@ -43,7 +43,12 @@ With ECRestriction classes:
 
 	ECOrRestriction r(
 		ECExistRestriction(PR_EC_IMAP_ID) +
-		ECRestrictionProperty(RELOP_EQ, PR_EC_IMAP_ID, &pv));
+		ECRestrictionProperty(RELOP_EQ, PR_EC_IMAP_ID, &pv,
+			ECRestriction::Shallow));
+
+KC < 8.3 allowed for the last argument to be optional; this has been abolished
+so that there is always a mindful mode selection by the developer (and review
+thereof).
 
 
 == memory_ptr ==
@@ -75,6 +80,13 @@ With memory_ptr:
 	MAPIAllocateBuffer(sizeof(*obj), &~obj);
 	memset(obj, 0, sizeof(foo));
 
+Since one cannot know in advance whether such a function will write to obj or
+leave it untouched, the & operator had been defined to always free obj first to
+ensure there will be no leaks. As memory_ptr was used in more and more places,
+it turned out that in some instances, such freeing is undesired (e.g. near
+GetNameFromIDs). As a consequence, freeing has been made explicit using the
+~ operator, not-freeing is expressed with the + operator, and not using either
+of ~ or + leads to a compile error, to catch unmindful uses of &.
 
 == object_ptr ==
 
@@ -156,6 +168,8 @@ Traditional:
 	if (rcv != nullptr)
 		rcv->Release();
 
+New:
+
 	//KStore store;
 	try {
 		auto new_msg = store
@@ -165,3 +179,6 @@ Traditional:
 	} catch (KMAPIError &e) {
 		fprintf(stderr, "%s\n", e.what());
 	}
+
+This group of classes is the only one that require Makefile.am to be augmented
+with libkchl.la / -lkchl.
