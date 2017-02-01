@@ -303,7 +303,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 		)
 	{
 		soap_set_fault(lpsSoap);
-		ec_log_crit("Unable to setup ssl context: %s", *soap_faultdetail(lpsSoap));
+		ec_log_crit("K-2170: Unable to setup ssl context: %s", *soap_faultdetail(lpsSoap));
 		er = KCERR_CALL_FAILED;
 		goto exit;
 	}

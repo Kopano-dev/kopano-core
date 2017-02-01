@@ -621,7 +621,7 @@ ECRESULT ECDispatcher::DoHUP()
 						   m_lpConfig->GetSetting("server_ssl_ca_file","",NULL),
 						   m_lpConfig->GetSetting("server_ssl_ca_path","",NULL),
 						   NULL, NULL, "EC")) {
-				ec_log_crit("Unable to setup ssl context: %s", *soap_faultdetail(p.second));
+				ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second));
 				return KCERR_CALL_FAILED;
 			}
 
