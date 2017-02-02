@@ -23,7 +23,7 @@
 #include <kopano/kcodes.h>
 #include <string>
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 #include <unicode/coll.h>
 #include <unicode/sortkey.h>
 namespace KC {

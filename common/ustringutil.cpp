@@ -67,7 +67,7 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include "utf8/unchecked.h"
 #include <cassert>
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 #include <memory>
 #include <unicode/unorm.h>
 #include <unicode/coll.h>
@@ -80,14 +80,14 @@ At some point we need to rewqrite these functions to do all the conversion on th
 
 typedef std::unique_ptr<Collator> unique_ptr_Collator;
 
-#else /* ZCP_USES_ICU */
+#else /* KC_USES_ICU */
 #include <cstring>
 #include <kopano/charset/convert.h>
 #endif
 
 namespace KC {
 
-#ifndef ZCP_USES_ICU
+#ifndef KC_USES_ICU
 ECSortKey::ECSortKey(const unsigned char *lpSortData, unsigned int cbSortData)
 	: m_lpSortData(lpSortData)
 	, m_cbSortData(cbSortData)
@@ -169,7 +169,7 @@ bool str_equals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
 
@@ -195,7 +195,7 @@ bool str_iequals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
 
@@ -221,7 +221,7 @@ bool str_startswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
 
@@ -249,7 +249,7 @@ bool str_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
 
@@ -282,7 +282,7 @@ int str_icompare(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 	
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	UErrorCode status = U_ZERO_ERROR;
 	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
 
@@ -321,7 +321,7 @@ bool str_contains(const char *haystack, const char *needle, const ECLocale &loca
 	assert(haystack);
 	assert(needle);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(haystack);
     UnicodeString b = StringToUnicode(needle);
 
@@ -347,7 +347,7 @@ bool str_icontains(const char *haystack, const char *needle, const ECLocale &loc
 	assert(haystack);
 	assert(needle);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(haystack);
     UnicodeString b = StringToUnicode(needle);
 
@@ -376,7 +376,7 @@ bool wcs_equals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
 
@@ -402,7 +402,7 @@ bool wcs_iequals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
 
@@ -428,7 +428,7 @@ bool wcs_startswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
 
@@ -455,7 +455,7 @@ bool wcs_istartswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &local
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
 
@@ -488,7 +488,7 @@ int wcs_icompare(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 	
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	UErrorCode status = U_ZERO_ERROR;
 	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
 
@@ -527,7 +527,7 @@ bool wcs_contains(const wchar_t *haystack, const wchar_t *needle, const ECLocale
 	assert(haystack);
 	assert(needle);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(haystack);
     UnicodeString b = WCHARToUnicode(needle);
 
@@ -559,7 +559,7 @@ bool wcs_icontains(const wchar_t *haystack, const wchar_t *needle, const ECLocal
 	assert(haystack);
 	assert(needle);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(haystack);
     UnicodeString b = WCHARToUnicode(needle);
 
@@ -596,7 +596,7 @@ bool u8_equals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
 
@@ -625,7 +625,7 @@ bool u8_iequals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
 
@@ -654,7 +654,7 @@ bool u8_startswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
 
@@ -683,7 +683,7 @@ bool u8_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
 
@@ -718,7 +718,7 @@ int u8_icompare(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s1);
 	assert(s2);
 	
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	UErrorCode status = U_ZERO_ERROR;
 	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
 
@@ -759,7 +759,7 @@ bool u8_contains(const char *haystack, const char *needle, const ECLocale &local
 	assert(haystack);
 	assert(needle);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(haystack);
     UnicodeString b = UTF8ToUnicode(needle);
 
@@ -788,7 +788,7 @@ bool u8_icontains(const char *haystack, const char *needle, const ECLocale &loca
 	assert(haystack);
 	assert(needle);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(haystack);
     UnicodeString b = UTF8ToUnicode(needle);
 
@@ -1120,7 +1120,7 @@ static const struct localemap {
 
 ECLocale createLocaleFromName(const char *lpszLocale)
 {
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	return Locale::createFromName(lpszLocale);
 #else
 	if (lpszLocale == NULL)
@@ -1161,7 +1161,7 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
 	return erSuccess;
 }
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 /**
  * Create a locale independant blob that can be used to sort
  * strings fast. This is used when a string would be compared
@@ -1236,7 +1236,7 @@ void createSortKeyData(const char *s, int nCap, const ECLocale &locale, unsigned
 	assert(lpcbKey != NULL);
 	assert(lppKey != NULL);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	createSortKeyData(UnicodeString(s), nCap, locale, lpcbKey, lppKey);
 #else
 	std::wstring wstrTmp = convert_to<std::wstring>(s);
@@ -1260,7 +1260,7 @@ void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale, unsig
 	assert(lpcbKey != NULL);
 	assert(lppKey != NULL);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	UnicodeString ustring;
 	ustring = UTF32ToUnicode((const UChar32*)s);
 	createSortKeyData(ustring, nCap, locale, lpcbKey, lppKey);
@@ -1294,7 +1294,7 @@ void createSortKeyDataFromUTF8(const char *s, int nCap, const ECLocale &locale, 
 	assert(lpcbKey != NULL);
 	assert(lppKey != NULL);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	createSortKeyData(UTF8ToUnicode(s), nCap, locale, lpcbKey, lppKey);
 #else
 	std::wstring wstrTmp = convert_to<std::wstring>(s, rawsize(s), "UTF-8");
@@ -1317,7 +1317,7 @@ ECSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale)
 {
 	assert(s != NULL);
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	return createSortKey(UTF8ToUnicode(s), nCap, locale);
 #else
 	unsigned int cbKey = 0;
@@ -1345,7 +1345,7 @@ int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned i
 	assert(!(cbKey1 != 0 && lpKey1 == NULL));
 	assert(!(cbKey2 != 0 && lpKey2 == NULL));
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	CollationKey ckA(lpKey1, cbKey1);
 	CollationKey ckB(lpKey2, cbKey2);
 
@@ -1369,7 +1369,7 @@ int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned i
 #endif
 }
 
-#ifndef ZCP_USES_ICU
+#ifndef KC_USES_ICU
 ECLocale::ECLocale()
 : m_locale(createlocale(LC_ALL, ""))
 , m_category(LC_ALL)

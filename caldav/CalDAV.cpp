@@ -45,7 +45,7 @@ using namespace std;
 
 #include <execinfo.h>
 #include <kopano/UnixUtil.h>
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 #include <unicode/uclean.h>
 #endif
 #include <openssl/ssl.h>
@@ -336,7 +336,7 @@ exit:
 	// Cleanup libxml2 library
 	xmlCleanupParser();
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
 #endif

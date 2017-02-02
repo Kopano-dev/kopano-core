@@ -690,7 +690,7 @@ AS_IF([test "$want_icu" = "yes" && test "$have_icu" = 0], [
 	AC_MSG_ERROR([ICU was requested but not found])
 ])
 AS_IF([test "$have_icu" != 0], [
-	AC_DEFINE([ZCP_USES_ICU], [1], [Defined if ZCP was built with ICU])
+	AC_DEFINE([KC_USES_ICU], [1], [Defined if KC was built with ICU])
 ])
 AM_CONDITIONAL([HAVE_ICU], [test "$have_icu" -ne 0])
 ZCPPFLAGS="$ZCPPFLAGS $icu_uc_CFLAGS $icu_i18n_CFLAGS"

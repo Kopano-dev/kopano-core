@@ -53,7 +53,7 @@
 #include <map>
 #include <kopano/tstring.h>
 #include <kopano/charset/convstring.h>
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 #include <unicode/uclean.h>
 #endif
 
@@ -1389,7 +1389,7 @@ exit:
 	if (g_lpAudit)
 		g_lpAudit->Release();
 
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
 #endif
