@@ -80,3 +80,27 @@ public:
 
 };
 
+enum {
+	EC_LOGLEVEL_NONE,
+	EC_LOGLEVEL_FATAL,
+	EC_LOGLEVEL_ERROR,
+	EC_LOGLEVEL_WARNING,
+	EC_LOGLEVEL_NOTICE,
+	EC_LOGLEVEL_INFO,
+	EC_LOGLEVEL_DEBUG,
+	EC_LOGLEVEL_FATAL = EC_LOGLEVEL_CRIT,
+	EC_LOGLEVEL_ALWAYS = 0xf,
+};
+
+static const unsigned int EC_LOGLEVEL_CRIT = EC_LOGLEVEL_FATAL;
+static const unsigned int EC_LOGLEVEL_ALWAYS = 0xf;
+
+class ECLogger_File {
+ public:
+	ECLogger_File(const unsigned int max_ll, const bool add_timestamp, const char *const filename, const bool compress);
+};
+
+void ec_log_set(ECLogger_File *);
+ECLogger *ec_log_get(void);
+
+void ec_log(unsigned int level, const std::string &msg);
