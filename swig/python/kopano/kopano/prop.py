@@ -7,6 +7,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import codecs
 import datetime
+import sys
 import time
 
 from MAPI import (
@@ -28,7 +29,11 @@ from MAPI.Time import unixtime
 
 from .defs import REV_TAG, REV_TYPE, GUID_NAMESPACE
 from .compat import repr as _repr, fake_unicode as _unicode
-from .utils import stream as _stream
+
+if sys.hexversion >= 0x03000000:
+    from . import utils as _utils
+else:
+    import utils as _utils
 
 class SPropDelayedValue(SPropValue):
     def __init__(self, mapiobj, proptag):
@@ -40,7 +45,7 @@ class SPropDelayedValue(SPropValue):
     def Value(self):
         if self._Value is None:
             try:
-                self._Value = _stream(self.mapiobj, self.ulPropTag)
+                self._Value = _utils.stream(self.mapiobj, self.ulPropTag)
             except MAPIErrorNotFound: # XXX eg normalized subject streaming broken..?
                 self._Value = None
         return self._Value

@@ -5,6 +5,8 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import sys
+
 from MAPI.Tags import (
     PR_EC_HIERARCHYID, PR_ATTACH_NUM, PR_ATTACH_MIME_TAG_W,
     PR_ATTACH_LONG_FILENAME_W, PR_ATTACH_SIZE, PR_ATTACH_DATA_BIN
@@ -12,8 +14,12 @@ from MAPI.Tags import (
 from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import MAPIErrorNotFound
 
+if sys.hexversion >= 0x03000000:
+    from . import utils as _utils
+else:
+    import utils as _utils
+
 from .compat import repr as _repr
-from .utils import prop as _prop, props as _props, stream as _stream
 
 class Attachment(object):
     """Attachment class"""
@@ -69,7 +75,7 @@ class Attachment(object):
         """ Binary data """
 
         if self._data is None:
-            self._data = _stream(self.mapiobj, PR_ATTACH_DATA_BIN)
+            self._data = _utils.stream(self.mapiobj, PR_ATTACH_DATA_BIN)
         return self._data
 
     # file-like behaviour
@@ -81,10 +87,10 @@ class Attachment(object):
         return self.filename
 
     def prop(self, proptag):
-        return _prop(self, self.mapiobj, proptag)
+        return _utils.prop(self, self.mapiobj, proptag)
 
     def props(self):
-        return _props(self.mapiobj)
+        return _utils.props(self.mapiobj)
 
     def __unicode__(self):
         return u'Attachment("%s")' % self.name

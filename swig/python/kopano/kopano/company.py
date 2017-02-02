@@ -6,6 +6,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import codecs
+import sys
 
 from MAPI import (
     MAPI_UNICODE, RELOP_EQ, TBL_BATCH, ECSTORE_TYPE_PUBLIC,
@@ -19,8 +20,16 @@ from MAPI.Struct import (
 from MAPI.Tags import PR_EC_COMPANY_NAME_W, PR_EC_STOREGUID
 from MAPI.Util import GetPublicStore, AddressBook
 
+if sys.hexversion >= 0x03000000:
+    from . import server as _server
+    from . import user as _user
+    from . import utils as _utils
+else:
+    import server as _server
+    import user as _user
+    import utils as _utils
+
 from .store import Store
-from .user import User
 from .quota import Quota
 from .group import Group
 
@@ -31,17 +40,12 @@ from .errors import (
 from .compat import (
     hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
 )
-from .utils import prop as _prop, props as _props
 
 class Company(object):
     """Company class"""
 
     def __init__(self, name, server=None):
-        if not server:
-            from .server import Server
-            server = Server()
-
-        self.server = server
+        self.server = server or _server.Server()
 
         self._name = name = _unicode(name)
         if name != u'Default': # XXX
@@ -115,10 +119,10 @@ class Company(object):
                 yield store
 
     def prop(self, proptag):
-        return _prop(self, self.mapiobj, proptag)
+        return _utils.prop(self, self.mapiobj, proptag)
 
     def props(self):
-        return _props(self.mapiobj)
+        return _utils.props(self.mapiobj)
 
     @property
     def public_store(self):
@@ -196,7 +200,7 @@ class Company(object):
         name = _unicode(name)
         for user in self.users(): # XXX slow
             if user.name == name:
-                return User(name, self.server)
+                return _user.User(name, self.server)
         if create:
             return self.create_user(name)
         else:
@@ -215,7 +219,7 @@ class Company(object):
 
         if parse and getattr(self.server.options, 'users', None):
             for username in self.server.options.users:
-                yield User(username, self.server)
+                yield _user.User(username, self.server)
             return
 
         if self._name == u'Default':
@@ -224,7 +228,7 @@ class Company(object):
         else:
             for ecuser in self.server.sa.GetUserList(self._eccompany.CompanyID, MAPI_UNICODE):
                 if ecuser.Username != 'SYSTEM':
-                    yield User(ecuser.Username, self.server)
+                    yield _user.User(ecuser.Username, self.server)
 
     def admins(self):
         for ecuser in self.server.sa.GetRemoteAdminList(self._eccompany.CompanyID, MAPI_UNICODE):

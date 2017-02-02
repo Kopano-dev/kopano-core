@@ -10,6 +10,7 @@ import os
 import time
 import socket
 import fnmatch
+import sys
 
 from MAPI import (
     MAPI_UNICODE, MDB_WRITE, RELOP_EQ, RELOP_RE,
@@ -41,19 +42,26 @@ from .errors import (
     Error, NotFoundError, DuplicateError, NotSupportedError,
     LogonError
 )
+
+if sys.hexversion >= 0x03000000:
+    from . import user as _user
+    from . import config as _config
+    from . import utils as _utils
+else:
+    import user as _user
+    import config as _config
+    import utils as _utils
+
 from .parser import parser
-from .user import User
 from .table import Table
 from .company import Company
 from .group import Group
 from .store import Store
-from .config import Config
 
 from .compat import (
     unhex as _unhex, decode as _decode, repr as _repr,
     fake_unicode as _unicode
 )
-from .utils import state as _state, sync as _sync
 
 def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     # used with permission from will mcgugan, https://www.willmcgugan.com
@@ -124,12 +132,12 @@ class Server(object):
                 pass
             elif getattr(self.options, 'config_file', None):
                 config_file = os.path.abspath(self.options.config_file)
-                config = Config(None, filename=self.options.config_file)
+                config = _config.Config(None, filename=self.options.config_file)
             else:
                 config_file = '/etc/kopano/admin.cfg'
                 try:
                     open(config_file) # check if accessible
-                    config = Config(None, filename=config_file)
+                    config = _config.Config(None, filename=config_file)
                 except IOError:
                     pass
             self.config = config
@@ -233,7 +241,7 @@ class Server(object):
         """ Return :class:`user <User>` with given name """
 
         try:
-            return User(name, email=email, server=self)
+            return _user.User(name, email=email, server=self)
         except NotFoundError:
             if create and name:
                 return self.create_user(name)
@@ -257,7 +265,7 @@ class Server(object):
 
         if parse and getattr(self.options, 'users', None):
             for username in self.options.users:
-                yield User(_decode(username), self)
+                yield _user.User(_decode(username), self)
             return
         try:
             for name in self._companylist():
@@ -268,7 +276,7 @@ class Server(object):
                 username = ecuser.Username
                 if system or username != u'SYSTEM':
                     if remote or ecuser.Servername in (self.name, ''):
-                        yield User(server=self, ecuser=ecuser)
+                        yield _user.User(server=self, ecuser=ecuser)
 
     def create_user(self, name, email=None, password=None, company=None, fullname=None, create_store=True):
         """ Create a new :class:`user <Users>` on the server
@@ -428,13 +436,13 @@ class Server(object):
         self.sa.DeleteGroup(group._ecgroup.GroupID)
 
     def delete(self, items):
-        if isinstance(items, (User, Group, Company, Store)):
+        if isinstance(items, (_user.User, Group, Company, Store)):
             items = [items]
         else:
             items = list(items)
 
         for item in items:
-            if isinstance(item, User):
+            if isinstance(item, _user.User):
                 self.remove_user(item.name)
             elif isinstance(item, Group):
                 self.remove_group(item.name)
@@ -545,7 +553,7 @@ class Server(object):
     def state(self):
         """ Current server state """
 
-        return _state(self.mapistore)
+        return _utils.state(self.mapistore)
 
     def sync(self, importer, state, log=None, max_changes=None, window=None, begin=None, end=None, stats=None):
         """ Perform synchronization against server node
@@ -556,7 +564,7 @@ class Server(object):
         """
 
         importer.store = None
-        return _sync(self, self.mapistore, importer, state, log or self.log, max_changes, window=window, begin=begin, end=end, stats=stats)
+        return _utils.sync(self, self.mapistore, importer, state, log or self.log, max_changes, window=window, begin=begin, end=end, stats=stats)
 
     @_timed_cache(minutes=60)
     def _resolve_email(self, entryid=None):

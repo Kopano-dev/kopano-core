@@ -6,6 +6,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import codecs
+import sys
 import traceback
 import time
 import struct
@@ -41,6 +42,23 @@ from MAPI.Struct import (
 )
 from MAPI.Time import unixtime
 
+if sys.hexversion >= 0x03000000:
+    from . import item as _item
+    from . import store as _store
+    from . import prop as _prop
+    from . import table as _table
+    from . import permission as _permission
+    from . import user as _user
+    from . import group as _group
+else:
+    import item as _item
+    import store as _store
+    import prop as _prop
+    import table as _table
+    import permission as _permission
+    import user as _user
+    import group as _group
+
 from .defs import NAMESPACE_GUID
 from .compat import is_int as _is_int, unhex as _unhex
 from .errors import Error, NotFoundError
@@ -58,9 +76,6 @@ class TrackingContentsImporter(ECImportContentsChanges):
         self.ImportMessageChange(props, flags)
 
     def ImportMessageChange(self, props, flags):
-        from .item import Item
-        from .store import Store
-
         if self.skip:
             raise MAPIError(SYNC_E_IGNORE)
         try:
@@ -71,9 +86,9 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 store_entryid = PpropFindProp(props, PR_STORE_ENTRYID).Value
                 store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', store_entryid[:-4]) + self.server.pseudo_url + b'\x00'
                 mapistore = self.server.mapisession.OpenMsgStore(0, store_entryid, None, 0) # XXX cache
-            item = Item()
+            item = _item.Item()
             item.server = self.server
-            item.store = Store(mapiobj=mapistore, server=self.server)
+            item.store = _store.Store(mapiobj=mapistore, server=self.server)
             try:
                 item.mapiobj = openentry_raw(mapistore, entryid.Value, 0)
                 item.folderid = PpropFindProp(props, PR_EC_PARENT_HIERARCHYID).Value
@@ -97,13 +112,11 @@ class TrackingContentsImporter(ECImportContentsChanges):
         raise MAPIError(SYNC_E_IGNORE)
 
     def ImportMessageDeletion(self, flags, entries):
-        from .item import Item
-
         if self.skip:
             return
         try:
             for entry in entries:
-                item = Item()
+                item = _item.Item()
                 item.server = self.server
                 item._sourcekey = bin2hex(entry)
                 if hasattr(self.importer, 'delete'):
@@ -192,8 +205,7 @@ def prop(self, mapiobj, proptag, create=False):
                 sprop = HrGetOneProp(mapiobj, proptag)
             else:
                 raise e
-        from .prop import Property
-        return Property(mapiobj, sprop)
+        return _prop.Property(mapiobj, sprop)
     else:
         namespace, name = proptag.split(':') # XXX syntax
         if name.isdigit(): # XXX
@@ -207,8 +219,7 @@ def prop(self, mapiobj, proptag, create=False):
 def props(mapiobj, namespace=None):
     proptags = mapiobj.GetPropList(MAPI_UNICODE)
     sprops = mapiobj.GetProps(proptags, MAPI_UNICODE)
-    from .prop import Property
-    props = [Property(mapiobj, sprop) for sprop in sprops]
+    props = [_prop.Property(mapiobj, sprop) for sprop in sprops]
     for p in sorted(props):
         if not namespace or p.namespace == namespace:
             yield p
@@ -387,29 +398,23 @@ def extract_ipm_ol2007_entryids(blob, offset):
             pos += totallen
 
 def permissions(obj):
-        from .table import Table
-        from .permission import Permission
-
         try:
             acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
         except MAPIErrorNotFound:
             return
-        table = Table(obj.server, acl_table.GetTable(0), PR_ACL_TABLE)
+        table = _table.Table(obj.server, acl_table.GetTable(0), PR_ACL_TABLE)
         for row in table.dict_rows():
-            yield Permission(acl_table, row, obj.server)
+            yield _permission.Permission(acl_table, row, obj.server)
 
 def permission(obj, member, create):
-        from .user import User
-        from .group import Group
-
         for permission in obj.permissions():
             if permission.member == member:
                 return permission
         if create:
             acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
-            if isinstance(member, User): # XXX *.id_ or something..?
+            if isinstance(member, _user.User): # XXX *.id_ or something..?
                 memberid = member.userid
-            elif isinstance(member, Group):
+            elif isinstance(member, _group.Group):
                 memberid = member.groupid
             else:
                 memberid = member.companyid

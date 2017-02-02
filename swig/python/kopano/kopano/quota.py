@@ -5,10 +5,16 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import sys
+
 from MAPI.Struct import ECQUOTA, MAPIErrorNotFound, MAPIErrorCollision
 
+if sys.hexversion >= 0x03000000:
+    from . import utils as _utils
+else:
+    import utils as _utils
+
 from .defs import CONTAINER_COMPANY, ACTIVE_USER
-from .utils import bytes_to_human as _bytes_to_human
 from .compat import repr as _repr
 from .errors import NotFoundError, DuplicateError
 
@@ -109,8 +115,8 @@ class Quota(object):
 
     def __unicode__(self):
         return u'Quota(warning=%s, soft=%s, hard=%s)' % (
-            _bytes_to_human(self.warning_limit), _bytes_to_human(self.soft_limit),
-            _bytes_to_human(self.hard_limit)
+            _utils.bytes_to_human(self.warning_limit), _utils.bytes_to_human(self.soft_limit),
+            _utils.bytes_to_human(self.hard_limit)
         )
 
     def __repr__(self):
