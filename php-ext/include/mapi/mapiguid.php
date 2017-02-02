@@ -38,4 +38,10 @@ define('PSETID_Archive',                        makeguid("{72E98EBC-57D2-4AB5-B0
 define('PS_MAPI',                               makeguid("{00020328-0000-0000-C000-000000000046}"));
 define('PS_PUBLIC_STRINGS',                     makeguid("{00020329-0000-0000-C000-000000000046}"));
 define('PS_INTERNET_HEADERS',                   makeguid("{00020386-0000-0000-c000-000000000046}"));
+
+define('MUIDECSAB',                             makeguid("{50A921AC-D340-48ee-B319-FBA753304425}"));
+
+// Kopano Contact Provider GUIDs
+define('MUIDZCSAB',                             makeguid("{30047F72-92E3-DA4F-B86A-E52A7FE46571}"));
+
 ?>
