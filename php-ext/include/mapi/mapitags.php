@@ -727,6 +727,7 @@ define('PR_ADDITIONAL_REN_ENTRYIDS'                   ,mapi_prop_tag(PT_MV_BINAR
 define('PR_FREEBUSY_ENTRYIDS'                         ,mapi_prop_tag(PT_MV_BINARY,   0x36E4));
 define('PR_REM_ONLINE_ENTRYID'                        ,mapi_prop_tag(PT_BINARY,      0x36D5));
 define('PR_REM_OFFLINE_ENTRYID'                       ,mapi_prop_tag(PT_BINARY,      0x36D6));
+define('PR_FREEBUSY_COUNT_MONTHS'                     ,mapi_prop_tag(PT_LONG,        0x6869));
 /*
 PR_IPM_OL2007_ENTRYIDS:
 	This is a single binary property containing the entryids for:
@@ -880,6 +881,8 @@ define('PR_EMS_AB_REPORTS_MV'                 ,mapi_prop_tag(PT_MV_BINARY,  0x80
 define('PR_EMS_AB_IS_MEMBER_OF_DL'            ,mapi_prop_tag(PT_MV_BINARY,  0x8008));
 define('PR_EMS_AB_OWNER'                      ,mapi_prop_tag(PT_BINARY,     0x800C));
 define('PR_EMS_AB_ROOM_CAPACITY'			  ,mapi_prop_tag(PT_LONG,		0x0807));
+define('PR_EMS_AB_TAGGED_X509_CERT'           ,mapi_prop_tag(PT_MV_BINARY,  0x8C6A));
+define('PR_EMS_AB_THUMBNAIL_PHOTO'            ,mapi_prop_tag(PT_MV_BINARY,     0x8C9E));
 
 define('PR_EC_ARCHIVE_SERVERS'                ,mapi_prop_tag(PT_MV_TSTRING,	0x67c4));
 
@@ -887,5 +890,26 @@ define('PR_EC_ARCHIVE_SERVERS'                ,mapi_prop_tag(PT_MV_TSTRING,	0x67
 define('PR_ZC_CONTACT_STORE_ENTRYIDS'         ,mapi_prop_tag(PT_MV_BINARY, PR_EC_BASE+0x11));
 define('PR_ZC_CONTACT_FOLDER_ENTRYIDS'        ,mapi_prop_tag(PT_MV_BINARY, PR_EC_BASE+0x12));
 define('PR_ZC_CONTACT_FOLDER_NAMES'           ,mapi_prop_tag(PT_MV_TSTRING, PR_EC_BASE+0x13));
+
+/* kopano specific properties for optimization of imap functionality */
+define('PR_EC_IMAP_EMAIL'                     ,mapi_prop_tag(PT_BINARY,  PR_EC_BASE+0x8C)); //the complete rfc822 email
+define('PR_EC_IMAP_EMAIL_SIZE'                ,mapi_prop_tag(PT_LONG,    PR_EC_BASE+0x8D));
+define('PR_EC_IMAP_BODY'                      ,mapi_prop_tag(PT_STRING8, PR_EC_BASE+0x8E)); //simplified bodystructure (mostly unused by clients)
+define('PR_EC_IMAP_BODYSTRUCTURE'             ,mapi_prop_tag(PT_STRING8, PR_EC_BASE+0x8F)); //extended bodystructure (often used by clients)
+
+/* Folder properties for unread counters */
+define('PR_LOCAL_COMMIT_TIME_MAX'             ,mapi_prop_tag(PT_SYSTIME,     0x670A));
+
+/* Favorites folder properties*/
+define('PR_WLINK_ENTRYID'                    ,mapi_prop_tag(PT_BINARY,     0x684C));
+define('PR_WLINK_FLAGS'                      ,mapi_prop_tag(PT_LONG,       0x684A));
+define('PR_WLINK_ORDINAL'                    ,mapi_prop_tag(PT_BINARY,     0x684B));
+define('PR_WLINK_STORE_ENTRYID'              ,mapi_prop_tag(PT_BINARY,     0x684E));
+define('PR_WLINK_TYPE'                       ,mapi_prop_tag(PT_LONG,       0x6849));
+define('PR_WLINK_SECTION'                    ,mapi_prop_tag(PT_LONG,       0x6852));
+define('PR_WLINK_RECKEY'                     ,mapi_prop_tag(PT_BINARY,     0x684D));
+
+/* Search folder properties */
+define('PR_EC_SUGGESTION'                    ,mapi_prop_tag(PT_TSTRING, 0x6707));
 
 ?>
