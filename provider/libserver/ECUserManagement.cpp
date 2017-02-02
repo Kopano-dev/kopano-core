@@ -1832,7 +1832,7 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap, ECObjectTabl
 	unsigned int i = 0;
 
 	assert(lpRowList != NULL);
-	lpsRowSet = s_alloc<struct rowSet>(soap);
+	lpsRowSet = s_alloc_nothrow<struct rowSet>(soap);
 	if (lpsRowSet == NULL)
 		return KCERR_NOT_ENOUGH_MEMORY;
 	lpsRowSet->__size = 0;

@@ -18,19 +18,36 @@
 #ifndef SOAPALLOC_H
 #define SOAPALLOC_H
 
+#include <new>
 #include "soapH.h"
 
 namespace KC {
 
 // The automatic soap/non-soap allocator
-template<typename Type>
-Type* s_alloc(struct soap *soap, size_t size) {
+template<typename Type> Type *s_alloc_nothrow(struct soap *soap, size_t size)
+{
 	return reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type) * size));
 }
 
-template<typename Type>
-Type* s_alloc(struct soap *soap) {
+template<typename Type> Type *s_alloc_nothrow(struct soap *soap)
+{
 	return reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type)));
+}
+
+template<typename Type> Type *s_alloc(struct soap *soap, size_t size)
+{
+	auto p = reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type) * size));
+	if (p == nullptr)
+		throw std::bad_alloc();
+	return p;
+}
+
+template<typename Type> Type *s_alloc(struct soap *soap)
+{
+	auto p = reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type)));
+	if (p == nullptr)
+		throw std::bad_alloc();
+	return p;
 }
 
 inline char *s_strcpy(struct soap *soap, const char *str) {
