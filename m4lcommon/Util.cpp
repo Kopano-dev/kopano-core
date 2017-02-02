@@ -419,7 +419,11 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 	case PT_SRESTRICTION:
 		if (lpSrc->Value.lpszA == NULL)
 			return MAPI_E_INVALID_PARAMETER;
-		// NOTE: we place the object pointer in lpszA to make sure it's on the same offset as Value.x on 32bit as 64bit machines
+		/*
+		 * NOTE: we place the object pointer in lpszA to make sure it
+		 * is on the same offset as Value.x on 32-bit as 64-bit
+		 * machines.
+		 */
 		hr = lpfAllocMore(sizeof(SRestriction), lpBase, (void **)&lpDest->Value.lpszA);
 		if (hr != hrSuccess)
 			return hr;
@@ -428,7 +432,11 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 	case PT_ACTIONS:
 		if (lpSrc->Value.lpszA == NULL)
 			return MAPI_E_INVALID_PARAMETER;
-		// NOTE: we place the object pointer in lpszA to make sure it's on the same offset as Value.x on 32bit as 64bit machines
+		/*
+		 * NOTE: we place the object pointer in lpszA to make sure it
+		 * is on the same offset as Value.x on 32-bit as 64-bit
+		 * machines.
+		 */
 		hr = lpfAllocMore(sizeof(ACTIONS), lpBase, (void **)&lpDest->Value.lpszA);
 		if (hr != hrSuccess)
 			return hr;
@@ -1361,7 +1369,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 				strHtml += L" ";
 		}
 
-		// convert WCHAR to wanted (8bit) charset 
+		/* Convert WCHAR to wanted (8-bit) charset */
 		readBuffer = (const char*)strHtml.c_str();
 		stRead = strHtml.size() * sizeof(WCHAR);
 

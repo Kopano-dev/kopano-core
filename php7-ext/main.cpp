@@ -51,8 +51,8 @@
  *
  * - all internal functions need to pass TSRMLS_CC in the end, so win32 version compiles
  *
- * - when using "l" in zend_parse_parameters(), use 'long' (64bit) as variable type, not ULONG (32bit)
- * - when using "s" in zend_parse_parameters(), the string length is 32bit, so use 'unsigned int' or 'ULONG'
+ * - when using "l" in zend_parse_parameters(), use 'long' (64-bit) as variable type, not ULONG (32-bit)
+ * - when using "s" in zend_parse_parameters(), the string length is 32 bits, so use 'unsigned int' or 'ULONG'
  *
  */
 
@@ -808,8 +808,8 @@ ZEND_FUNCTION(mapi_prop_tag)
 	// PHP uses variable type 'long' internally. If a number in a string as key is used in add_assoc_*(),
 	// it is re-interpreted a a number when it's smaller than LONG_MAX.
 	// however, LONG_MAX is 2147483647L on 32-bit systems, but 9223372036854775807L on 64-bit.
-	// this make named props (0x80000000+) fit in the 'number' description, and so this breaks on 64bit systems
-	// .. well, it un-breaks on 64bit .. so we cast the unsigned proptag to a signed number here, so
+	// this make named props (0x80000000+) fit in the 'number' description, and so this breaks on 64-bit systems
+	// .. well, it un-breaks on 64-bit .. so we cast the unsigned proptag to a signed number here, so
 	// the compares within .php files can be correctly performed, so named props work.
 
 	// maybe we need to rewrite this system a bit, so proptags are always a string, and never interpreted

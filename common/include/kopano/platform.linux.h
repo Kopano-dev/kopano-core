@@ -29,7 +29,7 @@
 
 #include <pthread.h>
 #include <cstring>		/* memset, etc.. */
-#include <cctype>		/* 64bit int definition */
+#include <cctype>		/* 64-bit int definition */
 #include <dlfcn.h>
 #include <cstddef>
 #include <libgen.h>

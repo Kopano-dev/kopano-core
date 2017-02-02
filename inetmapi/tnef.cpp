@@ -1577,7 +1577,7 @@ HRESULT ECTNEF::Finish()
 }
 
 /**
- * Read one DWORD (32bits ULONG) from input stream
+ * Read one DWORD (32-bit unsigned integer) from input stream
  *
  * @param[in]	lpStream	input stream to read one ULONG from, stream automatically moves current cursor.
  * @param[out]	ulData		ULONG value from lpStream
@@ -1598,7 +1598,7 @@ HRESULT ECTNEF::HrReadDWord(IStream *lpStream, ULONG *ulData)
 }
 
 /**
- * Read one WORD (16bits unsigned short) from input stream
+ * Read one WORD (16-bit unsigned integer) from input stream
  *
  * @param[in]	lpStream	input stream to read one unsigned short from, stream automatically moves current cursor.
  * @param[out]	ulData		unsigned short value from lpStream
@@ -1670,7 +1670,7 @@ HRESULT ECTNEF::HrReadData(IStream *lpStream, char *lpData, ULONG ulLen)
 }
 
 /**
- * Write one DWORD (32bits ULONG) to output stream
+ * Write one DWORD (32-bit integer) to output stream
  *
  * @param[in,out]	lpStream	stream to write one ULONG to, stream automatically moves current cursor.
  * @param[in]		ulData		ULONG value to write in lpStream
@@ -1691,7 +1691,7 @@ HRESULT ECTNEF::HrWriteDWord(IStream *lpStream, ULONG ulData)
 }
 
 /**
- * Write one WORD (16bits unsigned short) to output stream
+ * Write one WORD (16-bit unsigned integer) to output stream
  *
  * @param[in,out]	lpStream	stream to write one unsigned short to, stream automatically moves current cursor.
  * @param[in]		ulData		unsigned short value to write in lpStream
@@ -1712,7 +1712,7 @@ HRESULT ECTNEF::HrWriteWord(IStream *lpStream, unsigned short ulData)
 }
 
 /**
- * Write one BYTE (8bits unsigned char) to output stream
+ * Write one BYTE (8-bit unsigned integer) to output stream
  *
  * @param[in,out]	lpStream	stream to write one unsigned char to, stream automatically moves current cursor.
  * @param[in]		ulData		unsigned char value to write in lpStream

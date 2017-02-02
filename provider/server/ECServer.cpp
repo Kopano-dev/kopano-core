@@ -64,11 +64,11 @@
 // The following value is based on:
 // http://dev.mysql.com/doc/refman/5.0/en/server-system-variables.html#sysvar_thread_stack
 // Since the remote MySQL server can be 32 or 64 bit we'll just go with the value specified
-// for 64bit architectures.
-// We could use the 'version_compile_machine' variable, but I'm not sure if 32bit versions
-// will ever be build on 64bit machines and what that variable does. Plus we would need a
-// list of all possible 32bit architectures because if the architecture is unknown we'll
-// have to go with the safe value which is for 64bit.
+// for 64-bit architectures.
+// We could use the 'version_compile_machine' variable, but I'm not sure if 32-bit versions
+// will ever be build on 64-bit machines and what that variable does. Plus we would need a
+// list of all possible 32-bit architectures because if the architecture is unknown we'll
+// have to go with the safe value which is for 64-bit.
 #define MYSQL_MIN_THREAD_STACK (256*1024)
 
 const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";

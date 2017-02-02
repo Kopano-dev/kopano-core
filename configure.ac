@@ -69,7 +69,7 @@ ZCPPFLAGS="$BUILDOS -DHAVE_CONFIG_H \
 	-I\${top_srcdir}/swig/python/include"
 ZCXXFLAGS="-Wall -Wmissing-declarations"
 
-# programs that use files >2gb need 64bit file support
+# programs that use files >2GB need 64-bit file support
 LFS_CFLAGS=`getconf LFS_CFLAGS`
 ZCPPFLAGS="$ZCPPFLAGS $LFS_CFLAGS"
 

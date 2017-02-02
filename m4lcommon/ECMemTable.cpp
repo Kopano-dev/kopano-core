@@ -1100,7 +1100,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 			if(lpsPropTags->aulPropTag[j] == lpMemTable->ulRowPropTag) {
 				lpRows->aRow[i].lpProps[j].ulPropTag = lpMemTable->ulRowPropTag;
 				
-				//FIXME: now only support 32bits of the PT_I8
+				//FIXME: now only support 32 bits of the PT_I8
 				if(PROP_TYPE(lpMemTable->ulRowPropTag) == PT_I8)
 					lpRows->aRow[i].lpProps[j].Value.li.QuadPart = 0; //empty memory
 				
