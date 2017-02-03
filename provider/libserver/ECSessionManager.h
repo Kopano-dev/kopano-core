@@ -30,7 +30,7 @@
 #include <mutex>
 #include <set>
 #include <pthread.h>
-
+#include <kopano/lockhelper.hpp>
 #include "ECUserManagement.h"
 #include "ECSearchFolders.h"
 #include "ECDatabaseFactory.h"
@@ -180,9 +180,9 @@ protected:
 
 	EC_SESSIONGROUPMAP m_mapSessionGroups; ///< map of all the session groups
 	SESSIONMAP			m_mapSessions;			///< map of all the sessions
-	
-	pthread_rwlock_t	m_hCacheRWLock;			///< locking of the sessionMap
-	pthread_rwlock_t	m_hGroupLock;			///< locking of session group map and lonely list
+
+	KC::shared_mutex m_hCacheRWLock; ///< locking of the sessionMap
+	KC::shared_mutex m_hGroupLock; ///< locking of session group map and lonely list
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
 	std::condition_variable m_hExitSignal; /* Signal that should be send to the sessionncleaner when to exit */
 	pthread_t			m_hSessionCleanerThread;///< Thread that is used for the sessioncleaner
