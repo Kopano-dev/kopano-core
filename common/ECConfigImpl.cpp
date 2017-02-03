@@ -18,6 +18,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <memory>
+#include <mutex>
 #include <utility>
 #include <cerrno>
 #include <climits>
@@ -27,6 +28,7 @@
 #include <algorithm>
 #include <cassert>
 #include <sys/stat.h>
+#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include "ECConfigImpl.h"
@@ -50,7 +52,6 @@ ECConfigImpl::ECConfigImpl(const configsetting_t *lpDefaults,
     const char *const *lpszDirectives) :
 	m_lpDefaults(lpDefaults)
 {
-	pthread_rwlock_init(&m_settingsRWLock, NULL);
 	// allowed directives in this config object
 	for (int i = 0; lpszDirectives != NULL && lpszDirectives[i] != NULL; ++i)
 		m_lDirectives.push_back(lpszDirectives[i]);
@@ -167,14 +168,9 @@ void ECConfigImpl::CleanupMap(settingmap_t *lpMap)
 
 ECConfigImpl::~ECConfigImpl()
 {
-	pthread_rwlock_wrlock(&m_settingsRWLock);
-
+	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
 	CleanupMap(&m_mapSettings);
 	CleanupMap(&m_mapAliases);
-
-	pthread_rwlock_unlock(&m_settingsRWLock);
-
-	pthread_rwlock_destroy(&m_settingsRWLock);
 }
 
 /** 
@@ -249,12 +245,11 @@ const char *ECConfigImpl::GetMapEntry(const settingmap_t *lpMap,
 		return NULL;
 
 	strcpy(key.s, szName);
-	pthread_rwlock_rdlock(&m_settingsRWLock);
 
+	KC::shared_lock<KC::shared_mutex> lset(m_settingsRWLock);
 	auto itor = lpMap->find(key);
 	if (itor != lpMap->cend())
 		retval = itor->second;
-	pthread_rwlock_unlock(&m_settingsRWLock);
 	return retval;
 }
 
@@ -558,8 +553,7 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 		kc_strlcpy(s.s, szAlias, sizeof(s.s));
 	}
 
-	pthread_rwlock_wrlock(&m_settingsRWLock);
-
+	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
 	iterSettings = m_mapSettings.find(s);
 
 	if (iterSettings == m_mapSettings.cend()) {
@@ -631,7 +625,6 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 	}
 
 exit:
-	pthread_rwlock_unlock(&m_settingsRWLock);
 	return bReturnValue;
 }
 
@@ -642,9 +635,8 @@ void ECConfigImpl::AddAlias(const configsetting_t *lpsAlias)
 	if (!CopyConfigSetting(lpsAlias, &s))
 		return;
 
-	pthread_rwlock_wrlock(&m_settingsRWLock);
+	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
 	InsertOrReplace(&m_mapAliases, s, lpsAlias->szValue, false);
-	pthread_rwlock_unlock(&m_settingsRWLock);
 }
 
 bool ECConfigImpl::HasWarnings() {
@@ -653,15 +645,12 @@ bool ECConfigImpl::HasWarnings() {
 
 bool ECConfigImpl::HasErrors() {
 	/* First validate the configuration settings */
-	pthread_rwlock_rdlock(&m_settingsRWLock);
+	KC::shared_lock<KC::shared_mutex> lset(m_settingsRWLock);
 
 	for (const auto &s : m_mapSettings)
 		if (s.first.ulFlags & CONFIGSETTING_NONEMPTY)
 			if (!s.second || strlen(s.second) == 0)
 				errors.push_back("Option '" + string(s.first.s) + "' cannot be empty!");
-	
-	pthread_rwlock_unlock(&m_settingsRWLock);
-
 	return !errors.empty();
 }
 
