@@ -248,22 +248,20 @@ void ECLogger_File::reinit_buffer(size_t size)
 void ECLogger_File::Reset() {
 	std::lock_guard<KC::shared_mutex> lh(handle_lock);
 
-	if (log != stderr && fnClose && fnOpen) {
-		if (log)
-			fnClose(log);
-
-		log = fnOpen(logname.c_str(), szMode);
-		reinit_buffer(buffer_size);
-	}
+	if (log == stderr || fnClose == nullptr || fnOpen == nullptr)
+		return;
+	if (log)
+		fnClose(log);
+	log = fnOpen(logname.c_str(), szMode);
+	reinit_buffer(buffer_size);
 }
 
 int ECLogger_File::GetFileDescriptor() {
-	int fd = -1;
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
 
 	if (log && fnFileno)
-		fd = fnFileno(log);
-	return fd;
+		return fnFileno(log);
+	return -1;
 }
 
 std::string ECLogger_File::EmitLevel(const unsigned int loglevel) {
@@ -342,21 +340,20 @@ bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &me
 void ECLogger_File::Log(unsigned int loglevel, const string &message) {
 	if (!ECLogger::Log(loglevel))
 		return;
+	if (DupFilter(loglevel, message))
+		return;
 
-	if (!DupFilter(loglevel, message)) {
-		KC::shared_lock<KC::shared_mutex> lh(handle_lock);
-
-		if (log) {
-			fnPrintf(log, "%s%s%s\n", DoPrefix().c_str(), EmitLevel(loglevel).c_str(), message.c_str());
-			/*
-			 * If IOLBF was set (buffer_size==0), the previous
-			 * print call already flushed it. Do not flush again
-			 * in that case.
-			 */
-			if (buffer_size > 0 && (loglevel <= EC_LOGLEVEL_WARNING || loglevel == EC_LOGLEVEL_ALWAYS))
-				fflush((FILE *)log);
-		}
-	}
+	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
+	if (log == nullptr)
+		return;
+	fnPrintf(log, "%s%s%s\n", DoPrefix().c_str(), EmitLevel(loglevel).c_str(), message.c_str());
+	/*
+	 * If IOLBF was set (buffer_size==0), the previous
+	 * print call already flushed it. Do not flush again
+	 * in that case.
+	 */
+	if (buffer_size > 0 && (loglevel <= EC_LOGLEVEL_WARNING || loglevel == EC_LOGLEVEL_ALWAYS))
+		fflush((FILE *)log);
 }
 
 void ECLogger_File::Log(unsigned int loglevel, const char *format, ...) {
