@@ -81,7 +81,7 @@ class Store(object):
         if guid:
             mapiobj = self.server._store(guid)
         elif entryid:
-            mapiobj = self.server._store2(entryid.decode('hex'))
+            mapiobj = self.server._store2(codecs.decode(entryid, 'hex'))
         self.mapiobj = mapiobj
         # XXX: fails if store is orphaned and guid is given..
         self._root = self.mapiobj.OpenEntry(None, None, 0)

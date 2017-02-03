@@ -72,7 +72,7 @@ else:
 from .compat import (
     unhex as _unhex, is_str as _is_str, repr as _repr,
     pickle_load as _pickle_load, pickle_loads as _pickle_loads,
-    fake_unicode as _unicode
+    fake_unicode as _unicode, is_file as _is_file
 )
 
 from .defs import (
@@ -111,11 +111,11 @@ class Item(object):
     def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None):
         # TODO: self.folder fix this!
 
-        if isinstance(eml, file):
+        if _is_file(eml):
             eml = eml.read()
-        if isinstance(ics, file):
+        if _is_file(ics):
             ics = ics.read()
-        if isinstance(vcf, file):
+        if _is_file(vcf):
             vcf = vcf.read()
 
         self.emlfile = eml
