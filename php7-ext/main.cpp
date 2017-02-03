@@ -116,6 +116,10 @@ extern "C" {
 	#undef PACKAGE_STRING
 	#undef PACKAGE_BUGREPORT
 
+	#if !__GNUC_PREREQ(6,0)
+	#define zend_isnan(a) std::isnan(a)
+	#endif
+
 	#include "php.h"
    	#include "php_globals.h"
    	#include "php_ini.h"
