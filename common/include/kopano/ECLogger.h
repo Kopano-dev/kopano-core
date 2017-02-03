@@ -264,14 +264,14 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 /**
  * Linux syslog logger. Output is whatever syslog does, probably LC_CTYPE.
  */
-class _kc_export ECLogger_Syslog _kc_final : public ECLogger {
+class _kc_export_dycast ECLogger_Syslog _kc_final : public ECLogger {
 	private:
 		char *m_ident;
 		int levelmap[16];	/* converts to syslog levels */
 
 	public:
 		ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);
-		_kc_hidden ~ECLogger_Syslog(void);
+		~ECLogger_Syslog(void);
 		_kc_hidden virtual void Reset(void) _kc_override;
 		_kc_hidden virtual void Log(unsigned int level, const std::string &msg) _kc_override;
 		_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) _kc_override __LIKE_PRINTF(3, 4);

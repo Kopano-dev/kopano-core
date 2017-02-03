@@ -100,6 +100,11 @@ class ECLogger_File {
 	ECLogger_File(const unsigned int max_ll, const bool add_timestamp, const char *const filename, const bool compress);
 };
 
+class ECLogger_Syslog {
+ public:
+	ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);
+};
+
 void ec_log_set(ECLogger_File *);
 ECLogger *ec_log_get(void);
 
