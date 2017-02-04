@@ -316,6 +316,13 @@ class cstdlib_deleter {
 	void operator()(void *x) { free(x); }
 };
 
+class rowset_delete {
+	public:
+	void operator()(SRowSet *x) { FreeProws(x); }
+};
+
+typedef memory_ptr<SRowSet, rowset_delete> rowset_ptr;
+
 template<typename _T> inline void
 swap(memory_ptr<_T> &__x, memory_ptr<_T> &__y) noexcept
 {

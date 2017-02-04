@@ -109,7 +109,7 @@ HRESULT ECMemTable::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppIDs, LPULONG *lppulStatus)
 {
 	HRESULT hr = hrSuccess;
-	memory_ptr<SRowSet> lpRowSet;
+	rowset_ptr lpRowSet;
 	memory_ptr<SPropValue> lpIDs;
 	memory_ptr<ULONG> lpulStatus;
 	int n = 0;
@@ -1067,7 +1067,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 {
 	HRESULT hr = hrSuccess;
 	unsigned int i=0,j=0;
-	memory_ptr<SRowSet> lpRows;
+	rowset_ptr lpRows;
 	convert_context converter;
 
 	if (lpsRowList == NULL || lppRows == NULL) {
