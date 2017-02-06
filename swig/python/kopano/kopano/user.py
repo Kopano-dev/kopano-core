@@ -34,26 +34,30 @@ from .utils import prop as _prop, props as _props
 class User(object):
     """User class"""
 
-    def __init__(self, name=None, server=None, email=None):
+    def __init__(self, name=None, server=None, email=None, ecuser=None):
         if not server:
             from .server import Server
             server = Server()
 
-        server = server
         self.server = server
 
-        if email:
-            try:
-                self._name = _unicode(server.gab.ResolveNames([PR_EMAIL_ADDRESS_W], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME_W, _unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
-            except (MAPIErrorNotFound, MAPIErrorInvalidParameter, IndexError):
-                raise NotFoundError("no such user '%s'" % email)
+        if ecuser:
+            self._ecuser = ecuser
+            self._name = ecuser.Username
         else:
-            self._name = _unicode(name)
+            if email:
+                try:
+                    self._name = _unicode(server.gab.ResolveNames([PR_EMAIL_ADDRESS_W], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME_W, _unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
+                except (MAPIErrorNotFound, MAPIErrorInvalidParameter, IndexError):
+                    raise NotFoundError("no such user '%s'" % email)
+            else:
+                self._name = _unicode(name)
 
-        try:
-            self._ecuser = self.server.sa.GetUser(self.server.sa.ResolveUserName(self._name, MAPI_UNICODE), MAPI_UNICODE)
-        except (MAPIErrorNotFound, MAPIErrorInvalidParameter): # multi-tenant, but no '@' in username..
-            raise NotFoundError("no such user: '%s'" % self.name)
+            try:
+                self._ecuser = self.server.sa.GetUser(self.server.sa.ResolveUserName(self._name, MAPI_UNICODE), MAPI_UNICODE)
+            except (MAPIErrorNotFound, MAPIErrorInvalidParameter): # multi-tenant, but no '@' in username..
+                raise NotFoundError("no such user: '%s'" % self.name)
+
         self._mapiobj = None
 
     @property
