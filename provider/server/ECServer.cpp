@@ -969,6 +969,9 @@ static int running_server(char *szName, const char *szConfig,
 	 */
 	setlocale(LC_ALL, "");
 #endif
+#if GSOAP_VERSION == 20841
+#	error This gsoap version suffers from sf.net/p/gsoap2/bugs/1095
+#endif
 	InitBindTextDomain();
 
 	// Load settings
