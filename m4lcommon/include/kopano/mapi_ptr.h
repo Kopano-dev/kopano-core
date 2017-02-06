@@ -82,8 +82,16 @@ typedef KCHL::memory_ptr<MAPINAMEID> MAPINameIdPtr;
 typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionArrayPtr;
 typedef KCHL::memory_ptr<SPropValue> SPropArrayPtr;
 
-typedef mapi_rowset_ptr<SRow> SRowSetPtr;
-typedef mapi_rowset_ptr<ADRENTRY> AdrListPtr;
+class SRowSetPtr : public KCHL::memory_ptr<SRowSet, KCHL::rowset_delete> {
+	public:
+	typedef unsigned int size_type;
+	SRowSetPtr(void) = default;
+	SRowSetPtr(SRowSet *p) : KCHL::rowset_ptr(p) {}
+	SRowSet **operator&(void) { return &~*this; }
+	size_type size(void) const { return (*this)->cRows; }
+	const SRow &operator[](size_t i) const { return (*this)->aRow[i]; }
+	bool empty(void) const { return (*this)->cRows == 0; }
+};
 
 } /* namespace */
 

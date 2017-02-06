@@ -2072,7 +2072,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 		goto exit;
 
 	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-		SRowSetPtr::const_reference row = ptrRows[i];
+		const SRow &row = ptrRows[i];
 		const char* lpszName = "<Unknown>";
 
 		if (PROP_TYPE(row.lpProps[IDX_DISPLAY_NAME].ulPropTag) != PT_ERROR)
