@@ -313,7 +313,11 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 		break;
 	// Gives access to the actual ECUnknown underlying object
 	case PROP_ID(PR_EC_OBJECT):
-		// NOTE: we place the object pointer in lpszA to make sure it's on the same offset as Value.x on 32bit as 64bit machines
+		/*
+		 * NOTE: we place the object pointer in lpszA to make sure it
+		 * is on the same offset as Value.x on 32-bit as 64-bit
+		 * machines.
+		 */
 		lpsPropValue->ulPropTag = PR_EC_OBJECT;
 		lpsPropValue->Value.lpszA = reinterpret_cast<char *>(static_cast<IECUnknown *>(lpProp));
 		break;

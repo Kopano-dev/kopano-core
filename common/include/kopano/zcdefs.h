@@ -16,7 +16,7 @@
  */
 
 /*
- *	Definitions used throughout the ZCP code
+ *	Definitions used throughout the code
  *
  *	platform.h seems to be never included from header files, which is
  *	reasonable for definitions that would otherwise influence third-party

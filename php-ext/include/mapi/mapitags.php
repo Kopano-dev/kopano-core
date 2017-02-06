@@ -818,7 +818,7 @@ define('PR_EC_WA_ATTACHMENT_HIDDEN_OVERRIDE', mapi_prop_tag(PT_BOOLEAN, PR_EC_BA
 
 // edkmdb, rules properties
 #define pidSpecialMin                                   0x6670
-define('PR_RULE_ID'                                   ,mapi_prop_tag(PT_I8,          0x6670+0x04)); // only lower 32bits are used.
+define('PR_RULE_ID'                                   ,mapi_prop_tag(PT_I8,          0x6670+0x04)); // only lower 32 bits are used.
 define('PR_RULE_IDS'                                  ,mapi_prop_tag(PT_BINARY,      0x6670+0x05));
 define('PR_RULE_SEQUENCE'                             ,mapi_prop_tag(PT_LONG,        0x6670+0x06));
 define('PR_RULE_STATE'                                ,mapi_prop_tag(PT_LONG,        0x6670+0x07));

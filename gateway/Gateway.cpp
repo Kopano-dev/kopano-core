@@ -52,7 +52,7 @@
 
 #include "TmpPath.h"
 #include <kopano/UnixUtil.h>
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 #include <unicode/uclean.h>
 #endif
 #include <openssl/ssl.h>
@@ -772,7 +772,7 @@ exit:
 	if (bThreads)
 		pthread_attr_destroy(&ThreadAttr);
 	free(st.ss_sp);
-#ifdef ZCP_USES_ICU
+#ifdef KC_USES_ICU
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
 #endif

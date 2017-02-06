@@ -97,10 +97,10 @@ function make_mapi_s($code)
 define('NOERROR'                                         ,0);
 
 // The following codes don't use make_mapi_e because they are in the 0x000FF000 range,
-// but we cannot use the HEX value as would make most sense as that would break in 64bit PHP
-// (ZCP server will return a negative value, but PHP would convert this define into a positive
+// but we cannot use the HEX value as would make most sense as that would break in 64-bit PHP
+// (KC server will return a negative value, but PHP would convert this define into a positive
 // value). Hence we declare the value exactly as we need it as integer and bypass the
-// 32bit/64bit hell.
+// 32/64-bit hell.
 define('MAPI_E_CALL_FAILED'                              ,(int)-2147467259); // 0x80004005
 define('MAPI_E_NOT_ENOUGH_MEMORY'                        ,(int)-2147024882); // 0x8007000E
 define('MAPI_E_INVALID_PARAMETER'                        ,(int)-2147024809); // 0x80070057

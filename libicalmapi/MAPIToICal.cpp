@@ -214,7 +214,7 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
  * @param[in]  ulFlags Conversion flags
  * @arg @c M2IC_NO_VTIMEZONE Skip the VTIMEZONE parts in the output
  * @param[out] strMethod ICal method (eg. PUBLISH)
- * @param[out] strIcal The ICal data in 8bit string, charset given in constructor
+ * @param[out] strIcal The ICal data in 8-bit string, charset given in constructor
  * 
  * @return MAPI error code
  */

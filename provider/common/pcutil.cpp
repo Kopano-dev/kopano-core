@@ -412,7 +412,7 @@ ECRESULT TypeToMAPIType(objectclass_t sUserObjClass, ULONG *lpulMAPIType)
 
 /**
  * Parse a Kopano version string in the form [0,]<general>,<major>,<minor>[,<svn_revision>] and
- * place the result in a 32bit unsigned integer.
+ * place the result in a 32 bit unsigned integer.
  * The format of the result is 1 byte general, 1 bytes major and 2 bytes minor.
  * The svn_revision is optional and ignored in any case.
  *

@@ -69,7 +69,7 @@ ZCPPFLAGS="$BUILDOS -DHAVE_CONFIG_H \
 	-I\${top_srcdir}/swig/python/include"
 ZCXXFLAGS="-Wall -Wmissing-declarations"
 
-# programs that use files >2gb need 64bit file support
+# programs that use files >2GB need 64-bit file support
 LFS_CFLAGS=`getconf LFS_CFLAGS`
 ZCPPFLAGS="$ZCPPFLAGS $LFS_CFLAGS"
 
@@ -690,7 +690,7 @@ AS_IF([test "$want_icu" = "yes" && test "$have_icu" = 0], [
 	AC_MSG_ERROR([ICU was requested but not found])
 ])
 AS_IF([test "$have_icu" != 0], [
-	AC_DEFINE([ZCP_USES_ICU], [1], [Defined if ZCP was built with ICU])
+	AC_DEFINE([KC_USES_ICU], [1], [Defined if KC was built with ICU])
 ])
 AM_CONDITIONAL([HAVE_ICU], [test "$have_icu" -ne 0])
 ZCPPFLAGS="$ZCPPFLAGS $icu_uc_CFLAGS $icu_i18n_CFLAGS"
