@@ -98,6 +98,11 @@ define('TABLE_SORT_ASCEND'                       ,(0x00000000));
 define('TABLE_SORT_DESCEND'                      ,(0x00000001));
 define('TABLE_SORT_COMBINE'                      ,(0x00000002));
 
+/* Bookmarks in Table */
+define('BOOKMARK_BEGINNING'                      , 0); /* Before first row */
+define('BOOKMARK_CURRENT'                        , 1); /* Before current row */
+define('BOOKMARK_END'                            , 2); /* After last row */
+
 define('MAPI_UNICODE'                            ,0x80000000);
 
 /* IMAPIFolder Interface --------------------------------------------------- */
