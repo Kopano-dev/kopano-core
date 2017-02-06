@@ -10,6 +10,11 @@ try:
 except ImportError:
     import pickle
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from .lru_cache import lru_cache
+
 import codecs
 import sys
 
