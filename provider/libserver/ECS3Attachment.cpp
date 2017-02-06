@@ -267,7 +267,7 @@ S3Status ECS3Attachment::response_prop(const S3ResponseProperties *properties, v
 	 * are instructed to alloc data->data and have not allocated it yet.
 	 */
 	if (data->sink == NULL && data->alloc_data && data->data == NULL) {
-		data->data = s_alloc<unsigned char>(data->soap, data->size);
+		data->data = s_alloc_nothrow<unsigned char>(data->soap, data->size);
 		if (data->data == NULL) {
 			ec_log_err("Unable to claim memory of size: %d bytes.", data->size);
 			return S3StatusAbortedByCallback;

@@ -2100,9 +2100,9 @@ ECRESULT DynamicPropValArray::Resize(unsigned int ulSize)
 	if (ulSize < m_ulCapacity)
 		return KCERR_INVALID_PARAMETER;
     
-    lpNew = s_alloc<struct propVal>(m_soap, ulSize);
+	lpNew = s_alloc_nothrow<struct propVal>(m_soap, ulSize);
 	if (lpNew == NULL)
-		return KCERR_INVALID_PARAMETER;
+		return KCERR_NOT_ENOUGH_MEMORY;
     
 	for (unsigned int i = 0; i < m_ulPropCount; ++i) {
         er = CopyPropVal(&m_lpPropVals[i], &lpNew[i], m_soap);

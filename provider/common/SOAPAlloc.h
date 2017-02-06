@@ -18,27 +18,36 @@
 #ifndef SOAPALLOC_H
 #define SOAPALLOC_H
 
+#include <new>
 #include "soapH.h"
 
 namespace KC {
 
 // The automatic soap/non-soap allocator
-template<typename Type>
-Type* s_alloc(struct soap *soap, size_t size) {
-	if(soap == NULL) {
-		return new Type[size];
-	} else {
-		return (Type*)soap_malloc(soap, sizeof(Type) * size);
-	}
+template<typename Type> Type *s_alloc_nothrow(struct soap *soap, size_t size)
+{
+	return reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type) * size));
 }
 
-template<typename Type>
-Type* s_alloc(struct soap *soap) {
-	if(soap == NULL) {
-		return new Type;
-	} else {
-		return (Type*)soap_malloc(soap, sizeof(Type));
-	}
+template<typename Type> Type *s_alloc_nothrow(struct soap *soap)
+{
+	return reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type)));
+}
+
+template<typename Type> Type *s_alloc(struct soap *soap, size_t size)
+{
+	auto p = reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type) * size));
+	if (p == nullptr)
+		throw std::bad_alloc();
+	return p;
+}
+
+template<typename Type> Type *s_alloc(struct soap *soap)
+{
+	auto p = reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type)));
+	if (p == nullptr)
+		throw std::bad_alloc();
+	return p;
 }
 
 inline char *s_strcpy(struct soap *soap, const char *str) {
@@ -59,20 +68,14 @@ inline char *s_memcpy(struct soap *soap, const char *str, unsigned int len) {
 
 template<typename Type>
 inline void s_free(struct soap *soap, Type *p) {
-	if(soap == NULL) {
-		delete p;
-	} else {
+	/*
+	 * Horrible implementation detail because gsoap does not expose
+	 * a proper function that is completely symmetric to soap_malloc.
+	 */
+	if (soap == NULL)
+		SOAP_FREE(soap, p);
+	else
 		soap_dealloc(soap, p);
-	}
-}
-
-template<typename Type>
-inline void s_free_array(struct soap *soap, Type *p) {
-	if(soap == NULL) {
-		delete [] p;
-	} else {
-		soap_dealloc(soap, p);
-	}
 }
 
 } /* namespace */
