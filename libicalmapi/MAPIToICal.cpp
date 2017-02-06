@@ -225,10 +225,8 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 	icalmem_ptr ics;
 	icalcomponent *lpVTZComp = NULL;
 
-	if (strMethod == NULL && strIcal == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (strMethod == nullptr && strIcal == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// TODO: make flags force a publish method
 	if (m_icMethod != ICAL_METHOD_NONE)
@@ -246,17 +244,13 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 	}
 
 	ics.reset(icalcomponent_as_ical_string_r(m_lpicCalender));
-	if (!ics) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+	if (ics == nullptr)
+		return MAPI_E_CALL_FAILED;
 	if (strMethod)
 		*strMethod = icalproperty_method_to_string(m_icMethod);
 
 	if (strIcal)
 		*strIcal = ics.get();
-exit:
 	return hr;
 }
 

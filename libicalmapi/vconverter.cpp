@@ -2640,7 +2640,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 	hr = lpMessage->GetProps(proptags, 0, &cbsize, &~lpSpropArray);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 	
 	if ((PROP_TYPE(lpSpropArray[0].ulPropTag) != PT_ERROR)
 		&& (strcasecmp(lpSpropArray[0].Value.lpszA, "IPM.Task") == 0)) {
@@ -2656,7 +2656,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 	// there are no completed recurring task in OL, so return
 	if ((PROP_TYPE(lpSpropArray[4].ulPropTag) != PT_ERROR) && lpSpropArray[4].Value.ul == 2)
-		goto exit;
+		return hr;
 
 	if (PROP_TYPE(lpSpropArray[1].ulPropTag) != PT_ERROR)
 	{		
@@ -2671,34 +2671,30 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		// open property and read full blob
 		hr = lpMessage->OpenProperty(ulRecurrenceStateTag, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpStream->Stat(&sStreamStat, 0);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		std::unique_ptr<char[]> lpRecurrenceData(new char[sStreamStat.cbSize.LowPart]);
 		hr = lpStream->Read(lpRecurrenceData.get(), sStreamStat.cbSize.LowPart, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = cRecurrence.HrLoadRecurrenceState(lpRecurrenceData.get(), sStreamStat.cbSize.LowPart, ulFlag);
 	} else {
 		// When exception is created in MR, the IsRecurring is set - true by OL
 		// but Recurring state is not set in MR.
-		hr = hrSuccess;
-		goto exit;
+		return hrSuccess;
 	}
 
 	if (FAILED(hr))
-		goto exit;
-	hr = hrSuccess;
-
+		return hr;
 	if (PROP_TYPE(lpSpropArray[3].ulPropTag) != PT_ERROR)
 		bIsAllDay = (lpSpropArray[3].Value.b == TRUE);
 
 	if (m_iCurrentTimeZone == m_mapTimeZones->end()) {
 		hr = HrGetTzStruct("Etc/UTC", &zone);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 		zone = m_iCurrentTimeZone->second;
 	}
@@ -2706,7 +2702,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	// now that we have the recurrence state class, we can create rrules in lpicEvent
 	hr = cICalRecurrence.HrCreateICalRecurrence(zone, bIsAllDay, &cRecurrence, lpicEvent);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// all modifications create new event item:
 	// RECURRENCE-ID: contains local timezone timestamp of item that is changed
@@ -2898,7 +2894,6 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	}	
 
 	*lpEventList = std::move(lstExceptions);
-exit:
 	return hr;
 }
 
@@ -3129,14 +3124,12 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	hr = HrMAPI2ICal(lpMessage, &icMainMethod, &unique_tie(lpicTZinfo),
 	     &strTZid, &unique_tie(lpicEvent));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	cbSize = 0;
 	hr = lpMessage->GetProps(proptags, 0, &cbSize, &~lpSpropValArray);
-	if (FAILED(hr)) {
-		hr = hrSuccess;
-		goto exit;
-	}
+	if (FAILED(hr))
+		return hrSuccess;
 
 	hr = hrSuccess;
 	// if recurring, add recurrence. We have to check two props since CDO only sets the second, while Outlook only sets the first :S
@@ -3150,7 +3143,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		hr = HrSetRecurrence(lpMessage, lpicEvent.get(),
 		     lpicTZinfo.get(), strTZid, &lstEvents);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// push the main event in the front, before all exceptions
@@ -3158,7 +3151,6 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	// end
 	*lpicMethod = icMainMethod;
 	*lpEventList = std::move(lstEvents);
-exit:
 	return hr;
 }
 

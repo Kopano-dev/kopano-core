@@ -284,14 +284,11 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	lpicDTStartProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 	lpicDTEndProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTEND_PROPERTY);
 	// DTSTART must be available
-	if (!lpicDTStartProp) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpicDTStartProp == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = HrAddTimeZone(lpicDTStartProp, lpIcalItem);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (icMethod == ICAL_METHOD_COUNTER) {
 		// dtstart contains proposal, X-MS-OLK-ORIGINALSTART optionally contains previous DTSTART
@@ -307,10 +304,8 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 
 		if (lpicOrigDTStartProp && lpicOrigDTEndProp) {
 			// No support for DTSTART +DURATION and X-MS-OLK properties. Exchange will not send that either.
-			if (!lpicDTEndProp) {
-				hr = MAPI_E_INVALID_PARAMETER;
-				goto exit;
-			}
+			if (lpicDTEndProp == nullptr)
+				return MAPI_E_INVALID_PARAMETER;
 
 			// set new proposal start
 			timeDTStartUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
@@ -378,11 +373,9 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 
 		// use duration for "end"
 		lpicDurationProp = icalcomponent_get_first_property(lpicEvent, ICAL_DURATION_PROPERTY);
-		if (!lpicDurationProp) {
+		if (lpicDurationProp == nullptr)
 			// and then we get here when it never ends??
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+			return MAPI_E_INVALID_PARAMETER;
 
 		icaldurationtype dur = icalproperty_get_duration(lpicDurationProp);
 		timeDTEndLocal = timeDTStartLocal + icaldurationtype_as_int(dur);
@@ -422,12 +415,9 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	// Convert from seconds to minutes.
 	sPropVal.Value.ul /= 60;
 	lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-	goto exit;
 	// @todo add flags not to add these props ?? or maybe use a exclude filter in ICalToMAPI::GetItem()
 	// Set submit time / DTSTAMP
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -447,12 +437,10 @@ HRESULT VEventConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *l
 	icalcomp_ptr lpEvent(icalcomponent_new(ICAL_VEVENT_COMPONENT));
 	HRESULT hr = VConverter::HrMAPI2ICal(lpMessage, lpicMethod, lppicTZinfo, lpstrTZid, lpEvent.get());
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lppEvent)
 		*lppEvent = lpEvent.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

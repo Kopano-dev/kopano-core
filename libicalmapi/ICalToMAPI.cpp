@@ -171,7 +171,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	if (m_lpNamedProps == NULL) {
 		hr = HrLookupNames(m_lpPropObj, &m_lpNamedProps);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	icalerror_clear_errno();
@@ -181,35 +181,28 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 		switch (icalerrno) {
 		case ICAL_BADARG_ERROR:
 		case ICAL_USAGE_ERROR:
-			hr = MAPI_E_INVALID_PARAMETER;
-			break;
+			return MAPI_E_INVALID_PARAMETER;
 		case ICAL_NEWFAILED_ERROR:
 		case ICAL_ALLOCATION_ERROR:
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			break;
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		case ICAL_MALFORMEDDATA_ERROR:
-			hr = MAPI_E_CORRUPT_DATA;
-			break;
+			return MAPI_E_CORRUPT_DATA;
 		case ICAL_FILE_ERROR:
-			hr = MAPI_E_DISK_ERROR;
-			break;
+			return MAPI_E_DISK_ERROR;
 		case ICAL_UNIMPLEMENTED_ERROR:
-			hr = E_NOTIMPL;
-			break;
+			return E_NOTIMPL;
 		case ICAL_UNKNOWN_ERROR:
 		case ICAL_PARSE_ERROR:
 		case ICAL_INTERNAL_ERROR:
 		case ICAL_NO_ERROR:
-			hr = MAPI_E_CALL_FAILED;
-			break;
-		};
-		goto exit;
+			return MAPI_E_CALL_FAILED;
+		}
+		return hrSuccess;
 	}
 
-	if (icalcomponent_isa(lpicCalendar) != ICAL_VCALENDAR_COMPONENT && icalcomponent_isa(lpicCalendar) != ICAL_XROOT_COMPONENT) {
-		hr = MAPI_E_INVALID_OBJECT;
-		goto exit;
-	}
+	if (icalcomponent_isa(lpicCalendar) != ICAL_VCALENDAR_COMPONENT &&
+	    icalcomponent_isa(lpicCalendar) != ICAL_XROOT_COMPONENT)
+		return MAPI_E_INVALID_OBJECT;
 
 	m_ulErrorCount = icalcomponent_count_errors(lpicCalendar);
 
@@ -289,8 +282,6 @@ next:
 	// seems this happens quite fast .. don't know what's wrong with exchange's ical
 // 	if (m_ulErrorCount != 0)
 // 		hr = MAPI_W_ERRORS_RETURNED;
-
-exit:
 	return hr;
 }
 

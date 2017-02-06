@@ -249,12 +249,10 @@ HRESULT VTodoConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lp
 	HRESULT hr = VConverter::HrMAPI2ICal(lpMessage, lpicMethod, lppicTZinfo,
 	             lpstrTZid, lpEvent.get());
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lppEvent)
 		*lppEvent = lpEvent.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
