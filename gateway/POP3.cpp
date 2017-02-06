@@ -719,6 +719,7 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 	ULONG ulObjType = 0;
 	wstring strwUsername;
 	wstring strwPassword;
+	unsigned int flags;
 
 	hr = TryConvert(strUsername, rawsize(strUsername), "windows-1252", strwUsername);
 	if (hr != hrSuccess) {
@@ -730,10 +731,15 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Illegal byte sequence in password");
 		goto exit;
 	}
-	
+
+	flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_COMPRESSION;
+
+	if (!parseBool(lpConfig->GetSetting("bypass_auth")))
+		flags |= EC_PROFILE_FLAGS_NO_UID_AUTH;
+
 	hr = HrOpenECSession(&lpSession, "gateway/pop3", PROJECT_SVN_REV_STR,
 	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
-	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS, NULL, NULL);
+	     flags, NULL, NULL);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%X",
 					  lpChannel->peer_addr(), strUsername.c_str(), hr);

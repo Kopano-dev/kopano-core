@@ -205,6 +205,14 @@ Default:
 \fIfork\fR
 .RE
 .PP
+\fBbypass_auth\fR
+.RS 4
+This parameter can be used to skip password verification when connecting over the UNIX socket\&. Connecting through the UNIX socket can have a big performance gain, compared to the TCP socket of kopano-server\&. As kopano-gateway is usually running as the user kopano (which is a local_admin_user in kopano-server) this would normally mean that kopano-gateway would only verify usernames and no password (because its running as an administrator)\&. When set to \fIno\fR (default value) forces verification of passwords, even when running as an administrator\&. For migrations you will want to set \fIyes\fR\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
 \fBimap_only_mailfolders\fR
 .RS 4
 Enable the IMAP and IMAPS service to only show the mailfolders\&. This is the default behaviour\&. When this option is set to \*(Aqno\*(Aq, you will also be able to select you calendar and contacts and such\&. These views will not contain all information, since these items cannot be converted to a rfc\-822 mail item\&.
