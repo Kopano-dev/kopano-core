@@ -26,6 +26,7 @@
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include "icaluid.h"
@@ -34,6 +35,7 @@
 #include <ctime>
 #include <kopano/mapi_ptr.h>
 #include <kopano/namedprops.h>
+#include "icalmem.hpp"
 
 using namespace std;
 using namespace KCHL;
@@ -2618,7 +2620,6 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	object_ptr<IStream> lpStream;
 	STATSTG sStreamStat;
 	ICalRecurrence cICalRecurrence;
-	icalcomponent *lpicException = NULL;
 	icalcomponent *lpicComp = NULL;
 	icalproperty *lpicProp = NULL;
 	ULONG ulModCount = 0;
@@ -2718,12 +2719,12 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		ULONG ulMsgProps = 0;
 		const SPropValue *lpProp = NULL;
 		icalproperty_method icMethod = ICAL_METHOD_NONE;
+		icalcomp_ptr_autoconv lpicException;
 
 		ulModifications = cRecurrence.getModifiedFlags(i);
 
 		bIsAllDayException = bIsAllDay;
-
-		hr = cICalRecurrence.HrMakeICalException(lpicEvent, &lpicException);
+		hr = cICalRecurrence.HrMakeICalException(lpicEvent, &unique_tie(lpicException));
 		if (hr != hrSuccess)
 			continue;
 
@@ -2893,15 +2894,11 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			if (HrSetBody(lpException, &lpicProp) == hrSuccess)
 				icalcomponent_add_property(lpicException, lpicProp);
 		}
-
-		lstExceptions.push_back(lpicException);
-		lpicException = NULL;
+		lstExceptions.push_back(lpicException.release());
 	}	
 
 	*lpEventList = std::move(lstExceptions);
 exit:
-	if (lpicException)
-		icalcomponent_free(lpicException);
 	return hr;
 }
 
@@ -3118,9 +3115,9 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	HRESULT hr = hrSuccess;
 	std::list<icalcomponent*> lstEvents;
 	icalproperty_method icMainMethod = ICAL_METHOD_NONE;
-	icalcomponent* lpicEvent = NULL;
+	icalcomp_ptr lpicEvent;
 	memory_ptr<SPropValue> lpSpropValArray;
-	icaltimezone *lpicTZinfo = NULL;
+	std::unique_ptr<icaltimezone, icalmapi_delete> lpicTZinfo;
 	std::string strTZid;
 	ULONG cbSize = 0;
 	SizedSPropTagArray(3, proptags) = {3,
@@ -3129,7 +3126,8 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_ISRECURRING], PT_BOOLEAN)}};
 
 	// handle toplevel
-	hr = HrMAPI2ICal(lpMessage, &icMainMethod, &lpicTZinfo, &strTZid, &lpicEvent);
+	hr = HrMAPI2ICal(lpMessage, &icMainMethod, &unique_tie(lpicTZinfo),
+	     &strTZid, &unique_tie(lpicEvent));
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3149,26 +3147,18 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		((PROP_TYPE(lpSpropValArray[2].ulPropTag) != PT_ERROR) &&
 		lpSpropValArray[2].Value.b == TRUE))
 	{
-		hr = HrSetRecurrence(lpMessage, lpicEvent, lpicTZinfo, strTZid, &lstEvents);
+		hr = HrSetRecurrence(lpMessage, lpicEvent.get(),
+		     lpicTZinfo.get(), strTZid, &lstEvents);
 		if (hr != hrSuccess)
 			goto exit;
 	}
 
 	// push the main event in the front, before all exceptions
-	lstEvents.push_front(lpicEvent);
-	lpicEvent = NULL;
-
+	lstEvents.push_front(lpicEvent.release());
 	// end
 	*lpicMethod = icMainMethod;
-	*lpEventList = lstEvents;
-
+	*lpEventList = std::move(lstEvents);
 exit:
-	if (lpicEvent)
-		icalcomponent_free(lpicEvent);
-
-	if (lpicTZinfo)
-		icaltimezone_free(lpicTZinfo, true);
-	
 	return hr;
 }
 

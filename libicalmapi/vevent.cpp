@@ -23,6 +23,7 @@
 #include "nameids.h"
 #include "icaluid.h"
 #include <kopano/stringutil.h>
+#include "icalmem.hpp"
 
 namespace KC {
 
@@ -273,8 +274,7 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	icalproperty* lpicDTEndProp = NULL;
 	icalproperty* lpicOrigDTStartProp = NULL;
 	icalproperty* lpicOrigDTEndProp = NULL;
-	icalproperty* lpicFreeDTStartProp = NULL;
-	icalproperty* lpicFreeDTEndProp = NULL;
+	std::unique_ptr<icalproperty, icalmapi_delete> lpicFreeDTStartProp, lpicFreeDTEndProp;
 	time_t timeDTStartUTC = 0, timeDTEndUTC = 0;
 	time_t timeDTStartLocal = 0, timeDTEndLocal = 0;
 	time_t timeEndOffset = 0, timeStartOffset = 0;
@@ -329,14 +329,14 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 			strTmp = icalproperty_as_ical_string_r(lpicOrigDTStartProp);
 			strTmp.erase(0,strlen("X-MS-OLK-ORIGINAL"));
 			strTmp.insert(0,"DT");
-			lpicFreeDTStartProp = icalproperty_new_from_string(strTmp.c_str());
-			lpicDTStartProp = lpicFreeDTStartProp;
+			lpicFreeDTStartProp.reset(icalproperty_new_from_string(strTmp.c_str()));
+			lpicDTStartProp = lpicFreeDTStartProp.get();
 
 			strTmp = icalproperty_as_ical_string_r(lpicOrigDTEndProp);
 			strTmp.erase(0,strlen("X-MS-OLK-ORIGINAL"));
 			strTmp.insert(0,"DT");
-			lpicFreeDTEndProp = icalproperty_new_from_string(strTmp.c_str());
-			lpicDTEndProp = lpicFreeDTEndProp;
+			lpicFreeDTEndProp.reset(icalproperty_new_from_string(strTmp.c_str()));
+			lpicDTEndProp = lpicFreeDTEndProp.get();
 		}
 	}
 
@@ -427,10 +427,6 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	// @todo add flags not to add these props ?? or maybe use a exclude filter in ICalToMAPI::GetItem()
 	// Set submit time / DTSTAMP
 exit:
-	if (lpicFreeDTStartProp)
-		icalproperty_free(lpicFreeDTStartProp);
-	if (lpicFreeDTEndProp)
-		icalproperty_free(lpicFreeDTEndProp);
 	return hr;
 }
 
@@ -448,23 +444,14 @@ exit:
  */
 HRESULT VEventConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMethod, icaltimezone **lppicTZinfo, std::string *lpstrTZid, icalcomponent **lppEvent)
 {
-	HRESULT hr = hrSuccess;
-	icalcomponent *lpEvent = NULL;
-
-	lpEvent = icalcomponent_new(ICAL_VEVENT_COMPONENT);
-
-	hr = VConverter::HrMAPI2ICal(lpMessage, lpicMethod, lppicTZinfo, lpstrTZid, lpEvent);
+	icalcomp_ptr lpEvent(icalcomponent_new(ICAL_VEVENT_COMPONENT));
+	HRESULT hr = VConverter::HrMAPI2ICal(lpMessage, lpicMethod, lppicTZinfo, lpstrTZid, lpEvent.get());
 	if (hr != hrSuccess)
 		goto exit;
 
 	if (lppEvent)
-		*lppEvent = lpEvent;
-	lpEvent = NULL;
-
+		*lppEvent = lpEvent.release();
 exit:
-	if (lpEvent)
-		icalcomponent_free(lpEvent);
-
 	return hr;
 }
 

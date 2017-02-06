@@ -36,6 +36,7 @@
 #include <vector>
 #include <kopano/charset/convert.h>
 #include <mapi.h>
+#include "icalmem.hpp"
 
 using namespace KCHL;
 
@@ -158,7 +159,7 @@ void ICalToMapiImpl::Clean()
 HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZparam, IMailUser *lpMailUser, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-	icalcomponent *lpicCalendar = NULL;
+	icalcomp_ptr_autoconv lpicCalendar;
 	icalcomponent *lpicComponent = NULL;
 	TIMEZONE_STRUCT ttTimeZone = {0};
 	timezone_map tzMap;
@@ -174,8 +175,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	}
 
 	icalerror_clear_errno();
-
-	lpicCalendar = icalparser_parse_string(strIcal.c_str());
+	lpicCalendar.reset(icalparser_parse_string(strIcal.c_str()));
 
 	if (lpicCalendar == NULL || icalerrno != ICAL_NO_ERROR) {
 		switch (icalerrno) {
@@ -291,9 +291,6 @@ next:
 // 		hr = MAPI_W_ERRORS_RETURNED;
 
 exit:
-	if (lpicCalendar)
-		icalcomponent_free(lpicCalendar);
-
 	return hr;
 }
 

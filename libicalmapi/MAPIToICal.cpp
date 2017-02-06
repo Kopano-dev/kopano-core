@@ -32,6 +32,7 @@
 #include <mapicode.h>
 #include <mapix.h>
 #include <kopano/ecversion.h>
+#include "icalmem.hpp"
 
 namespace KC {
 
@@ -221,7 +222,7 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
 HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::string *strIcal)
 {
 	HRESULT hr = hrSuccess;
-	char *ics = NULL;
+	icalmem_ptr ics;
 	icalcomponent *lpVTZComp = NULL;
 
 	if (strMethod == NULL && strIcal == NULL) {
@@ -244,7 +245,7 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 		hr = hrSuccess;
 	}
 
-	ics = icalcomponent_as_ical_string_r(m_lpicCalender);
+	ics.reset(icalcomponent_as_ical_string_r(m_lpicCalender));
 	if (!ics) {
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
@@ -254,12 +255,8 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 		*strMethod = icalproperty_method_to_string(m_icMethod);
 
 	if (strIcal)
-		*strIcal = ics;
-
+		*strIcal = ics.get();
 exit:
-	if (ics)
-		icalmemory_free_buffer(ics);
-
 	return hr;
 }
 
