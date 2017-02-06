@@ -109,7 +109,7 @@ HRESULT HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal)
 	*lppPropVal = lpPropVal;
 
 exit:
-	if (hr != hrSuccess && lpPropVal)
+	if (hr != hrSuccess && base == nullptr)
 		MAPIFreeBuffer(lpPropVal);
 
 	return hr;
