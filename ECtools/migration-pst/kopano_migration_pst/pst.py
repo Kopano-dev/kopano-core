@@ -731,7 +731,11 @@ class PType:
         elif self.ptype == PTypeEnum.PtypInteger64:
             return struct.unpack('q', bytes)[0]
         elif self.ptype == PTypeEnum.PtypString:
-            return bytes.decode('utf-16-le') # unicode
+            try:
+                return bytes.decode('utf-16-le') # unicode
+            except UnicodeDecodeError:
+                log_error(PSTException('String property not correctly utf-16-le encoded, ignoring errors'))
+                return bytes.decode('utf-16-le', errors='ignore') # unicode
         elif self.ptype == PTypeEnum.PtypString8:
             return bytes
         elif self.ptype == PTypeEnum.PtypTime:
@@ -2154,6 +2158,7 @@ def set_log(log, stats):
 def log_error(e):
     global error_log_list
     error_log_list.append(e.message)
+    LOG.error(e.message)
     LOG.error(traceback.format_exc(e))
     STATS['errors'] += 1
 #    sys.stderr.write(e.message+'\n')
