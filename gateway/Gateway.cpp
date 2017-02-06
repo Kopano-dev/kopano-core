@@ -293,6 +293,7 @@ int main(int argc, char *argv[]) {
 		{ "imap_generate_utf8", "no", CONFIGSETTING_RELOADABLE },
 		{ "imap_expunge_on_delete", "no", CONFIGSETTING_RELOADABLE },
 		{ "imap_store_rfc822", "yes", CONFIGSETTING_RELOADABLE },
+		{ "imap_cache_folders_time_limit", "0", CONFIGSETTING_RELOADABLE },
 		{ "disable_plaintext_auth", "no", CONFIGSETTING_RELOADABLE },
 		{ "server_socket", "http://localhost:236/" },
 		{ "server_hostname", "" },

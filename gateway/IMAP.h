@@ -200,6 +200,7 @@ private:
 	HRESULT HrCmdClose(const string &strTag);
 	HRESULT HrCmdExpunge(const string &strTag, const string &strSeqSet);
 	HRESULT HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteria, bool bUidMode);
+	HRESULT fetch_uid_flags_fast(const std::list<ULONG> &mails);
 	HRESULT HrCmdFetch(const string &strTag, const string &strSeqSet, const string &strMsgDataItemNames, bool bUidMode);
 	HRESULT HrCmdStore(const string &strTag, const string &strSeqSet, const string &strMsgDataItemName, const string &strMsgDataItemValue, bool bUidMode);
 	HRESULT HrCmdCopy(const string &strTag, const string &strSeqSet, const string &strFolder, bool bUidMode);
@@ -277,6 +278,12 @@ private:
 	string m_strCache;
 	ULONG m_ulCacheUID = 0;
 
+	// Folder cache
+	unsigned int cache_folders_time_limit = 0;
+	time_t cache_folders_last_used = 0;
+
+	std::list<SFolder> cached_folders;
+
 	// HrResponseContinuation state, used for HrCmdAuthenticate
 	bool m_bContinue = false;
 	string m_strContinueTag;
@@ -318,8 +325,8 @@ private:
 
 	HRESULT HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bShowUID, unsigned int *lpulUnseen, ULONG *lpulUIDValidity = NULL);
 
-	HRESULT HrGetSubTree(list<SFolder> &lstFolders, SBinary &sEntryID, wstring strFolderName, list<SFolder>::const_iterator lpParentFolder, bool bSubfolders = true, bool bIsEmailFolder = true);
-	HRESULT HrGetFolderPath(list<SFolder>::const_iterator lpFolder, list<SFolder> &lstFolder, wstring &strPath);
+	HRESULT HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, const wstring &in_folder_name, list<SFolder>::const_iterator parent_folder);
+	HRESULT HrGetFolderPath(list<SFolder>::const_iterator lpFolder, const list<SFolder> &lstFolder, wstring &strPath);
 	HRESULT HrGetDataItems(string strMsgDataItemNames, vector<string> &lstDataItems);
 	HRESULT HrSemicolonToComma(string &strData);
 
