@@ -3501,11 +3501,12 @@ next_include_check:
 
 	// find all MAPI_E_NOT_ENOUGH_MEMORY errors
 	for (ULONG i = 0; i < cValues; ++i) {
-		bool err = PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR;
-		err &= lpProps[i].Value.err == MAPI_E_NOT_ENOUGH_MEMORY ||
-		       PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_BODY) ||
-		       PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_HTML) ||
-		       PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_RTF_COMPRESSED);
+		bool err = false;
+		if(PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR)
+			err = lpProps[i].Value.err == MAPI_E_NOT_ENOUGH_MEMORY ||
+				PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_BODY) ||
+				PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_HTML) ||
+				PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_RTF_COMPRESSED);
 		if (!err)
 			continue;
 		assert(PROP_ID(lpIncludeProps->aulPropTag[i]) == PROP_ID(lpProps[i].ulPropTag));
