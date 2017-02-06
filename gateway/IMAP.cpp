@@ -36,6 +36,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECTags.h>
 #include <kopano/ECIConv.h>
+#include <kopano/Util.h>
 #include <kopano/lockhelper.hpp>
 #include <inetmapi/inetmapi.h>
 #include <kopano/mapiext.h>

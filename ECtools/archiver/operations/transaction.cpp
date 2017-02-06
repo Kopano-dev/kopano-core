@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <utility>
+#include <kopano/Util.h>
 #include "transaction.h"
 #include "ArchiverSession.h"
 

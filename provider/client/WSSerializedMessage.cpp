@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/Util.h>
 #include "WSSerializedMessage.h"
 
 /**
