@@ -603,8 +603,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	ProfSectPtr		ptrGlobalProfSect;
 	ProfSectPtr		ptrProfSect;
 	MAPISessionPtr	ptrSession;
-
-	WSTransport		*lpTransport = NULL;
+	object_ptr<WSTransport> lpTransport;
 	memory_ptr<SPropValue> lpsPropValue;
 	ULONG			cValues = 0;
 	bool			bShowDialog = false;
@@ -731,7 +730,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		ClientUtil::GetGlobalProfileDelegateStoresProp(ptrGlobalProfSect, &cDelegateStores, &~lpDelegateStores);
 
 		// init defaults
-		hr = WSTransport::Create(ulFlags & SERVICE_UI_ALLOWED ? 0 : MDB_NO_DIALOG, &lpTransport);
+		hr = WSTransport::Create(ulFlags & SERVICE_UI_ALLOWED ? 0 : MDB_NO_DIALOG, &~lpTransport);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -892,9 +891,6 @@ exit:
 			}
 		}
 	}
-
-	if(lpTransport)
-		lpTransport->Release();
 	TRACE_MAPI(TRACE_RETURN, "MSGServiceEntry", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
@@ -944,12 +940,10 @@ HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	_pfnFreeBuf = lpFreeBuffer;
 	_hInstance = hInstance;
 
-	ECABProviderSwitch *lpABProvider = NULL;
-	HRESULT hr = ECABProviderSwitch::Create(&lpABProvider);
+	object_ptr<ECABProviderSwitch> lpABProvider;
+	HRESULT hr = ECABProviderSwitch::Create(&~lpABProvider);
 	if (hr == hrSuccess)
-		hr = lpABProvider->QueryInterface(IID_IABProvider, reinterpret_cast<void **>(lppABProvider));
-	if(lpABProvider)
-		lpABProvider->Release();
-
+		hr = lpABProvider->QueryInterface(IID_IABProvider,
+		     reinterpret_cast<void **>(lppABProvider));
 	return hr;
 }

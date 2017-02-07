@@ -4,6 +4,7 @@
 #include <mapix.h>
 #include <mapidefs.h>
 #include <kopano/ECLogger.h>
+#include <kopano/memory.hpp>
 #include "freebusy.h"
 #include "freebusyguid.h"
 #include "ECFreeBusySupport.h"
@@ -164,10 +165,10 @@ public:
         %extend {
                 IFreeBusySupport() {
                     HRESULT hr = hrSuccess;
-                    ECFreeBusySupport*  lpFreeBusySup = NULL;
+                    KCHL::object_ptr<ECFreeBusySupport> lpFreeBusySup;
                        IFreeBusySupport *lpFreeBusySupport = NULL;
 
-                    hr = ECFreeBusySupport::Create(&lpFreeBusySup);
+                    hr = ECFreeBusySupport::Create(&~lpFreeBusySup);
                     if(hr != hrSuccess)
                         goto exit;
 
@@ -176,9 +177,6 @@ public:
                         goto exit;
 
                     exit:
-                        if(lpFreeBusySup)
-                            lpFreeBusySup->Release();
-
                     return lpFreeBusySupport;
                 }
 

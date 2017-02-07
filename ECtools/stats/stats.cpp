@@ -34,6 +34,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/ECTags.h>
+#include <kopano/automapi.hpp>
 #include <kopano/ecversion.h>
 #include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
@@ -543,8 +544,10 @@ static void print_help(const char *name)
 int main(int argc, char *argv[])
 {
 	HRESULT hr = hrSuccess;
-	IMAPISession *lpSession = NULL;
-	LPMDB lpStore = NULL;
+	object_ptr<ECLogger> lpLogger(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false));
+	AutoMAPI mapiinit;
+	object_ptr<IMAPISession> lpSession;
+	object_ptr<IMsgStore> lpStore;
 	eTableType eTable = INVALID_STATS;
 	const char *user = NULL;
 	const char *pass = NULL;
@@ -552,7 +555,6 @@ int main(int argc, char *argv[])
 	wstring strwUsername;
 	wstring strwPassword;
 	bool humanreadable(true);
-	ECLogger *const lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false);
 
 	setlocale(LC_MESSAGES, "");
 	setlocale(LC_CTYPE, "");
@@ -597,7 +599,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	hr = MAPIInitialize(NULL);
+	hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		cerr << "Cannot init mapi" << endl;
 		goto exit;
@@ -614,15 +616,14 @@ int main(int argc, char *argv[])
 	strwUsername = convert_to<wstring>(user ? user : "SYSTEM");
 	strwPassword = convert_to<wstring>(pass ? pass : "");
 
-	hr = HrOpenECSession(&lpSession, "kopano-stats", PROJECT_SVN_REV_STR,
+	hr = HrOpenECSession(&~lpSession, "kopano-stats", PROJECT_SVN_REV_STR,
 	     strwUsername.c_str(), strwPassword.c_str(), host,
 	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
 	if (hr != hrSuccess) {
 		cout << "Cannot open admin session on host " << (host ? host : "localhost") << ", username " << (user ? user : "SYSTEM") << endl;
 		goto exit;
 	}
-
-	hr = HrOpenDefaultStore(lpSession, &lpStore);
+	hr = HrOpenDefaultStore(lpSession, &~lpStore);
 	if (hr != hrSuccess) {
 		cout << "Unable to open default store" << endl;
 		goto exit;
@@ -632,14 +633,5 @@ int main(int argc, char *argv[])
 	else
 		dumptable(eTable, lpStore, humanreadable);
 exit:
-	if(lpStore)
-		lpStore->Release();
-
-	if(lpSession)
-		lpSession->Release();
-
-	MAPIUninitialize();
-	lpLogger->Release();
-
 	return hr != hrSuccess;
 }

@@ -17,6 +17,8 @@
 
 #include "config.h"
 #include <kopano/platform.h>
+#include <memory>
+#include <type_traits>
 #include <climits>
 #include "mapidefs.h"
 #include <mapix.h>
@@ -34,6 +36,7 @@
 
 #include <kopano/ECLogger.h>
 #include <kopano/ECChannel.h>
+#include <kopano/memory.hpp>
 #include <kopano/my_getopt.h>
 #include <kopano/ecversion.h>
 #include <kopano/CommonUtil.h>
@@ -588,9 +591,9 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	std::string strServerTZ = g_lpConfig->GetSetting("server_timezone");
 	std::string strCharset;
 	std::string strUserAgent, strUserAgentVersion;
-	Http *lpRequest = new Http(lpChannel, g_lpConfig);
-	ProtocolBase *lpBase = NULL;
-	IMAPISession *lpSession = NULL;
+	std::unique_ptr<ProtocolBase> lpBase;
+	KCHL::object_ptr<IMAPISession> lpSession;
+	std::unique_ptr<Http> lpRequest(new Http(lpChannel, g_lpConfig));
 	ULONG ulFlag = 0;
 
 	ec_log_debug("New Request");
@@ -660,7 +663,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 		hr = MAPI_E_CALL_FAILED;
 	} else {
 		lpRequest->HrGetMethod(&strMethod);
-		hr = HrAuthenticate(strUserAgent, strUserAgentVersion, wstrUser, wstrPass, g_lpConfig->GetSetting("server_socket"), &lpSession);
+		hr = HrAuthenticate(strUserAgent, strUserAgentVersion, wstrUser, wstrPass, g_lpConfig->GetSetting("server_socket"), &~lpSession);
 		if (hr != hrSuccess)
 			ec_log_warn("Login failed (0x%08X %s), resending authentication request", hr, GetMAPIErrorMessage(hr));
 	}
@@ -675,14 +678,15 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 
 	//GET & ical Requests
 	// @todo fix caldav GET request
+	static_assert(std::is_polymorphic<ProtocolBase>::value, "ProtocolBase needs to be polymorphic for unique_ptr to work");
 	if( !strMethod.compare("GET") || !strMethod.compare("HEAD") || ((ulFlag & SERVICE_ICAL) && strMethod.compare("PROPFIND")) )
 	{
-		lpBase = new iCal(lpRequest, lpSession, strServerTZ, strCharset);
+		lpBase.reset(new iCal(lpRequest.get(), lpSession, strServerTZ, strCharset));
 	}
 	//CALDAV Requests
 	else if((ulFlag & SERVICE_CALDAV) || ( !strMethod.compare("PROPFIND") && !(ulFlag & SERVICE_ICAL)))
 	{
-		lpBase = new CalDAV(lpRequest, lpSession, strServerTZ, strCharset);
+		lpBase.reset(new CalDAV(lpRequest.get(), lpSession, strServerTZ, strCharset));
 	} 
 	else
 	{
@@ -707,15 +711,5 @@ exit:
 	if ( lpRequest && hr != MAPI_E_USER_CANCEL ) // do not send response to client if connection closed by client.
 		hr = lpRequest->HrFinalize();
 	ec_log_debug("End Of Request");
-	if(lpRequest)
-		delete lpRequest;
-	
-	if(lpSession)
-		// do not keep the session alive, can receive different (or missing) Auth headers in keep-open requests!
-		lpSession->Release();
-
-	if(lpBase)
-		delete lpBase;
-
 	return hr;
 }

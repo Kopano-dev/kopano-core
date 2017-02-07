@@ -480,7 +480,7 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolder,
     SBinary *lpsbEid, IMAPITable **lppTable)
 {
 	HRESULT hr = hrSuccess;
-	IMAPIFolder *local_fld = nullptr;
+	object_ptr<IMAPIFolder> local_fld;
 	ULONG ulObjType = 0;
 	IMAPITable *lpTable = NULL;
 	SPropValue sPropVal;
@@ -488,7 +488,7 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolder,
 
 	if (lpFolder == nullptr) {
 		hr = lpSession->OpenEntry(lpsbEid->cb, reinterpret_cast<ENTRYID *>(lpsbEid->lpb),
-		     nullptr, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(&local_fld));
+		     nullptr, MAPI_BEST_ACCESS, &ulObjType, &~local_fld);
 		if(hr != hrSuccess)
 			goto exit;
 	}
@@ -508,8 +508,6 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolder,
 	*lppTable = lpTable;
 
 exit:
-	if (local_fld != nullptr)
-		local_fld->Release();
 	return hr;
 }
 

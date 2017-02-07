@@ -10,10 +10,14 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ECMemTable.h>
+#include <kopano/automapi.hpp>
+#include <kopano/memory.hpp>
 
 struct mpt_stat_entry {
 	struct timespec start, stop;
 };
+
+using namespace KCHL;
 
 static std::list<struct mpt_stat_entry> mpt_stat_list;
 static std::wstring mpt_userw, mpt_passw;
@@ -103,12 +107,12 @@ static int mpt_main_login(void)
 	if (err < 0)
 		return EXIT_FAILURE;
 
-	IMAPISession *ses;
 	struct mpt_stat_entry dp;
 
 	while (mpt_repeat-- > 0) {
+		object_ptr<IMAPISession> ses;
 		clock_gettime(CLOCK_MONOTONIC, &dp.start);
-		ret = HrOpenECSession(&ses, "mapitime", "", mpt_user, mpt_pass,
+		ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
 		      mpt_socket, 0, NULL, NULL);
 		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
 		if (ret != hrSuccess) {
@@ -116,8 +120,8 @@ static int mpt_main_login(void)
 			sleep(1);
 			continue;
 		}
+		ses.reset();
 		mpt_stat_record(dp);
-		ses->Release();
 	}
 	MAPIUninitialize();
 	return EXIT_SUCCESS;
@@ -135,19 +139,19 @@ static int mpt_main_lilo(void)
 	if (err < 0)
 		return EXIT_FAILURE;
 
-	IMAPISession *ses;
 	struct mpt_stat_entry dp;
 
 	while (mpt_repeat-- > 0) {
+		object_ptr<IMAPISession> ses;
 		clock_gettime(CLOCK_MONOTONIC, &dp.start);
-		ret = HrOpenECSession(&ses, "mapitime", "", mpt_user, mpt_pass,
+		ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
 		      mpt_socket, 0, NULL, NULL);
 		if (ret != hrSuccess) {
 			fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
 			sleep(1);
 			continue;
 		}
-		ses->Release();
+		ses.reset();
 		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
 		mpt_stat_record(dp);
 	}
@@ -157,7 +161,8 @@ static int mpt_main_lilo(void)
 
 static int mpt_main_vft(void)
 {
-	HRESULT ret = MAPIInitialize(NULL);
+	AutoMAPI mapiinit;
+	HRESULT ret = mapiinit.Initialize();
 	if (ret != hrSuccess) {
 		perror("MAPIInitialize");
 		return EXIT_FAILURE;
@@ -169,8 +174,8 @@ static int mpt_main_vft(void)
 
 	struct mpt_stat_entry dp;
 	static constexpr const SizedSPropTagArray(1, spta) = {1, {PR_ENTRYID}};
-	ECMemTable *mt;
-	ret = ECMemTable::Create(spta, PT_LONG, &mt);
+	object_ptr<ECMemTable> mt;
+	ret = ECMemTable::Create(spta, PT_LONG, &~mt);
 	if (ret != hrSuccess) {
 		ec_log_err("ECMemTable::Create died");
 		return EXIT_FAILURE;
@@ -195,8 +200,6 @@ static int mpt_main_vft(void)
 		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
 		mpt_stat_record(dp);
 	}
-	mt->Release();
-	MAPIUninitialize();
 	return EXIT_SUCCESS;
 }
 

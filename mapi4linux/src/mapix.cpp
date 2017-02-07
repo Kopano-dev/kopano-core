@@ -1341,8 +1341,8 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMAPISession::OpenEntry", "%s", bin2hex(cbEntryID, (LPBYTE)lpEntryID).c_str());
     HRESULT hr = hrSuccess;
-    IMAPITable *lpTable = NULL;
-    IAddrBook *lpAddrBook = NULL;
+	object_ptr<IMAPITable> lpTable;
+	object_ptr<IAddrBook> lpAddrBook;
     IMsgStore *lpMDB = NULL;
     ULONG cbUnWrappedID = 0;
 	memory_ptr<ENTRYID> lpUnWrappedID;
@@ -1400,7 +1400,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 
 	// If this is an addressbook EntryID or a one-off entryid, use the addressbook to open the item
 	if (memcmp(&guidProvider, &muidOneOff, sizeof(GUID)) == 0) {
-		hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
+		hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 		if(hr != hrSuccess) {
 			ec_log_err("M4LMAPISession::OpenEntry() OpenAddressBook fail %x: %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
@@ -1418,7 +1418,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
     // If not, it must be a provider entryid, so we have to find the provider
 
 	// Find the profile section associated with this entryID
-	hr = serviceAdmin->GetProviderTable(0, &lpTable);
+	hr = serviceAdmin->GetProviderTable(0, &~lpTable);
 	if(hr != hrSuccess) {
 		ec_log_err("M4LMAPISession::OpenEntry() GetProviderTable fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1448,7 +1448,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
             memcmp(lpsRows->aRow[0].lpProps[1].Value.bin.lpb, &guidProvider, sizeof(GUID)) == 0)
 		{
 			if (lpsRows->aRow[0].lpProps[2].ulPropTag == PR_RESOURCE_TYPE && lpsRows->aRow[0].lpProps[2].Value.ul == MAPI_AB_PROVIDER) {
-				hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
+				hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 				if(hr != hrSuccess) {
 					ec_log_err("M4LMAPISession::OpenEntry() OpenAddressBook(2) fail %x: %s", hr, GetMAPIErrorMessage(hr));
 					goto exit;
@@ -1487,12 +1487,6 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 	}
 
 exit:
-    if(lpAddrBook)
-        lpAddrBook->Release();
-        
-    if(lpTable)
-        lpTable->Release();
-	
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::OpenEntry", "0x%08x", hr);
 	return hr;
 }
@@ -2247,9 +2241,9 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::GetDefaultDir", "");
 	HRESULT hr = MAPI_E_INVALID_PARAMETER;
 	ULONG objType;
-	LPABCONT lpABContainer = NULL;
+	object_ptr<IABContainer> lpABContainer;
 	memory_ptr<SPropValue> propEntryID;
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRowSet;
 	ULONG cbEntryID;
 	LPENTRYID lpEntryID = NULL;
@@ -2267,7 +2261,7 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	for (const auto &i : m_lABProviders) {
 		// find a working open root container
 		hr = i.lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0,
-		     &objType, reinterpret_cast<IUnknown **>(&lpABContainer));
+		     &objType, &~lpABContainer);
 		if (hr == hrSuccess)
 			break;
 	}
@@ -2278,7 +2272,7 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	}
 
 	// more steps with gethierarchy() -> get entryid -> OpenEntry() ?
-	hr = lpABContainer->GetHierarchyTable(0, &lpTable);
+	hr = lpABContainer->GetHierarchyTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::GetDefaultDir(): GetHierarchyTable fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto no_hierarchy;
@@ -2315,11 +2309,6 @@ no_hierarchy:
 	*lppEntryID = lpEntryID;
 
 exit:
-	if (lpTable)
-		lpTable->Release();
-	if (lpABContainer)
-		lpABContainer->Release();
-
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::GetDefaultDir", "0x%08x", hr);
 	return hr;
 }
