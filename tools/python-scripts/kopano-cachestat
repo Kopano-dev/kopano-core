@@ -50,15 +50,15 @@ print('  Current time     : %s' % ( datetime.now().strftime('%c') ))
 print('')
 print('%10s %24s         %24s' % ('Cache', 'Hit ratio', 'Mem usage ratio'))
 
-for name in cstat:
-    if cstat[name]['requests']:
-        percentage = '%d%%' % (cstat[name]['hits'] * 100 / cstat[name]['requests'])
+for name, data in cstat.items():
+    if data['requests']:
+        percentage = '%d%%' % (data['hits'] * 100 / data['requests'])
     else:
         percentage = 'N/A'
 
-    if cstat[name]['maxsz']:
-        persize = '%d%%' % (cstat[name]['size'] * 100 / cstat[name]['maxsz'])
+    if data['maxsz']:
+        persize = '%d%%' % (data['size'] * 100 / data['maxsz'])
     else:
         persize = 'N/A'
 
-    print('%10s (%12d/%12d) (%3s)   (%12d/%12d) (%3s)' % (name, cstat[name]['hits'], cstat[name]['requests'], percentage, cstat[name]['size'], cstat[name]['maxsz'], persize))
+    print('%10s (%12d/%12d) (%3s)   (%12d/%12d) (%3s)' % (name, data['hits'], data['requests'], percentage, data['size'], data['maxsz'], persize))
