@@ -20,6 +20,7 @@
 #include <kopano/platform.h>
 
 #include <cmath>
+#include <mapiutil.h>
 
 using namespace std;
 
@@ -823,8 +824,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 
 exit:
 	if(MAPI_G(hr) != hrSuccess && lpBase == NULL && lpAdrList != NULL)
-		MAPIFreeBuffer(lpAdrList); // OR FreeProws() ?
-
+		FreePadrlist(lpAdrList);
 	return MAPI_G(hr);
 }
 
