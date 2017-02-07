@@ -952,7 +952,7 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	int		misc_version_len = 0;
 	long		ulFlags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
 	// return value
-	LPMAPISESSION lpMAPISession = NULL;
+	object_ptr<IMAPISession> lpMAPISession;
 	// local
 	ULONG		ulProfNum = rand_mt();
 	char		szProfName[MAX_PATH];
@@ -1000,7 +1000,10 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	}
 
 	// Logon to our new profile
-	MAPI_G(hr) = MAPILogonEx(0, (LPTSTR)szProfName, (LPTSTR)"", MAPI_EXTENDED | MAPI_TIMEOUT_SHORT | MAPI_NEW_SESSION, &lpMAPISession);
+	MAPI_G(hr) = MAPILogonEx(0, reinterpret_cast<LPTSTR>(const_cast<char *>(szProfName)),
+	             reinterpret_cast<LPTSTR>(const_cast<char *>("")),
+	             MAPI_EXTENDED | MAPI_TIMEOUT_SHORT | MAPI_NEW_SESSION,
+	             &~lpMAPISession);
 	if (MAPI_G(hr) != hrSuccess) {
 		mapi_util_deleteprof(szProfName);
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to logon to profile");
@@ -1010,13 +1013,11 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	// Delete the profile (it will be deleted when we close our session)
 	MAPI_G(hr) = mapi_util_deleteprof(szProfName);
 	if (MAPI_G(hr) != hrSuccess) {
-		lpMAPISession->Release();
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete profile");
 		goto exit;
 	}
 
-	ZEND_REGISTER_RESOURCE(return_value, lpMAPISession, le_mapi_session);
-
+	ZEND_REGISTER_RESOURCE(return_value, lpMAPISession.release(), le_mapi_session);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();

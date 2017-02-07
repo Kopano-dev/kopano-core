@@ -1231,7 +1231,6 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 	IAddrBook *lpAddrBook = NULL;
 	M4LAddrBook *myAddrBook;
 	ULONG abver;
-	LPABPROVIDER lpABProvider = NULL;
 	LPMAPISUP lpMAPISup = NULL;
 	SPropValue sProps[1];
 
@@ -1270,7 +1269,11 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 		if (serv->service->ABProviderInit() == NULL)
 			continue;
 
-		if (serv->service->ABProviderInit()(0, NULL, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &abver, &lpABProvider) != hrSuccess) {
+		object_ptr<IABProvider> lpABProvider;
+		if (serv->service->ABProviderInit()(0, nullptr,
+		    MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer,
+		    ulFlags, CURRENT_SPI_VERSION, &abver,
+		    &~lpABProvider) != hrSuccess) {
 			hr = MAPI_W_ERRORS_RETURNED;
 			continue;
 		}
@@ -1295,10 +1298,6 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 			if (myAddrBook->addProvider(profileName, strDisplayName, (LPMAPIUID)lpUID->Value.bin.lpb, lpABProvider) != hrSuccess)
 				hr = MAPI_W_ERRORS_RETURNED;
 		}
-
-		// lpAddrBook has the ref, not us
-		lpABProvider->Release();
-		lpABProvider = NULL;
 	}
 
 exit:

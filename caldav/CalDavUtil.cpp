@@ -700,7 +700,6 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IAddrBook *lpAddrBook, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo)
 {
 	memory_ptr<FBUser> lpUsers;
-	IEnumFBBlock *lpEnumBlock = NULL;
 	IFreeBusyData **lppFBData = NULL;
 	memory_ptr<FBBlock_1> lpsFBblks;
 	std::string strMethod;
@@ -794,12 +793,13 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	itUsers = lplstUsers->cbegin();
 	// iterate through all users
 	for (ULONG i = 0; i < cUsers; ++i) {
+		object_ptr<IEnumFBBlock> lpEnumBlock;
 		strIcal.clear();
 
 		if (!lppFBData[i])
 			goto next;
 		
-		hr = lppFBData[i]->EnumBlocks(&lpEnumBlock, ftStart, ftEnd);
+		hr = lppFBData[i]->EnumBlocks(&~lpEnumBlock, ftStart, ftEnd);
 		if (hr != hrSuccess)
 			goto next;
 		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)*lMaxblks, &~lpsFBblks);
@@ -833,10 +833,6 @@ next:
 		++itUsers;
 
 		lpMapiToIcal->ResetObject();
-		
-		if(lpEnumBlock)
-			lpEnumBlock->Release();
-		lpEnumBlock = NULL;
 		lblkFetched = 0;
 	}
 	// ignoring ical data for unknown users.

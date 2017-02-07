@@ -314,8 +314,6 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 	HRESULT hr = hrSuccess;
 	LPMAPIFOLDER lpSource = NULL;
 	LPMAPIFOLDER lpDest = NULL;
-	LPMESSAGE lpSrcMessage = NULL;
-	LPMESSAGE lpDestMessage = NULL;
 	ULONG ulObjType;
 	KCHL::memory_ptr<ENTRYLIST> lpDeleteEntries;
 	bool bPartial = false;
@@ -344,14 +342,17 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 	lpDeleteEntries->cValues = 0;
 
 	for (i = 0; i < lpMsgList->cValues; ++i) {
-		hr = lpSource->OpenEntry(lpMsgList->lpbin[i].cb, (LPENTRYID)lpMsgList->lpbin[i].lpb, &IID_IMessage, 0, &ulObjType, (LPUNKNOWN*)&lpSrcMessage);
+		object_ptr<IMessage> lpSrcMessage, lpDestMessage;
+
+		hr = lpSource->OpenEntry(lpMsgList->lpbin[i].cb,
+		     reinterpret_cast<ENTRYID *>(lpMsgList->lpbin[i].lpb),
+		     &IID_IMessage, 0, &ulObjType, &~lpSrcMessage);
 		if (hr != hrSuccess) {
 			// partial, or error to calling client?
 			bPartial = true;
 			goto next_item;
 		}
-
-		hr = lpDest->CreateMessage(&IID_IMessage, MAPI_MODIFY, &lpDestMessage);
+		hr = lpDest->CreateMessage(&IID_IMessage, MAPI_MODIFY, &~lpDestMessage);
 		if (hr != hrSuccess) {
 			bPartial = true;
 			goto next_item;
@@ -375,13 +376,7 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 		}
 
 next_item:
-		if (lpDestMessage)
-			lpDestMessage->Release();
-		lpDestMessage = NULL;
-
-		if (lpSrcMessage)
-			lpSrcMessage->Release();
-		lpSrcMessage = NULL;
+		;
 	}
 
 	if ((ulFlags & MAPI_MOVE) && lpDeleteEntries->cValues > 0) {

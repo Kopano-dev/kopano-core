@@ -1134,15 +1134,15 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 
 	for (const auto &abe : m_lABEntries) {
 		ULONG ulObjType;
-		LPABCONT lpABContainer = NULL;
-		LPMAPITABLE lpABHierarchy = NULL;
+		object_ptr<IABContainer> lpABContainer;
+		object_ptr<IMAPITable> lpABHierarchy;
 		memory_ptr<SPropTagArray> lpPropArray;
 
-		hr = abe.lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0, &ulObjType, reinterpret_cast<IUnknown **>(&lpABContainer));
+		hr = abe.lpABLogon->OpenEntry(0, nullptr, &IID_IABContainer, 0,
+		     &ulObjType, &~lpABContainer);
 		if (hr != hrSuccess)
 			goto next_container;
-
-		hr = lpABContainer->GetHierarchyTable(ulFlags, &lpABHierarchy);
+		hr = lpABContainer->GetHierarchyTable(ulFlags, &~lpABHierarchy);
 		if (hr != hrSuccess)
 			goto next_container;
 		hr = lpABHierarchy->QueryColumns(TBL_ALL_COLUMNS, &~lpPropArray);
@@ -1154,13 +1154,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		lHierarchies.push_back(lpABHierarchy);
 
 	next_container:
-		if (lpABContainer)
-			lpABContainer->Release();
-		lpABContainer = NULL;
-
-		if (lpABHierarchy)
-			lpABHierarchy->Release();
-		lpABHierarchy = NULL;
+		;
 	}
 
 	// remove key row

@@ -704,7 +704,6 @@ HRESULT ECMAPIFolder::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG u
 HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
 {
 	HRESULT		hr = hrSuccess;
-	LPMESSAGE	lpMessage = NULL;
 	BOOL		bError = FALSE;
 	ULONG		ulObjType = 0;
 
@@ -738,12 +737,10 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 		}
 
 		for (ULONG i = 0; i < lpMsgList->cValues; ++i) {
-			if(OpenEntry(lpMsgList->lpbin[i].cb, (LPENTRYID)lpMsgList->lpbin[i].lpb, &IID_IMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpMessage) == hrSuccess)
-			{
+			object_ptr<IMessage> lpMessage;
+			if (OpenEntry(lpMsgList->lpbin[i].cb, reinterpret_cast<ENTRYID *>(lpMsgList->lpbin[i].lpb), &IID_IMessage, MAPI_MODIFY, &ulObjType, &~lpMessage) == hrSuccess) {
 				if(lpMessage->SetReadFlag(ulFlags&~MESSAGE_DIALOG) != hrSuccess)
 					bError = TRUE;
-
-				lpMessage->Release(); lpMessage = NULL;
 			}else
 				bError = TRUE;
 			

@@ -246,17 +246,13 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 			return hr;
 
 		// Add the child because mapi lookto the ref count if you work through ProxyStoreObject
-		ECMsgStore *lpChild = NULL;
-
-		if ( ((LPMDB)*lppInterface)->QueryInterface(IID_ECMsgStore, (void**)&lpChild) != hrSuccess) {
+		object_ptr<ECMsgStore> lpChild;
+		if (((IMsgStore *)*lppInterface)->QueryInterface(IID_ECMsgStore, &~lpChild) != hrSuccess) {
 			((LPMDB)*lppInterface)->Release();
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 		}
 		
 		AddChild(lpChild);
-
-		lpChild->Release();
-
 		return hrSuccess;
 	}
 	// is admin store?
@@ -355,12 +351,10 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		else
 			hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store contents", ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else if (ulPropTag == PR_EC_CHANGE_ADVISOR) {
-		ECChangeAdvisor *lpChangeAdvisor = NULL;
-		hr = ECChangeAdvisor::Create(this, &lpChangeAdvisor);
+		object_ptr<ECChangeAdvisor> lpChangeAdvisor;
+		hr = ECChangeAdvisor::Create(this, &~lpChangeAdvisor);
 		if (hr == hrSuccess)
 			hr = lpChangeAdvisor->QueryInterface(*lpiid, (void**)lppUnk);
-		if (lpChangeAdvisor)
-			lpChangeAdvisor->Release();
 	} else if(ulPropTag == PR_EC_STATSTABLE_SYSTEM) {
 		if (*lpiid == IID_IMAPITable)
 			hr = OpenStatsTable(TABLETYPE_STATS_SYSTEM, (LPMAPITABLE*)lppUnk);

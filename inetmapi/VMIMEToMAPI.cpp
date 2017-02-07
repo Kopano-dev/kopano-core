@@ -1597,8 +1597,8 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 {
 	// Create Attach
 	ULONG ulAttNr = 0;
-	LPATTACH pAtt = NULL;
-	IMessage *lpNewMessage = NULL;
+	object_ptr<IAttach> pAtt;
+	object_ptr<IMessage> lpNewMessage;
 	memory_ptr<SPropValue> lpSubject;
 	SPropValue sAttachMethod;
 	char *lpszBody = NULL, *lpszBodyOrig = NULL;
@@ -1617,11 +1617,11 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 	// and remove from string
 	newMessage.erase(0, lpszBody - lpszBodyOrig);
 
-	HRESULT hr = lpMessage->CreateAttach(NULL, 0, &ulAttNr, &pAtt);
+	HRESULT hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~pAtt);
 	if (hr != hrSuccess)
 		goto next;
-
-	hr = pAtt->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpNewMessage);
+	hr = pAtt->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0,
+	     MAPI_CREATE | MAPI_MODIFY, &~lpNewMessage);
 	if (hr != hrSuccess)
 		goto next;
 
@@ -1651,10 +1651,7 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 	pAtt->SaveChanges(0);
 
  next:
-	if (lpNewMessage != NULL)
-		lpNewMessage->Release();
-	if (pAtt != NULL)
-		pAtt->Release();
+	;
 }
 
 HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,

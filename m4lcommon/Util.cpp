@@ -2598,8 +2598,6 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 	// attachments
 	memory_ptr<SPropValue> lpHasAttach;
 	ULONG ulAttachNr = 0;
-	LPATTACH lpSrcAttach = NULL;
-	LPATTACH lpDestAttach = NULL;
 
 	hr = HrGetOneProp(lpSrc, PR_HASATTACH, &~lpHasAttach);
 	if (hr != hrSuccess)
@@ -2629,19 +2627,18 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 		return hr;
 
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
+		object_ptr<IAttach> lpDestAttach, lpSrcAttach;
 		auto lpAttachNum = PCpropFindProp(lpRows->aRow[i].lpProps, lpRows->aRow[i].cValues, PR_ATTACH_NUM);
 		if (!lpAttachNum) {
 			bPartial = true;
 			goto next_attach;
 		}
-
-		hr = lpSrc->OpenAttach(lpAttachNum->Value.ul, NULL, 0, &lpSrcAttach);
+		hr = lpSrc->OpenAttach(lpAttachNum->Value.ul, NULL, 0, &~lpSrcAttach);
 		if (hr != hrSuccess) {
 			bPartial = true;
 			goto next_attach;
 		}
-
-		hr = lpDest->CreateAttach(NULL, 0, &ulAttachNr, &lpDestAttach);
+		hr = lpDest->CreateAttach(NULL, 0, &ulAttachNr, &~lpDestAttach);
 		if (hr != hrSuccess) {
 			bPartial = true;
 			goto next_attach;
@@ -2663,15 +2660,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 		if (hr != hrSuccess)
 			return hr;
 next_attach:
-		if (lpSrcAttach) {
-			lpSrcAttach->Release();
-			lpSrcAttach = NULL;
-		}
-
-		if (lpDestAttach) {
-			lpDestAttach->Release();
-			lpDestAttach = NULL;
-		}
+		;
 	}
 
 	if (bPartial)

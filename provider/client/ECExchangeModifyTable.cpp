@@ -187,17 +187,12 @@ HRESULT __stdcall ECExchangeModifyTable::GetLastError(HRESULT hResult, ULONG ulF
 }
 
 HRESULT __stdcall ECExchangeModifyTable::GetTable(ULONG ulFlags, LPMAPITABLE *lppTable) {
-	ECMemTableView *lpView = NULL;
-	HRESULT hr;
-
-	hr = m_ecTable->HrGetView(createLocaleFromName(""), m_ulFlags, &lpView);
+	object_ptr<ECMemTableView> lpView;
+	HRESULT hr = m_ecTable->HrGetView(createLocaleFromName(""), m_ulFlags, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
-
-	hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
-	lpView->Release();
-	return hr;
+	return lpView->QueryInterface(IID_IMAPITable,
+	       reinterpret_cast<void **>(lppTable));
 }
 
 HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods) {

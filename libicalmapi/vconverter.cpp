@@ -2314,10 +2314,9 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_RTF_COMPRESSED);
 	if (lpPropVal && Util::GetBestBody(lpMsgProps, ulMsgProps, fMapiUnicode) == PR_RTF_COMPRESSED) {
 		string rtf;
-		LPSTREAM lpStream = NULL;
+		object_ptr<IStream> lpStream;
 
-		if (lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN*)&lpStream) == hrSuccess) {
-
+		if (lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream) == hrSuccess) {
 			if (Util::HrStreamToString(lpStream, rtf) == hrSuccess) {
 				string rtfbase64;
 				rtfbase64 = base64_encode((unsigned char*)rtf.c_str(), rtf.size());
@@ -2329,7 +2328,6 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 				icalcomponent_add_property(lpEvent, lpProp);
 				icalvalue_free(lpicValue);
 			}
-			lpStream ->Release();
 		}
 	}
 

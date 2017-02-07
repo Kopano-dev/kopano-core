@@ -593,66 +593,66 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	std::string strUserAgent, strUserAgentVersion;
 	std::unique_ptr<ProtocolBase> lpBase;
 	KCHL::object_ptr<IMAPISession> lpSession;
-	std::unique_ptr<Http> lpRequest(new Http(lpChannel, g_lpConfig));
+	Http lpRequest(lpChannel, g_lpConfig);
 	ULONG ulFlag = 0;
 
 	ec_log_debug("New Request");
-	hr = lpRequest->HrReadHeaders();
+	hr = lpRequest.HrReadHeaders();
 	if(hr != hrSuccess) {
 		hr = MAPI_E_USER_CANCEL; // connection is closed by client no data to be read
 		goto exit;
 	}
 
-	hr = lpRequest->HrValidateReq();
+	hr = lpRequest.HrValidateReq();
 	if(hr != hrSuccess) {
-		lpRequest->HrResponseHeader(501, "Not Implemented");
-		lpRequest->HrResponseBody("\nRequest not implemented");
+		lpRequest.HrResponseHeader(501, "Not Implemented");
+		lpRequest.HrResponseBody("\nRequest not implemented");
 		goto exit;
 	}
 
 	// ignore Empty Body
-	lpRequest->HrReadBody();
+	lpRequest.HrReadBody();
 
 	// no error, defaults to UTF-8
-	lpRequest->HrGetCharSet(&strCharset);
+	lpRequest.HrGetCharSet(&strCharset);
 	// ignore Empty User field.
-	lpRequest->HrGetUser(&wstrUser);
+	lpRequest.HrGetUser(&wstrUser);
 	// ignore Empty Password field
-	lpRequest->HrGetPass(&wstrPass);
+	lpRequest.HrGetPass(&wstrPass);
 	// no checks required as HrValidateReq() checks Method
-	lpRequest->HrGetMethod(&strMethod);
+	lpRequest.HrGetMethod(&strMethod);
 	// 
-	lpRequest->HrSetKeepAlive(KEEP_ALIVE_TIME);
+	lpRequest.HrSetKeepAlive(KEEP_ALIVE_TIME);
 
-	lpRequest->HrGetUserAgent(&strUserAgent);
-	lpRequest->HrGetUserAgentVersion(&strUserAgentVersion);
+	lpRequest.HrGetUserAgent(&strUserAgent);
+	lpRequest.HrGetUserAgentVersion(&strUserAgentVersion);
 
-	hr = lpRequest->HrGetUrl(&strUrl);
+	hr = lpRequest.HrGetUrl(&strUrl);
 	if (hr != hrSuccess) {
 		ec_log_debug("URl is empty for method %s", strMethod.c_str());
-		lpRequest->HrResponseHeader(400,"Bad Request");
-		lpRequest->HrResponseBody("Bad Request");
+		lpRequest.HrResponseHeader(400,"Bad Request");
+		lpRequest.HrResponseBody("Bad Request");
 		goto exit;
 	}
 
 	hr = HrParseURL(strUrl, &ulFlag);
 	if (hr != hrSuccess) {
 		ec_log_err("Client request is invalid: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
-		lpRequest->HrResponseHeader(400, "Bad Request: " + stringify(hr,true));
+		lpRequest.HrResponseHeader(400, "Bad Request: " + stringify(hr,true));
 		goto exit;
 	}
 
 	if (ulFlag & SERVICE_CALDAV)
 		// this header is always present in a caldav response, but not in ical.
-		lpRequest->HrResponseHeader("DAV", "1, access-control, calendar-access, calendar-schedule, calendarserver-principal-property-search");
+		lpRequest.HrResponseHeader("DAV", "1, access-control, calendar-access, calendar-schedule, calendarserver-principal-property-search");
 
 	if(!strMethod.compare("OPTIONS"))
 	{
-		lpRequest->HrResponseHeader(200, "OK");
+		lpRequest.HrResponseHeader(200, "OK");
 		// @todo, if ical get is disabled, do not add GET as allowed option
 		// @todo, should check write access on url and only return read actions if not available
-		lpRequest->HrResponseHeader("Allow", "OPTIONS, GET, POST, PUT, DELETE, MOVE");
-		lpRequest->HrResponseHeader("Allow", "PROPFIND, PROPPATCH, REPORT, MKCALENDAR");
+		lpRequest.HrResponseHeader("Allow", "OPTIONS, GET, POST, PUT, DELETE, MOVE");
+		lpRequest.HrResponseHeader("Allow", "PROPFIND, PROPPATCH, REPORT, MKCALENDAR");
 		// most clients do not login with this action, no need to complain.
 		hr = hrSuccess;
 		goto exit;
@@ -662,16 +662,16 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 		ec_log_info("Sending authentication request");
 		hr = MAPI_E_CALL_FAILED;
 	} else {
-		lpRequest->HrGetMethod(&strMethod);
+		lpRequest.HrGetMethod(&strMethod);
 		hr = HrAuthenticate(strUserAgent, strUserAgentVersion, wstrUser, wstrPass, g_lpConfig->GetSetting("server_socket"), &~lpSession);
 		if (hr != hrSuccess)
 			ec_log_warn("Login failed (0x%08X %s), resending authentication request", hr, GetMAPIErrorMessage(hr));
 	}
 	if (hr != hrSuccess) {
 		if(ulFlag & SERVICE_ICAL)
-			lpRequest->HrRequestAuth("Kopano iCal Gateway");
+			lpRequest.HrRequestAuth("Kopano iCal Gateway");
 		else
-			lpRequest->HrRequestAuth("Kopano CalDav Gateway");
+			lpRequest.HrRequestAuth("Kopano CalDav Gateway");
 		hr = hrSuccess; //keep connection open.
 		goto exit;
 	}
@@ -681,24 +681,24 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	static_assert(std::is_polymorphic<ProtocolBase>::value, "ProtocolBase needs to be polymorphic for unique_ptr to work");
 	if( !strMethod.compare("GET") || !strMethod.compare("HEAD") || ((ulFlag & SERVICE_ICAL) && strMethod.compare("PROPFIND")) )
 	{
-		lpBase.reset(new iCal(lpRequest.get(), lpSession, strServerTZ, strCharset));
+		lpBase.reset(new iCal(&lpRequest, lpSession, strServerTZ, strCharset));
 	}
 	//CALDAV Requests
 	else if((ulFlag & SERVICE_CALDAV) || ( !strMethod.compare("PROPFIND") && !(ulFlag & SERVICE_ICAL)))
 	{
-		lpBase.reset(new CalDAV(lpRequest.get(), lpSession, strServerTZ, strCharset));
+		lpBase.reset(new CalDAV(&lpRequest, lpSession, strServerTZ, strCharset));
 	} 
 	else
 	{
 		hr = MAPI_E_CALL_FAILED;
-		lpRequest->HrResponseHeader(404, "Request not valid for ical or caldav services");
+		lpRequest.HrResponseHeader(404, "Request not valid for ical or caldav services");
 		goto exit;
 	}
 
 	hr = lpBase->HrInitializeClass();
 	if (hr != hrSuccess) {
 		if (hr != MAPI_E_NOT_ME)
-			hr = lpRequest->HrToHTTPCode(hr);
+			hr = lpRequest.HrToHTTPCode(hr);
 		goto exit;
 	}
 
@@ -707,9 +707,8 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 exit:
 	if(hr != hrSuccess && !strMethod.empty() && hr != MAPI_E_NOT_ME)
 		ec_log_err("Error processing %s request, error code 0x%08x %s", strMethod.c_str(), hr, GetMAPIErrorMessage(hr));
-
-	if ( lpRequest && hr != MAPI_E_USER_CANCEL ) // do not send response to client if connection closed by client.
-		hr = lpRequest->HrFinalize();
+	if (hr != MAPI_E_USER_CANCEL) // do not send response to client if connection closed by client.
+		hr = lpRequest.HrFinalize();
 	ec_log_debug("End Of Request");
 	return hr;
 }

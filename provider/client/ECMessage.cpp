@@ -829,7 +829,6 @@ HRESULT ECMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterface
 HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT hr = hrSuccess;
-	ECMemTableView *lpView = NULL;
 	LPSPropValue lpPropID = NULL;
 	LPSPropValue lpPropType = NULL;
 	memory_ptr<SPropTagArray> lpPropTagArray;
@@ -927,20 +926,19 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 	if (this->lpAttachments == nullptr)
 		return MAPI_E_CALL_FAILED;
-	hr = lpAttachments->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &lpView);
 
+	object_ptr<ECMemTableView> lpView;
+	hr = lpAttachments->HrGetView(createLocaleFromName(""),
+	     ulFlags & MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
-	lpView->Release();
-	return hr;
+	return lpView->QueryInterface(IID_IMAPITable,
+	       reinterpret_cast<void **>(lppTable));
 }
 
 HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, LPATTACH *lppAttach)
 {
 	HRESULT				hr = hrSuccess;
-	IMAPITable			*lpTable = NULL;
 	object_ptr<ECAttach> lpAttach;
 	object_ptr<IECPropStorage> lpParentStorage;
 	SPropValue			sID;
@@ -948,12 +946,10 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 	ULONG				ulObjId;
 
 	if(this->lpAttachments == NULL) {
-		hr = this->GetAttachmentTable(fMapiUnicode, &lpTable);
-
+		object_ptr<IMAPITable> lpTable;
+		hr = this->GetAttachmentTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
 			goto exit;
-
-		lpTable->Release();
 	}
 
 	if(this->lpAttachments == NULL) {
@@ -999,7 +995,6 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAt
 HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttachFactory &refFactory, ULONG *lpulAttachmentNum, LPATTACH *lppAttach)
 {
 	HRESULT				hr = hrSuccess;
-	ECAttach*			lpAttach = NULL;
 	SPropValue			sID;
 	object_ptr<IECPropStorage> lpStorage;
 
@@ -1012,8 +1007,10 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 	}
 	if (this->lpAttachments == nullptr)
 		return MAPI_E_CALL_FAILED;
-	hr = refFactory.Create(this->GetMsgStore(), MAPI_ATTACH, TRUE, this->ulNextAttUniqueId, m_lpRoot, &lpAttach);
 
+	object_ptr<ECAttach> lpAttach;
+	hr = refFactory.Create(this->GetMsgStore(), MAPI_ATTACH, TRUE,
+	     this->ulNextAttUniqueId, m_lpRoot, &~lpAttach);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpAttach->HrLoadEmptyProps();
@@ -1035,9 +1032,6 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 	hr = lpAttach->QueryInterface(IID_IAttachment, (void **)lppAttach);
 
 	AddChild(lpAttach);
-
-	lpAttach->Release();
-
 	*lpulAttachmentNum = sID.Value.ul;
 
 	// successfully created attachment, so increment counter for the next
@@ -1048,16 +1042,13 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 HRESULT ECMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
 {
 	HRESULT hr;
-	IMAPITable *lpTable = NULL;
 	SPropValue sPropID;
 
 	if(this->lpAttachments == NULL) {
-		hr = this->GetAttachmentTable(fMapiUnicode, &lpTable);
-
+		object_ptr<IMAPITable> lpTable;
+		hr = this->GetAttachmentTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
 			return hr;
-
-		lpTable->Release();
 	}
 
 	if (this->lpAttachments == NULL)
@@ -1077,7 +1068,6 @@ HRESULT ECMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPR
 HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT hr = hrSuccess;
-	ECMemTableView *lpView = NULL;
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
@@ -1171,11 +1161,13 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		} // !fNew
 	}
 
-	hr = lpRecips->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &lpView);
+	object_ptr<ECMemTableView> lpView;
+	hr = lpRecips->HrGetView(createLocaleFromName(""),
+	     ulFlags & MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-	lpView->Release();
+	return lpView->QueryInterface(IID_IMAPITable,
+	       reinterpret_cast<void **>(lppTable));
 	return hr;
 }
 
@@ -1201,7 +1193,6 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 {
 	HRESULT hr = hrSuccess;
-	IMAPITable *lpTable = NULL;
 	LPSPropValue lpRecipProps = NULL;
 	ULONG cValuesRecipProps = 0;
 	SPropValue sPropAdd[2];
@@ -1220,12 +1211,10 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 
 	// Load the recipients table object
 	if(lpRecips == NULL) {
-		hr = GetRecipientTable(fMapiUnicode, &lpTable);
-
+		object_ptr<IMAPITable> lpTable;
+		hr = GetRecipientTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
 			goto exit;
-
-		lpTable->Release();
 	}
 
 	if(lpRecips == NULL) {
@@ -2589,7 +2578,6 @@ static HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, const MAPIOBJECT *lpSrc)
 
 HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	HRESULT hr = hrSuccess;
-	IMAPITable *lpTable = NULL;
 	ECMapiObjects::const_iterator iterSObj;
 	SPropValue sKeyProp;
 	LPSPropValue lpProps = NULL;
@@ -2607,12 +2595,10 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	}
 
 	if(this->lpAttachments == NULL) {
-		hr = this->GetAttachmentTable(fMapiUnicode, &lpTable);
-
+		object_ptr<IMAPITable> lpTable;
+		hr = this->GetAttachmentTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
 			goto exit;
-
-		lpTable->Release();
 	}
 
 	if(this->lpAttachments == NULL) {
