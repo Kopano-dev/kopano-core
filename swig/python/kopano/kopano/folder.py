@@ -69,6 +69,8 @@ class Folder(object):
             self._entryid = entryid
             try:
                 self.mapiobj = store.mapiobj.OpenEntry(entryid, IID_IMAPIFolder, MAPI_MODIFY)
+            except MAPIErrorNotFound:
+                self.mapiobj = store.mapiobj.OpenEntry(entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
             except MAPIErrorNoAccess: # XXX XXX
                 self.mapiobj = store.mapiobj.OpenEntry(entryid, IID_IMAPIFolder, 0)
         self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
