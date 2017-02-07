@@ -1085,60 +1085,53 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 		int iAdresCount = lpVMAListRecip->getAddressCount() + lpVMAListCopyRecip->getAddressCount() + lpVMAListBlCpRecip->getAddressCount();
 
 		if (iAdresCount == 0)
-			goto exit;
+			return hr;
 		hr = MAPIAllocateBuffer(CbNewADRLIST(iAdresCount), &~lpRecipients);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpRecipients->cEntries = 0;
 
 		if (!lpVMAListRecip->isEmpty()) {
 			hr = modifyRecipientList(lpRecipients, lpVMAListRecip, MAPI_TO);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		if (!lpVMAListCopyRecip->isEmpty()) {
 			hr = modifyRecipientList(lpRecipients, lpVMAListCopyRecip, MAPI_CC);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		if (!lpVMAListBlCpRecip->isEmpty()) {
 			hr = modifyRecipientList(lpRecipients, lpVMAListBlCpRecip, MAPI_BCC);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		
 		// Handle PR_MESSAGE_*_ME props
 		hr = handleMessageToMeProps(lpMessage, lpRecipients);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// actually modify recipients in mapi object
 		hr = lpMessage->ModifyRecipients(MODRECIP_ADD, lpRecipients);	
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 	}
 	catch (vmime::exception& e) {
 		ec_log_err("VMIME exception on recipients: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	catch (std::exception& e) {
 		ec_log_err("STD exception on recipients: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	catch (...) {
 		ec_log_err("Unknown generic exception occurred on recipients");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1337,37 +1330,32 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 		PR_DISPLAY_TYPE, PR_DISPLAY_NAME_W, PR_ENTRYID, PR_SEARCH_KEY,
 		PR_OBJECT_TYPE}};
 
-	if (!m_lpAdrBook) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (m_lpAdrBook == nullptr)
+		return MAPI_E_NOT_FOUND;
 
-	if ((!email || *email == '\0') && (!fullname || *fullname == '\0')) {
+	if ((email == nullptr || *email == '\0') &&
+	    (fullname == nullptr || *fullname == '\0'))
 		// we have no data to lookup
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return MAPI_E_NOT_FOUND;
 
 	if (!m_lpDefaultDir) {
 		hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &~lpDDEntryID);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = m_lpAdrBook->OpenEntry(cbDDEntryID, lpDDEntryID, NULL, 0, &ulObj, (LPUNKNOWN*)&m_lpDefaultDir);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAdrList);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	lpAdrList->cEntries = 1;
 	lpAdrList->aEntries[0].cValues = 1;
 
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[0].rgPropVals);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// static reference is OK here
 	if (!email || *email == '\0') {
@@ -1380,19 +1368,16 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	}
 	hr = MAPIAllocateBuffer(CbNewFlagList(1), &~lpFlagList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpFlagList->cFlags = 1;
 	lpFlagList->ulFlag[0] = MAPI_UNRESOLVED;
 	hr = m_lpDefaultDir->ResolveNames(sptaAddress, EMS_AB_ADDRESS_LOOKUP,
 	     lpAdrList, lpFlagList);
 	if (hr != hrSuccess)
-		goto exit;
-
-	if (lpFlagList->cFlags != 1 || lpFlagList->ulFlag[0] != MAPI_RESOLVED) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return hr;
+	if (lpFlagList->cFlags != 1 || lpFlagList->ulFlag[0] != MAPI_RESOLVED)
+		return MAPI_E_NOT_FOUND;
 
 	// the server told us the entry is here.  from this point on we
 	// don't want to return MAPI_E_NOT_FOUND anymore, so we need to
@@ -1454,11 +1439,9 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	if (PROP_TYPE(lpPropsList->aulPropTag[4]) != PT_NULL) {
 		lpProp = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ENTRYID);
 		assert(lpProp);
-		if (!lpProp) {
+		if (lpProp == nullptr)
 			// the one exception I guess? Let the fallback code create a one off entryid
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
+			return MAPI_E_NOT_FOUND;
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[4]; // PR_xxx_ENTRYID;
 		sRecipProps[cValues].Value.bin = lpProp->Value.bin;
 		++cValues;
@@ -1506,8 +1489,6 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	hr = Util::HrCopyPropertyArray(sRecipProps, cValues, lppPropVals, &cValues);
 	if (hr == hrSuccess && lpulValues)
 		*lpulValues = cValues;
-
-exit:
 	return hr;
 }
 

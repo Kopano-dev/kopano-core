@@ -345,7 +345,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	ULONG cbEID = 0;
 
 	if (lplstIcalRecip->empty())
-		goto exit;
+		return hr;
 	
 	// ignore error
 	if(m_lpMailUser)
@@ -354,12 +354,11 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	ulRecpCnt = lplstIcalRecip->size();
 	hr = MAPIAllocateBuffer(CbNewFlagList(ulRecpCnt), &~lpFlagList);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	lpFlagList->cFlags = ulRecpCnt;
 	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRecpCnt), &~lpAdrList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpAdrList->cEntries = ulRecpCnt;
 
@@ -369,8 +368,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRecpCnt].rgPropVals);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
 		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
 		lpFlagList->ulFlag[ulRecpCnt++] = MAPI_UNRESOLVED;
@@ -378,14 +376,13 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 
 	hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &~lpDDEntryID);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = m_lpAdrBook->OpenEntry(cbDDEntryID, lpDDEntryID, &IID_IABContainer, 0, &ulObjType, &~lpAddrFolder);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpAddrFolder->ResolveNames(NULL, MAPI_UNICODE, lpAdrList, lpFlagList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//reset the recepients with mapped names
 	for (icalRecipient = lplstIcalRecip->front(), ulRecpCnt = 0;
@@ -408,8 +405,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 		if (lpFlagList->ulFlag[ulRecpCnt] == MAPI_RESOLVED && lpMappedProp) {
 			hr = MAPIAllocateMore(lpMappedProp->Value.bin.cb, base, (void**)&icalRecipient.lpEntryID);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			icalRecipient.cbEntryID = lpMappedProp->Value.bin.cb;
 			memcpy(icalRecipient.lpEntryID, lpMappedProp->Value.bin.lpb, lpMappedProp->Value.bin.cb);
 		} else {
@@ -419,8 +415,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 				// realloc on lpIcalItem
 				hr = MAPIAllocateMore(cbEID, base, (void**)&icalRecipient.lpEntryID);
 				if (hr != hrSuccess)
-					goto exit;
-
+					return hr;
 				icalRecipient.cbEntryID = cbEID;
 				memcpy(icalRecipient.lpEntryID, lpEID, cbEID);
 			}
@@ -430,9 +425,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 		lplstIcalRecip->pop_front();
 		icalRecipient = lplstIcalRecip->front();
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

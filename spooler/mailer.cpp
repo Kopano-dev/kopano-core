@@ -728,32 +728,31 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to resolve incoming folder, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to open inbox folder, error code: 0x%08X", hr);
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	// make new message in inbox
 	hr = lpInbox->CreateMessage(nullptr, 0, &~lpErrorMsg);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create undeliverable message, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	// Get properties from the original message
 	hr = lpMessage->GetProps(sPropsOriginal, 0, &cValuesOriginal, &~lpPropArrayOriginal);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): GetPRops failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 34, &~lpPropValue);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): MAPIAllocateBuffers failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// Subject
@@ -916,18 +915,18 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = lpErrorMsg->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create attachment, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpOriginalMessage);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): OpenProperty failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpOriginalMessage, 0, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): CopyTo failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// Remove MAPI_P1 recipients. These are present when you resend a resent message. They shouldn't be there since
@@ -935,19 +934,19 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = RemoveP1Recipients(lpOriginalMessage);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): RemoveP1Recipients failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpOriginalMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SaveChanges failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	ulPropAttachPos = 0;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpPropValueAttach);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropValueAttach[ulPropAttachPos].ulPropTag = PR_ATTACH_METHOD;
 	lpPropValueAttach[ulPropAttachPos++].Value.ul = ATTACH_EMBEDDED_MSG;
@@ -966,31 +965,31 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = lpAttach->SetProps(ulPropAttachPos, lpPropValueAttach, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SetProps failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpAttach->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SaveChanges failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// add failed recipients to error report
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTableMods);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): GetRecipientTable failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpTableMods->SetColumns(sPropTagRecipient, TBL_BATCH);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SetColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpTableMods->GetRowCount(0, &ulRows);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): GetRowCount failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	if (ulRows == 0 || (permanentFailedRecipients.empty() && temporaryFailedRecipients.empty())) {
@@ -1012,12 +1011,12 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 			hr = lpTableMods->QueryRows(-1, 0, &~lpRows);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): QueryRows failed %x", hr);
-				goto exit;
+				return hr;
 			}
 			hr = lpErrorMsg->ModifyRecipients(MODRECIP_ADD, reinterpret_cast<ADRLIST *>(lpRows.get()));
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): ModifyRecipients failed %x", hr);
-				goto exit;
+				return hr;
 			}
 		}
 	}
@@ -1064,14 +1063,14 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		adrlist_ptr lpMods;
 		hr = MAPIAllocateBuffer(CbNewADRLIST(temporaryFailedRecipients.size()), &~lpMods);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		lpMods->cEntries = 0;
 		for (size_t j = 0; j < temporaryFailedRecipients.size(); ++j) {
 			const sFailedRecip &cur = temporaryFailedRecipients.at(j);
 
 			if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * 10, (void**)&lpMods->aEntries[cEntries].rgPropVals)) != hrSuccess)
-				goto exit;
+				return hr;
 
 			ulPropModsPos = 0;
 			lpMods->cEntries = cEntries;
@@ -1118,29 +1117,27 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 		hr = lpErrorMsg->ModifyRecipients(MODRECIP_ADD, lpMods);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// Add properties
 	hr = lpErrorMsg->SetProps(ulPropPos, lpPropValue, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SetProps failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// save message
 	hr = lpErrorMsg->SaveChanges(KEEP_OPEN_READONLY);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to commit message: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	// New mail notification
 	if (HrNewMailNotification(lpStore, lpErrorMsg) != hrSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to send 'New Mail' notification, error code: 0x%08X", hr);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1269,34 +1266,33 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 		return MAPI_E_NOT_FOUND;
 	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hrSuccess;
 	lpAList->cEntries = 1;
 	lpAList->aEntries[0].cValues = 1;
 	if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAList->aEntries[0].cValues, (void**)&lpAList->aEntries[0].rgPropVals)) != hrSuccess)
-		goto exit;
+		return hrSuccess;
 	lpAList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
 	lpAList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR*)wstrEmailAddress.c_str();
 	hr = lpAddrBook->ResolveName(0, EMS_AB_ADDRESS_LOOKUP, NULL, lpAList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): ResolveName failed %x", hr);
-		goto exit;
+		return hrSuccess;
 	}
 	lpSpoofEID = PCpropFindProp(lpAList->aEntries[0].rgPropVals, lpAList->aEntries[0].cValues, PR_ENTRYID);
 	if (!lpSpoofEID) {
 		hr = MAPI_E_NOT_FOUND;
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): PpropFindProp failed %x", hr);
-		goto exit;
+		return hrSuccess;
 	}
 	hr = MAPIAllocateBuffer(lpSpoofEID->Value.bin.cb, (void**)&lpSpoofBin);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): MAPIAllocateBuffer failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	memcpy(lpSpoofBin, lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb);
 	*eidp = lpSpoofBin;
 	*eid_size = lpSpoofEID->Value.bin.cb;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

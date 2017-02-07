@@ -1280,36 +1280,31 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 	memory_ptr<SPropValue> lpSMTPAddress, lpEmailAddress;
      
 	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAdrList);
-    if(hr != hrSuccess)
-        goto exit;
+	if (hr != hrSuccess)
+		return hr;
     
     lpAdrList->cEntries = 1;
     lpAdrList->aEntries[0].cValues = 1;
 
     hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[0].rgPropVals);
     if(hr != hrSuccess)
-        goto exit;
+		return hr;
         
     lpAdrList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
     lpAdrList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR *)strResolve.c_str();
     
     hr = lpAdrBook->ResolveName(0, ulFlags | MAPI_UNICODE, NULL, lpAdrList);
     if(hr != hrSuccess)
-        goto exit;
-        
-    if(lpAdrList->cEntries != 1) {
-        hr = MAPI_E_NOT_FOUND;
-        goto exit;
-    }
+		return hr;
+	if (lpAdrList->cEntries != 1)
+		return MAPI_E_NOT_FOUND;
     
     lpEntryID = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ENTRYID);
-    if(!lpEntryID) {
-        hr = MAPI_E_NOT_FOUND;
-        goto exit;
-    }
+	if (lpEntryID == nullptr)
+		return MAPI_E_NOT_FOUND;
     hr = lpAdrBook->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb), &IID_IMAPIProp, 0, &ulType, &~lpMailUser);
     if (hr != hrSuccess)
-        goto exit;
+		return hr;
     hr = HrGetOneProp(lpMailUser, PR_SMTP_ADDRESS_W, &~lpSMTPAddress);
     if(hr != hrSuccess) {
         // Not always an error
@@ -1325,19 +1320,14 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
         // (Eg. 'To: Everyone; user@domain.com')
         hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS_W, &~lpEmailAddress);
         if(hr != hrSuccess)
-            goto exit;
-            
+			return hr;
         strSMTPAddress = lpEmailAddress->Value.lpszW;
     } else {
-        if(lpSMTPAddress == NULL) {
-            hr = MAPI_E_NOT_FOUND;
-            goto exit;
-        }
+		if (lpSMTPAddress == nullptr)
+			return MAPI_E_NOT_FOUND;
         strSMTPAddress = lpSMTPAddress->Value.lpszW;
     }
-    
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

@@ -683,14 +683,14 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRCPT), &~lpAdrList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveUsers(): MAPIAllocateBuffer failed(1) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	lpAdrList->cEntries = ulRCPT;
 	hr = MAPIAllocateBuffer(CbNewFlagList(ulRCPT), &~lpFlagList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveUsers(): MAPIAllocateBuffer failed(2) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	lpFlagList->cFlags = ulRCPT;
@@ -702,7 +702,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRCPT].rgPropVals);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveUsers(): MAPIAllocateBuffer failed(3) %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		/* szName can either be the email address or username, it doesn't really matter */
@@ -717,7 +717,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	hr = lpAddrFolder->ResolveNames(sptaAddress,
 	     MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, lpAdrList, lpFlagList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	ulRCPT = 0;
 	for (const auto &recip : *lRCPT) {
@@ -809,9 +809,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 		recip->bHasIMAP = lpFeatureList && hasFeature(L"imap", lpFeatureList) == hrSuccess;
 		++ulRCPT;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

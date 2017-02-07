@@ -547,13 +547,12 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		     strRuleName, strRuleType, strRuleAddress);
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to get rule address 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 		auto rule_addr_std = convert_to<std::string>(strRuleAddress);
 		if (!proc_fwd_allowed(fwd_whitelist, rule_addr_std.c_str())) {
-			hr = MAPI_E_NO_ACCESS;
 			kc_send_fwdabort_notice(orig_store, rule_addr_std.c_str());
-			goto exit;
+			return MAPI_E_NO_ACCESS;
 		}
 		if (strFromAddress == strRuleAddress &&
 		    // Hack for Meeting requests
@@ -568,15 +567,14 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 
 		if (hr != hrSuccess) {
 			ec_log_err("CheckRecipients(): Util::HrCopyPropertyArray failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
         if(bIncludeAsP1) {
 			auto lpRecipType = PpropFindProp(lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, lpRecipients->aEntries[lpRecipients->cEntries].cValues, PR_RECIPIENT_TYPE);
             if(!lpRecipType) {
                 ec_log_crit("Attempt to add recipient with no PR_RECIPIENT_TYPE");
-                hr = MAPI_E_INVALID_PARAMETER;
-                goto exit;
+				return MAPI_E_INVALID_PARAMETER;
             }
             
             lpRecipType->Value.ul = MAPI_P1;
@@ -586,8 +584,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 
 	if (lpRecipients->cEntries == 0) {
 		ec_log_warn("Loop protection blocked all recipients, skipping rule");
-		hr = MAPI_E_UNABLE_TO_COMPLETE;
-		goto exit;
+		return MAPI_E_UNABLE_TO_COMPLETE;
 	}
 
 	if (lpRecipients->cEntries != lpRuleRecipients->cEntries)
@@ -595,9 +592,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 
 	*lppNewRecipients = lpRecipients;
 	lpRecipients = NULL;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,

@@ -554,7 +554,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 
 	hr = MAPIAllocateBuffer(CbNewADRLIST(lplstRecip->size()), &~lpRecipients);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpRecipients->cEntries = 0;
 	for (const auto &recip : *lplstRecip) {
@@ -566,7 +566,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 			continue;
 			
 		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue)*10, (void**)&lpRecipients->aEntries[i].rgPropVals)) != hrSuccess)
-			goto exit;
+			return hr;
 		lpRecipients->aEntries[i].cValues = 10;
 
 		lpRecipients->aEntries[i].rgPropVals[0].ulPropTag = PR_RECIPIENT_TYPE;
@@ -581,7 +581,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		     lpRecipients->aEntries[i].rgPropVals,
 		     reinterpret_cast<void **>(&lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb));
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb, recip.lpEntryID, recip.cbEntryID);
 		
 		lpRecipients->aEntries[i].rgPropVals[4].ulPropTag = PR_ADDRTYPE_W;
@@ -592,7 +592,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		lpRecipients->aEntries[i].rgPropVals[5].ulPropTag = PR_SEARCH_KEY;
 		lpRecipients->aEntries[i].rgPropVals[5].Value.bin.cb = strSearch.size() + 1;
 		if ((hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[i].rgPropVals, (void **)&lpRecipients->aEntries[i].rgPropVals[5].Value.bin.lpb)) != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpRecipients->aEntries[i].rgPropVals[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
 
 		lpRecipients->aEntries[i].rgPropVals[6].ulPropTag = PR_EMAIL_ADDRESS_W;
@@ -609,12 +609,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 	}
 
 	// flag 0: remove old recipient table, and add the new list
-	hr = lpMessage->ModifyRecipients(0, lpRecipients);	
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return lpMessage->ModifyRecipients(0, lpRecipients);	
 }
 
 /**
