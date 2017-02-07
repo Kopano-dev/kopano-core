@@ -224,7 +224,6 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBlocks, ULONG *lpcValues)
 {
 	HRESULT hr = hrSuccess;
-	SRowSet *lpRowSet = NULL;
 	memory_ptr<OccrInfo> lpOccrInfo;
 	FBBlock_1 *lpfbBlocks = NULL;
 	recurrence lpRecurrence;
@@ -240,7 +239,8 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 
 	while (true)
 	{
-		hr = lpTable->QueryRows(50, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -297,8 +297,6 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 			}
 	
 		}
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 	
 	if (lpcValues != 0 && lpOccrInfo != NULL) {
@@ -314,9 +312,6 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 	}
 
 exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-
 	return hr;
 }
 

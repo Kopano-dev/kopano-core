@@ -187,7 +187,7 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 	HRESULT			hr					= hrSuccess;
 	vmime::shared_ptr<vmime::address> vmMailbox;
 	object_ptr<IMAPITable> lpRecipientTable;
-	LPSRowSet		pRows				= NULL;
+	rowset_ptr pRows;
 	bool			fToFound			= false;
 	bool			hasRecips			= false;
 	static constexpr const SizedSPropTagArray(7, sPropRecipColumns) =
@@ -205,8 +205,7 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 		ec_log_err("Unable to set columns on recipient table. Error: 0x%08X", hr);
 		goto exit;
 	}
-
-	hr = HrQueryAllRows(lpRecipientTable, NULL, NULL, NULL, 0, &pRows);
+	hr = HrQueryAllRows(lpRecipientTable, nullptr, nullptr, nullptr, 0, &~pRows);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to read recipient table. Error: 0x%08X", hr);
 		goto exit;
@@ -282,9 +281,6 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 	}
 
 exit:
-	if (pRows)
-		FreeProws(pRows);
-
 	return hr;
 }
 
@@ -621,7 +617,7 @@ HRESULT MAPIToVMIME::parseMimeTypeFromFilename(std::wstring strFilename, vmime::
  */
 HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilder *lpVMMessageBuilder) {
 	HRESULT		hr					= hrSuccess;
-	LPSRowSet	pRows				= NULL;
+	rowset_ptr pRows;
 	object_ptr<IMAPITable> lpAttachmentTable;
 	static constexpr const SizedSSortOrderSet(1, sosRTFSeq) =
 		{1, 0, 0, {{PR_RENDERING_POSITION, TABLE_SORT_ASCEND}}};
@@ -632,8 +628,7 @@ HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilde
 		ec_log_err("Unable to open attachment table. Error: 0x%08X", hr);
 		goto exit;
 	}
-
-	hr = HrQueryAllRows(lpAttachmentTable, NULL, NULL, sosRTFSeq, 0, &pRows);
+	hr = HrQueryAllRows(lpAttachmentTable, nullptr, nullptr, sosRTFSeq, 0, &~pRows);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to fetch rows of attachment table. Error: 0x%08X", hr);
 		goto exit;
@@ -647,8 +642,6 @@ HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilde
 	} 
 
 exit:
-	if(pRows)
-		FreeProws(pRows);
 	return hr;
 }
 
@@ -827,8 +820,6 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 	object_ptr<IStream> lpBodyStream;
 	memory_ptr<SPropValue> lpiNetMsgId, lpMsgClass, lpSubject;
 	object_ptr<IMAPITable> lpRecipientTable;
-	LPSRowSet			pRows				= NULL;
-	
 	vmime::mailbox		expeditor; // From
 	string				strMDNText;
 	vmime::disposition	dispo;
@@ -849,6 +840,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 	}
 
 	try {
+		rowset_ptr pRows;
 		vmMsgOriginal = vmime::make_shared<vmime::message>();
 
 		// Create original vmime message
@@ -863,8 +855,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 			ec_log_err("Unable to open MDN recipient table. Error: 0x%08X", hr);
 			goto exit;
 		}
-
-		hr = HrQueryAllRows(lpRecipientTable, NULL, NULL, NULL, 0, &pRows);
+		hr = HrQueryAllRows(lpRecipientTable, nullptr, nullptr, nullptr, 0, &~pRows);
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to read MDN recipient table. Error: 0x%08X", hr);
 			goto exit;
@@ -986,9 +977,6 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 	*lpvmMessage = std::move(vmMessage);
 
 exit:
-	if(pRows)
-		FreeProws(pRows);
-
 	return hr;
 }
 
@@ -1018,7 +1006,6 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 	const char *lpszCharset = NULL;
 	std::unique_ptr<char[]> lpszRawSMTP;
 	object_ptr<IMAPITable> lpAttachmentTable;
-	LPSRowSet				lpRows				= NULL;
 	const SPropValue *lpPropAttach = nullptr;
 	object_ptr<IAttach> lpAttach;
 	object_ptr<IStream> lpStream;
@@ -1073,6 +1060,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 	} else if ((strcasecmp(lpMsgClass->Value.lpszA, "IPM.Note.SMIME.MultiPartSigned") == 0) ||
 			   (strcasecmp(lpMsgClass->Value.lpszA, "IPM.Note.SMIME") == 0))
 	{
+		rowset_ptr lpRows;
 		// - find attachment, and convert to char, and place in lpszRawSMTP
 		// - normal convert the message, but only from/to headers and such .. nothing else
 		hr = lpMessage->GetAttachmentTable(0, &~lpAttachmentTable);
@@ -1087,8 +1075,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			ec_log_err("Could set table contents of attachment table of signed attachment. Error: 0x%08X", hr);
 			goto exit;
 		}
-
-		hr = HrQueryAllRows(lpAttachmentTable, NULL, NULL, NULL, 0, &lpRows);
+		hr = HrQueryAllRows(lpAttachmentTable, nullptr, nullptr, nullptr, 0, &~lpRows);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not get table contents of attachment table of signed attachment. Error: 0x%08X", hr);
 			goto exit;
@@ -1197,8 +1184,6 @@ normal:
 
 	*lpvmMessage = std::move(vmMessage);
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -1214,7 +1199,6 @@ exit:
 HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime::messageBuilder *lpVMMessageBuilder) {
 	std::wstring	strOut;
 	HRESULT			hr				= hrSuccess;
-	LPSRowSet		prows			= NULL;
 	memory_ptr<SPropValue> lpSubject;
 	eBestBody bestBody = plaintext;
 
@@ -1286,9 +1270,6 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 	}
 
 exit:
-	if (prows)
-		FreeProws(prows);
-
 	return hr;
 }
 
@@ -2049,7 +2030,6 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 
 	std::list<ULONG> lstOLEAttach; // list of OLE attachments that must be sent via TNEF
 	object_ptr<IMAPITable> lpAttachTable;
-	LPSRowSet		lpAttachRows = NULL;
 	static constexpr const SizedSPropTagArray(2, sptaAttachProps) =
 		{2, {PR_ATTACH_METHOD, PR_ATTACH_NUM}};
 	static constexpr const SizedSPropTagArray(5, sptaOLEAttachProps) =
@@ -2059,12 +2039,13 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 		{1, 0, 0, {{PR_RENDERING_POSITION, TABLE_SORT_ASCEND}}};
 
 	try {
+		rowset_ptr lpAttachRows;
 	    // Find all ATTACH_OLE attachments and put them in lstOLEAttach
 		hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 	    if(hr != hrSuccess)
-	        goto exit;
-	    hr = HrQueryAllRows(lpAttachTable, sptaAttachProps, NULL,
-	         sosRTFSeq, 0, &lpAttachRows);
+			goto exit;
+		hr = HrQueryAllRows(lpAttachTable, sptaAttachProps, NULL,
+	             sosRTFSeq, 0, &~lpAttachRows);
         if(hr != hrSuccess)
             goto exit;
             
@@ -2230,8 +2211,6 @@ tnef_anyway:
 	}
 
 exit:
-	if (lpAttachRows != NULL)
-		FreeProws(lpAttachRows);
 	return hr;
 }
 

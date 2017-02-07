@@ -1297,7 +1297,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	ULONG ulSubmitFlag = 0;
 	LPSPropValue lpsPropArray = NULL;
 	object_ptr<IMAPITable> lpRecipientTable;
-	LPSRowSet lpsRow = NULL;
 	LPSPropValue lpRecip = NULL;
 	ULONG cRecip = 0;
 	SizedADRLIST(1, sRowSetRecip);
@@ -1339,8 +1338,8 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 	// Step through recipient list, set PR_RESPONSIBILITY to FALSE for all recipients
 	while(TRUE){
-		hr = lpRecipientTable->QueryRows(1, 0L, &lpsRow);
-
+		rowset_ptr lpsRow;
+		hr = lpRecipientTable->QueryRows(1, 0, &~lpsRow);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1368,9 +1367,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 		ECFreeBuffer(lpRecip);
 		lpRecip = NULL;
-
-		FreeProws(lpsRow);
-		lpsRow = NULL;
 	}
 
 	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
@@ -1453,9 +1449,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 exit:
 	if (lpRecip != NULL)
 		ECFreeBuffer(lpRecip);
-	if(lpsRow)
-		FreeProws(lpsRow);
-
 	if(lpsPropArray)
 		ECFreeBuffer(lpsPropArray);
 	return hr;
@@ -1589,7 +1582,6 @@ HRESULT ECMessage::SyncRecips()
 	std::wstring wstrBcc;
 	SPropValue sPropRecip;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
 	static constexpr const SizedSPropTagArray(2, sPropDisplay) =
 		{2, {PR_RECIPIENT_TYPE, PR_DISPLAY_NAME_W}};
 
@@ -1599,7 +1591,8 @@ HRESULT ECMessage::SyncRecips()
 			goto exit;
 		hr = lpTable->SetColumns(sPropDisplay, 0);
 		while (TRUE) {
-			hr = lpTable->QueryRows(1, 0, &lpRows);
+			rowset_ptr lpRows;
+			hr = lpTable->QueryRows(1, 0, &~lpRows);
 			if (hr != hrSuccess || lpRows->cRows != 1)
 				break;
 
@@ -1627,9 +1620,6 @@ HRESULT ECMessage::SyncRecips()
 					wstrBcc += lpRows->aRow[0].lpProps[1].Value.lpszW;
 				}
 			}
-
-			FreeProws(lpRows);
-			lpRows = NULL;
 		}
 
 		sPropRecip.ulPropTag = PR_DISPLAY_TO_W;
@@ -1651,15 +1641,13 @@ HRESULT ECMessage::SyncRecips()
 	m_bRecipsDirty = FALSE;
 
 exit:
-	if(lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
 HRESULT ECMessage::SaveRecips()
 {
 	HRESULT				hr = hrSuccess;
-	LPSRowSet			lpRowSet = NULL;
+	rowset_ptr lpRowSet;
 	LPSPropValue		lpObjIDs = NULL;
 	LPULONG				lpulStatus = NULL;
 	unsigned int		i = 0,
@@ -1668,7 +1656,7 @@ HRESULT ECMessage::SaveRecips()
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// Get any changes and set it in the child list of this message
-	hr = lpRecips->HrGetAllWithStatus(&lpRowSet, &lpObjIDs, &lpulStatus);
+	hr = lpRecips->HrGetAllWithStatus(&~lpRowSet, &lpObjIDs, &lpulStatus);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1729,10 +1717,6 @@ HRESULT ECMessage::SaveRecips()
 exit:
 	if(lpObjIDs)
 		ECFreeBuffer(lpObjIDs);
-
-	if(lpRowSet)
-		FreeProws(lpRowSet);
-
 	if(lpulStatus)
 		ECFreeBuffer(lpulStatus);
 	return hr;
@@ -1781,7 +1765,7 @@ exit:
 HRESULT ECMessage::SyncAttachments()
 {
 	HRESULT				hr = hrSuccess;
-	LPSRowSet			lpRowSet = NULL;
+	rowset_ptr lpRowSet;
 	LPSPropValue		lpObjIDs = NULL;
 //	LPSPropValue		lpAttachNum = NULL;
 	LPULONG				lpulStatus = NULL;
@@ -1791,7 +1775,7 @@ HRESULT ECMessage::SyncAttachments()
 
 	// Get any changes and set it in the child list of this message
 	// Although we only need to know the deleted attachments, I also need to know the PR_ATTACH_NUM, which is in the rowset
-	hr = lpAttachments->HrGetAllWithStatus(&lpRowSet, &lpObjIDs, &lpulStatus);
+	hr = lpAttachments->HrGetAllWithStatus(&~lpRowSet, &lpObjIDs, &lpulStatus);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1823,10 +1807,6 @@ HRESULT ECMessage::SyncAttachments()
 exit:
 	if(lpObjIDs)
 		ECFreeBuffer(lpObjIDs);
-
-	if(lpRowSet)
-		FreeProws(lpRowSet);
-
 	if(lpulStatus)
 		ECFreeBuffer(lpulStatus);
 	return hr;

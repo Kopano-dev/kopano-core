@@ -894,7 +894,6 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 	ULONG ulObjType;
 	bool bAddFwdFlag = false;
 	bool bMoved = false;
-	LPSRowSet lpRowSet = NULL;
 	static constexpr const SizedSPropTagArray(11, sptaRules) =
 		{11, {PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
 		PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
@@ -953,7 +952,8 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 
 	while (1) {
 		const SPropValue *lpProp = NULL;
-	        hr = lpView->QueryRows(1, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+	        hr = lpView->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
 			ec_log_err("HrProcessRules(): QueryRows failed %x", hr);
 				goto exit;
@@ -1200,8 +1200,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			break;
 
 nextrule:
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
+		;
 	}
 
 	if (bAddFwdFlag) {
@@ -1224,9 +1223,6 @@ nextrule:
 	// The message was moved to another folder(s), do not save it in the inbox anymore, so cancel it.
 	if (hr == hrSuccess && bMoved)
 		hr = MAPI_E_CANCEL;
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-
 	if (hr != hrSuccess)
 		sc -> countInc("rules", "invocations_fail");
 

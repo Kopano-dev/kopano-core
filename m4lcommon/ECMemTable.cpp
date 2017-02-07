@@ -515,7 +515,7 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 {
 	HRESULT hr = hrSuccess;
 	memory_ptr<NOTIFICATION> lpNotification;
-	LPSRowSet lpRows = NULL;
+	rowset_ptr lpRows;
 	ECObjectTableList sRowList;
 
 	hr = MAPIAllocateBuffer(sizeof(NOTIFICATION), &~lpNotification);
@@ -564,8 +564,7 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 		}
 
 		sRowList.push_back(*lpsRowItem);
-
-		hr = QueryRowData(&sRowList, &lpRows);
+		hr = QueryRowData(&sRowList, &~lpRows);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -581,9 +580,6 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 		//FIXME: maybe thought the MAPISupport ?
 		adv.second->lpAdviseSink->OnNotify(1, lpNotification);
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
-
 	return hr;
 }
 

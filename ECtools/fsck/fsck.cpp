@@ -316,7 +316,6 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	LPMDB lpReadStore = NULL;
 	object_ptr<IMAPIFolder> lpRootFolder;
 	object_ptr<IMAPITable> lpHierarchyTable;
-	LPSRowSet lpRows = NULL;
 	ULONG ulObjectType;
 	ULONG ulCount;
 	object_ptr<IExchangeManageStore> lpIEMS;
@@ -423,7 +422,8 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	 * Loop through each row/entry and validate.
 	 */
 	while (true) {
-		hr = lpHierarchyTable->QueryRows(20, 0, &lpRows);
+		rowset_ptr lpRows;
+		hr = lpHierarchyTable->QueryRows(20, 0, &~lpRows);
 		if (hr != hrSuccess)
 			break;
 
@@ -432,15 +432,9 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 
 		for (ULONG i = 0; i < lpRows->cRows; ++i)
 			RunFolderValidation(setFolderIgnore, lpRootFolder, &lpRows->aRow[i], checkmap);
-		FreeProws(lpRows);
-		lpRows = NULL;
 	}
 
 exit:
-	if (lpRows) {
-		FreeProws(lpRows);
-		lpRows = NULL;
-	}
 	return hr;
 }
 

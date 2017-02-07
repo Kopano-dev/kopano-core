@@ -1181,14 +1181,13 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 
 	n = 0;
 	for (const auto mt : lHierarchies) {
-		LPSRowSet lpsRows = NULL;
-
 		hr = mt->SetColumns(lpColumns, 0);
 		if (hr != hrSuccess)
 			goto exit;
 
 		while (true) {
-			hr = mt->QueryRows(1, 0, &lpsRows);
+			rowset_ptr lpsRows;
+			hr = mt->QueryRows(1, 0, &~lpsRows);
 			if (hr != hrSuccess)
 				goto exit;
 			if (lpsRows->cRows == 0)
@@ -1198,14 +1197,9 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 			lpsRows->aRow[0].lpProps[stProps.size()].Value.ul = n++;
 
 			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpsRows->aRow[0].lpProps, lpsRows->aRow[0].cValues);
-
-			FreeProws(lpsRows);
-			lpsRows = NULL;
-
 			if(hr != hrSuccess)
 				goto exit;
 		}
-		FreeProws(lpsRows);
 	}
 
 	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);

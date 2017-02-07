@@ -179,7 +179,6 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
     const std::string &strName)
 {
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
 	ULONG ulCount;
 
 	HRESULT hr = lpFolder->GetContentsTable(0, &~lpTable);
@@ -204,7 +203,8 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 	 * Loop through each row/entry and validate.
 	 */
 	while (true) {
-		hr = lpTable->QueryRows(20, 0, &lpRows);
+		rowset_ptr lpRows;
+		hr = lpTable->QueryRows(20, 0, &~lpRows);
 		if (hr != hrSuccess)
 			break;
 
@@ -218,14 +218,9 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 				// Move along, nothing to see.
 			}
 		}
-
-		FreeProws(lpRows);
-		lpRows = NULL;
 	}
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -345,7 +340,6 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 	bool bSubChanged = false;
 	object_ptr<IMAPITable> lpTable;
     ULONG cRows = 0;
-    SRowSet *pRows = NULL;
 	static constexpr const SizedSPropTagArray(2, sptaProps) =
 		{2, {PR_ATTACH_NUM, PR_ATTACH_METHOD}};
 
@@ -364,7 +358,8 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 		goto exit;
 
 	while (true) {
-		hr = lpTable->QueryRows(50, 0, &pRows);
+		rowset_ptr pRows;
+		hr = lpTable->QueryRows(50, 0, &~pRows);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -395,9 +390,6 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 				bChanged = bSubChanged;
 			}
 		}
-
-		FreeProws(pRows);
-		pRows = NULL;
 	}
 
 message:
@@ -409,9 +401,6 @@ message:
 		lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 
 exit:
-	if (pRows)
-		FreeProws(pRows);
-
 	return hr;
 }
 
@@ -421,7 +410,6 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 	ULONG cRows = 0;
 	std::set<std::string> mapRecip;
 	std::list<unsigned int> mapiReciptDel;
-	SRowSet *pRows = NULL;
 	std::string strData;
 	unsigned int i = 0;
 	static constexpr const SizedSPropTagArray(5, sptaProps) =
@@ -444,7 +432,8 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 		goto exit;
 
 	while (true) {
-		hr = lpTable->QueryRows(50, 0, &pRows);
+		rowset_ptr pRows;
+		hr = lpTable->QueryRows(50, 0, &~pRows);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -474,16 +463,11 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 			if (res.second == false)
 				mapiReciptDel.push_back(pRows->aRow[i].lpProps[0].Value.ul);
 		}
-
-		FreeProws(pRows);
-		pRows = NULL;
 	}
 	// modify
 	if (!mapiReciptDel.empty())
 		hr = DeleteRecipientList(lpMessage, mapiReciptDel, bChanged);
 exit:
-	if (pRows)
-		FreeProws(pRows);
 	return hr;
 }
 

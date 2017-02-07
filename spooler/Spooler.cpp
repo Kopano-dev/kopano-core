@@ -496,7 +496,6 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 	unsigned int ulMaxThreads	= 0;
 	unsigned int ulFreeThreads	= 0;
 	ULONG		ulRowCount		= 0;
-	LPSRowSet	lpsRowSet		= NULL;
 	std::wstring strUsername;
 	bool bForceReconnect = false;
 
@@ -519,11 +518,6 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		ulMaxThreads = 1;
 
 	while(!bQuit) {
-		if (lpsRowSet) {
-			FreeProws(lpsRowSet);
-			lpsRowSet = NULL;
-		}
-
 		ulFreeThreads = ulMaxThreads - mapSendData.size();
 
 		if (ulFreeThreads == 0) {
@@ -532,8 +526,9 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 			CleanFinishedMessages(lpAdminSession, lpSpooler);
 			continue;	/* Continue looping until threads become available */
 		}
-		
-		hr = lpTable->QueryRows(1, 0, &lpsRowSet);
+
+		rowset_ptr lpsRowSet;
+		hr = lpTable->QueryRows(1, 0, &~lpsRowSet);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to fetch data from table, error code: 0x%08X", hr);
 			goto exit;
@@ -603,9 +598,6 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 	}
 
 exit:
-	if (lpsRowSet)
-		FreeProws(lpsRowSet);
-
 	return bForceReconnect ? MAPI_E_NETWORK_ERROR : hr;
 }
 

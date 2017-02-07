@@ -824,8 +824,8 @@ HRESULT POP3::HrMakeMailList() {
 	if (hr != hrSuccess)
 		return hr;
 
-	LPSRowSet lpRows = nullptr;
-	hr = lpTable->QueryRows(-1, 0, &lpRows);
+	rowset_ptr lpRows;
+	hr = lpTable->QueryRows(-1, 0, &~lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -851,8 +851,6 @@ HRESULT POP3::HrMakeMailList() {
 	}
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 

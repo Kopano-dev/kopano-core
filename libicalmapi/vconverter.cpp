@@ -1798,7 +1798,6 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	wstring strReceiverName, strReceiverType, strReceiverEmailAddr;
 	wstring strRepsSenderName, strRepsSenderType, strRepsSenderEmailAddr;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
 	memory_ptr<SPropValue> lpSpropVal;
 	icalproperty *lpicProp = NULL;
 	icalparameter *lpicParam = NULL;
@@ -1893,7 +1892,8 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 		if (hr != hrSuccess)
 			goto exit;
 
-		hr = lpTable->QueryRows(-1, 0, &lpRows);
+		rowset_ptr lpRows;
+		hr = lpTable->QueryRows(-1, 0, &~lpRows);
 		if (hr != hrSuccess)
 			goto exit;
 		
@@ -1984,8 +1984,6 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	*lpicMethod = icMethod;
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -2066,7 +2064,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	icalproperty *lpProp = NULL;
 	icalparameter *lpParam = NULL;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
+	rowset_ptr lpRows;
 	ULONG ulCount = 0;
 	wstring strName, strType, strEmailAddress;
 	static constexpr const SizedSPropTagArray(7, sptaRecipProps) =
@@ -2080,8 +2078,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	hr = lpTable->SetColumns(sptaRecipProps, 0);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->QueryRows(-1, 0, &lpRows);
+	hr = lpTable->QueryRows(-1, 0, &~lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -2150,8 +2147,6 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	}
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -2972,7 +2967,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpAttachTable;
-	LPSRowSet lpRows = NULL;
+	rowset_ptr lpRows;
 	const SPropValue *lpPropVal = nullptr;
 	object_ptr<IAttach> lpAttach;
 	LPMESSAGE lpAttachedMessage = NULL;
@@ -2999,7 +2994,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 		goto exit;
 
 	// should result in 1 attachment
-	hr = lpAttachTable->QueryRows(-1, 0, &lpRows);
+	hr = lpAttachTable->QueryRows(-1, 0, &~lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3025,8 +3020,6 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	*lppMessage = lpAttachedMessage;
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 

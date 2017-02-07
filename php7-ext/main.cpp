@@ -2091,7 +2091,7 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	// locals
 	memory_ptr<SPropTagArray> lpTagArray;
 	memory_ptr<SRestriction> lpRestrict;
-	LPSRowSet	pRowSet = NULL;
+	rowset_ptr pRowSet;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2123,7 +2123,7 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	}
 
 	// Execute
-	MAPI_G(hr) = HrQueryAllRows(lpTable, lpTagArray, lpRestrict, NULL, 0, &pRowSet);
+	MAPI_G(hr) = HrQueryAllRows(lpTable, lpTagArray, lpRestrict, nullptr, 0, &~pRowSet);
 
 	// return the returncode
 	if (FAILED(MAPI_G(hr)))
@@ -2137,9 +2137,6 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	RETVAL_ZVAL(&rowset, 0, 0);
 
 exit:
-	if (pRowSet)
-		FreeProws(pRowSet);
-
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -2164,7 +2161,7 @@ ZEND_FUNCTION(mapi_table_queryrows)
 	memory_ptr<SPropTagArray> lpTagArray;
 	long		lRowCount = 0, start = 0;
 	// local
-	LPSRowSet	pRowSet	= NULL;
+	rowset_ptr pRowSet;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2198,8 +2195,7 @@ ZEND_FUNCTION(mapi_table_queryrows)
 		}
 	}
 
-	MAPI_G(hr) = lpTable->QueryRows(lRowCount, 0, &pRowSet);
-
+	MAPI_G(hr) = lpTable->QueryRows(lRowCount, 0, &~pRowSet);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
 
@@ -2212,9 +2208,6 @@ ZEND_FUNCTION(mapi_table_queryrows)
 	RETVAL_ZVAL(&rowset, 0, 0);
 
 exit:
-	if (pRowSet)
-		FreeProws(pRowSet);
-
 	LOG_END();
 	THROW_ON_ERROR();
 }

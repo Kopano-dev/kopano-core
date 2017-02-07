@@ -108,7 +108,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	object_ptr<IMAPITable> lpMapiTable;
 	SRestriction	sRestriction;
 	SPropValue		sPropUser;
-	LPSRowSet		lpRows = NULL;
+	rowset_ptr lpRows;
 	ULONG			ulObjType = 0;
 	object_ptr<IMessage> lpMessage;
 	ULONG			ulMvItems = 0;
@@ -155,8 +155,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	hr = lpMapiTable->SetColumns(sPropsFreebusyTable, TBL_BATCH);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = lpMapiTable->QueryRows(1, 0, &lpRows);
+	hr = lpMapiTable->QueryRows(1, 0, &~lpRows);
  	if(hr != hrSuccess)
 		goto exit;
 
@@ -303,9 +302,6 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		goto exit;
 
 exit:
-	if(lpRows)
-		FreeProws(lpRows);
-
 	return hr;
 }
 

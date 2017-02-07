@@ -366,7 +366,6 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 	HRESULT hr = hrSuccess;
 	SPropValue sRestrictProp;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRowSet = NULL;
 	ECQUOTASTATUS sQuotaStatus;
 	ULONG i, u;
 	static constexpr const SizedSPropTagArray(5, sCols) =
@@ -404,7 +403,8 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 	}
 
 	while (TRUE) {
-		hr = lpTable->QueryRows(50, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to receive stats table data, error 0x%08X", hr);
 			goto exit;
@@ -464,13 +464,9 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 			if (hr != hrSuccess)
 				++m_ulFailed;
 		}
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 
 exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
 	return hr;
 }
 

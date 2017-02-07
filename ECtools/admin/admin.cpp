@@ -1201,7 +1201,6 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	HRESULT hr = hrSuccess;
 	ULONG i = 0;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRowSet = NULL;
 	std::string strUsername;
 	bool bHeader = true;
 	ConsoleTable ct(50, 5);
@@ -1234,7 +1233,8 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	cout << "Stores without users:" << endl;
 
 	while(TRUE) {
-		hr = lpTable->QueryRows(50, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
 		if(hr != hrSuccess) {
 			cerr << "Unable to load user/stores table" << endl;
 			goto exit;
@@ -1292,16 +1292,11 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 			else
 				ct.AddColumn(4, "<unknown>");
 		}
-
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 
 	ct.PrintTable();
 
 exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
 	return hr;
 }
 

@@ -260,8 +260,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpRecipTable;
-	LPSRowSet lpRecipRows = NULL;
-	
+	rowset_ptr lpRecipRows;
 	ULONG ulRow = 0;
 	ULONG ulRowCount = 0;
 
@@ -412,7 +411,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		*lpulMsgRef = rand_mt();
 
 	// Update the recipient table because we sent the message OK
-	hr = HrQueryAllRows (lpRecipTable, NULL, NULL, NULL, 0, &lpRecipRows);
+	hr = HrQueryAllRows(lpRecipTable, nullptr, nullptr, nullptr, 0, &~lpRecipRows);
 	if (hr != erSuccess)
 		goto exit;
 
@@ -430,8 +429,8 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 			lpsResponsibility->Value.b = TRUE;
 	}
 
-	hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY, (LPADRLIST )lpRecipRows);
-
+	hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
+	     reinterpret_cast<ADRLIST *>(lpRecipRows.get()));
 	if (hr != erSuccess)
 		goto exit;
 
@@ -439,8 +438,6 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	// only important for other transports running on the same lpMessage.
 
 exit:
-	if(lpRecipRows)
-		FreeProws (lpRecipRows);
 	return hr;
 }
 

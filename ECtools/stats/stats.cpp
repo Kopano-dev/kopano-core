@@ -206,7 +206,6 @@ static void showtop(LPMDB lpStore)
 #ifdef HAVE_CURSES_H
     HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-    LPSRowSet lpsRowSet = NULL;
     WINDOW *win = NULL;
     std::map<unsigned long long, TIMES> mapLastTimes;
     std::map<std::string, std::string> mapStats;
@@ -255,8 +254,9 @@ static void showtop(LPMDB lpStore)
 		hr = lpTable->SetColumns(sptaSystem, 0);
 		if(hr != hrSuccess)
 			goto exit;
-		    
-        hr = lpTable->QueryRows(-1, 0, &lpsRowSet);
+
+		rowset_ptr lpsRowSet;
+		hr = lpTable->QueryRows(-1, 0, &~lpsRowSet);
         if(hr != hrSuccess)
             goto exit;
             
@@ -272,13 +272,10 @@ static void showtop(LPMDB lpStore)
             }
         }
         
-        FreeProws(lpsRowSet);
-        lpsRowSet = NULL;
         hr = lpStore->OpenProperty(PR_EC_STATSTABLE_SESSIONS, &IID_IMAPITable, 0, 0, &~lpTable);
         if(hr != hrSuccess)
             goto exit;
-
-        hr = lpTable->QueryRows(-1, 0, &lpsRowSet);
+        hr = lpTable->QueryRows(-1, 0, &~lpsRowSet);
         if(hr != hrSuccess)
             break;
             
@@ -479,8 +476,6 @@ static void showtop(LPMDB lpStore)
         }
 		wattroff(win, A_BOLD);
 
-        FreeProws(lpsRowSet);
-        lpsRowSet = NULL;
         wrefresh(win);
         timeout(1000);
         if((key = getch()) != ERR) {
@@ -502,8 +497,6 @@ static void showtop(LPMDB lpStore)
 
 exit:
     endwin();
-    if(lpsRowSet)
-        FreeProws(lpsRowSet);
 #else
 	cerr << "Not compiled with ncurses support." << endl;
 #endif

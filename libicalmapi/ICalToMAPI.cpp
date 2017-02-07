@@ -383,7 +383,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	ULONG ulANr = 0;
 	memory_ptr<SPropTagArray> lpsPTA;
 	object_ptr<IMAPITable> lpAttachTable;
-	LPSRowSet lpRows = NULL;
+	rowset_ptr lpRows;
 	SPropValue sStart = {0};
 	SPropValue sMethod = {0};
 
@@ -448,7 +448,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	).RestrictTable(lpAttachTable, 0);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = lpAttachTable->QueryRows(-1, 0, &lpRows);
+	hr = lpAttachTable->QueryRows(-1, 0, &~lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -510,8 +510,6 @@ next:
 	}
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 

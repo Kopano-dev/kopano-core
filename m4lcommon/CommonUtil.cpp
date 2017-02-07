@@ -184,7 +184,7 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 	const SPropValue *lpServiceUID = nullptr;
 	SPropValue sProps[9];	// server, username, password and profile -name and -flags, optional sslkey file with sslkey password
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet	lpRows = NULL;
+	rowset_ptr lpRows;
 	int i;
 
 //-- create profile
@@ -222,8 +222,7 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 
 	// Find the correct row
 	while(TRUE) {
-		hr = lpTable->QueryRows(1, 0, &lpRows);
-		
+		hr = lpTable->QueryRows(1, 0, &~lpRows);
 		if(hr != hrSuccess) {
 			ec_log_crit("CreateProfileTemp(): QueryRows failed %x: %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
@@ -235,10 +234,6 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 		auto lpServiceName = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_NAME_A);
 		if(lpServiceName && strcmp(lpServiceName->Value.lpszA, "ZARAFA6") == 0)
 			break;
-			
-		FreeProws(lpRows);
-		lpRows = NULL;
-			
 	}
 	
 	if(lpRows->cRows != 1) {
@@ -308,8 +303,6 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 	}
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -399,7 +392,7 @@ exit:
 HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
 	HRESULT			hr = hrSuccess;
-	LPSRowSet		lpRows = NULL;
+	rowset_ptr lpRows;
 	object_ptr<IMAPITable> lpStoreTable;
 	const SPropValue *lpEntryIDProp = nullptr;
 
@@ -410,7 +403,7 @@ HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG 
 		goto exit;
 
 	while(TRUE) {
-		hr = lpStoreTable->QueryRows(1, 0, &lpRows);
+		hr = lpStoreTable->QueryRows(1, 0, &~lpRows);
 		if (hr != hrSuccess || lpRows->cRows != 1) {
 			hr = MAPI_E_NOT_FOUND;
 			break;
@@ -424,8 +417,6 @@ HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG 
 			if (lpStoreProp != NULL && lpStoreProp->Value.ul & STATUS_DEFAULT_STORE)
 				break;
 		}
-		FreeProws(lpRows);
-		lpRows = NULL;
 	}
 
 	if (hr != hrSuccess)
@@ -443,8 +434,6 @@ HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG 
 		goto exit;
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -570,7 +559,7 @@ HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProvid
 	object_ptr<IMAPITable> lpServiceTable;
 	SRestriction	sRestrict;
 	SPropValue		sPropRestrict;
-	LPSRowSet		lpsRowSet = NULL;
+	rowset_ptr lpsRowSet;
 	const SPropValue *lpProviderUID = NULL;
 
 	// Get the service admin
@@ -599,8 +588,7 @@ HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProvid
 	hr = lpServiceTable->SeekRow(BOOKMARK_END, -1, NULL);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = lpServiceTable->QueryRows(1, 0, &lpsRowSet);
+	hr = lpServiceTable->QueryRows(1, 0, &~lpsRowSet);
 	if(hr != hrSuccess || lpsRowSet == NULL || lpsRowSet->cRows != 1)
 	{
 		if(hr == hrSuccess) hr = MAPI_E_NOT_FOUND;
@@ -620,9 +608,6 @@ HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProvid
 		goto exit;
 
 exit:
-	if(lpsRowSet)
-		FreeProws(lpsRowSet);
-
 	return hr;
 }
 
@@ -1797,7 +1782,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 	unsigned int ulSize;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropTagArray> lpTags;
-	LPSRowSet lpRowSet = NULL;
 
 	if (ulLevel > RESTRICT_MAX_RECURSE_LEVEL)
 		return MAPI_E_TOO_COMPLEX;
@@ -1987,7 +1971,8 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			goto exit;
 
 		while(1) {
-			hr = lpTable->QueryRows(1, 0, &lpRowSet);
+			rowset_ptr lpRowSet;
+			hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -2005,9 +1990,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 				fMatch = true;
 				break;
 			}
-
-			FreeProws(lpRowSet);
-			lpRowSet = NULL;
 		}
 		break;
 
@@ -2024,8 +2006,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 	};
 
 exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
 	if (fMatch)
 		return hrSuccess;
 	else if (hr == hrSuccess)
@@ -2058,7 +2038,6 @@ HRESULT GetClientVersion(unsigned int* ulVersion)
  */
 HRESULT FindFolder(LPMAPITABLE lpTable, const WCHAR *folder, LPSPropValue *lppFolderProp) {
 	HRESULT hr;
-	LPSRowSet		lpRowSet = NULL;
 	ULONG nValues;
 	static constexpr const SizedSPropTagArray(2, sptaName) =
 		{2, {PR_DISPLAY_NAME_W, PR_ENTRYID}};
@@ -2068,7 +2047,8 @@ HRESULT FindFolder(LPMAPITABLE lpTable, const WCHAR *folder, LPSPropValue *lppFo
 		goto exit;
 
 	while (TRUE) {
-		hr = lpTable->QueryRows(1, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
 			break;
 
@@ -2082,15 +2062,9 @@ HRESULT FindFolder(LPMAPITABLE lpTable, const WCHAR *folder, LPSPropValue *lppFo
 			hr = Util::HrCopyPropertyArray(&lpRowSet->aRow[0].lpProps[1], 1, lppFolderProp, &nValues);
 			break;
 		}
-
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 
 exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-
 	return hr;
 }
 

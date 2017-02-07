@@ -827,7 +827,7 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECMemTableView> lpView = NULL;
 	object_ptr<ECMemTable> lpMemTable;
-	LPSRowSet		lpsRowSet = NULL;
+	rowset_ptr lpsRowSet;
 	unsigned int	i;
 	memory_ptr<SPropTagArray> lpPropTagArray;
 
@@ -850,7 +850,7 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		goto exit;
 
 	//Get the receivefolder list from the server
-	hr = lpTransport->HrGetReceiveFolderTable(ulFlags, this->m_cbEntryId, this->m_lpEntryId, &lpsRowSet);
+	hr = lpTransport->HrGetReceiveFolderTable(ulFlags, this->m_cbEntryId, this->m_lpEntryId, &~lpsRowSet);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -870,8 +870,6 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		goto exit;
 
 exit:
-	if(lpsRowSet)
-		FreeProws(lpsRowSet);
 	return hr;
 }
 

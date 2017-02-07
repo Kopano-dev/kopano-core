@@ -136,7 +136,6 @@ HRESULT iCal::HrHandleIcalPost()
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpContTable;
-	LPSRowSet lpRows = NULL;
 	SBinary sbEid = {0,0};
 	SBinary sbUid = {0,0};
 	ULONG ulItemCount = 0;
@@ -199,7 +198,8 @@ HRESULT iCal::HrHandleIcalPost()
 	//Generate map of UID : Modification time & UID : ENTRYID.
 	while (TRUE)
 	{
-		hr = lpContTable->QueryRows(50, 0, &lpRows);
+		rowset_ptr lpRows;
+		hr = lpContTable->QueryRows(50, 0, &~lpRows);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -222,8 +222,6 @@ HRESULT iCal::HrHandleIcalPost()
 			if (lpRows->aRow[i].lpProps[1].ulPropTag == PR_LAST_MODIFICATION_TIME)
 				mpSrvTimes[strUidString] = lpRows->aRow[i].lpProps[1].Value.ft;				
 		}
-		FreeProws(lpRows);
-		lpRows = NULL;
 	}
 
 	mpIterI = mpIcalEntries.cbegin();
@@ -310,9 +308,6 @@ exit:
 
 	for (mpIterJ = mpSrvEntries.cbegin(); mpIterJ != mpSrvEntries.cend(); ++mpIterJ)
 		MAPIFreeBuffer(mpIterJ->second.lpb);
-	if(lpRows)
-		FreeProws(lpRows);
-
 	if(lpICalToMapi)
 		delete lpICalToMapi;
 	mpSrvEntries.clear();
@@ -491,7 +486,6 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *lpstrIcal)
 {
 	HRESULT hr = hrSuccess;
-	LPSRowSet lpRows = NULL;	
 	SBinary sbEid = {0,0};
 	ULONG ulObjType = 0;
 	ULONG ulTagPrivate = 0;
@@ -511,7 +505,8 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 
 	while (TRUE)
 	{
-		hr = lpTable->QueryRows(50, 0, &lpRows);
+		rowset_ptr lpRows;
+		hr = lpTable->QueryRows(50, 0, &~lpRows);
 		if (hr != hrSuccess)
 		{
 			ec_log_err("Error retrieving table rows, error code: 0x%08X", hr);
@@ -555,8 +550,6 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 				hr = hrSuccess;
 			}
 		}
-		FreeProws(lpRows);
-		lpRows = NULL;
 	}
 	
 	hr = lpMtIcal->Finalize(0, NULL, lpstrIcal);
@@ -564,8 +557,6 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 		ec_log_debug("Unable to create ical output of calendar, error code 0x%08X", hr);
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 

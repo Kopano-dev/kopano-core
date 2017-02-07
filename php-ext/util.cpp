@@ -40,7 +40,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	object_ptr<IProfAdmin> lpProfAdmin;
 	object_ptr<IMsgServiceAdmin> lpServiceAdmin;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet		lpRows = NULL;
+	rowset_ptr lpRows;
 	const SPropValue *lpServiceUID = nullptr;
 	static constexpr const SizedSPropTagArray(2, sptaMsgServiceCols) =
 		{2, {PR_SERVICE_NAME_A, PR_SERVICE_UID}};
@@ -97,8 +97,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 
 	// Find the correct row
 	while(TRUE) {
-		hr = lpTable->QueryRows(1, 0, &lpRows);
-		
+		hr = lpTable->QueryRows(1, 0, &~lpRows);
 		if(hr != hrSuccess || lpRows->cRows != 1) {
 			last_error = "Unable to read service table";
 			goto exit;
@@ -107,10 +106,6 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 		auto lpServiceName = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_NAME_A);
 		if(lpServiceName && strcmp(lpServiceName->Value.lpszA, szServiceName) == 0)
 			break;
-			
-		FreeProws(lpRows);
-		lpRows = NULL;
-			
 	}
 
 	// Get the PR_SERVICE_UID from the row
@@ -130,8 +125,6 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	}
 
 exit:
-	if(lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 

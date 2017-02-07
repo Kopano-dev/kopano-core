@@ -698,7 +698,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChanges() {
 
 HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 	HRESULT			hr = hrSuccess;
-	LPSRowSet		lpRows = NULL;
 	memory_ptr<SPropValue> lpPropArray;
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	ULONG			ulObjType;
@@ -724,6 +723,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 
 		object_ptr<IMessage> lpSourceMessage, lpDestMessage;
 		object_ptr<IMAPITable> lpTable;
+		rowset_ptr lpRows;
 		if(!m_sourcekey.empty()) {
 			// Normal exporter, get the import properties we need by opening the source message
 
@@ -824,24 +824,17 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			ZLOG_DEBUG(m_lpLogger, "Unable to set column set for source message's recipient table");
 			goto exit;
 		}
-
-		hr = lpTable->QueryRows(0xFFFF, 0, &lpRows);
+		hr = lpTable->QueryRows(0xFFFF, 0, &~lpRows);
 		if(hr !=  hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to read recipients from source message");
 			goto exit;
 		}
 
 		//FIXME: named property in the recipienttable ?
-
-		hr = lpDestMessage->ModifyRecipients(0, (LPADRLIST)lpRows);
+		hr = lpDestMessage->ModifyRecipients(0, reinterpret_cast<ADRLIST *>(lpRows.get()));
 		if(hr !=  hrSuccess)
 			hr = hrSuccess;
 			//goto exit;
-
-		if(lpRows){
-			FreeProws(lpRows);
-			lpRows = NULL;
-		}
 
 		//delete every attachment
 		hr = lpDestMessage->GetAttachmentTable(0, &~lpTable);
@@ -854,8 +847,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			ZLOG_DEBUG(m_lpLogger, "Unable to set destination's attachment table's column set");
 			goto exit;
 		}
-
-		hr = lpTable->QueryRows(0xFFFF, 0, &lpRows);
+		hr = lpTable->QueryRows(0xFFFF, 0, &~lpRows);
 		if(hr !=  hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to read destination's attachment list");
 			goto exit;
@@ -868,8 +860,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				goto exit;
 			}
 		}
-		FreeProws(lpRows);
-		lpRows = NULL;
 
 		//add every attachment
 		hr = lpSourceMessage->GetAttachmentTable(0, &~lpTable);
@@ -878,8 +868,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		hr = lpTable->SetColumns(sptAttach, 0);
 		if(hr !=  hrSuccess)
 			goto exit;
-
-		hr = lpTable->QueryRows(0xFFFF, 0, &lpRows);
+		hr = lpTable->QueryRows(0xFFFF, 0, &~lpRows);
 		if(hr !=  hrSuccess)
 			goto exit;
 
@@ -908,8 +897,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				goto exit;
 			}
 		}
-		FreeProws(lpRows);
-		lpRows = NULL;
 		lpTable.release();
 
 		hr = lpSourceMessage->GetPropList(0, &~lpPropTagArray);
@@ -934,10 +921,6 @@ next:
 		// Mark this change as processed, even if we skipped it due to SYNC_E_IGNORE or because the item was deleted on the source server
 
 		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(m_lstChange.at(m_ulStep).ulChangeId, std::string((char *)m_lstChange.at(m_ulStep).sSourceKey.lpb, m_lstChange.at(m_ulStep).sSourceKey.cb)));
-		if(lpRows){
-			FreeProws(lpRows);
-			lpRows = NULL;
-		}
 		++m_ulStep;
 		++ulSteps;
 	}
@@ -947,8 +930,6 @@ next:
 exit:
 	if(hr != hrSuccess && hr != SYNC_W_PROGRESS)
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s", stringify(hr, true).c_str());
-	if(lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 

@@ -153,7 +153,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-	SRowSet *lpRows = NULL;
+	rowset_ptr lpRows;
 	memory_ptr<ENTRYLIST> lpsMsgList;
 	static constexpr const SizedSPropTagArray(2, sPropDelFavo) =
 		{2, {PR_ENTRYID, PR_FAV_PUBLIC_SOURCE_KEY}};
@@ -182,8 +182,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	     .FindRowIn(lpTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
 		goto exit; // Folder already removed (or memory problems)
-
-	hr = lpTable->QueryRows (1, 0, &lpRows);
+	hr = lpTable->QueryRows (1, 0, &~lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -212,8 +211,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 
 	strSourceKey.assign((char*)lpRows->aRow[0].lpProps[1].Value.bin.lpb, lpRows->aRow[0].lpProps[1].Value.bin.cb);
 	listSourceKey.push_back(strSourceKey);
-	FreeProws(lpRows);
-	lpRows = NULL;
+	lpRows.reset();
 
 	for (const auto &sk : listSourceKey) {
 		sPropSourceKey.ulPropTag = PR_FAV_PUBLIC_SOURCE_KEY;
@@ -230,7 +228,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 
 		while(true)
 		{
-			hr = lpTable->QueryRows (1, 0, &lpRows);
+			hr = lpTable->QueryRows(1, 0, &~lpRows);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -251,8 +249,6 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 			strSourceKey.assign((char*)lpRows->aRow[0].lpProps[1].Value.bin.lpb, lpRows->aRow[0].lpProps[1].Value.bin.cb);
 			listSourceKey.push_back(strSourceKey);
 		} //while(true)
-		FreeProws(lpRows);
-		lpRows = NULL;
 	}
 
 	hr = lpShortcutFolder->DeleteMessages(lpsMsgList,  0, NULL, 0);
@@ -260,8 +256,6 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		goto exit;
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -372,8 +366,6 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropValue> lpsPropArray;
-	SRowSet *lpRows = NULL;
-
 	ULONG ulFolderFlags = 0;
 	ULONG cValues = 0;
 	static constexpr const SizedSPropTagArray(5, sPropsFolderInfo) =
@@ -410,7 +402,8 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 	// Add the favorite recusive depended what the flags are
 	while(true)
 	{
-		hr = lpTable->QueryRows (1, 0, &lpRows);
+		rowset_ptr lpRows;
+		hr = lpTable->QueryRows (1, 0, &~lpRows);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -427,14 +420,9 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 		if (hr != hrSuccess)
 			// Break the action
 			goto exit;
-		FreeProws(lpRows);
-		lpRows = NULL;
-
 	} //while(true)
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 

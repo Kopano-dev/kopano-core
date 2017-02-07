@@ -1818,7 +1818,6 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpRecipTable;
 	memory_ptr<SRestriction> lpRestrictRecipient;
-	LPSRowSet lpsRows = NULL;
 	SPropValue sPropRecip[4];
 	SPropValue sCmp[2];
 	bool bToMe = false;
@@ -1853,7 +1852,8 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 
 	hr = lpRecipTable->FindRow(lpRestrictRecipient, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {
-		hr = lpRecipTable->QueryRows (1, 0, &lpsRows);
+		rowset_ptr lpsRows;
+		hr = lpRecipTable->QueryRows(1, 0, &~lpsRows);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrOverrideRecipProps(): QueryRows failed %x", hr);
 			goto exit;
@@ -1893,8 +1893,6 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 	}
 
 exit:
-	if (lpsRows)
-		FreeProws(lpsRows);
 	return hr;
 }
 

@@ -96,7 +96,6 @@ static LONG __stdcall AdviseShortCutCallback(void *lpContext, ULONG cNotif,
 	}
 
 	HRESULT hr = hrSuccess;
-	LPSRowSet lpRows = NULL;
 	ECMemTablePublic *lpMemTablePublic = (ECMemTablePublic*)lpContext;
 
 	lpMemTablePublic->AddRef(); // Besure we have the object
@@ -125,14 +124,13 @@ static LONG __stdcall AdviseShortCutCallback(void *lpContext, ULONG cNotif,
 				continue; // Next notification
 			while(true)
 			{
-				hr = lpMemTablePublic->m_lpShortcutTable->QueryRows (1, 0, &lpRows);
+				rowset_ptr lpRows;
+				hr = lpMemTablePublic->m_lpShortcutTable->QueryRows(1, 0, &~lpRows);
 				if (hr != hrSuccess)
 					break; // Next notification
 				if (lpRows->cRows == 0)
 					break;
 				lpMemTablePublic->ModifyRow(&lpRows->aRow[0].lpProps[SC_INSTANCE_KEY].Value.bin, &lpRows->aRow[0]);
-				FreeProws(lpRows);
-				lpRows = NULL;
 			}
 			break;
 		default:
@@ -140,9 +138,6 @@ static LONG __stdcall AdviseShortCutCallback(void *lpContext, ULONG cNotif,
 		}
 
 	}
-
-	if (lpRows)
-		FreeProws(lpRows);
 
 	lpMemTablePublic->Release();
 
@@ -200,7 +195,6 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpShortcutFolder;
 	object_ptr<IMAPITable> lpShortcutTable;
-	LPSRowSet lpRows = NULL;
 	memory_ptr<SPropValue> lpPropTmp;
 	ULONG ulConnection;
 
@@ -246,7 +240,8 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 
 		while(true)
 		{
-			hr = lpShortcutTable->QueryRows (1, 0, &lpRows);
+			rowset_ptr lpRows;
+			hr = lpShortcutTable->QueryRows(1, 0, &~lpRows);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -254,8 +249,6 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 				break;
 
 			ModifyRow(&lpRows->aRow[0].lpProps[SC_INSTANCE_KEY].Value.bin, &lpRows->aRow[0]);
-			FreeProws(lpRows);
-			lpRows = NULL;
 		}
 
 		hr = lpShortcutTable->QueryInterface(IID_IMAPITable, (void **)&m_lpShortcutTable);
@@ -264,9 +257,6 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 	}
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
-
 	return hr;
 }
 
@@ -293,7 +283,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	ULONG ulRowId;
 	ULONG ulConnection = 0;
 	object_ptr<IMAPIAdviseSink> lpFolderAdviseSink;
-	LPSRowSet lpsRowsInternal = NULL;
+	rowset_ptr lpsRowsInternal;
 	SPropValue sPropTmp;
 
 	t_sRelation sRelFolder = {0};
@@ -412,8 +402,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 			     .FindRowIn(m_lpShortcutTable, BOOKMARK_BEGINNING, 0);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = m_lpShortcutTable->QueryRows (1, 0, &lpsRowsInternal);
+			hr = m_lpShortcutTable->QueryRows(1, 0, &~lpsRowsInternal);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -500,8 +489,6 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 exit:
 	if (hr != hrSuccess && ulConnection > 0)
 		m_lpECParentFolder->GetMsgStore()->Unadvise(ulConnection);
-	if (lpsRowsInternal)
-		FreeProws(lpsRowsInternal);
 	return hr;
 }
 

@@ -259,7 +259,6 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	std::string strConvVal;
 	std::string strReqUrl;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRowSet = NULL;
 	memory_ptr<SPropTagArray> lpPropTagArr;
 	memory_ptr<SPropValue> lpsPropVal;
 	std::unique_ptr<MapiToICal> lpMtIcal;
@@ -373,7 +372,8 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 
 	while(1)
 	{
-		hr = lpTable->QueryRows(50, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
 		if(hr != hrSuccess)
 		{
 			ec_log_err("Error retrieving rows of table");
@@ -428,15 +428,11 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 			lpsWebMStatus->lstResp.push_back(sWebResponse);
 			sWebResponse.lstsPropStat.clear();
 		}
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 
 exit:
 	if (hr == hrSuccess)
 		ec_log_info("Number of items in folder returned: %u", ulItemCount);
-	if(lpRowSet)
-		FreeProws(lpRowSet);
 	return hr;
 }
 
@@ -509,7 +505,6 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 
 	for (ULONG i = 0; i < cbsize; ++i) {
 		WEBDAVVALUE sWebDavVal;
-		SRowSet *lpValRows = NULL;
 		ULONG ulCensorFlag = (ULONG)blCensorPrivate;
 		
 		sWebDavVal = sWebRMGet->lstWebVal.front();
@@ -522,7 +517,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 		hr = HrMakeRestriction(sWebDavVal.strValue, m_lpNamedProps, &~lpsRoot);
 		if (hr != hrSuccess) {
 			ec_log_debug("CalDAV::HrHandleReport HrMakeRestriction failed 0x%08x %s", hr, GetMAPIErrorMessage(hr));
-			goto next;
+			continue;
 		}
 		
 		hr = lpTable->FindRow(lpsRoot, BOOKMARK_BEGINNING, 0);
@@ -531,10 +526,9 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 
 		// conversion if everthing goes ok, otherwise, add empty item with failed status field
 		// we need to return all items requested in the multistatus reply, otherwise sunbird will stop, displaying nothing to the user.
-
+		rowset_ptr lpValRows;
 		if (hr == hrSuccess) {
-			hr = lpTable->QueryRows(1, TBL_NOADVANCE, &lpValRows); // TODO: what if we get multiple items ?
-		
+			hr = lpTable->QueryRows(1, TBL_NOADVANCE, &~lpValRows); // TODO: what if we get multiple items ?
 			if(hr != hrSuccess || lpValRows->cRows != 1)
 				return hr;
 
@@ -556,11 +550,6 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 
 		sWebMStatus->lstResp.push_back(sWebResponse);
 		sWebResponse.lstsPropStat.clear();
-next:
-		if(lpValRows)
-			FreeProws(lpValRows);
-		lpValRows = NULL;
-
 	}
 	return hrSuccess;
 }
@@ -645,7 +634,6 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	HRESULT hr = hrSuccess;
 	object_ptr<IABContainer> lpAbCont;
 	object_ptr<IMAPITable> lpTable;
-	SRowSet *lpValRows = NULL;
 	memory_ptr<SPropTagArray> lpPropTagArr;
 	ULONG cbsize = 0;
 	ULONG ulPropTag = 0;
@@ -741,7 +729,8 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	
 	// set rows into Dav structures
 	while (1) {
-		hr = lpTable->QueryRows(50, 0, &lpValRows); // TODO: what if we get multiple items ?
+		rowset_ptr lpValRows;
+		hr = lpTable->QueryRows(50, 0, &~lpValRows); // TODO: what if we get multiple items ?
 		if (hr != hrSuccess || lpValRows->cRows == 0)
 			break;
 
@@ -764,15 +753,11 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 			sWebResponse.lstsPropStat.clear();
 
 		}
-		FreeProws(lpValRows);
-		lpValRows = NULL;
 	}
 
 	hr = hrSuccess;
 
 exit:
-	if (lpValRows)
-		FreeProws(lpValRows);
 	MAPIFreeBuffer(sbEid.lpb);
 	return hr;
 }
@@ -1308,8 +1293,6 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	object_ptr<IMAPIFolder> lpWasteBox;
 	memory_ptr<SPropValue> lpSpropWbEID, lpsPropSingleFld;
 	memory_ptr<SPropTagArray> lpPropTagArr;
-	LPSRowSet lpRowsALL = NULL;
-	LPSRowSet lpRowsDeleted = NULL;
 	size_t cbsize = 0;
 	ULONG ulPropTagFldId = 0;
 	ULONG ulObjType = 0;
@@ -1411,12 +1394,13 @@ nowaste:
 
 	while(1)
 	{
-		hr = lpHichyTable->QueryRows(50, 0, &lpRowsALL);
+		rowset_ptr lpRowsALL, lpRowsDeleted;
+		hr = lpHichyTable->QueryRows(50, 0, &~lpRowsALL);
 		if(hr != hrSuccess || lpRowsALL->cRows == 0)
 			break;
 
 		if (lpDelHichyTable)
-			hr = lpDelHichyTable->QueryRows(50, 0, &lpRowsDeleted);
+			hr = lpDelHichyTable->QueryRows(50, 0, &~lpRowsDeleted);
 		if(hr != hrSuccess)
 			break;
 
@@ -1461,21 +1445,9 @@ nowaste:
 			lpsMulStatus->lstResp.push_back(sDavResponse);
 			sDavResponse.lstsPropStat.clear();
 		}
-		FreeProws(lpRowsALL);
-		lpRowsALL = NULL;
-		if(lpRowsDeleted)
-		{
-			FreeProws(lpRowsDeleted);
-			lpRowsDeleted = NULL;
-		}
 	}
 
 exit:
-	if(lpRowsALL)
-		FreeProws(lpRowsALL);
-	
-	if(lpRowsDeleted)
-		FreeProws(lpRowsDeleted);
 	return hr;
 }
 

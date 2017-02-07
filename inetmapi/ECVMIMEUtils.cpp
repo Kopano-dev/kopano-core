@@ -90,9 +90,9 @@ ECVMIMESender::ECVMIMESender(const std::string &host, int port) :
  */
 HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpTable, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone, bool bAlwaysExpandDistributionList)
 {
-	LPSRowSet lpRowSet = NULL;
+	rowset_ptr lpRowSet;
 	std::wstring strName, strEmail, strType;
-	HRESULT hr = lpTable->QueryRows(-1, 0, &lpRowSet);
+	HRESULT hr = lpTable->QueryRows(-1, 0, &~lpRowSet);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -159,9 +159,6 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 	}
 
 exit:
-	if(lpRowSet)
-		FreeProws(lpRowSet);
-		
 	return hr;
 }
 
@@ -190,7 +187,6 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 	object_ptr<IDistList> lpGroup;
 	ULONG ulType = 0;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
 	memory_ptr<SPropValue> lpEmailAddress;
 
 	if (lpGroupEntryID == nullptr || lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpGroupEntryID->Value.bin.lpb), nullptr, 0, &ulType, &~lpGroup) != hrSuccess || ulType != MAPI_DISTLIST) {
@@ -201,8 +197,10 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 			hr = MAPI_E_NOT_FOUND;
 			goto exit;
 		}
-		
-		if ((hr = MAPIAllocateBuffer(sizeof(SRowSet), (void **)&lpRows)) != hrSuccess)
+
+		rowset_ptr lpRows;
+		hr = MAPIAllocateBuffer(sizeof(SRowSet), &~lpRows);
+		if (hr != hrSuccess)
 			goto exit;
 		lpRows->cRows = 1;
 		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpRows->aRow[0].lpProps)) != hrSuccess)
@@ -211,8 +209,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 		
 		lpRows->aRow[0].lpProps[0].ulPropTag = PR_DISPLAY_NAME_W;
 		lpRows->aRow[0].lpProps[0].Value.lpszW = lpGroupName->Value.lpszW;
-		
-		hr = lpAdrBook->ResolveName(0, MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, NULL, (LPADRLIST)lpRows);
+		hr = lpAdrBook->ResolveName(0, MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, NULL, reinterpret_cast<ADRLIST *>(lpRows.get()));
 		if(hr != hrSuccess)
 			goto exit;
 			
@@ -254,8 +251,6 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 		goto exit;
 	
 exit:
-	if(lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 

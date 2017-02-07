@@ -145,7 +145,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	SPropValue sPropFolderID;
 	SPropValue sPropFolderName;
 	ULONG ulPropTagFldId = 0;
-	SRowSet *lpRows = NULL;
+	rowset_ptr lpRows;
 	SBinary sbEid = {0,0};
 	IMAPIFolder *lpUsrFld = NULL;
 	ULONG ulObjType = 0;
@@ -223,8 +223,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	hr = lpHichyTable->SetColumns(sPropTagArr, 0);
 	if(hr != hrSuccess)
 		goto exit;
-	
-	hr = lpHichyTable->QueryRows(1,0,&lpRows);
+	hr = lpHichyTable->QueryRows(1, 0, &~lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -247,9 +246,6 @@ exit:
 		MAPIFreeBuffer(lpOutbox);
 	else if (lpEntryID)
 		MAPIFreeBuffer(lpEntryID);
-
-	if(lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -664,7 +660,7 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 {
 	SBinary sbEid = {0,0};
 	memory_ptr<SRestriction> lpsRoot;
-	SRowSet *lpValRows = NULL;
+	rowset_ptr lpValRows;
 	object_ptr<IMAPITable> lpTable;
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
@@ -683,8 +679,7 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 	hr = lpTable->Restrict(lpsRoot, TBL_BATCH);
 	if(hr != hrSuccess)
 		goto exit;
-	
-	hr = lpTable->QueryRows(1, 0, &lpValRows);
+	hr = lpTable->QueryRows(1, 0, &~lpValRows);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -705,9 +700,6 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 		goto exit;
 	*lppMessage = lpMessage.release();
 exit:
-	if(lpValRows)
-		FreeProws(lpValRows);
-	
 	return hr;
 }
 

@@ -359,7 +359,7 @@ HRESULT ECExchangeModifyTable::DisablePushToServer()
 HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lpTable)
 {
 	HRESULT hr = hrSuccess;
-	LPSRowSet		lpRowSet = NULL;
+	rowset_ptr lpRowSet;
 	memory_ptr<SPropValue> lpIDs;
 	memory_ptr<ULONG> lpulStatus;
 	memory_ptr<ECPERMISSION> lpECPermissions;
@@ -374,7 +374,7 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 		goto exit;
 
 	// Get a data  
-	hr = lpTable->HrGetAllWithStatus(&lpRowSet, &~lpIDs, &~lpulStatus);
+	hr = lpTable->HrGetAllWithStatus(&~lpRowSet, &~lpIDs, &~lpulStatus);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = MAPIAllocateBuffer(sizeof(ECPERMISSION)*lpRowSet->cRows, &~lpECPermissions);
@@ -433,8 +433,6 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 	}
 
 exit:
-	if(lpRowSet)
-		FreeProws(lpRowSet);
 	return hr;
 }
 
@@ -444,7 +442,7 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	HRESULT hr = hrSuccess;
 	object_ptr<ECMemTableView> lpView;
 	memory_ptr<SPropTagArray> lpCols;
-	LPSRowSet		lpRowSet = NULL;
+	rowset_ptr lpRowSet;
 	std::ostringstream os;
 	struct rowSet *	lpSOAPRowSet = NULL;
 	char *szXML = NULL;
@@ -465,7 +463,7 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 		goto exit;
 
 	// Get all rows
-	hr = lpView->QueryRows(0x7fffffff, 0, &lpRowSet);
+	hr = lpView->QueryRows(0x7fffffff, 0, &~lpRowSet);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -498,8 +496,6 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 exit:
 	if(lpSOAPRowSet)
 		FreeRowSet(lpSOAPRowSet, true);
-	if(lpRowSet)
-		FreeProws(lpRowSet);
 	soap_destroy(&soap);
 	soap_end(&soap); // clean up allocated temporaries 
 
@@ -512,7 +508,7 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 	HRESULT hr = hrSuccess;
 	std::istringstream is(lpSerialized);
 	struct rowSet sSOAPRowSet;
-	LPSRowSet lpsRowSet = NULL;
+	rowset_ptr lpsRowSet;
 	ULONG cValues;
 	SPropValue		sRowId;
 	ULONG ulHighestRuleID = 1;
@@ -532,8 +528,7 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 		goto exit;
 	}
 	soap_end_recv(&soap); 
-
-	hr = CopySOAPRowSetToMAPIRowSet(NULL, &sSOAPRowSet, &lpsRowSet, 0);
+	hr = CopySOAPRowSetToMAPIRowSet(NULL, &sSOAPRowSet, &~lpsRowSet, 0);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -567,8 +562,6 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 	*ulRuleId = ulHighestRuleID;
 
 exit:
-	if(lpsRowSet)
-		FreeProws(lpsRowSet);
 	soap_destroy(&soap);
 	soap_end(&soap); // clean up allocated temporaries 
 

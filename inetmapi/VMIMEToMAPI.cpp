@@ -211,7 +211,6 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 	SPropValue attProps[3];
 	SPropValue sPropSMIMEClass;
 	object_ptr<IMAPITable> lpAttachTable;
-	LPSRowSet lpAttachRows = NULL;
 	size_t posHeaderEnd;
 	bool bUnix = false;
 
@@ -274,7 +273,8 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 			if(hr != hrSuccess)
 				goto exit;
-			hr = HrQueryAllRows(lpAttachTable, sptaAttach, NULL, NULL, -1, &lpAttachRows);
+			rowset_ptr lpAttachRows;
+			hr = HrQueryAllRows(lpAttachTable, sptaAttach, nullptr, nullptr, -1, &~lpAttachRows);
 			if(hr != hrSuccess)
 				goto exit;
 				
@@ -381,8 +381,6 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 	}
 
 exit:
-	if (lpAttachRows)
-		FreeProws(lpAttachRows);
 	return hr;
 }
 

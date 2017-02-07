@@ -2496,7 +2496,7 @@ HRESULT Util::CopyStream(LPSTREAM lpSrc, LPSTREAM lpDest) {
 HRESULT Util::CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
 	HRESULT hr;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
+	rowset_ptr lpRows;
 	memory_ptr<SPropTagArray> lpTableColumns;
 	ULONG ulRows = 0;
 
@@ -2517,19 +2517,17 @@ HRESULT Util::CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
 
 	if (ulRows == 0)	// Nothing to do!
 		goto exit;
-
-	hr = lpTable->QueryRows(ulRows, 0, &lpRows);
+	hr = lpTable->QueryRows(ulRows, 0, &~lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 
 	// LPADRLIST and LPSRowSet are binary compatible \o/
-	hr = lpDest->ModifyRecipients(MODRECIP_ADD, (LPADRLIST)lpRows);
+	hr = lpDest->ModifyRecipients(MODRECIP_ADD,
+	     reinterpret_cast<ADRLIST *>(lpRows.get()));
 	if (hr != hrSuccess)
 		goto exit;
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -2602,7 +2600,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 
 	// table
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
+	rowset_ptr lpRows;
 	memory_ptr<SPropTagArray> lpTableColumns;
 	ULONG ulRows = 0;
 
@@ -2639,8 +2637,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 	hr = lpTable->GetRowCount(0, &ulRows);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->QueryRows(ulRows, 0, &lpRows);
+	hr = lpTable->QueryRows(ulRows, 0, &~lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2695,8 +2692,6 @@ next_attach:
 		hr = MAPI_W_PARTIAL_COMPLETION;
 
 exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -2719,7 +2714,6 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
 	HRESULT hr;
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRowSet = NULL;
 	static constexpr const SizedSPropTagArray(2, sptaName) =
 		{2, {PR_DISPLAY_NAME_W, PR_ENTRYID}};
 	object_ptr<IMAPIFolder> lpSrcParam, lpDestParam;
@@ -2745,8 +2739,9 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
 
 	while (true) {
 		object_ptr<IMAPIFolder> lpSrcFolder, lpDestFolder;
+		rowset_ptr lpRowSet;
 
-		hr = lpTable->QueryRows(1, 0, &lpRowSet);
+		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2776,16 +2771,13 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
 			lpSrc->DeleteFolder(lpRowSet->aRow[0].lpProps[1].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[1].Value.bin.lpb, 0, NULL, 0);
 
 next_folder:
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
+		;
 	}
 
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 
 exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
 	return hr;
 }
 
@@ -2806,7 +2798,6 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 	HRESULT hr;
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRowSet = NULL;
 	static constexpr const SizedSPropTagArray(1, sptaEntryID) = {1, {PR_ENTRYID}};
 	ULONG ulObj;
 	memory_ptr<ENTRYLIST> lpDeleteEntries;
@@ -2826,7 +2817,8 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 		goto exit;
 
 	while (true) {
-		hr = lpTable->QueryRows(MAX_ROWS, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(MAX_ROWS, 0, &~lpRowSet);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2869,16 +2861,12 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 		if (ulFlags & MAPI_MOVE && lpDeleteEntries->cValues > 0 &&
 		    lpSrc->DeleteMessages(lpDeleteEntries, 0, NULL, 0) != hrSuccess)
 			bPartial = true;
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 
 exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
 	return hr;
 }
 
