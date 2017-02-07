@@ -51,12 +51,12 @@ print('')
 print('%10s %24s         %24s' % ('Cache', 'Hit ratio', 'Mem usage ratio'))
 
 for name in cstat:
-    if(cstat[name]['requests']):
+    if cstat[name]['requests']:
         percentage = '%d%%' % (cstat[name]['hits'] * 100 / cstat[name]['requests'])
     else:
         percentage = 'N/A'
 
-    if ('maxsz' in cstat[name]):
+    if cstat[name]['maxsz']:
         persize = '%d%%' % (cstat[name]['size'] * 100 / cstat[name]['maxsz'])
     else:
         persize = 'N/A'
