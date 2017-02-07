@@ -517,7 +517,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
     bool bIncludeAsP1, ADRLIST **lppNewRecipients)
 {
 	HRESULT hr = hrSuccess;
-	LPADRLIST lpRecipients = NULL;
+	adrlist_ptr lpRecipients;
 	memory_ptr<SPropValue> lpMsgClass;
 	std::wstring strFromName, strFromType, strFromAddress;
 	std::wstring strRuleName, strRuleType, strRuleAddress;
@@ -530,8 +530,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		ec_log_err("Unable to get from address 0x%08X", hr);
 		return hr;
 	}
-
-	hr = MAPIAllocateBuffer(CbNewADRLIST(lpRuleRecipients->cEntries), (void**)&lpRecipients);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(lpRuleRecipients->cEntries), &~lpRecipients);
 	if (hr != hrSuccess) {
 		ec_log_err("CheckRecipients(): MAPIAllocateBuffer failed %x", hr);
 		return hr;
@@ -598,8 +597,6 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 	lpRecipients = NULL;
 
 exit:
-	if (lpRecipients)
-		FreeProws((LPSRowSet)lpRecipients);
 	return hr;
 }
 
@@ -612,7 +609,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	LPMESSAGE lpFwdMsg = NULL;
 	memory_ptr<SPropValue> lpSentMailEntryID, lpOrigSubject;
 	memory_ptr<SPropTagArray> lpExclude;
-	ADRLIST *filtered_recips = nullptr;
+	adrlist_ptr filtered_recips;
 	ULONG ulANr = 0;
 	static constexpr const SizedSPropTagArray(10, sExcludeFromCopyForward) = {10, {
 		PR_TRANSPORT_MESSAGE_HEADERS,
@@ -645,7 +642,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	}
 
 	hr = CheckRecipients(lpAdrBook, lpOrigStore, lpOrigMessage, lpRecipients,
-	     bOpDelegate, bDoNotMunge, &filtered_recips);
+	     bOpDelegate, bDoNotMunge, &~filtered_recips);
 	if (hr == MAPI_E_NO_ACCESS) {
 		ec_log_info("K-1904: Forwarding not permitted. Ending rule processing.");
 		goto exitpm;
@@ -653,7 +650,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 		goto exitpm;
 	if (hr == hrSuccess)
-		lpRecipients = filtered_recips;
+		lpRecipients = filtered_recips.get();
 	hr = HrGetOneProp(lpOrigStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentMailEntryID);
 	if (hr != hrSuccess)
 		goto exitpm;
@@ -772,8 +769,6 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 
 	*lppMessage = lpFwdMsg;
  exitpm:
-	if (filtered_recips != nullptr)
-		FreePadrlist(filtered_recips);
 	return hr;
 }
 

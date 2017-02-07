@@ -318,9 +318,11 @@ class cstdlib_deleter {
 
 class rowset_delete {
 	public:
+	void operator()(ADRLIST *x) { FreePadrlist(x); }
 	void operator()(SRowSet *x) { FreeProws(x); }
 };
 
+typedef memory_ptr<ADRLIST, rowset_delete> adrlist_ptr;
 typedef memory_ptr<SRowSet, rowset_delete> rowset_ptr;
 
 template<typename _T> inline void

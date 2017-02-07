@@ -1076,7 +1076,7 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
     IMessage *lpMessage)
 {
 	HRESULT		hr				= hrSuccess;
-	LPADRLIST 	lpRecipients	= NULL;
+	adrlist_ptr lpRecipients;
 
 	try {
 		auto lpVMAListRecip = vmime::dynamicCast<vmime::addressList>(vmHeader->To()->getValue());
@@ -1086,8 +1086,7 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 
 		if (iAdresCount == 0)
 			goto exit;
-
-		hr = MAPIAllocateBuffer(CbNewADRLIST(iAdresCount), (void **)&lpRecipients);
+		hr = MAPIAllocateBuffer(CbNewADRLIST(iAdresCount), &~lpRecipients);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1139,10 +1138,6 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 	}
 
 exit:
-	if (lpRecipients != nullptr)
-		// Because the recipient list can be altered to delete 1 row, or add 1 row using ModifyRecipients()
-		// we need to free this data with FreeProws, and not the default MAPIFreeBuffer() call.
-		FreeProws((LPSRowSet) lpRecipients);
 	return hr;
 }
 
@@ -1332,7 +1327,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	memory_ptr<ENTRYID> lpDDEntryID;
 	ULONG cbDDEntryID;
 	ULONG ulObj = 0;
-	ADRLIST *lpAdrList = NULL;
+	adrlist_ptr lpAdrList;
 	memory_ptr<FlagList> lpFlagList;
 	const SPropValue *lpProp = nullptr;
 	SPropValue sRecipProps[9]; // 8 from addressbook + PR_RECIPIENT_TYPE == max
@@ -1363,7 +1358,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 			goto exit;
 	}
 
-	hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void **) &lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAdrList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1513,8 +1508,6 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 		*lpulValues = cValues;
 
 exit:
-	if (lpAdrList)
-		FreeProws((LPSRowSet)lpAdrList);
 	return hr;
 }
 

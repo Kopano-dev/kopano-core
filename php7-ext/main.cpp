@@ -1208,7 +1208,7 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	// return value
 
 	// local
-	LPADRLIST	lpAList = NULL;
+	adrlist_ptr lpAList;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1217,7 +1217,7 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
 
-	MAPI_G(hr) = PHPArraytoAdrList(array, NULL, &lpAList TSRMLS_CC);
+	MAPI_G(hr) = PHPArraytoAdrList(array, nullptr, &~lpAList TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
@@ -1225,7 +1225,7 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	switch (MAPI_G(hr)) {
 	case hrSuccess:
 		// parse back lpAList and return as array
-		RowSettoPHPArray((LPSRowSet)lpAList, &rowset TSRMLS_CC); // binary compatible
+		RowSettoPHPArray(reinterpret_cast<SRowSet *>(lpAList.get()), &rowset TSRMLS_CC); // binary compatible
 		RETVAL_ZVAL(&rowset, 0, 0);
 		break;
 	case MAPI_E_AMBIGUOUS_RECIP:
@@ -1235,9 +1235,6 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	};
 
 exit:
-	if (lpAList)
-		FreePadrlist(lpAList);
-
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -2647,7 +2644,7 @@ ZEND_FUNCTION(mapi_message_modifyrecipients)
 	LPMESSAGE		pMessage = NULL;
 	long			flags = MODRECIP_ADD;		// flags to use, default to ADD
 	// local
-	LPADRLIST		lpListRecipients = NULL;
+	adrlist_ptr lpListRecipients;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2656,7 +2653,7 @@ ZEND_FUNCTION(mapi_message_modifyrecipients)
 
 	ZEND_FETCH_RESOURCE_C(pMessage, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
 
-	MAPI_G(hr) = PHPArraytoAdrList(adrlist, NULL, &lpListRecipients TSRMLS_CC);
+	MAPI_G(hr) = PHPArraytoAdrList(adrlist, nullptr, &~lpListRecipients TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to parse recipient list");
 		goto exit;
@@ -2670,9 +2667,6 @@ ZEND_FUNCTION(mapi_message_modifyrecipients)
 	RETVAL_TRUE;
 
 exit:
-	if (lpListRecipients)
-		FreePadrlist(lpListRecipients);
-
 	LOG_END();
 	THROW_ON_ERROR();
 }

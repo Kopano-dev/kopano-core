@@ -721,7 +721,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	LONG lblkFetched = 0;
 	WEBDAVFBUSERINFO sWebFbUserInfo;
 	std::list<std::string>::const_iterator itUsers;
-	LPADRLIST lpAdrList = NULL;
+	adrlist_ptr lpAdrList;
 	FlagListPtr ptrFlagList;
 
 	EntryIdPtr ptrEntryId;
@@ -737,7 +737,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		goto exit;
 
 	cUsers = lplstUsers->size();
-	hr = MAPIAllocateBuffer(CbNewADRLIST(cUsers), (void **)&lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(cUsers), &~lpAdrList);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -851,9 +851,6 @@ next:
 	hr = hrSuccess;
 
 exit:
-	if (lpAdrList)
-		FreePadrlist(lpAdrList);
-	
 	if (lppFBData) {
 		for (ULONG i = 0; i < cUsers; ++i)
 			if (lppFBData[i])

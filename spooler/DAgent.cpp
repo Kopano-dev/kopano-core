@@ -653,7 +653,7 @@ static HRESULT OpenResolveAddrFolder(IMAPISession *lpSession,
 static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 {
 	HRESULT hr = hrSuccess;
-	LPADRLIST lpAdrList	= NULL;   
+	adrlist_ptr lpAdrList;
 	memory_ptr<FlagList> lpFlagList;
 	static constexpr const SizedSPropTagArray(13, sptaAddress) = {13,
 	{ PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ACCOUNT_W, PR_SMTP_ADDRESS_A,
@@ -680,7 +680,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 
 	ULONG ulRCPT = lRCPT->size();
 
-	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRCPT), (void **) &lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRCPT), &~lpAdrList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveUsers(): MAPIAllocateBuffer failed(1) %x", hr);
 		goto exit;
@@ -811,8 +811,6 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	}
 
 exit:
-	if(lpAdrList)
-		FreeProws((LPSRowSet)lpAdrList);
 	return hr;
 }
 

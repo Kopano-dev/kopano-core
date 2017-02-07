@@ -547,12 +547,12 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
     ULONG ulFlag, LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	LPADRLIST lpRecipients = NULL;
+	adrlist_ptr lpRecipients;
 	std::string strSearch;
 	ULONG i = 0;
 	convert_context converter;
 
-	hr = MAPIAllocateBuffer(CbNewADRLIST(lplstRecip->size()), (void**)&lpRecipients);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(lplstRecip->size()), &~lpRecipients);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -614,9 +614,6 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		goto exit;
 
 exit:
-	if (lpRecipients)
-		FreePadrlist(lpRecipients);
-
 	return hr;
 }
 

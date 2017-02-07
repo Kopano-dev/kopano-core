@@ -1273,13 +1273,13 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     std::wstring &strSMTPAddress)
 {
     HRESULT hr = hrSuccess;
-    LPADRLIST lpAdrList = NULL;
+	adrlist_ptr lpAdrList;
 	const SPropValue *lpEntryID = NULL;
     ULONG ulType = 0;
 	object_ptr<IMAPIProp> lpMailUser;
 	memory_ptr<SPropValue> lpSMTPAddress, lpEmailAddress;
      
-    hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void **)&lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAdrList);
     if(hr != hrSuccess)
         goto exit;
     
@@ -1337,8 +1337,6 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     }
     
 exit:
-	if (lpAdrList)
-		FreePadrlist(lpAdrList);
 	return hr;
 }
 

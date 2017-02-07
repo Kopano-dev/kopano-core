@@ -848,13 +848,13 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
     LPADRLIST *lppAddrList)
 {
 	HRESULT hr = hrSuccess;
-	LPADRLIST lpAddrList = NULL;
+	adrlist_ptr lpAddrList;
 	ULONG cbUserEntryid = 0;
 	memory_ptr<ENTRYID> lpUserEntryid;
 	ULONG cbUserSearchKey = 0;
 	memory_ptr<unsigned char> lpUserSearchKey;
 
-	hr = MAPIAllocateBuffer(CbNewADRLIST(cToUsers), (void**)&lpAddrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(cToUsers), &~lpAddrList);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -917,12 +917,8 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 			   lpUserSearchKey, cbUserSearchKey);
 	}
 
-	*lppAddrList = lpAddrList;
-
+	*lppAddrList = lpAddrList.release();
 exit:		
-	if (hr != hrSuccess && lpAddrList)
-		FreePadrlist(lpAddrList);
-
 	return hr;
 }
 
@@ -1154,7 +1150,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 	MessagePtr ptrQuotaTSMessage;
 	bool bTimeout;
 	memory_ptr<SPropValue> lpsObject;
-	LPADRLIST lpAddrList = NULL;
+	adrlist_ptr lpAddrList;
 	memory_ptr<ECUSER> lpecFromUser, lpToUsers;
 	ULONG cToUsers = 0;
 	memory_ptr<ECQUOTA> lpecQuota;
@@ -1215,8 +1211,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 	hr = lpServiceAdmin->GetQuotaRecipients(cbUserId, lpUserId, 0, &cToUsers, &~lpToUsers);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = CreateRecipientList(cToUsers, lpToUsers, &lpAddrList);
+	hr = CreateRecipientList(cToUsers, lpToUsers, &~lpAddrList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1243,7 +1238,5 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to update last mail quota timestamp: 0x%08X", hr);
 
 exit:
-	if (lpAddrList)
-		FreePadrlist(lpAddrList);
 	return hr;
 }

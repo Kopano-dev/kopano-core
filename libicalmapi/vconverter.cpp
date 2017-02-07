@@ -333,7 +333,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpUsrEidProp;
-	LPADRLIST lpAdrList	= NULL;	
+	adrlist_ptr lpAdrList;
 	memory_ptr<ENTRYID> lpDDEntryID;
 	ULONG cbDDEntryID;
 	object_ptr<IABContainer> lpAddrFolder;
@@ -357,7 +357,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 		goto exit;
 
 	lpFlagList->cFlags = ulRecpCnt;
-	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRecpCnt), (void **) &lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRecpCnt), &~lpAdrList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -432,8 +432,6 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	}
 
 exit:
-	if (lpAdrList)
-		FreeProws((LPSRowSet)lpAdrList);
 	return hr;
 }
 

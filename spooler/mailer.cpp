@@ -684,7 +684,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	object_ptr<IMessage> lpOriginalMessage;
 	ULONG			cValuesOriginal = 0;
 	unsigned int	ulPropModsPos;
-	LPADRLIST		lpMods = NULL;
 	object_ptr<IMAPITable> lpTableMods;
 	ULONG			ulRows = 0;
 	ULONG			cEntries = 0;
@@ -1062,7 +1061,8 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		// Only some recipients failed, so add only failed recipients to the MDN message. This causes
 		// resends only to go to those recipients. This means we should add all error recipients to the
 		// recipient list of the MDN message. 
-		hr = MAPIAllocateBuffer(CbNewADRLIST(temporaryFailedRecipients.size()), reinterpret_cast<void **>(&lpMods));
+		adrlist_ptr lpMods;
+		hr = MAPIAllocateBuffer(CbNewADRLIST(temporaryFailedRecipients.size()), &~lpMods);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1140,8 +1140,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to send 'New Mail' notification, error code: 0x%08X", hr);
 
 exit:
-	if(lpMods)
-		FreePadrlist(lpMods);
 	return hr;
 }
 
@@ -1261,7 +1259,7 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 {
 	HRESULT hr = hrSuccess;
 	wstring wstrName, wstrType, wstrEmailAddress;
-	LPADRLIST lpAList = NULL;
+	adrlist_ptr lpAList;
 	const SPropValue *lpSpoofEID;
 	LPENTRYID lpSpoofBin = NULL;
 
@@ -1269,7 +1267,8 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 	// we then always should have yourself as the sender, otherwise: denied
 	if (ECParseOneOff(lpSMTPEID, ulSMTPEID, wstrName, wstrType, wstrEmailAddress) != hrSuccess)
 		return MAPI_E_NOT_FOUND;
-	if ((hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void**)&lpAList)) != hrSuccess)
+	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAList);
+	if (hr != hrSuccess)
 		goto exit;
 	lpAList->cEntries = 1;
 	lpAList->aEntries[0].cValues = 1;
@@ -1297,8 +1296,6 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 	*eidp = lpSpoofBin;
 	*eid_size = lpSpoofEID->Value.bin.cb;
 exit:
-	if (lpAList)
-		FreePadrlist(lpAList);
 	return hr;
 }
 

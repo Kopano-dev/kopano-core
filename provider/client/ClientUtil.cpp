@@ -242,7 +242,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	LPTSTR			lpReportText = NULL;
 	LPTSTR			lpReadText = NULL;
 	FILETIME		ft;	
-	LPADRLIST		lpMods = NULL;
+	adrlist_ptr lpMods;
 	std::wstring	strName;
 	std::wstring	strType;
 	std::wstring	strAddress;
@@ -574,8 +574,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	hr = lpBodyStream->Commit( 0 );//0 = STGC_DEFAULT
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void**)&lpMods);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpMods);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -624,9 +623,6 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		goto exit;
 
 exit:
-	if(lpMods)
-		FreePadrlist(lpMods);	
-
     return hr;
 }
 
