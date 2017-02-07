@@ -1777,12 +1777,12 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
 	hr = this->OpenEntry(0, nullptr, &IID_IABContainer, 0, &ulObjType, &~lpRoot);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::getDefaultSearchPath(): OpenEntry fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 	hr = lpRoot->GetHierarchyTable((ulFlags & MAPI_UNICODE) | CONVENIENT_DEPTH, &~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::getDefaultSearchPath(): GetHierarchyTable fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	// We add this restriction to filter out All Address Lists
@@ -1800,16 +1800,12 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
 	hr = cRes.RestrictTable(lpTable, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::getDefaultSearchPath(): Restrict fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	hr = lpTable->QueryRows(-1, 0, lppSearchPath);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		ec_log_err("M4LAddrBook::getDefaultSearchPath(): QueryRows fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
-	}
-
-exit:
 	return hr;
 }
 

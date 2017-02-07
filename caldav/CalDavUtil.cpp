@@ -490,12 +490,12 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolder,
 		hr = lpSession->OpenEntry(lpsbEid->cb, reinterpret_cast<ENTRYID *>(lpsbEid->lpb),
 		     nullptr, MAPI_BEST_ACCESS, &ulObjType, &~local_fld);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	hr = lpFolder->GetHierarchyTable(CONVENIENT_DEPTH,&lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sPropVal.ulPropTag = PR_CONTAINER_CLASS_A;
 	sPropVal.Value.lpszA = const_cast<char *>("IPF.Appointment");
@@ -504,11 +504,9 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolder,
 	rst += ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal, ECRestriction::Shallow);
 	hr = rst.RestrictTable(lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppTable = lpTable;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

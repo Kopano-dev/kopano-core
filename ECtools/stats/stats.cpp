@@ -602,7 +602,7 @@ int main(int argc, char *argv[])
 	hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		cerr << "Cannot init mapi" << endl;
-		goto exit;
+		return EXIT_FAILURE;
 	}
 	
 	if(user) {
@@ -621,17 +621,16 @@ int main(int argc, char *argv[])
 	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
 	if (hr != hrSuccess) {
 		cout << "Cannot open admin session on host " << (host ? host : "localhost") << ", username " << (user ? user : "SYSTEM") << endl;
-		goto exit;
+		return EXIT_FAILURE;
 	}
 	hr = HrOpenDefaultStore(lpSession, &~lpStore);
 	if (hr != hrSuccess) {
 		cout << "Unable to open default store" << endl;
-		goto exit;
+		return EXIT_FAILURE;
 	}
 	if (eTable == SESSION_TOP)
 		showtop(lpStore);
 	else
 		dumptable(eTable, lpStore, humanreadable);
-exit:
-	return hr != hrSuccess;
+	return EXIT_SUCCESS;
 }
