@@ -513,7 +513,7 @@ static HRESULT kc_send_fwdabort_notice(KCHL::KStore &&store, const char *addr)
  * @return MAPI error code
  */
 static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
-    IMAPIProp *lpMessage, ADRLIST *lpRuleRecipients, bool bOpDelegate,
+    IMAPIProp *lpMessage, const ADRLIST *lpRuleRecipients, bool bOpDelegate,
     bool bIncludeAsP1, ADRLIST **lppNewRecipients)
 {
 	HRESULT hr = hrSuccess;
@@ -604,7 +604,7 @@ exit:
 }
 
 static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
-    IMessage *lpOrigMessage, LPADRLIST lpRuleRecipients,
+    IMessage *lpOrigMessage, const ADRLIST *lpRecipients,
     bool bOpDelegate, bool bDoPreserveSender, bool bDoNotMunge,
     bool bForwardAsAttachment, IMessage **lppMessage)
 {
@@ -612,7 +612,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	LPMESSAGE lpFwdMsg = NULL;
 	memory_ptr<SPropValue> lpSentMailEntryID, lpOrigSubject;
 	memory_ptr<SPropTagArray> lpExclude;
-	LPADRLIST lpRecipients = NULL;
+	ADRLIST *filtered_recips = nullptr;
 	ULONG ulANr = 0;
 	static constexpr const SizedSPropTagArray(10, sExcludeFromCopyForward) = {10, {
 		PR_TRANSPORT_MESSAGE_HEADERS,
@@ -638,23 +638,22 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	ULONG cfp = 0;
 	wstring strSubject;
 
-	if (lpRuleRecipients == NULL || lpRuleRecipients->cEntries == 0) {
+	if (lpRecipients == NULL || lpRecipients->cEntries == 0) {
 		ec_log_crit("No rule recipient");
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exitpm;
 	}
 
-	hr = CheckRecipients(lpAdrBook, lpOrigStore, lpOrigMessage, lpRuleRecipients,
-	     bOpDelegate, bDoNotMunge, &lpRecipients);
+	hr = CheckRecipients(lpAdrBook, lpOrigStore, lpOrigMessage, lpRecipients,
+	     bOpDelegate, bDoNotMunge, &filtered_recips);
 	if (hr == MAPI_E_NO_ACCESS) {
 		ec_log_info("K-1904: Forwarding not permitted. Ending rule processing.");
 		goto exitpm;
 	}
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 		goto exitpm;
-	if (hr != hrSuccess)
-		// use rule recipients without filter
-		lpRecipients = lpRuleRecipients;
+	if (hr == hrSuccess)
+		lpRecipients = filtered_recips;
 	hr = HrGetOneProp(lpOrigStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentMailEntryID);
 	if (hr != hrSuccess)
 		goto exitpm;
@@ -773,8 +772,8 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 
 	*lppMessage = lpFwdMsg;
  exitpm:
-	if (lpRecipients && lpRecipients != lpRuleRecipients)
-		FreeProws((LPSRowSet)lpRecipients);
+	if (filtered_recips != nullptr)
+		FreePadrlist(filtered_recips);
 	return hr;
 }
 
