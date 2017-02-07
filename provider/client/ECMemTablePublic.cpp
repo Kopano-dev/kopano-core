@@ -192,7 +192,6 @@ static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
 
 HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpShortcutFolder;
 	object_ptr<IMAPITable> lpShortcutTable;
 	memory_ptr<SPropValue> lpPropTmp;
@@ -202,13 +201,12 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 
 	// Get the messages to build a folder list
 	if (((ECMsgStorePublic *)m_lpECParentFolder->GetMsgStore())->GetDefaultShortcutFolder(&~lpShortcutFolder) == hrSuccess) {
-		hr = lpShortcutFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &~lpShortcutTable);
+		HRESULT hr = lpShortcutFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &~lpShortcutTable);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpShortcutTable->SetColumns(GetShortCutTagArray(), MAPI_DEFERRED_ERRORS);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// build restriction
 		if (HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropTmp) != hrSuccess)
@@ -217,11 +215,11 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 		}else {
 			hr = HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropTmp);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp, ECRestriction::Cheap).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
 		}
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	
 		// No advise needed because the client disable notifications
 		// If you remove this check the webaccess favorites doesn't work.
@@ -230,12 +228,12 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 
 			hr = HrAllocAdviseSink(AdviseShortCutCallback, this, &m_lpShortCutAdviseSink);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			// NOTE: the advise will destruct at release time
 			hr = lpShortcutTable->Advise(fnevTableModified, m_lpShortCutAdviseSink, &ulConnection);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		while(true)
@@ -243,7 +241,7 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 			rowset_ptr lpRows;
 			hr = lpShortcutTable->QueryRows(1, 0, &~lpRows);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			if (lpRows->cRows == 0)
 				break;
@@ -253,11 +251,9 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 
 		hr = lpShortcutTable->QueryInterface(IID_IMAPITable, (void **)&m_lpShortcutTable);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /*

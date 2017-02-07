@@ -1838,14 +1838,13 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 					  PR_SENDER_ENTRYID, PR_SENDER_NAME, PR_SENDER_ADDRTYPE, PR_SENDER_EMAIL_ADDRESS,
 					  strSenderName, strSenderType, strSenderEmailAddr);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// get class to find method and type for attendees and organizer
 	lpPropVal = PCpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS_W);
-	if (lpPropVal == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpPropVal == nullptr)
+		return MAPI_E_NOT_FOUND;
+
 	strMessageClass = m_converter.convert_to<std::string>(lpPropVal->Value.lpszW);
 
 	// Set attendee info
@@ -1890,25 +1889,23 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 		// Organizer should be the only MAPI_TO entry
 		hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTable);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		rowset_ptr lpRows;
 		hr = lpTable->QueryRows(-1, 0, &~lpRows);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		
 		// The response should only be sent to the organizer (@todo restrict on MAPI_TO ? ...)
-		if (lpRows->cRows != 1) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
+		if (lpRows->cRows != 1)
+			return MAPI_E_CALL_FAILED;
 
 		// @todo: use correct index number?
 		hr = HrGetAddress(m_lpAdrBook, lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues,
 		     PR_ENTRYID, PR_DISPLAY_NAME, PR_ADDRTYPE, PR_EMAIL_ADDRESS,
 		     strReceiverName, strReceiverType, strReceiverEmailAddr);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		wstrBuf = L"mailto:" + strReceiverEmailAddr;
 		lpicProp = icalproperty_new_organizer(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str());
@@ -1950,7 +1947,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			// meeting action, add all attendees, request reply when needed
 			hr = HrSetICalAttendees(lpMessage, strSenderEmailAddr, lpicEvent);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			//Set this property to force thunderbird to send invitations mails.
 			lpPropVal = PCpropFindProp (lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZSENDINVITE], PT_BOOLEAN));
@@ -1982,9 +1979,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	}
 
 	*lpicMethod = icMethod;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -2074,13 +2069,13 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(sptaRecipProps, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->QueryRows(-1, 0, &~lpRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	// Set all recipients into icalcomponent lpicEvent
 	for (ulCount = 0; ulCount < lpRows->cRows; ++ulCount) {
@@ -2145,8 +2140,6 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 
 		icalcomponent_add_property(lpicEvent, lpProp);
 	}
-
-exit:
 	return hr;
 }
 
@@ -2981,7 +2974,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 
 	hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// restrict to only exception attachments
 	hr = ECAndRestriction(
@@ -2991,36 +2984,28 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod, ECRestriction::Cheap)
 	).RestrictTable(lpAttachTable, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// should result in 1 attachment
 	hr = lpAttachTable->QueryRows(-1, 0, &~lpRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-	if (lpRows->cRows == 0) {
+	if (lpRows->cRows == 0)
 		// if this is a cancel message, no exceptions are present, so ignore.
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return MAPI_E_NOT_FOUND;
 
 	lpPropVal = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ATTACH_NUM);
-	if (lpPropVal == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpPropVal == nullptr)
+		return MAPI_E_NOT_FOUND;
 	hr = lpMessage->OpenAttach(lpPropVal->Value.ul, nullptr, 0, &~lpAttach);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, 0, (LPUNKNOWN *)&lpAttachedMessage);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lppMessage = lpAttachedMessage;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

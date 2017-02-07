@@ -1315,7 +1315,7 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Cannot allocate memory");
-		goto exit;
+		return hr;
 	}
 
 	ulPropTagFldId = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_FLDID], PT_UNICODE);
@@ -1332,23 +1332,23 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 		hr = m_lpUsrFld->GetProps(lpPropTagArr, 0, reinterpret_cast<ULONG *>(&cbsize), &~lpsPropSingleFld);
 		if (FAILED(hr)) {
 			ec_log_debug("CalDAV::HrListCalendar GetProps failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-			goto exit;
+			return hr;
 		}
 
 		hr = HrMapValtoStruct(m_lpUsrFld, lpsPropSingleFld, cbsize, NULL, 0, true, &lpsDavProp->lstProps, &sDavResponse);
 		if (hr != hrSuccess) {
 			ec_log_debug("CalDAV::HrListCalendar HrMapValtoStruct failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-			goto exit;
+			return hr;
 		}
 
 		lpsMulStatus->lstResp.push_back(sDavResponse);
-		goto exit;
+		return hr;
 	}
 
 	hr = HrGetSubCalendars(m_lpSession, m_lpIPMSubtree, nullptr, &~lpHichyTable);
 	if (hr != hrSuccess) {
 		ec_log_err("Error retrieving subcalendars for IPM_Subtree, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	// public definitly doesn't have a wastebasket to filter
@@ -1381,14 +1381,14 @@ nowaste:
 	hr = lpHichyTable->SetColumns(lpPropTagArr, 0);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrListCalendar SetColumns failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	if (lpDelHichyTable) {
 		hr = lpDelHichyTable->SetColumns(lpPropTagArr, 0);
 		if (hr != hrSuccess) {
 			ec_log_debug("CalDAV::HrListCalendar SetColumns(2) failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -1446,8 +1446,6 @@ nowaste:
 			sDavResponse.lstsPropStat.clear();
 		}
 	}
-
-exit:
 	return hr;
 }
 

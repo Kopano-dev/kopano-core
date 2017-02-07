@@ -1588,7 +1588,7 @@ HRESULT ECMessage::SyncRecips()
 	if (this->lpRecips) {
 		hr = GetRecipientTable(fMapiUnicode, &~lpTable);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = lpTable->SetColumns(sPropDisplay, 0);
 		while (TRUE) {
 			rowset_ptr lpRows;
@@ -1639,8 +1639,6 @@ HRESULT ECMessage::SyncRecips()
 	}
 
 	m_bRecipsDirty = FALSE;
-
-exit:
 	return hr;
 }
 

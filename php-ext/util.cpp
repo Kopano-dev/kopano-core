@@ -49,7 +49,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
 	if(hr != hrSuccess) {
 		last_error = "Unable to get IProfAdmin object";
-		goto exit;
+		return hr;
 	}
 
 	lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
@@ -59,14 +59,14 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 
 	if(hr != hrSuccess) {
 		last_error = "Unable to create new profile";
-		goto exit;
+		return hr;
 	}
 
 	// Get the services admin object
 	hr = lpProfAdmin->AdminServices((LPTSTR)szProfName, (LPTSTR)"", 0, 0, &~lpServiceAdmin);
 	if(hr != hrSuccess) {
 		last_error = "Unable to administer new profile";
-		goto exit;
+		return hr;
 	}
 
 	// Create a message service (provider) for the szServiceName (see mapisvc.inf) service
@@ -75,7 +75,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	
 	if(hr != hrSuccess) {
 		last_error = "Service unavailable";
-		goto exit;
+		return hr;
 	}
 
 	// optional, ignore error
@@ -87,12 +87,12 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	hr = lpServiceAdmin->GetMsgServiceTable(0, &~lpTable);
 	if(hr != hrSuccess) {
 		last_error = "Service table unavailable";
-		goto exit;
+		return hr;
 	}
 	hr = lpTable->SetColumns(sptaMsgServiceCols, 0);
 	if(hr != hrSuccess) {
 		last_error = "Unable to set columns on service table";
-		goto exit;
+		return hr;
 	}
 
 	// Find the correct row
@@ -100,7 +100,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 		hr = lpTable->QueryRows(1, 0, &~lpRows);
 		if(hr != hrSuccess || lpRows->cRows != 1) {
 			last_error = "Unable to read service table";
-			goto exit;
+			return hr;
 		}
 
 		auto lpServiceName = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_NAME_A);
@@ -111,20 +111,14 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	// Get the PR_SERVICE_UID from the row
 	lpServiceUID = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_UID);
 	if(!lpServiceUID) {
-		hr = MAPI_E_NOT_FOUND;
 		last_error = "Unable to find service UID";
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	// Configure the message service
 	hr = lpServiceAdmin->ConfigureMsgService((MAPIUID *)lpServiceUID->Value.bin.lpb, 0, 0, cValues, lpPropVals);
-
-	if(hr != hrSuccess) {
+	if (hr != hrSuccess)
 		last_error = "Unable to setup service for provider";
-		goto exit;
-	}
-
-exit:
 	return hr;
 }
 

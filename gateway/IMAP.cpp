@@ -3253,16 +3253,14 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 	memory_ptr<SPropValue> lpFolderIDs;
 	ULONG cValues;
 
-	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	if (strCurrentFolder.empty() || lpSession == nullptr)
+		return MAPI_E_CALL_FAILED;
 	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpFolder->GetProps(sPropsFolderIDs, 0, &cValues, &~lpFolderIDs);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	if (lpFolderIDs[0].ulPropTag == PR_EC_IMAP_MAX_ID)
         ulMaxUID = lpFolderIDs[0].Value.ul;
@@ -3273,13 +3271,13 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 		*lpulUIDValidity = lpFolderIDs[1].Value.ul;
 	hr = lpFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(spt, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SortTable(sSortUID, TBL_BATCH);
-    if (hr != hrSuccess)
-        goto exit;
+	if (hr != hrSuccess)
+		return hr;
 
     // Remember UIDs if needed
     if(!bInitialLoad)
@@ -3296,8 +3294,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 		rowset_ptr lpRows;
 		hr = lpTable->QueryRows(ROWS_PER_REQUEST, 0, &~lpRows);
 		if (hr != hrSuccess)
-            goto exit;
-            
+			return hr;
         if(lpRows->cRows == 0)
             break;
             
@@ -3343,7 +3340,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 				else
 					hr = HrResponse(RESP_UNTAGGED, stringify(iterUID->second+1) + " FETCH (FLAGS (" + strFlags + "))");
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 				lstFolderMailEIDs[iterUID->second].strFlags = strFlags;
 			}
 			// We already had this message, remove it from setUIDs
@@ -3358,7 +3355,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
         if (mapUIDs.find(lstFolderMailEIDs[ulMailnr].ulUid) != mapUIDs.cend()) {
             hr = HrResponse(RESP_UNTAGGED, stringify(ulMailnr+1) + " EXPUNGE");
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
             lstFolderMailEIDs.erase(lstFolderMailEIDs.begin() + ulMailnr);
             continue;
         }
@@ -3371,10 +3368,10 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
     if (bNewMail || bInitialLoad) {
         hr = HrResponse(RESP_UNTAGGED, stringify(lstFolderMailEIDs.size()) + " EXISTS");
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = HrResponse(RESP_UNTAGGED, stringify(ulRecent) + " RECENT");
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
     }
 
 	sort(lstFolderMailEIDs.begin(), lstFolderMailEIDs.end());
@@ -3385,12 +3382,9 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
     	sPropMax.Value.ul = m_ulLastUid;
     	HrSetOneProp(lpFolder, &sPropMax);
     }
-    
-    if(lpulUnseen)
-        *lpulUnseen = ulUnseen;
-
-exit:
-	return hr;
+	if (lpulUnseen)
+		*lpulUnseen = ulUnseen;
+	return hrSuccess;
 }
 
 /** 
@@ -3542,7 +3536,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, c
 
 		folders.push_front(folder);
 	}
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -3622,10 +3616,8 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 	bool bMarkAsRead = false;
 	memory_ptr<ENTRYLIST> lpEntryList;
 
-	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	if (strCurrentFolder.empty() || lpSession == nullptr)
+		return MAPI_E_CALL_FAILED;
 
 	// Setup the readahead length
 	ulReadAhead = lstMails.size() > ROWS_PER_REQUEST ? ROWS_PER_REQUEST : lstMails.size();
@@ -3684,11 +3676,10 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 
 		hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = MAPIAllocateMore(lstMails.size()*sizeof(SBinary), lpEntryList, (void**)&lpEntryList->lpbin);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		lpEntryList->cValues = 0;
 	}
@@ -3699,7 +3690,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
         // Build an LPSPropTagArray
         hr = MAPIAllocateBuffer(CbNewSPropTagArray(setProps.size() + 1), &~lpPropTags);
         if(hr != hrSuccess)
-            goto exit;
+			return hr;
 
         // Always get UID
         lpPropTags->aulPropTag[0] = PR_INSTANCE_KEY;
@@ -3711,36 +3702,36 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
         // Open the folder in question
         hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
         if (hr != hrSuccess)
-            goto exit;
+			return hr;
 
         // Don't let the server cap the contents to 255 bytes, so our PR_TRANSPORT_MESSAGE_HEADERS is complete in the table
         hr = lpFolder->GetContentsTable(EC_TABLE_NOCAP | MAPI_DEFERRED_ERRORS, &m_lpTable);
         if (hr != hrSuccess)
-            goto exit;
+			return hr;
 
         // Request our columns
         hr = m_lpTable->SetColumns(lpPropTags, TBL_BATCH);
         if (hr != hrSuccess)
-            goto exit;
+			return hr;
             
         // Messages are usually requested in UID order, so sort the table in UID order too. This improves
         // the row prefetch hit ratio.
         hr = m_lpTable->SortTable(sSortUID, TBL_BATCH);
         if(hr != hrSuccess)
-            goto exit;
+			return hr;
 
 		m_vTableDataColumns = lstDataItems;
     } else if (bMarkAsRead) {
         // we need the folder to mark mails as read
         hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
         if (hr != hrSuccess)
-            goto exit;
+			return hr;
     }
 
 	if (m_lpTable) {
 		hr = m_lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// Setup a find restriction that we modify for each row
@@ -3812,7 +3803,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
         } else {
             hr = HrResponse(RESP_UNTAGGED, strResponse);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
         }
 	}
 
@@ -3820,10 +3811,8 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		// mark unread messages as read
 		hr = lpFolder->SetReadFlags(lpEntryList, 0, NULL, SUPPRESS_RECEIPT);
 		if (FAILED(hr))
-			goto exit;
+			return hr;
 	}
-
-exit:
 	return hr;
 }
 
@@ -4318,10 +4307,8 @@ HRESULT IMAP::HrGetMessageEnvelope(string &strResponse, LPMESSAGE lpMessage) {
 		{5, {PR_EMAIL_ADDRESS_A, PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE,
 		PR_ADDRTYPE_W, PR_ENTRYID}};
 
-	if (!lpMessage) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	if (lpMessage == nullptr)
+		return MAPI_E_CALL_FAILED;
 
 	// Get the outgoing charset we want to be using
 	// @todo, add gateway force_utf8 option
@@ -4395,9 +4382,7 @@ recipientsdone:
 		strResponse += "NIL";
 
 	strResponse += ")";
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -5542,10 +5527,9 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 	rowset_ptr lpRows;
 	hr = HrQueryAllRows(lpTable, spt, classic_rst, nullptr, 0, &~lpRows);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpRows->cRows == 0)
-		goto exit;
+		return hrSuccess;
 
     for (ulRownr = 0; ulRownr < lpRows->cRows; ++ulRownr) {
 		auto iterUID = mapUIDs.find(lpRows->aRow[ulRownr].lpProps[0].Value.ul);
@@ -5557,9 +5541,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
     }
 
 	lstMailnr.sort();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -6227,32 +6209,24 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
 
 	rowset_ptr lpRowSet;
 	hr = lpTable->QueryRows(1, 0, &~lpRowSet);
-    if(hr != hrSuccess)
-        goto exit;
-        
-    if(lpRowSet->cRows == 0) {
-        hr = MAPI_E_NOT_FOUND;
-        goto exit;
-    }
-    
-    if(lpRowSet->aRow[0].lpProps[0].ulPropTag != PR_ENTRYID) {
-        hr = MAPI_E_INVALID_PARAMETER;
-        goto exit;
-    }
+	if (hr != hrSuccess)
+		return hr;
+	if (lpRowSet->cRows == 0)
+		return MAPI_E_NOT_FOUND;
+	if (lpRowSet->aRow[0].lpProps[0].ulPropTag != PR_ENTRYID)
+		return MAPI_E_INVALID_PARAMETER;
     
     cbEntryID = lpRowSet->aRow[0].lpProps[0].Value.bin.cb;
 
     hr = MAPIAllocateBuffer(cbEntryID, (void **)&lpEntryID);
     if(hr != hrSuccess)
-        goto exit;
+		return hr;
         
     memcpy(lpEntryID, lpRowSet->aRow[0].lpProps[0].Value.bin.lpb, cbEntryID);
     
     *lppEntryID = lpEntryID;
     *lpcbEntryID = cbEntryID;
-    
-exit:
-    return hr;
+	return hrSuccess;
 }
 
 /**

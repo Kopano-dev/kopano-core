@@ -184,7 +184,7 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 	HRESULT hr = lpFolder->GetContentsTable(0, &~lpTable);
  	if(hr != hrSuccess) {
 		cout << "Failed to open Folder table." << endl;
-		goto exit;
+		return hr;
 	}
 
 	/*
@@ -193,10 +193,10 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 	hr = lpTable->GetRowCount(0, &ulCount);
 	if(hr != hrSuccess) {
 		cout << "Failed to count number of rows." << endl;
-		goto exit;
+		return hr;
 	} else if (!ulCount) {
 		cout << "No entries inside folder." << endl;
-		goto exit;
+		return hr;
 	}
 
 	/*
@@ -206,8 +206,7 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 		rowset_ptr lpRows;
 		hr = lpTable->QueryRows(20, 0, &~lpRows);
 		if (hr != hrSuccess)
-			break;
-
+			return hr;
 		if (lpRows->cRows == 0)
 			break;
 
@@ -219,9 +218,7 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 			}
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /*
@@ -345,24 +342,21 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 
 	hr = lpMessage->GetAttachmentTable(0, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->GetRowCount(0, &cRows);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (cRows == 0)
 		goto message;
 	hr = lpTable->SetColumns(sptaProps, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (true) {
 		rowset_ptr pRows;
 		hr = lpTable->QueryRows(50, 0, &~pRows);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (pRows->cRows == 0)
 			break;
 
@@ -376,17 +370,17 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 			bSubChanged = false;
 			hr = lpMessage->OpenAttach(pRows->aRow[i].lpProps[0].Value.ul, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_MODIFY, &~lpSubMessage);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = ValidateRecursiveDuplicateRecipients(lpSubMessage, bSubChanged);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			if (bSubChanged) {
 				hr = lpAttach->SaveChanges(KEEP_OPEN_READWRITE);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 				bChanged = bSubChanged;
 			}
 		}
@@ -395,13 +389,10 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 message:
 	hr = ValidateDuplicateRecipients(lpMessage, bChanged);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (bChanged)
 		lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
@@ -418,25 +409,22 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 
 	HRESULT hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->GetRowCount(0, &cRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	if (cRows < 1)
 		// 0 or 1 row not needed to check
-		goto exit;
-
+		return hr;
 	hr = lpTable->SetColumns(sptaProps, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (true) {
 		rowset_ptr pRows;
 		hr = lpTable->QueryRows(50, 0, &~pRows);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (pRows->cRows == 0)
 			break;
 
@@ -467,7 +455,6 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 	// modify
 	if (!mapiReciptDel.empty())
 		hr = DeleteRecipientList(lpMessage, mapiReciptDel, bChanged);
-exit:
 	return hr;
 }
 

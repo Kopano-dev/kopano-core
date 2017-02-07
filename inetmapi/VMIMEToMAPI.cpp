@@ -262,7 +262,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 		hr = fillMAPIMail(vmMessage, lpMessage);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if (m_mailState.bAttachSignature && !m_dopt.parse_smime_signed) {
 			static constexpr const SizedSPropTagArray(2, sptaAttach) =
@@ -272,16 +272,17 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			
 			hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
+
 			rowset_ptr lpAttachRows;
 			hr = HrQueryAllRows(lpAttachTable, sptaAttach, nullptr, nullptr, -1, &~lpAttachRows);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 				
 			for (unsigned int i = 0; i < lpAttachRows->cRows; ++i) {
 				hr = lpMessage->DeleteAttach(lpAttachRows->aRow[i].lpProps[0].Value.ul, 0, NULL, 0);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 			
 			// Include the entire RFC 2822 data in an attachment for the client to check
@@ -289,13 +290,13 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			object_ptr<IAttach> lpAtt;
 			hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~lpAtt);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			// open stream
 			hr = lpAtt->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED,
 			     MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			outputStreamMAPIAdapter os(lpStream);
 			// get the content-type string from the headers
@@ -307,7 +308,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 				os.write(input.c_str() + posHeaderEnd, input.size() - posHeaderEnd);
 			hr = lpStream->Commit(0);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			attProps[nProps].ulPropTag = PR_ATTACH_METHOD;
 			attProps[nProps++].Value.ul = ATTACH_BY_VALUE;
@@ -319,11 +320,10 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 			hr = lpAtt->SetProps(nProps, attProps, NULL);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpAtt->SaveChanges(0);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 				
 			// saved, so mark the message so outlook knows how to find the encoded message
 			sPropSMIMEClass.ulPropTag = PR_MESSAGE_CLASS_W;
@@ -332,7 +332,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			hr = lpMessage->SetProps(1, &sPropSMIMEClass, NULL);
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to set message class");
-				goto exit;
+				return hr;
 			}
 		}
 
@@ -350,38 +350,29 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			sNameID.Kind.lID = dispidSmartNoAttach;
 
 			hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTag);
-			if (hr != hrSuccess) {
-				hr = hrSuccess;
-				goto exit;
-			}
+			if (hr != hrSuccess)
+				return hrSuccess;
 
 			attProps[0].ulPropTag = CHANGE_PROP_TYPE(lpPropTag->aulPropTag[0], PT_BOOLEAN);
 			attProps[0].Value.b = TRUE;
 			hr = lpMessage->SetProps(1, attProps, NULL);
-			if (hr != hrSuccess) {
-				hr = hrSuccess;
-				goto exit;
-			}
+			if (hr != hrSuccess)
+				return hrSuccess;
 		}
 	}
 	catch (vmime::exception& e) {
 		ec_log_err("VMIME exception: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	catch (std::exception& e) {
 		ec_log_err("STD exception: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	catch (...) {
 		ec_log_err("Unknown generic exception occurred");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

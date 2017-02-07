@@ -972,7 +972,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		auto lpRuleState = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_STATE);
 		if (lpRuleState != nullptr && !(lpRuleState->Value.i & ST_ENABLED)) {
 			ec_log_debug("Rule '%s' is disabled, skipping...", strRule.c_str());
-			goto nextrule;		// rule is disabled
+			continue;
 		}
 
 		lpCondition = NULL;
@@ -984,7 +984,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			lpCondition = (LPSRestriction)lpProp->Value.lpszA;
 		if (!lpCondition) {
 			ec_log_debug("Rule '%s' has no contition, skipping...", strRule.c_str());
-			goto nextrule;
+			continue;
 		}
 
 		lpProp = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_ACTIONS);
@@ -993,7 +993,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			lpActions = (ACTIONS*)lpProp->Value.lpszA;
 		if (!lpActions) {
 			ec_log_debug("Rule '%s' has no action, skipping...", strRule.c_str());
-			goto nextrule;
+			continue;
 		}
 		
 		// test if action should be done...
@@ -1001,7 +1001,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		hr = TestRestriction(lpCondition, *lppMessage, createLocaleFromName(""));
 		if (hr != hrSuccess) {
 			ec_log_info("Rule %s doesn't match: 0x%08x", strRule.c_str(), hr);
-			goto nextrule;
+			continue;
 		}	
 
 		ec_log_info((std::string)"Rule " + strRule + " matches");
@@ -1198,9 +1198,6 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 
 		if (lpRuleState && (lpRuleState->Value.i & ST_EXIT_LEVEL))
 			break;
-
-nextrule:
-		;
 	}
 
 	if (bAddFwdFlag) {

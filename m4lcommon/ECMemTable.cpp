@@ -520,7 +520,7 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 
 	hr = MAPIAllocateBuffer(sizeof(NOTIFICATION), &~lpNotification);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memset(lpNotification, 0, sizeof(NOTIFICATION));
 
@@ -535,8 +535,7 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 		lpNotification->info.tab.propPrior.Value.bin.cb = sizeof(ULONG)*2;
 		hr = MAPIAllocateMore(lpNotification->info.tab.propPrior.Value.bin.cb, lpNotification, (void**)&lpNotification->info.tab.propPrior.Value.bin.lpb);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		memcpy(lpNotification->info.tab.propPrior.Value.bin.lpb, &lpsPrevRow->ulObjId, sizeof(ULONG));
 		memcpy(lpNotification->info.tab.propPrior.Value.bin.lpb+sizeof(ULONG), &lpsPrevRow->ulOrderId, sizeof(ULONG));
 
@@ -549,8 +548,7 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 		lpNotification->info.tab.propIndex.Value.bin.cb = sizeof(ULONG)*2;
 		hr = MAPIAllocateMore(lpNotification->info.tab.propIndex.Value.bin.cb, lpNotification, (void**)&lpNotification->info.tab.propIndex.Value.bin.lpb);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		memcpy(lpNotification->info.tab.propIndex.Value.bin.lpb, &lpsRowItem->ulObjId, sizeof(ULONG));
 		memcpy(lpNotification->info.tab.propIndex.Value.bin.lpb+sizeof(ULONG), &lpsRowItem->ulOrderId, sizeof(ULONG));
 	}
@@ -558,16 +556,12 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 	switch(ulTableEvent) {
 	case TABLE_ROW_ADDED:
 	case TABLE_ROW_MODIFIED:
-		if (lpsRowItem == NULL) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
-
+		if (lpsRowItem == nullptr)
+			return MAPI_E_INVALID_PARAMETER;
 		sRowList.push_back(*lpsRowItem);
 		hr = QueryRowData(&sRowList, &~lpRows);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpNotification->info.tab.row.cValues = lpRows->aRow[0].cValues;
 		lpNotification->info.tab.row.lpProps = lpRows->aRow[0].lpProps;
 		break;
@@ -579,8 +573,7 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 	for (const auto &adv : m_mapAdvise)
 		//FIXME: maybe thought the MAPISupport ?
 		adv.second->lpAdviseSink->OnNotify(1, lpNotification);
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)

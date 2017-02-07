@@ -108,7 +108,7 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ExpandRecipientsRecursive(): SetColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	while (true) {
@@ -118,7 +118,7 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		hr = lpTable->QueryRows(1, 0, &~lpsRowSet);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ExpandRecipientsRecursive(): QueryRows failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		if (lpsRowSet->cRows != 1)
@@ -233,9 +233,7 @@ remove_group:
 			}
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -379,24 +377,24 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		PR_PRIMARY_FAX_NUMBER_A}};
 
 	if (!lpszFaxDomain || strcmp(lpszFaxDomain, "") == 0)
-		goto exit;
+		return hr;
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteRecipients(): GetRecipientTable failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// we need all columns when rewriting FAX to SMTP
 	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpRecipColumns);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteRecipients(): QueryColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	
 	hr = lpTable->SetColumns(lpRecipColumns, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteRecipients(): SetColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	while (TRUE) {
@@ -404,7 +402,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteRecipients(): QueryRows failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		if (lpRowSet->cRows == 0)
@@ -443,7 +441,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			{
 				/*hr = MAPI_E_INVALID_PARAMETER;*/
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls", lpEmailAddress->Value.lpszW);
-				goto nextfax;
+				continue;
 			}
 
 			// 0..2 == reply to email offsets
@@ -455,17 +453,17 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls: %s (%x)",
 					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
-				goto nextfax;
+				continue;
 			}
 			hr = lpFaxMailuser->GetProps(sptaFaxNumbers, 0, &cValues, &~lpFaxNumbers);
 			if (FAILED(hr)) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls: %s (%x)",
 					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
-				goto nextfax;
+				continue;
 			}
 			if (lpFaxNumbers[lpContabEntryID->email_offset].ulPropTag != sptaFaxNumbers.aulPropTag[lpContabEntryID->email_offset]) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "No suitable FAX number found, using %ls", lpEmailAddress->Value.lpszW);
-				goto nextfax;
+				continue;
 			}
 			strFaxMail = lpFaxNumbers[lpContabEntryID->email_offset].Value.lpszA;
 		}
@@ -488,16 +486,12 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set new FAX mail address for '%ls' to '%s': %s (%x)",
 				wstrOldFaxMail.c_str(), strFaxMail.c_str(), GetMAPIErrorMessage(hr), hr);
-			goto nextfax;
+			continue;
 		}
 
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Using new FAX mail address %s", strFaxMail.c_str());
-nextfax:
-		hr = hrSuccess;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -523,20 +517,19 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SortTable(sosOrder, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (TRUE) {
 		rowset_ptr lpRowSet;
 		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (lpRowSet->cRows == 0)
 			break;
 
@@ -558,9 +551,7 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 			ulRecipType = lpRecipType->Value.ul;
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
@@ -574,12 +565,12 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteQuotedRecipients(): GetRecipientTable failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteQuotedRecipients(): SetColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	while (TRUE) {
@@ -587,7 +578,7 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteQuotedRecipients(): QueryRows failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		if (lpRowSet->cRows == 0)
@@ -612,13 +603,11 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to rewrite quoted recipient: %s (%x)",
 					GetMAPIErrorMessage(hr), hr);
-				goto exit;
+				return hr;
 			}
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 /**
  * Removes all MAPI_P1 marked recipients from a message.
@@ -645,26 +634,22 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): GetRecipientTable failed %x", hr);
-		goto exit;
+		return hr;
 	}
 		
 	hr = lpTable->Restrict(&sRestriction, 0);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): Restrict failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpTable->QueryRows(-1, 0, &~lpRows);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): QueryRows failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(lpRows.get()));
-	if(hr != hrSuccess) {
+	if (hr != hrSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): ModifyRecipients failed %x", hr);
-		goto exit;
-	}
-	
-exit:
 	return hr;
 }
 
@@ -1341,34 +1326,31 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 	static constexpr const SizedSPropTagArray(2, sptaIDProps) =
 		{2, {PR_ENTRYID, PR_OBJECT_TYPE}};
 
-	if (lpulCmp == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpulCmp == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	if (level > 10) {
 		hr = MAPI_E_TOO_COMPLEX;
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): level too big %d: %s (%x)",
 			level, GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpAdrBook->OpenEntry(ulDistListCB, lpDistListEID, nullptr, 0, &ulObjType, &~lpDistList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): OpenEntry failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpDistList->GetContentsTable(0, &~lpMembersTable);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): GetContentsTable failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpMembersTable->SetColumns(sptaIDProps, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): SetColumns failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	// sort on PR_OBJECT_TYPE (MAILUSER < DISTLIST) ?
@@ -1379,7 +1361,7 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): QueryRows failed: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);
-			goto exit;
+			return hr;
 		}
 
 		if (lpRowSet->cRows == 0)
@@ -1399,12 +1381,8 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 		if (hr == hrSuccess && ulCmp == TRUE)
 			break;
 	}
-	hr = hrSuccess;
-
 	*lpulCmp = ulCmp;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

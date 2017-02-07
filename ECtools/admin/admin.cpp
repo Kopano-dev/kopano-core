@@ -1215,12 +1215,12 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	hr = lpServiceAdmin->OpenUserStoresTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		cerr << "Unable to open user/stores table" << endl;
-		goto exit;
+		return hr;
 	}
 	hr = lpTable->SortTable(tableSort, 0);
 	if (hr != hrSuccess) {
 		cerr << "Unable to sort user/stores table" << endl;
-		goto exit;
+		return hr;
 	}
 
 	ct.SetHeader(0, "Store guid");
@@ -1237,7 +1237,7 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
 		if(hr != hrSuccess) {
 			cerr << "Unable to load user/stores table" << endl;
-			goto exit;
+			return hr;
 		}
 
 		if(lpRowSet->cRows == 0)
@@ -1295,9 +1295,7 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	}
 
 	ct.PrintTable();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static LPMVPROPMAPENTRY FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)

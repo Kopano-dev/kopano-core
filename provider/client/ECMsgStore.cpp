@@ -832,45 +832,34 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	memory_ptr<SPropTagArray> lpPropTagArray;
 
 	// Non supported function for publicfolder
-	if(IsPublicStore() == TRUE) {
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+	if (IsPublicStore())
+		return MAPI_E_NO_SUPPORT;
 
 	// Check input/output variables
-	if(lppTable == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lppTable == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sPropRFTColumns, &~lpPropTagArray);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpMemTable); // PR_INSTANCE_KEY
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//Get the receivefolder list from the server
 	hr = lpTransport->HrGetReceiveFolderTable(ulFlags, this->m_cbEntryId, this->m_lpEntryId, &~lpsRowSet);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (i = 0; i < lpsRowSet->cRows; ++i) {
 		hr = lpMemTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpsRowSet->aRow[i].lpProps, NUM_RFT_PROPS);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 	}
 
 	hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 }
 
 HRESULT ECMsgStore::StoreLogoff(ULONG *lpulFlags) {

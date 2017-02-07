@@ -371,15 +371,15 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 	// Get the ACLS
 	hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get a data  
 	hr = lpTable->HrGetAllWithStatus(&~lpRowSet, &~lpIDs, &~lpulStatus);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(ECPERMISSION)*lpRowSet->cRows, &~lpECPermissions);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
 		if (lpulStatus[i]  == ECROW_NORMAL)
@@ -408,14 +408,12 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 		} else {
 			// Create everyone entryid
 			// NOTE: still makes a V0 entry id, because externid id part is empty
-			if(ABIDToEntryID(NULL, 1, objectid_t(DISTLIST_GROUP), &sEntryId) != erSuccess) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
+			if (ABIDToEntryID(nullptr, 1, objectid_t(DISTLIST_GROUP), &sEntryId) != erSuccess)
+				return MAPI_E_CALL_FAILED;
 
 			lpECPermissions[cECPerm].sUserId.cb = sEntryId.__size;
 			if ((hr = MAPIAllocateMore(lpECPermissions[cECPerm].sUserId.cb, lpECPermissions, (void**)&lpECPermissions[cECPerm].sUserId.lpb)) != hrSuccess)
-				goto exit;
+				return hr;
 			memcpy(lpECPermissions[cECPerm].sUserId.lpb, sEntryId.__ptr, sEntryId.__size);
 
 			FreeEntryId(&sEntryId, false);
@@ -426,13 +424,7 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 	}
 
 	if (cECPerm > 0)
-	{
 		hr = lpSecurity->SetPermissionRules(cECPerm, lpECPermissions);
-		if (hr != hrSuccess)
-			goto exit;
-	}
-
-exit:
 	return hr;
 }
 

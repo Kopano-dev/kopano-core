@@ -499,8 +499,7 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
 	if (lpMtIcal == NULL) {
 		ec_log_err("Error Creating MapiToIcal object, error code: 0x%08X",hr);
-		hr = E_FAIL;
-		goto exit;
+		return E_FAIL;
 	}
 
 	while (TRUE)
@@ -510,7 +509,7 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 		if (hr != hrSuccess)
 		{
 			ec_log_err("Error retrieving table rows, error code: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 
 		if (lpRows->cRows == 0)
@@ -555,8 +554,6 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 	hr = lpMtIcal->Finalize(0, NULL, lpstrIcal);
 	if (hr != hrSuccess)
 		ec_log_debug("Unable to create ical output of calendar, error code 0x%08X", hr);
-
-exit:
 	return hr;
 }
 

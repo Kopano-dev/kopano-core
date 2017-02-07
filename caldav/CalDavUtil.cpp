@@ -668,39 +668,29 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 	
 	HRESULT hr = HrMakeRestriction(strGuid, lpNamedProps, &~lpsRoot);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpUsrFld->GetContentsTable(0, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(sPropTagArr, 0);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->Restrict(lpsRoot, TBL_BATCH);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->QueryRows(1, 0, &~lpValRows);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpValRows->cRows != 1)
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-	
+		return MAPI_E_NOT_FOUND;
 	if (PROP_TYPE(lpValRows->aRow[0].lpProps[0].ulPropTag) != PT_BINARY)
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return MAPI_E_NOT_FOUND;
 	sbEid = lpValRows->aRow[0].lpProps[0].Value.bin;
 	hr = lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppMessage = lpMessage.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
