@@ -34,7 +34,7 @@ from MAPI import (
 from MAPI.Defs import HrGetOneProp, CHANGE_PROP_TYPE, bin2hex
 from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound, MAPIErrorUnknownEntryid,
-    MAPIErrorInterfaceNotSupported
+    MAPIErrorInterfaceNotSupported, MAPIErrorUnconfigured,
 )
 from MAPI.Tags import (
     PR_ADDRTYPE, PR_BODY, PR_LOCALITY, PR_STATE_OR_PROVINCE,
@@ -65,6 +65,9 @@ from .compat import (
     pickle_load as _pickle_load, pickle_loads as _pickle_loads,
     fake_unicode as _unicode
 )
+
+from .errors import Error
+
 from .utils import (
     create_prop as _create_prop, prop as _prop, props as _props,
     stream as _stream, bestbody as _bestbody
@@ -192,7 +195,12 @@ class Item(object):
                 arch_storeid = HrGetOneProp(self.mapiobj, PROP_STORE_ENTRYIDS).Value[0]
                 item_entryid = HrGetOneProp(self.mapiobj, PROP_ITEM_ENTRYIDS).Value[0]
 
-                self._architem = self.server._store2(arch_storeid).OpenEntry(item_entryid, None, 0)
+                try:
+                    arch_store = self.server._store2(arch_storeid)
+                except MAPIErrorUnconfigured:
+                    raise Error('could not open archive store (check SSL settings?)')
+
+                self._architem = arch_store.OpenEntry(item_entryid, None, 0)
             else:
                 self._architem = self.mapiobj
         return self._architem
