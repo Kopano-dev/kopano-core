@@ -470,31 +470,28 @@ HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **l
  * Get all calendar folder of a specified folder, also includes all sub folders
  * 
  * @param[in]	lpSession		IMAPISession object of the user
- * @param[in]	lpFolderIn		IMAPIFolder object for which all calendar are to returned(Optional, can be set to NULL if lpsbEid != NULL)
+ * @param[in]	lpFolder		IMAPIFolder object for which all calendar are to returned(Optional, can be set to NULL if lpsbEid != NULL)
  * @param[in]	lpsbEid			EntryID of the Folder for which all calendar are to be returned(can be NULL if lpFolderIn != NULL)
  * @param[out]	lppTable		IMAPITable of the sub calendar of the folder
  * 
  * @return		HRESULT 
  */
-HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBinary *lpsbEid, IMAPITable **lppTable)
+HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolder,
+    SBinary *lpsbEid, IMAPITable **lppTable)
 {
 	HRESULT hr = hrSuccess;
-	IMAPIFolder *lpFolder = NULL;
+	IMAPIFolder *local_fld = nullptr;
 	ULONG ulObjType = 0;
 	IMAPITable *lpTable = NULL;
 	SPropValue sPropVal;
-	bool FreeFolder = false;
 	ECOrRestriction rst;
 
-	if(!lpFolderIn)
-	{
-		hr = lpSession->OpenEntry(lpsbEid->cb, (LPENTRYID)lpsbEid->lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpFolder);
+	if (lpFolder == nullptr) {
+		hr = lpSession->OpenEntry(lpsbEid->cb, reinterpret_cast<ENTRYID *>(lpsbEid->lpb),
+		     nullptr, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(&local_fld));
 		if(hr != hrSuccess)
 			goto exit;
-		FreeFolder = true;
 	}
-	else
-		lpFolder = lpFolderIn;
 
 	hr = lpFolder->GetHierarchyTable(CONVENIENT_DEPTH,&lpTable);
 	if(hr != hrSuccess)
@@ -511,9 +508,8 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBin
 	*lppTable = lpTable;
 
 exit:
-	if(FreeFolder && lpFolder)
-		lpFolder->Release();
-
+	if (local_fld != nullptr)
+		local_fld->Release();
 	return hr;
 }
 
