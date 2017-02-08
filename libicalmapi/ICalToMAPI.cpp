@@ -577,7 +577,8 @@ HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
 	// @todo: add exclude list or something? might set props the caller doesn't want (see vevent::HrAddTimes())
 	i = 0;
 	for (const auto &prop : *lpPropList) {
-		if (flags & IC2M_NO_BODY && PROP_ID(prop.ulPropTag) == PR_BODY)
+		if (flags & IC2M_NO_BODY &&
+		    PROP_ID(prop.ulPropTag) == PROP_ID(PR_BODY))
 			continue;
 		lpsPropVals[i++] = prop;
 	}
