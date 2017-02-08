@@ -909,6 +909,9 @@ ECRESULT ECDatabaseMySQL::FinalizeMulti() {
 	ECRESULT er = erSuccess;
 	DB_RESULT lpResult = NULL;
 
+	if (m_bAutoLock)
+		Lock();
+
 	mysql_next_result(&m_lpMySQL);
 	
 	lpResult = mysql_store_result(&m_lpMySQL);
