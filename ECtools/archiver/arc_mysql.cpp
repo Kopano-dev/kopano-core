@@ -157,7 +157,6 @@ exit:
 ECRESULT KCMDatabaseMySQL::Close(void)
 {
 	ECRESULT er = erSuccess;
-	assert(m_bLocked == false);
 	//INFO: No locking here
 
 	m_bConnected = false;
@@ -169,23 +168,6 @@ ECRESULT KCMDatabaseMySQL::Close(void)
 	m_bMysqlInitialize = false;
 
 	return er;
-}
-
-// Get database ownership
-bool KCMDatabaseMySQL::Lock(void)
-{
-	m_bLocked = true;
-	m_hMutexMySql.lock();
-	return m_bLocked;
-}
-
-// Release the database ownership
-bool KCMDatabaseMySQL::UnLock(void)
-{
-	m_hMutexMySql.unlock();
-	m_bLocked = false;
-
-	return m_bLocked;
 }
 
 bool KCMDatabaseMySQL::isConnected(void)
@@ -218,9 +200,7 @@ ECRESULT KCMDatabaseMySQL::DoSelect(const string &strQuery,
 
 	ECRESULT er = erSuccess;
 	assert(strQuery.length()!= 0 && lpResult != NULL);
-	// Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
+	autolock alk(*this);
 
 	if (Query(strQuery) != 0) {
 		er = KCERR_DATABASE_ERROR;
@@ -239,10 +219,6 @@ ECRESULT KCMDatabaseMySQL::DoSelect(const string &strQuery,
 	}
 
 exit:
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
@@ -250,17 +226,9 @@ ECRESULT KCMDatabaseMySQL::DoUpdate(const string &strQuery,
     unsigned int *lpulAffectedRows)
 {
 	ECRESULT er = erSuccess;
-
-	// Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
+	autolock alk(*this);
 
 	er = _Update(strQuery, lpulAffectedRows);
-
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
@@ -283,10 +251,7 @@ ECRESULT KCMDatabaseMySQL::DoInsert(const string &strQuery,
     unsigned int *lpulInsertId, unsigned int *lpulAffectedRows)
 {
 	ECRESULT er = erSuccess;
-
-	// Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
+	autolock alk(*this);
 
 	er = _Update(strQuery, lpulAffectedRows);
 
@@ -294,11 +259,6 @@ ECRESULT KCMDatabaseMySQL::DoInsert(const string &strQuery,
 		if (lpulInsertId)
 			*lpulInsertId = GetInsertId();
 	}
-
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
@@ -306,17 +266,9 @@ ECRESULT KCMDatabaseMySQL::DoDelete(const string &strQuery,
     unsigned int *lpulAffectedRows)
 {
 	ECRESULT er = erSuccess;
-
-	// Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
+	autolock alk(*this);
 
 	er = _Update(strQuery, lpulAffectedRows);
-
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
