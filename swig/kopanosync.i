@@ -7,9 +7,6 @@
 #include "ECSyncLog.h"
 %}
 
-%include "std_string.i"
-%include "std_wstring.i"
-%include "cstring.i"
 %include <kopano/typemap.i>
 
 #if SWIGPYTHON
