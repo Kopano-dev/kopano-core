@@ -1005,18 +1005,16 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 	// Attempt to update the sequence in an atomic fashion
 	er = DoUpdate("UPDATE settings SET value=LAST_INSERT_ID(value+1)+" + stringify(ulCount-1) + " WHERE name = '" + strSeqName + "'", &ulAffected);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 	
 	// If the setting was missing, insert it now, starting at sequence 1 (not 0 for safety - maybe there's some if(ulSequenceId) code somewhere)
 	if(ulAffected == 0) {
 		er = Query("INSERT INTO settings (name, value) VALUES('" + strSeqName + "',LAST_INSERT_ID(1)+" + stringify(ulCount-1) + ")");
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 			
 	*lpllFirstId = mysql_insert_id(&m_lpMySQL);
-	
-exit:
 	return er;
 }
 

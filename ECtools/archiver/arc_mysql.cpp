@@ -203,9 +203,8 @@ ECRESULT KCMDatabaseMySQL::DoSelect(const string &strQuery,
 	autolock alk(*this);
 
 	if (Query(strQuery) != 0) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_crit("KCMDatabaseMySQL::DoSelect(): Failed invoking '%s'", strQuery.c_str());
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	if(bStream)
@@ -217,19 +216,14 @@ ECRESULT KCMDatabaseMySQL::DoSelect(const string &strQuery,
 		er = KCERR_DATABASE_ERROR;
 		ec_log_crit("%p: SQL result failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
 	}
-
-exit:
 	return er;
 }
 
 ECRESULT KCMDatabaseMySQL::DoUpdate(const string &strQuery,
     unsigned int *lpulAffectedRows)
 {
-	ECRESULT er = erSuccess;
 	autolock alk(*this);
-
-	er = _Update(strQuery, lpulAffectedRows);
-	return er;
+	return _Update(strQuery, lpulAffectedRows);
 }
 
 ECRESULT KCMDatabaseMySQL::_Update(const string &strQuery,
@@ -265,11 +259,8 @@ ECRESULT KCMDatabaseMySQL::DoInsert(const string &strQuery,
 ECRESULT KCMDatabaseMySQL::DoDelete(const string &strQuery,
     unsigned int *lpulAffectedRows)
 {
-	ECRESULT er = erSuccess;
 	autolock alk(*this);
-
-	er = _Update(strQuery, lpulAffectedRows);
-	return er;
+	return _Update(strQuery, lpulAffectedRows);
 }
 
 /*
