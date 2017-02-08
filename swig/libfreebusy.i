@@ -47,7 +47,9 @@ enum FBStatus {
 %typemap(in) (LONG, FBBLOCK)
 {
 	$1 = PyLong_AsLong($input);
-	MAPIAllocateBuffer($1 * sizeof(FBBlock_1), (void**) &$2);
+	if (MAPIAllocateBuffer($1 * sizeof(FBBlock_1),
+	    reinterpret_cast<void **>(&$2)) != hrSuccess)
+		SWIG_fail;
 }
 
 %apply (LONG, FBBLOCK) { (LONG celt, FBBlock_1 *pblk), (ULONG celt, FBBlock_1 *pblk) }
