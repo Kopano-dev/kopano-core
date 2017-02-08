@@ -115,7 +115,7 @@ class SearchWorker(kopano.Worker):
     def main(self):
         config, plugin = self.service.config, self.service.plugin
         def response(conn, msg):
-            self.log.info('Response: ' + msg)
+            self.log.info('Response: %s', msg)
             conn.sendall(_encode(msg) + _encode('\r\n'))
         s = kopano.server_socket(config['server_bind_name'], ssl_key=config['ssl_private_key_file'], ssl_cert=config['ssl_certificate_file'], log=self.log)
         while True:
@@ -124,7 +124,7 @@ class SearchWorker(kopano.Worker):
                 fields_terms = []
                 for data in conn.makefile():
                     data = _decode(data.strip())
-                    self.log.info('Command: ' + data)
+                    self.log.info('Command: %s', data)
                     cmd, args = data.split()[0], data.split()[1:]
                     if cmd == 'PROPS':
                         response(conn, 'OK:'+' '.join(map(str, config['index_exclude_properties'])))
@@ -170,12 +170,12 @@ class SearchWorker(kopano.Worker):
                         docids = plugin.search(server_guid, store_guid, folder_ids, fields_terms, query, self.log)
                         docids = docids[:config['limit_results'] or len(docids)]
                         response(conn, 'OK: '+' '.join(map(str, docids)))
-                        self.log.info('found %d results in %.2f seconds' % (len(docids), time.time()-t0))
+                        self.log.info('found %d results in %.2f seconds', len(docids), time.time()-t0)
                         break
                     elif cmd == 'REINDEX':
                         self.reindex_queue.put(args[0])
                         response(conn, 'OK:')
-                        self.log.info("queued store %s for reindexing" % args[0])
+                        self.log.info("queued store %s for reindexing", args[0])
                         break
                 conn.close()
 
@@ -194,19 +194,19 @@ class IndexWorker(kopano.Worker):
                 if (folder not in (store.root, store.outbox, store.drafts)) and \
                    (folder != store.junk or config['index_junk']):
                     suggestions = config['suggestions'] and folder != store.junk
-                    self.log.info('syncing folder: %s %s' % (storeguid, folder.name))
+                    self.log.info('syncing folder: %s %s', storeguid, folder.name)
                     importer = FolderImporter(server.guid, config, plugin, suggestions, self.log)
                     state = db_get(state_db, folder.entryid) if not reindex else None
                     if state:
-                        self.log.info('found previous folder sync state: %s' % state)
+                        self.log.info('found previous folder sync state: %s', state)
                     t0 = time.time()
                     new_state = folder.sync(importer, state, log=self.log)
                     if new_state != state:
                         plugin.commit(suggestions)
                         db_put(state_db, folder.entryid, new_state)
-                        self.log.info('saved folder sync state: %s' % new_state)
+                        self.log.info('saved folder sync state: %s', new_state)
                         changes = importer.changes + importer.deletes 
-                        self.log.info('syncing folder %s %s took %.2f seconds (%d changes, %d attachments)' % (storeguid, folder.name, time.time()-t0, changes, importer.attachments))
+                        self.log.info('syncing folder %s %s took %.2f seconds (%d changes, %d attachments)', storeguid, folder.name, time.time()-t0, changes, importer.attachments)
             self.oqueue.put(changes)
 
 class FolderImporter:
@@ -225,7 +225,7 @@ class FolderImporter:
         with log_exc(self.log):
             self.changes += 1
             storeid, folderid, entryid, sourcekey, docid = item.storeid, item.folderid, item.entryid, item.sourcekey, item.docid
-            self.log.debug('store %s, folder %d: new/updated document with entryid %s, sourcekey %s, docid %d' % (storeid, folderid, entryid, sourcekey, docid))
+            self.log.debug('store %s, folder %d: new/updated document with entryid %s, sourcekey %s, docid %d', storeid, folderid, entryid, sourcekey, docid)
             doc = {'serverid': self.serverid, 'storeid': storeid, 'folderid': folderid, 'docid': docid, 'sourcekey': item.sourcekey}
             for prop in item.props():
                 if prop.id_ not in self.excludes:
@@ -237,7 +237,7 @@ class FolderImporter:
             attach_text = []
             if self.config['index_attachments']:
                 for a in item.attachments():
-                    self.log.debug('checking attachment (filename=%s, size=%d, mimetag=%s)' % (a.filename, len(a), a.mimetype))
+                    self.log.debug('checking attachment (filename=%s, size=%d, mimetag=%s)', a.filename, len(a), a.mimetype)
                     if 0 < len(a) < self.config['index_attachment_max_size'] and a.filename != 'inline.txt': # XXX inline attachment check
                         self.attachments += 1
                         attach_text.append(plaintext.get(a, mimetype=a.mimetype, log=self.log))
@@ -264,7 +264,7 @@ class FolderImporter:
             if ids: # when a 'new' item is deleted right away (spooler?), the 'update' function may not have been called
                 storeid, folderid = ids.split()
                 doc = {'serverid': self.serverid, 'storeid': storeid, 'sourcekey': item.sourcekey}
-                self.log.debug('store %s: deleted document with sourcekey %s' % (doc['storeid'], item.sourcekey))
+                self.log.debug('store %s: deleted document with sourcekey %s', doc['storeid'], item.sourcekey)
                 self.plugin.delete(doc)
         
 class ServerImporter:
@@ -308,14 +308,14 @@ class Service(kopano.Service):
             worker.start()
         self.state = db_get(self.state_db, 'SERVER')
         if self.state:
-            self.log.info('found previous server sync state: %s' % self.state)
+            self.log.info('found previous server sync state: %s', self.state)
         else:
             self.log.info('starting initial sync')
             new_state = self.server.state # syncing will reach at least the current state
             self.initial_sync(self.server.stores())
             self.state = new_state
             db_put(self.state_db, 'SERVER', self.state)
-            self.log.info('saved server sync state = %s' % self.state)
+            self.log.info('saved server sync state = %s', self.state)
         self.syncrun = Value('d', 0)
         SearchWorker(self, 'query', reindex_queue=self.reindex_queue, syncrun=self.syncrun).start()
         self.log.info('starting incremental sync')
@@ -328,10 +328,10 @@ class Service(kopano.Service):
         for f in sorted(folders, reverse=True):
             self.iqueue.put(f)
         itemcount = sum(f[0] for f in folders)
-        self.log.info('queued %d folders (~%d changes) for parallel indexing (%s processes)' % (len(folders), itemcount, self.index_processes))
+        self.log.info('queued %d folders (~%d changes) for parallel indexing (%s processes)', len(folders), itemcount, self.index_processes)
         t0 = time.time()
         changes = sum([self.oqueue.get() for i in range(len(folders))]) # blocking
-        self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec)' % (time.time()-t0, changes, changes/(time.time()-t0)))
+        self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec)', time.time()-t0, changes, changes/(time.time()-t0))
 
     def incremental_sync(self):
         """ process changes in real-time (not yet parallelized); if no pending changes handle reindex requests """
@@ -340,7 +340,7 @@ class Service(kopano.Service):
             with log_exc(self.log):
                 try:
                     storeid = self.reindex_queue.get(block=False)
-                    self.log.info('handling reindex request for store %s' % storeid)
+                    self.log.info('handling reindex request for store %s', storeid)
                     store = self.server.store(storeid)
                     self.plugin.reindex(self.server.guid, store.guid)
                     self.initial_sync([store], reindex=True)
@@ -354,10 +354,10 @@ class Service(kopano.Service):
                     for f in importer.queued:
                         self.iqueue.put(f+(False,)) # make sure folders are at least synced to new_state
                     changes += sum([self.oqueue.get() for i in range(len(importer.queued))]) # blocking
-                    self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec)' % (time.time()-t0, changes, changes/(time.time()-t0)))
+                    self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec)', time.time()-t0, changes, changes/(time.time()-t0))
                     self.state = new_state
                     db_put(self.state_db, 'SERVER', self.state)
-                    self.log.info('saved server sync state = %s' % self.state)
+                    self.log.info('saved server sync state = %s', self.state)
                 if t0 > self.syncrun.value+1:
                     self.syncrun.value = 0
             time.sleep(5)
