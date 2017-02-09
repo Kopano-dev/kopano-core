@@ -83,7 +83,6 @@ public:
 	 */
     DB_RESULT_AUTOFREE(ECDatabase *lpDatabase) {
         m_lpDatabase = lpDatabase;
-        m_lpResult = NULL;
     };
 
     ~DB_RESULT_AUTOFREE() {
@@ -107,7 +106,6 @@ public:
         // Assume overwrite will happen soon
         if(m_lpDatabase && m_lpResult)
             m_lpDatabase->FreeResult(m_lpResult);
-        m_lpResult = NULL;
         return &m_lpResult;
     };
 

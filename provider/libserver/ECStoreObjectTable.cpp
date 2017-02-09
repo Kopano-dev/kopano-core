@@ -772,7 +772,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         }
         
         if(lpDBResult) lpDatabase->FreeResult(lpDBResult);
-        lpDBResult = NULL;
     }
 
 	for (const auto &col : mapColumns) {

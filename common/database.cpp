@@ -74,10 +74,8 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		ec_log_err("KDatabase::Connect(): database missing %d", er);
 		goto exit;
 	}
-	if (result != nullptr) {
+	if (result != nullptr)
 		FreeResult(result);
-		result = nullptr;
-	}
 
 	query = "SHOW variables LIKE 'max_allowed_packet'";
 	er = DoSelect(query, &result);
@@ -369,7 +367,7 @@ DB_LENGTHS KDatabase::FetchRowLengths(DB_RESULT &r)
 
 void KDatabase::FreeResult(DB_RESULT &r)
 {
-	auto m = static_cast<MYSQL_RES *>(r.get());
+	auto m = static_cast<MYSQL_RES *>(r.release());
 	assert(m != nullptr);
 	if (m != nullptr)
 		mysql_free_result(m);

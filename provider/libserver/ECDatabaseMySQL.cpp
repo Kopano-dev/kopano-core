@@ -1175,7 +1175,6 @@ ECRESULT ECDatabase::ValidateTables(void)
 		listTables.insert(listTables.end(), lpDBRow[0]);
 	}
 	if(lpResult) FreeResult(lpResult);
-	lpResult = NULL;
 
 	for (const auto &table : listTables) {
 		er = DoSelect("CHECK TABLE " + table, &lpResult);
@@ -1196,7 +1195,6 @@ ECRESULT ECDatabase::ValidateTables(void)
 			listErrorTables.insert(listErrorTables.end(), lpDBRow[0]);
 
 		if(lpResult) FreeResult(lpResult);
-		lpResult = NULL;
 	}
 
 	if (!listErrorTables.empty())

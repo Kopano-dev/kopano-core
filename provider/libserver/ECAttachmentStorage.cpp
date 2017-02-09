@@ -901,7 +901,6 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 	iSize = strtoul(lpDBRow[0], NULL, 0);
 
 	m_lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
 
 	// get all chunks
 	strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId) + " ORDER BY chunkid";

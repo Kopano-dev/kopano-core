@@ -596,7 +596,6 @@ ECRESULT ECGetContentChangesHelper::Init()
 		m_ulMaxFolderChange = atoui(lpDBRow[0]);
 	
 	m_lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
 
 	// Here we setup the classes to delegate specific work to	
 	if (m_ulChangeId == 0) {
@@ -698,7 +697,6 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 		if (er != erSuccess)
 			return er;
 	} else {
-		lpDBResult = NULL;
 		ulChanges = 0;
 	}
 		
@@ -894,7 +892,6 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		}
 
 		m_lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
 
 		if (!setChangeIds.empty()) {
 			std::set<unsigned int> setDeleteIds;

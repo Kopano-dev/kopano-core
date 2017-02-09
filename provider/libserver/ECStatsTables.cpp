@@ -794,7 +794,6 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 					lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
 				}
 				lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
 				break;
 			case PROP_ID(PR_EC_OUTOFOFFICE):
 				strQuery = "SELECT val_ulong FROM properties JOIN stores ON properties.hierarchyid=stores.hierarchy_id WHERE stores.user_id=" +
@@ -818,7 +817,6 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 					lpsRowSet->__ptr[i].__ptr[k].Value.b = 0;
 				}
 				lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
 				break;
 			};
 		}
@@ -991,7 +989,6 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 					lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
 				}
 				lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
 				break;
 			};
 		}

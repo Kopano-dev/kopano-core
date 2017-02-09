@@ -818,10 +818,8 @@ int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
        }
 
 #define FREE_DBRESULT() \
-    if(lpDBResult) { \
-        lpDatabase->FreeResult(lpDBResult); \
-        lpDBResult = NULL; \
-    }
+    if (lpDBResult != nullptr) \
+        lpDatabase->FreeResult(lpDBResult);
 
 #define ROLLBACK_ON_ERROR() \
 	if (lpDatabase && FAILED(er)) \
@@ -887,8 +885,8 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			lObjectIds.push_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
-		if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
-
+		if (lpDBResult != nullptr)
+			lpDatabase->FreeResult(lpDBResult);
 		if (*lpbExit) {
 			er = KCERR_USER_CANCEL;
 			goto exit;
@@ -912,8 +910,8 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		ec_log_info("Store purge done");
 
 	}
-	if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
-
+	if (lpDBResult != nullptr)
+		lpDatabase->FreeResult(lpDBResult);
 	if (*lpbExit) {
 		er = KCERR_USER_CANCEL;
 		goto exit;
@@ -939,8 +937,8 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			lObjectIds.push_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
-		if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
-
+		if (lpDBResult != nullptr)
+			lpDatabase->FreeResult(lpDBResult);
 		if (*lpbExit) {
 			er = KCERR_USER_CANCEL;
 			goto exit;
@@ -957,8 +955,8 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		ec_log_info("Folder purge done");
 
 	}
-	if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
-
+	if (lpDBResult != nullptr)
+		lpDatabase->FreeResult(lpDBResult);
 	if (*lpbExit) {
 		er = KCERR_USER_CANCEL;
 		goto exit;
@@ -984,8 +982,8 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			lObjectIds.push_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
-		if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
-
+		if (lpDBResult != nullptr)
+			lpDatabase->FreeResult(lpDBResult);
 		if (*lpbExit) {
 			er = KCERR_USER_CANCEL;
 			goto exit;
@@ -1641,9 +1639,8 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 		llSize = 0;
 	else
 		llSize = atoll(lpDBRow[0]);
-
-	// Free results
-	if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
+	if (lpDBResult != nullptr)
+		lpDatabase->FreeResult(lpDBResult);
 
 	// Get the subfolders
 	strQuery = "SELECT id FROM hierarchy WHERE parent=" + stringify(ulFolderId) + " AND type="+stringify(MAPI_FOLDER);
@@ -1670,9 +1667,8 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 		}
 	}
 
-	// Free results
-	if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
-
+	if (lpDBResult != nullptr)
+		lpDatabase->FreeResult(lpDBResult);
 	*lpllFolderSize = llSize;
 
 exit:
@@ -1792,12 +1788,8 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 					goto exit;
 				}
 
-				// Free results
-				if (lpDBResult) {
+				if (lpDBResult != nullptr)
 					lpDatabase->FreeResult(lpDBResult);
-					lpDBResult = NULL;
-				}
-
 				break;
 			}
 		}// for(...)
@@ -2539,7 +2531,6 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 					fHasAttach = lpDatabase->GetNumRows(lpDBResult) > 0;
 					
 					lpDatabase->FreeResult(lpDBResult);
-					lpDBResult = NULL;
 				}
 			}
 			
@@ -7454,11 +7445,8 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		}
 	}
 	
-	// Free database results
-	if (lpDBResult != nullptr) {
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
-	}
 
 	// Check the quota size when the item is a softdelete item
 	if(bUpdateDeletedSize == true)
@@ -7985,11 +7973,8 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		}
 	}
 
-	//Free Results
-	if (lpDBResult != nullptr) {
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
-	}
 	if (lpsNewEntryId != NULL) {
 		FreeEntryId(lpsNewEntryId, true);
 		lpsNewEntryId = NULL;
@@ -8338,10 +8323,8 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		}
 	}
 
-	if (lpDBResult != nullptr) {
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
-	}
 
 	// update the destination folder for disconnected clients
 	er = WriteLocalCommitTimeMax(NULL, lpDatabase, ulNewDestFolderId, NULL);

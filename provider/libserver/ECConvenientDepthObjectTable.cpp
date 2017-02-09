@@ -171,10 +171,8 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 			--iterFolders;
 		}
 
-		if (lpDBResult) {
+		if (lpDBResult != nullptr)
 			lpDatabase->FreeResult(lpDBResult);
-			lpDBResult = NULL;
-		}
 		
 		// If you're insane enough to have more than 256 levels over folders than we cut it off here because this function's
 		// memory usage goes up exponentially ..

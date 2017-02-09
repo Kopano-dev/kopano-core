@@ -434,10 +434,8 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 			 lstFolders.push_back(atoui(lpDBRow[0]));
 		}
 
-		if (lpDBResult) {
+		if (lpDBResult != nullptr)
 			lpDatabase->FreeResult(lpDBResult);
-			lpDBResult = NULL;
-		}
 		iterFolders = lstFolders.begin();
 	} //while
 	return erSuccess;
@@ -718,11 +716,8 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 				goto exit;
 		}
 
-		if(lpResult) {
+		if (lpResult != nullptr)
 			lpDatabase->FreeResult(lpResult);
-			lpResult = NULL;
-		}
-
 	}while(ulRows > 0);
 
 	// Change index
@@ -870,11 +865,8 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 			goto exit;
 	}
 
-	if(lpResult) {
+	if (lpResult != nullptr)
 		lpDatabase->FreeResult(lpResult);
-		lpResult = NULL;
-	}
-
 exit:
 	if(lpResult)
 		lpDatabase->FreeResult(lpResult);
@@ -946,7 +938,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 	}
 
 	lpDatabase->FreeResult(lpResult);
-	lpResult = NULL;
 
 	// Recreate the objects in the object_temp table and on the fly create the queries to regenerate
 	// their properties in the objectpropert_temp table.
@@ -1002,8 +993,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 		}
 
 		lpDatabase->FreeResult(lpResult);
-		lpResult = NULL;
-
 		if (!strQuery.empty()) {
 			er = lpDatabase->DoInsert(strQuery);
 			if (er != erSuccess)
@@ -1032,8 +1021,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 	}
 
 	lpDatabase->FreeResult(lpResult);
-	lpResult = NULL;
-
 	strQuery.clear();
 	bFirstResult = true;
 	for (const auto &rel : sRelationList) {
@@ -1203,8 +1190,6 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 		queries.push_back(std::move(strQuery));
 	}
 	lpDatabase->FreeResult(lpResult);
-	lpResult = NULL;
-
 	
 	// Populate the abchanges table with the extracted data
 	for (const auto &query : queries) {
@@ -1853,7 +1838,6 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 		if (lpDBRow == NULL || lpDBRow[0] == NULL)
 			break;
 		lpDatabase->FreeResult(lpResult);
-		lpResult = NULL;
 	}
 
 	// update webaccess settings which were already utf8 in our latin1 table

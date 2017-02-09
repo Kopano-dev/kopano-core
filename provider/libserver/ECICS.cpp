@@ -258,7 +258,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		}
 
 		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
 		if (!bLogAllChanges && !bIgnored && syncids.empty())
 			// nothing to do
 			goto exit;
@@ -318,10 +317,8 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			strChangeList.assign(lpDBRow[0], lpDBLen[0]);
 	}
 
-	if(lpDBResult){
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
-	}
 
 	strQuery = "SELECT val_binary FROM properties "
 				"WHERE tag = " + stringify(PROP_ID(PR_CHANGE_KEY)) +
@@ -606,7 +603,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		
         if(lpDBResult)
             lpDatabase->FreeResult(lpDBResult);
-        lpDBResult = NULL;
 
         if(!sFolderSourceKey.empty()) {
             er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sFolderSourceKey.size(), sFolderSourceKey, &ulFolderId);
@@ -742,10 +738,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 					lstChanges.push_back(atoui(lpDBRow[0]));
 				}
 
-				if(lpDBResult) {
+				if (lpDBResult != nullptr)
 					lpDatabase->FreeResult(lpDBResult);
-					lpDBResult = NULL;
-				}
 			}
 
 			if (folder_id != 0) {
@@ -771,7 +765,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
                 if(lpDBResult)
                     lpDatabase->FreeResult(lpDBResult);
-                lpDBResult = NULL;
             }
 		}
 
@@ -820,7 +813,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
                     if(lpDBResult)
                         lpDatabase->FreeResult(lpDBResult);
-                    lpDBResult = NULL;
 
                     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
                     if(er != erSuccess)
@@ -848,7 +840,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
                     if(lpDBResult)
                         lpDatabase->FreeResult(lpDBResult);
-                    lpDBResult = NULL;
                     ++i;
                 }
             }
@@ -897,7 +888,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 				if(lpDBResult)
 					lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
 				++i;
 			}
 			lpChanges->__size = i;
@@ -1004,7 +994,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 ulMaxChange = atoui(lpDBRow[0]);
             
             lpDatabase->FreeResult(lpDBResult);
-            lpDBResult = NULL;
 
 			// Skip 'everyone', 'system' and users outside our company space, except when we're system
             strQuery = "SELECT id, objectclass, externid FROM users WHERE id not in (1,2)";
@@ -1179,8 +1168,6 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 	
 	// cleanup the previous query result
 	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
-	
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
@@ -1231,8 +1218,6 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 	
 	// cleanup the previous query result
 	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
-	
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;
@@ -1276,8 +1261,6 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 	
 	// cleanup the previous query result
 	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
-	
 	er = lpDatabase->DoDelete(strQuery);
 	if (er != erSuccess)
 		goto exit;

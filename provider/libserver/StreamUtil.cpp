@@ -1058,7 +1058,6 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 			}
 			
 			lpStreamDatabase->FreeResult(lpDBResultAttachment);
-			lpDBResultAttachment = NULL;
 		}
 
 	}
@@ -1409,7 +1408,6 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 
 			lpDBRow = lpDatabase->FetchRow(lpDBResult);
 			lpDatabase->FreeResult(lpDBResult); 
-			lpDBResult = NULL;
 
 			// We can't use lpDBRow here except for checking if it was NULL.
 			if (lpDBRow != NULL)

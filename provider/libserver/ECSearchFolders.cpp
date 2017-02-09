@@ -1067,11 +1067,8 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 			} else
 				ec_log_crit("ECSearchFolders::Search() could not expand target folders: 0x%x", er);
 
-			if(lpDBResult) {
+			if (lpDBResult != nullptr)
 				lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
-			}
-
 			++iterFolders;
 		}
 	}
@@ -1205,10 +1202,8 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 				}
 			}
 			
-			if(lpDBResult) {
+			if (lpDBResult != nullptr)
 				lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
-			}
 		}
 
 		// Search done

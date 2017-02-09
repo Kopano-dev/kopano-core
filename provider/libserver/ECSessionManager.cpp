@@ -158,7 +158,6 @@ ECRESULT ECSessionManager::LoadSettings(){
 
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
 
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment'";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);

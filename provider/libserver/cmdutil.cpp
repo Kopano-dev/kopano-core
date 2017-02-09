@@ -205,9 +205,8 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	     iListObjectId != lpsObjectList->end(); ++iListObjectId)
 	{
 		sItem.fRoot = true;
-		
-		//Free database results
-		if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
+		if (lpDBResult != nullptr)
+			lpDatabase->FreeResult(lpDBResult);
 
 		// Lock the root records's parent counter to maintain locking order (counters/content/storesize/committimemax)
 		er  = lpCacheManager->GetObject(*iListObjectId, &ulParent, NULL, NULL, NULL);
@@ -294,8 +293,8 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	// Now, run through the list, adding children to the bottom of the list. This means
 	// we're actually running width-first, and don't have to do anything recursive.
 	for (const auto &di : lstDeleteItems) {
-		// Free database results
-		if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
+		if (lpDBResult != nullptr)
+			lpDatabase->FreeResult(lpDBResult);
 
 		strQuery = "SELECT id, type, flags, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = hierarchy.id LIMIT 1) FROM hierarchy WHERE parent=" +
 			stringify(di.ulId);
@@ -1393,8 +1392,6 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 			// Item is (1)/is not (0) in the outgoing queue at the moment
 			ulPrevSubmitFlag = lpDatabase->GetNumRows(lpDBResult) > 0;
 			lpDatabase->FreeResult(lpDBResult);
-			lpDBResult = NULL;
-
 		}
 
 		if ((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) && ulPrevSubmitFlag == 0) {
@@ -1630,7 +1627,6 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 		//Free database results
 		if (lpDBResult)
 			lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
 	}
 
 exit:
@@ -1712,7 +1708,6 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	strDFC = lpDBRow[5];
 	
 	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
 	
 	// Gets unread counters from hierarchy / properties / tproperties
 	strQuery = "SELECT "
@@ -1736,7 +1731,6 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	strCU = lpDBRow[0];
 	
 	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
 
     strQuery = "UPDATE properties SET val_ulong = CASE tag "
       " WHEN " + stringify(PROP_ID(PR_CONTENT_COUNT)) + " THEN + " + strCC +
@@ -1858,7 +1852,6 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
     // Check if the found item is in a deleted store
     if(g_lpSessionManager->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL) == erSuccess) {
         lpDatabase->FreeResult(lpDBResult);
-        lpDBResult = NULL;
         
         // Find the store
         strQuery = "SELECT hierarchy_id FROM stores WHERE hierarchy_id = " + stringify(ulStoreId);
@@ -2018,7 +2011,6 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
         }
 
         lpDatabase->FreeResult(lpDBResult);
-        lpDBResult = NULL;
     }
         
     // For the items that were cached, but messages, find their parents in the cache first
@@ -2054,7 +2046,6 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
         }    
         
         lpDatabase->FreeResult(lpDBResult);
-        lpDBResult = NULL;
     }
         
     // Query objectid -> parentid for messages
@@ -2267,7 +2258,6 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     }
 
     lpDatabase->FreeResult(lpDBResult);
-    lpDBResult = NULL;
 
     if(fDoQuery) {
 		if (ulObjId != 0)

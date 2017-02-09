@@ -2976,7 +2976,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 		}
 
 		lpDatabase->FreeResult(lpResult);
-		lpResult = NULL;
 		lpRow = NULL;
 
 		ec_log_info("Done auto-deleting %s members", ObjectClassToName(objclass));

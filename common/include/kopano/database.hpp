@@ -48,6 +48,12 @@ class DB_RESULT _kc_final {
 	bool operator==(std::nullptr_t) const { return m_res == nullptr; }
 	bool operator!=(std::nullptr_t) const { return m_res != nullptr; }
 	void *get(void) const { return m_res; }
+	void *release(void)
+	{
+		void *p = m_res;
+		m_res = nullptr;
+		return p;
+	}
 
 	private:
 	void *m_res = nullptr;
