@@ -9,7 +9,6 @@
 
 namespace KC {
 
-typedef void *DB_RESULT;
 typedef char **DB_ROW;
 typedef unsigned long *DB_LENGTHS;
 typedef unsigned int DB_ERROR;
@@ -36,6 +35,17 @@ enum {
 struct sSQLDatabase_t {
 	const char *lpComment;
 	const char *lpSQL;
+};
+
+class DB_RESULT _kc_final {
+	public:
+	DB_RESULT(void) = default;
+	DB_RESULT(void *r) : m_res(r) {}
+	operator void *(void) const { return m_res; }
+	void *get(void) const { return m_res; }
+
+	private:
+	void *m_res = nullptr;
 };
 
 class _kc_export KDatabase {

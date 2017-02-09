@@ -358,19 +358,20 @@ std::string KDatabase::EscapeBinary(const std::string &s)
 
 DB_ROW KDatabase::FetchRow(DB_RESULT r)
 {
-	return mysql_fetch_row(static_cast<MYSQL_RES *>(r));
+	return mysql_fetch_row(static_cast<MYSQL_RES *>(r.get()));
 }
 
 DB_LENGTHS KDatabase::FetchRowLengths(DB_RESULT r)
 {
-	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(r));
+	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(r.get()));
 }
 
 void KDatabase::FreeResult(DB_RESULT r)
 {
-	assert(r != nullptr);
-	if (r != nullptr)
-		mysql_free_result(static_cast<MYSQL_RES *>(r));
+	auto m = static_cast<MYSQL_RES *>(r.get());
+	assert(m != nullptr);
+	if (m != nullptr)
+		mysql_free_result(m);
 }
 
 unsigned int KDatabase::GetAffectedRows(void)
@@ -404,7 +405,7 @@ DB_ERROR KDatabase::GetLastError(void)
 
 unsigned int KDatabase::GetNumRows(DB_RESULT r)
 {
-	return mysql_num_rows(static_cast<MYSQL_RES *>(r));
+	return mysql_num_rows(static_cast<MYSQL_RES *>(r.get()));
 }
 
 ECRESULT KDatabase::InitEngine(bool reconnect)
