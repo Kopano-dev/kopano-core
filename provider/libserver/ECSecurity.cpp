@@ -567,12 +567,9 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
-
-	if (lpsRightsArray == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+		return er;
+	if (lpsRightsArray == nullptr)
+		return KCERR_INVALID_PARAMETER;
 
 	strQuery = "SELECT a.id, a.type, a.rights FROM acl AS a WHERE a.hierarchy_id="+stringify(objid);
 
@@ -584,7 +581,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	ulCount = lpDatabase->GetNumRows(lpDBResult);
 	if(ulCount > 0)
@@ -597,9 +594,8 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 			lpDBRow = lpDatabase->FetchRow(lpDBResult);
 
 			if(lpDBRow == NULL) {
-				er = KCERR_DATABASE_ERROR;
 				ec_log_err("ECSecurity::GetRights(): row is null");
-				goto exit;
+				return KCERR_DATABASE_ERROR;
 			}
 
 			lpsRightsArray->__ptr[i].ulUserid = atoi(lpDBRow[0]);
@@ -615,22 +611,18 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 			} else {
 				er = m_lpSession->GetUserManagement()->GetExternalId(lpsRightsArray->__ptr[i].ulUserid, &sExternId);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 			}
 
 			er = ABIDToEntryID(NULL, lpsRightsArray->__ptr[i].ulUserid, sExternId, &lpsRightsArray->__ptr[i].sUserId);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 	}else{
 		lpsRightsArray->__ptr = NULL;
 		lpsRightsArray->__size = 0;
 	}
-
-	er = erSuccess;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -1166,35 +1158,28 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulObjId, &ulStore, NULL);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	strQuery = "SELECT val_longint FROM properties WHERE tag="+stringify(PROP_ID(PR_MESSAGE_SIZE_EXTENDED))+" AND type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE_EXTENDED)) + " AND hierarchyid="+stringify(ulStore);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if(lpDatabase->GetNumRows(lpDBResult) != 1) {
 		// This mostly happens when we're creating a new store, so return 0 sized store
-		er = erSuccess;
 		*lpllStoreSize = 0;
-		goto exit;
+		return erSuccess;
 	}
 
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if(lpDBRow == NULL || lpDBRow[0] == NULL) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECSecurity::GetStoreSize(): row is null");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	*lpllStoreSize = atoll(lpDBRow[0]);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -1218,7 +1203,7 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	strQuery =
 		"SELECT p.val_longint "
@@ -1231,18 +1216,16 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
 			"AND p.type = " + stringify(PROP_TYPE(PR_MESSAGE_SIZE_EXTENDED));
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if (lpDatabase->GetNumRows(lpDBResult) != 1) {
 		*lpllUserSize = 0;
-		goto exit;
+		return erSuccess;
 	}
 
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow == NULL) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECSecurity::GetUserSize(): row is null");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	if (lpDBRow[0] == NULL)
@@ -1251,9 +1234,7 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
 		llUserSize = atoll(lpDBRow[0]);
 
 	*lpllUserSize = llUserSize;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 

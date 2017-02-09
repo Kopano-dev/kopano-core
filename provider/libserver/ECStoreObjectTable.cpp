@@ -230,7 +230,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 
 	ECRESULT er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	assert(lplistMVPropTag->size() < 2); //FIXME: Limit of one 1 MV column
 	// scan for MV-props and add rows
@@ -261,7 +261,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	while(1)
 	{
@@ -275,9 +275,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 		if(sRowItem.ulOrderId > 0)
 			lplistRows->push_back(sRowItem);
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Interface to main row engine (bSubObjects is false)
@@ -621,7 +619,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 	assert(lpsRowSet != NULL);
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	
 	g_lpStatsCollector->Increment(SCN_DATABASE_ROW_READS, 1);
 
@@ -721,7 +719,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
     if(!strQuery.empty()) {    
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
-            goto exit;
+			return er;
             
         while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != 0) {
             if(lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
@@ -771,11 +769,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 		CopyEmptyCellToSOAPPropVal(soap, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
 		lpSession->GetSessionManager()->GetCacheManager()->SetCell(&sKey, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
 	}
-
-	er = erSuccess;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -817,11 +811,10 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
     std::string		strPropColOrder;
 
 	if (mapColumns.empty() || mapObjIds.empty())
-		goto exit;
-
+		return erSuccess;
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	ulMin = ulMax = PROP_ID(mapColumns.begin()->first);
 
@@ -883,7 +876,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 		
 	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
@@ -969,9 +962,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 				lpSession->GetSessionManager()->GetCacheManager()->SetCell(const_cast<sObjectTableKey *>(&ob.first),
 					col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
 			}
-	
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECStoreObjectTable::CopyEmptyCellToSOAPPropVal(struct soap *soap, unsigned int ulPropTag, struct propVal *lpPropVal)
@@ -1054,7 +1045,7 @@ ECRESULT ECStoreObjectTable::Load()
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
     
     if(ulFolderId) {
         // Clear old entries
@@ -1085,7 +1076,7 @@ ECRESULT ECStoreObjectTable::Load()
 
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
-            goto exit;
+		return er;
 
         i = 0;
         while(1) {
@@ -1110,9 +1101,7 @@ ECRESULT ECStoreObjectTable::Load()
         LoadRows(&lstObjIds, 0);
         
     }
-    
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
@@ -1239,11 +1228,10 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId
 	
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
 		lpDeferred->push_back(atoui(lpDBRow[0]));
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -1270,12 +1258,10 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRo
 	
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-		
+		return er;
 	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
 		lpDeferred->push_back(atoui(lpDBRow[0]));
-exit:
-	return er;
+	return erSuccess;
 }
 
 } /* namespace */
