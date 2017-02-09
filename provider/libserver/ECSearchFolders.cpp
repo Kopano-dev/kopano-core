@@ -78,7 +78,7 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
 {
     ECRESULT er = erSuccess;
     ECDatabase *lpDatabase = NULL;
-    DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     unsigned int ulFolderId = 0;
     unsigned int ulStoreId = 0;
@@ -296,7 +296,7 @@ ECRESULT ECSearchFolders::IsSearchFolder(unsigned int ulStoreID, unsigned int ul
 {
     ECRESULT er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 
@@ -980,7 +980,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	unsigned int ulUserId = 0;
 	std::string strQuery;
 	ECDatabase *lpDatabase = NULL;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	struct propTagArray *lpPropTags = NULL;
 	unsigned int i=0;
@@ -1377,7 +1377,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
     ECDatabase *lpDatabase = NULL;
     ECRESULT er = erSuccess;
     std::string strQuery;
-    DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
     DB_ROW lpDBRow = NULL;
     
     assert((ulFlags &~ MSGFLAG_READ) == 0);
@@ -1489,7 +1489,7 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulStoreId, unsigned int ulF
     ECDatabase *lpDatabase = NULL;
     ECRESULT er = erSuccess;
     std::string strQuery;
-    DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     
     unsigned int ulAffected = 0;
@@ -1581,7 +1581,7 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
 ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int ulFolderId,  std::list<unsigned int> *lstObjIds)
 {
     ECDatabase *lpDatabase = NULL;
-    DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     ECRESULT er = erSuccess;
     std::string strQuery;
@@ -1621,7 +1621,7 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 {
     ECRESULT er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 	struct soap				xmlsoap;

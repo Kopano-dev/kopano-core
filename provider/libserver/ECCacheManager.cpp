@@ -350,7 +350,7 @@ ECRESULT ECCacheManager::QueryParent(unsigned int ulObjId, unsigned int *lpulPar
 ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParent, unsigned int *lpulOwner, unsigned int *lpulFlags, unsigned int *lpulType)
 {
 	ECRESULT	er = erSuccess;
-	DB_RESULT	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	std::string strQuery;
 	ECDatabase	*lpDatabase = NULL;
@@ -427,7 +427,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
     std::map<sObjectTableKey, ECsObjects> &mapObjects)
 {
 	ECRESULT	er = erSuccess;
-	DB_RESULT	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	std::string strQuery;
 	ECDatabase	*lpDatabase = NULL;
@@ -508,7 +508,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
 	std::string strQuery;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpDBLen = NULL;
 	ECsIndexProp sObject;
@@ -571,7 +571,7 @@ ECRESULT ECCacheManager::GetStore(unsigned int ulObjId, unsigned int *lpulStore,
 ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpulStore, GUID *lpGuid, unsigned int *lpulType, unsigned int maxdepth)
 {
 	ECRESULT	er = erSuccess;
-	DB_RESULT	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	std::string strQuery;
 	ECDatabase	*lpDatabase = NULL;
@@ -650,7 +650,7 @@ exit:
 ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExternId, unsigned int *lpulCompanyId, std::string *lpstrSignature)
 {
 	ECRESULT	er = erSuccess;
-	DB_RESULT	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 	std::string	strQuery;
@@ -748,7 +748,7 @@ ECRESULT ECCacheManager::SetUserDetails(unsigned int ulUserId,
 ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int *lpulUserId, unsigned int *lpulCompanyId, std::string *lpstrSignature)
 {
 	ECRESULT	er = erSuccess;
-	DB_RESULT	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 	std::string	strQuery;
@@ -829,7 +829,7 @@ exit:
 ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds, map<objectid_t, unsigned int> *lpmapLocalObjIds)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpDBLen = NULL;
 	std::string strQuery;
@@ -1086,7 +1086,7 @@ ECRESULT ECCacheManager::_DelUEIdObject(const std::string &strExternId,
 ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppRights)
 {
     ECRESULT er = erSuccess;
-    DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW		lpRow = NULL;
     ECDatabase *lpDatabase = NULL;
     std::string strQuery;
@@ -1630,7 +1630,7 @@ ECRESULT ECCacheManager::_AddIndexData(const ECsIndexObject *lpObject,
 ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulObjId, struct soap *soap, unsigned int* lpcbData, unsigned char** lppData)
 {
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLenths = NULL;
 	std::string		strQuery;
@@ -1703,7 +1703,7 @@ exit:
 ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId)
 {
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;

@@ -125,7 +125,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	ECRESULT er = erSuccess;
 
 	std::string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 
 	nameidkey_t key(guid, ulNameId);
@@ -181,7 +181,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	ECRESULT er = erSuccess;
 
 	std::string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 
 	namestringkey_t key(guid, strNameString);
@@ -736,7 +736,7 @@ static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
 {
 	ECRESULT er = erSuccess;
 	DB_ROW 			lpDBRow = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	string strQuery;
 
 	strQuery = "SELECT tag FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag IN (0x1009, 0x1013) ORDER BY tag LIMIT 1";
@@ -770,7 +770,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 	DB_ROW 			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	std::string		strQuery;
 	object_ptr<ECMemStream> lpStream;
 	object_ptr<IStream> lpIStream;
@@ -905,8 +905,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 
 	DB_ROW 			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
-	DB_RESULT		lpDBResult = NULL;
-	DB_RESULT		lpDBResultAttachment = NULL;
+	DB_RESULT lpDBResult, lpDBResultAttachment;
 	std::string		strQuery;
 	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
@@ -1325,8 +1324,7 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 	std::string		strColName;
 
 	SOURCEKEY		sSourceKey;
-
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 
 	std::set<unsigned int>				setInserted;

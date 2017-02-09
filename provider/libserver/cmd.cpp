@@ -803,7 +803,7 @@ int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
 #define ALLOC_DBRESULT() \
 	DB_ROW 			UNUSED_VAR		lpDBRow = NULL; \
 	DB_LENGTHS		UNUSED_VAR		lpDBLen = NULL; \
-	DB_RESULT		UNUSED_VAR		lpDBResult = NULL; \
+	DB_RESULT UNUSED_VAR lpDBResult; \
 	std::string		UNUSED_VAR		strQuery;
 
 #define USE_DATABASE() \
@@ -833,7 +833,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 {
 	ECRESULT 		er = erSuccess;
 	ECDatabase*		lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 	FILETIME		ft;
@@ -1621,7 +1621,7 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 {
 
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	long long		llSize = 0;
 	long long		llSubSize = 0;
@@ -1747,8 +1747,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	
 	SOURCEKEY		sSourceKey;
 	SOURCEKEY		sParentSourceKey;
-
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 
 	if(!lpAttachmentStorage) {
 		er = KCERR_INVALID_PARAMETER;
@@ -7804,7 +7803,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	ECRESULT		er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
 	std::string		strQuery;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
 	unsigned int	ulNewObjectId = 0;
 	std::string		strExclude;
@@ -8179,7 +8178,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 	ECRESULT		er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
 	std::string		strQuery, strSubQuery, strExclude;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
 
 	unsigned int	ulNewDestFolderId = 0;

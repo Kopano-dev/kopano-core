@@ -175,7 +175,7 @@ ECRESULT ECTPropsPurge::PurgeOverflowDeferred(ECDatabase *lpDatabase)
 ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int *lpulCount)
 {
     ECRESULT er = erSuccess;
-    DB_RESULT lpResult = NULL; 
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     
     er = lpDatabase->DoSelect("SELECT count(*) FROM deferredupdate", &lpResult);
@@ -211,7 +211,7 @@ exit:
 ECRESULT ECTPropsPurge::GetLargestFolderId(ECDatabase *lpDatabase, unsigned int *lpulFolderId)
 {
     ECRESULT er = erSuccess;
-    DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     
     er = lpDatabase->DoSelect("SELECT folderid, COUNT(*) as c FROM deferredupdate GROUP BY folderid ORDER BY c DESC LIMIT 1", &lpResult);
@@ -247,7 +247,7 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulAffected;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 
 	std::string strQuery;
@@ -306,7 +306,7 @@ exit:
 ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int *lpulCount)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	unsigned int ulCount = 0;
 	std::string strQuery;

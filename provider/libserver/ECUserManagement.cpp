@@ -1297,7 +1297,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 {
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 	std::unique_ptr<std::list<unsigned int> > lpObjects(new std::list<unsigned int>);
 	string strQuery;
@@ -2524,7 +2524,7 @@ ECRESULT ECUserManagement::CreateLocalObjectSimple(const objectsignature_t &sign
 	std::string strQuery;
 	unsigned int ulCompanyId;
 	UserPlugin *lpPlugin = NULL;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	std::string strUserId;
 	bool bLocked = false;
 
@@ -2617,7 +2617,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 {
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 	string strQuery;
 	unsigned int ulObjectId;
@@ -2924,7 +2924,7 @@ exit:
 ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclass_t objclass) {
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 	unsigned int ulDeletedRows = 0;
 	std::string strQuery;
@@ -4216,7 +4216,7 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 {
     ECRESULT er = erSuccess;
     ECDatabase *lpDatabase = NULL;
-    DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     std::string strQuery;
     unsigned int ulActive = 0;

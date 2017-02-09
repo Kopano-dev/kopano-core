@@ -87,7 +87,7 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpLengths = NULL;
 
@@ -152,7 +152,7 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 {
 	ECRESULT er = erSuccess;
 	string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 
 	if (cbSourceInstanceID == 0 || lpSourceInstanceID == NULL || cbDestInstanceID == 0 || lpDestInstanceID == NULL) {

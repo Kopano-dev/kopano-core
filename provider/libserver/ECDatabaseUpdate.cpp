@@ -274,7 +274,7 @@ ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLenths = NULL;
 
@@ -321,7 +321,7 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLenths = NULL;
 	int				i, nStores;
@@ -374,7 +374,7 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 	ECRESULT er;
 	string			strQuery, strInsertQuery, strDefaultQuery;
 	string			strInValues;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 
 	// FIXME: use ECListInt and ECListIntIterator (in ECGenericObjectTable.h)
@@ -448,7 +448,7 @@ ECRESULT UpdateDatabaseSearchCriteria(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	std::string		strQuery;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	unsigned int	ulStoreLast = 0;
 	unsigned int	ulStoreId = 0;
@@ -652,7 +652,7 @@ ECRESULT UpdateDatabaseAddCompanyToStore(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseAddIMAPSequenceNumber(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 
 	er = lpDatabase->DoSelect("SELECT * FROM settings WHERE name='imapseq'", &lpResult);
 	if(er != erSuccess)
@@ -676,7 +676,7 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 {
 	ECRESULT	er = erSuccess;
 	string		strQuery;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	BOOL		bFirst = TRUE;
 	unsigned int ulRows = 0;
@@ -742,7 +742,7 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 {
 	ECRESULT	er = erSuccess;
 	string		strQuery;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	unsigned int ulStoreId = 0;
 	unsigned int ulSubtreeFolder = 0;
@@ -887,7 +887,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	unsigned int	ulNewId = 0;
@@ -1163,7 +1163,7 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	int				ulId = 0;
@@ -1300,7 +1300,7 @@ ECRESULT UpdateDatabaseRenameObjectTypeToObjectClass(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 {
 	ECRESULT	er = erSuccess;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 	std::string strQuery, strUpdate;
@@ -1399,7 +1399,7 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 	ECRESULT	er = erSuccess;
 	string		strQuery;
 	map<string, string> mapIdToName;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 
@@ -1493,7 +1493,7 @@ ECRESULT UpdateDatabaseKeysChanges2(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseMVPropertiesPrimarykey(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	bool		bUpdate = false;
 
@@ -1536,7 +1536,7 @@ ECRESULT UpdateDatabaseFixDBPluginGroups(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 	list<std::pair<string, string> > lstRelations;
@@ -1590,7 +1590,7 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	map<string, string> mapStoreInbox;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 
@@ -1742,8 +1742,7 @@ ECRESULT UpdateDatabaseConvertStoreUsername(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 
 	convert_context converter;
@@ -1779,7 +1778,7 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 
 	std::string strQuery;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 
 	convert_context converter;
@@ -1815,7 +1814,7 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 
 	// Create the temporary properties table

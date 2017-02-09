@@ -37,7 +37,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 {
 	const char *mysql_port = cfg->GetSetting("mysql_port");
 	const char *mysql_socket = cfg->GetSetting("mysql_socket");
-	DB_RESULT result = nullptr;
+	DB_RESULT result;
 	DB_ROW row = nullptr;
 	std::string query;
 
@@ -423,7 +423,7 @@ ECRESULT KDatabase::InitEngine(bool reconnect)
 
 ECRESULT KDatabase::IsInnoDBSupported(void)
 {
-	DB_RESULT res = nullptr;
+	DB_RESULT res;
 	DB_ROW row = nullptr;
 
 	auto er = DoSelect("SHOW ENGINES", &res);

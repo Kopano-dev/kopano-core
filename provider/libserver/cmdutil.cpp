@@ -181,8 +181,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	ECRESULT er = erSuccess;
 	
 	ECListIntIterator	iListObjectId;
-
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	std::string strQuery;
 	std::set<unsigned int> setIDs;
@@ -1372,7 +1371,7 @@ ECRESULT UpdateFolderCounts(ECDatabase *lpDatabase, ULONG ulParentId, ULONG ulFl
 ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStoreId, ULONG ulObjId, bool bNewItem, propValArray *lpModProps)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT	lpDBResult = NULL; 
+	DB_RESULT lpDBResult;
 	std::string	strQuery;
 	struct propVal *lpPropMessageFlags = NULL;	// non-free
 	ULONG ulPrevSubmitFlag = 0;
@@ -1576,7 +1575,7 @@ ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ul
 ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propTagArray *lpPropTags, struct namedPropArray *lpsNames)
 {
     ECRESULT er = erSuccess;
-    DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
     DB_ROW lpDBRow = NULL;
     DB_LENGTHS lpDBLen = NULL;
     std::string strQuery;
@@ -1660,7 +1659,7 @@ exit:
 ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned int *lpulUpdates)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	std::string strQuery;
 	string strCC;		// Content count
@@ -1838,7 +1837,7 @@ exit:
 ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned char *lpData, unsigned int cbSize)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	std::string strQuery;
 	unsigned int ulObjId = 0;
@@ -1957,7 +1956,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     const std::set<std::string> &setIds, unsigned int ulFlags)
 {
     ECRESULT er = erSuccess;
-    DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
     DB_ROW lpDBRow = NULL;
     std::set<unsigned int> setMessages;
     std::set<unsigned int> setFolders;
@@ -2146,7 +2145,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     unsigned int ulChildId;
 	ECStringCompat stringCompat(fUnicode);
 	std::string strQuery;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpDBLen = NULL;
 

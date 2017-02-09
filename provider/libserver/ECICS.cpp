@@ -82,7 +82,7 @@ static bool isICSChange(unsigned int ulChange)
 static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<unsigned int> &sUserIds, unsigned int ulCompanyFilter, std::set<unsigned int> *lpsFilteredIds)
 {
 	ECRESULT			er = erSuccess;
-	DB_RESULT			lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	std::string			strQuery;
 	unsigned int		ulRows = 0;
 	assert(!sUserIds.empty());
@@ -205,7 +205,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	unsigned int	changeid = 0;
@@ -502,7 +502,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	unsigned int dummy;
 	ECRESULT		er = erSuccess;
 	ECDatabase*		lpDatabase = NULL;
-	DB_RESULT		lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
 	DB_LENGTHS		lpDBLen;
 	unsigned int	ulMaxChange = 0;
@@ -1101,7 +1101,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
-	DB_RESULT		lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	unsigned int	ulResults = 0;
 	DB_ROW			lpDBRow;
 
@@ -1153,7 +1153,7 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 {
 	ECRESULT	er = erSuccess;
 	std::string	strQuery;
-	DB_RESULT	lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow;
 	
 	strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
@@ -1206,7 +1206,7 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 {
 	ECRESULT	er = erSuccess;
 	std::string	strQuery;
-	DB_RESULT	lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow;
 
 	strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
@@ -1252,7 +1252,7 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 {
 	ECRESULT	er = erSuccess;
 	std::string	strQuery;
-	DB_RESULT	lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow;
 	
 	strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	

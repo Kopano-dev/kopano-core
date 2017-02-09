@@ -434,7 +434,7 @@ ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
 {
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 
 	strQuery = "SELECT 1 FROM information_schema.COLUMNS "
 				"WHERE TABLE_SCHEMA = '" + string(m_lpConfig->GetSetting("mysql_database")) + "' "
@@ -459,7 +459,7 @@ ECRESULT ECDatabase::CheckExistIndex(const std::string &strTable,
 {
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpRow = NULL;
 
 	// WHERE not supported in MySQL < 5.0.3 
@@ -615,7 +615,7 @@ exit:
 ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	int ret = 0;
 	autolock alk(*this);
 
@@ -666,7 +666,7 @@ exit:
 ECRESULT ECDatabase::FinalizeMulti(void)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	autolock alk(*this);
 
 	mysql_next_result(&m_lpMySQL);
@@ -905,7 +905,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	bool have_micro;
 
@@ -979,7 +979,7 @@ ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
 {
 	ECRESULT		er = KCERR_NOT_FOUND;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 
 	strQuery = "SELECT major,minor,revision,databaserevision FROM versions WHERE databaserevision = " + stringify(ulDatabaseRevision);
 	if (ulRevision > 0)
@@ -1003,7 +1003,7 @@ exit:
 ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 {
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 
 	er = DoSelect("SELECT MIN(databaserevision) FROM versions", &lpResult);
@@ -1155,7 +1155,7 @@ ECRESULT ECDatabase::ValidateTables(void)
 	string		strQuery;
 	list<std::string> listTables;
 	list<std::string> listErrorTables;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 
 	er = DoSelect("SHOW TABLES", &lpResult);

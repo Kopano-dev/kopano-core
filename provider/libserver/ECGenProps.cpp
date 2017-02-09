@@ -739,7 +739,7 @@ ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, b
 {
 	ECRESULT	er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
-	DB_RESULT 	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	std::string strQuery;
 	bool		bIsOrphan = false;
 

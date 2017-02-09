@@ -50,7 +50,7 @@ ECRESULT ECMailBoxTable::Load()
 {
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
-	DB_RESULT 	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	std::string strQuery;
 	std::list<unsigned int> lstObjIds;

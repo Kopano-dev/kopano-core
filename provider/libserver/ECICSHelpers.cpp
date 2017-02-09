@@ -566,7 +566,7 @@ ECGetContentChangesHelper::ECGetContentChangesHelper(struct soap *soap,
 ECRESULT ECGetContentChangesHelper::Init()
 {
 	ECRESULT	er = erSuccess;
-	DB_RESULT	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow;
 	std::string	strQuery;
 
@@ -685,7 +685,7 @@ ECGetContentChangesHelper::~ECGetContentChangesHelper()
 ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 {
 	ECRESULT er;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	std::string		strQuery;
 	unsigned int	ulChanges = 0;
 
@@ -816,7 +816,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	std::string					strQuery;
 	unsigned int				ulMaxChange = 0;
 	unsigned int				ulNewChange = 0;
-	DB_RESULT					lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW						lpDBRow;
 	
 	assert(lppChanges != NULL);
@@ -1060,7 +1060,7 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 	ECRESULT		er = erSuccess;
 	std::string		strSubQuery;
 	std::string		strQuery;
-	DB_RESULT		lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
 	DB_LENGTHS		lpDBLen;
 	

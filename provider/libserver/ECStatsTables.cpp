@@ -626,7 +626,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 	bool bNoQuotaDetails = false;
 	std::string strData;
 	DB_ROW lpDBRow = NULL;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	std::string strQuery;
 
 	er = lpSession->GetDatabase(&lpDatabase);
@@ -873,7 +873,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 	bool bNoQuotaDetails = false;
 	std::string strData;
 	DB_ROW lpDBRow = NULL;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	std::string strQuery;
 
 	er = lpSession->GetDatabase(&lpDatabase);

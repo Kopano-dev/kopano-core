@@ -195,7 +195,7 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 	ECRESULT er = erSuccess;
 	object_ptr<ECStoreObjectTable> lpTable;
 	std::unique_ptr<TABLE_ENTRY> lpEntry;
-	DB_RESULT	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	std::string strQuery;
 	struct propTagArray *lpsPropTags = NULL;
