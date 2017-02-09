@@ -142,9 +142,7 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
     }
 
 exit:
-    if(lpResult)
-        lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
     if(lpSearchCriteria)
         FreeSearchCriteria(lpSearchCriteria);
         
@@ -324,10 +322,8 @@ ECRESULT ECSearchFolders::IsSearchFolder(unsigned int ulStoreID, unsigned int ul
     }
 
 exit:
-    if(lpDBResult)
-        lpDatabase->FreeResult(lpDBResult);
-
-    return er;
+	lpDatabase->FreeResult(lpDBResult);
+	return er;
 }
 
 // Cancel a search: stop any rebuild thread and stop processing updates for this search folder
@@ -1067,8 +1063,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 			} else
 				ec_log_crit("ECSearchFolders::Search() could not expand target folders: 0x%x", er);
 
-			if (lpDBResult != nullptr)
-				lpDatabase->FreeResult(lpDBResult);
+			lpDatabase->FreeResult(lpDBResult);
 			++iterFolders;
 		}
 	}
@@ -1202,8 +1197,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 				}
 			}
 			
-			if (lpDBResult != nullptr)
-				lpDatabase->FreeResult(lpDBResult);
+			lpDatabase->FreeResult(lpDBResult);
 		}
 
 		// Search done
@@ -1228,9 +1222,7 @@ exit:
     if(lpPropTags)
         FreePropTagArray(lpPropTags);
 
-    if(lpDBResult)
-        lpDatabase->FreeResult(lpDBResult);
-
+    lpDatabase->FreeResult(lpDBResult);
     if (lpAdditionalRestrict)
         FreeRestrictTable(lpAdditionalRestrict);
 
@@ -1410,10 +1402,8 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
 		*lpfInserted = (lpDBRow == NULL);
         
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-        
-    return er;
+	lpDatabase->FreeResult(lpDBResult);
+	return er;
 }
 
 ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFolderId, std::list<unsigned int> &lstObjId, std::list<unsigned int>& lstFlags, int *lpulCount, int *lpulUnread)
@@ -1523,10 +1513,8 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulStoreId, unsigned int ulF
     }
         
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-		
-    return er;
+	lpDatabase->FreeResult(lpResult);
+	return er;
 }
 
 // Write the status of a search folder to the PR_EC_SEARCHFOLDER_STATUS property
@@ -1605,10 +1593,8 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
     }
     
 exit:
-    if(lpResult)
-        lpDatabase->FreeResult(lpResult);
-        
-    return er;
+	lpDatabase->FreeResult(lpResult);
+	return er;
 }
 
 // Loads the search criteria from the database
@@ -1672,10 +1658,8 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 	}
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
-    return er;
+	lpDatabase->FreeResult(lpDBResult);
+	return er;
 }
 
 // Saves the search criteria in the database

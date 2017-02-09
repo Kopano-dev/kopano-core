@@ -669,9 +669,7 @@ ECRESULT ECGetContentChangesHelper::Init()
 	}
 		
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
  
@@ -957,9 +955,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	*lpulMaxChange = ulMaxChange;
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-		
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1086,9 +1082,7 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 	}
 	
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

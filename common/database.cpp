@@ -74,8 +74,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		ec_log_err("KDatabase::Connect(): database missing %d", er);
 		goto exit;
 	}
-	if (result != nullptr)
-		FreeResult(result);
+	FreeResult(result);
 
 	query = "SHOW variables LIKE 'max_allowed_packet'";
 	er = DoSelect(query, &result);
@@ -114,8 +113,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		goto exit;
 	}
  exit:
-	if (result != nullptr)
-		FreeResult(result);
+	FreeResult(result);
 	if (er != erSuccess)
 		Close();
 	return er;
@@ -266,7 +264,7 @@ ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
 	}
 	if (res_p != nullptr)
 		*res_p = std::move(res);
-	else if (res != nullptr)
+	else
 		FreeResult(res);
 	return er;
 }
@@ -452,8 +450,7 @@ ECRESULT KDatabase::IsInnoDBSupported(void)
 		goto exit;
 	}
  exit:
-	if (res != nullptr)
-		FreeResult(res);
+	FreeResult(res);
 	return er;
 }
 

@@ -192,10 +192,8 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int *l
     *lpulCount = atoui(lpRow[0]);
     
 exit:
-    if(lpResult)
-        lpDatabase->FreeResult(lpResult);
-        
-    return er;    
+	lpDatabase->FreeResult(lpResult);
+        return er;    
 }
 
 /**
@@ -227,8 +225,7 @@ ECRESULT ECTPropsPurge::GetLargestFolderId(ECDatabase *lpDatabase, unsigned int 
     
     *lpulFolderId = atoui(lpRow[0]);
 exit:
-	if (lpResult != nullptr)
-		lpDatabase->FreeResult(lpResult);
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -294,8 +291,7 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	g_lpStatsCollector->Increment(SCN_DATABASE_MERGED_RECORDS, (int)ulAffected);
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -322,9 +318,7 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ul
 	*lpulCount = ulCount;
 	
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

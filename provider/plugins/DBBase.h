@@ -86,7 +86,7 @@ public:
     };
 
     ~DB_RESULT_AUTOFREE() {
-        if(m_lpDatabase && m_lpResult)
+        if(m_lpDatabase)
             m_lpDatabase->FreeResult(m_lpResult);
     };
 
@@ -104,7 +104,7 @@ public:
 	 */
     DB_RESULT * operator & () {
         // Assume overwrite will happen soon
-        if(m_lpDatabase && m_lpResult)
+        if(m_lpDatabase)
             m_lpDatabase->FreeResult(m_lpResult);
         return &m_lpResult;
     };

@@ -194,9 +194,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag, UL
 		*lpulInstanceId = atoi(lpDBRow[0]);
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -251,9 +249,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 	lstAttachIds->swap(lstInstanceIds);
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -323,9 +319,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId, std::
 	lplstObjIds->swap(lstObjIds);
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -362,9 +356,7 @@ ECRESULT ECAttachmentStorage::IsOrphanedSingleInstance(ULONG ulInstanceId, bool 
 	*bOrphan = (!lpDBRow || !lpDBRow[0]);
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -418,9 +410,7 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ULONG> 
 	}
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -856,9 +846,7 @@ bool ECDatabaseAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
 		er = KCERR_NOT_FOUND;
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er == erSuccess;
 }
 
@@ -933,10 +921,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 exit:
 	if (er != erSuccess && !soap)
 		delete [] lpData;
-
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -988,9 +973,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t
 	*lpiSize = iReadSize;
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1169,9 +1152,7 @@ ECRESULT ECDatabaseAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulS
 		*lpbCompressed = false;
  	 
 exit: 
-	if (lpDBResult) 
-		m_lpDatabase->FreeResult(lpDBResult); 
-
+	m_lpDatabase->FreeResult(lpDBResult);
 	return er; 
 }
 

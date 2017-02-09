@@ -310,9 +310,7 @@ ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
 		goto exit;
 
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -363,9 +361,7 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -434,8 +430,7 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 			 lstFolders.push_back(atoui(lpDBRow[0]));
 		}
 
-		if (lpDBResult != nullptr)
-			lpDatabase->FreeResult(lpDBResult);
+		lpDatabase->FreeResult(lpDBResult);
 		iterFolders = lstFolders.begin();
 	} //while
 	return erSuccess;
@@ -495,9 +490,7 @@ next: //Free
 	}
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-	
+	lpDatabase->FreeResult(lpDBResult);
 	if (lpNewSearchCriteria)
 		FreeSearchCriteria(lpNewSearchCriteria);
 
@@ -663,9 +656,7 @@ ECRESULT UpdateDatabaseAddIMAPSequenceNumber(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -716,8 +707,7 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 				goto exit;
 		}
 
-		if (lpResult != nullptr)
-			lpDatabase->FreeResult(lpResult);
+		lpDatabase->FreeResult(lpResult);
 	}while(ulRows > 0);
 
 	// Change index
@@ -726,9 +716,7 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 		goto exit;
 
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -865,12 +853,9 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 			goto exit;
 	}
 
-	if (lpResult != nullptr)
-		lpDatabase->FreeResult(lpResult);
+	lpDatabase->FreeResult(lpResult);
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1100,10 +1085,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 exit:
 	// Delete the temporary tables if they exist at this point
 	lpDatabase->DoDelete("DROP TABLE IF EXISTS object_temp, objectproperty_temp, objectrelation_temp");
-
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1225,9 +1207,7 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 	}
 	
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-		
+	lpDatabase->FreeResult(lpResult);
 	if (er != erSuccess)
 		lpDatabase->DoDelete("DROP TABLE IF EXISTS abchanges");
 
@@ -1362,9 +1342,7 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1413,9 +1391,7 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1505,9 +1481,7 @@ ECRESULT UpdateDatabaseMVPropertiesPrimarykey(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1552,9 +1526,7 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1610,9 +1582,7 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1751,9 +1721,7 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 			goto exit;
 	}
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1788,9 +1756,7 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 			goto exit;
 	}
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1852,9 +1818,7 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoDelete("DROP TABLE properties_old");
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 

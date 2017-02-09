@@ -205,8 +205,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	     iListObjectId != lpsObjectList->end(); ++iListObjectId)
 	{
 		sItem.fRoot = true;
-		if (lpDBResult != nullptr)
-			lpDatabase->FreeResult(lpDBResult);
+		lpDatabase->FreeResult(lpDBResult);
 
 		// Lock the root records's parent counter to maintain locking order (counters/content/storesize/committimemax)
 		er  = lpCacheManager->GetObject(*iListObjectId, &ulParent, NULL, NULL, NULL);
@@ -293,9 +292,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	// Now, run through the list, adding children to the bottom of the list. This means
 	// we're actually running width-first, and don't have to do anything recursive.
 	for (const auto &di : lstDeleteItems) {
-		if (lpDBResult != nullptr)
-			lpDatabase->FreeResult(lpDBResult);
-
+		lpDatabase->FreeResult(lpDBResult);
 		strQuery = "SELECT id, type, flags, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = hierarchy.id LIMIT 1) FROM hierarchy WHERE parent=" +
 			stringify(di.ulId);
 		if((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
@@ -356,10 +353,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 
 exit:
 	FreeDeletedItems(&lstDeleteItems);
-
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1439,9 +1433,7 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 	}
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1624,15 +1616,11 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 			lpsNames->__ptr[i].lpString = NULL;
 		}
 
-		//Free database results
-		if (lpDBResult)
-			lpDatabase->FreeResult(lpDBResult);
+		lpDatabase->FreeResult(lpDBResult);
 	}
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1881,9 +1869,7 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
 		ec_log_crit("RemoveStaleIndexedProp(): caller wanted to remove the entry, but we cannot since it is in use");
 	}
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -2064,10 +2050,8 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
         goto exit;
     
 exit:
-    if(lpDBResult)
-        lpDatabase->FreeResult(lpDBResult);
-        
-    return er;
+	lpDatabase->FreeResult(lpDBResult);
+	return er;
 }
 
 /**
@@ -2359,8 +2343,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     }
 
 exit:
-	if (lpDBResult != nullptr)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

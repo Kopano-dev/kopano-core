@@ -214,9 +214,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 exit:
 	biglock.unlock();
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -280,9 +278,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 	}
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -771,7 +767,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
             }
         }
         
-        if(lpDBResult) lpDatabase->FreeResult(lpDBResult);
+        lpDatabase->FreeResult(lpDBResult);
     }
 
 	for (const auto &col : mapColumns) {
@@ -783,9 +779,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 	er = erSuccess;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -982,9 +976,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 			}
 	
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		     
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1044,8 +1036,7 @@ ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *l
 
 exit:
 	biglock.unlock();
-	if(lpDBResult)
-           lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1128,10 +1119,8 @@ ECRESULT ECStoreObjectTable::Load()
     }
     
 exit:
-    if(lpDBResult)
-        lpDatabase->FreeResult(lpDBResult);
-    
-    return er;
+	lpDatabase->FreeResult(lpDBResult);
+	return er;
 }
 
 ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
@@ -1262,9 +1251,7 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId
 	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
 		lpDeferred->push_back(atoui(lpDBRow[0]));
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1297,9 +1284,7 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRo
 	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
 		lpDeferred->push_back(atoui(lpDBRow[0]));
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

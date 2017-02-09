@@ -413,8 +413,7 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 	SetObject(ulObjId, ulParent, ulOwner, ulFlags, ulType);
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object id %d error 0x%08x", ulObjId, er);
 	else
@@ -490,8 +489,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 		LOG_CACHE_DEBUG("Get objects ids warning %zu objects not found",
 			lstObjects.size() - mapObjects.size());
 exit:
-	if (lpDBResult != nullptr)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object ids error 0x%08x", er);
 	else
@@ -551,8 +549,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 			lpdata.size() - mapObjects.size());
  exit:
 	sObject.lpData = NULL;
-	if (lpDBResult != nullptr)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object ids from props error: 0x%08x", er);
 	else
@@ -638,8 +635,7 @@ found:
         *lpulType = ulType;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get store and type %d error 0x%08x", ulObjId, er);
 	else
@@ -712,8 +708,7 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 		*lpstrSignature = signature;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user object for user %d error 0x%08x", ulUserId, er);
 	else
@@ -817,8 +812,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 		*lpstrSignature = signature;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user object done. error 0x%08X", er);
 	else
@@ -905,8 +899,7 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 	// From this point you can have less items in lpmapLocalObjIds than requested in lstExternObjIds
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get User Objects done. Error 0x%08X", er);
 	else
@@ -1146,10 +1139,8 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
     *lppRights = lpRights;
 
 exit:
-    if(lpResult)
-        lpDatabase->FreeResult(lpResult);
-
-    return er;
+	lpDatabase->FreeResult(lpResult);
+	return er;
 }
 
 ECRESULT ECCacheManager::_GetACLs(unsigned int ulObjId, struct rightsArray **lppRights)
@@ -1691,8 +1682,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 	memcpy(*lppData, sObject->lpData, sObject->cbData);
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess || sObject == NULL)
 		LOG_CACHE_DEBUG("Get Prop From Object tag=0x%04X, objectid %d, error 0x%08x", ulTag, ulObjId, er);
 	else
@@ -1751,9 +1741,7 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
 	*lpulObjId = sNewIndexObject.ulObjId;
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	sObject.lpData = NULL; // Remove reference
 
 	if (er != erSuccess)

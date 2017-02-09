@@ -171,8 +171,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 			--iterFolders;
 		}
 
-		if (lpDBResult != nullptr)
-			lpDatabase->FreeResult(lpDBResult);
+		lpDatabase->FreeResult(lpDBResult);
 		
 		// If you're insane enough to have more than 256 levels over folders than we cut it off here because this function's
 		// memory usage goes up exponentially ..
@@ -195,10 +194,8 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
     LoadRows(&lstObjIds, 0);
     
 exit:   
-    if (lpDBResult)
-        lpDatabase->FreeResult(lpDBResult);
-    
-    return er;
+	lpDatabase->FreeResult(lpDBResult);
+	return er;
 }
 
 ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap, ECSession* lpSession, unsigned int ulObjId, struct propVal *lpPropVal){

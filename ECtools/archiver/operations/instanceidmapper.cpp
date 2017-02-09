@@ -142,9 +142,7 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 	*lpcbDestInstanceID = lpLengths[0];
 
 exit:
-	if (lpResult)
-		m_ptrDatabase->FreeResult(lpResult);
-
+	m_ptrDatabase->FreeResult(lpResult);
 	return hr;
 }
 

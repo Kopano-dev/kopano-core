@@ -630,9 +630,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 	er = erSuccess;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1197,9 +1195,7 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
 	*lpllStoreSize = atoll(lpDBRow[0]);
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1259,9 +1255,7 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
 	*lpllUserSize = llUserSize;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

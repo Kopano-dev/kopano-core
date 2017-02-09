@@ -118,9 +118,7 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 		lpsFilteredIds->clear();
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -317,9 +315,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			strChangeList.assign(lpDBRow[0], lpDBLen[0]);
 	}
 
-	if (lpDBResult != nullptr)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	strQuery = "SELECT val_binary FROM properties "
 				"WHERE tag = " + stringify(PROP_ID(PR_CHANGE_KEY)) +
 				" AND type = " + stringify(PROP_TYPE(PR_CHANGE_KEY)) +
@@ -400,10 +396,7 @@ exit:
 	// FIXME: We should not send notifications while we're in the middle of a transaction.
 	if (er == erSuccess && !syncids.empty())
 		g_lpSessionManager->NotificationChange(syncids, changeid, ulChange);
-
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -600,9 +593,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 		ulMaxChange = atoui(lpDBRow[0]);
 		sFolderSourceKey = SOURCEKEY(lpDBLen[1], lpDBRow[1]);
-		
-        if(lpDBResult)
-            lpDatabase->FreeResult(lpDBResult);
+		lpDatabase->FreeResult(lpDBResult);
 
         if(!sFolderSourceKey.empty()) {
             er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sFolderSourceKey.size(), sFolderSourceKey, &ulFolderId);
@@ -737,9 +728,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 					}
 					lstChanges.push_back(atoui(lpDBRow[0]));
 				}
-
-				if (lpDBResult != nullptr)
-					lpDatabase->FreeResult(lpDBResult);
+				lpDatabase->FreeResult(lpDBResult);
 			}
 
 			if (folder_id != 0) {
@@ -762,9 +751,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
                     lstFolderIds.push_back(atoui(lpDBRow[0]));
                 }
-
-                if(lpDBResult)
-                    lpDatabase->FreeResult(lpDBResult);
+                lpDatabase->FreeResult(lpDBResult);
             }
 		}
 
@@ -811,9 +798,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                                 "JOIN indexedproperties AS parentsourcekey ON hierarchy.parent=parentsourcekey.hierarchyid AND parentsourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
                                 "WHERE hierarchy.id=" + stringify(folder_id);
 
-                    if(lpDBResult)
-                        lpDatabase->FreeResult(lpDBResult);
-
+                    lpDatabase->FreeResult(lpDBResult);
                     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
                     if(er != erSuccess)
                         goto exit;
@@ -837,9 +822,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                     lpChanges->__ptr[i].ulChangeType = ICS_FOLDER_NEW;
 
                     lpChanges->__ptr[i].ulFlags = 0;
-
-                    if(lpDBResult)
-                        lpDatabase->FreeResult(lpDBResult);
+                    lpDatabase->FreeResult(lpDBResult);
                     ++i;
                 }
             }
@@ -886,8 +869,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				else
 					lpChanges->__ptr[i].ulFlags = 0;
 
-				if(lpDBResult)
-					lpDatabase->FreeResult(lpDBResult);
+				lpDatabase->FreeResult(lpDBResult);
 				++i;
 			}
 			lpChanges->__size = i;
@@ -1062,9 +1044,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	*lppChanges = lpChanges;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
+	lpDatabase->FreeResult(lpDBResult);
 	if (lpDatabase && er != erSuccess)
 		lpDatabase->Rollback();
 	return er;
@@ -1133,8 +1113,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 	}
 	assert(lpsaSyncState->__size == ulResults);
 exit:
-	if (lpDBResult != nullptr)
-		lpDatabase->FreeResult(lpDBResult);
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1173,9 +1152,7 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 		goto exit;
 		
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1227,9 +1204,7 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 		er = KCERR_NOT_FOUND;
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1266,9 +1241,7 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 		goto exit;
 		
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
+	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

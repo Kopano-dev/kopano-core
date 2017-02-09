@@ -448,9 +448,7 @@ ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
 	*lpbExist = (FetchRow(lpDBResult) != NULL);
 	
 exit:
-	if (lpDBResult)
-		FreeResult(lpDBResult);
-	
+	FreeResult(lpDBResult);
 	return er;
 }
 
@@ -479,9 +477,7 @@ ECRESULT ECDatabase::CheckExistIndex(const std::string &strTable,
 	}
 
 exit:
-	if (lpDBResult)
-		FreeResult(lpDBResult);
-	
+	FreeResult(lpDBResult);
 	return er;
 }
 
@@ -646,7 +642,7 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 
 	if (lppResult)
 		*lppResult = std::move(lpResult);
-	else if (lpResult != nullptr)
+	else
 		FreeResult(lpResult);
 exit:
 	if (er != erSuccess) {
@@ -678,8 +674,7 @@ ECRESULT ECDatabase::FinalizeMulti(void)
 		goto exit;
 	}
 exit:
-	if(lpResult)
-		FreeResult(lpResult);
+	FreeResult(lpResult);
 	return er;
 }
 
@@ -968,9 +963,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	dbv->v_schema = strtoul(lpDBRow[4], NULL, 0);
 
 exit:
-	if(lpResult)
-		FreeResult(lpResult);
-
+	FreeResult(lpResult);
 	return er;
 }
 
@@ -995,8 +988,7 @@ ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
 		er = KCERR_NOT_FOUND;
 
 exit:
-	if (lpResult != nullptr)
-		FreeResult(lpResult);
+	FreeResult(lpResult);
 	return er;
 }
 
@@ -1020,8 +1012,7 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 		*lpulDatabaseRevision = atoui(lpDBRow[0]);
 
 exit:
-	if (lpResult != nullptr)
-		FreeResult(lpResult);
+	FreeResult(lpResult);
 	return er;
 }
 
@@ -1174,7 +1165,7 @@ ECRESULT ECDatabase::ValidateTables(void)
 
 		listTables.insert(listTables.end(), lpDBRow[0]);
 	}
-	if(lpResult) FreeResult(lpResult);
+	FreeResult(lpResult);
 
 	for (const auto &table : listTables) {
 		er = DoSelect("CHECK TABLE " + table, &lpResult);
@@ -1193,8 +1184,7 @@ ECRESULT ECDatabase::ValidateTables(void)
 		ec_log_info("%30s | %15s | %s", lpDBRow[0], lpDBRow[2], lpDBRow[3]);
 		if (strcmp(lpDBRow[2], "error") == 0)
 			listErrorTables.insert(listErrorTables.end(), lpDBRow[0]);
-
-		if(lpResult) FreeResult(lpResult);
+		FreeResult(lpResult);
 	}
 
 	if (!listErrorTables.empty())
@@ -1213,9 +1203,7 @@ ECRESULT ECDatabase::ValidateTables(void)
 			ec_log_notice("Rebuilding tables done.");
 	}//	if (!listErrorTables.empty())
 exit:
-	if(lpResult)
-		FreeResult(lpResult);
-
+	FreeResult(lpResult);
 	return er;
 }
 

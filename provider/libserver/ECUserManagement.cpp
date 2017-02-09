@@ -1338,8 +1338,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 	}
 	*lppObjects = lpObjects.release();
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -2679,9 +2678,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	}
 
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
+	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -3092,9 +3089,7 @@ exit:
 	if (lpDatabase) {
 		if (bTransaction && er != erSuccess)
 			lpDatabase->Rollback();
-
-		if (lpResult)
-			lpDatabase->FreeResult(lpResult);
+		lpDatabase->FreeResult(lpResult);
 	}
 
 	return er;
@@ -4270,10 +4265,8 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 		m_usercount_ts = time(NULL);
 	}
 exit:
-    if(lpResult)
-        lpDatabase->FreeResult(lpResult);
-
-    return er;
+	lpDatabase->FreeResult(lpResult);
+	return er;
 }
 
 ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)
