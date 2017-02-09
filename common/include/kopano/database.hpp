@@ -66,13 +66,13 @@ class _kc_export KDatabase {
 	std::string Escape(const std::string &);
 	std::string EscapeBinary(const unsigned char *, size_t);
 	std::string EscapeBinary(const std::string &);
-	DB_ROW FetchRow(DB_RESULT);
-	DB_LENGTHS FetchRowLengths(DB_RESULT);
-	void FreeResult(DB_RESULT);
+	DB_ROW FetchRow(DB_RESULT &);
+	DB_LENGTHS FetchRowLengths(DB_RESULT &);
+	void FreeResult(DB_RESULT &);
 	const char *GetError(void);
 	DB_ERROR GetLastError(void);
 	unsigned int GetMaxAllowedPacket(void) const { return m_ulMaxAllowedPacket; }
-	unsigned int GetNumRows(DB_RESULT);
+	unsigned int GetNumRows(const DB_RESULT &) const;
 	/*
 	 * Transactions.
 	 * These functions should be used to wrap blocks of queries into

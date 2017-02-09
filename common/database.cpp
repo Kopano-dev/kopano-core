@@ -356,17 +356,17 @@ std::string KDatabase::EscapeBinary(const std::string &s)
 	return EscapeBinary(reinterpret_cast<const unsigned char *>(s.c_str()), s.size());
 }
 
-DB_ROW KDatabase::FetchRow(DB_RESULT r)
+DB_ROW KDatabase::FetchRow(DB_RESULT &r)
 {
 	return mysql_fetch_row(static_cast<MYSQL_RES *>(r.get()));
 }
 
-DB_LENGTHS KDatabase::FetchRowLengths(DB_RESULT r)
+DB_LENGTHS KDatabase::FetchRowLengths(DB_RESULT &r)
 {
 	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(r.get()));
 }
 
-void KDatabase::FreeResult(DB_RESULT r)
+void KDatabase::FreeResult(DB_RESULT &r)
 {
 	auto m = static_cast<MYSQL_RES *>(r.get());
 	assert(m != nullptr);
@@ -403,7 +403,7 @@ DB_ERROR KDatabase::GetLastError(void)
 	}
 }
 
-unsigned int KDatabase::GetNumRows(DB_RESULT r)
+unsigned int KDatabase::GetNumRows(const DB_RESULT &r) const
 {
 	return mysql_num_rows(static_cast<MYSQL_RES *>(r.get()));
 }

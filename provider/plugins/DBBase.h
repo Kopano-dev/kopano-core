@@ -94,9 +94,7 @@ public:
 	/**
 	 * Cast DB_RESULT_AUTOFREE to DB_RESULT
 	 */
-    operator DB_RESULT () const {
-        return m_lpResult;
-    };
+	operator DB_RESULT &(void) { return m_lpResult; }
 
 	/**
 	 * Obtain reference to DB_RESULT
