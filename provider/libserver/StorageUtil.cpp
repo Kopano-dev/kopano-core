@@ -94,23 +94,15 @@ ECRESULT GetObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned in
 	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid="+stringify(ulObjId)+" AND ((tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE))+") OR (tag="+stringify(PROP_ID(PR_ATTACH_SIZE))+" AND type="+stringify(PROP_TYPE(PR_ATTACH_SIZE))+") )";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
-	if(lpDatabase->GetNumRows(lpDBResult) != 1) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+		return er;
+	if (lpDatabase->GetNumRows(lpDBResult) != 1)
+		return KCERR_NOT_FOUND;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	if(lpDBRow == NULL || lpDBRow[0] == NULL) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
+		return KCERR_NOT_FOUND;
 	ulSize = atoi(lpDBRow[0]);
 	*lpulSize = ulSize;
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigned int ulObjType, unsigned int* lpulSize)
@@ -130,7 +122,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	strQuery = "SELECT (SELECT SUM(20 + LENGTH(IFNULL(val_string, 0))+length(IFNULL(val_binary, 0))) FROM properties WHERE hierarchyid=" + stringify(objid) + ") + IFNULL( (SELECT SUM(LENGTH(lob.val_binary)) FROM `lob` JOIN `singleinstances` ON singleinstances.instanceid = lob.instanceid WHERE singleinstances.hierarchyid=" + stringify(objid) + "), 0)";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if(lpDBRow == NULL || lpDBRow[0] == NULL)
@@ -140,7 +132,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 
 	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// since we already did the length magic in the previous query, we only need the 
 	// extra size for filestorage and S3 storage, i.e. not database storage
@@ -149,8 +141,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 		size_t ulAttachSize = 0;
 		er = lpAttachmentStorage->GetSize(objid, PROP_ID(PR_ATTACH_DATA_BIN), &ulAttachSize);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		ulSize += ulAttachSize;
 	}
 
@@ -158,8 +149,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	strQuery = "SELECT SUM(20 + LENGTH(IFNULL(val_string, 0))+length(IFNULL(val_binary, 0))) FROM mvproperties WHERE hierarchyid=" + stringify(objid);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if(lpDBRow != NULL && lpDBRow[0] != NULL)
 		ulSize += atoui(lpDBRow[0]); // Add the size
@@ -168,15 +158,12 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	strQuery = "SELECT SUM(IFNULL(p.val_ulong, 0)) FROM hierarchy as h JOIN properties AS p ON hierarchyid=h.id WHERE h.parent=" + stringify(objid)+ " AND ((p.tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE)) + ") || (p.tag="+stringify(PROP_ID(PR_ATTACH_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_ATTACH_SIZE))+ "))";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if(lpDBRow != NULL && lpDBRow[0] != NULL)
 		ulSize += atoui(lpDBRow[0]); // Add the size
 	*lpulSize = ulSize;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned int ulObjType, eSizeUpdateAction updateAction, long long llSize)

@@ -1304,8 +1304,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	strQuery =
 		"SELECT id FROM users "
 		"WHERE " + OBJECTCLASS_COMPARE_SQL("objectclass", objclass);
@@ -1323,7 +1322,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while(1) {
 		lpRow = lpDatabase->FetchRow(lpResult);
@@ -1337,8 +1336,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 		lpObjects->push_back(atoi(lpRow[0]));
 	}
 	*lppObjects = lpObjects.release();
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::CreateObjectAndSync(const objectdetails_t &details, unsigned int *lpulId)
@@ -2625,20 +2623,17 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	strQuery = "SELECT id, objectclass FROM users WHERE externid='" + lpDatabase->Escape(sExternId.id) + "' AND " +
 		OBJECTCLASS_COMPARE_SQL("objectclass", OBJECTCLASS_CLASSTYPE(sExternId.objclass));
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	lpRow = lpDatabase->FetchRow(lpResult);
-	if (!lpRow) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+	if (lpRow == nullptr)
+		return KCERR_NOT_FOUND;
 	ulObjectId = atoui(lpRow[0]);
 	objClass = (objectclass_t)atoui(lpRow[1]);
 
@@ -2649,35 +2644,32 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	{
 		if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
 			ec_log_crit("user_safe_mode: Would update %d from %s to %s", ulObjectId, ObjectClassToName(objClass), ObjectClassToName(sExternId.objclass));
-			goto exit;
+			return er;
 		}
 
 		// probable situation: change ACTIVE_USER to NONACTIVE_USER (or room/equipment), or change group to security group
 		strQuery = "UPDATE users SET objectclass = " + stringify(sExternId.objclass) + " WHERE id = " + stringify(ulObjectId);
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		// Log the change to ICS
 		er = GetABSourceKeyV1(ulObjectId, &sSourceKey);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
 
 		if (lpulObjectId)
 			*lpulObjectId = ulObjectId;
+		return erSuccess;
 	} else {
 		// type of object changed, so we must fully delete the object first.
 		er = DeleteLocalObject(ulObjectId, objClass);
 		if (er != erSuccess)
-			goto exit;
-
-		er = KCERR_NOT_FOUND;
+			return er;
+		return KCERR_NOT_FOUND;
 	}
-
-exit:
-	return er;
 }
 
 // Check if an object has moved to a new company, or if it was created as new 
@@ -4213,8 +4205,7 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	strQuery =
 		"SELECT COUNT(*), objectclass "
 		"FROM users "
@@ -4223,7 +4214,7 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 		"GROUP BY objectclass";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while((lpRow = lpDatabase->FetchRow(lpResult)) != NULL) {
 		if(lpRow[0] == NULL || lpRow[1] == NULL)
@@ -4256,8 +4247,7 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 		m_userCount.assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
 		m_usercount_ts = time(NULL);
 	}
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)

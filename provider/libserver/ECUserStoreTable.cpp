@@ -206,7 +206,7 @@ ECRESULT ECUserStoreTable::Load() {
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
     Clear();
 
@@ -231,7 +231,7 @@ ECRESULT ECUserStoreTable::Load() {
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	iRowId = 0;
 	while(1) {
@@ -322,9 +322,7 @@ ECRESULT ECUserStoreTable::Load() {
 	}
 
 	LoadRows(&lstObjIds, 0);
-
-exit:	
-	return er;
+	return erSuccess;
 }
 
 } /* namespace KC */
