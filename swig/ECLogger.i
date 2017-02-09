@@ -105,7 +105,15 @@ class ECLogger_Syslog {
 	ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);
 };
 
+class ECLogger_Null {
+ public:
+	ECLogger_Null();
+};
+
 void ec_log_set(ECLogger_File *);
+void ec_log_set(ECLogger_Syslog *);
+void ec_log_set(ECLogger_Null *);
+
 ECLogger *ec_log_get(void);
 
 void ec_log(unsigned int level, const std::string &msg);
