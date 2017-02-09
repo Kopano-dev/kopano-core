@@ -57,7 +57,7 @@ ECRESULT ECMailBoxTable::Load()
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	Clear();
 
@@ -65,7 +65,7 @@ ECRESULT ECMailBoxTable::Load()
 	strQuery = "SELECT hierarchy_id FROM stores";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	while(1) {
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
@@ -80,9 +80,7 @@ ECRESULT ECMailBoxTable::Load()
 	}
 
 	LoadRows(&lstObjIds, 0);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 } /* namespace */

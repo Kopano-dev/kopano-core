@@ -572,11 +572,9 @@ ECRESULT ECGetContentChangesHelper::Init()
 
 	assert(m_lpDatabase != NULL);
 	if (m_sFolderSourceKey.empty() && m_ulChangeId == 0 &&
-	    !(m_ulFlags & SYNC_CATCHUP)) {
+	    !(m_ulFlags & SYNC_CATCHUP))
 		// Disallow full initial exports on server level since they are insanely large
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
+		return KCERR_NO_SUPPORT;
 
 	strQuery = "SELECT MAX(id) FROM changes";
 	if(!m_sFolderSourceKey.empty())
@@ -584,12 +582,11 @@ ECRESULT ECGetContentChangesHelper::Init()
 		
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 		
 	if ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult)) == NULL || lpDBRow == NULL) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECGetContentChangesHelper::Init(): fetchrow failed");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 	
 	if (lpDBRow[0])
@@ -617,7 +614,7 @@ ECRESULT ECGetContentChangesHelper::Init()
 		 */
 		er = GetSyncedMessages(m_ulSyncId, m_ulChangeId, &m_setLegacyMessages);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 			
 		if (m_setLegacyMessages.empty()) {
 			/*
@@ -665,9 +662,7 @@ ECRESULT ECGetContentChangesHelper::Init()
 			m_lpMsgProcessor = new LegacyProcessor(m_ulChangeId, m_ulSyncId, m_setLegacyMessages, m_ulMaxFolderChange);
 		}
 	}
-		
-exit:
-	return er;
+	return erSuccess;
 }
  
 ECGetContentChangesHelper::~ECGetContentChangesHelper()
@@ -821,7 +816,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 
 	if (m_ulFlags & SYNC_NO_DB_CHANGES) {
 		*lpulMaxChange = ulMaxChange;
-		goto exit;
+		return er;
 	}
 	
 	// If there were no changes and this was not the initial sync, we only need to purge all too-new-syncedmessages.
@@ -834,8 +829,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		
 		// Delete all entries that have a changeid that are greater to the new change id.
 		strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id>" + stringify(ulMaxChange);
-		er = m_lpDatabase->DoDelete(strQuery);
-		goto exit;
+		return m_lpDatabase->DoDelete(strQuery);
 	}
 	
 	if (ulMaxChange == m_ulChangeId) {
@@ -851,7 +845,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		strQuery = "REPLACE INTO changes (sourcekey,parentsourcekey,sourcesync) VALUES (0, " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size()) + "," + stringify(m_ulSyncId) + ")";
 		er = m_lpDatabase->DoInsert(strQuery, &ulNewChange);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		assert(ulNewChange > ulMaxChange);
 		ulMaxChange = ulNewChange;
 		assert(ulMaxChange > m_ulChangeId);
@@ -875,13 +869,12 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		strQuery = "SELECT DISTINCT change_id FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId);
 		er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult))) {
 			if (lpDBRow == NULL || lpDBRow[0] == NULL) {
-				er = KCERR_DATABASE_ERROR; // this should never happen
 				ec_log_err("ECGetContentChangesHelper::Finalize(): row null or column null");
-				goto exit;
+				return KCERR_DATABASE_ERROR; /* this should never happen */
 			}
 			setChangeIds.insert(atoui(lpDBRow[0]));
 		}
@@ -930,7 +923,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 
 				er = m_lpDatabase->DoDelete(strQuery);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 			}
 		}
 	
@@ -944,13 +937,11 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		strQuery.resize(strQuery.size() - 1);
 		er = m_lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 	
 	*lpulMaxChange = ulMaxChange;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> &db_rows,
@@ -1060,23 +1051,20 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 	assert(m_lpDatabase != NULL);
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 		
 	while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult))) {
 		lpDBLen = m_lpDatabase->FetchRowLengths(lpDBResult);
 		if (lpDBRow == NULL || lpDBLen == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
-			er = KCERR_DATABASE_ERROR; // this should never happen
 			ec_log_err("ECGetContentChangesHelper::GetSyncedMessages(): row or columns null");
-			goto exit;
+			return KCERR_DATABASE_ERROR; /* this should never happen */
 		}
 
 		auto iResult = lpsetMessages->insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0), lpDBRow[3]?atoui(lpDBRow[3]):0)));
 		if (iResult.second == false && lpDBRow[2] != nullptr)
 			iResult.first->second.ulChangeTypes |= 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0);
 	}
-	
-exit:
-	return er;
+	return erSuccess;
 }
 
 bool ECGetContentChangesHelper::CompareMessageEntry(const MESSAGESET::value_type &lhs, const MESSAGESET::value_type &rhs)

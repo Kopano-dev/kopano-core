@@ -300,28 +300,20 @@ ECRESULT ECSearchFolders::IsSearchFolder(unsigned int ulStoreID, unsigned int ul
 	/* Get database */
 	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Find out what kind of table this is
 	strQuery = "SELECT flags FROM hierarchy WHERE id=" + stringify(ulFolderId);
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	if(!lpDBRow || lpDBRow[0] == NULL) {
-	    er = KCERR_NOT_FOUND;
-	    goto exit;
-    }
-    
-    if(atoui(lpDBRow[0]) != FOLDER_SEARCH) {
-        er = KCERR_NOT_FOUND;
-        goto exit;
-    }
-
-exit:
-	return er;
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
+		return KCERR_NOT_FOUND;
+	if (atoui(lpDBRow[0]) != FOLDER_SEARCH)
+		return KCERR_NOT_FOUND;
+	return erSuccess;
 }
 
 // Cancel a search: stop any rebuild thread and stop processing updates for this search folder
@@ -1363,38 +1355,33 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
     er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed 0x%x", er);
-		goto exit;
+		return er;
 	}
 
     strQuery = "SELECT flags FROM searchresults WHERE folderid = " + stringify(ulFolderId) + " AND hierarchyid = " + stringify(ulObjId);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::AddResults(): select searchresults failed 0x%x", er);
-		goto exit;
+		return er;
 	}
 		
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	
-	if(lpDBRow && lpDBRow[0] && atoui(lpDBRow[0]) == ulFlags) {
+	if (lpDBRow != nullptr && lpDBRow[0] != nullptr && atoui(lpDBRow[0]) == ulFlags)
 		// The record in the database is the same as what we're trying to insert; this is an error because we can't update or insert the record
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+		return KCERR_NOT_FOUND;
         
 	// This will either update or insert the record
     strQuery = "INSERT INTO searchresults (folderid, hierarchyid, flags) VALUES(" + stringify(ulFolderId) + "," + stringify(ulObjId) + "," + stringify(ulFlags) + ") ON DUPLICATE KEY UPDATE flags=" + stringify(ulFlags);
     er = lpDatabase->DoInsert(strQuery);
     if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::AddResults(): INSERT failed 0x%x", er);
-		goto exit;
+		return er;
 	}
         
 	// We have inserted if the previous SELECT returned no row
 	if (lpfInserted)
 		*lpfInserted = (lpDBRow == NULL);
-        
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFolderId, std::list<unsigned int> &lstObjId, std::list<unsigned int>& lstFlags, int *lpulCount, int *lpulUnread)
@@ -1472,22 +1459,19 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulStoreId, unsigned int ulF
     
 	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if(lpulOldFlags) {
 		strQuery = "SELECT flags FROM searchresults WHERE folderid=" + stringify(ulFolderId) + " AND hierarchyid=" + stringify(ulObjId);
 		er = lpDatabase->DoSelect(strQuery, &lpResult);
 		if(er != erSuccess) {
 			ec_log_err("ECSearchFolders::DeleteResults(): SELECT failed 0x%x", er);
-			goto exit;
+			return er;
 		}
 			
 		lpRow = lpDatabase->FetchRow(lpResult);
-		if(lpRow == NULL || lpRow[0] == NULL) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
-		
+		if (lpRow == nullptr || lpRow[0] == nullptr)
+			return KCERR_NOT_FOUND;
 		*lpulOldFlags = atoui(lpRow[0]);
 	}
         
@@ -1495,16 +1479,9 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulStoreId, unsigned int ulF
     er = lpDatabase->DoDelete(strQuery, &ulAffected);
     if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::DeleteResults(): DELETE failed 0x%x", er);
-		goto exit;
+		return er;
 	}
-        
-    if(ulAffected == 0) {
-        er = KCERR_NOT_FOUND;
-        goto exit;
-    }
-        
-exit:
-	return er;
+	return ulAffected != 0 ? erSuccess : KCERR_NOT_FOUND;
 }
 
 // Write the status of a search folder to the PR_EC_SEARCHFOLDER_STATUS property
@@ -1562,14 +1539,14 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
     er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::GetSearchResults(): GetThreadLocalDatabase failed 0x%x", er);
-		goto exit;
+		return er;
 	}
         
     strQuery = "SELECT hierarchyid FROM searchresults WHERE folderid=" + stringify(ulFolderId);
     er = lpDatabase->DoSelect(strQuery, &lpResult);
     if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::GetSearchResults(): SELECT failed 0x%x", er);
-		goto exit;
+		return er;
 	}
         
     lstObjIds->clear();
@@ -1581,9 +1558,7 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
 
         lstObjIds->push_back(atoui(lpRow[0]));
     }
-    
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Loads the search criteria from the database
@@ -1600,7 +1575,7 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
     er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::LoadSearchCriteria(): GetThreadLocalDatabase failed 0x%x", er);
-		goto exit;
+		return er;
 	}
 
 	// We use the soap serializer / deserializer to store the data
@@ -1612,7 +1587,7 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::LoadSearchCriteria(): SELECT failed 0x%x", er);
-		goto exit;
+		return er;
 	}
 
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
@@ -1624,10 +1599,8 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 
 		xmlsoap.is = &xml;
 		soap_default_searchCriteria(&xmlsoap, &crit);
-		if (soap_begin_recv(&xmlsoap) != 0) {
-			er = KCERR_NETWORK_ERROR;
-			goto exit;
-		}
+		if (soap_begin_recv(&xmlsoap) != 0)
+			return KCERR_NETWORK_ERROR;
 		soap_get_searchCriteria(&xmlsoap, &crit, "SearchCriteria", NULL);
 
 		// We now have the object, allocated by xmlsoap object,
@@ -1645,8 +1618,6 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 	} else {
 		er = KCERR_NOT_FOUND;
 	}
-
-exit:
 	return er;
 }
 

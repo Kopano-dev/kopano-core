@@ -743,27 +743,20 @@ ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, b
 	std::string strQuery;
 	bool		bIsOrphan = false;
 
-	if (!lpSession || !lpbIsOrphan) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpSession == nullptr || lpbIsOrphan == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	strQuery = "SELECT 0 FROM stores as s LEFT JOIN users as u ON s.user_id=u.id WHERE s.user_id != 0 and s.hierarchy_id="+stringify(ulObjId) + " AND u.id IS NOT NULL";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if (lpDatabase->GetNumRows(lpDBResult) == 0)
 		bIsOrphan = true;
 
 	*lpbIsOrphan = bIsOrphan;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /* Get store name

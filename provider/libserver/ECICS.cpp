@@ -95,7 +95,7 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	ulRows = lpDatabase->GetNumRows(lpDBResult);
 	if (ulRows > 0) {
@@ -106,8 +106,7 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 			lpDBRow = lpDatabase->FetchRow(lpDBResult);
 			if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 				ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
-				er = KCERR_DATABASE_ERROR;
-				goto exit;
+				return KCERR_DATABASE_ERROR;
 			}
 
 			sFilteredIds.insert(atoui(lpDBRow[0]));
@@ -117,8 +116,7 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 	} else
 		lpsFilteredIds->clear();
 
-exit:
-	return er;
+	return erSuccess;
 }
 
 static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
@@ -1061,12 +1059,12 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 
 	if (ulaSyncId.__size == 0) {
 		memset(lpsaSyncState, 0, sizeof *lpsaSyncState);
-		goto exit;
+		return erSuccess;
 	}
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	strQuery = "SELECT id,change_id FROM syncs WHERE id IN (" + stringify(ulaSyncId.__ptr[0]);
 	for (gsoap_size_t i = 1; i < ulaSyncId.__size; ++i)
@@ -1075,12 +1073,12 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	ulResults = lpDatabase->GetNumRows(lpDBResult);
     if (ulResults == 0){
 		memset(lpsaSyncState, 0, sizeof *lpsaSyncState);
-        goto exit;
+		return erSuccess;
     }
 
 	lpsaSyncState->__size = 0;
@@ -1088,17 +1086,15 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 
 	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
-			er = KCERR_DATABASE_ERROR;
 			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		lpsaSyncState->__ptr[lpsaSyncState->__size].ulSyncId = atoui(lpDBRow[0]);
 		lpsaSyncState->__ptr[lpsaSyncState->__size++].ulChangeId = atoui(lpDBRow[1]);
 	}
 	assert(lpsaSyncState->__size == ulResults);
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey, const SOURCEKEY &sParentSourceKey)
@@ -1111,29 +1107,23 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 	strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 		
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow == NULL) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 	
 	if (lpDBRow[0] == NULL)	// none set for this sync id.
-		goto exit;
+		return erSuccess;
 	
 	strQuery = "INSERT INTO syncedmessages (sync_id,change_id,sourcekey,parentsourcekey) VALUES (" +
 				stringify(ulSyncId) + "," +
 				lpDBRow[0] + "," + 
 				lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) + "," +
 				lpDatabase->EscapeBinary(sParentSourceKey, sParentSourceKey.size()) + ")";
-	er = lpDatabase->DoInsert(strQuery);
-	if (er != erSuccess)
-		goto exit;
-		
-exit:
-	return er;
+	return lpDatabase->DoInsert(strQuery);
 }
 
 /** 
@@ -1156,17 +1146,16 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 	strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 		
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow == NULL) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 	
 	if (lpDBRow[0] == NULL)	// none set for this sync id, not an error
-		goto exit;
+		return erSuccess;
 
 	// check if the delete would remove the message
 	strQuery = "SELECT 0 FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId) +
@@ -1174,14 +1163,12 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size());
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow == NULL)
-		er = KCERR_NOT_FOUND;
-
-exit:
-	return er;
+		return KCERR_NOT_FOUND;
+	return erSuccess;
 }
 
 ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey, const SOURCEKEY &sParentSourceKey)
@@ -1194,27 +1181,21 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 	strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 		
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow == NULL) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_crit("RemoveFromLastSyncedMessagesSet(): fetchrow return null");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 	
 	if (lpDBRow[0] == NULL)	// none set for this sync id.
-		goto exit;
+		return erSuccess;
 	
 	strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId) +
 				" AND change_id=" + lpDBRow[0] +
 				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size());
-	er = lpDatabase->DoDelete(strQuery);
-	if (er != erSuccess)
-		goto exit;
-		
-exit:
-	return er;
+	return lpDatabase->DoDelete(strQuery);
 }
 
 } /* namespace */
