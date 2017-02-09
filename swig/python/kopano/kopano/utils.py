@@ -6,10 +6,21 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import codecs
+try:
+    import daemon
+    import daemon.pidlockfile
+except ImportError:
+    pass
+import errno
+import grp
+import logging.handlers
+import multiprocessing
+import os
+import pwd
+import struct
 import sys
 import traceback
 import time
-import struct
 
 from MAPI import (
     ECImportContentsChanges, SYNC_E_IGNORE, WrapStoreEntryID,
@@ -50,6 +61,8 @@ if sys.hexversion >= 0x03000000:
     from . import permission as _permission
     from . import user as _user
     from . import group as _group
+    from . import service as _service
+    from . import log as _log
 else:
     import item as _item
     import store as _store
@@ -58,6 +71,8 @@ else:
     import permission as _permission
     import user as _user
     import group as _group
+    import service as _service
+    import log as _log
 
 from .defs import NAMESPACE_GUID
 from .compat import is_int as _is_int, unhex as _unhex
@@ -458,3 +473,66 @@ def human_to_bytes(s):
     for i, s in enumerate(sset[1:]):
         prefix[s] = 1 << (i + 1) * 10
     return int(num * prefix[letter])
+
+def _daemon_helper(func, service, log):
+    try:
+        if not service or isinstance(service, _service.Service):
+            if isinstance(service, _service.Service): # XXX
+                service.log_queue = multiprocessing.Queue()
+                service.ql = _log.QueueListener(service.log_queue, *service.log.handlers)
+                service.ql.start()
+            func()
+        else:
+            func(service)
+    finally:
+        if isinstance(service, _service.Service) and service.ql: # XXX move queue stuff into Service
+            service.ql.stop()
+        if log and service:
+            log.info('stopping %s', service.name)
+
+def _daemonize(func, options=None, foreground=False, log=None, config=None, service=None):
+    uid = gid = None
+    working_directory = '/'
+    pidfile = None
+    if config:
+        working_directory = config.get('running_path')
+        pidfile = config.get('pid_file')
+        if config.get('run_as_user'):
+            uid = pwd.getpwnam(config.get('run_as_user')).pw_uid
+        if config.get('run_as_group'):
+            gid = grp.getgrnam(config.get('run_as_group')).gr_gid
+    if not pidfile and service:
+        pidfile = "/var/run/kopano/%s.pid" % service.name
+    if pidfile:
+        pidfile = daemon.pidlockfile.TimeoutPIDLockFile(pidfile, 10)
+        oldpid = pidfile.read_pid()
+        if oldpid is None:
+            # there was no pidfile, remove the lock if it's there
+            pidfile.break_lock()
+        elif oldpid:
+            try:
+                cmdline = open('/proc/%u/cmdline' % oldpid).read().split('\0')
+            except IOError as error:
+                if error.errno != errno.ENOENT:
+                    raise
+                # errno.ENOENT indicates that no process with pid=oldpid exists, which is ok
+                pidfile.break_lock()
+    if uid is not None and gid is not None:
+        for h in log.handlers:
+            if isinstance(h, logging.handlers.WatchedFileHandler):
+                os.chown(h.baseFilename, uid, gid)
+    if options and options.foreground:
+        foreground = options.foreground
+        working_directory = os.getcwd()
+    with daemon.DaemonContext(
+            pidfile=pidfile,
+            uid=uid,
+            gid=gid,
+            working_directory=working_directory,
+            files_preserve=[h.stream for h in log.handlers if isinstance(h, logging.handlers.WatchedFileHandler)] if log else None,
+            prevent_core=False,
+            detach_process=not foreground,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        ):
+        _daemon_helper(func, service, log)
