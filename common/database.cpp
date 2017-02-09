@@ -27,6 +27,17 @@
 #define LOG_SQL_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SQL, _msg, ##__VA_ARGS__)
 
+DB_RESULT::~DB_RESULT(void)
+{
+	if (m_res == nullptr)
+		return;
+	assert(m_db != nullptr);
+	if (m_db == nullptr)
+		return;
+	m_db->FreeResult_internal(m_res);
+	m_res = nullptr;
+}
+
 KDatabase::KDatabase(void)
 {
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
@@ -74,7 +85,6 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		ec_log_err("KDatabase::Connect(): database missing %d", er);
 		goto exit;
 	}
-	FreeResult(result);
 
 	query = "SHOW variables LIKE 'max_allowed_packet'";
 	er = DoSelect(query, &result);
@@ -113,7 +123,6 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		goto exit;
 	}
  exit:
-	FreeResult(result);
 	if (er != erSuccess)
 		Close();
 	return er;
@@ -264,8 +273,6 @@ ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
 	}
 	if (res_p != nullptr)
 		*res_p = std::move(res);
-	else
-		FreeResult(res);
 	return er;
 }
 
@@ -363,12 +370,11 @@ DB_LENGTHS KDatabase::FetchRowLengths(DB_RESULT &r)
 	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(r.get()));
 }
 
-void KDatabase::FreeResult(DB_RESULT &r)
+void KDatabase::FreeResult_internal(void *r)
 {
-	auto m = static_cast<MYSQL_RES *>(r.release());
-	assert(m != nullptr);
-	if (m != nullptr)
-		mysql_free_result(m);
+	assert(r != nullptr);
+	if (r != nullptr)
+		mysql_free_result(static_cast<MYSQL_RES *>(r));
 }
 
 unsigned int KDatabase::GetAffectedRows(void)
@@ -450,7 +456,6 @@ ECRESULT KDatabase::IsInnoDBSupported(void)
 		goto exit;
 	}
  exit:
-	FreeResult(res);
 	return er;
 }
 

@@ -155,7 +155,6 @@ ECRESULT ECSessionManager::LoadSettings(){
 	m_lpServerGuid = new GUID;
 
 	memcpy(m_lpServerGuid, lpDBRow[0], sizeof(GUID));
-	lpDatabase->FreeResult(lpDBResult);
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment'";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
@@ -171,7 +170,6 @@ ECRESULT ECSessionManager::LoadSettings(){
 	memcpy(&m_ullSourceKeyAutoIncrement, lpDBRow[0], sizeof(m_ullSourceKeyAutoIncrement));
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1514,7 +1512,6 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 	*lpLcid = strtoul(lpDBRow[0], NULL, 10);
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

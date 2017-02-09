@@ -40,11 +40,12 @@ struct sSQLDatabase_t {
 
 class KDatabase;
 
-class DB_RESULT _kc_final {
+class _kc_export DB_RESULT _kc_final {
 	public:
 	DB_RESULT(void) = default;
 	DB_RESULT(KDatabase *d, void *r) : m_res(r), m_db(d) {}
 	DB_RESULT(DB_RESULT &&o) = default;
+	~DB_RESULT(void);
 	void operator=(DB_RESULT &&o)
 	{
 		std::swap(m_res, o.m_res);
@@ -84,7 +85,6 @@ class _kc_export KDatabase {
 	std::string EscapeBinary(const std::string &);
 	DB_ROW FetchRow(DB_RESULT &);
 	DB_LENGTHS FetchRowLengths(DB_RESULT &);
-	void FreeResult(DB_RESULT &);
 	const char *GetError(void);
 	DB_ERROR GetLastError(void);
 	unsigned int GetMaxAllowedPacket(void) const { return m_ulMaxAllowedPacket; }
@@ -127,8 +127,12 @@ class _kc_export KDatabase {
 	bool m_bSuppressLockErrorLogging = false;
 
 	private:
+	void FreeResult_internal(void *);
+
 	std::recursive_mutex m_hMutexMySql;
 	bool m_bAutoLock = true;
+
+	friend class DB_RESULT;
 };
 
 } /* namespace */

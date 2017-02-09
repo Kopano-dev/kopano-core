@@ -142,7 +142,6 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 	*lpcbDestInstanceID = lpLengths[0];
 
 exit:
-	m_ptrDatabase->FreeResult(lpResult);
 	return hr;
 }
 
@@ -179,7 +178,6 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 	if (lpDBRow == NULL) {
 		unsigned int ulNewId;
 
-		m_ptrDatabase->FreeResult(lpResult);
 		strQuery = "INSERT INTO za_instances (tag) VALUES (" + stringify(PROP_ID(ulPropTag)) + ")";
 		er = m_ptrDatabase->DoInsert(strQuery, &ulNewId, NULL);
 		if (er != erSuccess)
@@ -191,8 +189,6 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 	} else {	// Source instance id is known
 		strQuery = "REPLACE INTO za_mappings (server_id, val_binary, tag, instance_id) VALUES "
 						"((SELECT id FROM za_servers WHERE guid = " + m_ptrDatabase->EscapeBinary(destServerUID.lpb, destServerUID.cb) + ")," + m_ptrDatabase->EscapeBinary((LPBYTE)lpDestInstanceID, cbDestInstanceID) + "," + stringify(PROP_ID(ulPropTag)) + "," + lpDBRow[0] + ")";
-
-		m_ptrDatabase->FreeResult(lpResult);
 	}
 	er = m_ptrDatabase->DoInsert(strQuery, NULL, NULL);
 	if (er != erSuccess)

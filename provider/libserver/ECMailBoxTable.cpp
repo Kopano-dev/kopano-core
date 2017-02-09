@@ -82,7 +82,6 @@ ECRESULT ECMailBoxTable::Load()
 	LoadRows(&lstObjIds, 0);
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

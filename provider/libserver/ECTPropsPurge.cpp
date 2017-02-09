@@ -192,7 +192,6 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int *l
     *lpulCount = atoui(lpRow[0]);
     
 exit:
-	lpDatabase->FreeResult(lpResult);
         return er;    
 }
 
@@ -225,7 +224,6 @@ ECRESULT ECTPropsPurge::GetLargestFolderId(ECDatabase *lpDatabase, unsigned int 
     
     *lpulFolderId = atoui(lpRow[0]);
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -268,13 +266,10 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	strQuery = "SELECT id FROM hierarchy WHERE id IN(";
 	strQuery += strIn;
 	strQuery += ") FOR UPDATE";
-
-	lpDatabase->FreeResult(lpDBResult);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
 			
-	lpDatabase->FreeResult(lpDBResult);
 	strQuery = "REPLACE INTO tproperties (folderid, hierarchyid, tag, type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo) ";
 	strQuery += "SELECT " + stringify(ulFolderId) + ", p.hierarchyid, p.tag, p.type, val_ulong, LEFT(val_string, " + stringify(TABLE_CAP_STRING) + "), LEFT(val_binary, " + stringify(TABLE_CAP_BINARY) + "), val_double, val_longint, val_hi, val_lo FROM properties AS p FORCE INDEX(primary) JOIN deferredupdate FORCE INDEX(folderid) ON deferredupdate.hierarchyid=p.hierarchyid WHERE tag NOT IN(0x1009, 0x1013) AND deferredupdate.folderid = " + stringify(ulFolderId);
 
@@ -291,7 +286,6 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	g_lpStatsCollector->Increment(SCN_DATABASE_MERGED_RECORDS, (int)ulAffected);
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -318,7 +312,6 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ul
 	*lpulCount = ulCount;
 	
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

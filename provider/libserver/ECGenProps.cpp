@@ -763,7 +763,6 @@ ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, b
 	*lpbIsOrphan = bIsOrphan;
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

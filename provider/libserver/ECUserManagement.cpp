@@ -1338,7 +1338,6 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 	}
 	*lppObjects = lpObjects.release();
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -2678,7 +2677,6 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -2972,7 +2970,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 				goto exit;
 		}
 
-		lpDatabase->FreeResult(lpResult);
 		lpRow = NULL;
 
 		ec_log_info("Done auto-deleting %s members", ObjectClassToName(objclass));
@@ -3085,13 +3082,8 @@ exit:
 		ec_log_info("Auto-deleting %s %d done. Error code 0x%08X", ObjectClassToName(objclass), ulObjectId, er);
 	else
 		ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
-	
-	if (lpDatabase) {
-		if (bTransaction && er != erSuccess)
-			lpDatabase->Rollback();
-		lpDatabase->FreeResult(lpResult);
-	}
-
+	if (lpDatabase != nullptr && bTransaction && er != erSuccess)
+		lpDatabase->Rollback();
 	return er;
 }
 
@@ -4265,7 +4257,6 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 		m_usercount_ts = time(NULL);
 	}
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 

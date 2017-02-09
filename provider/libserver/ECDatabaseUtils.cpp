@@ -759,7 +759,6 @@ ECRESULT GetDatabaseSettingAsInteger(ECDatabase *lpDatabase, const std::string &
 	*lpulResult = atoui(lpDBRow[0]);
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

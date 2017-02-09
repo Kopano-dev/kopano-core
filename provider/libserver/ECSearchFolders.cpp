@@ -142,7 +142,6 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
     }
 
 exit:
-	lpDatabase->FreeResult(lpResult);
     if(lpSearchCriteria)
         FreeSearchCriteria(lpSearchCriteria);
         
@@ -322,7 +321,6 @@ ECRESULT ECSearchFolders::IsSearchFolder(unsigned int ulStoreID, unsigned int ul
     }
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1062,8 +1060,6 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 						lstFolders.push_back(atoi(lpDBRow[0]));
 			} else
 				ec_log_crit("ECSearchFolders::Search() could not expand target folders: 0x%x", er);
-
-			lpDatabase->FreeResult(lpDBResult);
 			++iterFolders;
 		}
 	}
@@ -1196,8 +1192,6 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 					goto exit;
 				}
 			}
-			
-			lpDatabase->FreeResult(lpDBResult);
 		}
 
 		// Search done
@@ -1221,8 +1215,6 @@ exit:
         
     if(lpPropTags)
         FreePropTagArray(lpPropTags);
-
-    lpDatabase->FreeResult(lpDBResult);
     if (lpAdditionalRestrict)
         FreeRestrictTable(lpAdditionalRestrict);
 
@@ -1402,7 +1394,6 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
 		*lpfInserted = (lpDBRow == NULL);
         
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1513,7 +1504,6 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulStoreId, unsigned int ulF
     }
         
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1593,7 +1583,6 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
     }
     
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1658,7 +1647,6 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 	}
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

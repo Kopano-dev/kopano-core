@@ -817,8 +817,7 @@ int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
                goto __soapentry_exit; \
        }
 
-#define FREE_DBRESULT() \
-	lpDatabase->FreeResult(lpDBResult);
+#define FREE_DBRESULT()
 
 #define ROLLBACK_ON_ERROR() \
 	if (lpDatabase && FAILED(er)) \
@@ -884,7 +883,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			lObjectIds.push_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
-		lpDatabase->FreeResult(lpDBResult);
+		lpDBResult = DB_RESULT();
 		if (*lpbExit) {
 			er = KCERR_USER_CANCEL;
 			goto exit;
@@ -908,7 +907,6 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		ec_log_info("Store purge done");
 
 	}
-	lpDatabase->FreeResult(lpDBResult);
 	if (*lpbExit) {
 		er = KCERR_USER_CANCEL;
 		goto exit;
@@ -934,7 +932,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			lObjectIds.push_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
-		lpDatabase->FreeResult(lpDBResult);
+		lpDBResult = DB_RESULT();
 		if (*lpbExit) {
 			er = KCERR_USER_CANCEL;
 			goto exit;
@@ -951,7 +949,6 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		ec_log_info("Folder purge done");
 
 	}
-	lpDatabase->FreeResult(lpDBResult);
 	if (*lpbExit) {
 		er = KCERR_USER_CANCEL;
 		goto exit;
@@ -977,7 +974,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			lObjectIds.push_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
-		lpDatabase->FreeResult(lpDBResult);
+		lpDBResult = DB_RESULT();
 		if (*lpbExit) {
 			er = KCERR_USER_CANCEL;
 			goto exit;
@@ -1007,7 +1004,6 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 exit:
 	if (er != KCERR_BUSY)
 		g_bPurgeSoftDeleteStatus = FALSE;
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1630,7 +1626,6 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 		llSize = 0;
 	else
 		llSize = atoll(lpDBRow[0]);
-	lpDatabase->FreeResult(lpDBResult);
 
 	// Get the subfolders
 	strQuery = "SELECT id FROM hierarchy WHERE parent=" + stringify(ulFolderId) + " AND type="+stringify(MAPI_FOLDER);
@@ -1657,11 +1652,9 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 		}
 	}
 
-	lpDatabase->FreeResult(lpDBResult);
 	*lpllFolderSize = llSize;
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1773,7 +1766,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 					ec_log_err("WriteProps(): Folder already exists while putting folder");
 					goto exit;
 				}
-				lpDatabase->FreeResult(lpDBResult);
 				break;
 			}
 		}// for(...)
@@ -2513,8 +2505,6 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 						goto exit;
 						
 					fHasAttach = lpDatabase->GetNumRows(lpDBResult) > 0;
-					
-					lpDatabase->FreeResult(lpDBResult);
 				}
 			}
 			
@@ -7429,8 +7419,6 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		}
 	}
 	
-	lpDatabase->FreeResult(lpDBResult);
-
 	// Check the quota size when the item is a softdelete item
 	if(bUpdateDeletedSize == true)
 	{
@@ -7739,7 +7727,6 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 exit:
 	if(lpDatabase && er != erSuccess && er != KCWARN_PARTIAL_COMPLETION)
 		lpDatabase->Rollback();
-	lpDatabase->FreeResult(lpDBResult);
 	if(lpsNewEntryId)
 		FreeEntryId(lpsNewEntryId, true);
 
@@ -7955,7 +7942,6 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		}
 	}
 
-	lpDatabase->FreeResult(lpDBResult);
 	if (lpsNewEntryId != NULL) {
 		FreeEntryId(lpsNewEntryId, true);
 		lpsNewEntryId = NULL;
@@ -8123,7 +8109,6 @@ exit:
 		lpInternalAttachmentStorage->Rollback();
 		lpDatabase->Rollback();
 	}
-	lpDatabase->FreeResult(lpDBResult);
 	if(lpsNewEntryId)
 		FreeEntryId(lpsNewEntryId, true);
 
@@ -8302,8 +8287,6 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		}
 	}
 
-	lpDatabase->FreeResult(lpDBResult);
-
 	// update the destination folder for disconnected clients
 	er = WriteLocalCommitTimeMax(NULL, lpDatabase, ulNewDestFolderId, NULL);
 	if (er != erSuccess) {
@@ -8386,7 +8369,6 @@ exit:
 		if (lpAttachmentStorage)
 			lpAttachmentStorage->Rollback();
 	}
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 
 }

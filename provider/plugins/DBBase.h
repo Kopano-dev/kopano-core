@@ -85,11 +85,6 @@ public:
         m_lpDatabase = lpDatabase;
     };
 
-    ~DB_RESULT_AUTOFREE() {
-        if(m_lpDatabase)
-            m_lpDatabase->FreeResult(m_lpResult);
-    };
-
 	/**
 	 * Cast DB_RESULT_AUTOFREE to DB_RESULT
 	 */
@@ -104,8 +99,7 @@ public:
 	 */
     DB_RESULT * operator & () {
         // Assume overwrite will happen soon
-        if(m_lpDatabase)
-            m_lpDatabase->FreeResult(m_lpResult);
+        m_lpResult = DB_RESULT();
         return &m_lpResult;
     };
 

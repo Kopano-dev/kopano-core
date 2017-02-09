@@ -194,7 +194,6 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag, UL
 		*lpulInstanceId = atoi(lpDBRow[0]);
 
 exit:
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -249,7 +248,6 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 	lstAttachIds->swap(lstInstanceIds);
 
 exit:
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -319,7 +317,6 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId, std::
 	lplstObjIds->swap(lstObjIds);
 
 exit:
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -356,7 +353,6 @@ ECRESULT ECAttachmentStorage::IsOrphanedSingleInstance(ULONG ulInstanceId, bool 
 	*bOrphan = (!lpDBRow || !lpDBRow[0]);
 
 exit:
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -410,7 +406,6 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ULONG> 
 	}
 
 exit:
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -846,7 +841,6 @@ bool ECDatabaseAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
 		er = KCERR_NOT_FOUND;
 
 exit:
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er == erSuccess;
 }
 
@@ -888,8 +882,6 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 
 	iSize = strtoul(lpDBRow[0], NULL, 0);
 
-	m_lpDatabase->FreeResult(lpDBResult);
-
 	// get all chunks
 	strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId) + " ORDER BY chunkid";
 
@@ -921,7 +913,6 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 exit:
 	if (er != erSuccess && !soap)
 		delete [] lpData;
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -973,7 +964,6 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t
 	*lpiSize = iReadSize;
 
 exit:
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1152,7 +1142,6 @@ ECRESULT ECDatabaseAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulS
 		*lpbCompressed = false;
  	 
 exit: 
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er; 
 }
 

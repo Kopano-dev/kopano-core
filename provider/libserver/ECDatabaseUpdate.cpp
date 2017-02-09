@@ -310,7 +310,6 @@ ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
 		goto exit;
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -361,7 +360,6 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 	}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -430,7 +428,6 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 			 lstFolders.push_back(atoui(lpDBRow[0]));
 		}
 
-		lpDatabase->FreeResult(lpDBResult);
 		iterFolders = lstFolders.begin();
 	} //while
 	return erSuccess;
@@ -490,7 +487,6 @@ next: //Free
 	}
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	if (lpNewSearchCriteria)
 		FreeSearchCriteria(lpNewSearchCriteria);
 
@@ -656,7 +652,6 @@ ECRESULT UpdateDatabaseAddIMAPSequenceNumber(ECDatabase *lpDatabase)
 	}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -706,8 +701,6 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 			if (er != erSuccess)
 				goto exit;
 		}
-
-		lpDatabase->FreeResult(lpResult);
 	}while(ulRows > 0);
 
 	// Change index
@@ -716,7 +709,6 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 		goto exit;
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -852,10 +844,7 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 		if(er != erSuccess)
 			goto exit;
 	}
-
-	lpDatabase->FreeResult(lpResult);
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -922,8 +911,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 		sObjectList.push_back(SObject(atoi(lpDBRow[0]), atoi(lpDBRow[1])));
 	}
 
-	lpDatabase->FreeResult(lpResult);
-
 	// Recreate the objects in the object_temp table and on the fly create the queries to regenerate
 	// their properties in the objectpropert_temp table.
 	for (const auto &obj : sObjectList) {
@@ -977,7 +964,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 				strQuery += lpDatabase->EscapeBinary((unsigned char*)lpDBRow[1], lpDBLen[1]) + ")";
 		}
 
-		lpDatabase->FreeResult(lpResult);
 		if (!strQuery.empty()) {
 			er = lpDatabase->DoInsert(strQuery);
 			if (er != erSuccess)
@@ -1005,7 +991,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 		sRelationList.push_back(SRelation(atoi(lpDBRow[0]), atoi(lpDBRow[1]), atoi(lpDBRow[2])));
 	}
 
-	lpDatabase->FreeResult(lpResult);
 	strQuery.clear();
 	bFirstResult = true;
 	for (const auto &rel : sRelationList) {
@@ -1085,7 +1070,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 exit:
 	// Delete the temporary tables if they exist at this point
 	lpDatabase->DoDelete("DROP TABLE IF EXISTS object_temp, objectproperty_temp, objectrelation_temp");
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1171,7 +1155,6 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 		strQuery += ")";
 		queries.push_back(std::move(strQuery));
 	}
-	lpDatabase->FreeResult(lpResult);
 	
 	// Populate the abchanges table with the extracted data
 	for (const auto &query : queries) {
@@ -1207,7 +1190,6 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 	}
 	
 exit:
-	lpDatabase->FreeResult(lpResult);
 	if (er != erSuccess)
 		lpDatabase->DoDelete("DROP TABLE IF EXISTS abchanges");
 
@@ -1342,7 +1324,6 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 	}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1391,7 +1372,6 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 	}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1481,7 +1461,6 @@ ECRESULT UpdateDatabaseMVPropertiesPrimarykey(ECDatabase *lpDatabase)
 	}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1526,7 +1505,6 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 	}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1582,7 +1560,6 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 	}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1721,7 +1698,6 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 			goto exit;
 	}
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1756,7 +1732,6 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 			goto exit;
 	}
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -1803,7 +1778,6 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 		lpDBRow = lpDatabase->FetchRow(lpResult);
 		if (lpDBRow == NULL || lpDBRow[0] == NULL)
 			break;
-		lpDatabase->FreeResult(lpResult);
 	}
 
 	// update webaccess settings which were already utf8 in our latin1 table
@@ -1818,7 +1792,6 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoDelete("DROP TABLE properties_old");
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 

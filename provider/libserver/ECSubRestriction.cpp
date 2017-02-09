@@ -250,7 +250,6 @@ exit:
 		*lppResult = lpResult.release();
     if(lpRowSet)
         FreeRowSet(lpRowSet, true);
-    lpDatabase->FreeResult(lpDBResult);
     if(lpPropTags)
         FreePropTagArray(lpPropTags);
         

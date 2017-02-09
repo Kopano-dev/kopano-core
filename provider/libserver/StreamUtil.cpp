@@ -170,7 +170,6 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	m_mapNameIds.insert(nameidmap_t::value_type(key, *lpulId));
 
 exit:
-	m_lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -224,7 +223,6 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	m_mapNameStrings.insert(namestringmap_t::value_type(key, *lpulId));
 
 exit:
-	m_lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -747,7 +745,6 @@ static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
 		*lpstrBestBody = "0";
 		
  exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -855,7 +852,6 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 exit:
 	delete lpTempSink;
-	lpDatabase->FreeResult(lpDBResult);
 	if (soap) {
 		soap_destroy(soap);
 		soap_end(soap);
@@ -1049,8 +1045,6 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 				if (er != erSuccess)
 					goto exit;
 			}
-			
-			lpStreamDatabase->FreeResult(lpDBResultAttachment);
 		}
 
 	}
@@ -1061,8 +1055,6 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 exit:
 	if (er != erSuccess)
 		ec_log_err("SerializeObject failed with error code 0x%08x for object %d", er, ulObjId );
-	lpStreamDatabase->FreeResult(lpDBResult);
- 	lpStreamDatabase->FreeResult(lpDBResultAttachment);
 	FreeChildProps(&mapChildProps);
 		
 	return er;
@@ -1396,7 +1388,6 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 				goto exit;
 
 			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-			lpDatabase->FreeResult(lpDBResult); 
 
 			// We can't use lpDBRow here except for checking if it was NULL.
 			if (lpDBRow != NULL)

@@ -594,8 +594,6 @@ ECRESULT ECGetContentChangesHelper::Init()
 	
 	if (lpDBRow[0])
 		m_ulMaxFolderChange = atoui(lpDBRow[0]);
-	
-	m_lpDatabase->FreeResult(lpDBResult);
 
 	// Here we setup the classes to delegate specific work to	
 	if (m_ulChangeId == 0) {
@@ -669,7 +667,6 @@ ECRESULT ECGetContentChangesHelper::Init()
 	}
 		
 exit:
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
  
@@ -889,8 +886,6 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 			setChangeIds.insert(atoui(lpDBRow[0]));
 		}
 
-		m_lpDatabase->FreeResult(lpDBResult);
-
 		if (!setChangeIds.empty()) {
 			std::set<unsigned int> setDeleteIds;
 			
@@ -955,7 +950,6 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	*lpulMaxChange = ulMaxChange;
 
 exit:
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1082,7 +1076,6 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 	}
 	
 exit:
-	m_lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

@@ -205,8 +205,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	     iListObjectId != lpsObjectList->end(); ++iListObjectId)
 	{
 		sItem.fRoot = true;
-		lpDatabase->FreeResult(lpDBResult);
-
 		// Lock the root records's parent counter to maintain locking order (counters/content/storesize/committimemax)
 		er  = lpCacheManager->GetObject(*iListObjectId, &ulParent, NULL, NULL, NULL);
 		if(er != erSuccess)
@@ -292,7 +290,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	// Now, run through the list, adding children to the bottom of the list. This means
 	// we're actually running width-first, and don't have to do anything recursive.
 	for (const auto &di : lstDeleteItems) {
-		lpDatabase->FreeResult(lpDBResult);
 		strQuery = "SELECT id, type, flags, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = hierarchy.id LIMIT 1) FROM hierarchy WHERE parent=" +
 			stringify(di.ulId);
 		if((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
@@ -353,7 +350,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 
 exit:
 	FreeDeletedItems(&lstDeleteItems);
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1385,7 +1381,6 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 				goto exit;
 			// Item is (1)/is not (0) in the outgoing queue at the moment
 			ulPrevSubmitFlag = lpDatabase->GetNumRows(lpDBResult) > 0;
-			lpDatabase->FreeResult(lpDBResult);
 		}
 
 		if ((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) && ulPrevSubmitFlag == 0) {
@@ -1433,7 +1428,6 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 	}
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1615,12 +1609,9 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 			lpsNames->__ptr[i].lpId = NULL;
 			lpsNames->__ptr[i].lpString = NULL;
 		}
-
-		lpDatabase->FreeResult(lpDBResult);
 	}
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1695,8 +1686,6 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	strCFC = lpDBRow[4];
 	strDFC = lpDBRow[5];
 	
-	lpDatabase->FreeResult(lpDBResult);
-	
 	// Gets unread counters from hierarchy / properties / tproperties
 	strQuery = "SELECT "
 	          // Part one, unread count from non-deferred rows (get the flags from tproperties)
@@ -1717,9 +1706,6 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	}
 	
 	strCU = lpDBRow[0];
-	
-	lpDatabase->FreeResult(lpDBResult);
-
     strQuery = "UPDATE properties SET val_ulong = CASE tag "
       " WHEN " + stringify(PROP_ID(PR_CONTENT_COUNT)) + " THEN + " + strCC +
       " WHEN " + stringify(PROP_ID(PR_ASSOC_CONTENT_COUNT)) + " THEN + " + strACC +
@@ -1839,8 +1825,6 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
         
     // Check if the found item is in a deleted store
     if(g_lpSessionManager->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL) == erSuccess) {
-        lpDatabase->FreeResult(lpDBResult);
-        
         // Find the store
         strQuery = "SELECT hierarchy_id FROM stores WHERE hierarchy_id = " + stringify(ulStoreId);
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -1869,7 +1853,6 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
 		ec_log_crit("RemoveStaleIndexedProp(): caller wanted to remove the entry, but we cannot since it is in use");
 	}
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1995,8 +1978,6 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
             else if(atoui(lpDBRow[1]) == MAPI_FOLDER)
                 setFolders.insert(atoui(lpDBRow[0]));
         }
-
-        lpDatabase->FreeResult(lpDBResult);
     }
         
     // For the items that were cached, but messages, find their parents in the cache first
@@ -2030,8 +2011,6 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
                 
             setFolders.insert(atoui(lpDBRow[0]));
         }    
-        
-        lpDatabase->FreeResult(lpDBResult);
     }
         
     // Query objectid -> parentid for messages
@@ -2050,7 +2029,6 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
         goto exit;
     
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -2241,8 +2219,6 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
         }
     }
 
-    lpDatabase->FreeResult(lpDBResult);
-
     if(fDoQuery) {
 		if (ulObjId != 0)
 			strQuery = "SELECT " MVPROPCOLORDER ", hierarchyid, names.nameid, names.namestring, names.guid "
@@ -2343,7 +2319,6 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     }
 
 exit:
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

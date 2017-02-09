@@ -27,18 +27,14 @@ static ECRESULT ltm_sync_time(ECDatabase *db,
 	ECRESULT ret = db->DoSelect(query, &result);
 	if (ret != erSuccess)
 		return ret;
-	if (db->GetNumRows(result) == 0) {
-		db->FreeResult(result);
+	if (db->GetNumRows(result) == 0)
 		return erSuccess;
-	}
 	DB_ROW row = db->FetchRow(result);
-	if (row == NULL) {
-		db->FreeResult(result);
+	if (row == nullptr)
 		return erSuccess;
-	}
 	unsigned int store_id = strtoul(row[0], NULL, 0);
 	unsigned int prop = dir ? PR_LAST_LOGON_TIME : PR_LAST_LOGOFF_TIME;
-	db->FreeResult(result);
+	result = DB_RESULT();
 	query = "REPLACE INTO properties (tag, type, hierarchyid, val_hi, val_lo) VALUES(" +
                 stringify(PROP_ID(prop)) + "," + stringify(PROP_TYPE(prop)) + "," +
                 stringify(store_id) + "," + stringify(ft.dwHighDateTime) + "," +

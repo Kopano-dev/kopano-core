@@ -129,7 +129,6 @@ ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, str
 exit:
 	if (er != erSuccess && lpNewSearchCriteria)
 		FreeSearchCriteria(lpNewSearchCriteria);
-	lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 

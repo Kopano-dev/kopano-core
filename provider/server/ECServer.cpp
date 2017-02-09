@@ -207,7 +207,6 @@ static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 	}
 	
 exit:
-	lpDatabase->FreeResult(lpResult);
 #endif
 	return er;
 }
@@ -257,7 +256,6 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 			}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -293,7 +291,6 @@ static ECRESULT check_distributed_kopano(ECDatabase *lpDatabase)
 	}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -389,7 +386,6 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	er = erSuccess;
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -429,7 +425,6 @@ static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 	}
 
 exit:
-	lpDatabase->FreeResult(lpResult);
 	return er;
 }
 

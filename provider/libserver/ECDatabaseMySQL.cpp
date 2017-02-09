@@ -448,7 +448,6 @@ ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
 	*lpbExist = (FetchRow(lpDBResult) != NULL);
 	
 exit:
-	FreeResult(lpDBResult);
 	return er;
 }
 
@@ -477,7 +476,6 @@ ECRESULT ECDatabase::CheckExistIndex(const std::string &strTable,
 	}
 
 exit:
-	FreeResult(lpDBResult);
 	return er;
 }
 
@@ -642,8 +640,6 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 
 	if (lppResult)
 		*lppResult = std::move(lpResult);
-	else
-		FreeResult(lpResult);
 exit:
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
@@ -673,7 +669,6 @@ ECRESULT ECDatabase::FinalizeMulti(void)
 		goto exit;
 	}
 exit:
-	FreeResult(lpResult);
 	return er;
 }
 
@@ -908,7 +903,6 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	if (er != erSuccess)
 		goto exit;
 	have_micro = GetNumRows(lpResult) > 0;
-	FreeResult(lpResult);
 
 	strQuery = "SELECT major, minor";
 	strQuery += have_micro ? ", micro" : ", 0";
@@ -962,7 +956,6 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	dbv->v_schema = strtoul(lpDBRow[4], NULL, 0);
 
 exit:
-	FreeResult(lpResult);
 	return er;
 }
 
@@ -987,7 +980,6 @@ ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
 		er = KCERR_NOT_FOUND;
 
 exit:
-	FreeResult(lpResult);
 	return er;
 }
 
@@ -1011,7 +1003,6 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 		*lpulDatabaseRevision = atoui(lpDBRow[0]);
 
 exit:
-	FreeResult(lpResult);
 	return er;
 }
 
@@ -1123,7 +1114,6 @@ ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	if (er != erSuccess)
 		return er;
 	have_micro = GetNumRows(result) > 0;
-	FreeResult(result);
 
 	// Insert version number
 	strQuery = "INSERT INTO versions (major, minor, ";
@@ -1164,7 +1154,6 @@ ECRESULT ECDatabase::ValidateTables(void)
 
 		listTables.insert(listTables.end(), lpDBRow[0]);
 	}
-	FreeResult(lpResult);
 
 	for (const auto &table : listTables) {
 		er = DoSelect("CHECK TABLE " + table, &lpResult);
@@ -1183,7 +1172,6 @@ ECRESULT ECDatabase::ValidateTables(void)
 		ec_log_info("%30s | %15s | %s", lpDBRow[0], lpDBRow[2], lpDBRow[3]);
 		if (strcmp(lpDBRow[2], "error") == 0)
 			listErrorTables.insert(listErrorTables.end(), lpDBRow[0]);
-		FreeResult(lpResult);
 	}
 
 	if (!listErrorTables.empty())
@@ -1202,7 +1190,6 @@ ECRESULT ECDatabase::ValidateTables(void)
 			ec_log_notice("Rebuilding tables done.");
 	}//	if (!listErrorTables.empty())
 exit:
-	FreeResult(lpResult);
 	return er;
 }
 
