@@ -54,8 +54,6 @@ public:
 
 	//Result functions
 	unsigned int GetNumRows(DB_RESULT) _kc_override;
-	unsigned int GetNumRowFields(DB_RESULT) _kc_override;
-	unsigned int GetRowIndex(DB_RESULT, const std::string &field) _kc_override;
 	virtual ECRESULT GetNextResult(DB_RESULT *) _kc_override;
 	virtual ECRESULT FinalizeMulti(void) _kc_override;
 	DB_ROW FetchRow(DB_RESULT) _kc_override;
@@ -64,7 +62,6 @@ public:
 	std::string EscapeBinary(unsigned char *, unsigned int) _kc_override;
 	std::string EscapeBinary(const std::string &) _kc_override;
 	std::string FilterBMP(const std::string &to_filter) _kc_override;
-	void ResetResult(DB_RESULT) _kc_override;
 	ECRESULT ValidateTables(void) _kc_override;
 	const char *GetError(void) _kc_override;
 	DB_ERROR GetLastError(void) _kc_override;
@@ -81,7 +78,6 @@ public:
 	// Main update unit
 	ECRESULT UpdateDatabase(bool force_update, std::string &report) _kc_override;
 	ECRESULT InitializeDBState(void) _kc_override;
-	std::string GetDatabaseDir(void) _kc_override;
 	ECRESULT CheckExistColumn(const std::string &table, const std::string &column, bool *exist) _kc_override;
 	ECRESULT CheckExistIndex(const std::string &table, const std::string &key, bool *exist) _kc_override;
 
@@ -127,7 +123,6 @@ private:
 	bool m_bAutoLock = true;
 	unsigned int m_ulMaxAllowedPacket = 0;
 	bool m_bFirstResult = false;
-	static std::string	m_strDatabaseDir;
 	ECConfig *m_lpConfig = nullptr;
 	bool m_bSuppressLockErrorLogging = false;
 #ifdef DEBUG

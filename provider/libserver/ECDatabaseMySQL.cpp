@@ -324,8 +324,6 @@ static const STOREDPROCS stored_procedures[] = {
 	{ "StreamObj", szStreamObj }
 };
 
-std::string	ECDatabaseMySQL::m_strDatabaseDir;
-
 std::string zcp_versiontuple::stringify(char sep) const
 {
 	return ::stringify(v_major) + sep + ::stringify(v_minor) + sep +
@@ -375,8 +373,6 @@ ECRESULT ECDatabaseMySQL::InitLibrary(const char *lpDatabaseDir,
 	if(lpDatabaseDir) {
     	strDatabaseDir = "--datadir=";
     	strDatabaseDir+= lpDatabaseDir;
-
-		m_strDatabaseDir = lpDatabaseDir;
     }
 
     if(lpConfigFile) {
@@ -470,12 +466,6 @@ ECRESULT ECDatabaseMySQL::InitEngine()
 	// variables
 	m_lpMySQL.reconnect = 0;
 	return erSuccess;
-}
-
-std::string ECDatabaseMySQL::GetDatabaseDir()
-{
-	assert(!m_strDatabaseDir.empty());
-	return m_strDatabaseDir;
 }
 
 ECRESULT ECDatabaseMySQL::CheckExistColumn(const std::string &strTable, const std::string &strColumn, bool *lpbExist)
@@ -1039,27 +1029,6 @@ unsigned int ECDatabaseMySQL::GetNumRows(DB_RESULT sResult) {
 	return (unsigned int)mysql_num_rows((MYSQL_RES *)sResult);
 }
 
-unsigned int ECDatabaseMySQL::GetNumRowFields(DB_RESULT sResult) {
-
-	return mysql_num_fields((MYSQL_RES *)sResult);
-}
-
-unsigned int ECDatabaseMySQL::GetRowIndex(DB_RESULT sResult, const std::string &strFieldname) {
-
-	MYSQL_FIELD *lpFields;
-	unsigned int cbFields;
-	unsigned int ulIndex = (unsigned int)-1;
-
-	lpFields = mysql_fetch_fields((MYSQL_RES *)sResult);
-	cbFields = mysql_field_count(&m_lpMySQL);
-
-	for (unsigned int i = 0; i < cbFields && ulIndex == (unsigned int)-1; ++i)
-		if (strcasecmp(lpFields[i].name, strFieldname.c_str()) == 0)
-			ulIndex = i;
-	
-	return ulIndex;
-}
-
 DB_ROW ECDatabaseMySQL::FetchRow(DB_RESULT sResult) {
 
 	return mysql_fetch_row((MYSQL_RES *)sResult);
@@ -1129,7 +1098,6 @@ std::string ECDatabaseMySQL::EscapeBinary(unsigned char *lpData, unsigned int ul
 {
 	ULONG size = ulLen*2+1;
 	std::unique_ptr<char[]> szEscaped(new char[size]);
-	std::string escaped;
 	
 	memset(szEscaped.get(), 0, size);
 	mysql_real_escape_string(&this->m_lpMySQL, szEscaped.get(), reinterpret_cast<const char *>(lpData), ulLen);
@@ -1139,11 +1107,6 @@ std::string ECDatabaseMySQL::EscapeBinary(unsigned char *lpData, unsigned int ul
 std::string ECDatabaseMySQL::EscapeBinary(const std::string& strData)
 {
 	return EscapeBinary((unsigned char *)strData.c_str(), strData.size());
-}
-
-void ECDatabaseMySQL::ResetResult(DB_RESULT sResult) {
-
-	mysql_data_seek((MYSQL_RES *)sResult, 0);
 }
 
 const char *ECDatabaseMySQL::GetError(void)

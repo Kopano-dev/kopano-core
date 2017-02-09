@@ -59,8 +59,6 @@ public:
 
 	// Result functions
 	virtual unsigned int	GetNumRows(DB_RESULT sResult) = 0;
-	virtual unsigned int	GetNumRowFields(DB_RESULT sResult) = 0;
-	virtual unsigned int	GetRowIndex(DB_RESULT sResult, const std::string &strFieldname) = 0;
 	virtual ECRESULT		GetNextResult(DB_RESULT *sResult) = 0;
 	virtual	ECRESULT		FinalizeMulti() = 0;
 
@@ -71,10 +69,6 @@ public:
 	virtual std::string		Escape(const std::string &strToEscape) = 0;
 	virtual std::string		EscapeBinary(unsigned char *lpData, unsigned int ulLen) = 0;
 	virtual std::string		EscapeBinary(const std::string& strData) = 0;
-
-	// Reset the result set so it can be iterated again
-	virtual void			ResetResult(DB_RESULT sResult) = 0;
-
 	virtual ECRESULT		ValidateTables() = 0;
 
 	// Freememory functions
@@ -94,9 +88,6 @@ public:
 	virtual ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strReport) = 0;
 	virtual ECRESULT		InitializeDBState() = 0;
 
-	// Get Database path
-	virtual std::string		GetDatabaseDir() = 0;
-	
 	// Transactions
 	// These functions should be used to wrap blocks of queries into transactions. This will
 	// speed up writes a lot, so try to use them as much as possible. If you don't start a transaction
