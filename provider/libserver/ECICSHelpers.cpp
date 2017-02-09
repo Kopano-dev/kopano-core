@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <utility>
 #include <kopano/zcdefs.h>
 #include <memory>
 #include <kopano/platform.h>
@@ -711,7 +711,7 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 	m_lpChanges->__ptr = (icsChange*)soap_malloc(m_soap, sizeof *m_lpChanges->__ptr * ulChanges);
 	m_lpChanges->__size = 0;
 	assert(lppDBResult != NULL);
-	*lppDBResult = lpDBResult;
+	*lppDBResult = std::move(lpDBResult);
 	return erSuccess;
 }
 

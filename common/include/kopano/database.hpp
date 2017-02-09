@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <string>
+#include <utility>
 #include <mysql.h>
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
@@ -41,6 +42,8 @@ class DB_RESULT _kc_final {
 	public:
 	DB_RESULT(void) = default;
 	DB_RESULT(void *r) : m_res(r) {}
+	DB_RESULT(DB_RESULT &&o) = default;
+	void operator=(DB_RESULT &&o) { std::swap(m_res, o.m_res); }
 	operator bool(void) const { return m_res != nullptr; }
 	bool operator==(std::nullptr_t) const { return m_res == nullptr; }
 	bool operator!=(std::nullptr_t) const { return m_res != nullptr; }

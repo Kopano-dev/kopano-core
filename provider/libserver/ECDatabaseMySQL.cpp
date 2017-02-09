@@ -645,7 +645,7 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
    	}
 
 	if (lppResult)
-		*lppResult = lpResult;
+		*lppResult = std::move(lpResult);
 	else if (lpResult != nullptr)
 		FreeResult(lpResult);
 exit:

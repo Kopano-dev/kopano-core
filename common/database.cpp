@@ -15,6 +15,7 @@
  */
 #include <memory>
 #include <string>
+#include <utility>
 #include <cassert>
 #include <cstring>
 #include <mysql.h>
@@ -266,7 +267,7 @@ ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
 		er = KCERR_DATABASE_ERROR;
 	}
 	if (res_p != nullptr)
-		*res_p = res;
+		*res_p = std::move(res);
 	else if (res != nullptr)
 		FreeResult(res);
 	return er;
