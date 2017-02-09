@@ -443,11 +443,9 @@ ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
 				
 	er = DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	
 	*lpbExist = (FetchRow(lpDBResult) != NULL);
-	
-exit:
 	return er;
 }
 
@@ -464,7 +462,7 @@ ECRESULT ECDatabase::CheckExistIndex(const std::string &strTable,
 
 	er = DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	*lpbExist = false;
 	while ((lpRow = FetchRow(lpDBResult)) != NULL) {
@@ -474,8 +472,6 @@ ECRESULT ECDatabase::CheckExistIndex(const std::string &strTable,
 			break;
 		}
 	}
-
-exit:
 	return er;
 }
 
@@ -657,7 +653,6 @@ exit:
  */
 ECRESULT ECDatabase::FinalizeMulti(void)
 {
-	ECRESULT er = erSuccess;
 	DB_RESULT lpResult;
 	autolock alk(*this);
 
@@ -665,11 +660,9 @@ ECRESULT ECDatabase::FinalizeMulti(void)
 	lpResult = DB_RESULT(this, mysql_store_result(&m_lpMySQL));
 	if (lpResult != nullptr) {
 		ec_log_err("SQL [%08lu] result failed: unexpected results received at end of batch", m_lpMySQL.thread_id);
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECDatabase::DoUpdate(const std::string &strQuery,
@@ -901,7 +894,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	/* Check if the "micro" column already exists (it does since v64) */
 	er = DoSelect("SELECT databaserevision FROM versions WHERE databaserevision>=64 LIMIT 1", &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	have_micro = GetNumRows(lpResult) > 0;
 
 	strQuery = "SELECT major, minor";
@@ -913,7 +906,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 
 	er = DoSelect(strQuery, &lpResult);
 	if(er != erSuccess && mysql_errno(&m_lpMySQL) != ER_NO_SUCH_TABLE)
-		goto exit;
+		return er;
 
 	if(er != erSuccess || GetNumRows(lpResult) == 0) {
 		// Ok, maybe < than version 5.10
@@ -922,11 +915,9 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 		strQuery = "SHOW COLUMNS FROM properties";
 		er = DoSelect(strQuery, &lpResult);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		lpDBRow = FetchRow(lpResult);
-		er = KCERR_UNKNOWN_DATABASE;
-
 		while (lpDBRow != NULL) {
 			if (lpDBRow[0] != NULL && strcasecmp(lpDBRow[0], "storeid") == 0) {
 				dbv->v_major  = 5;
@@ -938,15 +929,13 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 			}
 			lpDBRow = FetchRow(lpResult);
 		}
-		
-		goto exit;
+		return KCERR_UNKNOWN_DATABASE;
 	}
 
 	lpDBRow = FetchRow(lpResult);
 	if (row_has_null(lpDBRow, 5)) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECDatabase::GetDatabaseVersion(): NULL row or columns");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	dbv->v_major  = strtoul(lpDBRow[0], NULL, 0);
@@ -954,9 +943,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	dbv->v_micro  = strtoul(lpDBRow[2], NULL, 0);
 	dbv->v_rev    = strtoul(lpDBRow[3], NULL, 0);
 	dbv->v_schema = strtoul(lpDBRow[4], NULL, 0);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
@@ -974,13 +961,10 @@ ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
 	
 	er = DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if(GetNumRows(lpResult) != 1)
-		er = KCERR_NOT_FOUND;
-
-exit:
-	return er;
+		return KCERR_NOT_FOUND;
+	return erSuccess;
 }
 
 ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
@@ -991,19 +975,14 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 
 	er = DoSelect("SELECT MIN(databaserevision) FROM versions", &lpResult);
 	if(er != erSuccess && mysql_errno(&m_lpMySQL) != ER_NO_SUCH_TABLE)
-		goto exit;
+		return er;
 	else if(er == erSuccess)
 		lpDBRow = FetchRow(lpResult);
-
-	er = erSuccess;
-
 	if (lpDBRow == NULL || lpDBRow[0] == NULL ) {
 		*lpulDatabaseRevision = 0;
 	}else
 		*lpulDatabaseRevision = atoui(lpDBRow[0]);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -1141,15 +1120,14 @@ ECRESULT ECDatabase::ValidateTables(void)
 	er = DoSelect("SHOW TABLES", &lpResult);
 	if(er != erSuccess) {
 		ec_log_err("Unable to get all tables from the mysql database. %s", GetError());
-		goto exit;
+		return er;
 	}
 
 	// Get all tables of the database
 	while( (lpDBRow = FetchRow(lpResult))) {
 		if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 			ec_log_err("Wrong table information.");
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		listTables.insert(listTables.end(), lpDBRow[0]);
@@ -1159,14 +1137,13 @@ ECRESULT ECDatabase::ValidateTables(void)
 		er = DoSelect("CHECK TABLE " + table, &lpResult);
 		if(er != erSuccess) {
 			ec_log_err("Unable to check table \"%s\"", table.c_str());
-			goto exit;
+			return er;
 		}
 
 		lpDBRow = FetchRow(lpResult);
 		if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
 			ec_log_err("Wrong check table information.");
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		ec_log_info("%30s | %15s | %s", lpDBRow[0], lpDBRow[2], lpDBRow[3]);
@@ -1189,7 +1166,6 @@ ECRESULT ECDatabase::ValidateTables(void)
 		else
 			ec_log_notice("Rebuilding tables done.");
 	}//	if (!listErrorTables.empty())
-exit:
 	return er;
 }
 

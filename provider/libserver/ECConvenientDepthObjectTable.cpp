@@ -111,7 +111,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	sRoot.ulFolderId = ulFolderId;
 	sRoot.strFolderName.clear();
@@ -137,7 +137,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 		
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		while (1) {
 		    FOLDERINFO sFolderInfo;
@@ -190,9 +190,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
     }
     
     LoadRows(&lstObjIds, 0);
-    
-exit:   
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap, ECSession* lpSession, unsigned int ulObjId, struct propVal *lpPropVal){

@@ -1083,19 +1083,19 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 
 	/* Try cache first */
 	if (_GetACLs(ulObjId, lppRights) == erSuccess)
-		goto exit;
+		return erSuccess;
 
 	/* Failed, get it from the cache */
 	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
     strQuery = "SELECT id, type, rights FROM acl WHERE hierarchy_id=" + stringify(ulObjId);
 
     er = lpDatabase->DoSelect(strQuery, &lpResult);
     if(er != erSuccess)
-        goto exit;
+		return er;
 
     ulRows = lpDatabase->GetNumRows(lpResult);
 
@@ -1112,9 +1112,8 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 			if(lpRow == NULL || lpRow[0] == NULL || lpRow[1] == NULL || lpRow[2] == NULL) {
 				delete[] lpRights->__ptr;
 				delete lpRights;
-				er = KCERR_DATABASE_ERROR;
 				ec_log_err("ECCacheManager::GetACLs(): ROW or COLUMNS null %x", er);
-				goto exit;
+				return KCERR_DATABASE_ERROR;
 			}
 
 			lpRights->__ptr[i].ulUserid = atoi(lpRow[0]);
@@ -1130,9 +1129,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
     SetACLs(ulObjId, lpRights);
 
     *lppRights = lpRights;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECCacheManager::_GetACLs(unsigned int ulObjId, struct rightsArray **lppRights)
