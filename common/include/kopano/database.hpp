@@ -38,12 +38,18 @@ struct sSQLDatabase_t {
 	const char *lpSQL;
 };
 
+class KDatabase;
+
 class DB_RESULT _kc_final {
 	public:
 	DB_RESULT(void) = default;
-	DB_RESULT(void *r) : m_res(r) {}
+	DB_RESULT(KDatabase *d, void *r) : m_res(r), m_db(d) {}
 	DB_RESULT(DB_RESULT &&o) = default;
-	void operator=(DB_RESULT &&o) { std::swap(m_res, o.m_res); }
+	void operator=(DB_RESULT &&o)
+	{
+		std::swap(m_res, o.m_res);
+		std::swap(m_db, o.m_db);
+	}
 	operator bool(void) const { return m_res != nullptr; }
 	bool operator==(std::nullptr_t) const { return m_res == nullptr; }
 	bool operator!=(std::nullptr_t) const { return m_res != nullptr; }
@@ -57,6 +63,7 @@ class DB_RESULT _kc_final {
 
 	private:
 	void *m_res = nullptr;
+	KDatabase *m_db = nullptr;
 };
 
 class _kc_export KDatabase {

@@ -632,7 +632,7 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 		goto exit;
 	}		
 
-   	lpResult = mysql_store_result( &m_lpMySQL );
+	lpResult = DB_RESULT(this, mysql_store_result(&m_lpMySQL));
 	if (lpResult == nullptr) {
    		// I think this can only happen on the first result set of a query since otherwise mysql_next_result() would already fail
 		er = KCERR_DATABASE_ERROR;
@@ -666,8 +666,7 @@ ECRESULT ECDatabase::FinalizeMulti(void)
 	autolock alk(*this);
 
 	mysql_next_result(&m_lpMySQL);
-	
-	lpResult = mysql_store_result(&m_lpMySQL);
+	lpResult = DB_RESULT(this, mysql_store_result(&m_lpMySQL));
 	if (lpResult != nullptr) {
 		ec_log_err("SQL [%08lu] result failed: unexpected results received at end of batch", m_lpMySQL.thread_id);
 		er = KCERR_DATABASE_ERROR;

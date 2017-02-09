@@ -252,9 +252,9 @@ ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
 	ECRESULT er = erSuccess;
 	DB_RESULT res;
 	if (stream)
-		res = mysql_use_result(&m_lpMySQL);
+		res = DB_RESULT(this, mysql_use_result(&m_lpMySQL));
 	else
-		res = mysql_store_result(&m_lpMySQL);
+		res = DB_RESULT(this, mysql_store_result(&m_lpMySQL));
 	if (res == nullptr) {
 		if (!m_bSuppressLockErrorLogging ||
 		    GetLastError() == DB_E_UNKNOWN)
