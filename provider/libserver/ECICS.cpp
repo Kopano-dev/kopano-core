@@ -1144,7 +1144,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 	}
 	assert(lpsaSyncState->__size == ulResults);
 exit:
-	if (lpDBResult != NULL)
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
 	return er;
 }

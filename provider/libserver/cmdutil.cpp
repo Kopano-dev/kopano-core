@@ -2370,7 +2370,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     }
 
 exit:
-	if (lpDBResult != NULL)
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
 	return er;
 }

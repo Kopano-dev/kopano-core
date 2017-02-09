@@ -227,7 +227,7 @@ ECRESULT ECTPropsPurge::GetLargestFolderId(ECDatabase *lpDatabase, unsigned int 
     
     *lpulFolderId = atoui(lpRow[0]);
 exit:
-	if (lpResult != NULL)
+	if (lpResult != nullptr)
 		lpDatabase->FreeResult(lpResult);
 	return er;
 }

@@ -490,7 +490,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 		LOG_CACHE_DEBUG("Get objects ids warning %zu objects not found",
 			lstObjects.size() - mapObjects.size());
 exit:
-	if (lpDBResult != NULL)
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object ids error 0x%08x", er);
@@ -551,7 +551,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 			lpdata.size() - mapObjects.size());
  exit:
 	sObject.lpData = NULL;
-	if (lpDBResult != NULL)
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object ids from props error: 0x%08x", er);

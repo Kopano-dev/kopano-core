@@ -7456,7 +7456,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	}
 	
 	// Free database results
-	if (lpDBResult != NULL) {
+	if (lpDBResult != nullptr) {
 		lpDatabase->FreeResult(lpDBResult);
 		lpDBResult = NULL;
 	}
@@ -7769,7 +7769,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 exit:
 	if(lpDatabase && er != erSuccess && er != KCWARN_PARTIAL_COMPLETION)
 		lpDatabase->Rollback();
-	if (lpDBResult != NULL)
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
 	if(lpsNewEntryId)
 		FreeEntryId(lpsNewEntryId, true);
@@ -7987,7 +7987,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	}
 
 	//Free Results
-	if (lpDBResult != NULL) {
+	if (lpDBResult != nullptr) {
 		lpDatabase->FreeResult(lpDBResult);
 		lpDBResult = NULL;
 	}
@@ -8159,7 +8159,7 @@ exit:
 		lpDatabase->Rollback();
 	}
 	//Free Results
-	if (lpDBResult != NULL)
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
 	if(lpsNewEntryId)
 		FreeEntryId(lpsNewEntryId, true);
@@ -8339,7 +8339,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		}
 	}
 
-	if (lpDBResult != NULL) {
+	if (lpDBResult != nullptr) {
 		lpDatabase->FreeResult(lpDBResult);
 		lpDBResult = NULL;
 	}
@@ -8426,7 +8426,7 @@ exit:
 		if (lpAttachmentStorage)
 			lpAttachmentStorage->Rollback();
 	}
-	if (lpDBResult != NULL)
+	if (lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);
 	return er;
 

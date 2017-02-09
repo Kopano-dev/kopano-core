@@ -41,7 +41,9 @@ class DB_RESULT _kc_final {
 	public:
 	DB_RESULT(void) = default;
 	DB_RESULT(void *r) : m_res(r) {}
-	operator void *(void) const { return m_res; }
+	operator bool(void) const { return m_res != nullptr; }
+	bool operator==(std::nullptr_t) const { return m_res == nullptr; }
+	bool operator!=(std::nullptr_t) const { return m_res != nullptr; }
 	void *get(void) const { return m_res; }
 
 	private:

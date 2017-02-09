@@ -637,7 +637,7 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 	}		
 
    	lpResult = mysql_store_result( &m_lpMySQL );
-   	if(lpResult == NULL) {
+	if (lpResult == nullptr) {
    		// I think this can only happen on the first result set of a query since otherwise mysql_next_result() would already fail
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("SQL [%08lu] result failed: %s", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL));
@@ -672,8 +672,7 @@ ECRESULT ECDatabase::FinalizeMulti(void)
 	mysql_next_result(&m_lpMySQL);
 	
 	lpResult = mysql_store_result(&m_lpMySQL);
-	
-	if(lpResult != NULL) {
+	if (lpResult != nullptr) {
 		ec_log_err("SQL [%08lu] result failed: unexpected results received at end of batch", m_lpMySQL.thread_id);
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
@@ -996,7 +995,7 @@ ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
 		er = KCERR_NOT_FOUND;
 
 exit:
-	if(lpResult != NULL)
+	if (lpResult != nullptr)
 		FreeResult(lpResult);
 	return er;
 }
@@ -1021,7 +1020,7 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 		*lpulDatabaseRevision = atoui(lpDBRow[0]);
 
 exit:
-	if (lpResult != NULL)
+	if (lpResult != nullptr)
 		FreeResult(lpResult);
 	return er;
 }
