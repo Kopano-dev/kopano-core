@@ -21,8 +21,8 @@
 #include <kopano/ECLogger.h>
 #include "instanceidmapper.h"
 #include "Archiver.h"
-#include "arc_database.hpp"
 #include <kopano/stringutil.h>
+#include "arc_mysql.hpp"
 
 namespace KC { namespace operations {
 
@@ -60,7 +60,7 @@ exit:
 }
 
 InstanceIdMapper::InstanceIdMapper(ECLogger *lpLogger) :
-    m_ptrDatabase(new ARCDatabase())
+	m_ptrDatabase(new KCMDatabaseMySQL)
 { }
 
 HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)

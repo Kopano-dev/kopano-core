@@ -296,7 +296,6 @@ libkcarchivercore_la_SOURCES = \
 	ECtools/archiver/operations/postsaveiidupdater.cpp \
 	ECtools/archiver/operations/postsaveiidupdater.h \
 	ECtools/archiver/ArchiveControlImpl.cpp ECtools/archiver/ArchiveControlImpl.h \
-	ECtools/archiver/arc_database.cpp ECtools/archiver/arc_database.hpp \
 	ECtools/archiver/arc_mysql.cpp ECtools/archiver/arc_mysql.hpp
 libkcarchivercore_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}

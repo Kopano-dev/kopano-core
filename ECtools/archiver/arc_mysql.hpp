@@ -51,7 +51,7 @@ struct sKCMSQLDatabase_t {
 	const char *lpSQL;
 };
 
-class KCMDatabaseMySQL {
+class KCMDatabaseMySQL _kc_final {
 public:
 	KCMDatabaseMySQL(void);
 	virtual ~KCMDatabaseMySQL(void);
@@ -62,7 +62,7 @@ public:
 	ECRESULT		DoInsert(const std::string &strQuery, unsigned int *lpulInsertId = NULL, unsigned int *lpulAffectedRows = NULL);
 	ECRESULT		DoDelete(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL);
 		ECRESULT		DoSequence(const std::string &strSeqName, unsigned int ulCount, uint64_t *lpllFirstId);
-	virtual const sKCMSQLDatabase_t *GetDatabaseDefs(void) = 0;
+	const sKCMSQLDatabase_t *GetDatabaseDefs(void);
 
 	//Result functions
 	unsigned int	GetNumRows(DB_RESULT sResult);
