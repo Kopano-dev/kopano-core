@@ -11,7 +11,7 @@ import time
 
 from MAPI import (
     MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE,
-    TABLE_SORT_DESCEND, RELOP_GT, RELOP_LT, RELOP_EQ,
+    TABLE_SORT_DESCEND, TABLE_SORT_ASCEND, RELOP_GT, RELOP_LT, RELOP_EQ,
     DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES,
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
     FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
@@ -26,7 +26,8 @@ from MAPI.Tags import (
     PR_MEMBER_ID, PR_RULES_TABLE, IID_IExchangeModifyTable,
     IID_IMAPITable, PR_CONTAINER_CONTENTS,
     PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
-    PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME
+    PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME,
+    CONVENIENT_DEPTH, PR_DEPTH
 )
 from MAPI.Defs import (
     bin2hex, HrGetOneProp, PpropFindProp, CHANGE_PROP_TYPE
@@ -363,18 +364,23 @@ class Folder(object):
         except Error:
             pass
 
-    def folders(self, recurse=True, depth=0):
+    def folders(self, recurse=True):
         """ Return all :class:`sub-folders <Folder>` in folder
 
         :param recurse: include all sub-folders
         """
 
         try:
-            table = self.mapiobj.GetHierarchyTable(MAPI_UNICODE | self.content_flag)
+            flags = MAPI_UNICODE | self.content_flag
+            if recurse:
+                flags |= CONVENIENT_DEPTH
+
+            table = self.mapiobj.GetHierarchyTable(flags)
         except MAPIErrorNoSupport: # XXX webapp search folder?
             return
 
-        table.SetColumns([PR_ENTRYID], 0)
+        table.SetColumns([PR_ENTRYID, PR_DEPTH], 0)
+        table.SortTable(SSortOrderSet([SSort(PR_DEPTH, TABLE_SORT_ASCEND)], 0, 0), 0)
         rows = table.QueryRows(-1, 0)
         for row in rows:
             try:
@@ -382,11 +388,8 @@ class Folder(object):
             except MAPIErrorNoAccess:
                 mapiobj = self.mapiobj.OpenEntry(row[0].Value, None, self.content_flag)
             folder = Folder(self.store, mapiobj=mapiobj)
-            folder.depth = depth
+            folder.depth = row[1].Value
             yield folder
-            if recurse:
-                for subfolder in folder.folders(depth=depth + 1):
-                    yield subfolder
 
     def create_folder(self, path, **kwargs):
         folder = self.folder(path, create=True)
