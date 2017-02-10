@@ -37,11 +37,6 @@
 
 namespace KC {
 
-KCMDatabaseMySQL::KCMDatabaseMySQL(void)
-{
-	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
-}
-
 KCMDatabaseMySQL::~KCMDatabaseMySQL(void)
 {
 	Close();
@@ -295,72 +290,6 @@ ECRESULT KCMDatabaseMySQL::DoSequence(const std::string &strSeqName,
 
 	*lpllFirstId = mysql_insert_id(&m_lpMySQL);
 	return er;
-}
-
-unsigned int KCMDatabaseMySQL::GetAffectedRows(void)
-{
-	return (unsigned int)mysql_affected_rows(&m_lpMySQL);
-}
-
-unsigned int KCMDatabaseMySQL::GetInsertId(void)
-{
-	return (unsigned int)mysql_insert_id(&m_lpMySQL);
-}
-
-void KCMDatabaseMySQL::FreeResult(DB_RESULT sResult)
-{
-	assert(sResult != NULL);
-	if(sResult)
-		mysql_free_result((MYSQL_RES *)sResult);
-}
-
-unsigned int KCMDatabaseMySQL::GetNumRows(DB_RESULT sResult)
-{
-	return (unsigned int)mysql_num_rows((MYSQL_RES *)sResult);
-}
-
-DB_ROW KCMDatabaseMySQL::FetchRow(DB_RESULT sResult)
-{
-	return mysql_fetch_row((MYSQL_RES *)sResult);
-}
-
-DB_LENGTHS KCMDatabaseMySQL::FetchRowLengths(DB_RESULT sResult)
-{
-	return (DB_LENGTHS)mysql_fetch_lengths((MYSQL_RES *)sResult);
-}
-
-std::string KCMDatabaseMySQL::Escape(const std::string &strToEscape)
-{
-	ULONG size = strToEscape.length()*2+1;
-	std::unique_ptr<char[]> szEscaped(new char[size]);
-
-	memset(szEscaped.get(), 0, size);
-	mysql_real_escape_string(&this->m_lpMySQL, szEscaped.get(), strToEscape.c_str(), strToEscape.length());
-	return szEscaped.get();
-}
-
-std::string KCMDatabaseMySQL::EscapeBinary(const unsigned char *lpData,
-    size_t ulLen)
-{
-	auto size = ulLen * 2 + 1;
-	std::unique_ptr<char[]> szEscaped(new char[size]);
-
-	memset(szEscaped.get(), 0, size);
-	mysql_real_escape_string(&this->m_lpMySQL, szEscaped.get(), reinterpret_cast<const char *>(lpData), ulLen);
-	return "'" + std::string(szEscaped.get()) + "'";
-}
-
-std::string KCMDatabaseMySQL::EscapeBinary(const std::string &strData)
-{
-	return EscapeBinary(reinterpret_cast<const unsigned char *>(strData.c_str()), strData.size());
-}
-
-const char *KCMDatabaseMySQL::GetError(void)
-{
-	if (m_bMysqlInitialize == false)
-		return "MYSQL not initialized";
-
-	return mysql_error(&m_lpMySQL);
 }
 
 ECRESULT KCMDatabaseMySQL::Begin(void)

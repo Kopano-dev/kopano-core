@@ -22,12 +22,10 @@
 #ifndef ARC_MYSQL_HPP
 #define ARC_MYSQL_HPP 1
 
-#include <mutex>
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include <kopano/database.hpp>
 #include <kopano/kcodes.h>
-#include <mysql.h>
 #include <string>
 
 using namespace std;
@@ -50,7 +48,6 @@ struct sKCMSQLDatabase_t {
 
 class KCMDatabaseMySQL _kc_final : public KDatabase {
 public:
-	KCMDatabaseMySQL(void);
 	virtual ~KCMDatabaseMySQL(void);
 	ECRESULT		Connect(ECConfig *lpConfig);
 	virtual ECRESULT Close(void) _kc_override;
@@ -62,13 +59,6 @@ public:
 	const sKCMSQLDatabase_t *GetDatabaseDefs(void);
 
 	//Result functions
-	virtual unsigned int GetNumRows(DB_RESULT) _kc_override;
-	virtual DB_ROW FetchRow(DB_RESULT) _kc_override;
-	virtual DB_LENGTHS FetchRowLengths(DB_RESULT) _kc_override;
-	virtual std::string Escape(const std::string &) _kc_override;
-	virtual std::string EscapeBinary(const unsigned char *, size_t) _kc_override;
-	virtual std::string EscapeBinary(const std::string &) _kc_override;
-	virtual const char *GetError(void) _kc_override;
 	virtual ECRESULT Begin(void) _kc_override;
 	virtual ECRESULT Commit(void) _kc_override;
 	virtual ECRESULT Rollback(void) _kc_override;
@@ -77,36 +67,16 @@ public:
 	// Database maintenance function(s)
 	ECRESULT		CreateDatabase(ECConfig *lpConfig);
 
-	// Freememory method(s)
-	virtual void FreeResult(DB_RESULT) _kc_override;
-
 private:
-	class autolock : private std::unique_lock<std::recursive_mutex> {
-		public:
-		autolock(KCMDatabaseMySQL &p) :
-			std::unique_lock<std::recursive_mutex>(p.m_hMutexMySql, std::defer_lock_t())
-		{
-			if (p.m_bAutoLock)
-				lock();
-		}
-	};
-
 	ECRESULT InitEngine();
 	ECRESULT IsInnoDBSupported();
 
 	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) _kc_override;
 	int Query(const string &strQuery);
-	virtual unsigned int GetAffectedRows(void) _kc_override;
-	virtual unsigned int GetInsertId(void) _kc_override;
 
 	// Connection methods
 	virtual bool isConnected(void) _kc_override;
-
-	bool m_bMysqlInitialize = false, m_bConnected = false;
-	bool m_bAutoLock = true;
 	unsigned int m_ulMaxAllowedPacket = KC_DFL_MAX_PACKET_SIZE;
-	MYSQL				m_lpMySQL;
-	std::recursive_mutex m_hMutexMySql;
 };
 
 } /* namespace */

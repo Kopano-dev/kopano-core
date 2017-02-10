@@ -355,7 +355,6 @@ int zcp_versiontuple::compare(const zcp_versiontuple &rhs) const
 ECDatabaseMySQL::ECDatabaseMySQL(ECConfig *cfg) :
     m_lpConfig(cfg)
 {
-	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
 }
 
 ECDatabaseMySQL::~ECDatabaseMySQL()
@@ -1008,37 +1007,6 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 	return er;
 }
 
-unsigned int ECDatabaseMySQL::GetAffectedRows() {
-
-	return (unsigned int)mysql_affected_rows(&m_lpMySQL);
-}
-
-unsigned int ECDatabaseMySQL::GetInsertId() {
-
-	return (unsigned int)mysql_insert_id(&m_lpMySQL);
-}
-
-void ECDatabaseMySQL::FreeResult(DB_RESULT sResult) {
-	assert(sResult != NULL);
-	if(sResult)
-		mysql_free_result((MYSQL_RES *)sResult);
-}
-
-unsigned int ECDatabaseMySQL::GetNumRows(DB_RESULT sResult) {
-
-	return (unsigned int)mysql_num_rows((MYSQL_RES *)sResult);
-}
-
-DB_ROW ECDatabaseMySQL::FetchRow(DB_RESULT sResult) {
-
-	return mysql_fetch_row((MYSQL_RES *)sResult);
-}
-
-DB_LENGTHS ECDatabaseMySQL::FetchRowLengths(DB_RESULT sResult) {
-
-	return (DB_LENGTHS)mysql_fetch_lengths((MYSQL_RES *)sResult);
-}
-
 /** 
  * For some reason, MySQL only supports up to 3 bytes of UTF-8 data. This means
  * that data outside the BMP is not supported. This function filters the passed UTF-8 string
@@ -1082,39 +1050,6 @@ std::string ECDatabaseMySQL::FilterBMP(const std::string &strToFilter)
 	}
 	
 	return strFiltered;
-}
-
-std::string ECDatabaseMySQL::Escape(const std::string &strToEscape)
-{
-	ULONG size = strToEscape.length()*2+1;
-	std::unique_ptr<char[]> szEscaped(new char[size]);
-
-	memset(szEscaped.get(), 0, size);
-	mysql_real_escape_string(&this->m_lpMySQL, szEscaped.get(), strToEscape.c_str(), strToEscape.length());
-	return szEscaped.get();
-}
-
-std::string ECDatabaseMySQL::EscapeBinary(const unsigned char *lpData, size_t ulLen)
-{
-	auto size = ulLen * 2 + 1;
-	std::unique_ptr<char[]> szEscaped(new char[size]);
-	
-	memset(szEscaped.get(), 0, size);
-	mysql_real_escape_string(&this->m_lpMySQL, szEscaped.get(), reinterpret_cast<const char *>(lpData), ulLen);
-	return "'" + std::string(szEscaped.get()) + "'";
-}
-
-std::string ECDatabaseMySQL::EscapeBinary(const std::string& strData)
-{
-	return EscapeBinary((unsigned char *)strData.c_str(), strData.size());
-}
-
-const char *ECDatabaseMySQL::GetError(void)
-{
-	if(m_bMysqlInitialize == false)
-		return "MYSQL not initialized";
-
-	return mysql_error(&m_lpMySQL);
 }
 
 DB_ERROR ECDatabaseMySQL::GetLastError()

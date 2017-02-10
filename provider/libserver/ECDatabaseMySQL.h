@@ -23,8 +23,6 @@
 #define ECDATABASEMYSQL_H
 
 #include <kopano/zcdefs.h>
-#include <mutex>
-#include <mysql.h>
 #include <string>
 
 #include "ECDatabase.h"
@@ -38,7 +36,7 @@ class zcp_versiontuple;
 class ECDatabaseMySQL _kc_final : public ECDatabase {
 public:
 	ECDatabaseMySQL(ECConfig *lpConfig);
-	virtual ~ECDatabaseMySQL();
+	virtual ~ECDatabaseMySQL(void);
 
 	// Embedded mysql
 	static ECRESULT	InitLibrary(const char *lpDatabaseDir, const char *lpConfigFile);
@@ -53,17 +51,10 @@ public:
 	ECRESULT DoSequence(const std::string &seqname, unsigned int ulCount, unsigned long long *first_id) _kc_override;
 
 	//Result functions
-	unsigned int GetNumRows(DB_RESULT) _kc_override;
 	virtual ECRESULT GetNextResult(DB_RESULT *) _kc_override;
 	virtual ECRESULT FinalizeMulti(void) _kc_override;
-	DB_ROW FetchRow(DB_RESULT) _kc_override;
-	DB_LENGTHS FetchRowLengths(DB_RESULT) _kc_override;
-	std::string Escape(const std::string &) _kc_override;
-	virtual std::string EscapeBinary(const unsigned char *, size_t) _kc_override;
-	std::string EscapeBinary(const std::string &) _kc_override;
 	std::string FilterBMP(const std::string &to_filter) _kc_override;
 	ECRESULT ValidateTables(void) _kc_override;
-	const char *GetError(void) _kc_override;
 	DB_ERROR GetLastError(void) _kc_override;
 	bool SuppressLockErrorLogging(bool suppress) _kc_override;
 	ECRESULT Begin(void) _kc_override;
@@ -81,28 +72,13 @@ public:
 	ECRESULT CheckExistColumn(const std::string &table, const std::string &column, bool *exist) _kc_override;
 	ECRESULT CheckExistIndex(const std::string &table, const std::string &key, bool *exist) _kc_override;
 
-	// Freememory methods
-	void FreeResult(DB_RESULT sResult) _kc_override;
-
 private:
-	class autolock : private std::unique_lock<std::recursive_mutex> {
-		public:
-		autolock(ECDatabaseMySQL &p) :
-			std::unique_lock<std::recursive_mutex>(p.m_hMutexMySql, std::defer_lock_t())
-		{
-			if (p.m_bAutoLock)
-				lock();
-		}
-	};
-    
 	ECRESULT InitEngine();
 	ECRESULT IsInnoDBSupported();
 	ECRESULT InitializeDBStateInner(void);
 	
 	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) _kc_override;
 	ECRESULT Query(const std::string &strQuery);
-	virtual unsigned int GetAffectedRows(void) _kc_override;
-	virtual unsigned int GetInsertId(void) _kc_override;
 
 	// Connection methods
 	virtual bool isConnected(void) _kc_override;
@@ -115,11 +91,6 @@ private:
 	ECRESULT IsUpdateDone(unsigned int ulDatabaseRevision, unsigned int ulRevision=0);
 	ECRESULT GetFirstUpdate(unsigned int *lpulDatabaseRevision);
 
-	bool m_bMysqlInitialize = false;
-	bool m_bConnected = false;
-	MYSQL m_lpMySQL;
-	std::recursive_mutex m_hMutexMySql;
-	bool m_bAutoLock = true;
 	unsigned int m_ulMaxAllowedPacket = 0;
 	bool m_bFirstResult = false;
 	ECConfig *m_lpConfig = nullptr;

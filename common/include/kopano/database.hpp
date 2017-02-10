@@ -1,7 +1,9 @@
 #ifndef KOPANO_DATABASE_HPP
 #define KOPANO_DATABASE_HPP 1
 
+#include <mutex>
 #include <string>
+#include <mysql.h>
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 
@@ -13,6 +15,7 @@ typedef unsigned long *DB_LENGTHS;
 
 class _kc_export KDatabase {
 	public:
+	KDatabase(void);
 	virtual ~KDatabase(void) _kc_impdtor;
 	virtual ECRESULT Close(void) = 0;
 	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affect = nullptr) = 0;
@@ -21,15 +24,15 @@ class _kc_export KDatabase {
 	/* Sequence generator - Do not call this from within a transaction. */
 	virtual ECRESULT DoSequence(const std::string &seq, unsigned int count, unsigned long long *first_id) = 0;
 	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affect = nullptr) = 0;
-	virtual std::string Escape(const std::string &) = 0;
-	virtual std::string EscapeBinary(const unsigned char *, size_t) = 0;
-	virtual std::string EscapeBinary(const std::string &) = 0;
-	virtual DB_ROW FetchRow(DB_RESULT) = 0;
-	virtual DB_LENGTHS FetchRowLengths(DB_RESULT) = 0;
-	virtual void FreeResult(DB_RESULT) = 0;
-	virtual const char *GetError(void) = 0;
+	std::string Escape(const std::string &);
+	std::string EscapeBinary(const unsigned char *, size_t);
+	std::string EscapeBinary(const std::string &);
+	DB_ROW FetchRow(DB_RESULT);
+	DB_LENGTHS FetchRowLengths(DB_RESULT);
+	void FreeResult(DB_RESULT);
+	const char *GetError(void);
 	virtual unsigned int GetMaxAllowedPacket(void) = 0;
-	virtual unsigned int GetNumRows(DB_RESULT) = 0;
+	unsigned int GetNumRows(DB_RESULT);
 	/*
 	 * Transactions.
 	 * These functions should be used to wrap blocks of queries into
@@ -43,10 +46,27 @@ class _kc_export KDatabase {
 	virtual ECRESULT Rollback(void) = 0;
 
 	protected:
-	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) = 0;
-	virtual unsigned int GetAffectedRows(void) = 0;
-	virtual unsigned int GetInsertId(void) = 0;
+	class autolock : private std::unique_lock<std::recursive_mutex> {
+		public:
+		autolock(KDatabase &p) :
+			std::unique_lock<std::recursive_mutex>(p.m_hMutexMySql, std::defer_lock_t())
+		{
+			if (p.m_bAutoLock)
+				lock();
+		}
+	};
+
+	unsigned int GetAffectedRows(void);
+	unsigned int GetInsertId(void);
 	virtual bool isConnected(void) = 0;
+	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) = 0;
+
+	MYSQL m_lpMySQL;
+	bool m_bMysqlInitialize = false, m_bConnected = false;
+
+	private:
+	std::recursive_mutex m_hMutexMySql;
+	bool m_bAutoLock = true;
 };
 
 } /* namespace */
