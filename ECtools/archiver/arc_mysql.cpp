@@ -42,23 +42,6 @@ KCMDatabaseMySQL::~KCMDatabaseMySQL(void)
 	Close();
 }
 
-ECRESULT KCMDatabaseMySQL::InitEngine(void)
-{
-	//Init mysql and make a connection
-	if (!m_bMysqlInitialize && mysql_init(&m_lpMySQL) == NULL) {
-		ec_log_crit("KCMDatabaseMySQL::InitEngine() mysql_init failed");
-		return KCERR_DATABASE_ERROR;
-	}
-
-	m_bMysqlInitialize = true;
-
-	// Set auto reconnect
-	// mysql < 5.0.4 default on, mysql 5.0.4 > reconnection default off
-	// Kopano always wants to reconnect
-	m_lpMySQL.reconnect = 1;
-	return erSuccess;
-}
-
 ECRESULT KCMDatabaseMySQL::Connect(ECConfig *lpConfig)
 {
 	ECRESULT		er = erSuccess;
@@ -67,7 +50,11 @@ ECRESULT KCMDatabaseMySQL::Connect(ECConfig *lpConfig)
 	DB_RESULT		lpDBResult = NULL;
 	DB_ROW			lpDBRow = NULL;
 
-	er = InitEngine();
+	/*
+	 * Set auto reconnect. mysql < 5.0.4 default on, mysql 5.0.4 > reconnection default off.
+	 * Kopano always wants to reconnect.
+	 */
+	er = InitEngine(true);
 	if (er != erSuccess) {
 		ec_log_crit("KCMDatabaseMySQL::Connect(): InitEngine failed %d", er);
 		goto exit;
@@ -147,27 +134,6 @@ exit:
 		Close();
 
 	return er;
-}
-
-ECRESULT KCMDatabaseMySQL::Close(void)
-{
-	ECRESULT er = erSuccess;
-	//INFO: No locking here
-
-	m_bConnected = false;
-
-	// Close mysql data connection and deallocate data
-	if(m_bMysqlInitialize)
-		mysql_close(&m_lpMySQL);
-
-	m_bMysqlInitialize = false;
-
-	return er;
-}
-
-bool KCMDatabaseMySQL::isConnected(void)
-{
-	return m_bConnected;
 }
 
 int KCMDatabaseMySQL::Query(const string &strQuery)
@@ -325,11 +291,6 @@ ECRESULT KCMDatabaseMySQL::Rollback(void)
 	return erSuccess;
 }
 
-unsigned int KCMDatabaseMySQL::GetMaxAllowedPacket(void)
-{
-    return m_ulMaxAllowedPacket;
-}
-
 ECRESULT KCMDatabaseMySQL::IsInnoDBSupported(void)
 {
 	ECRESULT	er = erSuccess;
@@ -385,7 +346,7 @@ ECRESULT KCMDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 
 	// Kopano archiver database tables
 	auto sDatabaseTables = GetDatabaseDefs();
-	er = InitEngine();
+	er = InitEngine(true);
 	if(er != erSuccess)
 		return er;
 

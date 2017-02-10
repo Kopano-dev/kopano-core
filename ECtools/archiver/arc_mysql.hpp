@@ -35,12 +35,6 @@ namespace KC {
 // The max length of a group_concat function
 #define MAX_GROUP_CONCAT_LEN		32768
 
-enum {
-	// The maximum packet size. This is automatically also the maximum
-	// size of a single entry in the database.
-	KC_DFL_MAX_PACKET_SIZE = 16777216,
-};
-
 struct sKCMSQLDatabase_t {
 	const char *lpComment;
 	const char *lpSQL;
@@ -50,7 +44,6 @@ class KCMDatabaseMySQL _kc_final : public KDatabase {
 public:
 	virtual ~KCMDatabaseMySQL(void);
 	ECRESULT		Connect(ECConfig *lpConfig);
-	virtual ECRESULT Close(void) _kc_override;
 	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *, bool stream = false) _kc_override;
 	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affect = nullptr) _kc_override;
 	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affect = nullptr) _kc_override;
@@ -62,21 +55,15 @@ public:
 	virtual ECRESULT Begin(void) _kc_override;
 	virtual ECRESULT Commit(void) _kc_override;
 	virtual ECRESULT Rollback(void) _kc_override;
-	virtual unsigned int GetMaxAllowedPacket(void) _kc_override;
 
 	// Database maintenance function(s)
 	ECRESULT		CreateDatabase(ECConfig *lpConfig);
 
 private:
-	ECRESULT InitEngine();
 	ECRESULT IsInnoDBSupported();
 
 	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) _kc_override;
 	int Query(const string &strQuery);
-
-	// Connection methods
-	virtual bool isConnected(void) _kc_override;
-	unsigned int m_ulMaxAllowedPacket = KC_DFL_MAX_PACKET_SIZE;
 };
 
 } /* namespace */

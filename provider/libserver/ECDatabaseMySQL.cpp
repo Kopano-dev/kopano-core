@@ -60,7 +60,7 @@ namespace KC {
 
 // In debian lenny, setting your max_allowed_packet to 16M actually gives this value.... Unknown
 // why.
-#define MAX_ALLOWED_PACKET			16776192
+#define MAX_ALLOWED_PACKET KC_DFL_MAX_PACKET_SIZE
 
 struct sUpdateList_t {
 	unsigned int ulVersion;
@@ -446,27 +446,6 @@ void ECDatabaseMySQL::UnloadLibrary(void)
 	mysql_library_end();
 }
 
-ECRESULT ECDatabaseMySQL::InitEngine()
-{
-	assert(!m_bMysqlInitialize);
-
-	//Init mysql and make a connection
-	if(mysql_init(&m_lpMySQL) == NULL) {
-		ec_log_crit("ECDatabaseMySQL::InitEngine(): mysql_init failed");
-		return KCERR_DATABASE_ERROR;
-	}
-
-	m_bMysqlInitialize = true; 
-
-	// Set auto reconnect OFF
-	// mysql < 5.0.4 default on, mysql 5.0.4 > reconnection default off
-	// We always wants reconnect OFF, because we want to know when the connection
-	// is broken since this creates a new MySQL session, and we want to set some session
-	// variables
-	m_lpMySQL.reconnect = 0;
-	return erSuccess;
-}
-
 ECRESULT ECDatabaseMySQL::CheckExistColumn(const std::string &strTable, const std::string &strColumn, bool *lpbExist)
 {
 	ECRESULT		er = erSuccess;
@@ -535,7 +514,13 @@ ECRESULT ECDatabaseMySQL::Connect()
 	if (*lpMysqlSocket == '\0')
 		lpMysqlSocket = NULL;
 	
-	er = InitEngine();
+	/*
+	 * Set auto reconnect OFF. mysql < 5.0.4 default on, mysql 5.0.4 >
+	 * reconnection default off. We always want reconnect OFF, because we
+	 * want to know when the connection is broken since this creates a new
+	 * MySQL session, and we want to set some session variables.
+	 */
+	er = InitEngine(false);
 	if(er != erSuccess)
 		goto exit;
 
@@ -651,28 +636,6 @@ exit:
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_CONNECTS);
 		
 	return er;
-}
-
-ECRESULT ECDatabaseMySQL::Close()
-{
-	ECRESULT er = erSuccess;
-
-	//INFO: No locking here
-
-	m_bConnected = false;
-
-	// Close mysql data connection and deallocate data
-	if(m_bMysqlInitialize)
-		mysql_close(&m_lpMySQL);
-
-	m_bMysqlInitialize = false;
-
-	return er;
-}
-
-bool ECDatabaseMySQL::isConnected() {
-
-	return m_bConnected;
 }
 
 /**
@@ -1235,7 +1198,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 		{"indexedproperties", Z_TABLEDATA_INDEXED_PROPERTIES},
 	};
 
-	er = InitEngine();
+	er = InitEngine(false);
 	if(er != erSuccess)
 		return er;
 

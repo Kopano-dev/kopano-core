@@ -18,11 +18,22 @@
 #include <cassert>
 #include <cstring>
 #include <mysql.h>
+#include <kopano/ECLogger.h>
 #include <kopano/database.hpp>
 
 KDatabase::KDatabase(void)
 {
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
+}
+
+ECRESULT KDatabase::Close(void)
+{
+	/* No locking here */
+	m_bConnected = false;
+	if (m_bMysqlInitialize)
+		mysql_close(&m_lpMySQL);
+	m_bMysqlInitialize = false;
+	return erSuccess;
 }
 
 std::string KDatabase::Escape(const std::string &s)
@@ -87,4 +98,16 @@ unsigned int KDatabase::GetInsertId(void)
 unsigned int KDatabase::GetNumRows(DB_RESULT r)
 {
 	return mysql_num_rows(static_cast<MYSQL_RES *>(r));
+}
+
+ECRESULT KDatabase::InitEngine(bool reconnect)
+{
+	assert(!m_bMysqlInitialize);
+	if (!m_bMysqlInitialize && mysql_init(&m_lpMySQL) == nullptr) {
+		ec_log_crit("KDatabase::InitEngine() mysql_init failed");
+		return KCERR_DATABASE_ERROR;
+	}
+	m_bMysqlInitialize = true;
+	m_lpMySQL.reconnect = reconnect;
+	return erSuccess;
 }

@@ -13,11 +13,24 @@ typedef void *DB_RESULT;
 typedef char **DB_ROW;
 typedef unsigned long *DB_LENGTHS;
 
+enum {
+	/*
+	 * The maximum packet size. This is automatically also the maximum size
+	 * of a single entry in the database. This means that PR_BODY,
+	 * PR_COMPRESSED_RTF etc. cannot grow larger than 16M. This shouldn't
+	 * be such a problem in practice.
+	 *
+	 * In Debian Lenny, setting your max_allowed_packet to 16M actually
+	 * gives this value.... Unknown why.
+	 */
+	KC_DFL_MAX_PACKET_SIZE = 16776192,
+};
+
 class _kc_export KDatabase {
 	public:
 	KDatabase(void);
 	virtual ~KDatabase(void) _kc_impdtor;
-	virtual ECRESULT Close(void) = 0;
+	ECRESULT Close(void);
 	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affect = nullptr) = 0;
 	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affect = nullptr) = 0;
 	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *, bool stream = false) = 0;
@@ -31,7 +44,7 @@ class _kc_export KDatabase {
 	DB_LENGTHS FetchRowLengths(DB_RESULT);
 	void FreeResult(DB_RESULT);
 	const char *GetError(void);
-	virtual unsigned int GetMaxAllowedPacket(void) = 0;
+	unsigned int GetMaxAllowedPacket(void) const { return m_ulMaxAllowedPacket; }
 	unsigned int GetNumRows(DB_RESULT);
 	/*
 	 * Transactions.
@@ -58,10 +71,12 @@ class _kc_export KDatabase {
 
 	unsigned int GetAffectedRows(void);
 	unsigned int GetInsertId(void);
-	virtual bool isConnected(void) = 0;
+	ECRESULT InitEngine(bool reconnect);
+	bool isConnected(void) const { return m_bConnected; }
 	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) = 0;
 
 	MYSQL m_lpMySQL;
+	unsigned int m_ulMaxAllowedPacket = KC_DFL_MAX_PACKET_SIZE;
 	bool m_bMysqlInitialize = false, m_bConnected = false;
 
 	private:

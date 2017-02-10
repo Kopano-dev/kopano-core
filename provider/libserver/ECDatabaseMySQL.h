@@ -42,7 +42,6 @@ public:
 	static ECRESULT	InitLibrary(const char *lpDatabaseDir, const char *lpConfigFile);
 	static void UnloadLibrary(void);
 	ECRESULT Connect(void) _kc_override;
-	ECRESULT Close(void) _kc_override;
 	ECRESULT DoSelect(const std::string &query, DB_RESULT *result, bool stream_result = false) _kc_override;
 	ECRESULT DoSelectMulti(const std::string &query) _kc_override;
 	ECRESULT DoUpdate(const std::string &query, unsigned int *affected_rows = NULL) _kc_override;
@@ -60,7 +59,6 @@ public:
 	ECRESULT Begin(void) _kc_override;
 	ECRESULT Commit(void) _kc_override;
 	ECRESULT Rollback(void) _kc_override;
-	unsigned int GetMaxAllowedPacket(void) _kc_override { return m_ulMaxAllowedPacket; }
 	void ThreadInit(void) _kc_override;
 	void ThreadEnd(void) _kc_override;
 
@@ -73,15 +71,11 @@ public:
 	ECRESULT CheckExistIndex(const std::string &table, const std::string &key, bool *exist) _kc_override;
 
 private:
-	ECRESULT InitEngine();
 	ECRESULT IsInnoDBSupported();
 	ECRESULT InitializeDBStateInner(void);
 	
 	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) _kc_override;
 	ECRESULT Query(const std::string &strQuery);
-
-	// Connection methods
-	virtual bool isConnected(void) _kc_override;
 
 // Database maintenance
 	ECRESULT GetDatabaseVersion(zcp_versiontuple *);
@@ -91,7 +85,6 @@ private:
 	ECRESULT IsUpdateDone(unsigned int ulDatabaseRevision, unsigned int ulRevision=0);
 	ECRESULT GetFirstUpdate(unsigned int *lpulDatabaseRevision);
 
-	unsigned int m_ulMaxAllowedPacket = 0;
 	bool m_bFirstResult = false;
 	ECConfig *m_lpConfig = nullptr;
 	bool m_bSuppressLockErrorLogging = false;
