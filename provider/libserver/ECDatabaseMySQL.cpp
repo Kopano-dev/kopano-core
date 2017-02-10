@@ -1094,9 +1094,9 @@ std::string ECDatabaseMySQL::Escape(const std::string &strToEscape)
 	return szEscaped.get();
 }
 
-std::string ECDatabaseMySQL::EscapeBinary(unsigned char *lpData, unsigned int ulLen)
+std::string ECDatabaseMySQL::EscapeBinary(const unsigned char *lpData, size_t ulLen)
 {
-	ULONG size = ulLen*2+1;
+	auto size = ulLen * 2 + 1;
 	std::unique_ptr<char[]> szEscaped(new char[size]);
 	
 	memset(szEscaped.get(), 0, size);

@@ -25,6 +25,7 @@
 #include <mutex>
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
+#include <kopano/database.hpp>
 #include <kopano/kcodes.h>
 #include <mysql.h>
 #include <string>
@@ -32,10 +33,6 @@
 using namespace std;
 
 namespace KC {
-
-typedef void *			DB_RESULT;	
-typedef char **			DB_ROW;	
-typedef unsigned long *	DB_LENGTHS;
 
 // The max length of a group_concat function
 #define MAX_GROUP_CONCAT_LEN		32768
@@ -51,41 +48,37 @@ struct sKCMSQLDatabase_t {
 	const char *lpSQL;
 };
 
-class KCMDatabaseMySQL _kc_final {
+class KCMDatabaseMySQL _kc_final : public KDatabase {
 public:
 	KCMDatabaseMySQL(void);
 	virtual ~KCMDatabaseMySQL(void);
 	ECRESULT		Connect(ECConfig *lpConfig);
-	ECRESULT		Close();
-	ECRESULT		DoSelect(const std::string &strQuery, DB_RESULT *lpResult, bool bStream = false);
-	ECRESULT		DoUpdate(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL);
-	ECRESULT		DoInsert(const std::string &strQuery, unsigned int *lpulInsertId = NULL, unsigned int *lpulAffectedRows = NULL);
-	ECRESULT		DoDelete(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL);
-		ECRESULT		DoSequence(const std::string &strSeqName, unsigned int ulCount, uint64_t *lpllFirstId);
+	virtual ECRESULT Close(void) _kc_override;
+	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *, bool stream = false) _kc_override;
+	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affect = nullptr) _kc_override;
+	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affect = nullptr) _kc_override;
+	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affect = nullptr) _kc_override;
+	virtual ECRESULT DoSequence(const std::string &seq, unsigned int count, unsigned long long *first_id) _kc_override;
 	const sKCMSQLDatabase_t *GetDatabaseDefs(void);
 
 	//Result functions
-	unsigned int	GetNumRows(DB_RESULT sResult);
-	DB_ROW			FetchRow(DB_RESULT sResult);
-	DB_LENGTHS		FetchRowLengths(DB_RESULT sResult);
-
-	std::string		Escape(const std::string &strToEscape);
-	std::string		EscapeBinary(const unsigned char *lpData, unsigned int ulLen);
-	std::string		EscapeBinary(const std::string &strData);
-
-	const char *GetError(void);
-	
-	ECRESULT		Begin();
-	ECRESULT		Commit();
-	ECRESULT		Rollback();
-	
-	unsigned int	GetMaxAllowedPacket();
+	virtual unsigned int GetNumRows(DB_RESULT) _kc_override;
+	virtual DB_ROW FetchRow(DB_RESULT) _kc_override;
+	virtual DB_LENGTHS FetchRowLengths(DB_RESULT) _kc_override;
+	virtual std::string Escape(const std::string &) _kc_override;
+	virtual std::string EscapeBinary(const unsigned char *, size_t) _kc_override;
+	virtual std::string EscapeBinary(const std::string &) _kc_override;
+	virtual const char *GetError(void) _kc_override;
+	virtual ECRESULT Begin(void) _kc_override;
+	virtual ECRESULT Commit(void) _kc_override;
+	virtual ECRESULT Rollback(void) _kc_override;
+	virtual unsigned int GetMaxAllowedPacket(void) _kc_override;
 
 	// Database maintenance function(s)
 	ECRESULT		CreateDatabase(ECConfig *lpConfig);
 
 	// Freememory method(s)
-	void			FreeResult(DB_RESULT sResult);
+	virtual void FreeResult(DB_RESULT) _kc_override;
 
 private:
 	class autolock : private std::unique_lock<std::recursive_mutex> {
@@ -101,13 +94,13 @@ private:
 	ECRESULT InitEngine();
 	ECRESULT IsInnoDBSupported();
 
-	ECRESULT _Update(const string &strQuery, unsigned int *lpulAffectedRows);
+	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) _kc_override;
 	int Query(const string &strQuery);
-	unsigned int GetAffectedRows();
-	unsigned int GetInsertId();
+	virtual unsigned int GetAffectedRows(void) _kc_override;
+	virtual unsigned int GetInsertId(void) _kc_override;
 
 	// Connection methods
-	bool isConnected();
+	virtual bool isConnected(void) _kc_override;
 
 	bool m_bMysqlInitialize = false, m_bConnected = false;
 	bool m_bAutoLock = true;

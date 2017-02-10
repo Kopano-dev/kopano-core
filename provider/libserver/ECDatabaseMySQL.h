@@ -59,7 +59,7 @@ public:
 	DB_ROW FetchRow(DB_RESULT) _kc_override;
 	DB_LENGTHS FetchRowLengths(DB_RESULT) _kc_override;
 	std::string Escape(const std::string &) _kc_override;
-	std::string EscapeBinary(unsigned char *, unsigned int) _kc_override;
+	virtual std::string EscapeBinary(const unsigned char *, size_t) _kc_override;
 	std::string EscapeBinary(const std::string &) _kc_override;
 	std::string FilterBMP(const std::string &to_filter) _kc_override;
 	ECRESULT ValidateTables(void) _kc_override;
@@ -99,14 +99,13 @@ private:
 	ECRESULT IsInnoDBSupported();
 	ECRESULT InitializeDBStateInner(void);
 	
-	ECRESULT _Update(const std::string &strQuery, unsigned int *lpulAffectedRows);
+	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) _kc_override;
 	ECRESULT Query(const std::string &strQuery);
-	unsigned int GetAffectedRows();
-	unsigned int GetInsertId();
+	virtual unsigned int GetAffectedRows(void) _kc_override;
+	virtual unsigned int GetInsertId(void) _kc_override;
 
 	// Connection methods
-	bool isConnected();
-
+	virtual bool isConnected(void) _kc_override;
 
 // Database maintenance
 	ECRESULT GetDatabaseVersion(zcp_versiontuple *);

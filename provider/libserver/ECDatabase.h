@@ -20,15 +20,13 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECConfig.h>
+#include <kopano/database.hpp>
 #include <kopano/kcodes.h>
 
 #include <string>
 
 namespace KC {
 
-typedef void *			DB_RESULT;	
-typedef char **			DB_ROW;	
-typedef unsigned long *	DB_LENGTHS;
 typedef unsigned int	DB_ERROR;
 
 
@@ -38,45 +36,24 @@ typedef unsigned int	DB_ERROR;
 
 
 // Abstract base class for databases
-class ECDatabase {
+class ECDatabase : public KDatabase {
 protected:
 	std::string error;
 	bool m_bForceUpdate;
 
 public:
-	virtual ~ECDatabase(void) _kc_impdtor;
 	virtual ECRESULT		Connect() = 0;
-	virtual ECRESULT		Close() = 0;
 
 	// Table functions
-	virtual ECRESULT		DoSelect(const std::string &strQuery, DB_RESULT *lpResult, bool fStreamResult = false) = 0;
-	virtual ECRESULT		DoUpdate(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL) = 0;
-	virtual ECRESULT		DoInsert(const std::string &strQuery, unsigned int *lpulInsertId = NULL, unsigned int *lpulAffectedRows = NULL) = 0;
-	virtual ECRESULT		DoDelete(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL) = 0;
 	virtual	ECRESULT		DoSelectMulti(const std::string &strQuery) = 0;
-	// Sequence generator - Do NOT CALL THIS FROM WITHIN A TRANSACTION.
-	virtual ECRESULT		DoSequence(const std::string &strSeqName, unsigned int ulCount, unsigned long long *lpllFirstId) = 0;
 
 	// Result functions
-	virtual unsigned int	GetNumRows(DB_RESULT sResult) = 0;
 	virtual ECRESULT		GetNextResult(DB_RESULT *sResult) = 0;
 	virtual	ECRESULT		FinalizeMulti() = 0;
 
-	virtual DB_ROW			FetchRow(DB_RESULT sResult) = 0;
-	virtual DB_LENGTHS		FetchRowLengths(DB_RESULT sResult) = 0;
-
 	virtual std::string		FilterBMP(const std::string &strToEscape) = 0;
-	virtual std::string		Escape(const std::string &strToEscape) = 0;
-	virtual std::string		EscapeBinary(unsigned char *lpData, unsigned int ulLen) = 0;
-	virtual std::string		EscapeBinary(const std::string& strData) = 0;
 	virtual ECRESULT		ValidateTables() = 0;
 
-	// Freememory functions
-	virtual	void			FreeResult(DB_RESULT sResult) = 0;
-
-	// Get error string
-	virtual const char *GetError(void) = 0;
-	
 	// Get last error code
 	virtual DB_ERROR		GetLastError() = 0;
 
@@ -87,20 +64,7 @@ public:
 	virtual ECRESULT		CreateDatabase() = 0;
 	virtual ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strReport) = 0;
 	virtual ECRESULT		InitializeDBState() = 0;
-
-	// Transactions
-	// These functions should be used to wrap blocks of queries into transactions. This will
-	// speed up writes a lot, so try to use them as much as possible. If you don't start a transaction
-	// then each INSERT or UPDATE will automatically be a single transaction, causing an fsync
-	// after each write-query, which is not fast to say the least.
 	
-	virtual ECRESULT		Begin() = 0;
-	virtual ECRESULT		Commit() = 0;
-	virtual ECRESULT		Rollback() = 0;
-	
-	// Return the maximum size of any query we can send
-	virtual unsigned int	GetMaxAllowedPacket() = 0;
-
 	virtual void			ThreadInit() = 0;
 	virtual void			ThreadEnd() = 0;
 	

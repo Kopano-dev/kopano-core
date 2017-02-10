@@ -272,7 +272,7 @@ ECRESULT KCMDatabaseMySQL::DoDelete(const string &strQuery,
  * know what you're doing.
  */
 ECRESULT KCMDatabaseMySQL::DoSequence(const std::string &strSeqName,
-    unsigned int ulCount, uint64_t *lpllFirstId)
+    unsigned int ulCount, unsigned long long *lpllFirstId)
 {
 	ECRESULT er;
 	unsigned int ulAffected = 0;
@@ -340,9 +340,9 @@ std::string KCMDatabaseMySQL::Escape(const std::string &strToEscape)
 }
 
 std::string KCMDatabaseMySQL::EscapeBinary(const unsigned char *lpData,
-    unsigned int ulLen)
+    size_t ulLen)
 {
-	ULONG size = ulLen*2+1;
+	auto size = ulLen * 2 + 1;
 	std::unique_ptr<char[]> szEscaped(new char[size]);
 
 	memset(szEscaped.get(), 0, size);
