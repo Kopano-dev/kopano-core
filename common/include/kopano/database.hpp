@@ -73,7 +73,8 @@ class _kc_export KDatabase {
 	unsigned int GetInsertId(void);
 	ECRESULT InitEngine(bool reconnect);
 	bool isConnected(void) const { return m_bConnected; }
-	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) = 0;
+	virtual ECRESULT Query(const std::string &q);
+	ECRESULT _Update(const std::string &q, unsigned int *affected);
 
 	MYSQL m_lpMySQL;
 	unsigned int m_ulMaxAllowedPacket = KC_DFL_MAX_PACKET_SIZE;

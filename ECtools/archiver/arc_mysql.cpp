@@ -136,25 +136,6 @@ exit:
 	return er;
 }
 
-int KCMDatabaseMySQL::Query(const string &strQuery)
-{
-	int err;
-
-#ifdef DEBUG_SQL
-#if DEBUG_SQL
-	ec_log_crit("%p: DO_SQL: \"%s;\"", (void*)&m_lpMySQL, strQuery.c_str());
-#endif
-#endif
-
-	// use mysql_real_query to be binary safe ( http://dev.mysql.com/doc/mysql/en/mysql-real-query.html )
-	err = mysql_real_query( &m_lpMySQL, strQuery.c_str(), strQuery.length() );
-
-	if (err)
-		ec_log_crit("%p: SQL Failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
-
-	return err;
-}
-
 ECRESULT KCMDatabaseMySQL::DoSelect(const string &strQuery,
     DB_RESULT *lpResult, bool bStream)
 {
@@ -185,21 +166,6 @@ ECRESULT KCMDatabaseMySQL::DoUpdate(const string &strQuery,
 {
 	autolock alk(*this);
 	return _Update(strQuery, lpulAffectedRows);
-}
-
-ECRESULT KCMDatabaseMySQL::_Update(const string &strQuery,
-    unsigned int *lpulAffectedRows)
-{
-	if (Query(strQuery) != 0) {
-		// FIXME: Add the mysql error system ?
-		// er = nMysqlError;
-		ec_log_crit("KCMDatabaseMySQL::_Update(): Failed invoking '%s'", strQuery.c_str());
-		return KCERR_DATABASE_ERROR;
-	}
-
-	if(lpulAffectedRows)
-		*lpulAffectedRows = GetAffectedRows();
-	return erSuccess;
 }
 
 ECRESULT KCMDatabaseMySQL::DoInsert(const string &strQuery,

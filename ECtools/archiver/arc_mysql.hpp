@@ -61,9 +61,6 @@ public:
 
 private:
 	ECRESULT IsInnoDBSupported();
-
-	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) _kc_override;
-	int Query(const string &strQuery);
 };
 
 } /* namespace */

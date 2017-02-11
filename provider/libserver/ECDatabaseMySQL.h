@@ -73,9 +73,7 @@ public:
 private:
 	ECRESULT IsInnoDBSupported();
 	ECRESULT InitializeDBStateInner(void);
-	
-	virtual ECRESULT _Update(const std::string &q, unsigned int *affected) _kc_override;
-	ECRESULT Query(const std::string &strQuery);
+	virtual ECRESULT Query(const std::string &q) _kc_override;
 
 // Database maintenance
 	ECRESULT GetDatabaseVersion(zcp_versiontuple *);

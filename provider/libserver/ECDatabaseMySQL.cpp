@@ -51,9 +51,6 @@ namespace KC {
 #define DEBUG_TRANSACTION 0
 #endif
 
-#define LOG_SQL_DEBUG(_msg, ...) \
-	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SQL, _msg, ##__VA_ARGS__)
-
 // The maximum packet size. This is automatically also the maximum
 // size of a single entry in the database. This means that PR_BODY, PR_COMPRESSED_RTF
 // etc. cannot grow larger than 16M. This shouldn't be such a problem in practice.
@@ -652,13 +649,8 @@ exit:
  */
 ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 	ECRESULT er = erSuccess;
-	int err;
+	int err = KDatabase::Query(strQuery);
 	
-	LOG_SQL_DEBUG("SQL [%08lu]: \"%s;\"", m_lpMySQL.thread_id, strQuery.c_str());
-
-	// use mysql_real_query to be binary safe ( http://dev.mysql.com/doc/mysql/en/mysql-real-query.html )
-	err = mysql_real_query( &m_lpMySQL, strQuery.c_str(), strQuery.length() );
-
 	if(err && (mysql_errno(&m_lpMySQL) == CR_SERVER_LOST || mysql_errno(&m_lpMySQL) == CR_SERVER_GONE_ERROR)) {
 		ec_log_warn("SQL [%08lu] info: Try to reconnect", m_lpMySQL.thread_id);
 			
@@ -866,18 +858,6 @@ ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAff
 
 	g_lpStatsCollector->Increment(SCN_DATABASE_UPDATES);
 	return er;
-}
-
-ECRESULT ECDatabaseMySQL::_Update(const string &strQuery, unsigned int *lpulAffectedRows)
-{
-	if( Query(strQuery) != erSuccess ) {
-		ec_log_err("ECDatabaseMySQL::_Update() query failed: %s", GetError());
-		return KCERR_DATABASE_ERROR;
-	}
-	
-	if(lpulAffectedRows)
-		*lpulAffectedRows = GetAffectedRows();
-	return erSuccess;
 }
 
 /**

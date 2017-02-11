@@ -20,6 +20,8 @@
 #include <mysql.h>
 #include <kopano/ECLogger.h>
 #include <kopano/database.hpp>
+#define LOG_SQL_DEBUG(_msg, ...) \
+	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SQL, _msg, ##__VA_ARGS__)
 
 KDatabase::KDatabase(void)
 {
@@ -109,5 +111,32 @@ ECRESULT KDatabase::InitEngine(bool reconnect)
 	}
 	m_bMysqlInitialize = true;
 	m_lpMySQL.reconnect = reconnect;
+	return erSuccess;
+}
+
+ECRESULT KDatabase::Query(const std::string &q)
+{
+	LOG_SQL_DEBUG("SQL [%08lu]: \"%s;\"", m_lpMySQL.thread_id, q.c_str());
+	/* Be binary safe (http://dev.mysql.com/doc/mysql/en/mysql-real-query.html) */
+	auto err = mysql_real_query(&m_lpMySQL, q.c_str(), q.length());
+	if (err == 0)
+		return erSuccess;
+	/* Callers without reconnect will emit different messages. */
+	if (m_lpMySQL.reconnect)
+		ec_log_err("%p: SQL Failed: %s, Query: \"%s\"",
+			static_cast<void *>(&m_lpMySQL), mysql_error(&m_lpMySQL),
+			q.c_str());
+	return KCERR_DATABASE_ERROR;
+}
+
+ECRESULT KDatabase::_Update(const std::string &q, unsigned int *aff)
+{
+	if (Query(q) != 0) {
+		ec_log_err("KDatabase::_Update() query failed: %s: %s",
+			q.c_str(), GetError());
+		return KCERR_DATABASE_ERROR;
+	}
+	if (aff != nullptr)
+		*aff = GetAffectedRows();
 	return erSuccess;
 }
