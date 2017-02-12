@@ -40,8 +40,6 @@ public:
 	virtual ~KCMDatabaseMySQL(void);
 	ECRESULT		Connect(ECConfig *lpConfig);
 	virtual const struct sSQLDatabase_t *GetDatabaseDefs(void) _kc_override;
-	// Database maintenance function(s)
-	ECRESULT		CreateDatabase(ECConfig *lpConfig);
 };
 
 } /* namespace */

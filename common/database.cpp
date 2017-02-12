@@ -19,6 +19,7 @@
 #include <cstring>
 #include <mysql.h>
 #include <mysqld_error.h>
+#include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/database.hpp>
 #include <kopano/stringutil.h>
@@ -28,6 +29,63 @@
 KDatabase::KDatabase(void)
 {
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
+}
+
+ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
+{
+	const char *dbname = cfg->GetSetting("mysql_database");
+	const char *mysql_port = cfg->GetSetting("mysql_port");
+	const char *mysql_socket = cfg->GetSetting("mysql_socket");
+
+	if (*mysql_socket == '\0')
+		mysql_socket = nullptr;
+
+	// Kopano archiver database tables
+	auto er = InitEngine(reconnect);
+	if (er != erSuccess)
+		return er;
+
+	// Connect
+	// m_lpMySQL: address of an existing MYSQL, Before calling
+	// mysql_real_connect(), call mysql_init() to initialize the
+	// MYSQL structure.
+	if (mysql_real_connect(&m_lpMySQL, cfg->GetSetting("mysql_host"),
+	    cfg->GetSetting("mysql_user"), cfg->GetSetting("mysql_password"),
+	    nullptr, mysql_port != nullptr ? atoi(mysql_port) : 0,
+	    mysql_socket, 0) == nullptr) {
+		ec_log_err("Failed to connect to database: %s", GetError());
+		return KCERR_DATABASE_ERROR;
+	}
+	if (dbname == nullptr) {
+		ec_log_crit("Unable to create database: Unknown database");
+		return KCERR_DATABASE_ERROR;
+	}
+	ec_log_notice("Create database %s", dbname);
+	er = IsInnoDBSupported();
+	if (er != erSuccess)
+		return er;
+
+	std::string query;
+	query = "CREATE DATABASE IF NOT EXISTS `" +
+	        std::string(cfg->GetSetting("mysql_database")) + "`";
+	if (Query(query) != erSuccess) {
+		ec_log_err("Unable to create database: %s", GetError());
+		return KCERR_DATABASE_ERROR;
+	}
+	query = "USE `" + std::string(cfg->GetSetting("mysql_database")) + "`";
+	er = DoInsert(query);
+	if (er != erSuccess)
+		return er;
+
+	auto tables = GetDatabaseDefs();
+	for (size_t i = 0; tables[i].lpSQL != nullptr; ++i) {
+		ec_log_info("Create table: %s", tables[i].lpComment);
+		er = DoInsert(tables[i].lpSQL);
+		if (er != erSuccess)
+			return er;
+	}
+	ec_log_info("Database structure has been created");
+	return erSuccess;
 }
 
 ECRESULT KDatabase::Close(void)

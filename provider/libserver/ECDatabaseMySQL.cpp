@@ -934,18 +934,12 @@ void ECDatabaseMySQL::ThreadEnd() {
 
 ECRESULT ECDatabaseMySQL::CreateDatabase()
 {
-	ECRESULT er;
-	string		strQuery;
-	const char *lpDatabase = m_lpConfig->GetSetting("mysql_database");
-	const char *lpMysqlPort = m_lpConfig->GetSetting("mysql_port");
-	const char *lpMysqlSocket = m_lpConfig->GetSetting("mysql_socket");
-
-	if(*lpMysqlSocket == '\0')
-		lpMysqlSocket = NULL;
+	auto er = KDatabase::CreateDatabase(m_lpConfig, false);
+	if (er != erSuccess)
+		return er;
 
 	// database default data
-	auto sDatabaseTables = GetDatabaseDefs();
-	static const sSQLDatabase_t sDatabaseData[] = {
+	static constexpr const sSQLDatabase_t sDatabaseData[] = {
 		{"users", Z_TABLEDATA_USERS},
 		{"stores", Z_TABLEDATA_STORES},
 		{"hierarchy", Z_TABLEDATA_HIERARCHY},
@@ -954,52 +948,6 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 		{"settings", Z_TABLEDATA_SETTINGS},
 		{"indexedproperties", Z_TABLEDATA_INDEXED_PROPERTIES},
 	};
-	er = InitEngine(false);
-	if(er != erSuccess)
-		return er;
-
-	// Connect
-	if(mysql_real_connect(&m_lpMySQL, 
-			m_lpConfig->GetSetting("mysql_host"), 
-			m_lpConfig->GetSetting("mysql_user"), 
-			m_lpConfig->GetSetting("mysql_password"), 
-			NULL, 
-			(lpMysqlPort)?atoi(lpMysqlPort):0, 
-			lpMysqlSocket, 0) == NULL)
-	{
-		ec_log_err("ECDatabaseMySQL::CreateDatabase(): mysql connect failed: %s", GetError());
-		return KCERR_DATABASE_ERROR;
-	}
-
-	if(lpDatabase == NULL) {
-		ec_log_crit("Unable to create database: Unknown database");
-		return KCERR_DATABASE_ERROR;
-	}
-
-	ec_log_notice("Creating database \"%s\"", lpDatabase);
-
-	er = IsInnoDBSupported();
-	if(er != erSuccess)
-		return er;
-
-	strQuery = "CREATE DATABASE IF NOT EXISTS `"+std::string(m_lpConfig->GetSetting("mysql_database"))+"`";
-	if(Query(strQuery) != erSuccess){
-		ec_log_crit("Unable to create database: %s", GetError());
-		return KCERR_DATABASE_ERROR;
-	}
-
-	strQuery = "USE `"+std::string(m_lpConfig->GetSetting("mysql_database"))+"`";
-	er = DoInsert(strQuery);
-	if(er != erSuccess)
-		return er;
-
-	// Database tables
-	for (size_t i = 0; sDatabaseTables[i].lpSQL != nullptr; ++i) {
-		ec_log_info("Creating table \"%s\"", sDatabaseTables[i].lpComment);
-		er = DoInsert(sDatabaseTables[i].lpSQL);
-		if(er != erSuccess)
-			return er;	
-	}
 
 	// Add the default table data
 	for (size_t i = 0; i < ARRAY_SIZE(sDatabaseData); ++i) {
@@ -1027,8 +975,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 			return er;
 	}
 
-	
-	ec_log_notice("Database has been created");
+	ec_log_notice("Database has been created/updated and populated");
 	return erSuccess;
 }
 
