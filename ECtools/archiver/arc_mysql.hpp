@@ -32,9 +32,6 @@ using namespace std;
 
 namespace KC {
 
-// The max length of a group_concat function
-#define MAX_GROUP_CONCAT_LEN		32768
-
 class KCMDatabaseMySQL _kc_final : public KDatabase {
 public:
 	virtual ~KCMDatabaseMySQL(void);

@@ -51,14 +51,6 @@ namespace KC {
 #define DEBUG_TRANSACTION 0
 #endif
 
-// The maximum packet size. This is automatically also the maximum
-// size of a single entry in the database. This means that PR_BODY, PR_COMPRESSED_RTF
-// etc. cannot grow larger than 16M. This shouldn't be such a problem in practice.
-
-// In debian lenny, setting your max_allowed_packet to 16M actually gives this value.... Unknown
-// why.
-#define MAX_ALLOWED_PACKET KC_DFL_MAX_PACKET_SIZE
-
 struct sUpdateList_t {
 	unsigned int ulVersion;
 	unsigned int ulVersionMin; // Version to start the update
@@ -495,133 +487,39 @@ exit:
 
 ECRESULT ECDatabaseMySQL::Connect()
 {
-	ECRESULT		er = erSuccess;
-	std::string		strQuery;
-	const char *lpMysqlPort = m_lpConfig->GetSetting("mysql_port");
-	const char *lpMysqlSocket = m_lpConfig->GetSetting("mysql_socket");
-	DB_RESULT		lpDBResult = NULL;
-	DB_ROW			lpDBRow = NULL;
-	unsigned int	gcm = 0;
-
-	if (*lpMysqlSocket == '\0')
-		lpMysqlSocket = NULL;
-	
+	auto gcm = atoui(m_lpConfig->GetSetting("mysql_group_concat_max_len"));
+	if (gcm < 1024)
+		gcm = 1024;
 	/*
 	 * Set auto reconnect OFF. mysql < 5.0.4 default on, mysql 5.0.4 >
 	 * reconnection default off. We always want reconnect OFF, because we
 	 * want to know when the connection is broken since this creates a new
 	 * MySQL session, and we want to set some session variables.
 	 */
-	er = InitEngine(false);
-	if(er != erSuccess)
-		goto exit;
-
-	if(mysql_real_connect(&m_lpMySQL, 
-			m_lpConfig->GetSetting("mysql_host"), 
-			m_lpConfig->GetSetting("mysql_user"), 
-			m_lpConfig->GetSetting("mysql_password"), 
-			m_lpConfig->GetSetting("mysql_database"), 
-			(lpMysqlPort)?atoi(lpMysqlPort):0, 
-			lpMysqlSocket, CLIENT_MULTI_STATEMENTS) == NULL)
-	{
-		if (mysql_errno(&m_lpMySQL) == ER_BAD_DB_ERROR) // Database does not exist
-			er = KCERR_DATABASE_NOT_FOUND;
-		else
-			er = KCERR_DATABASE_ERROR;
-
-		ec_log_err("ECDatabaseMySQL::Connect(): mysql connect fail: %s", GetError());
-		goto exit;
-	}
-	
-	// Check if the database is available, but empty
-	strQuery = "SHOW tables";
-	er = DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-		goto exit;
-		
-	if(GetNumRows(lpDBResult) == 0) {
-		er = KCERR_DATABASE_NOT_FOUND;
-		goto exit;
-	}
-	
-	if(lpDBResult) {
-		FreeResult(lpDBResult);
-		lpDBResult = NULL;
-	}
-	
-	strQuery = "SHOW variables LIKE 'max_allowed_packet'";
-	er = DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-	    goto exit;
-	
-	lpDBRow = FetchRow(lpDBResult);
-	/* lpDBRow[0] has the variable name, [1] the value */
-	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
-	    ec_log_warn("Unable to retrieve max_allowed_packet value. Assuming 16M");
-	    m_ulMaxAllowedPacket = (unsigned int)MAX_ALLOWED_PACKET;
-    } else {
-        m_ulMaxAllowedPacket = atoui(lpDBRow[1]);
-    }
-
-	m_bConnected = true;
-
-#if HAVE_MYSQL_SET_CHARACTER_SET
-	// function since mysql 5.0.7
-	if (mysql_set_character_set(&m_lpMySQL, "utf8")) {
-	    ec_log_err("Unable to set character set to \"utf8\"");
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
-	}
-#else
-	if (Query("set character_set_client = 'utf8'") != 0) {
-		ec_log_warn("Unable to set character_set_client value");
-		goto exit;
-	}
-	if (Query("set character_set_connection = 'utf8'") != 0) {
-		ec_log_warn("Unable to set character_set_connection value");
-		goto exit;
-	}
-	if (Query("set character_set_results = 'utf8'") != 0) {
-		ec_log_warn("Unable to set character_set_results value");
-		goto exit;
-	}
-#endif
+	auto er = KDatabase::Connect(m_lpConfig, false,
+	          CLIENT_MULTI_STATEMENTS, gcm);
+	if (er != erSuccess)
+		return er;
 	if (Query("set max_sp_recursion_depth = 255") != 0) {
 		ec_log_err("Unable to set recursion depth");
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
 	}
-
-	// Force to a sane value
-	gcm = atoui(m_lpConfig->GetSetting("mysql_group_concat_max_len"));
-	if(gcm < 1024)
-		gcm = 1024;
-		
-	strQuery = (string)"SET SESSION group_concat_max_len = " + stringify(gcm);
-	if (Query(strQuery) != erSuccess)
-	    ec_log_warn("Unable to set group_concat_max_len value");
-
-	// changing the SESSION max_allowed_packet is removed since mysql 5.1, and GLOBAL is for SUPER users only, so just give a warning
-	if (m_ulMaxAllowedPacket < MAX_ALLOWED_PACKET)
-		ec_log_warn("max_allowed_packet is smaller than 16M (%d). You are advised to increase this value by adding max_allowed_packet=16M in the [mysqld] section of my.cnf.", m_ulMaxAllowedPacket);
-
 	if (m_lpMySQL.server_version) {
 		// m_lpMySQL.server_version is a C type string (char*) containing something like "5.5.37-0+wheezy1" (MySQL),
 		// "5.5.37-MariaDB-1~wheezy-log" or "10.0.11-MariaDB=1~wheezy-log" (MariaDB)
 		// The following code may look funny, but it is correct, see http://www.cplusplus.com/reference/cstdlib/strtol/
 		long int majorversion = strtol(m_lpMySQL.server_version, NULL, 10);
 		// Check for over/underflow and version.
-		if (errno != ERANGE && majorversion >= 5) {
-			// this option was introduced in mysql 5.0, so let's not even try on 4.1 servers
-			strQuery = "SET SESSION sql_mode = 'STRICT_ALL_TABLES,NO_UNSIGNED_SUBTRACTION'";
-			Query(strQuery); // ignore error
-		}
+		if (errno != ERANGE && majorversion >= 5)
+			/*
+			 * This option was introduced in mysql 5.0, so let's
+			 * not even try on 4.1 servers. Ignore error, if any.
+			 */
+			Query("SET SESSION sql_mode = 'STRICT_ALL_TABLES,NO_UNSIGNED_SUBTRACTION'");
 	}
 
 exit:
-	if(lpDBResult)
-		FreeResult(lpDBResult);
-
 	if (er == erSuccess)
 		g_lpStatsCollector->Increment(SCN_DATABASE_CONNECTS);
 	else

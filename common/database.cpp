@@ -31,6 +31,97 @@ KDatabase::KDatabase(void)
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
 }
 
+ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
+    unsigned int mysql_flags, unsigned int gcm)
+{
+	const char *mysql_port = cfg->GetSetting("mysql_port");
+	const char *mysql_socket = cfg->GetSetting("mysql_socket");
+	DB_RESULT result = nullptr;
+	DB_ROW row = nullptr;
+	std::string query;
+
+	if (*mysql_socket == '\0')
+		mysql_socket = nullptr;
+	auto er = InitEngine(reconnect);
+	if (er != erSuccess) {
+		ec_log_crit("KDatabase::Connect(): InitEngine failed %d", er);
+		goto exit;
+	}
+	if (mysql_real_connect(&m_lpMySQL, cfg->GetSetting("mysql_host"),
+	    cfg->GetSetting("mysql_user"), cfg->GetSetting("mysql_password"),
+	    cfg->GetSetting("mysql_database"),
+	    mysql_port ? atoi(mysql_port) : 0,
+	    mysql_socket, mysql_flags) == nullptr) {
+		if (mysql_errno(&m_lpMySQL) == ER_BAD_DB_ERROR)
+			/* Database does not exist */
+			er = KCERR_DATABASE_NOT_FOUND;
+		else
+			er = KCERR_DATABASE_ERROR;
+		ec_log_err("KDatabase::Connect(): database access error %d, mysql error: %s",
+			er, GetError());
+		goto exit;
+	}
+
+	// Check if the database is available, but empty
+	er = DoSelect("SHOW tables", &result);
+	if (er != erSuccess) {
+		ec_log_err("KDatabase::Connect(): \"SHOW tables\" failed %d", er);
+		goto exit;
+	}
+	if (GetNumRows(result) == 0) {
+		er = KCERR_DATABASE_NOT_FOUND;
+		ec_log_err("KDatabase::Connect(): database missing %d", er);
+		goto exit;
+	}
+	if (result != nullptr) {
+		FreeResult(result);
+		result = nullptr;
+	}
+
+	query = "SHOW variables LIKE 'max_allowed_packet'";
+	er = DoSelect(query, &result);
+	if (er != erSuccess) {
+		ec_log_err("KDatabase::Connect(): max_allowed_packet retrieval failed %d", er);
+		goto exit;
+	}
+
+	row = FetchRow(result);
+	/* row[0] has the variable name, [1] the value */
+	if (row == nullptr || row[0] == nullptr || row[1] == nullptr) {
+		ec_log_warn("Unable to retrieve max_allowed_packet value. Assuming %d.", KC_DFL_MAX_PACKET_SIZE);
+		m_ulMaxAllowedPacket = KC_DFL_MAX_PACKET_SIZE;
+	} else {
+		m_ulMaxAllowedPacket = atoui(row[1]);
+	}
+	/*
+	 * Changing the per-session "max_allowed_packet" is not permitted since
+	 * MySQL 5.1, and the global one is for superusers only. Give a warning
+	 * instead, then.
+	 */
+	if (m_ulMaxAllowedPacket < KC_DFL_MAX_PACKET_SIZE)
+		ec_log_warn("max_allowed_packet is smaller than 16M (%d). You are advised to increase this value by adding max_allowed_packet=16M in the [mysqld] section of my.cnf.", m_ulMaxAllowedPacket);
+
+	m_bConnected = true;
+	if (mysql_set_character_set(&m_lpMySQL, "utf8")) {
+		ec_log_err("Unable to set character set to \"utf8\"");
+		er = KCERR_DATABASE_ERROR;
+		goto exit;
+	}
+
+	query = "SET SESSION group_concat_max_len = " + stringify(gcm);
+	if (Query(query) != 0) {
+		ec_log_crit("KDatabase::Connect(): group_concat_max_len set fail: %s", GetError());
+		er = KCERR_DATABASE_ERROR;
+		goto exit;
+	}
+ exit:
+	if (result != nullptr)
+		FreeResult(result);
+	if (er != erSuccess)
+		Close();
+	return er;
+}
+
 ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 {
 	const char *dbname = cfg->GetSetting("mysql_database");
