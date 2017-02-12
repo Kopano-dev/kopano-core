@@ -62,9 +62,9 @@ class _kc_export KDatabase {
 	 * or UPDATE will automatically be a single transaction, causing an
 	 * fsync after each write-query, which is not fast to say the least.
 	 */
-	virtual ECRESULT Begin(void) = 0;
-	virtual ECRESULT Commit(void) = 0;
-	virtual ECRESULT Rollback(void) = 0;
+	virtual ECRESULT Begin(void) { return Query("BEGIN") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
+	virtual ECRESULT Commit(void) { return Query("COMMIT") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
+	virtual ECRESULT Rollback(void) { return Query("ROLLBACK") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
 
 	protected:
 	class autolock : private std::unique_lock<std::recursive_mutex> {
@@ -81,6 +81,7 @@ class _kc_export KDatabase {
 	unsigned int GetInsertId(void);
 	ECRESULT InitEngine(bool reconnect);
 	bool isConnected(void) const { return m_bConnected; }
+	ECRESULT IsInnoDBSupported(void);
 	virtual ECRESULT Query(const std::string &q);
 	ECRESULT _Update(const std::string &q, unsigned int *affected);
 

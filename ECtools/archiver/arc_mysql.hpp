@@ -45,17 +45,8 @@ public:
 	virtual ~KCMDatabaseMySQL(void);
 	ECRESULT		Connect(ECConfig *lpConfig);
 	const sKCMSQLDatabase_t *GetDatabaseDefs(void);
-
-	//Result functions
-	virtual ECRESULT Begin(void) _kc_override;
-	virtual ECRESULT Commit(void) _kc_override;
-	virtual ECRESULT Rollback(void) _kc_override;
-
 	// Database maintenance function(s)
 	ECRESULT		CreateDatabase(ECConfig *lpConfig);
-
-private:
-	ECRESULT IsInnoDBSupported();
 };
 
 } /* namespace */

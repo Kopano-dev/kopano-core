@@ -270,6 +270,44 @@ ECRESULT KDatabase::InitEngine(bool reconnect)
 	return erSuccess;
 }
 
+ECRESULT KDatabase::IsInnoDBSupported(void)
+{
+	DB_RESULT res = nullptr;
+	DB_ROW row = nullptr;
+
+	auto er = DoSelect("SHOW ENGINES", &res);
+	if (er != erSuccess) {
+		ec_log_crit("Unable to query supported database engines. Error: %s", GetError());
+		goto exit;
+	}
+
+	while ((row = FetchRow(res)) != nullptr) {
+		if (strcasecmp(row[0], "InnoDB") != 0)
+			continue;
+		if (strcasecmp(row[1], "DISABLED") == 0) {
+			// mysql has run with innodb enabled once, but disabled this.. so check your log.
+			ec_log_crit("INNODB engine is disabled. Please re-enable the INNODB engine. Check your MySQL log for more information or comment out skip-innodb in the mysql configuration file.");
+			er = KCERR_DATABASE_ERROR;
+			goto exit;
+		} else if (strcasecmp(row[1], "YES") != 0 && strcasecmp(row[1], "DEFAULT") != 0) {
+			// mysql is incorrectly configured or compiled.
+			ec_log_crit("INNODB engine is not supported. Please enable the INNODB engine in the mysql configuration file.");
+			er = KCERR_DATABASE_ERROR;
+			goto exit;
+		}
+		break;
+	}
+	if (row == nullptr) {
+		ec_log_crit("Unable to find 'InnoDB' engine from the mysql server. Probably INNODB is not supported.");
+		er = KCERR_DATABASE_ERROR;
+		goto exit;
+	}
+ exit:
+	if (res != nullptr)
+		FreeResult(res);
+	return er;
+}
+
 ECRESULT KDatabase::Query(const std::string &q)
 {
 	LOG_SQL_DEBUG("SQL [%08lu]: \"%s;\"", m_lpMySQL.thread_id, q.c_str());

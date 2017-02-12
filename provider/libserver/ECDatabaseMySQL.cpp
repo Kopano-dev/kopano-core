@@ -883,10 +883,7 @@ bool ECDatabaseMySQL::SuppressLockErrorLogging(bool bSuppress)
 }
 
 ECRESULT ECDatabaseMySQL::Begin() {
-	ECRESULT er = erSuccess;
-	
-	er = Query("BEGIN");
-
+	auto er = KDatabase::Begin();
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
 	ec_log_debug("%08X: BEGIN", &m_lpMySQL);
@@ -902,9 +899,7 @@ ECRESULT ECDatabaseMySQL::Begin() {
 }
 
 ECRESULT ECDatabaseMySQL::Commit() {
-	ECRESULT er = erSuccess;
-	er = Query("COMMIT");
-	
+	auto er = KDatabase::Commit();
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
 	ec_log_debug("%08X: COMMIT", &m_lpMySQL);
@@ -920,8 +915,7 @@ ECRESULT ECDatabaseMySQL::Commit() {
 }
 
 ECRESULT ECDatabaseMySQL::Rollback() {
-	ECRESULT er = Query("ROLLBACK");
-	
+	auto er = KDatabase::Rollback();
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
 	ec_log_debug("%08X: ROLLBACK", &m_lpMySQL);
@@ -941,48 +935,6 @@ void ECDatabaseMySQL::ThreadInit() {
 
 void ECDatabaseMySQL::ThreadEnd() {
 	mysql_thread_end();
-}
-
-ECRESULT ECDatabaseMySQL::IsInnoDBSupported()
-{
-	ECRESULT	er = erSuccess;
-	DB_RESULT	lpResult = NULL;
-	DB_ROW		lpDBRow = NULL;
-
-	er = DoSelect("SHOW ENGINES", &lpResult);
-	if(er != erSuccess) {
-		ec_log_crit("Unable to query supported database engines. Error: %s", GetError());
-		goto exit;
-	}
-
-	while ((lpDBRow = FetchRow(lpResult)) != NULL) {
-		if (strcasecmp(lpDBRow[0], "InnoDB") != 0)
-			continue;
-
-		if (strcasecmp(lpDBRow[1], "DISABLED") == 0) {
-			// mysql has run with innodb enabled once, but disabled this.. so check your log.
-			ec_log_crit("INNODB engine is disabled. Please re-enable the INNODB engine. Check your MySQL log for more information or comment out skip-innodb in the mysql configuration file.");
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
-		} else if (strcasecmp(lpDBRow[1], "YES") != 0 && strcasecmp(lpDBRow[1], "DEFAULT") != 0) {
-			// mysql is incorrectly configured or compiled.
-			ec_log_crit("INNODB engine is not supported. Please enable the INNODB engine in the mysql configuration file.");
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
-		}
-		break;
-	}
-	if (lpDBRow == NULL) {
-		ec_log_crit("Unable to find the \"InnoDB\" engine from the mysql server. Probably INNODB is not supported.");
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
-	}
-
-exit:
-	if(lpResult)
-		FreeResult(lpResult);
-
-	return er;
 }
 
 ECRESULT ECDatabaseMySQL::CreateDatabase()

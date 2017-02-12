@@ -55,9 +55,9 @@ public:
 	std::string FilterBMP(const std::string &to_filter) _kc_override;
 	ECRESULT ValidateTables(void) _kc_override;
 	bool SuppressLockErrorLogging(bool suppress) _kc_override;
-	ECRESULT Begin(void) _kc_override;
-	ECRESULT Commit(void) _kc_override;
-	ECRESULT Rollback(void) _kc_override;
+	virtual ECRESULT Begin(void) _kc_override;
+	virtual ECRESULT Commit(void) _kc_override;
+	virtual ECRESULT Rollback(void) _kc_override;
 	void ThreadInit(void) _kc_override;
 	void ThreadEnd(void) _kc_override;
 
@@ -70,7 +70,6 @@ public:
 	ECRESULT CheckExistIndex(const std::string &table, const std::string &key, bool *exist) _kc_override;
 
 private:
-	ECRESULT IsInnoDBSupported();
 	ECRESULT InitializeDBStateInner(void);
 	virtual ECRESULT Query(const std::string &q) _kc_override;
 
