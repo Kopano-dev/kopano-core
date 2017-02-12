@@ -44,9 +44,6 @@ class KCMDatabaseMySQL _kc_final : public KDatabase {
 public:
 	virtual ~KCMDatabaseMySQL(void);
 	ECRESULT		Connect(ECConfig *lpConfig);
-	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affect = nullptr) _kc_override;
-	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affect = nullptr) _kc_override;
-	virtual ECRESULT DoSequence(const std::string &seq, unsigned int count, unsigned long long *first_id) _kc_override;
 	const sKCMSQLDatabase_t *GetDatabaseDefs(void);
 
 	//Result functions

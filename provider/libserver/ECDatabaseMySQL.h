@@ -45,9 +45,9 @@ public:
 	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *result, bool stream_result = false) _kc_override;
 	ECRESULT DoSelectMulti(const std::string &query) _kc_override;
 	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affected_rows = nullptr) _kc_override;
-	ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = NULL, unsigned int *affected_rows = NULL) _kc_override;
-	ECRESULT DoDelete(const std::string &query, unsigned int *affected_rows = NULL) _kc_override;
-	ECRESULT DoSequence(const std::string &seqname, unsigned int ulCount, unsigned long long *first_id) _kc_override;
+	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affected_rows = nullptr) _kc_override;
+	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affected_rows = nullptr) _kc_override;
+	virtual ECRESULT DoSequence(const std::string &seqname, unsigned int ulCount, unsigned long long *first_id) _kc_override;
 
 	//Result functions
 	virtual ECRESULT GetNextResult(DB_RESULT *) _kc_override;

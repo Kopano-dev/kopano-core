@@ -136,62 +136,6 @@ exit:
 	return er;
 }
 
-ECRESULT KCMDatabaseMySQL::DoInsert(const string &strQuery,
-    unsigned int *lpulInsertId, unsigned int *lpulAffectedRows)
-{
-	ECRESULT er = erSuccess;
-	autolock alk(*this);
-
-	er = _Update(strQuery, lpulAffectedRows);
-
-	if (er == erSuccess) {
-		if (lpulInsertId)
-			*lpulInsertId = GetInsertId();
-	}
-	return er;
-}
-
-ECRESULT KCMDatabaseMySQL::DoDelete(const string &strQuery,
-    unsigned int *lpulAffectedRows)
-{
-	autolock alk(*this);
-	return _Update(strQuery, lpulAffectedRows);
-}
-
-/*
- * This function updates a sequence in an atomic fashion - if called correctly;
- *
- * To make it work correctly, the state of the database connection should *NOT* be in a transaction; this would delay
- * committing of the data until a later time, causing other concurrent threads to possibly generate the same ID or lock
- * while waiting for this transaction to end. So, don't call Begin() before calling this function unless you really
- * know what you're doing.
- */
-ECRESULT KCMDatabaseMySQL::DoSequence(const std::string &strSeqName,
-    unsigned int ulCount, unsigned long long *lpllFirstId)
-{
-	ECRESULT er;
-	unsigned int ulAffected = 0;
-
-	// Attempt to update the sequence in an atomic fashion
-	er = DoUpdate("UPDATE settings SET value=LAST_INSERT_ID(value+1)+" + stringify(ulCount-1) + " WHERE name = '" + strSeqName + "'", &ulAffected);
-	if(er != erSuccess) {
-		ec_log_crit("KCMDatabaseMySQL::DoSequence() UPDATE failed %d", er);
-		return er;
-	}
-
-	// If the setting was missing, insert it now, starting at sequence 1 (not 0 for safety - maybe there's some if(ulSequenceId) code somewhere)
-	if(ulAffected == 0) {
-		er = Query("INSERT INTO settings (name, value) VALUES('" + strSeqName + "',LAST_INSERT_ID(1)+" + stringify(ulCount-1) + ")");
-		if(er != erSuccess) {
-			ec_log_crit("KCMDatabaseMySQL::DoSequence() INSERT INTO failed %d", er);
-			return er;
-		}
-	}
-
-	*lpllFirstId = mysql_insert_id(&m_lpMySQL);
-	return er;
-}
-
 ECRESULT KCMDatabaseMySQL::Begin(void)
 {
 	int err;

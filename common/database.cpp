@@ -21,6 +21,7 @@
 #include <mysqld_error.h>
 #include <kopano/ECLogger.h>
 #include <kopano/database.hpp>
+#include <kopano/stringutil.h>
 #define LOG_SQL_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SQL, _msg, ##__VA_ARGS__)
 
@@ -37,6 +38,41 @@ ECRESULT KDatabase::Close(void)
 		mysql_close(&m_lpMySQL);
 	m_bMysqlInitialize = false;
 	return erSuccess;
+}
+
+/**
+ * Perform a DELETE operation on the database
+ * @q: (in) INSERT query string
+ * @aff: (out) (optional) Receives the number of deleted rows
+ *
+ * Sends the passed DELETE query to the MySQL server, and optionally the number
+ * of deleted rows. Returns erSuccess or %KCERR_DATABASE_ERROR.
+ */
+ECRESULT KDatabase::DoDelete(const std::string &q, unsigned int *aff)
+{
+	autolock alk(*this);
+	return _Update(q, aff);
+}
+
+/**
+ * Perform an INSERT operation on the database
+ * @q: (in) INSERT query string
+ * @idp: (out) (optional) Receives the last insert id
+ * @aff: (out) (optional) Receives the number of inserted rows
+ *
+ * Sends the passed INSERT query to the MySQL server, and optionally returns
+ * the new insert ID and the number of inserted rows.
+ *
+ * Returns erSuccess or %KCERR_DATABASE_ERROR.
+ */
+ECRESULT KDatabase::DoInsert(const std::string &q, unsigned int *idp,
+    unsigned int *aff)
+{
+	autolock alk(*this);
+	auto er = _Update(q, aff);
+	if (er == erSuccess && idp != nullptr)
+		*idp = GetInsertId();
+	return er;
 }
 
 /**
@@ -84,6 +120,47 @@ ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
 		*res_p = res;
 	else if (res != nullptr)
 		FreeResult(res);
+	return er;
+}
+
+/**
+ * This function updates a sequence in an atomic fashion - if called correctly;
+ *
+ * To make it work correctly, the state of the database connection should *NOT*
+ * be in a transaction; this would delay committing of the data until a later
+ * time, causing other concurrent threads to possibly generate the same ID or
+ * lock while waiting for this transaction to end. So, do not call Begin()
+ * before calling this function unless you really know what you are doing.
+ *
+ * TODO: Measure sequence update calls, currently it is an update.
+ */
+ECRESULT KDatabase::DoSequence(const std::string &seq, unsigned int count,
+    unsigned long long *firstidp)
+{
+	unsigned int aff = 0;
+	autolock alk(*this);
+
+	/* Attempt to update the sequence in an atomic fashion */
+	auto er = DoUpdate("UPDATE settings SET value=LAST_INSERT_ID(value+1)+" +
+	          stringify(count - 1) + " WHERE name = '" + seq + "'", &aff);
+	if (er != erSuccess) {
+		ec_log_err("KDatabase::DoSequence() UPDATE failed %d", er);
+		return er;
+	}
+	/*
+	 * If the setting was missing, insert it now, starting at sequence 1
+	 * (not 0 for safety - maybe there is some if(ulSequenceId) code
+	 * somewhere).
+	 */
+	if (aff == 0) {
+		er = Query("INSERT INTO settings (name, value) VALUES('" +
+		     seq + "',LAST_INSERT_ID(1)+" + stringify(count - 1) + ")");
+		if (er != erSuccess) {
+			ec_log_crit("KDatabase::DoSequence() INSERT INTO failed %d", er);
+			return er;
+		}
+	}
+	*firstidp = mysql_insert_id(&m_lpMySQL);
 	return er;
 }
 

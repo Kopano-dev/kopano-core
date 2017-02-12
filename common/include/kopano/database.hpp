@@ -38,11 +38,11 @@ class _kc_export KDatabase {
 	KDatabase(void);
 	virtual ~KDatabase(void) _kc_impdtor;
 	ECRESULT Close(void);
-	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affect = nullptr) = 0;
-	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affect = nullptr) = 0;
+	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affect = nullptr);
+	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affect = nullptr);
 	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *, bool stream = false);
 	/* Sequence generator - Do not call this from within a transaction. */
-	virtual ECRESULT DoSequence(const std::string &seq, unsigned int count, unsigned long long *first_id) = 0;
+	virtual ECRESULT DoSequence(const std::string &seq, unsigned int count, unsigned long long *first_id);
 	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affect = nullptr);
 	std::string Escape(const std::string &);
 	std::string EscapeBinary(const unsigned char *, size_t);
