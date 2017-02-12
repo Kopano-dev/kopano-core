@@ -18,6 +18,7 @@
 #include <cassert>
 #include <cstring>
 #include <mysql.h>
+#include <mysqld_error.h>
 #include <kopano/ECLogger.h>
 #include <kopano/database.hpp>
 #define LOG_SQL_DEBUG(_msg, ...) \
@@ -36,6 +37,72 @@ ECRESULT KDatabase::Close(void)
 		mysql_close(&m_lpMySQL);
 	m_bMysqlInitialize = false;
 	return erSuccess;
+}
+
+/**
+ * Perform a SELECT operation on the database
+ * @q: (in) SELECT query string
+ * @res_p: (out) Result output
+ * @stream: (in) Whether data should be streamed instead of stored
+ *
+ * Sends the passed SELECT-like (any operation that outputs a result set) query
+ * to the MySQL server and retrieves the result.
+ *
+ * Setting @stream will delay retrieving data from the network until FetchRow()
+ * is called. The only drawback is that GetRowCount() can therefore not be used
+ * unless all rows are fetched first. The main reason to use this is to
+ * conserve memory and increase pipelining (the client can start processing
+ * data before the server has completed the query)
+ *
+ * Returns erSuccess or %KCERR_DATABASE_ERROR.
+ */
+ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
+    bool stream)
+{
+	assert(q.length() != 0);
+	autolock alk(*this);
+
+	if (Query(q) != erSuccess) {
+		ec_log_err("KDatabsae::DoSelect(): query failed: %s: %s", q.c_str(), GetError());
+		return KCERR_DATABASE_ERROR;
+	}
+
+	ECRESULT er = erSuccess;
+	DB_RESULT res;
+	if (stream)
+		res = mysql_use_result(&m_lpMySQL);
+	else
+		res = mysql_store_result(&m_lpMySQL);
+	if (res == nullptr) {
+		if (!m_bSuppressLockErrorLogging ||
+		    GetLastError() == DB_E_UNKNOWN)
+			ec_log_err("SQL [%08lu] result failed: %s, Query: \"%s\"",
+				m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), q.c_str());
+		er = KCERR_DATABASE_ERROR;
+	}
+	if (res_p != nullptr)
+		*res_p = res;
+	else if (res != nullptr)
+		FreeResult(res);
+	return er;
+}
+
+/**
+ * Perform an UPDATE operation on the database
+ * @q: (in) UPDATE query string
+ * @aff: (out) (optional) Receives the number of affected rows
+ *
+ * Sends the passed UPDATE query to the MySQL server, and optionally returns
+ * the number of affected rows. The affected rows is the number of rows that
+ * have been MODIFIED, which is not necessarily the number of rows that MATCHED
+ * the WHERE clause.
+ *
+ * Returns erSuccess or %KCERR_DATABASE_ERROR.
+ */
+ECRESULT KDatabase::DoUpdate(const std::string &q, unsigned int *aff)
+{
+	autolock alk(*this);
+	return _Update(q, aff);
 }
 
 std::string KDatabase::Escape(const std::string &s)
@@ -95,6 +162,18 @@ const char *KDatabase::GetError(void)
 unsigned int KDatabase::GetInsertId(void)
 {
 	return mysql_insert_id(&m_lpMySQL);
+}
+
+DB_ERROR KDatabase::GetLastError(void)
+{
+	switch (mysql_errno(&m_lpMySQL)) {
+	case ER_LOCK_WAIT_TIMEOUT:
+		return DB_E_LOCK_WAIT_TIMEOUT;
+	case ER_LOCK_DEADLOCK:
+		return DB_E_LOCK_DEADLOCK;
+	default:
+		return DB_E_UNKNOWN;
+	}
 }
 
 unsigned int KDatabase::GetNumRows(DB_RESULT r)

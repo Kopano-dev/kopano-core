@@ -42,9 +42,9 @@ public:
 	static ECRESULT	InitLibrary(const char *lpDatabaseDir, const char *lpConfigFile);
 	static void UnloadLibrary(void);
 	ECRESULT Connect(void) _kc_override;
-	ECRESULT DoSelect(const std::string &query, DB_RESULT *result, bool stream_result = false) _kc_override;
+	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *result, bool stream_result = false) _kc_override;
 	ECRESULT DoSelectMulti(const std::string &query) _kc_override;
-	ECRESULT DoUpdate(const std::string &query, unsigned int *affected_rows = NULL) _kc_override;
+	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affected_rows = nullptr) _kc_override;
 	ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = NULL, unsigned int *affected_rows = NULL) _kc_override;
 	ECRESULT DoDelete(const std::string &query, unsigned int *affected_rows = NULL) _kc_override;
 	ECRESULT DoSequence(const std::string &seqname, unsigned int ulCount, unsigned long long *first_id) _kc_override;
@@ -54,7 +54,6 @@ public:
 	virtual ECRESULT FinalizeMulti(void) _kc_override;
 	std::string FilterBMP(const std::string &to_filter) _kc_override;
 	ECRESULT ValidateTables(void) _kc_override;
-	DB_ERROR GetLastError(void) _kc_override;
 	bool SuppressLockErrorLogging(bool suppress) _kc_override;
 	ECRESULT Begin(void) _kc_override;
 	ECRESULT Commit(void) _kc_override;
@@ -85,7 +84,6 @@ private:
 
 	bool m_bFirstResult = false;
 	ECConfig *m_lpConfig = nullptr;
-	bool m_bSuppressLockErrorLogging = false;
 #ifdef DEBUG
 	unsigned int m_ulTransactionState = 0;
 #endif

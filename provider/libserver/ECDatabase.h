@@ -27,14 +27,6 @@
 
 namespace KC {
 
-typedef unsigned int	DB_ERROR;
-
-
-#define DB_E_UNKNOWN			DB_ERROR(-1)
-#define DB_E_LOCK_WAIT_TIMEOUT	DB_ERROR(1)
-#define DB_E_LOCK_DEADLOCK		DB_ERROR(2)
-
-
 // Abstract base class for databases
 class ECDatabase : public KDatabase {
 protected:
@@ -53,9 +45,6 @@ public:
 
 	virtual std::string		FilterBMP(const std::string &strToEscape) = 0;
 	virtual ECRESULT		ValidateTables() = 0;
-
-	// Get last error code
-	virtual DB_ERROR		GetLastError() = 0;
 
 	// Enable/disable suppression of lock errors
 	virtual bool			SuppressLockErrorLogging(bool bSuppress) = 0;

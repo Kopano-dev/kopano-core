@@ -12,6 +12,13 @@ namespace KC {
 typedef void *DB_RESULT;
 typedef char **DB_ROW;
 typedef unsigned long *DB_LENGTHS;
+typedef unsigned int DB_ERROR;
+
+enum {
+	DB_E_UNKNOWN = -1,
+	DB_E_LOCK_WAIT_TIMEOUT = 1,
+	DB_E_LOCK_DEADLOCK = 2,
+};
 
 enum {
 	/*
@@ -33,10 +40,10 @@ class _kc_export KDatabase {
 	ECRESULT Close(void);
 	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affect = nullptr) = 0;
 	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affect = nullptr) = 0;
-	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *, bool stream = false) = 0;
+	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *, bool stream = false);
 	/* Sequence generator - Do not call this from within a transaction. */
 	virtual ECRESULT DoSequence(const std::string &seq, unsigned int count, unsigned long long *first_id) = 0;
-	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affect = nullptr) = 0;
+	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affect = nullptr);
 	std::string Escape(const std::string &);
 	std::string EscapeBinary(const unsigned char *, size_t);
 	std::string EscapeBinary(const std::string &);
@@ -44,6 +51,7 @@ class _kc_export KDatabase {
 	DB_LENGTHS FetchRowLengths(DB_RESULT);
 	void FreeResult(DB_RESULT);
 	const char *GetError(void);
+	DB_ERROR GetLastError(void);
 	unsigned int GetMaxAllowedPacket(void) const { return m_ulMaxAllowedPacket; }
 	unsigned int GetNumRows(DB_RESULT);
 	/*
@@ -79,6 +87,7 @@ class _kc_export KDatabase {
 	MYSQL m_lpMySQL;
 	unsigned int m_ulMaxAllowedPacket = KC_DFL_MAX_PACKET_SIZE;
 	bool m_bMysqlInitialize = false, m_bConnected = false;
+	bool m_bSuppressLockErrorLogging = false;
 
 	private:
 	std::recursive_mutex m_hMutexMySql;

@@ -136,38 +136,6 @@ exit:
 	return er;
 }
 
-ECRESULT KCMDatabaseMySQL::DoSelect(const string &strQuery,
-    DB_RESULT *lpResult, bool bStream)
-{
-
-	ECRESULT er = erSuccess;
-	assert(strQuery.length()!= 0 && lpResult != NULL);
-	autolock alk(*this);
-
-	if (Query(strQuery) != 0) {
-		ec_log_crit("KCMDatabaseMySQL::DoSelect(): Failed invoking '%s'", strQuery.c_str());
-		return KCERR_DATABASE_ERROR;
-	}
-
-	if(bStream)
-		*lpResult = mysql_use_result(&m_lpMySQL);
-	else
-		*lpResult = mysql_store_result(&m_lpMySQL);
-
-	if (*lpResult == NULL) {
-		er = KCERR_DATABASE_ERROR;
-		ec_log_crit("%p: SQL result failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
-	}
-	return er;
-}
-
-ECRESULT KCMDatabaseMySQL::DoUpdate(const string &strQuery,
-    unsigned int *lpulAffectedRows)
-{
-	autolock alk(*this);
-	return _Update(strQuery, lpulAffectedRows);
-}
-
 ECRESULT KCMDatabaseMySQL::DoInsert(const string &strQuery,
     unsigned int *lpulInsertId, unsigned int *lpulAffectedRows)
 {

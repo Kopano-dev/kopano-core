@@ -676,54 +676,9 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 	return er;
 }
 
-/**
- * Perform a SELECT operation on the database
- *
- * Sends the passed SELECT-like (any operation that outputs a result set) query to the MySQL server and retrieves
- * the result.
- *
- * Setting fStreamResult will delay retrieving data from the network until FetchRow() is called. The only
- * drawback is that GetRowCount() can therefore not be used unless all rows are fetched first. The main reason to
- * use this is to conserve memory and increase pipelining (the client can start processing data before the server
- * has completed the query)
- *
- * @param[in] strQuery SELECT query string
- * @param[out] Result output
- * @param[in] fStreamResult TRUE if data should be streamed instead of stored
- * @return result erSuccess or KCERR_DATABASE_ERROR
- */
 ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult, bool fStreamResult) {
-
-	ECRESULT er = erSuccess;
-	DB_RESULT lpResult = NULL;
-	assert(strQuery.length() != 0);
-	autolock alk(*this);
-
-	if( Query(strQuery) != erSuccess ) {
-		er = KCERR_DATABASE_ERROR;
-		ec_log_err("ECDatabaseMySQL::DoSelect(): query failed: %s", GetError());
-		goto exit;
-	}
-
-	if (fStreamResult)
-		lpResult = mysql_use_result(&m_lpMySQL);
-	else
-		lpResult = mysql_store_result(&m_lpMySQL);
-    
-	if( lpResult == NULL ) {
-		er = KCERR_DATABASE_ERROR;
-		if (!m_bSuppressLockErrorLogging || GetLastError() == DB_E_UNKNOWN)
-			ec_log_err("SQL [%08lu] result failed: %s, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), strQuery.c_str());
-	}
-
+	ECRESULT er = KDatabase::DoSelect(strQuery, lppResult, fStreamResult);
 	g_lpStatsCollector->Increment(SCN_DATABASE_SELECTS);
-	
-	if (lppResult)
-		*lppResult = lpResult;
-	else if(lpResult)
-			FreeResult(lpResult);
-
-exit:
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
@@ -833,30 +788,13 @@ exit:
 	return er;
 }
 
-/**
- * Perform a UPDATE operation on the database
- *
- * Sends the passed UPDATE query to the MySQL server, and optionally returns the number of affected rows. The
- * affected rows is the number of rows that have been MODIFIED, which is not necessarily the number of rows that
- * MATCHED the WHERE-clause.
- *
- * @param[in] strQuery UPDATE query string
- * @param[out] lpulAffectedRows (optional) Receives the number of affected rows 
- * @return result erSuccess or KCERR_DATABASE_ERROR
- */
 ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAffectedRows) {
-	
-	ECRESULT er = erSuccess;
-	autolock alk(*this);
-	
-	er = _Update(strQuery, lpulAffectedRows);
-
+	auto er = KDatabase::DoUpdate(strQuery, lpulAffectedRows);
+	g_lpStatsCollector->Increment(SCN_DATABASE_UPDATES);
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_UPDATES);
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
 	}
-
-	g_lpStatsCollector->Increment(SCN_DATABASE_UPDATES);
 	return er;
 }
 
@@ -993,25 +931,6 @@ std::string ECDatabaseMySQL::FilterBMP(const std::string &strToFilter)
 	}
 	
 	return strFiltered;
-}
-
-DB_ERROR ECDatabaseMySQL::GetLastError()
-{
-	DB_ERROR dberr;
-	
-	switch (mysql_errno(&m_lpMySQL)) {
-	case ER_LOCK_WAIT_TIMEOUT:
-		dberr = DB_E_LOCK_WAIT_TIMEOUT;
-		break;
-	case ER_LOCK_DEADLOCK:
-		dberr = DB_E_LOCK_DEADLOCK;
-		break;
-	default:
-		dberr = DB_E_UNKNOWN;
-		break;
-	}
-	
-	return dberr;
 }
 
 bool ECDatabaseMySQL::SuppressLockErrorLogging(bool bSuppress)
