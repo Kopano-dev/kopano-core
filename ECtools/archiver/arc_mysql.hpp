@@ -35,16 +35,11 @@ namespace KC {
 // The max length of a group_concat function
 #define MAX_GROUP_CONCAT_LEN		32768
 
-struct sKCMSQLDatabase_t {
-	const char *lpComment;
-	const char *lpSQL;
-};
-
 class KCMDatabaseMySQL _kc_final : public KDatabase {
 public:
 	virtual ~KCMDatabaseMySQL(void);
 	ECRESULT		Connect(ECConfig *lpConfig);
-	const sKCMSQLDatabase_t *GetDatabaseDefs(void);
+	virtual const struct sSQLDatabase_t *GetDatabaseDefs(void) _kc_override;
 	// Database maintenance function(s)
 	ECRESULT		CreateDatabase(ECConfig *lpConfig);
 };

@@ -66,11 +66,6 @@ struct sUpdateList_t {
 	ECRESULT (*lpFunction)(ECDatabase* lpDatabase);
 };
 
-struct sSQLDatabase_t {
-	const char *lpComment;
-	const char *lpSQL;
-};
-
 class zcp_versiontuple _kc_final {
 	public:
 	zcp_versiontuple(unsigned int maj = 0, unsigned int min = 0,
@@ -948,40 +943,8 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 	if(*lpMysqlSocket == '\0')
 		lpMysqlSocket = NULL;
 
-	// database tables
-	static const sSQLDatabase_t sDatabaseTables[] = {
-		{"acl", Z_TABLEDEF_ACL},
-		{"hierarchy", Z_TABLEDEF_HIERARCHY},
-		{"names", Z_TABLEDEF_NAMES},
-		{"mvproperties", Z_TABLEDEF_MVPROPERTIES},
-		{"tproperties", Z_TABLEDEF_TPROPERTIES},
-		{"properties", Z_TABLEDEF_PROPERTIES},
-		{"delayedupdate", Z_TABLEDEF_DELAYEDUPDATE},
-		{"receivefolder", Z_TABLEDEF_RECEIVEFOLDER},
-
-		{"stores", Z_TABLEDEF_STORES},
-		{"users", Z_TABLEDEF_USERS},
-		{"outgoingqueue", Z_TABLEDEF_OUTGOINGQUEUE},
-		{"lob", Z_TABLEDEF_LOB},
-		{"searchresults", Z_TABLEDEF_SEARCHRESULTS},
-		{"changes", Z_TABLEDEF_CHANGES},
-		{"syncs", Z_TABLEDEF_SYNCS},
-		{"versions", Z_TABLEDEF_VERSIONS},
-		{"indexedproperties", Z_TABLEDEF_INDEXED_PROPERTIES},
-		{"settings", Z_TABLEDEF_SETTINGS},
-
-		{"object", Z_TABLEDEF_OBJECT},
-		{"objectproperty", Z_TABLEDEF_OBJECT_PROPERTY},
-		{"objectmvproperty", Z_TABLEDEF_OBJECT_MVPROPERTY},
-		{"objectrelation", Z_TABLEDEF_OBJECT_RELATION},
-
-		{"singleinstances", Z_TABLEDEF_REFERENCES },
-		{"abchanges", Z_TABLEDEF_ABCHANGES },
-		{"syncedmessages", Z_TABLEDEFS_SYNCEDMESSAGES },
-		{"clientupdatestatus", Z_TABLEDEF_CLIENTUPDATESTATUS },
-	};
-
 	// database default data
+	auto sDatabaseTables = GetDatabaseDefs();
 	static const sSQLDatabase_t sDatabaseData[] = {
 		{"users", Z_TABLEDATA_USERS},
 		{"stores", Z_TABLEDATA_STORES},
@@ -991,7 +954,6 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 		{"settings", Z_TABLEDATA_SETTINGS},
 		{"indexedproperties", Z_TABLEDATA_INDEXED_PROPERTIES},
 	};
-
 	er = InitEngine(false);
 	if(er != erSuccess)
 		return er;
@@ -1032,7 +994,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 		return er;
 
 	// Database tables
-	for (size_t i = 0; i < ARRAY_SIZE(sDatabaseTables); ++i) {
+	for (size_t i = 0; sDatabaseTables[i].lpSQL != nullptr; ++i) {
 		ec_log_info("Creating table \"%s\"", sDatabaseTables[i].lpComment);
 		er = DoInsert(sDatabaseTables[i].lpSQL);
 		if(er != erSuccess)
@@ -1397,6 +1359,44 @@ exit:
 		FreeResult(lpResult);
 
 	return er;
+}
+
+static constexpr const sSQLDatabase_t kcsrv_tables[] = {
+	{"acl", Z_TABLEDEF_ACL},
+	{"hierarchy", Z_TABLEDEF_HIERARCHY},
+	{"names", Z_TABLEDEF_NAMES},
+	{"mvproperties", Z_TABLEDEF_MVPROPERTIES},
+	{"tproperties", Z_TABLEDEF_TPROPERTIES},
+	{"properties", Z_TABLEDEF_PROPERTIES},
+	{"delayedupdate", Z_TABLEDEF_DELAYEDUPDATE},
+	{"receivefolder", Z_TABLEDEF_RECEIVEFOLDER},
+
+	{"stores", Z_TABLEDEF_STORES},
+	{"users", Z_TABLEDEF_USERS},
+	{"outgoingqueue", Z_TABLEDEF_OUTGOINGQUEUE},
+	{"lob", Z_TABLEDEF_LOB},
+	{"searchresults", Z_TABLEDEF_SEARCHRESULTS},
+	{"changes", Z_TABLEDEF_CHANGES},
+	{"syncs", Z_TABLEDEF_SYNCS},
+	{"versions", Z_TABLEDEF_VERSIONS},
+	{"indexedproperties", Z_TABLEDEF_INDEXED_PROPERTIES},
+	{"settings", Z_TABLEDEF_SETTINGS},
+
+	{"object", Z_TABLEDEF_OBJECT},
+	{"objectproperty", Z_TABLEDEF_OBJECT_PROPERTY},
+	{"objectmvproperty", Z_TABLEDEF_OBJECT_MVPROPERTY},
+	{"objectrelation", Z_TABLEDEF_OBJECT_RELATION},
+
+	{"singleinstances", Z_TABLEDEF_REFERENCES},
+	{"abchanges", Z_TABLEDEF_ABCHANGES},
+	{"syncedmessages", Z_TABLEDEFS_SYNCEDMESSAGES},
+	{"clientupdatestatus", Z_TABLEDEF_CLIENTUPDATESTATUS},
+	{nullptr, nullptr},
+};
+
+const struct sSQLDatabase_t *ECDatabaseMySQL::GetDatabaseDefs(void)
+{
+	return kcsrv_tables;
 }
 
 } /* namespace */

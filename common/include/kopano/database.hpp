@@ -33,6 +33,11 @@ enum {
 	KC_DFL_MAX_PACKET_SIZE = 16776192,
 };
 
+struct sSQLDatabase_t {
+	const char *lpComment;
+	const char *lpSQL;
+};
+
 class _kc_export KDatabase {
 	public:
 	KDatabase(void);
@@ -78,6 +83,7 @@ class _kc_export KDatabase {
 	};
 
 	unsigned int GetAffectedRows(void);
+	virtual const struct sSQLDatabase_t *GetDatabaseDefs(void) = 0;
 	unsigned int GetInsertId(void);
 	ECRESULT InitEngine(bool reconnect);
 	bool isConnected(void) const { return m_bConnected; }

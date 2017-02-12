@@ -70,6 +70,7 @@ public:
 	ECRESULT CheckExistIndex(const std::string &table, const std::string &key, bool *exist) _kc_override;
 
 private:
+	virtual const struct sSQLDatabase_t *GetDatabaseDefs(void) _kc_override;
 	ECRESULT InitializeDBStateInner(void);
 	virtual ECRESULT Query(const std::string &q) _kc_override;
 

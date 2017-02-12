@@ -232,14 +232,14 @@ ECRESULT KCMDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 		FOREIGN KEY (`instance_id`, `tag`) REFERENCES za_instances(`id`, `tag`) ON UPDATE RESTRICT ON DELETE CASCADE \
 	) ENGINE=InnoDB"
 
-static constexpr const sKCMSQLDatabase_t kcmsql_tables[] = {
+static constexpr const struct sSQLDatabase_t kcmsql_tables[] = {
 	{"servers", ZA_TABLEDEF_SERVERS},
 	{"instances", ZA_TABLEDEF_INSTANCES},
 	{"mappings", ZA_TABLEDEF_MAPPINGS},
 	{nullptr, nullptr},
 };
 
-const sKCMSQLDatabase_t *KCMDatabaseMySQL::GetDatabaseDefs(void)
+const struct sSQLDatabase_t *KCMDatabaseMySQL::GetDatabaseDefs(void)
 {
 	return kcmsql_tables;
 }
