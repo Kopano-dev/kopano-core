@@ -893,7 +893,7 @@ HRESULT WebDav::WriteNode(xmlTextWriter *xmlWriter,
  * @param[in]	lpstrNsPrefix	Namespace prefix
  * @return		HRESULT			Always returns hrSuccess 
  */
-void WebDav::RegisterNs(std::string strNs, std::string *lpstrNsPrefix)
+void WebDav::RegisterNs(const std::string &strNs, std::string *lpstrNsPrefix)
 {
 	(*lpstrNsPrefix)[0]++;
 	m_mapNs[strNs] = *lpstrNsPrefix;

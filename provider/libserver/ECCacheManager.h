@@ -193,8 +193,8 @@ public:
 		return false;
 	}
 
-	void SetValue(unsigned int ulTag, unsigned char* lpData, unsigned int cbData) {
-
+	void SetValue(unsigned int ulTag, const unsigned char *lpData, unsigned int cbData)
+	{
 		if(lpData == NULL|| cbData == 0)
 			return;
 
@@ -243,7 +243,7 @@ public:
     
     ECsCells(const ECsCells &src) {
         struct propVal val;
-		for (auto &p : src.mapPropVals) {
+		for (const auto &p : src.mapPropVals) {
 			CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
 			mapPropVals[p.first] = val;
         }

@@ -148,7 +148,7 @@ private:
 
 	HRESULT RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *strXml);
 	HRESULT GetNs(std::string *szPrefx, std::string *strNs);
-	void RegisterNs(std::string strNs, std::string *strPrefix);
+	void RegisterNs(const std::string &strNs, std::string *strPrefix);
 	HRESULT WriteData(xmlTextWriter *xmlWriter, const WEBDAVVALUE &sWebVal, std::string *szNsPrefix);
 	HRESULT WriteNode(xmlTextWriter *xmlWriter, const WEBDAVPROPNAME &sWebPrName, std::string *szNsPrefix);
 	HRESULT HrWriteSResponse(xmlTextWriter *xmlWriter, std::string *lpstrNsPrefix, const WEBDAVRESPONSE &sResponse);
