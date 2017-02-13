@@ -9,6 +9,7 @@
 #include <mapiutil.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/IECServiceAdmin.h>
+#include <kopano/memory.hpp>
 #include "IECSpooler.h"
 #include "IECTestProtocol.h"
 #include "IECMultiStoreTable.h"

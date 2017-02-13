@@ -369,12 +369,6 @@
 	MAPIFreeBuffer(*$1);
 }
 
-%typemap(freearg) 	MAPILIST *INPUT
-{
-	MAPIFreeBuffer(*$1);
-}
-
-
 // MAPICLASS (Class instances of MAPI objects)
 
 // Output
