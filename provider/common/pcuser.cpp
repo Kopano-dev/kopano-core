@@ -220,12 +220,10 @@ objectclass_t objectdetails_t::GetClass() const {
 
 void objectdetails_t::MergeFrom(const objectdetails_t &from) {
 	assert(this->m_objclass == from.m_objclass);
-	for (auto fi = from.m_mapProps.cbegin();
-	     fi != from.m_mapProps.cend(); ++fi)
-		this->m_mapProps[fi->first].assign(fi->second);
-	for (auto fmvi = from.m_mapMVProps.cbegin();
-	     fmvi != from.m_mapMVProps.cend(); ++fmvi)
-		this->m_mapMVProps[fmvi->first].assign(fmvi->second.begin(), fmvi->second.end());
+	for (const auto &p : from.m_mapProps)
+		this->m_mapProps[p.first].assign(p.second);
+	for (const auto &p : from.m_mapMVProps)
+		this->m_mapMVProps[p.first].assign(p.second.cbegin(), p.second.cend());
 }
 
 /**

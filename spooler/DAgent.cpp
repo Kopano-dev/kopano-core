@@ -1355,9 +1355,7 @@ static bool dagent_stop_autoreply_hdr(const char *s)
  */
 static bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
 {
-	for (auto sline = hl.cbegin(); sline != hl.cend(); ++sline) {
-		const std::string &line = *sline;
-		/* no-throw guarantee because const string & */
+	for (const auto &line : hl) {
 		if (isspace(line[0]))
 			continue;
 		size_t pos = line.find_first_of(':');
