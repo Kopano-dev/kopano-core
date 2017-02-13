@@ -520,7 +520,7 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 		hr = lpStream->Write(lpsSyncState->lpb + ulPos, ulSize, &ulSize);
 		if (hr != hrSuccess)
 			return hr;
-		m_mapSyncStatus[strSourceKey] = lpStream;
+		m_mapSyncStatus[std::move(strSourceKey)] = lpStream;
 		lpStream = NULL;
 
 		ulPos += ulSize;
@@ -609,7 +609,7 @@ HRESULT ECSyncContext::HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lp
 		if (hr != hrSuccess)
 			return hr;
 		hr = MAPI_W_POSITION_CHANGED;
-		m_mapSyncStatus[strSourceKey] = lpStream;
+		m_mapSyncStatus[std::move(strSourceKey)] = lpStream;
 		lpStream->AddRef();
 		*lppStream = lpStream;
 	}
