@@ -327,7 +327,7 @@ typedef struct FILETIME *LPFILETIME;
 
 /* made up .. seems correct */
 union LARGE_INTEGER {
-  struct {
+  __extension__ struct {
     DWORD LowPart;
     LONG HighPart;
   };
@@ -340,7 +340,7 @@ union LARGE_INTEGER {
 typedef union LARGE_INTEGER *PLARGE_INTEGER;
 
 union ULARGE_INTEGER {
-  struct {
+  __extension__ struct {
     DWORD LowPart;
     DWORD HighPart;
   };
