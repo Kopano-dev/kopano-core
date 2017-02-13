@@ -40,17 +40,30 @@ class Table(object):
     def header(self):
         return [_unicode(REV_TAG.get(c, hex(c))) for c in self.mapitable.QueryColumns(0)]
 
-    def rows(self):
+    def rows(self, batch_size=100):
+        offset = 0
         try:
-            for row in self.mapitable.QueryRows(-1, 0):
-                yield [Property(self.server.mapistore, c) for c in row]
+            while True:
+                result = self.mapitable.QueryRows(batch_size, offset)
+                if len(result) == 0:
+                    break
+
+                for row in result:
+                    yield [Property(self.server.mapistore, c) for c in row]
+                offset += size
+
         except MAPIErrorNotFound:
             pass
 
-    def dict_rows(self):
-        for row in self.mapitable.QueryRows(-1, 0):
-            yield dict((c.ulPropTag, c.Value) for c in row)
+    @property
+    def count(self):
+        return self.mapitable.GetRowCount(0)
 
+    def dict_rows(self, batch_size=100):
+        for row in self.rows(batch_size):
+            yield dict((p.proptag, p.value) for p in row)
+
+    # XXX: apply batch_size as shown above
     def dict_(self, key, value):
         d = {}
         for row in self.mapitable.QueryRows(-1, 0):
