@@ -144,6 +144,18 @@ public:
             return;
         Copy(&src, this);
     }
+
+	ECsIndexProp(ECsIndexProp &&o) :
+		ulTag(o.ulTag), lpData(o.lpData), cbData(o.cbData)
+	{
+		o.lpData = nullptr;
+		o.cbData = 0;
+	}
+
+	ECsIndexProp(unsigned int tag, const unsigned char *d, unsigned int z)
+	{
+		SetValue(tag, d, z);
+	}
     
     ECsIndexProp& operator=(const ECsIndexProp &src) {
 		if (this == &src)
