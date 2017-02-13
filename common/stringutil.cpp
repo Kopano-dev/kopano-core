@@ -421,7 +421,7 @@ std::string urlEncode(const std::string &input)
 
 	output.reserve(input.length());
 	for (size_t i = 0; i < input.length(); ++i) {
-		if (input[i] <= 127) {
+		if (input[i] >= 33 && input[i] <= 127) {
 			switch (input[i]) {
 			case ':':
 			case '/':
