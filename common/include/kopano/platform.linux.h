@@ -596,7 +596,7 @@ extern _kc_export time_t GetProcessTime(void);
 #endif
 
 #define OutputDebugStringA(dstr) fprintf(stderr,"%s",dstr)
-#define GetCurrentThreadId() (int)pthread_self()
+#define kc_threadid() static_cast<unsigned long>(pthread_self())
 #define GetTickCount() 0L
 
 #define TICKS_PER_SEC (sysconf(_SC_CLK_TCK))

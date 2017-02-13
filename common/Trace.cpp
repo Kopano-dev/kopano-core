@@ -86,8 +86,8 @@ static void TraceMsg(const char *lpMsg, int time, const char *func,
 		break;
 	}
 
-	pos = snprintf(debug, sizeof(debug), "%lu %08X %s %s: %s(", GetTickCount(), GetCurrentThreadId(), lpMsg, lpTraceType, func);
-
+	pos = snprintf(debug, sizeof(debug), "%lu 0x%lx %s %s: %s(",
+	      GetTickCount(), kc_threadid(), lpMsg, lpTraceType, func);
 	len = pos + 3;
 
 	if (format) {

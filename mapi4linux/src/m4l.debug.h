@@ -42,7 +42,7 @@ extern ECLogger *m4l_lpLogger;
 			"Unknown" ))) )
 
 #define LOG_FORMAT(__type, __func, __msg) \
-	( std::string("%lu %08X MAPILIB") + LOG_PREFIX(__type) + ": " + __func + "(" + __msg + ")").c_str(), GetTickCount(), GetCurrentThreadId()
+	( std::string("%lu 0x%lx MAPILIB") + LOG_PREFIX(__type) + ": " + __func + "(" + __msg + ")").c_str(), GetTickCount(), kc_threadid()
 
 /* 
  * For Exchange redirector (WIN32) we allow the log message to be send to a logfile.
