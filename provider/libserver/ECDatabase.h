@@ -28,8 +28,6 @@ namespace KC {
 class ECConfig;
 class zcp_versiontuple;
 
-#define ECDatabaseMySQL ECDatabase
-
 class _kc_export ECDatabase _kc_final : public KDatabase {
 public:
 	ECDatabase(ECConfig *);

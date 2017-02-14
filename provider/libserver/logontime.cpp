@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <kopano/kcodes.h>
 #include "logontime.hpp"
-#include "ECDatabaseMySQL.h"
+#include "ECDatabase.h"
 #include "ECSecurity.h"
 #include "ECSession.h"
 #include "edkmdb.h"

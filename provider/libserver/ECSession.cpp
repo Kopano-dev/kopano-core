@@ -37,8 +37,7 @@
 #include "ECPluginFactory.h"
 #include "SSLUtil.h"
 #include <kopano/stringutil.h>
-
-#include "ECDatabaseMySQL.h"
+#include "ECDatabase.h"
 #include "ECDatabaseUtils.h" // used for PR_INSTANCE_KEY
 #include "SOAPUtils.h"
 #include "ics.h"

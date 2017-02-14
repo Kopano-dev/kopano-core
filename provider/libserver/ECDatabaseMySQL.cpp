@@ -19,9 +19,7 @@
 
 #include <iostream>
 #include <errmsg.h>
-#include "ECDatabaseMySQL.h"
 #include "mysqld_error.h"
-
 #include <kopano/stringutil.h>
 
 #include <kopano/ECDefs.h>
@@ -36,6 +34,7 @@
 
 #include <mapidefs.h>
 #include "ECConversion.h"
+#include "ECDatabase.h"
 #include "SOAPUtils.h"
 #include "ECSearchFolders.h"
 
@@ -336,17 +335,17 @@ int zcp_versiontuple::compare(const zcp_versiontuple &rhs) const
 	return 0;
 }
 
-ECDatabaseMySQL::ECDatabaseMySQL(ECConfig *cfg) :
+ECDatabase::ECDatabase(ECConfig *cfg) :
     m_lpConfig(cfg)
 {
 }
 
-ECDatabaseMySQL::~ECDatabaseMySQL()
+ECDatabase::~ECDatabase(void)
 {
 	Close();
 }
 
-ECRESULT ECDatabaseMySQL::InitLibrary(const char *lpDatabaseDir,
+ECRESULT ECDatabase::InitLibrary(const char *lpDatabaseDir,
     const char *lpConfigFile)
 {
 	string		strDatabaseDir;
@@ -386,12 +385,12 @@ ECRESULT ECDatabaseMySQL::InitLibrary(const char *lpDatabaseDir,
  *
  * Currently this means we're updating all the stored procedure definitions
  */
-ECRESULT ECDatabaseMySQL::InitializeDBState(void)
+ECRESULT ECDatabase::InitializeDBState(void)
 {
 	return InitializeDBStateInner();
 }
 
-ECRESULT ECDatabaseMySQL::InitializeDBStateInner()
+ECRESULT ECDatabase::InitializeDBStateInner(void)
 {
 	ECRESULT er;
 
@@ -416,7 +415,7 @@ ECRESULT ECDatabaseMySQL::InitializeDBStateInner()
 	return erSuccess;
 }
 
-void ECDatabaseMySQL::UnloadLibrary(void)
+void ECDatabase::UnloadLibrary(void)
 {
 	/*
 	 * MySQL will timeout waiting for its own threads if the mysql
@@ -430,7 +429,8 @@ void ECDatabaseMySQL::UnloadLibrary(void)
 	mysql_library_end();
 }
 
-ECRESULT ECDatabaseMySQL::CheckExistColumn(const std::string &strTable, const std::string &strColumn, bool *lpbExist)
+ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
+    const std::string &strColumn, bool *lpbExist)
 {
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
@@ -454,7 +454,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::CheckExistIndex(const std::string &strTable,
+ECRESULT ECDatabase::CheckExistIndex(const std::string &strTable,
     const std::string &strKey, bool *lpbExist)
 {
 	ECRESULT		er = erSuccess;
@@ -485,7 +485,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::Connect()
+ECRESULT ECDatabase::Connect(void)
 {
 	auto gcm = atoui(m_lpConfig->GetSetting("mysql_group_concat_max_len"));
 	if (gcm < 1024)
@@ -540,7 +540,8 @@ exit:
  * @param[in] strQuery SQL query to perform
  * @return result (erSuccess or KCERR_DATABASE_ERROR)
  */
-ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
+ECRESULT ECDatabase::Query(const std::string &strQuery)
+{
 	ECRESULT er = erSuccess;
 	int err = KDatabase::Query(strQuery);
 	
@@ -569,7 +570,9 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult, bool fStreamResult) {
+ECRESULT ECDatabase::DoSelect(const std::string &strQuery,
+    DB_RESULT *lppResult, bool fStreamResult)
+{
 	ECRESULT er = KDatabase::DoSelect(strQuery, lppResult, fStreamResult);
 	g_lpStatsCollector->Increment(SCN_DATABASE_SELECTS);
 	if (er != erSuccess) {
@@ -579,15 +582,15 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult,
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::DoSelectMulti(const string &strQuery) {
-
+ECRESULT ECDatabase::DoSelectMulti(const std::string &strQuery)
+{
 	ECRESULT er = erSuccess;
 	assert(strQuery.length() != 0);
 	autolock alk(*this);
 		
 	if( Query(strQuery) != erSuccess ) {
 		er = KCERR_DATABASE_ERROR;
-		ec_log_err("ECDatabaseMySQL::DoSelectMulti(): select failed");
+		ec_log_err("ECDatabase::DoSelectMulti(): select failed");
 		goto exit;
 	}
 	
@@ -609,8 +612,8 @@ exit:
  * @param[out] lppResult Resultset
  * @return result
  */
-ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
-
+ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
+{
 	ECRESULT er = erSuccess;
 	DB_RESULT lpResult = NULL;
 	int ret = 0;
@@ -660,8 +663,8 @@ exit:
  * that the results have ended. This must be consumed here, otherwise the database will be left in a bad
  * state.
  */
-ECRESULT ECDatabaseMySQL::FinalizeMulti() {
-
+ECRESULT ECDatabase::FinalizeMulti(void)
+{
 	ECRESULT er = erSuccess;
 	DB_RESULT lpResult = NULL;
 	autolock alk(*this);
@@ -681,7 +684,9 @@ exit:
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAffectedRows) {
+ECRESULT ECDatabase::DoUpdate(const std::string &strQuery,
+    unsigned int *lpulAffectedRows)
+{
 	auto er = KDatabase::DoUpdate(strQuery, lpulAffectedRows);
 	g_lpStatsCollector->Increment(SCN_DATABASE_UPDATES);
 	if (er != erSuccess) {
@@ -691,7 +696,8 @@ ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAff
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::DoInsert(const string &strQuery, unsigned int *lpulInsertId, unsigned int *lpulAffectedRows)
+ECRESULT ECDatabase::DoInsert(const std::string &strQuery,
+    unsigned int *lpulInsertId, unsigned int *lpulAffectedRows)
 {
 	auto er = KDatabase::DoInsert(strQuery, lpulInsertId, lpulAffectedRows);
 	g_lpStatsCollector->Increment(SCN_DATABASE_INSERTS);
@@ -702,7 +708,9 @@ ECRESULT ECDatabaseMySQL::DoInsert(const string &strQuery, unsigned int *lpulIns
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::DoDelete(const string &strQuery, unsigned int *lpulAffectedRows) {
+ECRESULT ECDatabase::DoDelete(const std::string &strQuery,
+    unsigned int *lpulAffectedRows)
+{
 	auto er = KDatabase::DoDelete(strQuery, lpulAffectedRows);
 	g_lpStatsCollector->Increment(SCN_DATABASE_DELETES);
 	if (er != erSuccess) {
@@ -714,7 +722,9 @@ ECRESULT ECDatabaseMySQL::DoDelete(const string &strQuery, unsigned int *lpulAff
 
 /*
  */
-ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int ulCount, unsigned long long *lpllFirstId) {
+ECRESULT ECDatabase::DoSequence(const std::string &strSeqName,
+    unsigned int ulCount, unsigned long long *lpllFirstId)
+{
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
 	if (m_ulTransactionState != 0)
@@ -736,7 +746,7 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
  * have to rethink this.
  *
  */
-std::string ECDatabaseMySQL::FilterBMP(const std::string &strToFilter)
+std::string ECDatabase::FilterBMP(const std::string &strToFilter)
 {
 	const char *c = strToFilter.c_str();
 	std::string::size_type pos = 0;
@@ -769,13 +779,14 @@ std::string ECDatabaseMySQL::FilterBMP(const std::string &strToFilter)
 	return strFiltered;
 }
 
-bool ECDatabaseMySQL::SuppressLockErrorLogging(bool bSuppress)
+bool ECDatabase::SuppressLockErrorLogging(bool bSuppress)
 {
 	std::swap(bSuppress, m_bSuppressLockErrorLogging);
 	return bSuppress;
 }
 
-ECRESULT ECDatabaseMySQL::Begin() {
+ECRESULT ECDatabase::Begin(void)
+{
 	auto er = KDatabase::Begin();
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
@@ -791,7 +802,8 @@ ECRESULT ECDatabaseMySQL::Begin() {
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::Commit() {
+ECRESULT ECDatabase::Commit(void)
+{
 	auto er = KDatabase::Commit();
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
@@ -807,7 +819,8 @@ ECRESULT ECDatabaseMySQL::Commit() {
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::Rollback() {
+ECRESULT ECDatabase::Rollback(void)
+{
 	auto er = KDatabase::Rollback();
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
@@ -822,15 +835,17 @@ ECRESULT ECDatabaseMySQL::Rollback() {
 	return er;
 }
 
-void ECDatabaseMySQL::ThreadInit() {
+void ECDatabase::ThreadInit(void)
+{
 	mysql_thread_init();
 }
 
-void ECDatabaseMySQL::ThreadEnd() {
+void ECDatabase::ThreadEnd(void)
+{
 	mysql_thread_end();
 }
 
-ECRESULT ECDatabaseMySQL::CreateDatabase()
+ECRESULT ECDatabase::CreateDatabase(void)
 {
 	auto er = KDatabase::CreateDatabase(m_lpConfig, false);
 	if (er != erSuccess)
@@ -887,7 +902,7 @@ static inline bool row_has_null(DB_ROW row, size_t z)
 	return false;
 }
 
-ECRESULT ECDatabaseMySQL::GetDatabaseVersion(zcp_versiontuple *dbv)
+ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
@@ -943,7 +958,7 @@ ECRESULT ECDatabaseMySQL::GetDatabaseVersion(zcp_versiontuple *dbv)
 	lpDBRow = FetchRow(lpResult);
 	if (row_has_null(lpDBRow, 5)) {
 		er = KCERR_DATABASE_ERROR;
-		ec_log_err("ECDatabaseMySQL::GetDatabaseVersion(): NULL row or columns");
+		ec_log_err("ECDatabase::GetDatabaseVersion(): NULL row or columns");
 		goto exit;
 	}
 
@@ -960,7 +975,8 @@ exit:
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::IsUpdateDone(unsigned int ulDatabaseRevision, unsigned int ulRevision)
+ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
+    unsigned int ulRevision)
 {
 	ECRESULT		er = KCERR_NOT_FOUND;
 	string			strQuery;
@@ -985,7 +1001,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
+ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 {
 	ECRESULT		er = erSuccess;
 	DB_RESULT		lpResult = NULL;
@@ -1018,7 +1034,7 @@ exit:
  * 
  * @return Kopano error code
  */
-ECRESULT ECDatabaseMySQL::UpdateDatabase(bool bForceUpdate, std::string &strReport)
+ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 {
 	ECRESULT er;
 	bool			bUpdated = false;
@@ -1106,7 +1122,7 @@ ECRESULT ECDatabaseMySQL::UpdateDatabase(bool bForceUpdate, std::string &strRepo
 	return erSuccess;
 }
 
-ECRESULT ECDatabaseMySQL::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
+ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 {
 	ECRESULT er;
 	string		strQuery;
@@ -1134,7 +1150,7 @@ ECRESULT ECDatabaseMySQL::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 /**
  * Validate all database tables
 */
-ECRESULT ECDatabaseMySQL::ValidateTables()
+ECRESULT ECDatabase::ValidateTables(void)
 {
 	ECRESULT	er = erSuccess;
 	string		strQuery;
@@ -1239,7 +1255,7 @@ static constexpr const sSQLDatabase_t kcsrv_tables[] = {
 	{nullptr, nullptr},
 };
 
-const struct sSQLDatabase_t *ECDatabaseMySQL::GetDatabaseDefs(void)
+const struct sSQLDatabase_t *ECDatabase::GetDatabaseDefs(void)
 {
 	return kcsrv_tables;
 }

@@ -18,7 +18,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <kopano/tie.hpp>
-#include "ECDatabaseMySQL.h"
+#include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
 
 #include "ECServerEntrypoint.h"
@@ -40,7 +40,7 @@ ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)
 	const char *szEngine = m_lpConfig->GetSetting("database_engine");
 
 	if(strcasecmp(szEngine, "mysql") == 0) {
-		*lppDatabase = new ECDatabaseMySQL(m_lpConfig);
+		*lppDatabase = new ECDatabase(m_lpConfig);
 	} else {
 		ec_log_crit("ECDatabaseFactory::GetDatabaseFactory(): database not mysql");
 		return KCERR_DATABASE_ERROR;
