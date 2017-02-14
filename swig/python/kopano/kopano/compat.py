@@ -60,6 +60,10 @@ if sys.hexversion >= 0x03000000:
     def encode(s):
         return s.encode()
 
+    def is_file(f):
+        from io import IOBase
+        return isinstance(f, IOBase)
+
 # Python 2
 else:
     def is_str(s):
@@ -96,4 +100,6 @@ else:
     def fake_unicode(u):
         return unicode(u)
 
+    def is_file(f):
+        return isinstance(f, file)
 
