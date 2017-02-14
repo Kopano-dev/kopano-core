@@ -21,48 +21,65 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECConfig.h>
 #include <kopano/database.hpp>
-#include <kopano/kcodes.h>
-
 #include <string>
 
 namespace KC {
 
-// Abstract base class for databases
-class ECDatabase : public KDatabase {
-protected:
+class ECConfig;
+class zcp_versiontuple;
+
+#define ECDatabaseMySQL ECDatabase
+
+class _kc_export ECDatabase _kc_final : public KDatabase {
+public:
+	ECDatabase(ECConfig *);
+	virtual ~ECDatabase(void);
+	static ECRESULT	InitLibrary(const char *dir, const char *config_file);
+	static void UnloadLibrary(void);
+
+	virtual ECRESULT Begin(void) _kc_override;
+	ECRESULT CheckExistColumn(const std::string &table, const std::string &column, bool *exist);
+	ECRESULT CheckExistIndex(const std::string &table, const std::string &key, bool *exist);
+	virtual ECRESULT Commit(void) _kc_override;
+	ECRESULT Connect(void);
+	ECRESULT CreateDatabase(void);
+	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *result, bool stream_result = false) _kc_override;
+	ECRESULT DoSelectMulti(const std::string &query);
+	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affected_rows = nullptr) _kc_override;
+	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affected_rows = nullptr) _kc_override;
+	virtual ECRESULT DoSequence(const std::string &seqname, unsigned int ulCount, unsigned long long *first_id) _kc_override;
+	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affected_rows = nullptr) _kc_override;
+	ECRESULT FinalizeMulti(void);
+	std::string FilterBMP(const std::string &to_filter);
+	ECRESULT GetNextResult(DB_RESULT *);
+	ECRESULT InitializeDBState(void);
+	ECRESULT ValidateTables(void);
+	virtual ECRESULT Rollback(void) _kc_override;
+	bool SuppressLockErrorLogging(bool suppress);
+	void ThreadEnd(void);
+	void ThreadInit(void);
+	ECRESULT UpdateDatabase(bool force_update, std::string &report);
+
+	private:
+	ECRESULT InitializeDBStateInner(void);
+	virtual const struct sSQLDatabase_t *GetDatabaseDefs(void) _kc_override;
+	ECRESULT GetDatabaseVersion(zcp_versiontuple *);
+	ECRESULT GetFirstUpdate(unsigned int *lpulDatabaseRevision);
+	ECRESULT IsUpdateDone(unsigned int ulDatabaseRevision, unsigned int ulRevision=0);
+	ECRESULT UpdateDatabaseVersion(unsigned int ulDatabaseRevision);
+	virtual ECRESULT Query(const std::string &q) _kc_override;
+
 	std::string error;
 	bool m_bForceUpdate;
-
-public:
-	virtual ECRESULT		Connect() = 0;
-
-	// Table functions
-	virtual	ECRESULT		DoSelectMulti(const std::string &strQuery) = 0;
-
-	// Result functions
-	virtual ECRESULT		GetNextResult(DB_RESULT *sResult) = 0;
-	virtual	ECRESULT		FinalizeMulti() = 0;
-
-	virtual std::string		FilterBMP(const std::string &strToEscape) = 0;
-	virtual ECRESULT		ValidateTables() = 0;
-
-	// Enable/disable suppression of lock errors
-	virtual bool			SuppressLockErrorLogging(bool bSuppress) = 0;
-
-	// Database functions
-	virtual ECRESULT		CreateDatabase() = 0;
-	virtual ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strReport) = 0;
-	virtual ECRESULT		InitializeDBState() = 0;
-	
-	virtual void			ThreadInit() = 0;
-	virtual void			ThreadEnd() = 0;
-	
-	virtual ECRESULT		CheckExistColumn(const std::string &strTable, const std::string &strColumn, bool *lpbExist) = 0;
-	virtual ECRESULT		CheckExistIndex(const std::string &strTable, const std::string &strKey, bool *lpbExist) = 0;
-
+	bool m_bFirstResult = false;
+	ECConfig *m_lpConfig = nullptr;
+#ifdef DEBUG
+	unsigned int m_ulTransactionState = 0;
+#endif
 	// Function requires m_bForceUpdate variable
 	friend ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase);
 };
+
 
 } /* namespace */
 
