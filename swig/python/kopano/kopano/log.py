@@ -21,7 +21,7 @@ def _loglevel(options, config):
     elif config:
         log_level = config.get('log_level')
     else:
-        log_level = 'debug'
+        log_level = 'warning'
     return { # XXX NONE?
         '0': logging.NOTSET,
         '1': logging.CRITICAL,
