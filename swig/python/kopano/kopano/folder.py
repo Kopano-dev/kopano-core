@@ -32,7 +32,7 @@ from MAPI.Tags import (
     CONVENIENT_DEPTH, PR_DEPTH
 )
 from MAPI.Defs import (
-    bin2hex, HrGetOneProp, PpropFindProp, CHANGE_PROP_TYPE
+    bin2hex, HrGetOneProp, CHANGE_PROP_TYPE
 )
 from MAPI.Struct import (
     MAPIErrorNoAccess, MAPIErrorNotFound, MAPIErrorNoSupport,
@@ -186,24 +186,29 @@ class Folder(object):
         """ Return all :class:`items <Item>` in folder, reverse sorted on received date """
 
         try:
-            table = self.mapiobj.GetContentsTable(self.content_flag)
+            table = Table(
+                self.server,
+                self.mapiobj.GetContentsTable(self.content_flag),
+                PR_CONTAINER_CONTENTS
+            )
         except MAPIErrorNoSupport:
             return
 
         if restriction:
-            table.Restrict(restriction.mapiobj, 0)
+            table.mapitable.Restrict(restriction.mapiobj, 0)
 
-        table.SortTable(SSortOrderSet([SSort(PR_MESSAGE_DELIVERY_TIME, TABLE_SORT_DESCEND)], 0, 0), 0) # XXX configure
-        while True:
-            rows = table.QueryRows(50, 0)
-            if len(rows) == 0:
-                break
-            for row in rows:
-                item = _item.Item()
-                item.store = self.store
-                item.server = self.server
-                item.mapiobj = _utils.openentry_raw(self.store.mapiobj, PpropFindProp(row, PR_ENTRYID).Value, MAPI_MODIFY | self.content_flag)
-                yield item
+        table.sort(-1 * PR_MESSAGE_DELIVERY_TIME)
+
+        for row in table.rows():
+            item = Item()
+            item.store = self.store
+            item.server = self.server
+            item.mapiobj = _openentry_raw(
+                self.store.mapiobj,
+                utils.find_prop(row, PR_ENTRYID).value,
+                MAPI_MODIFY | self.content_flag
+            )
+            yield item
 
     def occurrences(self, start=None, end=None):
         if start and end:
