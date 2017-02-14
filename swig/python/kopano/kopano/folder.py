@@ -239,12 +239,13 @@ class Folder(object):
                 ])
             ])
 
-            table = self.mapiobj.GetContentsTable(0)
-            table.SetColumns([PR_ENTRYID], 0)
-            table.Restrict(restriction, 0)
-            rows = table.QueryRows(-1, 0)
-            for row in rows:
-                entryid = codecs.encode(row[0].Value, 'hex')
+            table = Table(
+                self.server, self.mapiobj.GetContentsTable(0),
+                PR_CONTAINER_CONTENTS, columns=[PR_ENTRYID]
+            )
+            table.mapitable.Restrict(restriction, 0)
+            for row in table.rows:
+                entryid = codecs.encode(row[0].value, 'hex')
                 for occurrence in self.item(entryid).occurrences(start, end):
                     yield occurrence
 
@@ -280,16 +281,18 @@ class Folder(object):
         """ Folder size """
 
         try:
-            table = self.mapiobj.GetContentsTable(self.content_flag)
+            table = Table(
+                self.server,
+                self.mapiobj.GetContentsTable(self.content_flag),
+                PR_CONTAINER_CONTENTS, columns=[PR_MESSAGE_SIZE]
+            )
         except MAPIErrorNoSupport:
             return 0
 
-        table.SetColumns([PR_MESSAGE_SIZE], 0)
-        table.SeekRow(BOOKMARK_BEGINNING, 0)
-        rows = table.QueryRows(-1, 0)
+        table.mapitable.SeekRow(BOOKMARK_BEGINNING, 0)
         size = 0
-        for row in rows:
-            size += row[0].Value
+        for row in table.rows():
+            size += row[0].value
         return size
 
     @property
@@ -301,7 +304,12 @@ class Folder(object):
         """
 
         try:
-            return self.mapiobj.GetContentsTable(self.content_flag).GetRowCount(0) # XXX PR_CONTENT_COUNT, PR_ASSOCIATED_CONTENT_COUNT, PR_CONTENT_UNREAD?
+            table = Table(
+                self.server,
+                self.mapiobj.GetContentsTable(self.content_flag),
+                PR_CONTAINER_CONTENTS
+            )
+            return table.count # XXX PR_CONTENT_COUNT, PR_ASSOCIATED_CONTENT_COUNT, PR_CONTENT_UNREAD?
         except MAPIErrorNoSupport:
             return 0
 
@@ -389,7 +397,13 @@ class Folder(object):
             if recurse:
                 flags |= CONVENIENT_DEPTH
 
-            table = self.mapiobj.GetHierarchyTable(flags)
+            mapitable = self.mapiobj.GetHierarchyTable(flags)
+
+            table = Table(
+                self.server, mapitable,
+                PR_CONTAINER_HIERARCHY,
+                columns=[PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W]
+            )
         except MAPIErrorNoSupport: # XXX webapp search folder?
             return
 
@@ -397,17 +411,16 @@ class Folder(object):
         folders = {}
         names = {}
         children = collections.defaultdict(list)
-        table.SetColumns([PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W], 0)
-        rows = table.QueryRows(-1, 0)
-        for row in rows:
+
+        for row in table.rows():
             try:
-                mapiobj = self.mapiobj.OpenEntry(row[0].Value, None, MAPI_MODIFY | self.content_flag)
+                mapiobj = self.mapiobj.OpenEntry(row[0].value, None, MAPI_MODIFY | self.content_flag)
             except MAPIErrorNoAccess:
-                mapiobj = self.mapiobj.OpenEntry(row[0].Value, None, self.content_flag)
+                mapiobj = self.mapiobj.OpenEntry(row[0].value, None, self.content_flag)
             folder = Folder(self.store, mapiobj=mapiobj)
-            folders[_hex(row[0].Value)] = folder, _hex(row[1].Value)
-            names[_hex(row[0].Value)] = row[2].Value
-            children[_hex(row[1].Value)].append((_hex(row[0].Value), folder))
+            folders[_hex(row[0].value)] = folder, _hex(row[1].value)
+            names[_hex(row[0].value)] = row[2].value
+            children[_hex(row[1].value)].append((_hex(row[0].value), folder))
 
         # yield depth-first XXX improve server?
         def folders_recursive(fs, depth=0):
