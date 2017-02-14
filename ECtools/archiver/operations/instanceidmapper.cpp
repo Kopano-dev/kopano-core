@@ -18,11 +18,14 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include "instanceidmapper.h"
 #include "Archiver.h"
 #include <kopano/stringutil.h>
 #include "arc_mysql.hpp"
+
+using namespace std;
 
 namespace KC { namespace operations {
 

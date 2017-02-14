@@ -14,24 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#include <kopano/platform.h>
-#include <memory>
-#include <iostream>
+#include <kopano/ECConfig.h>
+#include <kopano/database.hpp>
 #include "arc_mysql.hpp"
-#include "mysqld_error.h"
-
-#include <kopano/ECLogger.h>
-#include <kopano/stringutil.h>
-#include <kopano/ECDefs.h>
-#include <kopano/ecversion.h>
-#include <mapidefs.h>
-#include <kopano/CommonUtil.h>
-
-#ifdef DEBUG
-#define DEBUG_SQL 0
-#define DEBUG_TRANSACTION 0
-#endif
 
 namespace KC {
 

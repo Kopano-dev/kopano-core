@@ -14,23 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-// ECDatabaseMySQL.h: interface for the ECDatabaseMySQL class.
-//
-//////////////////////////////////////////////////////////////////////
-
 #ifndef ARC_MYSQL_HPP
 #define ARC_MYSQL_HPP 1
 
-#include <kopano/platform.h>
-#include <kopano/ECConfig.h>
+#include <kopano/zcdefs.h>
 #include <kopano/database.hpp>
-#include <kopano/kcodes.h>
 #include <string>
 
-using namespace std;
-
 namespace KC {
+
+class ECConfig;
 
 class KCMDatabaseMySQL _kc_final : public KDatabase {
 public:
