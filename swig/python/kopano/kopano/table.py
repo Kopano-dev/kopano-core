@@ -19,13 +19,13 @@ from MAPI.Defs import PpropFindProp
 from MAPI.Struct import MAPIErrorNotFound, SSort, SSortOrderSet
 
 from .defs import REV_TAG
-from .compat import fake_unicode as _unicode
+from .compat import fake_unicode as _unicode, repr as _repr
 from .prop import Property
 
 class Table(object):
     """Table class"""
 
-    def __init__(self, server, mapitable, proptag, restriction=None, order=None, columns=None):
+    def __init__(self, server, mapitable, proptag=None, restriction=None, order=None, columns=None):
         self.server = server
         self.mapitable = mapitable
         self.proptag = proptag
@@ -94,5 +94,8 @@ class Table(object):
     def __iter__(self):
         return self.rows()
 
+    def __unicode__(self):
+        return u'Table(%s)' % self.proptag and REV_TAG.get(self.proptag) or 'unknown'
+
     def __repr__(self):
-        return u'Table(%s)' % REV_TAG.get(self.proptag)
+        return _repr(self)
