@@ -3,6 +3,7 @@ import binascii
 import csv
 import datetime
 from contextlib import closing
+import fcntl
 try:
     import cPickle as pickle
 except ImportError:
@@ -75,48 +76,51 @@ class BackupWorker(kopano.Worker):
                 store = server.store(entryid=store_entryid)
                 user = store.user
 
-                # create main directory
+                # create main directory and lock it
                 if not os.path.isdir(path):
                     os.makedirs(path)
 
-                # backup user and store properties
-                if not options.folders:
-                    file(path+'/store', 'w').write(dump_props(store.props(), stats, self.log))
-                    if user:
-                        file(path+'/user', 'w').write(dump_props(user.props(), stats, self.log))
-                        if not options.skip_meta:
-                            file(path+'/delegates', 'w').write(dump_delegates(user, server, stats, self.log))
+                with open(path+'/lock', 'w') as lockfile:
+                    fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
 
-                # check command-line options and backup folders
-                t0 = time.time()
-                self.log.info('backing up: %s' % path)
-                paths = set()
-                folders = list(store.folders())
-                if options.recursive:
-                    folders = sum([[f]+list(f.folders()) for f in folders], [])
-                for folder in folders:
-                    if (not store.public and \
-                        ((options.skip_junk and folder == store.junk) or \
-                         (options.skip_deleted and folder == store.wastebasket))):
-                        continue
-                    paths.add(folder.path)
-                    self.backup_folder(path, folder, store.subtree, config, options, stats, user, server)
+                    # backup user and store properties
+                    if not options.folders:
+                        file(path+'/store', 'w').write(dump_props(store.props(), stats, self.log))
+                        if user:
+                            file(path+'/user', 'w').write(dump_props(user.props(), stats, self.log))
+                            if not options.skip_meta:
+                                file(path+'/delegates', 'w').write(dump_delegates(user, server, stats, self.log))
 
-                # timestamp deleted folders
-                if not options.folders:
-                    path_folder = folder_struct(path, options)
-                    for fpath in set(path_folder) - paths:
-                        with closing(dbopen(path_folder[fpath]+'/index')) as db_index:
-                            idx = db_index.get('folder')
-                            d = pickle.loads(idx) if idx else {}
-                            if not d.get('backup_deleted'):
-                                self.log.info('deleted folder: %s' % fpath)
-                                d['backup_deleted'] = self.service.timestamp
-                                db_index['folder'] = pickle.dumps(d)
+                    # check command-line options and backup folders
+                    t0 = time.time()
+                    self.log.info('backing up: %s' % path)
+                    paths = set()
+                    folders = list(store.folders())
+                    if options.recursive:
+                        folders = sum([[f]+list(f.folders()) for f in folders], [])
+                    for folder in folders:
+                        if (not store.public and \
+                            ((options.skip_junk and folder == store.junk) or \
+                             (options.skip_deleted and folder == store.wastebasket))):
+                            continue
+                        paths.add(folder.path)
+                        self.backup_folder(path, folder, store.subtree, config, options, stats, user, server)
 
-                changes = stats['changes'] + stats['deletes']
-                self.log.info('backing up %s took %.2f seconds (%d changes, ~%.2f/sec, %d errors)' %
-                    (path, time.time()-t0, changes, changes/(time.time()-t0), stats['errors']))
+                    # timestamp deleted folders
+                    if not options.folders:
+                        path_folder = folder_struct(path, options)
+                        for fpath in set(path_folder) - paths:
+                            with closing(dbopen(path_folder[fpath]+'/index')) as db_index:
+                                idx = db_index.get('folder')
+                                d = pickle.loads(idx) if idx else {}
+                                if not d.get('backup_deleted'):
+                                    self.log.info('deleted folder: %s' % fpath)
+                                    d['backup_deleted'] = self.service.timestamp
+                                    db_index['folder'] = pickle.dumps(d)
+
+                    changes = stats['changes'] + stats['deletes']
+                    self.log.info('backing up %s took %.2f seconds (%d changes, ~%.2f/sec, %d errors)' %
+                        (path, time.time()-t0, changes, changes/(time.time()-t0), stats['errors']))
 
             # return statistics in output queue
             self.oqueue.put(stats)
@@ -199,10 +203,16 @@ class Service(kopano.Service):
 
     def main(self):
         self.timestamp = datetime.datetime.now()
-        if self.options.restore:
-            self.restore()
-        elif self.options.purge:
-            self.purge()
+
+        if self.options.restore or self.options.purge:
+            data_path = _decode(self.args[0].rstrip('/'))
+            with open(data_path+'/lock', 'w') as lockfile:
+                fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
+
+                if self.options.restore:
+                    self.restore(data_path)
+                elif self.options.purge:
+                    self.purge(data_path)
         else:
             self.backup()
 
@@ -225,11 +235,11 @@ class Service(kopano.Service):
         self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)' %
             (time.time()-t0, changes, changes/(time.time()-t0), errors))
 
-    def restore(self):
+    def restore(self, data_path):
         """ restore data from backup """
 
         # determine store to restore to
-        self.data_path = _decode(self.args[0].rstrip('/'))
+        self.data_path = data_path # XXX remove var
         self.log.info('starting restore of %s' % self.data_path)
         username = os.path.split(self.data_path)[1]
         if self.options.users:
@@ -299,13 +309,13 @@ class Service(kopano.Service):
         self.log.info('restore completed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)' %
             (time.time()-t0, stats['changes'], stats['changes']/(time.time()-t0), stats['errors']))
 
-    def purge(self):
+    def purge(self, data_path):
         """ permanently delete old folders/items from backup """
 
         assert not self.options.folders, 'cannot combine --folder with --purge'
 
         stats = {'folders': 0, 'items': 0}
-        self.data_path = _decode(self.args[0].rstrip('/'))
+        self.data_path = data_path # XXX remove var
         path_folder = folder_struct(self.data_path, self.options)
 
         for path, data_path in path_folder.items():
