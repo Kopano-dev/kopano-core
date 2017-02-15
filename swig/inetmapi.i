@@ -37,12 +37,14 @@ struct sending_options {
 			sending_options() {
 				sending_options *sopt = new sending_options;
 				imopt_default_sending_options(sopt);
-				sopt->charset_upgrade = strdup(sopt->charset_upgrade); /* avoid free problems */
+				char *temp = sopt->charset_upgrade;
+				sopt->charset_upgrade = new char[strlen(temp)+1]; /* avoid free problems */
+				strcpy(sopt->charset_upgrade, temp);
 				return sopt;
 			}
 			~sending_options() {
-				free(self->alternate_boundary);
-				free(self->charset_upgrade);
+				delete[] self->alternate_boundary;
+				delete[] self->charset_upgrade;
 				delete(self);
 			}
 		}
@@ -57,13 +59,13 @@ struct delivery_options {
 	char *ascii_upgrade;
 
         %extend {
-            delivery_options() { 
-				delivery_options *dopt = new delivery_options; 
+            delivery_options() {
+				delivery_options *dopt = new delivery_options;
 				imopt_default_delivery_options(dopt);
 				return dopt;
 			}
 			~delivery_options() {
-				free(const_cast<char *>(self->ascii_upgrade));
+				delete[] self->ascii_upgrade;
 				delete(self);
 			}
         }
