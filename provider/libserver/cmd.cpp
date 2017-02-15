@@ -10387,7 +10387,7 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 			// note: "contains a public of a company" is also a possibility
 			if (!strPublicServer.empty() && strcasecmp(sDetails.GetServerName().c_str(), strPublicServer.c_str()) == 0)
 				lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_HAS_PUBLIC;
-			if (ulFlags & EC_SERVERDETAIL_NO_NAME)
+			if (!(ulFlags & EC_SERVERDETAIL_NO_NAME))
 				lpsResponse->sServerList.__ptr[i].lpszName = STROUT_FIX_CPY(sDetails.GetServerName().c_str());
 			if (ulFlags & EC_SERVERDETAIL_FILEPATH)
 				lpsResponse->sServerList.__ptr[i].lpszFilePath = STROUT_FIX_CPY(sDetails.GetFilePath().c_str());
