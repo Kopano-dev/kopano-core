@@ -130,7 +130,8 @@
   }
 }
 %typemap(freearg) (ULONG *OUTPUT, LPENTRYID *OUTPUT) {
-	MAPIFreeBuffer(*$2);
+	if ($2 != nullptr)
+		MAPIFreeBuffer(*$2);
 }
 %apply (ULONG *OUTPUT, LPENTRYID *OUTPUT) {(ULONG* lpcbStoreId, LPENTRYID* lppStoreId), (ULONG* lpcbRootId, LPENTRYID *lppRootId), (ULONG *lpulOutput, LPBYTE *lpOutput)};
 
@@ -433,7 +434,8 @@
 
 %typemap(freearg) KC::ECLogger *annoyingswig
 {
-	$1->Release();
+	if ($1 != nullptr)
+		$1->Release();
 }
 
 #endif

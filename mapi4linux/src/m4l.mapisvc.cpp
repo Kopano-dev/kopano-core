@@ -78,16 +78,13 @@ HRESULT INFLoader::LoadINFs()
 	vector<string> paths = GetINFPaths();
 
 	for (const auto &path : paths) {
-		struct stat sb;
-		if (stat(path.c_str(), &sb) != 0 || !S_ISDIR(sb.st_mode))
-			// silently continue or print init error?
-			continue;
 		std::unique_ptr<DIR, fs_deleter> dh(opendir(path.c_str()));
 		if (dh == nullptr)
 			continue;
 
 		for (const struct dirent *dentry = readdir(dh.get());
 		     dentry != nullptr; dentry = readdir(dh.get())) {
+			struct stat sb;
 			std::string strFilename = path + PATH_SEPARATOR + dentry->d_name;
 			if (stat(strFilename.c_str(), &sb) < 0 || !S_ISREG(sb.st_mode))
 				continue;

@@ -159,6 +159,10 @@ public:
 			*lpOutput = buffer;
 			return hrSuccess;
 		}
+		~ISequentialStream(void)
+		{
+			self->Release();
+		}
     }
 };
 
