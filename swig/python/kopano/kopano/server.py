@@ -266,13 +266,9 @@ class Server(object):
         except MAPIErrorNoSupport:
             for ecuser in self.sa.GetUserList(None, MAPI_UNICODE):
                 username = ecuser.Username
-                user = User(username, self)
                 if system or username != u'SYSTEM':
                     if remote or ecuser.Servername in (self.name, ''):
-                        yield user
-                    # XXX following two lines not necessary with python-mapi from trunk
-                    elif not remote and user.local: # XXX check if GetUserList can filter local/remote users
-                        yield user
+                        yield User(server=self, ecuser=ecuser)
 
     def create_user(self, name, email=None, password=None, company=None, fullname=None, create_store=True):
         """ Create a new :class:`user <Users>` on the server
