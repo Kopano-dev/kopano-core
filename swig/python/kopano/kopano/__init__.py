@@ -72,6 +72,7 @@ import threading
 import traceback
 import signal
 import ssl
+import tempfile
 
 from .compat import decode as _decode
 from .errors import (
@@ -100,6 +101,12 @@ from .parser import parser
 
 
 def _daemon_helper(func, service, log):
+    # Kopano daemon's home directory (as per getpwent) is generally
+    # not writable, so make up a non-persistent dir in tmp. This is
+    # really just for w3m (called by kopano-search) and other programs
+    # that absolutely want to create darned config files.
+    os.environ['HOME'] = tempfile.mkdtemp()
+
     try:
         if not service or isinstance(service, Service):
             if isinstance(service, Service): # XXX
