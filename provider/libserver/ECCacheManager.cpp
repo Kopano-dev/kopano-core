@@ -551,7 +551,6 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 		LOG_CACHE_DEBUG("Get objects ids warning %zu objects not found",
 			lpdata.size() - mapObjects.size());
  exit:
-	sObject.lpData = NULL;
 	if (lpDBResult != NULL)
 		lpDatabase->FreeResult(lpDBResult);
 	if (er != erSuccess)
