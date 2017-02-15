@@ -380,16 +380,16 @@ class Item(object):
         """
 
         mapiitem = self._arch_item
-        table = mapiitem.GetAttachmentTable(MAPI_DEFERRED_ERRORS)
-        table.SetColumns([PR_ATTACH_NUM, PR_ATTACH_METHOD], TBL_BATCH)
-        while True:
-            rows = table.QueryRows(50, 0)
-            if len(rows) == 0:
-                break
-            for row in rows:
-                if row[1].Value == ATTACH_BY_VALUE or (embedded and row[1].Value == ATTACH_EMBEDDED_MSG):
-                    att = mapiitem.OpenAttach(row[0].Value, IID_IAttachment, 0)
-                    yield Attachment(att)
+        table = Table(
+            self.server,
+            mapiitem.GetAttachmentTable(MAPI_DEFERRED_ERRORS),
+            columns=[PR_ATTACH_NUM, PR_ATTACH_METHOD]
+        )
+
+        for row in table.rows():
+            if row[1].value == ATTACH_BY_VALUE or (embedded and row[1].value == ATTACH_EMBEDDED_MSG):
+                att = mapiitem.OpenAttach(row[0].value, IID_IAttachment, 0)
+                yield Attachment(att)
 
     def create_attachment(self, name, data):
         """Create a new attachment
@@ -788,14 +788,12 @@ class Item(object):
             return
         # cleanup primary item
         mapiobj.DeleteProps([PROP_STUBBED, PR_ICON_INDEX])
-        at = mapiobj.GetAttachmentTable(0)
-        at.SetColumns([PR_ATTACH_NUM], TBL_BATCH)
-        while True:
-            rows = at.QueryRows(20, 0)
-            if len(rows) == 0:
-                break
-            for row in rows:
-                mapiobj.DeleteAttach(row[0].Value, 0, None, 0)
+        at = Table(
+            self.server, mapiobj.GetAttachmentTable(0),
+            columns=[PR_ATTACH_NUM]
+        )
+        for row in at.rows():
+            mapiobj.DeleteAttach(row[0].value, 0, None, 0)
 
         # copy contents into it
         exclude_props = [PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID, PROP_REF_PREV_ENTRYID, PROP_FLAGS]
