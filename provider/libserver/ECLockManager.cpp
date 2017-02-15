@@ -16,6 +16,7 @@
  */
 
 #include <memory>
+#include <mutex>
 #include <kopano/platform.h>
 #include "ECLockManager.h"
 #include <kopano/lockhelper.hpp>
@@ -79,18 +80,10 @@ ECLockManagerPtr ECLockManager::Create() {
 	return ECLockManagerPtr(new ECLockManager());
 }
 
-ECLockManager::ECLockManager() {
-	pthread_rwlock_init(&m_hRwLock, NULL);
-}
-
-ECLockManager::~ECLockManager() {
-	pthread_rwlock_destroy(&m_hRwLock);
-}
-
 ECRESULT ECLockManager::LockObject(unsigned int ulObjId, ECSESSIONID sessionId, ECObjectLock *lpObjectLock)
 {
 	ECRESULT er = erSuccess;
-	scoped_exclusive_rwlock lock(m_hRwLock);
+	std::lock_guard<KC::shared_mutex> lock(m_hRwLock);
 
 	auto res = m_mapLocks.insert(LockMap::value_type(ulObjId, sessionId));
 	if (res.second == false && res.first->second != sessionId)
@@ -105,7 +98,7 @@ ECRESULT ECLockManager::LockObject(unsigned int ulObjId, ECSESSIONID sessionId, 
 ECRESULT ECLockManager::UnlockObject(unsigned int ulObjId, ECSESSIONID sessionId)
 {
 	ECRESULT er = erSuccess;
-	scoped_exclusive_rwlock lock(m_hRwLock);
+	std::lock_guard<KC::shared_mutex> lock(m_hRwLock);
 
 	auto i = m_mapLocks.find(ulObjId);
 	if (i == m_mapLocks.cend())
@@ -120,7 +113,7 @@ ECRESULT ECLockManager::UnlockObject(unsigned int ulObjId, ECSESSIONID sessionId
 
 bool ECLockManager::IsLocked(unsigned int ulObjId, ECSESSIONID *lpSessionId)
 {
-	scoped_shared_rwlock lock(m_hRwLock);
+	KC::shared_lock<KC::shared_mutex> lock(m_hRwLock);
 	auto i = m_mapLocks.find(ulObjId);
 	if (i != m_mapLocks.cend() && lpSessionId != NULL)
 		*lpSessionId = i->second;
