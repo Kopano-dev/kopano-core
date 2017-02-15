@@ -13,7 +13,7 @@ import time
 
 from MAPI import (
     MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE,
-    TABLE_SORT_DESCEND, TABLE_SORT_ASCEND, RELOP_GT, RELOP_LT, RELOP_EQ,
+    RELOP_GT, RELOP_LT, RELOP_EQ,
     DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES,
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
     FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
@@ -36,7 +36,7 @@ from MAPI.Defs import (
 )
 from MAPI.Struct import (
     MAPIErrorNoAccess, MAPIErrorNotFound, MAPIErrorNoSupport,
-    MAPIErrorInvalidEntryid, SPropValue, SSortOrderSet, SSort,
+    MAPIErrorInvalidEntryid, SPropValue,
     MAPINAMEID, SOrRestriction, SAndRestriction, SPropertyRestriction,
     SContentRestriction, ROWENTRY
 )
@@ -189,7 +189,7 @@ class Folder(object):
             table = Table(
                 self.server,
                 self.mapiobj.GetContentsTable(self.content_flag),
-                PR_CONTAINER_CONTENTS
+                PR_CONTAINER_CONTENTS, columns=[PR_ENTRYID]
             )
         except MAPIErrorNoSupport:
             return
@@ -205,8 +205,7 @@ class Folder(object):
             item.server = self.server
             item.mapiobj = _openentry_raw(
                 self.store.mapiobj,
-                utils.find_prop(row, PR_ENTRYID).value,
-                MAPI_MODIFY | self.content_flag
+                row[0].value, MAPI_MODIFY | self.content_flag
             )
             yield item
 

@@ -239,13 +239,6 @@ def props(mapiobj, namespace=None):
         if not namespace or p.namespace == namespace:
             yield p
 
-# Function ala MAPI.Defs.PpropFindProp to be used with
-# kopano.Property
-def find_prop(props, proptag):
-    for prop in props:
-        if prop.proptag == proptag:
-            return prop
-
 def state(mapiobj, associated=False):
     exporter = mapiobj.OpenProperty(PR_CONTENTS_SYNCHRONIZER, IID_IExchangeExportChanges, 0, 0)
     if associated:
