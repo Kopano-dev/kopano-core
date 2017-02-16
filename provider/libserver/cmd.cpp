@@ -3910,54 +3910,51 @@ SOAP_ENTRY_START(tableMulti, lpsResponse->er, struct tableMultiRequest sRequest,
     if(sRequest.lpOpen) {
         er = OpenTable(lpecSession, sRequest.lpOpen->sEntryId, sRequest.lpOpen->ulTableType, sRequest.lpOpen->ulType, sRequest.lpOpen->ulFlags, &lpsResponse->ulTableId);
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
         ulTableId = lpsResponse->ulTableId;
     }
     
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
     if(sRequest.lpSort) {
         er = lpTable->SetSortOrder(&sRequest.lpSort->sSortOrder, sRequest.lpSort->ulCategories, sRequest.lpSort->ulExpanded);
         if(er != erSuccess)
-            goto exit;
+			return er;
     }
 
     if(sRequest.lpSetColumns) {
         er = lpTable->SetColumns(sRequest.lpSetColumns, false);
         if(er != erSuccess)
-            goto exit;
+			return er;
     }
     
     if(sRequest.lpRestrict || (sRequest.ulFlags&TABLE_MULTI_CLEAR_RESTRICTION)) {
 		if (!bSupportUnicode && sRequest.lpRestrict) {
 			er = FixRestrictionEncoding(soap, stringCompat, In, sRequest.lpRestrict);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 
         er = lpTable->Restrict(sRequest.lpRestrict);
         if(er != erSuccess)
-            goto exit;
+			return er;
     }
     
     if(sRequest.lpQueryRows) {
         er = lpTable->QueryRows(soap, sRequest.lpQueryRows->ulCount, sRequest.lpQueryRows->ulFlags, &lpRowSet);
         if(er != erSuccess)
-            goto exit;
-
+			return er;
 		if (!bSupportUnicode) {
 			er = FixRowSetEncoding(soap, stringCompat, Out, lpRowSet);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
                 
         lpsResponse->sRowSet.__ptr = lpRowSet->__ptr;
         lpsResponse->sRowSet.__size = lpRowSet->__size;
     }
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -3968,23 +3965,14 @@ SOAP_ENTRY_START(deleteObjects, *result, unsigned int ulFlags, struct entryList 
 	unsigned int ulDeleteFlags = EC_DELETE_ATTACHMENTS | EC_DELETE_RECIPIENTS | EC_DELETE_CONTAINER | EC_DELETE_MESSAGES;
 	USE_DATABASE();
 
-	if(lpEntryList == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpEntryList == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	if(ulFlags & DELETE_HARD_DELETE)
 		ulDeleteFlags |= EC_DELETE_HARD_DELETE;
 
 	// ignore errors
 	g_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(lpEntryList, &lObjectList);
-
-	er = DeleteObjects(lpecSession, lpDatabase, &lObjectList, ulDeleteFlags, ulSyncId, false, true);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-    ;
+	return DeleteObjects(lpecSession, lpDatabase, &lObjectList, ulDeleteFlags, ulSyncId, false, true);
 }
 SOAP_ENTRY_END()
 
@@ -4120,31 +4108,19 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 
 SOAP_ENTRY_START(notifySubscribe, *result,  struct notifySubscribe *notifySubscribe, unsigned int *result)
 {
-	if (notifySubscribe == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (notifySubscribe == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	if (notifySubscribe->ulEventMask == fnevKopanoIcsChange)
-		er = lpecSession->AddChangeAdvise(notifySubscribe->ulConnection, &notifySubscribe->sSyncState);
-
+		return lpecSession->AddChangeAdvise(notifySubscribe->ulConnection, &notifySubscribe->sSyncState);
 	else
-		er = DoNotifySubscribe(lpecSession, ulSessionId, notifySubscribe);
-
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-    ;
+		return DoNotifySubscribe(lpecSession, ulSessionId, notifySubscribe);
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(notifySubscribeMulti, *result, struct notifySubscribeArray *notifySubscribeArray, unsigned int *result)
 {
-	if (notifySubscribeArray == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (notifySubscribeArray == nullptr)
+		return KCERR_INVALID_PARAMETER;
 
 	for (gsoap_size_t i = 0; i < notifySubscribeArray->__size; ++i) {
 		if (notifySubscribeArray->__ptr[i].ulEventMask == fnevKopanoIcsChange)
@@ -4160,19 +4136,13 @@ SOAP_ENTRY_START(notifySubscribeMulti, *result, struct notifySubscribeArray *not
 			break;
 		}
 	}
-exit:
-	;
+	return er;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(notifyUnSubscribe, *result, unsigned int ulConnection, unsigned int *result)
 {
-	er = lpecSession->DelAdvise(ulConnection);
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-    ;
+	return lpecSession->DelAdvise(ulConnection);
 }
 SOAP_ENTRY_END()
 
@@ -4181,10 +4151,8 @@ SOAP_ENTRY_START(notifyUnSubscribeMulti, *result, struct mv_long *ulConnectionAr
 	unsigned int erTmp = erSuccess;
 	unsigned int erFirst = erSuccess;
 
-	if (ulConnectionArray == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (ulConnectionArray == nullptr)
+		return KCERR_INVALID_PARAMETER;
 
 	for (gsoap_size_t i = 0; i < ulConnectionArray->__size; ++i) {
 		erTmp = lpecSession->DelAdvise(ulConnectionArray->__ptr[i]);
@@ -4193,10 +4161,7 @@ SOAP_ENTRY_START(notifyUnSubscribeMulti, *result, struct mv_long *ulConnectionAr
 	}
 
 	// return first seen error (if any).
-	er = erFirst;
-
-exit:
-    ;
+	return erFirst;
 }
 SOAP_ENTRY_END()
 
@@ -4267,26 +4232,17 @@ SOAP_ENTRY_START(setRights, *result, entryId sEntryId, struct rightsArray *lpsRi
 {
 	unsigned int	ulObjId = 0;
 
-	if(lpsRightsArray == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpsRightsArray == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	// Check Rights set permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityFolderAccess);
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpecSession->GetSecurity()->SetRights(ulObjId, lpsRightsArray);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-    ;
+		return er;
+	return lpecSession->GetSecurity()->SetRights(ulObjId, lpsRightsArray);
 }
 SOAP_ENTRY_END()
 
@@ -4306,18 +4262,11 @@ SOAP_ENTRY_START(getOwner, lpsResponse->er, entryId sEntryId, struct getOwnerRes
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulobjid);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	er = lpecSession->GetSecurity()->GetOwner(ulobjid, &lpsResponse->ulOwner);
 	if(er != erSuccess)
-		goto exit;
-
-	er = GetABEntryID(lpsResponse->ulOwner, soap, &lpsResponse->sOwner);
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-    ;
+		return er;
+	return GetABEntryID(lpsResponse->ulOwner, soap, &lpsResponse->sOwner);
 }
 SOAP_ENTRY_END()
 
@@ -4439,19 +4388,13 @@ SOAP_ENTRY_START(getNamesFromIDs, lpsResponse->er, struct propTagArray *lpPropTa
 	struct namedPropArray lpsNames;
 	USE_DATABASE();
 
-	if(lpPropTags == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-	
+	if (lpPropTags == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	er = GetNamesFromIDs(soap, lpDatabase, lpPropTags, &lpsNames);
 	if (er != erSuccess)
-	    goto exit;
-	    
+		return er;
     lpsResponse->lpsNames = lpsNames;
-	
-exit:
-    ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -4466,7 +4409,7 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId, char*
 
 	er = lpecSession->GetObjectFromEntryId(&sStoreId, &ulStoreid);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	// Check for default store
 	if(lpszMessageClass == NULL)
@@ -4494,29 +4437,25 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId, char*
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if(lpDatabase->GetNumRows(lpDBResult) == 1) {
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
 
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("getReceiveFolder(): row or columns null");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsReceiveFolder->sReceiveFolder.sEntryId);
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 		lpsReceiveFolder->sReceiveFolder.lpszAExplicitClass = STROUT_FIX_CPY(lpDBRow[1]);
 	}else{
 		//items not found
-		er = KCERR_NOT_FOUND;
+		return KCERR_NOT_FOUND;
 	}
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
