@@ -1719,26 +1719,21 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	SOURCEKEY		sParentSourceKey;
 	DB_RESULT lpDBResult;
 
-	if(!lpAttachmentStorage) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpAttachmentStorage == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	if (lpfHaveChangeKey)
 		*lpfHaveChangeKey = false;
 
 	er = g_lpSessionManager->GetServerGUID(&sGuidServer);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, &ulParent, &ulOwner, &ulFlags, &ulObjType);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if(ulObjType != MAPI_STORE){
 		er = g_lpSessionManager->GetCacheManager()->GetObject(ulParent, &ulGrandParent, NULL, NULL, &ulParentType);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	if(ulObjType == MAPI_FOLDER && !ulSyncId) {
@@ -1753,13 +1748,12 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess) {
 					ec_log_err("WriteProps(): DoSelect failed %x", er);
-					goto exit;
+					return er;
 				}
 
 				if(lpDatabase->GetNumRows(lpDBResult) > 0) {
-					er = KCERR_COLLISION;
 					ec_log_err("WriteProps(): Folder already exists while putting folder");
-					goto exit;
+					return KCERR_COLLISION;
 				}
 				break;
 			}
@@ -1772,20 +1766,18 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 
 		er = lpDatabase->DoDelete(strQuery);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		strQuery = "DELETE FROM mvproperties WHERE hierarchyid=" + stringify (ulObjId);
 
 		er = lpDatabase->DoDelete(strQuery);
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 		if (ulObjType != lpsSaveObj->ulObjType) {
 			strQuery = "UPDATE hierarchy SET type=" +stringify(lpsSaveObj->ulObjType) +" WHERE id=" + stringify (ulObjId);
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er != erSuccess)
-				 goto exit;
-
+				return er;
 			// Switch the type so the cache will be updated at the end.
 			ulObjType = lpsSaveObj->ulObjType;
 		}
@@ -1795,27 +1787,17 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	if (lpsSaveObj->lpInstanceIds && lpsSaveObj->lpInstanceIds->__size) {
 		GUID sGuidTmp;
 
-		if (lpsSaveObj->lpInstanceIds->__size > 1) {
-			er = KCERR_UNKNOWN_INSTANCE_ID;
-			goto exit;
-		}
-
+		if (lpsSaveObj->lpInstanceIds->__size > 1)
+			return KCERR_UNKNOWN_INSTANCE_ID;
 		er = SIEntryIDToID(&lpsSaveObj->lpInstanceIds->__ptr[0], &sGuidTmp, (unsigned int*)&ulInstanceId, (unsigned int*)&ulInstanceTag);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		/* Server GUID must always match */
-		if (memcmp(&sGuidTmp, &sGuidServer, sizeof(sGuidTmp)) != 0) {
-			er = KCERR_UNKNOWN_INSTANCE_ID;
-			goto exit;
-		}
-
+		if (memcmp(&sGuidTmp, &sGuidServer, sizeof(sGuidTmp)) != 0)
+			return KCERR_UNKNOWN_INSTANCE_ID;
 		/* The attachment should at least exist */
-		if (!lpAttachmentStorage->ExistAttachmentInstance(ulInstanceId)) {
-			er = KCERR_UNKNOWN_INSTANCE_ID;
-			goto exit;
-		}
-
+		if (!lpAttachmentStorage->ExistAttachmentInstance(ulInstanceId))
+			return KCERR_UNKNOWN_INSTANCE_ID;
 		/*
 		 * Check if we have access to the instance which is being referenced,
 		 * a user has access to an instance when he is administrator or owns at
@@ -1826,8 +1808,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		if (lpecSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN) {
 			er = lpAttachmentStorage->GetSingleInstanceParents(ulInstanceId, &lstObjIds);
 			if (er != erSuccess)
-				goto exit;
-
+				return er;
 			er = KCERR_UNKNOWN_INSTANCE_ID;
 			for (const auto i : lstObjIds)
 				if (lpecSession->GetSecurity()->CheckPermission(i, ecSecurityRead) == erSuccess) {
@@ -1836,13 +1817,12 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				}
 
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 
 		er = lpAttachmentStorage->SaveAttachment(ulObjId, ulInstanceTag, !fNewItem, ulInstanceId, &ulInstanceId);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		lpsReturnObj->lpInstanceIds = s_alloc<entryList>(soap);
 		lpsReturnObj->lpInstanceIds->__size = 1;
 		lpsReturnObj->lpInstanceIds->__ptr = s_alloc<entryId>(soap, lpsReturnObj->lpInstanceIds->__size);
@@ -1850,7 +1830,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		er = SIIDToEntryID(soap, &sGuidServer, ulInstanceId, ulInstanceTag, &lpsReturnObj->lpInstanceIds->__ptr[0]);
 		if (er != erSuccess) {
 			lpsReturnObj->lpInstanceIds = NULL;
-			goto exit;
+			return er;
 		}
 
 		/* Either by instanceid or attachment data, we have stored the attachment */
@@ -1922,7 +1902,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			strQuery = "REPLACE INTO indexedproperties(hierarchyid,tag,val_binary) VALUES ("+stringify(ulObjId)+","+stringify(PROP_ID(PR_SOURCE_KEY))+","+lpDatabase->EscapeBinary(lpPropValArray->__ptr[i].Value.bin->__ptr, lpPropValArray->__ptr[i].Value.bin->__size)+")";
 			er = lpDatabase->DoInsert(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			setInserted.insert(lpPropValArray->__ptr[i].ulPropTag);
 
@@ -1946,7 +1926,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 													 lpPropValArray->__ptr[i].Value.bin->__ptr,
 													 &ulInstanceId);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 
 			lpsReturnObj->lpInstanceIds = s_alloc<entryList>(soap);
 			lpsReturnObj->lpInstanceIds->__size = 1;
@@ -1955,7 +1935,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			er = SIIDToEntryID(soap, &sGuidServer, ulInstanceId, PROP_ID(lpPropValArray->__ptr[i].ulPropTag), &lpsReturnObj->lpInstanceIds->__ptr[0]);
 			if (er != erSuccess) {
 				lpsReturnObj->lpInstanceIds = NULL;
-				goto exit;
+				return er;
 			}
 
 			continue;
@@ -1996,7 +1976,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				strQuery = "REPLACE INTO mvproperties(hierarchyid,orderid,tag,type," + strColName + ") VALUES(" + stringify(ulObjId) + "," + stringify(j) + "," + stringify(PROP_ID(lpPropValArray->__ptr[i].ulPropTag)) + "," + stringify(PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag)) + "," + strColData + ")";
 				er = lpDatabase->DoInsert(strQuery, NULL, &ulAffected);
 				if(er != erSuccess)
-					goto exit;
+					return er;
 
 				// According to the MySQL documentation (http://dev.mysql.com/doc/refman/5.0/en/mysql-affected-rows.html) ulAffected rows
 				// will be 2 if a row was replaced.
@@ -2005,8 +1985,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				// We'll allow both though.
 				if(ulAffected != 1 && ulAffected != 2) {
 					ec_log_err("Unable to update MVProperties during save: %d, object id: %d", ulAffected, ulObjId);
-					er = KCERR_DATABASE_ERROR;
-					goto exit;
+					return KCERR_DATABASE_ERROR;
 				}
 			}
 
@@ -2018,7 +1997,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 
 				er = lpDatabase->DoDelete(strQuery);
 				if(er != erSuccess)
-					goto exit;
+					return er;
 			}
 
 		} else {
@@ -2038,7 +2017,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				}
 			}
 			if(er != erSuccess)
-				goto exit;
+				return er;
 			
 			// Write the property to the table properties if needed (only on objects in folders (folders, messages), and if the property is being tracked here.
 			if(ulParentType == MAPI_FOLDER) {
@@ -2058,7 +2037,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 						}
 					}
 					if(er != erSuccess)
-						goto exit;
+						return er;
 				}
 			}
 		}
@@ -2069,7 +2048,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	if(!strInsert.empty()) {
 		er = lpDatabase->DoInsert(strInsert);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 	
 	if(ulParentType == MAPI_FOLDER) {
@@ -2082,14 +2061,14 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			if(!strInsertTProp.empty()) {
 				er = lpDatabase->DoInsert(strInsertTProp);
 				if(er != erSuccess)
-					goto exit;
+					return er;
 			}
 		} else {
 			// Instead of writing directly to tproperties, save a delayed write request.
 			if(ulParent != CACHE_NO_PARENT) {
                 er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParent, 0, ulObjId);
                 if(er != erSuccess)
-                    goto exit;
+					return er;
 			}
 		}
 	}
@@ -2098,7 +2077,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	if(ulPropInserts > 0) {
 		er = lpDatabase->DoInsert(strInsertQuery, NULL, NULL);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 	
 	if(ulObjType == MAPI_MESSAGE) {
@@ -2107,7 +2086,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		if (iterInserted == setInserted.cend()) {
 			er = GetABEntryID(lpecSession->GetSecurity()->GetUserId(), soap, &sUserId);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 			
 			lpecSession->GetSecurity()->GetUsername(&strUsername);
 
@@ -2125,7 +2104,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 
 			er = lpDatabase->DoInsert(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			sObjectTableKey key(ulObjId,0);
 			struct propVal	sPropVal;
@@ -2161,7 +2140,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			
 			er = WriteProp(lpDatabase, ulObjId, ulParent, &sProp);
 			if (er != erSuccess)
-			    goto exit;
+				return er;
 			
 			*lpftModified = ft;
 			
@@ -2178,7 +2157,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			strQuery = "UPDATE properties SET val_ulong=val_ulong&"+stringify(~MSGFLAG_UNMODIFIED) + " WHERE hierarchyid=" + stringify(ulObjId)+ " AND tag=" + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type=" + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			// Update cache	
 			if(ulParentType == MAPI_FOLDER)
@@ -2210,14 +2189,13 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 					WriteSingleProp(lpDatabase, ulObjId, ulParent, &sPropTime, false, 0, strQuery);
 					er = lpDatabase->DoInsert(strQuery);
 					if(er != erSuccess)
-						goto exit;
+						return er;
 						
 					strQuery.clear();
 					WriteSingleProp(lpDatabase, ulObjId, ulParent, &sPropTime, true, 0, strQuery);
 					er = lpDatabase->DoInsert(strQuery);
 					if(er != erSuccess)
-						goto exit;
-
+						return er;
 					if(tags[i] == PR_LAST_MODIFICATION_TIME)
 						*lpftModified = ft;
 					if(tags[i] == PR_CREATION_TIME)
@@ -2240,13 +2218,13 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		if (iterInserted == setInserted.cend()) {
 			er = lpecSession->GetNewSourceKey(&sSourceKey);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 
 			strQuery = "INSERT INTO indexedproperties(hierarchyid,tag,val_binary) VALUES(" + stringify(ulObjId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) + ")";
 			er = lpDatabase->DoInsert(strQuery);
 
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_SOURCE_KEY), sSourceKey.size(), sSourceKey, ulObjId);
 		}
@@ -2258,7 +2236,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 
 			er = g_lpSessionManager->GetNewSequence(ECSessionManager::SEQ_IMAP, &ullIMAP);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 				
 			strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_ulong) VALUES(" +
 						stringify(ulObjId) + "," +
@@ -2268,14 +2246,14 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 						")";
 			er = lpDatabase->DoInsert(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			sProp.ulPropTag = PR_EC_IMAP_ID;
 			sProp.Value.ul = ullIMAP;
 			sProp.__union = SOAP_UNION_propValData_ul;
 			er = g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_EC_IMAP_ID, &sProp);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 	}
 
@@ -2286,9 +2264,8 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	// We know the values for the object cache, so add them here
 	if(ulObjType == MAPI_MESSAGE || ulObjType == MAPI_FOLDER)
 		g_lpSessionManager->GetCacheManager()->SetObject(ulObjId, ulParent, ulOwner, ulFlags, ulObjType);
-	
-exit:
-	return er;
+
+	return erSuccess;
 }
 
 // You need to check the permissions before you call this function
