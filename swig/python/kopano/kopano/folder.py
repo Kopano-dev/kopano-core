@@ -176,10 +176,8 @@ class Folder(object):
     def item(self, entryid):
         """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
 
-        item = _item.Item() # XXX copy-pasting..
-        item.store = self.store
-        item.server = self.server
-        item.mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
+        mapiobj = _openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
+        item = _item.Item(self.store, mapiobj=mapiobj) # XXX copy-pasting..
         return item
 
     def items(self, restriction=None):
@@ -195,18 +193,16 @@ class Folder(object):
             return
 
         if restriction:
-            table.mapitable.Restrict(restriction.mapiobj, 0)
+            table.restrict(restriction)
 
         table.sort(-1 * PR_MESSAGE_DELIVERY_TIME)
 
         for row in table.rows():
-            item = Item()
-            item.store = self.store
-            item.server = self.server
-            item.mapiobj = _openentry_raw(
+            mapiobj = _openentry_raw(
                 self.store.mapiobj,
                 row[0].value, MAPI_MODIFY | self.content_flag
             )
+            item = Item(self.store, mapiobj=mapiobj)
             yield item
 
     def occurrences(self, start=None, end=None):
