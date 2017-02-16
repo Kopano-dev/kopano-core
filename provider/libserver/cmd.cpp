@@ -1026,12 +1026,10 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 		/* Hosted support, Public store owner is company */
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
         er = lpecSession->GetUserManagement()->GetObjectDetails(ulCompanyId, &details);
         if(er != erSuccess)
-            goto exit;
-        
+			return er;
         strStoreServer = details.GetPropString(OB_PROP_S_SERVERNAME);
 		strCompanyName = details.GetPropString(OB_PROP_S_FULLNAME);
 	} else {
@@ -1051,7 +1049,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 			} else if (er == erSuccess)
 				strStoreServer = details.GetPropString(OB_PROP_S_SERVERNAME);
 			else
-				goto exit;
+				return er;
 		} else
 			strStoreServer = strThisServer;
 	}
@@ -1063,9 +1061,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 				ec_log_err("Company \"%s\" has no home server for its public store.", strCompanyName.c_str());
 			else
 				ec_log_err("Public store has no home server.");
-				
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		}
 	
 		/* Do we own the store? */
@@ -1074,13 +1070,11 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 			if ((ulFlags & EC_OVERRIDE_HOMESERVER) == 0) {
 				er = GetBestServerPath(soap, lpecSession, strStoreServer, &strServerPath);
 				if (er != erSuccess)
-					goto exit;
-	            
+					return er;
 				lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
 				ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
 				g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
-				er = KCERR_UNABLE_TO_COMPLETE;
-				goto exit;
+				return KCERR_UNABLE_TO_COMPLETE;
             }
 		}
 	}
@@ -1096,42 +1090,33 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
-	if(lpDatabase->GetNumRows(lpDBResult) == 0) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+		return er;
+	if (lpDatabase->GetNumRows(lpDBResult) == 0)
+		return KCERR_NOT_FOUND;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
 	if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL ||
 		lpDBLen == NULL || lpDBLen[1] == 0)
 	{
-		er = KCERR_DATABASE_ERROR; // this should never happen
 		ec_log_err("getPublicStore(): no rows from db");
-		goto exit;
+		return KCERR_DATABASE_ERROR; // this should never happen
 	}
 
 	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsResponse->sRootId);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	if ((ulFlags & EC_OVERRIDE_HOMESERVER) == 0)
 		lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strStoreServer).c_str());
    	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, ulFlags, &lpsResponse->sStoreId);
 
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	lpsResponse->guid.__size= lpDBLen[1];
 	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
 
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[1], lpDBLen[1]);
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -1157,22 +1142,18 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
             !lpecSession->GetUserManagement()->IsInternalObject(ulUserId)) {
 			er = lpecSession->GetUserManagement()->GetObjectDetails(ulUserId, &sUserDetails);
 			if (er != erSuccess)
-				goto exit;
+				return er;
             strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
-            if (strServerName.empty()) {
-                er = KCERR_NOT_FOUND;
-                goto exit;
-            }
+			if (strServerName.empty())
+				return er;
             if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0)  {
                 er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
                 if (er != erSuccess)
-                    goto exit;
-                
+					return er;
                 lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
                 ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
                 g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
-                er = KCERR_UNABLE_TO_COMPLETE;
-                goto exit;
+				return KCERR_UNABLE_TO_COMPLETE;
             }
 		}
 	}
@@ -1191,8 +1172,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 	if(lpsEntryId) {
 		er = lpecSession->GetObjectFromEntryId(lpsEntryId, &ulStoreId);
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 		strQuery += "WHERE stores.hierarchy_id=" + stringify(ulStoreId) + " LIMIT 1";// FIXME: mysql query
 	}else {
 		strQuery += "WHERE stores.user_id=" + stringify(ulUserId) 
@@ -1201,18 +1181,13 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
-	if(lpDatabase->GetNumRows(lpDBResult) == 0) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+		return er;
+	if (lpDatabase->GetNumRows(lpDBResult) == 0)
+		return KCERR_NOT_FOUND;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow == NULL) {
-		er = KCERR_DATABASE_ERROR; // this should never happen
 		ec_log_err("getStore(): no rows from db");
-		goto exit;
+		return KCERR_DATABASE_ERROR; // this should never happen
 	}
 	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 	/*
@@ -1226,26 +1201,21 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 	    memchr(lpDBRow[0], '\0', lpDBLen[0] + 1) == NULL ||
 	    memchr(lpDBRow[2], '\0', lpDBLen[2] + 1) == NULL ||
 	    lpDBLen[1] == 0) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("getStore(): received trash rows from db");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsResponse->sRootId);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, 0, &lpsResponse->sStoreId);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	lpsResponse->guid.__size= lpDBLen[1];
 	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
 
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[1], lpDBLen[1]);
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -1259,21 +1229,16 @@ SOAP_ENTRY_START(getStoreName, lpsResponse->er, entryId sEntryId, struct getStor
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = ECGenProps::GetStoreName(soap, lpecSession, ulObjId, ulStoreType, &lpsResponse->lpszStoreName);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if (!bSupportUnicode)
 		lpsResponse->lpszStoreName = STROUT_FIX(lpsResponse->lpszStoreName);
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -1283,12 +1248,10 @@ SOAP_ENTRY_START(getStoreType, lpsResponse->er, entryId sEntryId, struct getStor
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if (er != erSuccess)
-	    goto exit;
-
-	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &lpsResponse->ulStoreType);
-
-exit:
-	;
+		return er;
+	return lpecSession->GetSessionManager()->GetCacheManager()->
+	       GetStoreAndType(ulObjId, nullptr, nullptr,
+	       &lpsResponse->ulStoreType);
 }
 SOAP_ENTRY_END()
 
@@ -1314,8 +1277,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_USER_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
 			er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
 			if (er != erSuccess)
-				goto exit;
-				
+				return er;
 		    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
 		    sChildProps.lpPropVals->AddPropVal(sPropVal);
         }
@@ -1327,7 +1289,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 
         er = lpecSession->GetSecurity()->GetStoreOwner(ulObjId, &ulStoreOwner);
         if (er != erSuccess)
-            goto exit;
+			return er;
 
 		// Quota information
 		if (lpecSession->GetSecurity()->GetUserQuota(ulStoreOwner, false, &sDetails) == erSuccess)
@@ -1361,7 +1323,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 			// get the companyid to which the logged in user belongs to.
 			er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 
 			// 5.0 client knows how to handle the PR_MAILBOX_OWNER_* properties
 			if(ulStoreOwner != KOPANO_UID_EVERYONE && ulStoreOwner != ulCompanyId )	{
@@ -1369,8 +1331,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 				if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_MAILBOX_OWNER_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
 					er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
 					if (er != erSuccess)
-						goto exit;
-						
+						return er;
 					sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
 					sChildProps.lpPropVals->AddPropVal(sPropVal);
 				}
@@ -1387,8 +1348,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_DISPLAY_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
 			er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
 			if (er != erSuccess)
-				goto exit;
-				
+				return er;
 		    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
 		    sChildProps.lpPropVals->AddPropVal(sPropVal);
 		}
@@ -1428,8 +1388,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 		ULONG ulPropTag = (ulObjType == MAPI_MESSAGE ? PR_EC_IMAP_EMAIL : PR_ATTACH_DATA_BIN);
 		er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		if (lpAttachmentStorage->ExistAttachment(ulObjId, PROP_ID(ulPropTag)))
 		    sChildProps.lpPropTags->AddPropTag(ulPropTag);
 	}
@@ -1452,7 +1411,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
         strQuery = "SELECT hierarchy.parent,hierarchy.flags,hierarchy.type FROM hierarchy WHERE hierarchy.id="+stringify(ulObjId);
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
-            goto exit;
+			return er;
 
         if(lpDatabase->GetNumRows(lpDBResult) > 0)
         {
@@ -1496,14 +1455,8 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
     
 	er = sChildProps.lpPropTags->GetPropTagArray(lpsPropTag);
 	if(er != erSuccess)
-	    goto exit;
-	    
-	er = sChildProps.lpPropVals->GetPropValArray(lpsPropVal);
-	if(er != erSuccess)
-	    goto exit;
-
-exit:
-	return er;
+		return er;
+	return sChildProps.lpPropVals->GetPropValArray(lpsPropVal);
 }
 
 /**
@@ -1615,8 +1568,7 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if(lpDBRow == NULL || lpDBRow[0] == NULL)
 		llSize = 0;
@@ -1630,7 +1582,7 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if(lpDatabase->GetNumRows(lpDBResult) > 0)
 	{
@@ -1642,16 +1594,13 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 
 			er = GetFolderSize(lpDatabase, atoi(lpDBRow[0]), &llSubSize);
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			llSize += llSubSize;
 		}
 	}
 
 	*lpllFolderSize = llSize;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
