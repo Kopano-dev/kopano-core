@@ -5514,42 +5514,35 @@ SOAP_ENTRY_START(createGroup, lpsSetGroupResponse->er, struct group *lpsGroup, s
 	unsigned int			ulGroupId = 0;
 	objectdetails_t			details(DISTLIST_SECURITY); // DB plugin wants to be able to set permissions on groups
 
-	if (lpsGroup == NULL || lpsGroup->lpszGroupname == NULL || lpsGroup->lpszFullname == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpsGroup == nullptr || lpsGroup->lpszGroupname == nullptr ||
+	    lpsGroup->lpszFullname == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	if (!bSupportUnicode) {
 		er = FixGroupEncoding(soap, stringCompat, In, lpsGroup);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	er = CopyGroupDetailsFromSoap(lpsGroup, NULL, &details, soap);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpecSession->GetUserManagement()->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(details.GetPropInt(OB_PROP_I_COMPANYID));
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpecSession->GetUserManagement()->CreateObjectAndSync(details, &ulGroupId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetABEntryID(ulGroupId, soap, &lpsSetGroupResponse->sGroupId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsSetGroupResponse->ulGroupId = ulGroupId;
-
-exit:
-    ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -5559,22 +5552,19 @@ SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result
 	unsigned int	ulGroupId = 0;
 	objectid_t		sExternId;
 	
-	if(lpsGroup == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpsGroup == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	if (!bSupportUnicode) {
 		er = FixGroupEncoding(soap, stringCompat, In, lpsGroup);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	if (lpsGroup->sGroupId.__size > 0 && lpsGroup->sGroupId.__ptr != NULL)
 	{
 		er = GetLocalId(lpsGroup->sGroupId, lpsGroup->ulGroupId, &ulGroupId, &sExternId);
 		if (er != erSuccess) 
-			goto exit;
+			return er;
 	}
 	else
 		ulGroupId = lpsGroup->ulGroupId;
@@ -5582,24 +5572,17 @@ SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result
 	// Check permission
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(ulGroupId);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	details = objectdetails_t(DISTLIST_GROUP);
 
 	er = CopyGroupDetailsFromSoap(lpsGroup, &sExternId.id, &details, soap);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpecSession->GetUserManagement()->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
-		goto exit;
-
-	er = lpecSession->GetUserManagement()->SetObjectDetailsAndSync(ulGroupId, details, NULL);
-	if(er != erSuccess)
-	    goto exit;
-
-exit:
-    ;
+		return er;
+	return lpecSession->GetUserManagement()->SetObjectDetailsAndSync(ulGroupId, details, nullptr);
 }
 SOAP_ENTRY_END()
 
@@ -5610,21 +5593,17 @@ SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId, entryId sGro
 
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* Check if we are able to view the returned userobject */
 	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulGroupId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpecSession->GetUserManagement()->GetObjectDetails(ulGroupId, &details);
 	if (er != erSuccess)
-		goto exit;
-
-	if (OBJECTCLASS_TYPE(details.GetClass()) != OBJECTTYPE_DISTLIST) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+		return er;
+	if (OBJECTCLASS_TYPE(details.GetClass()) != OBJECTTYPE_DISTLIST)
+		return KCERR_NOT_FOUND;
 
 	lpsResponse->lpsGroup = s_alloc<group>(soap);
 
@@ -5632,16 +5611,13 @@ SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId, entryId sGro
 	if (er == erSuccess)
 		er = CopyGroupDetailsToSoap(ulGroupId, &sTmpGroupId, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsResponse->lpsGroup);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if (!bSupportUnicode) {
 		er = FixGroupEncoding(soap, stringCompat, Out, lpsResponse->lpsGroup);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-    ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -5652,7 +5628,7 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
@@ -5661,10 +5637,10 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 	else
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_DISTLIST, ulCompanyId, &unique_tie(lpGroups), 0);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsGroupList->sGroupArray.__size = 0;
 	lpsGroupList->sGroupArray.__ptr = s_alloc<group>(soap, lpGroups->size());
@@ -5673,21 +5649,20 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 			continue;
 		er = GetABEntryID(grp.ulId, soap, &sGroupEid);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		er = CopyGroupDetailsToSoap(grp.ulId, &sGroupEid, grp,
 		     lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON,
 		     soap, &lpsGroupList->sGroupArray.__ptr[lpsGroupList->sGroupArray.__size]);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		if (!bSupportUnicode) {
 			er = FixGroupEncoding(soap, stringCompat, Out, lpsGroupList->sGroupArray.__ptr + lpsGroupList->sGroupArray.__size);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 		++lpsGroupList->sGroupArray.__size;
 	}
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -5695,17 +5670,13 @@ SOAP_ENTRY_START(groupDelete, *result, unsigned int ulGroupId, entryId sGroupId,
 {
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(ulGroupId);
 	if(er != erSuccess)
-		goto exit;
-
-    er = lpecSession->GetUserManagement()->DeleteObjectAndSync(ulGroupId);
-
-exit:
-    ;
+		return er;
+	return lpecSession->GetUserManagement()->DeleteObjectAndSync(ulGroupId);
 }
 SOAP_ENTRY_END()
 
@@ -5713,28 +5684,21 @@ SOAP_ENTRY_START(resolveUsername, lpsResponse->er, char *lpszUsername, struct re
 {
 	unsigned int		ulUserId = 0;
 
-	if(lpszUsername == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpszUsername == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	er = lpecSession->GetUserManagement()->ResolveObjectAndSync(OBJECTCLASS_USER, STRIN_FIX(lpszUsername), &ulUserId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* Check if we are able to view the returned userobject */
 	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulUserId);
 	if (er != erSuccess)
-		goto exit;
-		
+		return er;
 	er = GetABEntryID(ulUserId, soap, &lpsResponse->sUserId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	lpsResponse->ulUserId = ulUserId;
-
-exit:
-    ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -5742,28 +5706,21 @@ SOAP_ENTRY_START(resolveGroupname, lpsResponse->er, char *lpszGroupname, struct 
 {
 	unsigned int	ulGroupId = 0;
 
-	if(lpszGroupname == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpszGroupname == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	er = lpecSession->GetUserManagement()->ResolveObjectAndSync(OBJECTCLASS_DISTLIST, STRIN_FIX(lpszGroupname), &ulGroupId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* Check if we are able to view the returned userobject */
 	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulGroupId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetABEntryID(ulGroupId, soap, &lpsResponse->sGroupId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	lpsResponse->ulGroupId = ulGroupId;
-
-exit:
-    ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -5771,21 +5728,16 @@ SOAP_ENTRY_START(deleteGroupUser, *result, unsigned int ulGroupId, entryId sGrou
 {
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(ulGroupId);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
-		goto exit;
-
-    er = lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulGroupId, ulUserId);
-
-exit:
-    ;
+		return er;
+	return lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulGroupId, ulUserId);
 }
 SOAP_ENTRY_END()
 
@@ -5793,21 +5745,16 @@ SOAP_ENTRY_START(addGroupUser, *result, unsigned int ulGroupId, entryId sGroupId
 {
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(ulGroupId);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
-		goto exit;
-
-    er = lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulGroupId, ulUserId);
-
-exit:
-    ;
+		return er;
+	return lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulGroupId, ulUserId);
 }
 SOAP_ENTRY_END()
 
