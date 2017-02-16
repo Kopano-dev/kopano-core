@@ -3519,11 +3519,9 @@ SOAP_ENTRY_START(tableOpen, lpsTableOpenResponse->er, entryId sEntryId, unsigned
     
 	er = OpenTable(lpecSession, sEntryId, ulTableType, ulType, ulFlags, &ulTableId);
 	if (er != erSuccess)
-		goto exit;
-        
+		return er;
 	lpsTableOpenResponse->ulTableId = ulTableId;
-exit:
-    ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -3532,7 +3530,7 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableClose, *result, unsigned int ulTableId, unsigned int *result)
 {
-	er = lpecSession->GetTableManager()->CloseTable(ulTableId);
+	return lpecSession->GetTableManager()->CloseTable(ulTableId);
 }
 SOAP_ENTRY_END()
 
@@ -3544,45 +3542,38 @@ SOAP_ENTRY_START(tableSetSearchCriteria, *result, entryId sEntryId, struct restr
 	unsigned int	ulStoreId = 0;
 	unsigned int	ulParent = 0;
 
-	if(!(ulFlags & STOP_SEARCH) && (lpRestrict == NULL || lpFolders == NULL)) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (!(ulFlags & STOP_SEARCH) &&
+	    (lpRestrict == nullptr || lpFolders == nullptr))
+		return KCERR_INVALID_PARAMETER;
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulParent);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulParent, &ulStoreId, NULL);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulParent, ecSecurityEdit);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// If a STOP was requested, then that's all we need to do
 	if(ulFlags & STOP_SEARCH) {
-		er = lpecSession->GetSessionManager()->GetSearchFolders()->SetSearchCriteria(ulStoreId, ulParent, NULL);
+		return lpecSession->GetSessionManager()->GetSearchFolders()->SetSearchCriteria(ulStoreId, ulParent, nullptr);
 	} else {
 		struct searchCriteria sSearchCriteria;
 
 		if (!bSupportUnicode) {
 			er = FixRestrictionEncoding(soap, stringCompat, In, lpRestrict);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 
 		sSearchCriteria.lpRestrict = lpRestrict;
 		sSearchCriteria.lpFolders = lpFolders;
 		sSearchCriteria.ulFlags = ulFlags;
-
-		er = lpecSession->GetSessionManager()->GetSearchFolders()->SetSearchCriteria(ulStoreId, ulParent, &sSearchCriteria);
+		return lpecSession->GetSessionManager()->GetSearchFolders()->SetSearchCriteria(ulStoreId, ulParent, &sSearchCriteria);
 	}
-
-exit:
-	;
 }
 SOAP_ENTRY_END()
 
@@ -3644,10 +3635,8 @@ SOAP_ENTRY_START(tableSetColumns, *result, unsigned int ulTableId, struct propTa
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpTable->SetColumns(aPropTag, false);
- exit: ;
+		return er;
+	return lpTable->SetColumns(aPropTag, false);
 }
 SOAP_ENTRY_END()
 
@@ -3665,16 +3654,14 @@ SOAP_ENTRY_START(tableQueryColumns, lpsResponse->er, unsigned int ulTableId, uns
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpTable->GetColumns(soap, ulFlags, &lpPropTags);
 
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpsResponse->sPropTagArray.__size = lpPropTags->__size;
 	lpsResponse->sPropTagArray.__ptr = lpPropTags->__ptr;
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -3687,16 +3674,13 @@ SOAP_ENTRY_START(tableRestrict, *result, unsigned int ulTableId, struct restrict
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if (!bSupportUnicode) {
 		er = FixRestrictionEncoding(soap, stringCompat, In, lpsRestrict);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-	er = lpTable->Restrict(lpsRestrict);
- exit: ;
+	return lpTable->Restrict(lpsRestrict);
 }
 SOAP_ENTRY_END()
 
@@ -3707,16 +3691,12 @@ SOAP_ENTRY_START(tableSort, *result, unsigned int ulTableId, struct sortOrderArr
 {
 	object_ptr<ECGenericObjectTable> lpTable;
 
-	if(lpSortOrder == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpSortOrder == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpTable->SetSortOrder(lpSortOrder, ulCategories, ulExpanded);
- exit: ;
+		return er;
+	return lpTable->SetSortOrder(lpSortOrder, ulCategories, ulExpanded);
 }
 SOAP_ENTRY_END()
 
@@ -3734,23 +3714,22 @@ SOAP_ENTRY_START(tableQueryRows, lpsResponse->er, unsigned int ulTableId, unsign
 	// Get the table
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// FIXME: Check permission
 
 	er = lpTable->QueryRows(soap, ulRowCount, ulFlags, &lpRowSet);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if (!bSupportUnicode) {
 		er = FixRowSetEncoding(soap, stringCompat, Out, lpRowSet);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	lpsResponse->sRowSet.__ptr = lpRowSet->__ptr;
 	lpsResponse->sRowSet.__size = lpRowSet->__size;
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -3764,10 +3743,8 @@ SOAP_ENTRY_START(tableGetRowCount, lpsResponse->er, unsigned int ulTableId, stru
 	//FIXME: security? give rowcount 0 is failed ?
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpTable->GetRowCount(&lpsResponse->ulCount, &lpsResponse->ulRow);
- exit: ;
+		return er;
+	return lpTable->GetRowCount(&lpsResponse->ulCount, &lpsResponse->ulRow);
 }
 SOAP_ENTRY_END()
 
@@ -3780,10 +3757,8 @@ SOAP_ENTRY_START(tableSeekRow, lpsResponse->er, unsigned int ulTableId , unsigne
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpTable->SeekRow(ulBookmark, lRows, &lpsResponse->lRowsSought);
- exit: ;
+		return er;
+	return lpTable->SeekRow(ulBookmark, lRows, &lpsResponse->lRowsSought);
 }
 SOAP_ENTRY_END()
 
@@ -3796,16 +3771,13 @@ SOAP_ENTRY_START(tableFindRow, *result, unsigned int ulTableId ,unsigned int ulB
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if (!bSupportUnicode) {
 		er = FixRestrictionEncoding(soap, stringCompat, In, lpsRestrict);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-	er = lpTable->FindRow(lpsRestrict, ulBookmark, ulFlags);
- exit: ;
+	return lpTable->FindRow(lpsRestrict, ulBookmark, ulFlags);
 }
 SOAP_ENTRY_END()
 
@@ -3819,14 +3791,12 @@ SOAP_ENTRY_START(tableCreateBookmark, lpsResponse->er, unsigned int ulTableId, s
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpTable->CreateBookmark(&ulbkPosition);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpsResponse->ulbkPosition = ulbkPosition;
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -3839,12 +3809,8 @@ SOAP_ENTRY_START(tableFreeBookmark, *result, unsigned int ulTableId, unsigned in
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpTable->FreeBookmark(ulbkPosition);
-	if(er != erSuccess)
-		goto exit;
- exit: ;
+		return er;
+	return lpTable->FreeBookmark(ulbkPosition);
 }
 SOAP_ENTRY_END()
 
@@ -3856,21 +3822,19 @@ SOAP_ENTRY_START(tableExpandRow, lpsResponse->er, unsigned int ulTableId, xsd__b
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpTable->ExpandRow(soap, sInstanceKey, ulRowCount, ulFlags, &lpRowSet, &ulMoreRows);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if (!bSupportUnicode) {
 		er = FixRowSetEncoding(soap, stringCompat, Out, lpRowSet);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
     lpsResponse->ulMoreRows = ulMoreRows;
     lpsResponse->rowSet = *lpRowSet;
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -3881,14 +3845,12 @@ SOAP_ENTRY_START(tableCollapseRow, lpsResponse->er, unsigned int ulTableId, xsd_
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpTable->CollapseRow(sInstanceKey, ulFlags, &ulRows);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
     lpsResponse->ulRows = ulRows;
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -3898,12 +3860,8 @@ SOAP_ENTRY_START(tableGetCollapseState, lpsResponse->er, unsigned int ulTableId,
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
     if(er != erSuccess)
-        goto exit;
-
-    er = lpTable->GetCollapseState(soap, sBookmark, &lpsResponse->sCollapseState);
-    if(er != erSuccess)
-        goto exit;
- exit: ;
+		return er;
+	return lpTable->GetCollapseState(soap, sBookmark, &lpsResponse->sCollapseState);
 }
 SOAP_ENTRY_END()
 
@@ -3913,12 +3871,8 @@ SOAP_ENTRY_START(tableSetCollapseState, lpsResponse->er, unsigned int ulTableId,
 
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
     if(er != erSuccess)
-        goto exit;
-
-    er = lpTable->SetCollapseState(sCollapseState, &lpsResponse->ulBookmark);
-    if(er != erSuccess)
-        goto exit;
- exit: ;
+		return er;
+	return lpTable->SetCollapseState(sCollapseState, &lpsResponse->ulBookmark);
 }
 SOAP_ENTRY_END()
 
@@ -3931,28 +3885,19 @@ SOAP_ENTRY_START(tableSetMultiStoreEntryIDs, *result, unsigned int ulTableId, st
 	ECMultiStoreTable		*lpMultiStoreTable = NULL;
 	ECListInt	lObjectList;
 
-	if(lpEntryList == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpEntryList == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// ignore errors
 	g_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(lpEntryList, &lObjectList);
 
 	lpMultiStoreTable = dynamic_cast<ECMultiStoreTable *>(lpTable.get());
-	if (!lpMultiStoreTable) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	er = lpMultiStoreTable->SetEntryIDs(&lObjectList);
-	if(er != erSuccess)
-	    goto exit;
- exit: ;
+	if (lpMultiStoreTable == nullptr)
+		return KCERR_INVALID_PARAMETER;
+	return lpMultiStoreTable->SetEntryIDs(&lObjectList);
 }
 SOAP_ENTRY_END()
 
