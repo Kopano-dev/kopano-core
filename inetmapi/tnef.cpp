@@ -1426,7 +1426,11 @@ HRESULT ECTNEF::Finish()
 				return hr;
 				
 			sProp.ulPropTag = PR_ATTACH_METHOD;
-			sProp.Value.ul = att->rdata.usType == AttachTypeOle ? ATTACH_OLE : att->lstProps.empty() ? ATTACH_BY_VALUE : ATTACH_EMBEDDED_MSG;
+			if (att->rdata.usType == AttachTypeOle)
+				sProp.Value.ul = ATTACH_OLE;
+			else
+				sProp.Value.ul = ATTACH_BY_VALUE;
+
 			lpAttach->SetProps(1, &sProp, NULL);
 
 			sProp.ulPropTag = PR_RENDERING_POSITION;
