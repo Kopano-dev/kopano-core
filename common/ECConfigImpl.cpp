@@ -18,6 +18,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <memory>
+#include <mutex>
 #include <utility>
 #include <cerrno>
 #include <climits>
@@ -27,6 +28,7 @@
 #include <algorithm>
 #include <cassert>
 #include <sys/stat.h>
+#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include "ECConfigImpl.h"
@@ -50,7 +52,6 @@ ECConfigImpl::ECConfigImpl(const configsetting_t *lpDefaults,
     const char *const *lpszDirectives) :
 	m_lpDefaults(lpDefaults)
 {
-	pthread_rwlock_init(&m_settingsRWLock, NULL);
 	// allowed directives in this config object
 	for (int i = 0; lpszDirectives != NULL && lpszDirectives[i] != NULL; ++i)
 		m_lDirectives.push_back(lpszDirectives[i]);
@@ -167,14 +168,9 @@ void ECConfigImpl::CleanupMap(settingmap_t *lpMap)
 
 ECConfigImpl::~ECConfigImpl()
 {
-	pthread_rwlock_wrlock(&m_settingsRWLock);
-
+	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
 	CleanupMap(&m_mapSettings);
 	CleanupMap(&m_mapAliases);
-
-	pthread_rwlock_unlock(&m_settingsRWLock);
-
-	pthread_rwlock_destroy(&m_settingsRWLock);
 }
 
 /** 
@@ -249,12 +245,11 @@ const char *ECConfigImpl::GetMapEntry(const settingmap_t *lpMap,
 		return NULL;
 
 	strcpy(key.s, szName);
-	pthread_rwlock_rdlock(&m_settingsRWLock);
 
+	KC::shared_lock<KC::shared_mutex> lset(m_settingsRWLock);
 	auto itor = lpMap->find(key);
 	if (itor != lpMap->cend())
 		retval = itor->second;
-	pthread_rwlock_unlock(&m_settingsRWLock);
 	return retval;
 }
 
@@ -545,7 +540,6 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 	settingkey_t s;
 	char *valid = NULL;
 	const char *szAlias = NULL;
-	bool bReturnValue = true;
 
 	if (!CopyConfigSetting(lpsConfig, &s))
 		return false;
@@ -558,33 +552,28 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 		kc_strlcpy(s.s, szAlias, sizeof(s.s));
 	}
 
-	pthread_rwlock_wrlock(&m_settingsRWLock);
-
+	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
 	iterSettings = m_mapSettings.find(s);
 
 	if (iterSettings == m_mapSettings.cend()) {
 		// new items from file are illegal, add error
 		if (!(ulFlags & LOADSETTING_UNKNOWN)) {
 			errors.push_back("Unknown option '" + string(lpsConfig->szName) + "' found!");
-			goto exit;
+			return true;
 		}
 	} else {
 		// Check for permissions before overwriting
 		if (ulFlags & LOADSETTING_OVERWRITE_GROUP) {
 			if (iterSettings->first.ulGroup != lpsConfig->ulGroup) {
 				errors.push_back("option '" + string(lpsConfig->szName) + "' cannot be overridden (different group)!");
-				bReturnValue = false;
-				goto exit;
+				return false;
 			}
 		} else if (ulFlags & LOADSETTING_OVERWRITE_RELOAD) {
-			if (!(iterSettings->first.ulFlags & CONFIGSETTING_RELOADABLE)) {
-				bReturnValue = false;
-				goto exit;
-			}
+			if (!(iterSettings->first.ulFlags & CONFIGSETTING_RELOADABLE))
+				return false;
 		} else if (!(ulFlags & LOADSETTING_OVERWRITE)) {
 			errors.push_back("option '" + string(lpsConfig->szName) + "' cannot be overridden!");
-			bReturnValue = false;
-			goto exit;
+			return false;
 		}
 
 		if (!(ulFlags & LOADSETTING_INITIALIZING) &&
@@ -611,28 +600,22 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 			strtoul(szValue, &valid, 10);
 			if (valid == szValue) {
 				errors.push_back("Option '" + string(lpsConfig->szName) + "' must be a size value (number + optional k/m/g multiplier).");
-				bReturnValue = false;
-				goto exit;
+				return false;
 			}
 		}
 
 		InsertOrReplace(&m_mapSettings, s, szValue, lpsConfig->ulFlags & CONFIGSETTING_SIZE);
-	} else {
-		if (s.ulFlags & CONFIGSETTING_SIZE) {
-			strtoul(lpsConfig->szValue, &valid, 10);
-			if (valid == lpsConfig->szValue) {
-				errors.push_back("Option '" + string(lpsConfig->szName) + "' must be a size value (number + optional k/m/g multiplier).");
-				bReturnValue = false;
-				goto exit;
-			}
-		}
-
-		InsertOrReplace(&m_mapSettings, s, lpsConfig->szValue, s.ulFlags & CONFIGSETTING_SIZE);
+		return true;
 	}
-
-exit:
-	pthread_rwlock_unlock(&m_settingsRWLock);
-	return bReturnValue;
+	if (s.ulFlags & CONFIGSETTING_SIZE) {
+		strtoul(lpsConfig->szValue, &valid, 10);
+		if (valid == lpsConfig->szValue) {
+			errors.push_back("Option '" + string(lpsConfig->szName) + "' must be a size value (number + optional k/m/g multiplier).");
+			return false;
+		}
+	}
+	InsertOrReplace(&m_mapSettings, s, lpsConfig->szValue, s.ulFlags & CONFIGSETTING_SIZE);
+	return true;
 }
 
 void ECConfigImpl::AddAlias(const configsetting_t *lpsAlias)
@@ -642,9 +625,8 @@ void ECConfigImpl::AddAlias(const configsetting_t *lpsAlias)
 	if (!CopyConfigSetting(lpsAlias, &s))
 		return;
 
-	pthread_rwlock_wrlock(&m_settingsRWLock);
+	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
 	InsertOrReplace(&m_mapAliases, s, lpsAlias->szValue, false);
-	pthread_rwlock_unlock(&m_settingsRWLock);
 }
 
 bool ECConfigImpl::HasWarnings() {
@@ -653,15 +635,12 @@ bool ECConfigImpl::HasWarnings() {
 
 bool ECConfigImpl::HasErrors() {
 	/* First validate the configuration settings */
-	pthread_rwlock_rdlock(&m_settingsRWLock);
+	KC::shared_lock<KC::shared_mutex> lset(m_settingsRWLock);
 
 	for (const auto &s : m_mapSettings)
 		if (s.first.ulFlags & CONFIGSETTING_NONEMPTY)
 			if (!s.second || strlen(s.second) == 0)
 				errors.push_back("Option '" + string(s.first.s) + "' cannot be empty!");
-	
-	pthread_rwlock_unlock(&m_settingsRWLock);
-
 	return !errors.empty();
 }
 

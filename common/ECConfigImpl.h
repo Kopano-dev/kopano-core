@@ -32,6 +32,7 @@ using namespace std;
 #include <pthread.h>
 #include <iostream>
 #include <fstream>
+#include <kopano/lockhelper.hpp>
 
 namespace KC {
 
@@ -116,8 +117,7 @@ private:
 	std::list<std::string>	m_lDirectives;
 
 	/* m_mapSettings & m_mapAliases are protected by m_settingsLock */
-	pthread_rwlock_t m_settingsRWLock;
-
+	KC::shared_mutex m_settingsRWLock;
 	settingmap_t			m_mapSettings;
 	settingmap_t			m_mapAliases;
 	std::list<std::string>	warnings;

@@ -28,6 +28,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <string>
+#include <kopano/lockhelper.hpp>
 
 #ifndef __LIKE_PRINTF
 #define __LIKE_PRINTF(_fmt, _va)
@@ -223,9 +224,8 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 		typedef int(*fileno_func)(handle_type);
 		typedef int(*flush_func)(handle_type);
 
+		KC::shared_mutex handle_lock, dupfilter_lock;
 		handle_type log;
-		pthread_rwlock_t handle_lock;
-
 		std::string logname;
 		bool timestamp;
 		size_t buffer_size;
@@ -236,7 +236,6 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 		fileno_func fnFileno;
 		const char *szMode;
 
-		pthread_rwlock_t dupfilter_lock;
 		int prevcount;
 		std::string prevmsg;
 		unsigned int prevloglevel;

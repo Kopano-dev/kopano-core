@@ -16,6 +16,7 @@
 #include <kopano/platform.h>
 #include <chrono>
 #include <memory>
+#include <mutex>
 #include <new>
 #include <utility>
 #include <pthread.h>
@@ -53,9 +54,6 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	if (m_lpAudit)
 		m_lpAudit->AddRef();
 
-	// Create a rwlock with no initial owner.
-	pthread_rwlock_init(&m_hCacheRWLock, NULL);
-	pthread_rwlock_init(&m_hGroupLock, NULL);
 	m_lpDatabaseFactory = new ECDatabaseFactory(lpConfig);
 	m_lpPluginFactory = new ECPluginFactory(lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano);
 	m_lpECCacheManager = new ECCacheManager(lpConfig, m_lpDatabaseFactory);
@@ -90,9 +88,8 @@ ECSessionManager::~ECSessionManager()
 	if (err != 0)
 		ec_log_crit("Unable to join session cleaner thread: %s", strerror(err));
 
-	pthread_rwlock_wrlock(&m_hCacheRWLock);
-			
 	/* Clean up all sessions */
+	std::lock_guard<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	auto iSession = m_mapSessions.begin();
 	while (iSession != m_mapSessions.cend()) {
 		delete iSession->second;
@@ -116,10 +113,6 @@ ECSessionManager::~ECSessionManager()
 	delete m_lpServerGuid;
 	if (m_lpAudit != NULL)
 		m_lpAudit->Release();
-
-	pthread_rwlock_unlock(&m_hCacheRWLock);
-	pthread_rwlock_destroy(&m_hCacheRWLock);
-	pthread_rwlock_destroy(&m_hGroupLock);
 }
 
 ECRESULT ECSessionManager::LoadSettings(){
@@ -224,8 +217,8 @@ ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sessionGroupID, ECSe
 {
 	ECRESULT er = erSuccess;
 	ECSessionGroup *lpSessionGroup = NULL;
-
-	pthread_rwlock_rdlock(&m_hGroupLock);
+	KC::shared_lock<KC::shared_mutex> lr_group(m_hGroupLock);
+	std::unique_lock<KC::shared_mutex> lw_group(m_hGroupLock, std::defer_lock_t());
 
 	/* Workaround for old clients, when sessionGroupID is 0 each session is its own group */
 	if (sessionGroupID == 0) {
@@ -236,8 +229,8 @@ ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sessionGroupID, ECSe
 		/* Check if the SessionGroup already exists on the server */
 		if (iter == m_mapSessionGroups.cend()) {
 			// "upgrade" lock to insert new session
-			pthread_rwlock_unlock(&m_hGroupLock);
-			pthread_rwlock_wrlock(&m_hGroupLock);
+			lr_group.unlock();
+			lw_group.lock();
 			lpSessionGroup = new ECSessionGroup(sessionGroupID, this);
 			m_mapSessionGroups.insert(EC_SESSIONGROUPMAP::value_type(sessionGroupID, lpSessionGroup));
 			g_lpStatsCollector->Increment(SCN_SESSIONGROUPS_CREATED);
@@ -246,9 +239,6 @@ ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sessionGroupID, ECSe
 	}
 	
 	lpSessionGroup->AddSession(lpSession);
-
-	pthread_rwlock_unlock(&m_hGroupLock);
-
 	*lppSessionGroup = lpSessionGroup;
 
 	return er;
@@ -260,22 +250,18 @@ ECRESULT ECSessionManager::DeleteIfOrphaned(ECSessionGroup *lpGroup)
 	ECSESSIONGROUPID id = lpGroup->GetSessionGroupId();
 
 	if (id != 0) {
-		pthread_rwlock_wrlock(&m_hGroupLock);
+		std::lock_guard<KC::shared_mutex> l_group(m_hGroupLock);
 
     	/* Check if the SessionGroup actually exists, if it doesn't just return without error */
 	auto i = m_mapSessionGroups.find(id);
-    	if (i == m_mapSessionGroups.cend()) {
-			pthread_rwlock_unlock(&m_hGroupLock);
+		if (i == m_mapSessionGroups.cend())
 			return erSuccess;
-    	}
 
     	/* If this was the last Session, delete the SessionGroup */
     	if (i->second->isOrphan()) {
     	    lpSessionGroup = i->second;
     	    m_mapSessionGroups.erase(i);
     	}
-
-		pthread_rwlock_unlock(&m_hGroupLock);
 	} else
 		lpSessionGroup = lpGroup;
 
@@ -311,8 +297,7 @@ ECRESULT ECSessionManager::RemoveAllSessions()
 	std::list<BTSession *> lstSessions;
 	
 	// Lock the session map since we're going to remove all the sessions.
-	pthread_rwlock_wrlock(&m_hCacheRWLock);
-
+	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	ec_log_info("Shutdown all current sessions");
 
 	auto iIterSession = m_mapSessions.begin();
@@ -327,9 +312,7 @@ ECRESULT ECSessionManager::RemoveAllSessions()
 		lstSessions.push_back(lpSession);
 	}
 
-	// Release ownership of the mutex object.
-	pthread_rwlock_unlock(&m_hCacheRWLock);
-	
+	l_cache.unlock();
 	// Do the actual session deletes, while the session map is not locked (!)
 	for (auto sesp : lstSessions)
 		delete sesp;
@@ -343,8 +326,7 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 	std::list<BTSession *> lstSessions;
 	
 	// Lock the session map since we're going to remove all the sessions.
-	pthread_rwlock_wrlock(&m_hCacheRWLock);
-
+	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	ec_log_info("Shutdown all current sessions");
 
 	auto iIterSession = m_mapSessions.begin();
@@ -363,9 +345,7 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 		lstSessions.push_back(lpSession);
 	}
 
-	// Release ownership of the mutex object.
-	pthread_rwlock_unlock(&m_hCacheRWLock);
-	
+	l_cache.unlock();
 	// Do the actual session deletes, while the session map is not locked (!)
 	for (auto sesp : lstSessions)
 		delete sesp;
@@ -376,7 +356,7 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 // used by ECStatsTable
 ECRESULT ECSessionManager::ForEachSession(void(*callback)(ECSession*, void*), void *obj)
 {
-	scoped_shared_rwlock lk(m_hCacheRWLock);
+	KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	for (const auto &p : m_mapSessions)
 		callback(dynamic_cast<ECSession *>(p.second), obj);
 	return erSuccess;
@@ -435,11 +415,9 @@ ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap, ECSESSIONID sess
 	BTSession*		lpSession	= NULL;
 	
 	// Read lock
-	pthread_rwlock_rdlock(&m_hCacheRWLock);
-	
+	KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	lpSession = GetSession(sessionID, fLockSession);
-	
-	pthread_rwlock_unlock(&m_hCacheRWLock);
+	l_cache.unlock();
 
 	if (lpSession == NULL)
 		return KCERR_END_OF_SESSION;
@@ -483,9 +461,9 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 	if (bLockSession)
 	        lpAuthSession->Lock();
 	if (bRegisterSession) {
-		pthread_rwlock_wrlock(&m_hCacheRWLock);
+		std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 		m_mapSessions.insert( SESSIONMAP::value_type(newSessionID, lpAuthSession) );
-		pthread_rwlock_unlock(&m_hCacheRWLock);
+		l_cache.unlock();
 		g_lpStatsCollector->Increment(SCN_SESSIONS_CREATED);
 	}
 
@@ -607,10 +585,9 @@ ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
 	if (fLockSession)
 		lpSession->Lock();
 
-	pthread_rwlock_wrlock(&m_hCacheRWLock);
+	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	m_mapSessions.insert( SESSIONMAP::value_type(newSID, lpSession) );
-	pthread_rwlock_unlock(&m_hCacheRWLock);
-
+	l_cache.unlock();
 	*lpSessionID = std::move(newSID);
 	*lppSession = lpSession;
 
@@ -665,7 +642,7 @@ ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
 	g_lpStatsCollector->Increment(SCN_SESSIONS_DELETED);
 
 	// Make sure no other thread can read or write the sessions list
-	pthread_rwlock_wrlock(&m_hCacheRWLock);
+	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 
 	// Get a session, don't lock it ourselves
 	lpSession = GetSession(sessionID, false);
@@ -673,9 +650,7 @@ ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
 	// Remove the session from the list. No other threads can start new
 	// requests on the session after this point
 	m_mapSessions.erase(sessionID);
-
-	// Release the mutex, other threads can now access the (updated) sessions list
-	pthread_rwlock_unlock(&m_hCacheRWLock);
+	l_cache.unlock();
 
 	// We know for sure that no other thread is attempting to remove the session
 	// at this time because it would not have been in the m_mapSessions map
@@ -732,7 +707,7 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 
 	// Send each subscribed session group one notification
 	for (const auto &grp : setGroups) {
-		scoped_shared_rwlock grplk(m_hGroupLock);
+		KC::shared_lock<KC::shared_mutex> grplk(m_hGroupLock);
 		auto iIterator = m_mapSessionGroups.find(grp);
 		if (iIterator != m_mapSessionGroups.cend())
 			iIterator->second->AddNotification(notifyItem, ulKey, ulStore);
@@ -787,8 +762,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		ec_log_err("GTLD failed in SessionCleaner");
 
 	while(true){
-		pthread_rwlock_wrlock(&lpSessionManager->m_hCacheRWLock);
-
+		std::unique_lock<KC::shared_mutex> l_cache(lpSessionManager->m_hCacheRWLock);
 		lCurTime = GetProcessTime();
 		
 		// Find a session that has timed out
@@ -811,7 +785,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		}
 
 		// Release ownership of the rwlock object. This makes sure all threads are free to run (and exit).
-		pthread_rwlock_unlock(&lpSessionManager->m_hCacheRWLock);
+		l_cache.unlock();
 
 		// Now, remove all the session. It will wait until all running threads for that session have exited.
 		for (const auto ses : lstSessions) {
@@ -901,9 +875,9 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
     // For each of the sessions that are interested, send the table change
 	for (const auto &ses : setSessions) {
 		// Get session
-		pthread_rwlock_rdlock(&m_hCacheRWLock);
+		KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 		lpBTSession = GetSession(ses, true);
-		pthread_rwlock_unlock(&m_hCacheRWLock);
+		l_cache.unlock();
 	    
 	    // Send the change notification
 	    if(lpBTSession != NULL) {
@@ -1146,7 +1120,7 @@ exit:
 
 ECRESULT ECSessionManager::NotificationChange(const set<unsigned int> &syncIds, unsigned int ulChangeId, unsigned int ulChangeType)
 {
-	scoped_shared_rwlock grplk(m_hGroupLock);
+	KC::shared_lock<KC::shared_mutex> grplk(m_hGroupLock);
 
 	// Send the notification to all sessionsgroups so that any client listening for these
 	// notifications can receive them
@@ -1204,22 +1178,19 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	memset(&sStats, 0, sizeof(sSessionManagerStats));
 
 	// Get session data
-	pthread_rwlock_rdlock(&m_hCacheRWLock);
-
+	KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	sStats.session.ulItems = m_mapSessions.size();
 	sStats.session.ullSize = MEMORY_USAGE_MAP(sStats.session.ulItems, SESSIONMAP);
-
-	pthread_rwlock_unlock(&m_hCacheRWLock);
+	l_cache.unlock();
 
 	// Get group data
-	pthread_rwlock_rdlock(&m_hGroupLock);
-	
+	KC::shared_lock<KC::shared_mutex> l_group(m_hGroupLock);
 	sStats.group.ulItems = m_mapSessionGroups.size();
 	sStats.group.ullSize = MEMORY_USAGE_HASHMAP(sStats.group.ulItems, EC_SESSIONGROUPMAP);
 
 	for (const auto &psg : m_mapSessionGroups)
 		sStats.group.ullSize += psg.second->GetObjectSize();
-	pthread_rwlock_unlock(&m_hGroupLock);
+	l_group.unlock();
 
 	// persistent connections/sessions
 	ulock_normal l_per(m_mutexPersistent);
@@ -1584,12 +1555,9 @@ ECRESULT ECSessionManager::RemoveBusyState(ECSESSIONID ecSessionId, pthread_t th
 	BTSession *lpSession = NULL;
 	ECSession *lpECSession = NULL;
 	
-	pthread_rwlock_rdlock(&m_hCacheRWLock);
-	
+	KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	lpSession = GetSession(ecSessionId, true);
-
-	pthread_rwlock_unlock(&m_hCacheRWLock);
-
+	l_cache.unlock();
 	if(!lpSession)
 		goto exit;
 		

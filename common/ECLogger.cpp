@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
 #include <kopano/lockhelper.hpp>
+#include <mutex>
 #include <cassert>
 #include <clocale>
 #include <pthread.h>
@@ -191,27 +192,19 @@ ECLogger_File::ECLogger_File(const unsigned int max_ll, const bool add_timestamp
 	// read/write is for the handle, not the f*-calls
 	// so read is because we're only reading the handle ('log')
 	// so only Reset() will do a write-lock
-	pthread_rwlock_init(&handle_lock, NULL);
-
 	prevcount = 0;
 	prevmsg.clear();
 	prevloglevel = 0;
-	pthread_rwlock_init(&dupfilter_lock, NULL);
 }
 
 ECLogger_File::~ECLogger_File() {
 	// not required at this stage but only added here for consistency
-	pthread_rwlock_rdlock(&handle_lock);
+	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
 
 	if (prevcount > 1)
 		fnPrintf(log, "%sPrevious message logged %d times\n", DoPrefix().c_str(), prevcount);
 	if (log && fnClose)
 		fnClose(log);
-
-	pthread_rwlock_unlock(&handle_lock);
-
-	pthread_rwlock_destroy(&handle_lock);
-	pthread_rwlock_destroy(&dupfilter_lock);
 }
 
 void ECLogger_File::init_for_stderr(void)
@@ -253,30 +246,22 @@ void ECLogger_File::reinit_buffer(size_t size)
 }
 
 void ECLogger_File::Reset() {
-	pthread_rwlock_wrlock(&handle_lock);
+	std::lock_guard<KC::shared_mutex> lh(handle_lock);
 
-	if (log != stderr && fnClose && fnOpen) {
-		if (log)
-			fnClose(log);
-
-		log = fnOpen(logname.c_str(), szMode);
-		reinit_buffer(buffer_size);
-	}
-
-	pthread_rwlock_unlock(&handle_lock);
+	if (log == stderr || fnClose == nullptr || fnOpen == nullptr)
+		return;
+	if (log)
+		fnClose(log);
+	log = fnOpen(logname.c_str(), szMode);
+	reinit_buffer(buffer_size);
 }
 
 int ECLogger_File::GetFileDescriptor() {
-	int fd = -1;
-
-	pthread_rwlock_rdlock(&handle_lock);
+	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
 
 	if (log && fnFileno)
-		fd = fnFileno(log);
-
-	pthread_rwlock_unlock(&handle_lock);
-
-	return fd;
+		return fnFileno(log);
+	return -1;
 }
 
 std::string ECLogger_File::EmitLevel(const unsigned int loglevel) {
@@ -328,54 +313,47 @@ bool ECLogger_File::IsStdErr() {
 
 bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &message) {
 	bool exit_with_true = false;
-
-	pthread_rwlock_rdlock(&dupfilter_lock);
+	KC::shared_lock<KC::shared_mutex> lr_dup(dupfilter_lock);
 	if (prevmsg == message) {
 		++prevcount;
 
 		if (prevcount < 100)
 			exit_with_true = true;
 	}
-	pthread_rwlock_unlock(&dupfilter_lock);
+	lr_dup.unlock();
 
 	if (exit_with_true)
 		return true;
 
 	if (prevcount > 1) {
-		pthread_rwlock_rdlock(&handle_lock);
+		KC::shared_lock<KC::shared_mutex> lr_handle(handle_lock);
 		fnPrintf(log, "%s%sPrevious message logged %d times\n", DoPrefix().c_str(), EmitLevel(prevloglevel).c_str(), prevcount);
-		pthread_rwlock_unlock(&handle_lock);
 	}
 
-	pthread_rwlock_wrlock(&dupfilter_lock);
+	std::lock_guard<KC::shared_mutex> lw_dup(dupfilter_lock);
 	prevloglevel = loglevel;
 	prevmsg = message;
 	prevcount = 0;
-	pthread_rwlock_unlock(&dupfilter_lock);
-
 	return false;
 }
 
 void ECLogger_File::Log(unsigned int loglevel, const string &message) {
 	if (!ECLogger::Log(loglevel))
 		return;
+	if (DupFilter(loglevel, message))
+		return;
 
-	if (!DupFilter(loglevel, message)) {
-		pthread_rwlock_rdlock(&handle_lock);
-
-		if (log) {
-			fnPrintf(log, "%s%s%s\n", DoPrefix().c_str(), EmitLevel(loglevel).c_str(), message.c_str());
-			/*
-			 * If IOLBF was set (buffer_size==0), the previous
-			 * print call already flushed it. Do not flush again
-			 * in that case.
-			 */
-			if (buffer_size > 0 && (loglevel <= EC_LOGLEVEL_WARNING || loglevel == EC_LOGLEVEL_ALWAYS))
-				fflush((FILE *)log);
-		}
-
-		pthread_rwlock_unlock(&handle_lock);
-	}
+	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
+	if (log == nullptr)
+		return;
+	fnPrintf(log, "%s%s%s\n", DoPrefix().c_str(), EmitLevel(loglevel).c_str(), message.c_str());
+	/*
+	 * If IOLBF was set (buffer_size==0), the previous
+	 * print call already flushed it. Do not flush again
+	 * in that case.
+	 */
+	if (buffer_size > 0 && (loglevel <= EC_LOGLEVEL_WARNING || loglevel == EC_LOGLEVEL_ALWAYS))
+		fflush((FILE *)log);
 }
 
 void ECLogger_File::Log(unsigned int loglevel, const char *format, ...) {
