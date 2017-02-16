@@ -6030,13 +6030,11 @@ SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse 
 	entryId			sAdminEid = {0};
 	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 
-	if (!g_lpSessionManager->IsHostedSupported()) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
+	if (!g_lpSessionManager->IsHostedSupported())
+		return KCERR_NO_SUPPORT;
 	er = lpecSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsCompanyList->sCompanyArray.__size = 0;
 	lpsCompanyList->sCompanyArray.__ptr = s_alloc<company>(soap, lpCompanies->size());
@@ -6044,87 +6042,65 @@ SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse 
 		ulAdmin = com.GetPropInt(OB_PROP_I_SYSADMIN);
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulAdmin);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		er = GetABEntryID(com.ulId, soap, &sCompanyEid);
 		if (er != erSuccess)
-			goto exit;
-			
+			return er;
 		er = GetABEntryID(ulAdmin, soap, &sAdminEid);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		er = CopyCompanyDetailsToSoap(com.ulId, &sCompanyEid,
 		     ulAdmin, &sAdminEid, com,
 		     lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON,
 		     soap, &lpsCompanyList->sCompanyArray.__ptr[lpsCompanyList->sCompanyArray.__size]);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		if (!bSupportUnicode) {
 			er = FixCompanyEncoding(soap, stringCompat, Out, lpsCompanyList->sCompanyArray.__ptr + lpsCompanyList->sCompanyArray.__size);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 		++lpsCompanyList->sCompanyArray.__size;
 	}
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(addCompanyToRemoteViewList, *result, unsigned int ulSetCompanyId, entryId sSetCompanyId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result)
 {
-	if (!g_lpSessionManager->IsHostedSupported()) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
-
+	if (!g_lpSessionManager->IsHostedSupported())
+		return KCERR_NO_SUPPORT;
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(ulCompanyId);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetLocalId(sSetCompanyId, ulSetCompanyId, &ulSetCompanyId, NULL);
 	if (er != erSuccess)
-		goto exit;
-
-	er = lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, ulSetCompanyId);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	;
+		return er;
+	return lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, ulSetCompanyId);
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(delCompanyFromRemoteViewList, *result, unsigned int ulSetCompanyId, entryId sSetCompanyId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result)
 {
-	if (!g_lpSessionManager->IsHostedSupported()) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
-
+	if (!g_lpSessionManager->IsHostedSupported())
+		return KCERR_NO_SUPPORT;
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(ulCompanyId);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetLocalId(sSetCompanyId, ulSetCompanyId, &ulSetCompanyId, NULL);
 	if (er != erSuccess)
-		goto exit;
-
-	er = lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, ulSetCompanyId);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	;
+		return er;
+	return lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, ulSetCompanyId);
 }
 SOAP_ENTRY_END()
 
@@ -6135,14 +6111,11 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 	entryId			sAdminEid = {0};
 	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 
-	if (!g_lpSessionManager->IsHostedSupported()) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
-
+	if (!g_lpSessionManager->IsHostedSupported())
+		return KCERR_NO_SUPPORT;
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
@@ -6151,10 +6124,10 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 	else
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, &unique_tie(lpCompanies));
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsCompanyList->sCompanyArray.__size = 0;
 	lpsCompanyList->sCompanyArray.__ptr = s_alloc<company>(soap, lpCompanies->size());
@@ -6165,87 +6138,65 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 		ulAdmin = com.GetPropInt(OB_PROP_I_SYSADMIN);
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulAdmin);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		er = GetABEntryID(com.ulId, soap, &sCompanyEid);
 		if (er != erSuccess)
-			goto exit;
-			
+			return er;
 		er = GetABEntryID(ulAdmin, soap, &sAdminEid);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		er = CopyCompanyDetailsToSoap(com.ulId, &sCompanyEid,
 		     ulAdmin, &sAdminEid, com,
 		     lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON,
 		     soap, &lpsCompanyList->sCompanyArray.__ptr[lpsCompanyList->sCompanyArray.__size]);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		if (!bSupportUnicode) {
 			er = FixCompanyEncoding(soap, stringCompat, Out, lpsCompanyList->sCompanyArray.__ptr + lpsCompanyList->sCompanyArray.__size);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 		++lpsCompanyList->sCompanyArray.__size;
 	}
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(addUserToRemoteAdminList, *result, unsigned int ulUserId, entryId sUserId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result)
 {
-	if (!g_lpSessionManager->IsHostedSupported()) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
-
+	if (!g_lpSessionManager->IsHostedSupported())
+		return KCERR_NO_SUPPORT;
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(ulCompanyId);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
-		goto exit;
-
-	er = lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_COMPANY_ADMIN, ulCompanyId, ulUserId);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	;
+		return er;
+	return lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_COMPANY_ADMIN, ulCompanyId, ulUserId);
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(delUserFromRemoteAdminList, *result, unsigned int ulUserId, entryId sUserId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result)
 {
-	if (!g_lpSessionManager->IsHostedSupported()) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
-
+	if (!g_lpSessionManager->IsHostedSupported())
+		return KCERR_NO_SUPPORT;
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(ulCompanyId);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
-		goto exit;
-
-	er = lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_COMPANY_ADMIN, ulCompanyId, ulUserId);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	;
+		return er;
+	return lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_COMPANY_ADMIN, ulCompanyId, ulUserId);
 }
 SOAP_ENTRY_END()
 
@@ -6254,14 +6205,11 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
 	entryId		sUserEid = {0};
 
-	if (!g_lpSessionManager->IsHostedSupported()) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
-
+	if (!g_lpSessionManager->IsHostedSupported())
+		return KCERR_NO_SUPPORT;
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
@@ -6270,12 +6218,12 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 	else
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// only users can be admins, nonactive users make no sense.
 	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN, ulCompanyId, &unique_tie(lpUsers));
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsUserList->sUserArray.__size = 0;
 	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, lpUsers->size());
@@ -6284,12 +6232,12 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 			continue;
 		er = GetABEntryID(user.ulId, soap, &sUserEid);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		er = CopyUserDetailsToSoap(user.ulId, &sUserEid, user,
 		     lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON,
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		// 6.40.0 stores the object class in the IsNonActive field
 		if (lpecSession->ClientVersion() == ZARAFA_VERSION_6_40_0)
@@ -6298,7 +6246,7 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 		if (!bSupportUnicode) {
 			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 		++lpsUserList->sUserArray.__size;
 		if (sUserEid.__ptr)
@@ -6308,7 +6256,7 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 			sUserEid.__size = 0;
 		}
 	}
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
