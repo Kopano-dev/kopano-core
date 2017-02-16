@@ -8317,29 +8317,21 @@ SOAP_ENTRY_START(notify, *result, struct notification sNotification, unsigned in
 	// You are only allowed to send newmail notifications at the moment. This could currently
 	// only be misused to send other users new mail popup notification for e-mails that aren't
 	// new at all ...
-	if (sNotification.ulEventType != fnevNewMail) {
-	    er = KCERR_NO_ACCESS;
-	    goto exit;
-    }
-    
-    if (sNotification.newmail == NULL || sNotification.newmail->pParentId == NULL || sNotification.newmail->pEntryId == NULL) {
-        er = KCERR_INVALID_PARAMETER;
-        goto exit;
-    }
-
+	if (sNotification.ulEventType != fnevNewMail)
+		return KCERR_NO_ACCESS;
+    if (sNotification.newmail == nullptr ||
+        sNotification.newmail->pParentId == nullptr ||
+        sNotification.newmail->pEntryId == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	if (!bSupportUnicode && sNotification.newmail->lpszMessageClass != NULL)
 		sNotification.newmail->lpszMessageClass = STRIN_FIX(sNotification.newmail->lpszMessageClass);
 
 	er = lpecSession->GetObjectFromEntryId(sNotification.newmail->pParentId, &ulKey);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	sNotification.ulConnection = ulKey;
-
-	er = g_lpSessionManager->AddNotification(&sNotification, ulKey);
-
-exit:
-    ;
+	return g_lpSessionManager->AddNotification(&sNotification, ulKey);
 }
 SOAP_ENTRY_END()
 
@@ -8352,18 +8344,18 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er, entryId sStor
 
 	er = lpecSession->GetObjectFromEntryId(&sStoreId, &ulStoreid);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulStoreid, ecSecurityRead);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	strQuery = "SELECT objid, messageclass FROM receivefolder WHERE storeid="+stringify(ulStoreid);
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	ulRows = lpDatabase->GetNumRows(lpDBResult);
 
@@ -8374,9 +8366,8 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er, entryId sStor
 	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
 	{
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("getReceiveFolderTable(): row or col null");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsReceiveFolderTable->sFolderArray.__ptr[i].sEntryId);
@@ -8390,9 +8381,7 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er, entryId sStor
 	}
 
 	lpsReceiveFolderTable->sFolderArray.__size = i;
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -8400,19 +8389,13 @@ SOAP_ENTRY_START(deleteUser, *result, unsigned int ulUserId, entryId sUserId, un
 {
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserId);
 	if(er != erSuccess)
-		goto exit;
-
-    er = lpecSession->GetUserManagement()->DeleteObjectAndSync(ulUserId);
-    if(er != erSuccess)
-        goto exit;
-
-exit:
-    ;
+		return er;
+	return lpecSession->GetUserManagement()->DeleteObjectAndSync(ulUserId);
 }
 SOAP_ENTRY_END()
 
@@ -8841,23 +8824,22 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 
 	er = lpecSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = ABEntryIDToID(&sEntryId, &ulId, &sExternId, &ulTypeId);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// A v1 EntryID would return a non-empty extern id string.
 	if (!sExternId.id.empty())
 	{
 		er = lpecSession->GetSessionManager()->GetCacheManager()->GetUserObject(sExternId, &ulId, NULL, NULL);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if (ulTypeId == MAPI_ABCONT) {
 		lpProps = sPropsContainerRoot;
@@ -8866,8 +8848,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 		lpProps = sProps;
 		ulProps = arraySize(sProps);
 	} else {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 
 	/* Load the additional addressbook properties */
@@ -8925,11 +8906,11 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 	if (ulTypeId == MAPI_ABCONT) {
 		er = lpecSession->GetUserManagement()->GetContainerProps(soap, ulId, &ptaProps, &readPropsResponse->aPropVal);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	} else {
 		er = lpecSession->GetUserManagement()->GetProps(soap, ulId, &ptaProps, &readPropsResponse->aPropVal);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	/* Copy properties which have been correctly read to tag array */
@@ -8940,15 +8921,13 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 		if (!bSupportUnicode) {
 			er = FixPropEncoding(soap, stringCompat, Out, readPropsResponse->aPropVal.__ptr + i);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 
 		if(PROP_TYPE(readPropsResponse->aPropVal.__ptr[i].ulPropTag) != PT_ERROR)
 			readPropsResponse->aPropTag.__ptr[readPropsResponse->aPropTag.__size++] = readPropsResponse->aPropVal.__ptr[i].ulPropTag;
 	}
-
-exit:
-    ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -8998,7 +8977,7 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 	if (!bSupportUnicode) {
 		er = FixRowSetEncoding(soap, stringCompat, In, lpsRowSet);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
@@ -9039,21 +9018,19 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 		if(lpsABResolveNames->aFlags.__ptr[i] == MAPI_RESOLVED) {
 			er = lpecSession->GetUserManagement()->GetProps(soap, ulObjectId, lpaPropTag, &sPropValArrayDst);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 			er = MergePropValArray(soap, &lpsRowSet->__ptr[i], &sPropValArrayDst, &lpsABResolveNames->sRowSet.__ptr[i]);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 		}
 	}
 
 	if (!bSupportUnicode) {
 		er = FixRowSetEncoding(soap, stringCompat, Out, &lpsABResolveNames->sRowSet);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-    ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -9079,28 +9056,21 @@ SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId,
 
 	er = GetLocalId(sUserId, ulUserid, &ulUserid, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	if(lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserid) != erSuccess &&
 		(lpecSession->GetSecurity()->GetUserId() != ulUserid))
-	{
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
-
+		return KCERR_NO_ACCESS;
 	er = lpecSession->GetSecurity()->GetUserQuota(ulUserid, bGetUserDefault, &quotadetails);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	lpsQuota->sQuota.bUseDefaultQuota = quotadetails.bUseDefaultQuota;
 	lpsQuota->sQuota.bIsUserDefaultQuota = quotadetails.bIsUserDefaultQuota;
 	lpsQuota->sQuota.llHardSize = quotadetails.llHardSize;
 	lpsQuota->sQuota.llSoftSize = quotadetails.llSoftSize;
 	lpsQuota->sQuota.llWarnSize = quotadetails.llWarnSize;
-
-exit:
-    ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -9110,26 +9080,19 @@ SOAP_ENTRY_START(SetQuota, *result, unsigned int ulUserid, entryId sUserId, stru
 
 	er = GetLocalId(sUserId, ulUserid, &ulUserid, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	if(lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserid) != erSuccess &&
 		(lpecSession->GetSecurity()->GetUserId() != ulUserid))
-	{
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
+		return KCERR_NO_ACCESS;
 
 	quotadetails.bUseDefaultQuota = lpsQuota->bUseDefaultQuota;
 	quotadetails.bIsUserDefaultQuota = lpsQuota->bIsUserDefaultQuota;
 	quotadetails.llHardSize = lpsQuota->llHardSize;
 	quotadetails.llSoftSize = lpsQuota->llSoftSize;
 	quotadetails.llWarnSize = lpsQuota->llWarnSize;
-
-	er = lpecSession->GetUserManagement()->SetQuotaDetailsAndSync(ulUserid, quotadetails);
-
-exit:
-    ;
+	return lpecSession->GetUserManagement()->SetQuotaDetailsAndSync(ulUserid, quotadetails);
 }
 SOAP_ENTRY_END()
 
@@ -9137,26 +9100,19 @@ SOAP_ENTRY_START(AddQuotaRecipient, *result, unsigned int ulCompanyid, entryId s
 {
 	er = GetLocalId(sCompanyId, ulCompanyid, &ulCompanyid, NULL);
 	if (er != erSuccess)
-		goto exit;
-
-	if (lpecSession->GetSecurity()->IsAdminOverUserObject(ulCompanyid) != erSuccess) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
-
+		return er;
+	if (lpecSession->GetSecurity()->IsAdminOverUserObject(ulCompanyid) != erSuccess)
+		return KCERR_NO_ACCESS;
 	er = GetLocalId(sRecipientId, ulRecipientId, &ulRecipientId, NULL);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if (OBJECTCLASS_TYPE(ulType) == OBJECTTYPE_MAILUSER)
 		er = lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_QUOTA_USERRECIPIENT, ulCompanyid, ulRecipientId);
 	else if (ulType == CONTAINER_COMPANY)
 		er = lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_QUOTA_COMPANYRECIPIENT, ulCompanyid, ulRecipientId);
 	else
 		er = KCERR_INVALID_TYPE;
-
-exit:
-	;
+	return er;
 }
 SOAP_ENTRY_END()
 
@@ -9164,26 +9120,19 @@ SOAP_ENTRY_START(DeleteQuotaRecipient, *result, unsigned int ulCompanyid, entryI
 {
 	er = GetLocalId(sCompanyId, ulCompanyid, &ulCompanyid, NULL);
 	if (er != erSuccess)
-		goto exit;
-
-	if (lpecSession->GetSecurity()->IsAdminOverUserObject(ulCompanyid) != erSuccess) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
-
+		return er;
+	if (lpecSession->GetSecurity()->IsAdminOverUserObject(ulCompanyid) != erSuccess)
+		return KCERR_NO_ACCESS;
 	er = GetLocalId(sRecipientId, ulRecipientId, &ulRecipientId, NULL);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if (OBJECTCLASS_TYPE(ulType) == OBJECTTYPE_MAILUSER)
 		er = lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_QUOTA_USERRECIPIENT, ulCompanyid, ulRecipientId);
 	else if (ulType == CONTAINER_COMPANY)
 		er = lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_QUOTA_COMPANYRECIPIENT, ulCompanyid, ulRecipientId);
 	else
 		er = KCERR_INVALID_TYPE;
-
-exit:
-	;
+	return er;
 }
 SOAP_ENTRY_END()
 
@@ -9200,39 +9149,30 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 	// does not return full class in sExternId.objclass
 	er = GetLocalId(sUserId, ulUserid, &ulUserid, &sExternId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// re-evaluate userid to externid to get the full class (mapi clients only know MAPI_ABCONT for companies)
 	er = g_lpSessionManager->GetCacheManager()->GetUserObject(ulUserid, &sExternId, NULL, NULL);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = CheckUserStore(lpecSession, ulUserid, ECSTORE_TYPE_PRIVATE, &bHasLocalStore);
 	if (er != erSuccess)
-		goto exit;
-
-	if (!bHasLocalStore) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+		return er;
+	if (!bHasLocalStore)
+		return KCERR_NOT_FOUND;
 
 	//Check permission
-	if (lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserid) != erSuccess) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
+	if (lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserid) != erSuccess)
+		return KCERR_NO_ACCESS;
 
 	/* Not all objectclasses support quota */
 	if ((sExternId.objclass == NONACTIVE_CONTACT) ||
 		(OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_DISTLIST) ||
-		(sExternId.objclass == CONTAINER_ADDRESSLIST)) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-	}
-
+		(sExternId.objclass == CONTAINER_ADDRESSLIST))
+		return KCERR_INVALID_TYPE;
 	er = lpecSession->GetUserManagement()->GetObjectDetails(ulUserid, &details);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if (OBJECTCLASS_TYPE(details.GetClass())== OBJECTTYPE_MAILUSER) {
 		ulCompanyId = details.GetPropInt(OB_PROP_I_COMPANYID);
@@ -9241,8 +9181,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		ulCompanyId = ulUserid;
 		relation = OBJECTRELATION_QUOTA_COMPANYRECIPIENT;
 	} else {
-		er = KCERR_INVALID_TYPE;
-		goto exit;
+		return KCERR_INVALID_TYPE;
 	}
 
 	/* When uLCompanyId is 0 then there are no recipient relations we could request,
@@ -9251,7 +9190,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 	if (ulCompanyId != 0) {
 		er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(relation, ulCompanyId, &unique_tie(lpUsers));
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	} else
 		lpUsers.reset(new std::list<localobjectdetails_t>);
 
@@ -9266,11 +9205,10 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		ulSystem = details.GetPropInt(OB_PROP_I_SYSADMIN);
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulSystem);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		er = lpecSession->GetUserManagement()->GetObjectDetails(ulSystem, &systemdetails);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		lpUsers->push_front(localobjectdetails_t(ulSystem, systemdetails));
 
@@ -9289,12 +9227,12 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 			continue;
 		er = GetABEntryID(user.ulId, soap, &sUserEid);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		er = CopyUserDetailsToSoap(user.ulId, &sUserEid, user,
 		     lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON,
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		// 6.40.0 stores the object class in the IsNonActive field
 		if (lpecSession->ClientVersion() == ZARAFA_VERSION_6_40_0)
@@ -9303,7 +9241,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		if (!bSupportUnicode) {
 			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 		++lpsUserList->sUserArray.__size;
 		if (sUserEid.__ptr)
@@ -9313,7 +9251,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 			sUserEid.__size = 0;
 		}
 	}
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
