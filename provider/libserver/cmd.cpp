@@ -9270,57 +9270,44 @@ SOAP_ENTRY_START(GetQuotaStatus, lpsQuotaStatus->er, unsigned int ulUserid, entr
 	// does not return full class in sExternId.objclass
 	er = GetLocalId(sUserId, ulUserid, &ulUserid, &sExternId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// re-evaluate userid to externid to get the full class (mapi clients only know MAPI_ABCONT for companies)
 	er = g_lpSessionManager->GetCacheManager()->GetUserObject(ulUserid, &sExternId, NULL, NULL);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = CheckUserStore(lpecSession, ulUserid, ECSTORE_TYPE_PRIVATE, &bHasLocalStore);
 	if (er != erSuccess)
-		goto exit;
-
-	if (!bHasLocalStore) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+		return er;
+	if (!bHasLocalStore)
+		return KCERR_NOT_FOUND;
 
 	// Check permission
 	if(lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserid) != erSuccess &&
 		(lpecSession->GetSecurity()->GetUserId() != ulUserid))
-	{
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
+		return KCERR_NO_ACCESS;
 
 	/* Not all objectclasses support quota */
 	if ((sExternId.objclass == NONACTIVE_CONTACT) ||
 		(OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_DISTLIST) ||
-		(sExternId.objclass == CONTAINER_ADDRESSLIST)) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-	}
+		(sExternId.objclass == CONTAINER_ADDRESSLIST))
+		return KCERR_INVALID_TYPE;
 
 	if (OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_MAILUSER || sExternId.objclass == CONTAINER_COMPANY) {
 		er = lpecSession->GetSecurity()->GetUserSize(ulUserid, &llStoreSize);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	} else {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 
 	// check the store quota status
 	er = lpecSession->GetSecurity()->CheckUserQuota(ulUserid, llStoreSize, &QuotaStatus);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpsQuotaStatus->llStoreSize = llStoreSize;
 	lpsQuotaStatus->ulQuotaStatus = (unsigned int)QuotaStatus;
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -9332,36 +9319,32 @@ SOAP_ENTRY_START(getMessageStatus, lpsStatus->er, entryId sEntryId, unsigned int
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	//Check security
 	er = lpecSession->GetSecurity()->CheckPermission(ulId, ecSecurityRead);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Get the old flags
 	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid="+stringify(ulId)+" AND tag=3607 AND type=3";
 	if ((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
 		ec_log_err("getMessageStatus(): select failed %x", er);
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	if (lpDatabase->GetNumRows(lpDBResult) == 1) {
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
 		if(lpDBRow == NULL || lpDBRow[0] == NULL) {
 			ec_log_err("getMessageStatus(): row or col null");
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		ulMsgStatus = atoui(lpDBRow[0]);
 	}
 
 	lpsStatus->ulMessageStatus = ulMsgStatus;
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -9461,12 +9444,9 @@ SOAP_ENTRY_START(getChanges, lpsChangesResponse->er, struct xsd__base64Binary sS
 
 	er = GetChanges(soap, lpecSession, sSourceKey, ulSyncId, ulChangeId, ulChangeType, ulFlags, lpsRestrict, &lpsChangesResponse->ulMaxChangeId, &lpChanges);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpsChangesResponse->sChangesArray = *lpChanges;
-
-exit:
-    ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -9661,14 +9641,14 @@ SOAP_ENTRY_START(getLicenseCapa, lpsResponse->er, unsigned int ulServiceType, st
 
 	er = ECLicenseClient().GetCapabilities(ulServiceType, lstCapabilities);
     if(er != erSuccess)
-        goto exit;
+		return er;
         
     lpsResponse->sCapabilities.__size = lstCapabilities.size();
     lpsResponse->sCapabilities.__ptr = s_alloc<char *>(soap, lstCapabilities.size());
     
 	for (unsigned int i = 0; i < lstCapabilities.size(); ++i)
 		lpsResponse->sCapabilities.__ptr[i] = s_strcpy(soap, lstCapabilities[i].c_str());
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -9679,10 +9659,10 @@ SOAP_ENTRY_START(getLicenseUsers, lpsResponse->er, unsigned int ulServiceType, s
 
 	er = ECLicenseClient().GetInfo(ulServiceType, &ulUsers);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsResponse->ulUsers = ulUsers;
- exit: ;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -9700,26 +9680,20 @@ SOAP_ENTRY_START(resolvePseudoUrl, lpsResponse->er, char *lpszPseudoUrl, struct 
          **/
 		lpsResponse->lpszServerPath = lpszPseudoUrl;
 		lpsResponse->bIsPeer = true;
-		goto exit;
+		return erSuccess;
 	}
 
 	lpszPseudoUrl = STRIN_FIX(lpszPseudoUrl);
 
 	if (strncmp(lpszPseudoUrl, "pseudo://", 9))
-	{
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-	
+		return KCERR_INVALID_PARAMETER;
 	er = GetBestServerPath(soap, lpecSession, lpszPseudoUrl + 9, &strServerPath);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
 	lpsResponse->bIsPeer = strcasecmp(g_lpSessionManager->GetConfig()->GetSetting("server_name"), lpszPseudoUrl + 9) == 0;
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -9731,26 +9705,21 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 	objectdetails_t	details;
 
 	if (!lpecSession->GetSessionManager()->IsDistributedSupported())
-	{
 		/**
 		 * We want to pretend the method doesn't exist. The best way to do that is to return
 		 * SOAP_NO_METHOD. But that doesn't fit well in the macro famework. And since the
 		 * client would translate that to a KCERR_NETWORK_ERROR anyway, we'll just return
 		 * that instead.
 		 **/
-		er = KCERR_NETWORK_ERROR;
-		goto exit;
-	}
+		return KCERR_NETWORK_ERROR;
 
 	// lookup server which contains the public
 	if (lpecSession->GetUserManagement()->GetPublicStoreDetails(&details) == erSuccess)
 		strPublicServer = details.GetPropString(OB_PROP_S_SERVERNAME);
-
-	if (ulFlags & ~(EC_SERVERDETAIL_NO_NAME|EC_SERVERDETAIL_FILEPATH|EC_SERVERDETAIL_HTTPPATH|EC_SERVERDETAIL_SSLPATH|EC_SERVERDETAIL_PREFEREDPATH)) {
-		er = KCERR_UNKNOWN_FLAGS;
-		goto exit;
-	}
-	
+	if (ulFlags & ~(EC_SERVERDETAIL_NO_NAME | EC_SERVERDETAIL_FILEPATH |
+	    EC_SERVERDETAIL_HTTPPATH | EC_SERVERDETAIL_SSLPATH |
+	    EC_SERVERDETAIL_PREFEREDPATH))
+		return KCERR_UNKNOWN_FLAGS;
 	if (ulFlags == 0)
 		ulFlags = EC_SERVERDETAIL_FILEPATH|EC_SERVERDETAIL_HTTPPATH|EC_SERVERDETAIL_SSLPATH	|EC_SERVERDETAIL_PREFEREDPATH;
 	
@@ -9762,9 +9731,7 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 		for (gsoap_size_t i = 0; i < szaSvrNameList.__size; ++i) {
 			er = lpecSession->GetUserManagement()->GetServerDetails(STRIN_FIX(szaSvrNameList.__ptr[i]), &sDetails);
 			if (er != erSuccess)
-				goto exit;
-
-			
+				return er;
 			if (strcasecmp(sDetails.GetServerName().c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
 				lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_IS_PEER;
 
@@ -9784,8 +9751,7 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 				lpsResponse->sServerList.__ptr[i].lpszPreferedPath = STROUT_FIX_CPY(strServerPath.c_str());
 		}
 	}
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -10525,12 +10491,12 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, entryId sEntryId, struct getCha
 	// Get object
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	
 	// Check security
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityRead);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Get the Change Key
 	strQuery = "SELECT val_binary FROM properties "
@@ -10540,7 +10506,7 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, entryId sEntryId, struct getCha
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if (lpDatabase->GetNumRows(lpDBResult) > 0) {
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
@@ -10553,8 +10519,7 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, entryId sEntryId, struct getCha
 		lpsResponse->sPropCK.Value.bin->__ptr = s_alloc<unsigned char>(soap, lpDBLen[0]);
 		memcpy(lpsResponse->sPropCK.Value.bin->__ptr, lpDBRow[0], lpDBLen[0]);
 	} else {
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
 
 	// Get the Predecessor Change List
@@ -10565,7 +10530,7 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, entryId sEntryId, struct getCha
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if (lpDatabase->GetNumRows(lpDBResult) > 0) {
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
@@ -10578,12 +10543,9 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, entryId sEntryId, struct getCha
 		lpsResponse->sPropPCL.Value.bin->__ptr = s_alloc<unsigned char>(soap, lpDBLen[0]);
 		memcpy(lpsResponse->sPropPCL.Value.bin->__ptr, lpDBRow[0], lpDBLen[0]);
 	} else {
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -10593,31 +10555,21 @@ SOAP_ENTRY_START(purgeDeferredUpdates, lpsResponse->er, struct purgeDeferredUpda
     USE_DATABASE();
     
     // Only system-admins may run this
-    if(lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN) {
-        er = KCERR_NO_ACCESS;
-        goto exit;
-    }
-
+    if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN)
+		return KCERR_NO_ACCESS;
     er = ECTPropsPurge::GetLargestFolderId(lpDatabase, &ulFolderId);
     if(er == KCERR_NOT_FOUND) {
         // Nothing to purge
         lpsResponse->ulDeferredRemaining = 0;
-        goto exit;
+		return er;
     }
     
     if(er != erSuccess)
-        goto exit;
-        
+		return er;
     er = ECTPropsPurge::PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
     if(er != erSuccess)
-        goto exit;
-
-    er = ECTPropsPurge::GetDeferredCount(lpDatabase, &lpsResponse->ulDeferredRemaining);
-    if(er != erSuccess)
-        goto exit;
-        
-exit:
-    ;        
+		return er;
+	return ECTPropsPurge::GetDeferredCount(lpDatabase, &lpsResponse->ulDeferredRemaining);
 }
 SOAP_ENTRY_END()
 
@@ -10659,22 +10611,17 @@ SOAP_ENTRY_START(setLockState, *result, entryId sEntryId, bool bLocked, unsigned
 
 	er = g_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, NULL, &ulOwner, NULL, &ulObjType);
 	if (er != erSuccess)
-		goto exit;
-
-	if (ulObjType != MAPI_MESSAGE) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
+		return er;
+	if (ulObjType != MAPI_MESSAGE)
+		return KCERR_NO_SUPPORT;
 
 	// Do we need to be owner?
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityOwner);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if (bLocked) {
 		er = lpecSession->LockObject(ulObjId);
 		if (er == KCERR_NO_ACCESS)
@@ -10682,9 +10629,7 @@ SOAP_ENTRY_START(setLockState, *result, entryId sEntryId, bool bLocked, unsigned
 	} else {
 		er = lpecSession->UnlockObject(ulObjId);
 	}
-
-exit:
-	;
+	return er;
 }
 SOAP_ENTRY_END()
 
