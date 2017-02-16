@@ -10640,34 +10640,24 @@ SOAP_ENTRY_START(getUserClientUpdateStatus, lpsResponse->er, entryId sUserId, st
 	unsigned int ulUserId = 0;
 	bool bHasLocalStore = false;
 
-	if (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("client_update_enabled"))) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
-
+	if (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("client_update_enabled")))
+		return KCERR_NO_SUPPORT;
 	er = GetLocalId(sUserId, 0, &ulUserId, &sExternId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = CheckUserStore(lpecSession, ulUserId, ECSTORE_TYPE_PRIVATE, &bHasLocalStore);
 	if (er != erSuccess)
-		goto exit;
-
-	if (!bHasLocalStore) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+		return er;
+	if (!bHasLocalStore)
+		return KCERR_NOT_FOUND;
 
 	strQuery = "SELECT trackid, UNIX_TIMESTAMP(updatetime), currentversion, latestversion, computername, status FROM clientupdatestatus WHERE userid="+stringify(ulUserId);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	if (!lpDBRow) {
-		er = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpDBRow == nullptr)
+		return MAPI_E_NOT_FOUND;
 
 	if(lpDBRow[0]) lpsResponse->ulTrackId = atoui(lpDBRow[0]);
 	if(lpDBRow[1]) lpsResponse->tUpdatetime = atoui(lpDBRow[1]);
@@ -10675,9 +10665,7 @@ SOAP_ENTRY_START(getUserClientUpdateStatus, lpsResponse->er, entryId sUserId, st
 	if(lpDBRow[3]) lpsResponse->lpszLatestversion =  s_strcpy(soap, lpDBRow[3]);
 	if(lpDBRow[4]) lpsResponse->lpszComputername =  s_strcpy(soap, lpDBRow[4]);
 	if(lpDBRow[5]) lpsResponse->ulStatus = atoui(lpDBRow[5]);
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -10695,24 +10683,15 @@ SOAP_ENTRY_START(resetFolderCount, lpsResponse->er, entryId sEntryId, struct res
 
 	er = g_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, NULL, &ulOwner, NULL, &ulObjType);
 	if (er != erSuccess)
-		goto exit;
-
-	if (ulObjType != MAPI_FOLDER) {
-		er = KCERR_INVALID_TYPE;
-		goto exit;
-	}
-
+		return er;
+	if (ulObjType != MAPI_FOLDER)
+		return KCERR_INVALID_TYPE;
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityOwner);
 	if (er != erSuccess)
-		goto exit;
-
-	er = ResetFolderCount(lpecSession, ulObjId, &lpsResponse->ulUpdates);
-
-exit:
-	;
+		return er;
+	return ResetFolderCount(lpecSession, ulObjId, &lpsResponse->ulUpdates);
 }
 SOAP_ENTRY_END()
