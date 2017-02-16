@@ -6,6 +6,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import codecs
+import collections
 import mailbox
 import time
 
@@ -379,8 +380,11 @@ class Folder(object):
         except MAPIErrorNoSupport: # XXX webapp search folder?
             return
 
-        table.SetColumns([PR_ENTRYID, PR_DEPTH], 0)
-        table.SortTable(SSortOrderSet([SSort(PR_DEPTH, TABLE_SORT_ASCEND)], 0, 0), 0)
+        # determine all folders
+        folders = {}
+        names = {}
+        children = collections.defaultdict(list)
+        table.SetColumns([PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W], 0)
         rows = table.QueryRows(-1, 0)
         for row in rows:
             try:
@@ -388,8 +392,25 @@ class Folder(object):
             except MAPIErrorNoAccess:
                 mapiobj = self.mapiobj.OpenEntry(row[0].Value, None, self.content_flag)
             folder = Folder(self.store, mapiobj=mapiobj)
-            folder.depth = row[1].Value
-            yield folder
+            folders[_hex(row[0].Value)] = folder, _hex(row[1].Value)
+            names[_hex(row[0].Value)] = row[2].Value
+            children[_hex(row[1].Value)].append((_hex(row[0].Value), folder))
+
+        # yield depth-first XXX improve server?
+        def folders_recursive(fs, depth=0):
+            for feid, f in sorted(fs, key=lambda (feid, f): names[feid]):
+                f.depth = depth
+                yield f
+                for f in folders_recursive(children[feid], depth+1):
+                    yield f
+        rootfolders = []
+        for eid, (folder, parenteid) in folders.items():
+            if parenteid not in folders:
+                rootfolders.append((eid, folder))
+            else:
+                children[folders[parenteid][0]].append((eid, folder))
+        for f in folders_recursive(rootfolders):
+            yield f
 
     def create_folder(self, path, **kwargs):
         folder = self.folder(path, create=True)
