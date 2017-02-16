@@ -4,10 +4,10 @@ Part of the high-level python bindings for Kopano
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+from MAPI.Struct import MAPIErrorNotFound
 from MAPI.Util import TestRestriction
 
 from .compat import repr as _repr
-from .defs import *
 
 class Restriction(object):
     def __init__(self, mapiobj=None):
