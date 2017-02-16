@@ -6621,24 +6621,19 @@ SOAP_ENTRY_START(isMessageInQueue, *result, entryId sEntryId, unsigned int *resu
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	// Checks if message is unsent
 	strQuery = "SELECT hierarchy_id FROM outgoingqueue WHERE hierarchy_id=" + stringify(ulObjId) + " AND flags & " + stringify(EC_SUBMIT_MASTER);
 
 	if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("isMessageInQueue(): select failed");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
-    if(lpDatabase->GetNumRows(lpDBResult) == 0) {
-        er = KCERR_NOT_FOUND;
-        goto exit;
-    }
-
-exit:
-	;
+	if (lpDatabase->GetNumRows(lpDBResult) == 0)
+		return KCERR_NOT_FOUND;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -6647,10 +6642,8 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreG
 	USE_DATABASE();
 	string strStoreGuid;
 
-	if (sStoreGuid.__ptr == NULL || sStoreGuid.__size == 0) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (sStoreGuid.__ptr == nullptr || sStoreGuid.__size == 0)
+		return KCERR_INVALID_PARAMETER;
 
 	strStoreGuid = lpDatabase->EscapeBinary(sStoreGuid.__ptr, sStoreGuid.__size);
 
@@ -6663,29 +6656,23 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreG
 		"WHERE s.guid=" + strStoreGuid ;
 	if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
 		ec_log_err("resolveStore(): select failed %x", er);
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
-	if(lpDatabase->GetNumRows(lpDBResult) != 1) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+	if (lpDatabase->GetNumRows(lpDBResult) != 1)
+		return KCERR_NOT_FOUND;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
-	if(lpDBRow == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBLen == NULL) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+	if (lpDBRow == nullptr || lpDBRow[1] == nullptr ||
+	    lpDBRow[2] == nullptr || lpDBRow[3] == nullptr ||
+	    lpDBLen == nullptr)
+		return KCERR_NOT_FOUND;
 	if (lpDBRow[0] == NULL) {
 		// check if we're admin over the store object
 		er = lpecSession->GetSecurity()->IsAdminOverUserObject(atoi(lpDBRow[3]));
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		lpsResponse->ulUserId = 0;
 		lpsResponse->sUserId.__size = 0;
 		lpsResponse->sUserId.__ptr = NULL;
@@ -6694,19 +6681,16 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreG
 
 		er = GetABEntryID(lpsResponse->ulUserId, soap, &lpsResponse->sUserId);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[1]), soap, OPENSTORE_OVERRIDE_HOME_MDB, &lpsResponse->sStoreId);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpsResponse->guid.__size = lpDBLen[2];
 	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[2]);
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[2], lpDBLen[2]);
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -6718,10 +6702,8 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 
 	USE_DATABASE();
 
-	if (szUserName == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (szUserName == nullptr)
+		return KCERR_INVALID_PARAMETER;
 
 	szUserName = STRIN_FIX(szUserName);
 
@@ -6733,24 +6715,20 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 		// FIXME: this function is being misused, szUserName can also be a company name
 		er = lpecSession->GetUserManagement()->ResolveObjectAndSync(CONTAINER_COMPANY, szUserName, &ulObjectId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* If we are allowed to view the user, we are allowed to know the store exists */
 	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulObjectId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpecSession->GetUserManagement()->GetObjectDetails(ulObjectId, &sUserDetails);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* Only users and companies have a store */
 	if ((OBJECTCLASS_TYPE(sUserDetails.GetClass()) == OBJECTTYPE_MAILUSER && sUserDetails.GetClass() == NONACTIVE_CONTACT) ||
 		(OBJECTCLASS_TYPE(sUserDetails.GetClass()) != OBJECTTYPE_MAILUSER && sUserDetails.GetClass() != CONTAINER_COMPANY))
-	{
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+		return KCERR_NOT_FOUND;
 
 	if (lpecSession->GetSessionManager()->IsDistributedSupported() && 
 		!lpecSession->GetUserManagement()->IsInternalObject(ulObjectId)) 
@@ -6758,10 +6736,8 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 		if (ulStoreTypeMask & (ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC)) {
 			/* Check if this is the correct server for its store */
 			string strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
-			if (strServerName.empty()) {
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
+			if (strServerName.empty())
+				return KCERR_NOT_FOUND;
 
 			if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
 				if ((ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
@@ -6769,13 +6745,12 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 
 					er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
 					if (er != erSuccess)
-						goto exit;
+						return er;
 
 					lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
 					ec_log_info("Redirecting request to \"%s\'", lpsResponse->lpszServerPath);
 					g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
-					er = KCERR_UNABLE_TO_COMPLETE;
-					goto exit;
+					return KCERR_UNABLE_TO_COMPLETE;
                 }
 			}
 		}
@@ -6785,39 +6760,30 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 			// to exist on this server for a particular user.
 			if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN &&
 				!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true))
-			{
 				// No redirect with archive stores because there can be multiple archive stores.
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
+				return KCERR_NOT_FOUND;
 		}
 
 		else {
 			assert(false);
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		}
 	}
 
 	strQuery = "SELECT hierarchy_id, guid FROM stores WHERE user_id = " + stringify(ulObjectId) + " AND (1 << type) & " + stringify(ulStoreTypeMask);
 	if ((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
 		ec_log_err("resolveUserStore(): select failed %x", er);
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
     lpDBRow = lpDatabase->FetchRow(lpDBResult);
     lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
-    if (lpDBRow == NULL) {
- 		   er = KCERR_NOT_FOUND;
- 		   goto exit;
-    }
-
+    if (lpDBRow == nullptr)
+		return KCERR_NOT_FOUND;
     if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBLen == NULL || lpDBLen[1] == 0) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("resolveUserStore(): row/col null");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
     }
 
     /* We found the store, so we don't need to check if this is the correct server. */
@@ -6828,19 +6794,15 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
     er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, ulFlags & OPENSTORE_OVERRIDE_HOME_MDB, &lpsResponse->sStoreId);
 
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetABEntryID(ulObjectId, soap, &lpsResponse->sUserId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	lpsResponse->ulUserId = ulObjectId;
 	lpsResponse->guid.__size = lpDBLen[1];
 	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[1], lpDBLen[1]);
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -8073,42 +8035,41 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 	if (er != erSuccess) {
 		const std::string srcEntryIdStr = srcEntryId;
 		ec_log_err("SOAP::copyFolder GetObjectFromEntryId failed for %s: %s (%x)", srcEntryIdStr.c_str(), GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	// Get source store
 	er = g_lpSessionManager->GetCacheManager()->GetStore(ulFolderId, &ulSourceStoreId, NULL);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder GetStore failed for folder id %ul: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	er = lpecSession->GetObjectFromEntryId(&sDestFolderId, &ulDestFolderId);
 	if (er != erSuccess) {
 		const std::string dstEntryIdStr = dstEntryId;
 		ec_log_err("SOAP::copyFolder GetObjectFromEntryId failed for %s: %s (%x)", dstEntryIdStr.c_str(), GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	// Get dest store
 	er = g_lpSessionManager->GetCacheManager()->GetStore(ulDestFolderId, &ulDestStoreId, NULL);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder GetStore for folder %d failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	if(ulDestStoreId != ulSourceStoreId) {
 		ec_log_err("SOAP::copyFolder copy from/to different stores (from %u to %u) is not supported", ulSourceStoreId, ulDestStoreId);
 		assert(false);
-		er = KCERR_NO_SUPPORT;
-		goto exit;
+		return KCERR_NO_SUPPORT;
 	}
 
 	// Check permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulDestFolderId, ecSecurityCreateFolder);
 	if (er != erSuccess) {
 		ec_log_debug("SOAP::copyFolder copy folder (to %u) is not allowed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	if(ulFlags & FOLDER_MOVE ) // is the folder editable?
@@ -8118,42 +8079,40 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 
 	if (er != erSuccess) {
 		ec_log_debug("SOAP::copyFolder folder (%u) is not editable: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	// Check MAPI_E_FOLDER_CYCLE
 	if(ulFolderId == ulDestFolderId) {
 		ec_log_err("SOAP::copyFolder target folder (%u) cannot be the same as source folder", ulDestFolderId);
-		er = KCERR_FOLDER_CYCLE;
-		goto exit;
+		return KCERR_FOLDER_CYCLE;
 	}
 
 	// Get the parent id, for notification and copy
 	er = g_lpSessionManager->GetCacheManager()->GetObject(ulFolderId, &ulOldParent, NULL, &ulObjFlags, &ulSourceType);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder cannot get parent folder id for %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	er = g_lpSessionManager->GetCacheManager()->GetObject(ulDestFolderId, NULL, NULL, NULL, &ulDestType);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder cannot get type of destination folder (%u): %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	if (ulSourceType != MAPI_FOLDER || ulDestType != MAPI_FOLDER) {
 		const std::string srcEntryIdStr = srcEntryId;
 		const std::string dstEntryIdStr = dstEntryId;
 		ec_log_err("SOAP::copyFolder source (%u) or destination (%u) is not a folder, invalid entry id (%s / %s)", ulSourceType, ulDestType, srcEntryIdStr.c_str(), dstEntryIdStr.c_str());
-		er = KCERR_INVALID_ENTRYID;
-		goto exit;
+		return KCERR_INVALID_ENTRYID;
 	}
 
 	// Check folder and dest folder are the same
 	if (!(ulObjFlags & MSGFLAG_DELETED) && (ulFlags & FOLDER_MOVE) &&
 	    ulDestFolderId == ulOldParent) {
 		ec_log_debug("SOAP::copyFolder destination (%u) == source", ulDestFolderId);
-		goto exit; // Do nothing... folder already on the right place
+		return erSuccess; // Do nothing... folder already on the right place
 	}
 
 	ulParentCycle = ulDestFolderId;
@@ -8161,8 +8120,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		if(ulFolderId == ulParentCycle)
 		{
 			ec_log_debug("SOAP::copyFolder infinite loop detected for %u", ulDestFolderId);
-			er = KCERR_FOLDER_CYCLE;
-			goto exit;
+			return KCERR_FOLDER_CYCLE;
 		}
 	}
 
@@ -8180,13 +8138,12 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_debug("SOAP::copyFolder check for existing name (%s) failed: %s (%x)", name.c_str(), GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	if(lpDatabase->GetNumRows(lpDBResult) > 0 && !ulSyncId) {
-		er = KCERR_COLLISION;
 		ec_log_err("SOAP::copyFolder(): target name (%s) already exists", name.c_str());
-		goto exit;
+		return KCERR_COLLISION;
 	}
 
 	if(lpszNewFolderName == NULL)
@@ -8195,14 +8152,13 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess) {
 			ec_log_err("SOAP::copyFolder(): problem retrieving source name for %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
-			goto exit;
+			return er;
 		}
 
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
 		if( lpDBRow == NULL || lpDBRow[0] == NULL) {
 			ec_log_err("SOAP::copyFolder(): source name (%s) not known", name.c_str());
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		}
 
 		lpszNewFolderName = s_alloc<char>(soap, strlen(lpDBRow[0])+1);
@@ -8220,7 +8176,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 			er = GetFolderSize(lpDatabase, ulFolderId, &llFolderSize);
 			if (er != erSuccess) {
 				ec_log_err("SOAP::copyFolder(): cannot find size of folder %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
-				goto exit;
+				return er;
 			}
 		}
 
@@ -8230,7 +8186,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		er = lpDatabase->Begin();
 		if (er != erSuccess) {
 			ec_log_err("SOAP::copyFolder(): cannot start transaction: %s (%x)", GetMAPIErrorMessage(er), er);
-			goto exit;
+			return er;
 		}
 
 		// Move the folder to the dest. folder
@@ -8240,15 +8196,13 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
 			lpDatabase->Rollback();
 			ec_log_err("SOAP::copyFolder(): update of modification time failed: %s (%x)", GetMAPIErrorMessage(er), er);
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		if(ulAffRows != 1) {
 		    lpDatabase->Rollback();
 			ec_log_err("SOAP::copyFolder(): unexpected number of affected rows (expected: 1, got: %u)", ulAffRows);
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		// Update the folder to the destination folder
@@ -8256,9 +8210,8 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		strQuery = "UPDATE properties SET val_string = '" + lpDatabase->Escape(lpszNewFolderName) + "' WHERE tag=" + stringify(KOPANO_TAG_DISPLAY_NAME) + " AND hierarchyid="+stringify(ulFolderId) + " AND type=" + stringify(PT_STRING8);
 		if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
 			ec_log_err("SOAP::copyFolder(): actual move of folder %s failed: %s (%x)", lpszNewFolderName, GetMAPIErrorMessage(er), er);
-			er = KCERR_DATABASE_ERROR;
 		    lpDatabase->Rollback();
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		// remove PR_DELETED_ON, as the folder is a softdelete folder
@@ -8267,8 +8220,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		if(er != erSuccess) {
 			ec_log_err("SOAP::copyFolder(): cannot remove PR_DELETED_ON property for %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
 			lpDatabase->Rollback();
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		// Update the store size if we did an undelete. Note ulSourceStoreId == ulDestStoreId.
@@ -8276,7 +8228,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 			er = UpdateObjectSize(lpDatabase, ulSourceStoreId, MAPI_STORE, UPDATE_ADD, llFolderSize);
 			if (er != erSuccess) {
 				ec_log_err("SOAP::copyFolder(): problem updating store (%u) size: %s (%x)", ulSourceStoreId, GetMAPIErrorMessage(er), er);
-				goto exit;
+				return er;
 			}
 		}
 
@@ -8309,20 +8261,20 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 
 		if (er != erSuccess) {
 			ec_log_err("SOAP::copyFolder(): updating folder counts failed: %s (%x)", GetMAPIErrorMessage(er), er);
-			goto exit;
+			return er;
 		}
 
 		er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, ulOldParent, ulFolderId);
 		if (er != erSuccess) {
 			ec_log_err("SOAP::copyFolder(): ECTPropsPurge::AddDeferredUpdate failed: %s (%x)", GetMAPIErrorMessage(er), er);
-			goto exit;
+			return er;
 		}
 
 		er = lpDatabase->Commit();
 		if(er != erSuccess) {
 			ec_log_err("SOAP::copyFolder(): database commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
 			lpDatabase->Rollback();
-			goto exit;
+			return er;
 		}
 
 		// Cache update for objects
@@ -8350,12 +8302,10 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		er = CopyFolderObjects(soap, lpecSession, ulFolderId, ulDestFolderId, lpszNewFolderName, !!(ulFlags&COPY_SUBFOLDERS), ulSyncId);
 		if (er != erSuccess) {
 			ec_log_err("SOAP::copyFolder(): CopyFolderObjects (src folder: %u, dest folder: %u, new name: \"%s\") failed: %s (%x)", ulFolderId, ulDestFolderId, lpszNewFolderName, GetMAPIErrorMessage(er), er);
-			goto exit;
+			return er;
 		}
 	}
-
-exit:
-	;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
