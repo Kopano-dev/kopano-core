@@ -794,9 +794,12 @@ __soapentry_exit: \
 #define SOAP_ENTRY_START(fname,resultvar,...) \
 int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
 { \
-    SOAP_ENTRY_FUNCTION_HEADER(resultvar, fname)
+    SOAP_ENTRY_FUNCTION_HEADER(resultvar, fname) \
+    er = [&]() -> int {
 
 #define SOAP_ENTRY_END() \
+        return er; \
+    }(); \
     SOAP_ENTRY_FUNCTION_FOOTER \
 }
 
@@ -812,9 +815,8 @@ int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
     \
        er = lpecSession->GetDatabase(&lpDatabase); \
        if (er != erSuccess) { \
-               er = KCERR_DATABASE_ERROR; \
 		ec_log_err(" GetDatabase failed"); \
-               goto __soapentry_exit; \
+               return KCERR_DATABASE_ERROR; \
        }
 
 #define ROLLBACK_ON_ERROR() \
@@ -1501,7 +1503,6 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 	    goto exit;
 
 exit:
-__soapentry_exit:
 	return er;
 }
 
@@ -3033,7 +3034,6 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 exit:
 	delete sEmptyProps.lpPropVals;
 	delete sEmptyProps.lpPropTags;
-__soapentry_exit:
 	return er;
 }
 
