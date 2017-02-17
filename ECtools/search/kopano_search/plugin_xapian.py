@@ -45,7 +45,7 @@ class Plugin:
                 return xapian.Database(dbpath)
         except xapian.DatabaseOpeningError:
             if log:
-                log.warn('could not open database: %s' % dbpath)
+                log.warn('could not open database: %s', dbpath)
 
     def extract_terms(self, text):
         """ extract terms as if we are indexing """
@@ -69,7 +69,7 @@ class Plugin:
         for fields, terms in fields_terms:
             for field in fields:
                 qp.add_prefix('mapi%d' % field, "XM%d:" % field)
-        log.info('performing query: %s' % query)
+        log.info('performing query: %s', query)
         qp.set_database(db)
         query = qp.parse_query(query, xapian.QueryParser.FLAG_BOOLEAN|xapian.QueryParser.FLAG_PHRASE|xapian.QueryParser.FLAG_WILDCARD)
         enquire = xapian.Enquire(db)
@@ -137,7 +137,7 @@ class Plugin:
                     db.replace_document(sourcekey_term, xdoc)
                 for doc in self.deletes:
                     db.delete_document('XK:'+doc['sourcekey'].lower())
-            self.log.debug('commit took %.2f seconds (%d items)' % (time.time()-t0, nitems))
+            self.log.debug('commit took %.2f seconds (%d items)', time.time()-t0, nitems)
         finally:
             self.data = []
             self.deletes = []
@@ -146,5 +146,5 @@ class Plugin:
         """ remove database so we can cleanly reindex the store """
 
         dbpath = os.path.join(self.index_path, '%s-%s' % (server_guid, store_guid))
-        self.log.info('removing %s' % dbpath)
+        self.log.info('removing %s', dbpath)
         shutil.rmtree(dbpath, ignore_errors=True) # may not exist yet (no items to index)

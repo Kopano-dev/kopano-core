@@ -93,7 +93,7 @@ class BackupWorker(kopano.Worker):
 
                     # check command-line options and backup folders
                     t0 = time.time()
-                    self.log.info('backing up: %s' % path)
+                    self.log.info('backing up: %s', path)
                     paths = set()
                     folders = list(store.folders())
                     if options.recursive:
@@ -114,13 +114,13 @@ class BackupWorker(kopano.Worker):
                                 idx = db_index.get('folder')
                                 d = pickle.loads(idx) if idx else {}
                                 if not d.get('backup_deleted'):
-                                    self.log.info('deleted folder: %s' % fpath)
+                                    self.log.info('deleted folder: %s', fpath)
                                     d['backup_deleted'] = self.service.timestamp
                                     db_index['folder'] = pickle.dumps(d)
 
                     changes = stats['changes'] + stats['deletes']
-                    self.log.info('backing up %s took %.2f seconds (%d changes, ~%.2f/sec, %d errors)' %
-                        (path, time.time()-t0, changes, changes/(time.time()-t0), stats['errors']))
+                    self.log.info('backing up %s took %.2f seconds (%d changes, ~%.2f/sec, %d errors)',
+                        path, time.time()-t0, changes, changes/(time.time()-t0), stats['errors'])
 
             # return statistics in output queue
             self.oqueue.put(stats)
@@ -128,7 +128,7 @@ class BackupWorker(kopano.Worker):
     def backup_folder(self, path, folder, subtree, config, options, stats, user, server):
         """ backup single folder """
 
-        self.log.info('backing up folder: %s' % folder.path)
+        self.log.info('backing up folder: %s', folder.path)
 
         # create directory for subfolders
         data_path = path+'/'+folder_path(folder, subtree)
@@ -150,11 +150,11 @@ class BackupWorker(kopano.Worker):
         state = None
         if os.path.exists(statepath):
             state = file(statepath).read()
-            self.log.info('found previous folder sync state: %s' % state)
+            self.log.info('found previous folder sync state: %s', state)
         new_state = folder.sync(importer, state, log=self.log, stats=stats, begin=options.period_begin, end=options.period_end)
         if new_state != state:
             file(statepath, 'w').write(new_state)
-            self.log.info('saved folder sync state: %s' % new_state)
+            self.log.info('saved folder sync state: %s', new_state)
 
 class FolderImporter:
     """ tracks changes for a given folder """
@@ -166,7 +166,7 @@ class FolderImporter:
         """ store updated item in 'items' database, and subject and date in 'index' database """
 
         with log_exc(self.log, self.stats):
-            self.log.debug('folder %s: new/updated document with entryid %s, sourcekey %s' % (self.folder.sourcekey, item.entryid, item.sourcekey))
+            self.log.debug('folder %s: new/updated document with entryid %s, sourcekey %s', self.folder.sourcekey, item.entryid, item.sourcekey)
             with closing(dbopen(self.folder_path+'/items')) as db:
                 db[item.sourcekey] = zlib.compress(item.dumps(attachments=not self.options.skip_attachments, archiver=False, skip_broken=True))
             with closing(dbopen(self.folder_path+'/index')) as db:
@@ -227,12 +227,12 @@ class Service(kopano.Service):
         jobs = self.create_jobs()
         for job in jobs:
             self.iqueue.put(job)
-        self.log.info('queued %d store(s) for parallel backup (%s processes)' % (len(jobs), len(workers)))
+        self.log.info('queued %d store(s) for parallel backup (%s processes)', len(jobs), len(workers))
         t0 = time.time()
         stats = [self.oqueue.get() for i in range(len(jobs))] # blocking
         changes = sum(s['changes'] + s['deletes'] for s in stats)
         errors = sum(s['errors'] for s in stats)
-        self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)' %
+        self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)',
             (time.time()-t0, changes, changes/(time.time()-t0), errors))
 
     def restore(self, data_path):
@@ -240,7 +240,7 @@ class Service(kopano.Service):
 
         # determine store to restore to
         self.data_path = data_path # XXX remove var
-        self.log.info('starting restore of %s' % self.data_path)
+        self.log.info('starting restore of %s', self.data_path)
         username = os.path.split(self.data_path)[1]
         if self.options.users:
             store = self._store(self.options.users[0])
@@ -251,7 +251,7 @@ class Service(kopano.Service):
         user = store.user
 
         # start restore
-        self.log.info('restoring to store %s' % store.entryid)
+        self.log.info('restoring to store %s', store.entryid)
         t0 = time.time()
         stats = {'changes': 0, 'errors': 0}
 
@@ -280,7 +280,7 @@ class Service(kopano.Service):
         restored = []
         for path in paths:
             if path not in path_folder:
-                self.log.error('no such folder: %s' % path)
+                self.log.error('no such folder: %s', path)
                 stats['errors'] += 1
             else:
                 # handle --restore-root, filter and start restore
@@ -306,7 +306,7 @@ class Service(kopano.Service):
                 load_acl(folder, user, self.server, file(data_path+'/acl').read(), stats, self.log)
                 load_rules(folder, user, self.server, file(data_path+'/rules').read(), stats, self.log)
 
-        self.log.info('restore completed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)' %
+        self.log.info('restore completed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)',
             (time.time()-t0, stats['changes'], stats['changes']/(time.time()-t0), stats['errors']))
 
     def purge(self, data_path):
@@ -320,7 +320,7 @@ class Service(kopano.Service):
 
         for path, data_path in path_folder.items():
             # check if folder was deleted
-            self.log.info('checking folder: %s' % path)
+            self.log.info('checking folder: %s', path)
             if folder_deleted(data_path):
                 if (self.timestamp - folder_deleted(data_path)).days > self.options.purge:
                     self.log.debug('purging folder')
@@ -333,12 +333,12 @@ class Service(kopano.Service):
                             d = pickle.loads(idx)
                             backup_deleted = d.get('backup_deleted')
                             if backup_deleted and (self.timestamp - backup_deleted).days > self.options.purge:
-                                self.log.debug('purging item: %s' % item)
+                                self.log.debug('purging item: %s', item)
                                 stats['items'] += 1
                                 del db_items[item]
                                 del db_index[item]
 
-        self.log.info('purged %d folders and %d items' % (stats['folders'], stats['items']))
+        self.log.info('purged %d folders and %d items', (stats['folders'], stats['items']))
 
     def create_jobs(self):
         """ check command-line options and determine which stores should be backed up """
@@ -383,7 +383,7 @@ class Service(kopano.Service):
                 if not [sk for sk in self.options.sourcekeys if sk in db]:
                     return
         else:
-            self.log.info('restoring folder %s' % path)
+            self.log.info('restoring folder %s', path)
 
             # restore container class
             folderprops = pickle.loads(file('%s/folder' % data_path).read())
@@ -423,10 +423,10 @@ class Service(kopano.Service):
 
                     # check for duplicates
                     if sourcekey2 in existing or index[sourcekey2]['orig_sourcekey'] in existing:
-                        self.log.warning('skipping duplicate item with sourcekey %s' % sourcekey2)
+                        self.log.warning('skipping duplicate item with sourcekey %s', sourcekey2)
                     else:
                         # actually restore item
-                        self.log.debug('restoring item with sourcekey %s' % sourcekey2)
+                        self.log.debug('restoring item with sourcekey %s', sourcekey2)
                         item = folder.create_item(loads=zlib.decompress(db[sourcekey2]), attachments=not self.options.skip_attachments)
 
                         # store original sourcekey or it is lost
@@ -552,7 +552,7 @@ def dump_acl(folder, user, server, stats, log):
                 try:
                     row[1].Value = ('group', server.sa.GetGroup(entryid, MAPI_UNICODE).Groupname)
                 except MAPIErrorNotFound:
-                    log.warning("skipping access control entry for unknown user/group %s" % entryid.encode('hex').upper())
+                    log.warning("skipping access control entry for unknown user/group %s", entryid.encode('hex').upper())
                     continue
             rows.append(row)
     return pickle.dumps(rows)
@@ -573,7 +573,7 @@ def load_acl(folder, user, server, data, stats, log):
                 row[1].Value = entryid.decode('hex')
                 rows.append(row)
             except kopano.NotFoundError:
-                log.warning("skipping access control entry for unknown user/group '%s'" % value)
+                log.warning("skipping access control entry for unknown user/group '%s'", value)
         acltab = folder.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
         acltab.ModifyTable(0, [ROWENTRY(ROW_ADD, row) for row in rows])
 
@@ -667,7 +667,7 @@ def load_delegates(user, server, data, stats, log):
             try:
                 userids.append(server.user(name).userid.decode('hex'))
             except kopano.NotFoundError:
-                log.warning("skipping delegation for unknown user '%s'" % name)
+                log.warning("skipping delegation for unknown user '%s'", name)
 
         fbf = _get_fbf(user, MAPI_MODIFY, log)
         if fbf:
