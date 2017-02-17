@@ -7,6 +7,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import codecs
 import uuid
+import sys
 
 from MAPI import (
     MAPI_UNICODE, MAPI_MODIFY, KEEP_OPEN_READWRITE, PT_MV_BINARY,
@@ -43,23 +44,27 @@ from .defs import (
     RSF_PID_SUGGESTED_CONTACTS, RSF_PID_RSS_SUBSCRIPTION,
     NAMED_PROPS_ARCHIVER
 )
+if sys.hexversion >= 0x03000000:
+    from . import server as _server
+    from . import user as _user
+    from . import folder as _folder
+    from . import item as _item
+    from . import utils as _utils
+else:
+    import server as _server
+    import user as _user
+    import folder as _folder
+    import item as _item
+    import utils as _utils
+
 from .errors import NotFoundError
-from .folder import Folder
 from .autoaccept import AutoAccept
 from .outofoffice import OutOfOffice
 from .prop import Property
-from .item import Item
 
 from .compat import (
     hex as _hex, unhex as _unhex, decode as _decode, encode as _encode,
     repr as _repr
-)
-
-from .utils import (
-    extract_ipm_ol2007_entryids as _extract_ipm_ol2007_entryids,
-    openentry_raw as _openentry_raw, create_prop as _create_prop,
-    prop as _prop, props as _props, permissions as _permissions,
-    permission as _permission
 )
 
 try:
@@ -71,16 +76,12 @@ class Store(object):
     """Store class"""
 
     def __init__(self, guid=None, entryid=None, mapiobj=None, server=None):
-        if not server:
-            from .server import Server
-            server = Server()
-
-        self.server = server
+        self.server = server or _server.Server()
 
         if guid:
             mapiobj = self.server._store(guid)
         elif entryid:
-            mapiobj = self.server._store2(entryid.decode('hex'))
+            mapiobj = self.server._store2(codecs.decode(entryid, 'hex'))
         self.mapiobj = mapiobj
         # XXX: fails if store is orphaned and guid is given..
         self._root = self.mapiobj.OpenEntry(None, None, 0)
@@ -109,7 +110,7 @@ class Store(object):
     def root(self):
         """ :class:`Folder` designated as store root """
 
-        return Folder(self, HrGetOneProp(self._root, PR_ENTRYID).Value)
+        return _folder.Folder(self, HrGetOneProp(self._root, PR_ENTRYID).Value)
 
     @property
     def subtree(self):
@@ -121,7 +122,7 @@ class Store(object):
             else:
                 ipmsubtreeid = HrGetOneProp(self.mapiobj, PR_IPM_SUBTREE_ENTRYID).Value
 
-            return Folder(self, ipmsubtreeid)
+            return _folder.Folder(self, ipmsubtreeid)
         except MAPIErrorNotFound:
             pass
 
@@ -130,7 +131,7 @@ class Store(object):
         """ :class:`Folder` designated as search-results root """
 
         try:
-            return Folder(self, HrGetOneProp(self.mapiobj, PR_FINDER_ENTRYID).Value)
+            return _folder.Folder(self, HrGetOneProp(self.mapiobj, PR_FINDER_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -139,7 +140,7 @@ class Store(object):
         """ :class:`Folder` designated as inbox """
 
         try:
-            return Folder(self, self.mapiobj.GetReceiveFolder(u'IPM', MAPI_UNICODE)[0])
+            return _folder.Folder(self, self.mapiobj.GetReceiveFolder(u'IPM', MAPI_UNICODE)[0])
         except MAPIErrorNotFound:
             pass
 
@@ -149,7 +150,7 @@ class Store(object):
 
         # PR_ADDITIONAL_REN_ENTRYIDS is a multi-value property, 4th entry is the junk folder
         try:
-            return Folder(self, HrGetOneProp(self._root, PR_ADDITIONAL_REN_ENTRYIDS).Value[4])
+            return _folder.Folder(self, HrGetOneProp(self._root, PR_ADDITIONAL_REN_ENTRYIDS).Value[4])
         except MAPIErrorNotFound:
             pass
 
@@ -158,7 +159,7 @@ class Store(object):
         """ :class:`Folder` designated as calendar """
 
         try:
-            return Folder(self, HrGetOneProp(self._root, PR_IPM_APPOINTMENT_ENTRYID).Value)
+            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_APPOINTMENT_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -167,7 +168,7 @@ class Store(object):
         """ :class:`Folder` designated as outbox """
 
         try:
-            return Folder(self, HrGetOneProp(self.mapiobj, PR_IPM_OUTBOX_ENTRYID).Value)
+            return _folder.Folder(self, HrGetOneProp(self.mapiobj, PR_IPM_OUTBOX_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -176,7 +177,7 @@ class Store(object):
         """ :class:`Folder` designated as contacts """
 
         try:
-            return Folder(self, HrGetOneProp(self._root, PR_IPM_CONTACT_ENTRYID).Value)
+            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_CONTACT_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -185,7 +186,7 @@ class Store(object):
         """ :class:`Folder` contains folders for managing views for the message store """
 
         try:
-            return Folder(self, self.prop(PR_COMMON_VIEWS_ENTRYID).value)
+            return _folder.Folder(self, self.prop(PR_COMMON_VIEWS_ENTRYID).value)
         except MAPIErrorNotFound:
             pass
 
@@ -194,7 +195,7 @@ class Store(object):
         """ :class:`Folder` designated as drafts """
 
         try:
-            return Folder(self, HrGetOneProp(self._root, PR_IPM_DRAFTS_ENTRYID).Value)
+            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_DRAFTS_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -203,7 +204,7 @@ class Store(object):
         """ :class:`Folder` designated as wastebasket """
 
         try:
-            return Folder(self, HrGetOneProp(self.mapiobj, PR_IPM_WASTEBASKET_ENTRYID).Value)
+            return _folder.Folder(self, HrGetOneProp(self.mapiobj, PR_IPM_WASTEBASKET_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -212,7 +213,7 @@ class Store(object):
         """ :class:`Folder` designated as journal """
 
         try:
-            return Folder(self, HrGetOneProp(self._root, PR_IPM_JOURNAL_ENTRYID).Value)
+            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_JOURNAL_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -221,7 +222,7 @@ class Store(object):
         """ :class:`Folder` designated as notes """
 
         try:
-            return Folder(self, HrGetOneProp(self._root, PR_IPM_NOTE_ENTRYID).Value)
+            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_NOTE_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -230,7 +231,7 @@ class Store(object):
         """ :class:`Folder` designated as sentmail """
 
         try:
-            return Folder(self, HrGetOneProp(self.mapiobj, PR_IPM_SENTMAIL_ENTRYID).Value)
+            return _folder.Folder(self, HrGetOneProp(self.mapiobj, PR_IPM_SENTMAIL_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -239,7 +240,7 @@ class Store(object):
         """ :class:`Folder` designated as tasks """
 
         try:
-            return Folder(self, HrGetOneProp(self._root, PR_IPM_TASK_ENTRYID).Value)
+            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_TASK_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -248,8 +249,8 @@ class Store(object):
         """ :class`Folder` designated as Suggested contacts"""
 
         try:
-            entryid = _extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_SUGGESTED_CONTACTS)
-            return Folder(self, _unhex(entryid))
+            entryid = _utils.extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_SUGGESTED_CONTACTS)
+            return _folder.Folder(self, _unhex(entryid))
         except MAPIErrorNotFound:
             pass
 
@@ -258,8 +259,8 @@ class Store(object):
         """ :class`Folder` designated as RSS items"""
 
         try:
-            entryid = _extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_RSS_SUBSCRIPTION)
-            return Folder(self, _unhex(entryid))
+            entryid = _utils.extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_RSS_SUBSCRIPTION)
+            return _folder.Folder(self, _unhex(entryid))
         except MAPIErrorNotFound:
             pass
 
@@ -282,7 +283,7 @@ class Store(object):
 
         if entryid is not None:
             try:
-                return Folder(self, _unhex(entryid))
+                return _folder.Folder(self, _unhex(entryid))
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound):
                 raise NotFoundError("no folder with entryid: '%s'" % entryid)
 
@@ -317,10 +318,10 @@ class Store(object):
     def item(self, entryid):
         """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
 
-        item = Item() # XXX copy-pasting..
+        item = _item.Item() # XXX copy-pasting..
         item.store = self
         item.server = self.server
-        item.mapiobj = _openentry_raw(self.mapiobj, _unhex(entryid), MAPI_MODIFY) # XXX soft-deleted item?
+        item.mapiobj = _utils.openentry_raw(self.mapiobj, _unhex(entryid), MAPI_MODIFY) # XXX soft-deleted item?
         return item
 
     @property
@@ -330,7 +331,7 @@ class Store(object):
         return self.prop(PR_MESSAGE_SIZE_EXTENDED).value
 
     def config_item(self, name):
-        item = Item()
+        item = _item.Item()
         item.mapiobj = libcommon.GetConfigMessage(self.mapiobj, name)
         return item
 
@@ -360,11 +361,9 @@ class Store(object):
     @property
     def user(self):
         """ Store :class:`owner <User>` """
-        from .user import User
-
         try:
             userid = HrGetOneProp(self.mapiobj, PR_MAILBOX_OWNER_ENTRYID).Value # XXX
-            return User(self.server.sa.GetUser(userid, MAPI_UNICODE).Username, self.server)
+            return _user.User(self.server.sa.GetUser(userid, MAPI_UNICODE).Username, self.server)
         except MAPIErrorNotFound:
             pass
 
@@ -435,23 +434,23 @@ class Store(object):
             return (self.user.store is None or self.user.store.guid != self.guid)
 
     def create_prop(self, proptag, value, proptype=None):
-        return _create_prop(self, self.mapiobj, proptag, value, proptype)
+        return _utils.create_prop(self, self.mapiobj, proptag, value, proptype)
 
     def prop(self, proptag):
-        return _prop(self, self.mapiobj, proptag)
+        return _utils.prop(self, self.mapiobj, proptag)
 
     def props(self, namespace=None):
-        return _props(self.mapiobj, namespace=namespace)
+        return _utils.props(self.mapiobj, namespace=namespace)
 
     def create_searchfolder(self, text=None): # XXX store.findroot.create_folder()?
         mapiobj = self.findroot.mapiobj.CreateFolder(FOLDER_SEARCH, _encode(str(uuid.uuid4())), _encode('comment'), None, 0)
-        return Folder(self, mapiobj=mapiobj)
+        return _folder.Folder(self, mapiobj=mapiobj)
 
     def permissions(self):
-        return _permissions(self)
+        return _utils.permissions(self)
 
     def permission(self, member, create=False):
-        return _permission(self, member, create)
+        return _util.permission(self, member, create)
 
     def favorites(self):
         """Returns all favorite folders"""

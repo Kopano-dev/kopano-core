@@ -7,13 +7,11 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import codecs
 import datetime
-
 import email.parser
 import email.utils
-
-import traceback
-
 from functools import wraps
+import sys
+import traceback
 
 try:
     import cPickle as pickle
@@ -60,22 +58,29 @@ from MAPI.Tags import (
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
 
+if sys.hexversion >= 0x03000000:
+    from . import folder as _folder
+    from . import store as _store
+    from . import user as _user
+    from . import utils as _utils
+else:
+    import folder as _folder
+    import store as _store
+    import user as _user
+    import utils as _utils
+
 from .compat import (
     unhex as _unhex, is_str as _is_str, repr as _repr,
     pickle_load as _pickle_load, pickle_loads as _pickle_loads,
-    fake_unicode as _unicode
+    fake_unicode as _unicode, is_file as _is_file
 )
 
-from .errors import Error
-
-from .utils import (
-    create_prop as _create_prop, prop as _prop, props as _props,
-    stream as _stream, bestbody as _bestbody
-)
 from .defs import (
     NAMED_PROPS_ARCHIVER, NAMED_PROP_CATEGORY, ADDR_PROPS,
     PSETID_Archive
 )
+from .errors import Error
+
 from .attachment import Attachment
 from .body import Body
 from .recurrence import Recurrence, Occurrence
@@ -106,18 +111,17 @@ class Item(object):
     def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None):
         # TODO: self.folder fix this!
 
-        if isinstance(eml, file):
+        if _is_file(eml):
             eml = eml.read()
-        if isinstance(ics, file):
+        if _is_file(ics):
             ics = ics.read()
-        if isinstance(vcf, file):
+        if _is_file(vcf):
             vcf = vcf.read()
 
         self.emlfile = eml
         self._folder = None
 
-        from .folder import Folder
-        if isinstance(parent, Folder):
+        if isinstance(parent, _folder.Folder):
             self._folder = parent
         # XXX
         self._architem = None
@@ -125,8 +129,7 @@ class Item(object):
         if mapiobj:
             self.mapiobj = mapiobj
 
-            from .store import Store
-            if isinstance(parent, Store):
+            if isinstance(parent, _store.Store):
                 self.server = parent.server
             # XXX
 
@@ -340,12 +343,10 @@ class Item(object):
     @property
     def folder(self):
         """ Parent :class:`Folder` of an item """
-        from .folder import Folder
-
         if self._folder:
             return self._folder
         try:
-            return Folder(self.store, HrGetOneProp(self.mapiobj, PR_PARENT_ENTRYID).Value)
+            return _folder.Folder(self.store, HrGetOneProp(self.mapiobj, PR_PARENT_ENTRYID).Value)
         except MAPIErrorNotFound:
             pass
 
@@ -372,10 +373,10 @@ class Item(object):
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def create_prop(self, proptag, value, proptype=None):
-        return _create_prop(self, self.mapiobj, proptag, value, proptype)
+        return _utils.create_prop(self, self.mapiobj, proptag, value, proptype)
 
     def prop(self, proptag):
-        return _prop(self, self.mapiobj, proptag)
+        return _utils.prop(self, self.mapiobj, proptag)
 
     def get_prop(self, proptag):
         try:
@@ -384,7 +385,7 @@ class Item(object):
             pass
 
     def props(self, namespace=None):
-        return _props(self.mapiobj, namespace)
+        return _utils.props(self.mapiobj, namespace)
 
     def attachments(self, embedded=False):
         """ Return item :class:`attachments <Attachment>`
@@ -442,7 +443,7 @@ class Item(object):
         """ Return .eml version of item """
         if self.emlfile is None:
             try:
-                self.emlfile = _stream(self.mapiobj, PR_EC_IMAP_EMAIL)
+                self.emlfile = _utils.stream(self.mapiobj, PR_EC_IMAP_EMAIL)
             except MAPIErrorNotFound:
                 sopt = inetmapi.sending_options()
                 sopt.no_recipients_workaround = True
@@ -571,9 +572,7 @@ class Item(object):
             pass
 
     def _addr_props(self, addr):
-        from .user import User
-
-        if isinstance(addr, User):
+        if isinstance(addr, _user.User):
             pr_addrtype = 'ZARAFA'
             pr_dispname = addr.name
             pr_email = addr.email
@@ -588,11 +587,9 @@ class Item(object):
 
     @to.setter
     def to(self, addrs):
-        from .user import User
-
         if _is_str(addrs):
             addrs = _unicode(addrs).split(';')
-        elif isinstance(addrs, User):
+        elif isinstance(addrs, _user.User):
             addrs = [addrs]
         names = []
         for addr in addrs:
@@ -670,7 +667,7 @@ class Item(object):
         # props
         props = []
         tag_data = {}
-        bestbody = _bestbody(self.mapiobj)
+        bestbody = _utils.bestbody(self.mapiobj)
         for prop in self.props():
             if (bestbody != PR_NULL and prop.proptag in (PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED) and prop.proptag != bestbody):
                 continue
@@ -711,7 +708,7 @@ class Item(object):
                     data = item._dump() # recursion
                     atts.append(([[a, b, None] for a, b in row.items()], data))
                 elif method == ATTACH_BY_VALUE and attachments:
-                    data = _stream(att, PR_ATTACH_DATA_BIN)
+                    data = _utils.stream(att, PR_ATTACH_DATA_BIN)
                     atts.append(([[a, b, None] for a, b in row.items()], data))
             except Exception as e: # XXX generalize so usable in more places
                 service = self.server.service

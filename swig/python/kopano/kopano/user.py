@@ -5,6 +5,8 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import sys
+
 from MAPI import (
     MAPI_UNICODE, MAPI_UNRESOLVED, ECSTORE_TYPE_PRIVATE,
     WrapStoreEntryID
@@ -21,6 +23,15 @@ from MAPI.Tags import (
     EMS_AB_ADDRESS_LOOKUP
 )
 
+if sys.hexversion >= 0x03000000:
+    from . import server as _server
+    from . import company as _company
+    from . import utils as _utils
+else:
+    import server as _server
+    import company as _company
+    import utils as _utils
+
 from .store import Store
 from .group import Group
 from .quota import Quota
@@ -29,17 +40,12 @@ from .errors import NotFoundError, NotSupportedError, DuplicateError
 from .compat import (
     hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
 )
-from .utils import prop as _prop, props as _props
 
 class User(object):
     """User class"""
 
     def __init__(self, name=None, server=None, email=None, ecuser=None):
-        if not server:
-            from .server import Server
-            server = Server()
-
-        self.server = server
+        self.server = server or _server.Server()
 
         if ecuser:
             self._ecuser = ecuser
@@ -47,7 +53,7 @@ class User(object):
         else:
             if email:
                 try:
-                    self._name = _unicode(server.gab.ResolveNames([PR_EMAIL_ADDRESS_W], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME_W, _unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
+                    self._name = _unicode(self.server.gab.ResolveNames([PR_EMAIL_ADDRESS_W], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME_W, _unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
                 except (MAPIErrorNotFound, MAPIErrorInvalidParameter, IndexError):
                     raise NotFoundError("no such user '%s'" % email)
             else:
@@ -191,12 +197,10 @@ class User(object):
     def company(self):
         """ :class:`Company` the user belongs to """
 
-        from .company import Company
-
         try:
-            return Company(HrGetOneProp(self.mapiobj, PR_EC_COMPANY_NAME_W).Value, self.server)
+            return _company.Company(HrGetOneProp(self.mapiobj, PR_EC_COMPANY_NAME_W).Value, self.server)
         except MAPIErrorNoSupport:
-            return Company(u'Default', self.server)
+            return _company.Company(u'Default', self.server)
 
     @property # XXX
     def local(self):
@@ -258,10 +262,10 @@ class User(object):
             return
 
     def prop(self, proptag):
-        return _prop(self, self.mapiobj, proptag)
+        return _utils.prop(self, self.mapiobj, proptag)
 
     def props(self):
-        return _props(self.mapiobj)
+        return _utils.props(self.mapiobj)
 
     @property
     def quota(self):

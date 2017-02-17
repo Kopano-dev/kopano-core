@@ -6,9 +6,21 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import codecs
+try:
+    import daemon
+    import daemon.pidlockfile
+except ImportError:
+    pass
+import errno
+import grp
+import logging.handlers
+import multiprocessing
+import os
+import pwd
+import struct
+import sys
 import traceback
 import time
-import struct
 
 from MAPI import (
     ECImportContentsChanges, SYNC_E_IGNORE, WrapStoreEntryID,
@@ -41,6 +53,27 @@ from MAPI.Struct import (
 )
 from MAPI.Time import unixtime
 
+if sys.hexversion >= 0x03000000:
+    from . import item as _item
+    from . import store as _store
+    from . import prop as _prop
+    from . import table as _table
+    from . import permission as _permission
+    from . import user as _user
+    from . import group as _group
+    from . import service as _service
+    from . import log as _log
+else:
+    import item as _item
+    import store as _store
+    import prop as _prop
+    import table as _table
+    import permission as _permission
+    import user as _user
+    import group as _group
+    import service as _service
+    import log as _log
+
 from .defs import NAMESPACE_GUID
 from .compat import is_int as _is_int, unhex as _unhex
 from .errors import Error, NotFoundError
@@ -58,9 +91,6 @@ class TrackingContentsImporter(ECImportContentsChanges):
         self.ImportMessageChange(props, flags)
 
     def ImportMessageChange(self, props, flags):
-        from .item import Item
-        from .store import Store
-
         if self.skip:
             raise MAPIError(SYNC_E_IGNORE)
         try:
@@ -71,9 +101,9 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 store_entryid = PpropFindProp(props, PR_STORE_ENTRYID).Value
                 store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', store_entryid[:-4]) + self.server.pseudo_url + b'\x00'
                 mapistore = self.server.mapisession.OpenMsgStore(0, store_entryid, None, 0) # XXX cache
-            item = Item()
+            item = _item.Item()
             item.server = self.server
-            item.store = Store(mapiobj=mapistore, server=self.server)
+            item.store = _store.Store(mapiobj=mapistore, server=self.server)
             try:
                 item.mapiobj = openentry_raw(mapistore, entryid.Value, 0)
                 item.folderid = PpropFindProp(props, PR_EC_PARENT_HIERARCHYID).Value
@@ -97,13 +127,11 @@ class TrackingContentsImporter(ECImportContentsChanges):
         raise MAPIError(SYNC_E_IGNORE)
 
     def ImportMessageDeletion(self, flags, entries):
-        from .item import Item
-
         if self.skip:
             return
         try:
             for entry in entries:
-                item = Item()
+                item = _item.Item()
                 item.server = self.server
                 item._sourcekey = bin2hex(entry)
                 if hasattr(self.importer, 'delete'):
@@ -192,8 +220,7 @@ def prop(self, mapiobj, proptag, create=False):
                 sprop = HrGetOneProp(mapiobj, proptag)
             else:
                 raise e
-        from .prop import Property
-        return Property(mapiobj, sprop)
+        return _prop.Property(mapiobj, sprop)
     else:
         namespace, name = proptag.split(':') # XXX syntax
         if name.isdigit(): # XXX
@@ -207,8 +234,7 @@ def prop(self, mapiobj, proptag, create=False):
 def props(mapiobj, namespace=None):
     proptags = mapiobj.GetPropList(MAPI_UNICODE)
     sprops = mapiobj.GetProps(proptags, MAPI_UNICODE)
-    from .prop import Property
-    props = [Property(mapiobj, sprop) for sprop in sprops]
+    props = [_prop.Property(mapiobj, sprop) for sprop in sprops]
     for p in sorted(props):
         if not namespace or p.namespace == namespace:
             yield p
@@ -387,29 +413,23 @@ def extract_ipm_ol2007_entryids(blob, offset):
             pos += totallen
 
 def permissions(obj):
-        from .table import Table
-        from .permission import Permission
-
         try:
             acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
         except MAPIErrorNotFound:
             return
-        table = Table(obj.server, acl_table.GetTable(0), PR_ACL_TABLE)
+        table = _table.Table(obj.server, acl_table.GetTable(0), PR_ACL_TABLE)
         for row in table.dict_rows():
-            yield Permission(acl_table, row, obj.server)
+            yield _permission.Permission(acl_table, row, obj.server)
 
 def permission(obj, member, create):
-        from .user import User
-        from .group import Group
-
         for permission in obj.permissions():
             if permission.member == member:
                 return permission
         if create:
             acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
-            if isinstance(member, User): # XXX *.id_ or something..?
+            if isinstance(member, _user.User): # XXX *.id_ or something..?
                 memberid = member.userid
-            elif isinstance(member, Group):
+            elif isinstance(member, _group.Group):
                 memberid = member.groupid
             else:
                 memberid = member.companyid
@@ -453,3 +473,66 @@ def human_to_bytes(s):
     for i, s in enumerate(sset[1:]):
         prefix[s] = 1 << (i + 1) * 10
     return int(num * prefix[letter])
+
+def _daemon_helper(func, service, log):
+    try:
+        if not service or isinstance(service, _service.Service):
+            if isinstance(service, _service.Service): # XXX
+                service.log_queue = multiprocessing.Queue()
+                service.ql = _log.QueueListener(service.log_queue, *service.log.handlers)
+                service.ql.start()
+            func()
+        else:
+            func(service)
+    finally:
+        if isinstance(service, _service.Service) and service.ql: # XXX move queue stuff into Service
+            service.ql.stop()
+        if log and service:
+            log.info('stopping %s', service.name)
+
+def _daemonize(func, options=None, foreground=False, log=None, config=None, service=None):
+    uid = gid = None
+    working_directory = '/'
+    pidfile = None
+    if config:
+        working_directory = config.get('running_path')
+        pidfile = config.get('pid_file')
+        if config.get('run_as_user'):
+            uid = pwd.getpwnam(config.get('run_as_user')).pw_uid
+        if config.get('run_as_group'):
+            gid = grp.getgrnam(config.get('run_as_group')).gr_gid
+    if not pidfile and service:
+        pidfile = "/var/run/kopano/%s.pid" % service.name
+    if pidfile:
+        pidfile = daemon.pidlockfile.TimeoutPIDLockFile(pidfile, 10)
+        oldpid = pidfile.read_pid()
+        if oldpid is None:
+            # there was no pidfile, remove the lock if it's there
+            pidfile.break_lock()
+        elif oldpid:
+            try:
+                cmdline = open('/proc/%u/cmdline' % oldpid).read().split('\0')
+            except IOError as error:
+                if error.errno != errno.ENOENT:
+                    raise
+                # errno.ENOENT indicates that no process with pid=oldpid exists, which is ok
+                pidfile.break_lock()
+    if uid is not None and gid is not None:
+        for h in log.handlers:
+            if isinstance(h, logging.handlers.WatchedFileHandler):
+                os.chown(h.baseFilename, uid, gid)
+    if options and options.foreground:
+        foreground = options.foreground
+        working_directory = os.getcwd()
+    with daemon.DaemonContext(
+            pidfile=pidfile,
+            uid=uid,
+            gid=gid,
+            working_directory=working_directory,
+            files_preserve=[h.stream for h in log.handlers if isinstance(h, logging.handlers.WatchedFileHandler)] if log else None,
+            prevent_core=False,
+            detach_process=not foreground,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        ):
+        _daemon_helper(func, service, log)

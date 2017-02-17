@@ -7,6 +7,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import codecs
 import mailbox
+import sys
 import time
 
 from MAPI import (
@@ -39,7 +40,17 @@ from MAPI.Struct import (
 )
 from MAPI.Time import unixtime
 
-from .item import Item
+if sys.hexversion >= 0x03000000:
+    from . import user as _user
+    from . import store as _store
+    from . import item as _item
+    from . import utils as _utils
+else:
+    import user as _user
+    import store as _store
+    import item as _item
+    import utils as _utils
+
 from .permission import Permission
 from .rule import Rule
 from .table import Table
@@ -50,11 +61,6 @@ from .defs import (
 from .errors import NotFoundError, Error
 
 from .compat import hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
-from .utils import (
-    openentry_raw as _openentry_raw, prop as _prop, props as _props,
-    create_prop as _create_prop, state as _state, sync as _sync, permissions as _permissions,
-    permission as _permission
-)
 
 class Folder(object):
     """Folder class"""
@@ -168,10 +174,10 @@ class Folder(object):
     def item(self, entryid):
         """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
 
-        item = Item() # XXX copy-pasting..
+        item = _item.Item() # XXX copy-pasting..
         item.store = self.store
         item.server = self.server
-        item.mapiobj = _openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
+        item.mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
         return item
 
     def items(self, restriction=None):
@@ -191,10 +197,10 @@ class Folder(object):
             if len(rows) == 0:
                 break
             for row in rows:
-                item = Item()
+                item = _item.Item()
                 item.store = self.store
                 item.server = self.server
-                item.mapiobj = _openentry_raw(self.store.mapiobj, PpropFindProp(row, PR_ENTRYID).Value, MAPI_MODIFY | self.content_flag)
+                item.mapiobj = _utils.openentry_raw(self.store.mapiobj, PpropFindProp(row, PR_ENTRYID).Value, MAPI_MODIFY | self.content_flag)
                 yield item
 
     def occurrences(self, start=None, end=None):
@@ -241,7 +247,7 @@ class Folder(object):
                     yield occurrence
 
     def create_item(self, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, **kwargs): # XXX associated
-        item = Item(self, eml=eml, ics=ics, vcf=vcf, load=load, loads=loads, attachments=attachments, create=True)
+        item = _item.Item(self, eml=eml, ics=ics, vcf=vcf, load=load, loads=loads, attachments=attachments, create=True)
         for key, val in kwargs.items():
             setattr(item, key, val)
         return item
@@ -296,11 +302,11 @@ class Folder(object):
         self.server.sa.ResetFolderCount(_unhex(self.entryid))
 
     def _get_entryids(self, items):
-        if isinstance(items, (Item, Folder, Permission)):
+        if isinstance(items, (_item.Item, Folder, Permission)):
             items = [items]
         else:
             items = list(items)
-        item_entryids = [_unhex(item.entryid) for item in items if isinstance(item, Item)]
+        item_entryids = [_unhex(item.entryid) for item in items if isinstance(item, _item.Item)]
         folder_entryids = [_unhex(item.entryid) for item in items if isinstance(item, Folder)]
         perms = [item for item in items if isinstance(item, Permission)]
         return item_entryids, folder_entryids, perms
@@ -403,7 +409,7 @@ class Folder(object):
             yield Rule(row)
 
     def prop(self, proptag, create=True):
-        return _prop(self, self.mapiobj, proptag, create=True)
+        return _utils.prop(self, self.mapiobj, proptag, create=True)
 
     def get_prop(self, proptag):
         try:
@@ -412,10 +418,10 @@ class Folder(object):
             pass
 
     def create_prop(self, proptag, value, proptype=None):
-        return _create_prop(self, self.mapiobj, proptag, value, proptype)
+        return _utils.create_prop(self, self.mapiobj, proptag, value, proptype)
 
     def props(self):
-        return _props(self.mapiobj)
+        return _utils.props(self.mapiobj)
 
     def table(self, name, restriction=None, order=None, columns=None): # XXX associated, PR_CONTAINER_CONTENTS?
         return Table(self.server, self.mapiobj.OpenProperty(name, IID_IMAPITable, MAPI_UNICODE, 0), name, restriction=restriction, order=order, columns=columns)
@@ -429,7 +435,7 @@ class Folder(object):
     def state(self):
         """ Current folder state """
 
-        return _state(self.mapiobj, self.content_flag == MAPI_ASSOCIATED)
+        return _utils.state(self.mapiobj, self.content_flag == MAPI_ASSOCIATED)
 
     def sync(self, importer, state=None, log=None, max_changes=None, associated=False, window=None, begin=None, end=None, stats=None):
         """ Perform synchronization against folder
@@ -442,11 +448,11 @@ class Folder(object):
         if state is None:
             state = codecs.encode(8 * b'\0', 'hex').upper()
         importer.store = self.store
-        return _sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
+        return _utils.sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
 
     def readmbox(self, location):
         for message in mailbox.mbox(location):
-            Item(self, eml=message.__str__(), create=True)
+            _item.Item(self, eml=message.__str__(), create=True)
 
     def mbox(self, location): # FIXME: inconsistent with maildir()
         mboxfile = mailbox.mbox(location)
@@ -464,7 +470,7 @@ class Folder(object):
 
     def read_maildir(self, location):
         for message in mailbox.MH(location):
-            Item(self, eml=message.__str__(), create=True)
+            _item.Item(self, eml=message.__str__(), create=True)
 
     @property
     def associated(self):
@@ -477,14 +483,12 @@ class Folder(object):
         return Folder(self.store, self._entryid, deleted=True)
 
     def permissions(self):
-        return _permissions(self)
+        return _utils.permissions(self)
 
     def permission(self, member, create=False):
-        return _permission(self, member, create)
+        return _utils.permission(self, member, create)
 
     def rights(self, member):
-        from .user import User
-
         if member == self.store.user: # XXX admin-over-user, Store.rights (inheritance)
             return NAME_RIGHT.keys()
         parent = self
@@ -493,7 +497,7 @@ class Folder(object):
             try:
                 return parent.permission(member).rights
             except NotFoundError:
-                if isinstance(member, User):
+                if isinstance(member, _user.User):
                     for group in member.groups():
                         try:
                             return parent.permission(group).rights
@@ -538,8 +542,6 @@ class Folder(object):
     def archive_folder(self):
         """ Archive :class:`Folder` or *None* if not found """
 
-        from .store import Store
-
         ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
         PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)
         PROP_ITEM_ENTRYIDS = CHANGE_PROP_TYPE(ids[1], PT_MV_BINARY)
@@ -552,12 +554,10 @@ class Folder(object):
             return
 
         archive_store = self.server._store2(arch_storeid)
-        return Store(mapiobj=archive_store, server=self.server).folder(entryid=codecs.encode(arch_folderid, 'hex'))
+        return _store.Store(mapiobj=archive_store, server=self.server).folder(entryid=codecs.encode(arch_folderid, 'hex'))
 
     @property
     def primary_store(self):
-        from .store import Store
-
         ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
         PROP_REF_STORE_ENTRYID = CHANGE_PROP_TYPE(ids[3], PT_BINARY)
         try:
@@ -565,7 +565,7 @@ class Folder(object):
         except MAPIErrorNotFound:
             return
 
-        return Store(entryid=_hex(entryid), server=self.server)
+        return _store.Store(entryid=_hex(entryid), server=self.server)
 
     @property
     def primary_folder(self):

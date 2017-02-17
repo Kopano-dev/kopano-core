@@ -11,6 +11,7 @@ except ImportError:
     import pickle
 
 import codecs
+import io
 import sys
 
 # Python 3
@@ -32,6 +33,9 @@ if sys.hexversion >= 0x03000000:
 
     def is_int(i):
         return isinstance(i, int)
+
+    def is_file(f):
+        return isinstance(f, io.IOBase)
 
     def repr(o):
         return o.__unicode__()
@@ -64,6 +68,9 @@ else:
 
     def is_int(i):
         return isinstance(i, (int, long))
+
+    def is_file(f):
+        return isinstance(f, file)
 
     def encode(s):
         # sys.stdout can be StringIO (nosetests)

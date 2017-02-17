@@ -5,6 +5,8 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import sys
+
 from MAPI import MAPI_UNICODE
 from MAPI.Struct import (
     ECGROUP, MAPIErrorNotFound, MAPIErrorInvalidParameter,
@@ -12,19 +14,24 @@ from MAPI.Struct import (
 )
 from MAPI.Defs import bin2hex
 
+if sys.hexversion >= 0x03000000:
+    from . import utils as _utils
+    from . import server as _server
+    from . import user as _user
+else:
+    import utils as _utils
+    import server as _server
+    import user as _user
+
 from .errors import NotFoundError, DuplicateError
 from .compat import repr as _repr, fake_unicode as _unicode
-from .utils import prop as _prop, props as _props
+
 
 class Group(object):
     """Group class"""
 
     def __init__(self, name, server=None):
-        if not server:
-            from .server import Server
-            server = Server()
-
-        self.server = server
+        self.server = server or _server.Server()
         self._name = _unicode(name)
         try:
             self._ecgroup = self.server.sa.GetGroup(self.server.sa.ResolveGroupName(self._name, MAPI_UNICODE), MAPI_UNICODE)
@@ -56,8 +63,6 @@ class Group(object):
     def members(self, groups=True, users=True):
         """All members in group, users or groups"""
 
-        from .user import User
-
         for ecuser in self.server.sa.GetUserListOfGroup(self._ecgroup.GroupID, MAPI_UNICODE):
             if ecuser.Username == 'SYSTEM':
                 continue
@@ -65,7 +70,7 @@ class Group(object):
                 try:
                     # XXX working around '@' duplication
                     username = '@'.join(ecuser.Username.split('@')[:2])
-                    yield User(username, self.server)
+                    yield _user.User(username, self.server)
                 except NotFoundError: # XXX everyone, groups are included as users..
                     pass
             if groups:
@@ -107,10 +112,10 @@ class Group(object):
         self._update(hidden=value)
 
     def prop(self, proptag):
-        return _prop(self, self.mapiobj, proptag)
+        return _utils.prop(self, self.mapiobj, proptag)
 
     def props(self):
-        return _props(self.mapiobj)
+        return _utils.props(self.mapiobj)
 
     def send_as(self):
         for u in self.server.sa.GetSendAsList(self._ecgroup.GroupID, MAPI_UNICODE):
