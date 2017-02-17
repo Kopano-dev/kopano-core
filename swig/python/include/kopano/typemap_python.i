@@ -75,10 +75,11 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 	$1 = &tmp;
 }
 
-%typemap(in)				MAPILIST
+%typemap(in)				MAPILIST (KCHL::memory_ptr< std::remove_const< std::remove_pointer<$1_type>::type >::type > tmp)
 {
-	$1 = List_to$mangle($input);
+	tmp.reset(List_to$mangle($input));
 	if(PyErr_Occurred()) goto fail;
+        $1 = tmp;
 }
 
 %typemap(in)				LPROWLIST
