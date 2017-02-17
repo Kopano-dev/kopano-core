@@ -114,7 +114,7 @@ bool operator <=(const FILETIME &, const FILETIME &);
 extern _kc_export time_t operator -(const FILETIME &, const FILETIME &);
 
 /* convert struct tm to time_t in timezone UTC0 (GM time) */
-#ifndef __linux__
+#ifndef HAVE_TIMEGM
 time_t timegm(struct tm *t);
 #endif
 

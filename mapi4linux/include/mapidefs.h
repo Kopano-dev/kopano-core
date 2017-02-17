@@ -268,7 +268,7 @@ struct _SPropTagArray_ ## _name { \
 #define _tagCY_DEFINED
 
 union CURRENCY {
-    struct {
+    __extension__ struct {
 #ifdef _USE_NETWORK_ORDER
         LONG Hi;
         LONG Lo;

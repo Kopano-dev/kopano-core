@@ -327,7 +327,7 @@ typedef struct FILETIME *LPFILETIME;
 
 /* made up .. seems correct */
 union LARGE_INTEGER {
-  struct {
+  __extension__ struct {
     DWORD LowPart;
     LONG HighPart;
   };
@@ -340,7 +340,7 @@ union LARGE_INTEGER {
 typedef union LARGE_INTEGER *PLARGE_INTEGER;
 
 union ULARGE_INTEGER {
-  struct {
+  __extension__ struct {
     DWORD LowPart;
     DWORD HighPart;
   };
@@ -596,7 +596,7 @@ extern _kc_export time_t GetProcessTime(void);
 #endif
 
 #define OutputDebugStringA(dstr) fprintf(stderr,"%s",dstr)
-#define GetCurrentThreadId() (int)pthread_self()
+#define kc_threadid() static_cast<unsigned long>(pthread_self())
 #define GetTickCount() 0L
 
 #define TICKS_PER_SEC (sysconf(_SC_CLK_TCK))
