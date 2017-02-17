@@ -14,7 +14,7 @@ import socket
 import ssl
 import sys
 
-from .compat import _decode
+from .compat import decode as _decode
 
 if sys.hexversion >= 0x03000000:
     from . import config as _config
