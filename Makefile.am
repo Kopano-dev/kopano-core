@@ -442,14 +442,17 @@ libkcicalmapi_HEADERS = \
 	libicalmapi/ICalToMAPI.h libicalmapi/MAPIToICal.h \
 	libicalmapi/icalitem.h \
 	libicalmapi/icalrecurrence.h libicalmapi/icaluid.h \
-	libicalmapi/nameids.h libicalmapi/valarm.h libicalmapi/vconverter.h \
+	libicalmapi/mapitovcf.hpp \
+	libicalmapi/nameids.h libicalmapi/valarm.h \
+	libicalmapi/vcftomapi.hpp libicalmapi/vconverter.h \
 	libicalmapi/vevent.h libicalmapi/vfreebusy.h libicalmapi/vtimezone.h \
 	libicalmapi/vtodo.h
 libkcicalmapi_la_SOURCES = \
 	libicalmapi/ICalToMAPI.cpp libicalmapi/MAPIToICal.cpp \
 	libicalmapi/icalinit.cpp libicalmapi/icalrecurrence.cpp \
-	libicalmapi/icaluid.cpp libicalmapi/nameids.cpp \
-	libicalmapi/valarm.cpp libicalmapi/vconverter.cpp \
+	libicalmapi/icaluid.cpp libicalmapi/mapitovcf.cpp \
+	libicalmapi/nameids.cpp libicalmapi/valarm.cpp \
+	libicalmapi/vcftomapi.cpp libicalmapi/vconverter.cpp \
 	libicalmapi/vevent.cpp libicalmapi/vfreebusy.cpp \
 	libicalmapi/vtimezone.cpp libicalmapi/vtodo.cpp
 libkcicalmapi_la_LIBADD = \

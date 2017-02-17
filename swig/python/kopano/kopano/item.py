@@ -150,23 +150,9 @@ class Item(object):
                 icm.GetItem(0, 0, self.mapiobj)
 
             elif vcf is not None:
-                import vobject
-                v = vobject.readOne(vcf)
-                fullname, email = _unicode(v.fn.value), str(v.email.value)
-                self.mapiobj.SetProps([ # XXX fix/remove non-essential props, figure out hardcoded numbers
-                    SPropValue(PR_ADDRTYPE, 'SMTP'), SPropValue(PR_BODY, ''),
-                    SPropValue(PR_LOCALITY, ''), SPropValue(PR_STATE_OR_PROVINCE, ''),
-                    SPropValue(PR_BUSINESS_FAX_NUMBER, ''), SPropValue(PR_COMPANY_NAME, ''),
-                    SPropValue(0x8130001F, fullname), SPropValue(0x8132001E, 'SMTP'),
-                    SPropValue(0x8133001E, email), SPropValue(0x8134001E, ''),
-                    SPropValue(0x81350102, server.ab.CreateOneOff('', 'SMTP', email, 0)), # XXX
-                    SPropValue(PR_GIVEN_NAME, ''), SPropValue(PR_MIDDLE_NAME, ''),
-                    SPropValue(PR_NORMALIZED_SUBJECT, ''), SPropValue(PR_TITLE, ''),
-                    SPropValue(PR_TRANSMITABLE_DISPLAY_NAME, ''),
-                    SPropValue(PR_DISPLAY_NAME_W, fullname),
-                    SPropValue(0x80D81003, [0]), SPropValue(0x80D90003, 1),
-                    SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Contact'),
-                ])
+                vcm = icalmapi.create_vcftomapi(self.mapiobj)
+                vcm.parse_vcf(vcf)
+                vcm.get_item(self.mapiobj)
 
             elif load is not None:
                 self.load(load, attachments=attachments)
@@ -451,24 +437,9 @@ class Item(object):
         return self.emlfile
 
     def vcf(self): # XXX don't we have this builtin somewhere? very basic for now
-        import vobject
-        v = vobject.vCard()
-        v.add('n')
-        v.n.value = vobject.vcard.Name(family='', given='') # XXX
-        v.add('fn')
-        v.fn.value = ''
-        v.add('email')
-        v.email.value = ''
-        v.email.type_param = 'INTERNET'
-        try:
-            v.fn.value = HrGetOneProp(self.mapiobj, 0x8130001E).Value
-        except MAPIErrorNotFound:
-            pass
-        try:
-            v.email.value = HrGetOneProp(self.mapiobj, 0x8133001E).Value
-        except MAPIErrorNotFound:
-            pass
-        return v.serialize()
+        vic = icalmapi.create_mapitovcf()
+        vic.add_message(self.mapiobj)
+        return vic.finalize()
 
     def ics(self, charset="UTF-8"):
         mic = icalmapi.CreateMapiToICal(self.server.ab, charset)
