@@ -95,7 +95,10 @@ class Table(object):
         return self.rows()
 
     def __unicode__(self):
-        return u'Table(%s)' % self.proptag and REV_TAG.get(self.proptag) or 'unknown'
+        tablename = None
+        if self.proptag:
+            tablename = REV_TAG.get(self.proptag)
+        return u'Table(%s)' % tablename
 
     def __repr__(self):
         return _repr(self)
