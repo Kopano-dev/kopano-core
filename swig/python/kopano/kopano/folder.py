@@ -176,7 +176,7 @@ class Folder(object):
     def item(self, entryid):
         """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
 
-        mapiobj = _openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
+        mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
         item = _item.Item(self.store, mapiobj=mapiobj) # XXX copy-pasting..
         return item
 
@@ -198,11 +198,11 @@ class Folder(object):
         table.sort(-1 * PR_MESSAGE_DELIVERY_TIME)
 
         for row in table.rows():
-            mapiobj = _openentry_raw(
+            mapiobj = _utils.openentry_raw(
                 self.store.mapiobj,
                 row[0].value, MAPI_MODIFY | self.content_flag
             )
-            item = Item(self.store, mapiobj=mapiobj)
+            item = _item.Item(self.store, mapiobj=mapiobj)
             yield item
 
     def occurrences(self, start=None, end=None):

@@ -50,7 +50,7 @@ class Table(object):
 
                 for row in result:
                     yield [Property(self.server.mapistore, c) for c in row]
-                offset += size
+                offset += batch_size
 
         except MAPIErrorNotFound:
             pass

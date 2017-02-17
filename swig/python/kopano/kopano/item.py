@@ -129,9 +129,9 @@ class Item(object):
         if mapiobj:
             self.mapiobj = mapiobj
 
-            if isinstance(parent, _store.Store):
-                self.server = parent.server
-            # XXX
+        if isinstance(parent, _store.Store):
+            self.store = parent
+            self.server = parent.server
 
         elif create:
             self.mapiobj = self.folder.mapiobj.CreateMessage(None, 0)
