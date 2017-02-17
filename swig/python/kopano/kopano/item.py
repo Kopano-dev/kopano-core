@@ -24,7 +24,7 @@ import icalmapi
 from MAPI import (
     KEEP_OPEN_READWRITE, PT_MV_BINARY, PT_BOOLEAN, MSGFLAG_READ,
     CLEAR_READ_FLAG, PT_MV_STRING8, PT_BINARY, PT_LONG,
-    MAPI_CREATE, MAPI_MODIFY, MAPI_DEFERRED_ERRORS, TBL_BATCH,
+    MAPI_CREATE, MAPI_MODIFY, MAPI_DEFERRED_ERRORS,
     ATTACH_BY_VALUE, ATTACH_EMBEDDED_MSG, STGM_WRITE, STGM_TRANSACTED,
     MAPI_UNICODE, MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_E_NOT_FOUND,
     MAPI_E_NOT_ENOUGH_MEMORY
@@ -35,17 +35,14 @@ from MAPI.Struct import (
     MAPIErrorInterfaceNotSupported, MAPIErrorUnconfigured,
 )
 from MAPI.Tags import (
-    PR_ADDRTYPE, PR_BODY, PR_LOCALITY, PR_STATE_OR_PROVINCE,
-    PR_BUSINESS_FAX_NUMBER, PR_COMPANY_NAME, PR_GIVEN_NAME,
-    PR_MIDDLE_NAME, PR_NORMALIZED_SUBJECT, PR_TITLE,
-    PR_TRANSMITABLE_DISPLAY_NAME, PR_DISPLAY_NAME_W,
-    PR_MESSAGE_CLASS_W, PR_CONTAINER_CLASS, PR_ENTRYID,
-    PR_EC_HIERARCHYID, PR_SOURCE_KEY, PR_SUBJECT_W,
+    PR_BODY, PR_DISPLAY_NAME_W, PR_MESSAGE_CLASS_W,
+    PR_CONTAINER_CLASS, PR_ENTRYID, PR_EC_HIERARCHYID,
+    PR_SOURCE_KEY, PR_SUBJECT_W, PR_ATTACH_LONG_FILENAME_W,
     PR_MESSAGE_SIZE, PR_BODY_W, PR_CREATION_TIME,
     PR_MESSAGE_DELIVERY_TIME, PR_LAST_MODIFICATION_TIME,
     PR_MESSAGE_FLAGS, PR_PARENT_ENTRYID, PR_IMPORTANCE,
-    PR_ATTACH_NUM, PR_ATTACH_METHOD, PR_ATTACH_LONG_FILENAME_W,
-    PR_ATTACH_DATA_BIN, PR_TRANSPORT_MESSAGE_HEADERS_W,
+    PR_ATTACH_NUM, PR_ATTACH_METHOD, PR_ATTACH_DATA_BIN,
+    PR_TRANSPORT_MESSAGE_HEADERS_W, PR_ATTACH_DATA_OBJ, PR_ICON_INDEX,
     PR_EC_IMAP_EMAIL, PR_SENTMAIL_ENTRYID, PR_DELETE_AFTER_SUBMIT,
     PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W,
     PR_SENDER_ENTRYID, PR_SENT_REPRESENTING_ADDRTYPE_W,
@@ -53,21 +50,10 @@ from MAPI.Tags import (
     PR_SENT_REPRESENTING_ENTRYID, PR_MESSAGE_RECIPIENTS,
     PR_MESSAGE_ATTACHMENTS, PR_RECIPIENT_TYPE, PR_ADDRTYPE_W,
     PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W, PR_NULL, PR_HTML,
-    PR_RTF_COMPRESSED, PR_ATTACH_DATA_OBJ, PR_ICON_INDEX
+    PR_RTF_COMPRESSED
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
-
-if sys.hexversion >= 0x03000000:
-    from . import folder as _folder
-    from . import store as _store
-    from . import user as _user
-    from . import utils as _utils
-else:
-    import folder as _folder
-    import store as _store
-    import user as _user
-    import utils as _utils
 
 from .compat import (
     unhex as _unhex, is_str as _is_str, repr as _repr,
@@ -87,6 +73,17 @@ from .recurrence import Recurrence, Occurrence
 from .prop import Property
 from .address import Address
 from .table import Table
+
+if sys.hexversion >= 0x03000000:
+    from . import folder as _folder
+    from . import store as _store
+    from . import user as _user
+    from . import utils as _utils
+else:
+    import folder as _folder
+    import store as _store
+    import user as _user
+    import utils as _utils
 
 class PersistentList(list):
     def __init__(self, mapiobj, proptag, *args, **kwargs):

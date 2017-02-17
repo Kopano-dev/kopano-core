@@ -14,6 +14,9 @@ from MAPI.Struct import (
 )
 from MAPI.Defs import bin2hex
 
+from .errors import NotFoundError, DuplicateError
+from .compat import repr as _repr, fake_unicode as _unicode
+
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
     from . import server as _server
@@ -22,10 +25,6 @@ else:
     import utils as _utils
     import server as _server
     import user as _user
-
-from .errors import NotFoundError, DuplicateError
-from .compat import repr as _repr, fake_unicode as _unicode
-
 
 class Group(object):
     """Group class"""

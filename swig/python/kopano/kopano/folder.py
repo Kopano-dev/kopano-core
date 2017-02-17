@@ -42,17 +42,6 @@ from MAPI.Struct import (
 )
 from MAPI.Time import unixtime
 
-if sys.hexversion >= 0x03000000:
-    from . import user as _user
-    from . import store as _store
-    from . import item as _item
-    from . import utils as _utils
-else:
-    import user as _user
-    import store as _store
-    import item as _item
-    import utils as _utils
-
 from .permission import Permission
 from .rule import Rule
 from .table import Table
@@ -63,6 +52,17 @@ from .defs import (
 from .errors import NotFoundError, Error
 
 from .compat import hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
+
+if sys.hexversion >= 0x03000000:
+    from . import user as _user
+    from . import store as _store
+    from . import item as _item
+    from . import utils as _utils
+else:
+    import user as _user
+    import store as _store
+    import item as _item
+    import utils as _utils
 
 class Folder(object):
     """Folder class"""

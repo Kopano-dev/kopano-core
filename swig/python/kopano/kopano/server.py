@@ -9,14 +9,13 @@ import datetime
 import os
 import time
 import socket
-import fnmatch
 import sys
 
 from MAPI import (
-    MAPI_UNICODE, MDB_WRITE, RELOP_EQ, RELOP_RE,
+    MAPI_UNICODE, MDB_WRITE, RELOP_EQ,
     TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS
 )
-from MAPI.Util import AddressBook, GetDefaultStore, OpenECSession
+from MAPI.Util import GetDefaultStore, OpenECSession
 from MAPI.Defs import HrGetOneProp, bin2hex
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ECCOMPANY, ECGROUP, ECUSER,
@@ -25,7 +24,7 @@ from MAPI.Struct import (
 )
 from MAPI.Tags import (
     PR_ACCOUNT_W, PURGE_CACHE_ALL, PR_DISPLAY_NAME_W,
-    PR_DISPLAY_NAME_A, PR_ENTRYID, PR_STORE_RECORD_KEY,
+    PR_ENTRYID, PR_STORE_RECORD_KEY,
     PR_MAPPING_SIGNATURE, PR_CONTAINER_CONTENTS,
     PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,
     PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY,
@@ -43,15 +42,6 @@ from .errors import (
     LogonError
 )
 
-if sys.hexversion >= 0x03000000:
-    from . import user as _user
-    from . import config as _config
-    from . import utils as _utils
-else:
-    import user as _user
-    import config as _config
-    import utils as _utils
-
 from .parser import parser
 from .table import Table
 from .company import Company
@@ -62,6 +52,15 @@ from .compat import (
     unhex as _unhex, decode as _decode, repr as _repr,
     fake_unicode as _unicode, lru_cache as _lru_cache
 )
+
+if sys.hexversion >= 0x03000000:
+    from . import user as _user
+    from . import config as _config
+    from . import utils as _utils
+else:
+    import user as _user
+    import config as _config
+    import utils as _utils
 
 def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     # used with permission from will mcgugan, https://www.willmcgugan.com

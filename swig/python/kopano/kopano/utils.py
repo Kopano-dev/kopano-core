@@ -53,6 +53,10 @@ from MAPI.Struct import (
 )
 from MAPI.Time import unixtime
 
+from .defs import NAMESPACE_GUID
+from .compat import is_int as _is_int, unhex as _unhex
+from .errors import Error, NotFoundError
+
 if sys.hexversion >= 0x03000000:
     from . import item as _item
     from . import store as _store
@@ -73,10 +77,6 @@ else:
     import group as _group
     import service as _service
     import log as _log
-
-from .defs import NAMESPACE_GUID
-from .compat import is_int as _is_int, unhex as _unhex
-from .errors import Error, NotFoundError
 
 class TrackingContentsImporter(ECImportContentsChanges):
     def __init__(self, server, importer, log, stats):
@@ -511,7 +511,7 @@ def _daemonize(func, options=None, foreground=False, log=None, config=None, serv
             pidfile.break_lock()
         elif oldpid:
             try:
-                cmdline = open('/proc/%u/cmdline' % oldpid).read().split('\0')
+                open('/proc/%u/cmdline' % oldpid).read().split('\0')
             except IOError as error:
                 if error.errno != errno.ENOENT:
                     raise
@@ -534,5 +534,5 @@ def _daemonize(func, options=None, foreground=False, log=None, config=None, serv
             detach_process=not foreground,
             stdout=sys.stdout,
             stderr=sys.stderr,
-        ):
+    ):
         _daemon_helper(func, service, log)

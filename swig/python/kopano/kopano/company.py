@@ -18,16 +18,7 @@ from MAPI.Struct import (
     MAPIErrorCollision
 )
 from MAPI.Tags import PR_EC_COMPANY_NAME_W, PR_EC_STOREGUID
-from MAPI.Util import GetPublicStore, AddressBook
-
-if sys.hexversion >= 0x03000000:
-    from . import server as _server
-    from . import user as _user
-    from . import utils as _utils
-else:
-    import server as _server
-    import user as _user
-    import utils as _utils
+from MAPI.Util import GetPublicStore
 
 from .store import Store
 from .quota import Quota
@@ -40,6 +31,15 @@ from .errors import (
 from .compat import (
     hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
 )
+
+if sys.hexversion >= 0x03000000:
+    from . import server as _server
+    from . import user as _user
+    from . import utils as _utils
+else:
+    import server as _server
+    import user as _user
+    import utils as _utils
 
 class Company(object):
     """Company class"""

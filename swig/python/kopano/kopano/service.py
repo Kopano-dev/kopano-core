@@ -14,17 +14,21 @@ import socket
 import ssl
 import sys
 
+from .compat import _decode
+
 if sys.hexversion >= 0x03000000:
     from . import config as _config
     from . import log as _log
     from . import utils as _utils
     from . import server as _server
+    from . import errors as _errors
     from . import parser as _parser
 else:
     import config as _config
     import log as _log
     import utils as _utils
     import server as _server
+    import errors as _errors
     import parser as _parser
 
 class Service:
@@ -74,7 +78,7 @@ Encapsulates everything to create a simple service, such as:
         self._server = None
 
     def main(self):
-        raise Error('Service.main not implemented')
+        raise _errors.Error('Service.main not implemented')
 
     @property
     def server(self):
@@ -112,7 +116,7 @@ class Worker(Process):
             self.log.setLevel(loglevel)
 
     def main(self):
-        raise Error('Worker.main not implemented')
+        raise _errors.Error('Worker.main not implemented')
 
     def run(self):
         self.service._server = None # do not re-use "forked" session

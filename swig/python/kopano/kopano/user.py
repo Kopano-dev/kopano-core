@@ -23,15 +23,6 @@ from MAPI.Tags import (
     EMS_AB_ADDRESS_LOOKUP
 )
 
-if sys.hexversion >= 0x03000000:
-    from . import server as _server
-    from . import company as _company
-    from . import utils as _utils
-else:
-    import server as _server
-    import company as _company
-    import utils as _utils
-
 from .store import Store
 from .group import Group
 from .quota import Quota
@@ -40,6 +31,15 @@ from .errors import NotFoundError, NotSupportedError, DuplicateError
 from .compat import (
     hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
 )
+
+if sys.hexversion >= 0x03000000:
+    from . import server as _server
+    from . import company as _company
+    from . import utils as _utils
+else:
+    import server as _server
+    import company as _company
+    import utils as _utils
 
 class User(object):
     """User class"""
