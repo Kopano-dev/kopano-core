@@ -120,18 +120,14 @@
 (ULONG cbEIDContainer, LPENTRYID lpEIDContainer), (ULONG cbEIDNewEntryTpl, LPENTRYID lpEIDNewEntryTpl), (ULONG cbUserEntryID, LPENTRYID lpUserEntryID) };
 
 // Output
-%typemap(in,numinputs=0) (ULONG *OUTPUT, LPENTRYID *OUTPUT) (ULONG cbEntryID = 0, $*2_type lpEntryID = NULL) {
-  $1 = &cbEntryID; $2 = &lpEntryID;
+%typemap(in,numinputs=0) (ULONG *OUTPUT, LPENTRYID *OUTPUT) (ULONG cbEntryID = 0, KCHL::memory_ptr< std::remove_pointer<$*2_type>::type > lpEntryID) {
+  $1 = &cbEntryID; $2 = &~lpEntryID;
 }
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (ULONG *OUTPUT, LPENTRYID *OUTPUT)
 {
   if (*$2) {
     %append_output(PyBytes_FromStringAndSize((const char *)*$2,*$1));
   }
-}
-%typemap(freearg) (ULONG *OUTPUT, LPENTRYID *OUTPUT) {
-	if ($2 != nullptr)
-		MAPIFreeBuffer(*$2);
 }
 %apply (ULONG *OUTPUT, LPENTRYID *OUTPUT) {(ULONG* lpcbStoreId, LPENTRYID* lppStoreId), (ULONG* lpcbRootId, LPENTRYID *lppRootId), (ULONG *lpulOutput, LPBYTE *lpOutput)};
 
