@@ -1882,7 +1882,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
 		goto exit;
 	}
-	hr = GetPluginObject(&pyMapiPluginFactory, &ptrPyMapiPlugin);
+	hr = GetPluginObject(&pyMapiPluginFactory, &~ptrPyMapiPlugin);
 	if (hr != hrSuccess)
 		goto exit; // Error logged in GetPluginObject
 
