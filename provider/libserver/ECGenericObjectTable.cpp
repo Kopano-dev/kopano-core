@@ -140,7 +140,7 @@ ECGenericObjectTable::ECGenericObjectTable(ECSession *lpSession,
 	this->lpSession			= lpSession;
 	this->lpKeyTable		= new ECKeyTable;
 	// No columns by default
-	this->lpsPropTagArray = new struct propTagArray;
+	this->lpsPropTagArray = s_alloc<propTagArray>(nullptr);
 	this->lpsPropTagArray->__size = 0;
 	this->lpsPropTagArray->__ptr = NULL;
 }
@@ -536,10 +536,9 @@ ECRESULT ECGenericObjectTable::SetColumns(const struct propTagArray *lpsPropTags
 	// Delete the old column set
 	if(this->lpsPropTagArray)
 		FreePropTagArray(this->lpsPropTagArray);
-
-	lpsPropTagArray = new struct propTagArray;
+	lpsPropTagArray = s_alloc<propTagArray>(nullptr);
 	lpsPropTagArray->__size = lpsPropTags->__size;
-	lpsPropTagArray->__ptr = new unsigned int[lpsPropTags->__size];
+	lpsPropTagArray->__ptr = s_alloc<unsigned int>(nullptr, lpsPropTags->__size);
 	if (bDefaultSet) {
 		for (gsoap_size_t n = 0; n < lpsPropTags->__size; ++n) {
 			if (PROP_TYPE(lpsPropTags->__ptr[n]) == PT_STRING8 || PROP_TYPE(lpsPropTags->__ptr[n]) == PT_UNICODE)
@@ -659,13 +658,12 @@ ECRESULT ECGenericObjectTable::SetSortOrder(struct sortOrderArray *lpsSortOrder,
 	// Save the sort order requested
 	if(this->lpsSortOrderArray)
 		FreeSortOrderArray(this->lpsSortOrderArray);
-
-	this->lpsSortOrderArray = new struct sortOrderArray;
+	this->lpsSortOrderArray = s_alloc<sortOrderArray>(nullptr);
 	this->lpsSortOrderArray->__size = lpsSortOrder->__size;
 	if(lpsSortOrder->__size == 0 ) {
 		this->lpsSortOrderArray->__ptr = NULL;
 	} else {
-		this->lpsSortOrderArray->__ptr = new sortOrder[lpsSortOrder->__size];
+		this->lpsSortOrderArray->__ptr = s_alloc<sortOrder>(nullptr, lpsSortOrder->__size);
 		memcpy(this->lpsSortOrderArray->__ptr, lpsSortOrder->__ptr, sizeof(struct sortOrder) * lpsSortOrder->__size);
 	}
 
@@ -1021,10 +1019,9 @@ exit:
 		FreeRowSet(lpRowSet, true);
 
 	if(lpsRestrictPropTagArray != NULL)
-		delete [] lpsRestrictPropTagArray->__ptr;
-
-	delete lpsRestrictPropTagArray;
-	delete[] sPropTagArray.__ptr;
+		s_free(nullptr, lpsRestrictPropTagArray->__ptr);
+	s_free(nullptr, lpsRestrictPropTagArray);
+	s_free(nullptr, sPropTagArray.__ptr);
 	return er;
 }
 
@@ -1739,12 +1736,10 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTags(struct restrictTable *lpsRest
 	// Prefix if needed
 	if(lstPrefix)
 		lstPropTags.insert(lstPropTags.begin(), lstPrefix->begin(), lstPrefix->end());
-
-	lpPropTagArray = new propTagArray;
+	lpPropTagArray = s_alloc<propTagArray>(nullptr);
 	// Put the data into an array
 	lpPropTagArray->__size = lstPropTags.size();
-	lpPropTagArray->__ptr = new unsigned int [lpPropTagArray->__size];
-
+	lpPropTagArray->__ptr = s_alloc<unsigned int>(nullptr, lpPropTagArray->__size);
 	copy(lstPropTags.begin(), lstPropTags.end(), lpPropTagArray->__ptr);
 	*lppPropTags = lpPropTagArray;
 	return erSuccess;

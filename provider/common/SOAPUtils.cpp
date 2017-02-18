@@ -131,12 +131,8 @@ void FreeSortOrderArray(struct sortOrderArray *lpsSortOrder)
 
 	if(lpsSortOrder == NULL)
 		return;
-
-	if(lpsSortOrder->__size > 0)
-		delete[] lpsSortOrder->__ptr;
-
-	delete lpsSortOrder;
-
+	s_free(nullptr, lpsSortOrder->__ptr);
+	s_free(nullptr, lpsSortOrder);
 }
 
 int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1,
@@ -189,13 +185,9 @@ void FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase)
 
 	if(lpsPropTags == NULL)
 		return;
-
-	if(lpsPropTags->__size > 0)
-		delete [] lpsPropTags->__ptr;
-
+	s_free(nullptr, lpsPropTags->__ptr);
 	if(bFreeBase)
-		delete lpsPropTags;
-
+		s_free(nullptr, lpsPropTags);
 }
 
 /**

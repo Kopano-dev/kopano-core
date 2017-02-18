@@ -196,7 +196,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 	// deleted props
 	size = lpsMapiObject->lstDeleted.size();
 	if (size != 0) {
-		lpSaveObj->delProps.__ptr = new unsigned int[size];
+		lpSaveObj->delProps.__ptr = s_alloc<unsigned int>(nullptr, size);
 		lpSaveObj->delProps.__size = size;
 		i = 0;
 		for (auto id : lpsMapiObject->lstDeleted)
