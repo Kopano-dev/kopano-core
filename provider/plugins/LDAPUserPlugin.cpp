@@ -37,10 +37,9 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #include "ECStatsCollector.h"
 #include <kopano/stringutil.h>
-
-#include <kopano/auto_free.h>
 
 using namespace std;
 using namespace KC;
@@ -71,25 +70,24 @@ UserPlugin *getUserPluginInstance(std::mutex &pluginlock,
 	}
 }
 
-/**
- * Wrapper for freeing a berelement
- *
- * Needs external linkage in g++ 4.x.
- */
-extern void ber_auto_free(BerElement *);
-void ber_auto_free(BerElement *ber)
-{
-	ber_free(ber, 0);
-}
-
 namespace KC {
 
-typedef auto_free<char, auto_free_dealloc<void*, void, ldap_memfree> >auto_free_ldap_attribute;
-typedef auto_free<BerElement, auto_free_dealloc<BerElement*, void, ber_auto_free> >auto_free_ldap_berelement;
-typedef auto_free<LDAPMessage, auto_free_dealloc<LDAPMessage*, int, ldap_msgfree> >auto_free_ldap_message;
-typedef auto_free<LDAPControl, auto_free_dealloc<LDAPControl*, void, ldap_control_free> >auto_free_ldap_control;
-typedef auto_free<LDAPControl*, auto_free_dealloc<LDAPControl**, void, ldap_controls_free> >auto_free_ldap_controls;
-typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_value_free_len> >auto_free_ldap_berval;
+class ldap_delete {
+	public:
+	void operator()(void *x) { ldap_memfree(x); }
+	void operator()(BerElement *x) { ber_free(x, 0); }
+	void operator()(LDAPMessage *x) { ldap_msgfree(x); }
+	void operator()(LDAPControl *x) { ldap_control_free(x); }
+	void operator()(LDAPControl **x) { ldap_controls_free(x); }
+	void operator()(struct berval **x) { ldap_value_free_len(x); }
+};
+
+typedef KCHL::memory_ptr<char, ldap_delete> auto_free_ldap_attribute;
+typedef KCHL::memory_ptr<BerElement, ldap_delete> auto_free_ldap_berelement;
+typedef KCHL::memory_ptr<LDAPMessage, ldap_delete> auto_free_ldap_message;
+typedef KCHL::memory_ptr<LDAPControl, ldap_delete> auto_free_ldap_control;
+typedef KCHL::memory_ptr<LDAPControl *, ldap_delete> auto_free_ldap_controls;
+typedef KCHL::memory_ptr<struct berval *, ldap_delete> auto_free_ldap_berval;
 
 #define LDAP_DATA_TYPE_DN			"dn"	// data in attribute like cn=piet,cn=user,dc=localhost,dc=com
 #define LDAP_DATA_TYPE_BINARY		"binary"
@@ -114,7 +112,7 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 			/* this either returns a connection or throws an exception */ \
 			m_ldap = ConnectLDAP(m_config->GetSetting("ldap_bind_user"), m_config->GetSetting("ldap_bind_passwd")); \
 		/* set critical to 'F' to not force paging? @todo find an ldap server without support. */ \
-		rc = ldap_create_page_control(m_ldap, ldap_page_size, &sCookie, 0, &pageControl); \
+		rc = ldap_create_page_control(m_ldap, ldap_page_size, &sCookie, 0, &~pageControl); \
 		if (rc != LDAP_SUCCESS) {										\
 			/* 'F' ? */ \
 			throw ldap_error(string("ldap_create_page_control: ") + ldap_err2string(rc), rc); \
@@ -122,10 +120,10 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 		serverControls[0] = pageControl; \
 		\
 		/* search like normal, throws on error */ \
-		my_ldap_search_s(basedn, scope, filter, attrs, flags, &res, serverControls); \
+		my_ldap_search_s(basedn, scope, filter, attrs, flags, &~res, serverControls); \
 		\
 		/* get paged result */ \
-		rc = ldap_parse_result(m_ldap, res, NULL, NULL, NULL, NULL, &returnedControls, 0); \
+		rc = ldap_parse_result(m_ldap, res, nullptr, nullptr, nullptr, nullptr, &~returnedControls, 0); \
 		if (rc != LDAP_SUCCESS) { \
 			/* @todo, whoops do we really need to unbind? */ \
 			/* ldap_unbind(m_ldap); */ \
@@ -162,7 +160,7 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 // non paged support, revert to normal search
 #define FOREACH_PAGING_SEARCH(basedn, scope, filter, attrs, flags, res) \
 { \
-	my_ldap_search_s(basedn, scope, filter, attrs, flags, &res);
+	my_ldap_search_s(basedn, scope, filter, attrs, flags, &~res);
 
 #define END_FOREACH_LDAP_PAGING	\
 	}
@@ -184,9 +182,9 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 { \
 	auto_free_ldap_attribute att; \
 	auto_free_ldap_berelement ber; \
-	for (att = ldap_first_attribute(m_ldap, entry, &ber); \
+	for (att.reset(ldap_first_attribute(m_ldap, entry, &~ber)); \
 		 att != NULL; \
-		 att = ldap_next_attribute(m_ldap, entry, ber)) {
+		 att.reset(ldap_next_attribute(m_ldap, entry, ber))) {
 
 #define END_FOREACH_ATTR \
 	}\
@@ -569,7 +567,8 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	 * one standard connect plus query.
 	 */
 	if (m_ldap != NULL)
-		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs, attrsonly, serverControls, NULL, &m_timeout, 0, &res);
+		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs,
+		         attrsonly, serverControls, nullptr, &m_timeout, 0, &~res);
 
 	if (m_ldap == NULL || LDAP_API_ERROR(result)) {
 		const char *ldap_binddn = m_config->GetSetting("ldap_bind_user");
@@ -586,8 +585,8 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw);
 
 		m_lpStatsCollector->Increment(SCN_LDAP_RECONNECTS);
-
-		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs, attrsonly, serverControls, NULL, NULL, 0, &res);
+		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs,
+		          attrsonly, serverControls, nullptr, nullptr, 0, &~res);
 	}
 
 	if(result != LDAP_SUCCESS) {
@@ -1210,7 +1209,7 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 	my_ldap_search_s(
 			(char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 			(char *)ldap_filter.c_str(),
-			request_attrs, FETCH_ATTR_VALS, &res);
+			request_attrs, FETCH_ATTR_VALS, &~res);
 
 	switch(ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -1273,7 +1272,7 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool
 	my_ldap_search_s(
 			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 			 (char *)ldap_filter.c_str(), (char **)request_attrs->get(),
-			 DONT_FETCH_ATTR_VALS, &res);
+			 DONT_FETCH_ATTR_VALS, &~res);
 
 	switch(ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -1608,7 +1607,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	my_ldap_search_s(
 			(char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 			(char *)ldap_filter.c_str(), (char **)request_attrs->get(),
-			FETCH_ATTR_VALS, &res);
+			FETCH_ATTR_VALS, &~res);
 
 	switch(ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -1702,9 +1701,7 @@ string LDAPUserPlugin::getLDAPAttributeValue(char *attribute, LDAPMessage *entry
 list<string> LDAPUserPlugin::getLDAPAttributeValues(char *attribute, LDAPMessage *entry) {
 	list<string> r;
 	string s;
-	auto_free_ldap_berval berval;
-
-	berval = ldap_get_values_len(m_ldap, entry, attribute);
+	auto_free_ldap_berval berval(ldap_get_values_len(m_ldap, entry, attribute));
 
 	if (berval != NULL)
 		for (int i = 0; berval[i] != NULL; ++i) {
@@ -1717,9 +1714,7 @@ list<string> LDAPUserPlugin::getLDAPAttributeValues(char *attribute, LDAPMessage
 std::string LDAPUserPlugin::GetLDAPEntryDN(LDAPMessage *entry)
 {
 	std::string dn;
-	auto_free_ldap_attribute ptrDN;
-
-	ptrDN = ldap_get_dn(m_ldap, entry);
+	auto_free_ldap_attribute ptrDN(ldap_get_dn(m_ldap, entry));
 
 	if (*ptrDN) {
 		dn = ptrDN;
@@ -2642,7 +2637,7 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	my_ldap_search_s(
 			(char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 			(char *)ldap_filter.c_str(), (char **)request_attrs,
-			FETCH_ATTR_VALS, &res);
+			FETCH_ATTR_VALS, &~res);
 
 	if(ulType == MEMBERS) {
 		// Get the DN for each of the returned entries
@@ -2786,7 +2781,7 @@ std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 	my_ldap_search_s(
 			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 			 (char *)search_filter.c_str(), (char **)request_attrs->get(),
-			 FETCH_ATTR_VALS, &res);
+			 FETCH_ATTR_VALS, &~res);
 
 	switch (ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -2837,7 +2832,7 @@ std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
 	my_ldap_search_s(
 			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 			 (char *)search_filter.c_str(), (char **)request_attrs->get(),
-			 FETCH_ATTR_VALS, &res);
+			 FETCH_ATTR_VALS, &~res);
 
     FOREACH_ENTRY(res)
     {
@@ -2897,7 +2892,7 @@ LDAPUserPlugin::getServerDetails(const std::string &server)
 	my_ldap_search_s(
 			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 			 (char *)search_filter.c_str(), (char **)request_attrs->get(),
-			 FETCH_ATTR_VALS, &res);
+			 FETCH_ATTR_VALS, &~res);
 
 	switch (ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -3032,7 +3027,7 @@ std::unique_ptr<quotadetails_t> LDAPUserPlugin::getQuota(const objectid_t &id,
 	my_ldap_search_s(
 			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 			 (char *)ldap_filter.c_str(), (char **)request_attrs->get(),
-			 FETCH_ATTR_VALS, &res);
+			 FETCH_ATTR_VALS, &~res);
 
 	quotaDetails->bIsUserDefaultQuota = bGetUserDefault;
 
