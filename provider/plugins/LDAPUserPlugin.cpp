@@ -827,7 +827,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 			else
 				objclass = DISTLIST_GROUP;
 		} else {
-			if (parseBool(security_type))
+			if (parseBool(security_type.c_str()))
 				objclass = DISTLIST_SECURITY;
 			else
 				objclass = DISTLIST_GROUP;
@@ -1637,7 +1637,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 		}
 
 		if (nonactive_attr && !strcasecmp(att, nonactive_attr)) {
-			if (parseBool(getLDAPAttributeValue(att, entry)))
+			if (parseBool(getLDAPAttributeValue(att, entry).c_str()))
 				throw login_error("Cannot login as nonactive user");
 		}
 	}
@@ -3043,7 +3043,7 @@ std::unique_ptr<quotadetails_t> LDAPUserPlugin::getQuota(const objectid_t &id,
 		FOREACH_ATTR(entry) {
 			if (usedefaults_attr && !strcasecmp(att, usedefaults_attr)) {
 				// Workarround quotaoverride == !usedefaultquota
-				quotaDetails->bUseDefaultQuota = !parseBool(getLDAPAttributeValue(att, entry));
+				quotaDetails->bUseDefaultQuota = !parseBool(getLDAPAttributeValue(att, entry).c_str());
 			} else if (warnquota_attr && !strcasecmp(att, warnquota_attr)) {
 				quotaDetails->llWarnSize = fromstring<string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
 			} else if (id.objclass != CONTAINER_COMPANY && softquota_attr && !strcasecmp(att, softquota_attr)) {
