@@ -4202,8 +4202,7 @@ SOAP_ENTRY_START(getRights, lpsRightResponse->er, entryId sEntryId, int ulType, 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulobjid);
 	if(er != erSuccess)
 	    goto exit;
-
-	lpsRightArray = new struct rightsArray;
+	lpsRightArray = s_alloc<rightsArray>(nullptr);
 	memset(lpsRightArray, 0, sizeof(struct rightsArray));
 
 	er = lpecSession->GetSecurity()->GetRights(ulobjid, ulType, lpsRightArray);
@@ -4217,11 +4216,9 @@ SOAP_ENTRY_START(getRights, lpsRightResponse->er, entryId sEntryId, int ulType, 
 exit:
 	if (lpsRightArray) {
 		for (gsoap_size_t i = 0; i < lpsRightArray->__size; ++i)
-			delete[] lpsRightArray->__ptr[i].sUserId.__ptr;
-		if (lpsRightArray->__size > 0)
-			delete[] lpsRightArray->__ptr;
-
-		delete lpsRightArray;
+			s_free(nullptr, lpsRightArray->__ptr[i].sUserId.__ptr);
+		s_free(nullptr, lpsRightArray->__ptr);
+		s_free(nullptr, lpsRightArray);
 	}
 }
 SOAP_ENTRY_END()
@@ -5476,7 +5473,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 		// ulUserId == a group
 		// ulUserId 1 = group everyone
 
-		srightsArray.__ptr = new rights[1];
+		srightsArray.__ptr = s_alloc<rights>(nullptr, 1);
 		srightsArray.__ptr[0].ulRights = ecRightsDefaultPublic;
 		srightsArray.__ptr[0].ulUserid = ulUserId;
 		srightsArray.__ptr[0].ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
@@ -5500,9 +5497,7 @@ exit:
 		ec_log_err("Failed to create store access denied");
 	else if(er != erSuccess)
 		ec_log_err("Failed to create store (id=%d), errorcode=0x%08X", ulUserId, er);
-
-	if(srightsArray.__size > 0)
-		delete [] srightsArray.__ptr;
+	s_free(nullptr, srightsArray.__ptr);
 	ROLLBACK_ON_ERROR();
 }
 SOAP_ENTRY_END()

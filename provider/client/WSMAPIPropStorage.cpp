@@ -236,7 +236,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 	if (lpsMapiObject->bDelete == false) {
 		size = lpsMapiObject->lstChildren.size();
 		if (size != 0) {
-			lpSaveObj->__ptr = new struct saveObject[size];
+			lpSaveObj->__ptr = s_alloc<saveObject>(nullptr, size);
 			size = 0;
 			for (const auto &cld : lpsMapiObject->lstChildren)
 				// Only send children if:
@@ -327,7 +327,7 @@ void WSMAPIPropStorage::DeleteSoapObject(struct saveObject *lpSaveObj)
 	if (lpSaveObj->__ptr) {
 		for (gsoap_size_t i = 0; i < lpSaveObj->__size; ++i)
 			DeleteSoapObject(&lpSaveObj->__ptr[i]);
-		delete [] lpSaveObj->__ptr;
+		s_free(nullptr, lpSaveObj->__ptr);
 	}
 
 	if (lpSaveObj->modProps.__ptr) {

@@ -775,7 +775,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_SYSTIME:
 	case PT_CURRENCY:
-		delete lpProp->Value.hilo;
+		s_free(nullptr, lpProp->Value.hilo);
 		break;
 	case PT_STRING8:
 	case PT_UNICODE:
@@ -806,7 +806,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
-		delete[] lpProp->Value.mvhilo.__ptr;
+		s_free(nullptr, lpProp->Value.mvhilo.__ptr);
 		break;
 	case PT_MV_CLSID:
 	case PT_MV_BINARY:
@@ -883,11 +883,9 @@ void FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel)
 		return;
 	for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i)
 		FreePropValArray(&lpRowSet->__ptr[i]);
-	if(lpRowSet->__size > 0)
-		delete []lpRowSet->__ptr;
-
+	s_free(nullptr, lpRowSet->__ptr);
 	if(bBasePointerDel)
-		delete lpRowSet;
+		s_free(nullptr, lpRowSet);
 }
 
 /** 
@@ -1716,7 +1714,7 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 	if (lpSrc == NULL)
 		return KCERR_NOT_FOUND;
 
-	lpDst = new searchCriteria;
+	lpDst = s_alloc<searchCriteria>(nullptr);
 	memset(lpDst, '\0', sizeof(*lpDst));
 	if(lpSrc->lpRestrict) {
     	er = CopyRestrictTable(soap, lpSrc->lpRestrict, &lpDst->lpRestrict);
@@ -1754,9 +1752,7 @@ ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria)
 
 	if(lpSearchCriteria->lpFolders)
 		FreeEntryList(lpSearchCriteria->lpFolders);
-
-	delete lpSearchCriteria;
-
+	s_free(nullptr, lpSearchCriteria);
 	return er;
 }
 

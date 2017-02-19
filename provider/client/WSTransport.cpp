@@ -1116,8 +1116,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 	unsigned i = 0;
 
 	ulConnArray.__size = lstConnections.size();
-	ulConnArray.__ptr = new unsigned int[ulConnArray.__size];
-	
+	ulConnArray.__ptr = s_alloc<unsigned int>(nullptr, ulConnArray.__size);
 	LockSoap();
 	for (const auto &p : lstConnections)
 		ulConnArray.__ptr[i++] = p.second;
@@ -1131,7 +1130,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 	END_SOAP_CALL
  exitm:
 	UnLockSoap();
-	delete[] ulConnArray.__ptr;
+	s_free(nullptr, ulConnArray.__ptr);
 	return hr;
 }
 
@@ -4243,8 +4242,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 
 	if (lstSyncId.empty())
 		goto exitm;
-
-	ulaSyncId.__ptr = new unsigned int[lstSyncId.size()];
+	ulaSyncId.__ptr = s_alloc<unsigned int>(nullptr, lstSyncId.size());
 	for (auto sync_id : lstSyncId)
 		ulaSyncId.__ptr[ulaSyncId.__size++] = sync_id;
 
@@ -4264,7 +4262,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	}
  exitm:
 	UnLockSoap();
-	delete[] ulaSyncId.__ptr;
+	s_free(nullptr, ulaSyncId.__ptr);
 	return hr;
 }
 

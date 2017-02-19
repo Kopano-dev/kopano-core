@@ -586,7 +586,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 	ulCount = lpDatabase->GetNumRows(lpDBResult);
 	if(ulCount > 0)
 	{
-		lpsRightsArray->__ptr = new struct rights[ulCount];
+		lpsRightsArray->__ptr = s_alloc<rights>(nullptr, ulCount);
 		lpsRightsArray->__size = ulCount;
 
 		memset(lpsRightsArray->__ptr, 0, sizeof(struct rights) * ulCount);

@@ -78,7 +78,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 		break;
 	case PT_CURRENCY:
 		lpPropValDst->__union = SOAP_UNION_propValData_hilo;
-		lpPropValDst->Value.hilo = new hiloLong;
+		lpPropValDst->Value.hilo = s_alloc<hiloLong>(nullptr);
 		lpPropValDst->Value.hilo->hi = lpPropValSrc->Value.cur.Hi;
 		lpPropValDst->Value.hilo->lo = lpPropValSrc->Value.cur.Lo;
 		break;
@@ -120,7 +120,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 		break;
 	case PT_SYSTIME:
 		lpPropValDst->__union = SOAP_UNION_propValData_hilo;
-		lpPropValDst->Value.hilo = new hiloLong;
+		lpPropValDst->Value.hilo = s_alloc<hiloLong>(nullptr);
 		lpPropValDst->Value.hilo->hi = lpPropValSrc->Value.ft.dwHighDateTime;
 		lpPropValDst->Value.hilo->lo = lpPropValSrc->Value.ft.dwLowDateTime;
 		break;
@@ -165,7 +165,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 	case PT_MV_CURRENCY:
 		lpPropValDst->__union = SOAP_UNION_propValData_mvhilo;
 		lpPropValDst->Value.mvhilo.__size = lpPropValSrc->Value.MVcur.cValues;
-        lpPropValDst->Value.mvhilo.__ptr = new hiloLong[lpPropValDst->Value.mvhilo.__size];
+		lpPropValDst->Value.mvhilo.__ptr = s_alloc<hiloLong>(nullptr, lpPropValDst->Value.mvhilo.__size);
 		for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvhilo.__size; ++i) {
 			lpPropValDst->Value.mvhilo.__ptr[i].hi = lpPropValSrc->Value.MVcur.lpcur[i].Hi;
 			lpPropValDst->Value.mvhilo.__ptr[i].lo = lpPropValSrc->Value.MVcur.lpcur[i].Lo;
@@ -180,7 +180,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 	case PT_MV_SYSTIME:
 		lpPropValDst->__union = SOAP_UNION_propValData_mvhilo;
 		lpPropValDst->Value.mvhilo.__size = lpPropValSrc->Value.MVft.cValues;
-        lpPropValDst->Value.mvhilo.__ptr = new hiloLong[lpPropValDst->Value.mvhilo.__size];
+		lpPropValDst->Value.mvhilo.__ptr = s_alloc<hiloLong>(nullptr, lpPropValDst->Value.mvhilo.__size);
 		for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvhilo.__size; ++i) {
 			lpPropValDst->Value.mvhilo.__ptr[i].hi = lpPropValSrc->Value.MVft.lpft[i].dwHighDateTime;
 			lpPropValDst->Value.mvhilo.__ptr[i].lo = lpPropValSrc->Value.MVft.lpft[i].dwLowDateTime;
@@ -989,8 +989,7 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
 		hr = CopyMAPIRowSetToSOAPRowSet(lpRowSetSrc, lppsRowSetDst, &converter);
 		goto exit;
 	}
-
-	lpsRowSetDst = new struct rowSet;
+	lpsRowSetDst = s_alloc<rowSet>(nullptr);
 	lpsRowSetDst->__ptr = NULL;
 	lpsRowSetDst->__size = 0;
 	if (lpRowSetSrc->cRows > 0) {
@@ -1000,7 +999,7 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
 		for (unsigned int i = 0; i < lpRowSetSrc->cRows; ++i) {
 			hr = CopyMAPIRowToSOAPRow(&lpRowSetSrc->aRow[i], &lpsRowSetDst->__ptr[i], lpConverter);
 			if (hr != hrSuccess) {
-				delete lpsRowSetDst;
+				s_free(nullptr, lpsRowSetDst);
 				goto exit;
 			}
 		}
