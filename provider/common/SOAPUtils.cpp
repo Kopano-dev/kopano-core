@@ -779,7 +779,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_STRING8:
 	case PT_UNICODE:
-		delete[] lpProp->Value.lpszA;
+		s_free(nullptr, lpProp->Value.lpszA);
 		break;
 	case PT_CLSID:
 	case PT_BINARY:
@@ -789,20 +789,20 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		}
 		break;
 	case PT_MV_I2:
-		delete[] lpProp->Value.mvi.__ptr;
+		s_free(nullptr, lpProp->Value.mvi.__ptr);
 		break;
 	case PT_MV_LONG:
-		delete[] lpProp->Value.mvl.__ptr;
+		s_free(nullptr, lpProp->Value.mvl.__ptr);
 		break;
 	case PT_MV_R4:
-		delete[] lpProp->Value.mvflt.__ptr;
+		s_free(nullptr, lpProp->Value.mvflt.__ptr);
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
-		delete[] lpProp->Value.mvdbl.__ptr;
+		s_free(nullptr, lpProp->Value.mvdbl.__ptr);
 		break;
 	case PT_MV_I8:
-		delete[] lpProp->Value.mvli.__ptr;
+		s_free(nullptr, lpProp->Value.mvli.__ptr);
 		break;
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
@@ -822,8 +822,8 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		if(lpProp->Value.mvszA.__ptr)
 		{
 			for (gsoap_size_t i = 0; i < lpProp->Value.mvszA.__size; ++i)
-				delete[] lpProp->Value.mvszA.__ptr[i];
-			delete [] lpProp->Value.mvszA.__ptr;
+				s_free(nullptr, lpProp->Value.mvszA.__ptr[i]);
+			s_free(nullptr, lpProp->Value.mvszA.__ptr);
 		}
 		break;
 	case PT_SRESTRICTION:
@@ -1152,7 +1152,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal **lppDst,
 	if (er != erSuccess) {
 		// there is no sub-alloc when there's an error, so we can remove lpDst
 		if (!soap)
-			delete lpDst;		// maybe create s_free() ?
+			s_free(nullptr, lpDst);
 		return er;
 	}
 
@@ -1200,7 +1200,7 @@ ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
 		er = CopyPropVal(&lpSrc->__ptr[i], &lpDst->__ptr[i], soap);
 		if(er != erSuccess) {
 			if (!soap) {
-				delete [] lpDst->__ptr;	// maybe create s_free() ?
+				s_free(nullptr, lpDst->__ptr);
 				lpDst->__ptr = NULL;
 			}
 			lpDst->__size = 0;
@@ -1368,10 +1368,9 @@ ECRESULT FreePropValArray(struct propValArray *lpPropValArray, bool bFreeBase)
 	if(lpPropValArray) {
 		for (gsoap_size_t i = 0; i < lpPropValArray->__size; ++i)
 			FreePropVal(&(lpPropValArray->__ptr[i]), false);
-		delete [] lpPropValArray->__ptr;
-
+		s_free(nullptr, lpPropValArray->__ptr);
 		if(bFreeBase)
-			delete lpPropValArray;
+			s_free(nullptr, lpPropValArray);
 	}
 
 	return erSuccess;
@@ -1632,11 +1631,10 @@ ECRESULT FreeRightsArray(struct rightsArray *lpRights)
 
 	if(lpRights->__ptr)
 	{
-		delete[] lpRights->__ptr->sUserId.__ptr;
-		delete [] lpRights->__ptr;
+		s_free(nullptr, lpRights->__ptr->sUserId.__ptr);
+		s_free(nullptr, lpRights->__ptr);
 	}
-
-	delete lpRights;
+	s_free(nullptr, lpRights);
 	return erSuccess;
 }
 
@@ -1727,7 +1725,7 @@ exit:
 	if (er != erSuccess && lpDst != NULL) {
 		FreeRestrictTable(lpDst->lpRestrict, true);
 		FreeEntryList(lpDst->lpFolders, true);
-		delete lpDst;
+		s_free(nullptr, lpDst);
 	}
 	return er;
 }
@@ -2028,7 +2026,7 @@ DynamicPropValArray::~DynamicPropValArray()
 		return;
 	for (unsigned int i = 0; i < m_ulPropCount; ++i)
 		FreePropVal(&m_lpPropVals[i], false);
-	delete[] m_lpPropVals;
+	s_free(nullptr, m_lpPropVals);
 }
     
 ECRESULT DynamicPropValArray::AddPropVal(struct propVal &propVal)
@@ -2086,7 +2084,7 @@ ECRESULT DynamicPropValArray::Resize(unsigned int ulSize)
     if(!m_soap) {
 		for (unsigned int i = 0; i < m_ulPropCount; ++i)
 			FreePropVal(&m_lpPropVals[i], false);
-		delete [] m_lpPropVals;
+		s_free(nullptr, m_lpPropVals);
 	}
 	
     m_lpPropVals = lpNew;

@@ -716,11 +716,9 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 
 	*lpPropVal = std::move(sPropVal);
 exit:
-	delete[] sPropTagArray.__ptr;
-
+	s_free(nullptr, sPropTagArray.__ptr);
 	if(soap == NULL) { // soap != NULL gsoap will cleanup the memory
-		delete[] sPropValArray.__ptr;
-
+		s_free(nullptr, sPropValArray.__ptr);
 		if (er != erSuccess)
 			FreePropVal(&sPropVal, false);
 	}

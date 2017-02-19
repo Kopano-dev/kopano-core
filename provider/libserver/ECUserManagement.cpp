@@ -3781,8 +3781,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 
 exit:
 	if (er != erSuccess && soap == NULL)
-		delete [] lpPropVals->__ptr;
-
+		s_free(nullptr, lpPropVals->__ptr);
 	return er;
 }
 

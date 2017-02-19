@@ -2936,7 +2936,7 @@ ECCategory::ECCategory(unsigned int ulCategory, struct propVal *lpProps,
 {
     unsigned int i;
 
-    m_lpProps = new propVal[nProps];
+	m_lpProps = s_alloc<propVal>(nullptr, nProps);
 	for (i = 0; i < cProps; ++i)
 		CopyPropVal(&lpProps[i], &m_lpProps[i]);
 	for (; i < nProps; ++i) {
@@ -2954,7 +2954,7 @@ ECCategory::~ECCategory()
 		FreePropVal(&m_lpProps[i], false);
 	for (const auto &p : m_mapMinMax)
 		FreePropVal(p.second, true);
-    delete[] m_lpProps;
+	s_free(nullptr, m_lpProps);
 }
 
 void ECCategory::IncLeaf()

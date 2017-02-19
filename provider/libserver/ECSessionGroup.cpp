@@ -265,7 +265,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	lpNotify->tab->ulObjType = ulObjType;
 
 	if(lpRow) {
-		lpNotify->tab->pRow = new struct propValArray;
+		lpNotify->tab->pRow = s_alloc<propValArray>(nullptr);
 		lpNotify->tab->pRow->__ptr = lpRow->__ptr;
 		lpNotify->tab->pRow->__size = lpRow->__size;
 	}

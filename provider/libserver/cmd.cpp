@@ -5472,7 +5472,6 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 	if(ulStoreType == ECSTORE_TYPE_PUBLIC) {
 		// ulUserId == a group
 		// ulUserId 1 = group everyone
-
 		srightsArray.__ptr = s_alloc<rights>(nullptr, 1);
 		srightsArray.__ptr[0].ulRights = ecRightsDefaultPublic;
 		srightsArray.__ptr[0].ulUserid = ulUserId;

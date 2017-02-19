@@ -141,25 +141,25 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 	case PT_MV_I2:
 		lpPropValDst->__union = SOAP_UNION_propValData_mvi;
 		lpPropValDst->Value.mvi.__size = lpPropValSrc->Value.MVi.cValues;
-        lpPropValDst->Value.mvi.__ptr = new short int[lpPropValDst->Value.mvi.__size];
+		lpPropValDst->Value.mvi.__ptr = s_alloc<short int>(nullptr, lpPropValDst->Value.mvi.__size);
 		memcpy(lpPropValDst->Value.mvi.__ptr, lpPropValSrc->Value.MVi.lpi, sizeof(short int) * lpPropValDst->Value.mvi.__size);
 		break;
 	case PT_MV_LONG:
 		lpPropValDst->__union = SOAP_UNION_propValData_mvl;
 		lpPropValDst->Value.mvl.__size = lpPropValSrc->Value.MVl.cValues;
-        lpPropValDst->Value.mvl.__ptr = new unsigned int[lpPropValDst->Value.mvl.__size];
+		lpPropValDst->Value.mvl.__ptr = s_alloc<unsigned int>(nullptr, lpPropValDst->Value.mvl.__size);
 		memcpy(lpPropValDst->Value.mvl.__ptr, lpPropValSrc->Value.MVl.lpl, sizeof(unsigned int) * lpPropValDst->Value.mvl.__size);
 		break;
 	case PT_MV_R4:
 		lpPropValDst->__union = SOAP_UNION_propValData_mvflt;
 		lpPropValDst->Value.mvflt.__size = lpPropValSrc->Value.MVflt.cValues;
-        lpPropValDst->Value.mvflt.__ptr = new float[lpPropValDst->Value.mvflt.__size];
+		lpPropValDst->Value.mvflt.__ptr = s_alloc<float>(nullptr, lpPropValDst->Value.mvflt.__size);
 		memcpy(lpPropValDst->Value.mvflt.__ptr, lpPropValSrc->Value.MVflt.lpflt, sizeof(float) * lpPropValDst->Value.mvflt.__size);
 		break;
 	case PT_MV_DOUBLE:
 		lpPropValDst->__union = SOAP_UNION_propValData_mvdbl;
 		lpPropValDst->Value.mvdbl.__size = lpPropValSrc->Value.MVdbl.cValues;
-        lpPropValDst->Value.mvdbl.__ptr = new double[lpPropValDst->Value.mvdbl.__size];
+		lpPropValDst->Value.mvdbl.__ptr = s_alloc<double>(nullptr, lpPropValDst->Value.mvdbl.__size);
 		memcpy(lpPropValDst->Value.mvdbl.__ptr, lpPropValSrc->Value.MVdbl.lpdbl, sizeof(double) * lpPropValDst->Value.mvdbl.__size);
 		break;
 	case PT_MV_CURRENCY:
@@ -174,7 +174,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 	case PT_MV_APPTIME:
 		lpPropValDst->__union = SOAP_UNION_propValData_mvdbl;
 		lpPropValDst->Value.mvdbl.__size = lpPropValSrc->Value.MVat.cValues;
-        lpPropValDst->Value.mvdbl.__ptr = new double[lpPropValDst->Value.mvdbl.__size];
+		lpPropValDst->Value.mvdbl.__ptr = s_alloc<double>(nullptr, lpPropValDst->Value.mvdbl.__size);
 		memcpy(lpPropValDst->Value.mvdbl.__ptr, lpPropValSrc->Value.MVat.lpat, sizeof(double) * lpPropValDst->Value.mvdbl.__size);
 		break;
 	case PT_MV_SYSTIME:
@@ -203,7 +203,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 		} else {
 			lpPropValDst->__union = SOAP_UNION_propValData_mvszA;
 			lpPropValDst->Value.mvszA.__size = lpPropValSrc->Value.MVszA.cValues;
-			lpPropValDst->Value.mvszA.__ptr = new char*[lpPropValDst->Value.mvszA.__size];
+			lpPropValDst->Value.mvszA.__ptr = s_alloc<char *>(nullptr, lpPropValDst->Value.mvszA.__size);
 			for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvszA.__size; ++i) {
 				utf8string u8 = lpConverter->convert_to<utf8string>(lpPropValSrc->Value.MVszA.lppszA[i]);
 				lpPropValDst->Value.mvszA.__ptr[i] = new char[u8.size() + 1];
@@ -218,7 +218,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 		} else {
 			lpPropValDst->__union = SOAP_UNION_propValData_mvszA;
 			lpPropValDst->Value.mvszA.__size = lpPropValSrc->Value.MVszA.cValues;
-			lpPropValDst->Value.mvszA.__ptr = new char*[lpPropValDst->Value.mvszA.__size];
+			lpPropValDst->Value.mvszA.__ptr = s_alloc<char *>(nullptr, lpPropValDst->Value.mvszA.__size);
 			for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvszA.__size; ++i) {
 				utf8string u8 = lpConverter->convert_to<utf8string>(lpPropValSrc->Value.MVszW.lppszW[i]);
 				lpPropValDst->Value.mvszA.__ptr[i] = new char[u8.size() + 1];
@@ -239,7 +239,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 	case PT_MV_I8:
 		lpPropValDst->__union = SOAP_UNION_propValData_mvli;
 		lpPropValDst->Value.mvli.__size = lpPropValSrc->Value.MVli.cValues;
-        lpPropValDst->Value.mvli.__ptr = new LONG64[lpPropValDst->Value.mvli.__size];
+		lpPropValDst->Value.mvli.__ptr = s_alloc<LONG64>(nullptr, lpPropValDst->Value.mvli.__size);
 		for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvli.__size; ++i)
 			lpPropValDst->Value.mvli.__ptr[i] = lpPropValSrc->Value.MVli.lpli[i].QuadPart;
 		break;
@@ -307,7 +307,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 				break;
 			case OP_TAG:
 				lpDstAction->__union = SOAP_UNION__act_prop;
-				lpDstAction->act.prop = new propVal;
+				lpDstAction->act.prop = s_alloc<propVal>(nullptr);
 				hr = CopyMAPIPropValToSOAPPropVal(lpDstAction->act.prop, &lpSrcAction->propTag, lpConverter);
 				break;
 			case OP_DELETE:
@@ -960,7 +960,7 @@ HRESULT CopyMAPIRowToSOAPRow(const SRow *lpRowSrc,
 		goto exit;
 	}
 
-	lpPropVal = new struct propVal[lpRowSrc->cValues];
+	lpPropVal = s_alloc<propVal>(nullptr, lpRowSrc->cValues);
 	memset(lpPropVal, 0, sizeof(struct propVal) *lpRowSrc->cValues);
 
 	for (unsigned int i = 0; i < lpRowSrc->cValues; ++i) {
@@ -993,7 +993,7 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
 	lpsRowSetDst->__ptr = NULL;
 	lpsRowSetDst->__size = 0;
 	if (lpRowSetSrc->cRows > 0) {
-		lpsRowSetDst->__ptr = new propValArray[lpRowSetSrc->cRows];
+		lpsRowSetDst->__ptr = s_alloc<propValArray>(nullptr, lpRowSetSrc->cRows);
 		lpsRowSetDst->__size = lpRowSetSrc->cRows;
 
 		for (unsigned int i = 0; i < lpRowSetSrc->cRows; ++i) {
@@ -1261,7 +1261,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		lpDst->lpComment = s_alloc<restrictComment>(nullptr);
 		memset(lpDst->lpComment, 0, sizeof(restrictComment));
 
-		lpDst->lpComment->sProps.__ptr = new propVal[lpSrc->res.resComment.cValues];
+		lpDst->lpComment->sProps.__ptr = s_alloc<propVal>(nullptr, lpSrc->res.resComment.cValues);
 		lpDst->lpComment->sProps.__size = lpSrc->res.resComment.cValues;
 		for (unsigned int i = 0; i < lpSrc->res.resComment.cValues; ++i) {
 			hr = CopyMAPIPropValToSOAPPropVal(&lpDst->lpComment->sProps.__ptr[i], &lpSrc->res.resComment.lpProp[i], lpConverter);
@@ -1302,8 +1302,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 		lpDst->lpContent->ulFuzzyLevel = lpSrc->res.resContent.ulFuzzyLevel;
 		lpDst->lpContent->ulPropTag = lpSrc->res.resContent.ulPropTag;
-
-		lpDst->lpContent->lpProp = new struct propVal;
+		lpDst->lpContent->lpProp = s_alloc<propVal>(nullptr);
 		memset(lpDst->lpContent->lpProp, 0, sizeof(propVal));
 
 		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpContent->lpProp, lpSrc->res.resContent.lpProp, lpConverter);
@@ -1331,7 +1330,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		memset(lpDst->lpProp, 0, sizeof(restrictProp));
 
 		lpDst->lpProp->ulType = lpSrc->res.resProperty.relop;
-		lpDst->lpProp->lpProp = new struct propVal;
+		lpDst->lpProp->lpProp = s_alloc<propVal>(nullptr);
 		memset(lpDst->lpProp->lpProp, 0, sizeof(propVal));
 		lpDst->lpProp->ulPropTag = lpSrc->res.resProperty.ulPropTag;
 
