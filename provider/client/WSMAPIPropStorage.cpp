@@ -176,9 +176,9 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 	}
 
 	if (lpsMapiObject->lpInstanceID) {
-		lpSaveObj->lpInstanceIds = new struct entryList;
+		lpSaveObj->lpInstanceIds = s_alloc<entryList>(nullptr);
 		lpSaveObj->lpInstanceIds->__size = 1;
-		lpSaveObj->lpInstanceIds->__ptr = new entryId[lpSaveObj->lpInstanceIds->__size];
+		lpSaveObj->lpInstanceIds->__ptr = s_alloc<entryId>(nullptr, lpSaveObj->lpInstanceIds->__size);
 		memset(lpSaveObj->lpInstanceIds->__ptr, 0, lpSaveObj->lpInstanceIds->__size * sizeof(entryId));
 
 		if ((m_lpTransport->GetServerGUID(&sServerGUID) != hrSuccess) ||

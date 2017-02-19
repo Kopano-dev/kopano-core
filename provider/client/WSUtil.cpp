@@ -752,7 +752,7 @@ HRESULT CopySOAPEntryId(const entryId *lpSrc, entryId *lpDst)
 		return MAPI_E_INVALID_PARAMETER;
 
 	lpDst->__size = lpSrc->__size;
-	lpDst->__ptr = new unsigned char[lpDst->__size];
+	lpDst->__ptr = s_alloc<unsigned char>(nullptr, lpDst->__size);
 	memcpy(lpDst->__ptr, lpSrc->__ptr, lpDst->__size);
 	return hrSuccess;
 }
@@ -761,9 +761,7 @@ HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
     const ENTRYID *lpEntryIdSrc, entryId **lppDest)
 {
 	HRESULT hr = hrSuccess;
-
-	entryId* lpDest = new entryId;
-
+	auto lpDest = s_alloc<entryId>(nullptr);
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryIdSrc, lpEntryIdSrc, lpDest, false);
 	if(hr != hrSuccess)
 		goto exit;
@@ -771,8 +769,7 @@ HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
 	*lppDest = lpDest;
 exit:
 	if(hr != hrSuccess)
-		delete lpDest;
-
+		s_free(nullptr, lpDest);
 	return hr;
 }
 
@@ -789,7 +786,7 @@ HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
 	}
 
 	if(bCheapCopy == false) {
-		lpDest->__ptr = new unsigned char[cbEntryIdSrc];
+		lpDest->__ptr = s_alloc<unsigned char>(nullptr, cbEntryIdSrc);
 		memcpy(lpDest->__ptr, lpEntryIdSrc, cbEntryIdSrc);
 	}else{
 		lpDest->__ptr = (LPBYTE)lpEntryIdSrc;
@@ -872,11 +869,9 @@ HRESULT CopyMAPIEntryListToSOAPEntryList(const ENTRYLIST *lpMsgList,
 		return hrSuccess;
 	}
 
-	lpsEntryList->__ptr = new entryId[lpMsgList->cValues];
-
+	lpsEntryList->__ptr = s_alloc<entryId>(nullptr, lpMsgList->cValues);
 	for (i = 0; i < lpMsgList->cValues; ++i) {
-		lpsEntryList->__ptr[i].__ptr = new unsigned char[lpMsgList->lpbin[i].cb];
-
+		lpsEntryList->__ptr[i].__ptr = s_alloc<unsigned char>(nullptr, lpMsgList->lpbin[i].cb);
 		memcpy(lpsEntryList->__ptr[i].__ptr, lpMsgList->lpbin[i].lpb, lpMsgList->lpbin[i].cb);
 
 		lpsEntryList->__ptr[i].__size = lpMsgList->lpbin[i].cb;

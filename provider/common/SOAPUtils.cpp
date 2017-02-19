@@ -1433,13 +1433,11 @@ ECRESULT FreeEntryList(struct entryList *lpEntryList, bool bFreeBase)
 
 	if(lpEntryList->__ptr) {
 		for (unsigned int i = 0; i < lpEntryList->__size; ++i)
-			delete[] lpEntryList->__ptr[i].__ptr;
-		delete [] lpEntryList->__ptr;
+			s_free(nullptr, lpEntryList->__ptr[i].__ptr);
+		s_free(nullptr, lpEntryList->__ptr);
 	}
-
-	if(bFreeBase) {
-		delete lpEntryList;
-	}
+	if (bFreeBase)
+		s_free(nullptr, lpEntryList);
 	return erSuccess;
 }
 
@@ -1609,10 +1607,9 @@ ECRESULT FreeEntryId(entryId* lpEntryId, bool bFreeBase)
 {
 	if(lpEntryId == NULL)
 		return erSuccess;
-
-	delete[] lpEntryId->__ptr;
+	s_free(nullptr, lpEntryId->__ptr);
 	if(bFreeBase == true)
-		delete lpEntryId;
+		s_free(nullptr, lpEntryId);
 	else
 		lpEntryId->__size = 0;
 	return erSuccess;
