@@ -965,7 +965,7 @@ HRESULT WSTransport::HrNotify(LPNOTIFICATION lpNotification)
 	sNotification.ulConnection = 0;// The connection id should be calculate on the server side
 
 	sNotification.ulEventType = lpNotification->ulEventType;
-	sNotification.newmail = new notificationNewMail;
+	sNotification.newmail = s_alloc<notificationNewMail>(nullptr);
 	memset(sNotification.newmail, 0, sizeof(notificationNewMail));
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(lpNotification->info.newmail.cbEntryID, (LPENTRYID)lpNotification->info.newmail.lpEntryID, &sNotification.newmail->pEntryId);
@@ -979,7 +979,7 @@ HRESULT WSTransport::HrNotify(LPNOTIFICATION lpNotification)
 	if(lpNotification->info.newmail.lpszMessageClass){
 		utf8string strMessageClass = convstring(lpNotification->info.newmail.lpszMessageClass, lpNotification->info.newmail.ulFlags);
 		ulSize = strMessageClass.size() + 1;
-		sNotification.newmail->lpszMessageClass = new char[ulSize];
+		sNotification.newmail->lpszMessageClass = s_alloc<char>(nullptr, ulSize);
 		memcpy(sNotification.newmail->lpszMessageClass, strMessageClass.c_str(), ulSize);
 	}
 	sNotification.newmail->ulMessageFlags = lpNotification->info.newmail.ulMessageFlags;
@@ -4629,7 +4629,7 @@ HRESULT WSTransport::HrGetNotify(struct notificationArray **lppsArrayNotificatio
 		goto exit;
 
 	if(sNotifications.pNotificationArray != NULL) {
-		*lppsArrayNotifications = new notificationArray;
+		*lppsArrayNotifications = s_alloc<notificationArray>(nullptr);
 		CopyNotificationArrayStruct(sNotifications.pNotificationArray, *lppsArrayNotifications);
 	}else
 		*lppsArrayNotifications = NULL;

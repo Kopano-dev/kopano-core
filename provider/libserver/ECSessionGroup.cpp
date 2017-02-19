@@ -224,11 +224,9 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	ECRESULT hr = erSuccess;
 
 	Lock();
-
-	struct notification *lpNotify = new struct notification;
+	auto lpNotify = s_alloc<notification>(nullptr);
 	memset(lpNotify, 0, sizeof(notification));
-
-	lpNotify->tab = new notificationTable;
+	lpNotify->tab = s_alloc<notificationTable>(nullptr);
 	memset(lpNotify->tab, 0, sizeof(notificationTable));
 	
 	lpNotify->ulEventType			= fnevTableModified;

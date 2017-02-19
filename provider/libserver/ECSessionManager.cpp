@@ -922,7 +922,7 @@ ECRESULT ECSessionManager::NotificationDeleted(unsigned int ulObjType, unsigned 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		goto exit;
 
-	notify.obj = new notificationObject;
+	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));	
 	
 	notify.ulEventType			= fnevObjectDeleted;
@@ -954,8 +954,7 @@ ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		goto exit;
-
-	notify.obj = new notificationObject;
+	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
 	
 	notify.ulEventType			= fnevObjectModified;
@@ -988,8 +987,7 @@ ECRESULT ECSessionManager::NotificationCreated(unsigned int ulObjType, unsigned 
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		goto exit;
-
-	notify.obj = new notificationObject;
+	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
 
 	notify.ulEventType			= fnevObjectCreated;
@@ -1021,8 +1019,7 @@ ECRESULT ECSessionManager::NotificationMoved(unsigned int ulObjType, unsigned in
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		goto exit;
-
-	notify.obj = new notificationObject;
+	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
 
 	notify.ulEventType				= fnevObjectMoved;	
@@ -1061,8 +1058,7 @@ ECRESULT ECSessionManager::NotificationCopied(unsigned int ulObjType, unsigned i
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		goto exit;
-
-	notify.obj = new notificationObject;
+	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
 
 	notify.ulEventType				= fnevObjectCopied;
@@ -1110,8 +1106,7 @@ ECRESULT ECSessionManager::NotificationSearchComplete(unsigned int ulObjId, unsi
 	struct notification notify;
 
 	memset(&notify, 0, sizeof(notification));
-
-	notify.obj = new notificationObject;
+	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
 
 	notify.ulEventType				= fnevSearchComplete;

@@ -1451,8 +1451,7 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 		FreeEntryId(lpNotification->obj->pOldId, true);
 		FreeEntryId(lpNotification->obj->pOldParentId, true);
 		FreeEntryId(lpNotification->obj->pParentId, true);
-
-		delete lpNotification->obj;
+		s_free(nullptr, lpNotification->obj);
 	}
 
 	if(lpNotification->tab != NULL) {
@@ -1460,39 +1459,31 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 			FreePropValArray(lpNotification->tab->pRow, true);
 
 		if(lpNotification->tab->propIndex.Value.bin != NULL) {
-			if(lpNotification->tab->propIndex.Value.bin->__size > 0)
-				delete []lpNotification->tab->propIndex.Value.bin->__ptr;
-
-			delete lpNotification->tab->propIndex.Value.bin;
+			s_free(nullptr, lpNotification->tab->propIndex.Value.bin->__ptr);
+			s_free(nullptr, lpNotification->tab->propIndex.Value.bin);
 		}
 
 		if(lpNotification->tab->propPrior.Value.bin != NULL) {
-			if(lpNotification->tab->propPrior.Value.bin->__size > 0)
-				delete []lpNotification->tab->propPrior.Value.bin->__ptr;
-
-			delete lpNotification->tab->propPrior.Value.bin;
+			s_free(nullptr, lpNotification->tab->propPrior.Value.bin->__ptr);
+			s_free(nullptr, lpNotification->tab->propPrior.Value.bin);
 		}
-
-		delete lpNotification->tab;
+		s_free(nullptr, lpNotification->tab);
 	}
 
 	if (lpNotification->newmail != NULL) {
-		delete[] lpNotification->newmail->lpszMessageClass;
+		s_free(nullptr, lpNotification->newmail->lpszMessageClass);
 		FreeEntryId(lpNotification->newmail->pEntryId, true);
 		FreeEntryId(lpNotification->newmail->pParentId, true);
-
-		delete lpNotification->newmail;
+		s_free(nullptr, lpNotification->newmail);
 	}
 
 	if(lpNotification->ics != NULL) {
 		FreeEntryId(lpNotification->ics->pSyncState, true);
-
-		delete lpNotification->ics;
+		s_free(nullptr, lpNotification->ics);
 	}
 
 	if(bFreeBase)
-		delete lpNotification;
-
+		s_free(nullptr, lpNotification);
 	return erSuccess;
 }
 
@@ -1573,11 +1564,9 @@ ECRESULT FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bFre
 		return erSuccess;
 	for (gsoap_size_t i = 0; i < lpNotifyArray->__size; ++i)
 		FreeNotificationStruct(&lpNotifyArray->__ptr[i], false);
-
-	delete [] lpNotifyArray->__ptr;
-
+	s_free(nullptr, lpNotifyArray->__ptr);
 	if(bFreeBase)
-		delete lpNotifyArray;
+		s_free(nullptr, lpNotifyArray);
 	else {
 		lpNotifyArray->__size = 0;
 	}
@@ -1590,7 +1579,7 @@ ECRESULT CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notif
 		return KCERR_INVALID_PARAMETER;
 
 	if (lpNotifyArrayFrom->__size > 0)
-		lpNotifyArrayTo->__ptr = new notification[lpNotifyArrayFrom->__size];
+		lpNotifyArrayTo->__ptr = s_alloc<notification>(nullptr, lpNotifyArrayFrom->__size);
 	else
 		lpNotifyArrayTo->__ptr = NULL;
 
