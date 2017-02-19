@@ -104,10 +104,9 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
             for (gsoap_size_t j = 0; j < lpRestrict->lpAnd->__ptr[i]->lpAnd->__size; ++j)
                 lstClauses.push_back(lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr[j]);
 
-            delete [] lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr;
-            delete lpRestrict->lpAnd->__ptr[i]->lpAnd;
-			delete lpRestrict->lpAnd->__ptr[i];
-            
+			s_free(nullptr, lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr);
+			s_free(nullptr, lpRestrict->lpAnd->__ptr[i]->lpAnd);
+			s_free(nullptr, lpRestrict->lpAnd->__ptr[i]);
             bModified = true;
         } else {
             lstClauses.push_back(lpRestrict->lpAnd->__ptr[i]);
@@ -116,8 +115,7 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
         
     if(bModified) {
         // We changed something, free the previous toplevel data and create a new list of children
-        delete [] lpRestrict->lpAnd->__ptr;
-        
+		s_free(nullptr, lpRestrict->lpAnd->__ptr);
         lpRestrict->lpAnd->__ptr = s_alloc<restrictTable *>(NULL, lstClauses.size());
         
         int n = 0;
@@ -262,7 +260,7 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
 	FreeRestrictTable(lpRestrict, false);
 	memset(lpRestrict, 0, sizeof(struct restrictTable));
         lpRestrict->ulType = RES_AND;
-        lpRestrict->lpAnd = new struct restrictAnd;
+		lpRestrict->lpAnd = s_alloc<restrictAnd>(nullptr);
         lpRestrict->lpAnd->__size = 0;
         lpRestrict->lpAnd->__ptr = NULL;
     }

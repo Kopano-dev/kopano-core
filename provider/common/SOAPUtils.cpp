@@ -784,8 +784,8 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 	case PT_CLSID:
 	case PT_BINARY:
 		if (lpProp->Value.bin) {
-			delete[] lpProp->Value.bin->__ptr;
-			delete lpProp->Value.bin;
+			s_free(nullptr, lpProp->Value.bin->__ptr);
+			s_free(nullptr, lpProp->Value.bin);
 		}
 		break;
 	case PT_MV_I2:
@@ -813,8 +813,8 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		if(lpProp->Value.mvbin.__ptr)
 		{
 			for (gsoap_size_t i = 0; i < lpProp->Value.mvbin.__size; ++i)
-				delete[] lpProp->Value.mvbin.__ptr[i].__ptr;
-			delete[] lpProp->Value.mvbin.__ptr;
+				s_free(nullptr, lpProp->Value.mvbin.__ptr[i].__ptr);
+			s_free(nullptr, lpProp->Value.mvbin.__ptr);
 		}
 		break;
 	case PT_MV_STRING8:
@@ -840,16 +840,16 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 				switch(lpAction->acttype) {
 				case OP_COPY:
 				case OP_MOVE:
-					delete[] lpAction->act.moveCopy.store.__ptr;
-					delete[] lpAction->act.moveCopy.folder.__ptr;
+					s_free(nullptr, lpAction->act.moveCopy.store.__ptr);
+					s_free(nullptr, lpAction->act.moveCopy.folder.__ptr);
 					break;
 				case OP_REPLY:
 				case OP_OOF_REPLY:
-					delete[] lpAction->act.reply.message.__ptr;
-					delete[] lpAction->act.reply.guid.__ptr;
+					s_free(nullptr, lpAction->act.reply.message.__ptr);
+					s_free(nullptr, lpAction->act.reply.guid.__ptr);
 					break;
 				case OP_DEFER_ACTION:
-					delete[] lpAction->act.defer.bin.__ptr;
+					s_free(nullptr, lpAction->act.defer.bin.__ptr);
 					break;
 				case OP_BOUNCE:
 					break;
@@ -862,9 +862,8 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 					break;
 				}
 			}
-
-			delete[] lpActions->__ptr;
-			delete lpProp->Value.actions;
+			s_free(nullptr, lpActions->__ptr);
+			s_free(nullptr, lpProp->Value.actions);
 		}
 		break;
 	default:
@@ -912,9 +911,9 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 				if(er != erSuccess)
 					return er;
 			}
-			delete [] lpRestrict->lpOr->__ptr;
+			s_free(nullptr, lpRestrict->lpOr->__ptr);
 		}
-		delete lpRestrict->lpOr;
+		s_free(nullptr, lpRestrict->lpOr);
 		break;
 	case RES_AND:
 		if(lpRestrict->lpAnd && lpRestrict->lpAnd->__ptr) {
@@ -924,41 +923,41 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 				if(er != erSuccess)
 					return er;
 			}
-			delete [] lpRestrict->lpAnd->__ptr;
+			s_free(nullptr, lpRestrict->lpAnd->__ptr);
 		}
-		delete lpRestrict->lpAnd;
+		s_free(nullptr, lpRestrict->lpAnd);
 		break;
 
 	case RES_NOT:
 		if(lpRestrict->lpNot && lpRestrict->lpNot->lpNot)
 			FreeRestrictTable(lpRestrict->lpNot->lpNot);
-		delete lpRestrict->lpNot;
+		s_free(nullptr, lpRestrict->lpNot);
 		break;
 	case RES_CONTENT:
 		if(lpRestrict->lpContent && lpRestrict->lpContent->lpProp)
 			FreePropVal(lpRestrict->lpContent->lpProp, true);
-		delete lpRestrict->lpContent;
+		s_free(nullptr, lpRestrict->lpContent);
 		break;
 	case RES_PROPERTY:
 		if(lpRestrict->lpProp && lpRestrict->lpProp->lpProp)
 			FreePropVal(lpRestrict->lpProp->lpProp, true);
-		delete lpRestrict->lpProp;
+		s_free(nullptr, lpRestrict->lpProp);
 		break;
 
 	case RES_COMPAREPROPS:
-		delete lpRestrict->lpCompare;
+		s_free(nullptr, lpRestrict->lpCompare);
 		break;
 
 	case RES_BITMASK:
-		delete lpRestrict->lpBitmask;
+		s_free(nullptr, lpRestrict->lpBitmask);
 		break;
 
 	case RES_SIZE:
-		delete lpRestrict->lpSize;
+		s_free(nullptr, lpRestrict->lpSize);
 		break;
 
 	case RES_EXIST:
-		delete lpRestrict->lpExist;
+		s_free(nullptr, lpRestrict->lpExist);
 		break;
 
 	case RES_COMMENT:
@@ -967,14 +966,14 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 				FreeRestrictTable(lpRestrict->lpComment->lpResTable);
 
 			FreePropValArray(&lpRestrict->lpComment->sProps);
-			delete lpRestrict->lpComment;
+			s_free(nullptr, lpRestrict->lpComment);
 		}
 		break;
 
 	case RES_SUBRESTRICTION:
 		if(lpRestrict->lpSub && lpRestrict->lpSub->lpSubObject)
 			FreeRestrictTable(lpRestrict->lpSub->lpSubObject);
-		delete lpRestrict->lpSub;
+		s_free(nullptr, lpRestrict->lpSub);
 		break;
 
 	default:
@@ -985,7 +984,7 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 
 	// only when we're optimizing restrictions we must keep the base pointer, so we can replace it with new content
 	if (base)
-		delete lpRestrict;
+		s_free(nullptr, lpRestrict);
 	return erSuccess;
 }
 
