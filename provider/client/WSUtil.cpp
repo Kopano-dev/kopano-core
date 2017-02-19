@@ -956,26 +956,24 @@ HRESULT CopyMAPIRowToSOAPRow(const SRow *lpRowSrc,
 
 	if (lpConverter == NULL && lpRowSrc->cValues > 1) {
 		convert_context converter;
-		hr = CopyMAPIRowToSOAPRow(lpRowSrc, lpsRowDst, &converter);
-		goto exit;
+		return CopyMAPIRowToSOAPRow(lpRowSrc, lpsRowDst, &converter);
 	}
 
 	lpPropVal = s_alloc<propVal>(nullptr, lpRowSrc->cValues);
 	memset(lpPropVal, 0, sizeof(struct propVal) *lpRowSrc->cValues);
+	lpsRowDst->__ptr = lpPropVal;
+	lpsRowDst->__size = 0;
 
 	for (unsigned int i = 0; i < lpRowSrc->cValues; ++i) {
 		hr = CopyMAPIPropValToSOAPPropVal(&lpPropVal[i], &lpRowSrc->lpProps[i], lpConverter);
-		if(hr != hrSuccess)
-			goto exit;
+		if (hr != hrSuccess) {
+			FreePropValArray(lpsRowDst, false);
+			lpsRowDst->__ptr = nullptr;
+			return hr;
+		}
+		++lpsRowDst->__size;
 	}
-
-	lpsRowDst->__ptr = lpPropVal;
-	lpsRowDst->__size = lpRowSrc->cValues;
-
-exit:
-	//@todo: remove memory on an error
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
@@ -986,31 +984,27 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
 
 	if (lpConverter == NULL && lpRowSetSrc->cRows > 1) {
 		convert_context converter;
-		hr = CopyMAPIRowSetToSOAPRowSet(lpRowSetSrc, lppsRowSetDst, &converter);
-		goto exit;
+		return CopyMAPIRowSetToSOAPRowSet(lpRowSetSrc, lppsRowSetDst, &converter);
 	}
 	lpsRowSetDst = s_alloc<rowSet>(nullptr);
 	lpsRowSetDst->__ptr = NULL;
 	lpsRowSetDst->__size = 0;
 	if (lpRowSetSrc->cRows > 0) {
 		lpsRowSetDst->__ptr = s_alloc<propValArray>(nullptr, lpRowSetSrc->cRows);
-		lpsRowSetDst->__size = lpRowSetSrc->cRows;
+		lpsRowSetDst->__size = 0;
 
 		for (unsigned int i = 0; i < lpRowSetSrc->cRows; ++i) {
 			hr = CopyMAPIRowToSOAPRow(&lpRowSetSrc->aRow[i], &lpsRowSetDst->__ptr[i], lpConverter);
 			if (hr != hrSuccess) {
-				s_free(nullptr, lpsRowSetDst);
-				goto exit;
+				FreeRowSet(lpsRowSetDst, false);
+				return hr;
 			}
+			++lpsRowSetDst->__size;
 		}
 	}
 
 	*lppsRowSetDst = lpsRowSetDst;
-
-exit:
-	//@todo: remove memory on an error
-
-	return hr;
+	return hrSuccess;
 }
 
 // Copies a row set, filling in client-side generated values on the fly
