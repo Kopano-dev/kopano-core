@@ -187,7 +187,8 @@ class Folder(object):
             table = Table(
                 self.server,
                 self.mapiobj.GetContentsTable(self.content_flag),
-                PR_CONTAINER_CONTENTS, columns=[PR_ENTRYID]
+                PR_CONTAINER_CONTENTS,
+                columns=[PR_ENTRYID, PR_MESSAGE_DELIVERY_TIME]
             )
         except MAPIErrorNoSupport:
             return
