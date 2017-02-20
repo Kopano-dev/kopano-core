@@ -1854,11 +1854,13 @@ ECRESULT ECCacheManager::GetObjectFromEntryId(const entryId *lpEntryId,
     unsigned int *lpulObjId)
 {
 	// Make sure flags is 0 when getting from db/cache
+	if (lpEntryId == nullptr)
+		ec_log_err("K-1575: null entryid passed to %s", __func__);
 	EntryId eid(lpEntryId);
 	try {
 		eid.setFlags(0);
 	} catch (runtime_error &e) {
-		ec_log_err("eid.setFlags: %s\n", e.what());
+		ec_log_err("K-1573: eid.setFlags: %s\n", e.what());
 		/*
 		 * The subsequent functions will catch the too-small eid.size
 		 * and return INVALID_PARAM appropriately.
@@ -1873,11 +1875,13 @@ ECRESULT ECCacheManager::SetObjectEntryId(const entryId *lpEntryId,
     ECRESULT 	er = erSuccess;
     
     // MAke sure flags is 0 when saving in DB
+	if (lpEntryId == nullptr)
+		ec_log_err("K-1576: null entryid passed to %s", __func__);
     EntryId eid(lpEntryId);
 	try {
 		eid.setFlags(0);
 	} catch (runtime_error &e) {
-		ec_log_err("eid.setFlags: %s\n", e.what());
+		ec_log_err("K-1574: eid.setFlags: %s\n", e.what());
 		/* ignore exception - the following functions will catch the too-small eid.size */
 	}
     er = SetObjectProp( PROP_ID(PR_ENTRYID), eid.size(), eid, ulObjId);
