@@ -353,10 +353,6 @@
 // Input
 %typemap(arginit) MAPILIST
 	"$1 = NULL;"
-%typemap(freearg)	MAPILIST
-{
-	MAPIFreeBuffer($1);
-}
 
 // Output
 %typemap(in,numinputs=0)	MAPILIST * ($basetype temp), MAPISTRUCT * ($basetype temp)
@@ -468,3 +464,8 @@
     FreeProws((LPSRowSet)$1);
 }
 
+%typemap(in) ADRLIST *INPUT, LPADRLIST INOUT
+{
+        $1 = List_to$mangle($input);
+        if(PyErr_Occurred()) goto fail;
+}
