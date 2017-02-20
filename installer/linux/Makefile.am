@@ -33,11 +33,6 @@ cbs4_initscript_files = \
 	kopano-gateway.init.cbs4 kopano-monitor.init.cbs4 \
 	kopano-ical.init.cbs4 kopano-dagent.init.cbs4 kopano-search.init.cbs4 \
 	kopano-presence.init.cbs4
-alt_initscript_files = \
-	kopano-server.init.alt kopano-spooler.init.alt \
-	kopano-gateway.init.alt kopano-monitor.init.alt \
-	kopano-ical.init.alt kopano-dagent.init.alt kopano-search.init.alt \
-	kopano-presence.init.alt
 debian_initscript_files = \
 	kopano-server.init.debi kopano-spooler.init.debi \
 	kopano-gateway.init.debi kopano-monitor.init.debi \
@@ -58,7 +53,6 @@ suse_sysconfig_path = ${localstatedir}/adm/fillup-templates
 sles_sysconfig_path = ${localstatedir}/adm/fillup-templates
 sysconf_sysconfigdir = ${@DISTRO@_sysconfig_path}
 sysconf_sysconfig_DATA = sysconfig.txt
-alt_sysconfig_path = ${sysconfdir}/sysconfig
 
 dist_doc_DATA = \
 	db-calc-storesize db-convert-attachments-to-files \
@@ -90,7 +84,7 @@ dist_sysconf_bc_DATA = kopano-bash-completion.sh
 sysconf_certdir = ${sysconfdir}/kopano/report-ca
 
 EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
-	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) $(alt_initscript_files) \
+	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) \
 	sysconfig.txt
 
 install-data-hook:
@@ -100,7 +94,7 @@ install-data-hook:
 	mv -v ${DESTDIR}${sysconf_crondir}/kopano-client-update.cron ${DESTDIR}${sysconf_crondir}/kopano-client-update
 	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
 		mv -v ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.txt ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano; \
-	elif test ${DISTRO} = "rhel" -o ${DISTRO} = "alt"; then \
+	elif test ${DISTRO} = "rhel"; then \
 		mv -v ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.txt ${DESTDIR}${sysconf_sysconfigdir}/kopano; \
 	fi
 	for f in ${sysconf_init_SCRIPTS}; do \
@@ -113,7 +107,7 @@ uninstall-local:
 		"${DESTDIR}${sysconf_crondir}/kopano-client-update"
 	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
 		rm -f "${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano"; \
-	elif test ${DISTRO} = "rhel" -o ${DISTRO} = "alt"; then \
+	elif test ${DISTRO} = "rhel"; then \
 		rm -f "${DESTDIR}${sysconf_sysconfigdir}/kopano"; \
 	fi
 	for f in ${sysconf_init_SCRIPTS}; do \
