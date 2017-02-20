@@ -244,18 +244,19 @@ class MAPIError(Exception):
     
     @staticmethod
     def _initialize_errors():
+        error_prefix = 'MAPI_E_'
         for name, value in inspect.getmembers(sys.modules['MAPICore']):
-            if name.startswith('MAPI_E_'):
-                clsname = 'MAPIError' + ''.join(s.capitalize() for s in name[7:].split('_'))
-                def construct_class(hr):
+            if name.startswith(error_prefix):
+                clsname = 'MAPIError' + ''.join(s.capitalize() for s in name[len(error_prefix):].split('_'))
+                def construct_class(hr, descr):
                     if issubclass(MAPIError, object):
-                        return type(clsname, (MAPIError,), {'__init__': lambda self: MAPIError.__init__(self, hr)})
+                        return type(clsname, (MAPIError,), {'__init__': lambda self: MAPIError.__init__(self, hr, descr)})
                     else:
                         class MAPIErrorDynamic(MAPIError):
                             def __init__(self):
-                                MAPIError.__init__(self, hr)
+                                MAPIError.__init__(self, hr, descr)
                         return MAPIErrorDynamic
-                t = construct_class(value)
+                t = construct_class(value, name)
                 setattr(sys.modules[__name__], clsname, t)
                 MAPIError._errormap[value] = t
     
@@ -275,11 +276,12 @@ class MAPIError(Exception):
             return t()
         return MAPIError(hr)
     
-    def __init__(self, hr):
+    def __init__(self, hr, descr=None):
         self.hr = hr
+        self.descr = descr
         
     def __repr__(self):
-        return "MAPI error %X" % (self.hr)
+        return "MAPI error %X (%s)" % (self.hr, self.descr)
 
     def __str__(self):
         return self.__repr__()
