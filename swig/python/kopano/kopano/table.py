@@ -61,7 +61,7 @@ class Table(object):
 
     def dict_rows(self, batch_size=100):
         for row in self.rows(batch_size):
-            yield dict((p.proptag, p.value) for p in row)
+            yield dict((p.proptag, p.mapiobj.Value) for p in row)
 
     # XXX: apply batch_size as shown above
     def dict_(self, key, value):
