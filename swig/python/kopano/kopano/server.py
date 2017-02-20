@@ -60,7 +60,7 @@ from .store import Store
 
 from .compat import (
     unhex as _unhex, decode as _decode, repr as _repr,
-    fake_unicode as _unicode
+    fake_unicode as _unicode, lru_cache as _lru_cache
 )
 
 def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
@@ -401,10 +401,9 @@ class Server(object):
             return self.mapisession.OpenMsgStore(0, row[0].Value, None, MDB_WRITE)
         raise NotFoundError("no such store: '%s'" % guid)
 
+    @_lru_cache(128) # backend doesn't like more than 1000 stores open on certain multiserver setup
     def _store2(self, storeid): # XXX max lifetime
-        if storeid not in self._store_cache:
-            self._store_cache[storeid] = self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore, MDB_WRITE)
-        return self._store_cache[storeid]
+        return self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore, MDB_WRITE)
 
     def groups(self):
         """ Return all :class:`groups <Group>` on server """
