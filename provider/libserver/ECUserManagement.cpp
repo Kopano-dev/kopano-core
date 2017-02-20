@@ -3183,7 +3183,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 	switch (PROP_TYPE(ulPropTag)) {
 	case PT_BOOLEAN:
 		lpPropVal->ulPropTag = ulPropTag;
-		lpPropVal->Value.b = parseBool(strValue);
+		lpPropVal->Value.b = parseBool(strValue.c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_b;
 		break;
 	case PT_SHORT:

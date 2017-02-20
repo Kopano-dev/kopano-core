@@ -25,11 +25,10 @@ ServerConfigCheck::ServerConfigCheck(const char *lpszConfigFile) : ECConfigCheck
 
 	setting = getSetting("enable_hosted_kopano");
 	if (!setting.empty())
-		setHosted(parseBool(setting));
-
+		setHosted(parseBool(setting.c_str()));
 	setting = getSetting("enable_distributed_kopano");
 	if (!setting.empty())
-		setMulti(parseBool(setting));
+		setMulti(parseBool(setting.c_str()));
 }
 
 void ServerConfigCheck::loadChecks()

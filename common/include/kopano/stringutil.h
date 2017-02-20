@@ -77,8 +77,10 @@ extern _kc_export std::string str_storage(uint64_t bytes, bool unlimited = true)
 extern _kc_export std::string GetServerNameFromPath(const char *);
 extern _kc_export std::string GetServerPortFromPath(const char *);
 
-static inline bool parseBool(const std::string &s) {
-	return !(s == "0" || s == "false" || s == "no");
+static inline bool parseBool(const char *s)
+{
+	return s == nullptr || (strcmp(s, "0") != 0 &&
+	       strcmp(s, "false") != 0 && strcmp(s, "no") != 0);
 }
 
 extern _kc_export std::string shell_escape(const std::string &);
