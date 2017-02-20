@@ -144,6 +144,18 @@ public:
             return;
         Copy(&src, this);
     }
+
+	ECsIndexProp(ECsIndexProp &&o) :
+		ulTag(o.ulTag), lpData(o.lpData), cbData(o.cbData)
+	{
+		o.lpData = nullptr;
+		o.cbData = 0;
+	}
+
+	ECsIndexProp(unsigned int tag, const unsigned char *d, unsigned int z)
+	{
+		SetValue(tag, d, z);
+	}
     
     ECsIndexProp& operator=(const ECsIndexProp &src) {
 		if (this == &src)
@@ -193,8 +205,8 @@ public:
 		return false;
 	}
 
-	void SetValue(unsigned int ulTag, unsigned char* lpData, unsigned int cbData) {
-
+	void SetValue(unsigned int ulTag, const unsigned char *lpData, unsigned int cbData)
+	{
 		if(lpData == NULL|| cbData == 0)
 			return;
 
@@ -243,7 +255,7 @@ public:
     
     ECsCells(const ECsCells &src) {
         struct propVal val;
-		for (auto &p : src.mapPropVals) {
+		for (const auto &p : src.mapPropVals) {
 			CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
 			mapPropVals[p.first] = val;
         }

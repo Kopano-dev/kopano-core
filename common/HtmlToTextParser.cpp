@@ -324,8 +324,7 @@ void CHtmlToTextParser::parseAttributes(const WCHAR* &lpwHTML)
 		}
 
 		if(!bAttrName && !bAttrValue) {
-			mapAttrs[attrName] = attrValue;
-
+			mapAttrs[std::move(attrName)] = std::move(attrValue);
 			firstQuote = 0;
 			bAttrName = true;
 			bAttrValue = false;

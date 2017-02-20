@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <exception>
 #include <mutex>
+#include <utility>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/lockhelper.hpp>
@@ -512,14 +513,13 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 	DB_RESULT lpDBResult = NULL;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpDBLen = NULL;
-	ECsIndexProp sObject;
 	unsigned int objid;
 	std::vector<size_t> uncached;
 
 	for (size_t i = 0; i < lpdata.size(); ++i) {
 		if (QueryObjectFromProp(ulTag, cbdata[i], lpdata[i], &objid) == erSuccess) {
-			sObject.SetValue(PROP_ID(ulTag), lpdata[i], cbdata[i]);
-			mapObjects[sObject] = objid;
+			ECsIndexProp p(PROP_ID(ulTag), lpdata[i], cbdata[i]);
+			mapObjects[std::move(p)] = objid;
 		} else {
 			uncached.push_back(i);
 		}
@@ -543,8 +543,8 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 
 		while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-			sObject.SetValue(PROP_ID(ulTag), reinterpret_cast<unsigned char *>(lpDBRow[1]), lpDBLen[1]);
-			mapObjects[sObject] = atoui(lpDBRow[0]);
+			ECsIndexProp p(PROP_ID(ulTag), reinterpret_cast<unsigned char *>(lpDBRow[1]), lpDBLen[1]);
+			mapObjects[std::move(p)] = atoui(lpDBRow[0]);
 		}
 	}
 	if (mapObjects.size() < lpdata.size())
