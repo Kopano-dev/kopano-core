@@ -44,4 +44,5 @@ define('MUIDECSAB',                             makeguid("{50A921AC-D340-48ee-B3
 // Kopano Contact Provider GUIDs
 define('MUIDZCSAB',                             makeguid("{30047F72-92E3-DA4F-B86A-E52A7FE46571}"));
 
-?>
+// For Z-Push
+define ('PSETID_AirSync',                       makeguid("{71035549-0739-4DCB-9163-00F0580DBBDF}"));
