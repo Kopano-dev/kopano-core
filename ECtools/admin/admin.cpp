@@ -1201,7 +1201,6 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	HRESULT hr = hrSuccess;
 	ULONG i = 0;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRowSet = NULL;
 	std::string strUsername;
 	bool bHeader = true;
 	ConsoleTable ct(50, 5);
@@ -1216,12 +1215,12 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	hr = lpServiceAdmin->OpenUserStoresTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		cerr << "Unable to open user/stores table" << endl;
-		goto exit;
+		return hr;
 	}
 	hr = lpTable->SortTable(tableSort, 0);
 	if (hr != hrSuccess) {
 		cerr << "Unable to sort user/stores table" << endl;
-		goto exit;
+		return hr;
 	}
 
 	ct.SetHeader(0, "Store guid");
@@ -1234,10 +1233,11 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	cout << "Stores without users:" << endl;
 
 	while(TRUE) {
-		hr = lpTable->QueryRows(50, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
 		if(hr != hrSuccess) {
 			cerr << "Unable to load user/stores table" << endl;
-			goto exit;
+			return hr;
 		}
 
 		if(lpRowSet->cRows == 0)
@@ -1292,17 +1292,10 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 			else
 				ct.AddColumn(4, "<unknown>");
 		}
-
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 
 	ct.PrintTable();
-
-exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-	return hr;
+	return hrSuccess;
 }
 
 static LPMVPROPMAPENTRY FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)
@@ -2079,7 +2072,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 		goto exit;
 
 	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-		SRowSetPtr::const_reference row = ptrRows[i];
+		const SRow &row = ptrRows[i];
 		const char* lpszName = "<Unknown>";
 
 		if (PROP_TYPE(row.lpProps[IDX_DISPLAY_NAME].ulPropTag) != PT_ERROR)

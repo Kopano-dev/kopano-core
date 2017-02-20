@@ -224,7 +224,6 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBlocks, ULONG *lpcValues)
 {
 	HRESULT hr = hrSuccess;
-	SRowSet *lpRowSet = NULL;
 	memory_ptr<OccrInfo> lpOccrInfo;
 	FBBlock_1 *lpfbBlocks = NULL;
 	recurrence lpRecurrence;
@@ -236,13 +235,14 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 		PROP_APPT_TIMEZONESTRUCT}};
 	hr = lpTable->SetColumns(proptags, 0);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (true)
 	{
-		hr = lpTable->QueryRows(50, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if(lpRowSet->cRows == 0)
 			break;
@@ -292,32 +292,24 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 				hr = HrAddFBBlock(sOccrBlock, &+lpOccrInfo, lpcValues);
 				if (hr != hrSuccess) {
 					ec_log_debug("Error adding occurrence block to list, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-					goto exit;
+					return hr;
 				}
 			}
 	
 		}
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 	
 	if (lpcValues != 0 && lpOccrInfo != NULL) {
 		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)* (*lpcValues), (void**)&lpfbBlocks);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		for (ULONG i = 0 ; i < *lpcValues; ++i)
 			lpfbBlocks[i]  = lpOccrInfo[i].fbBlock;
 
 		*lppfbBlocks = lpfbBlocks;
 		lpfbBlocks = NULL;
 	}
-
-exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-
-	return hr;
+	return hrSuccess;
 }
 
 /** 

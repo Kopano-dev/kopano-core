@@ -99,6 +99,11 @@ template<typename _T> class object_proxy2 _kc_final {
 	_T **_m_ptr;
 };
 
+class default_delete {
+	public:
+	void operator()(void *p) { MAPIFreeBuffer(p); }
+};
+
 /**
  * The KCHL memory_ptr works a lot like std::unique_ptr, with the
  * additional differences:
@@ -112,7 +117,7 @@ template<typename _T> class object_proxy2 _kc_final {
  *  - methods "is_null", "free" and "as" are gone
  *  - operator void** and operator! is gone
  */
-template<typename _T> class memory_ptr {
+template<typename _T, typename _Deleter = default_delete> class memory_ptr {
 	public:
 	typedef _T value_type;
 	typedef _T *pointer;
@@ -121,9 +126,8 @@ template<typename _T> class memory_ptr {
 	explicit memory_ptr(_T *__p) noexcept : _m_ptr(__p) {}
 	~memory_ptr(void)
 	{
-		/* Also see reset() for another instance of MAPIFreeBuffer. */
 		if (_m_ptr != nullptr)
-			MAPIFreeBuffer(_m_ptr);
+			_Deleter()(_m_ptr);
 		/*
 		 * We normally don't need the following. Or maybe don't even
 		 * want. But g++'s stdlib has it, probably for robustness
@@ -151,7 +155,7 @@ template<typename _T> class memory_ptr {
 	{
 		std::swap(_m_ptr, __p);
 		if (__p != pointer())
-			MAPIFreeBuffer(__p);
+			_Deleter()(__p);
 	}
 	void swap(memory_ptr &__o)
 	{
@@ -311,6 +315,15 @@ class cstdlib_deleter {
 	public:
 	void operator()(void *x) { free(x); }
 };
+
+class rowset_delete {
+	public:
+	void operator()(ADRLIST *x) { FreePadrlist(x); }
+	void operator()(SRowSet *x) { FreeProws(x); }
+};
+
+typedef memory_ptr<ADRLIST, rowset_delete> adrlist_ptr;
+typedef memory_ptr<SRowSet, rowset_delete> rowset_ptr;
 
 template<typename _T> inline void
 swap(memory_ptr<_T> &__x, memory_ptr<_T> &__y) noexcept

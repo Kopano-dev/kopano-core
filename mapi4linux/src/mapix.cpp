@@ -1125,7 +1125,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 	ULONG sizeSpoolSec;
 	memory_ptr<BYTE> pSpoolSec;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpsRows = NULL;
+	rowset_ptr lpsRows;
 	MAPIUID sProviderUID;
 	ULONG cbStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpStoreEntryID;
@@ -1166,7 +1166,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 	}
 		
 	while(TRUE) {
-		hr = lpTable->QueryRows(1, 0, &lpsRows);
+		hr = lpTable->QueryRows(1, 0, &~lpsRows);
 		if(hr != hrSuccess) {
 			ec_log_err("M4LMAPISession::OpenMsgStore() QueryRows failed %x: %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
@@ -1182,8 +1182,6 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 			break;
 			
 		}
-		FreeProws(lpsRows);
-		lpsRows = NULL;
 	}
 	
 	if (lpsRows->cRows != 1)
@@ -1211,8 +1209,6 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 	}
 
 exit:
-	if (lpsRows)
-		FreeProws(lpsRows);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::OpenMsgStore", "0x%08x", hr);
 	return hr;
 }
@@ -1235,7 +1231,6 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 	IAddrBook *lpAddrBook = NULL;
 	M4LAddrBook *myAddrBook;
 	ULONG abver;
-	LPABPROVIDER lpABProvider = NULL;
 	LPMAPISUP lpMAPISup = NULL;
 	SPropValue sProps[1];
 
@@ -1274,7 +1269,11 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 		if (serv->service->ABProviderInit() == NULL)
 			continue;
 
-		if (serv->service->ABProviderInit()(0, NULL, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &abver, &lpABProvider) != hrSuccess) {
+		object_ptr<IABProvider> lpABProvider;
+		if (serv->service->ABProviderInit()(0, nullptr,
+		    MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer,
+		    ulFlags, CURRENT_SPI_VERSION, &abver,
+		    &~lpABProvider) != hrSuccess) {
 			hr = MAPI_W_ERRORS_RETURNED;
 			continue;
 		}
@@ -1299,10 +1298,6 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 			if (myAddrBook->addProvider(profileName, strDisplayName, (LPMAPIUID)lpUID->Value.bin.lpb, lpABProvider) != hrSuccess)
 				hr = MAPI_W_ERRORS_RETURNED;
 		}
-
-		// lpAddrBook has the ref, not us
-		lpABProvider->Release();
-		lpABProvider = NULL;
 	}
 
 exit:
@@ -1345,10 +1340,9 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMAPISession::OpenEntry", "%s", bin2hex(cbEntryID, (LPBYTE)lpEntryID).c_str());
     HRESULT hr = hrSuccess;
-    IMAPITable *lpTable = NULL;
-    IAddrBook *lpAddrBook = NULL;
+	object_ptr<IMAPITable> lpTable;
+	object_ptr<IAddrBook> lpAddrBook;
     IMsgStore *lpMDB = NULL;
-    LPSRowSet lpsRows = NULL;
     ULONG cbUnWrappedID = 0;
 	memory_ptr<ENTRYID> lpUnWrappedID;
 	SizedSPropTagArray(3, sptaProviders) = { 3, {PR_ENTRYID, PR_RECORD_KEY, PR_RESOURCE_TYPE} };
@@ -1405,7 +1399,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 
 	// If this is an addressbook EntryID or a one-off entryid, use the addressbook to open the item
 	if (memcmp(&guidProvider, &muidOneOff, sizeof(GUID)) == 0) {
-		hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
+		hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 		if(hr != hrSuccess) {
 			ec_log_err("M4LMAPISession::OpenEntry() OpenAddressBook fail %x: %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
@@ -1423,7 +1417,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
     // If not, it must be a provider entryid, so we have to find the provider
 
 	// Find the profile section associated with this entryID
-	hr = serviceAdmin->GetProviderTable(0, &lpTable);
+	hr = serviceAdmin->GetProviderTable(0, &~lpTable);
 	if(hr != hrSuccess) {
 		ec_log_err("M4LMAPISession::OpenEntry() GetProviderTable fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1435,7 +1429,8 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 	}
 		
 	while(TRUE) {
-		hr = lpTable->QueryRows(1, 0, &lpsRows);
+		rowset_ptr lpsRows;
+		hr = lpTable->QueryRows(1, 0, &~lpsRows);
 		if (hr != hrSuccess) {
 			ec_log_err("M4LMAPISession::OpenEntry() QueryRows fail %x: %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
@@ -1452,7 +1447,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
             memcmp(lpsRows->aRow[0].lpProps[1].Value.bin.lpb, &guidProvider, sizeof(GUID)) == 0)
 		{
 			if (lpsRows->aRow[0].lpProps[2].ulPropTag == PR_RESOURCE_TYPE && lpsRows->aRow[0].lpProps[2].Value.ul == MAPI_AB_PROVIDER) {
-				hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
+				hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 				if(hr != hrSuccess) {
 					ec_log_err("M4LMAPISession::OpenEntry() OpenAddressBook(2) fail %x: %s", hr, GetMAPIErrorMessage(hr));
 					goto exit;
@@ -1488,21 +1483,9 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 				break;
 			}
 		}
-				
-		FreeProws(lpsRows);
-		lpsRows = NULL;
 	}
 
 exit:
-    if(lpsRows)
-        FreeProws(lpsRows);
-        
-    if(lpAddrBook)
-        lpAddrBook->Release();
-        
-    if(lpTable)
-        lpTable->Release();
-	
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::OpenEntry", "0x%08x", hr);
 	return hr;
 }
@@ -1793,12 +1776,12 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
 	hr = this->OpenEntry(0, nullptr, &IID_IABContainer, 0, &ulObjType, &~lpRoot);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::getDefaultSearchPath(): OpenEntry fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 	hr = lpRoot->GetHierarchyTable((ulFlags & MAPI_UNICODE) | CONVENIENT_DEPTH, &~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::getDefaultSearchPath(): GetHierarchyTable fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	// We add this restriction to filter out All Address Lists
@@ -1816,16 +1799,12 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
 	hr = cRes.RestrictTable(lpTable, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::getDefaultSearchPath(): Restrict fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	hr = lpTable->QueryRows(-1, 0, lppSearchPath);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		ec_log_err("M4LAddrBook::getDefaultSearchPath(): QueryRows fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
-	}
-
-exit:
 	return hr;
 }
 
@@ -2029,7 +2008,7 @@ HRESULT M4LAddrBook::ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewE
 	ULONG objType;
 	memory_ptr<FlagList> lpFlagList;
 	ULONG cNewRow = 0;
-	LPSRowSet lpSearchRows = NULL;
+	rowset_ptr lpSearchRows;
 	bool bContinue = true;
 
 	if (lpAdrList == NULL) {
@@ -2146,7 +2125,7 @@ HRESULT M4LAddrBook::ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewE
 		lpAdrList->aEntries[i].cValues = cNewRow;
 	}
 
-	hr = this->GetSearchPath(MAPI_UNICODE, &lpSearchRows);
+	hr = this->GetSearchPath(MAPI_UNICODE, &~lpSearchRows);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::ResolveName() GetSearchPath fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -2195,9 +2174,6 @@ HRESULT M4LAddrBook::ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewE
 	}
 
 exit:
-	if (lpSearchRows)
-		FreeProws(lpSearchRows);
-
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::ResolveName", "0x%08x", hr);
 	return hr;
 }
@@ -2260,10 +2236,10 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::GetDefaultDir", "");
 	HRESULT hr = MAPI_E_INVALID_PARAMETER;
 	ULONG objType;
-	LPABCONT lpABContainer = NULL;
+	object_ptr<IABContainer> lpABContainer;
 	memory_ptr<SPropValue> propEntryID;
-	LPMAPITABLE lpTable = NULL;
-	LPSRowSet lpRowSet = NULL;
+	object_ptr<IMAPITable> lpTable;
+	rowset_ptr lpRowSet;
 	ULONG cbEntryID;
 	LPENTRYID lpEntryID = NULL;
 	const SPropValue *lpProp = NULL;
@@ -2280,7 +2256,7 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	for (const auto &i : m_lABProviders) {
 		// find a working open root container
 		hr = i.lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0,
-		     &objType, reinterpret_cast<IUnknown **>(&lpABContainer));
+		     &objType, &~lpABContainer);
 		if (hr == hrSuccess)
 			break;
 	}
@@ -2291,13 +2267,12 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	}
 
 	// more steps with gethierarchy() -> get entryid -> OpenEntry() ?
-	hr = lpABContainer->GetHierarchyTable(0, &lpTable);
+	hr = lpABContainer->GetHierarchyTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::GetDefaultDir(): GetHierarchyTable fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto no_hierarchy;
 	}
-
-	hr = lpTable->QueryRows(1, 0, &lpRowSet); // can only return 1 row, as there is only 1 
+	hr = lpTable->QueryRows(1, 0, &~lpRowSet); // can only return 1 row, as there is only 1
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::GetDefaultDir(): QueryRows fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto no_hierarchy;
@@ -2329,14 +2304,6 @@ no_hierarchy:
 	*lppEntryID = lpEntryID;
 
 exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-
-	if (lpTable)
-		lpTable->Release();
-	if (lpABContainer)
-		lpABContainer->Release();
-
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::GetDefaultDir", "0x%08x", hr);
 	return hr;
 }
@@ -2361,7 +2328,7 @@ HRESULT M4LAddrBook::SetDefaultDir(ULONG cbEntryID, LPENTRYID lpEntryID) {
 HRESULT M4LAddrBook::GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::GetSearchPath", "");
 	HRESULT hr = hrSuccess;
-	LPSRowSet lpSearchPath = NULL;
+	rowset_ptr lpSearchPath;
 
 	if (!m_lpSavedSearchPath) {
 		hr = this->getDefaultSearchPath(ulFlags, &m_lpSavedSearchPath);
@@ -2371,7 +2338,7 @@ HRESULT M4LAddrBook::GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) {
 		}
 	}
 
-	hr = MAPIAllocateBuffer(CbNewSRowSet(m_lpSavedSearchPath->cRows), (void**)&lpSearchPath);
+	hr = MAPIAllocateBuffer(CbNewSRowSet(m_lpSavedSearchPath->cRows), &~lpSearchPath);
 	if (hr != hrSuccess) {
 		ec_log_crit("M4LAddrBook::GetSearchPath(): MAPIAllocateBuffer fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -2383,13 +2350,8 @@ HRESULT M4LAddrBook::GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) {
 		goto exit;
 	}
 
-	*lppSearchPath = lpSearchPath;
-	lpSearchPath = NULL;
-
+	*lppSearchPath = lpSearchPath.release();
 exit:
-	if (lpSearchPath)
-		FreeProws(lpSearchPath);
-
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::GetSearchPath", "0x%08x", hr);
 	return hr;
 }

@@ -122,17 +122,13 @@ static HRESULT HrCreateECChangeAdviseSink(ECSyncContext *lpsSyncContext,
     ECChangeAdviseSink::NOTIFYCALLBACK fnCallback,
     IECChangeAdviseSink **lppAdviseSink)
 {
-	ECChangeAdviseSink *lpAdviseSink =
-		new(std::nothrow) ECChangeAdviseSink(lpsSyncContext, fnCallback);
+	object_ptr<ECChangeAdviseSink> lpAdviseSink(new(std::nothrow) ECChangeAdviseSink(lpsSyncContext, fnCallback));
 	if (lpAdviseSink == NULL)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	HRESULT hr = lpAdviseSink->QueryInterface(IID_IECChangeAdviseSink,
 		reinterpret_cast<void **>(lppAdviseSink));
 	if (hr == hrSuccess)
-		lpAdviseSink = NULL;
-	if (lpAdviseSink)
-		lpAdviseSink->Release();
-
+		lpAdviseSink.release();
 	return hr;
 }
 

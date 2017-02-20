@@ -242,7 +242,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	LPTSTR			lpReportText = NULL;
 	LPTSTR			lpReadText = NULL;
 	FILETIME		ft;	
-	LPADRLIST		lpMods = NULL;
+	adrlist_ptr lpMods;
 	std::wstring	strName;
 	std::wstring	strType;
 	std::wstring	strAddress;
@@ -287,15 +287,11 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		PR_MDN_DISPOSITION_SENDINGMODE}};
 
 	// Check incoming parameters
-	if(lpReadMessage == NULL || lppEmptyMessage == NULL || *lppEmptyMessage == NULL) {
-		hr = MAPI_E_INVALID_OBJECT;
-		goto exit;
-	}
-
-	if((ulFlags &~ MAPI_NON_READ) != 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpReadMessage == nullptr || lppEmptyMessage == nullptr ||
+	    *lppEmptyMessage == nullptr)
+		return MAPI_E_INVALID_OBJECT;
+	if ((ulFlags &~ MAPI_NON_READ) != 0)
+		return MAPI_E_INVALID_PARAMETER;
 
 	GetSystemTimeAsFileTime(&ft);
 
@@ -311,14 +307,11 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 
 	hr = lpReadMessage->GetProps(sPropReadReceipt, fMapiUnicode, &cSrcValues, &~lpSrcPropValue);
 	if(FAILED(hr) != hrSuccess)
-		goto exit;
+		return hr;
 
 	// important properties
 	if(lpSrcPropValue[RR_REPORT_ENTRYID].ulPropTag != PR_REPORT_ENTRYID)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 
 	strBodyText = _("Your message");
 	strBodyText+= _T("\r\n\r\n");
@@ -377,7 +370,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	ulMaxDestValues = cSrcValues + 4;//+ default properties
 	hr = MAPIAllocateBuffer(sizeof(SPropValue)*ulMaxDestValues, &~lpDestPropValue);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memset(lpDestPropValue, 0, sizeof(SPropValue)*ulMaxDestValues);
 
@@ -457,8 +450,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	{
 		hr = MAPIAllocateMore(cbTmp, lpDestPropValue, (void**)&lpDestPropValue[ulCurDestValues].Value.bin.lpb);
 		if(hr != hrSuccess)
-			goto exit;
-		
+			return hr;
 		lpDestPropValue[ulCurDestValues].Value.bin.cb = cbTmp;
 		memcpy(lpDestPropValue[ulCurDestValues].Value.bin.lpb, lpByteTmp, cbTmp);
 
@@ -565,29 +557,24 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	}
 	hr = (*lppEmptyMessage)->OpenProperty(PR_BODY, &IID_IStream, 0, MAPI_CREATE | MAPI_MODIFY, &~lpBodyStream);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpBodyStream->Write(strBodyText.c_str(), strBodyText.size() * sizeof(TCHAR), NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpBodyStream->Commit( 0 );//0 = STGC_DEFAULT
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void**)&lpMods);
+		return hr;
+	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpMods);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	lpMods->cEntries = 1;
 
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 8, (void**)&lpMods->aEntries->rgPropVals);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ECParseOneOff((LPENTRYID)lpSrcPropValue[RR_REPORT_ENTRYID].Value.bin.lpb, lpSrcPropValue[RR_REPORT_ENTRYID].Value.bin.cb, strName, strType, strAddress);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpMods->aEntries->rgPropVals[0].ulPropTag = PR_ENTRYID;
 	lpMods->aEntries->rgPropVals[0].Value.bin = lpSrcPropValue[RR_REPORT_ENTRYID].Value.bin;
@@ -604,7 +591,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	
 	hr = HrCreateEmailSearchKey((LPSTR)strType.c_str(), (LPSTR)strAddress.c_str(), &cbTmp, &~lpByteTmp);
 	if (hr != hrSuccess)
-		goto exit;	
+		return hr;
 
 	lpMods->aEntries->rgPropVals[6].ulPropTag = PR_SEARCH_KEY;
 	lpMods->aEntries->rgPropVals[6].Value.bin.cb = cbTmp;
@@ -617,17 +604,8 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 
 	hr = (*lppEmptyMessage)->ModifyRecipients(MODRECIP_ADD, lpMods);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = (*lppEmptyMessage)->SetProps(ulCurDestValues, lpDestPropValue, NULL);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if(lpMods)
-		FreePadrlist(lpMods);	
-
-    return hr;
+		return hr;
+	return (*lppEmptyMessage)->SetProps(ulCurDestValues, lpDestPropValue, nullptr);
 }
 
 HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlobalProfileProps* lpsProfileProps)

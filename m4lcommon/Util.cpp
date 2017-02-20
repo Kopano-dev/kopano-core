@@ -2496,41 +2496,30 @@ HRESULT Util::CopyStream(LPSTREAM lpSrc, LPSTREAM lpDest) {
 HRESULT Util::CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
 	HRESULT hr;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
+	rowset_ptr lpRows;
 	memory_ptr<SPropTagArray> lpTableColumns;
 	ULONG ulRows = 0;
 
 	hr = lpSrc->GetRecipientTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpTableColumns);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->SetColumns(lpTableColumns, 0);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->GetRowCount(0, &ulRows);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (ulRows == 0)	// Nothing to do!
-		goto exit;
-
-	hr = lpTable->QueryRows(ulRows, 0, &lpRows);
+		return hrSuccess;
+	hr = lpTable->QueryRows(ulRows, 0, &~lpRows);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	// LPADRLIST and LPSRowSet are binary compatible \o/
-	hr = lpDest->ModifyRecipients(MODRECIP_ADD, (LPADRLIST)lpRows);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpRows)
-		FreeProws(lpRows);
-	return hr;
+	return lpDest->ModifyRecipients(MODRECIP_ADD,
+	       reinterpret_cast<ADRLIST *>(lpRows.get()));
 }
 
 /** 
@@ -2602,62 +2591,54 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 
 	// table
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
+	rowset_ptr lpRows;
 	memory_ptr<SPropTagArray> lpTableColumns;
 	ULONG ulRows = 0;
 
 	// attachments
 	memory_ptr<SPropValue> lpHasAttach;
 	ULONG ulAttachNr = 0;
-	LPATTACH lpSrcAttach = NULL;
-	LPATTACH lpDestAttach = NULL;
 
 	hr = HrGetOneProp(lpSrc, PR_HASATTACH, &~lpHasAttach);
-	if (hr != hrSuccess) {
-		hr = hrSuccess;
-		goto exit;
-	}
+	if (hr != hrSuccess)
+		return hrSuccess;
 	if (lpHasAttach->Value.b == FALSE)
-		goto exit;
+		return hrSuccess;
 	hr = lpSrc->GetAttachmentTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpTableColumns);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->SetColumns(lpTableColumns, 0);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpRestriction) {
 		hr = lpTable->Restrict(lpRestriction, 0);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	hr = lpTable->GetRowCount(0, &ulRows);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpTable->QueryRows(ulRows, 0, &lpRows);
+		return hr;
+	hr = lpTable->QueryRows(ulRows, 0, &~lpRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
+		object_ptr<IAttach> lpDestAttach, lpSrcAttach;
 		auto lpAttachNum = PCpropFindProp(lpRows->aRow[i].lpProps, lpRows->aRow[i].cValues, PR_ATTACH_NUM);
 		if (!lpAttachNum) {
 			bPartial = true;
 			goto next_attach;
 		}
-
-		hr = lpSrc->OpenAttach(lpAttachNum->Value.ul, NULL, 0, &lpSrcAttach);
+		hr = lpSrc->OpenAttach(lpAttachNum->Value.ul, NULL, 0, &~lpSrcAttach);
 		if (hr != hrSuccess) {
 			bPartial = true;
 			goto next_attach;
 		}
-
-		hr = lpDest->CreateAttach(NULL, 0, &ulAttachNr, &lpDestAttach);
+		hr = lpDest->CreateAttach(NULL, 0, &ulAttachNr, &~lpDestAttach);
 		if (hr != hrSuccess) {
 			bPartial = true;
 			goto next_attach;
@@ -2677,26 +2658,13 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 
 		hr = lpDestAttach->SaveChanges(0);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 next_attach:
-		if (lpSrcAttach) {
-			lpSrcAttach->Release();
-			lpSrcAttach = NULL;
-		}
-
-		if (lpDestAttach) {
-			lpDestAttach->Release();
-			lpDestAttach = NULL;
-		}
+		;
 	}
 
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
-
-exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -2719,73 +2687,62 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
 	HRESULT hr;
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRowSet = NULL;
 	static constexpr const SizedSPropTagArray(2, sptaName) =
 		{2, {PR_DISPLAY_NAME_W, PR_ENTRYID}};
 	object_ptr<IMAPIFolder> lpSrcParam, lpDestParam;
 	ULONG ulObj;
 
 	// sanity checks
-	if (!lpSrc || !lpDest) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpSrc == nullptr || lpDest == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpSrc->QueryInterface(IID_IMAPIFolder, &~lpSrcParam);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpDest->QueryInterface(IID_IMAPIFolder, &~lpDestParam);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpSrc->GetHierarchyTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(sptaName, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (true) {
 		object_ptr<IMAPIFolder> lpSrcFolder, lpDestFolder;
+		rowset_ptr lpRowSet;
 
-		hr = lpTable->QueryRows(1, 0, &lpRowSet);
+		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (lpRowSet->cRows == 0)
 			break;
 		hr = lpSrc->OpenEntry(lpRowSet->aRow[0].lpProps[1].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRowSet->aRow[0].lpProps[1].Value.bin.lpb), &IID_IMAPIFolder, 0, &ulObj, &~lpSrcFolder);
 		if (hr != hrSuccess) {
 			bPartial = true;
-			goto next_folder;
+			continue;
 		}
 		hr = lpDest->CreateFolder(FOLDER_GENERIC, (LPTSTR)lpRowSet->aRow[0].lpProps[0].Value.lpszW, NULL, &IID_IMAPIFolder,
 		     MAPI_UNICODE | (ulFlags & MAPI_NOREPLACE ? 0 : OPEN_IF_EXISTS), &~lpDestFolder);
 		if (hr != hrSuccess) {
 			bPartial = true;
-			goto next_folder;
+			continue;
 		}
 
 		hr = Util::DoCopyTo(&IID_IMAPIFolder, lpSrcFolder, 0, NULL, NULL, ulUIParam, lpProgress, &IID_IMAPIFolder, lpDestFolder, ulFlags, NULL);
 		if (FAILED(hr))
-			goto exit;
+			return hr;
 		else if (hr != hrSuccess) {
 			bPartial = true;
-			goto next_folder;
+			continue;
 		}
 
 		if (ulFlags & MAPI_MOVE)
 			lpSrc->DeleteFolder(lpRowSet->aRow[0].lpProps[1].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[1].Value.bin.lpb, 0, NULL, 0);
-
-next_folder:
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
-
-exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
 	return hr;
 }
 
@@ -2806,30 +2763,28 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 	HRESULT hr;
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRowSet = NULL;
 	static constexpr const SizedSPropTagArray(1, sptaEntryID) = {1, {PR_ENTRYID}};
 	ULONG ulObj;
 	memory_ptr<ENTRYLIST> lpDeleteEntries;
 
 	hr = lpSrc->GetContentsTable(MAPI_UNICODE | ulWhat, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(sptaEntryID, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpDeleteEntries);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = MAPIAllocateMore(sizeof(SBinary)*MAX_ROWS, lpDeleteEntries, (void**)&lpDeleteEntries->lpbin);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (true) {
-		hr = lpTable->QueryRows(MAX_ROWS, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(MAX_ROWS, 0, &~lpRowSet);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (lpRowSet->cRows == 0)
 			break;
 
@@ -2851,7 +2806,7 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 
 			hr = Util::DoCopyTo(&IID_IMessage, lpSrcMessage, 0, NULL, NULL, ulUIParam, lpProgress, &IID_IMessage, lpDestMessage, ulFlags, NULL);
 			if (FAILED(hr))
-				goto exit;
+				return hr;
 			else if (hr != hrSuccess) {
 				bPartial = true;
 				continue;
@@ -2869,16 +2824,10 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 		if (ulFlags & MAPI_MOVE && lpDeleteEntries->cValues > 0 &&
 		    lpSrc->DeleteMessages(lpDeleteEntries, 0, NULL, 0) != hrSuccess)
 			bPartial = true;
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
-
-exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
 	return hr;
 }
 

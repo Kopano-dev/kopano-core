@@ -260,8 +260,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpRecipTable;
-	LPSRowSet lpRecipRows = NULL;
-	
+	rowset_ptr lpRecipRows;
 	ULONG ulRow = 0;
 	ULONG ulRowCount = 0;
 
@@ -288,16 +287,15 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	// Save some outgoing properties for the server
 	hr = SetOutgoingProps(lpMessage);
 	if (hr != erSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != erSuccess)
-		goto exit;
+		return hr;
 
 	// Get the recipient table from the message
 	hr = lpMessage->GetRecipientTable(fMapiUnicode, &~lpRecipTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// The spooler marks all the message recipients this transport has to
 	// handle with PR_RESPONSIBILITY set to FALSE
@@ -313,59 +311,53 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 
 	hr = lpRecipTable->Restrict(&srRecipientUnhandled, 0);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpRecipTable->GetRowCount(0, &ulRowCount);
 	if (hr != hrSuccess)
-		goto exit;
-
-	if(ulRowCount == 0) {
-		hr = MAPI_E_NOT_ME;
-		goto exit;
-	}
+		return hr;
+	if (ulRowCount == 0)
+		return MAPI_E_NOT_ME;
 	if (HrGetECMsgStore(lpMessage, &~lpECMsgStore) != hrSuccess) {
 		hr = m_lpMAPISup->OpenEntry(this->m_lpXPProvider->m_lpIdentityProps[XPID_STORE_EID].Value.bin.cb, reinterpret_cast<ENTRYID *>(this->m_lpXPProvider->m_lpIdentityProps[XPID_STORE_EID].Value.bin.lpb), nullptr, MAPI_MODIFY, &ulType, &~lpMsgStore);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpECObject);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpECMsgStore.reset(reinterpret_cast<ECMsgStore *>(lpECObject->Value.lpszA));
 	}
 
 	hr = lpECMsgStore->QueryInterface(IID_ECMsgStoreOnline, &~lpOnlineStore);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrGetECMsgStore(lpOnlineStore, &~lpOnlineECMsgStore);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpOnlineStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpSubmitFolder);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ClearOldSubmittedMessages(lpSubmitFolder);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 	hr = lpSubmitFolder->CreateMessage(&IID_IMessage, 0, &~lpSubmitMessage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpMessage->CopyTo(0, NULL, sptExcludeProps, 0, NULL,
 	     &IID_IMessage, lpSubmitMessage, 0, NULL);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	sDeleteAfterSubmitProp.ulPropTag = PR_DELETE_AFTER_SUBMIT;
 	sDeleteAfterSubmitProp.Value.b = true;
 	hr = HrSetOneProp(lpSubmitMessage, &sDeleteAfterSubmitProp);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpSubmitMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrGetOneProp(lpSubmitMessage, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sDelete.cValues = 1;
 	sDelete.lpbin = &lpEntryID->Value.bin;
@@ -377,14 +369,14 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	if (hr != hrSuccess) {
 		lpSubmitFolder->DeleteMessages(&sDelete, 0, NULL, 0); //Delete message on the server
 		l_exit.unlock();
-		goto exit;
+		return hr;
 	}
 
 	hr = lpOnlineECMsgStore->lpTransport->HrSubmitMessage(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
 	if (hr != hrSuccess) {
 		lpSubmitFolder->DeleteMessages(&sDelete, 0, NULL, 0); //Delete message on the server
 		l_exit.unlock();
-		goto exit;
+		return hr;
 	}
 	if (m_hExitSignal.wait_for(l_exit, std::chrono::minutes(5)) == std::cv_status::timeout)
 		m_bCancel = true;
@@ -393,8 +385,6 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 
 	if(m_bCancel){
 		l_exit.unlock();
-		hr = MAPI_E_CANCEL;
-
 		lpOnlineECMsgStore->lpTransport->HrFinishedMessage(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, EC_SUBMIT_MASTER);
 		
 		sDelete.cValues = 1;
@@ -404,17 +394,16 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		// Message still in queue (other error occurred or still in queue)
 		if(lpulReturnParm)
 			*lpulReturnParm = 60;
-		
-		goto exit;
+		return MAPI_E_CANCEL;
 	}
 	l_exit.unlock();
 	if(lpulMsgRef)
 		*lpulMsgRef = rand_mt();
 
 	// Update the recipient table because we sent the message OK
-	hr = HrQueryAllRows (lpRecipTable, NULL, NULL, NULL, 0, &lpRecipRows);
+	hr = HrQueryAllRows(lpRecipTable, nullptr, nullptr, nullptr, 0, &~lpRecipRows);
 	if (hr != erSuccess)
-		goto exit;
+		return hr;
 
 	for (ulRow = 0; ulRow < lpRecipRows->cRows; ++ulRow) {
 		auto lpsPropValue = PCpropFindProp(lpRecipRows->aRow[ulRow].lpProps, lpRecipRows->aRow[ulRow].cValues, PR_ADDRTYPE);
@@ -429,19 +418,10 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		    _tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_FAX) == 0)
 			lpsResponsibility->Value.b = TRUE;
 	}
-
-	hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY, (LPADRLIST )lpRecipRows);
-
-	if (hr != erSuccess)
-		goto exit;
-
 	// Note that these modifications are *not* saved. This is correct, because they are
 	// only important for other transports running on the same lpMessage.
-
-exit:
-	if(lpRecipRows)
-		FreeProws (lpRecipRows);
-	return hr;
+	return lpMessage->ModifyRecipients(MODRECIP_MODIFY,
+	       reinterpret_cast<ADRLIST *>(lpRecipRows.get()));
 }
 
 #define OUT_MSG_PROPS 2

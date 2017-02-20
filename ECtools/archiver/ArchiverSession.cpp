@@ -22,6 +22,7 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
+#include <kopano/ECRestriction.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/userutil.h>
@@ -473,7 +474,6 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	ULONG			ulType = 0;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue			  sGALPropVal = {0};
-	SRestriction		  sGALRestrict = {0};
 
 	hr = m_ptrSession->OpenAddressBook(0, &ptrAdrBook.iid(), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
@@ -485,11 +485,6 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	if (hr != hrSuccess)
 		return hr;
 
-	sGALRestrict.rt = RES_PROPERTY;
-	sGALRestrict.res.resProperty.relop = RELOP_EQ;
-	sGALRestrict.res.resProperty.ulPropTag = PR_AB_PROVIDER_ID;
-	sGALRestrict.res.resProperty.lpProp = &sGALPropVal;
-
 	sGALPropVal.ulPropTag = PR_AB_PROVIDER_ID;
 	sGALPropVal.Value.bin.cb = sizeof(GUID);
 	sGALPropVal.Value.bin.lpb = (LPBYTE)&MUIDECSAB;
@@ -497,7 +492,8 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	hr = ptrABRCTable->SetColumns(sGALProps, TBL_BATCH); 
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrABRCTable->Restrict(&sGALRestrict, TBL_BATCH);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, &sGALPropVal, ECRestriction::Cheap)
+	     .RestrictTable(ptrABRCTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrABRCTable->QueryRows(1, 0, &ptrRows);

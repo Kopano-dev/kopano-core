@@ -653,7 +653,7 @@ static HRESULT OpenResolveAddrFolder(IMAPISession *lpSession,
 static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 {
 	HRESULT hr = hrSuccess;
-	LPADRLIST lpAdrList	= NULL;   
+	adrlist_ptr lpAdrList;
 	memory_ptr<FlagList> lpFlagList;
 	static constexpr const SizedSPropTagArray(13, sptaAddress) = {13,
 	{ PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ACCOUNT_W, PR_SMTP_ADDRESS_A,
@@ -680,17 +680,17 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 
 	ULONG ulRCPT = lRCPT->size();
 
-	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRCPT), (void **) &lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRCPT), &~lpAdrList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveUsers(): MAPIAllocateBuffer failed(1) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	lpAdrList->cEntries = ulRCPT;
 	hr = MAPIAllocateBuffer(CbNewFlagList(ulRCPT), &~lpFlagList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveUsers(): MAPIAllocateBuffer failed(2) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	lpFlagList->cFlags = ulRCPT;
@@ -702,7 +702,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRCPT].rgPropVals);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveUsers(): MAPIAllocateBuffer failed(3) %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		/* szName can either be the email address or username, it doesn't really matter */
@@ -717,7 +717,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	hr = lpAddrFolder->ResolveNames(sptaAddress,
 	     MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, lpAdrList, lpFlagList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	ulRCPT = 0;
 	for (const auto &recip : *lRCPT) {
@@ -809,11 +809,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 		recip->bHasIMAP = lpFeatureList && hasFeature(L"imap", lpFeatureList) == hrSuccess;
 		++ulRCPT;
 	}
-
-exit:
-	if(lpAdrList)
-		FreeProws((LPSRowSet)lpAdrList);
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -1818,7 +1814,6 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpRecipTable;
 	memory_ptr<SRestriction> lpRestrictRecipient;
-	LPSRowSet lpsRows = NULL;
 	SPropValue sPropRecip[4];
 	SPropValue sCmp[2];
 	bool bToMe = false;
@@ -1830,12 +1825,12 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 	hr = lpMessage->GetRecipientTable (0, &~lpRecipTable);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrOverrideRecipProps(): GetRecipientTable failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpRecipTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrOverrideRecipProps(): SetColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	sCmp[0].ulPropTag = PR_ADDRTYPE_A;
@@ -1849,14 +1844,15 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 		ECPropertyRestriction(RELOP_EQ, PR_SMTP_ADDRESS_A, &sCmp[1], ECRestriction::Cheap)
 	).CreateMAPIRestriction(&~lpRestrictRecipient, ECRestriction::Cheap);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = lpRecipTable->FindRow(lpRestrictRecipient, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {
-		hr = lpRecipTable->QueryRows (1, 0, &lpsRows);
+		rowset_ptr lpsRows;
+		hr = lpRecipTable->QueryRows(1, 0, &~lpsRows);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrOverrideRecipProps(): QueryRows failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		bRecipMe = (lpsRows->cRows == 1);
@@ -1887,14 +1883,8 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 	sPropRecip[3].Value.b = bBccMe;
 
 	hr = lpMessage->SetProps(4, sPropRecip, NULL);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrOverrideRecipProps(): SetProps failed %x", hr);
-		goto exit;
-	}
-
-exit:
-	if (lpsRows)
-		FreeProws(lpsRows);
 	return hr;
 }
 

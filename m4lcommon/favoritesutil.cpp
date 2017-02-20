@@ -153,7 +153,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-	SRowSet *lpRows = NULL;
+	rowset_ptr lpRows;
 	memory_ptr<ENTRYLIST> lpsMsgList;
 	static constexpr const SizedSPropTagArray(2, sPropDelFavo) =
 		{2, {PR_ENTRYID, PR_FAV_PUBLIC_SOURCE_KEY}};
@@ -162,40 +162,34 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	SPropValue sPropSourceKey;
 	ULONG ulMaxRows = 0;
 
-	if (lpShortcutFolder == NULL || lpPropSourceKey == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpShortcutFolder == nullptr || lpPropSourceKey == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpShortcutFolder->GetContentsTable(0, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->GetRowCount(0, &ulMaxRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(sPropDelFavo, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// build restriction
 	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey, ECRestriction::Cheap)
 	     .FindRowIn(lpTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
-		goto exit; // Folder already removed (or memory problems)
-
-	hr = lpTable->QueryRows (1, 0, &lpRows);
+		return hr; // Folder already removed (or memory problems)
+	hr = lpTable->QueryRows (1, 0, &~lpRows);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpRows->cRows == 0)
-		goto exit; // Folder already removed
+		return hrSuccess; // Folder already removed
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpsMsgList);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = MAPIAllocateMore(sizeof(SBinary)*ulMaxRows, lpsMsgList, (void**)&lpsMsgList->lpbin);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 //FIXME: check the properties in the row!!!!
 
@@ -205,15 +199,14 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	lpsMsgList->lpbin[lpsMsgList->cValues].cb = lpRows->aRow[0].lpProps[0].Value.bin.cb;
 
 	if ((hr = MAPIAllocateMore(lpsMsgList->lpbin[lpsMsgList->cValues].cb, lpsMsgList, (void **) &lpsMsgList->lpbin[lpsMsgList->cValues].lpb)) != hrSuccess)
-		goto exit;
+		return hr;
 
 	memcpy(lpsMsgList->lpbin[lpsMsgList->cValues].lpb, lpRows->aRow[0].lpProps[0].Value.bin.lpb, lpsMsgList->lpbin[lpsMsgList->cValues].cb);
 	++lpsMsgList->cValues;
 
 	strSourceKey.assign((char*)lpRows->aRow[0].lpProps[1].Value.bin.lpb, lpRows->aRow[0].lpProps[1].Value.bin.cb);
 	listSourceKey.push_back(strSourceKey);
-	FreeProws(lpRows);
-	lpRows = NULL;
+	lpRows.reset();
 
 	for (const auto &sk : listSourceKey) {
 		sPropSourceKey.ulPropTag = PR_FAV_PUBLIC_SOURCE_KEY;
@@ -223,17 +216,16 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey, ECRestriction::Cheap)
 		     .RestrictTable(lpTable);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		while(true)
 		{
-			hr = lpTable->QueryRows (1, 0, &lpRows);
+			hr = lpTable->QueryRows(1, 0, &~lpRows);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			if (lpRows->cRows == 0)
 				break; // no rows
 
@@ -243,7 +235,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 			lpsMsgList->lpbin[lpsMsgList->cValues].cb = lpRows->aRow[0].lpProps[0].Value.bin.cb;
 
 			if ((hr = MAPIAllocateMore(lpsMsgList->lpbin[lpsMsgList->cValues].cb, lpsMsgList, (void **) &lpsMsgList->lpbin[lpsMsgList->cValues].lpb)) != hrSuccess)
-				goto exit;
+				return hr;
 			memcpy(lpsMsgList->lpbin[lpsMsgList->cValues].lpb, lpRows->aRow[0].lpProps[0].Value.bin.lpb, lpsMsgList->lpbin[lpsMsgList->cValues].cb);
 			++lpsMsgList->cValues;
 
@@ -251,18 +243,8 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 			strSourceKey.assign((char*)lpRows->aRow[0].lpProps[1].Value.bin.lpb, lpRows->aRow[0].lpProps[1].Value.bin.cb);
 			listSourceKey.push_back(strSourceKey);
 		} //while(true)
-		FreeProws(lpRows);
-		lpRows = NULL;
 	}
-
-	hr = lpShortcutFolder->DeleteMessages(lpsMsgList,  0, NULL, 0);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpRows)
-		FreeProws(lpRows);
-	return hr;
+	return lpShortcutFolder->DeleteMessages(lpsMsgList, 0, nullptr, 0);
 }
 
 /**
@@ -372,8 +354,6 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropValue> lpsPropArray;
-	SRowSet *lpRows = NULL;
-
 	ULONG ulFolderFlags = 0;
 	ULONG cValues = 0;
 	static constexpr const SizedSPropTagArray(5, sPropsFolderInfo) =
@@ -385,57 +365,45 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 	// Add folders to the shorcut folder
 	hr = lpFolder->GetProps(sPropsFolderInfo, 0, &cValues, &~lpsPropArray);
 	if (FAILED(hr) != hrSuccess) //Gives always a warning
-		goto exit;
-
+		return hr;
 	hr = AddToFavorite(lpShortcutFolder, 1, lpAliasName, ulFlags, cValues, lpsPropArray);
 	if (hr != hrSuccess)
-		goto exit;
-	if (ulFlags == FAVO_FOLDER_LEVEL_SUB) {
+		return hr;
+	if (ulFlags == FAVO_FOLDER_LEVEL_SUB)
 		ulFolderFlags = CONVENIENT_DEPTH;
-	} else if(ulFlags == FAVO_FOLDER_LEVEL_ONE) {
+	else if (ulFlags == FAVO_FOLDER_LEVEL_ONE)
 		ulFolderFlags = 0;
-	}else {
-		hr = hrSuccess; // Done
-		goto exit;
-	}
+	else
+		return hrSuccess; // Done
 
 	// Get subfolders
 	hr = lpFolder->GetHierarchyTable(ulFolderFlags, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(sPropsFolderInfo, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Add the favorite recusive depended what the flags are
 	while(true)
 	{
-		hr = lpTable->QueryRows (1, 0, &lpRows);
+		rowset_ptr lpRows;
+		hr = lpTable->QueryRows (1, 0, &~lpRows);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (lpRows->cRows == 0)
 			break;
 
 		auto lpPropDepth = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_DEPTH);
-		if (lpPropDepth == NULL) {
-			hr = MAPI_E_CORRUPT_DATA;// Break the action
-			goto exit;
-		}
+		if (lpPropDepth == nullptr)
+			return MAPI_E_CORRUPT_DATA; // Break the action
 
 		hr = AddToFavorite(lpShortcutFolder, lpPropDepth->Value.ul + 1, NULL, 0, lpRows->aRow[0].cValues, lpRows->aRow[0].lpProps);
 		if (hr != hrSuccess)
 			// Break the action
-			goto exit;
-		FreeProws(lpRows);
-		lpRows = NULL;
-
+			return hr;
 	} //while(true)
-
-exit:
-	if (lpRows)
-		FreeProws(lpRows);
-	return hr;
+	return hrSuccess;
 }
 
 } /* namespace */

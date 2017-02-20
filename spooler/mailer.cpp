@@ -30,6 +30,7 @@
 #include <mapi.h>
 
 #include <kopano/ECLogger.h>
+#include <kopano/ECRestriction.h>
 #include <kopano/ECConfig.h>
 #include <kopano/IECUnknown.h>
 #include <kopano/ecversion.h>
@@ -99,7 +100,6 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
     list<SBinary> *lpExpandedGroups, bool recurrence = true)
 {
 	HRESULT			hr = hrSuccess;
-	LPSRowSet		lpsRowSet = NULL;
 	ULONG			ulObj = 0;
 	bool			bExpandSub = recurrence;
 	static constexpr const SizedSPropTagArray(7, sptaColumns) =
@@ -109,22 +109,17 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ExpandRecipientsRecursive(): SetColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	while (true) {
 		memory_ptr<SPropValue> lpSMTPAddress;
-		/* Perform cleanup first. */
-		if (lpsRowSet) {
-			FreeProws(lpsRowSet);
-			lpsRowSet = NULL;
-		}
-
+		rowset_ptr lpsRowSet;
 		/* Request group from table */
-		hr = lpTable->QueryRows(1, 0, &lpsRowSet);
+		hr = lpTable->QueryRows(1, 0, &~lpsRowSet);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ExpandRecipientsRecursive(): QueryRows failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		if (lpsRowSet->cRows != 1)
@@ -230,7 +225,8 @@ remove_group:
 			if (!lpRowId)
 				continue;
 
-			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)lpsRowSet);
+			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE,
+			     reinterpret_cast<ADRLIST *>(lpsRowSet.get()));
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to remove group %ls from recipient list: %s (%x).",
 					lpDisplayName->Value.lpszW, GetMAPIErrorMessage(hr), hr);
@@ -238,11 +234,7 @@ remove_group:
 			}
 		}
 	}
-
-exit:
-	if (lpsRowSet)
-		FreeProws(lpsRowSet);
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -371,7 +363,6 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 {
 	HRESULT		hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet	lpRowSet = NULL;
 	memory_ptr<SPropTagArray> lpRecipColumns;
 
 	const char	*const lpszFaxDomain = g_lpConfig->GetSetting("fax_domain");
@@ -387,36 +378,32 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		PR_PRIMARY_FAX_NUMBER_A}};
 
 	if (!lpszFaxDomain || strcmp(lpszFaxDomain, "") == 0)
-		goto exit;
+		return hr;
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteRecipients(): GetRecipientTable failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// we need all columns when rewriting FAX to SMTP
 	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpRecipColumns);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteRecipients(): QueryColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	
 	hr = lpTable->SetColumns(lpRecipColumns, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteRecipients(): SetColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	while (TRUE) {
-		if (lpRowSet) {
-			FreeProws(lpRowSet);
-			lpRowSet = NULL;
-		}
-
-		hr = lpTable->QueryRows(1, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteRecipients(): QueryRows failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		if (lpRowSet->cRows == 0)
@@ -455,7 +442,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			{
 				/*hr = MAPI_E_INVALID_PARAMETER;*/
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls", lpEmailAddress->Value.lpszW);
-				goto nextfax;
+				continue;
 			}
 
 			// 0..2 == reply to email offsets
@@ -467,17 +454,17 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls: %s (%x)",
 					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
-				goto nextfax;
+				continue;
 			}
 			hr = lpFaxMailuser->GetProps(sptaFaxNumbers, 0, &cValues, &~lpFaxNumbers);
 			if (FAILED(hr)) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls: %s (%x)",
 					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
-				goto nextfax;
+				continue;
 			}
 			if (lpFaxNumbers[lpContabEntryID->email_offset].ulPropTag != sptaFaxNumbers.aulPropTag[lpContabEntryID->email_offset]) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "No suitable FAX number found, using %ls", lpEmailAddress->Value.lpszW);
-				goto nextfax;
+				continue;
 			}
 			strFaxMail = lpFaxNumbers[lpContabEntryID->email_offset].Value.lpszA;
 		}
@@ -495,22 +482,17 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		lpEntryID->Value.bin.lpb = reinterpret_cast<BYTE *>(lpNewEntryID.get());
 		lpEntryID->Value.bin.cb = cbNewEntryID;
 
-		hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY, (LPADRLIST)lpRowSet);
+		hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
+		     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set new FAX mail address for '%ls' to '%s': %s (%x)",
 				wstrOldFaxMail.c_str(), strFaxMail.c_str(), GetMAPIErrorMessage(hr), hr);
-			goto nextfax;
+			continue;
 		}
 
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Using new FAX mail address %s", strFaxMail.c_str());
-nextfax:
-		hr = hrSuccess;
 	}
-
-exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -523,7 +505,6 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet		lpRowSet = NULL;
 	string			strEmail;
 	ULONG			ulRecipType = 0;
 	static constexpr const SizedSPropTagArray(3, sptaColumns) =
@@ -537,24 +518,19 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SortTable(sosOrder, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (TRUE) {
-		if (lpRowSet) {
-			FreeProws(lpRowSet);
-			lpRowSet = NULL;
-		}
-
-		hr = lpTable->QueryRows(1, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (lpRowSet->cRows == 0)
 			break;
 
@@ -566,7 +542,8 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 
 		/* Filter To, Cc, Bcc individually */
 		if (strEmail == lpEmailAddress->Value.lpszA && ulRecipType == lpRecipType->Value.ul) {
-			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)lpRowSet);
+			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE,
+			     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
 			if (hr != hrSuccess)
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to remove duplicate entry: %s (%x)",
 					GetMAPIErrorMessage(hr), hr);
@@ -575,18 +552,13 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 			ulRecipType = lpRecipType->Value.ul;
 		}
 	}
-
-exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet		lpRowSet = NULL;
 	wstring			strEmail;
 	static constexpr const SizedSPropTagArray(3, sptaColumns) =
 		{3, {PR_ROWID, PR_EMAIL_ADDRESS_W, PR_RECIPIENT_TYPE}};
@@ -594,24 +566,20 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteQuotedRecipients(): GetRecipientTable failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteQuotedRecipients(): SetColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	while (TRUE) {
-		if (lpRowSet) {
-			FreeProws(lpRowSet);
-			lpRowSet = NULL;
-		}
-
-		hr = lpTable->QueryRows(1, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteQuotedRecipients(): QueryRows failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		if (lpRowSet->cRows == 0)
@@ -631,20 +599,16 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 
             strEmail = strEmail.substr(1, strEmail.size()-2);
             lpEmailAddress->Value.lpszW = (WCHAR *)strEmail.c_str();
-            hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY, (LPADRLIST)lpRowSet);
-
+			hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
+			     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to rewrite quoted recipient: %s (%x)",
 					GetMAPIErrorMessage(hr), hr);
-				goto exit;
+				return hr;
 			}
 		}
 	}
-
-exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-	return hr;
+	return hrSuccess;
 }
 /**
  * Removes all MAPI_P1 marked recipients from a message.
@@ -656,45 +620,32 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
-	SRestriction sRestriction;
+	rowset_ptr lpRows;
 	SPropValue sPropRestrict;
 	
 	sPropRestrict.ulPropTag = PR_RECIPIENT_TYPE;
 	sPropRestrict.Value.ul = MAPI_P1;
-	
-	sRestriction.rt = RES_PROPERTY;
-	sRestriction.res.resProperty.relop = RELOP_EQ;
-	sRestriction.res.resProperty.ulPropTag = PR_RECIPIENT_TYPE;
-	sRestriction.res.resProperty.lpProp = &sPropRestrict;
-	
+
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): GetRecipientTable failed %x", hr);
-		goto exit;
-	}
-		
-	hr = lpTable->Restrict(&sRestriction, 0);
-	if(hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): Restrict failed %x", hr);
-		goto exit;
-	}
-		
-	hr = lpTable->QueryRows(-1, 0, &lpRows);
-	if(hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): QueryRows failed %x", hr);
-		goto exit;
-	}
-		
-	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)lpRows);
-	if(hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): ModifyRecipients failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	
-exit:
-	if(lpRows)
-		FreeProws(lpRows);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_RECIPIENT_TYPE,
+	     &sPropRestrict, ECRestriction::Cheap).RestrictTable(lpTable, 0);
+	if(hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): Restrict failed %x", hr);
+		return hr;
+	}
+	hr = lpTable->QueryRows(-1, 0, &~lpRows);
+	if(hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): QueryRows failed %x", hr);
+		return hr;
+	}
+	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(lpRows.get()));
+	if (hr != hrSuccess)
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RemoveP1Recipients(): ModifyRecipients failed %x", hr);
 	return hr;
 }
 
@@ -729,9 +680,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	object_ptr<IMessage> lpOriginalMessage;
 	ULONG			cValuesOriginal = 0;
 	unsigned int	ulPropModsPos;
-	LPADRLIST		lpMods = NULL;
 	object_ptr<IMAPITable> lpTableMods;
-	LPSRowSet		lpRows = NULL;
 	ULONG			ulRows = 0;
 	ULONG			cEntries = 0;
 	string			strName, strType, strEmail;
@@ -775,32 +724,31 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to resolve incoming folder, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to open inbox folder, error code: 0x%08X", hr);
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	// make new message in inbox
 	hr = lpInbox->CreateMessage(nullptr, 0, &~lpErrorMsg);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create undeliverable message, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	// Get properties from the original message
 	hr = lpMessage->GetProps(sPropsOriginal, 0, &cValuesOriginal, &~lpPropArrayOriginal);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): GetPRops failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 34, &~lpPropValue);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): MAPIAllocateBuffers failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// Subject
@@ -963,18 +911,18 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = lpErrorMsg->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create attachment, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpOriginalMessage);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): OpenProperty failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpOriginalMessage, 0, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): CopyTo failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// Remove MAPI_P1 recipients. These are present when you resend a resent message. They shouldn't be there since
@@ -982,19 +930,19 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = RemoveP1Recipients(lpOriginalMessage);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): RemoveP1Recipients failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpOriginalMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SaveChanges failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	ulPropAttachPos = 0;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpPropValueAttach);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropValueAttach[ulPropAttachPos].ulPropTag = PR_ATTACH_METHOD;
 	lpPropValueAttach[ulPropAttachPos++].Value.ul = ATTACH_EMBEDDED_MSG;
@@ -1013,31 +961,31 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = lpAttach->SetProps(ulPropAttachPos, lpPropValueAttach, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SetProps failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpAttach->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SaveChanges failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// add failed recipients to error report
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTableMods);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): GetRecipientTable failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpTableMods->SetColumns(sPropTagRecipient, TBL_BATCH);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SetColumns failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpTableMods->GetRowCount(0, &ulRows);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): GetRowCount failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	if (ulRows == 0 || (permanentFailedRecipients.empty() && temporaryFailedRecipients.empty())) {
@@ -1055,16 +1003,16 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 		if (ulRows > 0) {
 			// All recipients failed, therefore all recipient need to be in the MDN recipient table
-			hr = lpTableMods->QueryRows(-1, 0, &lpRows);
+			rowset_ptr lpRows;
+			hr = lpTableMods->QueryRows(-1, 0, &~lpRows);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): QueryRows failed %x", hr);
-				goto exit;
+				return hr;
 			}
-
-			hr = lpErrorMsg->ModifyRecipients(MODRECIP_ADD, (LPADRLIST)lpRows);
+			hr = lpErrorMsg->ModifyRecipients(MODRECIP_ADD, reinterpret_cast<ADRLIST *>(lpRows.get()));
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): ModifyRecipients failed %x", hr);
-				goto exit;
+				return hr;
 			}
 		}
 	}
@@ -1108,16 +1056,17 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		// Only some recipients failed, so add only failed recipients to the MDN message. This causes
 		// resends only to go to those recipients. This means we should add all error recipients to the
 		// recipient list of the MDN message. 
-		hr = MAPIAllocateBuffer(CbNewADRLIST(temporaryFailedRecipients.size()), reinterpret_cast<void **>(&lpMods));
+		adrlist_ptr lpMods;
+		hr = MAPIAllocateBuffer(CbNewADRLIST(temporaryFailedRecipients.size()), &~lpMods);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		lpMods->cEntries = 0;
 		for (size_t j = 0; j < temporaryFailedRecipients.size(); ++j) {
 			const sFailedRecip &cur = temporaryFailedRecipients.at(j);
 
 			if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * 10, (void**)&lpMods->aEntries[cEntries].rgPropVals)) != hrSuccess)
-				goto exit;
+				return hr;
 
 			ulPropModsPos = 0;
 			lpMods->cEntries = cEntries;
@@ -1164,34 +1113,27 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 		hr = lpErrorMsg->ModifyRecipients(MODRECIP_ADD, lpMods);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// Add properties
 	hr = lpErrorMsg->SetProps(ulPropPos, lpPropValue, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SetProps failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// save message
 	hr = lpErrorMsg->SaveChanges(KEEP_OPEN_READONLY);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to commit message: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	// New mail notification
 	if (HrNewMailNotification(lpStore, lpErrorMsg) != hrSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to send 'New Mail' notification, error code: 0x%08X", hr);
-
-exit:
-	if(lpRows)
-		FreeProws(lpRows);
-
-	if(lpMods)
-		FreePadrlist(lpMods);
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1310,7 +1252,7 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 {
 	HRESULT hr = hrSuccess;
 	wstring wstrName, wstrType, wstrEmailAddress;
-	LPADRLIST lpAList = NULL;
+	adrlist_ptr lpAList;
 	const SPropValue *lpSpoofEID;
 	LPENTRYID lpSpoofBin = NULL;
 
@@ -1318,37 +1260,35 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 	// we then always should have yourself as the sender, otherwise: denied
 	if (ECParseOneOff(lpSMTPEID, ulSMTPEID, wstrName, wstrType, wstrEmailAddress) != hrSuccess)
 		return MAPI_E_NOT_FOUND;
-	if ((hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void**)&lpAList)) != hrSuccess)
-		goto exit;
+	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAList);
+	if (hr != hrSuccess)
+		return hrSuccess;
 	lpAList->cEntries = 1;
 	lpAList->aEntries[0].cValues = 1;
 	if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAList->aEntries[0].cValues, (void**)&lpAList->aEntries[0].rgPropVals)) != hrSuccess)
-		goto exit;
+		return hrSuccess;
 	lpAList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
 	lpAList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR*)wstrEmailAddress.c_str();
 	hr = lpAddrBook->ResolveName(0, EMS_AB_ADDRESS_LOOKUP, NULL, lpAList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): ResolveName failed %x", hr);
-		goto exit;
+		return hrSuccess;
 	}
 	lpSpoofEID = PCpropFindProp(lpAList->aEntries[0].rgPropVals, lpAList->aEntries[0].cValues, PR_ENTRYID);
 	if (!lpSpoofEID) {
 		hr = MAPI_E_NOT_FOUND;
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): PpropFindProp failed %x", hr);
-		goto exit;
+		return hrSuccess;
 	}
 	hr = MAPIAllocateBuffer(lpSpoofEID->Value.bin.cb, (void**)&lpSpoofBin);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): MAPIAllocateBuffer failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	memcpy(lpSpoofBin, lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb);
 	*eidp = lpSpoofBin;
 	*eid_size = lpSpoofEID->Value.bin.cb;
-exit:
-	if (lpAList)
-		FreePadrlist(lpAList);
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1372,53 +1312,45 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 	ULONG ulObjType = 0;
 	object_ptr<IDistList> lpDistList;
 	object_ptr<IMAPITable> lpMembersTable;
-	LPSRowSet lpRowSet = NULL;
 	static constexpr const SizedSPropTagArray(2, sptaIDProps) =
 		{2, {PR_ENTRYID, PR_OBJECT_TYPE}};
 
-	if (lpulCmp == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpulCmp == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	if (level > 10) {
 		hr = MAPI_E_TOO_COMPLEX;
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): level too big %d: %s (%x)",
 			level, GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpAdrBook->OpenEntry(ulDistListCB, lpDistListEID, nullptr, 0, &ulObjType, &~lpDistList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): OpenEntry failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpDistList->GetContentsTable(0, &~lpMembersTable);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): GetContentsTable failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpMembersTable->SetColumns(sptaIDProps, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): SetColumns failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	// sort on PR_OBJECT_TYPE (MAILUSER < DISTLIST) ?
 
 	while (TRUE) {
-		if (lpRowSet) {
-			FreeProws(lpRowSet);
-			lpRowSet = NULL;
-		}
-
-		hr = lpMembersTable->QueryRows(1, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpMembersTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): QueryRows failed: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);
-			goto exit;
+			return hr;
 		}
 
 		if (lpRowSet->cRows == 0)
@@ -1438,14 +1370,8 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 		if (hr == hrSuccess && ulCmp == TRUE)
 			break;
 	}
-	hr = hrSuccess;
-
 	*lpulCmp = ulCmp;
-
-exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-	return hr;
+	return hrSuccess;
 }
 
 /**

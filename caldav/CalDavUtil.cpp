@@ -145,7 +145,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	SPropValue sPropFolderID;
 	SPropValue sPropFolderName;
 	ULONG ulPropTagFldId = 0;
-	SRowSet *lpRows = NULL;
+	rowset_ptr lpRows;
 	SBinary sbEid = {0,0};
 	IMAPIFolder *lpUsrFld = NULL;
 	ULONG ulObjType = 0;
@@ -223,8 +223,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	hr = lpHichyTable->SetColumns(sPropTagArr, 0);
 	if(hr != hrSuccess)
 		goto exit;
-	
-	hr = lpHichyTable->QueryRows(1,0,&lpRows);
+	hr = lpHichyTable->QueryRows(1, 0, &~lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -247,9 +246,6 @@ exit:
 		MAPIFreeBuffer(lpOutbox);
 	else if (lpEntryID)
 		MAPIFreeBuffer(lpEntryID);
-
-	if(lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -474,35 +470,32 @@ HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **l
  * Get all calendar folder of a specified folder, also includes all sub folders
  * 
  * @param[in]	lpSession		IMAPISession object of the user
- * @param[in]	lpFolderIn		IMAPIFolder object for which all calendar are to returned(Optional, can be set to NULL if lpsbEid != NULL)
+ * @param[in]	lpFolder		IMAPIFolder object for which all calendar are to returned(Optional, can be set to NULL if lpsbEid != NULL)
  * @param[in]	lpsbEid			EntryID of the Folder for which all calendar are to be returned(can be NULL if lpFolderIn != NULL)
  * @param[out]	lppTable		IMAPITable of the sub calendar of the folder
  * 
  * @return		HRESULT 
  */
-HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBinary *lpsbEid, IMAPITable **lppTable)
+HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolder,
+    SBinary *lpsbEid, IMAPITable **lppTable)
 {
 	HRESULT hr = hrSuccess;
-	IMAPIFolder *lpFolder = NULL;
+	object_ptr<IMAPIFolder> local_fld;
 	ULONG ulObjType = 0;
 	IMAPITable *lpTable = NULL;
 	SPropValue sPropVal;
-	bool FreeFolder = false;
 	ECOrRestriction rst;
 
-	if(!lpFolderIn)
-	{
-		hr = lpSession->OpenEntry(lpsbEid->cb, (LPENTRYID)lpsbEid->lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpFolder);
+	if (lpFolder == nullptr) {
+		hr = lpSession->OpenEntry(lpsbEid->cb, reinterpret_cast<ENTRYID *>(lpsbEid->lpb),
+		     nullptr, MAPI_BEST_ACCESS, &ulObjType, &~local_fld);
 		if(hr != hrSuccess)
-			goto exit;
-		FreeFolder = true;
+			return hr;
 	}
-	else
-		lpFolder = lpFolderIn;
 
 	hr = lpFolder->GetHierarchyTable(CONVENIENT_DEPTH,&lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sPropVal.ulPropTag = PR_CONTAINER_CLASS_A;
 	sPropVal.Value.lpszA = const_cast<char *>("IPF.Appointment");
@@ -511,14 +504,9 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBin
 	rst += ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal, ECRestriction::Shallow);
 	hr = rst.RestrictTable(lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppTable = lpTable;
-
-exit:
-	if(FreeFolder && lpFolder)
-		lpFolder->Release();
-
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -664,7 +652,7 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 {
 	SBinary sbEid = {0,0};
 	memory_ptr<SRestriction> lpsRoot;
-	SRowSet *lpValRows = NULL;
+	rowset_ptr lpValRows;
 	object_ptr<IMAPITable> lpTable;
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
@@ -672,43 +660,29 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 	
 	HRESULT hr = HrMakeRestriction(strGuid, lpNamedProps, &~lpsRoot);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpUsrFld->GetContentsTable(0, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(sPropTagArr, 0);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->Restrict(lpsRoot, TBL_BATCH);
 	if(hr != hrSuccess)
-		goto exit;
-	
-	hr = lpTable->QueryRows(1, 0, &lpValRows);
+		return hr;
+	hr = lpTable->QueryRows(1, 0, &~lpValRows);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpValRows->cRows != 1)
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-	
+		return MAPI_E_NOT_FOUND;
 	if (PROP_TYPE(lpValRows->aRow[0].lpProps[0].ulPropTag) != PT_BINARY)
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return MAPI_E_NOT_FOUND;
 	sbEid = lpValRows->aRow[0].lpProps[0].Value.bin;
 	hr = lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppMessage = lpMessage.release();
-exit:
-	if(lpValRows)
-		FreeProws(lpValRows);
-	
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -726,7 +700,6 @@ exit:
 HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IAddrBook *lpAddrBook, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo)
 {
 	memory_ptr<FBUser> lpUsers;
-	IEnumFBBlock *lpEnumBlock = NULL;
 	IFreeBusyData **lppFBData = NULL;
 	memory_ptr<FBBlock_1> lpsFBblks;
 	std::string strMethod;
@@ -739,7 +712,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	LONG lblkFetched = 0;
 	WEBDAVFBUSERINFO sWebFbUserInfo;
 	std::list<std::string>::const_iterator itUsers;
-	LPADRLIST lpAdrList = NULL;
+	adrlist_ptr lpAdrList;
 	FlagListPtr ptrFlagList;
 
 	EntryIdPtr ptrEntryId;
@@ -755,7 +728,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		goto exit;
 
 	cUsers = lplstUsers->size();
-	hr = MAPIAllocateBuffer(CbNewADRLIST(cUsers), (void **)&lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(cUsers), &~lpAdrList);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -820,12 +793,13 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	itUsers = lplstUsers->cbegin();
 	// iterate through all users
 	for (ULONG i = 0; i < cUsers; ++i) {
+		object_ptr<IEnumFBBlock> lpEnumBlock;
 		strIcal.clear();
 
 		if (!lppFBData[i])
 			goto next;
 		
-		hr = lppFBData[i]->EnumBlocks(&lpEnumBlock, ftStart, ftEnd);
+		hr = lppFBData[i]->EnumBlocks(&~lpEnumBlock, ftStart, ftEnd);
 		if (hr != hrSuccess)
 			goto next;
 		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)*lMaxblks, &~lpsFBblks);
@@ -859,19 +833,12 @@ next:
 		++itUsers;
 
 		lpMapiToIcal->ResetObject();
-		
-		if(lpEnumBlock)
-			lpEnumBlock->Release();
-		lpEnumBlock = NULL;
 		lblkFetched = 0;
 	}
 	// ignoring ical data for unknown users.
 	hr = hrSuccess;
 
 exit:
-	if (lpAdrList)
-		FreePadrlist(lpAdrList);
-	
 	if (lppFBData) {
 		for (ULONG i = 0; i < cUsers; ++i)
 			if (lppFBData[i])

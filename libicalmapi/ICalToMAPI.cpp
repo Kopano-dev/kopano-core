@@ -383,14 +383,12 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	ULONG ulANr = 0;
 	memory_ptr<SPropTagArray> lpsPTA;
 	object_ptr<IMAPITable> lpAttachTable;
-	LPSRowSet lpRows = NULL;
+	rowset_ptr lpRows;
 	SPropValue sStart = {0};
 	SPropValue sMethod = {0};
 
-	if (ulPosition >= m_vMessages.size() || lpMessage == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (ulPosition >= m_vMessages.size() || lpMessage == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	iItem = m_vMessages.begin() + ulPosition;
 	lpItem = *iItem;
@@ -398,7 +396,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	if ((ulFlags & IC2M_APPEND_ONLY) == 0 && !lpItem->lstDelPropTags.empty()) {
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpItem->lstDelPropTags.size()), &~lpsPTA);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		std::copy(lpItem->lstDelPropTags.begin(), lpItem->lstDelPropTags.end(), lpsPTA->aulPropTag);
 
@@ -406,22 +404,20 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 
 		hr = lpMessage->DeleteProps(lpsPTA, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	hr = SaveProps(&lpItem->lstMsgProps, lpMessage, ulFlags);
 	if (hr != hrSuccess)
-		goto exit;
-	
+		return hr;
 	if (!(ulFlags & IC2M_NO_RECIPIENTS))
 		hr = SaveRecipList(&(lpItem->lstRecips), ulFlags, lpMessage);
 
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = SaveAttendeesString(&(lpItem->lstRecips), lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// remove all exception attachments from message, if any
 	hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
@@ -447,10 +443,10 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod, ECRestriction::Cheap)
 	).RestrictTable(lpAttachTable, 0);
 	if (hr != hrSuccess)
-		goto exit;
-	hr = lpAttachTable->QueryRows(-1, 0, &lpRows);
+		return hr;
+	hr = lpAttachTable->QueryRows(-1, 0, &~lpRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
 		auto lpPropVal = PCpropFindProp(lpRows->aRow[i].lpProps, lpRows->aRow[i].cValues, PR_ATTACH_NUM);
@@ -459,7 +455,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 
 		hr = lpMessage->DeleteAttach(lpPropVal->Value.ul, 0, NULL, 0);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 next:
@@ -470,48 +466,39 @@ next:
 		
 		// check if all exceptions are valid
 		for (const auto &ex : lpItem->lstExceptionAttachments)
-			if (cRec.HrValidateOccurrence(lpItem, ex) == false) {
-				hr = MAPI_E_INVALID_OBJECT;
-				goto exit;
-			}
+			if (!cRec.HrValidateOccurrence(lpItem, ex))
+				return MAPI_E_INVALID_OBJECT;
 		for (const auto &ex : lpItem->lstExceptionAttachments) {
 			object_ptr<IAttach> lpAttach;
 			object_ptr<IMessage> lpExMsg;
 
 			hr = lpMessage->CreateAttach(nullptr, 0, &ulANr, &~lpAttach);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpExMsg);
 			if (hr != hrSuccess)
-				goto exit;
-			
+				return hr;
 			if (!(ulFlags & IC2M_NO_RECIPIENTS))
 				hr = SaveRecipList(&ex.lstRecips, ulFlags, lpExMsg);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = SaveAttendeesString(&ex.lstRecips, lpExMsg);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = SaveProps(&ex.lstMsgProps, lpExMsg);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = SaveProps(&ex.lstAttachProps, lpAttach);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpExMsg->SaveChanges(0);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpAttach->SaveChanges(0);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
-
-exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -561,14 +548,14 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
     ULONG ulFlag, LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	LPADRLIST lpRecipients = NULL;
+	adrlist_ptr lpRecipients;
 	std::string strSearch;
 	ULONG i = 0;
 	convert_context converter;
 
-	hr = MAPIAllocateBuffer(CbNewADRLIST(lplstRecip->size()), (void**)&lpRecipients);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(lplstRecip->size()), &~lpRecipients);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpRecipients->cEntries = 0;
 	for (const auto &recip : *lplstRecip) {
@@ -580,7 +567,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 			continue;
 			
 		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue)*10, (void**)&lpRecipients->aEntries[i].rgPropVals)) != hrSuccess)
-			goto exit;
+			return hr;
 		lpRecipients->aEntries[i].cValues = 10;
 
 		lpRecipients->aEntries[i].rgPropVals[0].ulPropTag = PR_RECIPIENT_TYPE;
@@ -595,7 +582,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		     lpRecipients->aEntries[i].rgPropVals,
 		     reinterpret_cast<void **>(&lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb));
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb, recip.lpEntryID, recip.cbEntryID);
 		
 		lpRecipients->aEntries[i].rgPropVals[4].ulPropTag = PR_ADDRTYPE_W;
@@ -606,7 +593,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		lpRecipients->aEntries[i].rgPropVals[5].ulPropTag = PR_SEARCH_KEY;
 		lpRecipients->aEntries[i].rgPropVals[5].Value.bin.cb = strSearch.size() + 1;
 		if ((hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[i].rgPropVals, (void **)&lpRecipients->aEntries[i].rgPropVals[5].Value.bin.lpb)) != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpRecipients->aEntries[i].rgPropVals[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
 
 		lpRecipients->aEntries[i].rgPropVals[6].ulPropTag = PR_EMAIL_ADDRESS_W;
@@ -623,15 +610,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 	}
 
 	// flag 0: remove old recipient table, and add the new list
-	hr = lpMessage->ModifyRecipients(0, lpRecipients);	
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpRecipients)
-		FreePadrlist(lpRecipients);
-
-	return hr;
+	return lpMessage->ModifyRecipients(0, lpRecipients);	
 }
 
 /**

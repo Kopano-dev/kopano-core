@@ -966,7 +966,7 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	size_t misc_version_len = 0;
 	long		ulFlags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
 	// return value
-	LPMAPISESSION lpMAPISession = NULL;
+	object_ptr<IMAPISession> lpMAPISession;
 	// local
 	ULONG		ulProfNum = rand_mt();
 	char		szProfName[MAX_PATH];
@@ -1014,7 +1014,10 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	}
 
 	// Logon to our new profile
-	MAPI_G(hr) = MAPILogonEx(0, (LPTSTR)szProfName, (LPTSTR)"", MAPI_EXTENDED | MAPI_TIMEOUT_SHORT | MAPI_NEW_SESSION, &lpMAPISession);
+	MAPI_G(hr) = MAPILogonEx(0, reinterpret_cast<LPTSTR>(const_cast<char *>(szProfName)),
+	             reinterpret_cast<LPTSTR>(const_cast<char *>("")),
+	             MAPI_EXTENDED | MAPI_TIMEOUT_SHORT | MAPI_NEW_SESSION,
+	             &~lpMAPISession);
 	if (MAPI_G(hr) != hrSuccess) {
 		mapi_util_deleteprof(szProfName);
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to logon to profile");
@@ -1024,13 +1027,11 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	// Delete the profile (it will be deleted when we close our session)
 	MAPI_G(hr) = mapi_util_deleteprof(szProfName);
 	if (MAPI_G(hr) != hrSuccess) {
-		lpMAPISession->Release();
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete profile");
 		goto exit;
 	}
 
-	ZEND_REGISTER_RESOURCE(return_value, lpMAPISession, le_mapi_session);
-
+	ZEND_REGISTER_RESOURCE(return_value, lpMAPISession.release(), le_mapi_session);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1053,7 +1054,7 @@ ZEND_FUNCTION(mapi_openentry)
 	LPENTRYID	lpEntryID	= NULL;
 	long		ulFlags = MAPI_BEST_ACCESS;
 	// return value
-	LPUNKNOWN	lpUnknown; 			// either folder or message
+	object_ptr<IUnknown> lpUnknown; // either folder or message
 	// local
 	ULONG		ulObjType;
 
@@ -1064,18 +1065,17 @@ ZEND_FUNCTION(mapi_openentry)
 
         ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
 
-	MAPI_G(hr) = lpSession->OpenEntry(cbEntryID, lpEntryID, NULL, ulFlags, &ulObjType, &lpUnknown);
+	MAPI_G(hr) = lpSession->OpenEntry(cbEntryID, lpEntryID, nullptr,
+	             ulFlags, &ulObjType, &~lpUnknown);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
 
 	if (ulObjType == MAPI_FOLDER) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_folder);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_folder);
 	}
 	else if(ulObjType == MAPI_MESSAGE) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_message);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_message);
 	} else {
-		if (lpUnknown)
-			lpUnknown->Release();
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not a folder or a message.");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -1163,7 +1163,7 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 	long		ulFlags = 0; //MAPI_BEST_ACCESS;
 	// return value
 	ULONG		ulObjType;
-	IUnknown	*lpUnknown = NULL;
+	object_ptr<IUnknown> lpUnknown;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1178,23 +1178,22 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
 
-	MAPI_G(hr) = lpAddrBook->OpenEntry(cbEntryID, lpEntryID, NULL, ulFlags, &ulObjType, &lpUnknown);
+	MAPI_G(hr) = lpAddrBook->OpenEntry(cbEntryID, lpEntryID, nullptr,
+	             ulFlags, &ulObjType, &~lpUnknown);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
 	switch (ulObjType) {
 	case MAPI_MAILUSER:
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_mailuser);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_mailuser);
 		break;
 	case MAPI_DISTLIST:
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_distlist);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_distlist);
 		break;
 	case MAPI_ABCONT:
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_abcont);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_abcont);
 		break;
 	default:
-		if (lpUnknown)
-			lpUnknown->Release();
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not an AddressBook item");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -1217,7 +1216,7 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	// return value
 
 	// local
-	LPADRLIST	lpAList = NULL;
+	adrlist_ptr lpAList;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1226,7 +1225,7 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
 
-	MAPI_G(hr) = PHPArraytoAdrList(array, NULL, &lpAList TSRMLS_CC);
+	MAPI_G(hr) = PHPArraytoAdrList(array, nullptr, &~lpAList TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
@@ -1234,7 +1233,7 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	switch (MAPI_G(hr)) {
 	case hrSuccess:
 		// parse back lpAList and return as array
-		RowSettoPHPArray((LPSRowSet)lpAList, &rowset TSRMLS_CC); // binary compatible
+		RowSettoPHPArray(reinterpret_cast<SRowSet *>(lpAList.get()), &rowset TSRMLS_CC); // binary compatible
 		RETVAL_ZVAL(&rowset, 0, 0);
 		break;
 	case MAPI_E_AMBIGUOUS_RECIP:
@@ -1244,9 +1243,6 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	};
 
 exit:
-	if (lpAList)
-		FreePadrlist(lpAList);
-
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -1903,7 +1899,7 @@ ZEND_FUNCTION(mapi_msgstore_openentry)
 	LPENTRYID	lpEntryID	= NULL;
 	long		ulFlags = MAPI_BEST_ACCESS;
 	// return value
-	LPUNKNOWN	lpUnknown; 			// either folder or message
+	object_ptr<IUnknown> lpUnknown; // either folder or message
 	// local
 	ULONG		ulObjType;
 
@@ -1915,19 +1911,17 @@ ZEND_FUNCTION(mapi_msgstore_openentry)
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 
 	// returns a folder
-	MAPI_G(hr) = pMDB->OpenEntry(cbEntryID, lpEntryID, NULL, ulFlags, &ulObjType, &lpUnknown );
-
+	MAPI_G(hr) = pMDB->OpenEntry(cbEntryID, lpEntryID, nullptr, ulFlags,
+	             &ulObjType, &~lpUnknown);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
 
 	if (ulObjType == MAPI_FOLDER) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_folder);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_folder);
 	}
 	else if(ulObjType == MAPI_MESSAGE) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_message);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_message);
 	} else {
-		if (lpUnknown)
-			lpUnknown->Release();
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not a folder or a message.");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -2100,7 +2094,7 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	// locals
 	memory_ptr<SPropTagArray> lpTagArray;
 	memory_ptr<SRestriction> lpRestrict;
-	LPSRowSet	pRowSet = NULL;
+	rowset_ptr pRowSet;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2132,7 +2126,7 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	}
 
 	// Execute
-	MAPI_G(hr) = HrQueryAllRows(lpTable, lpTagArray, lpRestrict, NULL, 0, &pRowSet);
+	MAPI_G(hr) = HrQueryAllRows(lpTable, lpTagArray, lpRestrict, nullptr, 0, &~pRowSet);
 
 	// return the returncode
 	if (FAILED(MAPI_G(hr)))
@@ -2146,9 +2140,6 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	RETVAL_ZVAL(&rowset, 0, 0);
 
 exit:
-	if (pRowSet)
-		FreeProws(pRowSet);
-
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -2173,7 +2164,7 @@ ZEND_FUNCTION(mapi_table_queryrows)
 	memory_ptr<SPropTagArray> lpTagArray;
 	long		lRowCount = 0, start = 0;
 	// local
-	LPSRowSet	pRowSet	= NULL;
+	rowset_ptr pRowSet;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2207,8 +2198,7 @@ ZEND_FUNCTION(mapi_table_queryrows)
 		}
 	}
 
-	MAPI_G(hr) = lpTable->QueryRows(lRowCount, 0, &pRowSet);
-
+	MAPI_G(hr) = lpTable->QueryRows(lRowCount, 0, &~pRowSet);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
 
@@ -2221,9 +2211,6 @@ ZEND_FUNCTION(mapi_table_queryrows)
 	RETVAL_ZVAL(&rowset, 0, 0);
 
 exit:
-	if (pRowSet)
-		FreeProws(pRowSet);
-
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -2663,7 +2650,7 @@ ZEND_FUNCTION(mapi_message_modifyrecipients)
 	LPMESSAGE		pMessage = NULL;
 	long			flags = MODRECIP_ADD;		// flags to use, default to ADD
 	// local
-	LPADRLIST		lpListRecipients = NULL;
+	adrlist_ptr lpListRecipients;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2672,7 +2659,7 @@ ZEND_FUNCTION(mapi_message_modifyrecipients)
 
 	ZEND_FETCH_RESOURCE_C(pMessage, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
 
-	MAPI_G(hr) = PHPArraytoAdrList(adrlist, NULL, &lpListRecipients TSRMLS_CC);
+	MAPI_G(hr) = PHPArraytoAdrList(adrlist, nullptr, &~lpListRecipients TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to parse recipient list");
 		goto exit;
@@ -2686,9 +2673,6 @@ ZEND_FUNCTION(mapi_message_modifyrecipients)
 	RETVAL_TRUE;
 
 exit:
-	if (lpListRecipients)
-		FreePadrlist(lpListRecipients);
-
 	LOG_END();
 	THROW_ON_ERROR();
 }

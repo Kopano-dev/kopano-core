@@ -184,32 +184,32 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 	const SPropValue *lpServiceUID = nullptr;
 	SPropValue sProps[9];	// server, username, password and profile -name and -flags, optional sslkey file with sslkey password
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet	lpRows = NULL;
+	rowset_ptr lpRows;
 	int i;
 
 //-- create profile
 	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
 	if (hr != hrSuccess) {
 		ec_log_crit("CreateProfileTemp(): MAPIAdminProfiles failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
 	hr = lpProfAdmin->CreateProfile((LPTSTR)szProfName, (LPTSTR)"", 0, 0);
 	if (hr != hrSuccess) {
 		ec_log_crit("CreateProfileTemp(): CreateProfile failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 	hr = lpProfAdmin->AdminServices((LPTSTR)szProfName, (LPTSTR)"", 0, 0, &~lpServiceAdmin);
 	if (hr != hrSuccess) {
 		ec_log_crit("CreateProfileTemp(): AdminServices failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 	
 	hr = lpServiceAdmin->CreateMsgService((LPTSTR)"ZARAFA6", (LPTSTR)"", 0, 0);
 	if (hr != hrSuccess) {
 		ec_log_crit("CreateProfileTemp(): CreateMsgService ZARAFA6 failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	// Strangely we now have to get the SERVICE_UID for the service we just added from
@@ -217,16 +217,15 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 	hr = lpServiceAdmin->GetMsgServiceTable(0, &~lpTable);
 	if(hr != hrSuccess) {
 		ec_log_crit("CreateProfileTemp(): GetMsgServiceTable failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	// Find the correct row
 	while(TRUE) {
-		hr = lpTable->QueryRows(1, 0, &lpRows);
-		
+		hr = lpTable->QueryRows(1, 0, &~lpRows);
 		if(hr != hrSuccess) {
 			ec_log_crit("CreateProfileTemp(): QueryRows failed %x: %s", hr, GetMAPIErrorMessage(hr));
-			goto exit;
+			return hr;
 		}
 			
 		if(lpRows->cRows != 1)
@@ -235,24 +234,18 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 		auto lpServiceName = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_NAME_A);
 		if(lpServiceName && strcmp(lpServiceName->Value.lpszA, "ZARAFA6") == 0)
 			break;
-			
-		FreeProws(lpRows);
-		lpRows = NULL;
-			
 	}
 	
 	if(lpRows->cRows != 1) {
 		ec_log_warn("CreateProfileTemp(): no rows found");
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	// Get the PR_SERVICE_UID from the row
 	lpServiceUID = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_UID);
 	if(!lpServiceUID) {
 		ec_log_crit("CreateProfileTemp(): PCpropFindProp failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	i = 0;
@@ -302,14 +295,8 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 	}
 
 	hr = lpServiceAdmin->ConfigureMsgService((MAPIUID *)lpServiceUID->Value.bin.lpb, 0, 0, i, sProps);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		ec_log_crit("CreateProfileTemp(): ConfigureMsgService failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
-	}
-
-exit:
-	if (lpRows)
-		FreeProws(lpRows);
 	return hr;
 }
 
@@ -399,7 +386,7 @@ exit:
 HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
 	HRESULT			hr = hrSuccess;
-	LPSRowSet		lpRows = NULL;
+	rowset_ptr lpRows;
 	object_ptr<IMAPITable> lpStoreTable;
 	const SPropValue *lpEntryIDProp = nullptr;
 
@@ -407,14 +394,12 @@ HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG 
 	// store with PR_MDB_PROVIDER set to the kopano public store GUID
 	hr = lpMAPISession->GetMsgStoresTable(0, &~lpStoreTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while(TRUE) {
-		hr = lpStoreTable->QueryRows(1, 0, &lpRows);
-		if (hr != hrSuccess || lpRows->cRows != 1) {
-			hr = MAPI_E_NOT_FOUND;
-			break;
-		}
+		hr = lpStoreTable->QueryRows(1, 0, &~lpRows);
+		if (hr != hrSuccess || lpRows->cRows != 1)
+			return MAPI_E_NOT_FOUND;
 		if (bPublic) {
 			auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_MDB_PROVIDER);
 			if (lpStoreProp != NULL && memcmp(lpStoreProp->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0 )
@@ -424,28 +409,19 @@ HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG 
 			if (lpStoreProp != NULL && lpStoreProp->Value.ul & STATUS_DEFAULT_STORE)
 				break;
 		}
-		FreeProws(lpRows);
-		lpRows = NULL;
 	}
 
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpEntryIDProp = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ENTRYID);
-	if (lpEntryIDProp == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpEntryIDProp == nullptr)
+		return MAPI_E_NOT_FOUND;
 
 	// copy entryid so we continue in the same code piece in windows/linux
-	hr = Util::HrCopyEntryId(lpEntryIDProp->Value.bin.cb, (LPENTRYID)lpEntryIDProp->Value.bin.lpb, lpcbEntryID, lppEntryID);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpRows)
-		FreeProws(lpRows);
-	return hr;
+	return Util::HrCopyEntryId(lpEntryIDProp->Value.bin.cb,
+	       reinterpret_cast<ENTRYID *>(lpEntryIDProp->Value.bin.lpb),
+	       lpcbEntryID, lppEntryID);
 }
 
 HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore) {
@@ -568,62 +544,44 @@ HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProvid
 	HRESULT			hr = hrSuccess;
 	object_ptr<IMsgServiceAdmin> lpMsgServiceAdmin;
 	object_ptr<IMAPITable> lpServiceTable;
-	SRestriction	sRestrict;
 	SPropValue		sPropRestrict;
-	LPSRowSet		lpsRowSet = NULL;
+	rowset_ptr lpsRowSet;
 	const SPropValue *lpProviderUID = NULL;
 
 	// Get the service admin
 	hr = lpSession->AdminServices(0, &~lpMsgServiceAdmin);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//Getdefault profile
 	hr = lpMsgServiceAdmin->GetMsgServiceTable(0, &~lpServiceTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	// restrict the table
 	sPropRestrict.ulPropTag = PR_SERVICE_NAME_A;
 	sPropRestrict.Value.lpszA = const_cast<char *>("ZARAFA6");
-	sRestrict.res.resContent.ulFuzzyLevel = FL_FULLSTRING;
-	sRestrict.res.resContent.ulPropTag = PR_SERVICE_NAME_A;
-	sRestrict.res.resContent.lpProp = &sPropRestrict;
-	sRestrict.rt = RES_CONTENT;
-
-	hr = lpServiceTable->Restrict(&sRestrict,0);
+	hr = ECContentRestriction(FL_FULLSTRING, PR_SERVICE_NAME_A,
+	     &sPropRestrict, ECRestriction::Cheap)
+	     .RestrictTable(lpServiceTable, 0);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	//Seek to the end
 	hr = lpServiceTable->SeekRow(BOOKMARK_END, -1, NULL);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpServiceTable->QueryRows(1, 0, &lpsRowSet);
+		return hr;
+	hr = lpServiceTable->QueryRows(1, 0, &~lpsRowSet);
 	if(hr != hrSuccess || lpsRowSet == NULL || lpsRowSet->cRows != 1)
-	{
-		if(hr == hrSuccess) hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return hr == hrSuccess ? MAPI_E_NOT_FOUND : hr;
 
 	// Get the Service UID
 	lpProviderUID = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_SERVICE_UID);
-	if(lpProviderUID == NULL){
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpProviderUID == nullptr)
+		return MAPI_E_NOT_FOUND;
 
 	// Get a admin provider pointer
-	hr = lpMsgServiceAdmin->AdminProviders((MAPIUID *)lpProviderUID->Value.bin.lpb, 0, lppProviderAdmin);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	if(lpsRowSet)
-		FreeProws(lpsRowSet);
-
-	return hr;
+	return lpMsgServiceAdmin->AdminProviders(reinterpret_cast<MAPIUID *>(lpProviderUID->Value.bin.lpb), 0, lppProviderAdmin);
 }
 
 HRESULT HrRemoveECMailBox(LPMAPISESSION lpSession, LPMAPIUID lpsProviderUID)
@@ -1311,43 +1269,38 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     std::wstring &strSMTPAddress)
 {
     HRESULT hr = hrSuccess;
-    LPADRLIST lpAdrList = NULL;
+	adrlist_ptr lpAdrList;
 	const SPropValue *lpEntryID = NULL;
     ULONG ulType = 0;
 	object_ptr<IMAPIProp> lpMailUser;
 	memory_ptr<SPropValue> lpSMTPAddress, lpEmailAddress;
      
-    hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void **)&lpAdrList);
-    if(hr != hrSuccess)
-        goto exit;
+	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAdrList);
+	if (hr != hrSuccess)
+		return hr;
     
     lpAdrList->cEntries = 1;
     lpAdrList->aEntries[0].cValues = 1;
 
     hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[0].rgPropVals);
     if(hr != hrSuccess)
-        goto exit;
+		return hr;
         
     lpAdrList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
     lpAdrList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR *)strResolve.c_str();
     
     hr = lpAdrBook->ResolveName(0, ulFlags | MAPI_UNICODE, NULL, lpAdrList);
     if(hr != hrSuccess)
-        goto exit;
-        
-    if(lpAdrList->cEntries != 1) {
-        hr = MAPI_E_NOT_FOUND;
-        goto exit;
-    }
+		return hr;
+	if (lpAdrList->cEntries != 1)
+		return MAPI_E_NOT_FOUND;
     
     lpEntryID = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ENTRYID);
-    if(!lpEntryID) {
-        hr = MAPI_E_NOT_FOUND;
-        goto exit;
-    }
+	if (lpEntryID == nullptr)
+		return MAPI_E_NOT_FOUND;
     hr = lpAdrBook->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb), &IID_IMAPIProp, 0, &ulType, &~lpMailUser);
     if (hr != hrSuccess)
-        goto exit;
+		return hr;
     hr = HrGetOneProp(lpMailUser, PR_SMTP_ADDRESS_W, &~lpSMTPAddress);
     if(hr != hrSuccess) {
         // Not always an error
@@ -1363,21 +1316,14 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
         // (Eg. 'To: Everyone; user@domain.com')
         hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS_W, &~lpEmailAddress);
         if(hr != hrSuccess)
-            goto exit;
-            
+			return hr;
         strSMTPAddress = lpEmailAddress->Value.lpszW;
     } else {
-        if(lpSMTPAddress == NULL) {
-            hr = MAPI_E_NOT_FOUND;
-            goto exit;
-        }
+		if (lpSMTPAddress == nullptr)
+			return MAPI_E_NOT_FOUND;
         strSMTPAddress = lpSMTPAddress->Value.lpszW;
     }
-    
-exit:
-	if (lpAdrList)
-		FreePadrlist(lpAdrList);
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1797,7 +1743,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 	unsigned int ulSize;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropTagArray> lpTags;
-	LPSRowSet lpRowSet = NULL;
 
 	if (ulLevel > RESTRICT_MAX_RECURSE_LEVEL)
 		return MAPI_E_TOO_COMPLEX;
@@ -1987,7 +1932,8 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			goto exit;
 
 		while(1) {
-			hr = lpTable->QueryRows(1, 0, &lpRowSet);
+			rowset_ptr lpRowSet;
+			hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -2005,9 +1951,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 				fMatch = true;
 				break;
 			}
-
-			FreeProws(lpRowSet);
-			lpRowSet = NULL;
 		}
 		break;
 
@@ -2024,8 +1967,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 	};
 
 exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
 	if (fMatch)
 		return hrSuccess;
 	else if (hr == hrSuccess)
@@ -2058,39 +1999,25 @@ HRESULT GetClientVersion(unsigned int* ulVersion)
  */
 HRESULT FindFolder(LPMAPITABLE lpTable, const WCHAR *folder, LPSPropValue *lppFolderProp) {
 	HRESULT hr;
-	LPSRowSet		lpRowSet = NULL;
 	ULONG nValues;
 	static constexpr const SizedSPropTagArray(2, sptaName) =
 		{2, {PR_DISPLAY_NAME_W, PR_ENTRYID}};
 
 	hr = lpTable->SetColumns(sptaName, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (TRUE) {
-		hr = lpTable->QueryRows(1, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
 			break;
-
-		if(lpRowSet->cRows == 0) {
-			hr = MAPI_E_NOT_FOUND;
-			break;
-		}
-
-		if (wcscasecmp(lpRowSet->aRow[0].lpProps[0].Value.lpszW, folder) == 0) {
+		if (lpRowSet->cRows == 0)
+			return MAPI_E_NOT_FOUND;
+		if (wcscasecmp(lpRowSet->aRow[0].lpProps[0].Value.lpszW, folder) == 0)
 			// found the folder
-			hr = Util::HrCopyPropertyArray(&lpRowSet->aRow[0].lpProps[1], 1, lppFolderProp, &nValues);
-			break;
-		}
-
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
+			return Util::HrCopyPropertyArray(&lpRowSet->aRow[0].lpProps[1], 1, lppFolderProp, &nValues);
 	}
-
-exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-
 	return hr;
 }
 

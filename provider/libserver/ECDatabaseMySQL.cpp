@@ -681,18 +681,6 @@ ECRESULT ECDatabaseMySQL::Close()
 	return er;
 }
 
-// Get database ownership
-void ECDatabaseMySQL::Lock()
-{
-	m_hMutexMySql.lock();
-}
-
-// Release the database ownership
-void ECDatabaseMySQL::UnLock()
-{
-	m_hMutexMySql.unlock();
-}
-
 bool ECDatabaseMySQL::isConnected() {
 
 	return m_bConnected;
@@ -765,11 +753,8 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult,
 	ECRESULT er = erSuccess;
 	DB_RESULT lpResult = NULL;
 	assert(strQuery.length() != 0);
+	autolock alk(*this);
 
-	// Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
-		
 	if( Query(strQuery) != erSuccess ) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECDatabaseMySQL::DoSelect(): query failed: %s", GetError());
@@ -799,11 +784,6 @@ exit:
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
 	}
-
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
@@ -811,10 +791,7 @@ ECRESULT ECDatabaseMySQL::DoSelectMulti(const string &strQuery) {
 
 	ECRESULT er = erSuccess;
 	assert(strQuery.length() != 0);
-
-	// Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
+	autolock alk(*this);
 		
 	if( Query(strQuery) != erSuccess ) {
 		er = KCERR_DATABASE_ERROR;
@@ -831,11 +808,6 @@ exit:
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
 	}
-
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
@@ -850,11 +822,8 @@ ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
 	ECRESULT er = erSuccess;
 	DB_RESULT lpResult = NULL;
 	int ret = 0;
+	autolock alk(*this);
 
-	// Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
-		
 	if(!m_bFirstResult)
 		ret = mysql_next_result( &m_lpMySQL );
 		
@@ -889,11 +858,6 @@ exit:
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
 	}
-
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
@@ -908,6 +872,7 @@ ECRESULT ECDatabaseMySQL::FinalizeMulti() {
 
 	ECRESULT er = erSuccess;
 	DB_RESULT lpResult = NULL;
+	autolock alk(*this);
 
 	mysql_next_result(&m_lpMySQL);
 	
@@ -921,11 +886,6 @@ ECRESULT ECDatabaseMySQL::FinalizeMulti() {
 exit:
 	if(lpResult)
 		FreeResult(lpResult);
-		
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
@@ -943,10 +903,7 @@ exit:
 ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAffectedRows) {
 	
 	ECRESULT er = erSuccess;
-
-	// Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
+	autolock alk(*this);
 	
 	er = _Update(strQuery, lpulAffectedRows);
 
@@ -956,11 +913,6 @@ ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAff
 	}
 
 	g_lpStatsCollector->Increment(SCN_DATABASE_UPDATES);
-
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
@@ -990,11 +942,8 @@ ECRESULT ECDatabaseMySQL::_Update(const string &strQuery, unsigned int *lpulAffe
 ECRESULT ECDatabaseMySQL::DoInsert(const string &strQuery, unsigned int *lpulInsertId, unsigned int *lpulAffectedRows)
 {
 	ECRESULT er = erSuccess;
+	autolock alk(*this);
 
-	// Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
-	
 	er = _Update(strQuery, lpulAffectedRows);
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_INSERTS);
@@ -1004,11 +953,6 @@ ECRESULT ECDatabaseMySQL::DoInsert(const string &strQuery, unsigned int *lpulIns
 	}
 
 	g_lpStatsCollector->Increment(SCN_DATABASE_INSERTS);
-
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
@@ -1024,11 +968,8 @@ ECRESULT ECDatabaseMySQL::DoInsert(const string &strQuery, unsigned int *lpulIns
 ECRESULT ECDatabaseMySQL::DoDelete(const string &strQuery, unsigned int *lpulAffectedRows) {
 
 	ECRESULT er = erSuccess;
+	autolock alk(*this);
 
-	// Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
-	
 	er = _Update(strQuery, lpulAffectedRows);
 
 	if (er != erSuccess) {
@@ -1037,11 +978,6 @@ ECRESULT ECDatabaseMySQL::DoDelete(const string &strQuery, unsigned int *lpulAff
 	}
 
 	g_lpStatsCollector->Increment(SCN_DATABASE_DELETES);
-
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 
@@ -1058,11 +994,7 @@ ECRESULT ECDatabaseMySQL::DoDelete(const string &strQuery, unsigned int *lpulAff
 ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int ulCount, unsigned long long *lpllFirstId) {
 	ECRESULT er = erSuccess;
 	unsigned int ulAffected = 0;
-
-    // Autolock, lock data
-	if(m_bAutoLock)
-		Lock();
-
+	autolock alk(*this);
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
 	if (m_ulTransactionState != 0)
@@ -1073,22 +1005,16 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 	// Attempt to update the sequence in an atomic fashion
 	er = DoUpdate("UPDATE settings SET value=LAST_INSERT_ID(value+1)+" + stringify(ulCount-1) + " WHERE name = '" + strSeqName + "'", &ulAffected);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 	
 	// If the setting was missing, insert it now, starting at sequence 1 (not 0 for safety - maybe there's some if(ulSequenceId) code somewhere)
 	if(ulAffected == 0) {
 		er = Query("INSERT INTO settings (name, value) VALUES('" + strSeqName + "',LAST_INSERT_ID(1)+" + stringify(ulCount-1) + ")");
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 			
 	*lpllFirstId = mysql_insert_id(&m_lpMySQL);
-	
-exit:
-	// Autolock, unlock data
-	if(m_bAutoLock)
-		UnLock();
-
 	return er;
 }
 

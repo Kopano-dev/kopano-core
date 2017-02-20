@@ -316,7 +316,6 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	LPMDB lpReadStore = NULL;
 	object_ptr<IMAPIFolder> lpRootFolder;
 	object_ptr<IMAPITable> lpHierarchyTable;
-	LPSRowSet lpRows = NULL;
 	ULONG ulObjectType;
 	ULONG ulCount;
 	object_ptr<IExchangeManageStore> lpIEMS;
@@ -333,7 +332,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		cout << "Unable to initialize session" << endl;
-		goto exit;
+		return hr;
 	}
 
 	// input from commandline is current locale
@@ -348,20 +347,20 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	     strwUsername.c_str(), strwPassword.c_str(), strHost, 0, NULL, NULL);
 	if(hr != hrSuccess) {
 		cout << "Wrong username or password." << endl;
-		goto exit;
+		return hr;
 	}
 	
 	if (bPublic) {
 		hr = HrOpenECPublicStore(lpSession, &~lpStore);
 		if (hr != hrSuccess) {
 			cout << "Failed to open public store." << endl;
-			goto exit;
+			return hr;
 		}
 	} else {
 		hr = HrOpenDefaultStore(lpSession, &~lpStore);
 		if (hr != hrSuccess) {
 			cout << "Failed to open default store." << endl;
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -369,7 +368,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 		hr = lpStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
         if (hr != hrSuccess) {
             cout << "Cannot open ExchangeManageStore object" << endl;
-            goto exit;
+		return hr;
         }
 
         hr = lpIEMS->CreateStoreEntryID(const_cast<wchar_t *>(L""),
@@ -378,12 +377,12 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	     &~lpUserStoreEntryID);
         if (hr != hrSuccess) {
             cout << "Cannot get user store id for user" << endl;
-            goto exit;
+		return hr;
         }
         hr = lpSession->OpenMsgStore(0, cbUserStoreEntryID, lpUserStoreEntryID, nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpAltStore);
         if (hr != hrSuccess) {
             cout << "Cannot open user store of user" << endl;
-            goto exit;
+		return hr;
         }
         
         lpReadStore = lpAltStore;
@@ -394,7 +393,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	hr = lpReadStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, 0, &ulObjectType, &~lpRootFolder);
 	if(hr != hrSuccess) {
 		cout << "Failed to open root folder." << endl;
-		goto exit;
+		return hr;
 	}
 
 	if (HrGetOneProp(lpRootFolder, PR_IPM_OL2007_ENTRYIDS /*PR_ADDITIONAL_REN_ENTRYIDS_EX*/, &~lpAddRenProp) == hrSuccess &&
@@ -404,7 +403,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &~lpHierarchyTable);
 	if (hr != hrSuccess) {
 		cout << "Failed to open hierarchy." << endl;
-		goto exit;
+		return hr;
 	}
 
 	/*
@@ -413,35 +412,27 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	hr = lpHierarchyTable->GetRowCount(0, &ulCount);
 	if(hr != hrSuccess) {
 		cout << "Failed to count number of rows." << endl;
-		goto exit;
+		return hr;
 	} else if (!ulCount) {
 		cout << "No entries inside Calendar." << endl;
-		goto exit;
+		return hr;
 	}
 
 	/*
 	 * Loop through each row/entry and validate.
 	 */
 	while (true) {
-		hr = lpHierarchyTable->QueryRows(20, 0, &lpRows);
+		rowset_ptr lpRows;
+		hr = lpHierarchyTable->QueryRows(20, 0, &~lpRows);
 		if (hr != hrSuccess)
-			break;
-
+			return hr;
 		if (lpRows->cRows == 0)
 			break;
 
 		for (ULONG i = 0; i < lpRows->cRows; ++i)
 			RunFolderValidation(setFolderIgnore, lpRootFolder, &lpRows->aRow[i], checkmap);
-		FreeProws(lpRows);
-		lpRows = NULL;
 	}
-
-exit:
-	if (lpRows) {
-		FreeProws(lpRows);
-		lpRows = NULL;
-	}
-	return hr;
+	return hrSuccess;
 }
 
 int main(int argc, char *argv[])

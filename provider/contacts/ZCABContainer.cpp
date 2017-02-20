@@ -39,6 +39,7 @@
 #include <kopano/ECRestriction.h>
 
 #include <iostream>
+#include <kopano/Util.h>
 #include <kopano/stringutil.h>
 using namespace std;
 using namespace KCHL;

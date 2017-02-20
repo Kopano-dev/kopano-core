@@ -8,4 +8,4 @@ nobase_pkginclude_HEADERS = \
 	IECSingleInstance.h \
 	IECUnknown.h RecurrenceState.h \
 	Util.h auto_free.h mapiext.h mapiguidext.h mapi_ptr.h namedprops.h \
-	tstring.h userutil.h mapi_ptr/mapi_rowset_ptr.h
+	tstring.h userutil.h

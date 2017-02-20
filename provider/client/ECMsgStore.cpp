@@ -246,17 +246,13 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 			return hr;
 
 		// Add the child because mapi lookto the ref count if you work through ProxyStoreObject
-		ECMsgStore *lpChild = NULL;
-
-		if ( ((LPMDB)*lppInterface)->QueryInterface(IID_ECMsgStore, (void**)&lpChild) != hrSuccess) {
+		object_ptr<ECMsgStore> lpChild;
+		if (((IMsgStore *)*lppInterface)->QueryInterface(IID_ECMsgStore, &~lpChild) != hrSuccess) {
 			((LPMDB)*lppInterface)->Release();
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 		}
 		
 		AddChild(lpChild);
-
-		lpChild->Release();
-
 		return hrSuccess;
 	}
 	// is admin store?
@@ -355,12 +351,10 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		else
 			hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store contents", ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else if (ulPropTag == PR_EC_CHANGE_ADVISOR) {
-		ECChangeAdvisor *lpChangeAdvisor = NULL;
-		hr = ECChangeAdvisor::Create(this, &lpChangeAdvisor);
+		object_ptr<ECChangeAdvisor> lpChangeAdvisor;
+		hr = ECChangeAdvisor::Create(this, &~lpChangeAdvisor);
 		if (hr == hrSuccess)
 			hr = lpChangeAdvisor->QueryInterface(*lpiid, (void**)lppUnk);
-		if (lpChangeAdvisor)
-			lpChangeAdvisor->Release();
 	} else if(ulPropTag == PR_EC_STATSTABLE_SYSTEM) {
 		if (*lpiid == IID_IMAPITable)
 			hr = OpenStatsTable(TABLETYPE_STATS_SYSTEM, (LPMAPITABLE*)lppUnk);
@@ -827,52 +821,39 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECMemTableView> lpView = NULL;
 	object_ptr<ECMemTable> lpMemTable;
-	LPSRowSet		lpsRowSet = NULL;
+	rowset_ptr lpsRowSet;
 	unsigned int	i;
 	memory_ptr<SPropTagArray> lpPropTagArray;
 
 	// Non supported function for publicfolder
-	if(IsPublicStore() == TRUE) {
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+	if (IsPublicStore())
+		return MAPI_E_NO_SUPPORT;
 
 	// Check input/output variables
-	if(lppTable == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lppTable == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sPropRFTColumns, &~lpPropTagArray);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpMemTable); // PR_INSTANCE_KEY
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//Get the receivefolder list from the server
-	hr = lpTransport->HrGetReceiveFolderTable(ulFlags, this->m_cbEntryId, this->m_lpEntryId, &lpsRowSet);
+	hr = lpTransport->HrGetReceiveFolderTable(ulFlags, this->m_cbEntryId, this->m_lpEntryId, &~lpsRowSet);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (i = 0; i < lpsRowSet->cRows; ++i) {
 		hr = lpMemTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpsRowSet->aRow[i].lpProps, NUM_RFT_PROPS);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 	}
 
 	hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	if(lpsRowSet)
-		FreeProws(lpsRowSet);
-	return hr;
+		return hr;
+	return lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 }
 
 HRESULT ECMsgStore::StoreLogoff(ULONG *lpulFlags) {

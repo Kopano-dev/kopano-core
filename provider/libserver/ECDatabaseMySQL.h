@@ -89,6 +89,15 @@ public:
 	void FreeResult(DB_RESULT sResult) _kc_override;
 
 private:
+	class autolock : private std::unique_lock<std::recursive_mutex> {
+		public:
+		autolock(ECDatabaseMySQL &p) :
+			std::unique_lock<std::recursive_mutex>(p.m_hMutexMySql, std::defer_lock_t())
+		{
+			if (p.m_bAutoLock)
+				lock();
+		}
+	};
     
 	ECRESULT InitEngine();
 	ECRESULT IsInnoDBSupported();
@@ -98,10 +107,6 @@ private:
 	ECRESULT Query(const std::string &strQuery);
 	unsigned int GetAffectedRows();
 	unsigned int GetInsertId();
-
-	// Datalocking methods
-	void Lock();
-	void UnLock();
 
 	// Connection methods
 	bool isConnected();

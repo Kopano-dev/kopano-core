@@ -24,6 +24,7 @@
 #include "MAPISMTPTransport.h"
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
+#include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
 
@@ -90,11 +91,11 @@ ECVMIMESender::ECVMIMESender(const std::string &host, int port) :
  */
 HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpTable, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone, bool bAlwaysExpandDistributionList)
 {
-	LPSRowSet lpRowSet = NULL;
+	rowset_ptr lpRowSet;
 	std::wstring strName, strEmail, strType;
-	HRESULT hr = lpTable->QueryRows(-1, 0, &lpRowSet);
+	HRESULT hr = lpTable->QueryRows(-1, 0, &~lpRowSet);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get all recipients from the group
 	for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
@@ -121,10 +122,8 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 		// Group
 		auto lpGroupName = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EMAIL_ADDRESS_W);
 		auto lpGroupEntryID = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);
-		if (lpGroupName == NULL || lpGroupEntryID == NULL) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
+		if (lpGroupName == nullptr || lpGroupEntryID == nullptr)
+			return MAPI_E_NOT_FOUND;
 	
 		if (bAllowEveryone == false) {
 			bool bEveryone = false;
@@ -132,8 +131,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 			if (EntryIdIsEveryone(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, &bEveryone) == hrSuccess && bEveryone) {
 				ec_log_err("Denying send to Everyone");
 				error = std::wstring(L"You are not allowed to send to the 'Everyone' group");
-				hr = MAPI_E_NO_ACCESS;
-				goto exit;
+				return MAPI_E_NO_ACCESS;
 			}
 		}
 
@@ -148,7 +146,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 				// eg. MAPI_E_NOT_FOUND
 				ec_log_err("Error while expanding group. Group: %ls, error: 0x%08x", lpGroupName->Value.lpszW, hr);
 				error = std::wstring(L"Error in group '") + lpGroupName->Value.lpszW + L"', unable to send e-mail";
-				goto exit;
+				return hr;
 			}
 		} else if (setRecips.find(strEmail) == setRecips.end()) {
 			recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
@@ -157,11 +155,6 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 				convert_to<std::string>(strEmail).c_str());
 		}
 	}
-
-exit:
-	if(lpRowSet)
-		FreeProws(lpRowSet);
-		
 	return hr;
 }
 
@@ -190,73 +183,56 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 	object_ptr<IDistList> lpGroup;
 	ULONG ulType = 0;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
 	memory_ptr<SPropValue> lpEmailAddress;
 
 	if (lpGroupEntryID == nullptr || lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpGroupEntryID->Value.bin.lpb), nullptr, 0, &ulType, &~lpGroup) != hrSuccess || ulType != MAPI_DISTLIST) {
 		// Entry id for group was not given, or the group could not be opened, or the entryid was not a group (eg one-off entryid)
 		// Therefore resolve group name, and open that instead.
-		
-		if(lpGroupName == NULL) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
-		
-		if ((hr = MAPIAllocateBuffer(sizeof(SRowSet), (void **)&lpRows)) != hrSuccess)
-			goto exit;
+		if (lpGroupName == nullptr)
+			return MAPI_E_NOT_FOUND;
+
+		rowset_ptr lpRows;
+		hr = MAPIAllocateBuffer(sizeof(SRowSet), &~lpRows);
+		if (hr != hrSuccess)
+			return hr;
 		lpRows->cRows = 1;
 		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpRows->aRow[0].lpProps)) != hrSuccess)
-			goto exit;
+			return hr;
 		lpRows->aRow[0].cValues = 1;
 		
 		lpRows->aRow[0].lpProps[0].ulPropTag = PR_DISPLAY_NAME_W;
 		lpRows->aRow[0].lpProps[0].Value.lpszW = lpGroupName->Value.lpszW;
-		
-		hr = lpAdrBook->ResolveName(0, MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, NULL, (LPADRLIST)lpRows);
+		hr = lpAdrBook->ResolveName(0, MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, NULL, reinterpret_cast<ADRLIST *>(lpRows.get()));
 		if(hr != hrSuccess)
-			goto exit;
-			
+			return hr;
 		lpGroupEntryID = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ENTRYID);
-		if(!lpGroupEntryID) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
+		if (lpGroupEntryID == nullptr)
+			return MAPI_E_NOT_FOUND;
 
 		// Open resolved entry
 		hr = lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpGroupEntryID->Value.bin.lpb), nullptr, 0, &ulType, &~lpGroup);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 			
 		if(ulType != MAPI_DISTLIST) {
 			ec_log_debug("Expected group, but opened type %d", ulType);
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return MAPI_E_INVALID_PARAMETER;
 		}
 	}
 	hr = HrGetOneProp(lpGroup, PR_EMAIL_ADDRESS_W, &~lpEmailAddress);
 	if(hr != hrSuccess)
-		goto exit;
-		
-	if(setGroups.find(lpEmailAddress->Value.lpszW) != setGroups.end()) {
+		return hr;
+	if (setGroups.find(lpEmailAddress->Value.lpszW) != setGroups.end())
 		// Group loops in nesting
-		hr = MAPI_E_TOO_COMPLEX;
-		goto exit;
-	}
+		return MAPI_E_TOO_COMPLEX;
 	
 	// Add group name to list of processed groups
 	setGroups.insert(lpEmailAddress->Value.lpszW);
 	hr = lpGroup->GetContentsTable(MAPI_UNICODE, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = HrAddRecipsFromTable(lpAdrBook, lpTable, recipients, setGroups, setRecips, bAllowEveryone, true);
-	if(hr != hrSuccess)
-		goto exit;
-	
-exit:
-	if(lpRows)
-		FreeProws(lpRows);
-	return hr;
+		return hr;
+	return HrAddRecipsFromTable(lpAdrBook, lpTable, recipients, setGroups,
+	       setRecips, bAllowEveryone, true);
 }
 
 HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
@@ -265,8 +241,6 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
     bool bAlwaysExpandDistrList)
 {
 	HRESULT hr = hrSuccess;
-	SRestriction sRestriction;
-	SPropValue sRestrictProp;
 	object_ptr<IMAPITable> lpRTable;
 	bool bResend = false;
 	std::set<std::wstring> setGroups; // Set of groups to make sure we don't get into an expansion-loop
@@ -284,15 +258,13 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 
 	// When resending, only send to MAPI_P1 recipients
 	if(bResend) {
-		sRestriction.rt = RES_PROPERTY;
-		sRestriction.res.resProperty.relop = RELOP_EQ;
-		sRestriction.res.resProperty.ulPropTag = PR_RECIPIENT_TYPE;
-		sRestriction.res.resProperty.lpProp = &sRestrictProp;
-
+		SPropValue sRestrictProp;
 		sRestrictProp.ulPropTag = PR_RECIPIENT_TYPE;
 		sRestrictProp.Value.ul = MAPI_P1;
 
-		hr = lpRTable->Restrict(&sRestriction, TBL_BATCH);
+		hr = ECPropertyRestriction(RELOP_EQ, PR_RECIPIENT_TYPE,
+		     &sRestrictProp, ECRestriction::Cheap)
+		     .RestrictTable(lpRTable, TBL_BATCH);
 		if (hr != hrSuccess)
 			return hr;
 	}

@@ -20,7 +20,6 @@
 #include "MAPIConsoleTable.h"
 #include "ConsoleTable.h"
 #include <kopano/mapi_ptr.h>
-#include <kopano/mapi_ptr/mapi_rowset_ptr.h>
 #include <kopano/stringutil.h>
 
 namespace KC {

@@ -1134,15 +1134,15 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 
 	for (const auto &abe : m_lABEntries) {
 		ULONG ulObjType;
-		LPABCONT lpABContainer = NULL;
-		LPMAPITABLE lpABHierarchy = NULL;
+		object_ptr<IABContainer> lpABContainer;
+		object_ptr<IMAPITable> lpABHierarchy;
 		memory_ptr<SPropTagArray> lpPropArray;
 
-		hr = abe.lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0, &ulObjType, reinterpret_cast<IUnknown **>(&lpABContainer));
+		hr = abe.lpABLogon->OpenEntry(0, nullptr, &IID_IABContainer, 0,
+		     &ulObjType, &~lpABContainer);
 		if (hr != hrSuccess)
 			goto next_container;
-
-		hr = lpABContainer->GetHierarchyTable(ulFlags, &lpABHierarchy);
+		hr = lpABContainer->GetHierarchyTable(ulFlags, &~lpABHierarchy);
 		if (hr != hrSuccess)
 			goto next_container;
 		hr = lpABHierarchy->QueryColumns(TBL_ALL_COLUMNS, &~lpPropArray);
@@ -1154,13 +1154,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		lHierarchies.push_back(lpABHierarchy);
 
 	next_container:
-		if (lpABContainer)
-			lpABContainer->Release();
-		lpABContainer = NULL;
-
-		if (lpABHierarchy)
-			lpABHierarchy->Release();
-		lpABHierarchy = NULL;
+		;
 	}
 
 	// remove key row
@@ -1181,14 +1175,13 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 
 	n = 0;
 	for (const auto mt : lHierarchies) {
-		LPSRowSet lpsRows = NULL;
-
 		hr = mt->SetColumns(lpColumns, 0);
 		if (hr != hrSuccess)
 			goto exit;
 
 		while (true) {
-			hr = mt->QueryRows(1, 0, &lpsRows);
+			rowset_ptr lpsRows;
+			hr = mt->QueryRows(1, 0, &~lpsRows);
 			if (hr != hrSuccess)
 				goto exit;
 			if (lpsRows->cRows == 0)
@@ -1198,14 +1191,9 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 			lpsRows->aRow[0].lpProps[stProps.size()].Value.ul = n++;
 
 			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpsRows->aRow[0].lpProps, lpsRows->aRow[0].cValues);
-
-			FreeProws(lpsRows);
-			lpsRows = NULL;
-
 			if(hr != hrSuccess)
 				goto exit;
 		}
-		FreeProws(lpsRows);
 	}
 
 	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);

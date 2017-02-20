@@ -25,6 +25,7 @@
 #include "ECACL.h"
 #include <kopano/ECABEntryID.h>
 #include <kopano/ECGetText.h> // defines the wonderful macro "_"
+#include <kopano/Util.h>
 
 namespace KC { namespace helpers {
 

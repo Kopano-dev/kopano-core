@@ -88,6 +88,16 @@ public:
 	void			FreeResult(DB_RESULT sResult);
 
 private:
+	class autolock : private std::unique_lock<std::recursive_mutex> {
+		public:
+		autolock(KCMDatabaseMySQL &p) :
+			std::unique_lock<std::recursive_mutex>(p.m_hMutexMySql, std::defer_lock_t())
+		{
+			if (p.m_bAutoLock)
+				lock();
+		}
+	};
+
 	ECRESULT InitEngine();
 	ECRESULT IsInnoDBSupported();
 
@@ -96,15 +106,11 @@ private:
 	unsigned int GetAffectedRows();
 	unsigned int GetInsertId();
 
-	// Datalocking methods
-	bool Lock();
-	bool UnLock();
-
 	// Connection methods
 	bool isConnected();
 
 	bool m_bMysqlInitialize = false, m_bConnected = false;
-	bool m_bAutoLock = true, m_bLocked = false;
+	bool m_bAutoLock = true;
 	unsigned int m_ulMaxAllowedPacket = KC_DFL_MAX_PACKET_SIZE;
 	MYSQL				m_lpMySQL;
 	std::recursive_mutex m_hMutexMySql;

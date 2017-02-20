@@ -21,6 +21,7 @@
 #include <mapidefs.h>
 #include <mapix.h>
 #include <mapiutil.h>
+#include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
 #include "freebusyutil.h"
 #include <kopano/stringutil.h>
@@ -106,9 +107,8 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	HRESULT			hr = S_OK;
 	object_ptr<IMAPIFolder> lpFreeBusyFolder;
 	object_ptr<IMAPITable> lpMapiTable;
-	SRestriction	sRestriction;
 	SPropValue		sPropUser;
-	LPSRowSet		lpRows = NULL;
+	rowset_ptr lpRows;
 	ULONG			ulObjType = 0;
 	object_ptr<IMessage> lpMessage;
 	ULONG			ulMvItems = 0;
@@ -122,43 +122,31 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	enum eFreeBusyTablePos{ FBPOS_ENTRYID};
 
 	if(lpSession == NULL || lpPublicStore == NULL || lppMessage == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if(cbUserEntryID == 0 || lpUserEntryID == NULL){
-		hr = MAPI_E_INVALID_ENTRYID;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
+	if(cbUserEntryID == 0 || lpUserEntryID == nullptr)
+		return MAPI_E_INVALID_ENTRYID;
 
 	// GetFreeBusyFolder  
 	hr = GetFreeBusyFolder(lpPublicStore, &~lpFreeBusyFolder);
  	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpFreeBusyFolder->GetContentsTable(0, &~lpMapiTable);
  	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sPropUser.ulPropTag = PR_ADDRESS_BOOK_ENTRYID;
 	sPropUser.Value.bin.cb = cbUserEntryID;
 	sPropUser.Value.bin.lpb = (LPBYTE)lpUserEntryID;
-
-	sRestriction.rt = RES_PROPERTY;
-	sRestriction.res.resProperty.ulPropTag = PR_ADDRESS_BOOK_ENTRYID;
-	sRestriction.res.resProperty.relop = RELOP_EQ;
-	sRestriction.res.resProperty.lpProp = &sPropUser;
-
-	hr = lpMapiTable->Restrict(&sRestriction, TBL_BATCH);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_ADDRESS_BOOK_ENTRYID, &sPropUser, ECRestriction::Cheap)
+	     .RestrictTable(lpMapiTable, TBL_BATCH);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpMapiTable->SetColumns(sPropsFreebusyTable, TBL_BATCH);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpMapiTable->QueryRows(1, 0, &lpRows);
+		return hr;
+	hr = lpMapiTable->QueryRows(1, 0, &~lpRows);
  	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if(lpRows->cRows == 1 && lpRows->aRow[0].lpProps[FBPOS_ENTRYID].ulPropTag == PR_ENTRYID)
 	{
@@ -167,58 +155,58 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		     reinterpret_cast<ENTRYID *>(lpRows->aRow[0].lpProps[FBPOS_ENTRYID].Value.bin.lpb),
 		     &IID_IMessage, MAPI_MODIFY, &ulObjType, &~lpMessage);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	else if (bCreateIfNotExist == TRUE)
 	{
 		//Create new freebusymessage
 		hr = lpFreeBusyFolder->CreateMessage(nullptr, 0, &~lpMessage);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		//Set the user entry id 
 		hr = lpMessage->SetProps(1, &sPropUser, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Set the accountname in properties PR_DISPLAY_NAME and PR_SUBJECT
 		object_ptr<IAddrBook> lpAdrBook;
 		hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAdrBook);
  		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		object_ptr<IMailUser> lpMailUser;
 		hr = lpAdrBook->OpenEntry(cbUserEntryID, lpUserEntryID, &IID_IMailUser, MAPI_BEST_ACCESS, &ulObjType, &~lpMailUser);
  		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = HrGetOneProp(lpMailUser, PR_ACCOUNT, &~lpPropName);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS, &~lpPropEmail);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		//Set the displayname with accountname 
 		lpPropName->ulPropTag = PR_DISPLAY_NAME;
 		hr = lpMessage->SetProps(1, lpPropName, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		//Set the subject with accountname 
 		lpPropName->ulPropTag = PR_SUBJECT;
 		hr = lpMessage->SetProps(1, lpPropName, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		//Set the PR_FREEBUSY_EMA with the email address
 		lpPropEmail->ulPropTag = PR_FREEBUSY_EMAIL_ADDRESS;
 		hr = lpMessage->SetProps(1, lpPropEmail, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		//Save message
 		hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Update the user freebusy entryid array
 
@@ -226,13 +214,13 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 			// Get entryid
 			hr = HrGetOneProp(lpMessage, PR_ENTRYID, &~lpPropFBMessage);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			//Open root folder
 			object_ptr<IMAPIFolder> lpFolder;
 			hr = lpUserStore->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			ulMvItems = 4;
 			// Get current freebusy entryid array
@@ -241,13 +229,13 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 
 			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropfbEntryidsNew);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpPropfbEntryidsNew->Value.MVbin.cValues = ulMvItems;
 
 			hr = MAPIAllocateMore(sizeof(SBinary)*lpPropfbEntryidsNew->Value.MVbin.cValues, lpPropfbEntryidsNew, (void**)&lpPropfbEntryidsNew->Value.MVbin.lpbin);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			memset(lpPropfbEntryidsNew->Value.MVbin.lpbin, 0, sizeof(SBinary)*lpPropfbEntryidsNew->Value.MVbin.cValues);
 
@@ -266,47 +254,37 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 
 			hr = lpFolder->SetProps(1, lpPropfbEntryidsNew, NULL);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			hr = lpFolder->SaveChanges(KEEP_OPEN_READONLY);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			// Get the inbox
 			hr = lpUserStore->GetReceiveFolder(nullptr, 0, &cbInBoxEntry, &~lpInboxEntry, nullptr);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			// Open the inbox
 			hr = lpUserStore->OpenEntry(cbInBoxEntry, lpInboxEntry, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpFolder->SetProps(1, lpPropfbEntryidsNew, NULL);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpFolder->SaveChanges(KEEP_OPEN_READONLY);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 	}
 	else
 	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
-	hr = lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	if(lpRows)
-		FreeProws(lpRows);
-
-	return hr;
+	return lpMessage->QueryInterface(IID_IMessage,
+	       reinterpret_cast<void **>(lppMessage));
 }
 
 static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,

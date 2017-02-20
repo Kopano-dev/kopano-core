@@ -20,6 +20,7 @@
 #include <kopano/platform.h>
 
 #include <cmath>
+#include <mapiutil.h>
 
 extern "C" {
 	// Remove these defines to remove warnings
@@ -771,8 +772,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 
 exit:
 	if(MAPI_G(hr) != hrSuccess && lpBase == NULL && lpAdrList != NULL)
-		MAPIFreeBuffer(lpAdrList); // OR FreeProws() ?
-
+		FreePadrlist(lpAdrList);
 	return MAPI_G(hr);
 }
 

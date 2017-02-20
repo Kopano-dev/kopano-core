@@ -824,10 +824,10 @@ HRESULT POP3::HrMakeMailList() {
 	if (hr != hrSuccess)
 		return hr;
 
-	LPSRowSet lpRows = nullptr;
-	hr = lpTable->QueryRows(-1, 0, &lpRows);
+	rowset_ptr lpRows;
+	hr = lpTable->QueryRows(-1, 0, &~lpRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lstMails.clear();
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
@@ -849,11 +849,7 @@ HRESULT POP3::HrMakeMailList() {
 		sMailListItem.ulSize = lpRows->aRow[i].lpProps[SIZE].Value.l;
 		lstMails.push_back(std::move(sMailListItem));
 	}
-
-exit:
-	if (lpRows)
-		FreeProws(lpRows);
-	return hr;
+	return hrSuccess;
 }
 
 /** 

@@ -513,11 +513,11 @@ static HRESULT kc_send_fwdabort_notice(KCHL::KStore &&store, const char *addr)
  * @return MAPI error code
  */
 static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
-    IMAPIProp *lpMessage, ADRLIST *lpRuleRecipients, bool bOpDelegate,
+    IMAPIProp *lpMessage, const ADRLIST *lpRuleRecipients, bool bOpDelegate,
     bool bIncludeAsP1, ADRLIST **lppNewRecipients)
 {
 	HRESULT hr = hrSuccess;
-	LPADRLIST lpRecipients = NULL;
+	adrlist_ptr lpRecipients;
 	memory_ptr<SPropValue> lpMsgClass;
 	std::wstring strFromName, strFromType, strFromAddress;
 	std::wstring strRuleName, strRuleType, strRuleAddress;
@@ -530,8 +530,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		ec_log_err("Unable to get from address 0x%08X", hr);
 		return hr;
 	}
-
-	hr = MAPIAllocateBuffer(CbNewADRLIST(lpRuleRecipients->cEntries), (void**)&lpRecipients);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(lpRuleRecipients->cEntries), &~lpRecipients);
 	if (hr != hrSuccess) {
 		ec_log_err("CheckRecipients(): MAPIAllocateBuffer failed %x", hr);
 		return hr;
@@ -548,13 +547,12 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		     strRuleName, strRuleType, strRuleAddress);
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to get rule address 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 		auto rule_addr_std = convert_to<std::string>(strRuleAddress);
 		if (!proc_fwd_allowed(fwd_whitelist, rule_addr_std.c_str())) {
-			hr = MAPI_E_NO_ACCESS;
 			kc_send_fwdabort_notice(orig_store, rule_addr_std.c_str());
-			goto exit;
+			return MAPI_E_NO_ACCESS;
 		}
 		if (strFromAddress == strRuleAddress &&
 		    // Hack for Meeting requests
@@ -569,15 +567,14 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 
 		if (hr != hrSuccess) {
 			ec_log_err("CheckRecipients(): Util::HrCopyPropertyArray failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
         if(bIncludeAsP1) {
 			auto lpRecipType = PpropFindProp(lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, lpRecipients->aEntries[lpRecipients->cEntries].cValues, PR_RECIPIENT_TYPE);
             if(!lpRecipType) {
                 ec_log_crit("Attempt to add recipient with no PR_RECIPIENT_TYPE");
-                hr = MAPI_E_INVALID_PARAMETER;
-                goto exit;
+				return MAPI_E_INVALID_PARAMETER;
             }
             
             lpRecipType->Value.ul = MAPI_P1;
@@ -587,8 +584,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 
 	if (lpRecipients->cEntries == 0) {
 		ec_log_warn("Loop protection blocked all recipients, skipping rule");
-		hr = MAPI_E_UNABLE_TO_COMPLETE;
-		goto exit;
+		return MAPI_E_UNABLE_TO_COMPLETE;
 	}
 
 	if (lpRecipients->cEntries != lpRuleRecipients->cEntries)
@@ -596,15 +592,11 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 
 	*lppNewRecipients = lpRecipients;
 	lpRecipients = NULL;
-
-exit:
-	if (lpRecipients)
-		FreeProws((LPSRowSet)lpRecipients);
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
-    IMessage *lpOrigMessage, LPADRLIST lpRuleRecipients,
+    IMessage *lpOrigMessage, const ADRLIST *lpRecipients,
     bool bOpDelegate, bool bDoPreserveSender, bool bDoNotMunge,
     bool bForwardAsAttachment, IMessage **lppMessage)
 {
@@ -612,7 +604,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	LPMESSAGE lpFwdMsg = NULL;
 	memory_ptr<SPropValue> lpSentMailEntryID, lpOrigSubject;
 	memory_ptr<SPropTagArray> lpExclude;
-	LPADRLIST lpRecipients = NULL;
+	adrlist_ptr filtered_recips;
 	ULONG ulANr = 0;
 	static constexpr const SizedSPropTagArray(10, sExcludeFromCopyForward) = {10, {
 		PR_TRANSPORT_MESSAGE_HEADERS,
@@ -638,23 +630,22 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	ULONG cfp = 0;
 	wstring strSubject;
 
-	if (lpRuleRecipients == NULL || lpRuleRecipients->cEntries == 0) {
+	if (lpRecipients == NULL || lpRecipients->cEntries == 0) {
 		ec_log_crit("No rule recipient");
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exitpm;
 	}
 
-	hr = CheckRecipients(lpAdrBook, lpOrigStore, lpOrigMessage, lpRuleRecipients,
-	     bOpDelegate, bDoNotMunge, &lpRecipients);
+	hr = CheckRecipients(lpAdrBook, lpOrigStore, lpOrigMessage, lpRecipients,
+	     bOpDelegate, bDoNotMunge, &~filtered_recips);
 	if (hr == MAPI_E_NO_ACCESS) {
 		ec_log_info("K-1904: Forwarding not permitted. Ending rule processing.");
 		goto exitpm;
 	}
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 		goto exitpm;
-	if (hr != hrSuccess)
-		// use rule recipients without filter
-		lpRecipients = lpRuleRecipients;
+	if (hr == hrSuccess)
+		lpRecipients = filtered_recips.get();
 	hr = HrGetOneProp(lpOrigStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentMailEntryID);
 	if (hr != hrSuccess)
 		goto exitpm;
@@ -773,8 +764,6 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 
 	*lppMessage = lpFwdMsg;
  exitpm:
-	if (lpRecipients && lpRecipients != lpRuleRecipients)
-		FreeProws((LPSRowSet)lpRecipients);
 	return hr;
 }
 
@@ -894,7 +883,6 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 	ULONG ulObjType;
 	bool bAddFwdFlag = false;
 	bool bMoved = false;
-	LPSRowSet lpRowSet = NULL;
 	static constexpr const SizedSPropTagArray(11, sptaRules) =
 		{11, {PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
 		PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
@@ -953,7 +941,8 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 
 	while (1) {
 		const SPropValue *lpProp = NULL;
-	        hr = lpView->QueryRows(1, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+	        hr = lpView->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
 			ec_log_err("HrProcessRules(): QueryRows failed %x", hr);
 				goto exit;
@@ -972,7 +961,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		auto lpRuleState = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_STATE);
 		if (lpRuleState != nullptr && !(lpRuleState->Value.i & ST_ENABLED)) {
 			ec_log_debug("Rule '%s' is disabled, skipping...", strRule.c_str());
-			goto nextrule;		// rule is disabled
+			continue;
 		}
 
 		lpCondition = NULL;
@@ -984,7 +973,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			lpCondition = (LPSRestriction)lpProp->Value.lpszA;
 		if (!lpCondition) {
 			ec_log_debug("Rule '%s' has no contition, skipping...", strRule.c_str());
-			goto nextrule;
+			continue;
 		}
 
 		lpProp = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_ACTIONS);
@@ -993,7 +982,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			lpActions = (ACTIONS*)lpProp->Value.lpszA;
 		if (!lpActions) {
 			ec_log_debug("Rule '%s' has no action, skipping...", strRule.c_str());
-			goto nextrule;
+			continue;
 		}
 		
 		// test if action should be done...
@@ -1001,7 +990,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		hr = TestRestriction(lpCondition, *lppMessage, createLocaleFromName(""));
 		if (hr != hrSuccess) {
 			ec_log_info("Rule %s doesn't match: 0x%08x", strRule.c_str(), hr);
-			goto nextrule;
+			continue;
 		}	
 
 		ec_log_info((std::string)"Rule " + strRule + " matches");
@@ -1198,10 +1187,6 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 
 		if (lpRuleState && (lpRuleState->Value.i & ST_EXIT_LEVEL))
 			break;
-
-nextrule:
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
 
 	if (bAddFwdFlag) {
@@ -1224,9 +1209,6 @@ nextrule:
 	// The message was moved to another folder(s), do not save it in the inbox anymore, so cancel it.
 	if (hr == hrSuccess && bMoved)
 		hr = MAPI_E_CANCEL;
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-
 	if (hr != hrSuccess)
 		sc -> countInc("rules", "invocations_fail");
 

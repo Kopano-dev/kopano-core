@@ -366,7 +366,6 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 	HRESULT hr = hrSuccess;
 	SPropValue sRestrictProp;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRowSet = NULL;
 	ECQUOTASTATUS sQuotaStatus;
 	ULONG i, u;
 	static constexpr const SizedSPropTagArray(5, sCols) =
@@ -377,12 +376,12 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 	hr = lpAdminStore->OpenProperty(PR_EC_STATSTABLE_USERS, &IID_IMAPITable, 0, 0, &~lpTable);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open stats table for quota sizes, error 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpTable->SetColumns(sCols, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set columns on stats table for quota sizes, error 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	if (lpecCompany->sCompanyId.cb != 0 && lpecCompany->sCompanyId.lpb != NULL) {
@@ -395,19 +394,20 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 			ECPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_A, &sRestrictProp, ECRestriction::Cheap)
 		).CreateMAPIRestriction(&~lpsRestriction, ECRestriction::Cheap);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = lpTable->Restrict(lpsRestriction, MAPI_DEFERRED_ERRORS);
 		if (hr != hrSuccess) {
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to restrict stats table, error 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 	}
 
 	while (TRUE) {
-		hr = lpTable->QueryRows(50, 0, &lpRowSet);
+		rowset_ptr lpRowSet;
+		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to receive stats table data, error 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 
 		if (lpRowSet->cRows == 0)
@@ -464,14 +464,8 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 			if (hr != hrSuccess)
 				++m_ulFailed;
 		}
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
 	}
-
-exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -854,15 +848,15 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
     LPADRLIST *lppAddrList)
 {
 	HRESULT hr = hrSuccess;
-	LPADRLIST lpAddrList = NULL;
+	adrlist_ptr lpAddrList;
 	ULONG cbUserEntryid = 0;
 	memory_ptr<ENTRYID> lpUserEntryid;
 	ULONG cbUserSearchKey = 0;
 	memory_ptr<unsigned char> lpUserSearchKey;
 
-	hr = MAPIAllocateBuffer(CbNewADRLIST(cToUsers), (void**)&lpAddrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(cToUsers), &~lpAddrList);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpAddrList->cEntries = cToUsers;
 	for (ULONG i = 0; i < cToUsers; ++i) {
@@ -871,13 +865,13 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAddrList->aEntries[i].cValues,
 						  (void**)&lpAddrList->aEntries[i].rgPropVals);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		hr = ECCreateOneOff((LPTSTR)lpToUsers[i].lpszFullName, (LPTSTR)"SMTP", (LPTSTR)lpToUsers[i].lpszMailAddress,
 			MAPI_SEND_NO_RICH_INFO, &cbUserEntryid, &~lpUserEntryid);
 		if (hr != hrSuccess) {
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed creating one-off address: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 
 		hr = HrCreateEmailSearchKey("SMTP",
@@ -885,7 +879,7 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 		     &cbUserSearchKey, &~lpUserSearchKey);
 		if (hr != hrSuccess) {
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed creating email searchkey: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 
 		lpAddrList->aEntries[i].rgPropVals[0].ulPropTag = PR_ROWID;
@@ -906,7 +900,7 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 		hr = MAPIAllocateMore(cbUserEntryid, lpAddrList->aEntries[i].rgPropVals,
 							  (void**)&lpAddrList->aEntries[i].rgPropVals[5].Value.bin.lpb);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		lpAddrList->aEntries[i].rgPropVals[5].ulPropTag = PR_ENTRYID;
 		lpAddrList->aEntries[i].rgPropVals[5].Value.bin.cb = cbUserEntryid;
@@ -916,20 +910,15 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 		hr = MAPIAllocateMore(cbUserSearchKey, lpAddrList->aEntries[i].rgPropVals,
 							  (void**)&lpAddrList->aEntries[i].rgPropVals[6].Value.bin.lpb);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpAddrList->aEntries[i].rgPropVals[6].ulPropTag = PR_SEARCH_KEY;
 		lpAddrList->aEntries[i].rgPropVals[6].Value.bin.cb = cbUserSearchKey;
 		memcpy(lpAddrList->aEntries[i].rgPropVals[6].Value.bin.lpb,
 			   lpUserSearchKey, cbUserSearchKey);
 	}
 
-	*lppAddrList = lpAddrList;
-
-exit:		
-	if (hr != hrSuccess && lpAddrList)
-		FreePadrlist(lpAddrList);
-
-	return hr;
+	*lppAddrList = lpAddrList.release();
+	return hrSuccess;
 }
 
 /**
@@ -1160,7 +1149,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 	MessagePtr ptrQuotaTSMessage;
 	bool bTimeout;
 	memory_ptr<SPropValue> lpsObject;
-	LPADRLIST lpAddrList = NULL;
+	adrlist_ptr lpAddrList;
 	memory_ptr<ECUSER> lpecFromUser, lpToUsers;
 	ULONG cToUsers = 0;
 	memory_ptr<ECQUOTA> lpecQuota;
@@ -1172,25 +1161,25 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 	hr = CheckQuotaInterval(lpStore, &~ptrQuotaTSMessage, &bTimeout);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to query mail timeout value: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	if (!bTimeout) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Not sending message since the warning mail has already been sent in the past time interval");
-		goto exit;
+		return hr;
 	}
 	hr = HrGetOneProp(m_lpMDBAdmin, PR_EC_OBJECT, &~lpsObject);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get internal object, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = reinterpret_cast<IECUnknown *>(lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get service admin, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpServiceAdmin->GetUser(lpecCompany->sAdministrator.cb, (LPENTRYID)lpecCompany->sAdministrator.lpb, 0, &~lpecFromUser);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (lpecUser) {
 		cbUserId = lpecUser->sUserId.cb;
@@ -1210,7 +1199,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 
 	hr = lpServiceAdmin->GetQuota(cbUserId, lpUserId, false, &~lpecQuota);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sVars.ulStatus = lpecQuotaStatus->quotaStatus;
 	sVars.strStoreSize = str_storage(lpecQuotaStatus->llStoreSize);
@@ -1220,11 +1209,10 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 
 	hr = lpServiceAdmin->GetQuotaRecipients(cbUserId, lpUserId, 0, &cToUsers, &~lpToUsers);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = CreateRecipientList(cToUsers, lpToUsers, &lpAddrList);
+		return hr;
+	hr = CreateRecipientList(cToUsers, lpToUsers, &~lpAddrList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	/* Go through all stores to deliver the mail to all recipients.
 	 *
@@ -1247,9 +1235,5 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 
 	if (UpdateQuotaTimestamp(ptrQuotaTSMessage) != hrSuccess)
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to update last mail quota timestamp: 0x%08X", hr);
-
-exit:
-	if (lpAddrList)
-		FreePadrlist(lpAddrList);
-	return hr;
+	return hrSuccess;
 }
