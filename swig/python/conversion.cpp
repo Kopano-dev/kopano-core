@@ -789,8 +789,14 @@ SPropValue *List_to_p_SPropValue(PyObject *object, ULONG *cValues,
 
 	size = PyObject_Size(object);
 
-	if (MAPIAllocateBuffer(sizeof(SPropValue)*size, (void**)&lpProps) != hrSuccess)
-		goto exit;
+	if(lpBase != nullptr) {
+		if (MAPIAllocateMore(sizeof(SPropValue)*size, lpBase, reinterpret_cast<void**>(&lpProps)) != hrSuccess)
+			goto exit;
+	} else {
+		if (MAPIAllocateBuffer(sizeof(SPropValue)*size, reinterpret_cast<void**>(&lpProps)) != hrSuccess)
+			goto exit;
+		lpBase = lpProps;
+	}
 
 	memset(lpProps, 0, sizeof(SPropValue)*size);
 
