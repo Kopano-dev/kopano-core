@@ -17,7 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
+#include <algorithm>
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapispi.h>
@@ -1870,12 +1870,14 @@ HRESULT Util::HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::w
  */
 HRESULT Util::HrHtmlToText(IStream *html, IStream *text, ULONG ulCodepage)
 {
-	wstring wstrHTML;
+	std::wstring wstrHTML, filt;
 	CHtmlToTextParser	parser;
 	HRESULT hr = HrConvertStreamToWString(html, ulCodepage, &wstrHTML);
 	if(hr != hrSuccess)
 		return hr;
-	if (!parser.Parse(wstrHTML.c_str()))
+	std::copy_if(wstrHTML.begin(), wstrHTML.end(), std::back_inserter(filt),
+		[](wchar_t c) { return c != L'\0'; });
+	if (!parser.Parse(filt.c_str()))
 		return MAPI_E_CORRUPT_DATA;
 
 	std::wstring &strText = parser.GetText();
