@@ -18,6 +18,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <algorithm>
+#include <cwctype>
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapispi.h>
@@ -1988,9 +1989,9 @@ HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
 				type = RTF_TAG_TYPE_HEADER;
 			} else if(StrCaseCompare(lpwHTML, L"<LINK", pos)) {
 				type = RTF_TAG_TYPE_HEADER;
-			} else if(StrCaseCompare(lpwHTML, L"<H", pos) && isdigit(lpwHTML[pos+2]) ) {
+			} else if (StrCaseCompare(lpwHTML, L"<H", pos) && iswdigit(lpwHTML[pos+2])) {
 				type = RTF_TAG_TYPE_HEADER;
-			} else if(StrCaseCompare(lpwHTML, L"</H", pos) && isdigit(lpwHTML[pos+3]) ) {
+			} else if (StrCaseCompare(lpwHTML, L"</H", pos) && iswdigit(lpwHTML[pos+3])) {
 				type = RTF_TAG_TYPE_HEADER;
 			} else if(StrCaseCompare(lpwHTML, L"<TITLE", pos)) {
 				type = RTF_TAG_TYPE_TITLE;
