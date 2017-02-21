@@ -355,11 +355,9 @@
 	"$1 = NULL;"
 
 // Output
-%typemap(in,numinputs=0)	MAPILIST * ($basetype temp), MAPISTRUCT * ($basetype temp)
-	"temp = NULL; $1 = &temp;";
-%typemap(freearg) 	MAPILIST *, MAPISTRUCT *
+%typemap(in,numinputs=0)	MAPILIST * (KCHL::memory_ptr< std::remove_pointer<$basetype>::type > temp), MAPISTRUCT * (KCHL::memory_ptr< std::remove_pointer<$basetype>::type > temp)
 {
-	MAPIFreeBuffer(*$1);
+        $1 = &~temp;
 }
 
 // MAPICLASS (Class instances of MAPI objects)
@@ -450,17 +448,14 @@
 // Classes
 %apply MAPICLASS *{IMAPISession **, IProfAdmin **, IMsgServiceAdmin **, IMAPITable **, IMsgStore **, IMAPIFolder **, IMAPITable **, IStream **, IMessage **, IAttach **, IAddrBook **, IProviderAdmin **, IProfSect **, IUnknown **}
 
-// Specialization for LPSRowSet and LPADRLIST
-%typemap(arginit) LPSRowSet INPUT, ADRLIST *INPUT, LPADRLIST INPUT
-	"$1 = NULL;"
+// Specialization of MAPILIST * for rowset and adrlist types
 
-%typemap(freearg) LPSRowSet *OUTPUT, ADRLIST **OUTPUT, LPADRLIST *OUTPUT
+%typemap(in, numinputs=0) LPADRLIST *OUTPUT (KCHL::adrlist_ptr temp)
 {
-	FreeProws((LPSRowSet)*$1);
+       $1 = &~temp;
 }
 
-%typemap(freearg) ADRLIST *INOUT, LPSRowSet INOUT, LPSRowSet INPUT, LPADRLIST INPUT
+%typemap(in, numinputs=0) LPSRowSet *OUTPUT (KCHL::rowset_ptr temp)
 {
-    FreeProws((LPSRowSet)$1);
+        $1 = &~temp;
 }
-
