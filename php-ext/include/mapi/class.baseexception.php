@@ -16,8 +16,6 @@
  *
  */
 
-?>
-<?php
 /**
  * Defines a base exception class for all custom exceptions, so every exceptions that
  * is thrown/caught by this application should extend this base class and make use of it.

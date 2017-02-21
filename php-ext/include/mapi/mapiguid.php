@@ -16,9 +16,6 @@
  *
  */
 
-?>
-<?php
-
 define('IID_IStream', 							makeguid("{0000000c-0000-0000-c000-000000000046}"));
 define('IID_IMAPITable',						makeguid("{00020301-0000-0000-c000-000000000046}"));
 define('IID_IMessage', 							makeguid("{00020307-0000-0000-c000-000000000046}"));

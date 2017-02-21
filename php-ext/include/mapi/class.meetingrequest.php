@@ -16,9 +16,6 @@
  *
  */
 
-?>
-<?php
-
 class Meetingrequest {
 	/*
 	 * NOTE

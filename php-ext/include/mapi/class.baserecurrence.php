@@ -16,8 +16,6 @@
  *
  */
 
-?>
-<?php
 	/**
 	 * BaseRecurrence
 	 * this class is superclass for recurrence for appointments and tasks. This class provides all

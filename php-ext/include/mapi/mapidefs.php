@@ -16,8 +16,6 @@
  *
  */
 
-?>
-<?php
 /* Resource types as defined in main.h of the mapi extension */ 
 define('RESOURCE_SESSION'                        ,'MAPI Session');
 define('RESOURCE_TABLE'                          ,'MAPI Table');

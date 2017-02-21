@@ -16,8 +16,6 @@
  *
  */
 
-?>
-<?php
 	/*
 	* In general
 	*
@@ -961,4 +959,3 @@
 			$this->doUpdate($prefix, $prefixComplete);
 		}
 	}
-?>
