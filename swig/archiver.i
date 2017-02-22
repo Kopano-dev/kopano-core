@@ -3,6 +3,7 @@
 
 %{
 	#include <kopano/zcdefs.h>
+	#include <stdexcept>
 	#include "../../ECtools/archiver/Archiver.h"
 	#include <kopano/charset/convert.h>
 	#define TO_LPTST(s) ((s) ? converter.convert_to<LPTSTR>(s) : NULL)

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <exception>
 #include <memory>
 #include <mutex>
 #include <set>

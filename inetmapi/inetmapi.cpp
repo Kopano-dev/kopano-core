@@ -15,6 +15,7 @@
  *
  */
 
+#include <exception>
 #include <mutex>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>

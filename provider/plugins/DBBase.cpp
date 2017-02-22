@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <mutex>
+#include <stdexcept>
 #include "DBBase.h"
 #include <kopano/ECDefs.h>
 #include <kopano/EMSAbTag.h>

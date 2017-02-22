@@ -17,7 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
+#include <exception>
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapispi.h>

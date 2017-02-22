@@ -19,10 +19,10 @@
 #define KC_CMDUTIL_HPP 1
 
 #include <kopano/zcdefs.h>
+#include <stdexcept>
 #include "ECICS.h"
 #include "SOAPUtils.h"
 
-#include <exception>
 #include <map>
 #include <set>
 #include <list>

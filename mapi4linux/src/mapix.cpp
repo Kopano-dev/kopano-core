@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <exception>
 #include <mutex>
 #include <new>
 #include <unordered_map>

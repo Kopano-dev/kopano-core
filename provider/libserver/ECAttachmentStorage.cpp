@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <stdexcept>
 #include <climits>
 #include <mapidefs.h>
 #include <cerrno>

@@ -2,6 +2,7 @@
 #define _KCHL_HPP 1
 
 #include <kopano/zcdefs.h>
+#include <exception>
 #include <memory>
 #include <stdexcept>
 #include <string>

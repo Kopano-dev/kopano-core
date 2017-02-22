@@ -19,7 +19,7 @@
 #define HRException_INCLUDED
 
 #include <kopano/zcdefs.h>
-#include <exception>
+#include <stdexcept>
 
 namespace KC {
 

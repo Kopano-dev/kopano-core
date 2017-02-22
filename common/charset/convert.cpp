@@ -22,6 +22,7 @@
 
 #include <numeric>
 #include <vector>
+#include <stdexcept>
 #include <string>
 #include <kopano/stringutil.h>
 #include <cerrno>

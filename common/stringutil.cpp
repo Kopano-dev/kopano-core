@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <cctype>
 #include <kopano/stringutil.h>

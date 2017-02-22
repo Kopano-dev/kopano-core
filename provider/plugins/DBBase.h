@@ -23,7 +23,6 @@
 #include "plugin.h"
 #include <memory>
 #include <mutex>
-#include <stdexcept>
 #include <string>
 
 #include "ECDatabase.h"

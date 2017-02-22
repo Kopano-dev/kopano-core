@@ -21,7 +21,6 @@
 
 #include <memory>
 #include <mutex>
-#include <stdexcept>
 #include <string>
 #include <kopano/zcdefs.h>
 #include <kopano/ECIConv.h>

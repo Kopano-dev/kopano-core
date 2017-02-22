@@ -19,6 +19,7 @@
 
 #include <exception>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <list>
 #include <map>

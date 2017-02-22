@@ -16,7 +16,7 @@
  */
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
+#include <exception>
 #include <memory>
 #include <iostream>
 

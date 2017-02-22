@@ -16,8 +16,8 @@
  */
 
 #include <kopano/platform.h>
-#include <exception>
 #include <mutex>
+#include <stdexcept>
 #include <utility>
 #include <mapidefs.h>
 #include <mapitags.h>

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <exception>
 #include <utility>
 #include "VMIMEToMAPI.h"
 #include <kopano/ECGuid.h>
