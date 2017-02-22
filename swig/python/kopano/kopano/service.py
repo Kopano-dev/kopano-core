@@ -19,11 +19,13 @@ if sys.hexversion >= 0x03000000:
     from . import log as _log
     from . import utils as _utils
     from . import server as _server
+    from . import parser as _parser
 else:
     import config as _config
     import log as _log
     import utils as _utils
     import server as _server
+    import parser as _parser
 
 class Service:
     """
@@ -44,7 +46,7 @@ Encapsulates everything to create a simple service, such as:
         self.name = name
         self.__dict__.update(kwargs)
         if not options:
-            options, args = parser('cskpUPufmvVFw').parse_args()
+            options, args = _parser.parser('cskpUPufmvVFw').parse_args()
             args = [_decode(arg) for arg in args]
         self.options, self.args = options, args
         self.name = name
