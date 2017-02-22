@@ -459,13 +459,8 @@
 	FreeProws((LPSRowSet)*$1);
 }
 
-%typemap(freearg) ADRLIST *INOUT, LPADRLIST INOUT, LPSRowSet INOUT, LPSRowSet INPUT, ADRLIST *INPUT, LPADRLIST INPUT
+%typemap(freearg) ADRLIST *INOUT, LPSRowSet INOUT, LPSRowSet INPUT, LPADRLIST INPUT
 {
     FreeProws((LPSRowSet)$1);
 }
 
-%typemap(in) ADRLIST *INPUT, LPADRLIST INOUT
-{
-        $1 = List_to$mangle($input);
-        if(PyErr_Occurred()) goto fail;
-}

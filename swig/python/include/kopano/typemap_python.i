@@ -82,6 +82,15 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
         $1 = tmp;
 }
 
+// use adrlist_ptr for adrlists
+
+%typemap(in) ADRLIST *INPUT (KCHL::adrlist_ptr tmp), LPADRLIST INOUT (KCHL::adrlist_ptr tmp)
+{
+        tmp.reset(List_to$mangle($input));
+        if(PyErr_Occurred()) goto fail;
+        $1 = tmp;
+}
+
 %typemap(in)				LPROWLIST
 {
 	$1 = List_to_LPROWLIST($input);
