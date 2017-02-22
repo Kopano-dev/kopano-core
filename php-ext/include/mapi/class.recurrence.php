@@ -16,10 +16,6 @@
  *
  */
 
-?>
-<?php
-	include_once('class.baserecurrence.php');
-
 	/**
 	 * Recurrence 
 	 * @author Steve Hardy <steve@zarafa.com>
@@ -748,7 +744,7 @@
 			
 					$data = mapi_message_getprops($exception, array($this->proptags["basedate"]));
 					
-					if ($this->isSameDay($this->fromGMT($this->tz,$data[$this->proptags["basedate"]]), $base_date))
+					if (isset($data[$this->proptags["basedate"]]) && $this->isSameDay($this->fromGMT($this->tz, $data[$this->proptags["basedate"]]), $base_date))
 						return $tempattach;
 				}
 			}
@@ -1036,7 +1032,7 @@
 				foreach($recipientRows as $key => $recipient) {
 					$found = false;
 					foreach($exception_recips as $excep_recip)
-						if ($recipient[PR_SEARCH_KEY] == $excep_recip[PR_SEARCH_KEY])
+						if (isset($recipient[PR_SEARCH_KEY], $excep_recip[PR_SEARCH_KEY]) && $recipient[PR_SEARCH_KEY] == $excep_recip[PR_SEARCH_KEY])
 							$found = true;
 
 					if (!$found) {
@@ -1446,4 +1442,3 @@
 	.... ULONGx2 Constant: { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}.
 	
 	*/
-?>
