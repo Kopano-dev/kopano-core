@@ -33,7 +33,9 @@ from MAPI.Tags import (
     PR_EC_USERNAME_W, PR_EC_COMPANY_NAME_W, PR_MESSAGE_CLASS,
     PR_SUBJECT, PR_WLINK_FLAGS, PR_WLINK_ORDINAL,
     PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE, PR_WLINK_ENTRYID,
-    PR_FOLDER_DISPLAY_FLAGS, PR_WB_SF_ID
+    PR_FOLDER_DISPLAY_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
+    PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES,
+    PR_DELEGATE_FLAGS
 )
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue,
@@ -61,6 +63,7 @@ from .errors import NotFoundError
 from .autoaccept import AutoAccept
 from .outofoffice import OutOfOffice
 from .prop import Property
+from .delegation import Delegation
 
 from .compat import (
     hex as _hex, unhex as _unhex, decode as _decode, encode as _encode,
@@ -264,17 +267,23 @@ class Store(object):
         except MAPIErrorNotFound:
             pass
 
-    def delete(self, props):
-        """Delete properties from a Store
+    def delete(self, objects):
+        """Delete properties or delegations from a Store
 
-        :param props: The properties to remove
+        :param props: The object(s) to remove
         """
 
-        if isinstance(props, Property):
-            props = [props]
+        if isinstance(objects, (Property, Delegation)):
+            objects = [objects]
 
-        self.mapiobj.DeleteProps([p.proptag for p in props])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        props = [o for o in objects if isinstance(o, Property)]
+        if props:
+            self.mapiobj.DeleteProps([p.proptag for p in props])
+            self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+
+        delgs = [o for o in objects if isinstance(o, Delegation)]
+        for d in delgs:
+            d._delete()
 
     def folder(self, path=None, entryid=None, recurse=False, create=False): # XXX sloowowowww
         """ Return :class:`Folder` with given path or entryid; raise exception if not found
@@ -451,6 +460,46 @@ class Store(object):
 
     def permission(self, member, create=False):
         return _util.permission(self, member, create)
+
+    def _fbmsg_delgs(self):
+        fbeid = self.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
+        fbmsg = self.mapiobj.OpenEntry(fbeid, None, MAPI_MODIFY)
+
+        try:
+            entryids = HrGetOneProp(fbmsg, PR_SCHDINFO_DELEGATE_ENTRYIDS)
+            names = HrGetOneProp(fbmsg, PR_SCHDINFO_DELEGATE_NAMES)
+            flags = HrGetOneProp(fbmsg, PR_DELEGATE_FLAGS)
+        except MAPIErrorNotFound:
+            entryids = SPropValue(PR_SCHDINFO_DELEGATE_ENTRYIDS, [])
+            names = SPropValue(PR_SCHDINFO_DELEGATE_NAMES, [])
+            flags = SPropValue(PR_DELEGATE_FLAGS, [])
+
+        return fbmsg, (entryids, names, flags)
+
+    def delegations(self):
+        fbmsg, (entryids, names, flags) = self._fbmsg_delgs()
+
+        for entryid in entryids.Value:
+            username = self.server.sa.GetUser(entryid, MAPI_UNICODE).Username
+            yield Delegation(self, self.server.user(username))
+
+    def delegation(self, user, create=False, see_private=False):
+        for delegation in self.delegations():
+            if delegation.user == user:
+                return delegation
+        if create:
+            fbmsg, (entryids, names, flags) = self._fbmsg_delgs()
+
+            entryids.Value.append(user.userid.decode('hex'))
+            names.Value.append(user.name)
+            flags.Value.append(1 if see_private else 0)
+
+            fbmsg.SetProps([entryids, names, flags])
+            fbmsg.SaveChanges(KEEP_OPEN_READWRITE)
+
+            return Delegation(self, user)
+        else:
+            raise NotFoundError("no delegation for user '%s'" % user.name)
 
     def favorites(self):
         """Returns all favorite folders"""

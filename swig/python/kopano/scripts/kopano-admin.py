@@ -5,22 +5,11 @@ import sys
 import traceback
 
 from MAPI.Tags import PR_EC_STATSTABLE_SYSTEM, PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE, PR_EC_RESYNC_ID
-
 import kopano
-from kopano.parser import (
-    parse_str as _parse_str, parse_bool as _parse_bool,
-    parse_list_str as _parse_list_str
-)
-
-_true = lambda : {'action': 'store_true'} # XXX move into python-kopano?
-_int = lambda : {'type': int, 'metavar': 'N'}
-_name = lambda : {'type': 'str', 'action': 'callback', 'callback': _parse_str, 'metavar': 'NAME'}
-_guid = lambda : {'type': 'str', 'action': 'callback', 'callback': _parse_str, 'metavar': 'GUID'}
-_bool = lambda : {'type': 'str', 'action': 'callback', 'callback': _parse_bool, 'metavar': 'YESNO'}
-_list_name = lambda : {'type': 'str', 'default': [], 'action': 'callback', 'callback': _parse_list_str, 'metavar': 'NAME'}
+from kopano.parser import _true, _int, _name, _guid, _bool, _list_name, _date
 
 def parser_opt_args():
-    parser = kopano.parser('skpcuGC')
+    parser = kopano.parser('skpcuGCf')
     parser.add_option('--debug', help='Debug mode', **_true())
     parser.add_option('--lang', help='Create folders in this language')
     parser.add_option('--sync', help='Synchronize users and groups with external source', **_true())
@@ -64,12 +53,22 @@ def parser_opt_args():
     parser.add_option('--admin-level', help='Admin level', **_int())
     parser.add_option('--add-sendas', help='User to add to send-as', **_list_name())
     parser.add_option('--remove-sendas', help='User to remove from send-as', **_list_name())
+    parser.add_option('--add-delegate', help='User to add to delegation', **_list_name())
+    parser.add_option('--remove-delegate', help='User to remove from delegation', **_list_name())
+    parser.add_option('--add-permission', help='Permission to add (member:right1,right2..)', **_list_name())
+    parser.add_option('--remove-permission', help='Permission to remove', **_list_name())
     parser.add_option('--add-user', help='User to add', **_list_name())
     parser.add_option('--remove-user', help='User to remove', **_list_name())
     parser.add_option('--quota-override', help='Override server quota limits', **_bool())
     parser.add_option('--quota-hard', help='Hardquota limit in MB', **_int())
     parser.add_option('--quota-soft', help='Softquota limit in MB', **_int())
     parser.add_option('--quota-warn', help='Warnquota limit in MB', **_int())
+    parser.add_option('--ooo-active', help='Out-of-office is active', **_bool())
+    parser.add_option('--ooo-clear', help='Clear Out-of-office settings', **_true())
+    parser.add_option('--ooo-subject', help='Out-of-office subject', **_name())
+    parser.add_option('--ooo-message', help='Out-of-office message (file)', **_name())
+    parser.add_option('--ooo-from', help='Out-of-office from date', **_date())
+    parser.add_option('--ooo-until', help='Out-of-office until date', **_date())
 
     return (parser,) + parser.parse_args()
 
@@ -86,7 +85,8 @@ UPDATE_MATRIX = {
     ('email', 'fullname', 'add_sendas', 'remove_sendas'): ('users', 'groups'),
     ('password', 'password_prompt', 'admin_level', 'active', 'reset_folder_count', 'resync_offline'): ('users',),
     ('mr_accept', 'mr_accept_conflicts', 'mr_accept_recurring'): ('users',),
-    ('add_feature', 'remove_feature'): ('users',),
+    ('ooo_active', 'ooo_clear', 'ooo_subject', 'ooo_message', 'ooo_from', 'ooo_until'): ('users',),
+    ('add_feature', 'remove_feature', 'add_delegate', 'remove_delegate', 'add_permission', 'remove_permission'): ('users',),
     ('add_user', 'remove_user'): ('groups',),
     ('quota_override', 'quota_hard', 'quota_soft', 'quota_warn'): ('global', 'companies', 'users'),
     ('create_store', 'unhook_store', 'hook_store'): ('global', 'companies', 'users'),
@@ -176,6 +176,7 @@ def user_details(user):
         print('Store size:\t%.2f MB' % (user.store.size / 2**20))
 
         print('Send-as:\t' + ', '.join(_encode(sendas.name) for sendas in user.send_as()))
+        print('Delegation:\t' + ', '.join(_encode(dlg.user.name) for dlg in user.delegations()))
         print('Auto-accept meeting req:\t' + yesno(user.autoaccept.enabled))
         if user.autoaccept.enabled:
             print('Decline dbl meetingreq:\t' + yesno(not user.autoaccept.conflicts))
@@ -183,8 +184,8 @@ def user_details(user):
 
         ooo = 'disabled'
         if user.outofoffice.enabled:
-            ooo = user.outofoffice.period_desc + (' (currently %s)' % 'active' if user.outofoffice.active else 'inactive')
-        print('Out Of Office:\t' + ooo)
+            ooo = user.outofoffice.period_desc + (' (currently %s)' % ('active' if user.outofoffice.active else 'inactive'))
+        print('Out-Of-Office:\t' + ooo)
 
     print('Current user store quota settings:')
     print(' Quota overrides:\t' + yesno(not user.quota.use_default))
@@ -193,6 +194,18 @@ def user_details(user):
     print(' Hard level:\t\t' + str(user.quota.hard_limit or 'unlimited'))
 
     list_groups('Groups', user.groups())
+
+    print('Permissions:')
+    for perm in user.permissions():
+        if perm.rights: # XXX pyko remove ACE if empty
+            print(_encode(' (store): ' + perm.member.name + ':' + ','.join(perm.rights)))
+    for delegate in user.delegations(): # XXX merge all rights into permissions()?
+        if delegate.see_private:
+            print(_encode(' (store): ' + delegate.user.name + ':see_private'))
+    for folder in user.folders():
+        for perm in folder.permissions():
+            if perm.rights:
+                print(_encode(' ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights)))
 
 def group_details(group):
     print('Groupname:\t' + _encode(group.name))
@@ -283,6 +296,52 @@ def user_options(name, options, server):
         user.remove_feature(feature)
 
     quota_options(user, options)
+
+    for delegate in options.add_delegate:
+        user.delegation(server.user(delegate), create=True)
+    for delegate in options.remove_delegate:
+        user.delete(user.delegation(server.user(delegate)))
+
+    def member_rights(perm): # XXX groups
+        username, rights = perm.split(':')
+        rights = rights.split(',')
+        see_private = 'see_private' in rights
+        rights = [r for r in rights if r != 'see_private']
+        return server.user(username), rights, see_private
+    if options.folders:
+        objs = [user.folder(f) for f in options.folders]
+    else:
+        objs = [user.store]
+    for perm in options.add_permission:
+        user2, rights, see_private = member_rights(perm)
+        for obj in objs:
+            perm = obj.permission(user2, create=True)
+            perm.rights += rights
+        if see_private:
+            user.delegation(user2).see_private = True
+    for perm in options.remove_permission:
+        user2, rights, see_private = member_rights(perm)
+        for obj in objs:
+            perm = obj.permission(user2)
+            perm.rights = [r for r in perm.rights if r not in rights]
+        if see_private:
+            user.delegation(user2).see_private = False
+
+    if options.ooo_active is not None:
+        user.outofoffice.enabled = options.ooo_active
+    if options.ooo_clear:
+        user.outofoffice.subject = None
+        user.outofoffice.message = None
+        user.outofoffice.start = None
+        user.outofoffice.end = None
+    if options.ooo_subject is not None:
+        user.outofoffice.subject = options.ooo_subject
+    if options.ooo_message is not None:
+        user.outofoffice.message = file(options.ooo_message).read()
+    if options.ooo_from is not None:
+        user.outofoffice.start = options.ooo_from
+    if options.ooo_until is not None:
+        user.outofoffice.end = options.ooo_until
 
     if options.details:
         user_details(user)
