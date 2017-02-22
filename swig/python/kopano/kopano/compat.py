@@ -15,6 +15,12 @@ try:
 except ImportError:
     from .lru_cache import lru_cache
 
+try:
+    from StringIO import StringIO
+except ImportError:
+    # We only need it for Python 2
+    pass
+
 import codecs
 import io
 import sys
@@ -75,7 +81,7 @@ else:
         return isinstance(i, (int, long))
 
     def is_file(f):
-        return isinstance(f, file)
+        return isinstance(f, file) or isinstance(f, StringIO)
 
     def encode(s):
         # sys.stdout can be StringIO (nosetests)
