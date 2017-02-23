@@ -9,11 +9,70 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECLogger.h>
 #include <kopano/hl.hpp>
+#include <kopano/memory.hpp>
 #include <mapiutil.h>
 
 using namespace KC;
 
 namespace KCHL {
+
+KProp::KProp(SPropValue *s) :
+	m_s(s)
+{
+}
+
+const unsigned int & KProp::prop_tag() const
+{
+	return m_s->ulPropTag;
+}
+
+const bool KProp::b() const
+{
+	if (PROP_TYPE(prop_tag()) != PT_BOOLEAN)
+		throw KMAPIError(MAPI_E_INVALID_TYPE);
+
+	return m_s->Value.b;
+}
+
+const unsigned int & KProp::ul() const
+{
+	if (PROP_TYPE(prop_tag()) != PT_LONG)
+		throw KMAPIError(MAPI_E_INVALID_TYPE);
+
+	return m_s->Value.ul;
+}
+
+std::string KProp::str()
+{
+	if (PROP_TYPE(prop_tag()) != PT_STRING8)
+		throw KMAPIError(MAPI_E_INVALID_TYPE);
+
+	return std::string(m_s->Value.lpszA);
+}
+
+std::wstring KProp::wstr()
+{
+	if (PROP_TYPE(prop_tag()) != PT_UNICODE)
+		throw KMAPIError(MAPI_E_INVALID_TYPE);
+
+	return std::wstring(m_s->Value.lpszW);
+}
+
+KEntryId KProp::entry_id()
+{
+	if (PROP_TYPE(prop_tag()) != PT_BINARY)
+		throw KMAPIError(MAPI_E_INVALID_TYPE);
+
+	memory_ptr<ENTRYID> entry_id;
+	HRESULT ret = MAPIAllocateBuffer(m_s->Value.bin.cb, &~entry_id);
+
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+
+	memcpy(entry_id, m_s->Value.bin.lpb, m_s->Value.bin.cb);
+
+	return KEntryId(entry_id.release(), m_s->Value.bin.cb);
+}
 
 KAttach::KAttach(IAttach *attach, unsigned int num) :
 	m_attach(attach), m_num(num)
@@ -135,6 +194,15 @@ KTable KFolder::get_contents_table(unsigned int flags)
 {
 	IMAPITable *table;
 	int ret = m_folder->GetContentsTable(flags, &table);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+	return KTable(table);
+}
+
+KTable KFolder::get_hierarchy_table(unsigned int flags)
+{
+	IMAPITable *table;
+	int ret = m_folder->GetHierarchyTable(flags, &table);
 	if (ret != hrSuccess)
 		throw KMAPIError(ret);
 	return KTable(table);
@@ -271,6 +339,15 @@ KEntryId KStore::get_receive_folder(const char *cls, char **xcls)
 	return eid;
 }
 
+KProp KStore::get_prop(unsigned int tag)
+{
+	SPropValue *prop;
+	int ret = HrGetOneProp(m_store, tag, &prop);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+	return KProp(prop);
+}
+
 KUnknown KStore::open_entry(const KEntryId &eid, LPCIID intf,
     unsigned int flags)
 {
@@ -360,6 +437,16 @@ KTable &KTable::operator=(KTable &&other)
 HRESULT KTable::restrict(const SRestriction &r, unsigned int flags)
 {
 	return m_table->Restrict(const_cast<SRestriction *>(&r), flags);
+}
+
+unsigned int KTable::count(unsigned int flags) {
+	unsigned int result;
+
+	auto ret = m_table->GetRowCount(flags, &result);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+
+	return result;
 }
 
 KUnknown::KUnknown(IUnknown *p) :

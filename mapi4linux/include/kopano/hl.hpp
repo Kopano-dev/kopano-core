@@ -28,9 +28,24 @@ class KStore;
 class KStream;
 class KTable;
 class KUnknown;
+class KEntryId;
 
-typedef std::unique_ptr<SPropValue, KDeleter> KProp;
 typedef std::unique_ptr<SRowSet, KDeleter> KRowSet;
+
+class _kc_export KProp _kc_final {
+	public:
+	KProp(SPropValue *);
+
+	const unsigned int &prop_tag() const;
+	const bool b() const;
+	const unsigned int &ul() const;
+	std::string str();
+	std::wstring wstr();
+	KEntryId entry_id();
+
+	private:
+	SPropValue *m_s;
+};
 
 class _kc_export KAttach _kc_final {
 	public:
@@ -93,6 +108,7 @@ class _kc_export KFolder _kc_final {
 
 	KMessage create_message(LPCIID = NULL, unsigned int = 0);
 	KTable get_contents_table(unsigned int = 0);
+	KTable get_hierarchy_table(unsigned int = 0);
 
 	protected:
 	IMAPIFolder *m_folder = nullptr;
@@ -143,6 +159,7 @@ class _kc_export KStore _kc_final {
 	operator IMsgStore *(void) { return m_store; }
 
 	KEntryId get_receive_folder(const char *cls = nullptr, char **xcls = nullptr);
+	KProp get_prop(unsigned int);
 	KUnknown open_entry(const KEntryId &, LPCIID = nullptr, unsigned int = 0);
 	KUnknown open_entry(const SPropValue * = NULL, LPCIID = NULL, unsigned int = 0);
 
@@ -176,6 +193,7 @@ class _kc_export KTable _kc_final {
 	operator IMAPITable *(void) { return m_table; }
 
 	HRESULT restrict(const SRestriction &, unsigned int = 0);
+	unsigned int count(unsigned int = 0);
 
 	protected:
 	IMAPITable *m_table;
