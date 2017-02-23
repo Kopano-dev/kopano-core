@@ -411,6 +411,31 @@ HRESULT KStream::commit(unsigned int flags)
 	return m_stream->Commit(flags);
 }
 
+KColumnSet::KColumnSet(SPropValue *columnset) :
+	m_columnset(columnset)
+{
+}
+
+KProp KColumnSet::operator[](size_t index) const
+{
+	return KProp(&m_columnset[index]);
+}
+
+KRowSet::KRowSet(SRowSet *rowset) :
+	m_rowset(rowset)
+{
+}
+
+KColumnSet KRowSet::operator[](size_t index) const
+{
+	return KColumnSet(m_rowset->aRow[index].lpProps);
+}
+
+unsigned int KRowSet::count() const
+{
+	return m_rowset->cRows;
+}
+
 KTable::KTable(IMAPITable *table) :
 	m_table(table)
 {
@@ -439,7 +464,41 @@ HRESULT KTable::restrict(const SRestriction &r, unsigned int flags)
 	return m_table->Restrict(const_cast<SRestriction *>(&r), flags);
 }
 
-unsigned int KTable::count(unsigned int flags) {
+void KTable::columns(std::initializer_list<unsigned int> props)
+{
+	size_t len = props.size();
+	memory_ptr<SPropTagArray> array;
+
+	HRESULT ret = MAPIAllocateBuffer(CbNewSPropTagArray(len), &~array);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+
+	array->cValues = len;
+
+	int i = 0;
+	for (const auto &prop : props) {
+		array->aulPropTag[i] = prop;
+		i++;
+	}
+
+	ret = m_table->SetColumns(array, 0);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+}
+
+KRowSet KTable::rows(unsigned int size, unsigned int offset)
+{
+	rowset_ptr rowset;
+
+	HRESULT ret = m_table->QueryRows(size, offset, &~rowset);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+
+	return KRowSet(rowset.release());
+}
+
+unsigned int KTable::count(unsigned int flags)
+{
 	unsigned int result;
 
 	auto ret = m_table->GetRowCount(flags, &result);

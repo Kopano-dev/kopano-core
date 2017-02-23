@@ -2,6 +2,7 @@
 #define _KCHL_HPP 1
 
 #include <kopano/zcdefs.h>
+#include <kopano/memory.hpp>
 #include <exception>
 #include <memory>
 #include <stdexcept>
@@ -29,8 +30,6 @@ class KStream;
 class KTable;
 class KUnknown;
 class KEntryId;
-
-typedef std::unique_ptr<SRowSet, KDeleter> KRowSet;
 
 class _kc_export KProp _kc_final {
 	public:
@@ -183,6 +182,23 @@ class _kc_export KStream _kc_final {
 	IStream *m_stream;
 };
 
+class _kc_export KColumnSet _kc_final {
+	public:
+	KColumnSet(SPropValue*);
+	KProp operator[](size_t index) const;
+	private:
+	SPropValue *m_columnset;
+};
+
+class _kc_export KRowSet _kc_final {
+	public:
+	KRowSet(SRowSet*);
+	KColumnSet operator[](size_t) const;
+	unsigned int count() const;
+	protected:
+	rowset_ptr m_rowset;
+};
+
 class _kc_export KTable _kc_final {
 	public:
 	KTable(IMAPITable *);
@@ -193,6 +209,8 @@ class _kc_export KTable _kc_final {
 	operator IMAPITable *(void) { return m_table; }
 
 	HRESULT restrict(const SRestriction &, unsigned int = 0);
+	void columns(std::initializer_list<unsigned int>);
+	KRowSet rows(unsigned int, unsigned int);
 	unsigned int count(unsigned int = 0);
 
 	protected:
