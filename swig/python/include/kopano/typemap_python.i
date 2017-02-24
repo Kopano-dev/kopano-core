@@ -52,15 +52,16 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 }
 
 // Input
-%typemap(in) 				(ULONG, MAPIARRAY) ($1_type cArray = 0, $2_type lpArray = NULL)
+%typemap(in) 				(ULONG, MAPIARRAY) (KCHL::memory_ptr< std::remove_const< std::remove_pointer< $2_type >::type >::type > tmp)
 {
 	ULONG len;
-	$2 = List_to$2_mangle($input, &len);
+	tmp.reset(const_cast<std::add_pointer< std::remove_const< std::remove_pointer< $2_type >::type >::type >::type>(List_to$2_mangle($input, &len)));
 	$1 = len;
 	if(PyErr_Occurred()) goto fail;
+        $2 = tmp;
 }
 
-%typemap(in) 			(MAPIARRAY, ULONG) ($2_type cArray = 0, $1_type lpArray = NULL)
+%typemap(in) 			(MAPIARRAY, ULONG)
 {
 	ULONG len;
 	$1 = List_to$1_mangle($input, &len);

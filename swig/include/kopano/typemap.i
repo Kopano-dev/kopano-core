@@ -379,11 +379,6 @@
 	$2 = NULL;
 }
 
-%typemap(freearg) (ULONG, MAPIARRAY)
-{
-	MAPIFreeBuffer((void *)$2);
-}
-
 // SYSTEMTIME
 // Output (specifics are in typemap_python.i)
 %typemap(in, numinputs=0)	(SYSTEMTIME *)(SYSTEMTIME st)
