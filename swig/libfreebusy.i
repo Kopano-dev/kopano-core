@@ -56,7 +56,15 @@ enum FBStatus {
 %apply (LONG, FBBLOCK) { (LONG celt, FBBlock_1 *pblk), (ULONG celt, FBBlock_1 *pblk) }
 %apply (MAPIARRAY, LONG) { (FBBlock_1 *pblk, LONG* pcfetch), (FBBlock_1 *pblk, LONG* pcfetch) }
 
+%typemap(argout) LONG *
+{
+        %append_output(PyLong_FromLong(*$1));
+}
 
+%typemap(argout) ULONG *
+{
+        %append_output(PyLong_FromUnsignedLong(*$1));
+}
 
 class IUnknown {
 public:
