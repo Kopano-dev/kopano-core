@@ -6,13 +6,14 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import codecs
+import collections
 import mailbox
 import sys
 import time
 
 from MAPI import (
     MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE,
-    TABLE_SORT_DESCEND, RELOP_GT, RELOP_LT, RELOP_EQ,
+    TABLE_SORT_DESCEND, TABLE_SORT_ASCEND, RELOP_GT, RELOP_LT, RELOP_EQ,
     DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES,
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
     FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
@@ -27,7 +28,8 @@ from MAPI.Tags import (
     PR_MEMBER_ID, PR_RULES_TABLE, IID_IExchangeModifyTable,
     IID_IMAPITable, PR_CONTAINER_CONTENTS,
     PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
-    PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME
+    PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME,
+    CONVENIENT_DEPTH, PR_DEPTH
 )
 from MAPI.Defs import (
     bin2hex, HrGetOneProp, PpropFindProp, CHANGE_PROP_TYPE
@@ -371,18 +373,26 @@ class Folder(object):
         except Error:
             pass
 
-    def folders(self, recurse=True, depth=0):
+    def folders(self, recurse=True):
         """ Return all :class:`sub-folders <Folder>` in folder
 
         :param recurse: include all sub-folders
         """
 
         try:
-            table = self.mapiobj.GetHierarchyTable(MAPI_UNICODE | self.content_flag)
+            flags = MAPI_UNICODE | self.content_flag
+            if recurse:
+                flags |= CONVENIENT_DEPTH
+
+            table = self.mapiobj.GetHierarchyTable(flags)
         except MAPIErrorNoSupport: # XXX webapp search folder?
             return
 
-        table.SetColumns([PR_ENTRYID], 0)
+        # determine all folders
+        folders = {}
+        names = {}
+        children = collections.defaultdict(list)
+        table.SetColumns([PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W], 0)
         rows = table.QueryRows(-1, 0)
         for row in rows:
             try:
@@ -390,11 +400,25 @@ class Folder(object):
             except MAPIErrorNoAccess:
                 mapiobj = self.mapiobj.OpenEntry(row[0].Value, None, self.content_flag)
             folder = Folder(self.store, mapiobj=mapiobj)
-            folder.depth = depth
-            yield folder
-            if recurse:
-                for subfolder in folder.folders(depth=depth + 1):
-                    yield subfolder
+            folders[_hex(row[0].Value)] = folder, _hex(row[1].Value)
+            names[_hex(row[0].Value)] = row[2].Value
+            children[_hex(row[1].Value)].append((_hex(row[0].Value), folder))
+
+        # yield depth-first XXX improve server?
+        def folders_recursive(fs, depth=0):
+            for feid, f in sorted(fs, key=lambda (feid, f): names[feid]):
+                f.depth = depth
+                yield f
+                for f in folders_recursive(children[feid], depth+1):
+                    yield f
+        rootfolders = []
+        for eid, (folder, parenteid) in folders.items():
+            if parenteid not in folders:
+                rootfolders.append((eid, folder))
+            else:
+                children[folders[parenteid][0]].append((eid, folder))
+        for f in folders_recursive(rootfolders):
+            yield f
 
     def create_folder(self, path, **kwargs):
         folder = self.folder(path, create=True)
