@@ -296,8 +296,8 @@ libkcarchivercore_la_SOURCES = \
 	ECtools/archiver/operations/postsaveiidupdater.cpp \
 	ECtools/archiver/operations/postsaveiidupdater.h \
 	ECtools/archiver/ArchiveControlImpl.cpp ECtools/archiver/ArchiveControlImpl.h \
-	ECtools/archiver/arc_database.cpp ECtools/archiver/arc_database.hpp \
-	ECtools/archiver/arc_mysql.cpp ECtools/archiver/arc_mysql.hpp
+	ECtools/archiver/arc_mysql.cpp ECtools/archiver/arc_mysql.hpp \
+	common/database.cpp common/include/kopano/database.hpp
 libkcarchivercore_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
 libkcarchivercore_la_LIBADD = \
@@ -498,6 +498,7 @@ EXTRA_libkcinetmapi_la_DEPENDENCIES = ${default_sym}
 # libkcserver
 #
 libkcserver_la_SOURCES = \
+	common/database.cpp common/include/kopano/database.hpp \
 	provider/libserver/ECABObjectTable.cpp provider/libserver/ECABObjectTable.h \
 	provider/libserver/ECAttachmentStorage.cpp provider/libserver/ECAttachmentStorage.h \
 	provider/libserver/ECCacheManager.cpp provider/libserver/ECCacheManager.h \
@@ -509,7 +510,7 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECDBDef.h \
 	provider/libserver/ECDatabase.h \
 	provider/libserver/ECDatabaseFactory.cpp provider/libserver/ECDatabaseFactory.h \
-	provider/libserver/ECDatabaseMySQL.cpp provider/libserver/ECDatabaseMySQL.h \
+	provider/libserver/ECDatabaseMySQL.cpp \
 	provider/libserver/ECDatabaseUpdate.cpp provider/libserver/ECDatabaseUpdate.h \
 	provider/libserver/ECDatabaseUtils.cpp provider/libserver/ECDatabaseUtils.h \
 	provider/libserver/ECGenProps.cpp provider/libserver/ECGenProps.h \

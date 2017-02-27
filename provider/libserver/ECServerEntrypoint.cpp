@@ -20,11 +20,10 @@
 #include <pthread.h>
 #include <kopano/ECLogger.h>
 #include <kopano/lockhelper.hpp>
+#include "ECDatabase.h"
 #include "ECSessionManager.h"
 #include "ECStatsCollector.h"
-
 #include "ECDatabaseFactory.h"
-#include "ECDatabaseMySQL.h"
 #include "ECServerEntrypoint.h"
 #include "ECS3Attachment.h"
 
@@ -77,7 +76,7 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 	pthread_key_create(&plugin_key, plugin_destroy); // same goes for the userDB-plugin
 
 	// Init mutex for database object list
-	er = ECDatabaseMySQL::InitLibrary(lpDatabaseDir, lpConfigFile);
+	er = ECDatabase::InitLibrary(lpDatabaseDir, lpConfigFile);
 	g_lpStatsCollector = new ECStatsCollector();
 	
 	//TODO: with an error remove all variables and g_bInitLib = false
@@ -113,7 +112,7 @@ ECRESULT kopano_unloadlibrary(void)
 	l_obj.unlock();
 
 	// remove mutex for database object list
-	ECDatabaseMySQL::UnloadLibrary();
+	ECDatabase::UnloadLibrary();
 	g_bInitLib = false;
 	return erSuccess;
 }

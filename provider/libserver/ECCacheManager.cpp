@@ -22,8 +22,7 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/lockhelper.hpp>
-
-#include "ECDatabaseMySQL.h"
+#include "ECDatabase.h"
 #include "ECSessionManager.h"
 #include "ECDatabaseUtils.h"
 

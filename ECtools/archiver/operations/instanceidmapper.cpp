@@ -18,11 +18,14 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include "instanceidmapper.h"
 #include "Archiver.h"
-#include "arc_database.hpp"
 #include <kopano/stringutil.h>
+#include "arc_mysql.hpp"
+
+using namespace std;
 
 namespace KC { namespace operations {
 
@@ -60,7 +63,7 @@ exit:
 }
 
 InstanceIdMapper::InstanceIdMapper(ECLogger *lpLogger) :
-    m_ptrDatabase(new ARCDatabase())
+	m_ptrDatabase(new KCMDatabaseMySQL)
 { }
 
 HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)
@@ -70,7 +73,7 @@ HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)
 	er = m_ptrDatabase->Connect(lpConfig);
 	if (er == KCERR_DATABASE_NOT_FOUND) {
 		ec_log_info("Database not found, creating database.");
-		er = m_ptrDatabase->CreateDatabase(lpConfig);
+		er = m_ptrDatabase->CreateDatabase(lpConfig, true);
 	}
 	
 	if (er != erSuccess)
