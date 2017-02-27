@@ -310,6 +310,9 @@ typedef wchar_t 	WCHAR;
   typedef char		TCHAR;
 #define _T(x) x
 #endif
+namespace KC {
+typedef std::basic_string<TCHAR> tstring;
+}
 typedef unsigned char	TBYTE;
 
 typedef WCHAR*			LPWSTR;

@@ -21,7 +21,6 @@
 #include <kopano/zcdefs.h>
 #include "ArchiverSessionPtr.h"
 #include <kopano/mapi_ptr.h>
-#include <kopano/tstring.h>
 #include <kopano/archiver-common.h>
 
 namespace KC {

@@ -71,11 +71,8 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 
 	iterToken = vcUrlTokens.cbegin();
 
-	strService = *iterToken++;
-
 	//change case of Service name ICAL -> ical CALDaV ->caldav
-	std::transform(strService.begin(), strService.end(), strService.begin(), ::tolower);
-
+	strService = strToLower(*iterToken++);
 	if (!strService.compare("ical"))
 		ulFlag |= SERVICE_ICAL;
 	else if (!strService.compare("caldav"))
@@ -86,10 +83,8 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	if (iterToken == vcUrlTokens.cend())
 		goto exit;
 
-	strUrlUser = *iterToken++;
-	if (!strUrlUser.empty())
-		//change case of folder owner USER -> user, UseR -> user
-		std::transform(strUrlUser.begin(), strUrlUser.end(), strUrlUser.begin(), ::tolower);
+	//change case of folder owner USER -> user, UseR -> user
+	strUrlUser = strToLower(*iterToken++);
 
 	// check if the request is for public folders and set the bool flag
 	// @note: request for public folder not have user's name in the url

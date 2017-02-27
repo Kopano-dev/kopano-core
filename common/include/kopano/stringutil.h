@@ -23,6 +23,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <cctype>
+#include <cwctype>
 #include <kopano/platform.h>
 #include <openssl/md5.h>
 
@@ -52,6 +54,12 @@ static inline std::string strToUpper(std::string f) {
 
 static inline std::string strToLower(std::string f) {
 	transform(f.begin(), f.end(), f.begin(), ::tolower);
+	return f;
+}
+
+static inline std::wstring strToUpper(std::wstring f)
+{
+	std::transform(f.begin(), f.end(), f.begin(), ::towupper);
 	return f;
 }
 

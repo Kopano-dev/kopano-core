@@ -37,8 +37,6 @@
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
-#include <kopano/tstring.h>
-
 #include "ECMemStream.h"
 #include <kopano/IECSingleInstance.h>
 #include <kopano/ECGuid.h>

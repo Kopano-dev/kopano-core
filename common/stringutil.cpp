@@ -590,10 +590,7 @@ bool kc_starts_with(const std::string &full, const std::string &prefix)
 
 bool kc_istarts_with(const std::string &full, const std::string &needle)
 {
-	std::string h = full, n = needle;
-	std::transform(h.begin(), h.end(), h.begin(), ::tolower);
-	std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-	return kc_starts_with(h, n);
+	return kc_starts_with(strToLower(full), strToLower(needle));
 }
 
 bool kc_ends_with(const std::string &full, const std::string &prefix)

@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <kopano/stringutil.h>
 
 using namespace std;
 
@@ -243,8 +244,7 @@ int ECConfigCheck::testCharset(const config_check_t *check)
 
 	/* When grepping iconv output, all lines have '//' appended,
 	 * additionally all charsets are uppercase */
-	std::string v1 = check->value1;
-	std::transform(v1.begin(), v1.end(), v1.begin(), ::toupper);
+	auto v1 = strToUpper(check->value1);
 	fp = popen(("iconv -l | grep -x \"" + v1 + "//\"").c_str(), "r");
 
 	if (fp == nullptr) {
@@ -272,9 +272,7 @@ int ECConfigCheck::testCharset(const config_check_t *check)
 
 int ECConfigCheck::testBoolean(const config_check_t *check)
 {
-	std::string v1 = check->value1;
-	std::transform(v1.begin(), v1.end(), v1.begin(), ::tolower);
-
+	auto v1 = strToLower(check->value1);
 	if (v1.empty() || v1 == "true" || v1 == "false" || v1 == "yes" ||
 	    v1 == "no")
 		return CHECK_OK;

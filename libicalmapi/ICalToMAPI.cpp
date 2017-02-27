@@ -34,6 +34,7 @@
 #include <libical/ical.h>
 #include <algorithm>
 #include <vector>
+#include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <mapi.h>
 #include "icalmem.hpp"
@@ -576,8 +577,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		lpRecipients->aEntries[i].rgPropVals[4].ulPropTag = PR_ADDRTYPE_W;
 		lpRecipients->aEntries[i].rgPropVals[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 
-		strSearch = "SMTP:" + converter.convert_to<std::string>(recip.strEmail);
-		transform(strSearch.begin(), strSearch.end(), strSearch.begin(), ::toupper);
+		strSearch = strToUpper("SMTP:" + converter.convert_to<std::string>(recip.strEmail));
 		lpRecipients->aEntries[i].rgPropVals[5].ulPropTag = PR_SEARCH_KEY;
 		lpRecipients->aEntries[i].rgPropVals[5].Value.bin.cb = strSearch.size() + 1;
 		if ((hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[i].rgPropVals, (void **)&lpRecipients->aEntries[i].rgPropVals[5].Value.bin.lpb)) != hrSuccess)

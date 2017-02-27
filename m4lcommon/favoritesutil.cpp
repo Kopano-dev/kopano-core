@@ -24,8 +24,6 @@
 
 #include <kopano/mapiext.h>
 #include <kopano/CommonUtil.h>
-
-#include <kopano/tstring.h>
 #include <kopano/charset/convstring.h>
 
 #include <string>

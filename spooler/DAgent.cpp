@@ -45,6 +45,7 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <unordered_set>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -229,6 +230,22 @@ public:
 	SBinary sEntryId;
 	SBinary sSearchKey;
 	bool bHasIMAP = false;
+};
+
+class kc_icase_hash {
+	public:
+	size_t operator()(const std::string &i) const
+	{
+		return std::hash<std::string>()(strToLower(i));
+	}
+};
+
+class kc_icase_equal {
+	public:
+	bool operator()(const std::string &a, const std::string &b) const
+	{
+		return strcasecmp(a.c_str(), b.c_str()) == 0;
+	}
 };
 
 static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
@@ -1322,28 +1339,34 @@ static bool dagent_oof_active(const SPropValue *prop)
 }
 
 /**
- * Determines whether @s is a header that inhibits autoreplies.
+ * Contains all the exact-match header names that will inhibit autoreplies.
  */
-static bool dagent_stop_autoreply_hdr(const char *s)
-{
-#define S(x) do { if (strcasecmp(s, (x)) == 0) return true; } while (false)
+static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_stopreply_hdr = {
 	/* Kopano - Vacation header already present, do not send vacation reply. */
-	S("X-Kopano-Vacation");
+	"X-Kopano-Vacation",
 	/* RFC 3834 - Precedence: list/bulk/junk, do not reply to these mails. */
-	S("Auto-Submitted");
-	S("Precedence");
+	"Auto-Submitted",
+	"Precedence",
 	/* RFC 2919 */
-	S("List-Id");
+	"List-Id",
 	/* RFC 2369 */
-	S("List-Help");
-	S("List-Subscribe");
-	S("List-Unsubscribe");
-	S("List-Post");
-	S("List-Owner");
-	S("List-Archive");
-	return false;
-#undef S
-}
+	"List-Help",
+	"List-Subscribe",
+	"List-Unsubscribe",
+	"List-Post",
+	"List-Owner",
+	"List-Archive",
+};
+
+/* A list of prefix searches for entire header-value lines */
+static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_stopreply_hdr2 = {
+	/* From the package "vacation" */
+	"X-Spam-Flag: YES",
+	/* From openSUSE's vacation package */
+	"X-Is-Junk: YES",
+	"X-AMAZON",
+	"X-LinkedIn",
+};
 
 /**
  * Determines from a set of lines from internet headers (can be wrapped or
@@ -1357,8 +1380,11 @@ static bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
 		size_t pos = line.find_first_of(':');
 		if (pos == std::string::npos || pos == 0)
 			continue;
-		if (dagent_stop_autoreply_hdr(line.substr(0, pos).c_str()))
+		if (kc_stopreply_hdr.find(line.substr(0, pos)) != kc_stopreply_hdr.cend())
 			return true;
+		for (const auto &elem : kc_stopreply_hdr2)
+			if (kc_stopreply_hdr2.find(line.substr(0, elem.size())) != kc_stopreply_hdr2.cend())
+				return true;
 	}
 	return false;
 }
@@ -2288,9 +2314,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	// copy headers in upper case, need to resize destination first
 	strHeaders.resize(end);
 	transform(strMail.begin(), strMail.begin() +end, strHeaders.begin(), ::toupper);
-
-	match = string("\r\n") + szHeader;
-	transform(match.begin(), match.end(), match.begin(), ::toupper);
+	match = strToUpper(std::string("\r\n") + szHeader);
 
 	// find header
 	pos = strHeaders.find(match.c_str());
@@ -2300,9 +2324,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	// skip header and find end of line
 	pos += match.length();
 	end = strHeaders.find("\r\n", pos);
-
-	match = szValue;
-	transform(match.begin(), match.end(), match.begin(), ::toupper);
+	match = strToUpper(szValue);
 	// find value in header line (no header continuations supported here)
 	pos = strHeaders.find(match.c_str(), pos);
 

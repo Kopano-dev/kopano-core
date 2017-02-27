@@ -50,7 +50,6 @@
 #include "ConsoleTable.h"
 #include <kopano/mapi_ptr.h>
 #include "ECFeatures.h"
-#include <kopano/tstring.h>
 #include "ECACL.h"
 #include "charset/localeutil.h"
 #include <kopano/MAPIErrors.h>

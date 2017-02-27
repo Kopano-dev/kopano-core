@@ -20,7 +20,6 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/charset/convert.h>
-#include <kopano/tstring.h>
 #include <string>
 #include <kopano/charset/utf8string.h>
 

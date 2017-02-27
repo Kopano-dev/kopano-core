@@ -20,7 +20,6 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
-#include <kopano/tstring.h>
 
 namespace KC {
 

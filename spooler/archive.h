@@ -23,8 +23,6 @@
 #include <mapix.h>
 
 #include <kopano/mapi_ptr.h>
-#include <kopano/tstring.h>
-
 #include <list>
 #include <memory>
 

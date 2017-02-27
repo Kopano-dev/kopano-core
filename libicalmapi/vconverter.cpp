@@ -1035,11 +1035,8 @@ HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalIt
  */
 HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *lplstMsgProps, const std::wstring &strEmail, const std::wstring &strName, const std::string &strType, ULONG cbEntryID, LPENTRYID lpEntryID)
 {
-	std::string strSearchKey;
 	SPropValue sPropVal;
-
-	strSearchKey = strType+":"+m_converter.convert_to<string>(strEmail);
-	transform(strSearchKey.begin(), strSearchKey.end(), strSearchKey.begin(), ::toupper);
+	auto strSearchKey = strToUpper(strType + ":" + m_converter.convert_to<std::string>(strEmail));
 
 	sPropVal.ulPropTag = PR_SENDER_ADDRTYPE_W;
 	HRESULT hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base,

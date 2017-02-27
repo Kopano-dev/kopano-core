@@ -74,11 +74,7 @@ ECRESULT GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize)
 static size_t
 ci_find_substr(const std::string &first, const std::string &second)
 {
-	std::string lc_first(first);
-	std::transform(lc_first.begin(), lc_first.end(), lc_first.begin(), ::tolower);
-	std::string lc_second(second);
-	std::transform(lc_second.begin(), lc_second.end(), lc_second.begin(), ::tolower);
-	return lc_first.find(lc_second);
+	return strToLower(first).find(strToLower(second));
 }
 
 ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned int *lpulColNr, std::string &strColData, ECDatabase *lpDatabase, bool bTruncate)

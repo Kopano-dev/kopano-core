@@ -22,7 +22,6 @@
 #include <mapispi.h>
 
 #include "ProviderUtil.h"
-#include <kopano/tstring.h>
 
 extern "C" {
 

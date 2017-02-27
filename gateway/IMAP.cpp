@@ -158,7 +158,7 @@ void IMAP::ToUpper(string &strString) {
  * Uppercases a wide string
  */
 void IMAP::ToUpper(wstring &strString) {
-	transform(strString.begin(), strString.end(), strString.begin(), ::toupper);
+	transform(strString.begin(), strString.end(), strString.begin(), ::towupper);
 }
 
 /**
