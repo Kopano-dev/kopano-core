@@ -8,7 +8,8 @@ import time
 from datetime import date, timedelta, datetime
 
 import kopano
-from kopano import log_exc, Config, _bytes_to_human
+from kopano import log_exc, Config
+from kopano.utils import bytes_to_human
 
 import MAPI
 from MAPI.Util import *
@@ -16,7 +17,7 @@ from MAPI.Util import *
 CONFIG = {
     'quota_check_interval': Config.integer(default=15),
     'mailquota_resend_interval': Config.integer(default=1),
-    'servers': Config.string(),
+    'servers': Config.string(default=''), # XXX
     'userquota_warning_template': Config.path(default='/etc/kopano/quotamail/userwarning.mail'),
     'userquota_soft_template': Config.path(default='/etc/kopano/quotamail/usersoft.mail'),
     'userquota_hard_template': Config.path(default='/etc/kopano/quotamail/userhard.mail'),
@@ -33,13 +34,13 @@ TODO:
 
 class Monitor(kopano.Service):
     def replace_template(self, mail, user):
-        header = "X-Priority: 1\nTO: {} <{}>\nFROM:\n".format(user.fullname,user.email) 
+        header = "X-Priority: 1\nTO: {} <{}>\nFROM:\n".format(user.fullname,user.email)
         mail = header + mail
         mail = mail.replace('${KOPANO_QUOTA_NAME}', user.name)
-        mail = mail.replace('${KOPANO_QUOTA_STORE_SIZE}', _bytes_to_human(user.store.size))
-        mail = mail.replace('${KOPANO_QUOTA_WARN_SIZE}', _bytes_to_human(user.quota.warn_limit))
-        mail = mail.replace('${KOPANO_QUOTA_SOFT_SIZE}', _bytes_to_human(user.quota.soft_limit))
-        mail = mail.replace('${KOPANO_QUOTA_HARD_SIZE}', _bytes_to_human(user.quota.hard_limit))
+        mail = mail.replace('${KOPANO_QUOTA_STORE_SIZE}', bytes_to_human(user.store.size))
+        mail = mail.replace('${KOPANO_QUOTA_WARN_SIZE}', bytes_to_human(user.quota.warn_limit))
+        mail = mail.replace('${KOPANO_QUOTA_SOFT_SIZE}', bytes_to_human(user.quota.soft_limit))
+        mail = mail.replace('${KOPANO_QUOTA_HARD_SIZE}', bytes_to_human(user.quota.hard_limit))
         return mail
 
     def check_quota_interval(self, user):
@@ -74,4 +75,4 @@ class Monitor(kopano.Service):
             time.sleep(config['quota_check_interval']*60)
 
 if __name__ == '__main__':
-    Monitor('monitor', config=CONFIG).main()
+    Monitor('monitor', config=CONFIG).start()

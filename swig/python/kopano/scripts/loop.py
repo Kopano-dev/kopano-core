@@ -31,7 +31,7 @@ for user in server.users():
         for folder in user.store.folders():
             if folder.name == 'Sent Items':
                 for item in folder:
-                    print('item:', item.subject, list(item.props()), [(att.filename, att.mimetag, len(att.data)) for att in item.attachments()])
+                    print('item:', item.subject, list(item.props()), [(att.filename, att.mimetype, len(att.data)) for att in item.attachments()])
 
 for user in server.users():
     for folder in user.store.folders():
