@@ -425,7 +425,7 @@ class Item(object):
         except MAPIErrorNotFound:
             return {}
 
-    def eml(self):
+    def eml(self, received_date=False):
         """ Return .eml version of item """
         if self.emlfile is None:
             try:
@@ -433,6 +433,7 @@ class Item(object):
             except MAPIErrorNotFound:
                 sopt = inetmapi.sending_options()
                 sopt.no_recipients_workaround = True
+                sopt.add_received_date = received_date
                 self.emlfile = inetmapi.IMToINet(self.store.server.mapisession, None, self.mapiobj, sopt)
         return self.emlfile
 

@@ -69,6 +69,7 @@ from .prop import Property
 from .permission import Permission
 from .quota import Quota
 from .recurrence import Recurrence, Occurrence
+from .restriction import Restriction
 from .rule import Rule
 from .store import Store
 from .table import Table
