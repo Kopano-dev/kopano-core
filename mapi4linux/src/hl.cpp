@@ -21,6 +21,11 @@ KProp::KProp(SPropValue *s) :
 {
 }
 
+KProp::~KProp() {
+	if (m_s != nullptr)
+		MAPIFreeBuffer(m_s);
+}
+
 const unsigned int & KProp::prop_tag() const
 {
 	return m_s->ulPropTag;
@@ -113,16 +118,6 @@ KStream KAttach::open_property_stream(unsigned int tag, unsigned int intopts,
 HRESULT KAttach::save_changes(unsigned int flags)
 {
 	return m_attach->SaveChanges(flags);
-}
-
-void KDeleter::operator()(SPropValue *p)
-{
-	MAPIFreeBuffer(p);
-}
-
-void KDeleter::operator()(SRowSet *p)
-{
-	FreeProws(p);
 }
 
 KEntryId::KEntryId(ENTRYID *eid, size_t size) :
@@ -411,14 +406,22 @@ HRESULT KStream::commit(unsigned int flags)
 	return m_stream->Commit(flags);
 }
 
-KColumnSet::KColumnSet(SPropValue *columnset) :
-	m_columnset(columnset)
+KRow::KRow(SRow row) :
+	m_row(row)
 {
 }
 
-KProp KColumnSet::operator[](size_t index) const
+KProp KRow::operator[](size_t index) const
 {
-	return KProp(&m_columnset[index]);
+	memory_ptr<SPropValue> prop;
+
+	HRESULT ret = MAPIAllocateBuffer(sizeof(SPropValue), &~prop);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+
+	memcpy(prop, &m_row.lpProps[index], sizeof(SPropValue));
+
+	return KProp(prop.release());
 }
 
 KRowSet::KRowSet(SRowSet *rowset) :
@@ -426,9 +429,9 @@ KRowSet::KRowSet(SRowSet *rowset) :
 {
 }
 
-KColumnSet KRowSet::operator[](size_t index) const
+KRow KRowSet::operator[](size_t index) const
 {
-	return KColumnSet(m_rowset->aRow[index].lpProps);
+	return KRow(m_rowset->aRow[index]);
 }
 
 unsigned int KRowSet::count() const

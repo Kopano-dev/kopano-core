@@ -22,7 +22,6 @@ namespace KCHL {
 using namespace KC;
 
 class KAttach;
-class KDeleter;
 class KFolder;
 class KMessage;
 class KStore;
@@ -34,6 +33,7 @@ class KEntryId;
 class _kc_export KProp _kc_final {
 	public:
 	KProp(SPropValue *);
+	~KProp();
 
 	const unsigned int &prop_tag() const;
 	const bool b() const;
@@ -41,6 +41,10 @@ class _kc_export KProp _kc_final {
 	std::string str();
 	std::wstring wstr();
 	KEntryId entry_id();
+	SPropValue *operator->(void) { return m_s; }
+	const SPropValue *operator->(void) const { return m_s; }
+	operator SPropValue *(void) { return m_s; }
+	operator const SPropValue *(void) const { return m_s; }
 
 	private:
 	SPropValue *m_s;
@@ -87,12 +91,6 @@ class _kc_export_throw KMAPIError _kc_final : public std::exception {
 	private:
 	HRESULT m_code;
 	std::string m_message;
-};
-
-class _kc_export KDeleter _kc_final {
-	public:
-	void operator()(SPropValue *);
-	void operator()(SRowSet *);
 };
 
 class _kc_export KFolder _kc_final {
@@ -182,19 +180,22 @@ class _kc_export KStream _kc_final {
 	IStream *m_stream;
 };
 
-class _kc_export KColumnSet _kc_final {
+class _kc_export KRow _kc_final {
 	public:
-	KColumnSet(SPropValue*);
+	KRow(SRow);
 	KProp operator[](size_t index) const;
 	private:
-	SPropValue *m_columnset;
+	SRow m_row;
 };
 
 class _kc_export KRowSet _kc_final {
 	public:
 	KRowSet(SRowSet*);
-	KColumnSet operator[](size_t) const;
+	KRow operator[](size_t) const;
 	unsigned int count() const;
+	SRowSet* operator->(void) { return m_rowset.get(); }
+	operator SRowSet *(void) { return m_rowset.get(); }
+
 	protected:
 	rowset_ptr m_rowset;
 };
