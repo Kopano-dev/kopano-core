@@ -333,20 +333,12 @@
 // Input
 %typemap(arginit) MAPISTRUCT
 	"$1 = NULL;"
-%typemap(freearg)	MAPISTRUCT
-{
-	MAPIFreeBuffer($1);
-}
 
 // MAPISTRUCT_W_FLAGS (MAPI data struct with LPTSTR members)
 
 // Input
 %typemap(arginit) MAPISTRUCT_W_FLAGS
 	"$1 = NULL;"
-%typemap(freearg)	MAPISTRUCT_W_FLAGS
-{
-	MAPIFreeBuffer($1);
-}
 
 // MAPILIST (MAPI list of data structs)
 
@@ -381,11 +373,10 @@
 }
 
 // Output
-%typemap(in,numinputs=0)	(ULONG *,MAPIARRAY *)(ULONG c, $*2_type lp)
-	"lp = NULL; $2 = &lp; c = 0; $1 = &c;";
-%typemap(freearg) (ULONG *, MAPIARRAY *)
+%typemap(in,numinputs=0)	(ULONG *,MAPIARRAY *) (ULONG c, KCHL::memory_ptr< std::remove_pointer< std::remove_pointer< $2_type >::type >::type > tmp)
 {
-	MAPIFreeBuffer(*$2);
+        $2 = &~tmp;
+        c = 0; $1 = &c;
 }
 
 %typemap(arginit) (ULONG, MAPIARRAY)
