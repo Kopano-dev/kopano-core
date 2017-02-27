@@ -171,8 +171,32 @@ def main(argv = None):
     except Exception:
         print("Unable to read out of office message of user '%s'" % username)
 
+    try:
+        oldfrom = st.GetProps([PR_EC_OUTOFOFFICE_FROM], 0)[0].Value
+        if oldfrom == MAPI_E_NOT_FOUND:
+            oldfrom = None
+        else:
+            oldfrom = oldfrom.datetime().isoformat()
+    except Exception:
+        oldfrom = None
+
+    try:
+        olduntil = st.GetProps([PR_EC_OUTOFOFFICE_UNTIL], 0)[0].Value
+        if olduntil == MAPI_E_NOT_FOUND:
+            olduntil = None
+        else:
+            olduntil = olduntil.datetime().isoformat()
+    except Exception:
+        olduntil = None
+
     if dump_json:
-        result = json.dumps({'set': bool(oldstatus), 'subject': oldsubject, 'message': oldmsg})
+        result = json.dumps({
+            'set': bool(oldstatus),
+            'subject': oldsubject,
+            'message': oldmsg,
+            'from': oldfrom,
+            'until': olduntil,
+        })
         print(result)
         sys.exit(0)
 
