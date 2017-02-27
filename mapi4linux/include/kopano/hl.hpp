@@ -33,18 +33,21 @@ class KEntryId;
 class _kc_export KProp _kc_final {
 	public:
 	KProp(SPropValue *);
-	~KProp();
-
-	const unsigned int &prop_tag() const;
-	const bool b() const;
-	const unsigned int &ul() const;
-	std::string str();
-	std::wstring wstr();
-	KEntryId entry_id();
+	KProp(KProp &&);
+	~KProp(void);
+	KProp &operator=(KProp &&);
 	SPropValue *operator->(void) { return m_s; }
 	const SPropValue *operator->(void) const { return m_s; }
 	operator SPropValue *(void) { return m_s; }
 	operator const SPropValue *(void) const { return m_s; }
+
+	const unsigned int &prop_tag() const;
+	const bool b() const;
+	const unsigned int &ul() const;
+	const int &l() const;
+	std::string str();
+	std::wstring wstr();
+	KEntryId entry_id();
 
 	private:
 	SPropValue *m_s;
@@ -184,6 +187,7 @@ class _kc_export KRow _kc_final {
 	public:
 	KRow(SRow);
 	KProp operator[](size_t index) const;
+	unsigned int count() const;
 	private:
 	SRow m_row;
 };

@@ -21,9 +21,21 @@ KProp::KProp(SPropValue *s) :
 {
 }
 
+KProp::KProp(KProp &&other) :
+	m_s(other.m_s)
+{
+	other.m_s = NULL;
+}
+
 KProp::~KProp() {
 	if (m_s != nullptr)
 		MAPIFreeBuffer(m_s);
+}
+
+KProp &KProp::operator=(KProp &&other)
+{
+	std::swap(m_s, other.m_s);
+	return *this;
 }
 
 const unsigned int & KProp::prop_tag() const
@@ -45,6 +57,14 @@ const unsigned int & KProp::ul() const
 		throw KMAPIError(MAPI_E_INVALID_TYPE);
 
 	return m_s->Value.ul;
+}
+
+const int & KProp::l() const
+{
+	if (PROP_TYPE(prop_tag()) != PT_LONG)
+		throw KMAPIError(MAPI_E_INVALID_TYPE);
+
+	return m_s->Value.l;
 }
 
 std::string KProp::str()
@@ -422,6 +442,11 @@ KProp KRow::operator[](size_t index) const
 	memcpy(prop, &m_row.lpProps[index], sizeof(SPropValue));
 
 	return KProp(prop.release());
+}
+
+unsigned int KRow::count() const
+{
+	return m_row.cValues;
 }
 
 KRowSet::KRowSet(SRowSet *rowset) :
