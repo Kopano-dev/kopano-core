@@ -16,12 +16,14 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include "vtodo.h"
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
 #include "nameids.h"
-
 #include <iostream>
+#include "icalmem.hpp"
+
 using namespace std;
 
 namespace KC {
@@ -243,24 +245,14 @@ HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *
  */
 HRESULT VTodoConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMethod, icaltimezone **lppicTZinfo, std::string *lpstrTZid, icalcomponent **lppEvent)
 {
-	HRESULT hr = hrSuccess;
-	icalcomponent *lpEvent = NULL;
-
-	lpEvent = icalcomponent_new(ICAL_VTODO_COMPONENT);
-
-	hr = VConverter::HrMAPI2ICal(lpMessage, lpicMethod, lppicTZinfo, lpstrTZid, lpEvent);
+	icalcomp_ptr lpEvent(icalcomponent_new(ICAL_VTODO_COMPONENT));
+	HRESULT hr = VConverter::HrMAPI2ICal(lpMessage, lpicMethod, lppicTZinfo,
+	             lpstrTZid, lpEvent.get());
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lppEvent)
-		*lppEvent = lpEvent;
-	lpEvent = NULL;
-
-exit:
-	if (lpEvent)
-		icalcomponent_free(lpEvent);
-
-	return hr;
+		*lppEvent = lpEvent.release();
+	return hrSuccess;
 }
 
 /** 

@@ -12,19 +12,20 @@ namespace KCHL {
  * With unique_tie, this gets shorter:
  * 	unique_ptr<char> u; bla_alloc(&unique_tie(u));
  */
-template<typename _T> class unique_proxy {
+template<typename _T, typename _D> class unique_proxy {
 	public:
-	unique_proxy(std::unique_ptr<_T> &a) : u(a), p(u.get()) {}
+	unique_proxy(std::unique_ptr<_T, _D> &a) : u(a), p(u.get()) {}
 	~unique_proxy(void) { u.reset(p); }
-	typename std::unique_ptr<_T>::pointer *operator&(void) { return &p; }
+	typename std::unique_ptr<_T, _D>::pointer *operator&(void) { return &p; }
 	private:
-	std::unique_ptr<_T> &u;
-	typename std::unique_ptr<_T>::pointer p;
+	std::unique_ptr<_T, _D> &u;
+	typename std::unique_ptr<_T, _D>::pointer p;
 };
 
-template<typename _T> unique_proxy<_T> unique_tie(std::unique_ptr<_T> &u)
+template<typename _T, typename _D> unique_proxy<_T, _D>
+unique_tie(std::unique_ptr<_T, _D> &u)
 {
-	return unique_proxy<_T>(u);
+	return unique_proxy<_T, _D>(u);
 }
 
 } /* namespace KCHL */

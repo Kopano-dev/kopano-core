@@ -440,7 +440,7 @@ EXTRA_libkchl_la_DEPENDENCIES = mapi4linux/src/libkchl.sym
 libkcicalmapidir = ${includedir}/icalmapi
 libkcicalmapi_HEADERS = \
 	libicalmapi/ICalToMAPI.h libicalmapi/MAPIToICal.h \
-	libicalmapi/icalitem.h \
+	libicalmapi/icalitem.h libicalmapi/icalmem.hpp \
 	libicalmapi/icalrecurrence.h libicalmapi/icaluid.h \
 	libicalmapi/mapitovcf.hpp \
 	libicalmapi/nameids.h libicalmapi/valarm.h \

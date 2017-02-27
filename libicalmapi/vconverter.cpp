@@ -26,6 +26,7 @@
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include "icaluid.h"
@@ -34,6 +35,7 @@
 #include <ctime>
 #include <kopano/mapi_ptr.h>
 #include <kopano/namedprops.h>
+#include "icalmem.hpp"
 
 using namespace std;
 using namespace KCHL;
@@ -2618,7 +2620,6 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	object_ptr<IStream> lpStream;
 	STATSTG sStreamStat;
 	ICalRecurrence cICalRecurrence;
-	icalcomponent *lpicException = NULL;
 	icalcomponent *lpicComp = NULL;
 	icalproperty *lpicProp = NULL;
 	ULONG ulModCount = 0;
@@ -2639,7 +2640,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 	hr = lpMessage->GetProps(proptags, 0, &cbsize, &~lpSpropArray);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 	
 	if ((PROP_TYPE(lpSpropArray[0].ulPropTag) != PT_ERROR)
 		&& (strcasecmp(lpSpropArray[0].Value.lpszA, "IPM.Task") == 0)) {
@@ -2655,7 +2656,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 	// there are no completed recurring task in OL, so return
 	if ((PROP_TYPE(lpSpropArray[4].ulPropTag) != PT_ERROR) && lpSpropArray[4].Value.ul == 2)
-		goto exit;
+		return hr;
 
 	if (PROP_TYPE(lpSpropArray[1].ulPropTag) != PT_ERROR)
 	{		
@@ -2670,34 +2671,30 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		// open property and read full blob
 		hr = lpMessage->OpenProperty(ulRecurrenceStateTag, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpStream->Stat(&sStreamStat, 0);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		std::unique_ptr<char[]> lpRecurrenceData(new char[sStreamStat.cbSize.LowPart]);
 		hr = lpStream->Read(lpRecurrenceData.get(), sStreamStat.cbSize.LowPart, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = cRecurrence.HrLoadRecurrenceState(lpRecurrenceData.get(), sStreamStat.cbSize.LowPart, ulFlag);
 	} else {
 		// When exception is created in MR, the IsRecurring is set - true by OL
 		// but Recurring state is not set in MR.
-		hr = hrSuccess;
-		goto exit;
+		return hrSuccess;
 	}
 
 	if (FAILED(hr))
-		goto exit;
-	hr = hrSuccess;
-
+		return hr;
 	if (PROP_TYPE(lpSpropArray[3].ulPropTag) != PT_ERROR)
 		bIsAllDay = (lpSpropArray[3].Value.b == TRUE);
 
 	if (m_iCurrentTimeZone == m_mapTimeZones->end()) {
 		hr = HrGetTzStruct("Etc/UTC", &zone);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 		zone = m_iCurrentTimeZone->second;
 	}
@@ -2705,7 +2702,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	// now that we have the recurrence state class, we can create rrules in lpicEvent
 	hr = cICalRecurrence.HrCreateICalRecurrence(zone, bIsAllDay, &cRecurrence, lpicEvent);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// all modifications create new event item:
 	// RECURRENCE-ID: contains local timezone timestamp of item that is changed
@@ -2718,12 +2715,12 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		ULONG ulMsgProps = 0;
 		const SPropValue *lpProp = NULL;
 		icalproperty_method icMethod = ICAL_METHOD_NONE;
+		icalcomp_ptr_autoconv lpicException;
 
 		ulModifications = cRecurrence.getModifiedFlags(i);
 
 		bIsAllDayException = bIsAllDay;
-
-		hr = cICalRecurrence.HrMakeICalException(lpicEvent, &lpicException);
+		hr = cICalRecurrence.HrMakeICalException(lpicEvent, &unique_tie(lpicException));
 		if (hr != hrSuccess)
 			continue;
 
@@ -2893,15 +2890,10 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			if (HrSetBody(lpException, &lpicProp) == hrSuccess)
 				icalcomponent_add_property(lpicException, lpicProp);
 		}
-
-		lstExceptions.push_back(lpicException);
-		lpicException = NULL;
+		lstExceptions.push_back(lpicException.release());
 	}	
 
 	*lpEventList = std::move(lstExceptions);
-exit:
-	if (lpicException)
-		icalcomponent_free(lpicException);
 	return hr;
 }
 
@@ -3118,9 +3110,9 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	HRESULT hr = hrSuccess;
 	std::list<icalcomponent*> lstEvents;
 	icalproperty_method icMainMethod = ICAL_METHOD_NONE;
-	icalcomponent* lpicEvent = NULL;
+	icalcomp_ptr lpicEvent;
 	memory_ptr<SPropValue> lpSpropValArray;
-	icaltimezone *lpicTZinfo = NULL;
+	std::unique_ptr<icaltimezone, icalmapi_delete> lpicTZinfo;
 	std::string strTZid;
 	ULONG cbSize = 0;
 	SizedSPropTagArray(3, proptags) = {3,
@@ -3129,16 +3121,15 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_ISRECURRING], PT_BOOLEAN)}};
 
 	// handle toplevel
-	hr = HrMAPI2ICal(lpMessage, &icMainMethod, &lpicTZinfo, &strTZid, &lpicEvent);
+	hr = HrMAPI2ICal(lpMessage, &icMainMethod, &unique_tie(lpicTZinfo),
+	     &strTZid, &unique_tie(lpicEvent));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	cbSize = 0;
 	hr = lpMessage->GetProps(proptags, 0, &cbSize, &~lpSpropValArray);
-	if (FAILED(hr)) {
-		hr = hrSuccess;
-		goto exit;
-	}
+	if (FAILED(hr))
+		return hrSuccess;
 
 	hr = hrSuccess;
 	// if recurring, add recurrence. We have to check two props since CDO only sets the second, while Outlook only sets the first :S
@@ -3149,26 +3140,17 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		((PROP_TYPE(lpSpropValArray[2].ulPropTag) != PT_ERROR) &&
 		lpSpropValArray[2].Value.b == TRUE))
 	{
-		hr = HrSetRecurrence(lpMessage, lpicEvent, lpicTZinfo, strTZid, &lstEvents);
+		hr = HrSetRecurrence(lpMessage, lpicEvent.get(),
+		     lpicTZinfo.get(), strTZid, &lstEvents);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// push the main event in the front, before all exceptions
-	lstEvents.push_front(lpicEvent);
-	lpicEvent = NULL;
-
+	lstEvents.push_front(lpicEvent.release());
 	// end
 	*lpicMethod = icMainMethod;
-	*lpEventList = lstEvents;
-
-exit:
-	if (lpicEvent)
-		icalcomponent_free(lpicEvent);
-
-	if (lpicTZinfo)
-		icaltimezone_free(lpicTZinfo, true);
-	
+	*lpEventList = std::move(lstEvents);
 	return hr;
 }
 
