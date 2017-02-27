@@ -28,7 +28,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/libfreebusy \
 	-I${top_srcdir}/libicalmapi \
 	-I${top_srcdir}/ECtools/archiver \
-	${CRYPTO_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
+	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${VMIME_CFLAGS} ${XML2_CFLAGS}
 AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare -fvisibility=hidden \
@@ -811,7 +811,8 @@ dist_phpdata_DATA = \
 #
 cov_scope_SOURCES = common/cov-scope.cpp
 mapitime_SOURCES = ECtools/mapitime.cpp
-mapitime_LDADD = -lrt libmapi.la libkcmapi.la libkcutil.la ${icu_uc_LIBS}
+mapitime_LDADD = -lrt libmapi.la libkcmapi.la libkcutil.la \
+	${curl_LIBS} ${icu_uc_LIBS}
 
 
 #

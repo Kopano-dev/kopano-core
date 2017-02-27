@@ -434,6 +434,10 @@ AC_ARG_WITH(ical-prefix,
 AC_SUBST(ICAL_CFLAGS)
 AC_SUBST(ICAL_LIBS)
 
+PKG_CHECK_MODULES([curl], [libcurl], [], [:])
+CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
+AC_CHECK_HEADERS([curl/curl.h])
+CPPFLAGS="$CPPFLAGS_system"
 PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal], [], [:])
 CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
 AC_CHECK_HEADERS([gperftools/malloc_extension.h google/malloc_extension.h])
