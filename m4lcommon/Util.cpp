@@ -2271,16 +2271,18 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 	else
 		hr = MAPIAllocateBuffer(len/2+1, (void**)&buffer);
 	if (hr != hrSuccess)
-		return hr;
+		goto exit;
 	hr = hex2bin(input, len, buffer);
 	if(hr != hrSuccess)
-		return hr;
-
+		goto exit;
 	buffer[len/2] = '\0';
 
 	*outLength = len/2;
 	*output = buffer;
-	return hrSuccess;
+ exit:
+	if (hr != hrSuccess && parent == nullptr)
+		MAPIFreeBuffer(buffer);
+	return hr;
 }
 
 /** 
