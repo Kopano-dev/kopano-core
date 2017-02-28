@@ -2712,7 +2712,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		ULONG ulMsgProps = 0;
 		const SPropValue *lpProp = NULL;
 		icalproperty_method icMethod = ICAL_METHOD_NONE;
-		icalcomp_ptr_autoconv lpicException;
+		icalcomp_ptr lpicException;
 
 		ulModifications = cRecurrence.getModifiedFlags(i);
 
@@ -2733,7 +2733,8 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		hr = lpException->GetProps(NULL, MAPI_UNICODE, &ulMsgProps, &~lpMsgProps);
 		if (FAILED(hr))
 			continue;
-		hr = HrSetOrganizerAndAttendees(lpMessage, lpException, ulMsgProps, lpMsgProps, &icMethod, lpicException);
+		hr = HrSetOrganizerAndAttendees(lpMessage, lpException,
+		     ulMsgProps, lpMsgProps, &icMethod, lpicException.get());
 		if (hr != hrSuccess)
 			continue;
 
@@ -2746,11 +2747,11 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			if (lpProp)
 				bIsAllDayException = (lpProp->Value.b == TRUE);
 			
-			lpicProp = icalcomponent_get_first_property(lpicException, ICAL_X_PROPERTY);
+			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_X_PROPERTY);
 			while (lpicProp && (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ALLDAYEVENT") != 0))
-				lpicProp = icalcomponent_get_next_property(lpicException, ICAL_X_PROPERTY);
+				lpicProp = icalcomponent_get_next_property(lpicException.get(), ICAL_X_PROPERTY);
 			if (lpicProp) {
-				icalcomponent_remove_property(lpicException, lpicProp);
+				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
 			}
 
@@ -2759,18 +2760,20 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			lpicProp = icalproperty_new_x(lpszTemp);
 			icalmemory_free_buffer(lpszTemp);
 			icalproperty_set_x_name(lpicProp, "X-MICROSOFT-CDO-ALLDAYEVENT"); 
-			icalcomponent_add_property(lpicException, lpicProp);		
+			icalcomponent_add_property(lpicException.get(), lpicProp);
 			icalvalue_free(lpicValue);
 		}
 		
 		// 1. get new StartDateTime and EndDateTime from exception and make DTSTART and DTEND in sTimeZone
 		tNewTime = LocalToUTC(tNewTime, m_iCurrentTimeZone->second);
-		hr = HrSetTimeProperty(tNewTime, bIsAllDayException, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpicException);
+		hr = HrSetTimeProperty(tNewTime, bIsAllDayException, lpicTZinfo,
+		     strTZid, ICAL_DTSTART_PROPERTY, lpicException.get());
 		if (hr != hrSuccess)
 			continue;
 
 		tNewTime = LocalToUTC(cRecurrence.getModifiedEndDateTime(i), m_iCurrentTimeZone->second);
-		hr = HrSetTimeProperty(tNewTime, bIsAllDayException, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpicException);
+		hr = HrSetTimeProperty(tNewTime, bIsAllDayException, lpicTZinfo,
+		     strTZid, ICAL_DTEND_PROPERTY, lpicException.get());
 		if (hr != hrSuccess)
 			continue;
 		lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME));
@@ -2779,7 +2782,8 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 		if (lpProp) {
 			tNewTime = FileTimeToUnixTime(lpProp->Value.ft.dwHighDateTime, lpProp->Value.ft.dwLowDateTime);
-			hr = HrSetTimeProperty(tNewTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_RECURRENCEID_PROPERTY, lpicException);
+			hr = HrSetTimeProperty(tNewTime, bIsAllDay, lpicTZinfo,
+			     strTZid, ICAL_RECURRENCEID_PROPERTY, lpicException.get());
 			if (hr != hrSuccess)
 				continue;
 		}
@@ -2787,14 +2791,14 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		// 2. for each (useful?) bit in ulOverrideFlags, set property
 		if (ulModifications & ARO_SUBJECT) {
 			// find the previous value, and remove it
-			lpicProp = icalcomponent_get_first_property(lpicException, ICAL_SUMMARY_PROPERTY);
+			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_SUMMARY_PROPERTY);
 			if (lpicProp) {
-				icalcomponent_remove_property(lpicException, lpicProp);
+				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
 			}
 
 			const wstring wstrTmp = cRecurrence.getModifiedSubject(i);
-			icalcomponent_add_property(lpicException, icalproperty_new_summary(m_converter.convert_to<string>(m_strCharset.c_str(), wstrTmp, rawsize(wstrTmp), CHARSET_WCHAR).c_str()));
+			icalcomponent_add_property(lpicException.get(), icalproperty_new_summary(m_converter.convert_to<string>(m_strCharset.c_str(), wstrTmp, rawsize(wstrTmp), CHARSET_WCHAR).c_str()));
 		}
 
 		if (ulModifications & ARO_MEETINGTYPE) {
@@ -2802,7 +2806,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		}
 
 		if (ulModifications & ARO_REMINDERDELTA && !(ulModifications & ARO_REMINDERSET)) {
-			HrUpdateReminderTime(lpicException, cRecurrence.getModifiedReminderDelta(i));
+			HrUpdateReminderTime(lpicException.get(), cRecurrence.getModifiedReminderDelta(i));
 		}
 
 		if (ulModifications & ARO_REMINDERSET) {
@@ -2824,9 +2828,9 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 			// add new valarm
 			// although a previous valarm should not be here, the webaccess always says it's been changed, so we remove the old one too
-			lpicComp = icalcomponent_get_first_component(lpicException, ICAL_VALARM_COMPONENT);
+			lpicComp = icalcomponent_get_first_component(lpicException.get(), ICAL_VALARM_COMPONENT);
 			if (lpicComp) {
-				icalcomponent_remove_component(lpicException, lpicComp);
+				icalcomponent_remove_component(lpicException.get(), lpicComp);
 				icalcomponent_free(lpicComp);
 			}
 			lpicComp = NULL;
@@ -2834,38 +2838,37 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			if (cRecurrence.getModifiedReminder(i) != 0) {
 				hr = HrParseReminder(lRemindBefore, ttReminderTime, false, &lpicComp);
 				if (hr == hrSuccess)
-					icalcomponent_add_component(lpicException, lpicComp);
+					icalcomponent_add_component(lpicException.get(), lpicComp);
 			}
 		}
 
 		if (ulModifications & ARO_LOCATION) {
-			lpicProp = icalcomponent_get_first_property(lpicException, ICAL_LOCATION_PROPERTY);
+			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_LOCATION_PROPERTY);
 			if (lpicProp) {
-				icalcomponent_remove_property(lpicException, lpicProp);
+				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
 			}
 
 			const wstring wstrTmp = cRecurrence.getModifiedLocation(i);
-			icalcomponent_add_property(lpicException, icalproperty_new_location (m_converter.convert_to<string> (m_strCharset.c_str(), wstrTmp, rawsize(wstrTmp), CHARSET_WCHAR).c_str() ));
+			icalcomponent_add_property(lpicException.get(), icalproperty_new_location(m_converter.convert_to<std::string>(m_strCharset.c_str(), wstrTmp, rawsize(wstrTmp), CHARSET_WCHAR).c_str()));
 		}
 
 		if (ulModifications & ARO_BUSYSTATUS) {
 			// new X-MICROSOFT-CDO-INTENDEDSTATUS and TRANSP
-			lpicProp = icalcomponent_get_first_property(lpicException, ICAL_TRANSP_PROPERTY);
+			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_TRANSP_PROPERTY);
 			if (lpicProp) {
-				icalcomponent_remove_property(lpicException, lpicProp);
+				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
 			}
 
-			lpicProp = icalcomponent_get_first_property(lpicException, ICAL_X_PROPERTY);
+			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_X_PROPERTY);
 			while (lpicProp && (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-INTENDEDSTATUS") != 0))
-				lpicProp = icalcomponent_get_next_property(lpicException, ICAL_X_PROPERTY);
+				lpicProp = icalcomponent_get_next_property(lpicException.get(), ICAL_X_PROPERTY);
 			if (lpicProp) {
-				icalcomponent_remove_property(lpicException, lpicProp);
+				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
 			}
-
-			HrSetBusyStatus(lpException, cRecurrence.getModifiedBusyStatus(i), lpicException);
+			HrSetBusyStatus(lpException, cRecurrence.getModifiedBusyStatus(i), lpicException.get());
 		}
 
 		if (ulModifications & ARO_ATTACHMENT) {
@@ -2877,15 +2880,15 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		}
 
 		if (ulModifications & ARO_EXCEPTIONAL_BODY) {
-			lpicProp = icalcomponent_get_first_property(lpicException, ICAL_DESCRIPTION_PROPERTY);
+			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_DESCRIPTION_PROPERTY);
 			if (lpicProp) {
-				icalcomponent_remove_property(lpicException, lpicProp);
+				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
 			}
 			lpicProp = NULL;
 
 			if (HrSetBody(lpException, &lpicProp) == hrSuccess)
-				icalcomponent_add_property(lpicException, lpicProp);
+				icalcomponent_add_property(lpicException.get(), lpicProp);
 		}
 		lstExceptions.push_back(lpicException.release());
 	}	
