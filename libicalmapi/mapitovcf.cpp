@@ -54,26 +54,23 @@ HRESULT create_mapitovcf(mapitovcf **ret)
 VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
     const SPropValue &s)
 {
-	char plain[128];
-	if (PROP_TYPE(s.ulPropTag) == PT_UNICODE)
-		wcstombs(plain, s.Value.lpszW, sizeof(plain));
-	else if (PROP_TYPE(s.ulPropTag) == PT_STRING8)
-		strncpy(plain, s.Value.lpszA, sizeof(plain));
-
 	auto newnode = addProp(node, prop);
 	if (newnode == nullptr)
 		return nullptr;
-	setVObjectStringZValue(newnode, plain);
+	if (PROP_TYPE(s.ulPropTag) == PT_UNICODE)
+		setVObjectUStringZValue(newnode, s.Value.lpszW);
+	else if (PROP_TYPE(s.ulPropTag) == PT_STRING8)
+		setVObjectStringZValue(newnode, s.Value.lpszA);
 	return newnode;
 }
 
 VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
     const wchar_t *value)
 {
-	char plain[128];
-	wcstombs(plain, value, sizeof(plain));
 	auto newnode = addProp(node, prop);
-	setVObjectStringZValue(newnode, plain);
+	if (newnode == nullptr)
+		return nullptr;
+	setVObjectUStringZValue(newnode, value);
 	return newnode;
 }
 
