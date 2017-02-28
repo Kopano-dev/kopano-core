@@ -2263,13 +2263,12 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 			break;
 
 		// else generate it on the fly
-		LPSPropValue tprop;
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&tprop));
+		memory_ptr<SPropValue> tprop;
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~tprop);
 		if (hr != hrSuccess)
 			break;
 		hr = lpMessage->GetSyncedBodyProp(PR_HTML, ulFlags, tprop, tprop);
 		if (hr != hrSuccess) {
-			ECFreeBuffer(tprop);
 			hr = MAPI_E_NOT_FOUND;
 			break;
 		}
@@ -2294,7 +2293,6 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 			}
 			lpsPropValue->Value.bin.cb = ulSize;
 		}
-		ECFreeBuffer(tprop);
 		if (rc == 0 || hr != hrSuccess) {
 			hr = MAPI_E_NOT_FOUND;
 			break;
