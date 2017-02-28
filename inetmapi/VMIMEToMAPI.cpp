@@ -1722,6 +1722,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	ULONG ulAttNr = 0;
 	ICalToMapi *lpIcalMapi = NULL;
 	SPropValuePtr ptrSubject;
+	ULONG ical_mapi_flags = IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY;
 	/*
 	 * Some senders send UTF-8 iCalendar information without a charset
 	 * (Exchange does this). Default to UTF-8 if no charset was specified,
@@ -1793,8 +1794,12 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 			return hr;
 		}
 	}
+
+	if (bIsAttachment)
+		ical_mapi_flags |= IC2M_NO_BODY;
+
 	/* Calendar properties need to be on the main message in any case. */
-	hr = lpIcalMapi->GetItem(0, IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY | IC2M_NO_BODY, lpMessage);
+	hr = lpIcalMapi->GetItem(0, ical_mapi_flags, lpMessage);
 	if (hr != hrSuccess) {
 		ec_log_err("dissect_ical-1834: Error while converting ical to mapi: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		goto exit;
