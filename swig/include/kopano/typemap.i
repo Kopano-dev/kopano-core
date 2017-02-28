@@ -132,8 +132,8 @@
 %apply (ULONG *OUTPUT, LPENTRYID *OUTPUT) {(ULONG* lpcbStoreId, LPENTRYID* lppStoreId), (ULONG* lpcbRootId, LPENTRYID *lppRootId), (ULONG *lpulOutput, LPBYTE *lpOutput)};
 
 // Optional In & Output
-%typemap(in) (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) (int res, char *buf = 0, size_t size, int alloc = 0, ULONG cbEntryID = 0, LPENTRYID lpEntryID = NULL, LPENTRYID lpOrig = NULL) {
-  $1 = &cbEntryID; $2 = &lpEntryID;
+%typemap(in) (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) (int res, char *buf = 0, size_t size, int alloc = 0, ULONG cbEntryID = 0, KCHL::memory_ptr<ENTRYID> tmp) {
+  $1 = &cbEntryID;
 
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
   if (!SWIG_IsOK(res)) {
@@ -141,22 +141,18 @@
   }
   if(buf == NULL) {
     *$1 = 0;
-    *$2 = NULL;
+    $2 = &~tmp;
   } else {
     *$1 = %numeric_cast(size - 1, $*1_ltype);
-    *$2 = %reinterpret_cast(buf, $*2_ltype);
+    tmp.reset(%reinterpret_cast(buf, $*2_ltype));
+    $2 = &+tmp;
   }
-  lpOrig = *$2;
 }
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (ULONG *OPTINOUT, LPENTRYID *OPTINOUT)
 {
   if (*$2) {
     %append_output(PyBytes_FromStringAndSize((const char *)*$2,*$1));
   }
-}
-%typemap(freearg) (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) {
-	if(!lpOrig$argnum && $2)
-		MAPIFreeBuffer(*$2);
 }
 %apply (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) {(ULONG* lpcbStoreId_oio, LPENTRYID* lppStoreId_oio), (ULONG* lpcbRootId_oio, LPENTRYID *lppRootId_oio)};
 
