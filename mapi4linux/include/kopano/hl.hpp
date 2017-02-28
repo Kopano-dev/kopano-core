@@ -41,6 +41,7 @@ class _kc_export KProp _kc_final {
 	operator SPropValue *(void) { return m_s; }
 	operator const SPropValue *(void) const { return m_s; }
 
+	unsigned int prop_type() const;
 	const unsigned int &prop_tag() const;
 	const bool b() const;
 	const unsigned int &ul() const;
@@ -78,6 +79,10 @@ class _kc_export KEntryId _kc_final {
 	~KEntryId(void);
 	KEntryId &operator=(KEntryId &&);
 
+	ENTRYID *lpb() { return m_eid; }
+	const ENTRYID *lpb() const { return m_eid; }
+	size_t cb() const { return m_size; }
+
 	private:
 	friend class KStore;
 	ENTRYID *m_eid = nullptr;
@@ -109,6 +114,7 @@ class _kc_export KFolder _kc_final {
 	KMessage create_message(LPCIID = NULL, unsigned int = 0);
 	KTable get_contents_table(unsigned int = 0);
 	KTable get_hierarchy_table(unsigned int = 0);
+	KProp get_prop(unsigned int);
 
 	protected:
 	IMAPIFolder *m_folder = nullptr;
@@ -206,6 +212,11 @@ class _kc_export KRowSet _kc_final {
 
 class _kc_export KTable _kc_final {
 	public:
+	enum SortOrder {
+		ASCEND = TABLE_SORT_ASCEND,
+		DESCEND = TABLE_SORT_DESCEND
+	};
+
 	KTable(IMAPITable *);
 	KTable(KTable &&);
 	~KTable(void);
@@ -214,7 +225,8 @@ class _kc_export KTable _kc_final {
 	operator IMAPITable *(void) { return m_table; }
 
 	HRESULT restrict(const SRestriction &, unsigned int = 0);
-	void columns(std::initializer_list<unsigned int>);
+	void columns(std::initializer_list<unsigned int>, unsigned int = 0);
+	void sort(std::initializer_list<std::pair<unsigned int, SortOrder> >, unsigned int = 0);
 	KRowSet rows(unsigned int, unsigned int);
 	unsigned int count(unsigned int = 0);
 

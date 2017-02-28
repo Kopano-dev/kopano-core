@@ -38,6 +38,11 @@ KProp &KProp::operator=(KProp &&other)
 	return *this;
 }
 
+unsigned int KProp::prop_type() const
+{
+	return PROP_TYPE(m_s->ulPropTag);
+}
+
 const unsigned int & KProp::prop_tag() const
 {
 	return m_s->ulPropTag;
@@ -221,6 +226,15 @@ KTable KFolder::get_hierarchy_table(unsigned int flags)
 	if (ret != hrSuccess)
 		throw KMAPIError(ret);
 	return KTable(table);
+}
+
+KProp KFolder::get_prop(unsigned int tag)
+{
+	SPropValue *prop;
+	auto ret = HrGetOneProp(m_folder, tag, &prop);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+	return prop;
 }
 
 KMessage::KMessage(IMessage *message) :
@@ -492,7 +506,7 @@ HRESULT KTable::restrict(const SRestriction &r, unsigned int flags)
 	return m_table->Restrict(const_cast<SRestriction *>(&r), flags);
 }
 
-void KTable::columns(std::initializer_list<unsigned int> props)
+void KTable::columns(std::initializer_list<unsigned int> props, unsigned int flags)
 {
 	size_t len = props.size();
 	memory_ptr<SPropTagArray> array;
@@ -509,7 +523,32 @@ void KTable::columns(std::initializer_list<unsigned int> props)
 		i++;
 	}
 
-	ret = m_table->SetColumns(array, 0);
+	ret = m_table->SetColumns(array, flags);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+}
+
+void KTable::sort(std::initializer_list<std::pair<unsigned int, KTable::SortOrder> > sort_order, unsigned int flags)
+{
+	size_t len = sort_order.size();
+	memory_ptr<SSortOrderSet> array;
+
+	auto ret = MAPIAllocateBuffer(CbNewSSortOrderSet(len), &~array);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+
+	array->cCategories = 0;
+	array->cExpanded = 0;
+	array->cSorts = len;
+
+	size_t i = 0;
+	for (const auto &pair : sort_order) {
+		array->aSort[i].ulPropTag = pair.first;
+		array->aSort[i].ulOrder = pair.second;
+		++i;
+	}
+
+	ret = m_table->SortTable(array, flags);
 	if (ret != hrSuccess)
 		throw KMAPIError(ret);
 }
