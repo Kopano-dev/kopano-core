@@ -51,7 +51,7 @@ HRESULT			PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGU
 // These functions fill a pre-allocated structure, possibly allocating more memory via lpBase
 
 HRESULT		 	PHPArraytoSBinaryArray(zval * entryid_array, void *lpBase, LPENTRYLIST lpEntryList TSRMLS_DC);
-HRESULT 		PHPArraytoSRestriction(zval *phpVal, void *lpBase, LPSRestriction lpRestriction TSRMLS_DC);
+extern HRESULT PHPArraytoSRestriction(zval *, void *base, SRestriction * TSRMLS_DC) __attribute__((nonnull(2)));
 
 /* imtoinet, imtomapi options */
 HRESULT			PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT);
