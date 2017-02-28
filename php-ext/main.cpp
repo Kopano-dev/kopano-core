@@ -3375,7 +3375,7 @@ ZEND_FUNCTION(mapi_copyto)
 	LPMAPIPROP lpSrcObj = NULL;
 	LPVOID lpDstObj = NULL;
 	LPCIID lpInterface = NULL;
-	LPCIID lpExcludeIIDs = NULL;
+	memory_ptr<IID> lpExcludeIIDs;
 	ULONG cExcludeIIDs = 0;
 
 	// params
@@ -3408,7 +3408,7 @@ ZEND_FUNCTION(mapi_copyto)
 		goto exit;
 	}
 
-	MAPI_G(hr) = PHPArraytoGUIDArray(excludeiid, NULL, &cExcludeIIDs, (LPGUID*)&lpExcludeIIDs TSRMLS_CC);
+	MAPI_G(hr) = PHPArraytoGUIDArray(excludeiid, NULL, &cExcludeIIDs, &~lpExcludeIIDs TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to parse IIDs");
 		goto exit;
@@ -3447,7 +3447,6 @@ ZEND_FUNCTION(mapi_copyto)
 	RETVAL_TRUE;
 
 exit:
-	MAPIFreeBuffer((void*)lpExcludeIIDs);
 	LOG_END();
 	THROW_ON_ERROR();
 }
