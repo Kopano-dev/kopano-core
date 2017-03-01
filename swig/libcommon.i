@@ -2,6 +2,7 @@
 
 %{
     #include <kopano/platform.h>
+    #include <kopano/memory.hpp>
     #include <mapi.h>
     #include <mapidefs.h>
     #include <mapicode.h>
