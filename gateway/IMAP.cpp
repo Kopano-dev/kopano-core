@@ -1552,6 +1552,59 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 	return HrResponse(RESP_TAGGED_OK, strTag, strAction+" completed");
 }
 
+HRESULT IMAP::get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next)
+{
+	object_ptr<IMAPITable> table;
+	HRESULT hr, hr2;
+
+	hr = status_folder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~table);
+	if (hr != hrSuccess) {
+		hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
+		if(hr2 != hrSuccess)
+			return hr2;
+		return hr;
+	}
+
+	enum {IMAPID, NUM_COLS};
+	SizedSPropTagArray(NUM_COLS, sPropsImapId) = {NUM_COLS, {PR_EC_IMAP_ID}};
+
+	hr = table->SetColumns(sPropsImapId, TBL_BATCH);
+	if (hr != hrSuccess) {
+		hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error setting columns for query");
+		if(hr2 != hrSuccess)
+			return hr2;
+		return hr;
+	}
+
+	static constexpr const SizedSSortOrderSet(1, sSortUID) =
+		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_DESCEND}}};
+
+	hr = table->SortTable(sSortUID, TBL_BATCH);
+	if (hr != hrSuccess) {
+		hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error sorting the result set");
+		if(hr2 != hrSuccess)
+			return hr2;
+		return hr;
+	}
+
+	SRowSet *rows = nullptr;
+	hr = table->QueryRows(1, 0, &rows);
+	if (hr != hrSuccess) {
+		hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error querying rows");
+		if(hr2 != hrSuccess)
+			return hr2;
+		return hr;
+	}
+
+	else if (rows->cRows == 0) {
+		uid_next = 1;
+	} else {
+		uid_next = rows->aRow[0].lpProps[IMAPID].Value.ul + 1;
+	}
+
+	return hr;
+}
+
 /** 
  * @brief Handles STATUS command
  * 
@@ -1583,6 +1636,7 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 	ULONG ulMessages = 0;
 	ULONG ulUnseen = 0;
 	ULONG ulUIDValidity = 0;
+	ULONG ulUIDNext = 0;
 	ULONG ulRecent = 0;
 	ULONG cStatusData = 0;
 	object_ptr<IMAPITable> lpTable;
@@ -1680,13 +1734,11 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
                 // No max id, all messages are Recent
                 ulRecent = ulMessages;
             }
-            
 			snprintf(szBuffer, 10, "%u", ulRecent);
 			strResponse += szBuffer;
 		} else if (strData.compare("UIDNEXT") == 0) {
-			// although m_ulLastUid is from the current selected folder, and not the requested status folder,
-			// the hierarchy id should become the same, and it's not a value the imap client can use anyway.
-			snprintf(szBuffer, 10, "%u", m_ulLastUid + 1);
+			get_uid_next(lpStatusFolder, strTag, ulUIDNext);
+			snprintf(szBuffer, 10, "%u", ulUIDNext);
 			strResponse += szBuffer;
 		} else if (strData.compare("UIDVALIDITY") == 0) {
 			snprintf(szBuffer, 10, "%u", ulUIDValidity);
@@ -3274,8 +3326,10 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 		for (const auto &mail : lstFolderMailEIDs)
 			mapUIDs[mail.ulUid] = n++;
     
-    if(bInitialLoad)
+    if(bInitialLoad) {
         lstFolderMailEIDs.clear();
+		m_ulLastUid = 0;
+    }
 
     iterMail = lstFolderMailEIDs.cbegin();
 
@@ -4734,7 +4788,7 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 			ulBeginMailnr = LastOrNumber(vSequences[i].c_str(), true);
 			ulMailnr = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
 
-			if (ulBeginMailnr > ulMailnr)
+			if (ulBeginMailnr > ulMailnr && ulBeginMailnr <= lstFolderMailEIDs.size())
 				swap(ulBeginMailnr, ulMailnr);
 
 			auto b = std::lower_bound(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulBeginMailnr);
