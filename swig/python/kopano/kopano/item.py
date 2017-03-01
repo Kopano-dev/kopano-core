@@ -809,6 +809,9 @@ class Item(object):
             self.mapiobj.SetProps([SPropValue(PROP_REF_ITEM_ENTRYID, entryid)])
             self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
+    def __iter__(self):
+        return self.props()
+
     def __unicode__(self):
         return u'Item(%s)' % self.subject
 
