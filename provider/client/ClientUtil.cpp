@@ -227,9 +227,9 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAGE* lppEmptyMessage)
 {
 	HRESULT			hr = hrSuccess;
-	memory_ptr<SPropValue> lpSrcPropValue, lpDestPropValue;
+	memory_ptr<SPropValue> spv, dpv;
 	ULONG			ulMaxDestValues = 0;
-	ULONG			ulCurDestValues = 0;
+	ULONG			dval = 0;
 	ULONG			cSrcValues = 0;
 	ULONG			cbTmp = 0;
 	memory_ptr<BYTE> lpByteTmp;
@@ -300,11 +300,11 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		lpReportText = _("was read on");
 	}
 
-	hr = lpReadMessage->GetProps(sPropReadReceipt, fMapiUnicode, &cSrcValues, &~lpSrcPropValue);
+	hr = lpReadMessage->GetProps(sPropReadReceipt, fMapiUnicode, &cSrcValues, &~spv);
 	if(FAILED(hr) != hrSuccess)
 		return hr;
 
-#define HAVE(tag) (lpSrcPropValue[RR_ ## tag].ulPropTag != (PR_ ## tag))
+#define HAVE(tag) (spv[RR_ ## tag].ulPropTag != (PR_ ## tag))
 	// important properties
 	if (!HAVE(REPORT_ENTRYID))
 		return MAPI_E_INVALID_PARAMETER;
@@ -316,29 +316,28 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		strBodyText+= _T("\t");
 		strBodyText+= _("To:");
 		strBodyText+= _T(" ");
-		strBodyText+= lpSrcPropValue[RR_DISPLAY_TO].Value.LPSZ;
+		strBodyText += spv[RR_DISPLAY_TO].Value.LPSZ;
 		strBodyText+= _T("\r\n");
 	}
 	if (HAVE(DISPLAY_CC)) {
 		strBodyText+= _T("\t");
 		strBodyText+= _("Cc:");
 		strBodyText+= _T(" ");
-		strBodyText+= lpSrcPropValue[RR_DISPLAY_CC].Value.LPSZ;
+		strBodyText += spv[RR_DISPLAY_CC].Value.LPSZ;
 		strBodyText+= _T("\r\n");
 	}
 	if (HAVE(SUBJECT)) {
 		strBodyText+= _T("\t");
 		strBodyText+= _("Subject:");
 		strBodyText+= _T(" ");
-		strBodyText+= lpSrcPropValue[RR_SUBJECT].Value.LPSZ;
+		strBodyText += spv[RR_SUBJECT].Value.LPSZ;
 		strBodyText+= _T("\r\n");
 	}
 	if (HAVE(CLIENT_SUBMIT_TIME)) {
 		strBodyText+= _T("\t");
 		strBodyText+= _("Sent on:");
 		strBodyText+= _T(" ");
-
-		FileTimeToUnixTime(lpSrcPropValue[RR_CLIENT_SUBMIT_TIME].Value.ft, &tt);
+		FileTimeToUnixTime(spv[RR_CLIENT_SUBMIT_TIME].Value.ft, &tt);
 		tm = localtime(&tt);
 		if (tm == NULL)
 			tm = localtime(&zero);
@@ -362,166 +361,157 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	strBodyText+= _T("\r\n");
 
 	ulMaxDestValues = cSrcValues + 4;//+ default properties
-	hr = MAPIAllocateBuffer(sizeof(SPropValue)*ulMaxDestValues, &~lpDestPropValue);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * ulMaxDestValues, &~dpv);
 	if(hr != hrSuccess)
 		return hr;
 
-	memset(lpDestPropValue, 0, sizeof(SPropValue)*ulMaxDestValues);
+	memset(dpv, 0, sizeof(SPropValue) * ulMaxDestValues);
 
 	// Default properties
-	lpDestPropValue[ulCurDestValues].ulPropTag = PR_DELETE_AFTER_SUBMIT;
-	lpDestPropValue[ulCurDestValues++].Value.b = true;
-
-	lpDestPropValue[ulCurDestValues].ulPropTag = PR_READ_RECEIPT_REQUESTED;
-	lpDestPropValue[ulCurDestValues++].Value.b = false;
-
-	lpDestPropValue[ulCurDestValues].ulPropTag = PR_MESSAGE_FLAGS;
-	lpDestPropValue[ulCurDestValues++].Value.ul = 0;
-
-	lpDestPropValue[ulCurDestValues].ulPropTag = PR_MESSAGE_CLASS;
-	lpDestPropValue[ulCurDestValues++].Value.LPSZ = const_cast<TCHAR *>(lpMsgClass);
-	
-	lpDestPropValue[ulCurDestValues].ulPropTag = PR_REPORT_TEXT;
-	lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpReportText;
-
-    lpDestPropValue[ulCurDestValues].ulPropTag = PR_REPORT_TIME;
-	lpDestPropValue[ulCurDestValues++].Value.ft = ft;
-	
-	lpDestPropValue[ulCurDestValues].ulPropTag = PR_SUBJECT_PREFIX;
-	lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpReadText;
+	dpv[dval].ulPropTag = PR_DELETE_AFTER_SUBMIT;
+	dpv[dval++].Value.b = true;
+	dpv[dval].ulPropTag = PR_READ_RECEIPT_REQUESTED;
+	dpv[dval++].Value.b = false;
+	dpv[dval].ulPropTag = PR_MESSAGE_FLAGS;
+	dpv[dval++].Value.ul = 0;
+	dpv[dval].ulPropTag = PR_MESSAGE_CLASS;
+	dpv[dval++].Value.LPSZ = const_cast<TCHAR *>(lpMsgClass);
+	dpv[dval].ulPropTag = PR_REPORT_TEXT;
+	dpv[dval++].Value.LPSZ = lpReportText;
+	dpv[dval].ulPropTag = PR_REPORT_TIME;
+	dpv[dval++].Value.ft = ft;
+	dpv[dval].ulPropTag = PR_SUBJECT_PREFIX;
+	dpv[dval++].Value.LPSZ = lpReadText;
 
 	if (HAVE(SUBJECT)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SUBJECT;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_SUBJECT].Value.LPSZ;
-
-		tSubject = tstring(lpReadText) + _T(" ") + lpSrcPropValue[RR_SUBJECT].Value.LPSZ;
-
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_SUBJECT;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = (LPTSTR)tSubject.c_str();
+		dpv[dval].ulPropTag = PR_ORIGINAL_SUBJECT;
+		dpv[dval++].Value.LPSZ = spv[RR_SUBJECT].Value.LPSZ;
+		tSubject = tstring(lpReadText) + _T(" ") + spv[RR_SUBJECT].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_SUBJECT;
+		dpv[dval++].Value.LPSZ = const_cast<TCHAR *>(tSubject.c_str());
 	}else {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_SUBJECT;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpReadText;
+		dpv[dval].ulPropTag = PR_SUBJECT;
+		dpv[dval++].Value.LPSZ = lpReadText;
 	}
 
 	if (HAVE(REPORT_TAG)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_REPORT_TAG;
-		lpDestPropValue[ulCurDestValues++].Value.bin = lpSrcPropValue[RR_REPORT_TAG].Value.bin;
+		dpv[dval].ulPropTag = PR_REPORT_TAG;
+		dpv[dval++].Value.bin = spv[RR_REPORT_TAG].Value.bin;
 	}
 	if (HAVE(DISPLAY_TO)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_DISPLAY_TO;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_DISPLAY_TO].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_ORIGINAL_DISPLAY_TO;
+		dpv[dval++].Value.LPSZ = spv[RR_DISPLAY_TO].Value.LPSZ;
 	}
 	if (HAVE(DISPLAY_CC)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_DISPLAY_CC;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_DISPLAY_CC].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_ORIGINAL_DISPLAY_CC;
+		dpv[dval++].Value.LPSZ = spv[RR_DISPLAY_CC].Value.LPSZ;
 	}
 	if (HAVE(DISPLAY_BCC)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_DISPLAY_BCC;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_DISPLAY_BCC].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_ORIGINAL_DISPLAY_BCC;
+		dpv[dval++].Value.LPSZ = spv[RR_DISPLAY_BCC].Value.LPSZ;
 	}
 	if (HAVE(CLIENT_SUBMIT_TIME)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SUBMIT_TIME;
-		lpDestPropValue[ulCurDestValues++].Value.ft = lpSrcPropValue[RR_CLIENT_SUBMIT_TIME].Value.ft;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SUBMIT_TIME;
+		dpv[dval++].Value.ft = spv[RR_CLIENT_SUBMIT_TIME].Value.ft;
 	}
 	if (HAVE(DELIVER_TIME)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_DELIVERY_TIME;
-		lpDestPropValue[ulCurDestValues++].Value.ft = lpSrcPropValue[RR_DELIVER_TIME].Value.ft;
+		dpv[dval].ulPropTag = PR_ORIGINAL_DELIVERY_TIME;
+		dpv[dval++].Value.ft = spv[RR_DELIVER_TIME].Value.ft;
 	}	
 	if (HAVE(CONVERSATION_TOPIC)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_CONVERSATION_TOPIC;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_CONVERSATION_TOPIC].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_CONVERSATION_TOPIC;
+		dpv[dval++].Value.LPSZ = spv[RR_CONVERSATION_TOPIC].Value.LPSZ;
 	}
 	if (HAVE(CONVERSATION_INDEX) &&
-	    ScCreateConversationIndex(lpSrcPropValue[RR_CONVERSATION_INDEX].Value.bin.cb, lpSrcPropValue[RR_CONVERSATION_INDEX].Value.bin.lpb, &cbTmp, &~lpByteTmp) == hrSuccess)
+	    ScCreateConversationIndex(spv[RR_CONVERSATION_INDEX].Value.bin.cb, spv[RR_CONVERSATION_INDEX].Value.bin.lpb, &cbTmp, &~lpByteTmp) == hrSuccess)
 	{
-		hr = MAPIAllocateMore(cbTmp, lpDestPropValue, (void**)&lpDestPropValue[ulCurDestValues].Value.bin.lpb);
+		hr = MAPIAllocateMore(cbTmp, dpv, reinterpret_cast<void **>(&dpv[dval].Value.bin.lpb));
 		if(hr != hrSuccess)
 			return hr;
-		lpDestPropValue[ulCurDestValues].Value.bin.cb = cbTmp;
-		memcpy(lpDestPropValue[ulCurDestValues].Value.bin.lpb, lpByteTmp, cbTmp);
-
-		lpDestPropValue[ulCurDestValues++].ulPropTag = PR_CONVERSATION_INDEX;
+		dpv[dval].Value.bin.cb = cbTmp;
+		memcpy(dpv[dval].Value.bin.lpb, lpByteTmp, cbTmp);
+		dpv[dval++].ulPropTag = PR_CONVERSATION_INDEX;
 	}
 	if (HAVE(IMPORTANCE)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_IMPORTANCE;
-		lpDestPropValue[ulCurDestValues++].Value.ul = lpSrcPropValue[RR_IMPORTANCE].Value.ul;
+		dpv[dval].ulPropTag = PR_IMPORTANCE;
+		dpv[dval++].Value.ul = spv[RR_IMPORTANCE].Value.ul;
 	}
 	if (HAVE(PRIORITY)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_PRIORITY;
-		lpDestPropValue[ulCurDestValues++].Value.ul = lpSrcPropValue[RR_PRIORITY].Value.ul;
+		dpv[dval].ulPropTag = PR_PRIORITY;
+		dpv[dval++].Value.ul = spv[RR_PRIORITY].Value.ul;
 	}
 	if (HAVE(SENDER_NAME)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SENDER_NAME;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_SENDER_NAME].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SENDER_NAME;
+		dpv[dval++].Value.LPSZ = spv[RR_SENDER_NAME].Value.LPSZ;
 	}
 	if (HAVE(SENDER_ADDRTYPE)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SENDER_ADDRTYPE;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_SENDER_ADDRTYPE].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SENDER_ADDRTYPE;
+		dpv[dval++].Value.LPSZ = spv[RR_SENDER_ADDRTYPE].Value.LPSZ;
 	}
 	if (HAVE(SENDER_ENTRYID)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SENDER_ENTRYID;
-		lpDestPropValue[ulCurDestValues++].Value.bin = lpSrcPropValue[RR_SENDER_ENTRYID].Value.bin;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SENDER_ENTRYID;
+		dpv[dval++].Value.bin = spv[RR_SENDER_ENTRYID].Value.bin;
 	}
 	if (HAVE(SENDER_SEARCH_KEY)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SENDER_SEARCH_KEY;
-		lpDestPropValue[ulCurDestValues++].Value.bin = lpSrcPropValue[RR_SENDER_SEARCH_KEY].Value.bin;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SENDER_SEARCH_KEY;
+		dpv[dval++].Value.bin = spv[RR_SENDER_SEARCH_KEY].Value.bin;
 	}
 	if (HAVE(SENDER_EMAIL_ADDRESS)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SENDER_EMAIL_ADDRESS;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_SENDER_EMAIL_ADDRESS].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SENDER_EMAIL_ADDRESS;
+		dpv[dval++].Value.LPSZ = spv[RR_SENDER_EMAIL_ADDRESS].Value.LPSZ;
 	}
 	if (HAVE(SENT_REPRESENTING_NAME)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_NAME;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_SENT_REPRESENTING_NAME].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_NAME;
+		dpv[dval++].Value.LPSZ = spv[RR_SENT_REPRESENTING_NAME].Value.LPSZ;
 	}
 	if (HAVE(SENT_REPRESENTING_ADDRTYPE)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_ADDRTYPE;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_SENT_REPRESENTING_ADDRTYPE].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_ADDRTYPE;
+		dpv[dval++].Value.LPSZ = spv[RR_SENT_REPRESENTING_ADDRTYPE].Value.LPSZ;
 	}
 	if (HAVE(SENT_REPRESENTING_ENTRYID)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_ENTRYID;
-		lpDestPropValue[ulCurDestValues++].Value.bin = lpSrcPropValue[RR_SENT_REPRESENTING_ENTRYID].Value.bin;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_ENTRYID;
+		dpv[dval++].Value.bin = spv[RR_SENT_REPRESENTING_ENTRYID].Value.bin;
 	}
 	if (HAVE(SENT_REPRESENTING_SEARCH_KEY)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_SEARCH_KEY;
-		lpDestPropValue[ulCurDestValues++].Value.bin = lpSrcPropValue[RR_SENT_REPRESENTING_SEARCH_KEY].Value.bin;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_SEARCH_KEY;
+		dpv[dval++].Value.bin = spv[RR_SENT_REPRESENTING_SEARCH_KEY].Value.bin;
 	}
 	if (HAVE(SENT_REPRESENTING_EMAIL_ADDRESS)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_EMAIL_ADDRESS;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_SENT_REPRESENTING_EMAIL_ADDRESS].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_EMAIL_ADDRESS;
+		dpv[dval++].Value.LPSZ = spv[RR_SENT_REPRESENTING_EMAIL_ADDRESS].Value.LPSZ;
 	}
 	if (HAVE(MDN_DISPOSITION_SENDINGMODE)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_MDN_DISPOSITION_SENDINGMODE;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_MDN_DISPOSITION_SENDINGMODE].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_MDN_DISPOSITION_SENDINGMODE;
+		dpv[dval++].Value.LPSZ = spv[RR_MDN_DISPOSITION_SENDINGMODE].Value.LPSZ;
 	}
 	if (HAVE(MDN_DISPOSITION_TYPE)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_MDN_DISPOSITION_TYPE;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_MDN_DISPOSITION_TYPE].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_MDN_DISPOSITION_TYPE;
+		dpv[dval++].Value.LPSZ = spv[RR_MDN_DISPOSITION_TYPE].Value.LPSZ;
 	}
 
 	// We are representing the person who received the email if we're sending the read receipt for someone else.
 	if (HAVE(RECEIVED_BY_ENTRYID)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
-		lpDestPropValue[ulCurDestValues++].Value = lpSrcPropValue[RR_RECEIVED_BY_ENTRYID].Value;
+		dpv[dval].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
+		dpv[dval++].Value = spv[RR_RECEIVED_BY_ENTRYID].Value;
 	}
 	if (HAVE(RECEIVED_BY_NAME)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_SENT_REPRESENTING_NAME;
-		lpDestPropValue[ulCurDestValues++].Value = lpSrcPropValue[RR_RECEIVED_BY_NAME].Value;
+		dpv[dval].ulPropTag = PR_SENT_REPRESENTING_NAME;
+		dpv[dval++].Value = spv[RR_RECEIVED_BY_NAME].Value;
 	}
 	if (HAVE(RECEIVED_BY_EMAIL_ADDRESS)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
-		lpDestPropValue[ulCurDestValues++].Value = lpSrcPropValue[RR_RECEIVED_BY_EMAIL_ADDRESS].Value;
+		dpv[dval].ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
+		dpv[dval++].Value = spv[RR_RECEIVED_BY_EMAIL_ADDRESS].Value;
 	}
 	if (HAVE(RECEIVED_BY_ADDRTYPE)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE;
-		lpDestPropValue[ulCurDestValues++].Value = lpSrcPropValue[RR_RECEIVED_BY_ADDRTYPE].Value;
+		dpv[dval].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE;
+		dpv[dval++].Value = spv[RR_RECEIVED_BY_ADDRTYPE].Value;
 	}
 
 //	PR_RCVD_REPRESENTING_NAME, PR_RCVD_REPRESENTING_ENTRYID	
 
 	if (HAVE(INTERNET_MESSAGE_ID)) {
-		lpDestPropValue[ulCurDestValues].ulPropTag = PR_INTERNET_MESSAGE_ID;
-		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_INTERNET_MESSAGE_ID].Value.LPSZ;
+		dpv[dval].ulPropTag = PR_INTERNET_MESSAGE_ID;
+		dpv[dval++].Value.LPSZ = spv[RR_INTERNET_MESSAGE_ID].Value.LPSZ;
 	}
 #undef HAVE
 
@@ -542,13 +532,13 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 8, (void**)&lpMods->aEntries->rgPropVals);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ECParseOneOff((LPENTRYID)lpSrcPropValue[RR_REPORT_ENTRYID].Value.bin.lpb, lpSrcPropValue[RR_REPORT_ENTRYID].Value.bin.cb, strName, strType, strAddress);
+	hr = ECParseOneOff(reinterpret_cast<ENTRYID *>(spv[RR_REPORT_ENTRYID].Value.bin.lpb), spv[RR_REPORT_ENTRYID].Value.bin.cb, strName, strType, strAddress);
 	if (hr != hrSuccess)
 		return hr;
 
 	auto &pv = lpMods->aEntries->rgPropVals;
 	pv[0].ulPropTag = PR_ENTRYID;
-	pv[0].Value.bin = lpSrcPropValue[RR_REPORT_ENTRYID].Value.bin;
+	pv[0].Value.bin = spv[RR_REPORT_ENTRYID].Value.bin;
 	pv[1].ulPropTag = PR_ADDRTYPE_W;
 	pv[1].Value.lpszW = const_cast<wchar_t *>(strType.c_str());
 	pv[2].ulPropTag = PR_DISPLAY_NAME_W;
@@ -573,7 +563,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	hr = (*lppEmptyMessage)->ModifyRecipients(MODRECIP_ADD, lpMods);
 	if (hr != hrSuccess)
 		return hr;
-	return (*lppEmptyMessage)->SetProps(ulCurDestValues, lpDestPropValue, nullptr);
+	return (*lppEmptyMessage)->SetProps(dval, dpv, nullptr);
 }
 
 HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlobalProfileProps* lpsProfileProps)
