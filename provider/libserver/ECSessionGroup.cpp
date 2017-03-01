@@ -224,11 +224,9 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	ECRESULT hr = erSuccess;
 
 	Lock();
-
-	struct notification *lpNotify = new struct notification;
+	auto lpNotify = s_alloc<notification>(nullptr);
 	memset(lpNotify, 0, sizeof(notification));
-
-	lpNotify->tab = new notificationTable;
+	lpNotify->tab = s_alloc<notificationTable>(nullptr);
 	memset(lpNotify->tab, 0, sizeof(notificationTable));
 	
 	lpNotify->ulEventType			= fnevTableModified;
@@ -237,8 +235,8 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	if(lpsChildRow && (lpsChildRow->ulObjId > 0 || lpsChildRow->ulOrderId > 0)) {
 		lpNotify->tab->propIndex.ulPropTag = PR_INSTANCE_KEY;
 		lpNotify->tab->propIndex.__union = SOAP_UNION_propValData_bin;
-		lpNotify->tab->propIndex.Value.bin = new struct xsd__base64Binary;
-		lpNotify->tab->propIndex.Value.bin->__ptr = new unsigned char[sizeof(ULONG)*2];
+		lpNotify->tab->propIndex.Value.bin = s_alloc<xsd__base64Binary>(nullptr);
+		lpNotify->tab->propIndex.Value.bin->__ptr = s_alloc<unsigned char>(nullptr, sizeof(ULONG) * 2);
 		lpNotify->tab->propIndex.Value.bin->__size = sizeof(ULONG)*2;
 
 		memcpy(lpNotify->tab->propIndex.Value.bin->__ptr, &lpsChildRow->ulObjId, sizeof(ULONG));
@@ -252,8 +250,8 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	{
 		lpNotify->tab->propPrior.ulPropTag = PR_INSTANCE_KEY;
 		lpNotify->tab->propPrior.__union = SOAP_UNION_propValData_bin;
-		lpNotify->tab->propPrior.Value.bin = new struct xsd__base64Binary;
-		lpNotify->tab->propPrior.Value.bin->__ptr = new unsigned char[sizeof(ULONG)*2];
+		lpNotify->tab->propPrior.Value.bin = s_alloc<xsd__base64Binary>(nullptr);
+		lpNotify->tab->propPrior.Value.bin->__ptr = s_alloc<unsigned char>(nullptr, sizeof(ULONG) * 2);
 		lpNotify->tab->propPrior.Value.bin->__size = sizeof(ULONG)*2;
 
 		memcpy(lpNotify->tab->propPrior.Value.bin->__ptr, &lpsPrevRow->ulObjId, sizeof(ULONG));
@@ -267,7 +265,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	lpNotify->tab->ulObjType = ulObjType;
 
 	if(lpRow) {
-		lpNotify->tab->pRow = new struct propValArray;
+		lpNotify->tab->pRow = s_alloc<propValArray>(nullptr);
 		lpNotify->tab->pRow->__ptr = lpRow->__ptr;
 		lpNotify->tab->pRow->__size = lpRow->__size;
 	}

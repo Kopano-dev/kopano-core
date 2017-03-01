@@ -31,18 +31,18 @@
 
 #define NEW_SWIG_INTERFACE_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
 	if (objpointer) {\
-		pyswigobj = SWIG_NewPointerObj((void*)objpointer, typeobj, SWIG_POINTER_OWN | 0);\
+		pyswigobj.reset(SWIG_NewPointerObj((void *)objpointer, typeobj, SWIG_POINTER_OWN | 0)); \
 		PY_HANDLE_ERROR(m_lpLogger, pyswigobj) \
 		\
 		objpointer->AddRef();\
 	} else {\
-		pyswigobj = Py_None;\
+		pyswigobj.reset(Py_None); \
 	    Py_INCREF(Py_None);\
 	}\
 }
 
 #define BUILD_SWIG_TYPE(pyswigobj, type) {\
-	pyswigobj = SWIG_TypeQuery(type);\
+	pyswigobj = SWIG_TypeQuery(type); \
 	if (!pyswigobj) {\
 		assert(false);\
 		hr = S_FALSE;\
@@ -64,16 +64,16 @@ static HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
 		PyObject *lpErr = PyErr_Occurred();
 		if(lpErr) {
 			PyObjectAPtr ptype, pvalue, ptraceback;
-			PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-			
-			PyTracebackObject* traceback = (PyTracebackObject*)(*ptraceback);
-			
+			PyErr_Fetch(&~ptype, &~pvalue, &~ptraceback);
+			auto traceback = reinterpret_cast<PyTracebackObject *>(ptraceback.get());
 			const char *pStrErrorMessage = "Unknown";
 			const char *pStrType = "Unknown";
 
-			if (*pvalue) pStrErrorMessage = PyString_AsString(pvalue);
-			if (*ptype) pStrType = PyString_AsString(ptype);
-			
+			if (pvalue != nullptr)
+				pStrErrorMessage = PyString_AsString(pvalue.get());
+			if (ptype != nullptr)
+				pStrType = PyString_AsString(ptype.get());
+
 			if (lpLogger)
 			{
 				lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python type: %s", pStrType);
@@ -113,7 +113,7 @@ static HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
 #define PY_CALL_METHOD(pluginmanager, functionname, returnmacro, format, ...) {\
 	PyObjectAPtr ptrResult;\
 	{\
-		ptrResult = PyObject_CallMethod(pluginmanager, const_cast<char *>(functionname), const_cast<char *>(format), __VA_ARGS__);\
+		ptrResult.reset(PyObject_CallMethod(pluginmanager, const_cast<char *>(functionname), const_cast<char *>(format), __VA_ARGS__)); \
 		PY_HANDLE_ERROR(m_lpLogger, ptrResult)\
 		\
 		returnmacro\
@@ -174,13 +174,11 @@ HRESULT PyMapiPlugin::Init(ECLogger *lpLogger, PyObject *lpModMapiPlugin, const 
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyLogger, m_lpLogger, type_p_ECLogger);
 
 	// Init plugin class	
-	ptrClass = PyObject_GetAttrString(lpModMapiPlugin, (char*)lpPluginManagerClassName);
+	ptrClass.reset(PyObject_GetAttrString(lpModMapiPlugin, /*char* */lpPluginManagerClassName));
 	PY_HANDLE_ERROR(m_lpLogger, ptrClass);
-
-	ptrArgs  = Py_BuildValue("(sO)", lpPluginPath, *ptrPyLogger);
+	ptrArgs.reset(Py_BuildValue("(sO)", lpPluginPath, *ptrPyLogger));
 	PY_HANDLE_ERROR(m_lpLogger, ptrArgs);
-
-	m_ptrMapiPluginManager = PyObject_CallObject(ptrClass, ptrArgs);
+	m_ptrMapiPluginManager.reset(PyObject_CallObject(ptrClass, ptrArgs));
 	PY_HANDLE_ERROR(m_lpLogger, m_ptrMapiPluginManager);
  exitm:
 	return hr;
@@ -316,15 +314,13 @@ HRESULT PyMapiPluginFactory::Init(ECConfig* lpConfig, ECLogger *lpLogger)
 	lpLogger->Log(EC_LOGLEVEL_DEBUG, "PYTHONPATH = %s", strEnvPython.c_str());
 
 	Py_Initialize();
-
-	ptrModule = PyImport_ImportModule("MAPI");
+	ptrModule.reset(PyImport_ImportModule("MAPI"));
 	PY_HANDLE_ERROR(m_lpLogger, ptrModule);
 
 	// Import python plugin framework
 	// @todo error unable to find file xxx
-	ptrName = PyString_FromString("mapiplugin");
-
-	m_ptrModMapiPlugin = PyImport_Import(ptrName);
+	ptrName.reset(PyString_FromString("mapiplugin"));
+	m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
 	PY_HANDLE_ERROR(m_lpLogger, m_ptrModMapiPlugin);
  exitm:
 	return hr;

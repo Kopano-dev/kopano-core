@@ -1182,7 +1182,7 @@ ECRESULT WriteLocalCommitTimeMax(struct soap *soap, ECDatabase *lpDatabase, unsi
 
 void FreeDeleteItem(DELETEITEM *src)
 {
-	delete[] src->sEntryId.__ptr;
+	s_free(nullptr, src->sEntryId.__ptr);
 }
 
 void FreeDeletedItems(ECListDeleteItems *lplstDeleteItems)

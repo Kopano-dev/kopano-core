@@ -3163,7 +3163,7 @@ static void *HandlerLMTP(void *lpArg)
 				if (hr == hrSuccess) {
 
 					PyMapiPluginAPtr ptrPyMapiPlugin;
-					hr = GetPluginObject(&pyMapiPluginFactory, &ptrPyMapiPlugin);
+					hr = GetPluginObject(&pyMapiPluginFactory, &~ptrPyMapiPlugin);
 					if (hr != hrSuccess) {
 						lmtp.HrResponse("503 5.1.1 Internal error during delivery");
 						sc -> countInc("DAgent::LMTP", "internal_error");
@@ -3895,7 +3895,7 @@ int main(int argc, char *argv[]) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
 			goto nonlmtpexit;
 		}
-		hr = GetPluginObject(&pyMapiPluginFactory, &ptrPyMapiPlugin);
+		hr = GetPluginObject(&pyMapiPluginFactory, &~ptrPyMapiPlugin);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): GetPluginObject failed %x", hr);
 			goto nonlmtpexit; // Error is logged in GetPluginObject

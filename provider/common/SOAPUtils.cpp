@@ -131,12 +131,8 @@ void FreeSortOrderArray(struct sortOrderArray *lpsSortOrder)
 
 	if(lpsSortOrder == NULL)
 		return;
-
-	if(lpsSortOrder->__size > 0)
-		delete[] lpsSortOrder->__ptr;
-
-	delete lpsSortOrder;
-
+	s_free(nullptr, lpsSortOrder->__ptr);
+	s_free(nullptr, lpsSortOrder);
 }
 
 int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1,
@@ -189,13 +185,9 @@ void FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase)
 
 	if(lpsPropTags == NULL)
 		return;
-
-	if(lpsPropTags->__size > 0)
-		delete [] lpsPropTags->__ptr;
-
+	s_free(nullptr, lpsPropTags->__ptr);
 	if(bFreeBase)
-		delete lpsPropTags;
-
+		s_free(nullptr, lpsPropTags);
 }
 
 /**
@@ -783,46 +775,46 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_SYSTIME:
 	case PT_CURRENCY:
-		delete lpProp->Value.hilo;
+		s_free(nullptr, lpProp->Value.hilo);
 		break;
 	case PT_STRING8:
 	case PT_UNICODE:
-		delete[] lpProp->Value.lpszA;
+		s_free(nullptr, lpProp->Value.lpszA);
 		break;
 	case PT_CLSID:
 	case PT_BINARY:
 		if (lpProp->Value.bin) {
-			delete[] lpProp->Value.bin->__ptr;
-			delete lpProp->Value.bin;
+			s_free(nullptr, lpProp->Value.bin->__ptr);
+			s_free(nullptr, lpProp->Value.bin);
 		}
 		break;
 	case PT_MV_I2:
-		delete[] lpProp->Value.mvi.__ptr;
+		s_free(nullptr, lpProp->Value.mvi.__ptr);
 		break;
 	case PT_MV_LONG:
-		delete[] lpProp->Value.mvl.__ptr;
+		s_free(nullptr, lpProp->Value.mvl.__ptr);
 		break;
 	case PT_MV_R4:
-		delete[] lpProp->Value.mvflt.__ptr;
+		s_free(nullptr, lpProp->Value.mvflt.__ptr);
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
-		delete[] lpProp->Value.mvdbl.__ptr;
+		s_free(nullptr, lpProp->Value.mvdbl.__ptr);
 		break;
 	case PT_MV_I8:
-		delete[] lpProp->Value.mvli.__ptr;
+		s_free(nullptr, lpProp->Value.mvli.__ptr);
 		break;
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
-		delete[] lpProp->Value.mvhilo.__ptr;
+		s_free(nullptr, lpProp->Value.mvhilo.__ptr);
 		break;
 	case PT_MV_CLSID:
 	case PT_MV_BINARY:
 		if(lpProp->Value.mvbin.__ptr)
 		{
 			for (gsoap_size_t i = 0; i < lpProp->Value.mvbin.__size; ++i)
-				delete[] lpProp->Value.mvbin.__ptr[i].__ptr;
-			delete[] lpProp->Value.mvbin.__ptr;
+				s_free(nullptr, lpProp->Value.mvbin.__ptr[i].__ptr);
+			s_free(nullptr, lpProp->Value.mvbin.__ptr);
 		}
 		break;
 	case PT_MV_STRING8:
@@ -830,8 +822,8 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		if(lpProp->Value.mvszA.__ptr)
 		{
 			for (gsoap_size_t i = 0; i < lpProp->Value.mvszA.__size; ++i)
-				delete[] lpProp->Value.mvszA.__ptr[i];
-			delete [] lpProp->Value.mvszA.__ptr;
+				s_free(nullptr, lpProp->Value.mvszA.__ptr[i]);
+			s_free(nullptr, lpProp->Value.mvszA.__ptr);
 		}
 		break;
 	case PT_SRESTRICTION:
@@ -848,16 +840,16 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 				switch(lpAction->acttype) {
 				case OP_COPY:
 				case OP_MOVE:
-					delete[] lpAction->act.moveCopy.store.__ptr;
-					delete[] lpAction->act.moveCopy.folder.__ptr;
+					s_free(nullptr, lpAction->act.moveCopy.store.__ptr);
+					s_free(nullptr, lpAction->act.moveCopy.folder.__ptr);
 					break;
 				case OP_REPLY:
 				case OP_OOF_REPLY:
-					delete[] lpAction->act.reply.message.__ptr;
-					delete[] lpAction->act.reply.guid.__ptr;
+					s_free(nullptr, lpAction->act.reply.message.__ptr);
+					s_free(nullptr, lpAction->act.reply.guid.__ptr);
 					break;
 				case OP_DEFER_ACTION:
-					delete[] lpAction->act.defer.bin.__ptr;
+					s_free(nullptr, lpAction->act.defer.bin.__ptr);
 					break;
 				case OP_BOUNCE:
 					break;
@@ -870,9 +862,8 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 					break;
 				}
 			}
-
-			delete[] lpActions->__ptr;
-			delete lpProp->Value.actions;
+			s_free(nullptr, lpActions->__ptr);
+			s_free(nullptr, lpProp->Value.actions);
 		}
 		break;
 	default:
@@ -891,11 +882,9 @@ void FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel)
 		return;
 	for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i)
 		FreePropValArray(&lpRowSet->__ptr[i]);
-	if(lpRowSet->__size > 0)
-		delete []lpRowSet->__ptr;
-
+	s_free(nullptr, lpRowSet->__ptr);
 	if(bBasePointerDel)
-		delete lpRowSet;
+		s_free(nullptr, lpRowSet);
 }
 
 /** 
@@ -922,9 +911,9 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 				if(er != erSuccess)
 					return er;
 			}
-			delete [] lpRestrict->lpOr->__ptr;
+			s_free(nullptr, lpRestrict->lpOr->__ptr);
 		}
-		delete lpRestrict->lpOr;
+		s_free(nullptr, lpRestrict->lpOr);
 		break;
 	case RES_AND:
 		if(lpRestrict->lpAnd && lpRestrict->lpAnd->__ptr) {
@@ -934,41 +923,41 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 				if(er != erSuccess)
 					return er;
 			}
-			delete [] lpRestrict->lpAnd->__ptr;
+			s_free(nullptr, lpRestrict->lpAnd->__ptr);
 		}
-		delete lpRestrict->lpAnd;
+		s_free(nullptr, lpRestrict->lpAnd);
 		break;
 
 	case RES_NOT:
 		if(lpRestrict->lpNot && lpRestrict->lpNot->lpNot)
 			FreeRestrictTable(lpRestrict->lpNot->lpNot);
-		delete lpRestrict->lpNot;
+		s_free(nullptr, lpRestrict->lpNot);
 		break;
 	case RES_CONTENT:
 		if(lpRestrict->lpContent && lpRestrict->lpContent->lpProp)
 			FreePropVal(lpRestrict->lpContent->lpProp, true);
-		delete lpRestrict->lpContent;
+		s_free(nullptr, lpRestrict->lpContent);
 		break;
 	case RES_PROPERTY:
 		if(lpRestrict->lpProp && lpRestrict->lpProp->lpProp)
 			FreePropVal(lpRestrict->lpProp->lpProp, true);
-		delete lpRestrict->lpProp;
+		s_free(nullptr, lpRestrict->lpProp);
 		break;
 
 	case RES_COMPAREPROPS:
-		delete lpRestrict->lpCompare;
+		s_free(nullptr, lpRestrict->lpCompare);
 		break;
 
 	case RES_BITMASK:
-		delete lpRestrict->lpBitmask;
+		s_free(nullptr, lpRestrict->lpBitmask);
 		break;
 
 	case RES_SIZE:
-		delete lpRestrict->lpSize;
+		s_free(nullptr, lpRestrict->lpSize);
 		break;
 
 	case RES_EXIST:
-		delete lpRestrict->lpExist;
+		s_free(nullptr, lpRestrict->lpExist);
 		break;
 
 	case RES_COMMENT:
@@ -977,14 +966,14 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 				FreeRestrictTable(lpRestrict->lpComment->lpResTable);
 
 			FreePropValArray(&lpRestrict->lpComment->sProps);
-			delete lpRestrict->lpComment;
+			s_free(nullptr, lpRestrict->lpComment);
 		}
 		break;
 
 	case RES_SUBRESTRICTION:
 		if(lpRestrict->lpSub && lpRestrict->lpSub->lpSubObject)
 			FreeRestrictTable(lpRestrict->lpSub->lpSubObject);
-		delete lpRestrict->lpSub;
+		s_free(nullptr, lpRestrict->lpSub);
 		break;
 
 	default:
@@ -995,7 +984,7 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 
 	// only when we're optimizing restrictions we must keep the base pointer, so we can replace it with new content
 	if (base)
-		delete lpRestrict;
+		s_free(nullptr, lpRestrict);
 	return erSuccess;
 }
 
@@ -1163,7 +1152,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal **lppDst,
 	if (er != erSuccess) {
 		// there is no sub-alloc when there's an error, so we can remove lpDst
 		if (!soap)
-			delete lpDst;		// maybe create s_free() ?
+			s_free(nullptr, lpDst);
 		return er;
 	}
 
@@ -1211,7 +1200,7 @@ ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
 		er = CopyPropVal(&lpSrc->__ptr[i], &lpDst->__ptr[i], soap);
 		if(er != erSuccess) {
 			if (!soap) {
-				delete [] lpDst->__ptr;	// maybe create s_free() ?
+				s_free(nullptr, lpDst->__ptr);
 				lpDst->__ptr = NULL;
 			}
 			lpDst->__size = 0;
@@ -1379,10 +1368,9 @@ ECRESULT FreePropValArray(struct propValArray *lpPropValArray, bool bFreeBase)
 	if(lpPropValArray) {
 		for (gsoap_size_t i = 0; i < lpPropValArray->__size; ++i)
 			FreePropVal(&(lpPropValArray->__ptr[i]), false);
-		delete [] lpPropValArray->__ptr;
-
+		s_free(nullptr, lpPropValArray->__ptr);
 		if(bFreeBase)
-			delete lpPropValArray;
+			s_free(nullptr, lpPropValArray);
 	}
 
 	return erSuccess;
@@ -1441,13 +1429,11 @@ ECRESULT FreeEntryList(struct entryList *lpEntryList, bool bFreeBase)
 
 	if(lpEntryList->__ptr) {
 		for (unsigned int i = 0; i < lpEntryList->__size; ++i)
-			delete[] lpEntryList->__ptr[i].__ptr;
-		delete [] lpEntryList->__ptr;
+			s_free(nullptr, lpEntryList->__ptr[i].__ptr);
+		s_free(nullptr, lpEntryList->__ptr);
 	}
-
-	if(bFreeBase) {
-		delete lpEntryList;
-	}
+	if (bFreeBase)
+		s_free(nullptr, lpEntryList);
 	return erSuccess;
 }
 
@@ -1464,8 +1450,7 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 		FreeEntryId(lpNotification->obj->pOldId, true);
 		FreeEntryId(lpNotification->obj->pOldParentId, true);
 		FreeEntryId(lpNotification->obj->pParentId, true);
-
-		delete lpNotification->obj;
+		s_free(nullptr, lpNotification->obj);
 	}
 
 	if(lpNotification->tab != NULL) {
@@ -1473,39 +1458,31 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 			FreePropValArray(lpNotification->tab->pRow, true);
 
 		if(lpNotification->tab->propIndex.Value.bin != NULL) {
-			if(lpNotification->tab->propIndex.Value.bin->__size > 0)
-				delete []lpNotification->tab->propIndex.Value.bin->__ptr;
-
-			delete lpNotification->tab->propIndex.Value.bin;
+			s_free(nullptr, lpNotification->tab->propIndex.Value.bin->__ptr);
+			s_free(nullptr, lpNotification->tab->propIndex.Value.bin);
 		}
 
 		if(lpNotification->tab->propPrior.Value.bin != NULL) {
-			if(lpNotification->tab->propPrior.Value.bin->__size > 0)
-				delete []lpNotification->tab->propPrior.Value.bin->__ptr;
-
-			delete lpNotification->tab->propPrior.Value.bin;
+			s_free(nullptr, lpNotification->tab->propPrior.Value.bin->__ptr);
+			s_free(nullptr, lpNotification->tab->propPrior.Value.bin);
 		}
-
-		delete lpNotification->tab;
+		s_free(nullptr, lpNotification->tab);
 	}
 
 	if (lpNotification->newmail != NULL) {
-		delete[] lpNotification->newmail->lpszMessageClass;
+		s_free(nullptr, lpNotification->newmail->lpszMessageClass);
 		FreeEntryId(lpNotification->newmail->pEntryId, true);
 		FreeEntryId(lpNotification->newmail->pParentId, true);
-
-		delete lpNotification->newmail;
+		s_free(nullptr, lpNotification->newmail);
 	}
 
 	if(lpNotification->ics != NULL) {
 		FreeEntryId(lpNotification->ics->pSyncState, true);
-
-		delete lpNotification->ics;
+		s_free(nullptr, lpNotification->ics);
 	}
 
 	if(bFreeBase)
-		delete lpNotification;
-
+		s_free(nullptr, lpNotification);
 	return erSuccess;
 }
 
@@ -1586,11 +1563,9 @@ ECRESULT FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bFre
 		return erSuccess;
 	for (gsoap_size_t i = 0; i < lpNotifyArray->__size; ++i)
 		FreeNotificationStruct(&lpNotifyArray->__ptr[i], false);
-
-	delete [] lpNotifyArray->__ptr;
-
+	s_free(nullptr, lpNotifyArray->__ptr);
 	if(bFreeBase)
-		delete lpNotifyArray;
+		s_free(nullptr, lpNotifyArray);
 	else {
 		lpNotifyArray->__size = 0;
 	}
@@ -1603,7 +1578,7 @@ ECRESULT CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notif
 		return KCERR_INVALID_PARAMETER;
 
 	if (lpNotifyArrayFrom->__size > 0)
-		lpNotifyArrayTo->__ptr = new notification[lpNotifyArrayFrom->__size];
+		lpNotifyArrayTo->__ptr = s_alloc<notification>(nullptr, lpNotifyArrayFrom->__size);
 	else
 		lpNotifyArrayTo->__ptr = NULL;
 
@@ -1617,10 +1592,9 @@ ECRESULT FreeEntryId(entryId* lpEntryId, bool bFreeBase)
 {
 	if(lpEntryId == NULL)
 		return erSuccess;
-
-	delete[] lpEntryId->__ptr;
+	s_free(nullptr, lpEntryId->__ptr);
 	if(bFreeBase == true)
-		delete lpEntryId;
+		s_free(nullptr, lpEntryId);
 	else
 		lpEntryId->__size = 0;
 	return erSuccess;
@@ -1657,11 +1631,10 @@ ECRESULT FreeRightsArray(struct rightsArray *lpRights)
 
 	if(lpRights->__ptr)
 	{
-		delete[] lpRights->__ptr->sUserId.__ptr;
-		delete [] lpRights->__ptr;
+		s_free(nullptr, lpRights->__ptr->sUserId.__ptr);
+		s_free(nullptr, lpRights->__ptr);
 	}
-
-	delete lpRights;
+	s_free(nullptr, lpRights);
 	return erSuccess;
 }
 
@@ -1727,7 +1700,7 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 	if (lpSrc == NULL)
 		return KCERR_NOT_FOUND;
 
-	lpDst = new searchCriteria;
+	lpDst = s_alloc<searchCriteria>(nullptr);
 	memset(lpDst, '\0', sizeof(*lpDst));
 	if(lpSrc->lpRestrict) {
     	er = CopyRestrictTable(soap, lpSrc->lpRestrict, &lpDst->lpRestrict);
@@ -1752,7 +1725,7 @@ exit:
 	if (er != erSuccess && lpDst != NULL) {
 		FreeRestrictTable(lpDst->lpRestrict, true);
 		FreeEntryList(lpDst->lpFolders, true);
-		delete lpDst;
+		s_free(nullptr, lpDst);
 	}
 	return er;
 }
@@ -1765,9 +1738,7 @@ ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria)
 
 	if(lpSearchCriteria->lpFolders)
 		FreeEntryList(lpSearchCriteria->lpFolders);
-
-	delete lpSearchCriteria;
-
+	s_free(nullptr, lpSearchCriteria);
 	return er;
 }
 
@@ -2055,7 +2026,7 @@ DynamicPropValArray::~DynamicPropValArray()
 		return;
 	for (unsigned int i = 0; i < m_ulPropCount; ++i)
 		FreePropVal(&m_lpPropVals[i], false);
-	delete[] m_lpPropVals;
+	s_free(nullptr, m_lpPropVals);
 }
     
 ECRESULT DynamicPropValArray::AddPropVal(struct propVal &propVal)
@@ -2113,7 +2084,7 @@ ECRESULT DynamicPropValArray::Resize(unsigned int ulSize)
     if(!m_soap) {
 		for (unsigned int i = 0; i < m_ulPropCount; ++i)
 			FreePropVal(&m_lpPropVals[i], false);
-		delete [] m_lpPropVals;
+		s_free(nullptr, m_lpPropVals);
 	}
 	
     m_lpPropVals = lpNew;

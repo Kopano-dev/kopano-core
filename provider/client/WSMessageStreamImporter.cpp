@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <new>
+#include "SOAPUtils.h"
 #include "WSMessageStreamImporter.h"
 #include "WSUtil.h"
 #include "ECSyncSettings.h"
@@ -132,12 +133,11 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbE
 	*lppStreamImporter = ptrStreamImporter.release();
 
 exit:
-	delete[] sEntryId.__ptr;
-	delete[] sFolderEntryId.__ptr;
+	s_free(nullptr, sEntryId.__ptr);
+	s_free(nullptr, sFolderEntryId.__ptr);
 	if (sConflictItems.Value.bin)
-		delete[] sConflictItems.Value.bin->__ptr;
-	delete[] sConflictItems.Value.bin;
-
+		s_free(nullptr, sConflictItems.Value.bin->__ptr);
+	s_free(nullptr, sConflictItems.Value.bin);
 	return hr;
 }
 
@@ -186,11 +186,11 @@ WSMessageStreamImporter::WSMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, 
 
 WSMessageStreamImporter::~WSMessageStreamImporter()
 { 
-	delete[] m_sEntryId.__ptr;
-	delete[] m_sFolderEntryId.__ptr;
+	s_free(nullptr, m_sEntryId.__ptr);
+	s_free(nullptr, m_sFolderEntryId.__ptr);
 	if (m_sConflictItems.Value.bin)
-		delete[] m_sConflictItems.Value.bin->__ptr;
-	delete[] m_sConflictItems.Value.bin;
+		s_free(nullptr, m_sConflictItems.Value.bin->__ptr);
+	s_free(nullptr, m_sConflictItems.Value.bin);
 }
 
 void WSMessageStreamImporter::run()

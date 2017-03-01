@@ -1098,19 +1098,19 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 
     ulRows = lpDatabase->GetNumRows(lpResult);
 
-    lpRights = new struct rightsArray;
+	lpRights = s_alloc<rightsArray>(nullptr);
     if (ulRows > 0)
     {
 	    lpRights->__size = ulRows;
-		lpRights->__ptr = new struct rights [ulRows];
+		lpRights->__ptr = s_alloc<rights>(nullptr, ulRows);
 		memset(lpRights->__ptr, 0, sizeof(struct rights) * ulRows);
 
 		for (unsigned int i = 0; i < ulRows; ++i) {
 			lpRow = lpDatabase->FetchRow(lpResult);
 
 			if(lpRow == NULL || lpRow[0] == NULL || lpRow[1] == NULL || lpRow[2] == NULL) {
-				delete[] lpRights->__ptr;
-				delete lpRights;
+				s_free(nullptr, lpRights->__ptr);
+				s_free(nullptr, lpRights);
 				ec_log_err("ECCacheManager::GetACLs(): ROW or COLUMNS null %x", er);
 				return KCERR_DATABASE_ERROR;
 			}
@@ -1143,11 +1143,11 @@ ECRESULT ECCacheManager::_GetACLs(unsigned int ulObjId, struct rightsArray **lpp
 	if(er != erSuccess)
 		return er;
 
-    lpRights = new struct rightsArray;
+	lpRights = s_alloc<rightsArray>(nullptr);
     if (sACL->ulACLs > 0)
     {
         lpRights->__size = sACL->ulACLs;
-        lpRights->__ptr = new struct rights [sACL->ulACLs];
+		lpRights->__ptr = s_alloc<rights>(nullptr, sACL->ulACLs);
         memset(lpRights->__ptr, 0, sizeof(struct rights) * sACL->ulACLs);
 
         for (unsigned int i = 0; i < sACL->ulACLs; ++i) {
@@ -1784,8 +1784,7 @@ ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap 
 	*lppEntryId = lpEntryId;
 exit:
 	if (er != erSuccess)
-		delete lpEntryId;
-
+		s_free(nullptr, lpEntryId);
 	return er;
 }
 

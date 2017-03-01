@@ -19,20 +19,20 @@
 #define _PYMAPIPLUGIN_H
 
 #include <Python.h>
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
+#include <kopano/memory.hpp>
 #include "PythonSWIGRuntime.h"
 #include <edkmdb.h>
 
-#include <kopano/auto_free.h>
+class kcpy_decref {
+	public:
+	void operator()(PyObject *obj) { Py_DECREF(obj); }
+};
 
-inline void my_DECREF(PyObject *obj) {
-	Py_DECREF(obj);
-}
-
-//@fixme wrong name, autofree should be auto_decref
-typedef auto_free<PyObject, auto_free_dealloc<PyObject*, void, my_DECREF> >PyObjectAPtr;
+typedef KCHL::memory_ptr<PyObject, kcpy_decref> PyObjectAPtr;
 
 #define MAKE_CUSTOM_SCODE(sev,fac,code) \
 				(((unsigned int)(sev)<<31) | ((unsigned int)(1)<<29) | ((unsigned int)(fac)<<16) | ((unsigned int)(code)))
@@ -91,11 +91,6 @@ private:
 	PyMapiPluginFactory &operator=(const PyMapiPluginFactory &) = delete;
 };
 
-
-
-inline void my_delete(PyMapiPlugin *obj) { delete obj; }
-
-typedef auto_free<PyMapiPlugin, auto_free_dealloc<PyMapiPlugin*, void, my_delete> >PyMapiPluginAPtr;
-
+typedef KCHL::memory_ptr<PyMapiPlugin, std::default_delete<PyMapiPlugin> > PyMapiPluginAPtr;
 
 #endif

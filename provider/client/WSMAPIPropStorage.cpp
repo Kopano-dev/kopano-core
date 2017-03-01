@@ -176,9 +176,9 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 	}
 
 	if (lpsMapiObject->lpInstanceID) {
-		lpSaveObj->lpInstanceIds = new struct entryList;
+		lpSaveObj->lpInstanceIds = s_alloc<entryList>(nullptr);
 		lpSaveObj->lpInstanceIds->__size = 1;
-		lpSaveObj->lpInstanceIds->__ptr = new entryId[lpSaveObj->lpInstanceIds->__size];
+		lpSaveObj->lpInstanceIds->__ptr = s_alloc<entryId>(nullptr, lpSaveObj->lpInstanceIds->__size);
 		memset(lpSaveObj->lpInstanceIds->__ptr, 0, lpSaveObj->lpInstanceIds->__size * sizeof(entryId));
 
 		if ((m_lpTransport->GetServerGUID(&sServerGUID) != hrSuccess) ||
@@ -196,7 +196,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 	// deleted props
 	size = lpsMapiObject->lstDeleted.size();
 	if (size != 0) {
-		lpSaveObj->delProps.__ptr = new unsigned int[size];
+		lpSaveObj->delProps.__ptr = s_alloc<unsigned int>(nullptr, size);
 		lpSaveObj->delProps.__size = size;
 		i = 0;
 		for (auto id : lpsMapiObject->lstDeleted)
@@ -209,7 +209,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 	// modified props
 	size = lpsMapiObject->lstModified.size();
 	if (size != 0) {
-		lpSaveObj->modProps.__ptr = new struct propVal[size];
+		lpSaveObj->modProps.__ptr = s_alloc<propVal>(nullptr, size);
 		i = 0;
 		for (const auto &prop : lpsMapiObject->lstModified) {
 			SPropValue tmp = prop.GetMAPIPropValRef();
@@ -236,7 +236,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 	if (lpsMapiObject->bDelete == false) {
 		size = lpsMapiObject->lstChildren.size();
 		if (size != 0) {
-			lpSaveObj->__ptr = new struct saveObject[size];
+			lpSaveObj->__ptr = s_alloc<saveObject>(nullptr, size);
 			size = 0;
 			for (const auto &cld : lpsMapiObject->lstChildren)
 				// Only send children if:
@@ -327,16 +327,15 @@ void WSMAPIPropStorage::DeleteSoapObject(struct saveObject *lpSaveObj)
 	if (lpSaveObj->__ptr) {
 		for (gsoap_size_t i = 0; i < lpSaveObj->__size; ++i)
 			DeleteSoapObject(&lpSaveObj->__ptr[i]);
-		delete [] lpSaveObj->__ptr;
+		s_free(nullptr, lpSaveObj->__ptr);
 	}
 
 	if (lpSaveObj->modProps.__ptr) {
 		for (gsoap_size_t i = 0; i < lpSaveObj->modProps.__size; ++i)
 			FreePropVal(&lpSaveObj->modProps.__ptr[i], false);
-		delete [] lpSaveObj->modProps.__ptr;
+		s_free(nullptr, lpSaveObj->modProps.__ptr);
 	}
-
-	delete[] lpSaveObj->delProps.__ptr;
+	s_free(nullptr, lpSaveObj->delProps.__ptr);
 	if (lpSaveObj->lpInstanceIds)
 		FreeEntryList(lpSaveObj->lpInstanceIds, true);
 }

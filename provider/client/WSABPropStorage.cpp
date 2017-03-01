@@ -192,8 +192,7 @@ HRESULT WSABPropStorage::HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG
 
 	struct propValArray sPropVals;
 
-	sPropVals.__ptr = new propVal[cValues];
-
+	sPropVals.__ptr = s_alloc<propVal>(nullptr, cValues);
 	for (i = 0; i < cValues; ++i) {
 		hr = CopyMAPIPropValToSOAPPropVal(&sPropVals.__ptr[j], &pValues[i], &converter);
 		if(hr == hrSuccess)

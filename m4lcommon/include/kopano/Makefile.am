@@ -7,5 +7,5 @@ nobase_pkginclude_HEADERS = \
 	IECLicense.h IECServiceAdmin.h IECSecurity.h \
 	IECSingleInstance.h \
 	IECUnknown.h RecurrenceState.h \
-	Util.h auto_free.h mapiext.h mapiguidext.h mapi_ptr.h namedprops.h \
+	Util.h mapiext.h mapiguidext.h mapi_ptr.h namedprops.h \
 	userutil.h

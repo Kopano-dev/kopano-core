@@ -47,8 +47,7 @@ ECNotification::ECNotification(notification &notification)
 
 void ECNotification::Init()
 {
-	this->m_lpsNotification = new notification;
-
+	this->m_lpsNotification = s_alloc<notification>(nullptr);
 	memset(m_lpsNotification, 0, sizeof(notification));
 }
 

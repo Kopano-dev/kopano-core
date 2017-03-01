@@ -227,8 +227,7 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(ENTRYLIST *lpMsgList, SRestriction 
 	LockSoap();
 
 	if(lpMsgList) {
-		lpsEntryList = new struct entryList;
-		
+		lpsEntryList = s_alloc<entryList>(nullptr);
 		hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, lpsEntryList);
 		if(hr != hrSuccess)
 			goto exit;

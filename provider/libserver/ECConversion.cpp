@@ -71,7 +71,7 @@ ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, str
 		goto exit;
 	}
 
-	lpNewSearchCriteria = new struct searchCriteria;
+	lpNewSearchCriteria = s_alloc<searchCriteria>(nullptr);
 	memset(lpNewSearchCriteria, 0, sizeof(struct searchCriteria));
 
 	// Do backward-compatibility fixup

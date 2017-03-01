@@ -965,7 +965,7 @@ HRESULT WSTransport::HrNotify(LPNOTIFICATION lpNotification)
 	sNotification.ulConnection = 0;// The connection id should be calculate on the server side
 
 	sNotification.ulEventType = lpNotification->ulEventType;
-	sNotification.newmail = new notificationNewMail;
+	sNotification.newmail = s_alloc<notificationNewMail>(nullptr);
 	memset(sNotification.newmail, 0, sizeof(notificationNewMail));
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(lpNotification->info.newmail.cbEntryID, (LPENTRYID)lpNotification->info.newmail.lpEntryID, &sNotification.newmail->pEntryId);
@@ -979,7 +979,7 @@ HRESULT WSTransport::HrNotify(LPNOTIFICATION lpNotification)
 	if(lpNotification->info.newmail.lpszMessageClass){
 		utf8string strMessageClass = convstring(lpNotification->info.newmail.lpszMessageClass, lpNotification->info.newmail.ulFlags);
 		ulSize = strMessageClass.size() + 1;
-		sNotification.newmail->lpszMessageClass = new char[ulSize];
+		sNotification.newmail->lpszMessageClass = s_alloc<char>(nullptr, ulSize);
 		memcpy(sNotification.newmail->lpszMessageClass, strMessageClass.c_str(), ulSize);
 	}
 	sNotification.newmail->ulMessageFlags = lpNotification->info.newmail.ulMessageFlags;
@@ -1116,8 +1116,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 	unsigned i = 0;
 
 	ulConnArray.__size = lstConnections.size();
-	ulConnArray.__ptr = new unsigned int[ulConnArray.__size];
-	
+	ulConnArray.__ptr = s_alloc<unsigned int>(nullptr, ulConnArray.__size);
 	LockSoap();
 	for (const auto &p : lstConnections)
 		ulConnArray.__ptr[i++] = p.second;
@@ -1131,7 +1130,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 	END_SOAP_CALL
  exitm:
 	UnLockSoap();
-	delete[] ulConnArray.__ptr;
+	s_free(nullptr, ulConnArray.__ptr);
 	return hr;
 }
 
@@ -4243,8 +4242,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 
 	if (lstSyncId.empty())
 		goto exitm;
-
-	ulaSyncId.__ptr = new unsigned int[lstSyncId.size()];
+	ulaSyncId.__ptr = s_alloc<unsigned int>(nullptr, lstSyncId.size());
 	for (auto sync_id : lstSyncId)
 		ulaSyncId.__ptr[ulaSyncId.__size++] = sync_id;
 
@@ -4264,7 +4262,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	}
  exitm:
 	UnLockSoap();
-	delete[] ulaSyncId.__ptr;
+	s_free(nullptr, ulaSyncId.__ptr);
 	return hr;
 }
 
@@ -4631,7 +4629,7 @@ HRESULT WSTransport::HrGetNotify(struct notificationArray **lppsArrayNotificatio
 		goto exit;
 
 	if(sNotifications.pNotificationArray != NULL) {
-		*lppsArrayNotifications = new notificationArray;
+		*lppsArrayNotifications = s_alloc<notificationArray>(nullptr);
 		CopyNotificationArrayStruct(sNotifications.pNotificationArray, *lppsArrayNotifications);
 	}else
 		*lppsArrayNotifications = NULL;
