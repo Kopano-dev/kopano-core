@@ -106,6 +106,25 @@ using namespace KCHL;
 
 namespace KC {
 
+class ECFifoSerializer _kc_final : public ECSerializer {
+	public:
+	enum eMode { serialize, deserialize };
+
+	ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode);
+	virtual ~ECFifoSerializer(void);
+	virtual ECRESULT SetBuffer(void *) _kc_override;
+	virtual ECRESULT Write(const void *ptr, size_t size, size_t nmemb) _kc_override;
+	virtual ECRESULT Read(void *ptr, size_t size, size_t nmemb) _kc_override;
+	virtual ECRESULT Skip(size_t size, size_t nmemb) _kc_override;
+	virtual ECRESULT Flush(void) _kc_override;
+	virtual ECRESULT Stat(ULONG *have_read, ULONG *have_written) _kc_override;
+
+	private:
+	ECFifoBuffer *m_lpBuffer;
+	eMode m_mode;
+	ULONG m_ulRead = 0, m_ulWritten = 0;
+};
+
 extern ECSessionManager*	g_lpSessionManager;
 extern ECStatsCollector*	g_lpStatsCollector;
 
@@ -353,6 +372,142 @@ static ECRESULT PeerIsServer(struct soap *soap,
 	}
 
 	*lpbResult = bResult;
+	return erSuccess;
+}
+
+ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode) :
+	m_mode(mode)
+{
+	SetBuffer(lpBuffer);
+}
+
+ECFifoSerializer::~ECFifoSerializer(void)
+{
+	if (m_lpBuffer == nullptr)
+		return;
+	ECFifoBuffer::close_flags flags = (m_mode == serialize ? ECFifoBuffer::cfWrite : ECFifoBuffer::cfRead);
+	m_lpBuffer->Close(flags);
+}
+
+ECRESULT ECFifoSerializer::SetBuffer(void *lpBuffer)
+{
+	m_lpBuffer = static_cast<ECFifoBuffer *>(lpBuffer);
+	return erSuccess;
+}
+
+ECRESULT ECFifoSerializer::Write(const void *ptr, size_t size, size_t nmemb)
+{
+	ECRESULT er = erSuccess;
+	union {
+		char c[8];
+		short s;
+		int i;
+		long long ll;
+	} tmp;
+
+	if (m_mode != serialize)
+		return KCERR_NO_SUPPORT;
+	if (ptr == nullptr)
+		return KCERR_INVALID_PARAMETER;
+
+	switch (size) {
+	case 1:
+		er = m_lpBuffer->Write(ptr, nmemb, STR_DEF_TIMEOUT, NULL);
+		break;
+	case 2:
+		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
+			tmp.s = htons(static_cast<const short *>(ptr)[x]);
+			er = m_lpBuffer->Write(&tmp, size, STR_DEF_TIMEOUT, nullptr);
+		}
+		break;
+	case 4:
+		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
+			tmp.i = htonl(static_cast<const int *>(ptr)[x]);
+			er = m_lpBuffer->Write(&tmp, size, STR_DEF_TIMEOUT, nullptr);
+		}
+		break;
+	case 8:
+		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
+			tmp.ll = htonll(static_cast<const long long *>(ptr)[x]);
+			er = m_lpBuffer->Write(&tmp, size, STR_DEF_TIMEOUT, nullptr);
+		}
+		break;
+	default:
+		er = KCERR_INVALID_PARAMETER;
+		break;
+	}
+	m_ulWritten += size * nmemb;
+	return er;
+}
+
+ECRESULT ECFifoSerializer::Read(void *ptr, size_t size, size_t nmemb)
+{
+	ECRESULT er;
+	ECFifoBuffer::size_type cbRead = 0;
+
+	if (m_mode != deserialize)
+		return KCERR_NO_SUPPORT;
+	if (ptr == nullptr)
+		return KCERR_INVALID_PARAMETER;
+	er = m_lpBuffer->Read(ptr, size * nmemb, STR_DEF_TIMEOUT, &cbRead);
+	if (er != erSuccess)
+		return er;
+	m_ulRead += cbRead;
+	if (cbRead != size * nmemb)
+		return KCERR_CALL_FAILED;
+
+	switch (size) {
+	case 1: break;
+	case 2:
+		for (size_t x = 0; x < nmemb; ++x)
+			static_cast<short *>(ptr)[x] = ntohs(static_cast<short *>(ptr)[x]);
+		break;
+	case 4:
+		for (size_t x = 0; x < nmemb; ++x)
+			static_cast<int *>(ptr)[x] = ntohl(static_cast<int *>(ptr)[x]);
+		break;
+	case 8:
+		for (size_t x = 0; x < nmemb; ++x)
+			static_cast<long long *>(ptr)[x] = ntohll(static_cast<long long *>(ptr)[x]);
+		break;
+	default:
+		er = KCERR_INVALID_PARAMETER;
+		break;
+	}
+	return er;
+}
+
+ECRESULT ECFifoSerializer::Skip(size_t size, size_t nmemb)
+{
+	std::unique_ptr<char[]> buf(new(std::nothrow) char[size*nmemb]);
+	if (buf == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
+	return Read(buf.get(), size, nmemb);
+}
+
+ECRESULT ECFifoSerializer::Flush()
+{
+	ECRESULT er;
+	size_t cbRead = 0;
+	char buf[16384];
+
+	while (true) {
+		er = m_lpBuffer->Read(buf, sizeof(buf), STR_DEF_TIMEOUT, &cbRead);
+		if (er != erSuccess)
+			return er;
+		m_ulRead += cbRead;
+		if (cbRead < sizeof(buf))
+			break;
+	}
+	return er;
+}
+
+ECRESULT ECFifoSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
+{
+	if (lpcbRead != nullptr)
+		*lpcbRead = m_ulRead;
+	if (lpcbWrite != nullptr)
+		*lpcbWrite = m_ulWritten;
 	return erSuccess;
 }
 
