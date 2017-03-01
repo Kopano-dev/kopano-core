@@ -830,7 +830,7 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 {
 	HRESULT hr = hrSuccess;
 	MAPIUID		muidOneOff = {MAPI_ONE_OFF_UID};
-	const char *lpBuffer = reinterpret_cast<const char *>(lpEntryID);
+	auto lpBuffer = reinterpret_cast<const char *>(lpEntryID);
 	unsigned short usFlags;
 	std::wstring name;
 	std::wstring type;

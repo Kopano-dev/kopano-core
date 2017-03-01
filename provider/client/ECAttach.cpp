@@ -208,8 +208,7 @@ exit:
 HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
 	HRESULT hr = hrSuccess;
-	ECAttach *lpAttach = (ECAttach*)lpParam;
-
+	auto lpAttach = static_cast<ECAttach *>(lpParam);
 	SizedSPropTagArray(1, sPropArray);
 	ULONG cValues = 0;
 	LPSPropValue lpProps = NULL;
@@ -254,7 +253,7 @@ HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlag
 HRESULT	ECAttach::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
-	ECAttach *lpAttach = (ECAttach *)lpParam;
+	auto lpAttach = static_cast<ECAttach *>(lpParam);
 	switch (ulPropTag) {
 	case PR_ATTACH_DATA_BIN:
 		return lpAttach->HrSetRealProp(lpsPropValue);

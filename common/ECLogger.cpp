@@ -742,7 +742,7 @@ namespace PrivatePipe {
  * @return		ECLogger	Returns the same or new ECLogger object to use in your program.
  */
 ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
-	ECLogger_File *lpFileLogger = dynamic_cast<ECLogger_File*>(lpLogger);
+	auto lpFileLogger = dynamic_cast<ECLogger_File *>(lpLogger);
 	ECLogger_Pipe *lpPipeLogger = NULL;
 	int filefd;
 	int pipefds[2];

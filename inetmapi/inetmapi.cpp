@@ -156,7 +156,7 @@ static bool vtm_ascii_compatible(const char *s)
 	iconv_t cd = iconv_open(s, "us-ascii");
 	if (cd == reinterpret_cast<iconv_t>(-1))
 		return false;
-	char *inbuf = const_cast<char *>(in), *outbuf = out;
+	auto inbuf = const_cast<char *>(in), outbuf = out;
 	size_t insize = sizeof(in), outsize = sizeof(out);
 	bool mappable = iconv(cd, &inbuf, &insize, &outbuf, &outsize) != static_cast<size_t>(-1);
 	iconv_close(cd);
@@ -239,7 +239,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	HRESULT			hr	= hrSuccess;
 	MAPIToVMIME mToVM(lpSession, lpAddrBook, sopt);
 	vmime::shared_ptr<vmime::message> vmMessage;
-	ECVMIMESender		*mailer	= dynamic_cast<ECVMIMESender*>(mailer_base);
+	auto mailer = dynamic_cast<ECVMIMESender *>(mailer_base);
 	wstring			wstrError;
 	SPropArrayPtr	ptrProps;
 	static constexpr const SizedSPropTagArray(2, sptaForwardProps) =

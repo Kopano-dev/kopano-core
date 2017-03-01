@@ -33,7 +33,7 @@ static int converse(int num_msg, const struct pam_message **msg,
 {
 	int i = 0;
 	struct pam_response *response = NULL;
-	char *password = (char *) appdata_ptr;
+	auto password = static_cast<const char *>(appdata_ptr);
 
 	if (!resp || !msg || !password)
 		return PAM_CONV_ERR;

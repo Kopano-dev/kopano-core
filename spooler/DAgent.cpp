@@ -2963,7 +2963,7 @@ static void add_misc_headers(FILE *tmp, const std::string &helo,
  */
 static void *HandlerLMTP(void *lpArg)
 {
-	DeliveryArgs *lpArgs = (DeliveryArgs *) lpArg;
+	auto lpArgs = static_cast<DeliveryArgs *>(lpArg);
 	std::string strMailAddress;
 	companyrecipients_t mapRCPT;
 	std::list<std::string> lOrderedRecipients;

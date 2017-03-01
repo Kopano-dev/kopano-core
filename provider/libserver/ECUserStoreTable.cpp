@@ -49,7 +49,7 @@ ECRESULT ECUserStoreTable::Create(ECSession *lpSession, unsigned int ulFlags, co
 
 ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	ECUserStoreTable *pThis = dynamic_cast<ECUserStoreTable*>(lpThis);
+	auto pThis = dynamic_cast<ECUserStoreTable *>(lpThis);
 	if (pThis == nullptr)
 		return KCERR_INVALID_PARAMETER;
 	struct rowSet *lpsRowSet = NULL;

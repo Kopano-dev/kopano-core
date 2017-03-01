@@ -143,11 +143,11 @@ struct HandlerArgs {
 
 static void *Handler(void *lpArg)
 {
-	HandlerArgs *lpHandlerArgs = (HandlerArgs *) lpArg;
-	ECChannel *lpChannel = lpHandlerArgs->lpChannel;
-	ECLogger *lpLogger = lpHandlerArgs->lpLogger;
-	ECConfig *lpConfig = lpHandlerArgs->lpConfig;
-	bool bUseSSL = lpHandlerArgs->bUseSSL;
+	auto lpHandlerArgs = static_cast<HandlerArgs *>(lpArg);
+	auto lpChannel = lpHandlerArgs->lpChannel;
+	auto lpLogger = lpHandlerArgs->lpLogger;
+	auto lpConfig = lpHandlerArgs->lpConfig;
+	auto bUseSSL = lpHandlerArgs->bUseSSL;
 
 	// szPath is global, pointing to argv variable, or lpConfig variable
 	ClientProto *client;

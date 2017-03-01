@@ -722,7 +722,7 @@ HRESULT WSTableView::UnLockSoap()
 
 HRESULT WSTableView::Reload(void *lpParam, ECSESSIONID sessionId)
 {
-	WSTableView *lpThis = (WSTableView *)lpParam;
+	auto lpThis = static_cast<WSTableView *>(lpParam);
 
 	lpThis->ecSessionId = sessionId;
 	// Since we've switched sessions, our table is no longer open or valid

@@ -303,7 +303,7 @@ void set_thread_name(pthread_t tid, const std::string & name)
 
 ssize_t read_retry(int fd, void *data, size_t len)
 {
-	char *buf = static_cast<char *>(data);
+	auto buf = static_cast<char *>(data);
 	size_t tread = 0;
 
 	while (len > 0) {
@@ -323,7 +323,7 @@ ssize_t read_retry(int fd, void *data, size_t len)
 
 ssize_t write_retry(int fd, const void *data, size_t len)
 {
-	const char *buf = static_cast<const char *>(data);
+	auto buf = static_cast<const char *>(data);
 	size_t twrote = 0;
 
 	while (len > 0) {

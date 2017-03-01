@@ -136,7 +136,7 @@ ECStoreObjectTable::~ECStoreObjectTable()
 {
 	if (m_lpObjectData == nullptr)
 		return;
-	ECODStore *lpODStore = (ECODStore *)m_lpObjectData;
+	auto lpODStore = static_cast<ECODStore *>(m_lpObjectData);
 	delete lpODStore->lpGuid;
 	delete lpODStore;
 }
@@ -156,7 +156,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
-	ECODStore*		lpODStore = (ECODStore*)m_lpObjectData;
+	auto lpODStore = static_cast<ECODStore *>(m_lpObjectData);
 	ULONG			ulPropID = 0;
 	ulock_rec biglock(m_hLock);
 
@@ -290,9 +290,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 	GUID			sRowGuid;
 
 	struct rowSet	*lpsRowSet = NULL;
-
-	ECODStore*		lpODStore = (ECODStore*)lpObjectData;
-
+	auto lpODStore = static_cast<ECODStore *>(lpObjectData);
 	ECDatabase		*lpDatabase = NULL;
 
 	std::map<unsigned int, std::map<sObjectTableKey, unsigned int> > mapStoreIdObjIds;
@@ -1027,7 +1025,7 @@ ECRESULT ECStoreObjectTable::Load()
 	DB_RESULT lpDBResult;
     DB_ROW		lpDBRow = NULL;
     std::string	strQuery;
-    ECODStore	*lpData = (ECODStore *)m_lpObjectData;
+	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
     sObjectTableKey		sRowItem;
     
     unsigned int ulFlags = lpData->ulFlags;
@@ -1104,7 +1102,7 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 {
     ECRESULT er = erSuccess;
     unsigned int ulParent = 0;
-    ECODStore	*lpData = (ECODStore *)m_lpObjectData;
+	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
 
     if(m_ulObjType == MAPI_MESSAGE) {
         if(lpData->ulFolderId) {
@@ -1138,7 +1136,7 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
 {
     ECRESULT er = erSuccess;
     GUID guidServer;
-    ECODStore* lpODStore = (ECODStore*)m_lpObjectData;
+	auto lpODStore = static_cast<ECODStore *>(m_lpObjectData);
     std::list<unsigned int> lstIndexerResults;
     std::list<unsigned int> lstFolders;
     std::set<unsigned int> setMatches;

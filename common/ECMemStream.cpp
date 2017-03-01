@@ -95,7 +95,7 @@ HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer,
 	
 	if(cbTotal < dsize) {
 		ULONG newsize = cbTotal + ((dsize/EC_MEMBLOCK_SIZE)+1)*EC_MEMBLOCK_SIZE;	// + atleast 8k
-		char *lpNew = (char *)realloc(lpCurrent, newsize);
+		auto lpNew = static_cast<char *>(realloc(lpCurrent, newsize));
 		if (lpNew == NULL)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 

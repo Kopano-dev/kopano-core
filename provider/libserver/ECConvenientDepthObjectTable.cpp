@@ -91,7 +91,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	std::string	strQuery;
-	ECODStore	*lpData = (ECODStore *)m_lpObjectData;
+	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
 	sObjectTableKey		sRowItem;
 	unsigned int ulDepth = 0;
 	

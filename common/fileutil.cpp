@@ -146,7 +146,7 @@ static HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize,
 
 		offset += ulReadsize;
 		if (offset + BLOCKSIZE > ulBufferSize) {    // Next read could cross buffer boundary, realloc
-			char *lpRealloc = (char*)realloc(lpBuffer, offset + BLOCKSIZE);
+			auto lpRealloc = static_cast<char *>(realloc(lpBuffer, offset + BLOCKSIZE));
 			if (lpRealloc == NULL) {
 				free(lpBuffer);
 				return MAPI_E_NOT_ENOUGH_MEMORY;

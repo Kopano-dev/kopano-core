@@ -30,7 +30,7 @@ namespace KC {
 
 static void submitThreadDo(void *p)
 {
-	StatsClient *const psc = (StatsClient *)p;
+	auto psc = static_cast<StatsClient *>(p);
 
 	psc -> getLogger() -> Log(EC_LOGLEVEL_DEBUG, "Push data");
 
@@ -47,7 +47,7 @@ static void submitThreadDo(void *p)
 
 static void *submitThread(void *p)
 {
-	StatsClient *const psc = (StatsClient *)p;
+	auto psc = static_cast<StatsClient *>(p);
 
 	psc -> getLogger() -> Log(EC_LOGLEVEL_DEBUG, "Submit thread started");
 

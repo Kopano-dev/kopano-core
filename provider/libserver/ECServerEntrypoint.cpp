@@ -46,7 +46,7 @@ void AddDatabaseObject(ECDatabase* lpDatabase)
 
 static void database_destroy(void *lpParam)
 {
-	ECDatabase *lpDatabase = (ECDatabase *)lpParam;
+	auto lpDatabase = static_cast<ECDatabase *>(lpParam);
 	ulock_normal l_obj(g_hMutexDBObjectList);
 
 	g_lpDBObjectList.erase(std::set<ECDatabase*>::key_type(lpDatabase));

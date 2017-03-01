@@ -736,7 +736,7 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 {
 	time_t					lCurTime;
-	ECSessionManager*		lpSessionManager = (ECSessionManager *)lpTmpSessionManager;
+	auto lpSessionManager = static_cast<ECSessionManager *>(lpTmpSessionManager);
 	list<BTSession*>		lstSessions;
 
 	if (lpSessionManager == NULL)
@@ -863,7 +863,7 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
 	    
 	    // Send the change notification
 	    if(lpBTSession != NULL) {
-			ECSession *lpSession = dynamic_cast<ECSession*>(lpBTSession);
+			auto lpSession = dynamic_cast<ECSession *>(lpBTSession);
 	    	if (lpSession == NULL) {
 				lpBTSession->Unlock();
 	    	    continue;

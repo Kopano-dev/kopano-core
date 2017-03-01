@@ -521,7 +521,7 @@ HRESULT ECMsgStore::Unadvise(ULONG ulConnection) {
 HRESULT ECMsgStore::Reload(void *lpParam, ECSESSIONID sessionid)
 {
 	HRESULT hr = hrSuccess;
-	ECMsgStore *lpThis = (ECMsgStore *)lpParam;
+	auto lpThis = static_cast<ECMsgStore *>(lpParam);
 
 	for (auto conn_id : lpThis->m_setAdviseConnections)
 		lpThis->m_lpNotifyClient->Reregister(conn_id);
@@ -531,7 +531,7 @@ HRESULT ECMsgStore::Reload(void *lpParam, ECSESSIONID sessionid)
 HRESULT ECMsgStore::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
-	ECMsgStore* lpMsgStore = (ECMsgStore*)lpProvider;
+	auto lpMsgStore = static_cast<ECMsgStore *>(lpProvider);
 
 	switch (lpsPropValSrc->ulPropTag) {
 	case PR_ENTRYID:
@@ -1062,8 +1062,7 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 	HRESULT hr = hrSuccess;
 	object_ptr<IProfSect> lpProfSect;
 	memory_ptr<SPropValue> lpProp;
-
-	ECMsgStore *lpStore = (ECMsgStore *)lpParam;
+	auto lpStore = static_cast<ECMsgStore *>(lpParam);
 
 	switch(PROP_ID(ulPropTag)) {
 		case PROP_ID(PR_EMSMDB_SECTION_UID): {
@@ -1197,7 +1196,7 @@ HRESULT	ECMsgStore::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
 	HRESULT hr = hrSuccess;
-	ECMsgStore *lpStore = (ECMsgStore *)lpParam;
+	auto lpStore = static_cast<ECMsgStore *>(lpParam);
 
 	switch(ulPropTag) {
 	case PR_ACL_DATA:

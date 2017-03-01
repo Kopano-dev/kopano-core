@@ -127,7 +127,7 @@ HRESULT ECMAPIFolder::Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderO
 HRESULT ECMAPIFolder::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
 	HRESULT hr = hrSuccess;
-	ECMAPIFolder *lpFolder = (ECMAPIFolder *)lpParam;
+	auto lpFolder = static_cast<ECMAPIFolder *>(lpParam);
 
 	switch(ulPropTag) {
 	case PR_CONTENT_COUNT:

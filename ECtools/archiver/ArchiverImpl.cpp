@@ -74,7 +74,7 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 	if (ulFlags & InhibitErrorLogging) {
 		// We need to check if we're logging to stderr. If so we'll replace
 		// the logger with a NULL logger.
-		ECLogger_File *lpFileLogger = dynamic_cast<ECLogger_File*>(m_lpLogLogger);
+		auto lpFileLogger = dynamic_cast<ECLogger_File *>(m_lpLogLogger);
 		if (lpFileLogger && lpFileLogger->IsStdErr()) {
 			m_lpLogLogger->Release();
 			m_lpLogLogger = new ECLogger_Null();
@@ -86,7 +86,7 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 	} else if (ulFlags & AttachStdErr) {
 		// We need to check if the current logger isn't logging to the console
 		// as that would give duplicate messages
-		ECLogger_File *lpFileLogger = dynamic_cast<ECLogger_File*>(m_lpLogLogger);
+		auto lpFileLogger = dynamic_cast<ECLogger_File *>(m_lpLogLogger);
 		if (lpFileLogger == NULL || !lpFileLogger->IsStdErr()) {
 			auto lpTeeLogger = new ECLogger_Tee();
 			lpTeeLogger->AddLogger(m_lpLogLogger);

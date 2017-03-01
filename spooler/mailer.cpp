@@ -432,7 +432,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		} else {
 			// check if entry is in contacts folder
 			LPCONTAB_ENTRYID lpContabEntryID = (LPCONTAB_ENTRYID)lpEntryID->Value.bin.lpb;
-			GUID* guid = (GUID*)&lpContabEntryID->muid;
+			auto guid = reinterpret_cast<GUID *>(&lpContabEntryID->muid);
 
 			// check validity of lpContabEntryID
 			if (sizeof(CONTAB_ENTRYID) > lpEntryID->Value.bin.cb ||
@@ -1153,8 +1153,8 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
     LPENTRYID *eidp)
 {
 	HRESULT hr = hrSuccess;
-	const CONTAB_ENTRYID *lpContabEntryID = (LPCONTAB_ENTRYID)lpEntryId;
-	GUID* guid = (GUID*)&lpContabEntryID->muid;
+	auto lpContabEntryID = reinterpret_cast<const CONTAB_ENTRYID *>(lpEntryId);
+	auto guid = reinterpret_cast<const GUID *>(&lpContabEntryID->muid);
 	ULONG ulObjType;
 	object_ptr<IMailUser> lpContact;
 	ULONG cValues;

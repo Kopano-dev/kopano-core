@@ -377,9 +377,8 @@ exit:
 
 SOAP_SOCKET ECSoapServerConnection::CreatePipeSocketCallback(void *lpParam)
 {
-	ECSoapServerConnection *lpThis = (ECSoapServerConnection *)lpParam;
-
-	return (SOAP_SOCKET)create_pipe_socket(lpThis->m_strPipeName.c_str(), lpThis->m_lpConfig, false, 0666);
+	auto lpThis = static_cast<ECSoapServerConnection *>(lpParam);
+	return create_pipe_socket(lpThis->m_strPipeName.c_str(), lpThis->m_lpConfig, false, 0666);
 }
 
 ECRESULT ECSoapServerConnection::ShutDown()

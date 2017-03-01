@@ -2115,7 +2115,7 @@ HRESULT ECMessage::DeleteProps(const SPropTagArray *lpPropTagArray,
 HRESULT ECMessage::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
-	ECMsgStore *lpMsgStore = (ECMsgStore *)lpProvider;
+	auto lpMsgStore = static_cast<ECMsgStore *>(lpProvider);
 
 	if (lpsPropValSrc->ulPropTag != PR_SOURCE_KEY)
 		return MAPI_E_NOT_FOUND;
@@ -2135,7 +2135,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 	HRESULT hr = hrSuccess;
 	unsigned int ulSize = 0;
 	LPBYTE	lpData = NULL;
-	ECMessage *lpMessage = (ECMessage *)lpParam;
+	auto lpMessage = static_cast<ECMessage *>(lpParam);
 
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_RTF_IN_SYNC):
@@ -2325,7 +2325,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 HRESULT ECMessage::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
-	ECMessage *lpMessage = (ECMessage *)lpParam;
+	auto lpMessage = static_cast<ECMessage *>(lpParam);
 	HRESULT hr = hrSuccess;
 
 	switch(ulPropTag) {

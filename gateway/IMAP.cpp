@@ -2521,7 +2521,7 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
 LONG __stdcall IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
 {
-	IMAP *lpIMAP = (IMAP*)lpContext;
+	auto lpIMAP = static_cast<IMAP *>(lpContext);
 	string strFlags;
 	ULONG ulMailNr = 0;
 	ULONG ulRecent = 0;

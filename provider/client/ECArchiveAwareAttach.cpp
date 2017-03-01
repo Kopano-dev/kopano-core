@@ -44,7 +44,7 @@ HRESULT	ECArchiveAwareAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BO
 HRESULT	ECArchiveAwareAttach::SetPropHandler(ULONG ulPropTag,
     void */*lpProvider*/, const SPropValue *lpsPropValue, void *lpParam)
 {
-	ECArchiveAwareAttach *lpAttach = (ECArchiveAwareAttach *)lpParam;
+	auto lpAttach = static_cast<ECArchiveAwareAttach *>(lpParam);
 	HRESULT hr = hrSuccess;
 
 	switch(ulPropTag) {

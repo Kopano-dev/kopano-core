@@ -687,32 +687,31 @@ PHP_RSHUTDOWN_FUNCTION(mapi) {
 static void _php_free_mapi_session(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
 	PMEASURE_FUNC;
-
-	IMAPISession *lpSession = (IMAPISession *)rsrc->ptr;
+	auto lpSession = static_cast<IMAPISession *>(rsrc->ptr);
 	if(lpSession) lpSession->Release();
 }
 
 static void _php_free_mapi_rowset(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
-	LPSRowSet pRowSet = (LPSRowSet)rsrc->ptr;
+	auto pRowSet = static_cast<SRowSet *>(rsrc->ptr);
 	if (pRowSet) FreeProws(pRowSet);
 }
 
 static void _php_free_mapi_object(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
-	LPUNKNOWN lpUnknown = (LPUNKNOWN)rsrc->ptr;
+	auto lpUnknown = static_cast<IUnknown *>(rsrc->ptr);
 	if (lpUnknown) lpUnknown->Release();
 }
 
 static void _php_free_istream(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
-	LPSTREAM pStream = (LPSTREAM)rsrc->ptr;
+	auto pStream = static_cast<IStream *>(rsrc->ptr);
 	if (pStream) pStream->Release();
 }
 
 static void _php_free_fb_object(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
-	LPUNKNOWN lpObj = (LPUNKNOWN)rsrc->ptr;
+	auto lpObj = static_cast<IUnknown *>(rsrc->ptr);
 	if (lpObj) lpObj->Release();
 }
 

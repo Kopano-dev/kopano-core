@@ -140,8 +140,8 @@ ECPriorityWorkerThread::~ECPriorityWorkerThread()
 void *ECWorkerThread::Work(void *lpParam)
 {
 	kcsrv_blocksigs();
-    ECWorkerThread *lpThis = (ECWorkerThread *)lpParam;
-	ECPriorityWorkerThread *lpPrio = dynamic_cast<ECPriorityWorkerThread*>(lpThis);
+	auto lpThis = static_cast<ECWorkerThread *>(lpParam);
+	auto lpPrio = dynamic_cast<ECPriorityWorkerThread *>(lpThis);
     WORKITEM *lpWorkItem = NULL;
     ECRESULT er = erSuccess;
     bool fStop = false;
@@ -390,7 +390,7 @@ ECWatchDog::~ECWatchDog()
 
 void *ECWatchDog::Watch(void *lpParam)
 {
-    ECWatchDog *lpThis = (ECWatchDog *)lpParam;
+	auto lpThis = static_cast<ECWatchDog *>(lpParam);
     double dblAge;
 	kcsrv_blocksigs();
     

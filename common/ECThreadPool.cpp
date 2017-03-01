@@ -179,7 +179,7 @@ inline bool ECThreadPool::isCurrentThread(const pthread_t &hThread)
  */
 void* ECThreadPool::threadFunc(void *lpVoid)
 {
-	ECThreadPool *lpPool = static_cast<ECThreadPool*>(lpVoid);
+	auto lpPool = static_cast<ECThreadPool *>(lpVoid);
 	
 	while (true) {
 		STaskInfo sTaskInfo = {NULL, false};

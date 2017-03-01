@@ -806,7 +806,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
 {
 	HRESULT hr = hrSuccess;
-	cabEntryID *lpCABEntryID = (cabEntryID*)lpEntryID;
+	auto lpCABEntryID = reinterpret_cast<cabEntryID *>(lpEntryID);
 	ULONG cbNewCABEntryID = CbNewCABENTRYID(0);
 	ULONG cbFolder = 0;
 	LPENTRYID lpFolder = NULL;

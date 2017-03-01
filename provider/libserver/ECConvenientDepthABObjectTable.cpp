@@ -63,7 +63,7 @@ ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGe
 	ECRESULT er;
     unsigned int n = 0;
     struct propVal *lpProp = NULL;
-    ECConvenientDepthABObjectTable *lpThis = (ECConvenientDepthABObjectTable *)lpGenTable;
+	auto lpThis = static_cast<ECConvenientDepthABObjectTable *>(lpGenTable);
     
     er = ECABObjectTable::QueryRowData(lpThis, soap, lpSession, lpRowList, lpsPropTagArray, lpObjectData, lppRowSet, bTableData, bTableLimit);
     if(er != erSuccess)
@@ -96,7 +96,7 @@ ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGe
  */
 ECRESULT ECConvenientDepthABObjectTable::Load()
 {
-	ECODAB *lpODAB = (ECODAB*)m_lpObjectData;
+	auto lpODAB = static_cast<ECODAB *>(m_lpObjectData);
 	sObjectTableKey	sRowItem;
 	std::list<CONTAINERINFO> lstObjects;
 	CONTAINERINFO root;

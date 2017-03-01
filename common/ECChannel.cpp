@@ -653,7 +653,7 @@ static int peer_is_local2(int rsk, const struct nlmsghdr *nlh)
 	nlh = reinterpret_cast<const struct nlmsghdr *>(rspbuf);
 	if (!NLMSG_OK(nlh, nlh->nlmsg_len))
 		return -EIO;
-	const struct rtmsg *rtm = reinterpret_cast<const struct rtmsg *>(NLMSG_DATA(nlh));
+	auto rtm = reinterpret_cast<const struct rtmsg *>(NLMSG_DATA(nlh));
 	return rtm->rtm_type == RTN_LOCAL;
 }
 #endif
@@ -698,7 +698,7 @@ int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
 	req.rth.rtm_type     = RTN_UNSPEC;
 	req.rth.rtm_scope    = RT_SCOPE_UNIVERSE;
 	req.rth.rtm_table    = RT_TABLE_UNSPEC;
-	struct rtattr *rta = reinterpret_cast<struct rtattr *>(reinterpret_cast<char *>(&req) + NLMSG_ALIGN(req.nh.nlmsg_len));
+	auto rta = reinterpret_cast<struct rtattr *>(reinterpret_cast<char *>(&req) + NLMSG_ALIGN(req.nh.nlmsg_len));
 	rta->rta_type        = RTA_DST;
 
 	int ret = -ENODATA;
@@ -736,7 +736,7 @@ int zcp_peerfd_is_local(int fd)
 {
 	struct sockaddr_storage peer_sockaddr;
 	socklen_t peer_socklen = sizeof(sockaddr);
-	struct sockaddr *sa = reinterpret_cast<struct sockaddr *>(&peer_sockaddr);
+	auto sa = reinterpret_cast<struct sockaddr *>(&peer_sockaddr);
 	int ret = getsockname(fd, sa, &peer_socklen);
 	if (ret < 0)
 		return -errno;

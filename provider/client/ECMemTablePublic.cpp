@@ -96,7 +96,7 @@ static LONG __stdcall AdviseShortCutCallback(void *lpContext, ULONG cNotif,
 	}
 
 	HRESULT hr = hrSuccess;
-	ECMemTablePublic *lpMemTablePublic = (ECMemTablePublic*)lpContext;
+	auto lpMemTablePublic = static_cast<ECMemTablePublic *>(lpContext);
 
 	lpMemTablePublic->AddRef(); // Besure we have the object
 
@@ -150,7 +150,7 @@ static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
 	if (lpContext == NULL)
 		return S_OK;
 
-	ECMemTablePublic *lpMemTablePublic = (ECMemTablePublic*)lpContext;
+	auto lpMemTablePublic = static_cast<ECMemTablePublic *>(lpContext);
 	ULONG ulResult;
 	SBinary sInstanceKey;
 

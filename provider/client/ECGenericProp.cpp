@@ -297,7 +297,7 @@ exit:
 HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
 	HRESULT			hr = hrSuccess;
-	ECGenericProp*	lpProp = (ECGenericProp *)lpParam;
+	auto lpProp = static_cast<ECGenericProp *>(lpParam);
 
 	switch(PROP_ID(ulPropTag))
 	{
@@ -342,8 +342,7 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 
 HRESULT	ECGenericProp::DefaultGetPropGetReal(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
-	ECGenericProp *lpProp = (ECGenericProp *)lpParam;
-
+	auto lpProp = static_cast<ECGenericProp *>(lpParam);
 	return lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue, lpProp->m_ulMaxPropSize);
 }
 

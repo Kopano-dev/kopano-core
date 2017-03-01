@@ -1241,9 +1241,9 @@ ECRESULT ECSearchFolders::GetState(unsigned int ulStoreId, unsigned int ulFolder
 // Entrypoint for the SearchThread
 void* ECSearchFolders::SearchThread(void *lpParam)
 {
-    THREADINFO *ti = (THREADINFO*)lpParam;
-    SEARCHFOLDER *lpFolder = ti->lpFolder; 					// The entry in the m_mapSearchFolders map
-    ECSearchFolders *lpSearchFolders = ti->lpSearchFolders; // The main ECSearchFolders object
+	auto ti = static_cast<THREADINFO *>(lpParam);
+	auto lpFolder = ti->lpFolder; 					// The entry in the m_mapSearchFolders map
+	auto lpSearchFolders = ti->lpSearchFolders; // The main ECSearchFolders object
 
     // We no longer need this
     delete ti;
@@ -1712,7 +1712,7 @@ void ECSearchFolders::FlushAndWait()
  
 void * ECSearchFolders::ProcessThread(void *lpSearchFolders)
 {
-    ECSearchFolders *lpThis = (ECSearchFolders *)lpSearchFolders;
+	auto lpThis = static_cast<ECSearchFolders *>(lpSearchFolders);
     
     while(1) {    
         // Get events to process

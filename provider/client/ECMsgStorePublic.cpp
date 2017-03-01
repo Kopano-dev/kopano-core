@@ -85,8 +85,7 @@ HRESULT ECMsgStorePublic::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECMsgStorePublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
 	HRESULT hr = hrSuccess;
-
-	ECMsgStorePublic *lpStore = (ECMsgStorePublic *)lpParam;
+	auto lpStore = static_cast<ECMsgStorePublic *>(lpParam);
 
 	switch(ulPropTag) {
 	case PR_IPM_SUBTREE_ENTRYID:
@@ -109,8 +108,7 @@ HRESULT ECMsgStorePublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
 	SPropValue sPropValue;
-
-	ECMsgStorePublic *lpStore = (ECMsgStorePublic *)lpParam;
+	auto lpStore = static_cast<ECMsgStorePublic *>(lpParam);
 
 	switch(ulPropTag) {
 	case PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID:

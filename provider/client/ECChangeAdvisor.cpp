@@ -387,7 +387,7 @@ HRESULT ECChangeAdvisor::UpdateSyncState(syncid_t ulSyncId, changeid_t ulChangeI
 HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
 {
 	HRESULT				hr = hrSuccess;
-	ECChangeAdvisor		*lpChangeAdvisor = (ECChangeAdvisor*)lpParam;
+	auto lpChangeAdvisor = static_cast<ECChangeAdvisor *>(lpParam);
 	ECLISTSYNCSTATE		listSyncStates;
 	ECLISTCONNECTION	listConnections;
 

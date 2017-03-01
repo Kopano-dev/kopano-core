@@ -80,7 +80,7 @@ static HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
 				lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python error: %s", pStrErrorMessage);
 				
 				while (traceback && traceback->tb_next != NULL) {
-					PyFrameObject *frame = (PyFrameObject *)traceback->tb_frame;
+					auto frame = traceback->tb_frame;
 					if (frame) {
 						int line = frame->f_lineno;
 						const char *filename = PyString_AsString(frame->f_code->co_filename); 

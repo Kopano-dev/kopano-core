@@ -331,15 +331,15 @@ static ECRESULT PeerIsServer(struct soap *soap,
 					switch (lpsAddrIter->ai_family) {
 					case AF_INET:
 					{
-						sockaddr_in *lpsLeft = (sockaddr_in *)lpsAddrIter->ai_addr;
-						sockaddr_in *lpsRight = (sockaddr_in *)&soap->peer;
+						auto lpsLeft = reinterpret_cast<struct sockaddr_in *>(lpsAddrIter->ai_addr);
+						auto lpsRight = reinterpret_cast<struct sockaddr_in *>(&soap->peer);
 						bResult = (memcmp(&lpsLeft->sin_addr, &lpsRight->sin_addr, sizeof(lpsLeft->sin_addr)) == 0);
 						break;
 					}
 					case AF_INET6:
 					{
-						sockaddr_in6 *lpsLeft = (sockaddr_in6 *)lpsAddrIter->ai_addr;
-						sockaddr_in6 *lpsRight = (sockaddr_in6 *)&soap->peer;
+						auto lpsLeft = reinterpret_cast<struct sockaddr_in6 *>(lpsAddrIter->ai_addr);
+						auto lpsRight = reinterpret_cast<struct sockaddr_in6 *>(&soap->peer);
 						bResult = (memcmp(&lpsLeft->sin6_addr, &lpsRight->sin6_addr, sizeof(lpsLeft->sin6_addr)) == 0);
 						break;
 					}
@@ -9889,7 +9889,7 @@ static void MTOMWriteClose(struct soap *soap, void *handle);
 
 static void MTOMSessionDone(struct soap *soap, void *param)
 {
-	MTOMSessionInfo *lpInfo = (MTOMSessionInfo *)param;
+	auto lpInfo = static_cast<MTOMSessionInfo *>(param);
 
 	if (lpInfo->lpCurrentWriteStream != NULL)
 	    // Apparently a write stream was opened but not closed by gSOAP by calling MTOMWriteClose. Do it now.
