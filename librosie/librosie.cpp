@@ -176,10 +176,9 @@ bool rosie_clean_html(const std::string &in, std::string *const out,
 	if (rc != 0 && errors != NULL)
 		errors->push_back(format("tidySaveBuffer(%d) ", rc));
 
+	out->assign(reinterpret_cast<const char *>(output.bp));
 	if (rc == 0 || rc == 1) {
 		/* rc==1: warnings emitted */
-		out->assign(reinterpret_cast<const char *>(output.bp));
-
 		if (rc == 1)
 			errors->push_back(format("%s: libtidy warning: %s",
 				__PRETTY_FUNCTION__,
