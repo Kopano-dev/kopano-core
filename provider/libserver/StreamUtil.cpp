@@ -132,7 +132,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	nameidmap_t::const_iterator i = m_mapNameIds.find(key);
 	if (i != m_mapNameIds.cend()) {
 		*lpulId = i->second;
-		goto exit;
+		return erSuccess;
 	}
 
 	// Check the database
@@ -143,13 +143,12 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if ((lpRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
 		if (lpRow[0] == NULL) {
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("NamedPropertyMapper::GetId(): column null");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		*lpulId = atoui((char*)lpRow[0]) + 0x8501;
@@ -161,16 +160,13 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 		
 		er = m_lpDatabase->DoInsert(strQuery, lpulId);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		*lpulId += 0x8501;
 	}
 
 	// *lpulId now contains the local propid, update the cache
 	m_mapNameIds.insert(nameidmap_t::value_type(key, *lpulId));
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strNameString, unsigned int *lpulId)
@@ -185,7 +181,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	namestringmap_t::const_iterator i = m_mapNameStrings.find(key);
 	if (i != m_mapNameStrings.cend()) {
 		*lpulId = i->second;
-		goto exit;
+		return erSuccess;
 	}
 
 	// Check the database
@@ -196,13 +192,12 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if ((lpRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
 		if (lpRow[0] == NULL) {
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("NamedPropertyMapper::GetId(): column null");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		*lpulId = atoui((char*)lpRow[0]) + 0x8501;
@@ -214,16 +209,13 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 		
 		er = m_lpDatabase->DoInsert(strQuery, lpulId);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		*lpulId += 0x8501;
 	}
 
 	// *lpulId now contains the local propid, update the cache
 	m_mapNameStrings.insert(namestringmap_t::value_type(key, *lpulId));
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Utility Functions
@@ -736,16 +728,13 @@ static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
 	strQuery = "SELECT tag FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag IN (0x1009, 0x1013) ORDER BY tag LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow && lpDBRow[0])
 		*lpstrBestBody = lpDBRow[0];
 	else
 		*lpstrBestBody = "0";
-		
- exit:
-	return er;
+	return erSuccess;
 }
 
 static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,

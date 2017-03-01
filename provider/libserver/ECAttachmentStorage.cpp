@@ -180,22 +180,16 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag, UL
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::GetSingleInstanceId(): DoSelect() failed %x", er);
-		goto exit;
+		return er;
 	}
 
 	lpDBRow = m_lpDatabase->FetchRow(lpDBResult);
-
-	if (!lpDBRow || !lpDBRow[0]) {
-		er = KCERR_NOT_FOUND;
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
 		// ec_log_err("ECAttachmentStorage::GetSingleInstanceId(): FetchRow() failed %x", er);
-		goto exit;
-	}
-
+		return KCERR_NOT_FOUND;
 	if (lpulInstanceId)
 		*lpulInstanceId = atoi(lpDBRow[0]);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -218,8 +212,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 
 	/* No single instances were requested... */
 	if (lstObjIds.empty())
-		goto exit;
-
+		return erSuccess;
 	strQuery =
 		"SELECT DISTINCT `instanceid` "
 		"FROM `singleinstances` "
@@ -234,22 +227,19 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		if (lpDBRow[0] == NULL) {
 			ec_log_err("ECAttachmentStorage::GetSingleInstanceIds(): column contains NULL");
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		lstInstanceIds.push_back(atoi(lpDBRow[0]));
 	}
 
 	lstAttachIds->swap(lstInstanceIds);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -303,22 +293,19 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId, std::
 		"WHERE `instanceid` = " + stringify(ulInstanceId);
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		if (lpDBRow[0] == NULL) {
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("ECAttachmentStorage::GetSingleInstanceParents(): column contains NULL");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		lstObjIds.push_back(atoi(lpDBRow[0]));
 	}
 
 	lplstObjIds->swap(lstObjIds);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -344,7 +331,7 @@ ECRESULT ECAttachmentStorage::IsOrphanedSingleInstance(ULONG ulInstanceId, bool 
 
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	lpDBRow = m_lpDatabase->FetchRow(lpDBResult);
 
@@ -352,9 +339,7 @@ ECRESULT ECAttachmentStorage::IsOrphanedSingleInstance(ULONG ulInstanceId, bool 
 	 * No results: Single Instance ID has been cleared (refcount = 0)
 	 */
 	*bOrphan = (!lpDBRow || !lpDBRow[0]);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -386,7 +371,7 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ULONG> 
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::GetOrphanedSingleInstances(): DoSelect failed %x", er);
-		goto exit;
+		return er;
 	}
 
 	/* First make a full copy of the list of Single Instance IDs */
@@ -398,16 +383,13 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ULONG> 
 	 */
 	while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		if (lpDBRow[0] == NULL) {
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("ECAttachmentStorage::GetOrphanedSingleInstances(): column contains NULL");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		lplstOrphanedInstanceIds->remove(atoi(lpDBRow[0]));
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -833,16 +815,14 @@ bool ECDatabaseAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::ExistAttachmentInstance(): DoSelect failed %x", er);
-		goto exit;
+		return false;
 	}
 
 	lpDBRow = m_lpDatabase->FetchRow(lpDBResult);
 
 	if (!lpDBRow || !lpDBRow[0])
-		er = KCERR_NOT_FOUND;
-
-exit:
-	return er == erSuccess;
+		return false; /* KCERR_NOT_FOUND */
+	return true;
 }
 
 /** 
@@ -941,31 +921,28 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect failed %x", er);
-		goto exit;
+		return er;
 	}
 
 	while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult))) {
 		if (lpDBRow[0] == NULL) {
 			// broken attachment !
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("ECDatabaseAttachment::LoadAttachmentInstance(): column contained NULL");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		lpDBLen = m_lpDatabase->FetchRowLengths(lpDBResult);
 		er = lpSink->Write(lpDBRow[0], 1, lpDBLen[0]);
 		if (er != erSuccess) {
 			ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): Write failed %x", er);
-			goto exit;
+			return er;
 		}
 
 		iReadSize += lpDBLen[0];
 	}
 
 	*lpiSize = iReadSize;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -1128,22 +1105,19 @@ ECRESULT ECDatabaseAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulS
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult); 
 	if (er != erSuccess)  {
 		ec_log_err("ECAttachmentStorage::GetSizeInstance(): DoSelect failed %x", er);
-		goto exit; 
+		return er;
 	}
 
 	lpDBRow = m_lpDatabase->FetchRow(lpDBResult); 
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) { 
-		er = KCERR_DATABASE_ERROR; 
 		ec_log_err("ECDatabaseAttachment::GetSizeInstance(): now row or column contained NULL");
-		goto exit; 
+		return KCERR_DATABASE_ERROR;
 	} 
  	 
 	*lpulSize = strtoul(lpDBRow[0], NULL, 0);
 	if (lpbCompressed)
 		*lpbCompressed = false;
- 	 
-exit: 
-	return er; 
+	return erSuccess;
 }
 
 ECRESULT ECDatabaseAttachment::Begin()

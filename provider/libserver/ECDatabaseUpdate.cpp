@@ -281,14 +281,12 @@ ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
 	strQuery = "SELECT `value` FROM `settings` WHERE `name` = 'server_guid'";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpDBRow = lpDatabase->FetchRow(lpResult);
 	lpDBLenths = lpDatabase->FetchRowLengths(lpResult);
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBLenths == NULL || lpDBLenths[0] != sizeof(GUID)) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("UpdateDatabaseCreateSourceKeys(): row or columns NULL");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 	
 	//Insert source keys for folders
@@ -298,19 +296,13 @@ ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	//Insert source keys for messages
 	strQuery = "INSERT INTO indexedproperties (tag, hierarchyid, val_binary) SELECT 26080, h.id, CONCAT(" + lpDatabase->EscapeBinary((unsigned char*)lpDBRow[0], sizeof(GUID));
 	strQuery += ", CHAR(h.id&0xFF, h.id>>8&0xFF, h.id>>16&0xFF, h.id>>24&0xFF))";
 	strQuery += " FROM hierarchy AS h LEFT JOIN hierarchy AS p ON h.parent = p.id WHERE h.type = 5 AND p.type = 3";
-
-	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoInsert(strQuery);
 }
 
 // 12
@@ -326,7 +318,7 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 	strQuery = "SELECT `guid`, `hierarchy_id` FROM `stores`";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	nStores = lpDatabase->GetNumRows(lpResult);
 
@@ -338,15 +330,13 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || 
 			lpDBLenths == NULL || lpDBLenths[0] != sizeof(GUID) )
 		{
-			er = KCERR_DATABASE_ERROR;
 			ec_log_crit("  Failed to convert store \"%s\"", (lpDBRow && lpDBRow[1])?lpDBRow[1]:"Unknown");
 			
 			if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBLenths == NULL || lpDBLenths[0] != sizeof(GUID) )
 				ec_log_crit("  The table \"stores\" includes a wrong GUID");
 			else
 				ec_log_crit("  Check the data in table \"stores\"");
-			
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		ec_log_notice("  Converting entryids of store %d", atoui(lpDBRow[1]));
@@ -354,13 +344,11 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 		er = CreateRecursiveStoreEntryIds(lpDatabase, atoui(lpDBRow[1]), (unsigned char*)lpDBRow[0]);
 		if(er != erSuccess) {
 			ec_log_crit("  Failed to convert store %d", atoui(lpDBRow[1]));
-			goto exit;	
+			return er;
 		}
 
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulStoreHierarchyId, unsigned char* lpStoreGuid)
@@ -643,16 +631,14 @@ ECRESULT UpdateDatabaseAddIMAPSequenceNumber(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoSelect("SELECT * FROM settings WHERE name='imapseq'", &lpResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 	    
 	if(lpDatabase->GetNumRows(lpResult) == 0) {
 		er = lpDatabase->DoInsert("INSERT INTO settings (name, value) VALUES('imapseq',(SELECT max(id)+1 FROM hierarchy))");
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // 23
@@ -671,7 +657,7 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 
 		er = lpDatabase->DoSelect("SELECT id FROM changes GROUP BY parentsourcekey, change_type, sourcekey HAVING COUNT(*) > 1", &lpResult);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		ulRows = lpDatabase->GetNumRows(lpResult);
 		if(ulRows > 0) {
@@ -683,9 +669,8 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 					break;
 				
 				if (lpDBRow[0] == NULL) {
-					er = KCERR_DATABASE_ERROR;
 					ec_log_err("UpdateDatabaseKeysChanges(): column is NULL");
-					goto exit;
+					return KCERR_DATABASE_ERROR;
 				}
 
 				if (!bFirst)
@@ -699,17 +684,12 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 
 			er = lpDatabase->DoUpdate(strQuery);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 	}while(ulRows > 0);
 
 	// Change index
-	er = lpDatabase->DoUpdate("ALTER TABLE changes DROP PRIMARY KEY, DROP KEY `duplicate`, ADD PRIMARY KEY(`parentsourcekey`,`change_type`,`sourcekey`), ADD UNIQUE KEY `changeid` (`id`), ADD KEY `moved` (`moved_from`)");
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoUpdate("ALTER TABLE changes DROP PRIMARY KEY, DROP KEY `duplicate`, ADD PRIMARY KEY(`parentsourcekey`,`change_type`,`sourcekey`), ADD UNIQUE KEY `changeid` (`id`), ADD KEY `moved` (`moved_from`)");
 }
 
 // 24, Move public folders and remove favorites
@@ -747,7 +727,7 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	while(true) {
 		lpDBRow = lpDatabase->FetchRow(lpResult);
@@ -773,26 +753,25 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 			strQuery ="UPDATE hierarchy SET parent="+stringify(ulSubtreeFolder)+" WHERE parent="+stringify(ulPublicFolder);
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 			
 			// Mark the old folder as deleted
 			strQuery = "UPDATE hierarchy SET flags=flags|1024 WHERE id="+stringify(ulPublicFolder);
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			// Remove acl's from the subtree folder 
 			strQuery = "DELETE FROM acl WHERE hierarchy_id="+stringify(ulSubtreeFolder);
 			er = lpDatabase->DoDelete(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			// Move the Public folder acls to the subtree folder
 			strQuery = "UPDATE acl SET hierarchy_id="+stringify(ulSubtreeFolder)+" WHERE hierarchy_id="+stringify(ulPublicFolder);
 			er = lpDatabase->DoUpdate(strQuery, &ulAffRows);
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			if (ulAffRows == 0)
 				bUseStoreAcls = true;
 
@@ -805,7 +784,7 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 			strQuery = "UPDATE acl SET hierarchy_id="+stringify(ulSubtreeFolder)+" WHERE hierarchy_id="+stringify(ulStoreId);
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 		}
 
 		if(ulFavoriteFolder > 0) {
@@ -814,26 +793,26 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 			strQuery ="UPDATE hierarchy SET parent="+stringify(ulSubtreeFolder)+" WHERE parent="+stringify(ulFavoriteFolder);
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			// Mark the old folder as deleted
 			strQuery = "UPDATE hierarchy SET flags=flags|1024 WHERE id="+stringify(ulFavoriteFolder);
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			// Remove acl's from the favorite folder 
 			strQuery = "DELETE FROM acl WHERE hierarchy_id="+stringify(ulFavoriteFolder);
 			er = lpDatabase->DoDelete(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 		}
 		
 		// Remove acl's from the store 
 		strQuery = "DELETE FROM acl WHERE hierarchy_id="+stringify(ulStoreId);
 		er = lpDatabase->DoDelete(strQuery);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		// Remove the unused properties
 		strQuery = "DELETE FROM properties "
@@ -842,10 +821,9 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 
 		er = lpDatabase->DoUpdate(strQuery);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
-exit:
-	return er;
+	return erSuccess;
 }
 
 // 25
@@ -1258,12 +1236,12 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 	// make internal SYSTEM a objectclass_t user
 	er = lpDatabase->DoUpdate("UPDATE `users` SET `objectclass` = "+stringify(ACTIVE_USER)+" WHERE `externid` is NULL AND `objectclass` = 1");
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// make internal EVERYONE a objectclass_t security group
 	er = lpDatabase->DoUpdate("UPDATE `users` SET `objectclass` = "+stringify(DISTLIST_SECURITY)+" WHERE `externid` is NULL AND `objectclass` = 2");
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// database stored typed, convert to the new objectclass_t values
 	mapTypes.insert(std::pair<unsigned int, unsigned int>(1, ACTIVE_USER)); // USEROBJECT_TYPE_USER
@@ -1278,16 +1256,15 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 		// on LDAP plugin, object table is empty.
 		er = lpDatabase->DoSelect("SELECT `externid`, `objectclass` FROM `users` WHERE `externid` is not NULL AND `objectclass` = " + stringify(p.first), &lpResult);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		strUpdate = "(";
 		bFirst = true;
 		while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
 			lpDBLen = lpDatabase->FetchRowLengths(lpResult);
 			if (lpDBRow[0] == NULL || lpDBLen == NULL || lpDBLen[0] == 0) {
-				er = KCERR_DATABASE_ERROR;
 				ec_log_crit("  users table contains invalid NULL records for type %d", p.first);
-				goto exit;
+				return KCERR_DATABASE_ERROR;
 			}
 
 			if (!bFirst)
@@ -1320,11 +1297,9 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 	for (const auto &q : lstUpdates) {
 		er = lpDatabase->DoUpdate(q);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // 34
@@ -1351,7 +1326,7 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 	strQuery = "SELECT object.externid, objectproperty.value FROM objectproperty JOIN object ON objectproperty.objectid=object.id WHERE objectproperty.propname = 'companyname'";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
@@ -1368,11 +1343,9 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 			" WHERE propname='companyid' AND value = '" + p.second + "'";
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // 36
@@ -1440,7 +1413,7 @@ ECRESULT UpdateDatabaseMVPropertiesPrimarykey(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoSelect("SHOW KEYS FROM mvproperties", &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Result: | Table | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment |
 
@@ -1457,11 +1430,9 @@ ECRESULT UpdateDatabaseMVPropertiesPrimarykey(ECDatabase *lpDatabase)
 	if (bUpdate) {
 		er = lpDatabase->DoUpdate("ALTER TABLE mvproperties DROP PRIMARY KEY, ADD PRIMARY KEY (`hierarchyid`,`tag`,`type`,`orderid`), DROP KEY `hi`");
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // 41
@@ -1482,7 +1453,7 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 	// relation 6 == OBJECTRELATION_USER_SENDAS
 	er = lpDatabase->DoSelect("SELECT objectid, parentobjectid FROM objectrelation WHERE relationtype=6", &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
@@ -1495,17 +1466,15 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoDelete("DELETE FROM objectrelation WHERE relationtype=6");
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	for (const auto &p : lstRelations) {
 		er = lpDatabase->DoUpdate("INSERT INTO objectrelation (objectid, parentobjectid, relationtype) VALUES (" +
 		     p.second + ", " + p.first + ", 6)");
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -1531,7 +1500,7 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoSelect("SELECT storeid, objid FROM receivefolder WHERE messageclass='IPM'", &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
@@ -1548,7 +1517,7 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 		     p.first + " AND hierarchyid=" + p.first +
 		     " AND tag=0x6784 AND type=0x0102");
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		// does not return an error if property was not in the database
 		er = lpDatabase->DoUpdate("UPDATE properties SET hierarchyid=" +
@@ -1556,11 +1525,9 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 		     " AND hierarchyid=" + p.first +
 		     " AND tag=0x6784 AND type=0x0102");
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // 44
@@ -1681,13 +1648,12 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoSelect("SELECT p.hierarchyid, p.storeid, p.val_binary FROM properties AS p JOIN receivefolder AS r ON p.hierarchyid=r.objid AND p.storeid=r.storeid JOIN stores AS s ON r.storeid=s.hierarchy_id WHERE p.tag=0x3fe1 AND p.type=0x102 AND r.messageclass='IPM'", &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("UpdateDatabaseConvertRules(): column NULL");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		// Use WTF-1252 here since the pre-unicode rule serializer didn't pass the SOAP_C_UTFSTRING flag, causing
@@ -1695,10 +1661,9 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 		std::unique_ptr<char[]> lpszConverted(ECStringCompat::WTF1252_to_UTF8(nullptr, lpDBRow[2], &converter));
 		er = lpDatabase->DoUpdate("UPDATE properties SET val_binary='" + lpDatabase->Escape(lpszConverted.get()) + "' WHERE hierarchyid=" + lpDBRow[0] + " AND storeid=" + lpDBRow[1] + " AND tag=0x3fe1 AND type=0x102");
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-exit:
-	return er;
+	return erSuccess;
 }
 
 // 49
@@ -1715,13 +1680,12 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 	strQuery = "SELECT h.id, p.storeid, p.val_string FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) +" AND p.type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) + " WHERE h.type=3 AND h.flags=2";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("UpdateDatabaseConvertSearchFolders(): column NULL");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		// Use WTF-1252 here since the pre-unicode rule serializer didn't pass the SOAP_C_UTFSTRING flag, causing
@@ -1729,10 +1693,9 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 		std::unique_ptr<char[]> lpszConverted(ECStringCompat::WTF1252_to_WINDOWS1252(nullptr, lpDBRow[2], &converter));
 		er = lpDatabase->DoUpdate("UPDATE properties SET val_string='" + lpDatabase->Escape(lpszConverted.get()) + "' WHERE hierarchyid=" + lpDBRow[0] + " AND storeid=" + lpDBRow[1] + " AND tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) +" AND type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)));
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-exit:
-	return er;
+	return erSuccess;
 }
 
 // 50
@@ -1749,32 +1712,27 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 	strQuery.replace(strQuery.find("properties"), strlen("properties"), "properties_temp");
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while (true) {
 		strQuery = "INSERT IGNORE INTO properties_temp (hierarchyid,tag,type,val_ulong,val_string,val_binary,val_double,val_longint,val_hi,val_lo) SELECT hierarchyid,tag,type,val_ulong,val_string,val_binary,val_double,val_longint,val_hi,val_lo FROM properties ORDER BY hierarchyid ASC LIMIT 10000";
 		er = lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		strQuery = "DELETE FROM properties ORDER BY hierarchyid ASC LIMIT 10000";
 		er = lpDatabase->DoDelete(strQuery);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		er = lpDatabase->Commit();
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		er = lpDatabase->Begin();
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		strQuery = "SELECT MIN(hierarchyid) FROM properties";
 		er = lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		lpDBRow = lpDatabase->FetchRow(lpResult);
 		if (lpDBRow == NULL || lpDBRow[0] == NULL)
 			break;
@@ -1784,15 +1742,11 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 	strQuery = "UPDATE properties_temp JOIN hierarchy ON properties_temp.hierarchyid=hierarchy.id AND hierarchy.parent IS NULL SET val_string = CAST(CAST(CONVERT(val_string USING latin1) AS binary) AS CHAR CHARACTER SET utf8) WHERE properties_temp.type=0x1e AND properties_temp.tag=26480";
 	er = lpDatabase->DoUpdate(strQuery);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->DoUpdate("RENAME TABLE properties TO properties_old, properties_temp TO properties");
 	if (er != erSuccess)
-		goto exit;
-
-	er = lpDatabase->DoDelete("DROP TABLE properties_old");
-exit:
-	return er;
+		return er;
+	return lpDatabase->DoDelete("DROP TABLE properties_old");
 }
 
 // 51

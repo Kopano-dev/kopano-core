@@ -180,19 +180,15 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int *l
     
     er = lpDatabase->DoSelect("SELECT count(*) FROM deferredupdate", &lpResult);
     if(er != erSuccess)
-        goto exit;
-    
+		return er;
     lpRow = lpDatabase->FetchRow(lpResult);
     if(!lpRow || !lpRow[0]) {
-        er = KCERR_DATABASE_ERROR;
 	ec_log_err("ECTPropsPurge::GetDeferredCount(): row or column null");
-        goto exit;
+		return KCERR_DATABASE_ERROR;
     }
     
     *lpulCount = atoui(lpRow[0]);
-    
-exit:
-        return er;    
+        return erSuccess;
 }
 
 /**
@@ -213,18 +209,14 @@ ECRESULT ECTPropsPurge::GetLargestFolderId(ECDatabase *lpDatabase, unsigned int 
     
     er = lpDatabase->DoSelect("SELECT folderid, COUNT(*) as c FROM deferredupdate GROUP BY folderid ORDER BY c DESC LIMIT 1", &lpResult);
     if(er != erSuccess)
-        goto exit;
+		return er;
         
     lpRow = lpDatabase->FetchRow(lpResult);
-    if(!lpRow || !lpRow[0]) {
-        // Could be that there are no deferred updates, so give an appropriate error
-        er = KCERR_NOT_FOUND;
-        goto exit;
-    }
-    
+	if (lpRow == nullptr || lpRow[0] == nullptr)
+		// Could be that there are no deferred updates, so give an appropriate error
+		return KCERR_NOT_FOUND;
     *lpulFolderId = atoui(lpRow[0]);
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -252,11 +244,9 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	strQuery = "SELECT hierarchyid FROM deferredupdate WHERE folderid=" + stringify(ulFolderId);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if(lpDatabase->GetNumRows(lpDBResult) == 0)
-		goto exit;
-
+		return erSuccess;
 	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		strIn += lpDBRow[0];
 		strIn += ",";
@@ -268,25 +258,22 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	strQuery += ") FOR UPDATE";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 			
 	strQuery = "REPLACE INTO tproperties (folderid, hierarchyid, tag, type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo) ";
 	strQuery += "SELECT " + stringify(ulFolderId) + ", p.hierarchyid, p.tag, p.type, val_ulong, LEFT(val_string, " + stringify(TABLE_CAP_STRING) + "), LEFT(val_binary, " + stringify(TABLE_CAP_BINARY) + "), val_double, val_longint, val_hi, val_lo FROM properties AS p FORCE INDEX(primary) JOIN deferredupdate FORCE INDEX(folderid) ON deferredupdate.hierarchyid=p.hierarchyid WHERE tag NOT IN(0x1009, 0x1013) AND deferredupdate.folderid = " + stringify(ulFolderId);
 
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	strQuery = "DELETE FROM deferredupdate WHERE hierarchyid IN(" + strIn + ")";
 	er = lpDatabase->DoDelete(strQuery, &ulAffected);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	g_lpStatsCollector->Increment(SCN_DATABASE_MERGES);
 	g_lpStatsCollector->Increment(SCN_DATABASE_MERGED_RECORDS, (int)ulAffected);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int *lpulCount)
@@ -300,7 +287,7 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ul
 	strQuery = "SELECT count(*) FROM deferredupdate WHERE folderid = " + stringify(ulFolderId);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 		
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	
@@ -310,9 +297,7 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ul
 		ulCount = atoui(lpDBRow[0]);
 		
 	*lpulCount = ulCount;
-	
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**

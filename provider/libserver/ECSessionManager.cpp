@@ -124,26 +124,22 @@ ECRESULT ECSessionManager::LoadSettings(){
 	DB_LENGTHS		lpDBLenths = NULL;
 	std::string		strQuery;
 
-	if(m_lpServerGuid != NULL){
-		er = KCERR_BAD_VALUE;
-		goto exit;
-	}
-
+	if (m_lpServerGuid != nullptr)
+		return KCERR_BAD_VALUE;
 	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 	
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'server_guid'";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	lpDBLenths = lpDatabase->FetchRowLengths(lpDBResult);
-	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBLenths == NULL || lpDBLenths[0] != sizeof(GUID)) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr ||
+	    lpDBLenths == nullptr || lpDBLenths[0] != sizeof(GUID))
+		return KCERR_NOT_FOUND;
 
 	m_lpServerGuid = new GUID;
 
@@ -151,19 +147,16 @@ ECRESULT ECSessionManager::LoadSettings(){
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment'";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	lpDBLenths = lpDatabase->FetchRowLengths(lpDBResult);
-	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBLenths == NULL || lpDBLenths[0] != 8) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr ||
+	    lpDBLenths == nullptr || lpDBLenths[0] != 8)
+		return KCERR_NOT_FOUND;
 
 	memcpy(&m_ullSourceKeyAutoIncrement, lpDBRow[0], sizeof(m_ullSourceKeyAutoIncrement));
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSessionManager::CheckUserLicense()
@@ -1459,31 +1452,22 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 
-	if (lpLcid == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpLcid == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid=" + stringify(ulStoreId) +
 				" AND tag=" + stringify(PROP_ID(PR_SORT_LOCALE_ID)) + " AND type=" + stringify(PROP_TYPE(PR_SORT_LOCALE_ID));
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
+		return KCERR_NOT_FOUND;
 	*lpLcid = strtoul(lpDBRow[0], NULL, 10);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 LPCSTR ECSessionManager::GetDefaultSortLocaleID()

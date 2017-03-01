@@ -91,10 +91,8 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpLengths = NULL;
 
-	if (cbSourceInstanceID == 0 || lpSourceInstanceID == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (cbSourceInstanceID == 0 || lpSourceInstanceID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	strQuery =
 		"SELECT m_dst.val_binary FROM za_mappings AS m_dst "
@@ -103,46 +101,38 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 			"JOIN za_servers AS s_src ON m_src.server_id = s_src.id AND s_src.guid = " + m_ptrDatabase->EscapeBinary(sourceServerUID.lpb, sourceServerUID.cb);
 
 	er = m_ptrDatabase->DoSelect(strQuery, &lpResult);
-	if (er != erSuccess) {
-		hr = kcerr_to_mapierr(er);
-		goto exit;
-	}
+	if (er != erSuccess)
+		return kcerr_to_mapierr(er);
 
 	switch (m_ptrDatabase->GetNumRows(lpResult)) {
 	case 0:
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	case 1:
 		break;
 	default:	// This should be impossible.
-		hr = MAPI_E_DISK_ERROR;	// MAPI version of KCERR_DATABASE_ERROR
 		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): GetNumRows failed");
-		goto exit;
+		return MAPI_E_DISK_ERROR; // MAPI version of KCERR_DATABASE_ERROR
 	}
 
 	lpDBRow = m_ptrDatabase->FetchRow(lpResult);
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): FetchRow failed");
-		hr = MAPI_E_DISK_ERROR;	// MAPI version of KCERR_DATABASE_ERROR
-		goto exit;
+		return MAPI_E_DISK_ERROR; // MAPI version of KCERR_DATABASE_ERROR
 	}
 
 	lpLengths = m_ptrDatabase->FetchRowLengths(lpResult);
 	if (lpLengths == NULL || lpLengths[0] == 0) {
 		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): FetchRowLengths failed");
-		hr = MAPI_E_DISK_ERROR;	// MAPI version of KCERR_DATABASE_ERROR
-		goto exit;
+		return MAPI_E_DISK_ERROR; // MAPI version of KCERR_DATABASE_ERROR
 	}
 
 	hr = MAPIAllocateBuffer(lpLengths[0], (LPVOID*)lppDestInstanceID);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memcpy(*lppDestInstanceID, lpDBRow[0], lpLengths[0]);
 	*lpcbDestInstanceID = lpLengths[0];
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID)
