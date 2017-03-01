@@ -14,7 +14,7 @@ typedef IUnknownImplementor<IECSimpleLogger> ECSimpleLogger;
 class ECLoggerProxy : public KC::ECLogger {
 public:
 	static HRESULT Create(unsigned int ulLevel, ECSimpleLogger *lpSimpleLogger, ECLoggerProxy **lppProxy) {
-		ECLoggerProxy *lpProxy = new ECLoggerProxy(ulLevel, lpSimpleLogger);
+		auto lpProxy = new ECLoggerProxy(ulLevel, lpSimpleLogger);
 		//lpProxy->AddRef();
 		*lppProxy = lpProxy;
 		return hrSuccess;

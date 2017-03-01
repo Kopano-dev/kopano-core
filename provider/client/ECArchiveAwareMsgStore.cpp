@@ -31,9 +31,9 @@ ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(char *lpszProfname, LPMAPISUP lpS
 HRESULT ECArchiveAwareMsgStore::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
 	HRESULT hr = hrSuccess;
-
-	ECArchiveAwareMsgStore *lpStore = new ECArchiveAwareMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore);
-
+	auto lpStore = new ECArchiveAwareMsgStore(lpszProfname, lpSupport,
+	               lpTransport, fModify, ulProfileFlags, fIsSpooler,
+	               fIsDefaultStore, bOfflineStore);
 	hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
 
 	if(hr != hrSuccess)

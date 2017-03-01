@@ -88,7 +88,7 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 		// as that would give duplicate messages
 		ECLogger_File *lpFileLogger = dynamic_cast<ECLogger_File*>(m_lpLogLogger);
 		if (lpFileLogger == NULL || !lpFileLogger->IsStdErr()) {
-			ECLogger_Tee *lpTeeLogger = new ECLogger_Tee();
+			auto lpTeeLogger = new ECLogger_Tee();
 			lpTeeLogger->AddLogger(m_lpLogLogger);
 
 			KCHL::object_ptr<ECLogger_File> lpConsoleLogger(new ECLogger_File(EC_LOGLEVEL_ERROR, 0, "-", false));

@@ -210,7 +210,7 @@ HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 
 ECRestriction *ECAndRestriction::Clone(void) const _kc_lvqual
 {
-	ECAndRestriction *lpNew = new ECAndRestriction();
+	auto lpNew = new ECAndRestriction;
 	lpNew->m_lstRestrictions.assign(m_lstRestrictions.begin(), m_lstRestrictions.end());
 	return lpNew;
 }
@@ -264,7 +264,7 @@ HRESULT ECOrRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRest
 
 ECRestriction *ECOrRestriction::Clone(void) const _kc_lvqual
 {
-	ECOrRestriction *lpNew = new ECOrRestriction();
+	auto lpNew = new ECOrRestriction;
 	lpNew->m_lstRestrictions.assign(m_lstRestrictions.begin(), m_lstRestrictions.end());
 	return lpNew;
 }

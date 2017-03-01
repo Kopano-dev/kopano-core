@@ -70,7 +70,7 @@ HRESULT ECMemTablePublic::Create(ECMAPIFolderPublic *lpECParentFolder, ECMemTabl
 		PR_CONTENT_UNREAD, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY,
 		PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY,
 		PR_ACCESS, PR_ACCESS_LEVEL, PR_CONTAINER_CLASS}};
-	ECMemTablePublic *lpMemTable = new ECMemTablePublic(lpECParentFolder,
+	auto lpMemTable = new ECMemTablePublic(lpECParentFolder,
 		sPropsHierarchyColumns, PR_ROWID);
 	return lpMemTable->QueryInterface(IID_ECMemTablePublic, reinterpret_cast<void **>(lppECMemTable));
 }

@@ -624,9 +624,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		}
 
 		// One socket has signalled a new incoming connection
-
-		HandlerArgs *lpHandlerArgs = new HandlerArgs;
-
+		auto lpHandlerArgs = new HandlerArgs;
 		lpHandlerArgs->lpLogger = g_lpLogger;
 		lpHandlerArgs->lpConfig = g_lpConfig;
 

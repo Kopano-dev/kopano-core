@@ -294,8 +294,9 @@ HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
     BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
     ECMsgStore **lppECMsgStore)
 {
-	ECMsgStore *lpStore = new ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore);
-
+	auto lpStore = new ECMsgStore(lpszProfname, lpSupport, lpTransport,
+	               fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,
+	               bOfflineStore);
 	HRESULT hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
 
 	if(hr != hrSuccess)
@@ -344,8 +345,7 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store hierarchy", ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
 	    if (*lpiid == IID_IECExportAddressbookChanges) {
-	        ECExportAddressbookChanges *lpEEAC = new ECExportAddressbookChanges(this);
-	        
+			auto lpEEAC = new ECExportAddressbookChanges(this);
 	        hr = lpEEAC->QueryInterface(*lpiid, (void **)lppUnk);
 	    }
 		else
@@ -3192,8 +3192,7 @@ ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
 
 HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)
 {
-	ECMSLogon *lpLogon = new ECMSLogon(lpStore);
-	
+	auto lpLogon = new ECMSLogon(lpStore);
 	return lpLogon->QueryInterface(IID_ECMSLogon, (void **)lppECMSLogon);
 }
 

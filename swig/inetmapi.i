@@ -35,7 +35,7 @@ struct sending_options {
         bool enable_dsn;
         %extend {
 			sending_options() {
-				sending_options *sopt = new sending_options;
+				auto sopt = new sending_options;
 				imopt_default_sending_options(sopt);
 				char *temp = sopt->charset_upgrade;
 				sopt->charset_upgrade = new char[strlen(temp)+1]; /* avoid free problems */
@@ -60,7 +60,7 @@ struct delivery_options {
 
         %extend {
             delivery_options() {
-				delivery_options *dopt = new delivery_options;
+				auto dopt = new delivery_options;
 				imopt_default_delivery_options(dopt);
 				return dopt;
 			}

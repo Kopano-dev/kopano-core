@@ -881,7 +881,7 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 			const char *log_buffer_size_str = lpConfig->GetSetting("log_buffer_size");
 			if (log_buffer_size_str)
 				log_buffer_size = strtoul(log_buffer_size_str, NULL, 0);
-			ECLogger_File *log = new ECLogger_File(loglevel, logtimestamp, lpConfig->GetSetting((prepend + "log_file").c_str()), false);
+			auto log = new ECLogger_File(loglevel, logtimestamp, lpConfig->GetSetting((prepend + "log_file").c_str()), false);
 			log->reinit_buffer(log_buffer_size);
 			lpLogger = log;
 			// chown file

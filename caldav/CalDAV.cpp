@@ -511,7 +511,7 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	HRESULT hr = hrSuccess;
 	pthread_attr_t pThreadAttr;
 	pthread_t pThread;
-	HandlerArgs *lpHandlerArgs = new HandlerArgs;
+	auto lpHandlerArgs = new HandlerArgs;
 
 	lpHandlerArgs->lpChannel = lpChannel;
 	lpHandlerArgs->bUseSSL = bUseSSL;

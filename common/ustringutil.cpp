@@ -1268,8 +1268,7 @@ void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale, unsig
 	assert((locale_t)locale != NULL);
 
 	unsigned int cbKey = 1 + wcsxfrm_l(NULL, s, 0, locale);
-	wchar_t *lpKey = new wchar_t[cbKey];
-
+	auto lpKey = new wchar_t[cbKey];
 	wcsxfrm_l(lpKey, s, cbKey, locale);
 
 	*lpcbKey = cbKey * sizeof(wchar_t);

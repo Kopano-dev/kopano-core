@@ -66,9 +66,9 @@ ECMsgStorePublic::~ECMsgStorePublic(void)
 
 HRESULT	ECMsgStorePublic::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore, ECMsgStore **lppECMsgStore) {
 	HRESULT hr = hrSuccess;
-
-	ECMsgStorePublic *lpStore = new ECMsgStorePublic(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, bOfflineStore);
-
+	auto lpStore = new ECMsgStorePublic(lpszProfname, lpSupport,
+	               lpTransport, fModify, ulProfileFlags, fIsSpooler,
+	               bOfflineStore);
 	hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
 
 	if(hr != hrSuccess)

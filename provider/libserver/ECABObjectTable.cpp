@@ -42,7 +42,7 @@ namespace KC {
 
 ECABObjectTable::ECABObjectTable(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, ulABType, ulFlags, locale)
 {
-	ECODAB* lpODAB = new ECODAB;
+	auto lpODAB = new ECODAB;
 	lpODAB->ulABId = ulABId;
 	lpODAB->ulABType = ulABType;
 	lpODAB->ulABParentId = ulABParentId;

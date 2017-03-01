@@ -196,7 +196,7 @@ static int kopano_fparsehdr(struct soap *soap, const char *key,
 void kopano_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap)
 {
 	const char *szProxy = g_lpSessionManager->GetConfig()->GetSetting("proxy_header");
-	SOAPINFO *lpInfo = new SOAPINFO;
+	auto lpInfo = new SOAPINFO;
 	lpInfo->ulConnectionType = ulType;
 	lpInfo->bProxy = false;
 	soap->user = (void *)lpInfo;
@@ -220,7 +220,7 @@ void kopano_end_soap_connection(struct soap *soap)
 
 void kopano_new_soap_listener(CONNECTION_TYPE ulType, struct soap *soap)
 {
-	SOAPINFO *lpInfo = new SOAPINFO;
+	auto lpInfo = new SOAPINFO;
 	lpInfo->ulConnectionType = ulType;
 	lpInfo->bProxy = false;
 	soap->user = (void *)lpInfo;

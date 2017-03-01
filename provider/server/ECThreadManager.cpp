@@ -480,7 +480,7 @@ ECRESULT ECDispatcher::AddListenSocket(struct soap *soap)
 
 ECRESULT ECDispatcher::QueueItem(struct soap *soap)
 {
-	WORKITEM *item = new WORKITEM;
+	auto item = new WORKITEM;
 	CONNECTION_TYPE ulType;
 
 	item->soap = soap;

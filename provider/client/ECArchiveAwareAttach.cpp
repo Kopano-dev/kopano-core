@@ -36,7 +36,8 @@ ECArchiveAwareAttach::ECArchiveAwareAttach(ECMsgStore *lpMsgStore, ULONG ulObjTy
 
 HRESULT	ECArchiveAwareAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach)
 {
-	ECArchiveAwareAttach *lpAttach = new ECArchiveAwareAttach(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot);
+	auto lpAttach = new ECArchiveAwareAttach(lpMsgStore, ulObjType,
+	                fModify, ulAttachNum, lpRoot);
 	return lpAttach->QueryInterface(IID_ECAttach, reinterpret_cast<void **>(lppAttach));
 }
 

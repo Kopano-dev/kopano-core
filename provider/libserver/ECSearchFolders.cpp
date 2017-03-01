@@ -262,7 +262,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
     if(bReStartSearch) {
         lpSearchFolder->bThreadFree = false;
         
-        THREADINFO *ti = new THREADINFO;
+		auto ti = new THREADINFO;
         ti->lpSearchFolders = this;
         ti->lpFolder = lpSearchFolder;
         

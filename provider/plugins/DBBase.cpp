@@ -83,7 +83,7 @@ DBPlugin::getObjectDetails(const objectid_t &objectid)
 std::unique_ptr<std::map<objectid_t, objectdetails_t> >
 DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
-	map<objectid_t,objectdetails_t> *mapdetails = new map<objectid_t,objectdetails_t>;
+	auto mapdetails = new std::map<objectid_t, objectdetails_t>;
 	ECRESULT er;
 	map<objectclass_t, string> objectstrings;
 	string strQuery;

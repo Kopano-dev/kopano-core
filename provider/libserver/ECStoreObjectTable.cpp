@@ -111,8 +111,7 @@ ECStoreObjectTable::ECStoreObjectTable(ECSession *lpSession,
     const ECLocale &locale) :
 	ECGenericObjectTable(lpSession, ulObjType, ulFlags, locale)
 {
-	ECODStore* lpODStore = new ECODStore;
-
+	auto lpODStore = new ECODStore;
 	lpODStore->ulStoreId = ulStoreId;
 	lpODStore->ulFolderId = ulFolderId;
 	lpODStore->ulObjType = ulObjType;

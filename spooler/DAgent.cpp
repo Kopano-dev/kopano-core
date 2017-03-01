@@ -3104,7 +3104,7 @@ static void *HandlerLMTP(void *lpArg)
 				sc -> countInc("DAgent::LMTP", "bad_recipient_address");
 			}
 			else {
-				ECRecipient *lpRecipient = new ECRecipient(converter.convert_to<std::wstring>(strMailAddress));
+				auto lpRecipient = new ECRecipient(converter.convert_to<std::wstring>(strMailAddress));
 						
 				// Resolve the mail address, so to have a user name instead of a mail address
 				hr = ResolveUser(lpAddrDir, lpRecipient);
@@ -3385,8 +3385,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		++g_nLMTPThreads;
 
 		// One socket has signalled a new incoming connection
-		DeliveryArgs *lpDeliveryArgs = new DeliveryArgs();
-		*lpDeliveryArgs = *lpArgs;
+		auto lpDeliveryArgs = new DeliveryArgs(*lpArgs);
 
 		if (FD_ISSET(ulListenLMTP, &readfds)) {
 			hr = HrAccept(ulListenLMTP, &lpDeliveryArgs->lpChannel);

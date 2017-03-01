@@ -129,8 +129,8 @@ ECNotifyClient::~ECNotifyClient()
 
 HRESULT ECNotifyClient::Create(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport, ECNotifyClient**lppNotifyClient)
 {
-	ECNotifyClient *lpNotifyClient = new ECNotifyClient(ulProviderType, lpProvider, ulFlags, lpSupport);
-
+	auto lpNotifyClient = new ECNotifyClient(ulProviderType, lpProvider,
+	                      ulFlags, lpSupport);
 	HRESULT hr = lpNotifyClient->QueryInterface(IID_ECNotifyClient, (void **)lppNotifyClient);
 	if (hr != hrSuccess)
 		delete lpNotifyClient;

@@ -585,7 +585,7 @@ HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entry
  */
 HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
 {
-	ArchiverSession *lpSession = new ArchiverSession(lpLogger);
+	auto lpSession = new ArchiverSession(lpLogger);
 	HRESULT hr = lpSession->Init(lpszServerPath, m_strSslPath.c_str(), m_strSslPass.c_str());
 	if (FAILED(hr)) {
 		delete lpSession;

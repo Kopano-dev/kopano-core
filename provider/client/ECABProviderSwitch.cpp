@@ -48,9 +48,7 @@ ECABProviderSwitch::ECABProviderSwitch(void) : ECUnknown("ECABProviderSwitch")
 HRESULT ECABProviderSwitch::Create(ECABProviderSwitch **lppECABProvider)
 {
 	HRESULT hr = hrSuccess;
-
-	ECABProviderSwitch *lpECABProvider = new ECABProviderSwitch();
-
+	auto lpECABProvider = new ECABProviderSwitch;
 	hr = lpECABProvider->QueryInterface(IID_ECABProvider, (void **)lppECABProvider);
 
 	if(hr != hrSuccess)

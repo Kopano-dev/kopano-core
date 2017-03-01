@@ -450,9 +450,7 @@ ECMemTableView::~ECMemTableView()
 HRESULT ECMemTableView::Create(ECMemTable *lpMemTable, const ECLocale &locale, ULONG ulFlags, ECMemTableView **lppMemTableView)
 {
 	HRESULT hr = hrSuccess;
-
-	ECMemTableView *lpView = new ECMemTableView(lpMemTable, locale, ulFlags);
-
+	auto lpView = new ECMemTableView(lpMemTable, locale, ulFlags);
 	hr = lpView->QueryInterface(IID_ECMemTableView, (void **) lppMemTableView);
 
 	if(hr != hrSuccess)
