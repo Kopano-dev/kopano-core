@@ -2,6 +2,7 @@
 #define _KCHL_HPP 1
 
 #include <kopano/zcdefs.h>
+#include <kopano/memory.hpp>
 #include <exception>
 #include <memory>
 #include <stdexcept>
@@ -21,16 +22,36 @@ namespace KCHL {
 using namespace KC;
 
 class KAttach;
-class KDeleter;
 class KFolder;
 class KMessage;
 class KStore;
 class KStream;
 class KTable;
 class KUnknown;
+class KEntryId;
 
-typedef std::unique_ptr<SPropValue, KDeleter> KProp;
-typedef std::unique_ptr<SRowSet, KDeleter> KRowSet;
+class _kc_export KProp _kc_final {
+	public:
+	KProp(SPropValue *);
+	KProp(KProp &&);
+	~KProp(void);
+	KProp &operator=(KProp &&);
+	SPropValue *operator->(void) { return m_s; }
+	const SPropValue *operator->(void) const { return m_s; }
+	operator SPropValue *(void) { return m_s; }
+	operator const SPropValue *(void) const { return m_s; }
+
+	const unsigned int &prop_tag() const;
+	const bool b() const;
+	const unsigned int &ul() const;
+	const int &l() const;
+	std::string str();
+	std::wstring wstr();
+	KEntryId entry_id();
+
+	private:
+	SPropValue *m_s;
+};
 
 class _kc_export KAttach _kc_final {
 	public:
@@ -75,12 +96,6 @@ class _kc_export_throw KMAPIError _kc_final : public std::exception {
 	std::string m_message;
 };
 
-class _kc_export KDeleter _kc_final {
-	public:
-	void operator()(SPropValue *);
-	void operator()(SRowSet *);
-};
-
 class _kc_export KFolder _kc_final {
 	public:
 	KFolder(void) = default;
@@ -93,6 +108,7 @@ class _kc_export KFolder _kc_final {
 
 	KMessage create_message(LPCIID = NULL, unsigned int = 0);
 	KTable get_contents_table(unsigned int = 0);
+	KTable get_hierarchy_table(unsigned int = 0);
 
 	protected:
 	IMAPIFolder *m_folder = nullptr;
@@ -143,6 +159,7 @@ class _kc_export KStore _kc_final {
 	operator IMsgStore *(void) { return m_store; }
 
 	KEntryId get_receive_folder(const char *cls = nullptr, char **xcls = nullptr);
+	KProp get_prop(unsigned int);
 	KUnknown open_entry(const KEntryId &, LPCIID = nullptr, unsigned int = 0);
 	KUnknown open_entry(const SPropValue * = NULL, LPCIID = NULL, unsigned int = 0);
 
@@ -166,6 +183,27 @@ class _kc_export KStream _kc_final {
 	IStream *m_stream;
 };
 
+class _kc_export KRow _kc_final {
+	public:
+	KRow(SRow);
+	KProp operator[](size_t index) const;
+	unsigned int count() const;
+	private:
+	SRow m_row;
+};
+
+class _kc_export KRowSet _kc_final {
+	public:
+	KRowSet(SRowSet*);
+	KRow operator[](size_t) const;
+	unsigned int count() const;
+	SRowSet* operator->(void) { return m_rowset.get(); }
+	operator SRowSet *(void) { return m_rowset.get(); }
+
+	protected:
+	rowset_ptr m_rowset;
+};
+
 class _kc_export KTable _kc_final {
 	public:
 	KTable(IMAPITable *);
@@ -176,6 +214,9 @@ class _kc_export KTable _kc_final {
 	operator IMAPITable *(void) { return m_table; }
 
 	HRESULT restrict(const SRestriction &, unsigned int = 0);
+	void columns(std::initializer_list<unsigned int>);
+	KRowSet rows(unsigned int, unsigned int);
+	unsigned int count(unsigned int = 0);
 
 	protected:
 	IMAPITable *m_table;
