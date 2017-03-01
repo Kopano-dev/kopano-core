@@ -15,152 +15,46 @@
 
 namespace KC {
 
-static std::set<std::string> rosie_good_tags;
-static std::map<std::string, std::set<std::string> > rosie_good_attrs;
+static std::set<std::string> rosie_good_tags = {
+	"a", "abbr", "address", "area", "article", "aside", "b", "blockquote",
+	"body", "br", "caption", "center", "cite", "code", "col", "datalist",
+	"details", "div", "em", "figcaption", "figure", "font", "footer",
+	"form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hr",
+	"html", "i", "img", "input", "ins", "label", "legend", "li",
+	"link", // FIXME css?
+	"mark", "meter", "nav", "noscript", "ol", "optgroup", "output", "p",
+	"pre", "q", "samp", "section", "small", "span", "strong", "style",
+	"sub", "summary", "sup", "table", "tbody", "td", "textarea", "tfoot",
+	"th", "thead", "time", "title", "tr", "u", "ul", "var", "wbr",
+};
+
+static std::map<std::string, std::set<std::string> > rosie_good_attrs = {
+	{"a", {"class", "href", "name", "title"}},
+	{"div", {"class", "id"}},
+	{"font", {"size"}},
+	{"form", {"id"}},
+	{"img", {"alt", "border", "height", "src", "width"}},
+	{"input", {"class", "id", "size", "type", "width", "for"}},
+	{"label", {"for"}},
+	{"li", {"class"}},
+	{"li", {"id"}},
+	{"link", {"href", "media", "rel", "type"}},
+	{"meta", {"charset"}},
+	{"table", {"cellpadding", "cellspacing", "class", "height", "width"}},
+	{"td", {"align", "height", "valign", "width"}},
+	{"tr", {"align", "height", "valign", "width"}},
+};
 
 static pthread_mutex_t rosie_initlock = PTHREAD_MUTEX_INITIALIZER;
 static bool rosie_inited = false;
 
 static void rosie_init(void)
 {
-	static const char *const tags[] = {
-		"a",
-		"abbr",
-		"address",
-		"area",
-		"article",
-		"aside",
-		"b",
-		"blockquote",
-		"body",
-		"br",
-		"caption",
-		"center",
-		"cite",
-		"code",
-		"col",
-		"datalist",
-		"details",
-		"div",
-		"em",
-		"figcaption",
-		"figure",
-		"font",
-		"footer",
-		"form",
-		"h1",
-		"h2",
-		"h3",
-		"h4",
-		"h5",
-		"h6",
-		"head",
-		"header",
-		"hr",
-		"html",
-		"i",
-		"img",
-		"input",
-		"ins",
-		"label",
-		"legend",
-		"li",
-		"link", // FIXME css?
-		"mark",
-		"meter",
-		"nav",
-		"noscript",
-		"ol",
-		"optgroup",
-		"output",
-		"p",
-		"pre",
-		"q",
-		"samp",
-		"section",
-		"small",
-		"span",
-		"strong",
-		"style",
-		"sub",
-		"summary",
-		"sup",
-		"table",
-		"tbody",
-		"td",
-		"textarea",
-		"tfoot",
-		"th",
-		"thead",
-		"time",
-		"title",
-		"tr",
-		"u",
-		"ul",
-		"var",
-		"wbr",
-	};
-
-	for (size_t i = 0; i < ARRAY_SIZE(tags); ++i)
-		rosie_good_tags.insert(tags[i]);
-
-	struct tag_pair {
-		const char *tag, *attribute;
-	};
-
-	static const struct tag_pair attributes[] = {
-		{"a", "class"},
-		{"a", "href"},
-		{"a", "name"},
-		{"a", "title"},
-		{"div", "class"},
-		{"div", "id"},
-		{"font", "size"},
-		{"form", "id"},
-		{"img", "alt"},
-		{"img", "border"},
-		{"img", "height"},
-		{"img", "src"},
-		{"img", "width"},
-		{"input", "class"},
-		{"input", "id"},
-		{"input", "size"},
-		{"input", "type"},
-		{"input", "width"},
-		{"label", "for"},
-		{"li", "class"},
-		{"li", "id"},
-		{"link", "href"},
-		{"link", "media"},
-		{"link", "rel"},
-		{"link", "type"},
-		{"meta", "charset"},
-		{"table", "cellpadding"},
-		{"table", "cellspacing"},
-		{"table", "class"},
-		{"table", "height"},
-		{"table", "width"},
-		{"td", "align"},
-		{"td", "height"},
-		{"td", "valign"},
-		{"td", "width"},
-		{"tr", "align"},
-		{"tr", "height"},
-		{"tr", "valign"},
-		{"tr", "width"},
-	};
-
-	for (size_t i = 0; i < ARRAY_SIZE(attributes); ++i) {
-		auto it = rosie_good_attrs.find(attributes[i].tag);
-
-		if (it != rosie_good_attrs.end()) {
-			it->second.insert(attributes[i].attribute);
-		} else {
-			std::set<std::string> attrs;
-			attrs.insert(attributes[i].attribute);
-
-			rosie_good_attrs.insert(std::pair<std::string, std::set<std::string> >(attributes[i].tag, attrs));
-		}
+	for (const auto &p : rosie_good_attrs) {
+		auto it = rosie_good_attrs.find(p.first);
+		if (it != rosie_good_attrs.end())
+			continue;
+		rosie_good_tags.insert(p.first);
 	}
 }
 
