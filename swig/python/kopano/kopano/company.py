@@ -18,18 +18,8 @@ from MAPI.Struct import (
     MAPIErrorCollision
 )
 from MAPI.Tags import PR_EC_COMPANY_NAME_W, PR_EC_STOREGUID
-from MAPI.Util import GetPublicStore, AddressBook
+from MAPI.Util import GetPublicStore
 
-if sys.hexversion >= 0x03000000:
-    from . import server as _server
-    from . import user as _user
-    from . import utils as _utils
-else:
-    import server as _server
-    import user as _user
-    import utils as _utils
-
-from .store import Store
 from .quota import Quota
 from .group import Group
 
@@ -40,6 +30,17 @@ from .errors import (
 from .compat import (
     hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
 )
+
+if sys.hexversion >= 0x03000000:
+    from . import server as _server
+    from . import user as _user
+    from . import utils as _utils
+    from . import store as _store
+else:
+    import server as _server
+    import user as _user
+    import utils as _utils
+    import store as _store
 
 class Company(object):
     """Company class"""
@@ -113,7 +114,7 @@ class Company(object):
             for row in table.QueryRows(-1, 0):
                 prop = PpropFindProp(row, PR_EC_STOREGUID)
                 if prop:
-                    yield Store(codecs.encode(prop.Value, 'hex'), self.server)
+                    yield _store.Store(codecs.encode(prop.Value, 'hex'), self.server)
         else:
             for store in self.server.stores():
                 yield store
@@ -134,14 +135,14 @@ class Company(object):
                 if pubstore is None:
                     self._public_store = None
                 else:
-                    self._public_store = Store(mapiobj=pubstore, server=self.server)
+                    self._public_store = _store.Store(mapiobj=pubstore, server=self.server)
             else:
                 try:
                     entryid = self.server.ems.CreateStoreEntryID(None, self._name, MAPI_UNICODE)
                 except MAPIErrorNotFound:
                     self._public_store = None
                 else:
-                    self._public_store = Store(entryid=_hex(entryid), server=self.server)
+                    self._public_store = _store.Store(entryid=_hex(entryid), server=self.server)
 
         return self._public_store
 
@@ -159,7 +160,7 @@ class Company(object):
 
         store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid_rootid[0][:-4]) + self.server.pseudo_url + b'\x00'
 
-        self._public_store = Store(entryid=_hex(store_entryid), server=self.server)
+        self._public_store = _store.Store(entryid=_hex(store_entryid), server=self.server)
         return self._public_store
 
     def create_store(self, public=False): # XXX deprecated?

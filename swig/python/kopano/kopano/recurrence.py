@@ -13,17 +13,17 @@ from dateutil.rrule import (
 )
 from datetime import timedelta
 
-if sys.hexversion >= 0x03000000:
-    from . import utils as _utils
-else:
-    import utils as _utils
-
 from .compat import repr as _repr
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
     ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
     ARO_APPTCOLOR
 )
+
+if sys.hexversion >= 0x03000000:
+    from . import utils as _utils
+else:
+    import utils as _utils
 
 class Recurrence:
     def __init__(self, item): # XXX just readable start/end for now

@@ -9,14 +9,13 @@ import datetime
 import os
 import time
 import socket
-import fnmatch
 import sys
 
 from MAPI import (
-    MAPI_UNICODE, MDB_WRITE, RELOP_EQ, RELOP_RE,
+    MAPI_UNICODE, MDB_WRITE, RELOP_EQ,
     TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS
 )
-from MAPI.Util import AddressBook, GetDefaultStore, OpenECSession
+from MAPI.Util import GetDefaultStore, OpenECSession
 from MAPI.Defs import HrGetOneProp, bin2hex
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ECCOMPANY, ECGROUP, ECUSER,
@@ -25,7 +24,7 @@ from MAPI.Struct import (
 )
 from MAPI.Tags import (
     PR_ACCOUNT_W, PURGE_CACHE_ALL, PR_DISPLAY_NAME_W,
-    PR_DISPLAY_NAME_A, PR_ENTRYID, PR_STORE_RECORD_KEY,
+    PR_ENTRYID, PR_STORE_RECORD_KEY,
     PR_MAPPING_SIGNATURE, PR_CONTAINER_CONTENTS,
     PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,
     PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY,
@@ -43,25 +42,26 @@ from .errors import (
     LogonError
 )
 
-if sys.hexversion >= 0x03000000:
-    from . import user as _user
-    from . import config as _config
-    from . import utils as _utils
-else:
-    import user as _user
-    import config as _config
-    import utils as _utils
-
 from .parser import parser
 from .table import Table
 from .company import Company
 from .group import Group
-from .store import Store
 
 from .compat import (
     unhex as _unhex, decode as _decode, repr as _repr,
     fake_unicode as _unicode, lru_cache as _lru_cache
 )
+
+if sys.hexversion >= 0x03000000:
+    from . import user as _user
+    from . import config as _config
+    from . import utils as _utils
+    from . import store as _store
+else:
+    import user as _user
+    import config as _config
+    import utils as _utils
+    import store as _store
 
 def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     # used with permission from will mcgugan, https://www.willmcgugan.com
@@ -220,7 +220,7 @@ class Server(object):
     @property
     def admin_store(self):
         if not self._admin_store:
-            self._admin_store = Store(mapiobj=self.mapistore, server=self)
+            self._admin_store = _store.Store(mapiobj=self.mapistore, server=self)
         return self._admin_store
 
     @property
@@ -435,7 +435,7 @@ class Server(object):
         self.sa.DeleteGroup(group._ecgroup.GroupID)
 
     def delete(self, items):
-        if isinstance(items, (_user.User, Group, Company, Store)):
+        if isinstance(items, (_user.User, Group, Company, _store.Store)):
             items = [items]
         else:
             items = list(items)
@@ -447,7 +447,7 @@ class Server(object):
                 self.remove_group(item.name)
             elif isinstance(item, Company):
                 self.remove_company(item.name)
-            elif isinstance(item, Store):
+            elif isinstance(item, _store.Store):
                 self.remove_store(item)
 
     def _pubstore(self, name):
@@ -467,7 +467,7 @@ class Server(object):
         if _unicode(guid).split('@')[0] == 'public':
             return self._pubstore(guid)
         else:
-            return Store(guid=guid, entryid=entryid, server=self)
+            return _store.Store(guid=guid, entryid=entryid, server=self)
 
     def get_store(self, guid):
         """ Return :class:`store <Store>` with given GUID or *None* if not found """
@@ -490,13 +490,13 @@ class Server(object):
                 if guid.split('@')[0] == 'public':
                     yield self._pubstore(guid)
                 else:
-                    yield Store(guid, server=self)
+                    yield _store.Store(guid, server=self)
             return
 
         table = self.ems.GetMailboxTable(None, 0)
         table.SetColumns([PR_DISPLAY_NAME_W, PR_ENTRYID], 0)
         for row in table.QueryRows(-1, 0):
-            store = Store(mapiobj=self.mapisession.OpenMsgStore(0, row[1].Value, None, MDB_WRITE), server=self) # XXX cache
+            store = _store.Store(mapiobj=self.mapisession.OpenMsgStore(0, row[1].Value, None, MDB_WRITE), server=self) # XXX cache
             if system or store.public or (store.user and store.user.name != 'SYSTEM'):
                 yield store
 
@@ -578,4 +578,3 @@ class Server(object):
 
     def __repr__(self):
         return _repr(self)
-

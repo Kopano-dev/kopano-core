@@ -12,12 +12,12 @@ from MAPI.Tags import (
 )
 from MAPI.Struct import MAPIErrorNotFound
 
+from .compat import repr as _repr
+
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
 else:
     import utils as _utils
-
-from .compat import repr as _repr
 
 class Body:
     """Item Body class"""

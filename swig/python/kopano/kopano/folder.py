@@ -13,7 +13,7 @@ import time
 
 from MAPI import (
     MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE,
-    TABLE_SORT_DESCEND, TABLE_SORT_ASCEND, RELOP_GT, RELOP_LT, RELOP_EQ,
+    RELOP_GT, RELOP_LT, RELOP_EQ,
     DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES,
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
     FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
@@ -32,26 +32,15 @@ from MAPI.Tags import (
     CONVENIENT_DEPTH, PR_DEPTH
 )
 from MAPI.Defs import (
-    bin2hex, HrGetOneProp, PpropFindProp, CHANGE_PROP_TYPE
+    bin2hex, HrGetOneProp, CHANGE_PROP_TYPE
 )
 from MAPI.Struct import (
     MAPIErrorNoAccess, MAPIErrorNotFound, MAPIErrorNoSupport,
-    MAPIErrorInvalidEntryid, SPropValue, SSortOrderSet, SSort,
+    MAPIErrorInvalidEntryid, SPropValue,
     MAPINAMEID, SOrRestriction, SAndRestriction, SPropertyRestriction,
     SContentRestriction, ROWENTRY
 )
 from MAPI.Time import unixtime
-
-if sys.hexversion >= 0x03000000:
-    from . import user as _user
-    from . import store as _store
-    from . import item as _item
-    from . import utils as _utils
-else:
-    import user as _user
-    import store as _store
-    import item as _item
-    import utils as _utils
 
 from .permission import Permission
 from .rule import Rule
@@ -63,6 +52,17 @@ from .defs import (
 from .errors import NotFoundError, Error
 
 from .compat import hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
+
+if sys.hexversion >= 0x03000000:
+    from . import user as _user
+    from . import store as _store
+    from . import item as _item
+    from . import utils as _utils
+else:
+    import user as _user
+    import store as _store
+    import item as _item
+    import utils as _utils
 
 class Folder(object):
     """Folder class"""
@@ -176,34 +176,35 @@ class Folder(object):
     def item(self, entryid):
         """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
 
-        item = _item.Item() # XXX copy-pasting..
-        item.store = self.store
-        item.server = self.server
-        item.mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
+        mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
+        item = _item.Item(self.store, mapiobj=mapiobj) # XXX copy-pasting..
         return item
 
     def items(self, restriction=None):
         """ Return all :class:`items <Item>` in folder, reverse sorted on received date """
 
         try:
-            table = self.mapiobj.GetContentsTable(self.content_flag)
+            table = Table(
+                self.server,
+                self.mapiobj.GetContentsTable(self.content_flag),
+                PR_CONTAINER_CONTENTS,
+                columns=[PR_ENTRYID, PR_MESSAGE_DELIVERY_TIME]
+            )
         except MAPIErrorNoSupport:
             return
 
         if restriction:
-            table.Restrict(restriction.mapiobj, 0)
+            table.restrict(restriction)
 
-        table.SortTable(SSortOrderSet([SSort(PR_MESSAGE_DELIVERY_TIME, TABLE_SORT_DESCEND)], 0, 0), 0) # XXX configure
-        while True:
-            rows = table.QueryRows(50, 0)
-            if len(rows) == 0:
-                break
-            for row in rows:
-                item = _item.Item()
-                item.store = self.store
-                item.server = self.server
-                item.mapiobj = _utils.openentry_raw(self.store.mapiobj, PpropFindProp(row, PR_ENTRYID).Value, MAPI_MODIFY | self.content_flag)
-                yield item
+        table.sort(-1 * PR_MESSAGE_DELIVERY_TIME)
+
+        for row in table.rows():
+            mapiobj = _utils.openentry_raw(
+                self.store.mapiobj,
+                row[0].value, MAPI_MODIFY | self.content_flag
+            )
+            item = _item.Item(self.store, mapiobj=mapiobj)
+            yield item
 
     def occurrences(self, start=None, end=None):
         if start and end:
@@ -234,12 +235,13 @@ class Folder(object):
                 ])
             ])
 
-            table = self.mapiobj.GetContentsTable(0)
-            table.SetColumns([PR_ENTRYID], 0)
-            table.Restrict(restriction, 0)
-            rows = table.QueryRows(-1, 0)
-            for row in rows:
-                entryid = codecs.encode(row[0].Value, 'hex')
+            table = Table(
+                self.server, self.mapiobj.GetContentsTable(0),
+                PR_CONTAINER_CONTENTS, columns=[PR_ENTRYID]
+            )
+            table.mapitable.Restrict(restriction, 0)
+            for row in table.rows:
+                entryid = codecs.encode(row[0].value, 'hex')
                 for occurrence in self.item(entryid).occurrences(start, end):
                     yield occurrence
 
@@ -275,16 +277,18 @@ class Folder(object):
         """ Folder size """
 
         try:
-            table = self.mapiobj.GetContentsTable(self.content_flag)
+            table = Table(
+                self.server,
+                self.mapiobj.GetContentsTable(self.content_flag),
+                PR_CONTAINER_CONTENTS, columns=[PR_MESSAGE_SIZE]
+            )
         except MAPIErrorNoSupport:
             return 0
 
-        table.SetColumns([PR_MESSAGE_SIZE], 0)
-        table.SeekRow(BOOKMARK_BEGINNING, 0)
-        rows = table.QueryRows(-1, 0)
+        table.mapitable.SeekRow(BOOKMARK_BEGINNING, 0)
         size = 0
-        for row in rows:
-            size += row[0].Value
+        for row in table.rows():
+            size += row[0].value
         return size
 
     @property
@@ -296,7 +300,12 @@ class Folder(object):
         """
 
         try:
-            return self.mapiobj.GetContentsTable(self.content_flag).GetRowCount(0) # XXX PR_CONTENT_COUNT, PR_ASSOCIATED_CONTENT_COUNT, PR_CONTENT_UNREAD?
+            table = Table(
+                self.server,
+                self.mapiobj.GetContentsTable(self.content_flag),
+                PR_CONTAINER_CONTENTS
+            )
+            return table.count # XXX PR_CONTENT_COUNT, PR_ASSOCIATED_CONTENT_COUNT, PR_CONTENT_UNREAD?
         except MAPIErrorNoSupport:
             return 0
 
@@ -384,7 +393,13 @@ class Folder(object):
             if recurse:
                 flags |= CONVENIENT_DEPTH
 
-            table = self.mapiobj.GetHierarchyTable(flags)
+            mapitable = self.mapiobj.GetHierarchyTable(flags)
+
+            table = Table(
+                self.server, mapitable,
+                PR_CONTAINER_HIERARCHY,
+                columns=[PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W]
+            )
         except MAPIErrorNoSupport: # XXX webapp search folder?
             return
 
@@ -392,17 +407,16 @@ class Folder(object):
         folders = {}
         names = {}
         children = collections.defaultdict(list)
-        table.SetColumns([PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W], 0)
-        rows = table.QueryRows(-1, 0)
-        for row in rows:
+
+        for row in table.rows():
             try:
-                mapiobj = self.mapiobj.OpenEntry(row[0].Value, None, MAPI_MODIFY | self.content_flag)
+                mapiobj = self.mapiobj.OpenEntry(row[0].value, None, MAPI_MODIFY | self.content_flag)
             except MAPIErrorNoAccess:
-                mapiobj = self.mapiobj.OpenEntry(row[0].Value, None, self.content_flag)
+                mapiobj = self.mapiobj.OpenEntry(row[0].value, None, self.content_flag)
             folder = Folder(self.store, mapiobj=mapiobj)
-            folders[_hex(row[0].Value)] = folder, _hex(row[1].Value)
-            names[_hex(row[0].Value)] = row[2].Value
-            children[_hex(row[1].Value)].append((_hex(row[0].Value), folder))
+            folders[_hex(row[0].value)] = folder, _hex(row[1].value)
+            names[_hex(row[0].value)] = row[2].value
+            children[_hex(row[1].value)].append((_hex(row[0].value), folder))
 
         # yield depth-first XXX improve server?
         def folders_recursive(fs, depth=0):

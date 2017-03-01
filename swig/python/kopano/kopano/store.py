@@ -46,18 +46,6 @@ from .defs import (
     RSF_PID_SUGGESTED_CONTACTS, RSF_PID_RSS_SUBSCRIPTION,
     NAMED_PROPS_ARCHIVER
 )
-if sys.hexversion >= 0x03000000:
-    from . import server as _server
-    from . import user as _user
-    from . import folder as _folder
-    from . import item as _item
-    from . import utils as _utils
-else:
-    import server as _server
-    import user as _user
-    import folder as _folder
-    import item as _item
-    import utils as _utils
 
 from .errors import NotFoundError
 from .autoaccept import AutoAccept
@@ -75,6 +63,19 @@ try:
 except ImportError:
     pass
 
+if sys.hexversion >= 0x03000000:
+    from . import server as _server
+    from . import user as _user
+    from . import folder as _folder
+    from . import item as _item
+    from . import utils as _utils
+else:
+    import server as _server
+    import user as _user
+    import folder as _folder
+    import item as _item
+    import utils as _utils
+
 class Store(object):
     """Store class"""
 
@@ -84,7 +85,8 @@ class Store(object):
         if guid:
             mapiobj = self.server._store(guid)
         elif entryid:
-            mapiobj = self.server._store2(codecs.decode(entryid, 'hex'))
+            mapiobj = self.server._store2(_unhex(entryid))
+
         self.mapiobj = mapiobj
         # XXX: fails if store is orphaned and guid is given..
         self._root = self.mapiobj.OpenEntry(None, None, 0)
@@ -459,7 +461,7 @@ class Store(object):
         return _utils.permissions(self)
 
     def permission(self, member, create=False):
-        return _util.permission(self, member, create)
+        return _utils.permission(self, member, create)
 
     def _fbmsg_delgs(self):
         fbeid = self.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]

@@ -6,7 +6,8 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 from MAPI.Tags import (
-    PR_RULE_NAME, PR_RULE_STATE, PR_RULE_PROVIDER, PR_RULE_ACTIONS, ST_ENABLED
+    PR_RULE_NAME, PR_RULE_STATE, PR_RULE_PROVIDER, PR_RULE_ACTIONS, ST_ENABLED,
+    PR_RULE_CONDITION
 )
 
 from .compat import repr as _repr, fake_unicode as _unicode

@@ -95,5 +95,3 @@ else:
 
     def fake_unicode(u):
         return unicode(u)
-
-

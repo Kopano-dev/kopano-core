@@ -9,14 +9,14 @@ import sys
 
 from MAPI.Struct import ECQUOTA, MAPIErrorNotFound, MAPIErrorCollision
 
+from .defs import CONTAINER_COMPANY, ACTIVE_USER
+from .compat import repr as _repr
+from .errors import NotFoundError, DuplicateError
+
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
 else:
     import utils as _utils
-
-from .defs import CONTAINER_COMPANY, ACTIVE_USER
-from .compat import repr as _repr
-from .errors import NotFoundError, DuplicateError
 
 class Quota(object):
     """Quota class
