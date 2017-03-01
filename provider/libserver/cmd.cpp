@@ -536,8 +536,6 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 	ECRESULT er;
 	std::string	strServerPath;
 	bool		bConnectPipe = false;
-	SOAPINFO	*lpInfo = NULL;
-
 	serverdetails_t	sServerDetails;
 	std::string		strFilePath;
 	std::string		strHttpPath;
@@ -548,8 +546,7 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 	if (soap == NULL || soap->user == NULL || lpstrServerPath == NULL)
 		return KCERR_INVALID_PARAMETER;
 	
-	lpInfo = (SOAPINFO *)soap->user;
-
+	auto lpInfo = soap_info(soap);
 	er = lpecSession->GetUserManagement()->GetServerDetails(strServerName, &sServerDetails);
 	if (er != erSuccess)
 		return er;
@@ -925,9 +922,9 @@ exit:
 	const ECStringCompat stringCompat(bSupportUnicode); \
 	if(er != erSuccess) \
 		goto __soapentry_exit; \
-    ((SOAPINFO *)soap->user)->ulLastSessionId = ulSessionId; \
-    ((SOAPINFO *)soap->user)->szFname = szFname; \
-	lpecSession->AddBusyState(pthread_self(), #fname, ((SOAPINFO *)soap->user)->threadstart, ((SOAPINFO *)soap->user)->start);
+	soap_info(soap)->ulLastSessionId = ulSessionId; \
+	soap_info(soap)->szFname = szFname; \
+	lpecSession->AddBusyState(pthread_self(), #fname, soap_info(soap)->threadstart, soap_info(soap)->start);
 
 #define SOAP_ENTRY_FUNCTION_FOOTER \
 __soapentry_exit: \
@@ -10142,10 +10139,8 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	lpMTOMSessionInfo->lpSharedDatabase = lpBatchDB;
 	lpMTOMSessionInfo->er = erSuccess;
 	lpMTOMSessionInfo->lpThreadPool = new ECThreadPool(1);
-	
-	((SOAPINFO *)soap->user)->fdone = MTOMSessionDone;
-	((SOAPINFO *)soap->user)->fdoneparam = lpMTOMSessionInfo;
-
+	soap_info(soap)->fdone = MTOMSessionDone;
+	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 	lpsResponse->sMsgStreams.__ptr = s_alloc<messageStream>(soap, sSourceKeyPairs.__size);
 
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i) {
@@ -10386,9 +10381,8 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	lpMTOMSessionInfo->lpSharedDatabase = NULL;
 	lpMTOMSessionInfo->er = erSuccess;
 	lpMTOMSessionInfo->lpThreadPool = new ECThreadPool(1);
-	
-	((SOAPINFO *)soap->user)->fdone = MTOMSessionDone;
-	((SOAPINFO *)soap->user)->fdoneparam = lpMTOMSessionInfo;
+	soap_info(soap)->fdone = MTOMSessionDone;
+	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 
 	er = lpAttachmentStorage->Begin();
 	if (er != erSuccess)

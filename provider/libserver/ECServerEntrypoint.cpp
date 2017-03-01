@@ -188,8 +188,8 @@ static int kopano_fparsehdr(struct soap *soap, const char *key,
 {
 	const char *szProxy = g_lpSessionManager->GetConfig()->GetSetting("proxy_header");
 	if (strlen(szProxy) > 0 && strcasecmp(key, szProxy) == 0)
-		((SOAPINFO *)soap->user)->bProxy = true;
-	return ((SOAPINFO *)soap->user)->fparsehdr(soap, key, val);
+		soap_info(soap)->bProxy = true;
+	return soap_info(soap)->fparsehdr(soap, key, val);
 }
 
 // Called just after a new soap connection is established
@@ -215,7 +215,7 @@ void kopano_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap)
 
 void kopano_end_soap_connection(struct soap *soap)
 {
-	delete (SOAPINFO *)soap->user;
+	delete soap_info(soap);
 }
 
 void kopano_new_soap_listener(CONNECTION_TYPE ulType, struct soap *soap)
@@ -228,7 +228,7 @@ void kopano_new_soap_listener(CONNECTION_TYPE ulType, struct soap *soap)
 
 void kopano_end_soap_listener(struct soap *soap)
 {
-	delete (SOAPINFO *)soap->user;
+	delete soap_info(soap);
 }
 
 // Called just before the socket is reset, with the server-side socket still
