@@ -728,10 +728,7 @@ unsigned int NormalizeDBPropTag(unsigned int ulPropTag)
 
 bool CompareDBPropTag(unsigned int ulPropTag1, unsigned int ulPropTag2)
 {
-	ulPropTag1 = NormalizeDBPropTag(ulPropTag1);
-	ulPropTag2 = NormalizeDBPropTag(ulPropTag2);
-	
-	return ulPropTag1 == ulPropTag2;
+	return NormalizeDBPropTag(ulPropTag1) == NormalizeDBPropTag(ulPropTag2);
 }
 
 ECRESULT GetDatabaseSettingAsInteger(ECDatabase *lpDatabase, const std::string &strSettings, unsigned int *lpulResult)

@@ -248,9 +248,8 @@ exit:
 
 HRESULT WSABPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
-	HRESULT		hr = MAPI_E_NO_SUPPORT;
+	return MAPI_E_NO_SUPPORT;
 	// TODO: this should be supported eventually
-	return hr;
 }
 
 HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
@@ -328,10 +327,8 @@ HRESULT WSABPropStorage::UnLockSoap()
 
 // Called when the session ID has changed
 HRESULT WSABPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
-    WSABPropStorage *lpThis = (WSABPropStorage *)lpParam;
-    lpThis->ecSessionId = sessionId;
-        
-    return hrSuccess;
+	static_cast<WSABPropStorage *>(lpParam)->ecSessionId = sessionId;
+	return hrSuccess;
 }
             
 // Interface IECPropStorage

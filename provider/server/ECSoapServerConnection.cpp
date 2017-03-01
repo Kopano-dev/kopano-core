@@ -394,20 +394,12 @@ ECRESULT ECSoapServerConnection::DoHUP()
 
 ECRESULT ECSoapServerConnection::MainLoop()
 {	
-    ECRESULT er = erSuccess;
-    
-    er = m_lpDispatcher->MainLoop();
-    
-	return er;
+	return m_lpDispatcher->MainLoop();
 }
 
 ECRESULT ECSoapServerConnection::NotifyDone(struct soap *soap)
 {
-    ECRESULT er = erSuccess;
-    
-    er = m_lpDispatcher->NotifyDone(soap);
-    
-    return er;
+	return m_lpDispatcher->NotifyDone(soap);
 }
 
 ECRESULT ECSoapServerConnection::GetStats(unsigned int *lpulQueueLength, double *lpdblAge,unsigned int *lpulThreadCount, unsigned int *lpulIdleThreads)

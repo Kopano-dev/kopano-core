@@ -355,9 +355,7 @@ HRESULT	ECGenericProp::DefaultGetPropNotFound(ULONG ulPropTag, void* lpProvider,
 HRESULT ECGenericProp::DefaultSetPropSetReal(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
-	ECGenericProp *lpProp = (ECGenericProp *)lpParam;
-
-	return lpProp->HrSetRealProp(lpsPropValue);
+	return static_cast<ECGenericProp *>(lpParam)->HrSetRealProp(lpsPropValue);
 }
 
 HRESULT	ECGenericProp::DefaultSetPropComputed(ULONG tag, void *provider,

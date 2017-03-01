@@ -919,10 +919,7 @@ ECRESULT DBPlugin::CreateMD5Hash(const std::string &strData, std::string* lpstrR
 
 void DBPlugin::addSendAsToDetails(const objectid_t &objectid, objectdetails_t *lpDetails)
 {
-	std::unique_ptr<signatures_t> sendas;
-
-	sendas = getSubObjectsForObject(OBJECTRELATION_USER_SENDAS, objectid);
-
+	std::unique_ptr<signatures_t> sendas = getSubObjectsForObject(OBJECTRELATION_USER_SENDAS, objectid);
 	for (const auto &objlist : *sendas)
 		lpDetails->AddPropObject(OB_PROP_LO_SENDAS, objlist.id);
 }

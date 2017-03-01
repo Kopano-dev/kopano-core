@@ -745,12 +745,9 @@ HRESULT WSTableView::Reload(void *lpParam, ECSESSIONID sessionId)
 
 HRESULT WSTableView::SetReloadCallback(RELOADCALLBACK callback, void *lpParam)
 {
-	HRESULT hr = hrSuccess;
-
 	this->m_lpCallback = callback;
 	this->m_lpParam = lpParam;
-
-	return hr;
+	return hrSuccess;
 }
 
 // WSTableOutGoingQueue view

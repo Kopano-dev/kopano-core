@@ -300,10 +300,7 @@ HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope,
     std::string *lpBody, std::string *lpBodyStructure)
 {
 	InitializeVMime();
-
-	VMIMEToMAPI VMToM;
-
-	return VMToM.createIMAPProperties(input, lpEnvelope, lpBody, lpBodyStructure);
+	return VMIMEToMAPI().createIMAPProperties(input, lpEnvelope, lpBody, lpBodyStructure);
 }
 
 } /* namespace */

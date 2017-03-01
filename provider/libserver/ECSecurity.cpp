@@ -302,10 +302,8 @@ ECRESULT ECSecurity::HaveObjectPermission(unsigned int ulObjId, unsigned int ulA
  */
 ECRESULT ECSecurity::IsOwner(unsigned int ulObjId) const
 {
-	ECRESULT		er;
 	unsigned int	ulOwner = 0;
-
-	er = GetOwner(ulObjId, &ulOwner);
+	auto er = GetOwner(ulObjId, &ulOwner);
 	return er != erSuccess || ulOwner != m_ulUserID ? KCERR_NO_ACCESS : erSuccess;
 }
 
@@ -320,12 +318,9 @@ ECRESULT ECSecurity::IsOwner(unsigned int ulObjId) const
 ECRESULT ECSecurity::GetOwner(unsigned int ulObjId,
     unsigned int *lpulOwnerId) const
 {
-	ECRESULT		er = erSuccess;
-
 	// Default setting
 	*lpulOwnerId = 0;
-
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetOwner(ulObjId, lpulOwnerId);
+	auto er = m_lpSession->GetSessionManager()->GetCacheManager()->GetOwner(ulObjId, lpulOwnerId);
 	return er != erSuccess ? KCERR_NOT_FOUND : er;
 }
 

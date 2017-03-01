@@ -229,8 +229,8 @@ time_t recurrence::getStartDate()
 
 HRESULT recurrence::setStartDate(time_t tStart)
 {
-	tStart = StartOfDay(tStart);
-	return UnixTimeToRTime(tStart, (LONG*)&m_sRecState.ulStartDate);
+	return UnixTimeToRTime(StartOfDay(tStart),
+	       reinterpret_cast<LONG *>(&m_sRecState.ulStartDate));
 }
 
 time_t recurrence::getEndDate()
@@ -242,8 +242,8 @@ time_t recurrence::getEndDate()
 
 HRESULT recurrence::setEndDate(time_t tEnd)
 {
-	tEnd = StartOfDay(tEnd);
-	return UnixTimeToRTime(tEnd, (LONG*)&m_sRecState.ulEndDate);
+	return UnixTimeToRTime(StartOfDay(tEnd),
+	       reinterpret_cast<LONG *>(&m_sRecState.ulEndDate));
 }
 
 ULONG recurrence::getStartTimeOffset()

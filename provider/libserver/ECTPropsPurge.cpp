@@ -61,9 +61,7 @@ ECTPropsPurge::~ECTPropsPurge()
  */
 void * ECTPropsPurge::Thread(void *param)
 {
-	ECTPropsPurge *lpThis = (ECTPropsPurge *)param;
-	lpThis->PurgeThread();
-	
+	static_cast<ECTPropsPurge *>(param)->PurgeThread();
 	return NULL;
 }
 

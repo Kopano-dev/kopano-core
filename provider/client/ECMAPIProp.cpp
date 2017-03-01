@@ -795,8 +795,7 @@ exit:
 
 HRESULT ECMAPIProp::HrStreamCleanup(void *lpData)
 {
-	STREAMDATA *lpStreamData = (STREAMDATA *)lpData;
-	delete lpStreamData;
+	delete static_cast<STREAMDATA *>(lpData);
 	return hrSuccess;
 }
 

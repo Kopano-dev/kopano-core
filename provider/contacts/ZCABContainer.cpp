@@ -598,14 +598,9 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
  */
 HRESULT ZCABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
-	HRESULT hr = hrSuccess;
-
 	if (m_lpDistList)
-		hr = GetDistListContentsTable(ulFlags, lppTable);
-	else
-		hr = GetFolderContentsTable(ulFlags, lppTable);
-
-	return hr;
+		return GetDistListContentsTable(ulFlags, lppTable);
+	return GetFolderContentsTable(ulFlags, lppTable);
 }
 
 /** 

@@ -174,11 +174,7 @@ exit:
 
 HRESULT M4LMAPISupport::ModifyStatusRow(ULONG cValues, LPSPropValue lpColumnVals, ULONG ulFlags) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::ModifyStatusRow", "");
-	HRESULT hr = hrSuccess;
-	M4LMAPISession *lpSession = (M4LMAPISession *)this->session;
-
-	hr = lpSession->setStatusRow(cValues, lpColumnVals);
-
+	auto hr = static_cast<M4LMAPISession *>(this->session)->setStatusRow(cValues, lpColumnVals);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISupport::ModifyStatusRow", "0x%08x", hr);
     return hr;
 }

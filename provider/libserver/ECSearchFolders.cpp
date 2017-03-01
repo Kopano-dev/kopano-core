@@ -404,16 +404,13 @@ ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreID)
 // also removes all search results
 ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreId, unsigned int ulFolderId)
 {
-    ECRESULT er = erSuccess;
-
     // Cancel any running (rebuilding) searches
     CancelSearchFolder(ulStoreId, ulFolderId);
     // Ignore errors
     
     // Remove results from database
     ResetResults(ulStoreId, ulFolderId);
-
-    return er;
+	return erSuccess;
 }
     
 // WARNING: THIS FUNCTION IS *NOT* THREADSAFE. IT SHOULD ONLY BE CALLED AT STARTUP WHILE SINGLE-THREADED

@@ -992,10 +992,7 @@ ECRESULT MarkStoreAsDeleted(ECSession *lpSession, ECDatabase *lpDatabase, unsign
  */
 ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulObjectId, unsigned int ulFlags, unsigned int ulSyncId, bool bNoTransaction, bool bCheckPermission)
 {
-	ECListInt sObjectList;
-
-	sObjectList.push_back(ulObjectId);
-
+	ECListInt sObjectList = {ulObjectId};
 	return DeleteObjects(lpSession, lpDatabase, &sObjectList, ulFlags, ulSyncId, bNoTransaction, bCheckPermission);
 }
 
@@ -2081,11 +2078,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid, unsign
 
 ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey, unsigned int ulFlags)
 {
-    std::set<SOURCEKEY> set;
-    
-    set.insert(sourcekey);
-    
-    return BeginLockFolders(lpDatabase, set, ulFlags);
+	return BeginLockFolders(lpDatabase, std::set<SOURCEKEY>({sourcekey}), ulFlags);
 }
 
 // Prepares child property data. This can be passed to ReadProps(). This allows the properties of child objects of object ulObjId to be

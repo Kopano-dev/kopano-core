@@ -343,9 +343,7 @@ ssize_t write_retry(int fd, const void *data, size_t len)
 
 bool force_buffers_to_disk(const int fd)
 {
-	if (fsync(fd) == -1)
-	    return false;
-	return true;
+	return fsync(fd) != -1;
 }
 
 void my_readahead(const int fd)

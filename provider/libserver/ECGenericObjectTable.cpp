@@ -510,8 +510,7 @@ skip:
  */
 ECRESULT ECGenericObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
-	ECRESULT er = KCERR_NO_SUPPORT;
-	return er;
+	return KCERR_NO_SUPPORT;
 }
 
 /**

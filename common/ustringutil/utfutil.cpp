@@ -30,13 +30,8 @@ UnicodeString WCHARToUnicode(const wchar_t *sz)
 
 UnicodeString StringToUnicode(const char *sz)
 {
-	std::string strUTF16;
-
-	convert_context converter;
-
 	// *tocode, const _From_Type &_from, size_t cbBytes, const char *fromcode
-	strUTF16 = converter.convert_to<std::string>("UTF-16LE", sz, rawsize(sz), "");
-
+	auto strUTF16 = convert_context().convert_to<std::string>("UTF-16LE", sz, rawsize(sz), "");
 	return UnicodeString((UChar *)strUTF16.data(), strUTF16.length() / 2);
 }
 

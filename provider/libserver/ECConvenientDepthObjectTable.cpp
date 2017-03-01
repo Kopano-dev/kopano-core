@@ -79,13 +79,10 @@ ECRESULT ECConvenientDepthObjectTable::Create(ECSession *lpSession,
     unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale,
     ECStoreObjectTable **lppTable)
 {
-	ECRESULT er = erSuccess;
-
 	*lppTable = new ECConvenientDepthObjectTable(lpSession, ulStoreId, lpGuid, ulFolderId, ulObjType, ulFlags, locale);
 
 	(*lppTable)->AddRef();
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECConvenientDepthObjectTable::Load() {

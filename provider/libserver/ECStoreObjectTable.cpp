@@ -144,13 +144,10 @@ ECStoreObjectTable::~ECStoreObjectTable()
 
 ECRESULT ECStoreObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale, ECStoreObjectTable **lppTable)
 {
-	ECRESULT er = erSuccess;
-
 	*lppTable = new ECStoreObjectTable(lpSession, ulStoreId, lpGuid, ulFolderId, ulObjType, ulFlags, ulTableFlags, locale);
 
 	(*lppTable)->AddRef();
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)

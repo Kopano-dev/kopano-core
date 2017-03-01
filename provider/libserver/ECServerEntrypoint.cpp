@@ -57,9 +57,7 @@ static void database_destroy(void *lpParam)
 
 static void plugin_destroy(void *lpParam)
 {
-	UserPlugin *lpPlugin = (UserPlugin *)lpParam;
-
-	delete lpPlugin;
+	delete static_cast<UserPlugin *>(lpParam);
 }
 
 ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)

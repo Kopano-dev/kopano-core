@@ -816,10 +816,7 @@ ECRESULT ECSessionManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, u
 
 ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned ulObjId, unsigned ulChildId, unsigned int ulObjType)
 {
-	std::list<unsigned int> lstChildId;
-	
-	lstChildId.push_back(ulChildId);
-	
+	std::list<unsigned int> lstChildId = {ulChildId};
 	return UpdateTables(ulType, ulFlags, ulObjId, lstChildId, ulObjType);
 }
 

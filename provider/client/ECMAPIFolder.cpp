@@ -58,11 +58,7 @@ static LONG __stdcall AdviseECFolderCallback(void *lpContext, ULONG cNotif,
 {
 	if (lpContext == NULL)
 		return S_OK;
-
-	ECMAPIFolder *lpFolder = (ECMAPIFolder*)lpContext;
-
-	lpFolder->m_bReload = TRUE;
-
+	static_cast<ECMAPIFolder *>(lpContext)->m_bReload = TRUE;
 	return S_OK;
 }
 
@@ -189,11 +185,9 @@ HRESULT ECMAPIFolder::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ul
 HRESULT	ECMAPIFolder::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
-	ECMAPIFolder *lpFolder = (ECMAPIFolder *)lpParam;
-
-	if (ulPropTag == PR_ACL_DATA)
-		return lpFolder->SetSerializedACLData(lpsPropValue);
-	return MAPI_E_NOT_FOUND;
+	if (ulPropTag != PR_ACL_DATA)
+		return MAPI_E_NOT_FOUND;
+	return static_cast<ECMAPIFolder *>(lpParam)->SetSerializedACLData(lpsPropValue);
 }
 
 // This is similar to GetPropHandler, but works is a static function, and therefore cannot access

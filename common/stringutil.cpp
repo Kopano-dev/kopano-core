@@ -424,14 +424,12 @@ std::string urlEncode(const std::string &input)
  */
 std::string urlEncode(const std::wstring &input, const char* charset)
 {
-	std::string output = convert_to<std::string>(charset, input, rawsize(input), CHARSET_WCHAR);
-	return urlEncode(output);
+	return urlEncode(convert_to<std::string>(charset, input, rawsize(input), CHARSET_WCHAR));
 }
 
 std::string urlEncode(const WCHAR* input, const char* charset)
 {
-	std::string output = convert_to<std::string>(charset, input, rawsize(input), CHARSET_WCHAR);
-	return urlEncode(output);
+	return urlEncode(convert_to<std::string>(charset, input, rawsize(input), CHARSET_WCHAR));
 }
 
 /** 
