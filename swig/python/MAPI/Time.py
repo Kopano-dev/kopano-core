@@ -1,3 +1,4 @@
+import datetime
 import sys
 import time
 
@@ -19,6 +20,9 @@ class FileTime(object):
     def __init__(self, filetime):
         self.filetime = filetime
         
+    def datetime(self):
+        return datetime.datetime.fromtimestamp(self.unixtime)
+
     def __getattr__(self, attr):
         if attr == 'unixtime':
             return (self.filetime - NANOSECS_BETWEEN_EPOCH) / 10000000;
@@ -46,7 +50,7 @@ class FileTime(object):
         
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        return isinstance(other, FileTime) and self.__dict__ == other.__dict__
 
 # convert unixtime to PT_SYSTIME.. (bad name, as it sounds like the result is a unixtime)
 
