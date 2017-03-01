@@ -186,7 +186,7 @@ static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 #ifndef EMBEDDED_MYSQL
 	string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 
 	// Only supported from mysql 5.0
@@ -206,8 +206,6 @@ static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 	}
 	
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
 #endif
 	return er;
 }
@@ -216,7 +214,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 
 	er = lpDatabase->DoSelect("SELECT value FROM settings WHERE name = 'attachment_storage'", &lpResult);
@@ -257,9 +255,6 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 			}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -267,7 +262,7 @@ static ECRESULT check_distributed_kopano(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 	bool bConfigEnabled = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
 
@@ -295,9 +290,6 @@ static ECRESULT check_distributed_kopano(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -332,7 +324,7 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 	string strQuery, strTable;
 	string::size_type start, end;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 
 	strQuery = "SHOW CREATE TABLE `tproperties`";
@@ -393,9 +385,6 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	er = erSuccess;
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -403,7 +392,7 @@ static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 	unsigned ulThreadStack = 0;
 
@@ -435,9 +424,6 @@ static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 

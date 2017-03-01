@@ -434,7 +434,7 @@ ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
 {
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 
 	strQuery = "SELECT 1 FROM information_schema.COLUMNS "
 				"WHERE TABLE_SCHEMA = '" + string(m_lpConfig->GetSetting("mysql_database")) + "' "
@@ -448,9 +448,6 @@ ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
 	*lpbExist = (FetchRow(lpDBResult) != NULL);
 	
 exit:
-	if (lpDBResult)
-		FreeResult(lpDBResult);
-	
 	return er;
 }
 
@@ -459,7 +456,7 @@ ECRESULT ECDatabase::CheckExistIndex(const std::string &strTable,
 {
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpRow = NULL;
 
 	// WHERE not supported in MySQL < 5.0.3 
@@ -479,9 +476,6 @@ ECRESULT ECDatabase::CheckExistIndex(const std::string &strTable,
 	}
 
 exit:
-	if (lpDBResult)
-		FreeResult(lpDBResult);
-	
 	return er;
 }
 
@@ -615,7 +609,7 @@ exit:
 ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	int ret = 0;
 	autolock alk(*this);
 
@@ -636,8 +630,8 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 		goto exit;
 	}		
 
-   	lpResult = mysql_store_result( &m_lpMySQL );
-   	if(lpResult == NULL) {
+	lpResult = DB_RESULT(this, mysql_store_result(&m_lpMySQL));
+	if (lpResult == nullptr) {
    		// I think this can only happen on the first result set of a query since otherwise mysql_next_result() would already fail
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("SQL [%08lu] result failed: %s", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL));
@@ -645,9 +639,7 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
    	}
 
 	if (lppResult)
-		*lppResult = lpResult;
-	else if (lpResult != nullptr)
-		FreeResult(lpResult);
+		*lppResult = std::move(lpResult);
 exit:
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
@@ -666,21 +658,17 @@ exit:
 ECRESULT ECDatabase::FinalizeMulti(void)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	autolock alk(*this);
 
 	mysql_next_result(&m_lpMySQL);
-	
-	lpResult = mysql_store_result(&m_lpMySQL);
-	
-	if(lpResult != NULL) {
+	lpResult = DB_RESULT(this, mysql_store_result(&m_lpMySQL));
+	if (lpResult != nullptr) {
 		ec_log_err("SQL [%08lu] result failed: unexpected results received at end of batch", m_lpMySQL.thread_id);
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
 	}
 exit:
-	if(lpResult)
-		FreeResult(lpResult);
 	return er;
 }
 
@@ -906,7 +894,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	bool have_micro;
 
@@ -915,7 +903,6 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	if (er != erSuccess)
 		goto exit;
 	have_micro = GetNumRows(lpResult) > 0;
-	FreeResult(lpResult);
 
 	strQuery = "SELECT major, minor";
 	strQuery += have_micro ? ", micro" : ", 0";
@@ -969,9 +956,6 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	dbv->v_schema = strtoul(lpDBRow[4], NULL, 0);
 
 exit:
-	if(lpResult)
-		FreeResult(lpResult);
-
 	return er;
 }
 
@@ -980,7 +964,7 @@ ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
 {
 	ECRESULT		er = KCERR_NOT_FOUND;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 
 	strQuery = "SELECT major,minor,revision,databaserevision FROM versions WHERE databaserevision = " + stringify(ulDatabaseRevision);
 	if (ulRevision > 0)
@@ -996,15 +980,13 @@ ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
 		er = KCERR_NOT_FOUND;
 
 exit:
-	if(lpResult != NULL)
-		FreeResult(lpResult);
 	return er;
 }
 
 ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 {
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 
 	er = DoSelect("SELECT MIN(databaserevision) FROM versions", &lpResult);
@@ -1021,8 +1003,6 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 		*lpulDatabaseRevision = atoui(lpDBRow[0]);
 
 exit:
-	if (lpResult != NULL)
-		FreeResult(lpResult);
 	return er;
 }
 
@@ -1134,7 +1114,6 @@ ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	if (er != erSuccess)
 		return er;
 	have_micro = GetNumRows(result) > 0;
-	FreeResult(result);
 
 	// Insert version number
 	strQuery = "INSERT INTO versions (major, minor, ";
@@ -1156,7 +1135,7 @@ ECRESULT ECDatabase::ValidateTables(void)
 	string		strQuery;
 	list<std::string> listTables;
 	list<std::string> listErrorTables;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 
 	er = DoSelect("SHOW TABLES", &lpResult);
@@ -1175,8 +1154,6 @@ ECRESULT ECDatabase::ValidateTables(void)
 
 		listTables.insert(listTables.end(), lpDBRow[0]);
 	}
-	if(lpResult) FreeResult(lpResult);
-	lpResult = NULL;
 
 	for (const auto &table : listTables) {
 		er = DoSelect("CHECK TABLE " + table, &lpResult);
@@ -1195,9 +1172,6 @@ ECRESULT ECDatabase::ValidateTables(void)
 		ec_log_info("%30s | %15s | %s", lpDBRow[0], lpDBRow[2], lpDBRow[3]);
 		if (strcmp(lpDBRow[2], "error") == 0)
 			listErrorTables.insert(listErrorTables.end(), lpDBRow[0]);
-
-		if(lpResult) FreeResult(lpResult);
-		lpResult = NULL;
 	}
 
 	if (!listErrorTables.empty())
@@ -1216,9 +1190,6 @@ ECRESULT ECDatabase::ValidateTables(void)
 			ec_log_notice("Rebuilding tables done.");
 	}//	if (!listErrorTables.empty())
 exit:
-	if(lpResult)
-		FreeResult(lpResult);
-
 	return er;
 }
 

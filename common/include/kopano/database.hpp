@@ -3,13 +3,13 @@
 
 #include <mutex>
 #include <string>
+#include <utility>
 #include <mysql.h>
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 
 namespace KC {
 
-typedef void *DB_RESULT;
 typedef char **DB_ROW;
 typedef unsigned long *DB_LENGTHS;
 typedef unsigned int DB_ERROR;
@@ -38,6 +38,35 @@ struct sSQLDatabase_t {
 	const char *lpSQL;
 };
 
+class KDatabase;
+
+class _kc_export DB_RESULT _kc_final {
+	public:
+	DB_RESULT(void) = default;
+	DB_RESULT(KDatabase *d, void *r) : m_res(r), m_db(d) {}
+	DB_RESULT(DB_RESULT &&o) = default;
+	~DB_RESULT(void);
+	void operator=(DB_RESULT &&o)
+	{
+		std::swap(m_res, o.m_res);
+		std::swap(m_db, o.m_db);
+	}
+	operator bool(void) const { return m_res != nullptr; }
+	bool operator==(std::nullptr_t) const { return m_res == nullptr; }
+	bool operator!=(std::nullptr_t) const { return m_res != nullptr; }
+	void *get(void) const { return m_res; }
+	void *release(void)
+	{
+		void *p = m_res;
+		m_res = nullptr;
+		return p;
+	}
+
+	private:
+	void *m_res = nullptr;
+	KDatabase *m_db = nullptr;
+};
+
 class _kc_export KDatabase {
 	public:
 	KDatabase(void);
@@ -54,13 +83,12 @@ class _kc_export KDatabase {
 	std::string Escape(const std::string &);
 	std::string EscapeBinary(const unsigned char *, size_t);
 	std::string EscapeBinary(const std::string &);
-	DB_ROW FetchRow(DB_RESULT);
-	DB_LENGTHS FetchRowLengths(DB_RESULT);
-	void FreeResult(DB_RESULT);
+	DB_ROW FetchRow(DB_RESULT &);
+	DB_LENGTHS FetchRowLengths(DB_RESULT &);
 	const char *GetError(void);
 	DB_ERROR GetLastError(void);
 	unsigned int GetMaxAllowedPacket(void) const { return m_ulMaxAllowedPacket; }
-	unsigned int GetNumRows(DB_RESULT);
+	unsigned int GetNumRows(const DB_RESULT &) const;
 	/*
 	 * Transactions.
 	 * These functions should be used to wrap blocks of queries into
@@ -99,8 +127,12 @@ class _kc_export KDatabase {
 	bool m_bSuppressLockErrorLogging = false;
 
 	private:
+	void FreeResult_internal(void *);
+
 	std::recursive_mutex m_hMutexMySql;
 	bool m_bAutoLock = true;
+
+	friend class DB_RESULT;
 };
 
 } /* namespace */

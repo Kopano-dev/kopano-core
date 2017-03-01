@@ -803,7 +803,7 @@ int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
 #define ALLOC_DBRESULT() \
 	DB_ROW 			UNUSED_VAR		lpDBRow = NULL; \
 	DB_LENGTHS		UNUSED_VAR		lpDBLen = NULL; \
-	DB_RESULT		UNUSED_VAR		lpDBResult = NULL; \
+	DB_RESULT UNUSED_VAR lpDBResult; \
 	std::string		UNUSED_VAR		strQuery;
 
 #define USE_DATABASE() \
@@ -817,11 +817,7 @@ int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
                goto __soapentry_exit; \
        }
 
-#define FREE_DBRESULT() \
-    if(lpDBResult) { \
-        lpDatabase->FreeResult(lpDBResult); \
-        lpDBResult = NULL; \
-    }
+#define FREE_DBRESULT()
 
 #define ROLLBACK_ON_ERROR() \
 	if (lpDatabase && FAILED(er)) \
@@ -833,7 +829,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 {
 	ECRESULT 		er = erSuccess;
 	ECDatabase*		lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 	FILETIME		ft;
@@ -887,8 +883,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			lObjectIds.push_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
-		if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
-
+		lpDBResult = DB_RESULT();
 		if (*lpbExit) {
 			er = KCERR_USER_CANCEL;
 			goto exit;
@@ -912,8 +907,6 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		ec_log_info("Store purge done");
 
 	}
-	if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
-
 	if (*lpbExit) {
 		er = KCERR_USER_CANCEL;
 		goto exit;
@@ -939,8 +932,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			lObjectIds.push_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
-		if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
-
+		lpDBResult = DB_RESULT();
 		if (*lpbExit) {
 			er = KCERR_USER_CANCEL;
 			goto exit;
@@ -957,8 +949,6 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		ec_log_info("Folder purge done");
 
 	}
-	if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
-
 	if (*lpbExit) {
 		er = KCERR_USER_CANCEL;
 		goto exit;
@@ -984,8 +974,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			lObjectIds.push_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
-		if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
-
+		lpDBResult = DB_RESULT();
 		if (*lpbExit) {
 			er = KCERR_USER_CANCEL;
 			goto exit;
@@ -1015,10 +1004,6 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 exit:
 	if (er != KCERR_BUSY)
 		g_bPurgeSoftDeleteStatus = FALSE;
-
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -1621,7 +1606,7 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 {
 
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	long long		llSize = 0;
 	long long		llSubSize = 0;
@@ -1641,9 +1626,6 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 		llSize = 0;
 	else
 		llSize = atoll(lpDBRow[0]);
-
-	// Free results
-	if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
 
 	// Get the subfolders
 	strQuery = "SELECT id FROM hierarchy WHERE parent=" + stringify(ulFolderId) + " AND type="+stringify(MAPI_FOLDER);
@@ -1670,16 +1652,9 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 		}
 	}
 
-	// Free results
-	if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
-
 	*lpllFolderSize = llSize;
 
 exit:
-	// Free results
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -1747,8 +1722,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	
 	SOURCEKEY		sSourceKey;
 	SOURCEKEY		sParentSourceKey;
-
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 
 	if(!lpAttachmentStorage) {
 		er = KCERR_INVALID_PARAMETER;
@@ -1792,13 +1766,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 					ec_log_err("WriteProps(): Folder already exists while putting folder");
 					goto exit;
 				}
-
-				// Free results
-				if (lpDBResult) {
-					lpDatabase->FreeResult(lpDBResult);
-					lpDBResult = NULL;
-				}
-
 				break;
 			}
 		}// for(...)
@@ -2538,9 +2505,6 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 						goto exit;
 						
 					fHasAttach = lpDatabase->GetNumRows(lpDBResult) > 0;
-					
-					lpDatabase->FreeResult(lpDBResult);
-					lpDBResult = NULL;
 				}
 			}
 			
@@ -7455,12 +7419,6 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		}
 	}
 	
-	// Free database results
-	if (lpDBResult != NULL) {
-		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
-	}
-
 	// Check the quota size when the item is a softdelete item
 	if(bUpdateDeletedSize == true)
 	{
@@ -7769,8 +7727,6 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 exit:
 	if(lpDatabase && er != erSuccess && er != KCWARN_PARTIAL_COMPLETION)
 		lpDatabase->Rollback();
-	if (lpDBResult != NULL)
-		lpDatabase->FreeResult(lpDBResult);
 	if(lpsNewEntryId)
 		FreeEntryId(lpsNewEntryId, true);
 
@@ -7804,7 +7760,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	ECRESULT		er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
 	std::string		strQuery;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
 	unsigned int	ulNewObjectId = 0;
 	std::string		strExclude;
@@ -7986,11 +7942,6 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		}
 	}
 
-	//Free Results
-	if (lpDBResult != NULL) {
-		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
-	}
 	if (lpsNewEntryId != NULL) {
 		FreeEntryId(lpsNewEntryId, true);
 		lpsNewEntryId = NULL;
@@ -8158,9 +8109,6 @@ exit:
 		lpInternalAttachmentStorage->Rollback();
 		lpDatabase->Rollback();
 	}
-	//Free Results
-	if (lpDBResult != NULL)
-		lpDatabase->FreeResult(lpDBResult);
 	if(lpsNewEntryId)
 		FreeEntryId(lpsNewEntryId, true);
 
@@ -8179,7 +8127,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 	ECRESULT		er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
 	std::string		strQuery, strSubQuery, strExclude;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
 
 	unsigned int	ulNewDestFolderId = 0;
@@ -8339,11 +8287,6 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		}
 	}
 
-	if (lpDBResult != NULL) {
-		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
-	}
-
 	// update the destination folder for disconnected clients
 	er = WriteLocalCommitTimeMax(NULL, lpDatabase, ulNewDestFolderId, NULL);
 	if (er != erSuccess) {
@@ -8426,8 +8369,6 @@ exit:
 		if (lpAttachmentStorage)
 			lpAttachmentStorage->Rollback();
 	}
-	if (lpDBResult != NULL)
-		lpDatabase->FreeResult(lpDBResult);
 	return er;
 
 }

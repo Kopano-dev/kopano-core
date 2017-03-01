@@ -156,7 +156,7 @@ ECRESULT ECStoreObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId
 ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 {
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
@@ -214,15 +214,12 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 exit:
 	biglock.unlock();
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
 ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag)
 {
-	DB_RESULT			lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW				lpDBRow = NULL;
 	std::string			strQuery;
 	std::string			strColName;
@@ -280,9 +277,6 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 	}
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -603,7 +597,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
     struct rowSet *lpsRowSet)
 {
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	std::string		strQuery;
@@ -770,9 +764,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
                 mapColumns.erase(iterColumns++);
             }
         }
-        
-        if(lpDBResult) lpDatabase->FreeResult(lpDBResult);
-        lpDBResult = NULL;
     }
 
 	for (const auto &col : mapColumns) {
@@ -784,9 +775,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 	er = erSuccess;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -817,7 +805,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
     std::string strTags, strMVTags, strMVITags;
     std::set<std::pair<unsigned int, unsigned int> > setDone;
     sObjectTableKey key;
-    DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
     DB_ROW lpDBRow = NULL;
     DB_LENGTHS lpDBLen = NULL;
     unsigned int ulTag = 0;
@@ -983,9 +971,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 			}
 	
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		     
 	return er;
 }
 
@@ -1003,7 +988,7 @@ ECRESULT ECStoreObjectTable::CopyEmptyCellToSOAPPropVal(struct soap *soap, unsig
 ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpRow = NULL;
 	std::string		strQuery, strColName;
 	int j;
@@ -1045,8 +1030,6 @@ ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *l
 
 exit:
 	biglock.unlock();
-	if(lpDBResult)
-           lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1054,7 +1037,7 @@ ECRESULT ECStoreObjectTable::Load()
 {
     ECRESULT er = erSuccess;
     ECDatabase *lpDatabase = NULL;
-    DB_RESULT 	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
     DB_ROW		lpDBRow = NULL;
     std::string	strQuery;
     ECODStore	*lpData = (ECODStore *)m_lpObjectData;
@@ -1129,10 +1112,7 @@ ECRESULT ECStoreObjectTable::Load()
     }
     
 exit:
-    if(lpDBResult)
-        lpDatabase->FreeResult(lpDBResult);
-    
-    return er;
+	return er;
 }
 
 ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
@@ -1250,7 +1230,7 @@ exit:
 ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId, std::list<unsigned int> *lpDeferred)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	
 	lpDeferred->clear();
@@ -1263,9 +1243,6 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId
 	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
 		lpDeferred->push_back(atoui(lpDBRow[0]));
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
 	return er;
 }
 
@@ -1275,7 +1252,7 @@ exit:
 ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRowList, std::list<unsigned int> *lpDeferred)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	
 	lpDeferred->clear();
@@ -1298,9 +1275,6 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRo
 	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
 		lpDeferred->push_back(atoui(lpDBRow[0]));
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
 	return er;
 }
 

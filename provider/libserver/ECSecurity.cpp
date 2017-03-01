@@ -557,7 +557,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
     struct rightsArray *lpsRightsArray) const
 {
 	ECRESULT			er = KCERR_NO_ACCESS;
-	DB_RESULT			lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW				lpDBRow = NULL;
 	ECDatabase			*lpDatabase = NULL;
 	std::string			strQuery;
@@ -630,9 +630,6 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 	er = erSuccess;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -1162,7 +1159,7 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
 {
 	ECRESULT		er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 	unsigned int	ulStore;
@@ -1197,9 +1194,6 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
 	*lpllStoreSize = atoll(lpDBRow[0]);
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -1216,7 +1210,7 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
 {
 	ECRESULT		er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 
 	std::string		strQuery;
@@ -1259,9 +1253,6 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
 	*lpllUserSize = llUserSize;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 

@@ -82,7 +82,7 @@ static bool isICSChange(unsigned int ulChange)
 static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<unsigned int> &sUserIds, unsigned int ulCompanyFilter, std::set<unsigned int> *lpsFilteredIds)
 {
 	ECRESULT			er = erSuccess;
-	DB_RESULT			lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	std::string			strQuery;
 	unsigned int		ulRows = 0;
 	assert(!sUserIds.empty());
@@ -118,9 +118,6 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 		lpsFilteredIds->clear();
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -205,7 +202,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	unsigned int	changeid = 0;
@@ -256,9 +253,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			else
 				bIgnored = true;
 		}
-
-		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
 		if (!bLogAllChanges && !bIgnored && syncids.empty())
 			// nothing to do
 			goto exit;
@@ -316,11 +310,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		if (lpDBRow != nullptr && lpDBRow[0] != nullptr &&
 		    lpDBLen != nullptr && lpDBLen[0] > 16)
 			strChangeList.assign(lpDBRow[0], lpDBLen[0]);
-	}
-
-	if(lpDBResult){
-		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
 	}
 
 	strQuery = "SELECT val_binary FROM properties "
@@ -403,10 +392,6 @@ exit:
 	// FIXME: We should not send notifications while we're in the middle of a transaction.
 	if (er == erSuccess && !syncids.empty())
 		g_lpSessionManager->NotificationChange(syncids, changeid, ulChange);
-
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -502,7 +487,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	unsigned int dummy;
 	ECRESULT		er = erSuccess;
 	ECDatabase*		lpDatabase = NULL;
-	DB_RESULT		lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
 	DB_LENGTHS		lpDBLen;
 	unsigned int	ulMaxChange = 0;
@@ -603,10 +588,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 		ulMaxChange = atoui(lpDBRow[0]);
 		sFolderSourceKey = SOURCEKEY(lpDBLen[1], lpDBRow[1]);
-		
-        if(lpDBResult)
-            lpDatabase->FreeResult(lpDBResult);
-        lpDBResult = NULL;
 
         if(!sFolderSourceKey.empty()) {
             er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sFolderSourceKey.size(), sFolderSourceKey, &ulFolderId);
@@ -741,11 +722,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 					}
 					lstChanges.push_back(atoui(lpDBRow[0]));
 				}
-
-				if(lpDBResult) {
-					lpDatabase->FreeResult(lpDBResult);
-					lpDBResult = NULL;
-				}
 			}
 
 			if (folder_id != 0) {
@@ -768,10 +744,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
                     lstFolderIds.push_back(atoui(lpDBRow[0]));
                 }
-
-                if(lpDBResult)
-                    lpDatabase->FreeResult(lpDBResult);
-                lpDBResult = NULL;
             }
 		}
 
@@ -818,10 +790,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                                 "JOIN indexedproperties AS parentsourcekey ON hierarchy.parent=parentsourcekey.hierarchyid AND parentsourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
                                 "WHERE hierarchy.id=" + stringify(folder_id);
 
-                    if(lpDBResult)
-                        lpDatabase->FreeResult(lpDBResult);
-                    lpDBResult = NULL;
-
                     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
                     if(er != erSuccess)
                         goto exit;
@@ -845,10 +813,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                     lpChanges->__ptr[i].ulChangeType = ICS_FOLDER_NEW;
 
                     lpChanges->__ptr[i].ulFlags = 0;
-
-                    if(lpDBResult)
-                        lpDatabase->FreeResult(lpDBResult);
-                    lpDBResult = NULL;
                     ++i;
                 }
             }
@@ -894,10 +858,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 					lpChanges->__ptr[i].ulFlags = atoui(lpDBRow[4]);
 				else
 					lpChanges->__ptr[i].ulFlags = 0;
-
-				if(lpDBResult)
-					lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
 				++i;
 			}
 			lpChanges->__size = i;
@@ -1003,9 +963,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             else
                 ulMaxChange = atoui(lpDBRow[0]);
             
-            lpDatabase->FreeResult(lpDBResult);
-            lpDBResult = NULL;
-
 			// Skip 'everyone', 'system' and users outside our company space, except when we're system
             strQuery = "SELECT id, objectclass, externid FROM users WHERE id not in (1,2)";
 			if (lpSession->GetSecurity()->GetUserId() != KOPANO_UID_SYSTEM)
@@ -1073,9 +1030,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	*lppChanges = lpChanges;
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	if (lpDatabase && er != erSuccess)
 		lpDatabase->Rollback();
 	return er;
@@ -1101,7 +1055,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
-	DB_RESULT		lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	unsigned int	ulResults = 0;
 	DB_ROW			lpDBRow;
 
@@ -1144,8 +1098,6 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 	}
 	assert(lpsaSyncState->__size == ulResults);
 exit:
-	if (lpDBResult != NULL)
-		lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
@@ -1153,7 +1105,7 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 {
 	ECRESULT	er = erSuccess;
 	std::string	strQuery;
-	DB_RESULT	lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow;
 	
 	strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
@@ -1176,19 +1128,11 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 				lpDBRow[0] + "," + 
 				lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) + "," +
 				lpDatabase->EscapeBinary(sParentSourceKey, sParentSourceKey.size()) + ")";
-	
-	// cleanup the previous query result
-	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
-	
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
 		
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
 	return er;
 }
 
@@ -1206,7 +1150,7 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 {
 	ECRESULT	er = erSuccess;
 	std::string	strQuery;
-	DB_RESULT	lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow;
 
 	strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
@@ -1228,11 +1172,6 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 	strQuery = "SELECT 0 FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId) +
 				" AND change_id=" + lpDBRow[0] +
 				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size());
-	
-	// cleanup the previous query result
-	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
-	
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;
@@ -1242,9 +1181,6 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 		er = KCERR_NOT_FOUND;
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
 	return er;
 }
 
@@ -1252,7 +1188,7 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 {
 	ECRESULT	er = erSuccess;
 	std::string	strQuery;
-	DB_RESULT	lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow;
 	
 	strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
@@ -1273,19 +1209,11 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 	strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId) +
 				" AND change_id=" + lpDBRow[0] +
 				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size());
-	
-	// cleanup the previous query result
-	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
-	
 	er = lpDatabase->DoDelete(strQuery);
 	if (er != erSuccess)
 		goto exit;
 		
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
 	return er;
 }
 

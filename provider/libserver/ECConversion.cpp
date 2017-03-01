@@ -39,7 +39,7 @@ ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, str
 	ECRESULT er = erSuccess;
 	
 	DB_ROW lpDBRow = NULL;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_LENGTHS lpDBLenths = NULL;
 	std::string strQuery;
 	unsigned int i;
@@ -129,9 +129,6 @@ ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, str
 exit:
 	if (er != erSuccess && lpNewSearchCriteria)
 		FreeSearchCriteria(lpNewSearchCriteria);
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 

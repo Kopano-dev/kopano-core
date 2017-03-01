@@ -274,7 +274,7 @@ ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLenths = NULL;
 
@@ -310,9 +310,6 @@ ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
 		goto exit;
 
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -321,7 +318,7 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLenths = NULL;
 	int				i, nStores;
@@ -363,9 +360,6 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -374,7 +368,7 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 	ECRESULT er;
 	string			strQuery, strInsertQuery, strDefaultQuery;
 	string			strInValues;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 
 	// FIXME: use ECListInt and ECListIntIterator (in ECGenericObjectTable.h)
@@ -434,10 +428,6 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 			 lstFolders.push_back(atoui(lpDBRow[0]));
 		}
 
-		if (lpDBResult) {
-			lpDatabase->FreeResult(lpDBResult);
-			lpDBResult = NULL;
-		}
 		iterFolders = lstFolders.begin();
 	} //while
 	return erSuccess;
@@ -448,7 +438,7 @@ ECRESULT UpdateDatabaseSearchCriteria(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	std::string		strQuery;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	unsigned int	ulStoreLast = 0;
 	unsigned int	ulStoreId = 0;
@@ -497,9 +487,6 @@ next: //Free
 	}
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-	
 	if (lpNewSearchCriteria)
 		FreeSearchCriteria(lpNewSearchCriteria);
 
@@ -652,7 +639,7 @@ ECRESULT UpdateDatabaseAddCompanyToStore(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseAddIMAPSequenceNumber(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 
 	er = lpDatabase->DoSelect("SELECT * FROM settings WHERE name='imapseq'", &lpResult);
 	if(er != erSuccess)
@@ -665,9 +652,6 @@ ECRESULT UpdateDatabaseAddIMAPSequenceNumber(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -676,7 +660,7 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 {
 	ECRESULT	er = erSuccess;
 	string		strQuery;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	BOOL		bFirst = TRUE;
 	unsigned int ulRows = 0;
@@ -717,12 +701,6 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 			if (er != erSuccess)
 				goto exit;
 		}
-
-		if(lpResult) {
-			lpDatabase->FreeResult(lpResult);
-			lpResult = NULL;
-		}
-
 	}while(ulRows > 0);
 
 	// Change index
@@ -731,9 +709,6 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 		goto exit;
 
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -742,7 +717,7 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 {
 	ECRESULT	er = erSuccess;
 	string		strQuery;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	unsigned int ulStoreId = 0;
 	unsigned int ulSubtreeFolder = 0;
@@ -869,16 +844,7 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 		if(er != erSuccess)
 			goto exit;
 	}
-
-	if(lpResult) {
-		lpDatabase->FreeResult(lpResult);
-		lpResult = NULL;
-	}
-
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -887,7 +853,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	unsigned int	ulNewId = 0;
@@ -945,9 +911,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 		sObjectList.push_back(SObject(atoi(lpDBRow[0]), atoi(lpDBRow[1])));
 	}
 
-	lpDatabase->FreeResult(lpResult);
-	lpResult = NULL;
-
 	// Recreate the objects in the object_temp table and on the fly create the queries to regenerate
 	// their properties in the objectpropert_temp table.
 	for (const auto &obj : sObjectList) {
@@ -1001,9 +964,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 				strQuery += lpDatabase->EscapeBinary((unsigned char*)lpDBRow[1], lpDBLen[1]) + ")";
 		}
 
-		lpDatabase->FreeResult(lpResult);
-		lpResult = NULL;
-
 		if (!strQuery.empty()) {
 			er = lpDatabase->DoInsert(strQuery);
 			if (er != erSuccess)
@@ -1030,9 +990,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 
 		sRelationList.push_back(SRelation(atoi(lpDBRow[0]), atoi(lpDBRow[1]), atoi(lpDBRow[2])));
 	}
-
-	lpDatabase->FreeResult(lpResult);
-	lpResult = NULL;
 
 	strQuery.clear();
 	bFirstResult = true;
@@ -1113,10 +1070,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 exit:
 	// Delete the temporary tables if they exist at this point
 	lpDatabase->DoDelete("DROP TABLE IF EXISTS object_temp, objectproperty_temp, objectrelation_temp");
-
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -1163,7 +1116,7 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 {
 	ECRESULT		er = erSuccess;
 	string			strQuery;
-	DB_RESULT		lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	int				ulId = 0;
@@ -1202,9 +1155,6 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 		strQuery += ")";
 		queries.push_back(std::move(strQuery));
 	}
-	lpDatabase->FreeResult(lpResult);
-	lpResult = NULL;
-
 	
 	// Populate the abchanges table with the extracted data
 	for (const auto &query : queries) {
@@ -1240,9 +1190,6 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 	}
 	
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-		
 	if (er != erSuccess)
 		lpDatabase->DoDelete("DROP TABLE IF EXISTS abchanges");
 
@@ -1300,7 +1247,7 @@ ECRESULT UpdateDatabaseRenameObjectTypeToObjectClass(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 {
 	ECRESULT	er = erSuccess;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 	std::string strQuery, strUpdate;
@@ -1377,9 +1324,6 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -1399,7 +1343,7 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 	ECRESULT	er = erSuccess;
 	string		strQuery;
 	map<string, string> mapIdToName;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 
@@ -1428,9 +1372,6 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -1493,7 +1434,7 @@ ECRESULT UpdateDatabaseKeysChanges2(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseMVPropertiesPrimarykey(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	bool		bUpdate = false;
 
@@ -1520,9 +1461,6 @@ ECRESULT UpdateDatabaseMVPropertiesPrimarykey(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -1536,7 +1474,7 @@ ECRESULT UpdateDatabaseFixDBPluginGroups(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 	list<std::pair<string, string> > lstRelations;
@@ -1567,9 +1505,6 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -1590,7 +1525,7 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	map<string, string> mapStoreInbox;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 
@@ -1625,9 +1560,6 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 	}
 
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -1742,8 +1674,7 @@ ECRESULT UpdateDatabaseConvertStoreUsername(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 
 	convert_context converter;
@@ -1767,9 +1698,6 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 			goto exit;
 	}
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -1779,7 +1707,7 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 
 	std::string strQuery;
-	DB_RESULT	lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 
 	convert_context converter;
@@ -1804,9 +1732,6 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 			goto exit;
 	}
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -1815,7 +1740,7 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 
 	// Create the temporary properties table
@@ -1853,8 +1778,6 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 		lpDBRow = lpDatabase->FetchRow(lpResult);
 		if (lpDBRow == NULL || lpDBRow[0] == NULL)
 			break;
-		lpDatabase->FreeResult(lpResult);
-		lpResult = NULL;
 	}
 
 	// update webaccess settings which were already utf8 in our latin1 table
@@ -1869,9 +1792,6 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoDelete("DROP TABLE properties_old");
 exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 

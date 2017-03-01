@@ -78,7 +78,7 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
 {
     ECRESULT er = erSuccess;
     ECDatabase *lpDatabase = NULL;
-    DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     unsigned int ulFolderId = 0;
     unsigned int ulStoreId = 0;
@@ -142,9 +142,6 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
     }
 
 exit:
-    if(lpResult)
-        lpDatabase->FreeResult(lpResult);
-
     if(lpSearchCriteria)
         FreeSearchCriteria(lpSearchCriteria);
         
@@ -296,7 +293,7 @@ ECRESULT ECSearchFolders::IsSearchFolder(unsigned int ulStoreID, unsigned int ul
 {
     ECRESULT er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 
@@ -324,10 +321,7 @@ ECRESULT ECSearchFolders::IsSearchFolder(unsigned int ulStoreID, unsigned int ul
     }
 
 exit:
-    if(lpDBResult)
-        lpDatabase->FreeResult(lpDBResult);
-
-    return er;
+	return er;
 }
 
 // Cancel a search: stop any rebuild thread and stop processing updates for this search folder
@@ -980,7 +974,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	unsigned int ulUserId = 0;
 	std::string strQuery;
 	ECDatabase *lpDatabase = NULL;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	struct propTagArray *lpPropTags = NULL;
 	unsigned int i=0;
@@ -1066,12 +1060,6 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 						lstFolders.push_back(atoi(lpDBRow[0]));
 			} else
 				ec_log_crit("ECSearchFolders::Search() could not expand target folders: 0x%x", er);
-
-			if(lpDBResult) {
-				lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
-			}
-
 			++iterFolders;
 		}
 	}
@@ -1204,11 +1192,6 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 					goto exit;
 				}
 			}
-			
-			if(lpDBResult) {
-				lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
-			}
 		}
 
 		// Search done
@@ -1232,10 +1215,6 @@ exit:
         
     if(lpPropTags)
         FreePropTagArray(lpPropTags);
-
-    if(lpDBResult)
-        lpDatabase->FreeResult(lpDBResult);
-
     if (lpAdditionalRestrict)
         FreeRestrictTable(lpAdditionalRestrict);
 
@@ -1377,7 +1356,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
     ECDatabase *lpDatabase = NULL;
     ECRESULT er = erSuccess;
     std::string strQuery;
-    DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
     DB_ROW lpDBRow = NULL;
     
     assert((ulFlags &~ MSGFLAG_READ) == 0);
@@ -1415,10 +1394,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
 		*lpfInserted = (lpDBRow == NULL);
         
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-        
-    return er;
+	return er;
 }
 
 ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFolderId, std::list<unsigned int> &lstObjId, std::list<unsigned int>& lstFlags, int *lpulCount, int *lpulUnread)
@@ -1489,7 +1465,7 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulStoreId, unsigned int ulF
     ECDatabase *lpDatabase = NULL;
     ECRESULT er = erSuccess;
     std::string strQuery;
-    DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     
     unsigned int ulAffected = 0;
@@ -1528,10 +1504,7 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulStoreId, unsigned int ulF
     }
         
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-		
-    return er;
+	return er;
 }
 
 // Write the status of a search folder to the PR_EC_SEARCHFOLDER_STATUS property
@@ -1581,7 +1554,7 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
 ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int ulFolderId,  std::list<unsigned int> *lstObjIds)
 {
     ECDatabase *lpDatabase = NULL;
-    DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     ECRESULT er = erSuccess;
     std::string strQuery;
@@ -1610,10 +1583,7 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
     }
     
 exit:
-    if(lpResult)
-        lpDatabase->FreeResult(lpResult);
-        
-    return er;
+	return er;
 }
 
 // Loads the search criteria from the database
@@ -1621,7 +1591,7 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 {
     ECRESULT er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 	struct soap				xmlsoap;
@@ -1677,10 +1647,7 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 	}
 
 exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
-    return er;
+	return er;
 }
 
 // Saves the search criteria in the database

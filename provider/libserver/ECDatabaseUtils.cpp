@@ -737,7 +737,7 @@ bool CompareDBPropTag(unsigned int ulPropTag1, unsigned int ulPropTag2)
 ECRESULT GetDatabaseSettingAsInteger(ECDatabase *lpDatabase, const std::string &strSettings, unsigned int *lpulResult)
 {
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 
@@ -755,9 +755,6 @@ ECRESULT GetDatabaseSettingAsInteger(ECDatabase *lpDatabase, const std::string &
 	*lpulResult = atoui(lpDBRow[0]);
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 

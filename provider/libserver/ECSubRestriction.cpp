@@ -135,7 +135,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
     ECRESULT er = erSuccess;
     unsigned int ulType = 0;
     std::string strQuery;
-    DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
     DB_ROW lpRow = NULL;
     struct propTagArray *lpPropTags = NULL;
     ECObjectTableList::const_iterator iterObject;
@@ -250,10 +250,6 @@ exit:
 		*lppResult = lpResult.release();
     if(lpRowSet)
         FreeRowSet(lpRowSet, true);
-        
-    if(lpDBResult)
-        lpDatabase->FreeResult(lpDBResult);
-        
     if(lpPropTags)
         FreePropTagArray(lpPropTags);
         

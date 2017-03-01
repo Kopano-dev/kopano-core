@@ -15,6 +15,7 @@
  */
 #include <memory>
 #include <string>
+#include <utility>
 #include <cassert>
 #include <cstring>
 #include <mysql.h>
@@ -26,6 +27,17 @@
 #define LOG_SQL_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SQL, _msg, ##__VA_ARGS__)
 
+DB_RESULT::~DB_RESULT(void)
+{
+	if (m_res == nullptr)
+		return;
+	assert(m_db != nullptr);
+	if (m_db == nullptr)
+		return;
+	m_db->FreeResult_internal(m_res);
+	m_res = nullptr;
+}
+
 KDatabase::KDatabase(void)
 {
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
@@ -36,7 +48,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 {
 	const char *mysql_port = cfg->GetSetting("mysql_port");
 	const char *mysql_socket = cfg->GetSetting("mysql_socket");
-	DB_RESULT result = nullptr;
+	DB_RESULT result;
 	DB_ROW row = nullptr;
 	std::string query;
 
@@ -72,10 +84,6 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		er = KCERR_DATABASE_NOT_FOUND;
 		ec_log_err("KDatabase::Connect(): database missing %d", er);
 		goto exit;
-	}
-	if (result != nullptr) {
-		FreeResult(result);
-		result = nullptr;
 	}
 
 	query = "SHOW variables LIKE 'max_allowed_packet'";
@@ -115,8 +123,6 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		goto exit;
 	}
  exit:
-	if (result != nullptr)
-		FreeResult(result);
 	if (er != erSuccess)
 		Close();
 	return er;
@@ -255,9 +261,9 @@ ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
 	ECRESULT er = erSuccess;
 	DB_RESULT res;
 	if (stream)
-		res = mysql_use_result(&m_lpMySQL);
+		res = DB_RESULT(this, mysql_use_result(&m_lpMySQL));
 	else
-		res = mysql_store_result(&m_lpMySQL);
+		res = DB_RESULT(this, mysql_store_result(&m_lpMySQL));
 	if (res == nullptr) {
 		if (!m_bSuppressLockErrorLogging ||
 		    GetLastError() == DB_E_UNKNOWN)
@@ -266,9 +272,7 @@ ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
 		er = KCERR_DATABASE_ERROR;
 	}
 	if (res_p != nullptr)
-		*res_p = res;
-	else if (res != nullptr)
-		FreeResult(res);
+		*res_p = std::move(res);
 	return er;
 }
 
@@ -356,17 +360,17 @@ std::string KDatabase::EscapeBinary(const std::string &s)
 	return EscapeBinary(reinterpret_cast<const unsigned char *>(s.c_str()), s.size());
 }
 
-DB_ROW KDatabase::FetchRow(DB_RESULT r)
+DB_ROW KDatabase::FetchRow(DB_RESULT &r)
 {
-	return mysql_fetch_row(static_cast<MYSQL_RES *>(r));
+	return mysql_fetch_row(static_cast<MYSQL_RES *>(r.get()));
 }
 
-DB_LENGTHS KDatabase::FetchRowLengths(DB_RESULT r)
+DB_LENGTHS KDatabase::FetchRowLengths(DB_RESULT &r)
 {
-	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(r));
+	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(r.get()));
 }
 
-void KDatabase::FreeResult(DB_RESULT r)
+void KDatabase::FreeResult_internal(void *r)
 {
 	assert(r != nullptr);
 	if (r != nullptr)
@@ -402,9 +406,9 @@ DB_ERROR KDatabase::GetLastError(void)
 	}
 }
 
-unsigned int KDatabase::GetNumRows(DB_RESULT r)
+unsigned int KDatabase::GetNumRows(const DB_RESULT &r) const
 {
-	return mysql_num_rows(static_cast<MYSQL_RES *>(r));
+	return mysql_num_rows(static_cast<MYSQL_RES *>(r.get()));
 }
 
 ECRESULT KDatabase::InitEngine(bool reconnect)
@@ -421,7 +425,7 @@ ECRESULT KDatabase::InitEngine(bool reconnect)
 
 ECRESULT KDatabase::IsInnoDBSupported(void)
 {
-	DB_RESULT res = nullptr;
+	DB_RESULT res;
 	DB_ROW row = nullptr;
 
 	auto er = DoSelect("SHOW ENGINES", &res);
@@ -452,8 +456,6 @@ ECRESULT KDatabase::IsInnoDBSupported(void)
 		goto exit;
 	}
  exit:
-	if (res != nullptr)
-		FreeResult(res);
 	return er;
 }
 

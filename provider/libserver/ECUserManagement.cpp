@@ -1298,7 +1298,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 {
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 	std::unique_ptr<std::list<unsigned int> > lpObjects(new std::list<unsigned int>);
 	string strQuery;
@@ -1339,8 +1339,6 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 	}
 	*lppObjects = lpObjects.release();
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -2525,7 +2523,7 @@ ECRESULT ECUserManagement::CreateLocalObjectSimple(const objectsignature_t &sign
 	std::string strQuery;
 	unsigned int ulCompanyId;
 	UserPlugin *lpPlugin = NULL;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	std::string strUserId;
 	bool bLocked = false;
 
@@ -2618,7 +2616,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 {
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 	string strQuery;
 	unsigned int ulObjectId;
@@ -2680,9 +2678,6 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	}
 
 exit:
-	if(lpResult)
-		lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -2925,7 +2920,7 @@ exit:
 ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclass_t objclass) {
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 	unsigned int ulDeletedRows = 0;
 	std::string strQuery;
@@ -2976,8 +2971,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 				goto exit;
 		}
 
-		lpDatabase->FreeResult(lpResult);
-		lpResult = NULL;
 		lpRow = NULL;
 
 		ec_log_info("Done auto-deleting %s members", ObjectClassToName(objclass));
@@ -3090,15 +3083,8 @@ exit:
 		ec_log_info("Auto-deleting %s %d done. Error code 0x%08X", ObjectClassToName(objclass), ulObjectId, er);
 	else
 		ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
-	
-	if (lpDatabase) {
-		if (bTransaction && er != erSuccess)
-			lpDatabase->Rollback();
-
-		if (lpResult)
-			lpDatabase->FreeResult(lpResult);
-	}
-
+	if (lpDatabase != nullptr && bTransaction && er != erSuccess)
+		lpDatabase->Rollback();
 	return er;
 }
 
@@ -4217,7 +4203,7 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 {
     ECRESULT er = erSuccess;
     ECDatabase *lpDatabase = NULL;
-    DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     std::string strQuery;
     unsigned int ulActive = 0;
@@ -4272,10 +4258,7 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 		m_usercount_ts = time(NULL);
 	}
 exit:
-    if(lpResult)
-        lpDatabase->FreeResult(lpResult);
-
-    return er;
+	return er;
 }
 
 ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)

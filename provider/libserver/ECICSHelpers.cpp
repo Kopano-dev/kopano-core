@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <utility>
 #include <kopano/zcdefs.h>
 #include <memory>
 #include <kopano/platform.h>
@@ -566,7 +566,7 @@ ECGetContentChangesHelper::ECGetContentChangesHelper(struct soap *soap,
 ECRESULT ECGetContentChangesHelper::Init()
 {
 	ECRESULT	er = erSuccess;
-	DB_RESULT	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow;
 	std::string	strQuery;
 
@@ -594,9 +594,6 @@ ECRESULT ECGetContentChangesHelper::Init()
 	
 	if (lpDBRow[0])
 		m_ulMaxFolderChange = atoui(lpDBRow[0]);
-	
-	m_lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
 
 	// Here we setup the classes to delegate specific work to	
 	if (m_ulChangeId == 0) {
@@ -670,9 +667,6 @@ ECRESULT ECGetContentChangesHelper::Init()
 	}
 		
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
  
@@ -685,7 +679,7 @@ ECGetContentChangesHelper::~ECGetContentChangesHelper()
 ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 {
 	ECRESULT er;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	std::string		strQuery;
 	unsigned int	ulChanges = 0;
 
@@ -698,7 +692,6 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 		if (er != erSuccess)
 			return er;
 	} else {
-		lpDBResult = NULL;
 		ulChanges = 0;
 	}
 		
@@ -711,7 +704,7 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 	m_lpChanges->__ptr = (icsChange*)soap_malloc(m_soap, sizeof *m_lpChanges->__ptr * ulChanges);
 	m_lpChanges->__size = 0;
 	assert(lppDBResult != NULL);
-	*lppDBResult = lpDBResult;
+	*lppDBResult = std::move(lpDBResult);
 	return erSuccess;
 }
 
@@ -816,7 +809,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	std::string					strQuery;
 	unsigned int				ulMaxChange = 0;
 	unsigned int				ulNewChange = 0;
-	DB_RESULT					lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW						lpDBRow;
 	
 	assert(lppChanges != NULL);
@@ -893,9 +886,6 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 			setChangeIds.insert(atoui(lpDBRow[0]));
 		}
 
-		m_lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
-
 		if (!setChangeIds.empty()) {
 			std::set<unsigned int> setDeleteIds;
 			
@@ -960,9 +950,6 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	*lpulMaxChange = ulMaxChange;
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-		
 	return er;
 }
 
@@ -1060,7 +1047,7 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 	ECRESULT		er = erSuccess;
 	std::string		strSubQuery;
 	std::string		strQuery;
-	DB_RESULT		lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
 	DB_LENGTHS		lpDBLen;
 	
@@ -1089,9 +1076,6 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 	}
 	
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 

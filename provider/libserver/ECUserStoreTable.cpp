@@ -188,7 +188,7 @@ ECRESULT ECUserStoreTable::Load() {
 	ECRESULT er = erSuccess;
 	ECListIntIterator i;
     ECDatabase *lpDatabase = NULL;
-    DB_RESULT 	lpDBResult = NULL;
+	DB_RESULT lpDBResult;
     DB_ROW		lpDBRow = NULL;
     DB_LENGTHS	lpDBLength = NULL;
 	std::string strQuery;
@@ -324,11 +324,6 @@ ECRESULT ECUserStoreTable::Load() {
 	LoadRows(&lstObjIds, 0);
 
 exit:	
-	if (lpDBResult) {
-		lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
-	}
-
 	return er;
 }
 

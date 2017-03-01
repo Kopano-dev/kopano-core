@@ -175,7 +175,7 @@ ECRESULT ECTPropsPurge::PurgeOverflowDeferred(ECDatabase *lpDatabase)
 ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int *lpulCount)
 {
     ECRESULT er = erSuccess;
-    DB_RESULT lpResult = NULL; 
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     
     er = lpDatabase->DoSelect("SELECT count(*) FROM deferredupdate", &lpResult);
@@ -192,10 +192,7 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int *l
     *lpulCount = atoui(lpRow[0]);
     
 exit:
-    if(lpResult)
-        lpDatabase->FreeResult(lpResult);
-        
-    return er;    
+        return er;    
 }
 
 /**
@@ -211,7 +208,7 @@ exit:
 ECRESULT ECTPropsPurge::GetLargestFolderId(ECDatabase *lpDatabase, unsigned int *lpulFolderId)
 {
     ECRESULT er = erSuccess;
-    DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
     
     er = lpDatabase->DoSelect("SELECT folderid, COUNT(*) as c FROM deferredupdate GROUP BY folderid ORDER BY c DESC LIMIT 1", &lpResult);
@@ -227,8 +224,6 @@ ECRESULT ECTPropsPurge::GetLargestFolderId(ECDatabase *lpDatabase, unsigned int 
     
     *lpulFolderId = atoui(lpRow[0]);
 exit:
-	if (lpResult != NULL)
-		lpDatabase->FreeResult(lpResult);
 	return er;
 }
 
@@ -247,7 +242,7 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulAffected;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 
 	std::string strQuery;
@@ -271,17 +266,10 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	strQuery = "SELECT id FROM hierarchy WHERE id IN(";
 	strQuery += strIn;
 	strQuery += ") FOR UPDATE";
-
-	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
-
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
 			
-	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
-
 	strQuery = "REPLACE INTO tproperties (folderid, hierarchyid, tag, type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo) ";
 	strQuery += "SELECT " + stringify(ulFolderId) + ", p.hierarchyid, p.tag, p.type, val_ulong, LEFT(val_string, " + stringify(TABLE_CAP_STRING) + "), LEFT(val_binary, " + stringify(TABLE_CAP_BINARY) + "), val_double, val_longint, val_hi, val_lo FROM properties AS p FORCE INDEX(primary) JOIN deferredupdate FORCE INDEX(folderid) ON deferredupdate.hierarchyid=p.hierarchyid WHERE tag NOT IN(0x1009, 0x1013) AND deferredupdate.folderid = " + stringify(ulFolderId);
 
@@ -298,15 +286,13 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	g_lpStatsCollector->Increment(SCN_DATABASE_MERGED_RECORDS, (int)ulAffected);
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
 	return er;
 }
 
 ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int *lpulCount)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	unsigned int ulCount = 0;
 	std::string strQuery;
@@ -326,9 +312,6 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ul
 	*lpulCount = ulCount;
 	
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-		
 	return er;
 }
 

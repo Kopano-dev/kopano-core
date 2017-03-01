@@ -119,7 +119,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 	ECRESULT		er = erSuccess;
 		
 	ECDatabase *	lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLenths = NULL;
 	std::string		strQuery;
@@ -148,11 +148,6 @@ ECRESULT ECSessionManager::LoadSettings(){
 	m_lpServerGuid = new GUID;
 
 	memcpy(m_lpServerGuid, lpDBRow[0], sizeof(GUID));
-
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
-
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment'";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
@@ -168,9 +163,6 @@ ECRESULT ECSessionManager::LoadSettings(){
 	memcpy(&m_ullSourceKeyAutoIncrement, lpDBRow[0], sizeof(m_ullSourceKeyAutoIncrement));
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -1463,7 +1455,7 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 {
 	ECRESULT		er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 
@@ -1491,9 +1483,6 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 	*lpLcid = strtoul(lpDBRow[0], NULL, 10);
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 

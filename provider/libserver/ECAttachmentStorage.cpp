@@ -169,7 +169,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag, UL
 {	
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 
 	strQuery =
@@ -195,9 +195,6 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag, UL
 		*lpulInstanceId = atoi(lpDBRow[0]);
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -215,7 +212,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 {
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	std::list<ULONG> lstInstanceIds;
 
@@ -252,9 +249,6 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 	lstAttachIds->swap(lstInstanceIds);
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -299,7 +293,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId, std::
 {
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	std::list<ULONG> lstObjIds;
 
@@ -324,9 +318,6 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId, std::
 	lplstObjIds->swap(lstObjIds);
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -342,7 +333,7 @@ ECRESULT ECAttachmentStorage::IsOrphanedSingleInstance(ULONG ulInstanceId, bool 
 {
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 
 	strQuery =
@@ -363,9 +354,6 @@ ECRESULT ECAttachmentStorage::IsOrphanedSingleInstance(ULONG ulInstanceId, bool 
 	*bOrphan = (!lpDBRow || !lpDBRow[0]);
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -381,7 +369,7 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ULONG> 
 {
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 
 	strQuery =
@@ -419,9 +407,6 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ULONG> 
 	}
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -840,7 +825,7 @@ bool ECDatabaseAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
 {
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 
 	strQuery = "SELECT instanceid FROM lob WHERE instanceid = " + stringify(ulInstanceId) + " LIMIT 1";
@@ -857,9 +842,6 @@ bool ECDatabaseAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
 		er = KCERR_NOT_FOUND;
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
 	return er == erSuccess;
 }
 
@@ -880,7 +862,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 	size_t iReadSize = 0;
 	unsigned char *lpData = NULL;
 	std::string strQuery;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpDBLen = NULL;
 
@@ -900,9 +882,6 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 	}
 
 	iSize = strtoul(lpDBRow[0], NULL, 0);
-
-	m_lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
 
 	// get all chunks
 	strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId) + " ORDER BY chunkid";
@@ -935,10 +914,6 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 exit:
 	if (er != erSuccess && !soap)
 		delete [] lpData;
-
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -956,7 +931,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t
 	ECRESULT er = erSuccess;
 	size_t iReadSize = 0;
 	std::string strQuery;
-	DB_RESULT lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpDBLen = NULL;
 
@@ -990,9 +965,6 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t
 	*lpiSize = iReadSize;
 
 exit:
-	if (lpDBResult)
-		m_lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -1149,7 +1121,7 @@ ECRESULT ECDatabaseAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulS
 {
 	ECRESULT er = erSuccess; 
 	std::string strQuery; 
-	DB_RESULT lpDBResult = NULL; 
+	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL; 
  	 
 	strQuery = "SELECT SUM(LENGTH(val_binary)) FROM lob WHERE instanceid = " + stringify(ulInstanceId);
@@ -1171,9 +1143,6 @@ ECRESULT ECDatabaseAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulS
 		*lpbCompressed = false;
  	 
 exit: 
-	if (lpDBResult) 
-		m_lpDatabase->FreeResult(lpDBResult); 
-
 	return er; 
 }
 

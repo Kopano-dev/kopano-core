@@ -334,7 +334,7 @@ ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *
 	ECRESULT		er = erSuccess;
 	string			strQuery;
 	ECDatabase*		lpDatabase = NULL;
-	DB_RESULT		lpDBResult	= NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
 	ULONG			ulChangeId = 0;
 
@@ -381,9 +381,6 @@ ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *
 	er = m_lpSessionGroup->AddChangeNotification(m_sessionID, ulConnection, lpSyncState->ulSyncId, ulChangeId);
 
 exit:
-	 if (lpDBResult)
-		 lpDatabase->FreeResult(lpDBResult);
-
 	Unlock();
 
 	return er;

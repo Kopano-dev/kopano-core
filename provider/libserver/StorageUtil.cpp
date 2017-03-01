@@ -86,7 +86,7 @@ ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 ECRESULT GetObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned int* lpulSize)
 {
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	unsigned int	ulSize = 0;
 	std::string		strQuery;
@@ -108,23 +108,15 @@ ECRESULT GetObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned in
 	}
 
 	ulSize = atoi(lpDBRow[0]);
-
-	// Free results
-	if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
-
 	*lpulSize = ulSize;
 exit:
-	// Free results
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
 ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigned int ulObjType, unsigned int* lpulSize)
 {
 	ECRESULT		er = erSuccess;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	unsigned int	ulSize = 0;
 	std::string		strQuery;
@@ -162,9 +154,6 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 		ulSize += ulAttachSize;
 	}
 
-	// Free results
-	if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
-
 	// Calculate also mv-props
 	strQuery = "SELECT SUM(20 + LENGTH(IFNULL(val_string, 0))+length(IFNULL(val_binary, 0))) FROM mvproperties WHERE hierarchyid=" + stringify(objid);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -175,9 +164,6 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	if(lpDBRow != NULL && lpDBRow[0] != NULL)
 		ulSize += atoui(lpDBRow[0]); // Add the size
 
-	// Free results
-	if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
-
 	// Get parent sizes
 	strQuery = "SELECT SUM(IFNULL(p.val_ulong, 0)) FROM hierarchy as h JOIN properties AS p ON hierarchyid=h.id WHERE h.parent=" + stringify(objid)+ " AND ((p.tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE)) + ") || (p.tag="+stringify(PROP_ID(PR_ATTACH_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_ATTACH_SIZE))+ "))";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -187,17 +173,9 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if(lpDBRow != NULL && lpDBRow[0] != NULL)
 		ulSize += atoui(lpDBRow[0]); // Add the size
-
-	// Free results
-	if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
-
 	*lpulSize = ulSize;
 
 exit:
-	// Free results
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 

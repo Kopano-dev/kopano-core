@@ -125,7 +125,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	ECRESULT er = erSuccess;
 
 	std::string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 
 	nameidkey_t key(guid, ulNameId);
@@ -170,9 +170,6 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	m_mapNameIds.insert(nameidmap_t::value_type(key, *lpulId));
 
 exit:
-	if (lpResult)
-		m_lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -181,7 +178,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	ECRESULT er = erSuccess;
 
 	std::string strQuery;
-	DB_RESULT lpResult = NULL;
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 
 	namestringkey_t key(guid, strNameString);
@@ -226,9 +223,6 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	m_mapNameStrings.insert(namestringmap_t::value_type(key, *lpulId));
 
 exit:
-	if (lpResult)
-		m_lpDatabase->FreeResult(lpResult);
-
 	return er;
 }
 
@@ -736,7 +730,7 @@ static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
 {
 	ECRESULT er = erSuccess;
 	DB_ROW 			lpDBRow = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	string strQuery;
 
 	strQuery = "SELECT tag FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag IN (0x1009, 0x1013) ORDER BY tag LIMIT 1";
@@ -751,9 +745,6 @@ static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
 		*lpstrBestBody = "0";
 		
  exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }
 
@@ -770,7 +761,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 	DB_ROW 			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	std::string		strQuery;
 	object_ptr<ECMemStream> lpStream;
 	object_ptr<IStream> lpIStream;
@@ -861,8 +852,6 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 exit:
 	delete lpTempSink;
-	if (lpDatabase != nullptr && lpDBResult != nullptr)
-		lpDatabase->FreeResult(lpDBResult);
 	if (soap) {
 		soap_destroy(soap);
 		soap_end(soap);
@@ -905,8 +894,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 
 	DB_ROW 			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
-	DB_RESULT		lpDBResult = NULL;
-	DB_RESULT		lpDBResultAttachment = NULL;
+	DB_RESULT lpDBResult, lpDBResultAttachment;
 	std::string		strQuery;
 	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
@@ -1057,9 +1045,6 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 				if (er != erSuccess)
 					goto exit;
 			}
-			
-			lpStreamDatabase->FreeResult(lpDBResultAttachment);
-			lpDBResultAttachment = NULL;
 		}
 
 	}
@@ -1070,12 +1055,6 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 exit:
 	if (er != erSuccess)
 		ec_log_err("SerializeObject failed with error code 0x%08x for object %d", er, ulObjId );
-	if (lpDBResult)
-		lpStreamDatabase->FreeResult(lpDBResult);
-		
-	if (lpDBResultAttachment)
-	 	lpStreamDatabase->FreeResult(lpDBResultAttachment);
-	 	
 	FreeChildProps(&mapChildProps);
 		
 	return er;
@@ -1325,8 +1304,7 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 	std::string		strColName;
 
 	SOURCEKEY		sSourceKey;
-
-	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 
 	std::set<unsigned int>				setInserted;
@@ -1410,8 +1388,6 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 				goto exit;
 
 			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-			lpDatabase->FreeResult(lpDBResult); 
-			lpDBResult = NULL;
 
 			// We can't use lpDBRow here except for checking if it was NULL.
 			if (lpDBRow != NULL)

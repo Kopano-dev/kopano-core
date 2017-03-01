@@ -82,20 +82,12 @@ public:
 	 */
     DB_RESULT_AUTOFREE(ECDatabase *lpDatabase) {
         m_lpDatabase = lpDatabase;
-        m_lpResult = NULL;
-    };
-
-    ~DB_RESULT_AUTOFREE() {
-        if(m_lpDatabase && m_lpResult)
-            m_lpDatabase->FreeResult(m_lpResult);
     };
 
 	/**
 	 * Cast DB_RESULT_AUTOFREE to DB_RESULT
 	 */
-    operator DB_RESULT () const {
-        return m_lpResult;
-    };
+	operator DB_RESULT &(void) { return m_lpResult; }
 
 	/**
 	 * Obtain reference to DB_RESULT
@@ -106,9 +98,7 @@ public:
 	 */
     DB_RESULT * operator & () {
         // Assume overwrite will happen soon
-        if(m_lpDatabase && m_lpResult)
-            m_lpDatabase->FreeResult(m_lpResult);
-        m_lpResult = NULL;
+        m_lpResult = DB_RESULT();
         return &m_lpResult;
     };
 
