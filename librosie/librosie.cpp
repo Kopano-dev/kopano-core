@@ -15,10 +15,8 @@
 
 namespace KC {
 
-typedef std::map<std::string, std::set<std::string> > attr_map_type;
-
 static std::set<std::string> rosie_good_tags;
-static attr_map_type rosie_good_attrs;
+static std::map<std::string, std::set<std::string> > rosie_good_attrs;
 
 static pthread_mutex_t rosie_initlock = PTHREAD_MUTEX_INITIALIZER;
 static bool rosie_inited = false;
@@ -153,7 +151,7 @@ static void rosie_init(void)
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(attributes); ++i) {
-		attr_map_type::iterator it = rosie_good_attrs.find(attributes[i].tag);
+		auto it = rosie_good_attrs.find(attributes[i].tag);
 
 		if (it != rosie_good_attrs.end()) {
 			it->second.insert(attributes[i].attribute);
@@ -178,8 +176,7 @@ static bool rosie_reject_tag(const char *const tag)
 
 static bool rosie_reject_attr(const char *tag, const char *const attr)
 {
-	attr_map_type::iterator it = rosie_good_attrs.find(tag);
-
+	auto it = rosie_good_attrs.find(tag);
 	if (it == rosie_good_attrs.end())
 		return true;
 
