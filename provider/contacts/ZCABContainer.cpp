@@ -1030,7 +1030,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 			ECOrRestriction resFind;
 			static const ULONG ulSearchTags[] = {PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_ORIGINAL_DISPLAY_NAME};
 
-			for (ULONG j = 0; j < arraySize(ulSearchTags); ++j) {
+			for (size_t j = 0; j < ARRAY_SIZE(ulSearchTags); ++j) {
 				sProp.ulPropTag = CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType);
 				resFind += ECContentRestriction(ulResFlag, CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType), &sProp, ECRestriction::Cheap);
 			}

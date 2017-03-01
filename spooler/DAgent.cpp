@@ -3194,7 +3194,7 @@ static void *HandlerLMTP(void *lpArg)
 						for (const auto &recip : server.second) {
 							WCHAR wbuffer[4096];
 							for (const auto i : recip->vwstrRecipients) {
-								swprintf(wbuffer, arraySize(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
+								swprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
 								mapRecipientResults.insert(make_pair<std::string, std::string>(converter.convert_to<std::string>(i),
 									// rawsize([N]) returns N, not contents len, so cast to fix
 									converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR)));

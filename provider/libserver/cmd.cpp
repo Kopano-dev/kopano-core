@@ -2227,7 +2227,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	struct propVal  sPropVal;
 	// block removal of certain properties (per object type?), properties handled in WriteProps
 	unsigned int ulPropTags[] = {PR_MESSAGE_FLAGS, PR_CREATION_TIME, PR_LAST_MODIFICATION_TIME, PR_LAST_MODIFIER_ENTRYID, PR_LAST_MODIFIER_NAME_W, PR_SOURCE_KEY};
-	set<unsigned int> setNotDeletable(ulPropTags, ulPropTags + arraySize(ulPropTags));
+	std::set<unsigned int> setNotDeletable(ulPropTags, ulPropTags + ARRAY_SIZE(ulPropTags));
 
 	// Delete one or more properties of an object
 	for (gsoap_size_t i = 0; i < lpsPropTags->__size; ++i) {
@@ -5440,7 +5440,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 		goto exit;
 		
     now = time(NULL);
-    for (unsigned int i = 0; i < arraySize(timeProps); ++i) {
+    for (size_t i = 0; i < ARRAY_SIZE(timeProps); ++i) {
         sProp.ulPropTag = timeProps[i];
         sProp.__union = SOAP_UNION_propValData_hilo;
         sProp.Value.hilo = &sHilo;
@@ -8835,10 +8835,10 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 
 	if (ulTypeId == MAPI_ABCONT) {
 		lpProps = sPropsContainerRoot;
-		ulProps = arraySize(sPropsContainerRoot);
+		ulProps = ARRAY_SIZE(sPropsContainerRoot);
 	} else if (ulTypeId == MAPI_MAILUSER || ulTypeId == MAPI_DISTLIST) {
 		lpProps = sProps;
-		ulProps = arraySize(sProps);
+		ulProps = ARRAY_SIZE(sProps);
 	} else {
 		return KCERR_INVALID_PARAMETER;
 	}

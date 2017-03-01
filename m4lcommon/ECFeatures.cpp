@@ -33,7 +33,7 @@ namespace KC {
  */
 bool isFeature(const char* feature)
 {
-	for (size_t i = 0; i < arraySize(kopano_features); ++i)
+	for (size_t i = 0; i < ARRAY_SIZE(kopano_features); ++i)
 		if (strcasecmp(feature, kopano_features[i]) == 0)
 			return true;
 	return false;

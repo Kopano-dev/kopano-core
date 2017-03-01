@@ -371,7 +371,7 @@ ECRESULT ECDatabase::InitLibrary(const char *lpDatabaseDir,
 	 * mysql's function signature stinks, and even their samples
 	 * do the cast :(
 	 */
-	if ((ret = mysql_library_init(arraySize(server_args),
+	if ((ret = mysql_library_init(ARRAY_SIZE(server_args),
 	     const_cast<char **>(server_args),
 	     const_cast<char **>(server_groups))) != 0) {
 		ec_log_crit("Unable to initialize mysql: error 0x%08X", ret);
@@ -394,7 +394,7 @@ ECRESULT ECDatabase::InitializeDBStateInner(void)
 {
 	ECRESULT er;
 
-	for (unsigned int i = 0; i < arraySize(stored_procedures); ++i) {
+	for (size_t i = 0; i < ARRAY_SIZE(stored_procedures); ++i) {
 		er = DoUpdate(std::string("DROP PROCEDURE IF EXISTS ") + stored_procedures[i].szName);
 		if(er != erSuccess)
 			return er;

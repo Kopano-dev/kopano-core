@@ -1136,7 +1136,7 @@ ECRESULT LocaleIdToLCID(const char *lpszLocaleID, ULONG *lpulLcid)
 	assert(lpszLocaleID != NULL);
 	assert(lpulLcid != NULL);
 
-	for (unsigned i = 0; !lpMapEntry && i < arraySize(localeMap); ++i)
+	for (size_t i = 0; lpMapEntry == nullptr && i < ARRAY_SIZE(localeMap); ++i)
 		if (strcasecmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
 			lpMapEntry = &localeMap[i];
 
@@ -1151,7 +1151,7 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
 	const struct localemap *lpMapEntry = NULL;
 	assert(lppszLocaleID != NULL);
 
-	for (unsigned i = 0; !lpMapEntry && i < arraySize(localeMap); ++i)
+	for (size_t i = 0; lpMapEntry == nullptr && i < ARRAY_SIZE(localeMap); ++i)
 		if (localeMap[i].ulLCID == ulLcid)
 			lpMapEntry = &localeMap[i];
 
