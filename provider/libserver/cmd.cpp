@@ -4728,7 +4728,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 
         // Check permission
         for (auto parent_id : setParents) {
-            er = lpecSession->GetSecurity()->CheckPermission(ulParent, ecSecurityRead);
+            er = lpecSession->GetSecurity()->CheckPermission(parent_id, ecSecurityRead);
             if(er != erSuccess)
                 goto exit;
         }
