@@ -104,10 +104,11 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
         FreeProws((LPSRowSet)$1);
 }
 
-%typemap(in)				MAPISTRUCT
+%typemap(in)				MAPISTRUCT (KCHL::memory_ptr<std::remove_const<std::remove_pointer<$type>::type>::type> tmp)
 {
-	$1 = Object_to$mangle($input);
+        tmp.reset(Object_to$mangle($input));
 	if(PyErr_Occurred()) goto fail;
+        $1 = tmp;
 }
 
 %typemap(in)				SYSTEMTIME
@@ -116,17 +117,20 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 	if(PyErr_Occurred()) goto fail;
 }
 
-%typemap(in)				MAPISTRUCT_W_FLAGS
+// we cannot use ulFlags during conversion, as it may not have been converted yet (use arginit for ulFlags?)
+
+%typemap(in)				MAPISTRUCT_W_FLAGS (PyObject *tmpobj)
 {
-	$1 = ($1_type)$input;
+       tmpobj = $input;
 }
 
-%typemap(check)				MAPISTRUCT_W_FLAGS
+%typemap(check)                                MAPISTRUCT_W_FLAGS (KCHL::memory_ptr<std::remove_const<std::remove_pointer<$type>::type>::type> tmp)
 {
-	$1 = Object_to$mangle((PyObject*)$1, ulFlags);
-	if(PyErr_Occurred()) {
-		%argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
-	}
+       tmp.reset(Object_to$mangle(tmpobj$argnum, ulFlags));
+       if(PyErr_Occurred()) {
+               %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
+       }
+       $1 = tmp;
 }
 
 // Output
