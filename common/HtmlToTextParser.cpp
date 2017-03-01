@@ -188,7 +188,7 @@ bool CHtmlToTextParser::parseEntity(const WCHAR* &lpwHTML)
 			base = 16;
 		}
 
-		for (int i = 0; isxdigit(*lpwHTML) && *lpwHTML != ';' && i < 10; ++i) {
+		for (int i = 0; iswxdigit(*lpwHTML) && *lpwHTML != ';' && i < 10; ++i) {
 			entity += *lpwHTML;
 			++lpwHTML;
 		}
