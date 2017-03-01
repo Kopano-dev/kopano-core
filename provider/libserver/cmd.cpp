@@ -109,8 +109,6 @@ namespace KC {
 extern ECSessionManager*	g_lpSessionManager;
 extern ECStatsCollector*	g_lpStatsCollector;
 
-}
-
 // Hold the status of the softdelete purge system
 static bool g_bPurgeSoftDeleteStatus = FALSE;
 
@@ -357,8 +355,6 @@ static ECRESULT PeerIsServer(struct soap *soap,
 	*lpbResult = bResult;
 	return erSuccess;
 }
-
-namespace KC {
 
 /**
  * Get the best server path for a server
