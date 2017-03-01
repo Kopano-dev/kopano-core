@@ -160,7 +160,7 @@ void ICalToMapiImpl::Clean()
 HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZparam, IMailUser *lpMailUser, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-	icalcomp_ptr_autoconv lpicCalendar;
+	icalcomp_ptr lpicCalendar;
 	icalcomponent *lpicComponent = NULL;
 	TIMEZONE_STRUCT ttTimeZone = {0};
 	timezone_map tzMap;
@@ -201,21 +201,21 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 		return hrSuccess;
 	}
 
-	if (icalcomponent_isa(lpicCalendar) != ICAL_VCALENDAR_COMPONENT &&
-	    icalcomponent_isa(lpicCalendar) != ICAL_XROOT_COMPONENT)
+	if (icalcomponent_isa(lpicCalendar.get()) != ICAL_VCALENDAR_COMPONENT &&
+	    icalcomponent_isa(lpicCalendar.get()) != ICAL_XROOT_COMPONENT)
 		return MAPI_E_INVALID_OBJECT;
 
-	m_ulErrorCount = icalcomponent_count_errors(lpicCalendar);
+	m_ulErrorCount = icalcomponent_count_errors(lpicCalendar.get());
 
 	// * find all timezone's, place in map
-	lpicComponent = icalcomponent_get_first_component(lpicCalendar, ICAL_VTIMEZONE_COMPONENT);
+	lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
 	while (lpicComponent) {
 		hr = HrParseVTimeZone(lpicComponent, &strTZID, &ttTimeZone);
 		if (hr != hrSuccess)
 			/* log warning? */ ;
 		else
 			tzMap[strTZID] = ttTimeZone;
-		lpicComponent = icalcomponent_get_next_component(lpicCalendar, ICAL_VTIMEZONE_COMPONENT);
+		lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
 	}
 
 	// ICal file did not send any timezone information
@@ -227,7 +227,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	}
 
 	// find all "messages" vevent, vtodo, vjournal, ...?
-	lpicComponent = icalcomponent_get_first_component(lpicCalendar, ICAL_ANY_COMPONENT);
+	lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
 	while (lpicComponent) {
 		std::unique_ptr<VConverter> lpVEC;
 		auto type = icalcomponent_isa(lpicComponent);
@@ -262,7 +262,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 			break;
 		case ICAL_VEVENT_COMPONENT:
 		case ICAL_VTODO_COMPONENT:
-			hr = lpVEC->HrICal2MAPI(lpicCalendar, lpicComponent, previtem, &item);			
+			hr = lpVEC->HrICal2MAPI(lpicCalendar.get(), lpicComponent, previtem, &item);
 			break;
 		default:
 			break;
@@ -274,7 +274,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 			previtem = item;
 		}
 next:
-		lpicComponent = icalcomponent_get_next_component(lpicCalendar, ICAL_ANY_COMPONENT);
+		lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
 	}
 	hr = hrSuccess;
 

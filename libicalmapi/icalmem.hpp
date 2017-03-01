@@ -15,11 +15,4 @@ class icalmapi_delete {
 typedef std::unique_ptr<icalcomponent, icalmapi_delete> icalcomp_ptr;
 typedef std::unique_ptr<char[], icalmapi_delete> icalmem_ptr;
 
-class icalcomp_ptr_autoconv :
-    public std::unique_ptr<icalcomponent, icalmapi_delete> {
-	public:
-	using std::unique_ptr<icalcomponent, icalmapi_delete>::unique_ptr;
-	operator icalcomponent *(void) const { return get(); }
-};
-
 #endif /* ICALMEM_HPP */
