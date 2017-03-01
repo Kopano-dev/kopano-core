@@ -571,30 +571,28 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	if (hr != hrSuccess)
 		return hr;
 
-	lpMods->aEntries->rgPropVals[0].ulPropTag = PR_ENTRYID;
-	lpMods->aEntries->rgPropVals[0].Value.bin = lpSrcPropValue[RR_REPORT_ENTRYID].Value.bin;
-	lpMods->aEntries->rgPropVals[1].ulPropTag = PR_ADDRTYPE_W;
-	lpMods->aEntries->rgPropVals[1].Value.lpszW = (WCHAR*)strType.c_str();
-	lpMods->aEntries->rgPropVals[2].ulPropTag = PR_DISPLAY_NAME_W;
-	lpMods->aEntries->rgPropVals[2].Value.lpszW = (WCHAR*)strName.c_str();
-	lpMods->aEntries->rgPropVals[3].ulPropTag = PR_TRANSMITABLE_DISPLAY_NAME_W;
-	lpMods->aEntries->rgPropVals[3].Value.lpszW = (WCHAR*)strName.c_str();
-	lpMods->aEntries->rgPropVals[4].ulPropTag = PR_SMTP_ADDRESS_W;
-	lpMods->aEntries->rgPropVals[4].Value.lpszW = (WCHAR*)strAddress.c_str();
-	lpMods->aEntries->rgPropVals[5].ulPropTag = PR_EMAIL_ADDRESS_W;
-	lpMods->aEntries->rgPropVals[5].Value.lpszW = (WCHAR*)strAddress.c_str();
-	
+	auto &pv = lpMods->aEntries->rgPropVals;
+	pv[0].ulPropTag = PR_ENTRYID;
+	pv[0].Value.bin = lpSrcPropValue[RR_REPORT_ENTRYID].Value.bin;
+	pv[1].ulPropTag = PR_ADDRTYPE_W;
+	pv[1].Value.lpszW = const_cast<wchar_t *>(strType.c_str());
+	pv[2].ulPropTag = PR_DISPLAY_NAME_W;
+	pv[2].Value.lpszW = const_cast<wchar_t *>(strName.c_str());
+	pv[3].ulPropTag = PR_TRANSMITABLE_DISPLAY_NAME_W;
+	pv[3].Value.lpszW = const_cast<wchar_t *>(strName.c_str());
+	pv[4].ulPropTag = PR_SMTP_ADDRESS_W;
+	pv[4].Value.lpszW = const_cast<wchar_t *>(strAddress.c_str());
+	pv[5].ulPropTag = PR_EMAIL_ADDRESS_W;
+	pv[5].Value.lpszW = const_cast<wchar_t *>(strAddress.c_str());
 	hr = HrCreateEmailSearchKey((LPSTR)strType.c_str(), (LPSTR)strAddress.c_str(), &cbTmp, &~lpByteTmp);
 	if (hr != hrSuccess)
 		return hr;
 
-	lpMods->aEntries->rgPropVals[6].ulPropTag = PR_SEARCH_KEY;
-	lpMods->aEntries->rgPropVals[6].Value.bin.cb = cbTmp;
-	lpMods->aEntries->rgPropVals[6].Value.bin.lpb = lpByteTmp;
-
-	lpMods->aEntries->rgPropVals[7].ulPropTag = PR_RECIPIENT_TYPE;
-	lpMods->aEntries->rgPropVals[7].Value.ul = MAPI_TO;
-	
+	pv[6].ulPropTag = PR_SEARCH_KEY;
+	pv[6].Value.bin.cb = cbTmp;
+	pv[6].Value.bin.lpb = lpByteTmp;
+	pv[7].ulPropTag = PR_RECIPIENT_TYPE;
+	pv[7].Value.ul = MAPI_TO;
 	lpMods->aEntries->cValues = 8;
 
 	hr = (*lppEmptyMessage)->ModifyRecipients(MODRECIP_ADD, lpMods);

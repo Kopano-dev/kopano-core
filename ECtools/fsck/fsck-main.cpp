@@ -298,12 +298,13 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 
 	lpMods->cEntries = 0;
 	for (const auto &recip : mapiReciptDel) {
-		lpMods->aEntries[lpMods->cEntries].cValues = 1;
-		hr = MAPIAllocateMore(sizeof(SPropValue), lpMods, reinterpret_cast<void **>(&lpMods->aEntries[lpMods->cEntries].rgPropVals));
+		auto &ent = lpMods->aEntries[lpMods->cEntries];
+		ent.cValues = 1;
+		hr = MAPIAllocateMore(sizeof(SPropValue), lpMods, reinterpret_cast<void **>(&ent.rgPropVals));
 		if (hr != hrSuccess)
 			return hr;
-		lpMods->aEntries[lpMods->cEntries].rgPropVals->ulPropTag = PR_ROWID;
-		lpMods->aEntries[lpMods->cEntries++].rgPropVals->Value.ul = recip;
+		ent.rgPropVals->ulPropTag = PR_ROWID;
+		ent.rgPropVals->Value.ul = recip;
 	}
 
 	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, lpMods.get());

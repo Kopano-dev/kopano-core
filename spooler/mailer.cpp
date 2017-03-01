@@ -1071,40 +1071,31 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 			ulPropModsPos = 0;
 			lpMods->cEntries = cEntries;
 
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos].ulPropTag = PR_RECIPIENT_TYPE;
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.ul = MAPI_TO;
-
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos].ulPropTag = PR_EMAIL_ADDRESS_A;
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
-
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos].ulPropTag = PR_ADDRTYPE_W;
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos].ulPropTag = PR_DISPLAY_NAME_W;
-
+			auto &pv = lpMods->aEntries[cEntries].rgPropVals;
+			pv[ulPropModsPos].ulPropTag = PR_RECIPIENT_TYPE;
+			pv[ulPropModsPos++].Value.ul = MAPI_TO;
+			pv[ulPropModsPos].ulPropTag = PR_EMAIL_ADDRESS_A;
+			pv[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
+			pv[ulPropModsPos].ulPropTag = PR_ADDRTYPE_W;
+			pv[ulPropModsPos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
+			pv[ulPropModsPos].ulPropTag = PR_DISPLAY_NAME_W;
 			if (!cur.strRecipName.empty())
-				lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.lpszW = const_cast<wchar_t *>(cur.strRecipName.c_str());
+				pv[ulPropModsPos++].Value.lpszW = const_cast<wchar_t *>(cur.strRecipName.c_str());
 			else
-				lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.lpszW = converter.convert_to<wchar_t *>(cur.strRecipEmail);
+				pv[ulPropModsPos++].Value.lpszW = converter.convert_to<wchar_t *>(cur.strRecipEmail);
 
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos].ulPropTag = PR_REPORT_TEXT_A;
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strSMTPResponse.c_str());
-
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos].ulPropTag = PR_REPORT_TIME;
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.ft = ft;
-
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos].ulPropTag = PR_TRANSMITABLE_DISPLAY_NAME_A;
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
-
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos].ulPropTag = 0x0C200003; // PR_NDR_STATUS_CODE;
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.ul = cur.ulSMTPcode;
-
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos].ulPropTag = PR_NDR_DIAG_CODE;
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.ul = MAPI_DIAG_MAIL_RECIPIENT_UNKNOWN;
-
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos].ulPropTag = PR_NDR_REASON_CODE;
-			lpMods->aEntries[cEntries].rgPropVals[ulPropModsPos++].Value.ul = MAPI_REASON_TRANSFER_FAILED;
-
+			pv[ulPropModsPos].ulPropTag = PR_REPORT_TEXT_A;
+			pv[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strSMTPResponse.c_str());
+			pv[ulPropModsPos].ulPropTag = PR_REPORT_TIME;
+			pv[ulPropModsPos++].Value.ft = ft;
+			pv[ulPropModsPos].ulPropTag = PR_TRANSMITABLE_DISPLAY_NAME_A;
+			pv[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
+			pv[ulPropModsPos].ulPropTag = 0x0C200003; // PR_NDR_STATUS_CODE;
+			pv[ulPropModsPos++].Value.ul = cur.ulSMTPcode;
+			pv[ulPropModsPos].ulPropTag = PR_NDR_DIAG_CODE;
+			pv[ulPropModsPos++].Value.ul = MAPI_DIAG_MAIL_RECIPIENT_UNKNOWN;
+			pv[ulPropModsPos].ulPropTag = PR_NDR_REASON_CODE;
+			pv[ulPropModsPos++].Value.ul = MAPI_REASON_TRANSFER_FAILED;
 			lpMods->aEntries[cEntries].cValues = ulPropModsPos;
 			++cEntries;
 		}
