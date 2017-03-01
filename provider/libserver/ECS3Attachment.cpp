@@ -65,7 +65,7 @@ W(get_object)
  */
 S3Status ECS3Attachment::response_prop_cb(const S3ResponseProperties *properties, void *cbdata)
 {
-	struct s3_cdw *data = reinterpret_cast<struct s3_cdw *>(cbdata);
+	auto data = static_cast<struct s3_cdw *>(cbdata);
 	return data->caller->response_prop(properties, data->cbdata);
 }
 
@@ -79,7 +79,7 @@ S3Status ECS3Attachment::response_prop_cb(const S3ResponseProperties *properties
 void ECS3Attachment::response_complete_cb(S3Status status,
     const S3ErrorDetails *error, void *cbdata)
 {
-	struct s3_cdw *data = reinterpret_cast<struct s3_cdw *>(cbdata);
+	auto data = static_cast<struct s3_cdw *>(cbdata);
 	return data->caller->response_complete(status, error, data->cbdata);
 }
 
@@ -94,7 +94,7 @@ void ECS3Attachment::response_complete_cb(S3Status status,
  */
 S3Status ECS3Attachment::get_obj_cb(int bufferSize, const char *buffer, void *cbdata)
 {
-	struct s3_cdw *data = reinterpret_cast<struct s3_cdw *>(cbdata);
+	auto data = static_cast<struct s3_cdw *>(cbdata);
 	return data->caller->get_obj(bufferSize, buffer, data->cbdata);
 }
 
@@ -109,7 +109,7 @@ S3Status ECS3Attachment::get_obj_cb(int bufferSize, const char *buffer, void *cb
  */
 int ECS3Attachment::put_obj_cb(int bufferSize, char *buffer, void *cbdata)
 {
-	struct s3_cdw *data = reinterpret_cast<struct s3_cdw *>(cbdata);
+	auto data = static_cast<struct s3_cdw *>(cbdata);
 	return data->caller->put_obj(bufferSize, buffer, data->cbdata);
 }
 
@@ -254,7 +254,7 @@ ECS3Attachment::~ECS3Attachment(void)
  */
 S3Status ECS3Attachment::response_prop(const S3ResponseProperties *properties, void *cbdata)
 {
-	struct s3_cd *data = reinterpret_cast<struct s3_cd *>(cbdata);
+	auto data = static_cast<struct s3_cd *>(cbdata);
 
 	if (properties->contentLength != 0) {
 		data->size = properties->contentLength;
@@ -289,7 +289,7 @@ S3Status ECS3Attachment::response_prop(const S3ResponseProperties *properties, v
 void ECS3Attachment::response_complete(S3Status status,
     const S3ErrorDetails *error, void *cbdata)
 {
-	struct s3_cd *data = reinterpret_cast<struct s3_cd *>(cbdata);
+	auto data = static_cast<struct s3_cd *>(cbdata);
 	data->status = status;
 
 	ec_log_debug("Response completed: %s.", DY_get_status_name(status));
@@ -322,7 +322,7 @@ void ECS3Attachment::response_complete(S3Status status,
  */
 S3Status ECS3Attachment::get_obj(int bufferSize, const char *buffer, void *cbdata)
 {
-	struct s3_cd *data = reinterpret_cast<struct s3_cd *>(cbdata);
+	auto data = static_cast<struct s3_cd *>(cbdata);
 	ECRESULT er;
 	/*
 	 * Check if we were able to acquire the memory. There are two cases
@@ -367,7 +367,7 @@ S3Status ECS3Attachment::get_obj(int bufferSize, const char *buffer, void *cbdat
  */
 int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
 {
-	struct s3_cd *data = reinterpret_cast<struct s3_cd *>(cbdata);
+	auto data = static_cast<struct s3_cd *>(cbdata);
 	ECRESULT ret;
 	int toRead = 0, remaining = 0;
 
