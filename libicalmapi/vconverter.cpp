@@ -875,74 +875,74 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 	// @todo: maybe save/restore headers to get "original" ical again?
 	
 	// add X-MICROSOFT-CDO & X-MOZ properties
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);	
-	while (lpicProp) {
+	for (auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
+	     lpicProp != nullptr;
+	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
+	{
 		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ATTENDEE-CRITICAL-CHANGE") == 0){
 
 			lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
+			if (lpicValue == nullptr)
+				continue;
 			ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ATTENDEECRITICALCHANGE], PT_SYSTIME);
 			UnixTimeToFileTime(ttCritcalChange, &sPropVal.Value.ft);
 			lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-			if (lpicValue)
-				icalvalue_free(lpicValue);
+			icalvalue_free(lpicValue);
 
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE") == 0){
 			
 			lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
+			if (lpicValue == nullptr)
+				continue;
 			ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME);
 			UnixTimeToFileTime(ttCritcalChange, &sPropVal.Value.ft);
 			lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-			if (lpicValue)
-				icalvalue_free(lpicValue);
+			icalvalue_free(lpicValue);
 
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-OWNERAPPTID") == 0){
 			
 			lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
+			if (lpicValue == nullptr)
+				continue;
 			sPropVal.ulPropTag = PR_OWNER_APPT_ID;
 			sPropVal.Value.ul = icalvalue_get_integer(lpicValue);
 			lpIcalItem->lstMsgProps.push_back(sPropVal);
 			bOwnerApptID = true;
-
-			if (lpicValue)
-				icalvalue_free(lpicValue);
+			icalvalue_free(lpicValue);
 
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-APPT-SEQUENCE") == 0){
 			
 			lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
+			if (lpicValue == nullptr)
+				continue;
 			ulMaxCounter = std::max(ulMaxCounter, icalvalue_get_integer(lpicValue));
 			bHaveCounter = true;
-
-			if (lpicValue)
-				icalvalue_free(lpicValue);
+			icalvalue_free(lpicValue);
 
 		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-GENERATION") == 0) {
 
 			lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
+			if (lpicValue == nullptr)
+				continue;
 			ulMaxCounter = std::max(ulMaxCounter, icalvalue_get_integer(lpicValue));
 			bHaveCounter = bMozGen = true;
-
-			if (lpicValue)
-				icalvalue_free(lpicValue);
+			icalvalue_free(lpicValue);
 
 		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-SEND-INVITATIONS") == 0) {
 
 			lpicValue =  icalvalue_new_from_string(ICAL_X_VALUE, icalproperty_get_x(lpicProp));
+			if (lpicValue == nullptr)
+				continue;
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZSENDINVITE], PT_BOOLEAN);
 			const char *x = icalvalue_get_x(lpicValue);
 			if (x == NULL)
 				x = "";
 			sPropVal.Value.b = strcmp(x, "TRUE") ? 0 : 1;
 			lpIcalItem->lstMsgProps.push_back(sPropVal);
-			
-			if (lpicValue)
-				icalvalue_free(lpicValue);
+			icalvalue_free(lpicValue);
 		}
-
-		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
 	}
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_SEQUENCE_PROPERTY);
