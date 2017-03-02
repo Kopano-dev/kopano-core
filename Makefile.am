@@ -39,7 +39,8 @@ AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare -fvisibility=hidden \
 # target programs
 #
 bin_PROGRAMS = kopano-fsck kopano-passwd kopano-stats
-dist_bin_SCRIPTS = ECtools/utils/kopano-set-oof
+dist_bin_SCRIPTS = ECtools/migration-imap/kopano-migration-imap \
+	ECtools/utils/kopano-set-oof
 sbin_PROGRAMS = \
 	kopano-admin kopano-archiver kopano-dagent kopano-gateway kopano-ical \
 	kopano-monitor kopano-server kopano-spooler
