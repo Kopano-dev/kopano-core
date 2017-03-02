@@ -175,7 +175,7 @@ HRESULT PyMapiPlugin::Init(ECLogger *lpLogger, PyObject *lpModMapiPlugin, const 
 	// Init plugin class	
 	ptrClass.reset(PyObject_GetAttrString(lpModMapiPlugin, /*char* */lpPluginManagerClassName));
 	PY_HANDLE_ERROR(m_lpLogger, ptrClass);
-	ptrArgs.reset(Py_BuildValue("(sO)", lpPluginPath, *ptrPyLogger));
+	ptrArgs.reset(Py_BuildValue("(sO)", lpPluginPath, ptrPyLogger.get()));
 	PY_HANDLE_ERROR(m_lpLogger, ptrArgs);
 	m_ptrMapiPluginManager.reset(PyObject_CallObject(ptrClass, ptrArgs));
 	PY_HANDLE_ERROR(m_lpLogger, m_ptrMapiPluginManager);
@@ -216,7 +216,10 @@ HRESULT PyMapiPlugin::MessageProcessing(const char *lpFunctionName, IMAPISession
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyMessage, lpMessage, type_p_IMessage)
 
 	// Call the python function and get the (hr) return code back
-	PY_CALL_METHOD(m_ptrMapiPluginManager, (char*)lpFunctionName, PY_PARSE_TUPLE_HELPER("I", lpulResult), "OOOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrPyFolderInbox, *ptrPyMessage);
+	PY_CALL_METHOD(m_ptrMapiPluginManager, const_cast<char *>(lpFunctionName),
+		PY_PARSE_TUPLE_HELPER("I", lpulResult), "OOOOO",
+		ptrPySession.get(), ptrPyAddrBook.get(), ptrPyStore.get(),
+		ptrPyFolderInbox.get(), ptrPyMessage.get());
 	return hr;
 }
 
@@ -244,7 +247,10 @@ HRESULT PyMapiPlugin::RulesProcessing(const char *lpFunctionName, IMAPISession *
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyStore, lpMsgStore, type_p_IMsgStore)
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrEMTIn, lpEMTRules, type_p_IExchangeModifyTable)
 
-	PY_CALL_METHOD(m_ptrMapiPluginManager, ((char*)lpFunctionName), PY_PARSE_TUPLE_HELPER("I", lpulResult), "OOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrEMTIn);
+	PY_CALL_METHOD(m_ptrMapiPluginManager, const_cast<char *>(lpFunctionName),
+		PY_PARSE_TUPLE_HELPER("I", lpulResult), "OOOO",
+		ptrPySession.get(), ptrPyAddrBook.get(), ptrPyStore.get(),
+		ptrEMTIn.get());
 	return hr;
 }
 
@@ -266,7 +272,10 @@ HRESULT PyMapiPlugin::RequestCallExecution(const char *lpFunctionName, IMAPISess
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrFolder, lpFolder, type_p_IMAPIFolder)
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrMessage, lpMessage, type_p_IMessage)
 
-	PY_CALL_METHOD(m_ptrMapiPluginManager, ((char*)lpFunctionName), PY_PARSE_TUPLE_HELPER("I|I", lpulResult, lpulDoCallexe), "OOOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrFolder, *ptrMessage);
+	PY_CALL_METHOD(m_ptrMapiPluginManager, const_cast<char *>(lpFunctionName),
+		PY_PARSE_TUPLE_HELPER("I|I", lpulResult, lpulDoCallexe), "OOOOO",
+		ptrPySession.get(), ptrPyAddrBook.get(), ptrPyStore.get(),
+		ptrFolder.get(), ptrMessage.get());
 	return hr;
 }
 
