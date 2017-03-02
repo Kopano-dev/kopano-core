@@ -1768,15 +1768,14 @@ bool Util::ValidatePropTagArray(const SPropTagArray *lpPropTagArray)
  */
 HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 	HRESULT hr = hrSuccess;
-	ECMemStream *lpMemStream = NULL;
+	object_ptr<ECMemStream> lpMemStream;
 	ULONG ulRead = 0;
 	char buffer[BUFSIZE];
 	LARGE_INTEGER zero = {{0,0}};
 
-	if (sInput->QueryInterface(IID_ECMemStream, (LPVOID*)&lpMemStream) == hrSuccess) {
+	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
 		strOutput.append(lpMemStream->GetBuffer(), lpMemStream->GetSize());
-		lpMemStream->Release();
 		return hr;
 	}
 	// manual copy
@@ -1805,15 +1804,14 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
  */
 HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 	HRESULT hr = hrSuccess;
-	ECMemStream *lpMemStream = NULL;
+	object_ptr<ECMemStream> lpMemStream;
 	ULONG ulRead = 0;
 	char buffer[BUFSIZE];
 	LARGE_INTEGER zero = {{0,0}};
 
-	if (sInput->QueryInterface(IID_ECMemStream, (LPVOID*)&lpMemStream) == hrSuccess) {
+	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
 		strOutput.append((WCHAR*)lpMemStream->GetBuffer(), lpMemStream->GetSize() / sizeof(WCHAR));
-		lpMemStream->Release();
 		return hr;
 	}
 	// manual copy
