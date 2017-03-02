@@ -45,8 +45,7 @@
 	pyswigobj = SWIG_TypeQuery(type); \
 	if (!pyswigobj) {\
 		assert(false);\
-		hr = S_FALSE;\
-		goto exitm;\
+		return S_FALSE;\
 	}\
 }
 
@@ -107,7 +106,7 @@ static HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
 #define PY_HANDLE_ERROR(logger, pyobj) { \
 	hr = PyHandleError(logger, pyobj);\
 	if (hr != hrSuccess) \
-		goto exitm; \
+		return hr; \
 }
 
 #define PY_CALL_METHOD(pluginmanager, functionname, returnmacro, format, ...) {\
@@ -180,7 +179,6 @@ HRESULT PyMapiPlugin::Init(ECLogger *lpLogger, PyObject *lpModMapiPlugin, const 
 	PY_HANDLE_ERROR(m_lpLogger, ptrArgs);
 	m_ptrMapiPluginManager.reset(PyObject_CallObject(ptrClass, ptrArgs));
 	PY_HANDLE_ERROR(m_lpLogger, m_ptrMapiPluginManager);
- exitm:
 	return hr;
 }
 
@@ -219,7 +217,6 @@ HRESULT PyMapiPlugin::MessageProcessing(const char *lpFunctionName, IMAPISession
 
 	// Call the python function and get the (hr) return code back
 	PY_CALL_METHOD(m_ptrMapiPluginManager, (char*)lpFunctionName, PY_PARSE_TUPLE_HELPER("I", lpulResult), "OOOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrPyFolderInbox, *ptrPyMessage);
- exitm:
 	return hr;
 }
 
@@ -248,7 +245,6 @@ HRESULT PyMapiPlugin::RulesProcessing(const char *lpFunctionName, IMAPISession *
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrEMTIn, lpEMTRules, type_p_IExchangeModifyTable)
 
 	PY_CALL_METHOD(m_ptrMapiPluginManager, ((char*)lpFunctionName), PY_PARSE_TUPLE_HELPER("I", lpulResult), "OOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrEMTIn);
- exitm:
 	return hr;
 }
 
@@ -271,7 +267,6 @@ HRESULT PyMapiPlugin::RequestCallExecution(const char *lpFunctionName, IMAPISess
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrMessage, lpMessage, type_p_IMessage)
 
 	PY_CALL_METHOD(m_ptrMapiPluginManager, ((char*)lpFunctionName), PY_PARSE_TUPLE_HELPER("I|I", lpulResult, lpulDoCallexe), "OOOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrFolder, *ptrMessage);
- exitm:
 	return hr;
 }
 
@@ -322,7 +317,6 @@ HRESULT PyMapiPluginFactory::Init(ECConfig* lpConfig, ECLogger *lpLogger)
 	ptrName.reset(PyString_FromString("mapiplugin"));
 	m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
 	PY_HANDLE_ERROR(m_lpLogger, m_ptrModMapiPlugin);
- exitm:
 	return hr;
 }
 
