@@ -370,17 +370,15 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 	// error message creation
 	object_ptr<IAddrBook> lpAddrBook;
 	ECSender *lpMailer = NULL;
+	std::unique_lock<std::mutex> lock(hMutexFinished);
 
-	hMutexFinished.lock();
-	if (mapFinished.empty()) {
-		hMutexFinished.unlock();
+	if (mapFinished.empty())
 		return hr;
-	}
 
 	// copy map contents and clear it, so hMutexFinished can be unlocked again asap
 	finished = mapFinished;
 	mapFinished.clear();
-	hMutexFinished.unlock();
+	lock.unlock();
 	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Cleaning %d messages from queue", (int)finished.size());
 
 	// process finished entries
@@ -846,15 +844,14 @@ static void process_signal(int sig)
 		}
 		break;
 
-	case SIGUSR2:
+	case SIGUSR2: {
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Spooler stats:");
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Running threads: %zu", mapSendData.size());
-		hMutexFinished.lock();
+		std::lock_guard<std::mutex> l(hMutexFinished);
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Finished threads: %zu", mapFinished.size());
-		hMutexFinished.unlock();
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Disconnects: %d", disconnects);
 		break;
-
+	}
 	default:
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unknown signal %d received", sig);
 		break;
