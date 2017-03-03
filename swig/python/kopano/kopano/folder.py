@@ -67,13 +67,14 @@ else:
 class Folder(object):
     """Folder class"""
 
-    def __init__(self, store, entryid=None, associated=False, deleted=False, mapiobj=None): # XXX entryid not hex-encoded!?
-        self.store = store
-        self.server = store.server
+    def __init__(self, store=None, entryid=None, associated=False, deleted=False, mapiobj=None): # XXX entryid not hex-encoded!?
+        if store:
+            self.store = store
+            self.server = store.server
         if mapiobj:
             self.mapiobj = mapiobj
             self._entryid = HrGetOneProp(self.mapiobj, PR_ENTRYID).Value
-        else:
+        elif entryid:
             self._entryid = entryid
             try:
                 self.mapiobj = store.mapiobj.OpenEntry(entryid, IID_IMAPIFolder, MAPI_MODIFY)
@@ -82,6 +83,7 @@ class Folder(object):
             except MAPIErrorNoAccess: # XXX XXX
                 self.mapiobj = store.mapiobj.OpenEntry(entryid, IID_IMAPIFolder, 0)
         self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
+        self._sourcekey = None
 
     @property
     def entryid(self):
@@ -91,7 +93,9 @@ class Folder(object):
 
     @property
     def sourcekey(self):
-        return bin2hex(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
+        if not self._sourcekey:
+            self._sourcekey = bin2hex(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
+        return self._sourcekey
 
     @property
     def parent(self):
@@ -487,6 +491,12 @@ class Folder(object):
             state = codecs.encode(8 * b'\0', 'hex').upper()
         importer.store = self.store
         return _utils.sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
+
+    def hierarchy_sync(self, importer, state=None):
+        if state is None:
+            state = codecs.encode(8 * b'\0', 'hex').upper()
+        importer.store = self.store
+        return _utils.hierarchy_sync(self.store.server, self.mapiobj, importer, state)
 
     def readmbox(self, location):
         for message in mailbox.mbox(location):

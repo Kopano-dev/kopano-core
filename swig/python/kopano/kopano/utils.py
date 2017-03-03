@@ -28,7 +28,8 @@ from MAPI import (
     MNID_ID, MNID_STRING, KEEP_OPEN_READWRITE, MAPI_UNICODE,
     SYNC_NORMAL, SYNC_ASSOCIATED, SYNC_CATCHUP, SYNC_UNICODE, IStream,
     STREAM_SEEK_SET, RELOP_GE, RELOP_LT, PT_ERROR,
-    MAPI_E_NOT_ENOUGH_MEMORY, MAPI_E_NOT_FOUND, ROW_ADD
+    MAPI_E_NOT_ENOUGH_MEMORY, MAPI_E_NOT_FOUND, ROW_ADD,
+    ECImportHierarchyChanges
 )
 from MAPI.Defs import (
     PpropFindProp, bin2hex, PROP_TYPE, CHANGE_PROP_TYPE, HrGetOneProp
@@ -38,12 +39,13 @@ from MAPI.Tags import (
     PR_EC_HIERARCHYID, PR_STORE_RECORD_KEY, PR_RTF_COMPRESSED,
     PR_CONTENTS_SYNCHRONIZER, PR_MESSAGE_DELIVERY_TIME, PR_BODY_W,
     PR_HTML, PR_RTF_IN_SYNC, PR_NULL, PR_ACL_TABLE, PR_MEMBER_ENTRYID,
-    PR_MEMBER_RIGHTS
+    PR_MEMBER_RIGHTS, PR_HIERARCHY_SYNCHRONIZER
 )
 from MAPI.Tags import (
     IID_IExchangeImportContentsChanges, IID_IECImportContentsChanges,
     IID_IStream, IID_IExchangeExportChanges, IID_IECMessageRaw,
-    IID_IExchangeModifyTable
+    IID_IExchangeModifyTable, IID_IExchangeImportHierarchyChanges,
+    IID_IECImportHierarchyChanges
 )
 from MAPI.Struct import (
     MAPIError, MAPIErrorNotFound, MAPIErrorNoAccess,
@@ -54,11 +56,12 @@ from MAPI.Struct import (
 from MAPI.Time import unixtime
 
 from .defs import NAMESPACE_GUID
-from .compat import is_int as _is_int, unhex as _unhex
+from .compat import is_int as _is_int, unhex as _unhex, hex as _hex
 from .errors import Error, NotFoundError
 
 if sys.hexversion >= 0x03000000:
     from . import item as _item
+    from . import folder as _folder
     from . import store as _store
     from . import prop as _prop
     from . import table as _table
@@ -69,6 +72,7 @@ if sys.hexversion >= 0x03000000:
     from . import log as _log
 else:
     import item as _item
+    import folder as _folder
     import store as _store
     import prop as _prop
     import table as _table
@@ -77,6 +81,25 @@ else:
     import group as _group
     import service as _service
     import log as _log
+
+class TrackingHierarchyImporter(ECImportHierarchyChanges):
+    def __init__(self, server, importer, log, stats):
+        ECImportHierarchyChanges.__init__(self, [IID_IExchangeImportHierarchyChanges, IID_IECImportHierarchyChanges])
+        self.importer = importer
+
+    def ImportFolderChange(self, props):
+        eid = _hex(PpropFindProp(props, PR_ENTRYID).Value)
+        folder = self.importer.store.folder(entryid=eid)
+        self.importer.update(folder)
+
+    def ImportFolderDeletion(self, flags, sourcekeys):
+        for sourcekey in sourcekeys:
+            folder = _folder.Folder(self.importer.store)
+            folder._sourcekey = _hex(sourcekey)
+            self.importer.delete(folder, flags)
+
+    def UpdateState(self, stream):
+        pass
 
 class TrackingContentsImporter(ECImportContentsChanges):
     def __init__(self, server, importer, log, stats):
@@ -250,6 +273,28 @@ def state(mapiobj, associated=False):
         steps, step = exporter.Synchronize(step)
     stream = IStream()
     exporter.UpdateState(stream)
+    stream.Seek(0, STREAM_SEEK_SET)
+    return bin2hex(stream.Read(0xFFFFF))
+
+def hierarchy_sync(server, syncobj, importer, state, log=None, stats=None):
+    importer = TrackingHierarchyImporter(server, importer, log, stats)
+    exporter = syncobj.OpenProperty(PR_HIERARCHY_SYNCHRONIZER, IID_IExchangeExportChanges, 0, 0)
+
+    stream = IStream()
+    stream.Write(_unhex(state))
+    stream.Seek(0, STREAM_SEEK_SET)
+
+    flags = SYNC_NORMAL | SYNC_UNICODE
+    exporter.Config(stream, flags, importer, None, None, None, 0)
+
+    step = 0
+    while True:
+        (steps, step) = exporter.Synchronize(step)
+        if (steps == step):
+            break
+
+    exporter.UpdateState(stream)
+
     stream.Seek(0, STREAM_SEEK_SET)
     return bin2hex(stream.Read(0xFFFFF))
 
