@@ -5,6 +5,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import atexit
 import datetime
 import os
 import time
@@ -62,6 +63,13 @@ else:
     import config as _config
     import utils as _utils
     import store as _store
+
+# avoid module-class-decorator-cache-store references, which are
+# somehow not dereferenced correctly (python bug?), resulting in
+# many valgrind errors
+def clear_cache():
+    Server._store2.cache_clear()
+atexit.register(clear_cache)
 
 def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     # used with permission from will mcgugan, https://www.willmcgugan.com
