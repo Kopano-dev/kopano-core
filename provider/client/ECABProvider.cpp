@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
@@ -51,9 +52,9 @@ ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
 HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)
 {
 	HRESULT hr = hrSuccess;
-
-	ECABProvider *lpECABProvider = new ECABProvider(0, "ECABProvider");
-
+	auto lpECABProvider = new(std::nothrow) ECABProvider(0, "ECABProvider");
+	if (lpECABProvider == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpECABProvider->QueryInterface(IID_ECABProvider, (void **)lppECABProvider);
 
 	if(hr != hrSuccess)

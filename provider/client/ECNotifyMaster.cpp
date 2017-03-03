@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 
 #include <algorithm>
+#include <new>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
@@ -78,9 +79,9 @@ HRESULT ECNotifyMaster::Create(SessionGroupData *lpData, ECNotifyMaster **lppMas
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::Create", "");
 
 	HRESULT hr = hrSuccess;
-	ECNotifyMaster *lpMaster = NULL;
-
-	lpMaster = new ECNotifyMaster(lpData);
+	auto lpMaster = new(std::nothrow) ECNotifyMaster(lpData);
+	if (lpMaster == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	lpMaster->AddRef();
 
 	*lppMaster = lpMaster;

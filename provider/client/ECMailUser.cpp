@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include "resource.h"
@@ -35,10 +36,9 @@ HRESULT ECMailUser::Create(void* lpProvider, BOOL fModify, ECMailUser** lppMailU
 {
 
 	HRESULT hr = hrSuccess;
-	ECMailUser *lpMailUser = NULL;
-
-	lpMailUser = new ECMailUser(lpProvider, fModify);
-
+	auto lpMailUser = new(std::nothrow) ECMailUser(lpProvider, fModify);
+	if (lpMailUser == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpMailUser->QueryInterface(IID_ECMailUser, (void **)lppMailUser);
 
 	if(hr != hrSuccess)

@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <mapi.h>
@@ -50,7 +51,9 @@ ECXPProvider::~ECXPProvider()
 }
 
 HRESULT ECXPProvider::Create(ECXPProvider **lppECXPProvider) {
-	ECXPProvider *lpECXPProvider = new ECXPProvider();
+	auto lpECXPProvider = new(std::nothrow) ECXPProvider;
+	if (lpECXPProvider == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto ret = lpECXPProvider->QueryInterface(IID_ECXPProvider,
 	           reinterpret_cast<void **>(lppECXPProvider));
 	if (ret != hrSuccess)

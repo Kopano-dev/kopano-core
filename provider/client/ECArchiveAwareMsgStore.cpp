@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECArchiveAwareMsgStore.h"
@@ -31,9 +31,11 @@ ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(char *lpszProfname, LPMAPISUP lpS
 HRESULT ECArchiveAwareMsgStore::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
 	HRESULT hr = hrSuccess;
-	auto lpStore = new ECArchiveAwareMsgStore(lpszProfname, lpSupport,
-	               lpTransport, fModify, ulProfileFlags, fIsSpooler,
-	               fIsDefaultStore, bOfflineStore);
+	auto lpStore = new(std::nothrow) ECArchiveAwareMsgStore(lpszProfname,
+	               lpSupport, lpTransport, fModify, ulProfileFlags,
+	               fIsSpooler, fIsDefaultStore, bOfflineStore);
+	if (lpStore == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
 
 	if(hr != hrSuccess)

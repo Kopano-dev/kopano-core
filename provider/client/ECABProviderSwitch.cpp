@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
@@ -48,7 +48,9 @@ ECABProviderSwitch::ECABProviderSwitch(void) : ECUnknown("ECABProviderSwitch")
 HRESULT ECABProviderSwitch::Create(ECABProviderSwitch **lppECABProvider)
 {
 	HRESULT hr = hrSuccess;
-	auto lpECABProvider = new ECABProviderSwitch;
+	auto lpECABProvider = new(std::nothrow) ECABProviderSwitch;
+	if (lpECABProvider == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpECABProvider->QueryInterface(IID_ECABProvider, (void **)lppECABProvider);
 
 	if(hr != hrSuccess)

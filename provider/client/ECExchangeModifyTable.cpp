@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <new>
 #include <utility>
 #include <kopano/memory.hpp>
 #include "WSUtil.h"
@@ -120,7 +121,9 @@ HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, UL
 	hr = lpecTable->HrSetClean();
 	if(hr != hrSuccess)
 		return hr;
-	obj = new ECExchangeModifyTable(PR_MEMBER_ID, lpecTable, lpParent, ulUniqueId, ulFlags);
+	obj = new(std::nothrow) ECExchangeModifyTable(PR_MEMBER_ID, lpecTable, lpParent, ulUniqueId, ulFlags);
+	if (obj == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = obj->QueryInterface(IID_IExchangeModifyTable,
 	     reinterpret_cast<void **>(lppObj));
 	if (hr != hrSuccess)
@@ -151,7 +154,9 @@ HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, 
 	if (lpParent != nullptr &&
 	    lpParent->OpenProperty(PR_RULES_DATA, &IID_IStream, 0, 0, &~lpRulesData) == hrSuccess) {
 		lpRulesData->Stat(&statRulesData, 0);
-		std::unique_ptr<char[]> szXML(new char [statRulesData.cbSize.LowPart+1]);
+		std::unique_ptr<char[]> szXML(new(std::nothrow) char[statRulesData.cbSize.LowPart+1]);
+		if (szXML == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		// TODO: Loop to read all data?
 		hr = lpRulesData->Read(szXML.get(), statRulesData.cbSize.LowPart, &ulRead);
 		if (hr != hrSuccess || ulRead == 0)
@@ -173,7 +178,9 @@ empty:
 	hr = ecTable->HrSetClean();
 	if(hr != hrSuccess)
 		return hr;
-	obj = new ECExchangeModifyTable(PR_RULE_ID, ecTable, lpParent, ulRuleId, ulFlags);
+	obj = new(std::nothrow) ECExchangeModifyTable(PR_RULE_ID, ecTable, lpParent, ulRuleId, ulFlags);
+	if (obj == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = obj->QueryInterface(IID_IExchangeModifyTable,
 	     reinterpret_cast<void **>(lppObj));
 	if (hr != hrSuccess)

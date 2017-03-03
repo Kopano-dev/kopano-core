@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include "ECArchiveAwareMsgStore.h"
 #include "ECArchiveAwareAttach.h"
@@ -74,7 +74,9 @@ ECArchiveAwareMessage::ECArchiveAwareMessage(ECArchiveAwareMsgStore *lpMsgStore,
 
 HRESULT	ECArchiveAwareMessage::Create(ECArchiveAwareMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, ECMessage **lppMessage)
 {
-	auto lpMessage = new ECArchiveAwareMessage(lpMsgStore, fNew, fModify, ulFlags);
+	auto lpMessage = new(std::nothrow) ECArchiveAwareMessage(lpMsgStore, fNew, fModify, ulFlags);
+	if (lpMessage == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto ret = lpMessage->QueryInterface(IID_ECMessage,
 	           reinterpret_cast<void **>(lppMessage));
 	if (ret != hrSuccess)

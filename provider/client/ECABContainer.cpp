@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include "kcore.hpp"
 
@@ -73,7 +73,9 @@ HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT	ECABContainer::Create(void* lpProvider, ULONG ulObjType, BOOL fModify, ECABContainer **lppABContainer)
 {
-	auto lpABContainer = new ECABContainer(lpProvider, ulObjType, fModify, "IABContainer");
+	auto lpABContainer = new(std::nothrow) ECABContainer(lpProvider, ulObjType, fModify, "IABContainer");
+	if (lpABContainer == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto ret = lpABContainer->QueryInterface(IID_ECABContainer,
 	           reinterpret_cast<void **>(lppABContainer));
 	if (ret != hrSuccess)

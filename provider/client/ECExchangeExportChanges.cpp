@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
@@ -103,12 +103,12 @@ HRESULT ECExchangeExportChanges::SetLogger(ECLogger *lpLogger)
 }
 
 HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, REFIID iid, const std::string& sourcekey, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges){
-	ECExchangeExportChanges *lpEEC = NULL;
-
 	if (lpStore == NULL || (ulSyncType != ICS_SYNC_CONTENTS && ulSyncType != ICS_SYNC_HIERARCHY))
 		return MAPI_E_INVALID_PARAMETER;
-
-	lpEEC = new ECExchangeExportChanges(lpStore, sourcekey, szDisplay, ulSyncType);
+	auto lpEEC = new(std::nothrow) ECExchangeExportChanges(lpStore,
+	             sourcekey, szDisplay, ulSyncType);
+	if (lpEEC == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto ret = lpEEC->QueryInterface(iid,
 	           reinterpret_cast<void **>(lppExchangeExportChanges));
 	if (ret != hrSuccess)

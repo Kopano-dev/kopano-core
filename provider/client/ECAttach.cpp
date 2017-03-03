@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
@@ -48,10 +48,9 @@ ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG 
 HRESULT ECAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach)
 {
 	HRESULT hr = hrSuccess;
-	ECAttach *lpAttach = NULL;
-
-	lpAttach = new ECAttach(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot);
-
+	auto lpAttach = new(std::nothrow) ECAttach(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot);
+	if (lpAttach == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpAttach->QueryInterface(IID_ECAttach, (void **)lppAttach);
 	if (hr != hrSuccess)
 		delete lpAttach;

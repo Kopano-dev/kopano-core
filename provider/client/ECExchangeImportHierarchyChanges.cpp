@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
@@ -55,7 +55,9 @@ HRESULT ECExchangeImportHierarchyChanges::Create(ECMAPIFolder *lpFolder, LPEXCHA
 
 	if(!lpFolder)
 		return MAPI_E_INVALID_PARAMETER;
-	auto lpEIHC = new ECExchangeImportHierarchyChanges(lpFolder);
+	auto lpEIHC = new(std::nothrow) ECExchangeImportHierarchyChanges(lpFolder);
+	if (lpEIHC == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto ret = lpEIHC->QueryInterface(IID_IExchangeImportHierarchyChanges,
 	           reinterpret_cast<void **>(lppExchangeImportHierarchyChanges));
 	if (ret != hrSuccess)

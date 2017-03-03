@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <new>
 #include <kopano/platform.h>
 #include "ECMsgStore.h"
 #include "WSStoreTableView.h"
@@ -45,10 +46,11 @@ HRESULT WSStoreTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
     WSTableView **lppTableView)
 {
 	HRESULT hr = hrSuccess;
-	WSStoreTableView *lpTableView = NULL; 
-
-	lpTableView = new WSStoreTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport);
-
+	auto lpTableView = new(std::nothrow) WSStoreTableView(ulType, ulFlags,
+	                   lpCmd, lpDataLock, ecSessionId, cbEntryId,
+	                   lpEntryId, lpMsgStore, lpTransport);
+	if (lpTableView == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpTableView->QueryInterface(IID_ECTableView, (void **) lppTableView);
 	
 	if(hr != hrSuccess)
@@ -165,10 +167,11 @@ HRESULT WSTableMisc::Create(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd,
     WSTableMisc **lppTableMisc)
 {
 	HRESULT hr = hrSuccess;
-	WSTableMisc *lpTableMisc = NULL;
-
-	lpTableMisc = new WSTableMisc(ulTableType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport);
-
+	auto lpTableMisc = new(std::nothrow) WSTableMisc(ulTableType, ulFlags,
+	                   lpCmd, lpDataLock, ecSessionId, cbEntryId,
+	                   lpEntryId, lpMsgStore, lpTransport);
+	if (lpTableMisc == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpTableMisc->QueryInterface(IID_ECTableView, (void **) lppTableMisc);
 	if (hr != hrSuccess)
 		delete lpTableMisc;
@@ -220,10 +223,10 @@ HRESULT WSTableMailBox::Create(ULONG ulFlags, KCmd *lpCmd,
     ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMailBox **lppTable)
 {
 	HRESULT hr = hrSuccess;
-	WSTableMailBox *lpTable = NULL; 
-
-	lpTable = new WSTableMailBox(ulFlags, lpCmd, lpDataLock, ecSessionId, lpMsgStore, lpTransport);
-
+	auto lpTable = new(std::nothrow) WSTableMailBox(ulFlags, lpCmd,
+	               lpDataLock, ecSessionId, lpMsgStore, lpTransport);
+	if (lpTable == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	//@todo add a new interface
 	hr = lpTable->QueryInterface(IID_ECTableView, (void **) lppTable);
 	

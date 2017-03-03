@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
@@ -70,8 +70,10 @@ HRESULT ECMemTablePublic::Create(ECMAPIFolderPublic *lpECParentFolder, ECMemTabl
 		PR_CONTENT_UNREAD, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY,
 		PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY,
 		PR_ACCESS, PR_ACCESS_LEVEL, PR_CONTAINER_CLASS}};
-	auto lpMemTable = new ECMemTablePublic(lpECParentFolder,
+	auto lpMemTable = new(std::nothrow) ECMemTablePublic(lpECParentFolder,
 		sPropsHierarchyColumns, PR_ROWID);
+	if (lpMemTable == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto ret = lpMemTable->QueryInterface(IID_ECMemTablePublic,
 	           reinterpret_cast<void **>(lppECMemTable));
 	if (ret != hrSuccess)

@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include "kcore.hpp"
@@ -51,10 +51,9 @@ HRESULT ECDistList::Create(void* lpProvider, BOOL fModify, ECDistList** lppDistL
 {
 
 	HRESULT hr = hrSuccess;
-	ECDistList *lpDistList = NULL;
-
-	lpDistList = new ECDistList(lpProvider, fModify);
-
+	auto lpDistList = new(std::nothrow) ECDistList(lpProvider, fModify);
+	if (lpDistList == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpDistList->QueryInterface(IID_ECDistList, (void **)lppDistList);
 
 	if(hr != hrSuccess)

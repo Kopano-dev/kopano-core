@@ -22,6 +22,7 @@
 #include <mapiutil.h>
 #include <edkguid.h>
 #include <list>
+#include <new>
 
 #include <kopano/ECGetText.h>
 
@@ -294,9 +295,11 @@ HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
     BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
     ECMsgStore **lppECMsgStore)
 {
-	auto lpStore = new ECMsgStore(lpszProfname, lpSupport, lpTransport,
-	               fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,
-	               bOfflineStore);
+	auto lpStore = new(std::nothrow) ECMsgStore(lpszProfname, lpSupport,
+	               lpTransport, fModify, ulProfileFlags, fIsSpooler,
+	               fIsDefaultStore, bOfflineStore);
+	if (lpStore == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	HRESULT hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
 
 	if(hr != hrSuccess)
@@ -345,7 +348,9 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store hierarchy", ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
 	    if (*lpiid == IID_IECExportAddressbookChanges) {
-			auto lpEEAC = new ECExportAddressbookChanges(this);
+			auto lpEEAC = new(std::nothrow) ECExportAddressbookChanges(this);
+			if (lpEEAC == nullptr)
+				return MAPI_E_NOT_ENOUGH_MEMORY;
 	        hr = lpEEAC->QueryInterface(*lpiid, (void **)lppUnk);
 			if (hr != hrSuccess) {
 				delete lpEEAC;
@@ -3195,7 +3200,9 @@ ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
 
 HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)
 {
-	auto lpLogon = new ECMSLogon(lpStore);
+	auto lpLogon = new(std::nothrow) ECMSLogon(lpStore);
+	if (lpLogon == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto ret = lpLogon->QueryInterface(IID_ECMSLogon,
 	           reinterpret_cast<void **>(lppECMSLogon));
 	if (ret != hrSuccess)

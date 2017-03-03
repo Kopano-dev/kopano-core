@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <new>
 #include <kopano/platform.h>
 #include "WSMAPIPropStorage.h"
 #include "Mem.h"
@@ -87,10 +88,12 @@ HRESULT WSMAPIPropStorage::Create(ULONG cbParentEntryId,
     WSTransport *lpTransport, WSMAPIPropStorage **lppPropStorage)
 {
 	HRESULT hr = hrSuccess;
-	WSMAPIPropStorage *lpStorage = NULL;
-	
-	lpStorage = new WSMAPIPropStorage(cbParentEntryId, lpParentEntryId, cbEntryId, lpEntryId, ulFlags, lpCmd, lpDataLock, ecSessionId, ulServerCapabilities, lpTransport);
-
+	auto lpStorage = new(std::nothrow) WSMAPIPropStorage(cbParentEntryId,
+	                 lpParentEntryId, cbEntryId, lpEntryId, ulFlags, lpCmd,
+	                 lpDataLock, ecSessionId, ulServerCapabilities,
+	                 lpTransport);
+	if (lpStorage == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpStorage->QueryInterface(IID_WSMAPIPropStorage, (void **)lppPropStorage);
 
 	if(hr != hrSuccess)

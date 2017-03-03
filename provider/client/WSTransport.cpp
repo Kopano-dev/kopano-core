@@ -24,7 +24,7 @@
 #include <mapiutil.h>
 
 #include <fstream>
-
+#include <new>
 #include <kopano/ECIConv.h>
 #include <kopano/ECLogger.h>
 #include "WSTransport.h"
@@ -112,10 +112,9 @@ HRESULT WSTransport::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT WSTransport::Create(ULONG ulUIFlags, WSTransport **lppTransport)
 {
 	HRESULT hr = hrSuccess;
-	WSTransport *lpTransport = NULL;
-
-	lpTransport = new WSTransport(ulUIFlags);
-
+	auto lpTransport = new(std::nothrow) WSTransport(ulUIFlags);
+	if (lpTransport == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpTransport->QueryInterface(IID_ECTransport, (void **) lppTransport);
 
 	if(hr != hrSuccess)

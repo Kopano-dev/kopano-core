@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECMsgStorePublic.h"
@@ -66,9 +66,11 @@ ECMsgStorePublic::~ECMsgStorePublic(void)
 
 HRESULT	ECMsgStorePublic::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore, ECMsgStore **lppECMsgStore) {
 	HRESULT hr = hrSuccess;
-	auto lpStore = new ECMsgStorePublic(lpszProfname, lpSupport,
-	               lpTransport, fModify, ulProfileFlags, fIsSpooler,
-	               bOfflineStore);
+	auto lpStore = new(std::nothrow) ECMsgStorePublic(lpszProfname,
+	               lpSupport, lpTransport, fModify, ulProfileFlags,
+	               fIsSpooler, bOfflineStore);
+	if (lpStore == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
 
 	if(hr != hrSuccess)

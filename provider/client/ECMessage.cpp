@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/mapi_ptr.h>
@@ -136,8 +136,10 @@ ECMessage::~ECMessage()
 
 HRESULT	ECMessage::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lppMessage)
 {
-	auto lpMessage = new ECMessage(lpMsgStore, fNew, fModify, ulFlags,
-	                 bEmbedded, lpRoot);
+	auto lpMessage = new(std::nothrow) ECMessage(lpMsgStore, fNew, fModify,
+	                 ulFlags, bEmbedded, lpRoot);
+	if (lpMessage == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto ret = lpMessage->QueryInterface(IID_ECMessage,
 	           reinterpret_cast<void **>(lppMessage));
 	if (ret != hrSuccess)

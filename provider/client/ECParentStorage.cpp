@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include "ECParentStorage.h"
@@ -56,9 +56,10 @@ HRESULT ECParentStorage::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECParentStorage::Create(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, ECParentStorage **lppParentStorage)
 {
-	ECParentStorage *lpParentStorage = NULL;
-
-	lpParentStorage = new ECParentStorage(lpParentObject, ulUniqueId, ulObjId, lpServerStorage);
+	auto lpParentStorage = new(std::nothrow)  ECParentStorage(lpParentObject,
+	                       ulUniqueId, ulObjId, lpServerStorage);
+	if (lpParentStorage == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto ret = lpParentStorage->QueryInterface(IID_ECParentStorage,
 	           reinterpret_cast<void **>(lppParentStorage)); //FIXME: Use other interface
 	if (ret != hrSuccess)

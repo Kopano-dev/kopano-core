@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
@@ -62,13 +62,11 @@ ECExchangeImportContentsChanges::~ECExchangeImportContentsChanges(){
 
 HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTCONTENTSCHANGES* lppExchangeImportContentsChanges){
 	HRESULT hr;
-	ECExchangeImportContentsChanges *lpEICC = NULL;
-
 	if(!lpFolder)
 		return MAPI_E_INVALID_PARAMETER;
-
-	lpEICC = new ECExchangeImportContentsChanges(lpFolder);
-
+	auto lpEICC = new(std::nothrow) ECExchangeImportContentsChanges(lpFolder);
+	if (lpEICC == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = HrGetOneProp(&lpFolder->m_xMAPIProp, PR_SOURCE_KEY, &lpEICC->m_lpSourceKey);
 	if (hr == hrSuccess)
 		/*

@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <mapi.h>
 #include <mapiutil.h>
@@ -62,7 +62,9 @@ ECMSProvider::~ECMSProvider()
 }
 
 HRESULT ECMSProvider::Create(ULONG ulFlags, ECMSProvider **lppECMSProvider) {
-	auto lpECMSProvider = new ECMSProvider(ulFlags, "IMSProvider");
+	auto lpECMSProvider = new(std::nothrow) ECMSProvider(ulFlags, "IMSProvider");
+	if (lpECMSProvider == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto ret = lpECMSProvider->QueryInterface(IID_ECMSProvider,
 	           reinterpret_cast<void **>(lppECMSProvider));
 	if (ret != hrSuccess)

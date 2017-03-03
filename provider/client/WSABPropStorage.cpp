@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <new>
 #include <kopano/platform.h>
 #include "WSABPropStorage.h"
 #include "Mem.h"
@@ -68,10 +69,10 @@ HRESULT WSABPropStorage::Create(ULONG cbEntryId, LPENTRYID lpEntryId,
     WSTransport *lpTransport, WSABPropStorage **lppPropStorage)
 {
 	HRESULT hr = hrSuccess;
-	WSABPropStorage *lpStorage = NULL;
-	
-	lpStorage = new WSABPropStorage(cbEntryId, lpEntryId, lpCmd, lpDataLock, ecSessionId, lpTransport);
-
+	auto lpStorage = new(std::nothrow) WSABPropStorage(cbEntryId, lpEntryId,
+	                 lpCmd, lpDataLock, ecSessionId, lpTransport);
+	if (lpStorage == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpStorage->QueryInterface(IID_WSABPropStorage, (void **)lppPropStorage);
 
 	if(hr != hrSuccess)
