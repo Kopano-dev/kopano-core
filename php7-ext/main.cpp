@@ -554,7 +554,7 @@ static int LoadSettingsFile(void)
 			{ NULL, NULL }
 		};
 
-                ECConfig *cfg = ECConfig::Create(settings);
+		auto cfg = ECConfig::Create(std::nothrow, settings);
                 if (!cfg)
 			return FAILURE;
 

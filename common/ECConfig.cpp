@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include "ECConfigImpl.h"
 #include <kopano/charset/convert.h>
 
@@ -25,6 +26,12 @@ ECConfig *ECConfig::Create(const configsetting_t *lpDefaults,
     const char *const *lpszDirectives)
 {
 	return new ECConfigImpl(lpDefaults, lpszDirectives);
+}
+
+ECConfig *ECConfig::Create(const std::nothrow_t &,
+    const configsetting_t *dfl, const char *const *direc)
+{
+	return new(std::nothrow) ECConfigImpl(dfl, direc);
 }
 
 bool ECConfig::LoadSettings(const wchar_t *szFilename)

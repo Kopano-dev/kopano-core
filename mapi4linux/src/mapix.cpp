@@ -106,7 +106,7 @@ static HRESULT HrCreateM4LServices(void)
 	configfile += _T("exchange-redirector.cfg");
 
 	if (!m4l_lpConfig) {
-		m4l_lpConfig = ECConfig::Create(settings);
+		m4l_lpConfig = ECConfig::Create(std::nothrow, settings);
 		if (!m4l_lpConfig)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		m4l_lpConfig->LoadSettings(configfile.c_str());
