@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "StreamUtil.h"
@@ -913,13 +913,13 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	er = lpStream->QueryInterface(IID_IStream, &~lpIStream);
 	if (er != erSuccess)
 		goto exit;
-	
-	lpTempSink = new ECStreamSerializer(lpIStream);
-
 	if (!lpAttachmentStorage) {
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
+	lpTempSink = new(std::nothrow) ECStreamSerializer(lpIStream);
+	if (lpTempSink == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 
 	// We'll (ab)use a soap structure as a memory pool.
 	soap = soap_new();

@@ -17,6 +17,7 @@
 #include <utility>
 #include <kopano/zcdefs.h>
 #include <memory>
+#include <new>
 #include <kopano/platform.h>
 #include <memory>
 #include <kopano/stringutil.h>
@@ -543,8 +544,10 @@ ECRESULT ECGetContentChangesHelper::Create(struct soap *soap, ECSession *lpSessi
 {
 	ECRESULT					er = erSuccess;
 	std::unique_ptr<ECGetContentChangesHelper> lpHelper(
-		new ECGetContentChangesHelper(soap, lpSession, lpDatabase,
+		new(std::nothrow) ECGetContentChangesHelper(soap, lpSession, lpDatabase,
 		sFolderSourceKey, ulSyncId, ulChangeId, ulFlags, lpsRestrict));
+	if (lpHelper == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	er = lpHelper->Init();
 	if (er != erSuccess)
 		return er;

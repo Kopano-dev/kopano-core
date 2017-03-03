@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <new>
 #include "kcore.hpp"
 #include <kopano/lockhelper.hpp>
 #include <kopano/kcodes.h>
@@ -97,8 +98,10 @@ ECABObjectTable::~ECABObjectTable()
 
 ECRESULT ECABObjectTable::Create(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale, ECABObjectTable **lppTable)
 {
-	*lppTable = new ECABObjectTable(lpSession, ulABId, ulABType, ulABParentId, ulABParentType, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECABObjectTable(lpSession, ulABId,
+	            ulABType, ulABParentId, ulABParentType, ulFlags, locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 
 	return erSuccess;

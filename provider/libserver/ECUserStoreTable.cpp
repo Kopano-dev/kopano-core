@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include "ECDatabase.h"
 
@@ -40,8 +40,9 @@ ECUserStoreTable::ECUserStoreTable(ECSession *lpSession, unsigned int ulFlags, c
 
 ECRESULT ECUserStoreTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECUserStoreTable **lppTable)
 {
-	*lppTable = new ECUserStoreTable(lpSession, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECUserStoreTable(lpSession, ulFlags, locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 
 	return erSuccess;

@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <new>
 #include <kopano/tie.hpp>
 #include "ECStatsTables.h"
 
@@ -68,8 +69,9 @@ ECSystemStatsTable::ECSystemStatsTable(ECSession *lpSession, unsigned int ulFlag
 ECRESULT ECSystemStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
     const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
-	*lppTable = new ECSystemStatsTable(lpSession, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECSystemStatsTable(lpSession, ulFlags, locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 
 	return erSuccess;
@@ -282,8 +284,9 @@ ECSessionStatsTable::ECSessionStatsTable(ECSession *lpSession, unsigned int ulFl
 ECRESULT ECSessionStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
     const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
-	*lppTable = new ECSessionStatsTable(lpSession, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECSessionStatsTable(lpSession, ulFlags, locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 
 	return erSuccess;
@@ -553,8 +556,9 @@ ECUserStatsTable::ECUserStatsTable(ECSession *lpSession, unsigned int ulFlags, c
 ECRESULT ECUserStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
     const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
-	*lppTable = new ECUserStatsTable(lpSession, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECUserStatsTable(lpSession, ulFlags, locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 
 	return erSuccess;
@@ -834,8 +838,9 @@ ECCompanyStatsTable::ECCompanyStatsTable(ECSession *lpSession, unsigned int ulFl
 ECRESULT ECCompanyStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
     const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
-	*lppTable = new ECCompanyStatsTable(lpSession, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECCompanyStatsTable(lpSession, ulFlags, locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 
 	return erSuccess;
@@ -1005,8 +1010,9 @@ ECServerStatsTable::ECServerStatsTable(ECSession *lpSession, unsigned int ulFlag
 ECRESULT ECServerStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
     const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
-	*lppTable = new ECServerStatsTable(lpSession, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECServerStatsTable(lpSession, ulFlags, locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 
 	return erSuccess;

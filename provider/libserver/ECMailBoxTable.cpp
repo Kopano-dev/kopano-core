@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include "ECDatabase.h"
 
@@ -39,8 +39,9 @@ ECMailBoxTable::ECMailBoxTable(ECSession *lpSession, unsigned int ulFlags, const
 
 ECRESULT ECMailBoxTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECMailBoxTable **lppTable)
 {
-	*lppTable = new ECMailBoxTable(lpSession, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECMailBoxTable(lpSession, ulFlags, locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 
 	return erSuccess;

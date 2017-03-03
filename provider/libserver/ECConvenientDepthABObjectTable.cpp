@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <new>
 #include <utility>
 #include <kopano/tie.hpp>
 #include "ECDatabase.h"
@@ -47,8 +48,11 @@ ECRESULT ECConvenientDepthABObjectTable::Create(ECSession *lpSession,
     unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale,
     ECABObjectTable **lppTable)
 {
-	*lppTable = new ECConvenientDepthABObjectTable(lpSession, ulABId, ulABType, ulABParentId, ulABParentType, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECConvenientDepthABObjectTable(lpSession,
+	            ulABId, ulABType, ulABParentId, ulABParentType, ulFlags,
+	            locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 
 	return erSuccess;
