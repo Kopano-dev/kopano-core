@@ -16,6 +16,7 @@
  */
 
 #include <chrono>
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include "MAPINotifSink.h"
@@ -195,7 +196,9 @@ static HRESULT CopyNotification(const NOTIFICATION *lpSrc, void *lpBase,
 
 HRESULT MAPINotifSink::Create(MAPINotifSink **lppSink)
 {
-	auto lpSink = new MAPINotifSink;
+	auto lpSink = new(std::nothrow) MAPINotifSink;
+	if (lpSink == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
     lpSink->AddRef();
     
     *lppSink = lpSink;

@@ -18,6 +18,7 @@
 #include "config.h"
 #include <kopano/platform.h>
 #include <memory>
+#include <new>
 #include <type_traits>
 #include <climits>
 #include "mapidefs.h"
@@ -221,6 +222,10 @@ int main(int argc, char **argv) {
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		g_lpLogger = new ECLogger_File(1, 0, "-", false);
+		if (g_lpLogger == nullptr) {
+			hr = MAPI_E_NOT_ENOUGH_MEMORY;
+			goto exit;
+		}
 		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig);
 		goto exit;

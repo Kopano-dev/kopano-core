@@ -17,6 +17,7 @@
 
 #include "config.h"
 #include <kopano/platform.h>
+#include <new>
 #include <climits>
 #include <csignal>
 #include <inetmapi/inetmapi.h>
@@ -377,6 +378,10 @@ int main(int argc, char *argv[]) {
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);	// create logger without a timestamp to stderr
+		if (g_lpLogger == nullptr) {
+			hr = MAPI_E_NOT_ENOUGH_MEMORY;
+			goto exit;
+		}
 		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig);
 		hr = E_FAIL;

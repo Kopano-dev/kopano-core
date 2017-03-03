@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ArchiverSession.h"
@@ -51,8 +51,9 @@ HRESULT ArchiverSession::Create(ECConfig *lpConfig, ECLogger *lpLogger, Archiver
 
 	if (!lpConfig || !lpLogger)
 		return MAPI_E_INVALID_PARAMETER;
-	
-	lpSession = new ArchiverSession(lpLogger);
+	lpSession = new(std::nothrow) ArchiverSession(lpLogger);
+	if (lpSession == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpSession->Init(lpConfig);
 	if (FAILED(hr)) {
 		delete lpSession;

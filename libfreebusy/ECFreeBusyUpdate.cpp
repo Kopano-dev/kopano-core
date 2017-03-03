@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECInterfaceDefs.h>
@@ -43,10 +43,9 @@ ECFreeBusyUpdate::~ECFreeBusyUpdate(void)
 HRESULT ECFreeBusyUpdate::Create(IMessage* lpMessage, ECFreeBusyUpdate **lppECFreeBusyUpdate)
 {
 	HRESULT hr = hrSuccess;
-	ECFreeBusyUpdate *lpECFreeBusyUpdate = NULL;
-
-	lpECFreeBusyUpdate = new ECFreeBusyUpdate(lpMessage);
-
+	auto lpECFreeBusyUpdate = new(std::nothrow) ECFreeBusyUpdate(lpMessage);
+	if (lpECFreeBusyUpdate == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpECFreeBusyUpdate->QueryInterface(IID_ECFreeBusyUpdate, (void **)lppECFreeBusyUpdate);
 
 	if(hr != hrSuccess)

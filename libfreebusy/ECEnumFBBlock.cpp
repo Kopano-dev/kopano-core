@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include "ECEnumFBBlock.h"
@@ -45,10 +45,9 @@ ECEnumFBBlock::ECEnumFBBlock(ECFBBlockList* lpFBBlock)
 HRESULT ECEnumFBBlock::Create(ECFBBlockList* lpFBBlock, ECEnumFBBlock **lppEnumFBBlock)
 {
 	HRESULT hr = hrSuccess;
-	ECEnumFBBlock *lpEnumFBBlock = NULL;
-
-	lpEnumFBBlock = new ECEnumFBBlock(lpFBBlock);
-
+	auto lpEnumFBBlock = new(std::nothrow) ECEnumFBBlock(lpFBBlock);
+	if (lpEnumFBBlock == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpEnumFBBlock->QueryInterface(IID_ECEnumFBBlock, (void **)lppEnumFBBlock);
 
 	if(hr != hrSuccess)
