@@ -95,8 +95,11 @@ HRESULT ECMemTable::Create(const SPropTagArray *lpsColumns, ULONG ulRowPropTag,
 	}
 
 	lpMemTable = new ECMemTable(lpsColumns, ulRowPropTag);
-	return lpMemTable->QueryInterface(IID_ECMemTable,
+	auto ret = lpMemTable->QueryInterface(IID_ECMemTable,
 	       reinterpret_cast<void **>(lppECMemTable));
+	if (ret != hrSuccess)
+		delete lpMemTable;
+	return ret;
 }
 
 HRESULT ECMemTable::QueryInterface(REFIID refiid, void **lppInterface)

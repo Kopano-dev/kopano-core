@@ -109,7 +109,11 @@ HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, REFIID iid, const s
 		return MAPI_E_INVALID_PARAMETER;
 
 	lpEEC = new ECExchangeExportChanges(lpStore, sourcekey, szDisplay, ulSyncType);
-	return lpEEC->QueryInterface(iid, reinterpret_cast<void **>(lppExchangeExportChanges));
+	auto ret = lpEEC->QueryInterface(iid,
+	           reinterpret_cast<void **>(lppExchangeExportChanges));
+	if (ret != hrSuccess)
+		delete lpEEC;
+	return ret;
 }
 
 HRESULT	ECExchangeExportChanges::QueryInterface(REFIID refiid, void **lppInterface)

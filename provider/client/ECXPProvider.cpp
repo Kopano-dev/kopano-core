@@ -51,8 +51,11 @@ ECXPProvider::~ECXPProvider()
 
 HRESULT ECXPProvider::Create(ECXPProvider **lppECXPProvider) {
 	ECXPProvider *lpECXPProvider = new ECXPProvider();
-
-	return lpECXPProvider->QueryInterface(IID_ECXPProvider, (void **)lppECXPProvider);
+	auto ret = lpECXPProvider->QueryInterface(IID_ECXPProvider,
+	           reinterpret_cast<void **>(lppECXPProvider));
+	if (ret != hrSuccess)
+		delete lpECXPProvider;
+	return ret;
 }
 
 HRESULT ECXPProvider::QueryInterface(REFIID refiid, void **lppInterface)

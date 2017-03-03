@@ -59,7 +59,11 @@ HRESULT ECParentStorage::Create(ECGenericProp *lpParentObject, ULONG ulUniqueId,
 	ECParentStorage *lpParentStorage = NULL;
 
 	lpParentStorage = new ECParentStorage(lpParentObject, ulUniqueId, ulObjId, lpServerStorage);
-	return lpParentStorage->QueryInterface(IID_ECParentStorage, reinterpret_cast<void **>(lppParentStorage)); //FIXME: Use other interface
+	auto ret = lpParentStorage->QueryInterface(IID_ECParentStorage,
+	           reinterpret_cast<void **>(lppParentStorage)); //FIXME: Use other interface
+	if (ret != hrSuccess)
+		delete lpParentStorage;
+	return ret;
 }
 
 HRESULT ECParentStorage::HrReadProps(LPSPropTagArray *lppPropTags, ULONG *lpcValues, LPSPropValue *lppValues)

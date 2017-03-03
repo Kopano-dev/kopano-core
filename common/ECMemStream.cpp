@@ -63,7 +63,11 @@ HRESULT	ECMemBlock::Create(const char *buffer, ULONG ulDataLen, ULONG ulFlags,
 	auto lpMemBlock = new(std::nothrow) ECMemBlock(buffer, ulDataLen, ulFlags);
 	if (lpMemBlock == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	return lpMemBlock->QueryInterface(IID_ECMemBlock, (void **)lppStream);
+	auto ret = lpMemBlock->QueryInterface(IID_ECMemBlock,
+	           reinterpret_cast<void **>(lppStream));
+	if (ret != hrSuccess)
+		delete lpMemBlock;
+	return ret;
 }
 
 HRESULT ECMemBlock::QueryInterface(REFIID refiid, void **lppInterface)
@@ -229,7 +233,11 @@ HRESULT	ECMemStream::Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, Commit
 	auto lpStream = new(std::nothrow) ECMemStream(buffer, ulDataLen, ulFlags, lpCommitFunc, lpDeleteFunc, lpParam);
 	if (lpStream == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	return lpStream->QueryInterface(IID_ECMemStream, (void **)lppStream);
+	auto ret = lpStream->QueryInterface(IID_ECMemStream,
+	           reinterpret_cast<void **>(lppStream));
+	if (ret != hrSuccess)
+		delete lpStream;
+	return ret;
 }
 
 HRESULT	ECMemStream::Create(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
@@ -238,7 +246,11 @@ HRESULT	ECMemStream::Create(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lp
 	auto lpStream = new(std::nothrow) ECMemStream(lpMemBlock, ulFlags, lpCommitFunc, lpDeleteFunc, lpParam);
 	if (lpStream == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	return lpStream->QueryInterface(IID_ECMemStream, (void **)lppStream);
+	auto ret = lpStream->QueryInterface(IID_ECMemStream,
+	           reinterpret_cast<void **>(lppStream));
+	if (ret != hrSuccess)
+		delete lpStream;
+	return ret;
 }
 
 HRESULT ECMemStream::Read(void *pv, ULONG cb, ULONG *pcbRead)

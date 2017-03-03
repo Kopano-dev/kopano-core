@@ -117,7 +117,11 @@ ECMAPITable::~ECMAPITable()
 HRESULT ECMAPITable::Create(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags, ECMAPITable **lppECMAPITable)
 {
 	auto lpMAPITable = new ECMAPITable(strName, lpNotifyClient, ulFlags);
-	return lpMAPITable->QueryInterface(IID_ECMAPITable, reinterpret_cast<void **>(lppECMAPITable));
+	auto ret = lpMAPITable->QueryInterface(IID_ECMAPITable,
+	           reinterpret_cast<void **>(lppECMAPITable));
+	if (ret != hrSuccess)
+		delete lpMAPITable;
+	return ret;
 }
 
 HRESULT ECMAPITable::QueryInterface(REFIID refiid, void **lppInterface)

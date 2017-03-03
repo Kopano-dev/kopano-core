@@ -347,6 +347,10 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	    if (*lpiid == IID_IECExportAddressbookChanges) {
 			auto lpEEAC = new ECExportAddressbookChanges(this);
 	        hr = lpEEAC->QueryInterface(*lpiid, (void **)lppUnk);
+			if (hr != hrSuccess) {
+				delete lpEEAC;
+				return hr;
+			}
 	    }
 		else
 			hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store contents", ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
@@ -3192,7 +3196,11 @@ ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
 HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)
 {
 	auto lpLogon = new ECMSLogon(lpStore);
-	return lpLogon->QueryInterface(IID_ECMSLogon, (void **)lppECMSLogon);
+	auto ret = lpLogon->QueryInterface(IID_ECMSLogon,
+	           reinterpret_cast<void **>(lppECMSLogon));
+	if (ret != hrSuccess)
+		delete lpLogon;
+	return ret;
 }
 
 HRESULT ECMSLogon::QueryInterface(REFIID refiid, void **lppInterface)

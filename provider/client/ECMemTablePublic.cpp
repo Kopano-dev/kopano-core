@@ -72,7 +72,11 @@ HRESULT ECMemTablePublic::Create(ECMAPIFolderPublic *lpECParentFolder, ECMemTabl
 		PR_ACCESS, PR_ACCESS_LEVEL, PR_CONTAINER_CLASS}};
 	auto lpMemTable = new ECMemTablePublic(lpECParentFolder,
 		sPropsHierarchyColumns, PR_ROWID);
-	return lpMemTable->QueryInterface(IID_ECMemTablePublic, reinterpret_cast<void **>(lppECMemTable));
+	auto ret = lpMemTable->QueryInterface(IID_ECMemTablePublic,
+	           reinterpret_cast<void **>(lppECMemTable));
+	if (ret != hrSuccess)
+		delete lpMemTable;
+	return ret;
 }
 
 HRESULT ECMemTablePublic::QueryInterface(REFIID refiid, void **lppInterface)

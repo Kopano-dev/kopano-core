@@ -63,7 +63,11 @@ ECMSProvider::~ECMSProvider()
 
 HRESULT ECMSProvider::Create(ULONG ulFlags, ECMSProvider **lppECMSProvider) {
 	auto lpECMSProvider = new ECMSProvider(ulFlags, "IMSProvider");
-	return lpECMSProvider->QueryInterface(IID_ECMSProvider, (void **)lppECMSProvider);
+	auto ret = lpECMSProvider->QueryInterface(IID_ECMSProvider,
+	           reinterpret_cast<void **>(lppECMSProvider));
+	if (ret != hrSuccess)
+		delete lpECMSProvider;
+	return ret;
 }
 
 HRESULT ECMSProvider::QueryInterface(REFIID refiid, void **lppInterface)

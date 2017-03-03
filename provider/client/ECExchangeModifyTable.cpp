@@ -121,7 +121,11 @@ HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, UL
 	if(hr != hrSuccess)
 		return hr;
 	obj = new ECExchangeModifyTable(PR_MEMBER_ID, lpecTable, lpParent, ulUniqueId, ulFlags);
-	return obj->QueryInterface(IID_IExchangeModifyTable, reinterpret_cast<void **>(lppObj));
+	hr = obj->QueryInterface(IID_IExchangeModifyTable,
+	     reinterpret_cast<void **>(lppObj));
+	if (hr != hrSuccess)
+		delete obj;
+	return hr;
 }
 
 HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj) {
@@ -170,7 +174,11 @@ empty:
 	if(hr != hrSuccess)
 		return hr;
 	obj = new ECExchangeModifyTable(PR_RULE_ID, ecTable, lpParent, ulRuleId, ulFlags);
-	return obj->QueryInterface(IID_IExchangeModifyTable, reinterpret_cast<void **>(lppObj));
+	hr = obj->QueryInterface(IID_IExchangeModifyTable,
+	     reinterpret_cast<void **>(lppObj));
+	if (hr != hrSuccess)
+		delete obj;
+	return hr;
 }
 
 HRESULT ECExchangeModifyTable::QueryInterface(REFIID refiid, void **lppInterface) {

@@ -138,7 +138,11 @@ HRESULT	ECMessage::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG
 {
 	auto lpMessage = new ECMessage(lpMsgStore, fNew, fModify, ulFlags,
 	                 bEmbedded, lpRoot);
-	return lpMessage->QueryInterface(IID_ECMessage, reinterpret_cast<void **>(lppMessage));
+	auto ret = lpMessage->QueryInterface(IID_ECMessage,
+	           reinterpret_cast<void **>(lppMessage));
+	if (ret != hrSuccess)
+		delete lpMessage;
+	return ret;
 }
 
 HRESULT	ECMessage::QueryInterface(REFIID refiid, void **lppInterface)
