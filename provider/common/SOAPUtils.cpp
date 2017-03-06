@@ -871,8 +871,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 	}
 
 	if(bBasePointerDel)
-		delete lpProp;
-
+		s_free(nullptr, lpProp);
 	return er;
 }
 

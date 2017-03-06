@@ -106,7 +106,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 		{
 			utf8string u8 = CONVERT_TO(lpConverter, utf8string, lpPropValSrc->Value.lpszA);	// SOAP lpszA = UTF-8, MAPI lpszA = current locale charset
 			lpPropValDst->__union = SOAP_UNION_propValData_lpszA;
-			lpPropValDst->Value.lpszA = new char[u8.size() + 1];
+			lpPropValDst->Value.lpszA = s_alloc<char>(nullptr, u8.size() + 1);
 			strcpy(lpPropValDst->Value.lpszA, u8.c_str());
 		}
 		break;
@@ -114,7 +114,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 		{
 			utf8string u8 = CONVERT_TO(lpConverter, utf8string, lpPropValSrc->Value.lpszW);
 			lpPropValDst->__union = SOAP_UNION_propValData_lpszA;
-			lpPropValDst->Value.lpszA = new char[u8.size() + 1];
+			lpPropValDst->Value.lpszA = s_alloc<char>(nullptr, u8.size() + 1);
 			strcpy(lpPropValDst->Value.lpszA, u8.c_str());
 		}
 		break;
@@ -206,7 +206,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 			lpPropValDst->Value.mvszA.__ptr = s_alloc<char *>(nullptr, lpPropValDst->Value.mvszA.__size);
 			for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvszA.__size; ++i) {
 				utf8string u8 = lpConverter->convert_to<utf8string>(lpPropValSrc->Value.MVszA.lppszA[i]);
-				lpPropValDst->Value.mvszA.__ptr[i] = new char[u8.size() + 1];
+				lpPropValDst->Value.mvszA.__ptr[i] = s_alloc<char>(nullptr, u8.size() + 1);
 				strcpy(lpPropValDst->Value.mvszA.__ptr[i], u8.c_str());
 			}
 		}
@@ -221,7 +221,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 			lpPropValDst->Value.mvszA.__ptr = s_alloc<char *>(nullptr, lpPropValDst->Value.mvszA.__size);
 			for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvszA.__size; ++i) {
 				utf8string u8 = lpConverter->convert_to<utf8string>(lpPropValSrc->Value.MVszW.lppszW[i]);
-				lpPropValDst->Value.mvszA.__ptr[i] = new char[u8.size() + 1];
+				lpPropValDst->Value.mvszA.__ptr[i] = s_alloc<char>(nullptr, u8.size() + 1);
 				strcpy(lpPropValDst->Value.mvszA.__ptr[i], u8.c_str());
 			}
 		}
