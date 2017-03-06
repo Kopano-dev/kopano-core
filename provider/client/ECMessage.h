@@ -20,7 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECMemTable.h>
-
+#include <kopano/Util.h>
 #include <mapidefs.h>
 #include "WSTransport.h"
 #include "ECMsgStore.h"
@@ -187,6 +187,7 @@ public:
 	ENTRYID *m_lpParentID = nullptr; // For new messages
 	ECMemTable *lpRecips = nullptr, *lpAttachments = nullptr;
 	ULONG ulNextRecipUniqueId = 0, ulNextAttUniqueId = 0;
+	ALLOC_WRAP_FRIEND;
 };
 
 class ECMessageFactory _kc_final : public IMessageFactory {

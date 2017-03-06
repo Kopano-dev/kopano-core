@@ -115,7 +115,7 @@ private:
 	struct tms			m_tmsStart;
 	
 	HRESULT AddProcessedChanges(ChangeList &lstChanges);
-	
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // ECEXCHANGEEXPORTCHANGES_H

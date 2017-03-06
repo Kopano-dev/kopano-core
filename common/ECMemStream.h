@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 
 namespace KC {
 
@@ -51,6 +52,7 @@ private:
 	char *lpCurrent = nullptr, *lpOriginal = nullptr;
 	ULONG cbCurrent = 0, cbOriginal = 0, cbTotal = 0;
 	ULONG	ulFlags;
+	ALLOC_WRAP_FRIEND;
 };
 
 /* 
@@ -99,6 +101,7 @@ private:
 	void *			lpParam;
 	BOOL fDirty = false;
 	ULONG			ulFlags;
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

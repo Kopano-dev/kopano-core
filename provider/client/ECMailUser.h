@@ -19,6 +19,7 @@
 #define ECMAILUSER
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include <mapidefs.h>
 
 #include "ECABProp.h"
@@ -42,6 +43,7 @@ public:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
 	} m_xMailUser;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // #ifndef ECMAILUSER

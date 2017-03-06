@@ -19,6 +19,7 @@
 #define ECARCHIVEAWAREATTACH_INCLUDED
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include "ECAttach.h"
 
 class ECArchiveAwareMessage;
@@ -33,6 +34,7 @@ public:
 
 private:
 	ECArchiveAwareMessage	*m_lpRoot;
+	ALLOC_WRAP_FRIEND;
 };
 
 class ECArchiveAwareAttachFactory _kc_final : public IAttachFactory {

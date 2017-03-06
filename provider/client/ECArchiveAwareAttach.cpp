@@ -36,15 +36,8 @@ ECArchiveAwareAttach::ECArchiveAwareAttach(ECMsgStore *lpMsgStore, ULONG ulObjTy
 
 HRESULT	ECArchiveAwareAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach)
 {
-	auto lpAttach = new(std::nothrow) ECArchiveAwareAttach(lpMsgStore,
-	                ulObjType, fModify, ulAttachNum, lpRoot);
-	if (lpAttach == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpAttach->QueryInterface(IID_ECAttach,
-	           reinterpret_cast<void **>(lppAttach));
-	if (ret != hrSuccess)
-		delete lpAttach;
-	return ret;
+	return alloc_wrap<ECArchiveAwareAttach>(lpMsgStore, ulObjType, fModify,
+	       ulAttachNum, lpRoot).as(IID_ECAttach, lppAttach);
 }
 
 HRESULT	ECArchiveAwareAttach::SetPropHandler(ULONG ulPropTag,

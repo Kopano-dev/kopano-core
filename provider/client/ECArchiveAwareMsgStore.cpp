@@ -30,18 +30,9 @@ ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(char *lpszProfname, LPMAPISUP lpS
 
 HRESULT ECArchiveAwareMsgStore::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
-	HRESULT hr = hrSuccess;
-	auto lpStore = new(std::nothrow) ECArchiveAwareMsgStore(lpszProfname,
-	               lpSupport, lpTransport, fModify, ulProfileFlags,
-	               fIsSpooler, fIsDefaultStore, bOfflineStore);
-	if (lpStore == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
-
-	if(hr != hrSuccess)
-		delete lpStore;
-
-	return hr;
+	return alloc_wrap<ECArchiveAwareMsgStore>(lpszProfname, lpSupport,
+	       lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,
+	       bOfflineStore).as(IID_ECMsgStore, lppECMsgStore);
 }
 
 HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)

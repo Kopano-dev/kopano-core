@@ -34,17 +34,8 @@ ECMailUser::ECMailUser(void* lpProvider, BOOL fModify) : ECABProp(lpProvider, MA
 
 HRESULT ECMailUser::Create(void* lpProvider, BOOL fModify, ECMailUser** lppMailUser)
 {
-
-	HRESULT hr = hrSuccess;
-	auto lpMailUser = new(std::nothrow) ECMailUser(lpProvider, fModify);
-	if (lpMailUser == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpMailUser->QueryInterface(IID_ECMailUser, (void **)lppMailUser);
-
-	if(hr != hrSuccess)
-		delete lpMailUser;
-
-	return hr;
+	return alloc_wrap<ECMailUser>(lpProvider, fModify)
+	       .as(IID_ECMailUser, lppMailUser);
 }
 
 HRESULT	ECMailUser::QueryInterface(REFIID refiid, void **lppInterface) 

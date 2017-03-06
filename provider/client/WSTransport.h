@@ -29,7 +29,7 @@
 #include "soapKCmdProxy.h"
 
 #include <kopano/kcodes.h>
-
+#include <kopano/Util.h>
 #include "WSStoreTableView.h"
 //#include "WSTableOutGoingQueue.h"
 #include "WSMAPIFolderOps.h"
@@ -334,6 +334,7 @@ private:
 
 friend class WSMessageStreamExporter;
 friend class WSMessageStreamImporter;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // WSTRANSPORT_H

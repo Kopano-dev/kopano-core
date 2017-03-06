@@ -51,16 +51,7 @@ ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
 
 HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)
 {
-	HRESULT hr = hrSuccess;
-	auto lpECABProvider = new(std::nothrow) ECABProvider(0, "ECABProvider");
-	if (lpECABProvider == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpECABProvider->QueryInterface(IID_ECABProvider, (void **)lppECABProvider);
-
-	if(hr != hrSuccess)
-		delete lpECABProvider;
-
-	return hr;
+	return alloc_wrap<ECABProvider>(0, "ECABProvider").as(IID_ECABProvider, lppECABProvider);
 }
 
 HRESULT ECABProvider::QueryInterface(REFIID refiid, void **lppInterface)

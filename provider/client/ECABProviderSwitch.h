@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 
 class ECABProviderSwitch _kc_final : public ECUnknown {
 protected:
@@ -35,6 +36,7 @@ public:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IABProvider.hpp>
 	} m_xABProvider;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // #ifndef ECABPROVIDERSWITCH_H

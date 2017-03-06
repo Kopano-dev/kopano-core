@@ -295,17 +295,9 @@ HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
     BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
     ECMsgStore **lppECMsgStore)
 {
-	auto lpStore = new(std::nothrow) ECMsgStore(lpszProfname, lpSupport,
-	               lpTransport, fModify, ulProfileFlags, fIsSpooler,
-	               fIsDefaultStore, bOfflineStore);
-	if (lpStore == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	HRESULT hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
-
-	if(hr != hrSuccess)
-		delete lpStore;
-
-	return hr;
+	return alloc_wrap<ECMsgStore>(lpszProfname, lpSupport, lpTransport,
+	       fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,
+	       bOfflineStore).as(IID_ECMsgStore, lppECMsgStore);
 }
 
 HRESULT ECMsgStore::SetProps(ULONG cValues, const SPropValue *lpPropArray,
@@ -3200,14 +3192,7 @@ ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
 
 HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)
 {
-	auto lpLogon = new(std::nothrow) ECMSLogon(lpStore);
-	if (lpLogon == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpLogon->QueryInterface(IID_ECMSLogon,
-	           reinterpret_cast<void **>(lppECMSLogon));
-	if (ret != hrSuccess)
-		delete lpLogon;
-	return ret;
+	return alloc_wrap<ECMSLogon>(lpStore).as(IID_ECMSLogon, lppECMSLogon);
 }
 
 HRESULT ECMSLogon::QueryInterface(REFIID refiid, void **lppInterface)

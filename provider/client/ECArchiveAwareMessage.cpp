@@ -74,14 +74,8 @@ ECArchiveAwareMessage::ECArchiveAwareMessage(ECArchiveAwareMsgStore *lpMsgStore,
 
 HRESULT	ECArchiveAwareMessage::Create(ECArchiveAwareMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, ECMessage **lppMessage)
 {
-	auto lpMessage = new(std::nothrow) ECArchiveAwareMessage(lpMsgStore, fNew, fModify, ulFlags);
-	if (lpMessage == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpMessage->QueryInterface(IID_ECMessage,
-	           reinterpret_cast<void **>(lppMessage));
-	if (ret != hrSuccess)
-		delete lpMessage;
-	return ret;
+	return alloc_wrap<ECArchiveAwareMessage>(lpMsgStore, fNew, fModify,
+	       ulFlags).as(IID_ECMessage, lppMessage);
 }
 
 HRESULT ECArchiveAwareMessage::HrLoadProps()

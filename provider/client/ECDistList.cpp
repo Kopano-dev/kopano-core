@@ -49,17 +49,7 @@ HRESULT	ECDistList::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECDistList::Create(void* lpProvider, BOOL fModify, ECDistList** lppDistList)
 {
-
-	HRESULT hr = hrSuccess;
-	auto lpDistList = new(std::nothrow) ECDistList(lpProvider, fModify);
-	if (lpDistList == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpDistList->QueryInterface(IID_ECDistList, (void **)lppDistList);
-
-	if(hr != hrSuccess)
-		delete lpDistList;
-
-	return hr;
+	return alloc_wrap<ECDistList>(lpProvider, fModify).as(IID_ECDistList, lppDistList);
 }
 
 HRESULT ECDistList::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)

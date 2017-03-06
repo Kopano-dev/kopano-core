@@ -19,6 +19,7 @@
 #define ECABCONTAINER_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include "IECExportAddressbookChanges.h"
 #include "IECImportAddressbookChanges.h"
 
@@ -65,6 +66,7 @@ public:
 
 private:
 	IECImportAddressbookChanges *m_lpImporter = nullptr;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif

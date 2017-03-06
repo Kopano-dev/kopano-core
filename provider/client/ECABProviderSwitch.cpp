@@ -30,7 +30,7 @@
 
 #include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
-
+#include <kopano/Util.h>
 #include "EntryPoint.h"
 #include <kopano/mapiext.h>
 
@@ -47,16 +47,7 @@ ECABProviderSwitch::ECABProviderSwitch(void) : ECUnknown("ECABProviderSwitch")
 
 HRESULT ECABProviderSwitch::Create(ECABProviderSwitch **lppECABProvider)
 {
-	HRESULT hr = hrSuccess;
-	auto lpECABProvider = new(std::nothrow) ECABProviderSwitch;
-	if (lpECABProvider == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpECABProvider->QueryInterface(IID_ECABProvider, (void **)lppECABProvider);
-
-	if(hr != hrSuccess)
-		delete lpECABProvider;
-
-	return hr;
+	return alloc_wrap<ECABProviderSwitch>().as(IID_ECABProvider, lppECABProvider);
 }
 
 HRESULT ECABProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)

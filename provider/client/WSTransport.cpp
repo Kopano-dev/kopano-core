@@ -111,16 +111,8 @@ HRESULT WSTransport::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT WSTransport::Create(ULONG ulUIFlags, WSTransport **lppTransport)
 {
-	HRESULT hr = hrSuccess;
-	auto lpTransport = new(std::nothrow) WSTransport(ulUIFlags);
-	if (lpTransport == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpTransport->QueryInterface(IID_ECTransport, (void **) lppTransport);
-
-	if(hr != hrSuccess)
-		delete lpTransport;
-
-	return hr;
+	return alloc_wrap<WSTransport>(ulUIFlags)
+	       .as(IID_ECTransport, lppTransport);
 }
 
 /* Creates a transport working on the same session and session group as this transport */

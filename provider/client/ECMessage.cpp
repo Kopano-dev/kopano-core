@@ -136,15 +136,8 @@ ECMessage::~ECMessage()
 
 HRESULT	ECMessage::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lppMessage)
 {
-	auto lpMessage = new(std::nothrow) ECMessage(lpMsgStore, fNew, fModify,
-	                 ulFlags, bEmbedded, lpRoot);
-	if (lpMessage == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpMessage->QueryInterface(IID_ECMessage,
-	           reinterpret_cast<void **>(lppMessage));
-	if (ret != hrSuccess)
-		delete lpMessage;
-	return ret;
+	return alloc_wrap<ECMessage>(lpMsgStore, fNew, fModify, ulFlags,
+	       bEmbedded, lpRoot).as(IID_ECMessage, lppMessage);
 }
 
 HRESULT	ECMessage::QueryInterface(REFIID refiid, void **lppInterface)

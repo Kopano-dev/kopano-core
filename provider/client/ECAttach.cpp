@@ -47,15 +47,8 @@ ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG 
 
 HRESULT ECAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach)
 {
-	HRESULT hr = hrSuccess;
-	auto lpAttach = new(std::nothrow) ECAttach(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot);
-	if (lpAttach == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpAttach->QueryInterface(IID_ECAttach, (void **)lppAttach);
-	if (hr != hrSuccess)
-		delete lpAttach;
-
-	return hr;
+	return alloc_wrap<ECAttach>(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot)
+	       .as(IID_ECAttach, lppAttach);
 }
 
 HRESULT ECAttach::QueryInterface(REFIID refiid, void **lppInterface)

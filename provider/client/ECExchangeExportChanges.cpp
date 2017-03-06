@@ -105,15 +105,8 @@ HRESULT ECExchangeExportChanges::SetLogger(ECLogger *lpLogger)
 HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, REFIID iid, const std::string& sourcekey, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges){
 	if (lpStore == NULL || (ulSyncType != ICS_SYNC_CONTENTS && ulSyncType != ICS_SYNC_HIERARCHY))
 		return MAPI_E_INVALID_PARAMETER;
-	auto lpEEC = new(std::nothrow) ECExchangeExportChanges(lpStore,
-	             sourcekey, szDisplay, ulSyncType);
-	if (lpEEC == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpEEC->QueryInterface(iid,
-	           reinterpret_cast<void **>(lppExchangeExportChanges));
-	if (ret != hrSuccess)
-		delete lpEEC;
-	return ret;
+	return alloc_wrap<ECExchangeExportChanges>(lpStore, sourcekey,
+	       szDisplay, ulSyncType).as(iid, lppExchangeExportChanges);
 }
 
 HRESULT	ECExchangeExportChanges::QueryInterface(REFIID refiid, void **lppInterface)

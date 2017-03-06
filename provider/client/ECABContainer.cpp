@@ -25,6 +25,7 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/Util.h>
 #include "ics.h"
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
@@ -73,14 +74,8 @@ HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT	ECABContainer::Create(void* lpProvider, ULONG ulObjType, BOOL fModify, ECABContainer **lppABContainer)
 {
-	auto lpABContainer = new(std::nothrow) ECABContainer(lpProvider, ulObjType, fModify, "IABContainer");
-	if (lpABContainer == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpABContainer->QueryInterface(IID_ECABContainer,
-	           reinterpret_cast<void **>(lppABContainer));
-	if (ret != hrSuccess)
-		delete lpABContainer;
-	return ret;
+	return alloc_wrap<ECABContainer>(lpProvider, ulObjType, fModify, "IABContainer")
+	       .as(IID_ECABContainer, lppABContainer);
 }
 
 HRESULT	ECABContainer::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
