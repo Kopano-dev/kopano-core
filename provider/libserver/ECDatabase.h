@@ -68,8 +68,7 @@ public:
 	virtual ECRESULT Query(const std::string &q) _kc_override;
 
 	std::string error;
-	bool m_bForceUpdate;
-	bool m_bFirstResult = false;
+	bool m_bForceUpdate = false, m_bFirstResult = false;
 	ECConfig *m_lpConfig = nullptr;
 #ifdef DEBUG
 	unsigned int m_ulTransactionState = 0;
