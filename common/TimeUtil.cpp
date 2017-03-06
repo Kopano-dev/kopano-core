@@ -91,20 +91,12 @@ LONG getTZOffset(time_t date, TIMEZONE_STRUCT sTimeZone)
 
 time_t UTCToLocal(time_t utc, TIMEZONE_STRUCT sTimeZone)
 {
-	LONG offset;
-
-	offset = getTZOffset(utc, sTimeZone);
-
-	return utc + offset;
+	return utc + getTZOffset(utc, sTimeZone);
 }
 
 time_t LocalToUTC(time_t local, TIMEZONE_STRUCT sTimeZone)
 {
-	LONG offset;
-
-	offset = getTZOffset(local, sTimeZone);
-
-	return local - offset;
+	return local - getTZOffset(local, sTimeZone);
 }
 
 } /* namespace */

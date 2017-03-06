@@ -78,9 +78,8 @@ static inline bool operator<(const AclRoleName &lhs, const AclRoleName &rhs) {
 
 static const AclRightName *FindAclRight(unsigned ulRights) {
 	const AclRightName rn = {ulRights, NULL};
-
-	const AclRightName *lpRightName = std::lower_bound(g_rights, arrayEnd(g_rights), rn);
-	if (lpRightName != arrayEnd(g_rights) && lpRightName->ulRight == ulRights)
+	const AclRightName *lpRightName = std::lower_bound(g_rights, ARRAY_END(g_rights), rn);
+	if (lpRightName != ARRAY_END(g_rights) && lpRightName->ulRight == ulRights)
 		return lpRightName;
 
 	return NULL;
@@ -88,9 +87,8 @@ static const AclRightName *FindAclRight(unsigned ulRights) {
 
 static const AclRoleName *FindAclRole(unsigned ulRights) {
 	const AclRoleName rn = {ulRights, NULL};
-
-	const AclRoleName *lpRoleName = std::lower_bound(g_roles, arrayEnd(g_roles), rn);
-	if (lpRoleName != arrayEnd(g_roles) && lpRoleName->ulRights == ulRights)
+	const AclRoleName *lpRoleName = std::lower_bound(g_roles, ARRAY_END(g_roles), rn);
+	if (lpRoleName != ARRAY_END(g_roles) && lpRoleName->ulRights == ulRights)
 		return lpRoleName;
 
 	return NULL;

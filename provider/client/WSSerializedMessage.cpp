@@ -101,20 +101,17 @@ HRESULT WSSerializedMessage::DoCopyData(LPSTREAM lpDestStream)
 
 void* WSSerializedMessage::StaticMTOMWriteOpen(struct soap *soap, void *handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding)
 {
-	WSSerializedMessage	*lpMessage = reinterpret_cast<WSSerializedMessage*>(handle);
-	return lpMessage->MTOMWriteOpen(soap, handle, id, type, description, encoding);
+	return static_cast<WSSerializedMessage *>(handle)->MTOMWriteOpen(soap, handle, id, type, description, encoding);
 }
 
 int WSSerializedMessage::StaticMTOMWrite(struct soap *soap, void *handle, const char *buf, size_t len)
 {
-	WSSerializedMessage	*lpMessage = reinterpret_cast<WSSerializedMessage*>(handle);
-	return lpMessage->MTOMWrite(soap, handle, buf, len);
+	return static_cast<WSSerializedMessage *>(handle)->MTOMWrite(soap, handle, buf, len);
 }
 
 void WSSerializedMessage::StaticMTOMWriteClose(struct soap *soap, void *handle)
 {
-	WSSerializedMessage	*lpMessage = reinterpret_cast<WSSerializedMessage*>(handle);
-	lpMessage->MTOMWriteClose(soap, handle);
+	static_cast<WSSerializedMessage *>(handle)->MTOMWriteClose(soap, handle);
 }
 
 void* WSSerializedMessage::MTOMWriteOpen(struct soap *soap, void *handle, const char *id, const char* /*type*/, const char* /*description*/, enum soap_mime_encoding encoding)

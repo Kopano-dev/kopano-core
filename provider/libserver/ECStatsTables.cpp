@@ -172,7 +172,7 @@ ECRESULT ECSystemStatsTable::Load()
 
 void ECSystemStatsTable::GetStatsCollectorData(const std::string &name, const std::string &description, const std::string &value, void *obj)
 {
-	ECSystemStatsTable *lpThis = (ECSystemStatsTable*)obj;
+	auto lpThis = static_cast<ECSystemStatsTable *>(obj);
 	statstrings ss;
 
 	ss.name = name;
@@ -186,7 +186,7 @@ void ECSystemStatsTable::GetStatsCollectorData(const std::string &name, const st
 ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	struct rowSet *lpsRowSet = NULL;
-	ECSystemStatsTable *lpThis = (ECSystemStatsTable *)lpGenericThis;
+	auto lpThis = static_cast<ECSystemStatsTable *>(lpGenericThis);
 	gsoap_size_t i;
 
 	lpsRowSet = s_alloc<rowSet>(soap);
@@ -310,7 +310,7 @@ ECRESULT ECSessionStatsTable::Load()
 
 void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 {
-	ECSessionStatsTable *lpThis = (ECSessionStatsTable*)obj;
+	auto lpThis = static_cast<ECSessionStatsTable *>(obj);
 	sessiondata sd;
 
 	if (lpSession == nullptr)
@@ -355,7 +355,7 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	struct rowSet *lpsRowSet = NULL;
-	ECSessionStatsTable *lpThis = (ECSessionStatsTable *)lpGenericThis;
+	auto lpThis = static_cast<ECSessionStatsTable *>(lpGenericThis);
 	gsoap_size_t i;
 	std::string strTemp;
 
@@ -1039,8 +1039,7 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 	struct rowSet *lpsRowSet = NULL;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	serverdetails_t details;
-	
-	ECServerStatsTable *lpStats = (ECServerStatsTable *)lpThis;
+	auto lpStats = static_cast<ECServerStatsTable *>(lpThis);
 
 	lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;

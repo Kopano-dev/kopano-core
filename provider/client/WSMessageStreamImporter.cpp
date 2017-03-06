@@ -227,20 +227,17 @@ void WSMessageStreamImporter::run()
 
 void* WSMessageStreamImporter::StaticMTOMReadOpen(struct soap *soap, void *handle, const char *id, const char *type, const char *description)
 {
-	WSMessageStreamImporter	*lpImporter = reinterpret_cast<WSMessageStreamImporter*>(handle);
-	return lpImporter->MTOMReadOpen(soap, handle, id, type, description);
+	return static_cast<WSMessageStreamImporter *>(handle)->MTOMReadOpen(soap, handle, id, type, description);
 }
 
 size_t WSMessageStreamImporter::StaticMTOMRead(struct soap *soap, void *handle, char *buf, size_t len)
 {
-	WSMessageStreamImporter	*lpImporter = reinterpret_cast<WSMessageStreamImporter*>(handle);
-	return lpImporter->MTOMRead(soap, handle, buf, len);
+	return static_cast<WSMessageStreamImporter *>(handle)->MTOMRead(soap, handle, buf, len);
 }
 
 void WSMessageStreamImporter::StaticMTOMReadClose(struct soap *soap, void *handle)
 {
-	WSMessageStreamImporter	*lpImporter = reinterpret_cast<WSMessageStreamImporter*>(handle);
-	lpImporter->MTOMReadClose(soap, handle);
+	static_cast<WSMessageStreamImporter *>(handle)->MTOMReadClose(soap, handle);
 }
 
 void* WSMessageStreamImporter::MTOMReadOpen(struct soap* /*soap*/, void *handle, const char* /*id*/, const char* /*type*/, const char* /*description*/)

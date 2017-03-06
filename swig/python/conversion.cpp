@@ -1791,11 +1791,7 @@ LPADRENTRY		Object_to_LPADRENTRY(PyObject *av)
 
 PyObject *		Object_from_LPSPropProblem(LPSPropProblem lpProblem)
 {
-	PyObject *problem = NULL;
-
-	problem = PyObject_CallFunction(PyTypeSPropProblem, "(lII)", lpProblem->ulIndex, lpProblem->ulPropTag, lpProblem->scode);
-
-	return problem;
+	return PyObject_CallFunction(PyTypeSPropProblem, "(lII)", lpProblem->ulIndex, lpProblem->ulPropTag, lpProblem->scode);
 }
 
 void	Object_to_LPSPropProblem(PyObject *object, LPSPropProblem lpProblem)
@@ -3301,13 +3297,9 @@ PyObject *Object_from_STATSTG(STATSTG *lpStatStg)
 
 PyObject *Object_from_SYSTEMTIME(const SYSTEMTIME &time)
 {
-	PyObject *object = NULL;
-
-	object = PyObject_CallFunction(PyTypeSYSTEMTIME, "(iiiiiiii)",
+	return PyObject_CallFunction(PyTypeSYSTEMTIME, "(iiiiiiii)",
 								   time.wYear, time.wMonth, time.wDayOfWeek, time.wDay,
 								   time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-
-	return object;
 }
 
 SYSTEMTIME Object_to_SYSTEMTIME(PyObject *object)

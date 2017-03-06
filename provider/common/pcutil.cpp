@@ -132,16 +132,12 @@ ECRESULT GetStoreGuidFromEntryId(entryId sEntryId, LPGUID lpguidStore) {
 
 HRESULT HrGetStoreGuidFromEntryId(ULONG cb, LPBYTE lpEntryId, LPGUID lpguidStore)
 {
-	ECRESULT er = GetStoreGuidFromEntryId(cb, lpEntryId, lpguidStore);
-
-	return kcerr_to_mapierr(er);
+	return kcerr_to_mapierr(GetStoreGuidFromEntryId(cb, lpEntryId, lpguidStore));
 }
 
 HRESULT HrGetObjTypeFromEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulObjType)
 {
-	ECRESULT er = GetObjTypeFromEntryId(cb, lpEntryId, lpulObjType);
-
-	return kcerr_to_mapierr(er);
+	return kcerr_to_mapierr(GetObjTypeFromEntryId(cb, lpEntryId, lpulObjType));
 }
 
 ECRESULT ABEntryIDToID(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulID, objectid_t* lpsExternId, unsigned int* lpulMapiType)

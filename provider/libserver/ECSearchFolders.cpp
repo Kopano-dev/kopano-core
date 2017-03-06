@@ -262,7 +262,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
     if(bReStartSearch) {
         lpSearchFolder->bThreadFree = false;
         
-        THREADINFO *ti = new THREADINFO;
+		auto ti = new THREADINFO;
         ti->lpSearchFolders = this;
         ti->lpFolder = lpSearchFolder;
         
@@ -404,16 +404,13 @@ ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreID)
 // also removes all search results
 ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreId, unsigned int ulFolderId)
 {
-    ECRESULT er = erSuccess;
-
     // Cancel any running (rebuilding) searches
     CancelSearchFolder(ulStoreId, ulFolderId);
     // Ignore errors
     
     // Remove results from database
     ResetResults(ulStoreId, ulFolderId);
-
-    return er;
+	return erSuccess;
 }
     
 // WARNING: THIS FUNCTION IS *NOT* THREADSAFE. IT SHOULD ONLY BE CALLED AT STARTUP WHILE SINGLE-THREADED
@@ -1244,9 +1241,9 @@ ECRESULT ECSearchFolders::GetState(unsigned int ulStoreId, unsigned int ulFolder
 // Entrypoint for the SearchThread
 void* ECSearchFolders::SearchThread(void *lpParam)
 {
-    THREADINFO *ti = (THREADINFO*)lpParam;
-    SEARCHFOLDER *lpFolder = ti->lpFolder; 					// The entry in the m_mapSearchFolders map
-    ECSearchFolders *lpSearchFolders = ti->lpSearchFolders; // The main ECSearchFolders object
+	auto ti = static_cast<THREADINFO *>(lpParam);
+	auto lpFolder = ti->lpFolder; 					// The entry in the m_mapSearchFolders map
+	auto lpSearchFolders = ti->lpSearchFolders; // The main ECSearchFolders object
 
     // We no longer need this
     delete ti;
@@ -1715,7 +1712,7 @@ void ECSearchFolders::FlushAndWait()
  
 void * ECSearchFolders::ProcessThread(void *lpSearchFolders)
 {
-    ECSearchFolders *lpThis = (ECSearchFolders *)lpSearchFolders;
+	auto lpThis = static_cast<ECSearchFolders *>(lpSearchFolders);
     
     while(1) {    
         // Get events to process

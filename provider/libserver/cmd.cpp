@@ -106,10 +106,27 @@ using namespace KCHL;
 
 namespace KC {
 
+class ECFifoSerializer _kc_final : public ECSerializer {
+	public:
+	enum eMode { serialize, deserialize };
+
+	ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode);
+	virtual ~ECFifoSerializer(void);
+	virtual ECRESULT SetBuffer(void *) _kc_override;
+	virtual ECRESULT Write(const void *ptr, size_t size, size_t nmemb) _kc_override;
+	virtual ECRESULT Read(void *ptr, size_t size, size_t nmemb) _kc_override;
+	virtual ECRESULT Skip(size_t size, size_t nmemb) _kc_override;
+	virtual ECRESULT Flush(void) _kc_override;
+	virtual ECRESULT Stat(ULONG *have_read, ULONG *have_written) _kc_override;
+
+	private:
+	ECFifoBuffer *m_lpBuffer;
+	eMode m_mode;
+	ULONG m_ulRead = 0, m_ulWritten = 0;
+};
+
 extern ECSessionManager*	g_lpSessionManager;
 extern ECStatsCollector*	g_lpStatsCollector;
-
-}
 
 // Hold the status of the softdelete purge system
 static bool g_bPurgeSoftDeleteStatus = FALSE;
@@ -331,15 +348,15 @@ static ECRESULT PeerIsServer(struct soap *soap,
 					switch (lpsAddrIter->ai_family) {
 					case AF_INET:
 					{
-						sockaddr_in *lpsLeft = (sockaddr_in *)lpsAddrIter->ai_addr;
-						sockaddr_in *lpsRight = (sockaddr_in *)&soap->peer;
+						auto lpsLeft = reinterpret_cast<struct sockaddr_in *>(lpsAddrIter->ai_addr);
+						auto lpsRight = reinterpret_cast<struct sockaddr_in *>(&soap->peer);
 						bResult = (memcmp(&lpsLeft->sin_addr, &lpsRight->sin_addr, sizeof(lpsLeft->sin_addr)) == 0);
 						break;
 					}
 					case AF_INET6:
 					{
-						sockaddr_in6 *lpsLeft = (sockaddr_in6 *)lpsAddrIter->ai_addr;
-						sockaddr_in6 *lpsRight = (sockaddr_in6 *)&soap->peer;
+						auto lpsLeft = reinterpret_cast<struct sockaddr_in6 *>(lpsAddrIter->ai_addr);
+						auto lpsRight = reinterpret_cast<struct sockaddr_in6 *>(&soap->peer);
 						bResult = (memcmp(&lpsLeft->sin6_addr, &lpsRight->sin6_addr, sizeof(lpsLeft->sin6_addr)) == 0);
 						break;
 					}
@@ -358,7 +375,141 @@ static ECRESULT PeerIsServer(struct soap *soap,
 	return erSuccess;
 }
 
-namespace KC {
+ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode) :
+	m_mode(mode)
+{
+	SetBuffer(lpBuffer);
+}
+
+ECFifoSerializer::~ECFifoSerializer(void)
+{
+	if (m_lpBuffer == nullptr)
+		return;
+	ECFifoBuffer::close_flags flags = (m_mode == serialize ? ECFifoBuffer::cfWrite : ECFifoBuffer::cfRead);
+	m_lpBuffer->Close(flags);
+}
+
+ECRESULT ECFifoSerializer::SetBuffer(void *lpBuffer)
+{
+	m_lpBuffer = static_cast<ECFifoBuffer *>(lpBuffer);
+	return erSuccess;
+}
+
+ECRESULT ECFifoSerializer::Write(const void *ptr, size_t size, size_t nmemb)
+{
+	ECRESULT er = erSuccess;
+	union {
+		char c[8];
+		short s;
+		int i;
+		long long ll;
+	} tmp;
+
+	if (m_mode != serialize)
+		return KCERR_NO_SUPPORT;
+	if (ptr == nullptr)
+		return KCERR_INVALID_PARAMETER;
+
+	switch (size) {
+	case 1:
+		er = m_lpBuffer->Write(ptr, nmemb, STR_DEF_TIMEOUT, NULL);
+		break;
+	case 2:
+		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
+			tmp.s = htons(static_cast<const short *>(ptr)[x]);
+			er = m_lpBuffer->Write(&tmp, size, STR_DEF_TIMEOUT, nullptr);
+		}
+		break;
+	case 4:
+		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
+			tmp.i = htonl(static_cast<const int *>(ptr)[x]);
+			er = m_lpBuffer->Write(&tmp, size, STR_DEF_TIMEOUT, nullptr);
+		}
+		break;
+	case 8:
+		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
+			tmp.ll = htonll(static_cast<const long long *>(ptr)[x]);
+			er = m_lpBuffer->Write(&tmp, size, STR_DEF_TIMEOUT, nullptr);
+		}
+		break;
+	default:
+		er = KCERR_INVALID_PARAMETER;
+		break;
+	}
+	m_ulWritten += size * nmemb;
+	return er;
+}
+
+ECRESULT ECFifoSerializer::Read(void *ptr, size_t size, size_t nmemb)
+{
+	ECRESULT er;
+	ECFifoBuffer::size_type cbRead = 0;
+
+	if (m_mode != deserialize)
+		return KCERR_NO_SUPPORT;
+	if (ptr == nullptr)
+		return KCERR_INVALID_PARAMETER;
+	er = m_lpBuffer->Read(ptr, size * nmemb, STR_DEF_TIMEOUT, &cbRead);
+	if (er != erSuccess)
+		return er;
+	m_ulRead += cbRead;
+	if (cbRead != size * nmemb)
+		return KCERR_CALL_FAILED;
+
+	switch (size) {
+	case 1: break;
+	case 2:
+		for (size_t x = 0; x < nmemb; ++x)
+			static_cast<short *>(ptr)[x] = ntohs(static_cast<short *>(ptr)[x]);
+		break;
+	case 4:
+		for (size_t x = 0; x < nmemb; ++x)
+			static_cast<int *>(ptr)[x] = ntohl(static_cast<int *>(ptr)[x]);
+		break;
+	case 8:
+		for (size_t x = 0; x < nmemb; ++x)
+			static_cast<long long *>(ptr)[x] = ntohll(static_cast<long long *>(ptr)[x]);
+		break;
+	default:
+		er = KCERR_INVALID_PARAMETER;
+		break;
+	}
+	return er;
+}
+
+ECRESULT ECFifoSerializer::Skip(size_t size, size_t nmemb)
+{
+	std::unique_ptr<char[]> buf(new(std::nothrow) char[size*nmemb]);
+	if (buf == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
+	return Read(buf.get(), size, nmemb);
+}
+
+ECRESULT ECFifoSerializer::Flush()
+{
+	ECRESULT er;
+	size_t cbRead = 0;
+	char buf[16384];
+
+	while (true) {
+		er = m_lpBuffer->Read(buf, sizeof(buf), STR_DEF_TIMEOUT, &cbRead);
+		if (er != erSuccess)
+			return er;
+		m_ulRead += cbRead;
+		if (cbRead < sizeof(buf))
+			break;
+	}
+	return er;
+}
+
+ECRESULT ECFifoSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
+{
+	if (lpcbRead != nullptr)
+		*lpcbRead = m_ulRead;
+	if (lpcbWrite != nullptr)
+		*lpcbWrite = m_ulWritten;
+	return erSuccess;
+}
 
 /**
  * Get the best server path for a server
@@ -385,8 +536,6 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 	ECRESULT er;
 	std::string	strServerPath;
 	bool		bConnectPipe = false;
-	SOAPINFO	*lpInfo = NULL;
-
 	serverdetails_t	sServerDetails;
 	std::string		strFilePath;
 	std::string		strHttpPath;
@@ -397,8 +546,7 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 	if (soap == NULL || soap->user == NULL || lpstrServerPath == NULL)
 		return KCERR_INVALID_PARAMETER;
 	
-	lpInfo = (SOAPINFO *)soap->user;
-
+	auto lpInfo = soap_info(soap);
 	er = lpecSession->GetUserManagement()->GetServerDetails(strServerName, &sServerDetails);
 	if (er != erSuccess)
 		return er;
@@ -774,9 +922,9 @@ exit:
 	const ECStringCompat stringCompat(bSupportUnicode); \
 	if(er != erSuccess) \
 		goto __soapentry_exit; \
-    ((SOAPINFO *)soap->user)->ulLastSessionId = ulSessionId; \
-    ((SOAPINFO *)soap->user)->szFname = szFname; \
-	lpecSession->AddBusyState(pthread_self(), #fname, ((SOAPINFO *)soap->user)->threadstart, ((SOAPINFO *)soap->user)->start);
+	soap_info(soap)->ulLastSessionId = ulSessionId; \
+	soap_info(soap)->szFname = szFname; \
+	lpecSession->AddBusyState(pthread_self(), #fname, soap_info(soap)->threadstart, soap_info(soap)->start);
 
 #define SOAP_ENTRY_FUNCTION_FOOTER \
 __soapentry_exit: \
@@ -2227,7 +2375,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	struct propVal  sPropVal;
 	// block removal of certain properties (per object type?), properties handled in WriteProps
 	unsigned int ulPropTags[] = {PR_MESSAGE_FLAGS, PR_CREATION_TIME, PR_LAST_MODIFICATION_TIME, PR_LAST_MODIFIER_ENTRYID, PR_LAST_MODIFIER_NAME_W, PR_SOURCE_KEY};
-	set<unsigned int> setNotDeletable(ulPropTags, ulPropTags + arraySize(ulPropTags));
+	std::set<unsigned int> setNotDeletable(ulPropTags, ulPropTags + ARRAY_SIZE(ulPropTags));
 
 	// Delete one or more properties of an object
 	for (gsoap_size_t i = 0; i < lpsPropTags->__size; ++i) {
@@ -5440,7 +5588,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 		goto exit;
 		
     now = time(NULL);
-    for (unsigned int i = 0; i < arraySize(timeProps); ++i) {
+    for (size_t i = 0; i < ARRAY_SIZE(timeProps); ++i) {
         sProp.ulPropTag = timeProps[i];
         sProp.__union = SOAP_UNION_propValData_hilo;
         sProp.Value.hilo = &sHilo;
@@ -8835,10 +8983,10 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 
 	if (ulTypeId == MAPI_ABCONT) {
 		lpProps = sPropsContainerRoot;
-		ulProps = arraySize(sPropsContainerRoot);
+		ulProps = ARRAY_SIZE(sPropsContainerRoot);
 	} else if (ulTypeId == MAPI_MAILUSER || ulTypeId == MAPI_DISTLIST) {
 		lpProps = sProps;
-		ulProps = arraySize(sProps);
+		ulProps = ARRAY_SIZE(sProps);
 	} else {
 		return KCERR_INVALID_PARAMETER;
 	}
@@ -9889,7 +10037,7 @@ static void MTOMWriteClose(struct soap *soap, void *handle);
 
 static void MTOMSessionDone(struct soap *soap, void *param)
 {
-	MTOMSessionInfo *lpInfo = (MTOMSessionInfo *)param;
+	auto lpInfo = static_cast<MTOMSessionInfo *>(param);
 
 	if (lpInfo->lpCurrentWriteStream != NULL)
 	    // Apparently a write stream was opened but not closed by gSOAP by calling MTOMWriteClose. Do it now.
@@ -9991,10 +10139,8 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	lpMTOMSessionInfo->lpSharedDatabase = lpBatchDB;
 	lpMTOMSessionInfo->er = erSuccess;
 	lpMTOMSessionInfo->lpThreadPool = new ECThreadPool(1);
-	
-	((SOAPINFO *)soap->user)->fdone = MTOMSessionDone;
-	((SOAPINFO *)soap->user)->fdoneparam = lpMTOMSessionInfo;
-
+	soap_info(soap)->fdone = MTOMSessionDone;
+	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 	lpsResponse->sMsgStreams.__ptr = s_alloc<messageStream>(soap, sSourceKeyPairs.__size);
 
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i) {
@@ -10235,9 +10381,8 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	lpMTOMSessionInfo->lpSharedDatabase = NULL;
 	lpMTOMSessionInfo->er = erSuccess;
 	lpMTOMSessionInfo->lpThreadPool = new ECThreadPool(1);
-	
-	((SOAPINFO *)soap->user)->fdone = MTOMSessionDone;
-	((SOAPINFO *)soap->user)->fdoneparam = lpMTOMSessionInfo;
+	soap_info(soap)->fdone = MTOMSessionDone;
+	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 
 	er = lpAttachmentStorage->Begin();
 	if (er != erSuccess)

@@ -2963,7 +2963,7 @@ static void add_misc_headers(FILE *tmp, const std::string &helo,
  */
 static void *HandlerLMTP(void *lpArg)
 {
-	DeliveryArgs *lpArgs = (DeliveryArgs *) lpArg;
+	auto lpArgs = static_cast<DeliveryArgs *>(lpArg);
 	std::string strMailAddress;
 	companyrecipients_t mapRCPT;
 	std::list<std::string> lOrderedRecipients;
@@ -3104,7 +3104,7 @@ static void *HandlerLMTP(void *lpArg)
 				sc -> countInc("DAgent::LMTP", "bad_recipient_address");
 			}
 			else {
-				ECRecipient *lpRecipient = new ECRecipient(converter.convert_to<std::wstring>(strMailAddress));
+				auto lpRecipient = new ECRecipient(converter.convert_to<std::wstring>(strMailAddress));
 						
 				// Resolve the mail address, so to have a user name instead of a mail address
 				hr = ResolveUser(lpAddrDir, lpRecipient);
@@ -3194,7 +3194,7 @@ static void *HandlerLMTP(void *lpArg)
 						for (const auto &recip : server.second) {
 							WCHAR wbuffer[4096];
 							for (const auto i : recip->vwstrRecipients) {
-								swprintf(wbuffer, arraySize(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
+								swprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
 								mapRecipientResults.insert(make_pair<std::string, std::string>(converter.convert_to<std::string>(i),
 									// rawsize([N]) returns N, not contents len, so cast to fix
 									converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR)));
@@ -3385,8 +3385,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		++g_nLMTPThreads;
 
 		// One socket has signalled a new incoming connection
-		DeliveryArgs *lpDeliveryArgs = new DeliveryArgs();
-		*lpDeliveryArgs = *lpArgs;
+		auto lpDeliveryArgs = new DeliveryArgs(*lpArgs);
 
 		if (FD_ISSET(ulListenLMTP, &readfds)) {
 			hr = HrAccept(ulListenLMTP, &lpDeliveryArgs->lpChannel);

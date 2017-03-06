@@ -601,7 +601,7 @@ private:
 		context_key key(create_key<_To_Type, _From_Type>(NULL, NULL));
 		context_map::const_iterator iContext = m_contexts.find(key);
 		if (iContext == m_contexts.cend()) {
-			details::iconv_context_base *lpContext = new details::iconv_context<_To_Type, _From_Type>();
+			auto lpContext = new details::iconv_context<_To_Type, _From_Type>();
 			iContext = m_contexts.insert(context_map::value_type(key, lpContext)).first;
 		}
 		return dynamic_cast<details::iconv_context<_To_Type, _From_Type>*>(iContext->second);
@@ -624,7 +624,7 @@ private:
 		context_key key(create_key<_To_Type, _From_Type>(NULL, fromcode));
 		context_map::const_iterator iContext = m_contexts.find(key);
 		if (iContext == m_contexts.cend()) {
-			details::iconv_context_base *lpContext = new details::iconv_context<_To_Type, _From_Type>(fromcode);
+			auto lpContext = new details::iconv_context<_To_Type, _From_Type>(fromcode);
 			
 			// Before we store it, we need to copy the fromcode as we don't know what the
 			// lifetime will be.
@@ -652,7 +652,7 @@ private:
 		context_key key(create_key<_To_Type, _From_Type>(tocode, fromcode));
 		context_map::const_iterator iContext = m_contexts.find(key);
 		if (iContext == m_contexts.cend()) {
-			details::iconv_context_base *lpContext = new details::iconv_context<_To_Type, _From_Type>(tocode, fromcode);
+			auto lpContext = new details::iconv_context<_To_Type, _From_Type>(tocode, fromcode);
 			
 			// Before we store it, we need to copy the fromcode as we don't know what the
 			// lifetime will be.

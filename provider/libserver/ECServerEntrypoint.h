@@ -28,11 +28,16 @@
 #define KOPANO_SERVER_INIT_SERVER		0
 #define KOPANO_SERVER_INIT_OFFLINE		1
 
-#define SOAP_CONNECTION_TYPE_NAMED_PIPE(soap)	\
-	((soap) && ((soap)->user) && ((((SOAPINFO*)(soap)->user)->ulConnectionType == CONNECTION_TYPE_NAMED_PIPE) || (((SOAPINFO*)(soap)->user)->ulConnectionType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)))
+static inline bool SOAP_CONNECTION_TYPE_NAMED_PIPE(struct soap *soap)
+{
+	if (soap == nullptr || soap->user == nullptr)
+		return false;
+	auto si = soap_info(soap);
+	return si->ulConnectionType == CONNECTION_TYPE_NAMED_PIPE ||
+	       si->ulConnectionType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY;
+}
 
-#define SOAP_CONNECTION_TYPE(soap)	\
-	(((SOAPINFO*)(soap)->user)->ulConnectionType)
+#define SOAP_CONNECTION_TYPE(s) (soap_info(s)->ulConnectionType)
 
 struct soap;
 

@@ -106,13 +106,11 @@ namespace detail {
 LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid)
 {
 	const char *lpsz = msgid;
-	detail::converter *lpConverter = detail::converter::getInstance();
 
 #ifndef NO_GETTEXT
 	lpsz = dcgettext(domainname, msgid, LC_MESSAGES);
 #endif
-
-	return (LPWSTR)lpConverter->convert(lpsz);
+	return const_cast<wchar_t *>(detail::converter::getInstance()->convert(lpsz));
 }
 
 } /* namespace */

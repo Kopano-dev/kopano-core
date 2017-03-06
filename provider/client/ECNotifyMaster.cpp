@@ -276,8 +276,7 @@ exit:
 void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 {
 	TRACE_NOTIFY(TRACE_ENTRY, "NotifyWatch", "");
-
-	ECNotifyMaster*		pNotifyMaster = (ECNotifyMaster *)pTmpNotifyMaster;
+	auto pNotifyMaster = static_cast<ECNotifyMaster *>(pTmpNotifyMaster);
 	assert(pNotifyMaster != NULL);
 
 	HRESULT							hr = hrSuccess;

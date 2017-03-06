@@ -158,10 +158,10 @@ T convstring::convert_to(const char *tocode) const {
 	if (m_lpsz == NULL)
 		return T();
 	if (m_ulFlags & MAPI_UNICODE) {
-		const wchar_t *lpszw = reinterpret_cast<const wchar_t*>(m_lpsz);
+		auto lpszw = reinterpret_cast<const wchar_t *>(m_lpsz);
 		return m_converter.convert_to<T>(tocode, lpszw, rawsize(lpszw), CHARSET_WCHAR);
 	} else {
-		const char *lpsza = reinterpret_cast<const char*>(m_lpsz);
+		auto lpsza = reinterpret_cast<const char *>(m_lpsz);
 		return m_converter.convert_to<T>(tocode, lpsza, rawsize(lpsza), CHARSET_CHAR);
 	}
 }

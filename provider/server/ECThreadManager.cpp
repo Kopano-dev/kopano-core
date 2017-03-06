@@ -140,8 +140,8 @@ ECPriorityWorkerThread::~ECPriorityWorkerThread()
 void *ECWorkerThread::Work(void *lpParam)
 {
 	kcsrv_blocksigs();
-    ECWorkerThread *lpThis = (ECWorkerThread *)lpParam;
-	ECPriorityWorkerThread *lpPrio = dynamic_cast<ECPriorityWorkerThread*>(lpThis);
+	auto lpThis = static_cast<ECWorkerThread *>(lpParam);
+	auto lpPrio = dynamic_cast<ECPriorityWorkerThread *>(lpThis);
     WORKITEM *lpWorkItem = NULL;
     ECRESULT er = erSuccess;
     bool fStop = false;
@@ -186,14 +186,14 @@ void *ECWorkerThread::Work(void *lpParam)
 			double dblStart = GetTimeOfDay(), dblEnd = 0;
 			
 			// Reset last session ID so we can use it reliably after the call is done
-            ((SOAPINFO *)lpWorkItem->soap->user)->ulLastSessionId = 0;
+			auto info = soap_info(lpWorkItem->soap);
+			info->ulLastSessionId = 0;
             // Pass information on start time of the request into soap->user, so that it can be applied to the correct
             // session after XML parsing
-            clock_gettime(CLOCK_THREAD_CPUTIME_ID, &((SOAPINFO *)lpWorkItem->soap->user)->threadstart);
-            ((SOAPINFO *)lpWorkItem->soap->user)->start = GetTimeOfDay();
-            ((SOAPINFO *)lpWorkItem->soap->user)->szFname = NULL;
-
-			((SOAPINFO *)lpWorkItem->soap->user)->fdone = NULL;
+			clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->threadstart);
+			info->start = GetTimeOfDay();
+			info->szFname = nullptr;
+			info->fdone = NULL;
 
             // Do processing of work item
             soap_begin(lpWorkItem->soap);
@@ -238,14 +238,14 @@ void *ECWorkerThread::Work(void *lpParam)
             }
 
 done:	
-			if(((SOAPINFO *)lpWorkItem->soap->user)->fdone)
-				((SOAPINFO *)lpWorkItem->soap->user)->fdone(lpWorkItem->soap, ((SOAPINFO *)lpWorkItem->soap->user)->fdoneparam);
+			if (info->fdone != nullptr)
+				info->fdone(lpWorkItem->soap, info->fdoneparam);
 
             dblEnd = GetTimeOfDay();
 
             // Tell the session we're done processing the request for this session. This will also tell the session that this
             // thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
-            g_lpSessionManager->RemoveBusyState(((SOAPINFO *)lpWorkItem->soap->user)->ulLastSessionId, pthread_self());
+            g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, pthread_self());
             
 		// Track cpu usage server-wide
 		g_lpStatsCollector->Increment(SCN_SOAP_REQUESTS);
@@ -390,7 +390,7 @@ ECWatchDog::~ECWatchDog()
 
 void *ECWatchDog::Watch(void *lpParam)
 {
-    ECWatchDog *lpThis = (ECWatchDog *)lpParam;
+	auto lpThis = static_cast<ECWatchDog *>(lpParam);
     double dblAge;
 	kcsrv_blocksigs();
     
@@ -480,7 +480,7 @@ ECRESULT ECDispatcher::AddListenSocket(struct soap *soap)
 
 ECRESULT ECDispatcher::QueueItem(struct soap *soap)
 {
-	WORKITEM *item = new WORKITEM;
+	auto item = new WORKITEM;
 	CONNECTION_TYPE ulType;
 
 	item->soap = soap;

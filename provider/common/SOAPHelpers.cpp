@@ -37,7 +37,7 @@ size_t mime_file_read(struct soap *soap, void *handle, char *buf, size_t len)
 
 void *mime_file_write_open(struct soap *soap, void *handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding)
 {
-	const char *lpFilename = (const char *)handle;
+	auto lpFilename = static_cast<const char *>(handle);
 
 	if (!lpFilename) {
 		soap->error = SOAP_EOF;

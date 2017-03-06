@@ -160,91 +160,56 @@ struct SRelation {
 // 1
 ECRESULT UpdateDatabaseCreateVersionsTable(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
-	er = lpDatabase->DoInsert(Z_TABLEDEF_VERSIONS);
-
-	return er;
+	return lpDatabase->DoInsert(Z_TABLEDEF_VERSIONS);
 }
 
 // 2
 ECRESULT UpdateDatabaseCreateSearchFolders(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
-	er = lpDatabase->DoInsert(Z_TABLEDEF_SEARCHRESULTS);
-
-	return er;
+	return lpDatabase->DoInsert(Z_TABLEDEF_SEARCHRESULTS);
 }
 
 // 3
 ECRESULT UpdateDatabaseFixUserNonActive(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-	
-	er = lpDatabase->DoUpdate("UPDATE users SET nonactive=1 WHERE nonactive=10");
-
-	return er;
+	return lpDatabase->DoUpdate("UPDATE users SET nonactive=1 WHERE nonactive=10");
 }
 
 // 4
 ECRESULT UpdateDatabaseCreateSearchFoldersFlags(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
-	er = lpDatabase->DoUpdate("ALTER TABLE searchresults ADD COLUMN flags int(11) unsigned NOT NULL default '0'");
-
-	return er;
+	return lpDatabase->DoUpdate("ALTER TABLE searchresults ADD COLUMN flags int(11) unsigned NOT NULL default '0'");
 }
 
 // 5
 ECRESULT UpdateDatabasePopulateSearchFolders(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
 	searchfolder_restart_required = 1;
-
-	return er;
+	return erSuccess;
 }
 
 // 6
 ECRESULT UpdateDatabaseCreateChangesTable(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
-	er = lpDatabase->DoInsert(Z_TABLEDEF_CHANGES);
-
-	return er;
+	return lpDatabase->DoInsert(Z_TABLEDEF_CHANGES);
 }
 
 // 7
 ECRESULT UpdateDatabaseCreateSyncsTable(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
-	er = lpDatabase->DoInsert(Z_TABLEDEF_SYNCS);
-
-	return er;
+	return lpDatabase->DoInsert(Z_TABLEDEF_SYNCS);
 }
 
 // 8
 ECRESULT UpdateDatabaseCreateIndexedPropertiesTable(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
-	er = lpDatabase->DoInsert(Z_TABLEDEF_INDEXED_PROPERTIES);
-
-	return er;
+	return lpDatabase->DoInsert(Z_TABLEDEF_INDEXED_PROPERTIES);
 }
 
 // 9
 ECRESULT UpdateDatabaseCreateSettingsTable(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
-	er = lpDatabase->DoInsert(Z_TABLEDEF_SETTINGS);
-
-	return er;
+	return lpDatabase->DoInsert(Z_TABLEDEF_SETTINGS);
 }
 
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase)
@@ -262,11 +227,7 @@ ECRESULT InsertServerGUID(ECDatabase *lpDatabase)
 // 10
 ECRESULT UpdateDatabaseCreateServerGUID(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
-	er = InsertServerGUID(lpDatabase);
-
-	return er;
+	return InsertServerGUID(lpDatabase);
 }
 
 // 11
@@ -523,36 +484,24 @@ ECRESULT UpdateDatabaseAddUserObjectType(ECDatabase *lpDatabase)
 // 15
 ECRESULT UpdateDatabaseAddUserSignature(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-	
-    er = lpDatabase->DoUpdate("ALTER TABLE users ADD COLUMN signature varchar(255) NOT NULL default '0'");
-
-    return er;
+	return lpDatabase->DoUpdate("ALTER TABLE users ADD COLUMN signature varchar(255) NOT NULL default '0'");
 }
 
 // 16
 ECRESULT UpdateDatabaseAddSourceKeySetting(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-	
-    er = lpDatabase->DoUpdate("INSERT INTO `settings` VALUES ('source_key_auto_increment' , (SELECT CHAR(MAX(`id`)&0xFF, MAX(`id`)>>8&0xFF, MAX(`id`)>>16&0xFF, MAX(`id`)>>24&0xFF, 0x00, 0x00, 0x00, 0x00) FROM `hierarchy`))");
-
-    return er;
+	return lpDatabase->DoUpdate("INSERT INTO `settings` VALUES ('source_key_auto_increment' , (SELECT CHAR(MAX(`id`)&0xFF, MAX(`id`)>>8&0xFF, MAX(`id`)>>16&0xFF, MAX(`id`)>>24&0xFF, 0x00, 0x00, 0x00, 0x00) FROM `hierarchy`))");
 }
 
 // 17
 ECRESULT UpdateDatabaseRestrictExternId(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-
 	/*
 	 * The previous upgrade script created an INDEX instead of an UNIQUE INDEX,
 	 * this will result in incorrect behavior when multiple entries with the
 	 * same externid and object_type are inserted.
 	 */
-	er = lpDatabase->DoUpdate("ALTER TABLE users DROP INDEX externid, ADD UNIQUE INDEX externid (`externid`, `object_type`)");
-
-	return er;
+	return lpDatabase->DoUpdate("ALTER TABLE users DROP INDEX externid, ADD UNIQUE INDEX externid (`externid`, `object_type`)");
 }
 
 // 18
@@ -1177,21 +1126,14 @@ exit:
 // 29
 ECRESULT UpdateDatabaseSetSingleinstanceTag(ECDatabase *lpDatabase)
 {
-	string		strQuery;
-
 	// Force all tag values to PR_ATTACH_DATA_BIN. Up to now, no other values can be present in the table.
-	strQuery = "UPDATE `singleinstances` SET `tag` = " + stringify(PROP_ID(PR_ATTACH_DATA_BIN));
-	return lpDatabase->DoUpdate(strQuery);
+	return lpDatabase->DoUpdate("UPDATE `singleinstances` SET `tag` = " + stringify(PROP_ID(PR_ATTACH_DATA_BIN)));
 }
 
 // 30
 ECRESULT UpdateDatabaseCreateSyncedMessagesTable(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
-	er = lpDatabase->DoInsert(Z_TABLEDEFS_SYNCEDMESSAGES);
-
-	return er;
+	return lpDatabase->DoInsert(Z_TABLEDEFS_SYNCEDMESSAGES);
 }
 
 // 31
@@ -1305,11 +1247,7 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 // 34
 ECRESULT UpdateDatabaseAddMVPropertyTable(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
-	er = lpDatabase->DoInsert(Z_TABLEDEF_OBJECT_MVPROPERTY);
-
-	return er;
+	return lpDatabase->DoInsert(Z_TABLEDEF_OBJECT_MVPROPERTY);
 }
 
 // 35
@@ -1902,10 +1840,8 @@ exit:
 // 56
 ECRESULT UpdateDatabaseCreateDeferred(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
 	// Create the deferred table
-	er = lpDatabase->DoInsert(Z_TABLEDEF_DELAYEDUPDATE);
-	return er;
+	return lpDatabase->DoInsert(Z_TABLEDEF_DELAYEDUPDATE);
 }
 
 // 57

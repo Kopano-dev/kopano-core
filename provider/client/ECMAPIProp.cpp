@@ -159,8 +159,8 @@ BOOL ECMAPIProp::IsICSObject()
 HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
 	HRESULT		hr = hrSuccess;
-	ECMsgStore* lpMsgStore = (ECMsgStore*) lpProvider;
-	ECMAPIProp*	lpProp = (ECMAPIProp *)lpParam;
+	auto lpMsgStore = static_cast<ECMsgStore *>(lpProvider);
+	auto lpProp = static_cast<ECMAPIProp *>(lpParam);
 
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_SOURCE_KEY):
@@ -286,7 +286,7 @@ HRESULT ECMAPIProp::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
 	HRESULT hr = hrSuccess;
-	ECMAPIProp*	lpProp = (ECMAPIProp *)lpParam;
+	auto lpProp = static_cast<ECMAPIProp *>(lpParam);
 
 	switch(ulPropTag) {
 	case PR_SOURCE_KEY:
@@ -306,8 +306,7 @@ HRESULT ECMAPIProp::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 HRESULT ECMAPIProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
-
-	ECMsgStore* lpMsgStore = (ECMsgStore*)lpProvider;
+	auto lpMsgStore = static_cast<ECMsgStore *>(lpProvider);
 
 	switch(lpsPropValSrc->ulPropTag) {
 	case PR_STORE_ENTRYID:
@@ -721,7 +720,7 @@ HRESULT ECMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames
 HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 {
 	HRESULT hr = hrSuccess;
-	STREAMDATA *lpStreamData = (STREAMDATA *)lpData;
+	auto lpStreamData = static_cast<STREAMDATA *>(lpData);
 	char *buffer = NULL;
 	LPSPropValue lpPropValue = NULL;
 	STATSTG sStat;
@@ -795,8 +794,7 @@ exit:
 
 HRESULT ECMAPIProp::HrStreamCleanup(void *lpData)
 {
-	STREAMDATA *lpStreamData = (STREAMDATA *)lpData;
-	delete lpStreamData;
+	delete static_cast<STREAMDATA *>(lpData);
 	return hrSuccess;
 }
 

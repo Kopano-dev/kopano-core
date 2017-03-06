@@ -79,13 +79,10 @@ ECRESULT ECConvenientDepthObjectTable::Create(ECSession *lpSession,
     unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale,
     ECStoreObjectTable **lppTable)
 {
-	ECRESULT er = erSuccess;
-
 	*lppTable = new ECConvenientDepthObjectTable(lpSession, ulStoreId, lpGuid, ulFolderId, ulObjType, ulFlags, locale);
 
 	(*lppTable)->AddRef();
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECConvenientDepthObjectTable::Load() {
@@ -94,7 +91,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	std::string	strQuery;
-	ECODStore	*lpData = (ECODStore *)m_lpObjectData;
+	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
 	sObjectTableKey		sRowItem;
 	unsigned int ulDepth = 0;
 	

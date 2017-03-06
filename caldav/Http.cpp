@@ -645,7 +645,7 @@ HRESULT Http::HrFinalize()
 		string strAgent;
 		localtime_r(&now, &local);
 		// @todo we're in C LC_TIME locale to get the correct (month) format, but the timezone will be GMT, which is not wanted.
-		strftime(szTime, arraySize(szTime), "%d/%b/%Y:%H:%M:%S %z", &local);
+		strftime(szTime, ARRAY_SIZE(szTime), "%d/%b/%Y:%H:%M:%S %z", &local);
 		HrGetHeaderValue("User-Agent", &strAgent);
 		ec_log_debug("%s - %s [%s] \"%s\" %d %d \"-\" \"%s\"", m_lpChannel->peer_addr(), m_strUser.empty() ? "-" : m_strUser.c_str(), szTime, m_strAction.c_str(), m_ulRetCode, (int)m_strRespBody.length(), strAgent.c_str());
 	}

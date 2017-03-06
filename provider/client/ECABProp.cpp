@@ -46,7 +46,7 @@ HRESULT ECABProp::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
 	HRESULT		hr = hrSuccess;
-	ECABProp*	lpProp = (ECABProp *)lpParam;
+	auto lpProp = static_cast<ECABProp *>(lpParam);
 
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_RECORD_KEY):

@@ -2369,7 +2369,7 @@ ULONG NormalizePropTag(ULONG ulPropTag)
  */
 const char *GetSourceAddr(struct soap *soap)
 {
-	if( ((SOAPINFO *)soap->user)->bProxy && soap->proxy_from)
+	if (soap_info(soap)->bProxy && soap->proxy_from != nullptr)
 		return soap->proxy_from;
 	else
 		return soap->host;

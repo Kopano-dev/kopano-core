@@ -116,8 +116,7 @@ bool ECScheduler::hasExpired(time_t ttime, ECSCHEDULE *lpSchedule)
 void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 {
 	ECScheduleList::iterator	iterScheduleList;
-
-	ECScheduler*		lpScheduler = (ECScheduler*)lpTmpScheduler;
+	auto lpScheduler = static_cast<ECScheduler *>(lpTmpScheduler);
 	HRESULT*			lperThread = NULL;
 	pthread_t			hThread;
 

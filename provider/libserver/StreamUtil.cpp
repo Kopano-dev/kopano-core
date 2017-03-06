@@ -76,6 +76,21 @@ static inline bool operator<(const GUID &lhs, const GUID &rhs)
 
 namespace KC {
 
+class ECStreamSerializer _kc_final : public ECSerializer {
+	public:
+	ECStreamSerializer(IStream *lpBuffer);
+	virtual ECRESULT SetBuffer(void *) _kc_override;
+	virtual ECRESULT Write(const void *ptr, size_t size, size_t nmemb) _kc_override;
+	virtual ECRESULT Read(void *ptr, size_t size, size_t nmemb) _kc_override;
+	virtual ECRESULT Skip(size_t size, size_t nmemb) _kc_override;
+	virtual ECRESULT Flush(void) _kc_override;
+	virtual ECRESULT Stat(ULONG *have_read, ULONG *have_written) _kc_override;
+
+	private:
+	IStream *m_lpBuffer;
+	ULONG m_ulRead = 0, m_ulWritten = 0;
+};
+
 const static struct StreamCaps {
 	bool bSupportUnicode;
 } g_StreamCaps[] = {
@@ -113,6 +128,138 @@ private:
 	nameidmap_t m_mapNameIds;
 	namestringmap_t m_mapNameStrings;
 };
+
+ECStreamSerializer::ECStreamSerializer(IStream *lpBuffer)
+{
+	SetBuffer(lpBuffer);
+}
+
+ECRESULT ECStreamSerializer::SetBuffer(void *lpBuffer)
+{
+	m_lpBuffer = static_cast<IStream *>(lpBuffer);
+	return erSuccess;
+}
+
+ECRESULT ECStreamSerializer::Write(const void *ptr, size_t size, size_t nmemb)
+{
+	ECRESULT er = erSuccess;
+	ULONG cbWritten = 0;
+	union {
+		char c[8];
+		short s;
+		int i;
+		long long ll;
+	} tmp;
+
+	if (ptr == NULL)
+		return KCERR_INVALID_PARAMETER;
+
+	switch (size) {
+	case 1:
+		er = m_lpBuffer->Write(ptr, nmemb, &cbWritten);
+		break;
+	case 2:
+		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
+			tmp.s = htons(static_cast<const short *>(ptr)[x]);
+			er = m_lpBuffer->Write(&tmp, size, &cbWritten);
+		}
+		break;
+	case 4:
+		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
+			tmp.i = htonl(static_cast<const int *>(ptr)[x]);
+			er = m_lpBuffer->Write(&tmp, size, &cbWritten);
+		}
+		break;
+	case 8:
+		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
+			tmp.ll = htonll(static_cast<const long long *>(ptr)[x]);
+			er = m_lpBuffer->Write(&tmp, size, &cbWritten);
+		}
+		break;
+	default:
+		er = KCERR_INVALID_PARAMETER;
+		break;
+	}
+	m_ulWritten += size * nmemb;
+	return er;
+}
+
+ECRESULT ECStreamSerializer::Read(void *ptr, size_t size, size_t nmemb)
+{
+	ECRESULT er;
+	ULONG cbRead = 0;
+
+	if (ptr == nullptr)
+		return KCERR_INVALID_PARAMETER;
+	er = m_lpBuffer->Read(ptr, size * nmemb, &cbRead);
+	if (er != erSuccess)
+		return er;
+	m_ulRead += cbRead;
+	if (cbRead != size * nmemb)
+		return KCERR_CALL_FAILED;
+
+	switch (size) {
+	case 1: break;
+	case 2:
+		for (size_t x = 0; x < nmemb; ++x)
+			static_cast<short *>(ptr)[x] = ntohs(static_cast<short *>(ptr)[x]);
+		break;
+	case 4:
+		for (size_t x = 0; x < nmemb; ++x)
+			static_cast<int *>(ptr)[x] = ntohl(static_cast<int *>(ptr)[x]);
+		break;
+	case 8:
+		for (size_t x = 0; x < nmemb; ++x)
+			static_cast<long long *>(ptr)[x] = ntohll(static_cast<long long *>(ptr)[x]);
+		break;
+	default:
+		er = KCERR_INVALID_PARAMETER;
+		break;
+	}
+	return er;
+}
+
+ECRESULT ECStreamSerializer::Skip(size_t size, size_t nmemb)
+{
+	ECRESULT er = erSuccess;
+	char buffer[4096];
+	ULONG read = 0;
+	size_t total = 0;
+
+	while (total < nmemb * size) {
+		er = m_lpBuffer->Read(buffer, std::min(sizeof(buffer), (size * nmemb) - total), &read);
+		if (er != erSuccess)
+			return er;
+		total += read;
+	}
+	return er;
+}
+
+ECRESULT ECStreamSerializer::Flush()
+{
+	ECRESULT er;
+	ULONG cbRead = 0;
+	char buf[16384];
+
+	while (true) {
+		er = m_lpBuffer->Read(buf, sizeof(buf), &cbRead);
+		if (er != erSuccess)
+			return er;
+		m_ulRead += cbRead;
+		if (cbRead < sizeof(buf))
+			break;
+	}
+	return er;
+}
+
+ECRESULT ECStreamSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
+{
+	if (lpcbRead != nullptr)
+		*lpcbRead = m_ulRead;
+	if (lpcbWrite != nullptr)
+		*lpcbWrite = m_ulWritten;
+	return erSuccess;
+}
 
 NamedPropertyMapper::NamedPropertyMapper(ECDatabase *lpDatabase)
 	: m_lpDatabase(lpDatabase) 
@@ -1575,8 +1722,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 		er = lpSource->Read(&ulStreamVersion, sizeof(ulStreamVersion), 1);
 		if (er != erSuccess)
 			goto exit;
-
-		if (ulStreamVersion >= arraySize(g_StreamCaps)) {
+		if (ulStreamVersion >= ARRAY_SIZE(g_StreamCaps)) {
 			er = KCERR_NO_SUPPORT;
 			goto exit;
 		}

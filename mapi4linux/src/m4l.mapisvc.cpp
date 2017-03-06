@@ -424,7 +424,7 @@ const SPropValue *SVCService::GetProp(ULONG ulPropTag)
 
 SVCProvider* SVCService::GetProvider(LPTSTR lpszProvider, ULONG ulFlags)
 {
-	std::map<std::string, SVCProvider*>::const_iterator i = m_sProviders.find(reinterpret_cast<const char *>(lpszProvider));
+	auto i = m_sProviders.find(reinterpret_cast<const char *>(lpszProvider));
 	if (i == m_sProviders.cend())
 		return NULL;
 	return i->second;

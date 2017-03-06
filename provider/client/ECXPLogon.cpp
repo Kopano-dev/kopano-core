@@ -83,9 +83,7 @@ ECXPLogon::~ECXPLogon()
 HRESULT ECXPLogon::Create(const std::string &strProfileName, BOOL bOffline, ECXPProvider *lpXPProvider, LPMAPISUP lpMAPISup, ECXPLogon **lppECXPLogon)
 {
 	HRESULT hr = hrSuccess;
-
-	ECXPLogon *lpXPLogon = new ECXPLogon(strProfileName, bOffline, lpXPProvider, lpMAPISup);
-
+	auto lpXPLogon = new ECXPLogon(strProfileName, bOffline, lpXPProvider, lpMAPISup);
 	hr = lpXPLogon->QueryInterface(IID_ECXPLogon, (void **)lppECXPLogon);
 
 	if(hr != hrSuccess)

@@ -250,7 +250,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 		break;
 	case PT_ACTIONS: {
 		// NOTE: we placed the object pointer in lpszA to make sure it is on the same offset as Value.x on 32-bit and 64-bit machines
-		ACTIONS *lpSrcActions = ((ACTIONS*)lpPropValSrc->Value.lpszA);
+		auto lpSrcActions = reinterpret_cast<ACTIONS *>(lpPropValSrc->Value.lpszA);
 		lpPropValDst->__union = SOAP_UNION_propValData_actions;
 		lpPropValDst->Value.actions = s_alloc<actions>(nullptr);
 		lpPropValDst->Value.actions->__ptr = s_alloc<action>(nullptr, lpSrcActions->cActions);

@@ -450,9 +450,7 @@ ECMemTableView::~ECMemTableView()
 HRESULT ECMemTableView::Create(ECMemTable *lpMemTable, const ECLocale &locale, ULONG ulFlags, ECMemTableView **lppMemTableView)
 {
 	HRESULT hr = hrSuccess;
-
-	ECMemTableView *lpView = new ECMemTableView(lpMemTable, locale, ulFlags);
-
+	auto lpView = new ECMemTableView(lpMemTable, locale, ulFlags);
 	hr = lpView->QueryInterface(IID_ECMemTableView, (void **) lppMemTableView);
 
 	if(hr != hrSuccess)
@@ -578,19 +576,14 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 
 HRESULT ECMemTableView::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)
 {
-	HRESULT hr = hrSuccess;
-
 	*lpulTableStatus = TBLSTAT_COMPLETE;
 	*lpulTableType = TBLTYPE_DYNAMIC;
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::SetColumns(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-
 	delete[] this->lpsPropTags;
 	lpsPropTags = (LPSPropTagArray) new BYTE[CbNewSPropTagArray(lpPropTagArray->cValues)];
 
@@ -598,8 +591,7 @@ HRESULT ECMemTableView::SetColumns(const SPropTagArray *lpPropTagArray,
 	memcpy(&lpsPropTags->aulPropTag, &lpPropTagArray->aulPropTag, lpPropTagArray->cValues * sizeof(ULONG));
 
 	Notify(TABLE_SETCOL_DONE, NULL, NULL);
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::QueryColumns(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
@@ -806,8 +798,7 @@ HRESULT ECMemTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 
 HRESULT ECMemTableView::FreeBookmark(BOOKMARK bkPosition)
 {
-	ECRESULT er = this->lpKeyTable->FreeBookmark(static_cast<unsigned int>(bkPosition));
-	return kcerr_to_mapierr(er);
+	return kcerr_to_mapierr(this->lpKeyTable->FreeBookmark(static_cast<unsigned int>(bkPosition)));
 }
 
 // This is the client version of ECGenericObjectTable::GetBinarySortKey()
@@ -1044,9 +1035,7 @@ HRESULT ECMemTableView::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, L
 HRESULT ECMemTableView::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows)
 {
 	ECObjectTableList	sRowList;
-
-	HRESULT er = lpKeyTable->QueryRows(lRowCount, &sRowList, false, ulFlags);
-	HRESULT hr = kcerr_to_mapierr(er);
+	HRESULT hr = kcerr_to_mapierr(lpKeyTable->QueryRows(lRowCount, &sRowList, false, ulFlags));
 	if(hr != hrSuccess)
 		return hr;
 	return QueryRowData(&sRowList, lppRows);

@@ -116,7 +116,7 @@ ECMAPITable::~ECMAPITable()
 
 HRESULT ECMAPITable::Create(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags, ECMAPITable **lppECMAPITable)
 {
-	ECMAPITable *lpMAPITable = new ECMAPITable(strName, lpNotifyClient, ulFlags);
+	auto lpMAPITable = new ECMAPITable(strName, lpNotifyClient, ulFlags);
 	return lpMAPITable->QueryInterface(IID_ECMAPITable, reinterpret_cast<void **>(lppECMAPITable));
 }
 
@@ -496,7 +496,7 @@ HRESULT ECMAPITable::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows
 
 HRESULT ECMAPITable::Reload(void *lpParam)
 {
-	ECMAPITable *lpThis = (ECMAPITable *)lpParam;
+	auto lpThis = static_cast<ECMAPITable *>(lpParam);
 
 	// Locking m_hLock is not allowed here since when we are called, the SOAP transport in lpTableOps  
 	// will be locked. Since normally m_hLock is locked before SOAP, locking m_hLock *after* SOAP here  

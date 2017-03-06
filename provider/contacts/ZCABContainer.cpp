@@ -598,14 +598,9 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
  */
 HRESULT ZCABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
-	HRESULT hr = hrSuccess;
-
 	if (m_lpDistList)
-		hr = GetDistListContentsTable(ulFlags, lppTable);
-	else
-		hr = GetFolderContentsTable(ulFlags, lppTable);
-
-	return hr;
+		return GetDistListContentsTable(ulFlags, lppTable);
+	return GetFolderContentsTable(ulFlags, lppTable);
 }
 
 /** 
@@ -811,7 +806,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
 {
 	HRESULT hr = hrSuccess;
-	cabEntryID *lpCABEntryID = (cabEntryID*)lpEntryID;
+	auto lpCABEntryID = reinterpret_cast<cabEntryID *>(lpEntryID);
 	ULONG cbNewCABEntryID = CbNewCABENTRYID(0);
 	ULONG cbFolder = 0;
 	LPENTRYID lpFolder = NULL;
@@ -1035,7 +1030,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 			ECOrRestriction resFind;
 			static const ULONG ulSearchTags[] = {PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_ORIGINAL_DISPLAY_NAME};
 
-			for (ULONG j = 0; j < arraySize(ulSearchTags); ++j) {
+			for (size_t j = 0; j < ARRAY_SIZE(ulSearchTags); ++j) {
 				sProp.ulPropTag = CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType);
 				resFind += ECContentRestriction(ulResFlag, CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType), &sProp, ECRestriction::Cheap);
 			}

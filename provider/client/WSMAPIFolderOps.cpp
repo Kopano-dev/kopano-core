@@ -538,10 +538,6 @@ HRESULT WSMAPIFolderOps::UnLockSoap()
 
 HRESULT WSMAPIFolderOps::Reload(void *lpParam, ECSESSIONID sessionid)
 {
-	HRESULT hr = hrSuccess;
-	WSMAPIFolderOps *lpThis = (WSMAPIFolderOps *)lpParam;
-
-	lpThis->ecSessionId = sessionid;
-
-	return hr;
+	static_cast<WSMAPIFolderOps *>(lpParam)->ecSessionId = sessionid;
+	return hrSuccess;
 }

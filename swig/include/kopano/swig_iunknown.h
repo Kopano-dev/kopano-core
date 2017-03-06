@@ -44,10 +44,10 @@ public:
 		PyGILState_STATE gstate;
 		gstate = PyGILState_Ensure();
 		
-		Swig::Director *director = dynamic_cast<Swig::Director *>(this);
+		auto director = dynamic_cast<Swig::Director *>(this);
 		if (director == nullptr)
 			throw std::runtime_error("dynamic_cast<> yielded a nullptr");
-		PyObject *o = director->swig_get_self();
+		auto o = director->swig_get_self();
 		if (o == nullptr)
 			throw std::runtime_error("swig_get_self yielded a nullptr");
 		Py_INCREF(o);
@@ -60,10 +60,10 @@ public:
 		PyGILState_STATE gstate;
 		gstate = PyGILState_Ensure();
 		
-		Swig::Director *director = dynamic_cast<Swig::Director *>(this);
+		auto director = dynamic_cast<Swig::Director *>(this);
 		if (director == nullptr)
 			throw std::runtime_error("dynamic_cast<> yielded a nullptr");
-		PyObject *o = director->swig_get_self();
+		auto o = director->swig_get_self();
 		if (o == nullptr)
 			throw std::runtime_error("swig_get_self yielded a nullptr");
 		ULONG cnt = o->ob_refcnt;

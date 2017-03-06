@@ -642,9 +642,7 @@ HRESULT WSMAPIPropStorage::HrSetSyncId(ULONG ulSyncId) {
 
 // Called when the session ID has changed
 HRESULT WSMAPIPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
-	WSMAPIPropStorage *lpThis = (WSMAPIPropStorage *)lpParam;
-	lpThis->ecSessionId = sessionId;
-
+	static_cast<WSMAPIPropStorage *>(lpParam)->ecSessionId = sessionId;
 	return hrSuccess;
 }
 

@@ -164,7 +164,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 			struct tm date;
 			FileTimeToUnixTime(ptrInfo[2].Value.ft, &t);
 			localtime_r(&t, &date);
-			wcsftime(buffer, arraySize(buffer), L"%c", &date);
+			wcsftime(buffer, ARRAY_SIZE(buffer), L"%c", &date);
 			strForwardText += buffer;
 		}
 

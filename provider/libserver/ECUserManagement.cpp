@@ -78,7 +78,7 @@ static bool execute_script(const char *scriptname, ...)
 		envname = va_arg(v, char *);
 		if (!envname)
 			break;
-		char *envval = va_arg(v, char *);
+		auto envval = va_arg(v, char *);
 		if (!envval)
 			break;
 		

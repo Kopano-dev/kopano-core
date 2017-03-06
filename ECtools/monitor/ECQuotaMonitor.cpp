@@ -96,7 +96,7 @@ ECQuotaMonitor::~ECQuotaMonitor()
 void* ECQuotaMonitor::Create(void* lpVoid)
 {
 	HRESULT				hr = hrSuccess;
-	ECTHREADMONITOR *lpThreadMonitor = reinterpret_cast<ECTHREADMONITOR *>(lpVoid);
+	auto lpThreadMonitor = static_cast<ECTHREADMONITOR *>(lpVoid);
 	std::unique_ptr<ECQuotaMonitor> lpecQuotaMonitor;
 	object_ptr<IMAPISession> lpMAPIAdminSession;
 	object_ptr<IMsgStore> lpMDBAdmin;

@@ -510,8 +510,7 @@ skip:
  */
 ECRESULT ECGenericObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
-	ECRESULT er = KCERR_NO_SUPPORT;
-	return er;
+	return KCERR_NO_SUPPORT;
 }
 
 /**
@@ -1671,7 +1670,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
 
 	case RES_PROPERTY:
 		if(PROP_ID(lpsRestrict->lpProp->ulPropTag) == PROP_ID(PR_ANR))
-			lpPropTags->insert(lpPropTags->end(), sANRProps, sANRProps + arraySize(sANRProps));
+			lpPropTags->insert(lpPropTags->end(), sANRProps, sANRProps + ARRAY_SIZE(sANRProps));
 			
 		else {
 			lpPropTags->push_back(lpsRestrict->lpProp->lpProp->ulPropTag);
@@ -1984,7 +1983,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 
 		if(PROP_ID(ulPropTagRestrict) == PROP_ID(PR_ANR))
 		{
-			for (unsigned int j = 0; j < arraySize(sANRProps); ++j) {
+			for (size_t j = 0; j < ARRAY_SIZE(sANRProps); ++j) {
 				lpProp = FindProp(lpPropVals, sANRProps[j]);
 
                 // We need this because CompareProp will fail if the types are not the same

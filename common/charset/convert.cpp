@@ -230,7 +230,7 @@ void convert_context::persist_code(context_key &key, unsigned flags)
 	if (flags & pfToCode) {
 		code_set::const_iterator iCode = m_codes.find(key.tocode);
 		if (iCode == m_codes.cend()) {
-			char *tocode = new char[strlen(key.tocode) + 1];
+			auto tocode = new char[strlen(key.tocode)+1];
 			memcpy(tocode, key.tocode, strlen(key.tocode) + 1);
 			iCode = m_codes.insert(tocode).first;
 		}
@@ -239,7 +239,7 @@ void convert_context::persist_code(context_key &key, unsigned flags)
 	if (flags & pfFromCode) {
 		code_set::const_iterator iCode = m_codes.find(key.fromcode);
 		if (iCode == m_codes.cend()) {
-			char *fromcode = new char[strlen(key.fromcode) + 1];
+			auto fromcode = new char[strlen(key.fromcode)+1];
 			memcpy(fromcode, key.fromcode, strlen(key.fromcode) + 1);
 			iCode = m_codes.insert(fromcode).first;
 		}

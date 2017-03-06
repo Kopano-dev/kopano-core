@@ -19,20 +19,6 @@
 #define PLATFORM_H
 
 #include <kopano/zcdefs.h>
-#if defined(__GNUC__) && !defined(__cplusplus)
-	/*
-	 * If typeof @a stays the same through a demotion to pointer,
-	 * @a cannot be an array.
-	 */
-#	define __array_size_check(a) BUILD_BUG_ON_EXPR(\
-		__builtin_types_compatible_p(__typeof__(a), \
-		__typeof__(DEMOTE_TO_PTR(a))))
-#else
-#	define __array_size_check(a) 0
-#endif
-#ifndef ARRAY_SIZE
-#	define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)) + __array_size_check(x))
-#endif
 
 /* About _FORTIFY_SOURCE a.k.a. _BREAKIFY_SOURCE_IN_INSANE_WAYS
  *
@@ -65,6 +51,7 @@
   #endif
   #include <kopano/platform.linux.h>
 #include <string>
+#include <cstddef>
 #include <pthread.h>
 
 namespace KC {
@@ -150,6 +137,12 @@ extern _kc_export void give_filesize_hint(int fd, off_t len);
 
 extern _kc_export bool force_buffers_to_disk(int fd);
 extern _kc_export int ec_relocate_fd(int);
+
+/* Determine the size of an array */
+template<typename T, size_t N> constexpr inline size_t ARRAY_SIZE(T (&)[N]) { return N; }
+
+/* Get the one-past-end item of an array */
+template<typename T, size_t N> constexpr inline T *ARRAY_END(T (&a)[N]) { return a + N; }
 
 } /* namespace */
 

@@ -1097,7 +1097,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 	
 	memcpy(prefixData + 4, lpArchiveGuid, sizeof(GUID));
 	
-	for (size_t i = 0; i < arraySize(ulFlagArray); ++i) {
+	for (size_t i = 0; i < ARRAY_SIZE(ulFlagArray); ++i) {
 		MAPITablePtr ptrTable;
 		
 		hr = lpFolder->GetContentsTable(ulFlagArray[i], &~ptrTable);

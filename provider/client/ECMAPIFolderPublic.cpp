@@ -95,7 +95,7 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 {
 	HRESULT hr = hrSuccess;
 	LPCTSTR lpszName = NULL;
-	ECMAPIFolderPublic *lpFolder = (ECMAPIFolderPublic *)lpParam;
+	auto lpFolder = static_cast<ECMAPIFolderPublic *>(lpParam);
 
 	switch(PROP_ID(ulPropTag)) {
 
@@ -267,7 +267,7 @@ HRESULT ECMAPIFolderPublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
 	HRESULT hr = hrSuccess;
-	ECMAPIFolderPublic *lpFolder = (ECMAPIFolderPublic *)lpParam;
+	auto lpFolder = static_cast<ECMAPIFolderPublic *>(lpParam);
 
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_DISPLAY_NAME):

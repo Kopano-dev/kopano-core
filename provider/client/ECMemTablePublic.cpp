@@ -70,7 +70,7 @@ HRESULT ECMemTablePublic::Create(ECMAPIFolderPublic *lpECParentFolder, ECMemTabl
 		PR_CONTENT_UNREAD, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY,
 		PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY,
 		PR_ACCESS, PR_ACCESS_LEVEL, PR_CONTAINER_CLASS}};
-	ECMemTablePublic *lpMemTable = new ECMemTablePublic(lpECParentFolder,
+	auto lpMemTable = new ECMemTablePublic(lpECParentFolder,
 		sPropsHierarchyColumns, PR_ROWID);
 	return lpMemTable->QueryInterface(IID_ECMemTablePublic, reinterpret_cast<void **>(lppECMemTable));
 }
@@ -96,7 +96,7 @@ static LONG __stdcall AdviseShortCutCallback(void *lpContext, ULONG cNotif,
 	}
 
 	HRESULT hr = hrSuccess;
-	ECMemTablePublic *lpMemTablePublic = (ECMemTablePublic*)lpContext;
+	auto lpMemTablePublic = static_cast<ECMemTablePublic *>(lpContext);
 
 	lpMemTablePublic->AddRef(); // Besure we have the object
 
@@ -150,7 +150,7 @@ static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
 	if (lpContext == NULL)
 		return S_OK;
 
-	ECMemTablePublic *lpMemTablePublic = (ECMemTablePublic*)lpContext;
+	auto lpMemTablePublic = static_cast<ECMemTablePublic *>(lpContext);
 	ULONG ulResult;
 	SBinary sInstanceKey;
 

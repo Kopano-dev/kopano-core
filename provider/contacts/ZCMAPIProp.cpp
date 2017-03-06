@@ -289,7 +289,7 @@ HRESULT ZCMAPIProp::Create(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYID lpEn
 {
 	HRESULT	hr = hrSuccess;
 	ZCMAPIProp *lpZCMAPIProp = NULL;
-	cabEntryID *lpCABEntryID = (cabEntryID*)lpEntryID;
+	auto lpCABEntryID = reinterpret_cast<cabEntryID *>(lpEntryID);
 
 	if (lpCABEntryID->ulObjType != MAPI_MAILUSER && lpCABEntryID->ulObjType != MAPI_DISTLIST) {
 		hr = MAPI_E_INVALID_OBJECT;

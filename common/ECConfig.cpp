@@ -29,8 +29,7 @@ ECConfig *ECConfig::Create(const configsetting_t *lpDefaults,
 
 bool ECConfig::LoadSettings(const wchar_t *szFilename)
 {
-	convert_context converter;
-	return LoadSettings(converter.convert_to<char*>(szFilename));
+	return LoadSettings(convert_context().convert_to<char *>(szFilename));
 }
 
 /**

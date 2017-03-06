@@ -73,7 +73,7 @@ HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT	ECABContainer::Create(void* lpProvider, ULONG ulObjType, BOOL fModify, ECABContainer **lppABContainer)
 {
-	ECABContainer *lpABContainer = new ECABContainer(lpProvider, ulObjType, fModify, "IABContainer");
+	auto lpABContainer = new ECABContainer(lpProvider, ulObjType, fModify, "IABContainer");
 	return lpABContainer->QueryInterface(IID_ECABContainer, reinterpret_cast<void **>(lppABContainer));
 }
 
@@ -128,13 +128,13 @@ HRESULT ECABContainer::CopyProps(const SPropTagArray *lpIncludeProps,
 HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
 	HRESULT		hr = hrSuccess;
-	ECABProp*	lpProp = (ECABProp *)lpParam;
+	auto lpProp = static_cast<ECABProp *>(lpParam);
 	memory_ptr<SPropValue> lpSectionUid;
 	object_ptr<IProfSect> lpProfSect;
 
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_EMSMDB_SECTION_UID): {
-		ECABLogon *lpLogon = (ECABLogon *)lpProvider;
+		auto lpLogon = static_cast<ECABLogon *>(lpProvider);
 		if (lpLogon->m_lpMAPISup == nullptr)
 			return MAPI_E_NOT_FOUND;
 		hr = lpLogon->m_lpMAPISup->OpenProfileSection(nullptr, 0, &~lpProfSect);

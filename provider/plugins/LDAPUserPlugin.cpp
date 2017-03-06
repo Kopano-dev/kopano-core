@@ -2290,7 +2290,7 @@ LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 }
 
 static LDAPMod *newLDAPModification(char *attribute, const list<string> &values) {
-	LDAPMod *mod = (LDAPMod*) calloc(1, sizeof(LDAPMod));
+	auto mod = static_cast<LDAPMod *>(calloc(1, sizeof(LDAPMod)));
 
 	// The only type of modification allowed here is replace.  It
 	// should be enough for our needs, but if an addition or removal

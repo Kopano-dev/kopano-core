@@ -95,7 +95,7 @@ HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer,
 	
 	if(cbTotal < dsize) {
 		ULONG newsize = cbTotal + ((dsize/EC_MEMBLOCK_SIZE)+1)*EC_MEMBLOCK_SIZE;	// + atleast 8k
-		char *lpNew = (char *)realloc(lpCurrent, newsize);
+		auto lpNew = static_cast<char *>(realloc(lpCurrent, newsize));
 		if (lpNew == NULL)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 
@@ -398,11 +398,8 @@ HRESULT ECMemStream::Revert()
 /* we don't support locking ! */
 HRESULT ECMemStream::LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType)
 {
-	HRESULT hr = STG_E_INVALIDFUNCTION;
-
-	hr=hrSuccess; //hack for loadsim
-
-	return hr;
+	/* return STG_E_INVALIDFUNCTION; */
+	return hrSuccess; /* hack for loadsim */
 }
 
 HRESULT ECMemStream::UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType)

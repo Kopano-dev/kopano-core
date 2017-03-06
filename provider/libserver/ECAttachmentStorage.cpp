@@ -1192,7 +1192,7 @@ bool ECFileAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
 static ssize_t gzread_retry(gzFile fp, void *data, size_t uclen)
 {
 	ssize_t read_total = 0;
-	char *buf = static_cast<char *>(data);
+	auto buf = static_cast<char *>(data);
 
 	if (uclen == 0)
 		/* Avoid useless churn. */
@@ -1239,7 +1239,7 @@ static ssize_t gzread_retry(gzFile fp, void *data, size_t uclen)
 static ssize_t gzwrite_retry(gzFile fp, const void *data, size_t uclen)
 {
 	size_t wrote_total = 0;
-	const char *buf = static_cast<const char *>(data);
+	auto buf = static_cast<const char *>(data);
 
 	if (uclen == 0)
 		/* Avoid useless churn. */
@@ -1369,7 +1369,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 				else
 					memory_block_size = CHUNK_SIZE;
 
-				unsigned char *new_temp = reinterpret_cast<unsigned char *>(realloc(temp, memory_block_size));
+				auto new_temp = static_cast<unsigned char *>(realloc(temp, memory_block_size));
 				if (!new_temp) {
 					// first free memory or the logging may fail too
 					free(temp);

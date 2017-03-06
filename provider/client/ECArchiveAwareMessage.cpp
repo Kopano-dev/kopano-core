@@ -51,7 +51,7 @@ private:
 
 HRESULT ECArchiveAwareMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp* lpRoot, ECMessage **lppMessage) const
 {
-	ECArchiveAwareMsgStore *lpArchiveAwareStore = dynamic_cast<ECArchiveAwareMsgStore*>(lpMsgStore);
+	auto lpArchiveAwareStore = dynamic_cast<ECArchiveAwareMsgStore *>(lpMsgStore);
 
 	// New and embedded messages don't need to be archive aware. Also if the calling store
 	// is not archive aware, the message won't.
@@ -74,7 +74,7 @@ ECArchiveAwareMessage::ECArchiveAwareMessage(ECArchiveAwareMsgStore *lpMsgStore,
 
 HRESULT	ECArchiveAwareMessage::Create(ECArchiveAwareMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, ECMessage **lppMessage)
 {
-	ECArchiveAwareMessage *lpMessage = new ECArchiveAwareMessage(lpMsgStore, fNew, fModify, ulFlags);
+	auto lpMessage = new ECArchiveAwareMessage(lpMsgStore, fNew, fModify, ulFlags);
 	return lpMessage->QueryInterface(IID_ECMessage, reinterpret_cast<void **>(lppMessage));
 }
 
@@ -105,7 +105,7 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 		PR_MESSAGE_CLASS, PR_MESSAGE_SIZE}};
 
 	if (!m_ptrArchiveMsg) {
-		ECArchiveAwareMsgStore *lpStore = dynamic_cast<ECArchiveAwareMsgStore *>(lpMsgStore);
+		auto lpStore = dynamic_cast<ECArchiveAwareMsgStore *>(lpMsgStore);
 		if (lpStore == NULL) {
 			// This is quite a serious error since an ECArchiveAwareMessage can only be created by an
 			// ECArchiveAwareMsgStore. We won't just die here though...
@@ -354,7 +354,7 @@ HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 HRESULT ECArchiveAwareMessage::SetPropHandler(ULONG ulPropTag,
     void */*lpProvider*/, const SPropValue *lpsPropValue, void *lpParam)
 {
-	ECArchiveAwareMessage *lpMessage = (ECArchiveAwareMessage *)lpParam;
+	auto lpMessage = static_cast<ECArchiveAwareMessage *>(lpParam);
 	HRESULT hr = hrSuccess;
 
 	switch(ulPropTag) {

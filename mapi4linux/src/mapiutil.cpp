@@ -215,7 +215,7 @@ HRESULT __stdcall HrThisThreadAdviseSink(LPMAPIADVISESINK lpAdviseSink, LPMAPIAD
 static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 {
 	HRESULT hr = hrSuccess;
-	IStream *lpCompressedStream = (IStream *)lpData;
+	auto lpCompressedStream = static_cast<IStream *>(lpData);
 	STATSTG sStatStg;
 	std::unique_ptr<char[]> lpUncompressed;
 	char *lpReadPtr = NULL;
@@ -482,8 +482,7 @@ HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
 		if ((hr = MAPIAllocateBuffer(sizeof(CONVERSATION_INDEX), (void **)&pbConvIndex)) != hrSuccess)
 			return hr;
 		cbConvIndex = sizeof(CONVERSATION_INDEX);
-
-		CONVERSATION_INDEX *ci = (CONVERSATION_INDEX*)pbConvIndex;
+		auto ci = reinterpret_cast<CONVERSATION_INDEX *>(pbConvIndex);
 		ci->ulReserved1 = 1;
 		UnixTimeToFileTime(time(NULL), &ft);
 		memcpy(ci->ftTime, &ft, 5);
@@ -570,7 +569,7 @@ ULONG __stdcall CchOfEncoding(LPCSTR lpszEnd)
 SCODE __stdcall ScCopyProps( int cprop,  LPSPropValue rgprop,  LPVOID pvDst,  ULONG *pcb )
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "ScCopyProps", "%s", PropNameFromPropArray(cprop, rgprop).c_str());
-	BYTE *lpHeap = (BYTE *)pvDst + sizeof(SPropValue) * cprop;
+	auto lpHeap = static_cast<BYTE *>(pvDst) + sizeof(SPropValue) * cprop;
 	LPSPropValue lpProp = (LPSPropValue)pvDst;
 
 	for (int i = 0 ; i < cprop; ++i) {

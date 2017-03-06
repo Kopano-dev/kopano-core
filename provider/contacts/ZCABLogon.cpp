@@ -51,9 +51,7 @@ ZCABLogon::~ZCABLogon()
 HRESULT ZCABLogon::Create(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGuid, ZCABLogon **lppZCABLogon)
 {
 	HRESULT hr = hrSuccess;
-
-	ZCABLogon *lpABLogon = new ZCABLogon(lpMAPISup, ulProfileFlags, lpGuid);
-
+	auto lpABLogon = new ZCABLogon(lpMAPISup, ulProfileFlags, lpGuid);
 	hr = lpABLogon->QueryInterface(IID_ZCABLogon, (void **)lppZCABLogon);
 
 	if(hr != hrSuccess)

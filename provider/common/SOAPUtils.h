@@ -155,6 +155,11 @@ struct SOAPINFO {
 	const char *szFname;
 };
 
+static inline struct SOAPINFO *soap_info(struct soap *s)
+{
+	return static_cast<struct SOAPINFO *>(s->user);
+}
+
 } /* namespace */
 
 #endif

@@ -194,7 +194,7 @@ void BTSession::RecordRequest(struct soap* soap)
 	scoped_lock lock(m_hRequestStats);
 	m_strLastRequestURL = soap->endpoint;
 	m_ulLastRequestPort = soap->port;
-	if (soap->proxy_from && ((SOAPINFO*)soap->user)->bProxy)
+	if (soap->proxy_from != nullptr && soap_info(soap)->bProxy)
 		m_strProxyHost = soap->host;
 	++m_ulRequests;
 }

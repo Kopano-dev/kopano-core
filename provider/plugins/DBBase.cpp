@@ -83,7 +83,7 @@ DBPlugin::getObjectDetails(const objectid_t &objectid)
 std::unique_ptr<std::map<objectid_t, objectdetails_t> >
 DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
-	map<objectid_t,objectdetails_t> *mapdetails = new map<objectid_t,objectdetails_t>;
+	auto mapdetails = new std::map<objectid_t, objectdetails_t>;
 	ECRESULT er;
 	map<objectclass_t, string> objectstrings;
 	string strQuery;
@@ -919,10 +919,7 @@ ECRESULT DBPlugin::CreateMD5Hash(const std::string &strData, std::string* lpstrR
 
 void DBPlugin::addSendAsToDetails(const objectid_t &objectid, objectdetails_t *lpDetails)
 {
-	std::unique_ptr<signatures_t> sendas;
-
-	sendas = getSubObjectsForObject(OBJECTRELATION_USER_SENDAS, objectid);
-
+	std::unique_ptr<signatures_t> sendas = getSubObjectsForObject(OBJECTRELATION_USER_SENDAS, objectid);
 	for (const auto &objlist : *sendas)
 		lpDetails->AddPropObject(OB_PROP_LO_SENDAS, objlist.id);
 }

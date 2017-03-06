@@ -127,8 +127,8 @@ unsigned int rtf_get_uncompressed_length(char *lpData, unsigned int ulSize)
 // lpDest should be pre-allocated to the uncompressed size
 unsigned int rtf_decompress(char *lpDest, char *lpSrc, unsigned int ulBufSize)
 {
-	struct RTFHeader *lpHeader = (struct RTFHeader *)lpSrc;
-	char *lpStart = lpSrc;
+	auto lpHeader = reinterpret_cast<struct RTFHeader *>(lpSrc);
+	auto lpStart = lpSrc;
 	unsigned int ulFlags = 0;
 	unsigned int ulFlagNr = 0;
 	unsigned char c1 = 0;
@@ -263,8 +263,7 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 	const char *lpMatch = NULL;
 	unsigned int cbMatch = 0;
 	const unsigned int cbPrebuf = strlen(lpPrebuf);
-
-	char *lpDest = (char *)malloc(ulDestBufSize);
+	auto lpDest = static_cast<char *>(malloc(ulDestBufSize));
 	if(lpDest == NULL)
 		return 1;
 
@@ -281,8 +280,7 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 			++ulOutCursor;
 			if(ulOutCursor >= ulDestBufSize) {
 				ulDestBufSize += 1024;
-
-				char *lpRealloc = (char *)realloc(lpDest, ulDestBufSize); // this shouldn't happen very often, so 1k is fine
+				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
 				if (!lpRealloc) {
 					ulRetVal = 1;
 					goto exit;
@@ -306,7 +304,7 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 
 			if(ulOutCursor >= ulDestBufSize) {
 				ulDestBufSize += 1024;
-				char *lpRealloc = (char *)realloc(lpDest, ulDestBufSize); // this shouldn't happen very often, so 1k is fine
+				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
 				if (!lpRealloc) {
 					ulRetVal = 1;
 					goto exit;
@@ -318,7 +316,7 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 
 			if(ulOutCursor >= ulDestBufSize) {
 				ulDestBufSize += 1024;
-				char *lpRealloc = (char *)realloc(lpDest, ulDestBufSize); // this shouldn't happen very often, so 1k is fine
+				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
 				if (!lpRealloc) {
 					ulRetVal = 1;
 					goto exit;
@@ -354,7 +352,7 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 
 			if(ulOutCursor >= ulDestBufSize) {
 				ulDestBufSize += 1024;
-				char *lpRealloc = (char *)realloc(lpDest, ulDestBufSize); // this shouldn't happen very often, so 1k is fine
+				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
 				if (!lpRealloc) {
 					ulRetVal = 1;
 					goto exit;
@@ -366,7 +364,7 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 
 			if(ulOutCursor >= ulDestBufSize) {
 				ulDestBufSize += 1024;
-				char *lpRealloc = (char *)realloc(lpDest, ulDestBufSize); // this shouldn't happen very often, so 1k is fine
+				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
 				if (!lpRealloc) {
 					ulRetVal = 1;
 					goto exit;
@@ -381,7 +379,7 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 
 			if(ulOutCursor >= ulDestBufSize) {
 				ulDestBufSize += 1024;
-				char *lpRealloc = (char *)realloc(lpDest, ulDestBufSize); // this shouldn't happen very often, so 1k is fine
+				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
 				if (!lpRealloc) {
 					ulRetVal = 1;
 					goto exit;

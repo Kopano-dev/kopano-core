@@ -46,7 +46,7 @@ void AddDatabaseObject(ECDatabase* lpDatabase)
 
 static void database_destroy(void *lpParam)
 {
-	ECDatabase *lpDatabase = (ECDatabase *)lpParam;
+	auto lpDatabase = static_cast<ECDatabase *>(lpParam);
 	ulock_normal l_obj(g_hMutexDBObjectList);
 
 	g_lpDBObjectList.erase(std::set<ECDatabase*>::key_type(lpDatabase));
@@ -57,9 +57,7 @@ static void database_destroy(void *lpParam)
 
 static void plugin_destroy(void *lpParam)
 {
-	UserPlugin *lpPlugin = (UserPlugin *)lpParam;
-
-	delete lpPlugin;
+	delete static_cast<UserPlugin *>(lpParam);
 }
 
 ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
@@ -190,15 +188,15 @@ static int kopano_fparsehdr(struct soap *soap, const char *key,
 {
 	const char *szProxy = g_lpSessionManager->GetConfig()->GetSetting("proxy_header");
 	if (strlen(szProxy) > 0 && strcasecmp(key, szProxy) == 0)
-		((SOAPINFO *)soap->user)->bProxy = true;
-	return ((SOAPINFO *)soap->user)->fparsehdr(soap, key, val);
+		soap_info(soap)->bProxy = true;
+	return soap_info(soap)->fparsehdr(soap, key, val);
 }
 
 // Called just after a new soap connection is established
 void kopano_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap)
 {
 	const char *szProxy = g_lpSessionManager->GetConfig()->GetSetting("proxy_header");
-	SOAPINFO *lpInfo = new SOAPINFO;
+	auto lpInfo = new SOAPINFO;
 	lpInfo->ulConnectionType = ulType;
 	lpInfo->bProxy = false;
 	soap->user = (void *)lpInfo;
@@ -217,12 +215,12 @@ void kopano_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap)
 
 void kopano_end_soap_connection(struct soap *soap)
 {
-	delete (SOAPINFO *)soap->user;
+	delete soap_info(soap);
 }
 
 void kopano_new_soap_listener(CONNECTION_TYPE ulType, struct soap *soap)
 {
-	SOAPINFO *lpInfo = new SOAPINFO;
+	auto lpInfo = new SOAPINFO;
 	lpInfo->ulConnectionType = ulType;
 	lpInfo->bProxy = false;
 	soap->user = (void *)lpInfo;
@@ -230,7 +228,7 @@ void kopano_new_soap_listener(CONNECTION_TYPE ulType, struct soap *soap)
 
 void kopano_end_soap_listener(struct soap *soap)
 {
-	delete (SOAPINFO *)soap->user;
+	delete soap_info(soap);
 }
 
 // Called just before the socket is reset, with the server-side socket still

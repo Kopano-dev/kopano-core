@@ -1136,7 +1136,7 @@ ECRESULT LocaleIdToLCID(const char *lpszLocaleID, ULONG *lpulLcid)
 	assert(lpszLocaleID != NULL);
 	assert(lpulLcid != NULL);
 
-	for (unsigned i = 0; !lpMapEntry && i < arraySize(localeMap); ++i)
+	for (size_t i = 0; lpMapEntry == nullptr && i < ARRAY_SIZE(localeMap); ++i)
 		if (strcasecmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
 			lpMapEntry = &localeMap[i];
 
@@ -1151,7 +1151,7 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
 	const struct localemap *lpMapEntry = NULL;
 	assert(lppszLocaleID != NULL);
 
-	for (unsigned i = 0; !lpMapEntry && i < arraySize(localeMap); ++i)
+	for (size_t i = 0; lpMapEntry == nullptr && i < ARRAY_SIZE(localeMap); ++i)
 		if (localeMap[i].ulLCID == ulLcid)
 			lpMapEntry = &localeMap[i];
 
@@ -1268,8 +1268,7 @@ void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale, unsig
 	assert((locale_t)locale != NULL);
 
 	unsigned int cbKey = 1 + wcsxfrm_l(NULL, s, 0, locale);
-	wchar_t *lpKey = new wchar_t[cbKey];
-
+	auto lpKey = new wchar_t[cbKey];
 	wcsxfrm_l(lpKey, s, cbKey, locale);
 
 	*lpcbKey = cbKey * sizeof(wchar_t);

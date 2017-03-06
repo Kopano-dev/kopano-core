@@ -47,7 +47,7 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 	ECRESULT			er = erSuccess;
 	size_type			cbWritten = 0;
 	struct timespec		deadline = {0};
-	const unsigned char	*lpData = reinterpret_cast<const unsigned char*>(lpBuf);
+	auto lpData = reinterpret_cast<const unsigned char *>(lpBuf);
 
 	if (lpBuf == NULL)
 		return KCERR_INVALID_PARAMETER;
@@ -120,7 +120,7 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 	ECRESULT		er = erSuccess;
 	size_type		cbRead = 0;
 	struct timespec	deadline = {0};
-	unsigned char	*lpData = reinterpret_cast<unsigned char*>(lpBuf);
+	auto lpData = reinterpret_cast<unsigned char *>(lpBuf);
 
 	if (lpBuf == NULL)
 		return KCERR_INVALID_PARAMETER;

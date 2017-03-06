@@ -59,8 +59,7 @@ ECMSProviderSwitch::ECMSProviderSwitch(ULONG ulFlags) : ECUnknown("ECMSProviderS
 
 HRESULT ECMSProviderSwitch::Create(ULONG ulFlags, ECMSProviderSwitch **lppMSProvider)
 {
-	ECMSProviderSwitch *lpMSProvider = new ECMSProviderSwitch(ulFlags);
-
+	auto lpMSProvider = new ECMSProviderSwitch(ulFlags);
 	return lpMSProvider->QueryInterface(IID_ECUnknown/*IID_ECMSProviderSwitch*/, (void **)lppMSProvider);
 }
 

@@ -152,14 +152,6 @@ private:
 #define PROPMAP_DEF_NAMED_ID(name) ULONG PROP_##name = 0;
 #define PROPMAP_INIT_NAMED_ID(name,type,guid,id) __propmap.AddProp(&PROP_##name, type, ECPropMapEntry(guid, id));
 
-// Determine the size of an array
-template <typename T, unsigned N>
-inline unsigned  arraySize(T (&)[N])   { return N; }
-
-// Get the one-past-end item of an array
-template <typename T, unsigned N>
-inline T* arrayEnd(T (&array)[N])	{ return array + N; }
-
 } /* namespace */
 
 #endif // COMMONUTIL_H
