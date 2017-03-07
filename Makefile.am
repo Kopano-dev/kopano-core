@@ -177,7 +177,7 @@ kopano_gateway_SOURCES = \
 	gateway/POP3.cpp gateway/POP3.h
 kopano_gateway_LDADD = \
 	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
-	-lpthread \
+	libkchl.la -lpthread \
 	${PROG_LIBS} ${CRYPTO_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
