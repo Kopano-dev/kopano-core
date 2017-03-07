@@ -65,8 +65,10 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	}
 
 	HRESULT hr = hrSuccess;
-	const char *szFile = NULL;
-	const char *szPath = NULL;
+	const char *szFile = nullptr, *szPath = nullptr;;
+	auto cert_file = lpConfig->GetSetting("ssl_certificate_file");
+	auto key_file = lpConfig->GetSetting("ssl_private_key_file");
+
 	std::unique_ptr<char> ssl_protocols(strdup(lpConfig->GetSetting("ssl_protocols")));
 	const char *ssl_ciphers = lpConfig->GetSetting("ssl_ciphers");
  	char *ssl_name = NULL;
@@ -74,6 +76,25 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	EC_KEY *ecdh;
 #endif
+
+	if (cert_file == nullptr || key_file == nullptr) {
+		ec_log_err("ECChannel::HrSetCtx(): no cert or key file");
+		return MAPI_E_CALL_FAILED;
+	}
+
+	auto key_fh = fopen(key_file, "r");
+	if (key_fh == nullptr) {
+		ec_log_err("ECChannel::HrSetCtx(): cannot open key file");
+		return MAPI_E_CALL_FAILED;
+	}
+	fclose(key_fh);
+
+	auto cert_fh = fopen(cert_file, "r");
+	if (cert_fh == nullptr) {
+		ec_log_err("ECChannel::HrSetCtx(): cannot open cert file");
+		return MAPI_E_CALL_FAILED;
+	}
+	fclose(cert_fh);
 
 	if (lpCTX) {
 		SSL_CTX_free(lpCTX);
@@ -174,13 +195,13 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 
 	SSL_CTX_set_default_verify_paths(lpCTX);
 
-	if (SSL_CTX_use_certificate_chain_file(lpCTX, lpConfig->GetSetting("ssl_certificate_file")) != 1) {
+	if (SSL_CTX_use_certificate_chain_file(lpCTX, cert_file) != 1) {
 		ec_log_err("SSL CTX certificate file error: %s", ERR_error_string(ERR_get_error(), 0));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
-	if (SSL_CTX_use_PrivateKey_file(lpCTX, lpConfig->GetSetting("ssl_private_key_file"), SSL_FILETYPE_PEM) != 1) {
+	if (SSL_CTX_use_PrivateKey_file(lpCTX, key_file, SSL_FILETYPE_PEM) != 1) {
 		ec_log_err("SSL CTX private key file error: %s", ERR_error_string(ERR_get_error(), 0));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;

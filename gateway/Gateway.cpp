@@ -92,9 +92,8 @@ static void sighup(int sig)
 	int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
 	g_lpLogger->SetLoglevel(new_ll);
 
-	bool listen_pop3s = strcmp(g_lpConfig->GetSetting("pop3s_enable"), "yes") == 0;
-	bool listen_imaps = strcmp(g_lpConfig->GetSetting("imaps_enable"), "yes") == 0;
-	if (listen_pop3s || listen_imaps) {
+	if (strlen(g_lpConfig->GetSetting("ssl_private_key_file")) > 0 &&
+		strlen(g_lpConfig->GetSetting("ssl_certificate_file")) > 0) {
 		if (ECChannel::HrSetCtx(g_lpConfig) != hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error reloading SSL context");
 		else
