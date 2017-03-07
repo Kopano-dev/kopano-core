@@ -149,19 +149,6 @@ int IMAP::getTimeoutMinutes() {
 }
 
 /**
- * Uppercases a normal string
- */
-void IMAP::ToUpper(string &strString) {
-	transform(strString.begin(), strString.end(), strString.begin(), ::toupper);
-}
-/**
- * Uppercases a wide string
- */
-void IMAP::ToUpper(wstring &strString) {
-	transform(strString.begin(), strString.end(), strString.begin(), ::towupper);
-}
-
-/**
  * Case insensitive std::string compare
  *
  * @param[in]	strA	compare with strB
@@ -317,7 +304,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	if (strvResult.size() == 1) {
 		// must be idle, and command must be done
 		// DONE is not really a command, but the end of the IDLE command by the client marker
-		ToUpper(strvResult[0]);
+		strvResult[0] = strToUpper(strvResult[0]);
 		if (strvResult[0].compare("DONE") == 0)
 			return HrDone(true);
 		return HrResponse(RESP_UNTAGGED, "BAD Command not recognized");
@@ -395,7 +382,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	strCommand = strvResult.front();
 	strvResult.erase(strvResult.begin());
 
-	ToUpper(strCommand);
+	strCommand = strToUpper(strCommand);
 	if (isIdle()) {
 		hr = HrResponse(RESP_UNTAGGED, "BAD still in idle state");
 		HrDone(false); // false for no output		
@@ -548,7 +535,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 
 		strCommand = strvResult.front();
 		strvResult.erase(strvResult.begin());
-		ToUpper(strCommand);
+		strCommand = strToUpper(strCommand);
 
 		if (strCommand.compare("SEARCH") == 0) {
 			if (strvResult.empty())
@@ -756,7 +743,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 		return hrSuccess;
 	}
 
-	ToUpper(strAuthMethod);
+	strAuthMethod = strToUpper(strAuthMethod);
 	if (strAuthMethod.compare("PLAIN") != 0) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "AUTHENTICATE " + strAuthMethod + " method not supported");
 		if (hr2 != hrSuccess)
@@ -1147,7 +1134,7 @@ HRESULT IMAP::HrCmdDelete(const string &strTag, const string &strFolderParam) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "DELETE invalid folder name");
 		goto exit;
 	}
-	ToUpper(strFolder);
+	strFolder = strToUpper(strFolder);
 
 	if (strFolder.compare(L"INBOX") == 0) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "DELETE error deleting INBOX is not allowed");
@@ -1244,7 +1231,7 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 		goto exit;
 	}
 
-	ToUpper(strExistingFolder);
+	strExistingFolder = strToUpper(strExistingFolder);
 	if (strExistingFolder.compare(L"INBOX") == 0) {
 		// FIXME, rfc text:
 		// 
@@ -1484,7 +1471,7 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 			return hr2;
 		return hr;
 	}
-	ToUpper(strPattern);
+	strPattern = strToUpper(strPattern);
 
 	list<SFolder> *folders = &cached_folders;
 	list<SFolder> tmp_folders;
@@ -1658,8 +1645,8 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 		return hr2 != hrSuccess ? hr2 : hr;
 	}
 
-	ToUpper(strStatusData);
-	ToUpper(strIMAPFolder);
+	strStatusData = strToUpper(strStatusData);
+	strIMAPFolder = strToUpper(strIMAPFolder);
 	hr = HrFindFolder(strIMAPFolder, false, &~lpStatusFolder);
 	if(hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error finding folder");
@@ -1847,7 +1834,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		strFlags.erase(strFlags.size()-1, 1);
 	}
 
-	ToUpper(strFlags);
+	strFlags = strToUpper(strFlags);
 	HrSplitInput(strFlags, lstFlags);
 
 	for (ulCounter = 0; ulCounter < lstFlags.size(); ++ulCounter) {
@@ -3543,7 +3530,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, c
 		if (PROP_TYPE(rows->aRow[i].lpProps[CONTAINERCLASS].ulPropTag) == PT_STRING8){
 			string container_class = rows->aRow[i].lpProps[CONTAINERCLASS].Value.lpszA;
 
-			ToUpper(container_class);
+			container_class = strToUpper(container_class);
 
 			if (!container_class.empty() &&
 			    container_class.compare(0, 3, "IPM") != 0 &&
@@ -3594,7 +3581,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, c
  */
 HRESULT IMAP::HrGetDataItems(string strMsgDataItemNames, vector<string> &lstDataItems) {
 	// translate macro's
-	ToUpper(strMsgDataItemNames);
+	strMsgDataItemNames = strToUpper(strMsgDataItemNames);
 	if (strMsgDataItemNames.compare("ALL") == 0)
 		strMsgDataItemNames = "FLAGS INTERNALDATE RFC822.SIZE ENVELOPE";
 	else if (strMsgDataItemNames.compare("FAST") == 0)
@@ -4643,7 +4630,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
             // Output all headers except those specified
             for (const auto &field : lstFields) {
                 std::string strFieldUpper = field.first;
-                ToUpper(strFieldUpper);
+                strFieldUpper = strToUpper(strFieldUpper);
                 if (setFields.find(strFieldUpper) != setFields.cend())
                     continue;
                 strMessagePart += field.first;
@@ -4884,8 +4871,8 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 	if (strCurrentFolder.empty() || lpSession == nullptr)
 		return MAPI_E_CALL_FAILED;
 
-	ToUpper(strMsgDataItemName);
-	ToUpper(strMsgDataItemValue);
+	strMsgDataItemName = strToUpper(strMsgDataItemName);
+	strMsgDataItemValue = strToUpper(strMsgDataItemValue);
 	if (strMsgDataItemValue.size() > 1 && strMsgDataItemValue[0] == '(') {
 		strMsgDataItemValue.erase(0, 1);
 		strMsgDataItemValue.erase(strMsgDataItemValue.size() - 1, 1);
@@ -5194,7 +5181,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 
 	// don't search if only search for uid, sequence set, all, recent, new or old
 	strSearchCriterium = lstSearchCriteria[ulStartCriteria];
-	ToUpper(strSearchCriterium);
+	strSearchCriterium = strToUpper(strSearchCriterium);
 	if (lstSearchCriteria.size() - ulStartCriteria == 2 &&
 	    strSearchCriterium.compare("UID") == 0)
 		return HrParseSeqUidSet(lstSearchCriteria[ulStartCriteria + 1], lstMailnr);
@@ -5278,7 +5265,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 		}
 
 		strSearchCriterium = lstSearchCriteria[ulStartCriteria];
-		ToUpper(strSearchCriterium);
+		strSearchCriterium = strToUpper(strSearchCriterium);
 
 		assert(lstRestrictions.size() >= 1);
 		IRestrictionPush &top_rst = *lstRestrictions[lstRestrictions.size()-1];
@@ -5925,7 +5912,7 @@ bool IMAP::MatchFolderPath(wstring strFolder, const wstring& strPattern)
     int f = 0;
     int p = 0;
     
-    ToUpper(strFolder);
+    strFolder = strToUpper(strFolder);
     
     while(1) {
         if (f == static_cast<int>(strFolder.size()) &&
@@ -6136,7 +6123,7 @@ HRESULT IMAP::HrFindFolderEntryID(const wstring& strFolder, ULONG *lpcbEntryID, 
     if (find_folder[0] != '/')
 	    find_folder = wstring(L"/") + find_folder;
 
-    ToUpper(find_folder);
+    find_folder = strToUpper(find_folder);
 
     auto iter = folders->cbegin();
     for (; iter != folders->cend(); iter++) {
@@ -6146,7 +6133,7 @@ HRESULT IMAP::HrFindFolderEntryID(const wstring& strFolder, ULONG *lpcbEntryID, 
 	    if (hr != hrSuccess)
 		    return hr;
 
-	    ToUpper(folder_name);
+	    folder_name = strToUpper(folder_name);
 	    if (folder_name == find_folder)
 		    break;
     }

@@ -357,8 +357,6 @@ private:
 	HRESULT HrGetEmailAddress(LPSPropValue lpPropValues, ULONG ulAddrType, ULONG ulEntryID, ULONG ulName, ULONG ulEmail, string strHeaderName, string *strHeaders);
 
 	// Make the string uppercase
-	void ToUpper(string &strString);
-	void ToUpper(wstring &strString);
 	bool CaseCompare(const string& strA, const string& strB);
 
 	// IMAP4rev1 date format: 01-Jan-2000 00:00 +0000
