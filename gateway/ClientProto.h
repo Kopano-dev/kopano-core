@@ -33,7 +33,7 @@ public:
 	{};
 	virtual ~ClientProto(void) _kc_impdtor;
 	virtual int getTimeoutMinutes() = 0;
-	virtual bool isContinue() { return false; }; // imap only
+	virtual bool isContinue() const { return false; }; // imap only
 
 	virtual HRESULT HrSendGreeting(const std::string &strHostString) = 0;
 	virtual HRESULT HrCloseConnection(const std::string &strQuitMsg) = 0;

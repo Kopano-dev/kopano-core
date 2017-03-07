@@ -162,8 +162,8 @@ public:
 	~IMAP();
 
 	int getTimeoutMinutes();
-	bool isIdle();
-	bool isContinue();
+	bool isIdle() const { return m_bIdleMode; }
+	bool isContinue() const { return m_bContinue; }
 
 	HRESULT HrSendGreeting(const std::string &strHostString);
 	HRESULT HrCloseConnection(const std::string &strQuitMsg);
@@ -284,10 +284,13 @@ private:
 
 	std::list<SFolder> cached_folders;
 
-	// HrResponseContinuation state, used for HrCmdAuthenticate
+	/* A command has sent a continuation response, and requires more
+	 * data from the client. This is currently only used in the
+	 * AUTHENTICATE command, other continuations are already handled
+	 * in the main loop. m_bContinue marks this. */
 	bool m_bContinue = false;
 	string m_strContinueTag;
-	
+
 	// Idle mode variables
 	bool m_bIdleMode = false;
 	IMAPIAdviseSink *m_lpIdleAdviseSink = nullptr;

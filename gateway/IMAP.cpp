@@ -2825,26 +2825,6 @@ HRESULT IMAP::HrCmdSetQuota(const string &strTag, const string &strQuotaRoot, co
 }
 
 /** 
- * Returns the idle state.
- * 
- * @return If the last client command was IDLE
- */
-bool IMAP::isIdle() {
-	return m_bIdleMode;
-}
-
-/** 
- * A command has sent a continuation response, and requires more data
- * from the client. This is currently only used in the AUTHENTICATE
- * command, other continuations are already handled in the main loop.
- * 
- * @return Last response to the client was a continuation request.
- */
-bool IMAP::isContinue() {
-	return m_bContinue;
-}
-
-/** 
  * Send an untagged response.
  * 
  * @param[in] strUntag Either RESP_UNTAGGED or RESP_CONTINUE
