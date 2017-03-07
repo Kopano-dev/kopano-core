@@ -4390,9 +4390,7 @@ HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool b
 	HRESULT hr = lpMessage->GetProps(sptaFlagProps, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
 		return hr;
-	strResponse += "FLAGS (";
-	strResponse += PropsToFlags(lpProps, cValues, bRecent, false);
-	strResponse += ")";
+	strResponse += "FLAGS (" + PropsToFlags(lpProps, cValues, bRecent, false) + ")";
 	return hrSuccess;
 }
 
@@ -4590,10 +4588,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
                 strFieldUpper = strToUpper(strFieldUpper);
                 if (setFields.find(strFieldUpper) != setFields.cend())
                     continue;
-                strMessagePart += field.first;
-                strMessagePart += ": ";
-                strMessagePart += field.second;
-                strMessagePart += "\r\n";
+                strMessagePart += field.first + ": " + field.second + "\r\n";
             }
         } else {
             vector<string> lstReqFields;
@@ -4609,10 +4604,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
                 for (const auto &field : lstFields) {
                     if (!CaseCompare(reqfield, field.first))
                         continue;
-                    strMessagePart += field.first;
-                    strMessagePart += ": ";
-                    strMessagePart += field.second;
-                    strMessagePart += "\r\n";
+                    strMessagePart += field.first + ": " + field.second + "\r\n";
                     break;
                 }
             }
@@ -5941,8 +5933,7 @@ void IMAP::HrParseHeaders(const string &strHeaders, list<pair<string, string> > 
 
         if((strLine[0] == ' ' || strLine[0] == '\t') && iterLast != lstHeaders.end()) {
             // Continuation of previous header
-            iterLast->second += "\r\n";
-            iterLast->second += strLine;
+            iterLast->second += "\r\n" + strLine;
         } else {
             size_t colon = strLine.find(":");
             
