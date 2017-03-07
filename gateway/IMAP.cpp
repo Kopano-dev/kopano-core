@@ -400,7 +400,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		if (!strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag, "NOOP must have 0 arguments");
 		else
-			return HrCmdNoop(strTag);
+			return HrCmdNoop(strTag, false);
 	} else if (strCommand.compare("LOGOUT") == 0) {
 		if (!strvResult.empty()) {
 			return HrResponse(RESP_TAGGED_BAD, strTag, "LOGOUT must have 0 arguments");
@@ -483,7 +483,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	} else if (strCommand.compare("CHECK") == 0) {
 		if (!strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag, "CHECK must have 0 arguments");
-		return HrCmdCheck(strTag);
+		return HrCmdNoop(strTag, true);
 	} else if (strCommand.compare("CLOSE") == 0) {
 		if (!strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag, "CLOSE must have 0 arguments");
@@ -648,16 +648,16 @@ HRESULT IMAP::HrCmdCapability(const string &strTag) {
  * 
  * @return hrSuccess
  */
-HRESULT IMAP::HrCmdNoop(const string &strTag) {
+HRESULT IMAP::HrCmdNoop(const string &strTag, bool check) {
 	HRESULT hr = hrSuccess;
 
-	if (!strCurrentFolder.empty())
+	if (!strCurrentFolder.empty() || check)
 		hr = HrRefreshFolderMails(false, !bCurrentFolderReadOnly, false, NULL);
 	if (hr != hrSuccess) {
-		HRESULT hr2 = HrResponse(RESP_TAGGED_BAD, strTag, "NOOP completed");
+		HRESULT hr2 = HrResponse(RESP_TAGGED_BAD, strTag, (check ? std::string("CHECK") : std::string("NOOP")) + " completed");
 		return hr2 != hrSuccess ? hr2 : hr;
 	}
-	return HrResponse(RESP_TAGGED_OK, strTag, "NOOP completed");
+	return HrResponse(RESP_TAGGED_OK, strTag, (check ? std::string("CHECK") : std::string("NOOP")) + " completed");
 }
 
 /** 
@@ -1981,29 +1981,6 @@ exit:
 	if (hr2 != hrSuccess)
 		return hr2;
 	return hr;
-}
-
-/** 
- * @brief Handles the CHECK command
- * 
- * For us, the same as NOOP. @todo merge with noop command
- *
- * @param[in] strTag the IMAP tag for this command
- * 
- * @return MAPI Error code
- */
-HRESULT IMAP::HrCmdCheck(const string &strTag) {
-    HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
-    
-	hr = HrRefreshFolderMails(false, !bCurrentFolderReadOnly, false, NULL);
-	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "CHECK error reading folder messages");
-		if (hr2 != hrSuccess)
-			return hr2;
-		return hr;
-	}
-	return HrResponse(RESP_TAGGED_OK, strTag, "CHECK completed");
 }
 
 /** 

@@ -183,7 +183,7 @@ private:
 
 	// All IMAP4rev1 commands
 	HRESULT HrCmdCapability(const string &strTag);
-	HRESULT HrCmdNoop(const string &strTag);
+	HRESULT HrCmdNoop(const string &strTag, bool check = false);
 	HRESULT HrCmdLogout(const string &strTag);
 	HRESULT HrCmdStarttls(const string &strTag);
 	HRESULT HrCmdAuthenticate(const string &strTag, string strAuthMethod, const string &strAuthData);
@@ -197,7 +197,6 @@ private:
 	HRESULT get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next);
 	HRESULT HrCmdStatus(const string &strTag, const string &strFolder, string strStatusData);
 	HRESULT HrCmdAppend(const string &strTag, const string &strFolder, const string &strData, string strFlags=string(), const string &strTime=string());
-	HRESULT HrCmdCheck(const string &strTag);
 	HRESULT HrCmdClose(const string &strTag);
 	HRESULT HrCmdExpunge(const string &strTag, const string &strSeqSet);
 	HRESULT HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteria, bool bUidMode);
