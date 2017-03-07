@@ -390,7 +390,7 @@ static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 				ec_log_crit("Could not listen on secure port %d. (0x%08X %s)", ulPortICalS, hr, GetMAPIErrorMessage(hr));
 				bListenSecure = false;
 			}
-			ec_log_err("Listening on secure port %d.", ulPortICalS);
+			ec_log_info("Listening on secure port %d.", ulPortICalS);
 		} else {
 			ec_log_crit("Could not listen on secure port %d. (0x%08X %s)", ulPortICalS, hr, GetMAPIErrorMessage(hr));
 			bListenSecure = false;
