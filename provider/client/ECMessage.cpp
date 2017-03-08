@@ -2403,10 +2403,8 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Wrap mapi object to kopano object
-	if (HrGetOneProp((LPMAPIPROP)lpDestObj, PR_EC_OBJECT, &~lpECObject) == hrSuccess) {
+	if (HrGetOneProp((LPMAPIPROP)lpDestObj, PR_EC_OBJECT, &~lpECObject) == hrSuccess)
 		lpECUnknown.reset(reinterpret_cast<IECUnknown *>(lpECObject->Value.lpszA));
-		lpECUnknown->AddRef();
-	}
 
 	// Deny copying within the same object. This is not allowed in exchange either and is required to deny
 	// creating large recursive objects.

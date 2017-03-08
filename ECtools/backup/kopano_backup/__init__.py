@@ -188,7 +188,7 @@ class FolderImporter:
             with closing(dbopen(self.folder_path+'/items')) as db_items:
                 with closing(dbopen(self.folder_path+'/index')) as db_index:
                     if item.sourcekey in db_items: # ICS can generate delete events without update events..
-                        self.log.debug('folder %s: deleted document with sourcekey %s' % (self.folder.sourcekey, item.sourcekey))
+                        self.log.debug('folder %s: deleted document with sourcekey %s', self.folder.sourcekey, item.sourcekey)
                         if self.options.deletes in (None, 'yes'):
                             idx = pickle.loads(db_index[item.sourcekey])
                             idx['backup_deleted'] = self.service.timestamp
@@ -233,7 +233,7 @@ class Service(kopano.Service):
         changes = sum(s['changes'] + s['deletes'] for s in stats)
         errors = sum(s['errors'] for s in stats)
         self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)',
-            (time.time()-t0, changes, changes/(time.time()-t0), errors))
+            (time.time()-t0), changes, changes/(time.time()-t0), errors)
 
     def restore(self, data_path):
         """ restore data from backup """
@@ -307,7 +307,7 @@ class Service(kopano.Service):
                 load_rules(folder, user, self.server, file(data_path+'/rules').read(), stats, self.log)
 
         self.log.info('restore completed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)',
-            (time.time()-t0, stats['changes'], stats['changes']/(time.time()-t0), stats['errors']))
+            time.time()-t0, stats['changes'], stats['changes']/(time.time()-t0), stats['errors'])
 
     def purge(self, data_path):
         """ permanently delete old folders/items from backup """
@@ -338,7 +338,7 @@ class Service(kopano.Service):
                                 del db_items[item]
                                 del db_index[item]
 
-        self.log.info('purged %d folders and %d items', (stats['folders'], stats['items']))
+        self.log.info('purged %d folders and %d items', stats['folders'], stats['items'])
 
     def create_jobs(self):
         """ check command-line options and determine which stores should be backed up """

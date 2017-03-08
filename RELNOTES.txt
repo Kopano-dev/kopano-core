@@ -7,15 +7,21 @@ Enhancements:
 * xapian-compact.py: new -c option to specify config file [KC-205]
 * utils: support setting out-of-office without an until-date [KC-275]
 * gateway, server: reload SSL certificates on SIGHUP [KC-301]
+* gateway: optimize LIST, SELECT, STATUS [KC-490]
 * dagent: log_raw_message option can now be used selectively on users [KC-370]
+* icalmapi: VCF conversion [KC-420]
 Fixes:
 * pyko: do not throw backtraces on log messages [KC-340]
 * server: Ctrl-C now works in gdb [KC-171]
 * ics: make creation of new syncids work incrementally [KC-208]
 * libserver: change incorrect compare operator for EID_V0 [KC-365]
 * migration-pst: show usage, not traceback, for invalid options [KC-372]
+* migration-pst: skip root folder more intelligently [KC-487]
+* migration-pst: MV properties are handled better [KC-457]
 * inetmapi: avoid buffer overread on rejected recipients
   (showed garbage in logs) [KC-398]
+* client: add extra checks for EID sizes [KC-500]
+* gateway: enforce user and password checking on local socket [KC-396,KC-490]
 Changes:
 * server: compressed attachments now get the same permissions as uncompressed
   ones [KC-380]
@@ -24,6 +30,9 @@ Changes:
 * icalmapi: handle missing timezone for RRULE [KC-414]
 * backup: maintain deleted folders and add --purge N option [KC-376]
 * migration-pst: filter metadata at start of subject [KC-424]
+* migration-pst: ignore decode errors [KC-521]
+* common: fix empty text bodies when converting U+0000 from HTML [KC-557]
+* icalmapi: reworked copying description into mail body [KC-568]
 Of special mention:
 * search: python3 support (but requires new python-xapian and,
   as a result, a db migration or full reindexing)
