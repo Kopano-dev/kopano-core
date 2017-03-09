@@ -294,6 +294,42 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	std::string strCommand;
 	ULONG ulMaxMessageSize = atoui(lpConfig->GetSetting("imap_max_messagesize"));
 
+	static constexpr const struct {
+		const char *command;
+		int params;
+		HRESULT (IMAP::*func)(const string &, const std::vector<std::string> &);
+	} cmds[] = {
+		{"SELECT", 1, &IMAP::HrCmdSelect<false>},
+		{"EXAMINE", 1, &IMAP::HrCmdSelect<true>},
+		{"LIST", 2, &IMAP::HrCmdList<false>},
+		{"LSUB", 2, &IMAP::HrCmdList<true>},
+		{"LOGIN", 2, &IMAP::HrCmdLogin},
+		{"CREATE", 1, &IMAP::HrCmdCreate},
+		{"DELETE", 1, &IMAP::HrCmdDelete},
+		{"SUBSCRIBE", 1, &IMAP::HrCmdSubscribe<true>},
+		{"UNSUBSCRIBE", 1, &IMAP::HrCmdSubscribe<false>},
+		{"GETQUOTAROOT", 1, &IMAP::HrCmdGetQuotaRoot},
+		{"GETQUOTA", 1, &IMAP::HrCmdGetQuota},
+		{"SETQUOTA", 2, &IMAP::HrCmdSetQuota},
+		{"RENAME", 2, &IMAP::HrCmdRename},
+		{"STATUS", 2, &IMAP::HrCmdStatus}
+	};
+
+	static constexpr const struct {
+		const char *command;
+		HRESULT (IMAP::*func)(const std::string &);
+	} cmds_zero_args[] = {
+		{"CAPABILITY", &IMAP::HrCmdCapability},
+		{"NOOP", &IMAP::HrCmdNoop<false>},
+		{"LOGOUT", &IMAP::HrCmdLogout},
+		{"STARTTLS", &IMAP::HrCmdStarttls},
+		{"CHECK", &IMAP::HrCmdNoop<true>},
+		{"CLOSE", &IMAP::HrCmdClose},
+		{"IDLE", &IMAP::HrCmdIdle},
+		{"NAMESPACE", &IMAP::HrCmdNamespace},
+		{"STARTTLS", &IMAP::HrCmdStarttls}
+	};
+
 	if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
 		lpLogger->Log(EC_LOGLEVEL_DEBUG, "< %s", strInput.c_str());
 
@@ -391,101 +427,31 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	}
 
 	// process {} and end of line
+	for (const auto &cmd : cmds_zero_args) {
+		if (strCommand.compare(cmd.command) != 0)
+			continue;
+		if (strvResult.size() == 0)
+			return (this->*cmd.func)(strTag);
+		HrResponse(RESP_TAGGED_BAD, strTag, std::string(cmd.command) +
+			" must have 0 arguments");
+		return hrSuccess;
+	}
+	for (const auto &cmd : cmds) {
+		if (strCommand.compare(cmd.command) != 0)
+			continue;
+		if (strvResult.size() == cmd.params)
+			return (this->*cmd.func)(strTag, strvResult);
+		HrResponse(RESP_TAGGED_BAD, strTag, std::string(cmd.command) +
+			" must have " + stringify(cmd.params) + " arguments");
+		return hrSuccess;
+	}
 
-	if (strCommand.compare("CAPABILITY") == 0) {
-		if (!strvResult.empty())
-			HrResponse(RESP_TAGGED_BAD, strTag, "CAPABILITY must have 0 arguments");
-		else
-			return HrCmdCapability(strTag);
-	} else if (strCommand.compare("NOOP") == 0) {
-		if (!strvResult.empty())
-			HrResponse(RESP_TAGGED_BAD, strTag, "NOOP must have 0 arguments");
-		else
-			return HrCmdNoop<false>(strTag);
-	} else if (strCommand.compare("LOGOUT") == 0) {
-		if (!strvResult.empty()) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "LOGOUT must have 0 arguments");
-			return hrSuccess;
-		}
-		return HrCmdLogout(strTag);
-	} else if (strCommand.compare("STARTTLS") == 0) {
-		if (!strvResult.empty()) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "STARTTLS must have 0 arguments");
-			return hrSuccess;
-		}
-		return HrCmdStarttls(strTag);
-	} else if (strCommand.compare("AUTHENTICATE") == 0) {
+	if (strCommand.compare("AUTHENTICATE") == 0) {
 		if (strvResult.size() == 1)
 			return HrCmdAuthenticate(strTag, strvResult[0], string());
 		else if (strvResult.size() == 2)
 			return HrCmdAuthenticate(strTag, strvResult[0], strvResult[1]);
 		HrResponse(RESP_TAGGED_BAD, strTag, "AUTHENTICATE must have 1 or 2 arguments");
-	} else if (strCommand.compare("LOGIN") == 0) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "LOGIN must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdLogin(strTag, strvResult);
-	} else if (strCommand.compare("SELECT") == 0) {
-		if (strvResult.size() != 1) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "SELECT must have 1 argument");
-			return hrSuccess;
-		}
-		return HrCmdSelect<false>(strTag, strvResult);
-	} else if (strCommand.compare("EXAMINE") == 0) {
-		if (strvResult.size() != 1) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "EXAMINE must have 1 argument");
-			return hrSuccess;
-		}
-		return HrCmdSelect<true>(strTag, strvResult);
-	} else if (strCommand.compare("CREATE") == 0) {
-		if (strvResult.size() != 1) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "CREATE must have 1 argument");
-			return hrSuccess;
-		}
-		return HrCmdCreate(strTag, strvResult);
-	} else if (strCommand.compare("DELETE") == 0) {
-		if (strvResult.size() != 1) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "DELETE must have 1 argument");
-			return hrSuccess;
-		}
-		return HrCmdDelete(strTag, strvResult);
-	} else if (strCommand.compare("RENAME") == 0) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "RENAME must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdRename(strTag, strvResult);
-	} else if (strCommand.compare("SUBSCRIBE") == 0) {
-		if (strvResult.size() != 1) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "SUBSCRIBE must have 1 arguments");
-			return hrSuccess;
-		}
-		return HrCmdSubscribe<true>(strTag, strvResult);
-	} else if (strCommand.compare("UNSUBSCRIBE") == 0) {
-		if (strvResult.size() != 1) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "UNSUBSCRIBE must have 1 arguments");
-			return hrSuccess;
-		}
-		return HrCmdSubscribe<false>(strTag, strvResult);
-	} else if (strCommand.compare("LIST") == 0) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "LIST must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdList<false>(strTag, strvResult);
-	} else if (strCommand.compare("LSUB") == 0) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "LSUB must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdList<true>(strTag, strvResult);
-	} else if (strCommand.compare("STATUS") == 0) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "STATUS must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdStatus(strTag, strvResult);
 	} else if (strCommand.compare("APPEND") == 0) {
 		if (strvResult.size() == 2) {
 			return HrCmdAppend(strTag, strvResult[0], strvResult[1]);
@@ -499,18 +465,6 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		}
 		HrResponse(RESP_TAGGED_BAD, strTag, "APPEND must have 2, 3 or 4 arguments");
 		return hrSuccess;
-	} else if (strCommand.compare("CHECK") == 0) {
-		if (!strvResult.empty()) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "CHECK must have 0 arguments");
-			return hrSuccess;
-		}
-		return HrCmdNoop<true>(strTag);
-	} else if (strCommand.compare("CLOSE") == 0) {
-		if (!strvResult.empty()) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "CLOSE must have 0 arguments");
-			return hrSuccess;
-		}
-		return HrCmdClose(strTag);
 	} else if (strCommand.compare("EXPUNGE") == 0) {
 		if (!strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "EXPUNGE must have 0 arguments");
@@ -541,36 +495,6 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			return hrSuccess;
 		}
 		return HrCmdCopy(strTag, strvResult[0], strvResult[1], false);
-	} else if (strCommand.compare("IDLE") == 0) {
-		if (!strvResult.empty()) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "IDLE must have 0 arguments");
-			return hrSuccess;
-		}
-		return HrCmdIdle(strTag);
-	} else if (strCommand.compare("NAMESPACE") == 0) {
-		if (!strvResult.empty()) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "NAMESPACE must have 0 arguments");
-			return hrSuccess;
-		}
-		return HrCmdNamespace(strTag);
-	} else if (strCommand.compare("GETQUOTAROOT") == 0) {
-		if (strvResult.size() != 1) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "GETQUOTAROOT must have 1 arguments");
-			return hrSuccess;
-		}
-		return HrCmdGetQuotaRoot(strTag, strvResult);
-	} else if (strCommand.compare("GETQUOTA") == 0) {
-		if (strvResult.size() != 1) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "GETQUOTA must have 1 arguments");
-			return hrSuccess;
-		}
-		return HrCmdGetQuota(strTag, strvResult);
-	} else if (strCommand.compare("SETQUOTA") == 0) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "SETQUOTA must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdSetQuota(strTag, strvResult);
 	} else if (strCommand.compare("UID") == 0) {
 		if (strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "UID must have a command");
