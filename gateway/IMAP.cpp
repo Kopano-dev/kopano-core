@@ -407,20 +407,13 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			HrResponse(RESP_TAGGED_BAD, strTag, "LOGOUT must have 0 arguments");
 			return hrSuccess;
 		}
-		HrCmdLogout(strTag);
-		// let the gateway quit from the socket read loop
-		return MAPI_E_END_OF_SESSION;
+		return HrCmdLogout(strTag);
 	} else if (strCommand.compare("STARTTLS") == 0) {
 		if (!strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "STARTTLS must have 0 arguments");
 			return hrSuccess;
 		}
-		hr = HrCmdStarttls(strTag);
-		if (hr != hrSuccess)
-			// log ?
-			// let the gateway quit from the socket read loop
-			return MAPI_E_END_OF_SESSION;
-		return hr;
+		return HrCmdStarttls(strTag);
 	} else if (strCommand.compare("AUTHENTICATE") == 0) {
 		if (strvResult.size() == 1)
 			return HrCmdAuthenticate(strTag, strvResult[0], string());
@@ -738,7 +731,8 @@ HRESULT IMAP::HrCmdNoop(const string &strTag, bool check) {
 HRESULT IMAP::HrCmdLogout(const string &strTag) {
 	HrResponse(RESP_UNTAGGED, "BYE server logging out");
 	HrResponse(RESP_TAGGED_OK, strTag, "LOGOUT completed");
-	return hrSuccess;
+	/* Let the gateway quit from the socket read loop. */
+	return MAPI_E_END_OF_SESSION;
 }
 
 /** 
@@ -761,7 +755,8 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "[ALERT] Error switching to secure SSL/TLS connection");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STARTTLS");
-		return hr;
+		/* Let the gateway quit from the socket read loop. */
+		return MAPI_E_END_OF_SESSION;
 	}
 
 	if (lpChannel->UsingSsl())
