@@ -55,6 +55,7 @@
 #include <kopano/UnixUtil.h>
 #include <unicode/uclean.h>
 #include <openssl/ssl.h>
+#include <kopano/hl.hpp>
 
 /**
  * @defgroup gateway Gateway for IMAP and POP3 
@@ -227,8 +228,14 @@ static void *Handler(void *lpArg)
 			continue;
 		}
 
-		// Process IMAP command
-		hr = client->HrProcessCommand(inBuffer);
+		HRESULT hr = hrSuccess;
+		try {
+			/* Process IMAP command */
+			hr = client->HrProcessCommand(inBuffer);
+		} catch (const KCHL::KMAPIError &e) {
+			hr = e.code();
+		}
+
 		if (hr == MAPI_E_NETWORK_ERROR) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Connection error.");
 			bQuit = true;

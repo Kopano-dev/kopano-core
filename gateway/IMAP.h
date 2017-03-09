@@ -211,9 +211,9 @@ private:
 	HRESULT HrCmdSetQuota(const string &strTag, const string &strQuotaRoot, const string &strQuotaList);
 
 	/* Untagged response, * or + */
-	HRESULT HrResponse(const string &strUntag, const string& strResponse);
+	void HrResponse(const std::string &untag, const std::string &resp);
 	/* Tagged response with result OK, NO or BAD */
-	HRESULT HrResponse(const string &strResult, const string &strTag, const string& strResponse);
+	void HrResponse(const std::string &result, const std::string &tag, const std::string &resp);
 	static LONG __stdcall IdleAdviseCallback(void *ctx, ULONG numnotif, LPNOTIFICATION);
 
 	bool bOnlyMailFolders;
