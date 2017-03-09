@@ -183,19 +183,19 @@ private:
 
 	// All IMAP4rev1 commands
 	HRESULT HrCmdCapability(const string &strTag);
-	HRESULT HrCmdNoop(const string &strTag, bool check = false);
+	template<bool> HRESULT HrCmdNoop(const std::string &tag);
 	HRESULT HrCmdLogout(const string &strTag);
 	HRESULT HrCmdStarttls(const string &strTag);
 	HRESULT HrCmdAuthenticate(const string &strTag, string strAuthMethod, const string &strAuthData);
-	HRESULT HrCmdLogin(const string &strTag, const string &strUser, const string &strPass);
-	HRESULT HrCmdSelect(const string &strTag, const string &strFolder, bool bReadOnly);
-	HRESULT HrCmdCreate(const string &strTag, const string &strFolder);
-	HRESULT HrCmdDelete(const string &strTag, const string &strFolder);
-	HRESULT HrCmdRename(const string &strTag, const string &strExistingFolder, const string &strNewFolder);
-	HRESULT HrCmdSubscribe(const string &strTag, const string &strFolder, bool bSubscribe);
-	HRESULT HrCmdList(const string &strTag, string strReferenceFolder, const string &strFolder, bool bSubscribedOnly);
+	HRESULT HrCmdLogin(const std::string &tag, const std::vector<std::string> &args);
+	template<bool> HRESULT HrCmdSelect(const std::string &tag, const std::vector<std::string> &args);
+	HRESULT HrCmdCreate(const std::string &tag, const std::vector<std::string> &args);
+	HRESULT HrCmdDelete(const std::string &tag, const std::vector<std::string> &args);
+	HRESULT HrCmdRename(const std::string &tag, const std::vector<std::string> &args);
+	template<bool> HRESULT HrCmdSubscribe(const std::string &tag, const std::vector<std::string> &args);
+	template<bool> HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next);
-	HRESULT HrCmdStatus(const string &strTag, const string &strFolder, string strStatusData);
+	HRESULT HrCmdStatus(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdAppend(const string &strTag, const string &strFolder, const string &strData, string strFlags=string(), const string &strTime=string());
 	HRESULT HrCmdClose(const string &strTag);
 	HRESULT HrCmdExpunge(const string &strTag, const string &strSeqSet);
@@ -206,9 +206,9 @@ private:
 	HRESULT HrCmdUidXaolMove(const string &strTag, const string &strSeqSet, const string &strFolder);
 	HRESULT HrCmdIdle(const string &strTag);
 	HRESULT HrCmdNamespace(const string &strTag);
-	HRESULT HrCmdGetQuotaRoot(const string &strTag, const string &strFolder);
-	HRESULT HrCmdGetQuota(const string &strTag, const string &strQuotaRoot);
-	HRESULT HrCmdSetQuota(const string &strTag, const string &strQuotaRoot, const string &strQuotaList);
+	HRESULT HrCmdGetQuotaRoot(const std::string &tag, const std::vector<std::string> &args);
+	HRESULT HrCmdGetQuota(const std::string &tag, const std::vector<std::string> &args);
+	HRESULT HrCmdSetQuota(const std::string &tag, const std::vector<std::string> &args);
 
 	/* Untagged response, * or + */
 	void HrResponse(const std::string &untag, const std::string &resp);

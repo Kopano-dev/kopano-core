@@ -401,7 +401,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		if (!strvResult.empty())
 			HrResponse(RESP_TAGGED_BAD, strTag, "NOOP must have 0 arguments");
 		else
-			return HrCmdNoop(strTag, false);
+			return HrCmdNoop<false>(strTag);
 	} else if (strCommand.compare("LOGOUT") == 0) {
 		if (!strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "LOGOUT must have 0 arguments");
@@ -425,67 +425,67 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			HrResponse(RESP_TAGGED_BAD, strTag, "LOGIN must have 2 arguments");
 			return hrSuccess;
 		}
-		return HrCmdLogin(strTag, strvResult[0], strvResult[1]);
+		return HrCmdLogin(strTag, strvResult);
 	} else if (strCommand.compare("SELECT") == 0) {
 		if (strvResult.size() != 1) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "SELECT must have 1 argument");
 			return hrSuccess;
 		}
-		return HrCmdSelect(strTag, strvResult[0], false);
+		return HrCmdSelect<false>(strTag, strvResult);
 	} else if (strCommand.compare("EXAMINE") == 0) {
 		if (strvResult.size() != 1) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "EXAMINE must have 1 argument");
 			return hrSuccess;
 		}
-		return HrCmdSelect(strTag, strvResult[0], true);
+		return HrCmdSelect<true>(strTag, strvResult);
 	} else if (strCommand.compare("CREATE") == 0) {
 		if (strvResult.size() != 1) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "CREATE must have 1 argument");
 			return hrSuccess;
 		}
-		return HrCmdCreate(strTag, strvResult[0]);
+		return HrCmdCreate(strTag, strvResult);
 	} else if (strCommand.compare("DELETE") == 0) {
 		if (strvResult.size() != 1) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "DELETE must have 1 argument");
 			return hrSuccess;
 		}
-		return HrCmdDelete(strTag, strvResult[0]);
+		return HrCmdDelete(strTag, strvResult);
 	} else if (strCommand.compare("RENAME") == 0) {
 		if (strvResult.size() != 2) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "RENAME must have 2 arguments");
 			return hrSuccess;
 		}
-		return HrCmdRename(strTag, strvResult[0], strvResult[1]);
+		return HrCmdRename(strTag, strvResult);
 	} else if (strCommand.compare("SUBSCRIBE") == 0) {
 		if (strvResult.size() != 1) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "SUBSCRIBE must have 1 arguments");
 			return hrSuccess;
 		}
-		return HrCmdSubscribe(strTag, strvResult[0], true);
+		return HrCmdSubscribe<true>(strTag, strvResult);
 	} else if (strCommand.compare("UNSUBSCRIBE") == 0) {
 		if (strvResult.size() != 1) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "UNSUBSCRIBE must have 1 arguments");
 			return hrSuccess;
 		}
-		return HrCmdSubscribe(strTag, strvResult[0], false);
+		return HrCmdSubscribe<false>(strTag, strvResult);
 	} else if (strCommand.compare("LIST") == 0) {
 		if (strvResult.size() != 2) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "LIST must have 2 arguments");
 			return hrSuccess;
 		}
-		return HrCmdList(strTag, strvResult[0], strvResult[1], false);
+		return HrCmdList<false>(strTag, strvResult);
 	} else if (strCommand.compare("LSUB") == 0) {
 		if (strvResult.size() != 2) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "LSUB must have 2 arguments");
 			return hrSuccess;
 		}
-		return HrCmdList(strTag, strvResult[0], strvResult[1], true);
+		return HrCmdList<true>(strTag, strvResult);
 	} else if (strCommand.compare("STATUS") == 0) {
 		if (strvResult.size() != 2) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "STATUS must have 2 arguments");
 			return hrSuccess;
 		}
-		return HrCmdStatus(strTag, strvResult[0], strvResult[1]);
+		return HrCmdStatus(strTag, strvResult);
 	} else if (strCommand.compare("APPEND") == 0) {
 		if (strvResult.size() == 2) {
 			return HrCmdAppend(strTag, strvResult[0], strvResult[1]);
@@ -504,7 +504,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			HrResponse(RESP_TAGGED_BAD, strTag, "CHECK must have 0 arguments");
 			return hrSuccess;
 		}
-		return HrCmdNoop(strTag, true);
+		return HrCmdNoop<true>(strTag);
 	} else if (strCommand.compare("CLOSE") == 0) {
 		if (!strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "CLOSE must have 0 arguments");
@@ -558,19 +558,19 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			HrResponse(RESP_TAGGED_BAD, strTag, "GETQUOTAROOT must have 1 arguments");
 			return hrSuccess;
 		}
-		return HrCmdGetQuotaRoot(strTag, strvResult[0]);
+		return HrCmdGetQuotaRoot(strTag, strvResult);
 	} else if (strCommand.compare("GETQUOTA") == 0) {
 		if (strvResult.size() != 1) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "GETQUOTA must have 1 arguments");
 			return hrSuccess;
 		}
-		return HrCmdGetQuota(strTag, strvResult[0]);
+		return HrCmdGetQuota(strTag, strvResult);
 	} else if (strCommand.compare("SETQUOTA") == 0) {
 		if (strvResult.size() != 2) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "SETQUOTA must have 2 arguments");
 			return hrSuccess;
 		}
-		return HrCmdSetQuota(strTag, strvResult[0], strvResult[1]);
+		return HrCmdSetQuota(strTag, strvResult);
 	} else if (strCommand.compare("UID") == 0) {
 		if (strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "UID must have a command");
@@ -705,7 +705,8 @@ HRESULT IMAP::HrCmdCapability(const string &strTag) {
  * 
  * @return hrSuccess
  */
-HRESULT IMAP::HrCmdNoop(const string &strTag, bool check) {
+template<bool check> HRESULT IMAP::HrCmdNoop(const std::string &strTag)
+{
 	HRESULT hr = hrSuccess;
 
 	if (!strCurrentFolder.empty() || check)
@@ -819,7 +820,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 		HrResponse(RESP_TAGGED_NO, strTag, "AUTHENTICATE " + strAuthMethod + " incomplete data received");
 		return MAPI_E_LOGON_FAILED;
 	}
-	return HrCmdLogin(strTag, vAuth[1], vAuth[2]);
+	return HrCmdLogin(strTag, {vAuth[1], vAuth[2]});
 }
 
 /** 
@@ -834,7 +835,9 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
  * 
  * @return MAPI error code
  */
-HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const string &strPass) {
+HRESULT IMAP::HrCmdLogin(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
 	string strUsername;
 	size_t i;
@@ -842,6 +845,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	wstring strwPassword;
 	unsigned int flags;
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
+	const std::string &strUser = args[0], &strPass = args[1];
 
 	// strUser isn't sent in imap style utf-7, but \ is escaped, so strip those
 	for (i = 0; i < strUser.length(); ++i) {
@@ -975,12 +979,16 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
  * @param[in]	strFolder	IMAP folder name in UTF-7 something charset
  * @param[in]	bReadOnly	The EXAMINE command was given instead of the SELECT command
  */
-HRESULT IMAP::HrCmdSelect(const string &strTag, const string &strFolder, bool bReadOnly) {
+template<bool bReadOnly>
+HRESULT IMAP::HrCmdSelect(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
 	char szResponse[IMAP_RESP_MAX + 1];
 	unsigned int ulUnseen = 0;
 	string command = "SELECT";
 	ULONG ulUIDValidity = 1;
+	const std::string &strFolder = args[0];
 
 	if (bReadOnly)
 		command = "EXAMINE";
@@ -1048,13 +1056,16 @@ HRESULT IMAP::HrCmdSelect(const string &strTag, const string &strFolder, bool bR
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdCreate(const string &strTag, const string &strFolderParam) {
+HRESULT IMAP::HrCmdCreate(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder, lpSubFolder;
 	vector<wstring> strPaths;
 	wstring strFolder;
 	wstring strPath;
 	SPropValue sFolderClass;
+	const std::string &strFolderParam = args[0];
 
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "CREATE error no session");
@@ -1130,12 +1141,15 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdDelete(const string &strTag, const string &strFolderParam) {
+HRESULT IMAP::HrCmdDelete(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpParentFolder;
 	ULONG cbEntryID;
 	memory_ptr<ENTRYID> lpEntryID;
 	wstring strFolder;
+	const std::string &strFolderParam = args[0];
 
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error no session");
@@ -1209,7 +1223,9 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderParam, const string &strNewFolderParam) {
+HRESULT IMAP::HrCmdRename(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lppvFromEntryID, lppvDestEntryID;
 	object_ptr<IMAPIFolder> lpParentFolder, lpMakeFolder, lpSubFolder;
@@ -1222,6 +1238,8 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 	wstring strPath;
 	wstring strFolder;
 	SPropValue sFolderClass;
+	const std::string &strExistingFolderParam = args[0];
+	const std::string &strNewFolderParam = args[1];
 
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error no session");
@@ -1360,12 +1378,16 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdSubscribe(const string &strTag, const string &strFolderParam, bool bSubscribe) {
+template<bool bSubscribe>
+HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
 	string strAction;
 	ULONG cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 	wstring strFolder;
+	const std::string &strFolderParam = args[0];
 
 	if (bSubscribe)
 		strAction = "SUBSCRIBE";
@@ -1421,7 +1443,9 @@ HRESULT IMAP::HrCmdSubscribe(const string &strTag, const string &strFolderParam,
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const string &strFindFolder, bool bSubscribedOnly) {
+template<bool bSubscribedOnly> HRESULT
+IMAP::HrCmdList(const std::string &strTag, const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
 	string strAction;
 	string strResponse;
@@ -1429,6 +1453,7 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 	string strListProps;
 	string strCompare;
 	wstring strFolderPath;
+	std::string strReferenceFolder = args[0], strFindFolder = args[1];
 
 	if (bSubscribedOnly)
 		strAction = "LSUB";
@@ -1591,7 +1616,9 @@ HRESULT IMAP::get_uid_next(IMAPIFolder *status_folder, const std::string &tag, U
  * 
  * @return MAPI error code
  */
-HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string strStatusData) {
+HRESULT IMAP::HrCmdStatus(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpStatusFolder;
 	vector<string> lstStatusData;
@@ -1612,6 +1639,7 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 	memory_ptr<SPropValue> lpPropCounters, lpPropMaxID;
 	wstring strIMAPFolder;
 	SPropValue sPropMaxID;
+	std::string strFolder = args[0], strStatusData = args[1];
     
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no session");
@@ -2663,9 +2691,11 @@ HRESULT IMAP::HrPrintQuotaRoot(const string& strTag)
  *
  * @return 
  */
-HRESULT IMAP::HrCmdGetQuotaRoot(const string &strTag, const string &strFolder)
+HRESULT IMAP::HrCmdGetQuotaRoot(const std::string &strTag,
+    const std::vector<std::string> &args)
 {
 	HRESULT hr = hrSuccess;
+	const std::string &strFolder = args[0];
 
 	if (!lpStore) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "Login first");
@@ -2689,8 +2719,11 @@ HRESULT IMAP::HrCmdGetQuotaRoot(const string &strTag, const string &strFolder)
  * 
  * @return 
  */
-HRESULT IMAP::HrCmdGetQuota(const string &strTag, const string &strQuotaRoot)
+HRESULT IMAP::HrCmdGetQuota(const std::string &strTag,
+    const std::vector<std::string> &args)
 {
+	const std::string &strQuotaRoot = args[0];
+
 	if (!lpStore) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "Login first");
 		return MAPI_E_CALL_FAILED;
@@ -2707,7 +2740,8 @@ HRESULT IMAP::HrCmdGetQuota(const string &strTag, const string &strQuotaRoot)
 	return hrSuccess;
 }
 
-HRESULT IMAP::HrCmdSetQuota(const string &strTag, const string &strQuotaRoot, const string &strQuotaList)
+HRESULT IMAP::HrCmdSetQuota(const std::string &strTag,
+    const std::vector<std::string> &args)
 {
 	HrResponse(RESP_TAGGED_NO, strTag, "SetQuota Permission denied");
 	return hrSuccess;
