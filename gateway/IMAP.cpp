@@ -1765,27 +1765,24 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		} };
 	
 	if (!lpSession) {
-		hr = MAPI_E_CALL_FAILED;
 		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error no session");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = IMAP2MAPICharset(strFolderParam, strFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "APPEND invalid folder name");
-		goto exit;
+		return hr;
 	}
 	hr = HrFindFolder(strFolder, false, &~lpAppendFolder);
 	if(hr != hrSuccess) {
-		hr = MAPI_E_CALL_FAILED;
 		HrResponse(RESP_TAGGED_NO, strTag, "[TRYCREATE] APPEND error finding folder");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	if (!IsMailFolder(lpAppendFolder)) {
-		hr = MAPI_E_CALL_FAILED;
 		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error not a mail folder");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	hr = HrGetOneProp(lpAppendFolder, PR_EC_HIERARCHYID, &~lpPropVal);
 	if (hr == hrSuccess)
@@ -1793,13 +1790,13 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	hr = lpAppendFolder->CreateMessage(nullptr, 0, &~lpMessage);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error creating message");
-		goto exit;
+		return hr;
 	}
 
 	hr = IMToMAPI(lpSession, lpStore, lpAddrBook, lpMessage, strData, dopt);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error converting message");
-		goto exit;
+		return hr;
 	}
 	if (IsSentItemFolder(lpAppendFolder) &&
 	    HrGetOneProp(lpAppendFolder, PR_ENTRYID, &~lpPropVal) == hrSuccess) {
@@ -1824,7 +1821,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			if (HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_MESSAGE_FLAGS;
 				lpPropVal->Value.ul = 0;
@@ -1836,7 +1833,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_MSG_STATUS;
 				lpPropVal->Value.ul = 0;
@@ -1849,7 +1846,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			if (HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_MESSAGE_FLAGS;
 				lpPropVal->Value.ul = 0;
@@ -1864,7 +1861,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			if (lpPropVal == NULL) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 
 			lpPropVal->ulPropTag = PR_FLAG_STATUS;
@@ -1874,7 +1871,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_MSG_STATUS;
 				lpPropVal->Value.ul = 0;
@@ -1886,7 +1883,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			}
 			hr = MAPIAllocateBuffer(sizeof(SPropValue) * 3, &~lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpPropVal[0].ulPropTag = PR_LAST_VERB_EXECUTED;
 			if (strFlag[0] == '\\')
@@ -1903,12 +1900,12 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 
 			hr = lpMessage->SetProps(3, lpPropVal, NULL);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		} else if (strFlag.compare("\\DELETED") == 0) {
 			if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_MSG_STATUS;
 				lpPropVal->Value.ul = 0;
@@ -1925,7 +1922,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	if (lpPropVal == NULL) {
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (!strTime.empty()) {
@@ -1941,7 +1938,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error saving message");
-		goto exit;
+		return hr;
 	}
 	hr = HrGetOneProp(lpMessage, PR_EC_IMAP_ID, &~lpPropVal);
 	if (hr == hrSuccess)
@@ -1956,7 +1953,6 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	}
 
 	HrResponse(RESP_TAGGED_OK, strTag, strAppendUid + "APPEND completed");
-exit:
 	return hr;
 }
 
@@ -2130,9 +2126,8 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const st
 		strMode = "UID ";
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
 		HrResponse(RESP_TAGGED_BAD, strTag, strMode + "FETCH error no folder");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	HrGetDataItems(strMsgDataItemNames, lstDataItems);
@@ -2150,7 +2145,7 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const st
 		hr = HrParseSeqSet(strSeqSet, lstMails);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + "FETCH sequence parse error in: " + strSeqSet);
-		goto exit;
+		return hr;
 	}
 
 	hr = HrPropertyFetch(lstMails, lstDataItems);
@@ -2158,7 +2153,6 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const st
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + "FETCH failed");
 	else
 		HrResponse(RESP_TAGGED_OK, strTag, strMode + "FETCH completed");
-exit:
 	return hr;
 }
 
@@ -2187,15 +2181,13 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const st
 	strMode += " STORE";
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + " error no folder");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	if (bCurrentFolderReadOnly) {
-		hr = MAPI_E_CALL_FAILED;
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + " error folder read only");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	lstDataItems.push_back("FLAGS");
@@ -2208,7 +2200,7 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const st
 		hr = HrParseSeqSet(strSeqSet, lstMails);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + " sequence parse error in: " + strSeqSet);
-		goto exit;
+		return hr;
 	}
 
 	hr = HrStore(lstMails, strMsgDataItemName, strMsgDataItemValue, &bDelete);
@@ -2224,19 +2216,18 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const st
 		if (bUidMode) {
 			hr = HrSeqUidSetToRestriction(strSeqSet, rst);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		if (HrExpungeDeleted(strTag, strMode, std::move(rst)) != hrSuccess)
 			// HrExpungeDeleted sent client NO result.
-			goto exit;
+			return hrSuccess;
 
 		// Let HrRefreshFolderMails output the actual EXPUNGEs
 		HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 	}
 
 	HrResponse(RESP_TAGGED_OK, strTag, strMode + " completed");
-exit:
 	return hr;
 }
 
@@ -2261,9 +2252,8 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const string &strSeqSet, const str
 		strMode = "UID ";
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + "COPY error no folder");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	if (bUidMode)
@@ -2272,20 +2262,19 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const string &strSeqSet, const str
 		hr = HrParseSeqSet(strSeqSet, lstMails);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + "COPY sequence parse error in: " + strSeqSet);
-		goto exit;
+		return hr;
 	}
 
 	hr = HrCopy(lstMails, strFolder, false);
 	if (hr == MAPI_E_NOT_FOUND) {
 		HrResponse(RESP_TAGGED_NO, strTag, "[TRYCREATE] " + strMode + "COPY folder not found");
-		goto exit;
+		return hr;
 	} else if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + "COPY error");
-		goto exit;
+		return hr;
 	}
 
 	HrResponse(RESP_TAGGED_OK, strTag, strMode + "COPY completed");
-exit:
 	return hr;
 }
 
@@ -2307,30 +2296,28 @@ HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const string &strSeqSet, co
 	list<ULONG> lstMails;
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
 		HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE error no folder");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = HrParseSeqUidSet(strSeqSet, lstMails);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE sequence parse error in: " + strSeqSet);
-		goto exit;
+		return hr;
 	}
 
 	hr = HrCopy(lstMails, strFolder, true);
 	if (hr == MAPI_E_NOT_FOUND) {
 		HrResponse(RESP_TAGGED_NO, strTag, "[TRYCREATE] UID XAOL-MOVE folder not found");
-		goto exit;
+		return hr;
 	} else if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE error");
-		goto exit;
+		return hr;
 	}
 
 	// Let HrRefreshFolderMails output the actual EXPUNGEs
 	HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 	HrResponse(RESP_TAGGED_OK, strTag, "UID XAOL-MOVE completed");
-exit:
 	return hr;
 }
 
