@@ -1829,6 +1829,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		ulFolderType = TASKS_FOLDER;
 	else
 		ulFolderType = OTHER_FOLDER;
+	/* ignore errors - nullptr will be handled */
 	HrGetOneProp(m_lpActiveUser, PR_SMTP_ADDRESS_A, &~ptrEmail);
 	HrGetOneProp(m_lpActiveUser, PR_DISPLAY_NAME_W, &~ptrFullname);
 
@@ -1887,7 +1888,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 			// foldername from given properties (propfind command) username from properties (propsearch command) or fullname of user ("root" props)
 			if (bPropsFirst)
 				sWebProperty.strValue = SPropValToString(lpFoundProp);
-			else
+			else if (ptrFullname != nullptr)
 				sWebProperty.strValue = W2U(ptrFullname->Value.lpszW);
 			
 		} else if (strProperty == "calendar-user-address-set" && (m_ulUrlFlag & REQ_PUBLIC) == 0 && !!ptrEmail) {
