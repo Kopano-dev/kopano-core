@@ -1899,7 +1899,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		goto exit;
 	}
 
-	// get subject for logging
+	/* Get subject for logging - ignore errors, we check for nullptr. */
 	HrGetOneProp(lpMessage, PR_SUBJECT_W, &~lpSubject);
 	HrGetOneProp(lpMessage, PR_MESSAGE_SIZE, &~lpMsgSize);
 	HrGetOneProp(lpMessage, PR_DEFERRED_SEND_TIME, &~lpDeferSendTime);

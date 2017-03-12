@@ -460,7 +460,11 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		hr = hrSuccess;
 		goto exit;
 	}
-	HrGetOneProp(d.profsect, PR_PROVIDER_UID, &~ptrPropValueProviderUid);
+	if (HrGetOneProp(d.profsect, PR_PROVIDER_UID, &~ptrPropValueProviderUid) == hrSuccess &&
+	    ptrPropValueProviderUid != nullptr)
+		d.provuid = reinterpret_cast<MAPIUID *>(ptrPropValueProviderUid.get()->Value.bin.lpb);
+	else
+		d.provuid = nullptr;
 	ulResourceType = ptrPropValueResourceType->Value.l;
 
 	TRACE_MAPI(TRACE_INFO, "InitializeProvider", "Resource type=%s", ResourceTypeToString(ulResourceType) );
@@ -476,11 +480,6 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	hr = d.transport->HrLogon(sProfileProps);
 	if(hr != hrSuccess)
 		goto exit;
-
-	if (ptrPropValueProviderUid.get() != NULL)
-		d.provuid = reinterpret_cast<MAPIUID *>(ptrPropValueProviderUid.get()->Value.bin.lpb);
-	else
-		d.provuid = NULL;
 
 	if(ulResourceType == MAPI_STORE_PROVIDER)
 	{

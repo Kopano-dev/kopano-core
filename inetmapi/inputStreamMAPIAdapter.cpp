@@ -38,7 +38,8 @@ size_t inputStreamMAPIAdapter::read(unsigned char *data, size_t count)
 {
 	ULONG ulSize = 0;
 
-	lpStream->Read(data, count, &ulSize);
+	if (lpStream->Read(data, count, &ulSize) != hrSuccess)
+		return 0;
 	if (ulSize != count)
 		this->ateof = true;
 
