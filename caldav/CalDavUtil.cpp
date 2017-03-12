@@ -491,6 +491,7 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolder,
 		     nullptr, MAPI_BEST_ACCESS, &ulObjType, &~local_fld);
 		if(hr != hrSuccess)
 			return hr;
+		lpFolder = local_fld.get();
 	}
 
 	hr = lpFolder->GetHierarchyTable(CONVENIENT_DEPTH,&lpTable);
