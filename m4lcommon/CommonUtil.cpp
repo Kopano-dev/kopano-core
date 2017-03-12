@@ -411,9 +411,6 @@ HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG 
 		}
 	}
 
-	if (hr != hrSuccess)
-		return hr;
-
 	lpEntryIDProp = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ENTRYID);
 	if (lpEntryIDProp == nullptr)
 		return MAPI_E_NOT_FOUND;
