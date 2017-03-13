@@ -106,11 +106,11 @@ def yesno(x):
 def list_users(intro, users):
     users = list(users)
     print(intro + ' (%d):' % len(users))
-    fmt = '{:>16}{:>20}{:>40}'
-    print(fmt.format('User', 'Full Name', 'Store'))
-    print(76*'-')
-    for user in users:
-        print(fmt.format(_encode(user.name), _encode(user.fullname), user.store.guid if user.store else ''))
+    fmt = '{:>16}{:>20}{:>20}{:>40}'
+    print(fmt.format('User', 'Full Name', 'Homeserver', 'Store'))
+    print(96*'-')
+    for user in sorted(users, key=lambda u: u.name):
+        print(fmt.format(_encode(user.name), _encode(user.fullname), _encode(user.home_server), user.store.guid if user.store else ''))
     print
 
 def list_groups(intro, groups):
@@ -119,7 +119,7 @@ def list_groups(intro, groups):
     fmt = '\t{:>16}'
     print(fmt.format('Groupname'))
     print('\t'+16*'-')
-    for group in groups:
+    for group in sorted(groups, key=lambda g: g.name):
         print(fmt.format(_encode(group.name)))
     print
 
@@ -129,7 +129,7 @@ def list_companies(intro, companies):
     fmt = '\t{:>32}{:>32}'
     print(fmt.format('Companyname', 'System Administrator'))
     print('\t'+64*'-')
-    for company in companies:
+    for company in sorted(companies, key=lambda c: c.name):
         print(fmt.format(_encode(company.name), _encode(company.admin.name) if company.admin else ''))
 
 def list_orphans(server):
@@ -402,7 +402,7 @@ def company_update_options(company, options, server):
 
 def company_overview_options(company, options, server):
     if options.list_users:
-        list_users('User list for %s' % company.name, company.users())
+        list_users('User list for %s' % company.name, company.users(system=True))
     if options.list_groups:
         list_groups('Group list for %s' % company.name, company.groups())
 
