@@ -22,7 +22,6 @@ def parser_opt_args():
     parser.add_option('--list-orphans', help='List orphan stores', **_true())
     parser.add_option('--user-count', help='Output the system user counts', **_true())
     parser.add_option('--remove-store', help='Remove orphaned store', **_guid())
-    parser.add_option('--details', help='Show details', **_true())
     parser.add_option('--create', help='Create object', **_true())
     parser.add_option('--delete', help='Delete object', **_true())
     parser.add_option('--name', help='Name', **_name())
@@ -459,6 +458,11 @@ def check_options(options, server):
     actions = [name for name in sum(ACTION_MATRIX, ()) if getattr(options, name) is not None]
     if len(actions) > 1:
         raise Exception('cannot combine options: %s' % ', '.join(orig_option(a) for a in actions))
+
+    options.details = False
+    updates = [name for name in sum(UPDATE_MATRIX, ()) if getattr(options, name) not in (None, [])]
+    if not (actions or updates):
+        options.details = True
 
     for opts, legaltypes in ACTION_MATRIX.items() + UPDATE_MATRIX.items():
         for opt in opts:
