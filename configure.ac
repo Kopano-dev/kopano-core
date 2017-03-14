@@ -656,7 +656,6 @@ dnl The "Locale" class is in icu-uc.
 dnl The "CollationKey" class is in icu-i18n.
 req_icu_uc="icu-uc"
 req_icu_i18n="icu-i18n"
-AC_ARG_ENABLE([icu], AS_HELP_STRING([--enable-icu], [enable icu support]), [want_icu=${enableval}], [want_icu=auto])
 PKG_CHECK_EXISTS([icu-uc], [have_icu=1], [have_icu=0])
 PKG_CHECK_EXISTS([icu-i18n], [have_icu=1], [have_icu=0])
 AS_IF([test "$have_icu" = 1], [AC_MSG_RESULT([Found ICU with modern pkg-config files])])
@@ -690,12 +689,10 @@ AS_IF([test "$have_icu" = 2], [
 	AC_SUBST([icu_uc_LIBS])
 	AC_SUBST([icu_i18n_LIBS])
 ])
-AS_IF([test "$want_icu" = "yes" && test "$have_icu" = 0], [
-	AC_MSG_ERROR([ICU was requested but not found])
+AS_IF([test "$have_icu" = 0], [
+	AC_MSG_ERROR([ICU is required but not found])
 ])
-AS_IF([test "$have_icu" != 0], [
-	AC_DEFINE([KC_USES_ICU], [1], [Defined if KC was built with ICU])
-])
+AC_DEFINE([KC_USES_ICU], [1], [Defined if KC was built with ICU])
 AM_CONDITIONAL([HAVE_ICU], [test "$have_icu" -ne 0])
 ZCPPFLAGS="$ZCPPFLAGS $icu_uc_CFLAGS $icu_i18n_CFLAGS"
 
