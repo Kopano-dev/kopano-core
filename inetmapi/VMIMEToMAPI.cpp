@@ -66,6 +66,7 @@
 
 // vcal support
 #include "ICalToMAPI.h"
+#include "config.h"
 
 using namespace std;
 using namespace KCHL;
@@ -2207,6 +2208,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 bool VMIMEToMAPI::filter_html(IMessage *msg, IStream *stream, ULONG flags,
     const std::string &html)
 {
+#ifdef HAVE_TIDY_H
 	std::string clean_html;
 	std::vector<std::string> error;
 	HRESULT ret;
@@ -2240,6 +2242,7 @@ bool VMIMEToMAPI::filter_html(IMessage *msg, IStream *stream, ULONG flags,
 			GetMAPIErrorDescription(ret).c_str(), ret);
 		return false;
 	}
+#endif
 	return true;
 }
 

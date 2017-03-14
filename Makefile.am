@@ -50,7 +50,10 @@ dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \
 	ECtools/archiver/scripts/kopano-archiver-restore
-noinst_PROGRAMS = kopano-cfgchecker rosie-test
+noinst_PROGRAMS = kopano-cfgchecker
+if HAVE_TIDY
+noinst_PROGRAMS += rosie-test
+endif
 check_PROGRAMS = cov-scope
 pkglibexec_PROGRAMS = mapitime
 

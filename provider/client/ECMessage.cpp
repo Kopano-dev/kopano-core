@@ -44,6 +44,7 @@
 #include "ECMemStream.h"
 #include <kopano/charset/convert.h>
 #include <librosie.h>
+#include "config.h"
 
 using namespace std;
 using namespace KCHL;
@@ -2257,6 +2258,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		lpsPropValue->ulPropTag = PR_MESSAGE_RECIPIENTS;
 		lpsPropValue->Value.x = 1;
 		break;
+#ifdef HAVE_TIDY_H
 	case PROP_ID(PR_EC_BODY_FILTERED): {
 		// does it already exist? (e.g. inserted by dagent/gateway)
 		hr = lpMessage->GetSyncedBodyProp(PR_EC_BODY_FILTERED, ulFlags, lpBase, lpsPropValue);
@@ -2300,6 +2302,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		}
 		break;
 	}
+#endif
 	case PROP_ID(PR_BODY):
 	case PROP_ID(PR_RTF_COMPRESSED):
 	case PROP_ID(PR_HTML):
