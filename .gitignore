@@ -42,6 +42,7 @@ stamp-h2
 /kopano-spooler
 /kopano-stats
 /mapitime
+/rosie-test
 /mapi4linux/src/libmapi.sym
 /mapi4linux/src/libkchl.sym
 /provider/plugin.sym

@@ -114,6 +114,7 @@ private:
 	std::string getStructureExtendedFields(vmime::shared_ptr<vmime::header> vmHeaderPart);
 	std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField>);
 	std::string::size_type countBodyLines(const std::string &input, std::string::size_type start, std::string::size_type length);
+	bool filter_html(IMessage *, IStream *, ULONG, const std::string &);
 };
 
 } /* namespace */

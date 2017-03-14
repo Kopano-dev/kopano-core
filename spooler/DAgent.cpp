@@ -3680,6 +3680,7 @@ int main(int argc, char *argv[]) {
 		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
 		{ "tmp_path", "/tmp" },
 		{"forward_whitelist_domains", "*"},
+		{"html_safety_filter", "no"},
 		{ NULL, NULL },
 	};
 
@@ -3866,6 +3867,7 @@ int main(int argc, char *argv[]) {
 		sDeliveryArgs.strPath = g_lpConfig->GetSetting("server_socket");
 	sDeliveryArgs.strPath = GetServerUnixSocket((char*)sDeliveryArgs.strPath.c_str()); // let environment override if present
 	sDeliveryArgs.sDeliveryOpts.ascii_upgrade = g_lpConfig->GetSetting("default_charset");
+	sDeliveryArgs.sDeliveryOpts.html_safety_filter = strcasecmp(g_lpConfig->GetSetting("html_safety_filter"), "yes") == 0;
 
 	if (bListenLMTP) {
 		/* MAPIInitialize done inside running_service */

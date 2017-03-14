@@ -652,6 +652,13 @@ EPOLL_CFLAGS=
 fi
 AC_SUBST(EPOLL_CFLAGS)
 
+tidy_CPPFLAGS="-I/usr/include/tidy"
+CPPFLAGS="$CPPFLAGS $tidy_CPPFLAGS"
+AC_CHECK_HEADERS([tidy.h])
+AM_CONDITIONAL([HAVE_TIDY], [test "x$ac_cv_header_tidy_h" = "xyes"])
+AC_SUBST([tidy_CPPFLAGS])
+CPPFLAGS="$CPPFLAGS_system"
+
 dnl The "Locale" class is in icu-uc.
 dnl The "CollationKey" class is in icu-i18n.
 req_icu_uc="icu-uc"
