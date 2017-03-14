@@ -70,7 +70,7 @@ ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
 	*lpSourceKey = SOURCEKEY(cbData, (char *)lpData);
 
 exit:
-	delete[] lpData;
+	s_free(nullptr, lpData);
 	return er;
 }
 
