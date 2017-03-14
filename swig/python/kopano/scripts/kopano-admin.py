@@ -195,17 +195,18 @@ def user_details(user):
 
     list_groups('Groups', user.groups())
 
-    print('Permissions:')
-    for perm in user.permissions():
-        if perm.rights: # XXX pyko remove ACE if empty
-            print(_encode(' (store): ' + perm.member.name + ':' + ','.join(perm.rights)))
-    for delegate in user.delegations(): # XXX merge all rights into permissions()?
-        if delegate.see_private:
-            print(_encode(' (store): ' + delegate.user.name + ':see_private'))
-    for folder in user.folders():
-        for perm in folder.permissions():
-            if perm.rights:
-                print(_encode(' ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights)))
+    if user.store:
+        print('Permissions:')
+        for perm in user.permissions():
+            if perm.rights: # XXX pyko remove ACE if empty
+                print(_encode(' (store): ' + perm.member.name + ':' + ','.join(perm.rights)))
+        for delegate in user.delegations(): # XXX merge all rights into permissions()?
+            if delegate.see_private:
+                print(_encode(' (store): ' + delegate.user.name + ':see_private'))
+        for folder in user.folders():
+            for perm in folder.permissions():
+                if perm.rights:
+                    print(_encode(' ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights)))
 
 def group_details(group):
     print('Groupname:\t' + _encode(group.name))
@@ -308,6 +309,8 @@ def user_options(name, options, server):
         see_private = 'see_private' in rights
         rights = [r for r in rights if r != 'see_private']
         return server.user(username), rights, see_private
+    if (options.add_permission or options.remove_permission) and not user.store:
+        raise Exception("user '%s' has no store" % user.name)
     if options.folders:
         objs = [user.folder(f) for f in options.folders]
     else:
