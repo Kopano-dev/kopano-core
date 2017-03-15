@@ -187,6 +187,7 @@ class Folder(object):
     def items(self, restriction=None):
         """ Return all :class:`items <Item>` in folder, reverse sorted on received date """
 
+        table = None
         try:
             table = Table(
                 self.server,
