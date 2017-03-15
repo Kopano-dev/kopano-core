@@ -72,8 +72,8 @@ endif
 lib_LTLIBRARIES = \
 	libkcutil.la libkcmapi.la libkcssl.la libmapi.la libkchl.la \
 	libkcfreebusy.la libkcsync.la libkcsoap.la libkcserver.la \
-	libkcicalmapi.la libkcinetmapi.la \
-	libkcarchiver.la libkcarchivercore.la ${COND_libkcrosie_la}
+	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
+	libkcarchiver.la libkcarchivercore.la
 noinst_DATA = \
 	kopano-archiver.ldx kopano-cfgchecker.ldx kopano-dagent.ldx \
 	kopano-gateway.ldx kopano-ical.ldx kopano-monitor.ldx \
