@@ -654,16 +654,13 @@ libkcutil_la_SOURCES = \
 	common/platform.linux.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
 	common/charset/convstring.cpp common/charset/traits.cpp \
-	common/charset/localeutil.cpp
+	common/charset/localeutil.cpp common/ustringutil/utfutil.cpp
 libkcutil_la_LIBADD = \
-	-lpthread -lz ${CRYPTO_LIBS} ${UUID_LIBS}
+	-lpthread -lz ${CRYPTO_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${UUID_LIBS}
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=common/libkcutil.sym
 EXTRA_libkcutil_la_DEPENDENCIES = common/libkcutil.sym
-if HAVE_ICU
-libkcutil_la_SOURCES += common/ustringutil/utfutil.cpp
-libkcutil_la_LIBADD += ${icu_uc_LIBS} ${icu_i18n_LIBS}
-endif
+
 
 common/libkcutil.sym: ${top_builddir}/config.status
 

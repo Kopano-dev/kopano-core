@@ -2,7 +2,7 @@ AC_PREREQ(2.60)
 m4_define([xm4_pkg_version], esyscmd([tr -d '\n' <version.in]))
 AC_INIT([kopano], [xm4_pkg_version], [development@kopano.io])
 AC_CONFIG_SRCDIR([provider/server/ECServer.cpp])
-AC_CONFIG_HEADERS([common/config.h common/include/kopano/zconfig.h])
+AC_CONFIG_HEADERS([common/config.h])
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CONFIG_MACRO_DIR([autoconf])
 AM_INIT_AUTOMAKE([1.10 foreign subdir-objects])
@@ -692,8 +692,6 @@ AS_IF([test "$have_icu" = 2], [
 AS_IF([test "$have_icu" = 0], [
 	AC_MSG_ERROR([ICU is required but not found])
 ])
-AC_DEFINE([KC_USES_ICU], [1], [Defined if KC was built with ICU])
-AM_CONDITIONAL([HAVE_ICU], [test "$have_icu" -ne 0])
 ZCPPFLAGS="$ZCPPFLAGS $icu_uc_CFLAGS $icu_i18n_CFLAGS"
 
 # all libs for programs, because functions are in static common stuff

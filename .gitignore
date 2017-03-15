@@ -75,7 +75,6 @@ stamp-h2
 /common/cov-scope
 /common/ecversion.h
 /common/include/kopano/ecversion.h
-/common/include/kopano/zconfig.h
 /common/kopano.pc
 /common/libkcmapi.sym
 /common/libkcutil.sym

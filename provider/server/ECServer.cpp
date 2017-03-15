@@ -52,10 +52,7 @@
 #include <libintl.h>
 #include <map>
 #include <kopano/charset/convstring.h>
-#ifdef KC_USES_ICU
 #include <unicode/uclean.h>
-#endif
-
 #include "TmpPath.h"
 #include "ECICS.h"
 #include <openssl/ssl.h>
@@ -1376,11 +1373,7 @@ exit:
 	}
 	if (g_lpAudit)
 		g_lpAudit->Release();
-
-#ifdef KC_USES_ICU
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
-#endif
-
 	return retval;
 }

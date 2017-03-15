@@ -48,9 +48,7 @@ using namespace std;
 
 #include <execinfo.h>
 #include <kopano/UnixUtil.h>
-#ifdef KC_USES_ICU
 #include <unicode/uclean.h>
-#endif
 #include <openssl/ssl.h>
 
 struct HandlerArgs {
@@ -338,12 +336,8 @@ exit:
 
 	// Cleanup libxml2 library
 	xmlCleanupParser();
-
-#ifdef KC_USES_ICU
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
-#endif
-
 	return hr;
 
 }

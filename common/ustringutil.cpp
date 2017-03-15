@@ -66,8 +66,6 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include <kopano/CommonUtil.h>
 #include "utf8/unchecked.h"
 #include <cassert>
-
-#ifdef KC_USES_ICU
 #include <memory>
 #include <unicode/unorm.h>
 #include <unicode/coll.h>
@@ -80,42 +78,7 @@ At some point we need to rewqrite these functions to do all the conversion on th
 
 typedef std::unique_ptr<Collator> unique_ptr_Collator;
 
-#else /* KC_USES_ICU */
-#include <cstring>
-#include <kopano/charset/convert.h>
-#endif
-
 namespace KC {
-
-#ifndef KC_USES_ICU
-ECSortKey::ECSortKey(const unsigned char *lpSortData, unsigned int cbSortData)
-	: m_lpSortData(lpSortData)
-	, m_cbSortData(cbSortData)
-{ }
-
-ECSortKey::ECSortKey(const ECSortKey &other)
-	: m_lpSortData((unsigned char*)memcpy(new unsigned char[other.m_cbSortData], other.m_lpSortData, other.m_cbSortData))
-	, m_cbSortData(other.m_cbSortData)
-{ }
-
-ECSortKey::~ECSortKey() {
-	delete m_lpSortData;
-}
-
-ECSortKey& ECSortKey::operator=(const ECSortKey &other) {
-	if (this != &other) {
-		delete[] m_lpSortData;
-
-		m_lpSortData = (unsigned char*)memcpy(new unsigned char[other.m_cbSortData], other.m_lpSortData, other.m_cbSortData);
-		m_cbSortData = other.m_cbSortData;
-	}
-	return *this;
-}
-
-int ECSortKey::compareTo(const ECSortKey &other) const {
-	return compareSortKeys(m_cbSortData, m_lpSortData, other.m_cbSortData, other.m_lpSortData);
-}
-#endif
 
 /** 
  * US-ASCII version to find a case-insensitive string part in a
@@ -168,15 +131,10 @@ bool str_equals(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
 
     return a.compare(b) == 0;
-#else
-	return strcmp(s1, s2) == 0;
-#endif
 }
 
 /**
@@ -194,15 +152,10 @@ bool str_iequals(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
 
     return a.caseCompare(b, 0) == 0;
-#else
-	return strcasecmp_l(s1, s2, locale) == 0;
-#endif
 }
 
 /**
@@ -220,17 +173,10 @@ bool str_startswith(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
 
     return a.compare(0, b.length(), b) == 0;
-
-#else
-	size_t cb2 = strlen(s2);
-	return strlen(s1) >= cb2 ? (strncmp(s1, s2, cb2) == 0) : false;
-#endif
 }
 
 /**
@@ -248,16 +194,10 @@ bool str_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
 
     return a.caseCompare(0, b.length(), b, 0) == 0;
-#else
-	size_t cb2 = strlen(s2);
-	return strlen(s1) >= cb2 ? (strncasecmp_l(s1, s2, cb2, locale) == 0) : false;
-#endif
 }
 
 /**
@@ -281,8 +221,6 @@ int str_icompare(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-	
-#ifdef KC_USES_ICU
 	UErrorCode status = U_ZERO_ERROR;
 	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
 
@@ -293,10 +231,6 @@ int str_icompare(const char *s1, const char *s2, const ECLocale &locale)
 	b.foldCase();
 
 	return ptrCollator->compare(a,b,status);
-#else
-	int r = strcasecmp_l(s1, s2, locale);
-	return (r < 0 ? -1 : (r > 0 ? 1 : 0));
-#endif
 }
 
 /**
@@ -320,15 +254,10 @@ bool str_contains(const char *haystack, const char *needle, const ECLocale &loca
 {
 	assert(haystack);
 	assert(needle);
-
-#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(haystack);
     UnicodeString b = StringToUnicode(needle);
 
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
-#else
-	return strstr(haystack, needle) != NULL;
-#endif
 }
 
 /**
@@ -346,8 +275,6 @@ bool str_icontains(const char *haystack, const char *needle, const ECLocale &loc
 {
 	assert(haystack);
 	assert(needle);
-
-#ifdef KC_USES_ICU
     UnicodeString a = StringToUnicode(haystack);
     UnicodeString b = StringToUnicode(needle);
 
@@ -355,9 +282,6 @@ bool str_icontains(const char *haystack, const char *needle, const ECLocale &loc
     b.foldCase();
 
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
-#else
-	return strcasestr(haystack, needle) != NULL;
-#endif
 }
 
 /**
@@ -375,15 +299,10 @@ bool wcs_equals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
 
     return a.compare(b) == 0;
-#else
-	return wcscmp(s1, s2) == 0;
-#endif
 }
 
 /**
@@ -401,15 +320,10 @@ bool wcs_iequals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
 
     return a.caseCompare(b, 0) == 0;
-#else
-	return wcscasecmp_l(s1, s2, locale) == 0;
-#endif
 }
 
 /**
@@ -427,16 +341,10 @@ bool wcs_startswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
 
     return a.compare(0, b.length(), b) == 0;
-#else
-	size_t cb2 = wcslen(s2);
-	return wcslen(s1) >= cb2 ? (wcsncmp(s1, s2, cb2) == 0) : false;
-#endif
 }
 
 /**
@@ -454,16 +362,10 @@ bool wcs_istartswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &local
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
 
     return a.caseCompare(0, b.length(), b, 0) == 0;
-#else
-	size_t cb2 = wcslen(s2);
-	return wcslen(s1) >= cb2 ? (wcsncasecmp_l(s1, s2, cb2, locale) == 0) : false;
-#endif
 }
 
 /**
@@ -487,8 +389,6 @@ int wcs_icompare(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-	
-#ifdef KC_USES_ICU
 	UErrorCode status = U_ZERO_ERROR;
 	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
 
@@ -499,10 +399,6 @@ int wcs_icompare(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 	b.foldCase();
 
 	return ptrCollator->compare(a,b,status);
-#else
-	int r = wcscasecmp_l(s1, s2, locale);
-	return (r < 0 ? -1 : (r > 0 ? 1 : 0));
-#endif
 }
 
 /**
@@ -526,15 +422,10 @@ bool wcs_contains(const wchar_t *haystack, const wchar_t *needle, const ECLocale
 {
 	assert(haystack);
 	assert(needle);
-
-#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(haystack);
     UnicodeString b = WCHARToUnicode(needle);
 
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
-#else
-	return wcsstr(haystack, needle) != NULL;
-#endif
 }
 
 /**
@@ -558,8 +449,6 @@ bool wcs_icontains(const wchar_t *haystack, const wchar_t *needle, const ECLocal
 {
 	assert(haystack);
 	assert(needle);
-
-#ifdef KC_USES_ICU
     UnicodeString a = WCHARToUnicode(haystack);
     UnicodeString b = WCHARToUnicode(needle);
 
@@ -567,17 +456,6 @@ bool wcs_icontains(const wchar_t *haystack, const wchar_t *needle, const ECLocal
     b.foldCase();
 
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
-#else
-	const size_t cbHaystack = wcslen(haystack);
-	const size_t cbNeedle = wcslen(needle);
-	const wchar_t *lpHay = haystack;
-	while (cbHaystack - (lpHay - haystack) >= cbNeedle) {
-		if (wcsncasecmp_l(lpHay, needle, cbNeedle, locale) == 0)
-			return true;
-		++lpHay;
-	}
-	return false;
-#endif
 }
 
 /**
@@ -595,18 +473,10 @@ bool u8_equals(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
 
     return a.compare(b) == 0;
-#else
-	convert_context converter;
-	const wchar_t *ws1 = converter.convert_to<WCHAR*>(s1, rawsize(s1), "UTF-8");
-	const wchar_t *ws2 = converter.convert_to<WCHAR*>(s2, rawsize(s2), "UTF-8");
-	return wcs_equals(ws1, ws2, locale);
-#endif
 }
 
 /**
@@ -624,18 +494,10 @@ bool u8_iequals(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
 
     return a.caseCompare(b, 0) == 0;
-#else
-	convert_context converter;
-	const wchar_t *ws1 = converter.convert_to<WCHAR*>(s1, rawsize(s1), "UTF-8");
-	const wchar_t *ws2 = converter.convert_to<WCHAR*>(s2, rawsize(s2), "UTF-8");
-	return wcs_iequals(ws1, ws2, locale);
-#endif
 }
 
 /**
@@ -653,18 +515,10 @@ bool u8_startswith(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
 
     return a.compare(0, b.length(), b) == 0;
-#else
-	convert_context converter;
-	const wchar_t *ws1 = converter.convert_to<WCHAR*>(s1, rawsize(s1), "UTF-8");
-	const wchar_t *ws2 = converter.convert_to<WCHAR*>(s2, rawsize(s2), "UTF-8");
-	return wcs_startswith(ws1, ws2, locale);
-#endif
 }
 
 /**
@@ -682,18 +536,10 @@ bool u8_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-
-#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
 
     return a.caseCompare(0, b.length(), b, 0) == 0;
-#else
-	convert_context converter;
-	const wchar_t *ws1 = converter.convert_to<WCHAR*>(s1, rawsize(s1), "UTF-8");
-	const wchar_t *ws2 = converter.convert_to<WCHAR*>(s2, rawsize(s2), "UTF-8");
-	return wcs_istartswith(ws1, ws2, locale);
-#endif
 }
 
 /**
@@ -717,8 +563,6 @@ int u8_icompare(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-	
-#ifdef KC_USES_ICU
 	UErrorCode status = U_ZERO_ERROR;
 	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
 
@@ -729,12 +573,6 @@ int u8_icompare(const char *s1, const char *s2, const ECLocale &locale)
 	b.foldCase();
 
 	return ptrCollator->compare(a,b,status);
-#else
-	convert_context converter;
-	const wchar_t *ws1 = converter.convert_to<WCHAR*>(s1, rawsize(s1), "UTF-8");
-	const wchar_t *ws2 = converter.convert_to<WCHAR*>(s2, rawsize(s2), "UTF-8");
-	return wcs_icompare(ws1, ws2, locale);
-#endif
 }
 
 /**
@@ -758,18 +596,10 @@ bool u8_contains(const char *haystack, const char *needle, const ECLocale &local
 {
 	assert(haystack);
 	assert(needle);
-
-#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(haystack);
     UnicodeString b = UTF8ToUnicode(needle);
 
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
-#else
-	convert_context converter;
-	const wchar_t *ws1 = converter.convert_to<WCHAR*>(haystack, rawsize(haystack), "UTF-8");
-	const wchar_t *ws2 = converter.convert_to<WCHAR*>(needle, rawsize(needle), "UTF-8");
-	return wcs_contains(ws1, ws2, locale);
-#endif
 }
 
 /**
@@ -787,8 +617,6 @@ bool u8_icontains(const char *haystack, const char *needle, const ECLocale &loca
 {
 	assert(haystack);
 	assert(needle);
-
-#ifdef KC_USES_ICU
     UnicodeString a = UTF8ToUnicode(haystack);
     UnicodeString b = UTF8ToUnicode(needle);
 
@@ -796,12 +624,6 @@ bool u8_icontains(const char *haystack, const char *needle, const ECLocale &loca
     b.foldCase();
 
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
-#else
-	convert_context converter;
-	const wchar_t *ws1 = converter.convert_to<WCHAR*>(haystack, rawsize(haystack), "UTF-8");
-	const wchar_t *ws2 = converter.convert_to<WCHAR*>(needle, rawsize(needle), "UTF-8");
-	return wcs_icontains(ws1, ws2, locale);
-#endif
 }
 
 /**
@@ -1120,14 +942,7 @@ static const struct localemap {
 
 ECLocale createLocaleFromName(const char *lpszLocale)
 {
-#ifdef KC_USES_ICU
 	return Locale::createFromName(lpszLocale);
-#else
-	if (lpszLocale == NULL)
-		lpszLocale = "";
-	// We only need LC_CTYPE and LC_COLLATE, but createlocale doesn't support that
-	return ECLocale(localemask(LC_ALL), lpszLocale);
-#endif
 }
 
 ECRESULT LocaleIdToLCID(const char *lpszLocaleID, ULONG *lpulLcid)
@@ -1161,7 +976,6 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
 	return erSuccess;
 }
 
-#ifdef KC_USES_ICU
 /**
  * Create a locale independant blob that can be used to sort
  * strings fast. This is used when a string would be compared
@@ -1217,7 +1031,6 @@ static void createSortKeyData(const UnicodeString &s, int nCap, const ECLocale &
 	*lpcbKey = cbKeyData;
 	*lppKey = lpKey;
 }
-#endif
 
 /**
  * Create a locale independant blob that can be used to sort
@@ -1235,13 +1048,7 @@ void createSortKeyData(const char *s, int nCap, const ECLocale &locale, unsigned
 	assert(s != NULL);
 	assert(lpcbKey != NULL);
 	assert(lppKey != NULL);
-
-#ifdef KC_USES_ICU
 	createSortKeyData(UnicodeString(s), nCap, locale, lpcbKey, lppKey);
-#else
-	std::wstring wstrTmp = convert_to<std::wstring>(s);
-	createSortKeyData(wstrTmp.c_str(), nCap, locale, lpcbKey, lppKey);
-#endif
 }
 
 /**
@@ -1259,21 +1066,9 @@ void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale, unsig
 	assert(s != NULL);
 	assert(lpcbKey != NULL);
 	assert(lppKey != NULL);
-
-#ifdef KC_USES_ICU
 	UnicodeString ustring;
 	ustring = UTF32ToUnicode((const UChar32*)s);
 	createSortKeyData(ustring, nCap, locale, lpcbKey, lppKey);
-#else
-	assert((locale_t)locale != NULL);
-
-	unsigned int cbKey = 1 + wcsxfrm_l(NULL, s, 0, locale);
-	auto lpKey = new wchar_t[cbKey];
-	wcsxfrm_l(lpKey, s, cbKey, locale);
-
-	*lpcbKey = cbKey * sizeof(wchar_t);
-	*lppKey = (unsigned char*)lpKey;
-#endif
 }
 
 /**
@@ -1292,13 +1087,7 @@ void createSortKeyDataFromUTF8(const char *s, int nCap, const ECLocale &locale, 
 	assert(s != NULL);
 	assert(lpcbKey != NULL);
 	assert(lppKey != NULL);
-
-#ifdef KC_USES_ICU
 	createSortKeyData(UTF8ToUnicode(s), nCap, locale, lpcbKey, lppKey);
-#else
-	std::wstring wstrTmp = convert_to<std::wstring>(s, rawsize(s), "UTF-8");
-	createSortKeyData(wstrTmp.c_str(), nCap, locale, lpcbKey, lppKey);
-#endif
 }
 
 /**
@@ -1315,16 +1104,7 @@ void createSortKeyDataFromUTF8(const char *s, int nCap, const ECLocale &locale, 
 ECSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale)
 {
 	assert(s != NULL);
-
-#ifdef KC_USES_ICU
 	return createSortKey(UTF8ToUnicode(s), nCap, locale);
-#else
-	unsigned int cbKey = 0;
-	unsigned char *lpKey = NULL;
-
-	createSortKeyDataFromUTF8(s, nCap, locale, &cbKey, &lpKey);
-	return ECSortKey(lpKey, cbKey);
-#endif
 }
 
 /**
@@ -1343,8 +1123,6 @@ int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned i
 {
 	assert(!(cbKey1 != 0 && lpKey1 == NULL));
 	assert(!(cbKey2 != 0 && lpKey2 == NULL));
-
-#ifdef KC_USES_ICU
 	CollationKey ckA(lpKey1, cbKey1);
 	CollationKey ckB(lpKey2, cbKey2);
 
@@ -1356,87 +1134,7 @@ int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned i
 	case UCOL_GREATER:	cmp =  1; break;
 	}
 	return cmp;
-#else
-	if (cbKey1 == 0)
-		return (cbKey2 == 0 ? 0 : -1);
-	else if (cbKey2 == 0)
-		return 1;
-
-	assert(wcslen(reinterpret_cast<wchar_t *>(lpKey1)) == (cbKey1 / sizeof(wchar_t)) - 1);
-	assert(wcslen(reinterpret_cast<wchar_t *>(lpKey2)) == (cbKey2 / sizeof(wchar_t)) - 1);
-	return wcscmp((wchar_t*)lpKey1, (wchar_t*)lpKey2);
-#endif
 }
-
-#ifndef KC_USES_ICU
-ECLocale::ECLocale()
-: m_locale(createlocale(LC_ALL, ""))
-, m_category(LC_ALL)
-{
-	assert(m_locale != NULL);
-}
-
-ECLocale::ECLocale(int category, const char *locale)
-: m_locale(createlocale_real(category, locale))
-, m_category(category)
-, m_localeid(locale)
-{
-	if (!m_locale) {
-		/* Three things might have happened here:
-		 * 1. The passed locale makes no sense or is not installed on the system
-		 * 2. No charset was specified, and the default charset for a locale is
-		 *    not installed while the utf-8 charset is.
-		 * 3. A specific charset is specified, which is not installed while the
-		 *    utf-8 charset is.
-		 *
-		 * 2 and 3 seem to be Debian (and derivate) issues.
-		 * We'll ignore option 1 and see if we can get the locale with the charset
-		 * forced to utf-8.
-		 */
-		std::string::size_type idx = m_localeid.find('.');
-		if (idx == std::string::npos || m_localeid.compare(idx + 1, strlen("utf-8"), "utf-8") != 0) {
-			if (idx != std::string::npos)
-				m_localeid.resize(idx);
-			m_localeid.append(".utf-8");
-			m_locale = createlocale_real(category, m_localeid.c_str());
-		}
-
-		if (!m_locale) {
-			// Apparently option 1 happened. Go with the default locale.
-			m_localeid.clear();
-			m_locale = createlocale_real(category, m_localeid.c_str());
-		}
-	}
-	assert(m_locale != NULL);
-}
-
-ECLocale::ECLocale(const ECLocale &other)
-: m_locale(createlocale_real(other.m_category, other.m_localeid.c_str()))
-, m_category(other.m_category)
-, m_localeid(other.m_localeid)
-{
-	assert(m_locale != NULL);
-}
-
-ECLocale::~ECLocale() {
-	if (m_locale)
-		freelocale(m_locale);
-}
-
-ECLocale &ECLocale::operator=(const ECLocale &other) {
-	if (this != &other) {
-		ECLocale tmp(other);
-		swap(tmp);
-	}
-	return *this;
-}
-
-void ECLocale::swap(ECLocale &other) {
-	std::swap(m_locale, other.m_locale);
-	std::swap(m_category, other.m_category);
-	std::swap(m_localeid, other.m_localeid);
-}
-#endif
 
 } /* namespace */
 
