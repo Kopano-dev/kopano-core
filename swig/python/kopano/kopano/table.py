@@ -13,7 +13,7 @@ except ImportError:
     from io import StringIO
 
 from MAPI import (
-    TBL_ALL_COLUMNS, TABLE_SORT_ASCEND, TABLE_SORT_DESCEND
+    TBL_ALL_COLUMNS, TABLE_SORT_ASCEND, TABLE_SORT_DESCEND, TBL_BATCH
 )
 from MAPI.Defs import PpropFindProp
 from MAPI.Struct import MAPIErrorNotFound, SSort, SSortOrderSet
@@ -103,6 +103,9 @@ class Table(object):
         if not isinstance(tags, tuple):
             tags = (tags,)
         self.mapitable.SortTable(SSortOrderSet([SSort(abs(tag), TABLE_SORT_DESCEND if tag < 0 else TABLE_SORT_ASCEND) for tag in tags], 0, 0), 0)
+
+    def restrict(self, restriction):
+        return self.mapitable.Restrict(restriction.mapiobj, TBL_BATCH)
 
     def __iter__(self):
         return self.rows()
