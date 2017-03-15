@@ -85,7 +85,7 @@ sysconf_certdir = ${sysconfdir}/kopano/report-ca
 
 EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
 	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) \
-	sysconfig.txt
+	${debian_initscript_files} sysconfig.txt
 
 install-data-hook:
 	install -d -m 755 ${DESTDIR}/${sysconf_configdir}/license
