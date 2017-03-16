@@ -22,6 +22,7 @@
 #include <utility> /* std::swap */
 #include <cstdlib>
 #include <mapiutil.h> /* MAPIFreeBuffer */
+#include <edkmdb.h> /* ROWLIST */
 #include <kopano/ECGuid.h>
 #include <kopano/ECTags.h>
 #include <kopano/IECUnknown.h>
@@ -319,10 +320,12 @@ class rowset_delete {
 	public:
 	void operator()(ADRLIST *x) { FreePadrlist(x); }
 	void operator()(SRowSet *x) { FreeProws(x); }
+	void operator()(ROWLIST *x) { FreeProws(reinterpret_cast<SRowSet *>(x)); }
 };
 
 typedef memory_ptr<ADRLIST, rowset_delete> adrlist_ptr;
 typedef memory_ptr<SRowSet, rowset_delete> rowset_ptr;
+typedef memory_ptr<ROWLIST, rowset_delete> rowlist_ptr;
 
 template<typename _T> inline void
 swap(memory_ptr<_T> &__x, memory_ptr<_T> &__y) noexcept

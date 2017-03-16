@@ -91,17 +91,11 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
         $1 = tmp;
 }
 
-%typemap(in)				LPROWLIST
+%typemap(in)				LPROWLIST (KCHL::rowlist_ptr tmp)
 {
-	$1 = List_to_LPROWLIST($input);
+	tmp.reset(List_to_LPROWLIST($input));
 	if(PyErr_Occurred()) goto fail;
-}
-
-%typemap(arginit) LPROWLIST
-	"$1 = NULL;"
-%typemap(freearg)	LPROWLIST
-{
-        FreeProws((LPSRowSet)$1);
+	$1 = tmp;
 }
 
 %typemap(in)				MAPISTRUCT (KCHL::memory_ptr<std::remove_const<std::remove_pointer<$type>::type>::type> tmp)
