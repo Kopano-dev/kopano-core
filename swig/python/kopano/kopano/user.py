@@ -346,4 +346,7 @@ class User(object):
     def __getattr__(self, x): # XXX add __setattr__, e.g. for 'user.archive_store = None'
         store = self.store
         if store:
-            return getattr(store, x)
+            try:
+                return getattr(store, x)
+            except AttributeError:
+                raise AttributeError("'User' object has no attribute '%s'" % x)
