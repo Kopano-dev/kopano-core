@@ -16,10 +16,17 @@ int main(int argc, char **argv)
 
 	fseek(fh, 0, SEEK_END);
 	long int size = ftell(fh);
+	if (size < 0) {
+		perror("ftell");
+		return EXIT_FAILURE;
+	}
 	fseek(fh, 0, SEEK_SET);
 
 	char *buffer = new char[size];
-	fread(buffer, 1, size, fh);
+	if (fread(buffer, 1, size, fh) != size) {
+		perror("incomplete fread");
+		return EXIT_FAILURE;
+	}
 	fclose(fh);
 
 	std::string html_in = std::string(buffer, size), html_out;
