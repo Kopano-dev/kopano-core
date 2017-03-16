@@ -33,7 +33,6 @@ def parser_opt_args():
     parser.add_option('--unhook-store', help='Unhook store', **_true()) # XXX archive
     parser.add_option('--hook-store', help='Hook store', **_guid()) # XXX archive
     parser.add_option('--reset-folder-count', help='Reset folder counts', **_true())
-    parser.add_option('--resync-offline', help='Force offline resync', **_true())
     parser.add_option('--add-companyquota-recipient', help='User to add to companyquota recipients', **_list_name())
     parser.add_option('--remove-companyquota-recipient', help='User to remove from companyquota recipients', **_list_name())
     parser.add_option('--add-userquota-recipient', help='User to add to userquota recipients', **_list_name())
@@ -82,7 +81,7 @@ ACTION_MATRIX = {
 UPDATE_MATRIX = {
     ('name',): ('companies', 'groups', 'users'),
     ('email', 'fullname', 'add_sendas', 'remove_sendas'): ('users', 'groups'),
-    ('password', 'password_prompt', 'admin_level', 'active', 'reset_folder_count', 'resync_offline'): ('users',),
+    ('password', 'password_prompt', 'admin_level', 'active', 'reset_folder_count'): ('users',),
     ('mr_accept', 'mr_accept_conflicts', 'mr_accept_recurring'): ('users',),
     ('ooo_active', 'ooo_clear', 'ooo_subject', 'ooo_message', 'ooo_from', 'ooo_until'): ('users',),
     ('add_feature', 'remove_feature', 'add_delegate', 'remove_delegate', 'add_permission', 'remove_permission'): ('users',),
@@ -151,15 +150,15 @@ def list_orphans(server):
 def user_counts(server): # XXX allowed/available
     stats = server.table(PR_EC_STATSTABLE_SYSTEM).dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE)
     print 'User counts:'
-    fmt = '\t{:>12}{:>10}{:>10}{:>10}'
-    print(fmt.format('', 'Allowed', 'Used', 'Available'))
+    fmt = '\t{:>12}{:>10}'
+    print(fmt.format('', 'Used'))
     print('\t'+42*'-')
-    print(fmt.format('Active', stats['usercnt_licensed'], stats['usercnt_active'], int(stats['usercnt_licensed'])-int(stats['usercnt_active'])))
-    print(fmt.format('Non-active', '', stats['usercnt_nonactive'], ''))
-    print(fmt.format('NA Users', '', stats['usercnt_na_user'], ''))
-    print(fmt.format('NA Rooms', '', stats['usercnt_room'], ''))
-    print(fmt.format('NA Equipment', '', stats['usercnt_equipment'], ''))
-    print(fmt.format('Total', '', int(stats['usercnt_active'])+int(stats['usercnt_nonactive']), ''))
+    print(fmt.format('Active', stats['usercnt_active']))
+    print(fmt.format('Non-active', stats['usercnt_nonactive']))
+    print(fmt.format('NA Users', stats['usercnt_na_user']))
+    print(fmt.format('NA Rooms', stats['usercnt_room']))
+    print(fmt.format('NA Equipment', stats['usercnt_equipment']))
+    print(fmt.format('Total', int(stats['usercnt_active'])+int(stats['usercnt_nonactive'])))
 
 def user_details(user):
     print('Username:\t' + _encode(user.name))
@@ -270,8 +269,6 @@ def user_options(name, options, server):
     if options.reset_folder_count:
         for folder in [user.root] + list(user.folders()):
             folder.recount()
-    if options.resync_offline:
-        user.root.prop(PR_EC_RESYNC_ID, create=True).value += 1
 
     if options.password:
         user.password = options.password
@@ -466,7 +463,7 @@ def check_options(options, server):
 
     for opts, legaltypes in ACTION_MATRIX.items() + UPDATE_MATRIX.items():
         for opt in opts:
-            if getattr(options, opt) not in [None, []]:
+            if getattr(options, opt) not in (None, []):
                 illegal = set(objtypes)-set(legaltypes)
                 if illegal:
                     raise Exception('cannot combine options: %s' % (orig_option(opt) + ', '+orig_option(illegal.pop())))
