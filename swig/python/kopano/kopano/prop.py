@@ -28,7 +28,7 @@ from MAPI.Tags import (
 from MAPI.Time import unixtime
 
 from .defs import REV_TAG, REV_TYPE, GUID_NAMESPACE
-from .compat import repr as _repr, fake_unicode as _unicode
+from .compat import repr as _repr, fake_unicode as _unicode, hex as _hex
 
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
@@ -137,17 +137,17 @@ class Property(object):
 
     @property
     def strval(self):
+        """ String representation of value; useful for overviews, debugging """
+
         def flatten(v):
             if isinstance(v, list):
                 return u','.join(flatten(e) for e in v)
             elif isinstance(v, bool):
                 return u'01'[v]
-            elif self.type_ == PT_BINARY:
-                return codecs.encode(v, 'hex').decode('ascii').upper()
-            elif self.type_ == PT_MV_BINARY:
-                return u'PT_MV_BINARY()' # XXX
             elif v is None:
                 return ''
+            elif self.type_ in (PT_BINARY, PT_MV_BINARY):
+                return _hex(v)
             else:
                 return _unicode(v)
         return flatten(self.value)
