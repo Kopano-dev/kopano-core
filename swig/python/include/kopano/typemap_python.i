@@ -431,7 +431,8 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 {
     Py_ssize_t size = 0;
     char *s = NULL;
-    PyString_AsStringAndSize(DAO_RESULT, &s, &size);
+    if(PyString_AsStringAndSize(DAO_RESULT, &s, &size) == -1)
+        %dirout_fail(0, "$type");
 
 	memcpy($1_name, s, size);
 
