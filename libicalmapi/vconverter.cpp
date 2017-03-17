@@ -542,7 +542,7 @@ HRESULT VConverter::HrHandleExceptionGuid(icalcomponent *lpiEvent, void *base, S
 
 	strUid = bin2hex(lpsProp->Value.bin.cb, lpsProp->Value.bin.lpb);
 
-	icTime = icaltime_from_timet(ICalTimeTypeToUTC(lpiEvent, icProp), 0);
+	icTime = icaltime_from_timet_with_zone(ICalTimeTypeToUTC(lpiEvent, icProp), 0, nullptr);
 	sprintf(strHexDate,"%04x%02x%02x", icTime.year, icTime.month, icTime.day);
 
 	// Exception date is stored in GlobalObjectId
@@ -1997,7 +1997,7 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 	// Set creation time / CREATED
 	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_CREATION_TIME);
 	if (lpPropVal) {
-		ittICalTime = icaltime_from_timet(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0);
+		ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0, nullptr);
 		ittICalTime.is_utc = 1;
 
 		lpProp = icalproperty_new_created(ittICalTime);
@@ -2018,7 +2018,7 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 	// Set modification time / LAST-MODIFIED + DTSTAMP
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_LAST_MODIFICATION_TIME);
 	if (lpPropVal) {
-		ittICalTime = icaltime_from_timet(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0);
+		ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0, nullptr);
 		ittICalTime.is_utc = 1;
 
 		lpProp = icalproperty_new_lastmodified(ittICalTime);
