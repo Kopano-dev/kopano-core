@@ -816,10 +816,10 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(TIMEZONE_STRUCT sTimeZone, bool b
 		     iException != lstExceptions.end(); ++iException) {
 			if(bIsAllDay)
 			{
-				ittExDate = icaltime_from_timet(LocalToUTC(*iException, sTZgmt), bIsAllDay);
+				ittExDate = icaltime_from_timet_with_zone(LocalToUTC(*iException, sTZgmt), bIsAllDay, nullptr);
 			}
 			else
-				ittExDate = icaltime_from_timet(LocalToUTC(*iException, sTimeZone), 0);
+				ittExDate = icaltime_from_timet_with_zone(LocalToUTC(*iException, sTimeZone), 0, nullptr);
 
 			ittExDate.is_utc = 1;
 
@@ -940,7 +940,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(TIMEZONE_STRUCT sTimeZone, bo
 		*/
 		icRec.count = 0;
 		// if untiltime is saved as UTC it breaks last occurrence.
-		icRec.until = icaltime_from_timet(lpRecurrence->getEndDate() + lpRecurrence->getStartTimeOffset(), bIsAllday);
+		icRec.until = icaltime_from_timet_with_zone(lpRecurrence->getEndDate() + lpRecurrence->getStartTimeOffset(), bIsAllday, nullptr);
 		icRec.until.is_utc = 0;
 		break;
 	case recurrence::NUMBER:

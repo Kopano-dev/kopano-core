@@ -332,7 +332,7 @@ HRESULT HrCreateVTimeZone(const std::string &strTZID, TIMEZONE_STRUCT &tsTimeZon
 
 	// STD
 	icComp = icalcomponent_new_xstandard();
-	icTime = icaltime_from_timet(SystemTimeToUnixTime(tsTimeZone.stStdDate), 0);
+	icTime = icaltime_from_timet_with_zone(SystemTimeToUnixTime(tsTimeZone.stStdDate), 0, nullptr);
 	icalcomponent_add_property(icComp, icalproperty_new_dtstart(icTime));
 	if (tsTimeZone.lStdBias == tsTimeZone.lDstBias || tsTimeZone.stStdDate.wMonth == 0 || tsTimeZone.stDstDate.wMonth == 0) {
 		// std == dst
@@ -363,7 +363,7 @@ HRESULT HrCreateVTimeZone(const std::string &strTZID, TIMEZONE_STRUCT &tsTimeZon
 	// DST, optional
 	if (tsTimeZone.lStdBias != tsTimeZone.lDstBias && tsTimeZone.stStdDate.wMonth != 0 && tsTimeZone.stDstDate.wMonth != 0) {
 		icComp = icalcomponent_new_xdaylight();
-		icTime = icaltime_from_timet(SystemTimeToUnixTime(tsTimeZone.stDstDate), 0);
+		icTime = icaltime_from_timet_with_zone(SystemTimeToUnixTime(tsTimeZone.stDstDate), 0, nullptr);
 		icalcomponent_add_property(icComp, icalproperty_new_dtstart(icTime));
 
 		icalcomponent_add_property(icComp, icalproperty_new_tzoffsetfrom(-tsTimeZone.lBias *60));

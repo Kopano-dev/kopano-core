@@ -59,7 +59,7 @@ HRESULT HrParseReminder(LONG lRemindBefore, time_t ttReminderTime, bool bTask, i
 	memset(&sittTrigger, 0, sizeof(icaltriggertype));
 
 	if (ttReminderTime && bTask) {
-		sittTrigger.time = icaltime_from_timet(ttReminderTime, false);			// given in UTC
+		sittTrigger.time = icaltime_from_timet_with_zone(ttReminderTime, false, nullptr);			// given in UTC
 		sittTrigger.time.is_utc = 1;
 	} else
 		sittTrigger.duration = icaldurationtype_from_int(-1 * lRemindBefore * 60);	// set seconds
