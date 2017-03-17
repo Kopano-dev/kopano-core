@@ -438,6 +438,12 @@ class Folder(object):
         for f in folders_recursive(rootfolders):
             yield f
 
+            # SHOW_SOFT_DELETES filters out subfolders of soft-deleted folders.. XXX slow
+            if self.content_flag == SHOW_SOFT_DELETES:
+                for g in f.folders():
+                    g.depth += f.depth+1
+                    yield g
+
     def create_folder(self, path, **kwargs):
         folder = self.folder(path, create=True)
         for key, val in kwargs.items():
