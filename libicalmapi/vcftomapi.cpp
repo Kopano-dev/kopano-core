@@ -49,9 +49,9 @@ class vcftomapi_impl _kc_final : public vcftomapi {
 
 	private:
 	HRESULT save_props(const std::list<SPropValue> &, IMAPIProp *);
-	void handle_N(VObject *);
-	void handle_TEL_EMAIL(VObject *);
-	void vobject_to_prop(VObject *, SPropValue &, ULONG proptype);
+	HRESULT handle_N(VObject *);
+	HRESULT handle_TEL_EMAIL(VObject *);
+	HRESULT vobject_to_prop(VObject *, SPropValue &, ULONG proptype);
 	HRESULT vobject_to_named_prop(VObject *, SPropValue &, ULONG named_proptype);
 	HRESULT unicode_to_named_prop(const wchar_t *, SPropValue &, ULONG named_proptype);
 };
@@ -67,7 +67,7 @@ HRESULT create_vcftomapi(IMAPIProp *prop, vcftomapi **ret)
 	return *ret != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
 }
 
-void vcftomapi_impl::handle_N(VObject *v)
+HRESULT vcftomapi_impl::handle_N(VObject *v)
 {
 	VObjectIterator tt;
 
@@ -77,16 +77,21 @@ void vcftomapi_impl::handle_N(VObject *v)
 		SPropValue s;
 
 		if (strcmp(name, VCFamilyNameProp) == 0) {
-			vobject_to_prop(vv, s, PR_SURNAME);
+			auto ret = vobject_to_prop(vv, s, PR_SURNAME);
+			if (ret != hrSuccess)
+				return ret;
 			props.push_back(s);
 		} else if (strcmp(name, VCGivenNameProp) == 0) {
-			vobject_to_prop(vv, s, PR_GIVEN_NAME);
+			auto ret = vobject_to_prop(vv, s, PR_GIVEN_NAME);
+			if (ret != hrSuccess)
+				return ret;
 			props.push_back(s);
 		}
 	}
+	return hrSuccess;
 }
 
-void vcftomapi_impl::handle_TEL_EMAIL(VObject *v)
+HRESULT vcftomapi_impl::handle_TEL_EMAIL(VObject *v)
 {
 	bool tel = strcmp(vObjectName(v), VCTelephoneProp) == 0;
 	VObjectIterator t;
@@ -101,11 +106,15 @@ void vcftomapi_impl::handle_TEL_EMAIL(VObject *v)
 		for (auto const &token : tokens) {
 			/* telephone */
 			if (tel && strcasecmp(token.c_str(), "HOME") == 0) {
-				vobject_to_prop(v, s, PR_HOME_TELEPHONE_NUMBER);
+				auto ret = vobject_to_prop(v, s, PR_HOME_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
 				props.push_back(s);
 			}
 			if (tel && strcasecmp(token.c_str(), "MOBILE") == 0) {
-				vobject_to_prop(v, s, PR_MOBILE_TELEPHONE_NUMBER);
+				auto ret = vobject_to_prop(v, s, PR_MOBILE_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
 				props.push_back(s);
 			}
 			if (tel)
@@ -113,10 +122,13 @@ void vcftomapi_impl::handle_TEL_EMAIL(VObject *v)
 			/* email */
 			vobject_to_named_prop(v, s, 0x8083);
 			props.push_back(s);
-			unicode_to_named_prop(L"SMTP", s, 0x8082);
+			auto ret = unicode_to_named_prop(L"SMTP", s, 0x8082);
+			if (ret != hrSuccess)
+				return ret;
 			props.push_back(s);
 		}
 	}
+	return hrSuccess;
 }
 
 /**
@@ -138,32 +150,47 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 		auto name = vObjectName(v);
 
 		if (strcmp(name, VCNameProp) == 0) {
-			handle_N(v);
+			hr = handle_N(v);
+			if (hr != hrSuccess)
+				return hr;
 		} else if (strcmp(name, VCFullNameProp) == 0) {
 			SPropValue s;
-			vobject_to_prop(v, s, PR_DISPLAY_NAME);
+			hr = vobject_to_prop(v, s, PR_DISPLAY_NAME);
+			if (hr != hrSuccess)
+				return hr;
 			props.push_back(s);
 		} else if (strcmp(name, VCTelephoneProp) == 0 ||
 		    strcmp(name, VCEmailAddressProp) == 0) {
-			handle_TEL_EMAIL(v);
+			hr = handle_TEL_EMAIL(v);
+			if (hr != hrSuccess)
+				return hr;
 		}
 	}
 	cleanVObject(v_orig);
 	return hr;
 }
 
-void vcftomapi_impl::vobject_to_prop(VObject *v, SPropValue &s, ULONG proptype)
+HRESULT vcftomapi_impl::vobject_to_prop(VObject *v, SPropValue &s, ULONG proptype)
 {
-        switch (vObjectValueType(v)) {
-	case VCVT_STRINGZ:
+	auto value_type = vObjectValueType(v);
+	if (value_type == VCVT_STRINGZ) {
 		s.ulPropTag = CHANGE_PROP_TYPE(proptype, PT_STRING8);
-		s.Value.lpszA = strdup(vObjectStringZValue(v));
-		break;
-	case VCVT_USTRINGZ:
-		s.ulPropTag = CHANGE_PROP_TYPE(proptype, PT_UNICODE);
-		s.Value.lpszW = wcsdup(vObjectUStringZValue(v));
-		break;
+		auto val = vObjectStringZValue(v);
+		auto ret = MAPIAllocateBuffer(strlen(val) + 1, reinterpret_cast<void **>(&s.Value.lpszA));
+		if (ret != hrSuccess)
+			return ret;
+		strcpy(s.Value.lpszA, val);
 	}
+	else if (value_type == VCVT_USTRINGZ) {
+		s.ulPropTag = CHANGE_PROP_TYPE(proptype, PT_UNICODE);
+		auto uval = vObjectUStringZValue(v);
+		auto ret = MAPIAllocateBuffer(sizeof(wchar_t) * (wcslen(uval) + 1), reinterpret_cast<void **>(&s.Value.lpszW));
+		if (ret != hrSuccess)
+			return ret;
+		wcscpy(s.Value.lpszW, uval);
+	}
+
+	return hrSuccess;
 }
 
 HRESULT vcftomapi_impl::vobject_to_named_prop(VObject *v, SPropValue &s,
@@ -180,7 +207,9 @@ HRESULT vcftomapi_impl::vobject_to_named_prop(VObject *v, SPropValue &s,
 	hr = m_propobj->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
 	if (hr != hrSuccess)
 		return hr;
-	vobject_to_prop(v, s, proptag->aulPropTag[0]);
+	hr = vobject_to_prop(v, s, proptag->aulPropTag[0]);
+	if (hr != hrSuccess)
+		return hr;
 	return hrSuccess;
 }
 
@@ -200,7 +229,11 @@ HRESULT vcftomapi_impl::unicode_to_named_prop(const wchar_t *v, SPropValue &s,
 	if (hr != hrSuccess)
 		return hr;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
-	s.Value.lpszW = wcsdup(v);
+	auto ret = MAPIAllocateBuffer(sizeof(wchar_t) * (wcslen(v) + 1),
+               reinterpret_cast<void **>(&s.Value.lpszW));
+	if (ret != hrSuccess)
+		return hr;
+	wcscpy(s.Value.lpszW, v);
 	return hrSuccess;
 }
 
@@ -213,7 +246,7 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg)
 		return MAPI_E_INVALID_PARAMETER;
 
 	SPropValue s;
-	s.ulPropTag = PR_MESSAGE_CLASS_A;
+	s.ulPropTag = CHANGE_PROP_TYPE(PR_MESSAGE_CLASS, PT_STRING8);
 	s.Value.lpszA = const_cast<char *>("IPM.Contact");
 	HRESULT hr = HrSetOneProp(msg, &s);
 	if (hr != hrSuccess)
@@ -245,9 +278,9 @@ HRESULT vcftomapi_impl::save_props(const std::list<SPropValue> &proplist,
 	auto ret = mapiprop->SetProps(i, propvals, nullptr);
 	for (const auto &prop : proplist) {
 		if (PROP_TYPE(prop.ulPropTag) == PT_UNICODE)
-			free(prop.Value.lpszW);
+			MAPIFreeBuffer(prop.Value.lpszW);
 		else if (PROP_TYPE(prop.ulPropTag) == PT_STRING8)
-			free(prop.Value.lpszA);
+			MAPIFreeBuffer(prop.Value.lpszA);
 	}
 	return ret;
 }
