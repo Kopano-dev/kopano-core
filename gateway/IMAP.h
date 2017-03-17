@@ -162,8 +162,8 @@ public:
 	~IMAP();
 
 	int getTimeoutMinutes();
-	bool isIdle();
-	bool isContinue();
+	bool isIdle() const { return m_bIdleMode; }
+	bool isContinue() const { return m_bContinue; }
 
 	HRESULT HrSendGreeting(const std::string &strHostString);
 	HRESULT HrCloseConnection(const std::string &strQuitMsg);
@@ -183,7 +183,7 @@ private:
 
 	// All IMAP4rev1 commands
 	HRESULT HrCmdCapability(const string &strTag);
-	HRESULT HrCmdNoop(const string &strTag);
+	HRESULT HrCmdNoop(const string &strTag, bool check = false);
 	HRESULT HrCmdLogout(const string &strTag);
 	HRESULT HrCmdStarttls(const string &strTag);
 	HRESULT HrCmdAuthenticate(const string &strTag, string strAuthMethod, const string &strAuthData);
@@ -197,7 +197,6 @@ private:
 	HRESULT get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next);
 	HRESULT HrCmdStatus(const string &strTag, const string &strFolder, string strStatusData);
 	HRESULT HrCmdAppend(const string &strTag, const string &strFolder, const string &strData, string strFlags=string(), const string &strTime=string());
-	HRESULT HrCmdCheck(const string &strTag);
 	HRESULT HrCmdClose(const string &strTag);
 	HRESULT HrCmdExpunge(const string &strTag, const string &strSeqSet);
 	HRESULT HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteria, bool bUidMode);
@@ -284,10 +283,13 @@ private:
 
 	std::list<SFolder> cached_folders;
 
-	// HrResponseContinuation state, used for HrCmdAuthenticate
+	/* A command has sent a continuation response, and requires more
+	 * data from the client. This is currently only used in the
+	 * AUTHENTICATE command, other continuations are already handled
+	 * in the main loop. m_bContinue marks this. */
 	bool m_bContinue = false;
 	string m_strContinueTag;
-	
+
 	// Idle mode variables
 	bool m_bIdleMode = false;
 	IMAPIAdviseSink *m_lpIdleAdviseSink = nullptr;
@@ -356,8 +358,6 @@ private:
 	HRESULT HrGetEmailAddress(LPSPropValue lpPropValues, ULONG ulAddrType, ULONG ulEntryID, ULONG ulName, ULONG ulEmail, string strHeaderName, string *strHeaders);
 
 	// Make the string uppercase
-	void ToUpper(string &strString);
-	void ToUpper(wstring &strString);
 	bool CaseCompare(const string& strA, const string& strB);
 
 	// IMAP4rev1 date format: 01-Jan-2000 00:00 +0000
