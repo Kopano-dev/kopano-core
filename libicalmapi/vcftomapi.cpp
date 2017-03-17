@@ -131,6 +131,7 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 	if (v == nullptr)
 		return MAPI_E_CORRUPT_DATA;
 
+	auto v_orig = v;
 	VObjectIterator t;
 	for (initPropIterator(&t, v); moreIteration(&t); ) {
 		v = nextVObject(&t);
@@ -147,7 +148,7 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			handle_TEL_EMAIL(v);
 		}
 	}
-	cleanVObject(v);
+	cleanVObject(v_orig);
 	return hr;
 }
 
