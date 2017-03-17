@@ -764,9 +764,9 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(TIMEZONE_STRUCT sTimeZone, bool b
 		// add EXDATE props
 		for (const auto &exc : lstExceptions) {
 			if(bIsAllDay)
-				ittExDate = icaltime_from_timet(LocalToUTC(exc, sTZgmt), bIsAllDay);
+				ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTZgmt), bIsAllDay, nullptr);
 			else
-				ittExDate = icaltime_from_timet(LocalToUTC(exc, sTimeZone), 0);
+				ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTimeZone), 0, nullptr);
 
 			ittExDate.is_utc = 1;
 
@@ -879,7 +879,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(TIMEZONE_STRUCT sTimeZone, bo
 		*/
 		icRec.count = 0;
 		// if untiltime is saved as UTC it breaks last occurrence.
-		icRec.until = icaltime_from_timet(lpRecurrence->getEndDate() + lpRecurrence->getStartTimeOffset(), bIsAllday);
+		icRec.until = icaltime_from_timet_with_zone(lpRecurrence->getEndDate() + lpRecurrence->getStartTimeOffset(), bIsAllday, nullptr);
 		icRec.until.is_utc = 0;
 		break;
 	case recurrence::NUMBER:
