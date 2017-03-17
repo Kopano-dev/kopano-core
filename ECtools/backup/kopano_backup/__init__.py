@@ -432,7 +432,7 @@ class Service(kopano.Service):
                         # store original sourcekey or it is lost
                         try:
                             item.prop(PR_EC_BACKUP_SOURCE_KEY)
-                        except MAPIErrorNotFound:
+                        except kopano.NotFoundError:
                             item.mapiobj.SetProps([SPropValue(PR_EC_BACKUP_SOURCE_KEY, sourcekey2.decode('hex'))])
                             item.mapiobj.SaveChanges(0)
 
@@ -584,7 +584,7 @@ def dump_rules(folder, user, server, stats, log):
     with log_exc(log, stats):
         try:
             ruledata = folder.prop(PR_RULES_DATA).value
-        except MAPIErrorNotFound:
+        except kopano.NotFoundError:
             pass
         else:
             etxml = ElementTree.fromstring(ruledata)
@@ -634,7 +634,7 @@ def _get_fbf(user, flags, log):
     try:
         fbeid = user.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
         return user.store.mapiobj.OpenEntry(fbeid, None, flags)
-    except MAPIErrorNotFound:
+    except MAPIErrorNotFound, kopano.NotFoundError:
         log.warning("skipping delegation because of missing freebusy data")
 
 def dump_delegates(user, server, stats, log):

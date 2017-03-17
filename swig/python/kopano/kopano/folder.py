@@ -108,7 +108,7 @@ class Folder(Base):
         if self.entryid != self.store.root.entryid:
             try:
                 return Folder(self.store, _hex(self.prop(PR_PARENT_ENTRYID).value))
-            except MAPIErrorNotFound: # XXX: Should not happen
+            except NotFoundError: # XXX: Should not happen
                 pass
 
     @property
@@ -131,7 +131,7 @@ class Folder(Base):
 
         try:
             return self.prop(PR_DISPLAY_NAME_W).value.replace('/', '\\/')
-        except MAPIErrorNotFound:
+        except NotFoundError:
             if self.entryid == self.store.root.entryid: # Root folder's PR_DISPLAY_NAME_W is never set
                 return u'ROOT'
             else:
@@ -167,7 +167,7 @@ class Folder(Base):
 
         try:
             return self.prop(PR_CONTAINER_CLASS_W).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     @container_class.setter
@@ -650,7 +650,7 @@ class Folder(Base):
     def created(self):
         try:
             return self.prop(PR_CREATION_TIME).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     def __eq__(self, f): # XXX check same store?
