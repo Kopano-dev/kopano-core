@@ -12,6 +12,7 @@
     #include "rtfutil.h"
     #include "favoritesutil.h"
     #include <kopano/Util.h>
+    #include <kopano/memory.hpp>
 	#include <kopano/ECLogger.h>
     #include "fileutil.h"
 	#include "IStreamAdapter.h"
