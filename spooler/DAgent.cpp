@@ -2238,15 +2238,6 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess)
 		return hr;
-	if (FNeedsAutoProcessing(*lppMessage)) {
-		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting MR auto processing");
-		hr = HrAutoProcess(lpRecip, lpStore, *lppMessage);
-		if (hr == hrSuccess)
-			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Automatic MR processing successful.");
-		else
-			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Automatic MR processing failed: %s (%x).",
-				GetMAPIErrorMessage(hr), hr);
-	}
 
 	if(FNeedsAutoAccept(lpStore, *lppMessage)) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting MR autoaccepter");
@@ -2264,7 +2255,16 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 		// processing as if the autoaccepter was not used
 		hr = hrSuccess;
 	}
-	
+	else if (FNeedsAutoProcessing(*lppMessage)) {
+		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting MR auto processing");
+		hr = HrAutoProcess(lpRecip, lpStore, *lppMessage);
+		if (hr == hrSuccess)
+			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Automatic MR processing successful.");
+		else
+			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Automatic MR processing failed: %s (%x).",
+				GetMAPIErrorMessage(hr), hr);
+	}
+
 	if (lpFolder == lpInbox) {
 		// process rules for the inbox
 		hr = HrProcessRules(convert_to<std::string>(lpRecip->wstrUsername), lppyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, sc);
