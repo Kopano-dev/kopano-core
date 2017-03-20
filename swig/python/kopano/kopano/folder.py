@@ -58,11 +58,13 @@ if sys.hexversion >= 0x03000000:
     from . import store as _store
     from . import item as _item
     from . import utils as _utils
+    from . import prop as _prop
 else:
     import user as _user
     import store as _store
     import item as _item
     import utils as _utils
+    import prop as _prop
 
 class Folder(object):
     """Folder class"""
@@ -457,7 +459,7 @@ class Folder(object):
             yield Rule(row)
 
     def prop(self, proptag, create=True):
-        return _utils.prop(self, self.mapiobj, proptag, create=True)
+        return _prop.prop(self, self.mapiobj, proptag, create=True)
 
     def get_prop(self, proptag):
         try:
@@ -466,10 +468,10 @@ class Folder(object):
             pass
 
     def create_prop(self, proptag, value, proptype=None):
-        return _utils.create_prop(self, self.mapiobj, proptag, value, proptype)
+        return _prop.create_prop(self, self.mapiobj, proptag, value, proptype)
 
     def props(self):
-        return _utils.props(self.mapiobj)
+        return _prop.props(self.mapiobj)
 
     def table(self, name, restriction=None, order=None, columns=None): # XXX associated, PR_CONTAINER_CONTENTS?
         return Table(self.server, self.mapiobj.OpenProperty(name, IID_IMAPITable, MAPI_UNICODE, 0), name, restriction=restriction, order=order, columns=columns)

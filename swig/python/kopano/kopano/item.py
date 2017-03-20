@@ -70,7 +70,6 @@ from .errors import Error
 from .attachment import Attachment
 from .body import Body
 from .recurrence import Recurrence, Occurrence
-from .prop import Property
 from .address import Address
 from .table import Table
 
@@ -79,11 +78,13 @@ if sys.hexversion >= 0x03000000:
     from . import store as _store
     from . import user as _user
     from . import utils as _utils
+    from . import prop as _prop
 else:
     import folder as _folder
     import store as _store
     import user as _user
     import utils as _utils
+    import prop as _prop
 
 class PersistentList(list):
     def __init__(self, mapiobj, proptag, *args, **kwargs):
@@ -356,10 +357,10 @@ class Item(object):
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def create_prop(self, proptag, value, proptype=None):
-        return _utils.create_prop(self, self.mapiobj, proptag, value, proptype)
+        return _prop.create_prop(self, self.mapiobj, proptag, value, proptype)
 
     def prop(self, proptag):
-        return _utils.prop(self, self.mapiobj, proptag)
+        return _prop.prop(self, self.mapiobj, proptag)
 
     def get_prop(self, proptag):
         try:
@@ -368,7 +369,7 @@ class Item(object):
             pass
 
     def props(self, namespace=None):
-        return _utils.props(self.mapiobj, namespace)
+        return _prop.props(self.mapiobj, namespace)
 
     def attachments(self, embedded=False):
         """ Return item :class:`attachments <Attachment>`
@@ -579,13 +580,13 @@ class Item(object):
         :param items: The Attachments or Properties
         """
 
-        if isinstance(items, (Attachment, Property)):
+        if isinstance(items, (Attachment, _prop.Property)):
             items = [items]
         else:
             items = list(items)
 
         attach_ids = [item.number for item in items if isinstance(item, Attachment)]
-        proptags = [item.proptag for item in items if isinstance(item, Property)]
+        proptags = [item.proptag for item in items if isinstance(item, _prop.Property)]
         if proptags:
             self.mapiobj.DeleteProps(proptags)
         for attach_id in attach_ids:
@@ -636,7 +637,7 @@ class Item(object):
         # props
         props = []
         tag_data = {}
-        bestbody = _utils.bestbody(self.mapiobj)
+        bestbody = _prop.bestbody(self.mapiobj)
         for prop in self.props():
             if (bestbody != PR_NULL and prop.proptag in (PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED) and prop.proptag != bestbody):
                 continue

@@ -69,12 +69,14 @@ if sys.hexversion >= 0x03000000:
     from . import folder as _folder
     from . import item as _item
     from . import utils as _utils
+    from . import prop as _prop
 else:
     import server as _server
     import user as _user
     import folder as _folder
     import item as _item
     import utils as _utils
+    import prop as _prop
 
 class Store(object):
     """Store class"""
@@ -445,13 +447,13 @@ class Store(object):
             return (self.user.store is None or self.user.store.guid != self.guid)
 
     def create_prop(self, proptag, value, proptype=None):
-        return _utils.create_prop(self, self.mapiobj, proptag, value, proptype)
+        return _prop.create_prop(self, self.mapiobj, proptag, value, proptype)
 
     def prop(self, proptag):
-        return _utils.prop(self, self.mapiobj, proptag)
+        return _prop.prop(self, self.mapiobj, proptag)
 
     def props(self, namespace=None):
-        return _utils.props(self.mapiobj, namespace=namespace)
+        return _prop.props(self.mapiobj, namespace=namespace)
 
     def create_searchfolder(self, text=None): # XXX store.findroot.create_folder()?
         mapiobj = self.findroot.mapiobj.CreateFolder(FOLDER_SEARCH, _encode(str(uuid.uuid4())), _encode('comment'), None, 0)
