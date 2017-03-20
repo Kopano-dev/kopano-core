@@ -53,6 +53,7 @@ struct sending_options {
 	bool allow_send_to_everyone;
 	bool enable_dsn;				/**< Enable SMTP Delivery Status Notifications */
 	bool always_expand_distr_list;
+	bool ignore_missing_attachments;
 };
 
 extern _kc_export void imopt_default_delivery_options(delivery_options *);
