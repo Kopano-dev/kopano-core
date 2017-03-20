@@ -196,27 +196,28 @@ class Company(object):
         self._public_store = None
 
     def user(self, name, create=False):
-        """ Return :class:`user <User>` with given name; raise exception if not found """
+        """ Return :class:`user <User>` with given name """
 
-        name = _unicode(name)
-        for user in self.users(): # XXX slow
-            if user.name == name:
-                return _user.User(name, self.server)
-        if create:
-            return self.create_user(name)
-        else:
-            raise NotFoundError("no such user: '%s'" % name)
+        if not '@' in name and self._name != 'Default':
+            name = name + '@' + self._name
+        try:
+            return self.server.user(name)
+        except NotFoundError:
+            if create:
+                return self.create_user(name)
+            else:
+                raise
 
     def get_user(self, name):
         """ Return :class:`user <User>` with given name or *None* if not found """
 
         try:
             return self.user(name)
-        except Error:
+        except NotFoundError:
             pass
 
     def users(self, parse=True):
-        """ Return all :class:`users <User>` within company """
+        """ Return all :class:`users <User>` within the company """
 
         if parse and getattr(self.server.options, 'users', None):
             for username in self.server.options.users:
@@ -264,6 +265,9 @@ class Company(object):
             raise NotFoundError("company '%s' not in view-list for company '%s'" % (company.name, self.name))
 
     def create_user(self, name, password=None):
+        """ Create a new :class:`user <Users>` within the company """
+
+        name = name.split('@')[0]
         self.server.create_user(name, password=password, company=self._name)
         return self.user('%s@%s' % (name, self._name))
 

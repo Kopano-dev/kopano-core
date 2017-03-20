@@ -261,7 +261,7 @@ class Server(object):
 
         try:
             return self.user(name)
-        except Error:
+        except NotFoundError:
             pass
 
     def users(self, remote=False, system=False, parse=True):
@@ -342,7 +342,7 @@ class Server(object):
 
         try:
             return self.company(name)
-        except Error:
+        except NotFoundError:
             pass
 
     def remove_company(self, name): # XXX delete(object)?
@@ -482,7 +482,7 @@ class Server(object):
 
         try:
             return self.store(guid)
-        except Error:
+        except NotFoundError:
             pass
 
     def stores(self, system=False, remote=False, parse=True): # XXX implement remote
