@@ -1999,7 +1999,8 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 		CopyPyUnicode(&lpName->Kind.lpwstrName, id, lpBase);
 	}
 
-	PyString_AsStringAndSize(guid, (char **)&lpName->lpguid, &len);
+	if (PyString_AsStringAndSize(guid, reinterpret_cast<char **>(&lpName->lpguid), &len) == -1)
+		goto exit;
 	if(len != sizeof(GUID)) {
 		PyErr_Format(PyExc_RuntimeError, "GUID parameter of MAPINAMEID must be exactly %d bytes", (int)sizeof(GUID));
 		goto exit;
@@ -2090,8 +2091,8 @@ LPENTRYLIST		List_to_LPENTRYLIST(PyObject *list)
 		char *ptr;
 		Py_ssize_t strlen;
 
-		PyString_AsStringAndSize(elem, &ptr, &strlen);
-		if (PyErr_Occurred())
+		if (PyString_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
+		    PyErr_Occurred())
 			goto exit;
 
 		lpEntryList->lpbin[i].cb = strlen;
@@ -2318,8 +2319,8 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 			if (oTmp != Py_None) {
 				if (lpNotif->info.newmail.ulFlags & MAPI_UNICODE)
 				    CopyPyUnicode(&lpNotif->info.newmail.lpszMessageClass, oTmp, lpNotif);
-				else
-					PyString_AsStringAndSize(oTmp, (char**)&lpNotif->info.newmail.lpszMessageClass, NULL);
+				else if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpszMessageClass), nullptr) == -1)
+					goto exit;
 			}
 
 			Py_DECREF(oTmp);
@@ -2447,8 +2448,8 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 		if (PyErr_Occurred())
 			goto exit;
 
-		PyString_AsStringAndSize(sourcekey, &ptr, &len);
-		if (PyErr_Occurred())
+		if (PyString_AsStringAndSize(sourcekey, &ptr, &len) == -1 ||
+		    PyErr_Occurred())
 			goto exit;
 
 		hr = MAPIAllocateMore(len, lpList, (LPVOID*)&lpList[i].pbSourceKey);
@@ -2547,8 +2548,8 @@ LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 		char *ptr = NULL;
 		Py_ssize_t strlen = 0;
 
-		PyString_AsStringAndSize(elem, &ptr, &strlen);
-		if (PyErr_Occurred())
+		if (PyString_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
+		    PyErr_Occurred())
 			goto exit;
 
 		if (strlen != sizeof(*lpList)) {
@@ -3186,8 +3187,8 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 		char *ptr = NULL;
 		Py_ssize_t strlen = 0;
 
-		PyString_AsStringAndSize(elem, &ptr, &strlen);
-		if (PyErr_Occurred())
+		if (PyString_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
+		    PyErr_Occurred())
 			goto exit;
 
 		hr = MAPIAllocateMore(strlen,  lpSvrNameList, (void**)&lpSvrNameList->lpszaServer[lpSvrNameList->cServers]);

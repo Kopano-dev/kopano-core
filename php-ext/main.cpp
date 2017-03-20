@@ -616,7 +616,8 @@ PHP_MINIT_FUNCTION(mapi) {
 	MAPIINIT_0 MAPIINIT = { 0, MAPI_MULTITHREAD_NOTIFICATIONS };
 
 	// There is also a MAPI_NT_SERVICE flag, see help page for MAPIInitialize
-	MAPIInitialize(&MAPIINIT);
+	if (MAPIInitialize(&MAPIINIT) != hrSuccess)
+		return FAILURE;
 
 	ZEND_INIT_MODULE_GLOBALS(mapi, php_mapi_init_globals, NULL);
 

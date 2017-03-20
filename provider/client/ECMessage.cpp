@@ -1172,7 +1172,6 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		return hr;
 	return lpView->QueryInterface(IID_IMAPITable,
 	       reinterpret_cast<void **>(lppTable));
-	return hr;
 }
 
 /*

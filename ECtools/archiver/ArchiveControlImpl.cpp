@@ -36,6 +36,7 @@
 #include "HrException.h"
 #include "ArchiveManage.h"
 #include <kopano/MAPIErrors.h>
+#include <kopano/charset/convert.h>
 
 using namespace KC::helpers;
 using namespace KC::operations;
@@ -325,7 +326,8 @@ tstring
 ArchiveControlImpl::getfoldername(LPMAPIFOLDER folder)
 {
     SPropValuePtr foldername;
-	HrGetOneProp(folder, PR_DISPLAY_NAME, &~foldername);
+	if (HrGetOneProp(folder, PR_DISPLAY_NAME, &~foldername) != hrSuccess)
+		return convert_to<tstring>("<Unnamed>");
     return tstring(foldername->Value.LPSZ);
 }
 

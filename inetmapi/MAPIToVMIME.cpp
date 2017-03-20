@@ -732,9 +732,8 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 		// PR_TRANSPORT_MESSAGE_HEADERS)
 		// currently includes: Received*, Return-Path, List* and Precedence.
 		// New e-mails should not have this property.
-		HrGetOneProp(lpMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~lpTransportHeaders);
-
-		if(lpTransportHeaders) {
+		if (HrGetOneProp(lpMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~lpTransportHeaders) == hrSuccess &&
+		    lpTransportHeaders != nullptr) {
 			try {
 				int j=0;
 				vmime::header headers;
