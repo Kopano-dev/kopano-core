@@ -2638,11 +2638,11 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	ulObjectId = atoui(lpRow[0]);
 	objClass = (objectclass_t)atoui(lpRow[1]);
 
-	if (OBJECTCLASS_TYPE(objClass) == OBJECTCLASS_TYPE(sExternId.objclass) && 
-		/* Exception: converting from contact to other user type or other user type to contact is NOT allowed -> this is to force store create/remove */
-		!((objClass == NONACTIVE_CONTACT && sExternId.objclass != NONACTIVE_CONTACT) || 
-		  (objClass != NONACTIVE_CONTACT && sExternId.objclass == NONACTIVE_CONTACT) ))
-	{
+	/* Exception: converting from contact to other user type or other user type to contact is NOT allowed -> this is to force store create/remove */
+	bool illegal = objClass == NONACTIVE_CONTACT && sExternId.objclass != NONACTIVE_CONTACT;
+	illegal     |= objClass != NONACTIVE_CONTACT && sExternId.objclass == NONACTIVE_CONTACT;
+
+	if (OBJECTCLASS_TYPE(objClass) == OBJECTCLASS_TYPE(sExternId.objclass) && !illegal) {
 		if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
 			ec_log_crit("user_safe_mode: Would update %d from %s to %s", ulObjectId, ObjectClassToName(objClass), ObjectClassToName(sExternId.objclass));
 			return er;
