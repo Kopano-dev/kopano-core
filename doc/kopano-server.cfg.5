@@ -640,20 +640,6 @@ Default:
 \fI90\fR
 .RE
 .PP
-\fBsync_log_all_changes\fR
-.RS 4
-Normally changes to messages inside folders which no user is syncing from are not logged to the database as optimization\&. In some scenarios (i\&.e\&. when using BlackBerry synchronization) it is important for all changes to be logged regardless of the number of listeners to these changes\&.
-.sp
-Setting this value to
-\fIyes\fR
-will cause slightly more database traffic and the value
-\fIno\fR
-will be the correct for most installations\&.
-.sp
-Default:
-\fIno\fR
-.RE
-.PP
 \fBenable_sso\fR
 .RS 4
 When you configured your system for single sign\-on, you can enable this by setting the value to
