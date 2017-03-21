@@ -208,7 +208,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 
 	char			szChangeKey[20];
 	std::string		strChangeList;
-	bool			bLogAllChanges = false;
 
 	std::set<unsigned int>	syncids;
 	bool					bIgnored = false;
@@ -227,9 +226,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	if (er != erSuccess)
 		goto exit;
 
-	bLogAllChanges = parseBool(g_lpSessionManager->GetConfig()->GetSetting("sync_log_all_changes"));
-
-	// Always log folder changes, and when "sync_log_all_changes" is enabled.
+	// Always log folder changes
 	if(ulChange & ICS_MESSAGE) {
 		// See if anybody is interested in this change. If nobody has subscribed to this folder (ie nobody has got a state on this folder)
 		// then we can ignore the change.
@@ -251,9 +248,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			else
 				bIgnored = true;
 		}
-		if (!bLogAllChanges && !bIgnored && syncids.empty())
-			// nothing to do
-			goto exit;
     }
 
 	// Record the change
