@@ -948,8 +948,9 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 	const char *lpszSearchBase = m_config->GetSetting("ldap_search_base");
 	string search_base;
 
-	if (lpszSearchBase == nullptr || *lpszSearchBase == '\0')
-		throw runtime_error("Configuration option \"ldap_search_base\" is empty");
+	if (lpszSearchBase == nullptr)
+		/* GetSetting returns "" for all options it knows.. */
+		throw logic_error("getSearchBase: unexpected nullptr");
 
 	if (m_bHosted && !company.id.empty()) {
 		// find company DN, and use as search_base
