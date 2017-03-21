@@ -2638,35 +2638,36 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	bool illegal = objClass == NONACTIVE_CONTACT && sExternId.objclass != NONACTIVE_CONTACT;
 	illegal     |= objClass != NONACTIVE_CONTACT && sExternId.objclass == NONACTIVE_CONTACT;
 
-	if (OBJECTCLASS_TYPE(objClass) == OBJECTCLASS_TYPE(sExternId.objclass) && !illegal) {
-		if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
-			ec_log_crit("user_safe_mode: Would update %d from %s to %s", ulObjectId, ObjectClassToName(objClass), ObjectClassToName(sExternId.objclass));
-			return er;
-		}
-
-		// probable situation: change ACTIVE_USER to NONACTIVE_USER (or room/equipment), or change group to security group
-		strQuery = "UPDATE users SET objectclass = " + stringify(sExternId.objclass) + " WHERE id = " + stringify(ulObjectId);
-		er = lpDatabase->DoUpdate(strQuery);
-		if (er != erSuccess)
-			return er;
-
-		// Log the change to ICS
-		er = GetABSourceKeyV1(ulObjectId, &sSourceKey);
-		if (er != erSuccess)
-			return er;
-
-		AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
-
-		if (lpulObjectId)
-			*lpulObjectId = ulObjectId;
-		return erSuccess;
-	} else {
+	if (OBJECTCLASS_TYPE(objClass) != OBJECTCLASS_TYPE(sExternId.objclass) || illegal) {
 		// type of object changed, so we must fully delete the object first.
 		er = DeleteLocalObject(ulObjectId, objClass);
 		if (er != erSuccess)
 			return er;
 		return KCERR_NOT_FOUND;
 	}
+
+	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
+		ec_log_crit("user_safe_mode: Would update %d from %s to %s",
+			ulObjectId, ObjectClassToName(objClass),
+			ObjectClassToName(sExternId.objclass));
+		return er;
+	}
+	/*
+	 * Probable situation: change ACTIVE_USER to NONACTIVE_USER (or
+	 * room/equipment), or change group to security group.
+	 */
+	strQuery = "UPDATE users SET objectclass = " + stringify(sExternId.objclass) + " WHERE id = " + stringify(ulObjectId);
+	er = lpDatabase->DoUpdate(strQuery);
+	if (er != erSuccess)
+		return er;
+	/* Log the change to ICS */
+	er = GetABSourceKeyV1(ulObjectId, &sSourceKey);
+	if (er != erSuccess)
+		return er;
+	AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), reinterpret_cast<char *>(&eid)));
+	if (lpulObjectId != nullptr)
+		*lpulObjectId = ulObjectId;
+	return erSuccess;
 }
 
 // Check if an object has moved to a new company, or if it was created as new 
