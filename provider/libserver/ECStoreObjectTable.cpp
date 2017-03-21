@@ -1043,8 +1043,9 @@ ECRESULT ECStoreObjectTable::Load()
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
-    
-    if(ulFolderId) {
+	if (ulFolderId == 0)
+		return erSuccess;
+
         // Clear old entries
         Clear();
 
@@ -1096,8 +1097,6 @@ ECRESULT ECStoreObjectTable::Load()
         }
 
         LoadRows(&lstObjIds, 0);
-        
-    }
 	return erSuccess;
 }
 

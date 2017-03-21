@@ -306,12 +306,12 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 	}
         break;
 	case PROP_ID(PR_SUBMIT_FLAGS):
-		if (ulObjType == MAPI_MESSAGE) {
-			if (g_lpSessionManager->GetLockManager()->IsLocked(ulObjId, NULL))
-				lpPropVal->Value.ul |= SUBMITFLAG_LOCKED;
-			else
-				lpPropVal->Value.ul &= ~SUBMITFLAG_LOCKED;
-		}
+		if (ulObjType != MAPI_MESSAGE)
+			break;
+		if (g_lpSessionManager->GetLockManager()->IsLocked(ulObjId, NULL))
+			lpPropVal->Value.ul |= SUBMITFLAG_LOCKED;
+		else
+			lpPropVal->Value.ul &= ~SUBMITFLAG_LOCKED;
 		break;
 	case PROP_ID(PR_RECORD_KEY):
 		if (ulObjType != MAPI_ATTACH || lpPropVal->ulPropTag == ulPropTagRequested)

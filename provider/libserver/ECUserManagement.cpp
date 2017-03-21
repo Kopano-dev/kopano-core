@@ -1234,14 +1234,10 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 
 ECRESULT ECUserManagement::GetExternalId(unsigned int ulId, objectid_t *lpExternId, unsigned int *lpulCompanyId, std::string *lpSignature)
 {
-	ECRESULT er = erSuccess;
-
 	if (IsInternalObject(ulId))
-		er = KCERR_INVALID_PARAMETER;
-	else
-		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetUserObject(ulId, lpExternId, lpulCompanyId, lpSignature);
-
-	return er;
+		return KCERR_INVALID_PARAMETER;
+	auto mgr = m_lpSession->GetSessionManager()->GetCacheManager();
+	return mgr->GetUserObject(ulId, lpExternId, lpulCompanyId, lpSignature);
 }
 
 ECRESULT ECUserManagement::GetLocalId(const objectid_t &sExternId, unsigned int *lpulId, std::string *lpSignature)
