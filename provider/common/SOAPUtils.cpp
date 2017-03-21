@@ -427,8 +427,9 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 
 	// First check if the any of the properties is in the sSpecials list
 	for (size_t x = 0; x < ARRAY_SIZE(sSpecials); ++x) {
-		if ((lpProp1->ulPropTag == sSpecials[x].ulPropTag && PROP_TYPE(lpProp2->ulPropTag) == PROP_TYPE(sSpecials[x].ulPropTag)) ||
-			(PROP_TYPE(lpProp1->ulPropTag) == PROP_TYPE(sSpecials[x].ulPropTag) && lpProp2->ulPropTag == sSpecials[x].ulPropTag))
+		bool special = lpProp1->ulPropTag == sSpecials[x].ulPropTag && PROP_TYPE(lpProp2->ulPropTag) == PROP_TYPE(sSpecials[x].ulPropTag);
+		special |= PROP_TYPE(lpProp1->ulPropTag) == PROP_TYPE(sSpecials[x].ulPropTag) && lpProp2->ulPropTag == sSpecials[x].ulPropTag;
+		if (special)
 		{
 			er = sSpecials[x].lpfnComparer(lpProp1, lpProp2, &nCompareResult);
 			if (er == erSuccess)
