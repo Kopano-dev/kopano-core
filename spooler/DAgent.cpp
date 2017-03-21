@@ -3176,7 +3176,6 @@ static void *HandlerLMTP(void *lpArg)
 					// if required. So make sure to reset it here so we can safely reuse the LMTP connection
 					delivery_mode ulDeliveryMode = lpArgs->ulDeliveryMode;
 					ProcessDeliveryToList(ptrPyMapiPlugin, lpSession, tmp, &mapRCPT, lpArgs);
-					SaveRawMessage(tmp, "LMTP");
 					lpArgs->ulDeliveryMode = ulDeliveryMode;
 				}
 					
@@ -3184,11 +3183,15 @@ static void *HandlerLMTP(void *lpArg)
 				// wstrDeliveryStatus of each recipient.
 				hr = hrSuccess;
 					
-				fclose(tmp);
-					
 				/* Responses need to be sent in the same sequence that we received the recipients in.
 				 * Build all responses and find the sequence through the ordered list
 				 */
+
+				auto rawmsg = g_lpConfig->GetSetting("log_raw_message");
+				auto save_all = parseBool(rawmsg) && (strcasecmp(rawmsg, "all") == 0 || strcasecmp(rawmsg, "yes") == 0);
+				if (save_all)
+					SaveRawMessage(tmp, "LMTP");
+
 				for (const auto &company : mapRCPT)
 					for (const auto &server : company.second)
 						for (const auto &recip : server.second) {
@@ -3198,8 +3201,14 @@ static void *HandlerLMTP(void *lpArg)
 								mapRecipientResults.insert(make_pair<std::string, std::string>(converter.convert_to<std::string>(i),
 									// rawsize([N]) returns N, not contents len, so cast to fix
 									converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR)));
+								if (!save_all) {
+									auto save_username = converter.convert_to<std::string>(recip->wstrUsername);
+									SaveRawMessage(tmp, save_username.c_str());
+								}
 							}
 						}
+
+				fclose(tmp);
 
 				// Reply each recipient in the received order
 				for (const auto &i : lOrderedRecipients) {

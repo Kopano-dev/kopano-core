@@ -689,4 +689,20 @@ std::string zcp_md5_final_hex(MD5_CTX *ctx)
 	return s;
 }
 
+std::string string_strip_nuls(const std::string &i)
+{
+	std::string o;
+	std::copy_if(i.cbegin(), i.cend(), std::back_inserter(o),
+		[](char c) { return c != '\0'; });
+	return o;
+}
+
+std::wstring string_strip_nuls(const std::wstring &i)
+{
+	std::wstring o;
+	std::copy_if(i.cbegin(), i.cend(), std::back_inserter(o),
+		[](wchar_t c) { return c != L'\0'; });
+	return o;
+}
+
 } /* namespace */

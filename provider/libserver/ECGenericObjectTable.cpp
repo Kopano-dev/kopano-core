@@ -908,7 +908,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	
 	++sPropTagArray.__size;	// for PR_INSTANCE_KEY
 	++sPropTagArray.__size; // for PR_MESSAGE_FLAGS
-	sPropTagArray.__ptr		= new unsigned int[sPropTagArray.__size];
+	sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, sPropTagArray.__size);
 	sPropTagArray.__ptr[n++]= PR_INSTANCE_KEY;
 	if(m_ulCategories > 0)
 		sPropTagArray.__ptr[n++]= PR_MESSAGE_FLAGS;

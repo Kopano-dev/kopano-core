@@ -482,6 +482,10 @@ exit:
 }
 
 ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct restrictTable *lpsRestrict, unsigned int *lpulMaxChangeId, icsChangesArray **lppChanges){
+	class sfree_delete {
+		public:
+		void operator()(void *x) { s_free(nullptr, x); }
+	};
 	unsigned int dummy;
 	ECRESULT		er = erSuccess;
 	ECDatabase*		lpDatabase = NULL;
@@ -499,7 +503,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	list<unsigned int> lstFolderIds;
 	// Contains a list of change IDs
 	list<unsigned int> lstChanges;
-	std::unique_ptr<ECGetContentChangesHelper> lpHelper;
+	std::unique_ptr<ECGetContentChangesHelper, sfree_delete> lpHelper;
 	
 	ec_log(EC_LOGLEVEL_ICS, "GetChanges(): sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
 

@@ -310,8 +310,9 @@ AM_CONDITIONAL([WITH_XML2], [test "$XML2_CONFIG" != "" -a -x "`which $XML2_CONFI
 
 # Checks for MySQL 4.1 or better
 AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
+  AC_PATH_PROGS([MYSQL_CONFIG], [mysql_config mariadb_config])
   AC_ARG_WITH([mysql-config], AS_HELP_STRING([--with-mysql-config=PATH], [path to the mysql-config script of mysql 4.1]),
-    [MYSQL_CONFIG=${withval}],[MYSQL_CONFIG=mysql_config])
+    [MYSQL_CONFIG="$withval"])
 
   AC_ARG_ENABLE([embedded-mysql], AS_HELP_STRING([--enable-embedded-mysql], [Compile server with the embedded MySQL server]),
   [
