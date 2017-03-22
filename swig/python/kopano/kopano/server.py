@@ -313,6 +313,8 @@ class Server(object):
         else:
             try:
                 self.sa.CreateUser(ECUSER(name, password, email, fullname), MAPI_UNICODE)
+            except MAPIErrorNoSupport:
+                raise NotSupportedError("cannot create users with configured user plugin")
             except MAPIErrorCollision:
                 raise DuplicateError("user '%s' already exists" % name)
             user = self.user(name)
