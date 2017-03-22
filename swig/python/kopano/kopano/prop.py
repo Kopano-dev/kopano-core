@@ -11,29 +11,129 @@ import sys
 import time
 
 from MAPI import (
-    PT_ERROR, PT_BINARY, PT_MV_BINARY, PT_UNICODE,
+    PT_ERROR, PT_BINARY, PT_MV_BINARY, PT_UNICODE, PT_LONG,
     PT_SYSTIME, MAPI_E_NOT_ENOUGH_MEMORY, KEEP_OPEN_READWRITE,
-    MNID_STRING
+    MNID_STRING, MAPI_E_NOT_FOUND, MNID_ID, KEEP_OPEN_READWRITE,
+    MAPI_UNICODE,
 )
 from MAPI.Defs import (
-    PROP_ID, PROP_TAG, PROP_TYPE, HrGetOneProp, bin2hex
+    PROP_ID, PROP_TAG, PROP_TYPE, HrGetOneProp, bin2hex,
+    CHANGE_PROP_TYPE,
 )
 from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound, MAPIErrorNoSupport,
     MAPIErrorNotEnoughMemory
 )
 from MAPI.Tags import (
-    PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED
+    PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED, PR_RTF_IN_SYNC, PR_NULL
 )
 from MAPI.Time import unixtime
 
-from .defs import REV_TAG, REV_TYPE, GUID_NAMESPACE
-from .compat import repr as _repr, fake_unicode as _unicode, hex as _hex
+from .defs import (
+    REV_TAG, REV_TYPE, GUID_NAMESPACE, MAPINAMEID, NAMESPACE_GUID
+)
+from .compat import (
+    repr as _repr, fake_unicode as _unicode, is_int as _is_int, hex as _hex
+)
+from .errors import Error
 
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
 else:
     import utils as _utils
+
+def bestbody(mapiobj): # XXX we may want to use the swigged version in libcommon, once available
+    # apparently standardized method for determining original message type!
+    tag = PR_NULL
+    props = mapiobj.GetProps([PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED, PR_RTF_IN_SYNC], 0)
+
+    if (props[3].ulPropTag != PR_RTF_IN_SYNC): # XXX why..
+        return tag
+
+    # MAPI_E_NOT_ENOUGH_MEMORY indicates the property exists, but has to be streamed
+    if((props[0].ulPropTag == PR_BODY_W or (PROP_TYPE(props[0].ulPropTag) == PT_ERROR and props[0].Value == MAPI_E_NOT_ENOUGH_MEMORY)) and
+       (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_FOUND) and
+       (PROP_TYPE(props[2].ulPropTag) == PT_ERROR and props[2].Value == MAPI_E_NOT_FOUND)):
+        tag = PR_BODY_W
+
+    # XXX why not just check MAPI_E_NOT_FOUND..?
+    elif((props[1].ulPropTag == PR_HTML or (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_ENOUGH_MEMORY)) and
+         (PROP_TYPE(props[0].ulPropTag) == PT_ERROR and props[0].Value == MAPI_E_NOT_ENOUGH_MEMORY) and
+         (PROP_TYPE(props[2].ulPropTag) == PT_ERROR and props[2].Value == MAPI_E_NOT_ENOUGH_MEMORY) and
+         not props[3].Value):
+        tag = PR_HTML
+
+    elif((props[2].ulPropTag == PR_RTF_COMPRESSED or (PROP_TYPE(props[2].ulPropTag) == PT_ERROR and props[2].Value == MAPI_E_NOT_ENOUGH_MEMORY)) and
+         (PROP_TYPE(props[0].ulPropTag) == PT_ERROR and props[0].Value == MAPI_E_NOT_ENOUGH_MEMORY) and
+         (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_FOUND) and
+         props[3].Value):
+        tag = PR_RTF_COMPRESSED
+
+    return tag
+
+def create_prop(self, mapiobj, proptag, value, proptype=None):
+    if _is_int(proptag):
+        if PROP_TYPE(proptag) == PT_SYSTIME:
+            value = unixtime(time.mktime(value.timetuple()))
+        # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
+        try:
+            mapiobj.SetProps([SPropValue(proptag, value)])
+        except TypeError:
+            raise Error('Could not create property, type and value did not match')
+    else: # named prop
+        # XXX: code duplication from prop()
+        namespace, name = proptag.split(':') # XXX syntax
+        if name.isdigit(): # XXX
+            name = int(name)
+
+        if proptype == PT_SYSTIME:
+            value = unixtime(time.mktime(value.timetuple()))
+        if not proptype:
+            raise Error('Missing type to create named Property') # XXX exception too general?
+
+        nameid = MAPINAMEID(NAMESPACE_GUID.get(namespace), MNID_ID if isinstance(name, int) else MNID_STRING, name)
+        lpname = mapiobj.GetIDsFromNames([nameid], 0)
+        proptag = CHANGE_PROP_TYPE(lpname[0], proptype)
+        # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
+        try:
+            mapiobj.SetProps([SPropValue(proptag, value)])
+        except TypeError:
+            raise Error('Could not create property, type and value did not match')
+
+    return prop(self, mapiobj, proptag)
+
+def prop(self, mapiobj, proptag, create=False):
+    if _is_int(proptag):
+        try:
+            sprop = HrGetOneProp(mapiobj, proptag)
+        except MAPIErrorNotEnoughMemory:
+            data = _utils.stream(mapiobj, proptag)
+            sprop = SPropValue(proptag, data)
+        except MAPIErrorNotFound as e:
+            if create and PROP_TYPE(proptag) == PT_LONG: # XXX generalize!
+                mapiobj.SetProps([SPropValue(proptag, 0)])
+                mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+                sprop = HrGetOneProp(mapiobj, proptag)
+            else:
+                raise e
+        return Property(mapiobj, sprop)
+    else:
+        namespace, name = proptag.split(':') # XXX syntax
+        if name.isdigit(): # XXX
+            name = int(name)
+
+        for prop in self.props(namespace=namespace): # XXX sloow, streaming
+            if prop.name == name:
+                return prop
+        raise MAPIErrorNotFound()
+
+def props(mapiobj, namespace=None):
+    proptags = mapiobj.GetPropList(MAPI_UNICODE)
+    sprops = mapiobj.GetProps(proptags, MAPI_UNICODE)
+    props = [Property(mapiobj, sprop) for sprop in sprops]
+    for p in sorted(props):
+        if not namespace or p.namespace == namespace:
+            yield p
 
 class SPropDelayedValue(SPropValue):
     def __init__(self, mapiobj, proptag):

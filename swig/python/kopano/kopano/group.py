@@ -18,11 +18,11 @@ from .errors import NotFoundError, DuplicateError
 from .compat import repr as _repr, fake_unicode as _unicode
 
 if sys.hexversion >= 0x03000000:
-    from . import utils as _utils
+    from . import prop as _prop
     from . import server as _server
     from . import user as _user
 else:
-    import utils as _utils
+    import prop as _prop
     import server as _server
     import user as _user
 
@@ -111,10 +111,10 @@ class Group(object):
         self._update(hidden=value)
 
     def prop(self, proptag):
-        return _utils.prop(self, self.mapiobj, proptag)
+        return _prop.prop(self, self.mapiobj, proptag)
 
     def props(self):
-        return _utils.props(self.mapiobj)
+        return _prop.props(self.mapiobj)
 
     def send_as(self):
         for u in self.server.sa.GetSendAsList(self._ecgroup.GroupID, MAPI_UNICODE):

@@ -34,12 +34,12 @@ from .compat import (
 if sys.hexversion >= 0x03000000:
     from . import server as _server
     from . import user as _user
-    from . import utils as _utils
+    from . import prop as _prop
     from . import store as _store
 else:
     import server as _server
     import user as _user
-    import utils as _utils
+    import prop as _prop
     import store as _store
 
 class Company(object):
@@ -120,10 +120,10 @@ class Company(object):
                 yield store
 
     def prop(self, proptag):
-        return _utils.prop(self, self.mapiobj, proptag)
+        return _prop.prop(self, self.mapiobj, proptag)
 
     def props(self):
-        return _utils.props(self.mapiobj)
+        return _prop.props(self.mapiobj)
 
     @property
     def public_store(self):

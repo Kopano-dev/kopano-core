@@ -24,22 +24,20 @@ import time
 
 from MAPI import (
     ECImportContentsChanges, SYNC_E_IGNORE, WrapStoreEntryID,
-    WrapCompressedRTFStream, PT_UNICODE, PT_SYSTIME, PT_LONG,
-    MNID_ID, MNID_STRING, KEEP_OPEN_READWRITE, MAPI_UNICODE,
+    WrapCompressedRTFStream, PT_UNICODE,
     SYNC_NORMAL, SYNC_ASSOCIATED, SYNC_CATCHUP, SYNC_UNICODE, IStream,
     STREAM_SEEK_SET, RELOP_GE, RELOP_LT, PT_ERROR,
-    MAPI_E_NOT_ENOUGH_MEMORY, MAPI_E_NOT_FOUND, ROW_ADD,
-    ECImportHierarchyChanges
+    ROW_ADD, ECImportHierarchyChanges
 )
 from MAPI.Defs import (
-    PpropFindProp, bin2hex, PROP_TYPE, CHANGE_PROP_TYPE, HrGetOneProp
+    PpropFindProp, bin2hex, PROP_TYPE
 )
 from MAPI.Tags import (
     PR_ENTRYID, PR_STORE_ENTRYID, PR_EC_PARENT_HIERARCHYID,
     PR_EC_HIERARCHYID, PR_STORE_RECORD_KEY, PR_RTF_COMPRESSED,
-    PR_CONTENTS_SYNCHRONIZER, PR_MESSAGE_DELIVERY_TIME, PR_BODY_W,
-    PR_HTML, PR_RTF_IN_SYNC, PR_NULL, PR_ACL_TABLE, PR_MEMBER_ENTRYID,
-    PR_MEMBER_RIGHTS, PR_HIERARCHY_SYNCHRONIZER
+    PR_CONTENTS_SYNCHRONIZER, PR_MESSAGE_DELIVERY_TIME,
+    PR_ACL_TABLE, PR_MEMBER_ENTRYID, PR_MEMBER_RIGHTS,
+    PR_HIERARCHY_SYNCHRONIZER
 )
 from MAPI.Tags import (
     IID_IExchangeImportContentsChanges, IID_IECImportContentsChanges,
@@ -50,13 +48,12 @@ from MAPI.Tags import (
 from MAPI.Struct import (
     MAPIError, MAPIErrorNotFound, MAPIErrorNoAccess,
     MAPIErrorNotEnoughMemory, MAPIErrorInterfaceNotSupported,
-    SPropValue, MAPINAMEID, SPropertyRestriction, SAndRestriction,
+    SPropValue, SPropertyRestriction, SAndRestriction,
     ROWENTRY
 )
 from MAPI.Time import unixtime
 
-from .defs import NAMESPACE_GUID
-from .compat import is_int as _is_int, unhex as _unhex, hex as _hex
+from .compat import unhex as _unhex, hex as _hex
 from .errors import Error, NotFoundError
 
 if sys.hexversion >= 0x03000000:
@@ -198,70 +195,6 @@ def stream(mapiobj, proptag):
 
     return data
 
-def create_prop(self, mapiobj, proptag, value, proptype=None):
-    if _is_int(proptag):
-        if PROP_TYPE(proptag) == PT_SYSTIME:
-            value = unixtime(time.mktime(value.timetuple()))
-        # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
-        try:
-            mapiobj.SetProps([SPropValue(proptag, value)])
-        except TypeError:
-            raise Error('Could not create property, type and value did not match')
-    else: # named prop
-        # XXX: code duplication from prop()
-        namespace, name = proptag.split(':') # XXX syntax
-        if name.isdigit(): # XXX
-            name = int(name)
-
-        if proptype == PT_SYSTIME:
-            value = unixtime(time.mktime(value.timetuple()))
-        if not proptype:
-            raise Error('Missing type to create named Property') # XXX exception too general?
-
-        nameid = MAPINAMEID(NAMESPACE_GUID.get(namespace), MNID_ID if isinstance(name, int) else MNID_STRING, name)
-        lpname = mapiobj.GetIDsFromNames([nameid], 0)
-        proptag = CHANGE_PROP_TYPE(lpname[0], proptype)
-        # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
-        try:
-            mapiobj.SetProps([SPropValue(proptag, value)])
-        except TypeError:
-            raise Error('Could not create property, type and value did not match')
-
-    return prop(self, mapiobj, proptag)
-
-def prop(self, mapiobj, proptag, create=False):
-    if _is_int(proptag):
-        try:
-            sprop = HrGetOneProp(mapiobj, proptag)
-        except MAPIErrorNotEnoughMemory:
-            data = stream(mapiobj, proptag)
-            sprop = SPropValue(proptag, data)
-        except MAPIErrorNotFound as e:
-            if create and PROP_TYPE(proptag) == PT_LONG: # XXX generalize!
-                mapiobj.SetProps([SPropValue(proptag, 0)])
-                mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
-                sprop = HrGetOneProp(mapiobj, proptag)
-            else:
-                raise e
-        return _prop.Property(mapiobj, sprop)
-    else:
-        namespace, name = proptag.split(':') # XXX syntax
-        if name.isdigit(): # XXX
-            name = int(name)
-
-        for prop in self.props(namespace=namespace): # XXX sloow, streaming
-            if prop.name == name:
-                return prop
-        raise MAPIErrorNotFound()
-
-def props(mapiobj, namespace=None):
-    proptags = mapiobj.GetPropList(MAPI_UNICODE)
-    sprops = mapiobj.GetProps(proptags, MAPI_UNICODE)
-    props = [_prop.Property(mapiobj, sprop) for sprop in sprops]
-    for p in sorted(props):
-        if not namespace or p.namespace == namespace:
-            yield p
-
 def state(mapiobj, associated=False):
     exporter = mapiobj.OpenProperty(PR_CONTENTS_SYNCHRONIZER, IID_IExchangeExportChanges, 0, 0)
     if associated:
@@ -389,34 +322,6 @@ def openentry_raw(mapistore, entryid, flags): # avoid underwater action for arch
     except MAPIErrorInterfaceNotSupported:
         return mapistore.OpenEntry(entryid, None, flags)
 
-def bestbody(mapiobj): # XXX we may want to use the swigged version in libcommon, once available
-    # apparently standardized method for determining original message type!
-    tag = PR_NULL
-    props = mapiobj.GetProps([PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED, PR_RTF_IN_SYNC], 0)
-
-    if (props[3].ulPropTag != PR_RTF_IN_SYNC): # XXX why..
-        return tag
-
-    # MAPI_E_NOT_ENOUGH_MEMORY indicates the property exists, but has to be streamed
-    if((props[0].ulPropTag == PR_BODY_W or (PROP_TYPE(props[0].ulPropTag) == PT_ERROR and props[0].Value == MAPI_E_NOT_ENOUGH_MEMORY)) and
-       (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_FOUND) and
-       (PROP_TYPE(props[2].ulPropTag) == PT_ERROR and props[2].Value == MAPI_E_NOT_FOUND)):
-        tag = PR_BODY_W
-
-    # XXX why not just check MAPI_E_NOT_FOUND..?
-    elif((props[1].ulPropTag == PR_HTML or (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_ENOUGH_MEMORY)) and
-         (PROP_TYPE(props[0].ulPropTag) == PT_ERROR and props[0].Value == MAPI_E_NOT_ENOUGH_MEMORY) and
-         (PROP_TYPE(props[2].ulPropTag) == PT_ERROR and props[2].Value == MAPI_E_NOT_ENOUGH_MEMORY) and
-         not props[3].Value):
-        tag = PR_HTML
-
-    elif((props[2].ulPropTag == PR_RTF_COMPRESSED or (PROP_TYPE(props[2].ulPropTag) == PT_ERROR and props[2].Value == MAPI_E_NOT_ENOUGH_MEMORY)) and
-         (PROP_TYPE(props[0].ulPropTag) == PT_ERROR and props[0].Value == MAPI_E_NOT_ENOUGH_MEMORY) and
-         (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_FOUND) and
-         props[3].Value):
-        tag = PR_RTF_COMPRESSED
-
-    return tag
 
 def unpack_short(s, pos):
     return struct.unpack_from('<H', s, pos)[0]

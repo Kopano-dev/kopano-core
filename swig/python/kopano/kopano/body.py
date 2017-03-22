@@ -16,8 +16,10 @@ from .compat import repr as _repr
 
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
+    from . import prop as _prop
 else:
     import utils as _utils
+    import prop as _prop
 
 class Body:
     """Item Body class"""
@@ -60,7 +62,7 @@ class Body:
     @property
     def type_(self):
         """ original body type: 'text', 'html', 'rtf' or None if it cannot be determined """
-        tag = _utils.bestbody(self.mapiitem.mapiobj)
+        tag = _prop.bestbody(self.mapiitem.mapiobj)
         if tag == PR_BODY_W:
             return 'text'
         elif tag == PR_HTML:

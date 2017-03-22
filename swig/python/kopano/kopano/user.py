@@ -35,11 +35,11 @@ from .compat import (
 if sys.hexversion >= 0x03000000:
     from . import server as _server
     from . import company as _company
-    from . import utils as _utils
+    from . import prop as _prop
 else:
     import server as _server
     import company as _company
-    import utils as _utils
+    import prop as _prop
 
 class User(object):
     """User class"""
@@ -262,10 +262,10 @@ class User(object):
             return
 
     def prop(self, proptag):
-        return _utils.prop(self, self.mapiobj, proptag)
+        return _prop.prop(self, self.mapiobj, proptag)
 
     def props(self):
-        return _utils.props(self.mapiobj)
+        return _prop.props(self.mapiobj)
 
     @property
     def quota(self):

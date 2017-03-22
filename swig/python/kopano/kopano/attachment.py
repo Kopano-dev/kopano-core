@@ -18,8 +18,10 @@ from .compat import repr as _repr
 
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
+    from . import prop as _prop
 else:
     import utils as _utils
+    import prop as _prop
 
 class Attachment(object):
     """Attachment class"""
@@ -87,10 +89,10 @@ class Attachment(object):
         return self.filename
 
     def prop(self, proptag):
-        return _utils.prop(self, self.mapiobj, proptag)
+        return _prop.prop(self, self.mapiobj, proptag)
 
     def props(self):
-        return _utils.props(self.mapiobj)
+        return _prop.props(self.mapiobj)
 
     def __unicode__(self):
         return u'Attachment("%s")' % self.name
