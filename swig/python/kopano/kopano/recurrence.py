@@ -9,7 +9,7 @@ import datetime
 import sys
 
 from dateutil.rrule import (
-    WEEKLY, MONTHLY, MO, TU, TH, FR, WE, SA, SU, rrule, rruleset
+    DAILY, WEEKLY, MONTHLY, MO, TU, TH, FR, WE, SA, SU, rrule, rruleset
 )
 from datetime import timedelta
 
@@ -163,8 +163,9 @@ class Recurrence:
         # FIXME; doesn't dateutil have a list of this?
         rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA} # FIXME: remove above
 
-        # FIXME: add DAILY, patterntype == 0
         # FIXME: merge exception details with normal appointment data to recurrence.occurences() (Class occurence)
+        if self.patterntype == 0: # DAILY
+            self.recurrences = rrule(DAILY, dtstart=self.start, until=self.end, interval=self.period/(24*60))
         if self.patterntype == 1: # WEEKLY
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
