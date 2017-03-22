@@ -317,7 +317,10 @@ class Server(object):
                 raise DuplicateError("user '%s' already exists" % name)
             user = self.user(name)
         if create_store:
-            self.sa.CreateStore(ECSTORE_TYPE_PRIVATE, _unhex(user.userid))
+            try:
+                self.sa.CreateStore(ECSTORE_TYPE_PRIVATE, _unhex(user.userid))
+            except MAPIErrorCollision:
+                pass # create-user userscript may already create store
         return user
 
     def remove_user(self, name): # XXX delete(object)?
