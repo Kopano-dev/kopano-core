@@ -2650,6 +2650,7 @@ static const struct {
 	{"x-gbk", "gb18030"},			// gb18030 > gbk > gb2312. x-gbk is an alias of gbk, which is not listed in iconv.
 	{"ks_c_5601-1987", "cp949"},	// cp949 is euc-kr with UHC extensions
 	{"iso-8859-8-i", "iso-8859-8"},	// logical vs visual order, does not matter. http://mirror.hamakor.org.il/archives/linux-il/08-2004/11445.html
+	{"win-1252", "windows-1252"},
 	/*
 	 * This particular "unicode" is different from iconv's
 	 * "unicode" character set. It is UTF-8 content with a UTF-16
