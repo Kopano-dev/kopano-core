@@ -418,7 +418,7 @@ class Item(object):
 
         try:
             message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS_W)
-            headers = email.parser.Parser().parsestr(message_headers.value, headersonly=True)
+            headers = email.parser.Parser().parsestr(message_headers.value.encode(), headersonly=True)
             return headers
         except MAPIErrorNotFound:
             return {}
