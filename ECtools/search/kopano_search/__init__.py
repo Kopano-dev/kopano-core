@@ -190,7 +190,7 @@ class IndexWorker(kopano.Worker):
             with log_exc(self.log):
                 (_, storeguid, folderid, reindex) = self.iqueue.get()
                 store = server.store(storeguid)
-                folder = kopano.Folder(store, codecs.decode(folderid, 'hex'))
+                folder = kopano.Folder(store, folderid)
                 if (folder not in (store.root, store.outbox, store.drafts)) and \
                    (folder != store.junk or config['index_junk']):
                     suggestions = config['suggestions'] and folder != store.junk

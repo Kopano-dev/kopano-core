@@ -117,7 +117,7 @@ class Store(object):
     def root(self):
         """ :class:`Folder` designated as store root """
 
-        return _folder.Folder(self, HrGetOneProp(self._root, PR_ENTRYID).Value)
+        return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_ENTRYID).Value))
 
     @property
     def subtree(self):
@@ -129,7 +129,7 @@ class Store(object):
             else:
                 ipmsubtreeid = HrGetOneProp(self.mapiobj, PR_IPM_SUBTREE_ENTRYID).Value
 
-            return _folder.Folder(self, ipmsubtreeid)
+            return _folder.Folder(self, _hex(ipmsubtreeid))
         except MAPIErrorNotFound:
             pass
 
@@ -138,7 +138,7 @@ class Store(object):
         """ :class:`Folder` designated as search-results root """
 
         try:
-            return _folder.Folder(self, HrGetOneProp(self.mapiobj, PR_FINDER_ENTRYID).Value)
+            return _folder.Folder(self, _hex(HrGetOneProp(self.mapiobj, PR_FINDER_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 
@@ -147,7 +147,7 @@ class Store(object):
         """ :class:`Folder` designated as inbox """
 
         try:
-            return _folder.Folder(self, self.mapiobj.GetReceiveFolder(u'IPM', MAPI_UNICODE)[0])
+            return _folder.Folder(self, _hex(self.mapiobj.GetReceiveFolder(u'IPM', MAPI_UNICODE)[0]))
         except MAPIErrorNotFound:
             pass
 
@@ -157,7 +157,7 @@ class Store(object):
 
         # PR_ADDITIONAL_REN_ENTRYIDS is a multi-value property, 4th entry is the junk folder
         try:
-            return _folder.Folder(self, HrGetOneProp(self._root, PR_ADDITIONAL_REN_ENTRYIDS).Value[4])
+            return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_ADDITIONAL_REN_ENTRYIDS).Value[4]))
         except MAPIErrorNotFound:
             pass
 
@@ -166,7 +166,7 @@ class Store(object):
         """ :class:`Folder` designated as calendar """
 
         try:
-            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_APPOINTMENT_ENTRYID).Value)
+            return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_APPOINTMENT_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 
@@ -175,7 +175,7 @@ class Store(object):
         """ :class:`Folder` designated as outbox """
 
         try:
-            return _folder.Folder(self, HrGetOneProp(self.mapiobj, PR_IPM_OUTBOX_ENTRYID).Value)
+            return _folder.Folder(self, _hex(HrGetOneProp(self.mapiobj, PR_IPM_OUTBOX_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 
@@ -184,7 +184,7 @@ class Store(object):
         """ :class:`Folder` designated as contacts """
 
         try:
-            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_CONTACT_ENTRYID).Value)
+            return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_CONTACT_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 
@@ -193,7 +193,7 @@ class Store(object):
         """ :class:`Folder` contains folders for managing views for the message store """
 
         try:
-            return _folder.Folder(self, self.prop(PR_COMMON_VIEWS_ENTRYID).value)
+            return _folder.Folder(self, _hex(self.prop(PR_COMMON_VIEWS_ENTRYID).value))
         except MAPIErrorNotFound:
             pass
 
@@ -202,7 +202,7 @@ class Store(object):
         """ :class:`Folder` designated as drafts """
 
         try:
-            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_DRAFTS_ENTRYID).Value)
+            return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_DRAFTS_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 
@@ -211,7 +211,7 @@ class Store(object):
         """ :class:`Folder` designated as wastebasket """
 
         try:
-            return _folder.Folder(self, HrGetOneProp(self.mapiobj, PR_IPM_WASTEBASKET_ENTRYID).Value)
+            return _folder.Folder(self, _hex(HrGetOneProp(self.mapiobj, PR_IPM_WASTEBASKET_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 
@@ -220,7 +220,7 @@ class Store(object):
         """ :class:`Folder` designated as journal """
 
         try:
-            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_JOURNAL_ENTRYID).Value)
+            return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_JOURNAL_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 
@@ -229,7 +229,7 @@ class Store(object):
         """ :class:`Folder` designated as notes """
 
         try:
-            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_NOTE_ENTRYID).Value)
+            return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_NOTE_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 
@@ -238,7 +238,7 @@ class Store(object):
         """ :class:`Folder` designated as sentmail """
 
         try:
-            return _folder.Folder(self, HrGetOneProp(self.mapiobj, PR_IPM_SENTMAIL_ENTRYID).Value)
+            return _folder.Folder(self, _hex(HrGetOneProp(self.mapiobj, PR_IPM_SENTMAIL_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 
@@ -247,7 +247,7 @@ class Store(object):
         """ :class:`Folder` designated as tasks """
 
         try:
-            return _folder.Folder(self, HrGetOneProp(self._root, PR_IPM_TASK_ENTRYID).Value)
+            return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_TASK_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 
@@ -257,7 +257,7 @@ class Store(object):
 
         try:
             entryid = _utils.extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_SUGGESTED_CONTACTS)
-            return _folder.Folder(self, _unhex(entryid))
+            return _folder.Folder(self, entryid)
         except MAPIErrorNotFound:
             pass
 
@@ -267,7 +267,7 @@ class Store(object):
 
         try:
             entryid = _utils.extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_RSS_SUBSCRIPTION)
-            return _folder.Folder(self, _unhex(entryid))
+            return _folder.Folder(self, entryid)
         except MAPIErrorNotFound:
             pass
 
@@ -296,7 +296,7 @@ class Store(object):
 
         if entryid is not None:
             try:
-                return _folder.Folder(self, _unhex(entryid))
+                return _folder.Folder(self, entryid)
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound):
                 raise NotFoundError("no folder with entryid: '%s'" % entryid)
 
