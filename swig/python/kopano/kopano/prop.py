@@ -12,6 +12,7 @@ import time
 
 from MAPI import (
     PT_ERROR, PT_BINARY, PT_MV_BINARY, PT_UNICODE, PT_LONG,
+    PT_STRING8, MV_FLAG,
     PT_SYSTIME, MAPI_E_NOT_ENOUGH_MEMORY, KEEP_OPEN_READWRITE,
     MNID_STRING, MAPI_E_NOT_FOUND, MNID_ID, KEEP_OPEN_READWRITE,
     MAPI_UNICODE,
@@ -110,14 +111,24 @@ def prop(self, mapiobj, proptag, create=False):
             data = _utils.stream(mapiobj, proptag)
             sprop = SPropValue(proptag, data)
         except MAPIErrorNotFound as e:
-            if create and PROP_TYPE(proptag) == PT_LONG: # XXX generalize!
-                mapiobj.SetProps([SPropValue(proptag, 0)])
+            if create:
+                if PROP_TYPE(proptag) in (PT_STRING8, PT_UNICODE):
+                    mapiobj.SetProps([SPropValue(proptag, u'')])
+                elif PROP_TYPE(proptag) == PT_BINARY:
+                    mapiobj.SetProps([SPropValue(proptag, b'')])
+                elif PROP_TYPE(proptag) & MV_FLAG:
+                    mapiobj.SetProps([SPropValue(proptag, [])])
+                elif PROP_TYPE(proptag) == PT_SYSTIME:
+                    mapiobj.SetProps([SPropValue(proptag, unixtime(0))])
+                else:
+                    mapiobj.SetProps([SPropValue(proptag, 0)])
                 mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
                 sprop = HrGetOneProp(mapiobj, proptag)
             else:
                 raise e
         return Property(mapiobj, sprop)
-    else:
+
+    else: # XXX create=True, merge with create_prop
         namespace, name = proptag.split(':') # XXX syntax
         if name.isdigit(): # XXX
             name = int(name)

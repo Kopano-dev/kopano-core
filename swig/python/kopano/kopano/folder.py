@@ -458,8 +458,8 @@ class Folder(object):
         for row in table.dict_rows():
             yield Rule(row)
 
-    def prop(self, proptag, create=True):
-        return _prop.prop(self, self.mapiobj, proptag, create=True)
+    def prop(self, proptag, create=False):
+        return _prop.prop(self, self.mapiobj, proptag, create=create)
 
     def get_prop(self, proptag):
         try:

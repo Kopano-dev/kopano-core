@@ -449,8 +449,8 @@ class Store(object):
     def create_prop(self, proptag, value, proptype=None):
         return _prop.create_prop(self, self.mapiobj, proptag, value, proptype)
 
-    def prop(self, proptag):
-        return _prop.prop(self, self.mapiobj, proptag)
+    def prop(self, proptag, create=False):
+        return _prop.prop(self, self.mapiobj, proptag, create=create)
 
     def props(self, namespace=None):
         return _prop.props(self.mapiobj, namespace=namespace)
