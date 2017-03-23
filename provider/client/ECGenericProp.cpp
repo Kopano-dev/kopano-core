@@ -833,8 +833,10 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 		lpPropTagArray = lpGetPropTagArray;
 	}
 
-	ECAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues,
-		reinterpret_cast<void **>(&lpsPropValue));
+	hr = ECAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues,
+	     reinterpret_cast<void **>(&lpsPropValue));
+	if (hr != hrSuccess)
+		goto exit;
 
 	for (i = 0; i < lpPropTagArray->cValues; ++i) {
 		if (HrGetHandler(lpPropTagArray->aulPropTag[i], NULL, &lpfnGetProp, &lpParam) == hrSuccess) {
@@ -883,7 +885,10 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 	}			
 
 	// The size of the property tag array is never larger than (static properties + generated properties)
-	ECAllocateBuffer(CbNewSPropTagArray(lstProps->size() + lstCallBack.size()), (LPVOID *)&lpPropTagArray);
+	hr = ECAllocateBuffer(CbNewSPropTagArray(lstProps->size() + lstCallBack.size()),
+	     reinterpret_cast<void **>(&lpPropTagArray));
+	if (hr != hrSuccess)
+		return hr;
 
 	// Some will overlap so we've actually allocated slightly too much memory
 

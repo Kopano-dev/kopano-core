@@ -1222,7 +1222,9 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 
 	// Convert our data into a structure that the server can take
 	sNamedProps.__size = cNames;
-	ECAllocateBuffer(sizeof(struct namedProp) * cNames, (void **)&sNamedProps.__ptr);
+	er = ECAllocateBuffer(sizeof(struct namedProp) * cNames, reinterpret_cast<void **>(&sNamedProps.__ptr));
+	if (er != erSuccess)
+		goto exitm;
 	memset(sNamedProps.__ptr, 0 , sizeof(struct namedProp) * cNames);
 
 	for (i = 0; i < cNames; ++i) {	
@@ -1270,8 +1272,9 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 		goto exitm;
 	}
 
-	ECAllocateBuffer(sizeof(ULONG) * sResponse.lpsPropTags.__size, (void**)lpServerIDs);
-
+	hr = ECAllocateBuffer(sizeof(ULONG) * sResponse.lpsPropTags.__size, reinterpret_cast<void **>(lpServerIDs));
+	if (hr != hrSuccess)
+		goto exitm;
 	memcpy(*lpServerIDs, sResponse.lpsPropTags.__ptr, sizeof(ULONG) * sResponse.lpsPropTags.__size);
  exitm:
 	UnLockSoap();
@@ -1306,7 +1309,9 @@ HRESULT WSTransport::HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID
 	}
 	END_SOAP_CALL
 
-	ECAllocateBuffer(sizeof(LPMAPINAMEID) * sResponse.lpsNames.__size, (void **) &lppNames);
+	er = ECAllocateBuffer(sizeof(LPMAPINAMEID) * sResponse.lpsNames.__size, reinterpret_cast<void **>(&lppNames));
+	if (er != erSuccess)
+		goto exitm;
 
 	// Loop through all the returned names, and put it into the return value
 	for (gsoap_size_t i = 0; i < sResponse.lpsNames.__size; ++i) {
@@ -1374,7 +1379,9 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 	}
 	END_SOAP_CALL
 
-	ECAllocateBuffer(CbNewSRowSet(sReceiveFolders.sFolderArray.__size), (void**)&lpsRowSet);
+	er = ECAllocateBuffer(CbNewSRowSet(sReceiveFolders.sFolderArray.__size), reinterpret_cast<void **>(&lpsRowSet));
+	if (er != erSuccess)
+		goto exitm;
 	memset(lpsRowSet, 0, CbNewSRowSet(sReceiveFolders.sFolderArray.__size));
 	lpsRowSet->cRows = sReceiveFolders.sFolderArray.__size;
 
@@ -1382,7 +1389,9 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 		ulRowId = i+1;
 
 		lpsRowSet->aRow[i].cValues = NUM_RFT_PROPS;
-		ECAllocateBuffer(sizeof(SPropValue) * NUM_RFT_PROPS, (void**)&lpsRowSet->aRow[i].lpProps);
+		er = ECAllocateBuffer(sizeof(SPropValue) * NUM_RFT_PROPS, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps));
+		if (er != erSuccess)
+			goto exitm;
 		memset(lpsRowSet->aRow[i].lpProps, 0, sizeof(SPropValue)*NUM_RFT_PROPS);
 		
 		lpsRowSet->aRow[i].lpProps[RFT_ROWID].ulPropTag = PR_ROWID;
@@ -3419,7 +3428,10 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	}
 	END_SOAP_CALL
 
-	ECAllocateBuffer(sizeof(ECPERMISSION) * sRightResponse.pRightsArray->__size, (void**)&lpECPermissions);
+	hr = ECAllocateBuffer(sizeof(ECPERMISSION) * sRightResponse.pRightsArray->__size,
+	     reinterpret_cast<void **>(&lpECPermissions));
+	if (hr != erSuccess)
+		goto exitm;
 	for (gsoap_size_t i = 0; i < sRightResponse.pRightsArray->__size; ++i) {
 		lpECPermissions[i].ulRights	= sRightResponse.pRightsArray->__ptr[i].ulRights;
 		lpECPermissions[i].ulState	= sRightResponse.pRightsArray->__ptr[i].ulState;
@@ -3613,8 +3625,10 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 			lpAdrList->aEntries[i].cValues = sResponse.sRowSet.__ptr[i].__size;
 			ECFreeBuffer(lpAdrList->aEntries[i].rgPropVals);
 
-			ECAllocateBuffer(sizeof(SPropValue)*lpAdrList->aEntries[i].cValues, (void**)&lpAdrList->aEntries[i].rgPropVals);
-
+			hr = ECAllocateBuffer(sizeof(SPropValue) * lpAdrList->aEntries[i].cValues,
+			     reinterpret_cast<void **>(&lpAdrList->aEntries[i].rgPropVals));
+			if (hr != hrSuccess)
+				goto exitm;
 			hr = CopySOAPRowToMAPIRow(&sResponse.sRowSet.__ptr[i], lpAdrList->aEntries[i].rgPropVals, (void*)lpAdrList->aEntries[i].rgPropVals, &converter);
 			if(hr != hrSuccess)
 				goto exitm;
@@ -3695,8 +3709,9 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, LPENTRYID lpUserId,
 	}
 	END_SOAP_CALL
 
-	ECAllocateBuffer(sizeof(ECQUOTA), (void**)&lpsQuota);
-
+	er = ECAllocateBuffer(sizeof(ECQUOTA), reinterpret_cast<void **>(&lpsQuota));
+	if (er != erSuccess)
+		goto exitm;
 	lpsQuota->bUseDefaultQuota = sResponse.sQuota.bUseDefaultQuota;
 	lpsQuota->bIsUserDefaultQuota = sResponse.sQuota.bIsUserDefaultQuota;
 	lpsQuota->llHardSize = sResponse.sQuota.llHardSize;
@@ -3885,8 +3900,9 @@ HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, LPENTRYID lpUserId,
 	}
 	END_SOAP_CALL
 
-	ECAllocateBuffer(sizeof(ECQUOTASTATUS), (void**)&lpsQuotaStatus);
-
+	er = ECAllocateBuffer(sizeof(ECQUOTASTATUS), reinterpret_cast<void **>(&lpsQuotaStatus));
+	if (er != erSuccess)
+		goto exitm;
 	lpsQuotaStatus->llStoreSize = sResponse.llStoreSize;
 	lpsQuotaStatus->quotaStatus = (eQuotaStatus)sResponse.ulQuotaStatus;
 
@@ -4100,7 +4116,10 @@ HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, 
 	}
 	END_SOAP_CALL
 
-	ECAllocateBuffer(sResponse.sChangesArray.__size * sizeof(ICSCHANGE), (void**)&lpChanges);
+	er = ECAllocateBuffer(sResponse.sChangesArray.__size * sizeof(ICSCHANGE),
+	     reinterpret_cast<void **>(&lpChanges));
+	if (er != erSuccess)
+		goto exitm;
 
 	for (gsoap_size_t i = 0; i < sResponse.sChangesArray.__size; ++i) {
 		lpChanges[i].ulChangeId = sResponse.sChangesArray.__ptr[i].ulChangeId;

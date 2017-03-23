@@ -417,7 +417,9 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		ulInterfaceOptions |= STGM_WRITE;
 
 	// IStream requested for a property
-	ECAllocateBuffer(sizeof(SPropValue), (void **) &lpsPropValue);
+	hr = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpsPropValue));
+	if (hr != hrSuccess)
+		goto exit;
 
 	// Yank the property in from disk if it wasn't loaded yet
 	HrLoadProp(ulPropTag);

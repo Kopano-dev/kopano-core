@@ -1014,26 +1014,32 @@ HRESULT CopySOAPRowSetToMAPIRowSet(void *lpProvider,
 	HRESULT hr = hrSuccess;
 	ULONG ulRows = 0;
 	LPSRowSet lpRowSet = NULL;
-	ULONG i=0;
 	convert_context converter;
 
 	ulRows = lpsRowSetSrc->__size;
 
 	// Allocate space for the rowset
-	ECAllocateBuffer(CbNewSRowSet(ulRows), (void **)&lpRowSet);
-	lpRowSet->cRows = ulRows;
+	hr = ECAllocateBuffer(CbNewSRowSet(ulRows), reinterpret_cast<void **>(&lpRowSet));
+	if (hr != hrSuccess)
+		return hr;
 
 	// Loop through all the rows and values, fill in any client-side generated values, or translate
 	// some serverside values through TableRowGetProps
 
-	for (i = 0; i < lpRowSet->cRows; ++i) {
+	for (lpRowSet->cRows = 0; lpRowSet->cRows < ulRows; ++lpRowSet->cRows) {
+		auto i = lpRowSet->cRows;
 		lpRowSet->aRow[i].ulAdrEntryPad = 0;
 		lpRowSet->aRow[i].cValues = lpsRowSetSrc->__ptr[i].__size;
-		ECAllocateBuffer(sizeof(SPropValue) * lpsRowSetSrc->__ptr[i].__size, (void **)&lpRowSet->aRow[i].lpProps);
+		hr = ECAllocateBuffer(sizeof(SPropValue) * lpsRowSetSrc->__ptr[i].__size, reinterpret_cast<void **>(&lpRowSet->aRow[i].lpProps));
+		if (hr != hrSuccess)
+			goto exit;
 		CopySOAPRowToMAPIRow(lpProvider, &lpsRowSetSrc->__ptr[i], lpRowSet->aRow[i].lpProps, (void **)lpRowSet->aRow[i].lpProps, ulType, &converter);
 	}
 
 	*lppRowSetDst = lpRowSet;
+ exit:
+	if (hr != hrSuccess)
+		FreeProws(lpRowSet);
 	return hr;
 }
 
@@ -1683,7 +1689,9 @@ HRESULT SoapUserArrayToUserArray(const struct userArray *lpUserArray,
 	if (lpUserArray == NULL || lpcUsers == NULL || lppsUsers == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	ECAllocateBuffer(sizeof(ECUSER) * lpUserArray->__size, (void**)&lpECUsers);
+	hr = ECAllocateBuffer(sizeof(ECUSER) * lpUserArray->__size, reinterpret_cast<void **>(&lpECUsers));
+	if (hr != hrSuccess)
+		return hr;
 	memset(lpECUsers, 0, sizeof(ECUSER) * lpUserArray->__size);
 
 	for (gsoap_size_t i = 0; i < lpUserArray->__size; ++i) {
@@ -1782,7 +1790,9 @@ HRESULT SoapGroupArrayToGroupArray(const struct groupArray *lpGroupArray,
 		goto exit;
 	}
 
-	ECAllocateBuffer(sizeof(ECGROUP) * lpGroupArray->__size, (void**)&lpECGroups);
+	hr = ECAllocateBuffer(sizeof(ECGROUP) * lpGroupArray->__size, reinterpret_cast<void **>(&lpECGroups));
+	if (hr != hrSuccess)
+		goto exit;
 	memset(lpECGroups, 0, sizeof(ECGROUP) * lpGroupArray->__size);
 
 	for (gsoap_size_t i = 0; i < lpGroupArray->__size; ++i) {
@@ -1885,7 +1895,9 @@ HRESULT SoapCompanyArrayToCompanyArray(
 		goto exit;
 	}
 
-	ECAllocateBuffer(sizeof(ECCOMPANY) * lpCompanyArray->__size, (void**)&lpECCompanies);
+	hr = ECAllocateBuffer(sizeof(ECCOMPANY) * lpCompanyArray->__size, reinterpret_cast<void **>(&lpECCompanies));
+	if (hr != hrSuccess)
+		goto exit;
 	memset(lpECCompanies, 0, sizeof(ECCOMPANY) * lpCompanyArray->__size);
 
 	for (gsoap_size_t i = 0; i < lpCompanyArray->__size; ++i) {
@@ -2161,8 +2173,7 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, LPENTRYID lpWrapABID, ULONG*
 
 	if (cbWrapABID < ulSize)
 		return MAPI_E_INVALID_ENTRYID;
-
-	hr = ECAllocateBuffer(ulSize, (void**)&lpUnWrapABID);
+	hr = ECAllocateBuffer(ulSize, reinterpret_cast<void **>(&lpUnWrapABID));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -2181,7 +2192,9 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notifica
 	LPNOTIFICATION lpNotification = NULL;
 	int nLen;
 
-	ECAllocateBuffer(sizeof(NOTIFICATION), (void**)&lpNotification);
+	hr = ECAllocateBuffer(sizeof(NOTIFICATION), (void**)&lpNotification);
+	if (hr != hrSuccess)
+		return hr;
 	memset(lpNotification, 0, sizeof(NOTIFICATION));
 
 	lpNotification->ulEventType = lpSrc->ulEventType;
@@ -2286,17 +2299,21 @@ HRESULT CopySOAPChangeNotificationToSyncState(struct notification *lpSrc, LPSBin
 	}
 
 	if (lpBase == NULL)
-		ECAllocateBuffer(sizeof *lpSBinary, (void**)&lpSBinary);
+		hr = ECAllocateBuffer(sizeof(*lpSBinary), reinterpret_cast<void **>(&lpSBinary));
 	else
-		ECAllocateMore(sizeof *lpSBinary, lpBase, (void**)&lpSBinary);
+		hr = ECAllocateMore(sizeof(*lpSBinary), lpBase, reinterpret_cast<void **>(&lpSBinary));
+	if (hr != hrSuccess)
+		return hr;
 	memset(lpSBinary, 0, sizeof *lpSBinary);
 
 	lpSBinary->cb = lpSrc->ics->pSyncState->__size;
 
 	if (lpBase == NULL)
-		ECAllocateMore(lpSBinary->cb, lpSBinary, (void**)&lpSBinary->lpb);
+		hr = ECAllocateMore(lpSBinary->cb, lpSBinary, reinterpret_cast<void **>(&lpSBinary->lpb));
 	else
-		ECAllocateMore(lpSBinary->cb, lpBase, (void**)&lpSBinary->lpb);
+		hr = ECAllocateMore(lpSBinary->cb, lpBase, reinterpret_cast<void **>(&lpSBinary->lpb));
+	if (hr != hrSuccess)
+		goto exit;
 
 	memcpy(lpSBinary->lpb, lpSrc->ics->pSyncState->__ptr, lpSBinary->cb);
 

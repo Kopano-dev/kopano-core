@@ -875,7 +875,9 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 				// +1 for maybe missing PR_ATTACH_NUM property
 				// +1 for maybe missing PR_OBJECT_TYPE property
-				ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
+				hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), reinterpret_cast<void **>(&lpProps));
+				if (hr != hrSuccess)
+					return hr;
 
 				lpPropID = NULL;
 				lpPropType = NULL;
@@ -1122,7 +1124,10 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 				// +1 for maybe missing PR_ROWID property
 				// +1 for maybe missing PR_OBJECT_TYPE property
-				ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
+				hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), reinterpret_cast<void **>(&lpProps));
+				if (hr != hrSuccess)
+					return hr;
+
 				for (const auto &pv : obj->lstProperties) {
 					pv.CopyToByRef(&lpProps[i]);
 					if (lpProps[i].ulPropTag == PR_ROWID)
@@ -2680,7 +2685,9 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	ulProps = lpsMapiObject->lstProperties.size();
 
 	// +2 for maybe missing PR_ATTACH_NUM and PR_OBJECT_TYPE properties
-	ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
+	hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), reinterpret_cast<void **>(&lpProps));
+	if (hr != hrSuccess)
+		goto exit;
 
 	lpPropID = NULL;
 	i = 0;

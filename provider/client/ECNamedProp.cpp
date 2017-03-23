@@ -122,7 +122,9 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 	lpsPropTags = *lppPropTags;
 
 	// Allocate space for properties
-	ECAllocateBuffer(sizeof(LPMAPINAMEID) * lpsPropTags->cValues, (void **)&lppPropNames);
+	hr = ECAllocateBuffer(sizeof(LPMAPINAMEID) * lpsPropTags->cValues, (void **)&lppPropNames);
+	if (hr != hrSuccess)
+		goto exit;
 
 	// Pass 1, local reverse mapping (FAST)
 	for (i = 0; i < lpsPropTags->cValues; ++i)
@@ -141,7 +143,9 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 		// resolved internally. Looks like somebody's pulling our leg ... We just leave it unknown }
 	}
 
-	ECAllocateBuffer(CbNewSPropTagArray(lpsPropTags->cValues), (void **)&lpsUnresolved);
+	hr = ECAllocateBuffer(CbNewSPropTagArray(lpsPropTags->cValues), reinterpret_cast<void **>(&lpsUnresolved));
+	if (hr != hrSuccess)
+		goto exit;
 
 	cUnresolved = 0;
 	// Pass 3, server reverse lookup (SLOW)

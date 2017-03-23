@@ -1929,7 +1929,9 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		// indicate, validity of the entry identifiers of the folders in a message store
 		// Public folder have default the mask
 		cValues = 2;
-		ECAllocateBuffer(sizeof(SPropValue)*cValues, (void**)&lpPropValue);
+		hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, reinterpret_cast<void **>(&lpPropValue));
+		if (hr != hrSuccess)
+			goto exit;
 		lpPropValue->ulPropTag = PR_VALID_FOLDER_MASK;
 		lpPropValue->Value.ul = FOLDER_FINDER_VALID | FOLDER_IPM_SUBTREE_VALID | FOLDER_IPM_INBOX_VALID | FOLDER_IPM_OUTBOX_VALID | FOLDER_IPM_WASTEBASKET_VALID | FOLDER_IPM_SENTMAIL_VALID | FOLDER_VIEWS_VALID | FOLDER_COMMON_VIEWS_VALID;
 
@@ -2120,7 +2122,9 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 
 		// indicate, validity of the entry identifiers of the folders in a message store
 		cValues = 1;
-		ECAllocateBuffer(sizeof(SPropValue)*cValues, (void**)&lpPropValue);
+		hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, reinterpret_cast<void **>(&lpPropValue));
+		if (hr != hrSuccess)
+			goto exit;
 		lpPropValue[0].ulPropTag = PR_VALID_FOLDER_MASK;
 		lpPropValue[0].Value.ul = FOLDER_VIEWS_VALID | FOLDER_COMMON_VIEWS_VALID|FOLDER_FINDER_VALID | FOLDER_IPM_INBOX_VALID | FOLDER_IPM_OUTBOX_VALID | FOLDER_IPM_SENTMAIL_VALID | FOLDER_IPM_SUBTREE_VALID | FOLDER_IPM_WASTEBASKET_VALID;
 
@@ -2313,7 +2317,9 @@ HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp 
 		goto exit;
 
 	if (PROP_TYPE(ulPropTag) & MV_FLAG) {
-		ECAllocateBuffer(sizeof(SPropValue), (void**)&lpPropMVValueNew);
+		hr = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpPropMVValueNew));
+		if (hr != hrSuccess)
+			goto exit;
 		memset(lpPropMVValueNew, 0, sizeof(SPropValue));
 
 		hr = HrGetOneProp(lpFolder, ulPropTag, &lpPropMVValue);
@@ -2397,8 +2403,9 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 	}
 
 	if (lpszContainerClass && _tcslen(lpszContainerClass) > 0) {
-		ECAllocateBuffer(sizeof(SPropValue), (void**)&lpPropValue);
-		
+		hr = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpPropValue));
+		if (hr != hrSuccess)
+			goto exit;
 		lpPropValue[0].ulPropTag = PR_CONTAINER_CLASS;
 		ECAllocateMore((_tcslen(lpszContainerClass) + 1) * sizeof(TCHAR), lpPropValue, (void**)&lpPropValue[0].Value.LPSZ);
 		_tcscpy(lpPropValue[0].Value.LPSZ, lpszContainerClass);
