@@ -90,7 +90,7 @@ class TrackingContentsImporter(ECImportContentsChanges):
             else:
                 store_entryid = PpropFindProp(props, PR_STORE_ENTRYID).Value
                 store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', store_entryid[:-4]) + self.server.pseudo_url + b'\x00'
-                mapistore = self.server.mapisession.OpenMsgStore(0, store_entryid, None, 0) # XXX cache
+                mapistore = self.server._store2(store_entryid)
             item = _item.Item()
             item.server = self.server
             item.store = _store.Store(mapiobj=mapistore, server=self.server)
