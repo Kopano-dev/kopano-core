@@ -3609,6 +3609,40 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 	return hr;
 }
 
+HRESULT IMAP::save_generated_properties(const std::string &text, IMessage *message)
+{
+	SPropValue imap_props[4];
+	HRESULT hr = hrSuccess;
+
+	lpLogger->Log(EC_LOGLEVEL_DEBUG, "Setting IMAP props");
+
+	imap_props[0].ulPropTag = PR_EC_IMAP_EMAIL;
+	imap_props[0].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(text.c_str()));
+	imap_props[0].Value.bin.cb = text.length();
+
+	imap_props[1].ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
+	imap_props[1].Value.ul = text.length();
+
+	std::string body, body_structure;
+	createIMAPProperties(text, nullptr, &body, &body_structure);
+
+	imap_props[2].ulPropTag = PR_EC_IMAP_BODY;
+	imap_props[2].Value.lpszA = const_cast<char *>(body.c_str());
+
+	imap_props[3].ulPropTag = PR_EC_IMAP_BODYSTRUCTURE;
+	imap_props[3].Value.lpszA = const_cast<char *>(body_structure.c_str());
+
+	hr = message->SetProps(4, imap_props, NULL);
+	if (hr != hrSuccess)
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to set IMAP props %08x", hr);
+
+	hr = message->SaveChanges(0);
+	if (hr != hrSuccess)
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to save IMAP props %08x", hr);
+
+	return hr;
+}
+
 /** 
  * Does a FETCH based on row-data from a MAPI table. If the table data
  * is not sufficient, the PR_EC_IMAP_EMAIL property may be fetched
@@ -3676,10 +3710,13 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 		else if (Prefix(*iFetch, "BODY") || Prefix(*iFetch, "RFC822"))
 			bSkipOpen = false;
 	}
-	if (!bSkipOpen && m_ulCacheUID != lstFolderMailEIDs[ulMailnr].ulUid)
+	if (!bSkipOpen && m_ulCacheUID != lstFolderMailEIDs[ulMailnr].ulUid) {
 		// ignore error, we can't print an error halfway to the imap client
-		lpSession->OpenEntry(lstFolderMailEIDs[ulMailnr].sEntryID.cb, (LPENTRYID) lstFolderMailEIDs[ulMailnr].sEntryID.lpb,
-							 &IID_IMessage, MAPI_DEFERRED_ERRORS, &ulObjType, (LPUNKNOWN *) &lpMessage);
+		hr = lpSession->OpenEntry(lstFolderMailEIDs[ulMailnr].sEntryID.cb, (LPENTRYID) lstFolderMailEIDs[ulMailnr].sEntryID.lpb,
+							 &IID_IMessage, MAPI_DEFERRED_ERRORS | MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *) &lpMessage);
+		if (hr != hrSuccess)
+			return hr;
+	}
 
 	// Handle requested properties
 	for (const auto &item : lstDataItems) {
@@ -3810,6 +3847,8 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				// no full imap email in database available, so regenerate all
 				if (hr != hrSuccess) {
 					assert(lpMessage);
+					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Generating message");
+
 					if (oss.tellp() == ostringstream::pos_type(0) && // already converted in previous loop?
 					    (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess)) {
 						vProps.push_back(item);
@@ -3818,8 +3857,14 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 						continue;
 					}
 					strMessage = oss.str();
+
+					if (!sopt.headers_only) {
+						hr = save_generated_properties(strMessage, lpMessage);
+						if (hr != hrSuccess)
+							return hr;
+					}
+
 					hr = hrSuccess;
-					// @todo save message and all generated crap and when not headers only
 				}
 
 				// Cache the generated message
