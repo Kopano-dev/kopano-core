@@ -1230,14 +1230,18 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 	for (i = 0; i < cNames; ++i) {	
 		switch(lppPropNames[i]->ulKind) {
 		case MNID_ID:
-			ECAllocateMore(sizeof(unsigned int), sNamedProps.__ptr,(void **)&sNamedProps.__ptr[i].lpId);
+			er = ECAllocateMore(sizeof(unsigned int), sNamedProps.__ptr, reinterpret_cast<void **>(&sNamedProps.__ptr[i].lpId));
+			if (er != erSuccess)
+				goto exitm;
 			*sNamedProps.__ptr[i].lpId = lppPropNames[i]->Kind.lID;
 			break;
 		case MNID_STRING: {
 			// The string is actually UTF-8, not windows-1252. This enables full support for wide char strings.
 			utf8string strNameUTF8 = convertContext.convert_to<utf8string>(lppPropNames[i]->Kind.lpwstrName);
 
-			ECAllocateMore(strNameUTF8.length()+1, sNamedProps.__ptr,(void **)&sNamedProps.__ptr[i].lpString);
+			er = ECAllocateMore(strNameUTF8.length() + 1, sNamedProps.__ptr, reinterpret_cast<void **>(&sNamedProps.__ptr[i].lpString));
+			if (er != erSuccess)
+				goto exitm;
 			strcpy(sNamedProps.__ptr[i].lpString, strNameUTF8.c_str());
 			break;
 		}
@@ -1247,7 +1251,9 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 		}
 
 		if(lppPropNames[i]->lpguid) {
-			ECAllocateMore(sizeof( xsd__base64Binary) , sNamedProps.__ptr, (void **) &sNamedProps.__ptr[i].lpguid);
+			er = ECAllocateMore(sizeof( xsd__base64Binary) , sNamedProps.__ptr, reinterpret_cast<void **>(&sNamedProps.__ptr[i].lpguid));
+			if (er != erSuccess)
+				goto exitm;
 			sNamedProps.__ptr[i].lpguid->__ptr = (unsigned char *)lppPropNames[i]->lpguid;
 			sNamedProps.__ptr[i].lpguid->__size = sizeof(GUID);
 		} else {
@@ -1316,10 +1322,13 @@ HRESULT WSTransport::HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID
 	// Loop through all the returned names, and put it into the return value
 	for (gsoap_size_t i = 0; i < sResponse.lpsNames.__size; ++i) {
 		// Each MAPINAMEID must be allocated
-		ECAllocateMore(sizeof(MAPINAMEID), lppNames, (void **) &lppNames[i]);
-
+		er = ECAllocateMore(sizeof(MAPINAMEID), lppNames, reinterpret_cast<void **>(&lppNames[i]));
+		if (er != erSuccess)
+			goto exitm;
 		if(sResponse.lpsNames.__ptr[i].lpguid && sResponse.lpsNames.__ptr[i].lpguid->__ptr) {
-			ECAllocateMore(sizeof(GUID), lppNames, (void **) &lppNames[i]->lpguid);
+			er = ECAllocateMore(sizeof(GUID), lppNames, reinterpret_cast<void **>(&lppNames[i]->lpguid));
+			if (er != erSuccess)
+				goto exitm;
 			memcpy(lppNames[i]->lpguid, sResponse.lpsNames.__ptr[i].lpguid->__ptr, sizeof(GUID));
 		}
 		if(sResponse.lpsNames.__ptr[i].lpId) {
@@ -1328,7 +1337,10 @@ HRESULT WSTransport::HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID
 		} else if(sResponse.lpsNames.__ptr[i].lpString) {
 			std::wstring strNameW = convertContext.convert_to<std::wstring>(sResponse.lpsNames.__ptr[i].lpString, rawsize(sResponse.lpsNames.__ptr[i].lpString), "UTF-8");
 
-			ECAllocateMore((strNameW.size() + 1) * sizeof(WCHAR), lppNames, (void **)&lppNames[i]->Kind.lpwstrName);
+			er = ECAllocateMore((strNameW.size() + 1) * sizeof(wchar_t), lppNames,
+			     reinterpret_cast<void **>(&lppNames[i]->Kind.lpwstrName));
+			if (er != erSuccess)
+				goto exitm;
 			memcpy(lppNames[i]->Kind.lpwstrName, strNameW.c_str(), (strNameW.size() + 1) * sizeof(WCHAR));	// Also copy the trailing '\0'
 			lppNames[i]->ulKind = MNID_STRING;
 		} else {
@@ -1399,30 +1411,43 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 
 		lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].ulPropTag = PR_INSTANCE_KEY;
 		lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb = 4; //fixme: maybe fix, normal 8 now
-		ECAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps, (void**)&lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb);
+		er = ECAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
+		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb));
+		if (er != erSuccess)
+			goto exitm;
 		memset(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb, 0, lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb);
 		memcpy(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb, &ulRowId, sizeof(ulRowId));
 		
 		lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].ulPropTag = PR_ENTRYID;
 		lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb = sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__size;
-		ECAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb, lpsRowSet->aRow[i].lpProps, (void**)&lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.lpb);
+		er = ECAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
+		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.lpb));
+		if (er != erSuccess)
+			goto exitm;
 		memcpy(lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.lpb, sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__ptr, lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb);
 
 		// Use the entryid for record key
 		lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].ulPropTag = PR_RECORD_KEY;
 		lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb = sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__size;
-		ECAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps, (void**)&lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.lpb);
+		er = ECAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
+		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.lpb));
+		if (er != erSuccess)
+			goto exitm;
 		memcpy(lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.lpb, sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__ptr, lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb);
 
 		if (ulFlags & MAPI_UNICODE) {
 			lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].ulPropTag = PR_MESSAGE_CLASS_W;
 			unicode = converter.convert_to<std::wstring>(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass);
-			ECAllocateMore((unicode.length()+1)*sizeof(WCHAR), lpsRowSet->aRow[i].lpProps, (void**)&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW);
+			er = ECAllocateMore((unicode.length() + 1) * sizeof(wchar_t), lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW));
+			if (er != erSuccess)
+				goto exitm;
 			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW, unicode.c_str(), (unicode.length()+1)*sizeof(WCHAR));
 		} else {
 			lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].ulPropTag = PR_MESSAGE_CLASS_A;
 			nLen = strlen(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass)+1;
-			ECAllocateMore(nLen, lpsRowSet->aRow[i].lpProps, (void**)&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA);
+			er = ECAllocateMore(nLen, lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA));
+			if (er != erSuccess)
+				goto exitm;
 			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA, sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass, nLen);
 		}	
 	}
@@ -4127,13 +4152,19 @@ HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, 
 		lpChanges[i].ulFlags = sResponse.sChangesArray.__ptr[i].ulFlags;
 
 		if(sResponse.sChangesArray.__ptr[i].sSourceKey.__size > 0) {
-			ECAllocateMore( sResponse.sChangesArray.__ptr[i].sSourceKey.__size, lpChanges, (void **)&lpChanges[i].sSourceKey.lpb);
+			er = ECAllocateMore(sResponse.sChangesArray.__ptr[i].sSourceKey.__size,
+			     lpChanges, reinterpret_cast<void **>(&lpChanges[i].sSourceKey.lpb));
+			if (er != erSuccess)
+				goto exitm;
 			lpChanges[i].sSourceKey.cb = sResponse.sChangesArray.__ptr[i].sSourceKey.__size;
 			memcpy(lpChanges[i].sSourceKey.lpb, sResponse.sChangesArray.__ptr[i].sSourceKey.__ptr, sResponse.sChangesArray.__ptr[i].sSourceKey.__size);
 		}
 		
 		if(sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size > 0) {
-			ECAllocateMore( sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size, lpChanges, (void **)&lpChanges[i].sParentSourceKey.lpb);
+			er = ECAllocateMore( sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size,
+			     lpChanges, reinterpret_cast<void **>(&lpChanges[i].sParentSourceKey.lpb));
+			if (er != erSuccess)
+				goto exitm;
 			lpChanges[i].sParentSourceKey.cb = sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size;
 			memcpy(lpChanges[i].sParentSourceKey.lpb, sResponse.sChangesArray.__ptr[i].sParentSourceKey.__ptr, sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size);
 		}

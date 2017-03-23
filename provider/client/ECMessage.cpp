@@ -2222,8 +2222,9 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		else{
 			lpsPropValue->ulPropTag = PR_PARENT_ENTRYID;
 			lpsPropValue->Value.bin.cb = lpMessage->m_cbParentID;
-
-			ECAllocateMore(lpsPropValue->Value.bin.cb, lpBase, (LPVOID *)&lpsPropValue->Value.bin.lpb);
+			hr = ECAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+			if (hr != hrSuccess)
+				break;
 			memcpy(lpsPropValue->Value.bin.lpb, lpMessage->m_lpParentID, lpsPropValue->Value.bin.cb);
 		}
 		break;

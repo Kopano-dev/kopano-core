@@ -54,8 +54,9 @@ HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 
 		if(lpProp->m_lpEntryId && lpProp->m_cbEntryId > 0) {
 			lpsPropValue->Value.bin.cb = lpProp->m_cbEntryId;
-
-			ECAllocateMore(lpsPropValue->Value.bin.cb, lpBase, (LPVOID *)&lpsPropValue->Value.bin.lpb);
+			hr = ECAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+			if (hr != hrSuccess)
+				break;
 			memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpsPropValue->Value.bin.cb);
 		} else {
 			hr = MAPI_E_NOT_FOUND;
@@ -91,7 +92,9 @@ HRESULT ECABProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSr
 	case PROP_TAG(PT_ERROR,PROP_ID(PR_AB_PROVIDER_ID)):
 		lpsPropValDst->ulPropTag = PR_AB_PROVIDER_ID;
 		lpsPropValDst->Value.bin.cb = sizeof(GUID);
-		ECAllocateMore(sizeof(GUID), lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+		hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+		if (hr != hrSuccess)
+			break;
 		memcpy(lpsPropValDst->Value.bin.lpb, &MUIDECSAB, sizeof(GUID));
 		break;
 	default:

@@ -903,7 +903,9 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 				lpsProp->Value.MVbin.lpbin[i].cb = this->Value.MVbin.lpbin[i].cb;
 				if(lpsProp->Value.MVbin.lpbin[i].cb > 0)
 				{
-					ECAllocateMore(this->Value.MVbin.lpbin[i].cb, lpBase, (LPVOID *)&lpsProp->Value.MVbin.lpbin[i].lpb);
+					hr = ECAllocateMore(this->Value.MVbin.lpbin[i].cb, lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVbin.lpbin[i].lpb));
+					if (hr != hrSuccess)
+						return hr;
 					memcpy(lpsProp->Value.MVbin.lpbin[i].lpb, this->Value.MVbin.lpbin[i].lpb, lpsProp->Value.MVbin.lpbin[i].cb);
 				}else
 					lpsProp->Value.MVbin.lpbin[i].lpb = NULL;

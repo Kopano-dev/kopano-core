@@ -308,7 +308,9 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 		lpsPropValue->Value.bin.cb = lpProp->m_cbEntryId;
 		if (lpBase == NULL)
 			assert(false);
-		ECAllocateMore(lpProp->m_cbEntryId, lpBase, (void **)&lpsPropValue->Value.bin.lpb);
+		hr = ECAllocateMore(lpProp->m_cbEntryId, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		if (hr != hrSuccess)
+			return hr;
 		memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpProp->m_cbEntryId);
 		break;
 	// Gives access to the actual ECUnknown underlying object

@@ -184,7 +184,9 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 	case PROP_ID(PR_STORE_RECORD_KEY):
 		lpsPropValue->ulPropTag = PR_STORE_RECORD_KEY;
 		lpsPropValue->Value.bin.cb = sizeof(MAPIUID);
-		ECAllocateMore(sizeof(MAPIUID), lpBase, (void **)&lpsPropValue->Value.bin.lpb);
+		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		if (hr != hrSuccess)
+			break;
 		memcpy(lpsPropValue->Value.bin.lpb, &lpProp->GetMsgStore()->GetStoreGuid(), sizeof(MAPIUID));
 		break;
 
@@ -217,14 +219,18 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 
 		hr = lpProp->GetMsgStore()->GetWrappedStoreEntryID(&cbWrapped, &~lpWrapped);
 		if(hr == hrSuccess) {
-			ECAllocateMore(cbWrapped, lpBase, (LPVOID *)&lpsPropValue->Value.bin.lpb);
+			hr = ECAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+			if (hr != hrSuccess)
+				break;
 			memcpy(lpsPropValue->Value.bin.lpb, lpWrapped, cbWrapped);
 			lpsPropValue->Value.bin.cb = cbWrapped;
 		}
 		break;
 	}
 	case PROP_ID(PR_MDB_PROVIDER):
-		ECAllocateMore(sizeof(MAPIUID),lpBase, (LPVOID *)&lpsPropValue->Value.bin.lpb);
+		hr = ECAllocateMore(sizeof(MAPIUID),lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		if (hr != hrSuccess)
+			break;
 		memcpy(lpsPropValue->Value.bin.lpb, &lpMsgStore->m_guidMDB_Provider, sizeof(MAPIUID));
 		lpsPropValue->Value.bin.cb = sizeof(MAPIUID);
 		lpsPropValue->ulPropTag = PR_MDB_PROVIDER;
@@ -242,7 +248,9 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		lpsPropValue->ulPropTag = PR_PARENT_ENTRYID;
 
 		if (lpProp->m_lpParentID != NULL) {
-			ECAllocateMore(lpProp->m_cbParentID, lpBase, (LPVOID *)&lpsPropValue->Value.bin.lpb);
+			hr = ECAllocateMore(lpProp->m_cbParentID, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+			if (hr != hrSuccess)
+				break;
 			memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpParentID, lpProp->m_cbParentID);
 			lpsPropValue->Value.bin.cb = lpProp->m_cbParentID;
 		} else {
@@ -319,7 +327,9 @@ HRESULT ECMAPIProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
 		hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &~lpWrapped);
 		if (hr != hrSuccess)
 			return hr;
-		ECAllocateMore(cbWrapped, lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+		hr = ECAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+		if (hr != hrSuccess)
+			return hr;
 		memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
 		lpsPropValDst->Value.bin.cb = cbWrapped;
 		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
@@ -353,14 +363,18 @@ HRESULT ECMAPIProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
 	case PROP_TAG(PT_ERROR,PROP_ID(PR_STORE_RECORD_KEY)):
 		// Reset type to binary
 		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
-		ECAllocateMore(sizeof(MAPIUID), lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+		if (hr != hrSuccess)
+			break;
 		memcpy(lpsPropValDst->Value.bin.lpb, &lpMsgStore->GetStoreGuid(), sizeof(MAPIUID));
 		lpsPropValDst->Value.bin.cb = sizeof(MAPIUID);
 		break;
 
 	case PROP_TAG(PT_ERROR,PROP_ID(PR_MDB_PROVIDER)):
 		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
-		ECAllocateMore(sizeof(MAPIUID), lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+		if (hr != hrSuccess)
+			break;
 		memcpy(lpsPropValDst->Value.bin.lpb, &lpMsgStore->m_guidMDB_Provider, sizeof(MAPIUID));
 		lpsPropValDst->Value.bin.cb = sizeof(MAPIUID);
 		break;

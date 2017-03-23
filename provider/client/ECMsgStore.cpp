@@ -543,7 +543,9 @@ HRESULT ECMsgStore::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
 		hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &~lpWrapped);
 		if (hr != hrSuccess)
 			return hr;
-		ECAllocateMore(cbWrapped, lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+		hr = ECAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+		if (hr != hrSuccess)
+			return hr;
 		memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
 		lpsPropValDst->Value.bin.cb = cbWrapped;
 		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
@@ -1095,7 +1097,9 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 				lpsPropValue->ulPropTag = ulPropTag;
 				hr = lpStore->GetWrappedStoreEntryID(&cbWrapped, &~lpWrapped);
 				if(hr == hrSuccess) {
-					ECAllocateMore(cbWrapped, lpBase, (LPVOID *)&lpsPropValue->Value.bin.lpb);
+					hr = ECAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+					if (hr != hrSuccess)
+						break;
 					memcpy(lpsPropValue->Value.bin.lpb, lpWrapped, cbWrapped);
 					lpsPropValue->Value.bin.cb = cbWrapped;
 				} else {
@@ -1106,7 +1110,9 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 		case PROP_ID(PR_RECORD_KEY):
 			lpsPropValue->ulPropTag = PR_RECORD_KEY;
 			lpsPropValue->Value.bin.cb = sizeof(MAPIUID);
-			ECAllocateMore(sizeof(MAPIUID), lpBase, (void **)&lpsPropValue->Value.bin.lpb);
+			hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+			if (hr != hrSuccess)
+				break;
 			memcpy(lpsPropValue->Value.bin.lpb, &lpStore->GetStoreGuid(), sizeof(MAPIUID));
 			break;
 
@@ -2325,7 +2331,10 @@ HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp 
 		hr = HrGetOneProp(lpFolder, ulPropTag, &lpPropMVValue);
 		if(hr != hrSuccess) {
 			lpPropMVValueNew->Value.MVbin.cValues = (ulMVPos+1);
-			ECAllocateMore(sizeof(SBinary)*lpPropMVValueNew->Value.MVbin.cValues, lpPropMVValueNew, (void**)&lpPropMVValueNew->Value.MVbin.lpbin);
+			hr = ECAllocateMore(sizeof(SBinary) * lpPropMVValueNew->Value.MVbin.cValues, lpPropMVValueNew,
+			     reinterpret_cast<void **>(&lpPropMVValueNew->Value.MVbin.lpbin));
+			if (hr != hrSuccess)
+				goto exit;
 			memset(lpPropMVValueNew->Value.MVbin.lpbin, 0, sizeof(SBinary)*lpPropMVValueNew->Value.MVbin.cValues);
 
 			for (unsigned int i = 0; i <lpPropMVValueNew->Value.MVbin.cValues; ++i)
@@ -2333,8 +2342,10 @@ HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp 
 					lpPropMVValueNew->Value.MVbin.lpbin[i] = lpPropValue->Value.bin;
 		}else{
 			lpPropMVValueNew->Value.MVbin.cValues = (lpPropMVValue->Value.MVbin.cValues < ulMVPos)? lpPropValue->Value.bin.cb : ulMVPos+1;
-			ECAllocateMore(sizeof(SBinary)*lpPropMVValueNew->Value.MVbin.cValues, lpPropMVValueNew, (void**)&lpPropMVValueNew->Value.MVbin.lpbin);
-
+			hr = ECAllocateMore(sizeof(SBinary) * lpPropMVValueNew->Value.MVbin.cValues, lpPropMVValueNew,
+			     reinterpret_cast<void **>(&lpPropMVValueNew->Value.MVbin.lpbin));
+			if (hr != hrSuccess)
+				goto exit;
 			memset(lpPropMVValueNew->Value.MVbin.lpbin, 0, sizeof(SBinary)*lpPropMVValueNew->Value.MVbin.cValues);
 
 			for (unsigned int i = 0; i < lpPropMVValueNew->Value.MVbin.cValues; ++i)
@@ -2407,7 +2418,10 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 		if (hr != hrSuccess)
 			goto exit;
 		lpPropValue[0].ulPropTag = PR_CONTAINER_CLASS;
-		ECAllocateMore((_tcslen(lpszContainerClass) + 1) * sizeof(TCHAR), lpPropValue, (void**)&lpPropValue[0].Value.LPSZ);
+		hr = ECAllocateMore((_tcslen(lpszContainerClass) + 1) * sizeof(TCHAR), lpPropValue,
+		     reinterpret_cast<void **>(&lpPropValue[0].Value.LPSZ));
+		if (hr != hrSuccess)
+			goto exit;
 		_tcscpy(lpPropValue[0].Value.LPSZ, lpszContainerClass);
 
 		// Set the property
