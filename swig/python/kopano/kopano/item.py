@@ -56,7 +56,7 @@ from MAPI.Tags import (
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
 
 from .compat import (
-    unhex as _unhex, is_str as _is_str, repr as _repr,
+    hex as _hex, unhex as _unhex, is_str as _is_str, repr as _repr,
     pickle_load as _pickle_load, pickle_loads as _pickle_loads,
     fake_unicode as _unicode, is_file as _is_file
 )
@@ -330,7 +330,7 @@ class Item(object):
         if self._folder:
             return self._folder
         try:
-            return _folder.Folder(self.store, HrGetOneProp(self.mapiobj, PR_PARENT_ENTRYID).Value)
+            return _folder.Folder(self.store, _hex(HrGetOneProp(self.mapiobj, PR_PARENT_ENTRYID).Value))
         except MAPIErrorNotFound:
             pass
 

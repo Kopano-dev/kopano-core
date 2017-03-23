@@ -32,7 +32,7 @@ from MAPI.Tags import (
     CONVENIENT_DEPTH, PR_DEPTH
 )
 from MAPI.Defs import (
-    bin2hex, HrGetOneProp, CHANGE_PROP_TYPE
+    HrGetOneProp, CHANGE_PROP_TYPE
 )
 from MAPI.Struct import (
     MAPIErrorNoAccess, MAPIErrorNotFound, MAPIErrorNoSupport,
@@ -69,7 +69,7 @@ else:
 class Folder(object):
     """Folder class"""
 
-    def __init__(self, store=None, entryid=None, associated=False, deleted=False, mapiobj=None): # XXX entryid not hex-encoded!?
+    def __init__(self, store=None, entryid=None, associated=False, deleted=False, mapiobj=None):
         if store:
             self.store = store
             self.server = store.server
@@ -77,13 +77,13 @@ class Folder(object):
             self.mapiobj = mapiobj
             self._entryid = HrGetOneProp(self.mapiobj, PR_ENTRYID).Value
         elif entryid:
-            self._entryid = entryid
+            self._entryid = _unhex(entryid)
             try:
-                self.mapiobj = store.mapiobj.OpenEntry(entryid, IID_IMAPIFolder, MAPI_MODIFY)
+                self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
             except MAPIErrorNotFound:
-                self.mapiobj = store.mapiobj.OpenEntry(entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
+                self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
             except MAPIErrorNoAccess: # XXX XXX
-                self.mapiobj = store.mapiobj.OpenEntry(entryid, IID_IMAPIFolder, 0)
+                self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
         self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
         self._sourcekey = None
 
@@ -91,12 +91,12 @@ class Folder(object):
     def entryid(self):
         """ Folder entryid """
 
-        return bin2hex(self._entryid)
+        return _hex(self._entryid)
 
     @property
     def sourcekey(self):
         if not self._sourcekey:
-            self._sourcekey = bin2hex(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
+            self._sourcekey = _hex(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
         return self._sourcekey
 
     @property
@@ -105,7 +105,7 @@ class Folder(object):
 
         if self.entryid != self.store.root.entryid:
             try:
-                return Folder(self.store, self.prop(PR_PARENT_ENTRYID).value)
+                return Folder(self.store, _hex(self.prop(PR_PARENT_ENTRYID).value))
             except MAPIErrorNotFound: # XXX: Should not happen
                 pass
 
@@ -356,7 +356,7 @@ class Folder(object):
 
         if entryid is not None:
             try:
-                return Folder(self, _unhex(entryid))
+                return Folder(self, entryid)
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound, TypeError):
                 raise NotFoundError
 
@@ -376,7 +376,7 @@ class Folder(object):
             if create:
                 name = path.replace('\\/', '/')
                 mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, _unicode(name), u'', None, MAPI_UNICODE)
-                return Folder(self.store, HrGetOneProp(mapifolder, PR_ENTRYID).Value)
+                return Folder(self.store, _hex(HrGetOneProp(mapifolder, PR_ENTRYID).Value))
             else:
                 raise NotFoundError("no such folder: '%s'" % path)
 
@@ -532,11 +532,11 @@ class Folder(object):
     def associated(self):
         """ Associated folder containing hidden items """
 
-        return Folder(self.store, self._entryid, associated=True)
+        return Folder(self.store, self.entryid, associated=True)
 
     @property
     def deleted(self):
-        return Folder(self.store, self._entryid, deleted=True)
+        return Folder(self.store, self.entryid, deleted=True)
 
     def permissions(self):
         return _utils.permissions(self)
