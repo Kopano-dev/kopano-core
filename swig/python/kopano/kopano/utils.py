@@ -6,7 +6,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import codecs
-import pwd
 import struct
 import sys
 import traceback

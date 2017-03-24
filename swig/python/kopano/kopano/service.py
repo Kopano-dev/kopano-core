@@ -8,6 +8,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 import collections
 import errno
 import grp
+import pwd
 import logging
 import logging.handlers
 import multiprocessing
