@@ -678,13 +678,20 @@ class Item(object):
                     data = item._dump() # recursion
                     atts.append(([[a, b, None] for a, b in row.items()], data))
                 elif method == ATTACH_BY_VALUE and attachments:
-                    data = _utils.stream(att, PR_ATTACH_DATA_BIN)
+                    try:
+                        data = _utils.stream(att, PR_ATTACH_DATA_BIN)
+                    except MAPIErrorNotFound:
+                        service = self.server.service
+                        log = (service or self.server).log
+                        if log:
+                            log.warn("no data found for attachment of item with entryid %s" % self.entryid)
+                        data = ''
                     atts.append(([[a, b, None] for a, b in row.items()], data))
             except Exception as e: # XXX generalize so usable in more places
                 service = self.server.service
                 log = (service or self.server).log
                 if log:
-                    log.error('could not serialize attachment')
+                    log.error('could not serialize attachment for item with entryid %s' % self.entryid)
                 if skip_broken:
                     if log:
                         log.error(traceback.format_exc(e))
