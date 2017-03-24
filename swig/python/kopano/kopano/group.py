@@ -110,8 +110,8 @@ class Group(object):
     def hidden(self, value):
         self._update(hidden=value)
 
-    def prop(self, proptag):
-        return _prop.prop(self, self.mapiobj, proptag)
+    def prop(self, proptag, create=False):
+        return _prop.prop(self, self.mapiobj, proptag, create=create)
 
     def props(self):
         return _prop.props(self.mapiobj)
