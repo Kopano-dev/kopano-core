@@ -385,7 +385,7 @@ class Folder(object):
 
         try:
             return self.folder(path, entryid=entryid)
-        except Error:
+        except NotFoundError:
             pass
 
     def folders(self, recurse=True):
