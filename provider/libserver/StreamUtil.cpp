@@ -1862,10 +1862,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 		lpPropValArray = NULL;
 	}
 
-#ifdef EXPERIMENTAL
-	g_lpSessionManager->GetCacheManager()->SetComplete(ulObjId);
-#endif
-
 exit:
 	if (er != erSuccess) {
 		lpSource->Flush(); // Flush the whole stream
