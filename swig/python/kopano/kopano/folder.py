@@ -59,12 +59,14 @@ if sys.hexversion >= 0x03000000:
     from . import item as _item
     from . import utils as _utils
     from . import prop as _prop
+    from . import ics as _ics
 else:
     import user as _user
     import store as _store
     import item as _item
     import utils as _utils
     import prop as _prop
+    import ics as _ics
 
 class Folder(object):
     """Folder class"""
@@ -485,7 +487,7 @@ class Folder(object):
     def state(self):
         """ Current folder state """
 
-        return _utils.state(self.mapiobj, self.content_flag == MAPI_ASSOCIATED)
+        return _ics.state(self.mapiobj, self.content_flag == MAPI_ASSOCIATED)
 
     def sync(self, importer, state=None, log=None, max_changes=None, associated=False, window=None, begin=None, end=None, stats=None):
         """ Perform synchronization against folder
@@ -498,13 +500,13 @@ class Folder(object):
         if state is None:
             state = codecs.encode(8 * b'\0', 'hex').upper()
         importer.store = self.store
-        return _utils.sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
+        return _ics.sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
 
     def hierarchy_sync(self, importer, state=None):
         if state is None:
             state = codecs.encode(8 * b'\0', 'hex').upper()
         importer.store = self.store
-        return _utils.hierarchy_sync(self.store.server, self.mapiobj, importer, state)
+        return _ics.hierarchy_sync(self.store.server, self.mapiobj, importer, state)
 
     def readmbox(self, location):
         for message in mailbox.mbox(location):
