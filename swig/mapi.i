@@ -155,7 +155,9 @@ public:
 			if (hr != hrSuccess)
 				return hr;
 
-			self->Read(buffer, cb, ulRead);
+			hr = self->Read(buffer, cb, ulRead);
+			if (hr != hrSuccess)
+				return hr;
 
 			*lpOutput = buffer;
 			return hrSuccess;
