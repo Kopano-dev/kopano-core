@@ -51,11 +51,12 @@ class Company(object):
         self._name = name = _unicode(name)
         if name != u'Default': # XXX
             try:
-                self._eccompany = self.server.sa.GetCompany(self.server.sa.ResolveCompanyName(self._name, MAPI_UNICODE), MAPI_UNICODE)
+                companyid = self.server.sa.ResolveCompanyName(self._name, MAPI_UNICODE)
+                self._eccompany = self.server.sa.GetCompany(companyid, MAPI_UNICODE)
             except MAPIErrorNotFound:
                 raise NotFoundError("no such company: '%s'" % name)
-        self._public_store = None # XXX cached because GetPublicStore does not see changes.. do we need folder & store notifications (slow)?
 
+        self._public_store = None # XXX cached because GetPublicStore does not see changes.. do we need folder & store notifications (slow)?
         self._mapiobj = None
 
     @property
@@ -147,6 +148,8 @@ class Company(object):
         return self._public_store
 
     def create_public_store(self):
+        """ Create company public :class:`store <Store>` """
+
         if self._name == u'Default':
             try:
                 storeid_rootid = self.server.sa.CreateStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE)
@@ -163,12 +166,12 @@ class Company(object):
         self._public_store = _store.Store(entryid=_hex(store_entryid), server=self.server)
         return self._public_store
 
-    def create_store(self, public=False): # XXX deprecated?
-        if public:
-            return self.create_public_store
-        # XXX
-
     def hook_public_store(self, store):
+        """ Hook company public :class:`store <Store>`
+
+            :param store: store to hook as public store
+        """
+
         if self._name == u'Default':
             try:
                 self.server.sa.HookStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE, _unhex(store.guid))
@@ -183,6 +186,8 @@ class Company(object):
         self._public_store = store
 
     def unhook_public_store(self):
+        """ Unhook company public :class:`store <Store>` """
+
         if self._name == u'Default':
             try:
                 self.server.sa.UnhookStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE)
@@ -196,7 +201,11 @@ class Company(object):
         self._public_store = None
 
     def user(self, name, create=False):
-        """ Return :class:`user <User>` with given name """
+        """ Return :class:`user <User>` with given name
+
+            :param name: user name
+            :param create: create user if it doesn't exist (default False)
+        """
 
         if not '@' in name and self._name != 'Default':
             name = name + '@' + self._name
@@ -209,7 +218,10 @@ class Company(object):
                 raise
 
     def get_user(self, name):
-        """ Return :class:`user <User>` with given name or *None* if not found """
+        """ Return :class:`user <User>` with given name or *None* if not found
+
+            :param name: user name
+        """
 
         try:
             return self.user(name)
@@ -265,22 +277,33 @@ class Company(object):
             raise NotFoundError("company '%s' not in view-list for company '%s'" % (company.name, self.name))
 
     def create_user(self, name, password=None):
-        """ Create a new :class:`user <Users>` within the company """
+        """ Create a new :class:`user <User>` within the company
+
+            :param name: user name
+        """
 
         name = name.split('@')[0]
         self.server.create_user(name, password=password, company=self._name)
         return self.user('%s@%s' % (name, self._name))
 
+    #XXX create_group/create=True
     def group(self, name):
+        """ Return :class:`group <Group>` with given name
+
+            :param name: group name
+        """
+
         for group in self.groups(): # XXX
             if group.name == name:
                 return group
         raise NotFoundError("no such group: '%s'" % name)
 
     def groups(self):
+        """ Return all :class:`groups <Group>` within the company """
+
         if self.name == u'Default': # XXX
-            for ecgroup in self.server.sa.GetGroupList(None, MAPI_UNICODE):
-                yield Group(ecgroup.Groupname, self.server)
+            for group in self.server.groups():
+                yield group
         else:
             for ecgroup in self.server.sa.GetGroupList(self._eccompany.CompanyID, MAPI_UNICODE):
                 yield Group(ecgroup.Groupname, self.server)
