@@ -3819,6 +3819,7 @@ void imopt_default_sending_options(sending_options *sopt) {
 	sopt->allow_send_to_everyone = true;
 	sopt->enable_dsn = true;
 	sopt->always_expand_distr_list = false;
+	sopt->ignore_missing_attachments = false;
 }
 
 } /* namespace */

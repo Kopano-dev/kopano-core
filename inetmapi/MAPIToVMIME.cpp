@@ -632,6 +632,8 @@ HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilde
 	for (ULONG i = 0; i < pRows->cRows; ++i) {
 		// if one attachment fails, we're not sending what the user intended to send so abort. Logging was done in handleSingleAttachment()
 		hr = handleSingleAttachment(lpMessage, &pRows->aRow[i], lpVMMessageBuilder);
+		if (sopt.ignore_missing_attachments && hr == MAPI_E_NOT_FOUND)
+			continue;
 		if (hr != hrSuccess)
 			return hr;
 	} 
