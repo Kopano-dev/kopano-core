@@ -653,7 +653,7 @@ HRESULT IMAP::HrCmdNoop(const string &strTag, bool check) {
 	HRESULT hr = hrSuccess;
 
 	if (!strCurrentFolder.empty() || check)
-		hr = HrRefreshFolderMails(false, !bCurrentFolderReadOnly, false, NULL);
+		hr = HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 	if (hr != hrSuccess) {
 		HRESULT hr2 = HrResponse(RESP_TAGGED_BAD, strTag, (check ? std::string("CHECK") : std::string("NOOP")) + " completed");
 		return hr2 != hrSuccess ? hr2 : hr;
@@ -979,7 +979,7 @@ HRESULT IMAP::HrCmdSelect(const string &strTag, const string &strFolder, bool bR
 	}
 
 	bCurrentFolderReadOnly = bReadOnly;
-	hr = HrRefreshFolderMails(true, !bCurrentFolderReadOnly, false, &ulUnseen, &ulUIDValidity);
+	hr = HrRefreshFolderMails(true, !bCurrentFolderReadOnly, &ulUnseen, &ulUIDValidity);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, command+" error getting mails in folder");
 		if (hr2 != hrSuccess)
@@ -1973,7 +1973,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 
 	if (strCurrentFolder == strFolder) {
 	    // Fixme, add the appended message instead of HrRefreshFolderMails; the message is now seen as Recent
-		HrRefreshFolderMails(false, !bCurrentFolderReadOnly, false, NULL);
+		HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 	}
 
 	hr = HrResponse(RESP_TAGGED_OK, strTag, strAppendUid+"APPEND completed");
@@ -2075,7 +2075,7 @@ HRESULT IMAP::HrCmdExpunge(const string &strTag, const string &strSeqSet) {
 		return hr;
     
 	// Let HrRefreshFolderMails output the actual EXPUNGEs
-	HrRefreshFolderMails(false, !bCurrentFolderReadOnly, false, NULL);
+	HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 	return HrResponse(RESP_TAGGED_OK, strTag, strCommand+" completed");
 }
 
@@ -2276,7 +2276,7 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const st
 			goto exit;
 
 		// Let HrRefreshFolderMails output the actual EXPUNGEs
-		HrRefreshFolderMails(false, !bCurrentFolderReadOnly, false, NULL);
+		HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 	}
 
 	hr = HrResponse(RESP_TAGGED_OK, strTag, strMode+" completed");
@@ -2380,7 +2380,7 @@ HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const string &strSeqSet, co
 	}
 
 	// Let HrRefreshFolderMails output the actual EXPUNGEs
-	HrRefreshFolderMails(false, !bCurrentFolderReadOnly, false, NULL);
+	HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 
 	hr = HrResponse(RESP_TAGGED_OK, strTag, "UID XAOL-MOVE completed");
 
@@ -2541,7 +2541,7 @@ LONG __stdcall IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 		case TABLE_RELOAD:
 			// TABLE_RELOAD is unused in Kopano
 		case TABLE_CHANGED:
-            lpIMAP->HrRefreshFolderMails(false, !lpIMAP->bCurrentFolderReadOnly, false, NULL);
+            lpIMAP->HrRefreshFolderMails(false, !lpIMAP->bCurrentFolderReadOnly, NULL);
 		    break;
 		};
 	}
@@ -3179,13 +3179,12 @@ bool IMAP::IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID) {
  * 
  * @param[in] bInitialLoad Create a new clean list of mails (false to append only)
  * @param[in] bResetRecent Update the value of PR_EC_IMAP_MAX_ID for this folder
- * @param[in] bShowUID Send UID numbers to the client (true) or normal IMAP IDs (false)
  * @param[out] lpulUnseen The number of unread emails in this folder
  * @param[out] lpulUIDValidity The UIDVALIDITY value for this folder (optional)
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bShowUID, unsigned int *lpulUnseen, ULONG *lpulUIDValidity) {
+HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigned int *lpulUnseen, ULONG *lpulUIDValidity) {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder;
 	object_ptr<IMAPITable> lpTable;
@@ -3295,10 +3294,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
             std::string strFlags = PropsToFlags(lpRows->aRow[ulMailnr].lpProps, lpRows->aRow[ulMailnr].cValues, lstFolderMailEIDs[iterUID->second].bRecent, false);
 			if (lstFolderMailEIDs[iterUID->second].strFlags != strFlags) {
 				// Flags have changed, notify it
-				if (bShowUID)
-					hr = HrResponse(RESP_UNTAGGED, stringify(iterUID->second + 1) + " FETCH (UID " + stringify(lpRows->aRow[ulMailnr].lpProps[IMAPID].Value.ul) + " FLAGS (" + strFlags + "))");
-				else
-					hr = HrResponse(RESP_UNTAGGED, stringify(iterUID->second+1) + " FETCH (FLAGS (" + strFlags + "))");
+				hr = HrResponse(RESP_UNTAGGED, stringify(iterUID->second+1) + " FETCH (FLAGS (" + strFlags + "))");
 				if (hr != hrSuccess)
 					return hr;
 				lstFolderMailEIDs[iterUID->second].strFlags = strFlags;

@@ -325,7 +325,7 @@ private:
 
 	HRESULT HrMakeSpecialsList();
 
-	HRESULT HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bShowUID, unsigned int *lpulUnseen, ULONG *lpulUIDValidity = NULL);
+	HRESULT HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigned int *lpulUnseen, ULONG *lpulUIDValidity = NULL);
 
 	HRESULT HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, const wstring &in_folder_name, list<SFolder>::const_iterator parent_folder);
 	HRESULT HrGetFolderPath(list<SFolder>::const_iterator lpFolder, const list<SFolder> &lstFolder, wstring &strPath);
