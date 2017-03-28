@@ -20,28 +20,9 @@
 
 #include <kopano/zcdefs.h>
 
-/* About _FORTIFY_SOURCE a.k.a. _BREAKIFY_SOURCE_IN_INSANE_WAYS
- *
- * This has the insane feature that it will assert() when you attempt
- * to FD_SET(n, &set) with n > 1024, irrespective of your compile-time FD_SETSIZE
- * Even stranger, this should be easily fixed but nobody is interested apparently.
- *
- * Although you could just not use select() anywhere, we depend on some libs that
- * are doing select(), so we can't just remove them. 
- *
- * This will also disable a few other valid buffer-overflow checks, but we'll have
- * to live with that for now.
- */
-
-#ifdef _FORTIFY_SOURCE
-#undef _FORTIFY_SOURCE
-#endif
-
-  // We have to include this now in case select.h is included too soon.
-  // Increase our maximum amount of file descriptors to 8192
-  #include <bits/types.h>
-  #undef __FD_SETSIZE
-  #define __FD_SETSIZE 8192
+enum {
+	KC_DESIRED_FILEDES = 8192,
+};
 
   // Log the pthreads locks
   #define DEBUG_PTHREADS 0

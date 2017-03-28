@@ -1104,14 +1104,11 @@ static int running_server(char *szName, const char *szConfig,
 			goto exit;
 	}
 
-	// Set max open file descriptors to FD_SETSIZE .. higher than this number
-	// is a bad idea, as it will start breaking select() calls.
 	struct rlimit limit;
-
-	limit.rlim_cur = FD_SETSIZE;
-	limit.rlim_max = FD_SETSIZE;
+	limit.rlim_cur = KC_DESIRED_FILEDES;
+	limit.rlim_max = KC_DESIRED_FILEDES;
 	if(setrlimit(RLIMIT_NOFILE, &limit) < 0) {
-		ec_log_warn("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets.", FD_SETSIZE, getdtablesize());
+		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets.", KC_DESIRED_FILEDES, getdtablesize());
 		ec_log_warn("WARNING: Either start the process as root, or increase user limits for open file descriptors.");
 	}
 

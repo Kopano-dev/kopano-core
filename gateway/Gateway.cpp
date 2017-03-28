@@ -557,16 +557,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
     sigaction(SIGBUS, &act, NULL);
     sigaction(SIGABRT, &act, NULL);
 
-    // Set max open file descriptors to FD_SETSIZE .. higher than this number
-    // is a bad idea, as it will start breaking select() calls.
     struct rlimit file_limit;
-    file_limit.rlim_cur = FD_SETSIZE;
-    file_limit.rlim_max = FD_SETSIZE;
+	file_limit.rlim_cur = KC_DESIRED_FILEDES;
+	file_limit.rlim_max = KC_DESIRED_FILEDES;
     
-    if(setrlimit(RLIMIT_NOFILE, &file_limit) < 0) {
-        g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", FD_SETSIZE, getdtablesize());
-    }        
-
+	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
+		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", KC_DESIRED_FILEDES, getdtablesize());
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
 		unix_coredump_enable();
 
