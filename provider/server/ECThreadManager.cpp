@@ -22,6 +22,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
+#include <poll.h>
+#include <unistd.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
 
@@ -658,12 +660,22 @@ ECRESULT ECDispatcherSelect::MainLoop()
 {
 	ECRESULT er = erSuccess;
 	ECWatchDog *lpWatchDog = NULL;
-    int maxfds = 0;
+	int maxfds = getdtablesize();
+	if (maxfds < 0)
+		throw std::runtime_error("getrlimit failed");
     char s = 0;
     time_t now;
-    struct timeval tv;
 	CONNECTION_TYPE ulType;
-	int n = 0;
+	std::unique_ptr<struct pollfd[]> pollfd(new struct pollfd[maxfds]);
+
+	for (size_t n = 0; n < maxfds; ++n) {
+		/*
+		 * Use an identity mapping, quite like fd_set, but without the
+		 * limits of FD_SETSIZE.
+		 */
+		pollfd[n].fd = n;
+		pollfd[n].events = 0;
+	}
 
     // This will start the threads
 	m_lpThreadManager = new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads")));
@@ -673,18 +685,17 @@ ECRESULT ECDispatcherSelect::MainLoop()
 
     // Main loop
     while(!m_bExit) {
+		int nfds = 0, pfd_begin_sock, pfd_begin_listen;
         time(&now);
         
-        fd_set readfds;
-        
-        FD_ZERO(&readfds);
-        
         // Listen on rescan trigger
-        FD_SET(m_fdRescanRead, &readfds);
-        maxfds = m_fdRescanRead;
+		pollfd[0].fd = m_fdRescanRead;
+		pollfd[0].events = POLLIN | POLLRDHUP;
+		++nfds;
 
         // Listen on active sockets
 		ulock_normal l_sock(m_mutexSockets);
+		pfd_begin_sock = nfds;
 		for (const auto &p : m_setSockets) {
 			ulType = SOAP_CONNECTION_TYPE(p.second.soap);
 			if (ulType != CONNECTION_TYPE_NAMED_PIPE &&
@@ -693,25 +704,24 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				// Socket has been inactive for more than server_recv_timeout seconds, close the socket
 				shutdown(p.second.soap->socket, SHUT_RDWR);
             
-			FD_SET(p.second.soap->socket, &readfds);
-			maxfds = max(maxfds, p.second.soap->socket);
+			pollfd[nfds].fd = p.second.soap->socket;
+			pollfd[nfds++].events = POLLIN | POLLRDHUP;
         }
         // Listen on listener sockets
+		pfd_begin_listen = nfds;
 		for (const auto &p : m_setListenSockets) {
-			FD_SET(p.second->socket, &readfds);
-			maxfds = max(maxfds, p.second->socket);
+			pollfd[nfds].fd = p.second->socket;
+			pollfd[nfds++].events = POLLIN | POLLRDHUP;
         }
 		l_sock.unlock();
         		
         // Wait for at most 1 second, so that we can close inactive sockets
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-        
         // Wait for activity
-        if(( n = select(maxfds+1, &readfds, NULL, NULL, &tv)) < 0)
+		auto n = poll(pollfd.get(), nfds, 1 * 1000);
+		if (n < 0)
             continue; // signal caught, restart
 
-        if(FD_ISSET(m_fdRescanRead, &readfds)) {
+		if (pollfd[0].revents & (POLLIN | POLLRDHUP)) {
             char s[128];
             // A socket rescan has been triggered, we don't need to do anything, just read the data, discard it
             // and restart the select call
@@ -721,19 +731,31 @@ ECRESULT ECDispatcherSelect::MainLoop()
         // Search for activity on active sockets
 		l_sock.lock();
 	auto iterSockets = m_setSockets.cbegin();
-	while (n != 0 && iterSockets != m_setSockets.cend()) {
-		if (!FD_ISSET(iterSockets->second.soap->socket, &readfds)) {
-			++iterSockets;
-			continue;
-		}
+		for (size_t i = pfd_begin_sock; i < pfd_begin_listen; ++i) {
+			if (!(pollfd[i].revents & (POLLIN | POLLRDHUP)))
+				continue;
+			/*
+			 * Forward to the data structure belonging to the pollfd.
+			 * (The order of pollfd and m_setSockets is the same,
+			 * so the element has to be there.)
+			 */
+			while (iterSockets != m_setSockets.cend() && iterSockets->second.soap->socket != pollfd[i].fd)
+				++iterSockets;
+			if (iterSockets == m_setSockets.cend()) {
+				ec_log_err("K-1577: socket lost");
+				/* something is very off - try again at next iteration */
+				break;
+			}
+
 		// Activity on a TCP/pipe socket
 		// First, check for EOF
-		if (recv(iterSockets->second.soap->socket, &s, 1, MSG_PEEK) == 0) {
+			if (recv(pollfd[i].fd, &s, 1, MSG_PEEK) == 0) {
 			// EOF occurred, just close the socket and remove it from the socket list
 			kopano_end_soap_connection(iterSockets->second.soap);
 			soap_free(iterSockets->second.soap);
 			m_setSockets.erase(iterSockets++);
-		} else {
+				continue;
+			}
 			// Actual data waiting, push it on the processing queue
 			QueueItem(iterSockets->second.soap);
 			
@@ -742,15 +764,20 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			// to us when the request is done.
 			m_setSockets.erase(iterSockets++);
 		}
-		// N holds the number of descriptors set in readfds, so decrease by one since we handled that one.
-		--n;
-	}
 		l_sock.unlock();
 
         // Search for activity on listen sockets
-		for (const auto &p : m_setListenSockets) {
-			if (!FD_ISSET(p.second->socket, &readfds))
+		auto sockiter = m_setListenSockets.cbegin();
+		for (size_t i = pfd_begin_listen; i < nfds; ++i) {
+			if (!(pollfd[i].revents & (POLLIN | POLLRDHUP)))
 				continue;
+			while (sockiter != m_setListenSockets.cend() && sockiter->second->socket != pollfd[i].fd)
+				++sockiter;
+			if (sockiter == m_setListenSockets.cend()) {
+				ec_log_err("K-1578: socket lost");
+				break;
+			}
+			const auto &p = *sockiter;
 			ACTIVESOCKET sActive;
 			auto newsoap = soap_copy(p.second);
 			if (newsoap == NULL) {
