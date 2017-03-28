@@ -252,7 +252,19 @@ void ECLogger_File::Reset() {
 		return;
 	if (log)
 		fnClose(log);
+	/*
+	 * The fnOpen call cannot be reordered before fnClose in all cases —
+	 * like compressed files, as the data stream may not be
+	 * finalized.
+	 */
 	log = fnOpen(logname.c_str(), szMode);
+	if (log == nullptr) {
+		init_for_stderr();
+		fnPrintf(log, "%s%sECLogger reset issued, but cannot (re-)open %s: %s. Logging to stderr.\n",
+		         DoPrefix().c_str(), EmitLevel(EC_LOGLEVEL_ERROR).c_str(),
+		         logname.c_str(), strerror(errno));
+		return;
+	}
 	reinit_buffer(buffer_size);
 }
 

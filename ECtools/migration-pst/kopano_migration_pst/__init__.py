@@ -41,9 +41,9 @@ class Service(kopano.Service):
         if attach_method == ATTACH_EMBEDDED_MSG and subnode_nid is not None:
             submessage = pst.Message(subnode_nid, self.ltp, self.nbd, parent)
             submapiobj = mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
-            self.import_props(submessage, submapiobj, embedded=True)
             self.import_attachments(submessage, submapiobj)
             self.import_recipients(submessage, submapiobj)
+            self.import_props(submessage, submapiobj, embedded=True)
 
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
@@ -86,7 +86,6 @@ class Service(kopano.Service):
                 props.append(SPropValue(PR_ENTRYID, user.userid.decode('hex')))
             recipients.append(props)
         mapiobj.ModifyRecipients(0, recipients)
-        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def import_pst(self, p, user):
         folders = p.folder_generator()
@@ -106,9 +105,9 @@ class Service(kopano.Service):
                     with log_exc(self.log, self.stats):
                         self.log.debug("importing message '%s'" % (message.Subject or ''))
                         message2 = folder2.create_item()
-                        self.import_props(message, message2.mapiobj)
                         self.import_attachments(message, message2.mapiobj)
                         self.import_recipients(message, message2.mapiobj)
+                        self.import_props(message, message2.mapiobj)
                         self.stats['messages'] += 1
 
     def get_named_property_map(self, p):
