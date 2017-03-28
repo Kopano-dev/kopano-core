@@ -14,11 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <Python.h>
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
-#include <Python.h>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>
