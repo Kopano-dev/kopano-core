@@ -31,7 +31,7 @@ using namespace KCHL;
 
 #include "util.h"
 
-std::string	last_error = "";
+static std::string last_error;
 
 HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
     ULONG cValues, LPSPropValue lpPropVals)

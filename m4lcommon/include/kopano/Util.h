@@ -94,7 +94,7 @@ class Util _kc_final {
 	static HRESULT CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFlags, ULONG ulUIParam, LPMAPIPROGRESS lpProgress);
 	static HRESULT TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag, LPMAPIPROP lpPropSrc, ULONG ulDestPropTag, LPMAPIPROP lpPropDest,
 								   LPSTREAM *lppSrcStream, LPSTREAM *lppDestStream);
-	static HRESULT AddProblemToArray(LPSPropProblem lpProblem, LPSPropProblemArray *lppProblems);
+	static HRESULT AddProblemToArray(const SPropProblem *in, SPropProblemArray **out);
 	_kc_export static HRESULT DoCopyTo(LPCIID src_intf, LPVOID src_obj, ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID dst_intf, LPVOID dst_obj, ULONG flags, LPSPropProblemArray *);
 	_kc_export static HRESULT DoCopyProps(LPCIID src_intf, LPVOID src_obj, const SPropTagArray *inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID dst_intf, LPVOID dst_obj, ULONG flags, LPSPropProblemArray *);
 	_kc_export static HRESULT HrCopyIMAPData(LPMESSAGE src, LPMESSAGE dst);

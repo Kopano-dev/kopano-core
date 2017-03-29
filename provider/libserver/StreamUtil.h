@@ -42,16 +42,8 @@ struct StreamCaps;
 typedef const StreamCaps* LPCSTREAMCAPS;
 
 // Utility Functions
-ECRESULT SerializeDatabasePropVal(LPCSTREAMCAPS lpStreamInfo, DB_ROW lpRow, DB_LENGTHS lpLen, ECSerializer *lpSink);
-ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamInfo, const struct propVal &sPropVal, ECSerializer *lpSink, const NamedPropDefMap *lpNamedPropDefs);
-ECRESULT SerializeProps(ECSession *lpecSession, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamInfo, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulParentId, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink);
 ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamInfo, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop);
-
-ECRESULT DeserializePropVal(struct soap *soap, LPCSTREAMCAPS lpStreamInfo, propVal **lppsPropval, ECSerializer *lpSource);
-ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamInfo, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, bool bNewItem, ECSerializer *lpSource, struct propValArray **lppPropValArray);
 ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamInfo, unsigned int ulObjId, unsigned int ulStoreId, GUID *lpsGuid, bool bNewItem, unsigned long long ullIMAP, ECSerializer *lpSource, struct propValArray **lppPropValArray);
-
-ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType);
 
 } /* namespace */
 

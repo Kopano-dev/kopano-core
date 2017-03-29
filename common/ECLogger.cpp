@@ -385,6 +385,18 @@ void ECLogger_File::LogVA(unsigned int loglevel, const char *format, va_list& va
 	Log(loglevel, std::string(msgbuffer));
 }
 
+const int ECLogger_Syslog::levelmap[16] = {
+	/* EC_LOGLEVEL_NONE */    LOG_DEBUG,
+	/* EC_LOGLEVEL_CRIT */    LOG_CRIT,
+	/* EC_LOGLEVEL_ERROR */   LOG_WARNING,
+	/* EC_LOGLEVEL_WARNING */ LOG_WARNING,
+	/* EC_LOGLEVEL_NOTICE */  LOG_NOTICE,
+	/* EC_LOGLEVEL_INFO */    LOG_INFO,
+	/* EC_LOGLEVEL_DEBUG */   LOG_DEBUG,
+	/* 7-14 */ 0,0,0,0,0,0,0,0,
+	/* EC_LOGLEVEL_ALWAYS */  LOG_ALERT,
+};
+
 ECLogger_Syslog::ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility) : ECLogger(max_ll) {
 	/*
 	 * Because @ident can go away, and openlog(3) does not make a copy for
@@ -397,14 +409,6 @@ ECLogger_Syslog::ECLogger_Syslog(unsigned int max_ll, const char *ident, int fac
 		m_ident = strdup(ident);
 		openlog(m_ident, LOG_PID, facility);
 	}
-	levelmap[EC_LOGLEVEL_NONE] = LOG_DEBUG;
-	levelmap[EC_LOGLEVEL_CRIT] = LOG_CRIT;
-	levelmap[EC_LOGLEVEL_ERROR] = LOG_ERR;
-	levelmap[EC_LOGLEVEL_WARNING] = LOG_WARNING;
-	levelmap[EC_LOGLEVEL_NOTICE] = LOG_NOTICE;
-	levelmap[EC_LOGLEVEL_INFO] = LOG_INFO;
-	levelmap[EC_LOGLEVEL_DEBUG] = LOG_DEBUG;
-	levelmap[EC_LOGLEVEL_ALWAYS] = LOG_ALERT;
 }
 
 ECLogger_Syslog::~ECLogger_Syslog() {
