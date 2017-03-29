@@ -66,48 +66,6 @@ namespace KC {
 #define OP_COMPANYADMIN		"companyadmin"
 
 /**
- * Memory wrapper class for database results
- *
- * Wrapper class around DB_RESULT which makes
- * sure the DB_RESULT memory is freed when
- * the the object goes out of scope.
- *
- * @todo move the class DB_RESULT_AUTOFREE to a common place
- */
-class DB_RESULT_AUTOFREE _kc_final {
-public:
-	/**
-	 * @param[in]	lpDatabase
-	 *					The database to which the result belongs
-	 */
-    DB_RESULT_AUTOFREE(ECDatabase *lpDatabase) {
-        m_lpDatabase = lpDatabase;
-    };
-
-	/**
-	 * Cast DB_RESULT_AUTOFREE to DB_RESULT
-	 */
-	operator DB_RESULT &(void) { return m_lpResult; }
-
-	/**
-	 * Obtain reference to DB_RESULT
-	 * This will free the existing result before
-	 * returning the reference to the empty result.
-	 *
-	 * @return Pointer to DB_RESULT
-	 */
-    DB_RESULT * operator & () {
-        // Assume overwrite will happen soon
-        m_lpResult = DB_RESULT();
-        return &m_lpResult;
-    };
-
-private:
-    DB_RESULT		m_lpResult;
-    ECDatabase *	m_lpDatabase;
-};
-
-/**
  * User managment helper class for database access
  * 
  * This class implements most of the Database Access functions
