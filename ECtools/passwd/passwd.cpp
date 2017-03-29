@@ -268,9 +268,7 @@ int main(int argc, char* argv[])
 			}
 
 			cout << endl;
-			
-			strcpy(szNewPassword, newpassword);
-
+			kc_strlcpy(szNewPassword, newpassword, sizeof(szNewPassword));
 			repassword = get_password("Re-Enter password:");
 			if(strcmp(newpassword, repassword) != 0) {
 				cerr << "Passwords don't match" << endl;
