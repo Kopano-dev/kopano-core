@@ -153,15 +153,20 @@ template<typename T> class alloc_wrap {
 	public:
 	template<typename... ArgTp> alloc_wrap(ArgTp &&... args) :
 	    obj(new(std::nothrow) T(std::forward<ArgTp>(args)...))
-	{}
+	{
+		if (obj != nullptr)
+			obj->AddRef();
+	}
+	~alloc_wrap()
+	{
+		if (obj != nullptr)
+			obj->Release();
+	}
 	template<typename Base> HRESULT as(const IID &iid, Base **p)
 	{
 		if (obj == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
-		auto ret = obj->QueryInterface(iid, reinterpret_cast<void **>(p));
-		if (ret != hrSuccess)
-			delete obj;
-		return ret;
+		return obj->QueryInterface(iid, reinterpret_cast<void **>(p));
 	}
 };
 
