@@ -590,7 +590,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 	if (lpRecipients->cEntries != lpRuleRecipients->cEntries)
 		ec_log_info("Loop protection blocked some recipients");
 
-	*lppNewRecipients = lpRecipients;
+	*lppNewRecipients = lpRecipients.release();
 	lpRecipients = NULL;
 	return hrSuccess;
 }
