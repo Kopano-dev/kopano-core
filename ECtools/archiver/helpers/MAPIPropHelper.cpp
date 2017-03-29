@@ -615,9 +615,11 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 			// No entry ids exist. So that's fine
 			hr = hrSuccess;
 			goto exitpm;
-		}
-		else if (lpPropStoreEIDs && lpPropItemEIDs)
-		{
+		} else if (lpPropStoreEIDs == nullptr || lpPropItemEIDs == nullptr) {
+			// One exists, one doesn't.
+			hr = MAPI_E_CORRUPT_DATA;
+			goto exitpm;
+		} else {
 			// Both exist. So if PR_SOURCEKEY_EXISTS and PROP_ORIGINAL_SOURCEKEY doesn't
 			// the entry is corrupt
 			if (lpPropSourceKey) {
@@ -634,12 +636,6 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 					goto exitpm;
 			} else
 				hr = hrSuccess;
-		}
-		else
-		{
-			// One exists, one doesn't.
-			hr = MAPI_E_CORRUPT_DATA;
-			goto exitpm;
 		}
 	}
 
