@@ -1717,10 +1717,8 @@ std::string LDAPUserPlugin::GetLDAPEntryDN(LDAPMessage *entry)
 	std::string dn;
 	auto_free_ldap_attribute ptrDN(ldap_get_dn(m_ldap, entry));
 
-	if (*ptrDN) {
+	if (*ptrDN != '\0')
 		dn = ptrDN;
-	}
-
 	return dn;
 }
 

@@ -978,9 +978,9 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 		return er;
 	else if(er == erSuccess)
 		lpDBRow = FetchRow(lpResult);
-	if (lpDBRow == NULL || lpDBRow[0] == NULL ) {
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
 		*lpulDatabaseRevision = 0;
-	}else
+	else
 		*lpulDatabaseRevision = atoui(lpDBRow[0]);
 	return erSuccess;
 }

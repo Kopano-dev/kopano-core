@@ -1971,10 +1971,9 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	if (ulMsgUid && ulFolderUid)
 		strAppendUid = string("[APPENDUID ") + stringify(ulFolderUid) + " " + stringify(ulMsgUid) + "] ";
 
-	if (strCurrentFolder == strFolder) {
+	if (strCurrentFolder == strFolder)
 	    // Fixme, add the appended message instead of HrRefreshFolderMails; the message is now seen as Recent
 		HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
-	}
 
 	hr = HrResponse(RESP_TAGGED_OK, strTag, strAppendUid+"APPEND completed");
 
@@ -3421,9 +3420,8 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, c
 		{1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
 
 	hr = mapi_table->SortTable(mapi_sort_criteria, 0);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		return hr;
-	}
 
 	rowset_ptr rows;
 	hr = mapi_table->QueryRows(-1, 0, &~rows);

@@ -1049,11 +1049,8 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 		lpDst->Value.bin->__size = lpSrc->Value.bin->__size;
-		
-		if(bTruncate) {
-			if(lpDst->Value.bin->__size > TABLE_CAP_BINARY)
-				lpDst->Value.bin->__size = TABLE_CAP_BINARY;
-		}
+		if (bTruncate && lpDst->Value.bin->__size > TABLE_CAP_BINARY)
+			lpDst->Value.bin->__size = TABLE_CAP_BINARY;
 		
 		lpDst->Value.bin->__ptr = s_alloc<unsigned char>(soap, lpSrc->Value.bin->__size);
 		memcpy(lpDst->Value.bin->__ptr, lpSrc->Value.bin->__ptr, lpDst->Value.bin->__size);
@@ -1564,9 +1561,8 @@ ECRESULT FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bFre
 	s_free(nullptr, lpNotifyArray->__ptr);
 	if(bFreeBase)
 		s_free(nullptr, lpNotifyArray);
-	else {
+	else
 		lpNotifyArray->__size = 0;
-	}
 	return erSuccess;
 }
 

@@ -2216,11 +2216,10 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	// set X-MICROSOFT-CDO & X-MOZ properties 
 	// X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE
 	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME));
-	if (lpPropVal) {
+	if (lpPropVal != nullptr)
 		FileTimeToUnixTime(lpPropVal->Value.ft, &ttCriticalChange);
-	}else {
+	else
 		ttCriticalChange = time(NULL);
-	}
 
 	icCriticalChange = icaltime_from_timet_with_zone(ttCriticalChange, false, icaltimezone_get_utc_timezone());
 	lpicValue = icalvalue_new_datetime(icCriticalChange);
@@ -2233,11 +2232,10 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 
 	// X-MICROSOFT-CDO-ATTENDEE-CRITICAL-CHANGE
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ATTENDEECRITICALCHANGE], PT_SYSTIME));
-	if (lpPropVal) {
+	if (lpPropVal != nullptr)
 		FileTimeToUnixTime(lpPropVal->Value.ft, &ttCriticalChange);
-	}else {
+	else
 		ttCriticalChange = time(NULL);
-	}
 
 	icCriticalChange = icaltime_from_timet_with_zone(ttCriticalChange, false, icaltimezone_get_utc_timezone());
 	lpicValue = icalvalue_new_datetime(icCriticalChange);
@@ -2251,11 +2249,11 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	
 	// X-MICROSOFT-CDO-APPT-SEQUENCE
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSEQNR], PT_LONG));
-	if (lpPropVal) {
+	if (lpPropVal != nullptr)
 		ulApptSeqNo = lpPropVal->Value.ul;
-	}else {
+	else
 		ulApptSeqNo = 0;
-	}
+
 	lpicValue = icalvalue_new_integer(ulApptSeqNo);
 	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
 	lpProp = icalproperty_new_x(lpszTemp);
@@ -2266,11 +2264,11 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 
 	// X-MICROSOFT-CDO-OWNERAPPTID
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_OWNER_APPT_ID);
-	if (lpPropVal) {
+	if (lpPropVal != nullptr)
 		ulOwnerApptID = lpPropVal->Value.ul;
-	}else {
+	else
 		ulOwnerApptID = -1;
-	}
+
 	lpicValue = icalvalue_new_integer(ulOwnerApptID);
 	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
 	lpProp = icalproperty_new_x(lpszTemp);
@@ -2298,9 +2296,8 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 
 	// X-MICROSOFT-CDO-ALLDAYEVENT
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
-	if (lpPropVal){
+	if (lpPropVal != nullptr)
 		blIsAllday = (lpPropVal->Value.b == TRUE);
-	}
 
 	lpicValue = icalvalue_new_x(blIsAllday ? "TRUE" : "FALSE");
 	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
@@ -2805,9 +2802,8 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			// make this in invite, cancel, ... ?
 		}
 
-		if (ulModifications & ARO_REMINDERDELTA && !(ulModifications & ARO_REMINDERSET)) {
+		if (ulModifications & ARO_REMINDERDELTA && !(ulModifications & ARO_REMINDERSET))
 			HrUpdateReminderTime(lpicException.get(), cRecurrence.getModifiedReminderDelta(i));
-		}
 
 		if (ulModifications & ARO_REMINDERSET) {
 			// Outlook is nasty!
