@@ -69,11 +69,8 @@ public:
 	void Next();
 
 private:
-	typedef ECResyncSet::map_type::iterator	iterator_type;
-
 	ECResyncSet		*m_lpResyncSet;
-	iterator_type	m_iterator;
-
+	ECResyncSet::map_type::iterator m_iterator;
 	const static FILETIME	s_nullTime;
 };
 
