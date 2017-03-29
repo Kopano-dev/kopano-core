@@ -66,7 +66,8 @@ ZCPPFLAGS="$BUILDOS -DHAVE_CONFIG_H \
 	-I\${top_srcdir}/ECtools/archiver/include \
 	-I\${top_srcdir}/inetmapi/include \
 	-I\${top_srcdir}/swig/include \
-	-I\${top_srcdir}/swig/python/include"
+	-I\${top_srcdir}/swig/python/include \
+	-I\${top_srcdir}"
 ZCXXFLAGS="-Wall -Wmissing-declarations"
 
 # programs that use files >2GB need 64-bit file support

@@ -15,8 +15,6 @@
  *
  */
 
-#include "phpconfig.h"
-
 #include <kopano/platform.h>
 #include <kopano/ecversion.h>
 #include <memory>
@@ -32,11 +30,12 @@
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
 #include <kopano/MAPIErrors.h>
-#include "ECRulesTableProxy.h"
 #include <ICalToMAPI.h>
 #include <MAPIToICal.h>
 #include <libicalmapi/mapitovcf.hpp>
 #include <libicalmapi/vcftomapi.hpp>
+#include "php-ext/phpconfig.h"
+#include "php-ext/ECRulesTableProxy.h"
 
 #define LOGFILE_PATH "/var/log/kopano"
 
@@ -213,7 +212,7 @@ ZEND_END_ARG_INFO()
 
 #include <string>
 
-#include "util.h"
+#include "php-ext/util.h"
 #include "rtfutil.h"
 #include <kopano/CommonUtil.h>
 
