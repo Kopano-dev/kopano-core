@@ -322,12 +322,11 @@ HRESULT Fsck::DeleteMessage(LPMAPIFOLDER lpFolder,
 {
 	HRESULT hr = hrSuccess;
 
-	if (ReadYesNoMessage("Delete message?", auto_del)) {
-		hr = DeleteEntry(lpFolder, lpItemProperty);
-		if (hr == hrSuccess)
-			++this->ulDeleted;
-	}
-
+	if (!ReadYesNoMessage("Delete message?", auto_del))
+		return hr;
+	hr = DeleteEntry(lpFolder, lpItemProperty);
+	if (hr == hrSuccess)
+		++this->ulDeleted;
 	return hr;
 }
 

@@ -614,23 +614,23 @@ ECRESULT ECDispatcher::DoHUP()
 	for (auto const &p : m_setListenSockets) {
 		auto ulType = SOAP_CONNECTION_TYPE(p.second);
 
-		if (ulType == CONNECTION_TYPE_SSL) {
-			if (soap_ssl_server_context(p.second, SOAP_SSL_DEFAULT,
-						   m_lpConfig->GetSetting("server_ssl_key_file"),
-						   m_lpConfig->GetSetting("server_ssl_key_pass","",NULL),
-						   m_lpConfig->GetSetting("server_ssl_ca_file","",NULL),
-						   m_lpConfig->GetSetting("server_ssl_ca_path","",NULL),
-						   NULL, NULL, "EC")) {
-				ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second));
-				return KCERR_CALL_FAILED;
-			}
-
-			char *server_ssl_protocols = strdup(m_lpConfig->GetSetting("server_ssl_protocols"));
-			er = kc_ssl_options(p.second, server_ssl_protocols,
-				m_lpConfig->GetSetting("server_ssl_ciphers"),
-				m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"));
-			free(server_ssl_protocols);
+		if (ulType != CONNECTION_TYPE_SSL)
+			continue;
+		if (soap_ssl_server_context(p.second, SOAP_SSL_DEFAULT,
+		    m_lpConfig->GetSetting("server_ssl_key_file"),
+		    m_lpConfig->GetSetting("server_ssl_key_pass", "", NULL),
+		    m_lpConfig->GetSetting("server_ssl_ca_file", "", NULL),
+		    m_lpConfig->GetSetting("server_ssl_ca_path", "", NULL),
+		    NULL, NULL, "EC")) {
+			ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second));
+			return KCERR_CALL_FAILED;
 		}
+
+		char *server_ssl_protocols = strdup(m_lpConfig->GetSetting("server_ssl_protocols"));
+		er = kc_ssl_options(p.second, server_ssl_protocols,
+			m_lpConfig->GetSetting("server_ssl_ciphers"),
+			m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"));
+		free(server_ssl_protocols);
 	}
 	return erSuccess;
 }

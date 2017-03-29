@@ -71,23 +71,23 @@ namespace priv {
 	void conv_out<LPTSTR>(PyObject* value, LPVOID lpBase, ULONG ulFlags, LPTSTR *lppResult) {
 		if(value == Py_None) {
 			*lppResult = NULL;
-		} else {
-			// FIXME: General helper function as improvement
-			if ((ulFlags & MAPI_UNICODE) == 0)
-				*(LPSTR*)lppResult = PyString_AsString(value);
-			else {
-				int len = PyUnicode_GetSize(value);
-				if (MAPIAllocateMore((len + 1) * sizeof(wchar_t), lpBase, reinterpret_cast<void **>(lppResult)) != hrSuccess)
-					throw std::bad_alloc();
-				// FIXME: Required for the PyUnicodeObject cast
-				#if PY_MAJOR_VERSION >= 3
-					len = PyUnicode_AsWideChar(value, *(LPWSTR*)lppResult, len);
-				#else
-					len = PyUnicode_AsWideChar((PyUnicodeObject*)value, *(LPWSTR*)lppResult, len);
-				#endif
-				(*(LPWSTR*)lppResult)[len] = L'\0';
-			}
+			return;
 		}
+		// FIXME: General helper function as improvement
+		if ((ulFlags & MAPI_UNICODE) == 0) {
+			*(LPSTR*)lppResult = PyString_AsString(value);
+			return;
+		}
+		int len = PyUnicode_GetSize(value);
+		if (MAPIAllocateMore((len + 1) * sizeof(wchar_t), lpBase, reinterpret_cast<void **>(lppResult)) != hrSuccess)
+			throw std::bad_alloc();
+		// FIXME: Required for the PyUnicodeObject cast
+		#if PY_MAJOR_VERSION >= 3
+			len = PyUnicode_AsWideChar(value, *(LPWSTR*)lppResult, len);
+		#else
+			len = PyUnicode_AsWideChar((PyUnicodeObject*)value, *(LPWSTR*)lppResult, len);
+		#endif
+		(*(LPWSTR*)lppResult)[len] = L'\0';
 	}
 
 	/**
@@ -152,13 +152,13 @@ namespace priv {
 		if(value == Py_None) {
 			lpResult->cb = 0;
 			lpResult->lpb = NULL;
-		} else {
-			PyString_AsStringAndSize(value, &data, &size);
-			lpResult->cb = size;
-			if (MAPIAllocateMore(size, lpBase, reinterpret_cast<void **>(&lpResult->lpb)) != hrSuccess)
-				throw std::bad_alloc();
-			memcpy(lpResult->lpb, data, size);
+			return;
 		}
+		PyString_AsStringAndSize(value, &data, &size);
+		lpResult->cb = size;
+		if (MAPIAllocateMore(size, lpBase, reinterpret_cast<void **>(&lpResult->lpb)) != hrSuccess)
+			throw std::bad_alloc();
+		memcpy(lpResult->lpb, data, size);
 	}
 
 	/**

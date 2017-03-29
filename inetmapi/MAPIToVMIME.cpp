@@ -857,10 +857,9 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 			if (sopt.no_recipients_workaround == false) {
 				ec_log_err("No MDN recipient found");
 				return MAPI_E_NOT_FOUND;
-			} else {
-				// no recipient, but need to continue ... is this correct??
-				vmRecipientbox = vmime::make_shared<vmime::mailbox>(string("undisclosed-recipients"));
 			}
+			// no recipient, but need to continue ... is this correct??
+			vmRecipientbox = vmime::make_shared<vmime::mailbox>(string("undisclosed-recipients"));
 		} else {
 			hr = getMailBox(&pRows->aRow[0], &vmRecipientbox);
 			if (hr != hrSuccess)
