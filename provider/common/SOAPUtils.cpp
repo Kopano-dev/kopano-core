@@ -429,15 +429,13 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 	for (size_t x = 0; x < ARRAY_SIZE(sSpecials); ++x) {
 		bool special = lpProp1->ulPropTag == sSpecials[x].ulPropTag && PROP_TYPE(lpProp2->ulPropTag) == PROP_TYPE(sSpecials[x].ulPropTag);
 		special |= PROP_TYPE(lpProp1->ulPropTag) == PROP_TYPE(sSpecials[x].ulPropTag) && lpProp2->ulPropTag == sSpecials[x].ulPropTag;
-		if (special)
-		{
-			er = sSpecials[x].lpfnComparer(lpProp1, lpProp2, &nCompareResult);
-			if (er == erSuccess)
-				goto skip_check;
-
-			er = erSuccess;
-			break;
-		}
+		if (!special)
+			continue;
+		er = sSpecials[x].lpfnComparer(lpProp1, lpProp2, &nCompareResult);
+		if (er == erSuccess)
+			goto skip_check;
+		er = erSuccess;
+		break;
 	}
 
 	// Perform a regular comparison
