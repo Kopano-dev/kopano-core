@@ -327,7 +327,7 @@ class Server(object):
         self.sa.DeleteUser(user._ecuser.UserID)
 
     def company(self, name, create=False):
-        """ Return :class:`company <Company>` with given name; raise exception if not found """
+        """ Return :class:`company <Company>` with given name """
 
         try:
             return Company(name, self)
@@ -387,7 +387,7 @@ class Server(object):
         except MAPIErrorNoSupport:
             yield Company(u'Default', self)
 
-    def create_company(self, name): # XXX deprecated because of company(create=True)?
+    def create_company(self, name):
         name = _unicode(name)
         try:
             self.sa.CreateCompany(ECCOMPANY(name, None), MAPI_UNICODE)
@@ -510,12 +510,7 @@ class Server(object):
             if system or store.public or (store.user and store.user.name != 'SYSTEM'):
                 yield store
 
-    def create_store(self, public=False): # XXX deprecated?
-        if public:
-            return self.create_public_store()
-        # XXX
-
-    def remove_store(self, store): # XXX server.delete?
+    def remove_store(self, store):
         self.sa.RemoveStore(_unhex(store.guid))
 
     def sync_users(self):
