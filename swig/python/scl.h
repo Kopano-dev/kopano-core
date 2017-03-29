@@ -77,7 +77,8 @@ namespace priv {
 				*(LPSTR*)lppResult = PyString_AsString(value);
 			else {
 				int len = PyUnicode_GetSize(value);
-				MAPIAllocateMore((len + 1) * sizeof(WCHAR), lpBase, (LPVOID*)lppResult);
+				if (MAPIAllocateMore((len + 1) * sizeof(wchar_t), lpBase, reinterpret_cast<void **>(lppResult)) != hrSuccess)
+					throw std::bad_alloc();
 				// FIXME: Required for the PyUnicodeObject cast
 				#if PY_MAJOR_VERSION >= 3
 					len = PyUnicode_AsWideChar(value, *(LPWSTR*)lppResult, len);
@@ -154,7 +155,8 @@ namespace priv {
 		} else {
 			PyString_AsStringAndSize(value, &data, &size);
 			lpResult->cb = size;
-			MAPIAllocateMore(size, lpBase, (LPVOID*)&lpResult->lpb);
+			if (MAPIAllocateMore(size, lpBase, reinterpret_cast<void **>(&lpResult->lpb)) != hrSuccess)
+				throw std::bad_alloc();
 			memcpy(lpResult->lpb, data, size);
 		}
 	}

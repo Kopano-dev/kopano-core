@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include <utility>
 #include <kopano/ECConfig.h>
 #include <kopano/ECRestriction.h>
@@ -388,7 +389,8 @@ Copier::Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig,
 	m_lstArchives(lstArchives),
 	m_ptrTransaction(new Transaction(SObjectEntry()))
 {
-	MAPIAllocateBuffer(CbNewSPropTagArray(lpExcludeProps->cValues), &~m_ptrExcludeProps);
+	if (MAPIAllocateBuffer(CbNewSPropTagArray(lpExcludeProps->cValues), &~m_ptrExcludeProps) != hrSuccess)
+		throw std::bad_alloc();
 	memcpy(m_ptrExcludeProps, lpExcludeProps, CbNewSPropTagArray(lpExcludeProps->cValues));
 
 	// If the next call fails, m_ptrMapper will have NULL ptr, which we'll check later.
