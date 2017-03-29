@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "WSMAPIFolderOps.h"
@@ -65,10 +65,10 @@ HRESULT WSMAPIFolderOps::Create(KCmd *lpCmd, std::recursive_mutex &lpDataLock,
     WSTransport *lpTransport, WSMAPIFolderOps **lppFolderOps)
 {
 	HRESULT hr = hrSuccess;
-	WSMAPIFolderOps *lpFolderOps = NULL;
-
-	lpFolderOps = new WSMAPIFolderOps(lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpTransport);
-
+	auto lpFolderOps = new(std::nothrow) WSMAPIFolderOps(lpCmd, lpDataLock,
+	                   ecSessionId, cbEntryId, lpEntryId, lpTransport);
+	if (lpFolderOps == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpFolderOps->QueryInterface(IID_ECMAPIFolderOps, (void **)lppFolderOps);
 
 	if(hr != hrSuccess)

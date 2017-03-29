@@ -14,10 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <condition_variable>
 #include <mutex>
+#include <new>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -248,13 +248,22 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	m_lpThreadMonitor = new ECTHREADMONITOR;
+	m_lpThreadMonitor = new(std::nothrow) ECTHREADMONITOR;
+	if (m_lpThreadMonitor == nullptr) {
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
 
 	m_lpThreadMonitor->lpConfig = ECConfig::Create(lpDefaults);
 	if (!m_lpThreadMonitor->lpConfig->LoadSettings(szConfig) ||
 	    m_lpThreadMonitor->lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors())) {
-		m_lpThreadMonitor->lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false); // create fatal logger without a timestamp to stderr
+		/* Create fatal logger without a timestamp to stderr. */
+		m_lpThreadMonitor->lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
+		if (m_lpThreadMonitor->lpLogger == nullptr) {
+			hr = MAPI_E_NOT_ENOUGH_MEMORY;
+			goto exit;
+		}
 		ec_log_set(m_lpThreadMonitor->lpLogger);
 		LogConfigErrors(m_lpThreadMonitor->lpConfig);
 		hr = E_FAIL;

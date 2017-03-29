@@ -19,6 +19,7 @@
 #define ECDISTLIST
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include "ECABContainer.h"
 
 class ECDistList _kc_final : public ECABContainer {
@@ -43,6 +44,7 @@ public:
 		#include <kopano/xclsfrag/IMAPIContainer.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
 	} m_xDistList;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // #ifndef ECDISTLIST

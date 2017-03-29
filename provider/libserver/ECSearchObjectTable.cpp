@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include "ECDatabase.h"
@@ -41,8 +41,10 @@ ECRESULT ECSearchObjectTable::Create(ECSession *lpSession,
     unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale,
     ECStoreObjectTable **lppTable)
 {
-	*lppTable = new ECSearchObjectTable(lpSession, ulStoreId, lpGuid, ulFolderId, ulObjType, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECSearchObjectTable(lpSession, ulStoreId,
+	            lpGuid, ulFolderId, ulObjType, ulFlags, locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 	return erSuccess;
 }

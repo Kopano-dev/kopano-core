@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 
 class ECABProvider _kc_final : public ECUnknown {
 protected:
@@ -37,6 +38,7 @@ public:
 	} m_xABProvider;
 
 	ULONG m_ulFlags;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // #ifndef ECABPROVIDER

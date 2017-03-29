@@ -32,6 +32,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
+#include <new>
 #include "mailer.h"
 #include <climits>
 #include <cstdio>
@@ -1052,7 +1053,12 @@ int main(int argc, char *argv[]) {
 		if (!g_lpConfig->LoadSettings(szConfig) ||
 		    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
 		    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-			g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false); // create info logger without a timestamp to stderr
+			/* Create info logger without a timestamp to stderr. */
+			g_lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
+			if (g_lpLogger == nullptr) {
+				hr = MAPI_E_NOT_ENOUGH_MEMORY;
+				goto exit;
+			}
 			ec_log_set(g_lpLogger);
 			LogConfigErrors(g_lpConfig);
 			hr = E_FAIL;

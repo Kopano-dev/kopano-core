@@ -49,6 +49,7 @@ static const char *const lpszDEFAULTDIRECTIVES[] = {"include", NULL};
 class _kc_export ECConfig {
 public:
 	static ECConfig *Create(const configsetting_t *defaults, const char *const *directives = lpszDEFAULTDIRECTIVES);
+	static ECConfig *Create(const std::nothrow_t &, const configsetting_t *defaults, const char *const *directives = lpszDEFAULTDIRECTIVES);
 	static const char *GetDefaultPath(const char *basename);
 	_kc_hidden virtual ~ECConfig(void) _kc_impdtor;
 	_kc_hidden virtual bool LoadSettings(const char *file) = 0;

@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 
 #include <kopano/ECGetText.h>
@@ -59,8 +59,14 @@ ECMSProviderSwitch::ECMSProviderSwitch(ULONG ulFlags) : ECUnknown("ECMSProviderS
 
 HRESULT ECMSProviderSwitch::Create(ULONG ulFlags, ECMSProviderSwitch **lppMSProvider)
 {
-	auto lpMSProvider = new ECMSProviderSwitch(ulFlags);
-	return lpMSProvider->QueryInterface(IID_ECUnknown/*IID_ECMSProviderSwitch*/, (void **)lppMSProvider);
+	auto lpMSProvider = new(std::nothrow) ECMSProviderSwitch(ulFlags);
+	if (lpMSProvider == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	auto ret = lpMSProvider->QueryInterface(IID_ECUnknown/*IID_ECMSProviderSwitch*/,
+	           reinterpret_cast<void **>(lppMSProvider));
+	if (ret != hrSuccess)
+		delete lpMSProvider;
+	return ret;
 }
 
 HRESULT ECMSProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)

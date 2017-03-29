@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/ECInterfaceDefs.h>
@@ -116,8 +116,14 @@ ECMAPITable::~ECMAPITable()
 
 HRESULT ECMAPITable::Create(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags, ECMAPITable **lppECMAPITable)
 {
-	auto lpMAPITable = new ECMAPITable(strName, lpNotifyClient, ulFlags);
-	return lpMAPITable->QueryInterface(IID_ECMAPITable, reinterpret_cast<void **>(lppECMAPITable));
+	auto lpMAPITable = new(std::nothrow) ECMAPITable(strName, lpNotifyClient, ulFlags);
+	if (lpMAPITable == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	auto ret = lpMAPITable->QueryInterface(IID_ECMAPITable,
+	           reinterpret_cast<void **>(lppECMAPITable));
+	if (ret != hrSuccess)
+		delete lpMAPITable;
+	return ret;
 }
 
 HRESULT ECMAPITable::QueryInterface(REFIID refiid, void **lppInterface)

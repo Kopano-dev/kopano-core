@@ -26,6 +26,7 @@
 #include <edkmdb.h>
 
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 #include "ECMAPIProp.h"
 #include "WSTransport.h"
 #include "ECNotifyClient.h"
@@ -380,6 +381,7 @@ private:
 	ECUnknown *lpCallbackObject = nullptr;
 	std::string			m_strProfname;
 	std::set<ULONG>		m_setAdviseConnections;
+	ALLOC_WRAP_FRIEND;
 };
 
 class ECMSLogon _kc_final : public ECUnknown {
@@ -410,6 +412,7 @@ public:
 		virtual HRESULT __stdcall Unadvise(ULONG ulConnection) _kc_override;
 		virtual HRESULT __stdcall OpenStatusEntry(LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPVOID *lppEntry) _kc_override;
 	} m_xMSLogon;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // ECMSGSTORE_H

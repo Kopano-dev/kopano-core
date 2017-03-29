@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/mapi_ptr.h>
@@ -136,9 +136,8 @@ ECMessage::~ECMessage()
 
 HRESULT	ECMessage::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lppMessage)
 {
-	auto lpMessage = new ECMessage(lpMsgStore, fNew, fModify, ulFlags,
-	                 bEmbedded, lpRoot);
-	return lpMessage->QueryInterface(IID_ECMessage, reinterpret_cast<void **>(lppMessage));
+	return alloc_wrap<ECMessage>(lpMsgStore, fNew, fModify, ulFlags,
+	       bEmbedded, lpRoot).as(IID_ECMessage, lppMessage);
 }
 
 HRESULT	ECMessage::QueryInterface(REFIID refiid, void **lppInterface)

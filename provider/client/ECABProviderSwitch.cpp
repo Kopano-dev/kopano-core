@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
@@ -30,7 +30,7 @@
 
 #include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
-
+#include <kopano/Util.h>
 #include "EntryPoint.h"
 #include <kopano/mapiext.h>
 
@@ -47,14 +47,7 @@ ECABProviderSwitch::ECABProviderSwitch(void) : ECUnknown("ECABProviderSwitch")
 
 HRESULT ECABProviderSwitch::Create(ECABProviderSwitch **lppECABProvider)
 {
-	HRESULT hr = hrSuccess;
-	auto lpECABProvider = new ECABProviderSwitch;
-	hr = lpECABProvider->QueryInterface(IID_ECABProvider, (void **)lppECABProvider);
-
-	if(hr != hrSuccess)
-		delete lpECABProvider;
-
-	return hr;
+	return alloc_wrap<ECABProviderSwitch>().as(IID_ECABProvider, lppECABProvider);
 }
 
 HRESULT ECABProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)

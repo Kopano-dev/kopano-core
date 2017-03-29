@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
@@ -278,7 +278,9 @@ ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int 
 	if (er != erSuccess)
 		return er;
 
-	std::unique_ptr<TABLE_ENTRY> lpEntry(new TABLE_ENTRY);
+	std::unique_ptr<TABLE_ENTRY> lpEntry(new(std::nothrow) TABLE_ENTRY);
+	if (lpEntry == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_USERSTORES;
@@ -302,7 +304,9 @@ ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned in
 	if (er != erSuccess)
 		return er;
 
-	std::unique_ptr<TABLE_ENTRY> lpEntry(new TABLE_ENTRY);
+	std::unique_ptr<TABLE_ENTRY> lpEntry(new(std::nothrow) TABLE_ENTRY);
+	if (lpEntry == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_MULTISTORE;
@@ -347,7 +351,9 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 	if (er != erSuccess)
 		return er;
 
-	lpEntry.reset(new TABLE_ENTRY);
+	lpEntry.reset(new(std::nothrow) TABLE_ENTRY);
+	if (lpEntry == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_GENERIC;
@@ -394,7 +400,9 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 	// TABLETYPE_STATS_SESSIONS: only for (sys)admins
 	// TABLETYPE_STATS_USERS: full list: only for (sys)admins, company list: only for admins
 
-	lpEntry.reset(new TABLE_ENTRY);
+	lpEntry.reset(new(std::nothrow) TABLE_ENTRY);
+	if (lpEntry == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	switch (ulTableType) {
 	case TABLETYPE_STATS_SYSTEM:
 		if ((hosted && adminlevel < ADMIN_LEVEL_SYSADMIN) || (!hosted && adminlevel < ADMIN_LEVEL_ADMIN)) {
@@ -477,7 +485,9 @@ ECRESULT ECTableManager::OpenMailBoxTable(unsigned int ulflags, unsigned int *lp
 	if (er != erSuccess)
 		return er;
 
-	std::unique_ptr<TABLE_ENTRY> lpEntry(new TABLE_ENTRY);
+	std::unique_ptr<TABLE_ENTRY> lpEntry(new(std::nothrow) TABLE_ENTRY);
+	if (lpEntry == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_MAILBOX;

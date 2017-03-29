@@ -24,7 +24,7 @@
 #include <mapiutil.h>
 
 #include <fstream>
-
+#include <new>
 #include <kopano/ECIConv.h>
 #include <kopano/ECLogger.h>
 #include "WSTransport.h"
@@ -111,17 +111,8 @@ HRESULT WSTransport::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT WSTransport::Create(ULONG ulUIFlags, WSTransport **lppTransport)
 {
-	HRESULT hr = hrSuccess;
-	WSTransport *lpTransport = NULL;
-
-	lpTransport = new WSTransport(ulUIFlags);
-
-	hr = lpTransport->QueryInterface(IID_ECTransport, (void **) lppTransport);
-
-	if(hr != hrSuccess)
-		delete lpTransport;
-
-	return hr;
+	return alloc_wrap<WSTransport>(ulUIFlags)
+	       .as(IID_ECTransport, lppTransport);
 }
 
 /* Creates a transport working on the same session and session group as this transport */

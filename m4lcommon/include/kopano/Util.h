@@ -18,6 +18,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <mapix.h>
 #include <edkmdb.h>
@@ -145,6 +146,26 @@ class Util _kc_final {
 #define RTF_FLAG_INPAR		0x0004
 #define RTF_FLAG_CLOSE		0x0008
 #define RTF_FLAG_MHTML		0x0100
+
+template<typename T> class alloc_wrap {
+	private:
+	T *obj;
+	public:
+	template<typename... ArgTp> alloc_wrap(ArgTp &&... args) :
+	    obj(new(std::nothrow) T(std::forward<ArgTp>(args)...))
+	{}
+	template<typename Base> HRESULT as(const IID &iid, Base **p)
+	{
+		if (obj == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
+		auto ret = obj->QueryInterface(iid, reinterpret_cast<void **>(p));
+		if (ret != hrSuccess)
+			delete obj;
+		return ret;
+	}
+};
+
+#define ALLOC_WRAP_FRIEND template<typename T> friend class ::KC::alloc_wrap;
 
 } /* namespace */
 

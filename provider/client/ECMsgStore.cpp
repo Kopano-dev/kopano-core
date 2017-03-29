@@ -22,6 +22,7 @@
 #include <mapiutil.h>
 #include <edkguid.h>
 #include <list>
+#include <new>
 
 #include <kopano/ECGetText.h>
 
@@ -294,15 +295,9 @@ HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
     BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
     ECMsgStore **lppECMsgStore)
 {
-	auto lpStore = new ECMsgStore(lpszProfname, lpSupport, lpTransport,
-	               fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,
-	               bOfflineStore);
-	HRESULT hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
-
-	if(hr != hrSuccess)
-		delete lpStore;
-
-	return hr;
+	return alloc_wrap<ECMsgStore>(lpszProfname, lpSupport, lpTransport,
+	       fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,
+	       bOfflineStore).as(IID_ECMsgStore, lppECMsgStore);
 }
 
 HRESULT ECMsgStore::SetProps(ULONG cValues, const SPropValue *lpPropArray,
@@ -345,8 +340,14 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store hierarchy", ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
 	    if (*lpiid == IID_IECExportAddressbookChanges) {
-			auto lpEEAC = new ECExportAddressbookChanges(this);
+			auto lpEEAC = new(std::nothrow) ECExportAddressbookChanges(this);
+			if (lpEEAC == nullptr)
+				return MAPI_E_NOT_ENOUGH_MEMORY;
 	        hr = lpEEAC->QueryInterface(*lpiid, (void **)lppUnk);
+			if (hr != hrSuccess) {
+				delete lpEEAC;
+				return hr;
+			}
 	    }
 		else
 			hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store contents", ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
@@ -3191,8 +3192,7 @@ ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
 
 HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)
 {
-	auto lpLogon = new ECMSLogon(lpStore);
-	return lpLogon->QueryInterface(IID_ECMSLogon, (void **)lppECMSLogon);
+	return alloc_wrap<ECMSLogon>(lpStore).as(IID_ECMSLogon, lppECMSLogon);
 }
 
 HRESULT ECMSLogon::QueryInterface(REFIID refiid, void **lppInterface)

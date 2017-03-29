@@ -20,7 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
-
+#include <kopano/Util.h>
 #include "ECMessage.h"
 #include "ECMAPIProp.h"
 #include "Mem.h"
@@ -60,6 +60,7 @@ public:
 
 private:
 	ULONG ulAttachNum;
+	ALLOC_WRAP_FRIEND;
 };
 
 class ECAttachFactory _kc_final : public IAttachFactory {

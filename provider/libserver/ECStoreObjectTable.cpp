@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 
@@ -143,8 +143,11 @@ ECStoreObjectTable::~ECStoreObjectTable()
 
 ECRESULT ECStoreObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale, ECStoreObjectTable **lppTable)
 {
-	*lppTable = new ECStoreObjectTable(lpSession, ulStoreId, lpGuid, ulFolderId, ulObjType, ulFlags, ulTableFlags, locale);
-
+	*lppTable = new(std::nothrow) ECStoreObjectTable(lpSession, ulStoreId,
+	            lpGuid, ulFolderId, ulObjType, ulFlags, ulTableFlags,
+	            locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 	return erSuccess;
 }

@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include "ECDatabase.h"
 
@@ -34,8 +34,9 @@ ECMultiStoreTable::ECMultiStoreTable(ECSession *lpSession, unsigned int ulObjTyp
 
 ECRESULT ECMultiStoreTable::Create(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale, ECMultiStoreTable **lppTable)
 {
-	*lppTable = new ECMultiStoreTable(lpSession, ulObjType, ulFlags, locale);
-
+	*lppTable = new(std::nothrow) ECMultiStoreTable(lpSession, ulObjType, ulFlags, locale);
+	if (*lppTable == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	(*lppTable)->AddRef();
 
 	return erSuccess;

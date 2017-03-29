@@ -22,7 +22,7 @@
 #include <kopano/memory.hpp>
 #include "ECMsgStore.h"
 #include <kopano/ECGuid.h>
-
+#include <kopano/Util.h>
 #include <list>
 #include <vector>
 #include <map>
@@ -47,6 +47,7 @@ private:
 	_kc_hidden HRESULT GetArchiveStore(LPSBinary store_eid, ECMsgStore **ret);
 
 	MsgStoreMap	m_mapStores;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // ndef ECARCHIVEAWAREMSGSTORE_H

@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/mapi_ptr.h>
@@ -112,10 +112,9 @@ ECMAPIFolder::~ECMAPIFolder()
 HRESULT ECMAPIFolder::Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, ECMAPIFolder **lppECMAPIFolder)
 {
 	HRESULT hr = hrSuccess;
-	ECMAPIFolder *lpMAPIFolder = NULL;
-
-	lpMAPIFolder = new ECMAPIFolder(lpMsgStore, fModify, lpFolderOps, "IMAPIFolder");
-
+	auto lpMAPIFolder = new(std::nothrow) ECMAPIFolder(lpMsgStore, fModify, lpFolderOps, "IMAPIFolder");
+	if (lpMAPIFolder == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpMAPIFolder->QueryInterface(IID_ECMAPIFolder, (void **)lppECMAPIFolder);
 
 	if(hr != hrSuccess)

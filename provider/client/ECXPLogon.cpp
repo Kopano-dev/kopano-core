@@ -16,6 +16,7 @@
 #include <kopano/platform.h>
 #include <chrono>
 #include <condition_variable>
+#include <new>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <mapi.h>
@@ -83,7 +84,9 @@ ECXPLogon::~ECXPLogon()
 HRESULT ECXPLogon::Create(const std::string &strProfileName, BOOL bOffline, ECXPProvider *lpXPProvider, LPMAPISUP lpMAPISup, ECXPLogon **lppECXPLogon)
 {
 	HRESULT hr = hrSuccess;
-	auto lpXPLogon = new ECXPLogon(strProfileName, bOffline, lpXPProvider, lpMAPISup);
+	auto lpXPLogon = new(std::nothrow) ECXPLogon(strProfileName, bOffline, lpXPProvider, lpMAPISup);
+	if (lpXPLogon == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpXPLogon->QueryInterface(IID_ECXPLogon, (void **)lppECXPLogon);
 
 	if(hr != hrSuccess)

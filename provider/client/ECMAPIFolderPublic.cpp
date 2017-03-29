@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECMAPIFolderPublic.h"
@@ -79,10 +79,9 @@ HRESULT	ECMAPIFolderPublic::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECMAPIFolderPublic::Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID, ECMAPIFolder **lppECMAPIFolder)
 {
 	HRESULT hr = hrSuccess;
-	ECMAPIFolderPublic *lpMAPIFolder = NULL;
-
-	lpMAPIFolder = new ECMAPIFolderPublic(lpMsgStore, fModify, lpFolderOps, ePublicEntryID);
-
+	auto lpMAPIFolder = new(std::nothrow) ECMAPIFolderPublic(lpMsgStore, fModify, lpFolderOps, ePublicEntryID);
+	if (lpMAPIFolder == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpMAPIFolder->QueryInterface(IID_ECMAPIFolder, (void **)lppECMAPIFolder);
 
 	if(hr != hrSuccess)

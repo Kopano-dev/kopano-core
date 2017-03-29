@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include "kcore.hpp"
@@ -49,18 +49,7 @@ HRESULT	ECDistList::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECDistList::Create(void* lpProvider, BOOL fModify, ECDistList** lppDistList)
 {
-
-	HRESULT hr = hrSuccess;
-	ECDistList *lpDistList = NULL;
-
-	lpDistList = new ECDistList(lpProvider, fModify);
-
-	hr = lpDistList->QueryInterface(IID_ECDistList, (void **)lppDistList);
-
-	if(hr != hrSuccess)
-		delete lpDistList;
-
-	return hr;
+	return alloc_wrap<ECDistList>(lpProvider, fModify).as(IID_ECDistList, lppDistList);
 }
 
 HRESULT ECDistList::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)

@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <mapiutil.h>
@@ -76,9 +77,9 @@ ECABLogon::~ECABLogon()
 HRESULT ECABLogon::Create(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGuid, ECABLogon **lppECABLogon)
 {
 	HRESULT hr = hrSuccess;
-
-	ECABLogon *lpABLogon = new ECABLogon(lpMAPISup, lpTransport, ulProfileFlags, lpGuid);
-
+	auto lpABLogon = new ECABLogon(lpMAPISup, lpTransport, ulProfileFlags, lpGuid);
+	if (lpABLogon == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpABLogon->QueryInterface(IID_ECABLogon, (void **)lppECABLogon);
 
 	if(hr != hrSuccess)

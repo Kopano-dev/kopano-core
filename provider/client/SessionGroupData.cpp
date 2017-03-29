@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <mapicode.h>
@@ -45,9 +45,9 @@ SessionGroupData::~SessionGroupData(void)
 HRESULT SessionGroupData::Create(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps, SessionGroupData **lppData)
 {
 	HRESULT hr = hrSuccess;
-	SessionGroupData *lpData = NULL;
-
-	lpData = new SessionGroupData(ecSessionGroupId, lpInfo, sProfileProps);
+	auto lpData = new(std::nothrow) SessionGroupData(ecSessionGroupId, lpInfo, sProfileProps);
+	if (lpData == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	lpData->AddRef();
 
 	*lppData = lpData;

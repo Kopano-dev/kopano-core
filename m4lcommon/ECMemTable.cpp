@@ -17,6 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <memory>
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/ECInterfaceDefs.h>
@@ -95,8 +96,11 @@ HRESULT ECMemTable::Create(const SPropTagArray *lpsColumns, ULONG ulRowPropTag,
 	}
 
 	lpMemTable = new ECMemTable(lpsColumns, ulRowPropTag);
-	return lpMemTable->QueryInterface(IID_ECMemTable,
+	auto ret = lpMemTable->QueryInterface(IID_ECMemTable,
 	       reinterpret_cast<void **>(lppECMemTable));
+	if (ret != hrSuccess)
+		delete lpMemTable;
+	return ret;
 }
 
 HRESULT ECMemTable::QueryInterface(REFIID refiid, void **lppInterface)
@@ -450,7 +454,9 @@ ECMemTableView::~ECMemTableView()
 HRESULT ECMemTableView::Create(ECMemTable *lpMemTable, const ECLocale &locale, ULONG ulFlags, ECMemTableView **lppMemTableView)
 {
 	HRESULT hr = hrSuccess;
-	auto lpView = new ECMemTableView(lpMemTable, locale, ulFlags);
+	auto lpView = new(std::nothrow) ECMemTableView(lpMemTable, locale, ulFlags);
+	if (lpView == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpView->QueryInterface(IID_ECMemTableView, (void **) lppMemTableView);
 
 	if(hr != hrSuccess)

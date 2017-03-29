@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include "resource.h"
@@ -33,18 +34,8 @@ ECMailUser::ECMailUser(void* lpProvider, BOOL fModify) : ECABProp(lpProvider, MA
 
 HRESULT ECMailUser::Create(void* lpProvider, BOOL fModify, ECMailUser** lppMailUser)
 {
-
-	HRESULT hr = hrSuccess;
-	ECMailUser *lpMailUser = NULL;
-
-	lpMailUser = new ECMailUser(lpProvider, fModify);
-
-	hr = lpMailUser->QueryInterface(IID_ECMailUser, (void **)lppMailUser);
-
-	if(hr != hrSuccess)
-		delete lpMailUser;
-
-	return hr;
+	return alloc_wrap<ECMailUser>(lpProvider, fModify)
+	       .as(IID_ECMailUser, lppMailUser);
 }
 
 HRESULT	ECMailUser::QueryInterface(REFIID refiid, void **lppInterface) 

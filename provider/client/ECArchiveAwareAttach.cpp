@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include "ECArchiveAwareAttach.h"
 #include "ECArchiveAwareMessage.h"
@@ -36,9 +36,8 @@ ECArchiveAwareAttach::ECArchiveAwareAttach(ECMsgStore *lpMsgStore, ULONG ulObjTy
 
 HRESULT	ECArchiveAwareAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach)
 {
-	auto lpAttach = new ECArchiveAwareAttach(lpMsgStore, ulObjType,
-	                fModify, ulAttachNum, lpRoot);
-	return lpAttach->QueryInterface(IID_ECAttach, reinterpret_cast<void **>(lppAttach));
+	return alloc_wrap<ECArchiveAwareAttach>(lpMsgStore, ulObjType, fModify,
+	       ulAttachNum, lpRoot).as(IID_ECAttach, lppAttach);
 }
 
 HRESULT	ECArchiveAwareAttach::SetPropHandler(ULONG ulPropTag,

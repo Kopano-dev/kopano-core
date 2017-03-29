@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <new>
 #include <kopano/platform.h>
 #include "WSTableView.h"
 #include "Mem.h"
@@ -765,10 +766,11 @@ HRESULT WSTableOutGoingQueue::Create(KCmd *lpCmd,
     WSTableOutGoingQueue **lppTableOutGoingQueue)
 {
 	HRESULT hr = hrSuccess;
-	WSTableOutGoingQueue *lpTableOutGoingQueue = NULL; 
-
-	lpTableOutGoingQueue = new WSTableOutGoingQueue(lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport);
-
+	auto lpTableOutGoingQueue = new(std::nothrow) WSTableOutGoingQueue(lpCmd,
+	                            lpDataLock, ecSessionId, cbEntryId,
+	                            lpEntryId, lpMsgStore, lpTransport);
+	if (lpTableOutGoingQueue == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpTableOutGoingQueue->QueryInterface(IID_ECTableOutGoingQueue, (void **) lppTableOutGoingQueue);
 	
 	if(hr != hrSuccess)

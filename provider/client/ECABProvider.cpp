@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
@@ -50,16 +51,7 @@ ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
 
 HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)
 {
-	HRESULT hr = hrSuccess;
-
-	ECABProvider *lpECABProvider = new ECABProvider(0, "ECABProvider");
-
-	hr = lpECABProvider->QueryInterface(IID_ECABProvider, (void **)lppECABProvider);
-
-	if(hr != hrSuccess)
-		delete lpECABProvider;
-
-	return hr;
+	return alloc_wrap<ECABProvider>(0, "ECABProvider").as(IID_ECABProvider, lppECABProvider);
 }
 
 HRESULT ECABProvider::QueryInterface(REFIID refiid, void **lppInterface)

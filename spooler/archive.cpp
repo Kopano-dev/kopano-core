@@ -153,7 +153,12 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	}
 
 	// First create all (mostly one) the archive messages without saving them.
-	ptrHelper.reset(new Copier::Helper(ptrSession, ec_log_get(), ptrMapper, NULL, ptrFolder));
+	ptrHelper.reset(new(std::nothrow) Copier::Helper(ptrSession,
+		ec_log_get(), ptrMapper, nullptr, ptrFolder));
+	if (ptrHelper == nullptr) {
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
 	for (const auto &arc : lstArchives) {
 		MessagePtr ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
@@ -285,7 +290,13 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	}
 
 	// First create all (mostly one) the archive messages without saving them.
-	ptrHelper.reset(new Copier::Helper(ptrSession, ec_log_get(), ptrMapper, NULL, MAPIFolderPtr()));	// We pass an empty MAPIFolderPtr here!
+	// We pass an empty MAPIFolderPtr here!
+	ptrHelper.reset(new(std::nothrow) Copier::Helper(ptrSession,
+		ec_log_get(), ptrMapper, nullptr, MAPIFolderPtr()));
+	if (ptrHelper == nullptr) {
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
 	for (const auto &arc : lstArchives) {
 		ArchiveHelperPtr ptrArchiveHelper;
 		MAPIFolderPtr ptrArchiveFolder;

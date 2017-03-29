@@ -97,6 +97,7 @@ private:
 
 	typedef KCHL::object_ptr<ECMessage, IID_ECMessage> ECMessagePtr;
 	ECMessagePtr	m_ptrArchiveMsg;
+	ALLOC_WRAP_FRIEND;
 };
 
 class ECArchiveAwareMessageFactory _kc_final : public IMessageFactory {

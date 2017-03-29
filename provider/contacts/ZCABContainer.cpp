@@ -102,7 +102,11 @@ HRESULT	ZCABContainer::Create(std::vector<zcabFolderEntry> *lpFolders, IMAPIFold
 	auto lpABContainer = new(std::nothrow) ZCABContainer(lpFolders, lpContacts, lpMAPISup, lpProvider, "IABContainer");
 	if (lpABContainer == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	return lpABContainer->QueryInterface(IID_ZCABContainer, (void **)lppABContainer);
+	auto ret = lpABContainer->QueryInterface(IID_ZCABContainer,
+	           reinterpret_cast<void **>(lppABContainer));
+	if (ret != hrSuccess)
+		delete lpABContainer;
+	return ret;
 }
 
 HRESULT	ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPISUP lpMAPISup, ZCABContainer **lppABContainer)

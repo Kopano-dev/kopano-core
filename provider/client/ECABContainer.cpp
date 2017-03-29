@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <new>
 #include <kopano/platform.h>
 #include "kcore.hpp"
 
@@ -25,6 +25,7 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/Util.h>
 #include "ics.h"
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
@@ -73,8 +74,8 @@ HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT	ECABContainer::Create(void* lpProvider, ULONG ulObjType, BOOL fModify, ECABContainer **lppABContainer)
 {
-	auto lpABContainer = new ECABContainer(lpProvider, ulObjType, fModify, "IABContainer");
-	return lpABContainer->QueryInterface(IID_ECABContainer, reinterpret_cast<void **>(lppABContainer));
+	return alloc_wrap<ECABContainer>(lpProvider, ulObjType, fModify, "IABContainer")
+	       .as(IID_ECABContainer, lppABContainer);
 }
 
 HRESULT	ECABContainer::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
