@@ -66,28 +66,28 @@ static int le_mapi_advisesink;
 * When adding or changing a entry here, don't forget to 
 * add or change the same entry in class.mapi.php 
 */
-static const char *name_mapi_session       = "MAPI Session";
-static const char *name_mapi_table         = "MAPI Table";
-static const char *name_mapi_rowset        = "MAPI Rowset";
-static const char *name_mapi_msgstore      = "MAPI Message Store";
-static const char *name_mapi_addrbook      = "MAPI Addressbook";
-static const char *name_mapi_mailuser      = "MAPI Mail User";
-static const char *name_mapi_distlist      = "MAPI Distribution List";
-static const char *name_mapi_abcont        = "MAPI Addressbook Container";
-static const char *name_mapi_folder        = "MAPI Folder";
-static const char *name_mapi_message       = "MAPI Message";
-static const char *name_mapi_attachment    = "MAPI Attachment";
-static const char *name_mapi_property      = "MAPI Property";
-static const char *name_mapi_modifytable   = "MAPI Exchange Modify Table";
-static const char *name_istream            = "IStream Interface";
-static const char *name_fb_support         = "Freebusy Support Interface";
-static const char *name_fb_data            = "Freebusy Data Interface";
-static const char *name_fb_update          = "Freebusy Update Interface";
-static const char *name_fb_enumblock       = "Freebusy Enumblock Interface";
-static const char *name_mapi_exportchanges = "ICS Export Changes";
-static const char *name_mapi_importhierarchychanges = "ICS Import Hierarchy Changes";
-static const char *name_mapi_importcontentschanges  = "ICS Import Contents Changes";
-static const char *name_mapi_advisesink             = "MAPI Advise sink";
+static const char name_mapi_session[]       = "MAPI Session";
+static const char name_mapi_table[]         = "MAPI Table";
+static const char name_mapi_rowset[]        = "MAPI Rowset";
+static const char name_mapi_msgstore[]      = "MAPI Message Store";
+static const char name_mapi_addrbook[]      = "MAPI Addressbook";
+static const char name_mapi_mailuser[]      = "MAPI Mail User";
+static const char name_mapi_distlist[]      = "MAPI Distribution List";
+static const char name_mapi_abcont[]        = "MAPI Addressbook Container";
+static const char name_mapi_folder[]        = "MAPI Folder";
+static const char name_mapi_message[]       = "MAPI Message";
+static const char name_mapi_attachment[]    = "MAPI Attachment";
+static const char name_mapi_property[]      = "MAPI Property";
+static const char name_mapi_modifytable[]   = "MAPI Exchange Modify Table";
+static const char name_istream[]            = "IStream Interface";
+static const char name_fb_support[]         = "Freebusy Support Interface";
+static const char name_fb_data[]            = "Freebusy Data Interface";
+static const char name_fb_update[]          = "Freebusy Update Interface";
+static const char name_fb_enumblock[]       = "Freebusy Enumblock Interface";
+static const char name_mapi_exportchanges[] = "ICS Export Changes";
+static const char name_mapi_importhierarchychanges[] = "ICS Import Hierarchy Changes";
+static const char name_mapi_importcontentschanges[]  = "ICS Import Contents Changes";
+static const char name_mapi_advisesink[]             = "MAPI Advise sink";
 
 /**
 * common used variables
