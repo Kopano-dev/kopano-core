@@ -155,8 +155,9 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 		lpsPropValue->ulPropTag = PR_AB_PROVIDER_ID;
 
 		lpsPropValue->Value.bin.cb = sizeof(GUID);
-		ECAllocateMore(sizeof(GUID), lpBase, (void**)&lpsPropValue->Value.bin.lpb);
-
+		hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		if (hr != hrSuccess)
+			break;
 		memcpy(lpsPropValue->Value.bin.lpb, &MUIDECSAB, sizeof(GUID));
 		break;
 	case PROP_ID(PR_ACCOUNT):

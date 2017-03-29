@@ -122,7 +122,9 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 	lpsPropTags = *lppPropTags;
 
 	// Allocate space for properties
-	ECAllocateBuffer(sizeof(LPMAPINAMEID) * lpsPropTags->cValues, (void **)&lppPropNames);
+	hr = ECAllocateBuffer(sizeof(LPMAPINAMEID) * lpsPropTags->cValues, (void **)&lppPropNames);
+	if (hr != hrSuccess)
+		goto exit;
 
 	// Pass 1, local reverse mapping (FAST)
 	for (i = 0; i < lpsPropTags->cValues; ++i)
@@ -141,7 +143,9 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 		// resolved internally. Looks like somebody's pulling our leg ... We just leave it unknown }
 	}
 
-	ECAllocateBuffer(CbNewSPropTagArray(lpsPropTags->cValues), (void **)&lpsUnresolved);
+	hr = ECAllocateBuffer(CbNewSPropTagArray(lpsPropTags->cValues), reinterpret_cast<void **>(&lpsUnresolved));
+	if (hr != hrSuccess)
+		goto exit;
 
 	cUnresolved = 0;
 	// Pass 3, server reverse lookup (SLOW)
@@ -337,9 +341,12 @@ HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, LPGUID lpGuid, ULONG ulFlag
 	for (size_t i = 0; i < ARRAY_SIZE(sLocalNames); ++i) {
 		if((lpGuid == NULL || memcmp(&sLocalNames[i].guid, lpGuid, sizeof(GUID)) == 0) && ulId >= sLocalNames[i].ulMappedId && ulId < sLocalNames[i].ulMappedId + (sLocalNames[i].ulMax - sLocalNames[i].ulMin + 1)) {
 			// Found it !
-			ECAllocateMore(sizeof(MAPINAMEID), lpBase, (void **)&lpName);
-			ECAllocateMore(sizeof(GUID), lpBase, (void **)&lpName->lpguid);
-
+			auto hr = ECAllocateMore(sizeof(MAPINAMEID), lpBase, reinterpret_cast<void **>(&lpName));
+			if (hr != hrSuccess)
+				return hr;
+			hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpName->lpguid));
+			if (hr != hrSuccess)
+				return hr;
 			lpName->ulKind = MNID_ID;
 			memcpy(lpName->lpguid, &sLocalNames[i].guid, sizeof(GUID));
 			lpName->Kind.lID = sLocalNames[i].ulMin + (ulId - sLocalNames[i].ulMappedId);
@@ -431,10 +438,13 @@ HRESULT ECNamedProp::HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void
 		break;
 	case MNID_STRING:
 		if(lpBase)
-			ECAllocateMore(wcslen(lpSrc->Kind.lpwstrName) * sizeof(WCHAR) + sizeof(WCHAR), lpBase, (void **)&lpDst->Kind.lpwstrName);
+			hr = ECAllocateMore(wcslen(lpSrc->Kind.lpwstrName) * sizeof(wchar_t) + sizeof(wchar_t),
+			     lpBase, reinterpret_cast<void **>(&lpDst->Kind.lpwstrName));
 		else
-			ECAllocateMore(wcslen(lpSrc->Kind.lpwstrName) * sizeof(WCHAR) + sizeof(WCHAR), lpDst, (void **)&lpDst->Kind.lpwstrName);
-
+			hr = ECAllocateMore(wcslen(lpSrc->Kind.lpwstrName) * sizeof(wchar_t) + sizeof(wchar_t),
+			     lpDst, reinterpret_cast<void **>(&lpDst->Kind.lpwstrName));
+		if (hr != hrSuccess)
+			return hr;
 		wcscpy(lpDst->Kind.lpwstrName, lpSrc->Kind.lpwstrName);
 		break;
 	default:

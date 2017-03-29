@@ -278,7 +278,9 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	//(type,objectid)
 	AllocNewMapiObject(0, 0, 0, &mo);
 	
-	ECAllocateBuffer(sizeof(SPropValue) * sResponse.aPropVal.__size, (void **)&lpProp);
+	hr = ECAllocateBuffer(sizeof(SPropValue) * sResponse.aPropVal.__size, (void **)&lpProp);
+	if (hr != hrSuccess)
+		goto exit;
 
 	for (gsoap_size_t i = 0; i < sResponse.aPropTag.__size; ++i)
 		mo->lstAvailable.push_back(sResponse.aPropTag.__ptr[i]);

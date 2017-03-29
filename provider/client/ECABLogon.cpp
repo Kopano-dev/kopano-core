@@ -344,7 +344,9 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 			goto skip;	// no
 
 		// merge the properties
-		ECAllocateBuffer((cValues+cPropsRecip)*sizeof(SPropValue), (void**)&lpNewPropArray);
+		hr = ECAllocateBuffer((cValues + cPropsRecip) * sizeof(SPropValue), reinterpret_cast<void **>(&lpNewPropArray));
+		if (hr != hrSuccess)
+			goto exit;
 
 		for (j = 0; j < cValues; ++j) {
 			lpPropVal = NULL;

@@ -357,8 +357,9 @@ ECRESULT WSMAPIPropStorage::EcFillPropValues(struct saveObject *lpsSaveObj, MAPI
 	convert_context	context;
 
 	for (gsoap_size_t i = 0; i < lpsSaveObj->modProps.__size; ++i) {
-		ECAllocateBuffer(sizeof(SPropValue), (void **)&lpsProp);
-
+		ec = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpsProp));
+		if (ec != erSuccess)
+			break;
 		ec = CopySOAPPropValToMAPIPropVal(lpsProp, &lpsSaveObj->modProps.__ptr[i], lpsProp, &context);
 		if (ec != erSuccess)
 			break;

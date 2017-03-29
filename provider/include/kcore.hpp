@@ -19,6 +19,7 @@
 #define KC_KCORE_HPP 1
 
 #include <mapi.h>
+#include <mapidefs.h>
 #include <kopano/ECTags.h>
 #include <kopano/Trace.h>
 
@@ -155,8 +156,15 @@ typedef struct ABEID *PABEID;
 #define _CbNewABEID(p) 	((sizeof(ABEID)+strlen((char*)(p)))&~3)
 #define CbNewABEID(p)	(sizeof(ABEID)>_CbNewABEID((p))?sizeof(ABEID):_CbNewABEID((p)))
 
-#define ABEID_TYPE(p)	((p) ? ((ABEID *)(p))->ulType : -1)
-#define ABEID_ID(p)		((p) ? ((ABEID *)(p))->ulId : 0)
+static inline ULONG ABEID_TYPE(const ABEID *p)
+{
+	return p != nullptr ? p->ulType : -1;
+}
+
+template<typename T> static inline ULONG ABEID_ID(const T *p)
+{
+	return p != nullptr ? reinterpret_cast<const ABEID *>(p)->ulId : 0;
+}
 
 struct SIEID {
 	BYTE	abFlags[4];

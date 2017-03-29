@@ -308,7 +308,9 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 		lpsPropValue->Value.bin.cb = lpProp->m_cbEntryId;
 		if (lpBase == NULL)
 			assert(false);
-		ECAllocateMore(lpProp->m_cbEntryId, lpBase, (void **)&lpsPropValue->Value.bin.lpb);
+		hr = ECAllocateMore(lpProp->m_cbEntryId, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		if (hr != hrSuccess)
+			return hr;
 		memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpProp->m_cbEntryId);
 		break;
 	// Gives access to the actual ECUnknown underlying object
@@ -833,8 +835,10 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 		lpPropTagArray = lpGetPropTagArray;
 	}
 
-	ECAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues,
-		reinterpret_cast<void **>(&lpsPropValue));
+	hr = ECAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues,
+	     reinterpret_cast<void **>(&lpsPropValue));
+	if (hr != hrSuccess)
+		goto exit;
 
 	for (i = 0; i < lpPropTagArray->cValues; ++i) {
 		if (HrGetHandler(lpPropTagArray->aulPropTag[i], NULL, &lpfnGetProp, &lpParam) == hrSuccess) {
@@ -883,7 +887,10 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 	}			
 
 	// The size of the property tag array is never larger than (static properties + generated properties)
-	ECAllocateBuffer(CbNewSPropTagArray(lstProps->size() + lstCallBack.size()), (LPVOID *)&lpPropTagArray);
+	hr = ECAllocateBuffer(CbNewSPropTagArray(lstProps->size() + lstCallBack.size()),
+	     reinterpret_cast<void **>(&lpPropTagArray));
+	if (hr != hrSuccess)
+		return hr;
 
 	// Some will overlap so we've actually allocated slightly too much memory
 
