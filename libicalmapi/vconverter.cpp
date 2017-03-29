@@ -2308,25 +2308,26 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	icalvalue_free(lpicValue);
 
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_RTF_COMPRESSED);
-	if (lpPropVal && Util::GetBestBody(lpMsgProps, ulMsgProps, fMapiUnicode) == PR_RTF_COMPRESSED) {
-		string rtf;
-		object_ptr<IStream> lpStream;
+	if (lpPropVal == nullptr || Util::GetBestBody(lpMsgProps, ulMsgProps, fMapiUnicode) != PR_RTF_COMPRESSED)
+		return hrSuccess;
 
-		if (lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream) == hrSuccess) {
-			if (Util::HrStreamToString(lpStream, rtf) == hrSuccess) {
-				string rtfbase64;
-				rtfbase64 = base64_encode((unsigned char*)rtf.c_str(), rtf.size());
-				lpicValue = icalvalue_new_x(rtfbase64.c_str());
-				lpszTemp = icalvalue_as_ical_string_r(lpicValue);
-				lpProp = icalproperty_new_x(lpszTemp);
-				icalmemory_free_buffer(lpszTemp);
-				icalproperty_set_x_name(lpProp, "X-MICROSOFT-RTF");
-				icalcomponent_add_property(lpEvent, lpProp);
-				icalvalue_free(lpicValue);
-			}
-		}
-	}
+	string rtf;
+	object_ptr<IStream> lpStream;
 
+	if (lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream) != hrSuccess)
+		return hrSuccess;
+	if (Util::HrStreamToString(lpStream, rtf) != hrSuccess)
+		return hrSuccess;
+
+	string rtfbase64;
+	rtfbase64 = base64_encode((unsigned char*)rtf.c_str(), rtf.size());
+	lpicValue = icalvalue_new_x(rtfbase64.c_str());
+	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
+	lpProp = icalproperty_new_x(lpszTemp);
+	icalmemory_free_buffer(lpszTemp);
+	icalproperty_set_x_name(lpProp, "X-MICROSOFT-RTF");
+	icalcomponent_add_property(lpEvent, lpProp);
+	icalvalue_free(lpicValue);
 	return hrSuccess;
 }
 
