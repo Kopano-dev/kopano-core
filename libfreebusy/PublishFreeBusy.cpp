@@ -270,26 +270,23 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 					ec_log_debug("Error adding occurrence block to list, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 					return hr;
 				}
-			} else {
-				if(lpRowSet->aRow[i].lpProps[4].ulPropTag == PROP_APPT_RECURRINGSTATE) 
-				{
-					hr = lpRecurrence.HrLoadRecurrenceState((char *)(lpRowSet->aRow[i].lpProps[4].Value.bin.lpb),lpRowSet->aRow[i].lpProps[4].Value.bin.cb, 0);
-					if(FAILED(hr)) {
-						ec_log_err("Error loading recurrence state, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-						continue;
-					}
-
-					if (lpRowSet->aRow[i].lpProps[6].ulPropTag == PROP_APPT_TIMEZONESTRUCT)
-						ttzInfo = *(TIMEZONE_STRUCT*)lpRowSet->aRow[i].lpProps[6].Value.bin.lpb;
-
-					if (lpRowSet->aRow[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
-						ulFbStatus = lpRowSet->aRow[i].lpProps[2].Value.ul;
-					hr = lpRecurrence.HrGetItems(m_tsStart, m_tsEnd, ttzInfo, ulFbStatus, &+lpOccrInfo, lpcValues);
-					if (hr != hrSuccess || !lpOccrInfo) {
-						ec_log_err("Error expanding items for recurring item, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-						continue;
-					}
-				}
+				continue;
+			}
+			if (lpRowSet->aRow[i].lpProps[4].ulPropTag != PROP_APPT_RECURRINGSTATE)
+				continue;
+			hr = lpRecurrence.HrLoadRecurrenceState((char *)(lpRowSet->aRow[i].lpProps[4].Value.bin.lpb),lpRowSet->aRow[i].lpProps[4].Value.bin.cb, 0);
+			if (FAILED(hr)) {
+				ec_log_err("Error loading recurrence state, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+				continue;
+			}
+			if (lpRowSet->aRow[i].lpProps[6].ulPropTag == PROP_APPT_TIMEZONESTRUCT)
+				ttzInfo = *(TIMEZONE_STRUCT*)lpRowSet->aRow[i].lpProps[6].Value.bin.lpb;
+			if (lpRowSet->aRow[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
+				ulFbStatus = lpRowSet->aRow[i].lpProps[2].Value.ul;
+			hr = lpRecurrence.HrGetItems(m_tsStart, m_tsEnd, ttzInfo, ulFbStatus, &+lpOccrInfo, lpcValues);
+			if (hr != hrSuccess || !lpOccrInfo) {
+				ec_log_err("Error expanding items for recurring item, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+				continue;
 			}
 		}
 	}
