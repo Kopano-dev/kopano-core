@@ -56,12 +56,12 @@ from .compat import (
 if sys.hexversion >= 0x03000000:
     from . import user as _user
     from . import config as _config
-    from . import utils as _utils
+    from . import ics as _ics
     from . import store as _store
 else:
     import user as _user
     import config as _config
-    import utils as _utils
+    import ics as _ics
     import store as _store
 
 # avoid module-class-decorator-cache-store references, which are
@@ -562,7 +562,7 @@ class Server(object):
     def state(self):
         """ Current server state """
 
-        return _utils.state(self.mapistore)
+        return _ics.state(self.mapistore)
 
     def sync(self, importer, state, log=None, max_changes=None, window=None, begin=None, end=None, stats=None):
         """ Perform synchronization against server node
@@ -573,7 +573,7 @@ class Server(object):
         """
 
         importer.store = None
-        return _utils.sync(self, self.mapistore, importer, state, log or self.log, max_changes, window=window, begin=begin, end=end, stats=stats)
+        return _ics.sync(self, self.mapistore, importer, state, log or self.log, max_changes, window=window, begin=begin, end=end, stats=stats)
 
     @_timed_cache(minutes=60)
     def _resolve_email(self, entryid=None):
