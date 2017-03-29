@@ -68,8 +68,6 @@ public:
 	static ECRESULT GetMVPropSubquery(unsigned int ulPropTagRequested, std::string &subquery);
 	static ECRESULT GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, unsigned int ulStoreType, char** lppStoreName);
 	static ECRESULT IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, bool *lpbIsOrphan);
-private:
-
 };
 
 } /* namespace */
