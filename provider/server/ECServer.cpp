@@ -225,9 +225,8 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 		if (!m_bIgnoreAttachmentStorageConflict) {
 			ec_log_err("Attachments are stored with option '%s', but '%s' is selected.", lpRow[0], g_lpConfig->GetSetting("attachment_storage"));
 			return KCERR_DATABASE_ERROR;
-		} else {
-			ec_log_warn("Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
 		}
+		ec_log_warn("Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
 	}
 
 	// first time we start, set the database to the selected mode
@@ -240,13 +239,14 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	}
 
 	// Create attachment directories
-	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0)
-		// These values are hard coded .. if they change, the hash algorithm will fail, and you'll be FUCKED.
-		for (int i = 0; i < ATTACH_PATHDEPTH_LEVEL1; ++i)
-			for (int j = 0; j < ATTACH_PATHDEPTH_LEVEL2; ++j) {
-				string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
-				CreatePath(path.c_str());
-			}
+	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") != 0)
+		return erSuccess;
+	// These values are hard coded .. if they change, the hash algorithm will fail, and you'll be FUCKED.
+	for (int i = 0; i < ATTACH_PATHDEPTH_LEVEL1; ++i)
+		for (int j = 0; j < ATTACH_PATHDEPTH_LEVEL2; ++j) {
+			string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
+			CreatePath(path.c_str());
+		}
 	return erSuccess;
 }
 
@@ -275,9 +275,8 @@ static ECRESULT check_distributed_kopano(ECDatabase *lpDatabase)
 		if (!m_bIgnoreDistributedKopanoConflict) {
 			ec_log_crit("Multiserver mode is locked, reason: '%s'. Contact Kopano for support.", lpRow[0]);
 			return KCERR_DATABASE_ERROR;
-		} else {
-			ec_log_warn("Ignoring multiserver mode lock as requested.");
 		}
+		ec_log_warn("Ignoring multiserver mode lock as requested.");
 	}
 	return erSuccess;
 }
@@ -402,10 +401,9 @@ static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 	if (ulThreadStack < MYSQL_MIN_THREAD_STACK) {
 		ec_log_warn("MySQL thread_stack is set to %u, which is too small", ulThreadStack);
 		ec_log_warn("Please set thread_stack to %uK or higher in your MySQL configuration", MYSQL_MIN_THREAD_STACK / 1024);
-		if (m_bIgnoreDbThreadStackSize)
-			ec_log_warn("MySQL thread_stack setting ignored. Please reconsider when 'Thread stack overrun' errors appear in the log.");
-		else
+		if (!m_bIgnoreDbThreadStackSize)
 			return KCERR_DATABASE_ERROR;
+		ec_log_warn("MySQL thread_stack setting ignored. Please reconsider when 'Thread stack overrun' errors appear in the log.");
 	}
 	return erSuccess;
 }

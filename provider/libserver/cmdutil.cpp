@@ -1914,12 +1914,19 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     
     // See if we can get the object IDs for the passed objects from the cache
     for (const auto &s : setIds) {
-        if (g_lpSessionManager->GetCacheManager()->QueryObjectFromProp(ulTag, s.size(), reinterpret_cast<unsigned char *>(const_cast<char *>(s.data())), &ulId) == erSuccess) {
-            if(ulTag == PROP_ID(PR_SOURCE_KEY))
-                setFolders.insert(ulId);
-            else if(ulTag == PROP_ID(PR_ENTRYID)) {
-                EntryId eid(s);
-                
+		if (g_lpSessionManager->GetCacheManager()->QueryObjectFromProp(ulTag, s.size(),
+		    reinterpret_cast<unsigned char *>(const_cast<char *>(s.data())), &ulId) != erSuccess) {
+			setUncached.insert(s);
+			continue;
+		}
+		if (ulTag == PROP_ID(PR_SOURCE_KEY)) {
+			setFolders.insert(ulId);
+		} else if (ulTag != PROP_ID(PR_ENTRYID)) {
+			assert(false);
+			continue;
+		}
+
+		EntryId eid(s);
 		try {
 			if (eid.type() == MAPI_FOLDER)
 				setFolders.insert(ulId);
@@ -1931,13 +1938,6 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 			ec_log_err("eid.type(): %s\n", e.what());
 			assert(false);
 		}
-            }
-            else {
-                assert(false);
-            }
-        } else {
-            setUncached.insert(s);
-        }
     }
 
     if(!setUncached.empty()) {    
