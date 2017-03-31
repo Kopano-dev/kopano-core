@@ -322,17 +322,26 @@ class Folder(object):
         self.server.sa.ResetFolderCount(_unhex(self.entryid))
 
     def _get_entryids(self, items):
-        if isinstance(items, (_item.Item, Folder, Permission)):
+        if isinstance(items, (_item.Item, Folder, Permission, _prop.Property)):
             items = [items]
         else:
-            items = list(items)
+            try:
+                items = list(items)
+            except TypeError:
+                raise Error("attempt to delete object of type '%s' from folder" % items.__class__.__name__)
         item_entryids = [_unhex(item.entryid) for item in items if isinstance(item, _item.Item)]
         folder_entryids = [_unhex(item.entryid) for item in items if isinstance(item, Folder)]
         perms = [item for item in items if isinstance(item, Permission)]
-        return item_entryids, folder_entryids, perms
+        props = [item for item in items if isinstance(item, _prop.Property)]
+        return item_entryids, folder_entryids, perms, props
 
-    def delete(self, items): # XXX associated
-        item_entryids, folder_entryids, perms = self._get_entryids(items)
+    def delete(self, objects): # XXX associated
+        """Delete items, subfolders, properties or permissions from folder
+
+        :param objects: The items, subfolders, properties or permissions
+        """
+
+        item_entryids, folder_entryids, perms, props = self._get_entryids(objects)
         if item_entryids:
             self.mapiobj.DeleteMessages(item_entryids, 0, None, DELETE_HARD_DELETE)
         for entryid in folder_entryids:
@@ -340,16 +349,30 @@ class Folder(object):
         for perm in perms:
             acl_table = self.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
             acl_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE, [SPropValue(PR_MEMBER_ID, perm.mapirow[PR_MEMBER_ID])])])
+        if props:
+            self.mapiobj.DeleteProps([prop.proptag for prop in props])
 
-    def copy(self, items, folder, _delete=False):
-        item_entryids, folder_entryids, perms = self._get_entryids(items) # XXX copy/move perms??
+    def copy(self, objects, folder, _delete=False):
+        """Copy items or subfolders to folder
+
+        :param objects: The items or subfolders
+        :param folder: The target folder
+        """
+
+        item_entryids, folder_entryids, _, _ = self._get_entryids(objects) # XXX copy/move perms?? XXX error for perms/props
         if item_entryids:
             self.mapiobj.CopyMessages(item_entryids, IID_IMAPIFolder, folder.mapiobj, 0, None, (MESSAGE_MOVE if _delete else 0))
         for entryid in folder_entryids:
             self.mapiobj.CopyFolder(entryid, IID_IMAPIFolder, folder.mapiobj, None, 0, None, (FOLDER_MOVE if _delete else 0))
 
-    def move(self, items, folder):
-        self.copy(items, folder, _delete=True)
+    def move(self, objects, folder):
+        """Move items or subfolders to folder
+
+        :param objects: The items or subfolders
+        :param folder: The target folder
+        """
+
+        self.copy(objects, folder, _delete=True)
 
     def folder(self, path=None, entryid=None, recurse=False, create=False): # XXX kill (slow) recursive search
         """ Return :class:`Folder` with given path or entryid; raise exception if not found
