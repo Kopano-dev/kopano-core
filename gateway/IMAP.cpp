@@ -705,7 +705,7 @@ HRESULT IMAP::HrCmdCapability(const string &strTag) {
  * 
  * @return hrSuccess
  */
-template<bool check> HRESULT IMAP::HrCmdNoop(const std::string &strTag)
+HRESULT IMAP::HrCmdNoop(const std::string &strTag, bool check)
 {
 	HRESULT hr = hrSuccess;
 
@@ -717,6 +717,11 @@ template<bool check> HRESULT IMAP::HrCmdNoop(const std::string &strTag)
 	}
 	HrResponse(RESP_TAGGED_OK, strTag, (check ? std::string("CHECK") : std::string("NOOP")) + " completed");
 	return hrSuccess;
+}
+
+template<bool check> HRESULT IMAP::HrCmdNoop(const std::string &strTag)
+{
+	return HrCmdNoop(strTag, check);
 }
 
 /** 
@@ -979,9 +984,8 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
  * @param[in]	strFolder	IMAP folder name in UTF-7 something charset
  * @param[in]	bReadOnly	The EXAMINE command was given instead of the SELECT command
  */
-template<bool bReadOnly>
 HRESULT IMAP::HrCmdSelect(const std::string &strTag,
-    const std::vector<std::string> &args)
+    const std::vector<std::string> &args, bool bReadOnly)
 {
 	HRESULT hr = hrSuccess;
 	char szResponse[IMAP_RESP_MAX + 1];
@@ -1044,6 +1048,13 @@ HRESULT IMAP::HrCmdSelect(const std::string &strTag,
 		HrResponse(RESP_TAGGED_OK, strTag, "[READ-WRITE] SELECT completed");
 
 	return hrSuccess;
+}
+
+template<bool read_only>
+HRESULT IMAP::HrCmdSelect(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
+	return HrCmdSelect(strTag, args, read_only);
 }
 
 /** 
@@ -1378,9 +1389,8 @@ exit:
  * 
  * @return MAPI Error code
  */
-template<bool bSubscribe>
 HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
-    const std::vector<std::string> &args)
+    const std::vector<std::string> &args, bool bSubscribe)
 {
 	HRESULT hr = hrSuccess;
 	string strAction;
@@ -1428,6 +1438,13 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
 	return hrSuccess;
 }
 
+template<bool subscribe>
+HRESULT IMAP::HrCmdSubscribe(const std::string &tag,
+    const std::vector<std::string> &args)
+{
+	return HrCmdSubscribe(tag, args, subscribe);
+}
+
 /** 
  * @brief Handles the LIST and LSUB commands
  * 
@@ -1443,8 +1460,8 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
  * 
  * @return MAPI Error code
  */
-template<bool bSubscribedOnly> HRESULT
-IMAP::HrCmdList(const std::string &strTag, const std::vector<std::string> &args)
+HRESULT IMAP::HrCmdList(const std::string &strTag,
+    const std::vector<std::string> &args, bool bSubscribedOnly)
 {
 	HRESULT hr = hrSuccess;
 	string strAction;
@@ -1550,6 +1567,12 @@ IMAP::HrCmdList(const std::string &strTag, const std::vector<std::string> &args)
 	}
 	HrResponse(RESP_TAGGED_OK, strTag, strAction + " completed");
 	return hrSuccess;
+}
+
+template<bool sub_only> HRESULT
+IMAP::HrCmdList(const std::string &tag, const std::vector<std::string> &args)
+{
+	return HrCmdList(tag, args, sub_only);
 }
 
 HRESULT IMAP::get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next)

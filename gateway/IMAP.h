@@ -184,16 +184,20 @@ private:
 	// All IMAP4rev1 commands
 	HRESULT HrCmdCapability(const string &strTag);
 	template<bool> HRESULT HrCmdNoop(const std::string &tag);
+	HRESULT HrCmdNoop(const std::string &tag, bool check);
 	HRESULT HrCmdLogout(const string &strTag);
 	HRESULT HrCmdStarttls(const string &strTag);
 	HRESULT HrCmdAuthenticate(const string &strTag, string strAuthMethod, const string &strAuthData);
 	HRESULT HrCmdLogin(const std::string &tag, const std::vector<std::string> &args);
 	template<bool> HRESULT HrCmdSelect(const std::string &tag, const std::vector<std::string> &args);
+	HRESULT HrCmdSelect(const std::string &tag, const std::vector<std::string> &args, bool read_only);
 	HRESULT HrCmdCreate(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdDelete(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdRename(const std::string &tag, const std::vector<std::string> &args);
 	template<bool> HRESULT HrCmdSubscribe(const std::string &tag, const std::vector<std::string> &args);
+	HRESULT HrCmdSubscribe(const std::string &tag, const std::vector<std::string> &args, bool subscribe);
 	template<bool> HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args);
+	HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args, bool sub_only);
 	HRESULT get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next);
 	HRESULT HrCmdStatus(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdAppend(const string &strTag, const string &strFolder, const string &strData, string strFlags=string(), const string &strTime=string());
