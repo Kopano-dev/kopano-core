@@ -1782,8 +1782,7 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 		break;
 
 	// Prop compares
-	case RES_CONTENT:
-
+	case RES_CONTENT: {
 		// @todo: support PT_MV_STRING8, PT_MV_UNICODE and PT_MV_BINARY
 		// fuzzy string compare
 		if (PROP_TYPE(lpCondition->res.resContent.ulPropTag) != PT_STRING8 &&
@@ -1794,72 +1793,65 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 		}
 		ulPropType = PROP_TYPE(lpCondition->res.resContent.ulPropTag);
 		hr = HrGetOneProp(lpMessage, lpCondition->res.resContent.ulPropTag, &~lpProp);
-		if (hr == hrSuccess) {
-			char *lpSearchString = NULL, *lpSearchData = NULL;
-			wchar_t *lpwSearchString = NULL, *lpwSearchData = NULL;
-			unsigned int ulSearchStringSize = 0, ulSearchDataSize = 0;
-			ULONG ulFuzzyLevel;
+		if (hr != hrSuccess)
+			break;
 
-			if (ulPropType == PT_STRING8) {
-				lpSearchString = lpCondition->res.resContent.lpProp->Value.lpszA;
-				lpSearchData = lpProp->Value.lpszA;
-				ulSearchStringSize = lpSearchString?strlen(lpSearchString):0;
-				ulSearchDataSize = lpSearchData?strlen(lpSearchData):0;
-			} else if (ulPropType == PT_UNICODE) {
-				lpwSearchString = lpCondition->res.resContent.lpProp->Value.lpszW;
-				lpwSearchData = lpProp->Value.lpszW;
-				ulSearchStringSize = lpwSearchString?wcslen(lpwSearchString):0;
-				ulSearchDataSize = lpwSearchData?wcslen(lpwSearchData):0;
-			} else {
-				// PT_BINARY
-				lpSearchString = (char*)lpCondition->res.resContent.lpProp->Value.bin.lpb;
-				lpSearchData = (char*)lpProp->Value.bin.lpb;
-				ulSearchStringSize = lpCondition->res.resContent.lpProp->Value.bin.cb;
-				ulSearchDataSize = lpProp->Value.bin.cb;
-			}
+		char *lpSearchString = NULL, *lpSearchData = NULL;
+		wchar_t *lpwSearchString = NULL, *lpwSearchData = NULL;
+		unsigned int ulSearchStringSize = 0, ulSearchDataSize = 0;
+		ULONG ulFuzzyLevel;
 
-			ulFuzzyLevel = lpCondition->res.resContent.ulFuzzyLevel;
-			switch (ulFuzzyLevel & 0xFFFF) {
-			case FL_FULLSTRING:
-				if(ulSearchDataSize == ulSearchStringSize) {
-					if ((ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) && lpSearchData != NULL && lpSearchString != NULL && str_iequals(lpSearchData, lpSearchString, locale)) ||
-						(ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpSearchData != NULL && lpSearchString != NULL && str_equals(lpSearchData, lpSearchString, locale)) ||
-						(ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) && lpwSearchData != NULL && lpwSearchString != NULL && wcs_iequals(lpwSearchData, lpwSearchString, locale)) ||
-						(ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpwSearchData != NULL && lpwSearchString != NULL && wcs_equals(lpwSearchData, lpwSearchString, locale)) ||
-						(ulPropType == PT_BINARY && lpSearchData != NULL && lpwSearchString != NULL && memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
-					{
-						fMatch = true;
-						break;
-					}
-				}
+		if (ulPropType == PT_STRING8) {
+			lpSearchString = lpCondition->res.resContent.lpProp->Value.lpszA;
+			lpSearchData = lpProp->Value.lpszA;
+			ulSearchStringSize = lpSearchString?strlen(lpSearchString):0;
+			ulSearchDataSize = lpSearchData?strlen(lpSearchData):0;
+		} else if (ulPropType == PT_UNICODE) {
+			lpwSearchString = lpCondition->res.resContent.lpProp->Value.lpszW;
+			lpwSearchData = lpProp->Value.lpszW;
+			ulSearchStringSize = lpwSearchString?wcslen(lpwSearchString):0;
+			ulSearchDataSize = lpwSearchData?wcslen(lpwSearchData):0;
+		} else {
+			// PT_BINARY
+			lpSearchString = (char*)lpCondition->res.resContent.lpProp->Value.bin.lpb;
+			lpSearchData = (char*)lpProp->Value.bin.lpb;
+			ulSearchStringSize = lpCondition->res.resContent.lpProp->Value.bin.cb;
+			ulSearchDataSize = lpProp->Value.bin.cb;
+		}
+
+		ulFuzzyLevel = lpCondition->res.resContent.ulFuzzyLevel;
+		switch (ulFuzzyLevel & 0xFFFF) {
+		case FL_FULLSTRING:
+			if (ulSearchDataSize != ulSearchStringSize)
 				break;
-			case FL_PREFIX:
-				if(ulSearchDataSize >= ulSearchStringSize) {
-					if ((ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) && lpSearchData != NULL && lpSearchString != NULL && str_istartswith(lpSearchData, lpSearchString, locale)) ||
-						(ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpSearchData != NULL && lpSearchString != NULL && str_startswith(lpSearchData, lpSearchString, locale)) ||
-						(ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) && lpwSearchData != NULL && lpwSearchString != NULL && wcs_istartswith(lpwSearchData, lpwSearchString, locale)) ||
-						(ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpwSearchData != NULL && lpwSearchString != NULL && wcs_startswith(lpwSearchData, lpwSearchString, locale)) ||
-						(ulPropType == PT_BINARY && lpSearchData != NULL && lpSearchString != NULL && memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
-					{
-						fMatch = true;
-						break;
-					}
-				}
+			if ((ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) && lpSearchData != NULL && lpSearchString != NULL && str_iequals(lpSearchData, lpSearchString, locale)) ||
+			    (ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpSearchData != NULL && lpSearchString != NULL && str_equals(lpSearchData, lpSearchString, locale)) ||
+			    (ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) && lpwSearchData != NULL && lpwSearchString != NULL && wcs_iequals(lpwSearchData, lpwSearchString, locale)) ||
+			    (ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpwSearchData != NULL && lpwSearchString != NULL && wcs_equals(lpwSearchData, lpwSearchString, locale)) ||
+			    (ulPropType == PT_BINARY && lpSearchData != NULL && lpwSearchString != NULL && memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
+				fMatch = true;
+			break;
+		case FL_PREFIX:
+			if (ulSearchDataSize < ulSearchStringSize)
 				break;
-			case FL_SUBSTRING:
-				if ((ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) && lpSearchData != NULL && lpSearchString != NULL && str_icontains(lpSearchData, lpSearchString, locale)) ||
-					(ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpSearchData != NULL && lpSearchString != NULL && str_contains(lpSearchData, lpSearchString, locale)) ||
-					(ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) && lpwSearchData != NULL && lpwSearchString != NULL && wcs_icontains(lpwSearchData, lpwSearchString, locale)) ||
-					(ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpwSearchData != NULL && lpwSearchString != NULL && wcs_contains(lpwSearchData, lpwSearchString, locale)) ||
-					(ulPropType == PT_BINARY && lpSearchData != NULL && lpSearchString != NULL && memsubstr(lpSearchData, ulSearchDataSize, lpSearchString, ulSearchStringSize) == 0))
-				{
-					fMatch = true;
-					break;
-				}
-				break;
-			};
+			if ((ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) && lpSearchData != NULL && lpSearchString != NULL && str_istartswith(lpSearchData, lpSearchString, locale)) ||
+			    (ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpSearchData != NULL && lpSearchString != NULL && str_startswith(lpSearchData, lpSearchString, locale)) ||
+			    (ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) && lpwSearchData != NULL && lpwSearchString != NULL && wcs_istartswith(lpwSearchData, lpwSearchString, locale)) ||
+			    (ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpwSearchData != NULL && lpwSearchString != NULL && wcs_startswith(lpwSearchData, lpwSearchString, locale)) ||
+			    (ulPropType == PT_BINARY && lpSearchData != NULL && lpSearchString != NULL && memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
+				fMatch = true;
+			break;
+		case FL_SUBSTRING:
+			if ((ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) && lpSearchData != NULL && lpSearchString != NULL && str_icontains(lpSearchData, lpSearchString, locale)) ||
+			    (ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpSearchData != NULL && lpSearchString != NULL && str_contains(lpSearchData, lpSearchString, locale)) ||
+			    (ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) && lpwSearchData != NULL && lpwSearchString != NULL && wcs_icontains(lpwSearchData, lpwSearchString, locale)) ||
+			    (ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpwSearchData != NULL && lpwSearchString != NULL && wcs_contains(lpwSearchData, lpwSearchString, locale)) ||
+			    (ulPropType == PT_BINARY && lpSearchData != NULL && lpSearchString != NULL && memsubstr(lpSearchData, ulSearchDataSize, lpSearchString, ulSearchStringSize) == 0))
+				fMatch = true;
+			break;
 		}
 		break;
+	}
 	case RES_PROPERTY:
 		if(PROP_TYPE(lpCondition->res.resProperty.ulPropTag) != PROP_TYPE(lpCondition->res.resProperty.lpProp->ulPropTag)) {
 			// cannot compare two different types
