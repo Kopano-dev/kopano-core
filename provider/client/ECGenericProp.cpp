@@ -965,12 +965,10 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	}
 
 	lpProblems->cProblem = nProblem;
-
-	if(lppProblems && nProblem) {
+	if (lppProblems != nullptr && nProblem != 0)
 		*lppProblems = lpProblems.release();
-	} else if(lppProblems) {
+	else if (lppProblems != nullptr)
 		*lppProblems = NULL;
-	}
 	return hrSuccess;
 }
 

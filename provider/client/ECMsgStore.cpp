@@ -1718,15 +1718,14 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		memcpy(&lpecMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID));
 
 	// Get user or company information depending on the store type.
-	if (ulStoreType == ECSTORE_TYPE_PRIVATE) {
+	if (ulStoreType == ECSTORE_TYPE_PRIVATE)
 		hr = lpTransport->HrGetUser(cbUserId, lpUserId, 0, &~lpECUser);
-	} else if (ABEID_ID(lpUserId) == 1) {
+	else if (ABEID_ID(lpUserId) == 1)
 		/* Public store, ownership set to group EVERYONE*/
 		hr = lpTransport->HrGetGroup(cbUserId, lpUserId, 0, &~lpECGroup);
-	} else {
+	else
 		/* Public store, ownership set to company */
 		hr = lpTransport->HrGetCompany(cbUserId, lpUserId, 0, &~lpECCompany);
-	}
 	if (hr != hrSuccess)
 		return hr;
 

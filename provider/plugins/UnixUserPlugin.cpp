@@ -453,11 +453,10 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	string strSubQuery;
 	unsigned int ulRows = 0;
 
-	if (companyid.id.empty()) {
+	if (companyid.id.empty())
 		LOG_PLUGIN_DEBUG("%s Class %x", __FUNCTION__, objclass);
-	} else {
+	else
 		LOG_PLUGIN_DEBUG("%s Company %s, Class %x", __FUNCTION__, companyid.id.c_str(), objclass);
-	}
 
 	// use mutex to protect thread-unsafe setpwent()/setgrent() calls
 	ulock_normal biglock(m_plugin_lock);

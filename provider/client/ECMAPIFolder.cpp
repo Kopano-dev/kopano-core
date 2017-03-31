@@ -642,15 +642,11 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		HrGetStoreGuidFromEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb, &guidDest) == hrSuccess &&
 		memcmp(&guidFrom, &guidDest, sizeof(GUID)) == 0 &&
 		lpFolderOps != NULL)
-	{
 		//FIXME: Progressbar
 		hr = this->lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
-			
-	}else
-	{
+	else
 		// Support object handled de copy/move
 		hr = this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, &this->m_xMAPIFolder, cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
-	}
 	return hr;
 }
 

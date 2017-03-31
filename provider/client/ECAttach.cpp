@@ -105,13 +105,11 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Get the attachement method
-	if (HrGetOneProp(&m_xAttach, PR_ATTACH_METHOD, &~lpPropAttachType) == hrSuccess) {
+	if (HrGetOneProp(&m_xAttach, PR_ATTACH_METHOD, &~lpPropAttachType) == hrSuccess)
 		ulAttachType = lpPropAttachType->Value.ul;
-	}
 	// The client is creating a new attachment, which may be embedded. Fix for the next if check
-	else if ((ulFlags & MAPI_CREATE) && PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ) && *lpiid == IID_IMessage) {
+	else if ((ulFlags & MAPI_CREATE) && PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ) && *lpiid == IID_IMessage)
 		ulAttachType = ATTACH_EMBEDDED_MSG;
-	}
 
 	if(ulAttachType == ATTACH_EMBEDDED_MSG && (PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ) && *lpiid == IID_IMessage)) {
 		// Client is opening an IMessage submessage
