@@ -426,7 +426,7 @@ HRESULT ECMsgStore::OpenStatsTable(unsigned int ulTableType, LPMAPITABLE *lppTab
  */
 HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection){
 	HRESULT hr = hrSuccess;
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	if(m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS) {
@@ -443,7 +443,7 @@ HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG u
 	if(lpEntryID == NULL) {
 
 		// never sent the client store entry
-		hr = UnWrapServerClientStoreEntry(this->m_cbEntryId, this->m_lpEntryId, &cbUnWrapStoreID, &lpUnWrapStoreID);
+		hr = UnWrapServerClientStoreEntry(this->m_cbEntryId, this->m_lpEntryId, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -460,15 +460,12 @@ HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG u
 	m_setAdviseConnections.insert(*lpulConnection);
 
 exit:
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
 HRESULT ECMsgStore::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection){
 	HRESULT hr = hrSuccess;
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	if(m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS) {
@@ -485,7 +482,7 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMa
 	if(lpEntryID == NULL) {
 
 		// never sent the client store entry
-		hr = UnWrapServerClientStoreEntry(this->m_cbEntryId, this->m_lpEntryId, &cbUnWrapStoreID, &lpUnWrapStoreID);
+		hr = UnWrapServerClientStoreEntry(this->m_cbEntryId, this->m_lpEntryId, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -505,9 +502,6 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMa
 	m_setAdviseConnections.insert(*lpulConnection);
 
 exit:
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
@@ -908,7 +902,7 @@ HRESULT ECMsgStore::GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable)
 HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 {
 	HRESULT			hr = hrSuccess;
-	LPSPropValue	lpsPropArray = NULL;
+	ecmem_ptr<SPropValue> lpsPropArray;
 	ULONG			cValue = 0;
 	ULONG			ulSubmitFlag = 0;
 	ECMessagePtr	ptrECMessage;
@@ -926,8 +920,7 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = lpMessage->GetProps(sptaMessageProps, 0, &cValue, &lpsPropArray);
+	hr = lpMessage->GetProps(sptaMessageProps, 0, &cValue, &~lpsPropArray);
 	if(HR_FAILED(hr))
 		goto exit;
 
@@ -965,11 +958,7 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 	hr = lpTransport->HrSetLockState(lpsPropArray[IDX_ENTRYID].Value.bin.cb, (LPENTRYID)lpsPropArray[IDX_ENTRYID].Value.bin.lpb, (ulSubmitFlag & SUBMITFLAG_LOCKED) == SUBMITFLAG_LOCKED);
 	if (hr != hrSuccess)
 		goto exit;
-
-	ECFreeBuffer(lpsPropArray);
-	lpsPropArray = NULL;
-
-	hr = ECAllocateBuffer(sizeof(SPropValue)*1, (void**)&lpsPropArray);
+	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropArray);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -985,9 +974,6 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 		goto exit;
 
 exit:
-	if(lpsPropArray)
-		ECFreeBuffer(lpsPropArray);
-
 	return hr;
 }
 
@@ -1251,22 +1237,18 @@ HRESULT ECMsgStore::GetWrappedServerStoreEntryID(ULONG cbEntryId, LPBYTE lpEntry
 {
 	HRESULT		hr = hrSuccess;
 	ULONG		cbStoreID = 0;
-	LPENTRYID	lpStoreID = NULL;
-
+	ecmem_ptr<ENTRYID> lpStoreID;
 	entryId		sEntryId;
 	sEntryId.__ptr = lpEntryId;
 	sEntryId.__size = cbEntryId;
 
-	hr = WrapServerClientStoreEntry(lpTransport->GetServerName(), &sEntryId, &cbStoreID, &lpStoreID);
+	hr = WrapServerClientStoreEntry(lpTransport->GetServerName(), &sEntryId, &cbStoreID, &~lpStoreID);
 	if(hr != hrSuccess)
 		goto exit;
 
 	hr = lpSupport->WrapStoreEntryID(cbStoreID, lpStoreID, lpcbWrapped, lppWrapped);
 
 exit:
-	if (lpStoreID)
-		ECFreeBuffer(lpStoreID);
-
 	return hr;
 }
 
@@ -1482,8 +1464,7 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 {
 	// Global
 	HRESULT				hr = hrSuccess;
-	LPSPropValue		lpPropValue = NULL;
-	LPSPropValue		lpFBPropValue = NULL;
+	ecmem_ptr<SPropValue> lpPropValue, lpFBPropValue;
 	ULONG				cValues = 0;
 	ULONG				cCurValues = 0;
 	object_ptr<IMAPIFolder> lpFBFolder;
@@ -1491,7 +1472,7 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 
 	// Freebusy mv propery
 	// This property will be fill in on another place
-	hr = ECAllocateBuffer(sizeof(SPropValue), (void**)&lpFBPropValue);
+	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpFBPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1513,7 +1494,7 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 		goto exit;
 
 	// Get entryid of localfreebusy
-	hr = HrGetOneProp(lpFBFolder, PR_ENTRYID, &lpPropValue);
+	hr = HrGetOneProp(lpFBFolder, PR_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1525,8 +1506,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	lpFBPropValue->Value.MVbin.lpbin[3].cb = lpPropValue->Value.bin.cb;
 	memcpy(lpFBPropValue->Value.MVbin.lpbin[3].lpb, lpPropValue->Value.bin.lpb, lpPropValue->Value.bin.cb);
 
-	ECFreeBuffer(lpPropValue); lpPropValue = NULL;
-
 	// Create localfreebusy message
 	// Default setting of free/busy
 	hr = lpFBFolder->CreateMessage(&IID_IMessage, 0, &~lpFBMessage);
@@ -1535,7 +1514,7 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 
 	cValues = 6;
 	cCurValues = 0;
-	hr = ECAllocateBuffer(sizeof(SPropValue)*cValues, (void**)&lpPropValue);
+	hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, &~lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1565,10 +1544,8 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	if(hr != hrSuccess)
 		goto exit;
 
-	ECFreeBuffer(lpPropValue); lpPropValue = NULL;
-
 	// Get entryid of localfreebusy
-	hr = HrGetOneProp(lpFBMessage, PR_ENTRYID, &lpPropValue);
+	hr = HrGetOneProp(lpFBMessage, PR_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1580,8 +1557,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	lpFBPropValue->Value.MVbin.lpbin[1].cb = lpPropValue->Value.bin.cb;
 	memcpy(lpFBPropValue->Value.MVbin.lpbin[1].lpb, lpPropValue->Value.bin.lpb, lpPropValue->Value.bin.cb);
 
-	ECFreeBuffer(lpPropValue); lpPropValue = NULL;
-
 	// Create Associated localfreebusy message
 	hr = lpCalendarFolder->CreateMessage(&IID_IMessage, MAPI_ASSOCIATED, &~lpFBMessage);
 	if(hr != hrSuccess)
@@ -1589,7 +1564,7 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 
 	cValues = 3;
 	cCurValues = 0;
-	hr = ECAllocateBuffer(sizeof(SPropValue)*cValues, (void**)&lpPropValue);
+	hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, &~lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1605,15 +1580,12 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	hr = lpFBMessage->SetProps(cCurValues, lpPropValue, NULL);
 	if(hr != hrSuccess)
 		goto exit;
-
-	ECFreeBuffer(lpPropValue); lpPropValue = NULL;
-
 	hr = lpFBMessage->SaveChanges(KEEP_OPEN_READONLY);
 	if(hr != hrSuccess)
 		goto exit;
 
 	// Get entryid of associated localfreebusy
-	hr = HrGetOneProp(lpFBMessage, PR_ENTRYID, &lpPropValue);
+	hr = HrGetOneProp(lpFBMessage, PR_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1624,8 +1596,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 
 	lpFBPropValue->Value.MVbin.lpbin[0].cb = lpPropValue->Value.bin.cb;
 	memcpy(lpFBPropValue->Value.MVbin.lpbin[0].lpb, lpPropValue->Value.bin.lpb, lpPropValue->Value.bin.cb);
-
-	ECFreeBuffer(lpPropValue); lpPropValue = NULL;
 
 	// Add freebusy entryid on Inbox folder
 	hr = lpInboxFolder->SetProps(1, lpFBPropValue, NULL);
@@ -1646,12 +1616,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 		goto exit;
 
 exit:
-	//Global
-	if(lpPropValue)
-		ECFreeBuffer(lpPropValue);
-
-	if(lpFBPropValue)
-		ECFreeBuffer(lpFBPropValue);
 	return hr;
 }
 
@@ -1769,15 +1733,14 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 	object_ptr<IECPropStorage> lpStorage;
 	object_ptr<ECMAPIFolder> lpECMapiFolderInbox;
 	object_ptr<IMAPIFolder> lpInboxFolder, lpCalendarFolder;
-	LPSPropValue		lpPropValue = NULL;
+	ecmem_ptr<SPropValue> lpPropValue;
 	ULONG				cValues = 0;
 	ULONG				ulObjType = 0;
 	object_ptr<IECSecurity> lpECSecurity;
 	ECPERMISSION		sPermission;
-
-	ECUSER *lpECUser = NULL;
-	ECCOMPANY *lpECCompany = NULL;
-	ECGROUP *lpECGroup = NULL;
+	ecmem_ptr<ECUSER> lpECUser;
+	ecmem_ptr<ECCOMPANY> lpECCompany;
+	ecmem_ptr<ECGROUP> lpECGroup;
 
 	std::string			strBuffer;
 
@@ -1811,17 +1774,17 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 
 	// Get user or company information depending on the store type.
 	if (ulStoreType == ECSTORE_TYPE_PRIVATE) {
-		hr = lpTransport->HrGetUser(cbUserId, lpUserId, 0, &lpECUser);
+		hr = lpTransport->HrGetUser(cbUserId, lpUserId, 0, &~lpECUser);
 		if (hr != hrSuccess)
 			goto exit;
 	} else if (ABEID_ID(lpUserId) == 1) {
 		/* Public store, ownership set to group EVERYONE*/
-		hr = lpTransport->HrGetGroup(cbUserId, lpUserId, 0, &lpECGroup);
+		hr = lpTransport->HrGetGroup(cbUserId, lpUserId, 0, &~lpECGroup);
 		if (hr != hrSuccess)
 			goto exit;
 	} else {
 		/* Public store, ownership set to company */
-		hr = lpTransport->HrGetCompany(cbUserId, lpUserId, 0, &lpECCompany);
+		hr = lpTransport->HrGetCompany(cbUserId, lpUserId, 0, &~lpECCompany);
 		if (hr != hrSuccess)
 			goto exit;
 	}
@@ -1935,7 +1898,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		// indicate, validity of the entry identifiers of the folders in a message store
 		// Public folder have default the mask
 		cValues = 2;
-		hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, reinterpret_cast<void **>(&lpPropValue));
+		hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, &~lpPropValue);
 		if (hr != hrSuccess)
 			goto exit;
 		lpPropValue->ulPropTag = PR_VALID_FOLDER_MASK;
@@ -1949,8 +1912,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		hr = lpecMsgStore->SetProps(cValues, lpPropValue, NULL);
 		if(hr != hrSuccess)
 			goto exit;
-		ECFreeBuffer(lpPropValue);
-		lpPropValue = NULL;
 	}else if(ulStoreType == ECSTORE_TYPE_PRIVATE) { //Private folder
 
 		// Create Folder COMMON_VIEWS into the rootfolder
@@ -2003,7 +1964,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			goto exit;
 
 		// Get entryid of the folder
-		hr = HrGetOneProp(lpInboxFolder, PR_ENTRYID, &lpPropValue);
+		hr = HrGetOneProp(lpInboxFolder, PR_ENTRYID, &~lpPropValue);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -2018,9 +1979,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		hr = lpecMsgStore->SetReceiveFolder((LPTSTR)"REPORT.IPM", 0, lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb);
 		if(hr != hrSuccess)
 			goto exit;
-
-		ECFreeBuffer(lpPropValue);
-		lpPropValue = NULL;
 		hr = lpInboxFolder->QueryInterface(IID_ECMAPIFolder, &~lpECMapiFolderInbox);
 		if(hr != hrSuccess)
 			goto exit;
@@ -2128,7 +2086,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 
 		// indicate, validity of the entry identifiers of the folders in a message store
 		cValues = 1;
-		hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, reinterpret_cast<void **>(&lpPropValue));
+		hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, &~lpPropValue);
 		if (hr != hrSuccess)
 			goto exit;
 		lpPropValue[0].ulPropTag = PR_VALID_FOLDER_MASK;
@@ -2138,8 +2096,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		hr = lpecMsgStore->SetProps(cValues, lpPropValue, NULL);
 		if(hr != hrSuccess)
 			goto exit;
-		ECFreeBuffer(lpPropValue);
-		lpPropValue = NULL;
 	}
 
 	*lpcbStoreId = cbStoreId;
@@ -2149,17 +2105,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 	*lppRootId = lpRootId;
 
 exit:
-	if(lpECUser)
-		ECFreeBuffer(lpECUser);
-
-	if(lpECGroup)
-		ECFreeBuffer(lpECGroup);
-
-	if(lpECCompany)
-		ECFreeBuffer(lpECCompany);
-
-	if(lpPropValue)
-		ECFreeBuffer(lpPropValue);
 	return hr;
 }
 
@@ -2313,17 +2258,16 @@ HRESULT ECMsgStore::ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbSt
 
 HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp *lpFolderPropSet, unsigned int ulPropTag, unsigned int ulMVPos)
 {
-	LPSPropValue	lpPropValue = NULL;
+	ecmem_ptr<SPropValue> lpPropValue, lpPropMVValueNew;
 	LPSPropValue	lpPropMVValue = NULL;
-	LPSPropValue	lpPropMVValueNew = NULL;
 
 	// Get entryid of the folder
-	HRESULT hr = HrGetOneProp(lpFolder, PR_ENTRYID, &lpPropValue);
+	HRESULT hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
 	if (PROP_TYPE(ulPropTag) & MV_FLAG) {
-		hr = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpPropMVValueNew));
+		hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropMVValueNew);
 		if (hr != hrSuccess)
 			goto exit;
 		memset(lpPropMVValueNew, 0, sizeof(SPropValue));
@@ -2359,7 +2303,6 @@ HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp 
 
 		// Set the property into the right folder
 		hr = lpFolderPropSet->SetProps(1, lpPropMVValueNew, NULL);
-		ECFreeBuffer(lpPropMVValueNew);
 		if (hr != hrSuccess)
 			goto exit;
 	}else{
@@ -2373,9 +2316,6 @@ HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp 
 	}
 
 exit:
-	if(lpPropValue)
-		ECFreeBuffer(lpPropValue);
-
 	return hr;
 }
 
@@ -2387,7 +2327,7 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 {
 	HRESULT 		hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpMAPIFolder;
-	LPSPropValue	lpPropValue = NULL;
+	ecmem_ptr<SPropValue> lpPropValue;
 
 	if (lpFolderParent == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2414,7 +2354,7 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 	}
 
 	if (lpszContainerClass && _tcslen(lpszContainerClass) > 0) {
-		hr = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpPropValue));
+		hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 		if (hr != hrSuccess)
 			goto exit;
 		lpPropValue[0].ulPropTag = PR_CONTAINER_CLASS;
@@ -2428,9 +2368,6 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 		hr = lpMAPIFolder->SetProps(1, lpPropValue, NULL);
 		if(hr != hrSuccess)
 			goto exit;
-			
-		ECFreeBuffer(lpPropValue); 
-		lpPropValue = NULL; 
 	}
 
 	if(lppMAPIFolder) {
@@ -2440,8 +2377,6 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 	}
 
 exit:
-	if(lpPropValue)
-		ECFreeBuffer(lpPropValue);
 	if(lpFolderParent)
 		lpFolderParent->Release();
 
