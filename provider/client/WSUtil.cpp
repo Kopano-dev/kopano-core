@@ -960,14 +960,13 @@ HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList,
 {
 	HRESULT			hr = hrSuccess;
 	unsigned int	i = 0;
-	ENTRYLIST*		lpMsgList = NULL;
+	ecmem_ptr<ENTRYLIST> lpMsgList;
 
 	if(lpsEntryList == NULL || lppMsgList == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = ECAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpMsgList);
+	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgList);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -993,13 +992,8 @@ HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList,
 	}
 
 	lpMsgList->cValues = i;
-
-	*lppMsgList = lpMsgList;
-
+	*lppMsgList = lpMsgList.release();
 exit:
-	if(hr != hrSuccess && lpMsgList)
-		ECFreeBuffer(lpMsgList);
-
 	return hr;
 }
 
@@ -1598,13 +1592,13 @@ HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
     struct propmapMVPairArray **lppsoapMVPropmap)
 {
 	HRESULT hr = hrSuccess;
-	struct propmapPairArray *soapPropmap = NULL;
-	struct propmapMVPairArray *soapMVPropmap = NULL;
+	ecmem_ptr<struct propmapPairArray> soapPropmap;
+	ecmem_ptr<struct propmapMVPairArray> soapMVPropmap;
 	convert_context	converter;
 	ULONG ulConvFlags;
 
 	if (lpPropmap && lpPropmap->cEntries) {
-		hr = ECAllocateBuffer(sizeof *soapPropmap, (void**)&soapPropmap);
+		hr = ECAllocateBuffer(sizeof *soapPropmap, &~soapPropmap);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1629,7 +1623,7 @@ HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
 	}
 
 	if (lpMVPropmap && lpMVPropmap->cEntries) {
-		hr = ECAllocateBuffer(sizeof *soapMVPropmap, (void**)&soapMVPropmap);
+		hr = ECAllocateBuffer(sizeof *soapMVPropmap, &~soapMVPropmap);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1660,21 +1654,11 @@ HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
 		}
 	}
 
-	if (lppsoapPropmap) {
-		*lppsoapPropmap = soapPropmap;
-		soapPropmap = NULL;
-	}
-	if (lppsoapMVPropmap) {
-		*lppsoapMVPropmap = soapMVPropmap;
-		soapMVPropmap = NULL;
-	}
-
+	if (lppsoapPropmap != nullptr)
+		*lppsoapPropmap = soapPropmap.release();
+	if (lppsoapMVPropmap != nullptr)
+		*lppsoapMVPropmap = soapMVPropmap.release();
 exit:
-	if (soapPropmap)
-		ECFreeBuffer(soapPropmap);
-	if (soapMVPropmap)
-		ECFreeBuffer(soapMVPropmap);
-
 	return hr;
 }
 
@@ -1788,7 +1772,7 @@ HRESULT SoapUserToUser(const struct user *lpUser, ULONG ulFlags,
     ECUSER **lppsUser)
 {
 	HRESULT			hr		= hrSuccess;
-	ECUSER *lpsUser = NULL;
+	ecmem_ptr<ECUSER> lpsUser;
 	convert_context	converter;
 
 	if (lpUser == NULL || lppsUser == NULL)
@@ -1796,22 +1780,15 @@ HRESULT SoapUserToUser(const struct user *lpUser, ULONG ulFlags,
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = ECAllocateBuffer(sizeof *lpsUser, (void**)&lpsUser);
+	hr = ECAllocateBuffer(sizeof *lpsUser, &~lpsUser);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = SoapUserToUser(lpUser, lpsUser, ulFlags, NULL, converter);
 	if (hr != hrSuccess)
 		goto exit;
-
-	*lppsUser = lpsUser;
-	lpsUser = NULL;
-
+	*lppsUser = lpsUser.release();
 exit:
-	if (lpsUser != NULL)
-		ECFreeBuffer(lpsUser);
-
 	return hr;
 }
 
@@ -1861,15 +1838,14 @@ HRESULT SoapGroupArrayToGroupArray(const struct groupArray *lpGroupArray,
     ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups)
 {
 	HRESULT			hr = hrSuccess;
-	ECGROUP *lpECGroups = NULL;
+	ecmem_ptr<ECGROUP> lpECGroups;
 	convert_context	converter;
 
 	if(lpGroupArray == NULL || lpcGroups == NULL || lppsGroups == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = ECAllocateBuffer(sizeof(ECGROUP) * lpGroupArray->__size, reinterpret_cast<void **>(&lpECGroups));
+	hr = ECAllocateBuffer(sizeof(ECGROUP) * lpGroupArray->__size, &~lpECGroups);
 	if (hr != hrSuccess)
 		goto exit;
 	memset(lpECGroups, 0, sizeof(ECGROUP) * lpGroupArray->__size);
@@ -1880,14 +1856,9 @@ HRESULT SoapGroupArrayToGroupArray(const struct groupArray *lpGroupArray,
 			goto exit;
 	}
 
-	*lppsGroups = lpECGroups;
+	*lppsGroups = lpECGroups.release();
 	*lpcGroups = lpGroupArray->__size;
-	lpECGroups = NULL;
-
 exit:
-	if (lpECGroups != NULL)
-		ECFreeBuffer(lpECGroups);
-
 	return hr;
 }
 
@@ -1895,7 +1866,7 @@ HRESULT SoapGroupToGroup(const struct group *lpGroup, ULONG ulFlags,
     ECGROUP **lppsGroup)
 {
 	HRESULT			hr			= hrSuccess;
-	ECGROUP *lpsGroup = NULL;
+	ecmem_ptr<ECGROUP> lpsGroup;
 	convert_context	converter;
 
 	if (lpGroup == NULL || lppsGroup == NULL)
@@ -1903,22 +1874,15 @@ HRESULT SoapGroupToGroup(const struct group *lpGroup, ULONG ulFlags,
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = ECAllocateBuffer(sizeof *lpsGroup, (void**)&lpsGroup);
+	hr = ECAllocateBuffer(sizeof *lpsGroup, &~lpsGroup);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = SoapGroupToGroup(lpGroup, lpsGroup, ulFlags, NULL, converter);
 	if (hr != hrSuccess)
 		goto exit;
-
-	*lppsGroup = lpsGroup;
-	lpsGroup = NULL;
-
+	*lppsGroup = lpsGroup.release();
 exit:
-	if (lpsGroup != NULL)
-		ECFreeBuffer(lpsGroup);
-
 	return hr;
 }
 
@@ -1966,15 +1930,14 @@ HRESULT SoapCompanyArrayToCompanyArray(
     ULONG *lpcCompanies, ECCOMPANY **lppsCompanies)
 {
 	HRESULT 		hr = hrSuccess;
-	ECCOMPANY *lpECCompanies = NULL;
+	ecmem_ptr<ECCOMPANY> lpECCompanies;
 	convert_context	converter;
 
 	if (lpCompanyArray == NULL || lpcCompanies == NULL || lppsCompanies == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = ECAllocateBuffer(sizeof(ECCOMPANY) * lpCompanyArray->__size, reinterpret_cast<void **>(&lpECCompanies));
+	hr = ECAllocateBuffer(sizeof(ECCOMPANY) * lpCompanyArray->__size, &~lpECCompanies);
 	if (hr != hrSuccess)
 		goto exit;
 	memset(lpECCompanies, 0, sizeof(ECCOMPANY) * lpCompanyArray->__size);
@@ -1985,14 +1948,9 @@ HRESULT SoapCompanyArrayToCompanyArray(
 			goto exit;
 	}
 
-	*lppsCompanies = lpECCompanies;
+	*lppsCompanies = lpECCompanies.release();
 	*lpcCompanies = lpCompanyArray->__size;
-	lpECCompanies = NULL;
-
 exit:
-	if (lpECCompanies != NULL)
-		ECFreeBuffer(lpECCompanies);
-
 	return hr;
 }
 
@@ -2000,7 +1958,7 @@ HRESULT SoapCompanyToCompany(const struct company *lpCompany, ULONG ulFlags,
     ECCOMPANY **lppsCompany)
 {
 	HRESULT			hr			= hrSuccess;
-	ECCOMPANY *lpsCompany = NULL;
+	ecmem_ptr<ECCOMPANY> lpsCompany;
 	convert_context	converter;
 
 	if (lpCompany == NULL || lppsCompany == NULL)
@@ -2008,22 +1966,15 @@ HRESULT SoapCompanyToCompany(const struct company *lpCompany, ULONG ulFlags,
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = ECAllocateBuffer(sizeof *lpsCompany, (void**)&lpsCompany);
+	hr = ECAllocateBuffer(sizeof *lpsCompany, &~lpsCompany);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = SoapCompanyToCompany(lpCompany, lpsCompany, ulFlags, NULL, converter);
 	if (hr != hrSuccess)
 		goto exit;
-
-	*lppsCompany = lpsCompany;
-	lpsCompany = NULL;
-
+	*lppsCompany = lpsCompany.release();
 exit:
-	if (lpsCompany != NULL)
-		ECFreeBuffer(lpsCompany);
-
 	return hr;
 }
 
@@ -2031,7 +1982,7 @@ HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList,
     ULONG ulFlags, struct mv_string8 **lppsSvrNameList)
 {
 	HRESULT				hr = hrSuccess;
-	struct mv_string8	*lpsSvrNameList = NULL;
+	ecmem_ptr<struct mv_string8> lpsSvrNameList;
 	convert_context		converter;
 
 	if (lpSvrNameList == NULL || lppsSvrNameList == NULL) {
@@ -2039,7 +1990,7 @@ HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList,
 		goto exit;
 	}
 	
-	hr = ECAllocateBuffer(sizeof *lpsSvrNameList, (void**)&lpsSvrNameList);
+	hr = ECAllocateBuffer(sizeof(*lpsSvrNameList), &~lpsSvrNameList);
 	if (hr != hrSuccess)
 		goto exit;
 	memset(lpsSvrNameList, 0, sizeof *lpsSvrNameList);
@@ -2058,13 +2009,8 @@ HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList,
 		}
 	}
 	
-	*lppsSvrNameList = lpsSvrNameList;
-	lpsSvrNameList = NULL;
-	
+	*lppsSvrNameList = lpsSvrNameList.release();
 exit:
-	if (lpsSvrNameList && hr != hrSuccess)
-		ECFreeBuffer(lpsSvrNameList);
-		
 	return hr;
 }
 
@@ -2072,7 +2018,7 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
     ULONG ulFLags, ECSERVERLIST **lppServerList)
 {
 	HRESULT			hr = hrSuccess;
-	ECSERVERLIST *lpServerList = NULL;
+	ecmem_ptr<ECSERVERLIST> lpServerList;
 	convert_context	converter;
 
 	if (lpsServerList == NULL || lppServerList == NULL) {
@@ -2080,7 +2026,7 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
 		goto exit;
 	}
 	
-	hr = ECAllocateBuffer(sizeof *lpServerList, (void**)&lpServerList);
+	hr = ECAllocateBuffer(sizeof(*lpServerList), &~lpServerList);
 	if (hr != hrSuccess)
 		goto exit;
 	memset(lpServerList, 0, sizeof *lpServerList);
@@ -2133,13 +2079,8 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
 		}
 	}
 	
-	*lppServerList = lpServerList;
-	lpServerList = NULL;
-	
+	*lppServerList = lpServerList.release();
 exit:
-	if (lpServerList)
-		ECFreeBuffer(lpServerList);
-
 	return hr;
 }
 
@@ -2268,10 +2209,10 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, LPENTRYID lpWrapABID, ULONG*
 
 HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notification *lpSrc, LPNOTIFICATION *lppDst, convert_context *lpConverter) {
 	HRESULT hr = hrSuccess;
-	LPNOTIFICATION lpNotification = NULL;
+	ecmem_ptr<NOTIFICATION> lpNotification;
 	int nLen;
 
-	hr = ECAllocateBuffer(sizeof(NOTIFICATION), (void**)&lpNotification);
+	hr = ECAllocateBuffer(sizeof(NOTIFICATION), &~lpNotification);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpNotification, 0, sizeof(NOTIFICATION));
@@ -2286,10 +2227,10 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notifica
 		if (lpSrc->newmail->pEntryId != nullptr)
 			// Ignore error now
 			// FIXME: This must exist, so maybe give an error or skip them
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pEntryId, &lpNotification->info.newmail.cbEntryID, &lpNotification->info.newmail.lpEntryID, (void **)lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pEntryId, &lpNotification->info.newmail.cbEntryID, &lpNotification->info.newmail.lpEntryID, lpNotification);
 		if (lpSrc->newmail->pParentId != nullptr)
 			// Ignore error
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pParentId, &lpNotification->info.newmail.cbParentID, &lpNotification->info.newmail.lpParentID, (void **)lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pParentId, &lpNotification->info.newmail.cbParentID, &lpNotification->info.newmail.lpParentID, lpNotification);
 		if(lpSrc->newmail->lpszMessageClass != NULL) {
 			nLen = strlen(lpSrc->newmail->lpszMessageClass)+1;
 			hr = ECAllocateMore(nLen, lpNotification, reinterpret_cast<void **>(&lpNotification->info.newmail.lpszMessageClass));
@@ -2311,16 +2252,16 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notifica
 
 		// All errors of CopySOAPEntryIdToMAPIEntryId are ignored
 		if (lpSrc->obj->pEntryId != NULL)
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pEntryId, &lpNotification->info.obj.cbEntryID, &lpNotification->info.obj.lpEntryID, (void **)lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pEntryId, &lpNotification->info.obj.cbEntryID, &lpNotification->info.obj.lpEntryID, lpNotification);
 		if (lpSrc->obj->pParentId != NULL)
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pParentId, &lpNotification->info.obj.cbParentID, &lpNotification->info.obj.lpParentID, (void **)lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pParentId, &lpNotification->info.obj.cbParentID, &lpNotification->info.obj.lpParentID, lpNotification);
 		if (lpSrc->obj->pOldId != NULL)
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldId, &lpNotification->info.obj.cbOldID, &lpNotification->info.obj.lpOldID, (void **)lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldId, &lpNotification->info.obj.cbOldID, &lpNotification->info.obj.lpOldID, lpNotification);
 		if (lpSrc->obj->pOldParentId != NULL)
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldParentId, &lpNotification->info.obj.cbOldParentID, &lpNotification->info.obj.lpOldParentID, (void **)lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldParentId, &lpNotification->info.obj.cbOldParentID, &lpNotification->info.obj.lpOldParentID, lpNotification);
 		if (lpSrc->obj->pPropTagArray != nullptr)
 			// ignore errors
-			CopySOAPPropTagArrayToMAPIPropTagArray(lpSrc->obj->pPropTagArray, &lpNotification->info.obj.lpPropTagArray, (void **)lpNotification);
+			CopySOAPPropTagArrayToMAPIPropTagArray(lpSrc->obj->pPropTagArray, &lpNotification->info.obj.lpPropTagArray, lpNotification);
 		break;
 	case fnevTableModified:// TABLE_NOTIFICATION
 		lpNotification->info.tab.ulTableEvent = lpSrc->tab->ulTableEvent;
@@ -2353,7 +2294,10 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notifica
 			     reinterpret_cast<void **>(&lpNotification->info.tab.row.lpProps));
 			if (hr != hrSuccess)
 				break;
-			CopySOAPRowToMAPIRow(lpProvider, lpSrc->tab->pRow, lpNotification->info.tab.row.lpProps, (void **)lpNotification, lpSrc->tab->ulObjType, lpConverter);
+			CopySOAPRowToMAPIRow(lpProvider, lpSrc->tab->pRow,
+				lpNotification->info.tab.row.lpProps,
+				reinterpret_cast<void **>(lpNotification.get()),
+				lpSrc->tab->ulObjType, lpConverter);
 		}
 		break;
 	case fnevStatusObjectModified: // STATUS_OBJECT_NOTIFICATION
@@ -2370,11 +2314,8 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notifica
 	if(hr != hrSuccess)
 		goto exit;
 
-	*lppDst = lpNotification;
-	lpNotification = NULL;
-
+	*lppDst = lpNotification.release();
 exit:
-	MAPIFreeBuffer(lpNotification);
 	return hr;
 }
 
