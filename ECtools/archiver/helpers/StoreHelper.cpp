@@ -89,7 +89,7 @@ HRESULT StoreHelper::Init()
 	
 	hr = MAPIPropHelper::Init();
 	if (hr != hrSuccess)
-		goto exitpm;
+		return hr;
 	
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidStoreEntryIds)
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)

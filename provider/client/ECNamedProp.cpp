@@ -113,17 +113,15 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 	ULONG			cUnresolved = 0;
 
 	// Exchange doesn't support this, so neither do we
-	if(lppPropTags == NULL || *lppPropTags == NULL) {
-		hr = MAPI_E_TOO_BIG;
-		goto exit;
-	}
+	if (lppPropTags == nullptr || *lppPropTags == nullptr)
+		return MAPI_E_TOO_BIG;
 
 	lpsPropTags = *lppPropTags;
 
 	// Allocate space for properties
 	hr = ECAllocateBuffer(sizeof(LPMAPINAMEID) * lpsPropTags->cValues, &~lppPropNames);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Pass 1, local reverse mapping (FAST)
 	for (i = 0; i < lpsPropTags->cValues; ++i)
@@ -144,7 +142,7 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 
 	hr = ECAllocateBuffer(CbNewSPropTagArray(lpsPropTags->cValues), &~lpsUnresolved);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	cUnresolved = 0;
 	// Pass 3, server reverse lookup (SLOW)
@@ -159,14 +157,11 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 	if(cUnresolved > 0) {
 		hr = lpTransport->HrGetNamesFromIDs(lpsUnresolved, &~lppResolved, &cResolved);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Put the resolved values from the server into the cache
-		if(cResolved != cUnresolved) { 
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
-
+		if (cResolved != cUnresolved)
+			return MAPI_E_CALL_FAILED;
 		for (i = 0; i < cResolved; ++i)
 			if(lppResolved[i] != NULL)
 				UpdateCache(lpsUnresolved->aulPropTag[i] + SERVER_NAMED_OFFSET, lppResolved[i]);
@@ -185,7 +180,6 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 
 	*lpppPropNames = lppPropNames.release();
 	*lpcPropNames = lpsPropTags->cValues;
-exit:
 	return hr;
 }
 

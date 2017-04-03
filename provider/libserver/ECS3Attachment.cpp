@@ -630,12 +630,9 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	if (cdp->size != cdp->processed) {
 		ec_log_err("Unable to write attachment data to S3, key: %s", filename.c_str());
 		ret = KCERR_DATABASE_ERROR;
-		goto exit;
 	} else if (cdp->status == S3StatusOK) {
 		ret = erSuccess;
-		goto exit;
 	}
- exit:
 	cdp->data = NULL;
 	return ret;
 }
@@ -690,12 +687,9 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	if (cdp->size != cdp->processed) {
 		ec_log_err("Unable to write attachment data to S3, key: %s", filename.c_str());
 		ret = KCERR_DATABASE_ERROR;
-		goto exit;
 	} else if (cdp->status == S3StatusOK) {
 		ret = erSuccess;
-		goto exit;
 	}
- exit:
 	cdp->sink = NULL;
 	return ret;
 }

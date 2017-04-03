@@ -1104,10 +1104,10 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 		
 		hr = lpFolder->GetContentsTable(ulFlagArray[i], &~ptrTable);
 		if (hr != hrSuccess)
-			goto exitpm;
+			return hr;
 		hr = ptrTable->SetColumns(sptaContentProps, TBL_BATCH);
 		if (hr != hrSuccess)
-			goto exitpm;
+			return hr;
 		
 		while (true) {
 			SRowSetPtr ptrRows;
@@ -1115,7 +1115,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 			
 			hr = ptrTable->QueryRows(batch_size, 0, &ptrRows);
 			if (hr != hrSuccess)
-				goto exitpm;
+				return hr;
 			
 			for (SRowSetPtr::size_type j = 0; j < ptrRows.size(); ++j) {
 				if (PROP_TYPE(ptrRows[j].lpProps[0].ulPropTag) == PT_ERROR)
@@ -1222,13 +1222,13 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 		resContent += ECRawRestriction(lpRestriction, ECRestriction::Cheap);
 	hr = lpArchive->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
-		goto exitpm;
+		return hr;
 	hr = ptrTable->SetColumns(sptaContentProps, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exitpm;
+		return hr;
 	hr = resContent.RestrictTable(ptrTable);
 	if (hr != hrSuccess)
-		goto exitpm;
+		return hr;
 	
 	while (true) {
 		SRowSetPtr ptrRows;
@@ -1236,14 +1236,11 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 		
 		hr = ptrTable->QueryRows(batch_size, 0, &ptrRows);
 		if (hr != hrSuccess)
-			goto exitpm;
+			return hr;
 		
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-			if (PROP_TYPE(ptrRows[i].lpProps[0].ulPropTag) == PT_ERROR) {
-				hr = ptrRows[i].lpProps[0].Value.err;
-				goto exitpm;
-			}
-			
+			if (PROP_TYPE(ptrRows[i].lpProps[0].ulPropTag) == PT_ERROR)
+				return ptrRows[i].lpProps[0].Value.err;
 			lpEntries->insert(ptrRows[i].lpProps[0].Value.bin);
 		}
 		
@@ -1282,24 +1279,24 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	sptaHierarchyProps.aulPropTag[IDX_REF_ITEM_ENTRYID] = PROP_REF_ITEM_ENTRYID;
 	hr = lpArchiveRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
-		goto exitpm;
+		return hr;
 	hr = ptrTable->SetColumns(sptaHierarchyProps, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exitpm;
+		return hr;
 	hr = ECExistRestriction(PROP_REF_ITEM_ENTRYID)
 	     .RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exitpm;
+		return hr;
 	hr = ptrTable->SortTable(ssosHierarchy, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exitpm;
+		return hr;
 	
 	while (true) {
 		SRowSetPtr ptrRows;
 		
 		hr = ptrTable->QueryRows(64, 0, &ptrRows);
 		if (hr != hrSuccess)
-			goto exitpm;
+			return hr;
 		if (ptrRows.empty())
 			break;
 		
@@ -1343,7 +1340,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 				hr = lpArchiveRoot->OpenEntry(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.lpb),
 				     &ptrArchiveFolder.iid(), MAPI_MODIFY, &ulType, &~ptrArchiveFolder);
 				if (hr != hrSuccess)
-					goto exitpm;
+					return hr;
 				
 				// Check if we still have a back-ref
 				if (HrGetOneProp(ptrArchiveFolder, PROP_REF_ITEM_ENTRYID, &~ptrProp) != hrSuccess) {
@@ -1361,7 +1358,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 					m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to process dead folder. (hr=0x%08x)", hr);
 			}
 			if (hr != hrSuccess)
-				goto exitpm;
+				return hr;
 		}
 	}
  exitpm:
