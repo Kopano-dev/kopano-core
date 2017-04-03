@@ -299,21 +299,21 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 		hr = HrGetOneProp(m_lpUsrFld, PR_CONTAINER_CLASS_A, &~lpsPropVal);
 		if (hr != hrSuccess) {
 			ec_log_debug("CalDAV::HrListCalEntries HrGetOneProp failed 0x%08x %s", hr, GetMAPIErrorMessage(hr));
-			goto exit;
+			return hr;
 		}
 
 		if (lpsWebRCalQry->sFilter.lstFilters.back() == "VTODO"
 			&& strncmp(lpsPropVal->Value.lpszA, "IPF.Task", strlen("IPF.Task")))
-				goto exit;
+			return hr;
 		if (lpsWebRCalQry->sFilter.lstFilters.back() == "VEVENT"
 			&& strncmp(lpsPropVal->Value.lpszA, "IPF.Appointment", strlen("IPF.Appointment")))
-			goto exit;
+			return hr;
 	}
 
 	hr = m_lpUsrFld->GetContentsTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_err("Error in GetContentsTable, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	// restrict on meeting requests and appointments
@@ -327,7 +327,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	hr = rst.RestrictTable(lpTable, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to restrict folder contents, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	// +4 to add GlobalObjid, dispidApptTsRef , PR_ENTRYID and private in SetColumns along with requested data.
@@ -336,7 +336,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Cannot allocate memory");
-		goto exit;
+		return hr;
 	}
 
 	lpPropTagArr->cValues = cbsize;
@@ -353,22 +353,19 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	hr = m_lpUsrFld->GetProps(lpPropTagArr, 0, &cValues, &~lpProps);
 	if (FAILED(hr)) {
 		ec_log_err("Unable to receive folder properties, error 0x%08X %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	// @todo, add "start time" property and recurrence data to table and filter in loop
 	// if lpsWebRCalQry->sFilter.tStart is set.
 	hr = lpTable->SetColumns(lpPropTagArr, 0);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// @todo do we really need this converter, since we're only listing the items?
 	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
 	if (!lpMtIcal)
-	{
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+		return MAPI_E_CALL_FAILED;
 
 	while(1)
 	{
@@ -377,7 +374,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 		if(hr != hrSuccess)
 		{
 			ec_log_err("Error retrieving rows of table");
-			goto exit;
+			return hr;
 		}
 
 		if(lpRowSet->cRows == 0)
@@ -430,9 +427,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 		}
 	}
 
-exit:
-	if (hr == hrSuccess)
-		ec_log_info("Number of items in folder returned: %u", ulItemCount);
+	ec_log_info("Number of items in folder returned: %u", ulItemCount);
 	return hr;
 }
 

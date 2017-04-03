@@ -186,9 +186,8 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	
 	if (xmlBuff == NULL)
 	{
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		ec_log_err("Error allocating memory to xmlBuffer");
-		goto exit;
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
 
 	//Initialize Xml-Writer

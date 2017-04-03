@@ -598,10 +598,8 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	SPropValue sSpropVal = {0};
 	ECOrRestriction rst;
 
-	if (lpsRectrict == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpsRectrict == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// convert guid to outlook format
 	if (IsOutlookUid(strGuid))
@@ -632,7 +630,6 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	sSpropVal.Value.lpszA = (char*)strGuid.c_str();
 	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal, ECRestriction::Shallow);
 	hr = rst.CreateMAPIRestriction(&lpsRoot, ECRestriction::Full);
-exit:
 	if (lpsRoot && lpsRectrict)
 		*lpsRectrict = std::move(lpsRoot);
 	return hr;
@@ -723,20 +720,18 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 	HRESULT hr = lpAddrBook->GetDefaultDir(&cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpAddrBook->OpenEntry(cbEntryId, ptrEntryId, nullptr, 0, &ulObj, &~ptrABDir);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	cUsers = lplstUsers->size();
 	hr = MAPIAllocateBuffer(CbNewADRLIST(cUsers), &~lpAdrList);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	lpAdrList->cEntries = cUsers;
 	hr = MAPIAllocateBuffer(CbNewFlagList(cUsers), &~ptrFlagList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	ptrFlagList->cFlags = cUsers;
 
@@ -746,8 +741,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[cUsers].rgPropVals);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpAdrList->aEntries[cUsers].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_A;
 		lpAdrList->aEntries[cUsers].rgPropVals[0].Value.lpszA = const_cast<char *>(user.c_str());
 		ptrFlagList->ulFlag[cUsers] = MAPI_UNRESOLVED;
@@ -757,10 +751,10 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	// NULL or sptaAddrListProps containing just PR_ENTRYID?
 	hr = ptrABDir->ResolveNames(NULL, EMS_AB_ADDRESS_LOOKUP, lpAdrList, ptrFlagList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(FBUser)*cUsers, &~lpUsers);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get the user entryids
 	for (cUsers = 0; cUsers < lpAdrList->cEntries; ++cUsers) {
@@ -775,13 +769,13 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		lpUsers[cUsers].m_cbEid = lpEntryID->Value.bin.cb;
 		hr = MAPIAllocateMore(lpEntryID->Value.bin.cb, lpUsers, (void**)&lpUsers[cUsers].m_lpEid);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpUsers[cUsers].m_lpEid, lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb);
 	}
 
 	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void **)&lppFBData);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	// retrieve freebusy for the attendees
 	hr = lpFBSupport->LoadFreeBusyData(cUsers, lpUsers, lppFBData, NULL, &cFBData);
