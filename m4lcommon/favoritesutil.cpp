@@ -34,6 +34,9 @@ using namespace KCHL;
 
 namespace KC {
 
+static HRESULT AddToFavorite(IMAPIFolder *shortcut, ULONG level, const TCHAR *alias, ULONG flags, ULONG nvals, SPropValue *);
+static HRESULT CreateShortcutFolder(IMsgStore *store, TCHAR *folder, TCHAR *comment, ULONG flags, IMAPIFolder **shortcut);
+
 static constexpr const SizedSPropTagArray(SHORTCUT_NUM, sPropsShortcuts) = {SHORTCUT_NUM, {
 	PR_INSTANCE_KEY, PR_FAV_PUBLIC_SOURCE_KEY, PR_FAV_PARENT_SOURCE_KEY,
 	PR_FAV_DISPLAY_NAME, PR_FAV_DISPLAY_ALIAS, PR_FAV_LEVEL_MASK,

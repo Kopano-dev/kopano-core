@@ -343,7 +343,6 @@ extern _kc_export int DeleteLogger(ECLogger *);
 extern _kc_export void LogConfigErrors(ECConfig *);
 
 extern _kc_export void generic_sigsegv_handler(ECLogger *, const char *app, const char *vers, int sig, const siginfo_t *, const void *uctx);
-void ec_log_bt(unsigned int, const char *, ...);
 
 } /* namespace */
 

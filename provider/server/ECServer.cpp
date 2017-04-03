@@ -69,31 +69,30 @@ using namespace std;
 // have to go with the safe value which is for 64-bit.
 #define MYSQL_MIN_THREAD_STACK (256*1024)
 
-const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
+static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 
 // Reports information on the current state of the license
 void* ReportLicense(void *);
 
 static int running_server(char *, const char *, int, char **, int, char **);
 
-int					g_Quit = 0;
-int					daemonize = 1;
-int					restart_searches = 0;
-bool				m_bIgnoreDatabaseVersionConflict = false;
-bool				m_bIgnoreAttachmentStorageConflict = false;
-bool				m_bIgnoreDistributedKopanoConflict = false;
-bool				m_bForceDatabaseUpdate = false;
-bool				m_bIgnoreUnknownConfigOptions = false;
-bool				m_bIgnoreDbThreadStackSize = false;
-pthread_t			mainthread;
+static int g_Quit = 0;
+static int daemonize = 1;
+static int restart_searches = 0;
+static bool m_bIgnoreDatabaseVersionConflict = false;
+static bool m_bIgnoreAttachmentStorageConflict = false;
+static bool m_bIgnoreDistributedKopanoConflict = false;
+static bool m_bForceDatabaseUpdate = false;
+static bool m_bIgnoreUnknownConfigOptions = false;
+static bool m_bIgnoreDbThreadStackSize = false;
+static pthread_t mainthread;
 
 ECConfig*			g_lpConfig = NULL;
-ECLogger*			g_lpLogger = NULL;
-ECLogger*			g_lpAudit = NULL;
-ECScheduler*		g_lpScheduler = NULL;
-ECSoapServerConnection*	g_lpSoapServerConn = NULL;
-
-bool m_bDatabaseUpdateIgnoreSignals = false;
+static ECLogger *g_lpLogger = nullptr;
+static ECLogger *g_lpAudit = nullptr;
+static ECScheduler *g_lpScheduler = nullptr;
+static ECSoapServerConnection *g_lpSoapServerConn = nullptr;
+static bool m_bDatabaseUpdateIgnoreSignals = false;
 
 // This is the callback function for libserver/* so that it can notify that a delayed soap
 // request has been handled.

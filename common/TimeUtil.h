@@ -38,9 +38,6 @@ struct TIMEZONE_STRUCT {
 	SYSTEMTIME stDstDate;		/* 3->2, dus 2 in wHour */
 };
 
-time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week, WORD day, WORD hour);
-LONG getTZOffset(time_t date, TIMEZONE_STRUCT sTimeZone);
-
 extern _kc_export time_t LocalToUTC(time_t local, TIMEZONE_STRUCT);
 extern _kc_export time_t UTCToLocal(time_t utc, TIMEZONE_STRUCT);
 

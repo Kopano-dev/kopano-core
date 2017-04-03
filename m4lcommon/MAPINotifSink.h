@@ -49,10 +49,6 @@ private:
 	unsigned int m_cRef = 0;
 };
 
-
-HRESULT MAPICopyUnicode(WCHAR *lpSrc, void *lpBase, WCHAR **lpDst);
-HRESULT MAPICopyString(char *lpSrc, void *lpBase, char **lpDst);
-
 } /* namespace */
 
 #endif

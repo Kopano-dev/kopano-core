@@ -254,7 +254,8 @@ private:
 		bool bRecent;				// \Recent flag
 		std::string strFlags;		// String of all flags, including \Recent
 
-		bool operator < (SMail sMail) const {
+		bool operator <(const SMail &sMail) const
+		{
 			return this->ulUid < sMail.ulUid;
 		}
 		bool operator < (ULONG ulUid) const {

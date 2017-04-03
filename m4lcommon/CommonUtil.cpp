@@ -74,6 +74,9 @@ enum {
 	NUM_NEWMAIL_PROPS,		// Array size
 };
 
+static HRESULT HrOpenECPublicStore(IMAPISession *, ULONG flags, IMsgStore **out);
+static HRESULT HrOpenUserMsgStore(IMAPISession *, IMsgStore *, const wchar_t *user, IMsgStore **out);
+
 /* Newmail Notify columns */
 static constexpr const SizedSPropTagArray(4, sPropNewMailColumns) = {
 	4,
@@ -173,9 +176,9 @@ exit:
  *
  * @return		HRESULT		Mapi error code.
  */
-HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
-    const char *path, const char* szProfName, ULONG ulProfileFlags,
-    const char *sslkey_file, const char *sslkey_password,
+static HRESULT CreateProfileTemp(const wchar_t *username,
+    const wchar_t *password, const char *path, const char *szProfName,
+    ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password,
     const char *app_version, const char *app_misc)
 {
 	HRESULT hr = hrSuccess;
@@ -307,7 +310,7 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
  *
  * @return		HRESULT		Mapi error code.
  */
-HRESULT DeleteProfileTemp(char *szProfName)
+static HRESULT DeleteProfileTemp(const char *szProfName)
 {
 	object_ptr<IProfAdmin> lpProfAdmin;
 	HRESULT hr = hrSuccess;
@@ -383,7 +386,8 @@ exit:
 	return hr;
 }
 
-HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+static HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession,
+    BOOL bPublic, ULONG *lpcbEntryID, ENTRYID **lppEntryID)
 {
 	HRESULT			hr = hrSuccess;
 	rowset_ptr lpRows;
@@ -425,7 +429,7 @@ HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore)
 	return HrOpenDefaultStore(lpMAPISession, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppMsgStore);
 }
 
-HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
+static HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
 {
 	HRESULT	hr = hrSuccess;
 	object_ptr<IProxyStoreObject> lpProxyStoreObject;
@@ -481,7 +485,8 @@ HRESULT HrOpenECPublicStoreOnline(IMAPISession *lpMAPISession, IMsgStore **lppMs
 	return lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOnline, reinterpret_cast<void **>(lppMsgStore));
 }
 
-HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore **lppMsgStore)
+static HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags,
+    IMsgStore **lppMsgStore)
 {
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
@@ -1676,7 +1681,9 @@ HRESULT GetClientVersion(unsigned int* ulVersion)
  * @return		HRESULT			Mapi error code
  * @retval		MAPI_E_NOT_FOUND if folder not found.
  */
-HRESULT FindFolder(LPMAPITABLE lpTable, const WCHAR *folder, LPSPropValue *lppFolderProp) {
+static HRESULT FindFolder(IMAPITable *lpTable, const wchar_t *folder,
+    SPropValue **lppFolderProp)
+{
 	HRESULT hr;
 	ULONG nValues;
 	static constexpr const SizedSPropTagArray(2, sptaName) =
@@ -1801,7 +1808,8 @@ found:
 	return hr;
 }
 
-HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, WCHAR *lpszUser, LPMDB *lppStore)
+HRESULT HrOpenUserMsgStore(IMAPISession *lpSession, const wchar_t *lpszUser,
+    IMsgStore **lppStore)
 {
 	return HrOpenUserMsgStore(lpSession, NULL, lpszUser, lppStore);
 }
@@ -1818,7 +1826,8 @@ HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, WCHAR *lpszUser, LPMDB *lppS
  *
  * @return		HRESULT		Mapi error code.
  */
-HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, LPMDB lpStore, WCHAR *lpszUser, LPMDB *lppStore)
+static HRESULT HrOpenUserMsgStore(IMAPISession *lpSession, IMsgStore *lpStore,
+    const wchar_t *lpszUser, IMsgStore **lppStore)
 {
 	HRESULT					hr = hrSuccess;
 	object_ptr<IMsgStore> lpDefaultStore, lpMsgStore;
