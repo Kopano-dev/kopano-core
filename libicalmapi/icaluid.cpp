@@ -88,7 +88,7 @@ HRESULT HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal)
 		base = lpPropVal;
 	}
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropVal->ulPropTag = ulNamedTag;
 

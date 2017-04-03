@@ -2835,8 +2835,7 @@ int VMIMEToMAPI::getCharsetFromHTML(const string &strHTML, vmime::charset *htmlC
 	lpDoc = htmlReadMemory(strHTML.c_str(), strHTML.length(), "", NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
 	if (!lpDoc) {
 		ec_log_warn("Unable to parse HTML document");
-		ret = -1;
-		goto exit;
+		return -1;
 	}
 
 	/*

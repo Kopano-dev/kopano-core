@@ -771,21 +771,18 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 
 	if (!phpArray) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No phpArray in PHPArraytoAdrList");
-		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
 	target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "phparraytoadrlist wrong data, unknown error");
-		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
 	if(Z_TYPE_P(phpArray) != IS_ARRAY) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "phparray to adrlist must include an array");
-		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
 	count = zend_hash_num_elements(target_hash);
@@ -793,7 +790,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 
 	MAPI_G(hr) = MAPI_ALLOC(CbNewADRLIST(count), lpBase, (void **)&lpAdrList);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return MAPI_G(hr);
 
 	zend_hash_internal_pointer_reset(target_hash);
 
@@ -1364,8 +1361,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction *lppRe
 	
 	MAPI_G(hr) = MAPI_ALLOC(sizeof(SRestriction), lpBase, (void **)&lpRes);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-		
+		return MAPI_G(hr);
 	MAPI_G(hr) = PHPArraytoSRestriction(phpVal, lpBase ? lpBase : lpRes, lpRes TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
@@ -1975,20 +1971,19 @@ HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID
 	target_hash = HASH_OF(phpVal);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoGUIDArray");
-		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 	
 	count = zend_hash_num_elements(Z_ARRVAL_P(phpVal));
 	if (count == 0) {
 		*lppGUIDs = NULL;
 		*lpcValues = 0;
-		goto exit;
+		return MAPI_G(hr);
 	}
 
 	MAPI_G(hr) = MAPI_ALLOC(sizeof(GUID) * count, lpBase, (void **) &lpGUIDs);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return MAPI_G(hr);
 
 	zend_hash_internal_pointer_reset(target_hash);
 
