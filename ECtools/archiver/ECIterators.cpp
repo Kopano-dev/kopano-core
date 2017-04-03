@@ -46,7 +46,7 @@ void ECHierarchyIteratorBase::increment()
 		if (hr == hrSuccess && ptrFolderType->Value.ul == FOLDER_SEARCH) {
 			// No point in processing search folders
 			m_ptrCurrent.reset();
-			goto exit;
+			return;
 		}			
 		hr = m_ptrContainer->GetHierarchyTable(m_ulDepth == 1 ? 0 : CONVENIENT_DEPTH, &~m_ptrTable);
 		if (hr != hrSuccess)
@@ -74,7 +74,7 @@ void ECHierarchyIteratorBase::increment()
 
 		if (m_ptrRows.empty()) {
 			m_ptrCurrent.reset();
-			goto exit;
+			return;
 		}
 
 		m_ulRowIndex = 0;

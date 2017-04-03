@@ -293,7 +293,7 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 	     &lstUsers, bLocalOnly);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to obtain user list. (hr=0x%08x)", hr);
-		goto exit;
+		return hr;
 	}
 
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing %zu%s users.", lstUsers.size(), (bLocalOnly ? " local" : ""));
@@ -308,8 +308,6 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 			bHaveErrors = true;
 		}
 	}
-
-exit:
 	if (hr == hrSuccess && bHaveErrors)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 
@@ -442,16 +440,14 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	DeleterPtr	ptrDeleteOp;
 	StubberPtr	ptrStubOp;
 
-	if (strUser.empty()) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exitpm;
-	}
+	if (strUser.empty())
+		return MAPI_E_INVALID_PARAMETER;
 
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Archiving store for user '" TSTRING_PRINTF "'", strUser.c_str());
 	hr = m_ptrSession->OpenStoreByName(strUser, &~ptrUserStore);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open store. (hr=%s)", stringify(hr, true).c_str());
-		goto exitpm;
+		return hr;
 	}
 
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidStoreEntryIds)
@@ -464,7 +460,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	hr = StoreHelper::Create(ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create store helper. (hr=%s)", stringify(hr, true).c_str());
-		goto exitpm;
+		return hr;
 	}
 
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
@@ -484,7 +480,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	hr = ptrStoreHelper->GetSearchFolders(&~ptrSearchArchiveFolder, &~ptrSearchDeleteFolder, &~ptrSearchStubFolder);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get the search folders. (hr=%s)", stringify(hr, true).c_str());
-		goto exitpm;
+		return hr;
 	}
 
 	// Create and hook the three dependent steps
@@ -781,7 +777,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	hr = ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime, ECRestriction::Cheap)
 	     .CreateMAPIRestriction(&~lpRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (const auto &arc : lstArchives) {
 		MsgStorePtr ptrArchiveStore;
@@ -829,7 +825,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 			hr = ptrFolderTable->QueryRows(50, 0, &ptrFolderRows);
 			if (hr != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from folder table. (hr=%s)", stringify(hr, true).c_str());
-				goto exit;
+				return hr;
 			}
 
 			for (ULONG i = 0; i < ptrFolderRows.size(); ++i) {
@@ -847,7 +843,6 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 		}
 	}
 
-exit:
 	if (hr == hrSuccess && bErrorOccurred)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 

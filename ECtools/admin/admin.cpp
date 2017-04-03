@@ -1758,13 +1758,13 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 
 	hr = lpSession->OpenAddressBook(0, &ptrAdrBook.iid(), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ptrAdrBook->OpenEntry(0, nullptr, &ptrABContainer.iid(), 0, &ulType, &~ptrABContainer);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ptrABContainer->GetHierarchyTable(0, &~ptrTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sGALPropVal.ulPropTag = PR_AB_PROVIDER_ID;
 	sGALPropVal.Value.bin.cb = sizeof(GUID);
@@ -1772,28 +1772,23 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 
 	hr = ptrTable->SetColumns(sGALProps, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, &sGALPropVal, ECRestriction::Cheap)
 	     .RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrTable->QueryRows(1, 0, &ptrRows);
 	if (hr != hrSuccess)
-		goto exit;
-
-	if (ptrRows.size() != 1 || ptrRows[0].lpProps[0].ulPropTag != PR_ENTRYID) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+		return hr;
+	if (ptrRows.size() != 1 || ptrRows[0].lpProps[0].ulPropTag != PR_ENTRYID)
+		return MAPI_E_NOT_FOUND;
 	hr = ptrAdrBook->OpenEntry(ptrRows[0].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[0].lpProps[0].Value.bin.lpb),
 	     &ptrABContainer.iid(), MAPI_BEST_ACCESS, &ulType, &~ptrABContainer);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ptrABContainer->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sObjTypePropVal.ulPropTag = PR_OBJECT_TYPE;
 	sObjTypePropVal.Value.l = MAPI_MAILUSER;
@@ -1803,13 +1798,13 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 
 	hr = ptrTable->SetColumns(sContentsProps, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECAndRestriction(
 			ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &sObjTypePropVal, ECRestriction::Cheap) +
 			ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_TYPE, &sDispTypePropVal, ECRestriction::Cheap)
 		).RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (true) {
 		hr = ptrTable->QueryRows(50, 0, &ptrRows);
@@ -2031,27 +2026,27 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 
 	hr = lpAdminStore->QueryInterface(ptrEMS.iid(), &~ptrEMS);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ptrEMS->CreateStoreEntryID(NULL, (LPTSTR)lpszAccount, 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess) {
 		cerr << "Unable to resolve store for '" << lpszAccount << "'." << endl;
-		goto exit;
+		return hr;
 	}
 
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, nullptr, MDB_WRITE, &~ptrUserStore);
 	if (hr != hrSuccess) {
 		cerr << "Unable to open store for '" << lpszAccount << "'." << endl;
-		goto exit;
+		return hr;
 	}
 	hr = ptrUserStore->QueryInterface(ptrServiceAdmin.iid(), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ptrUserStore->OpenEntry(0, nullptr, &ptrRoot.iid(), 0, &ulType, &~ptrRoot);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrGetOneProp(ptrRoot, PR_ENTRYID, &~ptrPropEntryID);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrServiceAdmin->ResetFolderCount(ptrPropEntryID->Value.bin.cb, (LPENTRYID)ptrPropEntryID->Value.bin.lpb, &ulUpdates);
 	if (hr != hrSuccess) {
