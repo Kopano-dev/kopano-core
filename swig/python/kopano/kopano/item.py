@@ -58,7 +58,8 @@ from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUse
 from .compat import (
     hex as _hex, unhex as _unhex, is_str as _is_str, repr as _repr,
     pickle_load as _pickle_load, pickle_loads as _pickle_loads,
-    fake_unicode as _unicode, is_file as _is_file
+    fake_unicode as _unicode, is_file as _is_file,
+    encode as _encode
 )
 
 from .defs import (
@@ -418,7 +419,7 @@ class Item(object):
 
         try:
             message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS_W)
-            headers = email.parser.Parser().parsestr(message_headers.value, headersonly=True)
+            headers = email.parser.Parser().parsestr(_encode(message_headers.value), headersonly=True)
             return headers
         except MAPIErrorNotFound:
             return {}
