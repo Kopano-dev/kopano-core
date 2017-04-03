@@ -50,10 +50,10 @@ class ECTPropsPurge;
 
 using namespace std;
 
-typedef hash_map<ECSESSIONGROUPID, ECSessionGroup*>::Type EC_SESSIONGROUPMAP;
-typedef hash_map<ECSESSIONID, BTSession*>::Type SESSIONMAP;
-typedef hash_map<ECSESSIONID, unsigned int>::Type PERSISTENTBYSESSION;
-typedef hash_map<unsigned int, ECSESSIONID>::Type PERSISTENTBYCONNECTION;
+typedef std::unordered_map<ECSESSIONGROUPID, ECSessionGroup *> EC_SESSIONGROUPMAP;
+typedef std::unordered_map<ECSESSIONID, BTSession *> SESSIONMAP;
+typedef std::unordered_map<ECSESSIONID, unsigned int> PERSISTENTBYSESSION;
+typedef std::unordered_map<unsigned int, ECSESSIONID> PERSISTENTBYCONNECTION;
 typedef std::multimap<unsigned int, ECSESSIONGROUPID> OBJECTSUBSCRIPTIONSMULTIMAP;
 
 struct TABLESUBSCRIPTION {
