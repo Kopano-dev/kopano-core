@@ -51,6 +51,8 @@
 #define WHITESPACE L" \t\n\r"
 #endif
 
+using namespace std;
+
 namespace KC {
 
 // possible missing SSL function

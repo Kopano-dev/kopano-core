@@ -63,6 +63,8 @@
  * @{
  */
 
+using namespace std;
+
 static int daemonize = 1;
 int quit = 0;
 static bool bThreads = false;

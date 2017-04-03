@@ -54,6 +54,7 @@
 #define _MAPI_MEM_DEBUG 0
 #define _MAPI_MEM_MORE_DEBUG 0
 
+using namespace std;
 using namespace KCHL;
 
 enum mapibuf_ident {

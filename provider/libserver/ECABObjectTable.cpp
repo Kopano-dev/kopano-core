@@ -37,6 +37,7 @@
 #include "ECSessionManager.h"
 #include <kopano/stringutil.h>
 
+using namespace std;
 using namespace KCHL;
 
 namespace KC {

@@ -93,7 +93,7 @@ public:
 	 * @throw objectnotfound When no object was found with the requested name or objectclass
 	 * @throw collison_error When more then one object was found with the requested name
 	 */
-	virtual objectsignature_t resolveName(objectclass_t objclass, const string &name, const objectid_t &company);
+	virtual objectsignature_t resolveName(objectclass_t objclass, const std::string &name, const objectid_t &company);
 
 	/**
 	 * Authenticate user with username and password
@@ -110,7 +110,7 @@ public:
 	 *					This objectid can be empty.
 	 * @return The objectsignature of the authenticated user
 	 */
-	virtual objectsignature_t authenticateUser(const string &username, const string &password, const objectid_t &company);
+	virtual objectsignature_t authenticateUser(const std::string &username, const std::string &password, const objectid_t &company);
 
 	/**
 	 * Request a list of objects for a particular company and specified objectclass.
@@ -460,8 +460,7 @@ private:
 	 * @throw runtime_error When the LDAP query fails.
 	 * @throw login_error When the username and password are incorrect.
 	 */
-	objectsignature_t authenticateUserBind(const string &username, const string &password,
-										   const objectid_t &company = objectid_t(CONTAINER_COMPANY));
+	objectsignature_t authenticateUserBind(const std::string &username, const std::string &password, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
 
 	/**
 	 * Authenticate by username and password
@@ -477,8 +476,7 @@ private:
 	 * @throw objectnotfound When no user with the given name has been found.
 	 * @throw login_error When the username and password are incorrect.
 	 */
-	objectsignature_t authenticateUserPassword(const string &username, const string &password,
-											   const objectid_t &company = objectid_t(CONTAINER_COMPANY));
+	objectsignature_t authenticateUserPassword(const std::string &username, const std::string &password, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
 
 	/**
 	 * Convert objectid to a DN
@@ -490,7 +488,7 @@ private:
 	 * @throw objectnotfound When no object was found with the given objectid.
 	 * @throw toomanyobjects When more then one object was returned with the objectid.
 	 */
-	string objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool cache = true);
+	std::string objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool cache = true);
 
 	/**
 	 * Convert a DN to an object signature
@@ -504,7 +502,7 @@ private:
 	 * @throw objectnotfound When the DN does not exist or does not match the object class.
 	 * @throw toomanyobjects When more then one object was found
 	 */
-	objectsignature_t objectDNtoObjectSignature(objectclass_t objclass, const string &dn);
+	objectsignature_t objectDNtoObjectSignature(objectclass_t objclass, const std::string &dn);
 
 	/**
 	 * Convert a list of DN's to a list of object signatures
@@ -528,7 +526,7 @@ private:
 	 * @param[out]	lpEscaped
 	 *					Escaped string
 	 */
-	HRESULT BintoEscapeSequence(const char* lpdata, size_t size, string* lpEscaped);
+	HRESULT BintoEscapeSequence(const char *data, size_t size, std::string *escaped);
 
 	/**
 	 * Escape binary data to escaped string
@@ -548,7 +546,7 @@ private:
 	 *					The binary data
 	 * @return Escaped string
 	 */
-	std::string StringEscapeSequence(const string &strData);
+	std::string StringEscapeSequence(const std::string &data);
 
 	/**
 	 * Determine the search base for a LDAP query
@@ -558,14 +556,14 @@ private:
 	 * @return The search base
 	 * @throw runtime_error When the configuration option ldap_search_base is empty.
 	 */
-	string getSearchBase(const objectid_t &company = objectid_t(CONTAINER_COMPANY));
+	std::string getSearchBase(const objectid_t &company = objectid_t(CONTAINER_COMPANY));
 
 	/**
 	 * Create a search filter for servers
 	 *
 	 * @return The server search filter
 	 */
-	string getServerSearchFilter();
+	std::string getServerSearchFilter();
 
 	/**
 	 * Create LDAP search filter based on the object class.
@@ -576,7 +574,7 @@ private:
 	 * @return The search filter for the specified object class
 	 * @throw runtime_error when an invalid objectclass is requested or configuration options are missing.
 	 */
-	string getSearchFilter(objectclass_t objclass = OBJECTCLASS_UNKNOWN);
+	std::string getSearchFilter(objectclass_t objclass = OBJECTCLASS_UNKNOWN);
 
 	/**
 	 * Create LDAP search filter based on the object data and the attribute in which the date should
@@ -590,7 +588,7 @@ private:
 	 *					Optional argument, The attribute type (text, DN, binary, ...)
 	 * @return The LDAP Search filter.
 	 */
-	string getSearchFilter(const string &data,  const char *attr = NULL, const char *attr_type = NULL);
+	std::string getSearchFilter(const std::string &data,  const char *attr = nullptr, const char *attr_type = nullptr);
 
 	/**
 	 * Create LDAP search filter based on the object id and the attribute in which the object id should
@@ -606,7 +604,7 @@ private:
 	 * @return The LDAP Search filter.
 	 * @throw runtime_error When an invalid objectclass was requested
 	 */
-	string getObjectSearchFilter(const objectid_t &id, const char *attr = NULL, const char *attr_type = NULL);
+	std::string getObjectSearchFilter(const objectid_t &id, const char *attr = NULL, const char *attr_type = NULL);
 
 	/**
 	 * Resolve objects from attribute data
@@ -665,9 +663,7 @@ private:
 	 * @throw objectnotfound When no object was found with the attribute data
 	 * @throw toomanyobjects When more then one object was found with the attribute data
 	 */
-	objectsignature_t resolveObjectFromAttributeType(objectclass_t objclass,
-													 const string &AttrData, const char* lpAttr, const char* lpAttrType,
-													 const objectid_t &company = objectid_t(CONTAINER_COMPANY));
+	objectsignature_t resolveObjectFromAttributeType(objectclass_t objclass, const std::string &attr_data, const char *attr, const char *attr_type, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
 
 	/**
 	 * Resolve objects from attribute data depending on the attribute type
@@ -724,7 +720,7 @@ private:
 	 * @throw toomanyobjects When multiple objects were found
 	 * @throw data_error When the requested attribute does not exist on the object of uniqueid
 	 */
-	string objectUniqueIDtoAttributeData(const objectid_t &uniqueid, const char* lpAttr);
+	std::string objectUniqueIDtoAttributeData(const objectid_t &uniqueid, const char* lpAttr);
 
 	/**
 	 * Apply filter to LDAP and request all object signatures

@@ -19,9 +19,6 @@
 #define ECCONFIGIMPL_H
 
 #include <kopano/zcdefs.h>
-
-using namespace std;
-
 #include <kopano/ECConfig.h>
 
 #include <map>

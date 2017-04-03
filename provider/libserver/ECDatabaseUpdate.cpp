@@ -45,6 +45,8 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
+using namespace std;
+
 namespace KC {
 
 bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an upgrade

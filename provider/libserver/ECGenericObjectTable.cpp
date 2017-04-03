@@ -71,6 +71,7 @@
        
 #include "ECSession.h"
 
+using namespace std;
 using namespace KCHL;
 
 namespace KC {

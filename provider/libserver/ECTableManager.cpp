@@ -46,6 +46,7 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
+using namespace std;
 using namespace KCHL;
 
 namespace KC {

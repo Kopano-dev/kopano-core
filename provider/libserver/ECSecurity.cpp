@@ -48,6 +48,7 @@
 #include "ECDBDef.h"
 #include "cmdutil.hpp"
 
+using namespace std;
 using namespace KCHL;
 
 namespace KC {

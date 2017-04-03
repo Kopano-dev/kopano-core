@@ -240,7 +240,7 @@ private:
 
 	// Get userid from usertable or create a new user/group if it doesn't exist yet
 	_kc_hidden ECRESULT GetLocalObjectIdOrCreate(const objectsignature_t &signature, unsigned int *id);
-	_kc_hidden ECRESULT GetLocalObjectsIdsOrCreate(const std::list<objectsignature_t> &signatures, map<objectid_t, unsigned int> *local_objids);
+	_kc_hidden ECRESULT GetLocalObjectsIdsOrCreate(const std::list<objectsignature_t> &signatures, std::map<objectid_t, unsigned int> *local_objids);
 
 	// Get a list of local object IDs in the database plus any internal objects (SYSTEM, EVERYONE)
 	_kc_hidden ECRESULT GetLocalObjectIdList(objectclass_t, unsigned int company_id, std::list<unsigned int> **objs);

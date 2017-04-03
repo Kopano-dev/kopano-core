@@ -54,20 +54,14 @@ public:
 
 protected:
 	/* Load hierarchy objects */
-	ECRESULT LoadHierarchyAddressList(unsigned int ulObjectId, unsigned int ulFlags,
-									  list<localobjectdetails_t> **lppObjects);
-	ECRESULT LoadHierarchyCompany(unsigned int ulObjectId, unsigned int ulFlags,
-								  list<localobjectdetails_t> **lppObjects);
-	ECRESULT LoadHierarchyContainer(unsigned int ulObjectId, unsigned int ulFlags,
-									list<localobjectdetails_t> **lppObjects);
+	ECRESULT LoadHierarchyAddressList(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
+	ECRESULT LoadHierarchyCompany(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
+	ECRESULT LoadHierarchyContainer(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
 
 	/* Load contents objects */
-	ECRESULT LoadContentsAddressList(unsigned int ulObjectId, unsigned int ulFlags,
-									 list<localobjectdetails_t> **lppObjects);
-	ECRESULT LoadContentsCompany(unsigned int ulObjectId, unsigned int ulFlags,
-								 list<localobjectdetails_t> **lppObjects);
-	ECRESULT LoadContentsDistlist(unsigned int ulObjectId, unsigned int ulFlags,
-								  list<localobjectdetails_t> **lppObjects);
+	ECRESULT LoadContentsAddressList(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
+	ECRESULT LoadContentsCompany(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
+	ECRESULT LoadContentsDistlist(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
 
 private:
 	virtual ECRESULT GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount);

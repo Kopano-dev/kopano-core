@@ -36,8 +36,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
 
-using namespace std;
-
 namespace KC {
 /**
  * @defgroup userplugin Server user plugin
@@ -108,9 +106,8 @@ public:
     std::string signature;
 };
 
-typedef list<objectsignature_t> signatures_t;
-
-typedef list<unsigned int> abprops_t;
+typedef std::list<objectsignature_t> signatures_t;
+typedef std::list<unsigned int> abprops_t;
 
 class ECConfig;
 
@@ -160,7 +157,7 @@ public:
 	 * @return The object signature of the resolved object
 	 * @throw std::exception
 	 */
-	virtual objectsignature_t resolveName(objectclass_t objclass, const string &name, const objectid_t &company) = 0;
+	virtual objectsignature_t resolveName(objectclass_t objclass, const std::string &name, const objectid_t &company) = 0;
 
 	/**
 	 * Authenticate user with username and password
@@ -175,7 +172,7 @@ public:
 	 * @return The objectsignature of the authenticated user
 	 * @throw std::exception
 	 */
-	virtual objectsignature_t authenticateUser(const string &username, const string &password, const objectid_t &company) = 0;
+	virtual objectsignature_t authenticateUser(const std::string &username, const std::string &password, const objectid_t &company) = 0;
 
 	/**
 	 * Request a list of objects for a particular company and specified objectclass.
@@ -451,7 +448,8 @@ public:
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
-	objectnotfound(const string &arg) : runtime_error(arg) {
+	objectnotfound(const std::string &arg) : runtime_error(arg)
+	{
 #ifdef EXCEPTION_DEBUG
 		cerr << "objectnotfound exception: " << arg << endl;
 #endif
@@ -468,7 +466,8 @@ public:
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
-	toomanyobjects(const string &arg) : runtime_error(arg) {
+	toomanyobjects(const std::string &arg) : runtime_error(arg)
+	{
 #ifdef EXCEPTION_DEBUG
 		cerr << "toomanyobjects exception: " << arg << endl;
 #endif
@@ -485,7 +484,8 @@ public:
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
-	collision_error(const string &arg) : runtime_error(arg) {
+	collision_error(const std::string &arg) : runtime_error(arg)
+	{
 #ifdef EXCEPTION_DEBUG
 		cerr << "collision_error exception: " << arg << endl;
 #endif
@@ -502,7 +502,8 @@ public:
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
-	data_error(const string &arg) : runtime_error(arg) {
+	data_error(const std::string &arg) : runtime_error(arg)
+	{
 #ifdef EXCEPTION_DEBUG
 		cerr << "data_error exception: " << arg << endl;
 #endif
@@ -519,7 +520,8 @@ public:
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
-	notimplemented(const string &arg) : runtime_error(arg) {
+	notimplemented(const std::string &arg) : runtime_error(arg)
+	{
 #ifdef EXCEPTION_DEBUG
 		cerr << "notimplemented exception: " << arg << endl;
 #endif
@@ -538,7 +540,8 @@ public:
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
-	notsupported(const string &arg) : runtime_error(arg) {
+	notsupported(const std::string &arg) : runtime_error(arg)
+	{
 #ifdef EXCEPTION_DEBUG
 		cerr << "notsupported exception: " << arg << endl;
 #endif
@@ -554,7 +557,8 @@ public:
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
-	login_error(const string &arg) : runtime_error(arg) {
+	login_error(const std::string &arg) : runtime_error(arg)
+	{
 #ifdef EXCEPTION_DEBUG
 		cerr << "login_error exception: " << arg << endl;
 #endif
@@ -573,7 +577,9 @@ public:
 	 * @param[in]	ldaperror
 						The ldap error code why the exception was thrown
 	 */
-	ldap_error(const string &arg, int ldaperror=0) : runtime_error(arg) {
+	ldap_error(const std::string &arg, int ldaperror = 0) :
+		runtime_error(arg)
+	{
 		m_ldaperror = ldaperror;
 #ifdef EXCEPTION_DEBUG
 		cerr << "ldap_error exception: " << arg << endl;
@@ -593,7 +599,7 @@ public:
  */
 template <class Tin, class Tout>
 static inline Tout fromstring(const Tin &s) {
-	istringstream i(s);
+	std::istringstream i(s);
 	Tout res;
 	i >> res;
 	return res;
@@ -607,9 +613,9 @@ static inline Tout fromstring(const Tin &s) {
  *					The type depends on template Tin.
  * @return The string representation of i
  */
-template <class Tin>
-static inline string tostring(const Tin i) {
-	ostringstream o;
+template<class Tin> static inline std::string tostring(const Tin i)
+{
+	std::ostringstream o;
 	o << i;
 	return o.str();
 }

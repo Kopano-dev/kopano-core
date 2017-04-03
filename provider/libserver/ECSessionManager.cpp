@@ -40,6 +40,7 @@
 #include <edkmdb.h>
 #include "logontime.hpp"
 
+using namespace std;
 using namespace KCHL;
 
 namespace KC {

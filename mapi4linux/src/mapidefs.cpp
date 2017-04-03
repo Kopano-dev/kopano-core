@@ -41,6 +41,7 @@
 
 #include <set>
 
+using namespace std;
 using namespace KCHL;
 
 // ---

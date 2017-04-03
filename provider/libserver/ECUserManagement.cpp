@@ -57,6 +57,7 @@
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif
 
+using namespace std;
 using namespace KCHL;
 
 namespace KC {

@@ -30,6 +30,7 @@
 #include <kopano/stringutil.h>
 #include "fsck.h"
 
+using namespace std;
 using namespace KCHL;
 
 static bool ReadYesNoMessage(const std::string &strMessage,

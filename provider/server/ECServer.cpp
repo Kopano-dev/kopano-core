@@ -57,6 +57,8 @@
 #include "ECICS.h"
 #include <openssl/ssl.h>
 
+using namespace std;
+
 // The following value is based on:
 // http://dev.mysql.com/doc/refman/5.0/en/server-system-variables.html#sysvar_thread_stack
 // Since the remote MySQL server can be 32 or 64 bit we'll just go with the value specified

@@ -48,8 +48,6 @@ namespace KC {
 class ECLogger;
 class ECTPropsPurge;
 
-using namespace std;
-
 typedef std::unordered_map<ECSESSIONGROUPID, ECSessionGroup *> EC_SESSIONGROUPMAP;
 typedef std::unordered_map<ECSESSIONID, BTSession *> SESSIONMAP;
 typedef std::unordered_map<ECSESSIONID, unsigned int> PERSISTENTBYSESSION;
