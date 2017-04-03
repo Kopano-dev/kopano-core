@@ -536,17 +536,16 @@ HRESULT WSTransport::HrGetStore(ULONG cbMasterID, LPENTRYID lpMasterID, ULONG* l
 	
 	entryId		sEntryId = {0,0}; // Do not free
 	struct getStoreResponse sResponse;
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	LockSoap();
 
 	if(lpMasterID) {
-
-		hr = UnWrapServerClientStoreEntry(cbMasterID, lpMasterID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+		hr = UnWrapServerClientStoreEntry(cbMasterID, lpMasterID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
 			goto exitm;
-		sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
+		sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 		sEntryId.__size = cbUnWrapStoreID;
 	}
 
@@ -586,10 +585,6 @@ HRESULT WSTransport::HrGetStore(ULONG cbMasterID, LPENTRYID lpMasterID, ULONG* l
 
  exitm:
 	UnLockSoap();
-
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
@@ -599,7 +594,7 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	HRESULT hr = hrSuccess;
 	entryId		sEntryId; // Do not free
 	struct getStoreNameResponse sResponse;
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	LockSoap();
@@ -610,10 +605,10 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	}
 
 	// Remove the servername
-	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
-	sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 	
 	START_SOAP_CALL
@@ -628,10 +623,6 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	hr = Utf8ToTString(sResponse.lpszStoreName, ulFlags, NULL, NULL, lppszStoreName);
  exitm:
 	UnLockSoap();
-
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
@@ -641,7 +632,7 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	HRESULT hr = hrSuccess;
 	entryId		sEntryId; // Do not free
 	struct getStoreTypeResponse sResponse;
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	LockSoap();
@@ -652,10 +643,10 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	}
 
 	// Remove the servername
-	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
-	sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 	
 	START_SOAP_CALL
@@ -670,10 +661,6 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	*lpulStoreType = sResponse.ulStoreType;
  exitm:
 	UnLockSoap();
-
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
@@ -754,18 +741,16 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID, LPENTRYID lpParent
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<WSMAPIPropStorage> lpPropStorage;
-	LPENTRYID	lpUnWrapParentID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapParentID, lpUnWrapEntryID;
 	ULONG		cbUnWrapParentID = 0;
-	LPENTRYID	lpUnWrapEntryID = NULL;
 	ULONG		cbUnWrapEntryID = 0;
 
 	if (lpParentEntryID) {
-		hr = UnWrapServerClientStoreEntry(cbParentEntryID, lpParentEntryID, &cbUnWrapParentID, &lpUnWrapParentID);
+		hr = UnWrapServerClientStoreEntry(cbParentEntryID, lpParentEntryID, &cbUnWrapParentID, &~lpUnWrapParentID);
 		if(hr != hrSuccess)
 			goto exit;
 	}
-
-	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapEntryID, &lpUnWrapEntryID);
+	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapEntryID, &~lpUnWrapEntryID);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -778,12 +763,6 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID, LPENTRYID lpParent
 	hr = lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
 
 exit:
-	if(lpUnWrapEntryID)
-		ECFreeBuffer(lpUnWrapEntryID);
-
-	if(lpUnWrapParentID)
-		ECFreeBuffer(lpUnWrapParentID);
-
 	return hr;
 }
 
@@ -803,10 +782,10 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, I
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<WSABPropStorage> lpPropStorage;
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
-	hr = UnWrapServerClientABEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientABEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -818,34 +797,26 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, I
 	hr = lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
 
 exit:
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
 HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, LPENTRYID lpEntryID, WSMAPIFolderOps **lppFolderOps)
 {
 	HRESULT hr = hrSuccess;
-
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 //FIXME: create this function
 //	hr = CheckEntryIDType(cbEntryID, lpEntryID, MAPI_FOLDER);
 //	if( hr != hrSuccess)
 		//goto exit;
-
-	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exit;
 
 	hr = WSMAPIFolderOps::Create(m_lpCmd, m_hDataLock, m_ecSessionId,
 	     cbUnWrapStoreID, lpUnWrapStoreID, this, lppFolderOps);
 exit:
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 
 }
@@ -888,12 +859,12 @@ HRESULT WSTransport::HrOpenMailBoxTableOps(ULONG ulFlags, ECMsgStore *lpMsgStore
 HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, ECMsgStore *lpMsgStore, WSTableOutGoingQueue **lppTableOutGoingQueueOps)
 {
 	HRESULT hr = hrSuccess;
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	// lpStoreEntryID == null for master queue
 	if(lpStoreEntryID) {
-		hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+		hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
 			goto exit;
 	}
@@ -901,9 +872,6 @@ HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID, LPENTRYID
 	     cbUnWrapStoreID, lpUnWrapStoreID, lpMsgStore, this,
 	     lppTableOutGoingQueueOps);
 exit:
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
@@ -1366,18 +1334,17 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 	ULONG		ulRowId = 0;
 	int			nLen = 0;
 	entryId		sEntryId = {0}; // Do not free
-
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 	std::wstring unicode;
 	convert_context converter;
 
 	LockSoap();
 
-	hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
-	sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 
 	// Get ReceiveFolder information from the server
@@ -1455,10 +1422,6 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 	*lppsRowSet = lpsRowSet;
  exitm:
 	UnLockSoap();
-	
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
@@ -1470,17 +1433,15 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreE
 	HRESULT		hr = hrSuccess;
 	entryId		sEntryId = {0}; // Do not free
 	ULONG		cbEntryID = 0;
-	LPENTRYID	lpEntryID = NULL;
-
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpEntryID, lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	LockSoap();
 
-	hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
-	sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 
 	if(lpstrExplicitClass)
@@ -1505,20 +1466,16 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreE
 		hr = hrSuccess;
 		goto exitm;
 	}
-	hr = CopySOAPEntryIdToMAPIEntryId(&sReceiveFolderTable.sReceiveFolder.sEntryId, &cbEntryID, &lpEntryID, NULL);
+	hr = CopySOAPEntryIdToMAPIEntryId(&sReceiveFolderTable.sReceiveFolder.sEntryId,
+	     &cbEntryID, &~lpEntryID, nullptr);
 	if(hr != hrSuccess)
 		goto exitm;
 	if(er != KCERR_NOT_FOUND && lpstrExplicitClass != NULL)
 		*lpstrExplicitClass = utf8string::from_string(sReceiveFolderTable.sReceiveFolder.lpszAExplicitClass);
 
-	*lppEntryID = lpEntryID;
+	*lppEntryID = lpEntryID.release();
 	*lpcbEntryID = cbEntryID;
  exitm:
-	if (hr != hrSuccess && lpEntryID != nullptr)
-		ECFreeBuffer(lpEntryID);
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	UnLockSoap();
 
 	return hr;
@@ -1531,15 +1488,15 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID, LPENTRYID lpStoreID, co
 	unsigned int result;
 	entryId		sStoreId = {0}; // Do not free
 	entryId		sEntryId = {0}; // Do not free
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	LockSoap();
 
-	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
-	sStoreId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sStoreId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sStoreId.__size = cbUnWrapStoreID;
 
 	// Ignore error
@@ -1555,10 +1512,6 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID, LPENTRYID lpStoreID, co
 	END_SOAP_CALL
  exitm:
     UnLockSoap();
-    
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
@@ -1903,7 +1856,7 @@ HRESULT WSTransport::HrGetUser(ULONG cbUserID, LPENTRYID lpUserID,
 	HRESULT	hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	struct getUserResponse	sResponse;
-	ECUSER *lpECUser = NULL;
+	ecmem_ptr<ECUSER> lpECUser;
 	entryId	sUserId = {0};
 	ULONG ulUserId = 0;
 
@@ -1930,18 +1883,12 @@ HRESULT WSTransport::HrGetUser(ULONG cbUserID, LPENTRYID lpUserID,
 	}
 	END_SOAP_CALL
 
-	hr = SoapUserToUser(sResponse.lpsUser, ulFlags, &lpECUser);
+	hr = SoapUserToUser(sResponse.lpsUser, ulFlags, &~lpECUser);
 	if(hr != hrSuccess)
 		goto exitm;
-
-	*lppECUser = lpECUser;
-	lpECUser = NULL;
+	*lppECUser = lpECUser.release();
  exitm:
 	UnLockSoap();
-
-	if (lpECUser != NULL)
-		ECFreeBuffer(lpECUser);
-
 	return hr;
 }
 
@@ -3421,9 +3368,8 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;
 	entryId			sEntryId = {0}; // Do not free
-	ECPERMISSION *lpECPermissions = NULL;
-	
-	LPENTRYID		lpUnWrapStoreID = NULL;
+	ecmem_ptr<ECPERMISSION> lpECPermissions;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG			cbUnWrapStoreID = 0;
 
 	struct rightsResponse sRightResponse;
@@ -3436,11 +3382,11 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	}
 
 	// Remove servername, always
-	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
 
-	sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 
 	START_SOAP_CALL
@@ -3454,7 +3400,7 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	END_SOAP_CALL
 
 	hr = ECAllocateBuffer(sizeof(ECPERMISSION) * sRightResponse.pRightsArray->__size,
-	     reinterpret_cast<void **>(&lpECPermissions));
+	     &~lpECPermissions);
 	if (hr != erSuccess)
 		goto exitm;
 	for (gsoap_size_t i = 0; i < sRightResponse.pRightsArray->__size; ++i) {
@@ -3467,18 +3413,11 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 			goto exitm;
 	}
 
-	*lppECPermissions = lpECPermissions;
+	*lppECPermissions = lpECPermissions.release();
 	*lpcPermissions = sRightResponse.pRightsArray->__size;
 	lpECPermissions = NULL;
  exitm:
-	if (lpECPermissions != NULL)
-		ECFreeBuffer(lpECPermissions);
-
 	UnLockSoap();
-
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
@@ -3491,7 +3430,7 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID, LPENTRYID lpEntryID,
 	int				nChangedItems = 0;
 	unsigned int	i,
 					nItem;
-	LPENTRYID		lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG			cbUnWrapStoreID = 0;
 	
 	struct rightsArray rArray;
@@ -3504,11 +3443,11 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID, LPENTRYID lpEntryID,
 	}
 
 	// Remove servername, always
-	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
 
-	sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 
 	// Count the updated items
@@ -3543,10 +3482,6 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID, LPENTRYID lpEntryID,
 	END_SOAP_CALL
  exitm:
 	UnLockSoap();
-
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
@@ -3556,7 +3491,7 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpc
 	HRESULT hr = hrSuccess;
 	entryId	sEntryId = {0}; // Do not free
 	struct getOwnerResponse sResponse;
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	LockSoap();
@@ -3568,11 +3503,11 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpc
 	}
 
 	// Remove servername, always
-	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
 
-	sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 
 	START_SOAP_CALL
@@ -3587,9 +3522,6 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpc
 
 	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sOwner, sResponse.ulOwner, lpcbOwnerId, lppOwnerId);
  exitm:
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	UnLockSoap();
 
 	return hr;
@@ -4077,7 +4009,7 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 	ECRESULT						er = erSuccess;
 	HRESULT							hr = hrSuccess;
 	struct getServerDetailsResponse sResponse{__gszeroinit};
-	struct mv_string8				*lpsSvrNameList = NULL;
+	ecmem_ptr<struct mv_string8> lpsSvrNameList;
 
 	LockSoap();
 
@@ -4086,8 +4018,7 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exitm;
 	}
-	
-	hr = SvrNameListToSoapMvString8(lpServerNameList, ulFlags & MAPI_UNICODE, &lpsSvrNameList);
+	hr = SvrNameListToSoapMvString8(lpServerNameList, ulFlags & MAPI_UNICODE, &~lpsSvrNameList);
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -4105,10 +4036,6 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 		goto exitm;
  exitm:
 	UnLockSoap();
-	
-	if (lpsSvrNameList)
-		ECFreeBuffer(lpsSvrNameList);
-
 	return hr;
 }
 
@@ -4116,7 +4043,7 @@ HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, 
 	HRESULT						hr = hrSuccess;
 	ECRESULT					er = erSuccess;
 	struct icsChangeResponse	sResponse;
-	ICSCHANGE *					lpChanges = NULL;
+	ecmem_ptr<ICSCHANGE> lpChanges;
 	struct xsd__base64Binary	sSourceKey;
 	struct restrictTable		*lpsSoapRestrict = NULL;
 	
@@ -4141,8 +4068,7 @@ HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, 
 	}
 	END_SOAP_CALL
 
-	er = ECAllocateBuffer(sResponse.sChangesArray.__size * sizeof(ICSCHANGE),
-	     reinterpret_cast<void **>(&lpChanges));
+	er = ECAllocateBuffer(sResponse.sChangesArray.__size * sizeof(ICSCHANGE), &~lpChanges);
 	if (er != erSuccess)
 		goto exitm;
 
@@ -4173,16 +4099,12 @@ HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, 
 	
 	*lpulMaxChangeId = sResponse.ulMaxChangeId;
 	*lpcChanges = sResponse.sChangesArray.__size;
-	*lppChanges = lpChanges;
+	*lppChanges = lpChanges.release();
  exitm:
 	UnLockSoap();
 	
 	if(lpsSoapRestrict)
 	    FreeRestrictTable(lpsSoapRestrict);
-
-	if(hr!=hrSuccess && lpChanges)
-		ECFreeBuffer(lpChanges);
-
 	return hr;
 }
 
@@ -4219,7 +4141,7 @@ HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID, LPENTRYID lpStoreID
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId		sStoreId;
-	LPENTRYID	lpUnWrapStoreID = NULL;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	struct xsd__base64Binary	folderSourceKey;
@@ -4234,12 +4156,11 @@ HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID, LPENTRYID lpStoreID
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exitm;
 	}
-	
-	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
 
-	sStoreId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sStoreId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sStoreId.__size = cbUnWrapStoreID;
 
 	folderSourceKey.__size = ulFolderSourceKeySize;
@@ -4263,10 +4184,6 @@ HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID, LPENTRYID lpStoreID
 		goto exitm;
  exitm:
 	UnLockSoap();
-
-	if(lpUnWrapStoreID)
-		ECFreeBuffer(lpUnWrapStoreID);
-
 	return hr;
 }
 
