@@ -132,7 +132,7 @@ std::string GetServerFQDN()
 
 	rc = getaddrinfo(hostname, NULL, &hints, &aiResult);
 	if (rc != 0)
-		goto exit;
+		return retval;
 
 	// no need to set other contents of saddr struct, we're just intrested in the DNS lookup.
 	saddr = *((sockaddr_in*)aiResult->ai_addr);

@@ -251,9 +251,7 @@ bool DuplicateFile(FILE *lpFile, std::string &strFileName)
 	lpBuffer.reset(new(std::nothrow) char[BLOCKSIZE]);
 	if (!lpBuffer) {
 		ec_log_crit("DuplicateFile is out of memory");
-
-		bResult = false;
-		goto exit;
+		return false;
 	}
 
 	// FIXME use splice
