@@ -911,7 +911,7 @@ static int running_server(char *szName, const char *szConfig,
 		{ "companyquota_hard",		"0", CONFIGSETTING_UNUSED },
 		{ "session_timeout",		"300", CONFIGSETTING_RELOADABLE },		// 5 minutes
 		{ "sync_lifetime",			"365", CONFIGSETTING_RELOADABLE },		// 1 year
-		{ "sync_log_all_changes",	"yes", CONFIGSETTING_RELOADABLE },	// Log All ICS changes
+		{ "sync_log_all_changes",	"default" },	// Log All ICS changes
 		{ "auth_method",			"plugin", CONFIGSETTING_RELOADABLE },		// plugin (default), pam, kerberos
 		{ "pam_service",			"passwd", CONFIGSETTING_RELOADABLE },		// pam service, found in /etc/pam.d/
 		{ "enable_sso_ntlmauth",	"no", CONFIGSETTING_UNUSED },			// default disables ntlm_auth, so we don't log errors on useless things
@@ -1019,6 +1019,9 @@ static int running_server(char *szName, const char *szConfig,
 	ec_log_always("Starting server version " PROJECT_VERSION_SERVER_STR ", pid %d", getpid());
 	if (g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig);
+
+	if (strcmp(g_lpConfig->GetSetting("sync_log_all_changes"), "default") != 0)
+		ec_log_warn("sync_log_all_changes is deprecated, please remove from your config");
 
 	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
 		// directory will be created using startup (probably root) and then chowned to the new 'runas' username

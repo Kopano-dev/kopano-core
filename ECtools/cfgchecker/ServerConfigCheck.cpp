@@ -57,7 +57,6 @@ void ServerConfigCheck::loadChecks()
 
 	addCheck("enable_gab", 0, &testBoolean);
 	addCheck("enable_sso_ntlmauth", 0, &testBoolean);
-	addCheck("sync_log_all_changes", 0, &testBoolean);
 	addCheck("client_update_enabled", 0, &testBoolean);
 	addCheck("hide_everyone", 0, &testBoolean);
 	addCheck("index_services_enabled", 0, &testBoolean);
