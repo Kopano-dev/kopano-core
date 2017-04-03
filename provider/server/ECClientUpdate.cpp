@@ -75,7 +75,7 @@ int HandleClientUpdate(struct soap *soap)
 
 	if (!szClientUpdatePath || szClientUpdatePath[0] == 0) {
 		ec_log_err("Client update: The configuration field 'client_update_path' is empty.");
-		goto exit;
+		return erSuccess;
 	}
 
 	// if the version comes as "/autoupdate/6.20.1.1234?licreq", we need to pass the license request
@@ -85,20 +85,20 @@ int HandleClientUpdate(struct soap *soap)
 		szReq = strstr(soap->buf, "X-License: ");
 		if (szReq == NULL) {
 			ec_log_debug("Client update: Invalid license request, header not found.");
-			goto exit;
+			return erSuccess;
 		}
 		szReq += strlen("X-License: ");
 		szReqEnd = strstr(szReq, "\r\n"); // TODO: can be be split over multiple lines?
 		if (szReqEnd == NULL) {
 			ec_log_debug("Client update: Invalid license request, end of header not found.");
-			goto exit;
+			return erSuccess;
 		}
 		strLicenseRequest = base64_decode(std::string(szReq, szReqEnd - szReq));
 		er = ECLicenseClient(g_lpConfig->GetSetting("license_socket"),  atoui(g_lpConfig->GetSetting("license_timeout")))
 		     .Auth((unsigned char*)strLicenseRequest.c_str(), strLicenseRequest.length(), &lpLicenseResponse, &ulLicenseResponse);
 		if (er != erSuccess) {
 			ec_log_debug("Client update: Invalid license request, error: 0x%08X.", er);
-			goto exit;
+			return er;
 		}
 
 		strLicenseResponse = base64_encode(static_cast<const unsigned char *>(lpLicenseResponse), ulLicenseResponse);

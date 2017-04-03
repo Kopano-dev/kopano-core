@@ -114,11 +114,8 @@ HRESULT	ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID, LPENTRYID lp
 	HRESULT hr = hrSuccess;
 	object_ptr<ZCMAPIProp> lpDistList;
 	auto lpABContainer = new(std::nothrow) ZCABContainer(NULL, NULL, lpMAPISup, NULL, "IABContainer");
-	if (lpABContainer == nullptr) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-
+	if (lpABContainer == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = ZCMAPIProp::Create(lpContact, cbEntryID, lpEntryID, &~lpDistList);
 	if (hr != hrSuccess)
 		goto exit;

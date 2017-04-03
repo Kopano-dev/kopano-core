@@ -237,10 +237,8 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 	int			socket = SOAP_INVALID_SOCKET;
 	struct soap	*lpsSoap = NULL;
 
-	if(lpServerName == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpServerName == nullptr)
+		return KCERR_INVALID_PARAMETER;
 
 	//init soap
 	lpsSoap = soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
@@ -262,7 +260,6 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
 	ec_log_notice("Listening for TCP connections on port %d", nServerPort);
-exit:
 	if (er != erSuccess && lpsSoap)
 		soap_free(lpsSoap);
 
@@ -274,14 +271,13 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 	ECRESULT	er = erSuccess;
 	int			socket = SOAP_INVALID_SOCKET;
 	struct soap	*lpsSoap = NULL;
+
+	if (lpServerName == nullptr)
+		return KCERR_INVALID_PARAMETER;
+
 	char *server_ssl_protocols = strdup(m_lpConfig->GetSetting("server_ssl_protocols"));
 	const char *server_ssl_ciphers = m_lpConfig->GetSetting("server_ssl_ciphers");
 	auto pref_ciphers = m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers");
-
-	if(lpServerName == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
 
 	lpsSoap = soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
 	kopano_new_soap_listener(CONNECTION_TYPE_SSL, lpsSoap);
@@ -336,10 +332,8 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	int			sPipe = -1;
 	struct soap	*lpsSoap = NULL;
 
-	if(lpPipeName == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpPipeName == nullptr)
+		return KCERR_INVALID_PARAMETER;
 
 	//init soap
 	lpsSoap = soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
