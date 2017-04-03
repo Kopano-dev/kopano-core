@@ -2064,32 +2064,22 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 	// Check requested store type
 	if (!ECSTORE_TYPE_ISVALID(ulStoreType) ||
 		(ulFlags != 0 && ulFlags != EC_OVERRIDE_HOMESERVER))
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Check passed store and root entry ids.
-	if (!lpcbStoreId || !lppStoreId || !lpcbRootId || !lppRootId) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-	if (!*lpcbStoreId != !*lppStoreId)	{	// One set, one unset
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-	if (!*lpcbRootId != !*lppRootId)	{	// One set, one unset
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-	if (*lppRootId && !*lppStoreId) {		// Root id set, but storeid unset
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-	if ((*lpcbStoreId == 0 || *lpcbRootId == 0) && CoCreateGuid(&guidStore) != S_OK) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	if (lpcbStoreId == nullptr || lppStoreId == nullptr ||
+	    lpcbRootId == nullptr || lppRootId == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if ((*lpcbStoreId == 0) != (*lppStoreId == nullptr))
+		/* One set, one unset */
+		return MAPI_E_INVALID_PARAMETER;
+	if ((*lpcbRootId == 0) != (*lppRootId == nullptr))
+		/* One set, one unset */
+		return MAPI_E_INVALID_PARAMETER;
+	if (*lppRootId != nullptr && *lppStoreId == nullptr) /* Root id set, but storeid unset */
+		return MAPI_E_INVALID_PARAMETER;
+	if ((*lpcbStoreId == 0 || *lpcbRootId == 0) && CoCreateGuid(&guidStore) != S_OK)
+		return MAPI_E_CALL_FAILED;
 
 	if (*lpcbStoreId == 0) {
 		// Create store entryid

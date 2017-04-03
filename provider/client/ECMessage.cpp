@@ -1638,30 +1638,22 @@ void ECMessage::RecursiveMarkDelete(MAPIOBJECT *lpObj) {
 BOOL ECMessage::HasAttachment()
 {
 	HRESULT hr = hrSuccess;
-	BOOL bRet = TRUE;
 	ECMapiObjects::const_iterator iterObjects;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if(lstProps == NULL) {
 		hr = HrLoadProps();
 		if (hr != hrSuccess)
-			goto exit;
-		if(lstProps == NULL) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
+			return false; /* hr */
+		if (lstProps == nullptr)
+			return false; /* MAPI_E_CALL_FAILED */
 	}
 
 	for (iterObjects = m_sMapiObject->lstChildren.cbegin();
 	     iterObjects != m_sMapiObject->lstChildren.cend(); ++iterObjects)
 		if ((*iterObjects)->ulObjType == MAPI_ATTACH)
 			break;
-
-	bRet = iterObjects != m_sMapiObject->lstChildren.cend();
-exit:
-	if(hr != hrSuccess)
-		bRet = FALSE;
-	return bRet;
+	return iterObjects != m_sMapiObject->lstChildren.cend();
 }
 
 // Syncs the Attachment table to the child list in the saved object

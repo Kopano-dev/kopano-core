@@ -459,12 +459,9 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	GUID		guidMsg;
 
 	if(lpMsgList == NULL || lpMsgList->cValues == 0)
-		goto exit;
-
-	if (lpMsgList->lpbin == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return hrSuccess;
+	if (lpMsgList->lpbin == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// FIXME progress bar
 	
@@ -481,14 +478,14 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get the destination entry ID, and check for favories public folders, so get PR_ORIGINAL_ENTRYID first.
 	hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &~lpDestPropArray);
 	if (hr != hrSuccess)
 		hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpDestPropArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Check if the destination entryid is a kopano entryid and if there is a folder transport
 	if( IsKopanoEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb) &&
@@ -496,28 +493,25 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	{
 		hr = HrGetStoreGuidFromEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb, &guidFolder);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Allocate memory for support list and kopano list
 		hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListEC);
 		if(hr != hrSuccess)
-			goto exit;
-		
+			return hr;
 		lpMsgListEC->cValues = 0;
 
 		hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, (void**)&lpMsgListEC->lpbin);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListSupport);
 		if(hr != hrSuccess)
-			goto exit;
-		
+			return hr;
 		lpMsgListSupport->cValues = 0;
 
 		hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, (void**)&lpMsgListSupport->lpbin);
 		if(hr != hrSuccess)
-			goto exit;
-	
+			return hr;
 
 		//FIXME
 		//hr = lpMapiFolder->SetReadFlags(GENERATE_RECEIPT_ONLY);
@@ -675,15 +669,9 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 		(ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG) ||
 		(ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY) ||
 		(ulFlags & (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)	)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if (lpFolderOps == NULL) {
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
+	if (lpFolderOps == nullptr)
+		return MAPI_E_NO_SUPPORT;
 
 	//FIXME: (GENERATE_RECEIPT_ONLY | SUPPRESS_RECEIPT) not yet implement ok on the server (update PR_READ_RECEIPT_REQUESTED to false)
 	if( (!(ulFlags & (SUPPRESS_RECEIPT|CLEAR_READ_FLAG|CLEAR_NRN_PENDING|CLEAR_RN_PENDING)) || (ulFlags&GENERATE_RECEIPT_ONLY))&& lpMsgList){
@@ -714,7 +702,7 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 					bError = TRUE;
 					goto exit;
 				}else if(hr != hrSuccess) {
-					goto exit;
+					return hr;
 				}
 			}
 

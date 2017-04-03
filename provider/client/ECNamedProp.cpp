@@ -395,7 +395,7 @@ HRESULT ECNamedProp::HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void
 		hr = ECAllocateMore(sizeof(MAPINAMEID), lpBase, (void **) &lpDst);
 
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpDst->ulKind = lpSrc->ulKind;
 
