@@ -307,8 +307,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 	ABEID *lpABeid = NULL;
 	ULONG			cbABeid;
 	ULONG			cValues;
-	LPSPropValue	lpPropArray = NULL;
-	LPSPropValue	lpNewPropArray = NULL;
+	ecmem_ptr<SPropValue> lpPropArray, lpNewPropArray;
 	unsigned int	j;
 	ULONG			ulObjType;
 
@@ -338,13 +337,12 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		hr = OpenEntry(cbABeid, reinterpret_cast<ENTRYID *>(lpABeid), nullptr, 0, &ulObjType, &~lpIMailUser);
 		if(hr != hrSuccess)
 			continue;	// no
-		
-		hr = lpIMailUser->GetProps(lpPropTagArray, 0, &cValues, &lpPropArray);
+		hr = lpIMailUser->GetProps(lpPropTagArray, 0, &cValues, &~lpPropArray);
 		if(FAILED(hr) != hrSuccess)
 			goto skip;	// no
 
 		// merge the properties
-		hr = ECAllocateBuffer((cValues + cPropsRecip) * sizeof(SPropValue), reinterpret_cast<void **>(&lpNewPropArray));
+		hr = ECAllocateBuffer((cValues + cPropsRecip) * sizeof(SPropValue), &~lpNewPropArray);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -373,29 +371,21 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 			++cValues;
 		}
 
-		lpRecipList->aEntries[i].rgPropVals	= lpNewPropArray;
+		lpRecipList->aEntries[i].rgPropVals	= lpNewPropArray.release();
 		lpRecipList->aEntries[i].cValues	= cValues;
 
 		if(rgpropvalsRecip) {
 			ECFreeBuffer(rgpropvalsRecip); 
 			rgpropvalsRecip = NULL;
 		}
-		
-		lpNewPropArray = NULL; // Everthing oke, should not be freed..
-
 	skip:
-		if(lpPropArray){ ECFreeBuffer(lpPropArray); lpPropArray = NULL; }
+		;
 	}
 
 	// Always succeeded on this point
 	hr = hrSuccess;
 
 exit:
-	if(lpPropArray)
-		ECFreeBuffer(lpPropArray);
-
-	if(lpNewPropArray)
-		ECFreeBuffer(lpNewPropArray);
 	return hr;
 }
 

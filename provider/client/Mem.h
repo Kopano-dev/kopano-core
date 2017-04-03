@@ -18,6 +18,7 @@
 #ifndef MEM_H
 #define MEM_H
 
+#include <kopano/memory.hpp>
 #include "IECPropStorage.h"
 
 // Linked memory routines
@@ -27,5 +28,12 @@ HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid);
 
 HRESULT AllocNewMapiObject(ULONG ulUniqueId, ULONG ulObjId, ULONG ulObjType, MAPIOBJECT **lppMapiObject);
 HRESULT FreeMapiObject(MAPIOBJECT *lpsObject);
+
+class client_delete {
+	public:
+	void operator()(void *x) { ECFreeBuffer(x); }
+};
+
+template<typename T> using ecmem_ptr = KCHL::memory_ptr<T, client_delete>;
 
 #endif // MEM_H
