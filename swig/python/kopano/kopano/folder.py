@@ -42,6 +42,7 @@ from MAPI.Struct import (
 )
 from MAPI.Time import unixtime
 
+from .base import Base
 from .permission import Permission
 from .rule import Rule
 from .table import Table
@@ -51,24 +52,22 @@ from .defs import (
 )
 from .errors import NotFoundError, Error
 
-from .compat import hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
+from .compat import hex as _hex, unhex as _unhex, fake_unicode as _unicode
 
 if sys.hexversion >= 0x03000000:
     from . import user as _user
     from . import store as _store
     from . import item as _item
     from . import utils as _utils
-    from . import prop as _prop
     from . import ics as _ics
 else:
     import user as _user
     import store as _store
     import item as _item
     import utils as _utils
-    import prop as _prop
     import ics as _ics
 
-class Folder(object):
+class Folder(Base):
     """Folder class"""
 
     def __init__(self, store=None, entryid=None, associated=False, deleted=False, mapiobj=None):
@@ -461,21 +460,6 @@ class Folder(object):
         for row in table.dict_rows():
             yield Rule(row)
 
-    def prop(self, proptag, create=False):
-        return _prop.prop(self, self.mapiobj, proptag, create=create)
-
-    def get_prop(self, proptag):
-        try:
-            return self.prop(proptag)
-        except MAPIErrorNotFound:
-            pass
-
-    def create_prop(self, proptag, value, proptype=None):
-        return _prop.create_prop(self, self.mapiobj, proptag, value, proptype)
-
-    def props(self):
-        return _prop.props(self.mapiobj)
-
     def table(self, name, restriction=None, order=None, columns=None): # XXX associated, PR_CONTAINER_CONTENTS?
         return Table(self.server, self.mapiobj.OpenProperty(name, IID_IMAPITable, MAPI_UNICODE, 0), name, restriction=restriction, order=order, columns=columns)
 
@@ -658,6 +642,3 @@ class Folder(object):
 
     def __unicode__(self): # XXX associated?
         return u'Folder(%s)' % self.name
-
-    def __repr__(self):
-        return _repr(self)

@@ -24,24 +24,23 @@ from MAPI.Tags import (
 )
 
 from .store import Store
+from .base import Base
 from .group import Group
 from .quota import Quota
 from .defs import ACTIVE_USER, NONACTIVE_USER
 from .errors import NotFoundError, NotSupportedError, DuplicateError
 from .compat import (
-    hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
+    hex as _hex, unhex as _unhex, fake_unicode as _unicode
 )
 
 if sys.hexversion >= 0x03000000:
     from . import server as _server
     from . import company as _company
-    from . import prop as _prop
 else:
     import server as _server
     import company as _company
-    import prop as _prop
 
-class User(object):
+class User(Base):
     """User class"""
 
     def __init__(self, name=None, server=None, email=None, ecuser=None):
@@ -261,12 +260,6 @@ class User(object):
         except MAPIErrorNotFound:
             return
 
-    def prop(self, proptag, create=False):
-        return _prop.prop(self, self.mapiobj, proptag, create=create)
-
-    def props(self):
-        return _prop.props(self.mapiobj)
-
     @property
     def quota(self):
         """ User :class:`Quota` """
@@ -306,9 +299,6 @@ class User(object):
 
     def __unicode__(self):
         return u"User('%s')" % self._name
-
-    def __repr__(self):
-        return _repr(self)
 
     def _update(self, **kwargs):
         username = kwargs.get('username', self.name)

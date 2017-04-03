@@ -69,6 +69,7 @@ from .errors import Error
 
 from .attachment import Attachment
 from .body import Body
+from .base import Base
 from .recurrence import Recurrence, Occurrence
 from .address import Address
 from .table import Table
@@ -103,7 +104,7 @@ class PersistentList(list):
             return ret
         return _func
 
-class Item(object):
+class Item(Base):
     """Item class"""
 
     def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None):
@@ -355,21 +356,6 @@ class Item(object):
 
         self.mapiobj.SetProps([SPropValue(PR_IMPORTANCE, value)])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
-
-    def create_prop(self, proptag, value, proptype=None):
-        return _prop.create_prop(self, self.mapiobj, proptag, value, proptype)
-
-    def prop(self, proptag, create=False):
-        return _prop.prop(self, self.mapiobj, proptag, create=create)
-
-    def get_prop(self, proptag):
-        try:
-            return self.prop(proptag)
-        except MAPIErrorNotFound:
-            pass
-
-    def props(self, namespace=None):
-        return _prop.props(self.mapiobj, namespace)
 
     def attachments(self, embedded=False):
         """ Return item :class:`attachments <Attachment>`
@@ -817,8 +803,5 @@ class Item(object):
 
     def __unicode__(self):
         return u'Item(%s)' % self.subject
-
-    def __repr__(self):
-        return _repr(self)
 
 
