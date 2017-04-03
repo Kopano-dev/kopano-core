@@ -20,6 +20,7 @@
 #include <new>
 #include <climits>
 #include <csignal>
+#include <poll.h>
 #include <inetmapi/inetmapi.h>
 
 #include <mapi.h>
@@ -470,7 +471,8 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	bool bListenIMAP, bListenIMAPs;
 	int pCloseFDs[4] = {0};
 	size_t nCloseFDs = 0;
-	fd_set readfds;
+	struct pollfd pollfd[4];
+	int nfds = 0, pfd_pop3 = -1, pfd_pop3s = -1, pfd_imap = -1, pfd_imaps = -1;
 	int err = 0;
 	pthread_attr_t ThreadAttr;
 	const char *const interface = g_lpConfig->GetSetting("server_bind");
@@ -560,16 +562,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
     sigaction(SIGBUS, &act, NULL);
     sigaction(SIGABRT, &act, NULL);
 
-    // Set max open file descriptors to FD_SETSIZE .. higher than this number
-    // is a bad idea, as it will start breaking select() calls.
     struct rlimit file_limit;
-    file_limit.rlim_cur = FD_SETSIZE;
-    file_limit.rlim_max = FD_SETSIZE;
+	file_limit.rlim_cur = KC_DESIRED_FILEDES;
+	file_limit.rlim_max = KC_DESIRED_FILEDES;
     
-    if(setrlimit(RLIMIT_NOFILE, &file_limit) < 0) {
-        g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", FD_SETSIZE, getdtablesize());
-    }        
-
+	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
+		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", KC_DESIRED_FILEDES, getdtablesize());
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
 		unix_coredump_enable();
 
@@ -595,27 +593,31 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 
 	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION_GATEWAY_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 
+	if (bListenPOP3) {
+		pfd_pop3 = nfds;
+		pollfd[nfds++].fd = ulListenPOP3;
+	}
+	if (bListenPOP3s) {
+		pfd_pop3s = nfds;
+		pollfd[nfds++].fd = ulListenPOP3s;
+	}
+	if (bListenIMAP) {
+		pfd_imap = nfds;
+		pollfd[nfds++].fd = ulListenIMAP;
+	}
+	if (bListenIMAPs) {
+		pfd_imaps = nfds;
+		pollfd[nfds++].fd = ulListenIMAPs;
+	}
+	for (size_t i = 0; i < nfds; ++i)
+		pollfd[i].events = POLLIN | POLLRDHUP;
+
 	// Mainloop
 	while (!quit) {
-		FD_ZERO(&readfds);
-		if (bListenPOP3)
-			FD_SET(ulListenPOP3, &readfds);
-		if (bListenPOP3s)
-			FD_SET(ulListenPOP3s, &readfds);
-		if (bListenIMAP)
-			FD_SET(ulListenIMAP, &readfds);
-		if (bListenIMAPs)
-			FD_SET(ulListenIMAPs, &readfds);
+		for (size_t i = 0; i < nfds; ++i)
+			pollfd[i].revents = 0;
 
-		struct timeval timeout;
-		timeout.tv_sec = 10;
-		timeout.tv_usec = 0;
-
-		int maxfd = 0;
-		maxfd = std::max(maxfd, ulListenPOP3);
-		maxfd = std::max(maxfd, ulListenIMAP);
-		maxfd = std::max(maxfd, ulListenIMAPs);
-		err = select(maxfd + 1, &readfds, NULL, NULL, &timeout);
+		err = poll(pollfd, nfds, 10 * 1000);
 		if (err < 0) {
 			if (errno != EINTR) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Socket error: %s", strerror(errno));
@@ -632,13 +634,15 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		lpHandlerArgs->lpLogger = g_lpLogger;
 		lpHandlerArgs->lpConfig = g_lpConfig;
 
-		if ((bListenPOP3 && FD_ISSET(ulListenPOP3, &readfds)) || (bListenPOP3s && FD_ISSET(ulListenPOP3s, &readfds))) {
+		bool pop3_event = pfd_pop3 >= 0 && pollfd[pfd_pop3].revents & (POLLIN | POLLRDHUP);
+		bool pop3s_event = pfd_pop3s >= 0 && pollfd[pfd_pop3s].revents & (POLLIN | POLLRDHUP);
+		if (pop3_event || pop3s_event) {
 			bool usessl;
 
 			lpHandlerArgs->type = ST_POP3;
 
 			// Incoming POP3(s) connection
-			if (bListenPOP3s && FD_ISSET(ulListenPOP3s, &readfds)) {
+			if (pop3s_event) {
 				usessl = true;
 				hr = HrAccept(ulListenPOP3s, &lpHandlerArgs->lpChannel);
 			} else {
@@ -687,13 +691,15 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			continue;
 		}
 
-		if ((bListenIMAP && FD_ISSET(ulListenIMAP, &readfds)) || (bListenIMAPs && FD_ISSET(ulListenIMAPs, &readfds))) {
+		bool imap_event = pfd_imap >= 0 && pollfd[pfd_imap].revents & (POLLIN | POLLRDHUP);
+		bool imaps_event = pfd_imaps >= 0 && pollfd[pfd_imaps].revents & (POLLIN | POLLRDHUP);
+		if (imap_event || imaps_event) {
 			bool usessl;
 
 			lpHandlerArgs->type = ST_IMAP;
 
 			// Incoming IMAP(s) connection
-			if (bListenIMAPs && FD_ISSET(ulListenIMAPs, &readfds)) {
+			if (imaps_event) {
 				usessl = true;
 				hr = HrAccept(ulListenIMAPs, &lpHandlerArgs->lpChannel);
 			} else {

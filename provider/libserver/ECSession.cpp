@@ -24,6 +24,7 @@
 #include <cerrno>
 #include <cstring>
 #include <dirent.h>
+#include <poll.h>
 #include <pwd.h>
 #include <sys/stat.h>
 #include <mapidefs.h>
@@ -1207,9 +1208,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 	std::string strEncoded, strDecoded, strAnswer;
 	ssize_t bytes = 0;
 	char separator = '\\';      // get config version
-	fd_set fds;
-	int max, ret;
-	struct timeval tv;
+	struct pollfd pollfd[2] = {{m_stdout, POLLIN | POLLRDHUP}, {m_stderr, POLLIN | POLLRDHUP}};
 
 	if (!soap) {
 		ec_log_err("Invalid argument \"soap\" in call to ECAuthSession::ValidateSSOData_NTLM()");
@@ -1312,16 +1311,9 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 
 	memset(buffer, 0, NTLMBUFFER);
 
-	tv.tv_sec = 10;             // timeout of 10 seconds before ntlm_auth can respond too large?
-	tv.tv_usec = 0;
-
-	FD_ZERO(&fds);
-	FD_SET(m_stdout, &fds);
-	FD_SET(m_stderr, &fds);
-	max = m_stderr > m_stdout ? m_stderr : m_stdout;
-
 retry:
-	ret = select(max+1, &fds, NULL, NULL, &tv);
+	pollfd[0].revents = pollfd[1].revents = 0;
+	int ret = poll(pollfd, 2, 10 * 1000); // timeout of 10 seconds before ntlm_auth can respond too large?
 	if (ret < 0) {
 		if (errno == EINTR)
 			goto retry;
@@ -1337,7 +1329,7 @@ retry:
 	}
 
 	// stderr is optional, and always written first
-	if (FD_ISSET(m_stderr, &fds)) {
+	if (pollfd[1].revents & (POLLIN | POLLRDHUP)) {
 		// log stderr of ntlm_auth to logfile (loop?)
 		bytes = read(m_stderr, buffer, NTLMBUFFER-1);
 		if (bytes >= 0)

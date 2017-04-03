@@ -53,6 +53,7 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
+#include <poll.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/mapi_ptr.h>
@@ -3275,10 +3276,10 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 {
 	HRESULT hr = hrSuccess;
 	int ulListenLMTP = 0;
-	fd_set readfds;
 	int err = 0;
 	unsigned int nMaxThreads;
 	int nCloseFDs = 0, pCloseFDs[1] = {0};
+	struct pollfd pollfd;
     stack_t st;
     struct sigaction act;
     memset(&st, 0, sizeof(st));
@@ -3326,14 +3327,12 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	sigaction(SIGBUS, &act, NULL);
 	sigaction(SIGABRT, &act, NULL);
 
-    // Set max open file descriptors to FD_SETSIZE .. higher than this number
-    // is a bad idea, as it will start breaking select() calls.
 	struct rlimit file_limit;
-	file_limit.rlim_cur = FD_SETSIZE;
-	file_limit.rlim_max = FD_SETSIZE;
+	file_limit.rlim_cur = KC_DESIRED_FILEDES;
+	file_limit.rlim_max = KC_DESIRED_FILEDES;
 
 	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors (%s)", FD_SETSIZE, getdtablesize(), strerror(errno));
+		ec_log_err("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors (%s)", KC_DESIRED_FILEDES, getdtablesize(), strerror(errno));
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
 		unix_coredump_enable();
 
@@ -3361,17 +3360,12 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 
 	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent LMTP mode version " PROJECT_VERSION_DAGENT_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	pollfd.fd = ulListenLMTP;
+	pollfd.events = POLLIN | POLLRDHUP;
 
 	// Mainloop
 	while (!g_bQuit) {
-		FD_ZERO(&readfds);
-		FD_SET(ulListenLMTP, &readfds);
-
-		struct timeval timeout;
-		timeout.tv_sec = 10;
-		timeout.tv_usec = 0;
-		err = select(ulListenLMTP + 1, &readfds, NULL, NULL, &timeout);
-
+		err = poll(&pollfd, 1, 10 * 1000);
 		if (err < 0) {
 			if (errno != EINTR) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Socket error: %s", strerror(errno));
@@ -3396,7 +3390,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		// One socket has signalled a new incoming connection
 		auto lpDeliveryArgs = new DeliveryArgs(*lpArgs);
 
-		if (FD_ISSET(ulListenLMTP, &readfds)) {
+		if (pollfd.revents & (POLLIN | POLLRDHUP)) {
 			hr = HrAccept(ulListenLMTP, &lpDeliveryArgs->lpChannel);
 			
 			if (hr != hrSuccess) {
