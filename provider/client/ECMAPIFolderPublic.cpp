@@ -435,7 +435,7 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 	HRESULT hr = hrSuccess;
 	ULONG ulResult = 0;
 	object_ptr<IMAPIFolder> lpMapiFolder;
-	LPSPropValue lpPropArray = NULL;
+	ecmem_ptr<SPropValue> lpPropArray;
 	GUID guidDest;
 	GUID guidFrom;
 
@@ -455,7 +455,7 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 		goto exit;
 
 	// Get the destination entry ID
-	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &lpPropArray);
+	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpPropArray);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -470,9 +470,7 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 		// if the entryid a a publicfolders entryid just change the entryid to a server entryid
 		if(((ECMsgStorePublic*)GetMsgStore())->ComparePublicEntryId(ePE_PublicFolders, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, &ulResult) == hrSuccess && ulResult == TRUE)
 		{
-			ECFreeBuffer(lpPropArray);
-			lpPropArray = NULL;
-			hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &lpPropArray);
+			hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &~lpPropArray);
 			if(hr != hrSuccess)
 				goto exit;
 		}
@@ -486,9 +484,6 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 	}
 
 exit:
-	if(lpPropArray)
-		ECFreeBuffer(lpPropArray);
-
 	return hr;
 }
 

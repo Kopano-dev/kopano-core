@@ -107,9 +107,8 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 	HRESULT			hr = hrSuccess;
 	unsigned int	i = 0;
 	LPSPropTagArray	lpsPropTags = NULL;
-	LPMAPINAMEID*	lppPropNames = NULL;
-	LPSPropTagArray	lpsUnresolved = NULL;
-	LPMAPINAMEID*	lppResolved = NULL;
+	ecmem_ptr<MAPINAMEID *> lppPropNames, lppResolved;
+	ecmem_ptr<SPropTagArray> lpsUnresolved;
 	ULONG			cResolved = 0;
 	ULONG			cUnresolved = 0;
 
@@ -122,7 +121,7 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 	lpsPropTags = *lppPropTags;
 
 	// Allocate space for properties
-	hr = ECAllocateBuffer(sizeof(LPMAPINAMEID) * lpsPropTags->cValues, (void **)&lppPropNames);
+	hr = ECAllocateBuffer(sizeof(LPMAPINAMEID) * lpsPropTags->cValues, &~lppPropNames);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -143,7 +142,7 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 		// resolved internally. Looks like somebody's pulling our leg ... We just leave it unknown }
 	}
 
-	hr = ECAllocateBuffer(CbNewSPropTagArray(lpsPropTags->cValues), reinterpret_cast<void **>(&lpsUnresolved));
+	hr = ECAllocateBuffer(CbNewSPropTagArray(lpsPropTags->cValues), &~lpsUnresolved);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -158,8 +157,7 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 	lpsUnresolved->cValues = cUnresolved;
 
 	if(cUnresolved > 0) {
-		hr = lpTransport->HrGetNamesFromIDs(lpsUnresolved, &lppResolved, &cResolved);
-
+		hr = lpTransport->HrGetNamesFromIDs(lpsUnresolved, &~lppResolved, &cResolved);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -185,20 +183,9 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpProp
 		if(lppPropNames[i] == NULL)
 			hr = MAPI_W_ERRORS_RETURNED;
 
-	*lpppPropNames = lppPropNames;
+	*lpppPropNames = lppPropNames.release();
 	*lpcPropNames = lpsPropTags->cValues;
-	lppPropNames = NULL;
-
 exit:
-	if(lppPropNames)
-		ECFreeBuffer(lppPropNames);
-
-	if(lpsUnresolved)
-		ECFreeBuffer(lpsUnresolved);
-
-	if(lppResolved)
-		ECFreeBuffer(lppResolved);
-
 	return hr;
 }
 

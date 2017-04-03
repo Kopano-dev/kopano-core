@@ -390,7 +390,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 {
     HRESULT hr = hrSuccess;
 	ECMemStream *lpStream = NULL;
-	LPSPropValue lpsPropValue = NULL;
+	ecmem_ptr<SPropValue> lpsPropValue;
 	STREAMDATA *lpStreamData = NULL;
 
 	if((ulFlags&MAPI_CREATE && !(ulFlags&MAPI_MODIFY)) || lpiid == NULL)
@@ -414,7 +414,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		// without querying the server if the server does not support this capability (introduced in 6.20.8). Main reason is
 		// calendar loading time with large recursive entries in outlook XP.
 	    // If HrLoadProp failed, just fallback to the 'normal' way of loading properties.
-	    this->lpStorage->HrLoadProp(0, ulPropTag, &lpsPropValue) == erSuccess) {
+	    this->lpStorage->HrLoadProp(0, ulPropTag, &~lpsPropValue) == erSuccess) {
 		lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
 		lpStreamData->ulPropTag = ulPropTag;
 		lpStreamData->lpProp = this;
@@ -431,7 +431,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		ulInterfaceOptions |= STGM_WRITE;
 
 	// IStream requested for a property
-	hr = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpsPropValue));
+	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -509,9 +509,6 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		goto exit;
 	AddChild(lpStream);
 exit:	
-	if(lpsPropValue)
-		ECFreeBuffer(lpsPropValue);
-
 	return hr;
 }
 
@@ -738,13 +735,12 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 	HRESULT hr = hrSuccess;
 	auto lpStreamData = static_cast<STREAMDATA *>(lpData);
 	char *buffer = NULL;
-	LPSPropValue lpPropValue = NULL;
+	ecmem_ptr<SPropValue> lpPropValue;
 	STATSTG sStat;
 	ULONG ulSize = 0;
 	object_ptr<ECMemStream> lpECStream;
 
-	hr = ECAllocateBuffer(sizeof(SPropValue), (void **)&lpPropValue);
-
+	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -803,8 +799,6 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 		hr = lpStreamData->lpProp->ECGenericProp::SaveChanges(KEEP_OPEN_READWRITE);
 
 exit:
-	if(lpPropValue)
-		ECFreeBuffer(lpPropValue);
 	return hr;
 }
 

@@ -353,18 +353,18 @@ ECRESULT WSMAPIPropStorage::EcFillPropTags(struct saveObject *lpsSaveObj, MAPIOB
 ECRESULT WSMAPIPropStorage::EcFillPropValues(struct saveObject *lpsSaveObj, MAPIOBJECT *lpsMapiObj)
 {
 	ECRESULT ec = erSuccess;
-	LPSPropValue lpsProp = NULL;
 	convert_context	context;
 
 	for (gsoap_size_t i = 0; i < lpsSaveObj->modProps.__size; ++i) {
-		ec = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpsProp));
+		ecmem_ptr<SPropValue> lpsProp;
+
+		ec = ECAllocateBuffer(sizeof(SPropValue), &~lpsProp);
 		if (ec != erSuccess)
 			break;
 		ec = CopySOAPPropValToMAPIPropVal(lpsProp, &lpsSaveObj->modProps.__ptr[i], lpsProp, &context);
 		if (ec != erSuccess)
 			break;
 		lpsMapiObj->lstProperties.push_back(ECProperty(lpsProp));
-		ECFreeBuffer(lpsProp);
 	}
 
 	return ec;
