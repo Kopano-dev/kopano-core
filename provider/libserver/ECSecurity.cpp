@@ -1327,14 +1327,11 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault,
 	objectid_t sExternId;
 	unsigned int ulCompanyId;
 
-	if (!lpDetails) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpDetails == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	er = m_lpSession->GetUserManagement()->GetExternalId(ulUserId, &sExternId, &ulCompanyId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	assert(!bGetUserDefault || sExternId.objclass == CONTAINER_COMPANY);
 
@@ -1346,7 +1343,7 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault,
 
 	er = m_lpSession->GetUserManagement()->GetQuotaDetailsAndSync(ulUserId, &quotadetails, bGetUserDefault);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* When the default quota boolean is set, we need to look at the next quota level */
 	if (!quotadetails.bUseDefaultQuota)

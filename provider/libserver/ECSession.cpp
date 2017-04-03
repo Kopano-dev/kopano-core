@@ -857,30 +857,27 @@ ECRESULT ECAuthSession::ValidateUserCertificate(struct soap* soap, const char* l
 	std::unique_ptr<DIR, fs_deleter> dh;
 	if (!soap) {
 		ec_log_err("Invalid argument \"soap\" in call to ECAuthSession::ValidateUserCertificate()");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 	if (!lpszName) {
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateUserCertificate()");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 	if (!lpszImpersonateUser) {
 		ec_log_err("Invalid argument \"lpszImpersonateUser\" in call to ECAuthSession::ValidateUserCertificate()");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 
 	if (!sslkeys_path || sslkeys_path[0] == '\0') {
 		ec_log_warn("No public keys directory defined in sslkeys_path.");
-		goto exit;
+		return KCERR_LOGON_FAILED;
 	}
 
 	cert = SSL_get_peer_certificate(soap->ssl);
 	if (!cert) {
 		// Windows client without SSL certificate
 		ec_log_info("No certificate in SSL connection.");
-		goto exit;
+		return KCERR_LOGON_FAILED;
 	}
 	pubkey = X509_get_pubkey(cert);	// need to free
 	if (!pubkey) {

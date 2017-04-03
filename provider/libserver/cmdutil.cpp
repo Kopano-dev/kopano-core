@@ -189,10 +189,9 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	ECCacheManager *lpCacheManager = NULL;
 	unsigned int ulParent = 0;
 	
-	if (lpSession == NULL || lpDatabase == NULL || lpsObjectList == NULL || lplstDeleteItems == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpSession == nullptr || lpDatabase == nullptr ||
+	    lpsObjectList == nullptr || lplstDeleteItems == nullptr)
+		return KCERR_INVALID_PARAMETER;
 
 	lpSessionManager = lpSession->GetSessionManager();
 	lpCacheManager = lpSessionManager->GetCacheManager();

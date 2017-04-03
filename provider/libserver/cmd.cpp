@@ -2440,10 +2440,8 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	FILETIME ftCreated = { 0,0 };
 	FILETIME ftModified = { 0,0 };
 
-	if (ulLevel <= 0) {
-	    er = KCERR_TOO_COMPLEX;
-	    goto exit;
-    }
+	if (ulLevel <= 0)
+		return KCERR_TOO_COMPLEX;
 
 	// reset return object
 	lpsReturnObj->__size = 0;
@@ -2459,15 +2457,11 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	lpsReturnObj->lpInstanceIds = NULL;
 
 	if (lpsSaveObj->ulServerId == 0) {
-		if (ulParentObjId == 0) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
-
+		if (ulParentObjId == 0)
+			return KCERR_INVALID_PARAMETER;
 		er = CreateObject(lpecSession, lpDatabase, ulParentObjId, ulParentType, lpsSaveObj->ulObjType, ulFlags, &lpsReturnObj->ulServerId);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		fNewItem = true;
 
 		ulObjId = lpsReturnObj->ulServerId;
@@ -3294,24 +3288,22 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulParentId, &ulStoreId, &guid);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	er = g_lpSessionManager->GetCacheManager()->GetParent(ulParentId, &ulGrandParent);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check whether the requested name already exists
 
 	strQuery = "SELECT hierarchy.id, properties.val_string FROM hierarchy JOIN properties ON hierarchy.id = properties.hierarchyid WHERE hierarchy.parent=" + stringify(ulParentId) + " AND hierarchy.type="+stringify(MAPI_FOLDER)+" AND hierarchy.flags & " + stringify(MSGFLAG_DELETED)+ "=0 AND properties.tag=" + stringify(KOPANO_TAG_DISPLAY_NAME) + " AND properties.val_string = '" + lpDatabase->Escape(name) + "' AND properties.type="+stringify(PT_STRING8);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	while (!bExist && (lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("CreateFolder(): columns null");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		if (strcasecmp(lpDBRow[1], name) == 0)
@@ -3322,13 +3314,12 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		// Check folder read access
 		er = lpecSession->GetSecurity()->CheckPermission(ulParentId, ecSecurityFolderVisible);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		// Object exists
 		if (!openifexists) {
-			er = KCERR_COLLISION;
 			ec_log_err("CreateFolder(): folder already exists");
-			goto exit;
+			return KCERR_COLLISION;
 		}
 		
 		ulFolderId = atoi(lpDBRow[0]);
@@ -3337,19 +3328,18 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		// Check write permission of the folder destination
 		er = lpecSession->GetSecurity()->CheckPermission(ulParentId, ecSecurityCreateFolder);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		// Create folder
 		strQuery = "INSERT INTO hierarchy (parent, type, flags, owner) values(" + stringify(ulParentId) + "," + stringify(KOPANO_OBJTYPE_FOLDER) + ", " + stringify(type) + ", "+stringify(lpecSession->GetSecurity()->GetUserId(ulParentId))+")";
 		er = lpDatabase->DoInsert(strQuery, &ulLastId);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		if(lpsNewEntryId == NULL) {
 			er = CreateEntryId(guid, MAPI_FOLDER, &lpsNewEntryId);
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			bFreeNewEntryId = true;
 		}
 
@@ -3735,21 +3725,18 @@ SOAP_ENTRY_START(tableGetSearchCriteria, lpsResponse->er,  entryId sEntryId, str
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	er = g_lpSessionManager->GetCacheManager()->GetStore(ulId, &ulStoreId, NULL);
 	 if(er != erSuccess)
-		 goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulId, ecSecurityRead);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpecSession->GetSessionManager()->GetSearchFolders()->GetSearchCriteria(ulStoreId, ulId, &lpSearchCriteria, &ulFlags);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = CopyRestrictTable(soap, lpSearchCriteria->lpRestrict, &lpsResponse->lpRestrict);
 	if(er != erSuccess)
 		goto exit;
@@ -4349,14 +4336,13 @@ SOAP_ENTRY_START(getRights, lpsRightResponse->er, entryId sEntryId, int ulType, 
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulobjid);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 	lpsRightArray = s_alloc<rightsArray>(nullptr);
 	memset(lpsRightArray, 0, sizeof(struct rightsArray));
 
 	er = lpecSession->GetSecurity()->GetRights(ulobjid, ulType, lpsRightArray);
 	if(er != erSuccess)
 		goto exit;
-
 	er = CopyRightsArrayToSoap(soap, lpsRightArray, &lpsRightResponse->pRightsArray);
 	if (er != erSuccess)
 		goto exit;
@@ -6997,8 +6983,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	ALLOC_DBRESULT();
 	if(lplObjectIds == NULL) {
 		ec_log_err("MoveObjects: no list of objects given");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 
 	if(lplObjectIds->empty())
@@ -7448,14 +7433,13 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	er = lpecSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess) {
 		ec_log_err("CopyObject: cannot retrieve database: %s (%x)", GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	if (!lpAttachmentStorage) {
 		if (!bIsRoot) {
 			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed: %s (%x)", GetMAPIErrorMessage(er), er);
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
+			return KCERR_INVALID_PARAMETER;
 		}
 		er = CreateAttachmentStorage(lpDatabase, &~lpInternalAttachmentStorage);
 		if (er != erSuccess) {
@@ -7814,14 +7798,13 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 
 	if(lpszNewFolderName == NULL) {
 		ec_log_err("CopyFolderObjects: \"new folder name\" missing");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 
 	er = lpecSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: cannot retrieve database: %s (%x)", GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess) {
