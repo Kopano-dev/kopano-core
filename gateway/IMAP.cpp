@@ -24,6 +24,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <kopano/hl.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/hl.hpp>
 #include <mapi.h>
@@ -58,7 +59,6 @@
 #include <kopano/namedprops.h>
 #include "ECFeatures.h"
 #include <kopano/mapi_ptr.h>
-
 #include "IMAP.h"
 using namespace std;
 using namespace KCHL;
@@ -260,14 +260,12 @@ HRESULT IMAP::HrSplitInput(const string &strInput, vector<string> &vWords) {
  */
 HRESULT IMAP::HrSendGreeting(const std::string &strHostString)
 {
-	HRESULT hr = hrSuccess;
-
 	if (parseBool(lpConfig->GetSetting("server_hostname_greeting")))
-		hr = HrResponse(RESP_UNTAGGED, "OK [" + GetCapabilityString(false) + "] IMAP gateway ready" + strHostString);
+		HrResponse(RESP_UNTAGGED, "OK [" + GetCapabilityString(false) + "] IMAP gateway ready" + strHostString);
 	else
-		hr = HrResponse(RESP_UNTAGGED, "OK [" + GetCapabilityString(false) + "] IMAP gateway ready");
+		HrResponse(RESP_UNTAGGED, "OK [" + GetCapabilityString(false) + "] IMAP gateway ready");
 
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -278,7 +276,8 @@ HRESULT IMAP::HrSendGreeting(const std::string &strHostString)
  */
 HRESULT IMAP::HrCloseConnection(const std::string &strQuitMsg)
 {
-	return HrResponse(RESP_UNTAGGED, strQuitMsg);
+	HrResponse(RESP_UNTAGGED, strQuitMsg);
+	return hrSuccess;
 }
 
 /** 
@@ -296,6 +295,42 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	std::string strCommand;
 	ULONG ulMaxMessageSize = atoui(lpConfig->GetSetting("imap_max_messagesize"));
 
+	static constexpr const struct {
+		const char *command;
+		int params;
+		HRESULT (IMAP::*func)(const string &, const std::vector<std::string> &);
+	} cmds[] = {
+		{"SELECT", 1, &IMAP::HrCmdSelect<false>},
+		{"EXAMINE", 1, &IMAP::HrCmdSelect<true>},
+		{"LIST", 2, &IMAP::HrCmdList<false>},
+		{"LSUB", 2, &IMAP::HrCmdList<true>},
+		{"LOGIN", 2, &IMAP::HrCmdLogin},
+		{"CREATE", 1, &IMAP::HrCmdCreate},
+		{"DELETE", 1, &IMAP::HrCmdDelete},
+		{"SUBSCRIBE", 1, &IMAP::HrCmdSubscribe<true>},
+		{"UNSUBSCRIBE", 1, &IMAP::HrCmdSubscribe<false>},
+		{"GETQUOTAROOT", 1, &IMAP::HrCmdGetQuotaRoot},
+		{"GETQUOTA", 1, &IMAP::HrCmdGetQuota},
+		{"SETQUOTA", 2, &IMAP::HrCmdSetQuota},
+		{"RENAME", 2, &IMAP::HrCmdRename},
+		{"STATUS", 2, &IMAP::HrCmdStatus}
+	};
+
+	static constexpr const struct {
+		const char *command;
+		HRESULT (IMAP::*func)(const std::string &);
+	} cmds_zero_args[] = {
+		{"CAPABILITY", &IMAP::HrCmdCapability},
+		{"NOOP", &IMAP::HrCmdNoop<false>},
+		{"LOGOUT", &IMAP::HrCmdLogout},
+		{"STARTTLS", &IMAP::HrCmdStarttls},
+		{"CHECK", &IMAP::HrCmdNoop<true>},
+		{"CLOSE", &IMAP::HrCmdClose},
+		{"IDLE", &IMAP::HrCmdIdle},
+		{"NAMESPACE", &IMAP::HrCmdNamespace},
+		{"STARTTLS", &IMAP::HrCmdStarttls}
+	};
+
 	if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
 		lpLogger->Log(EC_LOGLEVEL_DEBUG, "< %s", strInput.c_str());
 
@@ -309,7 +344,8 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		strvResult[0] = strToUpper(strvResult[0]);
 		if (strvResult[0].compare("DONE") == 0)
 			return HrDone(true);
-		return HrResponse(RESP_UNTAGGED, "BAD Command not recognized");
+		HrResponse(RESP_UNTAGGED, "BAD Command not recognized");
+		return hrSuccess;
 	}
 
 	while (hr == hrSuccess && !strvResult.empty() && strvResult.back().size() > 2 && strvResult.back()[0] == '{')
@@ -331,10 +367,11 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 
 		// no need to output the 
 		if (!bPlus) {
-			hr = HrResponse(RESP_CONTINUE, "Ready for literal data");
-			if (hr != hrSuccess) {
+			try {
+				HrResponse(RESP_CONTINUE, "Ready for literal data");
+			} catch (const KMAPIError &e) {
 				lpLogger->Log(EC_LOGLEVEL_ERROR, "Error sending during continuation");
-				return hr;
+				return e.code();
 			}
 		}
 
@@ -369,9 +406,8 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 
 		if (ulByteCount > ulMaxMessageSize) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Maximum message size reached (%u), message size is %u bytes", ulMaxMessageSize, ulByteCount);
-			hr = HrResponse(RESP_TAGGED_NO, strTag, "[ALERT] Maximum message size reached");
-			if (hr == hrSuccess)
-				hr = MAPI_E_NOT_ENOUGH_MEMORY;
+			HrResponse(RESP_TAGGED_NO, strTag, "[ALERT] Maximum message size reached");
+			hr = MAPI_E_NOT_ENOUGH_MEMORY;
 			break;
 		}
 	}
@@ -386,90 +422,37 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 
 	strCommand = strToUpper(strCommand);
 	if (isIdle()) {
-		hr = HrResponse(RESP_UNTAGGED, "BAD still in idle state");
+		HrResponse(RESP_UNTAGGED, "BAD still in idle state");
 		HrDone(false); // false for no output		
-		return hr;
+		return hrSuccess;
 	}
 
 	// process {} and end of line
+	for (const auto &cmd : cmds_zero_args) {
+		if (strCommand.compare(cmd.command) != 0)
+			continue;
+		if (strvResult.size() == 0)
+			return (this->*cmd.func)(strTag);
+		HrResponse(RESP_TAGGED_BAD, strTag, std::string(cmd.command) +
+			" must have 0 arguments");
+		return hrSuccess;
+	}
+	for (const auto &cmd : cmds) {
+		if (strCommand.compare(cmd.command) != 0)
+			continue;
+		if (strvResult.size() == cmd.params)
+			return (this->*cmd.func)(strTag, strvResult);
+		HrResponse(RESP_TAGGED_BAD, strTag, std::string(cmd.command) +
+			" must have " + stringify(cmd.params) + " arguments");
+		return hrSuccess;
+	}
 
-	if (strCommand.compare("CAPABILITY") == 0) {
-		if (!strvResult.empty())
-			return HrResponse(RESP_TAGGED_BAD, strTag, "CAPABILITY must have 0 arguments");
-		else
-			return HrCmdCapability(strTag);
-	} else if (strCommand.compare("NOOP") == 0) {
-		if (!strvResult.empty())
-			return HrResponse(RESP_TAGGED_BAD, strTag, "NOOP must have 0 arguments");
-		else
-			return HrCmdNoop(strTag, false);
-	} else if (strCommand.compare("LOGOUT") == 0) {
-		if (!strvResult.empty()) {
-			return HrResponse(RESP_TAGGED_BAD, strTag, "LOGOUT must have 0 arguments");
-		}
-		HrCmdLogout(strTag);
-		// let the gateway quit from the socket read loop
-		return MAPI_E_END_OF_SESSION;
-	} else if (strCommand.compare("STARTTLS") == 0) {
-		if (!strvResult.empty()) {
-			return HrResponse(RESP_TAGGED_BAD, strTag, "STARTTLS must have 0 arguments");
-		}
-		hr = HrCmdStarttls(strTag);
-		if (hr != hrSuccess)
-			// log ?
-			// let the gateway quit from the socket read loop
-			return MAPI_E_END_OF_SESSION;
-		return hr;
-	} else if (strCommand.compare("AUTHENTICATE") == 0) {
+	if (strCommand.compare("AUTHENTICATE") == 0) {
 		if (strvResult.size() == 1)
 			return HrCmdAuthenticate(strTag, strvResult[0], string());
 		else if (strvResult.size() == 2)
 			return HrCmdAuthenticate(strTag, strvResult[0], strvResult[1]);
-		return HrResponse(RESP_TAGGED_BAD, strTag, "AUTHENTICATE must have 1 or 2 arguments");
-	} else if (strCommand.compare("LOGIN") == 0) {
-		if (strvResult.size() != 2)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "LOGIN must have 2 arguments");
-		return HrCmdLogin(strTag, strvResult[0], strvResult[1]);
-	} else if (strCommand.compare("SELECT") == 0) {
-		if (strvResult.size() != 1)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "SELECT must have 1 argument");
-		return HrCmdSelect(strTag, strvResult[0], false);
-	} else if (strCommand.compare("EXAMINE") == 0) {
-		if (strvResult.size() != 1)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "EXAMINE must have 1 argument");
-		return HrCmdSelect(strTag, strvResult[0], true);
-	} else if (strCommand.compare("CREATE") == 0) {
-		if (strvResult.size() != 1)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "CREATE must have 1 argument");
-		return HrCmdCreate(strTag, strvResult[0]);
-	} else if (strCommand.compare("DELETE") == 0) {
-		if (strvResult.size() != 1)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "DELETE must have 1 argument");
-		return HrCmdDelete(strTag, strvResult[0]);
-	} else if (strCommand.compare("RENAME") == 0) {
-		if (strvResult.size() != 2)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "RENAME must have 2 arguments");
-		return HrCmdRename(strTag, strvResult[0], strvResult[1]);
-	} else if (strCommand.compare("SUBSCRIBE") == 0) {
-		if (strvResult.size() != 1)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "SUBSCRIBE must have 1 arguments");
-		return HrCmdSubscribe(strTag, strvResult[0], true);
-	} else if (strCommand.compare("UNSUBSCRIBE") == 0) {
-		if (strvResult.size() != 1)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "UNSUBSCRIBE must have 1 arguments");
-		return HrCmdSubscribe(strTag, strvResult[0], false);
-	} else if (strCommand.compare("LIST") == 0) {
-		if (strvResult.size() != 2)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "LIST must have 2 arguments");
-		return HrCmdList(strTag, strvResult[0], strvResult[1], false);
-	} else if (strCommand.compare("LSUB") == 0) {
-		if (strvResult.size() != 2)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "LSUB must have 2 arguments");
-		return HrCmdList(strTag, strvResult[0], strvResult[1], true);
-	} else if (strCommand.compare("STATUS") == 0) {
-		if (strvResult.size() != 2)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "STATUS must have 2 arguments");
-		return HrCmdStatus(strTag, strvResult[0], strvResult[1]);
+		HrResponse(RESP_TAGGED_BAD, strTag, "AUTHENTICATE must have 1 or 2 arguments");
 	} else if (strCommand.compare("APPEND") == 0) {
 		if (strvResult.size() == 2) {
 			return HrCmdAppend(strTag, strvResult[0], strvResult[1]);
@@ -481,92 +464,90 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			// if both flags and time are given, it must be in that order
 			return HrCmdAppend(strTag, strvResult[0], strvResult[3], strvResult[1], strvResult[2]);
 		}
-		return HrResponse(RESP_TAGGED_BAD, strTag, "APPEND must have 2, 3 or 4 arguments");
-	} else if (strCommand.compare("CHECK") == 0) {
-		if (!strvResult.empty())
-			return HrResponse(RESP_TAGGED_BAD, strTag, "CHECK must have 0 arguments");
-		return HrCmdNoop(strTag, true);
-	} else if (strCommand.compare("CLOSE") == 0) {
-		if (!strvResult.empty())
-			return HrResponse(RESP_TAGGED_BAD, strTag, "CLOSE must have 0 arguments");
-		return HrCmdClose(strTag);
+		HrResponse(RESP_TAGGED_BAD, strTag, "APPEND must have 2, 3 or 4 arguments");
+		return hrSuccess;
 	} else if (strCommand.compare("EXPUNGE") == 0) {
-		if (!strvResult.empty())
-			return HrResponse(RESP_TAGGED_BAD, strTag, "EXPUNGE must have 0 arguments");
+		if (!strvResult.empty()) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "EXPUNGE must have 0 arguments");
+			return hrSuccess;
+		}
 		return HrCmdExpunge(strTag, string());
 	} else if (strCommand.compare("SEARCH") == 0) {
-		if (strvResult.empty())
-			return HrResponse(RESP_TAGGED_BAD, strTag, "SEARCH must have 1 or more arguments");
+		if (strvResult.empty()) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "SEARCH must have 1 or more arguments");
+			return hrSuccess;
+		}
 		return HrCmdSearch(strTag, strvResult, false);
 	} else if (strCommand.compare("FETCH") == 0) {
-		if (strvResult.size() != 2)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "FETCH must have 2 arguments");
+		if (strvResult.size() != 2) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "FETCH must have 2 arguments");
+			return hrSuccess;
+		}
 		return HrCmdFetch(strTag, strvResult[0], strvResult[1], false);
 	} else if (strCommand.compare("STORE") == 0) {
-		if (strvResult.size() != 3)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "STORE must have 3 arguments");
+		if (strvResult.size() != 3) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "STORE must have 3 arguments");
+			return hrSuccess;
+		}
 		return HrCmdStore(strTag, strvResult[0], strvResult[1], strvResult[2], false);
 	} else if (strCommand.compare("COPY") == 0) {
-		if (strvResult.size() != 2)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "COPY must have 2 arguments");
+		if (strvResult.size() != 2) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "COPY must have 2 arguments");
+			return hrSuccess;
+		}
 		return HrCmdCopy(strTag, strvResult[0], strvResult[1], false);
-	} else if (strCommand.compare("IDLE") == 0) {
-		if (!strvResult.empty())
-			return HrResponse(RESP_TAGGED_BAD, strTag, "IDLE must have 0 arguments");
-		return HrCmdIdle(strTag);
-	} else if (strCommand.compare("NAMESPACE") == 0) {
-		if (!strvResult.empty())
-			return HrResponse(RESP_TAGGED_BAD, strTag, "NAMESPACE must have 0 arguments");
-		return HrCmdNamespace(strTag);
-	} else if (strCommand.compare("GETQUOTAROOT") == 0) {
-		if (strvResult.size() != 1)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "GETQUOTAROOT must have 1 arguments");
-		return HrCmdGetQuotaRoot(strTag, strvResult[0]);
-	} else if (strCommand.compare("GETQUOTA") == 0) {
-		if (strvResult.size() != 1)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "GETQUOTA must have 1 arguments");
-		return HrCmdGetQuota(strTag, strvResult[0]);
-	} else if (strCommand.compare("SETQUOTA") == 0) {
-		if (strvResult.size() != 2)
-			return HrResponse(RESP_TAGGED_BAD, strTag, "SETQUOTA must have 2 arguments");
-		return HrCmdSetQuota(strTag, strvResult[0], strvResult[1]);
 	} else if (strCommand.compare("UID") == 0) {
-		if (strvResult.empty())
-			return HrResponse(RESP_TAGGED_BAD, strTag,
-			       "UID must have a command");
-
+		if (strvResult.empty()) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID must have a command");
+			return hrSuccess;
+		}
 		strCommand = strvResult.front();
 		strvResult.erase(strvResult.begin());
 		strCommand = strToUpper(strCommand);
 
 		if (strCommand.compare("SEARCH") == 0) {
-			if (strvResult.empty())
-				return HrResponse(RESP_TAGGED_BAD, strTag, "UID SEARCH must have 1 or more arguments");
+			if (strvResult.empty()) {
+				HrResponse(RESP_TAGGED_BAD, strTag, "UID SEARCH must have 1 or more arguments");
+				return hrSuccess;
+			}
 			return HrCmdSearch(strTag, strvResult, true);
 		} else if (strCommand.compare("FETCH") == 0) {
-			if (strvResult.size() != 2)
-				return HrResponse(RESP_TAGGED_BAD, strTag, "UID FETCH must have 2 arguments");
+			if (strvResult.size() != 2) {
+				HrResponse(RESP_TAGGED_BAD, strTag, "UID FETCH must have 2 arguments");
+				return hrSuccess;
+			}
 			return HrCmdFetch(strTag, strvResult[0], strvResult[1], true);
 		} else if (strCommand.compare("STORE") == 0) {
-			if (strvResult.size() != 3)
-				return HrResponse(RESP_TAGGED_BAD, strTag, "UID STORE must have 3 arguments");
+			if (strvResult.size() != 3) {
+				HrResponse(RESP_TAGGED_BAD, strTag, "UID STORE must have 3 arguments");
+				return hrSuccess;
+			}
 			return HrCmdStore(strTag, strvResult[0], strvResult[1], strvResult[2], true);
 		} else if (strCommand.compare("COPY") == 0) {
-			if (strvResult.size() != 2)
-				return HrResponse(RESP_TAGGED_BAD, strTag, "UID COPY must have 2 arguments");
+			if (strvResult.size() != 2) {
+				HrResponse(RESP_TAGGED_BAD, strTag, "UID COPY must have 2 arguments");
+				return hrSuccess;
+			}
 			return HrCmdCopy(strTag, strvResult[0], strvResult[1], true);
 		} else if (strCommand.compare("XAOL-MOVE") == 0) {
-			if (strvResult.size() != 2)
-				return HrResponse(RESP_TAGGED_BAD, strTag, "UID XAOL-MOVE must have 2 arguments");
+			if (strvResult.size() != 2) {
+				HrResponse(RESP_TAGGED_BAD, strTag, "UID XAOL-MOVE must have 2 arguments");
+				return hrSuccess;
+			}
 			return HrCmdUidXaolMove(strTag, strvResult[0], strvResult[1]);
 		} else if (strCommand.compare("EXPUNGE") == 0) {
-			if (strvResult.size() != 1)
-				return HrResponse(RESP_TAGGED_BAD, strTag, "UID EXPUNGE must have 1 argument");
+			if (strvResult.size() != 1) {
+				HrResponse(RESP_TAGGED_BAD, strTag, "UID EXPUNGE must have 1 argument");
+				return hrSuccess;
+			}
 			return HrCmdExpunge(strTag, strvResult[0]);
+		} else {
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
 		}
-		return HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
+	} else {
+		HrResponse(RESP_TAGGED_BAD, strTag, "Command not supported");
 	}
-	return HrResponse(RESP_TAGGED_BAD, strTag, "Command not supported");
+	return hrSuccess;
 }
 
 /** 
@@ -634,10 +615,9 @@ std::string IMAP::GetCapabilityString(bool bAllFlags)
  * @return hrSuccess
  */
 HRESULT IMAP::HrCmdCapability(const string &strTag) {
-	HRESULT hr = HrResponse(RESP_UNTAGGED, GetCapabilityString(true));
-	if (hr != hrSuccess)
-		return hr;
-	return HrResponse(RESP_TAGGED_OK, strTag, "CAPABILITY Completed");
+	HrResponse(RESP_UNTAGGED, GetCapabilityString(true));
+	HrResponse(RESP_TAGGED_OK, strTag, "CAPABILITY Completed");
+	return hrSuccess;
 }
 
 /** 
@@ -650,16 +630,23 @@ HRESULT IMAP::HrCmdCapability(const string &strTag) {
  * 
  * @return hrSuccess
  */
-HRESULT IMAP::HrCmdNoop(const string &strTag, bool check) {
+HRESULT IMAP::HrCmdNoop(const std::string &strTag, bool check)
+{
 	HRESULT hr = hrSuccess;
 
 	if (!strCurrentFolder.empty() || check)
 		hr = HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 	if (hr != hrSuccess) {
-		HRESULT hr2 = HrResponse(RESP_TAGGED_BAD, strTag, (check ? std::string("CHECK") : std::string("NOOP")) + " completed");
-		return hr2 != hrSuccess ? hr2 : hr;
+		HrResponse(RESP_TAGGED_BAD, strTag, (check ? std::string("CHECK") : std::string("NOOP")) + " completed");
+		return hr;
 	}
-	return HrResponse(RESP_TAGGED_OK, strTag, (check ? std::string("CHECK") : std::string("NOOP")) + " completed");
+	HrResponse(RESP_TAGGED_OK, strTag, (check ? std::string("CHECK") : std::string("NOOP")) + " completed");
+	return hrSuccess;
+}
+
+template<bool check> HRESULT IMAP::HrCmdNoop(const std::string &strTag)
+{
+	return HrCmdNoop(strTag, check);
 }
 
 /** 
@@ -673,10 +660,10 @@ HRESULT IMAP::HrCmdNoop(const string &strTag, bool check) {
  * @return hrSuccess
  */
 HRESULT IMAP::HrCmdLogout(const string &strTag) {
-	HRESULT hr = HrResponse(RESP_UNTAGGED, "BYE server logging out");
-	if (hr != hrSuccess)
-		return hr;
-	return HrResponse(RESP_TAGGED_OK, strTag, "LOGOUT completed");
+	HrResponse(RESP_UNTAGGED, "BYE server logging out");
+	HrResponse(RESP_TAGGED_OK, strTag, "LOGOUT completed");
+	/* Let the gateway quit from the socket read loop. */
+	return MAPI_E_END_OF_SESSION;
 }
 
 /** 
@@ -690,21 +677,17 @@ HRESULT IMAP::HrCmdLogout(const string &strTag) {
  */
 HRESULT IMAP::HrCmdStarttls(const string &strTag) {
 	if (!lpChannel->sslctx())
-		return HrResponse(RESP_TAGGED_NO, strTag,
-		       "STARTTLS error in ssl context");
+		HrResponse(RESP_TAGGED_NO, strTag, "STARTTLS error in ssl context");
 	if (lpChannel->UsingSsl())
-		return HrResponse(RESP_TAGGED_NO, strTag,
-		       "STARTTLS already using SSL/TLS");
+		HrResponse(RESP_TAGGED_NO, strTag, "STARTTLS already using SSL/TLS");
 
-	HRESULT hr = HrResponse(RESP_TAGGED_OK, strTag, "Begin TLS negotiation now");
-	if (hr != hrSuccess)
-		return hr;
-
-	hr = lpChannel->HrEnableTLS();
+	HrResponse(RESP_TAGGED_OK, strTag, "Begin TLS negotiation now");
+	auto hr = lpChannel->HrEnableTLS();
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "[ALERT] Error switching to secure SSL/TLS connection");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STARTTLS");
-		return hr;
+		/* Let the gateway quit from the socket read loop. */
+		return MAPI_E_END_OF_SESSION;
 	}
 
 	if (lpChannel->UsingSsl())
@@ -729,17 +712,14 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
  */
 HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, const string &strAuthData)
 {
-	HRESULT hr2 = hrSuccess;
 	vector<string> vAuth;
 
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	// If plaintext authentication was disabled any authentication attempt must be refused very soon
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
+		HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
 							 "(SSL/TLS) connections.");
-		if (hr2 != hrSuccess)
-			return hr2;
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s without username (tried to use disallowed plaintext auth)",
 					  lpChannel->peer_addr());
 		return hrSuccess;
@@ -747,19 +727,15 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 
 	strAuthMethod = strToUpper(strAuthMethod);
 	if (strAuthMethod.compare("PLAIN") != 0) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "AUTHENTICATE " + strAuthMethod + " method not supported");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, strTag, "AUTHENTICATE " + strAuthMethod + " method not supported");
 		return MAPI_E_NO_SUPPORT;
 	}
 
 	if (strAuthData.empty() && !m_bContinue) {
 		// request the rest of the authentication data by sending one space in a continuation line
-		hr2 = HrResponse(RESP_CONTINUE, string());
+		HrResponse(RESP_CONTINUE, string());
 		m_strContinueTag = strTag;
 		m_bContinue = true;
-		if (hr2 != hrSuccess)
-			return hr2;
 		return MAPI_W_PARTIAL_COMPLETION;
 	}
 	m_bContinue = false;
@@ -771,12 +747,10 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 		
 	if (vAuth.size() != 3) {
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Invalid authentication data received, expected 3 items, have %zu items.", vAuth.size());
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "AUTHENTICATE " + strAuthMethod + " incomplete data received");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, strTag, "AUTHENTICATE " + strAuthMethod + " incomplete data received");
 		return MAPI_E_LOGON_FAILED;
 	}
-	return HrCmdLogin(strTag, vAuth[1], vAuth[2]);
+	return HrCmdLogin(strTag, {vAuth[1], vAuth[2]});
 }
 
 /** 
@@ -791,15 +765,17 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
  * 
  * @return MAPI error code
  */
-HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const string &strPass) {
+HRESULT IMAP::HrCmdLogin(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	string strUsername;
 	size_t i;
 	wstring strwUsername;
 	wstring strwPassword;
 	unsigned int flags;
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
+	const std::string &strUser = args[0], &strPass = args[1];
 
 	// strUser isn't sent in imap style utf-7, but \ is escaped, so strip those
 	for (i = 0; i < strUser.length(); ++i) {
@@ -810,15 +786,11 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 
 	// If plaintext authentication was disabled any login attempt must be refused very soon
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
-		hr2 = HrResponse(RESP_UNTAGGED, "BAD [ALERT] Plaintext authentication not allowed without SSL/TLS, but your client "
+		HrResponse(RESP_UNTAGGED, "BAD [ALERT] Plaintext authentication not allowed without SSL/TLS, but your client "
 						"did it anyway. If anyone was listening, the password was exposed.");
-		if (hr2 != hrSuccess)
-			goto exitpm;
 
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
+		HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
 							 "(SSL/TLS) connections.");
-		if (hr2 != hrSuccess)
-			goto exitpm;
 
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed plaintext auth)",
 					  lpChannel->peer_addr(), strUsername.c_str());
@@ -827,7 +799,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 
 	if (lpSession != NULL) {
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Ignoring to login TWICE for username \"%s\"", strUsername.c_str());
-		hr = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN Can't login twice");
+		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN Can't login twice");
 		// hr = MAPI_E_CALL_FAILED;
 		goto exitpm;
 	}
@@ -856,11 +828,9 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%08X",
 					  lpChannel->peer_addr(), strUsername.c_str(), hr);
 		if (hr == MAPI_E_LOGON_FAILED)
-			hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN wrong username or password");
+			HrResponse(RESP_TAGGED_NO, strTag, "LOGIN wrong username or password");
 		else
-			hr2 = HrResponse(RESP_TAGGED_BAD, strTag, "Internal error: OpenECSession failed");
-		if (hr2 != hrSuccess)
-			goto exitpm;
+			HrResponse(RESP_TAGGED_BAD, strTag, "Internal error: OpenECSession failed");
 		++m_ulFailedLogins;
 		if (m_ulFailedLogins >= LOGIN_RETRIES)
 			// disconnect client
@@ -871,21 +841,21 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	hr = HrOpenDefaultStore(lpSession, &lpStore);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open default store");
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open default store");
+		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open default store");
 		goto exitpm;
 	}
 
 	hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open addressbook");
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open addressbook");
+		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open addressbook");
 		goto exitpm;
 	}
 
 	// check if imap access is disabled
 	if (isFeatureDisabled("imap", lpAddrBook, lpStore)) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "IMAP not enabled for user '%s'", strUsername.c_str());
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN imap feature disabled");
+		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN imap feature disabled");
 		hr = MAPI_E_LOGON_FAILED;
 		goto exitpm;
 	}
@@ -918,18 +888,15 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	hr = HrMakeSpecialsList();
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to find special folder properties");
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't find special folder properties");
+		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't find special folder properties");
 		goto exitpm;
 	}
 
 	lpLogger->Log(EC_LOGLEVEL_NOTICE, "IMAP Login from %s for user %s", lpChannel->peer_addr(), strUsername.c_str());
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "[" + GetCapabilityString(false) + "] LOGIN completed");
+	HrResponse(RESP_TAGGED_OK, strTag, "[" + GetCapabilityString(false) + "] LOGIN completed");
  exitpm:
-	if (hr != hrSuccess || hr2 != hrSuccess)
+	if (hr != hrSuccess)
 		CleanupObject();
-
-	if (hr2 != hrSuccess)
-		return hr2;
 	return hr;
 }
 
@@ -942,21 +909,21 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
  * @param[in]	strFolder	IMAP folder name in UTF-7 something charset
  * @param[in]	bReadOnly	The EXAMINE command was given instead of the SELECT command
  */
-HRESULT IMAP::HrCmdSelect(const string &strTag, const string &strFolder, bool bReadOnly) {
+HRESULT IMAP::HrCmdSelect(const std::string &strTag,
+    const std::vector<std::string> &args, bool bReadOnly)
+{
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	char szResponse[IMAP_RESP_MAX + 1];
 	unsigned int ulUnseen = 0;
 	string command = "SELECT";
 	ULONG ulUIDValidity = 1;
+	const std::string &strFolder = args[0];
 
 	if (bReadOnly)
 		command = "EXAMINE";
 	
 	if (!lpSession) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, command+" error no session");
-		if (hr != hrSuccess)
-			return hr;
+		HrResponse(RESP_TAGGED_NO, strTag, command + " error no session");
 		return MAPI_E_CALL_FAILED;
 	}
 
@@ -965,26 +932,20 @@ HRESULT IMAP::HrCmdSelect(const string &strTag, const string &strFolder, bool bR
 
 	// Apple mail client does this request, so we need to block it.
 	if (strFolder.empty()) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, command+" invalid folder name");
-		if (hr != hrSuccess)
-			return hr;
+		HrResponse(RESP_TAGGED_NO, strTag, command + " invalid folder name");
 		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = IMAP2MAPICharset(strFolder, strCurrentFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, command+" invalid folder name");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, strTag, command + " invalid folder name");
 		return hr;
 	}
 
 	bCurrentFolderReadOnly = bReadOnly;
 	hr = HrRefreshFolderMails(true, !bCurrentFolderReadOnly, &ulUnseen, &ulUIDValidity);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, command+" error getting mails in folder");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, strTag, command + " error getting mails in folder");
 		return hr;
 	}
 
@@ -995,29 +956,30 @@ HRESULT IMAP::HrCmdSelect(const string &strTag, const string &strFolder, bool bR
 	// \Deleted = PR_MSG_STATUS MSGSTATUS_DELMARKED
 	// \Recent = ??? (arrived after last command/login)
 	// $Forwarded = PR_LAST_VERB_EXECUTED: NOTEIVERB_FORWARD
-	hr = HrResponse(RESP_UNTAGGED, "FLAGS (\\Seen \\Draft \\Deleted \\Flagged \\Answered $Forwarded)");
-	if (hr != hrSuccess)
-		return hr;
-	hr = HrResponse(RESP_UNTAGGED, "OK [PERMANENTFLAGS (\\Seen \\Draft \\Deleted \\Flagged \\Answered $Forwarded)] Permanent flags");
-	if (hr != hrSuccess)
-		return hr;
+	HrResponse(RESP_UNTAGGED, "FLAGS (\\Seen \\Draft \\Deleted \\Flagged \\Answered $Forwarded)");
+	HrResponse(RESP_UNTAGGED, "OK [PERMANENTFLAGS (\\Seen \\Draft \\Deleted \\Flagged \\Answered $Forwarded)] Permanent flags");
 	snprintf(szResponse, IMAP_RESP_MAX, "OK [UIDNEXT %u] Predicted next UID", m_ulLastUid + 1);
-	hr = HrResponse(RESP_UNTAGGED, szResponse);
-	if (hr != hrSuccess)
-		return hr;
+	HrResponse(RESP_UNTAGGED, szResponse);
+
 	if(ulUnseen) {
     	snprintf(szResponse, IMAP_RESP_MAX, "OK [UNSEEN %u] First unseen message", ulUnseen);
-    	hr = HrResponse(RESP_UNTAGGED, szResponse);
-		if (hr != hrSuccess)
-			return hr;
-    }
+		HrResponse(RESP_UNTAGGED, szResponse);
+	}
 	snprintf(szResponse, IMAP_RESP_MAX, "OK [UIDVALIDITY %u] UIDVALIDITY value", ulUIDValidity);
-	hr = HrResponse(RESP_UNTAGGED, szResponse);
-	if (hr != hrSuccess)
-		return hr;
+	HrResponse(RESP_UNTAGGED, szResponse);
 	if (bReadOnly)
-		return HrResponse(RESP_TAGGED_OK, strTag, "[READ-ONLY] EXAMINE completed");
-	return HrResponse(RESP_TAGGED_OK, strTag, "[READ-WRITE] SELECT completed");
+		HrResponse(RESP_TAGGED_OK, strTag, "[READ-ONLY] EXAMINE completed");
+	else
+		HrResponse(RESP_TAGGED_OK, strTag, "[READ-WRITE] SELECT completed");
+
+	return hrSuccess;
+}
+
+template<bool read_only>
+HRESULT IMAP::HrCmdSelect(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
+	return HrCmdSelect(strTag, args, read_only);
 }
 
 /** 
@@ -1030,46 +992,48 @@ HRESULT IMAP::HrCmdSelect(const string &strTag, const string &strFolder, bool bR
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdCreate(const string &strTag, const string &strFolderParam) {
+HRESULT IMAP::HrCmdCreate(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder, lpSubFolder;
 	vector<wstring> strPaths;
 	wstring strFolder;
 	wstring strPath;
 	SPropValue sFolderClass;
+	const std::string &strFolderParam = args[0];
 
 	if (!lpSession) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "CREATE error no session");
+		HrResponse(RESP_TAGGED_NO, strTag, "CREATE error no session");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 	if (strFolderParam.empty()) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "CREATE error no folder");
+		HrResponse(RESP_TAGGED_NO, strTag, "CREATE error no folder");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 	hr = IMAP2MAPICharset(strFolderParam, strFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "CREATE invalid folder name");
+		HrResponse(RESP_TAGGED_NO, strTag, "CREATE invalid folder name");
 		goto exit;
 	}
 
 	if (strFolder[0] == IMAP_HIERARCHY_DELIMITER) {
 		// courier and dovecot also block this
-        hr = HrResponse(RESP_TAGGED_NO, strTag, "CREATE invalid folder name");
-        goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "CREATE invalid folder name");
+		goto exit;
 	}
 	hr = HrFindFolderPartial(strFolder, &~lpFolder, &strPath);
-    if(hr != hrSuccess) {
-        hr2 = HrResponse(RESP_TAGGED_NO, strTag, "CREATE error opening destination folder");
-        goto exit;
-    }
+	if (hr != hrSuccess) {
+		HrResponse(RESP_TAGGED_NO, strTag, "CREATE error opening destination folder");
+		goto exit;
+	}
 
 	if (strPath.empty()) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, "CREATE folder already exists");
+		HrResponse(RESP_TAGGED_NO, strTag, "CREATE folder already exists");
 		goto exit;
 	}
 
@@ -1079,9 +1043,9 @@ HRESULT IMAP::HrCmdCreate(const string &strTag, const string &strFolderParam) {
 		hr = lpFolder->CreateFolder(FOLDER_GENERIC, const_cast<TCHAR *>(path.c_str()), nullptr, nullptr, MAPI_UNICODE, &~lpSubFolder);
 		if (hr != hrSuccess) {
 			if (hr == MAPI_E_COLLISION)
-				hr2 = HrResponse(RESP_TAGGED_NO, strTag, "CREATE folder already exists");
+				HrResponse(RESP_TAGGED_NO, strTag, "CREATE folder already exists");
 			else
-				hr2 = HrResponse(RESP_TAGGED_NO, strTag, "CREATE can't create folder");
+				HrResponse(RESP_TAGGED_NO, strTag, "CREATE can't create folder");
 			goto exit;
 		}
 
@@ -1093,13 +1057,9 @@ HRESULT IMAP::HrCmdCreate(const string &strTag, const string &strFolderParam) {
 		lpFolder = std::move(lpSubFolder);
 	}
 
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "CREATE completed");
-
+	HrResponse(RESP_TAGGED_OK, strTag, "CREATE completed");
 exit:
 	cached_folders.clear();
-
-	if (hr2 != hrSuccess)
-		return hr2;
 	return hr;
 }
 
@@ -1117,51 +1077,53 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdDelete(const string &strTag, const string &strFolderParam) {
+HRESULT IMAP::HrCmdDelete(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	object_ptr<IMAPIFolder> lpParentFolder;
 	ULONG cbEntryID;
 	memory_ptr<ENTRYID> lpEntryID;
 	wstring strFolder;
+	const std::string &strFolderParam = args[0];
 
 	if (!lpSession) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "DELETE error no session");
+		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error no session");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 	hr = IMAP2MAPICharset(strFolderParam, strFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "DELETE invalid folder name");
+		HrResponse(RESP_TAGGED_NO, strTag, "DELETE invalid folder name");
 		goto exit;
 	}
 	strFolder = strToUpper(strFolder);
 
 	if (strFolder.compare(L"INBOX") == 0) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "DELETE error deleting INBOX is not allowed");
+		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error deleting INBOX is not allowed");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	hr = HrFindFolderEntryID(strFolder, &cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "DELETE error folder not found");
+		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error folder not found");
 		goto exit;
 	}
 
 	if (IsSpecialFolder(cbEntryID, lpEntryID)) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, "DELETE special folder may not be deleted");
+		HrResponse(RESP_TAGGED_NO, strTag, "DELETE special folder may not be deleted");
 		goto exit;
 	}
 	hr = HrOpenParentFolder(cbEntryID, lpEntryID, &~lpParentFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "DELETE error opening parent folder");
+		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error opening parent folder");
 		goto exit;
 	}
 
 	hr = lpParentFolder->DeleteFolder(cbEntryID, lpEntryID, 0, NULL, DEL_FOLDERS | DEL_MESSAGES);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "DELETE error deleting folder");
+		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error deleting folder");
 		goto exit;
 	}
 
@@ -1179,13 +1141,9 @@ HRESULT IMAP::HrCmdDelete(const string &strTag, const string &strFolderParam) {
 		ReleaseContentsCache();
     }
 
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "DELETE completed");
-
+	HrResponse(RESP_TAGGED_OK, strTag, "DELETE completed");
 exit:
 	cached_folders.clear();
-
-	if (hr2 != hrSuccess)
-		return hr2;
 	return hr;
 }
 
@@ -1201,9 +1159,10 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderParam, const string &strNewFolderParam) {
+HRESULT IMAP::HrCmdRename(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	memory_ptr<SPropValue> lppvFromEntryID, lppvDestEntryID;
 	object_ptr<IMAPIFolder> lpParentFolder, lpMakeFolder, lpSubFolder;
 	ULONG ulObjType = 0;
@@ -1215,21 +1174,23 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 	wstring strPath;
 	wstring strFolder;
 	SPropValue sFolderClass;
+	const std::string &strExistingFolderParam = args[0];
+	const std::string &strNewFolderParam = args[1];
 
 	if (!lpSession) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error no session");
+		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error no session");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 	hr = IMAP2MAPICharset(strExistingFolderParam, strExistingFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME invalid folder name");
+		HrResponse(RESP_TAGGED_NO, strTag, "RENAME invalid folder name");
 		goto exit;
 	}
 	hr = IMAP2MAPICharset(strNewFolderParam, strNewFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME invalid folder name");
+		HrResponse(RESP_TAGGED_NO, strTag, "RENAME invalid folder name");
 		goto exit;
 	}
 
@@ -1249,31 +1210,30 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 
 	hr = HrFindFolderEntryID(strExistingFolder, &cbMovFolder, &~lpMovFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error source folder not found");
+		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error source folder not found");
 		goto exit;
 	}
 
 	if (IsSpecialFolder(cbMovFolder, lpMovFolder)) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, "RENAME special folder may not be moved or renamed");
+		HrResponse(RESP_TAGGED_NO, strTag, "RENAME special folder may not be moved or renamed");
 		goto exit;
 	}
 	hr = HrOpenParentFolder(cbMovFolder, lpMovFolder, &~lpParentFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening parent folder");
+		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening parent folder");
 		goto exit;
 	}
 
 	// Find the folder as far as we can
 	hr = HrFindFolderPartial(strNewFolder, &~lpMakeFolder, &strPath);
 	if(hr != hrSuccess) {
-	    hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening destination folder");
-	    goto exit;
-    }
-    
-    if(strPath.empty()) {
-        hr = HrResponse(RESP_TAGGED_NO, strTag, "RENAME destination already exists");
-        goto exit;
-    }
+		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening destination folder");
+		goto exit;
+	}
+	if (strPath.empty()) {
+		HrResponse(RESP_TAGGED_NO, strTag, "RENAME destination already exists");
+		goto exit;
+	}
     
     // strPath now contains subfolder we want to create (eg sub/new). So now we have to
     // mkdir -p all the folder leading up to the last (if any)
@@ -1288,7 +1248,7 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 		if (!strFolder.empty())
 			hr = lpMakeFolder->CreateFolder(FOLDER_GENERIC, (TCHAR *)strFolder.c_str(), nullptr, nullptr, MAPI_UNICODE | OPEN_IF_EXISTS, &~lpSubFolder);
 		if (hr != hrSuccess || lpSubFolder == NULL) {
-			hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error creating folder");
+			HrResponse(RESP_TAGGED_NO, strTag, "RENAME error creating folder");
 			goto exit;
 		}
 		sFolderClass.ulPropTag = PR_CONTAINER_CLASS_A;
@@ -1301,7 +1261,7 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 
 	if (HrGetOneProp(lpParentFolder, PR_ENTRYID, &~lppvFromEntryID) != hrSuccess ||
 	    HrGetOneProp(lpMakeFolder, PR_ENTRYID, &~lppvDestEntryID) != hrSuccess) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening source or destination");
+		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening source or destination");
 		goto exit;
 	}
 
@@ -1319,7 +1279,7 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 		hr = lpSession->OpenEntry(cbMovFolder, lpMovFolder, &IID_IMAPIFolder, MAPI_MODIFY,
 		     &ulObjType, &~lpSubFolder);
 		if (hr != hrSuccess) {
-			hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening folder");
+			HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening folder");
 			goto exit;
 		}
 
@@ -1327,17 +1287,13 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 	}
 
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error moving folder");
+		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error moving folder");
 		goto exit;
 	}
 
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "RENAME completed");
-
+	HrResponse(RESP_TAGGED_OK, strTag, "RENAME completed");
 exit:
 	cached_folders.clear();
-
-	if (hr2 != hrSuccess)
-		return hr2;
 	return hr;
 }
 
@@ -1358,13 +1314,15 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdSubscribe(const string &strTag, const string &strFolderParam, bool bSubscribe) {
+HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
+    const std::vector<std::string> &args, bool bSubscribe)
+{
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	string strAction;
 	ULONG cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 	wstring strFolder;
+	const std::string &strFolderParam = args[0];
 
 	if (bSubscribe)
 		strAction = "SUBSCRIBE";
@@ -1372,42 +1330,44 @@ HRESULT IMAP::HrCmdSubscribe(const string &strTag, const string &strFolderParam,
 		strAction = "UNSUBSCRIBE";
 
 	if (!lpSession) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, strAction + " error no session");
-		if (hr != hrSuccess)
-			return hr;
+		HrResponse(RESP_TAGGED_NO, strTag, strAction + " error no session");
 		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = IMAP2MAPICharset(strFolderParam, strFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strAction+" invalid folder name");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, strTag, strAction + " invalid folder name");
 		return hr;
 	}
 	hr = HrFindFolderEntryID(strFolder, &cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess) {
 		// folder not found, but not error, so thunderbird updates view correctly.
-		hr2 = HrResponse(RESP_TAGGED_OK, strTag, strAction+" folder not found");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_OK, strTag, strAction + " folder not found");
 		return hr;
 	}
 
 	if (IsSpecialFolder(cbEntryID, lpEntryID)) {
 		if (!bSubscribe)
-			return HrResponse(RESP_TAGGED_NO, strTag, strAction + " cannot unsubscribe this special folder");
-		return HrResponse(RESP_TAGGED_OK, strTag, strAction + " completed");
-	}		
+			HrResponse(RESP_TAGGED_NO, strTag, strAction + " cannot unsubscribe this special folder");
+		else
+			HrResponse(RESP_TAGGED_OK, strTag, strAction + " completed");
+		return hrSuccess;
+	}
 
 	hr = ChangeSubscribeList(bSubscribe, cbEntryID, lpEntryID);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strAction+" writing subscriptions to server failed");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, strTag, strAction + " writing subscriptions to server failed");
 		return hr;
 	}
-	return HrResponse(RESP_TAGGED_OK, strTag, strAction + " completed");
+	HrResponse(RESP_TAGGED_OK, strTag, strAction + " completed");
+	return hrSuccess;
+}
+
+template<bool subscribe>
+HRESULT IMAP::HrCmdSubscribe(const std::string &tag,
+    const std::vector<std::string> &args)
+{
+	return HrCmdSubscribe(tag, args, subscribe);
 }
 
 /** 
@@ -1425,15 +1385,17 @@ HRESULT IMAP::HrCmdSubscribe(const string &strTag, const string &strFolderParam,
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const string &strFindFolder, bool bSubscribedOnly) {
+HRESULT IMAP::HrCmdList(const std::string &strTag,
+    const std::vector<std::string> &args, bool bSubscribedOnly)
+{
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	string strAction;
 	string strResponse;
 	wstring strPattern;
 	string strListProps;
 	string strCompare;
 	wstring strFolderPath;
+	std::string strReferenceFolder = args[0], strFindFolder = args[1];
 
 	if (bSubscribedOnly)
 		strAction = "LSUB";
@@ -1441,20 +1403,17 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 		strAction = "LIST";
 
 	if (!lpSession) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, strAction + " error no session");
-		if (hr != hrSuccess)
-			return hr;
+		HrResponse(RESP_TAGGED_NO, strTag, strAction + " error no session");
 		return MAPI_E_CALL_FAILED;
 	}
 
 	if (strFindFolder.empty()) {
-		strResponse = strAction+" (\\Noselect) \"";
+		strResponse = strAction + " (\\Noselect) \"";
 		strResponse += IMAP_HIERARCHY_DELIMITER;
 		strResponse += "\" \"\"";
-		hr = HrResponse(RESP_UNTAGGED, strResponse);
-		if (hr == hrSuccess)
-			HrResponse(RESP_TAGGED_OK, strTag, strAction+" completed");
-		return hr;
+		HrResponse(RESP_UNTAGGED, strResponse);
+		HrResponse(RESP_TAGGED_OK, strTag, strAction + " completed");
+		return hrSuccess;
 	}
 
 	HrGetSubscribedList();
@@ -1468,9 +1427,7 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 	strReferenceFolder += strFindFolder;
 	hr = IMAP2MAPICharset(strReferenceFolder, strPattern);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strAction+" invalid folder name");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, strTag, strAction + " invalid folder name");
 		return hr;
 	}
 	strPattern = strToUpper(strPattern);
@@ -1489,9 +1446,7 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 	// Get all folders
 
 	if(hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strAction+" unable to list folders");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, strTag, strAction + " unable to list folders");
 		return hr;
 	}
 
@@ -1518,8 +1473,7 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 			}
 
 			strResponse = (string)"\"" + IMAP_HIERARCHY_DELIMITER + "\" \"" + strResponse + "\""; // prepend folder delimiter
-
-			strListProps = strAction+" (";
+			strListProps = strAction + " (";
 			if (!iFld->bMailFolder)
 				strListProps += "\\Noselect ";
 			if (!bSubscribedOnly) {
@@ -1533,12 +1487,17 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 
 			strResponse = strListProps + strResponse;
 
-			hr = HrResponse(RESP_UNTAGGED, strResponse);
-			if (hr != hrSuccess)
-				break;
+			HrResponse(RESP_UNTAGGED, strResponse);
 		}
 	}
-	return HrResponse(RESP_TAGGED_OK, strTag, strAction+" completed");
+	HrResponse(RESP_TAGGED_OK, strTag, strAction + " completed");
+	return hrSuccess;
+}
+
+template<bool sub_only> HRESULT
+IMAP::HrCmdList(const std::string &tag, const std::vector<std::string> &args)
+{
+	return HrCmdList(tag, args, sub_only);
 }
 
 HRESULT IMAP::get_uid_next(KFolder &&folder, const std::string &tag, ULONG &uid_next)
@@ -1554,9 +1513,7 @@ HRESULT IMAP::get_uid_next(KFolder &&folder, const std::string &tag, ULONG &uid_
 	}
 	catch (const KMAPIError &e) {
 		hr = e.code();
-		HRESULT hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
 	}
 
 	return hr;
@@ -1586,9 +1543,7 @@ HRESULT IMAP::get_recent(KFolder &&folder, const std::string &tag, ULONG &recent
 	}
 	catch (const KMAPIError &e) {
 		hr = e.code();
-		auto hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
-		if(hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
 	}
 
 	return hr;
@@ -1613,9 +1568,10 @@ HRESULT IMAP::get_recent(KFolder &&folder, const std::string &tag, ULONG &recent
  * 
  * @return MAPI error code
  */
-HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string strStatusData) {
+HRESULT IMAP::HrCmdStatus(const std::string &strTag,
+    const std::vector<std::string> &args)
+{
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	KFolder lpStatusFolder;
 	vector<string> lstStatusData;
 	string strData;
@@ -1633,16 +1589,17 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 		{3, {PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_EC_HIERARCHYID}};
 	memory_ptr<SPropValue> lpPropCounters, lpPropMaxID;
 	wstring strIMAPFolder;
+	std::string strFolder = args[0], strStatusData = args[1];
     
 	if (!lpSession) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no session");
-		return hr2 != hrSuccess ? hr2 : MAPI_E_CALL_FAILED;
+		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no session");
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = IMAP2MAPICharset(strFolder, strIMAPFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS invalid folder name");
-		return hr2 != hrSuccess ? hr2 : hr;
+		HrResponse(RESP_TAGGED_NO, strTag, "STATUS invalid folder name");
+		return hr;
 	}
 
 	strStatusData = strToUpper(strStatusData);
@@ -1651,20 +1608,20 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 	hr = HrFindFolder(strIMAPFolder, false, &~tmp_folder);
 
 	if(hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error finding folder");
-		return hr2 != hrSuccess ? hr2 : MAPI_E_CALL_FAILED;
+		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error finding folder");
+		return MAPI_E_CALL_FAILED;
 	}
 
 	lpStatusFolder = tmp_folder.release();
 
 	if (!IsMailFolder(lpStatusFolder)) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no mail folder");
-		return hr2 != hrSuccess ? hr2 : MAPI_E_CALL_FAILED;
+		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no mail folder");
+		return MAPI_E_CALL_FAILED;
 	}
 	hr = lpStatusFolder->GetProps(sPropsFolderCounters, 0, &cValues, &~lpPropCounters);
 	if (FAILED(hr)) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error fetching folder content counters");
-		return hr2 != hrSuccess ? hr2 : hr;
+		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error fetching folder content counters");
+		return hr;
 	}
 	hr = hrSuccess;
 
@@ -1721,12 +1678,9 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 	}
 
 	strResponse += ")";
-	hr = HrResponse(RESP_UNTAGGED, strResponse);
-	if (hr == hrSuccess)
-		hr = HrResponse(RESP_TAGGED_OK, strTag, "STATUS completed");
-	if (hr2 != hrSuccess)
-		return hr2;
-	return hr;
+	HrResponse(RESP_UNTAGGED, strResponse);
+	HrResponse(RESP_TAGGED_OK, strTag, "STATUS completed");
+	return hrSuccess;
 }
 
 /** 
@@ -1745,7 +1699,6 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
  */
 HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, const string &strData, string strFlags, const string &strTime) {
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	object_ptr<IMAPIFolder> lpAppendFolder;
 	object_ptr<IMessage> lpMessage;
 	vector<string> lstFlags;
@@ -1764,41 +1717,38 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		} };
 	
 	if (!lpSession) {
-		hr = MAPI_E_CALL_FAILED;
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "APPEND error no session");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error no session");
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = IMAP2MAPICharset(strFolderParam, strFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "APPEND invalid folder name");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "APPEND invalid folder name");
+		return hr;
 	}
 	hr = HrFindFolder(strFolder, false, &~lpAppendFolder);
 	if(hr != hrSuccess) {
-		hr = MAPI_E_CALL_FAILED;
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "[TRYCREATE] APPEND error finding folder");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "[TRYCREATE] APPEND error finding folder");
+		return MAPI_E_CALL_FAILED;
 	}
 
 	if (!IsMailFolder(lpAppendFolder)) {
-		hr = MAPI_E_CALL_FAILED;
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "APPEND error not a mail folder");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error not a mail folder");
+		return MAPI_E_CALL_FAILED;
 	}
 	hr = HrGetOneProp(lpAppendFolder, PR_EC_HIERARCHYID, &~lpPropVal);
 	if (hr == hrSuccess)
 		ulFolderUid = lpPropVal->Value.ul;
 	hr = lpAppendFolder->CreateMessage(nullptr, 0, &~lpMessage);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "APPEND error creating message");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error creating message");
+		return hr;
 	}
 
 	hr = IMToMAPI(lpSession, lpStore, lpAddrBook, lpMessage, strData, dopt);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "APPEND error converting message");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error converting message");
+		return hr;
 	}
 	if (IsSentItemFolder(lpAppendFolder) &&
 	    HrGetOneProp(lpAppendFolder, PR_ENTRYID, &~lpPropVal) == hrSuccess) {
@@ -1823,7 +1773,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			if (HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_MESSAGE_FLAGS;
 				lpPropVal->Value.ul = 0;
@@ -1835,7 +1785,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_MSG_STATUS;
 				lpPropVal->Value.ul = 0;
@@ -1848,7 +1798,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			if (HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_MESSAGE_FLAGS;
 				lpPropVal->Value.ul = 0;
@@ -1863,7 +1813,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			if (lpPropVal == NULL) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 
 			lpPropVal->ulPropTag = PR_FLAG_STATUS;
@@ -1873,7 +1823,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_MSG_STATUS;
 				lpPropVal->Value.ul = 0;
@@ -1885,7 +1835,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			}
 			hr = MAPIAllocateBuffer(sizeof(SPropValue) * 3, &~lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpPropVal[0].ulPropTag = PR_LAST_VERB_EXECUTED;
 			if (strFlag[0] == '\\')
@@ -1902,12 +1852,12 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 
 			hr = lpMessage->SetProps(3, lpPropVal, NULL);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		} else if (strFlag.compare("\\DELETED") == 0) {
 			if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_MSG_STATUS;
 				lpPropVal->Value.ul = 0;
@@ -1924,7 +1874,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	if (lpPropVal == NULL) {
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (!strTime.empty()) {
@@ -1939,8 +1889,8 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "APPEND error saving message");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error saving message");
+		return hr;
 	}
 	hr = HrGetOneProp(lpMessage, PR_EC_IMAP_ID, &~lpPropVal);
 	if (hr == hrSuccess)
@@ -1954,11 +1904,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 	}
 
-	hr = HrResponse(RESP_TAGGED_OK, strTag, strAppendUid+"APPEND completed");
-
-exit:
-	if (hr2 != hrSuccess)
-		return hr2;
+	HrResponse(RESP_TAGGED_OK, strTag, strAppendUid + "APPEND completed");
 	return hr;
 }
 
@@ -1974,11 +1920,10 @@ exit:
  */
 HRESULT IMAP::HrCmdClose(const string &strTag) {
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 
 	if (strCurrentFolder.empty() || !lpSession) {
 		hr = MAPI_E_CALL_FAILED;
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "CLOSE error no folder");
+		HrResponse(RESP_TAGGED_NO, strTag, "CLOSE error no folder");
 		goto exit;
 	}
 
@@ -1987,7 +1932,7 @@ HRESULT IMAP::HrCmdClose(const string &strTag) {
 
 	if (bCurrentFolderReadOnly) {
 		// cannot expunge messages on a readonly folder
-		hr = HrResponse(RESP_TAGGED_OK, strTag, "CLOSE completed");
+		HrResponse(RESP_TAGGED_OK, strTag, "CLOSE completed");
 		goto exit;
 	}
 
@@ -1995,13 +1940,9 @@ HRESULT IMAP::HrCmdClose(const string &strTag) {
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "CLOSE completed");
-
+	HrResponse(RESP_TAGGED_OK, strTag, "CLOSE completed");
 exit:
 	strCurrentFolder.clear();	// always "close" the SELECT command
-
-	if (hr2 != hrSuccess)
-		return hr2;
 	return hr;
 }
 
@@ -2031,16 +1972,12 @@ HRESULT IMAP::HrCmdExpunge(const string &strTag, const string &strSeqSet) {
 		strCommand = "UID EXPUNGE";
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, strCommand+" error no folder");
-		if (hr != hrSuccess)
-			return hr;
+		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error no folder");
 		return MAPI_E_CALL_FAILED;
 	}
 
 	if (bCurrentFolderReadOnly) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, strCommand+" error folder read only");
-		if (hr != hrSuccess)
-			return hr;
+		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error folder read only");
 		return MAPI_E_CALL_FAILED;
 	}
 
@@ -2054,7 +1991,8 @@ HRESULT IMAP::HrCmdExpunge(const string &strTag, const string &strSeqSet) {
     
 	// Let HrRefreshFolderMails output the actual EXPUNGEs
 	HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
-	return HrResponse(RESP_TAGGED_OK, strTag, strCommand+" completed");
+	HrResponse(RESP_TAGGED_OK, strTag, strCommand + " completed");
+	return hrSuccess;
 }
 
 /** 
@@ -2082,9 +2020,7 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 		strMode = "UID ";
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, strMode+"SEARCH error no folder");
-		if (hr != hrSuccess)
-			return hr;
+		HrResponse(RESP_TAGGED_NO, strTag, strMode + "SEARCH error no folder");
 		return MAPI_E_CALL_FAILED;
 	}
 
@@ -2094,9 +2030,7 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 		if (lstSearchCriteria[1] != "WINDOWS-1252") {
 			iconv.reset(new ECIConv("windows-1252", lstSearchCriteria[1]));
 			if (!iconv->canConvert()) {
-				hr = HrResponse(RESP_TAGGED_NO, strTag, "[BADCHARSET (WINDOWS-1252)] " + strMode + "SEARCH charset not supported");
-				if (hr != hrSuccess)
-					return hr;
+				HrResponse(RESP_TAGGED_NO, strTag, "[BADCHARSET (WINDOWS-1252)] " + strMode + "SEARCH charset not supported");
 				return MAPI_E_CALL_FAILED;
 			}
 		}
@@ -2104,9 +2038,7 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 	}
 	hr = HrSearch(std::move(lstSearchCriteria), ulCriterianr, lstMailnr);
 	if (hr != hrSuccess) {
-		HRESULT hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+"SEARCH error");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, strTag, strMode + "SEARCH error");
 		return hr;
 	}
 
@@ -2117,9 +2049,8 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 		strResponse += szBuffer;
 	}
 
-	hr = HrResponse(RESP_UNTAGGED, strResponse);
-	if (hr == hrSuccess)
-		hr = HrResponse(RESP_TAGGED_OK, strTag, strMode+"SEARCH completed");
+	HrResponse(RESP_UNTAGGED, strResponse);
+	HrResponse(RESP_TAGGED_OK, strTag, strMode + "SEARCH completed");
 	return hr;
 }
 
@@ -2137,7 +2068,6 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
  */
 HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const string &strMsgDataItemNames, bool bUidMode) {
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	vector<string> lstDataItems;
 	list<ULONG> lstMails;
 	ULONG ulCurrent = 0;
@@ -2148,9 +2078,8 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const st
 		strMode = "UID ";
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
-		hr2 = HrResponse(RESP_TAGGED_BAD, strTag, strMode+"FETCH error no folder");
-		goto exit;
+		HrResponse(RESP_TAGGED_BAD, strTag, strMode + "FETCH error no folder");
+		return MAPI_E_CALL_FAILED;
 	}
 
 	HrGetDataItems(strMsgDataItemNames, lstDataItems);
@@ -2167,19 +2096,15 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const st
 	else
 		hr = HrParseSeqSet(strSeqSet, lstMails);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+"FETCH sequence parse error in: " + strSeqSet);
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, strMode + "FETCH sequence parse error in: " + strSeqSet);
+		return hr;
 	}
 
 	hr = HrPropertyFetch(lstMails, lstDataItems);
 	if (hr != hrSuccess)
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+"FETCH failed");
+		HrResponse(RESP_TAGGED_NO, strTag, strMode + "FETCH failed");
 	else
-		hr2 = HrResponse(RESP_TAGGED_OK, strTag, strMode+"FETCH completed");
-
-exit:
-	if (hr2 != hrSuccess)
-		return hr2;
+		HrResponse(RESP_TAGGED_OK, strTag, strMode + "FETCH completed");
 	return hr;
 }
 
@@ -2198,7 +2123,6 @@ exit:
  */
 HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const string &strMsgDataItemName, const string &strMsgDataItemValue, bool bUidMode) {
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	list<ULONG> lstMails;
 	vector<string> lstDataItems;
 	string strMode;
@@ -2209,15 +2133,13 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const st
 	strMode += " STORE";
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+" error no folder");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, strMode + " error no folder");
+		return MAPI_E_CALL_FAILED;
 	}
 
 	if (bCurrentFolderReadOnly) {
-		hr = MAPI_E_CALL_FAILED;
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+" error folder read only");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, strMode + " error folder read only");
+		return MAPI_E_CALL_FAILED;
 	}
 
 	lstDataItems.push_back("FLAGS");
@@ -2229,8 +2151,8 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const st
 	else
 		hr = HrParseSeqSet(strSeqSet, lstMails);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+" sequence parse error in: " + strSeqSet);
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, strMode + " sequence parse error in: " + strSeqSet);
+		return hr;
 	}
 
 	hr = HrStore(lstMails, strMsgDataItemName, strMsgDataItemValue, &bDelete);
@@ -2246,22 +2168,18 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const st
 		if (bUidMode) {
 			hr = HrSeqUidSetToRestriction(strSeqSet, rst);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		if (HrExpungeDeleted(strTag, strMode, std::move(rst)) != hrSuccess)
 			// HrExpungeDeleted sent client NO result.
-			goto exit;
+			return hrSuccess;
 
 		// Let HrRefreshFolderMails output the actual EXPUNGEs
 		HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 	}
 
-	hr = HrResponse(RESP_TAGGED_OK, strTag, strMode+" completed");
-
-exit:
-	if (hr2 != hrSuccess)
-		return hr2;
+	HrResponse(RESP_TAGGED_OK, strTag, strMode + " completed");
 	return hr;
 }
 
@@ -2279,7 +2197,6 @@ exit:
  */
 HRESULT IMAP::HrCmdCopy(const string &strTag, const string &strSeqSet, const string &strFolder, bool bUidMode) {
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	list<ULONG> lstMails;
 	string strMode;
 
@@ -2287,9 +2204,8 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const string &strSeqSet, const str
 		strMode = "UID ";
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+"COPY error no folder");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, strMode + "COPY error no folder");
+		return MAPI_E_CALL_FAILED;
 	}
 
 	if (bUidMode)
@@ -2297,24 +2213,20 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const string &strSeqSet, const str
 	else
 		hr = HrParseSeqSet(strSeqSet, lstMails);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+"COPY sequence parse error in: " + strSeqSet);
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, strMode + "COPY sequence parse error in: " + strSeqSet);
+		return hr;
 	}
 
 	hr = HrCopy(lstMails, strFolder, false);
 	if (hr == MAPI_E_NOT_FOUND) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "[TRYCREATE] "+strMode+"COPY folder not found");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "[TRYCREATE] " + strMode + "COPY folder not found");
+		return hr;
 	} else if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+"COPY error");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, strMode + "COPY error");
+		return hr;
 	}
 
-	hr = HrResponse(RESP_TAGGED_OK, strTag, strMode+"COPY completed");
-
-exit:
-	if (hr2 != hrSuccess)
-		return hr2;
+	HrResponse(RESP_TAGGED_OK, strTag, strMode + "COPY completed");
 	return hr;
 }
 
@@ -2333,38 +2245,31 @@ exit:
  */
 HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const string &strSeqSet, const string &strFolder) {
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	list<ULONG> lstMails;
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE error no folder");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE error no folder");
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = HrParseSeqUidSet(strSeqSet, lstMails);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE sequence parse error in: " + strSeqSet);
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE sequence parse error in: " + strSeqSet);
+		return hr;
 	}
 
 	hr = HrCopy(lstMails, strFolder, true);
 	if (hr == MAPI_E_NOT_FOUND) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "[TRYCREATE] UID XAOL-MOVE folder not found");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "[TRYCREATE] UID XAOL-MOVE folder not found");
+		return hr;
 	} else if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE error");
-		goto exit;
+		HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE error");
+		return hr;
 	}
 
 	// Let HrRefreshFolderMails output the actual EXPUNGEs
 	HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
-
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "UID XAOL-MOVE completed");
-
-exit:
-	if (hr2 != hrSuccess)
-		return hr2;
+	HrResponse(RESP_TAGGED_OK, strTag, "UID XAOL-MOVE completed");
 	return hr;
 }
 
@@ -2510,8 +2415,7 @@ LONG __stdcall IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 					ulMailNr = iterMail - lpIMAP->lstFolderMailEIDs.cbegin();
 
 					strFlags = lpIMAP->PropsToFlags(lpNotif[i].info.tab.row.lpProps, lpNotif[i].info.tab.row.cValues, iterMail->bRecent, false);
-
-					lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulMailNr+1) + " FETCH (FLAGS ("+strFlags+"))");
+					lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulMailNr+1) + " FETCH (FLAGS (" + strFlags + "))");
 				}
 			}
 			break;
@@ -2545,7 +2449,6 @@ LONG __stdcall IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
  */
 HRESULT IMAP::HrCmdIdle(const string &strTag) {
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder;
 	enum { EID, IKEY, IMAPID, MESSAGE_FLAGS, FLAG_STATUS, MSG_STATUS, LAST_VERB, NUM_COLS };
 	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
@@ -2562,45 +2465,45 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 	m_bIdleMode = true;
 
 	if (strCurrentFolder.empty() || !lpSession) {
-		hr = HrResponse(RESP_CONTINUE, "empty idle, nothing is going to happen");
+		HrResponse(RESP_CONTINUE, "empty idle, nothing is going to happen");
 		goto exit;
 	}
 	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_CONTINUE, "Can't open selected folder to idle in");
+		HrResponse(RESP_CONTINUE, "Can't open selected folder to idle in");
 		goto exit;
 	}
 
 	hr = lpFolder->GetContentsTable(0, &m_lpIdleTable);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_CONTINUE, "Can't open selected contents table to idle in");
+		HrResponse(RESP_CONTINUE, "Can't open selected contents table to idle in");
 		goto exit;
 	}
 	hr = m_lpIdleTable->SetColumns(spt, 0);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_CONTINUE, "Cannot select columns on selected contents table for idle information");
+		HrResponse(RESP_CONTINUE, "Cannot select columns on selected contents table for idle information");
 		goto exit;
 	}
 
 	hr = HrAllocAdviseSink(&IMAP::IdleAdviseCallback, (void*)this, &m_lpIdleAdviseSink);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_CONTINUE, "Can't allocate memory to idle");
+		HrResponse(RESP_CONTINUE, "Can't allocate memory to idle");
 		goto exit;
 	}
 
 	l_idle.lock();
 	hr = m_lpIdleTable->Advise(fnevTableModified, m_lpIdleAdviseSink, &m_ulIdleAdviseConnection);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_CONTINUE, "Can't advise on current selected folder");
+		HrResponse(RESP_CONTINUE, "Can't advise on current selected folder");
 		l_idle.unlock();
 		goto exit;
 	}
 
 	// \o/ we really succeeded this time
-	hr = HrResponse(RESP_CONTINUE, "waiting for notifications");
+	HrResponse(RESP_CONTINUE, "waiting for notifications");
 	l_idle.unlock();
 exit:
-	if (hr != hrSuccess || hr2 != hrSuccess) {
+	if (hr != hrSuccess) {
 		if (m_ulIdleAdviseConnection && m_lpIdleTable) {
 			m_lpIdleTable->Unadvise(m_ulIdleAdviseConnection);
 			m_ulIdleAdviseConnection = 0;
@@ -2614,8 +2517,6 @@ exit:
 			m_lpIdleTable = NULL;
 		}
 	}
-	if (hr2 != hrSuccess)
-		return hr2;
 	return hr;
 }
 
@@ -2638,9 +2539,9 @@ HRESULT IMAP::HrDone(bool bSendResponse) {
 
 	if (bSendResponse) {
 		if (m_bIdleMode)
-			hr = HrResponse(RESP_TAGGED_OK, m_strIdleTag, "IDLE complete");
+			HrResponse(RESP_TAGGED_OK, m_strIdleTag, "IDLE complete");
 		else
-			hr = HrResponse(RESP_TAGGED_BAD, m_strIdleTag, "was not idling");
+			HrResponse(RESP_TAGGED_BAD, m_strIdleTag, "was not idling");
 	}
 
 	if (m_ulIdleAdviseConnection && m_lpIdleTable) {
@@ -2672,11 +2573,10 @@ HRESULT IMAP::HrDone(bool bSendResponse) {
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdNamespace(const string &strTag) {
-	HRESULT hr = HrResponse(RESP_UNTAGGED, string("NAMESPACE ((\"\" \"") +
+	HrResponse(RESP_UNTAGGED, string("NAMESPACE ((\"\" \"") +
 	             IMAP_HIERARCHY_DELIMITER + "\")) NIL NIL");
-	if (hr != hrSuccess)
-		return hr;
-	return HrResponse(RESP_TAGGED_OK, strTag, "NAMESPACE Completed");
+	HrResponse(RESP_TAGGED_OK, strTag, "NAMESPACE Completed");
+	return hrSuccess;
 }
 
 /** 
@@ -2698,16 +2598,14 @@ HRESULT IMAP::HrPrintQuotaRoot(const string& strTag)
 
 	hr = lpStore->GetProps(sStoreProps, 0, &cValues, &~lpProps);
 	if (hr != hrSuccess) {
-		HRESULT hr2 = HrResponse(RESP_TAGGED_NO, strTag, "GetQuota MAPI Error");
-		if (hr2 != hrSuccess)
-			return hr2;
+		HrResponse(RESP_TAGGED_NO, strTag, "GetQuota MAPI Error");
 		return hr;
 	}
 
 	// only print quota if we have a level
 	if (lpProps[1].Value.ul)
-		hr = HrResponse(RESP_UNTAGGED, "QUOTA \"\" (STORAGE "+stringify(lpProps[0].Value.li.QuadPart / 1024)+" "+stringify(lpProps[1].Value.ul)+")");
-	return hr;	
+		HrResponse(RESP_UNTAGGED, "QUOTA \"\" (STORAGE "+stringify(lpProps[0].Value.li.QuadPart / 1024) + " " + stringify(lpProps[1].Value.ul) + ")");
+	return hrSuccess;
 }
 
 /** 
@@ -2722,25 +2620,24 @@ HRESULT IMAP::HrPrintQuotaRoot(const string& strTag)
  *
  * @return 
  */
-HRESULT IMAP::HrCmdGetQuotaRoot(const string &strTag, const string &strFolder)
+HRESULT IMAP::HrCmdGetQuotaRoot(const std::string &strTag,
+    const std::vector<std::string> &args)
 {
 	HRESULT hr = hrSuccess;
+	const std::string &strFolder = args[0];
 
 	if (!lpStore) {
-		hr = HrResponse(RESP_TAGGED_BAD, strTag, "Login first");
-		if (hr != hrSuccess)
-			return hr;
+		HrResponse(RESP_TAGGED_BAD, strTag, "Login first");
 		return MAPI_E_CALL_FAILED;
 	}
 
 	// @todo check if folder exists
-	hr = HrResponse(RESP_UNTAGGED, "QUOTAROOT \""+strFolder+"\" \"\"");
-	if (hr != hrSuccess)
-		return hr;
+	HrResponse(RESP_UNTAGGED, "QUOTAROOT \"" + strFolder + "\" \"\"");
 	hr = HrPrintQuotaRoot(strTag);
 	if (hr != hrSuccess)
-		return hr;
-	return HrResponse(RESP_TAGGED_OK, strTag, "GetQuotaRoot complete");
+		return hr; /* handle error? */
+	HrResponse(RESP_TAGGED_OK, strTag, "GetQuotaRoot complete");
+	return hr;
 }
 
 /** 
@@ -2751,12 +2648,13 @@ HRESULT IMAP::HrCmdGetQuotaRoot(const string &strTag, const string &strFolder)
  * 
  * @return 
  */
-HRESULT IMAP::HrCmdGetQuota(const string &strTag, const string &strQuotaRoot)
+HRESULT IMAP::HrCmdGetQuota(const std::string &strTag,
+    const std::vector<std::string> &args)
 {
+	const std::string &strQuotaRoot = args[0];
+
 	if (!lpStore) {
-		HRESULT hr = HrResponse(RESP_TAGGED_BAD, strTag, "Login first");
-		if (hr != hrSuccess)
-			return hr;
+		HrResponse(RESP_TAGGED_BAD, strTag, "Login first");
 		return MAPI_E_CALL_FAILED;
 	}
 
@@ -2764,14 +2662,18 @@ HRESULT IMAP::HrCmdGetQuota(const string &strTag, const string &strQuotaRoot)
 		HRESULT hr = HrPrintQuotaRoot(strTag);
 		if (hr != hrSuccess)
 			return hr;
-		return HrResponse(RESP_TAGGED_OK, strTag, "GetQuota complete");
+		HrResponse(RESP_TAGGED_OK, strTag, "GetQuota complete");
+		return hrSuccess;
 	}
-	return HrResponse(RESP_TAGGED_NO, strTag, "Quota root does not exist");
+	HrResponse(RESP_TAGGED_NO, strTag, "Quota root does not exist");
+	return hrSuccess;
 }
 
-HRESULT IMAP::HrCmdSetQuota(const string &strTag, const string &strQuotaRoot, const string &strQuotaList)
+HRESULT IMAP::HrCmdSetQuota(const std::string &strTag,
+    const std::vector<std::string> &args)
 {
-	return HrResponse(RESP_TAGGED_NO, strTag, "SetQuota Permission denied");
+	HrResponse(RESP_TAGGED_NO, strTag, "SetQuota Permission denied");
+	return hrSuccess;
 }
 
 /** 
@@ -2782,14 +2684,16 @@ HRESULT IMAP::HrCmdSetQuota(const string &strTag, const string &strQuotaRoot, co
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrResponse(const string &strUntag, const string &strResponse)
+void IMAP::HrResponse(const string &strUntag, const string &strResponse)
 {
     // Early cutoff of debug messages. This means the current process's config
     // determines if we log debug info (so HUP will only affect new processes if
     // you want debug output)
 	if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
 		lpLogger->Log(EC_LOGLEVEL_DEBUG, "> %s%s", strUntag.c_str(), strResponse.c_str());
-	return lpChannel->HrWriteLine(strUntag + strResponse);
+	HRESULT hr = lpChannel->HrWriteLine(strUntag + strResponse);
+	if (hr != hrSuccess)
+		throw KMAPIError(hr);
 }
 
 /** 
@@ -2804,7 +2708,7 @@ HRESULT IMAP::HrResponse(const string &strUntag, const string &strResponse)
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrResponse(const string &strResult, const string &strTag, const string &strResponse)
+void IMAP::HrResponse(const string &strResult, const string &strTag, const string &strResponse)
 {
 	unsigned int max_err;
 
@@ -2818,12 +2722,14 @@ HRESULT IMAP::HrResponse(const string &strResult, const string &strTag, const st
 	if (m_ulErrors >= max_err) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Disconnecting client of user %ls because too many (%u) erroneous commands received, last reply:", m_strwUsername.c_str(), max_err);
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "%s%s%s", strTag.c_str(), strResult.c_str(), strResponse.c_str());
-		return MAPI_E_END_OF_SESSION;
+		throw KMAPIError(MAPI_E_END_OF_SESSION);
 	}
 		
 	if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
 		lpLogger->Log(EC_LOGLEVEL_DEBUG, "> %s%s%s", strTag.c_str(), strResult.c_str(), strResponse.c_str());
-	return lpChannel->HrWriteLine(strTag + strResult + strResponse);
+	HRESULT hr = lpChannel->HrWriteLine(strTag + strResult + strResponse);
+	if (hr != hrSuccess)
+		throw KMAPIError(hr);
 }
 
 /** 
@@ -2840,7 +2746,6 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
     const std::string &strCommand, std::unique_ptr<ECRestriction> &&uid_rst)
 {
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder;
 	ENTRYLIST sEntryList;
 	memory_ptr<SRestriction> lpRootRestrict;
@@ -2853,12 +2758,12 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 	sEntryList.lpbin = NULL;
 	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error opening folder");
+		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error opening folder");
 		goto exit;
 	}
 	hr = lpFolder->GetContentsTable(MAPI_DEFERRED_ERRORS , &~lpTable);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error opening folder contents");
+		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error opening folder contents");
 		goto exit;
 	}
 	if (uid_rst != nullptr)
@@ -2870,7 +2775,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		goto exit;
 	hr = HrQueryAllRows(lpTable, spt, lpRootRestrict, nullptr, 0, &~lpRows);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error queryring rows");
+		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error queryring rows");
 		goto exit;
 	}
 
@@ -2890,15 +2795,13 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 
         hr = lpFolder->DeleteMessages(&sEntryList, 0, NULL, 0);
         if (hr != hrSuccess) {
-            hr2 = HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error deleting messages");
+            HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error deleting messages");
             goto exit;
         }
     }
 
 exit:
 	MAPIFreeBuffer(sEntryList.lpbin);
-	if (hr2 != hrSuccess)
-		return hr2;
 	return hr;
 }
 
@@ -3268,9 +3171,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
             std::string strFlags = PropsToFlags(lpRows->aRow[ulMailnr].lpProps, lpRows->aRow[ulMailnr].cValues, lstFolderMailEIDs[iterUID->second].bRecent, false);
 			if (lstFolderMailEIDs[iterUID->second].strFlags != strFlags) {
 				// Flags have changed, notify it
-				hr = HrResponse(RESP_UNTAGGED, stringify(iterUID->second+1) + " FETCH (FLAGS (" + strFlags + "))");
-				if (hr != hrSuccess)
-					return hr;
+				HrResponse(RESP_UNTAGGED, stringify(iterUID->second+1) + " FETCH (FLAGS (" + strFlags + "))");
 				lstFolderMailEIDs[iterUID->second].strFlags = strFlags;
 			}
 			// We already had this message, remove it from setUIDs
@@ -3283,9 +3184,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
     ulMailnr = 0;
     while(ulMailnr < lstFolderMailEIDs.size()) {
         if (mapUIDs.find(lstFolderMailEIDs[ulMailnr].ulUid) != mapUIDs.cend()) {
-            hr = HrResponse(RESP_UNTAGGED, stringify(ulMailnr+1) + " EXPUNGE");
-			if (hr != hrSuccess)
-				return hr;
+            HrResponse(RESP_UNTAGGED, stringify(ulMailnr+1) + " EXPUNGE");
             lstFolderMailEIDs.erase(lstFolderMailEIDs.begin() + ulMailnr);
             continue;
         }
@@ -3296,12 +3195,8 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
     }
     
     if (bNewMail || bInitialLoad) {
-        hr = HrResponse(RESP_UNTAGGED, stringify(lstFolderMailEIDs.size()) + " EXISTS");
-		if (hr != hrSuccess)
-			return hr;
-		hr = HrResponse(RESP_UNTAGGED, stringify(ulRecent) + " RECENT");
-		if (hr != hrSuccess)
-			return hr;
+		HrResponse(RESP_UNTAGGED, stringify(lstFolderMailEIDs.size()) + " EXISTS");
+		HrResponse(RESP_UNTAGGED, stringify(ulRecent) + " RECENT");
     }
 
 	sort(lstFolderMailEIDs.begin(), lstFolderMailEIDs.end());
@@ -3709,9 +3604,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
         if (HrPropertyFetchRow(lpProps, cValues, strResponse, mail_idx, (lpProp != NULL), lstDataItems) != hrSuccess) {
             lpLogger->Log(EC_LOGLEVEL_WARNING, "{?} Error fetching mail");
         } else {
-            hr = HrResponse(RESP_UNTAGGED, strResponse);
-			if (hr != hrSuccess)
-				return hr;
+			HrResponse(RESP_UNTAGGED, strResponse);
         }
 	}
 
