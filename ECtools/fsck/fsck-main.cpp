@@ -212,10 +212,9 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 
 		for (ULONG i = 0; i < lpRows->cRows; ++i) {
 			hr = ProcessFolderEntry(lpFsck, lpFolder, &lpRows->aRow[i]);
-			if (hr != hrSuccess) {
-				cout << "Failed to validate entry." << endl;
+			if (hr != hrSuccess)
 				// Move along, nothing to see.
-			}
+				cout << "Failed to validate entry." << endl;
 		}
 	}
 	return hrSuccess;
@@ -323,12 +322,11 @@ HRESULT Fsck::DeleteMessage(LPMAPIFOLDER lpFolder,
 {
 	HRESULT hr = hrSuccess;
 
-	if (ReadYesNoMessage("Delete message?", auto_del)) {
-		hr = DeleteEntry(lpFolder, lpItemProperty);
-		if (hr == hrSuccess)
-			++this->ulDeleted;
-	}
-
+	if (!ReadYesNoMessage("Delete message?", auto_del))
+		return hr;
+	hr = DeleteEntry(lpFolder, lpItemProperty);
+	if (hr == hrSuccess)
+		++this->ulDeleted;
 	return hr;
 }
 

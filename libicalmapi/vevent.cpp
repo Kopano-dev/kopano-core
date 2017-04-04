@@ -294,11 +294,10 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 		// dtstart contains proposal, X-MS-OLK-ORIGINALSTART optionally contains previous DTSTART
 		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 		while (lpicProp) {
-			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MS-OLK-ORIGINALSTART") == 0) {
+			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MS-OLK-ORIGINALSTART") == 0)
 				lpicOrigDTStartProp = lpicProp;
-			} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MS-OLK-ORIGINALEND") == 0) {
+			else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MS-OLK-ORIGINALEND") == 0)
 				lpicOrigDTEndProp = lpicProp;
-			}
 			lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
 		}
 

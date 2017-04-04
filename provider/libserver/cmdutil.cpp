@@ -64,12 +64,8 @@ ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
 	unsigned int cbData = 0;
 
 	er = g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulObjId, NULL, &cbData, &lpData);
-	if(er != erSuccess)
-		goto exit;
-
-	*lpSourceKey = SOURCEKEY(cbData, (char *)lpData);
-
-exit:
+	if (er == erSuccess)
+		*lpSourceKey = SOURCEKEY(cbData, reinterpret_cast<const char *>(lpData));
 	s_free(nullptr, lpData);
 	return er;
 }

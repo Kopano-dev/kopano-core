@@ -238,13 +238,12 @@ void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 					++lpwHTML;
 					continue;
 				}
-				if (fCommentMode) {
-					if (*(lpwHTML-1) == '-' && *(lpwHTML-2) == '-' ) {
-						++lpwHTML; // comment ends with -->
-						return;
-					}
-				} else {
+				if (!fCommentMode) {
 					++lpwHTML; // all others end on the first >
+					return;
+				}
+				if (*(lpwHTML-1) == '-' && *(lpwHTML-2) == '-' ) {
+					++lpwHTML; // comment ends with -->
 					return;
 				}
 				++lpwHTML;
@@ -416,23 +415,18 @@ bool CHtmlToTextParser::addURLAttribute(const WCHAR *lpattr, bool bSpaces) {
 		return false;
 
 	iter = stackAttrs.top().find(lpattr);
-	if (iter != stackAttrs.top().end()) {
-		if(wcsncasecmp(iter->second.c_str(), L"http:", 5) == 0 ||
-			wcsncasecmp(iter->second.c_str(), L"ftp:", 4) == 0 ||
-			wcsncasecmp(iter->second.c_str(), L"mailto:", 7) == 0)
-		{
-			addSpace(false);
-
-			strText.append(L"<");
-			strText.append(iter->second);
-			strText.append(L">");
-
-			addSpace(false);
-			return true;
-		}
-	}
-
-	return false;
+	if (iter == stackAttrs.top().cend())
+		return false;
+	if (wcsncasecmp(iter->second.c_str(), L"http:", 5) != 0 &&
+	    wcsncasecmp(iter->second.c_str(), L"ftp:", 4) != 0 &&
+	    wcsncasecmp(iter->second.c_str(), L"mailto:", 7) != 0)
+		return false;
+	addSpace(false);
+	strText.append(L"<");
+	strText.append(iter->second);
+	strText.append(L">");
+	addSpace(false);
+	return true;
 }
 
 void CHtmlToTextParser::parseTagSCRIPT() {
@@ -499,38 +493,33 @@ static std::wstring inttostring(unsigned int x) {
 
 void CHtmlToTextParser::parseTagLI() {
 	addNewLine( false );
-
-	if (!listInfoStack.empty()) {
-		for (size_t i = 0; i < listInfoStack.size() - 1; ++i)
-			strText.append(L"\t");
-
-		if (listInfoStack.top().mode == lmOrdered) {
-			strText += inttostring(listInfoStack.top().count++) + L".";
-		} else 
-			strText.append(L"*");
-		
+	if (listInfoStack.empty())
+		return;
+	for (size_t i = 0; i < listInfoStack.size() - 1; ++i)
 		strText.append(L"\t");
-		cNewlines = 0;
-		fTDTHMode = false;
-	}
+	if (listInfoStack.top().mode == lmOrdered)
+		strText += inttostring(listInfoStack.top().count++) + L".";
+	else
+		strText.append(L"*");
+	strText.append(L"\t");
+	cNewlines = 0;
+	fTDTHMode = false;
 }
 
 void CHtmlToTextParser::parseTagDT() {
 	addNewLine( false );
-
-	if (!listInfoStack.empty()) {
-		for (size_t i = 0; i < listInfoStack.size() - 1; ++i)
-			strText.append(L"\t");
-	}
+	if (listInfoStack.empty())
+		return;
+	for (size_t i = 0; i < listInfoStack.size() - 1; ++i)
+		strText.append(L"\t");
 }
 
 void CHtmlToTextParser::parseTagDD() {
 	addNewLine( false );
-
-	if (!listInfoStack.empty()) {
-		for (size_t i = 0; i < listInfoStack.size(); ++i)
-			strText.append(L"\t");
-	}
+	if (listInfoStack.empty())
+		return;
+	for (size_t i = 0; i < listInfoStack.size(); ++i)
+		strText.append(L"\t");
 }
 
 void CHtmlToTextParser::parseTagDL() {

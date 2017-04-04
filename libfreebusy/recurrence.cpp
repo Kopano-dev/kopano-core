@@ -1232,6 +1232,14 @@ time_t recurrence::calcEndDate()
 		// is still inside the recurrence. We subtract one to make sure that the last week is never forwarded over
 		// (eg when numoccur = 2, and daycount = 1)
 		daycount = calcBits(m_sRecState.ulWeekDays);
+		if (daycount == 0) {
+			/*
+			 * If the recurrence never occurs, the event
+			 * will never finish. Just abort it.
+			 */
+			tEnd = tStart;
+			break;
+		}
 		fwd = floor((double)(m_sRecState.ulOccurrenceCount-1) / daycount);
 		rest = m_sRecState.ulOccurrenceCount - (fwd*daycount) - 1;
 		fwd *= m_sRecState.ulPeriod;

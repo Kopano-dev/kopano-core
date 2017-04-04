@@ -749,14 +749,13 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 
 					// Received checks start of string to accept Received-SPF
 					if (strncasecmp(name.c_str(), vmime::fields::RECEIVED, strlen(vmime::fields::RECEIVED)) == 0 ||
-						strcasecmp(name.c_str(), vmime::fields::RETURN_PATH) == 0) {
+					    strcasecmp(name.c_str(), vmime::fields::RETURN_PATH) == 0)
 						// Insert in same order at start of headers
 						vmHeader->insertFieldBefore(j++, vmField);
-					} else if (strncasecmp(name.c_str(), "list-", strlen("list-")) == 0 ||
-							   strcasecmp(name.c_str(), "precedence") == 0) {
+					else if (strncasecmp(name.c_str(), "list-", strlen("list-")) == 0 ||
+					    strcasecmp(name.c_str(), "precedence") == 0)
 						// Just append at the end of this list, order is not important
 						vmHeader->appendField(vmime::dynamicCast<vmime::headerField>(vmField->clone()));
-					}
 				}
 			} catch (vmime::exception& e) {
 				ec_log_warn("VMIME exception adding extra headers: %s", e.what());
@@ -858,10 +857,9 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 			if (sopt.no_recipients_workaround == false) {
 				ec_log_err("No MDN recipient found");
 				return MAPI_E_NOT_FOUND;
-			} else {
-				// no recipient, but need to continue ... is this correct??
-				vmRecipientbox = vmime::make_shared<vmime::mailbox>(string("undisclosed-recipients"));
 			}
+			// no recipient, but need to continue ... is this correct??
+			vmRecipientbox = vmime::make_shared<vmime::mailbox>(string("undisclosed-recipients"));
 		} else {
 			hr = getMailBox(&pRows->aRow[0], &vmRecipientbox);
 			if (hr != hrSuccess)

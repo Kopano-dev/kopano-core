@@ -1043,8 +1043,9 @@ ECRESULT ECStoreObjectTable::Load()
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
-    
-    if(ulFolderId) {
+	if (ulFolderId == 0)
+		return erSuccess;
+
         // Clear old entries
         Clear();
 
@@ -1096,8 +1097,6 @@ ECRESULT ECStoreObjectTable::Load()
         }
 
         LoadRows(&lstObjIds, 0);
-        
-    }
 	return erSuccess;
 }
 
@@ -1107,32 +1106,24 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
     unsigned int ulParent = 0;
 	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
 
-    if(m_ulObjType == MAPI_MESSAGE) {
-        if(lpData->ulFolderId) {
-            // We can either see all messages or none at all. Do this check once only as an optimisation.
-            if(!this->fPermissionRead) {
-                this->ulPermission = lpSession->GetSecurity()->CheckPermission(lpData->ulFolderId, ecSecurityRead);
-                this->fPermissionRead = true;
-            }
-
-            er = this->ulPermission;                    
-        } else {
-            // Get the parent id of the row we're inserting (this is very probably cached from Load())
-            er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);
-            if(er != erSuccess)
-			return er;
-            
-            // This will be cached after the first row in the table is added
-            er = lpSession->GetSecurity()->CheckPermission(ulParent, ecSecurityRead);
-            if(er != erSuccess)
-			return er;
-        }
-    } else if(m_ulObjType == MAPI_FOLDER) {
-        er = lpSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityFolderVisible);
-        if(er != erSuccess)
-			return er;
-    }
-    return er;
+	if (m_ulObjType == MAPI_FOLDER)
+		return lpSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityFolderVisible);
+	if (m_ulObjType != MAPI_MESSAGE)
+		return erSuccess;
+	if (lpData->ulFolderId) {
+		// We can either see all messages or none at all. Do this check once only as an optimisation.
+		if (!this->fPermissionRead) {
+			this->ulPermission = lpSession->GetSecurity()->CheckPermission(lpData->ulFolderId, ecSecurityRead);
+			this->fPermissionRead = true;
+		}
+		return this->ulPermission;
+	}
+	// Get the parent id of the row we're inserting (this is very probably cached from Load())
+	er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);
+	if (er != erSuccess)
+		return er;
+	// This will be cached after the first row in the table is added
+	return lpSession->GetSecurity()->CheckPermission(ulParent, ecSecurityRead);
 }
 
 ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad, bool bOverride, struct restrictTable *lpOverride)
