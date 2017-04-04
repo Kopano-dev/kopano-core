@@ -49,6 +49,32 @@
 	}\
 }
 
+class PyMapiPlugin _kc_final : public pym_plugin_intf {
+	public:
+	PyMapiPlugin(void) = default;
+	virtual ~PyMapiPlugin(void);
+
+	HRESULT Init(ECLogger *lpLogger, PyObject *lpModMapiPlugin, const char* lpPluginManagerClassName, const char *lpPluginPath);
+	virtual HRESULT MessageProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *result);
+	virtual HRESULT RulesProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IExchangeModifyTable *emt_rules, ULONG *result);
+	virtual HRESULT RequestCallExecution(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *do_callexe, ULONG *result);
+
+	swig_type_info *type_p_ECLogger = nullptr, *type_p_IAddrBook = nullptr;
+	swig_type_info *type_p_IMAPIFolder = nullptr;
+	swig_type_info *type_p_IMAPISession = nullptr;
+	swig_type_info *type_p_IMsgStore = nullptr;
+	swig_type_info *type_p_IMessage = nullptr;
+	swig_type_info *type_p_IExchangeModifyTable = nullptr;
+
+	private:
+	PyObjectAPtr m_ptrMapiPluginManager{nullptr};
+	ECLogger *m_lpLogger = nullptr;
+
+	/* Inhibit (accidental) copying */
+	PyMapiPlugin(const PyMapiPlugin &) = delete;
+	PyMapiPlugin &operator=(const PyMapiPlugin &) = delete;
+};
+
 /**
  * Handle the python errors
  * 
