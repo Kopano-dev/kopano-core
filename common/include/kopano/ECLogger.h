@@ -266,7 +266,7 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 class _kc_export_dycast ECLogger_Syslog _kc_final : public ECLogger {
 	private:
 		char *m_ident;
-		int levelmap[16];	/* converts to syslog levels */
+	static const int levelmap[16]; /* converts to syslog levels */
 
 	public:
 		ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);

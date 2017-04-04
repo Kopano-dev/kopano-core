@@ -72,7 +72,7 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	objectid_t	id;
 	ECRESULT	er;
 	string		strQuery;
-	DB_RESULT_AUTOFREE	lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 	string signature;
@@ -174,7 +174,7 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 	std::string signature;
 	ECRESULT	er;
 	string		strQuery;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 
@@ -283,7 +283,7 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 {
 	string strQuery;
 	ECRESULT er = erSuccess;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 
 	// check if user exist
@@ -327,7 +327,7 @@ void DBUserPlugin::addSubObjectRelation(userobject_relation_t relation, const ob
 {
 	ECRESULT er = erSuccess;
 	string strQuery;
-	DB_RESULT_AUTOFREE  lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 
 	// Check if parent exist
 	strQuery =

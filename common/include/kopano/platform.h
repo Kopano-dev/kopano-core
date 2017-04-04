@@ -96,12 +96,10 @@ extern _kc_export void rand_free(void);
 extern _kc_export void rand_get(char *p, int n);
 extern _kc_export char *get_password(const char *prompt);
 
- #define KDLLAPI
-
 /**
  * Memory usage calculation macros
  */
-#define MEMALIGN(x) (((x) + sizeof(void*) - 1) & ~(sizeof(void*) - 1))
+#define MEMALIGN(x) (((x) + alignof(void *) - 1) & ~(alignof(void *) - 1))
 
 #define MEMORY_USAGE_MAP(items, map)		(items * (sizeof(map) + sizeof(map::value_type)))
 #define MEMORY_USAGE_LIST(items, list)		(items * (MEMALIGN(sizeof(list) + sizeof(list::value_type))))

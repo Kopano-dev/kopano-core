@@ -189,7 +189,7 @@ static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 	// Only supported from mysql 5.0
 	er = lpDatabase->DoSelect("SHOW TABLE STATUS WHERE engine != 'InnoDB'", &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	while( (lpRow = lpDatabase->FetchRow(lpResult)) ) {
 		ec_log_crit("Database table '%s' not in InnoDB format: %s", lpRow[0] ? lpRow[0] : "unknown table", lpRow[1] ? lpRow[1] : "unknown engine");
@@ -201,8 +201,6 @@ static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 		ec_log_crit("  ALTER TABLE <table name> ENGINE='InnoDB';");
 		ec_log_crit("This process may take a very long time, depending on the size of your database.");
 	}
-	
-exit:
 #endif
 	return er;
 }
@@ -217,7 +215,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	er = lpDatabase->DoSelect("SELECT value FROM settings WHERE name = 'attachment_storage'", &lpResult);
 	if (er != erSuccess) {
 		ec_log_crit("Unable to read from database");
-		goto exit;
+		return er;
 	}
 
 	lpRow = lpDatabase->FetchRow(lpResult);
@@ -226,11 +224,9 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	    strcmp(lpRow[0], g_lpConfig->GetSetting("attachment_storage")) != 0) {
 		if (!m_bIgnoreAttachmentStorageConflict) {
 			ec_log_err("Attachments are stored with option '%s', but '%s' is selected.", lpRow[0], g_lpConfig->GetSetting("attachment_storage"));
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
-		} else {
-			ec_log_warn("Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
+			return KCERR_DATABASE_ERROR;
 		}
+		ec_log_warn("Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
 	}
 
 	// first time we start, set the database to the selected mode
@@ -239,20 +235,19 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess) {
 		ec_log_err("Unable to update database settings");
-		goto exit;
+		return er;
 	}
 
 	// Create attachment directories
-	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0)
-		// These values are hard coded .. if they change, the hash algorithm will fail, and you'll be FUCKED.
-		for (int i = 0; i < ATTACH_PATHDEPTH_LEVEL1; ++i)
-			for (int j = 0; j < ATTACH_PATHDEPTH_LEVEL2; ++j) {
-				string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
-				CreatePath(path.c_str());
-			}
-
-exit:
-	return er;
+	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") != 0)
+		return erSuccess;
+	// These values are hard coded .. if they change, the hash algorithm will fail, and you'll be FUCKED.
+	for (int i = 0; i < ATTACH_PATHDEPTH_LEVEL1; ++i)
+		for (int j = 0; j < ATTACH_PATHDEPTH_LEVEL2; ++j) {
+			string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
+			CreatePath(path.c_str());
+		}
+	return erSuccess;
 }
 
 static ECRESULT check_distributed_kopano(ECDatabase *lpDatabase)
@@ -266,28 +261,24 @@ static ECRESULT check_distributed_kopano(ECDatabase *lpDatabase)
 	er = lpDatabase->DoSelect("SELECT value FROM settings WHERE name = 'lock_distributed_kopano'", &lpResult);
 	if (er != erSuccess) {
 		ec_log_err("Unable to read from database");
-		goto exit;
+		return er;
 	}
 
 	lpRow = lpDatabase->FetchRow(lpResult);
 
 	// If no value is found in the database any setting is valid
 	if (lpRow == NULL || lpRow[0] == NULL) 
-		goto exit;
+		return er;
 
 	// If any value is found, distributed is not allowed. The value specifies the reason.
 	if (bConfigEnabled) {
 		if (!m_bIgnoreDistributedKopanoConflict) {
 			ec_log_crit("Multiserver mode is locked, reason: '%s'. Contact Kopano for support.", lpRow[0]);
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
-		} else {
-			ec_log_warn("Ignoring multiserver mode lock as requested.");
+			return KCERR_DATABASE_ERROR;
 		}
+		ec_log_warn("Ignoring multiserver mode lock as requested.");
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 static ECRESULT check_attachment_storage_permissions(void)
@@ -328,7 +319,7 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
 		ec_log_err("Unable to read from database");
-		goto exit;
+		return er;
 	}
 
 	er = KCERR_DATABASE_ERROR;
@@ -336,7 +327,7 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	lpRow = lpDatabase->FetchRow(lpResult);
 	if (!lpRow || !lpRow[1]) {
 		ec_log_crit("No tproperties table definition found");
-		goto exit;
+		return er;
 	}
 
 	strTable = lpRow[1];
@@ -344,13 +335,13 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	start = strTable.find("PRIMARY KEY");
 	if (start == string::npos) {
 		ec_log_crit("No primary key found in tproperties table");
-		goto exit;
+		return er;
 	}
 
 	end = strTable.find(")", start);
 	if (end == string::npos) {
 		ec_log_crit("No end of primary key found in tproperties table");
-		goto exit;
+		return er;
 	}
 
 	strTable.erase(end, string::npos);
@@ -366,7 +357,7 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 		start = strTable.find_first_of(',', start+1);
 	if (start == string::npos) {
 		ec_log_warn("Primary key of tproperties table incorrect, trying: %s", strTable.c_str());
-		goto exit;
+		return er;
 	}
 
 	// start+1:end == `type`,`hierarchyid`
@@ -378,11 +369,7 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 		ec_log_warn("  The primary key of the tproperties table is incorrect.");
 		ec_log_warn("  Since updating the primary key on a large table is slow, the server will not automatically update this for you.");
 	}
-
-	er = erSuccess;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
@@ -395,33 +382,30 @@ static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 
 	// only required when procedures are used
 	if (!parseBool(g_lpConfig->GetSetting("enable_sql_procedures")))
-		goto exit;
+		return er;
 
 	strQuery = "SHOW VARIABLES LIKE 'thread_stack'";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
 		ec_log_err("Unable to read from database");
-		goto exit;
+		return er;
 	}
 
 	lpRow = lpDatabase->FetchRow(lpResult);
 	if (!lpRow || !lpRow[1]) {
 		ec_log_err("No thread_stack variable returned");
-		goto exit;
+		return er;
 	}
 
 	ulThreadStack = atoui(lpRow[1]);
 	if (ulThreadStack < MYSQL_MIN_THREAD_STACK) {
 		ec_log_warn("MySQL thread_stack is set to %u, which is too small", ulThreadStack);
 		ec_log_warn("Please set thread_stack to %uK or higher in your MySQL configuration", MYSQL_MIN_THREAD_STACK / 1024);
-		if (m_bIgnoreDbThreadStackSize)
-			ec_log_warn("MySQL thread_stack setting ignored. Please reconsider when 'Thread stack overrun' errors appear in the log.");
-		else
-			er = KCERR_DATABASE_ERROR;
+		if (!m_bIgnoreDbThreadStackSize)
+			return KCERR_DATABASE_ERROR;
+		ec_log_warn("MySQL thread_stack setting ignored. Please reconsider when 'Thread stack overrun' errors appear in the log.");
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**

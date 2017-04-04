@@ -88,7 +88,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	map<objectclass_t, string> objectstrings;
 	string strQuery;
 	string strSubQuery;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpDBLen = NULL;
 	objectdetails_t details;
@@ -532,7 +532,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 	ECRESULT er;
 	string strQuery;
 	string strSubQuery;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	unsigned int ulAffRows = 0;
 
@@ -626,7 +626,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 void DBPlugin::addSubObjectRelation(userobject_relation_t relation, const objectid_t &parentobject, const objectid_t &childobject)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	string strQuery;
 	string strParentSubQuery;
 	string strChildSubQuery;
@@ -768,7 +768,7 @@ std::unique_ptr<quotadetails_t> DBPlugin::getQuota(const objectid_t &objectid,
 	std::unique_ptr<quotadetails_t> lpDetails;
 	ECRESULT er = erSuccess;
 	string strQuery;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
@@ -863,7 +863,7 @@ DBPlugin::CreateSignatureList(const std::string &query)
 {
 	ECRESULT er = erSuccess;
 	std::unique_ptr<signatures_t> objectlist(new signatures_t());
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpDBLen = NULL;
 	string signature;
@@ -928,7 +928,7 @@ std::unique_ptr<abprops_t> DBPlugin::getExtraAddressbookProperties(void)
 {
 	ECRESULT er = erSuccess;
 	std::unique_ptr<abprops_t> proplist(new abprops_t());
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	std::string strQuery;
 	std::string strTable[2];
@@ -982,7 +982,7 @@ void DBPlugin::CreateObjectWithExternId(const objectid_t &objectid, const object
 {
 	ECRESULT er;
 	string strQuery;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 
 	// check if object already exists
 	strQuery = 
@@ -1011,7 +1011,7 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 {
 	ECRESULT er;
 	string strQuery;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	string strPropName;
 	string strPropValue;

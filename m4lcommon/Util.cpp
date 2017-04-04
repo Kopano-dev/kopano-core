@@ -2874,7 +2874,9 @@ HRESULT Util::TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag, LPMAPIPROP l
  * 
  * @return MAPI error code
  */
-HRESULT Util::AddProblemToArray(LPSPropProblem lpProblem, LPSPropProblemArray *lppProblems) {
+HRESULT Util::AddProblemToArray(const SPropProblem *lpProblem,
+    SPropProblemArray **lppProblems)
+{
 	HRESULT hr;
 	LPSPropProblemArray lpNewProblems = NULL;
 	LPSPropProblemArray lpOrigProblems = *lppProblems;

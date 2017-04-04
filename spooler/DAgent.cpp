@@ -3099,142 +3099,140 @@ static void *HandlerLMTP(void *lpArg)
 			}
 			break;
 
-		case LMTP_Command_RCPT_TO:
+		case LMTP_Command_RCPT_TO: {
 			if (lmtp.HrCommandRCPTTO(inBuffer, &strMailAddress) != hrSuccess) {
 				lmtp.HrResponse("503 5.1.3 Bad destination mailbox address syntax");
 				sc -> countInc("DAgent::LMTP", "bad_recipient_address");
+				break;
 			}
-			else {
-				auto lpRecipient = new ECRecipient(converter.convert_to<std::wstring>(strMailAddress));
-						
-				// Resolve the mail address, so to have a user name instead of a mail address
-				hr = ResolveUser(lpAddrDir, lpRecipient);
-				if (hr == hrSuccess) {
-					// This is the status until it is delivered or some other error occurs
-					lpRecipient->wstrDeliveryStatus = L"450 4.2.0 %ls Mailbox temporarily unavailable";
+			auto lpRecipient = new ECRecipient(converter.convert_to<std::wstring>(strMailAddress));
 					
-					hr = AddServerRecipient(&mapRCPT, &lpRecipient);
-					if (hr != hrSuccess)
-						lmtp.HrResponse("503 5.1.1 Failed to add user to recipients");
-					else {
-						// Save original order for final response when mail is delivered in DATA command
-						lOrderedRecipients.push_back(strMailAddress);
-						lmtp.HrResponse("250 2.1.5 Ok");
-					}
-				} else if (hr == MAPI_E_NOT_FOUND) {
-					if (lpRecipient->ulResolveFlags == MAPI_AMBIGUOUS) {
-						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' resolves to multiple users.", strMailAddress.c_str());
-						lmtp.HrResponse("503 5.1.4 Destination mailbox address ambiguous");
-					} else {
-						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' does not resolve to a user.", strMailAddress.c_str());
-						lmtp.HrResponse("503 5.1.1 User does not exist");
-					}
+			// Resolve the mail address, so to have a user name instead of a mail address
+			hr = ResolveUser(lpAddrDir, lpRecipient);
+			if (hr == hrSuccess) {
+				// This is the status until it is delivered or some other error occurs
+				lpRecipient->wstrDeliveryStatus = L"450 4.2.0 %ls Mailbox temporarily unavailable";
+
+				hr = AddServerRecipient(&mapRCPT, &lpRecipient);
+				if (hr != hrSuccess)
+					lmtp.HrResponse("503 5.1.1 Failed to add user to recipients");
+				else {
+					// Save original order for final response when mail is delivered in DATA command
+					lOrderedRecipients.push_back(strMailAddress);
+					lmtp.HrResponse("250 2.1.5 Ok");
+				}
+			} else if (hr == MAPI_E_NOT_FOUND) {
+				if (lpRecipient->ulResolveFlags == MAPI_AMBIGUOUS) {
+					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' resolves to multiple users.", strMailAddress.c_str());
+					lmtp.HrResponse("503 5.1.4 Destination mailbox address ambiguous");
 				} else {
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to lookup email address, error: 0x%08X", hr);
-					lmtp.HrResponse("503 5.1.1 Connection error: "+stringify(hr,1));
+					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' does not resolve to a user.", strMailAddress.c_str());
+					lmtp.HrResponse("503 5.1.1 User does not exist");
 				}
-
-				/*
-				 * If recipient resolving failed, we need to free the recipient structure,
-				 * only when the structure was added to the mapRCPT will it be freed automatically
-				 * later during email delivery.
-				 */
-				delete lpRecipient;
+			} else {
+				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to lookup email address, error: 0x%08X", hr);
+				lmtp.HrResponse("503 5.1.1 Connection error: "+stringify(hr,1));
 			}
+
+			/*
+			 * If recipient resolving failed, we need to free the recipient structure,
+			 * only when the structure was added to the mapRCPT will it be freed automatically
+			 * later during email delivery.
+			 */
+			delete lpRecipient;
 			break;
+		}
 
-		case LMTP_Command_DATA:
-			{
-				if (mapRCPT.empty()) {
-					lmtp.HrResponse("503 5.1.1 No recipients");
-					sc -> countInc("DAgent::LMTP", "no_recipients");
-					break;
-				}
+		case LMTP_Command_DATA: {
+			if (mapRCPT.empty()) {
+				lmtp.HrResponse("503 5.1.1 No recipients");
+				sc->countInc("DAgent::LMTP", "no_recipients");
+				break;
+			}
 
-				FILE *tmp = tmpfile();
-				if (!tmp) {
+			FILE *tmp = tmpfile();
+			if (!tmp) {
+				lmtp.HrResponse("503 5.1.1 Internal error during delivery");
+				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create temp file for email delivery. Please check write-access in /tmp directory. Error: %s", strerror(errno));
+				sc->countInc("DAgent::LMTP", "tmp_file_fail");
+				break;
+			}
+
+			add_misc_headers(tmp, heloName, curFrom, lpArgs);
+			hr = lmtp.HrCommandDATA(tmp);
+			if (hr == hrSuccess) {
+				PyMapiPluginAPtr ptrPyMapiPlugin;
+				hr = GetPluginObject(&pyMapiPluginFactory, &~ptrPyMapiPlugin);
+				if (hr != hrSuccess) {
 					lmtp.HrResponse("503 5.1.1 Internal error during delivery");
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create temp file for email delivery. Please check write-access in /tmp directory. Error: %s", strerror(errno));
-					sc -> countInc("DAgent::LMTP", "tmp_file_fail");
+					sc->countInc("DAgent::LMTP", "internal_error");
+					fclose(tmp);
+					hr = hrSuccess;
 					break;
 				}
 
-				add_misc_headers(tmp, heloName, curFrom, lpArgs);
-				hr = lmtp.HrCommandDATA(tmp);
-				if (hr == hrSuccess) {
-
-					PyMapiPluginAPtr ptrPyMapiPlugin;
-					hr = GetPluginObject(&pyMapiPluginFactory, &~ptrPyMapiPlugin);
-					if (hr != hrSuccess) {
-						lmtp.HrResponse("503 5.1.1 Internal error during delivery");
-						sc -> countInc("DAgent::LMTP", "internal_error");
-						fclose(tmp);
-						hr = hrSuccess;
-						break;
-					}					
-
-					// During delivery lpArgs->ulDeliveryMode can be set to DM_JUNK. However it won't reset it
-					// if required. So make sure to reset it here so we can safely reuse the LMTP connection
-					delivery_mode ulDeliveryMode = lpArgs->ulDeliveryMode;
-					ProcessDeliveryToList(ptrPyMapiPlugin, lpSession, tmp, &mapRCPT, lpArgs);
-					lpArgs->ulDeliveryMode = ulDeliveryMode;
-				}
-					
-				// We're not that interested in the error value here; if an error occurs then this will be reflected in the
-				// wstrDeliveryStatus of each recipient.
-				hr = hrSuccess;
-					
-				/* Responses need to be sent in the same sequence that we received the recipients in.
-				 * Build all responses and find the sequence through the ordered list
-				 */
-
-				auto rawmsg = g_lpConfig->GetSetting("log_raw_message");
-				auto save_all = parseBool(rawmsg) && (strcasecmp(rawmsg, "all") == 0 || strcasecmp(rawmsg, "yes") == 0);
-				if (save_all)
-					SaveRawMessage(tmp, "LMTP");
-
-				for (const auto &company : mapRCPT)
-					for (const auto &server : company.second)
-						for (const auto &recip : server.second) {
-							WCHAR wbuffer[4096];
-							for (const auto i : recip->vwstrRecipients) {
-								swprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
-								mapRecipientResults.insert(make_pair<std::string, std::string>(converter.convert_to<std::string>(i),
-									// rawsize([N]) returns N, not contents len, so cast to fix
-									converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR)));
-								if (!save_all) {
-									auto save_username = converter.convert_to<std::string>(recip->wstrUsername);
-									SaveRawMessage(tmp, save_username.c_str());
-								}
-							}
-						}
-
-				fclose(tmp);
-
-				// Reply each recipient in the received order
-				for (const auto &i : lOrderedRecipients) {
-					std::map<std::string, std::string>::const_iterator r = mapRecipientResults.find(i);
-					if (r == mapRecipientResults.cend()) {
-						// FIXME if a following item from lORderedRecipients does succeed, then this error status
-						// is forgotten. is that ok? (FvH)
-						hr = lmtp.HrResponse("503 5.1.1 Internal error while searching recipient delivery status");
-						sc -> countInc("DAgent::LMTP", "internal_error");
-					}
-					else {
-						hr = lmtp.HrResponse(r->second);
-					}
-					if (hr != hrSuccess)
-						break;
-				}
-
-				sc -> countInc("DAgent::LMTP", "received");
-
-				// Reset RCPT TO list now
-				FreeServerRecipients(&mapRCPT);
-				lOrderedRecipients.clear();
-				mapRecipientResults.clear();
+				// During delivery lpArgs->ulDeliveryMode can be set to DM_JUNK. However it won't reset it
+				// if required. So make sure to reset it here so we can safely reuse the LMTP connection
+				delivery_mode ulDeliveryMode = lpArgs->ulDeliveryMode;
+				ProcessDeliveryToList(ptrPyMapiPlugin, lpSession, tmp, &mapRCPT, lpArgs);
+				lpArgs->ulDeliveryMode = ulDeliveryMode;
 			}
+
+			// We're not that interested in the error value here; if an error occurs then this will be reflected in the
+			// wstrDeliveryStatus of each recipient.
+			hr = hrSuccess;
+
+			/* Responses need to be sent in the same sequence that we received the recipients in.
+			 * Build all responses and find the sequence through the ordered list
+			 */
+
+			auto rawmsg = g_lpConfig->GetSetting("log_raw_message");
+			auto save_all = parseBool(rawmsg) && (strcasecmp(rawmsg, "all") == 0 || strcasecmp(rawmsg, "yes") == 0);
+			if (save_all)
+				SaveRawMessage(tmp, "LMTP");
+
+			for (const auto &company : mapRCPT)
+				for (const auto &server : company.second)
+					for (const auto &recip : server.second) {
+						WCHAR wbuffer[4096];
+						for (const auto i : recip->vwstrRecipients) {
+							swprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
+							mapRecipientResults.insert(make_pair<std::string, std::string>(converter.convert_to<std::string>(i),
+								// rawsize([N]) returns N, not contents len, so cast to fix
+								converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR)));
+							if (save_all)
+								continue;
+							auto save_username = converter.convert_to<std::string>(recip->wstrUsername);
+							SaveRawMessage(tmp, save_username.c_str());
+						}
+					}
+
+			fclose(tmp);
+
+			// Reply each recipient in the received order
+			for (const auto &i : lOrderedRecipients) {
+				std::map<std::string, std::string>::const_iterator r = mapRecipientResults.find(i);
+				if (r == mapRecipientResults.cend()) {
+					// FIXME if a following item from lORderedRecipients does succeed, then this error status
+					// is forgotten. is that ok? (FvH)
+					hr = lmtp.HrResponse("503 5.1.1 Internal error while searching recipient delivery status");
+					sc -> countInc("DAgent::LMTP", "internal_error");
+				}
+				else {
+					hr = lmtp.HrResponse(r->second);
+				}
+				if (hr != hrSuccess)
+					break;
+			}
+
+			sc->countInc("DAgent::LMTP", "received");
+
+			// Reset RCPT TO list now
+			FreeServerRecipients(&mapRCPT);
+			lOrderedRecipients.clear();
+			mapRecipientResults.clear();
 			break;
+		}
 
 		case LMTP_Command_RSET:
 			// Reset RCPT TO list

@@ -447,7 +447,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	std::unique_ptr<signatures_t> objectlist(new signatures_t());
 	std::unique_ptr<signatures_t> objects;
 	map<objectclass_t, string> objectstrings;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	string strQuery;
 	string strSubQuery;
@@ -588,7 +588,7 @@ UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 	std::unique_ptr<objectdetails_t> ud;
 	struct passwd pws;
 	struct group grp;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 	string strQuery;
 
@@ -971,7 +971,7 @@ UnixUserPlugin::objectdetailsFromGrent(struct group *gr)
 std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 {
 	string strQuery;
-	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
+	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	ECRESULT er = erSuccess;
 

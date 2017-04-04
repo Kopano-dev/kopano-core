@@ -366,7 +366,10 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 }
 
 // Utility Functions
-ECRESULT SerializeDatabasePropVal(LPCSTREAMCAPS lpStreamCaps, DB_ROW lpRow, DB_LENGTHS lpLen, ECSerializer *lpSink)
+static ECRESULT GetValidatedPropType(DB_ROW, unsigned int *type);
+
+static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
+    DB_ROW lpRow, DB_LENGTHS lpLen, ECSerializer *lpSink)
 {
 	ECRESULT er = erSuccess;
 	unsigned int type = 0;
@@ -672,7 +675,9 @@ exit:
 	return er;
 }
 
-ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPropVal, ECSerializer *lpSink, const NamedPropDefMap *lpNamedPropDefs)
+static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
+    const struct propVal &sPropVal, ECSerializer *lpSink,
+    const NamedPropDefMap *lpNamedPropDefs)
 {
 	ECRESULT er;
 	unsigned int type = PROP_TYPE(sPropVal.ulPropTag);
@@ -1417,7 +1422,11 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 	return er;
 }
 
-ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, bool bNewItem, ECSerializer *lpSource, struct propValArray **lppPropValArray)
+static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
+    ECAttachmentStorage *lpAttachmentStorage, const StreamCaps *lpStreamCaps,
+    unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId,
+    GUID *lpsGuid, bool bNewItem, ECSerializer *lpSource,
+    struct propValArray **lppPropValArray)
 {
 	ECRESULT		er = erSuccess;
 	unsigned int	ulCount = 0;
@@ -1874,7 +1883,7 @@ exit:
 	return er;
 }
 
-ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType)
+static ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType)
 {
 	ECRESULT er = KCERR_DATABASE_ERROR;
 	unsigned int ulType = 0;
