@@ -249,27 +249,6 @@ class kc_icase_equal {
 	}
 };
 
-static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
-    PyMapiPlugin **lppPyMapiPlugin)
-{
-	HRESULT hr = hrSuccess;
-	std::unique_ptr<PyMapiPlugin> lpPyMapiPlugin;
-
-	if (lpPyMapiPluginFactory == nullptr || lppPyMapiPlugin == nullptr) {
-		assert(false);
-		return MAPI_E_INVALID_PARAMETER;
-	}
-
-	hr = lpPyMapiPluginFactory->CreatePlugin("DAgentPluginManager", &unique_tie(lpPyMapiPlugin));
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to initialize the dagent plugin manager, please check your configuration: %s (%x).",
-			GetMAPIErrorMessage(hr), hr);
-		return MAPI_E_CALL_FAILED;
-	}
-	*lppPyMapiPlugin = lpPyMapiPlugin.release();
-	return hrSuccess;
-}
-
 //Global variables
 
 static bool g_bQuit = false;
@@ -3162,8 +3141,10 @@ static void *HandlerLMTP(void *lpArg)
 			hr = lmtp.HrCommandDATA(tmp);
 			if (hr == hrSuccess) {
 				PyMapiPluginAPtr ptrPyMapiPlugin;
-				hr = GetPluginObject(&pyMapiPluginFactory, &~ptrPyMapiPlugin);
+				hr = pyMapiPluginFactory.CreatePlugin("DAgentPluginManager", &~ptrPyMapiPlugin);
 				if (hr != hrSuccess) {
+					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
+						GetMAPIErrorMessage(hr), hr);
 					lmtp.HrResponse("503 5.1.1 Internal error during delivery");
 					sc->countInc("DAgent::LMTP", "internal_error");
 					fclose(tmp);
@@ -3897,10 +3878,12 @@ int main(int argc, char *argv[]) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
 			goto nonlmtpexit;
 		}
-		hr = GetPluginObject(&pyMapiPluginFactory, &~ptrPyMapiPlugin);
+		hr = pyMapiPluginFactory.CreatePlugin("DAgentPluginmanager", &~ptrPyMapiPlugin);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): GetPluginObject failed %x", hr);
-			goto nonlmtpexit; // Error is logged in GetPluginObject
+			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
+				GetMAPIErrorMessage(hr), hr);
+			hr = MAPI_E_CALL_FAILED;
+			goto nonlmtpexit;
 		}
 
 		hr = deliver_recipient(ptrPyMapiPlugin, argv[optind], strip_email, fp, &sDeliveryArgs);
