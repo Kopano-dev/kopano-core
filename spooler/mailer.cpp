@@ -1848,12 +1848,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sopt.always_expand_distr_list = parseBool(g_lpConfig->GetSetting("expand_groups"));
 
 	// Init plugin system
-	hr = pyMapiPluginFactory.Init(g_lpConfig, g_lpLogger);
-	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
-		goto exit;
-	}
-	hr = pyMapiPluginFactory.CreatePlugin("SpoolerPluginManager", &~ptrPyMapiPlugin);
+	hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "SpoolerPluginManager", &~ptrPyMapiPlugin);
 	if (hr != hrSuccess) {
 		ec_log_crit("K-1733: Unable to initialize the spooler plugin system: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);

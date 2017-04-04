@@ -75,10 +75,8 @@ private:
 class PyMapiPluginFactory _kc_final {
 public:
 	PyMapiPluginFactory(void) = default;
-	HRESULT Init(ECConfig* lpConfig, ECLogger *lpLogger);
 	~PyMapiPluginFactory();
-
-	HRESULT CreatePlugin(const char* lpPluginManagerClassName, PyMapiPlugin **lppPlugin);
+	HRESULT create_plugin(ECConfig *, ECLogger *, const char *mgr_class, PyMapiPlugin **);
 
 private:
 	PyObjectAPtr m_ptrModMapiPlugin{nullptr};

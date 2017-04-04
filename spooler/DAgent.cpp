@@ -2973,13 +2973,6 @@ static void *HandlerLMTP(void *lpArg)
 		Sleep(10000); //wait 10 seconds so you can attach gdb
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting worker for LMTP request");
 	}
-	
-	hr = pyMapiPluginFactory.Init(g_lpConfig, g_lpLogger);
-	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
-		lmtp.HrResponse("421 internal error: pyMapiPluginFactory failed");
-		goto exit;
-	}
 	hr = HrGetSession(lpArgs, KOPANO_SYSTEM_USER_W, &~lpSession);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HandlerLMTP(): HrGetSession failed %x", hr);
@@ -3141,7 +3134,7 @@ static void *HandlerLMTP(void *lpArg)
 			hr = lmtp.HrCommandDATA(tmp);
 			if (hr == hrSuccess) {
 				PyMapiPluginAPtr ptrPyMapiPlugin;
-				hr = pyMapiPluginFactory.CreatePlugin("DAgentPluginManager", &~ptrPyMapiPlugin);
+				hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &~ptrPyMapiPlugin);
 				if (hr != hrSuccess) {
 					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
 						GetMAPIErrorMessage(hr), hr);
@@ -3873,12 +3866,7 @@ int main(int argc, char *argv[]) {
 
 		sc = new StatsClient(g_lpLogger);
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
-		hr = pyMapiPluginFactory.Init(g_lpConfig, g_lpLogger);
-		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
-			goto nonlmtpexit;
-		}
-		hr = pyMapiPluginFactory.CreatePlugin("DAgentPluginmanager", &~ptrPyMapiPlugin);
+		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginmanager", &~ptrPyMapiPlugin);
 		if (hr != hrSuccess) {
 			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);

@@ -289,7 +289,9 @@ PyMapiPluginFactory::~PyMapiPluginFactory()
 		m_lpLogger->Release();
 }
 
-HRESULT PyMapiPluginFactory::Init(ECConfig* lpConfig, ECLogger *lpLogger)
+HRESULT PyMapiPluginFactory::create_plugin(ECConfig *lpConfig,
+    ECLogger *lpLogger, const char *lpPluginManagerClassName,
+    PyMapiPlugin **lppPlugin)
 {
 	HRESULT			hr = S_OK;
 	std::string		strEnvPython;
@@ -302,36 +304,24 @@ HRESULT PyMapiPluginFactory::Init(ECConfig* lpConfig, ECLogger *lpLogger)
 		m_lpLogger->AddRef();
 
 	m_bEnablePlugin = parseBool(lpConfig->GetSetting("plugin_enabled", NULL, "no"));
-	if (!m_bEnablePlugin)
-		return S_OK;
+	if (m_bEnablePlugin) {
+		m_strPluginPath = lpConfig->GetSetting("plugin_path");
+		strEnvPython = lpConfig->GetSetting("plugin_manager_path");
+		lpEnvPython = getenv("PYTHONPATH");
+		if (lpEnvPython)
+			strEnvPython += std::string(":") + lpEnvPython;
+		setenv("PYTHONPATH", strEnvPython.c_str(), 1);
+		lpLogger->Log(EC_LOGLEVEL_DEBUG, "PYTHONPATH = %s", strEnvPython.c_str());
+		Py_Initialize();
+		ptrModule.reset(PyImport_ImportModule("MAPI"));
+		PY_HANDLE_ERROR(m_lpLogger, ptrModule);
+		// Import python plugin framework
+		// @todo error unable to find file xxx
+		ptrName.reset(PyString_FromString("mapiplugin"));
+		m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
+		PY_HANDLE_ERROR(m_lpLogger, m_ptrModMapiPlugin);
+	}
 
-	m_strPluginPath = lpConfig->GetSetting("plugin_path");
-
-	strEnvPython = lpConfig->GetSetting("plugin_manager_path");
-
-	lpEnvPython = getenv("PYTHONPATH");
-	if (lpEnvPython) 
-		strEnvPython += std::string(":") + lpEnvPython;
-
-	setenv("PYTHONPATH", strEnvPython.c_str(), 1);
-
-	lpLogger->Log(EC_LOGLEVEL_DEBUG, "PYTHONPATH = %s", strEnvPython.c_str());
-
-	Py_Initialize();
-	ptrModule.reset(PyImport_ImportModule("MAPI"));
-	PY_HANDLE_ERROR(m_lpLogger, ptrModule);
-
-	// Import python plugin framework
-	// @todo error unable to find file xxx
-	ptrName.reset(PyString_FromString("mapiplugin"));
-	m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
-	PY_HANDLE_ERROR(m_lpLogger, m_ptrModMapiPlugin);
-	return hr;
-}
-
-HRESULT PyMapiPluginFactory::CreatePlugin(const char* lpPluginManagerClassName, PyMapiPlugin **lppPlugin)
-{
-	HRESULT hr = S_OK;
 	std::unique_ptr<PyMapiPlugin> lpPlugin(new(std::nothrow) PyMapiPlugin);
 	if (lpPlugin == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
