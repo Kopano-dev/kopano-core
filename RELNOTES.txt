@@ -10,6 +10,7 @@ Enhancements:
 * gateway: optimize LIST, SELECT, STATUS [KC-490]
 * dagent: log_raw_message option can now be used selectively on users [KC-370]
 * icalmapi: VCF conversion [KC-420]
+* migration-pst: call SaveChanges only once [KC-534]
 Fixes:
 * pyko: do not throw backtraces on log messages [KC-340]
 * server: Ctrl-C now works in gdb [KC-171]
@@ -22,6 +23,10 @@ Fixes:
   (showed garbage in logs) [KC-398]
 * client: add extra checks for EID sizes [KC-500]
 * gateway: enforce user and password checking on local socket [KC-396,KC-490]
+* caldav: avoid a nullptr dereference [KC-236]
+* cachestat: avoid exception and unpack tuple [KC-402]
+* ldapplugin: revert "catch empty ldap_search_base" [KC-602]
+* spooler: fix crash on forwarding rules [KC-608]
 Changes:
 * server: compressed attachments now get the same permissions as uncompressed
   ones [KC-380]
@@ -31,7 +36,8 @@ Changes:
 * backup: maintain deleted folders and add --purge N option [KC-376]
 * migration-pst: filter metadata at start of subject [KC-424]
 * migration-pst: ignore decode errors [KC-521]
-* common: fix empty text bodies when converting U+0000 from HTML [KC-557]
+* common: fix empty text bodies when converting U+0000 from
+  RTF/HTML [KC-557,KC-580]
 * icalmapi: reworked copying description into mail body [KC-568]
 Of special mention:
 * search: python3 support (but requires new python-xapian and,
