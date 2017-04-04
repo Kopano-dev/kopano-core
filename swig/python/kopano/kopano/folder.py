@@ -355,7 +355,7 @@ class Folder(Base):
     def copy(self, objects, folder, _delete=False):
         """Copy items or subfolders to folder
 
-        :param objects: The items or subfolders
+        :param objects: The items or subfolders to copy
         :param folder: The target folder
         """
 
@@ -368,7 +368,7 @@ class Folder(Base):
     def move(self, objects, folder):
         """Move items or subfolders to folder
 
-        :param objects: The items or subfolders
+        :param objects: The items or subfolders to move
         :param folder: The target folder
         """
 

@@ -73,6 +73,7 @@ from .attachment import Attachment
 from .body import Body
 from .base import Base
 from .recurrence import Recurrence, Occurrence
+from .meetingrequest import MeetingRequest
 from .address import Address
 from .table import Table
 
@@ -529,6 +530,10 @@ class Item(Base):
         except MAPIErrorNotFound: # XXX shouldn't happen
             pass
 
+    @property
+    def meetingrequest(self):
+        return MeetingRequest(self)
+
     def _addr_props(self, addr):
         if isinstance(addr, _user.User):
             pr_addrtype = 'ZARAFA'
@@ -799,6 +804,29 @@ class Item(Base):
             entryid = HrGetOneProp(mapiobj, PR_ENTRYID).Value
             self.mapiobj.SetProps([SPropValue(PROP_REF_ITEM_ENTRYID, entryid)])
             self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+
+    def copy(self, folder, _delete=False):
+        """ Copy item to folder; return copied item
+
+        :param folder: target folder
+        """
+
+        mapiobj = folder.mapiobj.CreateMessage(None, 0)
+        self.mapiobj.CopyTo([], [], 0, None, IID_IMessage, mapiobj, 0)
+        if _delete:
+            self.folder.delete(self)
+        item = Item(mapiobj=mapiobj)
+        item.store = self.store # XXX
+        item.server = self.server
+        return item
+
+    def move(self, folder):
+        """ Move item to folder; return moved item
+
+        :param folder: target folder
+        """
+
+        return self.copy(folder, _delete=True)
 
     def __iter__(self):
         return self.props()
