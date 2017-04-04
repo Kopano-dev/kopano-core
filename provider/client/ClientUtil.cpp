@@ -945,25 +945,16 @@ HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, const char *lpszUrl, std::s
 	bool		bIsPeer = false;
 
 	if (lpTransport == NULL || lpszUrl == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+		return MAPI_E_INVALID_PARAMETER;
 	if (strncmp(lpszUrl, "pseudo://", 9))
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return MAPI_E_NOT_FOUND;
 	hr = lpTransport->HrResolvePseudoUrl(lpszUrl, &~lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	serverPath = lpszServerPath.release();
 	if (lpbIsPeer)
 		*lpbIsPeer = bIsPeer;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT HrCompareEntryIdWithStoreGuid(ULONG cbEntryID, LPENTRYID lpEntryID, LPCGUID guidStore)

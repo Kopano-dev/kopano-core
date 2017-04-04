@@ -421,11 +421,11 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		hr = ECMemStream::Create((char*)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
 		     NULL, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpStream->QueryInterface(IID_IStream, (void **)lppUnk);
 		AddChild(lpStream);
 		lpStream->Release();
-		goto exit;
+		return hr;
 	}
 	if (ulFlags & MAPI_MODIFY)
 		ulInterfaceOptions |= STGM_WRITE;
@@ -433,17 +433,15 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	// IStream requested for a property
 	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Yank the property in from disk if it wasn't loaded yet
 	HrLoadProp(ulPropTag);
 
 	// For MAPI_CREATE, reset (or create) the property now
 	if (ulFlags & MAPI_CREATE) {
-		if (!this->fModify) {
-			hr = MAPI_E_NO_ACCESS;
-			goto exit;
-		}
+		if (!this->fModify)
+			return MAPI_E_NO_ACCESS;
 		SPropValue sProp;
 		sProp.ulPropTag = ulPropTag;
 		if (PROP_TYPE(ulPropTag) == PT_BINARY) {
@@ -455,15 +453,13 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		}
 		hr = HrSetRealProp(&sProp);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	hr = HrGetRealProp(ulPropTag, ulFlags, lpsPropValue, lpsPropValue);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		// Promote warnings from GetProps to error
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return MAPI_E_NOT_FOUND;
 
 	lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
 	lpStreamData->ulPropTag = ulPropTag;
@@ -494,22 +490,21 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		}
 	}
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	if (*lpiid == IID_IStorage) { //*lpiid == IID_IStreamDocfile ||
 		//FIXME: Unknown what to do with flag STGSTRM_CURRENT
 		hr = GetMsgStore()->lpSupport->IStorageFromStream((LPUNKNOWN)&lpStream->m_xStream, NULL, ((ulFlags &MAPI_MODIFY)?STGSTRM_MODIFY : 0) | ((ulFlags & MAPI_CREATE)?STGSTRM_CREATE:0), (LPSTORAGE*)lppUnk);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else
 		hr = lpStream->QueryInterface(*lpiid, (void **)lppUnk);
 
 	// Release our copy
 	lpStream->Release();
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	AddChild(lpStream);
-exit:	
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMAPIProp::SaveChanges(ULONG ulFlags)
@@ -742,34 +737,30 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 
 	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpStream->Stat(&sStat, 0);
 
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if(PROP_TYPE(lpStreamData->ulPropTag) == PT_STRING8) {
 		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart+1, lpPropValue, (void **)&buffer);
 	
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		// read the data into the buffer
 		hr = lpStream->Read(buffer, (ULONG)sStat.cbSize.QuadPart, &ulSize);
 	} else if(PROP_TYPE(lpStreamData->ulPropTag) == PT_UNICODE) {
 		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart+sizeof(WCHAR), lpPropValue, (void **)&buffer);
 	
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		// read the data into the buffer
 		hr = lpStream->Read(buffer, (ULONG)sStat.cbSize.QuadPart, &ulSize);
 	} else{
 		hr = lpStream->QueryInterface(IID_ECMemStream, &~lpECStream);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		ulSize = (ULONG)sStat.cbSize.QuadPart;
 		buffer = lpECStream->GetBuffer();
 	}
@@ -793,12 +784,10 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 
 	hr = lpStreamData->lpProp->HrSetRealProp(lpPropValue);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	// on a non transacted object SaveChanges is required
 	if (!lpStreamData->lpProp->isTransactedObject)
 		hr = lpStreamData->lpProp->ECGenericProp::SaveChanges(KEEP_OPEN_READWRITE);
-
-exit:
 	return hr;
 }
 

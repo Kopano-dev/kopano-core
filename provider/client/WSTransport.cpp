@@ -748,22 +748,17 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID, LPENTRYID lpParent
 	if (lpParentEntryID) {
 		hr = UnWrapServerClientStoreEntry(cbParentEntryID, lpParentEntryID, &cbUnWrapParentID, &~lpUnWrapParentID);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapEntryID, &~lpUnWrapEntryID);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = WSMAPIPropStorage::Create(cbUnWrapParentID, lpUnWrapParentID,
 	     cbUnWrapEntryID, lpUnWrapEntryID, ulFlags, m_lpCmd, m_hDataLock,
 	     m_ecSessionId, this->m_ulServerCapabilities, this, &~lpPropStorage);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
-
-exit:
-	return hr;
+		return hr;
+	return lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
 }
 
 HRESULT WSTransport::HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, IECPropStorage **lppPropStorage)
@@ -787,17 +782,13 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, I
 
 	hr = UnWrapServerClientABEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = WSABPropStorage::Create(cbUnWrapStoreID, lpUnWrapStoreID, m_lpCmd,
 	     m_hDataLock, m_ecSessionId, this, &~lpPropStorage);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
-
-exit:
-	return hr;
+		return hr;
+	return lpPropStorage->QueryInterface(IID_IECPropStorage,
+	       reinterpret_cast<void **>(lppPropStorage));
 }
 
 HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, LPENTRYID lpEntryID, WSMAPIFolderOps **lppFolderOps)
@@ -809,15 +800,12 @@ HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, LPENTRYID lpEntryID, WSMAP
 //FIXME: create this function
 //	hr = CheckEntryIDType(cbEntryID, lpEntryID, MAPI_FOLDER);
 //	if( hr != hrSuccess)
-		//goto exit;
+		//return hr;
 	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = WSMAPIFolderOps::Create(m_lpCmd, m_hDataLock, m_ecSessionId,
-	     cbUnWrapStoreID, lpUnWrapStoreID, this, lppFolderOps);
-exit:
-	return hr;
+		return hr;
+	return WSMAPIFolderOps::Create(m_lpCmd, m_hDataLock, m_ecSessionId,
+	       cbUnWrapStoreID, lpUnWrapStoreID, this, lppFolderOps);
 
 }
 
@@ -866,13 +854,11 @@ HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID, LPENTRYID
 	if(lpStoreEntryID) {
 		hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-	hr = WSTableOutGoingQueue::Create(m_lpCmd, m_hDataLock, m_ecSessionId,
-	     cbUnWrapStoreID, lpUnWrapStoreID, lpMsgStore, this,
-	     lppTableOutGoingQueueOps);
-exit:
-	return hr;
+	return WSTableOutGoingQueue::Create(m_lpCmd, m_hDataLock, m_ecSessionId,
+	       cbUnWrapStoreID, lpUnWrapStoreID, lpMsgStore, this,
+	       lppTableOutGoingQueueOps);
 }
 
 HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, LPENTRYLIST lpMsgList, ULONG ulSyncId)

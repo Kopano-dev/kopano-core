@@ -312,7 +312,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 	ULONG			ulObjType;
 
 	if(lpPropTagArray == NULL || lpPropTagArray->cValues == 0) // There is no work to do.
-		goto exit;
+		return hrSuccess;
 
 	for (unsigned int i = 0; i < lpRecipList->cEntries; ++i) {
 		rgpropvalsRecip	= lpRecipList->aEntries[i].rgPropVals;
@@ -339,12 +339,12 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 			continue;	// no
 		hr = lpIMailUser->GetProps(lpPropTagArray, 0, &cValues, &~lpPropArray);
 		if(FAILED(hr) != hrSuccess)
-			goto skip;	// no
+			continue;	// no
 
 		// merge the properties
 		hr = ECAllocateBuffer((cValues + cPropsRecip) * sizeof(SPropValue), &~lpNewPropArray);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		for (j = 0; j < cValues; ++j) {
 			lpPropVal = NULL;
@@ -357,7 +357,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 
 			hr = Util::HrCopyProperty(lpNewPropArray + j, lpPropVal, lpNewPropArray);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		for (j = 0; j < cPropsRecip; ++j) {
@@ -367,7 +367,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 			
 			hr = Util::HrCopyProperty(lpNewPropArray + cValues, &rgpropvalsRecip[j], lpNewPropArray);
 			if(hr != hrSuccess)
-				goto exit;			
+				return hr;
 			++cValues;
 		}
 
@@ -378,15 +378,10 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 			ECFreeBuffer(rgpropvalsRecip); 
 			rgpropvalsRecip = NULL;
 		}
-	skip:
-		;
 	}
 
 	// Always succeeded on this point
-	hr = hrSuccess;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECABLogon, ABLogon, QueryInterface, (REFIID, refiid), (void **, lppInterface))
