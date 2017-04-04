@@ -18,21 +18,12 @@
 #ifndef _PYMAPIPLUGIN_H
 #define _PYMAPIPLUGIN_H
 
-#include <Python.h>
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include <kopano/memory.hpp>
-#include "PythonSWIGRuntime.h"
 #include <edkmdb.h>
-
-class kcpy_decref {
-	public:
-	void operator()(PyObject *obj) { Py_DECREF(obj); }
-};
-
-typedef KCHL::memory_ptr<PyObject, kcpy_decref> PyObjectAPtr;
 
 #define MAKE_CUSTOM_SCODE(sev,fac,code) \
 				(((unsigned int)(sev)<<31) | ((unsigned int)(1)<<29) | ((unsigned int)(fac)<<16) | ((unsigned int)(code)))
@@ -54,14 +45,16 @@ class pym_plugin_intf {
 	virtual HRESULT RequestCallExecution(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *do_callexe, ULONG *result) = 0;
 };
 
+struct pym_factory_priv;
+
 class PyMapiPluginFactory _kc_final {
 public:
-	PyMapiPluginFactory(void) = default;
+	PyMapiPluginFactory(void);
 	~PyMapiPluginFactory();
 	HRESULT create_plugin(ECConfig *, ECLogger *, const char *mgr_class, pym_plugin_intf **);
 
 private:
-	PyObjectAPtr m_ptrModMapiPlugin{nullptr};
+	struct pym_factory_priv *m_priv;
 	bool m_bEnablePlugin = false;
 	std::string m_strPluginPath;
 	ECLogger *m_lpLogger = nullptr;

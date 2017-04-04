@@ -25,6 +25,7 @@
 #include <mapidefs.h>
 #include <kopano/mapiext.h>
 #include <mapiguid.h>
+#include "PythonSWIGRuntime.h"
 #include "PyMapiPlugin.h"
 #include <kopano/stringutil.h>
 #include "frameobject.h"
@@ -48,6 +49,13 @@
 		return S_FALSE;\
 	}\
 }
+
+class kcpy_decref {
+	public:
+	void operator()(PyObject *obj) { Py_DECREF(obj); }
+};
+
+typedef KCHL::memory_ptr<PyObject, kcpy_decref> PyObjectAPtr;
 
 class PyMapiPlugin _kc_final : public pym_plugin_intf {
 	public:
@@ -73,6 +81,10 @@ class PyMapiPlugin _kc_final : public pym_plugin_intf {
 	/* Inhibit (accidental) copying */
 	PyMapiPlugin(const PyMapiPlugin &) = delete;
 	PyMapiPlugin &operator=(const PyMapiPlugin &) = delete;
+};
+
+struct pym_factory_priv {
+	PyObjectAPtr m_ptrModMapiPlugin{nullptr};
 };
 
 /**
@@ -305,14 +317,20 @@ HRESULT PyMapiPlugin::RequestCallExecution(const char *lpFunctionName, IMAPISess
 	return hr;
 }
 
+PyMapiPluginFactory::PyMapiPluginFactory() :
+	m_priv(new struct pym_factory_priv)
+{
+}
+
 PyMapiPluginFactory::~PyMapiPluginFactory()
 {
-	if (m_ptrModMapiPlugin != NULL) {
-		m_ptrModMapiPlugin = NULL;
+	if (m_priv != nullptr && m_priv->m_ptrModMapiPlugin != nullptr) {
+		m_priv->m_ptrModMapiPlugin = nullptr;
 		Py_Finalize();
 	}
 	if (m_lpLogger != nullptr)
 		m_lpLogger->Release();
+	delete m_priv;
 }
 
 HRESULT PyMapiPluginFactory::create_plugin(ECConfig *lpConfig,
@@ -344,14 +362,14 @@ HRESULT PyMapiPluginFactory::create_plugin(ECConfig *lpConfig,
 		// Import python plugin framework
 		// @todo error unable to find file xxx
 		ptrName.reset(PyString_FromString("mapiplugin"));
-		m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
-		PY_HANDLE_ERROR(m_lpLogger, m_ptrModMapiPlugin);
+		m_priv->m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
+		PY_HANDLE_ERROR(m_lpLogger, m_priv->m_ptrModMapiPlugin);
 	}
 
 	std::unique_ptr<PyMapiPlugin> lpPlugin(new(std::nothrow) PyMapiPlugin);
 	if (lpPlugin == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpPlugin->Init(m_lpLogger, m_ptrModMapiPlugin, lpPluginManagerClassName, m_strPluginPath.c_str());
+	hr = lpPlugin->Init(m_lpLogger, m_priv->m_ptrModMapiPlugin, lpPluginManagerClassName, m_strPluginPath.c_str());
 	if (hr != S_OK)
 		return hr;
 	*lppPlugin = lpPlugin.release();
