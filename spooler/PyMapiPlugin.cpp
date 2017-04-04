@@ -291,7 +291,7 @@ PyMapiPluginFactory::~PyMapiPluginFactory()
 
 HRESULT PyMapiPluginFactory::create_plugin(ECConfig *lpConfig,
     ECLogger *lpLogger, const char *lpPluginManagerClassName,
-    PyMapiPlugin **lppPlugin)
+    pym_plugin_intf **lppPlugin)
 {
 	HRESULT			hr = S_OK;
 	std::string		strEnvPython;

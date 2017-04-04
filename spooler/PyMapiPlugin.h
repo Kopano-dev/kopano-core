@@ -46,15 +46,23 @@ typedef KCHL::memory_ptr<PyObject, kcpy_decref> PyObjectAPtr;
 #define MP_EXIT				4	// Exit the all the hook calls and go futher with the mail process.
 #define MP_RETRY_LATER		5	// Stop Process and retry later
 
-class PyMapiPlugin _kc_final {
+class pym_plugin_intf {
+	public:
+	virtual ~pym_plugin_intf() _kc_impdtor;
+	virtual HRESULT MessageProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *result) = 0;
+	virtual HRESULT RulesProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IExchangeModifyTable *emt_rules, ULONG *result) = 0;
+	virtual HRESULT RequestCallExecution(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *do_callexe, ULONG *result) = 0;
+};
+
+class PyMapiPlugin _kc_final : public pym_plugin_intf {
 public:
 	PyMapiPlugin(void) = default;
 	virtual ~PyMapiPlugin(void);
 
 	HRESULT Init(ECLogger *lpLogger, PyObject *lpModMapiPlugin, const char* lpPluginManagerClassName, const char *lpPluginPath);
-	HRESULT MessageProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IMAPIFolder *lpInbox, IMessage *lpMessage, ULONG *lpulResult);
-	HRESULT RulesProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IExchangeModifyTable *lpEMTRules, ULONG *lpulResult);
-	HRESULT RequestCallExecution(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore,  IMAPIFolder *lpFolder, IMessage *lpMessage, ULONG *lpulDoCallexe, ULONG *lpulResult);
+	virtual HRESULT MessageProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *result);
+	virtual HRESULT RulesProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IExchangeModifyTable *emt_rules, ULONG *result);
+	virtual HRESULT RequestCallExecution(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *do_callexe, ULONG *result);
 
 	swig_type_info *type_p_ECLogger = nullptr, *type_p_IAddrBook = nullptr;
 	swig_type_info *type_p_IMAPIFolder = nullptr;
@@ -76,7 +84,7 @@ class PyMapiPluginFactory _kc_final {
 public:
 	PyMapiPluginFactory(void) = default;
 	~PyMapiPluginFactory();
-	HRESULT create_plugin(ECConfig *, ECLogger *, const char *mgr_class, PyMapiPlugin **);
+	HRESULT create_plugin(ECConfig *, ECLogger *, const char *mgr_class, pym_plugin_intf **);
 
 private:
 	PyObjectAPtr m_ptrModMapiPlugin{nullptr};

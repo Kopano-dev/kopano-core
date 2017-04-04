@@ -1821,7 +1821,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	memory_ptr<SPropValue> lpAutoForward, lpMsgClass, lpDeferSendTime;
 
 	PyMapiPluginFactory pyMapiPluginFactory;
-	std::unique_ptr<PyMapiPlugin> ptrPyMapiPlugin;
+	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 	ULONG ulResult = 0;
 
 	ArchiveResult	archiveResult;

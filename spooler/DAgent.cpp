@@ -2202,7 +2202,7 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
  * 
  * @return MAPI Error code
  */
-static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
     LPADRBOOK lpAdrBook, LPMDB lpStore, IMAPIFolder *lpInbox,
     IMAPIFolder *lpFolder, IMessage **lppMessage, ECRecipient *lpRecip,
     DeliveryArgs *lpArgs)
@@ -2339,7 +2339,7 @@ exit:
  * 
  * @return MAPI Error code
  */
-static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpSession, IMsgStore *lpStore, bool bIsAdmin,
     LPADRBOOK lpAdrBook, IMessage *lpOrigMessage, bool bFallbackDelivery,
     const std::string &strMail, ECRecipient *lpRecip, DeliveryArgs *lpArgs,
@@ -2574,7 +2574,7 @@ static void RespondMessageExpired(recipients_t::const_iterator iter,
  * 
  * @return MAPI Error code
  */
-static HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpUserSession, IMessage *lpMessage, bool bFallbackDelivery,
     const std::string &strMail, const std::string &strServer,
     const recipients_t &listRecipients, LPADRBOOK lpAdrBook,
@@ -2686,7 +2686,7 @@ static HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin,
  * 
  * @return MAPI Error code
  */
-static HRESULT ProcessDeliveryToSingleRecipient(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT ProcessDeliveryToSingleRecipient(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpSession, LPADRBOOK lpAdrBook, FILE *fp,
     recipients_t &lstSingleRecip, DeliveryArgs *lpArgs)
 {
@@ -2726,7 +2726,7 @@ static HRESULT ProcessDeliveryToSingleRecipient(PyMapiPlugin *lppyMapiPlugin,
  * 
  * @return MAPI Error code
  */
-static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT ProcessDeliveryToCompany(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpSession, LPADRBOOK lpAdrBook, FILE *fp,
     const serverrecipients_t *lpServerNameRecips, DeliveryArgs *lpArgs)
 {
@@ -2857,7 +2857,7 @@ found:
  * 
  * @return MAPI Error code
  */
-static HRESULT ProcessDeliveryToList(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT ProcessDeliveryToList(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpSession, FILE *fp, companyrecipients_t *lpCompanyRecips,
     DeliveryArgs *lpArgs)
 {
@@ -3133,7 +3133,7 @@ static void *HandlerLMTP(void *lpArg)
 			add_misc_headers(tmp, heloName, curFrom, lpArgs);
 			hr = lmtp.HrCommandDATA(tmp);
 			if (hr == hrSuccess) {
-				std::unique_ptr<PyMapiPlugin> ptrPyMapiPlugin;
+				std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 				hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 				if (hr != hrSuccess) {
 					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
@@ -3428,7 +3428,7 @@ exit:
  * @param[in]	lpArgs		Delivery arguments, according to given options on the commandline.
  * @return		MAPI Error code.
  */
-static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
     const char *recipient, bool bStringEmail, FILE *file,
     DeliveryArgs *lpArgs)
 {
@@ -3852,7 +3852,7 @@ int main(int argc, char *argv[]) {
 	}
 	else {
 		PyMapiPluginFactory pyMapiPluginFactory;
-		std::unique_ptr<PyMapiPlugin> ptrPyMapiPlugin;
+		std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 
 		// log process id prefix to distinguinsh events, file logger only affected
 		g_lpLogger->SetLogprefix(LP_PID);
