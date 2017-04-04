@@ -452,12 +452,12 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get the destination entry ID
 	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpPropArray);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Check if it's  the same store of kopano so we can copy/move fast
 	if( IsKopanoEntryId(cbEntryID, (LPBYTE)lpEntryID) && 
@@ -472,7 +472,7 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 		{
 			hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &~lpPropArray);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		//FIXME: Progressbar
 		hr = this->lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
@@ -482,8 +482,6 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 		// Support object handled de copy/move
 		hr = this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, &this->m_xMAPIFolder, cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
 	}
-
-exit:
 	return hr;
 }
 

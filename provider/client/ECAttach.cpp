@@ -101,10 +101,8 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	ULONG			ulObjId = 0;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if (lpiid == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpiid == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Get the attachement method
 	if (HrGetOneProp(&m_xAttach, PR_ATTACH_METHOD, &~lpPropAttachType) == hrSuccess) {
@@ -122,43 +120,39 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 			fNew = FALSE;			// Create the submessage object from my sSavedObject data
 			ulObjId = (*m_sMapiObject->lstChildren.begin())->ulObjId;
 		} else {
-			if(!fModify || !(ulFlags & MAPI_CREATE)) {
-				hr = MAPI_E_NO_ACCESS;
-				goto exit;
-			}
-
+			if (!fModify || !(ulFlags & MAPI_CREATE))
+				return MAPI_E_NO_ACCESS;
 			fNew = TRUE;			// new message in message
 			ulObjId = 0;
 		}
 
 		hr = ECMessage::Create(this->GetMsgStore(), fNew, ulFlags & MAPI_MODIFY, 0, TRUE, m_lpRoot, &~lpMessage);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Client side unique ID is 0. Attachment can only have 1 submessage
 		hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, 0, ulObjId, this->lpStorage->GetServerStorage(), &~lpParentStorage);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpMessage->HrSetPropStorage(lpParentStorage, !fNew);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if (fNew) {
 			// Load an empty property set
 			hr = lpMessage->HrLoadEmptyProps();
 
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			//Set defaults
 			// Same as ECMAPIFolder::CreateMessage
 			hr = ECAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = this->GetMsgStore()->lpSupport->NewUID(lpMapiUID);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			sPropValue[0].ulPropTag = PR_MESSAGE_FLAGS;
 			sPropValue[0].Value.l = MSGFLAG_UNSENT | MSGFLAG_READ;
@@ -179,16 +173,10 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	} else {
 		if(PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ))
 			ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(PR_ATTACH_DATA_OBJ));
-
-		if(ulAttachType == ATTACH_OLE && (*lpiid != IID_IStorage && *lpiid != IID_IStream) ) {
-			hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-			goto exit;
-		}
-
+		if (ulAttachType == ATTACH_OLE && *lpiid != IID_IStorage && *lpiid != IID_IStream)
+			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 	}
-
-exit:
 	return hr;
 }
 

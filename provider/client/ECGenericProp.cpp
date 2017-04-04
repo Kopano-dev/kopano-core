@@ -431,21 +431,21 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 	
 	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECAllocateBuffer(sizeof(MAPIERROR), &~lpMapiError);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 		
 	if (ulFlags & MAPI_UNICODE) {
 		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
 		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
 
 		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
-			goto exit;
+			return hr;
 		wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
 
 		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
-			goto exit;
+			return hr;
 		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
 
 	} else {
@@ -453,11 +453,11 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
 
 		if ((hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
-			goto exit;
+			return hr;
 		strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
 
 		if ((hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
-			goto exit;
+			return hr;
 		strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());
 	}
 
@@ -465,8 +465,7 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 	lpMapiError->ulLowLevelError= 0;
 	lpMapiError->ulVersion		= 0;
 	*lppMAPIError = lpMapiError.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 // Differential save of changed properties
@@ -772,35 +771,30 @@ HRESULT ECGenericProp::HrLoadProp(ULONG ulPropTag)
 	if(lstProps == NULL || m_bReload == TRUE) {
 		hr = HrLoadProps();
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}			
 
 	iterProps = lstProps->find(PROP_ID(ulPropTag));
-	if(iterProps == lstProps->end() || (PROP_TYPE(ulPropTag) != PT_UNSPECIFIED && PROP_TYPE(ulPropTag) != PROP_TYPE(iterProps->second.GetPropTag())) ) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (iterProps == lstProps->end() ||
+	    (PROP_TYPE(ulPropTag) != PT_UNSPECIFIED &&
+	    PROP_TYPE(ulPropTag) != PROP_TYPE(iterProps->second.GetPropTag())))
+		return MAPI_E_NOT_FOUND;
 
 	// Don't load the data if it was already loaded
-	if(iterProps->second.FIsLoaded()) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (iterProps->second.FIsLoaded())
+		return MAPI_E_NOT_FOUND;
 
   	// The property was not loaded yet, demand-load it now
 	hr = lpStorage->HrLoadProp(m_sMapiObject->ulObjId, iterProps->second.GetPropTag(), &~lpsPropVal);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = iterProps->second.HrSetProp(new ECProperty(lpsPropVal));
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// It's clean 'cause we just loaded it
 	iterProps->second.HrSetClean();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
@@ -822,13 +816,13 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 		hr = GetPropList(ulFlags, &~lpGetPropTagArray);
 
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpPropTagArray = lpGetPropTagArray.get();
 	}
 
 	hr = ECAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues, &~lpsPropValue);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (i = 0; i < lpPropTagArray->cValues; ++i) {
 		if (HrGetHandler(lpPropTagArray->aulPropTag[i], NULL, &lpfnGetProp, &lpParam) == hrSuccess) {
@@ -836,10 +830,10 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 			hrT = lpfnGetProp(lpPropTagArray->aulPropTag[i], this->lpProvider, ulFlags, &lpsPropValue[i], lpParam, lpsPropValue);
 		} else {
 			hrT = HrGetRealProp(lpPropTagArray->aulPropTag[i], ulFlags, lpsPropValue, &lpsPropValue[i], m_ulMaxPropSize);
-			if(hrT != hrSuccess && hrT != MAPI_E_NOT_FOUND && hrT != MAPI_E_NOT_ENOUGH_MEMORY && hrT != MAPI_W_ERRORS_RETURNED) {
-				hr = hrT;
-				goto exit;
-			}
+			if (hrT != hrSuccess && hrT != MAPI_E_NOT_FOUND &&
+			    hrT != MAPI_E_NOT_ENOUGH_MEMORY &&
+			    hrT != MAPI_W_ERRORS_RETURNED)
+				return hrT;
 		}
 
 		if(HR_FAILED(hrT)) {
@@ -853,7 +847,6 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 
 	*lppPropArray = lpsPropValue.release();
 	*lpcValues = lpPropTagArray->cValues;
-exit:
 	return hr;
 
 }
@@ -945,13 +938,11 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	SetPropCallBack		lpfnSetProp = NULL;
 	void*				lpParam = NULL;
 
-	if (lpPropArray == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpPropArray == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = ECAllocateBuffer(CbNewSPropProblemArray(cValues), &~lpProblems);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (unsigned int i = 0; i < cValues; ++i) {
 		// Ignore the PR_NULL property tag and all properties with a type of PT_ERROR;
@@ -980,9 +971,7 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	} else if(lppProblems) {
 		*lppProblems = NULL;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
