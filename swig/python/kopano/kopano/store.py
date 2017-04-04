@@ -12,7 +12,7 @@ import sys
 from MAPI import (
     MAPI_UNICODE, MAPI_MODIFY, KEEP_OPEN_READWRITE, PT_MV_BINARY,
     RELOP_EQ, TBL_BATCH, ECSTORE_TYPE_PUBLIC, FOLDER_SEARCH,
-    MAPI_ASSOCIATED
+    MAPI_ASSOCIATED, MAPI_DEFERRED_ERRORS
 )
 from MAPI.Defs import (
     bin2hex, HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
@@ -57,11 +57,6 @@ from .compat import (
     hex as _hex, unhex as _unhex, decode as _decode, encode as _encode,
     repr as _repr
 )
-
-try:
-    import libcommon # XXX distribute with python-mapi? or rewrite functionality here?
-except ImportError:
-    pass
 
 if sys.hexversion >= 0x03000000:
     from . import server as _server
@@ -344,8 +339,22 @@ class Store(object):
         return self.prop(PR_MESSAGE_SIZE_EXTENDED).value
 
     def config_item(self, name):
-        item = _item.Item()
-        item.mapiobj = libcommon.GetConfigMessage(self.mapiobj, name)
+        """
+        Retrieve the config item for the given `name`.
+
+        :param name: The config item name
+        Return :class:`Item` the config item
+        """
+
+        table = self.subtree.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED)
+        table.Restrict(SPropertyRestriction(RELOP_EQ, PR_SUBJECT, SPropValue(PR_SUBJECT, name)), 0)
+        rows = table.QueryRows(1,0)
+        # No config item found, create new message
+        if len(rows) == 0:
+            item = self.subtree.associated.create_item(message_class='IPM.Zarafa.Configuration', subject=name)
+        else:
+            mapiobj = self.subtree.mapiobj.OpenEntry(rows[0][0].Value, None, MAPI_MODIFY)
+            item = _item.Item(mapiobj=mapiobj)
         return item
 
     @property
