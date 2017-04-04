@@ -15,12 +15,11 @@
  *
  */
 
-#include "phpconfig.h"
-
 #include <kopano/platform.h>
 
 #include <cmath>
 #include <mapiutil.h>
+#include "php-ext/phpconfig.h"
 
 using namespace std;
 

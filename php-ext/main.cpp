@@ -128,6 +128,13 @@ extern "C" {
 	#include "ext/standard/php_string.h"
 }
 
+// Destructor functions needed for the PHP resources. 
+static void _php_free_mapi_session(zend_rsrc_list_entry *rsrc TSRMLS_DC);
+static void _php_free_mapi_rowset(zend_rsrc_list_entry *rsrc TSRMLS_DC);
+static void _php_free_mapi_object(zend_rsrc_list_entry *rsrc TSRMLS_DC);
+static void _php_free_istream(zend_rsrc_list_entry *rsrc TSRMLS_DC);
+static void _php_free_fb_object(zend_rsrc_list_entry *rsrc TSRMLS_DC);
+
 // Not defined anymore in PHP 5.3.0
 // we only use first and fourth versions, so just define those.
 #if ZEND_MODULE_API_NO >= 20071006
