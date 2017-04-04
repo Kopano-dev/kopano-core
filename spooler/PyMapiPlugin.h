@@ -89,6 +89,4 @@ private:
 	PyMapiPluginFactory &operator=(const PyMapiPluginFactory &) = delete;
 };
 
-typedef KCHL::memory_ptr<PyMapiPlugin, std::default_delete<PyMapiPlugin> > PyMapiPluginAPtr;
-
 #endif

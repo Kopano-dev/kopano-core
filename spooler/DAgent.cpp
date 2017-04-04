@@ -3133,8 +3133,8 @@ static void *HandlerLMTP(void *lpArg)
 			add_misc_headers(tmp, heloName, curFrom, lpArgs);
 			hr = lmtp.HrCommandDATA(tmp);
 			if (hr == hrSuccess) {
-				PyMapiPluginAPtr ptrPyMapiPlugin;
-				hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &~ptrPyMapiPlugin);
+				std::unique_ptr<PyMapiPlugin> ptrPyMapiPlugin;
+				hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 				if (hr != hrSuccess) {
 					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
 						GetMAPIErrorMessage(hr), hr);
@@ -3148,7 +3148,7 @@ static void *HandlerLMTP(void *lpArg)
 				// During delivery lpArgs->ulDeliveryMode can be set to DM_JUNK. However it won't reset it
 				// if required. So make sure to reset it here so we can safely reuse the LMTP connection
 				delivery_mode ulDeliveryMode = lpArgs->ulDeliveryMode;
-				ProcessDeliveryToList(ptrPyMapiPlugin, lpSession, tmp, &mapRCPT, lpArgs);
+				ProcessDeliveryToList(ptrPyMapiPlugin.get(), lpSession, tmp, &mapRCPT, lpArgs);
 				lpArgs->ulDeliveryMode = ulDeliveryMode;
 			}
 
@@ -3852,7 +3852,7 @@ int main(int argc, char *argv[]) {
 	}
 	else {
 		PyMapiPluginFactory pyMapiPluginFactory;
-		PyMapiPluginAPtr ptrPyMapiPlugin;
+		std::unique_ptr<PyMapiPlugin> ptrPyMapiPlugin;
 
 		// log process id prefix to distinguinsh events, file logger only affected
 		g_lpLogger->SetLogprefix(LP_PID);
@@ -3866,7 +3866,7 @@ int main(int argc, char *argv[]) {
 
 		sc = new StatsClient(g_lpLogger);
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
-		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginmanager", &~ptrPyMapiPlugin);
+		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginmanager", &unique_tie(ptrPyMapiPlugin));
 		if (hr != hrSuccess) {
 			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);
@@ -3874,7 +3874,7 @@ int main(int argc, char *argv[]) {
 			goto nonlmtpexit;
 		}
 
-		hr = deliver_recipient(ptrPyMapiPlugin, argv[optind], strip_email, fp, &sDeliveryArgs);
+		hr = deliver_recipient(ptrPyMapiPlugin.get(), argv[optind], strip_email, fp, &sDeliveryArgs);
 		if (hr != hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "main(): deliver_recipient failed %x", hr);
 
