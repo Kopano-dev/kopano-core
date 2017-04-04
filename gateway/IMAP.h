@@ -28,9 +28,11 @@
 #include <kopano/ECIConv.h>
 #include <kopano/ECChannel.h>
 #include <kopano/memory.hpp>
+#include <kopano/hl.hpp>
 #include "ClientProto.h"
 
 using namespace std;
+using namespace KCHL;
 namespace KC {
 class ECRestriction;
 }
@@ -57,6 +59,7 @@ class ECRestriction;
 class BinaryArray _kc_final {
 public:
 	BinaryArray(void) : lpb(NULL), cb(0), bcheap(false) {}
+	BinaryArray(KEntryId &entry_id) : lpb(reinterpret_cast<BYTE *>(entry_id.lpb())), cb(entry_id.cb()), bcheap(true) {}
 	BinaryArray(BYTE *lpData, ULONG cbData, bool bcheap = false)
 	{
 		this->bcheap = bcheap;
@@ -194,7 +197,8 @@ private:
 	HRESULT HrCmdRename(const string &strTag, const string &strExistingFolder, const string &strNewFolder);
 	HRESULT HrCmdSubscribe(const string &strTag, const string &strFolder, bool bSubscribe);
 	HRESULT HrCmdList(const string &strTag, string strReferenceFolder, const string &strFolder, bool bSubscribedOnly);
-	HRESULT get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next);
+	HRESULT get_uid_next(KFolder &&status_folder, const std::string &tag, ULONG &uid_next);
+	HRESULT get_recent(KFolder &&folder, const std::string &tag, ULONG &recent, const ULONG &messages);
 	HRESULT HrCmdStatus(const string &strTag, const string &strFolder, string strStatusData);
 	HRESULT HrCmdAppend(const string &strTag, const string &strFolder, const string &strData, string strFlags=string(), const string &strTime=string());
 	HRESULT HrCmdClose(const string &strTag);

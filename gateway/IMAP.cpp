@@ -25,6 +25,7 @@
 #include <iostream>
 #include <algorithm>
 #include <kopano/memory.hpp>
+#include <kopano/hl.hpp>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapicode.h>
@@ -1540,54 +1541,54 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 	return HrResponse(RESP_TAGGED_OK, strTag, strAction+" completed");
 }
 
-HRESULT IMAP::get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next)
+HRESULT IMAP::get_uid_next(KFolder &&folder, const std::string &tag, ULONG &uid_next)
 {
-	object_ptr<IMAPITable> table;
-	HRESULT hr, hr2;
+	HRESULT hr = hrSuccess;
 
-	hr = status_folder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~table);
-	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
-		if(hr2 != hrSuccess)
+	try {
+		auto table = folder.get_contents_table(MAPI_DEFERRED_ERRORS);
+		table.columns({PR_EC_IMAP_ID});
+		table.sort({{PR_EC_IMAP_ID, KTable::DESCEND}});
+		auto rows = table.rows(1, 0);
+		uid_next = rows.count() > 0 ? (rows[0][0].ul() + 1) : 1;
+	}
+	catch (const KMAPIError &e) {
+		hr = e.code();
+		HRESULT hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
+		if (hr2 != hrSuccess)
 			return hr2;
-		return hr;
 	}
 
-	enum {IMAPID, NUM_COLS};
-	SizedSPropTagArray(NUM_COLS, sPropsImapId) = {NUM_COLS, {PR_EC_IMAP_ID}};
+	return hr;
+}
 
-	hr = table->SetColumns(sPropsImapId, TBL_BATCH);
-	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error setting columns for query");
+HRESULT IMAP::get_recent(KFolder &&folder, const std::string &tag, ULONG &recent, const ULONG &messages) {
+	HRESULT hr = hrSuccess;
+
+	try {
+		KProp max_id = nullptr;
+		try {
+			max_id = folder.get_prop(PR_EC_IMAP_MAX_ID);
+		}
+		catch (const KMAPIError &e) {
+			if (e.code() != MAPI_E_NOT_FOUND)
+				throw;
+		}
+
+		if (max_id != nullptr) {
+			auto table = folder.get_contents_table(MAPI_DEFERRED_ERRORS);
+			auto restr = ECPropertyRestriction(RELOP_GT, PR_EC_IMAP_ID, max_id, ECRestriction::Cheap);
+			hr = restr.RestrictTable(table, TBL_BATCH);
+			recent = table.count();
+		}
+		else
+			recent = messages;
+	}
+	catch (const KMAPIError &e) {
+		hr = e.code();
+		auto hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
 		if(hr2 != hrSuccess)
 			return hr2;
-		return hr;
-	}
-
-	static constexpr const SizedSSortOrderSet(1, sSortUID) =
-		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_DESCEND}}};
-
-	hr = table->SortTable(sSortUID, TBL_BATCH);
-	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error sorting the result set");
-		if(hr2 != hrSuccess)
-			return hr2;
-		return hr;
-	}
-
-	SRowSet *rows = nullptr;
-	hr = table->QueryRows(1, 0, &rows);
-	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, tag, "STATUS error querying rows");
-		if(hr2 != hrSuccess)
-			return hr2;
-		return hr;
-	}
-
-	else if (rows->cRows == 0) {
-		uid_next = 1;
-	} else {
-		uid_next = rows->aRow[0].lpProps[IMAPID].Value.ul + 1;
 	}
 
 	return hr;
@@ -1615,7 +1616,7 @@ HRESULT IMAP::get_uid_next(IMAPIFolder *status_folder, const std::string &tag, U
 HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string strStatusData) {
 	HRESULT hr = hrSuccess;
 	HRESULT hr2 = hrSuccess;
-	object_ptr<IMAPIFolder> lpStatusFolder;
+	KFolder lpStatusFolder;
 	vector<string> lstStatusData;
 	string strData;
 	string strResponse;
@@ -1627,13 +1628,11 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 	ULONG ulUIDNext = 0;
 	ULONG ulRecent = 0;
 	ULONG cStatusData = 0;
-	object_ptr<IMAPITable> lpTable;
 	ULONG cValues;
 	static constexpr const SizedSPropTagArray(3, sPropsFolderCounters) =
 		{3, {PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_EC_HIERARCHYID}};
 	memory_ptr<SPropValue> lpPropCounters, lpPropMaxID;
 	wstring strIMAPFolder;
-	SPropValue sPropMaxID;
     
 	if (!lpSession) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no session");
@@ -1648,11 +1647,15 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 
 	strStatusData = strToUpper(strStatusData);
 	strIMAPFolder = strToUpper(strIMAPFolder);
-	hr = HrFindFolder(strIMAPFolder, false, &~lpStatusFolder);
+	object_ptr<IMAPIFolder> tmp_folder;
+	hr = HrFindFolder(strIMAPFolder, false, &~tmp_folder);
+
 	if(hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error finding folder");
 		return hr2 != hrSuccess ? hr2 : MAPI_E_CALL_FAILED;
 	}
+
+	lpStatusFolder = tmp_folder.release();
 
 	if (!IsMailFolder(lpStatusFolder)) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no mail folder");
@@ -1696,36 +1699,11 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 			snprintf(szBuffer, 10, "%u", ulMessages);
 			strResponse += szBuffer;
 		} else if (strData.compare("RECENT") == 0) {
-            // Get 'recent' count from the table
-            if (HrGetOneProp(lpStatusFolder, PR_EC_IMAP_MAX_ID, &~lpPropMaxID) == hrSuccess && lpPropMaxID != nullptr) {
-                hr = lpStatusFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~lpTable);
-                if(hr != hrSuccess) {
-                    hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error getting contents");
-                    return hr2 != hrSuccess ? hr2 : hr;
-                }
-
-                sPropMaxID.ulPropTag = PR_EC_IMAP_ID;
-                sPropMaxID.Value.ul = lpPropMaxID->Value.ul;
-                hr = ECPropertyRestriction(RELOP_GT, PR_EC_IMAP_ID, &sPropMaxID, ECRestriction::Cheap)
-                     .RestrictTable(lpTable, TBL_BATCH);
-                if(hr != hrSuccess) {
-                    hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error getting recent");
-					return hr2 != hrSuccess ? hr2 : hr;
-                }
-                
-                hr = lpTable->GetRowCount(0, &ulRecent);
-                if(hr != hrSuccess) {
-                    hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error getting row count for recent");
-					return hr2 != hrSuccess ? hr2 : hr;
-                }
-            } else {
-                // No max id, all messages are Recent
-                ulRecent = ulMessages;
-            }
+			get_recent(std::move(lpStatusFolder), strTag, ulRecent, ulMessages);
 			snprintf(szBuffer, 10, "%u", ulRecent);
 			strResponse += szBuffer;
 		} else if (strData.compare("UIDNEXT") == 0) {
-			get_uid_next(lpStatusFolder, strTag, ulUIDNext);
+			get_uid_next(std::move(lpStatusFolder), strTag, ulUIDNext);
 			snprintf(szBuffer, 10, "%u", ulUIDNext);
 			strResponse += szBuffer;
 		} else if (strData.compare("UIDVALIDITY") == 0) {
@@ -3187,7 +3165,6 @@ bool IMAP::IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID) {
 HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigned int *lpulUnseen, ULONG *lpulUIDValidity) {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder;
-	object_ptr<IMAPITable> lpTable;
 	ULONG ulMailnr = 0;
 	ULONG ulMaxUID = 0;
 	ULONG ulRecent = 0;
@@ -3195,12 +3172,6 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 	SMail sMail;
 	bool bNewMail = false;
 	enum { EID, IKEY, IMAPID, FLAGS, FLAGSTATUS, MSGSTATUS, LAST_VERB, NUM_COLS };
-	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
-		{NUM_COLS, {PR_ENTRYID, PR_INSTANCE_KEY, PR_EC_IMAP_ID,
-		PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS,
-		PR_LAST_VERB_EXECUTED}};
-	static constexpr const SizedSSortOrderSet(1, sSortUID) =
-	    {1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_ASCEND}}};
 	vector<SMail>::const_iterator iterMail;
 	map<unsigned int, unsigned int> mapUIDs; // Map UID -> ID
 	SPropValue sPropMax;
@@ -3226,16 +3197,19 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 
 	if (lpulUIDValidity && lpFolderIDs[1].ulPropTag == PR_EC_HIERARCHYID)
 		*lpulUIDValidity = lpFolderIDs[1].Value.ul;
-	hr = lpFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~lpTable);
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpTable->SetColumns(spt, TBL_BATCH);
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpTable->SortTable(sSortUID, TBL_BATCH);
-	if (hr != hrSuccess)
-		return hr;
 
+	auto folder = KFolder(lpFolder.release());
+	auto table = KTable(nullptr);
+	try {
+		table = folder.get_contents_table(MAPI_DEFERRED_ERRORS);
+		table.columns({PR_ENTRYID, PR_INSTANCE_KEY, PR_EC_IMAP_ID,
+					PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS,
+					PR_LAST_VERB_EXECUTED}, TBL_BATCH);
+		table.sort({{PR_EC_IMAP_ID, KTable::ASCEND}}, TBL_BATCH);
+	}
+	catch (const KMAPIError &e) {
+		return e.code();
+	}
     // Remember UIDs if needed
     if(!bInitialLoad)
 		for (const auto &mail : lstFolderMailEIDs)
@@ -3251,16 +3225,16 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
     // Scan MAPI for new and existing messages
 	while(1) {
 		rowset_ptr lpRows;
-		hr = lpTable->QueryRows(ROWS_PER_REQUEST, 0, &~lpRows);
+		hr = table->QueryRows(ROWS_PER_REQUEST, 0, &~lpRows);
 		if (hr != hrSuccess)
 			return hr;
         if(lpRows->cRows == 0)
             break;
             
 		for (ulMailnr = 0; ulMailnr < lpRows->cRows; ++ulMailnr) {
-            if (lpRows->aRow[ulMailnr].lpProps[EID].ulPropTag != spt.aulPropTag[EID] ||
-                lpRows->aRow[ulMailnr].lpProps[IKEY].ulPropTag != spt.aulPropTag[IKEY] ||
-                lpRows->aRow[ulMailnr].lpProps[IMAPID].ulPropTag != spt.aulPropTag[IMAPID])
+            if (lpRows->aRow[ulMailnr].lpProps[EID].ulPropTag != PR_ENTRYID ||
+                lpRows->aRow[ulMailnr].lpProps[IKEY].ulPropTag != PR_INSTANCE_KEY ||
+                lpRows->aRow[ulMailnr].lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID)
                 continue;
 
             auto iterUID = mapUIDs.find(lpRows->aRow[ulMailnr].lpProps[IMAPID].Value.ul);
@@ -3336,7 +3310,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
     if(bResetRecent && ulRecent) {
     	sPropMax.ulPropTag = PR_EC_IMAP_MAX_ID;
     	sPropMax.Value.ul = m_ulLastUid;
-    	HrSetOneProp(lpFolder, &sPropMax);
+    	HrSetOneProp(folder, &sPropMax);
     }
 	if (lpulUnseen)
 		*lpulUnseen = ulUnseen;
@@ -3386,15 +3360,15 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, c
 	if (lpSession == nullptr)
 		return MAPI_E_CALL_FAILED;
 
-	SFolder folder;
-	folder.bActive = true;
-	folder.bSpecialFolder = IsSpecialFolder(in_entry_id.cb, reinterpret_cast<ENTRYID *>(in_entry_id.lpb));
-	folder.bMailFolder = false;
-	folder.lpParentFolder = parent_folder;
-	folder.strFolderName = in_folder_name;
-	folder.bHasSubfolders = true;
+	SFolder sfolder;
+	sfolder.bActive = true;
+	sfolder.bSpecialFolder = IsSpecialFolder(in_entry_id.cb, reinterpret_cast<ENTRYID *>(in_entry_id.lpb));
+	sfolder.bMailFolder = false;
+	sfolder.lpParentFolder = parent_folder;
+	sfolder.strFolderName = in_folder_name;
+	sfolder.bHasSubfolders = true;
+	folders.push_front(sfolder);
 
-	folders.push_front(folder);
 	parent_folder = folders.cbegin();
 
 	ULONG obj_type;
@@ -3403,95 +3377,77 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, c
 	if (hr != hrSuccess)
 		return hr;
 
-	object_ptr<IMAPITable> mapi_table;
-	hr = mapi_folder->GetHierarchyTable(CONVENIENT_DEPTH, &~mapi_table);
-	if (hr != hrSuccess)
-		return hr;
-
 	enum { EID, PEID, NAME, IMAPID, SUBFOLDERS, CONTAINERCLASS, NUM_COLS };
-	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
-		{NUM_COLS, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W, PR_EC_IMAP_ID,
-		PR_SUBFOLDERS, PR_CONTAINER_CLASS_A}};
+	try {
+		KFolder folder = mapi_folder.release();
+		KTable table = folder.get_hierarchy_table(CONVENIENT_DEPTH);
+		table.columns({PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W, PR_EC_IMAP_ID, PR_SUBFOLDERS, PR_CONTAINER_CLASS_A});
+		table.sort({{PR_DEPTH, KTable::ASCEND}});
+		KRowSet rows = table.rows(-1, 0);
 
-	hr = mapi_table->SetColumns(spt, 0);
-	if (hr != hrSuccess)
-		return hr;
-
-	static constexpr const SizedSSortOrderSet(1, mapi_sort_criteria) =
-		{1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
-
-	hr = mapi_table->SortTable(mapi_sort_criteria, 0);
-	if (hr != hrSuccess) {
-		return hr;
-	}
-
-	rowset_ptr rows;
-	hr = mapi_table->QueryRows(-1, 0, &~rows);
-	if (hr != hrSuccess)
-		return hr;
-
-	for (ULONG i = 0; i < rows->cRows; ++i) {
-		// no entryid, no folder
-		if (PROP_TYPE(rows->aRow[i].lpProps[EID].ulPropTag) != PT_BINARY)
-			continue;
-		if (PROP_TYPE(rows->aRow[i].lpProps[PEID].ulPropTag) != PT_BINARY)
-			continue;
-
-		if (PROP_TYPE(rows->aRow[i].lpProps[IMAPID].ulPropTag) != PT_LONG) {
-		    lpLogger->Log(EC_LOGLEVEL_FATAL, "Server does not support PR_EC_IMAP_ID. Please update the storage server.");
-		    break;
-		}
-
-		wstring foldername = L"";
-		bool subfolders = true;
-		bool mailfolder = true;
-
-		if (PROP_TYPE(rows->aRow[i].lpProps[NAME].ulPropTag) == PT_UNICODE)
-			foldername = rows->aRow[i].lpProps[NAME].Value.lpszW;
-
-		if (PROP_TYPE(rows->aRow[i].lpProps[SUBFOLDERS].ulPropTag) == PT_BOOLEAN)
-			subfolders = rows->aRow[i].lpProps[SUBFOLDERS].Value.b;
-
-		if (PROP_TYPE(rows->aRow[i].lpProps[CONTAINERCLASS].ulPropTag) == PT_STRING8){
-			string container_class = rows->aRow[i].lpProps[CONTAINERCLASS].Value.lpszA;
-
-			container_class = strToUpper(container_class);
-
-			if (!container_class.empty() &&
-			    container_class.compare(0, 3, "IPM") != 0 &&
-			    container_class.compare("IPF.NOTE") != 0) {
-
-				if (bOnlyMailFolders)
-					continue;
-				mailfolder = false;
-			}
-		}
-
-		SBinary entry_id = rows->aRow[i].lpProps[EID].Value.bin;
-		SBinary parent_entry_id = rows->aRow[i].lpProps[PEID].Value.bin;
-
-		while (foldername.find(IMAP_HIERARCHY_DELIMITER) != string::npos)
-			foldername.erase(foldername.find(IMAP_HIERARCHY_DELIMITER), 1);
-
-		list<SFolder>::const_iterator tmp_parent_folder = parent_folder;
-		for (auto iter = folders.cbegin(); iter != folders.cend(); iter++) {
-			if (iter->sEntryID == parent_entry_id) {
-				tmp_parent_folder = iter;
+		for (unsigned int i = 0; i < rows.count(); ++i) {
+			if (rows[i][IMAPID].prop_type() != PT_LONG) {
+				lpLogger->Log(EC_LOGLEVEL_FATAL, "Server does not support PR_EC_IMAP_ID. Please update the storage server.");
 				break;
 			}
+
+			try {
+				string container_class = "";
+				bool mailfolder = true;
+				wstring foldername = rows[i][NAME].wstr();
+				bool subfolders = rows[i][SUBFOLDERS].b();
+				try {
+					container_class = rows[i][CONTAINERCLASS].str();
+				}
+				catch (const KMAPIError &e) {
+					if(e.code() != MAPI_E_NOT_FOUND && e.code() != MAPI_E_INVALID_TYPE)
+						throw;
+				}
+
+				while (foldername.find(IMAP_HIERARCHY_DELIMITER) != string::npos)
+					foldername.erase(foldername.find(IMAP_HIERARCHY_DELIMITER), 1);
+
+
+				container_class = strToUpper(container_class);
+
+				if (!container_class.empty() &&
+					container_class.compare(0, 3, "IPM") != 0 &&
+					container_class.compare("IPF.NOTE") != 0) {
+
+					if (bOnlyMailFolders)
+						continue;
+					mailfolder = false;
+				}
+
+				auto entry_id = rows[i][EID].entry_id();
+				auto parent_entry_id = rows[i][PEID].entry_id();
+
+				list<SFolder>::const_iterator tmp_parent_folder = parent_folder;
+				for (auto iter = folders.cbegin(); iter != folders.cend(); iter++) {
+					if (iter->sEntryID == parent_entry_id) {
+						tmp_parent_folder = iter;
+						break;
+					}
+				}
+				auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), BinaryArray(entry_id));
+				sfolder.bActive = subscribed_iter != m_vSubscriptions.cend();
+				sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb(), entry_id.lpb());
+				sfolder.bMailFolder = mailfolder;
+				sfolder.lpParentFolder = tmp_parent_folder;
+				sfolder.strFolderName = foldername;
+				sfolder.sEntryID = entry_id;
+				sfolder.bHasSubfolders = subfolders;
+				folders.push_front(sfolder);
+			}
+			catch (const KMAPIError &e) {
+				/* just continue */
+			}
 		}
-
-		auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), BinaryArray(entry_id));
-		folder.bActive = subscribed_iter != m_vSubscriptions.cend();
-		folder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb));
-		folder.bMailFolder = mailfolder;
-		folder.lpParentFolder = tmp_parent_folder;
-		folder.strFolderName = foldername;
-		folder.sEntryID = entry_id;
-		folder.bHasSubfolders = subfolders;
-
-		folders.push_front(folder);
 	}
+	catch (const KMAPIError &e) {
+		return e.code();
+	}
+
 	return hrSuccess;
 }
 
