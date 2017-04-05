@@ -208,9 +208,9 @@ private:
 	HRESULT HrCmdClose(const string &strTag);
 	HRESULT HrCmdExpunge(const string &strTag, const string &strSeqSet);
 	HRESULT HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteria, bool bUidMode);
-	HRESULT HrCmdFetch(const string &strTag, const string &strSeqSet, const string &strMsgDataItemNames, bool bUidMode);
-	HRESULT HrCmdStore(const string &strTag, const string &strSeqSet, const string &strMsgDataItemName, const string &strMsgDataItemValue, bool bUidMode);
-	HRESULT HrCmdCopy(const string &strTag, const string &strSeqSet, const string &strFolder, bool bUidMode);
+	HRESULT HrCmdFetch(const string &strTag, const std::vector<std::string> &args, bool bUidMode);
+	HRESULT HrCmdStore(const string &strTag, const std::vector<std::string> &args, bool bUidMode);
+	HRESULT HrCmdCopy(const string &strTag, const std::vector<std::string> &args, bool bUidMode);
 	HRESULT HrCmdUidXaolMove(const string &strTag, const string &strSeqSet, const string &strFolder);
 	HRESULT HrCmdIdle(const string &strTag);
 	HRESULT HrCmdNamespace(const string &strTag);
