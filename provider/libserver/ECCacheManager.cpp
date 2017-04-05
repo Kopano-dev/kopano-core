@@ -525,7 +525,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 			goto exit;
 
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
+			lpDBLen = lpDBResult.fetch_row_lengths();
 			ECsIndexProp p(PROP_ID(ulTag), reinterpret_cast<unsigned char *>(lpDBRow[1]), lpDBLen[1]);
 			mapObjects[std::move(p)] = atoui(lpDBRow[0]);
 		}
@@ -661,8 +661,7 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 	}
 
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
@@ -759,8 +758,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 
 	// TODO: check, should return 1 answer
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
@@ -852,8 +850,7 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 
 	while (TRUE) {
 		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBRow[4] == NULL)
 			break;
 
@@ -1594,7 +1591,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 		goto exit;
 
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLenths = lpDatabase->FetchRowLengths(lpDBResult);
+	lpDBLenths = lpDBResult.fetch_row_lengths();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBLenths == NULL) {
 		er = KCERR_NOT_FOUND;
 		goto exit;

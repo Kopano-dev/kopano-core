@@ -133,8 +133,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		// No way to determine externid
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
-
-		lpDBLen = m_lpDatabase->FetchRowLengths(lpResult);
+		lpDBLen = lpResult.fetch_row_lengths();
 		if (lpDBLen == NULL || lpDBLen[0] == 0)
 			continue;
 
@@ -214,8 +213,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL)
 			continue;
-
-		lpDBLen = m_lpDatabase->FetchRowLengths(lpResult);
+		lpDBLen = lpResult.fetch_row_lengths();
 		if (lpDBLen == NULL || lpDBLen[2] == 0)
 			continue;
 
@@ -881,8 +879,7 @@ DBPlugin::CreateSignatureList(const std::string &query)
 			signature = lpDBRow[2];
 
 		objclass = objectclass_t(atoi(lpDBRow[1]));
-
-		lpDBLen = m_lpDatabase->FetchRowLengths(lpResult);
+		lpDBLen = lpResult.fetch_row_lengths();
 		assert(lpDBLen != NULL);
 		if (lpDBLen[0] == 0)
 			throw runtime_error(string("db_row_failed: object empty"));

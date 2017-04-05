@@ -246,7 +246,7 @@ ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
 	if(er != erSuccess)
 		return er;
 	lpDBRow = lpResult.fetch_row();
-	lpDBLenths = lpDatabase->FetchRowLengths(lpResult);
+	lpDBLenths = lpResult.fetch_row_lengths();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBLenths == NULL || lpDBLenths[0] != sizeof(GUID)) {
 		ec_log_err("UpdateDatabaseCreateSourceKeys(): row or columns NULL");
 		return KCERR_DATABASE_ERROR;
@@ -288,7 +288,7 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 
 	for (i = 0; i < nStores; ++i) {
 		lpDBRow = lpResult.fetch_row();
-		lpDBLenths = lpDatabase->FetchRowLengths(lpResult);
+		lpDBLenths = lpResult.fetch_row_lengths();
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || 
 			lpDBLenths == NULL || lpDBLenths[0] != sizeof(GUID) )
 		{
@@ -857,7 +857,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 		strQuery.clear();
 		bFirstResult = true;
 		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
-			lpDBLen = lpDatabase->FetchRowLengths(lpResult);
+			lpDBLen = lpResult.fetch_row_lengths();
 			if (lpDBLen == NULL) {
 				er = KCERR_DATABASE_ERROR;
 				ec_log_err("UpdateDatabaseAddExternIdToObject(): FetchRowLengths failed");
@@ -1060,8 +1060,7 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 
 	// Extract the AB changes from the changes table.
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
-		lpDBLen = lpDatabase->FetchRowLengths(lpResult);
-
+		lpDBLen = lpResult.fetch_row_lengths();
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBLen[1] == 0 || lpDBRow[2] == NULL || lpDBLen[2] == 0) {
 			er = KCERR_DATABASE_ERROR;
 			ec_log_crit("  changes table contains invalid NULL records");
@@ -1200,7 +1199,7 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 		strUpdate = "(";
 		bFirst = true;
 		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
-			lpDBLen = lpDatabase->FetchRowLengths(lpResult);
+			lpDBLen = lpResult.fetch_row_lengths();
 			if (lpDBRow[0] == NULL || lpDBLen == NULL || lpDBLen[0] == 0) {
 				ec_log_crit("  users table contains invalid NULL records for type %d", p.first);
 				return KCERR_DATABASE_ERROR;
@@ -1266,9 +1265,7 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
-
-		lpDBLen = lpDatabase->FetchRowLengths(lpResult);
-		
+		lpDBLen = lpResult.fetch_row_lengths();
 		mapIdToName.insert(pair<string,string>(string(lpDBRow[0], lpDBLen[0]), string(lpDBRow[1], lpDBLen[1])));
 	}
 
@@ -1392,9 +1389,7 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
-
-		lpDBLen = lpDatabase->FetchRowLengths(lpResult);
-		
+		lpDBLen = lpResult.fetch_row_lengths();
 		lstRelations.push_back(pair<string,string>(string(lpDBRow[0], lpDBLen[0]), string(lpDBRow[1], lpDBLen[1])));
 	}
 
@@ -1439,9 +1434,7 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
-
-		lpDBLen = lpDatabase->FetchRowLengths(lpResult);
-		
+		lpDBLen = lpResult.fetch_row_lengths();
 		mapStoreInbox.insert(pair<string,string>(string(lpDBRow[0], lpDBLen[0]), string(lpDBRow[1], lpDBLen[1])));
 	}
 

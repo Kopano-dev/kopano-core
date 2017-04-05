@@ -292,8 +292,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 
 	if (lpDBResult.get_num_rows() > 0) {
 		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow != nullptr && lpDBRow[0] != nullptr &&
 		    lpDBLen != nullptr && lpDBLen[0] > 16)
 			strChangeList.assign(lpDBRow[0], lpDBLen[0]);
@@ -310,8 +309,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 
 	if (lpDBResult.get_num_rows() > 0) {
 		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if(lpDBRow && lpDBRow[0] && lpDBLen && lpDBLen[0] >16){
 			AddChangeKeyToChangeList(&strChangeList, lpDBLen[0], lpDBRow[0]);
 		}
@@ -533,8 +531,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             }
 
             lpDBRow = lpDBResult.fetch_row();
-            lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+            lpDBLen = lpDBResult.fetch_row_lengths();
             if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL){
                 er = KCERR_DATABASE_ERROR; // this should never happen
 			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
@@ -558,8 +555,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				goto exit;
 
 			lpDBRow = lpDBResult.fetch_row();
-            lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+			lpDBLen = lpDBResult.fetch_row_lengths();
 			if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 				std::string username;
 
@@ -621,7 +617,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		unsigned int length_counter = 0;
 
 		while (lpDBResult && (lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
+			lpDBLen = lpDBResult.fetch_row_lengths();
 			if (lpDBLen == NULL)
 				continue;
 			memcpy(&col_lengths[length_counter*ncols], lpDBLen, ncols * sizeof(*col_lengths));
@@ -781,8 +777,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                     if(er != erSuccess)
                         goto exit;
                     lpDBRow = lpDBResult.fetch_row();
-                    lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+                    lpDBLen = lpDBResult.fetch_row_lengths();
                     if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
                         continue;
 
@@ -817,8 +812,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				if(er != erSuccess)
 					goto exit;
 				lpDBRow = lpDBResult.fetch_row();
-				lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+				lpDBLen = lpDBResult.fetch_row_lengths();
 				if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL) {
 					er = KCERR_DATABASE_ERROR;
 					ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
@@ -870,8 +864,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 goto exit;
 
 			while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-				lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+				lpDBLen = lpDBResult.fetch_row_lengths();
                 if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL) {
                     er = KCERR_DATABASE_ERROR; // this should never happen
 			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
@@ -970,8 +963,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 unsigned int ulType;
                 
                 lpDBRow = lpDBResult.fetch_row();
-                lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-                
+                lpDBLen = lpDBResult.fetch_row_lengths();
                 if(lpDBRow == NULL)
                     break;
                     

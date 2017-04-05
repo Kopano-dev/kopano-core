@@ -48,6 +48,11 @@ DB_ROW DB_RESULT::fetch_row(void)
 	return mysql_fetch_row(static_cast<MYSQL_RES *>(m_res));
 }
 
+DB_LENGTHS DB_RESULT::fetch_row_lengths(void)
+{
+	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(m_res));
+}
+
 KDatabase::KDatabase(void)
 {
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
@@ -368,11 +373,6 @@ std::string KDatabase::EscapeBinary(const unsigned char *data, size_t len)
 std::string KDatabase::EscapeBinary(const std::string &s)
 {
 	return EscapeBinary(reinterpret_cast<const unsigned char *>(s.c_str()), s.size());
-}
-
-DB_LENGTHS KDatabase::FetchRowLengths(DB_RESULT &r)
-{
-	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(r.get()));
 }
 
 void KDatabase::FreeResult_internal(void *r)

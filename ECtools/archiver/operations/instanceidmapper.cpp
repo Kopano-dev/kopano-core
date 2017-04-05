@@ -119,8 +119,7 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): FetchRow failed");
 		return MAPI_E_DISK_ERROR; // MAPI version of KCERR_DATABASE_ERROR
 	}
-
-	lpLengths = m_ptrDatabase->FetchRowLengths(lpResult);
+	lpLengths = lpResult.fetch_row_lengths();
 	if (lpLengths == NULL || lpLengths[0] == 0) {
 		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): FetchRowLengths failed");
 		return MAPI_E_DISK_ERROR; // MAPI version of KCERR_DATABASE_ERROR

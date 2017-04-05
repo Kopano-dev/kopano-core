@@ -1236,8 +1236,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	if (lpDBResult.get_num_rows() == 0)
 		return KCERR_NOT_FOUND;
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL ||
 		lpDBLen == NULL || lpDBLen[1] == 0)
 	{
@@ -1332,7 +1331,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 		ec_log_err("getStore(): no rows from db");
 		return KCERR_DATABASE_ERROR; // this should never happen
 	}
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	/*
 	 * Avoid processing SQL NULL, or memory blocks that are not
 	 * NUL-terminated.
@@ -1639,8 +1638,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 			goto exit;
 		}
 		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL)
 		{
 			er = KCERR_DATABASE_ERROR;
@@ -3053,8 +3051,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 
 		for (gsoap_size_t i = 0; i < sSavedObject.__size; ++i) {
 			lpDBRow = lpDBResult.fetch_row();
-			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+			lpDBLen = lpDBResult.fetch_row_lengths();
 			if(lpDBRow == NULL || lpDBLen == NULL) {
 				er = KCERR_DATABASE_ERROR; // this should never happen
 				ec_log_err("LoadObject(): no rows from db");
@@ -6775,8 +6772,7 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreG
 	if (lpDBResult.get_num_rows() != 1)
 		return KCERR_NOT_FOUND;
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if (lpDBRow == nullptr || lpDBRow[1] == nullptr ||
 	    lpDBRow[2] == nullptr || lpDBRow[3] == nullptr ||
 	    lpDBLen == nullptr)
@@ -6889,8 +6885,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 		return KCERR_DATABASE_ERROR;
 	}
 	lpDBRow = lpDBResult.fetch_row();
-    lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBLen = lpDBResult.fetch_row_lengths();
     if (lpDBRow == nullptr)
 		return KCERR_NOT_FOUND;
     if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBLen == NULL || lpDBLen[1] == 0) {
@@ -8526,8 +8521,7 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId
 	if (er != erSuccess)
 		goto exit;
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 		// store not on this server
 		er = KCERR_NOT_FOUND;
@@ -8596,8 +8590,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 	if (er != erSuccess)
 		goto exit;
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if(lpDBRow == NULL || lpDBLen == NULL) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
@@ -8717,8 +8710,7 @@ SOAP_ENTRY_START(removeStore, *result, struct xsd__base64Binary sStoreGuid, unsi
 	if (er != erSuccess)
 		goto exit;
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if(lpDBRow == NULL || lpDBLen == NULL) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
@@ -9599,8 +9591,7 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er, struct xsd__base64Binary sSourc
 		goto exit;
 	}
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL){
 		er = KCERR_DATABASE_ERROR; // this should never happen
 		ec_log_err("setSyncStatus(): row/col NULL");
@@ -10600,8 +10591,7 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, entryId sEntryId, struct getCha
 
 	if (lpDBResult.get_num_rows() > 0) {
 		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		lpsResponse->sPropCK.ulPropTag = PR_CHANGE_KEY;
 		lpsResponse->sPropCK.__union = SOAP_UNION_propValData_bin;
 		lpsResponse->sPropCK.Value.bin = s_alloc<xsd__base64Binary>(soap, 1);
@@ -10624,8 +10614,7 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, entryId sEntryId, struct getCha
 
 	if (lpDBResult.get_num_rows() > 0) {
 		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		lpsResponse->sPropPCL.ulPropTag = PR_PREDECESSOR_CHANGE_LIST;
 		lpsResponse->sPropPCL.__union = SOAP_UNION_propValData_bin;
 		lpsResponse->sPropPCL.Value.bin = s_alloc<xsd__base64Binary>(soap, 1);

@@ -1057,7 +1057,7 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 		return er;
 		
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-		lpDBLen = m_lpDatabase->FetchRowLengths(lpDBResult);
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 			ec_log_err("ECGetContentChangesHelper::GetSyncedMessages(): row or columns null");
 			return KCERR_DATABASE_ERROR; /* this should never happen */

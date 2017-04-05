@@ -725,8 +725,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
                 continue;
             }
             
-            lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-                
+            lpDBLen = lpDBResult.fetch_row_lengths();
             unsigned int ulPropTag = PROP_TAG(atoui(lpDBRow[2]), atoui(lpDBRow[1]));
             
             // The same column may have been requested multiple times. If that is the case, SQL will give us one result for all columns. This
@@ -877,8 +876,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 		return er;
 		
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-			
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if(lpDBRow[FIELD_NR_MAX] == NULL || lpDBRow[FIELD_NR_MAX+1] == NULL || lpDBRow[FIELD_NR_TAG] == NULL || lpDBRow[FIELD_NR_TYPE] == NULL)
 			continue; // No hierarchyid, tag or orderid (?)
 			

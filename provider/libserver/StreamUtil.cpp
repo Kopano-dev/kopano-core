@@ -965,7 +965,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 	// Properties
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL) {
 			er = KCERR_DATABASE_ERROR;
 			ec_log_err("SerializeProps(): fetchrow/fetchrowlengths failed");
@@ -1087,8 +1087,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 
 	for (unsigned i = 0; i < ulCount; ++i) {
 		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpStreamDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL) {
 			er = KCERR_DATABASE_ERROR;
 			ec_log_err("SerializeMessage(): fetchrow/fetchrowlengths failed");

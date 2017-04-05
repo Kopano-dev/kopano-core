@@ -64,6 +64,7 @@ class _kc_export DB_RESULT _kc_final {
 
 	size_t get_num_rows(void) const;
 	DB_ROW fetch_row(void);
+	DB_LENGTHS fetch_row_lengths(void);
 
 	private:
 	void *m_res = nullptr;
@@ -86,7 +87,6 @@ class _kc_export KDatabase {
 	std::string Escape(const std::string &);
 	std::string EscapeBinary(const unsigned char *, size_t);
 	std::string EscapeBinary(const std::string &);
-	DB_LENGTHS FetchRowLengths(DB_RESULT &);
 	const char *GetError(void);
 	DB_ERROR GetLastError(void);
 	unsigned int GetMaxAllowedPacket(void) const { return m_ulMaxAllowedPacket; }

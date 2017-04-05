@@ -879,8 +879,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 			goto exit;
 		}
 
-		lpDBLen = m_lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		memcpy(lpData + iReadSize, lpDBRow[0], lpDBLen[0]);
 		iReadSize += lpDBLen[0];
 	}
@@ -927,8 +926,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t
 			ec_log_err("ECDatabaseAttachment::LoadAttachmentInstance(): column contained NULL");
 			return KCERR_DATABASE_ERROR;
 		}
-
-		lpDBLen = m_lpDatabase->FetchRowLengths(lpDBResult);
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		er = lpSink->Write(lpDBRow[0], 1, lpDBLen[0]);
 		if (er != erSuccess) {
 			ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): Write failed %x", er);

@@ -153,8 +153,7 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 
 		if (strcasecmp(lpDBRow[3], name.c_str()) != 0)
 			continue;
-
-		lpDBLen = m_lpDatabase->FetchRowLengths(lpResult);
+		lpDBLen = lpResult.fetch_row_lengths();
 		if (lpDBLen == NULL || lpDBLen[0] == 0)
 			throw runtime_error(string("db_row_failed: object empty"));
 
@@ -222,8 +221,7 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 
 		if (strcasecmp(lpDBRow[4], username.c_str()) != 0)
 			continue;
-
-		lpDBLen = m_lpDatabase->FetchRowLengths(lpResult);
+		lpDBLen = lpResult.fetch_row_lengths();
 		if (lpDBLen == NULL || lpDBLen[2] == 0)
 			throw runtime_error("Trying to authenticate failed: database error");
 

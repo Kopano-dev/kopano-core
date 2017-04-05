@@ -1566,8 +1566,7 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 
 		if (lpDBResult.get_num_rows() == 1) {
 			lpDBRow = lpDBResult.fetch_row();
-			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+			lpDBLen = lpDBResult.fetch_row_lengths();
 			if(lpDBRow != NULL) {
 				if(lpDBRow[0] != NULL) {
 					// It's an ID type
@@ -2103,8 +2102,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
         unsigned int ulPropTag;
         
-        lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLen = lpDBResult.fetch_row_lengths();
         if(lpDBLen == NULL) {
 		ec_log_crit("PrepareReadProps(): FetchRowLengths failed");
 			return KCERR_DATABASE_ERROR; /* this should never happen */
@@ -2212,8 +2210,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     
     // Do MV props
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-        lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLen = lpDBResult.fetch_row_lengths();
         if(lpDBLen == NULL) {
 			ec_log_crit("PrepareReadProps(): FetchRowLengths failed(2)");
 			return KCERR_DATABASE_ERROR; /* this should never happen */

@@ -136,7 +136,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 	if(er != erSuccess)
 		return er;
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLenths = lpDatabase->FetchRowLengths(lpDBResult);
+	lpDBLenths = lpDBResult.fetch_row_lengths();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr ||
 	    lpDBLenths == nullptr || lpDBLenths[0] != sizeof(GUID))
 		return KCERR_NOT_FOUND;
@@ -149,7 +149,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 	if(er != erSuccess)
 		return er;
 	lpDBRow = lpDBResult.fetch_row();
-	lpDBLenths = lpDatabase->FetchRowLengths(lpDBResult);
+	lpDBLenths = lpDBResult.fetch_row_lengths();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr ||
 	    lpDBLenths == nullptr || lpDBLenths[0] != 8)
 		return KCERR_NOT_FOUND;

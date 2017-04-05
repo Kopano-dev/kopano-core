@@ -239,9 +239,7 @@ ECRESULT ECUserStoreTable::Load() {
 		lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL)
 			break;
-
-		lpDBLength = lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBLength = lpDBResult.fetch_row_lengths();
 		if (lpDBRow[OBJCLASS])
 			objclass = (objectclass_t)atoi(lpDBRow[OBJCLASS]);
 
