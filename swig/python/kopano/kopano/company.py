@@ -20,6 +20,7 @@ from MAPI.Struct import (
 from MAPI.Tags import PR_EC_COMPANY_NAME_W, PR_EC_STOREGUID
 from MAPI.Util import GetPublicStore
 
+from .base import Base
 from .quota import Quota
 from .group import Group
 
@@ -34,15 +35,13 @@ from .compat import (
 if sys.hexversion >= 0x03000000:
     from . import server as _server
     from . import user as _user
-    from . import prop as _prop
     from . import store as _store
 else:
     import server as _server
     import user as _user
-    import prop as _prop
     import store as _store
 
-class Company(object):
+class Company(Base):
     """Company class"""
 
     def __init__(self, name, server=None):
@@ -119,12 +118,6 @@ class Company(object):
         else:
             for store in self.server.stores():
                 yield store
-
-    def prop(self, proptag, create=False):
-        return _prop.prop(self, self.mapiobj, proptag, create=create)
-
-    def props(self):
-        return _prop.props(self.mapiobj)
 
     @property
     def public_store(self):
@@ -330,6 +323,3 @@ class Company(object):
 
     def __unicode__(self):
         return u"Company('%s')" % self._name
-
-    def __repr__(self):
-        return _repr(self)

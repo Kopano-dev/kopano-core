@@ -48,6 +48,7 @@ from .defs import (
 )
 
 from .errors import NotFoundError
+from .base import Base
 from .autoaccept import AutoAccept
 from .outofoffice import OutOfOffice
 from .prop import Property
@@ -64,16 +65,14 @@ if sys.hexversion >= 0x03000000:
     from . import folder as _folder
     from . import item as _item
     from . import utils as _utils
-    from . import prop as _prop
 else:
     import server as _server
     import user as _user
     import folder as _folder
     import item as _item
     import utils as _utils
-    import prop as _prop
 
-class Store(object):
+class Store(Base):
     """Store class"""
 
     def __init__(self, guid=None, entryid=None, mapiobj=None, server=None):
@@ -455,15 +454,6 @@ class Store(object):
         else:
             return (self.user.store is None or self.user.store.guid != self.guid)
 
-    def create_prop(self, proptag, value, proptype=None):
-        return _prop.create_prop(self, self.mapiobj, proptag, value, proptype)
-
-    def prop(self, proptag, create=False):
-        return _prop.prop(self, self.mapiobj, proptag, create=create)
-
-    def props(self, namespace=None):
-        return _prop.props(self.mapiobj, namespace=namespace)
-
     def create_searchfolder(self, text=None): # XXX store.findroot.create_folder()?
         mapiobj = self.findroot.mapiobj.CreateFolder(FOLDER_SEARCH, _encode(str(uuid.uuid4())), _encode('comment'), None, 0)
         return _folder.Folder(self, mapiobj=mapiobj)
@@ -577,6 +567,3 @@ class Store(object):
 
     def __unicode__(self):
         return u"Store('%s')" % self.guid
-
-    def __repr__(self):
-        return _repr(self)

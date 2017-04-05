@@ -14,16 +14,14 @@ from MAPI.Tags import (
 from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import MAPIErrorNotFound
 
-from .compat import repr as _repr
+from .base import Base
 
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
-    from . import prop as _prop
 else:
     import utils as _utils
-    import prop as _prop
 
-class Attachment(object):
+class Attachment(Base):
     """Attachment class"""
 
     def __init__(self, mapiobj):
@@ -88,14 +86,5 @@ class Attachment(object):
     def name(self):
         return self.filename
 
-    def prop(self, proptag, create=False):
-        return _prop.prop(self, self.mapiobj, proptag, create=create)
-
-    def props(self):
-        return _prop.props(self.mapiobj)
-
     def __unicode__(self):
         return u'Attachment("%s")' % self.name
-
-    def __repr__(self):
-        return _repr(self)
