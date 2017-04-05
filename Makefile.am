@@ -74,6 +74,7 @@ lib_LTLIBRARIES = \
 	libkcfreebusy.la libkcsync.la libkcsoap.la libkcserver.la \
 	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
 	libkcarchiver.la libkcarchivercore.la
+noinst_LTLIBRARIES = libkcpyplug.la
 noinst_DATA = \
 	kopano-archiver.ldx kopano-cfgchecker.ldx kopano-dagent.ldx \
 	kopano-gateway.ldx kopano-ical.ldx kopano-monitor.ldx \
@@ -145,18 +146,20 @@ kopano_cfgchecker_LDADD = libkcutil.la libkcmapi.la libmapi.la ${PROG_LIBS}
 #
 # kopano-dagent
 #
-kopano_dagent_CPPFLAGS = \
-	${AM_CPPFLAGS} -Ispooler ${PYTHON_INCLUDES} \
-	-DSWIG_TYPE_TABLE=MAPI
+libkcpyplug_la_CPPFLAGS = \
+	${AM_CPPFLAGS} -Ispooler ${PYTHON_INCLUDES} -DSWIG_TYPE_TABLE=MAPI
+libkcpyplug_la_SOURCES = \
+	spooler/PyMapiPlugin.cpp spooler/PyMapiPlugin.h \
+	spooler/PythonSWIGRuntime.h spooler/archive.cpp spooler/archive.h
+libkcpyplug_la_LIBADD = ${PYTHON_LIBS}
+
 kopano_dagent_SOURCES = \
 	spooler/DAgent.cpp spooler/LMTP.cpp spooler/LMTP.h \
-	spooler/PyMapiPlugin.cpp spooler/PyMapiPlugin.h \
-	spooler/PythonSWIGRuntime.h spooler/archive.cpp spooler/archive.h \
 	spooler/rules.cpp spooler/rules.h spooler/spmain.h
 kopano_dagent_LDADD = \
 	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
-	libkchl.la libkcarchiver.la libkcarchivercore.la \
-	${PROG_LIBS} ${SSL_LIBS} ${PYTHON_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
+	libkchl.la libkcarchiver.la libkcarchivercore.la libkcpyplug.la \
+	${PROG_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
 #
@@ -217,16 +220,12 @@ kopano_passwd_LDADD = libmapi.la libkcmapi.la libkcutil.la ${PROG_LIBS}
 #
 # kopano-spooler
 #
-kopano_spooler_CPPFLAGS = ${kopano_dagent_CPPFLAGS}
 kopano_spooler_SOURCES = \
-	spooler/PyMapiPlugin.cpp spooler/PyMapiPlugin.h \
-	spooler/PythonSWIGRuntime.h spooler/Spooler.cpp \
-	spooler/archive.cpp spooler/archive.h \
-	spooler/mailer.cpp spooler/mailer.h spooler/spmain.h
+	spooler/Spooler.cpp spooler/mailer.cpp spooler/mailer.h spooler/spmain.h
 kopano_spooler_LDADD = \
 	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
-	libkcarchiver.la libkcarchivercore.la \
-	${PROG_LIBS} ${PYTHON_LIBS} ${XML2_LIBS}
+	libkcarchiver.la libkcarchivercore.la libkcpyplug.la \
+	${PROG_LIBS} ${XML2_LIBS}
 
 
 #
