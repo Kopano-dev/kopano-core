@@ -38,6 +38,11 @@ DB_RESULT::~DB_RESULT(void)
 	m_res = nullptr;
 }
 
+size_t DB_RESULT::get_num_rows(void) const
+{
+	return mysql_num_rows(static_cast<MYSQL_RES *>(m_res));
+}
+
 KDatabase::KDatabase(void)
 {
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
@@ -80,7 +85,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		ec_log_err("KDatabase::Connect(): \"SHOW tables\" failed %d", er);
 		goto exit;
 	}
-	if (GetNumRows(result) == 0) {
+	if (result.get_num_rows() == 0) {
 		er = KCERR_DATABASE_NOT_FOUND;
 		ec_log_err("KDatabase::Connect(): database missing %d", er);
 		goto exit;
@@ -404,11 +409,6 @@ DB_ERROR KDatabase::GetLastError(void)
 	default:
 		return DB_E_UNKNOWN;
 	}
-}
-
-unsigned int KDatabase::GetNumRows(const DB_RESULT &r) const
-{
-	return mysql_num_rows(static_cast<MYSQL_RES *>(r.get()));
 }
 
 ECRESULT KDatabase::InitEngine(bool reconnect)

@@ -1078,8 +1078,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 	}
 	if (er != erSuccess)
 		goto exit;
-
-	ulCount = lpStreamDatabase->GetNumRows(lpDBResult);
+	ulCount = lpDBResult.get_num_rows();
 	er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
 	if (er != erSuccess)
 		goto exit;
@@ -1159,8 +1158,8 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 			}
 			if (er != erSuccess)
 				goto exit;
-				
-			ulLen = lpStreamDatabase->GetNumRows(lpDBResultAttachment) >= 1 ? 1 : 0; // Force value to 0 or 1, we cannot output more than one submessage.
+			/* Force value to 0 or 1, we cannot output more than one submessage. */
+			ulLen = lpDBResultAttachment.get_num_rows() >= 1 ? 1 : 0;
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er != erSuccess)
 				goto exit;

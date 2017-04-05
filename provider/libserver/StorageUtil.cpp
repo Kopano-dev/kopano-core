@@ -95,7 +95,7 @@ ECRESULT GetObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned in
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if (lpDatabase->GetNumRows(lpDBResult) != 1)
+	if (lpDBResult.get_num_rows() != 1)
 		return KCERR_NOT_FOUND;
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)

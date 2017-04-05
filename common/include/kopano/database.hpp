@@ -62,6 +62,8 @@ class _kc_export DB_RESULT _kc_final {
 		return p;
 	}
 
+	size_t get_num_rows(void) const;
+
 	private:
 	void *m_res = nullptr;
 	KDatabase *m_db = nullptr;
@@ -88,7 +90,6 @@ class _kc_export KDatabase {
 	const char *GetError(void);
 	DB_ERROR GetLastError(void);
 	unsigned int GetMaxAllowedPacket(void) const { return m_ulMaxAllowedPacket; }
-	unsigned int GetNumRows(const DB_RESULT &) const;
 	/*
 	 * Transactions.
 	 * These functions should be used to wrap blocks of queries into

@@ -283,8 +283,7 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 	if(er != erSuccess)
 		return er;
 
-	nStores = lpDatabase->GetNumRows(lpResult);
-
+	nStores = lpResult.get_num_rows();
 	ec_log_notice("  Stores to convert: %d", nStores);
 
 	for (i = 0; i < nStores; ++i) {
@@ -583,8 +582,7 @@ ECRESULT UpdateDatabaseAddIMAPSequenceNumber(ECDatabase *lpDatabase)
 	er = lpDatabase->DoSelect("SELECT * FROM settings WHERE name='imapseq'", &lpResult);
 	if(er != erSuccess)
 		return er;
-	    
-	if(lpDatabase->GetNumRows(lpResult) == 0) {
+	if (lpResult.get_num_rows() == 0) {
 		er = lpDatabase->DoInsert("INSERT INTO settings (name, value) VALUES('imapseq',(SELECT max(id)+1 FROM hierarchy))");
 		if(er != erSuccess)
 			return er;
@@ -610,7 +608,7 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 		if(er != erSuccess)
 			return er;
 
-		ulRows = lpDatabase->GetNumRows(lpResult);
+		ulRows = lpResult.get_num_rows();
 		if(ulRows > 0) {
 			strQuery = "DELETE FROM changes WHERE id IN (";
 			while(true) {

@@ -98,7 +98,7 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 	if (er != erSuccess)
 		return er;
 
-	ulRows = lpDatabase->GetNumRows(lpDBResult);
+	ulRows = lpDBResult.get_num_rows();
 	if (ulRows > 0) {
 		DB_ROW					lpDBRow = NULL;
 		std::set<unsigned int>	sFilteredIds;
@@ -290,7 +290,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	if(er != erSuccess)
 		return er;
 
-	if(lpDatabase->GetNumRows(lpDBResult) > 0){
+	if (lpDBResult.get_num_rows() > 0) {
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
@@ -308,7 +308,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	if(er != erSuccess)
 		return er;
 
-	if(lpDatabase->GetNumRows(lpDBResult) > 0){
+	if (lpDBResult.get_num_rows() > 0) {
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
@@ -527,8 +527,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if(er != erSuccess)
                 goto exit;
-
-            if(lpDatabase->GetNumRows(lpDBResult) == 0){
+			if (lpDBResult.get_num_rows() == 0) {
                 er = KCERR_NOT_FOUND;
                 goto exit;
             }
@@ -962,7 +961,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             if (er != erSuccess)
                 goto exit;
                 
-            ulChanges = lpDatabase->GetNumRows(lpDBResult);
+            ulChanges = lpDBResult.get_num_rows();
             lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
             lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * ulChanges);
             lpChanges->__size = 0;
@@ -1067,7 +1066,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 	if (er != erSuccess)
 		return er;
 
-	ulResults = lpDatabase->GetNumRows(lpDBResult);
+	ulResults = lpDBResult.get_num_rows();
     if (ulResults == 0){
 		memset(lpsaSyncState, 0, sizeof *lpsaSyncState);
 		return erSuccess;

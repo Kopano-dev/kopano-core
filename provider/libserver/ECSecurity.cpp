@@ -579,7 +579,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 	if(er != erSuccess)
 		return er;
 
-	ulCount = lpDatabase->GetNumRows(lpDBResult);
+	ulCount = lpDBResult.get_num_rows();
 	if(ulCount > 0)
 	{
 		lpsRightsArray->__ptr = s_alloc<rights>(nullptr, ulCount);
@@ -1162,7 +1162,7 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if(lpDatabase->GetNumRows(lpDBResult) != 1) {
+	if (lpDBResult.get_num_rows() != 1) {
 		// This mostly happens when we're creating a new store, so return 0 sized store
 		*lpllStoreSize = 0;
 		return erSuccess;
@@ -1213,7 +1213,7 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if (lpDatabase->GetNumRows(lpDBResult) != 1) {
+	if (lpDBResult.get_num_rows() != 1) {
 		*lpllUserSize = 0;
 		return erSuccess;
 	}

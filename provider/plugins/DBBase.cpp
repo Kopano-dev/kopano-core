@@ -657,8 +657,7 @@ void DBPlugin::addSubObjectRelation(userobject_relation_t relation, const object
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
-
-	if (m_lpDatabase->GetNumRows(lpResult) != 0)
+	if (lpResult.get_num_rows() != 0)
 		throw collision_error(string("Relation exist: ") + stringify(relation));
 
 	/* Insert new relation */ 

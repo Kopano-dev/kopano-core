@@ -104,7 +104,7 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 	if (er != erSuccess)
 		return kcerr_to_mapierr(er);
 
-	switch (m_ptrDatabase->GetNumRows(lpResult)) {
+	switch (lpResult.get_num_rows()) {
 	case 0:
 		return MAPI_E_NOT_FOUND;
 	case 1:

@@ -296,8 +296,7 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
-
-	if(m_lpDatabase->GetNumRows(lpResult) != 1)
+	if (lpResult.get_num_rows() != 1)
 		throw objectnotfound(objectid.id);
 
 	lpDBRow = m_lpDatabase->FetchRow(lpResult);
@@ -338,8 +337,7 @@ void DBUserPlugin::addSubObjectRelation(userobject_relation_t relation, const ob
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
-
-	if(m_lpDatabase->GetNumRows(lpResult) != 1)
+	if (lpResult.get_num_rows() != 1)
 		throw objectnotfound("db_user: Relation does not exist, id:" + parentobject.id);
 
 	DBPlugin::addSubObjectRelation(relation, parentobject, childobject);

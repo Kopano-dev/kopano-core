@@ -369,8 +369,7 @@ ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != hrSuccess)
 		goto exit;
-
-	if (lpDatabase->GetNumRows(lpDBResult) == 0)
+	if (lpDBResult.get_num_rows() == 0)
 		goto exit;
 
     lpDBRow = lpDatabase->FetchRow(lpDBResult);

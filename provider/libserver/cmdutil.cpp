@@ -1374,7 +1374,7 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 			if (er != erSuccess)
 				return er;
 			// Item is (1)/is not (0) in the outgoing queue at the moment
-			ulPrevSubmitFlag = lpDatabase->GetNumRows(lpDBResult) > 0;
+			ulPrevSubmitFlag = lpDBResult.get_num_rows() > 0;
 		}
 
 		if ((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) && ulPrevSubmitFlag == 0) {
@@ -1567,8 +1567,7 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 		if(er != erSuccess)
 			return er;
 
-		if(lpDatabase->GetNumRows(lpDBResult) == 1) {
-
+		if (lpDBResult.get_num_rows() == 1) {
 			lpDBRow = lpDatabase->FetchRow(lpDBResult);
 			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 

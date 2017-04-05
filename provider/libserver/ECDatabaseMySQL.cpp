@@ -898,8 +898,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	er = DoSelect("SELECT databaserevision FROM versions WHERE databaserevision>=64 LIMIT 1", &lpResult);
 	if (er != erSuccess)
 		return er;
-	have_micro = GetNumRows(lpResult) > 0;
-
+	have_micro = lpResult.get_num_rows() > 0;
 	strQuery = "SELECT major, minor";
 	strQuery += have_micro ? ", micro" : ", 0";
 	strQuery += ", revision, databaserevision FROM versions ORDER BY major DESC, minor DESC";
@@ -911,7 +910,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	if(er != erSuccess && mysql_errno(&m_lpMySQL) != ER_NO_SUCH_TABLE)
 		return er;
 
-	if(er != erSuccess || GetNumRows(lpResult) == 0) {
+	if (er != erSuccess || lpResult.get_num_rows() == 0) {
 		// Ok, maybe < than version 5.10
 		// check version
 
@@ -965,7 +964,7 @@ ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
 	er = DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
 		return er;
-	if(GetNumRows(lpResult) != 1)
+	if (lpResult.get_num_rows() != 1)
 		return KCERR_NOT_FOUND;
 	return erSuccess;
 }
@@ -1095,7 +1094,7 @@ ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	er = DoSelect("SELECT databaserevision FROM versions WHERE databaserevision>=64 LIMIT 1", &result);
 	if (er != erSuccess)
 		return er;
-	have_micro = GetNumRows(result) > 0;
+	have_micro = result.get_num_rows() > 0;
 
 	// Insert version number
 	strQuery = "INSERT INTO versions (major, minor, ";

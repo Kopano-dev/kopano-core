@@ -789,7 +789,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 					er = erSuccess;
 					break;
 				}
-				if (lpDatabase->GetNumRows(lpDBResult) > 0) {
+				if (lpDBResult.get_num_rows() > 0) {
 					lpDBRow = lpDatabase->FetchRow(lpDBResult);
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
@@ -813,7 +813,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 				}
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_b;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				if (lpDatabase->GetNumRows(lpDBResult) > 0) {
+				if (lpDBResult.get_num_rows() > 0) {
 					lpDBRow = lpDatabase->FetchRow(lpDBResult);
 					lpsRowSet->__ptr[i].__ptr[k].Value.b = atoi(lpDBRow[0]);
 				} else {
@@ -983,7 +983,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 					er = erSuccess;
 					break;
 				}
-				if (lpDatabase->GetNumRows(lpDBResult) > 0) {
+				if (lpDBResult.get_num_rows() > 0) {
 					lpDBRow = lpDatabase->FetchRow(lpDBResult);
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];

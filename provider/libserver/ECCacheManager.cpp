@@ -584,9 +584,8 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
        strQuery = "SELECT hierarchy_id, guid, type FROM stores WHERE hierarchy_id = " + stringify(ulObjId) + " LIMIT 1";
     	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
     	if(er != erSuccess)
-	    	goto exit;
-
-    	if(lpDatabase->GetNumRows(lpDBResult) < 1) {
+			goto exit;
+		if (lpDBResult.get_num_rows() < 1) {
     		er = KCERR_NOT_FOUND;
     		goto exit;
     	}
@@ -1076,8 +1075,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
     if(er != erSuccess)
 		return er;
 
-    ulRows = lpDatabase->GetNumRows(lpResult);
-
+	ulRows = lpResult.get_num_rows();
 	lpRights = s_alloc<rightsArray>(nullptr);
     if (ulRows > 0)
     {

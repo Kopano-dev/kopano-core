@@ -243,7 +243,7 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if(lpDatabase->GetNumRows(lpDBResult) == 0)
+	if (lpDBResult.get_num_rows() == 0)
 		return erSuccess;
 	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		strIn += lpDBRow[0];

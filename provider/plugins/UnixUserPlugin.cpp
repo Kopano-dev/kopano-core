@@ -511,7 +511,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	}
 
 	// check if we have obsolute objects
-	ulRows = m_lpDatabase->GetNumRows(lpResult);
+	ulRows = lpResult.get_num_rows();
 	if (!ulRows)
 		return objectlist;
 

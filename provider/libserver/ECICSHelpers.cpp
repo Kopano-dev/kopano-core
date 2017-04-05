@@ -694,7 +694,7 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 	}
 		
 	if(lpDBResult)
-		ulChanges = m_lpDatabase->GetNumRows(lpDBResult) + m_setLegacyMessages.size();
+		ulChanges = lpDBResult.get_num_rows() + m_setLegacyMessages.size();
 	else
 		ulChanges = 0;
 		
