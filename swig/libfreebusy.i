@@ -180,13 +180,8 @@ public:
 
                     hr = ECFreeBusySupport::Create(&~lpFreeBusySup);
                     if(hr != hrSuccess)
-                        goto exit;
-
+				return NULL;
                     hr = lpFreeBusySup->QueryInterface(IID_IFreeBusySupport, (void**)&lpFreeBusySupport);
-                    if(hr != hrSuccess)
-                        goto exit;
-
-                    exit:
                     return lpFreeBusySupport;
                 }
 

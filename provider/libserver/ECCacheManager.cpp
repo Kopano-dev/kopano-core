@@ -1739,15 +1739,14 @@ ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap 
 	entryId*	lpEntryId = s_alloc<entryId>(soap);
 
 	er = GetEntryIdFromObject(ulObjId, soap, ulFlags, lpEntryId);
-	if (er != erSuccess)
-		goto exit;
+	if (er != erSuccess) {
+		s_free(nullptr, lpEntryId);
+		return er;
+	}
 
 	// Flags already set by GetEntryIdFromObject(4args)
 	*lppEntryId = lpEntryId;
-exit:
-	if (er != erSuccess)
-		s_free(nullptr, lpEntryId);
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId* lpEntryId)

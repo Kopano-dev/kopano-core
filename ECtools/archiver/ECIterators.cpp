@@ -50,7 +50,7 @@ void ECHierarchyIteratorBase::increment()
 		}			
 		hr = m_ptrContainer->GetHierarchyTable(m_ulDepth == 1 ? 0 : CONVENIENT_DEPTH, &~m_ptrTable);
 		if (hr != hrSuccess)
-			goto exit;
+			throw HrException(hr);
 
 		if (m_ulDepth > 1) {
 			SPropValue sPropDepth;
@@ -60,18 +60,17 @@ void ECHierarchyIteratorBase::increment()
 			hr = ECPropertyRestriction(RELOP_LE, PR_DEPTH, &sPropDepth, ECRestriction::Cheap)
 			     .RestrictTable(m_ptrTable, TBL_BATCH);
 			if (hr != hrSuccess)
-				goto exit;
+				throw HrException(hr);
 		}
 		hr = m_ptrTable->SetColumns(sptaColumnProps, TBL_BATCH);
 		if (hr != hrSuccess)
-			goto exit;
+			throw HrException(hr);
 	}
 
 	if (!m_ptrRows.get()) {
 		hr = m_ptrTable->QueryRows(32, 0, &m_ptrRows);
 		if (hr != hrSuccess)
-			goto exit;
-
+			throw HrException(hr);
 		if (m_ptrRows.empty()) {
 			m_ptrCurrent.reset();
 			return;
@@ -83,14 +82,9 @@ void ECHierarchyIteratorBase::increment()
 	assert(m_ulRowIndex < m_ptrRows.size());
 	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb), &m_ptrCurrent.iid(), m_ulFlags, &ulType, &~m_ptrCurrent);
 	if (hr != hrSuccess)
-		goto exit;
-
+		throw HrException(hr);
 	if (++m_ulRowIndex == m_ptrRows.size())
 		m_ptrRows.reset();
-
-exit:
-	if (hr != hrSuccess)
-		throw HrException(hr);	// @todo: Fix this
 }
 
 } /* namespace */

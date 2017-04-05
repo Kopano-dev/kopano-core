@@ -837,14 +837,12 @@ HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
 	HRESULT hr = hrSuccess;
 	auto lpDest = s_alloc<entryId>(nullptr);
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryIdSrc, lpEntryIdSrc, lpDest, false);
-	if(hr != hrSuccess)
-		goto exit;
-
-	*lppDest = lpDest;
-exit:
-	if(hr != hrSuccess)
+	if (hr != hrSuccess) {
 		s_free(nullptr, lpDest);
-	return hr;
+		return hr;
+	}
+	*lppDest = lpDest;
+	return hrSuccess;
 }
 
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
