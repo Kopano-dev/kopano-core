@@ -299,19 +299,13 @@ class Block:
         239, 53, 156, 132, 43, 21, 213, 119, 52, 73, 182, 18, 10, 127, 113, 136, 253, 157, 24, 65, 125, 147, 216, 88, 44, 206, 254, 36, 175, 222, 184, 54,
         200, 161, 128, 166, 153, 152, 168, 47, 14, 129, 101, 115, 228, 194, 162, 138, 212, 225, 17, 208, 8, 139, 42, 242, 237, 154, 100, 63, 193, 108, 249, 236)
 
+    decrypt_table = string.maketrans(b''.join(map(chr, range(256))), b''.join(map(chr, mpbbCryptFrom512)))
+
     btypeData = 0
     btypeXBLOCK = 1
     btypeXXBLOCK = 2
     btypeSLBLOCK = 3
     btypeSIBLOCK = 4
-
-    def decode_permute(self, pv, cb):
-        """ NDB_CRYPT_PERMUTE: pv is byte array, cb is data length to decode"""
-
-        temp = 0
-        for pvIndex in range(cb):
-            pv[pvIndex] = Block.mpbbCryptFrom512[pv[pvIndex]] # Block.mpbbCrypt[pv[pvIndex] + 512]
-        return str(pv)
 
 
     def __init__(self, bytes, offset, data_size, is_ansi, bid_check, bCryptMethod):
@@ -344,7 +338,7 @@ class Block:
             self.btype = 0
             self.cLevel = 0
             if bCryptMethod == 1: #NDB_CRYPT_PERMUTE
-                self.data = self.decode_permute(bytearray(bytes[:data_size]), data_size)
+                self.data = bytes[:data_size].translate(Block.decrypt_table)
             else: # no data encoding
                 self.data = bytes[:data_size] # data block
 
@@ -407,9 +401,9 @@ class NBD:
 
     def fetch_block(self, bid):
 
-        if bid.bid in self.bbt_entries.keys():
+        try:
             bbt_entry = self.bbt_entries[bid.bid]
-        else:
+        except KeyError:
             raise PSTException('Invalid BBTEntry: %s' % bid)
         offset = bbt_entry.BREF.ib
         data_size = bbt_entry.cb
@@ -731,7 +725,11 @@ class PType:
         elif self.ptype == PTypeEnum.PtypInteger64:
             return struct.unpack('q', bytes)[0]
         elif self.ptype == PTypeEnum.PtypString:
-            return bytes.decode('utf-16-le') # unicode
+            try:
+                return bytes.decode('utf-16-le') # unicode
+            except UnicodeDecodeError:
+                log_error(PSTException('String property not correctly utf-16-le encoded, ignoring errors'))
+                return bytes.decode('utf-16-le', errors='ignore') # unicode
         elif self.ptype == PTypeEnum.PtypString8:
             return bytes
         elif self.ptype == PTypeEnum.PtypTime:
@@ -818,10 +816,7 @@ class PType:
     def get_multi_value_offsets(self, bytes):
 
         ulCount = struct.unpack('I', bytes[:4])[0]
-        if ulCount == 1:
-            rgulDataOffsets = [8] # not documented, but seems as if a single length multi only has a 4 byte ULONG with the offset. Boo!
-        else:
-            rgulDataOffsets = [struct.unpack('Q', bytes[4+i*8:4+(i+1)*8])[0] for i in range(ulCount)]
+        rgulDataOffsets = [struct.unpack('I', bytes[(i+1)*4:(i+2)*4])[0] for i in range(ulCount)]
         rgulDataOffsets.append(len(bytes))
         return ulCount, rgulDataOffsets
 
@@ -2154,6 +2149,7 @@ def set_log(log, stats):
 def log_error(e):
     global error_log_list
     error_log_list.append(e.message)
+    LOG.error(e.message)
     LOG.error(traceback.format_exc(e))
     STATS['errors'] += 1
 #    sys.stderr.write(e.message+'\n')

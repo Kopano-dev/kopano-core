@@ -41,9 +41,9 @@ class Service(kopano.Service):
         if attach_method == ATTACH_EMBEDDED_MSG and subnode_nid is not None:
             submessage = pst.Message(subnode_nid, self.ltp, self.nbd, parent)
             submapiobj = mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
-            self.import_props(submessage, submapiobj, embedded=True)
             self.import_attachments(submessage, submapiobj)
             self.import_recipients(submessage, submapiobj)
+            self.import_props(submessage, submapiobj, embedded=True)
 
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
@@ -86,16 +86,13 @@ class Service(kopano.Service):
                 props.append(SPropValue(PR_ENTRYID, user.userid.decode('hex')))
             recipients.append(props)
         mapiobj.ModifyRecipients(0, recipients)
-        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
-    def import_pst(self, pst, user):
-        for folder in pst.folder_generator():
+    def import_pst(self, p, user):
+        folders = p.folder_generator()
+        root_path = folders.next().path # skip root
+        for folder in folders:
             with log_exc(self.log, self.stats):
-                path = folder.path[1:]
-                if (path+'/').startswith('Top of Outlook data file/'):
-                    path = path[25:]
-                if not path:
-                    continue
+                path = folder.path[len(root_path)+1:]
                 if self.options.folders and path not in self.options.folders:
                     continue
                 self.log.info("importing folder '%s'" % path)
@@ -104,18 +101,18 @@ class Service(kopano.Service):
                 folder2 = user.folder(path, create=True)
                 if folder.ContainerClass:
                     folder2.container_class = folder.ContainerClass
-                for message in pst.message_generator(folder):
+                for message in p.message_generator(folder):
                     with log_exc(self.log, self.stats):
                         self.log.debug("importing message '%s'" % (message.Subject or ''))
                         message2 = folder2.create_item()
-                        self.import_props(message, message2.mapiobj)
                         self.import_attachments(message, message2.mapiobj)
                         self.import_recipients(message, message2.mapiobj)
+                        self.import_props(message, message2.mapiobj)
                         self.stats['messages'] += 1
 
-    def get_named_property_map(self, pst):
+    def get_named_property_map(self, p):
         propid_nameid = {}
-        for nameid in pst.messaging.nameid_entries:
+        for nameid in p.messaging.nameid_entries:
             propid_nameid[nameid.NPID] = (
                 nameid.guid,
                 MNID_STRING if nameid.N==1 else MNID_ID,
@@ -144,12 +141,10 @@ def show_contents(args, options):
     writer = csv.writer(sys.stdout)
     for arg in args:
         p = pst.PST(arg)
-        for folder in p.folder_generator():
-            path = folder.path[1:]
-            if (path+'/').startswith('Top of Outlook data file/'): # XXX copy-paste
-                path = path[25:]
-            if not path:
-                continue
+        folders = p.folder_generator()
+        root_path = folders.next().path # skip root
+        for folder in folders:
+            path = folder.path[len(root_path)+1:]
             if options.folders and path not in options.folders:
                 continue
             if options.stats:
