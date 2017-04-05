@@ -14,14 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <memory>
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
 #include <kopano/UnixUtil.h>
-
+#include <kopano/stringutil.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <spawn.h>
 #include <pwd.h>
 #include <grp.h>
 #include <cerrno>
@@ -278,46 +280,37 @@ int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pClo
  * 
  * @return new process pid, or -1 on failure.
  */
-static pid_t unix_popen_rw(const char *lpszCommand, int *lpulIn, int *lpulOut,
+static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
     const char **env)
 {
+	posix_spawn_file_actions_t fa;
 	int ulIn[2];
 	int ulOut[2];
-	pid_t pid;
+	pid_t pid = -1;
 
-	if (!lpszCommand || !lpulIn || !lpulOut)
+	if (argv == nullptr || argv[0] == nullptr)
 		return -1;
 
 	if (pipe(ulIn) || pipe(ulOut))
 		return -1;
 
-	pid = vfork();
-	if (pid < 0)
-		return pid;
-
-	if (pid == 0) {
-		/* Close pipes we aren't going to use */
-		close(ulIn[STDOUT_FILENO]);
-		dup2(ulIn[STDIN_FILENO], STDIN_FILENO);
-		close(ulOut[STDIN_FILENO]);
-		dup2(ulOut[STDOUT_FILENO], STDOUT_FILENO);
-		dup2(ulOut[STDOUT_FILENO], STDERR_FILENO);
-
-		// give the process a new group id, so we can easely kill all sub processes of this child too when needed.
-		setsid();
-		if (execle("/bin/sh", "sh", "-c", lpszCommand, NULL, env) == 0)
-			_exit(EXIT_SUCCESS);
-		else
-			_exit(EXIT_FAILURE);
-		return 0;
+	memset(&fa, 0, sizeof(fa));
+	if (posix_spawn_file_actions_init(&fa) < 0)
+		return -1;
+	if (posix_spawn_file_actions_addclose(&fa, STDIN_FILENO) == 0 &&
+	    posix_spawn_file_actions_addclose(&fa, STDOUT_FILENO) == 0 &&
+	    posix_spawn_file_actions_addclose(&fa, STDERR_FILENO) == 0 &&
+	    posix_spawn_file_actions_adddup2(&fa, ulIn[STDIN_FILENO], STDIN_FILENO) == 0 &&
+	    posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDOUT_FILENO) == 0 &&
+	    posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDERR_FILENO) == 0 &&
+	    posix_spawn(&pid, argv[0], &fa, nullptr, const_cast<char **>(argv),
+	    const_cast<char **>(env)) == 0) {
+		*lpulIn = ulIn[STDOUT_FILENO];
+		close(ulIn[STDIN_FILENO]);
+		*lpulOut = ulOut[STDIN_FILENO];
+		close(ulOut[STDOUT_FILENO]);
 	}
-
-	*lpulIn = ulIn[STDOUT_FILENO];
-	close(ulIn[STDIN_FILENO]);
-
-	*lpulOut = ulOut[STDIN_FILENO];
-	close(ulOut[STDOUT_FILENO]);
-
+	posix_spawn_file_actions_destroy(&fa);
 	return pid;
 }
 
@@ -335,10 +328,22 @@ static pid_t unix_popen_rw(const char *lpszCommand, int *lpulIn, int *lpulOut,
  *
  * @return Returns TRUE on success, FALSE on failure
  */
-bool unix_system(const char *lpszLogName, const char *lpszCommand, const char **env)
+bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
+    const char **env)
 {
+	int argc = 0;
+	if (cmd.size() == 0)
+		return false;
+	std::unique_ptr<const char *[]> argv(new(std::nothrow) const char *[cmd.size()+1]);
+	if (argv == nullptr)
+		return false;
+	for (const auto &e : cmd)
+		argv[argc++] = e.c_str();
+	argv[argc] = nullptr;
+
+	auto cmdtxt = "\"" + kc_join(cmd, "\" \"") + "\"";
 	int fdin = 0, fdout = 0;
-	int pid = unix_popen_rw(lpszCommand, &fdin, &fdout, env);
+	int pid = unix_popen_rw(argv.get(), &fdin, &fdout, env);
 	char buffer[1024];
 	int status = 0;
 	bool rv = true;
@@ -361,23 +366,23 @@ bool unix_system(const char *lpszLogName, const char *lpszCommand, const char **
 #ifdef WEXITSTATUS
 	if (WIFEXITED(status)) { /* Child exited by itself */
 		if (WEXITSTATUS(status)) {
-			ec_log_err("Command `%s` exited with non-zero status %d", lpszCommand, WEXITSTATUS(status));
+			ec_log_err("Command %s exited with non-zero status %d", cmdtxt.c_str(), WEXITSTATUS(status));
 			rv = false;
 		}
 		else
-			ec_log_info("Command `%s` ran successfully", lpszCommand);
+			ec_log_info("Command %s ran successfully", cmdtxt.c_str());
 	} else if (WIFSIGNALED(status)) {        /* Child was killed by a signal */
-		ec_log_err("Command `%s` was killed by signal %d", lpszCommand, WTERMSIG(status));
+		ec_log_err("Command %s was killed by signal %d", cmdtxt.c_str(), WTERMSIG(status));
 		rv = false;
 	} else {                        /* Something strange happened */
-		ec_log_err(string("Command `") + lpszCommand + "` terminated abnormally");
+		ec_log_err("Command %s terminated abnormally", cmdtxt.c_str());
 		rv = false;
 	}
 #else
 	if (status)
-		ec_log_err("Command `%s` exited with status %d", lpszCommand, status);
+		ec_log_err("Command %s exited with status %d", cmdtxt.c_str(), status);
 	else
-		ec_log_info("Command `%s` ran successfully", lpszCommand);
+		ec_log_info("Command %s ran successfully", cmdtxt.c_str());
 #endif
 	return rv;
 }
