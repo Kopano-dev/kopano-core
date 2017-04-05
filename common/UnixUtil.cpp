@@ -279,8 +279,7 @@ int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pClo
  * @return new process pid, or -1 on failure.
  */
 static pid_t unix_popen_rw(const char *lpszCommand, int *lpulIn, int *lpulOut,
-    popen_rlimit_array *lpLimits, const char **env, bool bNonBlocking,
-    bool bStdErr)
+    const char **env)
 {
 	int ulIn[2];
 	int ulOut[2];
@@ -292,12 +291,6 @@ static pid_t unix_popen_rw(const char *lpszCommand, int *lpulIn, int *lpulOut,
 	if (pipe(ulIn) || pipe(ulOut))
 		return -1;
 
-	if (bNonBlocking) {
-		if (fcntl(ulIn[0], F_SETFL, O_NONBLOCK) < 0 || fcntl(ulIn[1], F_SETFL, O_NONBLOCK) < 0 ||
-			fcntl(ulOut[0], F_SETFL, O_NONBLOCK) < 0 || fcntl(ulOut[1], F_SETFL, O_NONBLOCK) < 0)
-			return -1;
-	}
-
 	pid = vfork();
 	if (pid < 0)
 		return pid;
@@ -308,19 +301,10 @@ static pid_t unix_popen_rw(const char *lpszCommand, int *lpulIn, int *lpulOut,
 		dup2(ulIn[STDIN_FILENO], STDIN_FILENO);
 		close(ulOut[STDIN_FILENO]);
 		dup2(ulOut[STDOUT_FILENO], STDOUT_FILENO);
-		if (bStdErr)
-			dup2(ulOut[STDOUT_FILENO], STDERR_FILENO);
+		dup2(ulOut[STDOUT_FILENO], STDERR_FILENO);
 
 		// give the process a new group id, so we can easely kill all sub processes of this child too when needed.
 		setsid();
-
-		/* If provided set rlimit settings */
-		if (lpLimits != NULL)
-			for (unsigned int i = 0; i < lpLimits->cValues; ++i)
-				if (setrlimit(lpLimits->sLimit[i].resource, &lpLimits->sLimit[i].limit) != 0)
-					ec_log_err("Unable to set rlimit for popen - resource %d, errno %d",
-								  lpLimits->sLimit[i].resource, errno);
-
 		if (execle("/bin/sh", "sh", "-c", lpszCommand, NULL, env) == 0)
 			_exit(EXIT_SUCCESS);
 		else
@@ -354,7 +338,7 @@ static pid_t unix_popen_rw(const char *lpszCommand, int *lpulIn, int *lpulOut,
 bool unix_system(const char *lpszLogName, const char *lpszCommand, const char **env)
 {
 	int fdin = 0, fdout = 0;
-	int pid = unix_popen_rw(lpszCommand, &fdin, &fdout, NULL, env, false, true);
+	int pid = unix_popen_rw(lpszCommand, &fdin, &fdout, env);
 	char buffer[1024];
 	int status = 0;
 	bool rv = true;
