@@ -4405,16 +4405,12 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 		goto exit;
 	}
 
-	er = lpDatabase->Begin();
-	if(er != erSuccess)
-		goto exit;
-
 	lpsResponse->lpsPropTags.__ptr = s_alloc<unsigned int>(soap, lpsNamedProps->__size);
 	lpsResponse->lpsPropTags.__size = 0;
 
-	// One query per named property (too slow ?) FIXME could be faster if brought down to less SQL queries
+	strQuery = "SELECT id, nameid, namestring, guid FROM names WHERE ";
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
-		strQuery = "SELECT id FROM names WHERE ";
+		strQuery += "(";
 
 		// ID, then add ID where clause
 		if(lpsNamedProps->__ptr[i].lpId != NULL) {
@@ -4427,6 +4423,7 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 			strQuery += "namestring='" + strEscapedString + "' ";
 		}
+		/* else { Handle this, it will break the SQL query, iff guid is present } */
 
 		// Add a GUID specifier if there
 		if(lpsNamedProps->__ptr[i].lpguid != NULL) {
@@ -4434,73 +4431,87 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 			strQuery += "AND guid=" + strEscapedGUID;
 		}
-		strQuery += " LIMIT 1";
 
-		// Run the query
-		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-		if(er != erSuccess)
-			goto exit;
+		strQuery += ")";
+		if (i != lpsNamedProps->__size - 1)
+			strQuery += " OR ";
+	}
 
-		if (lpDBResult.get_num_rows() == 0) {
-			// No rows found, so the named property has not been registered yet
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if(er != erSuccess)
+		goto exit;
 
-			if(ulFlags & MAPI_CREATE) {
-				// Create requested ? then add a new named property
+	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i)
+		lpsResponse->lpsPropTags.__ptr[i] = 0;
 
-				// GUID must be specified with create
-				if(lpsNamedProps->__ptr[i].lpguid == NULL) {
-					er = KCERR_NO_ACCESS;
-					goto exit;
-				}
+	for (size_t i = 0; i < lpDBResult.get_num_rows(); ++i) {
+		lpDBRow = lpDBResult.fetch_row();
+		if (lpDBRow == nullptr)
+			continue;
+		for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
+			std::string nameid, namestring;
 
-				strQuery = "INSERT INTO names (nameid, namestring, guid) VALUES(";
+			if (lpsNamedProps->__ptr[i].lpId != nullptr)
+				nameid = stringify(*lpsNamedProps->__ptr[i].lpId);
+			else if (lpsNamedProps->__ptr[i].lpString != nullptr)
+				namestring = lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString);
 
-				if (lpsNamedProps->__ptr[i].lpId)
-					strQuery += stringify(*lpsNamedProps->__ptr[i].lpId);
-				else
-					strQuery += "null";
-
-				strQuery += ",";
-
-				if (lpsNamedProps->__ptr[i].lpString)
-					strQuery += "'" + strEscapedString + "'";
-				else
-					strQuery += "null";
-
-				strQuery += ",";
-
-				if (lpsNamedProps->__ptr[i].lpguid)
-					strQuery += strEscapedGUID;
-				else
-					strQuery += "null";
-
-				strQuery += ")";
-
-				er = lpDatabase->DoInsert(strQuery, &ulLastId);
-				if(er != erSuccess)
-					goto exit;
-
-				lpsResponse->lpsPropTags.__ptr[i] = ulLastId+1; // offset one because 0 is 'not found'
-			} else {
-				// No create ? Then not found
-				lpsResponse->lpsPropTags.__ptr[i] = 0;
+			if (lpsNamedProps->__ptr[i].lpguid == nullptr ||  lpDBRow[3] == nullptr ||
+			    memcmp(lpsNamedProps->__ptr[i].lpguid->__ptr, lpDBRow[3], lpsNamedProps->__ptr[i].lpguid->__size) != 0)
+				continue;
+			if ((nameid.size() > 0 && lpDBRow[1] && nameid.compare(lpDBRow[1]) == 0) ||
+			    (namestring.size() > 0 && lpDBRow[2] && namestring.compare(lpDBRow[2]) == 0)) {
+				lpsResponse->lpsPropTags.__ptr[i] = atoi(lpDBRow[0]) + 1;
+				break;
 			}
-		} else {
-			// found it
-			lpDBRow = lpDBResult.fetch_row();
-			if(lpDBRow!= NULL && lpDBRow[0] != NULL)
-				lpsResponse->lpsPropTags.__ptr[i] = atoi(lpDBRow[0])+1;
-			else
-				lpsResponse->lpsPropTags.__ptr[i] = 0;
 		}
 	}
 
+	if (!(ulFlags & MAPI_CREATE))
+		goto done;
+	er = lpDatabase->Begin();
+	if (er != erSuccess)
+		goto exit;
+
+	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
+		if (lpsResponse->lpsPropTags.__ptr[i] != 0)
+			continue;
+		if (lpsNamedProps->__ptr[i].lpguid == nullptr) {
+			er = KCERR_NO_ACCESS;
+			goto exit;
+		}
+
+		strQuery = "INSERT INTO names (nameid, namestring, guid) VALUES(";
+		if (lpsNamedProps->__ptr[i].lpId != 0)
+			strQuery += stringify(*lpsNamedProps->__ptr[i].lpId);
+		else
+			strQuery += "null";
+
+		strQuery += ",";
+		if (lpsNamedProps->__ptr[i].lpString != nullptr) {
+			strEscapedString = lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString);
+			strQuery += "'" + strEscapedString + "'";
+		} else {
+			strQuery += "null";
+		}
+
+		strQuery += ",";
+		strEscapedGUID = lpDatabase->EscapeBinary(lpsNamedProps->__ptr[i].lpguid->__ptr, lpsNamedProps->__ptr[i].lpguid->__size);
+		strQuery += strEscapedGUID;
+		strQuery += ")";
+		er = lpDatabase->DoInsert(strQuery, &ulLastId);
+		if (er != erSuccess)
+			goto exit;
+		lpsResponse->lpsPropTags.__ptr[i] = ulLastId+1; // offset one because 0 is 'not found'
+	}
+
+	er = lpDatabase->Commit();
+	if (er != erSuccess)
+		goto exit;
+done:
 	// Everything is done, now set the size
 	lpsResponse->lpsPropTags.__size = lpsNamedProps->__size;
 
-	er = lpDatabase->Commit();
-	if(er != erSuccess)
-		goto exit;
 exit:
 	ROLLBACK_ON_ERROR();
 }
