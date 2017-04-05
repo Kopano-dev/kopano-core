@@ -289,7 +289,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	strQuery = "SELECT val_binary FROM properties "
 				"WHERE tag = " + stringify(PROP_ID(PR_PREDECESSOR_CHANGE_LIST)) +
 				" AND type = " + stringify(PROP_TYPE(PR_PREDECESSOR_CHANGE_LIST)) +
-				" AND hierarchyid = " + stringify(ulObjId);
+				" AND hierarchyid = " + stringify(ulObjId) + " LIMIT 1";
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
@@ -307,7 +307,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	strQuery = "SELECT val_binary FROM properties "
 				"WHERE tag = " + stringify(PROP_ID(PR_CHANGE_KEY)) +
 				" AND type = " + stringify(PROP_TYPE(PR_CHANGE_KEY)) +
-				" AND hierarchyid = " + stringify(ulObjId);
+				" AND hierarchyid = " + stringify(ulObjId) + " LIMIT 1";
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
@@ -784,7 +784,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                                 "FROM hierarchy "
                                 "JOIN indexedproperties AS sourcekey ON hierarchy.id=sourcekey.hierarchyid AND sourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
                                 "JOIN indexedproperties AS parentsourcekey ON hierarchy.parent=parentsourcekey.hierarchyid AND parentsourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
-                                "WHERE hierarchy.id=" + stringify(folder_id);
+                                "WHERE hierarchy.id=" + stringify(folder_id) + " LIMIT 1";
 
                     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
                     if(er != erSuccess)
@@ -821,7 +821,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			i = 0;
 			for (auto chg_id : lstChanges) {
-				strQuery = "SELECT changes.id, changes.sourcekey, changes.parentsourcekey, changes.change_type, changes.flags FROM changes WHERE changes.id=" + stringify(chg_id);
+				strQuery = "SELECT changes.id, changes.sourcekey, changes.parentsourcekey, changes.change_type, changes.flags FROM changes WHERE changes.id=" + stringify(chg_id) + " LIMIT 1";
 
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
@@ -1158,7 +1158,7 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 	// check if the delete would remove the message
 	strQuery = "SELECT 0 FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId) +
 				" AND change_id=" + lpDBRow[0] +
-				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size());
+				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
