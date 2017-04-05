@@ -159,17 +159,17 @@ static void print_mode_error(modes modeSet, modes modeReq,
     print_help(cerr, lpszName);
 }
 
-static std::string args_to_cmdline(int argc, const char * const argv[])
+static std::string kc_join(int argc, const char *const *argv, const char *sep)
 {
-    if (argc <= 0)
-        return std::string();
-
-    std::string strCmdLine(argv[0]);
-
-    for (int i = 1; i < argc; ++i)
-        strCmdLine.append(" '").append(shell_escape(argv[i])).append(1, '\'');
-
-    return strCmdLine;
+	std::string s;
+	if (argc == 0)
+		return s;
+	for (int k = 0; k < argc; ++k) {
+		s += argv[0];
+		s += sep;
+	}
+	s.erase(s.size() - 2, 2);
+	return s;
 }
 
 enum cmdOptions {
@@ -237,7 +237,6 @@ int main(int argc, char *argv[])
     unsigned ulAttachFlags = 0;
     ArchiverPtr ptrArchiver;
     convert_context converter;
-    const std::string strCmdLine = args_to_cmdline(argc, argv);
     std::list<configsetting_t> lSettings;
 
     ULONG ulFlags = 0;
@@ -467,7 +466,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    ec_log_crit("Startup command: %s", strCmdLine.c_str());
+	ec_log_crit("Startup command: %s", kc_join(argc, argv, "\" \"").c_str());
     ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Version: %s", PROJECT_VERSION_ARCHIVER_STR);
 
     lSettings = ptrArchiver->GetConfig()->GetAllSettings();
