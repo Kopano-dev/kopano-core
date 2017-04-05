@@ -293,7 +293,8 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	if (er != erSuccess)
 		return er;
 
-	if ((lpRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+	lpRow = lpResult.fetch_row();
+	if (lpRow != nullptr) {
 		if (lpRow[0] == NULL) {
 			ec_log_err("NamedPropertyMapper::GetId(): column null");
 			return KCERR_DATABASE_ERROR;
@@ -342,7 +343,8 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	if (er != erSuccess)
 		return er;
 
-	if ((lpRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+	lpRow = lpResult.fetch_row();
+	if (lpRow != nullptr) {
 		if (lpRow[0] == NULL) {
 			ec_log_err("NamedPropertyMapper::GetId(): column null");
 			return KCERR_DATABASE_ERROR;
@@ -882,7 +884,7 @@ static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow && lpDBRow[0])
 		*lpstrBestBody = lpDBRow[0];
 	else
@@ -962,7 +964,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		goto exit;
 
 	// Properties
-	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 		if (lpDBRow == NULL || lpDBLen == NULL) {
 			er = KCERR_DATABASE_ERROR;
@@ -1084,7 +1086,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 		goto exit;
 
 	for (unsigned i = 0; i < ulCount; ++i) {
-		lpDBRow = lpStreamDatabase->FetchRow(lpDBResult);
+		lpDBRow = lpDBResult.fetch_row();
 		lpDBLen = lpStreamDatabase->FetchRowLengths(lpDBResult);
 
 		if (lpDBRow == NULL || lpDBLen == NULL) {
@@ -1164,7 +1166,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 			if (er != erSuccess)
 				goto exit;
 												
-			lpDBRow = lpStreamDatabase->FetchRow(lpDBResultAttachment);
+			lpDBRow = lpDBResultAttachment.fetch_row();
 			if(lpDBRow != NULL) {
 				if(lpDBRow[0] == NULL) {
 					er = KCERR_DATABASE_ERROR;
@@ -1532,8 +1534,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			if(er != erSuccess)
 				goto exit;
 
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+			lpDBRow = lpDBResult.fetch_row();
 			// We can't use lpDBRow here except for checking if it was NULL.
 			if (lpDBRow != NULL)
 				continue;

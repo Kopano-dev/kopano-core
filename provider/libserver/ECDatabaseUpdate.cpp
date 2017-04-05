@@ -245,7 +245,7 @@ ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
 		return er;
-	lpDBRow = lpDatabase->FetchRow(lpResult);
+	lpDBRow = lpResult.fetch_row();
 	lpDBLenths = lpDatabase->FetchRowLengths(lpResult);
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBLenths == NULL || lpDBLenths[0] != sizeof(GUID)) {
 		ec_log_err("UpdateDatabaseCreateSourceKeys(): row or columns NULL");
@@ -287,7 +287,7 @@ ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase)
 	ec_log_notice("  Stores to convert: %d", nStores);
 
 	for (i = 0; i < nStores; ++i) {
-		lpDBRow = lpDatabase->FetchRow(lpResult);
+		lpDBRow = lpResult.fetch_row();
 		lpDBLenths = lpDatabase->FetchRowLengths(lpResult);
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || 
 			lpDBLenths == NULL || lpDBLenths[0] != sizeof(GUID) )
@@ -365,8 +365,7 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 			return er;
 
 		while(true) {
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+			lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL)
 				break;
 			
@@ -403,7 +402,7 @@ ECRESULT UpdateDatabaseSearchCriteria(ECDatabase *lpDatabase)
 		return er;
 
 	while(true) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
+		lpDBRow = lpDBResult.fetch_row();
 		if (lpDBRow == NULL)
 			break;
 
@@ -612,8 +611,7 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 		if(ulRows > 0) {
 			strQuery = "DELETE FROM changes WHERE id IN (";
 			while(true) {
-				lpDBRow = lpDatabase->FetchRow(lpResult);
-
+				lpDBRow = lpResult.fetch_row();
 				if (lpDBRow == NULL)
 					break;
 				
@@ -679,8 +677,7 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 		return er;
 
 	while(true) {
-		lpDBRow = lpDatabase->FetchRow(lpResult);
-
+		lpDBRow = lpResult.fetch_row();
 		if (lpDBRow == NULL)
 			break;
 		
@@ -828,7 +825,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 	if (er != erSuccess)
 		goto exit;
 
-	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 			er = KCERR_DATABASE_ERROR;
 			ec_log_err("  object table contains invalid NULL records");
@@ -859,7 +856,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 
 		strQuery.clear();
 		bFirstResult = true;
-		while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			lpDBLen = lpDatabase->FetchRowLengths(lpResult);
 			if (lpDBLen == NULL) {
 				er = KCERR_DATABASE_ERROR;
@@ -908,7 +905,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 	if (er != erSuccess)
 		goto exit;
 
-	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
 			er = KCERR_DATABASE_ERROR;
 			ec_log_crit("  objectrelation table contains invalid NULL records");
@@ -1062,7 +1059,7 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 		goto exit;
 
 	// Extract the AB changes from the changes table.
-	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		lpDBLen = lpDatabase->FetchRowLengths(lpResult);
 
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBLen[1] == 0 || lpDBRow[2] == NULL || lpDBLen[2] == 0) {
@@ -1202,7 +1199,7 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 
 		strUpdate = "(";
 		bFirst = true;
-		while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			lpDBLen = lpDatabase->FetchRowLengths(lpResult);
 			if (lpDBRow[0] == NULL || lpDBLen == NULL || lpDBLen[0] == 0) {
 				ec_log_crit("  users table contains invalid NULL records for type %d", p.first);
@@ -1266,7 +1263,7 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 	if (er != erSuccess)
 		return er;
 
-	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 
@@ -1354,8 +1351,7 @@ ECRESULT UpdateDatabaseMVPropertiesPrimarykey(ECDatabase *lpDatabase)
 		return er;
 
 	// Result: | Table | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment |
-
-	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL)
 			continue;
 
@@ -1393,7 +1389,7 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 	if (er != erSuccess)
 		return er;
 
-	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 
@@ -1440,7 +1436,7 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 	if (er != erSuccess)
 		return er;
 
-	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 
@@ -1588,7 +1584,7 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 	if (er != erSuccess)
 		return er;
 
-	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
 			ec_log_err("UpdateDatabaseConvertRules(): column NULL");
 			return KCERR_DATABASE_ERROR;
@@ -1620,7 +1616,7 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 	if (er != erSuccess)
 		return er;
 
-	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
 			ec_log_err("UpdateDatabaseConvertSearchFolders(): column NULL");
 			return KCERR_DATABASE_ERROR;
@@ -1671,7 +1667,7 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 		er = lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
 			return er;
-		lpDBRow = lpDatabase->FetchRow(lpResult);
+		lpDBRow = lpResult.fetch_row();
 		if (lpDBRow == NULL || lpDBRow[0] == NULL)
 			break;
 	}

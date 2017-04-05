@@ -1323,8 +1323,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 		return er;
 
 	while(1) {
-		lpRow = lpDatabase->FetchRow(lpResult);
-
+		lpRow = lpResult.fetch_row();
 		if(lpRow == NULL)
 			break;
 
@@ -2627,8 +2626,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		return er;
-
-	lpRow = lpDatabase->FetchRow(lpResult);
+	lpRow = lpResult.fetch_row();
 	if (lpRow == nullptr)
 		return KCERR_NOT_FOUND;
 	ulObjectId = atoui(lpRow[0]);
@@ -2950,7 +2948,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 		ec_log_info("Start auto-deleting %s members", ObjectClassToName(objclass));
 
 		while (1) {
-			lpRow = lpDatabase->FetchRow(lpResult);
+			lpRow = lpResult.fetch_row();
 			if (lpRow == NULL || lpRow[0] == NULL || lpRow[1] == NULL)
 				break;
 
@@ -3037,9 +3035,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 		er = lpDatabase->DoSelect(strQuery, &lpResult);
 		if(er != erSuccess)
 			goto exit;
-
-		lpRow = lpDatabase->FetchRow(lpResult);
-
+		lpRow = lpResult.fetch_row();
 		if(lpRow == NULL) {
 			ec_log_info("User script not executed. No store exists.");
 			goto exit;
@@ -4213,7 +4209,7 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 	if (er != erSuccess)
 		return er;
 
-	while((lpRow = lpDatabase->FetchRow(lpResult)) != NULL) {
+	while ((lpRow = lpResult.fetch_row()) != nullptr) {
 		if(lpRow[0] == NULL || lpRow[1] == NULL)
 			continue;
 

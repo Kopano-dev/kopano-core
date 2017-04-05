@@ -586,8 +586,8 @@ ECRESULT ECGetContentChangesHelper::Init()
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-		
-	if ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult)) == NULL || lpDBRow == NULL) {
+	lpDBRow = lpDBResult.fetch_row();
+	if (lpDBRow == nullptr) {
 		ec_log_err("ECGetContentChangesHelper::Init(): fetchrow failed");
 		return KCERR_DATABASE_ERROR;
 	}
@@ -874,7 +874,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		if (er != erSuccess)
 			return er;
 
-		while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult))) {
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 				ec_log_err("ECGetContentChangesHelper::Finalize(): row null or column null");
 				return KCERR_DATABASE_ERROR; /* this should never happen */
@@ -1056,7 +1056,7 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 	if (er != erSuccess)
 		return er;
 		
-	while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult))) {
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		lpDBLen = m_lpDatabase->FetchRowLengths(lpDBResult);
 		if (lpDBRow == NULL || lpDBLen == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 			ec_log_err("ECGetContentChangesHelper::GetSyncedMessages(): row or columns null");

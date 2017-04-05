@@ -183,8 +183,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 			goto exit;
 		
 		// Put the results into a STL list
-		while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
-
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 				continue;
 
@@ -266,7 +265,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 
 	while(1)
 	{
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
+		lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL)
 			break;
 
@@ -720,7 +719,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         if(er != erSuccess)
 			return er;
             
-        while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != 0) {
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
             if(lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
                 assert(false);
                 continue;
@@ -877,7 +876,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 	if (er != erSuccess)
 		return er;
 		
-	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 			
 		if(lpDBRow[FIELD_NR_MAX] == NULL || lpDBRow[FIELD_NR_MAX+1] == NULL || lpDBRow[FIELD_NR_TAG] == NULL || lpDBRow[FIELD_NR_TYPE] == NULL)
@@ -1007,9 +1006,7 @@ ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *l
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
-		
-    lpRow = lpDatabase->FetchRow(lpDBResult);
-    
+	lpRow = lpDBResult.fetch_row();
     if(lpRow == NULL || lpRow[0] == NULL) {
         er = KCERR_DATABASE_ERROR;
 	ec_log_err("ECStoreObjectTable::GetMVRowCount(): row or column null");
@@ -1080,8 +1077,7 @@ ECRESULT ECStoreObjectTable::Load()
 
         i = 0;
         while(1) {
-            lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+		lpDBRow = lpDBResult.fetch_row();
             if(lpDBRow == NULL)
                 break;
 
@@ -1219,7 +1215,7 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
 		lpDeferred->push_back(atoui(lpDBRow[0]));
 	return erSuccess;
 }
@@ -1249,7 +1245,7 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRo
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
 		lpDeferred->push_back(atoui(lpDBRow[0]));
 	return erSuccess;
 }

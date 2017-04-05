@@ -236,8 +236,7 @@ ECRESULT ECUserStoreTable::Load() {
 
 	iRowId = 0;
 	while(1) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+		lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL)
 			break;
 

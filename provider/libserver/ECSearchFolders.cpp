@@ -96,8 +96,7 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
     if(er != erSuccess)
 		return er;
         
-    while((lpRow = lpDatabase->FetchRow(lpResult))) {
-
+	while ((lpRow = lpResult.fetch_row()) != nullptr) {
         if(lpRow[0] == NULL)
             continue;
             
@@ -305,7 +304,7 @@ ECRESULT ECSearchFolders::IsSearchFolder(unsigned int ulStoreID, unsigned int ul
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
 		return KCERR_NOT_FOUND;
 	if (atoui(lpDBRow[0]) != FOLDER_SEARCH)
@@ -1040,7 +1039,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er == erSuccess) {
-				while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
+				while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
 					if(lpDBRow && lpDBRow[0])
 						lstFolders.push_back(atoi(lpDBRow[0]));
 			} else
@@ -1158,7 +1157,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 				i = 0;
 			    
 				ecRows.clear();
-				while(i < 20 && (lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+				while (i < 20 && (lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 					if(lpDBRow[0] == NULL)
 						continue;
 					sRow.ulObjId = atoui(lpDBRow[0]);
@@ -1358,7 +1357,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
 		return er;
 	}
 		
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow != nullptr && lpDBRow[0] != nullptr && atoui(lpDBRow[0]) == ulFlags)
 		// The record in the database is the same as what we're trying to insert; this is an error because we can't update or insert the record
 		return KCERR_NOT_FOUND;
@@ -1461,8 +1460,7 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulStoreId, unsigned int ulF
 			ec_log_err("ECSearchFolders::DeleteResults(): SELECT failed 0x%x", er);
 			return er;
 		}
-			
-		lpRow = lpDatabase->FetchRow(lpResult);
+		lpRow = lpResult.fetch_row();
 		if (lpRow == nullptr || lpRow[0] == nullptr)
 			return KCERR_NOT_FOUND;
 		*lpulOldFlags = atoui(lpRow[0]);
@@ -1545,7 +1543,7 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
     lstObjIds->clear();
 
     while(1) {
-        lpRow = lpDatabase->FetchRow(lpResult);
+		lpRow = lpResult.fetch_row();
         if(lpRow == NULL || lpRow[0] == NULL)
             break;
 
@@ -1583,8 +1581,7 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 		return er;
 	}
 
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow && lpDBRow[0] && atoi(lpDBRow[0]) == 2 && lpDBRow[1]) {
 		std::string xmldata(lpDBRow[1]);
 		std::istringstream xml(xmldata);

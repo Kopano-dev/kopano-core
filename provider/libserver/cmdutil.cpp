@@ -231,8 +231,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 		if(er != erSuccess)
 			goto exit;
 
-		while ( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-		{
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			// No type or flags exist
 			if(lpDBRow[2] == NULL || lpDBRow[3] == NULL) {
 				//er = KCERR_DATABASE_ERROR;
@@ -296,9 +295,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 		if(er != erSuccess)
 			goto exit;
 
-		while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL )
-		{
-
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			// No id, type or flags exist
 			if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL)
 				continue;
@@ -1568,7 +1565,7 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 			return er;
 
 		if (lpDBResult.get_num_rows() == 1) {
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
+			lpDBRow = lpDBResult.fetch_row();
 			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
 			if(lpDBRow != NULL) {
@@ -1659,8 +1656,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBRow[4] == NULL) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_crit("ResetFolderCount(): row/col NULL (1)");
@@ -1685,8 +1681,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_crit("ResetFolderCount(): row/col NULL (2)");
@@ -1804,7 +1799,7 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-    lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
     if(!lpDBRow || lpDBRow[0] == NULL)
 		return er; /* Nothing there, no need to do anything */
         
@@ -1817,7 +1812,7 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
 			return er;
-        lpDBRow = lpDatabase->FetchRow(lpDBResult);
+        lpDBRow = lpDBResult.fetch_row();
         if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
             bStale = true;
     } else {
@@ -1953,7 +1948,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
         if(er != erSuccess)
             return er;
         
-        while((lpDBRow = lpDatabase->FetchRow(lpDBResult))) {
+        while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
             if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL)
                 continue;
                 
@@ -1988,8 +1983,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
             return er;
-
-        while((lpDBRow = lpDatabase->FetchRow(lpDBResult))) {
+        while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
             if(lpDBRow[0] == NULL)
                 continue;
                 
@@ -2106,7 +2100,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 			return er;
     }
 
-    while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
         unsigned int ulPropTag;
         
         lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
@@ -2217,7 +2211,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     }
     
     // Do MV props
-    while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
         lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
         if(lpDBLen == NULL) {

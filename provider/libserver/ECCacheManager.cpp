@@ -372,9 +372,7 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
@@ -458,7 +456,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
         if (er != erSuccess)
             goto exit;
             
-        while((lpDBRow = lpDatabase->FetchRow(lpDBResult))) {
+        while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
             if(!lpDBRow[0] || !lpDBRow[1] || !lpDBRow[2] || !lpDBRow[3])
                 continue;
                 
@@ -526,7 +524,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 		if (er != erSuccess)
 			goto exit;
 
-		while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 			ECsIndexProp p(PROP_ID(ulTag), reinterpret_cast<unsigned char *>(lpDBRow[1]), lpDBLen[1]);
 			mapObjects[std::move(p)] = atoui(lpDBRow[0]);
@@ -590,8 +588,7 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
     		goto exit;
     	}
 
-    	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+		lpDBRow = lpDBResult.fetch_row();
     	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
     		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECCacheManager::GetStoreAndType(): NULL in columns");
@@ -663,7 +660,7 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 		goto exit;
 	}
 
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL) {
@@ -761,8 +758,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 	}
 
 	// TODO: check, should return 1 answer
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
@@ -855,7 +851,7 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 	}
 
 	while (TRUE) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
+		lpDBRow = lpDBResult.fetch_row();
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
 		if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBRow[4] == NULL)
@@ -1084,8 +1080,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 		memset(lpRights->__ptr, 0, sizeof(struct rights) * ulRows);
 
 		for (unsigned int i = 0; i < ulRows; ++i) {
-			lpRow = lpDatabase->FetchRow(lpResult);
-
+			lpRow = lpResult.fetch_row();
 			if(lpRow == NULL || lpRow[0] == NULL || lpRow[1] == NULL || lpRow[2] == NULL) {
 				s_free(nullptr, lpRights->__ptr);
 				s_free(nullptr, lpRights);
@@ -1598,7 +1593,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 	if(er != erSuccess)
 		goto exit;
 
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	lpDBLenths = lpDatabase->FetchRowLengths(lpDBResult);
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBLenths == NULL) {
 		er = KCERR_NOT_FOUND;
@@ -1656,9 +1651,9 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
     strQuery = "SELECT hierarchyid FROM indexedproperties FORCE INDEX(bin) WHERE tag="+stringify(ulTag)+" AND val_binary="+ lpDatabase->EscapeBinary(lpData, cbData) + " LIMIT 1";
     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
     if(er != erSuccess)
-        goto exit;
+		goto exit;
 
-    lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
     if(lpDBRow == NULL || lpDBRow[0] == NULL) {
         er = KCERR_NOT_FOUND;
         goto exit;

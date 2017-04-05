@@ -98,8 +98,7 @@ ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, str
 		if(er != erSuccess)
 			goto exit;
 
-		while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)))
-		{
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			lpDBLenths = lpDatabase->FetchRowLengths(lpDBResult);
 
 			if (lpDBRow[0] == NULL)

@@ -104,7 +104,7 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 		std::set<unsigned int>	sFilteredIds;
 
 		for (unsigned int i = 0; i < ulRows; ++i) {
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
+			lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 				ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
 				return KCERR_DATABASE_ERROR;
@@ -234,7 +234,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			return er;
 
 		while (true) {
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
+			lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL)
 				break;
 			unsigned int ulTmp = atoui((char*)lpDBRow[0]);
@@ -291,7 +291,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		return er;
 
 	if (lpDBResult.get_num_rows() > 0) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
+		lpDBRow = lpDBResult.fetch_row();
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
 		if (lpDBRow != nullptr && lpDBRow[0] != nullptr &&
@@ -309,7 +309,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		return er;
 
 	if (lpDBResult.get_num_rows() > 0) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
+		lpDBRow = lpDBResult.fetch_row();
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
 		if(lpDBRow && lpDBRow[0] && lpDBLen && lpDBLen[0] >16){
@@ -532,7 +532,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 goto exit;
             }
 
-            lpDBRow = lpDatabase->FetchRow(lpDBResult);
+            lpDBRow = lpDBResult.fetch_row();
             lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
             if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL){
@@ -557,7 +557,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			if(er != erSuccess)
 				goto exit;
 
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
+			lpDBRow = lpDBResult.fetch_row();
             lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
 			if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
@@ -620,7 +620,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		unsigned long col_lengths[1000*ncols];
 		unsigned int length_counter = 0;
 
-		while (lpDBResult && (lpDBRow = lpDatabase->FetchRow(lpDBResult))) {
+		while (lpDBResult && (lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 			if (lpDBLen == NULL)
 				continue;
@@ -703,7 +703,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				if(er != erSuccess)
 					goto exit;
 
-				while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) ){
+				while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 					if( lpDBRow == NULL || lpDBRow[0] == NULL){
 						er = KCERR_DATABASE_ERROR; // this should never happen
 						ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
@@ -723,8 +723,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 if(er != erSuccess)
                     goto exit;
 
-                while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) ){
-
+                while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
                     if( lpDBRow == NULL || lpDBRow[0] == NULL){
                         er = KCERR_DATABASE_ERROR; // this should never happen
 			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
@@ -757,8 +756,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er != erSuccess)
 				goto exit;
-
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
+			lpDBRow = lpDBResult.fetch_row();
 			if( lpDBRow == NULL){
 				er = KCERR_DATABASE_ERROR; // this should never happen
 				ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
@@ -782,8 +780,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
                     if(er != erSuccess)
                         goto exit;
-
-                    lpDBRow = lpDatabase->FetchRow(lpDBResult);
+                    lpDBRow = lpDBResult.fetch_row();
                     lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
                     if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
@@ -819,8 +816,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
 					goto exit;
-
-				lpDBRow = lpDatabase->FetchRow(lpDBResult);
+				lpDBRow = lpDBResult.fetch_row();
 				lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
 				if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL) {
@@ -873,7 +869,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             if(er != erSuccess)
                 goto exit;
 
-			while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+			while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 				lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
                 if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL) {
@@ -939,8 +935,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if (er != erSuccess)
                 goto exit;
-                
-            lpDBRow = lpDatabase->FetchRow(lpDBResult);
+            lpDBRow = lpDBResult.fetch_row();
             if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
                 // You *should* always have something there if you have more than 0 users. However, just to make us compatible with
                 // people truncating the table and then doing a resync, we'll go to change ID 0. This means that at the next sync,
@@ -974,7 +969,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 objectid_t id;
                 unsigned int ulType;
                 
-                lpDBRow = lpDatabase->FetchRow(lpDBResult);
+                lpDBRow = lpDBResult.fetch_row();
                 lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
                 
                 if(lpDBRow == NULL)
@@ -1075,7 +1070,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 	lpsaSyncState->__size = 0;
 	lpsaSyncState->__ptr = s_alloc<syncState>(soap, ulResults);
 
-	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
 			return KCERR_DATABASE_ERROR;
@@ -1099,8 +1094,7 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-		
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL) {
 		ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
 		return KCERR_DATABASE_ERROR;
@@ -1138,8 +1132,7 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-		
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL) {
 		ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
 		return KCERR_DATABASE_ERROR;
@@ -1155,8 +1148,7 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL)
 		return KCERR_NOT_FOUND;
 	return erSuccess;
@@ -1173,8 +1165,7 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-		
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL) {
 		ec_log_crit("RemoveFromLastSyncedMessagesSet(): fetchrow return null");
 		return KCERR_DATABASE_ERROR;

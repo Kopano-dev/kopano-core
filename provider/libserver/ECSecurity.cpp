@@ -587,8 +587,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 
 		memset(lpsRightsArray->__ptr, 0, sizeof(struct rights) * ulCount);
 		for (i = 0; i < ulCount; ++i) {
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+			lpDBRow = lpDBResult.fetch_row();
 			if(lpDBRow == NULL) {
 				ec_log_err("ECSecurity::GetRights(): row is null");
 				return KCERR_DATABASE_ERROR;
@@ -1167,8 +1166,7 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
 		*lpllStoreSize = 0;
 		return erSuccess;
 	}
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL) {
 		ec_log_err("ECSecurity::GetStoreSize(): row is null");
 		return KCERR_DATABASE_ERROR;
@@ -1217,8 +1215,7 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
 		*lpllUserSize = 0;
 		return erSuccess;
 	}
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL) {
 		ec_log_err("ECSecurity::GetUserSize(): row is null");
 		return KCERR_DATABASE_ERROR;

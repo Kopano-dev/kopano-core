@@ -129,8 +129,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	if(er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
 
-	while((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL)
-	{
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		// No way to determine externid
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
@@ -212,7 +211,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		throw runtime_error(string("db_query: ") + strerror(er));
 
 	std::map<objectid_t, objectdetails_t>::iterator iterDetails;
-	while((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL)
 			continue;
 
@@ -555,8 +554,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 			throw runtime_error(string("db_query: ") + strerror(er));
 
 		string children;
-
-		while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
 				throw runtime_error(string("db_row_failed: object null"));
 
@@ -789,7 +787,7 @@ std::unique_ptr<quotadetails_t> DBPlugin::getQuota(const objectid_t &objectid,
 	lpDetails.reset(new quotadetails_t());
 	lpDetails->bIsUserDefaultQuota = bGetUserDefault;
 
-	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 
@@ -875,7 +873,7 @@ DBPlugin::CreateSignatureList(const std::string &query)
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
 
-	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 		    continue;
 
@@ -950,8 +948,7 @@ std::unique_ptr<abprops_t> DBPlugin::getExtraAddressbookProperties(void)
 		er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
 			throw runtime_error(string("db_query: ") + strerror(er));
-
-		while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
 				continue;
 
@@ -995,8 +992,7 @@ void DBPlugin::CreateObjectWithExternId(const objectid_t &objectid, const object
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
-
-	if (m_lpDatabase->FetchRow(lpResult) != NULL)
+	if (lpResult.fetch_row() != nullptr)
 		throw collision_error(string("Object exists: ") + bin2hex(objectid.id));
 
 	strQuery =
@@ -1060,8 +1056,7 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
-
-	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL)
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr)
 		if (lpDBRow[1] != NULL && strcasecmp(lpDBRow[1], strPropValue.c_str()) == 0)
 			throw collision_error(string("Object exist: ") + strPropValue);
 

@@ -147,7 +147,7 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 		throw runtime_error(string("db_query: ") + strerror(er));
 	}
 
-	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[3] == NULL)
 			throw runtime_error(string("db_row_failed: object null"));
 
@@ -216,8 +216,7 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 		throw runtime_error(string("db_query: ") + strerror(er));
 	}
 
-	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
-
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[4] == NULL)
 			throw runtime_error("Trying to authenticate failed: database error");
 
@@ -298,8 +297,7 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 		throw runtime_error(string("db_query: ") + strerror(er));
 	if (lpResult.get_num_rows() != 1)
 		throw objectnotfound(objectid.id);
-
-	lpDBRow = m_lpDatabase->FetchRow(lpResult);
+	lpDBRow = lpResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL)
 		throw runtime_error(string("db_row_failed: object null"));
 

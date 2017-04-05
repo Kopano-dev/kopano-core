@@ -43,6 +43,11 @@ size_t DB_RESULT::get_num_rows(void) const
 	return mysql_num_rows(static_cast<MYSQL_RES *>(m_res));
 }
 
+DB_ROW DB_RESULT::fetch_row(void)
+{
+	return mysql_fetch_row(static_cast<MYSQL_RES *>(m_res));
+}
+
 KDatabase::KDatabase(void)
 {
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
@@ -98,7 +103,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		goto exit;
 	}
 
-	row = FetchRow(result);
+	row = result.fetch_row();
 	/* row[0] has the variable name, [1] the value */
 	if (row == nullptr || row[0] == nullptr || row[1] == nullptr) {
 		ec_log_warn("Unable to retrieve max_allowed_packet value. Assuming %d.", KC_DFL_MAX_PACKET_SIZE);
@@ -365,11 +370,6 @@ std::string KDatabase::EscapeBinary(const std::string &s)
 	return EscapeBinary(reinterpret_cast<const unsigned char *>(s.c_str()), s.size());
 }
 
-DB_ROW KDatabase::FetchRow(DB_RESULT &r)
-{
-	return mysql_fetch_row(static_cast<MYSQL_RES *>(r.get()));
-}
-
 DB_LENGTHS KDatabase::FetchRowLengths(DB_RESULT &r)
 {
 	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(r.get()));
@@ -434,7 +434,7 @@ ECRESULT KDatabase::IsInnoDBSupported(void)
 		return er;
 	}
 
-	while ((row = FetchRow(res)) != nullptr) {
+	while ((row = res.fetch_row()) != nullptr) {
 		if (strcasecmp(row[0], "InnoDB") != 0)
 			continue;
 		if (strcasecmp(row[1], "DISABLED") == 0) {

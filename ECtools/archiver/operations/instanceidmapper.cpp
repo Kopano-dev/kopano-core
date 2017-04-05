@@ -114,7 +114,7 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 		return MAPI_E_DISK_ERROR; // MAPI version of KCERR_DATABASE_ERROR
 	}
 
-	lpDBRow = m_ptrDatabase->FetchRow(lpResult);
+	lpDBRow = lpResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): FetchRow failed");
 		return MAPI_E_DISK_ERROR; // MAPI version of KCERR_DATABASE_ERROR
@@ -164,7 +164,7 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 	if (er != erSuccess)
 		goto exit;
 
-	lpDBRow = m_ptrDatabase->FetchRow(lpResult);
+	lpDBRow = lpResult.fetch_row();
 	if (lpDBRow == NULL) {
 		unsigned int ulNewId;
 

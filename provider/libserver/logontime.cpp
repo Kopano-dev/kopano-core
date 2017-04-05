@@ -29,7 +29,7 @@ static ECRESULT ltm_sync_time(ECDatabase *db,
 		return ret;
 	if (result.get_num_rows() == 0)
 		return erSuccess;
-	DB_ROW row = db->FetchRow(result);
+	auto row = result.fetch_row();
 	if (row == nullptr)
 		return erSuccess;
 	unsigned int store_id = strtoul(row[0], NULL, 0);
