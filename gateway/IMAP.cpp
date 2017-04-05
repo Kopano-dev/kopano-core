@@ -315,6 +315,12 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		{"SETQUOTA", 2, false, &IMAP::HrCmdSetQuota},
 		{"RENAME", 2, false, &IMAP::HrCmdRename},
 		{"STATUS", 2, false, &IMAP::HrCmdStatus},
+		{"FETCH", 2, false, &IMAP::HrCmdFetch<false>},
+		{"FETCH", 2, true, &IMAP::HrCmdFetch<true>},
+		{"COPY", 2, false, &IMAP::HrCmdCopy<false>},
+		{"COPY", 2, true, &IMAP::HrCmdCopy<true>},
+		{"STORE", 3, false, &IMAP::HrCmdStore<false>},
+		{"STORE", 3, true, &IMAP::HrCmdStore<true>}
 	};
 
 	static constexpr const struct {
@@ -493,49 +499,12 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			return hrSuccess;
 		}
 		return HrCmdSearch(strTag, strvResult, false);
-	} else if (strCommand.compare("FETCH") == 0 && !uid_command) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "FETCH must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdFetch(strTag, strvResult, false);
-	} else if (strCommand.compare("STORE") == 0 && !uid_command) {
-		if (strvResult.size() != 3) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "STORE must have 3 arguments");
-			return hrSuccess;
-		}
-		return HrCmdStore(strTag, strvResult, false);
-	} else if (strCommand.compare("COPY") == 0 && !uid_command) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "COPY must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdCopy(strTag, strvResult, false);
-	}
-	else if (strCommand.compare("SEARCH") == 0 && uid_command) {
+	} else if (strCommand.compare("SEARCH") == 0 && uid_command) {
 		if (strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "UID SEARCH must have 1 or more arguments");
 			return hrSuccess;
 		}
 		return HrCmdSearch(strTag, strvResult, true);
-	} else if (strCommand.compare("FETCH") == 0 && uid_command) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "UID FETCH must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdFetch(strTag, strvResult, true);
-	} else if (strCommand.compare("STORE") == 0 && uid_command) {
-		if (strvResult.size() != 3) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "UID STORE must have 3 arguments");
-			return hrSuccess;
-		}
-		return HrCmdStore(strTag, strvResult, true);
-	} else if (strCommand.compare("COPY") == 0 && uid_command) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "UID COPY must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdCopy(strTag, strvResult, true);
 	} else if (strCommand.compare("XAOL-MOVE") == 0 && uid_command) {
 		if (strvResult.size() != 2) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "UID XAOL-MOVE must have 2 arguments");
@@ -2116,6 +2085,11 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &a
 	return hr;
 }
 
+template <bool uid> HRESULT IMAP::HrCmdFetch(const std::string &strTag, const std::vector<std::string> &args)
+{
+	return HrCmdFetch(strTag, args, uid);
+}
+
 /** 
  * @brief Handles the STORE command
  * 
@@ -2195,6 +2169,12 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &a
 	return hr;
 }
 
+template <bool uid> HRESULT IMAP::HrCmdStore(const std::string &strTag, const std::vector<std::string> &args)
+{
+	return HrCmdStore(strTag, args, uid);
+}
+
+
 /** 
  * @brief Handles the COPY command
  * 
@@ -2243,6 +2223,11 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &ar
 
 	HrResponse(RESP_TAGGED_OK, strTag, strMode + "COPY completed");
 	return hr;
+}
+
+template <bool uid> HRESULT IMAP::HrCmdCopy(const std::string &strTag, const std::vector<std::string> &args)
+{
+	return HrCmdCopy(strTag, args, uid);
 }
 
 /** 
