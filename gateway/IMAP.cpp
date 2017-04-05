@@ -298,22 +298,23 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	static constexpr const struct {
 		const char *command;
 		int params;
+		bool uid;
 		HRESULT (IMAP::*func)(const string &, const std::vector<std::string> &);
 	} cmds[] = {
-		{"SELECT", 1, &IMAP::HrCmdSelect<false>},
-		{"EXAMINE", 1, &IMAP::HrCmdSelect<true>},
-		{"LIST", 2, &IMAP::HrCmdList<false>},
-		{"LSUB", 2, &IMAP::HrCmdList<true>},
-		{"LOGIN", 2, &IMAP::HrCmdLogin},
-		{"CREATE", 1, &IMAP::HrCmdCreate},
-		{"DELETE", 1, &IMAP::HrCmdDelete},
-		{"SUBSCRIBE", 1, &IMAP::HrCmdSubscribe<true>},
-		{"UNSUBSCRIBE", 1, &IMAP::HrCmdSubscribe<false>},
-		{"GETQUOTAROOT", 1, &IMAP::HrCmdGetQuotaRoot},
-		{"GETQUOTA", 1, &IMAP::HrCmdGetQuota},
-		{"SETQUOTA", 2, &IMAP::HrCmdSetQuota},
-		{"RENAME", 2, &IMAP::HrCmdRename},
-		{"STATUS", 2, &IMAP::HrCmdStatus}
+		{"SELECT", 1, false, &IMAP::HrCmdSelect<false>},
+		{"EXAMINE", 1, false, &IMAP::HrCmdSelect<true>},
+		{"LIST", 2, false, &IMAP::HrCmdList<false>},
+		{"LSUB", 2, false, &IMAP::HrCmdList<true>},
+		{"LOGIN", 2, false, &IMAP::HrCmdLogin},
+		{"CREATE", 1, false, &IMAP::HrCmdCreate},
+		{"DELETE", 1, false, &IMAP::HrCmdDelete},
+		{"SUBSCRIBE", 1, false, &IMAP::HrCmdSubscribe<true>},
+		{"UNSUBSCRIBE", 1, false, &IMAP::HrCmdSubscribe<false>},
+		{"GETQUOTAROOT", 1, false, &IMAP::HrCmdGetQuotaRoot},
+		{"GETQUOTA", 1, false, &IMAP::HrCmdGetQuota},
+		{"SETQUOTA", 2, false, &IMAP::HrCmdSetQuota},
+		{"RENAME", 2, false, &IMAP::HrCmdRename},
+		{"STATUS", 2, false, &IMAP::HrCmdStatus},
 	};
 
 	static constexpr const struct {
@@ -427,6 +428,20 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		return hrSuccess;
 	}
 
+	bool uid_command = false;
+	if (strCommand.compare("UID") == 0) {
+		if (strvResult.empty()) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID must have a command");
+			return hrSuccess;
+		}
+
+		uid_command = true;
+
+		strCommand = strvResult.front();
+		strvResult.erase(strvResult.begin());
+		strCommand = strToUpper(strCommand);
+	}
+
 	// process {} and end of line
 	for (const auto &cmd : cmds_zero_args) {
 		if (strCommand.compare(cmd.command) != 0)
@@ -438,7 +453,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		return hrSuccess;
 	}
 	for (const auto &cmd : cmds) {
-		if (strCommand.compare(cmd.command) != 0)
+		if (strCommand.compare(cmd.command) != 0 || uid_command != cmd.uid)
 			continue;
 		if (strvResult.size() == cmd.params)
 			return (this->*cmd.func)(strTag, strvResult);
@@ -466,84 +481,75 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		}
 		HrResponse(RESP_TAGGED_BAD, strTag, "APPEND must have 2, 3 or 4 arguments");
 		return hrSuccess;
-	} else if (strCommand.compare("EXPUNGE") == 0) {
+	} else if (strCommand.compare("EXPUNGE") == 0 && !uid_command) {
 		if (!strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "EXPUNGE must have 0 arguments");
 			return hrSuccess;
 		}
 		return HrCmdExpunge(strTag, string());
-	} else if (strCommand.compare("SEARCH") == 0) {
+	} else if (strCommand.compare("SEARCH") == 0 && !uid_command) {
 		if (strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "SEARCH must have 1 or more arguments");
 			return hrSuccess;
 		}
 		return HrCmdSearch(strTag, strvResult, false);
-	} else if (strCommand.compare("FETCH") == 0) {
+	} else if (strCommand.compare("FETCH") == 0 && !uid_command) {
 		if (strvResult.size() != 2) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "FETCH must have 2 arguments");
 			return hrSuccess;
 		}
 		return HrCmdFetch(strTag, strvResult, false);
-	} else if (strCommand.compare("STORE") == 0) {
+	} else if (strCommand.compare("STORE") == 0 && !uid_command) {
 		if (strvResult.size() != 3) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "STORE must have 3 arguments");
 			return hrSuccess;
 		}
 		return HrCmdStore(strTag, strvResult, false);
-	} else if (strCommand.compare("COPY") == 0) {
+	} else if (strCommand.compare("COPY") == 0 && !uid_command) {
 		if (strvResult.size() != 2) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "COPY must have 2 arguments");
 			return hrSuccess;
 		}
 		return HrCmdCopy(strTag, strvResult, false);
-	} else if (strCommand.compare("UID") == 0) {
+	}
+	else if (strCommand.compare("SEARCH") == 0 && uid_command) {
 		if (strvResult.empty()) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "UID must have a command");
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID SEARCH must have 1 or more arguments");
 			return hrSuccess;
 		}
-		strCommand = strvResult.front();
-		strvResult.erase(strvResult.begin());
-		strCommand = strToUpper(strCommand);
-
-		if (strCommand.compare("SEARCH") == 0) {
-			if (strvResult.empty()) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID SEARCH must have 1 or more arguments");
-				return hrSuccess;
-			}
-			return HrCmdSearch(strTag, strvResult, true);
-		} else if (strCommand.compare("FETCH") == 0) {
-			if (strvResult.size() != 2) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID FETCH must have 2 arguments");
-				return hrSuccess;
-			}
-			return HrCmdFetch(strTag, strvResult, true);
-		} else if (strCommand.compare("STORE") == 0) {
-			if (strvResult.size() != 3) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID STORE must have 3 arguments");
-				return hrSuccess;
-			}
-			return HrCmdStore(strTag, strvResult, true);
-		} else if (strCommand.compare("COPY") == 0) {
-			if (strvResult.size() != 2) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID COPY must have 2 arguments");
-				return hrSuccess;
-			}
-			return HrCmdCopy(strTag, strvResult, true);
-		} else if (strCommand.compare("XAOL-MOVE") == 0) {
-			if (strvResult.size() != 2) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID XAOL-MOVE must have 2 arguments");
-				return hrSuccess;
-			}
-			return HrCmdUidXaolMove(strTag, strvResult[0], strvResult[1]);
-		} else if (strCommand.compare("EXPUNGE") == 0) {
-			if (strvResult.size() != 1) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID EXPUNGE must have 1 argument");
-				return hrSuccess;
-			}
-			return HrCmdExpunge(strTag, strvResult[0]);
-		} else {
-			HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
+		return HrCmdSearch(strTag, strvResult, true);
+	} else if (strCommand.compare("FETCH") == 0 && uid_command) {
+		if (strvResult.size() != 2) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID FETCH must have 2 arguments");
+			return hrSuccess;
 		}
+		return HrCmdFetch(strTag, strvResult, true);
+	} else if (strCommand.compare("STORE") == 0 && uid_command) {
+		if (strvResult.size() != 3) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID STORE must have 3 arguments");
+			return hrSuccess;
+		}
+		return HrCmdStore(strTag, strvResult, true);
+	} else if (strCommand.compare("COPY") == 0 && uid_command) {
+		if (strvResult.size() != 2) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID COPY must have 2 arguments");
+			return hrSuccess;
+		}
+		return HrCmdCopy(strTag, strvResult, true);
+	} else if (strCommand.compare("XAOL-MOVE") == 0 && uid_command) {
+		if (strvResult.size() != 2) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID XAOL-MOVE must have 2 arguments");
+			return hrSuccess;
+		}
+		return HrCmdUidXaolMove(strTag, strvResult[0], strvResult[1]);
+	} else if (strCommand.compare("EXPUNGE") == 0 && uid_command) {
+		if (strvResult.size() != 1) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID EXPUNGE must have 1 argument");
+			return hrSuccess;
+		}
+		return HrCmdExpunge(strTag, strvResult[0]);
+	} else if (uid_command) {
+		HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
 	} else {
 		HrResponse(RESP_TAGGED_BAD, strTag, "Command not supported");
 	}
