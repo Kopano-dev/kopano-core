@@ -10,12 +10,13 @@ from .compat import repr as _repr
 class Address(object):
     """Address class"""
 
-    def __init__(self, server=None, addrtype=None, name=None, email=None, entryid=None):
+    def __init__(self, server=None, addrtype=None, name=None, email=None, entryid=None, searchkey=None):
         self.server = server
         self.addrtype = addrtype
         self._name = name
         self._email = email
         self.entryid = entryid
+        self._searchkey = searchkey
 
     @property
     def name(self):
@@ -28,9 +29,14 @@ class Address(object):
         """ Email address """
 
         if self.addrtype == 'ZARAFA':
-            return self.server._resolve_email(entryid=self.entryid)
+            email = self.server._resolve_email(entryid=self.entryid)
+            # cannot resolve email for deleted/non-existent user, so fallback to searchkey
+            # XXX make PR_SMTP_ADDRESS always contain email address?
+            if not email and self._searchkey and ':' in self._searchkey and '@' in self._searchkey:
+                email = self._searchkey.split(':')[1].rstrip('\x00').lower()
         else:
-            return self._email or ''
+            email = self._email or ''
+        return email
 
     def __unicode__(self):
         return u'Address(%s)' % (self.name or self.email)

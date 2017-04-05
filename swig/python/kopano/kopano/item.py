@@ -50,7 +50,8 @@ from MAPI.Tags import (
     PR_SENT_REPRESENTING_ENTRYID, PR_MESSAGE_RECIPIENTS,
     PR_MESSAGE_ATTACHMENTS, PR_RECIPIENT_TYPE, PR_ADDRTYPE_W,
     PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W, PR_NULL, PR_HTML,
-    PR_RTF_COMPRESSED
+    PR_RTF_COMPRESSED, PR_SEARCH_KEY, PR_SENDER_SEARCH_KEY,
+    PR_SENT_REPRESENTING_SEARCH_KEY,
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
@@ -458,7 +459,7 @@ class Item(object):
     def sender(self):
         """ Sender :class:`Address` """
 
-        addrprops = (PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID)
+        addrprops = (PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID, PR_SENDER_SEARCH_KEY)
         args = [self.get_prop(p).value if self.get_prop(p) else None for p in addrprops]
         return Address(self.server, *args)
 
@@ -466,7 +467,7 @@ class Item(object):
     def from_(self):
         """ From :class:`Address` """
 
-        addrprops = (PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID)
+        addrprops = (PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_SEARCH_KEY)
         args = [self.get_prop(p).value if self.get_prop(p) else None for p in addrprops]
         return Address(self.server, *args)
 
@@ -494,7 +495,7 @@ class Item(object):
         for row in self.table(PR_MESSAGE_RECIPIENTS):
             row = dict([(x.proptag, x) for x in row])
             if not _type or row[PR_RECIPIENT_TYPE].value == _type:
-                args = [row[p].value if p in row else None for p in (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID)]
+                args = [row[p].value if p in row else None for p in (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_SEARCH_KEY)]
                 yield Address(self.server, *args)
 
     @property
