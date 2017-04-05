@@ -1644,7 +1644,6 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	env[4] = NULL;
 
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting autoresponder for out-of-office message");
-	command += " 2>&1";
 	if (!unix_system(strBaseCommand.c_str(), command.c_str(), env))
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Autoresponder failed");
 
