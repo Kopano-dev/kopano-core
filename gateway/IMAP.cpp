@@ -322,7 +322,8 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		{"STORE", 3, false, &IMAP::HrCmdStore<false>},
 		{"STORE", 3, true, &IMAP::HrCmdStore<true>},
 		{"EXPUNGE", 0, false, &IMAP::HrCmdExpunge},
-		{"EXPUNGE", 1, true, &IMAP::HrCmdExpunge}
+		{"EXPUNGE", 1, true, &IMAP::HrCmdExpunge},
+		{"XAOL-MOVE", 2, true, &IMAP::HrCmdUidXaolMove}
 	};
 
 	static constexpr const struct {
@@ -501,12 +502,6 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			return hrSuccess;
 		}
 		return HrCmdSearch(strTag, strvResult, true);
-	} else if (strCommand.compare("XAOL-MOVE") == 0 && uid_command) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "UID XAOL-MOVE must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdUidXaolMove(strTag, strvResult);
 	} else if (uid_command) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
 	} else {
