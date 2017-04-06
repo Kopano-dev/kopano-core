@@ -221,8 +221,8 @@ class Company(Base):
         except NotFoundError:
             pass
 
-    def users(self, parse=True):
-        """ Return all :class:`users <User>` within the company """
+    def users(self, parse=True, system=False):
+        """ Return all :class:`users <User>` within company """
 
         if parse and getattr(self.server.options, 'users', None):
             for username in self.server.options.users:
@@ -230,7 +230,7 @@ class Company(Base):
             return
 
         if self._name == u'Default':
-            for user in self.server.users():
+            for user in self.server.users(system=system):
                 yield user
         else:
             for ecuser in self.server.sa.GetUserList(self._eccompany.CompanyID, MAPI_UNICODE):
