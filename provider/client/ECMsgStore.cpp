@@ -2227,8 +2227,8 @@ HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp 
 	return hrSuccess;
 }
 
-HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
-    ECMAPIProp *lpFolderPropSet, const TCHAR *lpszFolderName,
+HRESULT ECMsgStore::CreateSpecialFolder(IMAPIFolder *folder_parent_in,
+    ECMAPIProp *folder_propset_in, const TCHAR *lpszFolderName,
     const TCHAR *lpszFolderComment, unsigned int ulPropTag,
     unsigned int ulMVPos, const TCHAR *lpszContainerClass,
     LPMAPIFOLDER *lppMAPIFolder)
@@ -2237,13 +2237,12 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 	object_ptr<IMAPIFolder> lpMAPIFolder;
 	ecmem_ptr<SPropValue> lpPropValue;
 
-	if (lpFolderParent == NULL)
+	if (folder_parent_in == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	// Add a referention at the folders
-	lpFolderParent->AddRef();
-	if (lpFolderPropSet != nullptr)
-		lpFolderPropSet->AddRef();
+	/* Add a reference to the folders */
+	object_ptr<IMAPIFolder> lpFolderParent(folder_parent_in);
+	object_ptr<ECMAPIProp> lpFolderPropSet(folder_propset_in);
 
 	// Create the folder
 	hr = lpFolderParent->CreateFolder(FOLDER_GENERIC,
@@ -2285,12 +2284,6 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 	}
 
 exit:
-	if(lpFolderParent)
-		lpFolderParent->Release();
-
-	if(lpFolderPropSet)
-		lpFolderPropSet->Release();
-
 	return hr;
 }
 
