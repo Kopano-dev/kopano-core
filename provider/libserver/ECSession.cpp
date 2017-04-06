@@ -31,6 +31,7 @@
 #include <mapitags.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/UnixUtil.h>
+#include <kopano/memory.hpp>
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
@@ -743,7 +744,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 	bool			allowLocalUsers = false;
 	int				pid = 0;
 	char			*ptr = NULL;
-	char			*localAdminUsers = NULL;
+	std::unique_ptr<char, KCHL::cstdlib_deleter> localAdminUsers;
 
     if (!lpszName)
     {
@@ -761,7 +762,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 		allowLocalUsers = true;
 
 	// Authentication stage
-	localAdminUsers = strdup(m_lpSessionManager->GetConfig()->GetSetting("local_admin_users"));
+	localAdminUsers.reset(strdup(m_lpSessionManager->GetConfig()->GetSetting("local_admin_users")));
 
 	struct passwd pwbuf;
 	struct passwd *pw;
@@ -809,7 +810,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 		// User connected as himself
 		goto userok;
 
-	p = strtok_r(localAdminUsers, WHITESPACE, &ptr);
+	p = strtok_r(localAdminUsers.get(), WHITESPACE, &ptr);
 
 	while (p) {
 	    pw = NULL;
@@ -841,7 +842,6 @@ userok:
 	m_ulConnectingPid = pid;
 
 exit:
-	free(localAdminUsers);
 	return er;
 }
 
