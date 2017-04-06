@@ -187,10 +187,10 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 {
 	HRESULT			hr = hrSuccess;
 	unsigned int	i=0;
-	LPSPropTagArray	lpsPropTagArray = NULL;
+	ecmem_ptr<SPropTagArray> lpsPropTagArray;
 	std::unique_ptr<MAPINAMEID *[]> lppPropNamesUnresolved;
 	ULONG			cUnresolved = 0;
-	ULONG*			lpServerIDs = NULL;
+	ecmem_ptr<ULONG> lpServerIDs;
 
 	// Exchange doesn't support this, so neither do we
 	if(cPropNames == 0 || lppPropNames == NULL) {
@@ -207,7 +207,7 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 	}
 
 	// Allocate memory for the return structure
-	hr = ECAllocateBuffer(CbNewSPropTagArray(cPropNames), (void **)&lpsPropTagArray);
+	hr = ECAllocateBuffer(CbNewSPropTagArray(cPropNames), &~lpsPropTagArray);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -235,7 +235,7 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 
 	if(cUnresolved) {
 		// Let the server resolve these names 
-		hr = lpTransport->HrGetIDsFromNames(lppPropNamesUnresolved.get(), cUnresolved, ulFlags, &lpServerIDs);
+		hr = lpTransport->HrGetIDsFromNames(lppPropNamesUnresolved.get(), cUnresolved, ulFlags, &~lpServerIDs);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -260,15 +260,8 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 			break;
 		}
 
-	*lppPropTags = lpsPropTagArray;
-	lpsPropTagArray = NULL;
-
+	*lppPropTags = lpsPropTagArray.release();
 exit:
-	if(lpsPropTagArray)
-		ECFreeBuffer(lpsPropTagArray);
-	if(lpServerIDs)
-		ECFreeBuffer(lpServerIDs);
-
 	return hr;
 }
 
