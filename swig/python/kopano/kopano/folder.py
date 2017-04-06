@@ -46,6 +46,7 @@ from .base import Base
 from .permission import Permission
 from .rule import Rule
 from .table import Table
+from .prop import Property
 from .defs import (
     PSETID_Appointment, UNESCAPED_SLASH_RE,
     ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
@@ -321,7 +322,7 @@ class Folder(Base):
         self.server.sa.ResetFolderCount(_unhex(self.entryid))
 
     def _get_entryids(self, items):
-        if isinstance(items, (_item.Item, Folder, Permission, _prop.Property)):
+        if isinstance(items, (_item.Item, Folder, Permission, Property)):
             items = [items]
         else:
             try:
@@ -331,7 +332,7 @@ class Folder(Base):
         item_entryids = [_unhex(item.entryid) for item in items if isinstance(item, _item.Item)]
         folder_entryids = [_unhex(item.entryid) for item in items if isinstance(item, Folder)]
         perms = [item for item in items if isinstance(item, Permission)]
-        props = [item for item in items if isinstance(item, _prop.Property)]
+        props = [item for item in items if isinstance(item, Property)]
         return item_entryids, folder_entryids, perms, props
 
     def delete(self, objects): # XXX associated
