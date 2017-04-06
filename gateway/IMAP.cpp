@@ -492,7 +492,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			HrResponse(RESP_TAGGED_BAD, strTag, "EXPUNGE must have 0 arguments");
 			return hrSuccess;
 		}
-		return HrCmdExpunge(strTag, string());
+		return HrCmdExpunge(strTag, {});
 	} else if (strCommand.compare("SEARCH") == 0 && !uid_command) {
 		if (strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "SEARCH must have 1 or more arguments");
@@ -516,7 +516,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			HrResponse(RESP_TAGGED_BAD, strTag, "UID EXPUNGE must have 1 argument");
 			return hrSuccess;
 		}
-		return HrCmdExpunge(strTag, strvResult[0]);
+		return HrCmdExpunge(strTag, strvResult);
 	} else if (uid_command) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
 	} else {
@@ -1933,12 +1933,16 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdExpunge(const string &strTag, const string &strSeqSet) {
+HRESULT IMAP::HrCmdExpunge(const string &strTag, const std::vector<std::string> &args) {
 	HRESULT hr = hrSuccess;
 	list<ULONG> lstMails;
 	string strCommand;
 	std::unique_ptr<ECRestriction> rst;
 	static_assert(std::is_polymorphic<ECRestriction>::value, "ECRestriction needs to be polymorphic for unique_ptr to work");
+
+	std::string strSeqSet;
+	if (args.size() > 0)
+		strSeqSet = args[0];
 
 	if (strSeqSet.empty())
 		strCommand = "EXPUNGE";

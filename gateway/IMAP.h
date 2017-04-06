@@ -206,7 +206,7 @@ private:
 	HRESULT HrCmdStatus(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdAppend(const string &strTag, const string &strFolder, const string &strData, string strFlags=string(), const string &strTime=string());
 	HRESULT HrCmdClose(const string &strTag);
-	HRESULT HrCmdExpunge(const string &strTag, const string &strSeqSet);
+	HRESULT HrCmdExpunge(const string &strTag, const std::vector<std::string> &args);
 	HRESULT HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteria, bool bUidMode);
 	HRESULT HrCmdFetch(const string &strTag, const std::vector<std::string> &args, bool bUidMode);
 	template <bool uid> HRESULT HrCmdFetch(const std::string &strTag, const std::vector<std::string> &args);
