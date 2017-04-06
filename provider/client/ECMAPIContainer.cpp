@@ -112,7 +112,7 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	object_ptr<WSTableView> lpTableOps;
 	SizedSPropTagArray(1, sPropTagArray);
 	ULONG			cValues = 0;
-	LPSPropValue	lpPropArray = NULL; 
+	ecmem_ptr<SPropValue> lpPropArray;
 	std::string		strName = "Hierarchy table";
 	
 #ifdef DEBUG
@@ -127,35 +127,28 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	sPropTagArray.aulPropTag[0] = PR_FOLDER_TYPE;
 	sPropTagArray.cValues = 1;
 
-	hr = GetProps(sPropTagArray, 0, &cValues, &lpPropArray);
+	hr = GetProps(sPropTagArray, 0, &cValues, &~lpPropArray);
 	if(FAILED(hr))
-		goto exit;
+		return hr;
 	
 	// block for searchfolders
-	if(lpPropArray && lpPropArray[0].ulPropTag == PR_FOLDER_TYPE && lpPropArray[0].Value.l == FOLDER_SEARCH)
-	{		
-		hr= MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+	if (lpPropArray != nullptr && lpPropArray[0].ulPropTag == PR_FOLDER_TYPE &&
+	    lpPropArray[0].Value.l == FOLDER_SEARCH)
+		return MAPI_E_NO_SUPPORT;
 	hr = ECMAPITable::Create(strName.c_str(), this->GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = this->GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_FOLDER, ulFlags & (MAPI_UNICODE | SHOW_SOFT_DELETES | CONVENIENT_DEPTH), m_cbEntryId, m_lpEntryId, this->GetMsgStore(), &~lpTableOps);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
 
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 	AddChild(lpTable);
-
-exit:
-	if(lpPropArray)
-		ECFreeBuffer(lpPropArray);
 	return hr;
 }
 

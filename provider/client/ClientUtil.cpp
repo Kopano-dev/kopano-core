@@ -941,34 +941,20 @@ HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId, LPENTRYID lpEntryId, std
 HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, const char *lpszUrl, std::string& serverPath, bool *lpbIsPeer)
 {
 	HRESULT		hr = hrSuccess;
-	char		*lpszServerPath = NULL;
+	ecmem_ptr<char> lpszServerPath;
 	bool		bIsPeer = false;
 
 	if (lpTransport == NULL || lpszUrl == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+		return MAPI_E_INVALID_PARAMETER;
 	if (strncmp(lpszUrl, "pseudo://", 9))
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	hr = lpTransport->HrResolvePseudoUrl(lpszUrl, &lpszServerPath, &bIsPeer);
+		return MAPI_E_NOT_FOUND;
+	hr = lpTransport->HrResolvePseudoUrl(lpszUrl, &~lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
-		goto exit;
-
-	serverPath = lpszServerPath;
+		return hr;
+	serverPath = lpszServerPath.release();
 	if (lpbIsPeer)
 		*lpbIsPeer = bIsPeer;
-
-exit:
-	if (lpszServerPath)
-		ECFreeBuffer(lpszServerPath);
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT HrCompareEntryIdWithStoreGuid(ULONG cbEntryID, LPENTRYID lpEntryID, LPCGUID guidStore)

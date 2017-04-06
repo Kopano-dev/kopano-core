@@ -371,60 +371,56 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 {
 	HRESULT		hr = hrSuccess;
 	object_ptr<ECMessage> lpMessage;
-	LPMAPIUID	lpMapiUID = NULL;
+	ecmem_ptr<MAPIUID> lpMapiUID;
 	ULONG		cbNewEntryId = 0;
-	LPENTRYID	lpNewEntryId = NULL;
+	ecmem_ptr<ENTRYID> lpNewEntryId;
 	SPropValue	sPropValue[3];
 	object_ptr<IECPropStorage> lpStorage;
 
-	if(!fModify) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
+	if (!fModify)
+		return MAPI_E_NO_ACCESS;
 	hr = ECMessage::Create(this->GetMsgStore(), TRUE, TRUE, ulFlags & MAPI_ASSOCIATED, FALSE, nullptr, &~lpMessage);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
     if(cbEntryID == 0 || lpEntryID == NULL || HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &this->GetMsgStore()->GetStoreGuid()) != hrSuccess) {
 		// No entryid passed or bad entryid passed, create one
-		hr = HrCreateEntryId(GetMsgStore()->GetStoreGuid(), MAPI_MESSAGE, &cbNewEntryId, &lpNewEntryId);
+		hr = HrCreateEntryId(GetMsgStore()->GetStoreGuid(), MAPI_MESSAGE, &cbNewEntryId, &~lpNewEntryId);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpMessage->SetEntryId(cbNewEntryId, lpNewEntryId);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = this->GetMsgStore()->lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbNewEntryId, lpNewEntryId, ulFlags & MAPI_ASSOCIATED, &~lpStorage);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 	} else {
 		// use the passed entryid
         hr = lpMessage->SetEntryId(cbEntryID, lpEntryID);
         if(hr != hrSuccess)
-            goto exit;
+			return hr;
 		hr = this->GetMsgStore()->lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags & MAPI_ASSOCIATED, &~lpStorage);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
     }
 
 	hr = lpMessage->HrSetPropStorage(lpStorage, FALSE);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Load an empty property set
 	hr = lpMessage->HrLoadEmptyProps();
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//Set defaults
 	// Same as ECAttach::OpenProperty
-	hr = ECAllocateBuffer(sizeof(MAPIUID), reinterpret_cast<void **>(&lpMapiUID));
+	hr = ECAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = this->GetMsgStore()->lpSupport->NewUID(lpMapiUID);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sPropValue[0].ulPropTag = PR_MESSAGE_FLAGS;
 	sPropValue[0].Value.l = MSGFLAG_UNSENT | MSGFLAG_READ;
@@ -434,29 +430,20 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 		
 	sPropValue[2].ulPropTag = PR_SEARCH_KEY;
 	sPropValue[2].Value.bin.cb = sizeof(MAPIUID);
-	sPropValue[2].Value.bin.lpb = (LPBYTE)lpMapiUID;
-
+	sPropValue[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpMapiUID.get());
 	lpMessage->SetProps(3, sPropValue, NULL);
 
 	// We don't actually create the object until savechanges is called, so remember in which
 	// folder it was created
 	hr = Util::HrCopyEntryId(this->m_cbEntryId, this->m_lpEntryId, &lpMessage->m_cbParentID, &lpMessage->m_lpParentID);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if(lpInterface)
 		hr = lpMessage->QueryInterface(*lpInterface, (void **)lppMessage);
 	else
 		hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppMessage);
 
 	AddChild(lpMessage);
-
-exit:
-	if (lpNewEntryId)
-		ECFreeBuffer(lpNewEntryId);
-
-	if(lpMapiUID)
-		ECFreeBuffer(lpMapiUID);
 	return hr;
 }
 
@@ -465,10 +452,8 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	HRESULT hr = hrSuccess;
 	HRESULT hrEC = hrSuccess;
 	object_ptr<IMAPIFolder> lpMapiFolder;
-	LPSPropValue lpDestPropArray = NULL;
-
-	LPENTRYLIST lpMsgListEC = NULL;
-	LPENTRYLIST lpMsgListSupport = NULL;
+	ecmem_ptr<SPropValue> lpDestPropArray;
+	ecmem_ptr<ENTRYLIST> lpMsgListEC, lpMsgListSupport;
 	unsigned int i;
 	GUID		guidFolder;
 	GUID		guidMsg;
@@ -499,9 +484,9 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 		goto exit;
 
 	// Get the destination entry ID, and check for favories public folders, so get PR_ORIGINAL_ENTRYID first.
-	hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &lpDestPropArray);
+	hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &~lpDestPropArray);
 	if (hr != hrSuccess)
-		hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &lpDestPropArray);
+		hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpDestPropArray);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -514,7 +499,7 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 			goto exit;
 
 		// Allocate memory for support list and kopano list
-		hr = ECAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpMsgListEC);
+		hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListEC);
 		if(hr != hrSuccess)
 			goto exit;
 		
@@ -523,8 +508,7 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 		hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, (void**)&lpMsgListEC->lpbin);
 		if(hr != hrSuccess)
 			goto exit;
-		
-		hr = ECAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpMsgListSupport);
+		hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListSupport);
 		if(hr != hrSuccess)
 			goto exit;
 		
@@ -575,13 +559,6 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	}	
 
 exit:
-	if (lpDestPropArray != NULL)
-		ECFreeBuffer(lpDestPropArray);
-	if(lpMsgListEC)
-		ECFreeBuffer(lpMsgListEC);
-
-	if(lpMsgListSupport)
-		ECFreeBuffer(lpMsgListSupport);
 	return (hr == hrSuccess)?hrEC:hr;
 }
 
@@ -599,7 +576,7 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType, LPTSTR lpszFolderName, LP
 {
 	HRESULT			hr = hrSuccess;
 	ULONG			cbEntryId = 0;
-	LPENTRYID		lpEntryId = NULL;
+	ecmem_ptr<ENTRYID> lpEntryId;
 	object_ptr<IMAPIFolder> lpFolder;
 	ULONG			ulObjType = 0;
 
@@ -610,27 +587,23 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType, LPTSTR lpszFolderName, LP
 	// set props (comment)
 	// save changes(keep open readwrite)  <- the only call to the server
 
-	if (lpFolderOps == NULL) {
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+	if (lpFolderOps == nullptr)
+		return MAPI_E_NO_SUPPORT;
 
 	// Create the actual folder on the server
-	hr = lpFolderOps->HrCreateFolder(ulFolderType, convstring(lpszFolderName, ulFlags), convstring(lpszFolderComment, ulFlags), ulFlags & OPEN_IF_EXISTS, 0, NULL, 0, NULL, &cbEntryId, &lpEntryId);
-
+	hr = lpFolderOps->HrCreateFolder(ulFolderType,
+	     convstring(lpszFolderName, ulFlags),
+	     convstring(lpszFolderComment, ulFlags), ulFlags & OPEN_IF_EXISTS,
+	     0, nullptr, 0, nullptr, &cbEntryId, &~lpEntryId);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Open the folder we just created
 	hr = this->GetMsgStore()->OpenEntry(cbEntryId, lpEntryId, lpInterface, MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &ulObjType, &~lpFolder);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppFolder = lpFolder.release();
-exit:
-	if(lpEntryId)
-		ECFreeBuffer(lpEntryId);
-
-	return hr;
+	return hrSuccess;
 }
 
 // @note if you change this function please look also at ECMAPIFolderPublic::CopyFolder
@@ -638,7 +611,7 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpMapiFolder;
-	LPSPropValue lpPropArray = NULL;
+	ecmem_ptr<SPropValue> lpPropArray;
 	GUID guidDest;
 	GUID guidFrom;
 
@@ -655,12 +628,12 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get the destination entry ID
-	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &lpPropArray);
+	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpPropArray);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Check if it's  the same store of kopano so we can copy/move fast
 	if( IsKopanoEntryId(cbEntryID, (LPBYTE)lpEntryID) && 
@@ -669,19 +642,11 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		HrGetStoreGuidFromEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb, &guidDest) == hrSuccess &&
 		memcmp(&guidFrom, &guidDest, sizeof(GUID)) == 0 &&
 		lpFolderOps != NULL)
-	{
 		//FIXME: Progressbar
 		hr = this->lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
-			
-	}else
-	{
+	else
 		// Support object handled de copy/move
 		hr = this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, &this->m_xMAPIFolder, cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
-	}
-
-exit:
-	if (lpPropArray != NULL)
-		ECFreeBuffer(lpPropArray);
 	return hr;
 }
 

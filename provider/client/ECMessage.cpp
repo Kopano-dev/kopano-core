@@ -869,13 +869,13 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				++this->ulNextAttUniqueId;
 
 				ULONG ulProps = obj->lstProperties.size();
-				LPSPropValue lpProps = NULL;
+				ecmem_ptr<SPropValue> lpProps;
 				SPropValue sKeyProp;
 				ULONG i;
 
 				// +1 for maybe missing PR_ATTACH_NUM property
 				// +1 for maybe missing PR_OBJECT_TYPE property
-				hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), reinterpret_cast<void **>(&lpProps));
+				hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
 				if (hr != hrSuccess)
 					return hr;
 
@@ -918,8 +918,6 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				hr = lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, i);
 				if (hr != hrSuccess)
 					return hr; // continue?
-				ECFreeBuffer(lpProps);
-				lpProps = NULL;
 			}
 
 			// since we just loaded the table, all enties are clean (actually not required for attachments, but it doesn't hurt)
@@ -947,48 +945,38 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 	object_ptr<ECAttach> lpAttach;
 	object_ptr<IECPropStorage> lpParentStorage;
 	SPropValue			sID;
-	LPSPropValue		lpObjId = NULL;
+	ecmem_ptr<SPropValue> lpObjId;
 	ULONG				ulObjId;
 
 	if(this->lpAttachments == NULL) {
 		object_ptr<IMAPITable> lpTable;
 		hr = this->GetAttachmentTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-	if(this->lpAttachments == NULL) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+	if (this->lpAttachments == nullptr)
+		return MAPI_E_CALL_FAILED;
 	hr = ECAttach::Create(this->GetMsgStore(), MAPI_ATTACH, TRUE, ulAttachmentNum, m_lpRoot, &~lpAttach);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sID.ulPropTag = PR_ATTACH_NUM;
 	sID.Value.ul = ulAttachmentNum;
-	if (lpAttachments->HrGetRowID(&sID, &lpObjId) == hrSuccess)
+	if (lpAttachments->HrGetRowID(&sID, &~lpObjId) == hrSuccess)
 		ulObjId = lpObjId->Value.ul;
 	else
 		ulObjId = 0;
 
 	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, ulAttachmentNum, ulObjId, this->lpStorage->GetServerStorage(), &~lpParentStorage);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpAttach->HrSetPropStorage(lpParentStorage, TRUE);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpAttach->QueryInterface(IID_IAttachment, (void **)lppAttach);
 
 	// Register the object as a child of ours
 	AddChild(lpAttach);
-exit:
-	if(lpObjId)
-		ECFreeBuffer(lpObjId);
-
 	return hr;
 }
 
@@ -1116,7 +1104,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				++this->ulNextRecipUniqueId;
 
 				ULONG ulProps = obj->lstProperties.size();
-				LPSPropValue lpProps = NULL;
+				ecmem_ptr<SPropValue> lpProps;
 				SPropValue sKeyProp;
 				ULONG i = 0;
 				LPSPropValue lpPropID = NULL;
@@ -1124,7 +1112,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 				// +1 for maybe missing PR_ROWID property
 				// +1 for maybe missing PR_OBJECT_TYPE property
-				hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), reinterpret_cast<void **>(&lpProps));
+				hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
 				if (hr != hrSuccess)
 					return hr;
 
@@ -1158,8 +1146,6 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				hr = lpRecips->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, i);
 				if (hr != hrSuccess)
 					return hr;
-				ECFreeBuffer(lpProps);
-				lpProps = NULL;
 			}
 
 			// since we just loaded the table, all enties are clean
@@ -1200,41 +1186,31 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpRecipProps = NULL;
+	ecmem_ptr<SPropValue> lpRecipProps;
 	ULONG cValuesRecipProps = 0;
 	SPropValue sPropAdd[2];
 	SPropValue sKeyProp;
 	unsigned int i = 0;
 
-	if (lpMods == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if (!fModify) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
+	if (lpMods == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (!fModify)
+		return MAPI_E_NO_ACCESS;
 
 	// Load the recipients table object
 	if(lpRecips == NULL) {
 		object_ptr<IMAPITable> lpTable;
 		hr = GetRecipientTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-	if(lpRecips == NULL) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+	if (lpRecips == nullptr)
+		return MAPI_E_CALL_FAILED;
 	if(ulFlags == 0) {
 		hr = lpRecips->HrDeleteAll();
 
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		ulNextRecipUniqueId = 0;
 	}
 
@@ -1249,7 +1225,7 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 			sPropAdd[1].Value.bin.cb = sizeof(ULONG);
 			sPropAdd[1].Value.bin.lpb = (unsigned char *)&sPropAdd[0].Value.ul;
 
-			hr = Util::HrMergePropertyArrays(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, sPropAdd, 2, &lpRecipProps, &cValuesRecipProps);
+			hr = Util::HrMergePropertyArrays(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, sPropAdd, 2, &+lpRecipProps, &cValuesRecipProps);
 			if (hr != hrSuccess)
 				continue;
 
@@ -1258,11 +1234,7 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 
 			// Add the new row
 			hr = lpRecips->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpRecipProps, cValuesRecipProps);
-
-			if (lpRecipProps) {
-				ECFreeBuffer(lpRecipProps);
-				lpRecipProps = NULL;
-			}
+			lpRecipProps.reset();
 		} else if(ulFlags & MODRECIP_MODIFY) {
 			// Simply update the existing row, leave the PR_EC_HIERARCHY key prop intact.
 			hr = lpRecips->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues);
@@ -1271,16 +1243,11 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 		}
 
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	m_bRecipsDirty = TRUE;
-
-exit:
-	if(lpRecipProps)
-		ECFreeBuffer(lpRecipProps);
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
@@ -1291,9 +1258,9 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	ULONG ulRepCount = 0;
 	ULONG ulPreprocessFlags = 0;
 	ULONG ulSubmitFlag = 0;
-	LPSPropValue lpsPropArray = NULL;
+	ecmem_ptr<SPropValue> lpsPropArray;
 	object_ptr<IMAPITable> lpRecipientTable;
-	LPSPropValue lpRecip = NULL;
+	ecmem_ptr<SPropValue> lpRecip;
 	ULONG cRecip = 0;
 	SizedADRLIST(1, sRowSetRecip);
 	SPropValue sPropResponsibility;
@@ -1302,10 +1269,9 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	// Get message flag to check for resubmit. PR_MESSAGE_FLAGS
 	sPropTagArray.cValues = 1;
 	sPropTagArray.aulPropTag[0] = PR_MESSAGE_FLAGS;
-
-	hr = ECMAPIProp::GetProps(sPropTagArray, 0, &cValue, &lpsPropArray);
+	hr = ECMAPIProp::GetProps(sPropTagArray, 0, &cValue, &~lpsPropArray);
 	if(HR_FAILED(hr))
-		goto exit;
+		return hr;
 
 	if(lpsPropArray->ulPropTag == PR_MESSAGE_FLAGS) {
 		// Re-set 'unsent' as it is obviously not sent if we're submitting it ... This allows you to send a message
@@ -1314,31 +1280,27 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 		hr = this->SetProps(1, lpsPropArray, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// Get the recipientslist
 	hr = this->GetRecipientTable(fMapiUnicode, &~lpRecipientTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Check if recipientslist is empty
 	hr = lpRecipientTable->GetRowCount(0, &ulRepCount);
 	if(hr != hrSuccess)
-		goto exit;
-
-	if(ulRepCount == 0) {
-		hr = MAPI_E_NO_RECIPIENTS;
-		goto exit;
-	}
+		return hr;
+	if (ulRepCount == 0)
+		return MAPI_E_NO_RECIPIENTS;
 
 	// Step through recipient list, set PR_RESPONSIBILITY to FALSE for all recipients
 	while(TRUE){
 		rowset_ptr lpsRow;
 		hr = lpRecipientTable->QueryRows(1, 0, &~lpsRow);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (lpsRow->cRows == 0)
 			break;
 
@@ -1346,10 +1308,10 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		sPropResponsibility.Value.b = FALSE;
 
 		// Set PR_RESPONSIBILITY
-		hr = Util::HrAddToPropertyArray(lpsRow->aRow[0].lpProps, lpsRow->aRow[0].cValues, &sPropResponsibility, &lpRecip, &cRecip);
-
+		hr = Util::HrAddToPropertyArray(lpsRow->aRow[0].lpProps,
+		     lpsRow->aRow[0].cValues, &sPropResponsibility, &+lpRecip, &cRecip);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		sRowSetRecip.cEntries = 1;
 		sRowSetRecip.aEntries[0].rgPropVals = lpRecip;
@@ -1358,20 +1320,16 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		if(lpsRow->aRow[0].cValues > 1){
 			hr = this->ModifyRecipients(MODRECIP_MODIFY, sRowSetRecip);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
-
-		ECFreeBuffer(lpRecip);
-		lpRecip = NULL;
+		lpRecip.reset();
 	}
 
 	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
     GetSystemTimeAsFileTime(&ft);
-        ECFreeBuffer(lpsPropArray);
-        lpsPropArray = NULL;
-	hr = ECAllocateBuffer(sizeof(SPropValue)*2, (void**)&lpsPropArray);
+	hr = ECAllocateBuffer(sizeof(SPropValue) * 2, &~lpsPropArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpsPropArray[0].ulPropTag = PR_CLIENT_SUBMIT_TIME;
 	lpsPropArray[0].Value.ft = ft;
@@ -1381,15 +1339,12 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 	hr = SetProps(2, lpsPropArray, NULL);
   	if (hr != hrSuccess)
-		goto exit;
-
-	ECFreeBuffer(lpsPropArray);
-	lpsPropArray = NULL;
+		return hr;
 
 	// Resolve recipients
 	hr = this->GetMsgStore()->lpSupport->ExpandRecips(&this->m_xMessage, &ulPreprocessFlags);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	if (this->GetMsgStore()->IsOfflineStore())
 		ulPreprocessFlags |= NEEDS_SPOOLER;
 
@@ -1398,26 +1353,21 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		ulSubmitFlag = SUBMITFLAG_PREPROCESS;
 	if (ulPreprocessFlags & NEEDS_SPOOLER)
 		ulSubmitFlag = 0L;
-
-	hr = ECAllocateBuffer(sizeof(SPropValue)*1, (void**)&lpsPropArray);
-
+	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpsPropArray[0].ulPropTag = PR_SUBMIT_FLAGS;
 	lpsPropArray[0].Value.l = ulSubmitFlag;
 
 	hr = SetProps(1, lpsPropArray, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
-	ECFreeBuffer(lpsPropArray);
-	lpsPropArray = NULL;
+		return hr;
 
 	// All done, save changes
 	hr = SaveChanges(KEEP_OPEN_READWRITE);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// We look al ulPreprocessFlags to see whether to submit the message via the
 	// spooler or not
@@ -1428,33 +1378,20 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		// Add this message into the local outgoing queue
 
 		hr = this->GetMsgStore()->lpTransport->HrSubmitMessage(this->m_cbEntryId, this->m_lpEntryId, EC_SUBMIT_LOCAL);
-
-		if(hr != hrSuccess)
-			goto exit;
-
 	} else {
 		TRACE_MAPI(TRACE_ENTRY, "Submitting through master queue, flags", "%d", ulPreprocessFlags);
 
 		// Add the message to the master outgoing queue, and request the spooler to DoSentMail()
 		hr = this->GetMsgStore()->lpTransport->HrSubmitMessage(this->m_cbEntryId, this->m_lpEntryId, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
-
-		if(hr != hrSuccess)
-			goto exit;
 	}
-
-exit:
-	if (lpRecip != NULL)
-		ECFreeBuffer(lpRecip);
-	if(lpsPropArray)
-		ECFreeBuffer(lpsPropArray);
 	return hr;
 }
 
 HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 {
 	HRESULT			hr = hrSuccess;
-	LPSPropValue	lpReadReceiptRequest = NULL;
-	LPSPropValue	lpPropFlags = NULL;
+	ecmem_ptr<SPropValue> lpReadReceiptRequest;
+	memory_ptr<SPropValue> lpPropFlags;
 	memory_ptr<SPropValue> lpsPropUserName;
 	SPropValue		sProp;
 	object_ptr<IMAPIFolder> lpRootFolder;
@@ -1469,27 +1406,21 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 		(ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)||
 		(ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY) ||
 		(ulFlags & (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY) )
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if(m_lpParentID) {
+		return MAPI_E_INVALID_PARAMETER;
+	if (m_lpParentID != nullptr)
 		// Unsaved message, ignore (FIXME ?)
-		hr = hrSuccess;
-		goto exit;
-	}
+		return hrSuccess;
 
 	// see if read receipts are requested
 	static constexpr const SizedSPropTagArray(2, proptags) =
 		{2, {PR_MESSAGE_FLAGS, PR_READ_RECEIPT_REQUESTED}};
-	hr = ECMAPIProp::GetProps(proptags, 0, &cValues, &lpReadReceiptRequest);
+	hr = ECMAPIProp::GetProps(proptags, 0, &cValues, &~lpReadReceiptRequest);
 	if(hr == hrSuccess && (!(ulFlags&(SUPPRESS_RECEIPT|CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING)) || (ulFlags&GENERATE_RECEIPT_ONLY )) &&
 		lpReadReceiptRequest[1].Value.b == TRUE && ((lpReadReceiptRequest[0].Value.ul & MSGFLAG_RN_PENDING) || (lpReadReceiptRequest[0].Value.ul & MSGFLAG_NRN_PENDING)))
 	{
 		hr = QueryInterface(IID_IMessage, &~lpThisMessage);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if((ulFlags & (GENERATE_RECEIPT_ONLY | SUPPRESS_RECEIPT)) == (GENERATE_RECEIPT_ONLY | SUPPRESS_RECEIPT) )
 		{
@@ -1497,38 +1428,35 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 			sProp.Value.b = FALSE;
 			hr = HrSetOneProp(lpThisMessage, &sProp);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpThisMessage->SaveChanges(KEEP_OPEN_READWRITE);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 		}else {
 			// Open the default store, by using the username property
 			hr = HrGetOneProp(&GetMsgStore()->m_xMsgStore, PR_USER_NAME, &~lpsPropUserName);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = GetMsgStore()->CreateStoreEntryID(nullptr, lpsPropUserName->Value.LPSZ, fMapiUnicode, &cbStoreID, &~lpStoreID);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = GetMsgStore()->lpSupport->OpenEntry(cbStoreID, lpStoreID, nullptr, MAPI_MODIFY, &ulObjType, &~lpDefMsgStore);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			// Open the root folder of the default store to create a new message
 			hr = lpDefMsgStore->OpenEntry(0, nullptr, nullptr, MAPI_MODIFY, &ulObjType, &~lpRootFolder);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpNewMessage);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = ClientUtil::ReadReceipt(0, lpThisMessage, &+lpNewMessage);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpNewMessage->SubmitMessage(FORCE_SUBMIT);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			// Oke, everything is fine, so now remove MSGFLAG_RN_PENDING and MSGFLAG_NRN_PENDING from PR_MESSAGE_FLAGS
 			// Sent CLEAR_NRN_PENDING and CLEAR_RN_PENDING  for remove those properties
@@ -1539,30 +1467,21 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 
 	hr = this->GetMsgStore()->lpTransport->HrSetReadFlag(this->m_cbEntryId, this->m_lpEntryId, ulFlags, 0);
 	if(hr != hrSuccess)
-	    goto exit;
+		return hr;
 
     // Server update OK, change local flags also
-    if ((hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpPropFlags)) != hrSuccess)
-		goto exit;
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropFlags);
+	if (hr != hrSuccess)
+		return hr;
     hr = HrGetRealProp(PR_MESSAGE_FLAGS, ulFlags, lpPropFlags, lpPropFlags);
     if(hr != hrSuccess)
-        goto exit;
+		return hr;
+	if (ulFlags & CLEAR_READ_FLAG)
+		lpPropFlags->Value.ul &= ~MSGFLAG_READ;
+	else
+		lpPropFlags->Value.ul |= MSGFLAG_READ;
 
-    if (ulFlags & CLEAR_READ_FLAG)
-        lpPropFlags->Value.ul &= ~MSGFLAG_READ;
-    else
-        lpPropFlags->Value.ul |= MSGFLAG_READ;
-
-    hr = HrSetRealProp(lpPropFlags);
-    if(hr != hrSuccess)
-        goto exit;
-
-exit:
-	if (lpPropFlags != NULL)
-		ECFreeBuffer(lpPropFlags);
-	if(lpReadReceiptRequest)
-		ECFreeBuffer(lpReadReceiptRequest);
-	return hr;
+	return HrSetRealProp(lpPropFlags);
 }
 
 /**
@@ -1642,17 +1561,17 @@ HRESULT ECMessage::SaveRecips()
 {
 	HRESULT				hr = hrSuccess;
 	rowset_ptr lpRowSet;
-	LPSPropValue		lpObjIDs = NULL;
-	LPULONG				lpulStatus = NULL;
+	ecmem_ptr<SPropValue> lpObjIDs;
+	ecmem_ptr<ULONG> lpulStatus;
 	unsigned int		i = 0,
 						j = 0;
 	ULONG				ulRealObjType;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// Get any changes and set it in the child list of this message
-	hr = lpRecips->HrGetAllWithStatus(&~lpRowSet, &lpObjIDs, &lpulStatus);
+	hr = lpRecips->HrGetAllWithStatus(&~lpRowSet, &~lpObjIDs, &~lpulStatus);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (i = 0; i < lpRowSet->cRows; ++i) {
 		MAPIOBJECT *mo = NULL;
@@ -1703,17 +1622,7 @@ HRESULT ECMessage::SaveRecips()
 		}
 		m_sMapiObject->lstChildren.insert(mo);
 	}
-
-	hr = lpRecips->HrSetClean();
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	if(lpObjIDs)
-		ECFreeBuffer(lpObjIDs);
-	if(lpulStatus)
-		ECFreeBuffer(lpulStatus);
-	return hr;
+	return lpRecips->HrSetClean();
 }
 
 void ECMessage::RecursiveMarkDelete(MAPIOBJECT *lpObj) {
@@ -1760,18 +1669,18 @@ HRESULT ECMessage::SyncAttachments()
 {
 	HRESULT				hr = hrSuccess;
 	rowset_ptr lpRowSet;
-	LPSPropValue		lpObjIDs = NULL;
+	ecmem_ptr<SPropValue> lpObjIDs;
 //	LPSPropValue		lpAttachNum = NULL;
-	LPULONG				lpulStatus = NULL;
+	ecmem_ptr<ULONG> lpulStatus;
 	unsigned int		i = 0;
 //	LPSPropValue		lpObjType = NULL;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// Get any changes and set it in the child list of this message
 	// Although we only need to know the deleted attachments, I also need to know the PR_ATTACH_NUM, which is in the rowset
-	hr = lpAttachments->HrGetAllWithStatus(&~lpRowSet, &lpObjIDs, &lpulStatus);
+	hr = lpAttachments->HrGetAllWithStatus(&~lpRowSet, &~lpObjIDs, &~lpulStatus);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (i = 0; i < lpRowSet->cRows; ++i) {
 		if (lpulStatus[i] != ECROW_DELETED)
@@ -1794,16 +1703,7 @@ HRESULT ECMessage::SyncAttachments()
 			RecursiveMarkDelete(*iterSObj);
 	}
 
-	hr = lpAttachments->HrSetClean();
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	if(lpObjIDs)
-		ECFreeBuffer(lpObjIDs);
-	if(lpulStatus)
-		ECFreeBuffer(lpulStatus);
-	return hr;
+	return lpAttachments->HrSetClean();
 }
 
 HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObjKeyProp) {
@@ -1871,26 +1771,23 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 {
 	HRESULT				hr = hrSuccess;
-	LPSPropValue		lpsPropMessageFlags = NULL;
+	ecmem_ptr<SPropValue> lpsPropMessageFlags;
 	ULONG				cValues = 0;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// could not have modified (easy way out of my bug)
-	if (!fModify) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
+	if (!fModify)
+		return MAPI_E_NO_ACCESS;
 
 	// nothing changed -> no need to save
  	if (this->lstProps == NULL)
- 		goto exit;
+		return hr;
 
 	assert(m_sMapiObject != NULL); // the actual bug .. keep open on submessage
 	if (this->lpRecips) {
 		hr = SaveRecips();
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		// Synchronize PR_DISPLAY_* ... FIXME should we do this after each ModifyRecipients ?
 		SyncRecips();
 	}
@@ -1899,23 +1796,22 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		// set deleted attachments in saved child list
 		hr = SyncAttachments();
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// Property change of a new item
 	if (fNew && this->GetMsgStore()->IsSpooler() == TRUE) {
 		static constexpr const SizedSPropTagArray(1, proptag) = {1, {PR_MESSAGE_FLAGS}};
-		hr = ECMAPIProp::GetProps(proptag, 0, &cValues, &lpsPropMessageFlags);
+		hr = ECMAPIProp::GetProps(proptag, 0, &cValues, &~lpsPropMessageFlags);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpsPropMessageFlags->ulPropTag = PR_MESSAGE_FLAGS;
 		lpsPropMessageFlags->Value.l &= ~(MSGFLAG_READ|MSGFLAG_UNSENT);
 		lpsPropMessageFlags->Value.l |= MSGFLAG_UNMODIFIED;
 
 		hr = SetProps(1, lpsPropMessageFlags, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// don't re-sync bodies that are returned from server
@@ -1928,30 +1824,25 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 	m_bExplicitSubjectPrefix = FALSE;
 
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// resync recip and attachment table, because of hierarchy IDs, only on actual saved object
 	if (m_sMapiObject && m_bEmbedded == false) {
 		if (lpRecips) {
 			hr = UpdateTable(lpRecips, MAPI_MAILUSER, PR_ROWID);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = UpdateTable(lpRecips, MAPI_DISTLIST, PR_ROWID);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		if (lpAttachments) {
 			hr = UpdateTable(lpAttachments, MAPI_ATTACH, PR_ATTACH_NUM);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
-
-exit:
-	if (lpsPropMessageFlags)
-		ECFreeBuffer(lpsPropMessageFlags);
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1964,7 +1855,7 @@ HRESULT ECMessage::SyncSubject()
 	HRESULT			hr2 = hrSuccess;
 	BOOL			bDirtySubject = FALSE;
 	BOOL			bDirtySubjectPrefix = FALSE;
-	LPSPropValue	lpPropArray = NULL;
+	ecmem_ptr<SPropValue> lpPropArray;
 	ULONG			cValues = 0;
 	WCHAR*			lpszColon = NULL;
 	WCHAR*			lpszEnd = NULL;
@@ -1977,21 +1868,16 @@ HRESULT ECMessage::SyncSubject()
 
 	// if both not present or not dirty
 	if( (hr1 != hrSuccess && hr2 != hrSuccess) || (hr1 == hr2 && bDirtySubject == FALSE && bDirtySubjectPrefix == FALSE) )
-		goto exit;
+		return hr;
 
 	// If subject is deleted but the prefix is not, delete it
 	if(hr1 != hrSuccess && hr2 == hrSuccess)
-	{
-		hr = HrDeleteRealProp(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), FALSE);
-		goto exit;
-	}
+		return HrDeleteRealProp(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), FALSE);
 
 	// Check if subject and prefix in sync
-
-	hr = ECMAPIProp::GetProps(sPropSubjects, 0, &cValues, &lpPropArray);
+	hr = ECMAPIProp::GetProps(sPropSubjects, 0, &cValues, &~lpPropArray);
 	if(HR_FAILED(hr))
-		goto exit;
-
+		return hr;
 	if(lpPropArray[0].ulPropTag == PR_SUBJECT_W)
 		lpszColon = wcschr(lpPropArray[0].Value.lpszW, L':');
 
@@ -2001,9 +1887,6 @@ HRESULT ECMessage::SyncSubject()
 		lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L"");
 
 		hr = HrSetRealProp(&lpPropArray[1]);
-		if(hr != hrSuccess)
-			goto exit;
-
 	} else {
 		sizePrefix1 = lpszColon - lpPropArray[0].Value.lpszW + 1;
 
@@ -2027,16 +1910,8 @@ HRESULT ECMessage::SyncSubject()
 			lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L""); // emtpy PR_SUBJECT_PREFIX
 
 		hr = HrSetRealProp(&lpPropArray[1]);
-		if (hr != hrSuccess)
-			goto exit;
-
 		// PR_SUBJECT_PREFIX and PR_SUBJECT are synchronized
 	}
-
-exit:
-	if(lpPropArray)
-		ECFreeBuffer(lpPropArray);
-
 	return hr;
 }
 
@@ -2494,7 +2369,7 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 HRESULT ECMessage::HrLoadProps()
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpsBodyProps = NULL;
+	ecmem_ptr<SPropValue> lpsBodyProps;
 	static constexpr const SizedSPropTagArray(3, sPropBodyTags) =
 		{3, {PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML}};
 	ULONG cValues = 0;
@@ -2509,8 +2384,7 @@ HRESULT ECMessage::HrLoadProps()
 	m_bInhibitSync = FALSE;
 
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	/*
 	 * Now we're going to determine what the best body is.
 	 * This works as follows, the db will always contain the best body, but possibly
@@ -2523,9 +2397,9 @@ HRESULT ECMessage::HrLoadProps()
 	 * We won't generate any body except the best body if it wasn't returned by the
 	 * server, which is actually wrong.
 	 */
-	hr = ECMAPIProp::GetProps(sPropBodyTags, 0, &cValues, &lpsBodyProps);
+	hr = ECMAPIProp::GetProps(sPropBodyTags, 0, &cValues, &~lpsBodyProps);
 	if (HR_FAILED(hr))
-		goto exit;
+		return hr;
 
 	hr = hrSuccess;
 
@@ -2549,7 +2423,7 @@ HRESULT ECMessage::HrLoadProps()
 		    (m_ulBodyType == bodyTypeHTML && !fHTMLOK)) {
 			hr = SyncRtf();
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
 
@@ -2562,11 +2436,6 @@ HRESULT ECMessage::HrLoadProps()
 		else if (fBodyOK)
 			m_ulBodyType = bodyTypePlain;
 	}
-
-exit:
-	if(lpsBodyProps)
-		ECFreeBuffer(lpsBodyProps);
-
 	return hr;
 }
 
@@ -2633,37 +2502,30 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	HRESULT hr = hrSuccess;
 	ECMapiObjects::const_iterator iterSObj;
 	SPropValue sKeyProp;
-	LPSPropValue lpProps = NULL;
+	ecmem_ptr<SPropValue> lpProps;
 	ULONG ulProps = 0;
 	LPSPropValue lpPropID = NULL;
 	LPSPropValue lpPropObjType = NULL;
 	ULONG i;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if (lpsMapiObject->ulObjType != MAPI_ATTACH) {
+	if (lpsMapiObject->ulObjType != MAPI_ATTACH)
 		// can only save attachments as child objects
 		// (recipients are saved through SaveRecips() from SaveChanges() on this object)
-		hr = MAPI_E_INVALID_OBJECT;
-		goto exit;
-	}
-
+		return MAPI_E_INVALID_OBJECT;
 	if(this->lpAttachments == NULL) {
 		object_ptr<IMAPITable> lpTable;
 		hr = this->GetAttachmentTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-	if(this->lpAttachments == NULL) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	if (this->lpAttachments == nullptr)
+		return MAPI_E_CALL_FAILED;
 
 	if (!m_sMapiObject) {
 		// when does this happen? .. just a simple precaution for now
 		assert(m_sMapiObject != NULL);
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	// Replace the attachment in the object hierarchy with this one, but preserve server object id. This is needed
@@ -2673,8 +2535,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		// Preserve server IDs
 		hr = HrCopyObjIDs(lpsMapiObject, (*iterSObj));
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		// Remove item
 		FreeMapiObject(*iterSObj);
 		m_sMapiObject->lstChildren.erase(iterSObj);
@@ -2686,9 +2547,9 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	ulProps = lpsMapiObject->lstProperties.size();
 
 	// +2 for maybe missing PR_ATTACH_NUM and PR_OBJECT_TYPE properties
-	hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), reinterpret_cast<void **>(&lpProps));
+	hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropID = NULL;
 	i = 0;
@@ -2726,15 +2587,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 	sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
 	sKeyProp.Value.ul = lpsMapiObject->ulObjId;
-
-	hr = lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, ulProps);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpProps)
-		ECFreeBuffer(lpProps);
-	return hr;
+	return lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, ulProps);
 }
 
 HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)

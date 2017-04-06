@@ -307,13 +307,12 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 	ABEID *lpABeid = NULL;
 	ULONG			cbABeid;
 	ULONG			cValues;
-	LPSPropValue	lpPropArray = NULL;
-	LPSPropValue	lpNewPropArray = NULL;
+	ecmem_ptr<SPropValue> lpPropArray, lpNewPropArray;
 	unsigned int	j;
 	ULONG			ulObjType;
 
 	if(lpPropTagArray == NULL || lpPropTagArray->cValues == 0) // There is no work to do.
-		goto exit;
+		return hrSuccess;
 
 	for (unsigned int i = 0; i < lpRecipList->cEntries; ++i) {
 		rgpropvalsRecip	= lpRecipList->aEntries[i].rgPropVals;
@@ -338,15 +337,14 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		hr = OpenEntry(cbABeid, reinterpret_cast<ENTRYID *>(lpABeid), nullptr, 0, &ulObjType, &~lpIMailUser);
 		if(hr != hrSuccess)
 			continue;	// no
-		
-		hr = lpIMailUser->GetProps(lpPropTagArray, 0, &cValues, &lpPropArray);
+		hr = lpIMailUser->GetProps(lpPropTagArray, 0, &cValues, &~lpPropArray);
 		if(FAILED(hr) != hrSuccess)
-			goto skip;	// no
+			continue;	// no
 
 		// merge the properties
-		hr = ECAllocateBuffer((cValues + cPropsRecip) * sizeof(SPropValue), reinterpret_cast<void **>(&lpNewPropArray));
+		hr = ECAllocateBuffer((cValues + cPropsRecip) * sizeof(SPropValue), &~lpNewPropArray);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		for (j = 0; j < cValues; ++j) {
 			lpPropVal = NULL;
@@ -359,7 +357,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 
 			hr = Util::HrCopyProperty(lpNewPropArray + j, lpPropVal, lpNewPropArray);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		for (j = 0; j < cPropsRecip; ++j) {
@@ -369,34 +367,21 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 			
 			hr = Util::HrCopyProperty(lpNewPropArray + cValues, &rgpropvalsRecip[j], lpNewPropArray);
 			if(hr != hrSuccess)
-				goto exit;			
+				return hr;
 			++cValues;
 		}
 
-		lpRecipList->aEntries[i].rgPropVals	= lpNewPropArray;
+		lpRecipList->aEntries[i].rgPropVals	= lpNewPropArray.release();
 		lpRecipList->aEntries[i].cValues	= cValues;
 
 		if(rgpropvalsRecip) {
 			ECFreeBuffer(rgpropvalsRecip); 
 			rgpropvalsRecip = NULL;
 		}
-		
-		lpNewPropArray = NULL; // Everthing oke, should not be freed..
-
-	skip:
-		if(lpPropArray){ ECFreeBuffer(lpPropArray); lpPropArray = NULL; }
 	}
 
 	// Always succeeded on this point
-	hr = hrSuccess;
-
-exit:
-	if(lpPropArray)
-		ECFreeBuffer(lpPropArray);
-
-	if(lpNewPropArray)
-		ECFreeBuffer(lpNewPropArray);
-	return hr;
+	return hrSuccess;
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECABLogon, ABLogon, QueryInterface, (REFIID, refiid), (void **, lppInterface))

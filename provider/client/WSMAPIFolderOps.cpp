@@ -267,8 +267,8 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 {
 	HRESULT			hr = hrSuccess;
 	ECRESULT		er = erSuccess;
-	ENTRYLIST*		lpMsgList = NULL;
-	SRestriction*	lpRestriction = NULL;
+	ecmem_ptr<ENTRYLIST> lpMsgList;
+	ecmem_ptr<SRestriction> lpRestriction;
 
 	struct tableGetSearchCriteriaResponse sResponse;
 
@@ -284,8 +284,7 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 	END_SOAP_CALL
 
 	if(lppRestriction) {
-
-		hr = ECAllocateBuffer(sizeof(SRestriction), (void **)&lpRestriction);
+		hr = ECAllocateBuffer(sizeof(SRestriction), &~lpRestriction);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -295,30 +294,21 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 	}
 
 	if(lppMsgList) {
-		hr = CopySOAPEntryListToMAPIEntryList(sResponse.lpFolderIDs, &lpMsgList);
+		hr = CopySOAPEntryListToMAPIEntryList(sResponse.lpFolderIDs, &~lpMsgList);
 		if(hr != hrSuccess)
 			goto exit;
 
 	}
 
 	if(lppMsgList)
-		*lppMsgList = lpMsgList;
-
+		*lppMsgList = lpMsgList.release();
 	if(lppRestriction)
-		*lppRestriction = lpRestriction;
-	
+		*lppRestriction = lpRestriction.release();
 	if(lpulFlags)
 		*lpulFlags = sResponse.ulFlags;
 
 exit:
 	UnLockSoap();
-
-	if(hr != hrSuccess && lpMsgList)
-		ECFreeBuffer(lpMsgList);
-
-	if(hr != hrSuccess && lpRestriction)
-		ECFreeBuffer(lpRestriction);
-
 	return hr;
 }
 

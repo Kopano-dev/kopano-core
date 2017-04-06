@@ -437,7 +437,7 @@ static constexpr const SizedSPropTagArray(OUT_MSG_PROPS, sptOutMsgProps) =
 
 HRESULT ECXPLogon::SetOutgoingProps (LPMESSAGE lpMessage)
 {
-	LPSPropValue lpspvSender = NULL;
+	ecmem_ptr<SPropValue> lpspvSender;
 	ULONG ulValues;
 	HRESULT hr = erSuccess;
 	#define NUM_OUTGOING_PROPS  12
@@ -445,7 +445,7 @@ HRESULT ECXPLogon::SetOutgoingProps (LPMESSAGE lpMessage)
 	ULONG i = 0;
 	FILETIME ft;
 
-	hr = lpMessage->GetProps(sptOutMsgProps, 0, &ulValues, &lpspvSender);
+	hr = lpMessage->GetProps(sptOutMsgProps, 0, &ulValues, &~lpspvSender);
 	if (FAILED(hr))
 		lpspvSender = NULL; // So that we may recover and continue using default values
 
@@ -495,10 +495,6 @@ HRESULT ECXPLogon::SetOutgoingProps (LPMESSAGE lpMessage)
 
     assert (i <= NUM_OUTGOING_PROPS);
     hr = lpMessage->SetProps (i, spvProps, NULL);
-
-	if(lpspvSender)
-		ECFreeBuffer(lpspvSender);
-
 	return hr;
 }
 
