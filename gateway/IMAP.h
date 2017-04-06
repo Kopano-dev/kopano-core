@@ -214,7 +214,7 @@ private:
 	template <bool uid> HRESULT HrCmdStore(const std::string &strTag, const std::vector<std::string> &args);
 	HRESULT HrCmdCopy(const string &strTag, const std::vector<std::string> &args, bool bUidMode);
 	template <bool uid> HRESULT HrCmdCopy(const std::string &strTag, const std::vector<std::string> &args);
-	HRESULT HrCmdUidXaolMove(const string &strTag, const string &strSeqSet, const string &strFolder);
+	HRESULT HrCmdUidXaolMove(const string &strTag, const std::vector<std::string> &args);
 	HRESULT HrCmdIdle(const string &strTag);
 	HRESULT HrCmdNamespace(const string &strTag);
 	HRESULT HrCmdGetQuotaRoot(const std::string &tag, const std::vector<std::string> &args);

@@ -506,7 +506,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			HrResponse(RESP_TAGGED_BAD, strTag, "UID XAOL-MOVE must have 2 arguments");
 			return hrSuccess;
 		}
-		return HrCmdUidXaolMove(strTag, strvResult[0], strvResult[1]);
+		return HrCmdUidXaolMove(strTag, strvResult);
 	} else if (uid_command) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
 	} else {
@@ -2237,9 +2237,12 @@ template <bool uid> HRESULT IMAP::HrCmdCopy(const std::string &strTag, const std
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const string &strSeqSet, const string &strFolder) {
+HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const std::vector<std::string> &args) {
 	HRESULT hr = hrSuccess;
 	list<ULONG> lstMails;
+
+	const std::string &strSeqSet = args[0];
+	const std::string &strFolder = args[1];
 
 	if (strCurrentFolder.empty() || !lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE error no folder");
