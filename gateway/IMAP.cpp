@@ -320,7 +320,9 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		{"COPY", 2, false, &IMAP::HrCmdCopy<false>},
 		{"COPY", 2, true, &IMAP::HrCmdCopy<true>},
 		{"STORE", 3, false, &IMAP::HrCmdStore<false>},
-		{"STORE", 3, true, &IMAP::HrCmdStore<true>}
+		{"STORE", 3, true, &IMAP::HrCmdStore<true>},
+		{"EXPUNGE", 0, false, &IMAP::HrCmdExpunge},
+		{"EXPUNGE", 1, true, &IMAP::HrCmdExpunge}
 	};
 
 	static constexpr const struct {
@@ -487,12 +489,6 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		}
 		HrResponse(RESP_TAGGED_BAD, strTag, "APPEND must have 2, 3 or 4 arguments");
 		return hrSuccess;
-	} else if (strCommand.compare("EXPUNGE") == 0 && !uid_command) {
-		if (!strvResult.empty()) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "EXPUNGE must have 0 arguments");
-			return hrSuccess;
-		}
-		return HrCmdExpunge(strTag, {});
 	} else if (strCommand.compare("SEARCH") == 0 && !uid_command) {
 		if (strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "SEARCH must have 1 or more arguments");
@@ -511,12 +507,6 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			return hrSuccess;
 		}
 		return HrCmdUidXaolMove(strTag, strvResult[0], strvResult[1]);
-	} else if (strCommand.compare("EXPUNGE") == 0 && uid_command) {
-		if (strvResult.size() != 1) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "UID EXPUNGE must have 1 argument");
-			return hrSuccess;
-		}
-		return HrCmdExpunge(strTag, strvResult);
 	} else if (uid_command) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
 	} else {
