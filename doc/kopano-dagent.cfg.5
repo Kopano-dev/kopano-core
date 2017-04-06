@@ -311,6 +311,14 @@ Enable this option to prevent rules to cause a loop\&. An e\-mail can only be fo
 Default:
 \fIno\fR
 .RE
+.PP
+\fBforward_whitelist_domains\fR
+.RS 4
+A list of space\-separated domains to which forwarding via a rule is allowed\&. The "*" matches zero or more characters (including dots, i\&.e\&. subdomains at multiple levels)\&. Do not use "*kopano.com" to permit both "@kopano.com" and "@sub.kopano.com", as that would also allow "@notkopano.com"\&.
+.sp
+Default:
+\fI*\fR
+.RE
 .SH "RELOADING"
 .PP
 The following options are reloadable by sending the kopano\-dagent process a HUP signal:
