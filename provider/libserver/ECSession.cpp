@@ -749,13 +749,11 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
     if (!lpszName)
     {
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateUserSocket()");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
     }
 	if (!lpszImpersonateUser) {
 		ec_log_err("Invalid argument \"lpszImpersonateUser\" in call to ECAuthSession::ValidateUserSocket()");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 	p = m_lpSessionManager->GetConfig()->GetSetting("allow_local_users");
 	if (p != nullptr && strcasecmp(p, "yes") == 0)
@@ -773,10 +771,8 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 	unsigned int cr_len;
 
 	cr_len = sizeof(struct ucred);
-	if(getsockopt(socket, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) != 0 || cr_len != sizeof(struct ucred)) {
-		er = KCERR_LOGON_FAILED;
-		goto exit;
-	}
+	if (getsockopt(socket, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) != 0 || cr_len != sizeof(struct ucred))
+		return KCERR_LOGON_FAILED;
 
 	uid = cr.uid; // uid is the uid of the user that is connecting
 	pid = cr.pid;
@@ -784,10 +780,8 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 #ifdef HAVE_GETPEEREID
 	gid_t gid;
 
-	if (getpeereid(socket, &uid, &gid)) {
-		er = KCERR_LOGON_FAILED;
-		goto exit;
-	}
+	if (getpeereid(socket, &uid, &gid) != 0)
+		return KCERR_LOGON_FAILED;
 #else // HAVE_GETPEEREID
 #error I have no way to find out the remote user and I want to cry
 #endif // HAVE_GETPEEREID
@@ -824,25 +818,20 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 			goto userok;
 		p = strtok_r(NULL, WHITESPACE, &ptr);
 	}
-	er = KCERR_LOGON_FAILED;
-	goto exit;
+	return KCERR_LOGON_FAILED;
 
 userok:
     // Check whether user exists in the user database
 	er = m_lpUserManagement->ResolveObjectAndSync(OBJECTCLASS_USER, lpszName, &m_ulUserID);
 	if (er != erSuccess)
-	    goto exit;
-
+		return er;
 	er = ProcessImpersonation(lpszImpersonateUser);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_SOCKET;
 	m_ulConnectingPid = pid;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECAuthSession::ValidateUserCertificate(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser)

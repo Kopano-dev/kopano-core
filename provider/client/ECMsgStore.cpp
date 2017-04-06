@@ -2250,40 +2250,34 @@ HRESULT ECMsgStore::CreateSpecialFolder(IMAPIFolder *folder_parent_in,
 	     const_cast<LPTSTR>(lpszFolderComment), &IID_IMAPIFolder,
 	     OPEN_IF_EXISTS | fMapiUnicode, &~lpMAPIFolder);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Set the special property
 	if(lpFolderPropSet) {
 		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpFolderPropSet, ulPropTag, ulMVPos);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 	}
 
 	if (lpszContainerClass && _tcslen(lpszContainerClass) > 0) {
 		hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpPropValue[0].ulPropTag = PR_CONTAINER_CLASS;
 		hr = ECAllocateMore((_tcslen(lpszContainerClass) + 1) * sizeof(TCHAR), lpPropValue,
 		     reinterpret_cast<void **>(&lpPropValue[0].Value.LPSZ));
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		_tcscpy(lpPropValue[0].Value.LPSZ, lpszContainerClass);
 
 		// Set the property
 		hr = lpMAPIFolder->SetProps(1, lpPropValue, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
-	if(lppMAPIFolder) {
+	if (lppMAPIFolder != nullptr)
 		hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, (void**)lppMAPIFolder);
-		if(hr != hrSuccess)
-			goto exit;
-	}
-
-exit:
 	return hr;
 }
 

@@ -1094,13 +1094,12 @@ HRESULT CopySOAPRowSetToMAPIRowSet(void *lpProvider,
 		lpRowSet->aRow[i].cValues = lpsRowSetSrc->__ptr[i].__size;
 		hr = ECAllocateBuffer(sizeof(SPropValue) * lpsRowSetSrc->__ptr[i].__size, reinterpret_cast<void **>(&lpRowSet->aRow[i].lpProps));
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		CopySOAPRowToMAPIRow(lpProvider, &lpsRowSetSrc->__ptr[i], lpRowSet->aRow[i].lpProps, (void **)lpRowSet->aRow[i].lpProps, ulType, &converter);
 	}
 
 	*lppRowSetDst = lpRowSet.release();
- exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,

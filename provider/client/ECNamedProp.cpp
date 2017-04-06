@@ -22,7 +22,6 @@
 #include <mapicode.h>
 
 #include <list>
-
 #include "Mem.h"
 #include "ECNamedProp.h"
 #include "WSTransport.h"
@@ -193,23 +192,18 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 	ecmem_ptr<ULONG> lpServerIDs;
 
 	// Exchange doesn't support this, so neither do we
-	if(cPropNames == 0 || lppPropNames == NULL) {
-		hr = MAPI_E_TOO_BIG;
-		goto exit;
-	}
+	if (cPropNames == 0 || lppPropNames == nullptr)
+		return MAPI_E_TOO_BIG;
 
 	// Sanity check input
-	for (i = 0; i < cPropNames; ++i) {
-		if(lppPropNames[i] == NULL) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
-	}
+	for (i = 0; i < cPropNames; ++i)
+		if (lppPropNames[i] == nullptr)
+			return MAPI_E_INVALID_PARAMETER;
 
 	// Allocate memory for the return structure
 	hr = ECAllocateBuffer(CbNewSPropTagArray(cPropNames), &~lpsPropTagArray);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpsPropTagArray->cValues = cPropNames;
 
@@ -237,7 +231,7 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 		// Let the server resolve these names 
 		hr = lpTransport->HrGetIDsFromNames(lppPropNamesUnresolved.get(), cUnresolved, ulFlags, &~lpServerIDs);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Put the names into the local cache for all the IDs the server gave us
 		for (i = 0; i < cUnresolved; ++i)
@@ -261,7 +255,6 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 		}
 
 	*lppPropTags = lpsPropTagArray.release();
-exit:
 	return hr;
 }
 
@@ -338,26 +331,16 @@ HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, LPGUID lpGuid, ULONG ulFlag
 HRESULT ECNamedProp::UpdateCache(ULONG ulId, MAPINAMEID *lpName)
 {
 	HRESULT		hr = hrSuccess;
-	MAPINAMEID*	lpNameCopy = NULL;
+	ecmem_ptr<MAPINAMEID> lpNameCopy;
 
-	if(mapNames.find(lpName) != mapNames.end()) {
+	if (mapNames.find(lpName) != mapNames.end())
 		// Already in the cache!
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	hr = HrCopyNameId(lpName, &lpNameCopy, NULL);
-
+		return MAPI_E_NOT_FOUND;
+	hr = HrCopyNameId(lpName, &~lpNameCopy, NULL);
 	if(hr != hrSuccess)
-		goto exit;
-
-	mapNames[lpNameCopy] = ulId;
-
-exit:
-	if(hr != hrSuccess && lpNameCopy)
-		ECFreeBuffer(lpNameCopy);
-
-	return hr;
+		return hr;
+	mapNames[lpNameCopy.release()] = ulId;
+	return hrSuccess;
 }
 
 HRESULT ECNamedProp::ResolveCache(MAPINAMEID *lpName, ULONG *lpulPropTag)
