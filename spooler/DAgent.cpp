@@ -249,27 +249,6 @@ class kc_icase_equal {
 	}
 };
 
-static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
-    PyMapiPlugin **lppPyMapiPlugin)
-{
-	HRESULT hr = hrSuccess;
-	std::unique_ptr<PyMapiPlugin> lpPyMapiPlugin;
-
-	if (lpPyMapiPluginFactory == nullptr || lppPyMapiPlugin == nullptr) {
-		assert(false);
-		return MAPI_E_INVALID_PARAMETER;
-	}
-
-	hr = lpPyMapiPluginFactory->CreatePlugin("DAgentPluginManager", &unique_tie(lpPyMapiPlugin));
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to initialize the dagent plugin manager, please check your configuration: %s (%x).",
-			GetMAPIErrorMessage(hr), hr);
-		return MAPI_E_CALL_FAILED;
-	}
-	*lppPyMapiPlugin = lpPyMapiPlugin.release();
-	return hrSuccess;
-}
-
 //Global variables
 
 static bool g_bQuit = false;
@@ -2223,7 +2202,7 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
  * 
  * @return MAPI Error code
  */
-static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
     LPADRBOOK lpAdrBook, LPMDB lpStore, IMAPIFolder *lpInbox,
     IMAPIFolder *lpFolder, IMessage **lppMessage, ECRecipient *lpRecip,
     DeliveryArgs *lpArgs)
@@ -2360,7 +2339,7 @@ exit:
  * 
  * @return MAPI Error code
  */
-static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpSession, IMsgStore *lpStore, bool bIsAdmin,
     LPADRBOOK lpAdrBook, IMessage *lpOrigMessage, bool bFallbackDelivery,
     const std::string &strMail, ECRecipient *lpRecip, DeliveryArgs *lpArgs,
@@ -2595,7 +2574,7 @@ static void RespondMessageExpired(recipients_t::const_iterator iter,
  * 
  * @return MAPI Error code
  */
-static HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpUserSession, IMessage *lpMessage, bool bFallbackDelivery,
     const std::string &strMail, const std::string &strServer,
     const recipients_t &listRecipients, LPADRBOOK lpAdrBook,
@@ -2707,7 +2686,7 @@ static HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin,
  * 
  * @return MAPI Error code
  */
-static HRESULT ProcessDeliveryToSingleRecipient(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT ProcessDeliveryToSingleRecipient(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpSession, LPADRBOOK lpAdrBook, FILE *fp,
     recipients_t &lstSingleRecip, DeliveryArgs *lpArgs)
 {
@@ -2747,7 +2726,7 @@ static HRESULT ProcessDeliveryToSingleRecipient(PyMapiPlugin *lppyMapiPlugin,
  * 
  * @return MAPI Error code
  */
-static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT ProcessDeliveryToCompany(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpSession, LPADRBOOK lpAdrBook, FILE *fp,
     const serverrecipients_t *lpServerNameRecips, DeliveryArgs *lpArgs)
 {
@@ -2878,7 +2857,7 @@ found:
  * 
  * @return MAPI Error code
  */
-static HRESULT ProcessDeliveryToList(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT ProcessDeliveryToList(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpSession, FILE *fp, companyrecipients_t *lpCompanyRecips,
     DeliveryArgs *lpArgs)
 {
@@ -2993,13 +2972,6 @@ static void *HandlerLMTP(void *lpArg)
 		lmtp.HrResponse("220-DEBUG MODE, please wait");
 		Sleep(10000); //wait 10 seconds so you can attach gdb
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting worker for LMTP request");
-	}
-	
-	hr = pyMapiPluginFactory.Init(g_lpConfig, g_lpLogger);
-	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
-		lmtp.HrResponse("421 internal error: pyMapiPluginFactory failed");
-		goto exit;
 	}
 	hr = HrGetSession(lpArgs, KOPANO_SYSTEM_USER_W, &~lpSession);
 	if (hr != hrSuccess) {
@@ -3161,9 +3133,11 @@ static void *HandlerLMTP(void *lpArg)
 			add_misc_headers(tmp, heloName, curFrom, lpArgs);
 			hr = lmtp.HrCommandDATA(tmp);
 			if (hr == hrSuccess) {
-				PyMapiPluginAPtr ptrPyMapiPlugin;
-				hr = GetPluginObject(&pyMapiPluginFactory, &~ptrPyMapiPlugin);
+				std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
+				hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 				if (hr != hrSuccess) {
+					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
+						GetMAPIErrorMessage(hr), hr);
 					lmtp.HrResponse("503 5.1.1 Internal error during delivery");
 					sc->countInc("DAgent::LMTP", "internal_error");
 					fclose(tmp);
@@ -3174,7 +3148,7 @@ static void *HandlerLMTP(void *lpArg)
 				// During delivery lpArgs->ulDeliveryMode can be set to DM_JUNK. However it won't reset it
 				// if required. So make sure to reset it here so we can safely reuse the LMTP connection
 				delivery_mode ulDeliveryMode = lpArgs->ulDeliveryMode;
-				ProcessDeliveryToList(ptrPyMapiPlugin, lpSession, tmp, &mapRCPT, lpArgs);
+				ProcessDeliveryToList(ptrPyMapiPlugin.get(), lpSession, tmp, &mapRCPT, lpArgs);
 				lpArgs->ulDeliveryMode = ulDeliveryMode;
 			}
 
@@ -3454,7 +3428,7 @@ exit:
  * @param[in]	lpArgs		Delivery arguments, according to given options on the commandline.
  * @return		MAPI Error code.
  */
-static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
+static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
     const char *recipient, bool bStringEmail, FILE *file,
     DeliveryArgs *lpArgs)
 {
@@ -3878,7 +3852,7 @@ int main(int argc, char *argv[]) {
 	}
 	else {
 		PyMapiPluginFactory pyMapiPluginFactory;
-		PyMapiPluginAPtr ptrPyMapiPlugin;
+		std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 
 		// log process id prefix to distinguinsh events, file logger only affected
 		g_lpLogger->SetLogprefix(LP_PID);
@@ -3892,18 +3866,15 @@ int main(int argc, char *argv[]) {
 
 		sc = new StatsClient(g_lpLogger);
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
-		hr = pyMapiPluginFactory.Init(g_lpConfig, g_lpLogger);
+		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginmanager", &unique_tie(ptrPyMapiPlugin));
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
+			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
+				GetMAPIErrorMessage(hr), hr);
+			hr = MAPI_E_CALL_FAILED;
 			goto nonlmtpexit;
 		}
-		hr = GetPluginObject(&pyMapiPluginFactory, &~ptrPyMapiPlugin);
-		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): GetPluginObject failed %x", hr);
-			goto nonlmtpexit; // Error is logged in GetPluginObject
-		}
 
-		hr = deliver_recipient(ptrPyMapiPlugin, argv[optind], strip_email, fp, &sDeliveryArgs);
+		hr = deliver_recipient(ptrPyMapiPlugin.get(), argv[optind], strip_email, fp, &sDeliveryArgs);
 		if (hr != hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "main(): deliver_recipient failed %x", hr);
 

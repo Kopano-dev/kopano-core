@@ -61,26 +61,6 @@
 using namespace std;
 using namespace KCHL;
 
-static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
-    PyMapiPlugin **lppPyMapiPlugin)
-{
-    HRESULT hr = hrSuccess;
-	std::unique_ptr<PyMapiPlugin> lpPyMapiPlugin;
-
-    if (lpPyMapiPluginFactory == nullptr || lppPyMapiPlugin == nullptr) {
-        assert(false);
-		return MAPI_E_INVALID_PARAMETER;
-    }
-	hr = lpPyMapiPluginFactory->CreatePlugin("SpoolerPluginManager", &unique_tie(lpPyMapiPlugin));
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to initialize plugin system, please check your configuration: %s (%x).",
-			GetMAPIErrorMessage(hr), hr);
-		return MAPI_E_CALL_FAILED;
-	}
-	*lppPyMapiPlugin = lpPyMapiPlugin.release();
-	return hrSuccess;
-}
-
 /**
  * Expand all rows in the lpTable to normal user recipient
  * entries. When a group is expanded from a group, this function will
@@ -1841,7 +1821,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	memory_ptr<SPropValue> lpAutoForward, lpMsgClass, lpDeferSendTime;
 
 	PyMapiPluginFactory pyMapiPluginFactory;
-	PyMapiPluginAPtr ptrPyMapiPlugin;
+	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 	ULONG ulResult = 0;
 
 	ArchiveResult	archiveResult;
@@ -1868,14 +1848,13 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sopt.always_expand_distr_list = parseBool(g_lpConfig->GetSetting("expand_groups"));
 
 	// Init plugin system
-	hr = pyMapiPluginFactory.Init(g_lpConfig, g_lpLogger);
+	hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
+		ec_log_crit("K-1733: Unable to initialize the spooler plugin system: %s (%x).",
+			GetMAPIErrorMessage(hr), hr);
+		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-	hr = GetPluginObject(&pyMapiPluginFactory, &~ptrPyMapiPlugin);
-	if (hr != hrSuccess)
-		goto exit; // Error logged in GetPluginObject
 
 	// Get the owner of the store
 	hr = lpSecurity->GetOwner(&cbOwner, &~lpOwner);

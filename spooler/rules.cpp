@@ -872,7 +872,7 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 }
 
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
-HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
+HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
     IMAPISession *lpSession, IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
     IMAPIFolder *lpOrigInbox, IMessage **lppMessage, StatsClient *const sc)
 {
