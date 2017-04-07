@@ -1329,8 +1329,9 @@ retry:
 	if (pollfd[1].revents & (POLLIN | POLLRDHUP)) {
 		// log stderr of ntlm_auth to logfile (loop?)
 		bytes = read(m_stderr, buffer, NTLMBUFFER-1);
-		if (bytes >= 0)
-			buffer[bytes] = '\0';
+		if (bytes < 0)
+			return er;
+		buffer[bytes] = '\0';
 		// print in lower level. if ntlm_auth was not installed (kerberos only environment), you won't care that ntlm_auth doesn't work.
 		// login error is returned to the client, which was expected anyway.
 		ec_log_notice(string("Received error from ntlm_auth:\n") + buffer);
