@@ -25,7 +25,7 @@ if sys.hexversion >= 0x03000000:
 else:
     import utils as _utils
 
-class Recurrence:
+class Recurrence(object):
     def __init__(self, item): # XXX just readable start/end for now
         # TODO: add check if we actually have a recurrence, otherwise we throw a mapi exception which might not be desirable
         self.item = item
