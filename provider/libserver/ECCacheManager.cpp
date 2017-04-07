@@ -366,7 +366,7 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 		goto exit;
 	}
 
-	strQuery = "SELECT hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type FROM hierarchy WHERE hierarchy.id = " + stringify(ulObjId);
+	strQuery = "SELECT hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type FROM hierarchy WHERE hierarchy.id = " + stringify(ulObjId) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
@@ -579,7 +579,7 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
     // Get our parent folder
 	if(GetParent(ulObjId, &ulSubObjId) != erSuccess) {
 	    // No parent, this must be the top-level item, get the store data from here
-    	strQuery = "SELECT hierarchy_id, guid, type FROM stores WHERE hierarchy_id = " + stringify(ulObjId);
+       strQuery = "SELECT hierarchy_id, guid, type FROM stores WHERE hierarchy_id = " + stringify(ulObjId) + " LIMIT 1";
     	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
     	if(er != erSuccess)
 	    	goto exit;
@@ -655,7 +655,7 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 		goto exit;
 
 	er = lpDatabase->DoSelect("SELECT externid, objectclass, signature, company FROM users "
-							  "WHERE id=" + stringify(ulUserId), &lpDBResult);
+							  "WHERE id=" + stringify(ulUserId) + " LIMIT 1", &lpDBResult);
 	if (er != erSuccess) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECCacheManager::GetUserObject(): NULL in columns");
@@ -751,7 +751,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 	strQuery =
 		"SELECT id, signature, company, objectclass FROM users "
 		"WHERE externid='" + lpDatabase->Escape(sExternId.id) + "' "
-			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", sExternId.objclass);
+			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", sExternId.objclass) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		er = KCERR_DATABASE_ERROR;
@@ -1593,7 +1593,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 		goto exit;
 
 	// Get them from the database
-	strQuery = "SELECT val_binary FROM indexedproperties FORCE INDEX(PRIMARY) WHERE tag="+stringify(ulTag)+" AND hierarchyid="+stringify(ulObjId);
+	strQuery = "SELECT val_binary FROM indexedproperties FORCE INDEX(PRIMARY) WHERE tag="+stringify(ulTag)+" AND hierarchyid="+stringify(ulObjId) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
@@ -1653,7 +1653,7 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
         goto exit;
 
     // Get them from the database
-    strQuery = "SELECT hierarchyid FROM indexedproperties FORCE INDEX(bin) WHERE tag="+stringify(ulTag)+" AND val_binary="+ lpDatabase->EscapeBinary(lpData, cbData);
+    strQuery = "SELECT hierarchyid FROM indexedproperties FORCE INDEX(bin) WHERE tag="+stringify(ulTag)+" AND val_binary="+ lpDatabase->EscapeBinary(lpData, cbData) + " LIMIT 1";
     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
     if(er != erSuccess)
         goto exit;

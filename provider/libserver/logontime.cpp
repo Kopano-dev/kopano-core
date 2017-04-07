@@ -22,7 +22,7 @@ static ECRESULT ltm_sync_time(ECDatabase *db,
 {
 	FILETIME ft;
 	UnixTimeToFileTime(e.second, &ft);
-	std::string query = "SELECT hierarchy_id FROM stores WHERE stores.user_id=" + stringify(e.first);
+	std::string query = "SELECT hierarchy_id FROM stores WHERE stores.user_id=" + stringify(e.first) + " LIMIT 1";
 	DB_RESULT result;
 	ECRESULT ret = db->DoSelect(query, &result);
 	if (ret != erSuccess)
