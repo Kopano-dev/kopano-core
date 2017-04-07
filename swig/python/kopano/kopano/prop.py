@@ -36,7 +36,7 @@ from .defs import (
 from .compat import (
     repr as _repr, fake_unicode as _unicode, is_int as _is_int, hex as _hex
 )
-from .errors import Error
+from .errors import Error, NotFoundError
 
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
@@ -72,38 +72,49 @@ def bestbody(mapiobj): # XXX we may want to use the swigged version in libcommon
 
     return tag
 
-def create_prop(self, mapiobj, proptag, value, proptype=None):
+def create_prop(self, mapiobj, proptag, value=None, proptype=None): # XXX selfie
+
     if _is_int(proptag):
-        if PROP_TYPE(proptag) == PT_SYSTIME:
-            value = unixtime(time.mktime(value.timetuple()))
-        # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
-        try:
-            mapiobj.SetProps([SPropValue(proptag, value)])
-        except TypeError:
-            raise Error('Could not create property, type and value did not match')
-    else: # named prop
+        if proptype is None:
+            proptype = PROP_TYPE(proptag)
+
+    else: # named property
+        if proptype is None:
+            raise Error('Missing type to create named property') # XXX exception too general?
+
         # XXX: code duplication from prop()
         namespace, name = proptag.split(':') # XXX syntax
         if name.isdigit(): # XXX
             name = int(name)
 
-        if proptype == PT_SYSTIME:
-            value = unixtime(time.mktime(value.timetuple()))
-        if not proptype:
-            raise Error('Missing type to create named Property') # XXX exception too general?
-
         nameid = MAPINAMEID(NAMESPACE_GUID.get(namespace), MNID_ID if isinstance(name, int) else MNID_STRING, name)
         lpname = mapiobj.GetIDsFromNames([nameid], 0)
         proptag = CHANGE_PROP_TYPE(lpname[0], proptype)
-        # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
-        try:
-            mapiobj.SetProps([SPropValue(proptag, value)])
-        except TypeError:
-            raise Error('Could not create property, type and value did not match')
+
+    if value is None:
+        if proptype in (PT_STRING8, PT_UNICODE):
+            value = u''
+        elif proptype == PT_BINARY:
+            value = b''
+        elif proptype == PT_SYSTIME:
+            value = unixtime(0)
+        elif proptype & MV_FLAG:
+            value = []
+        else:
+            value = 0
+    else:
+        if proptype == PT_SYSTIME:
+            value = unixtime(time.mktime(value.timetuple()))
+
+    # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
+    try:
+        mapiobj.SetProps([SPropValue(proptag, value)])
+    except TypeError:
+        raise Error('Could not create property, type and value did not match')
 
     return prop(self, mapiobj, proptag)
 
-def prop(self, mapiobj, proptag, create=False):
+def prop(self, mapiobj, proptag, create=False, value=None, proptype=None): # XXX selfie
     if _is_int(proptag):
         try:
             sprop = HrGetOneProp(mapiobj, proptag)
@@ -112,31 +123,24 @@ def prop(self, mapiobj, proptag, create=False):
             sprop = SPropValue(proptag, data)
         except MAPIErrorNotFound as e:
             if create:
-                if PROP_TYPE(proptag) in (PT_STRING8, PT_UNICODE):
-                    mapiobj.SetProps([SPropValue(proptag, u'')])
-                elif PROP_TYPE(proptag) == PT_BINARY:
-                    mapiobj.SetProps([SPropValue(proptag, b'')])
-                elif PROP_TYPE(proptag) & MV_FLAG:
-                    mapiobj.SetProps([SPropValue(proptag, [])])
-                elif PROP_TYPE(proptag) == PT_SYSTIME:
-                    mapiobj.SetProps([SPropValue(proptag, unixtime(0))])
-                else:
-                    mapiobj.SetProps([SPropValue(proptag, 0)])
-                mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
-                sprop = HrGetOneProp(mapiobj, proptag)
+                return create_prop(self, mapiobj, proptag, value=value, proptype=proptype)
             else:
                 raise e
         return Property(mapiobj, sprop)
 
-    else: # XXX create=True, merge with create_prop
-        namespace, name = proptag.split(':') # XXX syntax
+    else:
+        namespace, name = proptag.split(':') # XXX syntax: include proptype and/or default db with types
         if name.isdigit(): # XXX
             name = int(name)
 
         for prop in self.props(namespace=namespace): # XXX sloow, streaming
             if prop.name == name:
                 return prop
-        raise MAPIErrorNotFound()
+
+        if create:
+            create_prop(self, mapiobj, proptag, value=value, proptype=proptype)
+        else:
+            raise MAPIErrorNotFound()
 
 def props(mapiobj, namespace=None):
     proptags = mapiobj.GetPropList(MAPI_UNICODE)
