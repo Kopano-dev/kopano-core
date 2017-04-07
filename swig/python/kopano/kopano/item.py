@@ -10,7 +10,10 @@ import datetime
 import email.parser
 import email.utils
 from functools import wraps
+import random
 import sys
+import struct
+import time
 import traceback
 
 try:
@@ -27,7 +30,7 @@ from MAPI import (
     MAPI_CREATE, MAPI_MODIFY, MAPI_DEFERRED_ERRORS,
     ATTACH_BY_VALUE, ATTACH_EMBEDDED_MSG, STGM_WRITE, STGM_TRANSACTED,
     MAPI_UNICODE, MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_E_NOT_FOUND,
-    MAPI_E_NOT_ENOUGH_MEMORY
+    MAPI_E_NOT_ENOUGH_MEMORY, PT_SYSTIME
 )
 from MAPI.Defs import HrGetOneProp, CHANGE_PROP_TYPE, bin2hex
 from MAPI.Struct import (
@@ -51,7 +54,8 @@ from MAPI.Tags import (
     PR_MESSAGE_ATTACHMENTS, PR_RECIPIENT_TYPE, PR_ADDRTYPE_W,
     PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W, PR_NULL, PR_HTML,
     PR_RTF_COMPRESSED, PR_SEARCH_KEY, PR_SENDER_SEARCH_KEY,
-    PR_SENT_REPRESENTING_SEARCH_KEY,
+    PR_SENT_REPRESENTING_SEARCH_KEY, PR_START_DATE, PR_END_DATE,
+    PR_OWNER_APPT_ID, PR_RESPONSE_REQUESTED
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
@@ -362,7 +366,7 @@ class Item(Base):
 
     @property
     def private(self):
-        """ PidLidPrivate - hide the item from other users """
+        """ PidLidPrivate - hint to hide the item from other users """
 
         try:
             return self.prop('common:34054').value
@@ -461,11 +465,89 @@ class Item(Base):
         return data
 
     def send(self):
+        item = self
+        if self.message_class == 'IPM.Appointment':
+            # XXX: check if start/end is set
+            # XXX: Check if we can copy the calendar item.
+            # XXX: Update the calendar item, for tracking status
+            # XXX: Set the body of the message like WebApp / OL does.
+            item = self.store.outbox.create_item(subject=self.subject, to=self.to, start=self.start, end=self.end, body=self.body)
+            # Set meeting request props
+            item.message_class = 'IPM.Schedule.Meeting.Request'
+            item.create_prop(PR_START_DATE, self.start)
+            item.create_prop(PR_END_DATE, self.end)
+            item.create_prop(PR_RESPONSE_REQUESTED, True)
+            item.private = False
+            item.reminder = False
+            item.create_prop('appointment:33321', True, PT_BOOLEAN) # PidLidFInvited
+            item.create_prop('appointment:33320', self.start, PT_SYSTIME) # basedate????!
+            item.create_prop('appointment:33316', False, PT_BOOLEAN) # intendedbusystatus???
+            item.create_prop('appointment:33315', False, PT_BOOLEAN) # XXX item.recurring
+            item.create_prop('appointment:33303', 3, PT_LONG) # XXX meetingtype?!
+            item.create_prop('appointment:33301', False, PT_BOOLEAN) # XXX item.alldayevent?!
+            duration = int((self.end - self.start).total_seconds() / 60) # XXX: total time in minutes
+            item.create_prop('appointment:33293', self.start, PT_SYSTIME) # XXX start
+            item.create_prop('appointment:33294', self.end, PT_SYSTIME) # XXX end
+            item.create_prop('appointment:33299', duration, PT_LONG) # XXX item.alldayevent?!
+            item.create_prop('appointment:33285', 1, PT_LONG) # XXX busystatus???
+            item.create_prop('appointment:33281', 0, PT_LONG) # XXX updatecounter???
+            item.create_prop('appointment:33280', 0, PT_BOOLEAN) # XXX sendasical
+            item.create_prop(PR_OWNER_APPT_ID, random.randrange(2**32))
+            item.create_prop(PR_ICON_INDEX, 1026) # XXX: meeting request icon index.. const?
+            goid = self._generate_goid()
+            item.create_prop('meeting:3', goid, PT_BINARY)
+            item.create_prop('meeting:35', goid, PT_BINARY)
+
         props = []
-        props.append(SPropValue(PR_SENTMAIL_ENTRYID, _unhex(self.folder.store.sentmail.entryid)))
+        props.append(SPropValue(PR_SENTMAIL_ENTRYID, _unhex(item.folder.store.sentmail.entryid)))
         props.append(SPropValue(PR_DELETE_AFTER_SUBMIT, True))
-        self.mapiobj.SetProps(props)
-        self.mapiobj.SubmitMessage(0)
+        item.mapiobj.SetProps(props)
+        item.mapiobj.SubmitMessage(0)
+
+    def _generate_goid(self):
+        """
+        Generate a meeting request Global Object ID.
+
+        The Global Object ID is a MAPI property that any MAPI client uses to
+        correlate meeting updates and responses with a particular meeting on
+        the calendar. The Global Object ID is the same across all copies of the
+        item.
+
+        The Global Object ID consists of the following data:
+
+        * byte array id (16 bytes) - identifiers the BLOB as a GLOBAL Object ID.
+        * year (YH + YL) - original year of the instance represented by the
+        exception. The value is in big-endian format.
+        * M (byte) - original month of the instance represented by the exception.
+        * D (byte) - original day of the instance represented by the exception.
+        * Creation time - 8 byte date
+        * X - reversed byte array of size 8.
+        * size - LONG, the length of the data field.
+        * data - a byte array (16 bytes) that uniquely identifers the meeting object.
+        """
+
+        from MAPI.Time import NANOSECS_BETWEEN_EPOCH
+
+        # XXX: in MAPI.Time?
+        def mapi_time(t):
+            return int(t) * 10000000 + NANOSECS_BETWEEN_EPOCH
+
+        # byte array id
+        classid = '040000008200e00074c5b7101a82e008'
+        goid = classid.decode('hex')
+        # YEARHIGH, YEARLOW, MONTH, DATE
+        goid += struct.pack('>H2B', 0, 0, 0)
+        # Creation time, lowdatetime, highdatetime
+        now = mapi_time(time.time())
+        goid += struct.pack('II', now & 0xffffffff, now >> 32)
+        # Reserved, 8 zeros
+        goid += struct.pack('L', 0)
+        # data size
+        goid += struct.pack('I', 16)
+        # Unique data
+        for _ in range(0, 16):
+            goid += struct.pack('B', random.getrandbits(8))
+        return goid
 
     @property
     def sender(self):
@@ -526,9 +608,17 @@ class Item(Base):
     def start(self): # XXX optimize, guid
         return self.prop('common:34070').value
 
+    @start.setter
+    def start(self, val):
+        return self.create_prop('common:34070', val, proptype=PT_SYSTIME).value
+
     @property
     def end(self): # XXX optimize, guid
         return self.prop('common:34071').value
+
+    @end.setter
+    def end(self, val):
+        return self.create_prop('common:34071', val, proptype=PT_SYSTIME).value
 
     @property
     def recurring(self):
