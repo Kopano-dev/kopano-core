@@ -743,7 +743,10 @@ class Item(Base):
         self._load(_pickle_loads(s), attachments)
 
     @property
-    def embedded(self): # XXX multiple?
+    def embedded(self): # XXX deprecate?
+        return self.embedded_items().next()
+
+    def embedded_items(self):
         for row in self.table(PR_MESSAGE_ATTACHMENTS).dict_rows(): # XXX should we use GetAttachmentTable?
             num = row[PR_ATTACH_NUM]
             method = row[PR_ATTACH_METHOD] # XXX default
@@ -751,8 +754,9 @@ class Item(Base):
                 att = self.mapiobj.OpenAttach(num, IID_IAttachment, 0)
                 msg = att.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_MODIFY | MAPI_DEFERRED_ERRORS)
                 item = Item(mapiobj=msg)
+                item._attobj = att # XXX
                 item.server = self.server # XXX
-                return item
+                yield item
 
     @property
     def primary_item(self):

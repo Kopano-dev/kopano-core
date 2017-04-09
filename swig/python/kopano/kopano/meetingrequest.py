@@ -4,6 +4,9 @@ Part of the high-level python bindings for Kopano
 Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import datetime
+import struct
+
 from MAPI import (
     MAPI_UNICODE, MODRECIP_MODIFY, KEEP_OPEN_READWRITE
 )
@@ -17,7 +20,7 @@ from MAPI.Defs import PpropFindProp
 
 from MAPI.Struct import SPropValue
 
-from .compat import repr as _repr
+from .compat import repr as _repr, hex as _hex
 from .errors import Error
 
 class MeetingRequest(object):
@@ -26,15 +29,26 @@ class MeetingRequest(object):
 
     @property
     def calendar_item(self):
-        """ Matching calendar :class:`item <Item>` """
+        """ Global calendar item :class:`item <Item>` """
 
-        goid = self.item.prop('meeting:3').value
+        goid = self.item.prop('meeting:35').value
         for item in self.item.store.calendar: # XXX restriction
-            if item.prop('meeting:3').value == goid:
+            if item.prop('meeting:35').value == goid:
                 return item
 
     @property
+    def basedate(self):
+        """ Exception date """
+
+        blob = self.item.prop('meeting:3').value
+        y, m, d = struct.unpack_from('>HBB', blob, 16)
+        if (y, m, d) != (0, 0, 0):
+            return datetime.datetime(y, m, d)
+
+    @property
     def update_counter(self):
+        """ Update counter """
+
         return self.item.prop('appointment:33281').value
 
     def accept(self, tentative=False, respond=True):
@@ -92,14 +106,34 @@ class MeetingRequest(object):
             raise Error('trying to process non meeting request reponse')
 
         cal_item = self.calendar_item
-        table = cal_item.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
-        rows = list(table.QueryRows(-1, 0))
+        basedate = self.basedate
+
+        # modify calendar item or embedded message (in case of exception)
+        attach = None
+        if basedate:
+            for message in cal_item.embedded_items():
+                if message.prop('appointment:33320').value.date() == basedate.date(): # XXX date
+                    attach = message._attobj # XXX
+                    message = message.mapiobj
+                    break
+        else:
+            message = cal_item.mapiobj
+
+        # update recipient track status # XXX partially to recurrence.py
+        table = message.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
+        rows = table.QueryRows(-1, 0)
         for row in rows:
             disp = PpropFindProp(row, PR_DISPLAY_NAME_W)
             if disp.Value == self.item.from_.name: # XXX resolving
-                row.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, track_status))
-        cal_item.mapiobj.ModifyRecipients(MODRECIP_MODIFY, rows)
-        cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+                row.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, track_status)) # XXX
+
+        message.ModifyRecipients(MODRECIP_MODIFY, rows)
+
+        # save all the things
+        message.SaveChanges(KEEP_OPEN_READWRITE)
+        if attach:
+            attach.SaveChanges(KEEP_OPEN_READWRITE)
+            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def __unicode__(self):
         return u'MeetingRequest()'
