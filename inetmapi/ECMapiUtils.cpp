@@ -115,7 +115,8 @@ static constexpr const struct {
 	{"mpeg", "video/mpeg"},
 	{"qt", "video/quicktime"},
 	{"mov", "video/quicktime"},
-	{"avi", "video/x-msvideo"}
+	{"avi", "video/x-msvideo"},
+	{"ics", "text/calendar"}
 };
 
 const char *ext_to_mime_type(const char *ext, const char *def)

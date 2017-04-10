@@ -2628,12 +2628,11 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 			strLongFilename = getWideFromVmimeText(vmime::text(cdf->getFilename()));
 		else if (ctf->hasParameter("name"))
 			strLongFilename = getWideFromVmimeText(vmime::text(ctf->getParameter("name")->getValue()));
-		else if (mt->getType() == vmime::mediaTypes::TEXT && mt->getSubType() == "calendar")
-			// already catched in message-in-message code.
-			strLongFilename = L"calendar.ics";
-		else
-			// TODO: add guessFilenameFromContentType()
-			strLongFilename = L"inline.txt";
+		else {
+			auto mime_type = mt->getType() + "/" + mt->getSubType();
+			auto ext = mime_type_to_ext(mime_type.c_str(), "txt");
+			strLongFilename = L"inline." + m_converter.convert_to<std::wstring>(ext);
+		}
 
 		attProps[nProps].ulPropTag = PR_ATTACH_LONG_FILENAME_W;
 		attProps[nProps++].Value.lpszW = (WCHAR*)strLongFilename.c_str();
