@@ -1104,10 +1104,12 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			return hr;
 
 		// remove excess headers
-		if (vmMessage->getHeader()->hasField(vmime::fields::CONTENT_TYPE))
-			vmMessage->getHeader()->removeField(vmMessage->getHeader()->findField(vmime::fields::CONTENT_TYPE));
-		if (vmMessage->getHeader()->hasField(vmime::fields::CONTENT_TRANSFER_ENCODING))
-			vmMessage->getHeader()->removeField(vmMessage->getHeader()->findField(vmime::fields::CONTENT_TRANSFER_ENCODING));
+		auto field = vmMessage->getHeader()->findField(vmime::fields::CONTENT_TYPE);
+		if (field != nullptr)
+			vmMessage->getHeader()->removeField(field);
+		field = vmMessage->getHeader()->findField(vmime::fields::CONTENT_TRANSFER_ENCODING);
+		if (field != nullptr)
+			vmMessage->getHeader()->removeField(field);
 
 		if (strcasecmp(lpMsgClass->Value.lpszA, "IPM.Note.SMIME") != 0) {
 			auto vmSMIMEMessage = vmime::make_shared<SMIMEMessage>();
