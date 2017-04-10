@@ -488,116 +488,17 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 HRESULT MAPIToVMIME::parseMimeTypeFromFilename(std::wstring strFilename, vmime::mediaType *lpMT, bool *lpbSendBinary)
 {
 	std::string strExt;
-	std::string strMedType;
-	bool bSendBinary = true;
+	const char *strMedType = nullptr;
 
 	// to lowercase
 	transform(strFilename.begin(), strFilename.end(), strFilename.begin(), ::towlower);
 	strExt = m_converter.convert_to<string>(m_strCharset.c_str(), strFilename, rawsize(strFilename), CHARSET_WCHAR);
 	strExt.erase(0, strExt.find_last_of(".")+1);
 
-	// application
-	if (strExt == "bin" || strExt == "exe") {
-		strMedType = "application/octet-stream";
-	} else if (strExt == "ai" || strExt == "eps" || strExt == "ps") {
-		strMedType = "application/postscript";
-	} else if (strExt == "pdf") {
-		strMedType = "application/pdf";
-	} else if (strExt == "rtf") {
-		strMedType = "application/rtf";
-	} else if (strExt == "zip") {
-		strMedType = "application/zip";
-	} else if (strExt == "doc" || strExt == "dot") {
-		strMedType = "application/msword";
-	} else if (strExt == "mdb") {
-		strMedType = "application/x-msaccess";
-	} else if (strExt == "xla" || strExt == "xls" || strExt == "xlt" || strExt == "xlw") {
-		strMedType = "application/vnd.ms-excel";
-	} else if (strExt == "pot" || strExt == "ppt" || strExt == "pps") {
-		strMedType = "application/vnd.ms-powerpoint";
-	} else if (strExt == "mpp") {
-		strMedType = "application/vnd.ms-project";
-	} else if (strExt == "edi") {
-		strMedType = "application/edifact";
-		bSendBinary = false;
-	} else if(strExt == "docm") {
-		strMedType = "application/vnd.ms-word.document.macroEnabled.12";
-	} else if(strExt == "docx") {
-		strMedType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-	} else if(strExt == "dotm") {
-		strMedType = "application/vnd.ms-word.template.macroEnabled.12";
-	} else if(strExt == "dotx") {
-		strMedType = "application/vnd.openxmlformats-officedocument.wordprocessingml.template";
-	} else if(strExt == "potm") {
-		strMedType = "application/vnd.ms-powerpoint.template.macroEnabled.12";
-	} else if(strExt == "potx") {
-		strMedType = "application/vnd.openxmlformats-officedocument.presentationml.template";
-	} else if(strExt == "ppam") {
-		strMedType = "application/vnd.ms-powerpoint.addin.macroEnabled.12";
-	} else if(strExt == "ppsm") {
-		strMedType = "application/vnd.ms-powerpoint.slideshow.macroEnabled.12";
-	} else if(strExt == "ppsx") {
-		strMedType = "application/vnd.openxmlformats-officedocument.presentationml.slideshow";
-	} else if(strExt == "pptm") {
-		strMedType = "application/vnd.ms-powerpoint.presentation.macroEnabled.12";
-	} else if(strExt == "pptx") {
-		strMedType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-	} else if(strExt == "xlam") {
-		strMedType = "application/vnd.ms-excel.addin.macroEnabled.12";
-	} else if(strExt == "xlsb") {
-		strMedType = "application/vnd.ms-excel.sheet.binary.macroEnabled.12";
-	} else if(strExt == "xlsm") {
-		strMedType = "application/vnd.ms-excel.sheet.macroEnabled.12";
-	} else if(strExt == "xltm") {
-		strMedType = "application/vnd.ms-excel.template.macroEnabled.12";
-	} else if(strExt == "xlsx") {
-		strMedType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-	} else if(strExt == "xltx") {
-		strMedType = "application/vnd.openxmlformats-officedocument.spreadsheetml.template";
-	}
-	
-	// audio
-
-	else if (strExt == "ua") {
-		strMedType = "audio/basic";
-	} else if (strExt == "wav") {
-		strMedType = "audio/x-wav";
-	} else if (strExt == "mid") {
-		strMedType = "audio/x-midi";
-	}
-	
-	// image
-
-	else if (strExt == "gif") {
-		strMedType = "image/gif";
-	} else if (strExt == "jpg" || strExt == "jpe" || strExt == "jpeg") {
-		strMedType = "image/jpeg";
-	} else if (strExt == "png") {
-		strMedType = "image/png";
-	} else if (strExt == "bmp") {
-		strMedType = "image/x-ms-bmp";
-	} else if (strExt == "tiff") {
-		strMedType = "image/tiff";
-	} else if (strExt == "xbm") {
-		strMedType = "image/xbm";
-	}
-	
-	// video
-
-	else if (strExt == "mpg" || strExt == "mpe" || strExt == "mpeg") {
-		strMedType = "video/mpeg";
-	} else if (strExt == "qt" || strExt == "mov") {
-		strMedType = "video/quicktime";
-	} else if (strExt == "avi") {
-		strMedType = "video/x-msvideo";
-	}
-
-	else {
-		strMedType = "application/octet-stream";
-	}
+	strMedType = ext_to_mime_type(strExt.c_str());
 
 	*lpMT = vmime::mediaType(strMedType);
-	*lpbSendBinary = bSendBinary;
+	*lpbSendBinary = strMedType != nullptr && strcmp(strMedType, "application/edifact") != 0;
 
 	return hrSuccess;
 }
