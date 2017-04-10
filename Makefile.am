@@ -151,7 +151,8 @@ libkcpyplug_la_CPPFLAGS = \
 libkcpyplug_la_SOURCES = \
 	spooler/PyMapiPlugin.cpp spooler/PyMapiPlugin.h \
 	spooler/PythonSWIGRuntime.h spooler/archive.cpp spooler/archive.h
-libkcpyplug_la_LIBADD = ${PYTHON_LIBS}
+libkcpyplug_la_LIBADD = \
+	libkcarchivercore.la libkcutil.la libmapi.la ${PYTHON_LIBS}
 
 kopano_dagent_SOURCES = \
 	spooler/DAgent.cpp spooler/LMTP.cpp spooler/LMTP.h \
