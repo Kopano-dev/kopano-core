@@ -373,6 +373,18 @@ class Item(Base):
     def private(self, value):
         return self.create_prop('common:34054', value, proptype=PT_BOOLEAN)
 
+    @property
+    def reminder(self):
+        """ PidLidReminderSet - Specifies whether a reminder is set on the object """
+        try:
+            return self.prop('common:34051').value
+        except MAPIErrorNotFound:
+            return False
+
+    @reminder.setter
+    def reminder(self, value):
+        return self.create_prop('common:34051', value, proptype=PT_BOOLEAN)
+
     def attachments(self, embedded=False):
         """ Return item :class:`attachments <Attachment>`
 
