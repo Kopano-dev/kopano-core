@@ -540,6 +540,11 @@ class Item(Base):
             pr_dispname = addr.name
             pr_email = addr.email
             pr_entryid = _unhex(addr.userid)
+        elif isinstance(addr, Address):
+            pr_addrtype = addr.addrtype
+            pr_dispname = addr.name
+            pr_email = addr.email
+            pr_entryid = addr.entryid
         else:
             addr = _unicode(addr)
             pr_addrtype = 'SMTP'
