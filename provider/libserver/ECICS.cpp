@@ -210,7 +210,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	std::string		strChangeList;
 
 	std::set<unsigned int>	syncids;
-	bool					bIgnored = false;
 
 	if (!isICSChange(ulChange))
 		return KCERR_INVALID_TYPE;
@@ -239,8 +238,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			unsigned int ulTmp = atoui((char*)lpDBRow[0]);
 			if (ulTmp != ulSyncId)
 				syncids.insert(ulTmp);
-			else
-				bIgnored = true;
 		}
     }
 
