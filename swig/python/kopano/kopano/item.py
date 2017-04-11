@@ -360,6 +360,19 @@ class Item(Base):
         self.mapiobj.SetProps([SPropValue(PR_IMPORTANCE, value)])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
+    @property
+    def private(self):
+        """ PidLidPrivate - hide the item from other users """
+
+        try:
+            return self.prop('common:34054').value
+        except MAPIErrorNotFound:
+            return False
+
+    @private.setter
+    def private(self, value):
+        return self.create_prop('common:34054', value, proptype=PT_BOOLEAN)
+
     def attachments(self, embedded=False):
         """ Return item :class:`attachments <Attachment>`
 
