@@ -124,23 +124,25 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	}
 
 	/* Email */
-	MAPINAMEID name;
-	MAPINAMEID *namep = &name;
-	name.lpguid = const_cast<GUID *>(&PSETID_Address);
-	name.ulKind = MNID_ID;
-	name.Kind.lID = 0x8083;
+	for (int lid = 0x8083; lid <= 0x80a3; lid += 0x10) {
+		MAPINAMEID name;
+		MAPINAMEID *namep = &name;
+		name.lpguid = const_cast<GUID *>(&PSETID_Address);
+		name.ulKind = MNID_ID;
+		name.Kind.lID = lid;
 
-	KCHL::memory_ptr<SPropTagArray> proptag;
-	hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
-	if (hr != hrSuccess)
-		return hr;
+		KCHL::memory_ptr<SPropTagArray> proptag;
+		hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
+		if (hr != hrSuccess)
+			continue;
 
-	ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
-	hr = HrGetOneProp(lpMessage, proptype, &~msgprop);
-	if (hr == hrSuccess)
-		to_prop(root, VCEmailAddressProp, *msgprop);
-	else if (hr != MAPI_E_NOT_FOUND)
-		return hr;
+		ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
+		hr = HrGetOneProp(lpMessage, proptype, &~msgprop);
+		if (hr == hrSuccess)
+			to_prop(root, VCEmailAddressProp, *msgprop);
+		else if (hr != MAPI_E_NOT_FOUND)
+			continue;
+	}
 
 	/* Write memobject */
 	int len = 0;
