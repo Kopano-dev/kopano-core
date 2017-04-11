@@ -63,15 +63,10 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT(lpMapiProp)
 
-	if (lppRestriction == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exitpm;
-	}
-
-	if (m_ulAge < 0) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exitpm;
-	}
+	if (lppRestriction == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (m_ulAge < 0)
+		return MAPI_E_NOT_FOUND;
 
 	li.LowPart = m_ftCurrent.dwLowDateTime;
 	li.HighPart = m_ftCurrent.dwHighDateTime;

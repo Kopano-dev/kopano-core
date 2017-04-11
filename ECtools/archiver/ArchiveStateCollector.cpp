@@ -70,7 +70,7 @@ namespace details {
 
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), &~ptrPropTagArray);
 		if (hr != hrSuccess)
-			goto exitpm;
+			return hr;
 
 		ptrPropTagArray->cValues = 4;
 		ptrPropTagArray->aulPropTag[0] = PR_ENTRYID;

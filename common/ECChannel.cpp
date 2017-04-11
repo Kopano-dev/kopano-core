@@ -802,10 +802,8 @@ HRESULT HrListen(const char *szPath, int *lpulListenSocket)
 	mode_t prevmask = 0;
 
 	if (szPath == NULL || strlen(szPath) >= sizeof(sun_addr.sun_path) ||
-	    lpulListenSocket == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	    lpulListenSocket == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	memset(&sun_addr, 0, sizeof(sun_addr));
 	sun_addr.sun_family = AF_UNIX;
@@ -813,8 +811,7 @@ HRESULT HrListen(const char *szPath, int *lpulListenSocket)
 
 	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) == -1) {
 		ec_log_crit("Unable to create AF_UNIX socket");
-		hr = MAPI_E_NETWORK_ERROR;
-		goto exit;
+		return MAPI_E_NETWORK_ERROR;
 	}
 
 	unlink(szPath);
@@ -869,10 +866,8 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 	const struct addrinfo *sock_addr, *sock_last = NULL;
 	char port_string[sizeof("65535")];
 
-	if (lpulListenSocket == NULL || ulPort == 0 || szBind == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpulListenSocket == nullptr || ulPort == 0 || szBind == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	snprintf(port_string, sizeof(port_string), "%u", ulPort);
 	memset(&sock_hints, 0, sizeof(sock_hints));
@@ -885,9 +880,8 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 	ret = getaddrinfo(*szBind == '\0' ? NULL : szBind,
 	      port_string, &sock_hints, &sock_res);
 	if (ret != 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
 		ec_log_err("getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
-		goto exit;
+		return MAPI_E_INVALID_PARAMETER;
 	}
 	sock_res = reorder_addrinfo_ipv6(sock_res);
 

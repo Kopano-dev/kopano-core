@@ -837,14 +837,12 @@ HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
 	HRESULT hr = hrSuccess;
 	auto lpDest = s_alloc<entryId>(nullptr);
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryIdSrc, lpEntryIdSrc, lpDest, false);
-	if(hr != hrSuccess)
-		goto exit;
-
-	*lppDest = lpDest;
-exit:
-	if(hr != hrSuccess)
+	if (hr != hrSuccess) {
 		s_free(nullptr, lpDest);
-	return hr;
+		return hr;
+	}
+	*lppDest = lpDest;
+	return hrSuccess;
 }
 
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
@@ -2288,11 +2286,8 @@ HRESULT CopySOAPChangeNotificationToSyncState(struct notification *lpSrc, LPSBin
 	HRESULT hr = hrSuccess;
 	LPSBinary lpSBinary = NULL;
 
-	if (lpSrc->ulEventType != fnevKopanoIcsChange) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpSrc->ulEventType != fnevKopanoIcsChange)
+		return MAPI_E_INVALID_PARAMETER;
 	if (lpBase == NULL)
 		hr = ECAllocateBuffer(sizeof(*lpSBinary), reinterpret_cast<void **>(&lpSBinary));
 	else

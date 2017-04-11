@@ -1419,7 +1419,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	hr = lpMDB->GetProps(sptaStoreProps, 0, &cValues, &~lpStoreProps);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendOutOfOffice(): GetProps failed(1) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = hrSuccess;
@@ -1427,7 +1427,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	// Check for autoresponder
 	if (!dagent_oof_active(lpStoreProps)) {
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Target user has OOF inactive\n");
-		goto exit;
+		return hrSuccess;
 	}
 
 	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Target user has OOF active\n");
@@ -1441,8 +1441,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 			/* no message is ok */
 		} else if (hr != hrSuccess || (hr = Util::HrStreamToString(ptrStream, strBody)) != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to download out of office message: %s", GetMAPIErrorMessage(hr));
-			hr = MAPI_E_FAILURE;
-			goto exit;
+			return MAPI_E_FAILURE;
 		}
 	}
 
@@ -1452,7 +1451,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cValues, &~lpMessageProps);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendOutOfOffice(): GetProps failed(2) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = hrSuccess;
@@ -1461,7 +1460,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	if (lpMessageProps[0].ulPropTag == PR_TRANSPORT_MESSAGE_HEADERS_A) {
 		if (dagent_avoid_autoreply(tokenize(lpMessageProps[0].Value.lpszA, "\n"))) {
 			g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Avoiding OOF reply to an automated message.");
-			goto exit;
+			return erSuccess;
 		}
 		// save headers to a file so they can also be tested from the script we're runing
 		snprintf(szTemp, PATH_MAX, "%s/autorespond-headers.XXXXXX", TmpPath::getInstance() -> getTempPath().c_str());

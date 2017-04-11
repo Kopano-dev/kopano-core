@@ -851,14 +851,13 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect failed %x", er);
-		goto exit;
+		return er;
 	}
 
 	lpDBRow = m_lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECDatabaseAttachment::LoadAttachmentInstance(): no row returned");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	iSize = strtoul(lpDBRow[0], NULL, 0);
@@ -869,7 +868,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect(2) failed %x", er);
-		goto exit;
+		return er;
 	}
 
 	lpData = s_alloc<unsigned char>(soap, iSize);
@@ -1732,8 +1731,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 	if (fd == -1) {
 		ec_log_err("Unable to open attachment \"%s\" for writing: %s.",
 			filename.c_str(), strerror(errno));
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	//no need to remove the file, just overwrite it
@@ -2075,8 +2073,7 @@ ECRESULT ECFileAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize,
 
 	if (fd == -1) {
 		ec_log_err("ECFileAttachment::GetSizeInstance(): file \"%s\" cannot be accessed: %s", filename.c_str(), strerror(errno));
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
 
 	/* Uncompressed attachment */

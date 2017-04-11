@@ -86,18 +86,14 @@ HRESULT ECRestriction::CopyProp(SPropValue *lpPropSrc, void *lpBase,
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropDst = NULL;
 
-	if (lpPropSrc == NULL || lppPropDst == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpPropSrc == nullptr || lppPropDst == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	if (lpBase == NULL)
 		hr = MAPIAllocateBuffer(sizeof *lpPropDst, (LPVOID*)&lpPropDst);
 	else
 		hr = MAPIAllocateMore(sizeof *lpPropDst, lpBase, (LPVOID*)&lpPropDst);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (ulFlags & Shallow)
 		hr = Util::HrCopyPropertyByRef(lpPropDst, lpPropSrc);
 	else
@@ -130,18 +126,14 @@ HRESULT ECRestriction::CopyPropArray(ULONG cValues, SPropValue *lpPropSrc,
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropDst = NULL;
 
-	if (lpPropSrc == NULL || lppPropDst == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpPropSrc == nullptr || lppPropDst == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	if (lpBase == NULL)
 		hr = MAPIAllocateBuffer(cValues * sizeof *lpPropDst, (LPVOID*)&lpPropDst);
 	else
 		hr = MAPIAllocateMore(cValues * sizeof *lpPropDst, lpBase, (LPVOID*)&lpPropDst);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (ulFlags & Shallow)
 		hr = Util::HrCopyPropertyArrayByRef(lpPropSrc, cValues, lpPropDst);
 	else

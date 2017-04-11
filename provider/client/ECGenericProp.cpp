@@ -474,25 +474,16 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	HRESULT			hr = hrSuccess;
 	scoped_rlock l_obj(m_hMutexMAPIObject);
 
-	if (!fModify) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
-
-	if (!m_sMapiObject || !lstProps) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+	if (!fModify)
+		return MAPI_E_NO_ACCESS;
+	if (m_sMapiObject == nullptr || lstProps == nullptr)
+		return MAPI_E_CALL_FAILED;
 	// no props -> succeed (no changes made)
 	if(lstProps->empty())
 		goto exit;
-
-	if(lpStorage == NULL) {
+	if (lpStorage == nullptr)
 		// no way to save our properties !
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
+		return MAPI_E_NO_ACCESS;
 
 	// Note: m_sMapiObject->lstProperties and m_sMapiObject->lstAvailable are empty
 	// here, because they are cleared after HrLoadProps and SaveChanges
@@ -534,7 +525,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	// save to parent or server
 	hr = lpStorage->HrSaveObject(this->ulObjFlags, m_sMapiObject);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// HrSaveObject() has appended any new properties in lstAvailable and lstProperties. We need to load the 
 	// new properties. The easiest way to do this is to simply load all properties. Note that in embedded objects

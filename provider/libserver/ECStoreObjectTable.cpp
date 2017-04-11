@@ -318,7 +318,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 	assert(lpRowList != NULL);
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;

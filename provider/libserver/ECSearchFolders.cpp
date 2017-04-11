@@ -91,11 +91,10 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
     // Get database
     er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess)
-        goto exit;
-
+		return er;
     er = lpDatabase->DoSelect(strQuery, &lpResult);
     if(er != erSuccess)
-        goto exit;
+		return er;
         
     while((lpRow = lpDatabase->FetchRow(lpResult))) {
 
@@ -141,7 +140,6 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
         }
     }
 
-exit:
     if(lpSearchCriteria)
         FreeSearchCriteria(lpSearchCriteria);
         
@@ -209,8 +207,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
         er = LoadSearchCriteria(ulStoreId, ulFolderId, &lpCriteria);
         
         if(er != erSuccess)
-            goto exit;
-            
+		return er;
         lpSearchCriteria = lpCriteria;
     }
 
@@ -485,13 +482,13 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 
     er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess)
-        goto exit;
+		return er;
 
     iterStore = m_mapSearchFolders.find(ulStoreId);
     if (iterStore == m_mapSearchFolders.cend())
         // There are no search folders in the target store. We will therefore never match any search
         // result and might as well exit now.
-        goto exit;
+		return erSuccess;
 
     // OPTIMIZATION: if a target folder == root folder of ulStoreId, and a recursive searchfolder, then
     // the following check is always TRUE
@@ -499,7 +496,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
     // Get the owner of the search folder. This *could* be different from the owner of the objects!
     er = m_lpSessionManager->GetCacheManager()->GetObject(ulStoreId, NULL, &ulOwner, NULL, NULL);
     if(er != erSuccess)
-        goto exit;
+		return er;
 
     // FIXME FIXME FIXME we still need to check MAPI_ASSOCIATED and MSGFLAG_DELETED and exclude them.. better if the caller does this.    
 
@@ -849,7 +846,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
         er = lpDatabase->Begin();
 		if (er != erSuccess) {
 			ec_log_err("ECSearchFolders::ProcessCandidateRows() BEGIN failed %d", er);
-			goto exit;
+			return er;
 		}
             
         er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
@@ -988,15 +985,14 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
     ecODStore.lpGuid = NULL; // FIXME: optimisation possible
     
     if(lpSearchCrit->lpFolders == NULL || lpSearchCrit->lpRestrict == NULL) {
-        er = KCERR_NOT_FOUND;
 	ec_log_err("ECSearchFolders::Search() no folder or search criteria");
-        goto exit;
+		return KCERR_NOT_FOUND;
     }
 
 	er = m_lpSessionManager->GetCacheManager()->GetStore(ulStoreId, NULL, &guidStore);
 	if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::Search() GetStore failed: 0x%x", er);
-		goto exit;
+		return er;
 	}
 	ecODStore.lpGuid = &guidStore;
     
@@ -1004,14 +1000,14 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
     er = m_lpSessionManager->GetCacheManager()->GetObject(ulStoreId, NULL, &ulUserId, NULL, NULL);
     if(er != erSuccess) {
 	ec_log_crit("ECSearchFolders::Search() GetObject failed: 0x%x", er);
-        goto exit;
+		return er;
     }
     
     // Create a session with the security credentials of the owner of the store
     er = m_lpSessionManager->CreateSessionInternal(&lpSession, ulUserId);
     if(er != erSuccess) {
 	ec_log_crit("ECSearchFolders::Search() CreateSessionInternal failed: 0x%x", er);
-        goto exit;
+		return er;
     }
         
     lpSession->Lock();
@@ -1281,19 +1277,19 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulStoreId, unsigned int ulFo
     er = m_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParentId);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::ResetResults(): GetParent failed 0x%x", er);
-		goto exit;
+		return er;
 	}
     
     er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::ResetResults(): GetThreadLocalDatabase failed 0x%x", er);
-		goto exit;
+		return er;
 	}
         
     er = lpDatabase->Begin();
     if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::ResetResults(): BEGIN failed 0x%x", er);
-		goto exit;
+		return er;
 	}
 	
 	er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
@@ -1628,13 +1624,13 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulStoreId, unsigned in
     er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::SaveSearchCriteria(): GetThreadLocalDatabase failed 0x%x", er);
-		goto exit;
+		return er;
 	}
   
 	er = lpDatabase->Begin();
 	if(er != hrSuccess) {
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): BEGIN failed 0x%x", er);
-		goto exit;
+		return er;
 	}
 
 	er = SaveSearchCriteria(lpDatabase, ulStoreId, ulFolderId, lpSearchCriteria);

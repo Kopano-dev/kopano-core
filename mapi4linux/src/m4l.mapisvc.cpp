@@ -123,10 +123,8 @@ HRESULT INFLoader::LoadINF(const char *filename)
 	size_t pos;
 
 	fp = fopen(filename, "r");
-	if (fp == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (fp == nullptr)
+		return MAPI_E_NOT_FOUND;
 
 	while (!feof(fp)) {
 		memset(&cBuffer, 0, sizeof(cBuffer));
@@ -165,7 +163,6 @@ HRESULT INFLoader::LoadINF(const char *filename)
 		iSection->second.insert(make_pair(trim(strName, " \t\r\n"), trim(strValue, " \t\r\n")));
 	}
 
-exit:
 	if (fp)
 		fclose(fp);
 

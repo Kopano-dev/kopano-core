@@ -129,18 +129,18 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 	// Retrieve the Allday status of the event
 	hr = HrRetrieveAlldayStatus(lpEvent, &bIsAllday);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// we might be updating for exceptions
 	if (*lppRet != NULL && lpPrevItem != NULL && lpPrevItem == *lppRet) {
 		hr = HrAddException(lpEventRoot, lpEvent, bIsAllday, lpPrevItem);
 		if (hr == hrSuccess)
-			goto exit;
+			return hrSuccess;
 	}
 
 	lpIcalItem.reset(new icalitem);
 	if ((hr = MAPIAllocateBuffer(sizeof(void*), &lpIcalItem->base)) != hrSuccess)
-		goto exit;
+		return hr;
 	lpIcalItem->lpRecurrence = NULL;
 
 	// ---------------------------

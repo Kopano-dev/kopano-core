@@ -611,37 +611,29 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 		 * one exception: If PR_SOURCE_KEY is missing PROP_ORIGINAL_SOURCEKEY is not needed.
 		 **/
 		if (!lpPropStoreEIDs && !lpPropItemEIDs)
-		{
 			// No entry ids exist. So that's fine
-			hr = hrSuccess;
-			goto exitpm;
-		} else if (lpPropStoreEIDs == nullptr || lpPropItemEIDs == nullptr) {
+			return hrSuccess;
+		else if (lpPropStoreEIDs == nullptr || lpPropItemEIDs == nullptr)
 			// One exists, one doesn't.
-			hr = MAPI_E_CORRUPT_DATA;
-			goto exitpm;
-		}
+			return MAPI_E_CORRUPT_DATA;
 		// Both exist. So if PR_SOURCEKEY_EXISTS and PROP_ORIGINAL_SOURCEKEY doesn't
 		// the entry is corrupt
 		if (lpPropSourceKey) {
-			if (!lpPropOrigSK) {
-				hr = MAPI_E_CORRUPT_DATA;
-				goto exitpm;
-			}
+			if (lpPropOrigSK == nullptr)
+				return MAPI_E_CORRUPT_DATA;
 			// @todo: Create correct locale.
 			hr = Util::CompareProp(lpPropSourceKey, lpPropOrigSK, createLocaleFromName(""), &result);
 			if (hr != hrSuccess)
-				goto exitpm;
+				return hr;
 			if (result != 0)
 				// The archive list was apparently copied into this message. So it's not valid (not an error).
-				goto exitpm;
+				return hr;
 		} else
 			hr = hrSuccess;
 	}
 
-	if (lpPropStoreEIDs->Value.MVbin.cValues != lpPropItemEIDs->Value.MVbin.cValues) {
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exitpm;
-	}
+	if (lpPropStoreEIDs->Value.MVbin.cValues != lpPropItemEIDs->Value.MVbin.cValues)
+		return MAPI_E_CORRUPT_DATA;
 	
 	for (ULONG i = 0; i < lpPropStoreEIDs->Value.MVbin.cValues; ++i) {
 		SObjectEntry objectEntry;

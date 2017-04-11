@@ -59,18 +59,13 @@ ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, str
 	xmlsoap.recvfd = -1;
 	xmlsoap.is = &xml;
 	soap_default_searchCriteria52X(&xmlsoap, &crit);
-	if (soap_begin_recv(&xmlsoap) != 0) {
-		er = KCERR_NETWORK_ERROR;
-		goto exit;
-	}
+	if (soap_begin_recv(&xmlsoap) != 0)
+		return KCERR_NETWORK_ERROR;
 	soap_get_searchCriteria52X(&xmlsoap, &crit, "SearchCriteria", NULL);
 
 	// We now have the object, allocated by xmlsoap object,
-	if (soap_end_recv(&xmlsoap) != 0) {
-		er = KCERR_NETWORK_ERROR;
-		goto exit;
-	}
-
+	if (soap_end_recv(&xmlsoap) != 0)
+		return KCERR_NETWORK_ERROR;
 	lpNewSearchCriteria = s_alloc<searchCriteria>(nullptr);
 	memset(lpNewSearchCriteria, 0, sizeof(struct searchCriteria));
 

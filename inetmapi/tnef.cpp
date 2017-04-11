@@ -318,17 +318,14 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 
 	hr = HrReadDWord(m_lpStream, &ulSignature);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Check signature
-	if(ulSignature != TNEF_SIGNATURE) {
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
-
+	if (ulSignature != TNEF_SIGNATURE)
+		return MAPI_E_CORRUPT_DATA;
 	hr = HrReadWord(m_lpStream, &ulKey);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// File is made of blocks, with each a type and size. Component and Key are ignored.
 	while(1) {

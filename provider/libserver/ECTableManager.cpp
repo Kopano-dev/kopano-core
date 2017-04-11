@@ -206,7 +206,7 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if(ulStoreId) {
 		er = lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulStoreId, &ulStoreId, &sGuid);
@@ -220,7 +220,7 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 		er = ECStoreObjectTable::Create(lpSession, 0, NULL, 0, MAPI_MESSAGE, 0, 0, locale, &~lpTable);
 	}
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Select outgoingqueue
 	strQuery = "SELECT o.hierarchy_id, i.hierarchyid FROM outgoingqueue AS o LEFT JOIN indexedproperties AS i ON i.hierarchyid=o.hierarchy_id and i.tag=0xFFF";
@@ -232,7 +232,7 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		if(lpDBRow[0] == NULL)

@@ -1739,15 +1739,14 @@ ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap 
 	entryId*	lpEntryId = s_alloc<entryId>(soap);
 
 	er = GetEntryIdFromObject(ulObjId, soap, ulFlags, lpEntryId);
-	if (er != erSuccess)
-		goto exit;
+	if (er != erSuccess) {
+		s_free(nullptr, lpEntryId);
+		return er;
+	}
 
 	// Flags already set by GetEntryIdFromObject(4args)
 	*lppEntryId = lpEntryId;
-exit:
-	if (er != erSuccess)
-		s_free(nullptr, lpEntryId);
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId* lpEntryId)
@@ -1820,10 +1819,8 @@ ECRESULT ECCacheManager::GetEntryListToObjectList(struct entryList *lpEntryList,
 	unsigned int	ulId = 0;
 	bool			bPartialCompletion = false;
 
-	if(lpEntryList == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpEntryList == nullptr)
+		return KCERR_INVALID_PARAMETER;
 
 	for (unsigned int i = 0; i < lpEntryList->__size; ++i) {
 		if(GetObjectFromEntryId(&lpEntryList->__ptr[i], &ulId) != erSuccess) {
@@ -1834,7 +1831,6 @@ ECRESULT ECCacheManager::GetEntryListToObjectList(struct entryList *lpEntryList,
 		lplObjectList->push_back(ulId);
 	}
 
-exit:
 	if(bPartialCompletion)
 		er = KCWARN_PARTIAL_COMPLETION;
 
@@ -1850,11 +1846,8 @@ ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, st
 	bool			bPartialCompletion = false;
 	entryList*		lpEntryList = s_alloc<entryList>(soap);
 
-	if(lplObjectList == NULL || lppEntryList == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lplObjectList == nullptr || lppEntryList == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	lpEntryList->__ptr = s_alloc<entryId>(soap, lplObjectList->size());
 	lpEntryList->__size = 0;
 
@@ -1867,7 +1860,6 @@ ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, st
 	}
 
 	*lppEntryList = lpEntryList;
-exit:
 	if (er != erSuccess && lpEntryList)
 		FreeEntryList(lpEntryList, true);
 

@@ -2835,8 +2835,7 @@ int VMIMEToMAPI::getCharsetFromHTML(const string &strHTML, vmime::charset *htmlC
 	lpDoc = htmlReadMemory(strHTML.c_str(), strHTML.length(), "", NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
 	if (!lpDoc) {
 		ec_log_warn("Unable to parse HTML document");
-		ret = -1;
-		goto exit;
+		return -1;
 	}
 
 	/*
@@ -3010,7 +3009,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
 	if (hr != hrSuccess)
-		goto exitpm;
+		return hr;
 
 	if (strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule.Meeting.", strlen( "IPM.Schedule.Meeting." )) == 0)
 	{
@@ -3020,7 +3019,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 		hr = lpMessage->GetProps(sptaMeetingReqProps, 0, &cValues, &~lpProps);
 		if(FAILED(hr))
-			goto exitpm;
+			return hr;
 
 		// If hr is hrSuccess then all properties are available, and we don't need to do anything
 		if(hr != hrSuccess) {
@@ -3055,7 +3054,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 				lpProps[5].ulPropTag = PR_CONVERSATION_INDEX;
 				hr = ScCreateConversationIndex(0, NULL, &cbConversationIndex, &~lpConversationIndex);
 				if(hr != hrSuccess)
-					goto exitpm;
+					return hr;
 
 				lpProps[5].Value.bin.cb = cbConversationIndex;
 				lpProps[5].Value.bin.lpb = lpConversationIndex;
@@ -3063,7 +3062,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 			hr = lpMessage->SetProps(6, lpProps, NULL);
 			if(hr != hrSuccess)
-				goto exitpm;
+				return hr;
 		}
 
 		// @todo
@@ -3081,12 +3080,12 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 			// @todo, if all properties are not available: remove recurrence true marker
 			hr = lpMessage->GetProps(sptaRecProps, 0, &cRecProps, &~lpRecProps);
 			if(hr != hrSuccess) // Warnings not accepted
-				goto exitpm;
+				return hr;
 			
 			hr = rec.ParseBlob(reinterpret_cast<const char *>(lpRecProps[0].Value.bin.lpb),
 			     static_cast<unsigned int>(lpRecProps[0].Value.bin.cb), 0);
 			if(FAILED(hr))
-				goto exitpm;
+				return hr;
 			
 			// Ignore warnings	
 			hr = hrSuccess;
@@ -3197,7 +3196,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 			
 			hr = lpMessage->SetProps(14, sMeetingProps, NULL);
 			if(hr != hrSuccess)
-				goto exitpm;
+				return hr;
 		}
 	}
  exitpm:

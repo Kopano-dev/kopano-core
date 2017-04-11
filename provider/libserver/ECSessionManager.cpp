@@ -924,7 +924,7 @@ ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned
 	memset(&notify, 0, sizeof(notification));
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
-		goto exit;
+		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
 	
@@ -957,7 +957,7 @@ ECRESULT ECSessionManager::NotificationCreated(unsigned int ulObjType, unsigned 
 	memset(&notify, 0, sizeof(notification));
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
-		goto exit;
+		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
 
@@ -989,7 +989,7 @@ ECRESULT ECSessionManager::NotificationMoved(unsigned int ulObjType, unsigned in
 	memset(&notify, 0, sizeof(notification));
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
-		goto exit;
+		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
 
@@ -1028,7 +1028,7 @@ ECRESULT ECSessionManager::NotificationCopied(unsigned int ulObjType, unsigned i
 	memset(&notify, 0, sizeof(notification));
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
-		goto exit;
+		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
 

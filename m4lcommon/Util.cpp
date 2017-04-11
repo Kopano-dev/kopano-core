@@ -1312,17 +1312,13 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 	const char *lpszCharset;
 
 	hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		// client actually should have set the PR_INTERNET_CPID to the correct value
 		lpszCharset = "us-ascii";
-		hr = hrSuccess;
-	}
 
 	cd = iconv_open(lpszCharset, CHARSET_WCHAR);
-	if (cd == (iconv_t)-1) {
-		hr = MAPI_E_BAD_CHARWIDTH;
-		goto exit;
-	}
+	if (cd == reinterpret_cast<iconv_t>(-1))
+		return MAPI_E_BAD_CHARWIDTH;
 	writeBuffer.reset(new(std::nothrow) char[BUFSIZE * 2]);
 	if (writeBuffer == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -2270,7 +2266,7 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 	else
 		hr = MAPIAllocateBuffer(len/2+1, (void**)&buffer);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = hex2bin(input, len, buffer);
 	if(hr != hrSuccess)
 		goto exit;
@@ -2937,45 +2933,32 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 	object_ptr<IMAPIProp> lpPropSrc, lpPropDest;
 	memory_ptr<SPropTagArray> lpSPropTagArray;
 
-	if (!lpSrcInterface || !lpSrcObj || !lpDestInterface || !lpDestObj) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpSrcInterface == nullptr || lpSrcObj == nullptr ||
+	    lpDestInterface == nullptr || lpDestObj == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// source is "usually" the same as dest .. so we don't check (as ms mapi doesn't either)
 
 	hr = FindInterface(lpSrcInterface, ciidExclude, rgiidExclude);
-	if (hr == hrSuccess) {
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-		goto exit;
-	}
-
+	if (hr == hrSuccess)
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 	hr = FindInterface(lpDestInterface, ciidExclude, rgiidExclude);
-	if (hr == hrSuccess) {
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-		goto exit;
-	}
+	if (hr == hrSuccess)
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
 	// first test IID_IStream .. the rest is IID_IMAPIProp compatible
 	if (*lpSrcInterface == IID_IStream) {
 		hr = FindInterface(&IID_IStream, ciidExclude, rgiidExclude);
-		if (hr == hrSuccess) {
-			hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-			goto exit;
-		}
-		if (*lpDestInterface != IID_IStream) {
-			hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-			goto exit;
-		}
-		hr = CopyStream((LPSTREAM)lpSrcObj, (LPSTREAM)lpDestObj);
-		goto exit;
+		if (hr == hrSuccess)
+			return MAPI_E_INTERFACE_NOT_SUPPORTED;
+		if (*lpDestInterface != IID_IStream)
+			return MAPI_E_INTERFACE_NOT_SUPPORTED;
+		return CopyStream((LPSTREAM)lpSrcObj, (LPSTREAM)lpDestObj);
 	}
 
 	hr = FindInterface(&IID_IMAPIProp, ciidExclude, rgiidExclude);
-	if (hr == hrSuccess) {
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-		goto exit;
-	}
+	if (hr == hrSuccess)
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
 	// end sanity checks
 
@@ -2984,11 +2967,9 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 	if (*lpSrcInterface == IID_IMAPIFolder) {
 
 		// MS MAPI does not perform this check
-		if (*lpDestInterface != IID_IMAPIFolder) {
+		if (*lpDestInterface != IID_IMAPIFolder)
 			// on store, create folder and still go ?
-			hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-			goto exit;
-		}
+			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
 		if (!lpExcludeProps || Util::FindPropInArray(lpExcludeProps, PR_CONTAINER_CONTENTS) == -1) {
 			sExtraExcludes.aulPropTag[sExtraExcludes.cValues++] = PR_CONTAINER_CONTENTS;
@@ -3027,8 +3008,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 		// what else besides props ???
 	} else {
 		// stores, ... ?
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-		goto exit;
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 	}
 
 	// we have a IMAPIProp compatible interface here, and we don't want to crash
@@ -3203,18 +3183,16 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 
 	if (lpSrcInterface == nullptr || lpDestInterface == nullptr ||
 	    lpSrcObj == nullptr || lpDestObj == nullptr ||
-	    inclprop == nullptr) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	    inclprop == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// q-i src and dest to check if IID_IMAPIProp is present
 	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkSrc, lpSrcInterface, &~lpSrcProp);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkDest, lpDestInterface, &~lpDestProp);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// take some shortcuts if we're dealing with a Kopano message destination
 	if (HrGetOneProp(lpDestProp, PR_EC_OBJECT, &~lpZObj) == hrSuccess &&
@@ -3230,7 +3208,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 	if (ulFlags & MAPI_NOREPLACE) {
 		hr = lpDestProp->GetPropList(MAPI_UNICODE, &~lpsDestPropArray);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		for (ULONG i = 0; i < lpIncludeProps->cValues; ++i) {
 			if (Util::FindPropInArray(lpsDestPropArray, lpIncludeProps->aulPropTag[i]) == -1)

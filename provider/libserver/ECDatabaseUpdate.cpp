@@ -399,7 +399,7 @@ ECRESULT UpdateDatabaseSearchCriteria(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	while(true) {
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);

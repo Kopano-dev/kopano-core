@@ -114,11 +114,8 @@ ECRESULT ECChannelClient::ConnectSocket()
 	}
 	kc_strlcpy(saddr.sun_path, m_strPath.c_str(), sizeof(saddr.sun_path));
 
-	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
+		return KCERR_INVALID_PARAMETER;
 	if (connect(fd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
 		er = KCERR_NETWORK_ERROR;
 		goto exit;
@@ -150,10 +147,8 @@ ECRESULT ECChannelClient::ConnectHttp()
 	sock_hints.ai_socktype = SOCK_STREAM;
 	ret = getaddrinfo(m_strPath.c_str(), port_string, &sock_hints,
 	      &sock_res);
-	if (ret != 0) {
-		er = KCERR_NETWORK_ERROR;
-		goto exit;
-	}
+	if (ret != 0)
+		return KCERR_NETWORK_ERROR;
 
 	for (sock_addr = sock_res; sock_addr != NULL;
 	     sock_addr = sock_addr->ai_next)

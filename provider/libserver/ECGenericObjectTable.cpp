@@ -1082,8 +1082,7 @@ ECRESULT ECGenericObjectTable::AddTableNotif(ECKeyTable::UpdateType ulAction, sO
     } else if(ulAction == ECKeyTable::TABLE_ROW_DELETE) {
         lpSession->AddNotificationTable(ulAction, m_ulObjType, m_ulTableId, &sRowItem, NULL, NULL);
     } else {
-        er = KCERR_NOT_FOUND;
-        goto exit;
+		return KCERR_NOT_FOUND;
     }
         
 exit:

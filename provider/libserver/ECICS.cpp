@@ -212,19 +212,13 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	std::set<unsigned int>	syncids;
 	bool					bIgnored = false;
 
-	if(!isICSChange(ulChange)){
-		er = KCERR_INVALID_TYPE;
-		goto exit;
-	}
-
-	if(sSourceKey == sParentSourceKey || sSourceKey.empty() || sParentSourceKey.empty()) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (!isICSChange(ulChange))
+		return KCERR_INVALID_TYPE;
+	if (sSourceKey == sParentSourceKey || sSourceKey.empty() || sParentSourceKey.empty())
+		return KCERR_INVALID_PARAMETER;
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Always log folder changes
 	if(ulChange & ICS_MESSAGE) {
@@ -236,7 +230,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		while (true) {
 			lpDBRow = lpDatabase->FetchRow(lpDBResult);
@@ -261,7 +255,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 
 	er = lpDatabase->DoInsert(strQuery, &changeid , NULL);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if ((ulChange & ICS_HARD_DELETE) == ICS_HARD_DELETE || (ulChange & ICS_SOFT_DELETE) == ICS_SOFT_DELETE) {
 		if (ulSyncId != 0)
@@ -273,7 +267,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	if (ulChange == ICS_MESSAGE_NEW && ulSyncId != 0) {
 		er = AddToLastSyncedMessagesSet(lpDatabase, ulSyncId, sSourceKey, sParentSourceKey);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	// Add change key and predecessor change list
@@ -283,7 +277,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		goto exit;
 	}
 	if(er != erSuccess)
-        goto exit;
+		return er;
 
 	strChangeList = "";
 	strQuery = "SELECT val_binary FROM properties "
@@ -293,7 +287,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if(lpDatabase->GetNumRows(lpDBResult) > 0){
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
@@ -311,7 +305,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if(lpDatabase->GetNumRows(lpDBResult) > 0){
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
@@ -355,7 +349,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		
 		er = WriteProp(lpDatabase, ulObjId, 0, &sProp);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 			
 		key.ulObjId = ulObjId;
 		key.ulOrderId = 0;
@@ -369,8 +363,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		
 		er = WriteProp(lpDatabase, ulObjId, 0, &sProp);
 		if(er != erSuccess)
-			goto exit;
-			
+			return er;
 		key.ulObjId = ulObjId;
 		key.ulOrderId = 0;
 		lpSession->GetSessionManager()->GetCacheManager()->SetCell(&key, PR_CHANGE_KEY, &sProp);

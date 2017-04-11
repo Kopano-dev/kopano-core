@@ -295,11 +295,9 @@ static ECRESULT check_attachment_storage_permissions(void)
 		tmpfile = fopen(strtestpath.c_str(), "w");
 		if (!tmpfile) {
 			 ec_log_err("Unable to write attachments to the directory '%s' - %s. Please check the directory and sub directories.",  g_lpConfig->GetSetting("attachment_path"), strerror(errno));
-			 er = KCERR_NO_ACCESS;
-			 goto exit;
+			return KCERR_NO_ACCESS;
 		}
 	}
-exit:
 	if (tmpfile) {
 		fclose(tmpfile);
 		unlink(strtestpath.c_str());
@@ -426,13 +424,11 @@ static ECRESULT check_server_fqdn(void)
 	// If admin has set the option, we're not using DNS to check the name
 	option = g_lpConfig->GetSetting("server_hostname");
 	if (option && option[0] != '\0')
-		goto exit;
+		return erSuccess;
 	
 	rc = gethostname(hostname, sizeof(hostname));
-	if (rc != 0) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+	if (rc != 0)
+		return KCERR_NOT_FOUND;
 
 	// if we exit hereon after, hostname will always contain a correct hostname, which we can set in the config.
 
