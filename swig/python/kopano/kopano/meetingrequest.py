@@ -8,7 +8,7 @@ import datetime
 import struct
 
 from MAPI import (
-    MAPI_UNICODE, MODRECIP_MODIFY, KEEP_OPEN_READWRITE
+    MAPI_UNICODE, MODRECIP_MODIFY, KEEP_OPEN_READWRITE, RELOP_EQ,
 )
 
 from MAPI.Tags import (
@@ -16,12 +16,17 @@ from MAPI.Tags import (
     IID_IMAPITable, IID_IMessage,
 )
 
-from MAPI.Defs import PpropFindProp
+from MAPI.Defs import (
+    PpropFindProp
+)
 
-from MAPI.Struct import SPropValue
+from MAPI.Struct import (
+    SPropValue, SPropertyRestriction,
+)
 
 from .compat import repr as _repr, hex as _hex
 from .errors import Error
+from .restriction import Restriction
 
 class MeetingRequest(object):
     def __init__(self, item):
@@ -31,10 +36,12 @@ class MeetingRequest(object):
     def calendar_item(self):
         """ Global calendar item :class:`item <Item>` """
 
-        goid = self.item.prop('meeting:35').value
-        for item in self.item.store.calendar: # XXX restriction
-            if item.prop('meeting:35').value == goid:
-                return item
+        goid = self.item.prop('meeting:35')
+
+        restriction = Restriction(SPropertyRestriction(
+            RELOP_EQ, goid.proptag, SPropValue(goid.proptag, goid.mapiobj.Value))
+        )
+        return self.item.store.calendar.items(restriction).next() # XXX store
 
     @property
     def basedate(self):
@@ -53,12 +60,25 @@ class MeetingRequest(object):
 
     @property
     def track_status(self):
-        if self.item.message_class == 'IPM.Schedule.Meeting.Resp.Pos':
-            return 3 # XXX hardcoded
-        elif self.item.message_class == 'IPM.Schedule.Meeting.Resp.Tent':
-            return 2
-        elif self.item.message_class == 'IPM.Schedule.Meeting.Resp.Neg':
-            return 4
+        """ Track status """
+
+        return {
+            'IPM.Schedule.Meeting.Resp.Pos': 3, # XXX hard-coded
+            'IPM.Schedule.Meeting.Resp.Tent': 2,
+            'IPM.Schedule.Meeting.Resp.Neg': 4,
+        }.get(self.item.message_class)
+
+    @property
+    def is_request(self):
+        return self.item.message_class == 'IPM.Schedule.Meeting.Request'
+
+    @property
+    def is_response(self):
+        return self.item.message_class.startswith('IPM.Schedule.Meeting.Resp.')
+
+    @property
+    def is_cancellation(self):
+        return self.item.message_class == 'IPM.Schedule.Meeting.Canceled'
 
     def accept(self, tentative=False, response=True):
         """ Accept meeting request
@@ -101,18 +121,6 @@ class MeetingRequest(object):
             response.to = self.item.server.user(email=self.item.from_.email) # XXX
             response.from_ = self.item.store.user # XXX slow?
             response.send()
-
-    @property
-    def is_request(self):
-        return self.item.message_class == 'IPM.Schedule.Meeting.Request'
-
-    @property
-    def is_response(self):
-        return self.item.message_class.startswith('IPM.Schedule.Meeting.Resp.')
-
-    @property
-    def is_cancellation(self):
-        return self.item.message_class == 'IPM.Schedule.Meeting.Canceled'
 
     def process_cancellation(self):
         """ Process meeting request cancellation """
