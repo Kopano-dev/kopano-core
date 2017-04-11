@@ -13,6 +13,7 @@ from MAPI import (
 
 from MAPI.Tags import (
     PR_DISPLAY_NAME_W, PR_RECIPIENT_TRACKSTATUS, PR_MESSAGE_RECIPIENTS,
+    PR_MESSAGE_CLASS,
     IID_IMAPITable, IID_IMessage,
 )
 
@@ -122,19 +123,36 @@ class MeetingRequest(object):
             response.from_ = self.item.store.user # XXX slow?
             response.send()
 
-    def process_cancellation(self):
+    def process_cancellation(self): # XXX very similar to process_response, _accept?
         """ Process meeting request cancellation """
 
+        if not self.is_cancellation:
+            raise Error('item is not a meeting request cancellation')
+
         cal_item = self.calendar_item
+        basedate = self.basedate
         calendar = self.item.store.calendar # XXX
 
-        # XXX basedate, merging
+        # modify calendar item or embedded message (in case of exception)
+        attach = None
+        if basedate:
+            for message in cal_item.embedded_items(): # XXX no cal_item?
+                if message.prop('appointment:33320').value.date() == basedate.date(): # XXX date
+                    attach = message._attobj
+                    break
+            # XXX not found: create exception
+        else:
+            message = cal_item
 
-        if cal_item: # XXX merge delete/copy with accept
-            calendar.delete(cal_item)
+        # update properties
+        self.item.mapiobj.CopyTo([], [], 0, None, IID_IMessage, message.mapiobj, 0)
+        message.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS, 'IPM.Appointment')])
 
-        cal_item = self.item.copy(self.item.store.calendar)
-        cal_item.message_class = 'IPM.Appointment'
+        # save all the things
+        message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        if attach:
+            attach.SaveChanges(KEEP_OPEN_READWRITE)
+            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def process_response(self):
         """ Process meeting request response """
@@ -148,26 +166,25 @@ class MeetingRequest(object):
         # modify calendar item or embedded message (in case of exception)
         attach = None
         if basedate:
-            for message in cal_item.embedded_items():
+            for message in cal_item.embedded_items(): # XXX no cal_item?
                 if message.prop('appointment:33320').value.date() == basedate.date(): # XXX date
                     attach = message._attobj # XXX
-                    message = message.mapiobj
                     break
         else:
-            message = cal_item.mapiobj
+            message = cal_item
 
         # update recipient track status # XXX partially to recurrence.py
-        table = message.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
+        table = message.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
         rows = table.QueryRows(-1, 0)
         for row in rows:
             disp = PpropFindProp(row, PR_DISPLAY_NAME_W)
             if disp.Value == self.item.from_.name: # XXX resolving
                 row.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, self.track_status)) # XXX append
 
-        message.ModifyRecipients(MODRECIP_MODIFY, rows)
+        message.mapiobj.ModifyRecipients(MODRECIP_MODIFY, rows)
 
         # save all the things
-        message.SaveChanges(KEEP_OPEN_READWRITE)
+        message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
         if attach:
             attach.SaveChanges(KEEP_OPEN_READWRITE)
             cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
