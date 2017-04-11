@@ -51,6 +51,15 @@ class MeetingRequest(object):
 
         return self.item.prop('appointment:33281').value
 
+    @property
+    def track_status(self):
+        if self.item.message_class == 'IPM.Schedule.Meeting.Resp.Pos':
+            return 3 # XXX hardcoded
+        elif self.item.message_class == 'IPM.Schedule.Meeting.Resp.Tent':
+            return 2
+        elif self.item.message_class == 'IPM.Schedule.Meeting.Resp.Neg':
+            return 4
+
     def accept(self, tentative=False, respond=True):
         """ Accept meeting request
 
@@ -71,8 +80,8 @@ class MeetingRequest(object):
         self._accept('IPM.Schedule.Meeting.Resp.Neg', respond=respond)
 
     def _accept(self, message_class, respond=True):
-        if self.item.message_class != 'IPM.Schedule.Meeting.Request':
-            raise Error('trying to accept non meeting request')
+        if not self.is_request:
+            raise Error('item is not a meeting request')
 
         cal_item = self.calendar_item
         calendar = self.item.store.calendar # XXX
@@ -93,17 +102,37 @@ class MeetingRequest(object):
             response.from_ = self.item.store.user # XXX slow?
             response.send()
 
-    def process(self):
+    @property
+    def is_request(self):
+        return self.item.message_class == 'IPM.Schedule.Meeting.Request'
+
+    @property
+    def is_response(self):
+        return self.item.message_class.startswith('IPM.Schedule.Meeting.Resp.')
+
+    @property
+    def is_cancellation(self):
+        return self.item.message_class == 'IPM.Schedule.Meeting.Canceled'
+
+    def process_cancellation(self):
+        """ Process meeting request cancellation """
+
+        cal_item = self.calendar_item
+        calendar = self.item.store.calendar # XXX
+
+        # XXX basedate, merging
+
+        if cal_item: # XXX merge delete/copy with accept
+            calendar.delete(cal_item)
+
+        cal_item = self.item.copy(self.item.store.calendar)
+        cal_item.message_class = 'IPM.Appointment'
+
+    def process_response(self):
         """ Process meeting request response """
 
-        if self.item.message_class == 'IPM.Schedule.Meeting.Resp.Pos':
-            track_status = 3 # XXX hardcoded
-        elif self.item.message_class == 'IPM.Schedule.Meeting.Resp.Tent':
-            track_status = 2
-        elif self.item.message_class == 'IPM.Schedule.Meeting.Resp.Neg':
-            track_status = 4
-        else:
-            raise Error('trying to process non meeting request reponse')
+        if not self.is_response:
+            raise Error('item is not a meeting request response')
 
         cal_item = self.calendar_item
         basedate = self.basedate
@@ -125,7 +154,7 @@ class MeetingRequest(object):
         for row in rows:
             disp = PpropFindProp(row, PR_DISPLAY_NAME_W)
             if disp.Value == self.item.from_.name: # XXX resolving
-                row.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, track_status)) # XXX
+                row.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, self.track_status)) # XXX append
 
         message.ModifyRecipients(MODRECIP_MODIFY, rows)
 
