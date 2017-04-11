@@ -58,7 +58,7 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 	if (newnode == nullptr)
 		return nullptr;
 	if (PROP_TYPE(s.ulPropTag) == PT_UNICODE)
-		setVObjectUStringZValue(newnode, s.Value.lpszW);
+		setVObjectUStringZValue_(newnode, wcsdup(s.Value.lpszW));
 	else if (PROP_TYPE(s.ulPropTag) == PT_STRING8)
 		setVObjectStringZValue(newnode, s.Value.lpszA);
 	return newnode;
@@ -70,7 +70,7 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 	auto newnode = addProp(node, prop);
 	if (newnode == nullptr)
 		return nullptr;
-	setVObjectUStringZValue(newnode, value);
+	setVObjectUStringZValue_(newnode, wcsdup(value));
 	return newnode;
 }
 
