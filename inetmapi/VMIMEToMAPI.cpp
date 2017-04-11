@@ -572,29 +572,33 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 	try { 
 		// internet message ID
-		if(vmHeader->hasField(vmime::fields::MESSAGE_ID)) {
-			strInternetMessageId = vmHeader->MessageId()->getValue()->generate();
+		auto field = vmHeader->findField(vmime::fields::MESSAGE_ID);
+		if (field != nullptr) {
+			strInternetMessageId = field->getValue()->generate();
 			msgProps[nProps].ulPropTag = PR_INTERNET_MESSAGE_ID_A;
 			msgProps[nProps++].Value.lpszA = (char*)strInternetMessageId.c_str();
 		}
 
 		// In-Reply-To header
-		if(vmHeader->hasField(vmime::fields::IN_REPLY_TO)) {
-			strInReplyTos = vmHeader->InReplyTo()->getValue()->generate();
+		field = vmHeader->findField(vmime::fields::IN_REPLY_TO);
+		if (field != nullptr) {
+			strInReplyTos = field->getValue()->generate();
 			msgProps[nProps].ulPropTag = PR_IN_REPLY_TO_ID_A;
 			msgProps[nProps++].Value.lpszA = (char*)strInReplyTos.c_str();
 		}
 
 		// References header
-		if(vmHeader->hasField(vmime::fields::REFERENCES)) {
-			strReferences = vmHeader->References()->getValue()->generate();
+		field = vmHeader->findField(vmime::fields::REFERENCES);
+		if (field != nullptr) {
+			strReferences = field->getValue()->generate();
 			msgProps[nProps].ulPropTag = PR_INTERNET_REFERENCES_A;
 			msgProps[nProps++].Value.lpszA = (char*)strReferences.c_str();
 		}
 
 		// set subject
-		if(vmHeader->hasField(vmime::fields::SUBJECT)) {
-			wstrSubject = getWideFromVmimeText(*vmime::dynamicCast<vmime::text>(vmHeader->Subject()->getValue()));
+		field = vmHeader->findField(vmime::fields::SUBJECT);
+		if (field != nullptr) {
+			wstrSubject = getWideFromVmimeText(*vmime::dynamicCast<vmime::text>(field->getValue()));
 			msgProps[nProps].ulPropTag = PR_SUBJECT_W;
 			msgProps[nProps++].Value.lpszW = (WCHAR *)wstrSubject.c_str();
 		}
@@ -635,12 +639,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		}
 
 		// setting sent time
-		if(vmHeader->hasField(vmime::fields::DATE)) {
+		field = vmHeader->findField(vmime::fields::DATE);
+		if (field != nullptr) {
 			msgProps[nProps].ulPropTag = PR_CLIENT_SUBMIT_TIME;
-			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(*vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue()));
+			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(*vmime::dynamicCast<vmime::datetime>(field->getValue()));
 
 			// set sent date (actual send date, disregarding timezone)
-			vmime::datetime d = *vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
+			vmime::datetime d = *vmime::dynamicCast<vmime::datetime>(field->getValue());
 			d.setTime(0,0,0,0);
 			msgProps[nProps].ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
 			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(d);
@@ -651,15 +656,19 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		vmime::datetime date = vmime::datetime::now();
 		bool found_date = false;
 		if (m_dopt.use_received_date || m_mailState.ulMsgInMsg) {
-			if (vmHeader->hasField("Received")) {
-				auto recv = vmime::dynamicCast<vmime::relay>(vmHeader->findField("Received")->getValue());
-				if (recv) {
+			field = vmHeader->findField("Received");
+			if (field != nullptr) {
+				auto recv = vmime::dynamicCast<vmime::relay>(field->getValue());
+				if (recv != nullptr) {
 					date = recv->getDate();
 					found_date = true;
 				}
 			} else if (m_mailState.ulMsgInMsg) {
-				date = *vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
-				found_date = true;
+				field = vmHeader->findField("Date");
+				if (field != nullptr) {
+					date = *vmime::dynamicCast<vmime::datetime>(field->getValue());
+					found_date = true;
+				}
 			} else {
 				date = vmime::datetime::now();
 			}
