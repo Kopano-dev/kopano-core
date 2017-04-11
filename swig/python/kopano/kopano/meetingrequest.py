@@ -60,26 +60,26 @@ class MeetingRequest(object):
         elif self.item.message_class == 'IPM.Schedule.Meeting.Resp.Neg':
             return 4
 
-    def accept(self, tentative=False, respond=True):
+    def accept(self, tentative=False, response=True):
         """ Accept meeting request
 
         :param tentative: accept tentatively?
-        :param respond: send response message?
+        :param response: send response message?
         """
 
         if tentative:
-            self._accept('IPM.Schedule.Meeting.Resp.Tent', respond=respond)
+            self._accept('IPM.Schedule.Meeting.Resp.Tent', response=response)
         else:
-            self._accept('IPM.Schedule.Meeting.Resp.Pos', respond=respond)
+            self._accept('IPM.Schedule.Meeting.Resp.Pos', response=response)
 
-    def decline(self, respond=True):
+    def decline(self, response=True):
         """ Decline meeting request
 
-        :param respond: send response message?
+        :param response: send response message?
         """
-        self._accept('IPM.Schedule.Meeting.Resp.Neg', respond=respond)
+        self._accept('IPM.Schedule.Meeting.Resp.Neg', response=response)
 
-    def _accept(self, message_class, respond=True):
+    def _accept(self, message_class, response=True):
         if not self.is_request:
             raise Error('item is not a meeting request')
 
@@ -94,7 +94,7 @@ class MeetingRequest(object):
         cal_item = self.item.copy(self.item.store.calendar)
         cal_item.message_class = 'IPM.Appointment'
 
-        if respond:
+        if response:
             response = self.item.copy(self.item.store.outbox)
             response.subject = 'Accepted: ' + self.item.subject
             response.message_class = message_class
