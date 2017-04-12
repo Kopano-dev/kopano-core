@@ -234,7 +234,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	HRESULT hr = MAPIAllocateBuffer(cbStoreEntryId,
 	             reinterpret_cast<void **>(&sSendData.lpStoreEntryId));
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "StartSpoolerFork(): MAPIAllocateBuffer failed(1) %x", hr);
+		ec_log_err("StartSpoolerFork(): MAPIAllocateBuffer failed(1) %x", hr);
 		return hr;
 	}
 
@@ -242,7 +242,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	sSendData.cbMessageEntryId = cbMsgEntryId;
 	hr = MAPIAllocateBuffer(cbMsgEntryId, (void**)&sSendData.lpMessageEntryId);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "StartSpoolerFork(): MAPIAllocateBuffer failed(2) %x", hr);
+		ec_log_err("StartSpoolerFork(): MAPIAllocateBuffer failed(2) %x", hr);
 		return hr;
 	}
 	memcpy(sSendData.lpMessageEntryId, lpMsgEntryId, cbMsgEntryId);
@@ -252,13 +252,13 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	// execute the new spooler process to send the email
 	pid = vfork();
 	if (pid < 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, string("Unable to start new spooler process: ") + strerror(errno));
+		ec_log_crit(string("Unable to start new spooler process: ") + strerror(errno));
 		return MAPI_E_CALL_FAILED;
 	}
 
 	if (pid == 0) {
 		char *bname = strdup(szCommand);
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s NULL",
+		ec_log_debug("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s NULL",
 			  szCommand, basename(bname) /* argv[0] */,
 			  "--send-message-entryid", bin2hex(cbMsgEntryId, lpMsgEntryId).c_str(),
 			  "--send-username-enc", encodestring(szUsername).c_str(),
@@ -282,13 +282,12 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 			  "--foreground", szSMTP, 
 			  "--port", strPort.c_str(),
 			  bDoSentMail ? "--do-sentmail" : NULL, NULL);
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, string("Cannot start spooler process `") + szCommand + "`: " + strerror(errno));
+		ec_log_crit(string("Cannot start spooler process `") + szCommand + "`: " + strerror(errno));
 		_exit(EXIT_REMOVE);
 #endif
 	}
 
-	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Spooler process started on pid %d", pid);
-
+	ec_log_info("Spooler process started on PID %d", pid);
 	// process is started, place in map
 	mapSendData[pid] = sSendData;
 	return hrSuccess;
@@ -316,7 +315,7 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 	if (*lppAddrBook == NULL) {
 		hr = lpAdminSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, lppAddrBook);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open addressbook for error mail, skipping. Error 0x%08X", hr);
+			ec_log_err("Unable to open addressbook for error mail, skipping. Error 0x%08X", hr);
 			return hr;
 		}
 	}
@@ -328,7 +327,7 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 		 */
 		*lppMailer = CreateSender("localhost", 25);
 		if (! (*lppMailer)) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create error object for error mail, skipping.");
+			ec_log_err("Unable to create error object for error mail, skipping.");
 			return hr;
 		}
 	}
@@ -336,7 +335,7 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 	if (*lppUserStore == NULL) {
 		hr = lpAdminSession->OpenMsgStore(0, sSendData.cbStoreEntryId, (LPENTRYID)sSendData.lpStoreEntryId, NULL, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppUserStore);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open store of user for error mail, skipping. Error 0x%08X", hr);
+			ec_log_err("Unable to open store of user for error mail, skipping. Error 0x%08X", hr);
 			return hr;
 		}
 	}
@@ -344,7 +343,7 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 	if (*lppMessage == NULL) {
 		hr = (*lppUserStore)->OpenEntry(sSendData.cbMessageEntryId, (LPENTRYID)sSendData.lpMessageEntryId, &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, (IUnknown**)lppMessage);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open message of user for error mail, skipping. Error 0x%08X", hr);
+			ec_log_err("Unable to open message of user for error mail, skipping. Error 0x%08X", hr);
 			return hr;
 		}
 	}
@@ -380,7 +379,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 	finished = mapFinished;
 	mapFinished.clear();
 	lock.unlock();
-	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Cleaning %d messages from queue", (int)finished.size());
+	ec_log_debug("Cleaning %zu messages from queue", finished.size());
 
 	// process finished entries
 	for (const auto &i : finished) {
@@ -397,36 +396,36 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 		if(WIFEXITED(status)) {					/* Child exited by itself */
 			if (WEXITSTATUS(status) == EXIT_WAIT) {
 				// timed message, try again later
-				g_lpLogger->Log(EC_LOGLEVEL_INFO, "Message for user %ls will be tried again later", sSendData.strUsername.c_str());
+				ec_log_info("Message for user %ls will be tried again later", sSendData.strUsername.c_str());
 				sc -> countInc("Spooler", "exit_wait");
 			}
 			else if (WEXITSTATUS(status) == EXIT_OK || WEXITSTATUS(status) == EXIT_FAILED) {
 				// message was sent, or the user already received an error mail.
-				g_lpLogger->Log(EC_LOGLEVEL_INFO, "Processed message for user %ls", sSendData.strUsername.c_str());
+				ec_log_info("Processed message for user %ls", sSendData.strUsername.c_str());
 				wasSent = true;
 			}
 			else {
 				// message was not sent, and could not be removed from queue. Notify user also.
 				bErrorMail = true;
-				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed message for user %ls will be removed from queue, error 0x%x", sSendData.strUsername.c_str(), status);
+				ec_log_warn("Failed message for user %ls will be removed from queue, error 0x%x", sSendData.strUsername.c_str(), status);
 			}
 		}
 		else if(WIFSIGNALED(status)) {        /* Child was killed by a signal */
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d was killed by signal %d", i.first, WTERMSIG(status));
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
+			ec_log_notice("Spooler process %d was killed by signal %d", i.first, WTERMSIG(status));
+			ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 			sc -> countInc("Spooler", "sig_killed");
 		}
 		else {								/* Something strange happened */
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d terminated abnormally", i.first);
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
+			ec_log_notice("Spooler process %d terminated abnormally", i.first);
+			ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 			sc -> countInc("Spooler", "abnormal_terminate");
 		}
 #else
 		if (status) {
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Spooler process %d exited with status %d", i.first, status);
+			ec_log_err("Spooler process %d exited with status %d", i.first, status);
 		}
 #endif
 
@@ -446,19 +445,19 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 				// TODO: if failed, and we have the lpUserStore, create message?
 			}
 			if (hr != hrSuccess)
-				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to create error message for user %ls: %s (%x)",
+				ec_log_warn("Failed to create error message for user %ls: %s (%x)",
 					sSendData.strUsername.c_str(), GetMAPIErrorMessage(hr), hr);
 
 			// remove mail from queue
 			hr = lpSpooler->DeleteFromMasterOutgoingTable(sSendData.cbMessageEntryId, (LPENTRYID)sSendData.lpMessageEntryId, sSendData.ulFlags);
 			if (hr != hrSuccess)
-				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Could not remove invalid message from queue, error code: 0x%08X", hr);
+				ec_log_warn("Could not remove invalid message from queue, error code: 0x%08X", hr);
 
 			// move mail to sent items folder
 			if (sSendData.ulFlags & EC_SUBMIT_DOSENTMAIL && lpMessage) {
 				hr = DoSentMail(lpAdminSession, lpUserStore, 0, lpMessage);
 				if (hr != hrSuccess)
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to move sent mail to sent-items folder: %s (%x)",
+					ec_log_err("Unable to move sent mail to sent-items folder: %s (%x)",
 						GetMAPIErrorMessage(hr), hr);
 			}
 		}
@@ -500,14 +499,13 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 
 	hr = lpTable->GetRowCount(0, &ulRowCount);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get outgoing queue count: %s (%x)",
+		ec_log_err("Unable to get outgoing queue count: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	if (ulRowCount) {
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Number of messages in the queue: %d", ulRowCount);
-
+		ec_log_debug("Number of messages in the queue: %d", ulRowCount);
 		sc -> countInc("Spooler", "batch_invokes");
 		sc -> countAdd("Spooler", "batch_count", int64_t(ulRowCount));
 	}
@@ -529,7 +527,7 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		rowset_ptr lpsRowSet;
 		hr = lpTable->QueryRows(1, 0, &~lpsRowSet);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to fetch data from table, error code: 0x%08X", hr);
+			ec_log_err("Unable to fetch data from table, error code: 0x%08X", hr);
 			goto exit;
 		}
 
@@ -554,16 +552,16 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		    lpsRowSet->aRow[0].lpProps[3].ulPropTag != PR_EC_OUTGOING_FLAGS)
 		{
 			// Client was quick enough to remove message from queue before we could read it
-			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Empty row in OutgoingQueue");
+			ec_log_notice("Empty row in OutgoingQueue");
 
 			if (lpsRowSet->aRow[0].lpProps[2].ulPropTag == PR_ENTRYID && lpsRowSet->aRow[0].lpProps[3].ulPropTag == PR_EC_OUTGOING_FLAGS) {
 				// we can remove this message
-				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Removing invalid entry from OutgoingQueue");
+				ec_log_warn("Removing invalid entry from OutgoingQueue");
 
 				hr = lpSpooler->DeleteFromMasterOutgoingTable(lpsRowSet->aRow[0].lpProps[2].Value.bin.cb, (LPENTRYID)lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, lpsRowSet->aRow[0].lpProps[3].Value.ul);
 
 				if (hr != hrSuccess) {
-					g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Could not remove invalid message from queue, error code: 0x%08X", hr);
+					ec_log_warn("Could not remove invalid message from queue, error code: 0x%08X", hr);
 					// since we have an error, we will reconnect to the server to fully reload the table
 					goto exit;
 				}
@@ -591,7 +589,7 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		// Start new process to send the mail
 		hr = StartSpoolerFork(strUsername.c_str(), szSMTP, ulPort, szPath, lpsRowSet->aRow[0].lpProps[1].Value.bin.cb, lpsRowSet->aRow[0].lpProps[1].Value.bin.lpb, lpsRowSet->aRow[0].lpProps[2].Value.bin.cb, lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, lpsRowSet->aRow[0].lpProps[3].Value.ul);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "ProcessAllEntries(): Failed starting spooler: %x", hr);
+			ec_log_warn("ProcessAllEntries(): Failed starting spooler: %x", hr);
 			goto exit;
 		}
 	}
@@ -617,19 +615,19 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
 
 	hr = HrOpenDefaultStore(lpAdminSession, &~lpMDB);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open default store for system account. Error 0x%08X", hr);
+		ec_log_err("Unable to open default store for system account. Error 0x%08X", hr);
 		return hr;
 	}
 	hr = HrGetOneProp(lpMDB, PR_EC_OBJECT, &~lpsProp);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get Kopano internal object: %s (%x)",
+		ec_log_err("Unable to get Kopano internal object: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	hr = ((IECUnknown *)lpsProp->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Spooler interface not supported: %s (%x)",
+		ec_log_err("Spooler interface not supported: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
@@ -667,20 +665,20 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open admin session. Error 0x%08X", hr);
+		ec_log_err("Unable to open admin session. Error 0x%08X", hr);
 		goto exit;
 	}
 
 	if (disconnects == 0)
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Connection to storage server succeeded");
+		ec_log_debug("Connection to storage server succeeded");
 	else
-		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Connection to storage server succeeded after %d retries", disconnects);
+		ec_log_info("Connection to storage server succeeded after %d retries", disconnects);
 
 	disconnects = 0;			// first call succeeded, assume all is well.
 
 	hr = GetAdminSpooler(lpAdminSession, &~lpSpooler);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessQueue: GetAdminSpooler failed %x", hr);
+		ec_log_err("ProcessQueue: GetAdminSpooler failed %x", hr);
 		goto exit;
 	}
 
@@ -690,13 +688,13 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	// Request the master outgoing table
 	hr = lpSpooler->GetMasterOutgoingTable(0, &~lpTable);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Master outgoing queue not available: %s (%x)",
+		ec_log_err("Master outgoing queue not available: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 	hr = lpTable->SetColumns(sOutgoingCols, 0);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to setColumns() on OutgoingQueue: %s (%x)",
+		ec_log_err("Unable to setColumns() on OutgoingQueue: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
@@ -704,13 +702,13 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	// Sort by ascending hierarchyid: first in, first out queue
 	hr = lpTable->SortTable(sSort, 0);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to SortTable() on OutgoingQueue: %s (%x)",
+		ec_log_err("Unable to SortTable() on OutgoingQueue: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 	hr = HrAllocAdviseSink(AdviseCallback, nullptr, &~lpAdviseSink);	
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to allocate memory for advise sink: %s (%x)",
+		ec_log_err("Unable to allocate memory for advise sink: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
@@ -726,7 +724,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 		// also checks not to send a message again which is already sending
 		hr = ProcessAllEntries(lpAdminSession, lpSpooler, lpTable, szSMTP, ulPort, szPath);
 		if(hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "ProcessQueue: ProcessAllEntries failed %x", hr);
+			ec_log_warn("ProcessQueue: ProcessAllEntries failed %x", hr);
 			goto exit;
 		}
 
@@ -764,7 +762,7 @@ exit:
 		while (ulCount < 60) {
 			if ((ulCount % 5) == 0) {
 				ulThreads = mapSendData.size();
-				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Still waiting for %d thread%c to exit.", ulThreads, ulThreads!=1?'s':' ');
+				ec_log_warn("Still waiting for %d thread(s) to exit.", ulThreads);
 			}
 			if (lpSpooler != nullptr)
 				CleanFinishedMessages(lpAdminSession, lpSpooler);
@@ -775,10 +773,10 @@ exit:
 			++ulCount;
 		}
 		if (ulCount == 60)
-			g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%d threads did not yet exit, closing anyway.", (int)mapSendData.size());
+			ec_log_debug("%zu threads did not yet exit, closing anyway.", mapSendData.size());
 	}
 	else if (nReload) {
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Table reload requested, breaking server connection");
+		ec_log_warn("Table reload requested, breaking server connection");
 	}
 
 	if (lpTable && ulConnection)
@@ -832,7 +830,7 @@ static void process_signal(int sig)
 	case SIGHUP:
 		if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 		    g_lpLogger != nullptr)
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
+			ec_log_warn("Unable to reload configuration file, continuing with current settings.");
 		if (g_lpLogger) {
 			if (g_lpConfig) {
 				const char *ll = g_lpConfig->GetSetting("log_level");
@@ -841,20 +839,20 @@ static void process_signal(int sig)
 			}
 
 			g_lpLogger->Reset();
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Log connection was reset");
+			ec_log_warn("Log connection was reset");
 		}
 		break;
 
 	case SIGUSR2: {
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Spooler stats:");
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Running threads: %zu", mapSendData.size());
+		ec_log_debug("Spooler stats:");
+		ec_log_debug("Running threads: %zu", mapSendData.size());
 		std::lock_guard<std::mutex> l(hMutexFinished);
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Finished threads: %zu", mapFinished.size());
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Disconnects: %d", disconnects);
+		ec_log_debug("Finished threads: %zu", mapFinished.size());
+		ec_log_debug("Disconnects: %d", disconnects);
 		break;
 	}
 	default:
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unknown signal %d received", sig);
+		ec_log_debug("Unknown signal %d received", sig);
 		break;
 	}
 }
@@ -875,7 +873,7 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
 	HRESULT hr = hrSuccess;
 
 	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-spooler version " PROJECT_VERSION_SPOOLER_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
-	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Using SMTP server: %s, port %d", szSMTP, ulPort);
+	ec_log_debug("Using SMTP server: %s, port %d", szSMTP, ulPort);
 
 	disconnects = 0;
 
@@ -886,7 +884,7 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
 			break;
 
 		if (disconnects == 0)
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Server connection lost. Reconnecting in 3 seconds...");
+			ec_log_warn("Server connection lost. Reconnecting in 3 seconds...");
 		++disconnects;
 		Sleep(3000);			// wait 3s until retry to connect
 	}
@@ -1095,7 +1093,7 @@ int main(int argc, char *argv[]) {
 		LogConfigErrors(g_lpConfig);
 
 	if (!TmpPath::getInstance() -> OverridePath(g_lpConfig))
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Ignoring invalid path-setting!");
+		ec_log_err("Ignoring invalid path setting!");
 
 	// set socket filename
 	if (!szPath)
@@ -1141,11 +1139,11 @@ int main(int argc, char *argv[]) {
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (unix_runas(g_lpConfig)) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): run-as failed");
+		ec_log_crit("main(): run_as failed");
 		goto exit;
 	}
 	if (daemonize && unix_daemonize(g_lpConfig)) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): failed daemonizing");
+		ec_log_crit("main(): failed daemonizing");
 		goto exit;
 	}
 
@@ -1153,7 +1151,7 @@ int main(int argc, char *argv[]) {
 		setsid();
 
 	if (bForked == false && unix_create_pidfile(argv[0], g_lpConfig, false) < 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): Failed creating PID file");
+		ec_log_crit("main(): Failed creating PID file");
 		goto exit;
 	}
 	g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger);
@@ -1162,7 +1160,7 @@ int main(int argc, char *argv[]) {
 
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI: %s (%x)",
+		ec_log_crit("Unable to initialize MAPI: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
@@ -1177,7 +1175,7 @@ int main(int argc, char *argv[]) {
 	delete sc;
 
 	if (!bForked)
-		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Spooler shutdown complete");
+		ec_log_info("Spooler shutdown complete");
 	MAPIUninitialize();
 
 exit:
