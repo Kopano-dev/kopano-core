@@ -1920,6 +1920,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 		}
 		if (ulTag == PROP_ID(PR_SOURCE_KEY)) {
 			setFolders.insert(ulId);
+			continue;
 		} else if (ulTag != PROP_ID(PR_ENTRYID)) {
 			assert(false);
 			continue;
