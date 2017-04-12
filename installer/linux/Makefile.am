@@ -42,9 +42,6 @@ debian_initscript_files = \
 data_configdir = ${docdir}/example-config
 dist_data_config_DATA = ${config_files} ldap.cfg
 
-sysconf_configdir = ${sysconfdir}/kopano
-dist_sysconf_config_DATA = ${config_files}
-
 sysconf_initdir=${sysconfdir}/init.d
 sysconf_init_SCRIPTS = ${@DISTRO@_initscript_files}
 
@@ -88,7 +85,7 @@ EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
 	${debian_initscript_files} sysconfig.txt
 
 install-data-hook:
-	install -d -m 755 ${DESTDIR}/${sysconf_configdir}/license
+	install -d -m 755 ${DESTDIR}/${sysconfdir}/kopano/license
 	install -d -m 755 ${DESTDIR}/${localstatedir}/lib/kopano/report
 	mv -v ${DESTDIR}${sysconf_rotatedir}/kopano.logrotate ${DESTDIR}${sysconf_rotatedir}/kopano
 	mv -v ${DESTDIR}${sysconf_crondir}/kopano-client-update.cron ${DESTDIR}${sysconf_crondir}/kopano-client-update
