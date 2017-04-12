@@ -145,6 +145,7 @@ def prop(self, mapiobj, proptag, create=False, value=None, proptype=None): # XXX
 def props(mapiobj, namespace=None):
     proptags = mapiobj.GetPropList(MAPI_UNICODE)
     sprops = mapiobj.GetProps(proptags, MAPI_UNICODE)
+    sprops = [s for s in sprops if not (PROP_TYPE(s.ulPropTag) == PT_ERROR and s.Value == MAPI_E_NOT_FOUND)]
     props = [Property(mapiobj, sprop) for sprop in sprops]
     for p in sorted(props):
         if not namespace or p.namespace == namespace:
