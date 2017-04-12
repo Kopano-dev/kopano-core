@@ -608,31 +608,26 @@ ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase)
 			return er;
 
 		ulRows = lpResult.get_num_rows();
-		if(ulRows > 0) {
-			strQuery = "DELETE FROM changes WHERE id IN (";
-			while(true) {
-				lpDBRow = lpResult.fetch_row();
-				if (lpDBRow == NULL)
-					break;
-				
-				if (lpDBRow[0] == NULL) {
-					ec_log_err("UpdateDatabaseKeysChanges(): column is NULL");
-					return KCERR_DATABASE_ERROR;
-				}
-
-				if (!bFirst)
-					strQuery += ",";
-
-				bFirst = FALSE;
-
-				strQuery += lpDBRow[0];
+		if (ulRows == 0)
+			continue;
+		strQuery = "DELETE FROM changes WHERE id IN (";
+		while (true) {
+			lpDBRow = lpResult.fetch_row();
+			if (lpDBRow == NULL)
+				break;
+			if (lpDBRow[0] == NULL) {
+				ec_log_err("UpdateDatabaseKeysChanges(): column is NULL");
+				return KCERR_DATABASE_ERROR;
 			}
-			strQuery += ")";
-
-			er = lpDatabase->DoUpdate(strQuery);
-			if (er != erSuccess)
-				return er;
+			if (!bFirst)
+				strQuery += ",";
+			bFirst = FALSE;
+			strQuery += lpDBRow[0];
 		}
+		strQuery += ")";
+		er = lpDatabase->DoUpdate(strQuery);
+		if (er != erSuccess)
+			return er;
 	}while(ulRows > 0);
 
 	// Change index

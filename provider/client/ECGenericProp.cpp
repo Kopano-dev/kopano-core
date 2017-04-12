@@ -894,19 +894,17 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 
 	// Then add the others, if not added yet
 	for (iterProps = lstProps->begin(); iterProps != lstProps->end(); ++iterProps) {
-		if(HrGetHandler(iterProps->second.GetPropTag(),NULL,NULL,NULL) != 0) {
-			ULONG ulPropTag = iterProps->second.GetPropTag();
-
-			if(!(ulFlags & MAPI_UNICODE)) {
-				// Downgrade to ansi
-				if(PROP_TYPE(ulPropTag) == PT_UNICODE)
-					ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(ulPropTag));
-				else if(PROP_TYPE(ulPropTag) == PT_MV_UNICODE)
-					ulPropTag = PROP_TAG(PT_MV_STRING8, PROP_ID(ulPropTag));
-			}
-
-			lpPropTagArray->aulPropTag[n++] = ulPropTag;
+		if (HrGetHandler(iterProps->second.GetPropTag(), nullptr, nullptr, nullptr) == 0)
+			continue;
+		ULONG ulPropTag = iterProps->second.GetPropTag();
+		if (!(ulFlags & MAPI_UNICODE)) {
+			// Downgrade to ansi
+			if(PROP_TYPE(ulPropTag) == PT_UNICODE)
+				ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(ulPropTag));
+			else if(PROP_TYPE(ulPropTag) == PT_MV_UNICODE)
+				ulPropTag = PROP_TAG(PT_MV_STRING8, PROP_ID(ulPropTag));
 		}
+		lpPropTagArray->aulPropTag[n++] = ulPropTag;
 	}
 
 	lpPropTagArray->cValues = n;
@@ -1005,18 +1003,16 @@ HRESULT ECGenericProp::DeleteProps(const SPropTagArray *lpPropTagArray,
 			lpProblems->aProblem[nProblem].ulIndex = i;
 			lpProblems->aProblem[nProblem].ulPropTag = lpPropTagArray->aulPropTag[i];
 			++nProblem;
-		} else {
-
-			hrT = HrDeleteRealProp(lpPropTagArray->aulPropTag[i],FALSE);
-
-			if(hrT != hrSuccess) {
-				// Add the error
-				lpProblems->aProblem[nProblem].scode = hrT;
-				lpProblems->aProblem[nProblem].ulIndex = i;
-				lpProblems->aProblem[nProblem].ulPropTag = lpPropTagArray->aulPropTag[i];
-				++nProblem;
-			}
+			continue;
 		}
+		hrT = HrDeleteRealProp(lpPropTagArray->aulPropTag[i],FALSE);
+		if (hrT == hrSuccess)
+			continue;
+		// Add the error
+		lpProblems->aProblem[nProblem].scode = hrT;
+		lpProblems->aProblem[nProblem].ulIndex = i;
+		lpProblems->aProblem[nProblem].ulPropTag = lpPropTagArray->aulPropTag[i];
+		++nProblem;
 	}
 
 	lpProblems->cProblem = nProblem;

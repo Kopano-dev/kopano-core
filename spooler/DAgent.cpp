@@ -604,12 +604,10 @@ static HRESULT OpenResolveAddrFolder(LPADRBOOK lpAdrBook,
 	}
 
 	hr = lpAdrBook->OpenEntry(cbEntryId, lpEntryId, NULL, 0, &ulObj, (LPUNKNOWN*)lppAddrDir);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		ec_log_err("Unable to open default resolve directory: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-	return hrSuccess;
+	return hr;
 }
 
 /**

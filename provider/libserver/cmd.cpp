@@ -4572,22 +4572,18 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId, char*
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-
-	if (lpDBResult.get_num_rows() == 1) {
-		lpDBRow = lpDBResult.fetch_row();
-		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
-			ec_log_err("getReceiveFolder(): row or columns null");
-			return KCERR_DATABASE_ERROR;
-		}
-
-		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsReceiveFolder->sReceiveFolder.sEntryId);
-		if(er != erSuccess)
-			return er;
-		lpsReceiveFolder->sReceiveFolder.lpszAExplicitClass = STROUT_FIX_CPY(lpDBRow[1]);
-	}else{
-		//items not found
+	if (lpDBResult.get_num_rows() != 1)
+		/* items not found */
 		return KCERR_NOT_FOUND;
+	lpDBRow = lpDBResult.fetch_row();
+	if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
+		ec_log_err("getReceiveFolder(): row or columns null");
+		return KCERR_DATABASE_ERROR;
 	}
+	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsReceiveFolder->sReceiveFolder.sEntryId);
+	if (er != erSuccess)
+		return er;
+	lpsReceiveFolder->sReceiveFolder.lpszAExplicitClass = STROUT_FIX_CPY(lpDBRow[1]);
 	return erSuccess;
 }
 SOAP_ENTRY_END()

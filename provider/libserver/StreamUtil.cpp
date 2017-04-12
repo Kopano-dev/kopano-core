@@ -806,13 +806,13 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 				if (er == erSuccess)
 					er = lpSink->Write(sPropVal.Value.mvszA.__ptr[x], 1, ulLen);
-			} else {
-				const std::string strEncoded = converter.convert_to<std::string>(CHARSET_WIN1252, sPropVal.Value.mvszA.__ptr[x], rawsize(sPropVal.Value.mvszA.__ptr[x]), "UTF-8");
-				ulLen = strEncoded.length();
-				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-				if (er == erSuccess)
-					er = lpSink->Write(strEncoded.data(), 1, ulLen);
+				continue;
 			}
+			const std::string strEncoded = converter.convert_to<std::string>(CHARSET_WIN1252, sPropVal.Value.mvszA.__ptr[x], rawsize(sPropVal.Value.mvszA.__ptr[x]), "UTF-8");
+			ulLen = strEncoded.length();
+			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
+			if (er == erSuccess)
+				er = lpSink->Write(strEncoded.data(), 1, ulLen);
 		}
 		break;
 	case PT_MV_I8:
@@ -825,28 +825,26 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 		er = KCERR_INVALID_TYPE;
 	}
 	
+	if (PROP_ID(sPropVal.ulPropTag) <= 0x8500)
+		return er;
+
 	// If property is named property in the dynamic range we need to add some extra info
-	if (PROP_ID(sPropVal.ulPropTag) > 0x8500) {
-		assert(lpNamedPropDefs != NULL && iNamedPropDef != lpNamedPropDefs->cend());
-		// Send out the GUID.
-		er = lpSink->Write(&iNamedPropDef->second.guid, 1, sizeof(iNamedPropDef->second.guid));
+	assert(lpNamedPropDefs != NULL && iNamedPropDef != lpNamedPropDefs->cend());
+	// Send out the GUID.
+	er = lpSink->Write(&iNamedPropDef->second.guid, 1, sizeof(iNamedPropDef->second.guid));
+	if (er == erSuccess)
+		er = lpSink->Write(&iNamedPropDef->second.ulKind, sizeof(iNamedPropDef->second.ulKind), 1);
+	if (er != erSuccess)
+		return er;
+	if (iNamedPropDef->second.ulKind == MNID_ID) {
+		er = lpSink->Write(&iNamedPropDef->second.ulId, sizeof(iNamedPropDef->second.ulId), 1);
+	} else if (iNamedPropDef->second.ulKind == MNID_STRING) {
+		unsigned int ulLen = iNamedPropDef->second.strName.size();
+		er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 		if (er == erSuccess)
-			er = lpSink->Write(&iNamedPropDef->second.ulKind, sizeof(iNamedPropDef->second.ulKind), 1);
-
-		if (er == erSuccess) {
-			if (iNamedPropDef->second.ulKind == MNID_ID)
-				er = lpSink->Write(&iNamedPropDef->second.ulId, sizeof(iNamedPropDef->second.ulId), 1);
-
-			else if ( iNamedPropDef->second.ulKind == MNID_STRING) {
-				unsigned int ulLen = iNamedPropDef->second.strName.size();
-				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-				if (er == erSuccess)
-					er = lpSink->Write(iNamedPropDef->second.strName.data(), 1, ulLen);
-			}
-			
-			else
-				er = KCERR_INVALID_TYPE;
-		}
+			er = lpSink->Write(iNamedPropDef->second.strName.data(), 1, ulLen);
+	} else {
+		er = KCERR_INVALID_TYPE;
 	}
 	return er;
 }

@@ -99,24 +99,22 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 		return er;
 
 	ulRows = lpDBResult.get_num_rows();
-	if (ulRows > 0) {
-		DB_ROW					lpDBRow = NULL;
-		std::set<unsigned int>	sFilteredIds;
-
-		for (unsigned int i = 0; i < ulRows; ++i) {
-			lpDBRow = lpDBResult.fetch_row();
-			if (lpDBRow == NULL || lpDBRow[0] == NULL) {
-				ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
-				return KCERR_DATABASE_ERROR;
-			}
-
-			sFilteredIds.insert(atoui(lpDBRow[0]));
-		}
-
-		lpsFilteredIds->swap(sFilteredIds);
-	} else
+	if (ulRows == 0) {
 		lpsFilteredIds->clear();
+		return erSuccess;
+	}
 
+	DB_ROW lpDBRow = NULL;
+	std::set<unsigned int> sFilteredIds;
+	for (unsigned int i = 0; i < ulRows; ++i) {
+		lpDBRow = lpDBResult.fetch_row();
+		if (lpDBRow == NULL || lpDBRow[0] == NULL) {
+			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
+			return KCERR_DATABASE_ERROR;
+		}
+		sFilteredIds.insert(atoui(lpDBRow[0]));
+	}
+	lpsFilteredIds->swap(sFilteredIds);
 	return erSuccess;
 }
 

@@ -933,12 +933,12 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 				break;
 
 			case PROP_ID(PR_EC_COMPANY_NAME):
-				if (!bNoCompanyDetails) {
-					strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, strData.data());
-				}
+				if (bNoCompanyDetails)
+					break;
+				strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, strData.data());
 				break;
 			case PROP_ID(PR_EC_COMPANY_ADMIN):
 				strData = companyDetails.GetPropObject(OB_PROP_O_SYSADMIN).id;
@@ -947,11 +947,11 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, strData.data());
 				break;
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
-				if (llStoreSize > 0) {
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.li = llStoreSize;
-				}
+				if (llStoreSize <= 0)
+					break;
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.li = llStoreSize;
 				break;
 
 			case PROP_ID(PR_QUOTA_WARNING_THRESHOLD):
@@ -983,14 +983,14 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 					er = erSuccess;
 					break;
 				}
-				if (lpDBResult.get_num_rows() > 0) {
-					lpDBRow = lpDBResult.fetch_row();
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<hiloLong>(soap);
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = atoi(lpDBRow[0]);
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
-				}
+				if (lpDBResult.get_num_rows() == 0)
+					break;
+				lpDBRow = lpDBResult.fetch_row();
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<hiloLong>(soap);
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = atoi(lpDBRow[0]);
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
 				break;
 			};
 		}
