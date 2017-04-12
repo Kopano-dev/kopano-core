@@ -54,7 +54,13 @@ public:
 		ulSize(sizeof(GUID) + 6), lpData(new char[ulSize])
 	{
 		memcpy(&lpData[0], &guid, sizeof(guid));
-		memcpy(&lpData[sizeof(GUID)], &ullId, ulSize - sizeof(GUID));
+		/* Ensure little endian order */
+		lpData[sizeof(GUID)]   = ullId;
+		lpData[sizeof(GUID)+1] = ullId >> 8;
+		lpData[sizeof(GUID)+2] = ullId >> 16;
+		lpData[sizeof(GUID)+3] = ullId >> 24;
+		lpData[sizeof(GUID)+4] = ullId >> 32;
+		lpData[sizeof(GUID)+5] = ullId >> 40;
 	}
 	SOURCEKEY(const struct xsd__base64Binary &sourcekey) :
 		ulSize(sourcekey.__size)
