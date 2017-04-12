@@ -86,10 +86,10 @@ static void sighup(int sig)
 		return;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to reload configuration file, continuing with current settings.");
+		ec_log_err("Unable to reload configuration file, continuing with current settings.");
 	if (g_lpLogger == nullptr || g_lpConfig == nullptr)
 		return;
-	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Got SIGHUP config was reloaded");
+	ec_log_info("Got SIGHUP config was reloaded");
 
 	const char *ll = g_lpConfig->GetSetting("log_level");
 	int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
@@ -98,12 +98,12 @@ static void sighup(int sig)
 	if (strlen(g_lpConfig->GetSetting("ssl_private_key_file")) > 0 &&
 		strlen(g_lpConfig->GetSetting("ssl_certificate_file")) > 0) {
 		if (ECChannel::HrSetCtx(g_lpConfig) != hrSuccess)
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error reloading SSL context");
+			ec_log_err("Error reloading SSL context");
 		else
-			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Reloaded SSL context");
+			ec_log_info("Reloaded SSL context");
 	}
 	g_lpLogger->Reset();
-	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Log connection was reset");
+	ec_log_info("Log connection was reset");
 }
 
 static void sigchld(int)
@@ -405,11 +405,9 @@ int main(int argc, char *argv[]) {
 		LogConfigErrors(g_lpConfig);
 
 	if (!TmpPath::getInstance() -> OverridePath(g_lpConfig))
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Ignoring invalid path-setting!");
-
+		ec_log_err("Ignoring invalid path-setting!");
 	if (parseBool(g_lpConfig->GetSetting("bypass_auth")))
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Gateway is started with bypass_auth=yes meaning username and password will not be checked.");
-
+		ec_log_warn("Gateway is started with bypass_auth=yes meaning username and password will not be checked.");
 	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0) {
 		bThreads = true;
 		g_lpLogger->SetLogprefix(LP_TID);
@@ -495,12 +493,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	if (bThreads) {
 		pthread_attr_init(&ThreadAttr);
 		if (pthread_attr_setdetachstate(&ThreadAttr, PTHREAD_CREATE_DETACHED) != 0) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't set thread attribute to detached");
+			ec_log_err("Can't set thread attribute to detached");
 			goto exit;
 		}
 		// 1Mb of stack space per thread
 		if (pthread_attr_setstacksize(&ThreadAttr, 1024 * 1024)) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't set thread stack size to 1Mb");
+			ec_log_err("Can't set thread stack size to 1Mb");
 			goto exit;
 		}
 	}
@@ -513,13 +511,13 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	// Setup SSL context
 	if ((bListenPOP3s || bListenIMAPs) &&
 	    ECChannel::HrSetCtx(g_lpConfig) != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error loading SSL context, POP3S and IMAPS will be disabled");
+		ec_log_err("Error loading SSL context, POP3S and IMAPS will be disabled");
 		bListenPOP3s = false;
 		bListenIMAPs = false;
 	}
 	
 	if (!bListenPOP3 && !bListenPOP3s && !bListenIMAP && !bListenIMAPs) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "POP3, POP3S, IMAP and IMAPS are all four disabled");
+		ec_log_crit("POP3, POP3S, IMAP and IMAPS are all four disabled");
 		hr = E_FAIL;
 		goto exit;
 	}
@@ -594,7 +592,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI: %s (%x)",
+		ec_log_crit("Unable to initialize MAPI: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
@@ -628,7 +626,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		err = poll(pollfd, nfds, 10 * 1000);
 		if (err < 0) {
 			if (errno != EINTR) {
-				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Socket error: %s", strerror(errno));
+				ec_log_err("Socket error: %s", strerror(errno));
 				quit = 1;
 				hr = MAPI_E_NETWORK_ERROR;
 			}
@@ -658,7 +656,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				hr = HrAccept(ulListenPOP3, &lpHandlerArgs->lpChannel);
 			}
 			if (hr != hrSuccess) {
-				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to accept POP3 socket connection.");
+				ec_log_err("Unable to accept POP3 socket connection.");
 				// just keep running
 				delete lpHandlerArgs;
 				hr = hrSuccess;
@@ -670,10 +668,10 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			pthread_t POP3Thread;
 			const char *method = usessl ? "POP3s" : "POP3";
 			const char *model = bThreads ? "thread" : "process";
-			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Starting worker %s for %s request", model, method);
+			ec_log_notice("Starting worker %s for %s request", model, method);
 			if (bThreads) {
 				if (pthread_create(&POP3Thread, &ThreadAttr, Handler, lpHandlerArgs) != 0) {
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't create %s %s.", method, model);
+					ec_log_err("Can't create %s %s.", method, model);
 					// just keep running
 					delete lpHandlerArgs->lpChannel;
 					delete lpHandlerArgs;
@@ -687,7 +685,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			}
 			else {
 				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0)
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't create %s %s.", method, model);
+					ec_log_err("Can't create %s %s.", method, model);
 					// just keep running
 				else
 					++nChildren;
@@ -715,7 +713,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				hr = HrAccept(ulListenIMAP, &lpHandlerArgs->lpChannel);
 			}
 			if (hr != hrSuccess) {
-				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to accept IMAP socket connection.");
+				ec_log_err("Unable to accept IMAP socket connection.");
 				// just keep running
 				delete lpHandlerArgs;
 				hr = hrSuccess;
@@ -727,10 +725,10 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			pthread_t IMAPThread;
 			const char *method = usessl ? "IMAPs" : "IMAP";
 			const char *model = bThreads ? "thread" : "process";
-			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Starting worker %s for %s request", model, method);
+			ec_log_notice("Starting worker %s for %s request", model, method);
 			if (bThreads) {
 				if (pthread_create(&IMAPThread, &ThreadAttr, Handler, lpHandlerArgs) != 0) {
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create %s %s.", method, model);
+					ec_log_err("Could not create %s %s.", method, model);
 					// just keep running
 					delete lpHandlerArgs->lpChannel;
 					delete lpHandlerArgs;
@@ -744,7 +742,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			}
 			else {
 				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0)
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create %s %s.", method, model);
+					ec_log_err("Could not create %s %s.", method, model);
 					// just keep running
 				else
 					++nChildren;
@@ -757,7 +755,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		}
 
 		// should not be able to get here because of continues
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Incoming traffic was not for me??");
+		ec_log_warn("Incoming traffic was not for me??");
 	}
 
 	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "POP3/IMAP Gateway will now exit");
@@ -771,15 +769,14 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	// wait max 10 seconds (init script waits 15 seconds)
 	for (int i = 10; nChildren != 0 && i != 0; --i) {
 		if (i % 5 == 0)
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Waiting for %d processes to exit", nChildren);
+			ec_log_warn("Waiting for %d processes to exit", nChildren);
 		sleep(1);
 	}
 
 	if (nChildren)
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Forced shutdown with %d processes left", nChildren);
+		ec_log_warn("Forced shutdown with %d processes left", nChildren);
 	else
-		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "POP3/IMAP Gateway shutdown complete");
-
+		ec_log_notice("POP3/IMAP Gateway shutdown complete");
 	MAPIUninitialize();
 
 exit:
