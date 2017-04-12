@@ -54,7 +54,6 @@ noinst_PROGRAMS = kopano-cfgchecker
 if HAVE_TIDY
 noinst_PROGRAMS += rosie-test
 endif
-check_PROGRAMS = cov-scope
 pkglibexec_PROGRAMS = mapitime
 
 
@@ -828,7 +827,6 @@ dist_phpdata_DATA = \
 #
 # test programs
 #
-cov_scope_SOURCES = common/cov-scope.cpp
 mapitime_SOURCES = ECtools/mapitime.cpp
 mapitime_LDADD = -lrt libmapi.la libkcmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
