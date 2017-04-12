@@ -104,8 +104,6 @@ if test "$want_release" = "yes"; then
     ZCPPFLAGS="$ZCPPFLAGS -DNDEBUG"
     ZCXXFLAGS="$ZCXXFLAGS -O2 -fno-strict-aliasing"
 else
-# -fPIC must be present on x86_64 when -O2 isn't used
-    ZCXXFLAGS="$ZCXXFLAGS -fPIC"
     ZCXXFLAGS="$ZCXXFLAGS -pedantic -Wno-long-long"
 fi
 
