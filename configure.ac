@@ -414,6 +414,19 @@ CXXFLAGS="$CXXFLAGS_system $ZCXXFLAGS"
 LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
 
+AC_MSG_CHECKING([soapcpp2])
+mkdir "conftest.d$$"
+if ! soapcpp2 -d "conftest.d$$" -z1 "${srcdir}/autoconf/1075.h" 2>/dev/null; then
+	AC_MSG_ERROR([Failed to run soapcpp])
+	exit 1
+fi
+if ! grep -Fq "Foo[[]]" "conftest.d$$/soapC.cpp" 2>/dev/null; then
+	AC_MSG_ERROR([ERROR: This gsoap generator did not produce an acceptable wire protocol. http://sf.net/p/gsoap2/bugs/1075/])
+	exit 1
+fi
+AC_MSG_RESULT([ok])
+rm -Rf "conftest.d$$"
+
 dnl Stupid gsoap not abstracting properly! If our -Ds do not match with what
 dnl gsoap was compiled with, we are in trouble.
 GSOAP_CFLAGS="-DWITH_OPENSSL -DWITH_GZIP -DHAVE_OPENSSL_SSL_H -DHAVE_ZLIB_H"
