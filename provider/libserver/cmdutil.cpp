@@ -1935,7 +1935,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 				assert(false);
 		} catch (runtime_error &e) {
 			ec_log_err("eid.type(): %s\n", e.what());
-			assert(false);
+			return MAPI_E_CORRUPT_DATA;
 		}
     }
 
