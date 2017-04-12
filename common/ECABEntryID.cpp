@@ -76,31 +76,10 @@ static HRESULT CheckEntryId(unsigned int cbEntryId, const ENTRYID *lpEntryId,
 	return hrSuccess;
 }
 
-HRESULT EntryIdIsDefault(unsigned int cbEntryId, const ENTRYID *lpEntryId,
-    bool *lpbResult)
-{
-	return CheckEntryId(cbEntryId, lpEntryId, 0, MAPI_MAILUSER, lpbResult);
-}
-
-HRESULT EntryIdIsSystem(unsigned int cbEntryId, const ENTRYID *lpEntryId,
-    bool *lpbResult)
-{
-	return CheckEntryId(cbEntryId, lpEntryId, 2, MAPI_MAILUSER, lpbResult);
-}
-
 HRESULT EntryIdIsEveryone(unsigned int cbEntryId, const ENTRYID *lpEntryId,
     bool *lpbResult)
 {
 	return CheckEntryId(cbEntryId, lpEntryId, 1, MAPI_DISTLIST, lpbResult);
-}
-
-HRESULT GetNonPortableObjectId(unsigned int cbEntryId,
-    const ENTRYID *lpEntryId, unsigned int *lpulObjectId)
-{
-	if (cbEntryId < sizeof(ABEID) || lpEntryId == NULL || lpulObjectId == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	*lpulObjectId = reinterpret_cast<const ABEID *>(lpEntryId)->ulId;
-	return hrSuccess;
 }
 
 HRESULT GetNonPortableObjectType(unsigned int cbEntryId,
