@@ -216,8 +216,7 @@ void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 	bool bTagName = true;
 	bool bTagEnd = false;
 	bool bParseAttrs = false;
-	MapParser::const_iterator iterTag;
-
+	decltype(tagMap)::const_iterator iterTag;
 	std::wstring tagName;
 
 	while (*lpwHTML != 0 && !bTagEnd) 
@@ -408,13 +407,9 @@ void CHtmlToTextParser::parseTagBA()
 }
 
 bool CHtmlToTextParser::addURLAttribute(const WCHAR *lpattr, bool bSpaces) {
-
-	MapAttrs::const_iterator iter;
-
 	if (stackAttrs.empty())
 		return false;
-
-	iter = stackAttrs.top().find(lpattr);
+	auto iter = stackAttrs.top().find(lpattr);
 	if (iter == stackAttrs.top().cend())
 		return false;
 	if (wcsncasecmp(iter->second.c_str(), L"http:", 5) != 0 &&
