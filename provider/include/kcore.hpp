@@ -121,6 +121,7 @@ struct EID_V0 {
 
 #pragma pack(pop)
 
+/* 36 bytes */
 struct ABEID {
 	BYTE	abFlags[4];
 	GUID	guid;
@@ -166,6 +167,7 @@ template<typename T> static inline ULONG ABEID_ID(const T *p)
 	return p != nullptr ? reinterpret_cast<const ABEID *>(p)->ulId : 0;
 }
 
+/* 36 bytes */
 struct SIEID {
 	BYTE	abFlags[4];
 	GUID	guid;

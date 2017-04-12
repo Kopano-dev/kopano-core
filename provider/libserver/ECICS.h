@@ -30,6 +30,7 @@ namespace KC {
 // This class is used to pass SOURCEKEYs internally between parts of the server backend. You can use it as a char* to get the data, use size() to get the size,
 // and have various ways of creating new SOURCEKEYs, including using a GUID and an ID, which is used for kopano-generated source keys.
 
+/* Variable size, but can also be prominently 22 bytes */
 class SOURCEKEY _kc_final {
 public:
 	SOURCEKEY(void) : ulSize(0) {}
