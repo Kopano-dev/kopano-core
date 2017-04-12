@@ -408,7 +408,7 @@ class Server(object):
         table.SetColumns([PR_ENTRYID], 0)
         table.Restrict(SPropertyRestriction(RELOP_EQ, PR_STORE_RECORD_KEY, SPropValue(PR_STORE_RECORD_KEY, storeid)), TBL_BATCH)
         for row in table.QueryRows(-1, 0):
-            return self.mapisession.OpenMsgStore(0, row[0].Value, None, MDB_WRITE)
+            return self._store2(row[0].Value)
         raise NotFoundError("no such store: '%s'" % guid)
 
     @_lru_cache(128) # backend doesn't like more than 1000 stores open on certain multiserver setup
@@ -506,7 +506,7 @@ class Server(object):
         table = self.ems.GetMailboxTable(None, 0)
         table.SetColumns([PR_DISPLAY_NAME_W, PR_ENTRYID], 0)
         for row in table.QueryRows(-1, 0):
-            store = _store.Store(mapiobj=self.mapisession.OpenMsgStore(0, row[1].Value, None, MDB_WRITE), server=self) # XXX cache
+            store = _store.Store(mapiobj=self._store2(row[1].Value), server=self)
             if system or store.public or (store.user and store.user.name != 'SYSTEM'):
                 yield store
 
