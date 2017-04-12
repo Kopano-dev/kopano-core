@@ -24,9 +24,6 @@ enum {
 	KC_DESIRED_FILEDES = 8192,
 };
 
-  // Log the pthreads locks
-  #define DEBUG_PTHREADS 0
-
   #ifdef HAVE_CONFIG_H
   #include "config.h"
   #endif
