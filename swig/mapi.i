@@ -32,7 +32,10 @@ class MAPIInitializer {
 	MAPIInitializer(void)
 	{
 		MAPIINIT_0 init = {0, MAPI_MULTITHREAD_NOTIFICATIONS};
-		MAPIInitialize(&init);
+		if (MAPIInitialize(&init) != erSuccess) {
+			fprintf(stderr, "Could not initialize MAPI\n");
+			abort();
+		}
 	}
 	~MAPIInitializer(void)
 	{
