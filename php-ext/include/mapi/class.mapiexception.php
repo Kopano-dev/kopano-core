@@ -16,8 +16,6 @@
  *
  */
 
-?>
-<?
 	/**
 	 * MAPIException
 	 * if enabled using mapi_enable_exceptions then php-ext can throw exceptions when
@@ -42,9 +40,9 @@
 				return dgettext("kopano","You have insufficient privileges to open this object.");
 			case MAPI_E_LOGON_FAILED:
 			case MAPI_E_UNCONFIGURED:
-				return dgettext("kopano","Logon Failed. Please check your name/password.");
+				return dgettext("kopano", "Logon Failed. Please check your username/password.");
 			case MAPI_E_NETWORK_ERROR:
-				return dgettext("kopano","Can not connect to storage server.");
+				return dgettext("kopano", "Can not connect to Kopano server.");
 			case MAPI_E_UNKNOWN_ENTRYID:
 				return dgettext("kopano","Can not open object with provided id.");
 			case MAPI_E_NO_RECIPIENTS:
@@ -71,4 +69,3 @@
 	if (function_exists('mapi_enable_exceptions')) {
 		mapi_enable_exceptions("mapiexception");
 	}
-?>

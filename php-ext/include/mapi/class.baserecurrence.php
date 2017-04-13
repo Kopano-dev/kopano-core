@@ -16,8 +16,6 @@
  *
  */
 
-?>
-<?php
 	/**
 	 * BaseRecurrence
 	 * this class is superclass for recurrence for appointments and tasks. This class provides all
@@ -1491,8 +1489,8 @@
 							continue;
 
 						// Convert to GMT
-						$occstart = $this->toGMT($tz, $exception["start"]);
-						$occend = $this->toGMT($tz, $exception["end"]);
+						$occstart = $this->toGMT($this->tz, $exception["start"]);
+						$occend = $this->toGMT($this->tz, $exception["end"]);
 
 						// Check range criterium
 						if($occstart > $end || $occend < $start)
@@ -1748,4 +1746,3 @@
 		    return $a["start"] == $b["start"] ? 0 : ($a["start"]  > $b["start"] ? 1 : -1 );
 		}
 	}
-?>

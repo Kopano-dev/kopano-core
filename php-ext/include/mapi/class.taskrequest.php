@@ -16,8 +16,6 @@
  *
  */
 
-?>
-<?php
 	/*
 	* In general
 	*
@@ -616,7 +614,7 @@
 
 			// Set Body
 			$body = $this->getBody();
-			$stream = mapi_openproperty($outgoing, PR_BODY, IID_Stream, 0, MAPI_CREATE | MAPI_MODIFY);
+			$stream = mapi_openproperty($outgoing, PR_BODY, IID_IStream, 0, MAPI_CREATE | MAPI_MODIFY);
 			mapi_stream_setsize($stream, strlen($body));
 			mapi_stream_write($stream, $body);
 			mapi_stream_commit($stream);
@@ -961,4 +959,3 @@
 			$this->doUpdate($prefix, $prefixComplete);
 		}
 	}
-?>

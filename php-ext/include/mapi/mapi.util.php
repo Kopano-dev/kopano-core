@@ -16,9 +16,6 @@
  *
  */
 
-?>
-<?php
-	
 /**
  * Function to make a MAPIGUID from a php string. 
  * The C++ definition for the GUID is: 
@@ -347,4 +344,3 @@ function forceUTF8($category)
 
     return true;
 }
-?>

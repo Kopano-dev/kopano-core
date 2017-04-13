@@ -16,9 +16,6 @@
  *
  */
 
-?>
-<?php
-
 define('IID_IStream', 							makeguid("{0000000c-0000-0000-c000-000000000046}"));
 define('IID_IMAPITable',						makeguid("{00020301-0000-0000-c000-000000000046}"));
 define('IID_IMessage', 							makeguid("{00020307-0000-0000-c000-000000000046}"));
@@ -44,4 +41,5 @@ define('MUIDECSAB',                             makeguid("{50A921AC-D340-48ee-B3
 // Kopano Contact Provider GUIDs
 define('MUIDZCSAB',                             makeguid("{30047F72-92E3-DA4F-B86A-E52A7FE46571}"));
 
-?>
+// For Z-Push
+define ('PSETID_AirSync',                       makeguid("{71035549-0739-4DCB-9163-00F0580DBBDF}"));
