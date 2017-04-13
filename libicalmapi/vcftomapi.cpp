@@ -50,10 +50,13 @@ class vcftomapi_impl _kc_final : public vcftomapi {
 	private:
 	HRESULT save_props(const std::list<SPropValue> &, IMAPIProp *);
 	HRESULT handle_N(VObject *);
-	HRESULT handle_TEL_EMAIL(VObject *);
+	HRESULT handle_TEL(VObject *);
+	HRESULT handle_EMAIL(VObject *);
 	HRESULT vobject_to_prop(VObject *, SPropValue &, ULONG proptype);
 	HRESULT vobject_to_named_prop(VObject *, SPropValue &, ULONG named_proptype);
 	HRESULT unicode_to_named_prop(const wchar_t *, SPropValue &, ULONG named_proptype);
+
+	size_t email_count = 0;
 };
 
 /**
@@ -91,9 +94,8 @@ HRESULT vcftomapi_impl::handle_N(VObject *v)
 	return hrSuccess;
 }
 
-HRESULT vcftomapi_impl::handle_TEL_EMAIL(VObject *v)
+HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 {
-	bool tel = strcmp(vObjectName(v), VCTelephoneProp) == 0;
 	VObjectIterator t;
 
 	for (initPropIterator(&t, v); moreIteration(&t); ) {
@@ -104,30 +106,41 @@ HRESULT vcftomapi_impl::handle_TEL_EMAIL(VObject *v)
 		auto tokens = tokenize(namep, ',');
 
 		for (auto const &token : tokens) {
-			/* telephone */
-			if (tel && strcasecmp(token.c_str(), "HOME") == 0) {
+			if (strcasecmp(token.c_str(), "HOME") == 0) {
 				auto ret = vobject_to_prop(v, s, PR_HOME_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
 				props.push_back(s);
 			}
-			if (tel && strcasecmp(token.c_str(), "MOBILE") == 0) {
+			if (strcasecmp(token.c_str(), "MOBILE") == 0) {
 				auto ret = vobject_to_prop(v, s, PR_MOBILE_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
 				props.push_back(s);
 			}
-			if (tel)
-				continue;
-			/* email */
-			vobject_to_named_prop(v, s, 0x8083);
-			props.push_back(s);
-			auto ret = unicode_to_named_prop(L"SMTP", s, 0x8082);
-			if (ret != hrSuccess)
-				return ret;
-			props.push_back(s);
 		}
 	}
+	return hrSuccess;
+}
+
+HRESULT vcftomapi_impl::handle_EMAIL(VObject *v)
+{
+	// we can only accept 3 email addresses
+	if (email_count > 2)
+		return hrSuccess;
+
+	unsigned int prop_id = 0x8083 + (email_count * 0x10);
+	SPropValue s;
+	vobject_to_named_prop(v, s, prop_id);
+	props.push_back(s);
+
+	prop_id = 0x8082 + (email_count * 0x10);
+	auto ret = unicode_to_named_prop(L"SMTP", s, prop_id);
+	if (ret != hrSuccess)
+		return ret;
+	props.push_back(s);
+
+	email_count++;
 	return hrSuccess;
 }
 
@@ -148,7 +161,6 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 	for (initPropIterator(&t, v); moreIteration(&t); ) {
 		v = nextVObject(&t);
 		auto name = vObjectName(v);
-
 		if (strcmp(name, VCNameProp) == 0) {
 			hr = handle_N(v);
 			if (hr != hrSuccess)
@@ -159,9 +171,12 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			if (hr != hrSuccess)
 				return hr;
 			props.push_back(s);
-		} else if (strcmp(name, VCTelephoneProp) == 0 ||
-		    strcmp(name, VCEmailAddressProp) == 0) {
-			hr = handle_TEL_EMAIL(v);
+		} else if (strcmp(name, VCTelephoneProp) == 0) {
+			hr = handle_TEL(v);
+			if (hr != hrSuccess)
+				return hr;
+		} else if (strcmp(name, VCEmailAddressProp) == 0) {
+			hr = handle_EMAIL(v);
 			if (hr != hrSuccess)
 				return hr;
 		}
