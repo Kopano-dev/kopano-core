@@ -18,8 +18,11 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_INSTALL
+AC_PROG_SED
 PKG_PROG_PKG_CONFIG
 
+PACKAGE_ABI=$($SED 's/\([[0-9]][[0-9]]*\.[[0-9]][[0-9]]*\).*/\1/' <version.in)
+AC_SUBST([PACKAGE_ABI])
 abs_top_srcdir=`cd $srcdir; pwd`
 abs_top_builddir=`pwd`
 

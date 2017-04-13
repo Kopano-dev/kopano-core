@@ -1,4 +1,4 @@
-KC_@PACKAGE_VERSION@ {
+KC_@PACKAGE_ABI@ {
 global:
 	extern "C++" {
 		List_from_*;

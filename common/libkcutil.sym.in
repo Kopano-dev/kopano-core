@@ -15,7 +15,7 @@ OLE32_1 {
 global:
 	CoCreateGuid;
 };
-KC_@PACKAGE_VERSION@ {
+KC_@PACKAGE_ABI@ {
 global:
 	extern "C++" {
 		KC::*;

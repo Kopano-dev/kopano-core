@@ -392,7 +392,7 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 	object_ptr<IMAPIFolder> lpRootFolder;
 	object_ptr<IMessage> lpMessageCopy;
 	const char *autoresponder = g_lpConfig->GetSetting("mr_autoaccepter");
-	std::string strEntryID, strCmdLine;
+	std::string strEntryID;
 	memory_ptr<SPropValue> lpEntryID;
 	ULONG ulType = 0;
 	ENTRYLIST sEntryList;
@@ -436,9 +436,13 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
 	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
 	// in UTF-8, *not* in the current locale.
-	strCmdLine = (std::string)autoresponder + " \"" + convert_to<string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR) + "\" \"" + g_lpConfig->GetSettingsPath() + "\" \"" + strEntryID + "\"";
-	ec_log_debug("Starting autoaccept with command line %s", strCmdLine.c_str());
-	if (!unix_system(autoresponder, strCmdLine.c_str(), const_cast<const char **>(environ))) {
+	std::vector<std::string> cmdline = {
+		autoresponder,
+		convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
+		g_lpConfig->GetSettingsPath(), strEntryID
+	};
+	ec_log_debug("Starting autoaccept with command line \"%s\"", kc_join(cmdline, "\" \"").c_str());
+	if (!unix_system(autoresponder, cmdline, const_cast<const char **>(environ))) {
 		hr = MAPI_E_CALL_FAILED;
 		ec_log_err("HrAutoAccept(): invoking autoaccept script failed %x", hr);
 	}
@@ -509,9 +513,13 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
 	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
 	// in UTF-8, *not* in the current locale.
-	strCmdLine = (std::string)autoprocessor + " \"" + convert_to<string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR) + "\" \"" + g_lpConfig->GetSettingsPath() + "\" \"" + strEntryID + "\"";
-	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Starting autoaccept with command line %s", strCmdLine.c_str());
-	if (!unix_system(autoprocessor, strCmdLine.c_str(), const_cast<const char **>(environ)))
+	std::vector<std::string> cmdline = {
+		autoprocessor,
+		convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
+		g_lpConfig->GetSettingsPath(), strEntryID
+	};
+	ec_log_debug("Starting autoaccept with command line \"%s\"", kc_join(cmdline, "\" \"").c_str());
+	if (!unix_system(autoprocessor, cmdline, const_cast<const char **>(environ)))
 		hr = MAPI_E_CALL_FAILED;
 
 	// Delete the copy, irrespective of the outcome of the script.
@@ -1405,7 +1413,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	int fd = -1;
 	wstring	strFromName, strFromType, strFromEmail, strBody;
 	string  unquoted, quoted;
-	string  command = strBaseCommand;	
+	std::vector<std::string> cmdline = {strBaseCommand};
 	// Environment
 	const char *env[5];
 	std::string strToMe;
@@ -1608,8 +1616,11 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 
 	// Args: From, To, Subject, Username, Msg_Filename
 	// Should run in UTF-8 to get correct strings in UTF-8 from shell_escape(wstring)
-	command += string(" '") + shell_escape(lpRecip->strSMTP) + string("' '") +
-		shell_escape(strFromEmail) + string("' '") + shell_escape(szSubject) + string("' '") + shell_escape(lpRecip->wstrUsername) + string("' '") + shell_escape(szTemp) + string("'");
+	cmdline.push_back(lpRecip->strSMTP);
+	cmdline.push_back(convert_to<std::string>(strFromEmail));
+	cmdline.push_back(convert_to<std::string>(szSubject));
+	cmdline.push_back(convert_to<std::string>(lpRecip->wstrUsername));
+	cmdline.push_back(szTemp);
 
 	// Set MESSAGE_TO_ME and MESSAGE_CC_ME in environment
 	strToMe = (std::string)"MESSAGE_TO_ME=" + (lpMessageProps[1].ulPropTag == PR_MESSAGE_TO_ME && lpMessageProps[1].Value.b ? "1" : "0");
@@ -1623,8 +1634,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	env[4] = NULL;
 
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting autoresponder for out-of-office message");
-	command += " 2>&1";
-	if (!unix_system(strBaseCommand.c_str(), command.c_str(), env))
+	if (!unix_system(strBaseCommand.c_str(), cmdline, env))
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Autoresponder failed");
 
 exit:

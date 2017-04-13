@@ -93,7 +93,7 @@ static bool execute_script(const char *scriptname, ...)
 	for (const auto &s : lstEnv)
 		env[n++] = s.c_str();
 	env[n] = NULL;
-	return unix_system(scriptname, scriptname, env);
+	return unix_system(scriptname, {scriptname}, env);
 }
 
 static const char *ObjectClassToName(objectclass_t objclass)

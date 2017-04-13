@@ -2133,7 +2133,7 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 exit:
 	if (lpcbStoreId != NULL && *lpcbStoreId == 0)
 		MAPIFreeBuffer(lpStoreId);
-	if (lpcbStoreId != NULL && *lpcbStoreId == 0)
+	if (lpcbRootId != nullptr && *lpcbRootId == 0)
 		MAPIFreeBuffer(lpRootId);
 
 	return hr;

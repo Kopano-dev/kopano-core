@@ -18,6 +18,8 @@
 #ifndef __UNIXUTIL_H
 #define __UNIXUTIL_H
 
+#include <string>
+#include <vector>
 #include <kopano/zcdefs.h>
 #include <dirent.h>
 #include <sys/resource.h>
@@ -56,7 +58,7 @@ extern _kc_export void unix_coredump_enable(void);
 extern _kc_export int unix_create_pidfile(const char *argv0, ECConfig *, bool force = true);
 extern _kc_export int unix_daemonize(ECConfig *);
 extern _kc_export int unix_fork_function(void *(*)(void *), void *param, int nfds, int *closefds);
-extern _kc_export bool unix_system(const char *logname, const char *command, const char **env);
+extern _kc_export bool unix_system(const char *logname, const std::vector<std::string> &cmd, const char **env);
 
 } /* namespace */
 

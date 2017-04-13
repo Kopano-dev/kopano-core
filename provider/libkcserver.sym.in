@@ -1,4 +1,4 @@
-KC_@PACKAGE_VERSION@ {
+KC_@PACKAGE_ABI@ {
 global:
 	/* unlucky gsoap linkage */
 	namespaces;

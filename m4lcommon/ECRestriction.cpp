@@ -105,7 +105,7 @@ HRESULT ECRestriction::CopyProp(SPropValue *lpPropSrc, void *lpBase,
 	lpPropDst = NULL;
 
 exit:
-	if (lpBase != NULL)
+	if (lpBase == nullptr)
 		MAPIFreeBuffer(lpPropDst);
 
 	return hr;
@@ -145,7 +145,7 @@ HRESULT ECRestriction::CopyPropArray(ULONG cValues, SPropValue *lpPropSrc,
 	lpPropDst = NULL;
 
 exit:
-	if (lpBase != NULL)
+	if (lpBase == nullptr)
 		MAPIFreeBuffer(lpPropDst);
 
 	return hr;
