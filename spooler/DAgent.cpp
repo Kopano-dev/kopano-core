@@ -3346,7 +3346,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		++g_nLMTPThreads;
 
 		// One socket has signalled a new incoming connection
-		auto lpDeliveryArgs = new DeliveryArgs(*lpArgs);
+		std::unique_ptr<DeliveryArgs> lpDeliveryArgs(new DeliveryArgs(*lpArgs));
 
 		if (pollfd.revents & (POLLIN | POLLRDHUP)) {
 			hr = HrAccept(ulListenLMTP, &lpDeliveryArgs->lpChannel);
@@ -3354,18 +3354,15 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			if (hr != hrSuccess) {
 				ec_log_err("running_service(): HrAccept failed %x", hr);
 				// just keep running
-				delete lpDeliveryArgs;
 				hr = hrSuccess;
 				continue;
 			}
 
 			sc -> countInc("DAgent", "incoming_session");
-
-			if (unix_fork_function(HandlerLMTP, lpDeliveryArgs, nCloseFDs, pCloseFDs) < 0)
+			if (unix_fork_function(HandlerLMTP, lpDeliveryArgs.get(), nCloseFDs, pCloseFDs) < 0)
 				ec_log_err("Can't create LMTP process.");
 				// just keep running
 			// main handler always closes information it doesn't need
-			delete lpDeliveryArgs;
 			hr = hrSuccess;
 		
 			continue;
