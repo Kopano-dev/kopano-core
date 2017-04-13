@@ -2227,8 +2227,8 @@ HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp 
 	return hrSuccess;
 }
 
-HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
-    ECMAPIProp *lpFolderPropSet, const TCHAR *lpszFolderName,
+HRESULT ECMsgStore::CreateSpecialFolder(IMAPIFolder *folder_parent_in,
+    ECMAPIProp *folder_propset_in, const TCHAR *lpszFolderName,
     const TCHAR *lpszFolderComment, unsigned int ulPropTag,
     unsigned int ulMVPos, const TCHAR *lpszContainerClass,
     LPMAPIFOLDER *lppMAPIFolder)
@@ -2237,13 +2237,12 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 	object_ptr<IMAPIFolder> lpMAPIFolder;
 	ecmem_ptr<SPropValue> lpPropValue;
 
-	if (lpFolderParent == NULL)
+	if (folder_parent_in == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	// Add a referention at the folders
-	lpFolderParent->AddRef();
-	if (lpFolderPropSet != nullptr)
-		lpFolderPropSet->AddRef();
+	/* Add a reference to the folders */
+	object_ptr<IMAPIFolder> lpFolderParent(folder_parent_in);
+	object_ptr<ECMAPIProp> lpFolderPropSet(folder_propset_in);
 
 	// Create the folder
 	hr = lpFolderParent->CreateFolder(FOLDER_GENERIC,
@@ -2251,46 +2250,34 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 	     const_cast<LPTSTR>(lpszFolderComment), &IID_IMAPIFolder,
 	     OPEN_IF_EXISTS | fMapiUnicode, &~lpMAPIFolder);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Set the special property
 	if(lpFolderPropSet) {
 		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpFolderPropSet, ulPropTag, ulMVPos);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 	}
 
 	if (lpszContainerClass && _tcslen(lpszContainerClass) > 0) {
 		hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpPropValue[0].ulPropTag = PR_CONTAINER_CLASS;
 		hr = ECAllocateMore((_tcslen(lpszContainerClass) + 1) * sizeof(TCHAR), lpPropValue,
 		     reinterpret_cast<void **>(&lpPropValue[0].Value.LPSZ));
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		_tcscpy(lpPropValue[0].Value.LPSZ, lpszContainerClass);
 
 		// Set the property
 		hr = lpMAPIFolder->SetProps(1, lpPropValue, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
-	if(lppMAPIFolder) {
+	if (lppMAPIFolder != nullptr)
 		hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, (void**)lppMAPIFolder);
-		if(hr != hrSuccess)
-			goto exit;
-	}
-
-exit:
-	if(lpFolderParent)
-		lpFolderParent->Release();
-
-	if(lpFolderPropSet)
-		lpFolderPropSet->Release();
-
 	return hr;
 }
 

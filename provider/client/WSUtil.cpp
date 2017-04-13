@@ -1075,13 +1075,13 @@ HRESULT CopySOAPRowSetToMAPIRowSet(void *lpProvider,
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulRows = 0;
-	LPSRowSet lpRowSet = NULL;
+	rowset_ptr lpRowSet;
 	convert_context converter;
 
 	ulRows = lpsRowSetSrc->__size;
 
 	// Allocate space for the rowset
-	hr = ECAllocateBuffer(CbNewSRowSet(ulRows), reinterpret_cast<void **>(&lpRowSet));
+	hr = ECAllocateBuffer(CbNewSRowSet(ulRows), &~lpRowSet);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1094,15 +1094,12 @@ HRESULT CopySOAPRowSetToMAPIRowSet(void *lpProvider,
 		lpRowSet->aRow[i].cValues = lpsRowSetSrc->__ptr[i].__size;
 		hr = ECAllocateBuffer(sizeof(SPropValue) * lpsRowSetSrc->__ptr[i].__size, reinterpret_cast<void **>(&lpRowSet->aRow[i].lpProps));
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		CopySOAPRowToMAPIRow(lpProvider, &lpsRowSetSrc->__ptr[i], lpRowSet->aRow[i].lpProps, (void **)lpRowSet->aRow[i].lpProps, ulType, &converter);
 	}
 
-	*lppRowSetDst = lpRowSet;
- exit:
-	if (hr != hrSuccess)
-		FreeProws(lpRowSet);
-	return hr;
+	*lppRowSetDst = lpRowSet.release();
+	return hrSuccess;
 }
 
 HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,

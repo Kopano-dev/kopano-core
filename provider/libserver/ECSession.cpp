@@ -31,6 +31,7 @@
 #include <mapitags.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/UnixUtil.h>
+#include <kopano/memory.hpp>
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
@@ -743,25 +744,23 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 	bool			allowLocalUsers = false;
 	int				pid = 0;
 	char			*ptr = NULL;
-	char			*localAdminUsers = NULL;
+	std::unique_ptr<char, KCHL::cstdlib_deleter> localAdminUsers;
 
     if (!lpszName)
     {
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateUserSocket()");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
     }
 	if (!lpszImpersonateUser) {
 		ec_log_err("Invalid argument \"lpszImpersonateUser\" in call to ECAuthSession::ValidateUserSocket()");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 	p = m_lpSessionManager->GetConfig()->GetSetting("allow_local_users");
 	if (p != nullptr && strcasecmp(p, "yes") == 0)
 		allowLocalUsers = true;
 
 	// Authentication stage
-	localAdminUsers = strdup(m_lpSessionManager->GetConfig()->GetSetting("local_admin_users"));
+	localAdminUsers.reset(strdup(m_lpSessionManager->GetConfig()->GetSetting("local_admin_users")));
 
 	struct passwd pwbuf;
 	struct passwd *pw;
@@ -772,10 +771,8 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 	unsigned int cr_len;
 
 	cr_len = sizeof(struct ucred);
-	if(getsockopt(socket, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) != 0 || cr_len != sizeof(struct ucred)) {
-		er = KCERR_LOGON_FAILED;
-		goto exit;
-	}
+	if (getsockopt(socket, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) != 0 || cr_len != sizeof(struct ucred))
+		return KCERR_LOGON_FAILED;
 
 	uid = cr.uid; // uid is the uid of the user that is connecting
 	pid = cr.pid;
@@ -783,10 +780,8 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 #ifdef HAVE_GETPEEREID
 	gid_t gid;
 
-	if (getpeereid(socket, &uid, &gid)) {
-		er = KCERR_LOGON_FAILED;
-		goto exit;
-	}
+	if (getpeereid(socket, &uid, &gid) != 0)
+		return KCERR_LOGON_FAILED;
 #else // HAVE_GETPEEREID
 #error I have no way to find out the remote user and I want to cry
 #endif // HAVE_GETPEEREID
@@ -809,7 +804,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 		// User connected as himself
 		goto userok;
 
-	p = strtok_r(localAdminUsers, WHITESPACE, &ptr);
+	p = strtok_r(localAdminUsers.get(), WHITESPACE, &ptr);
 
 	while (p) {
 	    pw = NULL;
@@ -823,26 +818,20 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 			goto userok;
 		p = strtok_r(NULL, WHITESPACE, &ptr);
 	}
-	er = KCERR_LOGON_FAILED;
-	goto exit;
+	return KCERR_LOGON_FAILED;
 
 userok:
     // Check whether user exists in the user database
 	er = m_lpUserManagement->ResolveObjectAndSync(OBJECTCLASS_USER, lpszName, &m_ulUserID);
 	if (er != erSuccess)
-	    goto exit;
-
+		return er;
 	er = ProcessImpersonation(lpszImpersonateUser);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_SOCKET;
 	m_ulConnectingPid = pid;
-
-exit:
-	free(localAdminUsers);
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECAuthSession::ValidateUserCertificate(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser)
