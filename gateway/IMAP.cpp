@@ -298,22 +298,32 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	static constexpr const struct {
 		const char *command;
 		int params;
+		bool uid;
 		HRESULT (IMAP::*func)(const string &, const std::vector<std::string> &);
 	} cmds[] = {
-		{"SELECT", 1, &IMAP::HrCmdSelect<false>},
-		{"EXAMINE", 1, &IMAP::HrCmdSelect<true>},
-		{"LIST", 2, &IMAP::HrCmdList<false>},
-		{"LSUB", 2, &IMAP::HrCmdList<true>},
-		{"LOGIN", 2, &IMAP::HrCmdLogin},
-		{"CREATE", 1, &IMAP::HrCmdCreate},
-		{"DELETE", 1, &IMAP::HrCmdDelete},
-		{"SUBSCRIBE", 1, &IMAP::HrCmdSubscribe<true>},
-		{"UNSUBSCRIBE", 1, &IMAP::HrCmdSubscribe<false>},
-		{"GETQUOTAROOT", 1, &IMAP::HrCmdGetQuotaRoot},
-		{"GETQUOTA", 1, &IMAP::HrCmdGetQuota},
-		{"SETQUOTA", 2, &IMAP::HrCmdSetQuota},
-		{"RENAME", 2, &IMAP::HrCmdRename},
-		{"STATUS", 2, &IMAP::HrCmdStatus}
+		{"SELECT", 1, false, &IMAP::HrCmdSelect<false>},
+		{"EXAMINE", 1, false, &IMAP::HrCmdSelect<true>},
+		{"LIST", 2, false, &IMAP::HrCmdList<false>},
+		{"LSUB", 2, false, &IMAP::HrCmdList<true>},
+		{"LOGIN", 2, false, &IMAP::HrCmdLogin},
+		{"CREATE", 1, false, &IMAP::HrCmdCreate},
+		{"DELETE", 1, false, &IMAP::HrCmdDelete},
+		{"SUBSCRIBE", 1, false, &IMAP::HrCmdSubscribe<true>},
+		{"UNSUBSCRIBE", 1, false, &IMAP::HrCmdSubscribe<false>},
+		{"GETQUOTAROOT", 1, false, &IMAP::HrCmdGetQuotaRoot},
+		{"GETQUOTA", 1, false, &IMAP::HrCmdGetQuota},
+		{"SETQUOTA", 2, false, &IMAP::HrCmdSetQuota},
+		{"RENAME", 2, false, &IMAP::HrCmdRename},
+		{"STATUS", 2, false, &IMAP::HrCmdStatus},
+		{"FETCH", 2, false, &IMAP::HrCmdFetch<false>},
+		{"FETCH", 2, true, &IMAP::HrCmdFetch<true>},
+		{"COPY", 2, false, &IMAP::HrCmdCopy<false>},
+		{"COPY", 2, true, &IMAP::HrCmdCopy<true>},
+		{"STORE", 3, false, &IMAP::HrCmdStore<false>},
+		{"STORE", 3, true, &IMAP::HrCmdStore<true>},
+		{"EXPUNGE", 0, false, &IMAP::HrCmdExpunge},
+		{"EXPUNGE", 1, true, &IMAP::HrCmdExpunge},
+		{"XAOL-MOVE", 2, true, &IMAP::HrCmdUidXaolMove}
 	};
 
 	static constexpr const struct {
@@ -427,6 +437,20 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		return hrSuccess;
 	}
 
+	bool uid_command = false;
+	if (strCommand.compare("UID") == 0) {
+		if (strvResult.empty()) {
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID must have a command");
+			return hrSuccess;
+		}
+
+		uid_command = true;
+
+		strCommand = strvResult.front();
+		strvResult.erase(strvResult.begin());
+		strCommand = strToUpper(strCommand);
+	}
+
 	// process {} and end of line
 	for (const auto &cmd : cmds_zero_args) {
 		if (strCommand.compare(cmd.command) != 0)
@@ -438,7 +462,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		return hrSuccess;
 	}
 	for (const auto &cmd : cmds) {
-		if (strCommand.compare(cmd.command) != 0)
+		if (strCommand.compare(cmd.command) != 0 || uid_command != cmd.uid)
 			continue;
 		if (strvResult.size() == cmd.params)
 			return (this->*cmd.func)(strTag, strvResult);
@@ -466,84 +490,20 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		}
 		HrResponse(RESP_TAGGED_BAD, strTag, "APPEND must have 2, 3 or 4 arguments");
 		return hrSuccess;
-	} else if (strCommand.compare("EXPUNGE") == 0) {
-		if (!strvResult.empty()) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "EXPUNGE must have 0 arguments");
-			return hrSuccess;
-		}
-		return HrCmdExpunge(strTag, string());
-	} else if (strCommand.compare("SEARCH") == 0) {
+	} else if (strCommand.compare("SEARCH") == 0 && !uid_command) {
 		if (strvResult.empty()) {
 			HrResponse(RESP_TAGGED_BAD, strTag, "SEARCH must have 1 or more arguments");
 			return hrSuccess;
 		}
 		return HrCmdSearch(strTag, strvResult, false);
-	} else if (strCommand.compare("FETCH") == 0) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "FETCH must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdFetch(strTag, strvResult[0], strvResult[1], false);
-	} else if (strCommand.compare("STORE") == 0) {
-		if (strvResult.size() != 3) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "STORE must have 3 arguments");
-			return hrSuccess;
-		}
-		return HrCmdStore(strTag, strvResult[0], strvResult[1], strvResult[2], false);
-	} else if (strCommand.compare("COPY") == 0) {
-		if (strvResult.size() != 2) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "COPY must have 2 arguments");
-			return hrSuccess;
-		}
-		return HrCmdCopy(strTag, strvResult[0], strvResult[1], false);
-	} else if (strCommand.compare("UID") == 0) {
+	} else if (strCommand.compare("SEARCH") == 0 && uid_command) {
 		if (strvResult.empty()) {
-			HrResponse(RESP_TAGGED_BAD, strTag, "UID must have a command");
+			HrResponse(RESP_TAGGED_BAD, strTag, "UID SEARCH must have 1 or more arguments");
 			return hrSuccess;
 		}
-		strCommand = strvResult.front();
-		strvResult.erase(strvResult.begin());
-		strCommand = strToUpper(strCommand);
-
-		if (strCommand.compare("SEARCH") == 0) {
-			if (strvResult.empty()) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID SEARCH must have 1 or more arguments");
-				return hrSuccess;
-			}
-			return HrCmdSearch(strTag, strvResult, true);
-		} else if (strCommand.compare("FETCH") == 0) {
-			if (strvResult.size() != 2) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID FETCH must have 2 arguments");
-				return hrSuccess;
-			}
-			return HrCmdFetch(strTag, strvResult[0], strvResult[1], true);
-		} else if (strCommand.compare("STORE") == 0) {
-			if (strvResult.size() != 3) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID STORE must have 3 arguments");
-				return hrSuccess;
-			}
-			return HrCmdStore(strTag, strvResult[0], strvResult[1], strvResult[2], true);
-		} else if (strCommand.compare("COPY") == 0) {
-			if (strvResult.size() != 2) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID COPY must have 2 arguments");
-				return hrSuccess;
-			}
-			return HrCmdCopy(strTag, strvResult[0], strvResult[1], true);
-		} else if (strCommand.compare("XAOL-MOVE") == 0) {
-			if (strvResult.size() != 2) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID XAOL-MOVE must have 2 arguments");
-				return hrSuccess;
-			}
-			return HrCmdUidXaolMove(strTag, strvResult[0], strvResult[1]);
-		} else if (strCommand.compare("EXPUNGE") == 0) {
-			if (strvResult.size() != 1) {
-				HrResponse(RESP_TAGGED_BAD, strTag, "UID EXPUNGE must have 1 argument");
-				return hrSuccess;
-			}
-			return HrCmdExpunge(strTag, strvResult[0]);
-		} else {
-			HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
-		}
+		return HrCmdSearch(strTag, strvResult, true);
+	} else if (uid_command) {
+		HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
 	} else {
 		HrResponse(RESP_TAGGED_BAD, strTag, "Command not supported");
 	}
@@ -1958,12 +1918,16 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdExpunge(const string &strTag, const string &strSeqSet) {
+HRESULT IMAP::HrCmdExpunge(const string &strTag, const std::vector<std::string> &args) {
 	HRESULT hr = hrSuccess;
 	list<ULONG> lstMails;
 	string strCommand;
 	std::unique_ptr<ECRestriction> rst;
 	static_assert(std::is_polymorphic<ECRestriction>::value, "ECRestriction needs to be polymorphic for unique_ptr to work");
+
+	std::string strSeqSet;
+	if (args.size() > 0)
+		strSeqSet = args[0];
 
 	if (strSeqSet.empty())
 		strCommand = "EXPUNGE";
@@ -2065,13 +2029,16 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const string &strMsgDataItemNames, bool bUidMode) {
+HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
 	HRESULT hr = hrSuccess;
 	vector<string> lstDataItems;
 	list<ULONG> lstMails;
 	ULONG ulCurrent = 0;
 	bool bFound = false;
 	string strMode;
+
+	const std::string &strSeqSet = args[0];
+	const std::string &strMsgDataItemNames = args[1];
 
 	if (bUidMode)
 		strMode = "UID ";
@@ -2107,6 +2074,11 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const st
 	return hr;
 }
 
+template <bool uid> HRESULT IMAP::HrCmdFetch(const std::string &strTag, const std::vector<std::string> &args)
+{
+	return HrCmdFetch(strTag, args, uid);
+}
+
 /** 
  * @brief Handles the STORE command
  * 
@@ -2120,12 +2092,16 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const st
  * 
  * @return MAPI error code
  */
-HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const string &strMsgDataItemName, const string &strMsgDataItemValue, bool bUidMode) {
+HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
 	HRESULT hr = hrSuccess;
 	list<ULONG> lstMails;
 	vector<string> lstDataItems;
 	string strMode;
 	bool bDelete = false;
+
+	const std::string &strSeqSet = args[0];
+	const std::string &strMsgDataItemName = args[1];
+	const std::string &strMsgDataItemValue = args[2];
 
 	if (bUidMode)
 		strMode = "UID";
@@ -2182,6 +2158,12 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const st
 	return hr;
 }
 
+template <bool uid> HRESULT IMAP::HrCmdStore(const std::string &strTag, const std::vector<std::string> &args)
+{
+	return HrCmdStore(strTag, args, uid);
+}
+
+
 /** 
  * @brief Handles the COPY command
  * 
@@ -2194,10 +2176,13 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const st
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdCopy(const string &strTag, const string &strSeqSet, const string &strFolder, bool bUidMode) {
+HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
 	HRESULT hr = hrSuccess;
 	list<ULONG> lstMails;
 	string strMode;
+
+	const std::string &strSeqSet = args[0];
+	const std::string &strFolder = args[1];
 
 	if (bUidMode)
 		strMode = "UID ";
@@ -2229,6 +2214,11 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const string &strSeqSet, const str
 	return hr;
 }
 
+template <bool uid> HRESULT IMAP::HrCmdCopy(const std::string &strTag, const std::vector<std::string> &args)
+{
+	return HrCmdCopy(strTag, args, uid);
+}
+
 /** 
  * @brief Handles the UID XAOL-MOVE command (non-RFC command)
  * 
@@ -2242,9 +2232,12 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const string &strSeqSet, const str
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const string &strSeqSet, const string &strFolder) {
+HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const std::vector<std::string> &args) {
 	HRESULT hr = hrSuccess;
 	list<ULONG> lstMails;
+
+	const std::string &strSeqSet = args[0];
+	const std::string &strFolder = args[1];
 
 	if (strCurrentFolder.empty() || !lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "UID XAOL-MOVE error no folder");
