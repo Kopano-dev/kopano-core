@@ -22,12 +22,6 @@ rhel_initscript_files = \
 	kopano-gateway.init.rhel kopano-monitor.init.rhel \
 	kopano-ical.init.rhel kopano-dagent.init.rhel kopano-search.init.rhel \
 	kopano-presence.init.rhel
-suse_initscript_files = \
-	kopano-server.init.suse kopano-spooler.init.suse \
-	kopano-gateway.init.suse kopano-monitor.init.suse \
-	kopano-ical.init.suse kopano-dagent.init.suse kopano-search.init.suse \
-	kopano-presence.init.suse
-sles_initscript_files = $(suse_initscript_files)
 cbs4_initscript_files = \
 	kopano-server.init.cbs4 kopano-spooler.init.cbs4 \
 	kopano-gateway.init.cbs4 kopano-monitor.init.cbs4 \
@@ -84,7 +78,7 @@ dist_sysconf_bc_DATA = kopano-bash-completion.sh
 sysconf_certdir = ${sysconfdir}/kopano/report-ca
 
 EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
-	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) \
+	$(rhel_initscript_files) $(cbs4_initscript_files) \
 	${debian_initscript_files} sysconfig.txt
 
 install-data-hook:
