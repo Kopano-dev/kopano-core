@@ -902,22 +902,20 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		}
 
 		// Expiry time header
-		try {
-			if (vmHeader->hasField("Expiry-Time")) {
-				SPropValue sExpiryTime;
+		field = vmHeader->findField("Expiry-Time");
+		if (field != nullptr) {
+			SPropValue sExpiryTime;
 
-				// reparse string to datetime
-				vmime::datetime expiry(vmHeader->findField("Expiry-Time")->getValue()->generate());
+			// reparse string to datetime
+			vmime::datetime expiry(field->getValue()->generate());
 
-				sExpiryTime.ulPropTag = PR_EXPIRY_TIME;
-				sExpiryTime.Value.ft = vmimeDatetimeToFiletime(expiry);
+			sExpiryTime.ulPropTag = PR_EXPIRY_TIME;
+			sExpiryTime.Value.ft = vmimeDatetimeToFiletime(expiry);
 
-				hr = lpMessage->SetProps(1, &sExpiryTime, NULL);
-				if (hr != hrSuccess)
-					return hr;
-			}
+			hr = lpMessage->SetProps(1, &sExpiryTime, NULL);
+			if (hr != hrSuccess)
+				return hr;
 		}
-		catch(...) {}
 
 		// read receipt	request
 		// note: vmime never checks if the given pos to getMailboxAt() and similar functions is valid, so we check if the list is empty before using it
@@ -1837,12 +1835,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		auto mt = vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue());
 		bool force_raw = false;
 
-		try {
-			bIsAttachment = vmime::dynamicCast<vmime::contentDisposition>(vmHeader->ContentDisposition()->getValue())->getName() == vmime::contentDispositionTypes::ATTACHMENT;
-		} catch (vmime::exception) {
-			// ignore exception, a header needed to detect attachment status could not be used
-			// probably can not happen, but better safe than sorry.
-		}
+		bIsAttachment = vmime::dynamicCast<vmime::contentDisposition>(vmHeader->ContentDisposition()->getValue())->getName() == vmime::contentDispositionTypes::ATTACHMENT;
 
 		try {
 			vmBody->getContents()->getEncoding().getEncoder();
@@ -2653,18 +2646,14 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 		attProps[nProps].ulPropTag = PR_RENDERING_POSITION;
 		attProps[nProps++].Value.ul = 0;
 
-		try {
-			if (!mt->getType().empty() &&
-				!mt->getSubType().empty()) {
-				strMimeType = mt->getType() + "/" + mt->getSubType();
-				// due to a bug in vmime 0.7, the continuation header text can be prefixed in the string, so strip it (easiest way to fix)
-				while (strMimeType[0] == '\r' || strMimeType[0] == '\n' || strMimeType[0] == '\t' || strMimeType[0] == ' ')
-					strMimeType.erase(0, 1);
-				attProps[nProps].ulPropTag = PR_ATTACH_MIME_TAG_A;
-				attProps[nProps++].Value.lpszA = (char*)strMimeType.c_str();
-			}
-		}
-		catch (vmime::exceptions::no_such_field) {
+		if (!mt->getType().empty() &&
+			!mt->getSubType().empty()) {
+			strMimeType = mt->getType() + "/" + mt->getSubType();
+			// due to a bug in vmime 0.7, the continuation header text can be prefixed in the string, so strip it (easiest way to fix)
+			while (strMimeType[0] == '\r' || strMimeType[0] == '\n' || strMimeType[0] == '\t' || strMimeType[0] == ' ')
+				strMimeType.erase(0, 1);
+			attProps[nProps].ulPropTag = PR_ATTACH_MIME_TAG_A;
+			attProps[nProps++].Value.lpszA = (char*)strMimeType.c_str();
 		}
 
 		hr = lpAtt->SetProps(nProps, attProps, NULL);
@@ -3350,31 +3339,24 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 	vmime::utility::outputStreamStringAdapter os(buffer);
 
 	// date
-	try {
-		vmime::shared_ptr<vmime::datetime> date;
-		try {
-			date = vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
-		} catch (vmime::exception &e) {
-			// date must not be empty, so force now() as the timestamp
-			date = vmime::make_shared<vmime::datetime>(vmime::datetime::now());
-		}
-		date->generate(os);
-		lItems.push_back("\"" + buffer + "\"");
-	} catch (vmime::exception &e) {
-		// this is not allowed, but better than nothing
-		lItems.push_back("NIL");
+	vmime::shared_ptr<vmime::datetime> date;
+	if (vmHeader->hasField("Date")) {
+		date = vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
 	}
+	else {
+		// date must not be empty, so force epoch as the timestamp
+		date = vmime::make_shared<vmime::datetime>(0);
+	}
+	date->generate(os);
+	lItems.push_back("\"" + buffer + "\"");
+
 	buffer.clear();
 
-	// subject
-	try {
-		vmHeader->Subject()->getValue()->generate(os);
-		// encoded subjects never contain ", so escape won't break those.
-		buffer = StringEscape(buffer.c_str(), "\"", '\\');
-		lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
-	} catch (vmime::exception &e) {
-		lItems.push_back("NIL");
-	}
+	vmHeader->Subject()->getValue()->generate(os);
+	// encoded subjects never contain ", so escape won't break those.
+	buffer = StringEscape(buffer.c_str(), "\"", '\\');
+	lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
+
 	buffer.clear();
 
 	// from
@@ -3439,23 +3421,16 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 	buffer.clear();
 
 	// in-reply-to
-	try {
-		vmHeader->InReplyTo()->getValue()->generate(os);
-		lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
-	} catch (vmime::exception &e) {
-		lItems.push_back("NIL");
-	}
+	vmHeader->InReplyTo()->getValue()->generate(os);
+	lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	buffer.clear();
 
 	// message-id
-	try {
-		vmHeader->MessageId()->getValue()->generate(os);
-		if (buffer.compare("<>") == 0)
-			buffer.clear();
-		lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
-	} catch (vmime::exception &e) {
-		lItems.push_back("NIL");
-	}
+	vmHeader->MessageId()->getValue()->generate(os);
+	if (buffer.compare("<>") == 0)
+		buffer.clear();
+	lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
+
 	return kc_join(lItems, " ");
 }
 
