@@ -11,11 +11,13 @@ import sys
 import time
 
 from MAPI import (
-    PT_ERROR, PT_BINARY, PT_MV_BINARY, PT_UNICODE, PT_LONG,
-    PT_STRING8, MV_FLAG,
-    PT_SYSTIME, MAPI_E_NOT_ENOUGH_MEMORY, KEEP_OPEN_READWRITE,
-    MNID_STRING, MAPI_E_NOT_FOUND, MNID_ID, KEEP_OPEN_READWRITE,
-    MAPI_UNICODE,
+    PT_ERROR, PT_BINARY, PT_MV_BINARY, PT_UNICODE, PT_LONG, PT_OBJECT,
+    PT_BOOLEAN, PT_STRING8, MV_FLAG, PT_SHORT, PT_MV_SHORT, PT_LONGLONG,
+    PT_MV_LONG, PT_FLOAT, PT_MV_FLOAT, PT_DOUBLE, PT_MV_DOUBLE, PT_STRING8,
+    PT_CURRENCY, PT_MV_CURRENCY, PT_APPTIME, PT_MV_APPTIME, PT_MV_LONGLONG,
+    PT_SYSTIME, MAPI_E_NOT_ENOUGH_MEMORY, KEEP_OPEN_READWRITE, PT_MV_STRING8,
+    PT_MV_UNICODE, PT_MV_SYSTIME, PT_CLSID, PT_MV_CLSID, MNID_STRING,
+    MAPI_E_NOT_FOUND, MNID_ID, KEEP_OPEN_READWRITE, MAPI_UNICODE,
 )
 from MAPI.Defs import (
     PROP_ID, PROP_TAG, PROP_TYPE, HrGetOneProp, bin2hex,
@@ -31,7 +33,7 @@ from MAPI.Tags import (
 from MAPI.Time import unixtime
 
 from .defs import (
-    REV_TAG, REV_TYPE, GUID_NAMESPACE, MAPINAMEID, NAMESPACE_GUID
+    REV_TAG, REV_TYPE, GUID_NAMESPACE, MAPINAMEID, NAMESPACE_GUID, STR_GUID,
 )
 from .compat import (
     repr as _repr, fake_unicode as _unicode, is_int as _is_int, hex as _hex
@@ -42,6 +44,35 @@ if sys.hexversion >= 0x03000000:
     from . import utils as _utils
 else:
     import utils as _utils
+
+TYPEMAP = {
+    'PT_SHORT': PT_SHORT,
+    'PT_MV_SHORT': PT_MV_SHORT,
+    'PT_LONG': PT_LONG,
+    'PT_MV_LONG': PT_MV_LONG,
+    'PT_FLOAT': PT_FLOAT,
+    'PT_MV_FLOAT': PT_MV_FLOAT,
+    'PT_DOUBLE': PT_DOUBLE,
+    'PT_MV_DOUBLE': PT_MV_DOUBLE,
+    'PT_CURRENCY': PT_CURRENCY,
+    'PT_MV_CURRENCY': PT_MV_CURRENCY,
+    'PT_APPTIME': PT_APPTIME,
+    'PT_MV_APPTIME': PT_MV_APPTIME,
+    'PT_BOOLEAN': PT_BOOLEAN,
+    'PT_OBJECT': PT_OBJECT,
+    'PT_LONGLONG': PT_LONGLONG,
+    'PT_MV_LONGLONG': PT_MV_LONGLONG,
+    'PT_STRING8': PT_STRING8,
+    'PT_MV_STRING8': PT_MV_STRING8,
+    'PT_UNICODE': PT_UNICODE,
+    'PT_MV_UNICODE': PT_MV_UNICODE,
+    'PT_SYSTIME': PT_SYSTIME,
+    'PT_MV_SYSTIME': PT_MV_SYSTIME,
+    'PT_CLSID': PT_CLSID,
+    'PT_MV_CLSID': PT_MV_CLSID,
+    'PT_BINARY': PT_BINARY,
+    'PT_MV_BINARY': PT_MV_BINARY,
+}
 
 def bestbody(mapiobj): # XXX we may want to use the swigged version in libcommon, once available
     # apparently standardized method for determining original message type!
@@ -72,73 +103,112 @@ def bestbody(mapiobj): # XXX we may want to use the swigged version in libcommon
 
     return tag
 
+def _split_proptag(proptag): # XXX syntax error exception
+    parts = proptag.split(':')
+    if len(parts) == 2:
+        namespace, name = parts
+        return None, namespace, name
+    else:
+        proptype, namespace, name = parts
+        return TYPEMAP[proptype], namespace, name
+
+def _name_to_proptag(proptag, mapiobj, proptype=None):
+    ptype, namespace, name = _split_proptag(proptag)
+    proptype = proptype or ptype
+
+    if name.isdigit(): # XXX
+        name = int(name)
+    elif name.startswith('0x'):
+        name = int(name, 16)
+
+    if namespace in NAMESPACE_GUID:
+        guid = NAMESPACE_GUID[namespace]
+    elif namespace in STR_GUID:
+        guid = STR_GUID[namespace]
+
+    if proptype is None:
+        return None, proptype, namespace, name
+
+    nameid = MAPINAMEID(guid, MNID_ID if isinstance(name, int) else MNID_STRING, name)
+    lpname = mapiobj.GetIDsFromNames([nameid], 0)
+    proptag = CHANGE_PROP_TYPE(lpname[0], proptype)
+
+    return proptag, proptype, namespace, name
+
 def create_prop(self, mapiobj, proptag, value=None, proptype=None): # XXX selfie
 
     if _is_int(proptag):
+        proptag2, proptype2 = proptag, proptype
         if proptype is None:
-            proptype = PROP_TYPE(proptag)
+            proptype2 = PROP_TYPE(proptag)
 
     else: # named property
-        if proptype is None:
+        proptag2, proptype2, _, _ = _name_to_proptag(proptag, mapiobj, proptype)
+
+        if proptype2 is None:
             raise Error('Missing type to create named property') # XXX exception too general?
 
-        # XXX: code duplication from prop()
-        namespace, name = proptag.split(':') # XXX syntax
-        if name.isdigit(): # XXX
-            name = int(name)
-
-        nameid = MAPINAMEID(NAMESPACE_GUID.get(namespace), MNID_ID if isinstance(name, int) else MNID_STRING, name)
-        lpname = mapiobj.GetIDsFromNames([nameid], 0)
-        proptag = CHANGE_PROP_TYPE(lpname[0], proptype)
-
     if value is None:
-        if proptype in (PT_STRING8, PT_UNICODE):
+        if proptype2 in (PT_STRING8, PT_UNICODE):
             value = u''
-        elif proptype == PT_BINARY:
+        elif proptype2 == PT_BINARY:
             value = b''
-        elif proptype == PT_SYSTIME:
+        elif proptype2 == PT_SYSTIME:
             value = unixtime(0)
-        elif proptype & MV_FLAG:
+        elif proptype2 & MV_FLAG:
             value = []
         else:
             value = 0
     else:
-        if proptype == PT_SYSTIME:
+        if proptype2 == PT_SYSTIME:
             value = unixtime(time.mktime(value.timetuple()))
 
     # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
     try:
-        mapiobj.SetProps([SPropValue(proptag, value)])
+        mapiobj.SetProps([SPropValue(proptag2, value)])
     except TypeError:
         raise Error('Could not create property, type and value did not match')
 
     return prop(self, mapiobj, proptag)
 
 def prop(self, mapiobj, proptag, create=False, value=None, proptype=None): # XXX selfie
-    if _is_int(proptag):
+    if _is_int(proptag): # regular property
+        # search for property
         try:
             sprop = HrGetOneProp(mapiobj, proptag)
         except MAPIErrorNotEnoughMemory:
             data = _utils.stream(mapiobj, proptag)
             sprop = SPropValue(proptag, data)
         except MAPIErrorNotFound as e:
+            # not found, create it?
             if create:
                 return create_prop(self, mapiobj, proptag, value=value, proptype=proptype)
             else:
                 raise NotFoundError('no such property: %s' % REV_TAG.get(proptag, hex(proptag)))
         return Property(mapiobj, sprop)
 
-    else:
-        namespace, name = proptag.split(':') # XXX syntax: include proptype and/or default db with types
-        if name.isdigit(): # XXX
-            name = int(name)
+    else: # named property
+        proptag2, proptype2, namespace, name = _name_to_proptag(proptag, mapiobj, proptype)
 
-        for prop in self.props(namespace=namespace): # XXX sloow, streaming
-            if prop.name == name:
-                return prop
+        # search for property
+        if proptype2:
+            try:
+                sprop = HrGetOneProp(mapiobj, proptag2) # XXX merge two main branches?
+                return Property(mapiobj, sprop)
+            except MAPIErrorNotEnoughMemory:
+                data = _utils.stream(mapiobj, proptag2)
+                sprop = SPropValue(proptag2, data)
+                return Property(mapiobj, sprop)
+            except MAPIErrorNotFound:
+                pass
+        else:
+            for prop in self.props(namespace=namespace): # XXX sloow, streaming? default pidlid type-db?
+                if prop.name == name:
+                    return prop
 
+        # not found, create it?
         if create:
-            create_prop(self, mapiobj, proptag, value=value, proptype=proptype)
+            return create_prop(self, mapiobj, proptag, value=value, proptype=proptype)
         else:
             raise NotFoundError('no such property: %s' % proptag)
 
@@ -224,7 +294,7 @@ class Property(object):
         if self._value is None:
             if self.type_ == PT_SYSTIME: # XXX generalize, property?
                 #
-                # The datetime object is of "naive" type, has local time and
+                # XXX The datetime object is of "naive" type, has local time and
                 # no TZ info. :-(
                 #
                 try:
@@ -238,7 +308,6 @@ class Property(object):
     def set_value(self, value):
         self._value = value
         if self.type_ == PT_SYSTIME:
-            # Timezones are handled.
             value = unixtime(time.mktime(value.timetuple()))
         self._parent_mapiobj.SetProps([SPropValue(self.proptag, value)])
         self._parent_mapiobj.SaveChanges(KEEP_OPEN_READWRITE)

@@ -87,6 +87,13 @@ GUID_NAMESPACE = {
 }
 NAMESPACE_GUID = dict((b, a) for (a, b) in GUID_NAMESPACE.items())
 
+STR_GUID = {
+    'PSETID_Common': PSETID_Common,
+    'PSETID_Appointment': PSETID_Appointment,
+    'PSETID_Meeting': PSETID_Meeting,
+# XXX moar
+}
+
 # XXX copied from common/ECDefs.h
 def OBJECTCLASS(__type, __class):
     return (__type << 16) | (__class & 0xFFFF)

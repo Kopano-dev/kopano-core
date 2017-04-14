@@ -5,6 +5,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import datetime
 import struct
 import sys
 
@@ -73,9 +74,6 @@ def unpack_short(s, pos):
 
 def unpack_long(s, pos):
     return struct.unpack_from('<L', s, pos)[0]
-
-def unpack_string(s, pos, length):
-    return b''.join(struct.unpack_from('<' + 's' * length, s, pos))
 
 def pack_long(i):
     return struct.pack('<L', i)
@@ -168,3 +166,35 @@ def human_to_bytes(s):
     for i, s in enumerate(sset[1:]):
         prefix[s] = 1 << (i + 1) * 10
     return int(num * prefix[letter])
+
+# XXX check doc for exact format, check php version
+def _get_timezone(date, tz_data):
+    if tz_data is None:
+        return 0
+
+    timezone, _, timezonedst, _, dstendmonth, dstendweek, dstendhour, _, _, _, dststartmonth, dststartweek, dststarthour, _, _ = struct.unpack('<lllllHHllHlHHlH', tz_data)
+
+    dststart = datetime.datetime(date.year, dststartmonth, 1) + \
+        datetime.timedelta(seconds=dststartweek*7*24*60*60 + dststarthour*60*60)
+
+    dstend = datetime.datetime(date.year, dstendmonth, 1) + \
+        datetime.timedelta(seconds=dstendweek*7*24*60*60 + dstendhour*60*60)
+
+    dst = False
+    if dststart <= dstend:
+        if dststart < date < dstend:
+            dst = True
+    else:
+        if data < dstend or data > dststart:
+            dst = True
+
+    if dst:
+        return timezone + timezonedst
+    else:
+        return timezone
+
+def _from_gmt(date, tz_data):
+    return date - datetime.timedelta(minutes=_get_timezone(date, tz_data))
+
+def _to_gmt(date, tz_data):
+    return date + datetime.timedelta(minutes=_get_timezone(date, tz_data))

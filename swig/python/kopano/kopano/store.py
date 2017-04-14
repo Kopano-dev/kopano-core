@@ -33,7 +33,7 @@ from MAPI.Tags import (
     PR_EC_USERNAME_W, PR_EC_COMPANY_NAME_W, PR_MESSAGE_CLASS,
     PR_SUBJECT, PR_WLINK_FLAGS, PR_WLINK_ORDINAL,
     PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE, PR_WLINK_ENTRYID,
-    PR_FOLDER_DISPLAY_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
+    PR_EXTENDED_FOLDER_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
     PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES,
     PR_DELEGATE_FLAGS
 )
@@ -539,16 +539,17 @@ class Store(Base):
 
         findroot = self.root.folder('FINDER_ROOT') # XXX
 
-        # extract special type of guid from search folder PR_FOLDER_DISPLAY_FLAGS to match against
+        # extract special type of guid from search folder PR_EXTENDED_FOLDER_FLAGS to match against
         guid_folder = {}
         for folder in findroot.folders():
             try:
-                prop = folder.prop(PR_FOLDER_DISPLAY_FLAGS)
+                prop = folder.prop(PR_EXTENDED_FOLDER_FLAGS)
                 subprops = self._subprops(prop.value)
                 guid_folder[subprops[2]] = folder
             except NotFoundError:
                 pass
 
+        # XXX why not just use PR_WLINK_ENTRYID??
         # match common_views SFInfo records against these guids
         table = self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED)
         table.SetColumns([PR_MESSAGE_CLASS, PR_WB_SF_ID], MAPI_UNICODE)
