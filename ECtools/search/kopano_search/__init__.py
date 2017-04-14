@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import collections
 from contextlib import closing
 import codecs
 import fcntl
@@ -91,6 +92,8 @@ def db_put(db_path, key, value):
             db[key] = value
 
 if sys.hexversion >= 0x03000000:
+    unicode = str
+
     def _is_unicode(s):
         return isinstance(s, str)
 
@@ -226,27 +229,34 @@ class FolderImporter:
             self.changes += 1
             storeid, folderid, entryid, sourcekey, docid = item.storeid, item.folderid, item.entryid, item.sourcekey, item.docid
             self.log.debug('store %s, folder %d: new/updated document with entryid %s, sourcekey %s, docid %d', storeid, folderid, entryid, sourcekey, docid)
-            doc = {'serverid': self.serverid, 'storeid': storeid, 'folderid': folderid, 'docid': docid, 'sourcekey': item.sourcekey}
-            for prop in item.props():
-                if prop.id_ not in self.excludes:
-                    if _is_unicode(prop.value):
-                        if prop.value:
-                            doc['mapi%d' % prop.id_] = prop.value
-                    elif isinstance(prop.value, list):
-                        doc['mapi%d' % prop.id_] = u' '.join(x for x in prop.value if _is_unicode(x))
+
+            doc = collections.defaultdict(unicode)
+            doc.update({'serverid': self.serverid, 'storeid': storeid, 'folderid': folderid, 'docid': docid, 'sourcekey': item.sourcekey})
             attach_text = []
-            if self.config['index_attachments']:
-                for a in item.attachments():
-                    self.log.debug('checking attachment (filename=%s, size=%d, mimetag=%s)', a.filename, len(a), a.mimetype)
-                    if 0 < len(a) < self.config['index_attachment_max_size'] and a.filename != 'inline.txt': # XXX inline attachment check
-                        self.attachments += 1
-                        attach_text.append(plaintext.get(a, mimetype=a.mimetype, log=self.log))
-                    attach_text.append(u' '+(a.filename or u''))
-            doc['mapi4096'] = item.body.text + u' ' + u' '.join(attach_text) # PR_BODY
-            doc['mapi3098'] = u' '.join([item.sender.name, item.sender.email, item.from_.name, item.from_.email]) # PR_SENDER_NAME
-            doc['mapi3588'] = u' '.join([a.name + u' ' + a.email for a in item.to]) # PR_DISPLAY_TO
-            doc['mapi3587'] = u' '.join([a.name + u' ' + a.email for a in item.cc]) # PR_DISPLAY_CC
-            doc['mapi3586'] = u' '.join([a.name + u' ' + a.email for a in item.bcc]) # PR_DISPLAY_BCC
+
+            for subitem in [item] + list(item.embedded_items()):
+                for prop in subitem.props():
+                    if prop.id_ not in self.excludes:
+                        if _is_unicode(prop.value):
+                            if prop.value:
+                                doc['mapi%d' % prop.id_] += u' ' + prop.value
+                        elif isinstance(prop.value, list):
+                            doc['mapi%d' % prop.id_] += u' ' + u' '.join(x for x in prop.value if _is_unicode(x))
+
+                if self.config['index_attachments']:
+                    for a in subitem.attachments():
+                        self.log.debug('checking attachment (filename=%s, size=%d, mimetag=%s)', a.filename, len(a), a.mimetype)
+                        if 0 < len(a) < self.config['index_attachment_max_size'] and a.filename != 'inline.txt': # XXX inline attachment check
+                            self.attachments += 1
+                            attach_text.append(plaintext.get(a, mimetype=a.mimetype, log=self.log))
+                        attach_text.append(u' '+(a.filename or u''))
+
+                doc['mapi4096'] += u' ' + subitem.body.text + u' ' + u' '.join(attach_text) # PR_BODY
+                doc['mapi3098'] += u' ' + u' '.join([subitem.sender.name, subitem.sender.email, subitem.from_.name, subitem.from_.email]) # PR_SENDER_NAME
+                doc['mapi3588'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.to]) # PR_DISPLAY_TO
+                doc['mapi3587'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.cc]) # PR_DISPLAY_CC
+                doc['mapi3586'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.bcc]) # PR_DISPLAY_BCC
+
             doc['data'] = 'subject: %s\n' % item.subject
             db_put(self.mapping_db, item.sourcekey, '%s %s' % (storeid, item.folder.entryid)) # ICS doesn't remember which store a change belongs to..
             self.plugin.update(doc)
