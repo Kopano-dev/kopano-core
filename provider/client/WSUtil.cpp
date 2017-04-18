@@ -99,22 +99,20 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		dp->__union = SOAP_UNION_propValData_li;
 		dp->Value.li = sp->Value.li.QuadPart;
 		break;
-	case PT_STRING8:
-		{
-			utf8string u8 = CONVERT_TO(lpConverter, utf8string, sp->Value.lpszA);	// SOAP lpszA = UTF-8, MAPI lpszA = current locale charset
-			dp->__union = SOAP_UNION_propValData_lpszA;
-			dp->Value.lpszA = s_alloc<char>(nullptr, u8.size() + 1);
-			strcpy(dp->Value.lpszA, u8.c_str());
-		}
+	case PT_STRING8: {
+		utf8string u8 = CONVERT_TO(lpConverter, utf8string, sp->Value.lpszA);	// SOAP lpszA = UTF-8, MAPI lpszA = current locale charset
+		dp->__union = SOAP_UNION_propValData_lpszA;
+		dp->Value.lpszA = s_alloc<char>(nullptr, u8.size() + 1);
+		strcpy(dp->Value.lpszA, u8.c_str());
 		break;
-	case PT_UNICODE:
-		{
-			utf8string u8 = CONVERT_TO(lpConverter, utf8string, sp->Value.lpszW);
-			dp->__union = SOAP_UNION_propValData_lpszA;
-			dp->Value.lpszA = s_alloc<char>(nullptr, u8.size() + 1);
-			strcpy(dp->Value.lpszA, u8.c_str());
-		}
+	}
+	case PT_UNICODE: {
+		utf8string u8 = CONVERT_TO(lpConverter, utf8string, sp->Value.lpszW);
+		dp->__union = SOAP_UNION_propValData_lpszA;
+		dp->Value.lpszA = s_alloc<char>(nullptr, u8.size() + 1);
+		strcpy(dp->Value.lpszA, u8.c_str());
 		break;
+	}
 	case PT_SYSTIME:
 		dp->__union = SOAP_UNION_propValData_hilo;
 		dp->Value.hilo = s_alloc<hiloLong>(nullptr);
@@ -2029,18 +2027,18 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags, const sGlobalProfileProps
     &sProfileProps, KCmd **const lppCmd)
 {
 	return CreateSoapTransport(ulUIFlags,
-							sProfileProps.strServerPath.c_str(),
-							sProfileProps.strSSLKeyFile.c_str(),
-							sProfileProps.strSSLKeyPass.c_str(),
-							sProfileProps.ulConnectionTimeOut,
-							sProfileProps.strProxyHost.c_str(),
-							sProfileProps.ulProxyPort,
-							sProfileProps.strProxyUserName.c_str(),
-							sProfileProps.strProxyPassword.c_str(),
-							sProfileProps.ulProxyFlags,
-							SOAP_IO_KEEPALIVE | SOAP_C_UTFSTRING,
-							SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING,
-							lppCmd);
+		sProfileProps.strServerPath.c_str(),
+		sProfileProps.strSSLKeyFile.c_str(),
+		sProfileProps.strSSLKeyPass.c_str(),
+		sProfileProps.ulConnectionTimeOut,
+		sProfileProps.strProxyHost.c_str(),
+		sProfileProps.ulProxyPort,
+		sProfileProps.strProxyUserName.c_str(),
+		sProfileProps.strProxyPassword.c_str(),
+		sProfileProps.ulProxyFlags,
+		SOAP_IO_KEEPALIVE | SOAP_C_UTFSTRING,
+		SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING,
+		lppCmd);
 }
 
 // Wrap the server store entryid to client store entry. (Add a servername)
@@ -2492,11 +2490,12 @@ static HRESULT ConvertString8ToUnicode(const ACTIONS *lpActions, void *base,
 		return hrSuccess;
 
 	for (ULONG c = 0; c < lpActions->cActions; ++c) {
-		if (lpActions->lpAction[c].acttype == OP_FORWARD || lpActions->lpAction[c].acttype == OP_DELEGATE) {
-			auto hr = ConvertString8ToUnicode(lpActions->lpAction[c].lpadrlist, base, converter);
-			if (hr != hrSuccess)
-				return hr;
-		}
+		if (lpActions->lpAction[c].acttype != OP_FORWARD &&
+		    lpActions->lpAction[c].acttype != OP_DELEGATE)
+			continue;
+		auto hr = ConvertString8ToUnicode(lpActions->lpAction[c].lpadrlist, base, converter);
+		if (hr != hrSuccess)
+			return hr;
 	}
 	return hrSuccess;
 }
