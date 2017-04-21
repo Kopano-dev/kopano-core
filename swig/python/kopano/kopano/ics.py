@@ -96,7 +96,6 @@ class TrackingContentsImporter(ECImportContentsChanges):
             item.store = _store.Store(mapiobj=mapistore, server=self.server)
             try:
                 item.mapiobj = _utils.openentry_raw(mapistore, entryid.Value, 0)
-                item.folderid = PpropFindProp(props, PR_EC_PARENT_HIERARCHYID).Value
                 props = item.mapiobj.GetProps([PR_EC_HIERARCHYID, PR_EC_PARENT_HIERARCHYID, PR_STORE_RECORD_KEY], 0) # XXX properties don't exist?
                 item.docid = props[0].Value
                 # item.folderid = props[1].Value # XXX
