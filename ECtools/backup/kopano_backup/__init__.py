@@ -114,7 +114,7 @@ class BackupWorker(kopano.Worker):
                                 idx = db_index.get('folder')
                                 d = pickle.loads(idx) if idx else {}
                                 if not d.get('backup_deleted'):
-                                    self.log.info('deleted folder: %s', fpath)
+                                    self.log.debug('deleted folder: %s', fpath)
                                     d['backup_deleted'] = self.service.timestamp
                                     db_index['folder'] = pickle.dumps(d)
 
@@ -128,7 +128,7 @@ class BackupWorker(kopano.Worker):
     def backup_folder(self, path, folder, subtree, config, options, stats, user, server):
         """ backup single folder """
 
-        self.log.info('backing up folder: %s', folder.path)
+        self.log.debug('backing up folder: %s', folder.path)
 
         # create directory for subfolders
         data_path = path+'/'+folder_path(folder, subtree)
@@ -150,11 +150,11 @@ class BackupWorker(kopano.Worker):
         state = None
         if os.path.exists(statepath):
             state = file(statepath).read()
-            self.log.info('found previous folder sync state: %s', state)
+            self.log.debug('found previous folder sync state: %s', state)
         new_state = folder.sync(importer, state, log=self.log, stats=stats, begin=options.period_begin, end=options.period_end)
         if new_state != state:
             file(statepath, 'w').write(new_state)
-            self.log.info('saved folder sync state: %s', new_state)
+            self.log.debug('saved folder sync state: %s', new_state)
 
 class FolderImporter:
     """ tracks changes for a given folder """
@@ -383,7 +383,7 @@ class Service(kopano.Service):
                 if not [sk for sk in self.options.sourcekeys if sk in db]:
                     return
         else:
-            self.log.info('restoring folder %s', path)
+            self.log.debug('restoring folder %s', path)
 
             # restore container class
             folderprops = pickle.loads(file('%s/folder' % data_path).read())
