@@ -3875,7 +3875,7 @@ int main(int argc, char *argv[]) {
 
 		sc = new StatsClient(g_lpLogger);
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
-		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginmanager", &unique_tie(ptrPyMapiPlugin));
+		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 		if (hr != hrSuccess) {
 			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);
