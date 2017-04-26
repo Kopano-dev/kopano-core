@@ -9611,19 +9611,10 @@ SOAP_ENTRY_START(getSyncStates, lpsResponse->er, struct mv_long ulaSyncId, struc
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getLicenseAuth, lpsResponse->er, struct xsd__base64Binary sAuthData, struct getLicenseAuthResponse *lpsResponse)
+SOAP_ENTRY_START(getLicenseAuth, r->er, struct xsd__base64Binary, struct getLicenseAuthResponse *r)
 {
-	void *data = NULL;
-
-	er = ECLicenseClient().Auth(sAuthData.__ptr, sAuthData.__size, &data, reinterpret_cast<unsigned int *>(&lpsResponse->sAuthResponse.__size));
-	if (er != erSuccess)
-		goto exit;
-
-	lpsResponse->sAuthResponse.__ptr = s_alloc<unsigned char>(soap, lpsResponse->sAuthResponse.__size);
-	memcpy(lpsResponse->sAuthResponse.__ptr, data, lpsResponse->sAuthResponse.__size);
-
-exit:
-	free(data);
+	r->sAuthResponse.__ptr = nullptr;
+	r->sAuthResponse.__size = 0;
 }
 SOAP_ENTRY_END()
 
