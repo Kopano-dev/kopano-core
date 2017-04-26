@@ -20,6 +20,7 @@
 #include <kopano/lockhelper.hpp>
 #include <mutex>
 #include <cassert>
+#include <climits>
 #include <clocale>
 #include <pthread.h>
 #include <cstdarg>

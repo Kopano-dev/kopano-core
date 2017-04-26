@@ -107,8 +107,6 @@ if test "$want_release" = "yes"; then
     ZCPPFLAGS="$ZCPPFLAGS -DNDEBUG"
     ZCXXFLAGS="$ZCXXFLAGS -O2 -fno-strict-aliasing"
 else
-# -fPIC must be present on x86_64 when -O2 isn't used
-    ZCXXFLAGS="$ZCXXFLAGS -fPIC"
     ZCXXFLAGS="$ZCXXFLAGS -pedantic -Wno-long-long"
 fi
 
@@ -275,42 +273,7 @@ AS_IF([test "$with_php" != "no"], [
 AM_CONDITIONAL([WITH_PHP5], [test "$with_php" = 5])
 AM_CONDITIONAL([WITH_PHP7], [test "$with_php" = 7])
 
-# Checks for libxml2
-AC_DEFUN([LIBXML_WITH_XML2_CONFIG],[
-  AC_ARG_WITH([xml2-config], AS_HELP_STRING([--with-xml2-config=PATH], [path to the xml2-config script of libxml2]),
-    [XML2_CONFIG=${withval}],[XML2_CONFIG=xml2-config])
-
-  AC_MSG_CHECKING([for xml2-config presence])
-  XML2_CONFIG=`which $XML2_CONFIG 2>/dev/null`
-  if ! test -x "$XML2_CONFIG"; then
-    AC_MSG_ERROR([cannot execute $XML2_CONFIG, install libxml2-dev])
-  else
-    AC_MSG_RESULT([$XML2_CONFIG])
-
-    XML2_CFLAGS=`$XML2_CONFIG --cflags`
-    XML2_LIBS=`$XML2_CONFIG --libs`
-
-    AC_SUBST(XML2_CFLAGS)
-    AC_SUBST(XML2_LIBS)
-
-    dnl check correctness of lib
-    CXXFLAGS="$CXXFLAGS $XML2_CFLAGS"
-    LIBS="$LIBS $XML2_LIBS"
-    AC_MSG_CHECKING([acquired XML2 settings])
-    AC_LINK_IFELSE([
-      AC_LANG_SOURCE([
-#include <libxml/xmlwriter.h>
-int main() {
-   	xmlNewTextWriterMemory(NULL, 0);
-}
-      ]) ], [ AC_MSG_RESULT([ok]) ], [ AC_MSG_ERROR([broken])
-    ])
-    LIBS=$LIBS_system
-    CXXFLAGS=$CXXFLAGS_system
-  fi
-])
-LIBXML_WITH_XML2_CONFIG
-AM_CONDITIONAL([WITH_XML2], [test "$XML2_CONFIG" != "" -a -x "`which $XML2_CONFIG 2>/dev/null`"])
+PKG_CHECK_MODULES([XML2], [libxml-2.0])
 
 # Checks for MySQL 4.1 or better
 AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
@@ -418,6 +381,19 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM(pthread_np_preamble, [
 CXXFLAGS="$CXXFLAGS_system $ZCXXFLAGS"
 LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
+
+AC_MSG_CHECKING([soapcpp2])
+mkdir "conftest.d$$"
+if ! soapcpp2 -d "conftest.d$$" -z1 "${srcdir}/autoconf/1075.h" 2>/dev/null; then
+	AC_MSG_ERROR([Failed to run soapcpp])
+	exit 1
+fi
+if ! grep -Fq "Foo[[]]" "conftest.d$$/soapC.cpp" 2>/dev/null; then
+	AC_MSG_ERROR([ERROR: This gsoap generator did not produce an acceptable wire protocol. http://sf.net/p/gsoap2/bugs/1075/])
+	exit 1
+fi
+AC_MSG_RESULT([ok])
+rm -Rf "conftest.d$$"
 
 dnl Stupid gsoap not abstracting properly! If our -Ds do not match with what
 dnl gsoap was compiled with, we are in trouble.

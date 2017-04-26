@@ -769,9 +769,7 @@ ZEND_FUNCTION(mapi_prop_id)
 }
 
 /**
- * Checks if the severity of a errorCode is set to Fail
- *
- *
+ * Checks if the severity of an errorCode is set to Fail
  */
 ZEND_FUNCTION(mapi_is_error)
 {

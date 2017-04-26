@@ -109,7 +109,7 @@ private:
  * Dispatch a task object on a particular threadpool.
  *
  * @param[in]	lpThreadPool		The threadpool on which to dispatch the task.
- * @param[in]	bTransferOwnership	Boolean parameter specifying wether the threadpool
+ * @param[in]	bTransferOwnership	Boolean parameter specifying whether the threadpool
  *                                  should take ownership of the task object, and thus
  *                                  is responsible for deleting the object when done.
  * @retval true if the task was successfully queued, false otherwise.

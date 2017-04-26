@@ -170,7 +170,7 @@ template<typename T> class alloc_wrap {
 	}
 };
 
-#define ALLOC_WRAP_FRIEND template<typename T> friend class ::KC::alloc_wrap;
+#define ALLOC_WRAP_FRIEND template<typename T> friend class ::KC::alloc_wrap
 
 } /* namespace */
 
