@@ -1,3 +1,34 @@
+Release notes for 8.4.0
+=======================
+Enhancements:
+* dagent, gateway: whitelist-based HTML filter [ZCP-13472]
+* pyko: fall back to search-key to determine recipient email address [KC-566]
+* gateway: ignore missing (lost) attachments [KC-363]
+* pyko/backup: change error into warning for 'missing' attachments
+  [KC-545, KC-555, KC-575]
+* server: the underlying call for traditional-style fd monitoring was
+  changed from select(2) to poll(2) [ZCP-13065]
+* server: add LIMIT clauses to single-result SELECT statements [KC-5]
+* php: copy back improvements from the Z-Push project's bundled copy [KC-463]
+* pyko: support processing basic cancellations [KC-612]
+* pyko: support cancellation of existing exception [KC-612]
+* search: make searchfolder creation in shared stores configurable [KC-565]
+* icalmapi: handle up to three email addresses in a vcard [KC-420]
+* inetmapi: add the right extension for attachments without filename [KC-624]
+* search: index embedded messages (recursively) [KC-151]
+Fixes:
+* spooler: do not run mr-process before mr-accept [KC-498]
+* Coverity reports on absent return value checks [KC-595];
+* freebusy: avoid potential divison by zero when trying to determine the end
+  date of a non-recurring recurrence. [KC-595]
+* libserver: ensure same endianess for SOURCEKEYs [KC-628]
+Changes:
+* server: the sync_log_all_changes is obsolete [KC-527]
+* server: use SQL autocommit=0 during transactions
+Packager notes:
+* libicu changed from optional to required build dependency
+
+
 Release notes for 8.3.0
 =======================
 Enhancements:
