@@ -104,7 +104,7 @@ sampleconfdir = ${docdir}/example-config
 sampleconf_DATA = provider/client/kopano.inf provider/contacts/zcontacts.inf
 BUILT_SOURCES =
 CLEANFILES = ${noinst_DATA}
-EXTRA_DIST = php-ext/mapi.sym
+EXTRA_DIST = autoconf/1075.h php-ext/mapi.sym
 default_sym = ${top_builddir}/default.sym
 
 
