@@ -397,8 +397,10 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 
 	ToUpper(strCommand);
 	if (isIdle()) {
-		hr = HrResponse(RESP_UNTAGGED, "BAD still in idle state");
-		HrDone(false); // false for no output		
+		if (!parseBool(lpConfig->GetSetting("imap_ignore_command_idle"))) {
+			hr = HrResponse(RESP_UNTAGGED, "BAD still in idle state");
+			HrDone(false); // false for no output
+		}
 		return hr;
 	}
 
