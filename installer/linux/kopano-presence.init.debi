@@ -47,7 +47,7 @@ case "$1" in
 	install -dm0775 -o kopano -g kopano /var/run/kopano
 	export LC_ALL=$KOPANO_LOCALE
 	export LANG=$KOPANO_LOCALE
-	start-stop-daemon --start $QUIETDAEMON --pidfile $PIDFILE --exec /usr/bin/python $PRESENCE -- $PRESENCE_OPTS
+	start-stop-daemon --start $QUIETDAEMON --pidfile $PIDFILE --exec /usr/bin/python $PRESENCE -- $PRESENCE_OPTS >/dev/null 2>&1
 	log_end_msg $?
 	unset LC_ALL LANG
 	;;
