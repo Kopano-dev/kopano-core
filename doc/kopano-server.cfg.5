@@ -66,29 +66,21 @@ Include and process
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF THE SERVER SETTINGS PARAMETERS"
-.PP
+.TP
+\fBserver_listen\fP
+A space-separated list of address:port specifiers for where the server should
+listen for unencrypted connections. IPv6 addresses need to be enclosed in
+brackets (as in \fB[2a01:db1::]:236\fP), and the asterisk is the multi-protocol
+address wildcard. The default value is \fB*:236\fP.
+.TP
 \fBserver_bind\fR
-.RS 4
-IP address to bind to. Leave empty to bind to all addresses. Keep in mind that both Webaccess and Outlook must be able to connect. The Webaccess normally connects on ::1/127.0.0.1, and Outlook from remote networks.
-.sp
-Default: (empty)
-.RE
-.PP
-\fBserver_tcp_enabled\fR
-.RS 4
-Enable direct TCP connections.
-.sp
-Default:
-\fIyes\fR
-.RE
-.PP
-\fBserver_tcp_port\fR
-.RS 4
-Port to listen on.
-.sp
-Default:
-\fI236\fR
-.RE
+This historic directive specifies a single IPv4/IPv6 address to bind to. Its
+use is discouraged in favor of \fBserver_listen\fP and \fBserver_listen_tls\fP.
+.TP
+\fBserver_tcp_enabled\fP, \fBserver_tcp_port\fP
+These historic directive specify the single port to bind to for unencrypted
+connections. Their use is discouraged in favor of \fBserver_listen\fP. The
+address is mandated by \fBserver_bind\fP.
 .PP
 \fBserver_pipe_enabled\fR
 .RS 4
@@ -466,22 +458,18 @@ Default:
 \fI6\fR
 .RE
 .SH "EXPLANATION OF THE SSL SETTINGS PARAMETERS"
-.PP
-\fBserver_ssl_enabled\fR
-.RS 4
-Enable direct SSL connections. When this option is enabled, you must set the following ssl options correctly, otherwise the server may or will not start.
-.sp
-Default:
-\fIno\fR
-.RE
-.PP
-\fBserver_ssl_port\fR
-.RS 4
-The portnumber to accept SSL connections on.
-.sp
-Default:
-\fI237\fR
-.RE
+.TP
+\fBserver_listen_tls\fP
+A space-separated list of address:port specifiers for where the server should
+listen for TLS connections, similar to the \fBserver_listen\fP directive. The
+default value is empty, which means no ports will be listened on for TLS. When
+this option is used, you must set the SSL key options correctly, otherwise the
+server not start.
+.TP
+\fBserver_ssl_enabled\fP, \fBserver_ssl_port\fP
+These historic directive specify the single port to bind to for SSL
+connections. Their use is discouraged in favor of \fBserver_listen_tls\fP. The
+address is mandated by \fBserver_bind\fP.
 .PP
 \fBserver_ssl_key_file\fR
 .RS 4
