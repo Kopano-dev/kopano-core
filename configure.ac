@@ -382,9 +382,10 @@ CXXFLAGS="$CXXFLAGS_system $ZCXXFLAGS"
 LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
 
-AC_MSG_CHECKING([soapcpp2])
+AC_MSG_CHECKING([for soapcpp2])
 mkdir "conftest.d$$"
-if ! soapcpp2 -d "conftest.d$$" -z1 "${srcdir}/autoconf/1075.h" 2>/dev/null; then
+if ! soapcpp2 -d "conftest.d$$" -z1 "${srcdir}/autoconf/1075.h" 2>"conftest.d$$/fail.log"; then
+	cat "conftest.d$$/fail.log" || :
 	AC_MSG_ERROR([Failed to run soapcpp])
 	exit 1
 fi
