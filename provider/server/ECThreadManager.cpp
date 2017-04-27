@@ -864,12 +864,17 @@ ECDispatcherEPoll::ECDispatcherEPoll(ECConfig *lpConfig,
 	ECDispatcher(lpConfig, lpCallback, lpCallbackParam)
 {
 	m_fdMax = getdtablesize();
+	if (m_fdMax < 0)
+		throw std::runtime_error("getrlimit failed");
 	m_epFD = epoll_create(m_fdMax);
+	if (m_epFD < 0)
+		throw std::runtime_error("epoll_create failed");
 }
 
 ECDispatcherEPoll::~ECDispatcherEPoll()
 {
-	close(m_epFD);
+	if (m_epFD >= 0)
+		close(m_epFD);
 }
 
 ECRESULT ECDispatcherEPoll::MainLoop()
