@@ -27,6 +27,8 @@ Fixes:
 * cachestat: avoid exception and unpack tuple [KC-402]
 * ldapplugin: revert "catch empty ldap_search_base" [KC-602]
 * spooler: fix crash on forwarding rules [KC-608]
+* dagent: avoid shell command injections [KC-619]
+* server: avoid returning garbage for getLicenseAuth [KA-2]
 Changes:
 * server: compressed attachments now get the same permissions as uncompressed
   ones [KC-380]
