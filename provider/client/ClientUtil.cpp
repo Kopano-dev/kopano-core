@@ -743,31 +743,25 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 	std::string strConfigPath;
 
 	hr = GetConfigPath(&strConfigPath);
-	if(hr != hrSuccess) {
+	if (hr != hrSuccess)
 		return hr;
-	}
 
 	// Remove trailing slash
 	if(*(strConfigPath.end()-1) == '\\' )
 		strConfigPath.resize(strConfigPath.size()-1);
 
 	strConfigPath += "\\exchange-redirector.cfg";
-	if(!lpConfig->LoadSettings((char *)strConfigPath.c_str())) {
+	if (!lpConfig->LoadSettings(strConfigPath.c_str()))
 		return MAPI_E_NOT_FOUND;
-	}
-
 	if(g_ulLoadsim) {
 		lpUsername = PCpropFindProp(pValues, cValues, PR_PROFILE_USER);
-		if(!lpUsername) {
+		if (lpUsername == nullptr)
 			return MAPI_E_UNCONFIGURED;
-		}
 	} else {
 		lpUsername = PCpropFindProp(pValues, cValues, PR_PROFILE_UNRESOLVED_NAME);
 		lpServer = PCpropFindProp(pValues, cValues, PR_PROFILE_UNRESOLVED_SERVER);
-
-		if(!lpServer || !lpUsername) {
+		if (lpServer == nullptr || lpUsername == nullptr)
 			return MAPI_E_UNCONFIGURED;
-		}
 	}
 
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 7, &~lpProps);

@@ -2908,21 +2908,16 @@ LDAPUserPlugin::getServerDetails(const std::string &server)
 	}
 
 	FOREACH_ATTR(entry) {
-		if (address_attr && !strcasecmp(att, address_attr)) {
+		if (address_attr && !strcasecmp(att, address_attr))
 			strAddress = m_iconv->convert(getLDAPAttributeValue(att, entry));
-		}
-		if (http_port_attr && !strcasecmp(att, http_port_attr)) {
+		if (http_port_attr && !strcasecmp(att, http_port_attr))
 			strHttpPort = m_iconv->convert(getLDAPAttributeValue(att, entry));
-		}
-		if (ssl_port_attr && !strcasecmp(att, ssl_port_attr)) {
+		if (ssl_port_attr && !strcasecmp(att, ssl_port_attr))
 			strSslPort = m_iconv->convert(getLDAPAttributeValue(att, entry));
-		}
-		if (file_path_attr && !strcasecmp(att, file_path_attr)) {
+		if (file_path_attr && !strcasecmp(att, file_path_attr))
 			strFilePath = m_iconv->convert(getLDAPAttributeValue(att, entry));
-		}
-		if (proxy_path_attr && !strcasecmp(att, proxy_path_attr)) {
+		if (proxy_path_attr && !strcasecmp(att, proxy_path_attr))
 		    strProxyPath = m_iconv->convert(getLDAPAttributeValue(att, entry));
-        }
 	}
 	END_FOREACH_ATTR
 

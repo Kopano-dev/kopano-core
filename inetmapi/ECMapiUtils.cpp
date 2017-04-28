@@ -121,11 +121,9 @@ static constexpr const struct {
 
 const char *ext_to_mime_type(const char *ext, const char *def)
 {
-	for (const auto &elem : mime_types) {
+	for (const auto &elem : mime_types)
 		if (strcasecmp(ext, elem.ext) == 0)
 			return elem.mime_type;
-	}
-
 	return def;
 }
 

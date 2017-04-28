@@ -495,9 +495,8 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 	/* Search for the right connection */
 	iterAdvise = m_mapAdvise.find(ulConnection);
 	if (iterAdvise == m_mapAdvise.cend() ||
-	    iterAdvise->second->lpAdviseSink == NULL) {
+	    iterAdvise->second->lpAdviseSink == nullptr)
 		goto exit;
-	}
 
 	if (!notifications.empty()) {
 		/* Send notifications in batches of MAX_NOTIFS_PER_CALL notifications */
@@ -576,9 +575,8 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 	biglock.lock();
 	iterAdvise = m_mapChangeAdvise.find(ulConnection);
 	if (iterAdvise == m_mapChangeAdvise.cend() ||
-	    iterAdvise->second->lpAdviseSink == NULL) {
+	    iterAdvise->second->lpAdviseSink == nullptr)
 		return hr;
-	}
 
 	if (!syncStates.empty()) {
 		/* Send notifications in batches of MAX_NOTIFS_PER_CALL notifications */

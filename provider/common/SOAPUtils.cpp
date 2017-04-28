@@ -2342,12 +2342,10 @@ size_t SortOrderArraySize(const struct sortOrderArray *lpsSortOrder)
  */
 ULONG NormalizePropTag(ULONG ulPropTag)
 {
-	if((PROP_TYPE(ulPropTag) == PT_STRING8 || PROP_TYPE(ulPropTag) == PT_UNICODE) && PROP_TYPE(ulPropTag) != PT_TSTRING) {
+	if ((PROP_TYPE(ulPropTag) == PT_STRING8 || PROP_TYPE(ulPropTag) == PT_UNICODE) && PROP_TYPE(ulPropTag) != PT_TSTRING)
 		return CHANGE_PROP_TYPE(ulPropTag, PT_TSTRING);
-	}
-	if((PROP_TYPE(ulPropTag) == PT_MV_STRING8 || PROP_TYPE(ulPropTag) == PT_MV_UNICODE) && PROP_TYPE(ulPropTag) != PT_MV_TSTRING) {
+	if ((PROP_TYPE(ulPropTag) == PT_MV_STRING8 || PROP_TYPE(ulPropTag) == PT_MV_UNICODE) && PROP_TYPE(ulPropTag) != PT_MV_TSTRING)
 		return CHANGE_PROP_TYPE(ulPropTag, PT_MV_TSTRING);
-	}
 	return ulPropTag;
 }
 

@@ -296,9 +296,8 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	if (lpDBResult.get_num_rows() > 0) {
 		lpDBRow = lpDBResult.fetch_row();
 		lpDBLen = lpDBResult.fetch_row_lengths();
-		if(lpDBRow && lpDBRow[0] && lpDBLen && lpDBLen[0] >16){
+		if (lpDBRow != nullptr && lpDBRow[0] != nullptr && lpDBLen != nullptr && lpDBLen[0] > 16)
 			AddChangeKeyToChangeList(&strChangeList, lpDBLen[0], lpDBRow[0]);
-		}
 	}
 
 	/**
