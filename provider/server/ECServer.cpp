@@ -451,22 +451,20 @@ static ECRESULT check_server_configuration(void)
 		ec_log_err("WARNING: Unable to find FQDN, please specify in 'server_hostname'. Now using '%s'.", g_lpConfig->GetSetting("server_hostname"));
 
 	// all other checks are only required for multi-server environments
-	bCheck = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
-	if (!bCheck)
-		goto exit;
+	if (!parseBool(g_lpConfig->GetSetting("enable_distributed_kopano")))
+		return erSuccess;
 	
 	strServerName = g_lpConfig->GetSetting("server_name");
 	if (strServerName.empty()) {
 		ec_log_crit("ERROR: No 'server_name' specified while operating in multiserver mode.");
-		er = KCERR_INVALID_PARAMETER;
+		return KCERR_INVALID_PARAMETER;
 		// unable to check any other server details if we have no name, skip other tests
-		goto exit;
 	}
 
 	er = g_lpSessionManager->CreateSessionInternal(&lpecSession);
 	if (er != erSuccess) {
 		ec_log_crit("Internal error 0x%08x while checking distributed configuration", er);
-		goto exit;
+		return er;
 	}
 
 	lpecSession->Lock();
