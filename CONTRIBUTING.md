@@ -1,7 +1,7 @@
 # How to contribute to Kopano Core
 
 If you have found an issue and want to report an issue, either reach out to us
-in our [forum](http://forum.kopano.com), or, if you have a subscription, open
+in our [forum](https://forum.kopano.io), or, if you have a subscription, open
 up a [support case](https://kopano.com/support/).
 
 To provide changesets,
