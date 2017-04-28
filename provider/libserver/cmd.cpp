@@ -4388,15 +4388,14 @@ SOAP_ENTRY_START(setRights, *result, entryId sEntryId, struct rightsArray *lpsRi
 }
 SOAP_ENTRY_END()
 
-/* DEPRICATED:
- *   this is only accessable through IECSecurity, and nobody calls this anymore!
- */
-SOAP_ENTRY_START(getUserObjectList, lpsUserObjectResponse->er, unsigned int ulCompanyId, entryId sCompanyId, int ulType, struct userobjectResponse *lpsUserObjectResponse)
+int ns__getUserObjectList(struct soap *, ULONG64, unsigned int, entryId, int,
+    struct userobjectResponse *r)
 {
-	// TODO: if we just throw the soap call away, it has the same result?
-	er = KCERR_NO_SUPPORT;
+	/* Deprecated. This is only accessable through IECSecurity, and nobody calls this anymore! */
+	// TODO: if we just remove this handler -- same result?!
+	r->er = KCERR_NO_SUPPORT;
+	return SOAP_OK;
 }
-SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getOwner, lpsResponse->er, entryId sEntryId, struct getOwnerResponse *lpsResponse)
 {
@@ -8723,13 +8722,17 @@ exit:
 }
 SOAP_ENTRY_END()
 
-// Used to move the store to the public, but this isn't possible due to multi-server setups.
-// And is was super slow because of the storeid column in the properties table.
-SOAP_ENTRY_START(deleteStore, *result, unsigned int ulStoreId, unsigned int ulSyncId, unsigned int *result)
+int ns__deleteStore(struct soap *, ULONG64, unsigned int, unsigned int, unsigned int *result)
 {
-	er = KCERR_NOT_IMPLEMENTED;
+	/*
+	 * Used to move the store to the public, but this is not
+	 * possible due to multi-server setups. This was also really
+	 * slow because of the storeid column in the properties
+	 * table.
+	 */
+	*result = KCERR_NOT_IMPLEMENTED;
+	return SOAP_OK;
 }
-SOAP_ENTRY_END()
 
 // softdelete the store from the database, so this function returns quickly
 SOAP_ENTRY_START(removeStore, *result, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result)
@@ -9056,23 +9059,25 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(writeABProps, *result, entryId sEntryId, struct propValArray *aPropVal, unsigned int *result)
+int ns__writeABProps(struct soap *, ULONG64, entryId, struct propValArray *,
+    unsigned int *r)
 {
-    er = KCERR_NOT_FOUND;
+	*r = KCERR_NOT_FOUND;
+	return SOAP_OK;
 }
-SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(deleteABProps, *result, entryId sEntryId, struct propTagArray *lpsPropTags, unsigned int *result)
+int ns__deleteABProps(struct soap *, ULONG64, entryId, struct propTagArray *,
+    unsigned int *r)
 {
-    er = KCERR_NOT_FOUND;
+	*r = KCERR_NOT_FOUND;
+	return SOAP_OK;
 }
-SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(loadABProp, lpsResponse->er, entryId sEntryId, unsigned int ulPropTag, struct loadPropResponse *lpsResponse)
+int ns__loadABProp(struct soap *, ULONG64, entryId, unsigned int,
+    struct loadPropResponse *)
 {
 	return SOAP_OK;
 }
-SOAP_ENTRY_END()
 
 /**
  * ns__abResolveNames
@@ -9873,17 +9878,19 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 SOAP_ENTRY_END()
 
 // legacy calls required for 6.30 clients
-SOAP_ENTRY_START(getServerBehavior, lpsResponse->er, struct getServerBehaviorResponse* lpsResponse) 
+int ns__getServerBehavior(struct soap *, ULONG64,
+    struct getServerBehaviorResponse *r)
 { 
-    lpsResponse->ulBehavior = 1; 
+	r->ulBehavior = 1;
+	r->er = 0;
+	return SOAP_OK;
 } 
-SOAP_ENTRY_END() 
  
-SOAP_ENTRY_START(setServerBehavior, *result, unsigned int ulBehavior, unsigned int *result) 
+int ns__setServerBehavior(struct soap *, ULONG64, unsigned int, unsigned int *r)
 { 
-    er = KCERR_NO_SUPPORT; 
+	*r = KCERR_NO_SUPPORT;
+	return SOAP_OK;
 } 
-SOAP_ENTRY_END() 
 
 typedef ECDeferredFunc<ECRESULT, ECRESULT(*)(void*), void*> task_type;
 struct MTOMStreamInfo;
@@ -10739,17 +10746,18 @@ SOAP_ENTRY_START(setLockState, *result, entryId sEntryId, bool bLocked, unsigned
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getUserClientUpdateStatus, lpsResponse->er, entryId sUserId, struct userClientUpdateStatusResponse *lpsResponse)
+int ns__getUserClientUpdateStatus(struct soap *, ULONG64, entryId,
+    struct userClientUpdateStatusResponse *r)
 {
-	return KCERR_NO_SUPPORT;
+	r->er = KCERR_NO_SUPPORT;
+	return SOAP_OK;
 }
-SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(removeAllObjects, *result, entryId sExceptUserId, unsigned int *result)
+int ns__removeAllObjects(struct soap *, ULONG64, entryId, unsigned int *r)
 {
-    er = KCERR_NO_SUPPORT;
+	*r = KCERR_NO_SUPPORT;
+	return SOAP_OK;
 }
-SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(resetFolderCount, lpsResponse->er, entryId sEntryId, struct resetFolderCountResponse *lpsResponse)
 {
