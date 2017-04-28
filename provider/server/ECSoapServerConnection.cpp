@@ -28,7 +28,6 @@
 
 #include "ECSoapServerConnection.h"
 #include "ECServerEntrypoint.h"
-#include "ECClientUpdate.h"
 #	include <dirent.h>
 #	include <fcntl.h>
 #	include <unistd.h>
@@ -98,31 +97,6 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 	}
 
 	return s;
-}
-
-/*
- * Handles the HTTP GET command from soap, only the client update install may be downloaded.
- *
- * This function can only be called when client_update_enabled is set to yes.
- */
-static int http_get(struct soap *soap) 
-{
-	int nRet = 404;
-
-	if (soap == NULL)
-		goto exit;
-
-	if (strncmp(soap->path, "/autoupdate", strlen("/autoupdate")) == 0) {
-		ec_log_debug("Client update request '%s'.", soap->path);
-		nRet = HandleClientUpdate(soap);
-	} else {
-		ec_log_debug("Unrecognized GET url '%s'.", soap->path);
-	}
-
-exit:
-	soap_end_send(soap); 
-
-	return nRet;
 }
 
 int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
@@ -231,7 +205,7 @@ ECSoapServerConnection::~ECSoapServerConnection(void)
 	delete m_lpDispatcher;
 }
 
-ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServerPort, bool bEnableGET)
+ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServerPort)
 {
 	int			socket = SOAP_INVALID_SOCKET;
 	struct soap	*lpsSoap = NULL;
@@ -242,9 +216,6 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 	//init soap
 	lpsSoap = soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
 	kopano_new_soap_listener(CONNECTION_TYPE_TCP, lpsSoap);
-
-	if (bEnableGET)
-		lpsSoap->fget = http_get;
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	lpsSoap->bind_flags = SO_REUSEADDR;
 	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? NULL : lpServerName, nServerPort, 100);
@@ -262,7 +233,9 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 	return erSuccess;
 }
 
-ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServerPort, bool bEnableGET, const char* lpszKeyFile, const char* lpszKeyPass, const char* lpszCAFile, const char* lpszCAPath)
+ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
+    int nServerPort, const char *lpszKeyFile, const char *lpszKeyPass,
+    const char *lpszCAFile, const char *lpszCAPath)
 {
 	ECRESULT	er = erSuccess;
 	int			socket = SOAP_INVALID_SOCKET;
@@ -277,9 +250,6 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 
 	lpsSoap = soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
 	kopano_new_soap_listener(CONNECTION_TYPE_SSL, lpsSoap);
-
-	if (bEnableGET)
-		lpsSoap->fget = http_get;
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 
 	if (soap_ssl_server_context(

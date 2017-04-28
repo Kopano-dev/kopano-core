@@ -249,7 +249,6 @@ kopano_stats_LDADD = \
 kopano_server_SOURCES = \
 	provider/server/ECServer.cpp \
 	provider/server/ECSoapServerConnection.cpp provider/server/ECSoapServerConnection.h \
-	provider/server/ECClientUpdate.cpp provider/server/ECClientUpdate.h \
 	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h \
 	provider/common/SOAPHelpers.cpp provider/common/SOAPHelpers.h \
 	provider/soap/soapServer.cpp

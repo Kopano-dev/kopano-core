@@ -10741,37 +10741,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getUserClientUpdateStatus, lpsResponse->er, entryId sUserId, struct userClientUpdateStatusResponse *lpsResponse)
 {
-	USE_DATABASE();
-	objectid_t sExternId;
-	unsigned int ulUserId = 0;
-	bool bHasLocalStore = false;
-
-	if (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("client_update_enabled")))
-		return KCERR_NO_SUPPORT;
-	er = GetLocalId(sUserId, 0, &ulUserId, &sExternId);
-	if (er != erSuccess)
-		return er;
-	er = CheckUserStore(lpecSession, ulUserId, ECSTORE_TYPE_PRIVATE, &bHasLocalStore);
-	if (er != erSuccess)
-		return er;
-	if (!bHasLocalStore)
-		return KCERR_NOT_FOUND;
-
-	strQuery = "SELECT trackid, UNIX_TIMESTAMP(updatetime), currentversion, latestversion, computername, status FROM clientupdatestatus WHERE userid="+stringify(ulUserId) + " LIMIT 1";
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-		return er;
-	lpDBRow = lpDBResult.fetch_row();
-	if (lpDBRow == nullptr)
-		return MAPI_E_NOT_FOUND;
-
-	if(lpDBRow[0]) lpsResponse->ulTrackId = atoui(lpDBRow[0]);
-	if(lpDBRow[1]) lpsResponse->tUpdatetime = atoui(lpDBRow[1]);
-	if(lpDBRow[2]) lpsResponse->lpszCurrentversion = s_strcpy(soap, lpDBRow[2]);
-	if(lpDBRow[3]) lpsResponse->lpszLatestversion =  s_strcpy(soap, lpDBRow[3]);
-	if(lpDBRow[4]) lpsResponse->lpszComputername =  s_strcpy(soap, lpDBRow[4]);
-	if(lpDBRow[5]) lpsResponse->ulStatus = atoui(lpDBRow[5]);
-	return erSuccess;
+	return KCERR_NO_SUPPORT;
 }
 SOAP_ENTRY_END()
 
@@ -10801,3 +10771,17 @@ SOAP_ENTRY_START(resetFolderCount, lpsResponse->er, entryId sEntryId, struct res
 	return ResetFolderCount(lpecSession, ulObjId, &lpsResponse->ulUpdates);
 }
 SOAP_ENTRY_END()
+
+int ns__getClientUpdate(struct soap *, struct clientUpdateInfoRequest,
+    struct clientUpdateResponse *r)
+{
+	r->er = KCERR_NO_SUPPORT;
+	return SOAP_OK;
+}
+
+int ns__setClientUpdateStatus(struct soap *, struct clientUpdateStatusRequest,
+    struct clientUpdateStatusResponse *r)
+{
+	r->er = KCERR_NO_SUPPORT;
+	return SOAP_OK;
+}
