@@ -928,10 +928,10 @@ static int running_server(char *szName, const char *szConfig,
 		
 		{ "cache_sortkey_size",		"0", CONFIGSETTING_UNUSED }, // Option not support, only for backward compatibility of all configurations under the 6.20
 
-		{ "client_update_enabled",	"no" },
-		{ "client_update_log_level", "1", CONFIGSETTING_RELOADABLE },
-		{ "client_update_path",		"/var/lib/kopano/client", CONFIGSETTING_RELOADABLE },
-		{ "client_update_log_path",	"/var/log/kopano/autoupdate", CONFIGSETTING_RELOADABLE },
+		{ "client_update_enabled",	"no" }, /* OBSOLETE */
+		{ "client_update_log_level", "1", CONFIGSETTING_RELOADABLE }, /* OBSOLETE */
+		{ "client_update_path",		"/var/lib/kopano/client", CONFIGSETTING_RELOADABLE }, /* OBSOLETE */
+		{ "client_update_log_path",	"/var/log/kopano/autoupdate", CONFIGSETTING_RELOADABLE }, /* OBSOLETE */
 		{ "index_services_enabled", "", CONFIGSETTING_UNUSED },
 		{ "index_services_path",    "", CONFIGSETTING_UNUSED },
 		{ "index_services_search_timeout", "", CONFIGSETTING_UNUSED },
@@ -1081,8 +1081,7 @@ static int running_server(char *szName, const char *szConfig,
 	// Setup a tcp connection
 	if (bTCPEnabled)
 	{
-		er = g_lpSoapServerConn->ListenTCP(g_lpConfig->GetSetting("server_bind"), atoi(g_lpConfig->GetSetting("server_tcp_port")),
-										   parseBool(g_lpConfig->GetSetting("client_update_enabled")));
+		er = g_lpSoapServerConn->ListenTCP(g_lpConfig->GetSetting("server_bind"), atoi(g_lpConfig->GetSetting("server_tcp_port")));
 		if(er != erSuccess) {
 			goto exit;
 		}
@@ -1092,7 +1091,6 @@ static int running_server(char *szName, const char *szConfig,
 	if (bSSLEnabled) {
 		er = g_lpSoapServerConn->ListenSSL(g_lpConfig->GetSetting("server_bind"),		// servername
 							atoi(g_lpConfig->GetSetting("server_ssl_port")),		// sslPort
-							parseBool(g_lpConfig->GetSetting("client_update_enabled")),	// HTTP GET command is enabled
 							g_lpConfig->GetSetting("server_ssl_key_file","",NULL),	// key file
 							g_lpConfig->GetSetting("server_ssl_key_pass","",NULL),	// key password
 							g_lpConfig->GetSetting("server_ssl_ca_file","",NULL),	// CA certificate file which signed clients

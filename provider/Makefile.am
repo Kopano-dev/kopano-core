@@ -52,7 +52,6 @@ kopano_server_LDADD = \
 kopano_server_SOURCES = \
 	server/ECServer.cpp \
 	server/ECSoapServerConnection.cpp server/ECSoapServerConnection.h \
-	server/ECClientUpdate.cpp server/ECClientUpdate.h \
 	server/ECThreadManager.cpp server/ECThreadManager.h
 
 libkcclient_la_SOURCES = \

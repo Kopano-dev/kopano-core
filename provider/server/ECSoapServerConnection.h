@@ -30,10 +30,8 @@ class ECSoapServerConnection _zcp_final {
 public:
 	ECSoapServerConnection(ECConfig* lpConfig, ECLogger* lpLogger);
 	~ECSoapServerConnection();
-
-	ECRESULT ListenTCP(const char* lpServerName, int nServerPort, bool bEnableGET);
-	ECRESULT ListenSSL(const char* lpServerName, int nServerPort, bool bEnableGET, const char* lpszKeyFile, const char* lpszKeyPass,
-						const char* lpszCAFile, const char* lpszCAPath);
+	ECRESULT ListenTCP(const char *host, int port);
+	ECRESULT ListenSSL(const char *host, int port, const char *keyfile, const char *keypass, const char *cafile, const char *capath);
 	ECRESULT ListenPipe(const char* lpPipeName, bool bPriority = false);
 
 	ECRESULT MainLoop();
