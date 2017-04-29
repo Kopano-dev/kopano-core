@@ -18,6 +18,8 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <cstdint>
+#include <cstdlib>
 #include <kopano/ECChannel.h>
 #include <kopano/stringutil.h>
 #include <csignal>
@@ -935,6 +937,42 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 	ec_log_info("Accepted connection from %s", lpChannel->peer_addr());
 	*lppChannel = lpChannel.release();
 	return hrSuccess;
+}
+
+std::set<std::pair<std::string, uint16_t>>
+kc_parse_bindaddrs(const char *longline, uint16_t defport)
+{
+	std::set<std::pair<std::string, uint16_t>> socks;
+
+	for (auto &&spec : tokenize(longline, ' ', true)) {
+		std::string host;
+		uint16_t port;
+		char *e = nullptr;
+		auto x = spec.find('[');
+		auto y = spec.find(']', x + 1);
+		if (x == 0 && y != std::string::npos) {
+			host = spec.substr(x + 1, y - x - 1);
+			y = spec.find(':', y);
+			if (y != std::string::npos) {
+				port = strtoul(spec.c_str() + y + 1, &e, 10);
+				if (e == nullptr || *e != '\0')
+					port = defport;
+			}
+		} else {
+			y = spec.find(':');
+			if (y != std::string::npos) {
+				port = strtoul(spec.c_str() + y + 1, &e, 10);
+				if (e == nullptr || *e != '\0')
+					port = defport;
+				spec.erase(y);
+			}
+			host = std::move(spec);
+			if (host == "*")
+				host = "";
+		}
+		socks.emplace(std::move(host), port);
+	}
+	return socks;
 }
 
 } /* namespace */
