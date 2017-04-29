@@ -723,9 +723,6 @@ static int running_server(char *szName, const char *szConfig,
 	std::string		dbError;
 
 	// Connections
-	bool			bSSLEnabled = false;
-	bool			bPipeEnabled = false;
-	bool			bTCPEnabled = false;
 	bool			hosted = false;
 	bool			distributed = false;
 
@@ -1007,21 +1004,6 @@ static int running_server(char *szName, const char *szConfig,
 	kopano_get_server_stats = kcsrv_get_server_stats;
 	kopano_initlibrary(g_lpConfig->GetSetting("mysql_database_path"), g_lpConfig->GetSetting("mysql_config_file"));
 
-	if(!strcmp(g_lpConfig->GetSetting("server_pipe_enabled"), "yes"))
-		bPipeEnabled = true;
-	else
-		bPipeEnabled = false;
-
-	if(!strcmp(g_lpConfig->GetSetting("server_tcp_enabled"), "yes"))
-		bTCPEnabled = true;
-	else
-		bTCPEnabled = false;
-
-	if(!strcmp(g_lpConfig->GetSetting("server_ssl_enabled"), "yes"))
-		bSSLEnabled = true;
-	else
-		bSSLEnabled = false;
-
     soap_ssl_init(); // Always call this in the main thread once!
 
     ssl_threading_setup();
@@ -1030,15 +1012,14 @@ static int running_server(char *szName, const char *szConfig,
 	g_lpSoapServerConn = new ECSoapServerConnection(g_lpConfig);
 
 	// Setup a TCP connection
-	if (bTCPEnabled)
-	{
+	if (strcmp(g_lpConfig->GetSetting("server_tcp_enabled"), "yes") == 0) {
 		er = g_lpSoapServerConn->ListenTCP(g_lpConfig->GetSetting("server_bind"), atoi(g_lpConfig->GetSetting("server_tcp_port")));
 		if (er != erSuccess)
 			goto exit;
 	}
 
 	// Setup SSL connection
-	if (bSSLEnabled) {
+	if (strcmp(g_lpConfig->GetSetting("server_ssl_enabled"), "yes") == 0) {
 		er = g_lpSoapServerConn->ListenSSL(g_lpConfig->GetSetting("server_bind"),		// servername
 							atoi(g_lpConfig->GetSetting("server_ssl_port")),		// sslPort
 							g_lpConfig->GetSetting("server_ssl_key_file","",NULL),	// key file
@@ -1069,7 +1050,7 @@ static int running_server(char *szName, const char *szConfig,
 	if (er != erSuccess)
 		goto exit;
 	// Setup a pipe connection
-	if (bPipeEnabled) {
+	if (strcmp(g_lpConfig->GetSetting("server_pipe_enabled"), "yes") == 0) {
 		er = g_lpSoapServerConn->ListenPipe(g_lpConfig->GetSetting("server_pipe_name"));
 		if (er != erSuccess)
 			goto exit;
