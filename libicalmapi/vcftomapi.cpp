@@ -52,6 +52,7 @@ class vcftomapi_impl _kc_final : public vcftomapi {
 	HRESULT handle_N(VObject *);
 	HRESULT handle_TEL(VObject *);
 	HRESULT handle_EMAIL(VObject *);
+	HRESULT handle_ADR(VObject *);
 	HRESULT vobject_to_prop(VObject *, SPropValue &, ULONG proptype);
 	HRESULT vobject_to_named_prop(VObject *, SPropValue &, ULONG named_proptype);
 	HRESULT unicode_to_named_prop(const wchar_t *, SPropValue &, ULONG named_proptype);
@@ -144,6 +145,66 @@ HRESULT vcftomapi_impl::handle_EMAIL(VObject *v)
 	return hrSuccess;
 }
 
+HRESULT vcftomapi_impl::handle_ADR(VObject *v)
+{
+	enum { OTHER, WORK, HOME } adr_type = OTHER;
+	VObjectIterator t;
+
+	initPropIterator(&t, v);
+	if (moreIteration(&t)) {
+		auto vv = nextVObject(&t);
+		auto name = vObjectName(vv);
+
+		const char *namep = strcmp(name, "TYPE") == 0 ? vObjectStringZValue(vv) : name;
+		if (strcmp(namep, "HOME") == 0)
+			adr_type = HOME;
+		else if (strcmp(namep, "WORK") == 0)
+			adr_type = WORK;
+	}
+
+	while (moreIteration(&t)) {
+		auto vv = nextVObject(&t);
+		auto name = vObjectName(vv);
+		SPropValue s;
+
+		s.ulPropTag = 0;
+
+		if (adr_type == HOME && !strcmp(name, "STREET"))
+			vobject_to_prop(vv, s, PR_HOME_ADDRESS_STREET);
+		else if (adr_type == HOME && !strcmp(name, "L"))
+			vobject_to_prop(vv, s, PR_HOME_ADDRESS_CITY);
+		else if (adr_type == HOME && !strcmp(name, "R"))
+			vobject_to_prop(vv, s, PR_HOME_ADDRESS_STATE_OR_PROVINCE);
+		else if (adr_type == HOME && !strcmp(name, "PC"))
+			vobject_to_prop(vv, s, PR_HOME_ADDRESS_POSTAL_CODE);
+		else if (adr_type == HOME && !strcmp(name, "C"))
+			vobject_to_prop(vv, s, PR_HOME_ADDRESS_COUNTRY);
+		else if (adr_type == WORK && !strcmp(name, "STREET"))
+			vobject_to_named_prop(vv, s, 0x8045);
+		else if (adr_type == WORK && !strcmp(name, "L"))
+			vobject_to_named_prop(vv, s, 0x8046);
+		else if (adr_type == WORK && !strcmp(name, "R"))
+			vobject_to_named_prop(vv, s, 0x8047);
+		else if (adr_type == WORK && !strcmp(name, "PC"))
+			vobject_to_named_prop(vv, s, 0x8048);
+		else if (adr_type == WORK && !strcmp(name, "C"))
+			vobject_to_named_prop(vv, s, 0x8049);
+		else if (adr_type == OTHER && !strcmp(name, "STREET"))
+			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_STREET);
+		else if (adr_type == OTHER && !strcmp(name, "L"))
+			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_CITY);
+		else if (adr_type == OTHER && !strcmp(name, "R"))
+			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_STATE_OR_PROVINCE);
+		else if (adr_type == OTHER && !strcmp(name, "PC"))
+			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_POSTAL_CODE);
+		else if (adr_type == OTHER && !strcmp(name, "C"))
+			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_COUNTRY);
+
+		if (s.ulPropTag > 0)
+			props.push_back(s);
+	}
+}
+
 /**
  * Parses an ICal string (with a certain charset) and converts the
  * data in memory. The real MAPI object can be retrieved using
@@ -191,6 +252,10 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 				return hr;
 		} else if (strcmp(name, VCEmailAddressProp) == 0) {
 			hr = handle_EMAIL(v);
+			if (hr != hrSuccess)
+				return hr;
+		} else if (strcmp(name, VCAdrProp) == 0) {
+			hr = handle_ADR(v);
 			if (hr != hrSuccess)
 				return hr;
 		}
