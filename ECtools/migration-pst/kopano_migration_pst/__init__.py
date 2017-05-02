@@ -99,6 +99,8 @@ class Service(kopano.Service):
                 if self.options.import_root:
                     path = self.options.import_root + '/' + path
                 folder2 = user.folder(path, create=True)
+                if self.options.clean_folders:
+                    folder2.empty()
                 if folder.ContainerClass:
                     folder2.container_class = folder.ContainerClass
                 for message in p.message_generator(folder):
@@ -158,6 +160,7 @@ def main():
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
     parser.add_option('', '--import-root', dest='import_root', action='store', help='import under specific folder', metavar='PATH')
+    parser.add_option('', '--clean-folders', dest='clean_folders', action='store_true', default=False, help='empty folders before import (dangerous!)', metavar='PATH')
 
     options, args = parser.parse_args()
     options.service = False
