@@ -2815,12 +2815,8 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 
 	lstFolders.clear();
 
-	hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &~lpPropVal);
-	if (hr != hrSuccess)
-		return hr;
-
 	// make folders list from IPM_SUBTREE
-	hr = HrGetSubTree(lstFolders, lpPropVal->Value.bin, wstring(), lstFolders.end());
+	hr = HrGetSubTree(lstFolders, false, lstFolders.end());
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
@@ -2836,14 +2832,8 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 	if(!lpPublicStore)
 		return hr;
 
-	hr = HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropVal);
-	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuration, but Public Folders inside public store could not be found.");
-		return hrSuccess;
-	}
-
 	// make public folder folders list
-	hr = HrGetSubTree(lstFolders, lpPropVal->Value.bin, PUBLIC_FOLDERS_NAME, --lstFolders.end());
+	hr = HrGetSubTree(lstFolders, true, --lstFolders.end());
 	if (hr != hrSuccess)
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuration, but Public Folders inside public store could not be found.");
 
@@ -2873,7 +2863,7 @@ HRESULT IMAP::HrGetSubscribedList() {
 	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpSession->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpInbox);
+	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpInbox->OpenProperty(PR_EC_IMAP_SUBSCRIBED, &IID_IStream, 0, 0, &~lpStream);
@@ -3016,7 +3006,7 @@ HRESULT IMAP::HrMakeSpecialsList() {
 
 	// inbox is special too
 	lstSpecialEntryIDs.insert(BinaryArray(reinterpret_cast<unsigned char *>(lpEntryID.get()), cbEntryID));
-	hr = lpSession->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpInbox);
+	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpInbox->GetProps(sPropsInbox, 0, &cValues, &~lpPropArrayInbox);
@@ -3244,14 +3234,44 @@ HRESULT IMAP::HrGetFolderPath(list<SFolder>::const_iterator lpFolder, const list
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, const wstring &in_folder_name, list<SFolder>::const_iterator parent_folder)
+HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFolder>::const_iterator parent_folder)
 {
-	if (lpSession == nullptr)
-		return MAPI_E_CALL_FAILED;
+	object_ptr<IMAPIFolder> mapi_folder;
+	memory_ptr<SPropValue> sprop;
+	ULONG obj_type;
+	wstring in_folder_name;
+
+	if (public_folders) {
+		if (lpPublicStore == nullptr)
+			return MAPI_E_CALL_FAILED;
+
+		HRESULT hr = HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~sprop);
+		if (hr != hrSuccess) {
+			lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuration, but Public Folders inside public store could not be found.");
+			return hrSuccess;
+		}
+		hr = lpPublicStore->OpenEntry(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &IID_IMAPIFolder, 0, &obj_type, &~mapi_folder);
+		if (hr != hrSuccess)
+			return hr;
+
+		in_folder_name = PUBLIC_FOLDERS_NAME;
+	} else {
+		if (lpStore == nullptr)
+			return MAPI_E_CALL_FAILED;
+
+		HRESULT hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &~sprop);
+		if (hr != hrSuccess)
+			return hr;
+
+		hr = lpStore->OpenEntry(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &IID_IMAPIFolder, 0, &obj_type, &~mapi_folder);
+		if (hr != hrSuccess)
+			return hr;
+
+	}
 
 	SFolder sfolder;
 	sfolder.bActive = true;
-	sfolder.bSpecialFolder = IsSpecialFolder(in_entry_id.cb, reinterpret_cast<ENTRYID *>(in_entry_id.lpb));
+	sfolder.bSpecialFolder = IsSpecialFolder(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb));
 	sfolder.bMailFolder = false;
 	sfolder.lpParentFolder = parent_folder;
 	sfolder.strFolderName = in_folder_name;
@@ -3259,12 +3279,6 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, const SBinary &in_entry_id, c
 	folders.push_front(sfolder);
 
 	parent_folder = folders.cbegin();
-
-	ULONG obj_type;
-	object_ptr<IMAPIFolder> mapi_folder;
-	HRESULT hr = lpSession->OpenEntry(in_entry_id.cb, reinterpret_cast<ENTRYID *>(in_entry_id.lpb), &IID_IMAPIFolder, 0, &obj_type, &~mapi_folder);
-	if (hr != hrSuccess)
-		return hr;
 
 	enum { EID, PEID, NAME, IMAPID, SUBFOLDERS, CONTAINERCLASS, NUM_COLS };
 	try {
