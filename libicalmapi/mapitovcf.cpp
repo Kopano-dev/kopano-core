@@ -107,6 +107,18 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
 
+	hr = HrGetOneProp(lpMessage, PR_TITLE, &~msgprop);
+	if (hr == hrSuccess)
+		to_prop(root, VCTitleProp, *msgprop);
+	else if (hr != MAPI_E_NOT_FOUND)
+		return hr;
+
+	hr = HrGetOneProp(lpMessage, PR_COMPANY_NAME, &~msgprop);
+	if (hr == hrSuccess)
+		to_prop(root, VCOrgProp, *msgprop);
+	else if (hr != MAPI_E_NOT_FOUND)
+		return hr;
+
 	hr = HrGetOneProp(lpMessage, PR_HOME_TELEPHONE_NUMBER, &~msgprop);
 	if (hr == hrSuccess) {
 		auto node = to_prop(root, VCTelephoneProp, *msgprop);

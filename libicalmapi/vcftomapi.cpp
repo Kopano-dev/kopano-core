@@ -159,15 +159,29 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 	auto v_orig = v;
 	VObjectIterator t;
 	for (initPropIterator(&t, v); moreIteration(&t); ) {
+		SPropValue s;
 		v = nextVObject(&t);
 		auto name = vObjectName(v);
+
+		if (vObjectValueType(v) == VCVT_NOVALUE)
+			continue;
+
 		if (strcmp(name, VCNameProp) == 0) {
 			hr = handle_N(v);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strcmp(name, VCFullNameProp) == 0) {
-			SPropValue s;
 			hr = vobject_to_prop(v, s, PR_DISPLAY_NAME);
+			if (hr != hrSuccess)
+				return hr;
+			props.push_back(s);
+		} else if (strcmp(name, VCTitleProp) == 0) {
+			hr = vobject_to_prop(v, s, PR_TITLE);
+			if (hr != hrSuccess)
+				return hr;
+			props.push_back(s);
+		} else if (strcmp(name, VCOrgProp) == 0) {
+			hr = vobject_to_prop(v, s, PR_COMPANY_NAME);
 			if (hr != hrSuccess)
 				return hr;
 			props.push_back(s);
@@ -204,6 +218,8 @@ HRESULT vcftomapi_impl::vobject_to_prop(VObject *v, SPropValue &s, ULONG proptyp
 			return ret;
 		wcscpy(s.Value.lpszW, uval);
 	}
+	else
+		return MAPI_E_CALL_FAILED;
 
 	return hrSuccess;
 }
