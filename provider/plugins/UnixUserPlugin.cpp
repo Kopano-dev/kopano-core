@@ -490,7 +490,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	for (const auto &obj : *objectlist) {
 		if (!objectstrings[obj.id.objclass].empty())
 			objectstrings[obj.id.objclass] += ", ";
-		objectstrings[obj.id.objclass] += obj.id.id;
+		objectstrings[obj.id.objclass] += m_lpDatabase->Escape(obj.id.id);
 	}
 
 	// make list of obsolete objects
@@ -612,7 +612,10 @@ UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 		break;
 	}
 
-	strQuery = "SELECT id FROM " + (string)DB_OBJECT_TABLE + " WHERE externid = '" + externid.id + "' AND objectclass = " + stringify(externid.objclass);
+	auto id = m_lpDatabase->Escape(externid.id);
+	auto objclass = stringify(externid.objclass);
+
+	strQuery = "SELECT id FROM " + (string)DB_OBJECT_TABLE + " WHERE externid = '" + id + "' AND objectclass = " + objclass;
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(externid.id);
@@ -620,10 +623,10 @@ UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 	lpRow = m_lpDatabase->FetchRow(lpResult);
 
 	if (lpRow && lpRow[0]) {
-		strQuery = "UPDATE " + (string)DB_OBJECT_TABLE + " SET externid='" + externid.id + "',objectclass=" + stringify(externid.objclass) + " WHERE id=" + lpRow[0];
+		strQuery = "UPDATE " + (string)DB_OBJECT_TABLE + " SET externid='" + id + "',objectclass=" + objclass + " WHERE id=" + lpRow[0];
 		er = m_lpDatabase->DoUpdate(strQuery);
 	} else {
-		strQuery = "INSERT INTO " + (string)DB_OBJECT_TABLE + " (externid, objectclass) VALUES ('" + externid.id + "', " + stringify(externid.objclass) + ")";
+		strQuery = "INSERT INTO " + (string)DB_OBJECT_TABLE + " (externid, objectclass) VALUES ('" + id + "', " + objclass + ")";
 		er = m_lpDatabase->DoInsert(strQuery);
 	}
 	if (er != erSuccess)
