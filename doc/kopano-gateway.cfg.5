@@ -280,6 +280,17 @@ Default:
 \fI10\fR
 .RE
 .PP
+\fBimap_ignore_command_idle\fR
+.RS 4
+Some MUAs are sending commands via idle causing the connection
+to reach \fIimap_max_fail_commands\fR and leaves the client in a
+broken state\&. The clients include Apple Mail\&. If you experience
+problems or uses Apple Mail set this option to \fIyes\fR\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
 \fBdisable_plaintext_auth\fR
 .RS 4
 Disable all plaintext POP3 and IMAP authentications unless SSL/TLS is used (except for connections originating from localhost, to allow saslauthd with rimap)\&. Obviously, this requires at least
