@@ -188,7 +188,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(self.prop(PR_COMMON_VIEWS_ENTRYID).value))
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     @property
@@ -252,7 +252,7 @@ class Store(Base):
         try:
             entryid = _utils.extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_SUGGESTED_CONTACTS)
             return _folder.Folder(self, entryid)
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     @property
@@ -262,7 +262,7 @@ class Store(Base):
         try:
             entryid = _utils.extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_RSS_SUBSCRIPTION)
             return _folder.Folder(self, entryid)
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     def delete(self, objects):
@@ -543,7 +543,7 @@ class Store(Base):
                 prop = folder.prop(PR_FOLDER_DISPLAY_FLAGS)
                 subprops = self._subprops(prop.value)
                 guid_folder[subprops[2]] = folder
-            except MAPIErrorNotFound:
+            except NotFoundError:
                 pass
 
         # match common_views SFInfo records against these guids

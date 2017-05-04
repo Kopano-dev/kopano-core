@@ -18,6 +18,7 @@ from MAPI.Struct import SPropValue, MAPIErrorNotFound
 from MAPI.Time import unixtime
 
 from .compat import repr as _repr, fake_unicode as _unicode
+from .errors import NotFoundError
 
 class OutOfOffice(object):
     """OutOfOffice class
@@ -36,7 +37,7 @@ class OutOfOffice(object):
 
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             return False
 
     @enabled.setter
@@ -50,7 +51,7 @@ class OutOfOffice(object):
 
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE_SUBJECT_W).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             return u''
 
     @subject.setter
@@ -64,7 +65,7 @@ class OutOfOffice(object):
 
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE_MSG_W).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             return u''
 
     @message.setter
@@ -77,7 +78,7 @@ class OutOfOffice(object):
         """ Out-of-office is activated from the particular datetime onwards """
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE_FROM).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     @start.setter
@@ -94,7 +95,7 @@ class OutOfOffice(object):
         """ Out-of-office is activated until the particular datetime """
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE_UNTIL).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     @end.setter

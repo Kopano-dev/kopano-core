@@ -125,7 +125,7 @@ def prop(self, mapiobj, proptag, create=False, value=None, proptype=None): # XXX
             if create:
                 return create_prop(self, mapiobj, proptag, value=value, proptype=proptype)
             else:
-                raise e
+                raise NotFoundError('no such property: %s' % REV_TAG.get(proptag, hex(proptag)))
         return Property(mapiobj, sprop)
 
     else:
@@ -140,7 +140,7 @@ def prop(self, mapiobj, proptag, create=False, value=None, proptype=None): # XXX
         if create:
             create_prop(self, mapiobj, proptag, value=value, proptype=proptype)
         else:
-            raise MAPIErrorNotFound()
+            raise NotFoundError('no such property: %s' % proptag)
 
 def props(mapiobj, namespace=None):
     proptags = mapiobj.GetPropList(MAPI_UNICODE)

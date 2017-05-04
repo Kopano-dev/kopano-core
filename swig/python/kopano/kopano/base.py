@@ -7,9 +7,8 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 
 import sys
 
-from MAPI.Struct import MAPIErrorNotFound
-
 from .compat import repr as _repr
+from .errors import NotFoundError
 
 if sys.hexversion >= 0x03000000:
     from . import prop as _prop
@@ -36,7 +35,7 @@ class Base(object):
 
         try:
             return self.prop(proptag)
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     def create_prop(self, proptag, value, proptype=None):

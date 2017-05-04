@@ -71,7 +71,7 @@ from .defs import (
     NAMED_PROPS_ARCHIVER, NAMED_PROP_CATEGORY, ADDR_PROPS,
     PSETID_Archive
 )
-from .errors import Error
+from .errors import Error, NotFoundError
 
 from .attachment import Attachment
 from .body import Body
@@ -224,7 +224,7 @@ class Item(Base):
 
         try:
             return self.prop(PR_SUBJECT_W).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             return u''
 
     @subject.setter
@@ -272,7 +272,7 @@ class Item(Base):
     def created(self):
         try:
             return self.prop(PR_CREATION_TIME).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     @property
@@ -281,14 +281,14 @@ class Item(Base):
 
         try:
             return self.prop(PR_MESSAGE_DELIVERY_TIME).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     @property
     def last_modified(self):
         try:
             return self.prop(PR_LAST_MODIFICATION_TIME).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     @property
@@ -321,7 +321,7 @@ class Item(Base):
         proptag = CHANGE_PROP_TYPE(proptag, PT_MV_STRING8)
         try:
             value = self.prop(proptag).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             value = []
         return PersistentList(self.mapiobj, proptag, value)
 
@@ -349,7 +349,7 @@ class Item(Base):
         # TODO: userfriendly repr of value
         try:
             return self.prop(PR_IMPORTANCE).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     @importance.setter
@@ -438,7 +438,7 @@ class Item(Base):
             message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS_W)
             headers = email.parser.Parser().parsestr(_encode(message_headers.value), headersonly=True)
             return headers
-        except MAPIErrorNotFound:
+        except NotFoundError:
             return {}
 
     def eml(self, received_date=False):

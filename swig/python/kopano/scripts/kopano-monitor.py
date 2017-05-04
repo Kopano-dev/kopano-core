@@ -48,7 +48,7 @@ class Monitor(kopano.Service):
         config_item = user.store.config_item('Kopano.Quota')
         try:
             mail_time = config_item.prop(PR_EC_QUOTA_MAIL_TIME)
-        except MAPIErrorNotFound: # XXX use some kind of defaulting, so try/catch is not necessary
+        except kopano.NotFoundError: # XXX use some kind of defaulting, so try/catch is not necessary
             mail_time = None # set default?
         if not mail_time or datetime.now() - mail_time.pyval > timedelta(days=1):
             mail_time.value = datetime.now()
