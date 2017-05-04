@@ -27,6 +27,8 @@
 #include <kopano/mapiguidext.h>
 #include "mapitovcf.hpp"
 
+using namespace KCHL;
+
 namespace KC {
 
 class mapitovcf_impl _kc_final : public mapitovcf {
@@ -77,7 +79,7 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	KCHL::memory_ptr<SPropValue> lpMessageClass;
+	memory_ptr<SPropValue> lpMessageClass;
 
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -88,7 +90,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return MAPI_E_INVALID_PARAMETER;
 
 	auto root = newVObject(VCCardProp);
-	KCHL::memory_ptr<SPropValue> msgprop, msgprop2;
+	memory_ptr<SPropValue> msgprop, msgprop2;
 	hr = HrGetOneProp(lpMessage, PR_GIVEN_NAME, &~msgprop);
 	HRESULT hr2 = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop2);
 	if (hr == hrSuccess || hr2 == hrSuccess) {
@@ -143,7 +145,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		name.ulKind = MNID_ID;
 		name.Kind.lID = lid;
 
-		KCHL::memory_ptr<SPropTagArray> proptag;
+		memory_ptr<SPropTagArray> proptag;
 		hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
 		if (hr != hrSuccess)
 			continue;
@@ -160,7 +162,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		{5, {PR_HOME_ADDRESS_STREET, PR_HOME_ADDRESS_CITY,
 			 PR_HOME_ADDRESS_STATE_OR_PROVINCE, PR_HOME_ADDRESS_POSTAL_CODE,
 			 PR_HOME_ADDRESS_COUNTRY}};
-	KCHL::memory_ptr<SPropValue> msgprop_array;
+	memory_ptr<SPropValue> msgprop_array;
 	unsigned int count;
 
 	hr = lpMessage->GetProps(home_props, 0, &count, &~msgprop_array);
@@ -190,12 +192,12 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
 	}
 
-	KCHL::memory_ptr<MAPINAMEID> nameids;
+	memory_ptr<MAPINAMEID> nameids;
 	hr = MAPIAllocateBuffer(5 * sizeof(MAPINAMEID), &~nameids);
 	if (hr != hrSuccess)
 		return hr;
 
-	KCHL::memory_ptr<MAPINAMEID *> nameids_ptrs;
+	memory_ptr<MAPINAMEID *> nameids_ptrs;
 	hr = MAPIAllocateBuffer(5 * sizeof(MAPINAMEID *), &~nameids_ptrs);
 	if (hr != hrSuccess)
 		return hr;
@@ -207,7 +209,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		nameids_ptrs[i] = &nameids[i];
 	}
 
-	KCHL::memory_ptr<SPropTagArray> proptag;
+	memory_ptr<SPropTagArray> proptag;
 	hr = lpMessage->GetIDsFromNames(5, nameids_ptrs, MAPI_BEST_ACCESS, &~proptag);
 	if (hr == hrSuccess) {
 		for (size_t i = 0; i < 5; ++i)
