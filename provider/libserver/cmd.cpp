@@ -1019,11 +1019,10 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	if(er != erSuccess)
 		goto exit;
 
-	ulStores = lpDatabase->GetNumRows(lpDBResult);
+	ulStores = lpDBResult.get_num_rows();
 	if(ulStores > 0)
 	{
-		while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-		{
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow == NULL || lpDBRow[0] == NULL)
 				continue;
 
@@ -1065,14 +1064,12 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	if(er != erSuccess)
 		goto exit;
 
-	ulFolders = lpDatabase->GetNumRows(lpDBResult);
+	ulFolders = lpDBResult.get_num_rows();
 	if(ulFolders > 0)
 	{
 		// Remove all items
 		lObjectIds.clear();
-
-		while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-		{
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow == NULL || lpDBRow[0] == NULL)
 				continue;
 
@@ -1107,14 +1104,12 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	if(er != erSuccess)
 		goto exit;
 
-	ulMessages = lpDatabase->GetNumRows(lpDBResult);
+	ulMessages = lpDBResult.get_num_rows();
 	if(ulMessages > 0)
 	{
 		// Remove all items
 		lObjectIds.clear();
-
-		while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-		{
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow == NULL || lpDBRow[0] == NULL)
 				continue;
 
@@ -1238,11 +1233,10 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if (lpDatabase->GetNumRows(lpDBResult) == 0)
+	if (lpDBResult.get_num_rows() == 0)
 		return KCERR_NOT_FOUND;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL ||
 		lpDBLen == NULL || lpDBLen[1] == 0)
 	{
@@ -1330,14 +1324,14 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if (lpDatabase->GetNumRows(lpDBResult) == 0)
+	if (lpDBResult.get_num_rows() == 0)
 		return KCERR_NOT_FOUND;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL) {
 		ec_log_err("getStore(): no rows from db");
 		return KCERR_DATABASE_ERROR; // this should never happen
 	}
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	/*
 	 * Avoid processing SQL NULL, or memory blocks that are not
 	 * NUL-terminated.
@@ -1561,10 +1555,8 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
         if(er != erSuccess)
 			return er;
 
-        if(lpDatabase->GetNumRows(lpDBResult) > 0)
-        {
-            lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+		if (lpDBResult.get_num_rows() > 0) {
+			lpDBRow = lpDBResult.fetch_row();
             if(lpDBRow && lpDBRow[0]) {
 
                 if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_PARENT_ENTRYID, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess)
@@ -1641,15 +1633,12 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
 			goto exit;
-
-		if(lpDatabase->GetNumRows(lpDBResult) != 1) {
+		if (lpDBResult.get_num_rows() != 1) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBRow = lpDBResult.fetch_row();
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL)
 		{
 			er = KCERR_DATABASE_ERROR;
@@ -1718,7 +1707,7 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL)
 		llSize = 0;
 	else
@@ -1733,11 +1722,9 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 	if(er != erSuccess)
 		return er;
 
-	if(lpDatabase->GetNumRows(lpDBResult) > 0)
-	{
+	if (lpDBResult.get_num_rows() > 0) {
 		// Walk through the folder list
-		while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-		{
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
 				continue; //Skip item
 
@@ -1849,8 +1836,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 					ec_log_err("WriteProps(): DoSelect failed %x", er);
 					return er;
 				}
-
-				if(lpDatabase->GetNumRows(lpDBResult) > 0) {
+				if (lpDBResult.get_num_rows() > 0) {
 					ec_log_err("WriteProps(): Folder already exists while putting folder");
 					return KCERR_COLLISION;
 				}
@@ -2567,8 +2553,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 					er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 					if(er != erSuccess)
 						goto exit;
-						
-					fHasAttach = lpDatabase->GetNumRows(lpDBResult) > 0;
+					fHasAttach = lpDBResult.get_num_rows() > 0;
 				}
 			}
 			
@@ -2809,9 +2794,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if (er != erSuccess)
                 goto exit;
-                
-            lpDBRow = lpDatabase->FetchRow(lpDBResult);
-            
+			lpDBRow = lpDBResult.fetch_row();
             if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
                 ulPrevReadState = 0;
             else
@@ -3062,15 +3045,13 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
 			goto exit;
-
-		sSavedObject.__size = lpDatabase->GetNumRows(lpDBResult);
+		sSavedObject.__size = lpDBResult.get_num_rows();
 		sSavedObject.__ptr = s_alloc<saveObject>(soap, sSavedObject.__size);
 		memset(sSavedObject.__ptr, 0, sizeof(saveObject) * sSavedObject.__size);
 
 		for (gsoap_size_t i = 0; i < sSavedObject.__size; ++i) {
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+			lpDBRow = lpDBResult.fetch_row();
+			lpDBLen = lpDBResult.fetch_row_lengths();
 			if(lpDBRow == NULL || lpDBLen == NULL) {
 				er = KCERR_DATABASE_ERROR; // this should never happen
 				ec_log_err("LoadObject(): no rows from db");
@@ -3313,7 +3294,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 	if(er != erSuccess)
 		return er;
 
-	while (!bExist && (lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+	while (!bExist && (lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 			ec_log_err("CreateFolder(): columns null");
 			return KCERR_DATABASE_ERROR;
@@ -4424,16 +4405,12 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 		goto exit;
 	}
 
-	er = lpDatabase->Begin();
-	if(er != erSuccess)
-		goto exit;
-
 	lpsResponse->lpsPropTags.__ptr = s_alloc<unsigned int>(soap, lpsNamedProps->__size);
 	lpsResponse->lpsPropTags.__size = 0;
 
-	// One query per named property (too slow ?) FIXME could be faster if brought down to less SQL queries
+	strQuery = "SELECT id, nameid, namestring, guid FROM names WHERE ";
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
-		strQuery = "SELECT id FROM names WHERE ";
+		strQuery += "(";
 
 		// ID, then add ID where clause
 		if(lpsNamedProps->__ptr[i].lpId != NULL) {
@@ -4446,6 +4423,7 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 			strQuery += "namestring='" + strEscapedString + "' ";
 		}
+		/* else { Handle this, it will break the SQL query, iff guid is present } */
 
 		// Add a GUID specifier if there
 		if(lpsNamedProps->__ptr[i].lpguid != NULL) {
@@ -4453,74 +4431,87 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 			strQuery += "AND guid=" + strEscapedGUID;
 		}
-		strQuery += " LIMIT 1";
 
-		// Run the query
-		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-		if(er != erSuccess)
-			goto exit;
+		strQuery += ")";
+		if (i != lpsNamedProps->__size - 1)
+			strQuery += " OR ";
+	}
 
-		if(lpDatabase->GetNumRows(lpDBResult) == 0) {
-			// No rows found, so the named property has not been registered yet
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if(er != erSuccess)
+		goto exit;
 
-			if(ulFlags & MAPI_CREATE) {
-				// Create requested ? then add a new named property
+	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i)
+		lpsResponse->lpsPropTags.__ptr[i] = 0;
 
-				// GUID must be specified with create
-				if(lpsNamedProps->__ptr[i].lpguid == NULL) {
-					er = KCERR_NO_ACCESS;
-					goto exit;
-				}
+	for (size_t i = 0; i < lpDBResult.get_num_rows(); ++i) {
+		lpDBRow = lpDBResult.fetch_row();
+		if (lpDBRow == nullptr)
+			continue;
+		for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
+			std::string nameid, namestring;
 
-				strQuery = "INSERT INTO names (nameid, namestring, guid) VALUES(";
+			if (lpsNamedProps->__ptr[i].lpId != nullptr)
+				nameid = stringify(*lpsNamedProps->__ptr[i].lpId);
+			else if (lpsNamedProps->__ptr[i].lpString != nullptr)
+				namestring = lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString);
 
-				if (lpsNamedProps->__ptr[i].lpId)
-					strQuery += stringify(*lpsNamedProps->__ptr[i].lpId);
-				else
-					strQuery += "null";
-
-				strQuery += ",";
-
-				if (lpsNamedProps->__ptr[i].lpString)
-					strQuery += "'" + strEscapedString + "'";
-				else
-					strQuery += "null";
-
-				strQuery += ",";
-
-				if (lpsNamedProps->__ptr[i].lpguid)
-					strQuery += strEscapedGUID;
-				else
-					strQuery += "null";
-
-				strQuery += ")";
-
-				er = lpDatabase->DoInsert(strQuery, &ulLastId);
-				if(er != erSuccess)
-					goto exit;
-
-				lpsResponse->lpsPropTags.__ptr[i] = ulLastId+1; // offset one because 0 is 'not found'
-			} else {
-				// No create ? Then not found
-				lpsResponse->lpsPropTags.__ptr[i] = 0;
+			if (lpsNamedProps->__ptr[i].lpguid == nullptr ||  lpDBRow[3] == nullptr ||
+			    memcmp(lpsNamedProps->__ptr[i].lpguid->__ptr, lpDBRow[3], lpsNamedProps->__ptr[i].lpguid->__size) != 0)
+				continue;
+			if ((nameid.size() > 0 && lpDBRow[1] && nameid.compare(lpDBRow[1]) == 0) ||
+			    (namestring.size() > 0 && lpDBRow[2] && namestring.compare(lpDBRow[2]) == 0)) {
+				lpsResponse->lpsPropTags.__ptr[i] = atoi(lpDBRow[0]) + 1;
+				break;
 			}
-		} else {
-			// found it
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
-			if(lpDBRow!= NULL && lpDBRow[0] != NULL)
-				lpsResponse->lpsPropTags.__ptr[i] = atoi(lpDBRow[0])+1;
-			else
-				lpsResponse->lpsPropTags.__ptr[i] = 0;
 		}
 	}
 
+	if (!(ulFlags & MAPI_CREATE))
+		goto done;
+	er = lpDatabase->Begin();
+	if (er != erSuccess)
+		goto exit;
+
+	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
+		if (lpsResponse->lpsPropTags.__ptr[i] != 0)
+			continue;
+		if (lpsNamedProps->__ptr[i].lpguid == nullptr) {
+			er = KCERR_NO_ACCESS;
+			goto exit;
+		}
+
+		strQuery = "INSERT INTO names (nameid, namestring, guid) VALUES(";
+		if (lpsNamedProps->__ptr[i].lpId != 0)
+			strQuery += stringify(*lpsNamedProps->__ptr[i].lpId);
+		else
+			strQuery += "null";
+
+		strQuery += ",";
+		if (lpsNamedProps->__ptr[i].lpString != nullptr) {
+			strEscapedString = lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString);
+			strQuery += "'" + strEscapedString + "'";
+		} else {
+			strQuery += "null";
+		}
+
+		strQuery += ",";
+		strEscapedGUID = lpDatabase->EscapeBinary(lpsNamedProps->__ptr[i].lpguid->__ptr, lpsNamedProps->__ptr[i].lpguid->__size);
+		strQuery += strEscapedGUID;
+		strQuery += ")";
+		er = lpDatabase->DoInsert(strQuery, &ulLastId);
+		if (er != erSuccess)
+			goto exit;
+		lpsResponse->lpsPropTags.__ptr[i] = ulLastId+1; // offset one because 0 is 'not found'
+	}
+
+	er = lpDatabase->Commit();
+	if (er != erSuccess)
+		goto exit;
+done:
 	// Everything is done, now set the size
 	lpsResponse->lpsPropTags.__size = lpsNamedProps->__size;
 
-	er = lpDatabase->Commit();
-	if(er != erSuccess)
-		goto exit;
 exit:
 	ROLLBACK_ON_ERROR();
 }
@@ -4582,9 +4573,8 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId, char*
 	if(er != erSuccess)
 		return er;
 
-	if(lpDatabase->GetNumRows(lpDBResult) == 1) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+	if (lpDBResult.get_num_rows() == 1) {
+		lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 			ec_log_err("getReceiveFolder(): row or columns null");
 			return KCERR_DATABASE_ERROR;
@@ -4664,10 +4654,8 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId, entryId* lpsEntryI
 		if(er != erSuccess)
 			goto exit;
 
-		if(lpDatabase->GetNumRows(lpDBResult) == 1)
-		{
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+		if (lpDBResult.get_num_rows() == 1) {
+			lpDBRow = lpDBResult.fetch_row();
 			if(lpDBRow == NULL || lpDBRow[0] == NULL){
 				er = KCERR_DATABASE_ERROR;
 				ec_log_err("setReceiveFolder(): row or columns null");
@@ -4690,9 +4678,8 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId, entryId* lpsEntryI
 
 	bIsUpdate = false;
 	// If ok, item already exists, return ok
-	if(lpDatabase->GetNumRows(lpDBResult) == 1){
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+	if (lpDBResult.get_num_rows() == 1) {
+		lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 			er = KCERR_DATABASE_ERROR;
 			ec_log_err("setReceiveFolder(): row or columns null");
@@ -4837,8 +4824,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		if(er != erSuccess)
 			goto exit;
 
-		while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-		{
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 				er = KCERR_DATABASE_ERROR;
 				ec_log_err("setReadFlags(): columns null");
@@ -4894,8 +4880,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		if(er != erSuccess)
 			goto exit;
 
-		while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-		{
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 				er = KCERR_DATABASE_ERROR;
 				ec_log_err("setReadFlags(): columns null(2)");
@@ -5522,8 +5507,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
-
-	if(lpDatabase->GetNumRows(lpDBResult) > 0) {
+	if (lpDBResult.get_num_rows() > 0) {
 		er = KCERR_COLLISION;
 		ec_log_err("createStore(): already exists");
 		goto exit;
@@ -6567,9 +6551,9 @@ SOAP_ENTRY_START(finishedMessage, *result,  entryId sEntryId, unsigned int ulFla
     strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid="+stringify(ulObjId) + " AND tag=" + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type=" + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " FOR UPDATE";
     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
     if(er != erSuccess)
-        goto exit;
-        
-    lpDBRow = lpDatabase->FetchRow(lpDBResult);
+		goto exit;
+
+	lpDBRow = lpDBResult.fetch_row();
     if(lpDBRow == NULL || lpDBRow[0] == NULL) {
 	        er = KCERR_DATABASE_ERROR;
 		ec_log_err("finishedMessages(): row/col null");
@@ -6694,12 +6678,11 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
 	if(er != erSuccess)
 		goto exit;
 // FIXME: can be also more than 2??
-	if(lpDatabase->GetNumRows(lpDBResult) != 1){
+	if (lpDBResult.get_num_rows() != 1) {
 		er = KCERR_NOT_IN_QUEUE;
 		goto exit;
 	}
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("abortSubmit(): row/col null");
@@ -6770,8 +6753,7 @@ SOAP_ENTRY_START(isMessageInQueue, *result, entryId sEntryId, unsigned int *resu
 		ec_log_err("isMessageInQueue(): select failed");
 		return KCERR_DATABASE_ERROR;
 	}
-
-	if (lpDatabase->GetNumRows(lpDBResult) == 0)
+	if (lpDBResult.get_num_rows() == 0)
 		return KCERR_NOT_FOUND;
 	return erSuccess;
 }
@@ -6798,12 +6780,10 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreG
 		ec_log_err("resolveStore(): select failed %x", er);
 		return KCERR_DATABASE_ERROR;
 	}
-
-	if (lpDatabase->GetNumRows(lpDBResult) != 1)
+	if (lpDBResult.get_num_rows() != 1)
 		return KCERR_NOT_FOUND;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if (lpDBRow == nullptr || lpDBRow[1] == nullptr ||
 	    lpDBRow[2] == nullptr || lpDBRow[3] == nullptr ||
 	    lpDBLen == nullptr)
@@ -6915,10 +6895,8 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 		ec_log_err("resolveUserStore(): select failed %x", er);
 		return KCERR_DATABASE_ERROR;
 	}
-
-    lpDBRow = lpDatabase->FetchRow(lpDBResult);
-    lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLen = lpDBResult.fetch_row_lengths();
     if (lpDBRow == nullptr)
 		return KCERR_NOT_FOUND;
     if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBLen == NULL || lpDBLen[1] == 0) {
@@ -7040,8 +7018,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	}
 
 	// First, put all the root objects in the list
-	while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
-	{
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBRow[4] == NULL) // no id, type or parent folder?
 			continue;
 
@@ -7522,13 +7499,11 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		ec_log_err("CopyObject: failed retrieving hierarchy message root: %s (%x)", GetMAPIErrorMessage(er), er);
 		goto exit;
 	}
-
-	if(lpDatabase->GetNumRows(lpDBResult) < 1) {
+	if (lpDBResult.get_num_rows() < 1) {
 		er = KCERR_NOT_FOUND;// FIXME: right error?
 		goto exit;
 	}
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
@@ -7620,10 +7595,8 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		goto exit;
 	}
 
-	if(lpDatabase->GetNumRows(lpDBResult) > 0) {
-
-		while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-		{
+	if (lpDBResult.get_num_rows() > 0) {
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
 				continue; // FIXME: Skip, give an error/warning ?
 
@@ -7933,11 +7906,10 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		goto exit;
 	}
 
-	ulItems = lpDatabase->GetNumRows(lpDBResult);
+	ulItems = lpDBResult.get_num_rows();
 
 	// Walk through the messages list
-	while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-	{
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if(lpDBRow[0] == NULL)
 			continue; //FIXME: error show ???
 
@@ -8004,11 +7976,9 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 			goto exit;
 		}
 
-		if(lpDatabase->GetNumRows(lpDBResult) > 0) {
-
+		if (lpDBResult.get_num_rows() > 0) {
 			// Walk through the folder list
-			while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-			{
+			while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 				if(lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 					continue; // ignore
 
@@ -8278,8 +8248,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		ec_log_debug("SOAP::copyFolder check for existing name (%s) failed: %s (%x)", name.c_str(), GetMAPIErrorMessage(er), er);
 		return er;
 	}
-
-	if(lpDatabase->GetNumRows(lpDBResult) > 0 && !ulSyncId) {
+	if (lpDBResult.get_num_rows() > 0 && ulSyncId == 0) {
 		ec_log_err("SOAP::copyFolder(): target name (%s) already exists", name.c_str());
 		return KCERR_COLLISION;
 	}
@@ -8292,8 +8261,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 			ec_log_err("SOAP::copyFolder(): problem retrieving source name for %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
 			return er;
 		}
-
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
+		lpDBRow = lpDBResult.fetch_row();
 		if( lpDBRow == NULL || lpDBRow[0] == NULL) {
 			ec_log_err("SOAP::copyFolder(): source name (%s) not known", name.c_str());
 			return KCERR_NOT_FOUND;
@@ -8495,14 +8463,12 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er, entryId sStor
 	if(er != erSuccess)
 		return er;
 
-	ulRows = lpDatabase->GetNumRows(lpDBResult);
-
+	ulRows = lpDBResult.get_num_rows();
 	lpsReceiveFolderTable->sFolderArray.__ptr = s_alloc<receiveFolder>(soap, ulRows);
 	lpsReceiveFolderTable->sFolderArray.__size = 0;
 
 	i = 0;
-	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
-	{
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 			ec_log_err("getReceiveFolderTable(): row or col null");
 			return KCERR_DATABASE_ERROR;
@@ -8565,10 +8531,8 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 		// store not on this server
 		er = KCERR_NOT_FOUND;
@@ -8636,10 +8600,8 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if(lpDBRow == NULL || lpDBLen == NULL) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
@@ -8758,10 +8720,8 @@ SOAP_ENTRY_START(removeStore, *result, struct xsd__base64Binary sStoreGuid, unsi
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if(lpDBRow == NULL || lpDBLen == NULL) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
@@ -9471,9 +9431,8 @@ SOAP_ENTRY_START(getMessageStatus, lpsStatus->er, entryId sEntryId, unsigned int
 		ec_log_err("getMessageStatus(): select failed %x", er);
 		return KCERR_DATABASE_ERROR;
 	}
-
-	if (lpDatabase->GetNumRows(lpDBResult) == 1) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	if (lpDBResult.get_num_rows() == 1) {
+		lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL || lpDBRow[0] == NULL) {
 			ec_log_err("getMessageStatus(): row or col null");
 			return KCERR_DATABASE_ERROR;
@@ -9526,9 +9485,9 @@ SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, entryId sEntryId, unsigned 
 		goto exit;
 	}
 
-	ulRows = lpDatabase->GetNumRows(lpDBResult);
+	ulRows = lpDBResult.get_num_rows();
 	if (ulRows == 1) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
+		lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL || lpDBRow[0] == NULL) {
 			er = KCERR_DATABASE_ERROR;
 			ec_log_err("setMessageStatus(): row or col null");
@@ -9638,15 +9597,12 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er, struct xsd__base64Binary sSourc
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
-
-	if(lpDatabase->GetNumRows(lpDBResult) == 0){
+	if (lpDBResult.get_num_rows() == 0) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
 	}
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLen = lpDBResult.fetch_row_lengths();
 	if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL){
 		er = KCERR_DATABASE_ERROR; // this should never happen
 		ec_log_err("setSyncStatus(): row/col NULL");
@@ -10414,8 +10370,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
 			goto exit;
-
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
+		lpDBRow = lpDBResult.fetch_row();
 		if (lpDBRow == NULL || lpDBRow[0] == NULL)
 		    // Items created in previous versions of Kopano will not have a PR_EC_IMAP_ID. The rule
 		    // is that an item has a PR_EC_IMAP_ID that is equal to the hierarchyid in that case.
@@ -10636,10 +10591,9 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, entryId sEntryId, struct getCha
 	if(er != erSuccess)
 		return er;
 
-	if (lpDatabase->GetNumRows(lpDBResult) > 0) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	if (lpDBResult.get_num_rows() > 0) {
+		lpDBRow = lpDBResult.fetch_row();
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		lpsResponse->sPropCK.ulPropTag = PR_CHANGE_KEY;
 		lpsResponse->sPropCK.__union = SOAP_UNION_propValData_bin;
 		lpsResponse->sPropCK.Value.bin = s_alloc<xsd__base64Binary>(soap, 1);
@@ -10660,10 +10614,9 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, entryId sEntryId, struct getCha
 	if(er != erSuccess)
 		return er;
 
-	if (lpDatabase->GetNumRows(lpDBResult) > 0) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
+	if (lpDBResult.get_num_rows() > 0) {
+		lpDBRow = lpDBResult.fetch_row();
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		lpsResponse->sPropPCL.ulPropTag = PR_PREDECESSOR_CHANGE_LIST;
 		lpsResponse->sPropPCL.__union = SOAP_UNION_propValData_bin;
 		lpsResponse->sPropPCL.Value.bin = s_alloc<xsd__base64Binary>(soap, 1);
@@ -10783,7 +10736,7 @@ SOAP_ENTRY_START(getUserClientUpdateStatus, lpsResponse->er, entryId sUserId, st
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == nullptr)
 		return MAPI_E_NOT_FOUND;
 

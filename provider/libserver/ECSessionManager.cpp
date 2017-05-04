@@ -135,9 +135,8 @@ ECRESULT ECSessionManager::LoadSettings(){
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	lpDBLenths = lpDatabase->FetchRowLengths(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLenths = lpDBResult.fetch_row_lengths();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr ||
 	    lpDBLenths == nullptr || lpDBLenths[0] != sizeof(GUID))
 		return KCERR_NOT_FOUND;
@@ -149,9 +148,8 @@ ECRESULT ECSessionManager::LoadSettings(){
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	lpDBLenths = lpDatabase->FetchRowLengths(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLenths = lpDBResult.fetch_row_lengths();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr ||
 	    lpDBLenths == nullptr || lpDBLenths[0] != 8)
 		return KCERR_NOT_FOUND;
@@ -1456,7 +1454,7 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
 		return KCERR_NOT_FOUND;
 	*lpLcid = strtoul(lpDBRow[0], NULL, 10);

@@ -444,8 +444,7 @@ ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
 	er = DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-	
-	*lpbExist = (FetchRow(lpDBResult) != NULL);
+	*lpbExist = lpDBResult.fetch_row() != nullptr;
 	return er;
 }
 
@@ -465,7 +464,7 @@ ECRESULT ECDatabase::CheckExistIndex(const std::string &strTable,
 		return er;
 
 	*lpbExist = false;
-	while ((lpRow = FetchRow(lpDBResult)) != NULL) {
+	while ((lpRow = lpDBResult.fetch_row()) != nullptr) {
 		// 2 is Key_name
 		if (lpRow[2] && strcmp(lpRow[2], strKey.c_str()) == 0) {
 			*lpbExist = true;
@@ -898,8 +897,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	er = DoSelect("SELECT databaserevision FROM versions WHERE databaserevision>=64 LIMIT 1", &lpResult);
 	if (er != erSuccess)
 		return er;
-	have_micro = GetNumRows(lpResult) > 0;
-
+	have_micro = lpResult.get_num_rows() > 0;
 	strQuery = "SELECT major, minor";
 	strQuery += have_micro ? ", micro" : ", 0";
 	strQuery += ", revision, databaserevision FROM versions ORDER BY major DESC, minor DESC";
@@ -911,7 +909,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	if(er != erSuccess && mysql_errno(&m_lpMySQL) != ER_NO_SUCH_TABLE)
 		return er;
 
-	if(er != erSuccess || GetNumRows(lpResult) == 0) {
+	if (er != erSuccess || lpResult.get_num_rows() == 0) {
 		// Ok, maybe < than version 5.10
 		// check version
 
@@ -920,8 +918,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 		if(er != erSuccess)
 			return er;
 
-		lpDBRow = FetchRow(lpResult);
-		while (lpDBRow != NULL) {
+		for (lpDBRow = lpResult.fetch_row(); lpDBRow != nullptr; lpDBRow = lpResult.fetch_row()) {
 			if (lpDBRow[0] != NULL && strcasecmp(lpDBRow[0], "storeid") == 0) {
 				dbv->v_major  = 5;
 				dbv->v_minor  = 0;
@@ -930,12 +927,11 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 				er = erSuccess;
 				break;
 			}
-			lpDBRow = FetchRow(lpResult);
 		}
 		return KCERR_UNKNOWN_DATABASE;
 	}
 
-	lpDBRow = FetchRow(lpResult);
+	lpDBRow = lpResult.fetch_row();
 	if (row_has_null(lpDBRow, 5)) {
 		ec_log_err("ECDatabase::GetDatabaseVersion(): NULL row or columns");
 		return KCERR_DATABASE_ERROR;
@@ -965,7 +961,7 @@ ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
 	er = DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
 		return er;
-	if(GetNumRows(lpResult) != 1)
+	if (lpResult.get_num_rows() != 1)
 		return KCERR_NOT_FOUND;
 	return erSuccess;
 }
@@ -980,7 +976,7 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 	if(er != erSuccess && mysql_errno(&m_lpMySQL) != ER_NO_SUCH_TABLE)
 		return er;
 	else if(er == erSuccess)
-		lpDBRow = FetchRow(lpResult);
+		lpDBRow = lpResult.fetch_row();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
 		*lpulDatabaseRevision = 0;
 	else
@@ -1095,7 +1091,7 @@ ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	er = DoSelect("SELECT databaserevision FROM versions WHERE databaserevision>=64 LIMIT 1", &result);
 	if (er != erSuccess)
 		return er;
-	have_micro = GetNumRows(result) > 0;
+	have_micro = result.get_num_rows() > 0;
 
 	// Insert version number
 	strQuery = "INSERT INTO versions (major, minor, ";
@@ -1127,7 +1123,7 @@ ECRESULT ECDatabase::ValidateTables(void)
 	}
 
 	// Get all tables of the database
-	while( (lpDBRow = FetchRow(lpResult))) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 			ec_log_err("Wrong table information.");
 			return KCERR_DATABASE_ERROR;
@@ -1142,8 +1138,7 @@ ECRESULT ECDatabase::ValidateTables(void)
 			ec_log_err("Unable to check table \"%s\"", table.c_str());
 			return er;
 		}
-
-		lpDBRow = FetchRow(lpResult);
+		lpDBRow = lpResult.fetch_row();
 		if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
 			ec_log_err("Wrong check table information.");
 			return KCERR_DATABASE_ERROR;

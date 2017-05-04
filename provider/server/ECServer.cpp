@@ -191,8 +191,7 @@ static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 	er = lpDatabase->DoSelect("SHOW TABLE STATUS WHERE engine != 'InnoDB'", &lpResult);
 	if (er != erSuccess)
 		return er;
-
-	while( (lpRow = lpDatabase->FetchRow(lpResult)) ) {
+	while ((lpRow = lpResult.fetch_row()) != nullptr) {
 		ec_log_crit("Database table '%s' not in InnoDB format: %s", lpRow[0] ? lpRow[0] : "unknown table", lpRow[1] ? lpRow[1] : "unknown engine");
 		er = KCERR_DATABASE_ERROR;
 	}
@@ -219,7 +218,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 		return er;
 	}
 
-	lpRow = lpDatabase->FetchRow(lpResult);
+	lpRow = lpResult.fetch_row();
 	if (lpRow != nullptr && lpRow[0] != nullptr &&
 	    // check if the mode is the same as last time
 	    strcmp(lpRow[0], g_lpConfig->GetSetting("attachment_storage")) != 0) {
@@ -265,8 +264,7 @@ static ECRESULT check_distributed_kopano(ECDatabase *lpDatabase)
 		return er;
 	}
 
-	lpRow = lpDatabase->FetchRow(lpResult);
-
+	lpRow = lpResult.fetch_row();
 	// If no value is found in the database any setting is valid
 	if (lpRow == NULL || lpRow[0] == NULL) 
 		return er;
@@ -322,8 +320,7 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	}
 
 	er = KCERR_DATABASE_ERROR;
-
-	lpRow = lpDatabase->FetchRow(lpResult);
+	lpRow = lpResult.fetch_row();
 	if (!lpRow || !lpRow[1]) {
 		ec_log_crit("No tproperties table definition found");
 		return er;
@@ -389,8 +386,7 @@ static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 		ec_log_err("Unable to read from database");
 		return er;
 	}
-
-	lpRow = lpDatabase->FetchRow(lpResult);
+	lpRow = lpResult.fetch_row();
 	if (!lpRow || !lpRow[1]) {
 		ec_log_err("No thread_stack variable returned");
 		return er;

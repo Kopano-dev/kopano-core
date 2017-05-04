@@ -179,7 +179,7 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int *l
     er = lpDatabase->DoSelect("SELECT count(*) FROM deferredupdate", &lpResult);
     if(er != erSuccess)
 		return er;
-    lpRow = lpDatabase->FetchRow(lpResult);
+	lpRow = lpResult.fetch_row();
     if(!lpRow || !lpRow[0]) {
 	ec_log_err("ECTPropsPurge::GetDeferredCount(): row or column null");
 		return KCERR_DATABASE_ERROR;
@@ -208,8 +208,7 @@ ECRESULT ECTPropsPurge::GetLargestFolderId(ECDatabase *lpDatabase, unsigned int 
     er = lpDatabase->DoSelect("SELECT folderid, COUNT(*) as c FROM deferredupdate GROUP BY folderid ORDER BY c DESC LIMIT 1", &lpResult);
     if(er != erSuccess)
 		return er;
-        
-    lpRow = lpDatabase->FetchRow(lpResult);
+	lpRow = lpResult.fetch_row();
 	if (lpRow == nullptr || lpRow[0] == nullptr)
 		// Could be that there are no deferred updates, so give an appropriate error
 		return KCERR_NOT_FOUND;
@@ -243,9 +242,9 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if(lpDatabase->GetNumRows(lpDBResult) == 0)
+	if (lpDBResult.get_num_rows() == 0)
 		return erSuccess;
-	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		strIn += lpDBRow[0];
 		strIn += ",";
 	}
@@ -286,9 +285,7 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ul
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-		
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	
+	lpDBRow = lpDBResult.fetch_row();
 	if(!lpDBRow || !lpDBRow[0])
 		ulCount = 0;
 	else

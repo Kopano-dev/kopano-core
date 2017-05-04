@@ -95,9 +95,9 @@ ECRESULT GetObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned in
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if (lpDatabase->GetNumRows(lpDBResult) != 1)
+	if (lpDBResult.get_num_rows() != 1)
 		return KCERR_NOT_FOUND;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
 		return KCERR_NOT_FOUND;
 	ulSize = atoi(lpDBRow[0]);
@@ -123,8 +123,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL)
 		ulSize = 0;
 	else
@@ -150,7 +149,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow != NULL && lpDBRow[0] != NULL)
 		ulSize += atoui(lpDBRow[0]); // Add the size
 
@@ -159,7 +158,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow != NULL && lpDBRow[0] != NULL)
 		ulSize += atoui(lpDBRow[0]); // Add the size
 	*lpulSize = ulSize;

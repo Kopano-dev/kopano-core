@@ -191,9 +191,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
         goto exit;
         
     while(1) {
-        
-        lpRow = lpDatabase->FetchRow(lpDBResult);
-        
+		lpRow = lpDBResult.fetch_row();
         if(lpRow == NULL)
             break;
             

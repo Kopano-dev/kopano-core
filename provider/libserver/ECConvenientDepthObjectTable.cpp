@@ -142,8 +142,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 		while (1) {
 		    FOLDERINFO sFolderInfo;
 		    
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+			lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL)
 				break;
 

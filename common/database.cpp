@@ -38,6 +38,21 @@ DB_RESULT::~DB_RESULT(void)
 	m_res = nullptr;
 }
 
+size_t DB_RESULT::get_num_rows(void) const
+{
+	return mysql_num_rows(static_cast<MYSQL_RES *>(m_res));
+}
+
+DB_ROW DB_RESULT::fetch_row(void)
+{
+	return mysql_fetch_row(static_cast<MYSQL_RES *>(m_res));
+}
+
+DB_LENGTHS DB_RESULT::fetch_row_lengths(void)
+{
+	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(m_res));
+}
+
 KDatabase::KDatabase(void)
 {
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
@@ -80,7 +95,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		ec_log_err("KDatabase::Connect(): \"SHOW tables\" failed %d", er);
 		goto exit;
 	}
-	if (GetNumRows(result) == 0) {
+	if (result.get_num_rows() == 0) {
 		er = KCERR_DATABASE_NOT_FOUND;
 		ec_log_err("KDatabase::Connect(): database missing %d", er);
 		goto exit;
@@ -93,7 +108,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		goto exit;
 	}
 
-	row = FetchRow(result);
+	row = result.fetch_row();
 	/* row[0] has the variable name, [1] the value */
 	if (row == nullptr || row[0] == nullptr || row[1] == nullptr) {
 		ec_log_warn("Unable to retrieve max_allowed_packet value. Assuming %d.", KC_DFL_MAX_PACKET_SIZE);
@@ -360,16 +375,6 @@ std::string KDatabase::EscapeBinary(const std::string &s)
 	return EscapeBinary(reinterpret_cast<const unsigned char *>(s.c_str()), s.size());
 }
 
-DB_ROW KDatabase::FetchRow(DB_RESULT &r)
-{
-	return mysql_fetch_row(static_cast<MYSQL_RES *>(r.get()));
-}
-
-DB_LENGTHS KDatabase::FetchRowLengths(DB_RESULT &r)
-{
-	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(r.get()));
-}
-
 void KDatabase::FreeResult_internal(void *r)
 {
 	assert(r != nullptr);
@@ -406,11 +411,6 @@ DB_ERROR KDatabase::GetLastError(void)
 	}
 }
 
-unsigned int KDatabase::GetNumRows(const DB_RESULT &r) const
-{
-	return mysql_num_rows(static_cast<MYSQL_RES *>(r.get()));
-}
-
 ECRESULT KDatabase::InitEngine(bool reconnect)
 {
 	assert(!m_bMysqlInitialize);
@@ -434,7 +434,7 @@ ECRESULT KDatabase::IsInnoDBSupported(void)
 		return er;
 	}
 
-	while ((row = FetchRow(res)) != nullptr) {
+	while ((row = res.fetch_row()) != nullptr) {
 		if (strcasecmp(row[0], "InnoDB") != 0)
 			continue;
 		if (strcasecmp(row[1], "DISABLED") == 0) {

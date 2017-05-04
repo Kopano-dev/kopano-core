@@ -69,8 +69,7 @@ ECRESULT ECMailBoxTable::Load()
 		return er;
 
 	while(1) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+		lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL)
 			break;
 

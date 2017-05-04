@@ -147,14 +147,13 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 		throw runtime_error(string("db_query: ") + strerror(er));
 	}
 
-	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[3] == NULL)
 			throw runtime_error(string("db_row_failed: object null"));
 
 		if (strcasecmp(lpDBRow[3], name.c_str()) != 0)
 			continue;
-
-		lpDBLen = m_lpDatabase->FetchRowLengths(lpResult);
+		lpDBLen = lpResult.fetch_row_lengths();
 		if (lpDBLen == NULL || lpDBLen[0] == 0)
 			throw runtime_error(string("db_row_failed: object empty"));
 
@@ -216,15 +215,13 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 		throw runtime_error(string("db_query: ") + strerror(er));
 	}
 
-	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
-
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[4] == NULL)
 			throw runtime_error("Trying to authenticate failed: database error");
 
 		if (strcasecmp(lpDBRow[4], username.c_str()) != 0)
 			continue;
-
-		lpDBLen = m_lpDatabase->FetchRowLengths(lpResult);
+		lpDBLen = lpResult.fetch_row_lengths();
 		if (lpDBLen == NULL || lpDBLen[2] == 0)
 			throw runtime_error("Trying to authenticate failed: database error");
 
@@ -296,11 +293,9 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
-
-	if(m_lpDatabase->GetNumRows(lpResult) != 1)
+	if (lpResult.get_num_rows() != 1)
 		throw objectnotfound(objectid.id);
-
-	lpDBRow = m_lpDatabase->FetchRow(lpResult);
+	lpDBRow = lpResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL)
 		throw runtime_error(string("db_row_failed: object null"));
 
@@ -338,8 +333,7 @@ void DBUserPlugin::addSubObjectRelation(userobject_relation_t relation, const ob
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
-
-	if(m_lpDatabase->GetNumRows(lpResult) != 1)
+	if (lpResult.get_num_rows() != 1)
 		throw objectnotfound("db_user: Relation does not exist, id:" + parentobject.id);
 
 	DBPlugin::addSubObjectRelation(relation, parentobject, childobject);

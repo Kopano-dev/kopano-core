@@ -511,14 +511,13 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	}
 
 	// check if we have obsolute objects
-	ulRows = m_lpDatabase->GetNumRows(lpResult);
+	ulRows = lpResult.get_num_rows();
 	if (!ulRows)
 		return objectlist;
 
 	// clear our stringlist containing the valid entries and fill it with the deleted item ids
 	objectstrings.clear();
-
-	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (!objectstrings[(objectclass_t)atoi(lpDBRow[1])].empty())
 			objectstrings[(objectclass_t)atoi(lpDBRow[1])] += ", ";
 		objectstrings[(objectclass_t)atoi(lpDBRow[1])] += lpDBRow[0];
@@ -616,9 +615,7 @@ UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(externid.id);
-
-	lpRow = m_lpDatabase->FetchRow(lpResult);
-
+	lpRow = lpResult.fetch_row();
 	if (lpRow && lpRow[0]) {
 		strQuery = "UPDATE " + (string)DB_OBJECT_TABLE + " SET externid='" + externid.id + "',objectclass=" + stringify(externid.objclass) + " WHERE id=" + lpRow[0];
 		er = m_lpDatabase->DoUpdate(strQuery);
@@ -986,8 +983,7 @@ std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		return string();
-
-	lpDBRow = m_lpDatabase->FetchRow(lpResult);
+	lpDBRow = lpResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL)
 		return string();
 

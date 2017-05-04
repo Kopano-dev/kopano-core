@@ -98,10 +98,8 @@ ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, str
 		if(er != erSuccess)
 			goto exit;
 
-		while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)))
-		{
-			lpDBLenths = lpDatabase->FetchRowLengths(lpDBResult);
-
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
+			lpDBLenths = lpDBResult.fetch_row_lengths();
 			if (lpDBRow[0] == NULL)
 				continue; // Skip row, old folder
 

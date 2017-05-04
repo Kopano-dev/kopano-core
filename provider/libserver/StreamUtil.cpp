@@ -293,7 +293,8 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	if (er != erSuccess)
 		return er;
 
-	if ((lpRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+	lpRow = lpResult.fetch_row();
+	if (lpRow != nullptr) {
 		if (lpRow[0] == NULL) {
 			ec_log_err("NamedPropertyMapper::GetId(): column null");
 			return KCERR_DATABASE_ERROR;
@@ -342,7 +343,8 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	if (er != erSuccess)
 		return er;
 
-	if ((lpRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
+	lpRow = lpResult.fetch_row();
+	if (lpRow != nullptr) {
 		if (lpRow[0] == NULL) {
 			ec_log_err("NamedPropertyMapper::GetId(): column null");
 			return KCERR_DATABASE_ERROR;
@@ -882,7 +884,7 @@ static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow && lpDBRow[0])
 		*lpstrBestBody = lpDBRow[0];
 	else
@@ -962,8 +964,8 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		goto exit;
 
 	// Properties
-	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL) {
 			er = KCERR_DATABASE_ERROR;
 			ec_log_err("SerializeProps(): fetchrow/fetchrowlengths failed");
@@ -1078,16 +1080,14 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 	}
 	if (er != erSuccess)
 		goto exit;
-
-	ulCount = lpStreamDatabase->GetNumRows(lpDBResult);
+	ulCount = lpDBResult.get_num_rows();
 	er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
 	if (er != erSuccess)
 		goto exit;
 
 	for (unsigned i = 0; i < ulCount; ++i) {
-		lpDBRow = lpStreamDatabase->FetchRow(lpDBResult);
-		lpDBLen = lpStreamDatabase->FetchRowLengths(lpDBResult);
-
+		lpDBRow = lpDBResult.fetch_row();
+		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL) {
 			er = KCERR_DATABASE_ERROR;
 			ec_log_err("SerializeMessage(): fetchrow/fetchrowlengths failed");
@@ -1159,13 +1159,13 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 			}
 			if (er != erSuccess)
 				goto exit;
-				
-			ulLen = lpStreamDatabase->GetNumRows(lpDBResultAttachment) >= 1 ? 1 : 0; // Force value to 0 or 1, we cannot output more than one submessage.
+			/* Force value to 0 or 1, we cannot output more than one submessage. */
+			ulLen = lpDBResultAttachment.get_num_rows() >= 1 ? 1 : 0;
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er != erSuccess)
 				goto exit;
 												
-			lpDBRow = lpStreamDatabase->FetchRow(lpDBResultAttachment);
+			lpDBRow = lpDBResultAttachment.fetch_row();
 			if(lpDBRow != NULL) {
 				if(lpDBRow[0] == NULL) {
 					er = KCERR_DATABASE_ERROR;
@@ -1533,8 +1533,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			if(er != erSuccess)
 				goto exit;
 
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+			lpDBRow = lpDBResult.fetch_row();
 			// We can't use lpDBRow here except for checking if it was NULL.
 			if (lpDBRow != NULL)
 				continue;

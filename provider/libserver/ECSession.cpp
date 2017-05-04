@@ -370,11 +370,9 @@ ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != hrSuccess)
 		goto exit;
-
-	if (lpDatabase->GetNumRows(lpDBResult) == 0)
+	if (lpDBResult.get_num_rows() == 0)
 		goto exit;
-
-    lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECSession::AddChangeAdvise(): row or column null");

@@ -579,7 +579,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 	if(er != erSuccess)
 		return er;
 
-	ulCount = lpDatabase->GetNumRows(lpDBResult);
+	ulCount = lpDBResult.get_num_rows();
 	if(ulCount > 0)
 	{
 		lpsRightsArray->__ptr = s_alloc<rights>(nullptr, ulCount);
@@ -587,8 +587,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 
 		memset(lpsRightsArray->__ptr, 0, sizeof(struct rights) * ulCount);
 		for (i = 0; i < ulCount; ++i) {
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-
+			lpDBRow = lpDBResult.fetch_row();
 			if(lpDBRow == NULL) {
 				ec_log_err("ECSecurity::GetRights(): row is null");
 				return KCERR_DATABASE_ERROR;
@@ -1162,13 +1161,12 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if(lpDatabase->GetNumRows(lpDBResult) != 1) {
+	if (lpDBResult.get_num_rows() != 1) {
 		// This mostly happens when we're creating a new store, so return 0 sized store
 		*lpllStoreSize = 0;
 		return erSuccess;
 	}
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL) {
 		ec_log_err("ECSecurity::GetStoreSize(): row is null");
 		return KCERR_DATABASE_ERROR;
@@ -1213,12 +1211,11 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if (lpDatabase->GetNumRows(lpDBResult) != 1) {
+	if (lpDBResult.get_num_rows() != 1) {
 		*lpllUserSize = 0;
 		return erSuccess;
 	}
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL) {
 		ec_log_err("ECSecurity::GetUserSize(): row is null");
 		return KCERR_DATABASE_ERROR;
