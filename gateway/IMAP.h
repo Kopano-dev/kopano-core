@@ -352,6 +352,7 @@ private:
 
 	// fetch calls an other fetch depending on the data items requested
 	HRESULT HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItems);
+	HRESULT save_generated_properties(const std::string &text, IMessage *message);
 	HRESULT HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &strResponse, ULONG ulMailnr, bool bForceFlags, const vector<string> &lstDataItems);
 
 	std::string HrEnvelopeRecipients(LPSRowSet lpRows, ULONG ulType, std::string& strCharset, bool bIgnore);
