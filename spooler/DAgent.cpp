@@ -3317,8 +3317,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	}
 	sc = new StatsClient(g_lpLogger);
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
-
-	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent LMTP mode version " PROJECT_VERSION_DAGENT_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent LMTP mode version " PROJECT_VERSION_DAGENT_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 	pollfd.fd = ulListenLMTP;
 	pollfd.events = POLLIN | POLLRDHUP;
 
@@ -3370,7 +3369,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		continue;
 	}
 
-	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "LMTP service will now exit");
+	ec_log(EC_LOGLEVEL_ALWAYS, "LMTP service will now exit");
 
 	// in forked mode, send all children the exit signal
 	signal(SIGTERM, SIG_IGN);

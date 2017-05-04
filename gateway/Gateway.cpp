@@ -598,8 +598,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		goto exit;
 	}
 
-	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION_GATEWAY_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
-
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION_GATEWAY_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 	if (bListenPOP3) {
 		pfd_pop3 = nfds;
 		pollfd[nfds++].fd = ulListenPOP3;
@@ -757,8 +756,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		ec_log_warn("Incoming traffic was not for me??");
 	}
 
-	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "POP3/IMAP Gateway will now exit");
-
+	ec_log(EC_LOGLEVEL_ALWAYS, "POP3/IMAP Gateway will now exit");
 	// in forked mode, send all children the exit signal
 	if (bThreads == false) {
 		signal(SIGTERM, SIG_IGN);
