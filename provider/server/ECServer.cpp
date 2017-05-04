@@ -625,7 +625,7 @@ static int kc_reexec_with_allocator(char **argv, const char *lib)
 	}
 	if (linklen < 0) {
 		int ret = -errno;
-		ec_log_warn("kc_reexec_with_allocator: readlink: %s", strerror(errno));
+		ec_log_debug("kc_reexec_with_allocator: readlink: %s", strerror(errno));
 		return ret;
 	}
 	linkbuf[linklen] = '\0';

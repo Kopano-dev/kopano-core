@@ -2808,11 +2808,16 @@ HRESULT __stdcall MAPILogonEx(ULONG ulUIParam, LPTSTR lpszProfileName, LPTSTR lp
 		goto exit;
 	}
 
-	if (ulFlags & MAPI_UNICODE)
+	if (ulFlags & MAPI_UNICODE) {
 		// since a profilename can only be us-ascii, convert
-		strProfname = convert_to<string>((WCHAR *)lpszProfileName);
-	else
+		try {
+			strProfname = convert_to<std::string>(reinterpret_cast<const wchar_t *>(lpszProfileName));
+		} catch (illegal_sequence_exception &) {
+			return MAPI_E_INVALID_PARAMETER;
+		}
+	} else {
 		strProfname = (char*)lpszProfileName;
+	}
 
 	hr = localProfileAdmin->AdminServices((LPTSTR)strProfname.c_str(), lpszPassword, ulUIParam, ulFlags & ~MAPI_UNICODE, &~sa);
 	if (hr != hrSuccess) {
