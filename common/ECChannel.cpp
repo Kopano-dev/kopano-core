@@ -794,54 +794,6 @@ static struct addrinfo *reorder_addrinfo_ipv6(struct addrinfo *node)
 	return v6head.ai_next;
 }
 
-HRESULT HrListen(const char *szPath, int *lpulListenSocket)
-{
-	HRESULT hr = hrSuccess;
-	int fd = -1;
-	struct sockaddr_un sun_addr;
-	mode_t prevmask = 0;
-
-	if (szPath == NULL || strlen(szPath) >= sizeof(sun_addr.sun_path) ||
-	    lpulListenSocket == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-
-	memset(&sun_addr, 0, sizeof(sun_addr));
-	sun_addr.sun_family = AF_UNIX;
-	kc_strlcpy(sun_addr.sun_path, szPath, sizeof(sun_addr.sun_path));
-
-	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) == -1) {
-		ec_log_crit("Unable to create AF_UNIX socket");
-		return MAPI_E_NETWORK_ERROR;
-	}
-
-	unlink(szPath);
-
-	// make files with permissions 0666
-	prevmask = umask(0111);
-
-	if (bind(fd, (struct sockaddr *)&sun_addr, sizeof(sun_addr)) == -1) {
-		ec_log_crit("Unable to bind to socket %s (%s). This is usually caused by another process (most likely another kopano-server) already using this port. This program will terminate now.", szPath, strerror(errno));
-                kill(0, SIGTERM);
-                exit(1);
-        }
-
-	// TODO: backlog of SOMAXCONN should be configurable
-	if (listen(fd, SOMAXCONN) == -1) {
-		ec_log_crit("Unable to start listening on socket \"%s\".", szPath);
-		hr = MAPI_E_NETWORK_ERROR;
-		goto exit;
-	}
-
-	*lpulListenSocket = fd;
-
-exit:
-	if (prevmask)
-		umask(prevmask);
-	if (hr != hrSuccess && fd != -1)
-		close(fd);
-	return hr;
-}
-
 int zcp_bindtodevice(int fd, const char *i)
 {
 	if (i == NULL || strcmp(i, "any") == 0 || strcmp(i, "all") == 0 ||

@@ -102,6 +102,7 @@
 #define LOG_SOAP_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SOAP, "soap: " _msg, ##__VA_ARGS__)
 
+using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -8943,8 +8944,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 		PR_EC_ENABLED_FEATURES, PR_EC_DISABLED_FEATURES, PR_EC_ARCHIVE_SERVERS, PR_EC_ARCHIVE_COUPLINGS, PR_EMS_AB_ROOM_CAPACITY, PR_EMS_AB_ROOM_DESCRIPTION,
 		PR_ASSISTANT
 	};
-
-	unsigned int sPropsContainerRoot[] = {
+	static constexpr unsigned int sPropsContainerRoot[] = {
 		/* Don't touch the order of the first 7 elements!!! */
 		PR_ENTRYID, PR_CONTAINER_FLAGS, PR_DEPTH, PR_EMS_AB_CONTAINERID, PR_DISPLAY_NAME, PR_EMS_AB_IS_MASTER, PR_EMS_AB_PARENT_ENTRYID,
 		PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_SEARCH_KEY, PR_RECORD_KEY, PR_PARENT_ENTRYID, PR_AB_PROVIDER_ID, PR_EMS_AB_HIERARCHY_PATH, PR_ACCOUNT,
@@ -8957,7 +8957,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 	ECDatabase*			lpDatabase = NULL;
 	objectid_t			sExternId;
 	std::unique_ptr<abprops_t> lExtraProps;
-	unsigned int		*lpProps = NULL;
+	const unsigned int *lpProps = nullptr;
 	unsigned int		ulProps = 0;
 	int		i = 0;
 

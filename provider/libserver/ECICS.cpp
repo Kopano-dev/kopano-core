@@ -37,6 +37,7 @@
 #include "soapH.h"
 #include "SOAPUtils.h"
 
+using namespace std;
 using namespace KCHL;
 
 namespace KC {

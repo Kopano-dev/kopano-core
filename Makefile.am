@@ -54,7 +54,6 @@ noinst_PROGRAMS = kopano-cfgchecker
 if HAVE_TIDY
 noinst_PROGRAMS += rosie-test
 endif
-check_PROGRAMS = cov-scope
 pkglibexec_PROGRAMS = mapitime
 
 
@@ -697,7 +696,6 @@ libmapi_la_SOURCES = \
 	m4lcommon/CommonUtil.cpp \
 	m4lcommon/ECFeatures.cpp m4lcommon/ECFeatures.h \
 	m4lcommon/ECFeatureList.h m4lcommon/ECInvariantChecker.h \
-	m4lcommon/ECMAPIDebug.cpp m4lcommon/ECMAPIDebug.h \
 	m4lcommon/ECMemTable.cpp m4lcommon/HrException.h \
 	m4lcommon/ECRestriction.cpp \
 	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp \
@@ -828,7 +826,6 @@ dist_phpdata_DATA = \
 #
 # test programs
 #
-cov_scope_SOURCES = common/cov-scope.cpp
 mapitime_SOURCES = ECtools/mapitime.cpp
 mapitime_LDADD = -lrt libmapi.la libkcmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}

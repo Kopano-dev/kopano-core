@@ -29,11 +29,7 @@ extern _kc_export unsigned char *g_lpEveryoneEid;
 extern _kc_export const unsigned int g_cbEveryoneEid;
 extern _kc_export unsigned char *g_lpSystemEid;
 extern _kc_export const unsigned int g_cbSystemEid;
-
-HRESULT EntryIdIsDefault(unsigned int cbEntryId, const ENTRYID *lpEntryId, bool *lpbResult);
-HRESULT EntryIdIsSystem(unsigned int cbEntryId, const ENTRYID *lpEntryId, bool *lpbResult);
 extern _kc_export HRESULT EntryIdIsEveryone(unsigned int eid_size, const ENTRYID *eid, bool *result);
-HRESULT GetNonPortableObjectId(unsigned int cbEntryId, const ENTRYID *lpEntryId, unsigned int *lpulObjectId);
 extern _kc_export HRESULT GetNonPortableObjectType(unsigned int eid_size, const ENTRYID *eid, ULONG *obj_type);
 
 } /* namespace */

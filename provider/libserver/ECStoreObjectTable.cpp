@@ -70,6 +70,8 @@
 
 #include <map>
 
+using namespace std;
+
 namespace KC {
 
 extern ECStatsCollector*  g_lpStatsCollector;

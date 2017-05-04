@@ -46,6 +46,8 @@ using namespace std;
 
 namespace KC {
 
+static void ec_log_bt(unsigned int, const char *, ...);
+
 static const char *const ll_names[] = {
 	" notice",
 	"crit   ",
@@ -1043,7 +1045,7 @@ void ec_log(unsigned int level, const std::string &msg)
 	ec_log_target->Log(level, msg);
 }
 
-void ec_log_bt(unsigned int level, const char *fmt, ...)
+static void ec_log_bt(unsigned int level, const char *fmt, ...)
 {
 	if (!ec_log_target->Log(level))
 		return;

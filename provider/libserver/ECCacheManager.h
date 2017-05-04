@@ -38,11 +38,6 @@ struct soap;
 
 #include <unordered_map>
 
-template<typename Key, typename T>
-struct hash_map {
-	typedef std::unordered_map<Key, T, std::hash<Key>, std::equal_to<Key>> Type;
-};
-
 namespace KC {
 
 class ECSessionManager;
@@ -446,19 +441,19 @@ namespace std {
 
 namespace KC {
 
-typedef hash_map<unsigned int, ECsObjects>::Type ECMapObjects;
-typedef hash_map<unsigned int, ECsStores>::Type ECMapStores;
-typedef hash_map<unsigned int, ECsACLs>::Type ECMapACLs;
-typedef hash_map<unsigned int, ECsQuota>::Type ECMapQuota;
-typedef hash_map<unsigned int, ECsUserObject>::Type ECMapUserObject; // userid to user object
+typedef std::unordered_map<unsigned int, ECsObjects> ECMapObjects;
+typedef std::unordered_map<unsigned int, ECsStores> ECMapStores;
+typedef std::unordered_map<unsigned int, ECsACLs> ECMapACLs;
+typedef std::unordered_map<unsigned int, ECsQuota> ECMapQuota;
+typedef std::unordered_map<unsigned int, ECsUserObject> ECMapUserObject; // userid to user object
 typedef std::map<ECsUEIdKey, ECsUEIdObject> ECMapUEIdObject; // user type + externid to user object
-typedef hash_map<unsigned int, ECsUserObjectDetails>::Type ECMapUserObjectDetails; // userid to user object data
+typedef std::unordered_map<unsigned int, ECsUserObjectDetails> ECMapUserObjectDetails; // userid to user object data
 typedef std::map<std::string, ECsServerDetails> ECMapServerDetails;
-typedef hash_map<unsigned int, ECsCells>::Type ECMapCells;
+typedef std::unordered_map<unsigned int, ECsCells> ECMapCells;
 
 // Index properties
 typedef std::map<ECsIndexObject, ECsIndexProp, lessindexobjectkey > ECMapObjectToProp;
-typedef hash_map<ECsIndexProp, ECsIndexObject>::Type ECMapPropToObject;
+typedef std::unordered_map<ECsIndexProp, ECsIndexObject> ECMapPropToObject;
 
 #define CACHE_NO_PARENT 0xFFFFFFFF
 

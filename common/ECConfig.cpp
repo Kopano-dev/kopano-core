@@ -20,6 +20,8 @@
 #include "ECConfigImpl.h"
 #include <kopano/charset/convert.h>
 
+using namespace std;
+
 namespace KC {
 
 ECConfig *ECConfig::Create(const configsetting_t *lpDefaults,

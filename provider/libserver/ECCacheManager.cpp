@@ -34,6 +34,8 @@
 
 #include <algorithm>
 
+using namespace std;
+
 namespace KC {
 
 #define LOG_CACHE_DEBUG(_msg, ...) \

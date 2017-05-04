@@ -40,6 +40,8 @@
 #include "../libserver/cmd.hpp"
 #include "ECNotificationManager.h"
 
+using namespace std;
+
 extern ECConfig *g_lpConfig;
 
 static bool GetLatestVersionAtServer(const char *, unsigned int, ClientVersion *);

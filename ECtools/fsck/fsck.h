@@ -22,16 +22,14 @@
 #include <string>
 #include <list>
 #include <set>
-using namespace std;
-
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
 /*
  * Global configuration
  */
-extern string auto_fix;
-extern string auto_del;
+extern std::string auto_fix;
+extern std::string auto_del;
 
 class Fsck {
 private:

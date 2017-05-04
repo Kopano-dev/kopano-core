@@ -41,6 +41,8 @@
 
 #define _(string) dcgettext("kopano", string, LC_MESSAGES)
 
+using namespace std;
+
 namespace KC {
 
 extern ECSessionManager*	g_lpSessionManager;

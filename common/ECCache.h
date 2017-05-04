@@ -115,7 +115,7 @@ public:
 	
 	size_type Size(void) const _kc_override
 	{
-		// it works with map and hash_map
+		/* It works with map and unordered_map. */
 		return (m_map.size() * (sizeof(typename _MapType::value_type) + sizeof(_MapType) )) + m_ulSize;
 	}
 

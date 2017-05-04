@@ -32,7 +32,8 @@ namespace KC {
  * @param day Day 0-6 (0 == sunday, 1 == monday, ...)
  * @param hour Hour 0-23 (0 == 00:00, 1 == 01:00, ...)
  */
-time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week, WORD day, WORD hour)
+static time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week,
+    WORD day, WORD hour)
 {
 	struct tm tm = {0};
 	time_t date;
@@ -61,7 +62,7 @@ time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week, WORD day,
 	return date;
 }
 
-LONG getTZOffset(time_t date, TIMEZONE_STRUCT sTimeZone)
+static LONG getTZOffset(time_t date, TIMEZONE_STRUCT sTimeZone)
 {
 	struct tm tm;
 	time_t dststart, dstend;

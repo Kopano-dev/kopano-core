@@ -43,7 +43,7 @@ namespace KC {
  * were to start fiddling in Perl structures from our own thread, this would very probably cause
  * segmentation faults.
  */
-static HRESULT MAPICopyMem(ULONG cb, void *lpb, void *lpBase, ULONG *lpCb,
+static HRESULT MAPICopyMem(ULONG cb, const void *lpb, void *lpBase, ULONG *lpCb,
     void **lpDest)
 {
     if(lpb == NULL) {
@@ -61,7 +61,7 @@ static HRESULT MAPICopyMem(ULONG cb, void *lpb, void *lpBase, ULONG *lpCb,
 	return hrSuccess;
 }
 
-HRESULT MAPICopyString(char *lpSrc, void *lpBase, char **lpDst)
+static HRESULT MAPICopyString(const char *lpSrc, void *lpBase, char **lpDst)
 {
     if(lpSrc == NULL) {
         *lpDst = NULL;
@@ -76,7 +76,7 @@ HRESULT MAPICopyString(char *lpSrc, void *lpBase, char **lpDst)
 	return hrSuccess;
 }
 
-HRESULT MAPICopyUnicode(WCHAR *lpSrc, void *lpBase, WCHAR **lpDst)
+static HRESULT MAPICopyUnicode(const wchar_t *lpSrc, void *lpBase, wchar_t **lpDst)
 {
     if(lpSrc == NULL) {
         *lpDst = NULL;

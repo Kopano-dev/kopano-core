@@ -67,6 +67,7 @@
 	  <message>
 */
 
+using namespace std;
 using namespace KCHL;
 
 static inline bool operator<(const GUID &lhs, const GUID &rhs)

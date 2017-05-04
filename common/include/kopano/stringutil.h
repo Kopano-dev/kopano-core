@@ -80,7 +80,6 @@ extern _kc_export std::wstring wstringify(unsigned int x, bool usehex = false, b
 inline unsigned int	atoui(const char *szString) { return strtoul(szString, NULL, 10); }
 extern _kc_export unsigned int xtoi(const char *);
 extern _kc_export int memsubstr(const void *haystack, size_t hsize, const void *needle, size_t nsize);
-std::string striconv(const std::string &strinput, const char *lpszFromCharset, const char *lpszToCharset);
 extern _kc_export std::string str_storage(uint64_t bytes, bool unlimited = true);
 extern _kc_export std::string GetServerNameFromPath(const char *);
 extern _kc_export std::string GetServerPortFromPath(const char *);

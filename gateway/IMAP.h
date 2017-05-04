@@ -175,6 +175,12 @@ public:
 	HRESULT HrDone(bool bSendResponse);
 
 private:
+	using string = std::string;
+	using wstring = std::wstring;
+	template<typename T> using list = std::list<T>;
+	template<typename T> using vector = std::vector<T>;
+	template<typename... T> using set = std::set<T...>;
+
 	void CleanupObject();
 	void ReleaseContentsCache();
 
@@ -251,7 +257,8 @@ private:
 		bool bRecent;				// \Recent flag
 		std::string strFlags;		// String of all flags, including \Recent
 
-		bool operator < (SMail sMail) const {
+		bool operator <(const SMail &sMail) const
+		{
 			return this->ulUid < sMail.ulUid;
 		}
 		bool operator < (ULONG ulUid) const {

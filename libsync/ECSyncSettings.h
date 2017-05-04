@@ -18,6 +18,7 @@
 #ifndef ECSYNCSETTINGS_INCLUDED
 #define ECSYNCSETTINGS_INCLUDED
 
+#include <memory>
 #include <mutex>
 #include <kopano/zcdefs.h>
 
@@ -65,12 +66,7 @@ private:
 	ULONG m_ulStreamBufferSize = 131072, m_ulStreamBatchSize = 256;
 
 	static std::mutex s_hMutex;
-	static ECSyncSettings *s_lpInstance;
-
-	struct _kc_hidden __initializer {
-		~__initializer();
-	};
-	static __initializer __i;
+	static std::unique_ptr<ECSyncSettings> s_lpInstance;
 };
 
 } /* namespace */

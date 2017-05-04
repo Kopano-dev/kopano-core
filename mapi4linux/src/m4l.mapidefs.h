@@ -25,14 +25,12 @@
 #include <list>
 #include <map>
 
-using namespace std;
-
 class M4LMsgServiceAdmin;
 
 class M4LMAPIProp : public M4LUnknown, public virtual IMAPIProp {
 private:
     // variables
-    list<LPSPropValue> properties;
+	std::list<LPSPropValue> properties;
 
 public:
 	virtual ~M4LMAPIProp(void);
@@ -182,7 +180,7 @@ public:
 
 struct abEntry {
 	MAPIUID muid;
-	string displayname;
+	std::string displayname;
 	LPABPROVIDER lpABProvider;
 	LPABLOGON lpABLogon;
 };

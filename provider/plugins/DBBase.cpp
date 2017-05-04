@@ -26,6 +26,8 @@
 #include <mapidefs.h>
 #include "ECServerEntrypoint.h"
 
+using namespace std;
+
 DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 	UserPlugin(pluginlock, shareddata)
 {

@@ -42,6 +42,8 @@
 #include "StreamUtil.h"
 #include "ECS3Attachment.h"
 
+using namespace std;
+
 namespace KC {
 
 // chunk size for attachment blobs, must be equal or larger than MAX, MAX may never shrink below 384*1024.

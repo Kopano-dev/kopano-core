@@ -42,6 +42,8 @@
 	case x: \
 		return #x;
 
+using namespace std;
+
 static string GetSoapError(int err)
 {
 	switch (err) {

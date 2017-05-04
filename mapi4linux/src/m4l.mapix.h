@@ -31,39 +31,35 @@
 
 #include <kopano/ECConfig.h>
 
-using namespace std;
-
 class M4LMsgServiceAdmin;
 
 struct providerEntry {
 	MAPIUID uid;
-	string servicename; // this provider belongs to service 'servicename'
+	std::string servicename; // this provider belongs to service 'servicename'
 	M4LProfSect *profilesection;
 };
 
 struct serviceEntry {
     MAPIUID muid;
-    string servicename;
-	string displayname;
+	std::string servicename, displayname;
 	M4LProviderAdmin *provideradmin;
 	bool bInitialize;
 	SVCService* service;
 };
 
 struct profEntry {
-    string profname;
-    string password;
+	std::string profname, password;
     M4LMsgServiceAdmin *serviceadmin;
 };
 
 class M4LProfAdmin _kc_final : public M4LUnknown, public IProfAdmin {
 private:
     // variables
-    list<profEntry*> profiles;
+	std::list<profEntry *> profiles;
 	std::recursive_mutex m_mutexProfiles;
 
     // functions
-    list<profEntry*>::iterator findProfile(LPTSTR lpszProfileName);
+	std::list<profEntry *>::iterator findProfile(LPTSTR lpszProfileName);
 
 public:
     virtual ~M4LProfAdmin();
@@ -89,10 +85,8 @@ public:
 
 class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin {
 private:
-
-	list<providerEntry*> providers;
-    list<serviceEntry*> services;
-
+	std::list<providerEntry *> providers;
+	std::list<serviceEntry *> services;
 	M4LProfSect	*profilesection;  // Global Profile Section
 	std::recursive_mutex m_mutexserviceadmin;
 
@@ -135,7 +129,7 @@ inline bool operator <(const GUID &a, const GUID &b) {
 class M4LMAPISession _kc_final : public M4LUnknown, public IMAPISession {
 private:
 	// variables
-	string profileName;
+	std::string profileName;
 	M4LMsgServiceAdmin *serviceAdmin;
 
 public:
