@@ -261,8 +261,7 @@ namespace internal {
 
         uint32_t cp = 0;
         // Determine the sequence length based on the lead octet
-        typedef typename std::iterator_traits<octet_iterator>::difference_type octet_difference_type;
-        octet_difference_type length = sequence_length(it);
+        auto length = sequence_length(it);
         if (length == 0)
             return INVALID_LEAD;
 

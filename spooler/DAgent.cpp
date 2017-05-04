@@ -281,16 +281,15 @@ static void sighup(int sig)
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
 		ec_log_warn("Unable to reload configuration file, continuing with current settings.");
-
-	if (g_lpLogger) {
-		if (g_lpConfig) {
-			const char *ll = g_lpConfig->GetSetting("log_level");
-			int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
-			g_lpLogger->SetLoglevel(new_ll);
-		}
-		g_lpLogger->Reset();
-		ec_log_warn("Log connection was reset");
+	if (g_lpLogger == nullptr)
+		return;
+	if (g_lpConfig) {
+		const char *ll = g_lpConfig->GetSetting("log_level");
+		int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
+		g_lpLogger->SetLoglevel(new_ll);
 	}
+	g_lpLogger->Reset();
+	ec_log_warn("Log connection was reset");
 }
 
 static void sigchld(int)
@@ -556,30 +555,28 @@ static void SaveRawMessage(FILE *fp, const char *lpRecipient)
 	 * - all|yes: save for all users (yes for backward compatibility)
 	 * - space-separated user list
 	 */
-	if (parseBool(rawmsg) && (strcasecmp(rawmsg, "all") == 0 ||
-	    strcasecmp(rawmsg, "yes") == 0 ||
-	    kc_recip_in_list(rawmsg, lpRecipient))) {
-		char szBuff[64];
-		tm tmResult;
-		time_t now = time(NULL);
-		gmtime_safe(&now, &tmResult);
+	bool y = parseBool(rawmsg) && (strcasecmp(rawmsg, "all") == 0 ||
+	         strcasecmp(rawmsg, "yes") == 0 || kc_recip_in_list(rawmsg, lpRecipient));
+	if (!y)
+		return;
+
+	char szBuff[64];
+	tm tmResult;
+	time_t now = time(NULL);
+	gmtime_safe(&now, &tmResult);
 
 	//  @todo fix windows path!
-		if (strFileName.empty()) {
-			 ec_log_crit("Unable to save raw message. Wrong configuration: field \"log_raw_message_path\" is empty.");
-			 return;
-		}
-
-		if (strFileName[strFileName.size()-1] != '/')
-			strFileName += '/';
-
-		strFileName += lpRecipient;
-		sprintf(szBuff, "_%04d%02d%02d%02d%02d%02d_%08x.eml", tmResult.tm_year+1900, tmResult.tm_mon+1, tmResult.tm_mday, tmResult.tm_hour, tmResult.tm_min, tmResult.tm_sec, rand_mt());
-		strFileName += szBuff;
-
-		if (DuplicateFile(fp, strFileName))
-			ec_log_notice("Raw message saved to \"%s\"", strFileName.c_str());
+	if (strFileName.empty()) {
+		 ec_log_crit("Unable to save raw message. Wrong configuration: field \"log_raw_message_path\" is empty.");
+		 return;
 	}
+	if (strFileName[strFileName.size()-1] != '/')
+		strFileName += '/';
+	strFileName += lpRecipient;
+	sprintf(szBuff, "_%04d%02d%02d%02d%02d%02d_%08x.eml", tmResult.tm_year+1900, tmResult.tm_mon+1, tmResult.tm_mday, tmResult.tm_hour, tmResult.tm_min, tmResult.tm_sec, rand_mt());
+	strFileName += szBuff;
+	if (DuplicateFile(fp, strFileName))
+		ec_log_notice("Raw message saved to \"%s\"", strFileName.c_str());
 }
 
 /**
@@ -636,14 +633,11 @@ static HRESULT OpenResolveAddrFolder(IMAPISession *lpSession,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-
-	if (lppAddrDir) {
-		hr = OpenResolveAddrFolder(*lppAdrBook, lppAddrDir);
-		if(hr != hrSuccess) {
-			ec_log_err("OpenResolveAddrFolder() OpenResolveAddrFolder failed %x", hr);
-			return hr;
-		}
-	}
+	if (lppAddrDir == nullptr)
+		return hrSuccess;
+	hr = OpenResolveAddrFolder(*lppAdrBook, lppAddrDir);
+	if(hr != hrSuccess)
+		ec_log_err("OpenResolveAddrFolder() OpenResolveAddrFolder failed %x", hr);
 	return hrSuccess;
 }
 
@@ -3355,33 +3349,27 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		++g_nLMTPThreads;
 
 		// One socket has signalled a new incoming connection
-		auto lpDeliveryArgs = new DeliveryArgs(*lpArgs);
+		std::unique_ptr<DeliveryArgs> lpDeliveryArgs(new DeliveryArgs(*lpArgs));
 
-		if (pollfd.revents & (POLLIN | POLLRDHUP)) {
-			hr = HrAccept(ulListenLMTP, &lpDeliveryArgs->lpChannel);
-			
-			if (hr != hrSuccess) {
-				ec_log_err("running_service(): HrAccept failed %x", hr);
-				// just keep running
-				delete lpDeliveryArgs;
-				hr = hrSuccess;
-				continue;
-			}
-
-			sc -> countInc("DAgent", "incoming_session");
-
-			if (unix_fork_function(HandlerLMTP, lpDeliveryArgs, nCloseFDs, pCloseFDs) < 0)
-				ec_log_err("Can't create LMTP process.");
-				// just keep running
-			// main handler always closes information it doesn't need
-			delete lpDeliveryArgs;
-			hr = hrSuccess;
-		
+		if ((pollfd.revents & (POLLIN | POLLRDHUP)) == 0) {
+			// should not be able to get here because of continues
+			ec_log_err("Incoming traffic was not for me?!");
 			continue;
 		}
-
-		// should not be able to get here because of continues
-		ec_log_err("Incoming traffic was not for me?!");
+		hr = HrAccept(ulListenLMTP, &lpDeliveryArgs->lpChannel);
+		if (hr != hrSuccess) {
+			ec_log_err("running_service(): HrAccept failed %x", hr);
+			// just keep running
+			hr = hrSuccess;
+			continue;
+		}
+		sc->countInc("DAgent", "incoming_session");
+		if (unix_fork_function(HandlerLMTP, lpDeliveryArgs.get(), nCloseFDs, pCloseFDs) < 0)
+			ec_log_err("Can't create LMTP process.");
+			// just keep running
+		// main handler always closes information it doesn't need
+		hr = hrSuccess;
+		continue;
 	}
 
 	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "LMTP service will now exit");

@@ -637,7 +637,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		}
 
 		// One socket has signalled a new incoming connection
-		auto lpHandlerArgs = new HandlerArgs;
+		std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
 		lpHandlerArgs->lpLogger = g_lpLogger;
 		lpHandlerArgs->lpConfig = g_lpConfig;
 
@@ -659,7 +659,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept POP3 socket connection.");
 				// just keep running
-				delete lpHandlerArgs;
 				hr = hrSuccess;
 				continue;
 			}
@@ -671,11 +670,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
 			if (bThreads) {
-				if (pthread_create(&POP3Thread, &ThreadAttr, Handler, lpHandlerArgs) != 0) {
+				if (pthread_create(&POP3Thread, &ThreadAttr, Handler, lpHandlerArgs.get()) != 0) {
 					ec_log_err("Can't create %s %s.", method, model);
 					// just keep running
 					delete lpHandlerArgs->lpChannel;
-					delete lpHandlerArgs;
+					lpHandlerArgs.release();
 					hr = hrSuccess;
 				}
 				else {
@@ -685,14 +684,13 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				set_thread_name(POP3Thread, "ZGateway " + std::string(method));
 			}
 			else {
-				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0)
+				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
 					ec_log_err("Can't create %s %s.", method, model);
 					// just keep running
 				else
 					++nChildren;
 				// main handler always closes information it doesn't need
 				delete lpHandlerArgs->lpChannel;
-				delete lpHandlerArgs;
 				hr = hrSuccess;
 			}
 			continue;
@@ -716,7 +714,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept IMAP socket connection.");
 				// just keep running
-				delete lpHandlerArgs;
 				hr = hrSuccess;
 				continue;
 			}
@@ -728,11 +725,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
 			if (bThreads) {
-				if (pthread_create(&IMAPThread, &ThreadAttr, Handler, lpHandlerArgs) != 0) {
+				if (pthread_create(&IMAPThread, &ThreadAttr, Handler, lpHandlerArgs.get()) != 0) {
 					ec_log_err("Could not create %s %s.", method, model);
 					// just keep running
 					delete lpHandlerArgs->lpChannel;
-					delete lpHandlerArgs;
+					lpHandlerArgs.release();
 					hr = hrSuccess;
 				}
 				else {
@@ -742,14 +739,13 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				set_thread_name(IMAPThread, "ZGateway " + std::string(method));
 			}
 			else {
-				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0)
+				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
 					ec_log_err("Could not create %s %s.", method, model);
 					// just keep running
 				else
 					++nChildren;
 				// main handler always closes information it doesn't need
 				delete lpHandlerArgs->lpChannel;
-				delete lpHandlerArgs;
 				hr = hrSuccess;
 			}
 			continue;
