@@ -97,33 +97,24 @@ static const ULONG sANRProps[] = {
  */
 static inline bool match(unsigned int relop, int equality)
 {
-	bool fMatch = false;
-	
 	switch(relop) {
 	case RELOP_GE:
-		fMatch = equality >= 0;
-		break;
+		return equality >= 0;
 	case RELOP_GT:
-		fMatch = equality > 0;
-		break;
+		return equality > 0;
 	case RELOP_LE:
-		fMatch = equality <= 0;
-		break;
+		return equality <= 0;
 	case RELOP_LT:
-		fMatch = equality < 0;
-		break;
+		return equality < 0;
 	case RELOP_NE:
-		fMatch = equality != 0;
-		break;
+		return equality != 0;
 	case RELOP_RE:
-		fMatch = false; // FIXME ?? how should this work ??
-		break;
+		return false; // FIXME ?? how should this work ??
 	case RELOP_EQ:
-		fMatch = equality == 0;
-		break;
+		return equality == 0;
+	default:
+		return false;
 	}
-	
-	return fMatch;
 }
 
 /**
