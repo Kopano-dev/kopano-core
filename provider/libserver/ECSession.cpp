@@ -300,8 +300,6 @@ ECSession::~ECSession()
  */
 ECRESULT ECSession::Shutdown(unsigned int ulTimeout)
 {
-	ECRESULT er = erSuccess;
-
 	/* Shutdown blocking calls for this session on our session group */
 	if (m_lpSessionGroup != nullptr)
 		m_lpSessionGroup->ShutdownSession(this);
@@ -313,8 +311,8 @@ ECRESULT ECSession::Shutdown(unsigned int ulTimeout)
 			break;
 	lk.unlock();
 	if (IsLocked())
-		er = KCERR_TIMEOUT;
-	return er;
+		return KCERR_TIMEOUT;
+	return erSuccess;
 }
 
 ECRESULT ECSession::AddAdvise(unsigned int ulConnection, unsigned int ulKey, unsigned int ulEventMask)
@@ -538,12 +536,11 @@ void ECSession::GetClientApp(std::string *lpstrClientApp)
  */
 ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int *lpulObjId, unsigned int *lpulEidFlags)
 {
-	ECRESULT er;
 	unsigned int ulObjId = 0;
 
 	if (lpEntryId == NULL || lpulObjId == NULL)
 		return KCERR_INVALID_PARAMETER;
-	er = m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(lpEntryId, &ulObjId);
+	auto er = m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(lpEntryId, &ulObjId);
 	if (er != erSuccess)
 		return er;
 	*lpulObjId = ulObjId;
@@ -564,25 +561,22 @@ ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int 
 
 ECRESULT ECSession::LockObject(unsigned int ulObjId)
 {
-	ECRESULT er = erSuccess;
 	scoped_lock lock(m_hLocksLock);
 
 	auto res = m_mapLocks.insert(LockMap::value_type(ulObjId, ECObjectLock()));
 	if (res.second == true)
-		er = m_lpSessionManager->GetLockManager()->LockObject(ulObjId, m_sessionID, &res.first->second);
-
-	return er;
+		return m_lpSessionManager->GetLockManager()->LockObject(ulObjId, m_sessionID, &res.first->second);
+	return erSuccess;
 }
 
 ECRESULT ECSession::UnlockObject(unsigned int ulObjId)
 {
-	ECRESULT er;
 	scoped_lock lock(m_hLocksLock);
 
 	auto i = m_mapLocks.find(ulObjId);
 	if (i == m_mapLocks.cend())
 		return erSuccess;
-	er = i->second.Unlock();
+	auto er = i->second.Unlock();
 	if (er == erSuccess)
 		m_mapLocks.erase(i);
 	return er;
@@ -1445,9 +1439,7 @@ ECRESULT ECAuthSession::ProcessImpersonation(const char* lpszImpersonateUser)
 
 size_t ECAuthSession::GetObjectSize()
 {
-	size_t ulSize = sizeof(*this);
-
-	return ulSize;
+	return sizeof(*this);
 }
 
 } /* namespace */

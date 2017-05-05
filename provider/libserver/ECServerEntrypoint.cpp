@@ -62,8 +62,6 @@ static void plugin_destroy(void *lpParam)
 
 ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 {
-	ECRESULT er;
-
 	if (g_bInitLib == true)
 		return KCERR_CALL_FAILED;
 
@@ -74,7 +72,7 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 	pthread_key_create(&plugin_key, plugin_destroy); // same goes for the userDB-plugin
 
 	// Init mutex for database object list
-	er = ECDatabase::InitLibrary(lpDatabaseDir, lpConfigFile);
+	auto er = ECDatabase::InitLibrary(lpDatabaseDir, lpConfigFile);
 	g_lpStatsCollector = new ECStatsCollector();
 	
 	//TODO: with an error remove all variables and g_bInitLib = false
@@ -117,13 +115,11 @@ ECRESULT kopano_unloadlibrary(void)
 
 ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, bool bDistributedKopano)
 {
-	ECRESULT er;
-
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 
 	g_lpSessionManager = new ECSessionManager(lpConfig, lpAudit, bHostedKopano, bDistributedKopano);
-	er = g_lpSessionManager->LoadSettings();
+	auto er = g_lpSessionManager->LoadSettings();
 	if(er != erSuccess)
 		return er;
 	er = g_lpSessionManager->CheckUserLicense();
