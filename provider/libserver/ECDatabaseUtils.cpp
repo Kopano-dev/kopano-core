@@ -36,9 +36,8 @@ ECRESULT GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize)
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulSize = 0;
-	unsigned int type = atoi(lpRow[FIELD_NR_TYPE]);
 
-	switch(type) {
+	switch (atoi(lpRow[FIELD_NR_TYPE])) {
 	case PT_I2:
 		ulSize = 2;//FIXME: is this correct ?
 		break;
@@ -79,9 +78,7 @@ ci_find_substr(const std::string &first, const std::string &second)
 
 ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned int *lpulColNr, std::string &strColData, ECDatabase *lpDatabase, bool bTruncate)
 {
-	ULONG type = PROP_TYPE(lpPropVal->ulPropTag);
-
-	switch(type) {
+	switch (PROP_TYPE(lpPropVal->ulPropTag)) {
 	case PT_I2:
 		if (lpPropVal->__union != SOAP_UNION_propValData_i)
 			return KCERR_INVALID_PARAMETER;
@@ -189,10 +186,9 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 
 gsoap_size_t GetMVItemCount(struct propVal *lpPropVal)
 {
-	ULONG type = PROP_TYPE(lpPropVal->ulPropTag);
 	gsoap_size_t ulSize = 0;
 
-	switch(type) {
+	switch (PROP_TYPE(lpPropVal->ulPropTag)) {
 	case PT_MV_I2:
 		if (lpPropVal->__union != SOAP_UNION_propValData_mvi || lpPropVal->Value.mvi.__ptr == NULL)
 			ulSize = 0;
@@ -270,9 +266,7 @@ gsoap_size_t GetMVItemCount(struct propVal *lpPropVal)
 
 ECRESULT CopySOAPPropValToDatabaseMVPropVal(struct propVal *lpPropVal, int nItem, std::string &strColName, std::string &strColData, ECDatabase *lpDatabase)
 {
-	ULONG type = PROP_TYPE(lpPropVal->ulPropTag);
-
-	switch(type) {
+	switch (PROP_TYPE(lpPropVal->ulPropTag)) {
 	case PT_MV_I2:
 		if (lpPropVal->__union != SOAP_UNION_propValData_mvi ||
 		    lpPropVal->Value.mvi.__ptr == NULL)
@@ -361,14 +355,13 @@ ECRESULT ParseMVProp(const char *lpRowData, ULONG ulSize,
     unsigned int *lpulLastPos, std::string *lpstrData)
 {
 	ULONG	ulPos = *lpulLastPos;
-	ULONG   ulLen = 0;
 	char	*lpEnd = NULL;
 	// lpRowData -> length:datalength:data
 	assert(ulPos < ulSize);
 
 	if (ulPos >= ulSize)
 		return KCERR_INVALID_PARAMETER;
-	ulLen = strtoul(lpRowData + ulPos, &lpEnd, 10);
+	ULONG ulLen = strtoul(lpRowData + ulPos, &lpEnd, 10);
 	if (lpEnd == lpRowData + ulPos || lpEnd == NULL || *lpEnd != ':')
 		return KCERR_INVALID_PARAMETER;
 	if (lpRowData + ulSize < lpEnd + 1 + ulLen)
@@ -429,10 +422,7 @@ std::string GetPropColOrder(unsigned int ulPropTag,
     const std::string &strSubQuery)
 {
 	std::string strPropColOrder = "0," + stringify(PROP_ID(ulPropTag)) + "," + stringify(PROP_TYPE(ulPropTag));
-	unsigned int ulField = 0;
-	
-	ulField = GetColOffset(ulPropTag);
-	
+	unsigned int ulField = GetColOffset(ulPropTag);
 	for (unsigned int i = 3; i < FIELD_NR_MAX; ++i) {
 		strPropColOrder += ",";
 		if(i == ulField)
@@ -452,15 +442,13 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 	unsigned int ulLastPos;
 	std::string	strData;
 	unsigned int type = atoi(lpRow[FIELD_NR_TYPE]);
-	unsigned int ulPropTag;
 	locale_t loc = createlocale(LC_NUMERIC, "C");
 
 	if ((type & MVI_FLAG) == MVI_FLAG)
 		// Treat MVI as normal property
 		type &= ~MVI_FLAG;
 
-	ulPropTag = PROP_TAG(type,atoi(lpRow[FIELD_NR_TAG]));
-
+	unsigned int ulPropTag = PROP_TAG(type, atoi(lpRow[FIELD_NR_TAG]));
 	switch(type) {
 	case PT_I2:
 		if(lpRow[FIELD_NR_ULONG] == NULL) {
@@ -733,16 +721,13 @@ bool CompareDBPropTag(unsigned int ulPropTag1, unsigned int ulPropTag2)
 
 ECRESULT GetDatabaseSettingAsInteger(ECDatabase *lpDatabase, const std::string &strSettings, unsigned int *lpulResult)
 {
-	ECRESULT		er = erSuccess;
 	DB_RESULT lpDBResult;
-	DB_ROW			lpDBRow = NULL;
-	std::string		strQuery;
 
-	strQuery = "SELECT `value` FROM settings WHERE `name` = '"+lpDatabase->Escape(strSettings)+"'";
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	std::string strQuery = "SELECT `value` FROM settings WHERE `name` = '" + lpDatabase->Escape(strSettings) + "'";
+	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	lpDBRow = lpDBResult.fetch_row();
+	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
 		return KCERR_NOT_FOUND;
 	*lpulResult = atoui(lpDBRow[0]);
@@ -751,13 +736,8 @@ ECRESULT GetDatabaseSettingAsInteger(ECDatabase *lpDatabase, const std::string &
 
 ECRESULT SetDatabaseSetting(ECDatabase *lpDatabase, const std::string &strSettings, unsigned int ulValue)
 {
-	ECRESULT		er = erSuccess;
-	std::string		strQuery;
-
-	strQuery = "REPLACE INTO settings (`name`, `value`) VALUES('"+lpDatabase->Escape(strSettings)+"', '"+stringify(ulValue)+"')";
-	er = lpDatabase->DoUpdate(strQuery);
-
-	return er;
+	std::string strQuery = "REPLACE INTO settings (`name`, `value`) VALUES('" + lpDatabase->Escape(strSettings) + "', '" + stringify(ulValue) + "')";
+	return lpDatabase->DoUpdate(strQuery);
 }
 
 SuppressLockErrorLogging::SuppressLockErrorLogging(ECDatabase *lpDatabase)

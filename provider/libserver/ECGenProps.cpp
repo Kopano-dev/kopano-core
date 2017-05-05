@@ -721,25 +721,19 @@ exit:
  */
 ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, bool *lpbIsOrphan)
 {
-	ECRESULT	er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-	std::string strQuery;
-	bool		bIsOrphan = false;
 
 	if (lpSession == nullptr || lpbIsOrphan == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
-	strQuery = "SELECT 0 FROM stores as s LEFT JOIN users as u ON s.user_id=u.id WHERE s.user_id != 0 and s.hierarchy_id="+stringify(ulObjId) + " AND u.id IS NOT NULL LIMIT 1";
+	std::string strQuery = "SELECT 0 FROM stores as s LEFT JOIN users as u ON s.user_id=u.id WHERE s.user_id != 0 and s.hierarchy_id=" + stringify(ulObjId) + " AND u.id IS NOT NULL LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if (lpDBResult.get_num_rows() == 0)
-		bIsOrphan = true;
-
-	*lpbIsOrphan = bIsOrphan;
+	*lpbIsOrphan = lpDBResult.get_num_rows() == 0;
 	return erSuccess;
 }
 
@@ -755,7 +749,6 @@ ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, b
  */
 ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, unsigned int ulStoreType, char** lppStoreName)
 {
-	ECRESULT			er = erSuccess;
 	unsigned int		ulUserId = 0;
 	unsigned int	    ulCompanyId = 0;
 	struct propValArray sPropValArray{__gszeroinit};
@@ -764,7 +757,7 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	string				strFormat;
 	char*				lpStoreName = NULL;
 
-	er = lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId);
+	auto er = lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId);
 	if (er != erSuccess)
 		goto exit;
 
