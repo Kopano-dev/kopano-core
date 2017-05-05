@@ -1834,12 +1834,13 @@ ECRESULT ECCacheManager::GetEntryListToObjectList(struct entryList *lpEntryList,
  */
 ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, struct soap *soap, struct entryList **lppEntryList)
 {
+	if (lplObjectList == nullptr || lppEntryList == nullptr)
+		return KCERR_INVALID_PARAMETER;
+
 	ECRESULT		er = erSuccess;
 	bool			bPartialCompletion = false;
 	entryList*		lpEntryList = s_alloc<entryList>(soap);
 
-	if (lplObjectList == nullptr || lppEntryList == nullptr)
-		return KCERR_INVALID_PARAMETER;
 	lpEntryList->__ptr = s_alloc<entryId>(soap, lplObjectList->size());
 	lpEntryList->__size = 0;
 
