@@ -260,10 +260,7 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
 	ec_log_notice("Listening for TCP connections on port %d", nServerPort);
-	if (er != erSuccess && lpsSoap)
-		soap_free(lpsSoap);
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServerPort, bool bEnableGET, const char* lpszKeyFile, const char* lpszKeyPass, const char* lpszCAFile, const char* lpszCAPath)

@@ -1852,9 +1852,6 @@ ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, st
 	}
 
 	*lppEntryList = lpEntryList;
-	if (er != erSuccess && lpEntryList)
-		FreeEntryList(lpEntryList, true);
-
 	if(bPartialCompletion)
 		er = KCWARN_PARTIAL_COMPLETION;
 
