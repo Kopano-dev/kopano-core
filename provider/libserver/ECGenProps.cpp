@@ -277,36 +277,37 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		lpPropVal->Value.ul = lpPropVal->Value.ul & MSGFLAG_READ ? 0 : 1;
 		break;
-    case PROP_ID(PR_NORMALIZED_SUBJECT):
+	case PROP_ID(PR_NORMALIZED_SUBJECT): {
     	if(lpPropVal->ulPropTag != PR_SUBJECT) {
     		lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(PR_NORMALIZED_SUBJECT));
     		lpPropVal->Value.ul = KCERR_NOT_FOUND;
     		lpPropVal->__union = SOAP_UNION_propValData_ul;
-    	} else {
+    		break;
+		}
 		lpPropVal->ulPropTag = ulPropTagRequested;
 		// Check for RE, FWD and similar muck at the start of the subject line   		
 		const char *lpszColon = strchr(lpPropVal->Value.lpszA, ':');
-		if (lpszColon != NULL && (lpszColon - lpPropVal->Value.lpszA) > 1 && (lpszColon - lpPropVal->Value.lpszA) < 4)
+		if (lpszColon == nullptr)
+			break;
+		if (lpszColon - lpPropVal->Value.lpszA <= 1 || lpszColon - lpPropVal->Value.lpszA >= 4)
+			break;
+		char *c = lpPropVal->Value.lpszA;
+		while (c < lpszColon && isdigit(*c))
+			++c; // test for all digits prefix
+		if (c == lpszColon)
+			break;
+		++lpszColon; // skip ':'
+		size_t newlength = strlen(lpszColon);
+		if (newlength > 0 && lpszColon[0] == ' ')
 		{
-			char* c = lpPropVal->Value.lpszA;
-			while (c < lpszColon && isdigit(*c))
-				++c; // test for all digits prefix
-			if (c != lpszColon)
-			{
-				++lpszColon; // skip ':'
-				size_t newlength = strlen(lpszColon);
-				if (newlength > 0 && lpszColon[0] == ' ')
-				{
-					++lpszColon; // skip space
-					--newlength; // adjust length
-				}
-				lpPropVal->Value.lpszA = s_alloc<char>(soap, newlength + 1);
-				memcpy(lpPropVal->Value.lpszA, lpszColon, newlength);
-				lpPropVal->Value.lpszA[newlength] = '\0';	// add C-type string terminator
-			}
+			++lpszColon; // skip space
+			--newlength; // adjust length
 		}
-	}
+		lpPropVal->Value.lpszA = s_alloc<char>(soap, newlength + 1);
+		memcpy(lpPropVal->Value.lpszA, lpszColon, newlength);
+		lpPropVal->Value.lpszA[newlength] = '\0';	// add C-type string terminator
         break;
+	}
 	case PROP_ID(PR_SUBMIT_FLAGS):
 		if (ulObjType != MAPI_MESSAGE)
 			break;
