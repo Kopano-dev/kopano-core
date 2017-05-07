@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <kopano/platform.h>
+#include <kopano/zcdefs.h>
 #include "ECLockManager.h"
 #include <kopano/lockhelper.hpp>
 
@@ -25,7 +26,7 @@ using namespace std;
 
 namespace KC {
 
-class ECObjectLockImpl {
+class ECObjectLockImpl _kc_final {
 public:
 	ECObjectLockImpl(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
 	ECObjectLockImpl(const ECObjectLockImpl &) = delete;

@@ -3998,7 +3998,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 	struct propVal *lpPropVal;
 	std::string strName;
 	ABEID abeid;
-	char MUIDEMSAB[] = "\xDC\xA7\x40\xC8\xC0\x42\x10\x1A\xB4\xB9\x08\x00\x2B\x2F\xE1\x82";
+	static const char MUIDEMSAB[] = "\xDC\xA7\x40\xC8\xC0\x42\x10\x1A\xB4\xB9\x08\x00\x2B\x2F\xE1\x82";
 
 	lpPropValArray->__ptr = s_alloc<struct propVal>(soap, lpPropTagArray->__size);
 	lpPropValArray->__size = lpPropTagArray->__size;
@@ -4548,7 +4548,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	ECCacheManager *lpCacheManager = m_lpSession->GetSessionManager()->GetCacheManager();	// Don't delete
 	std::unique_ptr<std::list<localobjectdetails_t> > lplstCompanyObjects;
 	std::unique_ptr<std::list<localobjectdetails_t> > lplstUserObjects;
-	unsigned int ulFlags = USERMANAGEMENT_IDS_ONLY | USERMANAGEMENT_FORCE_SYNC;
+	static const unsigned int ulFlags = USERMANAGEMENT_IDS_ONLY | USERMANAGEMENT_FORCE_SYNC;
 	
 	/*
 	 * When syncing the users we first start emptying the cache, this makes sure the
