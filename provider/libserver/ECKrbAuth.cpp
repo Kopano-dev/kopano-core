@@ -36,7 +36,6 @@ namespace KC {
 ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::string &strPassword, std::string *lpstrError)
 {
 	ECRESULT er = erSuccess;
-	krb5_error_code code = 0;
 	krb5_get_init_creds_opt options;
 	krb5_creds my_creds;
 	krb5_context ctx;
@@ -46,8 +45,7 @@ ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::strin
 	memset(&ctx, 0, sizeof(ctx));
 	memset(&me, 0, sizeof(me));
 
-	code = krb5_init_context(&ctx);
-
+	auto code = krb5_init_context(&ctx);
 	if (code) {
 		*lpstrError = std::string("Unable to initialize kerberos 5 library: code ") + error_message(code);
 		er = KCERR_INVALID_PARAMETER;

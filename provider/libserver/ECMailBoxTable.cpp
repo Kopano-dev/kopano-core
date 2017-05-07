@@ -49,27 +49,24 @@ ECRESULT ECMailBoxTable::Create(ECSession *lpSession, unsigned int ulFlags, cons
 
 ECRESULT ECMailBoxTable::Load()
 {
-	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-	DB_ROW		lpDBRow = NULL;
-	std::string strQuery;
 	std::list<unsigned int> lstObjIds;
 
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
 	Clear();
 
 	//@todo Load all stores depends on m_ulStoreTypes, 1. privates, 2. publics or both
-	strQuery = "SELECT hierarchy_id FROM stores";
+	std::string strQuery = "SELECT hierarchy_id FROM stores";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
 
 	while(1) {
-		lpDBRow = lpDBResult.fetch_row();
+		auto lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL)
 			break;
 

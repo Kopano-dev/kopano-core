@@ -68,9 +68,7 @@ ECObjectLock::ECObjectLock(ECLockManagerPtr ptrLockManager, unsigned int ulObjId
 { }
 
 ECRESULT ECObjectLock::Unlock() {
-	ECRESULT er = erSuccess;
-
-	er = m_ptrImpl->Unlock();
+	auto er = m_ptrImpl->Unlock();
 	if (er == erSuccess)
 		m_ptrImpl.reset();
 
@@ -98,18 +96,16 @@ ECRESULT ECLockManager::LockObject(unsigned int ulObjId, ECSESSIONID sessionId, 
 
 ECRESULT ECLockManager::UnlockObject(unsigned int ulObjId, ECSESSIONID sessionId)
 {
-	ECRESULT er = erSuccess;
 	std::lock_guard<KC::shared_mutex> lock(m_hRwLock);
 
 	auto i = m_mapLocks.find(ulObjId);
 	if (i == m_mapLocks.cend())
-		er = KCERR_NOT_FOUND;
+		return KCERR_NOT_FOUND;
 	else if (i->second != sessionId)
-		er = KCERR_NO_ACCESS;
+		return KCERR_NO_ACCESS;
 	else
 		m_mapLocks.erase(i);
-
-	return er;
+	return erSuccess;
 }
 
 bool ECLockManager::IsLocked(unsigned int ulObjId, ECSESSIONID *lpSessionId)

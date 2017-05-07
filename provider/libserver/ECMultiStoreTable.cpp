@@ -43,22 +43,15 @@ ECRESULT ECMultiStoreTable::Create(ECSession *lpSession, unsigned int ulObjType,
 }
 
 ECRESULT ECMultiStoreTable::SetEntryIDs(ECListInt *lplObjectList) {
-	ECRESULT er = erSuccess;
-	
 	m_lstObjects = *lplObjectList;
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECMultiStoreTable::Load() {
-	ECRESULT er = erSuccess;
-	ECListIntIterator i;
-	sObjectTableKey		sRowItem;
-
 	Clear();
-	for (i = m_lstObjects.begin(); i != m_lstObjects.end(); ++i)
+	for (auto i = m_lstObjects.begin(); i != m_lstObjects.end(); ++i)
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, *i, 0);
-	return er;
+	return erSuccess;
 }
 
 } /* namespace */

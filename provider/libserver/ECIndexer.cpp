@@ -51,7 +51,6 @@ static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
     std::set<unsigned int> setExist;
     std::set<unsigned int> setNotExist;
     std::set<unsigned int> setBoth;
-    bool fAlwaysFalse = false;
     
     if(lpRestrict->ulType != RES_AND)
 		return false;
@@ -64,10 +63,7 @@ static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
                 setNotExist.insert(lpRestrict->lpAnd->__ptr[i]->lpNot->lpNot->lpExist->ulPropTag);
     
     set_intersection(setExist.begin(), setExist.end(), setNotExist.begin(), setNotExist.end(), inserter(setBoth, setBoth.begin()));
-    
-    if(!setBoth.empty())
-        fAlwaysFalse = true;
-    return fAlwaysFalse;
+	return !setBoth.empty();
 }
 
 /**
@@ -86,7 +82,6 @@ static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
  */
 static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
 {
-	ECRESULT er;
     std::list<struct restrictTable *> lstClauses;
     bool bModified = false;
     
@@ -96,7 +91,7 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
     for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
         if(lpRestrict->lpAnd->__ptr[i]->ulType == RES_AND) {
             // First, flatten our subchild
-            er = NormalizeRestrictionNestedAnd(lpRestrict->lpAnd->__ptr[i]);
+			auto er = NormalizeRestrictionNestedAnd(lpRestrict->lpAnd->__ptr[i]);
             if (er != erSuccess)
 				return er;
 
@@ -150,8 +145,6 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
 static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
     const std::set<unsigned int> &setExcludeProps, SIndexedTerm &sMultiSearch)
 {
-    ECRESULT er;
-    
     sMultiSearch.strTerm.clear();
     sMultiSearch.setFields.clear();
     
@@ -161,8 +154,7 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
             
             if(NormalizeRestrictionIsFalse(lpRestrict->lpOr->__ptr[i]))
                 continue;
-                
-            er = NormalizeGetMultiSearch(lpRestrict->lpOr->__ptr[i], setExcludeProps, terms);
+			auto er = NormalizeGetMultiSearch(lpRestrict->lpOr->__ptr[i], setExcludeProps, terms);
             if (er != erSuccess)
                 return er;
                 
@@ -233,7 +225,6 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
     const std::set<unsigned int> &setExcludeProps,
     std::list<SIndexedTerm> *lpMultiSearches)
 {
-    ECRESULT er = erSuccess;
     SIndexedTerm sMultiSearch;
     
     lpMultiSearches->clear();
@@ -264,8 +255,7 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
         lpRestrict->lpAnd->__size = 0;
         lpRestrict->lpAnd->__ptr = NULL;
     }
-    
-    return er;
+	return erSuccess;
 }
 
 /**
@@ -287,10 +277,8 @@ static ECRESULT NormalizeGetOptimalMultiFieldSearch(
     const std::set<unsigned int> &setExcludeProps,
     std::list<SIndexedTerm> *lpMultiSearches)
 {
-    ECRESULT er;
-    
     // Normalize nested ANDs, if any
-    er = NormalizeRestrictionNestedAnd(lpRestrict);
+	auto er = NormalizeRestrictionNestedAnd(lpRestrict);
     if (er != erSuccess)
 		return er;
         
