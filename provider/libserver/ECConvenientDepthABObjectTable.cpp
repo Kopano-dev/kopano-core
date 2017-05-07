@@ -64,12 +64,10 @@ ECRESULT ECConvenientDepthABObjectTable::Create(ECSession *lpSession,
  */
 ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGenTable, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bTableData,bool bTableLimit)
 {
-	ECRESULT er;
     unsigned int n = 0;
     struct propVal *lpProp = NULL;
 	auto lpThis = static_cast<ECConvenientDepthABObjectTable *>(lpGenTable);
-    
-    er = ECABObjectTable::QueryRowData(lpThis, soap, lpSession, lpRowList, lpsPropTagArray, lpObjectData, lppRowSet, bTableData, bTableLimit);
+	auto er = ECABObjectTable::QueryRowData(lpThis, soap, lpSession, lpRowList, lpsPropTagArray, lpObjectData, lppRowSet, bTableData, bTableLimit);
     if(er != erSuccess)
 		return er;
 

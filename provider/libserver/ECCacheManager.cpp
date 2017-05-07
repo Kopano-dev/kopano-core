@@ -99,8 +99,6 @@ ECCacheManager::~ECCacheManager()
 
 ECRESULT ECCacheManager::PurgeCache(unsigned int ulFlags)
 {
-	ECRESULT er = erSuccess;
-
 	LOG_CACHE_DEBUG("Purge cache, flags 0x%08X", ulFlags);
 
 	// cache mutex items
@@ -146,13 +144,11 @@ ECRESULT ECCacheManager::PurgeCache(unsigned int ulFlags)
 	if (ulFlags & PURGE_CACHE_SERVER)
 		m_ServerDetailsCache.ClearCache();
 	l_cache.unlock();
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECCacheManager::Update(unsigned int ulType, unsigned int ulObjId)
 {
-	ECRESULT		er = erSuccess;
-
 	switch(ulType)
 	{
 	case fnevObjectModified:
@@ -179,8 +175,7 @@ ECRESULT ECCacheManager::Update(unsigned int ulType, unsigned int ulObjId)
 		LOG_CACHE_DEBUG("Update cache, action type %d, objectid %d", ulType, ulObjId);
 		break;
 	}
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECCacheManager::UpdateUser(unsigned int ulUserId)
@@ -203,11 +198,10 @@ ECRESULT ECCacheManager::UpdateUser(unsigned int ulUserId)
 
 ECRESULT ECCacheManager::_GetObject(unsigned int ulObjId, unsigned int *ulParent, unsigned int *ulOwner, unsigned int *ulFlags, unsigned int *ulType)
 {
-	ECRESULT er;
 	ECsObjects	*sObject;
 	scoped_rlock lock(m_hCacheMutex);
 
-	er = m_ObjectsCache.GetCacheItem(ulObjId, &sObject);
+	auto er = m_ObjectsCache.GetCacheItem(ulObjId, &sObject);
 	if(er != erSuccess)
 		return er;
 
@@ -229,7 +223,6 @@ ECRESULT ECCacheManager::_GetObject(unsigned int ulObjId, unsigned int *ulParent
 
 ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, unsigned int ulOwner, unsigned int ulFlags, unsigned int ulType)
 {
-	ECRESULT		er = erSuccess;
 	ECsObjects		sObjects;
 
 	if(ulParent == 0 || ulObjId == 0 || ulOwner == 0)
@@ -243,8 +236,7 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 	sObjects.ulType		= ulType;
 
 	scoped_rlock lock(m_hCacheMutex);
-	er = m_ObjectsCache.AddCacheItem(ulObjId, sObjects);
-
+	auto er = m_ObjectsCache.AddCacheItem(ulObjId, sObjects);
 	LOG_CACHE_DEBUG("Set cache object id %d, parent %d, owner %d, flags %d, type %d", ulObjId, ulParent, ulOwner, ulFlags, ulType);
 	return er;
 }
@@ -257,12 +249,10 @@ ECRESULT ECCacheManager::_DelObject(unsigned int ulObjId)
 
 ECRESULT ECCacheManager::_GetStore(unsigned int ulObjId, unsigned int *ulStore, GUID *lpGuid, unsigned int *lpulType)
 {
-	ECRESULT er;
 	ECsStores	*sStores;
-
 	scoped_rlock lock(m_hCacheMutex);
 
-	er = m_StoresCache.GetCacheItem(ulObjId, &sStores);
+	auto er = m_StoresCache.GetCacheItem(ulObjId, &sStores);
 	if(er != erSuccess)
 		return er;
 	if(ulStore)
@@ -277,16 +267,13 @@ ECRESULT ECCacheManager::_GetStore(unsigned int ulObjId, unsigned int *ulStore, 
 ECRESULT ECCacheManager::SetStore(unsigned int ulObjId, unsigned int ulStore,
     const GUID *lpGuid, unsigned int ulType)
 {
-	ECRESULT		er = erSuccess;
 	ECsStores		sStores;
 	sStores.ulStore = ulStore;
 	sStores.guidStore = *lpGuid;
 	sStores.ulType = ulType;
 
 	scoped_rlock lock(m_hCacheMutex);
-
-	er = m_StoresCache.AddCacheItem(ulObjId, sStores);
-
+	auto er = m_StoresCache.AddCacheItem(ulObjId, sStores);
 	LOG_CACHE_DEBUG("Set store cache id %d, store %d, type %d, guid %s", ulObjId, ulStore, ulType, ((lpGuid)?bin2hex(sizeof(GUID), (const unsigned char*)lpGuid).c_str(): "NULL"));
 	return er;
 }
@@ -319,11 +306,8 @@ exit:
 
 ECRESULT ECCacheManager::GetParent(unsigned int ulObjId, unsigned int *lpulParent)
 {
-	ECRESULT er;
 	unsigned int ulParent = 0;
-
-	er = GetObject(ulObjId, &ulParent, NULL, NULL);
-
+	auto er = GetObject(ulObjId, &ulParent, nullptr, nullptr);
 	if(er != erSuccess)
 		return er;
 	if (ulParent == CACHE_NO_PARENT)
@@ -340,7 +324,6 @@ ECRESULT ECCacheManager::QueryParent(unsigned int ulObjId, unsigned int *lpulPar
 // Get the parent of the specified object
 ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParent, unsigned int *lpulOwner, unsigned int *lpulFlags, unsigned int *lpulType)
 {
-	ECRESULT	er = erSuccess;
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	std::string strQuery;
@@ -348,8 +331,7 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 	unsigned int	ulParent = 0, ulOwner = 0, ulFlags = 0, ulType = 0;
 	bool bCacheResult = false;
 
-	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
-
+	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 
@@ -413,7 +395,6 @@ exit:
 ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects,
     std::map<sObjectTableKey, ECsObjects> &mapObjects)
 {
-	ECRESULT	er = erSuccess;
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	std::string strQuery;
@@ -424,8 +405,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 	ECsObjects	sObject;
 	std::set<sObjectTableKey> setUncached;
 
-	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
-
+	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 		
@@ -551,7 +531,6 @@ ECRESULT ECCacheManager::GetStore(unsigned int ulObjId, unsigned int *lpulStore,
 // Get the store that the specified object belongs to
 ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpulStore, GUID *lpGuid, unsigned int *lpulType, unsigned int maxdepth)
 {
-	ECRESULT	er = erSuccess;
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	std::string strQuery;
@@ -565,8 +544,7 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
 	if(maxdepth <= 0)
 	    return KCERR_NOT_FOUND;
 
-	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
-
+	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 
@@ -697,10 +675,7 @@ exit:
 
 ECRESULT ECCacheManager::GetUserDetails(unsigned int ulUserId, objectdetails_t *details)
 {
-	ECRESULT er = erSuccess;
-
-	er = _GetUserObjectDetails(ulUserId, details);
-
+	auto er = _GetUserObjectDetails(ulUserId, details);
 	// on error, ECUserManagement will update the cache
 	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user details for userid %d not found, error 0x%08x", ulUserId, er);
@@ -903,12 +878,10 @@ ECRESULT ECCacheManager::_AddUserObject(unsigned int ulUserId,
 ECRESULT ECCacheManager::_GetUserObject(unsigned int ulUserId, objectclass_t* lpulClass, unsigned int *lpulCompanyId,
 										std::string* lpstrExternId, std::string* lpstrSignature)
 {
-	ECRESULT er;
 	ECsUserObject	*sData;
-
 	scoped_rlock lock(m_hCacheMutex);
 
-	er = m_UserObjectCache.GetCacheItem(ulUserId, &sData);
+	auto er = m_UserObjectCache.GetCacheItem(ulUserId, &sData);
 	if(er != erSuccess)
 		return er;
 	if(lpulClass)
@@ -951,14 +924,12 @@ ECRESULT ECCacheManager::_AddUserObjectDetails(unsigned int ulUserId,
 
 ECRESULT ECCacheManager::_GetUserObjectDetails(unsigned int ulUserId, objectdetails_t *details)
 {
-	ECRESULT er;
 	ECsUserObjectDetails *sObjectDetails;
-
 	scoped_rlock lock(m_hCacheMutex);
 
 	if (details == NULL)
 		return KCERR_INVALID_PARAMETER;
-	er = m_UserObjectDetailsCache.GetCacheItem(ulUserId, &sObjectDetails);
+	auto er = m_UserObjectDetailsCache.GetCacheItem(ulUserId, &sObjectDetails);
 	if (er != erSuccess)
 		return er;
 
@@ -999,7 +970,6 @@ ECRESULT ECCacheManager::_GetUEIdObject(const std::string &strExternId,
     objectclass_t ulClass, unsigned int *lpulCompanyId,
     unsigned int *lpulUserId, std::string *lpstrSignature)
 {
-	ECRESULT er;
 	ECsUEIdKey		sKey;
 	ECsUEIdObject	*sData;
 
@@ -1008,7 +978,7 @@ ECRESULT ECCacheManager::_GetUEIdObject(const std::string &strExternId,
 
 	scoped_rlock lock(m_hCacheMutex);
 
-	er = m_UEIdObjectCache.GetCacheItem(sKey, &sData);
+	auto er = m_UEIdObjectCache.GetCacheItem(sKey, &sData);
 	if(er != erSuccess)
 		return er;
 	if(lpulCompanyId)
@@ -1025,7 +995,6 @@ ECRESULT ECCacheManager::_GetUEIdObject(const std::string &strExternId,
 ECRESULT ECCacheManager::_DelUEIdObject(const std::string &strExternId,
     objectclass_t ulClass)
 {
-	ECRESULT	er = erSuccess;
 	ECsUEIdKey	sKey;
 
 	LOG_USERCACHE_DEBUG("Remove user externid '%s' class %d", bin2hex(strExternId).c_str(), ulClass);
@@ -1036,13 +1005,11 @@ ECRESULT ECCacheManager::_DelUEIdObject(const std::string &strExternId,
 
 	scoped_rlock lock(m_hCacheMutex);
 	m_UEIdObjectCache.RemoveCacheItem(sKey);
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppRights)
 {
-    ECRESULT er = erSuccess;
 	DB_RESULT lpResult;
     DB_ROW		lpRow = NULL;
     ECDatabase *lpDatabase = NULL;
@@ -1057,8 +1024,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 		return erSuccess;
 
 	/* Failed, get it from the cache */
-	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
-
+	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
 		return er;
 
@@ -1103,13 +1069,12 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 
 ECRESULT ECCacheManager::_GetACLs(unsigned int ulObjId, struct rightsArray **lppRights)
 {
-	ECRESULT er;
     ECsACLs *sACL;
     struct rightsArray *lpRights = NULL;
 
 	scoped_rlock lock(m_hCacheMutex);
 
-	er = m_AclCache.GetCacheItem(ulObjId, &sACL);
+	auto er = m_AclCache.GetCacheItem(ulObjId, &sACL);
 	if(er != erSuccess)
 		return er;
 
@@ -1175,7 +1140,6 @@ ECRESULT ECCacheManager::GetQuota(unsigned int ulUserId, bool bIsDefaultQuota, q
 ECRESULT ECCacheManager::SetQuota(unsigned int ulUserId, bool bIsDefaultQuota,
     const quotadetails_t &quota)
 {
-	ECRESULT er = erSuccess;
 	ECsQuota	sQuota;
 
 	sQuota.quota = quota;
@@ -1183,11 +1147,8 @@ ECRESULT ECCacheManager::SetQuota(unsigned int ulUserId, bool bIsDefaultQuota,
 	scoped_rlock lock(m_hCacheMutex);
 
 	if (bIsDefaultQuota)
-		er = m_QuotaUserDefaultCache.AddCacheItem(ulUserId, sQuota);
-	else
-		er = m_QuotaCache.AddCacheItem(ulUserId, sQuota);
-
-	return er;
+		return m_QuotaUserDefaultCache.AddCacheItem(ulUserId, sQuota);
+	return m_QuotaCache.AddCacheItem(ulUserId, sQuota);
 }
 
 ECRESULT ECCacheManager::_GetQuota(unsigned int ulUserId, bool bIsDefaultQuota, quotadetails_t *quota)
@@ -1213,15 +1174,11 @@ ECRESULT ECCacheManager::_GetQuota(unsigned int ulUserId, bool bIsDefaultQuota, 
 
 ECRESULT ECCacheManager::_DelQuota(unsigned int ulUserId, bool bIsDefaultQuota)
 {
-	ECRESULT er = erSuccess;
 	scoped_rlock lock(m_hCacheMutex);
 
 	if (bIsDefaultQuota)
-		er = m_QuotaUserDefaultCache.RemoveCacheItem(ulUserId);
-	else
-		er = m_QuotaCache.RemoveCacheItem(ulUserId);
-
-	return er;
+		return m_QuotaUserDefaultCache.RemoveCacheItem(ulUserId);
+	return m_QuotaCache.RemoveCacheItem(ulUserId);
 }
 
 void ECCacheManager::ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
@@ -1457,7 +1414,6 @@ ECRESULT ECCacheManager::SetServerDetails(const std::string &strServerId, const 
 
 ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 {
-	ECRESULT				er = erSuccess;
 	ECsIndexObject	sObjectKeyLower, sObjectKeyUpper;
 	std::list<ECMapObjectToProp::value_type> lstItems;
 
@@ -1468,7 +1424,7 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 	sObjectKeyUpper.ulTag = 0xffffffff;
 
 	scoped_rlock lock(m_hCacheIndPropMutex);
-	er = m_ObjectToPropCache.GetCacheRange(sObjectKeyLower, sObjectKeyUpper, &lstItems);
+	auto er = m_ObjectToPropCache.GetCacheRange(sObjectKeyLower, sObjectKeyUpper, &lstItems);
 	for (const auto &p : lstItems) {
 		m_ObjectToPropCache.RemoveCacheItem(p.first);
 		m_PropToObjectCache.RemoveCacheItem(p.second);
@@ -1507,7 +1463,6 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int cb
 
 ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int ulObjId)
 {
-	ECRESULT				er = erSuccess;
 	ECsIndexObject	sObject;
 	ECsIndexProp	*sObjectId;
 
@@ -1525,20 +1480,19 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int ul
         }
 	}
 
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECCacheManager::_AddIndexData(const ECsIndexObject *lpObject,
     const ECsIndexProp *lpProp)
 {
-	ECRESULT er;
 	scoped_rlock lock(m_hCacheIndPropMutex);
 
     // Remove any pre-existing references to this data
     RemoveIndexData(PROP_TAG(PT_UNSPECIFIED, lpObject->ulTag), lpObject->ulObjId);
     RemoveIndexData(PROP_TAG(PT_UNSPECIFIED, lpProp->ulTag), lpProp->cbData, lpProp->lpData);
     
-	er = m_PropToObjectCache.AddCacheItem(*lpProp, *lpObject);
+	auto er = m_PropToObjectCache.AddCacheItem(*lpProp, *lpObject);
 	if(er != erSuccess)
 		return er;
 	er = m_ObjectToPropCache.AddCacheItem(*lpObject, *lpProp);
@@ -1837,7 +1791,6 @@ ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, st
 	if (lplObjectList == nullptr || lppEntryList == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
-	ECRESULT		er = erSuccess;
 	bool			bPartialCompletion = false;
 	entryList*		lpEntryList = s_alloc<entryList>(soap);
 
@@ -1854,9 +1807,8 @@ ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, st
 
 	*lppEntryList = lpEntryList;
 	if(bPartialCompletion)
-		er = KCWARN_PARTIAL_COMPLETION;
-
-	return er;
+		return KCWARN_PARTIAL_COMPLETION;
+	return erSuccess;
 }
 
 /**

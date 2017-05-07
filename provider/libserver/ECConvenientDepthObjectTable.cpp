@@ -89,11 +89,9 @@ ECRESULT ECConvenientDepthObjectTable::Create(ECSession *lpSession,
 }
 
 ECRESULT ECConvenientDepthObjectTable::Load() {
-	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
-	std::string	strQuery;
 	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
 	sObjectTableKey		sRowItem;
 	unsigned int ulDepth = 0;
@@ -109,7 +107,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 
 	FOLDERINFO sRoot;
 
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
@@ -122,8 +120,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 
 	iterFolders = lstFolders.cbegin();
 	while (iterFolders != lstFolders.cend()) {
-		strQuery = "SELECT hierarchy.id, hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type, properties.val_string FROM hierarchy LEFT JOIN properties ON properties.hierarchyid = hierarchy.id AND properties.tag = 12289  AND properties.type = 30 WHERE hierarchy.type = " +  stringify(MAPI_FOLDER) + " AND hierarchy.flags & "+stringify(MSGFLAG_DELETED)+" = " + stringify(ulFlags&MSGFLAG_DELETED);
-
+		std::string strQuery = "SELECT hierarchy.id, hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type, properties.val_string FROM hierarchy LEFT JOIN properties ON properties.hierarchyid = hierarchy.id AND properties.tag = 12289  AND properties.type = 30 WHERE hierarchy.type = " +  stringify(MAPI_FOLDER) + " AND hierarchy.flags & "+stringify(MSGFLAG_DELETED)+" = " + stringify(ulFlags&MSGFLAG_DELETED);
 		strQuery += " AND hierarchy.parent IN(";
 		
 		while (iterFolders != lstFolders.cend()) {
@@ -193,7 +190,6 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 }
 
 ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap, ECSession* lpSession, unsigned int ulObjId, struct propVal *lpPropVal){
-	ECRESULT er;
 	unsigned int ulObjType;
 
 	lpPropVal->ulPropTag = PR_DEPTH;
@@ -201,7 +197,7 @@ ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap, ECSes
 	lpPropVal->Value.ul = 0;
 
 	while(ulObjId != m_ulFolderId && lpPropVal->Value.ul < 50){
-		er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulObjId, NULL, NULL, &ulObjType);
+		auto er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulObjId, nullptr, nullptr, &ulObjType);
 		if(er != erSuccess) {
 			// should never happen
 			assert(false);

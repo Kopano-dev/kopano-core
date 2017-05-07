@@ -50,10 +50,8 @@ ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)
 
 ECRESULT ECDatabaseFactory::CreateDatabaseObject(ECDatabase **lppDatabase, std::string &ConnectError)
 {
-	ECRESULT er;
 	std::unique_ptr<ECDatabase> lpDatabase;
-
-	er = GetDatabaseFactory(&unique_tie(lpDatabase));
+	auto er = GetDatabaseFactory(&unique_tie(lpDatabase));
 	if(er != erSuccess) {
 		ConnectError = "Invalid database engine";
 		return er;
@@ -70,11 +68,8 @@ ECRESULT ECDatabaseFactory::CreateDatabaseObject(ECDatabase **lppDatabase, std::
 
 ECRESULT ECDatabaseFactory::CreateDatabase()
 {
-	ECRESULT	er = erSuccess;
 	std::unique_ptr<ECDatabase> lpDatabase;
-	std::string	strQuery;
-	
-	er = GetDatabaseFactory(&unique_tie(lpDatabase));
+	auto er = GetDatabaseFactory(&unique_tie(lpDatabase));
 	if(er != erSuccess)
 		return er;
 	return lpDatabase->CreateDatabase();
@@ -82,10 +77,8 @@ ECRESULT ECDatabaseFactory::CreateDatabase()
 
 ECRESULT ECDatabaseFactory::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 {
-	ECRESULT		er = erSuccess;
 	std::unique_ptr<ECDatabase> lpDatabase;
-	
-	er = CreateDatabaseObject(&unique_tie(lpDatabase), strReport);
+	auto er = CreateDatabaseObject(&unique_tie(lpDatabase), strReport);
 	if(er != erSuccess)
 		return er;
 	return lpDatabase->UpdateDatabase(bForceUpdate, strReport);
@@ -95,8 +88,6 @@ extern pthread_key_t database_key;
 
 ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDatabase)
 {
-	ECRESULT er;
-	ECDatabase *lpDatabase = NULL;
 	std::string error;
 
 	// We check to see whether the calling thread already
@@ -104,11 +95,10 @@ ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDa
 	// we create a new one.
 
 	// database_key is defined in ECServer.cpp, and allocated in the running_server routine
-	lpDatabase = (ECDatabase *)pthread_getspecific(database_key);
+	auto lpDatabase = static_cast<ECDatabase *>(pthread_getspecific(database_key));
 	
 	if(lpDatabase == NULL) {
-		er = lpFactory->CreateDatabaseObject(&lpDatabase, error);
-
+		auto er = lpFactory->CreateDatabaseObject(&lpDatabase, error);
 		if(er != erSuccess) {
 			ec_log_err("Unable to get database connection: %s", error.c_str());
 			lpDatabase = NULL;
