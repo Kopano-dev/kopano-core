@@ -156,7 +156,6 @@ ECRESULT ECStoreObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId
 
 ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 {
-	ECRESULT		er = erSuccess;
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
@@ -166,7 +165,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	ulock_rec biglock(m_hLock);
 
 	assert(lplstProps != NULL);
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 	
@@ -220,13 +219,8 @@ exit:
 ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag)
 {
 	DB_RESULT lpDBResult;
-	DB_ROW				lpDBRow = NULL;
-	std::string			strQuery;
-	std::string			strColName;
 	ECDatabase*			lpDatabase = NULL;
-	int					j;
 	sObjectTableKey		sRowItem;
-	size_t				cListRows = 0;
 
 	ECRESULT er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
@@ -234,10 +228,10 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 
 	assert(lplistMVPropTag->size() < 2); //FIXME: Limit of one 1 MV column
 	// scan for MV-props and add rows
-	strQuery = "SELECT h.id, orderid FROM hierarchy as h";
-	j = 0;
+	std::string strQuery = "SELECT h.id, orderid FROM hierarchy as h";
+	int j = 0;
 	for (auto proptag : *lplistMVPropTag) {
-		strColName = "col" + stringify(proptag);
+		std::string strColName = "col" + stringify(proptag);
 		strQuery += " LEFT JOIN mvproperties as " + strColName + " ON h.id=" +
 			strColName + ".hierarchyid AND " + strColName +
 			".tag=" + stringify(PROP_ID(proptag)) + " AND " +
@@ -250,7 +244,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 	strQuery += " WHERE h.id IN(";
 
 	j = 0;
-	cListRows = lplistRows->size();
+	size_t cListRows = lplistRows->size();
 	for (const auto &row : *lplistRows) {
 		strQuery += stringify(row.ulObjId);
 		if(j != (int)(cListRows-1))
@@ -265,7 +259,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 
 	while(1)
 	{
-		lpDBRow = lpDBResult.fetch_row();
+		auto lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL)
 			break;
 
@@ -287,13 +281,10 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 // Direct interface
 ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit, bool bSubObjects)
 {
-	ECRESULT		er = erSuccess;
 	gsoap_size_t i = 0, k = 0;
 	unsigned int	ulFolderId;
 	unsigned int 	ulRowStoreId = 0;
 	GUID			sRowGuid;
-
-	struct rowSet	*lpsRowSet = NULL;
 	auto lpODStore = static_cast<ECODStore *>(lpObjectData);
 	ECDatabase		*lpDatabase = NULL;
 
@@ -317,11 +308,11 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 	std::list<unsigned int> propList;
 
 	assert(lpRowList != NULL);
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
-	lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -592,7 +583,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
     std::multimap<unsigned int, unsigned int> &mapColumns, bool bTableLimit,
     struct rowSet *lpsRowSet)
 {
-	ECRESULT		er = erSuccess;
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
@@ -615,7 +605,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 	std::string strMVIPropColOrder = bTableLimit ? MVIPROPCOLORDER_TRUNCATED : MVIPROPCOLORDER;
 	
 	assert(lpsRowSet != NULL);
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 	
@@ -790,7 +780,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
     const std::map<sObjectTableKey, unsigned int> &mapObjIds,
     struct rowSet *lpsRowSet)
 {
-    ECRESULT er = erSuccess;
     std::string strQuery;
     std::string strHierarchyIds;
     std::string strTags, strMVTags, strMVITags;
@@ -801,7 +790,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
     DB_LENGTHS lpDBLen = NULL;
     unsigned int ulTag = 0;
     unsigned int ulType = 0;
-    ULONG ulMin, ulMax;
     ECDatabase      *lpDatabase = NULL;
     std::set<unsigned int> setSubQueries;
     std::string		strSubquery;
@@ -809,11 +797,11 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 
 	if (mapColumns.empty() || mapObjIds.empty())
 		return erSuccess;
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
-	ulMin = ulMax = PROP_ID(mapColumns.begin()->first);
+	ULONG ulMin = PROP_ID(mapColumns.begin()->first), ulMax = ulMin;
 
     // Split columns into MV columns and non-MV columns
 	for (const auto &col : mapColumns) {
@@ -963,18 +951,14 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 
 ECRESULT ECStoreObjectTable::CopyEmptyCellToSOAPPropVal(struct soap *soap, unsigned int ulPropTag, struct propVal *lpPropVal)
 {
-	ECRESULT	er = erSuccess;
-
 	lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
 	lpPropVal->__union = SOAP_UNION_propValData_ul;
 	lpPropVal->Value.ul = KCERR_NOT_FOUND;
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
-	ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
 	DB_ROW			lpRow = NULL;
 	std::string		strQuery, strColName;
@@ -983,7 +967,7 @@ ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *l
 	ECDatabase *lpDatabase = NULL;
 	ulock_rec biglock(m_hLock);
 
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 
@@ -1020,11 +1004,8 @@ exit:
 
 ECRESULT ECStoreObjectTable::Load()
 {
-    ECRESULT er = erSuccess;
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-    DB_ROW		lpDBRow = NULL;
-    std::string	strQuery;
 	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
     sObjectTableKey		sRowItem;
     
@@ -1033,11 +1014,10 @@ ECRESULT ECStoreObjectTable::Load()
     unsigned int ulObjType = lpData->ulObjType;
     
     unsigned int ulMaxItems = atoui(lpSession->GetSessionManager()->GetConfig()->GetSetting("folder_max_items"));
-    unsigned int i;
     
     std::list<unsigned int> lstObjIds;
 
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 	if (ulFolderId == 0)
@@ -1047,8 +1027,7 @@ ECRESULT ECStoreObjectTable::Load()
         Clear();
 
         // Load the table with all the objects of type ulObjType and flags ulFlags in container ulParent
-        
-		strQuery = "SELECT hierarchy.id FROM hierarchy WHERE hierarchy.parent=" + stringify(ulFolderId);
+	std::string strQuery = "SELECT hierarchy.id FROM hierarchy WHERE hierarchy.parent=" + stringify(ulFolderId);
 
         if(ulObjType == MAPI_MESSAGE)
         {
@@ -1073,9 +1052,9 @@ ECRESULT ECStoreObjectTable::Load()
         if(er != erSuccess)
 		return er;
 
-        i = 0;
+	unsigned int i = 0;
         while(1) {
-		lpDBRow = lpDBResult.fetch_row();
+		auto lpDBRow = lpDBResult.fetch_row();
             if(lpDBRow == NULL)
                 break;
 
@@ -1098,7 +1077,6 @@ ECRESULT ECStoreObjectTable::Load()
 
 ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 {
-    ECRESULT er = erSuccess;
     unsigned int ulParent = 0;
 	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
 
@@ -1115,7 +1093,7 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 		return this->ulPermission;
 	}
 	// Get the parent id of the row we're inserting (this is very probably cached from Load())
-	er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);
+	auto er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);
 	if (er != erSuccess)
 		return er;
 	// This will be cached after the first row in the table is added
@@ -1202,15 +1180,13 @@ exit:
  */
 ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId, std::list<unsigned int> *lpDeferred)
 {
-	ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	
 	lpDeferred->clear();
 	
 	std::string strQuery = "SELECT hierarchyid FROM deferredupdate WHERE folderid = " + stringify(ulFolderId);
-	
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
@@ -1223,7 +1199,6 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId
  */
 ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRowList, std::list<unsigned int> *lpDeferred)
 {
-	ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	
@@ -1240,7 +1215,7 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRo
 	strQuery.resize(strQuery.size()-1);
 	strQuery += ")";
 	
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
