@@ -53,11 +53,10 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 	auto pThis = dynamic_cast<ECUserStoreTable *>(lpThis);
 	if (pThis == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	struct rowSet *lpsRowSet = NULL;
 	gsoap_size_t i;
 	GUID sZeroGuid = {0};
 
-	lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -186,16 +185,11 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 }
 
 ECRESULT ECUserStoreTable::Load() {
-	ECRESULT er = erSuccess;
 	ECListIntIterator i;
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-    DB_ROW		lpDBRow = NULL;
-    DB_LENGTHS	lpDBLength = NULL;
-	std::string strQuery;
     std::list<unsigned int> lstObjIds;
 	ECUserStore sUserStore;
-	int iRowId;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	ECSecurity *lpSecurity = lpSession->GetSecurity();
 	objectdetails_t sUserDetails;
@@ -205,7 +199,7 @@ ECRESULT ECUserStoreTable::Load() {
 
 	enum cols { USERID = 0, EXTERNID, OBJCLASS, UCOMPANY, STOREGUID, STORETYPE, USERNAME, SCOMPANY, HIERARCHYID, STORESIZE, MODTIME_HI, MODTIME_LO };
 
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
@@ -219,7 +213,7 @@ ECRESULT ECUserStoreTable::Load() {
 	 * primary store, even if they do have an archive store attached, while the second query will
 	 * return all stores types.
 	 */
-	strQuery =
+	std::string strQuery =
 		" SELECT u.id, u.externid, u.objectclass, u.company, s.guid, s.type, s.user_name, s.company, s.hierarchy_id, p.val_longint, m.val_hi, m.val_lo FROM users AS u"
 		"  LEFT JOIN stores AS s ON s.user_id=u.id AND s.type=" + stringify(ECSTORE_TYPE_PRIVATE) + " LEFT JOIN hierarchy AS h ON h.id=s.hierarchy_id"
 		"  LEFT JOIN properties AS p ON p.hierarchyid=s.hierarchy_id and p.tag=0x0E08 and p.type=0x14"
@@ -234,12 +228,12 @@ ECRESULT ECUserStoreTable::Load() {
 	if(er != erSuccess)
 		return er;
 
-	iRowId = 0;
+	int iRowId = 0;
 	while(1) {
-		lpDBRow = lpDBResult.fetch_row();
+		auto lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL)
 			break;
-		lpDBLength = lpDBResult.fetch_row_lengths();
+		auto lpDBLength = lpDBResult.fetch_row_lengths();
 		if (lpDBRow[OBJCLASS])
 			objclass = (objectclass_t)atoi(lpDBRow[OBJCLASS]);
 
