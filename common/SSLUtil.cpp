@@ -98,7 +98,11 @@ void ssl_random_init()
 
 void ssl_random(bool b64bit, uint64_t *id)
 {
-	RAND_pseudo_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
+	#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+		RAND_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
+	#else
+		RAND_pseudo_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
+	#endif
 	if (!b64bit)
 		*id &= 0xFFFFFFFF;
 }
