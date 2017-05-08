@@ -76,7 +76,9 @@ void SSL_library_cleanup()
 	#endif
 
 	ERR_free_strings();
-	ERR_remove_state(0);
+	#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		ERR_remove_state(0);
+	#endif
 	EVP_cleanup();
 	CRYPTO_cleanup_all_ex_data();
 
