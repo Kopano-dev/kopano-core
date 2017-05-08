@@ -101,20 +101,16 @@ ECRESULT GetSubRestriction(struct restrictTable *lpBase, unsigned int ulCount, s
 // Get results for all subqueries for a set of objects (should be freed with FreeSubRestrictionResults() )
 ECRESULT RunSubRestrictions(ECSession *lpSession, void *lpECODStore, struct restrictTable *lpRestrict, ECObjectTableList *lpObjects, const ECLocale &locale, SUBRESTRICTIONRESULTS **lppResults)
 {
-	ECRESULT er;
-    unsigned int i = 0;
     unsigned int ulCount = 0;
-    SUBRESTRICTIONRESULTS *lpResults = NULL;
     SUBRESTRICTIONRESULT *lpResult = NULL;
     struct restrictSub *lpSubRestrict = NULL;
     
-    er = GetSubRestrictionCount(lpRestrict, &ulCount);
+	auto er = GetSubRestrictionCount(lpRestrict, &ulCount);
     if(er != erSuccess)
 		return er;
     
-    lpResults = new SUBRESTRICTIONRESULTS;
-    
-    for (i = 0; i < ulCount; ++i) {
+	auto lpResults = new SUBRESTRICTIONRESULTS;
+	for (unsigned int i = 0; i < ulCount; ++i) {
         er = GetSubRestriction(lpRestrict, i, &lpSubRestrict);
         if(er != erSuccess)
 			return er;
@@ -132,7 +128,6 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, void *lpECODStore, struct rest
 // Run a single subquery on a set of objects
 ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restrictSub *lpRestrict, ECObjectTableList *lpObjects, const ECLocale &locale, SUBRESTRICTIONRESULT **lppResult)
 {
-    ECRESULT er = erSuccess;
     unsigned int ulType = 0;
     std::string strQuery;
 	DB_RESULT lpDBResult;
@@ -149,7 +144,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
     sObjectTableKey sKey;
     ECDatabase *lpDatabase = NULL;
 
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 	if (lpObjects->empty())
@@ -256,12 +251,10 @@ exit:
 
 // Frees a SUBRESTRICTIONRESULTS object
 ECRESULT FreeSubRestrictionResults(SUBRESTRICTIONRESULTS *lpResults) {
-    ECRESULT er = erSuccess;
 	for (const auto &r : *lpResults)
 		delete r;
     delete lpResults;
-    
-    return er;
+	return erSuccess;
 }
 
 } /* namespace */

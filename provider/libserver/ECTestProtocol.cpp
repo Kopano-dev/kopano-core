@@ -77,8 +77,6 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession,
 ECRESULT TestSet(struct soap *soap, ECSession *lpSession,
     const char *szVarName, const char *szValue)
 {
-    ECRESULT er = erSuccess;
-
     if(strcasecmp(szVarName, "cell_cache_disabled") == 0) {
         if(atoi(szValue) > 0)
             g_lpSessionManager->GetCacheManager()->DisableCellCache();
@@ -93,19 +91,17 @@ ECRESULT TestSet(struct soap *soap, ECSession *lpSession,
 		else
 			g_lpSessionManager->GetConfig()->AddSetting("search_enabled", "no", 0);
 	}
-    
-    return er;
+	return erSuccess;
 }
 
 ECRESULT TestGet(struct soap *soap, ECSession *lpSession,
     const char *szVarName, char **szValue)
 {
-	ECRESULT er = erSuccess;
 	if (strcasecmp(szVarName, "ping") == 0)
 		*szValue = s_strcpy(soap, "pong");
 	else
-		er = KCERR_NOT_FOUND;
-	return er;
+		return KCERR_NOT_FOUND;
+	return erSuccess;
 }
 
 } /* namespace */

@@ -193,7 +193,6 @@ void ECTableManager::AddTableEntry(TABLE_ENTRY *lpEntry, unsigned int *lpulTable
 
 ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned int *lpulTableId)
 {
-	ECRESULT er = erSuccess;
 	object_ptr<ECStoreObjectTable> lpTable;
 	std::unique_ptr<TABLE_ENTRY> lpEntry;
 	DB_RESULT lpDBResult;
@@ -205,7 +204,7 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 	const ECLocale locale = lpSession->GetSessionManager()->GetSortLocale(ulStoreId);
 	ECDatabase *lpDatabase = NULL;
 
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
@@ -271,11 +270,10 @@ exit:
 
 ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int *lpulTableId)
 {
-	ECRESULT er = erSuccess;
 	object_ptr<ECUserStoreTable> lpTable;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
-	er = ECUserStoreTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
+	auto er = ECUserStoreTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	if (er != erSuccess)
 		return er;
 
@@ -296,12 +294,11 @@ ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int 
 
 ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId)
 {
-	ECRESULT er = erSuccess;
 	object_ptr<ECMultiStoreTable> lpTable;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
 	// Open an empty table. Contents will be provided by client in a later call.
-	er = ECMultiStoreTable::Create(lpSession, ulObjType, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
+	auto er = ECMultiStoreTable::Create(lpSession, ulObjType, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	if (er != erSuccess)
 		return er;
 
@@ -318,23 +315,21 @@ ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned in
 
 ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId, bool fLoad)
 {
-	ECRESULT		er = erSuccess;
 	std::string		strQuery;
 	object_ptr<ECStoreObjectTable> lpTable;
 	std::unique_ptr<TABLE_ENTRY> lpEntry;
 	unsigned int	ulStoreId = 0;
 	GUID			sGuid;
-	ECLocale			locale;
 	ECDatabase *lpDatabase = NULL;
 
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 	er = lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulParent, &ulStoreId, &sGuid);
 	if(er != erSuccess)
 		return er;
 
-	locale = lpSession->GetSessionManager()->GetSortLocale(ulStoreId);
+	ECLocale locale = lpSession->GetSessionManager()->GetSortLocale(ulStoreId);
 	if(lpSession->GetSessionManager()->GetSearchFolders()->IsSearchFolder(ulStoreId, ulParent) == erSuccess) {
 		if (ulFlags & (MSGFLAG_DELETED | MAPI_ASSOCIATED))
 			return KCERR_NO_SUPPORT;
@@ -478,11 +473,10 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 
 ECRESULT ECTableManager::OpenMailBoxTable(unsigned int ulflags, unsigned int *lpulTableId)
 {
-	ECRESULT er = erSuccess;
 	object_ptr<ECMailBoxTable> lpTable;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
-	er = ECMailBoxTable::Create(lpSession, ulflags, createLocaleFromName(lpszLocaleId), &~lpTable);
+	auto er = ECMailBoxTable::Create(lpSession, ulflags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	if (er != erSuccess)
 		return er;
 
@@ -645,12 +639,10 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
  */
 ECRESULT ECTableManager::GetStats(unsigned int *lpulTables, unsigned int *lpulObjectSize)
 {
-	unsigned int ulSize = 0;
-	unsigned int ulTables = 0; 
 	scoped_rlock lock(hListMutex);
 
-	ulTables = mapTable.size();
-	ulSize = MEMORY_USAGE_MAP(ulTables, TABLEENTRYMAP);
+	unsigned int ulTables = mapTable.size();
+	unsigned int ulSize = MEMORY_USAGE_MAP(ulTables, TABLEENTRYMAP);
 
 	for (const auto &e : mapTable)
 		if (e.second->ulTableType != TABLE_ENTRY::TABLE_TYPE_SYSTEMSTATS)
