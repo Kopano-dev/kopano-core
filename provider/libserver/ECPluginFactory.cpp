@@ -122,14 +122,9 @@ extern pthread_key_t plugin_key;
 ECRESULT GetThreadLocalPlugin(ECPluginFactory *lpPluginFactory,
     UserPlugin **lppPlugin)
 {
-	ECRESULT er;
-	UserPlugin *lpPlugin = NULL;
-
-	lpPlugin = (UserPlugin *)pthread_getspecific(plugin_key);
-
+	auto lpPlugin = static_cast<UserPlugin *>(pthread_getspecific(plugin_key));
 	if (lpPlugin == NULL) {
-		er = lpPluginFactory->CreateUserPlugin(&lpPlugin);
-
+		auto er = lpPluginFactory->CreateUserPlugin(&lpPlugin);
 		if (er != erSuccess) {
 			lpPlugin = NULL;
 			ec_log_crit("Unable to instantiate user plugin");
