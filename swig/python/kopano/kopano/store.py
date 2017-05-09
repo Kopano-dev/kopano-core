@@ -53,6 +53,7 @@ from .autoaccept import AutoAccept
 from .outofoffice import OutOfOffice
 from .prop import Property
 from .delegation import Delegation
+from .freebusy import FreeBusy
 
 from .compat import (
     hex as _hex, unhex as _unhex, decode as _decode, encode as _encode,
@@ -556,6 +557,10 @@ class Store(Base):
                 yield guid_folder[row[1].Value]
             except KeyError:
                 pass
+
+    @property
+    def freebusy(self):
+        return FreeBusy(self)
 
     def __eq__(self, s): # XXX check same server?
         if isinstance(s, Store):

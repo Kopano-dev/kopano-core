@@ -250,7 +250,7 @@ class Folder(Base):
                 PR_CONTAINER_CONTENTS, columns=[PR_ENTRYID]
             )
             table.mapitable.Restrict(restriction, 0)
-            for row in table.rows:
+            for row in table.rows():
                 entryid = codecs.encode(row[0].value, 'hex')
                 for occurrence in self.item(entryid).occurrences(start, end):
                     yield occurrence
