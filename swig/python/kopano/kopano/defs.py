@@ -41,6 +41,14 @@ PSETID_Common = DEFINE_OLEGUID(0x00062008, 0, 0)
 PSETID_Log = DEFINE_OLEGUID(0x0006200A, 0, 0)
 PSETID_Note = DEFINE_OLEGUID(0x0006200E, 0, 0)
 PSETID_Meeting = DEFINE_GUID(0x6ED8DA90, 0x450B, 0x101B, 0x98, 0xDA, 0x00, 0xAA, 0x00, 0x3F, 0x13, 0x05)
+PSETID_Kopano_CalDav = DEFINE_GUID(0x77536087, 0xcb81, 0x4dc9, 0x99, 0x58, 0xea, 0x4c, 0x51, 0xbe, 0x34, 0x86)
+PSETID_AirSync = DEFINE_GUID(0x71035549, 0x0739, 0x4DCB, 0x91, 0x63, 0x00, 0xF0, 0x58, 0x0D, 0xBB, 0xDF)
+PSETID_Sharing = DEFINE_OLEGUID(0x00062040, 0, 0)
+PSETID_PostRss = DEFINE_OLEGUID(0x00062041, 0, 0)
+PSETID_UnifiedMessaging = DEFINE_GUID(0x4442858E, 0xA9E3, 0x4E80,0xB9, 0x00, 0x31, 0x7A, 0x21, 0x0C, 0xC1, 0x5B)
+PSETID_CONTACT_FOLDER_RECIPIENT = DEFINE_GUID(0x0AAA42FE, 0xC718, 0x101A, 0xE8, 0x85, 0x0B, 0x65, 0x1C, 0x24, 0x00, 0x00)
+PSETID_ZMT = DEFINE_GUID(0x8acdbf85, 0x4738, 0x4dc4, 0x94, 0xa9, 0xd4, 0x89, 0xa8, 0x3e, 0x5c, 0x41)
+PSETID_CalendarAssistant = DEFINE_GUID(0x11000E07, 0xB51B, 0x40D6, 0xAF, 0x21, 0xCA,0xA8, 0x5E, 0xDA, 0xB1, 0xD0)
 
 NAMED_PROPS_INTERNET_HEADERS = [
     MAPINAMEID(PS_INTERNET_HEADERS, MNID_STRING, u'x-original-to'),
@@ -68,6 +76,14 @@ GUID_NAMESPACE = {
     PS_INTERNET_HEADERS: 'internet_headers',
     PSETID_Meeting: 'meeting',
     PS_EC_IMAP: 'imap',
+    PSETID_Kopano_CalDav: 'kopano_caldav',
+    PSETID_AirSync: 'airsync',
+    PSETID_Sharing: 'sharing',
+    PSETID_PostRss: 'postrss',
+    PSETID_UnifiedMessaging: 'unifiedmessaging',
+    PSETID_CONTACT_FOLDER_RECIPIENT: 'contact_folder_recipient',
+    PSETID_ZMT: 'zmt',
+    PSETID_CalendarAssistant: 'calendarassistant'
 }
 NAMESPACE_GUID = dict((b, a) for (a, b) in GUID_NAMESPACE.items())
 
