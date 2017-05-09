@@ -1781,6 +1781,11 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			lpPropVal->ulPropTag = PR_FLAG_STATUS;
 			lpPropVal->Value.ul = 2;
 			HrSetOneProp(lpMessage, lpPropVal);
+
+			lpPropVal->ulPropTag = PR_FOLLOWUP_ICON;
+			lpPropVal->Value.ul = 6;
+			HrSetOneProp(lpMessage, lpPropVal);
+
 		} else if (strFlag.compare("\\ANSWERED") == 0 || strFlag.compare("$FORWARDED") == 0) {
 			if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
@@ -4684,9 +4689,9 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 	bool bDelete = false;
 	static constexpr const SizedSPropTagArray(4, proptags4) =
 		{4, {PR_MSG_STATUS, PR_ICON_INDEX, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
-	static constexpr const SizedSPropTagArray(5, proptags5) =
-		{5, {PR_MSG_STATUS, PR_FLAG_STATUS, PR_ICON_INDEX,
-		PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
+	static constexpr const SizedSPropTagArray(6, proptags6) =
+		{6, {PR_MSG_STATUS, PR_FLAG_STATUS, PR_ICON_INDEX,
+			 PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME, PR_FOLLOWUP_ICON}};
 
 	if (strCurrentFolder.empty() || lpSession == nullptr)
 		return MAPI_E_CALL_FAILED;
@@ -4715,16 +4720,19 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 				hr = lpMessage->SetReadFlag(SUPPRESS_RECEIPT);
 			if (hr != hrSuccess)
 				return hr;
-			hr = lpMessage->GetProps(proptags5, 0, &cValues, &~lpPropVal);
+			hr = lpMessage->GetProps(proptags6, 0, &cValues, &~lpPropVal);
 			if (FAILED(hr))
 				return hr;
 			cValues = 5;
 
 			lpPropVal[1].ulPropTag = PR_FLAG_STATUS;
-			if (strMsgDataItemValue.find("\\FLAGGED") == string::npos)
-				lpPropVal[1].Value.ul = 0;
-			else
+			if (strMsgDataItemValue.find("\\FLAGGED") == string::npos) {
+				lpPropVal[1].Value.ul = 0; // PR_FLAG_STATUS
+				lpPropVal[5].Value.ul = 0; // PR_FOLLOWUP_ICON
+			} else {
 				lpPropVal[1].Value.ul = 2;
+				lpPropVal[5].Value.ul = 6;
+			}
 
 			if (lpPropVal[2].ulPropTag != PR_ICON_INDEX) {
 				lpPropVal[2].ulPropTag = PR_ICON_INDEX;
@@ -4771,7 +4779,7 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 			}
 
 			// remove all "flag" properties
-			hr = lpMessage->DeleteProps(proptags5, NULL);
+			hr = lpMessage->DeleteProps(proptags6, NULL);
 			if (hr != hrSuccess)
 				return hr;
 
@@ -4797,7 +4805,10 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 					lpPropVal->ulPropTag = PR_FLAG_STATUS;
 					lpPropVal->Value.ul = 2; // 0: none, 1: green ok mark, 2: red flag
 					HrSetOneProp(lpMessage, lpPropVal);
-					// TODO: set PR_FLAG_ICON here too?
+
+					lpPropVal->ulPropTag = PR_FOLLOWUP_ICON;
+					lpPropVal->Value.ul = 6;
+					HrSetOneProp(lpMessage, lpPropVal);
 				} else if (lstFlags[ulCurrent].compare("\\ANSWERED") == 0 || lstFlags[ulCurrent].compare("$FORWARDED") == 0) {
 					hr = lpMessage->GetProps(proptags4, 0, &cValues, &~lpPropVal);
 					if (FAILED(hr))
@@ -4861,6 +4872,11 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 					lpPropVal->ulPropTag = PR_FLAG_STATUS;
 					lpPropVal->Value.ul = 0;
 					HrSetOneProp(lpMessage, lpPropVal);
+
+					lpPropVal->ulPropTag = PR_FOLLOWUP_ICON;
+					lpPropVal->Value.ul = 0;
+					HrSetOneProp(lpMessage, lpPropVal);
+
 				} else if (lstFlags[ulCurrent].compare("\\ANSWERED") == 0 || lstFlags[ulCurrent].compare("$FORWARDED") == 0) {
 					hr = lpMessage->GetProps(proptags4, 0, &cValues, &~lpPropVal);
 					if (FAILED(hr))
