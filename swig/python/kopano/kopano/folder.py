@@ -51,7 +51,7 @@ from .defs import (
     PSETID_Appointment, UNESCAPED_SLASH_RE,
     ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
 )
-from .errors import NotFoundError, Error
+from .errors import NotFoundError, Error, _DeprecationWarning
 
 from .compat import hex as _hex, unhex as _unhex, fake_unicode as _unicode
 
@@ -116,7 +116,8 @@ class Folder(Base):
         return self.prop(PR_EC_HIERARCHYID).value
 
     @property
-    def folderid(self): # XXX remove?
+    def folderid(self): # XXX deprecated (8.4.x) to be removed
+        warnings.warn("Property 'folderid' is deprecated and will be removed.", _DeprecationWarning)
         return self.hierarchyid
 
     @property

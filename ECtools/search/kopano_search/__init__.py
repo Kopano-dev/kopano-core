@@ -227,7 +227,7 @@ class FolderImporter:
 
         with log_exc(self.log):
             self.changes += 1
-            storeid, folderid, entryid, sourcekey, docid = item.storeid, item.folderid, item.entryid, item.sourcekey, item.docid
+            storeid, folderid, entryid, sourcekey, docid = item.storeid, item.hierarchyid, item.entryid, item.sourcekey, item.docid
             self.log.debug('store %s, folder %d: new/updated document with entryid %s, sourcekey %s, docid %d', storeid, folderid, entryid, sourcekey, docid)
 
             doc = collections.defaultdict(unicode)

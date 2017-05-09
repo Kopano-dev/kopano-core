@@ -5,6 +5,8 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import warnings
+
 class Error(Exception):
     pass
 
@@ -22,3 +24,8 @@ class LogonError(Error):
 
 class NotSupportedError(Error):
     pass
+
+class _DeprecationWarning(Warning):
+    pass
+
+warnings.simplefilter('default', _DeprecationWarning)
