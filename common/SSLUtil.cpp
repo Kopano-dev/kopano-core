@@ -76,7 +76,9 @@ void SSL_library_cleanup()
 	#endif
 
 	ERR_free_strings();
-	ERR_remove_state(0);
+	#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		ERR_remove_state(0);
+	#endif
 	EVP_cleanup();
 	CRYPTO_cleanup_all_ex_data();
 
@@ -96,7 +98,11 @@ void ssl_random_init()
 
 void ssl_random(bool b64bit, uint64_t *id)
 {
-	RAND_pseudo_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
+	#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+		RAND_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
+	#else
+		RAND_pseudo_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
+	#endif
 	if (!b64bit)
 		*id &= 0xFFFFFFFF;
 }
