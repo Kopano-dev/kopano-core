@@ -674,10 +674,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 					ec_log_err("Can't create %s %s.", method, model);
 					// just keep running
 					delete lpHandlerArgs->lpChannel;
-					lpHandlerArgs.release();
+					lpHandlerArgs.reset();
 					hr = hrSuccess;
 				}
 				else {
+					lpHandlerArgs.release();
 					++nChildren;
 				}
 
@@ -729,10 +730,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 					ec_log_err("Could not create %s %s.", method, model);
 					// just keep running
 					delete lpHandlerArgs->lpChannel;
-					lpHandlerArgs.release();
+					lpHandlerArgs.reset();
 					hr = hrSuccess;
 				}
 				else {
+					lpHandlerArgs.release();
 					++nChildren;
 				}
 
