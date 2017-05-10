@@ -26,6 +26,7 @@ from MAPI.Util import *
 
 import kopano
 from kopano import log_exc
+from kopano import NotFoundError
 
 """
 kopano-backup - a MAPI-level backup/restore tool built on python-kopano.
@@ -54,6 +55,11 @@ options can be combined when this makes sense, for example:
 kopano-backup --index user1 -f Inbox/subfolder --recursive --period-begin 2014-01-01
 
 """
+
+def fatal(s):
+    sys.stderr.write("FATAL ERROR: ")
+    sys.stderr.write(s + "\n")
+    sys.exit(1)
 
 def dbopen(path): # XXX unfortunately dbhash.open doesn't seem to accept unicode
     return dbhash.open(path.encode(sys.stdout.encoding or 'utf8'), 'c')
@@ -242,12 +248,20 @@ class Service(kopano.Service):
         self.data_path = data_path # XXX remove var
         self.log.info('starting restore of %s', self.data_path)
         username = os.path.split(self.data_path)[1]
-        if self.options.users:
-            store = self._store(self.options.users[0])
-        elif self.options.stores:
-            store = self.server.store(self.options.stores[0])
-        else:
-            store = self._store(username)
+
+        try:
+            if self.options.users:
+                store = self._store(self.options.users[0])
+            elif self.options.stores:
+                store = self.server.store(self.options.stores[0])
+            else:
+                store = self._store(username)
+        except NotFoundError as e:
+            store = None
+
+        if not store:
+            fatal('unable to open store (username: %s)' % username)
+
         user = store.user
 
         # start restore
@@ -697,12 +711,13 @@ def main():
     # parse and check command-line options
     options, args = parser.parse_args()
     options.service = False
-    if options.restore or options.stats or options.index or options.purge:
-        assert len(args) == 1 and os.path.isdir(args[0]), 'please specify path to backup data'
-    else:
-        assert len(args) == 0, 'too many arguments'
-    if options.deletes and options.deletes not in ('yes', 'no'):
-        raise Exception("--deletes option takes 'yes' or 'no'")
+    if (options.restore or options.stats or options.index or options.purge):
+        if len(args) != 1 or not os.path.isdir(args[0]):
+            fatal('please specify path to backup data')
+    elif len(args) != 0:
+        fatal('too many arguments')
+    elif options.deletes and options.deletes not in ('yes', 'no'):
+        fatal("--deletes option takes 'yes' or 'no'")
 
     if options.stats or options.index:
         # handle --stats/--index
