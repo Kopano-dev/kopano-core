@@ -570,5 +570,8 @@ class Store(Base):
     def __ne__(self, s):
         return not self == s
 
+    def __iter__(self):
+        return self.folders()
+
     def __unicode__(self):
         return u"Store('%s')" % self.guid

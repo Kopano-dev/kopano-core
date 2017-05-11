@@ -48,6 +48,8 @@ Main classes:
 
 """
 
+import sys
+
 from .config import Config, CONFIG
 from .errors import (
     Error, ConfigError, DuplicateError, NotFoundError, LogonError,
@@ -78,20 +80,42 @@ from .parser import parser
 from .service import Service, Worker, server_socket, client_socket
 
 # interactive shortcuts
-def user(*args, **kwargs):
-    return Server().user(*args, **kwargs)
 
-def users(*args, **kwargs):
-    return Server().users(*args, **kwargs)
+class Module(object):
+    def __init__(self, module):
+        self.__module = module
+        self.__server = None
 
-def store(*args, **kwargs):
-    return Server().store(*args, **kwargs)
+    def __getattr__(self, name):
+        return getattr(self.__module, name)
 
-def stores(*args, **kwargs):
-    return Server().stores(*args, **kwargs)
+    @property
+    def _server(self):
+        if not self.__server:
+            self.__server = Server()
+        return self.__server
 
-def company(*args, **kwargs):
-    return Server().company(*args, **kwargs)
+    @property # this is the reason we need a class
+    def public_store(self):
+        return self._server.public_store
 
-def companies(*args, **kwargs):
-    return Server().companies(*args, **kwargs)
+    def user(self, *args, **kwargs):
+        return self._server.user(*args, **kwargs)
+
+    def users(self, *args, **kwargs):
+        return self._server.users(*args, **kwargs)
+
+    def store(self, *args, **kwargs):
+        return self._server.store(*args, **kwargs)
+
+    def stores(self, *args, **kwargs):
+        return self._server.stores(*args, **kwargs)
+
+    def company(self, *args, **kwargs):
+        return self._server.company(*args, **kwargs)
+
+    def companies(self, *args, **kwargs):
+        return self._server.companies(*args, **kwargs)
+
+sys.modules[__name__] = Module(sys.modules[__name__])
+
