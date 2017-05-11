@@ -45,6 +45,9 @@ start() {
 	install -dm0775 -o kopano -g kopano /var/run/kopano
 	export LC_ALL=$KOPANO_LOCALE
 	export LANG=$KOPANO_LOCALE
+	if [ -f /opt/rh/rh-php56/enable ]; then
+		. /opt/rh/rh-php56/enable
+	fi
 	daemon $DAGENTPROGRAM $DAGENTCONFIG_OPT
 	RETVAL=$?
 	unset LC_ALL LANG
