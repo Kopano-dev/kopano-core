@@ -27,6 +27,8 @@
 #include <kopano/mapiguidext.h>
 #include "mapitovcf.hpp"
 
+using namespace KCHL;
+
 namespace KC {
 
 class mapitovcf_impl _kc_final : public mapitovcf {
@@ -77,7 +79,7 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	KCHL::memory_ptr<SPropValue> lpMessageClass;
+	memory_ptr<SPropValue> lpMessageClass;
 
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -88,7 +90,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return MAPI_E_INVALID_PARAMETER;
 
 	auto root = newVObject(VCCardProp);
-	KCHL::memory_ptr<SPropValue> msgprop, msgprop2;
+	memory_ptr<SPropValue> msgprop, msgprop2;
 	hr = HrGetOneProp(lpMessage, PR_GIVEN_NAME, &~msgprop);
 	HRESULT hr2 = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop2);
 	if (hr == hrSuccess || hr2 == hrSuccess) {
@@ -143,7 +145,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		name.ulKind = MNID_ID;
 		name.Kind.lID = lid;
 
-		KCHL::memory_ptr<SPropTagArray> proptag;
+		memory_ptr<SPropTagArray> proptag;
 		hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
 		if (hr != hrSuccess)
 			continue;
@@ -154,6 +156,76 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 			to_prop(root, VCEmailAddressProp, *msgprop);
 		else if (hr != MAPI_E_NOT_FOUND)
 			continue;
+	}
+
+	static constexpr const SizedSPropTagArray(5, home_props) =
+		{5, {PR_HOME_ADDRESS_STREET, PR_HOME_ADDRESS_CITY,
+			 PR_HOME_ADDRESS_STATE_OR_PROVINCE, PR_HOME_ADDRESS_POSTAL_CODE,
+			 PR_HOME_ADDRESS_COUNTRY}};
+	memory_ptr<SPropValue> msgprop_array;
+	unsigned int count;
+
+	hr = lpMessage->GetProps(home_props, 0, &count, &~msgprop_array);
+	if (hr == hrSuccess) {
+		auto adrnode = addProp(root, VCAdrProp);
+		auto node = addProp(adrnode, "TYPE");
+		setVObjectStringZValue(node, "HOME");
+		to_prop(adrnode, "STREET", msgprop_array[0].Value.lpszW);
+		to_prop(adrnode, "L", msgprop_array[1].Value.lpszW);
+		to_prop(adrnode, "R", msgprop_array[2].Value.lpszW);
+		to_prop(adrnode, "PC", msgprop_array[3].Value.lpszW);
+		to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
+	}
+
+	static constexpr const SizedSPropTagArray(5, other_props) =
+		{5, {PR_OTHER_ADDRESS_STREET, PR_OTHER_ADDRESS_CITY,
+			 PR_OTHER_ADDRESS_STATE_OR_PROVINCE, PR_OTHER_ADDRESS_POSTAL_CODE,
+			 PR_OTHER_ADDRESS_COUNTRY}};
+
+	hr = lpMessage->GetProps(other_props, 0, &count, &~msgprop_array);
+	if (hr == hrSuccess) {
+		auto adrnode = addProp(root, VCAdrProp);
+		to_prop(adrnode, "STREET", msgprop_array[0].Value.lpszW);
+		to_prop(adrnode, "L", msgprop_array[1].Value.lpszW);
+		to_prop(adrnode, "R", msgprop_array[2].Value.lpszW);
+		to_prop(adrnode, "PC", msgprop_array[3].Value.lpszW);
+		to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
+	}
+
+	memory_ptr<MAPINAMEID> nameids;
+	hr = MAPIAllocateBuffer(5 * sizeof(MAPINAMEID), &~nameids);
+	if (hr != hrSuccess)
+		return hr;
+
+	memory_ptr<MAPINAMEID *> nameids_ptrs;
+	hr = MAPIAllocateBuffer(5 * sizeof(MAPINAMEID *), &~nameids_ptrs);
+	if (hr != hrSuccess)
+		return hr;
+
+	for (size_t i = 0; i < 5; ++i) {
+		nameids[i].lpguid = const_cast<GUID *>(&PSETID_Address);
+		nameids[i].ulKind = MNID_ID;
+		nameids[i].Kind.lID = 0x8045 + i;
+		nameids_ptrs[i] = &nameids[i];
+	}
+
+	memory_ptr<SPropTagArray> proptag;
+	hr = lpMessage->GetIDsFromNames(5, nameids_ptrs, MAPI_BEST_ACCESS, &~proptag);
+	if (hr == hrSuccess) {
+		for (size_t i = 0; i < 5; ++i)
+			proptag->aulPropTag[i] = CHANGE_PROP_TYPE(proptag->aulPropTag[i], PT_UNICODE);
+
+		hr = lpMessage->GetProps(proptag, 0, &count, &~msgprop_array);
+		if (hr == hrSuccess) {
+			auto adrnode = addProp(root, VCAdrProp);
+			auto node = addProp(adrnode, "TYPE");
+			setVObjectStringZValue(node, "WORK");
+			to_prop(adrnode, "STREET", msgprop_array[0].Value.lpszW);
+			to_prop(adrnode, "L", msgprop_array[1].Value.lpszW);
+			to_prop(adrnode, "R", msgprop_array[2].Value.lpszW);
+			to_prop(adrnode, "PC", msgprop_array[3].Value.lpszW);
+			to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
+		}
 	}
 
 	/* Write memobject */
