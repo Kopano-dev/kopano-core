@@ -373,7 +373,9 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	
 	char buffer[1024];
 	while (fgets(buffer, sizeof(buffer), fp)) {
-		buffer[strlen(buffer) - 1] = '\0'; // strip enter
+		size_t z = strlen(buffer);
+		if (z > 0 && buffer[z-1] == '\n')
+			buffer[--z] = '\0';
 		ec_log_debug("%s[%d]: %s", lpszLogName, pid, buffer);
 	}
 	
