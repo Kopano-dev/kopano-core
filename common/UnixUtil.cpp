@@ -360,25 +360,32 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	auto cmdtxt = "\"" + kc_join(cmd, "\" \"") + "\"";
 	int fdin = 0, fdout = 0;
 	int pid = unix_popen_rw(argv.get(), &fdin, &fdout, env);
-	char buffer[1024];
-	int status = 0;
-	bool rv = true;
-	FILE *fp = fdopen(fdout, "rb");
+	if (pid < 0) {
+		ec_log_debug("popen(%s) failed: %s", cmdtxt.c_str(), strerror(errno));
+		return false;
+	}
 	close(fdin);
+	FILE *fp = fdopen(fdout, "rb");
+	if (fp == nullptr) {
+		close(fdout);
+		return false;
+	}
 	
+	char buffer[1024];
 	while (fgets(buffer, sizeof(buffer), fp)) {
 		buffer[strlen(buffer) - 1] = '\0'; // strip enter
 		ec_log_debug("%s[%d]: %s", lpszLogName, pid, buffer);
 	}
 	
 	fclose(fp);
-	
-	waitpid(pid, &status, 0);
-
+	int status = 0;
+	if (waitpid(pid, &status, 0) < 0)
+		return false;
 	if (status == -1) {
 		ec_log_err(string("System call \"system\" failed: ") + strerror(errno));
 		return false;
 	}
+	bool rv = true;
 #ifdef WEXITSTATUS
 	if (WIFEXITED(status)) { /* Child exited by itself */
 		if (WEXITSTATUS(status)) {
