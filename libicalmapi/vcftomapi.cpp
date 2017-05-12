@@ -203,6 +203,8 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v)
 		if (s.ulPropTag > 0)
 			props.push_back(s);
 	}
+
+	return hrSuccess;
 }
 
 /**
