@@ -284,34 +284,50 @@ static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
     const char **env)
 {
 	posix_spawn_file_actions_t fa;
-	int ulIn[2];
-	int ulOut[2];
+	int ulIn[2] = {-1, -1};
+	int ulOut[2] = {-1, -1};
 	pid_t pid = -1;
 
 	if (argv == nullptr || argv[0] == nullptr)
-		return -1;
-
-	if (pipe(ulIn) || pipe(ulOut))
-		return -1;
-
-	memset(&fa, 0, sizeof(fa));
-	if (posix_spawn_file_actions_init(&fa) < 0)
-		return -1;
-	if (posix_spawn_file_actions_addclose(&fa, STDIN_FILENO) == 0 &&
-	    posix_spawn_file_actions_addclose(&fa, STDOUT_FILENO) == 0 &&
-	    posix_spawn_file_actions_addclose(&fa, STDERR_FILENO) == 0 &&
-	    posix_spawn_file_actions_adddup2(&fa, ulIn[STDIN_FILENO], STDIN_FILENO) == 0 &&
-	    posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDOUT_FILENO) == 0 &&
-	    posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDERR_FILENO) == 0 &&
-	    posix_spawn(&pid, argv[0], &fa, nullptr, const_cast<char **>(argv),
-	    const_cast<char **>(env)) == 0) {
-		*lpulIn = ulIn[STDOUT_FILENO];
-		close(ulIn[STDIN_FILENO]);
-		*lpulOut = ulOut[STDIN_FILENO];
-		close(ulOut[STDOUT_FILENO]);
+		return -EINVAL;
+	if (pipe(ulIn) < 0 || pipe(ulOut) < 0) {
+		pid = -errno;
+		goto exit;
 	}
+	memset(&fa, 0, sizeof(fa));
+	if (posix_spawn_file_actions_init(&fa) < 0) {
+		pid = -errno;
+		goto exit;
+	}
+	if (posix_spawn_file_actions_addclose(&fa, STDIN_FILENO) < 0 ||
+	    posix_spawn_file_actions_addclose(&fa, STDOUT_FILENO) < 0 ||
+	    posix_spawn_file_actions_addclose(&fa, STDERR_FILENO) < 0 ||
+	    posix_spawn_file_actions_adddup2(&fa, ulIn[STDIN_FILENO], STDIN_FILENO) < 0 ||
+	    posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDOUT_FILENO) < 0 ||
+	    posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDERR_FILENO) < 0 ||
+	    posix_spawn(&pid, argv[0], &fa, nullptr, const_cast<char **>(argv),
+	    const_cast<char **>(env)) < 0) {
+		pid = -errno;
+		goto exit2;
+	}
+	*lpulIn = ulIn[STDOUT_FILENO];
+	close(ulIn[STDIN_FILENO]);
+	*lpulOut = ulOut[STDIN_FILENO];
+	close(ulOut[STDOUT_FILENO]);
 	posix_spawn_file_actions_destroy(&fa);
 	return pid;
+exit2:
+	posix_spawn_file_actions_destroy(&fa);
+exit:
+	if (ulIn[0] != -1)
+		close(ulIn[0]);
+	if (ulIn[1] != -1)
+		close(ulIn[1]);
+	if (ulOut[0] != -1)
+		close(ulOut[0]);
+	if (ulOut[1] != -1)
+		close(ulOut[1]);
+	return -pid;
 }
 
 /**
@@ -344,25 +360,34 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	auto cmdtxt = "\"" + kc_join(cmd, "\" \"") + "\"";
 	int fdin = 0, fdout = 0;
 	int pid = unix_popen_rw(argv.get(), &fdin, &fdout, env);
-	char buffer[1024];
-	int status = 0;
-	bool rv = true;
-	FILE *fp = fdopen(fdout, "rb");
+	if (pid < 0) {
+		ec_log_debug("popen(%s) failed: %s", cmdtxt.c_str(), strerror(errno));
+		return false;
+	}
 	close(fdin);
+	FILE *fp = fdopen(fdout, "rb");
+	if (fp == nullptr) {
+		close(fdout);
+		return false;
+	}
 	
+	char buffer[1024];
 	while (fgets(buffer, sizeof(buffer), fp)) {
-		buffer[strlen(buffer) - 1] = '\0'; // strip enter
+		size_t z = strlen(buffer);
+		if (z > 0 && buffer[z-1] == '\n')
+			buffer[--z] = '\0';
 		ec_log_debug("%s[%d]: %s", lpszLogName, pid, buffer);
 	}
 	
 	fclose(fp);
-	
-	waitpid(pid, &status, 0);
-
+	int status = 0;
+	if (waitpid(pid, &status, 0) < 0)
+		return false;
 	if (status == -1) {
 		ec_log_err(string("System call \"system\" failed: ") + strerror(errno));
 		return false;
 	}
+	bool rv = true;
 #ifdef WEXITSTATUS
 	if (WIFEXITED(status)) { /* Child exited by itself */
 		if (WEXITSTATUS(status)) {
