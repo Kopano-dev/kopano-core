@@ -86,6 +86,7 @@ class Folder(Base):
                 self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
             except MAPIErrorNoAccess: # XXX XXX
                 self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
+
         self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
         self._sourcekey = None
 
@@ -186,7 +187,7 @@ class Folder(Base):
         """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
 
         mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
-        item = _item.Item(self.store, mapiobj=mapiobj) # XXX copy-pasting..
+        item = _item.Item(self, mapiobj=mapiobj) # XXX copy-pasting..
         return item
 
     def items(self, restriction=None):
@@ -209,11 +210,10 @@ class Folder(Base):
         table.sort(-1 * PR_MESSAGE_DELIVERY_TIME)
 
         for row in table.rows():
-            mapiobj = _utils.openentry_raw(
-                self.store.mapiobj,
-                row[0].value, MAPI_MODIFY | self.content_flag
+            item = _item.Item(
+                self, entryid=row[0].value,
+                content_flag=self.content_flag
             )
-            item = _item.Item(self.store, mapiobj=mapiobj)
             yield item
 
     def occurrences(self, start=None, end=None):

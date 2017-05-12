@@ -114,57 +114,54 @@ class PersistentList(list):
 class Item(Base):
     """Item class"""
 
-    def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None):
-        # TODO: self.folder fix this!
+    def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None, entryid=None, content_flag=None):
 
-        if _is_file(eml):
-            eml = eml.read()
-        if _is_file(ics):
-            ics = ics.read()
-        if _is_file(vcf):
-            vcf = vcf.read()
-
-        self.emlfile = eml
+        self.emlfile = None
+        self._architem = None
         self._folder = None
+        self.mapiobj = mapiobj
+        self._entryid = entryid
+        self._content_flag = content_flag
 
         if isinstance(parent, _folder.Folder):
             self._folder = parent
-        # XXX
-        self._architem = None
-
-        if mapiobj:
-            self.mapiobj = mapiobj
-
-        if isinstance(parent, _store.Store):
-            self.store = parent
+            self.store = parent.store
             self.server = parent.server
+        elif isinstance(parent, _store.Store):
+            self.store = store
+            self.server = store.server
 
-        elif create:
+        if create:
             self.mapiobj = self.folder.mapiobj.CreateMessage(None, 0)
             self.store = self.folder.store
             self.server = server = self.store.server # XXX
+
+            if _is_file(eml):
+                eml = eml.read()
+            if _is_file(ics):
+                ics = ics.read()
+            if _is_file(vcf):
+                vcf = vcf.read()
+
+            self.emlfile = eml
 
             if eml is not None:
                 # options for CreateMessage: 0 / MAPI_ASSOCIATED
                 dopt = inetmapi.delivery_options()
                 inetmapi.IMToMAPI(server.mapisession, self.folder.store.mapiobj, None, self.mapiobj, self.emlfile, dopt)
                 pass
-
             elif ics is not None:
                 icm = icalmapi.CreateICalToMapi(self.mapiobj, server.ab, False)
                 icm.ParseICal(ics, 'utf-8', '', None, 0)
                 icm.GetItem(0, 0, self.mapiobj)
-
             elif vcf is not None:
                 vcm = icalmapi.create_vcftomapi(self.mapiobj)
                 vcm.parse_vcf(vcf)
                 vcm.get_item(self.mapiobj)
-
             elif load is not None:
                 self.load(load, attachments=attachments)
             elif loads is not None:
                 self.loads(loads, attachments=attachments)
-
             else:
                 try:
                     container_class = HrGetOneProp(self.folder.mapiobj, PR_CONTAINER_CLASS).Value
@@ -177,6 +174,21 @@ class Item(Base):
                         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')]) # XXX set default props
 
             self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+
+    @property
+    def mapiobj(self):
+        if not self._mapiobj:
+            flags = MAPI_MODIFY | self._content_flag or 0
+
+            self.mapiobj = _utils.openentry_raw(
+                self.store.mapiobj, self._entryid, flags
+            )
+
+        return self._mapiobj
+
+    @mapiobj.setter
+    def mapiobj(self, mapiobj):
+        self._mapiobj = mapiobj
 
     @property
     def _arch_item(self): # open archive store explicitly so we can handle otherwise silenced errors (MAPI errors in mail bodies for example)
