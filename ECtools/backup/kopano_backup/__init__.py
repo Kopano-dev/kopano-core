@@ -55,6 +55,8 @@ kopano-backup --index user1 -f Inbox/subfolder --recursive --period-begin 2014-0
 
 """
 
+CACHE_SIZE = 64000000 # XXX make configurable
+
 def dbopen(path): # XXX unfortunately dbhash.open doesn't seem to accept unicode
     return dbhash.open(path.encode(sys.stdout.encoding or 'utf8'), 'c')
 
@@ -153,6 +155,7 @@ class BackupWorker(kopano.Worker):
             self.log.info('found previous folder sync state: %s', state)
         new_state = folder.sync(importer, state, log=self.log, stats=stats, begin=options.period_begin, end=options.period_end)
         if new_state != state:
+            importer.commit()
             file(statepath, 'w').write(new_state)
             self.log.info('saved folder sync state: %s', new_state)
 
@@ -161,27 +164,40 @@ class FolderImporter:
 
     def __init__(self, *args):
         self.folder, self.folder_path, self.config, self.options, self.log, self.stats, self.service = args
+        self.reset_cache()
+
+    def reset_cache(self):
+        self.item_updates = []
+        self.index_updates = []
+        self.cache_size = 0
 
     def update(self, item, flags):
         """ store updated item in 'items' database, and subject and date in 'index' database """
 
         with log_exc(self.log, self.stats):
             self.log.debug('folder %s: new/updated document with entryid %s, sourcekey %s', self.folder.sourcekey, item.entryid, item.sourcekey)
-            with closing(dbopen(self.folder_path+'/items')) as db:
-                db[item.sourcekey] = zlib.compress(item.dumps(attachments=not self.options.skip_attachments, archiver=False, skip_broken=True))
-            with closing(dbopen(self.folder_path+'/index')) as db:
-                orig_prop = item.get_prop(PR_EC_BACKUP_SOURCE_KEY)
-                if orig_prop:
-                    orig_prop = orig_prop.value.encode('hex').upper()
-                db[item.sourcekey] = pickle.dumps({
-                    'subject': item.subject,
-                    'orig_sourcekey': orig_prop,
-                    'last_modified': item.last_modified,
-                    'backup_updated': self.service.timestamp,
-                })
+
+            data = zlib.compress(item.dumps(attachments=not self.options.skip_attachments, archiver=False, skip_broken=True))
+            self.item_updates.append((item.sourcekey, data))
+
+            orig_prop = item.get_prop(PR_EC_BACKUP_SOURCE_KEY)
+            if orig_prop:
+                orig_prop = orig_prop.value.encode('hex').upper()
+            idx = pickle.dumps({
+                'subject': item.subject,
+                'orig_sourcekey': orig_prop,
+                'last_modified': item.last_modified,
+                'backup_updated': self.service.timestamp,
+            })
+            self.index_updates.append((item.sourcekey, idx))
+
             self.stats['changes'] += 1
 
-    def delete(self, item, flags):
+            self.cache_size += len(data) + len(idx)
+            if self.cache_size > CACHE_SIZE:
+                self.commit()
+
+    def delete(self, item, flags): # XXX batch as well, 'updating' cache?
         """ deleted item from 'items' and 'index' databases """
 
         with log_exc(self.log, self.stats):
@@ -197,6 +213,20 @@ class FolderImporter:
                             del db_items[item.sourcekey]
                             del db_index[item.sourcekey]
                         self.stats['deletes'] += 1
+
+    def commit(self):
+        """ commit data to storage """
+
+        t0 = time.time()
+        with closing(dbopen(self.folder_path+'/items')) as item_db,\
+             closing(dbopen(self.folder_path+'/index')) as index_db:
+            for sourcekey, data in self.item_updates:
+                item_db[sourcekey] = data
+            for sourcekey, idx in self.index_updates:
+                index_db[sourcekey] = idx
+
+        self.log.debug('commit took %.2f seconds (%d items)', time.time()-t0, len(self.item_updates))
+        self.reset_cache()
 
 class Service(kopano.Service):
     """ main backup process """
