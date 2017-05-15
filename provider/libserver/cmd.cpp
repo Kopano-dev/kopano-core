@@ -8534,7 +8534,7 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId
 		er = KCERR_NOT_FOUND;
 		goto exit;
 	} 
-	strGUID = bin2hex(lpDBLen[0], (unsigned char*)lpDBRow[0]);
+	strGUID = bin2hex(lpDBLen[0], lpDBRow[0]);
 
 	strQuery = "UPDATE stores SET user_id=0 WHERE user_id=" + stringify(ulUserId) + " AND type=" + stringify(ulStoreType);
 	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
@@ -8743,9 +8743,7 @@ SOAP_ENTRY_START(removeStore, *result, struct xsd__base64Binary sStoreGuid, unsi
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(ulCompanyId);
 	if (er != erSuccess)
 		goto exit;
-
-	ec_log_info("Started to remove store (%s) with storename \"%s\"", bin2hex(lpDBLen[1], reinterpret_cast<const unsigned char *>(lpDBRow[1])).c_str(), lpDBRow[4]);
-
+	ec_log_info("Started to remove store (%s) with storename \"%s\"", bin2hex(lpDBLen[1], lpDBRow[1]).c_str(), lpDBRow[4]);
 	er = lpDatabase->Begin();
 	if(er != hrSuccess)
 		goto exit;
@@ -8777,9 +8775,7 @@ SOAP_ENTRY_START(removeStore, *result, struct xsd__base64Binary sStoreGuid, unsi
 	er = lpDatabase->Commit();
 	if(er != erSuccess)
 		goto exit;
-
-	ec_log_info("Finished remove store (%s)", bin2hex(lpDBLen[1], reinterpret_cast<const unsigned char *>(lpDBRow[1])).c_str());
-
+	ec_log_info("Finished remove store (%s)", bin2hex(lpDBLen[1], lpDBRow[1]).c_str());
 exit:
 	if(er == KCERR_NO_ACCESS)
 		ec_log_err("Failed to remove store access denied");

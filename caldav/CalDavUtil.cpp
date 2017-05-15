@@ -70,7 +70,7 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 	if(wstrProperty->empty())
 	{
 		CoCreateGuid(&sGuid);
-		wstrProperty->assign(convert_to<wstring>(bin2hex(sizeof(GUID), (LPBYTE)&sGuid)));
+		wstrProperty->assign(convert_to<wstring>(bin2hex(sizeof(GUID), &sGuid)));
 	}
 
 	assert(PROP_TYPE(ulPropTag) == PT_UNICODE);

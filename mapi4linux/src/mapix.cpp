@@ -782,7 +782,7 @@ exit:
  * @retval		MAPI_E_NOT_FOUND	Service not in profile.
  */
 HRESULT M4LMsgServiceAdmin::OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect) {
-	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMsgServiceAdmin::OpenProfileSection", "%s", bin2hex(sizeof(GUID), (BYTE *)lpUID).c_str());
+	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMsgServiceAdmin::OpenProfileSection", "%s", bin2hex(sizeof(GUID), lpUID).c_str());
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpsPropVal;
 	object_ptr<IMAPIProp> lpMapiProp;
@@ -1309,7 +1309,7 @@ exit:
 }
 
 HRESULT M4LMAPISession::OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect) {
-	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMAPISession::OpenProfileSection", "%s", bin2hex(sizeof(GUID), (BYTE *)lpUID).c_str());
+	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMAPISession::OpenProfileSection", "%s", bin2hex(sizeof(GUID), lpUID).c_str());
 	HRESULT hr = serviceAdmin->OpenProfileSection(lpUID, lpInterface, ulFlags, lppProfSect);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::OpenProfileSection", "0x%08x", hr);
 	return hr;
@@ -1340,7 +1340,7 @@ HRESULT M4LMAPISession::GetStatusTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType,
 								  LPUNKNOWN* lppUnk) 
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMAPISession::OpenEntry", "%s", bin2hex(cbEntryID, (LPBYTE)lpEntryID).c_str());
+	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMAPISession::OpenEntry", "%s", bin2hex(cbEntryID, lpEntryID).c_str());
     HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	object_ptr<IAddrBook> lpAddrBook;
@@ -1687,7 +1687,7 @@ ULONG M4LMAPISession::Release() {
     return M4LUnknown::Release();
 }
 HRESULT M4LMAPISession::QueryInterface(REFIID refiid, void **lpvoid) {
-	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMAPISession::QueryInterface", "%s", bin2hex(sizeof(GUID), (BYTE *)&refiid).c_str());
+	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMAPISession::QueryInterface", "%s", bin2hex(sizeof(GUID), &refiid).c_str());
 	HRESULT hr = hrSuccess;
 
 	if (refiid == IID_IMAPISession) {
@@ -1978,7 +1978,7 @@ HRESULT M4LAddrBook::CreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lp
 								  LPENTRYID* lppEntryID) {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::CreateOneOff", "");
 	HRESULT hr = ECCreateOneOff(lpszName, lpszAdrType, lpszAddress, ulFlags, lpcbEntryID, lppEntryID);
-	TRACE_MAPILIB2(TRACE_RETURN, "M4LAddrBook::CreateOneOff", "0x%08x: %s", hr, *lppEntryID ? bin2hex(*lpcbEntryID, (unsigned char *)lppEntryID).c_str() : "<none>");
+	TRACE_MAPILIB2(TRACE_RETURN, "M4LAddrBook::CreateOneOff", "0x%08x: %s", hr, *lppEntryID ? bin2hex(*lpcbEntryID, lppEntryID).c_str() : "<none>");
 	return hr;
 }
 

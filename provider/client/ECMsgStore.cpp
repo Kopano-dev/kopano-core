@@ -3114,7 +3114,7 @@ HRESULT ECMsgStore::xExchangeManageStore6::CreateStoreEntryIDEx(LPTSTR lpszMsgSt
 	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::CreateStoreEntryIDEx","msgStoreDN=%s , MailboxDN=%s , flags=0x%08X", (lpszMsgStoreDN)?(char*)lpszMsgStoreDN: "NULL", (lpszMailboxDN)?(char*)lpszMailboxDN:"NULL", ulFlags);
 	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
 	HRESULT hr = pThis->CreateStoreEntryID(lpszMsgStoreDN, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore6::CreateStoreEntryIDEx","%s, cb=%d, data=%s", GetMAPIErrorDescription(hr).c_str(), (lpcbEntryID)?*lpcbEntryID:0, (lppEntryID)?bin2hex(*lpcbEntryID, (BYTE*)*lppEntryID).c_str():"NULL");
+	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore6::CreateStoreEntryIDEx","%s, cb=%d, data=%s", GetMAPIErrorDescription(hr).c_str(), lpcbEntryID ? *lpcbEntryID : 0, lppEntryID ? bin2hex(*lpcbEntryID, *lppEntryID).c_str() : "NULL");
 	return hr;
 }
 

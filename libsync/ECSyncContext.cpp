@@ -508,7 +508,7 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 		if (ulSize < 8 || ulPos + ulSize > lpsSyncState->cb)
 			return MAPI_E_CORRUPT_DATA;
 
-		ZLOG_DEBUG(m_lpLogger, "  Stream %u: size=%u, sourcekey=%s", ulStatusNumber, ulSize, bin2hex(strSourceKey.size(), (unsigned char*)strSourceKey.data()).c_str());
+		ZLOG_DEBUG(m_lpLogger, "  Stream %u: size=%u, sourcekey=%s", ulStatusNumber, ulSize, bin2hex(strSourceKey.size(), strSourceKey.data()).c_str());
 
 		HRESULT hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, ulSize), true, &lpStream);
 		if (hr != hrSuccess)
@@ -554,7 +554,7 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 		ulSize = sStat.cbSize.LowPart;
 		strSyncStatus.append((char*)&ulSize, 4);
 		ZLOG_DEBUG(m_lpLogger, "  Stream: size=%u, sourcekey=%s", ulSize,
-			bin2hex(ssp.first.size(), reinterpret_cast<const unsigned char *>(ssp.first.data())).c_str());
+			bin2hex(ssp.first.size(), ssp.first.data()).c_str());
 		hr = ssp.second->Seek(liPos, STREAM_SEEK_SET, NULL);
 		if (hr != hrSuccess)
 			return hr;

@@ -1811,9 +1811,9 @@ Notification_NewMailToString(const NEWMAIL_NOTIFICATION *lpNewmail)
 		goto exit;
 	}
 	str = "Entryid: cb="+stringify(lpNewmail->cbEntryID);
-	str+= " "+((lpNewmail->lpEntryID) ? bin2hex(lpNewmail->cbEntryID, (LPBYTE)lpNewmail->lpEntryID) : std::string("NULL")) + "\n";
+	str+= " " + (lpNewmail->lpEntryID != nullptr ? bin2hex(lpNewmail->cbEntryID, lpNewmail->lpEntryID) : std::string("NULL")) + "\n";
 	str+= "Parentid: cb="+stringify(lpNewmail->cbParentID);
-	str+= " "+((lpNewmail->lpParentID) ? bin2hex(lpNewmail->cbParentID, (LPBYTE)lpNewmail->lpParentID) : std::string("NULL")) + "\n";
+	str+= " " + (lpNewmail->lpParentID != nullptr ? bin2hex(lpNewmail->cbParentID, lpNewmail->lpParentID) : std::string("NULL")) + "\n";
 	str+= "MessageClass:" + ((lpNewmail->lpszMessageClass) ? (std::string((char*)lpNewmail->lpszMessageClass)) : std::string("NULL")) + "\n";
 	str+= "MessageFlags:" + stringify(lpNewmail->ulMessageFlags, true) + "\n";
 	str+= "Flags:" + stringify(lpNewmail->ulFlags, true) + "\n";
@@ -1838,17 +1838,17 @@ Notification_ObjectToString(const OBJECT_NOTIFICATION *lpObj)
 
 	str+= "ObjType:" + stringify(lpObj->ulObjType, true) + "\n";
 	str+= "Entryid: cb="+stringify(lpObj->cbEntryID);
-	str+= " "+((lpObj->lpEntryID)?bin2hex(lpObj->cbEntryID, (LPBYTE)lpObj->lpEntryID) : std::string("NULL")) + "\n";
+	str+= " " + (lpObj->lpEntryID != nullptr ? bin2hex(lpObj->cbEntryID, lpObj->lpEntryID) : std::string("NULL")) + "\n";
 	str+= "Parentid: cb="+stringify(lpObj->cbParentID);
-	str+= " "+((lpObj->lpParentID)?bin2hex(lpObj->cbParentID, (LPBYTE)lpObj->lpParentID) : std::string("NULL")) + "\n";
+	str+= " " + (lpObj->lpParentID != nullptr ? bin2hex(lpObj->cbParentID, lpObj->lpParentID) : std::string("NULL")) + "\n";
 
 	if(lpObj->cbOldID) {
 		str+= "Oldentryid: cb="+stringify(lpObj->cbOldID);
-		str+= " "+((lpObj->lpOldID)?bin2hex(lpObj->cbOldID, (LPBYTE)lpObj->lpOldID) : std::string("NULL")) + "\n";
+		str+= " " + (lpObj->lpOldID != nullptr ? bin2hex(lpObj->cbOldID, lpObj->lpOldID) : std::string("NULL")) + "\n";
 	}
 	if(lpObj->cbOldParentID) {
 		str+= "Oldparentid: cb="+stringify(lpObj->cbOldParentID);
-		str+= " "+((lpObj->lpOldParentID)?bin2hex(lpObj->cbOldParentID, (LPBYTE)lpObj->lpOldParentID) : std::string("NULL")) + "\n";
+		str+= " " + (lpObj->lpOldParentID != nullptr ? bin2hex(lpObj->cbOldParentID, lpObj->lpOldParentID) : std::string("NULL")) + "\n";
 	}
 
 	if(lpObj->lpPropTagArray)
@@ -2091,7 +2091,7 @@ std::string MapiNameIdToString(const MAPINAMEID *pNameId)
 	if (pNameId->ulKind == MNID_ID)
 		return str += "ID    = " + stringify(pNameId->Kind.lID);
 	else if (pNameId->ulKind == MNID_STRING)
-		return str += "String= " + bin2hex(wcslen(pNameId->Kind.lpwstrName) * sizeof(WCHAR), (BYTE *)pNameId->Kind.lpwstrName);
+		return str += "String= " + bin2hex(wcslen(pNameId->Kind.lpwstrName) * sizeof(WCHAR), pNameId->Kind.lpwstrName);
 	return str += "Unknown kind";
 }
 

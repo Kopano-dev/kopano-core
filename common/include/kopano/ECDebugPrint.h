@@ -287,11 +287,11 @@ public:
 	}
 
 	static string_type toString(ULONG cbEntryID, LPENTRYID lpEntryID) {
-		return helpers::bin2hex(cbEntryID, (LPBYTE)lpEntryID);
+		return helpers::bin2hex(cbEntryID, lpEntryID);
 	}
 
 	static string_type toString(MAPIUID uid) {
-		return helpers::bin2hex(sizeof(MAPIUID), (LPBYTE)&uid);
+		return helpers::bin2hex(sizeof(MAPIUID), &uid);
 	}
 
 	static string_type toString(LPTSTR data) {

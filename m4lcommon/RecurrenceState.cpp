@@ -54,7 +54,7 @@ public:
         if(m_ulCursor + 1 > m_ulLen)
             return -1;
             
-        DEBUGPRINT("%s ", bin2hex(1, (BYTE *)m_lpData+m_ulCursor).c_str());
+		DEBUGPRINT("%s ", bin2hex(1, m_lpData + m_ulCursor).c_str());
         *lpData = m_lpData[m_ulCursor];
         m_ulCursor+=1;
         
@@ -66,7 +66,7 @@ public:
         if(m_ulCursor + 2 > m_ulLen)
             return -1;
             
-        DEBUGPRINT("%s ", bin2hex(2, (BYTE *)m_lpData+m_ulCursor).c_str());
+		DEBUGPRINT("%s ", bin2hex(2, m_lpData + m_ulCursor).c_str());
         *lpData = *(unsigned short *)&m_lpData[m_ulCursor];
         m_ulCursor+=2;
         
@@ -78,7 +78,7 @@ public:
         if(m_ulCursor + 4 > m_ulLen)
             return -1;
             
-        DEBUGPRINT("%s ", bin2hex(4, (BYTE *)m_lpData+m_ulCursor).c_str());
+		DEBUGPRINT("%s ", bin2hex(4, m_lpData + m_ulCursor).c_str());
         *lpData = *(unsigned int *)&m_lpData[m_ulCursor];
         m_ulCursor+=4;
         
@@ -93,7 +93,7 @@ public:
             return -1;
 
         if(reallen)      
-            DEBUGPRINT("%s ", bin2hex(len > m_ulLen - m_ulCursor ? m_ulLen - m_ulCursor : len, (BYTE *)m_lpData+m_ulCursor).c_str());
+			DEBUGPRINT("%s ", bin2hex(len > m_ulLen - m_ulCursor ? m_ulLen - m_ulCursor : len, m_lpData+m_ulCursor).c_str());
         
         lpData->assign(&m_lpData[m_ulCursor], reallen);
         lpData->substr(0, reallen);

@@ -396,7 +396,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		if (sValidProps[i].id == OB_PROP_O_COMPANYID) {
 			propvalue = details.GetPropObject(OB_PROP_O_COMPANYID).id;
 			// save id as hex in objectproperty.value
-			propvalue = bin2hex(propvalue.length(), (const unsigned char*)propvalue.data());
+			propvalue = bin2hex(propvalue.length(), propvalue.data());
 		}
 
 		if (!propvalue.empty()) {
