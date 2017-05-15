@@ -207,7 +207,7 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
     if associated:
         flags |= SYNC_ASSOCIATED
     try:
-        exporter.Config(stream, SYNC_NORMAL | SYNC_ASSOCIATED | SYNC_UNICODE, importer, restriction, None, None, 0)
+        exporter.Config(stream, flags, importer, restriction, None, None, 0)
     except MAPIErrorNotFound: # syncid purged because of 'sync_lifetime' option in server.cfg: get new syncid.
         if log:
             log.warn("Sync state does not exist on server (anymore); requesting new one")
