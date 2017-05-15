@@ -111,7 +111,6 @@ ECRESULT ECABObjectTable::Create(ECSession *lpSession, unsigned int ulABId, unsi
 ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 {
 	auto lpODAB = static_cast<const ECODAB *>(m_lpObjectData);
-	scoped_rlock lock(m_hLock);
 	assert(lplstProps != NULL);
 	
 	//List always empty
@@ -151,7 +150,6 @@ ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECLis
 
 ECRESULT ECABObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
-	scoped_rlock lock(m_hLock);
 	*lpulCount = 0;
 	return erSuccess;
 }
