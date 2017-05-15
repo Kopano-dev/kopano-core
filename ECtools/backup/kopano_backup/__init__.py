@@ -26,7 +26,6 @@ from MAPI.Util import *
 
 import kopano
 from kopano import log_exc
-from kopano import NotFoundError
 
 """
 kopano-backup - a MAPI-level backup/restore tool built on python-kopano.
@@ -286,7 +285,7 @@ class Service(kopano.Service):
                 store = self.server.store(self.options.stores[0])
             else:
                 store = self._store(username)
-        except NotFoundError as e:
+        except kopano.NotFoundError as e:
             store = None
 
         if not store:
@@ -678,7 +677,7 @@ def _get_fbf(user, flags, log):
     try:
         fbeid = user.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
         return user.store.mapiobj.OpenEntry(fbeid, None, flags)
-    except MAPIErrorNotFound, kopano.NotFoundError:
+    except (MAPIErrorNotFound, kopano.NotFoundError):
         log.warning("skipping delegation because of missing freebusy data")
 
 def dump_delegates(user, server, stats, log):
