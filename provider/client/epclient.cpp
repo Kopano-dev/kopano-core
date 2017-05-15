@@ -33,7 +33,6 @@
 
 #include "DLLGlobal.h"
 #include "ECMSProviderSwitch.h"
-#include "ECXPProvider.h"
 #include "ECABProviderSwitch.h"
 #include <iostream>
 #include <kopano/ecversion.h>
@@ -491,9 +490,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		if (hr != hrSuccess)
 			goto exit;
 	} else {
-		if (ulResourceType != MAPI_TRANSPORT_PROVIDER)
-			assert(false);
-		goto exit;
+		assert(false);
 	}
 
 	hr = d.profsect->SetProps(d.count, d.prop, NULL);
@@ -892,34 +889,6 @@ exit:
 	}
 	TRACE_MAPI(TRACE_RETURN, "MSGServiceEntry", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
-}
-
-HRESULT __cdecl XPProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
-    LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
-    LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
-    ULONG *lpulProviderVer, LPXPPROVIDER *lppXPProvider)
-{
-	TRACE_MAPI(TRACE_ENTRY, "XPProviderInit", "");
-
-	HRESULT hr = hrSuccess;
-	object_ptr<ECXPProvider> pXPProvider;
-
-    if (ulMAPIVer < CURRENT_SPI_VERSION)
-		return MAPI_E_VERSION;
-	*lpulProviderVer = CURRENT_SPI_VERSION;
-
-	// Save the pointer to the allocation routines in global variables
-	_pmalloc = lpMalloc;
-	_pfnAllocBuf = lpAllocateBuffer;
-	_pfnAllocMore = lpAllocateMore;
-	_pfnFreeBuf = lpFreeBuffer;
-	_hInstance = hInstance;
-
-	hr = ECXPProvider::Create(&~pXPProvider);
-	if(hr != hrSuccess)
-		return hr;
-	return pXPProvider->QueryInterface(IID_IXPProvider,
-	       reinterpret_cast<void **>(lppXPProvider));
 }
 
 HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,

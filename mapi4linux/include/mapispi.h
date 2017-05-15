@@ -411,7 +411,6 @@ public:
 
 
 /* Transport Provider Entry Point */
-extern "C" {
 typedef HRESULT (XPPROVIDERINIT)(
     HINSTANCE           hInstance,
     LPMALLOC            lpMalloc,
@@ -422,9 +421,6 @@ typedef HRESULT (XPPROVIDERINIT)(
     ULONG               ulMAPIVer,
     ULONG *         lpulProviderVer,
     LPXPPROVIDER *  lppXPProvider);
-
-XPPROVIDERINIT XPProviderInit;
-}
 
 /********************************************************************/
 /*                                                                  */

@@ -3,7 +3,6 @@ global:
 	ABProviderInit;
 	MSGServiceEntry;
 	MSProviderInit;
-	XPProviderInit;
 };
 KC_@PACKAGE_ABI@ {
 global:
