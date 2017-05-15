@@ -12,9 +12,12 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
+/*
+ * mapidefs.h – Defines frequently used event types, property types, flags,
+ * structures and interfaces.
+ */
 #ifndef __M4L_MAPIDEFS_H_
 #define __M4L_MAPIDEFS_H_
 #define MAPIDEFS_H

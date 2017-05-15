@@ -696,8 +696,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		//bShowAllSettingsPages = true;
 		// Do not break here
 	case MSG_SERVICE_CREATE:
-		
-		//Open global profile, add the store.(for show list, delete etc)
+		/* Open global {profile section}, add the store. (for show list, delete etc.). */
 		hr = lpAdminProviders->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, nullptr, MAPI_MODIFY , &~ptrGlobalProfSect);
 		if(hr != hrSuccess)
 			goto exit;
@@ -722,7 +721,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 			strType = GetServerTypeFromPath(sProfileProps.strServerPath.c_str());
 		}
 
-		// Get deligate stores, Ignore error
+		/* Get delegate stores, ignore error. */
 		ClientUtil::GetGlobalProfileDelegateStoresProp(ptrGlobalProfSect, &cDelegateStores, &~lpDelegateStores);
 
 		// init defaults

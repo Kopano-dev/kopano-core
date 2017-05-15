@@ -350,7 +350,11 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
 	*lppSession = lpMAPISession;
 
 exit:
-	// always try to delete the temporary profile
+	/*
+	 * Always try to delete the temporary profile. On M4L, the session will
+	 * now reference an anonymous profile. (The profile still has a name to
+	 * itself, but is not reachable from the Profile List.)
+	 */
 	DeleteProfileTemp(szProfName.get());
 	return hr;
 }

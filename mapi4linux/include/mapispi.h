@@ -12,7 +12,11 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ */
+
+/*
+ * mapispi.h – Defines flags and interfaces that MAPI implements for service
+ * providers and message services.
  */
 
 #ifndef __M4L_MAPISPI_H_

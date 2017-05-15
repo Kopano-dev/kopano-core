@@ -12,8 +12,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
+
+/* mapix.h – Defines flags and interfaces that MAPI implements for clients */
 
 #ifndef __M4L_MAPIX_H_
 #define __M4L_MAPIX_H_
