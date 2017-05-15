@@ -258,7 +258,7 @@ exit:
  * @retval		MAPI_E_NOT_ENOUGH_MEMORY	Out of memory.
  */
 HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
-    const TCHAR *lpszPassword, ULONG ulUIParam, ULONG ulFlags)
+    const TCHAR *lpszPassword, ULONG_PTR ulUIParam, ULONG ulFlags)
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "M4LProfAdmin::CreateProfile", "profilename=%s", (char*)lpszProfileName);
     HRESULT hr = hrSuccess;
@@ -358,7 +358,7 @@ HRESULT M4LProfAdmin::ChangeProfilePassword(const TCHAR *lpszProfileName,
 
 HRESULT M4LProfAdmin::CopyProfile(const TCHAR *lpszOldProfileName,
     const TCHAR *lpszOldPassword, const TCHAR *lpszNewProfileName,
-    ULONG ulUIParam, ULONG ulFlags)
+    ULONG_PTR ulUIParam, ULONG ulFlags)
 {
 	ec_log_err("M4LProfAdmin::CopyProfile is not implemented");
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfAdmin::CopyProfile", "");
@@ -368,7 +368,7 @@ HRESULT M4LProfAdmin::CopyProfile(const TCHAR *lpszOldProfileName,
 
 HRESULT M4LProfAdmin::RenameProfile(const TCHAR *lpszOldProfileName,
     const TCHAR *lpszOldPassword, const TCHAR *lpszNewProfileName,
-    ULONG ulUIParam, ULONG ulFlags)
+    ULONG_PTR ulUIParam, ULONG ulFlags)
 {
 	ec_log_err("M4LProfAdmin::RenameProfile is not implemented");
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfAdmin::RenameProfile", "");
@@ -397,7 +397,7 @@ HRESULT M4LProfAdmin::SetDefaultProfile(const TCHAR *lpszProfileName,
  * @retval		MAPI_E_NOT_FOUND	Profile is not found.
  */
 HRESULT M4LProfAdmin::AdminServices(const TCHAR *lpszProfileName,
-    const TCHAR *lpszPassword, ULONG ulUIParam, ULONG ulFlags,
+    const TCHAR *lpszPassword, ULONG_PTR ulUIParam, ULONG ulFlags,
     IMsgServiceAdmin **lppServiceAdmin)
 {
 	TRACE_MAPILIB2(TRACE_ENTRY, "M4LProfAdmin::AdminServices", "name=%s - password=%s", (char*)lpszProfileName, (lpszPassword)?(char*)lpszPassword:"NULL");
@@ -611,15 +611,16 @@ exit:
  * @retval		MAPI_E_NOT_ENOUGH_MEMORY	Out of memory.
  */
 HRESULT M4LMsgServiceAdmin::CreateMsgService(const TCHAR *lpszService,
-    const TCHAR *lpszDisplayName, ULONG ulUIParam, ULONG ulFlags)
+    const TCHAR *lpszDisplayName, ULONG_PTR ulUIParam, ULONG ulFlags)
 {
 	return CreateMsgServiceEx(reinterpret_cast<const char *>(lpszService),
-	       reinterpret_cast<const char *>(lpszDisplayName), &ulUIParam,
-	       ulFlags, nullptr);
+	       reinterpret_cast<const char *>(lpszDisplayName), 0, ulFlags,
+	       nullptr);
 }
 
 HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
-    const char *lpszDisplayName, ULONG *ulUIParam, ULONG ulFlags, MAPIUID *uid)
+    const char *lpszDisplayName, ULONG_PTR ulUIParam, ULONG ulFlags,
+    MAPIUID *uid)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::CreateMsgService", "");
 	HRESULT hr = hrSuccess;
@@ -743,7 +744,7 @@ exit:
 
 HRESULT M4LMsgServiceAdmin::CopyMsgService(const MAPIUID *lpUID,
     const TCHAR *lpszDisplayName, const IID *lpInterfaceToCopy,
-    const IID *lpInterfaceDst, void *lpObjectDst, ULONG ulUIParam,
+    const IID *lpInterfaceDst, void *lpObjectDst, ULONG_PTR ulUIParam,
     ULONG ulFlags)
 {
 	ec_log_err("M4LMsgServiceAdmin::CopyMsgService() not implemented");
@@ -773,7 +774,8 @@ HRESULT M4LMsgServiceAdmin::RenameMsgService(const MAPIUID *lpUID,
  * @retval		MAPI_E_NOT_FOUND	Service not available.
  */
 HRESULT M4LMsgServiceAdmin::ConfigureMsgService(const MAPIUID *lpUID,
-    ULONG ulUIParam, ULONG ulFlags, ULONG cValues, const SPropValue *lpProps)
+    ULONG_PTR ulUIParam, ULONG ulFlags, ULONG cValues,
+    const SPropValue *lpProps)
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMsgServiceAdmin::ConfigureMsgService", "%s", lpProps ? PropNameFromPropArray(cValues, lpProps).c_str() : "<null>");
 	HRESULT hr = hrSuccess;
@@ -1163,8 +1165,9 @@ exit:
  * @param[out]	lppMDB		Pointer to IMsgStore object
  * @return		HRESULT
  */
-HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags,
-									 LPMDB* lppMDB) {
+HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
+    LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, LPMDB *lppMDB)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISession::OpenMsgStore", "");
 	HRESULT hr = hrSuccess;
 	object_ptr<IMSProvider> msp;
@@ -1275,7 +1278,9 @@ exit:
  * @retval		MAPI_E_NOT_ENOUGH_MEMORY		Out of memory
  * @retval		MAPI_E_INTERFACE_NOT_SUPPORTED	Invalid lpInterface parameter
  */
-HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULONG ulFlags, LPADRBOOK* lppAdrBook) {
+HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
+    ULONG ulFlags, LPADRBOOK *lppAdrBook)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISession::OpenAddressBook", "");
 	HRESULT hr = hrSuccess;
 	IAddrBook *lpAddrBook = NULL;
@@ -1644,7 +1649,9 @@ exit:
 	return hr;
 }
 
-HRESULT M4LMAPISession::MessageOptions(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszAdrType, LPMESSAGE lpMessage) {
+HRESULT M4LMAPISession::MessageOptions(ULONG_PTR ulUIParam, ULONG ulFlags,
+    LPTSTR lpszAdrType, LPMESSAGE lpMessage)
+{
 	ec_log_err("M4LMAPISessionM4LMAPISession::MessageOptions not implemented");
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISession::MessageOptions", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::MessageOptions", "0x%08x", MAPI_E_NO_SUPPORT);
@@ -1690,7 +1697,9 @@ exit:
 	return hr;
 }
 
-HRESULT M4LMAPISession::Logoff(ULONG ulUIParam, ULONG ulFlags, ULONG ulReserved) {
+HRESULT M4LMAPISession::Logoff(ULONG_PTR ulUIParam, ULONG ulFlags,
+    ULONG ulReserved)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISession::Logoff", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::Logoff", "0x%08x", 0);
 	return hrSuccess;
@@ -1711,9 +1720,11 @@ HRESULT M4LMAPISession::AdminServices(ULONG ulFlags, LPSERVICEADMIN* lppServiceA
 	return hr;
 }
 
-HRESULT M4LMAPISession::ShowForm(ULONG ulUIParam, LPMDB lpMsgStore, LPMAPIFOLDER lpParentFolder, LPCIID lpInterface,
-								 ULONG ulMessageToken, LPMESSAGE lpMessageSent, ULONG ulFlags, ULONG ulMessageStatus,
-								 ULONG ulMessageFlags, ULONG ulAccess, LPSTR lpszMessageClass) {
+HRESULT M4LMAPISession::ShowForm(ULONG_PTR ulUIParam, LPMDB lpMsgStore,
+    LPMAPIFOLDER lpParentFolder, LPCIID lpInterface, ULONG ulMessageToken,
+    LPMESSAGE lpMessageSent, ULONG ulFlags, ULONG ulMessageStatus,
+    ULONG ulMessageFlags, ULONG ulAccess, LPSTR lpszMessageClass)
+{
 	ec_log_err("M4LMAPISession::ShowForm(): not implemented");
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISession::ShowForm", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::ShowForm", "0x%08x", MAPI_E_NO_SUPPORT);
@@ -2032,7 +2043,11 @@ HRESULT M4LAddrBook::CreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lp
 	return hr;
 }
 
-HRESULT M4LAddrBook::NewEntry(ULONG ulUIParam, ULONG ulFlags, ULONG cbEIDContainer, LPENTRYID lpEIDContainer, ULONG cbEIDNewEntryTpl, LPENTRYID lpEIDNewEntryTpl, ULONG* lpcbEIDNewEntry, LPENTRYID* lppEIDNewEntry) {
+HRESULT M4LAddrBook::NewEntry(ULONG_PTR ulUIParam, ULONG ulFlags,
+    ULONG cbEIDContainer, LPENTRYID lpEIDContainer, ULONG cbEIDNewEntryTpl,
+    LPENTRYID lpEIDNewEntryTpl, ULONG *lpcbEIDNewEntry,
+    LPENTRYID *lppEIDNewEntry)
+{
 	ec_log_err("M4LAddrBook::NewEntry not implemented");
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::NewEntry", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::NewEntry", "0x%08x", MAPI_E_NO_SUPPORT);
@@ -2054,7 +2069,9 @@ HRESULT M4LAddrBook::NewEntry(ULONG ulUIParam, ULONG ulFlags, ULONG cbEIDContain
  * @retval	MAPI_E_UNRESOLVED		One or more recipients in the list are not resolved.
  */
 // should use PR_AB_SEARCH_PATH
-HRESULT M4LAddrBook::ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewEntryTitle, LPADRLIST lpAdrList) {
+HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
+    LPTSTR lpszNewEntryTitle, LPADRLIST lpAdrList)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::ResolveName", "");
 	HRESULT hr = hrSuccess;
 	ULONG objType;
@@ -2230,7 +2247,9 @@ exit:
 	return hr;
 }
 
-HRESULT M4LAddrBook::Address(ULONG* lpulUIParam, LPADRPARM lpAdrParms, LPADRLIST* lppAdrList) {
+HRESULT M4LAddrBook::Address(ULONG_PTR *lpulUIParam, LPADRPARM lpAdrParms,
+    LPADRLIST *lppAdrList)
+{
 	ec_log_err("not implemented: M4LAddrBook::Address");
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::Address", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::Address", "0x%08x", MAPI_E_NO_SUPPORT);
@@ -2244,7 +2263,9 @@ HRESULT M4LAddrBook::Details(ULONG* lpulUIParam, LPFNDISMISS lpfnDismiss, LPVOID
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LAddrBook::RecipOptions(ULONG ulUIParam, ULONG ulFlags, LPADRENTRY lpRecip) {
+HRESULT M4LAddrBook::RecipOptions(ULONG_PTR ulUIParam, ULONG ulFlags,
+    LPADRENTRY lpRecip)
+{
 	ec_log_err("not implemented: M4LAddrBook::RecipOptions");
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::RecipOptions", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::RecipOptions", "0x%08x", MAPI_E_NO_SUPPORT);

@@ -214,7 +214,7 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 		ec_log_crit("CreateProfileTemp(): QueryInterface failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	hr = lpServiceAdmin->CreateMsgServiceEx("ZARAFA6", "", nullptr, 0, &service_uid);
+	hr = lpServiceAdmin->CreateMsgServiceEx("ZARAFA6", "", 0, 0, &service_uid);
 	if (hr != hrSuccess) {
 		ec_log_crit("CreateProfileTemp(): CreateMsgService ZARAFA6 failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		return hr;

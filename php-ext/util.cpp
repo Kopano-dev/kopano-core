@@ -75,7 +75,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 
 	// Create a message service (provider) for the szServiceName (see mapisvc.inf) service
 	// (not coupled to any file or server yet)
-	hr = lpServiceAdmin->CreateMsgServiceEx(szServiceName, "", nullptr, 0, &service_uid);
+	hr = lpServiceAdmin->CreateMsgServiceEx(szServiceName, "", 0, 0, &service_uid);
 	if(hr != hrSuccess) {
 		last_error = "Service unavailable";
 		return hr;
@@ -83,7 +83,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 
 	// optional, ignore error
 	if (strcmp(szServiceName, "ZARAFA6") == 0)
-		lpServiceAdmin->CreateMsgServiceEx("ZCONTACTS", "", nullptr, 0, nullptr);
+		lpServiceAdmin->CreateMsgServiceEx("ZCONTACTS", "", 0, 0, nullptr);
 
 	// Configure the message service
 	hr = lpServiceAdmin->ConfigureMsgService(&service_uid, 0, 0, cValues, lpPropVals);
