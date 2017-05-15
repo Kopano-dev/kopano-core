@@ -63,7 +63,7 @@ public:
 	static ECRESULT	GetPropComputed(struct soap *soap, unsigned int ulObjType, unsigned int ulPropTagRequested, unsigned int ulObjId, struct propVal *lpsPropVal);
 
 	// returns the computed value for a property which doesn't has database actions
-	static ECRESULT GetPropComputedUncached(struct soap *soap, ECODStore *lpODStore, ECSession* lpSession, unsigned int ulPropTag, unsigned int ulObjId, unsigned int ulOrderId, unsigned int ulStoreId, unsigned int ulParentId, unsigned int ulObjType, struct propVal *lpPropVal);
+	static ECRESULT GetPropComputedUncached(struct soap *, const ECODStore *, ECSession *, unsigned int proptag, unsigned int obj_id, unsigned int order_id, unsigned int store_id, unsigned int parent_id, unsigned int obj_type, struct propVal *);
 
 	static ECRESULT GetMVPropSubquery(unsigned int ulPropTagRequested, std::string &subquery);
 	static ECRESULT GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, unsigned int ulStoreType, char** lppStoreName);

@@ -316,7 +316,10 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 }
 
 // All in memory properties
-ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODStore, ECSession* lpSession, unsigned int ulPropTag, unsigned int ulObjId, unsigned int ulOrderId, unsigned int ulStoreId, unsigned int ulParentId, unsigned int ulObjType, struct propVal *lpPropVal)
+ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
+    const ECODStore *lpODStore, ECSession *lpSession, unsigned int ulPropTag,
+    unsigned int ulObjId, unsigned int ulOrderId, unsigned int ulStoreId,
+    unsigned int ulParentId, unsigned int ulObjType, struct propVal *lpPropVal)
 {
 	ECRESULT		er = erSuccess;
 	unsigned int	ulRights = 0;

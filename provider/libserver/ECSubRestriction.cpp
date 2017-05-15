@@ -99,7 +99,9 @@ ECRESULT GetSubRestriction(struct restrictTable *lpBase, unsigned int ulCount, s
 }
 
 // Get results for all subqueries for a set of objects (should be freed with FreeSubRestrictionResults() )
-ECRESULT RunSubRestrictions(ECSession *lpSession, void *lpECODStore, struct restrictTable *lpRestrict, ECObjectTableList *lpObjects, const ECLocale &locale, SUBRESTRICTIONRESULTS **lppResults)
+ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
+    struct restrictTable *lpRestrict, ECObjectTableList *lpObjects,
+    const ECLocale &locale, SUBRESTRICTIONRESULTS **lppResults)
 {
     unsigned int ulCount = 0;
     SUBRESTRICTIONRESULT *lpResult = NULL;
@@ -126,7 +128,9 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, void *lpECODStore, struct rest
 }
 
 // Run a single subquery on a set of objects
-ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restrictSub *lpRestrict, ECObjectTableList *lpObjects, const ECLocale &locale, SUBRESTRICTIONRESULT **lppResult)
+ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
+    struct restrictSub *lpRestrict, ECObjectTableList *lpObjects,
+    const ECLocale &locale, SUBRESTRICTIONRESULT **lppResult)
 {
     unsigned int ulType = 0;
     std::string strQuery;

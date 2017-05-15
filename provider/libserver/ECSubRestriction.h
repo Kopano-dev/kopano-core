@@ -56,8 +56,8 @@ ECRESULT GetSubRestrictionCount(struct restrictTable *lpRestrict, unsigned int *
 ECRESULT GetSubRestriction(struct restrictTable *lpBase, unsigned int ulCount, struct restrictSub **lppSubRestrict);
 
 // Get results for all subqueries for a set of objects
-ECRESULT RunSubRestrictions(ECSession *lpSession, void *lpECODStore, struct restrictTable *lpRestrict, ECObjectTableList *lpObjects, const ECLocale &locale, SUBRESTRICTIONRESULTS **lppResults);
-ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restrictSub *lpSubRestrict, ECObjectTableList *lpObjects, const ECLocale &locale, SUBRESTRICTIONRESULT **lppResult);
+extern ECRESULT RunSubRestrictions(ECSession *, const void *ecod_store, struct restrictTable *, ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULTS **);
+extern ECRESULT RunSubRestriction(ECSession *, const void *ecod_store, struct restrictSub *, ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULT **);
 ECRESULT FreeSubRestrictionResults(SUBRESTRICTIONRESULTS *lpResults);
 
 #define SUBRESTRICTION_MAXDEPTH	64

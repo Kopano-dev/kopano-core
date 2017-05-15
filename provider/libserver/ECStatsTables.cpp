@@ -183,7 +183,10 @@ void ECSystemStatsTable::GetStatsCollectorData(const std::string &name, const st
 	++lpThis->id;
 }
 
-ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
+ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	auto lpThis = static_cast<ECSystemStatsTable *>(lpGenericThis);
 	gsoap_size_t i;
@@ -351,7 +354,10 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	++lpThis->id;
 }
 
-ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
+ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	auto lpThis = static_cast<ECSessionStatsTable *>(lpGenericThis);
 	gsoap_size_t i;
@@ -608,7 +614,10 @@ ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 	return erSuccess;
 }
 
-ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
+ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	gsoap_size_t i;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
@@ -849,7 +858,10 @@ ECRESULT ECCompanyStatsTable::Load()
 	return erSuccess;
 }
 
-ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
+ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	gsoap_size_t i;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
@@ -1024,7 +1036,10 @@ ECRESULT ECServerStatsTable::Load()
 	return erSuccess;
 }
 
-ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
+ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	gsoap_size_t i;
 	struct rowSet *lpsRowSet = NULL;

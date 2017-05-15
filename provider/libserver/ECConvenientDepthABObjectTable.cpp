@@ -62,7 +62,10 @@ ECRESULT ECConvenientDepthABObjectTable::Create(ECSession *lpSession,
  * We override the standard QueryRowData call so that we can correctly generate PR_DEPTH and PR_EMS_AB_HIERARCHY_PARENT. Since this is
  * dependent on data which is not available for ECUserManagement, we have to do those properties here.
  */
-ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGenTable, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bTableData,bool bTableLimit)
+ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGenTable,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bTableData, bool bTableLimit)
 {
     unsigned int n = 0;
     struct propVal *lpProp = NULL;
@@ -98,7 +101,7 @@ ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGe
  */
 ECRESULT ECConvenientDepthABObjectTable::Load()
 {
-	auto lpODAB = static_cast<ECODAB *>(m_lpObjectData);
+	auto lpODAB = static_cast<const ECODAB *>(m_lpObjectData);
 	sObjectTableKey	sRowItem;
 	std::list<CONTAINERINFO> lstObjects;
 	CONTAINERINFO root;

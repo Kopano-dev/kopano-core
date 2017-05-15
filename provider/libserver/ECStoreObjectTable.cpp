@@ -138,7 +138,7 @@ ECStoreObjectTable::~ECStoreObjectTable()
 {
 	if (m_lpObjectData == nullptr)
 		return;
-	auto lpODStore = static_cast<ECODStore *>(m_lpObjectData);
+	auto lpODStore = static_cast<ECODStore *>(const_cast<void *>(m_lpObjectData));
 	delete lpODStore->lpGuid;
 	delete lpODStore;
 }
@@ -160,7 +160,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
-	auto lpODStore = static_cast<ECODStore *>(m_lpObjectData);
+	auto lpODStore = static_cast<const ECODStore *>(m_lpObjectData);
 	ULONG			ulPropID = 0;
 	ulock_rec biglock(m_hLock);
 
@@ -273,19 +273,26 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 }
 
 // Interface to main row engine (bSubObjects is false)
-ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
+ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	return ECStoreObjectTable::QueryRowData(lpThis, soap, lpSession, lpRowList, lpsPropTagArray, lpObjectData, lppRowSet, bCacheTableData, bTableLimit, false);
 }
 
 // Direct interface
-ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit, bool bSubObjects)
+ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit,
+    bool bSubObjects)
 {
 	gsoap_size_t i = 0, k = 0;
 	unsigned int	ulFolderId;
 	unsigned int 	ulRowStoreId = 0;
 	GUID			sRowGuid;
-	auto lpODStore = static_cast<ECODStore *>(lpObjectData);
+	auto lpODStore = static_cast<const ECODStore *>(lpObjectData);
 	ECDatabase		*lpDatabase = NULL;
 
 	std::map<unsigned int, std::map<sObjectTableKey, unsigned int> > mapStoreIdObjIds;
@@ -1006,7 +1013,7 @@ ECRESULT ECStoreObjectTable::Load()
 {
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
+	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
     sObjectTableKey		sRowItem;
     
     unsigned int ulFlags = lpData->ulFlags;
@@ -1078,7 +1085,7 @@ ECRESULT ECStoreObjectTable::Load()
 ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 {
     unsigned int ulParent = 0;
-	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
+	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
 
 	if (m_ulObjType == MAPI_FOLDER)
 		return lpSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityFolderVisible);
@@ -1104,7 +1111,7 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
 {
     ECRESULT er = erSuccess;
     GUID guidServer;
-	auto lpODStore = static_cast<ECODStore *>(m_lpObjectData);
+	auto lpODStore = static_cast<const ECODStore *>(m_lpObjectData);
     std::list<unsigned int> lstIndexerResults;
     std::list<unsigned int> lstFolders;
     std::set<unsigned int> setMatches;
