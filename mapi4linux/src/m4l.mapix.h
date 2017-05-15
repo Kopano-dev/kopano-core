@@ -59,23 +59,20 @@ private:
 	std::recursive_mutex m_mutexProfiles;
 
     // functions
-	std::list<profEntry *>::iterator findProfile(LPTSTR lpszProfileName);
+    decltype(profiles)::iterator findProfile(const TCHAR *name);
 
 public:
     virtual ~M4LProfAdmin();
 
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
     virtual HRESULT __stdcall GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable);
-    virtual HRESULT __stdcall CreateProfile(LPTSTR lpszProfileName, LPTSTR lpszPassword, ULONG ulUIParam, ULONG ulFlags);
-    virtual HRESULT __stdcall DeleteProfile(LPTSTR lpszProfileName, ULONG ulFlags);
-    virtual HRESULT __stdcall ChangeProfilePassword(LPTSTR lpszProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewPassword, ULONG ulFlags);
-    virtual HRESULT __stdcall CopyProfile(LPTSTR lpszOldProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewProfileName, ULONG ulUIParam,
-				ULONG ulFlags);
-    virtual HRESULT __stdcall RenameProfile(LPTSTR lpszOldProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewProfileName, ULONG ulUIParam,
-				  ULONG ulFlags);
-    virtual HRESULT __stdcall SetDefaultProfile(LPTSTR lpszProfileName, ULONG ulFlags);
-    virtual HRESULT __stdcall AdminServices(LPTSTR lpszProfileName, LPTSTR lpszPassword, ULONG ulUIParam, ULONG ulFlags,
-				  LPSERVICEADMIN* lppServiceAdmin);
+	virtual HRESULT __stdcall CreateProfile(const TCHAR *name, const TCHAR *password, ULONG ui_param, ULONG flags);
+	virtual HRESULT __stdcall DeleteProfile(const TCHAR *name, ULONG flags);
+	virtual HRESULT __stdcall ChangeProfilePassword(const TCHAR *name, const TCHAR *oldpw, const TCHAR *newpw, ULONG flags);
+	virtual HRESULT __stdcall CopyProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newpw, ULONG ui_param, ULONG flags);
+	virtual HRESULT __stdcall RenameProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG ui_param, ULONG flags);
+	virtual HRESULT __stdcall SetDefaultProfile(const TCHAR *name, ULONG flags);
+	virtual HRESULT __stdcall AdminServices(const TCHAR *name, const TCHAR *password, ULONG ui_param, ULONG flags, IMsgServiceAdmin **);
 
     // iunknown passthru
 	virtual ULONG __stdcall AddRef(void) _kc_override;
@@ -91,9 +88,9 @@ private:
 	std::recursive_mutex m_mutexserviceadmin;
 
     // functions
-    serviceEntry* findServiceAdmin(LPTSTR lpszServiceName);
-    serviceEntry* findServiceAdmin(LPMAPIUID lpMUID);
-	providerEntry* findProvider(LPMAPIUID lpUid);
+	serviceEntry *findServiceAdmin(const TCHAR *name);
+	serviceEntry *findServiceAdmin(const MAPIUID *id);
+	providerEntry *findProvider(const MAPIUID *id);
 
 public:
     M4LMsgServiceAdmin(M4LProfSect *profilesection);
@@ -101,16 +98,15 @@ public:
 
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
     virtual HRESULT __stdcall GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable);
-    virtual HRESULT __stdcall CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisplayName, ULONG ulUIParam, ULONG ulFlags);
-    virtual HRESULT __stdcall DeleteMsgService(LPMAPIUID lpUID);
-    virtual HRESULT __stdcall CopyMsgService(LPMAPIUID lpUID, LPTSTR lpszDisplayName, LPCIID lpInterfaceToCopy, LPCIID lpInterfaceDst,
-								   LPVOID lpObjectDst, ULONG ulUIParam, ULONG ulFlags);
-    virtual HRESULT __stdcall RenameMsgService(LPMAPIUID lpUID, ULONG ulFlags, LPTSTR lpszDisplayName);
-    virtual HRESULT __stdcall ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam, ULONG ulFlags, ULONG cValues, LPSPropValue lpProps);
-    virtual HRESULT __stdcall OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect);
-    virtual HRESULT __stdcall MsgServiceTransportOrder(ULONG cUID, LPMAPIUID lpUIDList, ULONG ulFlags);
-    virtual HRESULT __stdcall AdminProviders(LPMAPIUID lpUID, ULONG ulFlags, LPPROVIDERADMIN* lppProviderAdmin);
-    virtual HRESULT __stdcall SetPrimaryIdentity(LPMAPIUID lpUID, ULONG ulFlags);
+	virtual HRESULT __stdcall CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG ui_param, ULONG flags);
+	virtual HRESULT __stdcall DeleteMsgService(const MAPIUID *uid);
+	virtual HRESULT __stdcall CopyMsgService(const MAPIUID *uid, const TCHAR *display_name, const IID *ifsrc, const IID *ifdst, void *obj_dst, ULONG ui_param, ULONG flags);
+	virtual HRESULT __stdcall RenameMsgService(const MAPIUID *uid, ULONG flags, const TCHAR *display_name);
+	virtual HRESULT __stdcall ConfigureMsgService(const MAPIUID *uid, ULONG ui_param, ULONG flags, ULONG nvals, const SPropValue *props);
+	virtual HRESULT __stdcall OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **);
+	virtual HRESULT __stdcall MsgServiceTransportOrder(ULONG nuids, const MAPIUID *uids, ULONG flags);
+	virtual HRESULT __stdcall AdminProviders(const MAPIUID *uid, ULONG flags, IProviderAdmin **);
+	virtual HRESULT __stdcall SetPrimaryIdentity(const MAPIUID *uid, ULONG flags);
     virtual HRESULT __stdcall GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable);
 
     // iunknown passthru
@@ -133,7 +129,7 @@ private:
 	M4LMsgServiceAdmin *serviceAdmin;
 
 public:
-	M4LMAPISession(LPTSTR new_profileName, M4LMsgServiceAdmin *new_serviceAdmin);
+	M4LMAPISession(const TCHAR *profname, M4LMsgServiceAdmin *);
 	virtual ~M4LMAPISession();
 
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
@@ -141,7 +137,7 @@ public:
 	virtual HRESULT __stdcall OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags,
 								 LPMDB* lppMDB);
 	virtual HRESULT __stdcall OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULONG ulFlags, LPADRBOOK* lppAdrBook);
-	virtual HRESULT __stdcall OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect);
+	virtual HRESULT __stdcall OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **);
 	virtual HRESULT __stdcall GetStatusTable(ULONG ulFlags, LPMAPITABLE* lppTable);
 	virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType,
 							  LPUNKNOWN* lppUnk);

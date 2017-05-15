@@ -385,7 +385,9 @@ HRESULT M4LProfSect::SettingsDialog(ULONG ulUIParam, ULONG ulFlags) {
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LProfSect::ChangePassword(LPTSTR lpOldPass, LPTSTR lpNewPass, ULONG ulFlags) {
+HRESULT M4LProfSect::ChangePassword(const TCHAR *oldp, const TCHAR *newp,
+    ULONG flags)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfSect::ChangePassword", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfSect::ChangePassword", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
@@ -744,8 +746,9 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues,
-    const SPropValue *lpProps, ULONG ulUIParam, ULONG ulFlags, MAPIUID *lpUID)
+HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
+    ULONG cValues, const SPropValue *lpProps, ULONG ulUIParam, ULONG ulFlags,
+    MAPIUID *lpUID)
 {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::CreateProvider", "");
 	SPropValue sProps[10];
@@ -869,7 +872,8 @@ exit:
 	return hr;
 }
 
-HRESULT M4LProviderAdmin::DeleteProvider(LPMAPIUID lpUID) {
+HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
+{
 	HRESULT hr = MAPI_E_NOT_FOUND;	
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::DeleteProvider", "");
 	list<providerEntry*>::iterator i;
@@ -888,7 +892,9 @@ HRESULT M4LProviderAdmin::DeleteProvider(LPMAPIUID lpUID) {
     return hr;
 }
 
-HRESULT M4LProviderAdmin::OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect) {
+HRESULT M4LProviderAdmin::OpenProfileSection(const MAPIUID *lpUID,
+    const IID *lpInterface, ULONG ulFlags, IProfSect **lppProfSect)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::OpenProfileSection", "");
 	HRESULT hr = hrSuccess;
 	providerEntry *provider = NULL;

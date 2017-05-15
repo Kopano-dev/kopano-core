@@ -89,13 +89,7 @@ extern _kc_export MAPIUNINITIALIZE MAPIUninitialize;
 
 /*  Extended MAPI Logon function */
 
-typedef HRESULT (MAPILOGONEX)(
-    ULONG ulUIParam,
-    LPTSTR lpszProfileName,
-    LPTSTR lpszPassword,
-    ULONG ulFlags,
-    LPMAPISESSION* lppSession
-);
+typedef HRESULT (MAPILOGONEX)(ULONG ui_param, const TCHAR *profname, const TCHAR *password, ULONG flags, IMAPISession **);
 typedef MAPILOGONEX* LPMAPILOGONEX;
 extern _kc_export MAPILOGONEX MAPILogonEx;
 
@@ -161,7 +155,7 @@ public:
     virtual HRESULT GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
     virtual HRESULT OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, LPMDB* lppMDB) = 0;
     virtual HRESULT OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULONG ulFlags, LPADRBOOK* lppAdrBook) = 0;
-    virtual HRESULT OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect) = 0;
+	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **) = 0;
     virtual HRESULT GetStatusTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
     virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType,
 		      LPUNKNOWN* lppUnk) = 0;
@@ -232,19 +226,14 @@ public:
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
-    virtual HRESULT CreateProfile(LPTSTR lpszProfileName, LPTSTR lpszPassword, ULONG ulUIParam, ULONG ulFlags) = 0;
-    virtual HRESULT DeleteProfile(LPTSTR lpszProfileName, ULONG ulFlags) = 0;
-    virtual HRESULT ChangeProfilePassword(LPTSTR lpszProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewPassword, ULONG ulFlags) = 0;
-    virtual HRESULT CopyProfile(LPTSTR lpszOldProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewProfileName, ULONG ulUIParam,
-				ULONG ulFlags) = 0;
-    virtual HRESULT RenameProfile(LPTSTR lpszOldProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewProfileName, ULONG ulUIParam,
-				  ULONG ulFlags) = 0;
-    virtual HRESULT SetDefaultProfile(LPTSTR lpszProfileName, ULONG ulFlags) = 0;
-    virtual HRESULT AdminServices(LPTSTR lpszProfileName, LPTSTR lpszPassword, ULONG ulUIParam, ULONG ulFlags,
-				  LPSERVICEADMIN* lppServiceAdmin) = 0;
+	virtual HRESULT CreateProfile(const TCHAR *name, const TCHAR *password, ULONG ui_param, ULONG flags) = 0;
+	virtual HRESULT DeleteProfile(const TCHAR *name, ULONG flags) = 0;
+	virtual HRESULT ChangeProfilePassword(const TCHAR *name, const TCHAR *oldpw, const TCHAR *newpw, ULONG flags) = 0;
+	virtual HRESULT CopyProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG ui_param, ULONG flags) = 0;
+	virtual HRESULT RenameProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG ui_param, ULONG flags) = 0;
+	virtual HRESULT SetDefaultProfile(const TCHAR *name, ULONG flags) = 0;
+	virtual HRESULT AdminServices(const TCHAR *name, const TCHAR *password, ULONG ui_param, ULONG flags, IMsgServiceAdmin **) = 0;
 };
-
-
 
 /*
  * IMsgServiceAdmin Interface
@@ -265,16 +254,15 @@ public:
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
-    virtual HRESULT CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisplayName, ULONG ulUIParam, ULONG ulFlags) = 0;
-    virtual HRESULT DeleteMsgService(LPMAPIUID lpUID) = 0;
-    virtual HRESULT CopyMsgService(LPMAPIUID lpUID, LPTSTR lpszDisplayName, LPCIID lpInterfaceToCopy, LPCIID lpInterfaceDst,
-				   LPVOID lpObjectDst, ULONG ulUIParam, ULONG ulFlags) = 0;
-    virtual HRESULT RenameMsgService(LPMAPIUID lpUID, ULONG ulFlags, LPTSTR lpszDisplayName) = 0;
-    virtual HRESULT ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam, ULONG ulFlags, ULONG cValues, LPSPropValue lpProps) = 0;
-    virtual HRESULT OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect) = 0;
-    virtual HRESULT MsgServiceTransportOrder(ULONG cUID, LPMAPIUID lpUIDList, ULONG ulFlags) = 0;
-    virtual HRESULT AdminProviders(LPMAPIUID lpUID, ULONG ulFlags, LPPROVIDERADMIN* lppProviderAdmin) = 0;
-    virtual HRESULT SetPrimaryIdentity(LPMAPIUID lpUID, ULONG ulFlags) = 0;
+	virtual HRESULT CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG ui_param, ULONG flags) = 0;
+	virtual HRESULT DeleteMsgService(const MAPIUID *uid) = 0;
+	virtual HRESULT CopyMsgService(const MAPIUID *uid, const TCHAR *display_name, const IID *ifsrc, const IID *ifdst, void *object_dst, ULONG ui_param, ULONG flags) = 0;
+	virtual HRESULT RenameMsgService(const MAPIUID *uid, ULONG flags, const TCHAR *display_name) = 0;
+	virtual HRESULT ConfigureMsgService(const MAPIUID *uid, ULONG ui_param, ULONG flags, ULONG nvals, const SPropValue *props) = 0;
+	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **) = 0;
+	virtual HRESULT MsgServiceTransportOrder(ULONG nuids, const MAPIUID *uids, ULONG flags) = 0;
+	virtual HRESULT AdminProviders(const MAPIUID *uid, ULONG flags, IProviderAdmin **) = 0;
+	virtual HRESULT SetPrimaryIdentity(const MAPIUID *uid, ULONG flags) = 0;
     virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 };
 

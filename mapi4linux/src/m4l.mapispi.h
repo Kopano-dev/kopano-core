@@ -97,7 +97,7 @@ public:
 	virtual HRESULT __stdcall Unsubscribe(ULONG ulConnection); 
 	virtual HRESULT __stdcall Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICATION lpNotifications, ULONG * lpulFlags); 
 	virtual HRESULT __stdcall ModifyStatusRow(ULONG cValues, LPSPropValue lpColumnVals, ULONG ulFlags); 
-	virtual HRESULT __stdcall OpenProfileSection(LPMAPIUID lpUid, ULONG ulFlags, LPPROFSECT * lppProfileObj); 
+	virtual HRESULT __stdcall OpenProfileSection(const MAPIUID *uid, ULONG flags, IProfSect **); 
 	virtual HRESULT __stdcall RegisterPreprocessor(LPMAPIUID lpMuid, LPTSTR lpszAdrType, LPTSTR lpszDLLName, LPSTR lpszPreprocess,
 										 LPSTR lpszRemovePreprocessInfo, ULONG ulFlags); 
 	virtual HRESULT __stdcall NewUID(LPMAPIUID lpMuid); 

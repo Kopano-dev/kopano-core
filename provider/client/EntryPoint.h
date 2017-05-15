@@ -26,7 +26,7 @@
 extern "C" {
 
 extern _kc_export HRESULT __cdecl MSProviderInit(HINSTANCE, LPMALLOC, LPALLOCATEBUFFER, LPALLOCATEMORE, LPFREEBUFFER, ULONG flags, ULONG mapi_ver, ULONG *mdb_ver, LPMSPROVIDER *);
-extern _kc_export HRESULT __stdcall MSGServiceEntry(HINSTANCE, LPMALLOC, LPMAPISUP, ULONG ui_param, ULONG se_flags, ULONG ctx, ULONG cvals, LPSPropValue pvals, LPPROVIDERADMIN admprovs, LPMAPIERROR *);
+extern _kc_export HRESULT __stdcall MSGServiceEntry(HINSTANCE, IMalloc *, IMAPISupport *, ULONG ui_param, ULONG se_flags, ULONG ctx, ULONG nprops, const SPropValue *props, IProviderAdmin *, MAPIERROR **);
 extern _kc_export HRESULT __cdecl XPProviderInit(HINSTANCE, LPMALLOC, LPALLOCATEBUFFER, LPALLOCATEMORE, LPFREEBUFFER, ULONG flags, ULONG mapi_ver, ULONG *prov_ver, LPXPPROVIDER *);
 extern _kc_export HRESULT  __cdecl ABProviderInit(HINSTANCE, LPMALLOC, LPALLOCATEBUFFER, LPALLOCATEMORE, LPFREEBUFFER, ULONG flags, ULONG mapi_ver, ULONG *prov_ver, LPABPROVIDER *);
 

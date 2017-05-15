@@ -30,9 +30,7 @@ typedef std::map<std::string, std::string> inf_section;
 typedef std::map<std::string, inf_section> inf;
 
 /* MAPI Providers EntryPoint functions */
-typedef HRESULT(__stdcall *SVC_MSGServiceEntry)(HINSTANCE hInst, LPMALLOC lpMalloc, LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags,
-												ULONG ulContext, ULONG cvals, LPSPropValue pvals, LPPROVIDERADMIN lpAdminProviders,
-												MAPIERROR **lppMapiError);
+typedef HRESULT (__stdcall *SVC_MSGServiceEntry)(HINSTANCE, IMalloc *, IMAPISupport *, ULONG ui_param, ULONG flags, ULONG context, ULONG nprops, const SPropValue *props, IProviderAdmin *, MAPIERROR **errout);
 
 typedef HRESULT(__cdecl *SVC_MSProviderInit)(HINSTANCE hInstance, LPMALLOC pmalloc,
 											 LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore, LPFREEBUFFER pfnFreeBuf,
@@ -82,7 +80,7 @@ public:
 
 	HRESULT CreateProviders(IProviderAdmin *lpProviderAdmin);
 	const SPropValue *GetProp(ULONG tag);
-	SVCProvider* GetProvider(LPTSTR lpszProvider, ULONG ulFlags);
+	SVCProvider* GetProvider(const TCHAR *name, ULONG flags);
 	std::vector<SVCProvider*> GetProviders();
 
 	SVC_MSGServiceEntry MSGServiceEntry();
@@ -107,9 +105,8 @@ public:
 	~MAPISVC();
 
 	HRESULT Init();
-
-	HRESULT GetService(LPTSTR lpszService, ULONG ulFlags, SVCService **lppService);
-	HRESULT GetService(char* lpszDLLName, SVCService **lppService);
+	HRESULT GetService(const TCHAR *service, ULONG flags, SVCService **);
+	HRESULT GetService(const char *dll_name, SVCService **);
 
 private:
 	std::map<std::string, SVCService*> m_sServices;

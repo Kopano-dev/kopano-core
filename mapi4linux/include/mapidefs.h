@@ -1201,7 +1201,7 @@ public:
     //    virtual ~IMAPIStatus() = 0;
 	virtual HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags) = 0;
     virtual HRESULT SettingsDialog(ULONG ulUIParam, ULONG ulFlags) = 0;
-    virtual HRESULT ChangePassword(LPTSTR lpOldPass, LPTSTR lpNewPass, ULONG ulFlags) = 0;
+	virtual HRESULT ChangePassword(const TCHAR *oldpw, const TCHAR *newpw, ULONG flags) = 0;
     virtual HRESULT FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags) = 0;
 };
 
@@ -1542,9 +1542,9 @@ public:
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
-	virtual HRESULT CreateProvider(LPTSTR lpszProvider, ULONG cValues, const SPropValue *lpProps, ULONG ulUIParam, ULONG ulFlags, MAPIUID *lpUID) = 0;
-    virtual HRESULT DeleteProvider(LPMAPIUID lpUID) = 0;
-    virtual HRESULT OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect) = 0;
+	virtual HRESULT CreateProvider(const TCHAR *name, ULONG nprops, const SPropValue *props, ULONG ui_param, ULONG flags, MAPIUID *uid) = 0;
+	virtual HRESULT DeleteProvider(const MAPIUID *uid) = 0;
+	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **) = 0;
 };
 
 
