@@ -738,7 +738,6 @@ HRESULT M4LMsgServiceAdmin::RenameMsgService(LPMAPIUID lpUID, ULONG ulFlags, LPT
 HRESULT M4LMsgServiceAdmin::ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam, ULONG ulFlags, ULONG cValues, LPSPropValue lpProps) {
 	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMsgServiceAdmin::ConfigureMsgService", "%s", lpProps ? PropNameFromPropArray(cValues, lpProps).c_str() : "<null>");
 	HRESULT hr = hrSuccess;
-	object_ptr<M4LProviderAdmin> lpProviderAdmin;
     serviceEntry* entry;
 	ulock_rec l_srv(m_mutexserviceadmin);
 	
@@ -747,9 +746,6 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	// Create a new provideradmin, will NULL servicename.. ie it is a provider admin for *all* providers in the msgservice
-	lpProviderAdmin.reset(new M4LProviderAdmin(this, NULL));
 	entry = findServiceAdmin(lpUID);
 	if (!entry) {
 		ec_log_err("M4LMsgServiceAdmin::ConfigureMsgService() service not found");
