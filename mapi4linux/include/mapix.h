@@ -266,5 +266,9 @@ public:
     virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 };
 
+class IMsgServiceAdmin2 : public IMsgServiceAdmin {
+	public:
+	virtual HRESULT CreateMsgServiceEx(const char *service, const char *display_name, ULONG *ui_param, ULONG flags, MAPIUID *out) = 0;
+};
 
 #endif /* MAPIX_H */

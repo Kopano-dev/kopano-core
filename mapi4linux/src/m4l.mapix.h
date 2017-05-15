@@ -80,7 +80,7 @@ public:
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
-class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin {
+class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin2 {
 private:
 	std::list<providerEntry *> providers;
 	std::list<serviceEntry *> services;
@@ -99,6 +99,7 @@ public:
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
     virtual HRESULT __stdcall GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable);
 	virtual HRESULT __stdcall CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG ui_param, ULONG flags);
+	virtual HRESULT __stdcall CreateMsgServiceEx(const char *service, const char *display_name, ULONG *ui_param, ULONG flags, MAPIUID *out);
 	virtual HRESULT __stdcall DeleteMsgService(const MAPIUID *uid);
 	virtual HRESULT __stdcall CopyMsgService(const MAPIUID *uid, const TCHAR *display_name, const IID *ifsrc, const IID *ifdst, void *obj_dst, ULONG ui_param, ULONG flags);
 	virtual HRESULT __stdcall RenameMsgService(const MAPIUID *uid, ULONG flags, const TCHAR *display_name);

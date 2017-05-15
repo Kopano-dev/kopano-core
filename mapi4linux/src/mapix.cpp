@@ -613,6 +613,14 @@ exit:
 HRESULT M4LMsgServiceAdmin::CreateMsgService(const TCHAR *lpszService,
     const TCHAR *lpszDisplayName, ULONG ulUIParam, ULONG ulFlags)
 {
+	return CreateMsgServiceEx(reinterpret_cast<const char *>(lpszService),
+	       reinterpret_cast<const char *>(lpszDisplayName), &ulUIParam,
+	       ulFlags, nullptr);
+}
+
+HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
+    const char *lpszDisplayName, ULONG *ulUIParam, ULONG ulFlags, MAPIUID *uid)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::CreateMsgService", "");
 	HRESULT hr = hrSuccess;
 	serviceEntry* entry = NULL;
@@ -626,20 +634,20 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(const TCHAR *lpszService,
 		goto exit;
 	}
 
-	hr = m4l_lpMAPISVC->GetService(lpszService, ulFlags, &service);
+	hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(lpszService), ulFlags, &service);
 	if (hr == MAPI_E_NOT_FOUND) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): get service \"%s\" failed: %s (%x). "
 			"Does /etc/mapi exist and have a config file for the service?",
-			reinterpret_cast<const char *>(lpszService), GetMAPIErrorMessage(hr), hr);
+			lpszService, GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	} else if (hr != hrSuccess) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): get service \"%s\" failed: %s (%x)",
-			reinterpret_cast<const char *>(lpszService), GetMAPIErrorMessage(hr), hr);
+			lpszService, GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	// Create a Kopano message service
-	entry = findServiceAdmin(lpszService);
+	entry = findServiceAdmin(reinterpret_cast<const TCHAR *>(lpszService));
 	if (entry) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): service already exists %x: %s", hr, GetMAPIErrorMessage(hr));
 		hr = MAPI_E_NO_ACCESS; // already exists
@@ -653,7 +661,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(const TCHAR *lpszService,
 		goto exit;
 	}
 
-	entry->provideradmin = new(std::nothrow) M4LProviderAdmin(this, reinterpret_cast<const char *>(lpszService));
+	entry->provideradmin = new(std::nothrow) M4LProviderAdmin(this, lpszService);
 	if (!entry->provideradmin) {
 		ec_log_crit("M4LMsgServiceAdmin::CreateMsgService(): ENOMEM(2)");
 		delete entry;
@@ -667,7 +675,8 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(const TCHAR *lpszService,
 	entry->displayname = lpProp ? lpProp->Value.lpszA : (char*)lpszService;
 	
 	CoCreateGuid((LPGUID)&entry->muid);
-
+	if (uid != nullptr)
+		*uid = entry->muid;
 	entry->service = service;
     
 	services.push_back(entry);
@@ -1020,7 +1029,10 @@ HRESULT M4LMsgServiceAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
-	if (refiid == IID_IMsgServiceAdmin) {
+	if (refiid == IID_IMsgServiceAdmin2) {
+		AddRef();
+		*lpvoid = static_cast<IMsgServiceAdmin2 *>(this);
+	} else if (refiid == IID_IMsgServiceAdmin) {
 		AddRef();
 		*lpvoid = static_cast<IMsgServiceAdmin *>(this);
 	} else if (refiid == IID_IUnknown) {
