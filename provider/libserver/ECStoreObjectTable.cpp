@@ -1102,17 +1102,7 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 
 ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad, bool bOverride, struct restrictTable *lpOverride)
 {
-    ECRESULT er = erSuccess;
-    GUID guidServer;
 	auto lpODStore = static_cast<const ECODStore *>(m_lpObjectData);
-    std::list<unsigned int> lstIndexerResults;
-    std::list<unsigned int> lstFolders;
-    std::set<unsigned int> setMatches;
-    ECObjectTableList sMatchedRows;
-    ECDatabase *lpDatabase = NULL;
-    struct restrictTable *lpNewRestrict = NULL;
-    std::string suggestion;
- 
 	assert(!bOverride); // Default implementation never has override enabled, so we should never see this
 	assert(lpOverride == NULL);
 	ulock_rec biglock(m_hLock);
@@ -1126,15 +1116,20 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
 		return ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad, false, nullptr);
 
         // Attempt to use the indexer
-        er = lpSession->GetSessionManager()->GetServerGUID(&guidServer);
+	ECDatabase *lpDatabase;
+	GUID guidServer;
+	auto er = lpSession->GetSessionManager()->GetServerGUID(&guidServer);
         if(er != erSuccess)
-            goto exit;
-        
-        lstFolders.push_back(lpODStore->ulFolderId);
-        
+		return er;
         er = lpSession->GetDatabase(&lpDatabase);
         if(er != erSuccess)
-        	goto exit;
+		return er;
+
+	struct restrictTable *lpNewRestrict = nullptr;
+	std::string suggestion;
+	std::list<unsigned int> lstIndexerResults, lstFolders{lpODStore->ulFolderId};
+	std::set<unsigned int> setMatches;
+	ECObjectTableList sMatchedRows;
 
 	if (GetIndexerResults(lpDatabase, lpSession->GetSessionManager()->GetConfig(), lpSession->GetSessionManager()->GetCacheManager(), &guidServer, lpODStore->lpGuid, lstFolders, lpsRestrict, &lpNewRestrict, lstIndexerResults, suggestion) != erSuccess) {
     	    // Cannot handle this restriction with the indexer, use 'normal' restriction code
