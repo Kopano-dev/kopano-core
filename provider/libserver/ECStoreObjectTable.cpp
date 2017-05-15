@@ -162,25 +162,25 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	ECDatabase*		lpDatabase = NULL;
 	auto lpODStore = static_cast<const ECODStore *>(m_lpObjectData);
 	ULONG			ulPropID = 0;
-	ulock_rec biglock(m_hLock);
 
 	assert(lplstProps != NULL);
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	
 	//List always emtpy
 	lplstProps->clear();
+	ulock_rec biglock(m_hLock);
+	bool mo_has_content = !mapObjects.empty();
+	biglock.unlock();
 
-	if(!mapObjects.empty() && lpODStore->ulFolderId)
-	{
+	if (mo_has_content && lpODStore->ulFolderId != 0) {
 		// Properties
 		strQuery = "SELECT DISTINCT tproperties.tag, tproperties.type FROM tproperties WHERE folderid = " + stringify(lpODStore->ulFolderId);
 
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
-			goto exit;
-		
+			return er;
 		// Put the results into a STL list
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
@@ -190,7 +190,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 			lplstProps->push_back(PROP_TAG(atoi(lpDBRow[1]), ulPropID));
 		}
-	}// if(!mapObjects.empty())
+	}
 
 	// Add some generated and standard properties
 	lplstProps->push_back(PR_ENTRYID);
@@ -210,9 +210,6 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 	//FIXME: only in folder or message table	
 	lplstProps->push_back(PR_ACCESS);
-
-exit:
-	biglock.unlock();
 	return er;
 }
 
@@ -972,15 +969,15 @@ ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *l
 	int j;
 	ECObjectTableList listRows;
 	ECDatabase *lpDatabase = NULL;
-	ulock_rec biglock(m_hLock);
 
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// scan for MV-props and add rows
 	strQuery = "SELECT count(h.id) FROM hierarchy as h";
 	j=0;
+	ulock_rec biglock(m_hLock);
 	for (auto tag : m_listMVSortCols) {
 		strColName = "col" + stringify(tag);
 		strQuery += " LEFT JOIN mvproperties as " + strColName +
@@ -990,23 +987,19 @@ ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *l
 			".type=" + stringify(PROP_TYPE(NormalizeDBPropTag(tag) &~MV_INSTANCE));
 		++j;
 	}
-	
+	biglock.unlock();
 	strQuery += " WHERE h.id="+stringify(ulObjId)+" ORDER by h.id, orderid";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 	lpRow = lpDBResult.fetch_row();
     if(lpRow == NULL || lpRow[0] == NULL) {
-        er = KCERR_DATABASE_ERROR;
 	ec_log_err("ECStoreObjectTable::GetMVRowCount(): row or column null");
-        goto exit;
+		return KCERR_DATABASE_ERROR;
     }
 	
 	*lpulCount = atoi(lpRow[0]);
-
-exit:
-	biglock.unlock();
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECStoreObjectTable::Load()
