@@ -34,6 +34,9 @@
 #include <kopano/memory.hpp>
 
 class M4LMsgServiceAdmin;
+namespace KC {
+class SessionRestorer;
+}
 
 struct providerEntry {
 	MAPIUID uid;
@@ -78,6 +81,8 @@ public:
 	virtual ULONG __stdcall AddRef(void) _kc_override;
 	virtual ULONG __stdcall Release(void) _kc_override;
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+
+	friend class KC::SessionRestorer;
 };
 
 class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin2 {
@@ -115,6 +120,7 @@ public:
 
 	friend class M4LProviderAdmin;
 	friend class M4LMAPISession;
+	friend class KC::SessionRestorer;
 };
 
 inline bool operator <(const GUID &a, const GUID &b) {

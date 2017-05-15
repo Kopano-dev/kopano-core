@@ -140,6 +140,48 @@ static int mpt_main_login(bool with_lo)
 	return EXIT_SUCCESS;
 }
 
+/* Login-Logout with Save–Restore */
+static int mpt_main_lsr(void)
+{
+	AutoMAPI automapi;
+	auto ret = automapi.Initialize();
+	if (ret != hrSuccess) {
+		perror("MAPIInitialize");
+		return EXIT_FAILURE;
+	}
+
+	int err = mpt_setup_tick();
+	if (err < 0)
+		return EXIT_FAILURE;
+
+	object_ptr<IMAPISession> ses;
+	ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
+	      mpt_socket, 0, nullptr, nullptr);
+	if (ret != hrSuccess) {
+		fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
+		return EXIT_FAILURE;
+	}
+
+	struct mpt_stat_entry dp;
+	while (mpt_repeat-- > 0) {
+		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		std::string data;
+		ret = kc_session_save(ses, data);
+		if (ret != hrSuccess) {
+			fprintf(stderr, "save failed: %s\n", GetMAPIErrorMessage(ret));
+			return EXIT_FAILURE;
+		}
+		ret = kc_session_restore(data, &~ses);
+		if (ret != hrSuccess) {
+			fprintf(stderr, "restore failed: %s\n", GetMAPIErrorMessage(ret));
+			return EXIT_FAILURE;
+		}
+		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		mpt_stat_record(dp);
+	}
+	return EXIT_SUCCESS;
+}
+
 static int mpt_main_vft(void)
 {
 	AutoMAPI mapiinit;
@@ -248,6 +290,8 @@ static void mpt_usage(void)
 	fprintf(stderr, "  init        Just the library initialization\n");
 	fprintf(stderr, "  li          Issue login/logoff RPCs, but measure only login\n");
 	fprintf(stderr, "  lilo        Issue login/logoff RPCs, and measure both\n");
+	fprintf(stderr, "  lsr         Measure profile save-restore cycle\n");
+	fprintf(stderr, "  lsr+rpc     lsr with network reconnect\n");
 	fprintf(stderr, "  vft         Measure C++ class dispatching\n");
 	fprintf(stderr, "  pagetime    Measure webpage retrieval time\n");
 	fprintf(stderr, "  exectime    Measure process runtime\n");
@@ -306,6 +350,8 @@ int main(int argc, char **argv)
 		return mpt_main_login(false);
 	else if (strcmp(argv[1], "lilo") == 0)
 		return mpt_main_login(true);
+	else if (strcmp(argv[1], "lsr") == 0)
+		return mpt_main_lsr();
 	else if (strcmp(argv[1], "vft") == 0)
 		return mpt_main_vft();
 	else if (strcmp(argv[1], "exectime") == 0)
