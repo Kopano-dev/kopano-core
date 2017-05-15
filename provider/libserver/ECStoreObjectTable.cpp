@@ -1128,9 +1128,10 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     //  - not an initial load (but a table update)
     //  - no restriction
     //  - not a restriction on a folder (eg searchfolder)
-    if(!bLoad || !lpsRestrict || !lpODStore->ulFolderId || !lpODStore->ulStoreId || (lpODStore->ulFlags & MAPI_ASSOCIATED)) {
-        er = ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad, false, NULL);
-   } else {
+	if (!bLoad || lpsRestrict == nullptr || lpODStore->ulFolderId == 0 ||
+	    lpODStore->ulStoreId == 0 || (lpODStore->ulFlags & MAPI_ASSOCIATED))
+		return ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad, false, nullptr);
+
         // Attempt to use the indexer
         er = lpSession->GetSessionManager()->GetServerGUID(&guidServer);
         if(er != erSuccess)
@@ -1169,10 +1170,6 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     	
     	// Pass filtered results to AddRowKey, which will perform any further filtering required
     	er = ECGenericObjectTable::AddRowKey(&sMatchedRows, lpulLoaded, ulFlags, bLoad, true, lpNewRestrict);
-    	if(er != erSuccess)
-    		goto exit;
-	}
-	
 exit:
 	biglock.unlock();
 	if(lpNewRestrict)
