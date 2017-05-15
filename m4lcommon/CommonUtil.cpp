@@ -183,8 +183,9 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IProfAdmin> lpProfAdmin;
-	object_ptr<IMsgServiceAdmin> lpServiceAdmin;
-	const SPropValue *lpServiceUID = nullptr;
+	object_ptr<IMsgServiceAdmin> lpServiceAdmin1;
+	object_ptr<IMsgServiceAdmin2> lpServiceAdmin;
+	MAPIUID service_uid;
 	SPropValue sProps[9];	// server, username, password and profile -name and -flags, optional sslkey file with sslkey password
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
@@ -203,54 +204,23 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 		ec_log_crit("CreateProfileTemp(): CreateProfile failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
-	hr = lpProfAdmin->AdminServices((LPTSTR)szProfName, (LPTSTR)"", 0, 0, &~lpServiceAdmin);
+	hr = lpProfAdmin->AdminServices(reinterpret_cast<const TCHAR *>(szProfName), reinterpret_cast<const TCHAR *>(""), 0, 0, &~lpServiceAdmin1);
 	if (hr != hrSuccess) {
 		ec_log_crit("CreateProfileTemp(): AdminServices failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
-	
-	hr = lpServiceAdmin->CreateMsgService((LPTSTR)"ZARAFA6", (LPTSTR)"", 0, 0);
+	hr = lpServiceAdmin1->QueryInterface(IID_IMsgServiceAdmin2, &~lpServiceAdmin);
+	if (hr != hrSuccess) {
+		ec_log_crit("CreateProfileTemp(): QueryInterface failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		return hr;
+	}
+	hr = lpServiceAdmin->CreateMsgServiceEx("ZARAFA6", "", nullptr, 0, &service_uid);
 	if (hr != hrSuccess) {
 		ec_log_crit("CreateProfileTemp(): CreateMsgService ZARAFA6 failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
-	// Strangely we now have to get the SERVICE_UID for the service we just added from
-	// the table. (see MSDN help page of CreateMsgService at the bottom of the page)
-	hr = lpServiceAdmin->GetMsgServiceTable(0, &~lpTable);
-	if(hr != hrSuccess) {
-		ec_log_crit("CreateProfileTemp(): GetMsgServiceTable failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
-	// Find the correct row
-	while(TRUE) {
-		hr = lpTable->QueryRows(1, 0, &~lpRows);
-		if(hr != hrSuccess) {
-			ec_log_crit("CreateProfileTemp(): QueryRows failed %x: %s", hr, GetMAPIErrorMessage(hr));
-			return hr;
-		}
-			
-		if(lpRows->cRows != 1)
-			break;
-	
-		auto lpServiceName = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_NAME_A);
-		if(lpServiceName && strcmp(lpServiceName->Value.lpszA, "ZARAFA6") == 0)
-			break;
-	}
-	
-	if(lpRows->cRows != 1) {
-		ec_log_warn("CreateProfileTemp(): no rows found");
-		return MAPI_E_NOT_FOUND;
-	}
-
 	// Get the PR_SERVICE_UID from the row
-	lpServiceUID = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_UID);
-	if(!lpServiceUID) {
-		ec_log_crit("CreateProfileTemp(): PCpropFindProp failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		return MAPI_E_NOT_FOUND;
-	}
-
 	i = 0;
 	sProps[i].ulPropTag = PR_EC_PATH;
 	sProps[i].Value.lpszA = const_cast<char *>(path != NULL && *path != '\0' ? path : "default:");
@@ -296,8 +266,7 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 		sProps[i].Value.lpszA = (char*)app_misc;
 		++i;
 	}
-
-	hr = lpServiceAdmin->ConfigureMsgService((MAPIUID *)lpServiceUID->Value.bin.lpb, 0, 0, i, sProps);
+	hr = lpServiceAdmin->ConfigureMsgService(&service_uid, 0, 0, i, sProps);
 	if (hr != hrSuccess)
 		ec_log_crit("CreateProfileTemp(): ConfigureMsgService failed %x: %s", hr, GetMAPIErrorMessage(hr));
 	return hr;
