@@ -455,11 +455,7 @@ class Folder(Base):
         children = collections.defaultdict(list)
 
         for row in table.rows():
-            try:
-                mapiobj = self.mapiobj.OpenEntry(row[0].value, None, MAPI_MODIFY | self.content_flag)
-            except MAPIErrorNoAccess:
-                mapiobj = self.mapiobj.OpenEntry(row[0].value, None, self.content_flag)
-            folder = Folder(self.store, mapiobj=mapiobj)
+            folder = Folder(self.store, _hex(row[0].value))
             folders[_hex(row[0].value)] = folder, _hex(row[1].value)
             names[_hex(row[0].value)] = row[2].value
             children[_hex(row[1].value)].append((_hex(row[0].value), folder))
