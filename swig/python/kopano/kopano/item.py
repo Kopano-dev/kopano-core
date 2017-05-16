@@ -15,6 +15,7 @@ import sys
 import struct
 import time
 import traceback
+import warnings
 
 try:
     import cPickle as pickle
@@ -71,7 +72,7 @@ from .defs import (
     NAMED_PROPS_ARCHIVER, NAMED_PROP_CATEGORY, ADDR_PROPS,
     PSETID_Archive
 )
-from .errors import Error, NotFoundError
+from .errors import Error, NotFoundError, _DeprecationWarning
 
 from .attachment import Attachment
 from .body import Body
@@ -236,6 +237,7 @@ class Item(Base):
     def body(self):
         """ Item :class:`body <Body>` """
 
+        warnings.warn('item.body is deprecated', _DeprecationWarning)
         return Body(self) # XXX return None if no body..?
 
     @property
@@ -440,6 +442,52 @@ class Item(Base):
             return headers
         except NotFoundError:
             return {}
+
+    @property
+    def text(self):
+        """ Plain text representation """
+
+        try:
+            return _utils.stream(self._arch_item, PR_BODY_W) # under windows them be utf-16le?
+        except MAPIErrorNotFound:
+            return u''
+
+    @text.setter
+    def text(self, x):
+        self.create_prop(PR_BODY_W, _unicode(x))
+
+    @property
+    def html(self):
+        """ HTML representation """
+
+        try:
+            return _utils.stream(self._arch_item, PR_HTML)
+        except MAPIErrorNotFound:
+            return ''
+
+    @html.setter
+    def html(self, x):
+        self.create_prop(PR_HTML, x)
+
+    @property
+    def rtf(self):
+        """ RTF representation """
+
+        try:
+            return _utils.stream(self._arch_item, PR_RTF_COMPRESSED)
+        except MAPIErrorNotFound:
+            return ''
+
+    @property
+    def body_type(self):
+        """ original body type: 'text', 'html', 'rtf' or 'None' if it cannot be determined """
+        tag = _prop.bestbody(self.mapiobj)
+        if tag == PR_BODY_W:
+            return 'text'
+        elif tag == PR_HTML:
+            return 'html'
+        elif tag == PR_RTF_COMPRESSED:
+            return 'rtf'
 
     def eml(self, received_date=False):
         """ Return .eml version of item """
@@ -962,5 +1010,4 @@ class Item(Base):
 
     def __unicode__(self):
         return u'Item(%s)' % self.subject
-
 
