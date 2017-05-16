@@ -285,7 +285,7 @@ class Service(kopano.Service):
                 store = self.server.store(self.options.stores[0])
             else:
                 store = self._store(username)
-        except kopano.NotFoundError as e:
+        except kopano.NotFoundError:
             store = None
 
         if not store:
@@ -475,7 +475,7 @@ class Service(kopano.Service):
                         # store original sourcekey or it is lost
                         try:
                             item.prop(PR_EC_BACKUP_SOURCE_KEY)
-                        except kopano.NotFoundError:
+                        except (MAPIErrorNotFound, kopano.NotFoundError):
                             item.mapiobj.SetProps([SPropValue(PR_EC_BACKUP_SOURCE_KEY, sourcekey2.decode('hex'))])
                             item.mapiobj.SaveChanges(0)
 
@@ -627,7 +627,7 @@ def dump_rules(folder, user, server, stats, log):
     with log_exc(log, stats):
         try:
             ruledata = folder.prop(PR_RULES_DATA).value
-        except kopano.NotFoundError:
+        except (MAPIErrorNotFound, kopano.NotFoundError):
             pass
         else:
             etxml = ElementTree.fromstring(ruledata)
@@ -645,7 +645,7 @@ def dump_rules(folder, user, server, stats, log):
                         f = movecopy.findall('folder')[0]
                         path = store.folder(entryid=f.text.decode('base64').encode('hex')).path
                         f.text = path
-                    except (kopano.NotFoundError, MAPIErrorNotFound, binascii.Error):
+                    except (MAPIErrorNotFound, kopano.NotFoundError, binascii.Error):
                         log.warning("cannot serialize rule for unknown store/folder")
             ruledata = ElementTree.tostring(etxml)
     return pickle.dumps(ruledata)
