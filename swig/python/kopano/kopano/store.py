@@ -513,14 +513,16 @@ class Store(Base):
         table.Restrict(SPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, SPropValue(PR_MESSAGE_CLASS, "IPM.Microsoft.WunderBar.Link")), TBL_BATCH)
 
         for row in table.QueryRows(-1, 0):
-            # entryid = bin2hex(row[2].Value)
             store_entryid = bin2hex(row[5].Value)
 
-            if store_entryid == self.entryid: # XXX: Handle favorites from public stores
-                try:
+            try:
+                if store_entryid == self.entryid: # XXX: Handle favorites from public stores
                     yield self.folder(entryid=bin2hex(row[2].Value))
-                except NotFoundError:
-                    pass
+                else:
+                    store = Store(entryid=store_entryid, server=self.server)
+                    yield store.folder(entryid=bin2hex(row[2].Value))
+            except NotFoundError:
+                pass
 
     def _subprops(self, value):
         result = {}
