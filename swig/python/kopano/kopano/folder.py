@@ -76,19 +76,32 @@ class Folder(Base):
             self.store = store
             self.server = store.server
         if mapiobj:
-            self.mapiobj = mapiobj
+            self._mapiobj = mapiobj
             self._entryid = HrGetOneProp(self.mapiobj, PR_ENTRYID).Value
         elif entryid:
             self._entryid = _unhex(entryid)
-            try:
-                self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
-            except MAPIErrorNotFound:
-                self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
-            except MAPIErrorNoAccess: # XXX XXX
-                self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
 
         self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
         self._sourcekey = None
+        self._mapiobj = None
+
+    @property
+    def mapiobj(self):
+        if self._mapiobj:
+            return self._mapiobj
+
+        try:
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
+        except MAPIErrorNotFound:
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
+        except MAPIErrorNoAccess: # XXX XXX
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
+
+        return self._mapiobj
+
+    @mapiobj.setter
+    def mapiobj(self, mapiobj):
+        self._mapiobj = mapiobj
 
     @property
     def entryid(self):
