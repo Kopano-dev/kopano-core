@@ -449,7 +449,7 @@ static bool proc_fwd_allowed(const std::vector<std::string> &wdomlist,
  * Drop an additional message into @inbox informing about the
  * unwillingness to process a forwarding rule.
  */
-static HRESULT kc_send_fwdabort_notice(KCHL::KStore &&store, const char *addr)
+static HRESULT kc_send_fwdabort_notice(KCHL::KStore &&store, const wchar_t *addr, const wchar_t *subject)
 {
 	using namespace KCHL;
 	KMessage msg;
@@ -464,8 +464,14 @@ static HRESULT kc_send_fwdabort_notice(KCHL::KStore &&store, const char *addr)
 	size_t nprop = 0;
 	prop[nprop].ulPropTag = PR_SENDER_NAME_W;
 	prop[nprop++].Value.lpszW = const_cast<wchar_t *>(L"Mail Delivery System");
+
+	auto newsubject = convert_to<std::wstring>(g_lpConfig->GetSetting("forward_whitelist_domain_subject"));
+	auto pos = newsubject.find(L"%subject");
+	if (pos != std::string::npos)
+		newsubject = newsubject.replace(pos, 8, subject);
 	prop[nprop].ulPropTag = PR_SUBJECT_W;
-	prop[nprop++].Value.lpszW = const_cast<wchar_t *>(L"Forwarding rule has been abrogated");
+	prop[nprop++].Value.lpszW = const_cast<wchar_t *>(newsubject.c_str());
+
 	prop[nprop].ulPropTag = PR_MESSAGE_FLAGS;
 	prop[nprop++].Value.ul = 0;
 	prop[nprop].ulPropTag = PR_MESSAGE_CLASS_W;
@@ -476,12 +482,17 @@ static HRESULT kc_send_fwdabort_notice(KCHL::KStore &&store, const char *addr)
 	prop[nprop++].Value.ft = ft;
 	prop[nprop].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	prop[nprop++].Value.ft = ft;
-	std::wstring newbody = convert_to<std::wstring>(format(_A(
-		"The Kopano mail system is rejecting your request "
-		"to forward e-mails (via mail filters) to <%s>: "
-		"the operation is not permitted.\n\n"), addr) +
-		_A("Remove the rule or contact your administrator about the "
-		"\"forward_whitelist_domains\" setting.\n"));
+
+	auto newbody = convert_to<std::wstring>(g_lpConfig->GetSetting("forward_whitelist_domain_message"));
+
+	pos = newbody.find(L"%subject");
+	if (pos != std::string::npos)
+		newbody = newbody.replace(pos, 8, subject);
+
+	pos = newbody.find(L"%sender");
+	if (pos != std::string::npos)
+		newbody = newbody.replace(pos, 7, addr);
+
 	prop[nprop].ulPropTag = PR_BODY_W;
 	prop[nprop++].Value.lpszW = const_cast<wchar_t *>(newbody.c_str());
 	auto hr = msg->SetProps(nprop, prop, nullptr);
@@ -550,8 +561,17 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 			return hr;
 		}
 		auto rule_addr_std = convert_to<std::string>(strRuleAddress);
+
+		memory_ptr<SPropValue> subject;
+		std::wstring subject_wstd;
+		hr = HrGetOneProp(lpMessage, PR_SUBJECT_W, &~subject);
+		if (hr == hrSuccess)
+			subject_wstd = convert_to<std::wstring>(subject->Value.lpszW);
+		else if (hr != MAPI_E_NOT_FOUND)
+			return hr;
+
 		if (!proc_fwd_allowed(fwd_whitelist, rule_addr_std.c_str())) {
-			kc_send_fwdabort_notice(orig_store, rule_addr_std.c_str());
+			kc_send_fwdabort_notice(orig_store, strRuleAddress.c_str(), subject_wstd.c_str());
 			return MAPI_E_NO_ACCESS;
 		}
 		if (strFromAddress == strRuleAddress &&
