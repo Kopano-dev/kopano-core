@@ -611,7 +611,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	convert_context	converter;
 
 	bool bGlobalProfileUpdate = false;
-	bool bUpdatedPageConnection = false;
 	bool bInitStores = true;
 
 	_hInstance = hInst;
@@ -733,7 +732,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		while(1)
 		{
 			bGlobalProfileUpdate = false;
-			bUpdatedPageConnection = false;
 
 			if ((bShowDialog && ulFlags & SERVICE_UI_ALLOWED) || ulFlags & SERVICE_UI_ALWAYS)
 				hr = MAPI_E_USER_CANCEL;
@@ -780,29 +778,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 
 					lpsPropValue[cValueIndex].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
 					lpsPropValue[cValueIndex++].Value.lpszA = (char *)sProfileProps.strClientAppMisc.c_str();
-
-					if (bUpdatedPageConnection == true)
-					{
-						lpsPropValue[cValueIndex].ulPropTag = PR_EC_CONNECTION_TIMEOUT;
-						lpsPropValue[cValueIndex++].Value.ul = sProfileProps.ulConnectionTimeOut;
-
-						// Proxy settings
-						lpsPropValue[cValueIndex].ulPropTag = PR_EC_PROXY_FLAGS;
-						lpsPropValue[cValueIndex++].Value.ul = sProfileProps.ulProxyFlags;
-
-						lpsPropValue[cValueIndex].ulPropTag = PR_EC_PROXY_PORT;
-						lpsPropValue[cValueIndex++].Value.ul = sProfileProps.ulProxyPort;
-
-						lpsPropValue[cValueIndex].ulPropTag = PR_EC_PROXY_HOST;
-						lpsPropValue[cValueIndex++].Value.lpszA = (char *)sProfileProps.strProxyHost.c_str();
-							
-						lpsPropValue[cValueIndex].ulPropTag = PR_EC_PROXY_USERNAME;
-						lpsPropValue[cValueIndex++].Value.lpszA = (char *)sProfileProps.strProxyUserName.c_str();
-
-						lpsPropValue[cValueIndex].ulPropTag = PR_EC_PROXY_PASSWORD;
-						lpsPropValue[cValueIndex++].Value.lpszA = (char *)sProfileProps.strProxyPassword.c_str();
-					}
-
 					hr = ptrGlobalProfSect->SetProps(cValueIndex, lpsPropValue, NULL);
 					if(hr != hrSuccess)
 						goto exit;
