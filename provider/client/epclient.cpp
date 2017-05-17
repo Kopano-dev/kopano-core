@@ -474,13 +474,13 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		hr = WSTransport::Create(0, &d.transport);
 		if (hr != hrSuccess)
 			goto exit;
+		hr = d.transport->HrLogon(sProfileProps);
+		if (hr != hrSuccess)
+			goto exit;
 	}
 
 	if(ulResourceType == MAPI_STORE_PROVIDER)
 	{
-		hr = d.transport->HrLogon(sProfileProps);
-		if (hr != hrSuccess)
-			goto exit;
 		hr = initprov_mapi_store(d, sProfileProps);
 		if (hr != hrSuccess)
 			goto exit;
@@ -512,8 +512,6 @@ exit:
 	//Free allocated memory
 	if (d.transport != NULL && d.transport != transport)
 		d.transport->Release(); /* implies logoff */
-	else if (d.transport != NULL)
-		d.transport->logoff_nd();
 	if (hr == MAPI_S_SPECIAL_OK)
 		return hrSuccess;
 	return hr;
