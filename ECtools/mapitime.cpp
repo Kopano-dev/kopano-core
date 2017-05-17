@@ -266,11 +266,12 @@ static int mpt_main_exectime(int argc, char **argv)
 
 static void mpt_usage(void)
 {
-	fprintf(stderr, "mapitime [-p pass] [-s server] [-u username] [-z count] {init|lilo}\n");
+	fprintf(stderr, "mapitime [-p pass] [-s server] [-u username] [-z count] benchmark_choice\n");
 	fprintf(stderr, "  -z count    Run this many iterations (default: finite but almost forever)\n");
 	fprintf(stderr, "Benchmark choices:\n");
 	fprintf(stderr, "  init        Just the library initialization\n");
-	fprintf(stderr, "  lilo        Send login and logoff RPCs to the server\n");
+	fprintf(stderr, "  li          Issue login/logoff RPCs, but measure only login\n");
+	fprintf(stderr, "  lilo        Issue login/logoff RPCs, and measure both\n");
 	fprintf(stderr, "  vft         Measure C++ class dispatching\n");
 	fprintf(stderr, "  pagetime    Measure webpage retrieval time\n");
 	fprintf(stderr, "  exectime    Measure process runtime\n");
