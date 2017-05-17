@@ -601,16 +601,12 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	MAPISessionPtr	ptrSession;
 	object_ptr<WSTransport> lpTransport;
 	memory_ptr<SPropValue> lpsPropValue;
-	ULONG			cValues = 0;
 	bool			bShowDialog = false;
 
 	MAPIERROR		*lpMapiError = NULL;
 	memory_ptr<BYTE> lpDelegateStores;
 	ULONG			cDelegateStores = 0;
-	ULONG 			cValueIndex = 0;
 	convert_context	converter;
-
-	bool bGlobalProfileUpdate = false;
 	bool bInitStores = true;
 
 	_hInstance = hInst;
@@ -731,8 +727,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		// Check the path, username and password
 		while(1)
 		{
-			bGlobalProfileUpdate = false;
-
 			if ((bShowDialog && ulFlags & SERVICE_UI_ALLOWED) || ulFlags & SERVICE_UI_ALWAYS)
 				hr = MAPI_E_USER_CANCEL;
 						
@@ -752,36 +746,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 				bShowDialog = true;
 				assert(false);
 			}else {
-				//Update global profile
-				if( bGlobalProfileUpdate == true) {
-
-					cValues = 12;
-					cValueIndex = 0;
-					hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpsPropValue);
-					if(hr != hrSuccess)
-						goto exit;
-
-					lpsPropValue[cValueIndex].ulPropTag	= PR_EC_PATH;
-					lpsPropValue[cValueIndex++].Value.lpszA = (char *)sProfileProps.strServerPath.c_str();
-
-					lpsPropValue[cValueIndex].ulPropTag	= PR_EC_USERNAME_W;
-					lpsPropValue[cValueIndex++].Value.lpszW = (wchar_t *)sProfileProps.strUserName.c_str();
-
-					lpsPropValue[cValueIndex].ulPropTag = PR_EC_USERPASSWORD_W;
-					lpsPropValue[cValueIndex++].Value.lpszW = (wchar_t *)sProfileProps.strPassword.c_str();
-
-					lpsPropValue[cValueIndex].ulPropTag = PR_EC_FLAGS;
-					lpsPropValue[cValueIndex++].Value.ul = sProfileProps.ulProfileFlags;
-
-					lpsPropValue[cValueIndex].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION;
-					lpsPropValue[cValueIndex++].Value.lpszA = (char *)sProfileProps.strClientAppVersion.c_str();
-
-					lpsPropValue[cValueIndex].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
-					lpsPropValue[cValueIndex++].Value.lpszA = (char *)sProfileProps.strClientAppMisc.c_str();
-					hr = ptrGlobalProfSect->SetProps(cValueIndex, lpsPropValue, NULL);
-					if(hr != hrSuccess)
-						goto exit;
-				}
 				break; // Everything is oke
 			}
 			
