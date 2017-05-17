@@ -476,12 +476,11 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 			goto exit;
 	}
 
-	hr = d.transport->HrLogon(sProfileProps);
-	if(hr != hrSuccess)
-		goto exit;
-
 	if(ulResourceType == MAPI_STORE_PROVIDER)
 	{
+		hr = d.transport->HrLogon(sProfileProps);
+		if (hr != hrSuccess)
+			goto exit;
 		hr = initprov_mapi_store(d, sProfileProps);
 		if (hr != hrSuccess)
 			goto exit;
