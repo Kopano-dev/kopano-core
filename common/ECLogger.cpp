@@ -205,7 +205,9 @@ ECLogger_File::~ECLogger_File() {
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
 
 	if (prevcount > 1)
-		fnPrintf(log, "%sPrevious message logged %d times\n", DoPrefix().c_str(), prevcount);
+		fnPrintf(log, "%sLast message repeated %d times\n", DoPrefix().c_str(), prevcount);
+	else if (prevcount == 1)
+		fnPrintf(log, "%sLast message repeated 1 time\n", DoPrefix().c_str());
 	if (log && fnClose)
 		fnClose(log);
 }
