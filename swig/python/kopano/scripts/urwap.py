@@ -63,12 +63,12 @@ class Mail(urwid.BoxWidget):
 
     def set_item(self, item):
         self.item = item
-        self.contents[0] = urwid.Text('\n'.join((item.body.text or u'').splitlines()) if item else '')
+        self.contents[0] = urwid.Text('\n'.join((item.text or u'').splitlines()) if item else '')
         self.edit = False
 
     def set_reply(self):
         field = urwid.Edit(multiline=True)
-        field.set_edit_text('\n\n'+'\n'.join('> '+l for l in (self.item.body.text or u'').splitlines())+'\n\n')
+        field.set_edit_text('\n\n'+'\n'.join('> '+l for l in (self.item.text or u'').splitlines())+'\n\n')
         self.contents[0] = field
         self.edit = True
     
@@ -78,7 +78,7 @@ class Mail(urwid.BoxWidget):
     def keypress(self, size, key):
         if self.edit and key in ('ctrl x', 'ctrl y', 'esc'):
             if key == 'ctrl x':
-                self.outbox.create_item(subject='Re: '+self.item.subject, to=self.item.sender.email, body=self.contents[0].text).send()
+                self.outbox.create_item(subject='Re: '+self.item.subject, to=self.item.sender.email, text=self.contents[0].text).send()
             self.set_item(self.item)
             self.cols.set_focus(0)
             self.footer.set_text(('headfoot', FOOT1))
