@@ -99,7 +99,8 @@ protected:
 	std::mutex m_refcnt_lock;
 };
 
-class ECDatabaseAttachment _kc_final : public ECAttachmentStorage {
+class _kc_export_dycast ECDatabaseAttachment _kc_final :
+    public ECAttachmentStorage {
 public:
 	ECDatabaseAttachment(ECDatabase *lpDatabase);
 
@@ -119,7 +120,7 @@ protected:
 	virtual ECRESULT Rollback();
 };
 
-class _kc_export_dycast ECFileAttachment _kc_final :
+class ECFileAttachment _kc_final :
     public ECAttachmentStorage {
 	public:
 	_kc_hidden ECFileAttachment(ECDatabase *, const std::string &basepath, unsigned int compr_lvl, bool sync);
