@@ -19,6 +19,7 @@
 #define __M4L_MAPIX_IMPL_H
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <mutex>
 #include "m4l.common.h"
 #include "m4l.mapidefs.h"
@@ -56,15 +57,13 @@ struct profEntry {
 class M4LProfAdmin _kc_final : public M4LUnknown, public IProfAdmin {
 private:
     // variables
-	std::list<profEntry *> profiles;
+	std::list<std::unique_ptr<profEntry> > profiles;
 	std::recursive_mutex m_mutexProfiles;
 
     // functions
     decltype(profiles)::iterator findProfile(const TCHAR *name);
 
 public:
-    virtual ~M4LProfAdmin();
-
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
     virtual HRESULT __stdcall GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable);
 	virtual HRESULT __stdcall CreateProfile(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags);

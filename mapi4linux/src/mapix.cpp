@@ -17,9 +17,11 @@
 
 #include <kopano/platform.h>
 #include <exception>
+#include <memory>
 #include <mutex>
 #include <new>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 #include <cerrno>
 #include <cstddef>
@@ -146,18 +148,10 @@ static void HrFreeM4LServices(void)
 // ---
 // M4LProfAdmin
 // ---
-M4LProfAdmin::~M4LProfAdmin() {
-	std::list<profEntry *>::const_iterator i;
-	scoped_rlock l_prof(m_mutexProfiles);
-
-	for (i = profiles.begin(); i != profiles.end(); ++i)
-		delete *i;
-    profiles.clear();
-}
-
-std::list<profEntry *>::iterator M4LProfAdmin::findProfile(const TCHAR *name)
+decltype(M4LProfAdmin::profiles)::iterator
+M4LProfAdmin::findProfile(const TCHAR *name)
 {
-	std::list<profEntry *>::iterator i;
+	decltype(profiles)::iterator i;
 
 	for (i = profiles.begin(); i != profiles.end(); ++i)
 		if ((*i)->profname == reinterpret_cast<const char *>(name))
@@ -202,7 +196,7 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	if(hr != hrSuccess)
 		goto exit;
 
-	for (auto prof : profiles) {
+	for (auto &prof : profiles) {
 		sProps[0].ulPropTag = PR_DEFAULT_PROFILE;
 		sProps[0].Value.b = false; //FIXME: support setDefaultProfile
 
@@ -260,8 +254,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "M4LProfAdmin::CreateProfile", "profilename=%s", (char*)lpszProfileName);
     HRESULT hr = hrSuccess;
-    list<profEntry*>::const_iterator i;
-    profEntry* entry = NULL;
+	std::unique_ptr<profEntry> entry;
 	object_ptr<M4LProfSect> profilesection;
 	SPropValue sPropValue;
 	ulock_rec l_prof(m_mutexProfiles);
@@ -271,15 +264,12 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-    
-    i = findProfile(lpszProfileName);
-	if (i != profiles.cend()) {
+	if (findProfile(lpszProfileName) != profiles.cend()) {
 		ec_log_err("M4LProfAdmin::CreateProfile(): duplicate profile name");
 		hr = MAPI_E_NO_ACCESS;	// duplicate profile name
 		goto exit;
     }
-
-    entry = new(std::nothrow) profEntry;
+	entry.reset(new(std::nothrow) profEntry);
     if (!entry) {
 		ec_log_crit("M4LProfAdmin::CreateProfile(): ENOMEM");
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -294,12 +284,10 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 	hr = profilesection->SetProps(1 ,&sPropValue, NULL);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LProfAdmin::CreateProfile(): SetProps failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		delete entry;
 		goto exit;
 	}
 	entry->serviceadmin.reset(new(std::nothrow) M4LMsgServiceAdmin(profilesection));
     if (!entry->serviceadmin) {
-		delete entry;
 		ec_log_err("M4LProfAdmin::CreateProfile(): M4LMsgServiceAdmin failed");
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -309,9 +297,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
     entry->profname = (char*)lpszProfileName;
     if (lpszPassword)
 		entry->password = (char*)lpszPassword;
-
-    profiles.push_back(entry);
-    
+	profiles.push_back(std::move(entry));
 exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfAdmin::CreateProfile", "0x%08x", hr);
     return hr;
@@ -332,12 +318,10 @@ HRESULT M4LProfAdmin::DeleteProfile(const TCHAR *lpszProfileName, ULONG ulFlags)
 	scoped_rlock l_prof(m_mutexProfiles);
     
 	auto i = findProfile(lpszProfileName);
-	if (i != profiles.cend()) {
-		delete *i;
+	if (i != profiles.cend())
 		profiles.erase(i);
-    } else {
-        hr = MAPI_E_NOT_FOUND;
-    }
+	else
+		hr = MAPI_E_NOT_FOUND;
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfAdmin::DeleteProfile", "0x%08x", hr);
     return hr;
 }
@@ -397,7 +381,7 @@ HRESULT M4LProfAdmin::AdminServices(const TCHAR *lpszProfileName,
 {
 	TRACE_MAPILIB2(TRACE_ENTRY, "M4LProfAdmin::AdminServices", "name=%s - password=%s", (char*)lpszProfileName, (lpszPassword)?(char*)lpszPassword:"NULL");
     HRESULT hr = hrSuccess;									
-    list<profEntry*>::const_iterator i;
+	decltype(profiles)::const_iterator i;
 	scoped_rlock l_prof(m_mutexProfiles);
 
     if(lpszProfileName == NULL) {
