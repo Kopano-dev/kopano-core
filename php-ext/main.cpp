@@ -136,9 +136,13 @@ static void _php_free_istream(zend_rsrc_list_entry *rsrc TSRMLS_DC);
 static void _php_free_fb_object(zend_rsrc_list_entry *rsrc TSRMLS_DC);
 
 // Not defined anymore in PHP 5.3.0
-// we only use first and fourth versions, so just define those.
 #if ZEND_MODULE_API_NO >= 20071006
 ZEND_BEGIN_ARG_INFO(first_arg_force_ref, 0)
+        ZEND_ARG_PASS_INFO(1)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(second_arg_force_ref, 0)
+        ZEND_ARG_PASS_INFO(0)
         ZEND_ARG_PASS_INFO(1)
 ZEND_END_ARG_INFO()
 
@@ -490,6 +494,8 @@ zend_function_entry mapi_functions[] =
 	ZEND_FALIAS(mapi_zarafa_getuser, mapi_zarafa_getuser_by_name, NULL)
 	ZEND_FALIAS(mapi_zarafa_getgroup, mapi_zarafa_getgroup_by_name, NULL)
 
+	ZEND_FE(kc_session_save, second_arg_force_ref)
+	ZEND_FE(kc_session_restore, second_arg_force_ref)
 	{NULL, NULL, NULL}
 };
 
@@ -7570,4 +7576,42 @@ ZEND_FUNCTION(mapi_feature)
 	}
     LOG_END();
     return;
+}
+
+ZEND_FUNCTION(kc_session_save)
+{
+	PMEASURE_FUNC;
+	zval *res = nullptr, *outstr = nullptr;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rz", &res, &outstr) == FAILURE)
+		return;
+	IMAPISession *ses;
+	ZEND_FETCH_RESOURCE_C(ses, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
+	std::string data;
+	MAPI_G(hr) = KC::kc_session_save(ses, data);
+	if (MAPI_G(hr) == hrSuccess)
+		ZVAL_STRINGL(outstr, data.c_str(), data.size(), 1);
+	RETVAL_LONG(MAPI_G(hr));
+	LOG_END();
+}
+
+ZEND_FUNCTION(kc_session_restore)
+{
+	PMEASURE_FUNC;
+	zval *data, *res;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zz", &data, &res) == FAILURE)
+		return;
+	if (Z_TYPE_P(data) != IS_STRING) {
+		php_error_docref(NULL TSRMLS_CC, E_ERROR, "kc_session_restore() expects parameter 1 to be string, but something else was given");
+		RETVAL_LONG(MAPI_G(hr) = MAPI_E_INVALID_PARAMETER);
+		LOG_END();
+		return;
+	}
+	object_ptr<IMAPISession> ses = nullptr;
+	MAPI_G(hr) = KC::kc_session_restore(std::string(Z_STRVAL_P(data), Z_STRLEN_P(data)), &~ses);
+	if (MAPI_G(hr) == hrSuccess)
+		ZEND_REGISTER_RESOURCE(res, ses.release(), le_mapi_session);
+	RETVAL_LONG(MAPI_G(hr));
+	LOG_END();
 }

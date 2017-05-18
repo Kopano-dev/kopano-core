@@ -306,4 +306,7 @@ ZEND_FUNCTION(mapi_enable_exceptions);
 
 ZEND_FUNCTION(mapi_feature);
 
+ZEND_FUNCTION(kc_session_save);
+ZEND_FUNCTION(kc_session_restore);
+
 #endif
