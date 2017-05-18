@@ -30,8 +30,7 @@ struct s3_cd {
 	unsigned char *data;
 	ECSerializer *sink;
 	bool alloc_data;
-	int size;
-	int processed;
+	size_t size, processed;
 	int retries;
 	S3Status status;
 };
@@ -258,7 +257,7 @@ S3Status ECS3Attachment::response_prop(const S3ResponseProperties *properties, v
 
 	if (properties->contentLength != 0) {
 		data->size = properties->contentLength;
-		ec_log_debug("Received the response properties, content length: %d", data->size);
+		ec_log_debug("Received the response properties, content length: %zu", data->size);
 	} else {
 		ec_log_debug("Received the response properties");
 	}
@@ -269,7 +268,7 @@ S3Status ECS3Attachment::response_prop(const S3ResponseProperties *properties, v
 	if (data->sink == NULL && data->alloc_data && data->data == NULL) {
 		data->data = s_alloc_nothrow<unsigned char>(data->soap, data->size);
 		if (data->data == NULL) {
-			ec_log_err("Unable to claim memory of size: %d bytes.", data->size);
+			ec_log_err("Unable to claim memory of size: %zu bytes.", data->size);
 			return S3StatusAbortedByCallback;
 		}
 	}
@@ -340,7 +339,7 @@ S3Status ECS3Attachment::get_obj(int bufferSize, const char *buffer, void *cbdat
 	if (data->processed + bufferSize > data->size)
 		return S3StatusAbortedByCallback;
 
-	ec_log_debug("Getting bytes from S3 callback: Remaining bytes to get: %d. Reading %d bytes",
+	ec_log_debug("Getting bytes from S3 callback: Remaining bytes to get: %zu. Reading %d bytes",
 		data->size - data->processed, bufferSize);
 	if (data->sink != NULL) {
 		er = data->sink->Write(buffer, 1, bufferSize);
@@ -607,7 +606,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	cwdata.cbdata = cdp;
 
 	std::string filename = make_att_filename(ins_id, comp && size != 0);
-	ec_log_debug("Save attachment instance data: %s: %d of %ld", filename.c_str(), cdp->data != NULL, size);
+	ec_log_debug("Save attachment instance data: %s: %d of %zu", filename.c_str(), cdp->data != NULL, size);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
@@ -666,7 +665,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	cwdata.cbdata = cdp;
 
 	std::string filename = make_att_filename(ins_id, comp && size != 0);
-	ec_log_debug("Save attachment instance source: %s: %d of %ld", filename.c_str(), cdp->sink != NULL, size);
+	ec_log_debug("Save attachment instance source: %s: %d of %zu", filename.c_str(), cdp->sink != NULL, size);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
@@ -895,7 +894,7 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 				DY_get_status_name(cdp->status));
 	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Get size of attachment: %s -> %d",
+	ec_log_debug("Get size of attachment: %s -> %zu",
 		DY_get_status_name(cdp->status), cdp->size);
 
 	if (cdp->status == S3StatusOK) {
