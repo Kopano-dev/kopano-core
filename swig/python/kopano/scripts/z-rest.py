@@ -191,8 +191,8 @@ def item(folderid, itemid):
         'sender': get_adddresslist(item.sender),
 #        'recipients': [get_adddresslist(recip) for recip in item.recipients()],
 #        'headers': item.headers().items(),
-        'html': item.body.html,
-        'text': item.body.text
+        'html': item.html,
+        'text': item.text
     }
     return jsonify({ 'item' : itemobj })
 

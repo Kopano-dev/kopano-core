@@ -251,7 +251,7 @@ class FolderImporter:
                             attach_text.append(plaintext.get(a, mimetype=a.mimetype, log=self.log))
                         attach_text.append(u' '+(a.filename or u''))
 
-                doc['mapi4096'] += u' ' + subitem.body.text + u' ' + u' '.join(attach_text) # PR_BODY
+                doc['mapi4096'] += u' ' + subitem.text + u' ' + u' '.join(attach_text) # PR_BODY
                 doc['mapi3098'] += u' ' + u' '.join([subitem.sender.name, subitem.sender.email, subitem.from_.name, subitem.from_.email]) # PR_SENDER_NAME
                 doc['mapi3588'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.to]) # PR_DISPLAY_TO
                 doc['mapi3587'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.cc]) # PR_DISPLAY_CC
