@@ -1347,7 +1347,8 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 			goto exit;
 		}
 
-		if (isrtfhtml(strRtf.c_str(), strRtf.size()) || sopt.use_tnef == -1)
+		if (isrtfhtml(strRtf.c_str(), strRtf.size()) ||
+			(sopt.use_tnef == -1 && !isrtftext(strRtf.c_str(), strRtf.size())))
 		{
 			// Open html
 			object_ptr<IStream> lpHTMLStream;
