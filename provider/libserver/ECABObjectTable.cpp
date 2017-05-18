@@ -110,8 +110,7 @@ ECRESULT ECABObjectTable::Create(ECSession *lpSession, unsigned int ulABId, unsi
 
 ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 {
-	auto lpODAB = static_cast<ECODAB *>(m_lpObjectData);
-	scoped_rlock lock(m_hLock);
+	auto lpODAB = static_cast<const ECODAB *>(m_lpObjectData);
 	assert(lplstProps != NULL);
 	
 	//List always empty
@@ -151,15 +150,17 @@ ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECLis
 
 ECRESULT ECABObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
-	scoped_rlock lock(m_hLock);
 	*lpulCount = 0;
 	return erSuccess;
 }
 
-ECRESULT ECABObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bTableData, bool bTableLimit)
+ECRESULT ECABObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bTableData, bool bTableLimit)
 {
 	ECRESULT er = erSuccess;
-	auto lpODAB = static_cast<ECODAB *>(lpObjectData);
+	auto lpODAB = static_cast<const ECODAB *>(lpObjectData);
 	struct rowSet	*lpsRowSet = NULL;
 	assert(lpRowList != NULL);
 
@@ -363,7 +364,7 @@ ECRESULT ECABObjectTable::LoadContentsDistlist(unsigned int ulObjectId, unsigned
 
 ECRESULT ECABObjectTable::Load()
 {
-	auto lpODAB = static_cast<ECODAB *>(m_lpObjectData);
+	auto lpODAB = static_cast<const ECODAB *>(m_lpObjectData);
 	sObjectTableKey sRowItem;
 
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;

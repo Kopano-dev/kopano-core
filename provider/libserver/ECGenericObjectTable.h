@@ -101,7 +101,7 @@ typedef std::map<sObjectTableKey, ECCategory *, ObjectTableKeyCompare> ECCategor
 typedef std::map<sObjectTableKey, LEAFINFO, ObjectTableKeyCompare> ECLeafMap;
 
 class ECGenericObjectTable;
-typedef ECRESULT (* QueryRowDataCallBack)(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bTableData, bool bTableLimit);
+typedef ECRESULT (*QueryRowDataCallBack)(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *, struct propTagArray *, const void *priv, struct rowSet **, bool table_data, bool table_limit);
 
 /*
  * ECGenericObjectTable
@@ -149,7 +149,7 @@ public:
 	ECRESULT	GetRowCount(unsigned int *lpulRowCount, unsigned int *lpulCurrentRow);
 	ECRESULT	SetColumns(const struct propTagArray *lpsPropTags, bool bDefaultSet);
 	ECRESULT	GetColumns(struct soap *soap, ULONG ulFlags, struct propTagArray **lpsPropTags);
-	ECRESULT SetSortOrder(struct sortOrderArray *, unsigned int categ, unsigned int expanded) __attribute__((nonnull));
+	ECRESULT SetSortOrder(const struct sortOrderArray *, unsigned int categ, unsigned int expanded) __attribute__((nonnull));
 	ECRESULT	Restrict(struct restrictTable *lpsRestrict);
 	ECRESULT	QueryRows(struct soap *soap, unsigned int ulRowCount, unsigned int ulFlags, struct rowSet **lppRowSet);
 	ECRESULT	CreateBookmark(unsigned int* lpulbkPosition);
@@ -216,7 +216,7 @@ protected:
 	ECSession*					lpSession;
 	ECKeyTable*					lpKeyTable;
 	unsigned int m_ulTableId = -1; /* id of the table from ECTableManager */
-	void *m_lpObjectData = nullptr;
+	const void *m_lpObjectData = nullptr;
 
 	std::recursive_mutex m_hLock; /* Lock for locked internals */
 

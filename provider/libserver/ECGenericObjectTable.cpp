@@ -620,7 +620,8 @@ ECRESULT ECGenericObjectTable::ReloadKeyTable()
 	return AddRowKey(&listRows, NULL, 0, true, false, NULL);
 }
 
-ECRESULT ECGenericObjectTable::SetSortOrder(struct sortOrderArray *lpsSortOrder, unsigned int ulCategories, unsigned int ulExpanded)
+ECRESULT ECGenericObjectTable::SetSortOrder(const struct sortOrderArray *lpsSortOrder,
+    unsigned int ulCategories, unsigned int ulExpanded)
 {
 	// Set the sort order, re-read the data from the database, and reset the current row
 	// The current row is reset to point to the row it was pointing to in the first place.

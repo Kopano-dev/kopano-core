@@ -49,8 +49,7 @@ public:
 	//Overrides
 	ECRESULT GetColumnsAll(ECListInt* lplstProps);
 	ECRESULT Load();
-
-	static ECRESULT QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bTableData,bool bTableLimit);
+	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *, struct propTagArray *, const void *priv, struct rowSet **, bool table_data, bool table_limit);
 
 protected:
 	/* Load hierarchy objects */

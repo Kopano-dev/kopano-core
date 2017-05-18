@@ -92,7 +92,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
-	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
+	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
 	sObjectTableKey		sRowItem;
 	unsigned int ulDepth = 0;
 	

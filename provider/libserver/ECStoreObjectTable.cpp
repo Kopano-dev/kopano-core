@@ -138,7 +138,7 @@ ECStoreObjectTable::~ECStoreObjectTable()
 {
 	if (m_lpObjectData == nullptr)
 		return;
-	auto lpODStore = static_cast<ECODStore *>(m_lpObjectData);
+	auto lpODStore = static_cast<ECODStore *>(const_cast<void *>(m_lpObjectData));
 	delete lpODStore->lpGuid;
 	delete lpODStore;
 }
@@ -160,27 +160,27 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
-	auto lpODStore = static_cast<ECODStore *>(m_lpObjectData);
+	auto lpODStore = static_cast<const ECODStore *>(m_lpObjectData);
 	ULONG			ulPropID = 0;
-	ulock_rec biglock(m_hLock);
 
 	assert(lplstProps != NULL);
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	
 	//List always emtpy
 	lplstProps->clear();
+	ulock_rec biglock(m_hLock);
+	bool mo_has_content = !mapObjects.empty();
+	biglock.unlock();
 
-	if(!mapObjects.empty() && lpODStore->ulFolderId)
-	{
+	if (mo_has_content && lpODStore->ulFolderId != 0) {
 		// Properties
 		strQuery = "SELECT DISTINCT tproperties.tag, tproperties.type FROM tproperties WHERE folderid = " + stringify(lpODStore->ulFolderId);
 
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
-			goto exit;
-		
+			return er;
 		// Put the results into a STL list
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
@@ -190,7 +190,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 			lplstProps->push_back(PROP_TAG(atoi(lpDBRow[1]), ulPropID));
 		}
-	}// if(!mapObjects.empty())
+	}
 
 	// Add some generated and standard properties
 	lplstProps->push_back(PR_ENTRYID);
@@ -210,9 +210,6 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 	//FIXME: only in folder or message table	
 	lplstProps->push_back(PR_ACCESS);
-
-exit:
-	biglock.unlock();
 	return er;
 }
 
@@ -273,19 +270,26 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 }
 
 // Interface to main row engine (bSubObjects is false)
-ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
+ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	return ECStoreObjectTable::QueryRowData(lpThis, soap, lpSession, lpRowList, lpsPropTagArray, lpObjectData, lppRowSet, bCacheTableData, bTableLimit, false);
 }
 
 // Direct interface
-ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit, bool bSubObjects)
+ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
+    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
+    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit,
+    bool bSubObjects)
 {
 	gsoap_size_t i = 0, k = 0;
 	unsigned int	ulFolderId;
 	unsigned int 	ulRowStoreId = 0;
 	GUID			sRowGuid;
-	auto lpODStore = static_cast<ECODStore *>(lpObjectData);
+	auto lpODStore = static_cast<const ECODStore *>(lpObjectData);
 	ECDatabase		*lpDatabase = NULL;
 
 	std::map<unsigned int, std::map<sObjectTableKey, unsigned int> > mapStoreIdObjIds;
@@ -965,15 +969,15 @@ ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *l
 	int j;
 	ECObjectTableList listRows;
 	ECDatabase *lpDatabase = NULL;
-	ulock_rec biglock(m_hLock);
 
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// scan for MV-props and add rows
 	strQuery = "SELECT count(h.id) FROM hierarchy as h";
 	j=0;
+	ulock_rec biglock(m_hLock);
 	for (auto tag : m_listMVSortCols) {
 		strColName = "col" + stringify(tag);
 		strQuery += " LEFT JOIN mvproperties as " + strColName +
@@ -983,30 +987,26 @@ ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *l
 			".type=" + stringify(PROP_TYPE(NormalizeDBPropTag(tag) &~MV_INSTANCE));
 		++j;
 	}
-	
+	biglock.unlock();
 	strQuery += " WHERE h.id="+stringify(ulObjId)+" ORDER by h.id, orderid";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 	lpRow = lpDBResult.fetch_row();
     if(lpRow == NULL || lpRow[0] == NULL) {
-        er = KCERR_DATABASE_ERROR;
 	ec_log_err("ECStoreObjectTable::GetMVRowCount(): row or column null");
-        goto exit;
+		return KCERR_DATABASE_ERROR;
     }
 	
 	*lpulCount = atoi(lpRow[0]);
-
-exit:
-	biglock.unlock();
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECStoreObjectTable::Load()
 {
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
+	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
     sObjectTableKey		sRowItem;
     
     unsigned int ulFlags = lpData->ulFlags;
@@ -1078,7 +1078,7 @@ ECRESULT ECStoreObjectTable::Load()
 ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 {
     unsigned int ulParent = 0;
-	auto lpData = static_cast<ECODStore *>(m_lpObjectData);
+	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
 
 	if (m_ulObjType == MAPI_FOLDER)
 		return lpSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityFolderVisible);
@@ -1102,17 +1102,7 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 
 ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad, bool bOverride, struct restrictTable *lpOverride)
 {
-    ECRESULT er = erSuccess;
-    GUID guidServer;
-	auto lpODStore = static_cast<ECODStore *>(m_lpObjectData);
-    std::list<unsigned int> lstIndexerResults;
-    std::list<unsigned int> lstFolders;
-    std::set<unsigned int> setMatches;
-    ECObjectTableList sMatchedRows;
-    ECDatabase *lpDatabase = NULL;
-    struct restrictTable *lpNewRestrict = NULL;
-    std::string suggestion;
- 
+	auto lpODStore = static_cast<const ECODStore *>(m_lpObjectData);
 	assert(!bOverride); // Default implementation never has override enabled, so we should never see this
 	assert(lpOverride == NULL);
 	ulock_rec biglock(m_hLock);
@@ -1121,19 +1111,25 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     //  - not an initial load (but a table update)
     //  - no restriction
     //  - not a restriction on a folder (eg searchfolder)
-    if(!bLoad || !lpsRestrict || !lpODStore->ulFolderId || !lpODStore->ulStoreId || (lpODStore->ulFlags & MAPI_ASSOCIATED)) {
-        er = ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad, false, NULL);
-   } else {
+	if (!bLoad || lpsRestrict == nullptr || lpODStore->ulFolderId == 0 ||
+	    lpODStore->ulStoreId == 0 || (lpODStore->ulFlags & MAPI_ASSOCIATED))
+		return ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad, false, nullptr);
+
         // Attempt to use the indexer
-        er = lpSession->GetSessionManager()->GetServerGUID(&guidServer);
+	ECDatabase *lpDatabase;
+	GUID guidServer;
+	auto er = lpSession->GetSessionManager()->GetServerGUID(&guidServer);
         if(er != erSuccess)
-            goto exit;
-        
-        lstFolders.push_back(lpODStore->ulFolderId);
-        
+		return er;
         er = lpSession->GetDatabase(&lpDatabase);
         if(er != erSuccess)
-        	goto exit;
+		return er;
+
+	struct restrictTable *lpNewRestrict = nullptr;
+	std::string suggestion;
+	std::list<unsigned int> lstIndexerResults, lstFolders{lpODStore->ulFolderId};
+	std::set<unsigned int> setMatches;
+	ECObjectTableList sMatchedRows;
 
 	if (GetIndexerResults(lpDatabase, lpSession->GetSessionManager()->GetConfig(), lpSession->GetSessionManager()->GetCacheManager(), &guidServer, lpODStore->lpGuid, lstFolders, lpsRestrict, &lpNewRestrict, lstIndexerResults, suggestion) != erSuccess) {
     	    // Cannot handle this restriction with the indexer, use 'normal' restriction code
@@ -1162,10 +1158,6 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     	
     	// Pass filtered results to AddRowKey, which will perform any further filtering required
     	er = ECGenericObjectTable::AddRowKey(&sMatchedRows, lpulLoaded, ulFlags, bLoad, true, lpNewRestrict);
-    	if(er != erSuccess)
-    		goto exit;
-	}
-	
 exit:
 	biglock.unlock();
 	if(lpNewRestrict)
