@@ -446,39 +446,27 @@ M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *ps) :
 {
 }
 
-M4LMsgServiceAdmin::~M4LMsgServiceAdmin() {
-	scoped_rlock l_srv(m_mutexserviceadmin);
-
-	for (auto serv : services)
-		delete serv;
-	for (auto prov : providers)
-		delete prov;
-    
-    services.clear();
-    providers.clear();
-}
-    
 serviceEntry *M4LMsgServiceAdmin::findServiceAdmin(const TCHAR *name)
 {
-	for (auto serv : services)
+	for (auto &serv : services)
 		if (serv->servicename == reinterpret_cast<const char *>(name))
-			return serv;
+			return serv.get();
 	return NULL;
 }
 
 serviceEntry *M4LMsgServiceAdmin::findServiceAdmin(const MAPIUID *lpMUID)
 {
-	for (auto serv : services)
+	for (auto &serv : services)
 		if (memcmp(&serv->muid, lpMUID, sizeof(MAPIUID)) == 0)
-			return serv;
+			return serv.get();
 	return NULL;
 }
 
 providerEntry *M4LMsgServiceAdmin::findProvider(const MAPIUID *lpUid)
 {
-	for (auto prov : providers)
+	for (auto &prov : providers)
 		if (memcmp(&prov->uid,lpUid,sizeof(MAPIUID)) == 0)
-			return prov;
+			return prov.get();
 	return NULL;
 }
 
@@ -524,7 +512,7 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	}
 	
 	// Loop through all providers, add each to the table
-	for (auto serv : services) {
+	for (auto &serv : services) {
 		sProps[0].ulPropTag = PR_SERVICE_UID;
 		sProps[0].Value.bin.lpb = reinterpret_cast<BYTE *>(&serv->muid);
 		sProps[0].Value.bin.cb = sizeof(GUID);
@@ -596,7 +584,8 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::CreateMsgService", "");
 	HRESULT hr = hrSuccess;
-	serviceEntry* entry = NULL;
+	std::unique_ptr<serviceEntry> entry;
+	serviceEntry *rawent;
 	SVCService* service = NULL;
 	const SPropValue *lpProp = NULL;
 	scoped_rlock l_srv(m_mutexserviceadmin);
@@ -620,14 +609,12 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 	}
 
 	// Create a Kopano message service
-	entry = findServiceAdmin(reinterpret_cast<const TCHAR *>(lpszService));
-	if (entry) {
+	if (findServiceAdmin(reinterpret_cast<const TCHAR *>(lpszService)) != nullptr) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): service already exists %x: %s", hr, GetMAPIErrorMessage(hr));
 		hr = MAPI_E_NO_ACCESS; // already exists
 		goto exit;
 	}
-
-	entry = new(std::nothrow) serviceEntry;
+	entry.reset(new(std::nothrow) serviceEntry);
 	if (!entry) {
 		ec_log_crit("M4LMsgServiceAdmin::CreateMsgService(): ENOMEM");
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -636,7 +623,6 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 	entry->provideradmin.reset(new(std::nothrow) M4LProviderAdmin(this, lpszService));
 	if (!entry->provideradmin) {
 		ec_log_crit("M4LMsgServiceAdmin::CreateMsgService(): ENOMEM(2)");
-		delete entry;
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
@@ -648,13 +634,12 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 	if (uid != nullptr)
 		*uid = entry->muid;
 	entry->service = service;
-    
-	services.push_back(entry);
-
+	rawent = entry.get();
+	/* @entry needs to be in the list for CreateProviders() to find it */
+	services.push_back(std::move(entry));
 	// calls entry->provideradmin->CreateProvider for each provider read from mapisvc.inf
-	hr = service->CreateProviders(entry->provideradmin);
-
-	entry->bInitialize = false;
+	hr = service->CreateProviders(rawent->provideradmin);
+	rawent->bInitialize = false;
 exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMsgServiceAdmin::CreateMsgService", "0x%08x", hr);
     return hr;
@@ -672,17 +657,14 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::DeleteMsgService", "");
 	HRESULT hr = hrSuccess;
 	string name;
-	
-    list<serviceEntry*>::iterator i;
-    list<providerEntry*>::iterator p;
-    list<providerEntry*>::iterator pNext;
+	decltype(services)::iterator i;
+	decltype(providers)::iterator p, pNext;
 	scoped_rlock l_srv(m_mutexserviceadmin);
 
 	for (i = services.begin(); i != services.end(); ++i) {
 		if (memcmp(&(*i)->muid, lpUID, sizeof(MAPIUID)) != 0)
 			continue;
 		name = (*i)->servicename;
-		delete *i;
 		services.erase(i);
 		break;
 	}
@@ -699,7 +681,6 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 			continue;
 		pNext = p;
 		++pNext;
-		delete *p;
 		providers.erase(p);
 		p = pNext;
     }
@@ -915,7 +896,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 												   PR_PROVIDER_DISPLAY_A, PR_SERVICE_UID}};
 	ulock_rec l_srv(m_mutexserviceadmin);
 	
-	for (auto serv : services) {
+	for (auto &serv : services) {
 		if (serv->bInitialize)
 			continue;
 		hr = serv->service->MSGServiceEntry()(0, NULL, NULL, 0,
@@ -941,7 +922,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 	}
 	
 	// Loop through all providers, add each to the table
-	for (auto prov : providers) {
+	for (auto &prov : providers) {
 		memory_ptr<SPropValue> lpDest, lpsProps;
 
 		hr = prov->profilesection->GetProps(lpPropTagArray, 0, &cValues, &~lpsProps);
@@ -1071,7 +1052,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	}
 	
 	// Loop through all providers, add each to the table
-	for (auto prov : serviceAdmin->providers) {
+	for (auto &prov : serviceAdmin->providers) {
 		memory_ptr<SPropValue> lpDest, lpsProps;
 
 		hr = prov->profilesection->GetProps(lpPropTagArray, 0, &cValues, &~lpsProps);
@@ -1283,7 +1264,7 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
 		goto exit;
 	}
 
-	for (auto serv : serviceAdmin->services) {
+	for (auto &serv : serviceAdmin->services) {
 		if (serv->service->ABProviderInit() == NULL)
 			continue;
 

@@ -82,8 +82,8 @@ public:
 
 class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin2 {
 private:
-	std::list<providerEntry *> providers;
-	std::list<serviceEntry *> services;
+	std::list<std::unique_ptr<providerEntry> > providers;
+	std::list<std::unique_ptr<serviceEntry> > services;
 	KCHL::object_ptr<M4LProfSect> profilesection; // Global Profile Section
 	std::recursive_mutex m_mutexserviceadmin;
 
@@ -94,8 +94,6 @@ private:
 
 public:
     M4LMsgServiceAdmin(M4LProfSect *profilesection);
-    virtual ~M4LMsgServiceAdmin();
-
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
     virtual HRESULT __stdcall GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable);
 	virtual HRESULT __stdcall CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG_PTR ui_param, ULONG flags);
