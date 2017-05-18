@@ -781,15 +781,13 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	}
 
 	entry = new providerEntry;
-
-	entry->profilesection = new(std::nothrow) M4LProfSect();
+	entry->profilesection.reset(new(std::nothrow) M4LProfSect);
 	if(!entry->profilesection) {
 		delete entry;
 		entry = NULL;
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
-	entry->profilesection->AddRef();
 	
 	// Set the default profilename
 	hr = HrGetOneProp((IProfSect*)msa->profilesection, PR_PROFILE_NAME_A, &~lpsPropValProfileName);
@@ -863,11 +861,8 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	
 exit:
 	l_srv.unlock();
-	if (entry) {
-		if (entry->profilesection)
-			entry->profilesection->Release();
+	if (entry != nullptr)
 		delete entry;
-	}
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::CreateProvider", "0x%08x", hr);
 	return hr;
 }
@@ -880,7 +875,6 @@ HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
 	
 	for (i = msa->providers.begin(); i != msa->providers.end(); ++i) {
 		if(memcmp(&(*i)->uid, lpUID, sizeof(MAPIUID)) == 0) {
-			(*i)->profilesection->Release();
 			delete *i;
 			msa->providers.erase(i);
 			hr = hrSuccess;

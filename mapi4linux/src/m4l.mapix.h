@@ -30,26 +30,27 @@
 #include <map>
 
 #include <kopano/ECConfig.h>
+#include <kopano/memory.hpp>
 
 class M4LMsgServiceAdmin;
 
 struct providerEntry {
 	MAPIUID uid;
 	std::string servicename; // this provider belongs to service 'servicename'
-	M4LProfSect *profilesection;
+	KCHL::object_ptr<M4LProfSect> profilesection;
 };
 
 struct serviceEntry {
     MAPIUID muid;
 	std::string servicename, displayname;
-	M4LProviderAdmin *provideradmin;
+	KCHL::object_ptr<M4LProviderAdmin> provideradmin;
 	bool bInitialize;
 	SVCService* service;
 };
 
 struct profEntry {
 	std::string profname, password;
-    M4LMsgServiceAdmin *serviceadmin;
+	KCHL::object_ptr<M4LMsgServiceAdmin> serviceadmin;
 };
 
 class M4LProfAdmin _kc_final : public M4LUnknown, public IProfAdmin {
@@ -84,7 +85,7 @@ class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin2
 private:
 	std::list<providerEntry *> providers;
 	std::list<serviceEntry *> services;
-	M4LProfSect	*profilesection;  // Global Profile Section
+	KCHL::object_ptr<M4LProfSect> profilesection; // Global Profile Section
 	std::recursive_mutex m_mutexserviceadmin;
 
     // functions
@@ -127,7 +128,7 @@ class M4LMAPISession _kc_final : public M4LUnknown, public IMAPISession {
 private:
 	// variables
 	std::string profileName;
-	M4LMsgServiceAdmin *serviceAdmin;
+	KCHL::object_ptr<M4LMsgServiceAdmin> serviceAdmin;
 
 public:
 	M4LMAPISession(const TCHAR *profname, M4LMsgServiceAdmin *);

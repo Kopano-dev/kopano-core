@@ -150,10 +150,8 @@ M4LProfAdmin::~M4LProfAdmin() {
 	std::list<profEntry *>::const_iterator i;
 	scoped_rlock l_prof(m_mutexProfiles);
 
-	for (i = profiles.begin(); i != profiles.end(); ++i) {
-		(*i)->serviceadmin->Release();
+	for (i = profiles.begin(); i != profiles.end(); ++i)
 		delete *i;
-	}
     profiles.clear();
 }
 
@@ -299,15 +297,13 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 		delete entry;
 		goto exit;
 	}
-
-    entry->serviceadmin = new(std::nothrow) M4LMsgServiceAdmin(profilesection);
+	entry->serviceadmin.reset(new(std::nothrow) M4LMsgServiceAdmin(profilesection));
     if (!entry->serviceadmin) {
 		delete entry;
 		ec_log_err("M4LProfAdmin::CreateProfile(): M4LMsgServiceAdmin failed");
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
     }
-    entry->serviceadmin->AddRef();
 
     // enter data
     entry->profname = (char*)lpszProfileName;
@@ -337,7 +333,6 @@ HRESULT M4LProfAdmin::DeleteProfile(const TCHAR *lpszProfileName, ULONG ulFlags)
     
 	auto i = findProfile(lpszProfileName);
 	if (i != profiles.cend()) {
-		(*i)->serviceadmin->Release();
 		delete *i;
 		profiles.erase(i);
     } else {
@@ -462,28 +457,21 @@ HRESULT M4LProfAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---
 // IMsgServceAdmin
 // ---
-M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *profilesection) {
-	this->profilesection = profilesection;
-
-	profilesection->AddRef();
+M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *ps) :
+	profilesection(ps)
+{
 }
 
 M4LMsgServiceAdmin::~M4LMsgServiceAdmin() {
 	scoped_rlock l_srv(m_mutexserviceadmin);
 
-	for (auto serv : services) {
-		serv->provideradmin->Release();
+	for (auto serv : services)
 		delete serv;
-	}
-	for (auto prov : providers) {
-		prov->profilesection->Release();
+	for (auto prov : providers)
 		delete prov;
-	}
     
     services.clear();
     providers.clear();
-
-	profilesection->Release();
 }
     
 serviceEntry *M4LMsgServiceAdmin::findServiceAdmin(const TCHAR *name)
@@ -661,16 +649,13 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
-
-	entry->provideradmin = new(std::nothrow) M4LProviderAdmin(this, lpszService);
+	entry->provideradmin.reset(new(std::nothrow) M4LProviderAdmin(this, lpszService));
 	if (!entry->provideradmin) {
 		ec_log_crit("M4LMsgServiceAdmin::CreateMsgService(): ENOMEM(2)");
 		delete entry;
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
-	entry->provideradmin->AddRef();
-
 	entry->servicename = (char*)lpszService;
 	lpProp = service->GetProp(PR_DISPLAY_NAME_A);
 	entry->displayname = lpProp ? lpProp->Value.lpszA : (char*)lpszService;
@@ -713,7 +698,6 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 		if (memcmp(&(*i)->muid, lpUID, sizeof(MAPIUID)) != 0)
 			continue;
 		name = (*i)->servicename;
-		(*i)->provideradmin->Release();
 		delete *i;
 		services.erase(i);
 		break;
@@ -731,7 +715,6 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 			continue;
 		pNext = p;
 		++pNext;
-		(*p)->profilesection->Release();
 		delete *p;
 		providers.erase(p);
 		p = pNext;
@@ -1050,19 +1033,15 @@ HRESULT M4LMsgServiceAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---
 // M4LMAPISession
 // ---
-M4LMAPISession::M4LMAPISession(const TCHAR *new_profileName,
-    M4LMsgServiceAdmin *new_serviceAdmin)
+M4LMAPISession::M4LMAPISession(const TCHAR *pn, M4LMsgServiceAdmin *sa) :
+	profileName(reinterpret_cast<const char *>(pn)), serviceAdmin(sa)
 {
-	profileName = reinterpret_cast<const char *>(new_profileName);
-	serviceAdmin = new_serviceAdmin;
-	serviceAdmin->AddRef();
 }
 
 M4LMAPISession::~M4LMAPISession() {
 	for (const auto &p : mapStores)
 		p.second->Release();
 	MAPIFreeBuffer(m_lpPropsStatus);
-	serviceAdmin->Release();
 }
 
 HRESULT M4LMAPISession::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
