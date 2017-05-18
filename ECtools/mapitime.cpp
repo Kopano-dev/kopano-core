@@ -100,7 +100,11 @@ static int mpt_main_init(void)
 	return EXIT_SUCCESS;
 }
 
-static int mpt_main_login(void)
+/**
+ * @with_lo:	whether to include the logoff RPC in the time
+ * 		measurement (it is executed in any case)
+ */
+static int mpt_main_login(bool with_lo)
 {
 	HRESULT ret = MAPIInitialize(NULL);
 	if (ret != hrSuccess) {
@@ -119,45 +123,17 @@ static int mpt_main_login(void)
 		clock_gettime(CLOCK_MONOTONIC, &dp.start);
 		ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
 		      mpt_socket, 0, NULL, NULL);
-		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		if (!with_lo)
+			clock_gettime(CLOCK_MONOTONIC, &dp.stop);
 		if (ret != hrSuccess) {
 			fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
 			sleep(1);
 			continue;
 		}
-		ses.reset();
-		mpt_stat_record(dp);
-	}
-	MAPIUninitialize();
-	return EXIT_SUCCESS;
-}
-
-static int mpt_main_lilo(void)
-{
-	HRESULT ret = MAPIInitialize(NULL);
-	if (ret != hrSuccess) {
-		perror("MAPIInitialize");
-		return EXIT_FAILURE;
-	}
-
-	int err = mpt_setup_tick();
-	if (err < 0)
-		return EXIT_FAILURE;
-
-	struct mpt_stat_entry dp;
-
-	while (mpt_repeat-- > 0) {
-		object_ptr<IMAPISession> ses;
-		clock_gettime(CLOCK_MONOTONIC, &dp.start);
-		ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
-		      mpt_socket, 0, NULL, NULL);
-		if (ret != hrSuccess) {
-			fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
-			sleep(1);
-			continue;
+		if (with_lo) {
+			ses.reset();
+			clock_gettime(CLOCK_MONOTONIC, &dp.stop);
 		}
-		ses.reset();
-		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
 		mpt_stat_record(dp);
 	}
 	MAPIUninitialize();
@@ -327,9 +303,9 @@ int main(int argc, char **argv)
 	if (strcmp(argv[1], "init") == 0 || strcmp(argv[1], "i") == 0)
 		return mpt_main_init();
 	else if (strcmp(argv[1], "li") == 0)
-		return mpt_main_login();
+		return mpt_main_login(false);
 	else if (strcmp(argv[1], "lilo") == 0)
-		return mpt_main_lilo();
+		return mpt_main_login(true);
 	else if (strcmp(argv[1], "vft") == 0)
 		return mpt_main_vft();
 	else if (strcmp(argv[1], "exectime") == 0)
