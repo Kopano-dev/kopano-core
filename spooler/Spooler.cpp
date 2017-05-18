@@ -738,8 +738,9 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 
 		std::unique_lock<std::mutex> lk(hMutexMessagesWaiting);
 		if(!bMessagesWaiting) {
+			auto target = std::chrono::steady_clock::now() + std::chrono::seconds(60);
 			while (!bMessagesWaiting) {
-				auto s = hCondMessagesWaiting.wait_for(lk, std::chrono::seconds(60));
+				auto s = hCondMessagesWaiting.wait_until(lk, target);
 				if (s == std::cv_status::timeout || bMessagesWaiting || bQuit || nReload)
 					break;
 
