@@ -14,6 +14,7 @@
 #include <kopano/ECMemTable.h>
 #include <kopano/automapi.hpp>
 #include <kopano/memory.hpp>
+#include <m4lcommon/IECTestProtocol.h>
 #ifdef HAVE_CURL_CURL_H
 #	include <curl/curl.h>
 #endif
@@ -100,11 +101,26 @@ static int mpt_main_init(void)
 	return EXIT_SUCCESS;
 }
 
+static void mpt_ping(IMAPISession *ses)
+{
+	object_ptr<IMsgStore> store;
+	auto ret = HrOpenDefaultStore(ses, &~store);
+	if (ret != hrSuccess)
+		return;
+	object_ptr<IECTestProtocol> tp;
+	ret = store->QueryInterface(IID_IECTestProtocol, &~tp);
+	if (ret != hrSuccess)
+		return;
+	memory_ptr<char> out;
+	tp->TestGet("ping", &~out);
+}
+
 /**
  * @with_lo:	whether to include the logoff RPC in the time
  * 		measurement (it is executed in any case)
+ * @with_ping:	whether to issue some more RPCs
  */
-static int mpt_main_login(bool with_lo)
+static int mpt_main_login(bool with_lo, bool with_ping)
 {
 	HRESULT ret = MAPIInitialize(NULL);
 	if (ret != hrSuccess) {
@@ -131,6 +147,8 @@ static int mpt_main_login(bool with_lo)
 			continue;
 		}
 		if (with_lo) {
+			if (with_ping)
+				mpt_ping(ses);
 			ses.reset();
 			clock_gettime(CLOCK_MONOTONIC, &dp.stop);
 		}
@@ -141,7 +159,7 @@ static int mpt_main_login(bool with_lo)
 }
 
 /* Login-Logout with Save–Restore */
-static int mpt_main_lsr(void)
+static int mpt_main_lsr(bool with_ping)
 {
 	AutoMAPI automapi;
 	auto ret = automapi.Initialize();
@@ -176,6 +194,8 @@ static int mpt_main_lsr(void)
 			fprintf(stderr, "restore failed: %s\n", GetMAPIErrorMessage(ret));
 			return EXIT_FAILURE;
 		}
+		if (with_ping)
+			mpt_ping(ses);
 		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
 		mpt_stat_record(dp);
 	}
@@ -290,8 +310,9 @@ static void mpt_usage(void)
 	fprintf(stderr, "  init        Just the library initialization\n");
 	fprintf(stderr, "  li          Issue login/logoff RPCs, but measure only login\n");
 	fprintf(stderr, "  lilo        Issue login/logoff RPCs, and measure both\n");
+	fprintf(stderr, "  ping        Issue login/logoff/PING RPCs, and measure all\n");
 	fprintf(stderr, "  lsr         Measure profile save-restore cycle\n");
-	fprintf(stderr, "  lsr+rpc     lsr with network reconnect\n");
+	fprintf(stderr, "  lsr+ping    lsr with forced network access (PING RPC)\n");
 	fprintf(stderr, "  vft         Measure C++ class dispatching\n");
 	fprintf(stderr, "  pagetime    Measure webpage retrieval time\n");
 	fprintf(stderr, "  exectime    Measure process runtime\n");
@@ -347,11 +368,15 @@ int main(int argc, char **argv)
 	if (strcmp(argv[1], "init") == 0 || strcmp(argv[1], "i") == 0)
 		return mpt_main_init();
 	else if (strcmp(argv[1], "li") == 0)
-		return mpt_main_login(false);
+		return mpt_main_login(false, false);
 	else if (strcmp(argv[1], "lilo") == 0)
-		return mpt_main_login(true);
+		return mpt_main_login(true, false);
+	else if (strcmp(argv[1], "ping") == 0)
+		return mpt_main_login(true, true);
 	else if (strcmp(argv[1], "lsr") == 0)
-		return mpt_main_lsr();
+		return mpt_main_lsr(false);
+	else if (strcmp(argv[1], "lsr+ping") == 0)
+		return mpt_main_lsr(true);
 	else if (strcmp(argv[1], "vft") == 0)
 		return mpt_main_vft();
 	else if (strcmp(argv[1], "exectime") == 0)
