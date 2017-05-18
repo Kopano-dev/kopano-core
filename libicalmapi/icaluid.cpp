@@ -58,11 +58,10 @@ HRESULT HrGenerateUid(std::string *lpStrData)
 		return hr;
 	strBinUid = strByteArrayID;	// Outlook Guid
 	strBinUid += "00000000";	// InstanceDate
-	strBinUid += bin2hex(sizeof(FILETIME), (LPBYTE)&ftNow);
+	strBinUid += bin2hex(sizeof(FILETIME), &ftNow);
 	strBinUid += "0000000000000000"; // Padding
-	strBinUid += bin2hex(sizeof(ULONG), (LPBYTE)&ulSize); // always 1
-	strBinUid += bin2hex(sizeof(GUID), (LPBYTE)&sGuid);	// new guid
-
+	strBinUid += bin2hex(sizeof(ULONG), &ulSize); // always 1
+	strBinUid += bin2hex(sizeof(GUID), &sGuid); // new guid
 	lpStrData->swap(strBinUid);
 	return hrSuccess;
 }

@@ -274,7 +274,7 @@ ECRESULT ECCacheManager::SetStore(unsigned int ulObjId, unsigned int ulStore,
 
 	scoped_rlock lock(m_hCacheMutex);
 	auto er = m_StoresCache.AddCacheItem(ulObjId, sStores);
-	LOG_CACHE_DEBUG("Set store cache id %d, store %d, type %d, guid %s", ulObjId, ulStore, ulType, ((lpGuid)?bin2hex(sizeof(GUID), (const unsigned char*)lpGuid).c_str(): "NULL"));
+	LOG_CACHE_DEBUG("Set store cache id %d, store %d, type %d, guid %s", ulObjId, ulStore, ulType, (lpGuid != nullptr ? bin2hex(sizeof(GUID), lpGuid).c_str() : "NULL"));
 	return er;
 }
 
@@ -598,7 +598,7 @@ exit:
 	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get store and type %d error 0x%08x", ulObjId, er);
 	else
-		LOG_CACHE_DEBUG("Get store and type %d result [%s]: store %d, type %d, guid %s", ulObjId, ((bCacheResult)?"C":"D"), ulStore, ulType, bin2hex(sizeof(GUID), (const unsigned char*)&guid).c_str());
+		LOG_CACHE_DEBUG("Get store and type %d result [%s]: store %d, type %d, guid %s", ulObjId, (bCacheResult ? "C" : "D"), ulStore, ulType, bin2hex(sizeof(GUID), &guid).c_str());
 	return er;
 }
 

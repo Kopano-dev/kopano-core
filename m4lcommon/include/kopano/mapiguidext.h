@@ -161,9 +161,6 @@ DEFINE_OLEGUID(IID_IMAPISessionUnknown,0x00020399,0,0);
 DEFINE_OLEGUID(IID_IMAPISupportUnknown, 0x00020331,0,0);
 #endif
 
-#if !defined(INITGUID) || defined(USES_IID_IMsgServiceAdmin2)
-DEFINE_OLEGUID(IID_IMsgServiceAdmin2, 0x00020387,0,0);
-#endif
 
 #if !defined(INITGUID) || defined(USES_IID_IMAPISync)
 DEFINE_GUID(IID_IMAPISync, 0x5024a385, 0x2d44, 0x486a,  0x81, 0xa8, 0x8f, 0xe, 0xcb, 0x60, 0x71, 0xdd);

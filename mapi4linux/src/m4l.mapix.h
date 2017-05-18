@@ -59,23 +59,20 @@ private:
 	std::recursive_mutex m_mutexProfiles;
 
     // functions
-	std::list<profEntry *>::iterator findProfile(LPTSTR lpszProfileName);
+    decltype(profiles)::iterator findProfile(const TCHAR *name);
 
 public:
     virtual ~M4LProfAdmin();
 
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
     virtual HRESULT __stdcall GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable);
-    virtual HRESULT __stdcall CreateProfile(LPTSTR lpszProfileName, LPTSTR lpszPassword, ULONG ulUIParam, ULONG ulFlags);
-    virtual HRESULT __stdcall DeleteProfile(LPTSTR lpszProfileName, ULONG ulFlags);
-    virtual HRESULT __stdcall ChangeProfilePassword(LPTSTR lpszProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewPassword, ULONG ulFlags);
-    virtual HRESULT __stdcall CopyProfile(LPTSTR lpszOldProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewProfileName, ULONG ulUIParam,
-				ULONG ulFlags);
-    virtual HRESULT __stdcall RenameProfile(LPTSTR lpszOldProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewProfileName, ULONG ulUIParam,
-				  ULONG ulFlags);
-    virtual HRESULT __stdcall SetDefaultProfile(LPTSTR lpszProfileName, ULONG ulFlags);
-    virtual HRESULT __stdcall AdminServices(LPTSTR lpszProfileName, LPTSTR lpszPassword, ULONG ulUIParam, ULONG ulFlags,
-				  LPSERVICEADMIN* lppServiceAdmin);
+	virtual HRESULT __stdcall CreateProfile(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags);
+	virtual HRESULT __stdcall DeleteProfile(const TCHAR *name, ULONG flags);
+	virtual HRESULT __stdcall ChangeProfilePassword(const TCHAR *name, const TCHAR *oldpw, const TCHAR *newpw, ULONG flags);
+	virtual HRESULT __stdcall CopyProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newpw, ULONG_PTR ui_param, ULONG flags);
+	virtual HRESULT __stdcall RenameProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG_PTR ui_param, ULONG flags);
+	virtual HRESULT __stdcall SetDefaultProfile(const TCHAR *name, ULONG flags);
+	virtual HRESULT __stdcall AdminServices(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags, IMsgServiceAdmin **);
 
     // iunknown passthru
 	virtual ULONG __stdcall AddRef(void) _kc_override;
@@ -83,7 +80,7 @@ public:
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
-class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin {
+class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin2 {
 private:
 	std::list<providerEntry *> providers;
 	std::list<serviceEntry *> services;
@@ -91,9 +88,9 @@ private:
 	std::recursive_mutex m_mutexserviceadmin;
 
     // functions
-    serviceEntry* findServiceAdmin(LPTSTR lpszServiceName);
-    serviceEntry* findServiceAdmin(LPMAPIUID lpMUID);
-	providerEntry* findProvider(LPMAPIUID lpUid);
+	serviceEntry *findServiceAdmin(const TCHAR *name);
+	serviceEntry *findServiceAdmin(const MAPIUID *id);
+	providerEntry *findProvider(const MAPIUID *id);
 
 public:
     M4LMsgServiceAdmin(M4LProfSect *profilesection);
@@ -101,16 +98,16 @@ public:
 
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
     virtual HRESULT __stdcall GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable);
-    virtual HRESULT __stdcall CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisplayName, ULONG ulUIParam, ULONG ulFlags);
-    virtual HRESULT __stdcall DeleteMsgService(LPMAPIUID lpUID);
-    virtual HRESULT __stdcall CopyMsgService(LPMAPIUID lpUID, LPTSTR lpszDisplayName, LPCIID lpInterfaceToCopy, LPCIID lpInterfaceDst,
-								   LPVOID lpObjectDst, ULONG ulUIParam, ULONG ulFlags);
-    virtual HRESULT __stdcall RenameMsgService(LPMAPIUID lpUID, ULONG ulFlags, LPTSTR lpszDisplayName);
-    virtual HRESULT __stdcall ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam, ULONG ulFlags, ULONG cValues, LPSPropValue lpProps);
-    virtual HRESULT __stdcall OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect);
-    virtual HRESULT __stdcall MsgServiceTransportOrder(ULONG cUID, LPMAPIUID lpUIDList, ULONG ulFlags);
-    virtual HRESULT __stdcall AdminProviders(LPMAPIUID lpUID, ULONG ulFlags, LPPROVIDERADMIN* lppProviderAdmin);
-    virtual HRESULT __stdcall SetPrimaryIdentity(LPMAPIUID lpUID, ULONG ulFlags);
+	virtual HRESULT __stdcall CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG_PTR ui_param, ULONG flags);
+	virtual HRESULT __stdcall CreateMsgServiceEx(const char *service, const char *display_name, ULONG_PTR ui_param, ULONG flags, MAPIUID *out);
+	virtual HRESULT __stdcall DeleteMsgService(const MAPIUID *uid);
+	virtual HRESULT __stdcall CopyMsgService(const MAPIUID *uid, const TCHAR *display_name, const IID *ifsrc, const IID *ifdst, void *obj_dst, ULONG_PTR ui_param, ULONG flags);
+	virtual HRESULT __stdcall RenameMsgService(const MAPIUID *uid, ULONG flags, const TCHAR *display_name);
+	virtual HRESULT __stdcall ConfigureMsgService(const MAPIUID *uid, ULONG_PTR ui_param, ULONG flags, ULONG nvals, const SPropValue *props);
+	virtual HRESULT __stdcall OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **);
+	virtual HRESULT __stdcall MsgServiceTransportOrder(ULONG nuids, const MAPIUID *uids, ULONG flags);
+	virtual HRESULT __stdcall AdminProviders(const MAPIUID *uid, ULONG flags, IProviderAdmin **);
+	virtual HRESULT __stdcall SetPrimaryIdentity(const MAPIUID *uid, ULONG flags);
     virtual HRESULT __stdcall GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable);
 
     // iunknown passthru
@@ -133,15 +130,14 @@ private:
 	M4LMsgServiceAdmin *serviceAdmin;
 
 public:
-	M4LMAPISession(LPTSTR new_profileName, M4LMsgServiceAdmin *new_serviceAdmin);
+	M4LMAPISession(const TCHAR *profname, M4LMsgServiceAdmin *);
 	virtual ~M4LMAPISession();
 
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
 	virtual HRESULT __stdcall GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable);
-	virtual HRESULT __stdcall OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags,
-								 LPMDB* lppMDB);
-	virtual HRESULT __stdcall OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULONG ulFlags, LPADRBOOK* lppAdrBook);
-	virtual HRESULT __stdcall OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect);
+	virtual HRESULT __stdcall OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, LPMDB *lppMDB);
+	virtual HRESULT __stdcall OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface, ULONG ulFlags, LPADRBOOK *lppAdrBook);
+	virtual HRESULT __stdcall OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **);
 	virtual HRESULT __stdcall GetStatusTable(ULONG ulFlags, LPMAPITABLE* lppTable);
 	virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType,
 							  LPUNKNOWN* lppUnk);
@@ -150,16 +146,14 @@ public:
 	virtual HRESULT __stdcall Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink,
 						   ULONG* lpulConnection);
 	virtual HRESULT __stdcall Unadvise(ULONG ulConnection);
-	virtual HRESULT __stdcall MessageOptions(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszAdrType, LPMESSAGE lpMessage);
+	virtual HRESULT __stdcall MessageOptions(ULONG_PTR ulUIParam, ULONG ulFlags, LPTSTR lpszAdrType, LPMESSAGE lpMessage);
 	virtual HRESULT __stdcall QueryDefaultMessageOpt(LPTSTR lpszAdrType, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppOptions);
 	virtual HRESULT __stdcall EnumAdrTypes(ULONG ulFlags, ULONG* lpcAdrTypes, LPTSTR** lpppszAdrTypes);
 	virtual HRESULT __stdcall QueryIdentity(ULONG* lpcbEntryID, LPENTRYID* lppEntryID);
-	virtual HRESULT __stdcall Logoff(ULONG ulUIParam, ULONG ulFlags, ULONG ulReserved);
+	virtual HRESULT __stdcall Logoff(ULONG_PTR ulUIParam, ULONG ulFlags, ULONG ulReserved);
 	virtual HRESULT __stdcall SetDefaultStore(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID);
 	virtual HRESULT __stdcall AdminServices(ULONG ulFlags, LPSERVICEADMIN* lppServiceAdmin);
-	virtual HRESULT __stdcall ShowForm(ULONG ulUIParam, LPMDB lpMsgStore, LPMAPIFOLDER lpParentFolder, LPCIID lpInterface, ULONG ulMessageToken,
-							 LPMESSAGE lpMessageSent, ULONG ulFlags, ULONG ulMessageStatus, ULONG ulMessageFlags, ULONG ulAccess,
-							 LPSTR lpszMessageClass);
+	virtual HRESULT __stdcall ShowForm(ULONG_PTR ulUIParam, LPMDB lpMsgStore, LPMAPIFOLDER lpParentFolder, LPCIID lpInterface, ULONG ulMessageToken, LPMESSAGE lpMessageSent, ULONG ulFlags, ULONG ulMessageStatus, ULONG ulMessageFlags, ULONG ulAccess, LPSTR lpszMessageClass);
 	virtual HRESULT __stdcall PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG* lpulMessageToken);
 
     // iunknown passthru
@@ -188,15 +182,13 @@ public:
 	virtual HRESULT __stdcall Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) _kc_override;
 	virtual HRESULT __stdcall Unadvise(ULONG ulConnection);
 	virtual HRESULT __stdcall CreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID) _kc_override;
-	virtual HRESULT __stdcall NewEntry(ULONG ulUIParam, ULONG ulFlags, ULONG cbEIDContainer, LPENTRYID lpEIDContainer,
-									   ULONG cbEIDNewEntryTpl, LPENTRYID lpEIDNewEntryTpl, ULONG* lpcbEIDNewEntry,
-									   LPENTRYID* lppEIDNewEntry);
-	virtual HRESULT __stdcall ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewEntryTitle, LPADRLIST lpAdrList);
-	virtual HRESULT __stdcall Address(ULONG* lpulUIParam, LPADRPARM lpAdrParms, LPADRLIST* lppAdrList);
+	virtual HRESULT __stdcall NewEntry(ULONG_PTR ulUIParam, ULONG ulFlags, ULONG cbEIDContainer, LPENTRYID lpEIDContainer, ULONG cbEIDNewEntryTpl, LPENTRYID lpEIDNewEntryTpl, ULONG *lpcbEIDNewEntry, LPENTRYID *lppEIDNewEntry);
+	virtual HRESULT __stdcall ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags, LPTSTR lpszNewEntryTitle, LPADRLIST lpAdrList);
+	virtual HRESULT __stdcall Address(ULONG_PTR *lpulUIParam, LPADRPARM lpAdrParms, LPADRLIST *lppAdrList);
 	virtual HRESULT __stdcall Details(ULONG* lpulUIParam, LPFNDISMISS lpfnDismiss, LPVOID lpvDismissContext, ULONG cbEntryID,
 									  LPENTRYID lpEntryID, LPFNBUTTON lpfButtonCallback, LPVOID lpvButtonContext,
 									  LPTSTR lpszButtonText, ULONG ulFlags);
-	virtual HRESULT __stdcall RecipOptions(ULONG ulUIParam, ULONG ulFlags, LPADRENTRY lpRecip);
+	virtual HRESULT __stdcall RecipOptions(ULONG_PTR ulUIParam, ULONG ulFlags, LPADRENTRY lpRecip);
 	virtual HRESULT __stdcall QueryDefaultRecipOpt(LPTSTR lpszAdrType, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppOptions);
 	virtual HRESULT __stdcall GetPAB(ULONG* lpcbEntryID, LPENTRYID* lppEntryID);
 	virtual HRESULT __stdcall SetPAB(ULONG cbEntryID, LPENTRYID lpEntryID);

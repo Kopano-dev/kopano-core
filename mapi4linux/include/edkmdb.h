@@ -12,7 +12,11 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ */
+
+/*
+ * edkmdb.h – Defines additional properties and interfaces offered by the
+ * server-side information store.
  */
 
 #ifndef __M4L_EDKMDB_H_

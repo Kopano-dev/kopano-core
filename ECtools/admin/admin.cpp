@@ -3426,7 +3426,7 @@ int main(int argc, char* argv[])
 			goto exit;
 		}
 
-		cout << "Store unhooked. Store guid is " << bin2hex(sizeof(GUID), (unsigned char*)lpUnWrappedEntry->ab) << endl;
+		cout << "Store unhooked. Store guid is " << bin2hex(sizeof(GUID), lpUnWrappedEntry->ab) << endl;
 		break;
 	}
 	case MODE_REMOVE_STORE:

@@ -419,7 +419,7 @@ const SPropValue *SVCService::GetProp(ULONG ulPropTag)
 	return PCpropFindProp(m_lpProps, m_cValues, ulPropTag);
 }
 
-SVCProvider* SVCService::GetProvider(LPTSTR lpszProvider, ULONG ulFlags)
+SVCProvider* SVCService::GetProvider(const TCHAR *lpszProvider, ULONG ulFlags)
 {
 	auto i = m_sProviders.find(reinterpret_cast<const char *>(lpszProvider));
 	if (i == m_sProviders.cend())
@@ -497,11 +497,11 @@ HRESULT MAPISVC::Init()
  * 
  * @return 
  */
-HRESULT MAPISVC::GetService(LPTSTR lpszService, ULONG ulFlags, SVCService **lppService)
+HRESULT MAPISVC::GetService(const TCHAR *lpszService, ULONG ulFlags, SVCService **lppService)
 {
 	std::map<std::string, SVCService *>::const_iterator i;
 	
-	i = m_sServices.find((char*)lpszService);
+	i = m_sServices.find(reinterpret_cast<const char *>(lpszService));
 	if (i == m_sServices.cend())
 		return MAPI_E_NOT_FOUND;
 
@@ -519,7 +519,7 @@ HRESULT MAPISVC::GetService(LPTSTR lpszService, ULONG ulFlags, SVCService **lppS
  * @return MAPI Error code
  * @retval MAPI_E_NOT_FOUND no service object for the given dll name
  */
-HRESULT MAPISVC::GetService(char* lpszDLLName, SVCService **lppService)
+HRESULT MAPISVC::GetService(const char *lpszDLLName, SVCService **lppService)
 {
 	for (const auto &i : m_sServices) {
 		const SPropValue *lpDLLName = i.second->GetProp(PR_SERVICE_DLL_NAME_A);

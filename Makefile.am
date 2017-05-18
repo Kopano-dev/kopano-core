@@ -363,8 +363,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECParentStorage.cpp provider/client/ECParentStorage.h \
 	provider/client/ECPropertyEntry.cpp provider/client/ECPropertyEntry.h \
 	provider/client/ECSessionGroupManager.cpp provider/client/ECSessionGroupManager.h \
-	provider/client/ECXPLogon.cpp provider/client/ECXPLogon.h \
-	provider/client/ECXPProvider.cpp provider/client/ECXPProvider.h \
 	provider/client/EntryPoint.h \
 	provider/client/IECPropStorage.h \
 	provider/client/Mem.cpp provider/client/Mem.h \

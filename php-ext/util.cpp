@@ -38,12 +38,11 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<IProfAdmin> lpProfAdmin;
-	object_ptr<IMsgServiceAdmin> lpServiceAdmin;
+	object_ptr<IMsgServiceAdmin> lpServiceAdmin1;
+	object_ptr<IMsgServiceAdmin2> lpServiceAdmin;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
-	const SPropValue *lpServiceUID = nullptr;
-	static constexpr const SizedSPropTagArray(2, sptaMsgServiceCols) =
-		{2, {PR_SERVICE_NAME_A, PR_SERVICE_UID}};
+	MAPIUID service_uid;
 
 	// Get the MAPI Profile administration object
 	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
@@ -63,16 +62,20 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	}
 
 	// Get the services admin object
-	hr = lpProfAdmin->AdminServices((LPTSTR)szProfName, (LPTSTR)"", 0, 0, &~lpServiceAdmin);
+	hr = lpProfAdmin->AdminServices(reinterpret_cast<const TCHAR *>(szProfName), reinterpret_cast<const TCHAR *>(""), 0, 0, &~lpServiceAdmin1);
 	if(hr != hrSuccess) {
 		last_error = "Unable to administer new profile";
+		return hr;
+	}
+	hr = lpServiceAdmin1->QueryInterface(IID_IMsgServiceAdmin2, &~lpServiceAdmin);
+	if (hr != hrSuccess) {
+		last_error = "Unable to QueryInterface IMsgServiceAdmin2";
 		return hr;
 	}
 
 	// Create a message service (provider) for the szServiceName (see mapisvc.inf) service
 	// (not coupled to any file or server yet)
-	hr = lpServiceAdmin->CreateMsgService((LPTSTR)szServiceName, (LPTSTR)"", 0, 0);
-	
+	hr = lpServiceAdmin->CreateMsgServiceEx(szServiceName, "", 0, 0, &service_uid);
 	if(hr != hrSuccess) {
 		last_error = "Service unavailable";
 		return hr;
@@ -80,43 +83,10 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 
 	// optional, ignore error
 	if (strcmp(szServiceName, "ZARAFA6") == 0)
-		lpServiceAdmin->CreateMsgService((LPTSTR)"ZCONTACTS", (LPTSTR)"", 0, 0);
-
-	// Strangely we now have to get the SERVICE_UID for the service we just added from
-	// the table. (see MSDN help page of CreateMsgService at the bottom of the page)
-	hr = lpServiceAdmin->GetMsgServiceTable(0, &~lpTable);
-	if(hr != hrSuccess) {
-		last_error = "Service table unavailable";
-		return hr;
-	}
-	hr = lpTable->SetColumns(sptaMsgServiceCols, 0);
-	if(hr != hrSuccess) {
-		last_error = "Unable to set columns on service table";
-		return hr;
-	}
-
-	// Find the correct row
-	while(TRUE) {
-		hr = lpTable->QueryRows(1, 0, &~lpRows);
-		if(hr != hrSuccess || lpRows->cRows != 1) {
-			last_error = "Unable to read service table";
-			return hr;
-		}
-
-		auto lpServiceName = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_NAME_A);
-		if(lpServiceName && strcmp(lpServiceName->Value.lpszA, szServiceName) == 0)
-			break;
-	}
-
-	// Get the PR_SERVICE_UID from the row
-	lpServiceUID = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_UID);
-	if(!lpServiceUID) {
-		last_error = "Unable to find service UID";
-		return MAPI_E_NOT_FOUND;
-	}
+		lpServiceAdmin->CreateMsgServiceEx("ZCONTACTS", "", 0, 0, nullptr);
 
 	// Configure the message service
-	hr = lpServiceAdmin->ConfigureMsgService((MAPIUID *)lpServiceUID->Value.bin.lpb, 0, 0, cValues, lpPropVals);
+	hr = lpServiceAdmin->ConfigureMsgService(&service_uid, 0, 0, cValues, lpPropVals);
 	if (hr != hrSuccess)
 		last_error = "Unable to setup service for provider";
 	return hr;

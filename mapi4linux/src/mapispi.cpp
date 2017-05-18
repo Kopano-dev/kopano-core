@@ -179,7 +179,9 @@ HRESULT M4LMAPISupport::ModifyStatusRow(ULONG cValues, LPSPropValue lpColumnVals
     return hr;
 }
 
-HRESULT M4LMAPISupport::OpenProfileSection(LPMAPIUID lpUid, ULONG ulFlags, LPPROFSECT * lppProfileObj) {
+HRESULT M4LMAPISupport::OpenProfileSection(const MAPIUID *lpUid, ULONG ulFlags,
+    IProfSect **lppProfileObj)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::OpenProfileSection", "");
 	if (lpUid == NULL)
 		lpUid = lpsProviderUID;

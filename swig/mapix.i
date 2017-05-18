@@ -103,8 +103,8 @@ public:
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, MAPIERROR** OUTPUT /*lppMAPIError*/) = 0;
     virtual HRESULT GetMsgStoresTable(ULONG ulFlags, IMAPITable ** OUTPUT /*lppTable*/) = 0;
-    virtual HRESULT OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, IMsgStore ** OUTPUT /*lppMDB*/) = 0;
-    virtual HRESULT OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULONG ulFlags, IAddrBook ** OUTPUT /*lppAdrBook*/) = 0;
+    virtual HRESULT OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, IMsgStore ** OUTPUT /*lppMDB*/) = 0;
+    virtual HRESULT OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface, ULONG ulFlags, IAddrBook ** OUTPUT /*lppAdrBook*/) = 0;
     virtual HRESULT OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, IProfSect ** OUTPUT /*lppProfSect*/) = 0;
     virtual HRESULT GetStatusTable(ULONG ulFlags, IMAPITable ** OUTPUT /*lppTable*/) = 0;
     virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* OUTPUT /*lpulObjType*/,
@@ -113,14 +113,14 @@ public:
 			    ULONG* OUTPUT /*lpulResult*/) = 0;
     virtual HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG* OUTPUT /*lpulConnection*/) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
-    virtual HRESULT MessageOptions(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszAdrType, LPMESSAGE lpMessage) = 0;
+	virtual HRESULT MessageOptions(ULONG_PTR ulUIParam, ULONG ulFlags, LPTSTR lpszAdrType, LPMESSAGE lpMessage) = 0;
     virtual HRESULT QueryDefaultMessageOpt(LPTSTR lpszAdrType, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppOptions) = 0;
     virtual HRESULT EnumAdrTypes(ULONG ulFlags, ULONG* OUTPUT /*lpcAdrTypes*/, LPTSTR** OUTPUT /*lpppszAdrTypes*/) = 0;
     virtual HRESULT QueryIdentity(ULONG* OUTPUT /*lpcbEntryID*/, LPENTRYID* OUTPUT /*lppEntryID*/) = 0;
-    virtual HRESULT Logoff(ULONG ulUIParam, ULONG ulFlags, ULONG ulReserved) = 0;
+	virtual HRESULT Logoff(ULONG_PTR ulUIParam, ULONG ulFlags, ULONG ulReserved) = 0;
     virtual HRESULT SetDefaultStore(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
     virtual HRESULT AdminServices(ULONG ulFlags, IMsgServiceAdmin ** OUTPUT /*lppServiceAdmin*/) = 0;
-    virtual HRESULT ShowForm(ULONG ulUIParam, LPMDB lpMsgStore, LPMAPIFOLDER lpParentFolder, LPCIID lpInterface, ULONG ulMessageToken, LPMESSAGE lpMessageSent, ULONG ulFlags, ULONG ulMessageStatus, ULONG ulMessageFlags, ULONG ulAccess,  LPSTR lpszMessageClass) = 0;
+	virtual HRESULT ShowForm(ULONG_PTR ulUIParam, LPMDB lpMsgStore, LPMAPIFOLDER lpParentFolder, LPCIID lpInterface, ULONG ulMessageToken, LPMESSAGE lpMessageSent, ULONG ulFlags, ULONG ulMessageStatus, ULONG ulMessageFlags, ULONG ulAccess, LPSTR lpszMessageClass) = 0;
     virtual HRESULT PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG* OUTPUT /*lpulMessageToken*/) = 0;
 	%extend {
 		~IMAPISession() { self->Release(); }
@@ -145,12 +145,11 @@ public:
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
     virtual HRESULT CreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, ULONG ulFlags, ULONG* OUTPUT /*lpcbEntryID*/,
 			 LPENTRYID* OUTPUT /*lppEntryID*/) = 0;
-    virtual HRESULT NewEntry(ULONG ulUIParam, ULONG ulFlags, ULONG cbEIDContainer, LPENTRYID lpEIDContainer, ULONG cbEIDNewEntryTpl,
-		     LPENTRYID lpEIDNewEntryTpl, ULONG* OUTPUT /*lpcbEIDNewEntry*/, LPENTRYID* OUTPUT /*lppEIDNewEntry*/) = 0;
-    virtual HRESULT ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewEntryTitle, LPADRLIST INOUT /*lpAdrList*/) = 0;
-    virtual HRESULT Address(ULONG* lpulUIParam, LPADRPARM lpAdrParms, LPADRLIST* OUTPUT /*lppAdrList*/) = 0;
+	virtual HRESULT NewEntry(ULONG_PTR ulUIParam, ULONG ulFlags, ULONG cbEIDContainer, LPENTRYID lpEIDContainer, ULONG cbEIDNewEntryTpl, LPENTRYID lpEIDNewEntryTpl, ULONG *OUTPUT /*lpcbEIDNewEntry*/, LPENTRYID *OUTPUT /*lppEIDNewEntry*/) = 0;
+	virtual HRESULT ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags, LPTSTR lpszNewEntryTitle, LPADRLIST INOUT /*lpAdrList*/) = 0;
+	virtual HRESULT Address(ULONG_PTR *lpulUIParam, LPADRPARM lpAdrParms, LPADRLIST *OUTPUT /*lppAdrList*/) = 0;
     virtual HRESULT Details(ULONG* lpulUIParam, LPFNDISMISS lpfnDismiss, LPVOID lpvDismissContext, ULONG cbEntryID, LPENTRYID lpEntryID, LPFNBUTTON lpfButtonCallback, LPVOID lpvButtonContext, LPTSTR lpszButtonText, ULONG ulFlags) = 0;
-    virtual HRESULT RecipOptions(ULONG ulUIParam, ULONG ulFlags, LPADRENTRY lpRecip) = 0;
+	virtual HRESULT RecipOptions(ULONG_PTR ulUIParam, ULONG ulFlags, LPADRENTRY lpRecip) = 0;
     virtual HRESULT QueryDefaultRecipOpt(LPTSTR lpszAdrType, ULONG ulFlags, ULONG* OUTPUT /*lpcValues*/, LPSPropValue* OUTPUT /*lppOptions*/) = 0;
     virtual HRESULT GetPAB(ULONG* OUTPUT /*lpcbEntryID*/, LPENTRYID* OUTPUT /*lppEntryID*/) = 0;
     virtual HRESULT SetPAB(ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
@@ -179,16 +178,13 @@ public:
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* OUTPUT /*lppMAPIError*/) = 0;
     virtual HRESULT GetProfileTable(ULONG ulFlags, IMAPITable ** OUTPUT /*lppTable*/) = 0;
-    virtual HRESULT CreateProfile(LPTSTR lpszProfileName, LPTSTR lpszPassword, ULONG ulUIParam, ULONG ulFlags) = 0;
+	virtual HRESULT CreateProfile(LPTSTR lpszProfileName, LPTSTR lpszPassword, ULONG_PTR ulUIParam, ULONG ulFlags) = 0;
     virtual HRESULT DeleteProfile(LPTSTR lpszProfileName, ULONG ulFlags) = 0;
     virtual HRESULT ChangeProfilePassword(LPTSTR lpszProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewPassword, ULONG ulFlags) = 0;
-    virtual HRESULT CopyProfile(LPTSTR lpszOldProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewProfileName, ULONG ulUIParam,
-				ULONG ulFlags) = 0;
-    virtual HRESULT RenameProfile(LPTSTR lpszOldProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewProfileName, ULONG ulUIParam,
-				  ULONG ulFlags) = 0;
+	virtual HRESULT CopyProfile(LPTSTR lpszOldProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewProfileName, ULONG_PTR ulUIParam, ULONG ulFlags) = 0;
+	virtual HRESULT RenameProfile(LPTSTR lpszOldProfileName, LPTSTR lpszOldPassword, LPTSTR lpszNewProfileName, ULONG_PTR ulUIParam, ULONG ulFlags) = 0;
     virtual HRESULT SetDefaultProfile(LPTSTR lpszProfileName, ULONG ulFlags) = 0;
-    virtual HRESULT AdminServices(LPTSTR lpszProfileName, LPTSTR lpszPassword, ULONG ulUIParam, ULONG ulFlags,
-				  IMsgServiceAdmin ** OUTPUT /*lppServiceAdmin*/) = 0;
+	virtual HRESULT AdminServices(LPTSTR lpszProfileName, LPTSTR lpszPassword, ULONG_PTR ulUIParam, ULONG ulFlags, IMsgServiceAdmin ** OUTPUT /*lppServiceAdmin*/) = 0;
 	%extend {
 		~IProfAdmin() { self->Release(); }
 	}
@@ -215,11 +211,11 @@ public:
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* OUTPUT /*lppMAPIError*/) = 0;
     virtual HRESULT GetMsgServiceTable(ULONG ulFlags, IMAPITable ** OUTPUT /*lppTable*/) = 0;
-    virtual HRESULT CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisplayName, ULONG ulUIParam, ULONG ulFlags) = 0;
+	virtual HRESULT CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisplayName, ULONG_PTR ulUIParam, ULONG ulFlags) = 0;
     virtual HRESULT DeleteMsgService(LPMAPIUID lpUID) = 0;
-    virtual HRESULT CopyMsgService(LPMAPIUID lpUID, LPTSTR lpszDisplayName, LPCIID lpInterfaceToCopy, LPCIID lpInterfaceDst, LPVOID lpObjectDst, ULONG ulUIParam, ULONG ulFlags) = 0;
+	virtual HRESULT CopyMsgService(LPMAPIUID lpUID, LPTSTR lpszDisplayName, LPCIID lpInterfaceToCopy, LPCIID lpInterfaceDst, LPVOID lpObjectDst, ULONG_PTR ulUIParam, ULONG ulFlags) = 0;
     virtual HRESULT RenameMsgService(LPMAPIUID lpUID, ULONG ulFlags, LPTSTR lpszDisplayName) = 0;
-    virtual HRESULT ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam, ULONG ulFlags, ULONG cValues, LPSPropValue lpProps) = 0;
+	virtual HRESULT ConfigureMsgService(LPMAPIUID lpUID, ULONG_PTR ulUIParam, ULONG ulFlags, ULONG cValues, LPSPropValue lpProps) = 0;
     virtual HRESULT OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, IProfSect ** OUTPUT /*lppProfSect*/) = 0;
     virtual HRESULT MsgServiceTransportOrder(ULONG cUID, LPMAPIUID lpUIDList, ULONG ulFlags) = 0;
     virtual HRESULT AdminProviders(LPMAPIUID lpUID, ULONG ulFlags, IProviderAdmin ** OUTPUT /*lppProviderAdmin*/) = 0;

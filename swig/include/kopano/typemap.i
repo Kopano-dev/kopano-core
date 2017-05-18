@@ -1,5 +1,6 @@
 // Generic typemaps
 %apply unsigned int {ULONG};
+%apply unsigned long {ULONG_PTR};
 %apply int {LONG};
 %apply unsigned int {DWORD, HRESULT};
 %apply unsigned int *OUTPUT {ULONG *, ULONG *lpulSteps, ULONG *lpulProgress};

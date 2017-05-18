@@ -148,7 +148,7 @@ static void print_help(const char *name)
  */
 static string encodestring(const wchar_t *lpszW) {
 	const utf8string u8 = convstring(lpszW);
-	return bin2hex(u8.size(), (const unsigned char*)u8.c_str());
+	return bin2hex(u8.size(), u8.c_str());
 }
 
 /**

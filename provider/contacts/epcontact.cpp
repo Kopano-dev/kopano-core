@@ -28,7 +28,7 @@ using namespace KCHL;
 
 HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
     LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags, ULONG ulContext,
-    ULONG cvals, LPSPropValue pvals, LPPROVIDERADMIN lpAdminProviders,
+    ULONG cvals, const SPropValue *pvals, IProviderAdmin *lpAdminProviders,
     MAPIERROR **lppMapiError)
 {
 	TRACE_MAPI(TRACE_ENTRY, "MSGServiceEntry", "flags=0x%08X, context=%s", ulFlags, MsgServiceContextToString(ulContext));

@@ -12,8 +12,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
+
+/* mapiguid.h – Defines GUIDs. */
 
 #ifndef __M4L_MAPIGUID_H_
 
@@ -56,6 +57,9 @@ DEFINE_OLEGUID(IID_IProfAdmin,      0x0002031C, 0, 0);
 #endif
 #if !defined(INITGUID) || defined(USES_IID_IMsgServiceAdmin)
 DEFINE_OLEGUID(IID_IMsgServiceAdmin,0x0002031D, 0, 0);
+#endif
+#if !defined(INITGUID) || defined(USES_IID_IMsgServiceAdmin2)
+DEFINE_OLEGUID(IID_IMsgServiceAdmin2, 0x00020387, 0, 0);
 #endif
 #if !defined(INITGUID) || defined(USES_IID_IProviderAdmin)
 DEFINE_OLEGUID(IID_IProviderAdmin,  0x00020325, 0, 0);

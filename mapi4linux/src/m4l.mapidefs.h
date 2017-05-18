@@ -60,7 +60,7 @@ public:
 
     virtual HRESULT __stdcall ValidateState(ULONG ulUIParam, ULONG ulFlags);
     virtual HRESULT __stdcall SettingsDialog(ULONG ulUIParam, ULONG ulFlags);
-    virtual HRESULT __stdcall ChangePassword(LPTSTR lpOldPass, LPTSTR lpNewPass, ULONG ulFlags);
+	virtual HRESULT __stdcall ChangePassword(const TCHAR *oldpw, const TCHAR *newpw, ULONG flags);
     virtual HRESULT __stdcall FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags);
 
 	// imapiprop passthru
@@ -124,9 +124,9 @@ public:
 	virtual ~M4LProviderAdmin(void);
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
 	virtual HRESULT __stdcall GetProviderTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-	virtual HRESULT __stdcall CreateProvider(LPTSTR lpszProvider, ULONG cValues, const SPropValue *lpProps, ULONG ui_param, ULONG flags, MAPIUID *lpUID) _kc_override;
-	virtual HRESULT __stdcall DeleteProvider(LPMAPIUID lpUID) _kc_override;
-	virtual HRESULT __stdcall OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG flags, LPPROFSECT *lppProfSect) _kc_override;
+	virtual HRESULT __stdcall CreateProvider(const TCHAR *name, ULONG nprops, const SPropValue *lpProps, ULONG ui_param, ULONG flags, MAPIUID *lpUID) _kc_override;
+	virtual HRESULT __stdcall DeleteProvider(const MAPIUID *uid) _kc_override;
+	virtual HRESULT __stdcall OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **) _kc_override;
 
 	// iunknown passthru
 	virtual ULONG __stdcall AddRef(void) _kc_override;

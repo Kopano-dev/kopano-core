@@ -289,16 +289,16 @@ std::string hex2bin(const std::wstring &input)
 	return buffer;
 }
 
-std::string bin2hex(unsigned int inLength, const unsigned char *input)
+std::string bin2hex(size_t inLength, const void *vinput)
 {
-	static const char digits[] = "0123456789ABCDEF";
 	std::string buffer;
-
-	if (!input)
+	if (vinput == nullptr)
 		return buffer;
+	static const char digits[] = "0123456789ABCDEF";
+	auto input = static_cast<const unsigned char *>(vinput);
 
 	buffer.reserve(inLength * 2);
-	for (unsigned int i = 0; i < inLength; ++i) {
+	for (size_t i = 0; i < inLength; ++i) {
 		buffer += digits[input[i]>>4];
 		buffer += digits[input[i]&0x0F];
 	}
@@ -308,19 +308,19 @@ std::string bin2hex(unsigned int inLength, const unsigned char *input)
 
 std::string bin2hex(const std::string &input)
 {
-    return bin2hex((unsigned int)input.size(), (const unsigned char*)input.c_str());
+	return bin2hex(input.size(), input.c_str());
 }
 
-std::wstring bin2hexw(unsigned int inLength, const unsigned char *input)
+std::wstring bin2hexw(size_t inLength, const void *vinput)
 {
-	static const wchar_t digits[] = L"0123456789ABCDEF";
 	std::wstring buffer;
-
-	if (!input)
+	if (vinput == nullptr)
 		return buffer;
+	static const wchar_t digits[] = L"0123456789ABCDEF";
+	auto input = static_cast<const unsigned char *>(vinput);
 
 	buffer.reserve(inLength * 2);
-	for (unsigned int i = 0; i < inLength; ++i) {
+	for (size_t i = 0; i < inLength; ++i) {
 		buffer += digits[input[i]>>4];
 		buffer += digits[input[i]&0x0F];
 	}
@@ -330,7 +330,7 @@ std::wstring bin2hexw(unsigned int inLength, const unsigned char *input)
 
 std::wstring bin2hexw(const std::string &input)
 {
-    return bin2hexw((unsigned int)input.size(), (const unsigned char*)input.c_str());
+	return bin2hexw(input.size(), input.c_str());
 }
 
 /** 

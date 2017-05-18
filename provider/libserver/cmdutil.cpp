@@ -1304,7 +1304,7 @@ ECRESULT MapEntryIdToObjectId(ECSession *lpecSession, ECDatabase *lpDatabase, UL
 
 	er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, sEntryId.__ptr, sEntryId.__size);
 	if(er != erSuccess) {
-		ec_log_crit("ERROR: Collision detected while setting entryid. objectid=%u, entryid=%s, user=%u", ulObjId, bin2hex(sEntryId.__size, (unsigned char *)sEntryId.__ptr).c_str(), lpecSession->GetSecurity()->GetUserId());
+		ec_log_crit("ERROR: Collision detected while setting entryid. objectid=%u, entryid=%s, user=%u", ulObjId, bin2hex(sEntryId.__size, sEntryId.__ptr).c_str(), lpecSession->GetSecurity()->GetUserId());
 		return KCERR_DATABASE_ERROR;
 	}
 

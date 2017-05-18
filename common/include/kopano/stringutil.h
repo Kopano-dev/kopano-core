@@ -98,8 +98,8 @@ extern _kc_export std::string hex2bin(const std::string &);
 extern _kc_export std::string hex2bin(const std::wstring &);
 extern _kc_export std::string bin2hex(const std::string &);
 std::wstring bin2hexw(const std::string &input);
-extern _kc_export std::string bin2hex(unsigned int len, const unsigned char *input);
-std::wstring bin2hexw(unsigned int inLength, const unsigned char *input);
+extern _kc_export std::string bin2hex(size_t len, const void *input);
+extern std::wstring bin2hexw(size_t len, const void *input);
 
 #ifdef UNICODE
 #define bin2hext bin2hexw

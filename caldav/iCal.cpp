@@ -180,8 +180,7 @@ HRESULT iCal::HrHandleIcalPost()
 		hr = lpICalToMapi->GetItemInfo(i, &etype, &tLastMod, &sbEid);
 		if (hr != hrSuccess || etype != VEVENT)
 			continue;
-		
-		strUidString = bin2hex((ULONG)sbEid.cb,(LPBYTE)sbEid.lpb);
+		strUidString = bin2hex(sbEid.cb, sbEid.lpb);
 		mpIcalEntries[strUidString] = i;
 	}
 
@@ -217,7 +216,7 @@ HRESULT iCal::HrHandleIcalPost()
 			if ((hr = MAPIAllocateBuffer(sbEid.cb, (void **)&sbEid.lpb)) != hrSuccess)
 				goto exit;
 			memcpy(sbEid.lpb, lpRows->aRow[i].lpProps[0].Value.bin.lpb, sbEid.cb);
-			strUidString = bin2hex((ULONG)sbUid.cb, (LPBYTE)sbUid.lpb);
+			strUidString = bin2hex(sbUid.cb, sbUid.lpb);
 			mpSrvEntries[strUidString] = sbEid;
 			if (lpRows->aRow[i].lpProps[1].ulPropTag == PR_LAST_MODIFICATION_TIME)
 				mpSrvTimes[strUidString] = lpRows->aRow[i].lpProps[1].Value.ft;				

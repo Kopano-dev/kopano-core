@@ -739,7 +739,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				goto next;
 			}
 			if(hr != hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s", bin2hex(cbEntryID, reinterpret_cast<const unsigned char *>(lpEntryID.get())).c_str());
+				ZLOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s", bin2hex(cbEntryID, lpEntryID.get()).c_str());
 				goto exit;
 			}
 			hr = lpSourceMessage->GetProps(sptImportProps, 0, &ulCount, &~lpPropArray);

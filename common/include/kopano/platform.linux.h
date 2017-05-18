@@ -96,6 +96,7 @@ typedef int64_t		LONGLONG;
 typedef LONGLONG*		LPLONGLONG;
 typedef uint64_t	ULONGLONG;
 typedef ULONGLONG*		LPULONGLONG;
+typedef uintptr_t ULONG_PTR;
 
 typedef int	LONG;
 typedef int	BOOL;

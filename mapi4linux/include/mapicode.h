@@ -12,8 +12,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
+
+/* mapicode.h – Defines status codes for error values */
 
 #ifndef __M4L_MAPICODE_H_
 #define __M4L_MAPICODE_H_
