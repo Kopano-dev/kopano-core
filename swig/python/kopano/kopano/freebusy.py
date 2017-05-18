@@ -6,10 +6,10 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 
 import datetime
 import time
-try:
-    import libfreebusy
-except ImportError:
-    pass
+#try:
+#    import libfreebusy
+#except ImportError:
+#    pass
 
 from MAPI.Tags import (
     PR_MAILBOX_OWNER_ENTRYID, PR_ENTRYID
