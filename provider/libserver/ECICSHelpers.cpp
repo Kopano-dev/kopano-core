@@ -542,13 +542,12 @@ ECRESULT FirstSyncProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
  **/
 ECRESULT ECGetContentChangesHelper::Create(struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulFlags, struct restrictTable *lpsRestrict, ECGetContentChangesHelper **lppHelper)
 {
-	ECRESULT					er = erSuccess;
 	std::unique_ptr<ECGetContentChangesHelper> lpHelper(
 		new(std::nothrow) ECGetContentChangesHelper(soap, lpSession, lpDatabase,
 		sFolderSourceKey, ulSyncId, ulChangeId, ulFlags, lpsRestrict));
 	if (lpHelper == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
-	er = lpHelper->Init();
+	auto er = lpHelper->Init();
 	if (er != erSuccess)
 		return er;
 	assert(lppHelper != NULL);
@@ -568,10 +567,7 @@ ECGetContentChangesHelper::ECGetContentChangesHelper(struct soap *soap,
 
 ECRESULT ECGetContentChangesHelper::Init()
 {
-	ECRESULT	er = erSuccess;
 	DB_RESULT lpDBResult;
-	DB_ROW		lpDBRow;
-	std::string	strQuery;
 
 	assert(m_lpDatabase != NULL);
 	if (m_sFolderSourceKey.empty() && m_ulChangeId == 0 &&
@@ -579,14 +575,13 @@ ECRESULT ECGetContentChangesHelper::Init()
 		// Disallow full initial exports on server level since they are insanely large
 		return KCERR_NO_SUPPORT;
 
-	strQuery = "SELECT MAX(id) FROM changes";
+	std::string strQuery = "SELECT MAX(id) FROM changes";
 	if(!m_sFolderSourceKey.empty())
 		strQuery += " WHERE parentsourcekey=" + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size());
-		
-	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
+	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-	lpDBRow = lpDBResult.fetch_row();
+	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == nullptr) {
 		ec_log_err("ECGetContentChangesHelper::Init(): fetchrow failed");
 		return KCERR_DATABASE_ERROR;
@@ -609,62 +604,62 @@ ECRESULT ECGetContentChangesHelper::Init()
 			m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId);
 		}
 		m_lpMsgProcessor = new FirstSyncProcessor(m_ulMaxFolderChange);
-	} else {
-		/*
-		 * Incremental sync
-		 * We first need to determine if the previous sync was with or without
-		 * restriction and if a restriction is requested now.
-		 */
-		er = GetSyncedMessages(m_ulSyncId, m_ulChangeId, &m_setLegacyMessages);
-		if (er != erSuccess)
-			return er;
-			
-		if (m_setLegacyMessages.empty()) {
-			/*
-			 * Previous request was without restriction.
-			 */
-			if (m_lpsRestrict == NULL) {
-				/*
-				 * This request is also without a restriction. We can use an
-				 * incremental query.
-				 */
-				m_lpQueryCreator = new IncrementalQueryCreator(m_lpDatabase, m_ulSyncId, m_ulChangeId, m_sFolderSourceKey, m_ulFlags);
-				m_lpMsgProcessor = new NonLegacyIncrementalProcessor(m_ulMaxFolderChange);
-			} else {
-				/*
-				 * This request is WITH a restriction. This means the client
-				 * switched from using no restriction to using a restriction.
-				 * Note: In practice this won't happen very often.
-				 * We need to perform a full query to be able te decide which
-				 * messages match the restriction and which don't.
-				 * Since the previous request was without a restriction, we
-				 * assume all messages that were present during the last sync
-				 * are on the device.
-				 * We do want to filter all messages that were created since
-				 * the last sync and were created by the current client. The
-				 * processor should do that because that's too complex for the
-				 * query creator to do.
-				 */
-				m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags);
-				m_lpMsgProcessor = new NonLegacyFullProcessor(m_ulChangeId, m_ulSyncId);
-			}
-		} else {
-			/*
-			 * The previous request was with a restriction, so we can't do an
-			 * incremental sync in any case, as that will only get us add's and
-			 * deletes for changes that happened after the last sync. But we
-			 * can also have adds because certain older messages might not have
-			 * matched the previous restriction, but do match the current (where
-			 * no restriction is seen as a match-all restriction).
-			 * We do want to filter all messages that were created since
-			 * the last sync and were created by the current client. The
-			 * processor should do that because that's too complex for the
-			 * query creator to do.
-			 */
-			m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags);
-			m_lpMsgProcessor = new LegacyProcessor(m_ulChangeId, m_ulSyncId, m_setLegacyMessages, m_ulMaxFolderChange);
-		}
+		return hrSuccess;
 	}
+	/*
+	 * Incremental sync
+	 * We first need to determine if the previous sync was with or without
+	 * restriction and if a restriction is requested now.
+	 */
+	er = GetSyncedMessages(m_ulSyncId, m_ulChangeId, &m_setLegacyMessages);
+	if (er != erSuccess)
+		return er;
+
+	if (!m_setLegacyMessages.empty()) {
+		/*
+		 * The previous request was with a restriction, so we can't do an
+		 * incremental sync in any case, as that will only get us add's and
+		 * deletes for changes that happened after the last sync. But we
+		 * can also have adds because certain older messages might not have
+		 * matched the previous restriction, but do match the current (where
+		 * no restriction is seen as a match-all restriction).
+		 * We do want to filter all messages that were created since
+		 * the last sync and were created by the current client. The
+		 * processor should do that because that's too complex for the
+		 * query creator to do.
+		 */
+		m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags);
+		m_lpMsgProcessor = new LegacyProcessor(m_ulChangeId, m_ulSyncId, m_setLegacyMessages, m_ulMaxFolderChange);
+		return hrSuccess;
+	}
+	/*
+	 * Previous request was without restriction.
+	 */
+	if (m_lpsRestrict == NULL) {
+		/*
+		 * This request is also without a restriction. We can use an
+		 * incremental query.
+		 */
+		m_lpQueryCreator = new IncrementalQueryCreator(m_lpDatabase, m_ulSyncId, m_ulChangeId, m_sFolderSourceKey, m_ulFlags);
+		m_lpMsgProcessor = new NonLegacyIncrementalProcessor(m_ulMaxFolderChange);
+		return hrSuccess;
+	}
+	/*
+	 * This request is WITH a restriction. This means the client
+	 * switched from using no restriction to using a restriction.
+	 * Note: In practice this won't happen very often.
+	 * We need to perform a full query to be able te decide which
+	 * messages match the restriction and which don't.
+	 * Since the previous request was without a restriction, we
+	 * assume all messages that were present during the last sync
+	 * are on the device.
+	 * We do want to filter all messages that were created since
+	 * the last sync and were created by the current client. The
+	 * processor should do that because that's too complex for the
+	 * query creator to do.
+	 */
+	m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags);
+	m_lpMsgProcessor = new NonLegacyFullProcessor(m_ulChangeId, m_ulSyncId);
 	return erSuccess;
 }
  
@@ -676,21 +671,17 @@ ECGetContentChangesHelper::~ECGetContentChangesHelper()
 	
 ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 {
-	ECRESULT er;
 	DB_RESULT lpDBResult;
-	std::string		strQuery;
 	unsigned int	ulChanges = 0;
 
 	assert(m_lpQueryCreator != NULL);
-	strQuery = m_lpQueryCreator->CreateQuery();
+	auto strQuery = m_lpQueryCreator->CreateQuery();
 	
 	if(!strQuery.empty()) {
 		assert(m_lpDatabase != NULL);
-		er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
+		auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
 			return er;
-	} else {
-		ulChanges = 0;
 	}
 		
 	if(lpDBResult)
@@ -709,15 +700,11 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_rows, const std::vector<DB_LENGTHS> &db_lengths)
 {
 	ECRESULT		er = erSuccess;
-	unsigned int	ulChangeType = 0;
-	unsigned int	ulFlags = 0;
-	DB_ROW lpDBRow;
-	DB_LENGTHS lpDBLen;
 	std::set<SOURCEKEY> matches;
 
 	if (m_lpsRestrict) {
 		assert(m_lpSession != NULL);
-		er = MatchRestrictions(db_rows, db_lengths, m_lpsRestrict, &matches);
+		auto er = MatchRestrictions(db_rows, db_lengths, m_lpsRestrict, &matches);
 		if (er != erSuccess)
 			return er;
 	}
@@ -725,16 +712,14 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 	assert(m_lpMsgProcessor != NULL);
 	for (size_t i = 0; i < db_rows.size(); ++i) {
 		bool fMatch = true;
-
-		lpDBRow = db_rows[i];
-		lpDBLen = db_lengths[i];
+		auto lpDBRow = db_rows[i];
+		auto lpDBLen = db_lengths[i];
 
 		if (m_lpsRestrict != NULL)
 			fMatch = matches.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])) != matches.end();
 
 		ec_log(EC_LOGLEVEL_ICS, "Processing: %s, match=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), fMatch);
-		ulChangeType = 0;
-		ulFlags = 0;
+		unsigned int ulChangeType = 0, ulFlags = 0;
 		if (fMatch) {
 			er = m_lpMsgProcessor->ProcessAccepted(lpDBRow, lpDBLen, &ulChangeType, &ulFlags);
 			if (m_lpsRestrict != NULL)
@@ -771,11 +756,10 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 
 ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 {
-	ECRESULT er;
 	MESSAGESET				setResiduals;
 
 	assert(m_lpMsgProcessor != NULL);
-	er = m_lpMsgProcessor->GetResidualMessages(&setResiduals);
+	auto er = m_lpMsgProcessor->GetResidualMessages(&setResiduals);
 	if (er != erSuccess)
 		return er;
 	
@@ -804,7 +788,6 @@ ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsChangesArray **lppChanges)
 {
 	ECRESULT					er = erSuccess;
-	std::string					strQuery;
 	unsigned int				ulMaxChange = 0;
 	unsigned int				ulNewChange = 0;
 	DB_RESULT lpDBResult;
@@ -831,7 +814,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		*lpulMaxChange = ulMaxChange;
 		
 		// Delete all entries that have a changeid that are greater to the new change id.
-		strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id>" + stringify(ulMaxChange);
+		std::string strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id>" + stringify(ulMaxChange);
 		return m_lpDatabase->DoDelete(strQuery);
 	}
 	
@@ -845,7 +828,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		 * changes table.
 		 */
 		// Bump the changeid
-		strQuery = "REPLACE INTO changes (sourcekey,parentsourcekey,sourcesync) VALUES (0, " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size()) + "," + stringify(m_ulSyncId) + ")";
+		std::string strQuery = "REPLACE INTO changes (sourcekey,parentsourcekey,sourcesync) VALUES (0, " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size()) + "," + stringify(m_ulSyncId) + ")";
 		er = m_lpDatabase->DoInsert(strQuery, &ulNewChange);
 		if (er != erSuccess)
 			return er;
@@ -866,83 +849,82 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	if (m_lpsRestrict && m_setNewMessages.empty())
 		m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(1, "\x00"), SAuxMessageData(m_sFolderSourceKey, 0, 0)));
 
-	if (!m_setNewMessages.empty()) {
-		std::set<unsigned int> setChangeIds;
-		
-		strQuery = "SELECT DISTINCT change_id FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId);
-		er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
-		if (er != erSuccess)
-			return er;
+	if (m_setNewMessages.empty()) {
+		*lpulMaxChange = ulMaxChange;
+		return erSuccess;
+	}
 
-		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-			if (lpDBRow == NULL || lpDBRow[0] == NULL) {
-				ec_log_err("ECGetContentChangesHelper::Finalize(): row null or column null");
-				return KCERR_DATABASE_ERROR; /* this should never happen */
-			}
-			setChangeIds.insert(atoui(lpDBRow[0]));
+	std::set<unsigned int> setChangeIds;
+	std::string strQuery = "SELECT DISTINCT change_id FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId);
+	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		return er;
+
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
+		if (lpDBRow == NULL || lpDBRow[0] == NULL) {
+			ec_log_err("ECGetContentChangesHelper::Finalize(): row null or column null");
+			return KCERR_DATABASE_ERROR; /* this should never happen */
 		}
+		setChangeIds.insert(atoui(lpDBRow[0]));
+	}
 
-		if (!setChangeIds.empty()) {
-			std::set<unsigned int> setDeleteIds;
+	if (!setChangeIds.empty()) {
+		std::set<unsigned int> setDeleteIds;
 			
-			/* Remove obsolete states
-			 *
-			 * rules:
-			 * 1) Remove any states that are newer than the state that was requested
-			 *    We do this since if the client requests state X, it can never request state X+1
-			 *    later unless X+1 is the state that was generated from this request. We can therefore
-			 *    remove any state > X at this point, since state X+1 will be inserted later
-			 * 2) Remove any states that are older than the state that was requested minus nine
-			 *    We cannot remove state X since the client may re-request this state (eg if the export
-			 *    failed due to network error, or if the export is interrupted before ending). We also
-			 *    do not remove state X-9 to X-1 so that we support some sort of rollback of the client.
-			 *    This may happen if the client is restored to an old state. In practice removing X-9 to
-			 *    X-1 will probably not cause any real problems though, and the number 9 is pretty
-			 *    arbitrary.
-			 */
+		/* Remove obsolete states
+		 *
+		 * rules:
+		 * 1) Remove any states that are newer than the state that was requested
+		 *    We do this since if the client requests state X, it can never request state X+1
+		 *    later unless X+1 is the state that was generated from this request. We can therefore
+		 *    remove any state > X at this point, since state X+1 will be inserted later
+		 * 2) Remove any states that are older than the state that was requested minus nine
+		 *    We cannot remove state X since the client may re-request this state (eg if the export
+		 *    failed due to network error, or if the export is interrupted before ending). We also
+		 *    do not remove state X-9 to X-1 so that we support some sort of rollback of the client.
+		 *    This may happen if the client is restored to an old state. In practice removing X-9 to
+		 *    X-1 will probably not cause any real problems though, and the number 9 is pretty
+		 *    arbitrary.
+		 */
+		// Delete any message state that is higher than the changeset that changes were
+		// requested from (rule 1)
+		auto iter = setChangeIds.upper_bound(m_ulChangeId);
+		if (iter != setChangeIds.cend())
+			std::copy(iter, setChangeIds.end(), std::inserter(setDeleteIds, setDeleteIds.begin()));
 
-			// Delete any message state that is higher than the changeset that changes were
-			// requested from (rule 1)
-			auto iter = setChangeIds.upper_bound(m_ulChangeId);
-			if (iter != setChangeIds.cend())
-				std::copy(iter, setChangeIds.end(), std::inserter(setDeleteIds, setDeleteIds.begin()));
+		// Find all message states that are equal or lower than the changeset that changes were requested from
+		iter = setChangeIds.lower_bound(m_ulChangeId);
+		// Reverse up to nine message states (less if they do not exist)
+		for (int i = 0; iter != setChangeIds.begin() && i < 9; ++i, --iter);
+		// Remove message states that are older than X-9 (rule 2)
+		std::copy(setChangeIds.begin(), iter, std::inserter(setDeleteIds, setDeleteIds.begin()));
 
-			// Find all message states that are equal or lower than the changeset that changes were requested from
-			iter = setChangeIds.lower_bound(m_ulChangeId);
-			// Reverse up to nine message states (less if they do not exist)
-			for (int i = 0; iter != setChangeIds.begin() && i < 9; ++i, --iter);
-			// Remove message states that are older than X-9 (rule 2)
-			std::copy(setChangeIds.begin(), iter, std::inserter(setDeleteIds, setDeleteIds.begin()));
-
-			if (!setDeleteIds.empty()) {
-				assert(setChangeIds.size() - setDeleteIds.size() <= 9);
-				strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id IN (";
-				for (auto del_id : setDeleteIds) {
-					strQuery.append(stringify(del_id));
-					strQuery.append(1, ',');
-				}
-				strQuery.resize(strQuery.size() - 1);	// Remove trailing ','
-				strQuery.append(1, ')');
-
-				er = m_lpDatabase->DoDelete(strQuery);
-				if (er != erSuccess)
-					return er;
+		if (!setDeleteIds.empty()) {
+			assert(setChangeIds.size() - setDeleteIds.size() <= 9);
+			strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id IN (";
+			for (auto del_id : setDeleteIds) {
+				strQuery.append(stringify(del_id));
+				strQuery.append(1, ',');
 			}
+			strQuery.resize(strQuery.size() - 1);	// Remove trailing ','
+			strQuery.append(1, ')');
+			er = m_lpDatabase->DoDelete(strQuery);
+			if (er != erSuccess)
+				return er;
 		}
-	
-		// Create the insert query
-		strQuery = "INSERT INTO syncedmessages (sync_id,change_id,sourcekey,parentsourcekey) VALUES ";
-		for (const auto &p : m_setNewMessages)
-			strQuery += "(" + stringify(m_ulSyncId) + "," + stringify(ulMaxChange) + "," +
-				m_lpDatabase->EscapeBinary(p.first, p.first.size()) + "," +
-				m_lpDatabase->EscapeBinary(p.second.sParentSourceKey, p.second.sParentSourceKey.size()) + "),";
-
-		strQuery.resize(strQuery.size() - 1);
-		er = m_lpDatabase->DoInsert(strQuery);
-		if (er != erSuccess)
-			return er;
 	}
 	
+	// Create the insert query
+	strQuery = "INSERT INTO syncedmessages (sync_id,change_id,sourcekey,parentsourcekey) VALUES ";
+	for (const auto &p : m_setNewMessages)
+		strQuery += "(" + stringify(m_ulSyncId) + "," + stringify(ulMaxChange) + "," +
+			m_lpDatabase->EscapeBinary(p.first, p.first.size()) + "," +
+			m_lpDatabase->EscapeBinary(p.second.sParentSourceKey, p.second.sParentSourceKey.size()) + "),";
+
+	strQuery.resize(strQuery.size() - 1);
+	er = m_lpDatabase->DoInsert(strQuery);
+	if (er != erSuccess)
+		return er;
 	*lpulMaxChange = ulMaxChange;
 	return erSuccess;
 }
@@ -951,7 +933,6 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
     const std::vector<DB_LENGTHS> &db_lengths,
     struct restrictTable *restrict, std::set<SOURCEKEY> *matches_p)
 {
-	ECRESULT er = erSuccess;
 	unsigned int ulObjId = 0;
 	ECObjectTableList lstRows;
 	ECObjectTableList::value_type sRow;
@@ -975,7 +956,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 		cbdata.push_back(db_lengths[i][icsSourceKey]);
 	}
 
-	er = g_lpSessionManager->GetCacheManager()->GetObjectsFromProp(PROP_ID(PR_SOURCE_KEY), cbdata, lpdata, index_objs);
+	auto er = g_lpSessionManager->GetCacheManager()->GetObjectsFromProp(PROP_ID(PR_SOURCE_KEY), cbdata, lpdata, index_objs);
 	if (er != erSuccess)
 		goto exit;
 
@@ -1038,26 +1019,22 @@ exit:
 
 ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, unsigned int ulChangeId, LPMESSAGESET lpsetMessages)
 {
-	ECRESULT		er = erSuccess;
-	std::string		strSubQuery;
-	std::string		strQuery;
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
-	DB_LENGTHS		lpDBLen;
 	
-	strQuery = 
+	std::string strQuery = 
 		"SELECT m.sourcekey, m.parentsourcekey, c.change_type, c.flags "
 		"FROM syncedmessages as m "
 			"LEFT JOIN changes as c "
 				"ON m.sourcekey=c.sourcekey AND m.parentsourcekey=c.parentsourcekey AND c.id > " + stringify(ulChangeId) + " AND c.sourcesync != " + stringify(ulSyncId) + " "
 		"WHERE sync_id=" + stringify(ulSyncId) + " AND change_id=" + stringify(ulChangeId);
 	assert(m_lpDatabase != NULL);
-	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
+	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
 		
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-		lpDBLen = lpDBResult.fetch_row_lengths();
+		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 			ec_log_err("ECGetContentChangesHelper::GetSyncedMessages(): row or columns null");
 			return KCERR_DATABASE_ERROR; /* this should never happen */

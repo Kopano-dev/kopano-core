@@ -110,7 +110,6 @@ ECRESULT ECABObjectTable::Create(ECSession *lpSession, unsigned int ulABId, unsi
 
 ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 {
-	ECRESULT		er = erSuccess;
 	auto lpODAB = static_cast<ECODAB *>(m_lpObjectData);
 	scoped_rlock lock(m_hLock);
 	assert(lplstProps != NULL);
@@ -139,7 +138,7 @@ ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	    // Contents table
 	    lplstProps->push_back(PR_SMTP_ADDRESS);
 	}
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag)
@@ -198,20 +197,19 @@ struct filter_objects {
 ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId, unsigned int ulFlags,
 												   list<localobjectdetails_t> **lppObjects)
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
 	if (ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_BOOK ||
 		ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_LISTS)
 	{
 		/* Global Address Book, load addresslist of the users own company */
-		er = lpSession->GetSecurity()->GetUserCompany(&ulObjectId);
+		auto er = lpSession->GetSecurity()->GetUserCompany(&ulObjectId);
 		if (er != erSuccess)
 			return er;
 	}
 
-	er = lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_ADDRESSLIST,
-	     ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	auto er = lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_ADDRESSLIST,
+	          ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 
@@ -226,11 +224,10 @@ ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId, unsi
 ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId, unsigned int ulFlags,
 											   list<localobjectdetails_t> **lppObjects)
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	ECSecurity *lpSecurity = lpSession->GetSecurity();
 
-	er = lpSecurity->GetViewableCompanyIds(m_ulUserManagementFlags, &unique_tie(lpObjects));
+	auto er = lpSecurity->GetViewableCompanyIds(m_ulUserManagementFlags, &unique_tie(lpObjects));
 	if (er != erSuccess)
 		return er;
 	/*
@@ -255,7 +252,6 @@ ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId, unsigned
 ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId, unsigned int ulFlags,
 												 list<localobjectdetails_t> **lppObjects)
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	objectid_t objectid;
 
@@ -290,13 +286,13 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId, unsign
 		 *    in the hierarchy view. The user will not be allowed to open it, so it isn't a real security risk,
 		 *    but since we still have issue (1) open, we might as well disable the hierarchy view
 		 *    containers completely. */
-		er = LoadHierarchyCompany(ulObjectId, ulFlags, &unique_tie(lpObjects));
+		auto er = LoadHierarchyCompany(ulObjectId, ulFlags, &unique_tie(lpObjects));
 		if (er != erSuccess)
 			return er;
 	} else if (ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_LISTS) {
 		if (lpSession->GetSecurity()->GetUserId() == KOPANO_UID_SYSTEM)
 			return KCERR_INVALID_PARAMETER;
-		er = LoadHierarchyAddressList(ulObjectId, ulFlags, &unique_tie(lpObjects));
+		auto er = LoadHierarchyAddressList(ulObjectId, ulFlags, &unique_tie(lpObjects));
 		if (er != erSuccess)
 			return er;
 	} else {
@@ -314,11 +310,10 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId, unsign
 ECRESULT ECABObjectTable::LoadContentsAddressList(unsigned int ulObjectId, unsigned int ulFlags,
 												  list<localobjectdetails_t> **lppObjects)
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
-	er = lpSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_ADDRESSLIST_MEMBER,
-	     ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	auto er = lpSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_ADDRESSLIST_MEMBER,
+	          ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 
@@ -333,11 +328,10 @@ ECRESULT ECABObjectTable::LoadContentsAddressList(unsigned int ulObjectId, unsig
 ECRESULT ECABObjectTable::LoadContentsCompany(unsigned int ulObjectId, unsigned int ulFlags,
 											  list<localobjectdetails_t> **lppObjects)
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
-	er = lpSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN,
-	     ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	auto er = lpSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN,
+	          ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 
@@ -352,11 +346,10 @@ ECRESULT ECABObjectTable::LoadContentsCompany(unsigned int ulObjectId, unsigned 
 ECRESULT ECABObjectTable::LoadContentsDistlist(unsigned int ulObjectId, unsigned int ulFlags,
 											   list<localobjectdetails_t> **lppObjects)
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
-	er = lpSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
-	     ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	auto er = lpSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
+	          ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 
@@ -370,7 +363,6 @@ ECRESULT ECABObjectTable::LoadContentsDistlist(unsigned int ulObjectId, unsigned
 
 ECRESULT ECABObjectTable::Load()
 {
-	ECRESULT er = erSuccess;
 	auto lpODAB = static_cast<ECODAB *>(m_lpObjectData);
 	sObjectTableKey sRowItem;
 
@@ -382,8 +374,8 @@ ECRESULT ECABObjectTable::Load()
 
 	// If the GAB is disabled, don't show any entries except the top-level object
 	if(lpODAB->ulABParentId != 0 && parseBool(lpSession->GetSessionManager()->GetConfig()->GetSetting("enable_gab")) == false && lpSession->GetSecurity()->GetAdminLevel() == 0)
-		return er;
-	er = lpSession->GetSecurity()->IsUserObjectVisible(lpODAB->ulABParentId);
+		return erSuccess;
+	auto er = lpSession->GetSecurity()->IsUserObjectVisible(lpODAB->ulABParentId);
 	if (er != erSuccess)
 		return er;
 	/*

@@ -200,30 +200,30 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 		if (lpConverter == NULL) {
 			convert_context converter;
 			CopyMAPIPropValToSOAPPropVal(lpPropValDst, lpPropValSrc, &converter);
-		} else {
-			lpPropValDst->__union = SOAP_UNION_propValData_mvszA;
-			lpPropValDst->Value.mvszA.__size = lpPropValSrc->Value.MVszA.cValues;
-			lpPropValDst->Value.mvszA.__ptr = s_alloc<char *>(nullptr, lpPropValDst->Value.mvszA.__size);
-			for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvszA.__size; ++i) {
-				utf8string u8 = lpConverter->convert_to<utf8string>(lpPropValSrc->Value.MVszA.lppszA[i]);
-				lpPropValDst->Value.mvszA.__ptr[i] = s_alloc<char>(nullptr, u8.size() + 1);
-				strcpy(lpPropValDst->Value.mvszA.__ptr[i], u8.c_str());
-			}
+			break;
+		}
+		lpPropValDst->__union = SOAP_UNION_propValData_mvszA;
+		lpPropValDst->Value.mvszA.__size = lpPropValSrc->Value.MVszA.cValues;
+		lpPropValDst->Value.mvszA.__ptr = s_alloc<char *>(nullptr, lpPropValDst->Value.mvszA.__size);
+		for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvszA.__size; ++i) {
+			utf8string u8 = lpConverter->convert_to<utf8string>(lpPropValSrc->Value.MVszA.lppszA[i]);
+			lpPropValDst->Value.mvszA.__ptr[i] = s_alloc<char>(nullptr, u8.size() + 1);
+			strcpy(lpPropValDst->Value.mvszA.__ptr[i], u8.c_str());
 		}
 		break;
 	case PT_MV_UNICODE:
 		if (lpConverter == NULL) {
 			convert_context converter;
 			CopyMAPIPropValToSOAPPropVal(lpPropValDst, lpPropValSrc, &converter);
-		} else {
-			lpPropValDst->__union = SOAP_UNION_propValData_mvszA;
-			lpPropValDst->Value.mvszA.__size = lpPropValSrc->Value.MVszA.cValues;
-			lpPropValDst->Value.mvszA.__ptr = s_alloc<char *>(nullptr, lpPropValDst->Value.mvszA.__size);
-			for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvszA.__size; ++i) {
-				utf8string u8 = lpConverter->convert_to<utf8string>(lpPropValSrc->Value.MVszW.lppszW[i]);
-				lpPropValDst->Value.mvszA.__ptr[i] = s_alloc<char>(nullptr, u8.size() + 1);
-				strcpy(lpPropValDst->Value.mvszA.__ptr[i], u8.c_str());
-			}
+			break;
+		}
+		lpPropValDst->__union = SOAP_UNION_propValData_mvszA;
+		lpPropValDst->Value.mvszA.__size = lpPropValSrc->Value.MVszA.cValues;
+		lpPropValDst->Value.mvszA.__ptr = s_alloc<char *>(nullptr, lpPropValDst->Value.mvszA.__size);
+		for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvszA.__size; ++i) {
+			utf8string u8 = lpConverter->convert_to<utf8string>(lpPropValSrc->Value.MVszW.lppszW[i]);
+			lpPropValDst->Value.mvszA.__ptr[i] = s_alloc<char>(nullptr, u8.size() + 1);
+			strcpy(lpPropValDst->Value.mvszA.__ptr[i], u8.c_str());
 		}
 		break;
 	case PT_MV_CLSID:
@@ -349,13 +349,13 @@ HRESULT CopySOAPPropValToMAPIPropVal(LPSPropValue lpPropValDst,
 		lpPropValDst->Value.dbl = lpPropValSrc->Value.dbl;
 		break;
 	case PT_CURRENCY:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.hilo) {
-			lpPropValDst->Value.cur.Hi = lpPropValSrc->Value.hilo->hi;
-			lpPropValDst->Value.cur.Lo = lpPropValSrc->Value.hilo->lo;
-		} else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.hilo == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		lpPropValDst->Value.cur.Hi = lpPropValSrc->Value.hilo->hi;
+		lpPropValDst->Value.cur.Lo = lpPropValSrc->Value.hilo->lo;
 		break;
 	case PT_APPTIME:
 		lpPropValDst->Value.at = lpPropValSrc->Value.dbl;
@@ -374,385 +374,386 @@ HRESULT CopySOAPPropValToMAPIPropVal(LPSPropValue lpPropValDst,
 	case PT_I8:
 		lpPropValDst->Value.li.QuadPart = lpPropValSrc->Value.li;
 		break;
-	case PT_STRING8:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.lpszA) {
-			string s = CONVERT_TO(lpConverter, string, lpPropValSrc->Value.lpszA, rawsize(lpPropValSrc->Value.lpszA), "UTF-8");
-			hr = ECAllocateMore(s.length() + 1, lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.lpszA));
-			if (hr != hrSuccess)
-				return hr;
-			strcpy(lpPropValDst->Value.lpszA, s.c_str());
-		} else {
+	case PT_STRING8: {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.lpszA == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		string s = CONVERT_TO(lpConverter, string, lpPropValSrc->Value.lpszA, rawsize(lpPropValSrc->Value.lpszA), "UTF-8");
+		hr = ECAllocateMore(s.length() + 1, lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.lpszA));
+		if (hr != hrSuccess)
+			return hr;
+		strcpy(lpPropValDst->Value.lpszA, s.c_str());
 		break;
-	case PT_UNICODE:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.lpszA) {
-			wstring ws = CONVERT_TO(lpConverter, wstring, lpPropValSrc->Value.lpszA, rawsize(lpPropValSrc->Value.lpszA), "UTF-8");
-			hr = ECAllocateMore(sizeof(wstring::value_type) * (ws.length() + 1), lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.lpszW));
-			if (hr != hrSuccess)
-				return hr;
-			wcscpy(lpPropValDst->Value.lpszW, ws.c_str());
-		} else {
+	}
+	case PT_UNICODE: {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.lpszA == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		wstring ws = CONVERT_TO(lpConverter, wstring, lpPropValSrc->Value.lpszA, rawsize(lpPropValSrc->Value.lpszA), "UTF-8");
+		hr = ECAllocateMore(sizeof(wstring::value_type) * (ws.length() + 1), lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.lpszW));
+		if (hr != hrSuccess)
+			return hr;
+		wcscpy(lpPropValDst->Value.lpszW, ws.c_str());
 		break;
+	}
 	case PT_SYSTIME:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.hilo) {
-			lpPropValDst->Value.ft.dwHighDateTime = lpPropValSrc->Value.hilo->hi;
-			lpPropValDst->Value.ft.dwLowDateTime = lpPropValSrc->Value.hilo->lo;
-		} else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.hilo == 0) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		lpPropValDst->Value.ft.dwHighDateTime = lpPropValSrc->Value.hilo->hi;
+		lpPropValDst->Value.ft.dwLowDateTime = lpPropValSrc->Value.hilo->lo;
 		break;
 	case PT_CLSID:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.bin && lpPropValSrc->Value.bin->__size == sizeof(MAPIUID)) {
-			hr = ECAllocateMore(lpPropValSrc->Value.bin->__size, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.lpguid));
-			if (hr != hrSuccess)
-				return hr;
-			memcpy(lpPropValDst->Value.lpguid, lpPropValSrc->Value.bin->__ptr, lpPropValSrc->Value.bin->__size);
-		} else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.bin == nullptr ||
+		    lpPropValSrc->Value.bin->__size != sizeof(MAPIUID)) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		hr = ECAllocateMore(lpPropValSrc->Value.bin->__size, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.lpguid));
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpPropValDst->Value.lpguid, lpPropValSrc->Value.bin->__ptr, lpPropValSrc->Value.bin->__size);
 		break;
 	case PT_BINARY:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.bin) {
-			hr = ECAllocateMore(lpPropValSrc->Value.bin->__size, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.bin.lpb));
-			if (hr != hrSuccess)
-				return hr;
-			memcpy(lpPropValDst->Value.bin.lpb, lpPropValSrc->Value.bin->__ptr, lpPropValSrc->Value.bin->__size);
-			lpPropValDst->Value.bin.cb = lpPropValSrc->Value.bin->__size;
-		}else if(lpPropValSrc->__union == 0) {
+		if (lpPropValSrc->__union == 0) {
 			lpPropValDst->Value.bin.lpb = NULL;
 			lpPropValDst->Value.bin.cb = 0;
-		}else {
+			break;
+		} else if (lpPropValSrc->Value.bin == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
-
+		hr = ECAllocateMore(lpPropValSrc->Value.bin->__size, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.bin.lpb));
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpPropValDst->Value.bin.lpb, lpPropValSrc->Value.bin->__ptr, lpPropValSrc->Value.bin->__size);
+		lpPropValDst->Value.bin.cb = lpPropValSrc->Value.bin->__size;
 		break;
 	case PT_MV_I2:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvi.__ptr) {
-			lpPropValDst->Value.MVi.cValues = lpPropValSrc->Value.mvi.__size;
-			hr = ECAllocateMore(sizeof(short int) * lpPropValDst->Value.MVi.cValues, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.MVi.lpi));
-			if (hr != hrSuccess)
-				return hr;
-			memcpy(lpPropValDst->Value.MVi.lpi, lpPropValSrc->Value.mvi.__ptr, sizeof(short int)*lpPropValDst->Value.MVi.cValues);
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvi.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		lpPropValDst->Value.MVi.cValues = lpPropValSrc->Value.mvi.__size;
+		hr = ECAllocateMore(sizeof(short int) * lpPropValDst->Value.MVi.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVi.lpi));
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpPropValDst->Value.MVi.lpi, lpPropValSrc->Value.mvi.__ptr, sizeof(short int)*lpPropValDst->Value.MVi.cValues);
 		break;
 	case PT_MV_LONG:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvl.__ptr) {
-			lpPropValDst->Value.MVl.cValues = lpPropValSrc->Value.mvl.__size;
-			hr = ECAllocateMore(sizeof(unsigned int) * lpPropValDst->Value.MVl.cValues, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.MVl.lpl));
-			if (hr != hrSuccess)
-				return hr;
-			memcpy(lpPropValDst->Value.MVl.lpl, lpPropValSrc->Value.mvl.__ptr, sizeof(unsigned int)*lpPropValDst->Value.MVl.cValues);
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvl.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		lpPropValDst->Value.MVl.cValues = lpPropValSrc->Value.mvl.__size;
+		hr = ECAllocateMore(sizeof(unsigned int) * lpPropValDst->Value.MVl.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVl.lpl));
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpPropValDst->Value.MVl.lpl, lpPropValSrc->Value.mvl.__ptr, sizeof(unsigned int)*lpPropValDst->Value.MVl.cValues);
 		break;
 	case PT_MV_R4:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvflt.__ptr) {
-			lpPropValDst->Value.MVflt.cValues = lpPropValSrc->Value.mvflt.__size;
-			hr = ECAllocateMore(sizeof(float) * lpPropValDst->Value.MVflt.cValues, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.MVflt.lpflt));
-			if (hr != hrSuccess)
-				return hr;
-			memcpy(lpPropValDst->Value.MVflt.lpflt, lpPropValSrc->Value.mvflt.__ptr, sizeof(float)*lpPropValDst->Value.MVflt.cValues);
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvflt.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		lpPropValDst->Value.MVflt.cValues = lpPropValSrc->Value.mvflt.__size;
+		hr = ECAllocateMore(sizeof(float) * lpPropValDst->Value.MVflt.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVflt.lpflt));
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpPropValDst->Value.MVflt.lpflt, lpPropValSrc->Value.mvflt.__ptr, sizeof(float)*lpPropValDst->Value.MVflt.cValues);
 		break;
 	case PT_MV_DOUBLE:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvdbl.__ptr) {
-			lpPropValDst->Value.MVdbl.cValues = lpPropValSrc->Value.mvdbl.__size;
-			hr = ECAllocateMore(sizeof(double) * lpPropValDst->Value.MVdbl.cValues, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.MVdbl.lpdbl));
-			if (hr != hrSuccess)
-				return hr;
-			memcpy(lpPropValDst->Value.MVdbl.lpdbl, lpPropValSrc->Value.mvdbl.__ptr, sizeof(double)*lpPropValDst->Value.MVdbl.cValues);
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvdbl.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		lpPropValDst->Value.MVdbl.cValues = lpPropValSrc->Value.mvdbl.__size;
+		hr = ECAllocateMore(sizeof(double) * lpPropValDst->Value.MVdbl.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVdbl.lpdbl));
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpPropValDst->Value.MVdbl.lpdbl, lpPropValSrc->Value.mvdbl.__ptr, sizeof(double)*lpPropValDst->Value.MVdbl.cValues);
 		break;
 	case PT_MV_CURRENCY:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvhilo.__ptr) {
-			lpPropValDst->Value.MVcur.cValues = lpPropValSrc->Value.mvhilo.__size;
-			hr = ECAllocateMore(sizeof(hiloLong) * lpPropValDst->Value.MVcur.cValues, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.MVcur.lpcur));
-			if (hr != hrSuccess)
-				return hr;
-			for (unsigned int i = 0; i < lpPropValDst->Value.MVcur.cValues; ++i) {
-				lpPropValDst->Value.MVcur.lpcur[i].Hi = lpPropValSrc->Value.mvhilo.__ptr[i].hi;
-				lpPropValDst->Value.MVcur.lpcur[i].Lo = lpPropValSrc->Value.mvhilo.__ptr[i].lo;
-			}
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvhilo.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
+		}
+		lpPropValDst->Value.MVcur.cValues = lpPropValSrc->Value.mvhilo.__size;
+		hr = ECAllocateMore(sizeof(hiloLong) * lpPropValDst->Value.MVcur.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVcur.lpcur));
+		if (hr != hrSuccess)
+			return hr;
+		for (unsigned int i = 0; i < lpPropValDst->Value.MVcur.cValues; ++i) {
+			lpPropValDst->Value.MVcur.lpcur[i].Hi = lpPropValSrc->Value.mvhilo.__ptr[i].hi;
+			lpPropValDst->Value.MVcur.lpcur[i].Lo = lpPropValSrc->Value.mvhilo.__ptr[i].lo;
 		}
 		break;
 	case PT_MV_APPTIME:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvdbl.__ptr) {
-			lpPropValDst->Value.MVat.cValues = lpPropValSrc->Value.mvdbl.__size;
-			hr = ECAllocateMore(sizeof(double) * lpPropValDst->Value.MVat.cValues, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.MVat.lpat));
-			if (hr != hrSuccess)
-				return hr;
-			memcpy(lpPropValDst->Value.MVat.lpat, lpPropValSrc->Value.mvdbl.__ptr, sizeof(double)*lpPropValDst->Value.MVat.cValues);
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvdbl.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		lpPropValDst->Value.MVat.cValues = lpPropValSrc->Value.mvdbl.__size;
+		hr = ECAllocateMore(sizeof(double) * lpPropValDst->Value.MVat.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVat.lpat));
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpPropValDst->Value.MVat.lpat, lpPropValSrc->Value.mvdbl.__ptr, sizeof(double)*lpPropValDst->Value.MVat.cValues);
 		break;
 	case PT_MV_SYSTIME:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvhilo.__ptr) {
-			lpPropValDst->Value.MVft.cValues = lpPropValSrc->Value.mvhilo.__size;
-			hr = ECAllocateMore(sizeof(hiloLong) * lpPropValDst->Value.MVft.cValues, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.MVft.lpft));
-			if (hr != hrSuccess)
-				return hr;
-			for (unsigned int i = 0; i < lpPropValDst->Value.MVft.cValues; ++i) {
-				lpPropValDst->Value.MVft.lpft[i].dwHighDateTime = lpPropValSrc->Value.mvhilo.__ptr[i].hi;
-				lpPropValDst->Value.MVft.lpft[i].dwLowDateTime = lpPropValSrc->Value.mvhilo.__ptr[i].lo;
-			}
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvhilo.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
+		}
+		lpPropValDst->Value.MVft.cValues = lpPropValSrc->Value.mvhilo.__size;
+		hr = ECAllocateMore(sizeof(hiloLong) * lpPropValDst->Value.MVft.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVft.lpft));
+		if (hr != hrSuccess)
+			return hr;
+		for (unsigned int i = 0; i < lpPropValDst->Value.MVft.cValues; ++i) {
+			lpPropValDst->Value.MVft.lpft[i].dwHighDateTime = lpPropValSrc->Value.mvhilo.__ptr[i].hi;
+			lpPropValDst->Value.MVft.lpft[i].dwLowDateTime = lpPropValSrc->Value.mvhilo.__ptr[i].lo;
 		}
 		break;
 	case PT_MV_BINARY:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvbin.__ptr) {
-			lpPropValDst->Value.MVbin.cValues = lpPropValSrc->Value.mvbin.__size;
-			hr = ECAllocateMore(sizeof(SBinary) * lpPropValDst->Value.MVbin.cValues, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.MVbin.lpbin));
-			if (hr != hrSuccess)
-				return hr;
-			for (unsigned int i = 0; i < lpPropValDst->Value.MVbin.cValues; ++i) {
-				lpPropValDst->Value.MVbin.lpbin[i].cb = lpPropValSrc->Value.mvbin.__ptr[i].__size;
-				if(lpPropValDst->Value.MVbin.lpbin[i].cb > 0) {
-					hr = ECAllocateMore(sizeof(unsigned char) * lpPropValDst->Value.MVbin.lpbin[i].cb,
-					     lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.MVbin.lpbin[i].lpb));
-					if (hr != hrSuccess)
-						return hr;
-					memcpy(lpPropValDst->Value.MVbin.lpbin[i].lpb, lpPropValSrc->Value.mvbin.__ptr[i].__ptr, sizeof(unsigned char)*lpPropValDst->Value.MVbin.lpbin[i].cb);
-				}
-				else
-					lpPropValDst->Value.MVbin.lpbin[i].lpb = NULL;
-			}
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvbin.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
+		}
+		lpPropValDst->Value.MVbin.cValues = lpPropValSrc->Value.mvbin.__size;
+		hr = ECAllocateMore(sizeof(SBinary) * lpPropValDst->Value.MVbin.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVbin.lpbin));
+		if (hr != hrSuccess)
+			return hr;
+		for (unsigned int i = 0; i < lpPropValDst->Value.MVbin.cValues; ++i) {
+			lpPropValDst->Value.MVbin.lpbin[i].cb = lpPropValSrc->Value.mvbin.__ptr[i].__size;
+			if (lpPropValDst->Value.MVbin.lpbin[i].cb == 0) {
+				lpPropValDst->Value.MVbin.lpbin[i].lpb = NULL;
+				continue;
+			}
+			hr = ECAllocateMore(sizeof(unsigned char) * lpPropValDst->Value.MVbin.lpbin[i].cb,
+			     lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.MVbin.lpbin[i].lpb));
+			if (hr != hrSuccess)
+				return hr;
+			memcpy(lpPropValDst->Value.MVbin.lpbin[i].lpb, lpPropValSrc->Value.mvbin.__ptr[i].__ptr, sizeof(unsigned char)*lpPropValDst->Value.MVbin.lpbin[i].cb);
 		}
 		break;
 	case PT_MV_STRING8:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvszA.__ptr) {
-			if (lpConverter == NULL) {
-				convert_context converter;
-				CopySOAPPropValToMAPIPropVal(lpPropValDst, lpPropValSrc, lpBase, &converter);
-			} else {
-				lpPropValDst->Value.MVszA.cValues = lpPropValSrc->Value.mvszA.__size;
-				hr = ECAllocateMore(sizeof(LPSTR)*lpPropValDst->Value.MVszA.cValues, lpBase, (void**)&lpPropValDst->Value.MVszA.lppszA);
-
-				for (unsigned int i = 0; i < lpPropValDst->Value.MVszA.cValues; ++i) {
-					if (lpPropValSrc->Value.mvszA.__ptr[i] != NULL) {
-						string s = lpConverter->convert_to<string>(lpPropValSrc->Value.mvszA.__ptr[i], rawsize(lpPropValSrc->Value.mvszA.__ptr[i]), "UTF-8");
-						hr = ECAllocateMore(s.size() + 1, lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.MVszA.lppszA[i]));
-						if (hr != hrSuccess)
-							return hr;
-						strcpy(lpPropValDst->Value.MVszA.lppszA[i], s.c_str());
-					} else {
-						hr = ECAllocateMore(1, lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.MVszA.lppszA[i]));
-						if (hr != hrSuccess)
-							return hr;
-						lpPropValDst->Value.MVszA.lppszA[i][0] = '\0';
-					}
-				}
-			}
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvszA.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
+		}
+		if (lpConverter == NULL) {
+			convert_context converter;
+			CopySOAPPropValToMAPIPropVal(lpPropValDst, lpPropValSrc, lpBase, &converter);
+			break;
+		}
+		lpPropValDst->Value.MVszA.cValues = lpPropValSrc->Value.mvszA.__size;
+		hr = ECAllocateMore(sizeof(LPSTR) * lpPropValDst->Value.MVszA.cValues, lpBase, (void **)&lpPropValDst->Value.MVszA.lppszA);
+
+		for (unsigned int i = 0; i < lpPropValDst->Value.MVszA.cValues; ++i) {
+			if (lpPropValSrc->Value.mvszA.__ptr[i] != NULL) {
+				string s = lpConverter->convert_to<string>(lpPropValSrc->Value.mvszA.__ptr[i], rawsize(lpPropValSrc->Value.mvszA.__ptr[i]), "UTF-8");
+				hr = ECAllocateMore(s.size() + 1, lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.MVszA.lppszA[i]));
+				if (hr != hrSuccess)
+					return hr;
+				strcpy(lpPropValDst->Value.MVszA.lppszA[i], s.c_str());
+			} else {
+				hr = ECAllocateMore(1, lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.MVszA.lppszA[i]));
+				if (hr != hrSuccess)
+					return hr;
+				lpPropValDst->Value.MVszA.lppszA[i][0] = '\0';
+			}
 		}
 		break;
 	case PT_MV_UNICODE:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvszA.__ptr) {
-			if (lpConverter == NULL) {
-				convert_context converter;
-				CopySOAPPropValToMAPIPropVal(lpPropValDst, lpPropValSrc, lpBase, &converter);
-			} else {
-				lpPropValDst->Value.MVszW.cValues = lpPropValSrc->Value.mvszA.__size;
-				hr = ECAllocateMore(sizeof(LPWSTR) * lpPropValDst->Value.MVszW.cValues, lpBase,
-				     reinterpret_cast<void **>(&lpPropValDst->Value.MVszW.lppszW));
-				if (hr != hrSuccess)
-					return hr;
-
-				for (unsigned int i = 0; i < lpPropValDst->Value.MVszW.cValues; ++i) {
-					if (lpPropValSrc->Value.mvszA.__ptr[i] != NULL) {
-						wstring ws = lpConverter->convert_to<wstring>(lpPropValSrc->Value.mvszA.__ptr[i], rawsize(lpPropValSrc->Value.mvszA.__ptr[i]), "UTF-8");
-						hr = ECAllocateMore(sizeof(wstring::value_type) * (ws.length() + 1), lpBase,
-						     reinterpret_cast<void **>(&lpPropValDst->Value.MVszW.lppszW[i]));
-						if (hr != hrSuccess)
-							return hr;
-						wcscpy(lpPropValDst->Value.MVszW.lppszW[i], ws.c_str());
-					} else {
-						hr = ECAllocateMore(1, lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.MVszW.lppszW[i]));
-						if (hr != hrSuccess)
-							return hr;
-						lpPropValDst->Value.MVszW.lppszW[i][0] = '\0';
-					}
-				}
-			}
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvszA.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
+		}
+		if (lpConverter == NULL) {
+			convert_context converter;
+			CopySOAPPropValToMAPIPropVal(lpPropValDst, lpPropValSrc, lpBase, &converter);
+			break;
+		}
+		lpPropValDst->Value.MVszW.cValues = lpPropValSrc->Value.mvszA.__size;
+		hr = ECAllocateMore(sizeof(LPWSTR) * lpPropValDst->Value.MVszW.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVszW.lppszW));
+		if (hr != hrSuccess)
+			return hr;
+
+		for (unsigned int i = 0; i < lpPropValDst->Value.MVszW.cValues; ++i) {
+			if (lpPropValSrc->Value.mvszA.__ptr[i] == nullptr) {
+				hr = ECAllocateMore(1, lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.MVszW.lppszW[i]));
+				if (hr != hrSuccess)
+					return hr;
+				lpPropValDst->Value.MVszW.lppszW[i][0] = '\0';
+				continue;
+			}
+			wstring ws = lpConverter->convert_to<wstring>(lpPropValSrc->Value.mvszA.__ptr[i], rawsize(lpPropValSrc->Value.mvszA.__ptr[i]), "UTF-8");
+			hr = ECAllocateMore(sizeof(wstring::value_type) * (ws.length() + 1), lpBase,
+			     reinterpret_cast<void **>(&lpPropValDst->Value.MVszW.lppszW[i]));
+			if (hr != hrSuccess)
+				return hr;
+			wcscpy(lpPropValDst->Value.MVszW.lppszW[i], ws.c_str());
 		}
 		break;
 	case PT_MV_CLSID:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvbin.__ptr) {
-			lpPropValDst->Value.MVguid.cValues = lpPropValSrc->Value.mvbin.__size;
-			hr = ECAllocateMore(sizeof(GUID) * lpPropValDst->Value.MVguid.cValues, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.MVguid.lpguid));
-			if (hr != hrSuccess)
-				return hr;
-			for (unsigned int i = 0; i < lpPropValDst->Value.MVguid.cValues; ++i)
-				memcpy(&lpPropValDst->Value.MVguid.lpguid[i], lpPropValSrc->Value.mvbin.__ptr[i].__ptr, sizeof(GUID));
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvbin.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		lpPropValDst->Value.MVguid.cValues = lpPropValSrc->Value.mvbin.__size;
+		hr = ECAllocateMore(sizeof(GUID) * lpPropValDst->Value.MVguid.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVguid.lpguid));
+		if (hr != hrSuccess)
+			return hr;
+		for (unsigned int i = 0; i < lpPropValDst->Value.MVguid.cValues; ++i)
+			memcpy(&lpPropValDst->Value.MVguid.lpguid[i], lpPropValSrc->Value.mvbin.__ptr[i].__ptr, sizeof(GUID));
 		break;
 	case PT_MV_I8:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.mvli.__ptr) {
-			lpPropValDst->Value.MVli.cValues = lpPropValSrc->Value.mvli.__size;
-			hr = ECAllocateMore(sizeof(LARGE_INTEGER) * lpPropValDst->Value.MVli.cValues, lpBase,
-			     reinterpret_cast<void **>(&lpPropValDst->Value.MVli.lpli));
-			if (hr != hrSuccess)
-				return hr;
-			for (unsigned int i = 0; i < lpPropValDst->Value.MVli.cValues; ++i)
-				lpPropValDst->Value.MVli.lpli[i].QuadPart = lpPropValSrc->Value.mvli.__ptr[i];
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.mvli.__ptr == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		lpPropValDst->Value.MVli.cValues = lpPropValSrc->Value.mvli.__size;
+		hr = ECAllocateMore(sizeof(LARGE_INTEGER) * lpPropValDst->Value.MVli.cValues, lpBase,
+		     reinterpret_cast<void **>(&lpPropValDst->Value.MVli.lpli));
+		if (hr != hrSuccess)
+			return hr;
+		for (unsigned int i = 0; i < lpPropValDst->Value.MVli.cValues; ++i)
+			lpPropValDst->Value.MVli.lpli[i].QuadPart = lpPropValSrc->Value.mvli.__ptr[i];
 		break;
 	case PT_SRESTRICTION:
-		if(lpPropValSrc->__union && lpPropValSrc->Value.res) {
-			// NOTE: we place the object pointer in lpszA to make sure it's on the same offset as Value.x on 32-bit and 64-bit machines
-			hr = ECAllocateMore(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.lpszA));
-			if (hr != hrSuccess)
-				return hr;
-			hr = CopySOAPRestrictionToMAPIRestriction((LPSRestriction)lpPropValDst->Value.lpszA, lpPropValSrc->Value.res, lpBase, lpConverter);
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.res == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
 		}
+		// NOTE: we place the object pointer in lpszA to make sure it's on the same offset as Value.x on 32-bit and 64-bit machines
+		hr = ECAllocateMore(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.lpszA));
+		if (hr != hrSuccess)
+			return hr;
+		hr = CopySOAPRestrictionToMAPIRestriction((LPSRestriction)lpPropValDst->Value.lpszA, lpPropValSrc->Value.res, lpBase, lpConverter);
 		break;
 	case PT_ACTIONS: {
-		if(lpPropValSrc->__union && lpPropValSrc->Value.actions) {
-			// NOTE: we place the object pointer in lpszA to make sure it is on the same offset as Value.x on 32-bit and 64-bit machines
-			ACTIONS *lpDstActions;
-			hr = ECAllocateMore(sizeof(ACTIONS), lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.lpszA));
-			if (hr != hrSuccess)
-				return hr;
-			lpDstActions = (ACTIONS *)lpPropValDst->Value.lpszA;
-
-			lpDstActions->cActions = lpPropValSrc->Value.actions->__size;
-			hr = ECAllocateMore(sizeof(ACTION) * lpPropValSrc->Value.actions->__size, lpBase,
-			     reinterpret_cast<void **>(&lpDstActions->lpAction));
-			if (hr != hrSuccess)
-				return hr;
-
-			lpDstActions->ulVersion = EDK_RULES_VERSION;
-
-			for (gsoap_size_t i = 0; i < lpPropValSrc->Value.actions->__size; ++i) {
-				ACTION *lpDstAction = &lpDstActions->lpAction[i];
-				struct action *lpSrcAction = &lpPropValSrc->Value.actions->__ptr[i];
-
-				lpDstAction->acttype = (ACTTYPE)lpSrcAction->acttype;
-				lpDstAction->ulActionFlavor = lpSrcAction->flavor;
-				lpDstAction->ulFlags = lpSrcAction->flags;
-				lpDstAction->lpRes = NULL;
-				lpDstAction->lpPropTagArray = NULL;
-
-				switch(lpSrcAction->acttype) {
-				case OP_MOVE:
-				case OP_COPY:
-					lpDstAction->actMoveCopy.cbStoreEntryId = lpSrcAction->act.moveCopy.store.__size;
-					hr = ECAllocateMore(lpSrcAction->act.moveCopy.store.__size, lpBase, reinterpret_cast<void **>(&lpDstAction->actMoveCopy.lpStoreEntryId));
-					if (hr != hrSuccess)
-						return hr;
-					memcpy(lpDstAction->actMoveCopy.lpStoreEntryId, lpSrcAction->act.moveCopy.store.__ptr, lpSrcAction->act.moveCopy.store.__size);
-					lpDstAction->actMoveCopy.cbFldEntryId = lpSrcAction->act.moveCopy.folder.__size;
-					hr = ECAllocateMore(lpSrcAction->act.moveCopy.folder.__size, lpBase, reinterpret_cast<void **>(&lpDstAction->actMoveCopy.lpFldEntryId));
-					if (hr != hrSuccess)
-						return hr;
-					memcpy(lpDstAction->actMoveCopy.lpFldEntryId, lpSrcAction->act.moveCopy.folder.__ptr, lpSrcAction->act.moveCopy.folder.__size);
-					break;
-				case OP_REPLY:
-				case OP_OOF_REPLY:
-					lpDstAction->actReply.cbEntryId = lpSrcAction->act.reply.message.__size;
-					hr = ECAllocateMore(lpSrcAction->act.reply.message.__size, lpBase, reinterpret_cast<void **>(&lpDstAction->actReply.lpEntryId));
-					if (hr != hrSuccess)
-						return hr;
-					memcpy(lpDstAction->actReply.lpEntryId, lpSrcAction->act.reply.message.__ptr, lpSrcAction->act.reply.message.__size);
-					if (lpSrcAction->act.reply.guid.__size != sizeof(GUID))
-						return MAPI_E_CORRUPT_DATA;
-					memcpy(&lpDstAction->actReply.guidReplyTemplate, lpSrcAction->act.reply.guid.__ptr, lpSrcAction->act.reply.guid.__size);
-					break;
-				case OP_DEFER_ACTION:
-					hr = ECAllocateMore(lpSrcAction->act.defer.bin.__size, lpBase, reinterpret_cast<void **>(&lpDstAction->actDeferAction.pbData));
-					if (hr != hrSuccess)
-						return hr;
-					lpDstAction->actDeferAction.cbData = lpSrcAction->act.defer.bin.__size;
-					memcpy(lpDstAction->actDeferAction.pbData, lpSrcAction->act.defer.bin.__ptr,lpSrcAction->act.defer.bin.__size);
-					break;
-				case OP_BOUNCE:
-					lpDstAction->scBounceCode = lpSrcAction->act.bouncecode;
-					break;
-				case OP_FORWARD:
-				case OP_DELEGATE:
-					if (lpSrcAction->act.adrlist == NULL)
-						return MAPI_E_CORRUPT_DATA;
-					hr = ECAllocateMore(CbNewADRLIST(lpSrcAction->act.adrlist->__size), lpBase, reinterpret_cast<void **>(&lpDstAction->lpadrlist));
-					if (hr != hrSuccess)
-						return hr;
-					lpDstAction->lpadrlist->cEntries = lpSrcAction->act.adrlist->__size;
-
-					for (gsoap_size_t j = 0; j < lpSrcAction->act.adrlist->__size; ++j) {
-						lpDstAction->lpadrlist->aEntries[j].ulReserved1 = 0;
-						lpDstAction->lpadrlist->aEntries[j].cValues = lpSrcAction->act.adrlist->__ptr[j].__size;
-
-						// new rowset allocate more on old rowset, so we can just call FreeProws once
-						hr = ECAllocateMore(sizeof(SPropValue) * lpSrcAction->act.adrlist->__ptr[j].__size, lpBase,
-						     reinterpret_cast<void **>(&lpDstAction->lpadrlist->aEntries[j].rgPropVals));
-						if (hr != hrSuccess)
-							return hr;
-						hr = CopySOAPRowToMAPIRow(&lpSrcAction->act.adrlist->__ptr[j], lpDstAction->lpadrlist->aEntries[j].rgPropVals, lpBase, lpConverter);
-						if (hr != hrSuccess)
-							return hr;
-					}
-					// FIXME rowset is not coupled to action -> leaks!
-					break;
-				case OP_TAG:
-					hr = CopySOAPPropValToMAPIPropVal(&lpDstAction->propTag, lpSrcAction->act.prop, lpBase, lpConverter);
-					break;
-				}
-			}
-		}else {
+		if (lpPropValSrc->__union == 0 || lpPropValSrc->Value.actions == nullptr) {
 			lpPropValDst->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropValSrc->ulPropTag));
 			lpPropValDst->Value.err = MAPI_E_NOT_FOUND;
+			break;
+		}
+		// NOTE: we place the object pointer in lpszA to make sure it is on the same offset as Value.x on 32-bit and 64-bit machines
+		ACTIONS *lpDstActions;
+		hr = ECAllocateMore(sizeof(ACTIONS), lpBase, reinterpret_cast<void **>(&lpPropValDst->Value.lpszA));
+		if (hr != hrSuccess)
+			return hr;
+		lpDstActions = (ACTIONS *)lpPropValDst->Value.lpszA;
+		lpDstActions->cActions = lpPropValSrc->Value.actions->__size;
+		hr = ECAllocateMore(sizeof(ACTION) * lpPropValSrc->Value.actions->__size, lpBase,
+		     reinterpret_cast<void **>(&lpDstActions->lpAction));
+		if (hr != hrSuccess)
+			return hr;
+
+		lpDstActions->ulVersion = EDK_RULES_VERSION;
+		for (gsoap_size_t i = 0; i < lpPropValSrc->Value.actions->__size; ++i) {
+			ACTION *lpDstAction = &lpDstActions->lpAction[i];
+			struct action *lpSrcAction = &lpPropValSrc->Value.actions->__ptr[i];
+
+			lpDstAction->acttype = (ACTTYPE)lpSrcAction->acttype;
+			lpDstAction->ulActionFlavor = lpSrcAction->flavor;
+			lpDstAction->ulFlags = lpSrcAction->flags;
+			lpDstAction->lpRes = NULL;
+			lpDstAction->lpPropTagArray = NULL;
+
+			switch(lpSrcAction->acttype) {
+			case OP_MOVE:
+			case OP_COPY:
+				lpDstAction->actMoveCopy.cbStoreEntryId = lpSrcAction->act.moveCopy.store.__size;
+				hr = ECAllocateMore(lpSrcAction->act.moveCopy.store.__size, lpBase, reinterpret_cast<void **>(&lpDstAction->actMoveCopy.lpStoreEntryId));
+				if (hr != hrSuccess)
+					return hr;
+				memcpy(lpDstAction->actMoveCopy.lpStoreEntryId, lpSrcAction->act.moveCopy.store.__ptr, lpSrcAction->act.moveCopy.store.__size);
+				lpDstAction->actMoveCopy.cbFldEntryId = lpSrcAction->act.moveCopy.folder.__size;
+				hr = ECAllocateMore(lpSrcAction->act.moveCopy.folder.__size, lpBase, reinterpret_cast<void **>(&lpDstAction->actMoveCopy.lpFldEntryId));
+				if (hr != hrSuccess)
+					return hr;
+				memcpy(lpDstAction->actMoveCopy.lpFldEntryId, lpSrcAction->act.moveCopy.folder.__ptr, lpSrcAction->act.moveCopy.folder.__size);
+				break;
+			case OP_REPLY:
+			case OP_OOF_REPLY:
+				lpDstAction->actReply.cbEntryId = lpSrcAction->act.reply.message.__size;
+				hr = ECAllocateMore(lpSrcAction->act.reply.message.__size, lpBase, reinterpret_cast<void **>(&lpDstAction->actReply.lpEntryId));
+				if (hr != hrSuccess)
+					return hr;
+				memcpy(lpDstAction->actReply.lpEntryId, lpSrcAction->act.reply.message.__ptr, lpSrcAction->act.reply.message.__size);
+				if (lpSrcAction->act.reply.guid.__size != sizeof(GUID))
+					return MAPI_E_CORRUPT_DATA;
+				memcpy(&lpDstAction->actReply.guidReplyTemplate, lpSrcAction->act.reply.guid.__ptr, lpSrcAction->act.reply.guid.__size);
+				break;
+			case OP_DEFER_ACTION:
+				hr = ECAllocateMore(lpSrcAction->act.defer.bin.__size, lpBase, reinterpret_cast<void **>(&lpDstAction->actDeferAction.pbData));
+				if (hr != hrSuccess)
+					return hr;
+				lpDstAction->actDeferAction.cbData = lpSrcAction->act.defer.bin.__size;
+				memcpy(lpDstAction->actDeferAction.pbData, lpSrcAction->act.defer.bin.__ptr,lpSrcAction->act.defer.bin.__size);
+				break;
+			case OP_BOUNCE:
+				lpDstAction->scBounceCode = lpSrcAction->act.bouncecode;
+				break;
+			case OP_FORWARD:
+			case OP_DELEGATE:
+				if (lpSrcAction->act.adrlist == NULL)
+					return MAPI_E_CORRUPT_DATA;
+				hr = ECAllocateMore(CbNewADRLIST(lpSrcAction->act.adrlist->__size), lpBase, reinterpret_cast<void **>(&lpDstAction->lpadrlist));
+				if (hr != hrSuccess)
+					return hr;
+				lpDstAction->lpadrlist->cEntries = lpSrcAction->act.adrlist->__size;
+
+				for (gsoap_size_t j = 0; j < lpSrcAction->act.adrlist->__size; ++j) {
+					lpDstAction->lpadrlist->aEntries[j].ulReserved1 = 0;
+					lpDstAction->lpadrlist->aEntries[j].cValues = lpSrcAction->act.adrlist->__ptr[j].__size;
+
+					// new rowset allocate more on old rowset, so we can just call FreeProws once
+					hr = ECAllocateMore(sizeof(SPropValue) * lpSrcAction->act.adrlist->__ptr[j].__size, lpBase,
+					     reinterpret_cast<void **>(&lpDstAction->lpadrlist->aEntries[j].rgPropVals));
+					if (hr != hrSuccess)
+						return hr;
+					hr = CopySOAPRowToMAPIRow(&lpSrcAction->act.adrlist->__ptr[j], lpDstAction->lpadrlist->aEntries[j].rgPropVals, lpBase, lpConverter);
+					if (hr != hrSuccess)
+						return hr;
+				}
+				// FIXME rowset is not coupled to action -> leaks!
+				break;
+			case OP_TAG:
+				hr = CopySOAPPropValToMAPIPropVal(&lpDstAction->propTag, lpSrcAction->act.prop, lpBase, lpConverter);
+				break;
+			}
 		}
 		break;
 	}

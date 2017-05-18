@@ -144,7 +144,6 @@ void * ECNotificationManager::Thread(void *lpParam)
 }
 
 void *ECNotificationManager::Work() {
-    ECRESULT er = erSuccess;
     ECSession *lpecSession = NULL;
     struct notifyResponse notifications;
 
@@ -178,7 +177,7 @@ void *ECNotificationManager::Work() {
                 soap_default_notifyResponse(iterRequest->second.soap, &notifications);
                 if(g_lpSessionManager->ValidateSession(iterRequest->second.soap, ses, &lpecSession, true) == erSuccess) {
                     // Get the notifications from the session
-                    er = lpecSession->GetNotifyItems(iterRequest->second.soap, &notifications);
+					auto er = lpecSession->GetNotifyItems(iterRequest->second.soap, &notifications);
                     
                     if(er == KCERR_NOT_FOUND) {
                         if(time(NULL) - iterRequest->second.ulRequestTime < m_ulTimeout) {

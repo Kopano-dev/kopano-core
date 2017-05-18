@@ -31,18 +31,15 @@ namespace KC {
 static int converse(int num_msg, const struct pam_message **msg,
     struct pam_response **resp, void *appdata_ptr)
 {
-	int i = 0;
-	struct pam_response *response = NULL;
 	auto password = static_cast<const char *>(appdata_ptr);
 
 	if (!resp || !msg || !password)
 		return PAM_CONV_ERR;
-
-	response = (struct pam_response *) malloc(num_msg * sizeof(struct pam_response));
+	auto response = static_cast<struct pam_response *>(malloc(num_msg * sizeof(**resp)));
 	if (!response)
 		return PAM_BUF_ERR;
 
-	for (i = 0; i < num_msg; ++i) {
+	for (int i = 0; i < num_msg; ++i) {
 		response[i].resp_retcode = 0;
 		response[i].resp = 0;
 
@@ -60,11 +57,10 @@ static int converse(int num_msg, const struct pam_message **msg,
 
 ECRESULT ECPAMAuthenticateUser(const char* szPamService, const std::string &strUsername, const std::string &strPassword, std::string *lpstrError)
 {
-	int res = 0;
 	pam_handle_t *pamh = NULL;
 	struct pam_conv conv_info = { &converse, (void*)strPassword.c_str() };
 
-	res = pam_start(szPamService, strUsername.c_str(), &conv_info, &pamh);
+	auto res = pam_start(szPamService, strUsername.c_str(), &conv_info, &pamh);
 	if (res != PAM_SUCCESS) 
 	{
 		*lpstrError = pam_strerror(NULL, res);

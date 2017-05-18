@@ -49,7 +49,6 @@ extern ECSessionManager*	g_lpSessionManager;
 
 ECRESULT ECGenProps::GetMVPropSubquery(unsigned int ulPropTagRequested, std::string &subquery) 
 {
-	ECRESULT er = erSuccess;
 	unsigned int ulType = PROP_TYPE(ulPropTagRequested);
 
 	//skip MV_INSTANCE
@@ -57,67 +56,54 @@ ECRESULT ECGenProps::GetMVPropSubquery(unsigned int ulPropTagRequested, std::str
 	case PT_MV_I2:
 	case PT_MV_LONG:
 		subquery = "SELECT concat(count(*), ':', group_concat(length(val_ulong),':',val_ulong ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-		break;
+		return erSuccess;
 	case PT_MV_R4:
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
 		subquery = "SELECT concat(count(*), ':', group_concat(length(val_double),':',val_double ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-		break;
+		return erSuccess;
 	case PT_MV_CURRENCY:
 	case PT_MV_SYSTIME:
 		subquery = "SELECT group_concat(count(*),':',length(val_hi),':',val_hi ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
 		subquery += "),(SELECT group_concat(count(*),':',length(val_lo),':',val_lo ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-		break;
+		return erSuccess;
 	case PT_MV_BINARY:
 	case PT_MV_CLSID:
 		subquery = "SELECT concat(count(*), ':', group_concat(length(val_binary),':',val_binary ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-		break;
+		return erSuccess;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
 		subquery = "SELECT concat(count(*), ':', group_concat(char_length(val_string),':',val_string ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-		break;
+		return erSuccess;
 	case PT_MV_I8:
 		subquery = "SELECT concat(count(*), ':', group_concat(length(val_longint),':',val_longint ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-		break;
+		return erSuccess;
 	default:
-		er = KCERR_NOT_FOUND;
-		break;
+		return KCERR_NOT_FOUND;
 	}
-	
-
-	return er;
 }
 
 ECRESULT ECGenProps::GetPropSubquery(unsigned int ulPropTagRequested, std::string &subquery) 
 {
-	ECRESULT er = erSuccess;
-
 	switch(ulPropTagRequested) {
 	case PR_PARENT_DISPLAY_W:
 	case PR_PARENT_DISPLAY_A:
 		subquery = "SELECT properties.val_string FROM properties JOIN hierarchy as subquery ON properties.hierarchyid=subquery.parent WHERE subquery.id=hierarchy.id AND properties.tag=0x3001"; // PR_DISPLAY_NAME of parent
-		break;
-
+		return erSuccess;
     case PR_EC_OUTGOING_FLAGS:
         subquery = "SELECT outgoingqueue.flags FROM outgoingqueue where outgoingqueue.hierarchy_id = hierarchy.id and outgoingqueue.flags & 1 = 1";
-        break;
-
+		return erSuccess;
     case PR_EC_PARENT_HIERARCHYID:
         // This isn't really a subquery, because all we want is the hierarchy.parent field. Since the subquery engine is already joining with 'hierarchy' we can
         // read directly from that table by just returning hierarchy.parent
         subquery = "hierarchy.parent";
-        break;
-        
+		return erSuccess;
     case PR_ASSOCIATED:
         subquery = "hierarchy.flags & " + stringify(MAPI_ASSOCIATED);
-        break;
-        
+		return erSuccess;
 	default:
-		er = KCERR_NOT_FOUND;
-		break;
+		return KCERR_NOT_FOUND;
 	}
-
-	return er;
 }
 
 /**
@@ -252,8 +238,6 @@ ECRESULT ECGenProps::IsPropRedundant(unsigned int ulPropTag, unsigned int ulObjT
 
 ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, unsigned int ulPropTagRequested, unsigned int ulObjId, struct propVal *lpPropVal)
 {
-	ECRESULT		er = erSuccess;
-
 	switch(PROP_ID(ulPropTagRequested)) {
 	case PROP_ID(PR_MSG_STATUS):
 		if (lpPropVal->ulPropTag == ulPropTagRequested)
@@ -261,14 +245,14 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 		lpPropVal->ulPropTag = PR_MSG_STATUS;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		lpPropVal->Value.ul = 0;
-		break;
+		return erSuccess;
     case PROP_ID(PR_EC_IMAP_ID):
 		if (lpPropVal->ulPropTag == ulPropTagRequested)
 			return KCERR_NOT_FOUND;
 		lpPropVal->ulPropTag = PR_EC_IMAP_ID;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		lpPropVal->Value.ul = ulObjId;
-		break;
+		return erSuccess;
 	case PROP_ID(PR_CONTENT_UNREAD):
 		// Convert from PR_MESSAGE_FLAGS to PR_CONTENT_UNREAD
 		if (ulObjType != MAPI_MESSAGE || lpPropVal->ulPropTag == PR_CONTENT_UNREAD)
@@ -276,45 +260,46 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 		lpPropVal->ulPropTag = PR_CONTENT_UNREAD;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		lpPropVal->Value.ul = lpPropVal->Value.ul & MSGFLAG_READ ? 0 : 1;
-		break;
-    case PROP_ID(PR_NORMALIZED_SUBJECT):
+		return erSuccess;
+	case PROP_ID(PR_NORMALIZED_SUBJECT): {
     	if(lpPropVal->ulPropTag != PR_SUBJECT) {
     		lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(PR_NORMALIZED_SUBJECT));
     		lpPropVal->Value.ul = KCERR_NOT_FOUND;
     		lpPropVal->__union = SOAP_UNION_propValData_ul;
-    	} else {
+			return erSuccess;
+		}
 		lpPropVal->ulPropTag = ulPropTagRequested;
 		// Check for RE, FWD and similar muck at the start of the subject line   		
 		const char *lpszColon = strchr(lpPropVal->Value.lpszA, ':');
-		if (lpszColon != NULL && (lpszColon - lpPropVal->Value.lpszA) > 1 && (lpszColon - lpPropVal->Value.lpszA) < 4)
+		if (lpszColon == nullptr)
+			return erSuccess;
+		if (lpszColon - lpPropVal->Value.lpszA <= 1 || lpszColon - lpPropVal->Value.lpszA >= 4)
+			return erSuccess;
+		char *c = lpPropVal->Value.lpszA;
+		while (c < lpszColon && isdigit(*c))
+			++c; // test for all digits prefix
+		if (c == lpszColon)
+			return erSuccess;
+		++lpszColon; // skip ':'
+		size_t newlength = strlen(lpszColon);
+		if (newlength > 0 && lpszColon[0] == ' ')
 		{
-			char* c = lpPropVal->Value.lpszA;
-			while (c < lpszColon && isdigit(*c))
-				++c; // test for all digits prefix
-			if (c != lpszColon)
-			{
-				++lpszColon; // skip ':'
-				size_t newlength = strlen(lpszColon);
-				if (newlength > 0 && lpszColon[0] == ' ')
-				{
-					++lpszColon; // skip space
-					--newlength; // adjust length
-				}
-				lpPropVal->Value.lpszA = s_alloc<char>(soap, newlength + 1);
-				memcpy(lpPropVal->Value.lpszA, lpszColon, newlength);
-				lpPropVal->Value.lpszA[newlength] = '\0';	// add C-type string terminator
-			}
+			++lpszColon; // skip space
+			--newlength; // adjust length
 		}
+		lpPropVal->Value.lpszA = s_alloc<char>(soap, newlength + 1);
+		memcpy(lpPropVal->Value.lpszA, lpszColon, newlength);
+		lpPropVal->Value.lpszA[newlength] = '\0';	// add C-type string terminator
+		return erSuccess;
 	}
-        break;
 	case PROP_ID(PR_SUBMIT_FLAGS):
 		if (ulObjType != MAPI_MESSAGE)
-			break;
+			return erSuccess;
 		if (g_lpSessionManager->GetLockManager()->IsLocked(ulObjId, NULL))
 			lpPropVal->Value.ul |= SUBMITFLAG_LOCKED;
 		else
 			lpPropVal->Value.ul &= ~SUBMITFLAG_LOCKED;
-		break;
+		return erSuccess;
 	case PROP_ID(PR_RECORD_KEY):
 		if (ulObjType != MAPI_ATTACH || lpPropVal->ulPropTag == ulPropTagRequested)
 			return KCERR_NOT_FOUND;
@@ -324,11 +309,10 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
 		lpPropVal->Value.bin->__size = sizeof(ULONG);
 		memcpy(lpPropVal->Value.bin->__ptr, &ulObjId, sizeof(ULONG));
-		break;
+		return erSuccess;
 	default:
 		return KCERR_NOT_FOUND;
 	}
-	return er;
 }
 
 // All in memory properties
@@ -737,25 +721,19 @@ exit:
  */
 ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, bool *lpbIsOrphan)
 {
-	ECRESULT	er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-	std::string strQuery;
-	bool		bIsOrphan = false;
 
 	if (lpSession == nullptr || lpbIsOrphan == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
-	strQuery = "SELECT 0 FROM stores as s LEFT JOIN users as u ON s.user_id=u.id WHERE s.user_id != 0 and s.hierarchy_id="+stringify(ulObjId) + " AND u.id IS NOT NULL LIMIT 1";
+	std::string strQuery = "SELECT 0 FROM stores as s LEFT JOIN users as u ON s.user_id=u.id WHERE s.user_id != 0 and s.hierarchy_id=" + stringify(ulObjId) + " AND u.id IS NOT NULL LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	if (lpDBResult.get_num_rows() == 0)
-		bIsOrphan = true;
-
-	*lpbIsOrphan = bIsOrphan;
+	*lpbIsOrphan = lpDBResult.get_num_rows() == 0;
 	return erSuccess;
 }
 
@@ -771,7 +749,6 @@ ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, b
  */
 ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, unsigned int ulStoreType, char** lppStoreName)
 {
-	ECRESULT			er = erSuccess;
 	unsigned int		ulUserId = 0;
 	unsigned int	    ulCompanyId = 0;
 	struct propValArray sPropValArray{__gszeroinit};
@@ -780,7 +757,7 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	string				strFormat;
 	char*				lpStoreName = NULL;
 
-	er = lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId);
+	auto er = lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId);
 	if (er != erSuccess)
 		goto exit;
 

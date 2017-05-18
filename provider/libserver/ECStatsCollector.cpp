@@ -198,26 +198,21 @@ void ECStatsCollector::Avg(SCName name, LONGLONG add)
 
 std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &iSD)
 {
-	std::string rv;
-
 	switch (iSD.second.type) {
 	case SCDT_FLOAT:
-		rv = stringify_float(iSD.second.data.f);
-		break;
+		return stringify_float(iSD.second.data.f);
 	case SCDT_LONGLONG:
-		rv = stringify_int64(iSD.second.data.ll);
-		break;
+		return stringify_int64(iSD.second.data.ll);
 	case SCDT_TIMESTAMP:
 		if (iSD.second.data.ts > 0) {
 			char timestamp[128] = { 0 };
 			struct tm *tm = localtime(&iSD.second.data.ts);
 			strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
-			rv = timestamp;
+			return timestamp;
 		}
 		break;
 	}
-
-	return rv;
+	return "";
 }
 
 std::string ECStatsCollector::GetValue(const SCName &name) {

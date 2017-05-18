@@ -90,8 +90,6 @@ static inline bool parseBool(const char *s)
 	       strcmp(s, "false") != 0 && strcmp(s, "no") != 0);
 }
 
-extern _kc_export std::string shell_escape(const std::string &);
-extern _kc_export std::string shell_escape(const std::wstring &);
 extern _kc_export std::vector<std::wstring> tokenize(const std::wstring &, const wchar_t sep, bool filter_empty = false);
 extern _kc_export std::vector<std::string> tokenize(const std::string &, const char sep, bool filter_empty = false);
 extern _kc_export std::string trim(const std::string &input, const std::string &trim = " ");

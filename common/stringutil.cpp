@@ -186,32 +186,6 @@ std::string GetServerPortFromPath(const char *szPath) {
 	return path;
 }
 
-std::string shell_escape(const std::string &str)
-{
-	std::string escaped;
-	auto start = str.cbegin();
-	auto ptr   = start;
-	while (ptr != str.cend()) {
-		while (ptr != str.end() && *ptr != '\'')
-			++ptr;
-
-		escaped += std::string(start, ptr);
-		if (ptr == str.end())
-			break;
-
-		start = ++ptr;          // skip single quote
-		escaped += "'\\''";     // shell escape sequence
-	}
-
-	return escaped;
-}
-
-std::string shell_escape(const std::wstring &wstr)
-{
-	std::string strLocale = convert_to<std::string>(wstr);
-	return shell_escape(strLocale);
-}
-
 std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep, bool bFilterEmpty) {
 	const WCHAR *begin, *end = NULL;
 	std::vector<std::wstring> vct;

@@ -115,9 +115,7 @@ void ECSystemStatsTable::load_tcmalloc(void)
 
 ECRESULT ECSystemStatsTable::Load()
 {
-	ECRESULT er = erSuccess;
 	sObjectTableKey sRowItem;
-	unsigned int i;
 	unsigned int ulQueueLen = 0;
 	double dblAge = 0;
 	unsigned int ulThreads = 0;
@@ -166,10 +164,10 @@ ECRESULT ECSystemStatsTable::Load()
 	GetStatsCollectorData("userplugin", "User plugin used", lpConfig->GetSetting("user_plugin"), this);
 
 	// add all items to the keytable
-	for (i = 0; i < id; ++i)
+	for (unsigned int i = 0; i < id; ++i)
 		// Use MAPI_STATUS as ulObjType for the key table .. this param may be removed in the future..?
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, i, 0);
-	return er;
+	return erSuccess;
 }
 
 void ECSystemStatsTable::GetStatsCollectorData(const std::string &name, const std::string &description, const std::string &value, void *obj)
@@ -187,11 +185,10 @@ void ECSystemStatsTable::GetStatsCollectorData(const std::string &name, const st
 
 ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	struct rowSet *lpsRowSet = NULL;
 	auto lpThis = static_cast<ECSystemStatsTable *>(lpGenericThis);
 	gsoap_size_t i;
 
-	lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -294,7 +291,6 @@ ECRESULT ECSessionStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 
 ECRESULT ECSessionStatsTable::Load()
 {
-	ECRESULT er = erSuccess;
 	sObjectTableKey sRowItem;
 	ECSessionManager *lpSessionManager = lpSession->GetSessionManager();
 	unsigned int i;
@@ -308,7 +304,7 @@ ECRESULT ECSessionStatsTable::Load()
 	for (i = 0; i < id; ++i)
 		// Use MAPI_STATUS as ulObjType for the key table .. this param may be removed in the future..?
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, i, 0);
-	return er;
+	return erSuccess;
 }
 
 void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
@@ -357,12 +353,11 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 
 ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	struct rowSet *lpsRowSet = NULL;
 	auto lpThis = static_cast<ECSessionStatsTable *>(lpGenericThis);
 	gsoap_size_t i;
 	std::string strTemp;
 
-	lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -566,14 +561,13 @@ ECRESULT ECUserStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 
 ECRESULT ECUserStatsTable::Load()
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 
 	// load all active and non-active users
 	// FIXME: group/company quota already possible?
 
 	// get company list if hosted and is sysadmin
-	er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
+	auto er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
 	if (er != erSuccess)
 		return er;
 	if (lpCompanies->empty()) {
@@ -592,7 +586,6 @@ ECRESULT ECUserStatsTable::Load()
 
 ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	sObjectTableKey sRowItem;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
@@ -600,8 +593,8 @@ ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 	const char* server = lpSession->GetSessionManager()->GetConfig()->GetSetting("server_name");
 	std::list<unsigned int> lstObjId;
 
-	er = lpUserManagement->GetCompanyObjectListAndSync(OBJECTCLASS_USER,
-	     ulCompanyId, &unique_tie(lpObjects), 0);
+	auto er = lpUserManagement->GetCompanyObjectListAndSync(OBJECTCLASS_USER,
+	          ulCompanyId, &unique_tie(lpObjects), 0);
 	if (FAILED(er))
 		return er;
 	for (const auto &obj : *lpObjects) {
@@ -617,9 +610,7 @@ ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 
 ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	ECRESULT er;
 	gsoap_size_t i;
-	struct rowSet *lpsRowSet = NULL;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	ECDatabase *lpDatabase = NULL;
 	long long llStoreSize = 0;
@@ -629,15 +620,14 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 	bool bNoObjectDetails = false;
 	bool bNoQuotaDetails = false;
 	std::string strData;
-	DB_ROW lpDBRow = NULL;
 	DB_RESULT lpDBResult;
 	std::string strQuery;
 
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
-	lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -790,7 +780,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 					break;
 				}
 				if (lpDBResult.get_num_rows() > 0) {
-					lpDBRow = lpDBResult.fetch_row();
+					auto lpDBRow = lpDBResult.fetch_row();
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 					lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<hiloLong>(soap);
@@ -814,7 +804,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_b;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				if (lpDBResult.get_num_rows() > 0) {
-					lpDBRow = lpDBResult.fetch_row();
+					auto lpDBRow = lpDBResult.fetch_row();
 					lpsRowSet->__ptr[i].__ptr[k].Value.b = atoi(lpDBRow[0]);
 				} else {
 					lpsRowSet->__ptr[i].__ptr[k].Value.b = 0;
@@ -848,11 +838,10 @@ ECRESULT ECCompanyStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 
 ECRESULT ECCompanyStatsTable::Load()
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 	sObjectTableKey sRowItem;
 
-	er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
+	auto er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
 	if (er != erSuccess)
 		return er;
 	for (const auto &com : *lpCompanies)
@@ -862,9 +851,7 @@ ECRESULT ECCompanyStatsTable::Load()
 
 ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	ECRESULT er;
 	gsoap_size_t i;
-	struct rowSet *lpsRowSet = NULL;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	ECDatabase *lpDatabase = NULL;
 	long long llStoreSize = 0;
@@ -873,15 +860,14 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 	bool bNoCompanyDetails = false;
 	bool bNoQuotaDetails = false;
 	std::string strData;
-	DB_ROW lpDBRow = NULL;
 	DB_RESULT lpDBResult;
 	std::string strQuery;
 
-	er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
-	lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -933,12 +919,12 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 				break;
 
 			case PROP_ID(PR_EC_COMPANY_NAME):
-				if (!bNoCompanyDetails) {
-					strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, strData.data());
-				}
+				if (bNoCompanyDetails)
+					break;
+				strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, strData.data());
 				break;
 			case PROP_ID(PR_EC_COMPANY_ADMIN):
 				strData = companyDetails.GetPropObject(OB_PROP_O_SYSADMIN).id;
@@ -947,11 +933,11 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, strData.data());
 				break;
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
-				if (llStoreSize > 0) {
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.li = llStoreSize;
-				}
+				if (llStoreSize <= 0)
+					break;
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.li = llStoreSize;
 				break;
 
 			case PROP_ID(PR_QUOTA_WARNING_THRESHOLD):
@@ -983,14 +969,14 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 					er = erSuccess;
 					break;
 				}
-				if (lpDBResult.get_num_rows() > 0) {
-					lpDBRow = lpDBResult.fetch_row();
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<hiloLong>(soap);
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = atoi(lpDBRow[0]);
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
-				}
+				if (lpDBResult.get_num_rows() == 0)
+					break;
+				auto lpDBRow = lpDBResult.fetch_row();
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<hiloLong>(soap);
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = atoi(lpDBRow[0]);
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
 				break;
 			};
 		}
@@ -1020,12 +1006,11 @@ ECRESULT ECServerStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 
 ECRESULT ECServerStatsTable::Load()
 {
-	ECRESULT er;
 	sObjectTableKey sRowItem;
 	serverlist_t servers;
 	unsigned int i = 1;
 
-	er = lpSession->GetUserManagement()->GetServerList(&servers);
+	auto er = lpSession->GetUserManagement()->GetServerList(&servers);
 	if (er != erSuccess)
 		return er;
 		

@@ -165,7 +165,6 @@ ECRESULT ECSessionGroup::AddChangeAdvise(ECSESSIONID ulSessionId, unsigned int u
 
 ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConnection)
 {
-	ECRESULT		hr = erSuccess;
 	scoped_lock lock(m_hNotificationLock);
 	auto iterSubscription = m_mapSubscribe.find(ulConnection);
 	if (iterSubscription == m_mapSubscribe.cend()) {
@@ -191,12 +190,11 @@ ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 		}
 		m_mapSubscribe.erase(iterSubscription);
 	}
-	return hr;
+	return hrSuccess;
 }
 
 ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int ulKey, unsigned int ulStore, ECSESSIONID ulSessionId)
 {
-	ECRESULT		hr = erSuccess;
 	ulock_normal l_note(m_hNotificationLock);
 	ECNotification notify(*notifyItem);
 
@@ -215,14 +213,12 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 	scoped_rlock l_ses(m_hSessionMapLock);
 	for (const auto &p : m_mapSessions)
 		m_lpSessionManager->NotifyNotificationReady(p.second.lpSession->GetSessionId());
-	return hr;
+	return erSuccess;
 }
 
 ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned int ulType, unsigned int ulObjType, unsigned int ulTableId,
 											  sObjectTableKey* lpsChildRow, sObjectTableKey* lpsPrevRow, struct propValArray *lpRow)
 {
-	ECRESULT hr = erSuccess;
-
 	Lock();
 	auto lpNotify = s_alloc<notification>(nullptr);
 	memset(lpNotify, 0, sizeof(notification));
@@ -282,13 +278,11 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	FreeNotificationStruct(lpNotify);
 
 	Unlock();
-
-	return hr;
+	return erSuccess;
 }
 
 ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syncIds, unsigned int ulChangeId, unsigned int ulChangeType)
 {
-	ECRESULT		er = erSuccess;
 	notification notifyItem{__gszeroinit};
 	notificationICS ics{__gszeroinit};
 	entryId			syncStateBin = {0};
@@ -330,12 +324,11 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 		m_lpSessionManager->NotifyNotificationReady(p.second.lpSession->GetSessionId());
 	l_ses.unlock();
 	Unlock();
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned int ulConnection, unsigned int ulSyncId, unsigned long ulChangeId)
 {
-	ECRESULT		er = erSuccess;
 	notification notifyItem{__gszeroinit};
 	notificationICS ics{__gszeroinit};
 	entryId			syncStateBin = {0};
@@ -363,7 +356,7 @@ ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned
 		m_lpSessionManager->NotifyNotificationReady(p.second.lpSession->GetSessionId());
 	l_ses.unlock();
 	Unlock();
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSessionGroup::GetNotifyItems(struct soap *soap, ECSESSIONID ulSessionId, struct notifyResponse *notifications)

@@ -306,20 +306,22 @@ HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, LPGUID lpGuid, ULONG ulFlag
 
 	// Loop through the local names to see if we can reverse-map the id
 	for (size_t i = 0; i < ARRAY_SIZE(sLocalNames); ++i) {
-		if((lpGuid == NULL || memcmp(&sLocalNames[i].guid, lpGuid, sizeof(GUID)) == 0) && ulId >= sLocalNames[i].ulMappedId && ulId < sLocalNames[i].ulMappedId + (sLocalNames[i].ulMax - sLocalNames[i].ulMin + 1)) {
-			// Found it !
-			auto hr = ECAllocateMore(sizeof(MAPINAMEID), lpBase, reinterpret_cast<void **>(&lpName));
-			if (hr != hrSuccess)
-				return hr;
-			hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpName->lpguid));
-			if (hr != hrSuccess)
-				return hr;
-			lpName->ulKind = MNID_ID;
-			memcpy(lpName->lpguid, &sLocalNames[i].guid, sizeof(GUID));
-			lpName->Kind.lID = sLocalNames[i].ulMin + (ulId - sLocalNames[i].ulMappedId);
-
-			break;
-		}
+		bool y = (lpGuid == nullptr || memcmp(&sLocalNames[i].guid, lpGuid, sizeof(GUID)) == 0) &&
+		         ulId >= sLocalNames[i].ulMappedId &&
+		         ulId < sLocalNames[i].ulMappedId + (sLocalNames[i].ulMax - sLocalNames[i].ulMin + 1);
+		if (!y)
+			continue;
+		// Found it !
+		auto hr = ECAllocateMore(sizeof(MAPINAMEID), lpBase, reinterpret_cast<void **>(&lpName));
+		if (hr != hrSuccess)
+			return hr;
+		hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpName->lpguid));
+		if (hr != hrSuccess)
+			return hr;
+		lpName->ulKind = MNID_ID;
+		memcpy(lpName->lpguid, &sLocalNames[i].guid, sizeof(GUID));
+		lpName->Kind.lID = sLocalNames[i].ulMin + (ulId - sLocalNames[i].ulMappedId);
+		break;
 	}
 	if (lpName == NULL)
 		return MAPI_E_NOT_FOUND;
