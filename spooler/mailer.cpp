@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include "mailer.h"
 #include "archive.h"
 
@@ -2337,11 +2338,8 @@ exit:
 	if (hr != MAPI_W_NO_SERVICE && hr != MAPI_E_WAIT) {
 		if (lpMsgEntryId && lpUserStore)
 			PostSendProcessing(cbMsgEntryId, lpMsgEntryId, lpUserStore);
-	
-		if (bDoSentMail && lpUserSession && lpMessage) {
-			DoSentMail(NULL, lpUserStore, 0, lpMessage);
-			lpMessage.release(); // fed into DoSentMail
-		}
+		if (bDoSentMail && lpUserSession && lpMessage)
+			DoSentMail(NULL, lpUserStore, 0, std::move(lpMessage));
 	}
 	return hr;
 }

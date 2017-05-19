@@ -32,6 +32,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
+#include <utility>
 #include "mailer.h"
 #include <climits>
 #include <cstdio>
@@ -455,7 +456,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 
 			// move mail to sent items folder
 			if (sSendData.ulFlags & EC_SUBMIT_DOSENTMAIL && lpMessage) {
-				hr = DoSentMail(lpAdminSession, lpUserStore, 0, lpMessage);
+				hr = DoSentMail(lpAdminSession, lpUserStore, 0, std::move(lpMessage));
 				if (hr != hrSuccess)
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to move sent mail to sent-items folder: %s (%x)",
 						GetMAPIErrorMessage(hr), hr);
@@ -738,14 +739,17 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 
 		std::unique_lock<std::mutex> lk(hMutexMessagesWaiting);
 		if(!bMessagesWaiting) {
+			auto target = std::chrono::steady_clock::now() + std::chrono::seconds(60);
 			while (!bMessagesWaiting) {
-				auto s = hCondMessagesWaiting.wait_for(lk, std::chrono::seconds(60));
+				auto s = hCondMessagesWaiting.wait_until(lk, target);
 				if (s == std::cv_status::timeout || bMessagesWaiting || bQuit || nReload)
 					break;
 
 				// not timed out, no messages waiting, not quit requested, no table reload required:
 				// we were triggered for a cleanup call.
+				lk.unlock();
 				CleanFinishedMessages(lpAdminSession, lpSpooler);
+				lk.lock();
 			}
 		}
 		lk.unlock();
