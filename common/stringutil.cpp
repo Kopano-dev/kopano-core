@@ -598,7 +598,7 @@ bool kc_ends_with(const std::string &full, const std::string &prefix)
 	size_t fz = full.size(), pz = prefix.size();
 	if (fz < pz)
 		 return false;
-	return full.compare(fz - pz, pz, prefix);
+	return full.compare(fz - pz, pz, prefix) == 0;
 }
 
 static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
