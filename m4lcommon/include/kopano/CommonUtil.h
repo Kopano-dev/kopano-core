@@ -24,7 +24,7 @@
 #include <mapix.h>
 #include <string>
 #include <kopano/ECTags.h>
-
+#include <kopano/memory.hpp>
 #include <kopano/ustringutil.h>
 
 // Version of GetClientVersion
@@ -51,7 +51,7 @@ extern _kc_export HRESULT ECParseOneOff(const ENTRYID *eid, ULONG eid_size, std:
 extern _kc_export std::string ToQuotedPrintable(const std::string &s, const std::string &charset, bool header = true, bool imap = false);
 extern _kc_export HRESULT HrNewMailNotification(IMsgStore *, IMessage *);
 extern _kc_export HRESULT HrCreateEmailSearchKey(const char *type, const char *addr, ULONG *size, LPBYTE *out);
-extern _kc_export HRESULT DoSentMail(IMAPISession *, IMsgStore *, ULONG flags, IMessage *);
+extern _kc_export HRESULT DoSentMail(IMAPISession *, IMsgStore *, ULONG flags, KCHL::object_ptr<IMessage>);
 extern _kc_export HRESULT GetClientVersion(unsigned int *);
 extern _kc_export HRESULT OpenSubFolder(LPMDB, const wchar_t *folder, wchar_t psep, bool is_public, bool create_folder, LPMAPIFOLDER *subfolder);
 extern _kc_export HRESULT HrOpenDefaultCalendar(LPMDB, LPMAPIFOLDER *default_folder);

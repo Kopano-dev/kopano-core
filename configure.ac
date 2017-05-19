@@ -21,8 +21,9 @@ AC_PROG_INSTALL
 AC_PROG_SED
 PKG_PROG_PKG_CONFIG
 
-PACKAGE_ABI=$($SED 's/\([[0-9]][[0-9]]*\.[[0-9]][[0-9]]*\).*/\1/' <version.in)
+PACKAGE_ABI=$($SED 's/\([[0-9]][[0-9]]*\.[[0-9]][[0-9]]*\).*/\1/' <"$srcdir/version.in")
 AC_SUBST([PACKAGE_ABI])
+AS_IF([test -z "$PACKAGE_ABI"], [AC_MSG_ERROR([Something was not right with a sed call of ours])])
 abs_top_srcdir=`cd $srcdir; pwd`
 abs_top_builddir=`pwd`
 
