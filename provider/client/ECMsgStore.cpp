@@ -1023,14 +1023,7 @@ HRESULT ECMsgStore::FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntr
 	hr = SetLockState(lpMessage, MSG_UNLOCKED);
 	if(hr != hrSuccess)
 		return hr;
-
-	// Information: DoSentMail released object lpMessage
-	hr = lpSupport->DoSentMail(0, lpMessage);
-
-	if(hr != hrSuccess)
-		return hr;
-	lpMessage.release(); /* was fed into DoSentMail */
-	return hrSuccess;
+	return lpSupport->DoSentMail(0, lpMessage);
 }
 
 HRESULT ECMsgStore::NotifyNewMail(LPNOTIFICATION lpNotification)

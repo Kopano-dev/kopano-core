@@ -32,6 +32,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
+#include <utility>
 #include "mailer.h"
 #include <climits>
 #include <cstdio>
@@ -455,7 +456,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 
 			// move mail to sent items folder
 			if (sSendData.ulFlags & EC_SUBMIT_DOSENTMAIL && lpMessage) {
-				hr = DoSentMail(lpAdminSession, lpUserStore, 0, lpMessage);
+				hr = DoSentMail(lpAdminSession, lpUserStore, 0, std::move(lpMessage));
 				if (hr != hrSuccess)
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to move sent mail to sent-items folder: %s (%x)",
 						GetMAPIErrorMessage(hr), hr);

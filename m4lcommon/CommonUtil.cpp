@@ -1459,7 +1459,9 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, 
 	return hrSuccess;
 }
 
-HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags, LPMESSAGE lpMessage) {
+HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
+    ULONG ulFlags, object_ptr<IMessage> lpMessage)
+{
 	HRESULT			hr = hrSuccess;
 	object_ptr<IMsgStore> lpMDB;
 	object_ptr<IMAPIFolder> lpFolder;
@@ -1486,20 +1488,15 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 		(lpPropValue[DSM_SENTMAIL_ENTRYID].ulPropTag != PR_SENTMAIL_ENTRYID && 
 		lpPropValue[DSM_DELETE_AFTER_SUBMIT].ulPropTag != PR_DELETE_AFTER_SUBMIT)
 	  )
-	{
-		lpMessage->Release();
 		// Ignore error, leave the mail where it is
 		return hrSuccess;
-	}else if(lpPropValue[DSM_ENTRYID].ulPropTag != PR_ENTRYID || 
+	else if (lpPropValue[DSM_ENTRYID].ulPropTag != PR_ENTRYID ||
 			 lpPropValue[DSM_PARENT_ENTRYID].ulPropTag != PR_PARENT_ENTRYID ||
 			 lpPropValue[DSM_STORE_ENTRYID].ulPropTag != PR_STORE_ENTRYID)
-	{
-		// Those properties always needed
-		lpMessage->Release();
+		// Those properties are always needed
 		return MAPI_E_NOT_FOUND;
-	}
 
-	lpMessage->Release(); // Yes, we release the message for the caller
+	lpMessage.reset();
 
 	if (lpMDBParam == NULL)
 		hr = lpSession->OpenMsgStore(0, lpPropValue[DSM_STORE_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue[DSM_STORE_ENTRYID].Value.bin.lpb), nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL |MDB_TEMPORARY, &~lpMDB);
