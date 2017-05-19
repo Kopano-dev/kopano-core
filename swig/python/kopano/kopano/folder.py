@@ -76,18 +76,32 @@ class Folder(Base):
             self.store = store
             self.server = store.server
         if mapiobj:
-            self.mapiobj = mapiobj
+            self._mapiobj = mapiobj
             self._entryid = HrGetOneProp(self.mapiobj, PR_ENTRYID).Value
         elif entryid:
             self._entryid = _unhex(entryid)
-            try:
-                self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
-            except MAPIErrorNotFound:
-                self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
-            except MAPIErrorNoAccess: # XXX XXX
-                self.mapiobj = store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
+
         self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
         self._sourcekey = None
+        self._mapiobj = None
+
+    @property
+    def mapiobj(self):
+        if self._mapiobj:
+            return self._mapiobj
+
+        try:
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
+        except MAPIErrorNotFound:
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
+        except MAPIErrorNoAccess: # XXX XXX
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
+
+        return self._mapiobj
+
+    @mapiobj.setter
+    def mapiobj(self, mapiobj):
+        self._mapiobj = mapiobj
 
     @property
     def entryid(self):
@@ -186,7 +200,7 @@ class Folder(Base):
         """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
 
         mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
-        item = _item.Item(self.store, mapiobj=mapiobj) # XXX copy-pasting..
+        item = _item.Item(self, mapiobj=mapiobj) # XXX copy-pasting..
         return item
 
     def items(self, restriction=None):
@@ -209,11 +223,10 @@ class Folder(Base):
         table.sort(-1 * PR_MESSAGE_DELIVERY_TIME)
 
         for row in table.rows():
-            mapiobj = _utils.openentry_raw(
-                self.store.mapiobj,
-                row[0].value, MAPI_MODIFY | self.content_flag
+            item = _item.Item(
+                self, entryid=row[0].value,
+                content_flag=self.content_flag
             )
-            item = _item.Item(self.store, mapiobj=mapiobj)
             yield item
 
     def occurrences(self, start=None, end=None):
@@ -442,11 +455,7 @@ class Folder(Base):
         children = collections.defaultdict(list)
 
         for row in table.rows():
-            try:
-                mapiobj = self.mapiobj.OpenEntry(row[0].value, None, MAPI_MODIFY | self.content_flag)
-            except MAPIErrorNoAccess:
-                mapiobj = self.mapiobj.OpenEntry(row[0].value, None, self.content_flag)
-            folder = Folder(self.store, mapiobj=mapiobj)
+            folder = Folder(self.store, _hex(row[0].value))
             folders[_hex(row[0].value)] = folder, _hex(row[1].value)
             names[_hex(row[0].value)] = row[2].value
             children[_hex(row[1].value)].append((_hex(row[0].value), folder))
