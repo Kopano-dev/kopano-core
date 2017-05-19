@@ -22,6 +22,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
+#include <string>
 
 /* Include common MAPI header files if they haven't been already. */
 #include <mapidefs.h>
@@ -268,5 +269,12 @@ class IMsgServiceAdmin2 : public IMsgServiceAdmin {
 	public:
 	virtual HRESULT CreateMsgServiceEx(const char *service, const char *display_name, ULONG_PTR ui_param, ULONG flags, MAPIUID *out) = 0;
 };
+
+namespace KC {
+
+extern _kc_export HRESULT kc_session_save(IMAPISession *, std::string &);
+extern _kc_export HRESULT kc_session_restore(const std::string &, IMAPISession **);
+
+}
 
 #endif /* MAPIX_H */

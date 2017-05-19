@@ -19,6 +19,7 @@
 #define __M4L_MAPIX_IMPL_H
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <mutex>
 #include "m4l.common.h"
 #include "m4l.mapidefs.h"
@@ -30,40 +31,42 @@
 #include <map>
 
 #include <kopano/ECConfig.h>
+#include <kopano/memory.hpp>
 
 class M4LMsgServiceAdmin;
+namespace KC {
+class SessionRestorer;
+}
 
 struct providerEntry {
 	MAPIUID uid;
 	std::string servicename; // this provider belongs to service 'servicename'
-	M4LProfSect *profilesection;
+	KCHL::object_ptr<M4LProfSect> profilesection;
 };
 
 struct serviceEntry {
     MAPIUID muid;
 	std::string servicename, displayname;
-	M4LProviderAdmin *provideradmin;
+	KCHL::object_ptr<M4LProviderAdmin> provideradmin;
 	bool bInitialize;
 	SVCService* service;
 };
 
 struct profEntry {
 	std::string profname, password;
-    M4LMsgServiceAdmin *serviceadmin;
+	KCHL::object_ptr<M4LMsgServiceAdmin> serviceadmin;
 };
 
 class M4LProfAdmin _kc_final : public M4LUnknown, public IProfAdmin {
 private:
     // variables
-	std::list<profEntry *> profiles;
+	std::list<std::unique_ptr<profEntry> > profiles;
 	std::recursive_mutex m_mutexProfiles;
 
     // functions
     decltype(profiles)::iterator findProfile(const TCHAR *name);
 
 public:
-    virtual ~M4LProfAdmin();
-
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
     virtual HRESULT __stdcall GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable);
 	virtual HRESULT __stdcall CreateProfile(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags);
@@ -78,13 +81,15 @@ public:
 	virtual ULONG __stdcall AddRef(void) _kc_override;
 	virtual ULONG __stdcall Release(void) _kc_override;
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+
+	friend class KC::SessionRestorer;
 };
 
 class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin2 {
 private:
-	std::list<providerEntry *> providers;
-	std::list<serviceEntry *> services;
-	M4LProfSect	*profilesection;  // Global Profile Section
+	std::list<std::unique_ptr<providerEntry> > providers;
+	std::list<std::unique_ptr<serviceEntry> > services;
+	KCHL::object_ptr<M4LProfSect> profilesection; // Global Profile Section
 	std::recursive_mutex m_mutexserviceadmin;
 
     // functions
@@ -94,8 +99,6 @@ private:
 
 public:
     M4LMsgServiceAdmin(M4LProfSect *profilesection);
-    virtual ~M4LMsgServiceAdmin();
-
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
     virtual HRESULT __stdcall GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable);
 	virtual HRESULT __stdcall CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG_PTR ui_param, ULONG flags);
@@ -117,6 +120,7 @@ public:
 
 	friend class M4LProviderAdmin;
 	friend class M4LMAPISession;
+	friend class KC::SessionRestorer;
 };
 
 inline bool operator <(const GUID &a, const GUID &b) {
@@ -127,7 +131,7 @@ class M4LMAPISession _kc_final : public M4LUnknown, public IMAPISession {
 private:
 	// variables
 	std::string profileName;
-	M4LMsgServiceAdmin *serviceAdmin;
+	KCHL::object_ptr<M4LMsgServiceAdmin> serviceAdmin;
 
 public:
 	M4LMAPISession(const TCHAR *profname, M4LMsgServiceAdmin *);

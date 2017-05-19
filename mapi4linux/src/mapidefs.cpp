@@ -16,7 +16,9 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <new>
+#include <utility>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include "m4l.mapidefs.h"
@@ -702,7 +704,7 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		goto exit;
 	
 	// Loop through all providers, add each to the table
-	for (auto prov : msa->providers) {
+	for (auto &prov : msa->providers) {
 		memory_ptr<SPropValue> lpsProps, lpDest;
 
 		if (szService != NULL &&
@@ -755,7 +757,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	ULONG nProps = 0;
 	const SPropValue *lpResource = nullptr;
 	memory_ptr<SPropValue> lpsPropValProfileName;
-	providerEntry *entry = NULL;
+	std::unique_ptr<providerEntry> entry;
 	serviceEntry* lpService = NULL;
 	SVCProvider* lpProvider = NULL;
 	ULONG cProviderProps = 0;
@@ -779,17 +781,16 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 		hr = MAPI_E_NO_ACCESS;
 		goto exit;
 	}
-
-	entry = new providerEntry;
-
-	entry->profilesection = new(std::nothrow) M4LProfSect();
-	if(!entry->profilesection) {
-		delete entry;
-		entry = NULL;
+	entry.reset(new(std::nothrow) providerEntry);
+	if (entry == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
-	entry->profilesection->AddRef();
+	entry->profilesection.reset(new(std::nothrow) M4LProfSect);
+	if(!entry->profilesection) {
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
 	
 	// Set the default profilename
 	hr = HrGetOneProp((IProfSect*)msa->profilesection, PR_PROFILE_NAME_A, &~lpsPropValProfileName);
@@ -849,25 +850,14 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 		goto exit;
 
 	entry->servicename = szService;
-		
-	msa->providers.push_back(entry);
-
 	if(lpUID)
 		*lpUID = entry->uid;
-
-	entry = NULL;
-
+	msa->providers.push_back(std::move(entry));
 	// We should really call the MSGServiceEntry with MSG_SERVICE_PROVIDER_CREATE, but there
 	// isn't much use at the moment. (since we don't store the profile data on disk? or why not?)
 	// another rumor is that that is only called once per service, not once per created provider. huh?
-	
 exit:
 	l_srv.unlock();
-	if (entry) {
-		if (entry->profilesection)
-			entry->profilesection->Release();
-		delete entry;
-	}
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::CreateProvider", "0x%08x", hr);
 	return hr;
 }
@@ -876,12 +866,10 @@ HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
 {
 	HRESULT hr = MAPI_E_NOT_FOUND;	
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::DeleteProvider", "");
-	list<providerEntry*>::iterator i;
+	decltype(msa->providers)::iterator i;
 	
 	for (i = msa->providers.begin(); i != msa->providers.end(); ++i) {
 		if(memcmp(&(*i)->uid, lpUID, sizeof(MAPIUID)) == 0) {
-			(*i)->profilesection->Release();
-			delete *i;
 			msa->providers.erase(i);
 			hr = hrSuccess;
 			break;

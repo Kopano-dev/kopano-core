@@ -17,9 +17,11 @@
 
 #include <kopano/platform.h>
 #include <exception>
+#include <memory>
 #include <mutex>
 #include <new>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 #include <cerrno>
 #include <cstddef>
@@ -56,6 +58,30 @@
 
 using namespace std;
 using namespace KCHL;
+
+namespace KC {
+
+class SessionRestorer _kc_final {
+	public:
+	HRESULT restore_profile(const std::string &, IMAPISession **);
+
+	private:
+	HRESULT restore_propvals(SPropValue **, ULONG &);
+	HRESULT restore_services(IProfAdmin *);
+	HRESULT restore_providers();
+
+	std::string::const_iterator m_input;
+	size_t m_left;
+	std::string m_profname;
+	KCHL::object_ptr<M4LMsgServiceAdmin> m_svcadm;
+};
+
+class SessionSaver _kc_final {
+	public:
+	static HRESULT save_profile(IMAPISession *, std::string &);
+};
+
+} /* namespace */
 
 enum mapibuf_ident {
 	/*
@@ -146,20 +172,10 @@ static void HrFreeM4LServices(void)
 // ---
 // M4LProfAdmin
 // ---
-M4LProfAdmin::~M4LProfAdmin() {
-	std::list<profEntry *>::const_iterator i;
-	scoped_rlock l_prof(m_mutexProfiles);
-
-	for (i = profiles.begin(); i != profiles.end(); ++i) {
-		(*i)->serviceadmin->Release();
-		delete *i;
-	}
-    profiles.clear();
-}
-
-std::list<profEntry *>::iterator M4LProfAdmin::findProfile(const TCHAR *name)
+decltype(M4LProfAdmin::profiles)::iterator
+M4LProfAdmin::findProfile(const TCHAR *name)
 {
-	std::list<profEntry *>::iterator i;
+	decltype(profiles)::iterator i;
 
 	for (i = profiles.begin(); i != profiles.end(); ++i)
 		if ((*i)->profname == reinterpret_cast<const char *>(name))
@@ -204,7 +220,7 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	if(hr != hrSuccess)
 		goto exit;
 
-	for (auto prof : profiles) {
+	for (auto &prof : profiles) {
 		sProps[0].ulPropTag = PR_DEFAULT_PROFILE;
 		sProps[0].Value.b = false; //FIXME: support setDefaultProfile
 
@@ -262,8 +278,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "M4LProfAdmin::CreateProfile", "profilename=%s", (char*)lpszProfileName);
     HRESULT hr = hrSuccess;
-    list<profEntry*>::const_iterator i;
-    profEntry* entry = NULL;
+	std::unique_ptr<profEntry> entry;
 	object_ptr<M4LProfSect> profilesection;
 	SPropValue sPropValue;
 	ulock_rec l_prof(m_mutexProfiles);
@@ -273,15 +288,12 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-    
-    i = findProfile(lpszProfileName);
-	if (i != profiles.cend()) {
+	if (findProfile(lpszProfileName) != profiles.cend()) {
 		ec_log_err("M4LProfAdmin::CreateProfile(): duplicate profile name");
 		hr = MAPI_E_NO_ACCESS;	// duplicate profile name
 		goto exit;
     }
-
-    entry = new(std::nothrow) profEntry;
+	entry.reset(new(std::nothrow) profEntry);
     if (!entry) {
 		ec_log_crit("M4LProfAdmin::CreateProfile(): ENOMEM");
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -296,26 +308,20 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 	hr = profilesection->SetProps(1 ,&sPropValue, NULL);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LProfAdmin::CreateProfile(): SetProps failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		delete entry;
 		goto exit;
 	}
-
-    entry->serviceadmin = new(std::nothrow) M4LMsgServiceAdmin(profilesection);
+	entry->serviceadmin.reset(new(std::nothrow) M4LMsgServiceAdmin(profilesection));
     if (!entry->serviceadmin) {
-		delete entry;
 		ec_log_err("M4LProfAdmin::CreateProfile(): M4LMsgServiceAdmin failed");
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
     }
-    entry->serviceadmin->AddRef();
 
     // enter data
     entry->profname = (char*)lpszProfileName;
     if (lpszPassword)
 		entry->password = (char*)lpszPassword;
-
-    profiles.push_back(entry);
-    
+	profiles.push_back(std::move(entry));
 exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfAdmin::CreateProfile", "0x%08x", hr);
     return hr;
@@ -336,13 +342,10 @@ HRESULT M4LProfAdmin::DeleteProfile(const TCHAR *lpszProfileName, ULONG ulFlags)
 	scoped_rlock l_prof(m_mutexProfiles);
     
 	auto i = findProfile(lpszProfileName);
-	if (i != profiles.cend()) {
-		(*i)->serviceadmin->Release();
-		delete *i;
+	if (i != profiles.cend())
 		profiles.erase(i);
-    } else {
-        hr = MAPI_E_NOT_FOUND;
-    }
+	else
+		hr = MAPI_E_NOT_FOUND;
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfAdmin::DeleteProfile", "0x%08x", hr);
     return hr;
 }
@@ -402,7 +405,7 @@ HRESULT M4LProfAdmin::AdminServices(const TCHAR *lpszProfileName,
 {
 	TRACE_MAPILIB2(TRACE_ENTRY, "M4LProfAdmin::AdminServices", "name=%s - password=%s", (char*)lpszProfileName, (lpszPassword)?(char*)lpszPassword:"NULL");
     HRESULT hr = hrSuccess;									
-    list<profEntry*>::const_iterator i;
+	decltype(profiles)::const_iterator i;
 	scoped_rlock l_prof(m_mutexProfiles);
 
     if(lpszProfileName == NULL) {
@@ -462,51 +465,32 @@ HRESULT M4LProfAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---
 // IMsgServceAdmin
 // ---
-M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *profilesection) {
-	this->profilesection = profilesection;
-
-	profilesection->AddRef();
+M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *ps) :
+	profilesection(ps)
+{
 }
 
-M4LMsgServiceAdmin::~M4LMsgServiceAdmin() {
-	scoped_rlock l_srv(m_mutexserviceadmin);
-
-	for (auto serv : services) {
-		serv->provideradmin->Release();
-		delete serv;
-	}
-	for (auto prov : providers) {
-		prov->profilesection->Release();
-		delete prov;
-	}
-    
-    services.clear();
-    providers.clear();
-
-	profilesection->Release();
-}
-    
 serviceEntry *M4LMsgServiceAdmin::findServiceAdmin(const TCHAR *name)
 {
-	for (auto serv : services)
+	for (auto &serv : services)
 		if (serv->servicename == reinterpret_cast<const char *>(name))
-			return serv;
+			return serv.get();
 	return NULL;
 }
 
 serviceEntry *M4LMsgServiceAdmin::findServiceAdmin(const MAPIUID *lpMUID)
 {
-	for (auto serv : services)
+	for (auto &serv : services)
 		if (memcmp(&serv->muid, lpMUID, sizeof(MAPIUID)) == 0)
-			return serv;
+			return serv.get();
 	return NULL;
 }
 
 providerEntry *M4LMsgServiceAdmin::findProvider(const MAPIUID *lpUid)
 {
-	for (auto prov : providers)
+	for (auto &prov : providers)
 		if (memcmp(&prov->uid,lpUid,sizeof(MAPIUID)) == 0)
-			return prov;
+			return prov.get();
 	return NULL;
 }
 
@@ -552,7 +536,7 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	}
 	
 	// Loop through all providers, add each to the table
-	for (auto serv : services) {
+	for (auto &serv : services) {
 		sProps[0].ulPropTag = PR_SERVICE_UID;
 		sProps[0].Value.bin.lpb = reinterpret_cast<BYTE *>(&serv->muid);
 		sProps[0].Value.bin.cb = sizeof(GUID);
@@ -624,7 +608,8 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::CreateMsgService", "");
 	HRESULT hr = hrSuccess;
-	serviceEntry* entry = NULL;
+	std::unique_ptr<serviceEntry> entry;
+	serviceEntry *rawent;
 	SVCService* service = NULL;
 	const SPropValue *lpProp = NULL;
 	scoped_rlock l_srv(m_mutexserviceadmin);
@@ -648,29 +633,23 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 	}
 
 	// Create a Kopano message service
-	entry = findServiceAdmin(reinterpret_cast<const TCHAR *>(lpszService));
-	if (entry) {
+	if (findServiceAdmin(reinterpret_cast<const TCHAR *>(lpszService)) != nullptr) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): service already exists %x: %s", hr, GetMAPIErrorMessage(hr));
 		hr = MAPI_E_NO_ACCESS; // already exists
 		goto exit;
 	}
-
-	entry = new(std::nothrow) serviceEntry;
+	entry.reset(new(std::nothrow) serviceEntry);
 	if (!entry) {
 		ec_log_crit("M4LMsgServiceAdmin::CreateMsgService(): ENOMEM");
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
-
-	entry->provideradmin = new(std::nothrow) M4LProviderAdmin(this, lpszService);
+	entry->provideradmin.reset(new(std::nothrow) M4LProviderAdmin(this, lpszService));
 	if (!entry->provideradmin) {
 		ec_log_crit("M4LMsgServiceAdmin::CreateMsgService(): ENOMEM(2)");
-		delete entry;
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
-	entry->provideradmin->AddRef();
-
 	entry->servicename = (char*)lpszService;
 	lpProp = service->GetProp(PR_DISPLAY_NAME_A);
 	entry->displayname = lpProp ? lpProp->Value.lpszA : (char*)lpszService;
@@ -679,13 +658,12 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 	if (uid != nullptr)
 		*uid = entry->muid;
 	entry->service = service;
-    
-	services.push_back(entry);
-
+	rawent = entry.get();
+	/* @entry needs to be in the list for CreateProviders() to find it */
+	services.push_back(std::move(entry));
 	// calls entry->provideradmin->CreateProvider for each provider read from mapisvc.inf
-	hr = service->CreateProviders(entry->provideradmin);
-
-	entry->bInitialize = false;
+	hr = service->CreateProviders(rawent->provideradmin);
+	rawent->bInitialize = false;
 exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMsgServiceAdmin::CreateMsgService", "0x%08x", hr);
     return hr;
@@ -703,18 +681,14 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::DeleteMsgService", "");
 	HRESULT hr = hrSuccess;
 	string name;
-	
-    list<serviceEntry*>::iterator i;
-    list<providerEntry*>::iterator p;
-    list<providerEntry*>::iterator pNext;
+	decltype(services)::iterator i;
+	decltype(providers)::iterator p, pNext;
 	scoped_rlock l_srv(m_mutexserviceadmin);
 
 	for (i = services.begin(); i != services.end(); ++i) {
 		if (memcmp(&(*i)->muid, lpUID, sizeof(MAPIUID)) != 0)
 			continue;
 		name = (*i)->servicename;
-		(*i)->provideradmin->Release();
-		delete *i;
 		services.erase(i);
 		break;
 	}
@@ -731,8 +705,6 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 			continue;
 		pNext = p;
 		++pNext;
-		(*p)->profilesection->Release();
-		delete *p;
 		providers.erase(p);
 		p = pNext;
     }
@@ -948,7 +920,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 												   PR_PROVIDER_DISPLAY_A, PR_SERVICE_UID}};
 	ulock_rec l_srv(m_mutexserviceadmin);
 	
-	for (auto serv : services) {
+	for (auto &serv : services) {
 		if (serv->bInitialize)
 			continue;
 		hr = serv->service->MSGServiceEntry()(0, NULL, NULL, 0,
@@ -974,7 +946,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 	}
 	
 	// Loop through all providers, add each to the table
-	for (auto prov : providers) {
+	for (auto &prov : providers) {
 		memory_ptr<SPropValue> lpDest, lpsProps;
 
 		hr = prov->profilesection->GetProps(lpPropTagArray, 0, &cValues, &~lpsProps);
@@ -1050,19 +1022,15 @@ HRESULT M4LMsgServiceAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---
 // M4LMAPISession
 // ---
-M4LMAPISession::M4LMAPISession(const TCHAR *new_profileName,
-    M4LMsgServiceAdmin *new_serviceAdmin)
+M4LMAPISession::M4LMAPISession(const TCHAR *pn, M4LMsgServiceAdmin *sa) :
+	profileName(reinterpret_cast<const char *>(pn)), serviceAdmin(sa)
 {
-	profileName = reinterpret_cast<const char *>(new_profileName);
-	serviceAdmin = new_serviceAdmin;
-	serviceAdmin->AddRef();
 }
 
 M4LMAPISession::~M4LMAPISession() {
 	for (const auto &p : mapStores)
 		p.second->Release();
 	MAPIFreeBuffer(m_lpPropsStatus);
-	serviceAdmin->Release();
 }
 
 HRESULT M4LMAPISession::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
@@ -1108,7 +1076,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	}
 	
 	// Loop through all providers, add each to the table
-	for (auto prov : serviceAdmin->providers) {
+	for (auto &prov : serviceAdmin->providers) {
 		memory_ptr<SPropValue> lpDest, lpsProps;
 
 		hr = prov->profilesection->GetProps(lpPropTagArray, 0, &cValues, &~lpsProps);
@@ -1320,7 +1288,7 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
 		goto exit;
 	}
 
-	for (auto serv : serviceAdmin->services) {
+	for (auto &serv : serviceAdmin->services) {
 		if (serv->service->ABProviderInit() == NULL)
 			continue;
 
@@ -3006,3 +2974,340 @@ void __stdcall MAPIUninitialize(void) {
 	}
 	TRACE_MAPILIB2(TRACE_RETURN, "MAPIUninitialize", "%d, 0x%08x", _MAPIInitializeCount, hrSuccess);
 }
+
+namespace KC {
+
+static HRESULT kc_sesave_propvals(const SPropValue *pv, unsigned int n, std::string &serout)
+{
+#define RC(p) reinterpret_cast<const char *>(p)
+	serout.append(RC(&n), sizeof(n));
+	for (unsigned int i = 0; i < n; ++i) {
+		const SPropValue &p = pv[i];
+		uint32_t z;
+		serout.append(RC(&p.ulPropTag), sizeof(p.ulPropTag));
+		switch (PROP_TYPE(p.ulPropTag)) {
+		case PT_BOOLEAN:
+			serout.append(RC(&p.Value.b), sizeof(p.Value.b));
+			break;
+		case PT_LONG:
+			serout.append(RC(&p.Value.ul), sizeof(p.Value.ul));
+			break;
+		case PT_STRING8:
+			z = strlen(p.Value.lpszA);
+			serout.append(RC(&z), sizeof(z));
+			serout.append(p.Value.lpszA, z);
+			break;
+		case PT_UNICODE:
+			z = wcslen(p.Value.lpszW) * sizeof(wchar_t);
+			serout.append(RC(&z), sizeof(z));
+			serout.append(RC(p.Value.lpszW), z);
+			break;
+		case PT_BINARY:
+			serout.append(RC(&p.Value.bin.cb), sizeof(p.Value.bin.cb));
+			serout.append(RC(p.Value.bin.lpb), p.Value.bin.cb);
+			break;
+		case PT_ERROR:
+			break;
+		default:
+			/* Some datatype not anticipated yet */
+			return MAPI_E_NO_SUPPORT;
+		}
+	}
+	return hrSuccess;
+#undef S
+}
+
+static HRESULT kc_sesave_profsect(IProfSect *sect, std::string &serout)
+{
+	memory_ptr<SPropValue> props;
+	ULONG nprops = 0;
+	auto ret = sect->GetProps(nullptr, 0, &nprops, &~props);
+	if (ret != hrSuccess)
+		return ret;
+	return kc_sesave_propvals(props, nprops, serout);
+}
+
+/**
+ * Serialize the profile configuration of a session into a blob for
+ * later restoration. The blob is specific to the host that generated
+ * it and can only be reused there.
+ */
+HRESULT kc_session_save(IMAPISession *ses, std::string &serout)
+{
+	serout.reserve(1536);
+	object_ptr<IMsgServiceAdmin> svcadm;
+	auto ret = ses->AdminServices(0, &~svcadm);
+	if (ret != hrSuccess)
+		return ret;
+	object_ptr<IMAPITable> table;
+	ret = svcadm->GetMsgServiceTable(0, &~table);
+	if (ret != hrSuccess)
+		return ret;
+	rowset_ptr rows;
+	object_ptr<IProfSect> sect;
+	while (true) {
+		ret = table->QueryRows(1, 0, &~rows);
+		if (ret != hrSuccess || rows->cRows == 0)
+			break;
+		serout += "S"; /* service start marker */
+		ret = kc_sesave_propvals(rows->aRow[0].lpProps, rows->aRow[0].cValues, serout);
+		if (ret != hrSuccess)
+			return ret;
+		ret = svcadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(pbGlobalProfileSectionGuid), nullptr, 0, &~sect);
+		if (ret != hrSuccess)
+			return ret;
+		ret = kc_sesave_profsect(sect, serout);
+		if (ret != hrSuccess)
+			return ret;
+	}
+	ret = svcadm->GetProviderTable(0, &~table);
+	if (ret != hrSuccess)
+		return ret;
+	while (true) {
+		ret = table->QueryRows(1, 0, &~rows);
+		if (ret != hrSuccess)
+			return ret;
+		if (rows->cRows == 0)
+			break;
+		auto provuid_prop = PCpropFindProp(rows->aRow[0].lpProps, rows->aRow[0].cValues, PR_PROVIDER_UID);
+		if (provuid_prop == nullptr)
+			continue;
+		serout += "P"; /* provider start marker */
+		ret = kc_sesave_propvals(rows->aRow[0].lpProps, rows->aRow[0].cValues, serout);
+		if (ret != hrSuccess)
+			return ret;
+		ret = svcadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(provuid_prop->Value.bin.lpb), nullptr, 0, &~sect);
+		if (ret != hrSuccess)
+			return ret;
+		ret = kc_sesave_profsect(sect, serout);
+		if (ret != hrSuccess)
+			return ret;
+	}
+	return hrSuccess;
+}
+#undef RC
+
+HRESULT SessionRestorer::restore_propvals(SPropValue **prop_ret, ULONG &nprops)
+{
+	if (m_left < sizeof(nprops))
+		return MAPI_E_CORRUPT_DATA;
+	memcpy(&nprops, &*m_input, sizeof(nprops));
+	m_input += sizeof(nprops);
+	m_left -= sizeof(nprops);
+	auto ret = MAPIAllocateBuffer(sizeof(**prop_ret) * nprops, reinterpret_cast<void **>(prop_ret));
+	if (ret != hrSuccess)
+		return ret;
+	for (unsigned int i = 0; i < nprops; ++i) {
+		auto pv = (*prop_ret) + i;
+		uint32_t z;
+		if (m_left < sizeof(pv->ulPropTag))
+			return MAPI_E_CORRUPT_DATA;
+		memcpy(&pv->ulPropTag, &*m_input, sizeof(pv->ulPropTag));
+		m_input += sizeof(pv->ulPropTag);
+		m_left -= sizeof(pv->ulPropTag);
+		switch (PROP_TYPE(pv->ulPropTag)) {
+		case PT_BOOLEAN:
+			if (m_left < sizeof(pv->Value.b))
+				return MAPI_E_CORRUPT_DATA;
+			memcpy(&pv->Value.b, &*m_input, sizeof(pv->Value.b));
+			m_input += sizeof(pv->Value.b);
+			m_left -= sizeof(pv->Value.b);
+			break;
+		case PT_LONG:
+			if (m_left < sizeof(pv->Value.ul))
+				return MAPI_E_CORRUPT_DATA;
+			memcpy(&pv->Value.ul, &*m_input, sizeof(pv->Value.ul));
+			m_input += sizeof(pv->Value.ul);
+			m_left -= sizeof(pv->Value.ul);
+			break;
+		case PT_STRING8: /* little overallocate, nevermind */
+		case PT_UNICODE:
+			if (m_left < sizeof(z))
+				return MAPI_E_CORRUPT_DATA;
+			memcpy(&z, &*m_input, sizeof(z));
+			m_input += sizeof(z);
+			m_left -= sizeof(z);
+			if (m_left < z)
+				return MAPI_E_CORRUPT_DATA;
+			ret = MAPIAllocateMore(z + sizeof(wchar_t), *prop_ret, reinterpret_cast<void **>(&pv->Value.lpszA));
+			if (ret != hrSuccess)
+				return ret;
+			memcpy(pv->Value.lpszA, &*m_input, z);
+			memcpy(&pv->Value.lpszA[z], L"", sizeof(wchar_t));
+			m_input += z;
+			m_left -= z;
+			break;
+		case PT_BINARY:
+			if (m_left < sizeof(pv->Value.bin.cb))
+				return MAPI_E_CORRUPT_DATA;
+			memcpy(&pv->Value.bin.cb, &*m_input, sizeof(pv->Value.bin.cb));
+			m_input += sizeof(pv->Value.bin.cb);
+			m_left -= sizeof(pv->Value.bin.cb);
+			if (m_left < pv->Value.bin.cb)
+				return MAPI_E_CORRUPT_DATA;
+			ret = MAPIAllocateMore(pv->Value.bin.cb, *prop_ret, reinterpret_cast<void **>(&pv->Value.bin.lpb));
+			if (ret != hrSuccess)
+				return ret;
+			memcpy(pv->Value.bin.lpb, &*m_input, pv->Value.bin.cb);
+			m_input += pv->Value.bin.cb;
+			m_left -= pv->Value.bin.cb;
+			break;
+		default:
+			--i;
+			--nprops;
+			break;
+		}
+	}
+	return hrSuccess;
+}
+
+HRESULT SessionRestorer::restore_services(IProfAdmin *profadm)
+{
+	memory_ptr<SPropValue> tbl_props, ps_props;
+	ULONG tbl_nprops = 0, ps_nprops = 0;
+
+	while (m_left > 0 && *m_input == 'S') {
+		++m_input;
+		--m_left;
+
+		auto ret = restore_propvals(&~tbl_props, tbl_nprops);
+		if (ret != hrSuccess)
+			return ret;
+		ret = restore_propvals(&~ps_props, ps_nprops);
+		if (ret != hrSuccess)
+			return ret;
+		auto profname_prop = PCpropFindProp(ps_props, ps_nprops, PR_PROFILE_NAME_A);
+		auto dispname_prop = PCpropFindProp(tbl_props, tbl_nprops, PR_DISPLAY_NAME_A);
+		auto svcname_prop = PCpropFindProp(tbl_props, tbl_nprops, PR_SERVICE_NAME_A);
+		auto svcuid_prop = PCpropFindProp(tbl_props, tbl_nprops, PR_SERVICE_UID);
+		if (profname_prop == nullptr || dispname_prop == nullptr ||
+		    svcname_prop == nullptr || svcuid_prop == nullptr ||
+		    svcuid_prop->Value.bin.cb != sizeof(MAPIUID))
+			return MAPI_E_CORRUPT_DATA;
+
+		if (m_svcadm == nullptr) {
+			auto profname = profname_prop->Value.lpszA;
+			ret = profadm->CreateProfile(reinterpret_cast<const TCHAR *>(profname), reinterpret_cast<const TCHAR *>(""), 0, 0);
+			if (ret != hrSuccess)
+				return ret;
+			object_ptr<IMsgServiceAdmin> svcadm1;
+			ret = profadm->AdminServices(reinterpret_cast<const TCHAR *>(profname), reinterpret_cast<const TCHAR *>(""), 0, 0, &~svcadm1);
+			if (ret != hrSuccess)
+				return ret;
+			m_svcadm.reset(static_cast<M4LMsgServiceAdmin *>(svcadm1.get()));
+			if (m_svcadm == nullptr)
+				return MAPI_E_CALL_FAILED;
+			m_profname = profname;
+		}
+		if (m_svcadm == nullptr)
+			return MAPI_E_CALL_FAILED;
+		/*
+		 * Since this is a new profile, there are no services yet
+		 * and we need not check for their existence like in CreateMsgServiceEx.
+		 */
+		std::unique_ptr<serviceEntry> entry(new(std::nothrow) serviceEntry);
+		if (entry == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
+		auto svcname = svcname_prop->Value.lpszA;
+		ret = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(svcname), 0, &entry->service);
+		if (ret != hrSuccess)
+			return MAPI_E_CALL_FAILED;
+		entry->provideradmin.reset(new(std::nothrow) M4LProviderAdmin(m_svcadm, m_profname.c_str()));
+		if (entry->provideradmin == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
+		entry->servicename = svcname;
+		entry->displayname = dispname_prop->Value.lpszA;
+		entry->bInitialize = true;
+		if (svcuid_prop->Value.bin.cb != sizeof(entry->muid))
+			return MAPI_E_CORRUPT_DATA;
+		memcpy(&entry->muid, svcuid_prop->Value.bin.lpb, sizeof(entry->muid));
+		m_svcadm->services.push_back(std::move(entry));
+
+		object_ptr<IProfSect> psect;
+		ret = m_svcadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, 0, &~psect);
+		if (ret != hrSuccess)
+			return ret;
+		ret = psect->SetProps(ps_nprops, ps_props, nullptr);
+		if (ret != hrSuccess)
+			return ret;
+	}
+	return hrSuccess;
+}
+
+HRESULT SessionRestorer::restore_providers()
+{
+	memory_ptr<SPropValue> tbl_props, ps_props;
+	ULONG tbl_nprops = 0, ps_nprops = 0;
+
+	while (m_left > 0 && *m_input == 'P') {
+		++m_input;
+		--m_left;
+
+		auto ret = restore_propvals(&~tbl_props, tbl_nprops);
+		if (ret != hrSuccess)
+			return ret;
+		ret = restore_propvals(&~ps_props, ps_nprops);
+		if (ret != hrSuccess)
+			return ret;
+		auto svcuid_prop = PCpropFindProp(tbl_props, tbl_nprops, PR_SERVICE_UID);
+		auto provuid_prop = PCpropFindProp(tbl_props, tbl_nprops, PR_PROVIDER_UID);
+		if (svcuid_prop == nullptr || provuid_prop == nullptr ||
+		    svcuid_prop->Value.bin.cb != sizeof(MAPIUID) ||
+		    provuid_prop->Value.bin.cb != sizeof(MAPIUID))
+			return MAPI_E_CORRUPT_DATA;
+		auto svc = m_svcadm->findServiceAdmin(reinterpret_cast<const MAPIUID *>(svcuid_prop->Value.bin.lpb));
+		if (svc == nullptr)
+			return MAPI_E_CORRUPT_DATA;
+
+		std::unique_ptr<providerEntry> entry(new(std::nothrow) providerEntry);
+		if (entry == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
+		memcpy(&entry->uid, provuid_prop->Value.bin.lpb, sizeof(entry->uid));
+		entry->servicename = svc->servicename;
+		entry->profilesection.reset(new(std::nothrow) M4LProfSect);
+		if (entry->profilesection == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
+		ret = entry->profilesection->SetProps(ps_nprops, ps_props, nullptr);
+		if (ret != hrSuccess)
+			return ret;
+		m_svcadm->providers.push_back(std::move(entry));
+	}
+	return hrSuccess;
+}
+
+HRESULT SessionRestorer::restore_profile(const std::string &serin,
+    IMAPISession **sesp)
+{
+	object_ptr<IProfAdmin> profadm;
+	auto ret = MAPIAdminProfiles(0, &~profadm);
+	if (ret != hrSuccess)
+		return ret;
+	m_left = serin.size();
+	m_input = serin.cbegin();
+	ret = restore_services(profadm);
+	if (ret != hrSuccess)
+		return ret;
+	ret = restore_providers();
+	if (ret != hrSuccess)
+		return ret;
+	ret = MAPILogonEx(0, reinterpret_cast<const TCHAR *>(m_profname.c_str()),
+	      reinterpret_cast<const TCHAR *>(""),
+	      MAPI_EXTENDED | MAPI_NEW_SESSION | MAPI_NO_MAIL, sesp);
+	profadm->DeleteProfile(reinterpret_cast<const TCHAR *>(m_profname.c_str()), 0);
+	return ret;
+}
+
+/**
+ * Restore a MAPI profile (and a IMAPISession object using it) from a blob
+ * previously generated with kc_session_save. If this function returns an error
+ * code, the "normal" way of logging on needs to be carried out instead.
+ *
+ * Due to the implementation of M4L and libkcclient, a TCP connection may not
+ * immediately be recreated here, but be deferred until the next RPC.
+ */
+HRESULT kc_session_restore(const std::string &a, IMAPISession **s)
+{
+	return SessionRestorer().restore_profile(a, s);
+}
+
+} /* namespace */
