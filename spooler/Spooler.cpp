@@ -746,7 +746,9 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 
 				// not timed out, no messages waiting, not quit requested, no table reload required:
 				// we were triggered for a cleanup call.
+				lk.unlock();
 				CleanFinishedMessages(lpAdminSession, lpSpooler);
+				lk.lock();
 			}
 		}
 		lk.unlock();
