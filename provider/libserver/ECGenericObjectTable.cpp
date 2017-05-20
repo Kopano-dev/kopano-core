@@ -670,43 +670,55 @@ ECRESULT ECGenericObjectTable::GetBinarySortKey(struct propVal *lpsPropVal, unsi
 
 	switch(PROP_TYPE(lpsPropVal->ulPropTag)) {
 	case PT_BOOLEAN:
-	case PT_I2:
+	case PT_I2: {
 		ulSortLen = 2;
 		lpSortData = new unsigned char[2];
-		*(unsigned short *)lpSortData = htons(lpsPropVal->Value.b);
+		unsigned short tmp = lpsPropVal->Value.b;
+		memcpy(lpSortData, &tmp, sizeof(tmp));
 		break;
-	case PT_LONG:
+	}
+	case PT_LONG: {
 		ulSortLen = 4;
 		lpSortData = new unsigned char[4];
-		*(unsigned int *)lpSortData = htonl(lpsPropVal->Value.ul);
+		unsigned int tmp = htonl(lpsPropVal->Value.ul);
+		memcpy(lpSortData, &tmp, sizeof(tmp));
 		break;
-	case PT_R4:
+	}
+	case PT_R4: {
 	    ulSortLen = sizeof(double);
 	    lpSortData = new unsigned char[sizeof(double)];
-	    *(double *)lpSortData = lpsPropVal->Value.flt;
+		double tmp = lpsPropVal->Value.flt;
+		memcpy(lpSortData, &tmp, sizeof(tmp));
 		break;
+	}
 	case PT_APPTIME:
 	case PT_DOUBLE:
 	    ulSortLen = sizeof(double);
 	    lpSortData = new unsigned char[sizeof(double)];
-	    *(double *)lpSortData = lpsPropVal->Value.dbl;
+		memcpy(lpSortData, &lpsPropVal->Value.dbl, sizeof(double));
 	    break;
 	case PT_CURRENCY:
 	    ulSortLen = 0;
 	    lpSortData = NULL;
 		break;
-	case PT_SYSTIME:
+	case PT_SYSTIME: {
 		ulSortLen = 8;
 		lpSortData = new unsigned char[8];
-		*(unsigned int *)lpSortData = htonl(lpsPropVal->Value.hilo->hi);
-		*(unsigned int *)(lpSortData+4) = htonl(lpsPropVal->Value.hilo->lo);
+		unsigned int tmp = htonl(lpsPropVal->Value.hilo->hi);
+		memcpy(lpSortData, &tmp, sizeof(tmp));
+		tmp = htonl(lpsPropVal->Value.hilo->lo);
+		memcpy(lpSortData + 4, &tmp, sizeof(tmp));
 		break;
-	case PT_I8:
+	}
+	case PT_I8: {
 		ulSortLen = 8;
 		lpSortData = new unsigned char[8];
-		*(unsigned int *)lpSortData = htonl((unsigned int)(lpsPropVal->Value.li >> 32));
-		*(unsigned int *)(lpSortData+4) = htonl((unsigned int)lpsPropVal->Value.li);
+		unsigned int tmp = htonl((unsigned int)(lpsPropVal->Value.li >> 32));
+		memcpy(lpSortData, &tmp, sizeof(tmp));
+		tmp = htonl((unsigned int)lpsPropVal->Value.li);
+		memcpy(lpSortData + 4, &tmp, sizeof(tmp));
 		break;
+	}
 	case PT_STRING8:
 	case PT_UNICODE: {
 			// is this check needed here, or is it already checked 50 times along the way?
