@@ -96,8 +96,8 @@ protected: ///?
 	virtual HRESULT HrRemoveModifications(MAPIOBJECT *lpsMapiObject, ULONG ulPropTag);
 
 	// For IECSingleInstance
-	virtual HRESULT GetSingleInstanceId(ULONG *lpcbInstanceID, LPSIEID *lppInstanceID);
-	virtual HRESULT SetSingleInstanceId(ULONG cbInstanceID, LPSIEID lpInstanceID);
+	virtual HRESULT GetSingleInstanceId(ULONG *id_size, ENTRYID **id);
+	virtual HRESULT SetSingleInstanceId(ULONG id_size, ENTRYID *id);
 
 public:
 	// From IMAPIProp

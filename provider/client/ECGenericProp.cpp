@@ -1050,7 +1050,8 @@ HRESULT ECGenericProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNa
 }
 
 // Interface IECSingleInstance
-HRESULT ECGenericProp::GetSingleInstanceId(ULONG *lpcbInstanceID, LPSIEID *lppInstanceID)
+HRESULT ECGenericProp::GetSingleInstanceId(ULONG *lpcbInstanceID,
+    ENTRYID **lppInstanceID)
 {
 	scoped_rlock lock(m_hMutexMAPIObject);
 
@@ -1060,10 +1061,11 @@ HRESULT ECGenericProp::GetSingleInstanceId(ULONG *lpcbInstanceID, LPSIEID *lppIn
 		return MAPI_E_INVALID_PARAMETER;
 	return Util::HrCopyEntryId(m_sMapiObject->cbInstanceID,
 	       reinterpret_cast<ENTRYID *>(m_sMapiObject->lpInstanceID),
-	       lpcbInstanceID, reinterpret_cast<ENTRYID **>(lppInstanceID));
+	       lpcbInstanceID, lppInstanceID);
 }
 
-HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID, LPSIEID lpInstanceID)
+HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID,
+    ENTRYID *lpInstanceID)
 {
 	scoped_rlock lock(m_hMutexMAPIObject);
 
@@ -1077,7 +1079,7 @@ HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID, LPSIEID lpInstanc
 	m_sMapiObject->bChangedInstance = false;
 
 	HRESULT hr = Util::HrCopyEntryId(cbInstanceID,
-		reinterpret_cast<ENTRYID *>(lpInstanceID),
+		lpInstanceID,
 		&m_sMapiObject->cbInstanceID,
 		reinterpret_cast<ENTRYID **>(&m_sMapiObject->lpInstanceID));
 	if (hr != hrSuccess)
@@ -1111,7 +1113,7 @@ HRESULT __stdcall ECGenericProp::xECSingleInstance::GetSingleInstanceId(ULONG *l
 {
 	TRACE_MAPI(TRACE_ENTRY, "IECSingleInstance::GetSingleInstanceId", "");
 	METHOD_PROLOGUE_(ECGenericProp , ECSingleInstance);
-	HRESULT hr = pThis->GetSingleInstanceId(lpcbInstanceID, (LPSIEID *)lppInstanceID);
+	HRESULT hr = pThis->GetSingleInstanceId(lpcbInstanceID, lppInstanceID);
 	TRACE_MAPI(TRACE_RETURN, "IECSingleInstance::GetSingleInstanceId", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
@@ -1120,7 +1122,7 @@ HRESULT __stdcall ECGenericProp::xECSingleInstance::SetSingleInstanceId(ULONG cb
 {
 	TRACE_MAPI(TRACE_ENTRY, "IECSingleInstance::SetSingleInstanceId", "");
 	METHOD_PROLOGUE_(ECGenericProp , ECSingleInstance);
-	HRESULT hr = pThis->SetSingleInstanceId(cbInstanceID, (LPSIEID)lpInstanceID);
+	HRESULT hr = pThis->SetSingleInstanceId(cbInstanceID, lpInstanceID);
 	TRACE_MAPI(TRACE_RETURN, "IECSingleInstance::SetSingleInstanceId", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
