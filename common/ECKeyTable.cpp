@@ -111,16 +111,18 @@ void ECTableRow::initSortCols(unsigned int ulSortCols, const int *lpSortLen,
 
 	// Copy sort lengths
 	assert(ulSortCols == 0 || lpSortLen != NULL);
-	if (ulSortCols != 0)
+	if (ulSortCols != 0 && lpSortLen != nullptr)
 		memcpy(this->lpSortLen, lpSortLen, sizeof(unsigned int) * ulSortCols);
 
 	// Copy sort keys
 	for (unsigned int i = 0; i < ulSortCols; ++i) {
 		len = lpSortLen[i];
 		len = len < 0 ? -len : len;
-
+		if (lppSortData[i] == nullptr) {
+			this->lppSortKeys[i] = nullptr;
+			continue;
+		}
 		this->lppSortKeys[i] = new unsigned char[len];
-
 		memcpy(this->lppSortKeys[i], lppSortData[i], len);
 	}
 }
@@ -224,7 +226,13 @@ bool ECTableRow::rowcompare(unsigned int ulSortColsA, const int *lpSortLenA,
             }
 	    } else if (lpSortFlagsA && lpSortFlagsA[i] & TABLEROW_FLAG_STRING) {
 			cmp = compareSortKeys(lpSortLenA[i], lppSortKeysA[i], lpSortLenB[i], lppSortKeysB[i]);
-	    } else {
+		} else if (lppSortKeysA[i] == nullptr && lppSortKeysB[i] == nullptr) {
+			cmp = 0;
+		} else if (lppSortKeysA[i] == nullptr) {
+			cmp = -1;
+		} else if (lppSortKeysB[i] == nullptr) {
+			cmp = 1;
+		} else {
 	        // Sort data is pre-constructed so a simple memcmp suffices for sorting
 		    cmp = memcmp(lppSortKeysA[i], lppSortKeysB[i], lpSortLenA[i] < lpSortLenB[i] ? lpSortLenA[i] : lpSortLenB[i]);
         }
