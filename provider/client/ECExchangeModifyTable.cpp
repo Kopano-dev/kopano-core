@@ -192,8 +192,8 @@ HRESULT ECExchangeModifyTable::QueryInterface(REFIID refiid, void **lppInterface
 	REGISTER_INTERFACE2(ECExchangeModifyTable, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
 	REGISTER_INTERFACE2(IECExchangeModifyTable, &this->m_xECExchangeModifyTable);
-	REGISTER_INTERFACE2(IExchangeModifyTable, &this->m_xExchangeModifyTable);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xExchangeModifyTable);
+	REGISTER_INTERFACE2(IExchangeModifyTable, &this->m_xECExchangeModifyTable);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xECExchangeModifyTable);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -571,19 +571,13 @@ exit:
 }
 
 // wrappers for ExchangeModifyTable
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, AddRef, (void))
-DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, Release, (void))
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, GetTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable)) 
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, ModifyTable, (ULONG, ulFlags), (LPROWLIST, lpMods))
-
 DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, QueryInterface, (REFIID, refiid), (void **, lppInterface))
 DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, AddRef, (void))
 DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, Release, (void))
 DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, GetTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, GetTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable)) 
 DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, ModifyTable, (ULONG, ulFlags), (LPROWLIST, lpMods))
+
 DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, DisablePushToServer, (void))
 
 // ExchangeRuleAction object

@@ -4,7 +4,6 @@ digraph {
 	ECABContainer -> ECABProp;
 	ECABContainer -> IABContainer;
 	ECABProp -> ECGenericProp;
-	ECABProp -> IMAPIProp [color=green];
 	ECABProvider -> ECUnknown;
 	ECABProvider -> IABProvider;
 	ECABProviderSwitch -> ECUnknown;
@@ -24,7 +23,6 @@ digraph {
 	ECExchangeImportHierarchyChanges -> ECUnknown;
 	ECExchangeImportHierarchyChanges -> IExchangeImportHierarchyChanges;
 	ECExchangeModifyTable -> ECUnknown;
-	ECExchangeModifyTable -> IExchangeModifyTable [color=green];
 	ECExchangeModifyTable -> IECExchangeModifyTable;
 	ECExchangeRuleAction -> ECUnknown;
 	ECExchangeRuleAction -> IExchangeRuleAction;
@@ -65,7 +63,6 @@ digraph {
 	ECMessage -> ECMAPIProp;
 	ECMessage -> IMessage;
 	ECMessageStreamImporterIStreamAdapter -> ECUnknown;
-	ECMessageStreamImporterIStreamAdapter -> ISequentialStream [color=green];
 	ECMessageStreamImporterIStreamAdapter -> IStream;
 	ECMsgStore -> ECMAPIProp;
 	ECMsgStore -> IECLicense;

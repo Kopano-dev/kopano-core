@@ -40,11 +40,6 @@ public:
 	static HRESULT __stdcall CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
 	static HRESULT __stdcall CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
 
-	class xExchangeModifyTable _kc_final : public IExchangeModifyTable {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IExchangeModifyTable.hpp>
-	} m_xExchangeModifyTable;
-
 	class xECExchangeModifyTable _kc_final :
 	    public IECExchangeModifyTable {
 		#include <kopano/xclsfrag/IUnknown.hpp>
