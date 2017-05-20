@@ -190,9 +190,9 @@ ECMemStream::~ECMemStream()
 
 HRESULT ECMemStream::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE2(IStream, &this->m_xStream);
-	REGISTER_INTERFACE2(ISequentialStream, &this->m_xStream);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xStream);
+	REGISTER_INTERFACE2(IStream, this);
+	REGISTER_INTERFACE2(ISequentialStream, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	REGISTER_INTERFACE2(ECMemStream, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
@@ -438,20 +438,5 @@ char* ECMemStream::GetBuffer()
 {
 	return this->lpMemBlock->GetBuffer();
 }
-
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMemStream, Stream, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMemStream, Stream, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, QueryInterface, (REFIID, refiid), (LPVOID *, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Read, (void *, pv), (ULONG, cb), (ULONG *, pcbRead))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Write, (const void *, pv), (ULONG, cb), (ULONG *, pcbWritten))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Seek, (LARGE_INTEGER, dlibmove), (DWORD, dwOrigin), (ULARGE_INTEGER *, plibNewPosition))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, SetSize, (ULARGE_INTEGER, libNewSize))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, CopyTo, (IStream *, pstm), (ULARGE_INTEGER, cb), (ULARGE_INTEGER *, pcbRead), (ULARGE_INTEGER *, pcbWritten))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Commit, (DWORD, grfCommitFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Revert, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, LockRegion, (ULARGE_INTEGER, libOffset), (ULARGE_INTEGER, cb), (DWORD, dwLockType))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, UnlockRegion, (ULARGE_INTEGER, libOffset), (ULARGE_INTEGER, cb), (DWORD, dwLockType))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Stat, (STATSTG *, pstatstg), (DWORD, grfStatFlag))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Clone, (IStream **, ppstm))
 
 } /* namespace */
