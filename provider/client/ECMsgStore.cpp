@@ -94,8 +94,6 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
 	m_ulProfileFlags(ulProfileFlags), m_fIsSpooler(fIsSpooler),
 	m_fIsDefaultStore(fIsDefaultStore), m_bOfflineStore(bOfflineStore)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMsgStore::ECMsgStore","");
-
 	this->lpSupport = lpSupport;
 	lpSupport->AddRef();
 
@@ -149,9 +147,6 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
 }
 
 ECMsgStore::~ECMsgStore() {
-
-	TRACE_MAPI(TRACE_ENTRY, "ECMsgStore::~ECMsgStore","");
-
 	if(lpTransport)
 		lpTransport->HrLogOff();
 
@@ -176,8 +171,6 @@ ECMsgStore::~ECMsgStore() {
 
 	if(lpSupport)
 		lpSupport->Release();
-
-	TRACE_MAPI(TRACE_RETURN, "ECMsgStore::~ECMsgStore","");
 }
 
 //FIXME: remove duplicate profilename
@@ -2948,10 +2941,8 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Release, (void))
 
 HRESULT ECMsgStore::xMsgStoreProxy::QueryInterface(REFIID refiid, void **lppInterface) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
 	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
 	HRESULT hr = pThis->QueryInterfaceProxy(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
@@ -2985,10 +2976,8 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECMultiStoreTable, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECMultiStoreTable, Release, (void))
 
 HRESULT ECMsgStore::xECMultiStoreTable::QueryInterface(REFIID refiid, void **lppInterface) {
-	TRACE_MAPI(TRACE_ENTRY, "IECMultiStoreTable::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
 	METHOD_PROLOGUE_(ECMsgStore, ECMultiStoreTable);
 	HRESULT hr = pThis->QueryInterfaceProxy(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IECMultiStoreTable::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
@@ -2999,10 +2988,8 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, Release, (void))
 
 HRESULT ECMsgStore::xECLicense::QueryInterface(REFIID refiid, void **lppInterface) {
-	TRACE_MAPI(TRACE_ENTRY, "IECLicense::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
 	METHOD_PROLOGUE_(ECMsgStore, ECLicense);
 	HRESULT hr = pThis->QueryInterfaceProxy(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IECLicense::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
@@ -3015,10 +3002,8 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, Release, (void))
 
 HRESULT ECMsgStore::xECTestProtocol::QueryInterface(REFIID refiid, void **lppInterface) {
-	TRACE_MAPI(TRACE_ENTRY, "IECTestProtocol::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
 	METHOD_PROLOGUE_(ECMsgStore, ECTestProtocol);
 	HRESULT hr = pThis->QueryInterfaceProxy(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IECTestProtocol::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
@@ -3104,10 +3089,8 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, GetPublicFolderTable
 
 HRESULT ECMsgStore::xExchangeManageStore6::CreateStoreEntryIDEx(LPTSTR lpszMsgStoreDN, LPTSTR lpszEmail, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::CreateStoreEntryIDEx","msgStoreDN=%s , MailboxDN=%s , flags=0x%08X", (lpszMsgStoreDN)?(char*)lpszMsgStoreDN: "NULL", (lpszMailboxDN)?(char*)lpszMailboxDN:"NULL", ulFlags);
 	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
 	HRESULT hr = pThis->CreateStoreEntryID(lpszMsgStoreDN, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore6::CreateStoreEntryIDEx","%s, cb=%d, data=%s", GetMAPIErrorDescription(hr).c_str(), lpcbEntryID ? *lpcbEntryID : 0, lppEntryID ? bin2hex(*lpcbEntryID, *lppEntryID).c_str() : "NULL");
 	return hr;
 }
 

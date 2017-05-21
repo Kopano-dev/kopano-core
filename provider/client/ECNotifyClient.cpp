@@ -64,8 +64,6 @@ ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider,
 	ECUnknown("ECNotifyClient"), m_lpSupport(lpSupport),
 	m_lpProvider(lpProvider), m_ulProviderType(ulProviderType)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECNotifyClient::ECNotifyClient","");
-
 	ECSESSIONID ecSessionId;
 
 	if(m_ulProviderType == MAPI_STORE)
@@ -91,8 +89,6 @@ ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider,
 
 ECNotifyClient::~ECNotifyClient()
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECNotifyClient::~ECNotifyClient","");
-
 	if (m_lpNotifyMaster)
 		m_lpNotifyMaster->ReleaseSession(this);
 
@@ -125,7 +121,6 @@ ECNotifyClient::~ECNotifyClient()
 
 	m_mapChangeAdvise.clear();
 	biglock.unlock();
-	TRACE_MAPI(TRACE_RETURN, "ECNotifyClient::~ECNotifyClient","");
 }
 
 HRESULT ECNotifyClient::Create(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport, ECNotifyClient**lppNotifyClient)

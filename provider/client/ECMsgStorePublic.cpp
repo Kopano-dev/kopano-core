@@ -39,19 +39,14 @@ using namespace KCHL;
 ECMsgStorePublic::ECMsgStorePublic(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore) :
 	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, false, bOfflineStore)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMsgStorePublic::ECMsgStorePublic","");
-
 	HrAddPropHandlers(PR_IPM_SUBTREE_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	HrAddPropHandlers(PR_IPM_PUBLIC_FOLDERS_ENTRYID,	GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	HrAddPropHandlers(PR_IPM_FAVORITES_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	HrAddPropHandlers(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID,	GetPropHandler, SetPropHandler,			(void*) this, FALSE, TRUE);
-	TRACE_MAPI(TRACE_RETURN, "ECMsgStorePublic::ECMsgStorePublic","");
 }
 
 ECMsgStorePublic::~ECMsgStorePublic(void)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMsgStorePublic::~ECMsgStorePublic","");
-
 	if (m_lpDefaultMsgStore)
 		m_lpDefaultMsgStore->Release();
 
@@ -60,8 +55,6 @@ ECMsgStorePublic::~ECMsgStorePublic(void)
 	MAPIFreeBuffer(m_lpIPMSubTreeID);
 	MAPIFreeBuffer(m_lpIPMFavoritesID);
 	MAPIFreeBuffer(m_lpIPMPublicFoldersID);
-	TRACE_MAPI(TRACE_RETURN, "~ECMsgStorePublic::ECMsgStorePublic","");
-
 }
 
 HRESULT	ECMsgStorePublic::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore, ECMsgStore **lppECMsgStore) {

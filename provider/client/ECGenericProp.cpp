@@ -1113,18 +1113,14 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECGenericProp, ECSingleInstance, Release, (void))
 
 HRESULT __stdcall ECGenericProp::xECSingleInstance::GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IECSingleInstance::GetSingleInstanceId", "");
 	METHOD_PROLOGUE_(ECGenericProp , ECSingleInstance);
 	HRESULT hr = pThis->GetSingleInstanceId(lpcbInstanceID, lppInstanceID);
-	TRACE_MAPI(TRACE_RETURN, "IECSingleInstance::GetSingleInstanceId", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
 HRESULT __stdcall ECGenericProp::xECSingleInstance::SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IECSingleInstance::SetSingleInstanceId", "");
 	METHOD_PROLOGUE_(ECGenericProp , ECSingleInstance);
 	HRESULT hr = pThis->SetSingleInstanceId(cbInstanceID, lpInstanceID);
-	TRACE_MAPI(TRACE_RETURN, "IECSingleInstance::SetSingleInstanceId", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }

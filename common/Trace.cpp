@@ -23,7 +23,6 @@
 
 #ifdef WITH_TRACING
 // Turn these on/off
-#  define DO_TRACE_MAPI		1
 #  define DO_TRACE_NOTIF	1
 #  define DO_TRACE_SOAP		0
 #  define DO_TRACE_INT		0
@@ -31,7 +30,6 @@
 #  define DO_TRACE_EXT		0
 #else
 // Leave these alone .. release builds don't print squat
-#  define DO_TRACE_MAPI		0
 #  define DO_TRACE_NOTIF	0
 #  define DO_TRACE_SOAP		0
 #  define DO_TRACE_INT		0
@@ -123,20 +121,6 @@ static void TraceMsg(const char *lpMsg, int time, const char *func,
 
 }
 
-void TraceMapi(int time, const char *func, const char *format, ...)
-{
-	va_list va;
-
-	if(!DO_TRACE_MAPI)
-		return;
-
-	va_start(va, format);
-
-	TraceMsg("MAPI", time, func, format, va);
-
-	va_end(va);
-}
-
 void TraceNotify(int time, const char *func, const char *format, ...)
 {
 	va_list va; 
@@ -190,17 +174,6 @@ void TraceStream(int time, const char *func, const char *format, ...)
 	va_start(va, format);
 
 	TraceMsg("IStream", time, func, format, va);
-
-	va_end(va);
-}
-
-void TraceECMapi(int time, const char *func, const char *format, ...)
-{
-	va_list va; 
-
-	va_start(va, format);
-
-	TraceMsg("ECMAPI", time, func, format, va);
 
 	va_end(va);
 }

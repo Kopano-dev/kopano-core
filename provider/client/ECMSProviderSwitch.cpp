@@ -333,19 +333,15 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, Shutdown, (ULONG *, lp
 
 HRESULT ECMSProviderSwitch::xMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProviderSwitch::Logon", "flags=%x, cbEntryID=%d", ulFlags, cbEntryID);
 	METHOD_PROLOGUE_(ECMSProviderSwitch, MSProvider);
 	HRESULT hr = pThis->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
-	TRACE_MAPI(TRACE_RETURN, "ECMSProviderSwitch::Logon", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
 HRESULT ECMSProviderSwitch::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProviderSwitch::SpoolerLogon", "flags=%x", ulFlags);
 	METHOD_PROLOGUE_(ECMSProviderSwitch, MSProvider);
 	HRESULT hr = pThis->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
-	TRACE_MAPI(TRACE_RETURN, "ECMSProviderSwitch::SpoolerLogon", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 

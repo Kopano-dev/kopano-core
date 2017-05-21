@@ -31,8 +31,6 @@ HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
     ULONG cvals, const SPropValue *pvals, IProviderAdmin *lpAdminProviders,
     MAPIERROR **lppMapiError)
 {
-	TRACE_MAPI(TRACE_ENTRY, "MSGServiceEntry", "flags=0x%08X, context=%s", ulFlags, MsgServiceContextToString(ulContext));
-
 	HRESULT hr = hrSuccess;
 
 	switch(ulContext) {
@@ -61,8 +59,6 @@ HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 
 	if (lppMapiError)
 		*lppMapiError = NULL;
-
-	TRACE_MAPI(TRACE_RETURN, "MSGServiceEntry", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
@@ -71,8 +67,6 @@ HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
     LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
     ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ZContacts::ABProviderInit", "");
-
 	HRESULT hr = hrSuccess;
 	object_ptr<ZCABProvider> lpABProvider;
 
@@ -94,6 +88,5 @@ HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	*lpulProviderVer = CURRENT_SPI_VERSION;
 
 exit:
-	TRACE_MAPI(TRACE_RETURN, "ZContacts::ABProviderInit", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }

@@ -177,10 +177,8 @@ static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
 					{
 					case fnevObjectModified:
 						lpMemTablePublic->ModifyRow(&sInstanceKey, NULL);
-						TRACE_MAPI(TRACE_ENTRY, "AdviseFolderCallback", "fnevObjectModified    fnevObjectModified");
 						break;
 					case fnevObjectDeleted:
-						TRACE_MAPI(TRACE_ENTRY, "AdviseFolderCallback", "fnevObjectDeleted    fnevObjectDeleted");
 						lpMemTablePublic->DelRow(&sInstanceKey);
 						break;
 					}

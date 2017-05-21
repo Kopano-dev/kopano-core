@@ -35,8 +35,6 @@
 
 ECMAPITable::ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags) : ECUnknown("IMAPITable")
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMAPITable::ECMAPITable","");
-
 	this->lpNotifyClient = lpNotifyClient;
 	
 	if(this->lpNotifyClient)
@@ -92,8 +90,6 @@ BOOL ECMAPITable::IsDeferred()
 
 ECMAPITable::~ECMAPITable()
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMAPITable::~ECMAPITable","");
-
 	// Remove all advises	
 	auto iterMapInt = m_ulConnectionList.cbegin();
 	while (iterMapInt != m_ulConnectionList.cend()) {

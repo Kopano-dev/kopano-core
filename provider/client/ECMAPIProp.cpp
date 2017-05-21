@@ -85,8 +85,6 @@ ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
     ECMAPIProp *lpRoot, const char *szClassName) :
 	ECGenericProp(lpProvider, ulObjType, fModify, szClassName)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMAPIProp::ECMAPIProp","");
-	
 	this->HrAddPropHandlers(PR_STORE_ENTRYID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_STORE_RECORD_KEY,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_STORE_SUPPORT_MASK,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
@@ -118,7 +116,6 @@ ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
 
 ECMAPIProp::~ECMAPIProp()
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMAPIProp::~ECMAPIProp","");
 	MAPIFreeBuffer(m_lpParentID);
 }
 

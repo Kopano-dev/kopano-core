@@ -182,7 +182,6 @@
 
 #define DEF_ULONGMETHOD(_trace, _class, _iface, _method, ...)														\
 ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__));			\
 	ULONG ul = 0;																						\
 	try {																										\
 		METHOD_PROLOGUE_(_class, _iface);																		\
@@ -190,18 +189,15 @@ ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIS
 	} catch (const std::bad_alloc &) {																			\
 		ul = -1;																			\
 	}																											\
-	_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_OUT(__VA_ARGS__));	\
 	return ul;																									\
 }
 
 #define DEF_ULONGMETHOD1(_trace, _class, _iface, _method, ...) \
 ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	\
 { \
-	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__)); \
 	ULONG ul = 0; \
 	METHOD_PROLOGUE_(_class, _iface); \
 	ul = pThis->_method(ARGS(__VA_ARGS__)); \
-	_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_OUT(__VA_ARGS__)); \
 	return ul; \
 }
 
@@ -214,7 +210,6 @@ ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIS
 
 #define DEF_HRMETHOD(_trace, _class, _iface, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__));			\
 	HRESULT	hr = hrSuccess;																						\
 	try {																										\
 		METHOD_PROLOGUE_(_class, _iface);																		\
@@ -222,10 +217,6 @@ HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGL
 	} catch (const std::bad_alloc &) {																			\
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;																			\
 	}																											\
-	if (FAILED(hr))																								\
-		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "FAILED: %s", GetMAPIErrorDescription(hr).c_str());	\
-	else																										\
-		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_OUT(__VA_ARGS__));	\
 	return hr;																									\
 }
 
@@ -233,13 +224,8 @@ HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGL
 #define DEF_HRMETHOD1(_trace, _class, _iface, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
 { \
-	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__)); \
 	METHOD_PROLOGUE_(_class, _iface); \
 	HRESULT hr = pThis->_method(ARGS(__VA_ARGS__)); \
-	if (FAILED(hr)) \
-		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "FAILED: %s", GetMAPIErrorDescription(hr).c_str()); \
-	else \
-		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_OUT(__VA_ARGS__)); \
 	return hr; \
 }
 
@@ -254,58 +240,41 @@ HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGL
 #define DEF_HRMETHOD_EX(_trace, _class, _iface, _extra_fmt, _extra_arg, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
 	METHOD_PROLOGUE_(_class, _iface);																		\
-	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), _extra_fmt ", " FORMAT_ARGS(__VA_ARGS__), _extra_arg, PRINT_ARGS_IN( __VA_ARGS__));			\
 	HRESULT	hr = hrSuccess;																						\
 	try {																										\
 		hr = pThis->_method(ARGS(__VA_ARGS__));																	\
 	} catch (const std::bad_alloc &) {																			\
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;																			\
 	}																											\
-	if (FAILED(hr))																								\
-		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "FAILED: %s " _extra_fmt, GetMAPIErrorDescription(hr).c_str(), _extra_arg);	\
-	else																										\
-		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " _extra_fmt ", " FORMAT_ARGS(__VA_ARGS__), _extra_arg, PRINT_ARGS_OUT(__VA_ARGS__));	\
 	return hr;																									\
 }
 
 #define DEF_HRMETHOD_EX2(_trace, _class, _iface, _extra_fmt, _extra_arg1, _extra_arg2, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
 	METHOD_PROLOGUE_(_class, _iface);																		\
-	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), _extra_fmt ", " FORMAT_ARGS(__VA_ARGS__), _extra_arg1, _extra_arg2, PRINT_ARGS_IN( __VA_ARGS__));			\
 	HRESULT	hr = hrSuccess;																						\
 	try {																										\
 		hr = pThis->_method(ARGS(__VA_ARGS__));																	\
 	} catch (const std::bad_alloc &) {																			\
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;																			\
 	}																											\
-	if (FAILED(hr))																								\
-		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "FAILED: %s " _extra_fmt, GetMAPIErrorDescription(hr).c_str(), _extra_arg1, _extra_arg2);	\
-	else																										\
-		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " _extra_fmt ", " FORMAT_ARGS(__VA_ARGS__), _extra_arg1, _extra_arg2, PRINT_ARGS_OUT(__VA_ARGS__));	\
 	return hr;																									\
 }
 
 #define DEF_HRMETHOD_FORWARD(_trace, _class, _iface, _method, _member, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, _method)(ARGLIST(__VA_ARGS__))	{			\
-	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__));			\
 	HRESULT	hr = hrSuccess;																						\
 	try {																										\
 		hr = _member->_method(ARGS(__VA_ARGS__));																	\
 	} catch (const std::bad_alloc &) {																			\
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;																			\
 	}																											\
-	if (FAILED(hr))																								\
-		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "FAILED: %s", GetMAPIErrorDescription(hr).c_str());	\
-	else																										\
-		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_OUT(__VA_ARGS__));	\
 	return hr;																									\
 }
 
 #define DEF_HRMETHOD_NOSUPPORT(_trace, _class, _iface, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__));			\
 	HRESULT	hr = MAPI_E_NO_SUPPORT;																						\
-	_trace(TRACE_RETURN, METHODSTR(_iface, _method), "FAILED: %s", GetMAPIErrorDescription(hr).c_str());	\
 	return hr;																									\
 }
 

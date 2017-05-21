@@ -93,7 +93,7 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 	if (lpMsgStore) {
 		memory_ptr<SPropValue> lpPropArray;
 		HrGetOneProp(lpMsgStore, PR_DISPLAY_NAME_A, &lpPropArray);
-		TRACE_MAPI(TRACE_ENTRY, "ECFreeBusySupport::Open", "Storename=%s", (lpPropArray && lpPropArray->ulPropTag == PR_DISPLAY_NAME_A) ? lpPropArray->Value.lpszA : "Error");
+		ec_log_debug("ECFreeBusySupport::Open", "Storename=%s", (lpPropArray && lpPropArray->ulPropTag == PR_DISPLAY_NAME_A) ? lpPropArray->Value.lpszA : "Error");
 	}
 #endif
 
@@ -188,8 +188,6 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 
 HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECFreeBusySupport::LoadFreeBusyUpdate", "cUsers=%d", cUsers);
-
 	HRESULT				hr = hrSuccess;
 	ULONG				cFBUpdate = 0;
 
@@ -380,10 +378,8 @@ DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, HrHandleServerSche
 
 BOOL __stdcall ECFreeBusySupport::xFreeBusySupport::FShowServerSched(BOOL bData)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::FShowServerSched", "");
 	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
 	BOOL b = pThis->FShowServerSched(bData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::FShowServerSched", "%s", (b == TRUE)?"TRUE":"FALSE");
 	return b;
 }
 
@@ -418,10 +414,8 @@ DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, HrHandl
 
 BOOL __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::FShowServerSched(BOOL bData)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::FShowServerSched", "");
 	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
 	BOOL b = pThis->FShowServerSched(bData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::FShowServerSched", "%s", (b == TRUE)?"TRUE":"FALSE");
 	return b;
 }
 

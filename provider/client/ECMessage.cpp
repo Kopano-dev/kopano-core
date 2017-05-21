@@ -20,6 +20,7 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/ECLogger.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapitags.h>
@@ -1373,13 +1374,10 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	// spooler or not
 
 	if(ulPreprocessFlags & NEEDS_SPOOLER) {
-		TRACE_MAPI(TRACE_ENTRY, "Submitting through local queue, flags", "%d", ulPreprocessFlags);
-
 		// Add this message into the local outgoing queue
 
 		hr = this->GetMsgStore()->lpTransport->HrSubmitMessage(this->m_cbEntryId, this->m_lpEntryId, EC_SUBMIT_LOCAL);
 	} else {
-		TRACE_MAPI(TRACE_ENTRY, "Submitting through master queue, flags", "%d", ulPreprocessFlags);
 
 		// Add the message to the master outgoing queue, and request the spooler to DoSentMail()
 		hr = this->GetMsgStore()->lpTransport->HrSubmitMessage(this->m_cbEntryId, this->m_lpEntryId, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
@@ -2410,7 +2408,7 @@ HRESULT ECMessage::HrLoadProps()
 		hrTmp = GetBodyType(&m_ulBodyType);
 		if (FAILED(hrTmp)) {
 			// eg. this fails then RTF property is present but empty
-			TRACE_MAPI(TRACE_WARNING, "GetBestBody", "Unable to determine body type based on RTF data, hr=0x%08x", hrTmp);
+			ec_log_warn("GetBestBody: Unable to determine body type based on RTF data, hr=0x%08x", hrTmp);
 		} else if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
 		    (m_ulBodyType == bodyTypeHTML && !fHTMLOK)) {
 			hr = SyncRtf();

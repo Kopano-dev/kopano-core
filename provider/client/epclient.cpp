@@ -134,8 +134,6 @@ HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
     LPFREEBUFFER pfnFreeBuf, ULONG ulFlags, ULONG ulMAPIver,
     ULONG *lpulProviderVer, LPMSPROVIDER *ppmsp)
 {
-	TRACE_MAPI(TRACE_ENTRY, "MSProviderInit", "flags=%08X", ulFlags);
-
 	HRESULT hr = hrSuccess;
 	object_ptr<ECMSProviderSwitch> lpMSProvider;
 
@@ -163,7 +161,6 @@ HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
 	hr = lpMSProvider->QueryInterface(IID_IMSProvider, (void **)ppmsp); 
 
 exit:
-	TRACE_MAPI(TRACE_RETURN, "MSProviderInit", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
@@ -466,8 +463,6 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		d.provuid = nullptr;
 	ulResourceType = ptrPropValueResourceType->Value.l;
 
-	TRACE_MAPI(TRACE_INFO, "InitializeProvider", "Resource type=%s", ResourceTypeToString(ulResourceType) );
-
 	if (transport != NULL) {
 		d.transport = transport;
 	} else {
@@ -580,8 +575,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
     ULONG ulContext, ULONG cvals, const SPropValue *pvals,
     LPPROVIDERADMIN lpAdminProviders, MAPIERROR **lppMapiError)
 {
-	TRACE_MAPI(TRACE_ENTRY, "MSGServiceEntry", "flags=0x%08X, context=%s", ulFlags, MsgServiceContextToString(ulContext));
-
 	HRESULT			hr = erSuccess;
 	std::string		strServerName;
 	std::wstring	strUserName;
@@ -780,7 +773,6 @@ exit:
 			}
 		}
 	}
-	TRACE_MAPI(TRACE_RETURN, "MSGServiceEntry", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
@@ -789,8 +781,6 @@ HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
     LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
     ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ABProviderInit", "");
-
 	if (ulMAPIVer < CURRENT_SPI_VERSION)
 		return MAPI_E_VERSION;
 	*lpulProviderVer = CURRENT_SPI_VERSION;

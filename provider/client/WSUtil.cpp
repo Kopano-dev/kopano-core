@@ -52,8 +52,6 @@ using namespace KCHL;
 HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
     const SPropValue *lpPropValSrc, convert_context *lpConverter)
 {
-	TRACE_MAPI(TRACE_ENTRY, (char*)__FUNCTION__, " Prop: 0x%X", lpPropValSrc->ulPropTag);
-
 	HRESULT hr = hrSuccess;
 
 	lpPropValDst->ulPropTag = lpPropValSrc->ulPropTag;

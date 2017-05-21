@@ -53,12 +53,10 @@ typedef KCHL::memory_ptr<ECUSER> ECUserPtr;
 ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
 	ECUnknown(szClassName), m_ulFlags(ulFlags)
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProvider::ECMSProvider","");
 }
 
 ECMSProvider::~ECMSProvider()
 {
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProvider::~ECMSProvider","");
 }
 
 HRESULT ECMSProvider::Create(ULONG ulFlags, ECMSProvider **lppECMSProvider) {
@@ -129,8 +127,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	if (FAILED(hr))
 		return hr;
 
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProvider::Logon::MDB", "PR_MDB_PROVIDER = %s", lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER ? DBGGUIDToString(*(IID*)lpsPropArray[0].Value.bin.lpb).c_str() : "<Unknown>");
-
 	if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS &&
 	    lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE)
 		fIsDefaultStore = TRUE;
@@ -161,7 +157,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	} else {
 		memcpy(&guidMDBProvider, &KOPANO_SERVICE_GUID, sizeof(MAPIUID));
 	}
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProvider::Logon::MDB", "PR_MDB_PROVIDER = %s", DBGGUIDToString(*(IID*)&guidMDBProvider).c_str());
 	if(hr != hrSuccess)
 		return hr;
 
@@ -373,19 +368,15 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, Shutdown, (ULONG *, lpulFlag
 /* has 12 args, no macro deals with it atm */
 HRESULT ECMSProvider::xMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IMSProvider::Logon", "flags=%x, cbEntryID=%d, lpEntryid=%s", ulFlags, cbEntryID, lpEntryID ? bin2hex(cbEntryID, lpEntryID).c_str() : "NULL");
 	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
 	HRESULT hr = pThis->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
-	TRACE_MAPI(TRACE_RETURN, "IMSProvider::Logon", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
 HRESULT ECMSProvider::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IMSProvider::SpoolerLogon", "flags=%x", ulFlags);
 	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
 	HRESULT hr = pThis->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
-	TRACE_MAPI(TRACE_RETURN, "IMSProvider::SpoolerLogon", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
