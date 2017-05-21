@@ -137,20 +137,6 @@ void TraceMapi(int time, const char *func, const char *format, ...)
 	va_end(va);
 }
 
-void TraceMapiLib(int time, const char *func, const char *format, ...)
-{
-	va_list va;
-
-	if(!DO_TRACE_MAPI)
-		return;
-
-	va_start(va, format);
-
-	TraceMsg("MAPILIB", time, func, format, va);
-
-	va_end(va);
-}
-
 void TraceNotify(int time, const char *func, const char *format, ...)
 {
 	va_list va; 

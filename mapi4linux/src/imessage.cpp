@@ -29,48 +29,35 @@
 
 SCODE __stdcall OpenIMsgSession(LPMALLOC lpMalloc, ULONG ulFlags, LPMSGSESS *lppMsgSess)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "OpenIMsgSession", "");
-
 	SCODE sc = MAPI_E_NO_SUPPORT;
-	TRACE_MAPILIB(TRACE_RETURN, "OpenIMsgSession", "sc=0x%08X", sc);
 	return sc;
 }
 
 void __stdcall CloseIMsgSession(LPMSGSESS lpMsgSess)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "CloseIMsgSession", "");
-	TRACE_MAPILIB(TRACE_RETURN, "CloseIMsgSession", "");
 }
 
 SCODE __stdcall OpenIMsgOnIStg(	LPMSGSESS lpMsgSess, LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
 								LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc, LPVOID lpMapiSup, LPSTORAGE lpStg, 
 								MSGCALLRELEASE *lpfMsgCallRelease, ULONG ulCallerData, ULONG ulFlags, LPMESSAGE *lppMsg )
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "OpenIMsgOnIStg", "");
-	
 	SCODE sc = MAPI_E_NO_SUPPORT;
-	TRACE_MAPILIB(TRACE_RETURN, "OpenIMsgOnIStg", "sc=0x%08x", sc);
 	return sc;
 }
 
 HRESULT __stdcall GetAttribIMsgOnIStg(LPVOID lpObject,
     const SPropTagArray *lpPropTagArray, SPropAttrArray **lppPropAttrArray)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "GetAttribIMsgOnIStg", "");
-	TRACE_MAPILIB(TRACE_RETURN, "GetAttribIMsgOnIStg", "");
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT __stdcall SetAttribIMsgOnIStg(void *object, const SPropTagArray *,
     const SPropAttrArray *, SPropProblemArray **)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "SetAttribIMsgOnIStg", "");
-	TRACE_MAPILIB(TRACE_RETURN, "SetAttribIMsgOnIStg", "");
 	return MAPI_E_NO_SUPPORT;
 }
 
 SCODE __stdcall MapStorageSCode( SCODE StgSCode )
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "MapStorageSCode", "");
 	return StgSCode;
 }

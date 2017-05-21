@@ -47,7 +47,6 @@ using namespace KCHL;
 
 ULONG __stdcall UlRelease(LPVOID lpUnknown)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "UlRelease", "");
 	if(lpUnknown)
 		return ((IUnknown *)lpUnknown)->Release();
 	else
@@ -56,8 +55,6 @@ ULONG __stdcall UlRelease(LPVOID lpUnknown)
 
 void __stdcall DeinitMapiUtil(void)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "DeInitMAPIUtil", "");
-	TRACE_MAPILIB(TRACE_RETURN, "DeInitMAPIUtil", "");
 }
 
 SPropValue * __stdcall PpropFindProp(SPropValue *lpPropArray, ULONG cValues,
@@ -69,7 +66,6 @@ SPropValue * __stdcall PpropFindProp(SPropValue *lpPropArray, ULONG cValues,
 const SPropValue * __stdcall PCpropFindProp(const SPropValue *lpPropArray,
     ULONG cValues, ULONG ulPropTag)
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "PpropFindProp", "%08x", ulPropTag);
 	const SPropValue *lpValue = NULL;
 
 	if (lpPropArray == NULL)
@@ -84,14 +80,12 @@ const SPropValue * __stdcall PCpropFindProp(const SPropValue *lpPropArray,
 	}
 
 exit:
-	TRACE_MAPILIB2(TRACE_RETURN, "PpropFindProp", "%s: %08x", (lpValue ? "SUCCESS" : "FAILED"), ulPropTag);
 	return lpValue;
 }
 
 // Find a property with a given property Id in a property array. NOTE: doesn't care about prop type!
 LPSPropValue __stdcall LpValFindProp(ULONG ulPropTag, ULONG cValues, LPSPropValue lpProps)
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "LpValFindProp", "%08x", ulPropTag);
 	LPSPropValue lpValue = NULL;
 
 	if (lpProps == NULL)
@@ -105,23 +99,18 @@ LPSPropValue __stdcall LpValFindProp(ULONG ulPropTag, ULONG cValues, LPSPropValu
 	}
 
 exit:
-	TRACE_MAPILIB2(TRACE_RETURN, "LpValFindProp", "%s: %08x", (lpValue ? "SUCCESS" : "FAILED"), ulPropTag);
 	return  lpValue;
 }
 
 SCODE __stdcall PropCopyMore( LPSPropValue lpSPropValueDest,  LPSPropValue lpSPropValueSrc,  ALLOCATEMORE * lpfAllocMore,  LPVOID lpvObject)
 {
 	HRESULT hr = hrSuccess;
-	TRACE_MAPILIB1(TRACE_ENTRY, "PropCopyMore", "%s", PropNameFromPropArray(1, lpSPropValueSrc).c_str());
 	hr = Util::HrCopyProperty(lpSPropValueDest, lpSPropValueSrc, lpvObject, lpfAllocMore);
-	TRACE_MAPILIB2(TRACE_RETURN, "PropCopyMore", "%s: %s", GetMAPIErrorDescription(hr).c_str(), PropNameFromPropArray(1, lpSPropValueDest).c_str());
 	return hr;
 }
 
 HRESULT __stdcall WrapStoreEntryID(ULONG ulFlags, LPTSTR lpszDLLName, ULONG cbOrigEntry,
 						 LPENTRYID lpOrigEntry, ULONG *lpcbWrappedEntry, LPENTRYID *lppWrappedEntry) {
-	TRACE_MAPILIB(TRACE_ENTRY, "WrapStoreEntryID", "");
-
 	HRESULT hr = hrSuccess;
 	ULONG cbDLLName = 0;
 	ULONG cbPad = 0;
@@ -154,12 +143,10 @@ HRESULT __stdcall WrapStoreEntryID(ULONG ulFlags, LPTSTR lpszDLLName, ULONG cbOr
 	memcpy(((BYTE*)*lppWrappedEntry)+4+sizeof(GUID)+2+cbDLLName+cbPad, lpOrigEntry, cbOrigEntry);
 	
 exit:
-	TRACE_MAPILIB1(TRACE_ENTRY, "WrapStoreEntryID", "0x%08x", hr);
 	return hr;
 }
 
 void __stdcall FreeProws(LPSRowSet lpRows) {
-	TRACE_MAPILIB(TRACE_ENTRY, "FreeProws", "");
 	unsigned int i;
 	
 	if(lpRows == NULL)
@@ -168,20 +155,16 @@ void __stdcall FreeProws(LPSRowSet lpRows) {
 	for (i = 0; i < lpRows->cRows; ++i)
 		MAPIFreeBuffer(lpRows->aRow[i].lpProps);
 	MAPIFreeBuffer(lpRows);
-	TRACE_MAPILIB(TRACE_RETURN, "FreeProws", "");
 }
 
 void __stdcall FreePadrlist(LPADRLIST lpAdrlist) {
-	TRACE_MAPILIB(TRACE_ENTRY, "FreePadrlist", "");
 	// it's the same in mapi4linux
 	FreeProws((LPSRowSet) lpAdrlist);
-	TRACE_MAPILIB(TRACE_RETURN, "FreePadrlist", "");
 }
 
 // M4LMAPIAdviseSink is in mapidefs.cpp
 HRESULT __stdcall HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext, LPMAPIADVISESINK *lppSink)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "HrAllocAdviseSink", "");
 	HRESULT hr = hrSuccess;
 	IMAPIAdviseSink *lpSink = NULL;
 
@@ -196,16 +179,13 @@ HRESULT __stdcall HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext,
 	*lppSink = lpSink;
 
 exit:
-	TRACE_MAPILIB1(TRACE_RETURN, "HrAllocAdviseSink", "0x%08x", hr);
 	return hr;
 }
 
 // Linux always has multithreaded advise sinks
 HRESULT __stdcall HrThisThreadAdviseSink(LPMAPIADVISESINK lpAdviseSink, LPMAPIADVISESINK *lppAdviseSink) {
-	TRACE_MAPILIB(TRACE_ENTRY, "HrThisThreadAdviseSink", "");
 	*lppAdviseSink = lpAdviseSink;
 	lpAdviseSink->AddRef();
-	TRACE_MAPILIB1(TRACE_RETURN, "HrThisThreadAdviseSink", "0x%08x", hrSuccess);
 	return hrSuccess;
 }
 
@@ -334,9 +314,7 @@ HRESULT __stdcall WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG 
 
 // RTFSync is not much use even in windows, so we don't implement it
 HRESULT __stdcall RTFSync(LPMESSAGE lpMessage, ULONG ulFlags, BOOL * lpfMessageUpdated) {
-	TRACE_MAPILIB(TRACE_ENTRY, "RTFSync", "");
 	HRESULT hr = MAPI_E_NO_SUPPORT;
-	TRACE_MAPILIB1(TRACE_RETURN, "RTFSync", "0x%08x", hr);
 	return hr;
 }
 
@@ -345,7 +323,6 @@ HRESULT __stdcall HrQueryAllRows(LPMAPITABLE lpTable,
     const SPropTagArray *lpPropTags, LPSRestriction lpRestriction,
     const SSortOrderSet *lpSortOrderSet, LONG crowsMax, LPSRowSet *lppRows)
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "HrQueryAllRows", "%s", PropNameFromPropTagArray(lpPropTags).c_str());
 	HRESULT hr = hrSuccess;
 
 	hr = lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
@@ -376,12 +353,10 @@ HRESULT __stdcall HrQueryAllRows(LPMAPITABLE lpTable,
 	hr = lpTable->QueryRows(crowsMax, 0, lppRows);
 
 exit:
-	TRACE_MAPILIB1(TRACE_RETURN, "HrQueryAllRows", "0x%08x", hr);
 	return hr;
 }
 
 HRESULT __stdcall HrGetOneProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPropVal) {
-	TRACE_MAPILIB1(TRACE_ENTRY, "HrGetOneProp", "%08x", ulPropTag);
 	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(1, sPropTag) = { 1, { ulPropTag } };
 	ULONG cValues = 0;
@@ -397,30 +372,24 @@ HRESULT __stdcall HrGetOneProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue 
 	}
 	*lppPropVal = lpPropVal.release();
 exit:
-	TRACE_MAPILIB1(TRACE_RETURN, "HrGetOneProp", "0x%08x", hr);
 	return hr;
 }
 
 HRESULT __stdcall HrSetOneProp(LPMAPIPROP lpMapiProp, const SPropValue *lpProp)
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "HrSetOneProp", "%s", PropNameFromPropArray(1, lpProp).c_str());
 	HRESULT hr = hrSuccess;
 
 	hr = lpMapiProp->SetProps(1, lpProp, NULL);
 	// convert ProblemArray into HRESULT error?
-
-	TRACE_MAPILIB1(TRACE_RETURN, "HrSetOneProp", "0x%08x", hr);
 	return hr;
 }
 
 BOOL __stdcall FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag)
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "FPropExists", "%08x", ulPropTag);
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropVal = NULL;
 
 	hr = HrGetOneProp(lpMapiProp, ulPropTag, &~lpPropVal);
-	TRACE_MAPILIB1(TRACE_RETURN, "FPropExists", "0x%08x", hr);
 	return (hr == hrSuccess);
 }
 
@@ -441,9 +410,7 @@ HRESULT __stdcall CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease, IS
 HRESULT __stdcall OpenStreamOnFile(LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags,
     LPTSTR lpszFileName, LPTSTR lpszPrefix, LPSTREAM *lppStream)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "OpenStreamOnFile", "");
 	HRESULT hr = MAPI_E_NOT_FOUND;
-	TRACE_MAPILIB1(TRACE_RETURN, "OpenStreamOnFile", "0x%08x", hr);
 	return hr;
 }
 
@@ -453,9 +420,7 @@ HRESULT __stdcall BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCAT
 	LPDTPAGE lpPage, ULONG ulFlags,
 	LPMAPITABLE * lppTable, LPTABLEDATA * lppTblData)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "BuildDisplayTable", "");
 	HRESULT hr = MAPI_E_NO_SUPPORT;
-	TRACE_MAPILIB1(TRACE_RETURN, "BuildDisplayTable", "0x%08x", hr);
 	return hr;
 }
 
@@ -473,7 +438,6 @@ HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
 	LPBYTE *lppbConvIndex)
 {
 	HRESULT hr;
-	TRACE_MAPILIB1(TRACE_ENTRY, "ScCreateConversationIndex", "%s", lpbParent ? bin2hex(cbParent, lpbParent).c_str() : "<null>");
 	ULONG cbConvIndex = 0;
 	BYTE *pbConvIndex = NULL;
 
@@ -509,15 +473,11 @@ HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
 
 	*lppbConvIndex = pbConvIndex;
 	*lpcbConvIndex = cbConvIndex;
-
-	TRACE_MAPILIB1(TRACE_RETURN, "ScCreateConversationIndex", "%s", bin2hex(cbConvIndex, pbConvIndex).c_str());
 	return hrSuccess;
 }
 
 SCODE __stdcall ScDupPropset( int cprop,  LPSPropValue rgprop,  LPALLOCATEBUFFER lpAllocateBuffer,  LPSPropValue *prgprop )
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "ScDupPropset", "");
-
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpDst = NULL;
 	ULONG ulSize = 0;
@@ -537,38 +497,29 @@ SCODE __stdcall ScDupPropset( int cprop,  LPSPropValue rgprop,  LPALLOCATEBUFFER
 	*prgprop = lpDst;
 
 exit:
-	TRACE_MAPILIB1(TRACE_RETURN, "ScDupPropset", "0x%08x", hr);
 	return hr;
 }
 
 SCODE __stdcall ScRelocProps(int cprop, LPSPropValue rgprop, LPVOID pvBaseOld, LPVOID pvBaseNew, ULONG *pcb)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "ScRelocProps", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "ScRelocProps", "0x%08x", S_FALSE);
 	return S_FALSE;
 }
 ULONG __stdcall CbOfEncoded(LPCSTR lpszEnc)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "CbOfEncoded", "");
 	ULONG ulRet = 0;
 
 	if (lpszEnc)
 		ulRet = (((strlen(lpszEnc) | 3) >> 2) + 1) * 3;
-
-	TRACE_MAPILIB(TRACE_RETURN, "CbOfEncoded", "");
 	return ulRet;
 }
 
 ULONG __stdcall CchOfEncoding(LPCSTR lpszEnd)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "CchOfEncoding", "");
-	TRACE_MAPILIB(TRACE_RETURN, "CchOfEncoding", "");
 	return 0;
 }
 
 SCODE __stdcall ScCopyProps( int cprop,  LPSPropValue rgprop,  LPVOID pvDst,  ULONG *pcb )
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "ScCopyProps", "%s", PropNameFromPropArray(cprop, rgprop).c_str());
 	auto lpHeap = static_cast<BYTE *>(pvDst) + sizeof(SPropValue) * cprop;
 	LPSPropValue lpProp = (LPSPropValue)pvDst;
 
@@ -702,8 +653,6 @@ SCODE __stdcall ScCopyProps( int cprop,  LPSPropValue rgprop,  LPVOID pvDst,  UL
 
 	if(pcb)
 		*pcb = lpHeap - (BYTE *)pvDst;
-
-	TRACE_MAPILIB1(TRACE_RETURN, "ScCopyProps", "%s", PropNameFromPropArray(cprop, (LPSPropValue)pvDst).c_str());
 	return S_OK;
 }
 
@@ -757,122 +706,93 @@ SCODE __stdcall ScCountProps(int cValues, LPSPropValue lpPropArray, ULONG *lpcb)
 
 	if (lpcb)
 		*lpcb = ulSize;
-
-	TRACE_MAPILIB1(TRACE_RETURN, "ScCountProps", "%d", ulSize);
 	return sc;
 }
 
 SCODE __stdcall ScInitMapiUtil(ULONG ulFlags)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "ScInitMAPIUtil", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "ScInitMAPIUtil", "0x%08x", S_OK);
 	return S_OK;
 }
 
 BOOL __stdcall FBinFromHex(LPTSTR sz, LPBYTE pb)
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "FBinFromHex", "%s", sz);
 	ULONG len;
 	memory_ptr<BYTE> lpBin;
 
 	Util::hex2bin((char *)sz, strlen((char *)sz), &len, &~lpBin);
 	memcpy(pb, lpBin, len);
-	TRACE_MAPILIB1(TRACE_RETURN, "FBinFromHex", "%s", sz);
 	return true;
 }
 
 void __stdcall HexFromBin(LPBYTE pb, int cb, LPTSTR sz)
 {
 	std::string hex = bin2hex(cb, pb);
-	TRACE_MAPILIB1(TRACE_ENTRY, "HexFromBin", "%s", hex.c_str());
-
 	strcpy((char *)sz, hex.c_str());
-
-	TRACE_MAPILIB1(TRACE_RETURN, "HexFromBin", "%s", sz);
 }
 
 // @todo according to MSDN, this function also supports Unicode strings
 // 		but I don't see how that's easy possible
 LPTSTR __stdcall SzFindCh(LPCTSTR lpsz, USHORT ch)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "SzFindCh", "");
 	LPTSTR lpszFind = (LPTSTR)strchr((char*)lpsz, ch);
-	TRACE_MAPILIB(TRACE_RETURN, "SzFindCh", "");
 	return lpszFind;
 }
 
 int __stdcall MNLS_CompareStringW(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1, int cchCount1, LPCWSTR lpString2, int cchCount2)
 {
-	TRACE_MAPILIB4(TRACE_ENTRY, "MNLS_CompareStringW", "%d %S, %d %S", cchCount1, lpString1, cchCount2, lpString2);
 	// FIXME: we're ignoring Locale, dwCmpFlags, cchCount1 and cchCount2
 	int ulCmp = wcscmp((LPWSTR)lpString1, (LPWSTR)lpString2);
-	TRACE_MAPILIB1(TRACE_RETURN, "MNLS_CompareStringW", "%d", ulCmp);
 	return ulCmp;
 }
 
 int __stdcall MNLS_lstrlenW(LPCWSTR lpString)
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "MNLS_lstrlenW", "%S", lpString);
 	int ulLen = lstrlenW(lpString);
-	TRACE_MAPILIB2(TRACE_RETURN, "MNLS_lstrlenW", "%S: %d", lpString, ulLen);
 	return ulLen;
 }
 
 int __stdcall MNLS_lstrlen(LPCSTR lpString)
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "MNLS_lstrlen", "%S", lpString);
 	int ulLen = lstrlenW((LPCWSTR)lpString);
-	TRACE_MAPILIB2(TRACE_RETURN, "MNLS_lstrlen", "%S: %d", lpString, ulLen);
 	return ulLen;
 }
 
 int __stdcall MNLS_lstrcmpW(LPCWSTR lpString1, LPCWSTR lpString2)
 {
-	TRACE_MAPILIB2(TRACE_ENTRY, "lstrcmpW", "%S, %S", lpString1, lpString2);
 	int ulCmp = lstrcmpW(lpString1, lpString2);
-	TRACE_MAPILIB3(TRACE_RETURN, "lstrcmpW", "%S, %S: %d", lpString1, lpString2, ulCmp);
 	return ulCmp;
 }
 
 LPWSTR __stdcall MNLS_lstrcpyW(LPWSTR lpString1, LPCWSTR lpString2)
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "MNLS_lstrcpyW", "%S", lpString2);
 	LPWSTR str = lstrcpyW(lpString1, lpString2);
-	TRACE_MAPILIB(TRACE_RETURN, "MNLS_lstrcpyW", "");
 	return str;
 }
 
 FILETIME __stdcall FtAddFt( FILETIME Addend1,  FILETIME Addend2    )
 {
-	TRACE_MAPILIB4(TRACE_ENTRY, "FtAddFt", "(%u,%u) (%u,%u)", Addend1.dwHighDateTime, Addend1.dwLowDateTime, Addend2.dwHighDateTime, Addend2.dwLowDateTime);
 	FILETIME ft;
 	unsigned long long l = ((unsigned long long)Addend1.dwHighDateTime << 32) + Addend1.dwLowDateTime;
 	l += ((unsigned long long)Addend2.dwHighDateTime << 32) + Addend2.dwLowDateTime;
 
 	ft.dwHighDateTime = l >> 32;
 	ft.dwLowDateTime = l & 0xffffffff;
-
-	TRACE_MAPILIB2(TRACE_RETURN, "FtAddFt", "(%u,%u)", ft.dwHighDateTime, ft.dwLowDateTime);
 	return ft;
 }
 
 FILETIME __stdcall FtSubFt( FILETIME Minuend,  FILETIME Subtrahend )
 {
-	TRACE_MAPILIB4(TRACE_ENTRY, "FtSubFt", "(%u,%u) (%u,%u)", Minuend.dwHighDateTime, Minuend.dwLowDateTime, Subtrahend.dwHighDateTime, Subtrahend.dwLowDateTime);
 	FILETIME ft;
 	unsigned long long l = ((unsigned long long)Minuend.dwHighDateTime << 32) + Minuend.dwLowDateTime;
 	l -= ((unsigned long long)Subtrahend.dwHighDateTime << 32) + Subtrahend.dwLowDateTime;
 
 	ft.dwHighDateTime = l >> 32;
 	ft.dwLowDateTime = l & 0xffffffff;
-
-	TRACE_MAPILIB2(TRACE_RETURN, "FtSubFt", "(%u,%u)", ft.dwHighDateTime, ft.dwLowDateTime);
 	return ft;
 }
 
 FILETIME __stdcall FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n)
 {
-	TRACE_MAPILIB5(TRACE_ENTRY, "FtDivFtBogus", "(%u, %u), (%u, %u), %u", f.dwHighDateTime, f.dwLowDateTime, f2.dwHighDateTime, f2.dwLowDateTime, n);
 	// Obtained by experiment: this function does (f*f2) >> (n+64)
 	// Since we don't have a good int64 * int64, we do our own addition_plus_bitshift
 	// which discards the lowest 64 bits on the fly.
@@ -893,14 +813,11 @@ FILETIME __stdcall FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n)
 	FILETIME ft;
 	ft.dwHighDateTime = ret >> 32;
 	ft.dwLowDateTime = ret & 0xFFFFFFFF;
-
-	TRACE_MAPILIB2(TRACE_RETURN, "FtDivFtBogus", "(%u %u)", ft.dwHighDateTime, ft.dwLowDateTime);
 	return ft;
 }
 
 FILETIME __stdcall FtMulDw(DWORD ftMultiplier, FILETIME ftMultiplicand)
 {
-	TRACE_MAPILIB3(TRACE_ENTRY, "FtMulDw", "%d x (%d, %d)", ftMultiplier, ftMultiplicand.dwHighDateTime, ftMultiplicand.dwLowDateTime);
 	FILETIME ft;
 	unsigned long long t = ((unsigned long long)ftMultiplicand.dwHighDateTime << 32) + (ftMultiplicand.dwLowDateTime & 0xffffffff);
 
@@ -908,54 +825,39 @@ FILETIME __stdcall FtMulDw(DWORD ftMultiplier, FILETIME ftMultiplicand)
 
 	ft.dwHighDateTime = t >> 32;
 	ft.dwLowDateTime = t & 0xFFFFFFFF;
-
-	TRACE_MAPILIB2(TRACE_RETURN, "FtMulDw", "%(%d, %d)", ft.dwHighDateTime, ft.dwLowDateTime);
 	return ft;
 }
 
 LONG __stdcall MAPIInitIdle( LPVOID lpvReserved  )
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "MAPIInitIdle", "");
-	TRACE_MAPILIB(TRACE_RETURN, "MAPIInitIdle", "");
 	return 0;
 }
 
 void __stdcall MAPIDeinitIdle(void)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "MAPIDeinitIdle", "");
-	TRACE_MAPILIB(TRACE_RETURN, "MAPIDeinitIdle", "");
 }
 
 void __stdcall DeregisterIdleRoutine( FTG ftg  )
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "DeregisterIdleRoutine", "");
-	TRACE_MAPILIB(TRACE_RETURN, "DeregisterIdleRoutine", "");
 }
 
 void __stdcall EnableIdleRoutine( FTG ftg,  BOOL fEnable  )
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "EnableIdleRoutine", "");
-	TRACE_MAPILIB(TRACE_RETURN, "EnableIdleRoutine", "");
 }
 
 void __stdcall ChangeIdleRoutine(FTG ftg, PFNIDLE pfnIdle, LPVOID pvIdleParam, short priIdle, ULONG csecIdle, USHORT iroIdle, USHORT ircIdle)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "ChangeIdleRoutine", "");
-	TRACE_MAPILIB(TRACE_RETURN, "ChangeIdleRoutine", "");
 }
 
 FTG __stdcall FtgRegisterIdleRoutine(PFNIDLE pfnIdle,  LPVOID pvIdleParam,  short priIdle,  ULONG csecIdle,  USHORT iroIdle)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FtgRegisterIdleRoutine", "");
 	FTG f = NULL;
-	TRACE_MAPILIB(TRACE_RETURN, "FtgRegisterIdleRoutine", "");
 	return f;
 }
 
 const WORD kwBaseOffset = 0xAC00;  // Hangul char range (AC00-D7AF)
 LPWSTR __stdcall EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "EncodeID", "");
 	ULONG   i = 0;
 	LPWSTR  pwzDst = NULL;
 	LPBYTE  pbSrc = NULL;
@@ -978,91 +880,66 @@ LPWSTR __stdcall EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString)
 
 exit:
 	// pwzIDEncoded now contains the entry ID encoded.
-	TRACE_MAPILIB1(TRACE_RETURN, "EncodeID", "%s", (pwzIDEncoded ? "SUCCESS" : "FAILED"));
 	return pwzIDEncoded;
 }
 
 void __stdcall FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncoded)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FDecodeID", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FDecodeID", "");
 	// ?
 }
 
 BOOL __stdcall FBadRglpszA(const TCHAR *, ULONG cStrings)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadRglpszA", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadRglpszA", "");
 	return FALSE;
 }
 
 BOOL __stdcall FBadRglpszW(const wchar_t *, ULONG cStrings)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadRglpszW", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadRglpszW", "");
 	return FALSE;
 }
 
 BOOL __stdcall FBadRowSet(const SRowSet *)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadRowSet", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadRowSet", "");
 	return FALSE;
 }
 
 BOOL __stdcall FBadRglpNameID(LPMAPINAMEID *lppNameId, ULONG cNames)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadRglpNameID", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadRglpNameID", "");
 	return FALSE;
 }
 
 ULONG __stdcall FBadPropTag(ULONG ulPropTag)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadPropTag", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadPropTag", "");
 	return FALSE;
 }
 
 ULONG __stdcall FBadRow(const SRow *)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadRow", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadRow", "");
 	return FALSE;
 }
 
 ULONG __stdcall FBadProp(const SPropValue *)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadProp", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadProp", "");
 	return FALSE;
 }
 
 ULONG __stdcall FBadColumnSet(const SPropTagArray *lpptaCols)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadColumnSet", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadColumnSet", "");
 	return FALSE;
 }
 
 ULONG __stdcall FBadSortOrderSet(const SSortOrderSet *)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadSortOrderSet", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadSortOrderSet", "");
 	return FALSE;
 }
 
 BOOL __stdcall FBadEntryList(const SBinaryArray *lpEntryList)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadEntryList", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadEntryList", "");
 	return FALSE;
 }
 
 ULONG __stdcall FBadRestriction(const SRestriction *)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "FBadRestriction", "");
-	TRACE_MAPILIB(TRACE_RETURN, "FBadRestriction", "");
 	return FALSE;
 }
 

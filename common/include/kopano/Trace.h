@@ -28,7 +28,6 @@
 namespace KC {
 
 void TraceMapi(int time, const char *func, const char *format, ...);
-void TraceMapiLib(int time, const char *func, const char *format, ...);
 void TraceNotify(int time, const char *func, const char *format, ...);
 void TraceSoap(int time, const char *func, const char *format, ...);
 void TraceInternals(int time, const char *action, const char *func, const char *format, ...);
@@ -47,7 +46,6 @@ extern _kc_export void TraceRelease(const char *fmt, ...);
 
 #ifdef WITH_TRACING
 #define TRACE_MAPI		TraceMapi
-#define TRACE_MAPILIB	TraceMapiLib
 #define TRACE_ECMAPI	TraceECMapi
 #define TRACE_NOTIFY	TraceNotify
 #define TRACE_INTERNAL	TraceInternals
@@ -56,7 +54,6 @@ extern _kc_export void TraceRelease(const char *fmt, ...);
 #define TRACE_EXT		TraceExt
 #else
 #  define TRACE_MAPI(...)
-#  define TRACE_MAPILIB(...)
 #  define TRACE_ECMAPI(...)
 #  define TRACE_NOTIFY(...)
 #  define TRACE_INTERNAL(...)

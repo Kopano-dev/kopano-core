@@ -63,15 +63,12 @@ HRESULT M4LMAPIProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* l
 
 HRESULT M4LMAPIProp::SaveChanges(ULONG ulFlags) {
 	// memory only.
-	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::SaveChanges", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::SaveChanges", "0x%08x", hrSuccess);
 	return hrSuccess;
 }
 
 HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
 {
-	TRACE_MAPILIB2(TRACE_ENTRY, "IMAPIProp::GetProps", "PropTagArray=%s\nfFlags=0x%08X", PropNameFromPropTagArray(lpPropTagArray).c_str(), ulFlags);
 	list<LPSPropValue>::const_iterator i;
 	ULONG c;
 	memory_ptr<SPropValue> props;
@@ -205,26 +202,20 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 	*lpcValues = c;
 	*lppPropArray = props.release();
 exit:
-	TRACE_MAPILIB2(TRACE_RETURN, "IMAPIProp::GetProps", "%s\n%s", GetMAPIErrorDescription(hr).c_str(), PropNameFromPropArray(*lpcValues, *lppPropArray).c_str());
 	return hr;
 }
 
 HRESULT M4LMAPIProp::GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray) {
-	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::GetPropList", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::GetPropList", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk) {
-	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::OpenProperty", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::OpenProperty", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     SPropProblemArray **lppProblems)
 {
-	TRACE_MAPILIB1(TRACE_ENTRY, "IMAPIProp::SetProps", "%s", PropNameFromPropArray(cValues, lpPropArray).c_str());
 	list<LPSPropValue>::iterator i, del;
 	ULONG c;
 	LPSPropValue pv = NULL;
@@ -283,15 +274,12 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	}
 
 exit:
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::SetProps", "0x%08x", hr);
 	return hr;
 }
 
 HRESULT M4LMAPIProp::DeleteProps(const SPropTagArray *lpPropTagArray,
     SPropProblemArray **lppProblems)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::DeleteProps", "");
-
 	HRESULT hr = hrSuccess;
 	list<LPSPropValue>::iterator i;
 
@@ -307,8 +295,6 @@ HRESULT M4LMAPIProp::DeleteProps(const SPropTagArray *lpPropTagArray,
 			}
 		}
 	}
-
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::DeleteProps", "0x%08x", hr);
 	return hr;
 }
 
@@ -317,8 +303,6 @@ HRESULT M4LMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::CopyTo", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::CopyTo", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
@@ -326,21 +310,15 @@ HRESULT M4LMAPIProp::CopyProps(const SPropTagArray *lpIncludeProps,
     ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::CopyProps", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::CopyProps", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPIProp::GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
 				     LPMAPINAMEID** lpppPropNames) {
-	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::GetNamesFromIDs", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::GetNamesFromIDs", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags) {
-	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::GetIDsFromNames", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::GetIDsFromNames", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
@@ -352,7 +330,6 @@ ULONG M4LMAPIProp::Release() {
 	return M4LUnknown::Release();
 }
 HRESULT M4LMAPIProp::QueryInterface(REFIID refiid, void **lpvoid) {
-	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 	if (refiid == IID_IMAPIProp) {
 		AddRef();
@@ -363,7 +340,6 @@ HRESULT M4LMAPIProp::QueryInterface(REFIID refiid, void **lpvoid) {
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::QueryInterface", "0x%08x", hr);
 	return hr;
 }
 
@@ -376,28 +352,20 @@ M4LProfSect::M4LProfSect(BOOL bGlobalProf) {
 }
 
 HRESULT M4LProfSect::ValidateState(ULONG ulUIParam, ULONG ulFlags) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfSect::ValidateState", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfSect::ValidateState", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LProfSect::SettingsDialog(ULONG ulUIParam, ULONG ulFlags) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfSect::SettingsDialog", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfSect::SettingsDialog", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LProfSect::ChangePassword(const TCHAR *oldp, const TCHAR *newp,
     ULONG flags)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfSect::ChangePassword", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfSect::ChangePassword", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LProfSect::FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfSect::FlushQueues", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfSect::FlushQueues", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
@@ -469,7 +437,6 @@ ULONG M4LProfSect::Release() {
 	return M4LUnknown::Release();
 }
 HRESULT M4LProfSect::QueryInterface(REFIID refiid, void **lpvoid) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfSect::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
 	if (refiid == IID_IProfSect) {
@@ -484,7 +451,6 @@ HRESULT M4LProfSect::QueryInterface(REFIID refiid, void **lpvoid) {
     } else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfSect::QueryInterface", "0x%08x", hr);
 	return hr;
 }
 
@@ -497,140 +463,96 @@ HRESULT M4LMAPITable::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *
 }
 
 HRESULT M4LMAPITable::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::Advise", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::Advise", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::Unadvise(ULONG ulConnection) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::Unadvise", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::Unadvise", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::GetStatus", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::GetStatus", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::SetColumns(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::SetColumns", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::SetColumns", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::QueryColumns(ULONG ulFlags, LPSPropTagArray *lpPropTagArray) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::QueryColumns", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::QueryColumns", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::GetRowCount(ULONG ulFlags, ULONG *lpulCount) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::GetRowCount", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::GetRowCount", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::SeekRow", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::SeekRow", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::SeekRowApprox", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::SeekRowApprox", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::QueryPosition", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::QueryPosition", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::FindRow", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::FindRow", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::Restrict(LPSRestriction lpRestriction, ULONG ulFlags) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::Restrict", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::Restrict", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::CreateBookmark(BOOKMARK* lpbkPosition) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::CreateBookmark", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::CreateBookmark", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::FreeBookmark(BOOKMARK bkPosition) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::FreeBookmark", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::FreeBookmark", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::SortTable(const SSortOrderSet *, ULONG flags)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::SortTable", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::SortTable", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::QuerySortOrder(LPSSortOrderSet *lppSortCriteria) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::QuerySortOrder", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::QuerySortOrder", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows) {
     // TODO
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::QueryRows", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::QueryRows", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::Abort() {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::Abort", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::Abort", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount,
 								ULONG ulFlags, LPSRowSet * lppRows, ULONG *lpulMoreRows) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::ExpandRow", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::ExpandRow", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::CollapseRow", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::CollapseRow", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG *lpulTableStatus) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::WaitForCompletion", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::WaitForCompletion", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState,
 			 LPBYTE *lppbCollapseState) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::GetCollapseState", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::GetCollapseState", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPITable::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::SetCollapseState", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::SetCollapseState", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
 }
 
@@ -642,7 +564,6 @@ ULONG M4LMAPITable::Release() {
 	return M4LUnknown::Release();
 }
 HRESULT M4LMAPITable::QueryInterface(REFIID refiid, void **lpvoid) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
 	if (refiid == IID_IMAPITable) {
@@ -654,7 +575,6 @@ HRESULT M4LMAPITable::QueryInterface(REFIID refiid, void **lpvoid) {
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::QueryInterface", "0x%08x", hr);
 	return hr;
 }
 
@@ -681,7 +601,6 @@ HRESULT M4LProviderAdmin::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERR
 }
 
 HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::GetProviderTable", "");
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
 	object_ptr<ECMemTable> lpTable;
@@ -732,7 +651,6 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 	
 exit:
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::GetProviderTable", "0x%08x", hr);
 	return hr;
 }
 
@@ -752,7 +670,6 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
     ULONG cValues, const SPropValue *lpProps, ULONG ulUIParam, ULONG ulFlags,
     MAPIUID *lpUID)
 {
-    TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::CreateProvider", "");
 	SPropValue sProps[10];
 	ULONG nProps = 0;
 	const SPropValue *lpResource = nullptr;
@@ -858,14 +775,12 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	// another rumor is that that is only called once per service, not once per created provider. huh?
 exit:
 	l_srv.unlock();
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::CreateProvider", "0x%08x", hr);
 	return hr;
 }
 
 HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
 {
 	HRESULT hr = MAPI_E_NOT_FOUND;	
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::DeleteProvider", "");
 	decltype(msa->providers)::iterator i;
 	
 	for (i = msa->providers.begin(); i != msa->providers.end(); ++i) {
@@ -875,15 +790,12 @@ HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
 			break;
 		}
 	}
-	
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::DeleteProvider", "0x%08x", MAPI_E_NO_SUPPORT);
     return hr;
 }
 
 HRESULT M4LProviderAdmin::OpenProfileSection(const MAPIUID *lpUID,
     const IID *lpInterface, ULONG ulFlags, IProfSect **lppProfSect)
 {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::OpenProfileSection", "");
 	HRESULT hr = hrSuccess;
 	providerEntry *provider = NULL;
 	// See provider/client/guid.h
@@ -904,7 +816,6 @@ HRESULT M4LProviderAdmin::OpenProfileSection(const MAPIUID *lpUID,
 
 	hr = provider->profilesection->QueryInterface(lpInterface ? (*lpInterface) : IID_IProfSect, (void**)lppProfSect);
 exit:
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::OpenProfileSection", "0x%08x", hr);
 	return hr;
 }
 
@@ -916,7 +827,6 @@ ULONG M4LProviderAdmin::Release() {
 	return M4LUnknown::Release();
 }
 HRESULT M4LProviderAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
 	if (refiid == IID_IProviderAdmin) {
@@ -928,7 +838,6 @@ HRESULT M4LProviderAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::QueryInterface", "0x%08x", hr);
 	return hr;
 }
 
@@ -953,7 +862,6 @@ ULONG M4LMAPIAdviseSink::Release() {
 	return M4LUnknown::Release();
 }
 HRESULT M4LMAPIAdviseSink::QueryInterface(REFIID refiid, void **lpvoid) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPIAdviseSink::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 	if (refiid == IID_IMAPIAdviseSink) {
 		AddRef();
@@ -964,7 +872,6 @@ HRESULT M4LMAPIAdviseSink::QueryInterface(REFIID refiid, void **lpvoid) {
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPIAdviseSink::QueryInterface", "0x%08x", hr);
 	return hr;
 }
 
@@ -1058,7 +965,6 @@ ULONG M4LMAPIContainer::Release() {
 	return M4LUnknown::Release();
 }
 HRESULT M4LMAPIContainer::QueryInterface(REFIID refiid, void **lpvoid) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPIContainer::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 	if (refiid == IID_IMAPIContainer) {
 		AddRef();
@@ -1072,7 +978,6 @@ HRESULT M4LMAPIContainer::QueryInterface(REFIID refiid, void **lpvoid) {
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPIContainer::QueryInterface", "0x%08x", hr);
 	return hr;
 }
 
@@ -1300,7 +1205,6 @@ ULONG M4LABContainer::Release() {
 	return M4LUnknown::Release();
 }
 HRESULT M4LABContainer::QueryInterface(REFIID refiid, void **lpvoid) {
-	TRACE_MAPILIB(TRACE_ENTRY, "M4LABContainer::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 	if (refiid == IID_IABContainer) {
 		AddRef();
@@ -1317,6 +1221,5 @@ HRESULT M4LABContainer::QueryInterface(REFIID refiid, void **lpvoid) {
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LABContainer::QueryInterface", "0x%08x", hr);
 	return hr;
 }
