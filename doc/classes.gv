@@ -175,4 +175,14 @@ digraph {
 	WSABPropStorage -> IECPropStorage;
 	WSMAPIPropStorage -> ECUnknown;
 	WSMAPIPropStorage -> IECPropStorage;
+
+	IABLogon -> IUnknown;
+	ZCABContainer -> ECUnknown;
+	ZCABContainer -> IABContainer;
+	ZCABLogon -> ECUnknown;
+	ZCABLogon -> IABLogon;
+	ZCABProvider -> ECUnknown;
+	ZCABProvider -> IABProvider;
+	ZCMAPIProp -> ECUnknown;
+	ZCMAPIProp -> IMAPIProp;
 }
