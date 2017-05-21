@@ -38,6 +38,12 @@ public:
 	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
 
+	class xABContainer _kc_final : public IABContainer {
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		#include <kopano/xclsfrag/IMAPIContainer.hpp>
+		#include <kopano/xclsfrag/IMAPIProp.hpp>
+		#include <kopano/xclsfrag/IABContainer.hpp>
+	} m_xABContainer;
 	class xDistList _kc_final : public IDistList {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IABContainer.hpp>
