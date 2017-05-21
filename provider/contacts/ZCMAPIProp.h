@@ -55,10 +55,10 @@ public:
 	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID * lppPropNames, ULONG ulFlags, LPSPropTagArray * lppPropTags);
 
 private:
-	class xMAPIProp _kc_final : public IMAPIProp {
+	class xMailUser _kc_final : public IMailUser {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
-	} m_xMAPIProp;
+	} m_xMailUser;
 
 private:
 	SPropValue *m_base = nullptr;
