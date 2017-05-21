@@ -27,7 +27,6 @@
 
 namespace KC {
 
-void TraceNotify(int time, const char *func, const char *format, ...);
 void TraceSoap(int time, const char *func, const char *format, ...);
 void TraceInternals(int time, const char *action, const char *func, const char *format, ...);
 void TraceStream(int time, const char *func, const char *format, ...);
@@ -43,7 +42,6 @@ extern _kc_export void TraceRelease(const char *fmt, ...);
 #endif
 
 #ifdef WITH_TRACING
-#define TRACE_NOTIFY	TraceNotify
 #define TRACE_INTERNAL	TraceInternals
 #define TRACE_SOAP		TraceSoap
 #define TRACE_STREAM	TraceStream

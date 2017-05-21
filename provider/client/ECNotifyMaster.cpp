@@ -21,6 +21,7 @@
 #include <new>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/ECLogger.h>
 #include <mapidefs.h>
 
 #include "ECNotifyClient.h"
@@ -53,16 +54,12 @@ inline bool ECNotifySink::IsClient(const ECNotifyClient *lpClient) const
 ECNotifyMaster::ECNotifyMaster(SessionGroupData *lpData) :
 	m_lpSessionGroupData(lpData /* no addref */)
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::ECNotifyMaster", "");
 	memset(&m_hThread, 0, sizeof(m_hThread));
 	m_ulConnection = 1;
-
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::ECNotifyMaster", "");
 }
 
 ECNotifyMaster::~ECNotifyMaster(void)
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::~ECNotifyMaster", "");
 	assert(m_listNotifyClients.empty());
 	/* Disable Notifications */
 	StopNotifyWatch();
@@ -71,13 +68,10 @@ ECNotifyMaster::~ECNotifyMaster(void)
 		m_lpSessionGroupData = NULL; /* DON'T Release() */
 	if (m_lpTransport)
 		m_lpTransport->Release();
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::~ECNotifyMaster", "");
 }
 
 HRESULT ECNotifyMaster::Create(SessionGroupData *lpData, ECNotifyMaster **lppMaster)
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::Create", "");
-
 	HRESULT hr = hrSuccess;
 	auto lpMaster = new(std::nothrow) ECNotifyMaster(lpData);
 	if (lpMaster == nullptr)
@@ -85,15 +79,11 @@ HRESULT ECNotifyMaster::Create(SessionGroupData *lpData, ECNotifyMaster **lppMas
 	lpMaster->AddRef();
 
 	*lppMaster = lpMaster;
-
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::Create", "hr=0x%08X", hr);
 	return hr;
 }
 
 HRESULT ECNotifyMaster::ConnectToSession()
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::ConnectToSession", "");
-
 	HRESULT			hr = hrSuccess;
 	scoped_rlock biglock(m_hMutex);
 
@@ -120,13 +110,11 @@ HRESULT ECNotifyMaster::ConnectToSession()
 		goto exit;
 
 exit:
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::ConnectToSession", "hr=0x%08X", hr);
 	return hr;
 }
 
 HRESULT ECNotifyMaster::AddSession(ECNotifyClient* lpClient)
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::AddSession", "");
 	scoped_rlock biglock(m_hMutex);
 
 	m_listNotifyClients.push_back(lpClient);
@@ -134,7 +122,6 @@ HRESULT ECNotifyMaster::AddSession(ECNotifyClient* lpClient)
 	/* Enable Notifications */
 	if (StartNotifyWatch() != hrSuccess)
 		assert(false);
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::AddSession", "");
 	return hrSuccess;
 }
 
@@ -152,8 +139,6 @@ struct findConnectionClient
 
 HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::ReleaseSession", "");
-
 	HRESULT hr = hrSuccess;
 	scoped_rlock biglock(m_hMutex);
 
@@ -168,7 +153,6 @@ HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 
 	/* Remove client from list */
 	m_listNotifyClients.remove(lpClient);
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::ReleaseSession", "");
 	return hr;
 }
 
@@ -195,8 +179,6 @@ HRESULT ECNotifyMaster::DropConnection(ULONG ulConnection)
 
 HRESULT ECNotifyMaster::StartNotifyWatch()
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::StartNotifyWatch", "");
-
 	HRESULT hr = hrSuccess;
 
 	/* Thread is already running */
@@ -227,14 +209,11 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 	m_bThreadRunning = TRUE;
 
 exit:
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::StartNotifyWatch", "hr=0x%08X", hr);
 	return hr;
 }
 
 HRESULT ECNotifyMaster::StopNotifyWatch()
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::StopNotifyWatch", "");
-
 	HRESULT hr = hrSuccess;
 	KCHL::object_ptr<WSTransport> lpTransport;
 	ulock_rec biglock(m_hMutex, std::defer_lock_t());
@@ -265,18 +244,16 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 	}
 	biglock.unlock();
 	if (pthread_join(m_hThread, NULL) != 0)
-		TRACE_NOTIFY(TRACE_WARNING, "ECNotifyMaster::StopNotifyWatch", "Invalid thread join");
+		ec_log_debug("ECNotifyMaster::StopNotifyWatch: Invalid thread join");
 
 	m_bThreadRunning = FALSE;
 
 exit:
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::StopNotifyWatch", "hr=0x%08X", hr);
 	return hr;
 }
 
 void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "NotifyWatch", "");
 	auto pNotifyMaster = static_cast<ECNotifyMaster *>(pTmpNotifyMaster);
 	assert(pNotifyMaster != NULL);
 
@@ -311,13 +288,11 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 		hr = pNotifyMaster->m_lpTransport->HrGetNotify(&pNotifyArray);
 		if (static_cast<unsigned int>(hr) == KCWARN_CALL_KEEPALIVE) {
 			if (bReconnect) {
-				TRACE_NOTIFY(TRACE_WARNING, "NotifyWatch::Reconnection", "OK connection: %d", pNotifyMaster->m_ulConnection);
 				bReconnect = false;
 			}
 			continue;
 		} else if (hr == MAPI_E_NETWORK_ERROR) {
 			bReconnect = true;
-			TRACE_NOTIFY(TRACE_WARNING, "NotifyWatch::Reconnection", "for connection: %d", pNotifyMaster->m_ulConnection);
 			continue;
 		} else if (hr != hrSuccess) {
 			/*
@@ -339,7 +314,6 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			 * attached to this group we must ensure that they will get notifications as expected.
 			 */
 			if (!pNotifyMaster->m_bThreadExit) {
-				TRACE_NOTIFY(TRACE_WARNING, "NotifyWatch::End of session", "reconnect");
 				while (pNotifyMaster->ConnectToSession() != hrSuccess &&
 				    !pNotifyMaster->m_bThreadExit)
 					// On Windows, the ConnectToSession() takes a while .. the windows kernel does 3 connect tries
@@ -360,15 +334,12 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 		}
 
 		if (bReconnect) {
-			TRACE_NOTIFY(TRACE_WARNING, "NotifyWatch::Reconnection", "OK connection: %d", pNotifyMaster->m_ulConnection);
 			bReconnect = false;
 		}
 
 		/* This is when the connection is interupted */
 		if (pNotifyArray == NULL)
 			continue;
-
-		TRACE_NOTIFY(TRACE_ENTRY, "NotifyWatch::GetNotify", "%d", pNotifyArray->__size);
 
 		/*
 		 * Loop through all notifications and sort them by connection number
@@ -412,8 +383,6 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 	}
 
 exit:
-	TRACE_NOTIFY(TRACE_RETURN, "NotifyWatch", "");
-
 	return NULL;
 }
 

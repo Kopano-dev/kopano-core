@@ -23,14 +23,12 @@
 
 #ifdef WITH_TRACING
 // Turn these on/off
-#  define DO_TRACE_NOTIF	1
 #  define DO_TRACE_SOAP		0
 #  define DO_TRACE_INT		0
 #  define DO_TRACE_STREAM	0
 #  define DO_TRACE_EXT		0
 #else
 // Leave these alone .. release builds don't print squat
-#  define DO_TRACE_NOTIF	0
 #  define DO_TRACE_SOAP		0
 #  define DO_TRACE_INT		0
 #  define DO_TRACE_STREAM	0
@@ -119,20 +117,6 @@ static void TraceMsg(const char *lpMsg, int time, const char *func,
 
 	free( buffer );
 
-}
-
-void TraceNotify(int time, const char *func, const char *format, ...)
-{
-	va_list va; 
-
-	if(!DO_TRACE_NOTIF)
-		return;
-
-	va_start(va, format);
-
-	TraceMsg("NOTIFY", time, func, format, va);
-
-	va_end(va);
 }
 
 void TraceSoap(int time, const char *func, const char *format, ...)

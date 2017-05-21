@@ -22,6 +22,7 @@
 #include <mapispi.h>
 #include <mapix.h>
 #include <kopano/ECDebug.h>
+#include <kopano/ECLogger.h>
 #include "ECMsgStore.h"
 #include "ECNotifyClient.h"
 #include "ECSessionGroupManager.h"
@@ -308,8 +309,6 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 
 HRESULT ECNotifyClient::Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection){
 
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyClient::Advise", "");
-
 	HRESULT		hr = MAPI_E_NO_SUPPORT;
 	ULONG		ulConnection = 0;
 
@@ -331,16 +330,12 @@ HRESULT ECNotifyClient::Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPM
 	hr = hrSuccess;
 
 exit:
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyClient::Advise", "hr=0x%08X connection=%d", hr, *lpulConnection);
-
 	return hr;
 }
 
 HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
     IECChangeAdviseSink *lpChangeAdviseSink, ECLISTCONNECTION *lplstConnections)
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyClient::AdviseICS", "");
-
 	HRESULT				hr = MAPI_E_NO_SUPPORT;
 	ECLISTSYNCADVISE	lstAdvises;
 
@@ -382,15 +377,11 @@ exit:
 		     iSyncAdvise != lstAdvises.cend(); ++iSyncAdvise)
 			UnRegisterAdvise(iSyncAdvise->ulConnection);
 	}
-
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyClient::AdviseICS", "hr=0x%08X", hr);
 	return hr;
 }
 
 HRESULT ECNotifyClient::Unadvise(ULONG ulConnection)
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyClient::Unadvise", "%d", ulConnection);
-
 	HRESULT hr	= MAPI_E_NO_SUPPORT;
 
 	// Logoff the advisor
@@ -403,15 +394,11 @@ HRESULT ECNotifyClient::Unadvise(ULONG ulConnection)
 		goto exit;
 
 exit:
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyClient::Unadvise", "hr=0x%08X", hr);
-
 	return hr;
 }
 
 HRESULT ECNotifyClient::Unadvise(const ECLISTCONNECTION &lstConnections)
 {
-	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyClient::Unadvise", "");
-
 	HRESULT hr	= MAPI_E_NO_SUPPORT;
 	HRESULT hrTmp;
 	bool bWithErrors = false;
@@ -435,9 +422,6 @@ HRESULT ECNotifyClient::Unadvise(const ECLISTCONNECTION &lstConnections)
 
 	if (SUCCEEDED(hr) && bWithErrors)
 		hr = MAPI_W_ERRORS_RETURNED;
-
-	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyClient::Unadvise", "hr=0x%08X", hr);
-
 	return hr;
 }
 
@@ -526,8 +510,6 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 		hr = CopySOAPNotificationToMAPINotification(m_lpProvider, notp, &tmp);
 		if (hr != hrSuccess)
 			continue;
-
-		TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyClient::Notify", "id=%d\n%s", notp->ulConnection, NotificationToString(1, tmp).c_str());
 		notifications.push_back(tmp);
 	}
 
@@ -537,7 +519,6 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 	iterAdvise = m_mapAdvise.find(ulConnection);
 	if (iterAdvise == m_mapAdvise.cend() ||
 	    iterAdvise->second->lpAdviseSink == NULL) {
-		TRACE_NOTIFY(TRACE_WARNING, "ECNotifyClient::Notify", "Unknown Notification id %d", ulConnection);
 		goto exit;
 	}
 
@@ -561,7 +542,7 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 			/* Send notification to the listener */
 			if (!iterAdvise->second->ulSupportConnection) {
 				if (iterAdvise->second->lpAdviseSink->OnNotify(i, lpNotifs) != 0)
-					TRACE_NOTIFY(TRACE_WARNING, "ECNotifyClient::Notify", "Error by notify a client");
+					ec_log_debug("ECNotifyClient::Notify: Error by notify a client");
 			} else {
 				memory_ptr<NOTIFKEY> lpKey;
 				ULONG		ulResult = 0;
@@ -611,8 +592,6 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 		hr = CopySOAPChangeNotificationToSyncState(notp, &tmp, lpSyncStates);
 		if (hr != hrSuccess)
 			continue;
-
-		TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyClient::NotifyChange", "id=%d\n%s", notp->ulConnection, bin2hex(tmp->cb, tmp->lpb).c_str());
 		syncStates.push_back(tmp);
 	}
 
@@ -621,7 +600,6 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 	iterAdvise = m_mapChangeAdvise.find(ulConnection);
 	if (iterAdvise == m_mapChangeAdvise.cend() ||
 	    iterAdvise->second->lpAdviseSink == NULL) {
-		TRACE_NOTIFY(TRACE_WARNING, "ECNotifyClient::NotifyChange", "Unknown Notification id %d", ulConnection);
 		return hr;
 	}
 
@@ -640,8 +618,7 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 
 			/* Send notification to the listener */
 			if (iterAdvise->second->lpAdviseSink->OnNotify(0, lpSyncStates) != 0)
-				TRACE_NOTIFY(TRACE_WARNING, "ECNotifyClient::NotifyChange", "Error by notify a client");
-
+				ec_log_debug("ECNotifyClient::NotifyChange: Error by notify a client");
 		}
 	}
 	return hrSuccess;
