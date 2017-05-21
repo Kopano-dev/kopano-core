@@ -1,6 +1,55 @@
 /* Interface classes used in provider/client/ */
 digraph {
 	rankdir=RL;
+	node [style=filled,fillcolor=green];
+	edge [color="#008000"];
+	IABContainer -> IMAPIContainer;
+	IMAPIContainer -> IMAPIProp;
+	IMAPIProp -> IUnknown;
+	IMAPITable -> IUnknown;
+	IUnknown;
+
+	node [fillcolor=blue,fontcolor=white];
+	edge [color=blue];
+	IAddrBook -> IMAPIProp;
+	IMAPIAdviseSink -> IUnknown;
+	IMAPIGetSession -> IUnknown;
+	IMAPISession -> IUnknown;
+	IMAPISupport -> IUnknown;
+	IMsgServiceAdmin -> IUnknown;
+	IMsgServiceAdmin2 -> IMsgServiceAdmin;
+	IProfAdmin -> IUnknown;
+	IProfSect -> IMAPIProp;
+	IProviderAdmin -> IUnknown;
+	M4LABContainer -> IABContainer;
+	M4LABContainer -> M4LMAPIContainer;
+	M4LAddrBook -> IAddrBook;
+	M4LAddrBook -> M4LMAPIProp;
+	M4LMAPIAdviseSink -> IMAPIAdviseSink;
+	M4LMAPIAdviseSink -> M4LUnknown;
+	M4LMAPIContainer -> IMAPIContainer;
+	M4LMAPIContainer -> M4LMAPIProp;
+	M4LMAPIGetSession -> IMAPIGetSession;
+	M4LMAPIGetSession -> M4LUnknown;
+	M4LMAPIProp -> IMAPIProp;
+	M4LMAPIProp -> M4LUnknown;
+	M4LMAPISession -> IMAPISession;
+	M4LMAPISession -> M4LUnknown;
+	M4LMAPISupport -> IMAPISupport;
+	M4LMAPISupport -> M4LUnknown;
+	M4LMAPITable -> IMAPITable;
+	M4LMAPITable -> M4LUnknown;
+	M4LMsgServiceAdmin -> IMsgServiceAdmin2;
+	M4LMsgServiceAdmin -> M4LUnknown;
+	M4LProfAdmin -> IProfAdmin;
+	M4LProfAdmin -> M4LUnknown;
+	M4LProfSect -> IProfSect;
+	M4LProfSect -> M4LMAPIProp;
+	M4LProviderAdmin -> IProviderAdmin;
+	M4LUnknown -> IUnknown;
+
+	node [fillcolor=red,fontcolor=white];
+	edge [color=red];
 	ECABContainer -> ECABProp;
 	ECABContainer -> IABContainer;
 	ECABProp -> ECGenericProp;
@@ -81,7 +130,6 @@ digraph {
 	ECRulesTableProxy -> ECUnknown;
 	ECRulesTableProxy -> IMAPITable;
 	ECUnknown -> IUnknown;
-	IABContainer -> IMAPIContainer;
 	IABProvider -> IUnknown;
 	IAttach -> IMAPIProp;
 	IDistList -> IMAPIContainer;
@@ -112,12 +160,9 @@ digraph {
 	IFreeBusySupport -> IUnknown;
 	IFreeBusySupportOutlook2000 -> IUnknown;
 	IFreeBusyUpdate -> IUnknown;
-	IMAPIContainer -> IMAPIProp;
 	IMAPIFolder -> IMAPIContainer;
 	IMAPIOffline -> IUnknown;
 	IMAPIOfflineMgr -> IMAPIOffline;
-	IMAPIProp -> IUnknown;
-	IMAPITable -> IUnknown;
 	IMSLogon -> IUnknown;
 	IMSProvider -> IUnknown;
 	IMailUser -> IMAPIProp;
