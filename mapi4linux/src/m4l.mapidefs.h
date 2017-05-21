@@ -27,7 +27,7 @@
 
 class M4LMsgServiceAdmin;
 
-class M4LMAPIProp : public M4LUnknown, public virtual IMAPIProp {
+class M4LMAPIProp : public M4LUnknown, public virtual IMailUser {
 private:
     // variables
 	std::list<LPSPropValue> properties;

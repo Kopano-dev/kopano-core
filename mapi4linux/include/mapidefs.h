@@ -1179,7 +1179,7 @@ public:
 #define MAPI_MH_DP_PDS_PATRON                       ((ULONG) 5)
 #define MAPI_MH_DP_OTHER_AU                         ((ULONG) 6)
 
-class IMailUser : public IMAPIProp {
+class IMailUser : public virtual IMAPIProp {
 public:
     //    virtual ~IMailUser() = 0;
 };
