@@ -50,7 +50,6 @@
 #include <kopano/stringutil.h>
 #include "SOAPUtils.h"
 #include <kopano/kcodes.h>
-#include <kopano/Trace.h>
 #include "KCmd.nsmap"
 #include "ECFifoBuffer.h"
 #include "ECSerializer.h"
@@ -4228,8 +4227,6 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 	}
 
 	er = lpecSession->AddAdvise(notifySubscribe->ulConnection, ulKey, notifySubscribe->ulEventMask);
-	if (er == erSuccess)
-		TRACE_SOAP(TRACE_INFO, "ns__notifySubscribe", "connectionId: %d SessionId: %d Mask: %d",notifySubscribe->ulConnection, ulSessionId, notifySubscribe->ulEventMask);
 	return er;
 }
 

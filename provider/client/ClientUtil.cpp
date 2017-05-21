@@ -744,7 +744,6 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 
 	hr = GetConfigPath(&strConfigPath);
 	if(hr != hrSuccess) {
-		TRACE_RELEASE("Unable to find config file (registry key missing)", (char *)strConfigPath.c_str());
 		return hr;
 	}
 
@@ -753,18 +752,13 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 		strConfigPath.resize(strConfigPath.size()-1);
 
 	strConfigPath += "\\exchange-redirector.cfg";
-
-	TRACE_RELEASE("Using config file '%s'", (char *)strConfigPath.c_str());
-
 	if(!lpConfig->LoadSettings((char *)strConfigPath.c_str())) {
-		TRACE_RELEASE("Unable to load config file '%s'", (char *)strConfigPath.c_str());
 		return MAPI_E_NOT_FOUND;
 	}
 
 	if(g_ulLoadsim) {
 		lpUsername = PCpropFindProp(pValues, cValues, PR_PROFILE_USER);
 		if(!lpUsername) {
-			TRACE_RELEASE("PR_PROFILE_USER not set");
 			return MAPI_E_UNCONFIGURED;
 		}
 	} else {
@@ -772,7 +766,6 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 		lpServer = PCpropFindProp(pValues, cValues, PR_PROFILE_UNRESOLVED_SERVER);
 
 		if(!lpServer || !lpUsername) {
-			TRACE_RELEASE("PR_PROFILE_UNRESOLVED_NAME or PR_PROFILE_UNRESOLVED_SERVER not set");
 			return MAPI_E_UNCONFIGURED;
 		}
 	}
@@ -830,8 +823,6 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 		strcpy(lpProps[cProps++].Value.lpszA, lpProfileName->Value.lpszA);
 	}
 	
-	TRACE_RELEASE("Redirecting to %s", (char *)strServerPath.c_str());
-
 	*lpcValues = cProps;
 	*lppProps = lpProps;
 	return hrSuccess;

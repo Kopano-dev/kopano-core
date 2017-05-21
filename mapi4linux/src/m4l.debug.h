@@ -19,8 +19,6 @@
 #define __M4L_DEBUG_H
 
 #include <string>
-
-#include <kopano/Trace.h>
 #include <kopano/ECLogger.h>
 
 extern ECLogger *m4l_lpLogger;

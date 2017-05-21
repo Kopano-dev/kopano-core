@@ -27,7 +27,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/ECDebug.h>
-#include <kopano/Trace.h>
 #include <kopano/memory.hpp>
 
 using namespace KCHL;

@@ -26,7 +26,6 @@
 #include "ECSecurity.h"
 
 #include <kopano/stringutil.h>
-#include <kopano/Trace.h>
 #include "kcore.hpp"
 #include <mapidefs.h>
 #include <mapicode.h>
@@ -505,8 +504,6 @@ exit:
 	if (er == erSuccess && (ulecRights == ecSecurityCreate || ulecRights == ecSecurityEdit || ulecRights == ecSecurityCreateFolder))
 		// writing in a deleted parent is not allowed
 		er = CheckDeletedParent(ulObjId);
-	if(er != erSuccess)
-		TRACE_INTERNAL(TRACE_ENTRY,"Security","ECSecurity::CheckPermission","object=%d, rights=%d", ulObjId, ulecRights);
 
 	if (m_lpAudit && m_ulUserID != KOPANO_UID_SYSTEM) {
 		unsigned int ulType = 0;

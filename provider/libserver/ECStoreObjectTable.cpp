@@ -62,8 +62,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/charset/utf8string.h>
 #include <kopano/charset/convert.h>
-
-#include <kopano/Trace.h>
 #include "ECSessionManager.h"
 
 #include "ECSession.h"

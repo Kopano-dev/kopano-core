@@ -29,7 +29,6 @@
 #include <kopano/ECKeyTable.h>
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
-#include <kopano/Trace.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>

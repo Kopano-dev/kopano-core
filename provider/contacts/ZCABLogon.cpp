@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include <new>
 #include <utility>
-#include <kopano/Trace.h>
 #include "ZCABLogon.h"
 #include "ZCABContainer.h"
 #include <kopano/ECTags.h>

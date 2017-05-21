@@ -34,7 +34,6 @@
 #include "ECDatabaseUtils.h"
 #include "ECSecurity.h"
 #include "SSLUtil.h"
-#include <kopano/Trace.h>
 #include "kcore.hpp"
 #include "ECICS.h"
 #include <edkmdb.h>

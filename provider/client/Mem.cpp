@@ -19,7 +19,6 @@
 
 #include <mapispi.h>
 #include <mapicode.h>
-#include <kopano/Trace.h>
 #include "Mem.h"
 
 // We don't want that here

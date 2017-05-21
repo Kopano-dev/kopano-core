@@ -35,8 +35,6 @@
 #include <edkguid.h>
 #include <kopano/ECGuid.h>
 #include <mapiguid.h>
-
-#include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
 
 #include "pcutil.hpp"

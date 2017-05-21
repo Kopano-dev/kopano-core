@@ -39,7 +39,6 @@
 #include <kopano/ECDefs.h>
 #include "SOAPUtils.h"
 #include <kopano/stringutil.h>
-#include <kopano/Trace.h>
 #include "ECServerEntrypoint.h"
 #include "ECMailBoxTable.h"
 

@@ -30,7 +30,6 @@
 #include "freebusy.h"
 #include "freebusyguid.h"
 #include <kopano/ECUnknown.h>
-#include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
 

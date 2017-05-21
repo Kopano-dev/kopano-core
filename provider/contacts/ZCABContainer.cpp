@@ -19,8 +19,6 @@
 #include <new>
 #include "ZCABContainer.h"
 #include "ZCMAPIProp.h"
-#include <kopano/Trace.h>
-
 #include <mapiutil.h>
 
 #include <kopano/ECMemTable.h>

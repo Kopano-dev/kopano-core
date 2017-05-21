@@ -19,17 +19,14 @@
 
 #include <cstdio>
 #include <cstdarg>
-#include <kopano/Trace.h>
 
 #ifdef WITH_TRACING
 // Turn these on/off
-#  define DO_TRACE_SOAP		0
 #  define DO_TRACE_INT		0
 #  define DO_TRACE_STREAM	0
 #  define DO_TRACE_EXT		0
 #else
 // Leave these alone .. release builds don't print squat
-#  define DO_TRACE_SOAP		0
 #  define DO_TRACE_INT		0
 #  define DO_TRACE_STREAM	0
 #  define DO_TRACE_EXT		0
@@ -117,20 +114,6 @@ static void TraceMsg(const char *lpMsg, int time, const char *func,
 
 	free( buffer );
 
-}
-
-void TraceSoap(int time, const char *func, const char *format, ...)
-{
-	va_list va; 
-
-	if(!DO_TRACE_SOAP)
-		return;
-
-	va_start(va, format);
-
-	TraceMsg("SOAP", time, func, format, va);
-
-	va_end(va);
 }
 
 void TraceInternals(int time, const char *tracetype, const char *func,

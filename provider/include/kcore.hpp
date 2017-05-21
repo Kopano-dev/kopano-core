@@ -21,7 +21,6 @@
 #include <mapi.h>
 #include <mapidefs.h>
 #include <kopano/ECTags.h>
-#include <kopano/Trace.h>
 
 // We have 2 types of entryids: those of objects, and those of stores.
 // Objects have a store-relative path, however they do have a GUID to make

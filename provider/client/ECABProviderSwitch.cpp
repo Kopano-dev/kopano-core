@@ -27,8 +27,6 @@
 
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
-
-#include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
 #include <kopano/Util.h>
 #include "EntryPoint.h"

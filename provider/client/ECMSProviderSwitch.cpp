@@ -27,8 +27,6 @@
 #include "ECMSProviderSwitch.h"
 #include "ECMSProvider.h"
 #include <kopano/ECGuid.h>
-
-#include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
 
 #include <edkguid.h>

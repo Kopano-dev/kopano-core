@@ -22,7 +22,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/ECInterfaceDefs.h>
-#include <kopano/Trace.h>
 #include <kopano/charset/convert.h>
 
 #include <mapix.h>

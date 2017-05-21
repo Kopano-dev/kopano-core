@@ -65,8 +65,6 @@
 #include "ECGenericObjectTable.h"
 #include "SOAPUtils.h"
 #include <kopano/stringutil.h>
-
-#include <kopano/Trace.h>
 #include "ECSessionManager.h"
        
 #include "ECSession.h"
@@ -847,8 +845,6 @@ ECRESULT ECGenericObjectTable::Restrict(struct restrictTable *lpsRestrict)
  */
 ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad, bool bOverride, struct restrictTable *lpOverrideRestrict)
 {
-	TRACE_INTERNAL(TRACE_ENTRY, "Table call:", "ECGenericObjectTable::AddRowKey", "");
-
 	ECRESULT		er = erSuccess;
 	bool			fMatch = true;
 	gsoap_size_t ulFirstCol = 0, n = 0;

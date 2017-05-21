@@ -19,7 +19,6 @@
 #include <mapidefs.h>
 #include <mapispi.h>
 #include <kopano/ECDebug.h>
-#include <kopano/Trace.h>
 #include <kopano/memory.hpp>
 #include "ZCABProvider.h"
 #include "EntryPoint.h"

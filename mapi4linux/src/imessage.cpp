@@ -25,7 +25,6 @@
 
 #include <kopano/Util.h>
 #include <kopano/ECDebug.h>
-#include <kopano/Trace.h>
 
 SCODE __stdcall OpenIMsgSession(LPMALLOC lpMalloc, ULONG ulFlags, LPMSGSESS *lppMsgSess)
 {

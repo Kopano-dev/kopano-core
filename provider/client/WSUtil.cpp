@@ -20,7 +20,6 @@
 #include "WSUtil.h"
 #include <kopano/ECIConv.h>
 #include <kopano/ECGuid.h>
-#include <kopano/Trace.h>
 #include <kopano/memory.hpp>
 #include "Mem.h"
 
