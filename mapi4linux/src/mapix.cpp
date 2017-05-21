@@ -1800,8 +1800,12 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpIn
 			// PR_ENTRYID, PR_RECORD_KEY, PR_SEARCH_KEY, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO
 
 			lpMailUser->SetProps(5, sProps, NULL);
-
-			*lppUnk = (LPUNKNOWN)lpMailUser;
+			if (lpInterface == nullptr || *lpInterface == IID_IMailUser)
+				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<IMailUser *>(lpMailUser));
+			else if (*lpInterface == IID_IMAPIProp)
+				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<IMAPIProp *>(lpMailUser));
+			else if (*lpInterface == IID_IUnknown)
+				*lppUnk = static_cast<IUnknown *>(lpMailUser);
 			*lpulObjType = MAPI_MAILUSER;
 
 			goto exit;
