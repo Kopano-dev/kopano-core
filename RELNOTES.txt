@@ -1,3 +1,13 @@
+Release notes for 8.3.1
+=======================
+Fixes:
+* dagent.cfg:forward_whitelist_domains commentary has been reworded [KC-593]
+* inetmapi: do not force HTML when use_tnef is set to minimal [KC-664]
+* spooler: avoid a use-after-free, and a deadlock after this failure [KC-588]
+* backup: batch storage updates [KC-662]
+* spooler: custom bounce message text for forward_whitelist_domain [KC-618]
+
+
 Release notes for 8.3.0
 =======================
 Enhancements:
