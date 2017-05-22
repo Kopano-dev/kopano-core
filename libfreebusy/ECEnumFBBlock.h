@@ -41,7 +41,7 @@ namespace KC {
 /**
  * Implementatie of the IEnumFBBlock interface
  */
-class ECEnumFBBlock _kc_final : public ECUnknown {
+class ECEnumFBBlock _kc_final : public ECUnknown, public IEnumFBBlock {
 private:
 	ECEnumFBBlock(ECFBBlockList* lpFBBlock);
 public:
@@ -52,18 +52,6 @@ public:
 	virtual HRESULT Reset();
 	virtual HRESULT Clone(IEnumFBBlock **) { return E_NOTIMPL; }
 	virtual HRESULT Restrict(FILETIME ftmStart, FILETIME ftmEnd);
-
-	/* IEnumFBBlock wrapper class */
-	class xEnumFBBlock _kc_final : public IEnumFBBlock {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-
-			// <kopano/xclsfrag/IEnumFBBlock.hpp>
-			virtual HRESULT __stdcall Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch) _kc_override;
-			virtual HRESULT __stdcall Skip(LONG celt) _kc_override;
-			virtual HRESULT __stdcall Reset(void) _kc_override;
-			virtual HRESULT __stdcall Clone(IEnumFBBlock **ppclone) _kc_override;
-			virtual HRESULT __stdcall Restrict(FILETIME start, FILETIME end) _kc_override;
-	} m_xEnumFBBlock;
 
 	ECFBBlockList	m_FBBlock; /**< Freebusy time blocks */
 	ALLOC_WRAP_FRIEND;

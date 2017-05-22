@@ -45,7 +45,9 @@ namespace KC {
 /**
  * Implementatie of the IFreeBusySupport interface
  */
-class _kc_export ECFreeBusySupport _kc_final : public ECUnknown {
+class _kc_export ECFreeBusySupport _kc_final :
+    public ECUnknown, public IFreeBusySupport,
+    public IFreeBusySupportOutlook2000 {
 private:
 	_kc_hidden ECFreeBusySupport(void);
 	_kc_hidden ~ECFreeBusySupport(void);
@@ -78,21 +80,6 @@ public:
 		_kc_hidden virtual HRESULT CleanTombstone(void) { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd);
 		_kc_hidden virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
-
-	// Interface for Outlook 2002 and up
-	class _kc_hidden xFreeBusySupport _kc_final : public IFreeBusySupport {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IFreeBusySupport.hpp>
-		virtual HRESULT __stdcall CleanTombstone(void) _kc_override;
-	} m_xFreeBusySupport;
-
-	// Interface for Outlook 2000
-	class _kc_hidden xFreeBusySupportOutlook2000 _kc_final :
-	    public IFreeBusySupportOutlook2000
-	{
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IFreeBusySupport.hpp>
-	} m_xFreeBusySupportOutlook2000;
 
 private:
 	IMAPISession *m_lpSession = nullptr;
