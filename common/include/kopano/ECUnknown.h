@@ -83,10 +83,6 @@ public:
 	virtual HRESULT AddChild(ECUnknown *lpChild);
 	virtual HRESULT RemoveChild(ECUnknown *lpChild);
 
-	class xUnknown _kc_final : public IUnknown {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-	} m_xUnknown;
-
 	// lpParent is public because it is always thread-safe and valid
 	ECUnknown *lpParent = nullptr;
 	virtual BOOL IsParentOf(const ECUnknown *lpObject);
