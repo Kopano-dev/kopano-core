@@ -462,7 +462,7 @@ class Folder(Base):
 
         # yield depth-first XXX improve server?
         def folders_recursive(fs, depth=0):
-            for feid, f in sorted(fs, key=lambda (feid, f): names[feid]):
+            for feid, f in sorted(fs, key=lambda data: names[data[0]]):
                 f.depth = depth
                 yield f
                 for f in folders_recursive(children[feid], depth+1):
