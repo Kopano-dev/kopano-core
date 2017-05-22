@@ -43,37 +43,34 @@ For backup (not restore) it is possible to process multiple stores in parallel\&
 There are options to inspect the contents of a backup directory, and to restore only individual messages/items\&.
 .SH "OPTIONS"
 .PP
-\fB\-\-user\fR, \fB\-u\fR \fINAME\fR
+\fB\-\-auth\-pass\fR, \fB\-P\fR \fIPASS\fR
 .RS 4
-Backup data of the specified user\&. Multiple users may be specified\&. By default, all users are included\&. When restoring, restore into the store of the specified user\&.
+Authenticate with specified password\&.
 .RE
 .PP
-\fB\-\-restore\fR
+\fB\-\-auth\-user\fR, \fB\-U\fR \fINAME\fR
 .RS 4
-Restore the contents of the specified backup directory\&. The respective store is determined automatically, but may also be specified explicitly, for example using
-\fI\-\-user\fR\&.
+Authenticate as specified user\&.
 .RE
 .PP
-\fB\-\-stats\fR
+\fB\-\-company\fR, \fB\-C\fR \fINAME\fR
 .RS 4
-List folders contained in specified backup directory in CSV format\&. Folder sizes are shown for each folder\&.
+Backup users and public store for specified company\&.
 .RE
 .PP
-\fB\-\-index\fR
+\fB\-\-config\fR, \fB\-c\fR \fIFILE\fR
 .RS 4
-List messages/items contained in specified backup directory in CSV format\&. Sourcekeys, respective folders, last modified dates and subjects are shown for each message/item\&.
+Load configuration settings from specified file\&.
 .RE
 .PP
-\fB\-\-sourcekey\fR \fISOURCEKEY\fR
+\fB\-\-deletes\fR \fIYESNO\fR
 .RS 4
-Restore message/item with specified sourcekey (as shown using
-\fI\-\-index\fR)\&. Must be combined with
-\fI\-\-restore\fR\&. Multiple sourcekeys may be specified\&.
+Backup/restore/show deleted items/folders\&. The default when backing up is to maintain data which has been soft\- or hard\-deleted\&. The default when restoring is to not restore such data\&. The default when viewing the contents of a backup directory is to show such data\&.
 .RE
 .PP
-\fB\-\-restore\-root\fR \fIPATH\fR
+\fB\-\-differential\fR
 .RS 4
-When restoring, place data under folder with specific path (or name), for example \*(Aqsome_folder\*(Aq or \*(AqInbox/some_subfolder\*(Aq\&.
+Create 'differential' backup(s), containing all changes since the previous or regular backup(s), in separate directories called 'differential/username/N'. Differential backups can be inspected using the \fI\-\-index\fR and \fI\-\-stats\fR options. See also the \fI\-\-merge\fR option.
 .RE
 .PP
 \fB\-\-folder\fR, \fB\-f\fR \fIPATH\fR
@@ -82,14 +79,29 @@ Backup/restore only folder(s) with specified path\&. Multiple folders may be spe
 \fI\-\-recursive\fR\&.
 .RE
 .PP
-\fB\-\-recursive\fR
+\fB\-\-index\fR
 .RS 4
-When specifying folders (\fI\-\-folder\fR), also include subfolders in backup/restore\&.
+List messages/items contained in specified backup directory in CSV format\&. Sourcekeys, respective folders, last modified dates and subjects are shown for each message/item\&.
 .RE
 .PP
-\fB\-\-worker\-processes\fR, \fB\-w\fR \fIN\fR
+\fB\-\-merge\fR
 .RS 4
-When backing up data from multiple stores, process these stores in parallel, using the specified number of workers\&.
+Merge 'differential' backups for a given user into regular backup. See the \fI\-\-differential\fR option.
+.RE
+.PP
+\fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
+.RS 4
+Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq\&.
+.RE
+.PP
+\fB\-\-only\-meta\fR
+.RS 4
+Only backup/restore meta data, such as settings, permissions and rules\&.
+.RE
+.PP
+\fB\-\-output\-dir\fR, \fB\-O\fR \fIPATH\fR
+.RS 4
+Create/update backup directories in the specified directory, instead of the local directory\&.
 .RE
 .PP
 \fB\-\-period\-begin\fR, \fB\-b\fR \fIDATE\fR
@@ -102,69 +114,25 @@ Backup/restore data which was last modified on or after the specified date (YYYY
 Backup/restore data which was last modified before the specified date (YYYY\-MM\-DD)\&.
 .RE
 .PP
-\fB\-\-skip\-junk\fR
-.RS 4
-Do not backup/restore junk folder\&.
-.RE
-.PP
-\fB\-\-skip\-deleted\fR
-.RS 4
-Do not backup/restore deleted mail folder\&.
-.RE
-.PP
-\fB\-\-skip\-public\fR
-.RS 4
-Do not backup/restore public store\&.
-.RE
-.PP
-\fB\-\-skip\-attachments\fR
-.RS 4
-Do not backup/restore attachments\&.
-.RE
-.PP
-\fB\-\-skip\-meta\fR
-.RS 4
-Do not backup/restore meta data, such as settings, permissions and rules\&.
-.RE
-.PP
-\fB\-\-only\-meta\fR
-.RS 4
-Only backup/restore meta data, such as settings, permissions and rules\&.
-.RE
-.PP
-\fB\-\-deletes\fR \fIYESNO\fR
-.RS 4
-Backup/restore/show deleted items/folders\&. The default when backing up is to maintain data which has been soft\- or hard\-deleted\&. The default when restoring is to not restore such data\&. The default when viewing the contents of a backup directory is to show such data\&.
-.RE
-.PP
 \fB\-\-purge\fR \fIN\fR
 .RS 4
 Permanently delete data from backup directory which has been marked as deleted more than the specified number of days ago\&.
 .RE
 .PP
-\fB\-\-output\-dir\fR, \fB\-O\fR \fIPATH\fR
+\fB\-\-recursive\fR
 .RS 4
-Create/update backup directories in the specified directory, instead of the local directory\&.
+When specifying folders (\fI\-\-folder\fR), also include subfolders in backup/restore\&.
 .RE
 .PP
-\fB\-\-company\fR, \fB\-C\fR \fINAME\fR
+\fB\-\-restore\fR
 .RS 4
-Backup users and public store for specified company\&.
+Restore the contents of the specified backup directory\&. The respective store is determined automatically, but may also be specified explicitly, for example using
+\fI\-\-user\fR\&.
 .RE
 .PP
-\fB\-\-store\fR, \fB\-S\fR \fIGUID\fR
+\fB\-\-restore\-root\fR \fIPATH\fR
 .RS 4
-Backup specified store\&. Instead of a GUID, \*(Aqpublic\*(Aq may also be specified, to denote the public store\&.
-.RE
-.PP
-\fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
-.RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq\&.
-.RE
-.PP
-\fB\-\-config\fR, \fB\-c\fR \fIFILE\fR
-.RS 4
-Load configuration settings from specified file\&.
+When restoring, place data under folder with specific path (or name), for example \*(Aqsome_folder\*(Aq or \*(AqInbox/some_subfolder\*(Aq\&.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
@@ -172,14 +140,36 @@ Load configuration settings from specified file\&.
 Connect to storage server through specified socket\&.
 .RE
 .PP
-\fB\-\-auth\-user\fR, \fB\-U\fR \fINAME\fR
+\fB\-\-sourcekey\fR \fISOURCEKEY\fR
 .RS 4
-Authenticate as specified user\&.
+Restore message/item with specified sourcekey (as shown using
+\fI\-\-index\fR)\&. Must be combined with
+\fI\-\-restore\fR\&. Multiple sourcekeys may be specified\&.
 .RE
 .PP
-\fB\-\-auth\-pass\fR, \fB\-P\fR \fIPASS\fR
+\fB\-\-skip\-attachments\fR
 .RS 4
-Authenticate with specified password\&.
+Do not backup/restore attachments\&.
+.RE
+.PP
+\fB\-\-skip\-deleted\fR
+.RS 4
+Do not backup/restore deleted mail folder\&.
+.RE
+.PP
+\fB\-\-skip\-junk\fR
+.RS 4
+Do not backup/restore junk folder\&.
+.RE
+.PP
+\fB\-\-skip\-meta\fR
+.RS 4
+Do not backup/restore meta data, such as settings, permissions and rules\&.
+.RE
+.PP
+\fB\-\-skip\-public\fR
+.RS 4
+Do not backup/restore public store\&.
 .RE
 .PP
 \fB\-\-ssl\-key\fR, \fB\-k\fR \fIFILE\fR
@@ -190,6 +180,26 @@ Specify SSL key file\&.
 \fB\-\-ssl\-pass\fR, \fB\-p\fR \fIPASSWORD\fR
 .RS 4
 Specify SSL key password\&.
+.RE
+.PP
+\fB\-\-stats\fR
+.RS 4
+List folders contained in specified backup directory in CSV format\&. Folder sizes are shown for each folder\&.
+.RE
+.PP
+\fB\-\-store\fR, \fB\-S\fR \fIGUID\fR
+.RS 4
+Backup specified store\&. Instead of a GUID, \*(Aqpublic\*(Aq may also be specified, to denote the public store\&.
+.RE
+.PP
+\fB\-\-user\fR, \fB\-u\fR \fINAME\fR
+.RS 4
+Backup data of the specified user\&. Multiple users may be specified\&. By default, all users are included\&. When restoring, restore into the store of the specified user\&.
+.RE
+.PP
+\fB\-\-worker\-processes\fR, \fB\-w\fR \fIN\fR
+.RS 4
+When backing up data from multiple stores, process these stores in parallel, using the specified number of workers\&.
 .RE
 .SH "EXAMPLES"
 .PP
@@ -213,10 +223,6 @@ Restore single message:
 .PP
 \fBkopano\-backup \-\-restore backup/henk \-\-sourcekey 72EE69D0A283408E89BFC35AD251E9B3830000000000\fR
 .PP
-Restore single message:
-.PP
-\fBkopano\-backup \-\-restore backup/henk \-\-sourcekey 72EE69D0A283408E89BFC35AD251E9B3830000000000\fR
-.PP
 Backup calendars of all users:
 .PP
 \fBkopano\-backup \-f Calendar \-O calendars\fR
@@ -228,6 +234,20 @@ Recursively restore inbox of \*(Aqfred\*(Aq into store of \*(Aqhenk\*(Aq, in cer
 Restore everything last modified in 2014:
 .PP
 \fBkopano\-backup \-\-restore fred \-b 2014\-01\-01 \-e 2015\-01\-01\fR
+.PP
+Create differential backup for \*(Aqfred\*(Aq:
+.PP
+\fBkopano\-backup \-\-differential \-u fred\fR
+.PP
+Inspect specific differential backups:
+.PP
+\fBkopano\-backup \-\-stats differential/fred/1
+.PP
+\fBkopano\-backup \-\-stats differential/fred/2
+.PP
+Merge differential backups for \*(Aqfred\*(Aq:
+.PP
+\fBkopano\-backup --merge fred\fR
 .SH "AUTHOR"
 .PP
 Written by Kopano\&.
