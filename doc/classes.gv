@@ -185,7 +185,7 @@ digraph {
 	ZCABProvider -> ECUnknown;
 	ZCABProvider -> IABProvider;
 	ZCMAPIProp -> ECUnknown;
-	ZCMAPIProp -> IMAPIProp;
+	ZCMAPIProp -> IMailUser;
 
 	ECChangeAdviseSink -> ECUnknown;
 	ECChangeAdviseSink -> IECChangeAdviseSink;
