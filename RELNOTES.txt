@@ -2,29 +2,45 @@ Release notes for 8.4.0
 =======================
 Enhancements:
 * dagent, gateway: whitelist-based HTML filter [ZCP-13472]
-* pyko: fall back to search-key to determine recipient email address [KC-566]
-* gateway: ignore missing (lost) attachments [KC-363]
-* pyko/backup: change error into warning for 'missing' attachments
-  [KC-545, KC-555, KC-575]
-* server: the underlying call for traditional-style fd monitoring was
-  changed from select(2) to poll(2) [ZCP-13065]
+* New scripts/utilities: kopano-fix-ipm-subtree, kopano-localize-folders,
+  kopano-recreate-systemfolders, kopano-rules [KC-533]
+* server: drop excessive locking in ECABObjectTable/ECStoreObjectTable hot path
+* provider: speed up getIDsFromNames by reducing SQL queries
 * server: add LIMIT clauses to single-result SELECT statements [KC-5]
+* client: speedup from-scratch MAPI session creation by avoiding
+  extraneous logon-logoff cycles during provider initialization [KC-667]
+* client: add API for dump+restore of MAPI session profile data so libmapi
+  users can skip provider reinitialization at program startup [KC-67,KC-165]
+* gateway: add option to ignore commands during IDLE
 * php: copy back improvements from the Z-Push project's bundled copy [KC-463]
-* pyko: support processing basic cancellations [KC-612]
-* pyko: support cancellation of existing exception [KC-612]
 * search: make searchfolder creation in shared stores configurable [KC-565]
 * icalmapi: handle up to three email addresses in a vcard [KC-420]
 * inetmapi: add the right extension for attachments without filename [KC-624]
 * search: index embedded messages (recursively) [KC-151]
+* migration-pst: new options -S, --clean-folders option [KC-651,KC-485]
+* pyko: fall back to search-key to determine recipient email address [KC-566]
+* pyko: support processing basic cancellations [KC-612]
+* pyko: support cancellation of existing exception [KC-612]
+* icalmapi: support ADR, ORG, TITLE tags in VCF files
+* swig: lazy opening of folder objects [KC-632]
 Fixes:
 * spooler: do not run mr-process before mr-accept [KC-498]
 * Coverity reports on absent return value checks [KC-595];
 * freebusy: avoid potential divison by zero when trying to determine the end
   date of a non-recurring recurrence. [KC-595]
 * libserver: ensure same endianess for SOURCEKEYs [KC-628]
+* server plugins: more escaping in SQL commands [KC-620]
+* gateway: set PR_FOLLOWUP_ICON for WebApp [KC-653]
+* server: avoid crash when NTLM subprocess gives no newline [KC-656]
 Changes:
+* server: the underlying call for traditional-style fd monitoring was
+  changed from select(2) to poll(2) [ZCP-13065]
 * server: the sync_log_all_changes is obsolete [KC-527]
 * server: use SQL autocommit=0 during transactions
+* gateway: ignore missing (lost) attachments [KC-363]
+* dagent: turn on PHP7 SCL on RHEL6 [KC-621]
+* pyko/backup: change error into warning for 'missing' attachments
+  [KC-545, KC-555, KC-575]
 Packager notes:
 * libicu changed from optional to required build dependency
 
