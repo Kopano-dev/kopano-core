@@ -223,7 +223,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 		if(lpInterface)
 			hr = lpContact->QueryInterface(*lpInterface, (void **)lppUnk);
 		else
-			hr = lpContact->QueryInterface(IID_IMAPIProp, (void **)lppUnk);
+			hr = lpContact->QueryInterface(IID_IDistList, reinterpret_cast<void **>(lppUnk));
 	} else {
 		*lpulObjType = MAPI_ABCONT;
 
