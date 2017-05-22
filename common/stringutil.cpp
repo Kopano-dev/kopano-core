@@ -24,6 +24,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ECIConv.h>
+#include <kopano/ECLogger.h>
 #include <openssl/md5.h>
 
 namespace KC {
@@ -294,6 +295,10 @@ std::string bin2hex(size_t inLength, const void *vinput)
 	std::string buffer;
 	if (vinput == nullptr)
 		return buffer;
+	if (inLength > 2048)
+		ec_log_warn("Unexpectedly large bin2hex call, %u bytes\n", inLength);
+	else if (inLength > 64)
+		ec_log_debug("Unexpectedly large bin2hex call, %u bytes\n", inLength);
 	static const char digits[] = "0123456789ABCDEF";
 	auto input = static_cast<const unsigned char *>(vinput);
 
@@ -316,6 +321,10 @@ std::wstring bin2hexw(size_t inLength, const void *vinput)
 	std::wstring buffer;
 	if (vinput == nullptr)
 		return buffer;
+	if (inLength > 2048)
+		ec_log_warn("Unexpectedly large bin2hex call, %u bytes\n", inLength);
+	else if (inLength > 64)
+		ec_log_debug("Unexpectedly large bin2hex call, %u bytes\n", inLength);
 	static const wchar_t digits[] = L"0123456789ABCDEF";
 	auto input = static_cast<const unsigned char *>(vinput);
 
@@ -570,7 +579,7 @@ bool kc_ends_with(const std::string &full, const std::string &prefix)
 	size_t fz = full.size(), pz = prefix.size();
 	if (fz < pz)
 		 return false;
-	return full.compare(fz - pz, pz, prefix);
+	return full.compare(fz - pz, pz, prefix) == 0;
 }
 
 static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
