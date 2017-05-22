@@ -24,6 +24,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ECIConv.h>
+#include <kopano/ECLogger.h>
 #include <openssl/md5.h>
 
 namespace KC {
@@ -322,7 +323,10 @@ std::string bin2hex(unsigned int inLength, const unsigned char *input)
 
 	if (!input)
 		return buffer;
-
+	if (inLength > 2048)
+		ec_log_warn("Unexpectedly large bin2hex call, %u bytes\n", inLength);
+	else if (inLength > 64)
+		ec_log_debug("Unexpectedly large bin2hex call, %u bytes\n", inLength);
 	buffer.reserve(inLength * 2);
 	for (unsigned int i = 0; i < inLength; ++i) {
 		buffer += digits[input[i]>>4];
@@ -344,7 +348,10 @@ std::wstring bin2hexw(unsigned int inLength, const unsigned char *input)
 
 	if (!input)
 		return buffer;
-
+	if (inLength > 2048)
+		ec_log_warn("Unexpectedly large bin2hex call, %u bytes\n", inLength);
+	else if (inLength > 64)
+		ec_log_debug("Unexpectedly large bin2hex call, %u bytes\n", inLength);
 	buffer.reserve(inLength * 2);
 	for (unsigned int i = 0; i < inLength; ++i) {
 		buffer += digits[input[i]>>4];
