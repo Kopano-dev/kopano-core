@@ -53,7 +53,8 @@ typedef object_ptr<IECChangeAdviseSink> ECChangeAdviseSinkPtr;
 #define EC_SYNC_STATUS_VERSION			1
 
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
-class ECChangeAdviseSink _kc_final : public ECUnknown {
+class ECChangeAdviseSink _kc_final :
+    public ECUnknown, public IECChangeAdviseSink {
 public:
 	typedef ULONG(ECSyncContext::*NOTIFYCALLBACK)(ULONG,LPENTRYLIST);
 
@@ -63,19 +64,12 @@ public:
 	{ }
 
 	// IUnknown
-	HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override
+	HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override
 	{
-		if (refiid == IID_ECUnknown || refiid == IID_ECChangeAdviseSink) {
-			AddRef();
-			*lpvoid = (void *)this;
-			return hrSuccess;
-		}
-		if (refiid == IID_IUnknown || refiid == IID_IECChangeAdviseSink) {
-			AddRef();
-			*lpvoid = (void *)&this->m_xECChangeAdviseSink;
-			return hrSuccess;
-		}
-
+		REGISTER_INTERFACE2(ECChangeAdviseSink, this);
+		REGISTER_INTERFACE2(ECUnknown, this);
+		REGISTER_INTERFACE2(IECChangeAdviseSink, this);
+		REGISTER_INTERFACE2(IUnknown, this);
 		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 	}
 
@@ -85,35 +79,6 @@ public:
 	}
 
 private:
-	class xECChangeAdviseSink _kc_final : public IECChangeAdviseSink {
-	public:
-		// <kopano/xclsfrag/IUnknown.hpp>
-		virtual ULONG __stdcall AddRef(void) _kc_override
-		{
-			METHOD_PROLOGUE_(ECChangeAdviseSink, ECChangeAdviseSink);
-			return pThis->AddRef();
-		}
-
-		virtual ULONG __stdcall Release(void) _kc_override
-		{
-			METHOD_PROLOGUE_(ECChangeAdviseSink, ECChangeAdviseSink);
-			return pThis->Release();
-		}
-
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **pInterface) _kc_override
-		{
-			METHOD_PROLOGUE_(ECChangeAdviseSink, ECChangeAdviseSink);
-			return pThis->QueryInterface(refiid, pInterface);
-		}
-
-		// <kopano/xclsfrag/IExchangeChangeAdviseSink.hpp>
-		virtual ULONG __stdcall OnNotify(ULONG ulFlags, LPENTRYLIST lpEntryList) _kc_override
-		{
-			METHOD_PROLOGUE_(ECChangeAdviseSink, ECChangeAdviseSink);
-			return pThis->OnNotify(ulFlags, lpEntryList);
-		}
-	} m_xECChangeAdviseSink;
-
 	ECSyncContext	*m_lpsSyncContext;
 	NOTIFYCALLBACK	m_fnCallback;
 };
