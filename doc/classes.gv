@@ -179,6 +179,7 @@ digraph {
 	IABLogon -> IUnknown;
 	ZCABContainer -> ECUnknown;
 	ZCABContainer -> IABContainer;
+	ZCABContainer -> IDistList;
 	ZCABLogon -> ECUnknown;
 	ZCABLogon -> IABLogon;
 	ZCABProvider -> ECUnknown;
