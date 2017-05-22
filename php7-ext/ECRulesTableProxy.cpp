@@ -49,8 +49,8 @@ HRESULT ECRulesTableProxy::Create(LPMAPITABLE lpTable, ECRulesTableProxy **lppRu
 HRESULT ECRulesTableProxy::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IMAPITable, &this->m_xMAPITable);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xMAPITable);
+	REGISTER_INTERFACE2(IMAPITable, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
 }
@@ -195,33 +195,6 @@ HRESULT ECRulesTableProxy::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState
 {
 	return m_lpTable->SetCollapseState(ulFlags, cbCollapseState, pbCollapseState, lpbkLocation);
 }
-
-DEF_ULONGMETHOD0(ECRulesTableProxy, MAPITable, AddRef, (void))
-DEF_ULONGMETHOD0(ECRulesTableProxy, MAPITable, Release, (void))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, GetLastError, (HRESULT, hResult), (ULONG, ulFlags), (LPMAPIERROR *, lppMAPIError))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, Advise, (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, Unadvise, (ULONG, ulConnection))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, GetStatus, (ULONG *, lpulTableStatus), (ULONG *, lpulTableType))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SetColumns, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, QueryColumns, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, GetRowCount, (ULONG, ulFlags), (ULONG *, lpulCount))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SeekRow, (BOOKMARK, bkOrigin), (LONG, lRowCount), (LONG *, lplRowsSought))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SeekRowApprox, (ULONG, ulNumerator), (ULONG, ulDenominator))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, QueryPosition, (ULONG *, lpulRow), (ULONG *, lpulNumerator), (ULONG *, lpulDenominator))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, FindRow, (LPSRestriction, lpRestriction), (BOOKMARK, bkOrigin), (ULONG, ulFlags))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, Restrict, (LPSRestriction, lpRestriction), (ULONG, ulFlags))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, CreateBookmark, (BOOKMARK *, lpbkPosition))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, FreeBookmark, (BOOKMARK, bkPosition))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SortTable, (const SSortOrderSet *, lpSortCriteria), (ULONG, ulFlags))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, QuerySortOrder, (LPSSortOrderSet *, lppSortCriteria))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, QueryRows, (LONG, lRowCount), (ULONG, ulFlags), (LPSRowSet *, lppRows))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, Abort, (void))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, ExpandRow, (ULONG, cbInstanceKey), (LPBYTE, pbInstanceKey), (ULONG, ulRowCount), (ULONG, ulFlags), (LPSRowSet *, lppRows), (ULONG *, lpulMoreRows))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, CollapseRow, (ULONG, cbInstanceKey), (LPBYTE, pbInstanceKey), (ULONG, ulFlags), (ULONG *, lpulRowCount))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, WaitForCompletion, (ULONG, ulFlags), (ULONG, ulTimeout), (ULONG *, lpulTableStatus))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, GetCollapseState, (ULONG, ulFlags), (ULONG, cbInstanceKey), (LPBYTE, lpbInstanceKey), (ULONG *, lpcbCollapseState), (LPBYTE *, lppbCollapseState))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SetCollapseState, (ULONG, ulFlags), (ULONG, cbCollapseState), (LPBYTE, pbCollapseState), (BOOKMARK *, lpbkLocation))
 
 static HRESULT ConvertUnicodeToString8(const WCHAR *lpszW, char **lppszA,
     void *base, convert_context &converter)
