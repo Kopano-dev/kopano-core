@@ -418,8 +418,7 @@ class Item(Base):
 
         for row in table.rows():
             if row[1].value == ATTACH_BY_VALUE or (embedded and row[1].value == ATTACH_EMBEDDED_MSG):
-                att = mapiitem.OpenAttach(row[0].value, IID_IAttachment, 0)
-                yield Attachment(att)
+                yield Attachment(mapiitem, row[0].value)
 
     def create_attachment(self, name, data):
         """Create a new attachment
@@ -438,7 +437,7 @@ class Item(Base):
         stream.Commit(0)
         attach.SaveChanges(KEEP_OPEN_READWRITE)
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
-        return Attachment(attach)
+        return Attachment(mapiobj=attach)
 
     def header(self, name):
         """ Return transport message header with given name """

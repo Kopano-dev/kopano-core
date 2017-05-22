@@ -9,7 +9,8 @@ import sys
 
 from MAPI.Tags import (
     PR_EC_HIERARCHYID, PR_ATTACH_NUM, PR_ATTACH_MIME_TAG_W,
-    PR_ATTACH_LONG_FILENAME_W, PR_ATTACH_SIZE, PR_ATTACH_DATA_BIN
+    PR_ATTACH_LONG_FILENAME_W, PR_ATTACH_SIZE, PR_ATTACH_DATA_BIN,
+    IID_IAttachment
 )
 from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import MAPIErrorNotFound
@@ -24,9 +25,25 @@ else:
 class Attachment(Base):
     """Attachment class"""
 
-    def __init__(self, mapiobj):
-        self.mapiobj = mapiobj
+    def __init__(self, mapiitem=None, entryid=None, mapiobj=None):
+        self._mapiitem = mapiitem
+        self._entryid = entryid
+        self._mapiobj = mapiobj
         self._data = None
+
+    @property
+    def mapiobj(self):
+        if self._mapiobj:
+            return self._mapiobj
+
+        self._mapiobj = self._mapiitem.OpenAttach(
+            self._entryid, IID_IAttachment, 0
+        )
+        return self._mapiobj
+
+    @mapiobj.setter
+    def mapiobj(self, mapiobj):
+        self._mapiobj = mapiobj
 
     @property
     def hierarchyid(self):
