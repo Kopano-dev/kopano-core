@@ -2348,7 +2348,7 @@ HRESULT ECMessage::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 		break;
 	case PR_BODY_HTML: {
 		// Set PR_BODY_HTML to PR_HTML
-		SPropValue copy;
+		SPropValue copy = *lpsPropValue;
 		copy.ulPropTag = PR_HTML;
 		auto lpData = copy.Value.lpszA;
 
