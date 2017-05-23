@@ -2001,7 +2001,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 }
 
 /**
- * Create a new store that contains nothing boot the root folder.
+ * Create a new store that contains nothing but the root folder.
  *
  * @param[in]		ulStoreType
  * 						The required store type to create. Valid values are ECSTORE_TYPE_PUBLIC and ECSTORE_TYPE_PRIVATE.
