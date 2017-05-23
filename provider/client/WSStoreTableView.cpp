@@ -92,13 +92,8 @@ HRESULT WSTableMultiStore::Create(ULONG ulFlags, KCmd *lpCmd,
 	WSTableMultiStore *lpTableMultiStore = NULL; 
 
 	lpTableMultiStore = new WSTableMultiStore(ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport);
-
-	// interface ?!
-	hr = lpTableMultiStore->QueryInterface(IID_ECTableView, (void **) lppTableMultiStore);
-	
-	if(hr != hrSuccess)
-		delete lpTableMultiStore;
-
+	lpTableMultiStore->AddRef();
+	*lppTableMultiStore = lpTableMultiStore;
 	return hr;
 }
 
@@ -172,10 +167,8 @@ HRESULT WSTableMisc::Create(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd,
 	                   lpEntryId, lpMsgStore, lpTransport);
 	if (lpTableMisc == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpTableMisc->QueryInterface(IID_ECTableView, (void **) lppTableMisc);
-	if (hr != hrSuccess)
-		delete lpTableMisc;
-
+	lpTableMisc->AddRef();
+	*lppTableMisc = lpTableMisc;
 	return hr;
 }
 
@@ -227,11 +220,7 @@ HRESULT WSTableMailBox::Create(ULONG ulFlags, KCmd *lpCmd,
 	               lpDataLock, ecSessionId, lpMsgStore, lpTransport);
 	if (lpTable == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	//@todo add a new interface
-	hr = lpTable->QueryInterface(IID_ECTableView, (void **) lppTable);
-	
-	if(hr != hrSuccess)
-		delete lpTable;
-
+	lpTable->AddRef();
+	*lppTable = lpTable;
 	return hr;
 }

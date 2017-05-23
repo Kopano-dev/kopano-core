@@ -60,11 +60,9 @@ HRESULT ECMSProviderSwitch::Create(ULONG ulFlags, ECMSProviderSwitch **lppMSProv
 	auto lpMSProvider = new(std::nothrow) ECMSProviderSwitch(ulFlags);
 	if (lpMSProvider == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpMSProvider->QueryInterface(IID_ECUnknown/*IID_ECMSProviderSwitch*/,
-	           reinterpret_cast<void **>(lppMSProvider));
-	if (ret != hrSuccess)
-		delete lpMSProvider;
-	return ret;
+	lpMSProvider->AddRef();
+	*lppMSProvider = lpMSProvider;
+	return hrSuccess;
 }
 
 HRESULT ECMSProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)
