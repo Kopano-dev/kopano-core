@@ -1770,14 +1770,15 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpIn
 							   LPUNKNOWN * lppUnk) {
 	HRESULT hr = hrSuccess;
 	std::wstring name, type, email;
-	IMAPIProp *lpMailUser;
 	SPropValue sProps[5];
 
 	if ((lpInterface == NULL || *lpInterface == IID_IMailUser || *lpInterface == IID_IMAPIProp || *lpInterface == IID_IUnknown) && lpEntryID != NULL) {
 		hr = ECParseOneOff(lpEntryID, cbEntryID, name, type, email);
 		if (hr == hrSuccess) {
 			// yes, it was an one off, create IMailUser
-			lpMailUser = new M4LMAPIProp();
+			auto lpMailUser = new(std::nothrow) M4LMAPIProp;
+			if (lpMailUser == nullptr)
+				return MAPI_E_NOT_ENOUGH_MEMORY;
 			lpMailUser->AddRef();
 
 			sProps[0].ulPropTag = PR_DISPLAY_NAME_W;
@@ -1800,8 +1801,12 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpIn
 			// PR_ENTRYID, PR_RECORD_KEY, PR_SEARCH_KEY, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO
 
 			lpMailUser->SetProps(5, sProps, NULL);
-
-			*lppUnk = (LPUNKNOWN)lpMailUser;
+			if (lpInterface == nullptr || *lpInterface == IID_IMailUser)
+				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<IMailUser *>(lpMailUser));
+			else if (*lpInterface == IID_IMAPIProp)
+				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<IMAPIProp *>(lpMailUser));
+			else if (*lpInterface == IID_IUnknown)
+				*lppUnk = static_cast<IUnknown *>(lpMailUser);
 			*lpulObjType = MAPI_MAILUSER;
 
 			goto exit;

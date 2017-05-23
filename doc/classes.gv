@@ -7,6 +7,7 @@ digraph {
 	IMAPIContainer -> IMAPIProp;
 	IMAPIProp -> IUnknown;
 	IMAPITable -> IUnknown;
+	IMailUser -> IMAPIProp;
 	IUnknown;
 
 	node [fillcolor=blue,fontcolor=white];
@@ -31,7 +32,7 @@ digraph {
 	M4LMAPIContainer -> M4LMAPIProp;
 	M4LMAPIGetSession -> IMAPIGetSession;
 	M4LMAPIGetSession -> M4LUnknown;
-	M4LMAPIProp -> IMAPIProp;
+	M4LMAPIProp -> IMailUser;
 	M4LMAPIProp -> M4LUnknown;
 	M4LMAPISession -> IMAPISession;
 	M4LMAPISession -> M4LUnknown;
@@ -165,7 +166,6 @@ digraph {
 	IMAPIOfflineMgr -> IMAPIOffline;
 	IMSLogon -> IUnknown;
 	IMSProvider -> IUnknown;
-	IMailUser -> IMAPIProp;
 	IMessage -> IMAPIProp;
 	IMsgStore -> IMAPIProp;
 	IProxyStoreObject -> IUnknown;
@@ -175,4 +175,14 @@ digraph {
 	WSABPropStorage -> IECPropStorage;
 	WSMAPIPropStorage -> ECUnknown;
 	WSMAPIPropStorage -> IECPropStorage;
+
+	IABLogon -> IUnknown;
+	ZCABContainer -> ECUnknown;
+	ZCABContainer -> IABContainer;
+	ZCABLogon -> ECUnknown;
+	ZCABLogon -> IABLogon;
+	ZCABProvider -> ECUnknown;
+	ZCABProvider -> IABProvider;
+	ZCMAPIProp -> ECUnknown;
+	ZCMAPIProp -> IMAPIProp;
 }

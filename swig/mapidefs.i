@@ -505,7 +505,7 @@ public:
 #define MAPI_MH_DP_PDS_PATRON                       (5)
 #define MAPI_MH_DP_OTHER_AU                         (6)
 
-class IMailUser : public IMAPIProp {
+class IMailUser : public virtual IMAPIProp {
 public:
 	%extend {
 		~IMailUser() { self->Release(); }

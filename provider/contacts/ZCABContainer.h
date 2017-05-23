@@ -69,6 +69,12 @@ private:
 		#include <kopano/xclsfrag/IMAPIContainer.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp> /* mostly MAPI_E_NO_SUPPORT */
 	} m_xABContainer;
+	class xDistList _kc_final : public IDistList {
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		#include <kopano/xclsfrag/IMAPIContainer.hpp>
+		#include <kopano/xclsfrag/IMAPIProp.hpp> /* mostly MAPI_E_NO_SUPPORT */
+		#include <kopano/xclsfrag/IABContainer.hpp>
+	} m_xDistList;
 
 private:
 	/* reference to ZCABLogon .. ZCABLogon needs to live because of this, so AddChild */
