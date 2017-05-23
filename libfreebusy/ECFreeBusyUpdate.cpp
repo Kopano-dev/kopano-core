@@ -42,16 +42,7 @@ ECFreeBusyUpdate::~ECFreeBusyUpdate(void)
 
 HRESULT ECFreeBusyUpdate::Create(IMessage* lpMessage, ECFreeBusyUpdate **lppECFreeBusyUpdate)
 {
-	HRESULT hr = hrSuccess;
-	auto lpECFreeBusyUpdate = new(std::nothrow) ECFreeBusyUpdate(lpMessage);
-	if (lpECFreeBusyUpdate == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpECFreeBusyUpdate->QueryInterface(IID_ECFreeBusyUpdate, (void **)lppECFreeBusyUpdate);
-
-	if(hr != hrSuccess)
-		delete lpECFreeBusyUpdate;
-
-	return hr;
+	return alloc_wrap<ECFreeBusyUpdate>(lpMessage).put(lppECFreeBusyUpdate);
 }
 
 HRESULT ECFreeBusyUpdate::QueryInterface(REFIID refiid, void** lppInterface)

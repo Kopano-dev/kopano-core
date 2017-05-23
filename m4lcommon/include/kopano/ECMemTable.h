@@ -28,6 +28,7 @@
 #include <kopano/ECKeyTable.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/ustringutil.h>
+#include <kopano/Util.h>
 
 namespace KC {
 
@@ -96,6 +97,7 @@ protected:
 	std::recursive_mutex m_hDataMutex;
 
 	friend class ECMemTableView;
+	ALLOC_WRAP_FRIEND;
 };
 
 class _kc_export ECMemTableView _kc_final : public ECUnknown {
@@ -153,6 +155,7 @@ private:
 	ULONG					m_ulFlags;
 
 	_kc_hidden virtual HRESULT UpdateSortOrRestrict(void);
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

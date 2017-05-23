@@ -97,14 +97,7 @@ HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
  */
 HRESULT	ZCABContainer::Create(std::vector<zcabFolderEntry> *lpFolders, IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void* lpProvider, ZCABContainer **lppABContainer)
 {
-	auto lpABContainer = new(std::nothrow) ZCABContainer(lpFolders, lpContacts, lpMAPISup, lpProvider, "IABContainer");
-	if (lpABContainer == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpABContainer->QueryInterface(IID_ZCABContainer,
-	           reinterpret_cast<void **>(lppABContainer));
-	if (ret != hrSuccess)
-		delete lpABContainer;
-	return ret;
+	return alloc_wrap<ZCABContainer>(lpFolders, lpContacts, lpMAPISup, lpProvider, "IABContainer").put(lppABContainer);
 }
 
 HRESULT	ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPISUP lpMAPISup, ZCABContainer **lppABContainer)

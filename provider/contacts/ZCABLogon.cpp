@@ -50,16 +50,7 @@ ZCABLogon::~ZCABLogon()
 
 HRESULT ZCABLogon::Create(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGuid, ZCABLogon **lppZCABLogon)
 {
-	HRESULT hr = hrSuccess;
-	auto lpABLogon = new(std::nothrow) ZCABLogon(lpMAPISup, ulProfileFlags, lpGuid);
-	if (lpABLogon == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpABLogon->QueryInterface(IID_ZCABLogon, (void **)lppZCABLogon);
-
-	if(hr != hrSuccess)
-		delete lpABLogon;
-
-	return hr;
+	return alloc_wrap<ZCABLogon>(lpMAPISup, ulProfileFlags, lpGuid).put(lppZCABLogon);
 }
 
 HRESULT ZCABLogon::QueryInterface(REFIID refiid, void **lppInterface)

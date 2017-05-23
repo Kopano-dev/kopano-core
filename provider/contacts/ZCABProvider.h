@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 #include <mapispi.h>
 
 class ZCABProvider _kc_final : public ECUnknown  {
@@ -37,6 +38,7 @@ private:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IABProvider.hpp>
 	} m_xABProvider;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif

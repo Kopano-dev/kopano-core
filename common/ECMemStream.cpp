@@ -59,8 +59,7 @@ ECMemBlock::~ECMemBlock()
 HRESULT	ECMemBlock::Create(const char *buffer, ULONG ulDataLen, ULONG ulFlags,
     ECMemBlock **lppStream)
 {
-	return alloc_wrap<ECMemBlock>(buffer, ulDataLen, ulFlags)
-	       .as(IID_ECMemBlock, lppStream);
+	return alloc_wrap<ECMemBlock>(buffer, ulDataLen, ulFlags).put(lppStream);
 }
 
 HRESULT ECMemBlock::QueryInterface(REFIID refiid, void **lppInterface)
@@ -224,15 +223,14 @@ HRESULT	ECMemStream::Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, Commit
 							void *lpParam, ECMemStream **lppStream)
 {
 	return alloc_wrap<ECMemStream>(buffer, ulDataLen, ulFlags,
-	       lpCommitFunc, lpDeleteFunc, lpParam)
-	       .as(IID_ECMemStream, lppStream);
+	       lpCommitFunc, lpDeleteFunc, lpParam).put(lppStream);
 }
 
 HRESULT	ECMemStream::Create(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
 							void *lpParam, ECMemStream **lppStream)
 {
 	return alloc_wrap<ECMemStream>(lpMemBlock, ulFlags, lpCommitFunc,
-	       lpDeleteFunc, lpParam).as(IID_ECMemStream, lppStream);
+	       lpDeleteFunc, lpParam).put(lppStream);
 }
 
 HRESULT ECMemStream::Read(void *pv, ULONG cb, ULONG *pcbRead)

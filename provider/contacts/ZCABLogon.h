@@ -22,6 +22,7 @@
 #include <vector>
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 
 struct zcabFolderEntry {
 	ULONG cbStore;
@@ -64,6 +65,7 @@ private:
 	GUID				m_ABPGuid;
 
 	std::vector<zcabFolderEntry> m_lFolders;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif

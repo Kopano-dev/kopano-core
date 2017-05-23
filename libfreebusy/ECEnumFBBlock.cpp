@@ -44,16 +44,7 @@ ECEnumFBBlock::ECEnumFBBlock(ECFBBlockList* lpFBBlock)
  */
 HRESULT ECEnumFBBlock::Create(ECFBBlockList* lpFBBlock, ECEnumFBBlock **lppEnumFBBlock)
 {
-	HRESULT hr = hrSuccess;
-	auto lpEnumFBBlock = new(std::nothrow) ECEnumFBBlock(lpFBBlock);
-	if (lpEnumFBBlock == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpEnumFBBlock->QueryInterface(IID_ECEnumFBBlock, (void **)lppEnumFBBlock);
-
-	if(hr != hrSuccess)
-		delete lpEnumFBBlock;
-
-	return hr;
+	return alloc_wrap<ECEnumFBBlock>(lpFBBlock).put(lppEnumFBBlock);
 }
 
 /**

@@ -31,6 +31,7 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
+#include <kopano/Util.h>
 #include "freebusyguid.h"
 
 #include "ECFBBlockList.h"
@@ -65,6 +66,7 @@ public:
 	} m_xEnumFBBlock;
 
 	ECFBBlockList	m_FBBlock; /**< Freebusy time blocks */
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

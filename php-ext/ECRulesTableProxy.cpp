@@ -43,13 +43,7 @@ ECRulesTableProxy::~ECRulesTableProxy()
 
 HRESULT ECRulesTableProxy::Create(LPMAPITABLE lpTable, ECRulesTableProxy **lppRulesTableProxy)
 {
-	if (lpTable == NULL || lppRulesTableProxy == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	KCHL::object_ptr<ECRulesTableProxy> ptrRulesTableProxy(new(std::nothrow) ECRulesTableProxy(lpTable));
-	if (ptrRulesTableProxy == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	*lppRulesTableProxy = ptrRulesTableProxy.release();
-	return hrSuccess;
+	return alloc_wrap<ECRulesTableProxy>(lpTable).put(lppRulesTableProxy);
 }
 
 HRESULT ECRulesTableProxy::QueryInterface(REFIID refiid, void **lppInterface)

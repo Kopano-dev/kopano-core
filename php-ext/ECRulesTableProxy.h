@@ -20,7 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
-
+#include <kopano/Util.h>
 #include <mapidefs.h>
 
 class ECRulesTableProxy _kc_final : public ECUnknown {
@@ -63,6 +63,7 @@ protected:
 
 private:
 	LPMAPITABLE m_lpTable;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // ndef ECRULESTABLEPROXY_INCLUDED

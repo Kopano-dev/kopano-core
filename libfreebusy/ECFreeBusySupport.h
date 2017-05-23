@@ -37,8 +37,7 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
-
-
+#include <kopano/Util.h>
 #include "ECFBBlockList.h"
 
 namespace KC {
@@ -100,6 +99,7 @@ private:
 	IMsgStore *m_lpPublicStore = nullptr, *m_lpUserStore = nullptr;
 	IMAPIFolder *m_lpFreeBusyFolder = nullptr;
 	unsigned int	m_ulOutlookVersion;
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

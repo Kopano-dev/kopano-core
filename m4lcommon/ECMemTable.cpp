@@ -86,20 +86,13 @@ ECMemTable::~ECMemTable()
 HRESULT ECMemTable::Create(const SPropTagArray *lpsColumns, ULONG ulRowPropTag,
     ECMemTable **lppECMemTable)
 {
-	ECMemTable *lpMemTable = NULL;
-	
 	if(PROP_TYPE(ulRowPropTag) != PT_I8 && PROP_TYPE(ulRowPropTag) != PT_LONG)
 	{
 		assert(false);
 		return MAPI_E_INVALID_TYPE;
 	}
-
-	lpMemTable = new ECMemTable(lpsColumns, ulRowPropTag);
-	auto ret = lpMemTable->QueryInterface(IID_ECMemTable,
-	       reinterpret_cast<void **>(lppECMemTable));
-	if (ret != hrSuccess)
-		delete lpMemTable;
-	return ret;
+	return alloc_wrap<ECMemTable>(lpsColumns, ulRowPropTag)
+	       .put(lppECMemTable);
 }
 
 HRESULT ECMemTable::QueryInterface(REFIID refiid, void **lppInterface)
@@ -452,16 +445,8 @@ ECMemTableView::~ECMemTableView()
 
 HRESULT ECMemTableView::Create(ECMemTable *lpMemTable, const ECLocale &locale, ULONG ulFlags, ECMemTableView **lppMemTableView)
 {
-	HRESULT hr = hrSuccess;
-	auto lpView = new(std::nothrow) ECMemTableView(lpMemTable, locale, ulFlags);
-	if (lpView == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpView->QueryInterface(IID_ECMemTableView, (void **) lppMemTableView);
-
-	if(hr != hrSuccess)
-		delete lpView;
-
-	return hr;
+	return alloc_wrap<ECMemTableView>(lpMemTable, locale, ulFlags)
+	       .put(lppMemTableView);
 }
 
 HRESULT ECMemTableView::QueryInterface(REFIID refiid, void **lppInterface)

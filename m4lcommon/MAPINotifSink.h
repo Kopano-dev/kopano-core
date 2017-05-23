@@ -26,6 +26,7 @@
 #include <mapix.h>
 #include <mapidefs.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 
 namespace KC {
 
@@ -47,6 +48,7 @@ private:
     std::list<NOTIFICATION *> m_lstNotifs;
 	bool m_bExit = false;
 	unsigned int m_cRef = 0;
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

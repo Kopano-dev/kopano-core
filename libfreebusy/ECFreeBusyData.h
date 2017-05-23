@@ -33,7 +33,7 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
-
+#include <kopano/Util.h>
 #include "ECFBBlockList.h"
 
 namespace KC {
@@ -77,6 +77,7 @@ private:
 	ECFBBlockList	m_fbBlockList;
 	LONG			m_rtmStart; // PR_FREEBUSY_START_RANGE
 	LONG			m_rtmEnd; // PR_FREEBUSY_END_RANGE
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

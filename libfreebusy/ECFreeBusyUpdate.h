@@ -32,7 +32,7 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
-
+#include <kopano/Util.h>
 #include <mapi.h>
 #include <mapidefs.h>
 
@@ -75,7 +75,7 @@ public:
 private:
 	IMessage*		m_lpMessage; /**< Pointer to the free/busy message received from GetFreeBusyMessage */
 	ECFBBlockList	m_fbBlockList; /**< Freebusy time blocks */
-
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

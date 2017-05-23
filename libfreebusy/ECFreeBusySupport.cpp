@@ -55,16 +55,7 @@ ECFreeBusySupport::~ECFreeBusySupport(void)
 
 HRESULT ECFreeBusySupport::Create(ECFreeBusySupport **lppECFreeBusySupport)
 {
-	HRESULT				hr = hrSuccess;
-	auto lpECFreeBusySupport = new(std::nothrow) ECFreeBusySupport;
-	if (lpECFreeBusySupport == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpECFreeBusySupport->QueryInterface(IID_ECFreeBusySupport, (void **)lppECFreeBusySupport);
-
-	if(hr != hrSuccess)
-		delete lpECFreeBusySupport;
-
-	return hr;
+	return alloc_wrap<ECFreeBusySupport>().put(lppECFreeBusySupport);
 }
 
 HRESULT ECFreeBusySupport::QueryInterface(REFIID refiid, void **lppInterface)

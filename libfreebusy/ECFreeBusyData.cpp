@@ -55,16 +55,7 @@ HRESULT ECFreeBusyData::Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBloc
 
 HRESULT ECFreeBusyData::Create(ECFreeBusyData **lppECFreeBusyData)
 {
-	HRESULT hr = hrSuccess;
-	auto lpECFreeBusyData = new(std::nothrow) ECFreeBusyData;
-	if (lpECFreeBusyData == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpECFreeBusyData->QueryInterface(IID_ECFreeBusyData, (void **)lppECFreeBusyData);
-
-	if(hr != hrSuccess)
-		delete lpECFreeBusyData;
-
-	return hr;
+	return alloc_wrap<ECFreeBusyData>().put(lppECFreeBusyData);
 }
 
 HRESULT ECFreeBusyData::QueryInterface(REFIID refiid, void** lppInterface)

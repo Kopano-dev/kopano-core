@@ -196,14 +196,7 @@ static HRESULT CopyNotification(const NOTIFICATION *lpSrc, void *lpBase,
 
 HRESULT MAPINotifSink::Create(MAPINotifSink **lppSink)
 {
-	auto lpSink = new(std::nothrow) MAPINotifSink;
-	if (lpSink == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-    lpSink->AddRef();
-    
-    *lppSink = lpSink;
-    
-    return hrSuccess;
+	return alloc_wrap<MAPINotifSink>().put(lppSink);
 }
 
 MAPINotifSink::~MAPINotifSink() {

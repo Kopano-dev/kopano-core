@@ -19,6 +19,7 @@
 #define ZCABCONTAINER_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include <mapispi.h>
 #include <mapidefs.h>
 #include "ZCABLogon.h"
@@ -85,6 +86,7 @@ private:
 
 	/* distlist version of this container */
 	IMAPIProp *m_lpDistList = nullptr;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif
