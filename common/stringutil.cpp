@@ -322,9 +322,9 @@ std::wstring bin2hexw(size_t inLength, const void *vinput)
 	if (vinput == nullptr)
 		return buffer;
 	if (inLength > 2048)
-		ec_log_warn("Unexpectedly large bin2hex call, %u bytes\n", inLength);
+		ec_log_warn("Unexpectedly large bin2hex call, %zu bytes\n", inLength);
 	else if (inLength > 64)
-		ec_log_debug("Unexpectedly large bin2hex call, %u bytes\n", inLength);
+		ec_log_debug("Unexpectedly large bin2hex call, %zu bytes\n", inLength);
 	static const wchar_t digits[] = L"0123456789ABCDEF";
 	auto input = static_cast<const unsigned char *>(vinput);
 
