@@ -52,7 +52,8 @@ typedef ECPropCallBackMap::iterator				ECPropCallBackIterator;
 typedef std::map<short, ECPropertyEntry>		ECPropertyEntryMap;
 typedef ECPropertyEntryMap::iterator			ECPropertyEntryIterator;
 
-class ECGenericProp : public ECUnknown {
+class ECGenericProp :
+    public ECUnknown, public IMAPIProp, public IECSingleInstance {
 protected:
 	ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName = NULL);
 	virtual ~ECGenericProp();
@@ -124,18 +125,6 @@ public:
 	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
 	virtual HRESULT GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames);
 	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags);
-
-	class xMAPIProp _kc_final : public IMAPIProp {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp>
-	} m_xMAPIProp;
-
-	class xECSingleInstance _kc_final : public IECSingleInstance {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		// <kopano/xclsfrag/IECSingleInstance.hpp>
-		virtual HRESULT __stdcall GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID) _kc_override;
-		virtual HRESULT __stdcall SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID) _kc_override;
-	} m_xECSingleInstance;
 
 protected:
 	ECPropertyEntryMap *lstProps = nullptr;
