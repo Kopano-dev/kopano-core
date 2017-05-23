@@ -765,18 +765,8 @@ HRESULT WSTableOutGoingQueue::Create(KCmd *lpCmd,
     LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
     WSTableOutGoingQueue **lppTableOutGoingQueue)
 {
-	HRESULT hr = hrSuccess;
-	auto lpTableOutGoingQueue = new(std::nothrow) WSTableOutGoingQueue(lpCmd,
-	                            lpDataLock, ecSessionId, cbEntryId,
-	                            lpEntryId, lpMsgStore, lpTransport);
-	if (lpTableOutGoingQueue == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpTableOutGoingQueue->QueryInterface(IID_ECTableOutGoingQueue, (void **) lppTableOutGoingQueue);
-	
-	if(hr != hrSuccess)
-		delete lpTableOutGoingQueue;
-
-	return hr;
+	return alloc_wrap<WSTableOutGoingQueue>(lpCmd, lpDataLock, ecSessionId,
+	       cbEntryId, lpEntryId, lpMsgStore, lpTransport).put(lppTableOutGoingQueue);
 }
 
 HRESULT	WSTableOutGoingQueue::QueryInterface(REFIID refiid, void **lppInterface)

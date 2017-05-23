@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <mutex>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 #include "IECPropStorage.h"
 
 #include <kopano/kcodes.h>
@@ -109,6 +110,7 @@ private:
 	ULONG			m_ulSessionReloadCallback;
 	WSTransport		*m_lpTransport;
 	bool m_bSubscribed = false;
+	ALLOC_WRAP_FRIEND;
 };
 
 

@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 #include <kopano/memory.hpp>
 #include "soapStub.h"
 #include "ECFifoBuffer.h"
@@ -46,6 +47,7 @@ private:
 
 	ECFifoBuffer	*m_lpFifoBuffer;
 	WSMessageStreamImporter *m_lpImporter;
+	ALLOC_WRAP_FRIEND;
 };
 
 typedef KCHL::object_ptr<WSMessageStreamSink> WSMessageStreamSinkPtr;

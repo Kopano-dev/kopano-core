@@ -31,14 +31,8 @@
  */
 HRESULT WSMessageStreamSink::Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter, WSMessageStreamSink **lppSink)
 {
-	if (lpFifoBuffer == NULL || lppSink == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	WSMessageStreamSinkPtr ptrSink(new(std::nothrow) WSMessageStreamSink(lpFifoBuffer, ulTimeout, lpImporter));
-	if (ptrSink == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	*lppSink = ptrSink.release();
-	return hrSuccess;
+	return alloc_wrap<WSMessageStreamSink>(lpFifoBuffer, ulTimeout,
+	       lpImporter).put(lppSink);
 }
 
 /**

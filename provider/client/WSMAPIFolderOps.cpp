@@ -64,17 +64,8 @@ HRESULT WSMAPIFolderOps::Create(KCmd *lpCmd, std::recursive_mutex &lpDataLock,
     ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId,
     WSTransport *lpTransport, WSMAPIFolderOps **lppFolderOps)
 {
-	HRESULT hr = hrSuccess;
-	auto lpFolderOps = new(std::nothrow) WSMAPIFolderOps(lpCmd, lpDataLock,
-	                   ecSessionId, cbEntryId, lpEntryId, lpTransport);
-	if (lpFolderOps == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpFolderOps->QueryInterface(IID_ECMAPIFolderOps, (void **)lppFolderOps);
-
-	if(hr != hrSuccess)
-		delete lpFolderOps;
-
-	return hr;
+	return alloc_wrap<WSMAPIFolderOps>(lpCmd, lpDataLock, ecSessionId,
+	       cbEntryId, lpEntryId, lpTransport).put(lppFolderOps);
 }
 
 HRESULT WSMAPIFolderOps::QueryInterface(REFIID refiid, void **lppInterface)

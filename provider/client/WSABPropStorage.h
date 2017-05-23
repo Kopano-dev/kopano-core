@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <mutex>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 #include "IECPropStorage.h"
 
 #include <kopano/kcodes.h>
@@ -78,6 +79,7 @@ private:
 	ECSESSIONID		ecSessionId;
 	WSTransport*	m_lpTransport;
 	ULONG			m_ulSessionReloadCallback;
+	ALLOC_WRAP_FRIEND;
 };
 
 

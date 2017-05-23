@@ -111,8 +111,7 @@ HRESULT WSTransport::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT WSTransport::Create(ULONG ulUIFlags, WSTransport **lppTransport)
 {
-	return alloc_wrap<WSTransport>(ulUIFlags)
-	       .as(IID_ECTransport, lppTransport);
+	return alloc_wrap<WSTransport>(ulUIFlags).put(lppTransport);
 }
 
 /* Creates a transport working on the same session and session group as this transport */

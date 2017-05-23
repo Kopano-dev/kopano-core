@@ -68,17 +68,8 @@ HRESULT WSABPropStorage::Create(ULONG cbEntryId, LPENTRYID lpEntryId,
     KCmd *lpCmd, std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
     WSTransport *lpTransport, WSABPropStorage **lppPropStorage)
 {
-	HRESULT hr = hrSuccess;
-	auto lpStorage = new(std::nothrow) WSABPropStorage(cbEntryId, lpEntryId,
-	                 lpCmd, lpDataLock, ecSessionId, lpTransport);
-	if (lpStorage == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpStorage->QueryInterface(IID_WSABPropStorage, (void **)lppPropStorage);
-
-	if(hr != hrSuccess)
-		delete lpStorage;
-
-	return hr;
+	return alloc_wrap<WSABPropStorage>(cbEntryId, lpEntryId, lpCmd,
+	       lpDataLock, ecSessionId, lpTransport).put(lppPropStorage);
 }
 
 HRESULT WSABPropStorage::HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues, LPSPropValue *ppValues)

@@ -23,6 +23,7 @@
 #include <mapispi.h>
 
 #include <kopano/kcodes.h>
+#include <kopano/Util.h>
 #include "ClientUtil.h"
 
 class ECNotifyMaster;
@@ -88,6 +89,7 @@ public:
 	BOOL IsOrphan();
 
 	ECSESSIONGROUPID GetSessionGroupId();
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif /* ECSESSIONGROUPDATA_H */

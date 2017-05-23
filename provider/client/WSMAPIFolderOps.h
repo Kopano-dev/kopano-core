@@ -23,6 +23,7 @@
 #include <mutex>
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
+#include <kopano/Util.h>
 #include "soapKCmdProxy.h"
 #include "ics_client.hpp"
 #include <vector>
@@ -87,6 +88,7 @@ private:
 	ECSESSIONID		ecSessionId;	// Id of the session
 	ULONG			m_ulSessionReloadCallback;
 	WSTransport *	m_lpTransport;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif

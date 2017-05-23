@@ -20,6 +20,7 @@
 
 #include <mutex>
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include "WSTableView.h"
 
 class WSStoreTableView : public WSTableView {
@@ -29,6 +30,7 @@ protected:
 public:
 	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableView **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	ALLOC_WRAP_FRIEND;
 };
 
 class WSTableOutGoingQueue _kc_final : public WSStoreTableView {
@@ -39,6 +41,7 @@ public:
 	static HRESULT Create(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableOutGoingQueue **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT HrOpenTable();
+	ALLOC_WRAP_FRIEND;
 };
 
 class WSTableMultiStore _kc_final : public WSStoreTableView {
@@ -53,6 +56,7 @@ public:
 	virtual HRESULT HrSetEntryIDs(LPENTRYLIST lpMsgList);
 private:
     struct entryList m_sEntryList;
+	ALLOC_WRAP_FRIEND;
 };
 
 /* not really store tables, but the code is the same.. */
@@ -66,6 +70,7 @@ public:
 
 private:
 	ULONG m_ulTableType;
+	ALLOC_WRAP_FRIEND;
 };
 
 /**
@@ -77,5 +82,6 @@ protected:
 
 public:
 	static HRESULT Create(ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ECMsgStore *, WSTransport *, WSTableMailBox **);
+	ALLOC_WRAP_FRIEND;
 };
 #endif

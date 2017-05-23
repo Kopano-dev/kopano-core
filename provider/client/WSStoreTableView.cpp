@@ -45,18 +45,9 @@ HRESULT WSStoreTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
     LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
     WSTableView **lppTableView)
 {
-	HRESULT hr = hrSuccess;
-	auto lpTableView = new(std::nothrow) WSStoreTableView(ulType, ulFlags,
-	                   lpCmd, lpDataLock, ecSessionId, cbEntryId,
-	                   lpEntryId, lpMsgStore, lpTransport);
-	if (lpTableView == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpTableView->QueryInterface(IID_ECTableView, (void **) lppTableView);
-	
-	if(hr != hrSuccess)
-		delete lpTableView;
-
-	return hr;
+	return alloc_wrap<WSStoreTableView>(ulType, ulFlags, lpCmd, lpDataLock,
+	       ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport)
+	       .as(IID_ECTableView, lppTableView);
 }
 
 HRESULT WSStoreTableView::QueryInterface(REFIID refiid, void **lppInterface)
@@ -88,13 +79,9 @@ HRESULT WSTableMultiStore::Create(ULONG ulFlags, KCmd *lpCmd,
     LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
     WSTableMultiStore **lppTableMultiStore)
 {
-	HRESULT hr = hrSuccess;
-	WSTableMultiStore *lpTableMultiStore = NULL; 
-
-	lpTableMultiStore = new WSTableMultiStore(ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport);
-	lpTableMultiStore->AddRef();
-	*lppTableMultiStore = lpTableMultiStore;
-	return hr;
+	return alloc_wrap<WSTableMultiStore>(ulFlags, lpCmd, lpDataLock,
+	       ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport)
+	       .put(lppTableMultiStore);
 }
 
 HRESULT WSTableMultiStore::HrOpenTable()
@@ -161,15 +148,9 @@ HRESULT WSTableMisc::Create(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd,
     LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
     WSTableMisc **lppTableMisc)
 {
-	HRESULT hr = hrSuccess;
-	auto lpTableMisc = new(std::nothrow) WSTableMisc(ulTableType, ulFlags,
-	                   lpCmd, lpDataLock, ecSessionId, cbEntryId,
-	                   lpEntryId, lpMsgStore, lpTransport);
-	if (lpTableMisc == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	lpTableMisc->AddRef();
-	*lppTableMisc = lpTableMisc;
-	return hr;
+	return alloc_wrap<WSTableMisc>(ulTableType, ulFlags, lpCmd, lpDataLock,
+	       ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport)
+	       .put(lppTableMisc);
 }
 
 HRESULT WSTableMisc::HrOpenTable()
@@ -215,12 +196,6 @@ HRESULT WSTableMailBox::Create(ULONG ulFlags, KCmd *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
     ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMailBox **lppTable)
 {
-	HRESULT hr = hrSuccess;
-	auto lpTable = new(std::nothrow) WSTableMailBox(ulFlags, lpCmd,
-	               lpDataLock, ecSessionId, lpMsgStore, lpTransport);
-	if (lpTable == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	lpTable->AddRef();
-	*lppTable = lpTable;
-	return hr;
+	return alloc_wrap<WSTableMailBox>(ulFlags, lpCmd, lpDataLock,
+	       ecSessionId, lpMsgStore, lpTransport).put(lppTable);
 }

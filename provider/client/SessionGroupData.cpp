@@ -44,15 +44,8 @@ SessionGroupData::~SessionGroupData(void)
 
 HRESULT SessionGroupData::Create(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps, SessionGroupData **lppData)
 {
-	HRESULT hr = hrSuccess;
-	auto lpData = new(std::nothrow) SessionGroupData(ecSessionGroupId, lpInfo, sProfileProps);
-	if (lpData == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	lpData->AddRef();
-
-	*lppData = lpData;
-
-	return hr;
+	return alloc_wrap<SessionGroupData>(ecSessionGroupId, lpInfo,
+	       sProfileProps).put(lppData);
 }
 
 HRESULT SessionGroupData::GetOrCreateNotifyMaster(ECNotifyMaster **lppMaster)

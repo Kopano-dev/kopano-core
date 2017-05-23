@@ -46,17 +46,9 @@ HRESULT WSABTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
     LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport,
     WSTableView **lppTableView)
 {
-	HRESULT hr = hrSuccess;
-	WSABTableView *lpTableView = NULL; 
-
-	lpTableView = new WSABTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpABLogon, lpTransport);
-
-	hr = lpTableView->QueryInterface(IID_ECTableView, (void **) lppTableView);
-	
-	if(hr != hrSuccess)
-		delete lpTableView;
-
-	return hr;
+	return alloc_wrap<WSABTableView>(ulType, ulFlags, lpCmd, lpDataLock,
+	       ecSessionId, cbEntryId, lpEntryId, lpABLogon, lpTransport)
+	       .as(IID_ECTableView, lppTableView);
 }
 
 HRESULT WSABTableView::QueryInterface(REFIID refiid, void **lppInterface)
