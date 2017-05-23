@@ -131,6 +131,11 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 	case PT_BINARY:
 		lpPropValDst->__union = SOAP_UNION_propValData_bin;
 		lpPropValDst->Value.bin = s_alloc<xsd__base64Binary>(nullptr);
+		if (lpPropValSrc->Value.bin.cb == 0 || lpPropValSrc->Value.bin.lpb == nullptr) {
+			lpPropValDst->Value.bin->__ptr = nullptr;
+			lpPropValDst->Value.bin->__size = 0;
+			break;
+		}
 		lpPropValDst->Value.bin->__ptr = s_alloc<unsigned char>(nullptr, lpPropValSrc->Value.bin.cb);
 		lpPropValDst->Value.bin->__size = lpPropValSrc->Value.bin.cb;
 		memcpy(lpPropValDst->Value.bin->__ptr, lpPropValSrc->Value.bin.lpb, lpPropValSrc->Value.bin.cb);
@@ -188,6 +193,12 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst,
 		lpPropValDst->Value.mvbin.__size = lpPropValSrc->Value.MVbin.cValues;
 		lpPropValDst->Value.mvbin.__ptr = s_alloc<xsd__base64Binary>(nullptr, lpPropValDst->Value.mvbin.__size);
 		for (gsoap_size_t i = 0; i < lpPropValDst->Value.mvbin.__size; ++i) {
+			if (lpPropValSrc->Value.MVbin.lpbin[i].cb == 0 ||
+			    lpPropValSrc->Value.MVbin.lpbin[i].lpb == nullptr) {
+				lpPropValDst->Value.mvbin.__ptr[i].__size = 0;
+				lpPropValDst->Value.mvbin.__ptr[i].__ptr = nullptr;
+				continue;
+			}
 			lpPropValDst->Value.mvbin.__ptr[i].__size = lpPropValSrc->Value.MVbin.lpbin[i].cb;
 			lpPropValDst->Value.mvbin.__ptr[i].__ptr = s_alloc<unsigned char>(nullptr, lpPropValDst->Value.mvbin.__ptr[i].__size);
 			memcpy(lpPropValDst->Value.mvbin.__ptr[i].__ptr, lpPropValSrc->Value.MVbin.lpbin[i].lpb, lpPropValDst->Value.mvbin.__ptr[i].__size);
