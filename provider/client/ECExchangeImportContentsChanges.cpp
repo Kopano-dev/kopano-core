@@ -64,20 +64,14 @@ HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder, LPEXCHAN
 	HRESULT hr;
 	if(!lpFolder)
 		return MAPI_E_INVALID_PARAMETER;
-	auto lpEICC = new(std::nothrow) ECExchangeImportContentsChanges(lpFolder);
+	object_ptr<ECExchangeImportContentsChanges> lpEICC(new(std::nothrow) ECExchangeImportContentsChanges(lpFolder));
 	if (lpEICC == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = HrGetOneProp(&lpFolder->m_xMAPIProp, PR_SOURCE_KEY, &lpEICC->m_lpSourceKey);
-	if (hr == hrSuccess)
-		/*
-		 * This essentially returns lpEICC (in the second argument's
-		 * location), so whatever Coverity is saying about it not
-		 * being freed, don't believe it.
-		 */
-		hr = lpEICC->QueryInterface(IID_IExchangeImportContentsChanges, reinterpret_cast<void **>(lppExchangeImportContentsChanges));
-	else
-		delete lpEICC;
-	return hr;
+	if (hr != hrSuccess)
+		return hr;
+	return lpEICC->QueryInterface(IID_IExchangeImportContentsChanges,
+	       reinterpret_cast<void **>(lppExchangeImportContentsChanges));
 }
 
 HRESULT	ECExchangeImportContentsChanges::QueryInterface(REFIID refiid, void **lppInterface)
