@@ -162,7 +162,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<ZCABContainer> lpRootContainer;
-	object_ptr<ZCMAPIProp> lpContact;
+	object_ptr<IUnknown> lpContact;
 	object_ptr<IProfSect> lpProfileSection;
 	memory_ptr<SPropValue> lpFolderProps;
 	ULONG cValues = 0;
@@ -213,7 +213,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 
 		if (cbEntryID > 4+sizeof(GUID)) {
 			// we're actually opening a contact .. so pass-through to the just opened rootcontainer
-			hr = lpRootContainer->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, &~lpContact);
+			hr = lpRootContainer->OpenEntry(cbEntryID, lpEntryID, &IID_IUnknown, ulFlags, lpulObjType, &~lpContact);
 			if (hr != hrSuccess)
 				return hr;
 		}
