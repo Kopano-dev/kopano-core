@@ -288,25 +288,18 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYI
 HRESULT ZCMAPIProp::Create(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, ZCMAPIProp **lppZCMAPIProp)
 {
 	HRESULT	hr = hrSuccess;
-	ZCMAPIProp *lpZCMAPIProp = NULL;
 	auto lpCABEntryID = reinterpret_cast<cabEntryID *>(lpEntryID);
 
 	if (lpCABEntryID->ulObjType != MAPI_MAILUSER && lpCABEntryID->ulObjType != MAPI_DISTLIST)
 		return MAPI_E_INVALID_OBJECT;
-	lpZCMAPIProp = new(std::nothrow) ZCMAPIProp(lpCABEntryID->ulObjType);
+	KCHL::object_ptr<ZCMAPIProp> lpZCMAPIProp(new(std::nothrow) ZCMAPIProp(lpCABEntryID->ulObjType));
 	if (lpZCMAPIProp == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpZCMAPIProp->ConvertProps(lpContact, cbEntryID, lpEntryID, lpCABEntryID->ulOffset);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpZCMAPIProp->QueryInterface(IID_ZCMAPIProp, (void**)lppZCMAPIProp);
-
-exit:
-	if (hr != hrSuccess)
-		delete lpZCMAPIProp;
-
-	return hr;
+		return hr;
+	*lppZCMAPIProp = lpZCMAPIProp.release();
+	return hrSuccess;
 }
 
 HRESULT ZCMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
