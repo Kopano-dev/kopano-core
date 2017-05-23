@@ -2162,55 +2162,45 @@ HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp 
 	if(hr != hrSuccess)
 		return hr;
 
-	if (PROP_TYPE(ulPropTag) & MV_FLAG) {
-		hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropMVValueNew);
-		if (hr != hrSuccess)
-			return hr;
-		memset(lpPropMVValueNew, 0, sizeof(SPropValue));
-
-		hr = HrGetOneProp(lpFolder, ulPropTag, &lpPropMVValue);
-		if(hr != hrSuccess) {
-			lpPropMVValueNew->Value.MVbin.cValues = (ulMVPos+1);
-			hr = ECAllocateMore(sizeof(SBinary) * lpPropMVValueNew->Value.MVbin.cValues, lpPropMVValueNew,
-			     reinterpret_cast<void **>(&lpPropMVValueNew->Value.MVbin.lpbin));
-			if (hr != hrSuccess)
-				return hr;
-			memset(lpPropMVValueNew->Value.MVbin.lpbin, 0, sizeof(SBinary)*lpPropMVValueNew->Value.MVbin.cValues);
-
-			for (unsigned int i = 0; i <lpPropMVValueNew->Value.MVbin.cValues; ++i)
-				if(ulMVPos == i)
-					lpPropMVValueNew->Value.MVbin.lpbin[i] = lpPropValue->Value.bin;
-		}else{
-			lpPropMVValueNew->Value.MVbin.cValues = (lpPropMVValue->Value.MVbin.cValues < ulMVPos)? lpPropValue->Value.bin.cb : ulMVPos+1;
-			hr = ECAllocateMore(sizeof(SBinary) * lpPropMVValueNew->Value.MVbin.cValues, lpPropMVValueNew,
-			     reinterpret_cast<void **>(&lpPropMVValueNew->Value.MVbin.lpbin));
-			if (hr != hrSuccess)
-				return hr;
-			memset(lpPropMVValueNew->Value.MVbin.lpbin, 0, sizeof(SBinary)*lpPropMVValueNew->Value.MVbin.cValues);
-
-			for (unsigned int i = 0; i < lpPropMVValueNew->Value.MVbin.cValues; ++i)
-				if(ulMVPos == i)
-					lpPropMVValueNew->Value.MVbin.lpbin[i] = lpPropValue->Value.bin;
-				else
-					lpPropMVValueNew->Value.MVbin.lpbin[i] = lpPropMVValue->Value.MVbin.lpbin[i];
-		}
-
-		lpPropMVValueNew->ulPropTag = ulPropTag;
-
-		// Set the property into the right folder
-		hr = lpFolderPropSet->SetProps(1, lpPropMVValueNew, NULL);
-		if (hr != hrSuccess)
-			return hr;
-	}else{
-		// Set the property tag value
+	if (!(PROP_TYPE(ulPropTag) & MV_FLAG)) {
 		lpPropValue->ulPropTag = ulPropTag;
-
-		// Set the property into the right folder
-		hr = lpFolderPropSet->SetProps(1, lpPropValue, NULL);
-		if(hr != hrSuccess)
-			return hr;
+		return lpFolderPropSet->SetProps(1, lpPropValue, nullptr);
 	}
-	return hrSuccess;
+
+	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropMVValueNew);
+	if (hr != hrSuccess)
+		return hr;
+	memset(lpPropMVValueNew, 0, sizeof(SPropValue));
+
+	hr = HrGetOneProp(lpFolder, ulPropTag, &lpPropMVValue);
+	if(hr != hrSuccess) {
+		lpPropMVValueNew->Value.MVbin.cValues = (ulMVPos+1);
+		hr = ECAllocateMore(sizeof(SBinary) * lpPropMVValueNew->Value.MVbin.cValues, lpPropMVValueNew,
+		     reinterpret_cast<void **>(&lpPropMVValueNew->Value.MVbin.lpbin));
+		if (hr != hrSuccess)
+			return hr;
+		memset(lpPropMVValueNew->Value.MVbin.lpbin, 0, sizeof(SBinary)*lpPropMVValueNew->Value.MVbin.cValues);
+
+		for (unsigned int i = 0; i <lpPropMVValueNew->Value.MVbin.cValues; ++i)
+			if(ulMVPos == i)
+				lpPropMVValueNew->Value.MVbin.lpbin[i] = lpPropValue->Value.bin;
+	}else{
+		lpPropMVValueNew->Value.MVbin.cValues = (lpPropMVValue->Value.MVbin.cValues < ulMVPos)? lpPropValue->Value.bin.cb : ulMVPos+1;
+		hr = ECAllocateMore(sizeof(SBinary) * lpPropMVValueNew->Value.MVbin.cValues, lpPropMVValueNew,
+		     reinterpret_cast<void **>(&lpPropMVValueNew->Value.MVbin.lpbin));
+		if (hr != hrSuccess)
+			return hr;
+		memset(lpPropMVValueNew->Value.MVbin.lpbin, 0, sizeof(SBinary)*lpPropMVValueNew->Value.MVbin.cValues);
+
+		for (unsigned int i = 0; i < lpPropMVValueNew->Value.MVbin.cValues; ++i)
+			if(ulMVPos == i)
+				lpPropMVValueNew->Value.MVbin.lpbin[i] = lpPropValue->Value.bin;
+			else
+				lpPropMVValueNew->Value.MVbin.lpbin[i] = lpPropMVValue->Value.MVbin.lpbin[i];
+	}
+
+	lpPropMVValueNew->ulPropTag = ulPropTag;
+	return lpFolderPropSet->SetProps(1, lpPropMVValueNew, nullptr);
 }
 
 HRESULT ECMsgStore::CreateSpecialFolder(IMAPIFolder *folder_parent_in,
