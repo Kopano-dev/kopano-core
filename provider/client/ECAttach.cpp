@@ -48,7 +48,7 @@ ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG 
 HRESULT ECAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach)
 {
 	return alloc_wrap<ECAttach>(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot)
-	       .as(IID_ECAttach, lppAttach);
+	       .put(lppAttach);
 }
 
 HRESULT ECAttach::QueryInterface(REFIID refiid, void **lppInterface)

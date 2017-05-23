@@ -76,16 +76,8 @@ ECABLogon::~ECABLogon()
 
 HRESULT ECABLogon::Create(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGuid, ECABLogon **lppECABLogon)
 {
-	HRESULT hr = hrSuccess;
-	auto lpABLogon = new ECABLogon(lpMAPISup, lpTransport, ulProfileFlags, lpGuid);
-	if (lpABLogon == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpABLogon->QueryInterface(IID_ECABLogon, (void **)lppECABLogon);
-
-	if(hr != hrSuccess)
-		delete lpABLogon;
-
-	return hr;
+	return alloc_wrap<ECABLogon>(lpMAPISup, lpTransport, ulProfileFlags,
+	       lpGuid).put(lppECABLogon);
 }
 
 HRESULT ECABLogon::QueryInterface(REFIID refiid, void **lppInterface)

@@ -26,6 +26,7 @@
 #include <kopano/zcdefs.h>
 #include "ECSessionGroupManager.h"
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 #include <kopano/kcodes.h>
 
 class ECNotifyClient;
@@ -90,6 +91,7 @@ private:
 	pthread_t					m_hThread;
 	BOOL m_bThreadRunning = false;
 	BOOL m_bThreadExit = false;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif /* ECNOTIFYMASTER_H */

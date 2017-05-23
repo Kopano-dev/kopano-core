@@ -22,6 +22,7 @@
 #include <mapidefs.h>
 #include "ECMAPIFolder.h"
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 
 class ECExchangeImportHierarchyChanges _kc_final : public ECUnknown {
 protected:
@@ -55,6 +56,7 @@ private:
 	ULONG m_ulFlags = 0;
 	ULONG m_ulSyncId = 0;
 	ULONG m_ulChangeId = 0;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // ECEXCHANGEIMPORTCHIERARCHYCHANGES_H

@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
+#include <kopano/Util.h>
 #include "WSTransport.h"
 #include "ECMsgStore.h"
 #include "ECMAPIContainer.h"
@@ -111,6 +112,7 @@ protected:
 	ULONG m_ulConnection = 0;
 
 	friend class		ECExchangeImportHierarchyChanges;	// Allowed access to lpFolderOps
+	ALLOC_WRAP_FRIEND;
 };
 
 

@@ -24,11 +24,8 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Create(WSMessageStreamImporter *l
 {
 	if (lpStreamImporter == NULL || lppStream == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	ECMessageStreamImporterIStreamAdapterPtr ptrAdapter(new(std::nothrow) ECMessageStreamImporterIStreamAdapter(lpStreamImporter));
-	if (ptrAdapter == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	return ptrAdapter->QueryInterface(IID_IStream, reinterpret_cast<LPVOID *>(lppStream));
+	return alloc_wrap<ECMessageStreamImporterIStreamAdapter>(lpStreamImporter)
+	       .as(IID_IStream, reinterpret_cast<void **>(lppStream));
 }
 
 HRESULT ECMessageStreamImporterIStreamAdapter::QueryInterface(REFIID refiid, void **lppInterface)

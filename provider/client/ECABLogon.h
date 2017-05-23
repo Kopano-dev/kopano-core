@@ -21,7 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
-
+#include <kopano/Util.h>
 #include "ECNotifyClient.h"
 
 class WSTransport;
@@ -57,7 +57,7 @@ public:
 
 	GUID				m_guid;
 	GUID				m_ABPGuid;
-
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // #ifndef ECABLOGON

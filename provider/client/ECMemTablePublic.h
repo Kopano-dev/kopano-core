@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECMemTable.h>
+#include <kopano/Util.h>
 #include "ECMAPIFolderPublic.h"
 
 #include <mapidefs.h>
@@ -62,7 +63,7 @@ public:
 	IMAPITable *m_lpShortcutTable = nullptr;
 	ULONG m_ulRowId = 1;
 	ECMAPFolderRelation	m_mapRelation; //Relation between shortcut instancekey and rowid
-
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif //#ifndef ECMEMTABLEPUBLIC_H

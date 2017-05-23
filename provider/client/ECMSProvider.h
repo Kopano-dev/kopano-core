@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 #include "WSTransport.h"
 
 #include <string>
@@ -47,6 +48,7 @@ private:
 	ULONG			m_ulFlags;
 	std::string		m_strLastUser;
 	std::string		m_strLastPassword;
+	ALLOC_WRAP_FRIEND;
 };
 
 

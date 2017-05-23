@@ -45,7 +45,7 @@ ECABProviderSwitch::ECABProviderSwitch(void) : ECUnknown("ECABProviderSwitch")
 
 HRESULT ECABProviderSwitch::Create(ECABProviderSwitch **lppECABProvider)
 {
-	return alloc_wrap<ECABProviderSwitch>().as(IID_ECABProvider, lppECABProvider);
+	return alloc_wrap<ECABProviderSwitch>().put(lppECABProvider);
 }
 
 HRESULT ECABProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)

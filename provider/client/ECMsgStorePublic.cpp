@@ -58,18 +58,10 @@ ECMsgStorePublic::~ECMsgStorePublic(void)
 }
 
 HRESULT	ECMsgStorePublic::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore, ECMsgStore **lppECMsgStore) {
-	HRESULT hr = hrSuccess;
-	auto lpStore = new(std::nothrow) ECMsgStorePublic(lpszProfname,
-	               lpSupport, lpTransport, fModify, ulProfileFlags,
-	               fIsSpooler, bOfflineStore);
-	if (lpStore == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
-
-	if(hr != hrSuccess)
-		delete lpStore;
-
-	return hr;
+	return alloc_wrap<ECMsgStorePublic>(lpszProfname, lpSupport,
+	       lpTransport, fModify, ulProfileFlags,
+	       fIsSpooler, bOfflineStore)
+	       .as(IID_ECMsgStore, reinterpret_cast<void **>(lppECMsgStore));
 }
 
 HRESULT ECMsgStorePublic::QueryInterface(REFIID refiid, void **lppInterface)

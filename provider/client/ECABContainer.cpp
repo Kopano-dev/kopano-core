@@ -75,7 +75,7 @@ HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT	ECABContainer::Create(void* lpProvider, ULONG ulObjType, BOOL fModify, ECABContainer **lppABContainer)
 {
 	return alloc_wrap<ECABContainer>(lpProvider, ulObjType, fModify, "IABContainer")
-	       .as(IID_ECABContainer, lppABContainer);
+	       .put(lppABContainer);
 }
 
 HRESULT	ECABContainer::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)

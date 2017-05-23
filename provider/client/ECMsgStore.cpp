@@ -290,7 +290,7 @@ HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
 {
 	return alloc_wrap<ECMsgStore>(lpszProfname, lpSupport, lpTransport,
 	       fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,
-	       bOfflineStore).as(IID_ECMsgStore, lppECMsgStore);
+	       bOfflineStore).put(lppECMsgStore);
 }
 
 HRESULT ECMsgStore::SetProps(ULONG cValues, const SPropValue *lpPropArray,
@@ -3011,7 +3011,7 @@ ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
 
 HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)
 {
-	return alloc_wrap<ECMSLogon>(lpStore).as(IID_ECMSLogon, lppECMSLogon);
+	return alloc_wrap<ECMSLogon>(lpStore).put(lppECMSLogon);
 }
 
 HRESULT ECMSLogon::QueryInterface(REFIID refiid, void **lppInterface)

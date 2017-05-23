@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 
 class ECMSProviderSwitch _kc_final : public ECUnknown {
 protected:
@@ -42,6 +43,7 @@ private:
 protected:
 	
 	ULONG			m_ulFlags;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif //#ifndef ECMSPROVIDERSWITCH_H

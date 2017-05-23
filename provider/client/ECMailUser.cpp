@@ -34,8 +34,7 @@ ECMailUser::ECMailUser(void* lpProvider, BOOL fModify) : ECABProp(lpProvider, MA
 
 HRESULT ECMailUser::Create(void* lpProvider, BOOL fModify, ECMailUser** lppMailUser)
 {
-	return alloc_wrap<ECMailUser>(lpProvider, fModify)
-	       .as(IID_ECMailUser, lppMailUser);
+	return alloc_wrap<ECMailUser>(lpProvider, fModify).put(lppMailUser);
 }
 
 HRESULT	ECMailUser::QueryInterface(REFIID refiid, void **lppInterface) 

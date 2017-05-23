@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include "ECMAPIFolder.h"
 #include <kopano/ECMemTable.h>
+#include <kopano/Util.h>
 #include "ClientUtil.h"
 
 class ECMAPIFolderPublic _kc_final : public ECMAPIFolder {
@@ -50,7 +51,7 @@ public:
 
 protected:
 	virtual HRESULT SaveChanges(ULONG ulFlags);
-
+	ALLOC_WRAP_FRIEND;
 };
 
 

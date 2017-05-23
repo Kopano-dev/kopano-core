@@ -138,7 +138,7 @@ ECMessage::~ECMessage()
 HRESULT	ECMessage::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lppMessage)
 {
 	return alloc_wrap<ECMessage>(lpMsgStore, fNew, fModify, ulFlags,
-	       bEmbedded, lpRoot).as(IID_ECMessage, lppMessage);
+	       bEmbedded, lpRoot).put(lppMessage);
 }
 
 HRESULT	ECMessage::QueryInterface(REFIID refiid, void **lppInterface)

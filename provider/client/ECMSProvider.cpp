@@ -60,14 +60,7 @@ ECMSProvider::~ECMSProvider()
 }
 
 HRESULT ECMSProvider::Create(ULONG ulFlags, ECMSProvider **lppECMSProvider) {
-	auto lpECMSProvider = new(std::nothrow) ECMSProvider(ulFlags, "IMSProvider");
-	if (lpECMSProvider == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpECMSProvider->QueryInterface(IID_ECMSProvider,
-	           reinterpret_cast<void **>(lppECMSProvider));
-	if (ret != hrSuccess)
-		delete lpECMSProvider;
-	return ret;
+	return alloc_wrap<ECMSProvider>(ulFlags, "IMSProvider").put(lppECMSProvider);
 }
 
 HRESULT ECMSProvider::QueryInterface(REFIID refiid, void **lppInterface)

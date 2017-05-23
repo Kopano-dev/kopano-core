@@ -118,10 +118,12 @@ HRESULT ECChangeAdvisor::Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppCha
 	if (!fEnhancedICS)
 		return MAPI_E_NO_SUPPORT;
 	lpChangeAdvisor.reset(new ECChangeAdvisor(lpMsgStore));
-	hr = lpChangeAdvisor->QueryInterface(IID_ECChangeAdvisor, (void**)lppChangeAdvisor);
+	hr = lpMsgStore->lpTransport->AddSessionReloadCallback(lpChangeAdvisor, &Reload, &lpChangeAdvisor->m_ulReloadId);
 	if (hr != hrSuccess)
 		return hr;
-	return lpMsgStore->lpTransport->AddSessionReloadCallback(lpChangeAdvisor, &Reload, &lpChangeAdvisor->m_ulReloadId);
+	lpChangeAdvisor->AddRef();
+	*lppChangeAdvisor = lpChangeAdvisor;
+	return hr;
 }
 
 HRESULT ECChangeAdvisor::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError)

@@ -57,12 +57,7 @@ ECMSProviderSwitch::ECMSProviderSwitch(ULONG ulFlags) : ECUnknown("ECMSProviderS
 
 HRESULT ECMSProviderSwitch::Create(ULONG ulFlags, ECMSProviderSwitch **lppMSProvider)
 {
-	auto lpMSProvider = new(std::nothrow) ECMSProviderSwitch(ulFlags);
-	if (lpMSProvider == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	lpMSProvider->AddRef();
-	*lppMSProvider = lpMSProvider;
-	return hrSuccess;
+	return alloc_wrap<ECMSProviderSwitch>(ulFlags).put(lppMSProvider);
 }
 
 HRESULT ECMSProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)

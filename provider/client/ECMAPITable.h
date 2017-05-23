@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <mutex>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 #include "WSTransport.h"
 #include "ECNotifyClient.h"
 #include <set>
@@ -94,6 +95,7 @@ private:
 	ULONG				m_ulFlags;		// Flags from queryrows
 	
 	std::string			m_strName;
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // ECMAPITABLE_H

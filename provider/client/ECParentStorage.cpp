@@ -56,15 +56,8 @@ HRESULT ECParentStorage::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECParentStorage::Create(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, ECParentStorage **lppParentStorage)
 {
-	auto lpParentStorage = new(std::nothrow)  ECParentStorage(lpParentObject,
-	                       ulUniqueId, ulObjId, lpServerStorage);
-	if (lpParentStorage == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpParentStorage->QueryInterface(IID_ECParentStorage,
-	           reinterpret_cast<void **>(lppParentStorage)); //FIXME: Use other interface
-	if (ret != hrSuccess)
-		delete lpParentStorage;
-	return ret;
+	return alloc_wrap<ECParentStorage>(lpParentObject, ulUniqueId, ulObjId,
+	       lpServerStorage).put(lppParentStorage);
 }
 
 HRESULT ECParentStorage::HrReadProps(LPSPropTagArray *lppPropTags, ULONG *lpcValues, LPSPropValue *lppValues)

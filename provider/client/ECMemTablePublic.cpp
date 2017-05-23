@@ -70,15 +70,8 @@ HRESULT ECMemTablePublic::Create(ECMAPIFolderPublic *lpECParentFolder, ECMemTabl
 		PR_CONTENT_UNREAD, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY,
 		PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY,
 		PR_ACCESS, PR_ACCESS_LEVEL, PR_CONTAINER_CLASS}};
-	auto lpMemTable = new(std::nothrow) ECMemTablePublic(lpECParentFolder,
-		sPropsHierarchyColumns, PR_ROWID);
-	if (lpMemTable == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpMemTable->QueryInterface(IID_ECMemTablePublic,
-	           reinterpret_cast<void **>(lppECMemTable));
-	if (ret != hrSuccess)
-		delete lpMemTable;
-	return ret;
+	return alloc_wrap<ECMemTablePublic>(lpECParentFolder,
+		sPropsHierarchyColumns, PR_ROWID).put(lppECMemTable);
 }
 
 HRESULT ECMemTablePublic::QueryInterface(REFIID refiid, void **lppInterface)

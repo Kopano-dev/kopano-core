@@ -24,6 +24,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 #include "IECPropStorage.h"
 
 #include "ECGenericProp.h"
@@ -84,6 +85,7 @@ private:
 	ULONG m_ulObjId;
 	ULONG m_ulUniqueId;
 	IECPropStorage *m_lpServerStorage;
+	ALLOC_WRAP_FRIEND;
 };
 
 

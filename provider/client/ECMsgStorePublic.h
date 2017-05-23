@@ -27,6 +27,7 @@
 #include "ECMsgStore.h"
 #include "ClientUtil.h"
 #include <kopano/ECMemTable.h>
+#include <kopano/Util.h>
 
 class ECMsgStorePublic _kc_final : public ECMsgStore {
 protected:
@@ -63,7 +64,7 @@ protected:
 
 	HRESULT BuildIPMSubTree();
 	// entryid : level
-
+	ALLOC_WRAP_FRIEND;
 };
 
 #endif // #ifndef ECMSGSTOREPUBLIC_H

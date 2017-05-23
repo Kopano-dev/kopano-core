@@ -55,14 +55,9 @@ HRESULT ECExchangeImportHierarchyChanges::Create(ECMAPIFolder *lpFolder, LPEXCHA
 
 	if(!lpFolder)
 		return MAPI_E_INVALID_PARAMETER;
-	auto lpEIHC = new(std::nothrow) ECExchangeImportHierarchyChanges(lpFolder);
-	if (lpEIHC == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	auto ret = lpEIHC->QueryInterface(IID_IExchangeImportHierarchyChanges,
-	           reinterpret_cast<void **>(lppExchangeImportHierarchyChanges));
-	if (ret != hrSuccess)
-		delete lpEIHC;
-	return ret;
+	return alloc_wrap<ECExchangeImportHierarchyChanges>(lpFolder)
+	       .as(IID_IExchangeImportHierarchyChanges,
+	       reinterpret_cast<void **>(lppExchangeImportHierarchyChanges));
 }
 
 HRESULT	ECExchangeImportHierarchyChanges::QueryInterface(REFIID refiid, void **lppInterface)

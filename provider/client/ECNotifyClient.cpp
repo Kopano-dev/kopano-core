@@ -126,15 +126,8 @@ ECNotifyClient::~ECNotifyClient()
 
 HRESULT ECNotifyClient::Create(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport, ECNotifyClient**lppNotifyClient)
 {
-	auto lpNotifyClient = new(std::nothrow) ECNotifyClient(ulProviderType,
-	                      lpProvider, ulFlags, lpSupport);
-	if (lpNotifyClient == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	HRESULT hr = lpNotifyClient->QueryInterface(IID_ECNotifyClient, (void **)lppNotifyClient);
-	if (hr != hrSuccess)
-		delete lpNotifyClient;
-
-	return hr;
+	return alloc_wrap<ECNotifyClient>(ulProviderType, lpProvider, ulFlags,
+	       lpSupport).put(lppNotifyClient);
 }
 
 HRESULT ECNotifyClient::QueryInterface(REFIID refiid, void **lppInterface)

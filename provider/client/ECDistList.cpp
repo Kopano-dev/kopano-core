@@ -49,7 +49,7 @@ HRESULT	ECDistList::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECDistList::Create(void* lpProvider, BOOL fModify, ECDistList** lppDistList)
 {
-	return alloc_wrap<ECDistList>(lpProvider, fModify).as(IID_ECDistList, lppDistList);
+	return alloc_wrap<ECDistList>(lpProvider, fModify).put(lppDistList);
 }
 
 HRESULT ECDistList::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)

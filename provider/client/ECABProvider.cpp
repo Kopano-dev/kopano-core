@@ -51,7 +51,7 @@ ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
 
 HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)
 {
-	return alloc_wrap<ECABProvider>(0, "ECABProvider").as(IID_ECABProvider, lppECABProvider);
+	return alloc_wrap<ECABProvider>(0, "ECABProvider").put(lppECABProvider);
 }
 
 HRESULT ECABProvider::QueryInterface(REFIID refiid, void **lppInterface)

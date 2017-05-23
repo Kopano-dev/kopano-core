@@ -111,16 +111,8 @@ ECMAPIFolder::~ECMAPIFolder()
 
 HRESULT ECMAPIFolder::Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, ECMAPIFolder **lppECMAPIFolder)
 {
-	HRESULT hr = hrSuccess;
-	auto lpMAPIFolder = new(std::nothrow) ECMAPIFolder(lpMsgStore, fModify, lpFolderOps, "IMAPIFolder");
-	if (lpMAPIFolder == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpMAPIFolder->QueryInterface(IID_ECMAPIFolder, (void **)lppECMAPIFolder);
-
-	if(hr != hrSuccess)
-		delete lpMAPIFolder;
-
-	return hr;
+	return alloc_wrap<ECMAPIFolder>(lpMsgStore, fModify, lpFolderOps,
+	       "IMAPIFolder").put(lppECMAPIFolder);
 }
 
 HRESULT ECMAPIFolder::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)

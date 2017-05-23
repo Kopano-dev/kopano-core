@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECUnknown.h>
+#include <kopano/Util.h>
 #include "WSMessageStreamImporter.h"
 
 /**
@@ -64,6 +65,7 @@ private:
 
 	WSMessageStreamImporterPtr	m_ptrStreamImporter;
 	WSMessageStreamSinkPtr		m_ptrSink;
+	ALLOC_WRAP_FRIEND;
 };
 
 typedef KCHL::object_ptr<ECMessageStreamImporterIStreamAdapter> ECMessageStreamImporterIStreamAdapterPtr;

@@ -72,14 +72,7 @@ ECNotifyMaster::~ECNotifyMaster(void)
 
 HRESULT ECNotifyMaster::Create(SessionGroupData *lpData, ECNotifyMaster **lppMaster)
 {
-	HRESULT hr = hrSuccess;
-	auto lpMaster = new(std::nothrow) ECNotifyMaster(lpData);
-	if (lpMaster == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	lpMaster->AddRef();
-
-	*lppMaster = lpMaster;
-	return hr;
+	return alloc_wrap<ECNotifyMaster>(lpData).put(lppMaster);
 }
 
 HRESULT ECNotifyMaster::ConnectToSession()

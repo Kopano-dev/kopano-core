@@ -78,16 +78,9 @@ HRESULT	ECMAPIFolderPublic::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECMAPIFolderPublic::Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID, ECMAPIFolder **lppECMAPIFolder)
 {
-	HRESULT hr = hrSuccess;
-	auto lpMAPIFolder = new(std::nothrow) ECMAPIFolderPublic(lpMsgStore, fModify, lpFolderOps, ePublicEntryID);
-	if (lpMAPIFolder == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpMAPIFolder->QueryInterface(IID_ECMAPIFolder, (void **)lppECMAPIFolder);
-
-	if(hr != hrSuccess)
-		delete lpMAPIFolder;
-
-	return hr;
+	return alloc_wrap<ECMAPIFolderPublic>(lpMsgStore, fModify,
+	       lpFolderOps, ePublicEntryID)
+	       .as(IID_ECMAPIFolder, reinterpret_cast<void **>(lppECMAPIFolder));
 }
 
 HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
