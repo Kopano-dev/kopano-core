@@ -825,6 +825,10 @@ ECRESULT ECDatabase::CreateDatabase(void)
 	if (er != erSuccess)
 		return er;
 
+	er = KDatabase::CreateTables();
+	if (er != erSuccess)
+		return er;
+
 	// database default data
 	static constexpr const sSQLDatabase_t sDatabaseData[] = {
 		{"users", Z_TABLEDATA_USERS},

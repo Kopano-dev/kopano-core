@@ -189,14 +189,35 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 	if (er != erSuccess)
 		return er;
 
+	ec_log_info("Database structure has been created");
+	return erSuccess;
+}
+
+ECRESULT KDatabase::CreateTables(void)
+{
 	auto tables = GetDatabaseDefs();
+
 	for (size_t i = 0; tables[i].lpSQL != nullptr; ++i) {
+		DB_RESULT result;
+		auto query = format("SHOW tables LIKE '%s'", tables[i].lpComment);
+		auto er = DoSelect(query, &result);
+		if (er != erSuccess) {
+			ec_log_err("Error running query %s", query.c_str());
+			return er;
+		}
+
+		if (result.get_num_rows() > 0) {
+			ec_log_debug("Table \"%s\" exists", tables[i].lpComment);
+			continue;
+		}
+
 		ec_log_info("Create table: %s", tables[i].lpComment);
+
 		er = DoInsert(tables[i].lpSQL);
 		if (er != erSuccess)
 			return er;
 	}
-	ec_log_info("Database structure has been created");
+
 	return erSuccess;
 }
 
