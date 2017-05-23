@@ -896,7 +896,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		if (lpInterface)
 			hr = lpZCMAPIProp->QueryInterface(*lpInterface, (void**)lppUnk);
 		else
-			hr = lpZCMAPIProp->QueryInterface(IID_IMAPIProp, (void**)lppUnk);
+			hr = lpZCMAPIProp->QueryInterface(IID_IMailUser, reinterpret_cast<void **>(lppUnk));
 	} else {
 		return MAPI_E_UNKNOWN_ENTRYID;
 	}
