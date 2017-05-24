@@ -66,14 +66,13 @@ HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
     LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
     ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ZCABProvider> lpABProvider;
 
 	if (ulMAPIVer < CURRENT_SPI_VERSION)
 		return MAPI_E_VERSION;
 
 	// create provider and query interface.
-	hr = ZCABProvider::Create(&~lpABProvider);
+	auto hr = ZCABProvider::Create(&~lpABProvider);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpABProvider->QueryInterface(IID_IABProvider, (void **)lppABProvider);

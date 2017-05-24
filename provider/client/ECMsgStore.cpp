@@ -2933,8 +2933,7 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Release, (void))
 
 HRESULT ECMsgStore::xMsgStoreProxy::QueryInterface(REFIID refiid, void **lppInterface) {
 	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->QueryInterfaceProxy(refiid, lppInterface);
-	return hr;
+	return pThis->QueryInterfaceProxy(refiid, lppInterface);
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Advise, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
@@ -2968,8 +2967,7 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECMultiStoreTable, Release, (void))
 
 HRESULT ECMsgStore::xECMultiStoreTable::QueryInterface(REFIID refiid, void **lppInterface) {
 	METHOD_PROLOGUE_(ECMsgStore, ECMultiStoreTable);
-	HRESULT hr = pThis->QueryInterfaceProxy(refiid, lppInterface);
-	return hr;
+	return pThis->QueryInterfaceProxy(refiid, lppInterface);
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECMultiStoreTable, OpenMultiStoreTable, (LPENTRYLIST, lpMsgList), (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
@@ -2980,8 +2978,7 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, Release, (void))
 
 HRESULT ECMsgStore::xECLicense::QueryInterface(REFIID refiid, void **lppInterface) {
 	METHOD_PROLOGUE_(ECMsgStore, ECLicense);
-	HRESULT hr = pThis->QueryInterfaceProxy(refiid, lppInterface);
-	return hr;
+	return pThis->QueryInterfaceProxy(refiid, lppInterface);
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, LicenseAuth, (unsigned char *, lpData), (unsigned int, ulSize), (unsigned char **, lppResponse), (unsigned int *, lpulResponseSize))
@@ -2994,20 +2991,19 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, Release, (void))
 
 HRESULT ECMsgStore::xECTestProtocol::QueryInterface(REFIID refiid, void **lppInterface) {
 	METHOD_PROLOGUE_(ECMsgStore, ECTestProtocol);
-	HRESULT hr = pThis->QueryInterfaceProxy(refiid, lppInterface);
-	return hr;
+	return pThis->QueryInterfaceProxy(refiid, lppInterface);
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestPerform, (const char *, cmd), (unsigned int, argc), (char **, args))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestSet, (const char *, name), (const char *, value))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestGet, (const char *, name), (char **, value))
 
-ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
+ECMSLogon::ECMSLogon(ECMsgStore *lpStore) :
+	m_lpStore(lpStore)
 {
 	// Note we cannot AddRef() the store. This is because the reference order is:
 	// ECMsgStore -> IMAPISupport -> ECMSLogon
 	// Therefore AddRef()'ing the store from here would create a circular reference 
-	m_lpStore = lpStore;
 }
 
 HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)
@@ -3081,8 +3077,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, GetPublicFolderTable
 HRESULT ECMsgStore::xExchangeManageStore6::CreateStoreEntryIDEx(LPTSTR lpszMsgStoreDN, LPTSTR lpszEmail, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
 	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
-	HRESULT hr = pThis->CreateStoreEntryID(lpszMsgStoreDN, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
-	return hr;
+	return pThis->CreateStoreEntryID(lpszMsgStoreDN, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
 }
 
 // IExchangeManageStoreEx

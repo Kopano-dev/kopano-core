@@ -77,7 +77,6 @@ HRESULT ECNotifyMaster::Create(SessionGroupData *lpData, ECNotifyMaster **lppMas
 
 HRESULT ECNotifyMaster::ConnectToSession()
 {
-	HRESULT			hr = hrSuccess;
 	scoped_rlock biglock(m_hMutex);
 
 	/* This function can be called from NotifyWatch, and could race against StopNotifyWatch */
@@ -88,7 +87,7 @@ HRESULT ECNotifyMaster::ConnectToSession()
 	 * Cancel connection IO operations before switching Transport.
 	 */
 	if (m_lpTransport) {
-		hr = m_lpTransport->HrCancelIO();
+		auto hr = m_lpTransport->HrCancelIO();
 		if (hr != hrSuccess)
 			return hr;
 		m_lpTransport->Release();
@@ -96,10 +95,7 @@ HRESULT ECNotifyMaster::ConnectToSession()
 	}
 
 	/* Open notification transport */
-	hr = m_lpSessionGroupData->GetTransport(&m_lpTransport);
-	if (hr != hrSuccess)
-		return hr;
-	return hr;
+	return m_lpSessionGroupData->GetTransport(&m_lpTransport);
 }
 
 HRESULT ECNotifyMaster::AddSession(ECNotifyClient* lpClient)
@@ -128,7 +124,6 @@ struct findConnectionClient
 
 HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 {
-	HRESULT hr = hrSuccess;
 	scoped_rlock biglock(m_hMutex);
 
 	/* Remove all connections attached to client */
@@ -142,7 +137,7 @@ HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 
 	/* Remove client from list */
 	m_listNotifyClients.remove(lpClient);
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECNotifyMaster::ReserveConnection(ULONG *lpulConnection)
@@ -168,12 +163,10 @@ HRESULT ECNotifyMaster::DropConnection(ULONG ulConnection)
 
 HRESULT ECNotifyMaster::StartNotifyWatch()
 {
-	HRESULT hr = hrSuccess;
-
 	/* Thread is already running */
 	if (m_bThreadRunning)
-		return hr;
-	hr = ConnectToSession();
+		return hrSuccess;
+	auto hr = ConnectToSession();
 	if (hr != hrSuccess)
 		return hr;
 
@@ -191,18 +184,17 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 	set_thread_name(m_hThread, "NotifyThread");
 
 	m_bThreadRunning = TRUE;
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECNotifyMaster::StopNotifyWatch()
 {
-	HRESULT hr = hrSuccess;
 	KCHL::object_ptr<WSTransport> lpTransport;
 	ulock_rec biglock(m_hMutex, std::defer_lock_t());
 
 	/* Thread was already halted, or connection is broken */
 	if (!m_bThreadRunning)
-		return hr;
+		return hrSuccess;
 
 	/* Let the thread exit during its busy looping */
 	biglock.lock();
@@ -213,7 +205,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 		 * can't use our own m_lpTransport since it is probably in a blocking getNextNotify()
 		 * call. Seems like a bit of a shame to open a new connection, but there's no
 		 * other option */
-		hr = m_lpTransport->HrClone(&~lpTransport);
+		auto hr = m_lpTransport->HrClone(&~lpTransport);
 		if (hr != hrSuccess) {
 			biglock.unlock();
 			return hr;
@@ -229,7 +221,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 		ec_log_debug("ECNotifyMaster::StopNotifyWatch: Invalid thread join");
 
 	m_bThreadRunning = FALSE;
-	return hr;
+	return hrSuccess;
 }
 
 void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)

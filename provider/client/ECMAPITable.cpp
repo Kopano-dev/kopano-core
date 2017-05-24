@@ -56,9 +56,7 @@ ECMAPITable::ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, UL
 
 HRESULT ECMAPITable::FlushDeferred(LPSRowSet *lppRowSet)
 {
-	HRESULT hr;
-    
-	hr = lpTableOps->HrOpenTable();
+	auto hr = lpTableOps->HrOpenTable();
 	if(hr != hrSuccess)
 		return hr;
 

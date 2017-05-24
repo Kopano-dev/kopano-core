@@ -841,9 +841,8 @@ HRESULT CopySOAPEntryId(const entryId *lpSrc, entryId *lpDst)
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
     const ENTRYID *lpEntryIdSrc, entryId **lppDest)
 {
-	HRESULT hr = hrSuccess;
 	auto lpDest = s_alloc<entryId>(nullptr);
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryIdSrc, lpEntryIdSrc, lpDest, false);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryIdSrc, lpEntryIdSrc, lpDest, false);
 	if (hr != hrSuccess) {
 		s_free(nullptr, lpDest);
 		return hr;
@@ -963,13 +962,12 @@ HRESULT CopyMAPIEntryListToSOAPEntryList(const ENTRYLIST *lpMsgList,
 HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList,
     LPENTRYLIST *lppMsgList)
 {
-	HRESULT			hr = hrSuccess;
 	unsigned int	i = 0;
 	ecmem_ptr<ENTRYLIST> lpMsgList;
 
 	if (lpsEntryList == nullptr || lppMsgList == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgList);
+	auto hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgList);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -1001,8 +999,6 @@ HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList,
 HRESULT CopySOAPRowToMAPIRow(const struct propValArray *lpsRowSrc,
     LPSPropValue lpsRowDst, void *lpBase, convert_context *lpConverter)
 {
-	HRESULT hr;
-
 	if (lpConverter == NULL && lpsRowSrc->__size > 1) {
 		convert_context converter;
 		return CopySOAPRowToMAPIRow(lpsRowSrc, lpsRowDst, lpBase, &converter);
@@ -1010,7 +1006,7 @@ HRESULT CopySOAPRowToMAPIRow(const struct propValArray *lpsRowSrc,
 
 	for (gsoap_size_t j = 0; j < lpsRowSrc->__size; ++j) {
 		// If all fails, get the actual data from the server
-		hr = CopySOAPPropValToMAPIPropVal(&lpsRowDst[j], &lpsRowSrc->__ptr[j], lpBase, lpConverter);
+		auto hr = CopySOAPPropValToMAPIPropVal(&lpsRowDst[j], &lpsRowSrc->__ptr[j], lpBase, lpConverter);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -1020,21 +1016,18 @@ HRESULT CopySOAPRowToMAPIRow(const struct propValArray *lpsRowSrc,
 HRESULT CopyMAPIRowToSOAPRow(const SRow *lpRowSrc,
     struct propValArray *lpsRowDst, convert_context *lpConverter)
 {
-	HRESULT hr = hrSuccess;
-	struct propVal* lpPropVal = NULL;
-
 	if (lpConverter == NULL && lpRowSrc->cValues > 1) {
 		convert_context converter;
 		return CopyMAPIRowToSOAPRow(lpRowSrc, lpsRowDst, &converter);
 	}
 
-	lpPropVal = s_alloc<propVal>(nullptr, lpRowSrc->cValues);
+	auto lpPropVal = s_alloc<propVal>(nullptr, lpRowSrc->cValues);
 	memset(lpPropVal, 0, sizeof(struct propVal) *lpRowSrc->cValues);
 	lpsRowDst->__ptr = lpPropVal;
 	lpsRowDst->__size = 0;
 
 	for (unsigned int i = 0; i < lpRowSrc->cValues; ++i) {
-		hr = CopyMAPIPropValToSOAPPropVal(&lpPropVal[i], &lpRowSrc->lpProps[i], lpConverter);
+		auto hr = CopyMAPIPropValToSOAPPropVal(&lpPropVal[i], &lpRowSrc->lpProps[i], lpConverter);
 		if (hr != hrSuccess) {
 			FreePropValArray(lpsRowDst, false);
 			lpsRowDst->__ptr = nullptr;
@@ -1048,14 +1041,11 @@ HRESULT CopyMAPIRowToSOAPRow(const SRow *lpRowSrc,
 HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
     struct rowSet **lppsRowSetDst, convert_context *lpConverter)
 {
-	HRESULT hr = hrSuccess;
-	struct rowSet *lpsRowSetDst = NULL;
-
 	if (lpConverter == NULL && lpRowSetSrc->cRows > 1) {
 		convert_context converter;
 		return CopyMAPIRowSetToSOAPRowSet(lpRowSetSrc, lppsRowSetDst, &converter);
 	}
-	lpsRowSetDst = s_alloc<rowSet>(nullptr);
+	auto lpsRowSetDst = s_alloc<rowSet>(nullptr);
 	lpsRowSetDst->__ptr = NULL;
 	lpsRowSetDst->__size = 0;
 	if (lpRowSetSrc->cRows > 0) {
@@ -1063,7 +1053,7 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
 		lpsRowSetDst->__size = 0;
 
 		for (unsigned int i = 0; i < lpRowSetSrc->cRows; ++i) {
-			hr = CopyMAPIRowToSOAPRow(&lpRowSetSrc->aRow[i], &lpsRowSetDst->__ptr[i], lpConverter);
+			auto hr = CopyMAPIRowToSOAPRow(&lpRowSetSrc->aRow[i], &lpsRowSetDst->__ptr[i], lpConverter);
 			if (hr != hrSuccess) {
 				FreeRowSet(lpsRowSetDst, false);
 				return hr;
@@ -1080,7 +1070,6 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
 HRESULT CopySOAPRowSetToMAPIRowSet(void *lpProvider,
     const struct rowSet *lpsRowSetSrc, LPSRowSet *lppRowSetDst, ULONG ulType)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulRows = 0;
 	rowset_ptr lpRowSet;
 	convert_context converter;
@@ -1088,7 +1077,7 @@ HRESULT CopySOAPRowSetToMAPIRowSet(void *lpProvider,
 	ulRows = lpsRowSetSrc->__size;
 
 	// Allocate space for the rowset
-	hr = ECAllocateBuffer(CbNewSRowSet(ulRows), &~lpRowSet);
+	auto hr = ECAllocateBuffer(CbNewSRowSet(ulRows), &~lpRowSet);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1740,14 +1729,12 @@ static HRESULT SoapUserToUser(const struct user *lpUser, ECUSER *lpsUser,
 HRESULT SoapUserArrayToUserArray(const struct userArray *lpUserArray,
     ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
 {
-	HRESULT hr;
 	ECUSER *lpECUsers = NULL;
 	convert_context	converter;
 
 	if (lpUserArray == NULL || lpcUsers == NULL || lppsUsers == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	hr = ECAllocateBuffer(sizeof(ECUSER) * lpUserArray->__size, reinterpret_cast<void **>(&lpECUsers));
+	auto hr = ECAllocateBuffer(sizeof(ECUSER) * lpUserArray->__size, reinterpret_cast<void **>(&lpECUsers));
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpECUsers, 0, sizeof(ECUSER) * lpUserArray->__size);
@@ -1766,13 +1753,12 @@ HRESULT SoapUserArrayToUserArray(const struct userArray *lpUserArray,
 HRESULT SoapUserToUser(const struct user *lpUser, ULONG ulFlags,
     ECUSER **lppsUser)
 {
-	HRESULT			hr		= hrSuccess;
 	ecmem_ptr<ECUSER> lpsUser;
 	convert_context	converter;
 
 	if (lpUser == nullptr || lppsUser == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = ECAllocateBuffer(sizeof *lpsUser, &~lpsUser);
+	auto hr = ECAllocateBuffer(sizeof *lpsUser, &~lpsUser);
 	if (hr != hrSuccess)
 		return hr;
 	hr = SoapUserToUser(lpUser, lpsUser, ulFlags, NULL, converter);
@@ -1785,8 +1771,6 @@ HRESULT SoapUserToUser(const struct user *lpUser, ULONG ulFlags,
 static HRESULT SoapGroupToGroup(const struct group *lpGroup,
     ECGROUP *lpsGroup, ULONG ulFlags, void *lpBase, convert_context &converter)
 {
-	HRESULT hr;
-
 	if (lpGroup == NULL || lpsGroup == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -1798,8 +1782,7 @@ static HRESULT SoapGroupToGroup(const struct group *lpGroup,
 	if (lpGroup->lpszGroupname == NULL)
 		return MAPI_E_INVALID_OBJECT;
 
-	hr = Utf8ToTString(lpGroup->lpszGroupname, ulFlags, lpBase, &converter, &lpsGroup->lpszGroupname);
-
+	auto hr = Utf8ToTString(lpGroup->lpszGroupname, ulFlags, lpBase, &converter, &lpsGroup->lpszGroupname);
 	if (hr == hrSuccess && lpGroup->lpszFullname)
 		hr = Utf8ToTString(lpGroup->lpszFullname, ulFlags, lpBase, &converter, &lpsGroup->lpszFullname);
 
@@ -1827,13 +1810,12 @@ static HRESULT SoapGroupToGroup(const struct group *lpGroup,
 HRESULT SoapGroupArrayToGroupArray(const struct groupArray *lpGroupArray,
     ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups)
 {
-	HRESULT			hr = hrSuccess;
 	ecmem_ptr<ECGROUP> lpECGroups;
 	convert_context	converter;
 
 	if (lpGroupArray == nullptr || lpcGroups == nullptr || lppsGroups == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = ECAllocateBuffer(sizeof(ECGROUP) * lpGroupArray->__size, &~lpECGroups);
+	auto hr = ECAllocateBuffer(sizeof(ECGROUP) * lpGroupArray->__size, &~lpECGroups);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpECGroups, 0, sizeof(ECGROUP) * lpGroupArray->__size);
@@ -1852,13 +1834,12 @@ HRESULT SoapGroupArrayToGroupArray(const struct groupArray *lpGroupArray,
 HRESULT SoapGroupToGroup(const struct group *lpGroup, ULONG ulFlags,
     ECGROUP **lppsGroup)
 {
-	HRESULT			hr			= hrSuccess;
 	ecmem_ptr<ECGROUP> lpsGroup;
 	convert_context	converter;
 
 	if (lpGroup == nullptr || lppsGroup == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = ECAllocateBuffer(sizeof *lpsGroup, &~lpsGroup);
+	auto hr = ECAllocateBuffer(sizeof(*lpsGroup), &~lpsGroup);
 	if (hr != hrSuccess)
 		return hr;
 	hr = SoapGroupToGroup(lpGroup, lpsGroup, ulFlags, NULL, converter);
@@ -1872,8 +1853,6 @@ static HRESULT SoapCompanyToCompany(const struct company *lpCompany,
     ECCOMPANY *lpsCompany, ULONG ulFlags, void *lpBase,
     convert_context &converter)
 {
-	HRESULT hr;
-
 	if (lpCompany == NULL || lpsCompany == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -1882,8 +1861,7 @@ static HRESULT SoapCompanyToCompany(const struct company *lpCompany,
 
 	memset(lpsCompany, 0, sizeof(*lpsCompany));
 
-	hr = Utf8ToTString(lpCompany->lpszCompanyname, ulFlags, lpBase, &converter, &lpsCompany->lpszCompanyname);
-
+	auto hr = Utf8ToTString(lpCompany->lpszCompanyname, ulFlags, lpBase, &converter, &lpsCompany->lpszCompanyname);
 	if (hr == hrSuccess && lpCompany->lpszServername != NULL)
 		hr = Utf8ToTString(lpCompany->lpszServername, ulFlags, lpBase, &converter, &lpsCompany->lpszServername);
 
@@ -1911,14 +1889,13 @@ HRESULT SoapCompanyArrayToCompanyArray(
     const struct companyArray *lpCompanyArray, ULONG ulFlags,
     ULONG *lpcCompanies, ECCOMPANY **lppsCompanies)
 {
-	HRESULT 		hr = hrSuccess;
 	ecmem_ptr<ECCOMPANY> lpECCompanies;
 	convert_context	converter;
 
 	if (lpCompanyArray == nullptr || lpcCompanies == nullptr ||
 	    lppsCompanies == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = ECAllocateBuffer(sizeof(ECCOMPANY) * lpCompanyArray->__size, &~lpECCompanies);
+	auto hr = ECAllocateBuffer(sizeof(ECCOMPANY) * lpCompanyArray->__size, &~lpECCompanies);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpECCompanies, 0, sizeof(ECCOMPANY) * lpCompanyArray->__size);
@@ -1937,13 +1914,12 @@ HRESULT SoapCompanyArrayToCompanyArray(
 HRESULT SoapCompanyToCompany(const struct company *lpCompany, ULONG ulFlags,
     ECCOMPANY **lppsCompany)
 {
-	HRESULT			hr			= hrSuccess;
 	ecmem_ptr<ECCOMPANY> lpsCompany;
 	convert_context	converter;
 
 	if (lpCompany == nullptr || lppsCompany == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = ECAllocateBuffer(sizeof *lpsCompany, &~lpsCompany);
+	auto hr = ECAllocateBuffer(sizeof(*lpsCompany), &~lpsCompany);
 	if (hr != hrSuccess)
 		return hr;
 	hr = SoapCompanyToCompany(lpCompany, lpsCompany, ulFlags, NULL, converter);
@@ -1956,13 +1932,12 @@ HRESULT SoapCompanyToCompany(const struct company *lpCompany, ULONG ulFlags,
 HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList,
     ULONG ulFlags, struct mv_string8 **lppsSvrNameList)
 {
-	HRESULT				hr = hrSuccess;
 	ecmem_ptr<struct mv_string8> lpsSvrNameList;
 	convert_context		converter;
 
 	if (lpSvrNameList == nullptr || lppsSvrNameList == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = ECAllocateBuffer(sizeof(*lpsSvrNameList), &~lpsSvrNameList);
+	auto hr = ECAllocateBuffer(sizeof(*lpsSvrNameList), &~lpsSvrNameList);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpsSvrNameList, 0, sizeof *lpsSvrNameList);
@@ -1988,13 +1963,12 @@ HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList,
 HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
     ULONG ulFLags, ECSERVERLIST **lppServerList)
 {
-	HRESULT			hr = hrSuccess;
 	ecmem_ptr<ECSERVERLIST> lpServerList;
 	convert_context	converter;
 
 	if (lpsServerList == nullptr || lppServerList == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = ECAllocateBuffer(sizeof(*lpServerList), &~lpServerList);
+	auto hr = ECAllocateBuffer(sizeof(*lpServerList), &~lpServerList);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpServerList, 0, sizeof *lpServerList);
@@ -2072,7 +2046,6 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags, const sGlobalProfileProps
 // Wrap the server store entryid to client store entry. (Add a servername)
 HRESULT WrapServerClientStoreEntry(const char* lpszServerName, entryId* lpsStoreId, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
 {
-	HRESULT hr;
 	LPENTRYID	lpStoreID = NULL;
 	ULONG		ulSize;
 
@@ -2081,8 +2054,7 @@ HRESULT WrapServerClientStoreEntry(const char* lpszServerName, entryId* lpsStore
 
 	// The new entryid size is, current size + servername size + 1 byte term 0 - 4 bytes padding
 	ulSize = lpsStoreId->__size+strlen(lpszServerName)+1-4;
-
-	hr = ECAllocateBuffer(ulSize, (void**)&lpStoreID);
+	auto hr = ECAllocateBuffer(ulSize, reinterpret_cast<void **>(&lpStoreID));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -2102,16 +2074,13 @@ HRESULT WrapServerClientStoreEntry(const char* lpszServerName, entryId* lpsStore
 // Un wrap the client store entryid to server store entry. (remove a servername)
 HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID, LPENTRYID lpWrapStoreID, ULONG* lpcbUnWrapStoreID, LPENTRYID* lppUnWrapStoreID)
 {
-	HRESULT	hr;
 	LPENTRYID lpUnWrapStoreID = NULL;
-	PEID	peid = NULL;
 	ULONG	ulSize = 0;
 
 	if (lpWrapStoreID == NULL || lppUnWrapStoreID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	peid = (PEID)lpWrapStoreID;
-
+	auto peid = reinterpret_cast<EID *>(lpWrapStoreID);
 	if (peid->ulVersion == 0)
 		ulSize = sizeof(EID_V0);
 	else if (peid->ulVersion == 1)
@@ -2122,7 +2091,7 @@ HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID, LPENTRYID lpWrapStoreI
 	if (cbWrapStoreID < ulSize)
 		return MAPI_E_INVALID_ENTRYID;
 
-	hr = ECAllocateBuffer(ulSize, (void**)&lpUnWrapStoreID);
+	auto hr = ECAllocateBuffer(ulSize, reinterpret_cast<void **>(&lpUnWrapStoreID));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -2138,7 +2107,6 @@ HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID, LPENTRYID lpWrapStoreI
 
 HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, LPENTRYID lpWrapABID, ULONG* lpcbUnWrapABID, LPENTRYID* lppUnWrapABID)
 {
-	HRESULT	hr;
 	LPENTRYID lpUnWrapABID = NULL;
 	ULONG	ulSize = 0;
 
@@ -2160,7 +2128,7 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, LPENTRYID lpWrapABID, ULONG*
 
 	if (cbWrapABID < ulSize)
 		return MAPI_E_INVALID_ENTRYID;
-	hr = ECAllocateBuffer(ulSize, reinterpret_cast<void **>(&lpUnWrapABID));
+	auto hr = ECAllocateBuffer(ulSize, reinterpret_cast<void **>(&lpUnWrapABID));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -2175,11 +2143,10 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, LPENTRYID lpWrapABID, ULONG*
 }
 
 HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notification *lpSrc, LPNOTIFICATION *lppDst, convert_context *lpConverter) {
-	HRESULT hr = hrSuccess;
 	ecmem_ptr<NOTIFICATION> lpNotification;
 	int nLen;
 
-	hr = ECAllocateBuffer(sizeof(NOTIFICATION), &~lpNotification);
+	auto hr = ECAllocateBuffer(sizeof(NOTIFICATION), &~lpNotification);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpNotification, 0, sizeof(NOTIFICATION));
@@ -2378,11 +2345,10 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
 HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse &sUCUS,
     ULONG ulFlags, ECUSERCLIENTUPDATESTATUS **lppECUCUS)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<ECUSERCLIENTUPDATESTATUS> lpECUCUS;
 	convert_context converter;
 
-	hr = MAPIAllocateBuffer(sizeof(ECUSERCLIENTUPDATESTATUS), &~lpECUCUS);
+	auto hr = MAPIAllocateBuffer(sizeof(ECUSERCLIENTUPDATESTATUS), &~lpECUCUS);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2409,7 +2375,6 @@ HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse
 static HRESULT ConvertString8ToUnicode(const char *lpszA, WCHAR **lppszW,
     void *base, convert_context &converter)
 {
-	HRESULT hr;
 	wstring wide;
 	WCHAR *lpszW = NULL;
 
@@ -2417,7 +2382,7 @@ static HRESULT ConvertString8ToUnicode(const char *lpszA, WCHAR **lppszW,
 		return MAPI_E_INVALID_PARAMETER;
 
 	TryConvert(lpszA, wide);
-	hr = ECAllocateMore((wide.length() +1) * sizeof(wstring::value_type), base, (void**)&lpszW);
+	auto hr = ECAllocateMore((wide.length() + 1) * sizeof(wstring::value_type), base, reinterpret_cast<void **>(&lpszW));
 	if (hr != hrSuccess)
 		return hr;
 	wcscpy(lpszW, wide.c_str());
@@ -2501,14 +2466,12 @@ static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
 static HRESULT ConvertString8ToUnicode(const ADRLIST *lpAdrList, void *base,
     convert_context &converter)
 {
-	HRESULT hr;
-
 	if (lpAdrList == NULL)
 		return hrSuccess;
 
 	for (ULONG c = 0; c < lpAdrList->cEntries; ++c) {
 		// treat as row
-		hr = ConvertString8ToUnicode((LPSRow)&lpAdrList->aEntries[c], base, converter);
+		auto hr = ConvertString8ToUnicode((LPSRow)&lpAdrList->aEntries[c], base, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -2518,14 +2481,12 @@ static HRESULT ConvertString8ToUnicode(const ADRLIST *lpAdrList, void *base,
 static HRESULT ConvertString8ToUnicode(const ACTIONS *lpActions, void *base,
     convert_context &converter)
 {
-	HRESULT hr;
-
 	if (lpActions == NULL)
 		return hrSuccess;
 
 	for (ULONG c = 0; c < lpActions->cActions; ++c) {
 		if (lpActions->lpAction[c].acttype == OP_FORWARD || lpActions->lpAction[c].acttype == OP_DELEGATE) {
-			hr = ConvertString8ToUnicode(lpActions->lpAction[c].lpadrlist, base, converter);
+			auto hr = ConvertString8ToUnicode(lpActions->lpAction[c].lpadrlist, base, converter);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -2568,14 +2529,13 @@ HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base, convert_context &conve
  */
 HRESULT ConvertString8ToUnicode(LPSRowSet lpRowSet)
 {
-	HRESULT hr;
 	convert_context converter;
 
 	if (lpRowSet == NULL)
 		return hrSuccess;
 
 	for (ULONG c = 0; c < lpRowSet->cRows; ++c) {
-		hr = ConvertString8ToUnicode(&lpRowSet->aRow[c], NULL, converter);
+		auto hr = ConvertString8ToUnicode(&lpRowSet->aRow[c], NULL, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}

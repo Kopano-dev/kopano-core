@@ -302,11 +302,8 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 
 HRESULT ECNotifyClient::Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection){
 
-	HRESULT		hr = MAPI_E_NO_SUPPORT;
 	ULONG		ulConnection = 0;
-
-	
-	hr = RegisterAdvise(cbKey, lpKey, ulEventMask, false, lpAdviseSink, &ulConnection);
+	auto hr = RegisterAdvise(cbKey, lpKey, ulEventMask, false, lpAdviseSink, &ulConnection);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -319,8 +316,7 @@ HRESULT ECNotifyClient::Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPM
 	
 	// Set out value
 	*lpulConnection = ulConnection;
-	hr = hrSuccess;
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
@@ -372,16 +368,11 @@ exit:
 
 HRESULT ECNotifyClient::Unadvise(ULONG ulConnection)
 {
-	HRESULT hr	= MAPI_E_NO_SUPPORT;
-
 	// Logoff the advisor
-	hr = m_lpTransport->HrUnSubscribe(ulConnection);
+	auto hr = m_lpTransport->HrUnSubscribe(ulConnection);
 	if (hr != hrSuccess)
 		return hr;
-	hr = UnRegisterAdvise(ulConnection);
-	if (hr != hrSuccess)
-		return hr;
-	return hr;
+	return UnRegisterAdvise(ulConnection);
 }
 
 HRESULT ECNotifyClient::Unadvise(const ECLISTCONNECTION &lstConnections)
@@ -457,7 +448,6 @@ typedef std::list<SBinary *> BINARYLIST;
 
 HRESULT ECNotifyClient::NotifyReload()
 {
-	HRESULT hr = hrSuccess;
 	struct notification notif;
 	struct notificationTable table;
 	NOTIFYLIST notifications;
@@ -482,7 +472,7 @@ HRESULT ECNotifyClient::NotifyReload()
 	for (const auto &p : m_mapAdvise)
 		if (p.second->cbKey == 4)
 			Notify(p.first, notifications);
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotifications)

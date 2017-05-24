@@ -134,7 +134,6 @@ HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
     LPFREEBUFFER pfnFreeBuf, ULONG ulFlags, ULONG ulMAPIver,
     ULONG *lpulProviderVer, LPMSPROVIDER *ppmsp)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMSProviderSwitch> lpMSProvider;
 
 	// Check the interface version is ok
@@ -151,11 +150,10 @@ HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
 
 	// This object is created for the lifetime of the DLL and destroyed when the
 	// DLL is closed (same on linux, but then for the shared library);
-	hr = ECMSProviderSwitch::Create(ulFlags, &~lpMSProvider);
+	auto hr = ECMSProviderSwitch::Create(ulFlags, &~lpMSProvider);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpMSProvider->QueryInterface(IID_IMSProvider, (void **)ppmsp); 
-	return hr;
+	return lpMSProvider->QueryInterface(IID_IMSProvider, reinterpret_cast<void **>(ppmsp)); 
 }
 
 /**
@@ -509,14 +507,12 @@ exit:
 static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
     const sGlobalProfileProps &sProfileProps, WSTransport *transport)
 {
-	HRESULT hr;
-
 	ProfSectPtr		ptrProfSect;
 	MAPITablePtr	ptrTable;
 	SRowSetPtr		ptrRows;
 
 	// Get the provider table
-	hr = lpAdminProviders->GetProviderTable(0, &~ptrTable);
+	auto hr = lpAdminProviders->GetProviderTable(0, &~ptrTable);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -555,9 +551,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 static std::string GetServerTypeFromPath(const char *szPath)
 {
 	std::string path = szPath;
-	size_t pos;
-
-	pos = path.find("://");
+	auto pos = path.find("://");
 	if (pos != std::string::npos)
 		return path.substr(0, pos);
 	return std::string();
