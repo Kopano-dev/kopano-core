@@ -69,7 +69,7 @@ const SPropValue * __stdcall PCpropFindProp(const SPropValue *lpPropArray,
 	const SPropValue *lpValue = NULL;
 
 	if (lpPropArray == NULL)
-		goto exit;
+		return lpValue;
 
 	for (ULONG i = 0; i<cValues; ++i) {
 		if ((lpPropArray[i].ulPropTag == ulPropTag) ||
@@ -78,8 +78,6 @@ const SPropValue * __stdcall PCpropFindProp(const SPropValue *lpPropArray,
 			break;
 		}
 	}
-
-exit:
 	return lpValue;
 }
 
@@ -89,7 +87,7 @@ LPSPropValue __stdcall LpValFindProp(ULONG ulPropTag, ULONG cValues, LPSPropValu
 	LPSPropValue lpValue = NULL;
 
 	if (lpProps == NULL)
-		goto exit;
+		return lpValue;
 
 	for (ULONG i = 0; i < cValues; ++i) {
 		if(PROP_ID(lpProps[i].ulPropTag) == PROP_ID(ulPropTag)) {
@@ -97,8 +95,6 @@ LPSPropValue __stdcall LpValFindProp(ULONG ulPropTag, ULONG cValues, LPSPropValu
 			break;
 		}
 	}
-
-exit:
 	return  lpValue;
 }
 
@@ -118,10 +114,10 @@ HRESULT __stdcall WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
 	ULONG cbPad = 0;
 	std::string strDLLName = convstring(lpszDLLName, ulFlags);
 
-	if (lpszDLLName == NULL || lpOrigEntry == NULL || lpcbWrappedEntry == NULL || lppWrappedEntry == NULL || cbOrigEntry <= (4+sizeof(GUID)) ) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpszDLLName == nullptr || lpOrigEntry == nullptr ||
+	    lpcbWrappedEntry == nullptr || lppWrappedEntry == nullptr ||
+	    cbOrigEntry <= 4 + sizeof(GUID))
+		return MAPI_E_INVALID_PARAMETER;
 
 	// The format of a wrapped entryid is:
 	// - flags (4)
@@ -136,15 +132,12 @@ HRESULT __stdcall WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
 	*lpcbWrappedEntry = 4+sizeof(GUID)+2+cbDLLName+cbPad+cbOrigEntry;
 	hr = MAPIAllocateBuffer(*lpcbWrappedEntry, (void**)lppWrappedEntry);
 	if (hr != hrSuccess)
-		goto exit;
-		
+		return hr;
 	memset(*lppWrappedEntry, 0, *lpcbWrappedEntry);
 	memcpy((*lppWrappedEntry)->ab, &muidStoreWrap, sizeof(GUID));
 
 	strcpy(((char*)*lppWrappedEntry)+4+sizeof(GUID)+2, strDLLName.c_str());
 	memcpy(((BYTE*)*lppWrappedEntry)+4+sizeof(GUID)+2+cbDLLName+cbPad, lpOrigEntry, cbOrigEntry);
-	
-exit:
 	return hr;
 }
 
@@ -171,16 +164,11 @@ HRESULT __stdcall HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext,
 	IMAPIAdviseSink *lpSink = NULL;
 
 	lpSink = new(std::nothrow) M4LMAPIAdviseSink(lpFunction, lpContext);
-	if (!lpSink) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-
+	if (lpSink == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	lpSink->AddRef();
 
 	*lppSink = lpSink;
-
-exit:
 	return hr;
 }
 
@@ -329,32 +317,29 @@ HRESULT __stdcall HrQueryAllRows(LPMAPITABLE lpTable,
 
 	hr = lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpPropTags) {
 		hr = lpTable->SetColumns(lpPropTags, TBL_BATCH);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (lpRestriction) {
 		hr = lpTable->Restrict(lpRestriction, TBL_BATCH);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (lpSortOrderSet) {
 		hr = lpTable->SortTable(lpSortOrderSet, TBL_BATCH);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (crowsMax == 0)
 		crowsMax = 0x7FFFFFFF;
 
 	hr = lpTable->QueryRows(crowsMax, 0, lppRows);
-
-exit:
 	return hr;
 }
 
@@ -366,14 +351,10 @@ HRESULT __stdcall HrGetOneProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue 
 
 	hr = lpProp->GetProps(sPropTag, 0, &cValues, &~lpPropVal);
 	if(HR_FAILED(hr))
-		goto exit;
-		
-	if(cValues != 1 || lpPropVal->ulPropTag != ulPropTag) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return hr;
+	if (cValues != 1 || lpPropVal->ulPropTag != ulPropTag)
+		return MAPI_E_NOT_FOUND;
 	*lppPropVal = lpPropVal.release();
-exit:
 	return hr;
 }
 
@@ -486,19 +467,14 @@ SCODE __stdcall ScDupPropset( int cprop,  LPSPropValue rgprop,  LPALLOCATEBUFFER
 
 	hr = ScCountProps(cprop, rgprop, &ulSize);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpAllocateBuffer(ulSize, (void **)&lpDst);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ScCopyProps(cprop, rgprop, lpDst, NULL);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*prgprop = lpDst;
-
-exit:
 	return hr;
 }
 
@@ -871,7 +847,7 @@ LPWSTR __stdcall EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString)
 	// Allocate memory for pwzIDEncoded
 	pwzIDEncoded = new WCHAR[cbEID+1];
 	if (!pwzIDEncoded)
-		goto exit;
+		return pwzIDEncoded;
 
 	for (i = 0, pbSrc = (LPBYTE)rgbID, pwzDst = pwzIDEncoded;
 	     i < cbEID; ++i, ++pbSrc, ++pwzDst)
@@ -879,8 +855,6 @@ LPWSTR __stdcall EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString)
 
 	// Ensure NULL terminated
 	*pwzDst = L'\0';
-
-exit:
 	// pwzIDEncoded now contains the entry ID encoded.
 	return pwzIDEncoded;
 }
