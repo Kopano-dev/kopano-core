@@ -66,43 +66,30 @@ SPropValue * __stdcall PpropFindProp(SPropValue *lpPropArray, ULONG cValues,
 const SPropValue * __stdcall PCpropFindProp(const SPropValue *lpPropArray,
     ULONG cValues, ULONG ulPropTag)
 {
-	const SPropValue *lpValue = NULL;
-
 	if (lpPropArray == NULL)
-		return lpValue;
-
-	for (ULONG i = 0; i<cValues; ++i) {
+		return nullptr;
+	for (ULONG i = 0; i < cValues; ++i)
 		if ((lpPropArray[i].ulPropTag == ulPropTag) ||
-			(PROP_TYPE(ulPropTag) == PT_UNSPECIFIED && PROP_ID(lpPropArray[i].ulPropTag) == PROP_ID(ulPropTag))) {
-			lpValue = &lpPropArray[i];
-			break;
-		}
-	}
-	return lpValue;
+		    (PROP_TYPE(ulPropTag) == PT_UNSPECIFIED &&
+		    PROP_ID(lpPropArray[i].ulPropTag) == PROP_ID(ulPropTag)))
+			return &lpPropArray[i];
+	return nullptr;
 }
 
 // Find a property with a given property Id in a property array. NOTE: doesn't care about prop type!
 LPSPropValue __stdcall LpValFindProp(ULONG ulPropTag, ULONG cValues, LPSPropValue lpProps)
 {
-	LPSPropValue lpValue = NULL;
-
 	if (lpProps == NULL)
-		return lpValue;
-
-	for (ULONG i = 0; i < cValues; ++i) {
-		if(PROP_ID(lpProps[i].ulPropTag) == PROP_ID(ulPropTag)) {
-			lpValue = &lpProps[i];
-			break;
-		}
-	}
-	return  lpValue;
+		return nullptr;
+	for (ULONG i = 0; i < cValues; ++i)
+		if (PROP_ID(lpProps[i].ulPropTag) == PROP_ID(ulPropTag))
+			return &lpProps[i];
+	return nullptr;
 }
 
 SCODE __stdcall PropCopyMore( LPSPropValue lpSPropValueDest,  LPSPropValue lpSPropValueSrc,  ALLOCATEMORE * lpfAllocMore,  LPVOID lpvObject)
 {
-	HRESULT hr = hrSuccess;
-	hr = Util::HrCopyProperty(lpSPropValueDest, lpSPropValueSrc, lpvObject, lpfAllocMore);
-	return hr;
+	return Util::HrCopyProperty(lpSPropValueDest, lpSPropValueSrc, lpvObject, lpfAllocMore);
 }
 
 HRESULT __stdcall WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
@@ -138,16 +125,13 @@ HRESULT __stdcall WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
 
 	strcpy(((char*)*lppWrappedEntry)+4+sizeof(GUID)+2, strDLLName.c_str());
 	memcpy(((BYTE*)*lppWrappedEntry)+4+sizeof(GUID)+2+cbDLLName+cbPad, lpOrigEntry, cbOrigEntry);
-	return hr;
+	return hrSuccess;
 }
 
 void __stdcall FreeProws(LPSRowSet lpRows) {
-	unsigned int i;
-	
 	if(lpRows == NULL)
 		return;
-
-	for (i = 0; i < lpRows->cRows; ++i)
+	for (unsigned int i = 0; i < lpRows->cRows; ++i)
 		MAPIFreeBuffer(lpRows->aRow[i].lpProps);
 	MAPIFreeBuffer(lpRows);
 }
@@ -160,16 +144,13 @@ void __stdcall FreePadrlist(LPADRLIST lpAdrlist) {
 // M4LMAPIAdviseSink is in mapidefs.cpp
 HRESULT __stdcall HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext, LPMAPIADVISESINK *lppSink)
 {
-	HRESULT hr = hrSuccess;
-	IMAPIAdviseSink *lpSink = NULL;
-
-	lpSink = new(std::nothrow) M4LMAPIAdviseSink(lpFunction, lpContext);
+	auto lpSink = new(std::nothrow) M4LMAPIAdviseSink(lpFunction, lpContext);
 	if (lpSink == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	lpSink->AddRef();
 
 	*lppSink = lpSink;
-	return hr;
+	return hrSuccess;
 }
 
 // Linux always has multithreaded advise sinks
@@ -304,8 +285,7 @@ HRESULT __stdcall WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG 
 
 // RTFSync is not much use even in windows, so we don't implement it
 HRESULT __stdcall RTFSync(LPMESSAGE lpMessage, ULONG ulFlags, BOOL * lpfMessageUpdated) {
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-	return hr;
+	return MAPI_E_NO_SUPPORT;
 }
 
 //--- php-ext used functions
@@ -313,9 +293,7 @@ HRESULT __stdcall HrQueryAllRows(LPMAPITABLE lpTable,
     const SPropTagArray *lpPropTags, LPSRestriction lpRestriction,
     const SSortOrderSet *lpSortOrderSet, LONG crowsMax, LPSRowSet *lppRows)
 {
-	HRESULT hr = hrSuccess;
-
-	hr = lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
+	auto hr = lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 	if (hr != hrSuccess)
 		return hr;
 	if (lpPropTags) {
@@ -338,42 +316,33 @@ HRESULT __stdcall HrQueryAllRows(LPMAPITABLE lpTable,
 
 	if (crowsMax == 0)
 		crowsMax = 0x7FFFFFFF;
-
-	hr = lpTable->QueryRows(crowsMax, 0, lppRows);
-	return hr;
+	return lpTable->QueryRows(crowsMax, 0, lppRows);
 }
 
 HRESULT __stdcall HrGetOneProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPropVal) {
-	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(1, sPropTag) = { 1, { ulPropTag } };
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> lpPropVal;
 
-	hr = lpProp->GetProps(sPropTag, 0, &cValues, &~lpPropVal);
+	auto hr = lpProp->GetProps(sPropTag, 0, &cValues, &~lpPropVal);
 	if(HR_FAILED(hr))
 		return hr;
 	if (cValues != 1 || lpPropVal->ulPropTag != ulPropTag)
 		return MAPI_E_NOT_FOUND;
 	*lppPropVal = lpPropVal.release();
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT __stdcall HrSetOneProp(LPMAPIPROP lpMapiProp, const SPropValue *lpProp)
 {
-	HRESULT hr = hrSuccess;
-
-	hr = lpMapiProp->SetProps(1, lpProp, NULL);
+	return lpMapiProp->SetProps(1, lpProp, nullptr);
 	// convert ProblemArray into HRESULT error?
-	return hr;
 }
 
 BOOL __stdcall FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag)
 {
-	HRESULT hr = hrSuccess;
-	memory_ptr<SPropValue> lpPropVal = NULL;
-
-	hr = HrGetOneProp(lpMapiProp, ulPropTag, &~lpPropVal);
-	return (hr == hrSuccess);
+	memory_ptr<SPropValue> lpPropVal;
+	return HrGetOneProp(lpMapiProp, ulPropTag, &~lpPropVal) == hrSuccess;
 }
 
 /* Actually not part of MAPI */
@@ -393,8 +362,7 @@ HRESULT __stdcall CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease, IS
 HRESULT __stdcall OpenStreamOnFile(LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags,
     LPTSTR lpszFileName, LPTSTR lpszPrefix, LPSTREAM *lppStream)
 {
-	HRESULT hr = MAPI_E_NOT_FOUND;
-	return hr;
+	return MAPI_E_NOT_FOUND;
 }
 
 HRESULT __stdcall BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
@@ -403,8 +371,7 @@ HRESULT __stdcall BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCAT
 	LPDTPAGE lpPage, ULONG ulFlags,
 	LPMAPITABLE * lppTable, LPTABLEDATA * lppTblData)
 {
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-	return hr;
+	return MAPI_E_NO_SUPPORT;
 }
 
 #pragma pack(push, 1)
@@ -475,7 +442,7 @@ SCODE __stdcall ScDupPropset( int cprop,  LPSPropValue rgprop,  LPALLOCATEBUFFER
 	if(hr != hrSuccess)
 		return hr;
 	*prgprop = lpDst;
-	return hr;
+	return hrSuccess;
 }
 
 SCODE __stdcall ScRelocProps(int cprop, LPSPropValue rgprop, LPVOID pvBaseOld, LPVOID pvBaseNew, ULONG *pcb)
@@ -484,11 +451,9 @@ SCODE __stdcall ScRelocProps(int cprop, LPSPropValue rgprop, LPVOID pvBaseOld, L
 }
 ULONG __stdcall CbOfEncoded(LPCSTR lpszEnc)
 {
-	ULONG ulRet = 0;
-
 	if (lpszEnc)
-		ulRet = (((strlen(lpszEnc) | 3) >> 2) + 1) * 3;
-	return ulRet;
+		return (((strlen(lpszEnc) | 3) >> 2) + 1) * 3;
+	return 0;
 }
 
 ULONG __stdcall CchOfEncoding(LPCSTR lpszEnd)
@@ -712,39 +677,34 @@ void __stdcall HexFromBin(LPBYTE pb, int cb, LPTSTR sz)
 // 		but I don't see how that's easy possible
 LPTSTR __stdcall SzFindCh(LPCTSTR lpsz, USHORT ch)
 {
-	LPTSTR lpszFind = (LPTSTR)strchr((char*)lpsz, ch);
-	return lpszFind;
+	return reinterpret_cast<TCHAR *>(const_cast<char *>(strchr(reinterpret_cast<const char *>(lpsz), ch)));
 }
 
 int __stdcall MNLS_CompareStringW(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1, int cchCount1, LPCWSTR lpString2, int cchCount2)
 {
 	// FIXME: we're ignoring Locale, dwCmpFlags, cchCount1 and cchCount2
-	int ulCmp = wcscmp((LPWSTR)lpString1, (LPWSTR)lpString2);
-	return ulCmp;
+	return wcscmp(reinterpret_cast<const wchar_t *>(lpString1),
+	              reinterpret_cast<const wchar_t *>(lpString2));
 }
 
 int __stdcall MNLS_lstrlenW(LPCWSTR lpString)
 {
-	int ulLen = lstrlenW(lpString);
-	return ulLen;
+	return lstrlenW(lpString);
 }
 
 int __stdcall MNLS_lstrlen(LPCSTR lpString)
 {
-	int ulLen = lstrlenW((LPCWSTR)lpString);
-	return ulLen;
+	return lstrlenW((LPCWSTR)lpString);
 }
 
 int __stdcall MNLS_lstrcmpW(LPCWSTR lpString1, LPCWSTR lpString2)
 {
-	int ulCmp = lstrcmpW(lpString1, lpString2);
-	return ulCmp;
+	return lstrcmpW(lpString1, lpString2);
 }
 
 LPWSTR __stdcall MNLS_lstrcpyW(LPWSTR lpString1, LPCWSTR lpString2)
 {
-	LPWSTR str = lstrcpyW(lpString1, lpString2);
-	return str;
+	return lstrcpyW(lpString1, lpString2);
 }
 
 FILETIME __stdcall FtAddFt( FILETIME Addend1,  FILETIME Addend2    )
@@ -829,8 +789,7 @@ void __stdcall ChangeIdleRoutine(FTG ftg, PFNIDLE pfnIdle, LPVOID pvIdleParam, s
 
 FTG __stdcall FtgRegisterIdleRoutine(PFNIDLE pfnIdle,  LPVOID pvIdleParam,  short priIdle,  ULONG csecIdle,  USHORT iroIdle)
 {
-	FTG f = NULL;
-	return f;
+	return nullptr;
 }
 
 const WORD kwBaseOffset = 0xAC00;  // Hangul char range (AC00-D7AF)

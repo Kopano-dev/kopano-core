@@ -218,7 +218,6 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	list<LPSPropValue>::iterator i, del;
 	ULONG c;
 	LPSPropValue pv = NULL;
-	HRESULT hr = hrSuccess;
 
 	// Validate input
 	if (lpPropArray == nullptr || cValues == 0)
@@ -253,8 +252,7 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 		if(PROP_TYPE(lpPropArray[c].ulPropTag) == PT_ERROR || 
 			lpPropArray[c].ulPropTag == PR_NULL)
 			continue;
-		
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&pv);
+		auto hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&pv));
 		if (hr != hrSuccess)
 			return hr;
 		memset(pv, 0, sizeof(SPropValue));
@@ -265,17 +263,14 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 		}
 		properties.push_back(pv);
 	}
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT M4LMAPIProp::DeleteProps(const SPropTagArray *lpPropTagArray,
     SPropProblemArray **lppProblems)
 {
-	HRESULT hr = hrSuccess;
-	list<LPSPropValue>::iterator i;
-
 	for (ULONG c = 0; c < lpPropTagArray->cValues; ++c) {
-		for (i = properties.begin(); i != properties.end(); ++i) {
+		for (auto i = properties.begin(); i != properties.end(); ++i) {
 			// @todo check PT_STRING8 vs PT_UNICODE
 			if ((*i)->ulPropTag == lpPropTagArray->aulPropTag[c] ||
 				(PROP_TYPE((*i)->ulPropTag) == PT_UNSPECIFIED && PROP_ID((*i)->ulPropTag) == PROP_ID(lpPropTagArray->aulPropTag[c])) )
@@ -286,7 +281,7 @@ HRESULT M4LMAPIProp::DeleteProps(const SPropTagArray *lpPropTagArray,
 			}
 		}
 	}
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT M4LMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
@@ -314,7 +309,6 @@ HRESULT M4LMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropName
 }
 
 HRESULT M4LMAPIProp::QueryInterface(REFIID refiid, void **lpvoid) {
-	HRESULT hr = hrSuccess;
 	if (refiid == IID_IMAPIProp) {
 		AddRef();
 		*lpvoid = static_cast<IMAPIProp *>(this);
@@ -322,9 +316,9 @@ HRESULT M4LMAPIProp::QueryInterface(REFIID refiid, void **lpvoid) {
 		AddRef();
 		*lpvoid = static_cast<IUnknown *>(this);
 	} else
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	return hr;
+	return hrSuccess;
 }
 
 // ---
@@ -354,8 +348,6 @@ HRESULT M4LProfSect::FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENT
 }
 
 HRESULT M4LProfSect::QueryInterface(REFIID refiid, void **lpvoid) {
-	HRESULT hr = hrSuccess;
-
 	if (refiid == IID_IProfSect) {
 		AddRef();
 		*lpvoid = static_cast<IProfSect *>(this);
@@ -366,9 +358,9 @@ HRESULT M4LProfSect::QueryInterface(REFIID refiid, void **lpvoid) {
 		AddRef();
 		*lpvoid = static_cast<IUnknown *>(this);
     } else
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	return hr;
+	return hrSuccess;
 }
 
 // ---
@@ -474,8 +466,6 @@ HRESULT M4LMAPITable::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPB
 }
 
 HRESULT M4LMAPITable::QueryInterface(REFIID refiid, void **lpvoid) {
-	HRESULT hr = hrSuccess;
-
 	if (refiid == IID_IMAPITable) {
 		AddRef();
 		*lpvoid = static_cast<IMAPITable *>(this);
@@ -483,9 +473,9 @@ HRESULT M4LMAPITable::QueryInterface(REFIID refiid, void **lpvoid) {
 		AddRef();
 		*lpvoid = static_cast<IUnknown *>(this);
 	} else
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	return hr;
+	return hrSuccess;
 }
 
 // ---
@@ -555,8 +545,7 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-	return hr;
+	return lpTableView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 }
 
 /** 
@@ -662,8 +651,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	// We should really call the MSGServiceEntry with MSG_SERVICE_PROVIDER_CREATE, but there
 	// isn't much use at the moment. (since we don't store the profile data on disk? or why not?)
 	// another rumor is that that is only called once per service, not once per created provider. huh?
-	l_srv.unlock();
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
@@ -684,7 +672,6 @@ HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
 HRESULT M4LProviderAdmin::OpenProfileSection(const MAPIUID *lpUID,
     const IID *lpInterface, ULONG ulFlags, IProfSect **lppProfSect)
 {
-	HRESULT hr = hrSuccess;
 	providerEntry *provider = NULL;
 	// See provider/client/guid.h
 	static const unsigned char globalGuid[] = {0x13, 0xDB, 0xB0, 0xC8, 0xAA, 0x05, 0x10, 0x1A, 0x9B, 0xB0, 0x00, 0xAA, 0x00, 0x2F, 0xC4, 0x5A};
@@ -696,13 +683,11 @@ HRESULT M4LProviderAdmin::OpenProfileSection(const MAPIUID *lpUID,
 	provider = msa->findProvider(lpUID);
 	if (provider == nullptr)
 		return MAPI_E_NOT_FOUND;
-	hr = provider->profilesection->QueryInterface(lpInterface ? (*lpInterface) : IID_IProfSect, (void**)lppProfSect);
-	return hr;
+	return provider->profilesection->QueryInterface(lpInterface != nullptr ?
+	       *lpInterface : IID_IProfSect, reinterpret_cast<void **>(lppProfSect));
 }
 
 HRESULT M4LProviderAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
-	HRESULT hr = hrSuccess;
-
 	if (refiid == IID_IProviderAdmin) {
 		AddRef();
 		*lpvoid = static_cast<IProviderAdmin *>(this);
@@ -710,9 +695,9 @@ HRESULT M4LProviderAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 		AddRef();
 		*lpvoid = static_cast<IUnknown *>(this);
 	} else
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	return hr;
+	return hrSuccess;
 }
 
 // 
@@ -729,7 +714,6 @@ ULONG M4LMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) 
 }
 
 HRESULT M4LMAPIAdviseSink::QueryInterface(REFIID refiid, void **lpvoid) {
-	HRESULT hr = hrSuccess;
 	if (refiid == IID_IMAPIAdviseSink) {
 		AddRef();
 		*lpvoid = static_cast<IMAPIAdviseSink *>(this);
@@ -737,9 +721,9 @@ HRESULT M4LMAPIAdviseSink::QueryInterface(REFIID refiid, void **lpvoid) {
 		AddRef();
 		*lpvoid = static_cast<IUnknown *>(this);
 	} else
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	return hr;
+	return hrSuccess;
 }
 
 // 
@@ -925,7 +909,6 @@ HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 }
 
 HRESULT M4LABContainer::QueryInterface(REFIID refiid, void **lpvoid) {
-	HRESULT hr = hrSuccess;
 	if (refiid == IID_IABContainer) {
 		AddRef();
 		*lpvoid = static_cast<IABContainer *>(this);
@@ -939,7 +922,7 @@ HRESULT M4LABContainer::QueryInterface(REFIID refiid, void **lpvoid) {
 		AddRef();
 		*lpvoid = static_cast<IUnknown *>(this);
 	} else
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	return hr;
+	return hrSuccess;
 }

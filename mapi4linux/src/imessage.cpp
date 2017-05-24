@@ -28,8 +28,7 @@
 
 SCODE __stdcall OpenIMsgSession(LPMALLOC lpMalloc, ULONG ulFlags, LPMSGSESS *lppMsgSess)
 {
-	SCODE sc = MAPI_E_NO_SUPPORT;
-	return sc;
+	return MAPI_E_NO_SUPPORT;
 }
 
 void __stdcall CloseIMsgSession(LPMSGSESS lpMsgSess)
@@ -40,8 +39,7 @@ SCODE __stdcall OpenIMsgOnIStg(	LPMSGSESS lpMsgSess, LPALLOCATEBUFFER lpAllocate
 								LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc, LPVOID lpMapiSup, LPSTORAGE lpStg, 
 								MSGCALLRELEASE *lpfMsgCallRelease, ULONG ulCallerData, ULONG ulFlags, LPMESSAGE *lppMsg )
 {
-	SCODE sc = MAPI_E_NO_SUPPORT;
-	return sc;
+	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT __stdcall GetAttribIMsgOnIStg(LPVOID lpObject,
