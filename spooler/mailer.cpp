@@ -146,75 +146,71 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 			p[3].ulPropTag = PR_DISPLAY_NAME_W;
 			p[3].Value.lpszW = lpDisplayName->Value.lpszW;
 			hr = lpMessage->ModifyRecipients(MODRECIP_ADD, sRowSMTProwSet);
-			if (hr != hrSuccess) {
+			if (hr != hrSuccess)
 				ec_log_err("Unable to add e-mail address of %ls from group: %s (%x)",
 					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
-				continue;
-			}
-		} else {
-			SBinary sEntryId;
-			object_ptr<IMAPITable> lpContentsTable;
-			object_ptr<IDistList> lpDistlist;
+			continue;
+		}
 
-			/* If we should recur further, just remove the group from the recipients list */
-			if (!recurrence)
-				goto remove_group;
+		SBinary sEntryId;
+		object_ptr<IMAPITable> lpContentsTable;
+		object_ptr<IDistList> lpDistlist;
 
-			/* Only continue when this group has not yet been expanded previously */
-			if (find(lpExpandedGroups->begin(), lpExpandedGroups->end(), lpEntryId->Value.bin) != lpExpandedGroups->end())
-				goto remove_group;
-			hr = lpAddrBook->OpenEntry(lpEntryId->Value.bin.cb,
-			     reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb),
-			     &iid_of(lpDistlist), 0, &ulObj, &~lpDistlist);
-			if (hr != hrSuccess)
-				continue;
-				
-			if(ulObj != MAPI_DISTLIST)
-				continue;
-				
-			/* Never expand groups with an email address. The whole point of the email address is that it can be used
-			 * as a single entity */
-			if (HrGetOneProp(lpDistlist, PR_SMTP_ADDRESS_W, &~lpSMTPAddress) == hrSuccess &&
-			    wcslen(lpSMTPAddress->Value.lpszW) > 0)
-				continue;
-			hr = lpDistlist->GetContentsTable(MAPI_UNICODE, &~lpContentsTable);
-			if (hr != hrSuccess)
-				continue;
+		/* If we should recur further, just remove the group from the recipients list */
+		if (!recurrence)
+			goto remove_group;
 
-			hr = lpContentsTable->Restrict(lpEntryRestriction, 0);
-			if (hr != hrSuccess)
-				continue;
+		/* Only continue when this group has not yet been expanded previously */
+		if (find(lpExpandedGroups->begin(), lpExpandedGroups->end(), lpEntryId->Value.bin) != lpExpandedGroups->end())
+			goto remove_group;
+		hr = lpAddrBook->OpenEntry(lpEntryId->Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb),
+		     &iid_of(lpDistlist), 0, &ulObj, &~lpDistlist);
+		if (hr != hrSuccess)
+			continue;
+		if (ulObj != MAPI_DISTLIST)
+			continue;
 
-			/* Group has been expanded (because we successfully have the contents table) time
-			 * to add it to our expanded group list. This has to be done or at least before the
-			 * recursive call to ExpandRecipientsRecursive().*/
-			hr = Util::HrCopyEntryId(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb,
-									 &sEntryId.cb, (LPENTRYID*)&sEntryId.lpb);
-			lpExpandedGroups->push_back(sEntryId);
+		/* Never expand groups with an email address. The whole point of the email address is that it can be used
+		 * as a single entity */
+		if (HrGetOneProp(lpDistlist, PR_SMTP_ADDRESS_W, &~lpSMTPAddress) == hrSuccess &&
+		    wcslen(lpSMTPAddress->Value.lpszW) > 0)
+			continue;
+		hr = lpDistlist->GetContentsTable(MAPI_UNICODE, &~lpContentsTable);
+		if (hr != hrSuccess)
+			continue;
+		hr = lpContentsTable->Restrict(lpEntryRestriction, 0);
+		if (hr != hrSuccess)
+			continue;
 
-			/* Don't expand group Everyone or companies since both already contain all users
-			 * which should be put in the recipient list. */
-			bExpandSub = !(((lpDisplayType) ? lpDisplayType->Value.ul == DT_ORGANIZATION : false) ||
-						   wcscasecmp(lpDisplayName->Value.lpszW, L"Everyone") == 0);
-			// @todo find everyone using it's static entryid?
+		/* Group has been expanded (because we successfully have the contents table) time
+		 * to add it to our expanded group list. This has to be done or at least before the
+		 * recursive call to ExpandRecipientsRecursive().*/
+		hr = Util::HrCopyEntryId(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb,
+		     &sEntryId.cb, (LPENTRYID *)&sEntryId.lpb);
+		lpExpandedGroups->push_back(sEntryId);
 
-			/* Start/Continue recursion */
-			hr = ExpandRecipientsRecursive(lpAddrBook, lpMessage, lpContentsTable,
-										   lpEntryRestriction, ulRecipType, lpExpandedGroups, bExpandSub);
-			/* Ignore errors */
+		/* Don't expand group Everyone or companies since both already contain all users
+		 * which should be put in the recipient list. */
+		bExpandSub = !(((lpDisplayType) ? lpDisplayType->Value.ul == DT_ORGANIZATION : false) ||
+					   wcscasecmp(lpDisplayName->Value.lpszW, L"Everyone") == 0);
+		// @todo find everyone using it's static entryid?
 
+		/* Start/Continue recursion */
+		hr = ExpandRecipientsRecursive(lpAddrBook, lpMessage, lpContentsTable,
+		     lpEntryRestriction, ulRecipType, lpExpandedGroups, bExpandSub);
+		/* Ignore errors */
 remove_group:
-			/* Only delete row when the rowid is present */
-			if (!lpRowId)
-				continue;
+		/* Only delete row when the rowid is present */
+		if (!lpRowId)
+			continue;
 
-			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE,
-			     reinterpret_cast<ADRLIST *>(lpsRowSet.get()));
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to remove group %ls from recipient list: %s (%x).",
-					lpDisplayName->Value.lpszW, GetMAPIErrorMessage(hr), hr);
-				continue;
-			}
+		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE,
+		     reinterpret_cast<ADRLIST *>(lpsRowSet.get()));
+		if (hr != hrSuccess) {
+			ec_log_err("Unable to remove group %ls from recipient list: %s (%x).",
+				lpDisplayName->Value.lpszW, GetMAPIErrorMessage(hr), hr);
+			continue;
 		}
 	}
 	return hrSuccess;
@@ -525,16 +521,16 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 			continue;
 
 		/* Filter To, Cc, Bcc individually */
-		if (strEmail == lpEmailAddress->Value.lpszA && ulRecipType == lpRecipType->Value.ul) {
-			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE,
-			     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
-			if (hr != hrSuccess)
-				ec_log_err("Failed to remove duplicate entry: %s (%x)",
-					GetMAPIErrorMessage(hr), hr);
-		} else {
+		if (strEmail != lpEmailAddress->Value.lpszA || ulRecipType != lpRecipType->Value.ul) {
 			strEmail = string(lpEmailAddress->Value.lpszA);
 			ulRecipType = lpRecipType->Value.ul;
+			continue;
 		}
+		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE,
+		     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
+		if (hr != hrSuccess)
+			ec_log_err("Failed to remove duplicate entry: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 	}
 	return hrSuccess;
 }

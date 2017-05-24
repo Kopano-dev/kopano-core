@@ -879,7 +879,7 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 					FILE *test = fopen(lpConfig->GetSetting((prepend+"log_file").c_str()), "a");
 					if (!test) {
 						fprintf(stderr, "Unable to open logfile '%s' as user '%s'\n",
-								lpConfig->GetSetting((prepend+"log_file").c_str()), pw ? pw->pw_name : "???");
+							lpConfig->GetSetting((prepend + "log_file").c_str()), pw ? pw->pw_name : "???");
 						_exit(1);
 					}
 					else {

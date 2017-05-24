@@ -177,133 +177,124 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		     &IID_IMessage, MAPI_MODIFY, &ulObjType, &~lpMessage);
 		if(hr != hrSuccess)
 			return hr;
+		return lpMessage->QueryInterface(IID_IMessage,
+		       reinterpret_cast<void **>(lppMessage));
 	}
-	else if (bCreateIfNotExist == TRUE)
-	{
-		//Create new freebusymessage
-		hr = lpFreeBusyFolder->CreateMessage(nullptr, 0, &~lpMessage);
-		if(hr != hrSuccess)
-			return hr;
-
-		//Set the user entry id 
-		hr = lpMessage->SetProps(1, &sPropUser, NULL);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Set the accountname in properties PR_DISPLAY_NAME and PR_SUBJECT
-		object_ptr<IAddrBook> lpAdrBook;
-		hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAdrBook);
- 		if(hr != hrSuccess)
-			return hr;
-		object_ptr<IMailUser> lpMailUser;
-		hr = lpAdrBook->OpenEntry(cbUserEntryID, lpUserEntryID, &IID_IMailUser, MAPI_BEST_ACCESS, &ulObjType, &~lpMailUser);
- 		if(hr != hrSuccess)
-			return hr;
-		hr = HrGetOneProp(lpMailUser, PR_ACCOUNT, &~lpPropName);
-		if(hr != hrSuccess)
-			return hr;
-		hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS, &~lpPropEmail);
-		if(hr != hrSuccess)
-			return hr;
-
-		//Set the displayname with accountname 
-		lpPropName->ulPropTag = PR_DISPLAY_NAME;
-		hr = lpMessage->SetProps(1, lpPropName, NULL);
-		if(hr != hrSuccess)
-			return hr;
-
-		//Set the subject with accountname 
-		lpPropName->ulPropTag = PR_SUBJECT;
-		hr = lpMessage->SetProps(1, lpPropName, NULL);
-		if(hr != hrSuccess)
-			return hr;
-
-		//Set the PR_FREEBUSY_EMA with the email address
-		lpPropEmail->ulPropTag = PR_FREEBUSY_EMAIL_ADDRESS;
-		hr = lpMessage->SetProps(1, lpPropEmail, NULL);
-		if(hr != hrSuccess)
-			return hr;
-
-		//Save message
-		hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Update the user freebusy entryid array
-
-		if (lpUserStore) {
-			// Get entryid
-			hr = HrGetOneProp(lpMessage, PR_ENTRYID, &~lpPropFBMessage);
-			if(hr != hrSuccess)
-				return hr;
-
-			//Open root folder
-			object_ptr<IMAPIFolder> lpFolder;
-			hr = lpUserStore->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
-			if(hr != hrSuccess)
-				return hr;
-
-			ulMvItems = 4;
-			// Get current freebusy entryid array
-			if (HrGetOneProp(lpFolder, PR_FREEBUSY_ENTRYIDS, &~lpPropfbEntryids) == hrSuccess)
-				ulMvItems = (lpPropfbEntryids->Value.MVbin.cValues>ulMvItems)?lpPropfbEntryids->Value.MVbin.cValues:ulMvItems;
-
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropfbEntryidsNew);
-			if(hr != hrSuccess)
-				return hr;
-
-			lpPropfbEntryidsNew->Value.MVbin.cValues = ulMvItems;
-
-			hr = MAPIAllocateMore(sizeof(SBinary)*lpPropfbEntryidsNew->Value.MVbin.cValues, lpPropfbEntryidsNew, (void**)&lpPropfbEntryidsNew->Value.MVbin.lpbin);
-			if(hr != hrSuccess)
-				return hr;
-
-			memset(lpPropfbEntryidsNew->Value.MVbin.lpbin, 0, sizeof(SBinary)*lpPropfbEntryidsNew->Value.MVbin.cValues);
-
-			// move the old entryids to the new array
-			if(lpPropfbEntryids) {
-				for (i = 0; i < lpPropfbEntryids->Value.MVbin.cValues; ++i) {
-					lpPropfbEntryidsNew->Value.MVbin.lpbin[i].cb = lpPropfbEntryids->Value.MVbin.lpbin[i].cb;
-					lpPropfbEntryidsNew->Value.MVbin.lpbin[i].lpb = lpPropfbEntryids->Value.MVbin.lpbin[i].lpb; //cheap copy
-				}
-			}
-			// Add the new entryid on position 3
-			lpPropfbEntryidsNew->Value.MVbin.lpbin[2].cb = lpPropFBMessage->Value.bin.cb;
-			lpPropfbEntryidsNew->Value.MVbin.lpbin[2].lpb = lpPropFBMessage->Value.bin.lpb;
-
-			lpPropfbEntryidsNew->ulPropTag = PR_FREEBUSY_ENTRYIDS;
-
-			hr = lpFolder->SetProps(1, lpPropfbEntryidsNew, NULL);
-			if(hr != hrSuccess)
-				return hr;
-
-			hr = lpFolder->SaveChanges(KEEP_OPEN_READONLY);
-			if(hr != hrSuccess)
-				return hr;
-
-			// Get the inbox
-			hr = lpUserStore->GetReceiveFolder(nullptr, 0, &cbInBoxEntry, &~lpInboxEntry, nullptr);
-			if(hr != hrSuccess)
-				return hr;
-
-			// Open the inbox
-			hr = lpUserStore->OpenEntry(cbInBoxEntry, lpInboxEntry, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
-			if(hr != hrSuccess)
-				return hr;
-			hr = lpFolder->SetProps(1, lpPropfbEntryidsNew, NULL);
-			if(hr != hrSuccess)
-				return hr;
-			hr = lpFolder->SaveChanges(KEEP_OPEN_READONLY);
-			if(hr != hrSuccess)
-				return hr;
-		}
-
-	}
-	else
-	{
+	if (!bCreateIfNotExist)
 		return MAPI_E_NOT_FOUND;
-	}
 
+	// Create new freebusymessage
+	hr = lpFreeBusyFolder->CreateMessage(nullptr, 0, &~lpMessage);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Set the user entry id
+	hr = lpMessage->SetProps(1, &sPropUser, NULL);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Set the accountname in properties PR_DISPLAY_NAME and PR_SUBJECT
+	object_ptr<IAddrBook> lpAdrBook;
+	hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAdrBook);
+	if (hr != hrSuccess)
+		return hr;
+	object_ptr<IMailUser> lpMailUser;
+	hr = lpAdrBook->OpenEntry(cbUserEntryID, lpUserEntryID, &IID_IMailUser, MAPI_BEST_ACCESS, &ulObjType, &~lpMailUser);
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrGetOneProp(lpMailUser, PR_ACCOUNT, &~lpPropName);
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS, &~lpPropEmail);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Set the displayname with accountname
+	lpPropName->ulPropTag = PR_DISPLAY_NAME;
+	hr = lpMessage->SetProps(1, lpPropName, NULL);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Set the subject with accountname
+	lpPropName->ulPropTag = PR_SUBJECT;
+	hr = lpMessage->SetProps(1, lpPropName, NULL);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Set the PR_FREEBUSY_EMA with the email address
+	lpPropEmail->ulPropTag = PR_FREEBUSY_EMAIL_ADDRESS;
+	hr = lpMessage->SetProps(1, lpPropEmail, NULL);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Save message
+	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Update the user freebusy entryid array
+	if (lpUserStore == nullptr)
+		return lpMessage->QueryInterface(IID_IMessage,
+		       reinterpret_cast<void **>(lppMessage));
+
+	// Get entryid
+	hr = HrGetOneProp(lpMessage, PR_ENTRYID, &~lpPropFBMessage);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Open root folder
+	object_ptr<IMAPIFolder> lpFolder;
+	hr = lpUserStore->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
+	if (hr != hrSuccess)
+		return hr;
+
+	ulMvItems = 4;
+	// Get current freebusy entryid array
+	if (HrGetOneProp(lpFolder, PR_FREEBUSY_ENTRYIDS, &~lpPropfbEntryids) == hrSuccess)
+		ulMvItems = (lpPropfbEntryids->Value.MVbin.cValues > ulMvItems) ? lpPropfbEntryids->Value.MVbin.cValues : ulMvItems;
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropfbEntryidsNew);
+	if (hr != hrSuccess)
+		return hr;
+
+	lpPropfbEntryidsNew->Value.MVbin.cValues = ulMvItems;
+	hr = MAPIAllocateMore(sizeof(SBinary) * lpPropfbEntryidsNew->Value.MVbin.cValues, lpPropfbEntryidsNew, (void **)&lpPropfbEntryidsNew->Value.MVbin.lpbin);
+	if (hr != hrSuccess)
+		return hr;
+	memset(lpPropfbEntryidsNew->Value.MVbin.lpbin, 0, sizeof(SBinary) * lpPropfbEntryidsNew->Value.MVbin.cValues);
+
+	// move the old entryids to the new array
+	if (lpPropfbEntryids) {
+		for (i = 0; i < lpPropfbEntryids->Value.MVbin.cValues; ++i) {
+			lpPropfbEntryidsNew->Value.MVbin.lpbin[i].cb = lpPropfbEntryids->Value.MVbin.lpbin[i].cb;
+			lpPropfbEntryidsNew->Value.MVbin.lpbin[i].lpb = lpPropfbEntryids->Value.MVbin.lpbin[i].lpb; //cheap copy
+		}
+	}
+	// Add the new entryid on position 3
+	lpPropfbEntryidsNew->Value.MVbin.lpbin[2].cb = lpPropFBMessage->Value.bin.cb;
+	lpPropfbEntryidsNew->Value.MVbin.lpbin[2].lpb = lpPropFBMessage->Value.bin.lpb;
+	lpPropfbEntryidsNew->ulPropTag = PR_FREEBUSY_ENTRYIDS;
+	hr = lpFolder->SetProps(1, lpPropfbEntryidsNew, NULL);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpFolder->SaveChanges(KEEP_OPEN_READONLY);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Get the inbox
+	hr = lpUserStore->GetReceiveFolder(nullptr, 0, &cbInBoxEntry, &~lpInboxEntry, nullptr);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Open the inbox
+	hr = lpUserStore->OpenEntry(cbInBoxEntry, lpInboxEntry, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpFolder->SetProps(1, lpPropfbEntryidsNew, NULL);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpFolder->SaveChanges(KEEP_OPEN_READONLY);
+	if (hr != hrSuccess)
+		return hr;
 	return lpMessage->QueryInterface(IID_IMessage,
 	       reinterpret_cast<void **>(lppMessage));
 }

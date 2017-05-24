@@ -959,13 +959,12 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 		break;
 
 	case RES_COMMENT:
-		if (lpRestrict->lpComment) {
-			if (lpRestrict->lpComment->lpResTable)
-				FreeRestrictTable(lpRestrict->lpComment->lpResTable);
-
-			FreePropValArray(&lpRestrict->lpComment->sProps);
-			s_free(nullptr, lpRestrict->lpComment);
-		}
+		if (lpRestrict->lpComment == nullptr)
+			break;
+		if (lpRestrict->lpComment->lpResTable)
+			FreeRestrictTable(lpRestrict->lpComment->lpResTable);
+		FreePropValArray(&lpRestrict->lpComment->sProps);
+		s_free(nullptr, lpRestrict->lpComment);
 		break;
 
 	case RES_SUBRESTRICTION:
@@ -1360,14 +1359,13 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 
 ECRESULT FreePropValArray(struct propValArray *lpPropValArray, bool bFreeBase)
 {
-	if(lpPropValArray) {
-		for (gsoap_size_t i = 0; i < lpPropValArray->__size; ++i)
-			FreePropVal(&(lpPropValArray->__ptr[i]), false);
-		s_free(nullptr, lpPropValArray->__ptr);
-		if(bFreeBase)
-			s_free(nullptr, lpPropValArray);
-	}
-
+	if (lpPropValArray == nullptr)
+		return erSuccess;
+	for (gsoap_size_t i = 0; i < lpPropValArray->__size; ++i)
+		FreePropVal(&(lpPropValArray->__ptr[i]), false);
+	s_free(nullptr, lpPropValArray->__ptr);
+	if (bFreeBase)
+		s_free(nullptr, lpPropValArray);
 	return erSuccess;
 }
 

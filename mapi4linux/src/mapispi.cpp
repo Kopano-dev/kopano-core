@@ -116,12 +116,10 @@ HRESULT M4LMAPISupport::Unsubscribe(ULONG ulConnection) {
 	scoped_lock l_adv(m_advises_mutex);
 
 	i = m_advises.find(ulConnection);
-	if (i != m_advises.cend()) {
-		MAPIFreeBuffer(i->second.lpKey);
-		m_advises.erase(i);
-	} else
+	if (i == m_advises.cend())
 		return MAPI_E_NOT_FOUND;
-
+	MAPIFreeBuffer(i->second.lpKey);
+	m_advises.erase(i);
 	return hrSuccess;
 }
 
@@ -299,11 +297,9 @@ next_item:
 		;
 	}
 
-	if ((ulFlags & MAPI_MOVE) && lpDeleteEntries->cValues > 0) {
-		if (lpSource->DeleteMessages(lpDeleteEntries, 0, NULL, 0) != hrSuccess)
-			bPartial = true;
-	}
-	
+	if ((ulFlags & MAPI_MOVE) && lpDeleteEntries->cValues > 0 &&
+	    lpSource->DeleteMessages(lpDeleteEntries, 0, NULL, 0) != hrSuccess)
+		bPartial = true;
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 	return hr;

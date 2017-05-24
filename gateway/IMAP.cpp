@@ -2760,7 +2760,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 
         for (ULONG ulMailnr = 0; ulMailnr < lpRows->cRows; ++ulMailnr) {
 			hr = lpFolder->SetMessageStatus(lpRows->aRow[ulMailnr].lpProps[EID].Value.bin.cb, (LPENTRYID)lpRows->aRow[ulMailnr].lpProps[EID].Value.bin.lpb,
-											0, ~MSGSTATUS_DELMARKED, NULL);
+			     0, ~MSGSTATUS_DELMARKED, NULL);
 			if (hr != hrSuccess)
 				lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to update message status flag during " + strCommand);
 

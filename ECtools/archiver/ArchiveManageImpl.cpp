@@ -649,8 +649,9 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 					hrTmp = MAPI_E_NOT_FOUND;
 				else
 					hrTmp = ptrArchiveStore->CompareEntryIDs(arc.sItemEntryId.size(), arc.sItemEntryId,
-															 ptrStoreProps[IDX_IPM_SUBTREE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrStoreProps[IDX_IPM_SUBTREE_ENTRYID].Value.bin.lpb,
-															 0, &ulCompareResult);
+					        ptrStoreProps[IDX_IPM_SUBTREE_ENTRYID].Value.bin.cb,
+					        (LPENTRYID)ptrStoreProps[IDX_IPM_SUBTREE_ENTRYID].Value.bin.lpb,
+					        0, &ulCompareResult);
 				if (hrTmp != hrSuccess) {
 					m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to compare entry ids (hr=%s)", stringify(hrTmp, true).c_str());
 					ulCompareResult = FALSE;	// Let's assume it's not the IPM Subtree.

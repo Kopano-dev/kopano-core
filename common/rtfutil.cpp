@@ -147,10 +147,10 @@ static std::wstring RTFFlushStateOutput(convert_context &convertContext,
 {
 	std::wstring wstrUnicode;
 
-	if (!sState[ulState].output.empty()) {
-		TryConvert(convertContext, sState[ulState].output, rawsize(sState[ulState].output), sState[ulState].szCharset, wstrUnicode);
-		sState[ulState].output.clear();
-	}
+	if (sState[ulState].output.empty())
+		return wstrUnicode;
+	TryConvert(convertContext, sState[ulState].output, rawsize(sState[ulState].output), sState[ulState].szCharset, wstrUnicode);
+	sState[ulState].output.clear();
 	return wstrUnicode;
 }
 

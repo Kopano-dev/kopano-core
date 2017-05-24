@@ -197,9 +197,9 @@ HRESULT ProtocolBase::HrInitializeClass()
 		// check if this is the default calendar folder to enable freebusy publishing
 		if (lpDefaultProp &&
 		    HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &~lpEntryID) == hrSuccess &&
-			m_lpActiveStore->CompareEntryIDs(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb,
-											 lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb, 0, &ulRes) == hrSuccess &&
-			ulRes == TRUE)
+		    m_lpActiveStore->CompareEntryIDs(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb,
+		    lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb, 0, &ulRes) == hrSuccess &&
+		    ulRes == TRUE)
 		{
 			// disable delete default folder, and enable fb publish
 			m_blFolderAccess = false;

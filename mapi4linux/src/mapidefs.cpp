@@ -107,96 +107,93 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 			if (hr != hrSuccess)
 				return hr;
 		}
-	} else {
-		hr = MAPIAllocateBuffer(sizeof(SPropValue)*lpPropTagArray->cValues, &~props);
-		if (hr != hrSuccess)
-			return hr;
+		*lpcValues = c;
+		*lppPropArray = props.release();
+		return hr;
+	}
 
-		for (c = 0; c < lpPropTagArray->cValues; ++c) {
-			for (i = properties.begin(); i != properties.end(); ++i) {
-				if (PROP_ID((*i)->ulPropTag) == PROP_ID(lpPropTagArray->aulPropTag[c])) {
-					// perform unicode conversion if required
-					if (PROP_TYPE((*i)->ulPropTag) == PT_STRING8 && 
-						(PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNICODE ||
-						 ((ulFlags & MAPI_UNICODE) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
-					{
-						// string8 to unicode
-						sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_UNICODE);
-						unicode = converter.convert_to<wstring>((*i)->Value.lpszA);
-						sConvert.Value.lpszW = (WCHAR*)unicode.c_str();
+	hr = MAPIAllocateBuffer(sizeof(SPropValue)*lpPropTagArray->cValues, &~props);
+	if (hr != hrSuccess)
+		return hr;
 
-						lpCopy = &sConvert;
-					}
-					else if (PROP_TYPE((*i)->ulPropTag) == PT_UNICODE &&
-							 (PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_STRING8 ||
-							  (((ulFlags & MAPI_UNICODE) == 0) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
-					{
-						// unicode to string8
-						sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_STRING8);
-						ansi = converter.convert_to<string>((*i)->Value.lpszW);
-						sConvert.Value.lpszA = (char*)ansi.c_str();
-
-						lpCopy = &sConvert;
-					}
-					else if (PROP_TYPE((*i)->ulPropTag) == PT_MV_STRING8 && 
-							 (PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_MV_UNICODE ||
-							  ((ulFlags & MAPI_UNICODE) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
-					{
-						// mv string8 to mv unicode
-						sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_MV_UNICODE);
-						sConvert.Value.MVszW.cValues = (*i)->Value.MVszA.cValues;
-						hr = MAPIAllocateMore((*i)->Value.MVszA.cValues * sizeof(WCHAR*), props, (void**)&sConvert.Value.MVszW.lppszW);
-						if (hr != hrSuccess)
-							return hr;
-						for (ULONG c = 0; c < (*i)->Value.MVszA.cValues; ++c) {
-							unicode = converter.convert_to<wstring>((*i)->Value.MVszA.lppszA[c]);
-							hr = MAPIAllocateMore(unicode.length() * sizeof(WCHAR) + sizeof(WCHAR), props, (void**)&sConvert.Value.MVszW.lppszW[c]);
-							if (hr != hrSuccess)
-								return hr;
-							wcscpy(sConvert.Value.MVszW.lppszW[c], unicode.c_str());
-						}
-
-						lpCopy = &sConvert;
-					}
-					else if (PROP_TYPE((*i)->ulPropTag) == PT_MV_UNICODE &&
-							 (PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_MV_STRING8 ||
-							  (((ulFlags & MAPI_UNICODE) == 0) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
-					{
-						// mv string8 to mv unicode
-						sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_MV_STRING8);
-						sConvert.Value.MVszA.cValues = (*i)->Value.MVszW.cValues;
-						hr = MAPIAllocateMore((*i)->Value.MVszW.cValues * sizeof(char*), props, (void**)&sConvert.Value.MVszA.lppszA);
-						if (hr != hrSuccess)
-							return hr;
-						for (ULONG c = 0; c < (*i)->Value.MVszW.cValues; ++c) {
-							ansi = converter.convert_to<string>((*i)->Value.MVszW.lppszW[c]);
-							hr = MAPIAllocateMore(ansi.length() + 1, props, (void**)&sConvert.Value.MVszA.lppszA[c]);
-							if (hr != hrSuccess)
-								return hr;
-							strcpy(sConvert.Value.MVszA.lppszA[c], ansi.c_str());
-						}
-
-						lpCopy = &sConvert;
-					} else {
-						// memory property is requested property
-						lpCopy = *i;
-					}
-
-					hr = Util::HrCopyProperty(&props[c], lpCopy, (void *)props);
+	for (c = 0; c < lpPropTagArray->cValues; ++c) {
+		for (i = properties.begin(); i != properties.end(); ++i) {
+			if (PROP_ID((*i)->ulPropTag) != PROP_ID(lpPropTagArray->aulPropTag[c]))
+				continue;
+			// perform unicode conversion if required
+			if (PROP_TYPE((*i)->ulPropTag) == PT_STRING8 &&
+			    (PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNICODE ||
+			    ((ulFlags & MAPI_UNICODE) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
+			{
+				// string8 to unicode
+				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_UNICODE);
+				unicode = converter.convert_to<wstring>((*i)->Value.lpszA);
+				sConvert.Value.lpszW = (WCHAR*)unicode.c_str();
+				lpCopy = &sConvert;
+			}
+			else if (PROP_TYPE((*i)->ulPropTag) == PT_UNICODE &&
+			    (PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_STRING8 ||
+			    (((ulFlags & MAPI_UNICODE) == 0) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
+			{
+				// unicode to string8
+				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_STRING8);
+				ansi = converter.convert_to<string>((*i)->Value.lpszW);
+				sConvert.Value.lpszA = (char *)ansi.c_str();
+				lpCopy = &sConvert;
+			}
+			else if (PROP_TYPE((*i)->ulPropTag) == PT_MV_STRING8 &&
+			    (PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_MV_UNICODE ||
+			    ((ulFlags & MAPI_UNICODE) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
+			{
+				// mv string8 to mv unicode
+				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_MV_UNICODE);
+				sConvert.Value.MVszW.cValues = (*i)->Value.MVszA.cValues;
+				hr = MAPIAllocateMore((*i)->Value.MVszA.cValues * sizeof(WCHAR*), props, (void**)&sConvert.Value.MVszW.lppszW);
+				if (hr != hrSuccess)
+					return hr;
+				for (ULONG c = 0; c < (*i)->Value.MVszA.cValues; ++c) {
+					unicode = converter.convert_to<wstring>((*i)->Value.MVszA.lppszA[c]);
+					hr = MAPIAllocateMore(unicode.length() * sizeof(WCHAR) + sizeof(WCHAR), props, (void**)&sConvert.Value.MVszW.lppszW[c]);
 					if (hr != hrSuccess)
 						return hr;
-					break;
+					wcscpy(sConvert.Value.MVszW.lppszW[c], unicode.c_str());
 				}
+				lpCopy = &sConvert;
 			}
-		
-			if (i == properties.end()) {
-				// Not found
-				props[c].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->aulPropTag[c]));
-				props[c].Value.err = MAPI_E_NOT_FOUND;
-        		
-				hr = MAPI_W_ERRORS_RETURNED;
+			else if (PROP_TYPE((*i)->ulPropTag) == PT_MV_UNICODE &&
+			    (PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_MV_STRING8 ||
+			    (((ulFlags & MAPI_UNICODE) == 0) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
+			{
+				// mv string8 to mv unicode
+				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_MV_STRING8);
+				sConvert.Value.MVszA.cValues = (*i)->Value.MVszW.cValues;
+				hr = MAPIAllocateMore((*i)->Value.MVszW.cValues * sizeof(char*), props, (void**)&sConvert.Value.MVszA.lppszA);
+				if (hr != hrSuccess)
+					return hr;
+				for (ULONG c = 0; c < (*i)->Value.MVszW.cValues; ++c) {
+					ansi = converter.convert_to<string>((*i)->Value.MVszW.lppszW[c]);
+					hr = MAPIAllocateMore(ansi.length() + 1, props, (void**)&sConvert.Value.MVszA.lppszA[c]);
+					if (hr != hrSuccess)
+						return hr;
+					strcpy(sConvert.Value.MVszA.lppszA[c], ansi.c_str());
+				}
+				lpCopy = &sConvert;
+			} else {
+				// memory property is requested property
+				lpCopy = *i;
 			}
+			hr = Util::HrCopyProperty(&props[c], lpCopy, (void *)props);
+			if (hr != hrSuccess)
+				return hr;
+			break;
 		}
+
+		if (i != properties.cend())
+			continue;
+		// Not found
+		props[c].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->aulPropTag[c]));
+		props[c].Value.err = MAPI_E_NOT_FOUND;
+		hr = MAPI_W_ERRORS_RETURNED;
 	}
 
 	*lpcValues = c;

@@ -884,9 +884,9 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 			dn = GetLDAPEntryDN(entry);
 
 			/* Make sure the DN isn't filtered because it is located in the subcontainer */
-			if (m_bHosted && !strCompanyDN.empty())
-				if (m_lpCache->isDNInList(dnFilter, dn))
-					continue;
+			if (m_bHosted && !strCompanyDN.empty() &&
+			    m_lpCache->isDNInList(dnFilter, dn))
+				continue;
 
 			FOREACH_ATTR(entry) {
 				if (modify_attr && strcasecmp(att, modify_attr) == 0)
@@ -933,21 +933,17 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 	if (lpszSearchBase == nullptr)
 		/* GetSetting returns "" for all options it knows.. */
 		throw logic_error("getSearchBase: unexpected nullptr");
+	if (!m_bHosted || company.id.empty())
+		return lpszSearchBase;
 
-	if (m_bHosted && !company.id.empty()) {
-		// find company DN, and use as search_base
-		std::unique_ptr<dn_cache_t> lpCompanyCache = m_lpCache->getObjectDNCache(this, company.objclass);
-		search_base = m_lpCache->getDNForObject(lpCompanyCache, company);
-		// CHECK: should not be possible to not already know the company
-		if (search_base.empty()) {
-			ec_log_crit("No search base found for company \"%s\"", company.id.c_str());
-			search_base = lpszSearchBase;
-		}
-	} else {
-		search_base = lpszSearchBase;
-	}
-
-	return search_base;
+	// find company DN, and use as search_base
+	std::unique_ptr<dn_cache_t> lpCompanyCache = m_lpCache->getObjectDNCache(this, company.objclass);
+	search_base = m_lpCache->getDNForObject(lpCompanyCache, company);
+	// CHECK: should not be possible to not already know the company
+	if (!search_base.empty())
+		return search_base;
+	ec_log_crit("No search base found for company \"%s\"", company.id.c_str());
+	return lpszSearchBase;
 }
 
 string LDAPUserPlugin::getServerSearchFilter()
@@ -1607,9 +1603,9 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 			signature.id.id = getLDAPAttributeValue(att, entry);
 			signature.id.objclass = ACTIVE_USER; // only users can authenticate
 		}
-		if (nonactive_attr != nullptr && strcasecmp(att, nonactive_attr) == 0)
-			if (parseBool(getLDAPAttributeValue(att, entry).c_str()))
-				throw login_error("Cannot login as nonactive user");
+		if (nonactive_attr != nullptr && strcasecmp(att, nonactive_attr) == 0 &&
+		    parseBool(getLDAPAttributeValue(att, entry).c_str()))
+			throw login_error("Cannot login as nonactive user");
 	}
 	END_FOREACH_ATTR
 

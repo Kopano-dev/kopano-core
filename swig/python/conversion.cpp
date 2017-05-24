@@ -3299,8 +3299,8 @@ PyObject *Object_from_STATSTG(STATSTG *lpStatStg)
 PyObject *Object_from_SYSTEMTIME(const SYSTEMTIME &time)
 {
 	return PyObject_CallFunction(PyTypeSYSTEMTIME, "(iiiiiiii)",
-								   time.wYear, time.wMonth, time.wDayOfWeek, time.wDay,
-								   time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
+	       time.wYear, time.wMonth, time.wDayOfWeek, time.wDay,
+	       time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 }
 
 SYSTEMTIME Object_to_SYSTEMTIME(PyObject *object)
