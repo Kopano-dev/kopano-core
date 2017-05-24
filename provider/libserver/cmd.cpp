@@ -4226,8 +4226,7 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 			return er;
 	}
 
-	er = lpecSession->AddAdvise(notifySubscribe->ulConnection, ulKey, notifySubscribe->ulEventMask);
-	return er;
+	return lpecSession->AddAdvise(notifySubscribe->ulConnection, ulKey, notifySubscribe->ulEventMask);
 }
 
 SOAP_ENTRY_START(notifySubscribe, *result,  struct notifySubscribe *notifySubscribe, unsigned int *result)

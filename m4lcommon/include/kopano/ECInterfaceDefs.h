@@ -182,23 +182,20 @@
 
 #define DEF_ULONGMETHOD(_trace, _class, _iface, _method, ...)														\
 ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	ULONG ul = 0;																						\
 	try {																										\
 		METHOD_PROLOGUE_(_class, _iface);																		\
-		ul = pThis->_method(ARGS(__VA_ARGS__));																	\
+		return pThis->_method(ARGS(__VA_ARGS__)); \
 	} catch (const std::bad_alloc &) {																			\
-		ul = -1;																			\
+		return -1; \
 	}																											\
-	return ul;																									\
+	return 0; \
 }
 
 #define DEF_ULONGMETHOD1(_trace, _class, _iface, _method, ...) \
 ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	\
 { \
-	ULONG ul = 0; \
 	METHOD_PROLOGUE_(_class, _iface); \
-	ul = pThis->_method(ARGS(__VA_ARGS__)); \
-	return ul; \
+	return pThis->_method(ARGS(__VA_ARGS__)); \
 }
 
 #define DEF_ULONGMETHOD0(_class, _iface, _method, ...) \
@@ -210,14 +207,13 @@ ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIS
 
 #define DEF_HRMETHOD(_trace, _class, _iface, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	HRESULT	hr = hrSuccess;																						\
 	try {																										\
 		METHOD_PROLOGUE_(_class, _iface);																		\
-		hr = pThis->_method(ARGS(__VA_ARGS__));																	\
+		return pThis->_method(ARGS(__VA_ARGS__)); \
 	} catch (const std::bad_alloc &) {																			\
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;																			\
+		return MAPI_E_NOT_ENOUGH_MEMORY; \
 	}																											\
-	return hr;																									\
+	return hrSuccess; \
 }
 
 /* without exception passthrough */
@@ -225,8 +221,7 @@ HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGL
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
 { \
 	METHOD_PROLOGUE_(_class, _iface); \
-	HRESULT hr = pThis->_method(ARGS(__VA_ARGS__)); \
-	return hr; \
+	return pThis->_method(ARGS(__VA_ARGS__)); \
 }
 
 /* and without tracing */
@@ -240,42 +235,38 @@ HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGL
 #define DEF_HRMETHOD_EX(_trace, _class, _iface, _extra_fmt, _extra_arg, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
 	METHOD_PROLOGUE_(_class, _iface);																		\
-	HRESULT	hr = hrSuccess;																						\
 	try {																										\
-		hr = pThis->_method(ARGS(__VA_ARGS__));																	\
+		return pThis->_method(ARGS(__VA_ARGS__)); \
 	} catch (const std::bad_alloc &) {																			\
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;																			\
+		return MAPI_E_NOT_ENOUGH_MEMORY; \
 	}																											\
-	return hr;																									\
+	return hrSuccess; \
 }
 
 #define DEF_HRMETHOD_EX2(_trace, _class, _iface, _extra_fmt, _extra_arg1, _extra_arg2, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
 	METHOD_PROLOGUE_(_class, _iface);																		\
-	HRESULT	hr = hrSuccess;																						\
 	try {																										\
-		hr = pThis->_method(ARGS(__VA_ARGS__));																	\
+		return pThis->_method(ARGS(__VA_ARGS__)); \
 	} catch (const std::bad_alloc &) {																			\
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;																			\
+		return MAPI_E_NOT_ENOUGH_MEMORY; \
 	}																											\
-	return hr;																									\
+	return hrSuccess; \
 }
 
 #define DEF_HRMETHOD_FORWARD(_trace, _class, _iface, _method, _member, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, _method)(ARGLIST(__VA_ARGS__))	{			\
-	HRESULT	hr = hrSuccess;																						\
 	try {																										\
-		hr = _member->_method(ARGS(__VA_ARGS__));																	\
+		return _member->_method(ARGS(__VA_ARGS__)); \
 	} catch (const std::bad_alloc &) {																			\
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;																			\
+		return MAPI_E_NOT_ENOUGH_MEMORY; \
 	}																											\
-	return hr;																									\
+	return hrSuccess; \
 }
 
 #define DEF_HRMETHOD_NOSUPPORT(_trace, _class, _iface, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	HRESULT	hr = MAPI_E_NO_SUPPORT;																						\
-	return hr;																									\
+	return MAPI_E_NO_SUPPORT; \
 }
 
 #define DEF_HRMETHOD0_NOSUPPORT(_class, _iface, _method, ...) \

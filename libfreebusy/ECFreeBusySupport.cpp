@@ -370,8 +370,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, HrHandleServerSche
 BOOL __stdcall ECFreeBusySupport::xFreeBusySupport::FShowServerSched(BOOL bData)
 {
 	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	BOOL b = pThis->FShowServerSched(bData);
-	return b;
+	return pThis->FShowServerSched(bData);
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, HrDeleteServerSched, (void))
@@ -406,8 +405,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, HrHandl
 BOOL __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::FShowServerSched(BOOL bData)
 {
 	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	BOOL b = pThis->FShowServerSched(bData);
-	return b;
+	return pThis->FShowServerSched(bData);
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, HrDeleteServerSched, (void))
