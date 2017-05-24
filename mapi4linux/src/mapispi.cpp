@@ -462,7 +462,9 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 			continue;
 		}
 		setFilter.insert(std::vector<unsigned char>(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb));
-		hr = ptrAddrBook->OpenEntry(lpDLEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpDLEntryID->Value.bin.lpb), NULL, 0, &ulObjType, &~ptrDistList);
+		hr = ptrAddrBook->OpenEntry(lpDLEntryID->Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(lpDLEntryID->Value.bin.lpb),
+		     &iid_of(ptrDistList), 0, &ulObjType, &~ptrDistList);
 		if (hr != hrSuccess)
 			continue;
 

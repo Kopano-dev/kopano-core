@@ -527,7 +527,9 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 			ulOffset = sizeof(ULONG) + sizeof(GUID) + sizeof(BYTE);
 			cType = ptrEntries->Value.MVbin.lpbin[i].lpb[sizeof(ULONG) + sizeof(GUID)];
 		}
-		hr = m_lpMAPISup->OpenEntry(ptrEntries->Value.MVbin.lpbin[i].cb - ulOffset, reinterpret_cast<ENTRYID *>(ptrEntries->Value.MVbin.lpbin[i].lpb + ulOffset), nullptr, 0, &ulObjType, &~ptrUser);
+		hr = m_lpMAPISup->OpenEntry(ptrEntries->Value.MVbin.lpbin[i].cb - ulOffset,
+		     reinterpret_cast<ENTRYID *>(ptrEntries->Value.MVbin.lpbin[i].lpb + ulOffset),
+		     &iid_of(ptrUser), 0, &ulObjType, &~ptrUser);
 		if (hr != hrSuccess)
 			continue;
 
@@ -749,7 +751,8 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			MAPITablePtr ptrTable;
 			SRowSetPtr	ptrRows;
 
-			hr = ((ZCABLogon*)m_lpProvider)->OpenEntry(sizeof(sEntryID), reinterpret_cast<ENTRYID *>(sEntryID), nullptr, 0, &ulObjType, &~ptrContainer);
+			hr = ((ZCABLogon*)m_lpProvider)->OpenEntry(sizeof(sEntryID), reinterpret_cast<ENTRYID *>(sEntryID),
+			     &iid_of(ptrContainer), 0, &ulObjType, &~ptrContainer);
 			if (hr != hrSuccess)
 				return hr;
 			hr = ptrContainer->GetHierarchyTable(ulFlags, &~ptrTable);
@@ -821,7 +824,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 	lpFolder = (LPENTRYID)((LPBYTE)lpEntryID + cbNewCABEntryID);
 
 	if (lpCABEntryID->ulObjType == MAPI_ABCONT) {
-		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, nullptr, 0, &ulObjType, &~ptrContactFolder);
+		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContactFolder), 0, &ulObjType, &~ptrContactFolder);
 		if (hr == MAPI_E_NOT_FOUND) {
 			// the folder is most likely in a store that is not yet available through this MAPI session
 			// try opening the store through the support object, and see if we can get it anyway
@@ -849,7 +852,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 			hr = ptrSession->OpenMsgStore(0, i->cbStore, reinterpret_cast<ENTRYID *>(i->lpStore), nullptr, 0, &~ptrStore);
 			if (hr != hrSuccess)
 				return hr;
-			hr = ptrStore->OpenEntry(cbFolder, lpFolder, nullptr, 0, &ulObjType, &~ptrContactFolder);
+			hr = ptrStore->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContactFolder), 0, &ulObjType, &~ptrContactFolder);
 		}
 		if (hr != hrSuccess)
 			return hr;
@@ -864,7 +867,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 			hr = lpZCABContacts->QueryInterface(IID_IABContainer, (void**)lppUnk);
 	} else if (lpCABEntryID->ulObjType == MAPI_DISTLIST) {
 		// open the Original Message
-		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, nullptr, 0, &ulObjType, &~ptrContact);
+		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContact), 0, &ulObjType, &~ptrContact);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ZCABContainer::Create(ptrContact, cbEntryID, lpEntryID, m_lpMAPISup, &~lpZCABContacts);
@@ -878,7 +881,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 			hr = lpZCABContacts->QueryInterface(IID_IDistList, (void**)lppUnk);
 	} else if (lpCABEntryID->ulObjType == MAPI_MAILUSER) {
 		// open the Original Message
-		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, nullptr, 0, &ulObjType, &~ptrContact);
+		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContact), 0, &ulObjType, &~ptrContact);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ZCMAPIProp::Create(ptrContact, cbEntryID, lpEntryID, &~lpZCMAPIProp);
@@ -978,7 +981,8 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 				continue;
 
 			// this? provider?
-			hr = this->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb), nullptr, 0, &ulObjType, &~ptrContainer);
+			hr = this->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb),
+			     &iid_of(ptrContainer), 0, &ulObjType, &~ptrContainer);
 			if (hr != hrSuccess)
 				return hr;
 			hr = ptrContainer->ResolveNames(lpPropTagArray, ulFlags, lpAdrList, lpFlagList);

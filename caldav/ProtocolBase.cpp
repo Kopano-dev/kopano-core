@@ -172,7 +172,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	}
 
 	// Get active store default calendar to prevent delete action on this folder
-	hr = m_lpActiveStore->OpenEntry(0, nullptr, nullptr, 0, &ulType, &~lpRoot);
+	hr = m_lpActiveStore->OpenEntry(0, nullptr, &iid_of(lpRoot), 0, &ulType, &~lpRoot);
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Error opening root container, using user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
@@ -233,7 +233,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 			return hr;
 	} else {
 		// open default calendar
-		hr = m_lpActiveStore->OpenEntry(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulType, (LPUNKNOWN*)&m_lpUsrFld);
+		hr = m_lpActiveStore->OpenEntry(lpDefaultProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpDefaultProp->Value.bin.lpb),
+		     &iid_of(m_lpUsrFld), MAPI_BEST_ACCESS, &ulType, reinterpret_cast<IUnknown **>(&m_lpUsrFld));
 		if (hr != hrSuccess)
 		{
 			ec_log_err("Unable to open default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);

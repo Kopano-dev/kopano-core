@@ -265,7 +265,9 @@ static HRESULT CreateOutboxMessage(LPMDB lpOrigStore, LPMESSAGE *lppMessage)
 	hr = HrGetOneProp(lpOrigStore, PR_IPM_OUTBOX_ENTRYID, &~lpOutboxEntryID);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpOrigStore->OpenEntry(lpOutboxEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpOutboxEntryID->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpOutbox);
+	hr = lpOrigStore->OpenEntry(lpOutboxEntryID->Value.bin.cb,
+	     reinterpret_cast<ENTRYID *>(lpOutboxEntryID->Value.bin.lpb),
+	     &iid_of(lpOutbox), MAPI_MODIFY, &ulObjType, &~lpOutbox);
 	if (hr != hrSuccess)
 		return hr;
 	return lpOutbox->CreateMessage(nullptr, 0, lppMessage);

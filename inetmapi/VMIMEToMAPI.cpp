@@ -1345,7 +1345,8 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 		hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &~lpDDEntryID);
 		if (hr != hrSuccess)
 			return hr;
-		hr = m_lpAdrBook->OpenEntry(cbDDEntryID, lpDDEntryID, NULL, 0, &ulObj, (LPUNKNOWN*)&m_lpDefaultDir);
+		hr = m_lpAdrBook->OpenEntry(cbDDEntryID, lpDDEntryID,
+		     &iid_of(m_lpDefaultDir), 0, &ulObj, reinterpret_cast<IUnknown **>(&m_lpDefaultDir));
 		if (hr != hrSuccess)
 			return hr;
 	}

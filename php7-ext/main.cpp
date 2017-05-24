@@ -1050,16 +1050,24 @@ ZEND_FUNCTION(mapi_openentry)
 
         ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
 
-	MAPI_G(hr) = lpSession->OpenEntry(cbEntryID, lpEntryID, nullptr,
-	             ulFlags, &ulObjType, &~lpUnknown);
+	MAPI_G(hr) = lpSession->OpenEntry(cbEntryID, lpEntryID,
+	             &iid_of(lpUnknown), ulFlags, &ulObjType, &~lpUnknown);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
 
 	if (ulObjType == MAPI_FOLDER) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_folder);
+		object_ptr<IMAPIFolder> fld;
+		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(fld), &~fld);
+		if (FAILED(MAPI_G(hr)))
+			goto exit;
+		ZEND_REGISTER_RESOURCE(return_value, fld.release(), le_mapi_folder);
 	}
 	else if(ulObjType == MAPI_MESSAGE) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_message);
+		object_ptr<IMessage> msg;
+		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(msg), &~msg);
+		if (FAILED(MAPI_G(hr)))
+			goto exit;
+		ZEND_REGISTER_RESOURCE(return_value, msg.release(), le_mapi_message);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not a folder or a message.");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1163,22 +1171,30 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
 
-	MAPI_G(hr) = lpAddrBook->OpenEntry(cbEntryID, lpEntryID, nullptr,
-	             ulFlags, &ulObjType, &~lpUnknown);
+	MAPI_G(hr) = lpAddrBook->OpenEntry(cbEntryID, lpEntryID,
+	             &iid_of(lpUnknown), ulFlags, &ulObjType, &~lpUnknown);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	switch (ulObjType) {
-	case MAPI_MAILUSER:
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_mailuser);
-		break;
-	case MAPI_DISTLIST:
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_distlist);
-		break;
-	case MAPI_ABCONT:
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_abcont);
-		break;
-	default:
+	if (ulObjType == MAPI_MAILUSER) {
+		object_ptr<IMailUser> usr;
+		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(usr), &~usr);
+		if (FAILED(MAPI_G(hr)))
+			goto exit;
+		ZEND_REGISTER_RESOURCE(return_value, usr.release(), le_mapi_mailuser);
+	} else if (ulObjType == MAPI_DISTLIST) {
+		object_ptr<IDistList> dl;
+		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(dl), &~dl);
+		if (FAILED(MAPI_G(hr)))
+			goto exit;
+		ZEND_REGISTER_RESOURCE(return_value, dl.release(), le_mapi_distlist);
+	} else if (ulObjType == MAPI_ABCONT) {
+		object_ptr<IABContainer> ab;
+		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(ab), &~ab);
+		if (FAILED(MAPI_G(hr)))
+			goto exit;
+		ZEND_REGISTER_RESOURCE(return_value, ab.release(), le_mapi_abcont);
+	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not an AddressBook item");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -1902,16 +1918,24 @@ ZEND_FUNCTION(mapi_msgstore_openentry)
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 
 	// returns a folder
-	MAPI_G(hr) = pMDB->OpenEntry(cbEntryID, lpEntryID, nullptr, ulFlags,
-	             &ulObjType, &~lpUnknown);
+	MAPI_G(hr) = pMDB->OpenEntry(cbEntryID, lpEntryID, &iid_of(lpUnknown),
+	             ulFlags, &ulObjType, &~lpUnknown);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
 
 	if (ulObjType == MAPI_FOLDER) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_folder);
+		object_ptr<IMAPIFolder> fld;
+		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(fld), &~fld);
+		if (FAILED(MAPI_G(hr)))
+			goto exit;
+		ZEND_REGISTER_RESOURCE(return_value, fld.release(), le_mapi_folder);
 	}
 	else if(ulObjType == MAPI_MESSAGE) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_message);
+		object_ptr<IMessage> msg;
+		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(msg), &~msg);
+		if (FAILED(MAPI_G(hr)))
+			goto exit;
+		ZEND_REGISTER_RESOURCE(return_value, msg.release(), le_mapi_message);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not a folder or a message.");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2544,7 +2568,7 @@ ZEND_FUNCTION(mapi_msgstore_getreceivefolder)
 	zval			*res;
 	LPMDB			pMDB		= NULL;
 	// return value
-	LPUNKNOWN		lpFolder	= NULL;
+	object_ptr<IMAPIFolder> lpFolder;
 	// locals
 	ULONG			cbEntryID	= 0;
 	memory_ptr<ENTRYID> lpEntryID;
@@ -2560,12 +2584,11 @@ ZEND_FUNCTION(mapi_msgstore_getreceivefolder)
 	MAPI_G(hr) = pMDB->GetReceiveFolder(NULL, 0, &cbEntryID, &~lpEntryID, NULL);
 	if(FAILED(MAPI_G(hr)))
 		goto exit;
-
-	MAPI_G(hr) = pMDB->OpenEntry(cbEntryID, lpEntryID, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)&lpFolder);
-
+	MAPI_G(hr) = pMDB->OpenEntry(cbEntryID, lpEntryID, &iid_of(lpFolder),
+	             MAPI_BEST_ACCESS, &ulObjType, &~lpFolder);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
-	ZEND_REGISTER_RESOURCE(return_value, lpFolder, le_mapi_folder);
+	ZEND_REGISTER_RESOURCE(return_value, lpFolder.release(), le_mapi_folder);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();

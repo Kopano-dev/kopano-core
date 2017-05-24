@@ -410,7 +410,8 @@ ArchiveControlImpl::purgesoftdeletedmessages(const tstring& strUser)
         }
 	MAPIFolderPtr ipmSubtree;
 	ULONG type = 0;
-	if ((hr = store->OpenEntry(ptrPropValue->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrPropValue->Value.bin.lpb), nullptr, MAPI_BEST_ACCESS | fMapiDeferredErrors, &type, &~ipmSubtree)) != hrSuccess) {
+	hr = store->OpenEntry(ptrPropValue->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrPropValue->Value.bin.lpb), &iid_of(ipmSubtree), MAPI_BEST_ACCESS | fMapiDeferredErrors, &type, &~ipmSubtree);
+	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open ipmSubtree. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
 	}

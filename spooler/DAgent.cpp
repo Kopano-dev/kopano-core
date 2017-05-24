@@ -402,7 +402,7 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 	// saved so that it can find the message to open. Since we can't save the passed lpMessage (it
 	// must be processed by the rules engine first), we make a copy, and let the autoaccept script
 	// work on the copy.
-	hr = lpStore->OpenEntry(0, nullptr, nullptr, MAPI_MODIFY, &ulType, &~lpRootFolder);
+	hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulType, &~lpRootFolder);
 	if(hr != hrSuccess) {
 		ec_log_err("HrAutoAccept(): OpenEntry failed %x", hr);
 		return hr;
@@ -479,7 +479,7 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 	sc -> countInc("DAgent", "AutoProcess");
 
 	// Pass a copy to the external script
-	hr = lpStore->OpenEntry(0, nullptr, nullptr, MAPI_MODIFY, &ulType, &~lpRootFolder);
+	hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulType, &~lpRootFolder);
 	if(hr != hrSuccess) {
 		ec_log_err("HrAutoProcess(): OpenEntry failed %x", hr);
 		return hr;
@@ -603,7 +603,7 @@ static HRESULT OpenResolveAddrFolder(LPADRBOOK lpAdrBook,
 		return hr;
 	}
 
-	hr = lpAdrBook->OpenEntry(cbEntryId, lpEntryId, NULL, 0, &ulObj, (LPUNKNOWN*)lppAddrDir);
+	hr = lpAdrBook->OpenEntry(cbEntryId, lpEntryId, &iid_of(*lppAddrDir), 0, &ulObj, reinterpret_cast<IUnknown **>(lppAddrDir));
 	if (hr != hrSuccess)
 		ec_log_err("Unable to open default resolve directory: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);

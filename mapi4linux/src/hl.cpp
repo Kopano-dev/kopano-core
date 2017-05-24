@@ -382,7 +382,7 @@ KUnknown KStore::open_entry(const KEntryId &eid, LPCIID intf,
 {
 	IUnknown *unk;
 	auto ret = m_store->OpenEntry(eid.m_size, eid.m_eid,
-                   intf, flags, &m_type, &unk);
+                   &IID_IUnknown, flags, &m_type, &unk);
 	if (ret != hrSuccess)
 		throw KMAPIError(ret);
 	return KUnknown(unk);
@@ -394,13 +394,13 @@ KUnknown KStore::open_entry(const SPropValue *eid, LPCIID intf,
 	IUnknown *unk;
 	int ret;
 	if (eid == NULL) {
-		ret = m_store->OpenEntry(0, NULL, intf, flags, &m_type, &unk);
+		ret = m_store->OpenEntry(0, NULL, &IID_IUnknown, flags, &m_type, &unk);
 	} else {
 		if (PROP_TYPE(eid->ulPropTag) != PT_BINARY)
 			throw KMAPIError(MAPI_E_INVALID_TYPE);
 		ret = m_store->OpenEntry(eid->Value.bin.cb,
 		      reinterpret_cast<ENTRYID *>(eid->Value.bin.lpb),
-	              intf, flags, &m_type, &unk);
+	              &IID_IUnknown, flags, &m_type, &unk);
 	}
 	if (ret != hrSuccess)
 		throw KMAPIError(ret);

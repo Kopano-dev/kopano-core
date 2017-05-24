@@ -5880,7 +5880,7 @@ HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder
 	hr = HrFindFolderEntryID(strFolder, &cbEntryID, &~lpEntryID);
     if(hr != hrSuccess)
 		return hr;
-	hr = lpSession->OpenEntry(cbEntryID, lpEntryID, nullptr, ulFlags, &ulObjType, &~lpFolder);
+	hr = lpSession->OpenEntry(cbEntryID, lpEntryID, &iid_of(lpFolder), ulFlags, &ulObjType, &~lpFolder);
     if(hr != hrSuccess)
 		return hr;
 	if (ulObjType != MAPI_FOLDER)
@@ -6009,7 +6009,7 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
             hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &~lpProp);
             if(hr != hrSuccess)
 				return hr;
-            hr = lpStore->OpenEntry(lpProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpProp->Value.bin.lpb), nullptr, 0, &ulObjType, &~lpSubTree);
+            hr = lpStore->OpenEntry(lpProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpProp->Value.bin.lpb), &iid_of(lpSubTree), 0, &ulObjType, &~lpSubTree);
             if(hr != hrSuccess)
 				return hr;
                 
@@ -6083,7 +6083,7 @@ HRESULT IMAP::HrFindFolderPartial(const wstring& strFolder, IMAPIFolder **lppFol
             hr = hrSuccess; // Not an error
             break;
         }
-		hr = lpSession->OpenEntry(cbEntryID, lpEntryID, nullptr, MAPI_MODIFY, &ulObjType, &~lpFolder);
+		hr = lpSession->OpenEntry(cbEntryID, lpEntryID, &iid_of(lpFolder), MAPI_MODIFY, &ulObjType, &~lpFolder);
         if(hr != hrSuccess)
 			return hr;
     }
@@ -6099,7 +6099,7 @@ HRESULT IMAP::HrFindFolderPartial(const wstring& strFolder, IMAPIFolder **lppFol
 		hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &~lpTree);
         if(hr != hrSuccess)
 			return hr;
-            hr = lpSession->OpenEntry(lpTree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpTree->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpFolder);
+		hr = lpSession->OpenEntry(lpTree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpTree->Value.bin.lpb), &iid_of(lpFolder), MAPI_MODIFY, &ulObjType, &~lpFolder);
         if(hr != hrSuccess)
 			return hr;
     }
@@ -6171,7 +6171,7 @@ HRESULT IMAP::HrOpenParentFolder(ULONG cbEntryID, LPENTRYID lpEntryID, IMAPIFold
 	object_ptr<IMAPIFolder> lpFolder;
     ULONG ulObjType = 0;
 
-	hr = lpSession->OpenEntry(cbEntryID, lpEntryID, nullptr, MAPI_MODIFY, &ulObjType, &~lpFolder);
+	hr = lpSession->OpenEntry(cbEntryID, lpEntryID, &iid_of(lpFolder), MAPI_MODIFY, &ulObjType, &~lpFolder);
 	if (hr != hrSuccess)
 		return hr;
 	if (ulObjType != MAPI_FOLDER)
@@ -6196,7 +6196,7 @@ HRESULT IMAP::HrOpenParentFolder(IMAPIFolder *lpFolder, IMAPIFolder **lppFolder)
     if(hr != hrSuccess)
 		return hr;
 	return lpSession->OpenEntry(lpParent->Value.bin.cb,
-	       reinterpret_cast<ENTRYID *>(lpParent->Value.bin.lpb), nullptr,
+	       reinterpret_cast<ENTRYID *>(lpParent->Value.bin.lpb), &iid_of(*lppFolder),
 	       MAPI_MODIFY, &ulObjType, reinterpret_cast<IUnknown **>(lppFolder));
 }
 

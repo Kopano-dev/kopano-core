@@ -1175,7 +1175,8 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 	if(lpPropValue[DSM_SENTMAIL_ENTRYID].ulPropTag == PR_SENTMAIL_ENTRYID)
 	{
 		//Open Sentmail Folder
-		hr = lpMDB->OpenEntry(lpPropValue[DSM_SENTMAIL_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue[DSM_SENTMAIL_ENTRYID].Value.bin.lpb), nullptr, MAPI_MODIFY, &ulType, &~lpFolder);
+		hr = lpMDB->OpenEntry(lpPropValue[DSM_SENTMAIL_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue[DSM_SENTMAIL_ENTRYID].Value.bin.lpb),
+		     &iid_of(lpFolder), MAPI_MODIFY, &ulType, &~lpFolder);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1189,7 +1190,9 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 		if(lpFolder == NULL)
 		{
 			// Open parent folder of the sent message
-			hr = lpMDB->OpenEntry(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.lpb), nullptr, MAPI_MODIFY, &ulType, &~lpFolder);
+			hr = lpMDB->OpenEntry(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.cb,
+			     reinterpret_cast<ENTRYID *>(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.lpb),
+			     &iid_of(lpFolder), MAPI_MODIFY, &ulType, &~lpFolder);
 			if(hr != hrSuccess)
 				return hr;
 		}
@@ -1942,7 +1945,7 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 	ULONG ulType = 0;
 	
 	//open Root Container.
-	hr = lpMsgStore->OpenEntry(0, nullptr, nullptr, 0, &ulType, &~lpRootFld);
+	hr = lpMsgStore->OpenEntry(0, nullptr, &iid_of(lpRootFld), 0, &ulType, &~lpRootFld);
 	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
 	{
 		ec_log_crit("Unable to open Root Container, error code: 0x%08X", hr);
@@ -1956,7 +1959,9 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 		ec_log_crit("Unable to find PR_IPM_APPOINTMENT_ENTRYID, error code: 0x%08X", hr);
 		return hr;
 	}
-	hr = lpMsgStore->OpenEntry(lpPropDefFld->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropDefFld->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulType, &~lpDefaultFolder);
+	hr = lpMsgStore->OpenEntry(lpPropDefFld->Value.bin.cb,
+	     reinterpret_cast<ENTRYID *>(lpPropDefFld->Value.bin.lpb),
+	     &iid_of(lpDefaultFolder), MAPI_MODIFY, &ulType, &~lpDefaultFolder);
 	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
 	{
 		ec_log_crit("Unable to open IPM_SUBTREE object, error code: 0x%08X", hr);
@@ -2478,9 +2483,13 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 
 	// NON_IPM on a public store, IPM on a normal store
 	if (ptrEntryIDs[0].ulPropTag == sptaTreeProps.aulPropTag[0])
-		hr = lpStore->OpenEntry(ptrEntryIDs[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrEntryIDs[0].Value.bin.lpb), NULL, MAPI_MODIFY, &ulType, &~ptrFolder);
+		hr = lpStore->OpenEntry(ptrEntryIDs[0].Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(ptrEntryIDs[0].Value.bin.lpb),
+		     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
 	else if (ptrEntryIDs[1].ulPropTag == sptaTreeProps.aulPropTag[1])
-		hr = lpStore->OpenEntry(ptrEntryIDs[1].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrEntryIDs[1].Value.bin.lpb), NULL, MAPI_MODIFY, &ulType, &~ptrFolder);
+		hr = lpStore->OpenEntry(ptrEntryIDs[1].Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(ptrEntryIDs[1].Value.bin.lpb),
+		     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
 	else
 		hr = MAPI_E_INVALID_PARAMETER;
 	if (hr != hrSuccess)
@@ -2505,7 +2514,9 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 		auto lpEntryID = PCpropFindProp(ptrRows[0].lpProps, ptrRows[0].cValues, PR_ENTRYID);
 		if (lpEntryID == NULL)
 			return MAPI_E_INVALID_ENTRYID;
-		hr = ptrFolder->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb), NULL, MAPI_MODIFY, &ulType, &~ptrMessage);
+		hr = ptrFolder->OpenEntry(lpEntryID->Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb),
+		     &iid_of(ptrMessage), MAPI_MODIFY, &ulType, &~ptrMessage);
 		if (hr != hrSuccess)
 			return hr;
 	} else {

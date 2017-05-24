@@ -155,7 +155,7 @@ Traditional:
 	int ret = store->GetReceiveFolder(&rcv);
 	if (ret != hrSuccess)
 		goto exit;
-	ret = store->OpenEntry(rcv, nullptr, MAPI_MODIFY, &entry);
+	ret = store->OpenEntry(rcv, &iid_of(entry), MAPI_MODIFY, &entry);
 	if (ret != hrSuccess)
 		goto exit;
 	ret = entry->CreateMessage(nullptr, 0, &msg);

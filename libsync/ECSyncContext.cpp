@@ -358,7 +358,8 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 
 fallback:
 	// The current folder is not being monitored, so get steps the old fashioned way.
-	hr = m_lpStore->OpenEntry(lpEntryID->cb, reinterpret_cast<ENTRYID *>(lpEntryID->lpb), 0, MAPI_DEFERRED_ERRORS, &ulType, &~lpFolder);
+	hr = m_lpStore->OpenEntry(lpEntryID->cb, reinterpret_cast<ENTRYID *>(lpEntryID->lpb),
+	     &iid_of(lpFolder), MAPI_DEFERRED_ERRORS, &ulType, &~lpFolder);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetSyncStatusStream(lpSourceKey, &~lpStream);

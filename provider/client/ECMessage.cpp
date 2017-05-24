@@ -1438,12 +1438,12 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 			hr = GetMsgStore()->CreateStoreEntryID(nullptr, lpsPropUserName->Value.LPSZ, fMapiUnicode, &cbStoreID, &~lpStoreID);
 			if (hr != hrSuccess)
 				return hr;
-			hr = GetMsgStore()->lpSupport->OpenEntry(cbStoreID, lpStoreID, nullptr, MAPI_MODIFY, &ulObjType, &~lpDefMsgStore);
+			hr = GetMsgStore()->lpSupport->OpenEntry(cbStoreID, lpStoreID, &iid_of(lpDefMsgStore), MAPI_MODIFY, &ulObjType, &~lpDefMsgStore);
 			if (hr != hrSuccess)
 				return hr;
 
 			// Open the root folder of the default store to create a new message
-			hr = lpDefMsgStore->OpenEntry(0, nullptr, nullptr, MAPI_MODIFY, &ulObjType, &~lpRootFolder);
+			hr = lpDefMsgStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulObjType, &~lpRootFolder);
 			if (hr != hrSuccess)
 				return hr;
 			hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpNewMessage);

@@ -278,7 +278,7 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 	MsgStorePtr ptrStore;
 	SPropValuePtr ptrName;
 
-	if (m_lpSession->OpenEntry(sFBUser.m_cbEid, sFBUser.m_lpEid, nullptr, 0, &ulObjType, &~ptrUser) == hrSuccess && 
+	if (m_lpSession->OpenEntry(sFBUser.m_cbEid, sFBUser.m_lpEid, &iid_of(ptrUser), 0, &ulObjType, &~ptrUser) == hrSuccess &&
 	    HrGetOneProp(ptrUser, PR_ACCOUNT, &~ptrName) == hrSuccess &&
 	    HrOpenUserMsgStore(m_lpSession, ptrName->Value.LPSZ, &~ptrStore) == hrSuccess)
 	{

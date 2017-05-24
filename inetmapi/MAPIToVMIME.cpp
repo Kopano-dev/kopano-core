@@ -1602,7 +1602,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	    *guid != PSETID_CONTACT_FOLDER_RECIPIENT ||
 	    lpContabEntryID->email_offset > 2)
 		return MAPI_E_NOT_FOUND;
-	hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid), nullptr, 0, &ulObjType, &~lpContact);
+	hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid), &iid_of(lpContact), 0, &ulObjType, &~lpContact);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1794,7 +1794,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 
 		if (sizeof(CONTAB_ENTRYID) > lpEntry->cb || *guid != PSETID_CONTACT_FOLDER_RECIPIENT || lpContabEntryID->email_offset > 2)
 			return hr;
-		hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid), nullptr, 0, &ulObjType, &~lpContact);
+		hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid), &iid_of(lpContact), 0, &ulObjType, &~lpContact);
 		if (hr != hrSuccess)
 			return hr;
 		cNames = ARRAY_SIZE(lpulNamesIDs);

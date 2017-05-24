@@ -334,7 +334,7 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
 	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 
 	HRESULT hr = m_lpUsrFld->OpenEntry(sbSrvEid.cb, reinterpret_cast<ENTRYID *>(sbSrvEid.lpb),
-	             nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
+	             &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
 	if (blCensor && IsPrivate(lpMessage, ulTagPrivate))
@@ -402,7 +402,8 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 		ec_log_err("Error allocating memory, error code: 0x%08X",hr);
 		return hr;
 	}
-	hr = m_lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
+	hr = m_lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
+	     &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
 	
@@ -525,7 +526,7 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 
 			object_ptr<IMessage> lpMessage;
 			hr = m_lpUsrFld->OpenEntry(sbEid.cb, (LPENTRYID)sbEid.lpb,
-			     nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
+			     &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 			if (hr != hrSuccess)
 			{
 				ec_log_debug("Error opening message for ical conversion, error code: 0x%08X", hr);
@@ -583,7 +584,8 @@ HRESULT iCal::HrDelFolder()
 	hr = HrGetOneProp(m_lpActiveStore, PR_IPM_WASTEBASKET_ENTRYID, &~lpWstBoxEid);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = m_lpActiveStore->OpenEntry(lpWstBoxEid->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpWstBoxEid->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpWasteBoxFld);
+	hr = m_lpActiveStore->OpenEntry(lpWstBoxEid->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpWstBoxEid->Value.bin.lpb),
+	     &iid_of(lpWasteBoxFld), MAPI_MODIFY, &ulObjType, &~lpWasteBoxFld);
 	if (hr != hrSuccess)
 	{
 		ec_log_err("Error opening \"Deleted items\" folder, error code: 0x%08X", hr);

@@ -108,7 +108,7 @@ HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, 
 	object_ptr<IMAPIFolder> lpUsrFld;
 	ULONG ulObjType = 0;
 	HRESULT hr = lpMsgStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
-	             nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpUsrFld);
+	             &iid_of(lpUsrFld), MAPI_BEST_ACCESS, &ulObjType, &~lpUsrFld);
 	if(hr != hrSuccess)
 		return hr;
 	hr = HrAddProperty(lpUsrFld, ulPropertyId, bIsFldID, lpwstrProperty);
@@ -233,8 +233,8 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	}
 	
 	sbEid = lpRows->aRow[0].lpProps[0].Value.bin;
-	
-	hr = lpMsgStore->OpenEntry(sbEid.cb, (LPENTRYID)sbEid.lpb,NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *) &lpUsrFld);
+	hr = lpMsgStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
+	     &iid_of(lpUsrFld), MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(&lpUsrFld));
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -459,7 +459,8 @@ HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **l
 	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrSProp);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpSession->OpenEntry(ptrSProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrSProp->Value.bin.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMailUser);
+	hr = lpSession->OpenEntry(ptrSProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrSProp->Value.bin.lpb),
+	     &iid_of(lpMailUser), MAPI_BEST_ACCESS, &ulObjType, &~lpMailUser);
 	if(hr != hrSuccess)
 		return hr;
 	*lppImailUser = lpMailUser.release();
@@ -488,7 +489,7 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolder,
 
 	if (lpFolder == nullptr) {
 		hr = lpSession->OpenEntry(lpsbEid->cb, reinterpret_cast<ENTRYID *>(lpsbEid->lpb),
-		     nullptr, MAPI_BEST_ACCESS, &ulObjType, &~local_fld);
+		     &iid_of(local_fld), MAPI_BEST_ACCESS, &ulObjType, &~local_fld);
 		if(hr != hrSuccess)
 			return hr;
 		lpFolder = local_fld.get();
@@ -530,7 +531,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpMailBoxEid);
 	if (hr != hrSuccess)
 		return false;
-	hr = lpSharedStore->OpenEntry(0, nullptr, nullptr, 0, &ulType, &~lpRootCont);
+	hr = lpSharedStore->OpenEntry(0, nullptr, &iid_of(lpRootCont), 0, &ulType, &~lpRootCont);
 	if (hr != hrSuccess)
 		return false;
 	hr = HrGetOneProp(lpRootCont, PR_FREEBUSY_ENTRYIDS, &~lpProp);
@@ -541,7 +542,8 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 		sbEid = lpProp->Value.MVbin.lpbin[1];
 	else
 		return false;
-	hr = lpSharedStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_BEST_ACCESS, &ulType, &~lpFbMessage);
+	hr = lpSharedStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
+	     &iid_of(lpFbMessage), MAPI_BEST_ACCESS, &ulType, &~lpFbMessage);
 	if (hr != hrSuccess)
 		return false;
 	hr = HrGetOneProp(lpFbMessage, PR_SCHDINFO_DELEGATE_ENTRYIDS, &~lpProp);
@@ -676,7 +678,8 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 	if (PROP_TYPE(lpValRows->aRow[0].lpProps[0].ulPropTag) != PT_BINARY)
 		return MAPI_E_NOT_FOUND;
 	sbEid = lpValRows->aRow[0].lpProps[0].Value.bin;
-	hr = lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpMessage);
+	hr = lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
+	     &iid_of(lpMessage), MAPI_MODIFY, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess)
 		return hr;
 	*lppMessage = lpMessage.release();
@@ -721,7 +724,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	HRESULT hr = lpAddrBook->GetDefaultDir(&cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpAddrBook->OpenEntry(cbEntryId, ptrEntryId, nullptr, 0, &ulObj, &~ptrABDir);
+	hr = lpAddrBook->OpenEntry(cbEntryId, ptrEntryId, &iid_of(ptrABDir), 0, &ulObj, &~ptrABDir);
 	if (hr != hrSuccess)
 		return hr;
 	cUsers = lplstUsers->size();

@@ -255,7 +255,8 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		ec_log_crit("Unable to open default addressbook: 0x%08X", hr);
 		return hr;
 	}
-	hr = ptrAdrBook->OpenEntry(cbDDEntryID, ptrDDEntryID, NULL, 0, &ulObj, &~ptrDefaultDir);
+	hr = ptrAdrBook->OpenEntry(cbDDEntryID, ptrDDEntryID,
+	     &iid_of(ptrDefaultDir), 0, &ulObj, &~ptrDefaultDir);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open GAB: 0x%08X", hr);
 		return hr;
@@ -291,7 +292,9 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 				ec_log_crit("Unable to get entryid to open tenancy Address Book");
 				return MAPI_E_INVALID_PARAMETER;
 			}
-			hr = ptrAdrBook->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb), NULL, 0, &ulObj, &~ptrCompanyDir);
+			hr = ptrAdrBook->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb,
+			     reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb),
+			     &iid_of(ptrCompanyDir), 0, &ulObj, &~ptrCompanyDir);
 			if (hr != hrSuccess) {
 				ec_log_crit("Unable to open tenancy Address Book: 0x%08X", hr);
 				return hr;

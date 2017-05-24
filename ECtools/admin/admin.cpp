@@ -1104,7 +1104,7 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 	hr = HrGetOneProp(lpPublicStore, ulPropTagSubtree, &~lpsPropSubTree);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpPublicStore->OpenEntry(lpsPropSubTree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsPropSubTree->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpFolderSubTree);
+	hr = lpPublicStore->OpenEntry(lpsPropSubTree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsPropSubTree->Value.bin.lpb), &iid_of(lpFolderSubTree), MAPI_MODIFY, &ulObjType, &~lpFolderSubTree);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -3219,7 +3219,7 @@ int main(int argc, char* argv[])
 			}
 
 			// Open the root container for copy the folders
-			hr = lpUserStore->OpenEntry(0, nullptr, nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpRootFolder);
+			hr = lpUserStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_BEST_ACCESS, &ulObjType, &~lpRootFolder);
 			if (hr != hrSuccess) {
 				cerr << "Unable to open root folder of the orphan store, " << getMapiCodeString(hr) << endl;
 				goto exit;

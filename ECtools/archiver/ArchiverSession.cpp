@@ -434,7 +434,7 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 		{2, {PR_ACCOUNT, PR_DISPLAY_NAME}};
 	enum {IDX_ACCOUNT, IDX_DISPLAY_NAME};
 
-	hr = m_ptrSession->OpenEntry(sEntryId.size(), sEntryId, nullptr, MAPI_DEFERRED_ERRORS, &ulType, &~ptrUser);
+	hr = m_ptrSession->OpenEntry(sEntryId.size(), sEntryId, &iid_of(ptrUser), MAPI_DEFERRED_ERRORS, &ulType, &~ptrUser);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrUser->GetProps(sptaUserProps, 0, &cUserProps, &~ptrUserProps);

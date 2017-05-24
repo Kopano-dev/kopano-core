@@ -185,7 +185,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropValue> lpEmailAddress;
 
-	if (lpGroupEntryID == nullptr || lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpGroupEntryID->Value.bin.lpb), nullptr, 0, &ulType, &~lpGroup) != hrSuccess || ulType != MAPI_DISTLIST) {
+	if (lpGroupEntryID == nullptr || lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpGroupEntryID->Value.bin.lpb), &iid_of(lpGroup), 0, &ulType, &~lpGroup) != hrSuccess || ulType != MAPI_DISTLIST) {
 		// Entry id for group was not given, or the group could not be opened, or the entryid was not a group (eg one-off entryid)
 		// Therefore resolve group name, and open that instead.
 		if (lpGroupName == nullptr)
@@ -210,14 +210,14 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 			return MAPI_E_NOT_FOUND;
 
 		// Open resolved entry
-		hr = lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpGroupEntryID->Value.bin.lpb), nullptr, 0, &ulType, &~lpGroup);
-		if(hr != hrSuccess)
-			return hr;
-			
-		if(ulType != MAPI_DISTLIST) {
+		hr = lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpGroupEntryID->Value.bin.lpb), &iid_of(lpGroup), 0, &ulType, &~lpGroup);
+		if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED ||
+		    (hr == hrSuccess && ulType != MAPI_DISTLIST)) {
 			ec_log_debug("Expected group, but opened type %d", ulType);
 			return MAPI_E_INVALID_PARAMETER;
 		}
+		if (hr != hrSuccess)
+			return hr;
 	}
 	hr = HrGetOneProp(lpGroup, PR_EMAIL_ADDRESS_W, &~lpEmailAddress);
 	if(hr != hrSuccess)

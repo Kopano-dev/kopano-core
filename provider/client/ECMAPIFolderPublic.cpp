@@ -492,7 +492,7 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 
 	// remove the shortcut from the shortcut folder
 	object_ptr<IMAPIFolder> lpFolder, lpShortcutFolder;
-	hr = OpenEntry(cbEntryID, lpEntryID, nullptr, 0, &ulObjType, &~lpFolder);
+	hr = OpenEntry(cbEntryID, lpEntryID, &iid_of(lpFolder), 0, &ulObjType, &~lpFolder);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &~lpProp);

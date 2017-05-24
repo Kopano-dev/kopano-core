@@ -163,7 +163,9 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 			/* Only continue when this group has not yet been expanded previously */
 			if (find(lpExpandedGroups->begin(), lpExpandedGroups->end(), lpEntryId->Value.bin) != lpExpandedGroups->end())
 				goto remove_group;
-			hr = lpAddrBook->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), nullptr, 0, &ulObj, &~lpDistlist);
+			hr = lpAddrBook->OpenEntry(lpEntryId->Value.bin.cb,
+			     reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb),
+			     &iid_of(lpDistlist), 0, &ulObj, &~lpDistlist);
 			if (hr != hrSuccess)
 				continue;
 				
@@ -431,7 +433,9 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			lpContabEntryID->email_offset -= 3;
 
 			object_ptr<IMailUser> lpFaxMailuser;
-			hr = lpMAPISession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid), nullptr, 0, &ulObjType, &~lpFaxMailuser);
+			hr = lpMAPISession->OpenEntry(lpContabEntryID->cbeid,
+			     reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid),
+			     &iid_of(lpFaxMailuser), 0, &ulObjType, &~lpFaxMailuser);
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to convert FAX recipient, using %ls: %s (%x)",
 					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
@@ -1138,7 +1142,8 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	    lpContabEntryID->email_offset > 2)
 		return MAPI_E_NOT_FOUND;
 
-	hr = lpUserStore->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(const_cast<BYTE *>(lpContabEntryID->abeid)), nullptr, 0, &ulObjType, &~lpContact);
+	hr = lpUserStore->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(const_cast<BYTE *>(lpContabEntryID->abeid)),
+	     &iid_of(lpContact), 0, &ulObjType, &~lpContact);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to open contact entryid: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -1293,7 +1298,7 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 			level, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	hr = lpAdrBook->OpenEntry(ulDistListCB, lpDistListEID, nullptr, 0, &ulObjType, &~lpDistList);
+	hr = lpAdrBook->OpenEntry(ulDistListCB, lpDistListEID, &iid_of(lpDistList), 0, &ulObjType, &~lpDistList);
 	if (hr != hrSuccess) {
 		ec_log_err("HrFindUserInGroup(): OpenEntry failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -1368,7 +1373,7 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
 	memory_ptr<ENTRYID> lpRepStoreEID;
 	object_ptr<IMsgStore> lpRepStore;
 
-	hr = lpAddrBook->OpenEntry(ulRepresentCB, lpRepresentEID, nullptr, 0, &ulObjType, &~lpRepresenting);
+	hr = lpAddrBook->OpenEntry(ulRepresentCB, lpRepresentEID, &iid_of(lpRepresenting), 0, &ulObjType, &~lpRepresenting);
 	if (hr != hrSuccess) {
 		ec_log_info("Unable to open representing user in addressbook: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -1508,7 +1513,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	}
 
 	// representing entryid is now always a Kopano Entry ID. Open the user so we can log the display name
-	hr = lpAddrBook->OpenEntry(ulRepresentCB, lpRepresentEID, nullptr, 0, &ulObjType, &~lpRepresenting);
+	hr = lpAddrBook->OpenEntry(ulRepresentCB, lpRepresentEID, &iid_of(lpRepresenting), 0, &ulObjType, &~lpRepresenting);
 	if (hr != hrSuccess) {
 		ec_log_err("CheckSendAs(): OpenEntry failed(1) %x", hr);
 		goto exit;
@@ -1522,7 +1527,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	hr = hrSuccess;
 
 	// Open the owner to get the displayname for logging
-	if (lpAddrBook->OpenEntry(ulOwnerCB, lpOwnerEID, nullptr, 0, &ulObjType, &~lpMailboxOwner) != hrSuccess) {
+	if (lpAddrBook->OpenEntry(ulOwnerCB, lpOwnerEID, &iid_of(lpMailboxOwner), 0, &ulObjType, &~lpMailboxOwner) != hrSuccess) {
 		ec_log_err("CheckSendAs(): OpenEntry failed(2) %x", hr);
 		goto exit;
 	}
@@ -1634,7 +1639,7 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	// ignore error, just a name for logging
 
 	// open root container
-	hr = lpRepStore->OpenEntry(0, nullptr, nullptr, 0, &ulObjType, &~lpRepSubtree);
+	hr = lpRepStore->OpenEntry(0, nullptr, &iid_of(lpRepSubtree), 0, &ulObjType, &~lpRepSubtree);
 	if (hr != hrSuccess) {
 		ec_log_notice("CheckDelegate() OpenENtry(rep) failed %x", hr);
 		goto exit;
@@ -1649,7 +1654,9 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
-	hr = lpRepSubtree->OpenEntry(lpRepFBProp->Value.MVbin.lpbin[1].cb, reinterpret_cast<ENTRYID *>(lpRepFBProp->Value.MVbin.lpbin[1].lpb), nullptr, 0, &ulObjType, &~lpRepFBMessage);
+	hr = lpRepSubtree->OpenEntry(lpRepFBProp->Value.MVbin.lpbin[1].cb,
+	     reinterpret_cast<ENTRYID *>(lpRepFBProp->Value.MVbin.lpbin[1].lpb),
+	     &iid_of(lpRepFBMessage), 0, &ulObjType, &~lpRepFBMessage);
 	if (hr != hrSuccess) {
 		ec_log_notice("CheckDelegate() OpenEntry(rep) failed %x", hr);
 		goto exit;

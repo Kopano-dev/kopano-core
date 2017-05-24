@@ -650,7 +650,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 		ec_log_debug("CalDAV::HrHandlePropertySearch GetDefaultDir failed: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-	hr = m_lpSession->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, 0, &ulObjType, &~lpAbCont);
+	hr = m_lpSession->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), &iid_of(lpAbCont), 0, &ulObjType, &~lpAbCont);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandlePropertySearch OpenEntry failed: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -797,7 +797,7 @@ HRESULT CalDAV::HrHandleDelete()
 		ec_log_err("Error finding \"Deleted items\" folder, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-	hr = m_lpDefStore->OpenEntry(lpPropWstBxEID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropWstBxEID->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpWastBoxFld);
+	hr = m_lpDefStore->OpenEntry(lpPropWstBxEID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropWstBxEID->Value.bin.lpb), &iid_of(lpWastBoxFld), MAPI_MODIFY, &ulObjType, &~lpWastBoxFld);
 	if (hr != hrSuccess)
 	{
 		ec_log_err("Error opening \"Deleted items\" folder, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
@@ -1172,7 +1172,7 @@ HRESULT CalDAV::CreateAndGetGuid(SBinary sbEid, ULONG ulPropTag, std::string *lp
 	ULONG ulObjType = 0;
 	memory_ptr<SPropValue> lpProp;
 
-	hr = m_lpActiveStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
+	hr = m_lpActiveStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
 		ec_log_err("Error opening message to add Guid, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
@@ -1358,7 +1358,7 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 			hr = hrSuccess;
 			goto nowaste;
 		}
-		hr = m_lpActiveStore->OpenEntry(lpSpropWbEID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpSpropWbEID->Value.bin.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpWasteBox);
+		hr = m_lpActiveStore->OpenEntry(lpSpropWbEID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpSpropWbEID->Value.bin.lpb), &iid_of(lpWasteBox), MAPI_BEST_ACCESS, &ulObjType, &~lpWasteBox);
 		if(hr != hrSuccess)
 		{
 			hr = hrSuccess;
@@ -1696,7 +1696,8 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 		ec_log_debug("CalDAV::HrHandleMeeting GetProps failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-	hr = m_lpDefStore->OpenEntry(lpsGetPropVal[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsGetPropVal[0].Value.bin.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpOutbox);
+	hr = m_lpDefStore->OpenEntry(lpsGetPropVal[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsGetPropVal[0].Value.bin.lpb),
+	     &iid_of(lpOutbox), MAPI_BEST_ACCESS, &ulObjType, &~lpOutbox);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandleMeeting OpenEntry failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1761,8 +1762,9 @@ HRESULT CalDAV::HrConvertToIcal(const SPropValue *lpEid, MapiToICal *lpMtIcal,
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 
-	hr = m_lpActiveStore->OpenEntry(lpEid->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEid->Value.bin.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
-	if (hr != hrSuccess && ulObjType == MAPI_MESSAGE)
+	hr = m_lpActiveStore->OpenEntry(lpEid->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEid->Value.bin.lpb),
+	     &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
+	if (hr != hrSuccess || ulObjType != MAPI_MESSAGE)
 	{
 		ec_log_err("Error opening calendar entry, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
@@ -2088,7 +2090,7 @@ HRESULT CalDAV::HrGetCalendarOrder(SBinary sbEid, std::string *lpstrCalendarOrde
 	ULONG ulResult = 0;
 
 	lpstrCalendarOrder->assign("2");
-	hr = m_lpActiveStore->OpenEntry(0, nullptr, nullptr, 0, &ulObjType, &~lpRootCont);
+	hr = m_lpActiveStore->OpenEntry(0, nullptr, &iid_of(lpRootCont), 0, &ulObjType, &~lpRootCont);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
 		ec_log_err("Error opening root Container of user %ls, error code: (0x%08X)", m_wstrUser.c_str(), hr);
 		return hr;
