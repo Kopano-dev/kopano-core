@@ -144,13 +144,8 @@ void __stdcall FreePadrlist(LPADRLIST lpAdrlist) {
 // M4LMAPIAdviseSink is in mapidefs.cpp
 HRESULT __stdcall HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext, LPMAPIADVISESINK *lppSink)
 {
-	auto lpSink = new(std::nothrow) M4LMAPIAdviseSink(lpFunction, lpContext);
-	if (lpSink == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	lpSink->AddRef();
-
-	*lppSink = lpSink;
-	return hrSuccess;
+	return alloc_wrap<M4LMAPIAdviseSink>(lpFunction, lpContext)
+	       .as(IID_IMAPIAdviseSink, lppSink);
 }
 
 // Linux always has multithreaded advise sinks

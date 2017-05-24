@@ -28,6 +28,7 @@
 #include <cstring>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/Util.h>
 #include "m4l.mapix.h"
 #include "m4l.mapispi.h"
 #include "m4l.debug.h"
@@ -2447,7 +2448,6 @@ HRESULT __stdcall MAPILogonEx(ULONG ulUIParam, const TCHAR *lpszProfileName,
     const TCHAR *lpszPassword, ULONG ulFlags, IMAPISession **lppSession)
 {
 	HRESULT hr = hrSuccess;
-	LPMAPISESSION ms = NULL;
 	object_ptr<IMsgServiceAdmin> sa;
 	string strProfname;
 
@@ -2477,16 +2477,10 @@ HRESULT __stdcall MAPILogonEx(ULONG ulUIParam, const TCHAR *lpszProfileName,
 		ec_log_err("MAPILogonEx(): AdminServices fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
-
-	ms = new(std::nothrow) M4LMAPISession(lpszProfileName, (M4LMsgServiceAdmin *)sa.get());
-	if (!ms) {
-		ec_log_err("MAPILogonEx(): M4LMAPISession fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-
-	hr = ms->QueryInterface(IID_IMAPISession, (void**)lppSession);
+	hr = alloc_wrap<M4LMAPISession>(lpszProfileName, static_cast<M4LMsgServiceAdmin *>(sa.get()))
+	     .as(IID_IMAPISession, lppSession);
 	if (hr != hrSuccess)
-		ec_log_err("MAPILogonEx(): QueryInterface fail %x: %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_err("MAPILogonEx(): M4LMAPISession fail %x: %s", hr, GetMAPIErrorMessage(hr));
 	return hr;
 }
 

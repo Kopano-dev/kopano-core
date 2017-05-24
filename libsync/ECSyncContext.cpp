@@ -34,7 +34,7 @@
 #include <kopano/ECTags.h>
 #include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>
-
+#include <kopano/Util.h>
 #include <mapix.h>
 #include <kopano/mapiext.h>
 #include <mapiutil.h>
@@ -122,14 +122,8 @@ static HRESULT HrCreateECChangeAdviseSink(ECSyncContext *lpsSyncContext,
     ECChangeAdviseSink::NOTIFYCALLBACK fnCallback,
     IECChangeAdviseSink **lppAdviseSink)
 {
-	object_ptr<ECChangeAdviseSink> lpAdviseSink(new(std::nothrow) ECChangeAdviseSink(lpsSyncContext, fnCallback));
-	if (lpAdviseSink == NULL)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	HRESULT hr = lpAdviseSink->QueryInterface(IID_IECChangeAdviseSink,
-		reinterpret_cast<void **>(lppAdviseSink));
-	if (hr == hrSuccess)
-		lpAdviseSink.release();
-	return hr;
+	return alloc_wrap<ECChangeAdviseSink>(lpsSyncContext, fnCallback)
+	       .as(IID_IECChangeAdviseSink, lppAdviseSink);
 }
 
 ECSyncContext::ECSyncContext(LPMDB lpStore, ECLogger *lpLogger)
