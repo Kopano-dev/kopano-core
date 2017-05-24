@@ -575,7 +575,7 @@ FILETIME FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n);
 extern _kc_export SCODE ScCreateConversationIndex(ULONG parent_size, LPBYTE parent, ULONG *conv_index_size, LPBYTE *conv_index);
 
 /* Store support */
-extern _kc_export HRESULT WrapStoreEntryID(ULONG flags, LPTSTR dllname, ULONG eid_size, LPENTRYID eid, ULONG *ret_size, LPENTRYID *ret);
+extern _kc_export HRESULT WrapStoreEntryID(ULONG flags, const TCHAR *dllname, ULONG eid_size, const ENTRYID *eid, ULONG *ret_size, LPENTRYID *ret);
 
 /* RTF Sync Utilities */
 

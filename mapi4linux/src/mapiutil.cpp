@@ -109,8 +109,10 @@ SCODE __stdcall PropCopyMore( LPSPropValue lpSPropValueDest,  LPSPropValue lpSPr
 	return hr;
 }
 
-HRESULT __stdcall WrapStoreEntryID(ULONG ulFlags, LPTSTR lpszDLLName, ULONG cbOrigEntry,
-						 LPENTRYID lpOrigEntry, ULONG *lpcbWrappedEntry, LPENTRYID *lppWrappedEntry) {
+HRESULT __stdcall WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
+    ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,
+    ENTRYID **lppWrappedEntry)
+{
 	HRESULT hr = hrSuccess;
 	ULONG cbDLLName = 0;
 	ULONG cbPad = 0;

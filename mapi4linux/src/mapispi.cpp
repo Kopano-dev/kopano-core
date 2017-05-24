@@ -579,8 +579,10 @@ HRESULT M4LMAPISupport::StatusRecips(LPMESSAGE lpMessage, LPADRLIST lpRecipList)
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::WrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, ULONG * lpcbWrappedEntry,
-										 LPENTRYID * lppWrappedEntry) {
+HRESULT M4LMAPISupport::WrapStoreEntryID(ULONG cbOrigEntry,
+    const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,
+    ENTRYID **lppWrappedEntry)
+{
 	// get the dll name from SVCService
 	HRESULT hr = hrSuccess;
 	const SPropValue *lpDLLName = NULL;

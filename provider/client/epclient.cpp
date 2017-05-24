@@ -365,7 +365,7 @@ initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 	      static_cast<LPTSTR *>(&~d.store_name));
 	if (ret != hrSuccess)
 		return ret;
-	ret = WrapStoreEntryID(0, reinterpret_cast<LPTSTR>(const_cast<char *>(WCLIENT_DLL_NAME)),
+	ret = WrapStoreEntryID(0, reinterpret_cast<const TCHAR *>(WCLIENT_DLL_NAME),
 	      d.eid_size, d.eid, &d.wrap_eid_size, &~d.wrap_eid);
 	if (ret != hrSuccess)
 		return ret;

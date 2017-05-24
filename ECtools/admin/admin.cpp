@@ -998,8 +998,8 @@ static HRESULT CreateOrphanStoreEntryID(const char *lpServerUrl,
 		return hr;
 	memcpy(lpNewEntryID, lpEntryID, cbEntryID);
 	memcpy(reinterpret_cast<unsigned char *>(lpNewEntryID.get()) + cbEntryID - 4, lpServerUrl, cbServerURL + 4);
-	return WrapStoreEntryID(0, (LPTSTR)"zarafa6client.dll", cbNewEntryID,
-	       lpNewEntryID, lpcbEntryID, lppEntryID);
+	return WrapStoreEntryID(0, reinterpret_cast<const TCHAR *>("zarafa6client.dll"),
+	       cbNewEntryID, lpNewEntryID, lpcbEntryID, lppEntryID);
 }
 
 /**

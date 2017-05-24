@@ -215,8 +215,7 @@ public:
     virtual HRESULT CompleteMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) = 0; 
     virtual HRESULT StoreLogoffTransports(ULONG * lpulFlags) = 0; 
     virtual HRESULT StatusRecips(LPMESSAGE lpMessage, LPADRLIST lpRecipList) = 0; 
-    virtual HRESULT WrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, ULONG * lpcbWrappedEntry,
-				     LPENTRYID * lppWrappedEntry) = 0; 
+	virtual HRESULT WrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,ENTRYID **lppWrappedEntry) = 0;
     virtual HRESULT ModifyProfile(ULONG ulFlags) = 0; 
 
     virtual HRESULT IStorageFromStream(LPUNKNOWN lpUnkIn, LPCIID lpInterface, ULONG ulFlags, LPSTORAGE * lppStorageOut) = 0; 

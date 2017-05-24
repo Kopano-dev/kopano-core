@@ -1279,7 +1279,8 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 			lpTmpTransport->HrLogOff();
 		}
 	}
-	return WrapStoreEntryID(0, (LPTSTR)WCLIENT_DLL_NAME, cbStoreEntryID, lpStoreEntryID, lpcbEntryID, lppEntryID);
+	return WrapStoreEntryID(0, reinterpret_cast<const TCHAR *>(WCLIENT_DLL_NAME),
+	       cbStoreEntryID, lpStoreEntryID, lpcbEntryID, lppEntryID);
 }
 
 HRESULT ECMsgStore::CreateStoreEntryID2(ULONG cValues, LPSPropValue lpProps, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
@@ -2148,8 +2149,8 @@ HRESULT ECMsgStore::ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbSt
 	HRESULT hr = lpTransport->HrResolveStore(lpGuid, lpulUserID, &cbStoreEntryID, &~lpStoreEntryID);
 	if (hr != hrSuccess)
 		return hr;
-	return WrapStoreEntryID(0, (LPTSTR)WCLIENT_DLL_NAME, cbStoreEntryID,
-	       lpStoreEntryID, lpcbStoreID, lppStoreID);
+	return WrapStoreEntryID(0, reinterpret_cast<const TCHAR *>(WCLIENT_DLL_NAME),
+	       cbStoreEntryID, lpStoreEntryID, lpcbStoreID, lppStoreID);
 }
 
 HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp *lpFolderPropSet, unsigned int ulPropTag, unsigned int ulMVPos)

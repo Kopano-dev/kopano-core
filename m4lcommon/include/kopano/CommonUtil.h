@@ -56,7 +56,7 @@ extern _kc_export HRESULT GetClientVersion(unsigned int *);
 extern _kc_export HRESULT OpenSubFolder(LPMDB, const wchar_t *folder, wchar_t psep, bool is_public, bool create_folder, LPMAPIFOLDER *subfolder);
 extern _kc_export HRESULT HrOpenDefaultCalendar(LPMDB, LPMAPIFOLDER *default_folder);
 extern _kc_export HRESULT HrGetAllProps(IMAPIProp *prop, ULONG flags, ULONG *nvals, LPSPropValue *props);
-extern _kc_export HRESULT __stdcall UnWrapStoreEntryID(ULONG eid_size, LPENTRYID eid, ULONG *ret_size, LPENTRYID *ret);
+extern _kc_export HRESULT __stdcall UnWrapStoreEntryID(ULONG eid_size, const ENTRYID *eid, ULONG *ret_size, ENTRYID **ret);
 
 // Auto-accept settings
 extern _kc_export HRESULT HrGetRemoteAdminStore(IMAPISession *, IMsgStore *, LPCTSTR server, ULONG flags, IMsgStore **ret);

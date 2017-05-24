@@ -159,7 +159,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	hr = ptrUnknown->QueryInterface(IID_ECMsgStore, &~ptrOnlineStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = UnWrapStoreEntryID(lpStoreEID->cb, (LPENTRYID)lpStoreEID->lpb, &cbEntryID, &~ptrEntryID);
+	hr = UnWrapStoreEntryID(lpStoreEID->cb, reinterpret_cast<ENTRYID *>(lpStoreEID->lpb), &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetServerURLFromStoreEntryId(cbEntryID, ptrEntryID, ServerURL, &bIsPseudoUrl);

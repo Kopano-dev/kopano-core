@@ -2058,7 +2058,9 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
  * @retval MAPI_E_INVALID_ENTRYID
  *				The entry ID is not valid. It shouyld be a wrapped entry identifier
  */
-HRESULT __stdcall UnWrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, ULONG *lpcbUnWrappedEntry, LPENTRYID *lppUnWrappedEntry)
+HRESULT __stdcall UnWrapStoreEntryID(ULONG cbOrigEntry,
+    const ENTRYID *lpOrigEntry, ULONG *lpcbUnWrappedEntry,
+    ENTRYID **lppUnWrappedEntry)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cbRemove = 0;

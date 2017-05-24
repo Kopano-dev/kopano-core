@@ -137,8 +137,7 @@ public:
 	virtual HRESULT __stdcall CompleteMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID); 
 	virtual HRESULT __stdcall StoreLogoffTransports(ULONG * lpulFlags); 
 	virtual HRESULT __stdcall StatusRecips(LPMESSAGE lpMessage, LPADRLIST lpRecipList); 
-	virtual HRESULT __stdcall WrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, ULONG * lpcbWrappedEntry,
-									 LPENTRYID * lppWrappedEntry); 
+	virtual HRESULT __stdcall WrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry, ENTRYID **lppWrappedEntry);
 	virtual HRESULT __stdcall ModifyProfile(ULONG ulFlags); 
 
 	virtual HRESULT __stdcall IStorageFromStream(LPUNKNOWN lpUnkIn, LPCIID lpInterface, ULONG ulFlags, LPSTORAGE * lppStorageOut); 

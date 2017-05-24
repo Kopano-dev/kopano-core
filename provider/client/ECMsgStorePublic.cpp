@@ -614,7 +614,7 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 		}
  		if(hr != hrSuccess)
 			goto exit;
-		hr = WrapStoreEntryID(0, (LPTSTR)WCLIENT_DLL_NAME, cbStoreEntryID, lpStoreEntryID, &cbEntryId, &~lpEntryId);
+		hr = WrapStoreEntryID(0, reinterpret_cast<const TCHAR *>(WCLIENT_DLL_NAME), cbStoreEntryID, lpStoreEntryID, &cbEntryId, &~lpEntryId);
 		if(hr != hrSuccess)
 			goto exit;
 
