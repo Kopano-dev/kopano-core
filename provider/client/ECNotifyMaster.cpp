@@ -81,10 +81,8 @@ HRESULT ECNotifyMaster::ConnectToSession()
 	scoped_rlock biglock(m_hMutex);
 
 	/* This function can be called from NotifyWatch, and could race against StopNotifyWatch */
-	if (m_bThreadExit) {
-		hr = MAPI_E_END_OF_SESSION;
-		goto exit;
-	}
+	if (m_bThreadExit)
+		return MAPI_E_END_OF_SESSION;
 
 	/*
 	 * Cancel connection IO operations before switching Transport.
@@ -92,7 +90,7 @@ HRESULT ECNotifyMaster::ConnectToSession()
 	if (m_lpTransport) {
 		hr = m_lpTransport->HrCancelIO();
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		m_lpTransport->Release();
 		m_lpTransport = NULL;
 	}
@@ -100,9 +98,7 @@ HRESULT ECNotifyMaster::ConnectToSession()
 	/* Open notification transport */
 	hr = m_lpSessionGroupData->GetTransport(&m_lpTransport);
 	if (hr != hrSuccess)
-		goto exit;
-
-exit:
+		return hr;
 	return hr;
 }
 
@@ -176,32 +172,25 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 
 	/* Thread is already running */
 	if (m_bThreadRunning)
-		goto exit;
-
+		return hr;
 	hr = ConnectToSession();
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	/* Make thread joinable which we need during shutdown */
 	pthread_attr_t m_hAttrib;
 	pthread_attr_init(&m_hAttrib);
 	pthread_attr_setdetachstate(&m_hAttrib, PTHREAD_CREATE_JOINABLE);
 	/* 1Mb of stack space per thread */
-	if (pthread_attr_setstacksize(&m_hAttrib, 1024 * 1024)) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-	if (pthread_create(&m_hThread, &m_hAttrib, NotifyWatch, (void *)this)) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	if (pthread_attr_setstacksize(&m_hAttrib, 1024 * 1024))
+		return MAPI_E_CALL_FAILED;
+	if (pthread_create(&m_hThread, &m_hAttrib, NotifyWatch, static_cast<void *>(this)))
+		return MAPI_E_CALL_FAILED;
 
 	pthread_attr_destroy(&m_hAttrib);
 	set_thread_name(m_hThread, "NotifyThread");
 
 	m_bThreadRunning = TRUE;
-
-exit:
 	return hr;
 }
 
@@ -213,7 +202,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 
 	/* Thread was already halted, or connection is broken */
 	if (!m_bThreadRunning)
-		goto exit;
+		return hr;
 
 	/* Let the thread exit during its busy looping */
 	biglock.lock();
@@ -227,7 +216,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 		hr = m_lpTransport->HrClone(&~lpTransport);
 		if (hr != hrSuccess) {
 			biglock.unlock();
-			goto exit;
+			return hr;
 		}
     
 		lpTransport->HrLogOff();
@@ -240,8 +229,6 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 		ec_log_debug("ECNotifyMaster::StopNotifyWatch: Invalid thread join");
 
 	m_bThreadRunning = FALSE;
-
-exit:
 	return hr;
 }
 
@@ -262,14 +249,14 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 		memset(&notifications, 0, sizeof(notifications));
 
 		if (pNotifyMaster->m_bThreadExit)
-			goto exit;
+			return nullptr;
 
 		/* 'exitable' sleep before reconnect */
 		if (bReconnect) {
 			for (ULONG i = 10; i > 0; --i) {
 				Sleep(100);
 				if (pNotifyMaster->m_bThreadExit)
-					goto exit;
+					return nullptr;
 			}
 		}
 
@@ -316,7 +303,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			}
 
 			if (pNotifyMaster->m_bThreadExit)
-				goto exit;
+				return nullptr;
 			else {
 				// We have a new session ID, notify reload
 				scoped_rlock lock(pNotifyMaster->m_hMutex);
@@ -374,8 +361,6 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			pNotifyArray = NULL;
 		}
 	}
-
-exit:
 	return NULL;
 }
 

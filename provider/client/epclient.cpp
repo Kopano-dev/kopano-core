@@ -138,11 +138,8 @@ HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
 	object_ptr<ECMSProviderSwitch> lpMSProvider;
 
 	// Check the interface version is ok
-	if(ulMAPIver != CURRENT_SPI_VERSION) {
-		hr = MAPI_E_VERSION;
-		goto exit;
-	}
-
+	if (ulMAPIver != CURRENT_SPI_VERSION)
+		return MAPI_E_VERSION;
 	*lpulProviderVer = CURRENT_SPI_VERSION;
 	
 	// Save the pointers for later use
@@ -156,11 +153,8 @@ HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
 	// DLL is closed (same on linux, but then for the shared library);
 	hr = ECMSProviderSwitch::Create(ulFlags, &~lpMSProvider);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpMSProvider->QueryInterface(IID_IMSProvider, (void **)ppmsp); 
-
-exit:
 	return hr;
 }
 

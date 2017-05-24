@@ -70,22 +70,15 @@ HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	object_ptr<ZCABProvider> lpABProvider;
 
 	if (ulMAPIVer < CURRENT_SPI_VERSION)
-	{
-		hr = MAPI_E_VERSION;
-		goto exit;
-	}
+		return MAPI_E_VERSION;
 
 	// create provider and query interface.
 	hr = ZCABProvider::Create(&~lpABProvider);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpABProvider->QueryInterface(IID_IABProvider, (void **)lppABProvider);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lpulProviderVer = CURRENT_SPI_VERSION;
-
-exit:
 	return hr;
 }

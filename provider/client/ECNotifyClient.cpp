@@ -308,21 +308,18 @@ HRESULT ECNotifyClient::Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPM
 	
 	hr = RegisterAdvise(cbKey, lpKey, ulEventMask, false, lpAdviseSink, &ulConnection);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//Request the advice
 	hr = m_lpTransport->HrSubscribe(cbKey, lpKey, ulConnection, ulEventMask);
 	if(hr != hrSuccess) {
 		UnRegisterAdvise(ulConnection);
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
+		return MAPI_E_NO_SUPPORT;
 	} 
 	
 	// Set out value
 	*lpulConnection = ulConnection;
 	hr = hrSuccess;
-
-exit:
 	return hr;
 }
 
@@ -380,13 +377,10 @@ HRESULT ECNotifyClient::Unadvise(ULONG ulConnection)
 	// Logoff the advisor
 	hr = m_lpTransport->HrUnSubscribe(ulConnection);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = UnRegisterAdvise(ulConnection);
 	if (hr != hrSuccess)
-		goto exit;
-
-exit:
+		return hr;
 	return hr;
 }
 
