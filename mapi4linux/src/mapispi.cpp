@@ -50,13 +50,6 @@ HRESULT M4LMAPIGetSession::GetMAPISession(LPUNKNOWN *lppSession)
 	return hr;
 }
 
-// iunknown passthru
-ULONG M4LMAPIGetSession::AddRef() {
-    return M4LUnknown::AddRef();
-}
-ULONG M4LMAPIGetSession::Release() {
-    return M4LUnknown::Release();
-}
 HRESULT M4LMAPIGetSession::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 
@@ -624,13 +617,6 @@ HRESULT M4LMAPISupport::GetSvcConfigSupportObj(ULONG ulFlags, LPMAPISUP * lppSvc
     return MAPI_E_NO_SUPPORT;
 }
 
-// iunknown passthru
-ULONG M4LMAPISupport::AddRef() {
-    return M4LUnknown::AddRef();
-}
-ULONG M4LMAPISupport::Release() {
-    return M4LUnknown::Release();
-}
 HRESULT M4LMAPISupport::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 

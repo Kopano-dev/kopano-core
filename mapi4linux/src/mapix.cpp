@@ -412,15 +412,6 @@ exit:
     return hr;
 }
 
-// iunknown passthru
-ULONG M4LProfAdmin::AddRef() {
-	ULONG ulRef = M4LUnknown::AddRef();
-	return ulRef;
-}
-ULONG M4LProfAdmin::Release() {
-	ULONG ulRef = M4LUnknown::Release();
-	return ulRef;
-}
 HRESULT M4LProfAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 
@@ -935,15 +926,6 @@ exit:
 	return hr;
 }
 
-// iunknown passthru
-ULONG M4LMsgServiceAdmin::AddRef() {
-    ULONG ulRef = M4LUnknown::AddRef();
-	return ulRef;
-}
-ULONG M4LMsgServiceAdmin::Release() {
-    ULONG ulRef = M4LUnknown::Release();
-	return ulRef;
-}
 HRESULT M4LMsgServiceAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 
@@ -1611,13 +1593,6 @@ HRESULT M4LMAPISession::PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULO
 	return MAPI_E_NO_SUPPORT;
 }
 
-// iunknown passthru
-ULONG M4LMAPISession::AddRef() {
-    return M4LUnknown::AddRef();
-}
-ULONG M4LMAPISession::Release() {
-    return M4LUnknown::Release();
-}
 HRESULT M4LMAPISession::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 
@@ -2366,90 +2341,6 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 	}
 exit:
 	return hr;
-}
-
-    // imapiprop passthru
-// maybe not all functions should be passed though?
-HRESULT M4LAddrBook::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
-	HRESULT hr = M4LMAPIProp::GetLastError(hResult, ulFlags, lppMAPIError);
-	return hr;
-}
-
-HRESULT M4LAddrBook::SaveChanges(ULONG ulFlags) {
-	HRESULT hr = M4LMAPIProp::SaveChanges(ulFlags);
-	return hr;
-}
-
-HRESULT M4LAddrBook::GetProps(const SPropTagArray *lpPropTagArray,
-    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
-{
-	HRESULT hr = M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
-	return hr;
-}
-
-HRESULT M4LAddrBook::GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray) {
-	HRESULT hr = M4LMAPIProp::GetPropList(ulFlags, lppPropTagArray);
-	return hr;
-}
-
-HRESULT M4LAddrBook::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk) {
-	HRESULT hr = M4LMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-	return hr;
-}
-
-HRESULT M4LAddrBook::SetProps(ULONG cValues, const SPropValue *lpPropArray,
-    SPropProblemArray **lppProblems)
-{
-	HRESULT hr = M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
-	return hr;
-}
-
-HRESULT M4LAddrBook::DeleteProps(const SPropTagArray *lpPropTagArray,
-    SPropProblemArray **lppProblems)
-{
-	HRESULT hr = M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
-	return hr;
-}
-
-HRESULT M4LAddrBook::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
-    const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
-    ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	HRESULT hr = M4LMAPIProp::CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam,
-									 lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-	return hr;
-}
-
-HRESULT M4LAddrBook::CopyProps(const SPropTagArray *lpIncludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	HRESULT hr = M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface,
-										lpDestObj, ulFlags, lppProblems);
-	return hr;
-}
-
-HRESULT M4LAddrBook::GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
-									 LPMAPINAMEID** lpppPropNames) {
-	HRESULT hr = M4LMAPIProp::GetNamesFromIDs(lppPropTags, lpPropSetGuid, ulFlags, lpcPropNames, lpppPropNames);
-	return hr;
-}
-
-HRESULT M4LAddrBook::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags) {
-	HRESULT hr = M4LMAPIProp::GetIDsFromNames(cPropNames, lppPropNames, ulFlags, lppPropTags);
-	return hr;
-}
-
-    // iunknown passthru
-ULONG M4LAddrBook::AddRef() {
-	ULONG ulRef = M4LUnknown::AddRef();
-	return ulRef;
-}
-
-ULONG M4LAddrBook::Release() {
-	ULONG ulRef = M4LUnknown::Release();
-	return ulRef;
 }
 
 HRESULT M4LAddrBook::QueryInterface(REFIID refiid, void **lpvoid) {

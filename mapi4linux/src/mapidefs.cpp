@@ -322,13 +322,6 @@ HRESULT M4LMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropName
 	return MAPI_E_NO_SUPPORT;
 }
 
-// iunknown passthru
-ULONG M4LMAPIProp::AddRef() {
-	return M4LUnknown::AddRef();
-}
-ULONG M4LMAPIProp::Release() {
-	return M4LUnknown::Release();
-}
 HRESULT M4LMAPIProp::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 	if (refiid == IID_IMAPIProp) {
@@ -369,73 +362,6 @@ HRESULT M4LProfSect::FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENT
 	return MAPI_E_NO_SUPPORT;
 }
 
-// IMAPIProp passthru
-HRESULT M4LProfSect::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
-	return M4LMAPIProp::GetLastError(hResult, ulFlags, lppMAPIError);
-}
-
-HRESULT M4LProfSect::SaveChanges(ULONG ulFlags) {
-	return M4LMAPIProp::SaveChanges(ulFlags);
-}
-
-HRESULT M4LProfSect::GetProps(const SPropTagArray *lpPropTagArray,
-    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
-{
-	return M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
-}
-
-HRESULT M4LProfSect::GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray) {
-	return M4LMAPIProp::GetPropList(ulFlags, lppPropTagArray);
-}
-
-HRESULT M4LProfSect::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk) {
-	return M4LMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-}
-
-HRESULT M4LProfSect::SetProps(ULONG cValues, const SPropValue *lpPropArray,
-    SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
-}
-
-HRESULT M4LProfSect::DeleteProps(const SPropTagArray *lpPropTagArray,
-    SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
-}
-
-HRESULT M4LProfSect::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
-    const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
-    ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam,
-							   lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-}
-
-HRESULT M4LProfSect::CopyProps(const SPropTagArray *lpIncludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-}
-
-HRESULT M4LProfSect::GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
-									 LPMAPINAMEID** lpppPropNames) {
-	return M4LMAPIProp::GetNamesFromIDs(lppPropTags, lpPropSetGuid, ulFlags, lpcPropNames, lpppPropNames);
-}
-
-HRESULT M4LProfSect::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags) {
-	return M4LMAPIProp::GetIDsFromNames(cPropNames, lppPropNames, ulFlags, lppPropTags);
-}
-
-// iunknown passthru
-ULONG M4LProfSect::AddRef() {
-	return M4LUnknown::AddRef();
-}
-ULONG M4LProfSect::Release() {
-	return M4LUnknown::Release();
-}
 HRESULT M4LProfSect::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 
@@ -556,13 +482,6 @@ HRESULT M4LMAPITable::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPB
 	return MAPI_E_NO_SUPPORT;
 }
 
-// iunknown passthru
-ULONG M4LMAPITable::AddRef() {
-	return M4LUnknown::AddRef();
-}
-ULONG M4LMAPITable::Release() {
-	return M4LUnknown::Release();
-}
 HRESULT M4LMAPITable::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 
@@ -819,13 +738,6 @@ exit:
 	return hr;
 }
 
-// iunknown passthru
-ULONG M4LProviderAdmin::AddRef() {
-	return M4LUnknown::AddRef();
-}
-ULONG M4LProviderAdmin::Release() {
-	return M4LUnknown::Release();
-}
 HRESULT M4LProviderAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 
@@ -854,13 +766,6 @@ ULONG M4LMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) 
 	return this->lpFn(this->lpContext, cNotif, lpNotifications);
 }
 
-// iunknown passthru
-ULONG M4LMAPIAdviseSink::AddRef() {
-	return M4LUnknown::AddRef();
-}
-ULONG M4LMAPIAdviseSink::Release() {
-	return M4LUnknown::Release();
-}
 HRESULT M4LMAPIAdviseSink::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 	if (refiid == IID_IMAPIAdviseSink) {
@@ -898,72 +803,6 @@ HRESULT M4LMAPIContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRe
 	return MAPI_E_NO_SUPPORT;
 }
 
-// imapiprop passthru
-HRESULT M4LMAPIContainer::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
-	return M4LMAPIProp::GetLastError(hResult, ulFlags, lppMAPIError);
-}
-
-HRESULT M4LMAPIContainer::SaveChanges(ULONG ulFlags) {
-	return M4LMAPIProp::SaveChanges(ulFlags);
-}
-
-HRESULT M4LMAPIContainer::GetProps(const SPropTagArray *lpPropTagArray,
-    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
-{
-	return M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
-}
-
-HRESULT M4LMAPIContainer::GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray) {
-	return M4LMAPIProp::GetPropList(ulFlags, lppPropTagArray);
-}
-
-HRESULT M4LMAPIContainer::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk) {
-	return M4LMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-}
-
-HRESULT M4LMAPIContainer::SetProps(ULONG cValues, const SPropValue *lpPropArray,
-    SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
-}
-
-HRESULT M4LMAPIContainer::DeleteProps(const SPropTagArray *lpPropTagArray,
-    SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
-}
-
-HRESULT M4LMAPIContainer::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
-    const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
-    ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-}
-
-HRESULT M4LMAPIContainer::CopyProps(const SPropTagArray *lpIncludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-}
-
-HRESULT M4LMAPIContainer::GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
-										  LPMAPINAMEID** lpppPropNames) {
-	return M4LMAPIProp::GetNamesFromIDs(lppPropTags, lpPropSetGuid, ulFlags, lpcPropNames, lpppPropNames);
-}
-
-HRESULT M4LMAPIContainer::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags) {
-	return M4LMAPIProp::GetIDsFromNames(cPropNames, lppPropNames, ulFlags, lppPropTags);
-}
-
-// iunknown passthru
-ULONG M4LMAPIContainer::AddRef() {
-	return M4LUnknown::AddRef();
-}
-ULONG M4LMAPIContainer::Release() {
-	return M4LUnknown::Release();
-}
 HRESULT M4LMAPIContainer::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 	if (refiid == IID_IMAPIContainer) {
@@ -1003,13 +842,6 @@ HRESULT M4LABContainer::DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) {
 HRESULT M4LABContainer::ResolveNames(const SPropTagArray *, ULONG flags,
     LPADRLIST, LPFlagList)
 {
-	return MAPI_E_NO_SUPPORT;
-}
-
-// 
-// imapicontainer passthru
-//
-HRESULT M4LABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	return MAPI_E_NO_SUPPORT;
 }
 
@@ -1130,80 +962,6 @@ HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 	return lpABLogon->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 }
 
-HRESULT M4LABContainer::SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) {
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRestriction, LPENTRYLIST* lppContainerList, ULONG* lpulSearchState) {
-	return MAPI_E_NO_SUPPORT;
-}
-
-// imapiprop passthru
-HRESULT M4LABContainer::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
-	return M4LMAPIProp::GetLastError(hResult, ulFlags, lppMAPIError);
-}
-
-HRESULT M4LABContainer::SaveChanges(ULONG ulFlags) {
-	return M4LMAPIProp::SaveChanges(ulFlags);
-}
-
-HRESULT M4LABContainer::GetProps(const SPropTagArray *lpPropTagArray,
-    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
-{
-	return M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
-}
-
-HRESULT M4LABContainer::GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray) {
-	return M4LMAPIProp::GetPropList(ulFlags, lppPropTagArray);
-}
-
-HRESULT M4LABContainer::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk) {
-	return M4LMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-}
-
-HRESULT M4LABContainer::SetProps(ULONG cValues, const SPropValue *lpPropArray,
-    SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
-}
-
-HRESULT M4LABContainer::DeleteProps(const SPropTagArray *lpPropTagArray,
-    SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
-}
-
-HRESULT M4LABContainer::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
-    const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
-    ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-}
-
-HRESULT M4LABContainer::CopyProps(const SPropTagArray *lpIncludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	return M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-}
-
-HRESULT M4LABContainer::GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
-										  LPMAPINAMEID** lpppPropNames) {
-	return M4LMAPIProp::GetNamesFromIDs(lppPropTags, lpPropSetGuid, ulFlags, lpcPropNames, lpppPropNames);
-}
-
-HRESULT M4LABContainer::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags) {
-	return M4LMAPIProp::GetIDsFromNames(cPropNames, lppPropNames, ulFlags, lppPropTags);
-}
-
-// iunknown passthru
-ULONG M4LABContainer::AddRef() {
-	return M4LUnknown::AddRef();
-}
-ULONG M4LABContainer::Release() {
-	return M4LUnknown::Release();
-}
 HRESULT M4LABContainer::QueryInterface(REFIID refiid, void **lpvoid) {
 	HRESULT hr = hrSuccess;
 	if (refiid == IID_IABContainer) {

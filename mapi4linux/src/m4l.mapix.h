@@ -76,10 +76,6 @@ public:
 	virtual HRESULT __stdcall RenameProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG_PTR ui_param, ULONG flags);
 	virtual HRESULT __stdcall SetDefaultProfile(const TCHAR *name, ULONG flags);
 	virtual HRESULT __stdcall AdminServices(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags, IMsgServiceAdmin **);
-
-    // iunknown passthru
-	virtual ULONG __stdcall AddRef(void) _kc_override;
-	virtual ULONG __stdcall Release(void) _kc_override;
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 
 	friend class KC::SessionRestorer;
@@ -112,10 +108,6 @@ public:
 	virtual HRESULT __stdcall AdminProviders(const MAPIUID *uid, ULONG flags, IProviderAdmin **);
 	virtual HRESULT __stdcall SetPrimaryIdentity(const MAPIUID *uid, ULONG flags);
     virtual HRESULT __stdcall GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable);
-
-    // iunknown passthru
-	virtual ULONG __stdcall AddRef(void) _kc_override;
-	virtual ULONG __stdcall Release(void) _kc_override;
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 
 	friend class M4LProviderAdmin;
@@ -159,10 +151,6 @@ public:
 	virtual HRESULT __stdcall AdminServices(ULONG ulFlags, LPSERVICEADMIN* lppServiceAdmin);
 	virtual HRESULT __stdcall ShowForm(ULONG_PTR ulUIParam, LPMDB lpMsgStore, LPMAPIFOLDER lpParentFolder, LPCIID lpInterface, ULONG ulMessageToken, LPMESSAGE lpMessageSent, ULONG ulFlags, ULONG ulMessageStatus, ULONG ulMessageFlags, ULONG ulAccess, LPSTR lpszMessageClass);
 	virtual HRESULT __stdcall PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG* lpulMessageToken);
-
-    // iunknown passthru
-	virtual ULONG __stdcall AddRef(void) _kc_override;
-	virtual ULONG __stdcall Release(void) _kc_override;
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 
 private:
@@ -201,23 +189,6 @@ public:
 	virtual HRESULT __stdcall GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath);
 	virtual HRESULT __stdcall SetSearchPath(ULONG ulFlags, LPSRowSet lpSearchPath);
 	virtual HRESULT __stdcall PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
-
-	// imapiprop passthru
-	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _kc_override;
-	virtual HRESULT __stdcall SaveChanges(ULONG ulFlags) _kc_override;
-	virtual HRESULT __stdcall GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
-	virtual HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray) _kc_override;
-	virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) _kc_override;
-	virtual HRESULT __stdcall SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems) _kc_override;
-	virtual HRESULT __stdcall DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems) _kc_override;
-	virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _kc_override;
-	virtual HRESULT __stdcall CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _kc_override;
-	virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override;
-	virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _kc_override;
-
-	// iunknown passthru
-	virtual ULONG __stdcall AddRef(void) _kc_override;
-	virtual ULONG __stdcall Release(void) _kc_override;
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 
 private:

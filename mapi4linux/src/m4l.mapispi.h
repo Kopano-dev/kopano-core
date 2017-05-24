@@ -69,10 +69,6 @@ public:
 
 	// IMAPIGetSession
 	virtual HRESULT __stdcall GetMAPISession(LPUNKNOWN *lppSession) _kc_override;
-
-    // iunknown passthru
-	virtual ULONG __stdcall AddRef(void) _kc_override;
-	virtual ULONG __stdcall Release(void) _kc_override;
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
@@ -147,10 +143,6 @@ public:
 
 	virtual HRESULT __stdcall IStorageFromStream(LPUNKNOWN lpUnkIn, LPCIID lpInterface, ULONG ulFlags, LPSTORAGE * lppStorageOut); 
 	virtual HRESULT __stdcall GetSvcConfigSupportObj(ULONG ulFlags, LPMAPISUP * lppSvcSupport);
-
-    // iunknown passthru
-	virtual ULONG __stdcall AddRef(void) _kc_override;
-	virtual ULONG __stdcall Release(void) _kc_override;
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
