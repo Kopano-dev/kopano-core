@@ -19,6 +19,7 @@
 #define EC_USERSTORE_TABLE_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 /* #include "ECStoreObjectTable.h" */
 #include "ECGenericObjectTable.h"
 #include <kopano/pcuser.hpp>
@@ -56,6 +57,7 @@ public:
 
 private:
 	std::map<unsigned int, ECUserStore> m_mapUserStoreData;
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

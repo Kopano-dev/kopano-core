@@ -19,6 +19,7 @@
 #define EC_STATS_TABLES_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include "ECGenericObjectTable.h"
 #include "ECSession.h"
 
@@ -49,6 +50,7 @@ private:
 
 	std::map<unsigned int, statstrings> m_mapStatData;
 	unsigned int id;
+	ALLOC_WRAP_FRIEND;
 };
 
 
@@ -86,6 +88,7 @@ private:
 
 	std::map<unsigned int, sessiondata> m_mapSessionData;
 	unsigned int id;
+	ALLOC_WRAP_FRIEND;
 };
 
 class ECUserStatsTable _kc_final : public ECGenericObjectTable {
@@ -99,6 +102,7 @@ public:
 
 private:
 	ECRESULT LoadCompanyUsers(ULONG ulCompanyId);
+	ALLOC_WRAP_FRIEND;
 };
 
 class ECCompanyStatsTable _kc_final : public ECGenericObjectTable {
@@ -109,8 +113,7 @@ public:
 	static ECRESULT Create(ECSession *, unsigned int flags, const ECLocale &, ECGenericObjectTable **);
 	virtual ECRESULT Load();
 	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *, struct propTagArray *, const void *priv, struct rowSet **, bool cache_table_data, bool table_limit);
-
-private:
+	ALLOC_WRAP_FRIEND;
 };
 
 class ECServerStatsTable _kc_final : public ECGenericObjectTable {
@@ -124,6 +127,7 @@ public:
 
 private:
 	std::map<unsigned int, std::string> m_mapServers;
+	ALLOC_WRAP_FRIEND;
 };
 
 // Link to provider/server

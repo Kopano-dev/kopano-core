@@ -26,6 +26,7 @@
 #include "ECSession.h"
 #include "ECMAPI.h"
 #include <kopano/stringutil.h>
+#include <kopano/Util.h>
 
 namespace KC {
 
@@ -34,12 +35,8 @@ ECMultiStoreTable::ECMultiStoreTable(ECSession *lpSession, unsigned int ulObjTyp
 
 ECRESULT ECMultiStoreTable::Create(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale, ECMultiStoreTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECMultiStoreTable(lpSession, ulObjType, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-
-	return erSuccess;
+	return alloc_wrap<ECMultiStoreTable>(lpSession, ulObjType,
+	       ulFlags, locale).put(lppTable);
 }
 
 ECRESULT ECMultiStoreTable::SetEntryIDs(ECListInt *lplObjectList) {

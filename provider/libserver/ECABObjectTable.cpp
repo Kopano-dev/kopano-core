@@ -28,7 +28,7 @@
 #include <kopano/mapiext.h>
 
 #include <kopano/EMSAbTag.h>
-
+#include <kopano/Util.h>
 #include "SOAPUtils.h"
 #include "ECABObjectTable.h"
 #include "ECSecurity.h"
@@ -99,13 +99,8 @@ ECABObjectTable::~ECABObjectTable()
 
 ECRESULT ECABObjectTable::Create(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale, ECABObjectTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECABObjectTable(lpSession, ulABId,
-	            ulABType, ulABParentId, ulABParentType, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-
-	return erSuccess;
+	return alloc_wrap<ECABObjectTable>(lpSession, ulABId, ulABType,
+	       ulABParentId, ulABParentType, ulFlags, locale).put(lppTable);
 }
 
 ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)

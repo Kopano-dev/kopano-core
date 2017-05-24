@@ -17,6 +17,7 @@
 #include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/Util.h>
 #include "ECDatabase.h"
 
 #include <mapidefs.h>
@@ -41,12 +42,8 @@ ECRESULT ECSearchObjectTable::Create(ECSession *lpSession,
     unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale,
     ECStoreObjectTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECSearchObjectTable(lpSession, ulStoreId,
-	            lpGuid, ulFolderId, ulObjType, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-	return erSuccess;
+	return alloc_wrap<ECSearchObjectTable>(lpSession, ulStoreId, lpGuid,
+	       ulFolderId, ulObjType, ulFlags, locale).put(lppTable);
 }
 
 ECRESULT ECSearchObjectTable::Load() {

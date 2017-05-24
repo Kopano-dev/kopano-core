@@ -27,6 +27,7 @@
 #include "ECGenProps.h"
 #include "ECSession.h"
 #include <kopano/stringutil.h>
+#include <kopano/Util.h>
 
 namespace KC {
 
@@ -40,12 +41,7 @@ ECUserStoreTable::ECUserStoreTable(ECSession *lpSession, unsigned int ulFlags, c
 
 ECRESULT ECUserStoreTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECUserStoreTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECUserStoreTable(lpSession, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-
-	return erSuccess;
+	return alloc_wrap<ECUserStoreTable>(lpSession, ulFlags, locale).put(lppTable);
 }
 
 ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,

@@ -34,7 +34,7 @@
 #include <edkmdb.h>
 #include <kopano/ECTags.h>
 #include <kopano/stringutil.h>
-
+#include <kopano/Util.h>
 #include "ECStatsCollector.h"
 
 #if defined(HAVE_GPERFTOOLS_MALLOC_EXTENSION_H)
@@ -69,12 +69,7 @@ ECSystemStatsTable::ECSystemStatsTable(ECSession *lpSession, unsigned int ulFlag
 ECRESULT ECSystemStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
     const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECSystemStatsTable(lpSession, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-
-	return erSuccess;
+	return alloc_wrap<ECSystemStatsTable>(lpSession, ulFlags, locale).put(lppTable);
 }
 
 void ECSystemStatsTable::load_tcmalloc(void)
@@ -284,12 +279,7 @@ ECSessionStatsTable::ECSessionStatsTable(ECSession *lpSession, unsigned int ulFl
 ECRESULT ECSessionStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
     const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECSessionStatsTable(lpSession, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-
-	return erSuccess;
+	return alloc_wrap<ECSessionStatsTable>(lpSession, ulFlags, locale).put(lppTable);
 }
 
 ECRESULT ECSessionStatsTable::Load()
@@ -557,12 +547,7 @@ ECUserStatsTable::ECUserStatsTable(ECSession *lpSession, unsigned int ulFlags, c
 ECRESULT ECUserStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
     const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECUserStatsTable(lpSession, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-
-	return erSuccess;
+	return alloc_wrap<ECUserStatsTable>(lpSession, ulFlags, locale).put(lppTable);
 }
 
 ECRESULT ECUserStatsTable::Load()
@@ -837,12 +822,7 @@ ECCompanyStatsTable::ECCompanyStatsTable(ECSession *lpSession, unsigned int ulFl
 ECRESULT ECCompanyStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
     const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECCompanyStatsTable(lpSession, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-
-	return erSuccess;
+	return alloc_wrap<ECCompanyStatsTable>(lpSession, ulFlags, locale).put(lppTable);
 }
 
 ECRESULT ECCompanyStatsTable::Load()
@@ -1008,12 +988,7 @@ ECServerStatsTable::ECServerStatsTable(ECSession *lpSession, unsigned int ulFlag
 ECRESULT ECServerStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
     const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECServerStatsTable(lpSession, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-
-	return erSuccess;
+	return alloc_wrap<ECServerStatsTable>(lpSession, ulFlags, locale).put(lppTable);
 }
 
 ECRESULT ECServerStatsTable::Load()

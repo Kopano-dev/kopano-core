@@ -19,6 +19,7 @@
 #define ECCONVENIENTDEPTHABOBJECTTABLE_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include "ECABObjectTable.h"
 
 struct soap;
@@ -42,6 +43,7 @@ private:
 	};
 	std::map<unsigned int, unsigned int> m_mapDepth;
 	std::map<unsigned int, std::string> m_mapPath;
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

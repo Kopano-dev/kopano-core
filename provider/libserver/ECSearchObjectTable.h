@@ -19,6 +19,7 @@
 #define ECSEARCHOBJECTTABLE_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include "ECStoreObjectTable.h"
 
 namespace KC {
@@ -36,6 +37,7 @@ public:
 private:
     unsigned int m_ulFolderId;
     unsigned int m_ulStoreId;
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

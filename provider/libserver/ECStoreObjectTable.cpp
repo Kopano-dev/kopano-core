@@ -51,6 +51,7 @@
 #include "kcore.hpp"
 #include "ECDatabaseUtils.h"
 #include <kopano/ECKeyTable.h>
+#include <kopano/Util.h>
 #include "ECGenProps.h"
 #include "ECStoreObjectTable.h"
 #include "ECStatsCollector.h"
@@ -143,13 +144,8 @@ ECStoreObjectTable::~ECStoreObjectTable()
 
 ECRESULT ECStoreObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale, ECStoreObjectTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECStoreObjectTable(lpSession, ulStoreId,
-	            lpGuid, ulFolderId, ulObjType, ulFlags, ulTableFlags,
-	            locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-	return erSuccess;
+	return alloc_wrap<ECStoreObjectTable>(lpSession, ulStoreId, lpGuid,
+	       ulFolderId, ulObjType, ulFlags, ulTableFlags, locale).put(lppTable);
 }
 
 ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)

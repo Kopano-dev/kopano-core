@@ -18,6 +18,7 @@
 #ifndef ECSTORE_OBJECTTABLE_H
 #define ECSTORE_OBJECTTABLE_H
 
+#include <kopano/Util.h>
 #include "soapH.h"
 #include "ECDatabase.h"
 
@@ -79,6 +80,7 @@ private:
 
 	unsigned int ulPermission = 0;
 	bool fPermissionRead = false;
+	ALLOC_WRAP_FRIEND;
 };
 
 ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId, std::list<unsigned int> *lpDeferred);

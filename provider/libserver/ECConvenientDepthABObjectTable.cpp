@@ -25,7 +25,7 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/EMSAbTag.h>
-
+#include <kopano/Util.h>
 #include "ECSessionManager.h"
 #include "ECConvenientDepthABObjectTable.h"
 #include "ECSession.h"
@@ -48,14 +48,8 @@ ECRESULT ECConvenientDepthABObjectTable::Create(ECSession *lpSession,
     unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale,
     ECABObjectTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECConvenientDepthABObjectTable(lpSession,
-	            ulABId, ulABType, ulABParentId, ulABParentType, ulFlags,
-	            locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-
-	return erSuccess;
+	return alloc_wrap<ECConvenientDepthABObjectTable>(lpSession, ulABId,
+	       ulABType, ulABParentId, ulABParentType, ulFlags, locale).put(lppTable);
 }
 
 /*

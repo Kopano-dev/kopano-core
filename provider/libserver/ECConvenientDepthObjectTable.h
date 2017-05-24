@@ -19,6 +19,7 @@
 #define ECCONVENIENTDEPTHOBJECTTABLE_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include "ECStoreObjectTable.h"
 
 struct soap;
@@ -34,6 +35,7 @@ public:
 	virtual ECRESULT GetComputedDepth(struct soap *soap, ECSession *lpSession, unsigned int ulObjId, struct propVal *lpProp);
 private:
     unsigned int m_ulFolderId;
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

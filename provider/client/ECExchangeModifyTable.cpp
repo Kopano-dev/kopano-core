@@ -101,7 +101,6 @@ ECExchangeModifyTable::~ECExchangeModifyTable() {
 
 HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj) {
 	HRESULT hr = hrSuccess;
-	ECExchangeModifyTable *obj = NULL;
 	object_ptr<ECMemTable> lpecTable;
 	ULONG ulUniqueId = 1;
 	static constexpr const SizedSPropTagArray(4, sPropACLs) =
@@ -119,19 +118,13 @@ HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, UL
 	hr = lpecTable->HrSetClean();
 	if(hr != hrSuccess)
 		return hr;
-	obj = new(std::nothrow) ECExchangeModifyTable(PR_MEMBER_ID, lpecTable, lpParent, ulUniqueId, ulFlags);
-	if (obj == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = obj->QueryInterface(IID_IExchangeModifyTable,
-	     reinterpret_cast<void **>(lppObj));
-	if (hr != hrSuccess)
-		delete obj;
-	return hr;
+	return alloc_wrap<ECExchangeModifyTable>(PR_MEMBER_ID, lpecTable,
+	       lpParent, ulUniqueId, ulFlags)
+	       .as(IID_IExchangeModifyTable, lppObj);
 }
 
 HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj) {
 	HRESULT hr = hrSuccess;
-	ECExchangeModifyTable *obj = NULL;
 	object_ptr<IStream> lpRulesData;
 	STATSTG statRulesData;
 	ULONG ulRead;
@@ -176,14 +169,8 @@ empty:
 	hr = ecTable->HrSetClean();
 	if(hr != hrSuccess)
 		return hr;
-	obj = new(std::nothrow) ECExchangeModifyTable(PR_RULE_ID, ecTable, lpParent, ulRuleId, ulFlags);
-	if (obj == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = obj->QueryInterface(IID_IExchangeModifyTable,
-	     reinterpret_cast<void **>(lppObj));
-	if (hr != hrSuccess)
-		delete obj;
-	return hr;
+	return alloc_wrap<ECExchangeModifyTable>(PR_RULE_ID, ecTable, lpParent,
+	       ulRuleId, ulFlags).as(IID_IExchangeModifyTable, lppObj);
 }
 
 HRESULT ECExchangeModifyTable::QueryInterface(REFIID refiid, void **lppInterface) {

@@ -26,7 +26,7 @@
 #include "ECGenProps.h"
 #include "ECSession.h"
 #include <kopano/stringutil.h>
-
+#include <kopano/Util.h>
 #include "ECMailBoxTable.h"
 
 namespace KC {
@@ -39,12 +39,7 @@ ECMailBoxTable::ECMailBoxTable(ECSession *lpSession, unsigned int ulFlags, const
 
 ECRESULT ECMailBoxTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECMailBoxTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECMailBoxTable(lpSession, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-
-	return erSuccess;
+	return alloc_wrap<ECMailBoxTable>(lpSession, ulFlags, locale).put(lppTable);
 }
 
 ECRESULT ECMailBoxTable::Load()

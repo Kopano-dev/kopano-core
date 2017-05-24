@@ -19,6 +19,7 @@
 #define ECAB_OBJECTTABLE_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include "soapH.h"
 #include "ECGenericObjectTable.h"
 #include "ECUserManagement.h"
@@ -68,6 +69,7 @@ private:
 
 protected:
 	unsigned int m_ulUserManagementFlags;
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

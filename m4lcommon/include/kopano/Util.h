@@ -162,7 +162,7 @@ template<typename T> class alloc_wrap {
 		if (obj != nullptr)
 			obj->Release();
 	}
-	HRESULT put(T **p)
+	template<typename U> HRESULT put(U **p)
 	{
 		if (obj == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;

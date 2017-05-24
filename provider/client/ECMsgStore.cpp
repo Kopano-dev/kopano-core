@@ -25,7 +25,7 @@
 #include <new>
 
 #include <kopano/ECGetText.h>
-
+#include <kopano/Util.h>
 #include "Mem.h"
 #include "ECMessage.h"
 #include "ECMsgStore.h"
@@ -333,14 +333,9 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store hierarchy", ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
 	    if (*lpiid == IID_IECExportAddressbookChanges) {
-			auto lpEEAC = new(std::nothrow) ECExportAddressbookChanges(this);
-			if (lpEEAC == nullptr)
-				return MAPI_E_NOT_ENOUGH_MEMORY;
-	        hr = lpEEAC->QueryInterface(*lpiid, (void **)lppUnk);
-			if (hr != hrSuccess) {
-				delete lpEEAC;
+			hr = alloc_wrap<ECExportAddressbookChanges>(this).as(*lpiid, lppUnk);
+			if (hr != hrSuccess)
 				return hr;
-			}
 	    }
 		else
 			hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store contents", ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);

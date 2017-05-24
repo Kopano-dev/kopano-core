@@ -19,6 +19,7 @@
 #define EC_MULTISTORE_TABLE_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/Util.h>
 #include "ECStoreObjectTable.h"
 
 namespace KC {
@@ -34,7 +35,7 @@ public:
 	_kc_hidden virtual ECRESULT Load(void);
 private:
     std::list<unsigned int> m_lstObjects;
-    
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

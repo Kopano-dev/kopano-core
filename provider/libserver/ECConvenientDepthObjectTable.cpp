@@ -28,7 +28,7 @@
 #include "ECSession.h"
 #include "ECMAPI.h"
 #include <kopano/stringutil.h>
-
+#include <kopano/Util.h>
 #include <list>
 
 namespace KC {
@@ -80,12 +80,8 @@ ECRESULT ECConvenientDepthObjectTable::Create(ECSession *lpSession,
     unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale,
     ECStoreObjectTable **lppTable)
 {
-	*lppTable = new(std::nothrow) ECConvenientDepthObjectTable(lpSession,
-	            ulStoreId, lpGuid, ulFolderId, ulObjType, ulFlags, locale);
-	if (*lppTable == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-	(*lppTable)->AddRef();
-	return erSuccess;
+	return alloc_wrap<ECConvenientDepthObjectTable>(lpSession, ulStoreId,
+	       lpGuid, ulFolderId, ulObjType, ulFlags, locale).put(lppTable);
 }
 
 ECRESULT ECConvenientDepthObjectTable::Load() {
