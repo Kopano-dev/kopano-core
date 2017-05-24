@@ -302,6 +302,50 @@ static int mpt_main_exectime(int argc, char **argv)
 	return EXIT_SUCCESS;
 }
 
+static int mpt_main_cast(bool which)
+{
+	AutoMAPI mapiinit;
+	HRESULT ret = mapiinit.Initialize();
+	if (ret != hrSuccess) {
+		perror("MAPIInitialize");
+		return EXIT_FAILURE;
+	}
+	int err = mpt_setup_tick();
+	if (err < 0)
+		return EXIT_FAILURE;
+	object_ptr<IProfAdmin> profadm;
+	ret = MAPIAdminProfiles(0, &~profadm);
+	if (ret != hrSuccess)
+		return EXIT_FAILURE;
+	object_ptr<IUnknown> unk;
+	ret = profadm->QueryInterface(IID_IUnknown, &~unk);
+	if (ret != hrSuccess)
+		return EXIT_FAILURE;
+
+	if (which == 0) { /* qicast */
+		while (mpt_repeat-- > 0) {
+			struct mpt_stat_entry dp;
+			unsigned int rep = 100000;
+			clock_gettime(CLOCK_MONOTONIC, &dp.start);
+			while (rep-- > 0)
+				unk->QueryInterface(IID_IProfAdmin, &~profadm);
+			clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+			mpt_stat_record(dp);
+		}
+	} else if (which == 1) { /* dycast */
+		while (mpt_repeat-- > 0) {
+			struct mpt_stat_entry dp;
+			unsigned int rep = 100000;
+			clock_gettime(CLOCK_MONOTONIC, &dp.start);
+			while (rep-- > 0)
+				profadm.reset(dynamic_cast<IProfAdmin *>(unk.get()));
+			clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+			mpt_stat_record(dp);
+		}
+	}
+	return EXIT_SUCCESS;
+}
+
 static void mpt_usage(void)
 {
 	fprintf(stderr, "mapitime [-p pass] [-s server] [-u username] [-z count] benchmark_choice\n");
@@ -383,6 +427,10 @@ int main(int argc, char **argv)
 		return mpt_main_exectime(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "pagetime") == 0)
 		return mpt_main_pagetime(argc - 1, argv + 1);
+	else if (strcmp(argv[1], "qicast") == 0)
+		return mpt_main_cast(0);
+	else if (strcmp(argv[1], "dycast") == 0)
+		return mpt_main_cast(1);
 
 	mpt_usage();
 	return EXIT_FAILURE;
