@@ -106,7 +106,7 @@ HRESULT M4LMAPISupport::Subscribe(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulF
 	/* Copy key (this should prevent deletion of the key while it is still in the list */
 	hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), (void **)&lpNewKey);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memcpy(lpNewKey, lpKey, sizeof(*lpKey));
 	l_adv.lock();
@@ -114,7 +114,6 @@ HRESULT M4LMAPISupport::Subscribe(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulF
 	m_advises.insert(M4LSUPPORTADVISES::value_type(m_connections, M4LSUPPORTADVISE(lpNewKey, ulEventMask, ulFlags, lpAdviseSink)));
 	*lpulConnection = m_connections;
 	l_adv.unlock();
-exit:
     return hr;
 }
 
@@ -139,16 +138,12 @@ HRESULT M4LMAPISupport::Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICA
 	ulock_normal l_adv(m_advises_mutex);
 
 	auto iter = find_if(m_advises.cbegin(), m_advises.cend(), findKey(lpKey));
-	if (iter == m_advises.cend()) {
-		l_adv.unlock();
+	if (iter == m_advises.cend())
 		/* Should this be reported as error? */
-		goto exit;
-	}
+		return hr;
 	lpAdviseSink.reset(iter->second.lpAdviseSink);
 	l_adv.unlock();
 	hr = lpAdviseSink->OnNotify(cNotification, lpNotifications);
-
-exit:
     return hr;
 }
 
@@ -262,25 +257,21 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 	bool bPartial = false;
 	ULONG i;
 
-	if (!lpSrcInterface || !lpSrcFolder || !lpDestFolder || !lpMsgList) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if (*lpSrcInterface != IID_IMAPIFolder || (lpDestInterface != NULL && *lpDestInterface != IID_IMAPIFolder)) {
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-		goto exit;
-	}
+	if (lpSrcInterface == nullptr || lpSrcFolder == nullptr ||
+	    lpDestFolder == nullptr || lpMsgList == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (*lpSrcInterface != IID_IMAPIFolder ||
+	    (lpDestInterface != nullptr && *lpDestInterface != IID_IMAPIFolder))
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
 	lpSource = (LPMAPIFOLDER)lpSrcFolder;
 	lpDest = (LPMAPIFOLDER)lpDestFolder;
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpDeleteEntries);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = MAPIAllocateMore(sizeof(SBinary)*lpMsgList->cValues, lpDeleteEntries, (void**)&lpDeleteEntries->lpbin);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpDeleteEntries->cValues = 0;
 
@@ -303,7 +294,7 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 
 		hr = this->DoCopyTo(&IID_IMessage, lpSrcMessage, 0, NULL, NULL, ulUIParam, lpProgress, &IID_IMessage, lpDestMessage, 0, NULL);
 		if (FAILED(hr)) {
-			goto exit;
+			return hr;
 		} else if (hr != hrSuccess) {
 			bPartial = true;
 			goto next_item;
@@ -329,8 +320,6 @@ next_item:
 	
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
-
-exit:
 	return hr;
 }
 
@@ -344,32 +333,26 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 	ULONG ulFolderFlags = 0;
 	static constexpr const SizedSPropTagArray (1, sExcludeProps) = {1, {PR_DISPLAY_NAME_A}};
 
-	if (!lpSrcInterface || !lpSrcFolder || cbEntryID == 0 || !lpEntryID || !lpDestFolder) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if (*lpSrcInterface != IID_IMAPIFolder) {
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-		goto exit;
-	}
+	if (lpSrcInterface == nullptr || lpSrcFolder == nullptr ||
+	    cbEntryID == 0 || lpEntryID == nullptr || lpDestFolder == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (*lpSrcInterface != IID_IMAPIFolder)
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 	hr = ((LPUNKNOWN)lpSrcFolder)->QueryInterface(IID_IMAPIFolder, &~lpSource);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// lpDestInterface == NULL or IID_IMAPIFolder compatible
 	hr = ((LPUNKNOWN)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpDest);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpSource->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpFolder);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (!lpszNewFolderName) {
 		hr = HrGetOneProp(lpFolder, PR_DISPLAY_NAME_W, &~lpSourceName);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		ulFolderFlags |= MAPI_UNICODE;
 		lpszNewFolderName = (LPTSTR)lpSourceName->Value.lpszW;
 	} else
@@ -377,16 +360,13 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 
 	hr = lpDest->CreateFolder(FOLDER_GENERIC, lpszNewFolderName, nullptr, &IID_IMAPIFolder, ulFolderFlags, &~lpSubFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = this->DoCopyTo(&IID_IMAPIFolder, lpFolder, 0, NULL, sExcludeProps,
 	     ulUIParam, lpProgress, &IID_IMAPIFolder, lpSubFolder, ulFlags, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (ulFlags & MAPI_MOVE)
 		lpSource->DeleteFolder(cbEntryID, (LPENTRYID)lpEntryID, 0, NULL, DEL_FOLDERS | DEL_MESSAGES);
-
-exit:
 	return hr;
 }
 
@@ -454,17 +434,16 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 
 	hr = session->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~ptrAddrBook);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpMessage->GetRecipientTable(fMapiUnicode | MAPI_DEFERRED_ERRORS, &~ptrRecipientTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ptrRecipientTable->QueryColumns(TBL_ALL_COLUMNS, &~ptrColumns);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrRecipientTable->SetColumns(ptrColumns, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (true) {
 		const SPropValue *lpAddrType = NULL;
@@ -476,8 +455,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 
 		hr = ptrRecipientTable->QueryRows(1, 0L, &ptrRow);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (ptrRow.size() == 0)
 			break;
 
@@ -496,7 +474,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 			// already expanded this group so continue without opening
 			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRow.get());
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			continue;
 		}
 		setFilter.insert(std::vector<unsigned char>(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb));
@@ -507,7 +485,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		// remove MAPIPDL entry when distlist is opened
 		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRow.get());
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = ptrDistList->GetContentsTable(fMapiUnicode, &~ptrMemberTable);
 		if (hr != hrSuccess)
 			continue;
@@ -515,7 +493,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		// Same columns as recipient table
 		hr = ptrMemberTable->SetColumns(ptrColumns, 0);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Get all recipients in distlist, and add to message.
 		// If another distlist is here, it will expand in the next loop.
@@ -540,15 +518,11 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 
 		hr = lpMessage->ModifyRecipients(MODRECIP_ADD, (LPADRLIST)ptrMembers.get());
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-	hr = hrSuccess;
-
 	// Return 0 (no spooler needed, no preprocessing needed)
 	if(lpulFlags)
 		*lpulFlags = 0;
-
-exit:
 	return hr;
 }
 
@@ -589,22 +563,14 @@ HRESULT M4LMAPISupport::WrapStoreEntryID(ULONG cbOrigEntry,
 	HRESULT hr = hrSuccess;
 	const SPropValue *lpDLLName = NULL;
 
-	if (!service) {
+	if (service == nullptr)
 		// addressbook provider doesn't have the SVCService object
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+		return MAPI_E_CALL_FAILED;
 	lpDLLName = service->GetProp(PR_SERVICE_DLL_NAME_A);
-	if (!lpDLLName || !lpDLLName->Value.lpszA) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+	if (lpDLLName == nullptr || lpDLLName->Value.lpszA == nullptr)
+		return MAPI_E_NOT_FOUND;
 	// call mapiutil version
 	hr = ::WrapStoreEntryID(0, (TCHAR*)lpDLLName->Value.lpszA, cbOrigEntry, lpOrigEntry, lpcbWrappedEntry, lppWrappedEntry);
-
-exit:	
 	return hr;
 }
 

@@ -83,7 +83,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 		// all properties are requested
 		hr = MAPIAllocateBuffer(sizeof(SPropValue)*properties.size(), &~props);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		for (c = 0, i = properties.begin(); i != properties.end(); ++i, ++c) {
 			// perform unicode conversion if required
@@ -105,12 +105,12 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 
 			hr = Util::HrCopyProperty(&props[c], lpCopy, (void *)props);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	} else {
 		hr = MAPIAllocateBuffer(sizeof(SPropValue)*lpPropTagArray->cValues, &~props);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		for (c = 0; c < lpPropTagArray->cValues; ++c) {
 			for (i = properties.begin(); i != properties.end(); ++i) {
@@ -147,12 +147,12 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 						sConvert.Value.MVszW.cValues = (*i)->Value.MVszA.cValues;
 						hr = MAPIAllocateMore((*i)->Value.MVszA.cValues * sizeof(WCHAR*), props, (void**)&sConvert.Value.MVszW.lppszW);
 						if (hr != hrSuccess)
-							goto exit;
+							return hr;
 						for (ULONG c = 0; c < (*i)->Value.MVszA.cValues; ++c) {
 							unicode = converter.convert_to<wstring>((*i)->Value.MVszA.lppszA[c]);
 							hr = MAPIAllocateMore(unicode.length() * sizeof(WCHAR) + sizeof(WCHAR), props, (void**)&sConvert.Value.MVszW.lppszW[c]);
 							if (hr != hrSuccess)
-								goto exit;
+								return hr;
 							wcscpy(sConvert.Value.MVszW.lppszW[c], unicode.c_str());
 						}
 
@@ -167,12 +167,12 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 						sConvert.Value.MVszA.cValues = (*i)->Value.MVszW.cValues;
 						hr = MAPIAllocateMore((*i)->Value.MVszW.cValues * sizeof(char*), props, (void**)&sConvert.Value.MVszA.lppszA);
 						if (hr != hrSuccess)
-							goto exit;
+							return hr;
 						for (ULONG c = 0; c < (*i)->Value.MVszW.cValues; ++c) {
 							ansi = converter.convert_to<string>((*i)->Value.MVszW.lppszW[c]);
 							hr = MAPIAllocateMore(ansi.length() + 1, props, (void**)&sConvert.Value.MVszA.lppszA[c]);
 							if (hr != hrSuccess)
-								goto exit;
+								return hr;
 							strcpy(sConvert.Value.MVszA.lppszA[c], ansi.c_str());
 						}
 
@@ -184,7 +184,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 
 					hr = Util::HrCopyProperty(&props[c], lpCopy, (void *)props);
 					if (hr != hrSuccess)
-						goto exit;
+						return hr;
 					break;
 				}
 			}
@@ -201,7 +201,6 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 
 	*lpcValues = c;
 	*lppPropArray = props.release();
-exit:
 	return hr;
 }
 
@@ -222,19 +221,14 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	HRESULT hr = hrSuccess;
 
 	// Validate input
-	if (lpPropArray == NULL || cValues == 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpPropArray == nullptr || cValues == 0)
+		return MAPI_E_INVALID_PARAMETER;
 
-	for (c = 0; c < cValues; ++c) {
+	for (c = 0; c < cValues; ++c)
 		// TODO: return MAPI_E_INVALID_PARAMETER, if multivalued property in 
 		//       the array and its cValues member is set to zero.		
-		if (PROP_TYPE(lpPropArray[c].ulPropTag) == PT_OBJECT) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}		
-	}
+		if (PROP_TYPE(lpPropArray[c].ulPropTag) == PT_OBJECT)
+			return MAPI_E_INVALID_PARAMETER;
 
     // remove possible old properties
 	for (c = 0; c < cValues; ++c) {
@@ -262,18 +256,15 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 		
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&pv);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		memset(pv, 0, sizeof(SPropValue));
 		hr = Util::HrCopyProperty(pv, &lpPropArray[c], (void *)pv);
 		if (hr != hrSuccess) {
 			MAPIFreeBuffer(pv);
-			goto exit;
+			return hr;
 		}
 		properties.push_back(pv);
 	}
-
-exit:
 	return hr;
 }
 
@@ -536,10 +527,10 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	// Loop through all providers, add each to the table
 	for (auto &prov : msa->providers) {
@@ -552,24 +543,19 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		hr = prov->profilesection->GetProps(sptaProviderCols, 0,
 		     &cValues, &~lpsProps);
 		if (FAILED(hr))
-			goto exit;
-		
+			return hr;
 		sPropID.ulPropTag = PR_ROWID;
 		sPropID.Value.ul = n++;
 		hr = Util::HrAddToPropertyArray(lpsProps, cValues, &sPropID, &~lpDest, &cValuesDest);
 		if(hr != hrSuccess)
-			goto exit;
-		
+			return hr;
 		lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpDest, cValuesDest);
 	}
 	
 	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
-		goto exit;
-		
+		return hr;
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-	
-exit:
 	return hr;
 }
 
@@ -601,54 +587,39 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	HRESULT hr = hrSuccess;
 	ulock_rec l_srv(msa->m_mutexserviceadmin);
 
-	if(szService == NULL) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
-
+	if (szService == nullptr)
+		return MAPI_E_NO_ACCESS;
 	lpService = msa->findServiceAdmin((LPTSTR)szService);
-	if (!lpService) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
-
+	if (lpService == nullptr)
+		return MAPI_E_NO_ACCESS;
 	lpProvider = lpService->service->GetProvider(lpszProvider, ulFlags);
-	if (!lpProvider) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
+	if (lpProvider == nullptr)
+		return MAPI_E_NO_ACCESS;
 	entry.reset(new(std::nothrow) providerEntry);
-	if (entry == nullptr) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
+	if (entry == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	entry->profilesection.reset(new(std::nothrow) M4LProfSect);
-	if(!entry->profilesection) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
+	if (entry->profilesection == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	
 	// Set the default profilename
 	hr = HrGetOneProp((IProfSect*)msa->profilesection, PR_PROFILE_NAME_A, &~lpsPropValProfileName);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = entry->profilesection->SetProps(1, lpsPropValProfileName, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	CoCreateGuid((LPGUID)&entry->uid);
 
 	// no need to free this, not a copy!
 	lpProvider->GetProps(&cProviderProps, &lpProviderProps);
 	hr = entry->profilesection->SetProps(cProviderProps, lpProviderProps, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (cValues && lpProps) {
 		hr = entry->profilesection->SetProps(cValues, lpProps, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	sProps[nProps].ulPropTag = PR_INSTANCE_KEY;
@@ -683,8 +654,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 
 	hr = entry->profilesection->SetProps(nProps, sProps, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	entry->servicename = szService;
 	if(lpUID)
 		*lpUID = entry->uid;
@@ -692,7 +662,6 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	// We should really call the MSGServiceEntry with MSG_SERVICE_PROVIDER_CREATE, but there
 	// isn't much use at the moment. (since we don't store the profile data on disk? or why not?)
 	// another rumor is that that is only called once per service, not once per created provider. huh?
-exit:
 	l_srv.unlock();
 	return hr;
 }
@@ -722,19 +691,12 @@ HRESULT M4LProviderAdmin::OpenProfileSection(const MAPIUID *lpUID,
 	scoped_rlock l_srv(msa->m_mutexserviceadmin);
 
 	// Special ID: the global guid opens the profile's global profile section instead of a local profile
-	if(memcmp(lpUID,&globalGuid,sizeof(MAPIUID)) == 0) {
-		hr = msa->OpenProfileSection(lpUID, lpInterface, ulFlags, lppProfSect);
-		goto exit;
-	}
-	
+	if (memcmp(lpUID,&globalGuid,sizeof(MAPIUID)) == 0)
+		return msa->OpenProfileSection(lpUID, lpInterface, ulFlags, lppProfSect);
 	provider = msa->findProvider(lpUID);
-	if(provider == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+	if (provider == nullptr)
+		return MAPI_E_NOT_FOUND;
 	hr = provider->profilesection->QueryInterface(lpInterface ? (*lpInterface) : IID_IProfSect, (void**)lppProfSect);
-exit:
 	return hr;
 }
 
