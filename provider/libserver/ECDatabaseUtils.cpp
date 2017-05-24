@@ -657,7 +657,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			ParseMVProp(lpRow[FIELD_NR_BINARY], lpLen[FIELD_NR_BINARY], &ulLastPos, &strData);
 			lpPropVal->Value.mvbin.__ptr[i].__size = strData.size();
 			lpPropVal->Value.mvbin.__ptr[i].__ptr = s_alloc<unsigned char>(soap, lpPropVal->Value.mvbin.__ptr[i].__size);
-			memcpy(lpPropVal->Value.mvbin.__ptr[i].__ptr, strData.c_str(), sizeof(unsigned char) * lpPropVal->Value.mvbin.__ptr[i].__size);
+			memcpy(lpPropVal->Value.mvbin.__ptr[i].__ptr, strData.c_str(), lpPropVal->Value.mvbin.__ptr[i].__size);
 		}
 		break;
 	case PT_MV_STRING8:

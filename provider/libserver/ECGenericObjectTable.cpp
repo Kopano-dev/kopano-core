@@ -2597,7 +2597,7 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 	memset(lpOrderedProps.get(), 0, sizeof(struct propVal) * cValues);
 	memset(lpSortLen.get(), 0, sizeof(unsigned int) * cValues);
 	memset(lppSortKeys.get(), 0, sizeof(unsigned char *) * cValues);
-	memset(lpSortFlags.get(), 0, sizeof(unsigned char) * cValues);
+	memset(lpSortFlags.get(), 0, cValues);
 
 	for (unsigned int i = 0; i < cValues; ++i) {
 		if (ISMINMAX(lpsSortOrderArray->__ptr[i].ulOrder)) {

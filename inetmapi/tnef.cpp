@@ -1725,10 +1725,10 @@ HRESULT ECTNEF::HrWriteByte(IStream *lpStream, unsigned char ulData)
 	HRESULT hr;
 	ULONG ulWritten = 0;
 
-	hr = lpStream->Write(&ulData, sizeof(unsigned char), &ulWritten);
+	hr = lpStream->Write(&ulData, 1, &ulWritten);
 	if(hr != hrSuccess)
 		return hr;
-	if (ulWritten != sizeof(unsigned char))
+	if (ulWritten != 1)
 		return MAPI_E_NOT_FOUND;
 	return hrSuccess;
 }
