@@ -234,7 +234,7 @@ class FolderImporter:
             doc.update({'serverid': self.serverid, 'storeid': storeid, 'folderid': folderid, 'docid': docid, 'sourcekey': item.sourcekey})
             attach_text = []
 
-            for subitem in [item] + list(item.embedded_items()):
+            for subitem in [item] + list(item.items()):
                 for prop in subitem.props():
                     if prop.id_ not in self.excludes:
                         if _is_unicode(prop.value):
