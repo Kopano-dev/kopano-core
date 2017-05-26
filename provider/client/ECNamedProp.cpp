@@ -195,11 +195,6 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 	if (cPropNames == 0 || lppPropNames == nullptr)
 		return MAPI_E_TOO_BIG;
 
-	// Sanity check input
-	for (i = 0; i < cPropNames; ++i)
-		if (lppPropNames[i] == nullptr)
-			return MAPI_E_INVALID_PARAMETER;
-
 	// Allocate memory for the return structure
 	hr = ECAllocateBuffer(CbNewSPropTagArray(cPropNames), &~lpsPropTagArray);
 	if(hr != hrSuccess)
