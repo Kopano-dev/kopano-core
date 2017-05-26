@@ -74,12 +74,12 @@ namespace KC {
 
 class ldap_delete {
 	public:
-	void operator()(void *x) { ldap_memfree(x); }
-	void operator()(BerElement *x) { ber_free(x, 0); }
-	void operator()(LDAPMessage *x) { ldap_msgfree(x); }
-	void operator()(LDAPControl *x) { ldap_control_free(x); }
-	void operator()(LDAPControl **x) { ldap_controls_free(x); }
-	void operator()(struct berval **x) { ldap_value_free_len(x); }
+	void operator()(void *x) const { ldap_memfree(x); }
+	void operator()(BerElement *x) const { ber_free(x, 0); }
+	void operator()(LDAPMessage *x) const { ldap_msgfree(x); }
+	void operator()(LDAPControl *x) const { ldap_control_free(x); }
+	void operator()(LDAPControl **x) const { ldap_controls_free(x); }
+	void operator()(struct berval **x) const { ldap_value_free_len(x); }
 };
 
 typedef KCHL::memory_ptr<char, ldap_delete> auto_free_ldap_attribute;

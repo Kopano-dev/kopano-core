@@ -102,7 +102,7 @@ template<typename _T> class object_proxy2 _kc_final {
 
 class default_delete {
 	public:
-	void operator()(void *p) { MAPIFreeBuffer(p); }
+	void operator()(void *p) const { MAPIFreeBuffer(p); }
 };
 
 /**
@@ -313,14 +313,14 @@ template<typename _T, REFIID _R = GUID_NULL> class object_ptr {
 
 class cstdlib_deleter {
 	public:
-	void operator()(void *x) { free(x); }
+	void operator()(void *x) const { free(x); }
 };
 
 class rowset_delete {
 	public:
-	void operator()(ADRLIST *x) { FreePadrlist(x); }
-	void operator()(SRowSet *x) { FreeProws(x); }
-	void operator()(ROWLIST *x) { FreeProws(reinterpret_cast<SRowSet *>(x)); }
+	void operator()(ADRLIST *x) const { FreePadrlist(x); }
+	void operator()(SRowSet *x) const { FreeProws(x); }
+	void operator()(ROWLIST *x) const { FreeProws(reinterpret_cast<SRowSet *>(x)); }
 };
 
 typedef memory_ptr<ADRLIST, rowset_delete> adrlist_ptr;

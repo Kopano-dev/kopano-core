@@ -29,7 +29,7 @@ namespace KC {
 
 class fs_deleter {
 	public:
-	void operator()(DIR *d)
+	void operator()(DIR *d) const
 	{
 		if (d != nullptr)
 			closedir(d);
