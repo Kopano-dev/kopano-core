@@ -936,7 +936,7 @@ HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, const char *lpszUrl, std::s
 	hr = lpTransport->HrResolvePseudoUrl(lpszUrl, &~lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
 		return hr;
-	serverPath = lpszServerPath.release();
+	serverPath = lpszServerPath.get();
 	if (lpbIsPeer)
 		*lpbIsPeer = bIsPeer;
 	return hrSuccess;
