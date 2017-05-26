@@ -529,7 +529,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	// mapSignatureIdToLocal is now a map of objects that were NOT in the external user database
 	if(bSync) {
 		if (bIsSafeMode)
-			ec_log_err("user_safe_mode: would normally now delete %lu local users (you may see this message more often as the delete is now omitted)", static_cast<unsigned long>(mapExternIdToLocal.size() - lpExternSignatures->size()));
+			ec_log_err("user_safe_mode: would normally now delete %zu local users (you may see this message more often as the delete is now omitted)", mapExternIdToLocal.size() - lpExternSignatures->size());
 		else
 		for (const auto &sil : mapSignatureIdToLocal)
 			/* second == map value, first == id */

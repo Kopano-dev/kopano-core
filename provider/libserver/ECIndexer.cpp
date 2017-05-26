@@ -366,7 +366,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
             goto exit;
         }
 
-		ec_log_debug("Using index, %lu index queries", static_cast<unsigned long>(lstMultiSearches.size()));
+		ec_log_debug("Using index, %zu index queries", lstMultiSearches.size());
 		gettimeofday(&tstart, NULL);
 
 		er = lpSearchClient->Query(guidServer, guidStore, lstFolders, lstMultiSearches, lstMatches, suggestion);
@@ -380,7 +380,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 			ec_log_err("Error while querying search on \"%s\", 0x%08x", szSocket, er);
 		} else
 			ec_log_debug("Indexed query results found in %.4f ms", llelapsedtime/1000.0);
-		ec_log_debug("%lu indexed matches found", static_cast<unsigned long>(lstMatches.size()));
+		ec_log_debug("%zu indexed matches found", lstMatches.size());
 	} else {
 	    er = KCERR_NOT_FOUND;
 	    goto exit;
