@@ -1,5 +1,7 @@
 Release notes for 8.3.1
 =======================
+Enhancements:
+* gateway: add option to ignore commands during IDLE
 Fixes:
 * dagent.cfg:forward_whitelist_domains commentary has been reworded [KC-593]
 * inetmapi: do not force HTML when use_tnef is set to minimal [KC-664]
