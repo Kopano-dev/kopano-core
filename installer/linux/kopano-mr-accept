@@ -25,6 +25,7 @@ include('mapi/mapitags.php');
 include('mapi/mapiguid.php');
 
 include('mapi/class.meetingrequest.php');
+include('mapi/class.baserecurrence.php');
 include('mapi/class.recurrence.php');
 include('mapi/class.freebusypublish.php');
 
