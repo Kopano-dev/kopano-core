@@ -459,16 +459,28 @@ ECRESULT ECFifoSerializer::Read(void *ptr, size_t size, size_t nmemb)
 	switch (size) {
 	case 1: break;
 	case 2:
-		for (size_t x = 0; x < nmemb; ++x)
-			static_cast<short *>(ptr)[x] = ntohs(static_cast<short *>(ptr)[x]);
+		for (size_t x = 0; x < nmemb; ++x) {
+			uint16_t tmp;
+			memcpy(&tmp, static_cast<uint16_t *>(ptr) + x, sizeof(tmp));
+			tmp = ntohs(tmp);
+			memcpy(static_cast<uint16_t *>(ptr) + x, &tmp, sizeof(tmp));
+		}
 		break;
 	case 4:
-		for (size_t x = 0; x < nmemb; ++x)
-			static_cast<int *>(ptr)[x] = ntohl(static_cast<int *>(ptr)[x]);
+		for (size_t x = 0; x < nmemb; ++x) {
+			uint32_t tmp;
+			memcpy(&tmp, static_cast<uint32_t *>(ptr) + x, sizeof(tmp));
+			tmp = ntohl(tmp);
+			memcpy(static_cast<uint32_t *>(ptr) + x, &tmp, sizeof(tmp));
+		}
 		break;
 	case 8:
-		for (size_t x = 0; x < nmemb; ++x)
-			static_cast<long long *>(ptr)[x] = ntohll(static_cast<long long *>(ptr)[x]);
+		for (size_t x = 0; x < nmemb; ++x) {
+			uint64_t tmp;
+			memcpy(&tmp, static_cast<uint64_t *>(ptr) + x, sizeof(tmp));
+			tmp = ntohll(tmp);
+			memcpy(static_cast<uint64_t *>(ptr) + x, &tmp, sizeof(tmp));
+		}
 		break;
 	default:
 		er = KCERR_INVALID_PARAMETER;
