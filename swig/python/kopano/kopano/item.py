@@ -36,7 +36,7 @@ from MAPI import (
 from MAPI.Defs import HrGetOneProp, CHANGE_PROP_TYPE, bin2hex
 from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound, MAPIErrorUnknownEntryid,
-    MAPIErrorInterfaceNotSupported, MAPIErrorUnconfigured,
+    MAPIErrorInterfaceNotSupported, MAPIErrorUnconfigured, MAPIErrorNoAccess,
 )
 from MAPI.Tags import (
     PR_BODY, PR_DISPLAY_NAME_W, PR_MESSAGE_CLASS_W,
@@ -862,7 +862,12 @@ class Item(Base):
                 method = row[PR_ATTACH_METHOD] # XXX default
                 att = self.mapiobj.OpenAttach(num, IID_IAttachment, 0)
                 if method == ATTACH_EMBEDDED_MSG:
-                    msg = att.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_DEFERRED_ERRORS)
+                    try:
+                        msg = att.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_DEFERRED_ERRORS | MAPI_MODIFY)
+                    except MAPIErrorNoAccess:
+                        # XXX the following may fail for embedded items in certain public stores, while
+                        # the above does work (opening read-only doesn't work, but read-write works! wut!?)
+                        msg = att.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_DEFERRED_ERRORS)
                     item = Item(mapiobj=msg)
                     item.server = self.server # XXX
                     data = item._dump() # recursion
