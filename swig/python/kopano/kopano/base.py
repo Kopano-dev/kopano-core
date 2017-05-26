@@ -17,7 +17,7 @@ else:
 
 class Base(object):
 
-    def prop(self, proptag, create=False):
+    def prop(self, proptag, create=False, proptype=None):
         """ Return :class:`property <Property> with given property tag
 
         :param proptag: MAPI property tag
@@ -25,7 +25,7 @@ class Base(object):
 
         """
 
-        return _prop.prop(self, self.mapiobj, proptag, create=create)
+        return _prop.prop(self, self.mapiobj, proptag, create=create, proptype=proptype)
 
     def get_prop(self, proptag):
         """ Return :class:`property <Property> with given proptag or *None* if not found
@@ -51,6 +51,23 @@ class Base(object):
         """ Return all :class:`properties <Property>` """
 
         return _prop.props(self.mapiobj, namespace)
+
+    def value(self, proptag):
+        """ Return :class:`property <Property> value for given proptag """
+
+        return self.prop(proptag).value
+
+    def get_value(self, proptag):
+        """ Return :class:`property <Property> value for given proptag or
+        *None* if property does not exist
+
+        :param proptag: MAPI property tag
+        """
+
+        try:
+            return self.prop(proptag).value
+        except NotFoundError:
+            pass
 
     def __repr__(self):
         return _repr(self)

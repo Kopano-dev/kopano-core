@@ -55,8 +55,10 @@ from MAPI.Tags import (
     PR_MESSAGE_ATTACHMENTS, PR_RECIPIENT_TYPE, PR_ADDRTYPE_W,
     PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W, PR_NULL, PR_HTML,
     PR_RTF_COMPRESSED, PR_SEARCH_KEY, PR_SENDER_SEARCH_KEY,
-    PR_SENT_REPRESENTING_SEARCH_KEY, PR_START_DATE, PR_END_DATE,
-    PR_OWNER_APPT_ID, PR_RESPONSE_REQUESTED
+    PR_START_DATE, PR_END_DATE, PR_OWNER_APPT_ID, PR_RESPONSE_REQUESTED,
+    PR_SENT_REPRESENTING_SEARCH_KEY, PR_ATTACHMENT_FLAGS,
+    PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS,
+    PR_NORMALIZED_SUBJECT_W,
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
@@ -244,6 +246,15 @@ class Item(Base):
     def subject(self, x):
         self.mapiobj.SetProps([SPropValue(PR_SUBJECT_W, _unicode(x))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+
+    @property
+    def normalized_subject(self):
+        """ Normalized item subject or *None* if no subject """
+
+        try:
+            return self.prop(PR_NORMALIZED_SUBJECT_W).value
+        except MAPIErrorNotFound:
+            return u''
 
     @property
     def body(self):
@@ -680,6 +691,13 @@ class Item(Base):
         return self.create_prop('common:34071', val, proptype=PT_SYSTIME).value
 
     @property
+    def location(self):
+        try:
+            return self.prop('appointment:33288').value
+        except MAPIErrorNotFound: # XXX NotFoundError
+            pass
+
+    @property
     def recurring(self):
         return self.prop('appointment:33315').value
 
@@ -923,9 +941,37 @@ class Item(Base):
 
     @property
     def embedded(self): # XXX deprecate?
-        return self.embedded_items().next()
+        return self.items().next()
 
-    def embedded_items(self, recurse=True): # XXX shouldn't we call this just 'items'
+    def create_item(self, message_flags=None):
+        """ Create embedded :class:`item <Item>` """
+
+        (id_, attach) = self.mapiobj.CreateAttach(None, 0)
+
+        attach.SetProps([
+            SPropValue(PR_ATTACH_METHOD, ATTACH_EMBEDDED_MSG),
+            SPropValue(PR_ATTACHMENT_FLAGS, 2),
+            SPropValue(PR_ATTACHMENT_HIDDEN, True),
+            SPropValue(PR_ATTACHMENT_LINKID, 0),
+            SPropValue(PR_ATTACH_FLAGS, 0),
+        ])
+
+        msg = attach.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
+        if message_flags is not None:
+            msg.SetProps([SPropValue(PR_MESSAGE_FLAGS, message_flags)])
+
+        msg.SaveChanges(KEEP_OPEN_READWRITE)
+        attach.SaveChanges(KEEP_OPEN_READWRITE)
+        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
+
+        item = Item(mapiobj=msg)
+        item.server = self.server
+        item._attobj = attach
+        return item
+
+    def items(self, recurse=True):
+        """ Return all embedded :class:`items <Item>` """
+
         for row in self.table(PR_MESSAGE_ATTACHMENTS).dict_rows(): # XXX should we use GetAttachmentTable?
             num = row[PR_ATTACH_NUM]
             method = row[PR_ATTACH_METHOD] # XXX default
@@ -939,7 +985,7 @@ class Item(Base):
                 yield item
 
                 if recurse:
-                    for subitem in item.embedded_items():
+                    for subitem in item.items():
                         yield subitem
 
     @property

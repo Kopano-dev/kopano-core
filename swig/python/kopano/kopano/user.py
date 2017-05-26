@@ -27,7 +27,9 @@ from .store import Store
 from .base import Base
 from .group import Group
 from .quota import Quota
-from .defs import ACTIVE_USER, NONACTIVE_USER
+from .defs import (
+    ACTIVE_USER, NONACTIVE_USER,
+)
 from .errors import NotFoundError, NotSupportedError, DuplicateError
 from .compat import (
     hex as _hex, unhex as _unhex, fake_unicode as _unicode
