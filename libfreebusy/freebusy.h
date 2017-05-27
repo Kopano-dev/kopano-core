@@ -102,8 +102,6 @@ information and delegate access to accounts.
 #include <mapix.h>
 #include <mapidefs.h>
 
-namespace KC {
-
 /**
  * An enumeration for the free/busy status of free/busy blocks.
  * The free/busy status of a block of time determines how it is displayed on a 
@@ -129,15 +127,6 @@ struct FBBlock_1 {
 								between m_tmStart and m_tmEnd. */
 };
 typedef struct FBBlock_1 *LPFBBlock_1;
-
-/**
- * Extends the free/busy block of data. It also stores the basedate of occurrence
- * for exceptions. For normal occurrences base date is same as start date
- */
-struct OccrInfo {
-	FBBlock_1 fbBlock;
-	time_t tBaseDate;
-};
 
 /** 
  * Identifies a user that may or may not have free/busy data available.
@@ -697,6 +686,17 @@ public:
 
 	/*! @copydoc IFreeBusySupport::PushDelegateInfoToWorkspace */
 	virtual HRESULT __stdcall PushDelegateInfoToWorkspace() = 0;
+};
+
+namespace KC {
+
+/**
+ * Extends the free/busy block of data. It also stores the basedate of occurrence
+ * for exceptions. For normal occurrences base date is same as start date
+ */
+struct OccrInfo {
+	FBBlock_1 fbBlock;
+	time_t tBaseDate;
 };
 
 } /* namespace */
