@@ -45,9 +45,9 @@
 
 using namespace KCHL;
 
-typedef object_ptr<IECChangeAdvisor, IID_IECChangeAdvisor> ECChangeAdvisorPtr;
+typedef object_ptr<IECChangeAdvisor> ECChangeAdvisorPtr;
 //DEFINEMAPIPTR(ECChangeAdvisor);
-typedef object_ptr<IECChangeAdviseSink, IID_IECChangeAdviseSink> ECChangeAdviseSinkPtr;
+typedef object_ptr<IECChangeAdviseSink> ECChangeAdviseSinkPtr;
 //DEFINEMAPIPTR(ECChangeAdviseSink);
 
 #define EC_SYNC_STATUS_VERSION			1

@@ -42,7 +42,7 @@ using namespace std;
 
 namespace KC {
 
-typedef KCHL::object_ptr<IECLicense, IID_IECLicense> ECLicensePtr;
+typedef KCHL::object_ptr<IECLicense> ECLicensePtr;
 
 class servername _kc_final {
 public:

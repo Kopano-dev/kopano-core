@@ -192,7 +192,7 @@ template<typename _T, typename _Deleter = default_delete> class memory_ptr {
  * Works a bit like shared_ptr, except that the refcounting is in the
  * underlying object (_T) rather than this class.
  */
-template<typename _T, REFIID _R = GUID_NULL> class object_ptr {
+template<typename _T> class object_ptr {
 	public:
 	typedef _T value_type;
 	typedef _T *pointer;
@@ -222,7 +222,6 @@ template<typename _T, REFIID _R = GUID_NULL> class object_ptr {
 	_T *operator->(void) const noexcept { return _m_ptr; }
 	_T *get(void) const noexcept { return _m_ptr; }
 	operator _T *(void) const noexcept { return _m_ptr; }
-	static constexpr const IID &iid(void) { return _R; }
 	template<typename _U> HRESULT QueryInterface(_U &);
 	template<typename _P> _P as();
 
@@ -293,8 +292,8 @@ swap(memory_ptr<_T> &__x, memory_ptr<_T> &__y) noexcept
 	__x.swap(__y);
 }
 
-template<typename _T, REFIID _R = GUID_NULL> inline void
-swap(object_ptr<_T, _R> &__x, object_ptr<_T, _R> &__y) noexcept
+template<typename _T> inline void
+swap(object_ptr<_T> &__x, object_ptr<_T> &__y) noexcept
 {
 	__x.swap(__y);
 }
@@ -303,8 +302,8 @@ swap(object_ptr<_T, _R> &__x, object_ptr<_T, _R> &__y) noexcept
 
 namespace KC {
 
-template<typename _U, REFIID _R> static inline constexpr const IID &
-iid_of(const KCHL::object_ptr<_U, _R> &)
+template<typename _U> static inline constexpr const IID &
+iid_of(const KCHL::object_ptr<_U> &)
 {
 	return iid_of(static_cast<const _U *>(nullptr));
 }
@@ -313,8 +312,8 @@ iid_of(const KCHL::object_ptr<_U, _R> &)
 
 namespace KCHL {
 
-template<typename _T, REFIID _R> template<typename _U>
-HRESULT object_ptr<_T, _R>::QueryInterface(_U &result)
+template<typename _T > template<typename _U>
+HRESULT object_ptr<_T>::QueryInterface(_U &result)
 {
 	if (_m_ptr == nullptr)
 		return MAPI_E_NOT_INITIALIZED;
@@ -350,8 +349,7 @@ HRESULT object_ptr<_T, _R>::QueryInterface(_U &result)
 	return hr;
 }
 
-template<typename _T, REFIID _R> template<typename _P>
-_P object_ptr<_T, _R>::as(void)
+template<typename _T> template<typename _P> _P object_ptr<_T>::as(void)
 {
 	_P tmp = nullptr;
 	QueryInterface(tmp);

@@ -32,32 +32,32 @@
 
 namespace KC {
 
-typedef KCHL::object_ptr<IABContainer, IID_IABContainer> ABContainerPtr;
-typedef KCHL::object_ptr<IAddrBook, IID_IAddrBook> AddrBookPtr;
-typedef KCHL::object_ptr<IDistList, IID_IDistList> DistListPtr;
-typedef KCHL::object_ptr<IECSecurity, IID_IECSecurity> ECSecurityPtr;
-typedef KCHL::object_ptr<IECServiceAdmin, IID_IECServiceAdmin> ECServiceAdminPtr;
-typedef KCHL::object_ptr<IECSingleInstance, IID_IECSingleInstance> ECSingleInstancePtr;
-typedef KCHL::object_ptr<IExchangeManageStore, IID_IExchangeManageStore> ExchangeManageStorePtr;
-typedef KCHL::object_ptr<IExchangeModifyTable, IID_IExchangeModifyTable> ExchangeModifyTablePtr;
-typedef KCHL::object_ptr<IExchangeExportChanges, IID_IExchangeExportChanges> ExchangeExportChangesPtr;
-typedef KCHL::object_ptr<IMAPIAdviseSink, IID_IMAPIAdviseSink> MAPIAdviseSinkPtr;
-typedef KCHL::object_ptr<IMAPIContainer, IID_IMAPIContainer> MAPIContainerPtr;
-typedef KCHL::object_ptr<IMAPIFolder, IID_IMAPIFolder> MAPIFolderPtr;
-typedef KCHL::object_ptr<IMAPIProp, IID_IMAPIProp> MAPIPropPtr;
-typedef KCHL::object_ptr<IMAPISession, IID_IMAPISession> MAPISessionPtr;
-typedef KCHL::object_ptr<IMAPITable, IID_IMAPITable> MAPITablePtr;
-typedef KCHL::object_ptr<IMailUser, IID_IMailUser> MailUserPtr;
-typedef KCHL::object_ptr<IMessage, IID_IMessage> MessagePtr;
-typedef KCHL::object_ptr<IMsgServiceAdmin, IID_IMsgServiceAdmin> MsgServiceAdminPtr;
-typedef KCHL::object_ptr<IMsgStore, IID_IMsgStore> MsgStorePtr;
-typedef KCHL::object_ptr<IProfAdmin, IID_IProfAdmin> ProfAdminPtr;
-typedef KCHL::object_ptr<IProfSect, IID_IProfSect> ProfSectPtr;
-typedef KCHL::object_ptr<IProviderAdmin, IID_IProviderAdmin> ProviderAdminPtr;
-typedef KCHL::object_ptr<IUnknown, IID_IUnknown> UnknownPtr;
-typedef KCHL::object_ptr<IStream, IID_IStream> StreamPtr;
-typedef KCHL::object_ptr<IAttach, IID_IAttachment> AttachPtr;
-typedef KCHL::object_ptr<IMAPIGetSession, IID_IMAPIGetSession> MAPIGetSessionPtr;
+typedef KCHL::object_ptr<IABContainer> ABContainerPtr;
+typedef KCHL::object_ptr<IAddrBook> AddrBookPtr;
+typedef KCHL::object_ptr<IDistList> DistListPtr;
+typedef KCHL::object_ptr<IECSecurity> ECSecurityPtr;
+typedef KCHL::object_ptr<IECServiceAdmin> ECServiceAdminPtr;
+typedef KCHL::object_ptr<IECSingleInstance> ECSingleInstancePtr;
+typedef KCHL::object_ptr<IExchangeManageStore> ExchangeManageStorePtr;
+typedef KCHL::object_ptr<IExchangeModifyTable> ExchangeModifyTablePtr;
+typedef KCHL::object_ptr<IExchangeExportChanges> ExchangeExportChangesPtr;
+typedef KCHL::object_ptr<IMAPIAdviseSink> MAPIAdviseSinkPtr;
+typedef KCHL::object_ptr<IMAPIContainer> MAPIContainerPtr;
+typedef KCHL::object_ptr<IMAPIFolder> MAPIFolderPtr;
+typedef KCHL::object_ptr<IMAPIProp> MAPIPropPtr;
+typedef KCHL::object_ptr<IMAPISession> MAPISessionPtr;
+typedef KCHL::object_ptr<IMAPITable> MAPITablePtr;
+typedef KCHL::object_ptr<IMailUser> MailUserPtr;
+typedef KCHL::object_ptr<IMessage> MessagePtr;
+typedef KCHL::object_ptr<IMsgServiceAdmin> MsgServiceAdminPtr;
+typedef KCHL::object_ptr<IMsgStore> MsgStorePtr;
+typedef KCHL::object_ptr<IProfAdmin> ProfAdminPtr;
+typedef KCHL::object_ptr<IProfSect> ProfSectPtr;
+typedef KCHL::object_ptr<IProviderAdmin> ProviderAdminPtr;
+typedef KCHL::object_ptr<IUnknown> UnknownPtr;
+typedef KCHL::object_ptr<IStream> StreamPtr;
+typedef KCHL::object_ptr<IAttach> AttachPtr;
+typedef KCHL::object_ptr<IMAPIGetSession> MAPIGetSessionPtr;
 
 typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionPtr;
 typedef KCHL::memory_ptr<ENTRYID> EntryIdPtr;
