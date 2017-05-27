@@ -948,7 +948,7 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 		cerr << "No archive found for user '" << lpszName << "'." << endl;
 		return hr;
 	}
-	hr = lpSession->OpenMsgStore(0, cbArchiveId, ptrArchiveId, &ptrArchive.iid(), 0, &~ptrArchive);
+	hr = lpSession->OpenMsgStore(0, cbArchiveId, ptrArchiveId, &iid_of(ptrArchive), 0, &~ptrArchive);
 	if (hr != hrSuccess) {
 		cerr << "Unable to open archive." << endl;
 		return hr;
@@ -1714,7 +1714,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	SPropValuePtr ptrPropResyncID;
 	ULONG ulType = 0;
 
-	hr = lpAdminStore->QueryInterface(ptrEMS.iid(), &~ptrEMS);
+	hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrEMS->CreateStoreEntryID((LPTSTR)lpszHomeMDB, (LPTSTR)lpszAccount, 0, &cbEntryID, &~ptrEntryID);
@@ -1723,7 +1723,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, NULL, MDB_WRITE|MAPI_DEFERRED_ERRORS, &~ptrUserStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrUserStore->OpenEntry(0, nullptr, &ptrRoot.iid(), MAPI_MODIFY, &ulType, &~ptrRoot);
+	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_MODIFY, &ulType, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1756,10 +1756,10 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	SPropValue			  sObjTypePropVal;
 	SPropValue			  sDispTypePropVal;
 
-	hr = lpSession->OpenAddressBook(0, &ptrAdrBook.iid(), AB_NO_DIALOG, &~ptrAdrBook);
+	hr = lpSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrAdrBook->OpenEntry(0, nullptr, &ptrABContainer.iid(), 0, &ulType, &~ptrABContainer);
+	hr = ptrAdrBook->OpenEntry(0, nullptr, &iid_of(ptrABContainer), 0, &ulType, &~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrABContainer->GetHierarchyTable(0, &~ptrTable);
@@ -1783,7 +1783,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	if (ptrRows.size() != 1 || ptrRows[0].lpProps[0].ulPropTag != PR_ENTRYID)
 		return MAPI_E_NOT_FOUND;
 	hr = ptrAdrBook->OpenEntry(ptrRows[0].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[0].lpProps[0].Value.bin.lpb),
-	     &ptrABContainer.iid(), MAPI_BEST_ACCESS, &ulType, &~ptrABContainer);
+	     &iid_of(ptrABContainer), MAPI_BEST_ACCESS, &ulType, &~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrABContainer->GetContentsTable(0, &~ptrTable);
@@ -1886,7 +1886,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	enum {IDX_DISPLAY_NAME_A, IDX_EC_STATS_SYSTEM_VALUE};
 	enum {COL_ALLOWED=1, COL_USED, COL_AVAILABLE};
 
-	hr = lpAdminStore->OpenProperty(PR_EC_STATSTABLE_SYSTEM, &ptrSystemTable.iid(), 0, 0, &~ptrSystemTable);
+	hr = lpAdminStore->OpenProperty(PR_EC_STATSTABLE_SYSTEM, &iid_of(ptrSystemTable), 0, 0, &~ptrSystemTable);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2024,7 +2024,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
 	enum {IDX_DISPLAY_NAME, IDX_ENTRYID};
 
-	hr = lpAdminStore->QueryInterface(ptrEMS.iid(), &~ptrEMS);
+	hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrEMS->CreateStoreEntryID(NULL, (LPTSTR)lpszAccount, 0, &cbEntryID, &~ptrEntryID);
@@ -2038,10 +2038,10 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 		cerr << "Unable to open store for '" << lpszAccount << "'." << endl;
 		return hr;
 	}
-	hr = ptrUserStore->QueryInterface(ptrServiceAdmin.iid(), &~ptrServiceAdmin);
+	hr = ptrUserStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrUserStore->OpenEntry(0, nullptr, &ptrRoot.iid(), 0, &ulType, &~ptrRoot);
+	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), 0, &ulType, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrRoot, PR_ENTRYID, &~ptrPropEntryID);

@@ -906,7 +906,7 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 			return hr;
 	}
 
-	hr = lpMessage->QueryInterface(ptrECMessage.iid(), &~ptrECMessage);
+	hr = lpMessage->QueryInterface(iid_of(ptrECMessage), &~ptrECMessage);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrECMessage->IsReadOnly())

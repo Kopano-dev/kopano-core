@@ -803,7 +803,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 		}
 
 		// Get all subfolders and purge those as well.
-		hr = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &ptrArchiveRoot.iid(), MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &~ptrArchiveRoot);
+		hr = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveRoot), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrArchiveRoot);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive root. (entryid=%s, hr=%s)", arc.sItemEntryId.tostring().c_str(), stringify(hr, true).c_str());
 			bErrorOccurred = true;
@@ -869,7 +869,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 	ULONG ulIdx = 0;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
-	hr = ptrArchive->OpenEntry(folderEntryID.size(), folderEntryID, &ptrFolder.iid(), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrFolder);
+	hr = ptrArchive->OpenEntry(folderEntryID.size(), folderEntryID, &iid_of(ptrFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrFolder);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive folder. (entryid=%s, hr=%s)", folderEntryID.tostring().c_str(), stringify(hr, true).c_str());
 		return hr;
@@ -1042,7 +1042,7 @@ HRESULT ArchiveControlImpl::GetAllReferences(LPMDB lpUserStore, LPGUID lpArchive
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to locate ipm subtree of primary store. (hr=0x%08x)", hr);
 		return hr;
 	}
-	hr = lpUserStore->OpenEntry(ptrPropVal->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrPropVal->Value.bin.lpb), &ptrIpmSubtree.iid(), 0, &ulType, &~ptrIpmSubtree);
+	hr = lpUserStore->OpenEntry(ptrPropVal->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrPropVal->Value.bin.lpb), &iid_of(ptrIpmSubtree), 0, &ulType, &~ptrIpmSubtree);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open ipm subtree of primary store. (hr=0x%08x)", hr);
 		return hr;
@@ -1328,13 +1328,13 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 			}
 			
 			hr = lpUserStore->OpenEntry(ptrRows[i].lpProps[IDX_REF_ITEM_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[IDX_REF_ITEM_ENTRYID].Value.bin.lpb),
-			     &ptrPrimaryFolder.iid(), 0, &ulType, &~ptrPrimaryFolder);
+			     &iid_of(ptrPrimaryFolder), 0, &ulType, &~ptrPrimaryFolder);
 			if (hr == MAPI_E_NOT_FOUND) {
 				MAPIFolderPtr ptrArchiveFolder;
 				SPropValuePtr ptrProp;
 				
 				hr = lpArchiveRoot->OpenEntry(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.lpb),
-				     &ptrArchiveFolder.iid(), MAPI_MODIFY, &ulType, &~ptrArchiveFolder);
+				     &iid_of(ptrArchiveFolder), MAPI_MODIFY, &ulType, &~ptrArchiveFolder);
 				if (hr != hrSuccess)
 					return hr;
 				
@@ -1402,7 +1402,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 		MAPIPropPtr ptrMessage;
 		MAPIPropHelperPtr ptrHelper;
 
-		hr = lpArchiveFolder->OpenEntry(e.size(), e, &ptrMessage.iid(), MAPI_MODIFY, &ulType, &~ptrMessage);
+		hr = lpArchiveFolder->OpenEntry(e.size(), e, &iid_of(ptrMessage), MAPI_MODIFY, &ulType, &~ptrMessage);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open message. (hr=0x%08x)", hr);
 			return hr;
@@ -1424,7 +1424,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 		assert(ptrMessageList->cValues <= setEIDs.size());
 	}
 
-	hr = lpArchiveFolder->CopyMessages(ptrMessageList, &ptrDelItemsFolder.iid(), ptrDelItemsFolder, 0, NULL, MESSAGE_MOVE);
+	hr = lpArchiveFolder->CopyMessages(ptrMessageList, &iid_of(ptrDelItemsFolder), ptrDelItemsFolder, 0, NULL, MESSAGE_MOVE);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to move messages. (hr=0x%08x)", hr);
 		return hr;
@@ -1490,7 +1490,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 		return hr;
 	}
 
-	hr = lpArchiveFolder->CopyFolder(ptrEntryID->Value.bin.cb, (LPENTRYID)ptrEntryID->Value.bin.lpb, &ptrDelItemsFolder.iid(), ptrDelItemsFolder, NULL, 0, NULL, FOLDER_MOVE);
+	hr = lpArchiveFolder->CopyFolder(ptrEntryID->Value.bin.cb, (LPENTRYID)ptrEntryID->Value.bin.lpb, &iid_of(ptrDelItemsFolder), ptrDelItemsFolder, NULL, 0, NULL, FOLDER_MOVE);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to move folder. (hr=0x%08x)", hr);
 		return hr;

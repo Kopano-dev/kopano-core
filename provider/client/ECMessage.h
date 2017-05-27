@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECMemTable.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include "WSTransport.h"
 #include "ECMsgStore.h"
@@ -194,5 +195,11 @@ class ECMessageFactory _kc_final : public IMessageFactory {
 public:
 	HRESULT Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lpMessage) const;
 };
+
+namespace KC {
+
+static inline constexpr const IID &iid_of(const ECMessage *) { return IID_ECMessage; }
+
+}
 
 #endif // ECMESSAGE_H

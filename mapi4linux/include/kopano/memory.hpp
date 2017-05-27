@@ -319,7 +319,7 @@ HRESULT object_ptr<_T, _R>::QueryInterface(_U &result)
 	if (_m_ptr == nullptr)
 		return MAPI_E_NOT_INITIALIZED;
 	typename _U::pointer newobj = nullptr;
-	HRESULT hr = _m_ptr->QueryInterface(result.iid(), reinterpret_cast<void **>(&newobj));
+	HRESULT hr = _m_ptr->QueryInterface(iid_of(result), reinterpret_cast<void **>(&newobj));
 	if (hr == hrSuccess)
 		result.reset(newobj, false);
 	/*
@@ -343,7 +343,7 @@ HRESULT object_ptr<_T, _R>::QueryInterface(_U &result)
 		if (HrGetOneProp(_m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
 			return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
 		auto unk = reinterpret_cast<IECUnknown *>(pv->Value.lpszA);
-		hr = unk->QueryInterface(result.iid(), reinterpret_cast<void **>(&newobj));
+		hr = unk->QueryInterface(iid_of(newobj), reinterpret_cast<void **>(&newobj));
 		if (hr == hrSuccess)
 			result.reset(newobj, false);
 	}

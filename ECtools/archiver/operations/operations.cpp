@@ -174,7 +174,10 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 		SPropValuePtr ptrPropValue;
         
 		Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening folder (%s)", bin2hex(lpFolderEntryId->Value.bin.cb, lpFolderEntryId->Value.bin.lpb).c_str());
-		hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpFolderEntryId->Value.bin.lpb), &m_ptrCurFolder.iid(), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~m_ptrCurFolder);
+		hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(lpFolderEntryId->Value.bin.lpb),
+		     &iid_of(m_ptrCurFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors,
+		     &ulType, &~m_ptrCurFolder);
 		if (hr != hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open folder. (hr=%s)", stringify(hr, true).c_str());
 			return hr;
