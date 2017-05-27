@@ -105,29 +105,6 @@ information and delegate access to accounts.
 namespace KC {
 
 /**
- * Defines a free/busy event block. This is one block of a array of FBEvent blocks
- * 
- * The event blocks are stored properties PR_FREEBUSY_* 
- *
- * @todo rename sfbEvent to FBEvent
- */
-struct sfbEvent {
-	short rtmStart;		/**< The start time is the number of minutes 
-							between 12 AM Coordinated Universal Time (UTC) of the 
-							first day of the month and the start time of the event
-							in UTC. */
-	short rtmEnd;		/**< The end time is the number of minutes between 12 AM UTC of 
-							 the first day of the month and the end time of the event 
-							 in UTC */
-};
-
-#define FB_DATE(yearmonth,daytime)	((((ULONG)(unsigned short)(yearmonth))<<16)|((ULONG)(unsigned short)(daytime)))
-
-#define FB_YEARMONTH(year, month)	((((unsigned short)year<<4)&0xFFF0) | ((unsigned short)month))
-#define FB_YEAR(yearmonth)			( ((unsigned short)yearmonth) >> 4 )
-#define FB_MONTH(yearmonth)		( ((unsigned short)yearmonth)&0x000F )
-
-/**
  * An enumeration for the free/busy status of free/busy blocks.
  * The free/busy status of a block of time determines how it is displayed on a 
  * calendar: Free, Busy, Tentative, or Out of Office.

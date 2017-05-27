@@ -34,6 +34,27 @@ using namespace KCHL;
 
 namespace KC {
 
+/**
+ * Defines a free/busy event block. This is one block of a array of FBEvent blocks.
+ *
+ * The event blocks are stored properties PR_FREEBUSY_*
+ * TODO: rename sfbEvent to FBEvent
+ *
+ * @rtmStart:	The start time is the number of minutes between 00:00 UTC of
+ * 		the first day of the month and the tsart time of the event
+ * 		in UTC.
+ * @rtmEnd:	The end time is the number of minutes between 00:00 UTC of the
+ * 		first day of the month and the end time of the event in UTC.
+ */
+struct sfbEvent {
+	short rtmStart, rtmEnd;
+};
+
+#define FB_DATE(yearmonth,daytime)	((static_cast<ULONG>(static_cast<unsigned short>(yearmonth)) << 16) | static_cast<ULONG>(static_cast<unsigned short>(daytime)))
+#define FB_YEARMONTH(year, month)	(((static_cast<unsigned short>(year) << 4) & 0xFFF0) | static_cast<unsigned short>(month))
+#define FB_YEAR(yearmonth)		(static_cast<unsigned short>(yearmonth) >> 4)
+#define FB_MONTH(yearmonth)		(static_cast<unsigned short>(yearmonth) & 0x000F)
+
 static bool leapyear(short year)
 {
 	return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0); 
