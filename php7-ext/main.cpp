@@ -134,6 +134,9 @@ extern "C" {
 	#include "ext/standard/php_string.h"
 }
 
+// Destructor functions needed for the PHP resources. 
+static void _php_free_mapi_rowset(zend_resource *rsrc TSRMLS_DC);
+
 // Not defined anymore in PHP 5.3.0
 // we only use first and fourth versions, so just define those.
 #if ZEND_MODULE_API_NO >= 20071006
@@ -169,8 +172,6 @@ ZEND_END_ARG_INFO()
 
 #define ZEND_REGISTER_RESOURCE(return_value, lpMAPISession, le_mapi_session) \
 	ZVAL_RES(return_value, zend_register_resource(lpMAPISession, le_mapi_session));
-#define UOBJ_REGISTER_RESOURCE(rv, obj, categ) \
-	ZVAL_RES(rv, zend_register_resource(static_cast<IUnknown *>(obj), (categ)));
 
 // A very, very nice PHP #define that causes link errors in MAPI when you have multiple
 // files referencing MAPI....
@@ -587,6 +588,13 @@ static int LoadSettingsFile(void)
 	return SUCCESS;
 }
 
+template<typename T> static void
+_php_free_mapi_object(zend_resource *rsrc TSRMLS_DC)
+{
+	if (rsrc->ptr != nullptr)
+		static_cast<T *>(rsrc->ptr)->Release();
+}
+
 /**
 * Initfunction for the module, will be called once at server startup
 */
@@ -595,32 +603,32 @@ PHP_MINIT_FUNCTION(mapi) {
 	if (ret != SUCCESS)
 		return ret;
 
-	le_mapi_session = zend_register_list_destructors_ex(_php_free_mapi_session, NULL, const_cast<char *>(name_mapi_session), module_number);
-	le_mapi_table = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_table), module_number);
+	le_mapi_session = zend_register_list_destructors_ex(_php_free_mapi_object<IMAPISession>, nullptr, const_cast<char *>(name_mapi_session), module_number);
+	le_mapi_table = zend_register_list_destructors_ex(_php_free_mapi_object<IMAPITable>, nullptr, const_cast<char *>(name_mapi_table), module_number);
 	le_mapi_rowset = zend_register_list_destructors_ex(_php_free_mapi_rowset, NULL, const_cast<char *>(name_mapi_rowset), module_number);
-	le_mapi_msgstore = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_msgstore), module_number);
-	le_mapi_addrbook = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_addrbook), module_number);
-	le_mapi_mailuser = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_mailuser), module_number);
-	le_mapi_distlist = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_distlist), module_number);
-	le_mapi_abcont = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_abcont), module_number);
-	le_mapi_folder = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_folder), module_number);
-	le_mapi_message = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_message), module_number);
-	le_mapi_attachment = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_attachment), module_number);
-	le_mapi_property = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_property), module_number);
-	le_mapi_modifytable = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_modifytable), module_number);
-	le_mapi_advisesink = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_advisesink), module_number);
-	le_istream = zend_register_list_destructors_ex(_php_free_istream, NULL, const_cast<char *>(name_istream), module_number);
+	le_mapi_msgstore = zend_register_list_destructors_ex(_php_free_mapi_object<IMsgStore>, nullptr, const_cast<char *>(name_mapi_msgstore), module_number);
+	le_mapi_addrbook = zend_register_list_destructors_ex(_php_free_mapi_object<IAddrBook>, nullptr, const_cast<char *>(name_mapi_addrbook), module_number);
+	le_mapi_mailuser = zend_register_list_destructors_ex(_php_free_mapi_object<IMailUser>, nullptr, const_cast<char *>(name_mapi_mailuser), module_number);
+	le_mapi_distlist = zend_register_list_destructors_ex(_php_free_mapi_object<IDistList>, nullptr, const_cast<char *>(name_mapi_distlist), module_number);
+	le_mapi_abcont = zend_register_list_destructors_ex(_php_free_mapi_object<IABContainer>, nullptr, const_cast<char *>(name_mapi_abcont), module_number);
+	le_mapi_folder = zend_register_list_destructors_ex(_php_free_mapi_object<IMAPIFolder>, nullptr, const_cast<char *>(name_mapi_folder), module_number);
+	le_mapi_message = zend_register_list_destructors_ex(_php_free_mapi_object<IMessage>, nullptr, const_cast<char *>(name_mapi_message), module_number);
+	le_mapi_attachment = zend_register_list_destructors_ex(_php_free_mapi_object<IAttach>, nullptr, const_cast<char *>(name_mapi_attachment), module_number);
+	le_mapi_property = zend_register_list_destructors_ex(_php_free_mapi_object<IMAPIProp>, nullptr, const_cast<char *>(name_mapi_property), module_number);
+	le_mapi_modifytable = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeModifyTable>, nullptr, const_cast<char *>(name_mapi_modifytable), module_number);
+	le_mapi_advisesink = zend_register_list_destructors_ex(_php_free_mapi_object<IMAPIAdviseSink>, nullptr, const_cast<char *>(name_mapi_advisesink), module_number);
+	le_istream = zend_register_list_destructors_ex(_php_free_mapi_object<IStream>, nullptr, const_cast<char *>(name_istream), module_number);
 
 	// Freebusy functions
-	le_freebusy_support = zend_register_list_destructors_ex(_php_free_fb_object, NULL, const_cast<char *>(name_fb_support), module_number);
-	le_freebusy_data = zend_register_list_destructors_ex(_php_free_fb_object, NULL, const_cast<char *>(name_fb_data), module_number);
-	le_freebusy_update = zend_register_list_destructors_ex(_php_free_fb_object, NULL, const_cast<char *>(name_fb_update), module_number);
-	le_freebusy_enumblock = zend_register_list_destructors_ex(_php_free_fb_object, NULL, const_cast<char *>(name_fb_enumblock), module_number);
+	le_freebusy_support = zend_register_list_destructors_ex(_php_free_mapi_object<IFreeBusySupport>, nullptr, const_cast<char *>(name_fb_support), module_number);
+	le_freebusy_data = zend_register_list_destructors_ex(_php_free_mapi_object<IFreeBusyData>, nullptr, const_cast<char *>(name_fb_data), module_number);
+	le_freebusy_update = zend_register_list_destructors_ex(_php_free_mapi_object<IFreeBusyUpdate>, nullptr, const_cast<char *>(name_fb_update), module_number);
+	le_freebusy_enumblock = zend_register_list_destructors_ex(_php_free_mapi_object<IEnumFBBlock>, nullptr, const_cast<char *>(name_fb_enumblock), module_number);
 
 	// ICS interfaces
-	le_mapi_exportchanges = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_exportchanges), module_number);
-	le_mapi_importhierarchychanges = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_importhierarchychanges), module_number);
-	le_mapi_importcontentschanges = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, const_cast<char *>(name_mapi_importcontentschanges), module_number);
+	le_mapi_exportchanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeExportChanges>, nullptr, const_cast<char *>(name_mapi_exportchanges), module_number);
+	le_mapi_importhierarchychanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeImportHierarchyChanges>, nullptr, const_cast<char *>(name_mapi_importhierarchychanges), module_number);
+	le_mapi_importcontentschanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeImportContentsChanges>, nullptr, const_cast<char *>(name_mapi_importcontentschanges), module_number);
 
 	MAPIINIT_0 MAPIINIT = { 0, MAPI_MULTITHREAD_NOTIFICATIONS };
 
@@ -693,36 +701,10 @@ PHP_RSHUTDOWN_FUNCTION(mapi) {
 
 // This is called when our proxy object goes out of scope
 
-static void _php_free_mapi_session(zend_resource *rsrc TSRMLS_DC)
-{
-	PMEASURE_FUNC;
-
-	IMAPISession *lpSession = (IMAPISession *)rsrc->ptr;
-	if(lpSession) lpSession->Release();
-}
-
 static void _php_free_mapi_rowset(zend_resource *rsrc TSRMLS_DC)
 {
 	LPSRowSet pRowSet = (LPSRowSet)rsrc->ptr;
 	if (pRowSet) FreeProws(pRowSet);
-}
-
-static void _php_free_mapi_object(zend_resource *rsrc TSRMLS_DC)
-{
-	LPUNKNOWN lpUnknown = (LPUNKNOWN)rsrc->ptr;
-	if (lpUnknown) lpUnknown->Release();
-}
-
-static void _php_free_istream(zend_resource *rsrc TSRMLS_DC)
-{
-	LPSTREAM pStream = (LPSTREAM)rsrc->ptr;
-	if (pStream) pStream->Release();
-}
-
-static void _php_free_fb_object(zend_resource *rsrc TSRMLS_DC)
-{
-	LPUNKNOWN lpObj = (LPUNKNOWN)rsrc->ptr;
-	if (lpObj) lpObj->Release();
 }
 
 static HRESULT GetECObject(LPMAPIPROP lpMapiProp,
@@ -1071,10 +1053,10 @@ ZEND_FUNCTION(mapi_openentry)
 		goto exit;
 
 	if (ulObjType == MAPI_FOLDER) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_folder);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_folder);
 	}
 	else if(ulObjType == MAPI_MESSAGE) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_message);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_message);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not a folder or a message.");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1146,7 +1128,7 @@ ZEND_FUNCTION(mapi_openaddressbook)
 	MAPI_G(hr) = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpAddrBook, le_mapi_addrbook);
+	ZEND_REGISTER_RESOURCE(return_value, lpAddrBook, le_mapi_addrbook);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1185,13 +1167,13 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 
 	switch (ulObjType) {
 	case MAPI_MAILUSER:
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_mailuser);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_mailuser);
 		break;
 	case MAPI_DISTLIST:
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_distlist);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_distlist);
 		break;
 	case MAPI_ABCONT:
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_abcont);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_abcont);
 		break;
 	default:
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not an AddressBook item");
@@ -1304,7 +1286,7 @@ ZEND_FUNCTION(mapi_getmsgstorestable)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to fetch the message store table: 0x%08X", MAPI_G(hr));
 		goto exit;
 	}
-	UOBJ_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
+	ZEND_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1342,7 +1324,7 @@ ZEND_FUNCTION(mapi_openmsgstore)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to open the messagestore: 0x%08X", MAPI_G(hr));
 		goto exit;
 	}
-	UOBJ_REGISTER_RESOURCE(return_value, pMDB, le_mapi_msgstore);
+	ZEND_REGISTER_RESOURCE(return_value, pMDB, le_mapi_msgstore);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1383,7 +1365,7 @@ ZEND_FUNCTION(mapi_openprofilesection)
 	MAPI_G(hr) = lpSession->OpenProfileSection(lpUID, &IID_IMAPIProp, 0, (LPPROFSECT*)&lpProfSectProp);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpProfSectProp, le_mapi_property);
+	ZEND_REGISTER_RESOURCE(return_value, lpProfSectProp, le_mapi_property);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1401,7 +1383,6 @@ ZEND_FUNCTION(mapi_folder_gethierarchytable)
 	LOG_BEGIN();
 	// params
 	zval	*res;
-	LPMAPIFOLDER pFolder = NULL;
 	long	ulFlags	= 0;
 	// return value
 	LPMAPITABLE	lpTable = NULL;
@@ -1415,23 +1396,27 @@ ZEND_FUNCTION(mapi_folder_gethierarchytable)
 	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_folder) {
-		ZEND_FETCH_RESOURCE_C(pFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
+		IMAPIFolder *fld = nullptr;
+		ZEND_FETCH_RESOURCE_C(fld, decltype(fld), &res, -1, name_mapi_folder, le_mapi_folder);
+		MAPI_G(hr) = fld->GetHierarchyTable(ulFlags, &lpTable);
 	} else if (type == le_mapi_abcont) {
-		ZEND_FETCH_RESOURCE_C(pFolder, LPMAPIFOLDER, &res, -1, name_mapi_abcont, le_mapi_abcont);
+		IABContainer *ab = nullptr;
+		ZEND_FETCH_RESOURCE_C(ab, decltype(ab), &res, -1, name_mapi_abcont, le_mapi_abcont);
+		MAPI_G(hr) = ab->GetHierarchyTable(ulFlags, &lpTable);
 	} else if (type == le_mapi_distlist) {
-		ZEND_FETCH_RESOURCE_C(pFolder, LPMAPIFOLDER, &res, -1, name_mapi_distlist, le_mapi_distlist);
+		IDistList *dl = nullptr;
+		ZEND_FETCH_RESOURCE_C(dl, decltype(dl), &res, -1, name_mapi_distlist, le_mapi_distlist);
+		MAPI_G(hr) = dl->GetHierarchyTable(ulFlags, &lpTable);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Resource is not a valid IMAPIFolder or derivative");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	MAPI_G(hr) = pFolder->GetHierarchyTable(ulFlags, &lpTable);
-
 	// return the returncode
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
+	ZEND_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1450,7 +1435,6 @@ ZEND_FUNCTION(mapi_folder_getcontentstable)
 	LOG_BEGIN();
 	// params
 	zval			*res	= NULL;
-	LPMAPICONTAINER pContainer = NULL;
 	long			ulFlags	= 0;
 	// return value
 	LPMAPITABLE		pTable	= NULL;
@@ -1465,22 +1449,26 @@ ZEND_FUNCTION(mapi_folder_getcontentstable)
 	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_folder) {
-		ZEND_FETCH_RESOURCE_C(pContainer, LPMAPICONTAINER, &res, -1, name_mapi_folder, le_mapi_folder);
+		IMAPIFolder *fld = nullptr;
+		ZEND_FETCH_RESOURCE_C(fld, decltype(fld), &res, -1, name_mapi_folder, le_mapi_folder);
+		MAPI_G(hr) = fld->GetContentsTable(ulFlags, &pTable);
 	} else if (type == le_mapi_abcont) {
-		ZEND_FETCH_RESOURCE_C(pContainer, LPMAPICONTAINER, &res, -1, name_mapi_abcont, le_mapi_abcont);
+		IABContainer *ab = nullptr;
+		ZEND_FETCH_RESOURCE_C(ab, decltype(ab), &res, -1, name_mapi_abcont, le_mapi_abcont);
+		MAPI_G(hr) = ab->GetContentsTable(ulFlags, &pTable);
 	} else if( type == le_mapi_distlist) {
-		ZEND_FETCH_RESOURCE_C(pContainer, LPMAPICONTAINER, &res, -1, name_mapi_distlist, le_mapi_distlist);
+		IDistList *dl = nullptr;
+		ZEND_FETCH_RESOURCE_C(dl, decltype(dl), &res, -1, name_mapi_distlist, le_mapi_distlist);
+		MAPI_G(hr) = dl->GetContentsTable(ulFlags, &pTable);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Resource is not a valid IMAPIContainer or derivative");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	MAPI_G(hr) = pContainer->GetContentsTable(ulFlags, &pTable);
-
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
+	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1513,7 +1501,7 @@ ZEND_FUNCTION(mapi_folder_createmessage)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, pMessage, le_mapi_message);
+	ZEND_REGISTER_RESOURCE(return_value, pMessage, le_mapi_message);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1678,7 +1666,7 @@ ZEND_FUNCTION(mapi_folder_createfolder) {
 	MAPI_G(hr) = lpSrcFolder->CreateFolder(folderType, (LPTSTR)lpszFolderName, (LPTSTR)lpszFolderComment, NULL, ulFlags & ~MAPI_UNICODE, &lpNewFolder);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpNewFolder, le_mapi_folder);
+	ZEND_REGISTER_RESOURCE(return_value, lpNewFolder, le_mapi_folder);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1917,10 +1905,10 @@ ZEND_FUNCTION(mapi_msgstore_openentry)
 		goto exit;
 
 	if (ulObjType == MAPI_FOLDER) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_folder);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_folder);
 	}
 	else if(ulObjType == MAPI_MESSAGE) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_message);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnknown.release(), le_mapi_message);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not a folder or a message.");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2035,7 +2023,7 @@ ZEND_FUNCTION(mapi_sink_create)
 	RETVAL_FALSE;
     
 	MAPI_G(hr) = MAPINotifSink::Create(&lpSink);
-	UOBJ_REGISTER_RESOURCE(return_value, lpSink, le_mapi_advisesink);
+	ZEND_REGISTER_RESOURCE(return_value, lpSink, le_mapi_advisesink);
 	LOG_END();
 }
 
@@ -2574,7 +2562,7 @@ ZEND_FUNCTION(mapi_msgstore_getreceivefolder)
 
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpFolder, le_mapi_folder);
+	ZEND_REGISTER_RESOURCE(return_value, lpFolder, le_mapi_folder);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -2629,7 +2617,7 @@ ZEND_FUNCTION(mapi_msgstore_openmultistoretable)
 	MAPI_G(hr) = lpECMST->OpenMultiStoreTable(lpEntryList, ulFlags, &lpMultiTable);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpMultiTable, le_mapi_table);
+	ZEND_REGISTER_RESOURCE(return_value, lpMultiTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -2734,7 +2722,7 @@ ZEND_FUNCTION(mapi_message_getattachmenttable)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
+	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -2768,7 +2756,7 @@ ZEND_FUNCTION(mapi_message_openattach)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, pAttach, le_mapi_attachment);
+	ZEND_REGISTER_RESOURCE(return_value, pAttach, le_mapi_attachment);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -2798,7 +2786,7 @@ ZEND_FUNCTION(mapi_message_createattach)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpAttach, le_mapi_attachment);
+	ZEND_REGISTER_RESOURCE(return_value, lpAttach, le_mapi_attachment);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -3135,7 +3123,7 @@ ZEND_FUNCTION(mapi_message_getrecipienttable)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
+	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -3196,7 +3184,7 @@ ZEND_FUNCTION(mapi_attach_openobj)
 	if (FAILED(MAPI_G(hr)))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Fetching attachmentdata as object failed");
 	else
-		UOBJ_REGISTER_RESOURCE(return_value, lpMessage, le_mapi_message);
+		ZEND_REGISTER_RESOURCE(return_value, lpMessage, le_mapi_message);
 
 	LOG_END();
 	THROW_ON_ERROR();
@@ -3654,21 +3642,21 @@ ZEND_FUNCTION(mapi_openproperty)
 			ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_istream);
 		}
 	} else if(*lpGUID == IID_IMAPITable) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_table);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_table);
 	} else if(*lpGUID == IID_IMessage) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_message);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_message);
 	} else if(*lpGUID == IID_IMAPIFolder) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_folder);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_folder);
 	} else if(*lpGUID == IID_IMsgStore) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_msgstore);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_msgstore);
 	} else if(*lpGUID == IID_IExchangeModifyTable) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_modifytable);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_modifytable);
 	} else if(*lpGUID == IID_IExchangeExportChanges) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_exportchanges);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_exportchanges);
 	} else if(*lpGUID == IID_IExchangeImportHierarchyChanges) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_importhierarchychanges);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_importhierarchychanges);
 	} else if(*lpGUID == IID_IExchangeImportContentsChanges) {
-		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_importcontentschanges);
+		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_importcontentschanges);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The openproperty call succeeded, but the PHP extension is unable to handle the requested interface");
 		lpUnk->Release();
@@ -3917,7 +3905,7 @@ ZEND_FUNCTION(mapi_folder_openmodifytable) {
 	MAPI_G(hr) = lpInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, (LPUNKNOWN *)&lpRulesTable);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpRulesTable, le_mapi_modifytable);
+	ZEND_REGISTER_RESOURCE(return_value, lpRulesTable, le_mapi_modifytable);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -4051,7 +4039,7 @@ ZEND_FUNCTION(mapi_rules_gettable) {
 	MAPI_G(hr) = lpRulesTableProxy->QueryInterface(IID_IMAPITable, &~lpRulesView);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpRulesView.release(), le_mapi_table);
+	ZEND_REGISTER_RESOURCE(return_value, lpRulesView.release(), le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -6119,7 +6107,7 @@ ZEND_FUNCTION(mapi_freebusysupport_open)
 	MAPI_G(hr) = lpFBSupport->Open(lpSession, lpUserStore, (lpUserStore)?TRUE:FALSE);
 	if( MAPI_G(hr) != hrSuccess)
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpFBSupport.release(), le_freebusy_support);
+	ZEND_REGISTER_RESOURCE(return_value, lpFBSupport.release(), le_freebusy_support);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -6333,7 +6321,7 @@ ZEND_FUNCTION(mapi_freebusydata_enumblocks)
 	MAPI_G(hr) = lpFBData->EnumBlocks(&lpEnumBlock, ftmStart, ftmEnd);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
-	UOBJ_REGISTER_RESOURCE(return_value, lpEnumBlock, le_freebusy_enumblock);
+	ZEND_REGISTER_RESOURCE(return_value, lpEnumBlock, le_freebusy_enumblock);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -6993,7 +6981,7 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagechange)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 	ZVAL_DEREF(resMessage);
-	UOBJ_REGISTER_RESOURCE(resMessage, lpMessage, le_mapi_message);
+	ZEND_REGISTER_RESOURCE(resMessage, lpMessage, le_mapi_message);
 	RETVAL_TRUE;
 
 exit:
@@ -7263,7 +7251,7 @@ ZEND_FUNCTION(mapi_wrap_importcontentschanges)
     lpImportContentsChanges = new ECImportContentsChangesProxy(objImportContentsChanges TSRMLS_CC);
 
     // Simply return the wrapped object
-	UOBJ_REGISTER_RESOURCE(return_value, lpImportContentsChanges, le_mapi_importcontentschanges);
+	ZEND_REGISTER_RESOURCE(return_value, lpImportContentsChanges, le_mapi_importcontentschanges);
 	MAPI_G(hr) = hrSuccess;
 
 	LOG_END();
@@ -7286,7 +7274,7 @@ ZEND_FUNCTION(mapi_wrap_importhierarchychanges)
     lpImportHierarchyChanges = new ECImportHierarchyChangesProxy(objImportHierarchyChanges TSRMLS_CC);
 
     // Simply return the wrapped object
-	UOBJ_REGISTER_RESOURCE(return_value, lpImportHierarchyChanges, le_mapi_importhierarchychanges);
+	ZEND_REGISTER_RESOURCE(return_value, lpImportHierarchyChanges, le_mapi_importhierarchychanges);
 	MAPI_G(hr) = hrSuccess;
 
 	LOG_END();
