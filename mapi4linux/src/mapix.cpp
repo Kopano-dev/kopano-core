@@ -1706,7 +1706,7 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpIn
 		}
 	}
 
-	if (lpEntryID == NULL && (lpInterface == NULL || *lpInterface == IID_IABContainer)) {
+	if (lpEntryID == NULL && (lpInterface == NULL || *lpInterface == IID_IABContainer || *lpInterface == IID_IMAPIContainer || *lpInterface == IID_IMAPIProp || *lpInterface == IID_IUnknown)) {
 		// 2.1a1: open root container, make a M4LABContainer which have the ABContainers of all providers as hierarchy entries.
 		M4LABContainer *lpCont = NULL;
 		SPropValue sPropObjectType;
