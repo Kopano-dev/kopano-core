@@ -27,9 +27,11 @@
 DEFINE_GUID(IID_ECMSProvider, 
 0x8956af38, 0xea4f, 0x42bf, 0xb2, 0x4f, 0xd4, 0xd8, 0xb6, 0x19, 0x6a, 0x4a);
 
-// {2D3C584B-718D-410e-A383-73D4F74978DC}
-DEFINE_GUID(IID_ECABProvider, 
-0x2d3c584b, 0x718d, 0x410e, 0xa3, 0x83, 0x73, 0xd4, 0xf7, 0x49, 0x78, 0xdc);
+/*
+ * Original IID_ECABProvider value: {2D3C584B-718D-410e-A383-73D4F74978DC}
+ * The ECABProvider class has nothing to offer over IABProvider, and so
+ * IID_ECABProvider is currently not used nor provided.
+ */
 
 // {766D15B9-23BE-41be-AAD2-E85D0849F5A2}
 DEFINE_GUID(IID_ECMsgStore, 

@@ -203,8 +203,6 @@ static const INFOGUID sGuidList[] = {
 	// Kopano
 	{3, (GUID*)&IID_IECSpooler, "IID_IECSpooler"},
 	{3, (GUID*)&IID_IECServiceAdmin , "IID_IECServiceAdmin"},
-	{3, (GUID*)&IID_ECMSProvider , "IID_ECMSProvider"},
-	{3, (GUID*)&IID_ECABProvider , "IID_ECABProvider"},
 	{3, (GUID*)&IID_ECMsgStore , "IID_ECMsgStore"},
 	{3, (GUID*)&IID_ECMSLogon , "IID_ECMSLogon"},
 	{3, (GUID*)&IID_ECABLogon , "IID_ECABLogon"},

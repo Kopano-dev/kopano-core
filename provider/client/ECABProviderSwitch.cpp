@@ -50,7 +50,6 @@ HRESULT ECABProviderSwitch::Create(ECABProviderSwitch **lppECABProvider)
 
 HRESULT ECABProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECABProvider, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
 	REGISTER_INTERFACE2(IABProvider, &this->m_xABProvider);
 	REGISTER_INTERFACE2(IUnknown, &this->m_xABProvider);
