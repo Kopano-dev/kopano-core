@@ -29,6 +29,7 @@ enum {
   #endif
   #include <kopano/platform.linux.h>
 #include <string>
+#include <type_traits>
 #include <cstddef>
 #include <pthread.h>
 
@@ -120,6 +121,15 @@ template<typename T, size_t N> constexpr inline size_t ARRAY_SIZE(T (&)[N]) { re
 /* Get the one-past-end item of an array */
 template<typename T, size_t N> constexpr inline T *ARRAY_END(T (&a)[N]) { return a + N; }
 
+template<typename T> const IID &iid_of();
+template<typename T> static inline constexpr const IID &iid_of(const T &)
+{
+	return iid_of<typename std::remove_cv<typename std::remove_pointer<T>::type>::type>();
+}
+
 } /* namespace */
+
+#define IID_OF(T) namespace KC { template<> inline constexpr const IID &iid_of<T>() { return IID_ ## T; } }
+#define IID_OF2(T, U) namespace KC { template<> inline constexpr const IID &iid_of<T>() { return IID_ ## U; } }
 
 #endif // PLATFORM_H

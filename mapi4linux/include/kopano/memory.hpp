@@ -341,4 +341,14 @@ swap(object_ptr<_T, _R> &__x, object_ptr<_T, _R> &__y) noexcept
 
 } /* namespace KCHL */
 
+namespace KC {
+
+template<typename _U, REFIID _R> static inline constexpr const IID &
+iid_of(const KCHL::object_ptr<_U, _R> &)
+{
+	return iid_of(static_cast<const _U *>(nullptr));
+}
+
+} /* namespace KC */
+
 #endif /* _KCHL_MEMORY_HPP */

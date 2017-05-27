@@ -25,6 +25,7 @@
 #include <kopano/platform.h>
 #include <initializer_list>
 #include <cstring>		/* memcmp() */
+#include <mapiguid.h>
 
 #define MAPI_DIM
 
@@ -670,6 +671,7 @@ public:
 	virtual ULONG Release() = 0;
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) = 0;
 };
+IID_OF(IUnknown);
 typedef IUnknown *LPUNKNOWN;
 
 /* IStream Interface */
@@ -678,6 +680,7 @@ class ISequentialStream : public IUnknown {
 	virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead) = 0;
 	virtual HRESULT Write(const void *pv, ULONG cb, ULONG *pcbWritten) = 0;
 };
+IID_OF(ISequentialStream);
 
 class IEnumSTATSTG : public IUnknown {
 	public:
@@ -689,6 +692,7 @@ class IEnumSTATSTG : public IUnknown {
 #if !defined(INITGUID) || defined(USES_IID_IEnumSTATSTG)
 DEFINE_OLEGUID(IID_IEnumSTATSTG, 0x0D, 0, 0);
 #endif
+IID_OF(IEnumSTATSTG);
 
 class IStream : public ISequentialStream {
 	public:
@@ -702,6 +706,7 @@ class IStream : public ISequentialStream {
 	virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag) = 0;
 	virtual HRESULT Clone(IStream **ppstm) = 0;
 };
+IID_OF(IStream);
 typedef IStream *LPSTREAM;
 
 class IMalloc : public IUnknown {
@@ -733,6 +738,7 @@ class IStorage : public IUnknown {
 	virtual HRESULT SetStateBits(DWORD grfStateBits, DWORD grfMask) = 0;
 	virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag) = 0;
 };
+IID_OF(IStorage);
 typedef IStorage *LPSTORAGE;
 
 class IMAPIProp : public virtual IUnknown {
@@ -752,7 +758,7 @@ public:
 				    LPMAPINAMEID** lpppPropNames) = 0;
     virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags) = 0;
 };
-
+IID_OF(IMAPIProp);
 
 /*
  * IMAPIContainer Interface
@@ -782,7 +788,7 @@ public:
     virtual HRESULT GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRestriction, LPENTRYLIST* lppContainerList,
 				      ULONG* lpulSearchState) = 0;
 };
-
+IID_OF(IMAPIContainer);
 
 /* 
  * IMAPIAdviseSink Interface
@@ -912,7 +918,7 @@ public:
 
     virtual ULONG OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) = 0;
 };
-
+IID_OF(IMAPIAdviseSink);
 
 /*
  * IMsgStore Interface
@@ -977,7 +983,7 @@ public:
     virtual HRESULT FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
     virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification) = 0;
 };
-
+IID_OF(IMsgStore);
 
 /*
  * IMAPIFolder Interface
@@ -1061,7 +1067,7 @@ public:
     virtual HRESULT SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULONG ulFlags) = 0;
     virtual HRESULT EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
 };
-
+IID_OF(IMAPIFolder);
 
 /*
  * IMessage Interface
@@ -1114,7 +1120,7 @@ public:
     virtual HRESULT SubmitMessage(ULONG ulFlags) = 0;
     virtual HRESULT SetReadFlag(ULONG ulFlags) = 0;
 };
-
+IID_OF(IMessage);
 
 /*
  * IAttach Interface
@@ -1131,7 +1137,7 @@ class IAttach : public IMAPIProp {
 public:
     //    virtual ~IAttach() = 0;
 };
-
+IID_OF2(IAttach, IAttachment);
 
 /*
  * IABContainer Interface
@@ -1180,7 +1186,7 @@ public:
     virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) = 0;
 	virtual HRESULT ResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList) = 0;
 };
-
+IID_OF(IABContainer);
 
 /*
  * IMailUser Interface ( == IMAPIProp)
@@ -1256,7 +1262,7 @@ class IMailUser : public virtual IMAPIProp {
 public:
     //    virtual ~IMailUser() = 0;
 };
-
+IID_OF(IMailUser);
 
 /*
  * IDistList Interface
@@ -1270,7 +1276,7 @@ public:
     virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) = 0;
 	virtual HRESULT ResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList) = 0;
 };
-
+IID_OF(IDistList);
 
 class IMAPIStatus : public IMAPIProp {
 public:
@@ -1280,7 +1286,7 @@ public:
 	virtual HRESULT ChangePassword(const TCHAR *oldpw, const TCHAR *newpw, ULONG flags) = 0;
     virtual HRESULT FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags) = 0;
 };
-
+IID_OF(IMAPIStatus);
 
 /*
  * IMAPITable Interface
@@ -1507,7 +1513,7 @@ public:
 				     LPBYTE *lppbCollapseState) = 0;
     virtual HRESULT SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation) = 0;
 };
-
+IID_OF(IMAPITable);
 
 /*
  * IProfSect Interface
@@ -1583,9 +1589,8 @@ public:
 class IProfSect : public virtual IMAPIProp {
 public:
     //    virtual ~IProfSect() = 0;
-
 };
-
+IID_OF(IProfSect);
 
 /*
  * IMAPIProgress Interface
@@ -1602,7 +1607,7 @@ public:
     virtual HRESULT GetMin(ULONG* lpulMin) = 0;
     virtual HRESULT SetLimits(ULONG* lpulMin, ULONG* lpulMax, ULONG* lpulFlags) = 0;
 };
-
+IID_OF(IMAPIProgress);
 
 /*
  * IProviderAdmin Interface
@@ -1622,14 +1627,7 @@ public:
 	virtual HRESULT DeleteProvider(const MAPIUID *uid) = 0;
 	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **) = 0;
 };
-
-
-/*
-
- *
-
- */
-
+IID_OF(IProviderAdmin);
 
 /* Address Book interface definition */
 #define GET_ADRPARM_VERSION(ulFlags)  (((ULONG)ulFlags) & 0xF0000000)
@@ -1766,7 +1764,7 @@ public:
     virtual HRESULT Activate(ULONG ulFlags, ULONG ulUIParam) = 0;
     virtual HRESULT GetState(ULONG ulFlags, ULONG* lpulState) = 0;
 };
-
+IID_OF(IMAPIControl);
 
 /* 
  * Display Tables
