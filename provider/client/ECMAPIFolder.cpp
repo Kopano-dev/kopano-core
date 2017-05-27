@@ -212,7 +212,6 @@ HRESULT	ECMAPIFolder::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IUnknown, &this->m_xMAPIFolder);
 	REGISTER_INTERFACE2(IFolderSupport, &this->m_xFolderSupport);
 	REGISTER_INTERFACE2(IECSecurity, &this->m_xECSecurity);
-	REGISTER_INTERFACE3(ISelectUnicode, IUnknown, &this->m_xUnknown);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

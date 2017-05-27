@@ -149,7 +149,6 @@ HRESULT	ECMessage::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IMessage, &this->m_xMessage);
 	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMessage);
 	REGISTER_INTERFACE2(IUnknown, &this->m_xMessage);
-	REGISTER_INTERFACE3(ISelectUnicode, IUnknown, &this->m_xUnknown);
 	REGISTER_INTERFACE2(IECSingleInstance, &this->m_xECSingleInstance);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }

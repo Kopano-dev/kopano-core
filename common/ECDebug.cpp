@@ -185,7 +185,6 @@ static const INFOGUID sGuidList[] = {
 	{1, (GUID*)&IID_IOlkAccountManager, "IID_IOlkAccountManager"},
 	{1, (GUID*)&IID_IOlkAccount, "IID_IOlkAccount"},
 	{1, (GUID*)&IID_IAttachmentSecurity, "IID_IAttachmentSecurity"}, //Outlook 2007
-	{1, (GUID*)&IID_ISelectUnicode, "IID_ISelectUnicode"},
 	{1, (GUID*)&IID_IMAPIClientShutdown, "IID_IMAPIClientShutdown"},
 	{1, (GUID*)&IID_IMAPIProviderShutdown, "IID_IMAPIProviderShutdown"},
 	{1, (GUID*)&GUID_Dilkie, "GUID_Dilkie"},

@@ -212,7 +212,6 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IMsgStore, &this->m_xMsgStore);
 	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMsgStore);
 	REGISTER_INTERFACE2(IUnknown, &this->m_xMsgStore);
-	REGISTER_INTERFACE3(ISelectUnicode, IUnknown, &this->m_xUnknown);
 
 	if (refiid == IID_IExchangeManageStore || refiid == IID_IExchangeManageStore6 || refiid == IID_IExchangeManageStoreEx) {
 		if (m_bOfflineStore == FALSE) {			
