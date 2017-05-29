@@ -113,7 +113,8 @@ struct RTFHeader {
 	unsigned int ulChecksum;
 };
 
-unsigned int rtf_get_uncompressed_length(char *lpData, unsigned int ulSize)
+unsigned int rtf_get_uncompressed_length(const char *lpData,
+    unsigned int ulSize)
 {
 	// Check if we have a full header
 	if(ulSize < sizeof(RTFHeader)) 
@@ -125,9 +126,10 @@ unsigned int rtf_get_uncompressed_length(char *lpData, unsigned int ulSize)
 
 // FIXME bad data can buffer overflow when ulUncompressedSize is incorrect
 // lpDest should be pre-allocated to the uncompressed size
-unsigned int rtf_decompress(char *lpDest, char *lpSrc, unsigned int ulBufSize)
+unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
+    unsigned int ulBufSize)
 {
-	auto lpHeader = reinterpret_cast<struct RTFHeader *>(lpSrc);
+	auto lpHeader = reinterpret_cast<const struct RTFHeader *>(lpSrc);
 	auto lpStart = lpSrc;
 	unsigned int ulFlags = 0;
 	unsigned int ulFlagNr = 0;
@@ -241,7 +243,9 @@ static void strmatch(const char *lpszBuffer, unsigned int cbBuffer,
 }
 
 // Compressed lpSrc of size ulBufSize into a new buffer, and returns it in lppDest.
-unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSrc, unsigned int ulBufSize) {
+unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize,
+    const char *lpSrc, unsigned int ulBufSize)
+{
 	/* The following CRC start value was deduced by experiment to create correct CRC values.
 	 * The RTFLIB32.LIB file in MAPI seems to use a standard crc32 function to create its header
  	 * checksums, the question was, what is the start value for the crc register, and what
@@ -343,7 +347,7 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 			// Offset is defined as the offset in the current or previous 4k page. When offset
 			// is bigger than the write position in the current page, the previous page is
 			// targeted.
-			char *lpCurPage = lpSrc - cbPrebuf + ((ulCursor + cbPrebuf) / 4096) * 4096;
+			const char *lpCurPage = lpSrc - cbPrebuf + ((ulCursor + cbPrebuf) / 4096) * 4096;
 			unsigned int offset = lpMatch - lpCurPage;
 
 			offset &= 0x0fff;
