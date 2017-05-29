@@ -1,5 +1,5 @@
-Release notes for 8.3.1
-=======================
+Release notes for 8.3.1 [2017-05-29]
+====================================
 Enhancements:
 * gateway: add option to ignore commands during IDLE
 Fixes:
@@ -8,10 +8,12 @@ Fixes:
 * spooler: avoid a use-after-free, and a deadlock after this failure [KC-588]
 * backup: batch storage updates [KC-662]
 * spooler: custom bounce message text for forward_whitelist_domain [KC-618]
+* server: avoid unchecked return value and unsigned underflow [KC-656]
+* php: rework pointer value storing
 
 
-Release notes for 8.3.0
-=======================
+Release notes for 8.3.0 [2017-04-27]
+====================================
 Enhancements:
 * mapi: drop global lock and replace singleton allocmore table by
   per-object vectors [KC-328]
@@ -62,8 +64,8 @@ Developer/packager notes:
   boost no longer needed at all [KC-451], xmlto no longer needed at all.
 
 
-Release notes for 8.2.0
-=======================
+Release notes for 8.2.0 [2017-02-17]
+====================================
 Fixes:
 * backup: avoid exceptions on problematic rules/ACLs/delegates [KC-213,KC-266]
 * The comment for server.cfg's "disabled_features" was wrong [KC-262]
