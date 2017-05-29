@@ -51,16 +51,13 @@ ECRESULT ECSearchObjectTable::Load() {
     std::list<unsigned int> lstObjId;
 	scoped_rlock biglock(m_hLock);
 
-    if(m_ulFolderId) {
-        // Get the search results
-		auto er = lpSession->GetSessionManager()->GetSearchFolders()->GetSearchResults(m_ulStoreId, m_ulFolderId, &lstObjId);
-        if(er != erSuccess)
-			return er;
-        er = UpdateRows(ECKeyTable::TABLE_ROW_ADD, &lstObjId, 0, true);
-        if(er != hrSuccess)
-			return er;
-    }
-	return erSuccess;
+	if (m_ulFolderId == 0)
+		return erSuccess;
+	// Get the search results
+	auto er = lpSession->GetSessionManager()->GetSearchFolders()->GetSearchResults(m_ulStoreId, m_ulFolderId, &lstObjId);
+	if (er != erSuccess)
+		return er;
+	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &lstObjId, 0, true);
 }
 
 } /* namespace */

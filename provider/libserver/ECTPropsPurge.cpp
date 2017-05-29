@@ -127,35 +127,30 @@ ECRESULT ECTPropsPurge::PurgeOverflowDeferred(ECDatabase *lpDatabase)
     unsigned int ulFolderId = 0;
     unsigned int ulMaxDeferred = atoi(m_lpConfig->GetSetting("max_deferred_records"));
     
-    if(ulMaxDeferred > 0) {
-		while(!m_bExit) {
-			auto er = GetDeferredCount(lpDatabase, &ulCount);
-			if(er != erSuccess)
-				return er;
-				
-			if(ulCount < ulMaxDeferred)
-				break;
-				
-			er = lpDatabase->Begin();
-			if(er != erSuccess)
-				return er;
-			
-			er = GetLargestFolderId(lpDatabase, &ulFolderId);
-			if(er != erSuccess) {
-				lpDatabase->Rollback();
-				return er;
-			}
-				
-			er = PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
-			if(er != erSuccess) {
-				lpDatabase->Rollback();
-				return er;
-			}
-				
-			er = lpDatabase->Commit();
-			if(er != erSuccess)
-				return er;
+	if (ulMaxDeferred == 0)
+		return erSuccess;
+	while (!m_bExit) {
+		auto er = GetDeferredCount(lpDatabase, &ulCount);
+		if (er != erSuccess)
+			return er;
+		if (ulCount < ulMaxDeferred)
+			break;
+		er = lpDatabase->Begin();
+		if (er != erSuccess)
+			return er;
+		er = GetLargestFolderId(lpDatabase, &ulFolderId);
+		if (er != erSuccess) {
+			lpDatabase->Rollback();
+			return er;
 		}
+		er = PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
+		if (er != erSuccess) {
+			lpDatabase->Rollback();
+			return er;
+		}
+		er = lpDatabase->Commit();
+		if (er != erSuccess)
+			return er;
 	}
 	return erSuccess;
 }
@@ -345,18 +340,14 @@ ECRESULT ECTPropsPurge::NormalizeDeferredUpdates(ECSession *lpSession, ECDatabas
 	unsigned int ulCount = 0;
 	auto ulMaxDeferred = atoui(lpSession->GetSessionManager()->GetConfig()->GetSetting("max_deferred_records_folder"));
 	
-	if (ulMaxDeferred) {
-		auto er = GetDeferredCount(lpDatabase, ulFolderId, &ulCount);
-		if (er != erSuccess)
-			return er;
-			
-		if (ulCount >= ulMaxDeferred) {
-			er = PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
-			if (er != erSuccess)
-				return er;
-		}
-	}
-	return erSuccess;
+	if (ulMaxDeferred == 0)
+		return erSuccess;
+	auto er = GetDeferredCount(lpDatabase, ulFolderId, &ulCount);
+	if (er != erSuccess)
+		return er;
+	if (ulCount < ulMaxDeferred)
+		return erSuccess;
+	return PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
 }
 
 } /* namespace */

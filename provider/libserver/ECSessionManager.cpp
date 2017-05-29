@@ -588,10 +588,10 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 
 void ECSessionManager::RemoveSessionInternal(ECSession *lpSession)
 {
-	if (lpSession != NULL) {
-		g_lpStatsCollector->Increment(SCN_SESSIONS_INTERNAL_DELETED);
-		delete lpSession;
-	}
+	if (lpSession == nullptr)
+		return;
+	g_lpStatsCollector->Increment(SCN_SESSIONS_INTERNAL_DELETED);
+	delete lpSession;
 }
 
 ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
@@ -831,20 +831,18 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
 		l_cache.unlock();
 	    
 	    // Send the change notification
-	    if(lpBTSession != NULL) {
-			auto lpSession = dynamic_cast<ECSession *>(lpBTSession);
-	    	if (lpSession == NULL) {
-				lpBTSession->Unlock();
-	    	    continue;
-			}
-	    	
-			if (sSubscription.ulType == TABLE_ENTRY::TABLE_TYPE_GENERIC)
-				lpSession->GetTableManager()->UpdateTables(ulType, sSubscription.ulObjectFlags, sSubscription.ulRootObjectId, lstChildId, sSubscription.ulObjectType);
-			else if (sSubscription.ulType == TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE)
-				lpSession->GetTableManager()->UpdateOutgoingTables(ulType, sSubscription.ulRootObjectId, lstChildId, sSubscription.ulObjectFlags, sSubscription.ulObjectType);
-
+		if (lpBTSession == nullptr)
+			continue;
+		auto lpSession = dynamic_cast<ECSession *>(lpBTSession);
+		if (lpSession == NULL) {
 			lpBTSession->Unlock();
+			continue;
 		}
+		if (sSubscription.ulType == TABLE_ENTRY::TABLE_TYPE_GENERIC)
+			lpSession->GetTableManager()->UpdateTables(ulType, sSubscription.ulObjectFlags, sSubscription.ulRootObjectId, lstChildId, sSubscription.ulObjectType);
+		else if (sSubscription.ulType == TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE)
+			lpSession->GetTableManager()->UpdateOutgoingTables(ulType, sSubscription.ulRootObjectId, lstChildId, sSubscription.ulObjectFlags, sSubscription.ulObjectType);
+		lpBTSession->Unlock();
 	}
 	return erSuccess;
 }
@@ -1297,14 +1295,12 @@ ECRESULT ECSessionManager::CreateDatabaseConnection()
 {
 	std::string strError;
     
-	if(m_lpDatabase == NULL) {
-		auto er = m_lpDatabaseFactory->CreateDatabaseObject(&m_lpDatabase, strError);
-		if(er != erSuccess) {
-			ec_log_crit("Unable to open connection to database: %s", strError.c_str());
-			return er;
-		}
-	}
-	return erSuccess;
+	if (m_lpDatabase != nullptr)
+		return erSuccess;
+	auto er = m_lpDatabaseFactory->CreateDatabaseObject(&m_lpDatabase, strError);
+	if (er != erSuccess)
+		ec_log_crit("Unable to open connection to database: %s", strError.c_str());
+	return er;
 }
 
 ECRESULT ECSessionManager::SubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE ulType, unsigned int ulTableRootObjectId, unsigned int ulObjectType, unsigned int ulObjectFlags, ECSESSIONID sessionID)
@@ -1339,10 +1335,9 @@ ECRESULT ECSessionManager::UnsubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE ulType
         ++iter;
     }
     
-    if (iter != m_mapTableSubscriptions.cend())
-        m_mapTableSubscriptions.erase(iter);
-    else
+	if (iter == m_mapTableSubscriptions.cend())
 		return KCERR_NOT_FOUND;
+	m_mapTableSubscriptions.erase(iter);
     return erSuccess;
 }
 

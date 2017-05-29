@@ -328,65 +328,57 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	
 	lstMatches.clear();
 
-	if (parseBool(lpConfig->GetSetting("search_enabled")) == true && szSocket[0]) {
-		lpSearchClient.reset(new(std::nothrow) ECSearchClient(szSocket, atoui(lpConfig->GetSetting("search_timeout"))));
-		if (!lpSearchClient) {
-			er = KCERR_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
-
-		if(lpCacheManager->GetExcludedIndexProperties(setExcludePropTags) != erSuccess) {
-			er = lpSearchClient->GetProperties(setExcludePropTags);
-			if (er == KCERR_NETWORK_ERROR)
-				ec_log_err("Error while connecting to search on \"%s\"", szSocket);
-			else if (er != erSuccess)
-				ec_log_err("Error while querying search on \"%s\", 0x%08x", szSocket, er);
-
-            if (er != erSuccess)
-                goto exit;
-                
-            er = lpCacheManager->SetExcludedIndexProperties(setExcludePropTags);
-            
-            if (er != erSuccess)
-                goto exit;
-        }  
-
-        er = CopyRestrictTable(NULL, lpRestrict, &lpOptimizedRestrict);
-        if (er != erSuccess)
-            goto exit;
-        
-        er = NormalizeGetOptimalMultiFieldSearch(lpOptimizedRestrict, setExcludePropTags, &lstMultiSearches);
-        if (er != erSuccess)
-            goto exit; // Note this will happen if the restriction cannot be handled by the indexer
-        
-        if (lstMultiSearches.empty()) {
-            // Although the restriction was strictly speaking indexer-compatible, no index queries could
-            // be found, so bail out
-            er = KCERR_NOT_FOUND;
-            goto exit;
-        }
-
-		ec_log_debug("Using index, %zu index queries", lstMultiSearches.size());
-		gettimeofday(&tstart, NULL);
-
-		er = lpSearchClient->Query(guidServer, guidStore, lstFolders, lstMultiSearches, lstMatches, suggestion);
-		gettimeofday(&tend, NULL);
-		llelapsedtime = difftimeval(&tstart,&tend);
-		g_lpStatsCollector->Max(SCN_INDEXER_SEARCH_MAX, llelapsedtime);
-		g_lpStatsCollector->Avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
-
-        if (er != erSuccess) {
-			g_lpStatsCollector->Increment(SCN_INDEXER_SEARCH_ERRORS);
+	if (!parseBool(lpConfig->GetSetting("search_enabled")) || szSocket[0] == '\0') {
+		er = KCERR_NOT_FOUND;
+		goto exit;
+	}
+	lpSearchClient.reset(new(std::nothrow) ECSearchClient(szSocket, atoui(lpConfig->GetSetting("search_timeout"))));
+	if (!lpSearchClient) {
+		er = KCERR_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
+	if (lpCacheManager->GetExcludedIndexProperties(setExcludePropTags) != erSuccess) {
+		er = lpSearchClient->GetProperties(setExcludePropTags);
+		if (er == KCERR_NETWORK_ERROR)
+			ec_log_err("Error while connecting to search on \"%s\"", szSocket);
+		else if (er != erSuccess)
 			ec_log_err("Error while querying search on \"%s\", 0x%08x", szSocket, er);
-		} else
-			ec_log_debug("Indexed query results found in %.4f ms", llelapsedtime/1000.0);
-		ec_log_debug("%zu indexed matches found", lstMatches.size());
-	} else {
-	    er = KCERR_NOT_FOUND;
-	    goto exit;
-    }
-    
-    *lppNewRestrict = lpOptimizedRestrict;
+		if (er != erSuccess)
+			goto exit;
+		er = lpCacheManager->SetExcludedIndexProperties(setExcludePropTags);
+		if (er != erSuccess)
+			goto exit;
+	}
+
+	er = CopyRestrictTable(NULL, lpRestrict, &lpOptimizedRestrict);
+	if (er != erSuccess)
+		goto exit;
+	er = NormalizeGetOptimalMultiFieldSearch(lpOptimizedRestrict, setExcludePropTags, &lstMultiSearches);
+	if (er != erSuccess)
+		goto exit; // Note this will happen if the restriction cannot be handled by the indexer
+	if (lstMultiSearches.empty()) {
+		// Although the restriction was strictly speaking indexer-compatible, no index queries could
+		// be found, so bail out
+		er = KCERR_NOT_FOUND;
+		goto exit;
+	}
+
+	ec_log_debug("Using index, %zu index queries", lstMultiSearches.size());
+	gettimeofday(&tstart, NULL);
+	er = lpSearchClient->Query(guidServer, guidStore, lstFolders, lstMultiSearches, lstMatches, suggestion);
+	gettimeofday(&tend, NULL);
+	llelapsedtime = difftimeval(&tstart,&tend);
+	g_lpStatsCollector->Max(SCN_INDEXER_SEARCH_MAX, llelapsedtime);
+	g_lpStatsCollector->Avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
+
+	if (er != erSuccess) {
+		g_lpStatsCollector->Increment(SCN_INDEXER_SEARCH_ERRORS);
+		ec_log_err("Error while querying search on \"%s\", 0x%08x", szSocket, er);
+	} else
+		ec_log_debug("Indexed query results found in %.4f ms", llelapsedtime/1000.0);
+
+	ec_log_debug("%zu indexed matches found", lstMatches.size());
+	*lppNewRestrict = lpOptimizedRestrict;
     lpOptimizedRestrict = NULL;
     
 exit:

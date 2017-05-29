@@ -111,29 +111,27 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
         }
         
         // Only load the table if it is not stopped
-        if(ulStatus != EC_SEARCHFOLDER_STATUS_STOPPED) {
-            er = LoadSearchCriteria(ulStoreId, ulFolderId, &lpSearchCriteria);
-            if(er != erSuccess) {
-                er = erSuccess;
-                continue;
-            }
-            
-            if(ulStatus == EC_SEARCHFOLDER_STATUS_REBUILD) 
-                ec_log_info("Rebuilding search folder %d", ulFolderId);
-                
-            // If the folder was in the process of rebuilding, then completely rebuild the search results (we don't know how far the search got)
-            er = AddSearchFolder(ulStoreId, ulFolderId, ulStatus == EC_SEARCHFOLDER_STATUS_REBUILD, lpSearchCriteria);
-            if(er != erSuccess) {
-                er = erSuccess; // just try to skip the error
-                continue;
-            }
-            
-            
-            if(lpSearchCriteria) {
-                FreeSearchCriteria(lpSearchCriteria);
-                lpSearchCriteria = NULL;
-            }
-        }
+		if (ulStatus == EC_SEARCHFOLDER_STATUS_STOPPED)
+			continue;
+		er = LoadSearchCriteria(ulStoreId, ulFolderId, &lpSearchCriteria);
+		if (er != erSuccess) {
+			er = erSuccess;
+			continue;
+		}
+
+		if (ulStatus == EC_SEARCHFOLDER_STATUS_REBUILD)
+			ec_log_info("Rebuilding search folder %d", ulFolderId);
+
+		// If the folder was in the process of rebuilding, then completely rebuild the search results (we don't know how far the search got)
+		er = AddSearchFolder(ulStoreId, ulFolderId, ulStatus == EC_SEARCHFOLDER_STATUS_REBUILD, lpSearchCriteria);
+		if (er != erSuccess) {
+			er = erSuccess; // just try to skip the error
+			continue;
+		}
+		if (lpSearchCriteria) {
+			FreeSearchCriteria(lpSearchCriteria);
+			lpSearchCriteria = NULL;
+		}
     }
 
     if(lpSearchCriteria)
@@ -148,15 +146,12 @@ ECRESULT ECSearchFolders::SetSearchCriteria(unsigned int ulStoreId, unsigned int
     if(lpSearchCriteria == NULL) {
         /* Always return successful, so that Outlook 2007 works */
         CancelSearchFolder(ulStoreId, ulFolderId);
-    } else {
-		auto er = AddSearchFolder(ulStoreId, ulFolderId, true, lpSearchCriteria);
-        if(er != erSuccess)
-			return er;
-        er = SaveSearchCriteria(ulStoreId, ulFolderId, lpSearchCriteria);
-        if(er != erSuccess)
-			return er;
-    }
-	return erSuccess;
+        return erSuccess;
+	}
+	auto er = AddSearchFolder(ulStoreId, ulFolderId, true, lpSearchCriteria);
+	if (er != erSuccess)
+		return er;
+	return SaveSearchCriteria(ulStoreId, ulFolderId, lpSearchCriteria);
 }
 
 // Gets the search criteria from in-memory
@@ -614,55 +609,55 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						// Match the restriction
 						er = ECGenericObjectTable::MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], folder.second->lpSearchCriteria->lpRestrict, lpSubResults, locale, &fMatch);
 
-						if(er == erSuccess) {
-							if (fMatch) {
-								if(lpRowSet->__ptr[i].__ptr[0].ulPropTag != PR_MESSAGE_FLAGS)
-									continue;
-									
-								// Get the read flag for this message
-								ulFlags = lpRowSet->__ptr[i].__ptr[0].Value.ul & MSGFLAG_READ;
+						if (er != erSuccess)
+							continue;
+						if (fMatch) {
+							if(lpRowSet->__ptr[i].__ptr[0].ulPropTag != PR_MESSAGE_FLAGS)
+								continue;
 								
-								// Update on-disk search folder
-								if (AddResults(ulStoreId, folder.first, iterObjectIDs->ulObjId, ulFlags, &fInserted) == erSuccess) {
-									if(fInserted) {
-										// One more match
-										++lCount;
-										if(!ulFlags)
-											++lUnreadCount;
+							// Get the read flag for this message
+							ulFlags = lpRowSet->__ptr[i].__ptr[0].Value.ul & MSGFLAG_READ;
+							
+							// Update on-disk search folder
+							if (AddResults(ulStoreId, folder.first, iterObjectIDs->ulObjId, ulFlags, &fInserted) == erSuccess) {
+								if(fInserted) {
+									// One more match
+									++lCount;
+									if(!ulFlags)
+										++lUnreadCount;
 
-										// Send table notification
-										m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, folder.first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
-									} else {
-										// Row was modified, so flags has changed. Since the only possible values are MSGFLAG_READ or 0, we know the new flags.
-										
-										if(ulFlags)
-											--lUnreadCount; // New state is read, so old state was unread, so --unread
-										else
-											++lUnreadCount; // New state is unread, so old state was read, so ++unread
-										
-										// Send table notification
-										m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, folder.first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
-									}
-									
+									// Send table notification
+									m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, folder.first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
 								} else {
-									// AddResults will return an error if the call didn't do anything (record was already in the table).
+									// Row was modified, so flags has changed. Since the only possible values are MSGFLAG_READ or 0, we know the new flags.
 									
-									// Even though, we should still send notifications since the row changed
+									if(ulFlags)
+										--lUnreadCount; // New state is read, so old state was unread, so --unread
+									else
+										++lUnreadCount; // New state is unread, so old state was read, so ++unread
+									
+									// Send table notification
 									m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, folder.first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
 								}
-							} else if (ulType == ECKeyTable::TABLE_ROW_MODIFY) {
-								// Only delete modified items, not new items
-								if (DeleteResults(ulStoreId, folder.first, iterObjectIDs->ulObjId, &ulFlags) == erSuccess) {
-									--lCount;
-									if(!ulFlags)
-										--lUnreadCount; // Removed message was unread
-									m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, folder.first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
-								}
+								
+							} else {
+								// AddResults will return an error if the call didn't do anything (record was already in the table).
+								
+								// Even though, we should still send notifications since the row changed
+								m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, folder.first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
 							}
-
-							// Ignore errors from the updates
-							er = erSuccess;
+						} else if (ulType == ECKeyTable::TABLE_ROW_MODIFY) {
+							// Only delete modified items, not new items
+							if (DeleteResults(ulStoreId, folder.first, iterObjectIDs->ulObjId, &ulFlags) == erSuccess) {
+								--lCount;
+								if(!ulFlags)
+									--lUnreadCount; // Removed message was unread
+								m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, folder.first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
+							}
 						}
+
+						// Ignore errors from the updates
+						er = erSuccess;
 					}
 				} else {
 					// Message was deleted anyway, update on-disk search folder and send table notification
@@ -874,15 +869,13 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 
     if(lCount || lUnreadCount) {
         er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT, lCount);
-		if (er == erSuccess) {
-			er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD, lUnreadCount);
-			if (er != erSuccess)
-				ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(2) %d", er);
-		}
-		else {
+		if (er != erSuccess) {
 			ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(1) %d", er);
 			goto exit;
-	}
+		}
+		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD, lUnreadCount);
+		if (er != erSuccess)
+			ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(2) %d", er);
 	}
 
     if(bNotify) {
@@ -1534,32 +1527,31 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 	}
 
 	auto lpDBRow = lpDBResult.fetch_row();
-	if(lpDBRow && lpDBRow[0] && atoi(lpDBRow[0]) == 2 && lpDBRow[1]) {
-		std::string xmldata(lpDBRow[1]);
-		std::istringstream xml(xmldata);
-		struct searchCriteria crit;
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr || atoi(lpDBRow[0]) != 2 || lpDBRow[1] == nullptr)
+		return KCERR_NOT_FOUND;
 
-		xmlsoap.is = &xml;
-		soap_default_searchCriteria(&xmlsoap, &crit);
-		if (soap_begin_recv(&xmlsoap) != 0)
-			return KCERR_NETWORK_ERROR;
-		soap_get_searchCriteria(&xmlsoap, &crit, "SearchCriteria", NULL);
+	std::string xmldata(lpDBRow[1]);
+	std::istringstream xml(xmldata);
+	struct searchCriteria crit;
 
-		// We now have the object, allocated by xmlsoap object,
-		if (soap_end_recv(&xmlsoap) != 0)
-			er = KCERR_NETWORK_ERROR;
-		else
-			er = CopySearchCriteria(nullptr, &crit, lppSearchCriteria);
-		/*
-		 * We do not need the error here: lppSearchCriteria will not be
-		 * touched, and we need to free the soap structs.
-		 */
-		soap_destroy(&xmlsoap);
-		soap_end(&xmlsoap);
-		soap_done(&xmlsoap);
-	} else {
-		er = KCERR_NOT_FOUND;
-	}
+	xmlsoap.is = &xml;
+	soap_default_searchCriteria(&xmlsoap, &crit);
+	if (soap_begin_recv(&xmlsoap) != 0)
+		return KCERR_NETWORK_ERROR;
+	soap_get_searchCriteria(&xmlsoap, &crit, "SearchCriteria", NULL);
+
+	// We now have the object, allocated by xmlsoap object,
+	if (soap_end_recv(&xmlsoap) != 0)
+		er = KCERR_NETWORK_ERROR;
+	else
+		er = CopySearchCriteria(nullptr, &crit, lppSearchCriteria);
+	/*
+	 * We do not need the error here: lppSearchCriteria will not be
+	 * touched, and we need to free the soap structs.
+	 */
+	soap_destroy(&xmlsoap);
+	soap_end(&xmlsoap);
+	soap_done(&xmlsoap);
 	return er;
 }
 

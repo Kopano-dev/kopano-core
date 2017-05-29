@@ -210,23 +210,21 @@ ECRESULT FixUserEncoding(struct soap *soap, const ECStringCompat &stringCompat, 
 			for (gsoap_size_t i = 0; er == erSuccess && i < lpUser->lpsMVPropmap->__size; ++i)
 				for (gsoap_size_t j = 0; er == erSuccess && j < lpUser->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
 					lpUser->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.to_UTF8(soap, lpUser->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
-	} else {
-		lpUser->lpszFullName = stringCompat.from_UTF8_cpy(soap, lpUser->lpszFullName);
-		lpUser->lpszMailAddress = stringCompat.from_UTF8_cpy(soap, lpUser->lpszMailAddress);
-		lpUser->lpszPassword = stringCompat.from_UTF8_cpy(soap, lpUser->lpszPassword);
-		lpUser->lpszServername = stringCompat.from_UTF8_cpy(soap, lpUser->lpszServername);
-		lpUser->lpszUsername = stringCompat.from_UTF8_cpy(soap, lpUser->lpszUsername);
-
-		if (lpUser->lpsPropmap)
-			for (gsoap_size_t i = 0; er == erSuccess && i < lpUser->lpsPropmap->__size; ++i)
-				lpUser->lpsPropmap->__ptr[i].lpszValue = stringCompat.from_UTF8_cpy(soap, lpUser->lpsPropmap->__ptr[i].lpszValue);
-
-		if (lpUser->lpsMVPropmap)
-			for (gsoap_size_t i = 0; er == erSuccess && i < lpUser->lpsMVPropmap->__size; ++i)
-				for (gsoap_size_t j = 0; er == erSuccess && j < lpUser->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
-					lpUser->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.from_UTF8_cpy(soap, lpUser->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
+		return er;
 	}
 
+	lpUser->lpszFullName = stringCompat.from_UTF8_cpy(soap, lpUser->lpszFullName);
+	lpUser->lpszMailAddress = stringCompat.from_UTF8_cpy(soap, lpUser->lpszMailAddress);
+	lpUser->lpszPassword = stringCompat.from_UTF8_cpy(soap, lpUser->lpszPassword);
+	lpUser->lpszServername = stringCompat.from_UTF8_cpy(soap, lpUser->lpszServername);
+	lpUser->lpszUsername = stringCompat.from_UTF8_cpy(soap, lpUser->lpszUsername);
+	if (lpUser->lpsPropmap)
+		for (gsoap_size_t i = 0; er == erSuccess && i < lpUser->lpsPropmap->__size; ++i)
+			lpUser->lpsPropmap->__ptr[i].lpszValue = stringCompat.from_UTF8_cpy(soap, lpUser->lpsPropmap->__ptr[i].lpszValue);
+	if (lpUser->lpsMVPropmap)
+		for (gsoap_size_t i = 0; er == erSuccess && i < lpUser->lpsMVPropmap->__size; ++i)
+			for (gsoap_size_t j = 0; er == erSuccess && j < lpUser->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
+				lpUser->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.from_UTF8_cpy(soap, lpUser->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
 	return er;
 }
 
@@ -247,21 +245,19 @@ ECRESULT FixGroupEncoding(struct soap *soap, const ECStringCompat &stringCompat,
 			for (gsoap_size_t i = 0; er == erSuccess && i < lpGroup->lpsMVPropmap->__size; ++i)
 				for (gsoap_size_t j = 0; er == erSuccess && j < lpGroup->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
 					lpGroup->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.to_UTF8(soap, lpGroup->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
-	} else {
-		lpGroup->lpszFullname = stringCompat.from_UTF8_cpy(soap, lpGroup->lpszFullname);
-		lpGroup->lpszFullEmail = stringCompat.from_UTF8_cpy(soap, lpGroup->lpszFullEmail);
-		lpGroup->lpszGroupname = stringCompat.from_UTF8_cpy(soap, lpGroup->lpszGroupname);
-
-		if (lpGroup->lpsPropmap)
-			for (gsoap_size_t i = 0; er == erSuccess && i < lpGroup->lpsPropmap->__size; ++i)
-				lpGroup->lpsPropmap->__ptr[i].lpszValue = stringCompat.from_UTF8_cpy(soap, lpGroup->lpsPropmap->__ptr[i].lpszValue);
-
-		if (lpGroup->lpsMVPropmap)
-			for (gsoap_size_t i = 0; er == erSuccess && i < lpGroup->lpsMVPropmap->__size; ++i)
-				for (gsoap_size_t j = 0; er == erSuccess && j < lpGroup->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
-					lpGroup->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.from_UTF8_cpy(soap, lpGroup->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
+		return er;
 	}
 
+	lpGroup->lpszFullname = stringCompat.from_UTF8_cpy(soap, lpGroup->lpszFullname);
+	lpGroup->lpszFullEmail = stringCompat.from_UTF8_cpy(soap, lpGroup->lpszFullEmail);
+	lpGroup->lpszGroupname = stringCompat.from_UTF8_cpy(soap, lpGroup->lpszGroupname);
+	if (lpGroup->lpsPropmap)
+		for (gsoap_size_t i = 0; er == erSuccess && i < lpGroup->lpsPropmap->__size; ++i)
+			lpGroup->lpsPropmap->__ptr[i].lpszValue = stringCompat.from_UTF8_cpy(soap, lpGroup->lpsPropmap->__ptr[i].lpszValue);
+	if (lpGroup->lpsMVPropmap)
+		for (gsoap_size_t i = 0; er == erSuccess && i < lpGroup->lpsMVPropmap->__size; ++i)
+			for (gsoap_size_t j = 0; er == erSuccess && j < lpGroup->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
+				lpGroup->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.from_UTF8_cpy(soap, lpGroup->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
 	return er;
 }
 
@@ -281,20 +277,18 @@ ECRESULT FixCompanyEncoding(struct soap *soap, const ECStringCompat &stringCompa
 			for (gsoap_size_t i = 0; er == erSuccess && i < lpCompany->lpsMVPropmap->__size; ++i)
 				for (gsoap_size_t j = 0; er == erSuccess && j < lpCompany->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
 					lpCompany->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.to_UTF8(soap, lpCompany->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
-	} else {
-		lpCompany->lpszCompanyname = stringCompat.from_UTF8_cpy(soap, lpCompany->lpszCompanyname);
-		lpCompany->lpszServername = stringCompat.from_UTF8_cpy(soap, lpCompany->lpszServername);
-
-		if (lpCompany->lpsPropmap)
-			for (gsoap_size_t i = 0; er == erSuccess && i < lpCompany->lpsPropmap->__size; ++i)
-				lpCompany->lpsPropmap->__ptr[i].lpszValue = stringCompat.from_UTF8_cpy(soap, lpCompany->lpsPropmap->__ptr[i].lpszValue);
-
-		if (lpCompany->lpsMVPropmap)
-			for (gsoap_size_t i = 0; er == erSuccess && i < lpCompany->lpsMVPropmap->__size; ++i)
-				for (gsoap_size_t j = 0; er == erSuccess && j < lpCompany->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
-					lpCompany->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.from_UTF8_cpy(soap, lpCompany->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
+		return er;
 	}
 
+	lpCompany->lpszCompanyname = stringCompat.from_UTF8_cpy(soap, lpCompany->lpszCompanyname);
+	lpCompany->lpszServername = stringCompat.from_UTF8_cpy(soap, lpCompany->lpszServername);
+	if (lpCompany->lpsPropmap)
+		for (gsoap_size_t i = 0; er == erSuccess && i < lpCompany->lpsPropmap->__size; ++i)
+			lpCompany->lpsPropmap->__ptr[i].lpszValue = stringCompat.from_UTF8_cpy(soap, lpCompany->lpsPropmap->__ptr[i].lpszValue);
+	if (lpCompany->lpsMVPropmap)
+		for (gsoap_size_t i = 0; er == erSuccess && i < lpCompany->lpsMVPropmap->__size; ++i)
+			for (gsoap_size_t j = 0; er == erSuccess && j < lpCompany->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
+				lpCompany->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.from_UTF8_cpy(soap, lpCompany->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
 	return er;
 }
 
