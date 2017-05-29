@@ -1271,137 +1271,139 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		er = lpSource->Read(&lpsPropval->Value.li, sizeof(lpsPropval->Value.li), 1);
 		break;
 	case PT_STRING8:
-	case PT_UNICODE:
+	case PT_UNICODE: {
 		lpsPropval->__union = SOAP_UNION_propValData_lpszA;
 		er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
-		if (er == erSuccess) {
-			if (lpStreamCaps->bSupportUnicode) {
-				lpsPropval->Value.lpszA = s_alloc<char>(soap, ulLen + 1);
-				memset(lpsPropval->Value.lpszA, 0, ulLen + 1);
-				er = lpSource->Read(lpsPropval->Value.lpszA, 1, ulLen);
-			} else {
-				std::string strData(ulLen, '\0');
-				er = lpSource->Read((void*)strData.data(), 1, ulLen);
-				if (er == erSuccess) {
-					const utf8string strConverted = converter.convert_to<utf8string>(strData, rawsize(strData), "WINDOWS-1252");
-					lpsPropval->Value.lpszA = s_strcpy(soap, strConverted.c_str());
-				}
-			}
+		if (er != erSuccess)
+			break;
+		if (lpStreamCaps->bSupportUnicode) {
+			lpsPropval->Value.lpszA = s_alloc<char>(soap, ulLen + 1);
+			memset(lpsPropval->Value.lpszA, 0, ulLen + 1);
+			er = lpSource->Read(lpsPropval->Value.lpszA, 1, ulLen);
+			break;
 		}
+		std::string strData(ulLen, '\0');
+		er = lpSource->Read((void *)strData.data(), 1, ulLen);
+		if (er != erSuccess)
+			break;
+		const utf8string strConverted = converter.convert_to<utf8string>(strData, rawsize(strData), "WINDOWS-1252");
+		lpsPropval->Value.lpszA = s_strcpy(soap, strConverted.c_str());
 		break;
+	}
 	case PT_CLSID:
 	case PT_BINARY:
 		lpsPropval->__union = SOAP_UNION_propValData_bin;
 		er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
-		if (er == erSuccess) {
-			lpsPropval->Value.bin = s_alloc<xsd__base64Binary>(soap);
-			lpsPropval->Value.bin->__size = ulLen;
-			lpsPropval->Value.bin->__ptr = s_alloc<unsigned char>(soap, ulLen);
-			er = lpSource->Read(lpsPropval->Value.bin->__ptr, 1, ulLen);
-		}
+		if (er != erSuccess)
+			break;
+		lpsPropval->Value.bin = s_alloc<xsd__base64Binary>(soap);
+		lpsPropval->Value.bin->__size = ulLen;
+		lpsPropval->Value.bin->__ptr = s_alloc<unsigned char>(soap, ulLen);
+		er = lpSource->Read(lpsPropval->Value.bin->__ptr, 1, ulLen);
 		break;
 	case PT_MV_I2:
 		lpsPropval->__union = SOAP_UNION_propValData_mvi;
 		er = lpSource->Read(&ulCount, sizeof(ulCount), 1);
-		if (er == erSuccess) {
-			lpsPropval->Value.mvi.__size = ulCount;
-			lpsPropval->Value.mvi.__ptr = s_alloc<short>(soap, ulCount);
-			er = lpSource->Read(lpsPropval->Value.mvi.__ptr, sizeof *lpsPropval->Value.mvi.__ptr, ulCount);
-		}
+		if (er != erSuccess)
+			break;
+		lpsPropval->Value.mvi.__size = ulCount;
+		lpsPropval->Value.mvi.__ptr = s_alloc<short>(soap, ulCount);
+		er = lpSource->Read(lpsPropval->Value.mvi.__ptr, sizeof *lpsPropval->Value.mvi.__ptr, ulCount);
 		break;
 	case PT_MV_LONG:
 		lpsPropval->__union = SOAP_UNION_propValData_mvl;
 		er = lpSource->Read(&ulCount, sizeof(ulCount), 1);
-		if (er == erSuccess) {
-			lpsPropval->Value.mvl.__size = ulCount;
-			lpsPropval->Value.mvl.__ptr = s_alloc<unsigned int>(soap, ulCount);
-			er = lpSource->Read(lpsPropval->Value.mvl.__ptr, sizeof *lpsPropval->Value.mvl.__ptr, ulCount);
-		}
+		if (er != erSuccess)
+			break;
+		lpsPropval->Value.mvl.__size = ulCount;
+		lpsPropval->Value.mvl.__ptr = s_alloc<unsigned int>(soap, ulCount);
+		er = lpSource->Read(lpsPropval->Value.mvl.__ptr, sizeof *lpsPropval->Value.mvl.__ptr, ulCount);
 		break;
 	case PT_MV_R4:
 		lpsPropval->__union = SOAP_UNION_propValData_mvflt;
 		er = lpSource->Read(&ulCount, sizeof(ulCount), 1);
-		if (er == erSuccess) {
-			lpsPropval->Value.mvflt.__size = ulCount;
-			lpsPropval->Value.mvflt.__ptr = s_alloc<float>(soap, ulCount);
-			er = lpSource->Read(lpsPropval->Value.mvflt.__ptr, sizeof *lpsPropval->Value.mvflt.__ptr, ulCount);
-		}
+		if (er != erSuccess)
+			break;
+		lpsPropval->Value.mvflt.__size = ulCount;
+		lpsPropval->Value.mvflt.__ptr = s_alloc<float>(soap, ulCount);
+		er = lpSource->Read(lpsPropval->Value.mvflt.__ptr, sizeof *lpsPropval->Value.mvflt.__ptr, ulCount);
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
 		lpsPropval->__union = SOAP_UNION_propValData_mvdbl;
 		er = lpSource->Read(&ulCount, sizeof(ulCount), 1);
-		if (er == erSuccess) {
-			lpsPropval->Value.mvdbl.__size = ulCount;
-			lpsPropval->Value.mvdbl.__ptr = s_alloc<double>(soap, ulCount);
-			er = lpSource->Read(lpsPropval->Value.mvdbl.__ptr, sizeof *lpsPropval->Value.mvdbl.__ptr, ulCount);
-		}
+		if (er != erSuccess)
+			break;
+		lpsPropval->Value.mvdbl.__size = ulCount;
+		lpsPropval->Value.mvdbl.__ptr = s_alloc<double>(soap, ulCount);
+		er = lpSource->Read(lpsPropval->Value.mvdbl.__ptr, sizeof *lpsPropval->Value.mvdbl.__ptr, ulCount);
 		break;
 	case PT_MV_CURRENCY:
 	case PT_MV_SYSTIME:
 		lpsPropval->__union = SOAP_UNION_propValData_mvhilo;
 		er = lpSource->Read(&ulCount, sizeof(ulCount), 1);
-		if (er == erSuccess) {
-			lpsPropval->Value.mvhilo.__size = ulCount;
-			lpsPropval->Value.mvhilo.__ptr = s_alloc<hiloLong>(soap, ulCount);
-			for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
-				er = lpSource->Read(&lpsPropval->Value.mvhilo.__ptr[x].hi, sizeof(lpsPropval->Value.mvhilo.__ptr[x].hi), ulCount);
-				if (er == erSuccess)
-					er = lpSource->Read(&lpsPropval->Value.mvhilo.__ptr[x].lo, sizeof(lpsPropval->Value.mvhilo.__ptr[x].lo), ulCount);
-			}
+		if (er != erSuccess)
+			break;
+		lpsPropval->Value.mvhilo.__size = ulCount;
+		lpsPropval->Value.mvhilo.__ptr = s_alloc<hiloLong>(soap, ulCount);
+		for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
+			er = lpSource->Read(&lpsPropval->Value.mvhilo.__ptr[x].hi, sizeof(lpsPropval->Value.mvhilo.__ptr[x].hi), ulCount);
+			if (er != erSuccess)
+				continue;
+			er = lpSource->Read(&lpsPropval->Value.mvhilo.__ptr[x].lo, sizeof(lpsPropval->Value.mvhilo.__ptr[x].lo), ulCount);
 		}
 		break;
 	case PT_MV_BINARY:
 	case PT_MV_CLSID:
 		lpsPropval->__union = SOAP_UNION_propValData_mvbin;
 		er = lpSource->Read(&ulCount, sizeof(ulCount), 1);
-		if (er == erSuccess) {
-			lpsPropval->Value.mvbin.__size = ulCount;
-			lpsPropval->Value.mvbin.__ptr = s_alloc<xsd__base64Binary>(soap, ulCount);
-			for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
-				er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
-				if (er == erSuccess) {
-					lpsPropval->Value.mvbin.__ptr[x].__size = ulLen;
-					lpsPropval->Value.mvbin.__ptr[x].__ptr = s_alloc<unsigned char>(soap, ulLen);
-					er = lpSource->Read(lpsPropval->Value.mvbin.__ptr[x].__ptr, 1, ulLen);
-				}
-			}
+		if (er != erSuccess)
+			break;
+		lpsPropval->Value.mvbin.__size = ulCount;
+		lpsPropval->Value.mvbin.__ptr = s_alloc<xsd__base64Binary>(soap, ulCount);
+		for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
+			er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
+			if (er != erSuccess)
+				continue;
+			lpsPropval->Value.mvbin.__ptr[x].__size = ulLen;
+			lpsPropval->Value.mvbin.__ptr[x].__ptr = s_alloc<unsigned char>(soap, ulLen);
+			er = lpSource->Read(lpsPropval->Value.mvbin.__ptr[x].__ptr, 1, ulLen);
 		}
 		break;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
 		lpsPropval->__union = SOAP_UNION_propValData_mvszA;
 		er = lpSource->Read(&ulCount, sizeof(ulCount), 1);
-		if (er == erSuccess) {
-			lpsPropval->Value.mvszA.__size = ulCount;
-			lpsPropval->Value.mvszA.__ptr = s_alloc<char*>(soap, ulCount);
-			for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
-				er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
-				if (er == erSuccess) {
-					if (lpStreamCaps->bSupportUnicode) {
-						lpsPropval->Value.mvszA.__ptr[x] = s_alloc<char>(soap, ulLen + 1);
-						memset(lpsPropval->Value.mvszA.__ptr[x], 0, ulLen + 1);
-						er = lpSource->Read(lpsPropval->Value.mvszA.__ptr[x], 1, ulLen);
-					} else {
-						std::string strData(ulLen, '\0');
-						er = lpSource->Read((void*)strData.data(), 1, ulLen);
-						if (er == erSuccess) {
-							const utf8string strConverted = converter.convert_to<utf8string>(strData, rawsize(strData), "WINDOWS-1252");
-							lpsPropval->Value.mvszA.__ptr[x] = s_strcpy(soap, strConverted.c_str());
-						}
-					}
-				}
+		if (er != erSuccess)
+			break;
+		lpsPropval->Value.mvszA.__size = ulCount;
+		lpsPropval->Value.mvszA.__ptr = s_alloc<char*>(soap, ulCount);
+		for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
+			er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
+			if (er != erSuccess)
+				continue;
+			if (lpStreamCaps->bSupportUnicode) {
+				lpsPropval->Value.mvszA.__ptr[x] = s_alloc<char>(soap, ulLen + 1);
+				memset(lpsPropval->Value.mvszA.__ptr[x], 0, ulLen + 1);
+				er = lpSource->Read(lpsPropval->Value.mvszA.__ptr[x], 1, ulLen);
+				continue;
 			}
+			std::string strData(ulLen, '\0');
+			er = lpSource->Read((void*)strData.data(), 1, ulLen);
+			if (er != erSuccess)
+				continue;
+			const utf8string strConverted = converter.convert_to<utf8string>(strData, rawsize(strData), "WINDOWS-1252");
+			lpsPropval->Value.mvszA.__ptr[x] = s_strcpy(soap, strConverted.c_str());
 		}
 		break;
 	case PT_MV_I8:
 		lpsPropval->__union = SOAP_UNION_propValData_mvli;
 		er = lpSource->Read(&ulCount, sizeof(ulCount), 1);
-		if (er == erSuccess) {
-			lpsPropval->Value.mvli.__size = ulCount;
-			lpsPropval->Value.mvli.__ptr = s_alloc<LONG64>(soap, ulCount);
-			er = lpSource->Read(lpsPropval->Value.mvli.__ptr, sizeof *lpsPropval->Value.mvli.__ptr, ulCount);
-		}
+		if (er != erSuccess)
+			break;
+		lpsPropval->Value.mvli.__size = ulCount;
+		lpsPropval->Value.mvli.__ptr = s_alloc<LONG64>(soap, ulCount);
+		er = lpSource->Read(lpsPropval->Value.mvli.__ptr, sizeof *lpsPropval->Value.mvli.__ptr, ulCount);
 		break;
 	default:
 		return KCERR_INVALID_TYPE;

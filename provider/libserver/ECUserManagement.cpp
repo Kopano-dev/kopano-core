@@ -814,41 +814,40 @@ ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, con
 			ec_log_warn("Unable to set details for external %s (2): %s", ObjectClassToName(sExternId.objclass), e.what());
 			return KCERR_PLUGIN_ERROR;
 		}
-	} else {
-		// Object does not exist yet, create in external database
+		return erSuccess;
+	}
 
+	// Object does not exist yet, create in external database
+	try {
+		signature = lpPlugin->createObject(sDetails);
+	} catch (notimplemented &e) {
+		ec_log_warn("Unable to create %s in external database(1): %s", ObjectClassToName(sExternId.objclass), e.what());
+		return KCERR_NOT_IMPLEMENTED;
+	} catch (collision_error &e) {
+		ec_log_warn("Unable to create %s in external database(2): %s", ObjectClassToName(sExternId.objclass), e.what());
+		return KCERR_COLLISION;
+	} catch (std::exception &e) {
+		ec_log_warn("Unable to create %s in external database(3): %s", ObjectClassToName(sExternId.objclass), e.what());
+		return KCERR_PLUGIN_ERROR;
+	}
+
+	er = CreateLocalObjectSimple(signature, ulPreferredId);
+	if (er != erSuccess) {
+		/*
+		 * Failed to create object locally, it should be removed from external DB.
+		 * Otherwise it will remain present in the external DB and synced later while
+		 * ECSync will also perform a retry to create the object. Obviously this
+		 * can lead to unexpected behavior because the Offline server should never(!)
+		 * sync between plugin and ECUsermanagement somewhere else other than this
+		 * function
+		 */
 		try {
-			signature = lpPlugin->createObject(sDetails);
-		} catch (notimplemented &e) {
-			ec_log_warn("Unable to create %s in external database(1): %s", ObjectClassToName(sExternId.objclass), e.what());
-			return KCERR_NOT_IMPLEMENTED;
-		} catch (collision_error &e) {
-			ec_log_warn("Unable to create %s in external database(2): %s", ObjectClassToName(sExternId.objclass), e.what());
-			return KCERR_COLLISION;
+			lpPlugin->deleteObject(signature.id);
 		} catch (std::exception &e) {
-			ec_log_warn("Unable to create %s in external database(3): %s", ObjectClassToName(sExternId.objclass), e.what());
-			return KCERR_PLUGIN_ERROR;
+			ec_log_warn("Unable to delete %s from external database after failed (partial) creation: %s",
+				ObjectClassToName(sExternId.objclass), e.what());
 		}
-
-		er = CreateLocalObjectSimple(signature, ulPreferredId);
-		if(er != erSuccess) {
-			/*
-			 * Failed to create object locally, it should be removed from external DB.
-			 * Otherwise it will remain present in the external DB and synced later while
-			 * ECSync will also perform a retry to create the object. Obviously this
-			 * can lead to unexpected behavior because the Offline server should never(!)
-			 * sync between plugin and ECUsermanagement somewhere else other than this
-			 * function
-			 */
-			try {
-				lpPlugin->deleteObject(signature.id);
-			} catch (std::exception &e) {
-				ec_log_warn("Unable to delete %s from external database after failed (partial) creation: %s",
-								ObjectClassToName(sExternId.objclass), e.what());
-			}
-
-			return er;
-		}
+		return er;
 	}
 	return erSuccess;
 }
@@ -1094,19 +1093,16 @@ ECRESULT ECUserManagement::GetContainerProps(struct soap *soap, unsigned int ulO
 	objectdetails_t objectdetails;
 
 	if (ulObjectId == KOPANO_UID_ADDRESS_BOOK ||
-		ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_BOOK ||
-		ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_LISTS)
-	{
+	    ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_BOOK ||
+	    ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_LISTS)
 		return ConvertABContainerToProps(soap, ulObjectId, lpPropTagArray, lpPropValArray);
-	} else {
-		auto er = GetObjectDetails(ulObjectId, &objectdetails);
-		if (er != erSuccess)
-			return KCERR_NOT_FOUND;
-		er = GetSecurity(&lpSecurity);
-		if (er != erSuccess)
-			return er;
-		return ConvertContainerObjectDetailsToProps(soap, ulObjectId, &objectdetails, lpPropTagArray, lpPropValArray);
-	}
+	auto er = GetObjectDetails(ulObjectId, &objectdetails);
+	if (er != erSuccess)
+		return KCERR_NOT_FOUND;
+	er = GetSecurity(&lpSecurity);
+	if (er != erSuccess)
+		return er;
+	return ConvertContainerObjectDetailsToProps(soap, ulObjectId, &objectdetails, lpPropTagArray, lpPropValArray);
 }
 
 // Get local details

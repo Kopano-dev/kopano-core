@@ -1218,17 +1218,15 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 		}
 	
 		/* Do we own the store? */
-		if (strcasecmp(strThisServer.c_str(), strStoreServer.c_str()) != 0)
-		{
-			if ((ulFlags & EC_OVERRIDE_HOMESERVER) == 0) {
-				er = GetBestServerPath(soap, lpecSession, strStoreServer, &strServerPath);
-				if (er != erSuccess)
-					return er;
-				lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
-				ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
-				g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
-				return KCERR_UNABLE_TO_COMPLETE;
-            }
+		if (strcasecmp(strThisServer.c_str(), strStoreServer.c_str()) != 0 &&
+		    (ulFlags & EC_OVERRIDE_HOMESERVER) == 0) {
+			er = GetBestServerPath(soap, lpecSession, strStoreServer, &strServerPath);
+			if (er != erSuccess)
+				return er;
+			lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
+			ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
+			g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
+			return KCERR_UNABLE_TO_COMPLETE;
 		}
 	}
 
@@ -1568,39 +1566,30 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 
 		if (lpDBResult.get_num_rows() > 0) {
 			lpDBRow = lpDBResult.fetch_row();
-            if(lpDBRow && lpDBRow[0]) {
+			if (lpDBRow != nullptr && lpDBRow[0] != nullptr &&
+			    ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_PARENT_ENTRYID, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+				sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+				sChildProps.lpPropVals->AddPropVal(sPropVal);
+			}
 
-                if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_PARENT_ENTRYID, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess)
-                {
-                    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-                    sChildProps.lpPropVals->AddPropVal(sPropVal);
-                }
-            }
+			// PR_RIGHTS
+			if (lpDBRow != nullptr && lpDBRow[1] != nullptr && lpDBRow[2] != nullptr && atoi(lpDBRow[2]) == 3 &&
+				ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_RIGHTS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+				sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+				sChildProps.lpPropVals->AddPropVal(sPropVal);
+			}
 
-            if(lpDBRow && lpDBRow[1] && lpDBRow[2] && atoi(lpDBRow[2]) == 3) {
-                // PR_RIGHTS
-                if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RIGHTS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
-                    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-                    sChildProps.lpPropVals->AddPropVal(sPropVal);
-                }
-            }
-
-            // Set the flags PR_ACCESS and PR_ACCESS_LEVEL
-            if(lpDBRow && lpDBRow[0] && lpDBRow[2] && (atoi(lpDBRow[2]) == 3 || atoi(lpDBRow[2]) == 5) && lpDBRow[1])
-            {
-                if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_ACCESS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
-                    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-                    sChildProps.lpPropVals->AddPropVal(sPropVal);
-                }
-            }
-
-            if(lpDBRow && lpDBRow[2] && lpDBRow[1])
-            {
-                if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_ACCESS_LEVEL, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
-                    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-                    sChildProps.lpPropVals->AddPropVal(sPropVal);
-                }
-            }
+			// Set the flags PR_ACCESS and PR_ACCESS_LEVEL
+			if (lpDBRow != nullptr && lpDBRow[0] != nullptr && lpDBRow[2] != nullptr && (atoi(lpDBRow[2]) == 3 || atoi(lpDBRow[2]) == 5) && lpDBRow[1] != nullptr &&
+				ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_ACCESS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+				sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+				sChildProps.lpPropVals->AddPropVal(sPropVal);
+			}
+			if (lpDBRow != nullptr && lpDBRow[2] != nullptr && lpDBRow[1] != nullptr &&
+			    ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_ACCESS_LEVEL, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+				sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+				sChildProps.lpPropVals->AddPropVal(sPropVal);
+			}
         }
     }
     
@@ -1836,23 +1825,22 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	if(ulObjType == MAPI_FOLDER && !ulSyncId) {
 		for (gsoap_size_t i = 0; i < lpPropValArray->__size; ++i) {
 			// Check whether the requested folder name already exists
-			if(lpPropValArray->__ptr[i].ulPropTag == PR_DISPLAY_NAME ) {
-				if(lpPropValArray->__ptr[i].Value.lpszA == NULL)
-					break; // Name property found, but name isn't present. This is broken, so skip this.
+			if (lpPropValArray->__ptr[i].ulPropTag != PR_DISPLAY_NAME)
+				continue;
+			if(lpPropValArray->__ptr[i].Value.lpszA == NULL)
+				break; // Name property found, but name isn't present. This is broken, so skip this.
 
-				strQuery = "SELECT hierarchy.id FROM hierarchy JOIN properties ON hierarchy.id = properties.hierarchyid WHERE hierarchy.parent=" + stringify(ulParent) + " AND hierarchy.type="+stringify(MAPI_FOLDER)+" AND hierarchy.flags & " + stringify(MSGFLAG_DELETED)+ "=0 AND properties.tag=" + stringify(KOPANO_TAG_DISPLAY_NAME) + " AND properties.val_string = '" + lpDatabase->Escape(lpPropValArray->__ptr[i].Value.lpszA) + "' AND properties.type="+stringify(PT_STRING8)+" AND hierarchy.id!=" + stringify(ulObjId) + " LIMIT 1";
-
-				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-				if(er != erSuccess) {
-					ec_log_err("WriteProps(): DoSelect failed %x", er);
-					return er;
-				}
-				if (lpDBResult.get_num_rows() > 0) {
-					ec_log_err("WriteProps(): Folder already exists while putting folder");
-					return KCERR_COLLISION;
-				}
-				break;
+			strQuery = "SELECT hierarchy.id FROM hierarchy JOIN properties ON hierarchy.id = properties.hierarchyid WHERE hierarchy.parent=" + stringify(ulParent) + " AND hierarchy.type="+stringify(MAPI_FOLDER)+" AND hierarchy.flags & " + stringify(MSGFLAG_DELETED)+ "=0 AND properties.tag=" + stringify(KOPANO_TAG_DISPLAY_NAME) + " AND properties.val_string = '" + lpDatabase->Escape(lpPropValArray->__ptr[i].Value.lpszA) + "' AND properties.type="+stringify(PT_STRING8)+" AND hierarchy.id!=" + stringify(ulObjId) + " LIMIT 1";
+			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+			if (er != erSuccess) {
+				ec_log_err("WriteProps(): DoSelect failed %x", er);
+				return er;
 			}
+			if (lpDBResult.get_num_rows() > 0) {
+				ec_log_err("WriteProps(): Folder already exists while putting folder");
+				return KCERR_COLLISION;
+			}
+			break;
 		}// for(...)
 	}
 
@@ -2018,9 +2006,8 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				continue;
 
 			er = lpAttachmentStorage->SaveAttachment(ulObjId, PROP_ID(lpPropValArray->__ptr[i].ulPropTag), !fNewItem,
-													 lpPropValArray->__ptr[i].Value.bin->__size,
-													 lpPropValArray->__ptr[i].Value.bin->__ptr,
-													 &ulInstanceId);
+			     lpPropValArray->__ptr[i].Value.bin->__size,
+			     lpPropValArray->__ptr[i].Value.bin->__ptr, &ulInstanceId);
 			if (er != erSuccess)
 				return er;
 
@@ -2159,13 +2146,11 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				if(er != erSuccess)
 					return er;
 			}
-		} else {
+		} else if (ulParent != CACHE_NO_PARENT) {
 			// Instead of writing directly to tproperties, save a delayed write request.
-			if(ulParent != CACHE_NO_PARENT) {
-                er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParent, 0, ulObjId);
-                if(er != erSuccess)
-					return er;
-			}
+			er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParent, 0, ulObjId);
+			if (er != erSuccess)
+				return er;
 		}
 	}
 		
@@ -2259,51 +2244,47 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			if(ulParentType == MAPI_FOLDER)
                 g_lpSessionManager->GetCacheManager()->UpdateCell(ulObjId, PR_MESSAGE_FLAGS, (unsigned int)MSGFLAG_UNMODIFIED, 0);
 		}
-	} else {
+	} else if (setInserted.find(PR_LAST_MODIFICATION_TIME) == setInserted.cend() ||
+	    setInserted.find(PR_CREATION_TIME) == setInserted.cend()) {
 		// New item, make sure PR_CREATION_TIME and PR_LAST_MODIFICATION_TIME are available
-		if (setInserted.find(PR_LAST_MODIFICATION_TIME) == setInserted.cend() ||
-		    setInserted.find(PR_CREATION_TIME) == setInserted.cend()) {
-			struct propVal sPropTime;
-			FILETIME ft;
-			unsigned int tags[] = { PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME };
-			
-			// Get current time
-			UnixTimeToFileTime(time(NULL), &ft);
-			
-			sPropTime.Value.hilo = s_alloc<struct hiloLong>(soap);
-			sPropTime.Value.hilo->hi = ft.dwHighDateTime;
-			sPropTime.Value.hilo->lo = ft.dwLowDateTime;
-			sPropTime.__union = SOAP_UNION_propValData_hilo;
+		struct propVal sPropTime;
+		FILETIME ft;
+		unsigned int tags[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
 
-			// Same thing for both PR_LAST_MODIFICATION_TIME and PR_CREATION_TIME			
-			for (size_t i = 0; i < ARRAY_SIZE(tags); ++i) {
-				if(setInserted.find(tags[i]) == setInserted.end()) {
-				    sObjectTableKey key;
-					sPropTime.ulPropTag = tags[i];
-					
-					strQuery.clear();
-					WriteSingleProp(lpDatabase, ulObjId, ulParent, &sPropTime, false, 0, strQuery);
-					er = lpDatabase->DoInsert(strQuery);
-					if(er != erSuccess)
-						return er;
-						
-					strQuery.clear();
-					WriteSingleProp(lpDatabase, ulObjId, ulParent, &sPropTime, true, 0, strQuery);
-					er = lpDatabase->DoInsert(strQuery);
-					if(er != erSuccess)
-						return er;
-					if(tags[i] == PR_LAST_MODIFICATION_TIME)
-						*lpftModified = ft;
-					if(tags[i] == PR_CREATION_TIME)
-						*lpftCreated = ft;
-						
-                    // Add to cache
-                    key.ulObjId = ulObjId;
-                    key.ulOrderId = 0;
-        			if(ulParentType == MAPI_FOLDER)
-                        g_lpSessionManager->GetCacheManager()->SetCell(&key, tags[i], &sPropTime);
-				}
-			}
+		// Get current time
+		UnixTimeToFileTime(time(NULL), &ft);
+
+		sPropTime.Value.hilo = s_alloc<struct hiloLong>(soap);
+		sPropTime.Value.hilo->hi = ft.dwHighDateTime;
+		sPropTime.Value.hilo->lo = ft.dwLowDateTime;
+		sPropTime.__union = SOAP_UNION_propValData_hilo;
+
+		// Same thing for both PR_LAST_MODIFICATION_TIME and PR_CREATION_TIME
+		for (size_t i = 0; i < ARRAY_SIZE(tags); ++i) {
+			if (setInserted.find(tags[i]) != setInserted.cend())
+				continue;
+			sObjectTableKey key;
+			sPropTime.ulPropTag = tags[i];
+			strQuery.clear();
+			WriteSingleProp(lpDatabase, ulObjId, ulParent, &sPropTime, false, 0, strQuery);
+			er = lpDatabase->DoInsert(strQuery);
+			if (er != erSuccess)
+				return er;
+			strQuery.clear();
+			WriteSingleProp(lpDatabase, ulObjId, ulParent, &sPropTime, true, 0, strQuery);
+			er = lpDatabase->DoInsert(strQuery);
+			if (er != erSuccess)
+				return er;
+			if (tags[i] == PR_LAST_MODIFICATION_TIME)
+				*lpftModified = ft;
+			if (tags[i] == PR_CREATION_TIME)
+				*lpftCreated = ft;
+
+			// Add to cache
+			key.ulObjId = ulObjId;
+			key.ulOrderId = 0;
+			if (ulParentType == MAPI_FOLDER)
+				g_lpSessionManager->GetCacheManager()->SetCell(&key, tags[i], &sPropTime);
 		}
 	}
 
@@ -7716,14 +7697,12 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_SOURCE_KEY), sSourceKey.size(), sSourceKey, ulNewObjectId);
 
 		// Update Size
-		if(GetObjectSize(lpDatabase, ulNewObjectId, &ulSize) == erSuccess)
-		{
-			if(lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulNewObjectId, &ulStoreId, NULL) == erSuccess) {
-				er = UpdateObjectSize(lpDatabase, ulStoreId, MAPI_STORE, UPDATE_ADD, ulSize);
-				if (er != erSuccess) {
-					ec_log_err("CopyObject: UpdateObjectSize(store %u) failed: %s (%x)", ulStoreId, GetMAPIErrorMessage(er), er);
-					goto exit;
-				}
+		if (GetObjectSize(lpDatabase, ulNewObjectId, &ulSize) == erSuccess &&
+		    lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulNewObjectId, &ulStoreId, nullptr) == erSuccess) {
+			er = UpdateObjectSize(lpDatabase, ulStoreId, MAPI_STORE, UPDATE_ADD, ulSize);
+			if (er != erSuccess) {
+				ec_log_err("CopyObject: UpdateObjectSize(store %u) failed: %s (%x)", ulStoreId, GetMAPIErrorMessage(er), er);
+				goto exit;
 			}
 		}
 	}

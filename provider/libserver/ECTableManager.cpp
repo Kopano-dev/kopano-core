@@ -550,38 +550,37 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 	TABLE_ENTRY *lpEntry = NULL;
 	ulock_rec lk(hListMutex);
 	auto iterTables = mapTable.find(ulTableId);
-	if (iterTables != mapTable.cend()) {
-		// Remember the table entry struct
-		lpEntry = iterTables->second;
-		
-        // Unsubscribe if needed		
-        switch(lpEntry->ulTableType) {
-            case TABLE_ENTRY::TABLE_TYPE_GENERIC:
-                lpSession->GetSessionManager()->UnsubscribeTableEvents(lpEntry->ulTableType,
-																	   lpEntry->sTable.sGeneric.ulParentId, lpEntry->sTable.sGeneric.ulObjectType,
-																	   lpEntry->sTable.sGeneric.ulObjectFlags, lpSession->GetSessionId());
-                break;
-            case TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE:
-                lpSession->GetSessionManager()->UnsubscribeTableEvents(lpEntry->ulTableType,
-																	   lpEntry->sTable.sOutgoingQueue.ulFlags & EC_SUBMIT_MASTER ? 0 : lpEntry->sTable.sOutgoingQueue.ulStoreId, 
-																	   MAPI_MESSAGE, lpEntry->sTable.sOutgoingQueue.ulFlags, lpSession->GetSessionId());
-                break;
-            default:
-                break;
-        }
-		
-		// Now, remove the table from the open table list
-		mapTable.erase(ulTableId);
-    
-		// Unlock the table now as the search thread may not be able to exit without a hListMutex lock
-		lk.unlock();
+	if (iterTables == mapTable.cend())
+		return er;
 
-		// Free table data and threads running
-		lpEntry->lpTable->Release();
-		delete lpEntry;
-	} else {
-		lk.unlock();
+	// Remember the table entry struct
+	lpEntry = iterTables->second;
+
+	// Unsubscribe if needed
+	switch (lpEntry->ulTableType) {
+	case TABLE_ENTRY::TABLE_TYPE_GENERIC:
+		lpSession->GetSessionManager()->UnsubscribeTableEvents(lpEntry->ulTableType,
+			lpEntry->sTable.sGeneric.ulParentId, lpEntry->sTable.sGeneric.ulObjectType,
+			lpEntry->sTable.sGeneric.ulObjectFlags, lpSession->GetSessionId());
+		break;
+	case TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE:
+		lpSession->GetSessionManager()->UnsubscribeTableEvents(lpEntry->ulTableType,
+			lpEntry->sTable.sOutgoingQueue.ulFlags & EC_SUBMIT_MASTER ? 0 : lpEntry->sTable.sOutgoingQueue.ulStoreId,
+			MAPI_MESSAGE, lpEntry->sTable.sOutgoingQueue.ulFlags, lpSession->GetSessionId());
+		break;
+	default:
+		break;
 	}
+
+	// Now, remove the table from the open table list
+	mapTable.erase(ulTableId);
+
+	// Unlock the table now as the search thread may not be able to exit without a hListMutex lock
+	lk.unlock();
+
+	// Free table data and threads running
+	lpEntry->lpTable->Release();
+	delete lpEntry;
 	return er;
 }
 
