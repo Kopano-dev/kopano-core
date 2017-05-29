@@ -386,23 +386,6 @@ struct TZREG {
 };
 typedef struct TZREG *PTZREG;
 
-/* IUnknown Interface */
-class IUnknown {
-public:
-	virtual ~IUnknown(void) _kc_impdtor;
-    virtual ULONG AddRef() = 0;
-    virtual ULONG Release() = 0;
-    virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) = 0;
-};
-typedef IUnknown* LPUNKNOWN;
-
-/* IStream Interface */
-class ISequentialStream : public IUnknown {
-public:
-    virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead) = 0;
-    virtual HRESULT Write(const void *pv, ULONG cb, ULONG *pcbWritten) = 0;
-};
-
 struct STATSTG {
     LPSTR pwcsName;		// was LPOLESTR .. wtf is that?
     DWORD type;
@@ -442,45 +425,6 @@ enum STATFLAG {
     STATFLAG_NOOPEN	= 2
 };
 
-class IEnumSTATSTG : public IUnknown {
-public:
-	virtual HRESULT Next(ULONG celt, STATSTG *rgelt, ULONG *pceltFetched) = 0;
-	virtual HRESULT Skip(ULONG celt) = 0;
-	virtual HRESULT Reset(void) = 0;
-	virtual HRESULT Clone(IEnumSTATSTG **ppenum) = 0;
-};
-#if !defined(INITGUID) || defined(USES_IID_IEnumSTATSTG)
-  DEFINE_OLEGUID(IID_IEnumSTATSTG,0x0D,0,0);
-#endif
-
-class IStream : public ISequentialStream {
-public:
-    virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition) = 0;
-    virtual HRESULT SetSize(ULARGE_INTEGER libNewSize) = 0;
-    virtual HRESULT CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten) = 0;
-    virtual HRESULT Commit(DWORD grfCommitFlags) = 0;
-    virtual HRESULT Revert(void) = 0;
-    virtual HRESULT LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) = 0;
-    virtual HRESULT UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) = 0;
-    virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag) = 0;
-    virtual HRESULT Clone(IStream **ppstm) = 0;
-};
-typedef IStream* LPSTREAM;
-extern "C" const IID IID_IStream;		/* and the contents are .... somewhere else */
-extern "C" const IID IID_ISequentialStream;
-extern "C" const IID IID_IStorage;
-
-class IMalloc : public IUnknown {
-public:
-    virtual void* Alloc(ULONG cb) = 0;
-    virtual void* Realloc(void* pv, ULONG cb) = 0;
-    virtual void Free(void* pv) = 0;
-    virtual ULONG GetSize(void* pv) = 0;
-    virtual int DidAlloc(void *pv) = 0;
-    virtual void HeapMinimize(void) = 0;
-};
-typedef IMalloc* LPMALLOC;
-
 // struct RemSNB {
 // unsigned long ulCntStr;
 //     unsigned long ulCntChar;
@@ -488,29 +432,6 @@ typedef IMalloc* LPMALLOC;
 //     } RemSNB;
 // typedef RemSNB* wireSNB;
 typedef OLECHAR** SNB;
-
-
-class IStorage : public IUnknown {
-public:
-	virtual HRESULT CreateStream(const OLECHAR *pwcsName, DWORD grfMode, DWORD reserved1, DWORD reserved2, IStream **ppstm) = 0;
-
-	virtual HRESULT OpenStream(const OLECHAR *pwcsName, void *reserved1, DWORD grfMode, DWORD reserved2, IStream **ppstm) = 0;
-	virtual HRESULT CreateStorage(const OLECHAR *pwcsName, DWORD grfMode, DWORD reserved1, DWORD reserved2, IStorage **ppstg) = 0;
-	virtual HRESULT OpenStorage(const OLECHAR *pwcsName, IStorage *pstgPriority, DWORD grfMode, SNB snbExclude, DWORD reserved,
-								IStorage **ppstg) = 0;
-	virtual HRESULT CopyTo(DWORD ciidExclude, const IID *rgiidExclude, SNB snbExclude, IStorage *pstgDest) = 0;
-	virtual HRESULT MoveElementTo(const OLECHAR *pwcsName, IStorage *pstgDest, const OLECHAR *pwcsNewName, DWORD grfFlags) = 0;
-	virtual HRESULT Commit(DWORD grfCommitFlags) = 0; 
-	virtual HRESULT Revert(void) = 0;
-	virtual HRESULT EnumElements(DWORD reserved1, void *reserved2, DWORD reserved3, IEnumSTATSTG **ppenum) = 0; 
-	virtual HRESULT DestroyElement(const OLECHAR *pwcsName) = 0;
-	virtual HRESULT RenameElement(const OLECHAR *pwcsOldName, const OLECHAR *pwcsNewName) = 0;
-	virtual HRESULT SetElementTimes(const OLECHAR *pwcsName, const FILETIME *pctime, const FILETIME *patime, const FILETIME *pmtime) = 0;
-	virtual HRESULT SetClass(REFCLSID clsid) = 0;
-	virtual HRESULT SetStateBits(DWORD grfStateBits, DWORD grfMask) = 0;
-	virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag) = 0;
-};
-typedef IStorage* LPSTORAGE;
 
 
 /*

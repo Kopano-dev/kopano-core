@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <mutex>
+#include <mapidefs.h>
 
 class M4LUnknown : public virtual IUnknown {
 private:

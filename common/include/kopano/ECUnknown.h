@@ -24,6 +24,7 @@
 #include <list>
 #include <mutex>
 #include <mapi.h>
+#include <mapidefs.h>
 
 namespace KC {
 
