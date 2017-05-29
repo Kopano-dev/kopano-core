@@ -96,45 +96,25 @@ IMAP::IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger,
 }
 
 IMAP::~IMAP() {
-	if (m_lpTable)
-		m_lpTable->Release();
 	CleanupObject();
 }
 
 void IMAP::CleanupObject()
 {
-	// Free/release all new and allocated memory
-	if (lpPublicStore)
-		lpPublicStore->Release();
-	lpPublicStore = NULL;
+	lpPublicStore.reset();
+	lpStore.reset();
 
-	if (lpStore)
-		lpStore->Release();
-	lpStore = NULL;
-
-	if (lpAddrBook)
-		lpAddrBook->Release();
-	lpAddrBook = NULL;
+	lpAddrBook.reset();
 	m_lpsIMAPTags.reset();
-	if (lpSession)
-		lpSession->Release();
-	lpSession = NULL;
-
+	lpSession.reset();
 	// idle cleanup
-	if (m_lpIdleAdviseSink)
-		m_lpIdleAdviseSink->Release();
-	m_lpIdleAdviseSink = NULL;
-
-	if (m_lpIdleTable)
-		m_lpIdleTable->Release();
-	m_lpIdleTable = NULL;
+	m_lpIdleAdviseSink.reset();
+	m_lpIdleTable.reset();
 }
 
 void IMAP::ReleaseContentsCache()
 {
-	if (m_lpTable)
-		m_lpTable->Release();
-	m_lpTable = NULL;
+	m_lpTable.reset();
 	m_vTableDataColumns.clear();
 }
 
@@ -783,7 +763,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 		flags |= EC_PROFILE_FLAGS_NO_UID_AUTH;
 
 	// do not disable notifications for imap connections, may be idle and sessions on the storage server will disappear.
-	hr = HrOpenECSession(&lpSession, "gateway/imap", PROJECT_SVN_REV_STR,
+	hr = HrOpenECSession(&~lpSession, "gateway/imap", PROJECT_SVN_REV_STR,
 	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
 	     flags, NULL, NULL);
 	if (hr != hrSuccess) {
@@ -800,14 +780,14 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 		goto exitpm;
 	}
 
-	hr = HrOpenDefaultStore(lpSession, &lpStore);
+	hr = HrOpenDefaultStore(lpSession, &~lpStore);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open default store");
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open default store");
 		goto exitpm;
 	}
 
-	hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
+	hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open addressbook");
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open addressbook");
@@ -840,10 +820,10 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	// ignore error, empty list of subscribed folder
 
 	if(bShowPublicFolder){
-		hr = HrOpenECPublicStore(lpSession, &lpPublicStore);
+		hr = HrOpenECPublicStore(lpSession, &~lpPublicStore);
 		if (hr != hrSuccess) {
 			lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to open public store");
-			lpPublicStore = NULL;
+			lpPublicStore.reset();
 		}
 	}
 
@@ -2473,7 +2453,7 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 		goto exit;
 	}
 
-	hr = lpFolder->GetContentsTable(0, &m_lpIdleTable);
+	hr = lpFolder->GetContentsTable(0, &~m_lpIdleTable);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_CONTINUE, "Can't open selected contents table to idle in");
 		goto exit;
@@ -2484,7 +2464,7 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 		goto exit;
 	}
 
-	hr = HrAllocAdviseSink(&IMAP::IdleAdviseCallback, (void*)this, &m_lpIdleAdviseSink);
+	hr = HrAllocAdviseSink(&IMAP::IdleAdviseCallback, (void*)this, &~m_lpIdleAdviseSink);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_CONTINUE, "Can't allocate memory to idle");
 		goto exit;
@@ -2507,14 +2487,8 @@ exit:
 			m_lpIdleTable->Unadvise(m_ulIdleAdviseConnection);
 			m_ulIdleAdviseConnection = 0;
 		}
-		if (m_lpIdleAdviseSink) {
-			m_lpIdleAdviseSink->Release();
-			m_lpIdleAdviseSink = NULL;
-		}
-		if (m_lpIdleTable) {
-			m_lpIdleTable->Release();
-			m_lpIdleTable = NULL;
-		}
+		m_lpIdleAdviseSink.reset();
+		m_lpIdleTable.reset();
 	}
 	return hr;
 }
@@ -2548,17 +2522,13 @@ HRESULT IMAP::HrDone(bool bSendResponse) {
 		m_ulIdleAdviseConnection = 0;
 	}
 
-	if (m_lpIdleAdviseSink)
-		m_lpIdleAdviseSink->Release();
-	m_lpIdleAdviseSink = NULL;
+	m_lpIdleAdviseSink.reset();
 
 	m_ulIdleAdviseConnection = 0;
 	m_bIdleMode = false;
 	m_strIdleTag.clear();
 
-	if (m_lpIdleTable)
-		m_lpIdleTable->Release();
-	m_lpIdleTable = NULL;
+	m_lpIdleTable.reset();
 	return hr;
 }
 
@@ -3524,7 +3494,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 			return hr;
 
         // Don't let the server cap the contents to 255 bytes, so our PR_TRANSPORT_MESSAGE_HEADERS is complete in the table
-        hr = lpFolder->GetContentsTable(EC_TABLE_NOCAP | MAPI_DEFERRED_ERRORS, &m_lpTable);
+        hr = lpFolder->GetContentsTable(EC_TABLE_NOCAP | MAPI_DEFERRED_ERRORS, &~m_lpTable);
         if (hr != hrSuccess)
 			return hr;
 
@@ -3685,7 +3655,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	string strParts;
 	string::size_type ulPos;
 	char szBuffer[IMAP_RESP_MAX + 1];
-	IMessage *lpMessage = NULL;
+	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 	sending_options sopt;
 	imopt_default_sending_options(&sopt);
@@ -3734,7 +3704,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	if (!bSkipOpen && m_ulCacheUID != lstFolderMailEIDs[ulMailnr].ulUid) {
 		// ignore error, we can't print an error halfway to the imap client
 		hr = lpSession->OpenEntry(lstFolderMailEIDs[ulMailnr].sEntryID.cb, (LPENTRYID) lstFolderMailEIDs[ulMailnr].sEntryID.lpb,
-							 &IID_IMessage, MAPI_DEFERRED_ERRORS | MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *) &lpMessage);
+							 &IID_IMessage, MAPI_DEFERRED_ERRORS | MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -4010,9 +3980,6 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 		vProps.push_back(std::move(strFlags));
 	strResponse += kc_join(vProps, " ");
 	strResponse += ")";
-
-	if(lpMessage)
-		lpMessage->Release();
 
 	return hr;
 }
