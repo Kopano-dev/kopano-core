@@ -17,6 +17,7 @@
 #include <memory>
 #include <cstring>
 #include <cstdlib>
+#include <endian.h>
 #include "rtf.h"
 
 namespace KC {
@@ -201,216 +202,51 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 	return 0;
 }
 
-// Find pattern in buffer, and return the longest match found.
-static void strmatch(const char *lpszBuffer, unsigned int cbBuffer,
-    const char *lpszPattern, unsigned int cbPattern, const char **lppszMatch,
-    unsigned int *lpcbMatch)
+static constexpr unsigned int rtf_stored_size(unsigned int z)
 {
-	const char		*lpszBufCur = lpszBuffer;
-	const char		*lpszPatCur = NULL;
-	unsigned int	ulCount = 0;
-	const char		*lpszMatch = NULL;
-	unsigned int cbMatch = 0;
-
-	while (cbMatch < cbPattern && lpszBufCur + cbMatch < lpszBuffer + cbBuffer)
-	{
-		lpszPatCur = lpszPattern;
-		ulCount = 0;
-		while (true)
-		{
-			if (lpszPatCur == lpszPattern + cbPattern ||
-				lpszBufCur == lpszBuffer + cbBuffer ||
-				((*lpszPatCur != *lpszBufCur || *lpszPatCur == '\n' || *lpszPatCur == '\r') && ulCount) > 0)
-			{
-				if (ulCount > cbMatch)
-				{
-					cbMatch = ulCount;
-					lpszMatch = lpszBufCur - ulCount;
-				}
-				break;
-			} 
-			else if (*lpszPatCur == *lpszBufCur && *lpszPatCur != '\n' && *lpszPatCur != '\r')
-			{
-				++lpszBufCur;
-				++lpszPatCur;
-				++ulCount;
-			}
-			else
-				++lpszBufCur;
-		}
-	}
-
-	*lppszMatch = lpszMatch;
-	*lpcbMatch = cbMatch;
+	/*
+	 * For every group of 8 bytes, a control word is needed.
+	 * The EOF marker (+1) counts too towards that grouping.
+	 *
+	 * Then, the header, and 1 extra byte (the EOF marker is
+	 * expressed as 2 bytes).
+	 */
+	return z + (z + 1 + 7) / 8 + sizeof(RTFHeader) + 1;
 }
 
-// Compressed lpSrc of size ulBufSize into a new buffer, and returns it in lppDest.
-unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize,
-    const char *lpSrc, unsigned int ulBufSize)
+/**
+ * rtf_compress - put RTF uncompressed into the "LZFu" format
+ */
+unsigned int rtf_compress(char **dstp, unsigned int *dst_size,
+    const char *src, unsigned int src_size)
 {
-	/* The following CRC start value was deduced by experiment to create correct CRC values.
-	 * The RTFLIB32.LIB file in MAPI seems to use a standard crc32 function to create its header
- 	 * checksums, the question was, what is the start value for the crc register, and what
-	 * data should be fed to it. 
-	 * I found out that basically all the *compressed* data is sent
-	 * through the crc checksum, excluding headers and stuff like that. The actual start value
-	 * is zero, contrary to what POSIX states (POSIX starts with 0xffffffff) and the return value is NOT
-	 * a bitwise NOT of the crc value that is calculated from the crc32 table.
-	 * This gives us outlook-compatible RTF streams. (Man, I'm such a l33t h4xx0r)
-	 */
-	unsigned int ulRetVal = 0;
-	unsigned int ulDestBufSize = ulBufSize+1024;
-	unsigned int ulCursor = 0;
-	unsigned int ulOutCursor = 0;
-	unsigned int ulFlagCursor = 0;
-	unsigned int ulFlagNr = 0;
-	RTFHeader *lpHeader = NULL;
-	
-	const char *lpMatch = NULL;
-	unsigned int cbMatch = 0;
-	const unsigned int cbPrebuf = strlen(lpPrebuf);
-	auto lpDest = static_cast<char *>(malloc(ulDestBufSize));
-	if(lpDest == NULL)
+	char *dst;
+	*dst_size = rtf_stored_size(src_size);
+	*dstp = dst = reinterpret_cast<char *>(malloc(*dst_size));
+	if (dst == nullptr)
 		return 1;
+	auto hdr = reinterpret_cast<RTFHeader *>(dst);
+	hdr->ulUncompressedSize = src_size;
+	hdr->ulCompressedSize = *dst_size;
+	memcpy(&hdr->ulMagic, "LZFu", 4);
 
-	std::unique_ptr<char[]> lpTmp(new char[ulBufSize+cbPrebuf]);
-	memcpy(lpTmp.get(), lpPrebuf, cbPrebuf);
-	memcpy(lpTmp.get() + cbPrebuf, lpSrc, ulBufSize);
-	lpSrc = &lpTmp[cbPrebuf];
-	ulOutCursor = sizeof(RTFHeader);
+	unsigned int dict_pos = strlen(lpPrebuf) + src_size;
+	unsigned int dest_pos = sizeof(*hdr), src_pos = 0;
 
-	while(ulCursor <= ulBufSize) {
-		if(ulFlagNr == 0) {
-			lpDest[ulOutCursor] = 0;
-			ulFlagCursor = ulOutCursor;
-			++ulOutCursor;
-			if(ulOutCursor >= ulDestBufSize) {
-				ulDestBufSize += 1024;
-				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
-				if (!lpRealloc) {
-					ulRetVal = 1;
-					goto exit;
-				}
-				lpDest = lpRealloc;
-			}
-			ulFlagNr = 8;
-		}
-
-		if(ulBufSize == ulCursor) {
-			/* YAY
-			 *
-			 * Another strange thing; the stream should be capped off at the end with a reference to the two-byte area
-			 * just in front of the current buffer position ... When this is removed, windows refuses to decode the data .. 
-			 * Also, I can't actually see these two bytes in the decoded data ....
-			 * (yes, offset is 12 bits)
-			 */
-			int offset = (strlen(lpPrebuf) + ulBufSize) & 0x0fff;
-
-			lpDest[ulOutCursor++] = offset >> 4;
-
-			if(ulOutCursor >= ulDestBufSize) {
-				ulDestBufSize += 1024;
-				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
-				if (!lpRealloc) {
-					ulRetVal = 1;
-					goto exit;
-				}
-				lpDest = lpRealloc;
-			}
-
-			lpDest[ulOutCursor++] = (offset << 4) & 0xf0;
-
-			if(ulOutCursor >= ulDestBufSize) {
-				ulDestBufSize += 1024;
-				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
-				if (!lpRealloc) {
-					ulRetVal = 1;
-					goto exit;
-				}
-				lpDest = lpRealloc;
-			}
-
-			lpDest[ulFlagCursor] |= 1 << (8 - ulFlagNr);
-			break;
-		}
-		
-		// lpSrc == lpTmp + cbPrebuf
-		char *lpSearchStart = ulCursor + cbPrebuf >= 4096 ? &lpTmp[ulCursor + cbPrebuf - 4095] : &lpTmp[0];
-		strmatch(
-			lpSearchStart,
-			&lpSrc[ulCursor] - lpSearchStart,
-			&lpSrc[ulCursor],
-			ulBufSize - ulCursor >= 17 ? 17 : ulBufSize - ulCursor,
-			&lpMatch,
-			&cbMatch
-		);
-		
-		if (lpMatch != NULL && cbMatch >= 3) {
-			// Offset is defined as the offset in the current or previous 4k page. When offset
-			// is bigger than the write position in the current page, the previous page is
-			// targeted.
-			const char *lpCurPage = lpSrc - cbPrebuf + ((ulCursor + cbPrebuf) / 4096) * 4096;
-			unsigned int offset = lpMatch - lpCurPage;
-
-			offset &= 0x0fff;
-			
-			lpDest[ulOutCursor++] = offset >> 4;
-
-			if(ulOutCursor >= ulDestBufSize) {
-				ulDestBufSize += 1024;
-				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
-				if (!lpRealloc) {
-					ulRetVal = 1;
-					goto exit;
-				}
-				lpDest = lpRealloc;
-			}
-
-			lpDest[ulOutCursor++] = ((offset << 4) & 0xf0) | ((cbMatch - 2) & 0x0f);
-
-			if(ulOutCursor >= ulDestBufSize) {
-				ulDestBufSize += 1024;
-				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
-				if (!lpRealloc) {
-					ulRetVal = 1;
-					goto exit;
-				}
-				lpDest = lpRealloc;
-			}
-			
-			ulCursor += cbMatch;
-			lpDest[ulFlagCursor] |= 1 << (8 - ulFlagNr);
-		} else {
-			lpDest[ulOutCursor++] = lpSrc[ulCursor++];
-
-			if(ulOutCursor >= ulDestBufSize) {
-				ulDestBufSize += 1024;
-				auto lpRealloc = static_cast<char *>(realloc(lpDest, ulDestBufSize)); // this shouldn't happen very often, so 1k is fine
-				if (!lpRealloc) {
-					ulRetVal = 1;
-					goto exit;
-				}
-				lpDest = lpRealloc;
-			}
-		}
-		--ulFlagNr;
+	while (src_pos + 8 < src_size) {
+		dst[dest_pos++] = '\0';
+		memcpy(&dst[dest_pos], &src[src_pos], 8);
+		dest_pos += 8;
+		src_pos += 8;
 	}
-
-	lpHeader = (RTFHeader *)lpDest;
-
-	lpHeader->ulCompressedSize = ulOutCursor - sizeof(unsigned int);
-	lpHeader->ulUncompressedSize = ulBufSize;
-	lpHeader->ulMagic = 0x75465a4c;
-	lpHeader->ulChecksum = crc32((char *)&lpDest[sizeof(RTFHeader)], ulOutCursor - sizeof(RTFHeader));
-
-	*lppDest = lpDest;
-	*lpulDestSize = ulOutCursor;
-
-	lpDest = NULL;
-
-exit:
-	free(lpDest);
-	return ulRetVal;
+	src_size -= src_pos;
+	dst[dest_pos++] = 1 << src_size;
+	memcpy(&dst[dest_pos], &src[src_pos], src_size);
+	dest_pos += src_size;
+	dst[dest_pos++] = (dict_pos % 4096) >> 4; /* 2-byte EOF */
+	dst[dest_pos]   = (((dict_pos % 4096) & 0xF) << 4);
+	hdr->ulChecksum = crc32(&dst[sizeof(*hdr)], *dst_size - sizeof(*hdr));
+	return 0;
 }
 
 } /* namespace KC */
