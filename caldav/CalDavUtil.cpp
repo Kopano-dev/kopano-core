@@ -151,8 +151,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	ULONG ulObjType = 0;
 	convert_context converter;
 	ULONG cbEntryID = 0;
-	LPENTRYID lpEntryID = NULL;
-	LPSPropValue lpOutbox = NULL;
+	memory_ptr<SPropValue> folder;
 	static constexpr const SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
 	auto wstrFldId = wstrFldIdOrig;
 
@@ -166,31 +165,42 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 
 	// Hack Alert #47 -- get Inbox and Outbox as special folders
 	if (wstrFldId.compare(L"Inbox") == 0) {
-		hr = lpMsgStore->GetReceiveFolder(const_cast<TCHAR *>(_T("IPM")), fMapiUnicode, &cbEntryID, &lpEntryID, NULL);
+		memory_ptr<ENTRYID> lpEntryID;
+
+		hr = lpMsgStore->GetReceiveFolder(const_cast<TCHAR *>(_T("IPM")), fMapiUnicode, &cbEntryID, &~lpEntryID, NULL);
 		if (hr != hrSuccess) {
 			ec_log_err("Cannot open Inbox Folder, no Receive Folder EntryID: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
+
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~folder);
+		if (hr != hrSuccess)
+			return hr;
+
+		folder->Value.bin.cb = cbEntryID;
+		folder->Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryID.get());
+
 	} else if (wstrFldId.compare(L"Outbox") == 0) {
-		hr = HrGetOneProp(lpMsgStore, PR_IPM_OUTBOX_ENTRYID, &lpOutbox);
+		memory_ptr<SPropValue> lpOutbox;
+		hr = HrGetOneProp(lpMsgStore, PR_IPM_OUTBOX_ENTRYID, &~lpOutbox);
 		if (hr != hrSuccess) {
 			ec_log_err("Cannot open Outbox Folder, no PR_IPM_OUTBOX_ENTRYID: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
-		cbEntryID = lpOutbox->Value.bin.cb;
-		lpEntryID = (LPENTRYID)lpOutbox->Value.bin.lpb;
+
+		folder = std::move(lpOutbox);
 	}
-	if (cbEntryID && lpEntryID) {
-		hr = lpMsgStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)lppUsrFld);
+	if (folder) {
+		hr = lpMsgStore->OpenEntry(folder->Value.bin.cb, reinterpret_cast<ENTRYID *>(folder->Value.bin.lpb), &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)lppUsrFld);
 		if (hr != hrSuccess)
 			ec_log_err("Cannot open %ls Folder: 0x%08X", wstrFldId.c_str(), hr);
 		// we're done either way
-		goto exit;
+		return hr;
 	}
 
 	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &~lpHichyTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	//When ENTRY_ID is use For Read Only Calendars assuming the folder id string 
 	//not larger than lenght 50
 	//FIXME: include some Entry-id identifier
@@ -219,33 +229,26 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 		ECContentRestriction(FL_IGNORECASE, PR_DISPLAY_NAME_W, &sPropFolderName, ECRestriction::Cheap)
 	).RestrictTable(lpHichyTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpHichyTable->SetColumns(sPropTagArr, 0);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpHichyTable->QueryRows(1, 0, &~lpRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (lpRows->cRows != 1) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 	
 	sbEid = lpRows->aRow[0].lpProps[0].Value.bin;
 	hr = lpMsgStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
 	     &iid_of(lpUsrFld), MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(&lpUsrFld));
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	*lppUsrFld = lpUsrFld;
 
-exit:
-	// Free either one. lpEntryID may point to lpOutbox memory.
-	if (lpOutbox)
-		MAPIFreeBuffer(lpOutbox);
-	else if (lpEntryID)
-		MAPIFreeBuffer(lpEntryID);
 	return hr;
 }
 
