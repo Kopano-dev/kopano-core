@@ -1972,55 +1972,55 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpServerList, 0, sizeof *lpServerList);
+	if (lpsServerList->__size == 0 || lpsServerList->__ptr == nullptr) {
+		*lppServerList = lpServerList.release();
+		return hrSuccess;
+	}
+	lpServerList->cServers = lpsServerList->__size;
+	hr = ECAllocateMore(lpsServerList->__size * sizeof *lpServerList->lpsaServer, lpServerList, (void **)&lpServerList->lpsaServer);
+	if (hr != hrSuccess)
+		return hr;
+	memset(lpServerList->lpsaServer, 0, lpsServerList->__size * sizeof *lpServerList->lpsaServer);
 	
-	if (lpsServerList->__size > 0 && lpsServerList->__ptr != NULL) {
-		lpServerList->cServers = lpsServerList->__size;
-		hr = ECAllocateMore(lpsServerList->__size * sizeof *lpServerList->lpsaServer, lpServerList, (void**)&lpServerList->lpsaServer);
-		if (hr != hrSuccess)
-			return hr;
-		memset(lpServerList->lpsaServer, 0, lpsServerList->__size * sizeof *lpServerList->lpsaServer);
-		
-		for (gsoap_size_t i = 0; i < lpsServerList->__size; ++i) {
-			// Flags
-			lpServerList->lpsaServer[i].ulFlags = lpsServerList->__ptr[i].ulFlags;
-		
-			// Name
-			if (lpsServerList->__ptr[i].lpszName != NULL) {
-				hr = Utf8ToTString(lpsServerList->__ptr[i].lpszName, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszName);
-				if (hr != hrSuccess)
-					return hr;
-			}
-			
-			// FilePath
-			if (lpsServerList->__ptr[i].lpszFilePath != NULL) {
-				hr = Utf8ToTString(lpsServerList->__ptr[i].lpszFilePath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszFilePath);
-				if (hr != hrSuccess)
-					return hr;
-			}
-			
-			// HttpPath
-			if (lpsServerList->__ptr[i].lpszHttpPath != NULL) {
-				hr = Utf8ToTString(lpsServerList->__ptr[i].lpszHttpPath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszHttpPath);
-				if (hr != hrSuccess)
-					return hr;
-			}
-			
-			// SslPath
-			if (lpsServerList->__ptr[i].lpszSslPath != NULL) {
-				hr = Utf8ToTString(lpsServerList->__ptr[i].lpszSslPath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszSslPath);
-				if (hr != hrSuccess)
-					return hr;
-			}
-			
-			// PreferedPath
-			if (lpsServerList->__ptr[i].lpszPreferedPath != NULL) {
-				hr = Utf8ToTString(lpsServerList->__ptr[i].lpszPreferedPath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszPreferedPath);
-				if (hr != hrSuccess)
-					return hr;
-			}
+	for (gsoap_size_t i = 0; i < lpsServerList->__size; ++i) {
+		// Flags
+		lpServerList->lpsaServer[i].ulFlags = lpsServerList->__ptr[i].ulFlags;
+
+		// Name
+		if (lpsServerList->__ptr[i].lpszName != NULL) {
+			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszName, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszName);
+			if (hr != hrSuccess)
+				return hr;
+		}
+
+		// FilePath
+		if (lpsServerList->__ptr[i].lpszFilePath != NULL) {
+			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszFilePath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszFilePath);
+			if (hr != hrSuccess)
+				return hr;
+		}
+
+		// HttpPath
+		if (lpsServerList->__ptr[i].lpszHttpPath != NULL) {
+			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszHttpPath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszHttpPath);
+			if (hr != hrSuccess)
+				return hr;
+		}
+
+		// SslPath
+		if (lpsServerList->__ptr[i].lpszSslPath != NULL) {
+			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszSslPath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszSslPath);
+			if (hr != hrSuccess)
+				return hr;
+		}
+
+		// PreferedPath
+		if (lpsServerList->__ptr[i].lpszPreferedPath != NULL) {
+			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszPreferedPath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszPreferedPath);
+			if (hr != hrSuccess)
+				return hr;
 		}
 	}
-	
 	*lppServerList = lpServerList.release();
 	return hrSuccess;
 }

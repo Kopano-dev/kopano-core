@@ -294,13 +294,11 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 
 			if (pNotifyMaster->m_bThreadExit)
 				return nullptr;
-			else {
-				// We have a new session ID, notify reload
-				scoped_rlock lock(pNotifyMaster->m_hMutex);
-				for (auto ptr : pNotifyMaster->m_listNotifyClients)
-					ptr->NotifyReload();
-				continue;
-			}
+			// We have a new session ID, notify reload
+			scoped_rlock lock(pNotifyMaster->m_hMutex);
+			for (auto ptr : pNotifyMaster->m_listNotifyClients)
+				ptr->NotifyReload();
+			continue;
 		}
 
 		if (bReconnect)

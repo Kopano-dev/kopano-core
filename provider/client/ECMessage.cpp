@@ -1497,58 +1497,58 @@ HRESULT ECMessage::SyncRecips()
 	static constexpr const SizedSPropTagArray(2, sPropDisplay) =
 		{2, {PR_RECIPIENT_TYPE, PR_DISPLAY_NAME_W}};
 
-	if (this->lpRecips) {
-		hr = GetRecipientTable(fMapiUnicode, &~lpTable);
-		if (hr != hrSuccess)
-			return hr;
-		hr = lpTable->SetColumns(sPropDisplay, 0);
-		while (TRUE) {
-			rowset_ptr lpRows;
-			hr = lpTable->QueryRows(1, 0, &~lpRows);
-			if (hr != hrSuccess || lpRows->cRows != 1)
-				break;
-
-			if (lpRows->aRow[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE && lpRows->aRow[0].lpProps[0].Value.ul == MAPI_TO) {
-				if (lpRows->aRow[0].lpProps[1].ulPropTag == PR_DISPLAY_NAME_W) {
-					if (wstrTo.length() > 0)
-						wstrTo += L"; ";
-
-					wstrTo += lpRows->aRow[0].lpProps[1].Value.lpszW;
-				}
-			}
-			else if (lpRows->aRow[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE && lpRows->aRow[0].lpProps[0].Value.ul == MAPI_CC) {
-				if (lpRows->aRow[0].lpProps[1].ulPropTag == PR_DISPLAY_NAME_W) {
-					if (wstrCc.length() > 0)
-						wstrCc += L"; ";
-
-					wstrCc += lpRows->aRow[0].lpProps[1].Value.lpszW;
-				}
-			}
-			else if (lpRows->aRow[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE && lpRows->aRow[0].lpProps[0].Value.ul == MAPI_BCC) {
-				if (lpRows->aRow[0].lpProps[1].ulPropTag == PR_DISPLAY_NAME_W) {
-					if (wstrBcc.length() > 0)
-						wstrBcc += L"; ";
-
-					wstrBcc += lpRows->aRow[0].lpProps[1].Value.lpszW;
-				}
-			}
-		}
-
-		sPropRecip.ulPropTag = PR_DISPLAY_TO_W;
-		sPropRecip.Value.lpszW = (WCHAR *)wstrTo.c_str();
-
-		HrSetRealProp(&sPropRecip);
-
-		sPropRecip.ulPropTag = PR_DISPLAY_CC_W;
-		sPropRecip.Value.lpszW = (WCHAR *)wstrCc.c_str();
-
-		HrSetRealProp(&sPropRecip);
-
-		sPropRecip.ulPropTag = PR_DISPLAY_BCC_W;
-		sPropRecip.Value.lpszW = (WCHAR *)wstrBcc.c_str();
-
-		HrSetRealProp(&sPropRecip);
+	if (this->lpRecips == nullptr) {
+		m_bRecipsDirty = false;
+		return hrSuccess;
 	}
+
+	hr = GetRecipientTable(fMapiUnicode, &~lpTable);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpTable->SetColumns(sPropDisplay, 0);
+
+	while (TRUE) {
+		rowset_ptr lpRows;
+		hr = lpTable->QueryRows(1, 0, &~lpRows);
+		if (hr != hrSuccess || lpRows->cRows != 1)
+			break;
+
+		if (lpRows->aRow[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE && lpRows->aRow[0].lpProps[0].Value.ul == MAPI_TO) {
+			if (lpRows->aRow[0].lpProps[1].ulPropTag != PR_DISPLAY_NAME_W)
+				continue;
+			if (wstrTo.length() > 0)
+				wstrTo += L"; ";
+			wstrTo += lpRows->aRow[0].lpProps[1].Value.lpszW;
+			continue;
+		}
+		else if (lpRows->aRow[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE && lpRows->aRow[0].lpProps[0].Value.ul == MAPI_CC) {
+			if (lpRows->aRow[0].lpProps[1].ulPropTag != PR_DISPLAY_NAME_W)
+				continue;
+			if (wstrCc.length() > 0)
+				wstrCc += L"; ";
+			wstrCc += lpRows->aRow[0].lpProps[1].Value.lpszW;
+			continue;
+		}
+		else if (lpRows->aRow[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE && lpRows->aRow[0].lpProps[0].Value.ul == MAPI_BCC) {
+			if (lpRows->aRow[0].lpProps[1].ulPropTag != PR_DISPLAY_NAME_W)
+				continue;
+			if (wstrBcc.length() > 0)
+				wstrBcc += L"; ";
+			wstrBcc += lpRows->aRow[0].lpProps[1].Value.lpszW;
+		}
+	}
+
+	sPropRecip.ulPropTag = PR_DISPLAY_TO_W;
+	sPropRecip.Value.lpszW = (WCHAR *)wstrTo.c_str();
+	HrSetRealProp(&sPropRecip);
+
+	sPropRecip.ulPropTag = PR_DISPLAY_CC_W;
+	sPropRecip.Value.lpszW = (WCHAR *)wstrCc.c_str();
+	HrSetRealProp(&sPropRecip);
+
+	sPropRecip.ulPropTag = PR_DISPLAY_BCC_W;
+	sPropRecip.Value.lpszW = (WCHAR *)wstrBcc.c_str();
+	HrSetRealProp(&sPropRecip);
 
 	m_bRecipsDirty = FALSE;
 	return hr;
@@ -2039,7 +2039,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		lpsPropValue->Value.ul = (lpsPropValue->Value.ul & ~MSGFLAG_HASATTACH) | (lpMessage->HasAttachment() ? MSGFLAG_HASATTACH : 0);
 		break;
 	}
-	case PROP_ID(PR_NORMALIZED_SUBJECT):
+	case PROP_ID(PR_NORMALIZED_SUBJECT): {
 		hr = lpMessage->HrGetRealProp(CHANGE_PROP_TYPE(PR_SUBJECT, PROP_TYPE(ulPropTag)), ulFlags, lpBase, lpsPropValue);
 		if (hr != hrSuccess) {
 			// change PR_SUBJECT in PR_NORMALIZED_SUBJECT
@@ -2062,35 +2062,34 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 					lpsPropValue->Value.lpszW = lpszColon; // set new subject string
 				}
 			}
-		} else {
-			lpsPropValue->ulPropTag = PR_NORMALIZED_SUBJECT_A;
-
-			char *lpszColon = strchr(lpsPropValue->Value.lpszA, ':');
-			if (lpszColon && (lpszColon - lpsPropValue->Value.lpszA) > 1 && (lpszColon - lpsPropValue->Value.lpszA) < 4) {
-				char *c = lpsPropValue->Value.lpszA;
-				while (c < lpszColon && isdigit(*c))
-					++c; // test for all digits prefix
-				if (c != lpszColon) {
+			break;
+		}
+		lpsPropValue->ulPropTag = PR_NORMALIZED_SUBJECT_A;
+		char *lpszColon = strchr(lpsPropValue->Value.lpszA, ':');
+		if (lpszColon && (lpszColon - lpsPropValue->Value.lpszA) > 1 && (lpszColon - lpsPropValue->Value.lpszA) < 4) {
+			char *c = lpsPropValue->Value.lpszA;
+			while (c < lpszColon && isdigit(*c))
+				++c; // test for all digits prefix
+			if (c != lpszColon) {
+				++lpszColon;
+				if (*lpszColon == ' ')
 					++lpszColon;
-					if (*lpszColon == ' ')
-						++lpszColon;
-					lpsPropValue->Value.lpszA = lpszColon; // set new subject string
-				}
+				lpsPropValue->Value.lpszA = lpszColon; // set new subject string
 			}
 		}
 		break;
+	}
 	case PROP_ID(PR_PARENT_ENTRYID):
-
-		if(!lpMessage->m_lpParentID)
+		if (lpMessage->m_lpParentID == nullptr) {
 			hr = lpMessage->HrGetRealProp(PR_PARENT_ENTRYID, ulFlags, lpBase, lpsPropValue);
-		else{
-			lpsPropValue->ulPropTag = PR_PARENT_ENTRYID;
-			lpsPropValue->Value.bin.cb = lpMessage->m_cbParentID;
-			hr = ECAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
-			if (hr != hrSuccess)
-				break;
-			memcpy(lpsPropValue->Value.bin.lpb, lpMessage->m_lpParentID, lpsPropValue->Value.bin.cb);
+			break;
 		}
+		lpsPropValue->ulPropTag = PR_PARENT_ENTRYID;
+		lpsPropValue->Value.bin.cb = lpMessage->m_cbParentID;
+		hr = ECAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		if (hr != hrSuccess)
+			break;
+		memcpy(lpsPropValue->Value.bin.lpb, lpMessage->m_lpParentID, lpsPropValue->Value.bin.cb);
 		break;
 	case PROP_ID(PR_MESSAGE_SIZE):
 		lpsPropValue->ulPropTag = PR_MESSAGE_SIZE;
@@ -2102,21 +2101,21 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 	case PROP_ID(PR_DISPLAY_TO):
 	case PROP_ID(PR_DISPLAY_CC):
 	case PROP_ID(PR_DISPLAY_BCC):
-		if((lpMessage->m_bRecipsDirty && lpMessage->SyncRecips() != erSuccess) || lpMessage->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) != erSuccess) {
-			lpsPropValue->ulPropTag = ulPropTag;
-			if(PROP_TYPE(ulPropTag) == PT_UNICODE)
-				lpsPropValue->Value.lpszW = const_cast<wchar_t *>(L"");
-			else
-				lpsPropValue->Value.lpszA = const_cast<char *>("");
-		}
+		if ((!lpMessage->m_bRecipsDirty || lpMessage->SyncRecips() == erSuccess) &&
+		    lpMessage->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) == erSuccess)
+			break;
+		lpsPropValue->ulPropTag = ulPropTag;
+		if (PROP_TYPE(ulPropTag) == PT_UNICODE)
+			lpsPropValue->Value.lpszW = const_cast<wchar_t *>(L"");
+		else
+			lpsPropValue->Value.lpszA = const_cast<char *>("");
 		break;
 
 	case PROP_ID(PR_ACCESS):
-		if(lpMessage->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue) != hrSuccess)
-		{
-			lpsPropValue->ulPropTag = PR_ACCESS;
-			lpsPropValue->Value.l = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
-		}
+		if (lpMessage->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue) == hrSuccess)
+			break;
+		lpsPropValue->ulPropTag = PR_ACCESS;
+		lpsPropValue->Value.l = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
 		break;
 	case PROP_ID(PR_MESSAGE_ATTACHMENTS):
 		lpsPropValue->ulPropTag = PR_MESSAGE_ATTACHMENTS;
@@ -2177,29 +2176,25 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		hr = lpMessage->GetSyncedBodyProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 		if (hr != hrSuccess)
 			break;
-
-		if (ulPropTag == PR_BODY_HTML) {
-			// Workaround for support html in outlook 2000/xp
-			if (lpsPropValue->ulPropTag != PR_HTML){
-				hr = MAPI_E_NOT_FOUND;
-				break;
-			}
-
-			lpsPropValue->ulPropTag = PR_BODY_HTML;
-			ulSize = lpsPropValue->Value.bin.cb;
-			lpData = lpsPropValue->Value.bin.lpb;
-
-			hr = ECAllocateMore(ulSize + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
-			if(hr != hrSuccess)
-				break;
-
-		if(ulSize>0 && lpData){
-				memcpy(lpsPropValue->Value.lpszA, lpData, ulSize);
-			}else
-				ulSize = 0;
-
-			lpsPropValue->Value.lpszA[ulSize] = 0;
+		if (ulPropTag != PR_BODY_HTML)
+			break;
+		// Workaround for support html in outlook 2000/xp
+		if (lpsPropValue->ulPropTag != PR_HTML) {
+			hr = MAPI_E_NOT_FOUND;
+			break;
 		}
+
+		lpsPropValue->ulPropTag = PR_BODY_HTML;
+		ulSize = lpsPropValue->Value.bin.cb;
+		lpData = lpsPropValue->Value.bin.lpb;
+		hr = ECAllocateMore(ulSize + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
+		if (hr != hrSuccess)
+			break;
+		if (ulSize > 0 && lpData != nullptr)
+			memcpy(lpsPropValue->Value.lpszA, lpData, ulSize);
+		else
+			ulSize = 0;
+		lpsPropValue->Value.lpszA[ulSize] = 0;
 		break;
 	case PROP_ID(PR_SOURCE_KEY): {
 		std::string strServerGUID;

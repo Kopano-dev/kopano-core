@@ -895,15 +895,13 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 	// just get outta here
 	if (ulLockState & MSG_LOCKED)
 	{
-		if (!(ulSubmitFlag & SUBMITFLAG_LOCKED))
-			ulSubmitFlag |= SUBMITFLAG_LOCKED;
-		else
-			return hr;
-	} else { // unlock
 		if (ulSubmitFlag & SUBMITFLAG_LOCKED)
-			ulSubmitFlag &= ~SUBMITFLAG_LOCKED;
-		else
 			return hr;
+		ulSubmitFlag |= SUBMITFLAG_LOCKED;
+	} else { // unlock
+		if (!(ulSubmitFlag & SUBMITFLAG_LOCKED))
+			return hr;
+		ulSubmitFlag &= ~SUBMITFLAG_LOCKED;
 	}
 
 	hr = lpMessage->QueryInterface(iid_of(ptrECMessage), &~ptrECMessage);

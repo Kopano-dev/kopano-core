@@ -519,20 +519,18 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 			if (!iterAdvise->second->ulSupportConnection) {
 				if (iterAdvise->second->lpAdviseSink->OnNotify(i, lpNotifs) != 0)
 					ec_log_debug("ECNotifyClient::Notify: Error by notify a client");
-			} else {
-				memory_ptr<NOTIFKEY> lpKey;
-				ULONG		ulResult = 0;
-
-				hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), &~lpKey);
-				if (hr != hrSuccess)
-					goto exit;
-
-				lpKey->cb = sizeof(GUID);
-				memcpy(lpKey->ab, &iterAdvise->second->guid, sizeof(GUID));
-
-				// FIXME log errors
-				m_lpSupport->Notify(lpKey, i, lpNotifs, &ulResult);
+				continue;
 			}
+			memory_ptr<NOTIFKEY> lpKey;
+			ULONG ulResult = 0;
+
+			hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), &~lpKey);
+			if (hr != hrSuccess)
+				goto exit;
+			lpKey->cb = sizeof(GUID);
+			memcpy(lpKey->ab, &iterAdvise->second->guid, sizeof(GUID));
+			// FIXME log errors
+			m_lpSupport->Notify(lpKey, i, lpNotifs, &ulResult);
 		}
 	}
 exit:
@@ -578,23 +576,22 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 	    iterAdvise->second->lpAdviseSink == nullptr)
 		return hr;
 
-	if (!syncStates.empty()) {
-		/* Send notifications in batches of MAX_NOTIFS_PER_CALL notifications */
-		auto iterSyncStates = syncStates.cbegin();
-		while (iterSyncStates != syncStates.cend()) {
-
-			lpSyncStates->cValues = 0;
-			while (iterSyncStates != syncStates.cend() &&
-			       lpSyncStates->cValues < MAX_NOTIFS_PER_CALL) {
-				/* We can do a straight memcpy here because pointers are still intact */
-				memcpy(&lpSyncStates->lpbin[lpSyncStates->cValues++], *iterSyncStates, sizeof *lpSyncStates->lpbin);
-				++iterSyncStates;
-			}
-
-			/* Send notification to the listener */
-			if (iterAdvise->second->lpAdviseSink->OnNotify(0, lpSyncStates) != 0)
-				ec_log_debug("ECNotifyClient::NotifyChange: Error by notify a client");
+	if (syncStates.empty())
+		return hrSuccess;
+	/* Send notifications in batches of MAX_NOTIFS_PER_CALL notifications */
+	auto iterSyncStates = syncStates.cbegin();
+	while (iterSyncStates != syncStates.cend()) {
+		lpSyncStates->cValues = 0;
+		while (iterSyncStates != syncStates.cend() &&
+		       lpSyncStates->cValues < MAX_NOTIFS_PER_CALL) {
+			/* We can do a straight memcpy here because pointers are still intact */
+			memcpy(&lpSyncStates->lpbin[lpSyncStates->cValues++], *iterSyncStates, sizeof *lpSyncStates->lpbin);
+			++iterSyncStates;
 		}
+
+		/* Send notification to the listener */
+		if (iterAdvise->second->lpAdviseSink->OnNotify(0, lpSyncStates) != 0)
+			ec_log_debug("ECNotifyClient::NotifyChange: Error by notify a client");
 	}
 	return hrSuccess;
 }
