@@ -89,117 +89,44 @@ class FreeBusyPublish {
 		
 		$calendaritems = Array();
 		
-		$restrict = Array(RES_OR,
-							 Array(
-								   // OR
-								   // (item[start] >= start && item[start] <= end)
-								   Array(RES_AND,
-										 Array(
-											   Array(RES_PROPERTY,
-													 Array(RELOP => RELOP_GE,
-														   ULPROPTAG => $this->proptags["startdate"],
-														   VALUE => $start
-														   )
-													 ),
-											   Array(RES_PROPERTY,
-													 Array(RELOP => RELOP_LE,
-														   ULPROPTAG => $this->proptags["startdate"],
-														   VALUE => $end
-														   )
-													 )
-											   )
-										 ),
-								   // OR
-								   // (item[end]   >= start && item[end]   <= end)
-								   Array(RES_AND,
-										 Array(
-											   Array(RES_PROPERTY,
-													 Array(RELOP => RELOP_GE,
-														   ULPROPTAG => $this->proptags["duedate"],
-														   VALUE => $start
-														   )
-													 ),
-											   Array(RES_PROPERTY,
-													 Array(RELOP => RELOP_LE,
-														   ULPROPTAG => $this->proptags["duedate"],
-														   VALUE => $end
-														   )
-													 )
-											   )
-										 ),
-								   // OR
-								   // (item[start] <  start && item[end]   >  end)
-								   Array(RES_AND,
-										 Array(
-											   Array(RES_PROPERTY,
-													 Array(RELOP => RELOP_LT,
-														   ULPROPTAG => $this->proptags["startdate"],
-														   VALUE => $start
-														   )
-													 ),
-											   Array(RES_PROPERTY,
-													 Array(RELOP => RELOP_GT,
-														   ULPROPTAG => $this->proptags["duedate"],
-														   VALUE => $end
-														   )
-													 )
-											   )
-										 ),
-								   // OR
-								   Array(RES_OR,
-										 Array(
-											   // OR
-											   // (EXIST(ecurrence_enddate_property) && item[isRecurring] == true && item[end] >= start)
-											   Array(RES_AND,
-													 Array(
-														   Array(RES_EXIST,
-																 Array(ULPROPTAG => $this->proptags["enddate_recurring"],
-																	   )
-																 ),
-														   Array(RES_PROPERTY,
-																 Array(RELOP => RELOP_EQ,
-																	   ULPROPTAG => $this->proptags["recurring"],
-																	   VALUE => true
-																	   )
-																 ),
-														   Array(RES_PROPERTY,
-																 Array(RELOP => RELOP_GE,
-																	   ULPROPTAG => $this->proptags["enddate_recurring"],
-																	   VALUE => $start
-																	   )
-																 )
-														   )
-													 ),
-											   // OR
-											   // (!EXIST(ecurrence_enddate_property) && item[isRecurring] == true && item[start] <= end)
-											   Array(RES_AND,
-													 Array(
-														   Array(RES_NOT,
-																 Array(
-																	   Array(RES_EXIST,
-																			 Array(ULPROPTAG => $this->proptags["enddate_recurring"]
-																				   )
-																			 )
-																	   )
-																 ),
-														   Array(RES_PROPERTY,
-																 Array(RELOP => RELOP_LE,
-																	   ULPROPTAG => $this->proptags["startdate"],
-																	   VALUE => $end
-																	   )
-																 ),
-														   Array(RES_PROPERTY,
-																 Array(RELOP => RELOP_EQ,
-																	   ULPROPTAG => $this->proptags["recurring"],
-																	   VALUE => true
-																	   )
-																 )
-														   )
-													 )
-											   )
-										 ) // EXISTS OR
-								   )
-							 );		// global OR
+		$restrict = Array(RES_OR, Array(
+			// (item[start] >= start && item[start] <= end)
+			Array(RES_AND, Array(
+				Array(RES_PROPERTY, Array(RELOP => RELOP_GE, ULPROPTAG => $this->proptags["startdate"], VALUE => $start)),
+				Array(RES_PROPERTY, Array(RELOP => RELOP_LE, ULPROPTAG => $this->proptags["startdate"], VALUE => $end))
+			)),
+			// OR
+			// (item[end] >= start && item[end] <= end)
+			Array(RES_AND, Array(
+				Array(RES_PROPERTY, Array(RELOP => RELOP_GE, ULPROPTAG => $this->proptags["duedate"], VALUE => $start)),
+				Array(RES_PROPERTY, Array(RELOP => RELOP_LE, ULPROPTAG => $this->proptags["duedate"], VALUE => $end))
+			)),
+			// OR
+			// (item[start] < start && item[end] > end)
+			Array(RES_AND, Array(
+				Array(RES_PROPERTY, Array(RELOP => RELOP_LT, ULPROPTAG => $this->proptags["startdate"], VALUE => $start)),
+				Array(RES_PROPERTY, Array(RELOP => RELOP_GT, ULPROPTAG => $this->proptags["duedate"], VALUE => $end))
+			)),
+			// OR
+			Array(RES_OR, Array(
+				// OR
+				// (EXIST(ecurrence_enddate_property) && item[isRecurring] == true && item[end] >= start)
+				Array(RES_AND, Array(
+					Array(RES_EXIST, Array(ULPROPTAG => $this->proptags["enddate_recurring"])),
+					Array(RES_PROPERTY, Array(RELOP => RELOP_EQ, ULPROPTAG => $this->proptags["recurring"], VALUE => true)),
+					Array(RES_PROPERTY, Array(RELOP => RELOP_GE, ULPROPTAG => $this->proptags["enddate_recurring"], VALUE => $start))
+				)),
+				// OR
+				// (!EXIST(ecurrence_enddate_property) && item[isRecurring] == true && item[start] <= end)
+				Array(RES_AND, Array(
+					Array(RES_NOT, Array(
+						Array(RES_EXIST, Array(ULPROPTAG => $this->proptags["enddate_recurring"]))
+					)),
+					Array(RES_PROPERTY, Array(RELOP => RELOP_LE, ULPROPTAG => $this->proptags["startdate"], VALUE => $end)),
+					Array(RES_PROPERTY, Array(RELOP => RELOP_EQ, ULPROPTAG => $this->proptags["recurring"], VALUE => true))
+				))
+			)) // EXISTS OR
+		)); // global OR
 
 		$contents = mapi_folder_getcontentstable($this->calendar);
 		mapi_table_restrict($contents, $restrict);
@@ -247,19 +174,18 @@ class FreeBusyPublish {
 		}
 
 		// Open updater for this user
-		if (isset($fbsupport) && $fbsupport) {
-			$updaters = mapi_freebusysupport_loadupdate($fbsupport, Array($this->entryid));
+		if (!isset($fbsupport) || !$fbsupport)
+			return;
+		$updaters = mapi_freebusysupport_loadupdate($fbsupport, Array($this->entryid));
+		$updater = $updaters[0];
 
-			$updater = $updaters[0];
+		// Send the data
+		mapi_freebusyupdate_reset($updater);
+		mapi_freebusyupdate_publish($updater, $freebusy);
+		mapi_freebusyupdate_savechanges($updater, $start-24*60*60, $end);
 
-			// Send the data
-			mapi_freebusyupdate_reset($updater);
-			mapi_freebusyupdate_publish($updater, $freebusy);
-			mapi_freebusyupdate_savechanges($updater, $start-24*60*60, $end);
-			
-			// We're finished
-			mapi_freebusysupport_close($fbsupport);
-		}
+		// We're finished
+		mapi_freebusysupport_close($fbsupport);
 	}
 
     /**
@@ -267,14 +193,13 @@ class FreeBusyPublish {
     */
     function cmp($a, $b)
     {
-    	if ($a["time"] == $b["time"]) {
-    	    if($a["type"] < $b["type"])
-    	        return 1;
-            if($a["type"] > $b["type"])
-                return -1;
-            return 0;
-        }
-    	return ($a["time"] > $b["time"] ? 1 : -1);
+		if ($a["time"] != $b["time"])
+			return ($a["time"] > $b["time"] ? 1 : -1);
+		if ($a["type"] < $b["type"])
+			return 1;
+		if ($a["type"] > $b["type"])
+			return -1;
+		return 0;
     } 
 
     /**
