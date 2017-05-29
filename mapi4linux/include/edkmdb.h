@@ -37,6 +37,7 @@
 
 #include <kopano/platform.h>
 #include <initializer_list>
+#include <edkguid.h>
 
 class IExchangeManageStore : public IUnknown {
 public:
@@ -49,6 +50,7 @@ public:
 	virtual HRESULT __stdcall GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags) = 0;
 	virtual HRESULT __stdcall GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags) = 0;
 };
+IID_OF(IExchangeManageStore);
 
 class IExchangeManageStore6 : public IUnknown {
 public:
@@ -637,6 +639,7 @@ public:
 	virtual HRESULT __stdcall GetTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
 	virtual HRESULT __stdcall ModifyTable(ULONG ulFlags, LPROWLIST lpMods) = 0;
 };
+IID_OF(IExchangeModifyTable);
 
 typedef IExchangeModifyTable* LPEXCHANGEMODIFYTABLE;
 

@@ -18,6 +18,9 @@
 #ifndef IECSINGLEINSTANCE_H
 #define IECSINGLEINSTANCE_H
 
+#include <kopano/platform.h>
+#include <kopano/ECGuid.h>
+
 namespace KC {
 
 class IECSingleInstance : public IUnknown {
@@ -27,5 +30,7 @@ public:
 };
 
 } /* namespace */
+
+IID_OF2(KC::IECSingleInstance, IECSingleInstance);
 
 #endif

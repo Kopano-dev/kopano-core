@@ -175,7 +175,7 @@ public:
 	virtual HRESULT ShowForm(ULONG_PTR ulUIParam, LPMDB lpMsgStore, LPMAPIFOLDER lpParentFolder, LPCIID lpInterface, ULONG ulMessageToken, LPMESSAGE lpMessageSent, ULONG ulFlags, ULONG ulMessageStatus, ULONG ulMessageFlags, ULONG ulAccess, LPSTR lpszMessageClass) = 0;
     virtual HRESULT PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG* lpulMessageToken) = 0;
 };
-
+IID_OF(IMAPISession);
 
 /*DECLARE_MAPI_INTERFACE_PTR(IMAPISession, LPMAPISESSION);*/
 
@@ -209,6 +209,7 @@ public:
     virtual HRESULT SetSearchPath(ULONG ulFlags, LPSRowSet lpSearchPath) = 0;
 	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList) = 0;
 };
+IID_OF(IAddrBook);
 
 typedef IAddrBook* LPADRBOOK;
 
@@ -233,6 +234,7 @@ public:
 	virtual HRESULT SetDefaultProfile(const TCHAR *name, ULONG flags) = 0;
 	virtual HRESULT AdminServices(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags, IMsgServiceAdmin **) = 0;
 };
+IID_OF(IProfAdmin);
 
 /*
  * IMsgServiceAdmin Interface
@@ -264,11 +266,13 @@ public:
 	virtual HRESULT SetPrimaryIdentity(const MAPIUID *uid, ULONG flags) = 0;
     virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 };
+IID_OF(IMsgServiceAdmin);
 
 class IMsgServiceAdmin2 : public IMsgServiceAdmin {
 	public:
 	virtual HRESULT CreateMsgServiceEx(const char *service, const char *display_name, ULONG_PTR ui_param, ULONG flags, MAPIUID *out) = 0;
 };
+IID_OF(IMsgServiceAdmin2);
 
 namespace KC {
 
