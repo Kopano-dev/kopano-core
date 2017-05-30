@@ -237,21 +237,15 @@ class Folder(Base):
             # XXX use shortcuts and default type (database) to avoid MAPI snake wrestling
             NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x) for x in (33293, 33294, 33315)]
             ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, 0)
-            duedate = ids[0] | PT_SYSTIME
-            startdate = ids[1] | PT_SYSTIME
+            startdate = ids[0] | PT_SYSTIME
+            enddate = ids[1] | PT_SYSTIME
             recurring = ids[2] | PT_BOOLEAN
 
             # only look at non-recurring items which overlap and all recurring items
             restriction = SOrRestriction([
-                SOrRestriction([
-                    SAndRestriction([
-                        SPropertyRestriction(RELOP_GT, duedate, SPropValue(duedate, unixtime(startstamp))),
-                        SPropertyRestriction(RELOP_LT, startdate, SPropValue(startdate, unixtime(endstamp))),
-                    ]),
-                    SAndRestriction([
-                        SPropertyRestriction(RELOP_EQ, startdate, SPropValue(startdate, unixtime(startstamp))),
-                        SPropertyRestriction(RELOP_EQ, duedate, SPropValue(duedate, unixtime(startstamp))),
-                    ]),
+                SAndRestriction([
+                    SPropertyRestriction(RELOP_GT, enddate, SPropValue(enddate, unixtime(startstamp))),
+                    SPropertyRestriction(RELOP_LT, startdate, SPropValue(startdate, unixtime(endstamp))),
                 ]),
                 SAndRestriction([
                     SPropertyRestriction(RELOP_EQ, recurring, SPropValue(recurring, True))
