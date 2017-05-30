@@ -52,7 +52,6 @@ public:
 	// IECImportContentsChanges
 	virtual HRESULT ConfigForConversionStream(LPSTREAM lpStream, ULONG ulFlags, ULONG cValuesConversion, LPSPropValue lpPropArrayConversion);
 	virtual HRESULT ImportMessageChangeAsAStream(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPSTREAM *lppstream);
-	virtual HRESULT SetMessageInterface(REFIID refiid);
 
 	class xECImportContentsChanges _kc_final :
 	    public IECImportContentsChanges {
@@ -70,7 +69,6 @@ public:
 		// <kopano/xclsfrag/IECImportContentsChanges.hpp>
 		virtual HRESULT __stdcall ConfigForConversionStream(LPSTREAM lpStream, ULONG flags, ULONG cValuesConversion, LPSPropValue lpPropArrayConversion) _kc_override;
 		virtual HRESULT __stdcall ImportMessageChangeAsAStream(ULONG cValue, LPSPropValue lpPropArray, ULONG flags, LPSTREAM *lppstream) _kc_override;
-		virtual HRESULT __stdcall SetMessageInterface(REFIID refiid) _kc_override;
 	} m_xECImportContentsChanges;
 
 private:
@@ -95,7 +93,6 @@ private:
 	ULONG m_ulFlags = 0;
 	ULONG m_ulSyncId = 0;
 	ULONG m_ulChangeId = 0;
-	IID m_iidMessage;
 };
 
 #endif // ECEXCHANGEIMPORTCONTENTSCHANGES_H

@@ -47,8 +47,8 @@
 
 using namespace KCHL;
 
-ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder)
-: m_lpFolder(lpFolder), m_iidMessage(IID_IMessage)
+ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder) :
+	m_lpFolder(lpFolder)
 {
 	ECSyncLog::GetLogger(&m_lpLogger);
 	m_lpFolder->AddRef();
@@ -270,11 +270,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 			return SYNC_E_OBJECT_DELETED;
 		if(hr != hrSuccess)
 			return hr;
-		/* See if requested interface exists */
-		hr = lpMessage->QueryInterface(m_iidMessage, reinterpret_cast<void **>(lppMessage));
-		if (hr != hrSuccess)
-			return hr;
-		lpMessage->Release(); /* give back one ref taken by QI */
 
 		if (IsProcessed(lpRemoteCK, lpPropPCL))
 			//we already have this change
@@ -304,7 +299,9 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	hr = lpMessage->SetProps(cValue, lpPropArray, NULL);
 	if(hr != hrSuccess)
 		return hr;
-	return lpMessage->QueryInterface(m_iidMessage, reinterpret_cast<void **>(lppMessage));
+	*lppMessage = lpMessage;
+	lpMessage->AddRef();
+	return hrSuccess;
 }
 
 //ulFlags = SYNC_SOFT_DELETE, SYNC_EXPIRY
@@ -875,12 +872,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 	return hrSuccess;
 }
 
-HRESULT ECExchangeImportContentsChanges::SetMessageInterface(REFIID refiid)
-{
-	m_iidMessage = refiid;
-	return hrSuccess;
-}
-
 /**
  * Check if the passed entryids can be found in the RES_PROPERTY restrictions with the proptag
  * set to PR_PARENT_ENTRYID at any level in the passed restriction.
@@ -1033,4 +1024,3 @@ DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChang
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageMove, (ULONG, cbSourceKeySrcFolder), (BYTE *, pbSourceKeySrcFolder), (ULONG, cbSourceKeySrcMessage), (BYTE *, pbSourceKeySrcMessage), (ULONG, cbPCLMessage), (BYTE *, pbPCLMessage), (ULONG, cbSourceKeyDestMessage), (BYTE *, pbSourceKeyDestMessage), (ULONG, cbChangeNumDestMessage), (BYTE *, pbChangeNumDestMessage))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ConfigForConversionStream, (LPSTREAM, lpStream), (ULONG, ulFlags), (ULONG, cValuesConversion), (LPSPropValue, lpPropArrayConversion))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageChangeAsAStream, (ULONG, cpvalChanges), (LPSPropValue, ppvalChanges), (ULONG, ulFlags), (LPSTREAM *, lppstream))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, SetMessageInterface, (REFIID, refiid))
