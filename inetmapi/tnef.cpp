@@ -1425,47 +1425,48 @@ HRESULT ECTNEF::Finish()
 					hr = lpAttach->SetProps(1, p, NULL);
 					if (hr != hrSuccess)
 						return hr;
-				} else {
+					continue;
+				} else if (att->rdata.usType == AttachTypeOle) {
 					// message in PT_OBJECT, was saved in Value.bin
-					if (att->rdata.usType == AttachTypeOle) {
-						object_ptr<IStream> lpSubStream;
-						hr = lpAttach->OpenProperty(p->ulPropTag, &IID_IStream, 0, MAPI_CREATE | MAPI_MODIFY, &~lpSubStream);
-                        if(hr != hrSuccess)
-							return hr;
+					object_ptr<IStream> lpSubStream;
+					hr = lpAttach->OpenProperty(p->ulPropTag, &IID_IStream, 0, MAPI_CREATE | MAPI_MODIFY, &~lpSubStream);
+					if (hr != hrSuccess)
+						return hr;
 					hr = lpSubStream->Write(p->Value.bin.lpb, p->Value.bin.cb, NULL);
-                        if(hr != hrSuccess)
-							return hr;
-                        hr = lpSubStream->Commit(0);
-                        if(hr != hrSuccess)
-							return hr;
-                        has_obj = true;
-                    } else {
-			object_ptr<IStream> lpSubStream;		
-                        hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpSubStream);
-                        if (hr != hrSuccess)
-							return hr;
-                        hr = lpSubStream->Write(p->Value.bin.lpb, p->Value.bin.cb, NULL);
-                        if (hr != hrSuccess)
-							return hr;
-                        hr = lpSubStream->Seek(zero, STREAM_SEEK_SET, NULL);
-                        if(hr != hrSuccess)
-							return hr;
-                        hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpAttMessage);
-                        if(hr != hrSuccess)
-							return hr;
-                        ECTNEF SubTNEF(TNEF_DECODE, lpAttMessage, lpSubStream);
-                        hr = SubTNEF.ExtractProps(TNEF_PROP_EXCLUDE, NULL);
-                        if (hr != hrSuccess)
-							return hr;
-                        hr = SubTNEF.Finish();
-                        if (hr != hrSuccess)
-							return hr;
-                        hr = lpAttMessage->SaveChanges(0);
-                        if (hr != hrSuccess)
-							return hr;
-                        has_obj = true;
-                    }
+					if (hr != hrSuccess)
+						return hr;
+					hr = lpSubStream->Commit(0);
+					if (hr != hrSuccess)
+						return hr;
+					has_obj = true;
+					continue;
 				}
+
+				object_ptr<IStream> lpSubStream;
+				hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpSubStream);
+				if (hr != hrSuccess)
+					return hr;
+				hr = lpSubStream->Write(p->Value.bin.lpb, p->Value.bin.cb, NULL);
+				if (hr != hrSuccess)
+					return hr;
+				hr = lpSubStream->Seek(zero, STREAM_SEEK_SET, NULL);
+				if (hr != hrSuccess)
+					return hr;
+				hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpAttMessage);
+				if (hr != hrSuccess)
+					return hr;
+
+				ECTNEF SubTNEF(TNEF_DECODE, lpAttMessage, lpSubStream);
+				hr = SubTNEF.ExtractProps(TNEF_PROP_EXCLUDE, NULL);
+				if (hr != hrSuccess)
+					return hr;
+				hr = SubTNEF.Finish();
+				if (hr != hrSuccess)
+					return hr;
+				hr = lpAttMessage->SaveChanges(0);
+				if (hr != hrSuccess)
+					return hr;
+				has_obj = true;
 			}
 			if (!has_obj && att->data != NULL) {
 				object_ptr<IStream> lpAttStream;
@@ -1485,76 +1486,78 @@ HRESULT ECTNEF::Finish()
 			if (hr != hrSuccess)
 				return hr;
 		}
-	} else if(ulFlags == TNEF_ENCODE) {
-		// Write properties to stream
-		hr = HrWriteDWord(m_lpStream, TNEF_SIGNATURE);
-		if(hr != hrSuccess)
+		return hrSuccess;
+	} else if (ulFlags != TNEF_ENCODE) {
+		return hrSuccess;
+	}
+
+	// Write properties to stream
+	hr = HrWriteDWord(m_lpStream, TNEF_SIGNATURE);
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrWriteWord(m_lpStream, 0); // Write Key
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrWriteByte(m_lpStream, 1); // Write component (always 1 ?)
+	if (hr != hrSuccess)
+		return hr;
+	object_ptr<IStream> lpPropStream;
+	hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpPropStream);
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrWritePropStream(lpPropStream, lstProps);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpPropStream->Stat(&sStat, STATFLAG_NONAME);
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrWriteDWord(m_lpStream, 0x00069003);
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrWriteDWord(m_lpStream, sStat.cbSize.LowPart); // Write size
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpPropStream->Seek(zero, STREAM_SEEK_SET, NULL);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpPropStream->CopyTo(m_lpStream, sStat.cbSize, NULL, NULL); // Write data
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpPropStream->Seek(zero, STREAM_SEEK_SET, NULL);
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrGetChecksum(lpPropStream, &ulChecksum);
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrWriteWord(m_lpStream, (unsigned short)ulChecksum); // Write checksum
+	if (hr != hrSuccess)
+		return hr;
+
+	// Write attachments
+	for (const auto &att : lstAttachments) {
+		/* Write attachment start block */
+		hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(&att->rdata), sizeof(AttachRendData), 0x00069002, 2);
+		if (hr != hrSuccess)
 			return hr;
-		hr = HrWriteWord(m_lpStream, 0); // Write Key
-		if(hr != hrSuccess)
-			return hr;
-		hr = HrWriteByte(m_lpStream, 1); // Write component (always 1 ?)
-		if(hr != hrSuccess)
-			return hr;
-		object_ptr<IStream> lpPropStream;
-		hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpPropStream);
-		if(hr != hrSuccess)
-			return hr;
-		hr = HrWritePropStream(lpPropStream, lstProps);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpPropStream->Stat(&sStat, STATFLAG_NONAME);
-		if(hr != hrSuccess)
-			return hr;
-		hr = HrWriteDWord(m_lpStream, 0x00069003);
-		if(hr != hrSuccess)
-			return hr;
-		hr = HrWriteDWord(m_lpStream, sStat.cbSize.LowPart); // Write size
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpPropStream->Seek(zero, STREAM_SEEK_SET, NULL);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpPropStream->CopyTo(m_lpStream, sStat.cbSize, NULL, NULL); // Write data
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpPropStream->Seek(zero, STREAM_SEEK_SET, NULL);
-		if(hr != hrSuccess)
-			return hr;
-		hr = HrGetChecksum(lpPropStream, &ulChecksum);
-		if(hr != hrSuccess)
-			return hr;
-		hr = HrWriteWord(m_lpStream, (unsigned short)ulChecksum); // Write checksum
-		if(hr != hrSuccess)
-			return hr;
-		
-		// Write attachments	
-		for (const auto &att : lstAttachments) {
-			/* Write attachment start block */
-			hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(&att->rdata), sizeof(AttachRendData), 0x00069002, 2);
-            if(hr != hrSuccess)
+
+		// Write attachment data block if available
+		if (att->data != NULL) {
+			hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(att->data.get()), att->size, 0x0006800f, 2);
+			if (hr != hrSuccess)
 				return hr;
-                
-            // Write attachment data block if available
-			if (att->data != NULL) {
-				hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(att->data.get()), att->size, 0x0006800f, 2);
-                if(hr != hrSuccess)
-					return hr;
-            }
-                
-            // Write property block
-            hr = lpPropStream->SetSize(uzero);
-            if(hr != hrSuccess)
+		}
+
+		// Write property block
+		hr = lpPropStream->SetSize(uzero);
+		if (hr != hrSuccess)
+			return hr;
+		hr = HrWritePropStream(lpPropStream, att->lstProps);
+		if (hr != hrSuccess)
 				return hr;
-			hr = HrWritePropStream(lpPropStream, att->lstProps);
-            if(hr != hrSuccess)
-				return hr;
-            hr = HrWriteBlock(m_lpStream, lpPropStream, 0x00069005, 2);
-            if(hr != hrSuccess)
-				return hr;
-            // Note that we don't write any other blocks like PR_ATTACH_FILENAME since this information is also in the property block
-            
-        }
+		hr = HrWriteBlock(m_lpStream, lpPropStream, 0x00069005, 2);
+		if (hr != hrSuccess)
+			return hr;
+		// Note that we don't write any other blocks like PR_ATTACH_FILENAME since this information is also in the property block
 	}
 	return hrSuccess;
 }

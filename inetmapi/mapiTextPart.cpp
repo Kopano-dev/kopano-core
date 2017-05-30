@@ -95,8 +95,8 @@ void mapiTextPart::generateIn(vmime::shared_ptr<bodyPart> /* message */,
 
 		// -- Set contents
 		part->getBody()->setContents(m_plainText,
-									 mediaType(mediaTypes::TEXT, mediaTypes::TEXT_PLAIN), m_charset,
-									 encoding::decide(m_plainText, m_charset, encoding::USAGE_TEXT));
+			mediaType(mediaTypes::TEXT, mediaTypes::TEXT_PLAIN), m_charset,
+			encoding::decide(m_plainText, m_charset, encoding::USAGE_TEXT));
 	}
 
 	// HTML text
@@ -107,8 +107,8 @@ void mapiTextPart::generateIn(vmime::shared_ptr<bodyPart> /* message */,
 
 	// -- Set contents
 	htmlPart->getBody()->setContents(m_text,
-									 mediaType(mediaTypes::TEXT, mediaTypes::TEXT_HTML), m_charset,
-									 encoding::decide(m_text, m_charset, encoding::USAGE_TEXT));
+		mediaType(mediaTypes::TEXT, mediaTypes::TEXT_HTML), m_charset,
+		encoding::decide(m_text, m_charset, encoding::USAGE_TEXT));
 
 	// Handle the case we have embedded objects
 	if (!m_objects.empty())
@@ -300,16 +300,15 @@ bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& paren
 				// Now, search for the alternative plain text part
 				for (size_t i = 0; !found && i < part.getBody()->getPartCount(); ++i) {
 					auto p = part.getBody()->getPartAt(i);
-					if (p->getHeader()->hasField(fields::CONTENT_TYPE)) {
-						auto ctf = p->getHeader()->findField(fields::CONTENT_TYPE);
-						auto type = *vmime::dynamicCast<const vmime::mediaType>(ctf->getValue());
-
-						if (type.getType() == mediaTypes::TEXT &&
-						    type.getSubType() == mediaTypes::TEXT_PLAIN)
-						{
-							m_plainText = p->getBody()->getContents()->clone();
-							found = true;
-						}
+					if (!p->getHeader()->hasField(fields::CONTENT_TYPE))
+						continue;
+					auto ctf = p->getHeader()->findField(fields::CONTENT_TYPE);
+					auto type = *vmime::dynamicCast<const vmime::mediaType>(ctf->getValue());
+					if (type.getType() == mediaTypes::TEXT &&
+					    type.getSubType() == mediaTypes::TEXT_PLAIN)
+					{
+						m_plainText = p->getBody()->getContents()->clone();
+						found = true;
 					}
 				}
 

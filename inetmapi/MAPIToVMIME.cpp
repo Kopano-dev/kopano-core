@@ -2068,9 +2068,9 @@ tnef_anyway:
 				// Now, add the stream as an attachment to the message, filename winmail.dat 
 				// and MIME type 'application/ms-tnef', no content-id
 				vmTNEFAtt = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
-														  vmime::encoding("base64"), vmime::mediaType("application/ms-tnef"), string(),
-														  vmime::word("winmail.dat"));
-											  
+				            vmime::encoding("base64"), vmime::mediaType("application/ms-tnef"), string(),
+				            vmime::word("winmail.dat"));
+
 				// add to message (copies pointer, not data)
 				lpVMMessageBuilder->appendAttachment(vmTNEFAtt); 
 			}
