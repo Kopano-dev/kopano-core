@@ -469,7 +469,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	list<unsigned int> lstFolderIds;
 	// Contains a list of change IDs
 	list<unsigned int> lstChanges;
-	std::unique_ptr<ECGetContentChangesHelper, sfree_delete> lpHelper;
+	std::unique_ptr<ECGetContentChangesHelper> lpHelper;
 	
 	ec_log(EC_LOGLEVEL_ICS, "GetChanges(): sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
 
@@ -659,7 +659,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			}
 
 			if(ulChangeId != 0){
-				std::unique_ptr<unsigned char[]> lpSourceKeyData;
+				std::unique_ptr<unsigned char[], sfree_delete> lpSourceKeyData;
 				if (folder_id != 0 && g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), folder_id, nullptr, &cbSourceKeyData, &unique_tie(lpSourceKeyData)) != erSuccess)
 					continue; // Item is hard deleted?
 

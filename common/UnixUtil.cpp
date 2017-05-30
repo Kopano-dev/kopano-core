@@ -79,6 +79,10 @@ int unix_runas(ECConfig *lpConfig)
 			ec_log_crit("Changing to group \"%s\" failed: %s", gr->gr_name, strerror(errno));
 			return -1;
 		}
+		if (user != nullptr && *user != '\0' && initgroups(user, gr->gr_gid) != 0) {
+			ec_log_crit("Changing supplementary groups failed: %s", strerror(errno));
+			return -1;
+		}
 	}
 
 	if (user != NULL && *user != '\0') {

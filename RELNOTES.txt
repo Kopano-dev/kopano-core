@@ -57,6 +57,7 @@ Fixes:
 * spooler: custom bounce message text for forward_whitelist_domain [KC-618]
 * server: avoid unchecked return value and unsigned underflow [KC-656]
 * php: rework pointer value storing
+* daemons: call initgroups when switching user [KC-684]
 
 
 Release notes for 8.3.0 [2017-04-27]
