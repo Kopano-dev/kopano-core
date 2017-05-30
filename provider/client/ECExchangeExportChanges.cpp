@@ -958,8 +958,8 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	const auto lpImportProps = m_sourcekey.empty() ? sptImportPropsServerWide : sptImportProps;
 
 	// No more changes (add/modify).
-	ZLOG_DEBUG(m_lpLogger, "ExportFast: At step %u, changeset contains %lu items)",
-		m_ulStep, static_cast<unsigned long>(m_lstChange.size()));
+	ZLOG_DEBUG(m_lpLogger, "ExportFast: At step %u, changeset contains %zu items)",
+		m_ulStep, m_lstChange.size());
 	if (m_ulStep >= m_lstChange.size())
 		goto exit;
 

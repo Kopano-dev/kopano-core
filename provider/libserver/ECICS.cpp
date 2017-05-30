@@ -451,7 +451,7 @@ exit:
 ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct restrictTable *lpsRestrict, unsigned int *lpulMaxChangeId, icsChangesArray **lppChanges){
 	class sfree_delete {
 		public:
-		void operator()(void *x) { s_free(nullptr, x); }
+		void operator()(void *x) const { s_free(nullptr, x); }
 	};
 	unsigned int dummy;
 	ECDatabase*		lpDatabase = NULL;

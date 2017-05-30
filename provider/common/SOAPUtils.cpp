@@ -1383,8 +1383,7 @@ ECRESULT CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst)
 
 	if(lpSrc->__size > 0) {
 		lpDst->__ptr = s_alloc<unsigned char>(soap, lpSrc->__size);
-
-		memcpy(lpDst->__ptr, lpSrc->__ptr, sizeof(unsigned char) * lpSrc->__size);
+		memcpy(lpDst->__ptr, lpSrc->__ptr, lpSrc->__size);
 	} else {
 		lpDst->__ptr = NULL;
 	}
@@ -1410,7 +1409,7 @@ ECRESULT CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryL
 	for (unsigned int i = 0; i < lpSrc->__size; ++i) {
 		lpDst->__ptr[i].__size = lpSrc->__ptr[i].__size;
 		lpDst->__ptr[i].__ptr = s_alloc<unsigned char>(soap, lpSrc->__ptr[i].__size);
-		memcpy(lpDst->__ptr[i].__ptr, lpSrc->__ptr[i].__ptr, sizeof(unsigned char) * lpSrc->__ptr[i].__size);
+		memcpy(lpDst->__ptr[i].__ptr, lpSrc->__ptr[i].__ptr, lpSrc->__ptr[i].__size);
 	}
 
 	*lppDst = lpDst;
@@ -2222,7 +2221,7 @@ size_t EntryListSize(const struct entryList *lpSrc)
 	size_t ulSize = sizeof(entryList);
 	ulSize += sizeof(entryId) * lpSrc->__size;
 	for (unsigned int i = 0; i < lpSrc->__size; ++i)
-		ulSize += lpSrc->__ptr[i].__size * sizeof(unsigned char);
+		ulSize += lpSrc->__ptr[i].__size;
 	return ulSize;
 }
 

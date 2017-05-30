@@ -31,7 +31,7 @@ HRESULT FreeMapiObject(MAPIOBJECT *lpsObject);
 
 class client_delete {
 	public:
-	void operator()(void *x) { ECFreeBuffer(x); }
+	void operator()(void *x) const { ECFreeBuffer(x); }
 };
 
 template<typename T> using ecmem_ptr = KCHL::memory_ptr<T, client_delete>;

@@ -1218,13 +1218,12 @@ bool ECFileAttachment::VerifyInstanceSize(const ULONG instanceId, const size_t e
 	}
 
 	if (ulSize != expectedSize) {
-		ec_log_debug("ECFileAttachment::VerifyInstanceSize(): Uncompressed size unexpected for \"%s\": expected %lu, got %lu.", filename.c_str(), static_cast<unsigned long>(expectedSize), static_cast<unsigned long>(ulSize));
+		ec_log_debug("ECFileAttachment::VerifyInstanceSize(): Uncompressed size unexpected for \"%s\": expected %zu, got %zu.", filename.c_str(), expectedSize, ulSize);
 		return false;
 	}
 
 	if (ulSize > attachment_size_safety_limit)
-		ec_log_debug("ECFileAttachment::VerifyInstanceSize(): Overly large file (%lu/%lu): \"%s\"", static_cast<unsigned long>(expectedSize), static_cast<unsigned long>(ulSize), filename.c_str());
-
+		ec_log_debug("ECFileAttachment::VerifyInstanceSize(): Overly large file (%zu/%zu): \"%s\"", expectedSize, ulSize, filename.c_str());
 	return true;
 }
 
@@ -1329,7 +1328,8 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 			*lpiSize += ret;
 
 			if (*lpiSize >= attachment_size_safety_limit) {
-				ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Size safety limit (%lu) reached for \"%s\" (compressed)", static_cast<unsigned long>(attachment_size_safety_limit), filename.c_str());
+				ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Size safety limit (%zu) reached for \"%s\" (compressed)",
+					attachment_size_safety_limit, filename.c_str());
 				// er = KCERR_DATABASE_ERROR;
 				//break;
 				*lpiSize = 0;
@@ -1365,7 +1365,8 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 		*lpiSize = st.st_size;
 
 		if (*lpiSize >= attachment_size_safety_limit) {
-			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Size safety limit (%lu) reached for \"%s\" (uncompressed)", static_cast<unsigned long>(attachment_size_safety_limit), filename.c_str());
+			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Size safety limit (%zu) reached for \"%s\" (uncompressed)",
+				attachment_size_safety_limit, filename.c_str());
 			// FIXME er = KCERR_DATABASE_ERROR;
 			*lpiSize = 0;
 			lpData = s_alloc<unsigned char>(soap, *lpiSize);
@@ -1386,7 +1387,8 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 		}
 
 		if (lReadSize != static_cast<ssize_t>(*lpiSize)) {
-			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Short read while reading attachment data from \"%s\": expected %lu, got %lu.", filename.c_str(), static_cast<unsigned long>(*lpiSize), static_cast<unsigned long>(lReadSize));
+			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Short read while reading attachment data from \"%s\": expected %zu, got %zd.",
+				filename.c_str(), *lpiSize, lReadSize);
 			// FIXME er = KCERR_DATABASE_ERROR;
 			*lpiSize = 0;
 			*lppData = lpData;
@@ -1601,8 +1603,8 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 
 		ssize_t iWritten = gzwrite_retry(gzfp, lpData, iSize);
 		if (iWritten != static_cast<ssize_t>(iSize)) {
-			ec_log_err("Unable to gzwrite %lu bytes to attachment \"%s\", returned %lu.",
-				static_cast<unsigned long>(iSize), filename.c_str(), static_cast<unsigned long>(iWritten));
+			ec_log_err("Unable to gzwrite %zu bytes to attachment \"%s\", returned %zd.",
+				iSize, filename.c_str(), iWritten);
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		}
@@ -1612,8 +1614,8 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 
 		ssize_t iWritten = write_retry(fd, lpData, iSize);
 		if (iWritten != static_cast<ssize_t>(iSize)) {
-			ec_log_err("Unable to write %lu bytes to attachment \"%s\": %s. Returned %lu.",
-				static_cast<unsigned long>(iSize), filename.c_str(), strerror(errno), static_cast<unsigned long>(iWritten));
+			ec_log_err("Unable to write %zu bytes to attachment \"%s\": %s. Returned %zu.",
+				iSize, filename.c_str(), strerror(errno), iWritten);
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		}
@@ -1689,8 +1691,8 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 
 			ssize_t iWritten = gzwrite_retry(gzfp, szBuffer, iChunkSize);
 			if (iWritten != static_cast<ssize_t>(iChunkSize)) {
-				ec_log_err("Unable to gzwrite %lu bytes to attachment \"%s\", returned %lu",
-					static_cast<unsigned long>(iChunkSize), filename.c_str(), static_cast<unsigned long>(iWritten));
+				ec_log_err("Unable to gzwrite %zu bytes to attachment \"%s\", returned %zd",
+					iChunkSize, filename.c_str(), iWritten);
 				er = KCERR_DATABASE_ERROR;
 				break;
 			}
@@ -1744,7 +1746,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 
 			ssize_t iWritten = write_retry(fd, szBuffer, iChunkSize);
 			if (iWritten != static_cast<ssize_t>(iChunkSize)) {
-				ec_log_err("Unable to write %lu bytes to streaming attachment: %s", static_cast<unsigned long>(iChunkSize), strerror(errno));
+				ec_log_err("Unable to write %zu bytes to streaming attachment: %s", iChunkSize, strerror(errno));
 				er = KCERR_DATABASE_ERROR;
 				break;
 			}

@@ -293,7 +293,7 @@ unsigned int ECTableRow::GetObjectSize(void) const
 
 	if (ulSortCols > 0)
 	{
-		ulSize+= (sizeof(unsigned char) + sizeof(unsigned char) + sizeof(unsigned int)) * ulSortCols; // flag, SortKey, Sortlen
+		ulSize += (1 + 1 + sizeof(unsigned int)) * ulSortCols; // flag, SortKey, Sortlen
 		for (unsigned int i = 0; i < ulSortCols; ++i)
 			ulSize += lpSortLen[i];
 	}
@@ -1392,7 +1392,7 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem, unsigned 
     // to pass into UpdateRow()        
 	memcpy(lppSortKeys.get(), lpCursor->lppSortKeys, sizeof(unsigned char *) * lpCursor->ulSortCols);
 	memcpy(lpSortLen.get(), lpCursor->lpSortLen, sizeof(unsigned int) * lpCursor->ulSortCols);
-	memcpy(lpFlags.get(), lpCursor->lpFlags, sizeof(unsigned char) * lpCursor->ulSortCols);
+	memcpy(lpFlags.get(), lpCursor->lpFlags, lpCursor->ulSortCols);
     
     // Modify the updated colum
     lppSortKeys[ulColumn] = lpSortData;

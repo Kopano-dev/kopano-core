@@ -149,7 +149,6 @@ HRESULT	ECMessage::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IMessage, &this->m_xMessage);
 	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMessage);
 	REGISTER_INTERFACE2(IUnknown, &this->m_xMessage);
-	REGISTER_INTERFACE3(ISelectUnicode, IUnknown, &this->m_xUnknown);
 	REGISTER_INTERFACE2(IECSingleInstance, &this->m_xECSingleInstance);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
@@ -2463,7 +2462,7 @@ struct findobject_if {
 
     findobject_if(unsigned int ulObjType, unsigned int ulUniqueId) : m_ulUniqueId(ulUniqueId), m_ulObjType(ulObjType) {}
 
-    bool operator()(const MAPIOBJECT *entry)
+    bool operator()(const MAPIOBJECT *entry) const
     {
         return entry->ulUniqueId == m_ulUniqueId && entry->ulObjType == m_ulObjType;
     }

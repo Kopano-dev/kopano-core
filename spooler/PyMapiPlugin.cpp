@@ -51,7 +51,7 @@
 
 class kcpy_decref {
 	public:
-	void operator()(PyObject *obj) { Py_DECREF(obj); }
+	void operator()(PyObject *obj) const { Py_DECREF(obj); }
 };
 
 typedef KCHL::memory_ptr<PyObject, kcpy_decref> PyObjectAPtr;

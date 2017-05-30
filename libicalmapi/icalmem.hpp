@@ -6,10 +6,10 @@
 
 class icalmapi_delete {
 	public:
-	void operator()(icalcomponent *p) { icalcomponent_free(p); }
-	void operator()(icalproperty *p) { icalproperty_free(p); }
-	void operator()(icaltimezone *p) { icaltimezone_free(p, true); }
-	void operator()(char *p) { icalmemory_free_buffer(p); }
+	void operator()(icalcomponent *p) const { icalcomponent_free(p); }
+	void operator()(icalproperty *p) const { icalproperty_free(p); }
+	void operator()(icaltimezone *p) const { icaltimezone_free(p, true); }
+	void operator()(char *p) const { icalmemory_free_buffer(p); }
 };
 
 typedef std::unique_ptr<icalcomponent, icalmapi_delete> icalcomp_ptr;

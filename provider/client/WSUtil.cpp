@@ -560,11 +560,11 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 				dp->Value.MVbin.lpbin[i].lpb = NULL;
 				continue;
 			}
-			hr = ECAllocateMore(sizeof(unsigned char) * dp->Value.MVbin.lpbin[i].cb,
-			     lpBase, reinterpret_cast<void **>(&dp->Value.MVbin.lpbin[i].lpb));
+			hr = ECAllocateMore(dp->Value.MVbin.lpbin[i].cb, lpBase,
+			     reinterpret_cast<void **>(&dp->Value.MVbin.lpbin[i].lpb));
 			if (hr != hrSuccess)
 				return hr;
-			memcpy(dp->Value.MVbin.lpbin[i].lpb, sp->Value.mvbin.__ptr[i].__ptr, sizeof(unsigned char)*dp->Value.MVbin.lpbin[i].cb);
+			memcpy(dp->Value.MVbin.lpbin[i].lpb, sp->Value.mvbin.__ptr[i].__ptr, dp->Value.MVbin.lpbin[i].cb);
 		}
 		break;
 	case PT_MV_STRING8:
