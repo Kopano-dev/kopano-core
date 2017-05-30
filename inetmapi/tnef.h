@@ -22,6 +22,8 @@
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
+using namespace KCHL;
+
 // We loosely follow the MS class ITNEF with the following main exceptions:
 //
 // - No special RTF handling
@@ -47,7 +49,6 @@ struct AttachRendData {
 class ECTNEF _kc_final {
 public:
 	ECTNEF(ULONG ulFlags, IMessage *lpMessage, IStream *lpStream);
-	virtual ~ECTNEF();
     
 	// Add properties to the TNEF stream from the message
 	virtual HRESULT AddProps(ULONG ulFlags, const SPropTagArray *lpPropList);
@@ -74,9 +75,9 @@ private:
 	HRESULT HrWriteWord(IStream *lpStream, unsigned short ulData);
 	HRESULT HrWriteByte(IStream *lpStream, unsigned char ulData);
 	HRESULT HrWriteData(IStream *, const char *buf, ULONG len);
-	HRESULT HrWritePropStream(IStream *lpStream, std::list<SPropValue *> &proplist);
+	HRESULT HrWritePropStream(IStream *lpStream, std::list<memory_ptr<SPropValue> > &proplist);
 	HRESULT HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp);
-	HRESULT HrReadPropStream(const char *buf, ULONG size, std::list<SPropValue *> &proplist);
+	HRESULT HrReadPropStream(const char *buf, ULONG size, std::list<memory_ptr<SPropValue> > &proplist);
 	HRESULT HrReadSingleProp(const char *buf, ULONG size, ULONG *have_read, LPSPropValue *out);
 	HRESULT HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum);
 	ULONG GetChecksum(const char *data, unsigned int ulLen) const;
@@ -89,17 +90,15 @@ private:
 	ULONG ulFlags;
     
 	// Accumulator for properties from AddProps and SetProps
-	std::list<SPropValue *> lstProps;
+	std::list<memory_ptr<SPropValue> > lstProps;
 
 	struct tnefattachment {
-		std::list<SPropValue *> lstProps;
+		std::list<memory_ptr<SPropValue> > lstProps;
 		ULONG size;
-		BYTE *data;
+		memory_ptr<unsigned char> data;
 		AttachRendData rdata;
 	};
-	std::list<tnefattachment*> lstAttachments;
-
-	void FreeAttachmentData(tnefattachment* lpTnefAtt);
+	std::list<memory_ptr<tnefattachment> > lstAttachments;
 
 };
 
