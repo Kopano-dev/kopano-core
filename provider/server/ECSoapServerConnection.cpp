@@ -233,7 +233,6 @@ ECSoapServerConnection::~ECSoapServerConnection(void)
 
 ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServerPort, bool bEnableGET)
 {
-	ECRESULT	er = erSuccess;
 	int			socket = SOAP_INVALID_SOCKET;
 	struct soap	*lpsSoap = NULL;
 
