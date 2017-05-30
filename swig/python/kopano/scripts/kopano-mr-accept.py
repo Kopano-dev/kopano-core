@@ -77,7 +77,7 @@ def main():
     item = user.item(entryid)
     mr = item.meetingrequest
 
-    if autoaccept.enabled and mr.is_request:
+    if mr.is_request:
         decline_message = None
 
         if not autoaccept.recurring and item.recurring:
@@ -93,8 +93,11 @@ def main():
         else:
             mr.accept()
 
-            now = datetime.now()
-            user.freebusy.publish(now - timedelta(7), now + timedelta(180))
+    elif mr.is_cancellation:
+        mr.process_cancellation()
+
+    now = datetime.now()
+    user.freebusy.publish(now - timedelta(7), now + timedelta(180))
 
 if __name__ == '__main__':
     main()

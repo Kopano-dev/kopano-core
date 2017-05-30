@@ -17,8 +17,6 @@ def main():
         mr.process_response()
     elif mr.is_cancellation:
         mr.process_cancellation()
-    else:
-        return
 
     now = datetime.now()
     user.freebusy.publish(now - timedelta(7), now + timedelta(180))
