@@ -222,7 +222,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 
 	ULONG ulObjType = 0;
 	bool bAssociatedMessage = false;
-	IMessage *lpMessage = NULL;
+	object_ptr<IMessage> lpMessage;
 	object_ptr<ECMessage> lpECMessage;
 	ULONG ulNewFlags = 0;
 
@@ -257,19 +257,25 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 		auto lpPassedEntryId = PCpropFindProp(lpPropArray, cValue, PR_ENTRYID);
 		// Create the message with the passed entry ID
 		if(lpPassedEntryId)
-			hr = m_lpFolder->CreateMessageWithEntryID(&IID_IMessage, ulNewFlags, lpPassedEntryId->Value.bin.cb, (LPENTRYID)lpPassedEntryId->Value.bin.lpb, &lpMessage);
+			hr = m_lpFolder->CreateMessageWithEntryID(&IID_IMessage, ulNewFlags, lpPassedEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPassedEntryId->Value.bin.lpb), &~lpMessage);
 		else
-			hr = m_lpFolder->CreateMessage(&IID_IMessage, ulNewFlags, &lpMessage);
+			hr = m_lpFolder->CreateMessage(&IID_IMessage, ulNewFlags, &~lpMessage);
 
 		if(hr != hrSuccess)
 			return hr;
 	}else{
-		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &m_iidMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpMessage);
+		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMessage, MAPI_MODIFY, &ulObjType, &~lpMessage);
 		if (hr == MAPI_E_NOT_FOUND)
 			// The item was soft-deleted; sourcekey is known, but we cannot open the item. It has therefore been deleted.
 			return SYNC_E_OBJECT_DELETED;
 		if(hr != hrSuccess)
 			return hr;
+		/* See if requested interface exists */
+		hr = lpMessage->QueryInterface(m_iidMessage, reinterpret_cast<void **>(lppMessage));
+		if (hr != hrSuccess)
+			return hr;
+		lpMessage->Release(); /* give back one ref taken by QI */
+
 		if (IsProcessed(lpRemoteCK, lpPropPCL))
 			//we already have this change
 			return SYNC_E_IGNORE;
@@ -298,8 +304,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	hr = lpMessage->SetProps(cValue, lpPropArray, NULL);
 	if(hr != hrSuccess)
 		return hr;
-	*lppMessage = lpMessage;
-	return hrSuccess;
+	return lpMessage->QueryInterface(m_iidMessage, reinterpret_cast<void **>(lppMessage));
 }
 
 //ulFlags = SYNC_SOFT_DELETE, SYNC_EXPIRY
