@@ -2716,7 +2716,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder;
-	ENTRYLIST sEntryList;
+	memory_ptr<ENTRYLIST> entry_list;
 	memory_ptr<SRestriction> lpRootRestrict;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
@@ -2724,16 +2724,20 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 	static constexpr const SizedSPropTagArray(NUM_COLS, spt) = {NUM_COLS, {PR_ENTRYID}};
 	ECAndRestriction rst;
 
-	sEntryList.lpbin = NULL;
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~entry_list);
+	if (hr != hrSuccess)
+		return hr;
+
+	entry_list->lpbin = nullptr;
 	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error opening folder");
-		goto exit;
+		return hr;
 	}
 	hr = lpFolder->GetContentsTable(MAPI_DEFERRED_ERRORS , &~lpTable);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error opening folder contents");
-		goto exit;
+		return hr;
 	}
 	if (uid_rst != nullptr)
 		rst += std::move(*uid_rst.get());
@@ -2741,17 +2745,18 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 	rst += ECBitMaskRestriction(BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED);
 	hr = rst.CreateMAPIRestriction(&~lpRootRestrict, ECRestriction::Cheap);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrQueryAllRows(lpTable, spt, lpRootRestrict, nullptr, 0, &~lpRows);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error queryring rows");
-		goto exit;
+		return hr;
 	}
 
 	if(lpRows->cRows) {
-        sEntryList.cValues = 0;
-        if ((hr = MAPIAllocateBuffer(sizeof(SBinary) * lpRows->cRows, (LPVOID *) &sEntryList.lpbin)) != hrSuccess)
-		goto exit;
+        entry_list->cValues = 0;
+		hr = MAPIAllocateMore(sizeof(SBinary) * lpRows->cRows, entry_list, (LPVOID *) &entry_list->lpbin);
+        if (hr != hrSuccess)
+			return hr;
 
         for (ULONG ulMailnr = 0; ulMailnr < lpRows->cRows; ++ulMailnr) {
 			hr = lpFolder->SetMessageStatus(lpRows->aRow[ulMailnr].lpProps[EID].Value.bin.cb, (LPENTRYID)lpRows->aRow[ulMailnr].lpProps[EID].Value.bin.lpb,
@@ -2759,18 +2764,16 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 			if (hr != hrSuccess)
 				lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to update message status flag during " + strCommand);
 
-            sEntryList.lpbin[sEntryList.cValues++] = lpRows->aRow[ulMailnr].lpProps[EID].Value.bin;
+            entry_list->lpbin[entry_list->cValues++] = lpRows->aRow[ulMailnr].lpProps[EID].Value.bin;
         }
 
-        hr = lpFolder->DeleteMessages(&sEntryList, 0, NULL, 0);
+        hr = lpFolder->DeleteMessages(entry_list, 0, NULL, 0);
         if (hr != hrSuccess) {
             HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error deleting messages");
-            goto exit;
+            return hr;
         }
     }
 
-exit:
-	MAPIFreeBuffer(sEntryList.lpbin);
 	return hr;
 }
 
@@ -4912,42 +4915,43 @@ HRESULT IMAP::HrCopy(const list<ULONG> &lstMails, const string &strFolderParam, 
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpFromFolder, lpDestFolder;
 	ULONG ulCount;
-	ENTRYLIST sEntryList;
+	memory_ptr<ENTRYLIST> entry_list;
 	wstring strFolder;
 
-	sEntryList.lpbin = NULL;
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~entry_list);
+	if (hr != hrSuccess)
+		return hr;
 
-	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	entry_list->lpbin = nullptr;
+
+	if (strCurrentFolder.empty() || !lpSession)
+		return MAPI_E_CALL_FAILED;
+
 	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFromFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// get dest folder
 	hr = IMAP2MAPICharset(strFolderParam, strFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrFindFolder(strFolder, false, &~lpDestFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-	sEntryList.cValues = lstMails.size();
-	if ((hr = MAPIAllocateBuffer(sizeof(SBinary) * lstMails.size(), (LPVOID *) &sEntryList.lpbin)) != hrSuccess)
-		goto exit;
+	entry_list->cValues = lstMails.size();
+	if ((hr = MAPIAllocateMore(sizeof(SBinary) * lstMails.size(), entry_list, (LPVOID *) &entry_list->lpbin)) != hrSuccess)
+		return hr;
 	ulCount = 0;
 
 	for (auto mail_idx : lstMails) {
-		sEntryList.lpbin[ulCount].cb = lstFolderMailEIDs[mail_idx].sEntryID.cb;
-		sEntryList.lpbin[ulCount].lpb = lstFolderMailEIDs[mail_idx].sEntryID.lpb;
+		entry_list->lpbin[ulCount].cb = lstFolderMailEIDs[mail_idx].sEntryID.cb;
+		entry_list->lpbin[ulCount].lpb = lstFolderMailEIDs[mail_idx].sEntryID.lpb;
 		++ulCount;
 	}
 
-	hr = lpFromFolder->CopyMessages(&sEntryList, NULL, lpDestFolder, 0, NULL, bMove ? MESSAGE_MOVE : 0);
+	hr = lpFromFolder->CopyMessages(entry_list, NULL, lpDestFolder, 0, NULL, bMove ? MESSAGE_MOVE : 0);
 
-exit:
-	MAPIFreeBuffer(sEntryList.lpbin);
 	return hr;
 }
 
