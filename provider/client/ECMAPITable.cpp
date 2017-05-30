@@ -177,14 +177,8 @@ HRESULT ECMAPITable::SetColumns(const SPropTagArray *lpPropTagArray,
 		return MAPI_E_INVALID_PARAMETER;
 
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpPropTagArray->cValues), &~lpsPropTags);
-	if (hr != hrSuccess)
-		return hr;
 
-	lpsPropTags->cValues = lpPropTagArray->cValues;
-	memcpy(&lpsPropTags->aulPropTag, &lpPropTagArray->aulPropTag, lpPropTagArray->cValues * sizeof(ULONG));
-
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpPropTagArray->cValues), &~m_lpSetColumns);
+	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpPropTagArray->cValues), &~m_lpSetColumns);
 	if (hr != hrSuccess)
 		return hr;
         

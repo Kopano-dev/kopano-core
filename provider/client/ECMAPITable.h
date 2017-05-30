@@ -83,7 +83,6 @@ private:
 	std::recursive_mutex m_hLock;
 	WSTableView			*lpTableOps;
 	ECNotifyClient		*lpNotifyClient;
-	memory_ptr<SPropTagArray> lpsPropTags;
 	memory_ptr<SSortOrderSet> lpsSortOrderSet;
 	ULONG				ulFlags; // Currently unused
 	std::set<ULONG>		m_ulConnectionList;
