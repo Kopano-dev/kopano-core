@@ -148,7 +148,6 @@ VMIMEToMAPI::VMIMEToMAPI()
 	imopt_default_delivery_options(&m_dopt);
 	m_dopt.use_received_date = false; // use Date header
 	m_lpAdrBook = NULL;
-	m_lpDefaultDir = NULL;
 	m_dopt.html_safety_filter = false;
 }
 
@@ -161,12 +160,6 @@ VMIMEToMAPI::VMIMEToMAPI()
 VMIMEToMAPI::VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt) :
 	m_dopt(dopt), m_lpAdrBook(lpAdrBook)
 {
-}
-
-VMIMEToMAPI::~VMIMEToMAPI()
-{
-	if (m_lpDefaultDir)
-		m_lpDefaultDir->Release();
 }
 
 /** 
@@ -1346,7 +1339,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 		if (hr != hrSuccess)
 			return hr;
 		hr = m_lpAdrBook->OpenEntry(cbDDEntryID, lpDDEntryID,
-		     &iid_of(m_lpDefaultDir), 0, &ulObj, reinterpret_cast<IUnknown **>(&m_lpDefaultDir));
+		     &iid_of(m_lpDefaultDir), 0, &ulObj, &~m_lpDefaultDir);
 		if (hr != hrSuccess)
 			return hr;
 	}
