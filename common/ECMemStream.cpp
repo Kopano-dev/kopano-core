@@ -161,28 +161,20 @@ HRESULT ECMemBlock::GetSize(ULONG *ulSize) const
 /*
  * ECMemStream, IStream compatible in-memory stream object
  */
-
-ECMemStream::ECMemStream(char *buffer, ULONG ulDataLen, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
-						 void *lpParam) : ECUnknown("IStream")
+ECMemStream::ECMemStream(const char *buffer, ULONG ulDataLen, ULONG f,
+    CommitFunc cf, DeleteFunc df, void *p) :
+	ECUnknown("IStream"), lpCommitFunc(cf), lpDeleteFunc(df), lpParam(p),
+	ulFlags(f)
 {
-	this->liPos.QuadPart = 0;
 	ECMemBlock::Create(buffer, ulDataLen, ulFlags, &this->lpMemBlock);
-	this->lpCommitFunc = lpCommitFunc;
-	this->lpDeleteFunc = lpDeleteFunc;
-	this->lpParam = lpParam;
-	this->ulFlags = ulFlags;
 }
 
-ECMemStream::ECMemStream(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
-						 void *lpParam) : ECUnknown("IStream")
+ECMemStream::ECMemStream(ECMemBlock *mb, ULONG f, CommitFunc cf,
+    DeleteFunc df, void *p) :
+	ECUnknown("IStream"), lpMemBlock(mb), lpCommitFunc(cf),
+	lpDeleteFunc(df), lpParam(p), ulFlags(f)
 {
-	this->liPos.QuadPart = 0;
-	this->lpMemBlock = lpMemBlock;
 	lpMemBlock->AddRef();
-	this->lpCommitFunc = lpCommitFunc;
-	this->lpDeleteFunc = lpDeleteFunc;
-	this->lpParam = lpParam;
-	this->ulFlags = ulFlags;
 }
 
 ECMemStream::~ECMemStream()
