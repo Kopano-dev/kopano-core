@@ -26,6 +26,8 @@
 #include <mapi.h>
 #include <mapix.h>
 
+using namespace KCHL;
+
 namespace KC {
 
 /**
@@ -202,25 +204,22 @@ HRESULT MAPINotifSink::Create(MAPINotifSink **lppSink)
 MAPINotifSink::~MAPINotifSink() {
     m_bExit = true;
 	m_hCond.notify_all();
-	for (auto n : m_lstNotifs)
-		MAPIFreeBuffer(n);
-	m_lstNotifs.clear();
 }
 
 // Add a notification to the queue; Normally called as notification sink
 ULONG MAPINotifSink::OnNotify(ULONG cNotifications, LPNOTIFICATION lpNotifications)
 {
 	ULONG rc = 0;
-	LPNOTIFICATION lpNotif;
+	memory_ptr<NOTIFICATION> lpNotif;
 	ulock_normal biglock(m_hMutex);
 	for (unsigned int i = 0; i < cNotifications; ++i) {
-		if (MAPIAllocateBuffer(sizeof(NOTIFICATION), (LPVOID*)&lpNotif) != hrSuccess) {
+		if (MAPIAllocateBuffer(sizeof(NOTIFICATION), &~lpNotif) != hrSuccess) {
 			rc = 1;
 			break;
 		}
 
 		if (CopyNotification(&lpNotifications[i], lpNotif, lpNotif) == 0)
-			m_lstNotifs.push_back(lpNotif);
+			m_lstNotifs.push_back(std::move(lpNotif));
 	}
 	biglock.unlock();
 	m_hCond.notify_all();
@@ -250,19 +249,18 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
 		}
 	}
     
-	LPNOTIFICATION lpNotifications = NULL;
-    
-	if ((hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * m_lstNotifs.size(), (void **) &lpNotifications)) == hrSuccess) {
-		for (auto n : m_lstNotifs) {
+	memory_ptr<NOTIFICATION> lpNotifications;
+	hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * m_lstNotifs.size(), &~lpNotifications);
+	if (hr == hrSuccess) {
+		for (auto const &n : m_lstNotifs) {
 			if (CopyNotification(n, lpNotifications, &lpNotifications[cNotifs]) == 0)
 				++cNotifs;
-			MAPIFreeBuffer(n);
 		}
 	}
 
 	m_lstNotifs.clear();
 	biglock.unlock();
-    *lppNotifications = lpNotifications;
+	*lppNotifications = lpNotifications.release();
     *lpcNotif = cNotifs;
 
     return hr;

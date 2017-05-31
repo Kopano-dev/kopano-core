@@ -27,6 +27,7 @@
 #include <mapidefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 
 namespace KC {
 
@@ -45,7 +46,7 @@ private:
 
 	std::mutex m_hMutex;
 	std::condition_variable m_hCond;
-    std::list<NOTIFICATION *> m_lstNotifs;
+	std::list<KCHL::memory_ptr<NOTIFICATION>> m_lstNotifs;
 	bool m_bExit = false;
 	unsigned int m_cRef = 0;
 	ALLOC_WRAP_FRIEND;
