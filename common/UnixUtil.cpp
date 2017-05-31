@@ -56,47 +56,61 @@ static int unix_runpath(ECConfig *conf)
 	return ret;
 }
 
+static int unix_runasgroup(const struct passwd *pw, const char *group)
+{
+	auto gr = getgrnam(group);
+	if (gr == nullptr) {
+		ec_log_err("Looking up group \"%s\" failed: %s", group, strerror(errno));
+		return -1;
+	}
+	if (getgid() != gr->gr_gid && setgid(gr->gr_gid) != 0) {
+		ec_log_crit("Changing to group \"%s\" failed: %s", gr->gr_name, strerror(errno));
+		return -1;
+	}
+	if (pw == nullptr)
+		/* No user change desired, so no initgroups desired. */
+		return 0;
+	if (getuid() == pw->pw_uid) {
+		/*
+		 * The process is already the (supposedly unprivileged) target
+		 * user - initgroup is unlikely to succeed, so ignore its
+		 * return value.
+		 */
+		initgroups(pw->pw_name, gr->gr_gid);
+		return 0;
+	}
+	if (initgroups(pw->pw_name, gr->gr_gid) != 0) {
+		ec_log_crit("Changing supplementary groups failed: %s", strerror(errno));
+		return -1;
+	}
+	return 0;
+}
+
 int unix_runas(ECConfig *lpConfig)
 {
 	const char *group = lpConfig->GetSetting("run_as_group");
 	const char *user  = lpConfig->GetSetting("run_as_user");
-	int ret;
-
-	ret = unix_runpath(lpConfig);
+	auto ret = unix_runpath(lpConfig);
 	if (ret != 0)
 		return ret;
 
-	if (getgroups(0, NULL) != 0 && setgroups(0, NULL) < 0)
-		ec_log_warn("setgroups(0): %s", strerror(errno));
-
-	if (group != NULL && *group != '\0') {
-		const struct group *gr = getgrnam(group);
-		if (!gr) {
-			ec_log_err("Looking up group \"%s\" failed: %s", group, strerror(errno));
-			return -1;
-		}
-		if (getgid() != gr->gr_gid && setgid(gr->gr_gid) != 0) {
-			ec_log_crit("Changing to group \"%s\" failed: %s", gr->gr_name, strerror(errno));
-			return -1;
-		}
-		if (user != nullptr && *user != '\0' && initgroups(user, gr->gr_gid) != 0) {
-			ec_log_crit("Changing supplementary groups failed: %s", strerror(errno));
-			return -1;
-		}
-	}
-
-	if (user != NULL && *user != '\0') {
-		const struct passwd *pw = getpwnam(user);
+	const struct passwd *pw = nullptr;
+	if (user != nullptr && *user != '\0') {
+		pw = getpwnam(user);
 		if (!pw) {
 			ec_log_err("Looking up user \"%s\" failed: %s", user, strerror(errno));
 			return -1;
 		}
-		if (getuid() != pw->pw_uid && setuid(pw->pw_uid) != 0) {
-			ec_log_crit("Changing to user \"%s\" failed: %s", pw->pw_name, strerror(errno));
-			return -1;
-		}
 	}
-
+	if (group != nullptr && *group != '\0') {
+		ret = unix_runasgroup(pw, group);
+		if (ret != 0)
+			return ret;
+	}
+	if (pw != nullptr && getuid() != pw->pw_uid && setuid(pw->pw_uid) != 0) {
+		ec_log_crit("Changing to user \"%s\" failed: %s", pw->pw_name, strerror(errno));
+		return -1;
+	}
 	return 0;
 }
 
