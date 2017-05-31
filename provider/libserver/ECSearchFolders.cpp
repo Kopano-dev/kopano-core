@@ -198,7 +198,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
 
     // Cancel any running searches
     CancelSearchFolder(ulStoreId, ulFolderId);
-
+	auto cache = m_lpSessionManager->GetCacheManager();
     if(bReStartSearch) {
         // Set the status of the table as rebuilding
         SetStatus(ulFolderId, EC_SEARCHFOLDER_STATUS_REBUILD);
@@ -212,7 +212,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
     // Tell tables that we've reset:
 
     // 1. Reset cache for this folder
-    m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulFolderId);
+	cache->Update(fnevObjectModified, ulFolderId);
     
     // 2. Send reset table contents notification
     er = m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulFolderId, 0, MAPI_MESSAGE);
@@ -220,7 +220,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
         goto exit;
         
     // 3. Send change tables viewing us (hierarchy tables)
-    if(m_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParent) == erSuccess) {
+	if (cache->GetParent(ulFolderId, &ulParent) == erSuccess) {
         er = m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER);
         if(er != erSuccess)
             goto exit;
@@ -476,6 +476,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
     // a target folder if it is a recursive search.
     
     // Loop through search folders for this store
+	auto cache = m_lpSessionManager->GetCacheManager();
 	for (const auto &folder : iterStore->second) {
 		ULONG ulAttempts = 4;	// Random number
 		
@@ -517,7 +518,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 			if(ulType != ECKeyTable::TABLE_ROW_DELETE) {
 				// Loop through all targets for each searchfolder, if one matches, then match the restriction with the objects
 				for (unsigned int i = 0; i < folder.second->lpSearchCriteria->lpFolders->__size; ++i)
-					if (m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&folder.second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) == erSuccess &&
+					if (cache->GetObjectFromEntryId(&folder.second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) == erSuccess &&
 						ulSCFolderId == ulFolderId)
 					{
 						bIsInTargetFolder = true;
@@ -535,7 +536,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					setParents.insert(ulFolderId);
 					
 					while(1) {
-						er = m_lpSessionManager->GetCacheManager()->GetParent(ulAncestor, &ulAncestor);
+						er = cache->GetParent(ulAncestor, &ulAncestor);
 						if(er != erSuccess)
 							break;
 							
@@ -545,7 +546,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					// setParents now contains all the parent of this object, now we can check if any of the ancestors
 					// are in the search target
 					for (unsigned int i = 0; i < folder.second->lpSearchCriteria->lpFolders->__size; ++i) {
-						if (m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&folder.second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) != erSuccess)
+						if (cache->GetObjectFromEntryId(&folder.second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) != erSuccess)
 							continue;
 						auto iterParents = setParents.find(ulSCFolderId);
 						if (iterParents != setParents.cend()) {
@@ -607,7 +608,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						bool fMatch;
 
 						// Match the restriction
-						er = ECGenericObjectTable::MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], folder.second->lpSearchCriteria->lpRestrict, lpSubResults, locale, &fMatch);
+						er = ECGenericObjectTable::MatchRowRestrict(cache, &lpRowSet->__ptr[i], folder.second->lpSearchCriteria->lpRestrict, lpSubResults, locale, &fMatch);
 
 						if (er != erSuccess)
 							continue;
@@ -720,9 +721,9 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					goto exit;
 				}
 				
-				m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, folder.first);
+				cache->Update(fnevObjectModified, folder.first);
 				er = m_lpSessionManager->NotificationModified(MAPI_FOLDER, folder.first);
-				if (m_lpSessionManager->GetCacheManager()->GetParent(folder.first, &ulParent) == erSuccess)
+				if (cache->GetParent(folder.first, &ulParent) == erSuccess)
 					er = m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, folder.first, MAPI_FOLDER);
 				er = erSuccess; // Ignore errors
 			}        
@@ -813,6 +814,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 	
 	assert(lpPropTags->__ptr[0] == PR_MESSAGE_FLAGS);
 	auto iterRows = ecRows.cbegin();
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();
     if(bNotify) {
         er = lpDatabase->Begin();
 		if (er != erSuccess) {
@@ -845,7 +847,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     lCount=0;
     lUnreadCount=0;
     for (gsoap_size_t j = 0; j< lpRowSet->__size && (!lpbCancel || !*lpbCancel); ++j, ++iterRows) {
-        if(ECGenericObjectTable::MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[j], lpRestrict, lpSubResults, locale, &fMatch) != erSuccess)
+		if (ECGenericObjectTable::MatchRowRestrict(cache, &lpRowSet->__ptr[j], lpRestrict, lpSubResults, locale, &fMatch) != erSuccess)
             continue;
 
         if(!fMatch)
@@ -891,10 +893,9 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     
     // If the searchfolder counte have changed, update counts and send notifications
     if(bNotify) {
-		m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulFolderId);
+		cache->Update(fnevObjectModified, ulFolderId);
 		m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
-		
-		if(m_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParent) == erSuccess)
+		if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
 			m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
     }
 
@@ -955,7 +956,8 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	ec_log_err("ECSearchFolders::Search() no folder or search criteria");
 		return KCERR_NOT_FOUND;
     }
-	auto er = m_lpSessionManager->GetCacheManager()->GetStore(ulStoreId, nullptr, &guidStore);
+    auto cache = m_lpSessionManager->GetCacheManager();
+	auto er = cache->GetStore(ulStoreId, nullptr, &guidStore);
 	if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::Search() GetStore failed: 0x%x", er);
 		return er;
@@ -963,7 +965,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	ecODStore.lpGuid = &guidStore;
     
     // Get the owner of the store
-    er = m_lpSessionManager->GetCacheManager()->GetObject(ulStoreId, NULL, &ulUserId, NULL, NULL);
+    er = cache->GetObject(ulStoreId, NULL, &ulUserId, NULL, NULL);
     if(er != erSuccess) {
 	ec_log_crit("ECSearchFolders::Search() GetObject failed: 0x%x", er);
 		return er;
@@ -985,7 +987,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	}
 
     // Get target folders
-	er = m_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(lpSearchCrit->lpFolders, &lstFolders);
+	er = cache->GetEntryListToObjectList(lpSearchCrit->lpFolders, &lstFolders);
 	if (er != erSuccess) {
 		ec_log_crit("ECSearchFolders::Search() GetEntryListToObjectList failed: 0x%x", er);
 		goto exit;
@@ -1019,7 +1021,9 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	if(er != erSuccess)
 		goto exit;
 	
-	if (GetIndexerResults(lpDatabase, m_lpSessionManager->GetConfig(), m_lpSessionManager->GetCacheManager(), &guidServer, &guidStore, lstFolders, lpSearchCrit->lpRestrict, &lpAdditionalRestrict, lstIndexerResults, suggestion) == erSuccess) {
+	if (GetIndexerResults(lpDatabase, m_lpSessionManager->GetConfig(), cache,
+	    &guidServer, &guidStore, lstFolders, lpSearchCrit->lpRestrict,
+	    &lpAdditionalRestrict, lstIndexerResults, suggestion) == erSuccess) {
 		std::string strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_string) VALUES(" + stringify(ulFolderId) + "," + stringify(PROP_ID(PR_EC_SUGGESTION)) + "," + stringify(PROP_TYPE(PR_EC_SUGGESTION)) + ",'" + lpDatabase->Escape(suggestion) + "') ON DUPLICATE KEY UPDATE val_string='" + lpDatabase->Escape(suggestion) + "'";
 
 		er = lpDatabase->DoInsert(strQuery);
@@ -1078,10 +1082,9 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 			// Add matched rows and send a notification to update views of this search (if any are open)
 			m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulFolderId, 0, MAPI_MESSAGE);
 
-			m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulFolderId);
+			cache->Update(fnevObjectModified, ulFolderId);
 			m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
-
-			if(m_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParent) == erSuccess)
+			if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
 				m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
 		}
 

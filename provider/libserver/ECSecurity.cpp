@@ -101,7 +101,8 @@ ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpers
 		return er;
 
 	// Get the company we're assigned to
-	if (m_lpSession->GetSessionManager()->IsHostedSupported())
+	auto sesmgr = m_lpSession->GetSessionManager();
+	if (sesmgr->IsHostedSupported())
 		m_ulCompanyID = m_details.GetPropInt(OB_PROP_I_COMPANYID);
 	else
 		m_ulCompanyID = 0;
@@ -116,7 +117,7 @@ ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpers
 		ulAdminLevel = m_impersonatorDetails.GetPropInt(OB_PROP_I_ADMINLEVEL);
 		if (ulAdminLevel == 0) {
 			return KCERR_NO_ACCESS;
-		} else if (m_lpSession->GetSessionManager()->IsHostedSupported() == true && ulAdminLevel < ADMIN_LEVEL_SYSADMIN) {
+		} else if (sesmgr->IsHostedSupported() == true && ulAdminLevel < ADMIN_LEVEL_SYSADMIN) {
 			unsigned int ulCompanyID = m_impersonatorDetails.GetPropInt(OB_PROP_I_COMPANYID);
 			if (ulCompanyID != m_ulCompanyID)
 				return KCERR_NO_ACCESS;
@@ -154,13 +155,13 @@ public:
  */
 ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> **lppGroups)
 {
-	ECRESULT er;
 	std::list<localobjectdetails_t> *lpGroups = NULL;
 	cUniqueGroup cSeenGroups;
 
 	/* Gets the current user's membership information.
 	 * This means you will be in the same groups until you login again */
-	er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
+	auto usrmgt = m_lpSession->GetUserManagement();
+	auto er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
 		ulUserId, &lpGroups, USERMANAGEMENT_IDS_ONLY);
 	if (er != erSuccess)
 		return er;
@@ -180,7 +181,7 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 		cSeenGroups.m_seen.insert(*iterGroups);
 
 		std::list<localobjectdetails_t> *lpGroupInGroups = NULL;
-		er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
+		er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
 		     iterGroups->ulId, &lpGroupInGroups, USERMANAGEMENT_IDS_ONLY);
 		if (er == erSuccess) {
 			// Adds all groups from lpGroupInGroups to the main lpGroups list, except when already in cSeenGroups
@@ -216,9 +217,10 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 	// Get the deepest GRANT ACL that applies to this user or groups that this user is in
 	// WARNING we totally ignore DENY ACL's here. This means that the deepest GRANT counts. In practice
 	// this doesn't matter because GRANTmask = ~DENYmask.
+	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
 	while(true)
 	{
-		if(m_lpSession->GetSessionManager()->GetCacheManager()->GetACLs(ulCurObj, &lpRights) == erSuccess) {
+		if (cache->GetACLs(ulCurObj, &lpRights) == erSuccess) {
 			// This object has ACL's, check if any of them are for this user
 
 			for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
@@ -255,7 +257,7 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 			break;
 
 		// There were no ACLs or no ACLs for us, go to the parent and try there
-		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulCurObj, &ulCurObj);
+		er = cache->GetParent(ulCurObj, &ulCurObj);
 		if (er != erSuccess)
 			// No more parents, break (with ulRights = 0)
 			return erSuccess;
@@ -379,6 +381,7 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 	unsigned int	ulObjType;
 	unsigned int	ulParentId;
 	unsigned int	ulParentType;
+	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
 
 	if(m_ulUserID == KOPANO_UID_SYSTEM) {
 		// SYSTEM is always allowed everything
@@ -388,12 +391,12 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 
 	// special case: stores and root containers are always allowed to be opened
 	if (ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead) {
-		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, NULL, &ulObjType);
+		er = cache->GetObject(ulObjId, &ulParentId, nullptr, nullptr, &ulObjType);
 		if (er != erSuccess)
 			goto exit;
 		if (ulObjType == MAPI_STORE)
 			goto exit;
-		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulParentId, NULL, NULL, NULL, &ulParentType);
+		er = cache->GetObject(ulParentId, nullptr, nullptr, nullptr, &ulParentType);
 		if (er != erSuccess)
 			goto exit;
 		if (ulObjType == MAPI_FOLDER && ulParentType == MAPI_STORE)
@@ -511,7 +514,7 @@ exit:
 		std::string strStoreOwner;
 		std::string strUsername;
 
-		m_lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, NULL, NULL, NULL, &ulType);
+		cache->GetObject(ulObjId, nullptr, nullptr, nullptr, &ulType);
 		if (er == KCERR_NO_ACCESS || ulStoreOwnerId != m_ulUserID) {
 			GetUsername(&strUsername);
 			if (ulStoreOwnerId == m_ulUserID)
@@ -583,6 +586,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 		lpsRightsArray->__size = ulCount;
 
 		memset(lpsRightsArray->__ptr, 0, sizeof(struct rights) * ulCount);
+		auto usrmgt = m_lpSession->GetUserManagement();
 		for (i = 0; i < ulCount; ++i) {
 			lpDBRow = lpDBResult.fetch_row();
 			if(lpDBRow == NULL) {
@@ -601,7 +605,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 			} else if (lpsRightsArray->__ptr[i].ulUserid == KOPANO_UID_EVERYONE) {
 				sExternId = objectid_t(DISTLIST_GROUP);
 			} else {
-				er = m_lpSession->GetUserManagement()->GetExternalId(lpsRightsArray->__ptr[i].ulUserid, &sExternId);
+				er = usrmgt->GetExternalId(lpsRightsArray->__ptr[i].ulUserid, &sExternId);
 				if (er != erSuccess)
 					return er;
 			}
@@ -644,6 +648,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 
 	// Invalidate cache for this object
 	m_lpSession->GetSessionManager()->GetCacheManager()->Update(fnevObjectModified, objid);
+	auto usrmgt = m_lpSession->GetUserManagement();
 
 	for (gsoap_size_t i = 0; i < lpsRightsArray->__size; ++i) {
 		// FIXME: check for each object if it belongs to the store we're logged into (except for admin)
@@ -659,7 +664,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 			if (!sExternId.id.empty())
 			{
 				// Get real ulUserId on this server
-				er = m_lpSession->GetUserManagement()->GetLocalId(sExternId, &ulUserId, NULL);
+				er = usrmgt->GetLocalId(sExternId, &ulUserId, NULL);
 				if (er != erSuccess)
 					return er;
 			}
@@ -667,7 +672,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 		else
 			ulUserId = lpsRightsArray->__ptr[i].ulUserid;
 
-		er = m_lpSession->GetUserManagement()->GetObjectDetails(ulUserId, &sDetails);
+		er = usrmgt->GetObjectDetails(ulUserId, &sDetails);
 		if (er != erSuccess)
 			return er;
 
@@ -871,11 +876,12 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	objectdetails_t details;
+	auto usrmgt = m_lpSession->GetUserManagement();
 
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
-		er = m_lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &unique_tie(lpObjects), ulFlags);
+		er = usrmgt->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &unique_tie(lpObjects), ulFlags);
 	else
-		er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW,
+		er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW,
 		     m_ulCompanyID, &unique_tie(lpObjects), ulFlags);
 	if (er != erSuccess)
 		/* Whatever the error might be, it only indicates we
@@ -890,7 +896,7 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 	 * is either added or not present in the RemoteViewableCompanies. */
 	if (m_ulCompanyID != 0) {
 		if (!(ulFlags & USERMANAGEMENT_IDS_ONLY)) {
-			er = m_lpSession->GetUserManagement()->GetObjectDetails(m_ulCompanyID, &details);
+			er = usrmgt->GetObjectDetails(m_ulCompanyID, &details);
 			if (er != erSuccess)
 				return er;
 		} else {
@@ -917,12 +923,13 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags, list<localobjectdet
 {
 	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
+	auto usrmgt = m_lpSession->GetUserManagement();
 
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
-		er = m_lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_COMPANY,
+		er = usrmgt->GetCompanyObjectListAndSync(CONTAINER_COMPANY,
 		     0, &unique_tie(lpObjects), ulFlags);
 	else
-		er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN,
+		er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN,
 		     m_ulUserID, &unique_tie(lpObjects), ulFlags);
 	if (er != erSuccess)
 		return er;
@@ -1324,19 +1331,20 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault,
 
 	if (lpDetails == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	er = m_lpSession->GetUserManagement()->GetExternalId(ulUserId, &sExternId, &ulCompanyId);
+	auto usrmgt = m_lpSession->GetUserManagement();
+	er = usrmgt->GetExternalId(ulUserId, &sExternId, &ulCompanyId);
 	if (er != erSuccess)
 		return er;
 
 	assert(!bGetUserDefault || sExternId.objclass == CONTAINER_COMPANY);
+	auto cfg = m_lpSession->GetSessionManager()->GetConfig();
 
 	/* Not all objectclasses support quota */
 	if ((sExternId.objclass == NONACTIVE_CONTACT) ||
 	    (OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_DISTLIST) ||
 	    (sExternId.objclass == CONTAINER_ADDRESSLIST))
 		goto exit;
-
-	er = m_lpSession->GetUserManagement()->GetQuotaDetailsAndSync(ulUserId, &quotadetails, bGetUserDefault);
+	er = usrmgt->GetQuotaDetailsAndSync(ulUserId, &quotadetails, bGetUserDefault);
 	if (er != erSuccess)
 		return er;
 
@@ -1346,7 +1354,7 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault,
 
 	/* Request default quota values from company level if enabled */
 	if ((OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_MAILUSER) && ulCompanyId) {
-		er = m_lpSession->GetUserManagement()->GetQuotaDetailsAndSync(ulCompanyId, &quotadetails, true);
+		er = usrmgt->GetQuotaDetailsAndSync(ulCompanyId, &quotadetails, true);
 		if (er == erSuccess && !quotadetails.bUseDefaultQuota)
 			goto exit; /* On failure, or when we should use the default, we're done */
 
@@ -1355,11 +1363,11 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault,
 
 	/* No information from company, the last level we can check is the configuration file */
 	if (OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_MAILUSER) {
-		lpszWarnQuota = m_lpSession->GetSessionManager()->GetConfig()->GetSetting("quota_warn");
-		lpszSoftQuota = m_lpSession->GetSessionManager()->GetConfig()->GetSetting("quota_soft");
-		lpszHardQuota = m_lpSession->GetSessionManager()->GetConfig()->GetSetting("quota_hard");
+		lpszWarnQuota = cfg->GetSetting("quota_warn");
+		lpszSoftQuota = cfg->GetSetting("quota_soft");
+		lpszHardQuota = cfg->GetSetting("quota_hard");
 	} else if (sExternId.objclass == CONTAINER_COMPANY) {
-		lpszWarnQuota = m_lpSession->GetSessionManager()->GetConfig()->GetSetting("companyquota_warn");
+		lpszWarnQuota = cfg->GetSetting("companyquota_warn");
 	}
 
 	quotadetails.bUseDefaultQuota = true;

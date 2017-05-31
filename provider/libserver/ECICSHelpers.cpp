@@ -956,7 +956,8 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 		cbdata.push_back(db_lengths[i][icsSourceKey]);
 	}
 
-	auto er = g_lpSessionManager->GetCacheManager()->GetObjectsFromProp(PROP_ID(PR_SOURCE_KEY), cbdata, lpdata, index_objs);
+	auto gcache = g_lpSessionManager->GetCacheManager();
+	auto er = gcache->GetObjectsFromProp(PROP_ID(PR_SOURCE_KEY), cbdata, lpdata, index_objs);
 	if (er != erSuccess)
 		goto exit;
 
@@ -968,7 +969,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 		ulObjId = i.second; /* no need to split QueryRowData call per-objtype (always same) */
 	}
 
-	er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, NULL, NULL, NULL, &sODStore.ulObjType);
+	er = gcache->GetObject(ulObjId, nullptr, nullptr, nullptr, &sODStore.ulObjType);
 	if (er != erSuccess)
 		goto exit;
 
@@ -977,8 +978,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 		goto exit;
 
 	sODStore.lpGuid = new GUID;
-
-	er = g_lpSessionManager->GetCacheManager()->GetStore(ulObjId, &sODStore.ulStoreId, sODStore.lpGuid);
+	er = gcache->GetStore(ulObjId, &sODStore.ulStoreId, sODStore.lpGuid);
 	if (er != erSuccess)
 		goto exit;
 
@@ -997,7 +997,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 
 	for (gsoap_size_t j = 0; j < lpRowSet->__size; ++j) {
 		// @todo: Get a proper locale for the case insensitive comparisons inside MatchRowRestrict
-		er = ECGenericObjectTable::MatchRowRestrict(g_lpSessionManager->GetCacheManager(), &lpRowSet->__ptr[j], restrict, NULL, createLocaleFromName(""), &fMatch);
+		er = ECGenericObjectTable::MatchRowRestrict(gcache, &lpRowSet->__ptr[j], restrict, nullptr, createLocaleFromName(""), &fMatch);
 		if(er != erSuccess)
 			goto exit;
 		if (fMatch)

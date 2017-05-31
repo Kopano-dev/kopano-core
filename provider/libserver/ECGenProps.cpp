@@ -332,6 +332,9 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 
 	struct propValArray sPropValArray{__gszeroinit};
 	struct propTagArray sPropTagArray{__gszeroinit};
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();
+	auto usrmgt = lpSession->GetUserManagement();
+	auto sec = lpSession->GetSecurity();
 
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_LONGTERM_ENTRYID_FROM_TABLE):
@@ -345,11 +348,11 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 
 		if (ulPropTag == PR_PARENT_ENTRYID) {
 			if(ulParentId == 0) {
-				er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParentId);
+				er = cache->GetParent(ulObjId, &ulParentId);
 				if(er != erSuccess)
 					goto exit;
 			}
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulParentId, NULL, NULL, &ulFlags, &ulObjType);
+			er = cache->GetObject(ulParentId, nullptr, nullptr, &ulFlags, &ulObjType);
 			if (er != erSuccess)
 				goto exit;
 			if (ulObjType == MAPI_FOLDER)
@@ -360,7 +363,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 				ulEidFlags = OPENSTORE_OVERRIDE_HOME_MDB;
 		}
 
-		er = lpSession->GetSessionManager()->GetCacheManager()->GetEntryIdFromObject(ulObjId, soap, ulEidFlags, &sEntryId);
+		er = cache->GetEntryIdFromObject(ulObjId, soap, ulEidFlags, &sEntryId);
 		if (er != erSuccess) {
 			// happens on recipients, attachments and msg-in-msg .. TODO: add strict type checking?
 			//assert(false);
@@ -380,7 +383,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
 		sPropVal.Value.bin->__size = sizeof(GUID);
-		er = lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulStoreId, 0, (GUID *)sPropVal.Value.bin->__ptr);
+		er = cache->GetStore(ulStoreId, 0, (GUID *)sPropVal.Value.bin->__ptr);
 		if (er != erSuccess) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
@@ -390,8 +393,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_ENTRYID;
 		sPropTagArray.__size = 1;
-		ulUserId = lpSession->GetSecurity()->GetUserId();
-		if (lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
+		ulUserId = sec->GetUserId();
+		if (usrmgt->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
 		    sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ENTRYID)
 		{
 			sPropVal.__union = sPropValArray.__ptr[0].__union;
@@ -406,8 +409,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_ACCOUNT;
 		sPropTagArray.__size = 1;
-		ulUserId = lpSession->GetSecurity()->GetUserId();
-		if (lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
+		ulUserId = sec->GetUserId();
+		if (usrmgt->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
 		    sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ACCOUNT)
 		{
 			sPropVal.__union = sPropValArray.__ptr[0].__union;
@@ -426,7 +429,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		er = lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
+		er = cache->GetStoreAndType(ulObjId, nullptr, nullptr, &ulStoreType);
 		if (er != erSuccess)
 			goto exit;
 		er = GetStoreName(soap, lpSession, ulObjId, ulStoreType, &lpStoreName);
@@ -442,8 +445,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropTagArray.__ptr[0] = PR_DISPLAY_NAME;
 		sPropTagArray.__size = 1;
 
-		if (lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
-		    lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
+		if (sec->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
+		    usrmgt->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
 		    sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_DISPLAY_NAME)
 		{
 			sPropVal.__union = sPropValArray.__ptr[0].__union;
@@ -459,8 +462,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropTagArray.__ptr[0] = PR_ENTRYID;
 		sPropTagArray.__size = 1;
 
-		if (lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
-		    lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
+		if (sec->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
+		    usrmgt->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
 		    sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ENTRYID)
 		{
 			sPropVal.__union = sPropValArray.__ptr[0].__union;
@@ -476,8 +479,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropTagArray.__ptr[0] = PR_ACCOUNT;
 		sPropTagArray.__size = 1;
 
-		if (lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
-		    lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
+		if (sec->GetStoreOwner(ulStoreId, &ulUserId) == erSuccess &&
+		    usrmgt->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
 		    sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ACCOUNT) {
 			sPropVal.__union = sPropValArray.__ptr[0].__union;
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_EC_MAILBOX_OWNER_ACCOUNT, (PROP_TYPE(ulPropTag)));
@@ -499,7 +502,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		er = lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
+		er = cache->GetStoreAndType(ulObjId, nullptr, nullptr, &ulStoreType);
 		if (er != erSuccess)
 			goto exit;
 		sPropVal.ulPropTag = ulPropTag;
@@ -527,7 +530,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 		sPropVal.Value.bin->__size = 0;
 		sPropVal.Value.bin->__ptr = NULL;
-		er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulObjId, soap, (unsigned int *)&sPropVal.Value.bin->__size, &sPropVal.Value.bin->__ptr);
+		er = cache->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulObjId, soap, reinterpret_cast<unsigned int *>(&sPropVal.Value.bin->__size), &sPropVal.Value.bin->__ptr);
 		break;
 	case PROP_ID(PR_PARENT_SOURCE_KEY):
 		sPropVal.ulPropTag = PR_PARENT_SOURCE_KEY;
@@ -536,11 +539,11 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropVal.Value.bin->__size = 0;
 		sPropVal.Value.bin->__ptr = NULL;
 		if (ulParentId == 0) {
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, NULL, NULL);
+			er = cache->GetObject(ulObjId, &ulParentId, nullptr, nullptr, nullptr);
 			if (er != erSuccess)
 				goto exit;
 		}
-		er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulParentId, soap, (unsigned int *)&sPropVal.Value.bin->__size, &sPropVal.Value.bin->__ptr);
+		er = cache->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulParentId, soap, reinterpret_cast<unsigned int *>(&sPropVal.Value.bin->__size), &sPropVal.Value.bin->__ptr);
 		if (er != erSuccess)
 			goto exit;
 		break;
@@ -564,9 +567,9 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropVal.ulPropTag = PR_RIGHTS;
 		sPropVal.__union = SOAP_UNION_propValData_ul;
 
-		if (lpSession->GetSecurity()->IsStoreOwner(ulObjId) == erSuccess || lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess)
+		if (sec->IsStoreOwner(ulObjId) == erSuccess || lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess)
 			sPropVal.Value.ul = ecRightsAll;
-		else if (lpSession->GetSecurity()->GetObjectPermission(ulObjId, &ulRights) == hrSuccess)
+		else if (sec->GetObjectPermission(ulObjId, &ulRights) == hrSuccess)
 			sPropVal.Value.ul = ulRights;
 		else
 			sPropVal.Value.ul = 0;
@@ -588,8 +591,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 			ulObjId = ulParentId;
 
 		// if the requested object is from the owners store, return all permissions
-		if (lpSession->GetSecurity()->IsStoreOwner(ulObjId) == erSuccess ||
-			lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess) {
+		if (sec->IsStoreOwner(ulObjId) == erSuccess ||
+			sec->IsAdminOverOwnerOfObject(ulObjId) == erSuccess) {
 			switch (ulObjType) {
 			case MAPI_FOLDER:
 				sPropVal.Value.ul = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
@@ -610,10 +613,10 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 
 		// someone else is accessing your store, so check their rights
 		ulRights = 0;
-		lpSession->GetSecurity()->GetObjectPermission(ulObjId, &ulRights); // skip error checking, ulRights = 0
+		sec->GetObjectPermission(ulObjId, &ulRights); // skip error checking, ulRights = 0
 
 		// will be false when someone else created this object in this store (or true if you're that someone)
-		bOwner = (lpSession->GetSecurity()->IsOwner(ulObjId) == erSuccess);
+		bOwner = sec->IsOwner(ulObjId) == erSuccess;
 
 		switch (ulObjType) {
 		case MAPI_FOLDER:
@@ -659,13 +662,13 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		ulRights = 0;
 
 		// @todo if store only open with read rights, access level = 0
-		if (lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess)
+		if (sec->IsAdminOverOwnerOfObject(ulObjId) == erSuccess)
 			bAdmin = true; // Admin of all stores
-		else if (lpSession->GetSecurity()->IsStoreOwner(ulObjId) == erSuccess)
+		else if (sec->IsStoreOwner(ulObjId) == erSuccess)
 			bAdmin = true; // Admin of your one store
 		else {
-			lpSession->GetSecurity()->GetObjectPermission(ulObjId, &ulRights); // skip error checking, ulRights = 0
-			bOwner = lpSession->GetSecurity()->IsOwner(ulObjId) == erSuccess; // owner of this particular object in someone else's store
+			sec->GetObjectPermission(ulObjId, &ulRights); // skip error checking, ulRights = 0
+			bOwner = sec->IsOwner(ulObjId) == erSuccess; // owner of this particular object in someone else's store
 		}
 		if (bAdmin || ulRights & ecRightsCreate || ulRights & ecRightsEditAny || ulRights & ecRightsDeleteAny || ulRights & ecRightsCreateSubfolder ||
 		   (bOwner && (ulRights & ecRightsEditOwned || ulRights & ecRightsDeleteOwned)))
@@ -760,12 +763,13 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	string				strFormat;
 	char*				lpStoreName = NULL;
 
-	auto er = lpSession->GetSecurity()->GetStoreOwner(ulStoreId, &ulUserId);
+	auto sec = lpSession->GetSecurity();
+	auto er = sec->GetStoreOwner(ulStoreId, &ulUserId);
 	if (er != erSuccess)
 		goto exit;
 
 	// get the companyid to which the logged in user belongs to.
-	er = lpSession->GetSecurity()->GetUserCompany(&ulCompanyId);
+	er = sec->GetUserCompany(&ulCompanyId);
 	if (er != erSuccess)
 		goto exit;
 
