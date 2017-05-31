@@ -82,7 +82,11 @@ HRESULT ECMSProviderSwitch::Shutdown(ULONG * lpulFlags)
 	return hr;
 }
 
-HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
+    LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
+    ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity,
+    LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError,
+    LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECMsgStore> lpecMDB;
@@ -255,7 +259,11 @@ exit:
 	return hr;
 }
 
-HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
+    ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
+    LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
+    ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError,
+    LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	HRESULT hr = hrSuccess;
 	IMSProvider *lpProvider = NULL; // Do not release
@@ -321,13 +329,21 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
 DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, Shutdown, (ULONG *, lpulFlags))
 
-HRESULT ECMSProviderSwitch::xMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+HRESULT ECMSProviderSwitch::xMSProvider::Logon(LPMAPISUP lpMAPISup,
+    ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
+    LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
+    ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity,
+    LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	METHOD_PROLOGUE_(ECMSProviderSwitch, MSProvider);
 	return pThis->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
 }
 
-HRESULT ECMSProviderSwitch::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+HRESULT ECMSProviderSwitch::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup,
+    ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
+    LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
+    ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity,
+    LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	METHOD_PROLOGUE_(ECMSProviderSwitch, MSProvider);
 	return pThis->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
