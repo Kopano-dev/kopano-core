@@ -1119,8 +1119,7 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
     ULONG ulFlags, LPADRBOOK *lppAdrBook)
 {
 	HRESULT hr = hrSuccess;
-	IAddrBook *lpAddrBook = NULL;
-	M4LAddrBook *myAddrBook;
+	M4LAddrBook *myAddrBook = nullptr;
 	ULONG abver;
 	LPMAPISUP lpMAPISup = NULL;
 	SPropValue sProps[1];
@@ -1132,8 +1131,7 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
 	}
 
 	myAddrBook = new(std::nothrow) M4LAddrBook(serviceAdmin, lpMAPISup);
-	lpAddrBook = myAddrBook;
-	if (!lpAddrBook) {
+	if (myAddrBook == nullptr) {
 		ec_log_crit("M4LMAPISession::OpenAddressBook(): ENOMEM(2)");
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
@@ -1142,13 +1140,13 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
 	sProps[0].ulPropTag = PR_OBJECT_TYPE;
 	sProps[0].Value.ul = MAPI_ADDRBOOK;
 
-	hr = lpAddrBook->SetProps(1, sProps, NULL);
+	hr = myAddrBook->SetProps(1, sProps, nullptr);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LMAPISession::OpenAddressBook(): SetProps failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
 
-	hr = lpAddrBook->QueryInterface(lpInterface ? (*lpInterface) : IID_IAddrBook, (void**)lppAdrBook);
+	hr = myAddrBook->QueryInterface(lpInterface ? *lpInterface : IID_IAddrBook, reinterpret_cast<void **>(lppAdrBook));
 	if (hr != hrSuccess) {
 		ec_log_err("M4LMAPISession::OpenAddressBook(): QueryInterface failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
