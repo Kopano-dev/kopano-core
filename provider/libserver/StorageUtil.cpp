@@ -184,6 +184,7 @@ ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned
 		strField = "val_ulong";
 	}
 
+	auto gcache = g_lpSessionManager->GetCacheManager();
 	if (updateAction == UPDATE_SET) {
 		strQuery = "REPLACE INTO properties(hierarchyid, tag, type, "+strField+") VALUES(" + stringify(ulObjId) + "," + stringify(PROP_ID(ulPropTag)) + "," + stringify(PROP_TYPE(ulPropTag)) + "," + stringify_int64(llSize) + ")";
 		er = lpDatabase->DoInsert(strQuery);
@@ -201,8 +202,7 @@ ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned
 			sPropVal.ulPropTag = PR_MESSAGE_SIZE;
 			sPropVal.Value.ul = llSize;
 			sPropVal.__union = SOAP_UNION_propValData_ul;
-
-			er = g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_MESSAGE_SIZE, &sPropVal);
+			er = gcache->SetCell(&key, PR_MESSAGE_SIZE, &sPropVal);
 			if(er != erSuccess)
 				return er;
 		}
@@ -225,9 +225,7 @@ ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned
 		
 		if(ulObjType == MAPI_MESSAGE) {
 			// Update cell cache
-			sObjectTableKey key;
-			
-			er = g_lpSessionManager->GetCacheManager()->UpdateCell(ulObjId, PR_MESSAGE_SIZE, (updateAction == UPDATE_ADD ? llSize : -llSize));
+			er = gcache->UpdateCell(ulObjId, PR_MESSAGE_SIZE, (updateAction == UPDATE_ADD ? llSize : -llSize));
 			if(er != erSuccess)
 				return er;
 		}

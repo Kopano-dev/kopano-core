@@ -1464,6 +1464,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	SOURCEKEY		sSourceKey;
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
+	auto gcache = g_lpSessionManager->GetCacheManager();
 
 	std::set<unsigned int>				setInserted;
 
@@ -1477,11 +1478,10 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		goto exit;
 	}
 
-	er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, &ulParentId, &ulOwner, &ulFlags, NULL);
+	er = gcache->GetObject(ulObjId, &ulParentId, &ulOwner, &ulFlags, nullptr);
 	if (er != erSuccess)
 		goto exit;
-
-	er = g_lpSessionManager->GetCacheManager()->GetObject(ulParentId, NULL, NULL, NULL, &ulParentType);
+	er = gcache->GetObject(ulParentId, nullptr, nullptr, nullptr, &ulParentType);
 	if (er != erSuccess)
 		goto exit;
 
@@ -1556,8 +1556,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 				goto exit;
 
 			setInserted.insert(lpsPropval->ulPropTag);
-
-			g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_SOURCE_KEY), lpsPropval->Value.bin->__size, lpsPropval->Value.bin->__ptr, ulObjId);
+			gcache->SetObjectProp(PROP_ID(PR_SOURCE_KEY), lpsPropval->Value.bin->__size, lpsPropval->Value.bin->__ptr, ulObjId);
 			goto next_property;
 		}
 
@@ -1598,7 +1597,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			if (ulParentType == MAPI_FOLDER) {
 				// Cache the written value
 				sObjectTableKey key(ulObjId, 0);
-				g_lpSessionManager->GetCacheManager()->SetCell(&key, lpsPropval->ulPropTag, lpsPropval);
+				gcache->SetCell(&key, lpsPropval->ulPropTag, lpsPropval);
 				
 				if (0) {
 					// FIXME do we need this code? Currently we get always a deferredupdate!
@@ -1665,8 +1664,7 @@ next_property:
 			er = lpDatabase->DoInsert(strQuery);
 			if (er != erSuccess)
 				goto exit;
-
-			g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_SOURCE_KEY), sSourceKey.size(), sSourceKey, ulObjId);
+			gcache->SetObjectProp(PROP_ID(PR_SOURCE_KEY), sSourceKey.size(), sSourceKey, ulObjId);
 		}
 	}
 
@@ -1683,10 +1681,8 @@ next_property:
 	}
 
 	if (!bNewItem)
-		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulObjId);
-
-	g_lpSessionManager->GetCacheManager()->SetObject(ulObjId, ulParentId, ulOwner, ulFlags, ulObjType);
-	
+		gcache->Update(fnevObjectModified, ulObjId);
+	gcache->SetObject(ulObjId, ulParentId, ulOwner, ulFlags, ulObjType);
 	if (lpPropValArray) {
 		assert(lppPropValArray != NULL);
 		*lppPropValArray = lpPropValArray;
@@ -1717,17 +1713,16 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 	unsigned int	ulSize =0 ;
 	struct propValArray *lpPropValArray = NULL;
 	std::string		strQuery;
+	auto gcache = g_lpSessionManager->GetCacheManager();
 
 	if (!lpDatabase) {
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
 	}
-
-	er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, NULL, &ulObjType);
+	er = gcache->GetObject(ulObjId, &ulParentId, nullptr, nullptr, &ulObjType);
 	if (er != erSuccess)
 		goto exit;
-
-	er = g_lpSessionManager->GetCacheManager()->GetObject(ulParentId, NULL, NULL, NULL, &ulParentType);
+	er = gcache->GetObject(ulParentId, nullptr, nullptr, nullptr, &ulParentType);
 	if (er != erSuccess)
 		goto exit;
 		
@@ -1777,7 +1772,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 		sProp.ulPropTag = PR_EC_IMAP_ID;
 		sProp.Value.ul = (unsigned int)ullIMAP;
 		sProp.__union = SOAP_UNION_propValData_ul;
-		er = g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_EC_IMAP_ID, &sProp);
+		er = gcache->SetCell(&key, PR_EC_IMAP_ID, &sProp);
 		if (er != erSuccess)
 			goto exit;
 	}
@@ -1842,7 +1837,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 				goto exit;
 			
 			// Update cache, since it may have been written before by WriteProps with a possibly wrong value
-			g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_HASATTACH, &sPropHasAttach);
+			gcache->SetCell(&key, PR_HASATTACH, &sPropHasAttach);
 			
 			// Update MSGFLAG_HASATTACH in the same way. We can assume PR_MESSAGE_FLAGS is already available, so we
 			// just do an update (instead of REPLACE INTO)
@@ -1852,10 +1847,10 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 				goto exit;
 				
 			// Update cache if it's actually in the cache
-			if(g_lpSessionManager->GetCacheManager()->GetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach, NULL, false) == erSuccess) {
+			if (gcache->GetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach, nullptr, false) == erSuccess) {
 				sPropHasAttach.Value.ul &= ~MSGFLAG_HASATTACH;
 				sPropHasAttach.Value.ul |= fHasAttach ? MSGFLAG_HASATTACH : 0;
-				g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach);
+				gcache->SetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach);
 			}
 		}
 

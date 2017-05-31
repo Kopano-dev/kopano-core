@@ -310,6 +310,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 	if (er != erSuccess)
 		return er;
 
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
@@ -349,7 +350,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
             // Get StoreId if needed
             if (lpODStore->lpGuid == NULL)
                 // No store specified, so determine the store ID & guid from the object id
-                lpSession->GetSessionManager()->GetCacheManager()->GetStore(row.ulObjId, &ulRowStoreId, &sRowGuid);
+				cache->GetStore(row.ulObjId, &ulRowStoreId, &sRowGuid);
             else
                 ulRowStoreId = lpODStore->ulStoreId;
 
@@ -396,7 +397,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
     	    
     	    // FIXME bComputed always false
     	    // FIXME optimisation possible to GetCell: much more efficient to get all cells in one row at once
-	        if (lpSession->GetSessionManager()->GetCacheManager()->GetCell(&row, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k], soap, false) == erSuccess) {
+			if (cache->GetCell(&row, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k], soap, false) == erSuccess) {
 				setCellDone.insert({i, k});
 	            continue;
 			}
@@ -471,7 +472,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 
        	// Get parent info if needed
 		if(lpODStore->ulFolderId == 0)
-			lpSession->GetSessionManager()->GetCacheManager()->GetObjects(*lpRowList, mapObjects);
+			cache->GetObjects(*lpRowList, mapObjects);
 
         // Split requests into same-folder blocks
         for (k = 0; k < lpsPropTagArray->__size; ++k) {
@@ -608,6 +609,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 		return er;
 	
 	g_lpStatsCollector->Increment(SCN_DATABASE_ROW_READS, 1);
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 
     for (const auto &col : mapColumns) {
         unsigned int ulPropTag = col.first;
@@ -738,7 +740,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 
                 if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MV_FLAG) == 0)
 					// Cache value
-					lpSession->GetSessionManager()->GetCacheManager()->SetCell(&sKey, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
+					cache->SetCell(&sKey, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
 				else if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
 					// Get rid of the MVI_FLAG
 					lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
@@ -752,7 +754,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 	for (const auto &col : mapColumns) {
 		assert(lpsRowSet->__ptr[ulRowNum].__ptr[col.second].ulPropTag == 0);
 		CopyEmptyCellToSOAPPropVal(soap, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
-		lpSession->GetSessionManager()->GetCacheManager()->SetCell(&sKey, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
+		cache->SetCell(&sKey, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
 	}
 	return erSuccess;
 }
@@ -860,7 +862,8 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-		
+
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();		
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		lpDBLen = lpDBResult.fetch_row_lengths();
 		if(lpDBRow[FIELD_NR_MAX] == NULL || lpDBRow[FIELD_NR_MAX+1] == NULL || lpDBRow[FIELD_NR_TAG] == NULL || lpDBRow[FIELD_NR_TYPE] == NULL)
@@ -916,8 +919,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 					lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag = iterColumns->first;
 
 				if ((lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag & MV_FLAG) == 0)
-					lpSession->GetSessionManager()->GetCacheManager()->SetCell((sObjectTableKey*)&iterObjIds->first, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
-
+					cache->SetCell((sObjectTableKey*)&iterObjIds->first, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 				else if ((lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
 					lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
 				
@@ -941,7 +943,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 				if (soap == NULL && lpsRowSet->__ptr[ob.second].__ptr[col.second].ulPropTag != 0)
 					FreePropVal(&lpsRowSet->__ptr[ob.second].__ptr[col.second], false);
 				CopyEmptyCellToSOAPPropVal(soap, col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
-				lpSession->GetSessionManager()->GetCacheManager()->SetCell(const_cast<sObjectTableKey *>(&ob.first),
+				cache->SetCell(const_cast<sObjectTableKey *>(&ob.first),
 					col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
 			}
 	return erSuccess;
@@ -1073,15 +1075,16 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 {
     unsigned int ulParent = 0;
 	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
+	auto sec = lpSession->GetSecurity();
 
 	if (m_ulObjType == MAPI_FOLDER)
-		return lpSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityFolderVisible);
+		return sec->CheckPermission(ulObjId, ecSecurityFolderVisible);
 	if (m_ulObjType != MAPI_MESSAGE)
 		return erSuccess;
 	if (lpData->ulFolderId) {
 		// We can either see all messages or none at all. Do this check once only as an optimisation.
 		if (!this->fPermissionRead) {
-			this->ulPermission = lpSession->GetSecurity()->CheckPermission(lpData->ulFolderId, ecSecurityRead);
+			this->ulPermission = sec->CheckPermission(lpData->ulFolderId, ecSecurityRead);
 			this->fPermissionRead = true;
 		}
 		return this->ulPermission;
@@ -1091,7 +1094,7 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 	if (er != erSuccess)
 		return er;
 	// This will be cached after the first row in the table is added
-	return lpSession->GetSecurity()->CheckPermission(ulParent, ecSecurityRead);
+	return sec->CheckPermission(ulParent, ecSecurityRead);
 }
 
 ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad, bool bOverride, struct restrictTable *lpOverride)
@@ -1125,7 +1128,8 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
 	std::set<unsigned int> setMatches;
 	ECObjectTableList sMatchedRows;
 
-	if (GetIndexerResults(lpDatabase, lpSession->GetSessionManager()->GetConfig(), lpSession->GetSessionManager()->GetCacheManager(), &guidServer, lpODStore->lpGuid, lstFolders, lpsRestrict, &lpNewRestrict, lstIndexerResults, suggestion) != erSuccess) {
+	auto sesmgr = lpSession->GetSessionManager();
+	if (GetIndexerResults(lpDatabase, sesmgr->GetConfig(), sesmgr->GetCacheManager(), &guidServer, lpODStore->lpGuid, lstFolders, lpsRestrict, &lpNewRestrict, lstIndexerResults, suggestion) != erSuccess) {
     	    // Cannot handle this restriction with the indexer, use 'normal' restriction code
     	    // Reasons can be:
     	    //  - restriction too complex
