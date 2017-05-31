@@ -48,7 +48,7 @@ ECSESSIONGROUPID ECSessionGroupManager::GetSessionGroupId(const sGlobalProfilePr
 	scoped_rlock lock(m_hMutex);
 
     ECSessionGroupInfo ecSessionGroup = ECSessionGroupInfo(sProfileProps.strServerPath, sProfileProps.strProfileName);
-	auto result = m_mapSessionGroupIds.insert(SESSIONGROUPIDMAP::value_type(ecSessionGroup, 0));
+	auto result = m_mapSessionGroupIds.insert({ecSessionGroup, 0});
 	if (result.second == true) {
         // Not found, generate one now
     	ssl_random((sizeof(ecSessionGroupId) == 8), &ecSessionGroupId);
@@ -81,7 +81,7 @@ HRESULT ECSessionGroupManager::GetSessionGroupData(ECSESSIONGROUPID ecSessionGro
 	SessionGroupData *lpData = NULL;
 	scoped_rlock lock(m_hMutex);
 
-	auto result = m_mapSessionGroups.insert(SESSIONGROUPMAP::value_type(ecSessionGroup, NULL));
+	auto result = m_mapSessionGroups.insert({ecSessionGroup, nullptr});
 	if (result.second == true) {
         hr = SessionGroupData::Create(ecSessionGroupId, &ecSessionGroup, sProfileProps, &lpData);
         if (hr == hrSuccess)

@@ -63,7 +63,7 @@ namespace detail {
 		 */
 		const wchar_t *convert(const char *lpsz) {
 			scoped_lock l_cache(m_hCacheLock);
-			auto insResult = m_cache.insert(cache_type::value_type(lpsz, std::wstring()));
+			auto insResult = m_cache.insert({lpsz, std::wstring()});
 			if (insResult.second == true)	// successful insert, so not found in cache
 				insResult.first->second.assign(m_converter.convert_to<std::wstring>(lpsz));
 			

@@ -1342,8 +1342,8 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 		}
                   
 			// Keep the store open in case somebody else needs it later (only via this function)
-			mapStores.insert(std::map<GUID, IMsgStore *>::value_type(guidProvider, lpMDB));
-		  
+			mapStores.insert({guidProvider, lpMDB});
+
 			if(bStoreEntryID == true) {
 				hr = lpMDB->QueryInterface(IID_IMsgStore, (void**)lppUnk);
 				if (hr == hrSuccess)

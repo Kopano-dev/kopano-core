@@ -361,14 +361,14 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
             		lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
             		lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
             	}
-    	        setCellDone.insert(std::make_pair(i,k));
+				setCellDone.insert({i, k});
             	continue;
             }
 
 			if (ECGenProps::IsPropComputedUncached(ulPropTag, lpODStore->ulObjType) == erSuccess) {
 				if (ECGenProps::GetPropComputedUncached(soap, lpODStore, lpSession, ulPropTag, row.ulObjId, row.ulOrderId, ulRowStoreId, lpODStore->ulFolderId, lpODStore->ulObjType, &lpsRowSet->__ptr[i].__ptr[k]) != erSuccess)
 					CopyEmptyCellToSOAPPropVal(soap, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k]);
-				setCellDone.insert(std::make_pair(i,k));
+				setCellDone.insert({i, k});
 				continue;
 			}
 
@@ -379,7 +379,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PR_DEPTH;
 					lpsRowSet->__ptr[i].__ptr[k].Value.ul = 0;
 				}
-				setCellDone.insert(std::make_pair(i,k));
+				setCellDone.insert({i, k});
 				continue;
 			}
 			
@@ -397,7 +397,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
     	    // FIXME bComputed always false
     	    // FIXME optimisation possible to GetCell: much more efficient to get all cells in one row at once
 	        if (lpSession->GetSessionManager()->GetCacheManager()->GetCell(&row, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k], soap, false) == erSuccess) {
-	            setCellDone.insert(std::make_pair(i,k));
+				setCellDone.insert({i, k});
 	            continue;
 			}
 
@@ -454,8 +454,8 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				unsigned int ulPropTag;
 				if (ECGenProps::GetPropSubstitute(lpODStore->ulObjType, lpsPropTagArray->__ptr[k], &ulPropTag) != erSuccess)
 					ulPropTag = lpsPropTagArray->__ptr[k];
-				mapColumns.insert(std::make_pair(ulPropTag, k));
-				setCellDone.insert(std::make_pair(rowp.second, k)); // Done now
+				mapColumns.insert({ulPropTag, k});
+				setCellDone.insert({rowp.second, k}); // Done now
             }
             
             // Get actual data
@@ -497,7 +497,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
                 	ulFolderId = lpODStore->ulFolderId;
                 }
                 mapStoreIdObjIds[ulFolderId][row] = i;
-                setCellDone.insert(std::make_pair(i,k));
+				setCellDone.insert({i, k});
                 ++i;
             }
             
@@ -512,7 +512,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
         	
 			if (ECGenProps::GetPropSubstitute(lpODStore->ulObjType, lpsPropTagArray->__ptr[col_id], &ulPropTag) != erSuccess)
 				ulPropTag = lpsPropTagArray->__ptr[col_id];
-			mapColumns.insert(std::make_pair(ulPropTag, col_id));
+			mapColumns.insert({ulPropTag, col_id});
         }
 		for (const auto &sio : mapStoreIdObjIds)
 			er = QueryRowDataByColumn(lpThis, soap, lpSession, mapColumns, sio.first, sio.second, lpsRowSet);
@@ -536,7 +536,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				}
 				// We only want one column in this row
 				mapColumns.clear();
-				mapColumns.insert(std::make_pair(lpsPropTagArray->__ptr[k], k));
+				mapColumns.insert({lpsPropTagArray->__ptr[k], k});
 				// Un-truncate this value
 				er = QueryRowDataByRow(lpThis, soap, lpSession, row, i, mapColumns, false, lpsRowSet);
 				if (er != erSuccess)
@@ -921,7 +921,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 				else if ((lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
 					lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
 				
-				setDone.insert(std::make_pair(iterObjIds->second, iterColumns->second));
+				setDone.insert({iterObjIds->second, iterColumns->second});
 				++iterColumns;
 			}
 			

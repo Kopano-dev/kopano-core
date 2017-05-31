@@ -173,7 +173,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 			goto exit;
 		}
 
-		lstArchivedMessages.push_back(make_pair(ptrArchivedMsg, ptrPSAction));
+		lstArchivedMessages.push_back({ptrArchivedMsg, ptrPSAction});
 	}
 
 	// Now save the messages one by one. On failure all saved messages need to be deleted.
@@ -334,7 +334,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		}
 
 		ec_log_info("Stored message in archive");
-		lstArchivedMessages.push_back(make_pair(ptrArchivedMsg, ptrPSAction));
+		lstArchivedMessages.push_back({ptrArchivedMsg, ptrPSAction});
 	}
 
 	// Now save the messages one by one. On failure all saved messages need to be deleted.

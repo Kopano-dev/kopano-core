@@ -801,9 +801,9 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags, list<localobjec
 			continue;
 
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
-			(*lppObjects)->push_back(localobjectdetails_t(i.ulId, i.GetClass()));
+			(*lppObjects)->push_back({i.ulId, i.GetClass()});
 		else
-			(*lppObjects)->push_back(localobjectdetails_t(i.ulId, i));
+			(*lppObjects)->push_back({i.ulId, i});
 	}
 	return erSuccess;
 }
@@ -896,7 +896,7 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 		} else {
 			details = objectdetails_t(CONTAINER_COMPANY);
 		}
-		lpObjects->push_back(localobjectdetails_t(m_ulCompanyID, details));
+		lpObjects->push_back({m_ulCompanyID, details});
 	}
 
 	lpObjects->sort();

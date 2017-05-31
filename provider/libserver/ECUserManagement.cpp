@@ -325,8 +325,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 		// remove details, but keep the class information
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 			details = objectdetails_t(details.GetClass());
-
-		lpDetails->push_back(localobjectdetails_t(ulObjectId, details));
+		lpDetails->push_back({ulObjectId, details});
 	}
 
 	if (lstExternIds.empty())
@@ -355,9 +354,9 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 			if (MustHide(*lpSecurity, ulFlags, ext_det.second))
 				continue;
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
-			lpDetails->push_back(localobjectdetails_t(ulObjectId, objectdetails_t(ext_det.second.GetClass())));
+			lpDetails->push_back({ulObjectId, {ext_det.second.GetClass()}});
 		else
-			lpDetails->push_back(localobjectdetails_t(ulObjectId, ext_det.second));
+			lpDetails->push_back({ulObjectId, ext_det.second});
 
 		// Update cache
 		m_lpSession->GetSessionManager()->GetCacheManager()->SetUserDetails(ulObjectId, &ext_det.second);
@@ -447,11 +446,9 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			// Reset details, this saves time copying unwanted data, but keep the correct class
 			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 				details = objectdetails_t(details.GetClass());
-
-			lpObjects->push_back(localobjectdetails_t(loc_id, details));
+			lpObjects->push_back({loc_id, details});
 		} else if (GetExternalId(loc_id, &externid, NULL, &signature) == erSuccess) {
-			mapSignatureIdToLocal.insert(
-				std::map<objectid_t, std::pair<unsigned int, std::string> >::value_type(externid, make_pair(loc_id, signature)));
+			mapSignatureIdToLocal.insert({externid, {loc_id, signature}});
 		} else {
 			// cached externid not found for local object id
 		}
@@ -508,7 +505,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			}
 
 			// Add to conversion map so we can obtain the details
-			mapExternIdToLocal.insert(make_pair(ext_sig.id, ulObjectId));
+			mapExternIdToLocal.insert({ext_sig.id, ulObjectId});
 		}
 	} else {
 		if (bIsSafeMode)
@@ -516,8 +513,8 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		lpExternSignatures.reset(new signatures_t());
 		// Dont sync, just use whatever is in the local user database
 		for (const auto &sil : mapSignatureIdToLocal) {
-			lpExternSignatures->push_back(objectsignature_t(sil.first, sil.second.second));
-			mapExternIdToLocal.insert(std::make_pair(sil.first, sil.second.first));
+			lpExternSignatures->push_back({sil.first, sil.second.second});
+			mapExternIdToLocal.insert({sil.first, sil.second.first});
 		}
 		
 	}
@@ -593,7 +590,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 
 		/* Fallback in case hosted is not supported */
 		if (lpCompanies->empty())
-			lpCompanies->push_back(localobjectdetails_t(0, CONTAINER_COMPANY));
+			lpCompanies->push_back({0, CONTAINER_COMPANY});
 
 		for (const auto &obj : *lpCompanies) {
 			std::unique_ptr<std::list<localobjectdetails_t> > lpObjectsTmp;
@@ -725,11 +722,10 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 			{
 				if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 					details = objectdetails_t(details.GetClass());
-
-				lpObjects->push_back(localobjectdetails_t(KOPANO_UID_EVERYONE, details));
+				lpObjects->push_back({KOPANO_UID_EVERYONE, details});
 			}
 		} else
-			lpObjects->push_back(localobjectdetails_t(KOPANO_UID_EVERYONE, objectdetails_t(DISTLIST_SECURITY)));
+			lpObjects->push_back({KOPANO_UID_EVERYONE, {DISTLIST_SECURITY}});
 	}
 
 	// Convert details for client usage
@@ -1252,7 +1248,7 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const list<objectsignature
 		return er;
 
 	for (const auto &sig : lstSignatures) {
-		auto result = lpmapLocalObjIds->insert(make_pair(sig.id, 0));
+		auto result = lpmapLocalObjIds->insert({sig.id, 0});
 		if (result.second == false)
 			// object already exists
 			continue;
@@ -1691,8 +1687,8 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 			mapAllObjectDetails.erase(externid);
 		}
 
-		mapExternIdToRowId.insert(std::make_pair(externid, i));
-		mapExternIdToObjectId.insert(std::make_pair(externid, row.ulObjId));
+		mapExternIdToRowId.insert({externid, i});
+		mapExternIdToObjectId.insert({externid, row.ulObjId});
 		++i;
 	}
 
@@ -1701,7 +1697,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 		mapExternObjectDetails = lpPlugin->getObjectDetails(lstObjects);
 		// Copy each item over
 		for (const auto &eod : *mapExternObjectDetails) {
-			mapAllObjectDetails.insert(std::make_pair(eod.first, eod.second));
+			mapAllObjectDetails.insert({eod.first, eod.second});
 
 			// Get the local object id for the item
 			auto iterObjectId = mapExternIdToObjectId.find(eod.first);

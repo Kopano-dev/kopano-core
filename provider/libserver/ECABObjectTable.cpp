@@ -259,11 +259,10 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId, unsign
 		 * the second is the Global Address Lists container.
 		 */
 		lpObjects.reset(new std::list<localobjectdetails_t>());
-		lpObjects->push_back(localobjectdetails_t(KOPANO_UID_GLOBAL_ADDRESS_BOOK, CONTAINER_COMPANY));
+		lpObjects->push_back({KOPANO_UID_GLOBAL_ADDRESS_BOOK, CONTAINER_COMPANY});
 		if (!(m_ulUserManagementFlags & USERMANAGEMENT_IDS_ONLY))
 			lpObjects->back().SetPropString(OB_PROP_S_LOGIN, KOPANO_ACCOUNT_GLOBAL_ADDRESS_BOOK);
-
-		lpObjects->push_back(localobjectdetails_t(KOPANO_UID_GLOBAL_ADDRESS_LISTS, CONTAINER_ADDRESSLIST));
+		lpObjects->push_back({KOPANO_UID_GLOBAL_ADDRESS_LISTS, CONTAINER_ADDRESSLIST});
 		if (!(m_ulUserManagementFlags & USERMANAGEMENT_IDS_ONLY))
 			lpObjects->back().SetPropString(OB_PROP_S_LOGIN, KOPANO_ACCOUNT_GLOBAL_ADDRESS_LISTS);
 

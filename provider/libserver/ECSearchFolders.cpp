@@ -241,9 +241,8 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
 
     // Get searches for this store, or add it to the list.
 	l_sf.lock();
-	iterStore = m_mapSearchFolders.insert(STOREFOLDERIDSEARCH::value_type(ulStoreId, FOLDERIDSEARCH())).first;
-
-    iterStore->second.insert(FOLDERIDSEARCH::value_type(ulFolderId, lpSearchFolder));
+	iterStore = m_mapSearchFolders.insert({ulStoreId, {}}).first;
+	iterStore->second.insert({ulFolderId, lpSearchFolder});
 	g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_COUNT);
         
     if(bReStartSearch) {

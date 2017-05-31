@@ -150,7 +150,7 @@ HRESULT ECNotifyMaster::ReserveConnection(ULONG *lpulConnection)
 HRESULT ECNotifyMaster::ClaimConnection(ECNotifyClient* lpClient, NOTIFYCALLBACK fnCallback, ULONG ulConnection)
 {
 	scoped_rlock lock(m_hMutex);
-	m_mapConnections.insert(NOTIFYCONNECTIONCLIENTMAP::value_type(ulConnection, ECNotifySink(lpClient, fnCallback)));
+	m_mapConnections.insert({ulConnection, {lpClient, fnCallback}});
 	return hrSuccess;
 }
 
@@ -318,9 +318,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			ULONG ulConnection = pNotifyArray->__ptr[item].ulConnection;
 
 			// No need to do a find before an insert with a default object.
-			auto iterNotifications =
-				mapNotifications.insert(NOTIFYCONNECTIONMAP::value_type(ulConnection, NOTIFYLIST())).first;
-
+			auto iterNotifications = mapNotifications.insert({ulConnection, {}}).first;
 			iterNotifications->second.push_back(&pNotifyArray->__ptr[item]);
 		}
 

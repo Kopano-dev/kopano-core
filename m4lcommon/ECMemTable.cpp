@@ -475,9 +475,7 @@ HRESULT ECMemTableView::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink,
 	lpMemAdvise = new ECMEMADVISE;
 	lpMemAdvise->lpAdviseSink = lpAdviseSink;
 	lpMemAdvise->ulEventMask = ulEventMask;
-
-	m_mapAdvise.insert( ECMapMemAdvise::value_type( ulConnection, lpMemAdvise) );
-
+	m_mapAdvise.insert({ulConnection, lpMemAdvise});
 	*lpulConnection = ulConnection;
 	return hrSuccess;
 }

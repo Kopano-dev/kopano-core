@@ -5800,7 +5800,7 @@ void IMAP::HrParseHeaders(const string &strHeaders, list<pair<string, string> > 
                 // Remove leading spaces
                 while (strData[0] == ' ')
                     strData.erase(0,1);
-                lstHeaders.push_back(pair<string, string>(strField, strData));
+				lstHeaders.push_back({strField, strData});
                 iterLast = --lstHeaders.end();
             }
             // else: Broken header ? (no :)

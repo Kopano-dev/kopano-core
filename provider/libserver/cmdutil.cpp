@@ -2112,7 +2112,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
         ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
         
         if (PROP_ID(ulPropTag) > 0x8500 && lpNamedPropDefs) {
-            std::pair<NamedPropDefMap::iterator, bool> resInsert = lpNamedPropDefs->insert(NamedPropDefMap::value_type(ulPropTag, NAMEDPROPDEF()));
+			auto resInsert = lpNamedPropDefs->insert({ulPropTag, {}});
             if (resInsert.second) {
                 // New entry
                 if (lpDBLen[FIELD_NR_NAMEGUID] != sizeof(resInsert.first->second.guid)) {
@@ -2151,7 +2151,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             sChild.lpPropVals = new DynamicPropValArray(soap, 20);
             
             // First property for this child
-            iterChild = lpChildProps->insert(ChildPropsMap::value_type(ulChildId, sChild)).first;
+			iterChild = lpChildProps->insert({ulChildId, sChild}).first;
         }
         
         er = iterChild->second.lpPropTags->AddPropTag(ulPropTag);
@@ -2220,7 +2220,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
         if (lpNamedPropDefs) {
             unsigned int ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
             if (PROP_ID(ulPropTag) > 0x8500) {
-                std::pair<NamedPropDefMap::iterator, bool> resInsert = lpNamedPropDefs->insert(NamedPropDefMap::value_type(ulPropTag, NAMEDPROPDEF()));
+				auto resInsert = lpNamedPropDefs->insert({ulPropTag, {}});
                 if (resInsert.second) {
                     // New entry
                     if (lpDBLen[FIELD_NR_NAMEGUID] != sizeof(resInsert.first->second.guid)) {
@@ -2252,7 +2252,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             sChild.lpPropVals = new DynamicPropValArray(soap, 20);
             
             // First property for this child
-            iterChild = lpChildProps->insert(ChildPropsMap::value_type(ulChildId, sChild)).first;
+			iterChild = lpChildProps->insert({ulChildId, sChild}).first;
         }
         
         er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);

@@ -108,8 +108,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive folder. (hr=%s)", stringify(hr, true).c_str());
 			return hr;
 		}
-
-		m_mapArchiveFolders.insert(ArchiveFolderMap::value_type(archiveEntry.sStoreEntryId, ptrArchiveFolder)); 			
+		m_mapArchiveFolders.insert({archiveEntry.sStoreEntryId, ptrArchiveFolder});
 	} else {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder found in cache");
 		ptrArchiveFolder = iArchiveFolder->second;

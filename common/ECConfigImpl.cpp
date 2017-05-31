@@ -276,7 +276,7 @@ const char *ECConfigImpl::GetSetting(const char *szName, const char *equal,
 const wchar_t *ECConfigImpl::GetSettingW(const char *szName)
 {
 	const char *value = GetSetting(szName);
-	auto result = m_convertCache.insert(ConvertCache::value_type(value, L""));
+	auto result = m_convertCache.insert({value, L""});
 	auto iter = result.first;
 	if (result.second)
 		iter->second = convert_to<wstring>(value);
