@@ -23,8 +23,10 @@
 #include <utility>
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
-
+#include <kopano/memory.hpp>
 #include <list>
+
+using namespace KCHL;
 
 namespace KC {
 
