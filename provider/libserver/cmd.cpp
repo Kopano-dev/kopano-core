@@ -1173,14 +1173,17 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	std::string			strCompanyName;
 	const std::string	strThisServer = g_lpSessionManager->GetConfig()->GetSetting("server_name", "", "Unknown");
 	objectdetails_t		details;
+	auto sesmgr = lpecSession->GetSessionManager();
+	auto sec = lpecSession->GetSecurity();
+	auto usrmgt = lpecSession->GetUserManagement();
     USE_DATABASE();
 
-	if (lpecSession->GetSessionManager()->IsHostedSupported()) {
+	if (sesmgr->IsHostedSupported()) {
 		/* Hosted support, Public store owner is company */
-		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
+		er = sec->GetUserCompany(&ulCompanyId);
 		if (er != erSuccess)
 			return er;
-        er = lpecSession->GetUserManagement()->GetObjectDetails(ulCompanyId, &details);
+		er = usrmgt->GetObjectDetails(ulCompanyId, &details);
         if(er != erSuccess)
 			return er;
         strStoreServer = details.GetPropString(OB_PROP_S_SERVERNAME);
@@ -1188,13 +1191,13 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	} else {
 		ulCompanyId = KOPANO_UID_EVERYONE; /* No hosted support, Public store owner is Everyone */
 
-		if (lpecSession->GetSessionManager()->IsDistributedSupported()) {
+		if (sesmgr->IsDistributedSupported()) {
 			/*
 			* GetObjectDetailsAndSync will return the group details for EVERYONE when called
 			* with KOPANO_UID_EVERYONE. But we want the pseudo company for that contains the
 			* public store.
 			*/
-			er = lpecSession->GetUserManagement()->GetPublicStoreDetails(&details);
+			er = usrmgt->GetPublicStoreDetails(&details);
 			if (er == KCERR_NO_SUPPORT) {
 				/* Not supported: No MultiServer with this plugin, so we're good */
 				strStoreServer = strThisServer;
@@ -1207,8 +1210,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 			strStoreServer = strThisServer;
 	}
 
-	if (lpecSession->GetSessionManager()->IsDistributedSupported())
-	{
+	if (sesmgr->IsDistributedSupported()) {
 		if (strStoreServer.empty()) {
 			if (!strCompanyName.empty())
 				ec_log_err("Company \"%s\" has no home server for its public store.", strCompanyName.c_str());
@@ -1253,13 +1255,13 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 		return KCERR_DATABASE_ERROR; // this should never happen
 	}
 
-	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsResponse->sRootId);
+	auto gcache = g_lpSessionManager->GetCacheManager();
+	er = gcache->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsResponse->sRootId);
 	if(er != erSuccess)
 		return er;
 	if ((ulFlags & EC_OVERRIDE_HOMESERVER) == 0)
 		lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strStoreServer).c_str());
-   	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, ulFlags, &lpsResponse->sStoreId);
-
+	er = gcache->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, ulFlags, &lpsResponse->sStoreId);
 	if(er != erSuccess)
 		return er;
 	lpsResponse->guid.__size= lpDBLen[1];
@@ -1288,9 +1290,10 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 		ulUserId = lpecSession->GetSecurity()->GetUserId();
 
         // Check if the store should be available on this server
+        auto usrmgt = lpecSession->GetUserManagement();
 		if (lpecSession->GetSessionManager()->IsDistributedSupported() && 
-            !lpecSession->GetUserManagement()->IsInternalObject(ulUserId)) {
-			er = lpecSession->GetUserManagement()->GetObjectDetails(ulUserId, &sUserDetails);
+            !usrmgt->IsInternalObject(ulUserId)) {
+			er = usrmgt->GetObjectDetails(ulUserId, &sUserDetails);
 			if (er != erSuccess)
 				return er;
             strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
@@ -1356,10 +1359,11 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 		return KCERR_DATABASE_ERROR;
 	}
 
-	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsResponse->sRootId);
+	auto gcache = g_lpSessionManager->GetCacheManager();
+	er = gcache->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsResponse->sRootId);
 	if(er != erSuccess)
 		return er;
-	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, 0, &lpsResponse->sStoreId);
+	er = gcache->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, 0, &lpsResponse->sStoreId);
 	if(er != erSuccess)
 		return er;
 	lpsResponse->guid.__size= lpDBLen[1];
@@ -3085,10 +3089,11 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 
 	if (ulObjType == MAPI_MESSAGE) {
 		// @todo: Check if we can do this on the fly to avoid the additional lookup.
+		auto lm = g_lpSessionManager->GetLockManager();
 		for (gsoap_size_t i = 0; i < sSavedObject.modProps.__size; ++i) {
 			if (sSavedObject.modProps.__ptr[i].ulPropTag != PR_SUBMIT_FLAGS)
 				continue;
-			if (g_lpSessionManager->GetLockManager()->IsLocked(ulObjId, NULL))
+			if (lm->IsLocked(ulObjId, nullptr))
 				sSavedObject.modProps.__ptr[i].Value.ul |= SUBMITFLAG_LOCKED;
 			else
 				sSavedObject.modProps.__ptr[i].Value.ul &= ~SUBMITFLAG_LOCKED;
@@ -5026,7 +5031,8 @@ SOAP_ENTRY_START(createUser, lpsUserSetResponse->er, struct user *lpsUser, struc
 	er = CopyUserDetailsFromSoap(lpsUser, NULL, &details, soap);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->UpdateUserDetailsFromClient(&details);
+	auto usrmgt = lpecSession->GetUserManagement();
+	er = usrmgt->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
 		return er;
 
@@ -5036,7 +5042,7 @@ SOAP_ENTRY_START(createUser, lpsUserSetResponse->er, struct user *lpsUser, struc
 		return er;
 
     // Create user and sync
-	er = lpecSession->GetUserManagement()->CreateObjectAndSync(details, &ulUserId);
+	er = usrmgt->CreateObjectAndSync(details, &ulUserId);
 	if(er != erSuccess)
 		return er;
 	er = GetABEntryID(ulUserId, soap, &lpsUserSetResponse->sUserId);
@@ -5079,11 +5085,12 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 
 	// Check security
 	// @todo add check on anonymous (mv)properties
-	if (lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserId) == erSuccess) {
+	auto sec = lpecSession->GetSecurity();
+	if (sec->IsAdminOverUserObject(ulUserId) == erSuccess) {
 		// admins can update anything of a user
 		// FIXME: prevent the user from removing admin rights from itself?
 		er = erSuccess;
-	} else if (lpecSession->GetSecurity()->GetUserId() == ulUserId) {
+	} else if (sec->GetUserId() == ulUserId) {
 		// you're only allowed to set your password, force the lpsUser struct to only contain that update
 		if (lpsUser->lpszUsername && oldDetails.GetPropString(OB_PROP_S_LOGIN) != lpsUser->lpszUsername) {
 			ec_log_warn("Disallowing user \"%s\" to update their username to \"%s\"",
@@ -5138,10 +5145,11 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 	er = CopyUserDetailsFromSoap(lpsUser, &sExternId.id, &details, soap);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->UpdateUserDetailsFromClient(&details);
+	auto usrmgt = lpecSession->GetUserManagement();
+	er = usrmgt->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
 		return er;
-	return lpecSession->GetUserManagement()->SetObjectDetailsAndSync(ulUserId, details, nullptr);
+	return usrmgt->SetObjectDetailsAndSync(ulUserId, details, nullptr);
 }
 SOAP_ENTRY_END()
 
@@ -5200,10 +5208,11 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
+	auto sec = lpecSession->GetSecurity();
 	if (ulCompanyId == 0)
-		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
+		er = sec->GetUserCompany(&ulCompanyId);
 	else
-		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
+		er = sec->IsUserObjectVisible(ulCompanyId);
 	if (er != erSuccess)
 		return er;
 	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_USER, ulCompanyId, &unique_tie(lpUsers), 0);
@@ -5251,10 +5260,12 @@ SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId, entryId 
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulUserId);
+	auto sec = lpecSession->GetSecurity();
+	er = sec->IsUserObjectVisible(ulUserId);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->GetObjectDetails(ulUserId, &userDetails);
+	auto usrmgt = lpecSession->GetUserManagement();
+	er = usrmgt->GetObjectDetails(ulUserId, &userDetails);
 	if (er != erSuccess)
 		return er;
 
@@ -5264,9 +5275,9 @@ SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId, entryId 
 	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, userIds.size());
 
 	for (auto user_id : userIds) {
-		if (lpecSession->GetSecurity()->IsUserObjectVisible(user_id) != erSuccess)
+		if (sec->IsUserObjectVisible(user_id) != erSuccess)
 			continue;
-		er = lpecSession->GetUserManagement()->GetObjectDetails(user_id, &senderDetails);
+		er = usrmgt->GetObjectDetails(user_id, &senderDetails);
 		if (er == KCERR_NOT_FOUND)
 			continue;
 		if (er != erSuccess)
@@ -5315,13 +5326,14 @@ SOAP_ENTRY_START(addSendAsUser, *result, unsigned int ulUserId, entryId sUserId,
 	}
 
 	// Check security, only admins can set sendas users, not the user itself
-	if(lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserId) != erSuccess) {
+	auto sec = lpecSession->GetSecurity();
+	if (sec->IsAdminOverUserObject(ulUserId) != erSuccess) {
 		ec_log_err("addSendAsUser(): IsAdminOverUserObject failed %x", er);
 		return KCERR_NO_ACCESS;
 	}
 
 	// needed?
-	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulUserId);
+	er = sec->IsUserObjectVisible(ulUserId);
 	if (er != erSuccess) {
 		ec_log_err("addSendAsUser(): IsUserObjectVisible failed %x", er);
 		return er;
@@ -5348,11 +5360,12 @@ SOAP_ENTRY_START(delSendAsUser, *result, unsigned int ulUserId, entryId sUserId,
 	}
 
 	// Check security, only admins can set sendas users, not the user itself
-	if (lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserId) != erSuccess)
+	auto sec = lpecSession->GetSecurity();
+	if (sec->IsAdminOverUserObject(ulUserId) != erSuccess)
 		return KCERR_NO_ACCESS;
 
 	// needed ?
-	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulUserId);
+	er = sec->IsUserObjectVisible(ulUserId);
 	if (er != erSuccess)
 		return er;
 	return lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_USER_SENDAS, ulUserId, ulSenderId);
@@ -5631,7 +5644,8 @@ SOAP_ENTRY_START(createGroup, lpsSetGroupResponse->er, struct group *lpsGroup, s
 	er = CopyGroupDetailsFromSoap(lpsGroup, NULL, &details, soap);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->UpdateUserDetailsFromClient(&details);
+	auto usrmgt = lpecSession->GetUserManagement();
+	er = usrmgt->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
 		return er;
 
@@ -5639,7 +5653,7 @@ SOAP_ENTRY_START(createGroup, lpsSetGroupResponse->er, struct group *lpsGroup, s
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(details.GetPropInt(OB_PROP_I_COMPANYID));
 	if(er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->CreateObjectAndSync(details, &ulGroupId);
+	er = usrmgt->CreateObjectAndSync(details, &ulGroupId);
 	if (er != erSuccess)
 		return er;
 	er = GetABEntryID(ulGroupId, soap, &lpsSetGroupResponse->sGroupId);
@@ -5684,10 +5698,11 @@ SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result
 	er = CopyGroupDetailsFromSoap(lpsGroup, &sExternId.id, &details, soap);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->UpdateUserDetailsFromClient(&details);
+	auto usrmgt = lpecSession->GetUserManagement();
+	er = usrmgt->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
 		return er;
-	return lpecSession->GetUserManagement()->SetObjectDetailsAndSync(ulGroupId, details, nullptr);
+	return usrmgt->SetObjectDetailsAndSync(ulGroupId, details, nullptr);
 }
 SOAP_ENTRY_END()
 
@@ -5737,10 +5752,11 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
+	auto sec = lpecSession->GetSecurity();
 	if (ulCompanyId == 0)
-		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
+		er = sec->GetUserCompany(&ulCompanyId);
 	else
-		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
+		er = sec->IsUserObjectVisible(ulCompanyId);
 	if (er != erSuccess)
 		return er;
 	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_DISTLIST, ulCompanyId, &unique_tie(lpGroups), 0);
@@ -5873,7 +5889,8 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, en
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulGroupId);
+	auto sec = lpecSession->GetSecurity();
+	er = sec->IsUserObjectVisible(ulGroupId);
 	if (er != erSuccess)
 		return er;
     er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulGroupId, &unique_tie(lpUsers));
@@ -5883,7 +5900,7 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, en
     lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, lpUsers->size());
 
 	for (const auto &user : *lpUsers) {
-		if (lpecSession->GetSecurity()->IsUserObjectVisible(user.ulId) != erSuccess)
+		if (sec->IsUserObjectVisible(user.ulId) != erSuccess)
 			continue;
 		er = GetABEntryID(user.ulId, soap, &sUserEid);
 		if (er != erSuccess)
@@ -5920,7 +5937,8 @@ SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId, en
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulUserId);
+	auto sec = lpecSession->GetSecurity();
+	er = sec->IsUserObjectVisible(ulUserId);
 	if (er != erSuccess)
 		return er;
 	er = lpecSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulUserId, &unique_tie(lpGroups));
@@ -5930,7 +5948,7 @@ SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId, en
 	lpsGroupList->sGroupArray.__size = 0;
 	lpsGroupList->sGroupArray.__ptr = s_alloc<group>(soap, lpGroups->size());
 	for (const auto &grp : *lpGroups) {
-		if (lpecSession->GetSecurity()->IsUserObjectVisible(grp.ulId) != erSuccess)
+		if (sec->IsUserObjectVisible(grp.ulId) != erSuccess)
 			continue;
 		er = GetABEntryID(grp.ulId, soap, &sGroupEid);
 		if (er != erSuccess)
@@ -5974,10 +5992,11 @@ SOAP_ENTRY_START(createCompany, lpsResponse->er, struct company *lpsCompany, str
 	er = CopyCompanyDetailsFromSoap(lpsCompany, NULL, KOPANO_UID_SYSTEM, &details, soap);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->UpdateUserDetailsFromClient(&details);
+	auto usrmgt = lpecSession->GetUserManagement();
+	er = usrmgt->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->CreateObjectAndSync(details, &ulCompanyId);
+	er = usrmgt->CreateObjectAndSync(details, &ulCompanyId);
 	if(er != erSuccess)
 		return er;
 	er = GetABEntryID(ulCompanyId, soap, &lpsResponse->sCompanyId);
@@ -6044,10 +6063,11 @@ SOAP_ENTRY_START(setCompany, *result, struct company *lpsCompany, unsigned int *
 	er = CopyCompanyDetailsFromSoap(lpsCompany, &sExternId.id, ulAdministrator, &details, soap);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->UpdateUserDetailsFromClient(&details);
+	auto usrmgt = lpecSession->GetUserManagement();
+	er = usrmgt->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
 		return er;
-	return lpecSession->GetUserManagement()->SetObjectDetailsAndSync(ulCompanyId, details, nullptr);
+	return usrmgt->SetObjectDetailsAndSync(ulCompanyId, details, nullptr);
 }
 SOAP_ENTRY_END()
 
@@ -6066,10 +6086,11 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId, entryId 
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
+	auto sec = lpecSession->GetSecurity();
 	if (ulCompanyId == 0)
-		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
+		er = sec->GetUserCompany(&ulCompanyId);
 	else
-		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
+		er = sec->IsUserObjectVisible(ulCompanyId);
 	if (er != erSuccess)
 		return er;
 	er = lpecSession->GetUserManagement()->GetObjectDetails(ulCompanyId, &details);
@@ -6079,8 +6100,7 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId, entryId 
 		return KCERR_NOT_FOUND;
 
 	ulAdmin = details.GetPropInt(OB_PROP_I_SYSADMIN);
-
-	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulAdmin);
+	er = sec->IsUserObjectVisible(ulAdmin);
 	if (er != erSuccess)
 		return er;
 	er = GetABEntryID(ulAdmin, soap, &sAdminEid);
@@ -6137,7 +6157,8 @@ SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse 
 
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
-	er = lpecSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
+	auto sec = lpecSession->GetSecurity();
+	er = sec->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
 	if(er != erSuccess)
 		return er;
 
@@ -6145,7 +6166,7 @@ SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse 
 	lpsCompanyList->sCompanyArray.__ptr = s_alloc<company>(soap, lpCompanies->size());
 	for (const auto &com : *lpCompanies) {
 		ulAdmin = com.GetPropInt(OB_PROP_I_SYSADMIN);
-		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulAdmin);
+		er = sec->IsUserObjectVisible(ulAdmin);
 		if (er != erSuccess)
 			return er;
 		er = GetABEntryID(com.ulId, soap, &sCompanyEid);
@@ -6224,10 +6245,11 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
+	auto sec = lpecSession->GetSecurity();
 	if (ulCompanyId == 0)
-		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
+		er = sec->GetUserCompany(&ulCompanyId);
 	else
-		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
+		er = sec->IsUserObjectVisible(ulCompanyId);
 	if (er != erSuccess)
 		return er;
 	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, &unique_tie(lpCompanies));
@@ -6238,10 +6260,10 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 	lpsCompanyList->sCompanyArray.__ptr = s_alloc<company>(soap, lpCompanies->size());
 
 	for (const auto &com : *lpCompanies) {
-		if (lpecSession->GetSecurity()->IsUserObjectVisible(com.ulId) != erSuccess)
+		if (sec->IsUserObjectVisible(com.ulId) != erSuccess)
 			continue;
 		ulAdmin = com.GetPropInt(OB_PROP_I_SYSADMIN);
-		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulAdmin);
+		er = sec->IsUserObjectVisible(ulAdmin);
 		if (er != erSuccess)
 			return er;
 		er = GetABEntryID(com.ulId, soap, &sCompanyEid);
@@ -6318,10 +6340,11 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 
 	/* Input check, if ulCompanyId is 0, we want the user's company,
 	 * otherwise we must check if the requested company is visible for the user. */
+	auto sec = lpecSession->GetSecurity();
 	if (ulCompanyId == 0)
-		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
+		er = sec->GetUserCompany(&ulCompanyId);
 	else
-		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
+		er = sec->IsUserObjectVisible(ulCompanyId);
 	if (er != erSuccess)
 		return er;
 
@@ -6333,7 +6356,7 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 	lpsUserList->sUserArray.__size = 0;
 	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, lpUsers->size());
 	for (const auto &user : *lpUsers) {
-		if (lpecSession->GetSecurity()->IsUserObjectVisible(user.ulId) != erSuccess)
+		if (sec->IsUserObjectVisible(user.ulId) != erSuccess)
 			continue;
 		er = GetABEntryID(user.ulId, soap, &sUserEid);
 		if (er != erSuccess)
@@ -6379,22 +6402,21 @@ SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags,
 	eQuotaStatus	QuotaStatus;
 	long long		llStoreSize = 0;
 	objectdetails_t details;
+	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
+	auto sec = lpecSession->GetSecurity();
 	
 	USE_DATABASE();
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
 	    goto exit;
-
-	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL);
+	er = cache->GetStore(ulObjId, &ulStoreId, nullptr);
 	if(er != erSuccess)
 	    goto exit;
-
-    er = lpecSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, &ulMsgFlags, NULL);
+    er = cache->GetObject(ulObjId, &ulParentId, nullptr, &ulMsgFlags, nullptr);
     if(er != erSuccess)
         goto exit;
-        
-    er = lpecSession->GetSessionManager()->GetCacheManager()->GetObject(ulStoreId, NULL, &ulStoreOwner, NULL, NULL);
+    er = cache->GetObject(ulStoreId, nullptr, &ulStoreOwner, nullptr, nullptr);
     if(er != erSuccess)
         goto exit;
      
@@ -6409,16 +6431,15 @@ SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags,
     }
 
 	// Check permission
-	er = lpecSession->GetSecurity()->CheckPermission(ulStoreId, ecSecurityOwner);
+	er = sec->CheckPermission(ulStoreId, ecSecurityOwner);
 	if(er != erSuccess)
 		goto exit;
 
 	// Quota check
-	er = lpecSession->GetSecurity()->GetStoreSize(ulStoreId, &llStoreSize);
+	er = sec->GetStoreSize(ulStoreId, &llStoreSize);
 	if(er != erSuccess)
 		goto exit;
-
-	er = lpecSession->GetSecurity()->CheckQuota(ulStoreId, llStoreSize, &QuotaStatus);
+	er = sec->CheckQuota(ulStoreId, llStoreSize, &QuotaStatus);
 	if(er != erSuccess)
 		goto exit;
 
@@ -6466,8 +6487,9 @@ SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags,
 
 	if (bMessageChanged) {
 		// Update cache
-		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulObjId);
-		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulParentId);
+		auto gcache = g_lpSessionManager->GetCacheManager();
+		gcache->Update(fnevObjectModified, ulObjId);
+		gcache->Update(fnevObjectModified, ulParentId);
 
 		// Notify
 		g_lpSessionManager->NotificationModified(MAPI_MESSAGE, ulObjId, ulParentId);
@@ -6492,6 +6514,8 @@ SOAP_ENTRY_START(finishedMessage, *result,  entryId sEntryId, unsigned int ulFla
 	bool			bMessageChanged = false;
 	SOURCEKEY		sSourceKey;
 	SOURCEKEY		sParentSourceKey;
+	auto gcache = g_lpSessionManager->GetCacheManager();
+	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
 
 	USE_DATABASE();
 
@@ -6502,13 +6526,12 @@ SOAP_ENTRY_START(finishedMessage, *result,  entryId sEntryId, unsigned int ulFla
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
 	    goto exit;
-
-	er = g_lpSessionManager->GetCacheManager()->GetParent(ulObjId, &ulParentId);
+	er = gcache->GetParent(ulObjId, &ulParentId);
 	if(er != erSuccess)
 		goto exit;
 
 	//Get storeid
-	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL);
+	er = cache->GetStore(ulObjId, &ulStoreId, NULL);
 	switch (er) {
 	case erSuccess:
 		break;
@@ -6601,15 +6624,15 @@ table:
 
 	// The flags have changed, so we have to send a modified 
 	if (bMessageChanged) {
-		lpecSession->GetSessionManager()->GetCacheManager()->Update(fnevObjectModified, ulObjId);
+		cache->Update(fnevObjectModified, ulObjId);
 		g_lpSessionManager->NotificationModified(MAPI_MESSAGE, ulObjId, ulParentId);
 
-		if(g_lpSessionManager->GetCacheManager()->GetParent(ulObjId, &ulParentId) == erSuccess) {
-			g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulParentId);
+		if (gcache->GetParent(ulObjId, &ulParentId) == erSuccess) {
+			gcache->Update(fnevObjectModified, ulParentId);
 			g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
 	        
 			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParentId, ulObjId, MAPI_MESSAGE);
-			if (g_lpSessionManager->GetCacheManager()->GetParent(ulParentId, &ulGrandParentId) == erSuccess)
+			if (gcache->GetParent(ulParentId, &ulGrandParentId) == erSuccess)
 				g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParentId, ulParentId, MAPI_FOLDER);
 		}
 	}
@@ -6628,14 +6651,14 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
 	unsigned int	ulObjId = 0;
 	SOURCEKEY		sSourceKey;
 	SOURCEKEY		sParentSourceKey;
+	auto gcache = g_lpSessionManager->GetCacheManager();
 
 	USE_DATABASE();
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
 	    goto exit;
-
-	er = g_lpSessionManager->GetCacheManager()->GetParent(ulObjId, &ulParentId);
+	er = gcache->GetParent(ulObjId, &ulParentId);
 	if(er != erSuccess)
 		goto exit;
 
@@ -6700,16 +6723,14 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
 		goto exit;
 
 	g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, ulStoreId, ulObjId, ulSubmitFlags, MAPI_MESSAGE);
-
-	if(g_lpSessionManager->GetCacheManager()->GetParent(ulObjId, &ulParentId) == erSuccess) {
-
-        g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulObjId);
+	if (gcache->GetParent(ulObjId, &ulParentId) == erSuccess) {
+		gcache->Update(fnevObjectModified, ulObjId);
 		g_lpSessionManager->NotificationModified(MAPI_MESSAGE, ulObjId, ulParentId);
-        g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulParentId);
+		gcache->Update(fnevObjectModified, ulParentId);
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
 
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParentId, ulObjId, MAPI_MESSAGE);
-		if (g_lpSessionManager->GetCacheManager()->GetParent(ulParentId, &ulGrandParentId) == erSuccess)
+		if (gcache->GetParent(ulParentId, &ulGrandParentId) == erSuccess)
 			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParentId, ulParentId, MAPI_FOLDER);
 	}
 
