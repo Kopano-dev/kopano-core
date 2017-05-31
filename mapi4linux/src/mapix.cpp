@@ -72,7 +72,7 @@ class SessionRestorer _kc_final {
 	HRESULT restore_providers();
 
 	std::string::const_iterator m_input;
-	size_t m_left;
+	size_t m_left = 0;
 	std::string m_profname;
 	KCHL::object_ptr<M4LMsgServiceAdmin> m_svcadm;
 };
