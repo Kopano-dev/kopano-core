@@ -6832,18 +6832,20 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 	if (ulStoreTypeMask == 0)
 		ulStoreTypeMask = ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC;
 
-	er = lpecSession->GetUserManagement()->ResolveObjectAndSync(OBJECTCLASS_USER, szUserName, &ulObjectId);
+	auto usrmgt = lpecSession->GetUserManagement();
+	er = usrmgt->ResolveObjectAndSync(OBJECTCLASS_USER, szUserName, &ulObjectId);
 	if ((er == KCERR_NOT_FOUND || er == KCERR_INVALID_PARAMETER) && lpecSession->GetSessionManager()->IsHostedSupported())
 		// FIXME: this function is being misused, szUserName can also be a company name
-		er = lpecSession->GetUserManagement()->ResolveObjectAndSync(CONTAINER_COMPANY, szUserName, &ulObjectId);
+		er = usrmgt->ResolveObjectAndSync(CONTAINER_COMPANY, szUserName, &ulObjectId);
 	if (er != erSuccess)
 		return er;
 
 	/* If we are allowed to view the user, we are allowed to know the store exists */
-	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulObjectId);
+	auto sec = lpecSession->GetSecurity();
+	er = sec->IsUserObjectVisible(ulObjectId);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->GetObjectDetails(ulObjectId, &sUserDetails);
+	er = usrmgt->GetObjectDetails(ulObjectId, &sUserDetails);
 	if (er != erSuccess)
 		return er;
 
@@ -6852,8 +6854,9 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 		(OBJECTCLASS_TYPE(sUserDetails.GetClass()) != OBJECTTYPE_MAILUSER && sUserDetails.GetClass() != CONTAINER_COMPANY))
 		return KCERR_NOT_FOUND;
 
+	auto cfg = g_lpSessionManager->GetConfig();
 	if (lpecSession->GetSessionManager()->IsDistributedSupported() && 
-		!lpecSession->GetUserManagement()->IsInternalObject(ulObjectId)) 
+	    !usrmgt->IsInternalObject(ulObjectId)) 
 	{
 		if (ulStoreTypeMask & (ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC)) {
 			/* Check if this is the correct server for its store */
@@ -6861,7 +6864,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 			if (strServerName.empty())
 				return KCERR_NOT_FOUND;
 
-			if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
+			if (strcasecmp(strServerName.c_str(), cfg->GetSetting("server_name")) != 0) {
 				if ((ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
 					string	strServerPath;
 
@@ -6880,8 +6883,8 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 		else if (ulStoreTypeMask & ECSTORE_TYPE_MASK_ARCHIVE) {
 			// We allow an archive store to be resolved by sysadmins even if it's not supposed
 			// to exist on this server for a particular user.
-			if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN &&
-				!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true))
+			if (sec->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN &&
+				!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, cfg->GetSetting("server_name"), true))
 				// No redirect with archive stores because there can be multiple archive stores.
 				return KCERR_NOT_FOUND;
 		}
@@ -6907,7 +6910,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
     }
 
     /* We found the store, so we don't need to check if this is the correct server. */
-    strServerName = g_lpSessionManager->GetConfig()->GetSetting("server_name", "", "Unknown");
+    strServerName = cfg->GetSetting("server_name", "", "Unknown");
     // Always return the pseudo URL.
     lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strServerName).c_str());
 
@@ -6973,26 +6976,27 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	entryId*	lpsNewEntryId = NULL;
 	entryId*	lpsOldEntryId = NULL;
 	GUID		guidStore;
-
-	ALLOC_DBRESULT();
 	if(lplObjectIds == NULL) {
 		ec_log_err("MoveObjects: no list of objects given");
 		return KCERR_INVALID_PARAMETER;
 	}
 
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();
+	auto gcache = g_lpSessionManager->GetCacheManager();
+	auto sec = lpSession->GetSecurity();
+	ALLOC_DBRESULT();
 	if(lplObjectIds->empty())
 		goto exit; // Nothing to do
 
 	GetSystemTimeAsFileTime(&ft);
 
 	// Check permission, Destination folder
-	er = lpSession->GetSecurity()->CheckPermission(ulDestFolderId, ecSecurityCreate);
+	er = sec->CheckPermission(ulDestFolderId, ecSecurityCreate);
 	if (er != erSuccess) {
 		ec_log_err("MoveObjects: failed checking permissions on %u: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 		goto exit;
 	}
-
-	er = lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulDestFolderId, &ulDestStoreId, &guidStore);
+	er = cache->GetStore(ulDestFolderId, &ulDestStoreId, &guidStore);
 	if (er != erSuccess) {
 		ec_log_err("MoveObjects: failed retrieving store of %u: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 		goto exit;
@@ -7041,11 +7045,11 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		GetSourceKey(sItem.ulParent, &sItem.sParentSourceKey);
 
 		// Check permission, source messages
-		er = lpSession->GetSecurity()->CheckPermission(sItem.ulId, ecSecurityDelete);
+		er = sec->CheckPermission(sItem.ulId, ecSecurityDelete);
 		if(er == erSuccess) {
 
 			// Check if the source and dest the same store
-		    er = lpSession->GetSessionManager()->GetCacheManager()->GetStore(sItem.ulId, &ulSourceStoreId, NULL);
+			er = cache->GetStore(sItem.ulId, &ulSourceStoreId, nullptr);
 			if(er != erSuccess || ulSourceStoreId != ulDestStoreId) {
 				bPartialCompletion = true;
 				er = erSuccess;
@@ -7068,7 +7072,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	if(bUpdateDeletedSize == true)
 	{
 		// Quota check
-		er = lpSession->GetSecurity()->GetStoreSize(ulDestFolderId, &llStoreSize);
+		er = sec->GetStoreSize(ulDestFolderId, &llStoreSize);
 		if (er != erSuccess) {
 			ec_log_err("MoveObjects: GetStoreSize(%u) failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 			goto exit;
@@ -7076,7 +7080,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 
 		// substract itemsize and check
 		llStoreSize -= (llStoreSize >= (long long)ulItemSize)?(long long)ulItemSize:0;
-		er = lpSession->GetSecurity()->CheckQuota(ulDestFolderId, llStoreSize, &QuotaStatus);
+		er = sec->CheckQuota(ulDestFolderId, llStoreSize, &QuotaStatus);
 		if (er != erSuccess) {
 			ec_log_err("MoveObjects: CheckQuota(%u) failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 			goto exit;
@@ -7101,7 +7105,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		    (cop.ulFlags & MSGFLAG_DELETED) == 0)
 			continue;
 
-		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(cop.ulId, NULL, 0, &lpsOldEntryId);
+		er = gcache->GetEntryIdFromObject(cop.ulId, nullptr, 0, &lpsOldEntryId);
 		if(er != erSuccess) {
 			// FIXME isn't this an error?
 			ec_log_err("MoveObjects: problem retrieving entry id of object %u: %s (%x)",
@@ -7177,7 +7181,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		sPropIMAPId.ulPropTag = PR_EC_IMAP_ID;
 		sPropIMAPId.Value.ul = ullIMAP;
 		sPropIMAPId.__union = SOAP_UNION_propValData_ul;
-		er = g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_EC_IMAP_ID, &sPropIMAPId);
+		er = gcache->SetCell(&key, PR_EC_IMAP_ID, &sPropIMAPId);
 		if (er != erSuccess) {
 			ec_log_err("MoveObjects: problem cache sell for IMAP ID %llu: %s (%x)", ullIMAP, GetMAPIErrorMessage(er), er);
 			goto exit;
@@ -7214,7 +7218,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		if (er != erSuccess)
 			goto exit;
 
-		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, cop.ulId);
+		gcache->Update(fnevObjectModified, cop.ulId);
 
 		// remove PR_DELETED_ON, This is on a softdeleted message
 		strQuery = "DELETE FROM properties WHERE hierarchyid=" +
@@ -7294,15 +7298,14 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		if (!cop.bMoved)
 			continue;
 		// Cache update for object
-		g_lpSessionManager->GetCacheManager()->SetObject(cop.ulId,
-			ulDestFolderId, cop.ulOwner,
+		gcache->SetObject(cop.ulId, ulDestFolderId, cop.ulOwner,
 			cop.ulFlags & ~MSGFLAG_DELETED /* possible undelete */,
 			cop.ulType);
 		// Remove old sourcekey and entryid and add them
-		g_lpSessionManager->GetCacheManager()->RemoveIndexData(cop.ulId);
-		g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_SOURCE_KEY),
+		gcache->RemoveIndexData(cop.ulId);
+		gcache->SetObjectProp(PROP_ID(PR_SOURCE_KEY),
 			cop.sNewSourceKey.size(), cop.sNewSourceKey, cop.ulId);
-		g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_ENTRYID),
+		gcache->SetObjectProp(PROP_ID(PR_ENTRYID),
 			cop.sNewEntryId.size(), cop.sNewEntryId, cop.ulId);
 	}
     
@@ -7345,8 +7348,8 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		// ignore error, no need to set partial even.
 
 		// Get the grandparent
-		g_lpSessionManager->GetCacheManager()->GetParent(pa_id, &ulGrandParent);
-		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, pa_id);
+		gcache->GetParent(pa_id, &ulGrandParent);
+		gcache->Update(fnevObjectModified, pa_id);
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, pa_id);
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY,
 			0, ulGrandParent, pa_id, MAPI_FOLDER);
@@ -7357,14 +7360,14 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	// ignore error, no need to set partial even.
 
     if(cCopyItems >= EC_TABLE_CHANGE_THRESHOLD) 
-        g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulDestFolderId, 0, MAPI_MESSAGE);
+		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulDestFolderId, 0, MAPI_MESSAGE);
 
 	//Update destination folder
-    g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulDestFolderId);
+	gcache->Update(fnevObjectModified, ulDestFolderId);
 	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
 
 	// Update the grandfolder of dest. folder
-	g_lpSessionManager->GetCacheManager()->GetParent(ulDestFolderId, &ulGrandParent);
+	gcache->GetParent(ulDestFolderId, &ulGrandParent);
 	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, ulDestFolderId, MAPI_FOLDER);
 
 	if(bPartialCompletion && er == erSuccess)
@@ -7429,6 +7432,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		return er;
 	}
 
+	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
 	if (!lpAttachmentStorage) {
 		if (!bIsRoot) {
 			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed: %s (%x)", GetMAPIErrorMessage(er), er);
@@ -7444,7 +7448,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		// Hack, when lpInternalAttachmentStorage exist your are in a transaction!
 	}
 
-	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulDestFolderId, &ulStoreId, &guidStore);
+	er = cache->GetStore(ulDestFolderId, &ulStoreId, &guidStore);
 	if (er != erSuccess) {
 		ec_log_err("CopyObject: GetStore(destination folder %u) failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 		goto exit;
@@ -7453,20 +7457,20 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	// Check permission
 	if(bIsRoot == true)
 	{
-		er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityRead);
+		auto sec = lpecSession->GetSecurity();
+		er = sec->CheckPermission(ulObjId, ecSecurityRead);
 		if (er != erSuccess) {
 			ec_log_err("CopyObject: check permissions of %u failed: %s (%x)", ulObjId, GetMAPIErrorMessage(er), er);
 			goto exit;
 		}
 
 		// Quota check
-		er = lpecSession->GetSecurity()->GetStoreSize(ulDestFolderId, &llStoreSize);
+		er = sec->GetStoreSize(ulDestFolderId, &llStoreSize);
 		if (er != erSuccess) {
 			ec_log_err("CopyObject: store size of dest folder %u failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 			goto exit;
 		}
-
-		er = lpecSession->GetSecurity()->CheckQuota(ulDestFolderId, llStoreSize, &QuotaStatus);
+		er = sec->CheckQuota(ulDestFolderId, llStoreSize, &QuotaStatus);
 		if (er != erSuccess) {
 			ec_log_err("CopyObject: check quota of dest folder %u failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 			goto exit;
@@ -7719,7 +7723,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 
 		// Update Size
 		if (GetObjectSize(lpDatabase, ulNewObjectId, &ulSize) == erSuccess &&
-		    lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulNewObjectId, &ulStoreId, nullptr) == erSuccess) {
+		    cache->GetStore(ulNewObjectId, &ulStoreId, nullptr) == erSuccess) {
 			er = UpdateObjectSize(lpDatabase, ulStoreId, MAPI_STORE, UPDATE_ADD, ulSize);
 			if (er != erSuccess) {
 				ec_log_err("CopyObject: UpdateObjectSize(store %u) failed: %s (%x)", ulStoreId, GetMAPIErrorMessage(er), er);
@@ -7793,19 +7797,20 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		ec_log_err("CopyFolderObjects: cannot retrieve database: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
 	}
+	auto gcache = g_lpSessionManager->GetCacheManager();
+	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
+	auto sec = lpecSession->GetSecurity();
 	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: CreateAttachmentStorage failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		goto exit;
 	}
-
-	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulDestFolderId, &ulDestStoreId, NULL);
+	er = cache->GetStore(ulDestFolderId, &ulDestStoreId, nullptr);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: GetStore for %u (from cache) failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 		goto exit;
 	}
-
-	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulFolderFrom, &ulSourceStoreId, NULL);
+	er = cache->GetStore(ulFolderFrom, &ulSourceStoreId, nullptr);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: GetStore for %u (from cache) failed: %s (%x)", ulFolderFrom, GetMAPIErrorMessage(er), er);
 		goto exit;
@@ -7824,13 +7829,12 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 	}
 
 	// Quota check
-	er = lpecSession->GetSecurity()->GetStoreSize(ulDestFolderId, &llStoreSize);
+	er = sec->GetStoreSize(ulDestFolderId, &llStoreSize);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: GetStoreSize failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		goto exit;
 	}
-
-	er = lpecSession->GetSecurity()->CheckQuota(ulDestFolderId, llStoreSize, &QuotaStatus);
+	er = sec->CheckQuota(ulDestFolderId, llStoreSize, &QuotaStatus);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: CheckQuota failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		goto exit;
@@ -7958,12 +7962,12 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulDestFolderId, ulNewDestFolderId, MAPI_FOLDER);
 
 		//Update destination folder
-        g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulNewDestFolderId);
+		gcache->Update(fnevObjectModified, ulNewDestFolderId);
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulNewDestFolderId);
 
 	}
 
-	g_lpSessionManager->GetCacheManager()->GetParent(ulFolderFrom ,&ulGrandParent);
+	gcache->GetParent(ulFolderFrom ,&ulGrandParent);
 	g_lpSessionManager->NotificationCopied(MAPI_FOLDER, ulNewDestFolderId, ulDestFolderId, ulFolderFrom, ulGrandParent);
 
 	if(bCopySubFolder) {
@@ -8089,11 +8093,12 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 		    g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulDestFolderId, 0, MAPI_MESSAGE);
 
 		// Update the grandfolder of dest. folder
-		g_lpSessionManager->GetCacheManager()->GetParent(ulDestFolderId, &ulGrandParent);
+		auto gcache = g_lpSessionManager->GetCacheManager();
+		gcache->GetParent(ulDestFolderId, &ulGrandParent);
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, ulDestFolderId, MAPI_FOLDER);
 
 		//Update destination folder
-        g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulDestFolderId);
+		gcache->Update(fnevObjectModified, ulDestFolderId);
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
 
 	}
@@ -8145,7 +8150,8 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 	}
 
 	// Get source store
-	er = g_lpSessionManager->GetCacheManager()->GetStore(ulFolderId, &ulSourceStoreId, NULL);
+	auto gcache = g_lpSessionManager->GetCacheManager();
+	er = gcache->GetStore(ulFolderId, &ulSourceStoreId, nullptr);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder GetStore failed for folder id %ul: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
 		return er;
@@ -8159,7 +8165,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 	}
 
 	// Get dest store
-	er = g_lpSessionManager->GetCacheManager()->GetStore(ulDestFolderId, &ulDestStoreId, NULL);
+	er = gcache->GetStore(ulDestFolderId, &ulDestStoreId, nullptr);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder GetStore for folder %d failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 		return er;
@@ -8172,16 +8178,17 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 	}
 
 	// Check permission
-	er = lpecSession->GetSecurity()->CheckPermission(ulDestFolderId, ecSecurityCreateFolder);
+	auto sec = lpecSession->GetSecurity();
+	er = sec->CheckPermission(ulDestFolderId, ecSecurityCreateFolder);
 	if (er != erSuccess) {
 		ec_log_debug("SOAP::copyFolder copy folder (to %u) is not allowed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 		return er;
 	}
 
 	if(ulFlags & FOLDER_MOVE ) // is the folder editable?
-		er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityFolderAccess);
+		er = sec->CheckPermission(ulFolderId, ecSecurityFolderAccess);
 	else // is the folder readable
-		er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
+		er = sec->CheckPermission(ulFolderId, ecSecurityRead);
 
 	if (er != erSuccess) {
 		ec_log_debug("SOAP::copyFolder folder (%u) is not editable: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
@@ -8195,13 +8202,12 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 	}
 
 	// Get the parent id, for notification and copy
-	er = g_lpSessionManager->GetCacheManager()->GetObject(ulFolderId, &ulOldParent, NULL, &ulObjFlags, &ulSourceType);
+	er = gcache->GetObject(ulFolderId, &ulOldParent, nullptr, &ulObjFlags, &ulSourceType);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder cannot get parent folder id for %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
 		return er;
 	}
-
-	er = g_lpSessionManager->GetCacheManager()->GetObject(ulDestFolderId, NULL, NULL, NULL, &ulDestType);
+	er = gcache->GetObject(ulDestFolderId, nullptr, nullptr, nullptr, &ulDestType);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder cannot get type of destination folder (%u): %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 		return er;
@@ -8222,7 +8228,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 	}
 
 	ulParentCycle = ulDestFolderId;
-	while (g_lpSessionManager->GetCacheManager()->GetParent(ulParentCycle, &ulParentCycle) == erSuccess) {
+	while (gcache->GetParent(ulParentCycle, &ulParentCycle) == erSuccess) {
 		if(ulFolderId == ulParentCycle)
 		{
 			ec_log_debug("SOAP::copyFolder infinite loop detected for %u", ulDestFolderId);
@@ -8286,8 +8292,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		}
 
 		// Get grandParent of the old folder
-		g_lpSessionManager->GetCacheManager()->GetParent(ulOldParent, &ulOldGrandParent);
-
+		gcache->GetParent(ulOldParent, &ulOldGrandParent);
 		er = lpDatabase->Begin();
 		if (er != erSuccess) {
 			ec_log_err("SOAP::copyFolder(): cannot start transaction: %s (%x)", GetMAPIErrorMessage(er), er);
@@ -8383,12 +8388,12 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		}
 
 		// Cache update for objects
-		g_lpSessionManager->GetCacheManager()->Update(fnevObjectMoved, ulFolderId);
+		gcache->Update(fnevObjectMoved, ulFolderId);
 		// Notify that the folder has moved
 		g_lpSessionManager->NotificationMoved(MAPI_FOLDER, ulFolderId, ulDestFolderId, ulOldParent);
 
 		// Update the old folder
-		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulOldParent);
+		gcache->Update(fnevObjectModified, ulOldParent);
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, ulOldParent, ulFolderId, MAPI_FOLDER);
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulOldParent);
 
@@ -8396,12 +8401,12 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulOldGrandParent, ulOldParent, MAPI_FOLDER);
 
 		// Update the destination folder
-		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulDestFolderId);
+		gcache->Update(fnevObjectModified, ulDestFolderId);
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulDestFolderId, ulFolderId, MAPI_FOLDER);
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
 
 		// Update the destination's parent
-		g_lpSessionManager->GetCacheManager()->GetParent(ulDestFolderId, &ulGrandParent);
+		gcache->GetParent(ulDestFolderId, &ulGrandParent);
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, ulDestFolderId, MAPI_FOLDER);
 	}else {// a copy
 		er = CopyFolderObjects(soap, lpecSession, ulFolderId, ulDestFolderId, lpszNewFolderName, !!(ulFlags&COPY_SUBFOLDERS), ulSyncId);
@@ -8467,13 +8472,13 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er, entryId sStor
 	lpsReceiveFolderTable->sFolderArray.__size = 0;
 
 	i = 0;
+	auto gcache = g_lpSessionManager->GetCacheManager();
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 			ec_log_err("getReceiveFolderTable(): row or col null");
 			return KCERR_DATABASE_ERROR;
 		}
-
-		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsReceiveFolderTable->sFolderArray.__ptr[i].sEntryId);
+		er = gcache->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsReceiveFolderTable->sFolderArray.__ptr[i].sEntryId);
 		if(er != erSuccess){
 			er = erSuccess;
 			continue;
@@ -8997,12 +9002,13 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 	ptaProps.__size = i;
 
 	/* Read properties */
+	auto usrmgt = lpecSession->GetUserManagement();
 	if (ulTypeId == MAPI_ABCONT) {
-		er = lpecSession->GetUserManagement()->GetContainerProps(soap, ulId, &ptaProps, &readPropsResponse->aPropVal);
+		er = usrmgt->GetContainerProps(soap, ulId, &ptaProps, &readPropsResponse->aPropVal);
 		if (er != erSuccess)
 			return er;
 	} else {
-		er = lpecSession->GetUserManagement()->GetProps(soap, ulId, &ptaProps, &readPropsResponse->aPropVal);
+		er = usrmgt->GetProps(soap, ulId, &ptaProps, &readPropsResponse->aPropVal);
 		if (er != erSuccess)
 			return er;
 	}
@@ -9074,6 +9080,7 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 			return er;
 	}
 
+	auto usrmgt = lpecSession->GetUserManagement();
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsABResolveNames->aFlags.__ptr[i] = lpaFlags->__ptr[i];
 
@@ -9094,7 +9101,7 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 		}
 
 		/* NOTE: ECUserManagement is responsible for calling ECSecurity::IsUserObjectVisible(ulObjectId) for found objects */
-		switch (lpecSession->GetUserManagement()->SearchObjectAndSync(search, ulFlags, &ulObjectId)) {
+		switch (usrmgt->SearchObjectAndSync(search, ulFlags, &ulObjectId)) {
 		case KCERR_COLLISION:
 			ulFlag = MAPI_AMBIGUOUS;
 			break;
@@ -9110,7 +9117,7 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 		lpsABResolveNames->aFlags.__ptr[i] = ulFlag;
 
 		if(lpsABResolveNames->aFlags.__ptr[i] == MAPI_RESOLVED) {
-			er = lpecSession->GetUserManagement()->GetProps(soap, ulObjectId, lpaPropTag, &sPropValArrayDst);
+			er = usrmgt->GetProps(soap, ulObjectId, lpaPropTag, &sPropValArrayDst);
 			if(er != erSuccess)
 				return er;
 			er = MergePropValArray(soap, &lpsRowSet->__ptr[i], &sPropValArrayDst, &lpsABResolveNames->sRowSet.__ptr[i]);
@@ -9153,10 +9160,11 @@ SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId,
 		return er;
 
 	// Check permission
-	if(lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserid) != erSuccess &&
-		(lpecSession->GetSecurity()->GetUserId() != ulUserid))
+	auto sec = lpecSession->GetSecurity();
+	if (sec->IsAdminOverUserObject(ulUserid) != erSuccess &&
+	    sec->GetUserId() != ulUserid)
 		return KCERR_NO_ACCESS;
-	er = lpecSession->GetSecurity()->GetUserQuota(ulUserid, bGetUserDefault, &quotadetails);
+	er = sec->GetUserQuota(ulUserid, bGetUserDefault, &quotadetails);
 	if(er != erSuccess)
 		return er;
 	lpsQuota->sQuota.bUseDefaultQuota = quotadetails.bUseDefaultQuota;
@@ -9177,8 +9185,9 @@ SOAP_ENTRY_START(SetQuota, *result, unsigned int ulUserid, entryId sUserId, stru
 		return er;
 
 	// Check permission
-	if(lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserid) != erSuccess &&
-		(lpecSession->GetSecurity()->GetUserId() != ulUserid))
+	auto sec = lpecSession->GetSecurity();
+	if (sec->IsAdminOverUserObject(ulUserid) != erSuccess &&
+	    sec->GetUserId() != ulUserid)
 		return KCERR_NO_ACCESS;
 
 	quotadetails.bUseDefaultQuota = lpsQuota->bUseDefaultQuota;
@@ -9256,7 +9265,8 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		return KCERR_NOT_FOUND;
 
 	//Check permission
-	if (lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserid) != erSuccess)
+	auto sec = lpecSession->GetSecurity();
+	if (sec->IsAdminOverUserObject(ulUserid) != erSuccess)
 		return KCERR_NO_ACCESS;
 
 	/* Not all objectclasses support quota */
@@ -9264,7 +9274,8 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		(OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_DISTLIST) ||
 		(sExternId.objclass == CONTAINER_ADDRESSLIST))
 		return KCERR_INVALID_TYPE;
-	er = lpecSession->GetUserManagement()->GetObjectDetails(ulUserid, &details);
+	auto usrmgt = lpecSession->GetUserManagement();
+	er = usrmgt->GetObjectDetails(ulUserid, &details);
 	if (er != erSuccess)
 		return er;
 
@@ -9282,7 +9293,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 	 * in that case we should manually allocate the list so it is safe to add the user
 	 * to the list. */
 	if (ulCompanyId != 0) {
-		er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(relation, ulCompanyId, &unique_tie(lpUsers));
+		er = usrmgt->GetSubObjectsOfObjectAndSync(relation, ulCompanyId, &unique_tie(lpUsers));
 		if (er != erSuccess)
 			return er;
 	} else
@@ -9297,10 +9308,10 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		objectdetails_t systemdetails;
 
 		ulSystem = details.GetPropInt(OB_PROP_I_SYSADMIN);
-		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulSystem);
+		er = sec->IsUserObjectVisible(ulSystem);
 		if (er != erSuccess)
 			return er;
-		er = lpecSession->GetUserManagement()->GetObjectDetails(ulSystem, &systemdetails);
+		er = usrmgt->GetObjectDetails(ulSystem, &systemdetails);
 		if (er != erSuccess)
 			return er;
 
@@ -9317,7 +9328,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		if ((OBJECTCLASS_TYPE(user.GetClass()) != OBJECTTYPE_MAILUSER) ||
 			(details.GetClass() == NONACTIVE_CONTACT))
 				continue;
-		if (lpecSession->GetSecurity()->IsUserObjectVisible(user.ulId) != erSuccess)
+		if (sec->IsUserObjectVisible(user.ulId) != erSuccess)
 			continue;
 		er = GetABEntryID(user.ulId, soap, &sUserEid);
 		if (er != erSuccess)
@@ -9795,7 +9806,8 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 		return KCERR_NETWORK_ERROR;
 
 	// lookup server which contains the public
-	if (lpecSession->GetUserManagement()->GetPublicStoreDetails(&details) == erSuccess)
+	auto usrmgt = lpecSession->GetUserManagement();
+	if (usrmgt->GetPublicStoreDetails(&details) == erSuccess)
 		strPublicServer = details.GetPropString(OB_PROP_S_SERVERNAME);
 	if (ulFlags & ~(EC_SERVERDETAIL_NO_NAME | EC_SERVERDETAIL_FILEPATH |
 	    EC_SERVERDETAIL_HTTPPATH | EC_SERVERDETAIL_SSLPATH |
@@ -9810,7 +9822,7 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 		memset(lpsResponse->sServerList.__ptr, 0, szaSvrNameList.__size * sizeof *lpsResponse->sServerList.__ptr);
 		
 		for (gsoap_size_t i = 0; i < szaSvrNameList.__size; ++i) {
-			er = lpecSession->GetUserManagement()->GetServerDetails(STRIN_FIX(szaSvrNameList.__ptr[i]), &sDetails);
+			er = usrmgt->GetServerDetails(STRIN_FIX(szaSvrNameList.__ptr[i]), &sDetails);
 			if (er != erSuccess)
 				return er;
 			if (strcasecmp(sDetails.GetServerName().c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
@@ -10024,7 +10036,9 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	  ulMode = 1;
 	else if(ulFlags & SYNC_LIMITED_IMESSAGE)
 	  ulMode = 2;
-	
+
+	auto gcache = g_lpSessionManager->GetCacheManager();	
+	auto sec = lpecSession->GetSecurity();
 	USE_DATABASE();
 
 	if(ulPropTag == PR_ENTRYID) {
@@ -10087,24 +10101,19 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].ulStep = i;			
 
 		// Find the correct object
-		er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(ulPropTag), 
-																	sSourceKeyPairs.__ptr[i].sObjectKey.__size, 
-																	sSourceKeyPairs.__ptr[i].sObjectKey.__ptr, &ulObjectId);
+		er = gcache->GetObjectFromProp(PROP_ID(ulPropTag), sSourceKeyPairs.__ptr[i].sObjectKey.__size, sSourceKeyPairs.__ptr[i].sObjectKey.__ptr, &ulObjectId);
 		if(er != erSuccess) {
 		    er = erSuccess;
 			goto next_object;
         }
         
         if(sSourceKeyPairs.__ptr[i].sParentKey.__size) {
-            er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(ulPropTag), 
-                                                                        sSourceKeyPairs.__ptr[i].sParentKey.__size, 
-                                                                        sSourceKeyPairs.__ptr[i].sParentKey.__ptr, &ulParentId);
+			er = gcache->GetObjectFromProp(PROP_ID(ulPropTag), sSourceKeyPairs.__ptr[i].sParentKey.__size, sSourceKeyPairs.__ptr[i].sParentKey.__ptr, &ulParentId);
             if(er != erSuccess) {
                 er = erSuccess;
                 goto next_object;
             }
-
-            er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjectId, &ulParentCheck, NULL, &ulObjFlags, NULL);
+			er = gcache->GetObject(ulObjectId, &ulParentCheck, nullptr, &ulObjFlags, nullptr);
             if (er != erSuccess) {
                 er = erSuccess;
                 goto next_object;
@@ -10120,14 +10129,14 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 			goto next_object;
 		
 		// Check security
-		er = lpecSession->GetSecurity()->CheckPermission(ulObjectId, ecSecurityRead);
+		er = sec->CheckPermission(ulObjectId, ecSecurityRead);
 		if (er != erSuccess) {
 		    er = erSuccess;
 			goto next_object;
         }
         
 		// Get store
-		er = g_lpSessionManager->GetCacheManager()->GetStore(ulObjectId, &ulStoreId, &sGuid);
+		er = gcache->GetStore(ulObjectId, &ulStoreId, &sGuid);
 		if(er != erSuccess) {
 		    er = erSuccess;
 			goto next_object;
@@ -10552,8 +10561,9 @@ exit:
 	ROLLBACK_ON_ERROR();
 	if (er != erSuccess) {
 		// remove from cache, else we can get sync issue, with missing messages offline
-		lpecSession->GetSessionManager()->GetCacheManager()->RemoveIndexData(ulObjectId);
-		lpecSession->GetSessionManager()->GetCacheManager()->Update(fnevObjectDeleted, ulObjectId);
+		auto cache = lpecSession->GetSessionManager()->GetCacheManager();
+		cache->RemoveIndexData(ulObjectId);
+		cache->Update(fnevObjectDeleted, ulObjectId);
 	}
 }
 SOAP_ENTRY_END()
