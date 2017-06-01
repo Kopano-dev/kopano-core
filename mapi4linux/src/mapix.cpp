@@ -2443,7 +2443,7 @@ HRESULT __stdcall MAPIAdminProfiles(ULONG ulFlags, IProfAdmin **lppProfAdmin)
  * @retval		MAPI_E_INVALID_PARAMETER	No profilename or lppSession return pointer given.
  * @retval		MAPI_E_NOT_ENOUGH_MEMORY
  */
-HRESULT __stdcall MAPILogonEx(ULONG ulUIParam, const TCHAR *lpszProfileName,
+HRESULT __stdcall MAPILogonEx(ULONG_PTR ulUIParam, const TCHAR *lpszProfileName,
     const TCHAR *lpszPassword, ULONG ulFlags, IMAPISession **lppSession)
 {
 	HRESULT hr = hrSuccess;
