@@ -131,32 +131,6 @@ ECTNEF::ECTNEF(ULONG ulFlags, IMessage *lpMessage, IStream *lpStream) :
 }
 
 /**
- * ECTNEF destructor frees allocated memory while handling the TNEF
- * stream.
- */
-ECTNEF::~ECTNEF()
-{
-	for (const auto p : lstProps)
-		MAPIFreeBuffer(p);
-	for (const auto a : lstAttachments)
-		FreeAttachmentData(a);
-}
-
-/** 
- * Frees all allocated memory for attachments found in the TNEF
- * stream.
- * 
- * @param[in,out] lpTnefAtt free all data in this attachment and delete the pointer too
- */
-void ECTNEF::FreeAttachmentData(tnefattachment* lpTnefAtt)
-{
-	delete[] lpTnefAtt->data;
-	for (const auto p : lpTnefAtt->lstProps)
-		MAPIFreeBuffer(p);
-	delete lpTnefAtt;
-}
-
-/**
  * Read data from lpStream and set in memory as one large
  * property. Only used to save MAPI_E_NOT_ENOUGH_MEMORY properties
  * from m_lpMessage to a separate LPSPropValue which will be saved in
@@ -236,7 +210,7 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, const SPropTagArray *lpPropList)
 	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropTagArray> lpPropListMessage;
 	memory_ptr<SPropValue> lpPropValue;
-	LPSPropValue	lpStreamValue = NULL;
+	memory_ptr<SPropValue> lpStreamValue;
 	SizedSPropTagArray(1, sPropTagArray);
 	unsigned int	i = 0;
 	bool			fPropTagInList = false;
@@ -274,15 +248,15 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, const SPropTagArray *lpPropList)
 		sPropTagArray.aulPropTag[0] = lpPropListMessage->aulPropTag[i];
 		hr = m_lpMessage->GetProps(sPropTagArray, 0, &cValue, &~lpPropValue);
 		if (hr == hrSuccess)
-			lstProps.push_back(lpPropValue.release());
+			lstProps.push_back(std::move(lpPropValue));
 
 		object_ptr<IStream> lpStream;
 		if (hr == MAPI_W_ERRORS_RETURNED && lpPropValue != NULL &&
 		    lpPropValue->Value.err == MAPI_E_NOT_ENOUGH_MEMORY &&
 		    m_lpMessage->OpenProperty(lpPropListMessage->aulPropTag[i], &IID_IStream, 0, 0, &~lpStream) == hrSuccess) {
-			hr = StreamToPropValue(lpStream, lpPropListMessage->aulPropTag[i], &lpStreamValue);
+			hr = StreamToPropValue(lpStream, lpPropListMessage->aulPropTag[i], &~lpStreamValue);
 			if (hr == hrSuccess) {
-				lstProps.push_back(lpStreamValue);
+				lstProps.push_back(std::move(lpStreamValue));
 				lpStreamValue = NULL;
 			}
 		}
@@ -314,7 +288,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 	std::unique_ptr<char[]> szSClass;
 	// Attachments props
 	memory_ptr<SPropValue> lpProp;
-	tnefattachment* lpTnefAtt = NULL;
+	memory_ptr<tnefattachment> lpTnefAtt;
 
 	hr = HrReadDWord(m_lpStream, &ulSignature);
 	if(hr != hrSuccess)
@@ -418,11 +392,12 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		        
                 if (lpTnefAtt) {
                     if (lpTnefAtt->data || !lpTnefAtt->lstProps.empty()) // end marker previous attachment
-                        lstAttachments.push_back(lpTnefAtt);
-                    else
-                        FreeAttachmentData(lpTnefAtt);
+                        lstAttachments.push_back(std::move(lpTnefAtt));
                 }
-                lpTnefAtt = new tnefattachment;
+				hr = MAPIAllocateBuffer(sizeof(tnefattachment), &~lpTnefAtt);
+				if (hr != hrSuccess)
+					return hr;
+
                 lpTnefAtt->size = 0;
                 lpTnefAtt->data = NULL;
                 lpTnefAtt->rdata = *lpData;
@@ -442,7 +417,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 			if ((hr = MAPIAllocateMore(ulSize, lpProp, (void**)&lpProp->Value.lpszA)) != hrSuccess)
 				goto exit;
 			memcpy(lpProp->Value.lpszA, lpBuffer, ulSize);
-			lpTnefAtt->lstProps.push_back(lpProp.release());
+			lpTnefAtt->lstProps.push_back(std::move(lpProp));
 			break;
 
 		case ATT_ATTACH_META_FILE:
@@ -460,7 +435,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 				goto exit;
 			lpProp->Value.bin.cb = ulSize;
 			memcpy(lpProp->Value.bin.lpb, lpBuffer, ulSize);
-			lpTnefAtt->lstProps.push_back(lpProp.release());
+			lpTnefAtt->lstProps.push_back(std::move(lpProp));
 			break;
 
 		case ATT_ATTACH_DATA:
@@ -470,7 +445,9 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 				goto exit;
 			}
 			lpTnefAtt->size = ulSize;
-			lpTnefAtt->data = new BYTE[ulSize];
+			hr = MAPIAllocateBuffer(ulSize, &~lpTnefAtt->data);
+			if (hr != hrSuccess)
+				goto exit;
 			memcpy(lpTnefAtt->data, lpBuffer, ulSize);
 			break;
 
@@ -493,9 +470,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 exit:
 	if (lpTnefAtt) {
 		if (lpTnefAtt->data || !lpTnefAtt->lstProps.empty())	// attachment should be complete before adding
-			lstAttachments.push_back(lpTnefAtt);
-		else
-			FreeAttachmentData(lpTnefAtt);
+			lstAttachments.push_back(std::move(lpTnefAtt));
 	}
 	return hr;
 }
@@ -507,13 +482,13 @@ exit:
  * @param[in]		proplist	std::list of properties to write in the stream.
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrWritePropStream(IStream *lpStream, std::list<SPropValue *> &proplist)
+HRESULT ECTNEF::HrWritePropStream(IStream *lpStream, std::list<memory_ptr<SPropValue> > &proplist)
 {
 	HRESULT hr = HrWriteDWord(lpStream, proplist.size());
 	if(hr != hrSuccess)
 		return hr;
 
-	for (const auto p : proplist) {
+	for (const auto &p : proplist) {
 		hr = HrWriteSingleProp(lpStream, p);
 		if (hr != hrSuccess)
 			return hr;
@@ -857,11 +832,11 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
  * @return MAPI error code
  */
 HRESULT ECTNEF::HrReadPropStream(const char *lpBuffer, ULONG ulSize,
-    std::list<SPropValue *> &proplist)
+								 std::list<memory_ptr<SPropValue> > &proplist)
 {
 	ULONG ulRead = 0;
 	ULONG ulProps = 0;
-	LPSPropValue lpProp = NULL;
+	memory_ptr<SPropValue> lpProp;
 	HRESULT hr = hrSuccess;
 
 	ulProps = *reinterpret_cast<const ULONG *>(lpBuffer);
@@ -870,14 +845,14 @@ HRESULT ECTNEF::HrReadPropStream(const char *lpBuffer, ULONG ulSize,
 
 	// Loop through all the properties in the data and add them to our internal list
 	while(ulProps) {
-		hr = HrReadSingleProp(lpBuffer, ulSize, &ulRead, &lpProp);
+		hr = HrReadSingleProp(lpBuffer, ulSize, &ulRead, &~lpProp);
 		if(hr != hrSuccess)
 			break;
 
 		ulSize -= ulRead;
 		lpBuffer += ulRead;
 
-		proplist.push_back(lpProp);
+		proplist.push_back(std::move(lpProp));
 		--ulProps;
 
 		if(ulRead & 3) {
@@ -1289,8 +1264,10 @@ HRESULT ECTNEF::SetProps(ULONG cValues, LPSPropValue lpProps)
 {
 	unsigned int i = 0;
 
-	for (i = 0; i < cValues; ++i)
-		lstProps.push_back(&lpProps[i]);
+	for (i = 0; i < cValues; ++i) {
+		memory_ptr<SPropValue> val(&lpProps[i]);
+		lstProps.push_back(std::move(val));
+	}
 	return hrSuccess;
 }
 
@@ -1318,8 +1295,12 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID,
     AttachRendData sData;
 	static constexpr const SizedSPropTagArray(2, sptaTags) =
 		{2, {PR_ATTACH_METHOD, PR_RENDERING_POSITION}};
-    struct tnefattachment sTnefAttach;
-    
+	memory_ptr<tnefattachment> sTnefAttach;
+
+	hr = MAPIAllocateBuffer(sizeof(tnefattachment), &~sTnefAttach);
+	if (hr != hrSuccess)
+		return hr;
+
 	if (ulFlags != TNEF_COMPONENT_ATTACHMENT)
 		return MAPI_E_NO_SUPPORT;
 	if (this->ulFlags != TNEF_ENCODE)
@@ -1370,13 +1351,14 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID,
             if(hr != hrSuccess)
 			return hr;
         }        
-        sTnefAttach.lstProps.push_back(lpsNewProp.release());
+        sTnefAttach->lstProps.push_back(std::move(lpsNewProp));
     }
 
-    sTnefAttach.rdata = sData;
-    sTnefAttach.data = NULL;
-    sTnefAttach.size = 0;
-    lstAttachments.push_back(new tnefattachment(sTnefAttach));
+    sTnefAttach->rdata = sData;
+    sTnefAttach->data = NULL;
+    sTnefAttach->size = 0;
+
+    lstAttachments.push_back(std::move(sTnefAttach));
     return hrSuccess;
 }
 
@@ -1403,7 +1385,7 @@ HRESULT ECTNEF::Finish()
 
 	if(ulFlags == TNEF_DECODE) {
 		// Write properties to message
-		for (const auto p : lstProps) {
+		for (const auto &p : lstProps) {
 			if (PROP_ID(p->ulPropTag) == PROP_ID(PR_MESSAGE_CLASS) ||
 			    !FPropExists(m_lpMessage, p->ulPropTag) ||
 			    PROP_ID(p->ulPropTag) == PROP_ID(PR_RTF_COMPRESSED) ||
@@ -1414,7 +1396,7 @@ HRESULT ECTNEF::Finish()
 
 		}
 		// Add all found attachments to message
-		for (const auto att : lstAttachments) {
+		for (const auto &att : lstAttachments) {
 			object_ptr<IAttach> lpAttach;
 			bool has_obj = false;
 
@@ -1434,7 +1416,7 @@ HRESULT ECTNEF::Finish()
 			sProp.Value.ul = att->rdata.ulPosition;
 			lpAttach->SetProps(1, &sProp, NULL);
             
-			for (const auto p : att->lstProps) {
+			for (const auto &p : att->lstProps) {
 				// must not set PR_ATTACH_NUM by ourselves
 				if (PROP_ID(p->ulPropTag) == PROP_ID(PR_ATTACH_NUM))
 					continue;
@@ -1547,7 +1529,7 @@ HRESULT ECTNEF::Finish()
 			return hr;
 		
 		// Write attachments	
-		for (const auto att : lstAttachments) {
+		for (const auto &att : lstAttachments) {
 			/* Write attachment start block */
 			hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(&att->rdata), sizeof(AttachRendData), 0x00069002, 2);
             if(hr != hrSuccess)
@@ -1555,7 +1537,7 @@ HRESULT ECTNEF::Finish()
                 
             // Write attachment data block if available
 			if (att->data != NULL) {
-				hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(att->data), att->size, 0x0006800f, 2);
+				hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(att->data.get()), att->size, 0x0006800f, 2);
                 if(hr != hrSuccess)
 					return hr;
             }
