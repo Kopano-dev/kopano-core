@@ -75,7 +75,7 @@ HRESULT ECMSProvider::Shutdown(ULONG * lpulFlags)
 }
 
 HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
-    LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
+    const TCHAR *lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
     ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity,
     LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError,
     LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
@@ -190,7 +190,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 //FIXME: What todo with offline??
 //TODO: online/offline state???
 HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
-    LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
+    const TCHAR *lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
     ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity,
     LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon,
     LPMDB *lppMDB)
@@ -366,7 +366,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, Shutdown, (ULONG *, lpulFlag
 
 /* has 12 args, no macro deals with it atm */
 HRESULT ECMSProvider::xMSProvider::Logon(LPMAPISUP lpMAPISup,
-    ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
+    ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID,
     LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
     ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity,
     LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
@@ -376,7 +376,7 @@ HRESULT ECMSProvider::xMSProvider::Logon(LPMAPISUP lpMAPISup,
 }
 
 HRESULT ECMSProvider::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup,
-    ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
+    ULONG_PTR ulUIParam, const TCHAR * lpszProfileName, ULONG cbEntryID,
     LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
     ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity,
     LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)

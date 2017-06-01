@@ -83,7 +83,7 @@ HRESULT ECMSProviderSwitch::Shutdown(ULONG * lpulFlags)
 }
 
 HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
-    LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
+    const TCHAR *lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
     ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity,
     LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError,
     LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
@@ -260,7 +260,7 @@ exit:
 }
 
 HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
-    ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
+    ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID,
     LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
     ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError,
     LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
@@ -330,7 +330,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, QueryInterface, (REFII
 DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, Shutdown, (ULONG *, lpulFlags))
 
 HRESULT ECMSProviderSwitch::xMSProvider::Logon(LPMAPISUP lpMAPISup,
-    ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
+    ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID,
     LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
     ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity,
     LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
@@ -340,7 +340,7 @@ HRESULT ECMSProviderSwitch::xMSProvider::Logon(LPMAPISUP lpMAPISup,
 }
 
 HRESULT ECMSProviderSwitch::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup,
-    ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
+    ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID,
     LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
     ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity,
     LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)

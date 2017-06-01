@@ -1569,7 +1569,8 @@ HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::stri
 	LPABLOGON lpABLogon = NULL;
 	abEntry entry;
 
-	hr = newProvider->Logon(m_lpMAPISup, 0, (TCHAR*)profilename.c_str(), 0, &cbSecurity, &~lpSecurity, &~lpMAPIError, &lpABLogon);
+	hr = newProvider->Logon(m_lpMAPISup, 0, reinterpret_cast<const TCHAR *>(profilename.c_str()),
+	     0, &cbSecurity, &~lpSecurity, &~lpMAPIError, &lpABLogon);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::addProvider(): logon fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;

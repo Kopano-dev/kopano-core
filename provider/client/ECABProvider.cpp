@@ -68,7 +68,7 @@ HRESULT ECABProvider::Shutdown(ULONG * lpulFlags)
 }
 
 HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
-    LPTSTR lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
+    const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
     LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon)
 {
 	HRESULT			hr = hrSuccess;
@@ -116,4 +116,4 @@ DEF_HRMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, QueryInterface, (REFIID, ref
 DEF_ULONGMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, Shutdown, (ULONG *, lpulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, Logon, (LPMAPISUP, lpMAPISup), (ULONG_PTR, ulUIParam), (LPTSTR, lpszProfileName), (ULONG, ulFlags), (ULONG *, lpulcbSecurity), (LPBYTE *, lppbSecurity), (LPMAPIERROR *, lppMAPIError), (LPABLOGON *, lppABLogon))
+DEF_HRMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, Logon, (LPMAPISUP, lpMAPISup), (ULONG_PTR, ulUIParam), (const TCHAR *, lpszProfileName), (ULONG, ulFlags), (ULONG *, lpulcbSecurity), (LPBYTE *, lppbSecurity), (LPMAPIERROR *, lppMAPIError), (LPABLOGON *, lppABLogon))
