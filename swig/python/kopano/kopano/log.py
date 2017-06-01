@@ -115,57 +115,37 @@ class QueueHandler(logging.Handler):
 
 # log-to-queue listener copied from Vinay Sajip
 class QueueListener(object):
-    _sentinel = None
-
     def __init__(self, queue, *handlers):
         self.queue = queue
         self.handlers = handlers
         self._stop = threading.Event()
         self._thread = None
 
-    def dequeue(self, block):
-        return self.queue.get(block)
-
     def start(self):
         self._thread = t = threading.Thread(target=self._monitor)
         t.setDaemon(True)
         t.start()
 
-    def prepare(self, record):
-        return record
-
     def handle(self, record):
-        record = self.prepare(record)
         for handler in self.handlers:
             handler.handle(record)
 
     def _monitor(self):
         q = self.queue
         has_task_done = hasattr(q, 'task_done')
-        while not self._stop.isSet():
-            try:
-                record = self.dequeue(True)
-                if record is self._sentinel:
-                    break
-                self.handle(record)
-                if has_task_done:
-                    q.task_done()
-            except (Empty, EOFError):
-                pass
-        # There might still be records in the queue.
+
         while True:
             try:
-                record = self.dequeue(False)
-                if record is self._sentinel:
-                    break
+                record = self.queue.get(True, 0.01) # block, timeout 0.01 sec
                 self.handle(record)
                 if has_task_done:
                     q.task_done()
+
             except (Empty, EOFError):
-                break
+                if self._stop.isSet():
+                    break
 
     def stop(self):
         self._stop.set()
-        self.queue.put_nowait(self._sentinel)
         self._thread.join()
         self._thread = None
