@@ -80,7 +80,9 @@ void ECHierarchyIteratorBase::increment()
 	}
 
 	assert(m_ulRowIndex < m_ptrRows.size());
-	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb), &m_ptrCurrent.iid(), m_ulFlags, &ulType, &~m_ptrCurrent);
+	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb,
+	     reinterpret_cast<ENTRYID *>(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb),
+	     &iid_of(m_ptrCurrent), m_ulFlags, &ulType, &~m_ptrCurrent);
 	if (hr != hrSuccess)
 		throw HrException(hr);
 	if (++m_ulRowIndex == m_ptrRows.size())

@@ -139,7 +139,7 @@ public:
 			char *buffer;
 			StreamPtr ptrStream;
 
-			if (self->QueryInterface(ptrStream.iid(), &~ptrStream) == hrSuccess) {
+			if (self->QueryInterface(iid_of(ptrStream), &~ptrStream) == hrSuccess) {
 				const LARGE_INTEGER liMove = {0, 0};
 				ULARGE_INTEGER liPosition;
 				STATSTG statbuf;

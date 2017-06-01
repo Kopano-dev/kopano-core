@@ -39,7 +39,7 @@ public:
 private:
 	typedef std::list<SBinary *> BinaryList;
 	typedef BinaryList::iterator	BinaryListIterator;
-	typedef KCHL::object_ptr<ECMsgStore, IID_ECMsgStore> ECMsgStorePtr;
+	typedef KCHL::object_ptr<ECMsgStore> ECMsgStorePtr;
 	typedef std::vector<BYTE>		EntryID;
 	typedef std::map<EntryID, ECMsgStorePtr>			MsgStoreMap;
 

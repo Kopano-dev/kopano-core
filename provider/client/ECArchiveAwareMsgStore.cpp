@@ -64,7 +64,7 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 	BinaryList			lstItemEIDs;
 	BinaryListIterator	iterStoreEID;
 	BinaryListIterator	iterIterEID;
-	object_ptr<ECMessage, IID_ECMessage> ptrArchiveMessage;
+	object_ptr<ECMessage> ptrArchiveMessage;
 
 	if (lpPropStoreEIDs == NULL || 
 		lpPropItemEIDs == NULL || 
@@ -151,7 +151,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	bool bIsPeer = false;
 	object_ptr<WSTransport> ptrTransport;
 	ECMsgStorePtr ptrArchiveStore;
-	object_ptr<IECPropStorage, IID_IECPropStorage> ptrPropStorage;
+	object_ptr<IECPropStorage> ptrPropStorage;
 
 	hr = QueryInterface(IID_ECMsgStoreOnline, &~ptrUnknown);
 	if (hr != hrSuccess)

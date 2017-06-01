@@ -17,6 +17,7 @@
 #include <new>
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/mapi_ptr.h>
 #include "ECExchangeExportChanges.h"
@@ -733,15 +734,24 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				ZLOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
 				goto exit;
 			}
-			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &m_iidMessage, MAPI_MODIFY, &ulObjType, &~lpSourceMessage);
+			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, MAPI_MODIFY, &ulObjType, &~lpSourceMessage);
 			if(hr == MAPI_E_NOT_FOUND){
 				hr = hrSuccess;
 				goto next;
 			}
 			if(hr != hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s", bin2hex(cbEntryID, lpEntryID.get()).c_str());
+				ZLOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s: %s", bin2hex(cbEntryID, lpEntryID.get()).c_str(), GetMAPIErrorMessage(hr));
 				goto exit;
 			}
+			/* Check if requested interface exists */
+			void *throwaway;
+			hr = lpSourceMessage->QueryInterface(m_iidMessage, &throwaway);
+			if (hr != hrSuccess) {
+				ZLOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s: %s", bin2hex(cbEntryID, lpEntryID.get()).c_str(), GetMAPIErrorMessage(hr));
+				goto exit;
+			}
+			lpSourceMessage->Release(); /* give back one ref taken by QI */
+
 			hr = lpSourceMessage->GetProps(sptImportProps, 0, &ulCount, &~lpPropArray);
 			if(FAILED(hr)) {
 				ZLOG_DEBUG(m_lpLogger, "Unable to get properties from source message");

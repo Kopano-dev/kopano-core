@@ -192,7 +192,7 @@ template<typename _T, typename _Deleter = default_delete> class memory_ptr {
  * Works a bit like shared_ptr, except that the refcounting is in the
  * underlying object (_T) rather than this class.
  */
-template<typename _T, REFIID _R = GUID_NULL> class object_ptr {
+template<typename _T> class object_ptr {
 	public:
 	typedef _T value_type;
 	typedef _T *pointer;
@@ -222,49 +222,8 @@ template<typename _T, REFIID _R = GUID_NULL> class object_ptr {
 	_T *operator->(void) const noexcept { return _m_ptr; }
 	_T *get(void) const noexcept { return _m_ptr; }
 	operator _T *(void) const noexcept { return _m_ptr; }
-	static constexpr const IID &iid(void) { return _R; }
-
-	template<typename _U> HRESULT QueryInterface(_U &result)
-	{
-		if (_m_ptr == nullptr)
-			return MAPI_E_NOT_INITIALIZED;
-		typename _U::pointer newobj = nullptr;
-		HRESULT hr = _m_ptr->QueryInterface(result.iid(), reinterpret_cast<void **>(&newobj));
-		if (hr == hrSuccess)
-			result.reset(newobj, false);
-		/*
-		 * Here we check if it makes sense to try to get the requested
-		 * interface through the PR_EC_OBJECT object. It only makes
-		 * sense to attempt this if the current type (value_type) is
-		 * derived from IMAPIProp. If it is higher than IMAPIProp, no
-		 * OpenProperty exists. If it is derived from
-		 * ECMAPIProp/ECGenericProp, there is no need to try the
-		 * workaround, because we can be sure it is not wrapped by
-		 * MAPI.
-		 *
-		 * The Conversion<IMAPIProp,value_type>::exists is some
-		 * template magic that checks at compile time. We could check
-		 * at run time with a dynamic_cast, but we know the current
-		 * type at compile time, so why not check it at compile time?
-		 */
-		else if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED &&
-		    std::is_base_of<IMAPIProp, value_type>::value) {
-			KCHL::memory_ptr<SPropValue> pv;
-			if (HrGetOneProp(_m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
-				return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
-			auto unk = reinterpret_cast<IECUnknown *>(pv->Value.lpszA);
-			hr = unk->QueryInterface(result.iid(), reinterpret_cast<void **>(&newobj));
-			if (hr == hrSuccess)
-				result.reset(newobj, false);
-		}
-		return hr;
-	}
-	template<typename _P> _P as(void)
-	{
-		_P tmp = nullptr;
-		QueryInterface(tmp);
-		return tmp;
-	}
+	template<typename _U> HRESULT QueryInterface(_U &);
+	template<typename _P> _P as();
 
 	/* Modifiers */
 	_T *release(void) noexcept
@@ -333,8 +292,8 @@ swap(memory_ptr<_T> &__x, memory_ptr<_T> &__y) noexcept
 	__x.swap(__y);
 }
 
-template<typename _T, REFIID _R = GUID_NULL> inline void
-swap(object_ptr<_T, _R> &__x, object_ptr<_T, _R> &__y) noexcept
+template<typename _T> inline void
+swap(object_ptr<_T> &__x, object_ptr<_T> &__y) noexcept
 {
 	__x.swap(__y);
 }
@@ -343,12 +302,60 @@ swap(object_ptr<_T, _R> &__x, object_ptr<_T, _R> &__y) noexcept
 
 namespace KC {
 
-template<typename _U, REFIID _R> static inline constexpr const IID &
-iid_of(const KCHL::object_ptr<_U, _R> &)
+template<typename _U> static inline constexpr const IID &
+iid_of(const KCHL::object_ptr<_U> &)
 {
 	return iid_of(static_cast<const _U *>(nullptr));
 }
 
 } /* namespace KC */
+
+namespace KCHL {
+
+template<typename _T > template<typename _U>
+HRESULT object_ptr<_T>::QueryInterface(_U &result)
+{
+	if (_m_ptr == nullptr)
+		return MAPI_E_NOT_INITIALIZED;
+	typename _U::pointer newobj = nullptr;
+	HRESULT hr = _m_ptr->QueryInterface(iid_of(result), reinterpret_cast<void **>(&newobj));
+	if (hr == hrSuccess)
+		result.reset(newobj, false);
+	/*
+	 * Here we check if it makes sense to try to get the requested
+	 * interface through the PR_EC_OBJECT object. It only makes
+	 * sense to attempt this if the current type (value_type) is
+	 * derived from IMAPIProp. If it is higher than IMAPIProp, no
+	 * OpenProperty exists. If it is derived from
+	 * ECMAPIProp/ECGenericProp, there is no need to try the
+	 * workaround, because we can be sure it is not wrapped by
+	 * MAPI.
+	 *
+	 * The Conversion<IMAPIProp,value_type>::exists is some
+	 * template magic that checks at compile time. We could check
+	 * at run time with a dynamic_cast, but we know the current
+	 * type at compile time, so why not check it at compile time?
+	 */
+	else if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED &&
+	    std::is_base_of<IMAPIProp, value_type>::value) {
+		KCHL::memory_ptr<SPropValue> pv;
+		if (HrGetOneProp(_m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
+			return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
+		auto unk = reinterpret_cast<IECUnknown *>(pv->Value.lpszA);
+		hr = unk->QueryInterface(iid_of(newobj), reinterpret_cast<void **>(&newobj));
+		if (hr == hrSuccess)
+			result.reset(newobj, false);
+	}
+	return hr;
+}
+
+template<typename _T> template<typename _P> _P object_ptr<_T>::as(void)
+{
+	_P tmp = nullptr;
+	QueryInterface(tmp);
+	return tmp;
+}
+
+} /* namespace KCHL */
 
 #endif /* _KCHL_MEMORY_HPP */

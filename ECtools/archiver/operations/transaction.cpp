@@ -76,14 +76,14 @@ HRESULT Transaction::PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr 
 		else {
 			ULONG ulType;
 
-			hrTmp = lpSession->OpenEntry(obj.objectEntry.sItemEntryId.size(), obj.objectEntry.sItemEntryId, &ptrMessage.iid(), 0, &ulType, &~ptrMessage);
+			hrTmp = lpSession->OpenEntry(obj.objectEntry.sItemEntryId.size(), obj.objectEntry.sItemEntryId, &iid_of(ptrMessage), 0, &ulType, &~ptrMessage);
 			if (hrTmp == MAPI_E_NOT_FOUND) {
 				MsgStorePtr ptrStore;
 
 				// Try to open the message on the store
 				hrTmp = ptrSession->OpenStore(obj.objectEntry.sStoreEntryId, &~ptrStore);
 				if (hrTmp == hrSuccess)
-					hrTmp = ptrStore->OpenEntry(obj.objectEntry.sItemEntryId.size(), obj.objectEntry.sItemEntryId, &ptrMessage.iid(), 0, &ulType, &~ptrMessage);
+					hrTmp = ptrStore->OpenEntry(obj.objectEntry.sItemEntryId.size(), obj.objectEntry.sItemEntryId, &iid_of(ptrMessage), 0, &ulType, &~ptrMessage);
 			}
 			if (hrTmp == hrSuccess)
 				hrTmp = Util::HrDeleteMessage(lpSession, ptrMessage);
@@ -131,7 +131,9 @@ HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 	hr = lpMessage->GetProps(sptaMsgProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrSession->GetMAPISession()->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb), &entry.ptrFolder.iid(), MAPI_MODIFY, &ulType, &~entry.ptrFolder);
+	hr = ptrSession->GetMAPISession()->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb,
+	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb),
+	     &iid_of(entry.ptrFolder), MAPI_MODIFY, &ulType, &~entry.ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
 

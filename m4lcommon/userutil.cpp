@@ -42,7 +42,7 @@ using namespace std;
 
 namespace KC {
 
-typedef KCHL::object_ptr<IECLicense, IID_IECLicense> ECLicensePtr;
+typedef KCHL::object_ptr<IECLicense> ECLicensePtr;
 
 class servername _kc_final {
 public:
@@ -165,7 +165,9 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 			MAPIPropPtr ptrUser;
 			SPropValuePtr ptrAccount;
 
-			hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb), &ptrUser.iid(), 0, &ulType, &~ptrUser);
+			hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb,
+			        reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb),
+			        &iid_of(ptrUser), 0, &ulType, &~ptrUser);
 			if (hrTmp != hrSuccess)
 				continue;
 			hrTmp = HrGetOneProp(ptrUser, prAccount, &~ptrAccount);

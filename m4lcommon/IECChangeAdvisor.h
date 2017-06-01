@@ -18,6 +18,8 @@
 #ifndef IECCHANGEADVISOR_H
 #define IECCHANGEADVISOR_H
 
+#include <kopano/platform.h>
+#include <kopano/ECGuid.h>
 #include "IECChangeAdviseSink.h"
 
 namespace KC {
@@ -98,5 +100,7 @@ public:
 };
 
 } /* namespace */
+
+IID_OF2(KC::IECChangeAdvisor, IECChangeAdvisor);
 
 #endif

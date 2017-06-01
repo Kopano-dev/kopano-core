@@ -385,7 +385,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 		HRESULT hrTmp = hrSuccess;
 		MAPIFolderPtr ptrRoot;
 
-		hrTmp = m_lpFolder->OpenEntry(0, nullptr, &ptrRoot.iid(), MAPI_BEST_ACCESS | MAPI_DEFERRED_ERRORS, &ulObjType, &~ptrRoot);
+		hrTmp = m_lpFolder->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_BEST_ACCESS | MAPI_DEFERRED_ERRORS, &ulObjType, &~ptrRoot);
 		if (hrTmp != hrSuccess)
 			return hr;
 		hrTmp = ptrRoot->SetProps(1, lpPropAdditionalREN, NULL);

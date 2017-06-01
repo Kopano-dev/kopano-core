@@ -22,7 +22,9 @@
 #ifndef IECSERVICEADMIN
 #define IECSERVICEADMIN
 
+#include <kopano/platform.h>
 #include <kopano/ECDefs.h>
+#include <kopano/ECGuid.h>
 
 namespace KC {
 
@@ -111,5 +113,7 @@ public:
 };
 
 } /* namespace */
+
+IID_OF2(KC::IECServiceAdmin, IECServiceAdmin);
 
 #endif // #ifndef IECSERVICEADMIN

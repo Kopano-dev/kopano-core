@@ -2435,7 +2435,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	    lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE | MDB_WRITE)) ||
 	    lppMsgStore == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = lpMsgStore->QueryInterface(ptrEMS.iid(), &~ptrEMS);
+	HRESULT hr = lpMsgStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
 	if (ulFlags & MAPI_UNICODE) {
@@ -2447,7 +2447,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	}
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &ptrMsgStore.iid(), ulFlags & MDB_WRITE, &~ptrMsgStore);
+	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &iid_of(ptrMsgStore), ulFlags & MDB_WRITE, &~ptrMsgStore);
 	if (hr != hrSuccess)
 		return hr;
 	return ptrMsgStore->QueryInterface(IID_IMsgStore,

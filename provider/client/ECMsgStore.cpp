@@ -62,7 +62,7 @@
 #include <kopano/mapi_ptr.h>
 typedef KCHL::memory_ptr<char> MAPIStringPtr;
 typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
-typedef KCHL::object_ptr<ECMessage, IID_ECMessage> ECMessagePtr;
+typedef KCHL::object_ptr<ECMessage> ECMessagePtr;
 
 #include <kopano/charset/convstring.h>
 
@@ -906,7 +906,7 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 			return hr;
 	}
 
-	hr = lpMessage->QueryInterface(ptrECMessage.iid(), &~ptrECMessage);
+	hr = lpMessage->QueryInterface(iid_of(ptrECMessage), &~ptrECMessage);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrECMessage->IsReadOnly())
