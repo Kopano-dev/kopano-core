@@ -307,9 +307,8 @@ HRESULT ZCMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(ECUnknown, this);
 	REGISTER_INTERFACE2(IMAPIProp, this);
 	REGISTER_INTERFACE2(IUnknown, this);
-	if (m_ulObject == MAPI_MAILUSER) {
+	if (m_ulObject == MAPI_MAILUSER)
 		REGISTER_INTERFACE2(IMailUser, this);
-	}
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

@@ -854,11 +854,9 @@ HRESULT ECTNEF::HrReadPropStream(const char *lpBuffer, ULONG ulSize,
 
 		proplist.push_back(std::move(lpProp));
 		--ulProps;
-
-		if(ulRead & 3) {
+		if (ulRead & 3)
 			// Skip padding
 			lpBuffer += 4 - (ulRead & 3);
-		}
 	}
 
 	return hr;

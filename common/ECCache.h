@@ -244,10 +244,8 @@ private:
 	
 	ECRESULT UpdateCache(float ratio)
 	{
-		if( Size() > MaxSize()) {
+		if (Size() > MaxSize())
 			PurgeCache(ratio);
-		}
-
 		return erSuccess;
 	}
 

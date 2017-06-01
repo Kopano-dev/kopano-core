@@ -241,22 +241,19 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
 
 	ulock_normal biglock(m_hMutex);
 	if (!fNonBlock) {
-		while(m_lstNotifs.empty() && !m_bExit && (timeout == 0 || GetTimeOfDay() < now)) {
+		while (m_lstNotifs.empty() && !m_bExit && (timeout == 0 || GetTimeOfDay() < now))
 			if (timeout > 0)
 				m_hCond.wait_for(biglock, std::chrono::milliseconds(timeout));
 			else
 				m_hCond.wait(biglock);
-		}
 	}
     
 	memory_ptr<NOTIFICATION> lpNotifications;
 	hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * m_lstNotifs.size(), &~lpNotifications);
-	if (hr == hrSuccess) {
-		for (auto const &n : m_lstNotifs) {
+	if (hr == hrSuccess)
+		for (auto const &n : m_lstNotifs)
 			if (CopyNotification(n, lpNotifications, &lpNotifications[cNotifs]) == 0)
 				++cNotifs;
-		}
-	}
 
 	m_lstNotifs.clear();
 	biglock.unlock();
