@@ -84,14 +84,14 @@ HRESULT ECRestriction::CopyProp(SPropValue *lpPropSrc, void *lpBase,
     ULONG ulFlags, SPropValue **lppPropDst)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropDst = NULL;
+	memory_ptr<SPropValue> lpPropDst;
 
 	if (lpPropSrc == nullptr || lppPropDst == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpBase == NULL)
-		hr = MAPIAllocateBuffer(sizeof *lpPropDst, (LPVOID*)&lpPropDst);
+		hr = MAPIAllocateBuffer(sizeof *lpPropDst, &~lpPropDst);
 	else
-		hr = MAPIAllocateMore(sizeof *lpPropDst, lpBase, (LPVOID*)&lpPropDst);
+		hr = MAPIAllocateMore(sizeof *lpPropDst, lpBase, &~lpPropDst);
 	if (hr != hrSuccess)
 		return hr;
 	if (ulFlags & Shallow)
@@ -99,14 +99,9 @@ HRESULT ECRestriction::CopyProp(SPropValue *lpPropSrc, void *lpBase,
 	else
 		hr = Util::HrCopyProperty(lpPropDst, lpPropSrc, lpBase ? lpBase : lpPropDst);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-	*lppPropDst = lpPropDst;
-	lpPropDst = NULL;
-
-exit:
-	if (lpBase == nullptr)
-		MAPIFreeBuffer(lpPropDst);
+	*lppPropDst = lpPropDst.release();
 
 	return hr;
 }
@@ -124,14 +119,14 @@ HRESULT ECRestriction::CopyPropArray(ULONG cValues, SPropValue *lpPropSrc,
     void *lpBase, ULONG ulFlags, SPropValue **lppPropDst)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropDst = NULL;
+	memory_ptr<SPropValue> lpPropDst;
 
 	if (lpPropSrc == nullptr || lppPropDst == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpBase == NULL)
-		hr = MAPIAllocateBuffer(cValues * sizeof *lpPropDst, (LPVOID*)&lpPropDst);
+		hr = MAPIAllocateBuffer(cValues * sizeof *lpPropDst, &~lpPropDst);
 	else
-		hr = MAPIAllocateMore(cValues * sizeof *lpPropDst, lpBase, (LPVOID*)&lpPropDst);
+		hr = MAPIAllocateMore(cValues * sizeof *lpPropDst, lpBase, &~lpPropDst);
 	if (hr != hrSuccess)
 		return hr;
 	if (ulFlags & Shallow)
@@ -139,14 +134,9 @@ HRESULT ECRestriction::CopyPropArray(ULONG cValues, SPropValue *lpPropSrc,
 	else
 		hr = Util::HrCopyPropertyArray(lpPropSrc, cValues, lpPropDst, lpBase ? lpBase : lpPropDst);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-	*lppPropDst = lpPropDst;
-	lpPropDst = NULL;
-
-exit:
-	if (lpBase == nullptr)
-		MAPIFreeBuffer(lpPropDst);
+	*lppPropDst = lpPropDst.release();
 
 	return hr;
 }
