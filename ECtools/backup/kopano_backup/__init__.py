@@ -22,7 +22,26 @@ import time
 from xml.etree import ElementTree
 import zlib
 
-from MAPI.Util import *
+from MAPI import (
+    PT_UNICODE, PT_ERROR, MAPI_UNICODE, KEEP_OPEN_READWRITE, MAPI_MODIFY,
+    ROW_ADD,
+)
+
+from MAPI.Defs import (
+    PROP_TYPE, CHANGE_PROP_TYPE, HrGetOneProp,
+)
+
+from MAPI.Struct import (
+    MAPIErrorNotFound, SPropValue, ROWENTRY,
+)
+
+from MAPI.Tags import (
+    PR_EC_BACKUP_SOURCE_KEY, PR_EC_WEBACCESS_SETTINGS_JSON, PR_EC_OUTOFOFFICE,
+    PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG, PR_EC_OUTOFOFFICE_FROM,
+    PR_EC_OUTOFOFFICE_UNTIL, IID_IExchangeModifyTable, PR_CONTAINER_CLASS_W,
+    PR_SOURCE_KEY, PR_ACL_TABLE, PR_STORE_RECORD_KEY, PR_RULES_DATA,
+    PR_FREEBUSY_ENTRYIDS, PR_SCHDINFO_DELEGATE_ENTRYIDS, PT_TSTRING,
+)
 
 import kopano
 from kopano import log_exc
