@@ -269,7 +269,9 @@ done:
     }
 
 	/** free ssl error data **/
-	ERR_remove_state(0);
+	#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		ERR_remove_state(0);
+	#endif
 
     // We're detached, so we should clean up ourselves
 	if (lpPrio == NULL)
