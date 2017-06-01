@@ -25,6 +25,9 @@
 #include "WSTransport.h"
 #include "ECNotifyClient.h"
 #include <set>
+#include <kopano/memory.hpp>
+
+using namespace KCHL;
 
 /*
  * This is the superclass which contains common code for the Hierarchy and Contents
@@ -80,17 +83,16 @@ private:
 	std::recursive_mutex m_hLock;
 	WSTableView			*lpTableOps;
 	ECNotifyClient		*lpNotifyClient;
-	LPSPropTagArray		lpsPropTags;
-	LPSSortOrderSet		lpsSortOrderSet;
+	memory_ptr<SSortOrderSet> lpsSortOrderSet;
 	ULONG				ulFlags; // Currently unused
 	std::set<ULONG>		m_ulConnectionList;
 	std::recursive_mutex m_hMutexConnectionList;
 	
 	// Deferred calls
 	ULONG				m_ulDeferredFlags;
-	LPSPropTagArray 	m_lpSetColumns;
-	LPSRestriction		m_lpRestrict;
-	LPSSortOrderSet		m_lpSortTable;
+	memory_ptr<SPropTagArray> m_lpSetColumns;
+	memory_ptr<SRestriction> m_lpRestrict;
+	memory_ptr<SSortOrderSet> m_lpSortTable;
 	ULONG				m_ulRowCount;
 	ULONG				m_ulFlags;		// Flags from queryrows
 	

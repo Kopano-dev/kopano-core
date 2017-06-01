@@ -25,6 +25,9 @@
 #include <mapidefs.h>
 #include <inetmapi/options.h>
 #include <kopano/charset/convert.h>
+#include <kopano/memory.hpp>
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -63,7 +66,6 @@ class VMIMEToMAPI _kc_final {
 public:
 	VMIMEToMAPI();
 	VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt);
-	virtual	~VMIMEToMAPI();
 
 	HRESULT convertVMIMEToMAPI(const std::string &input, IMessage *lpMessage);
 	HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure);
@@ -71,7 +73,7 @@ public:
 private:
 	delivery_options m_dopt;
 	LPADRBOOK m_lpAdrBook;
-	IABContainer *m_lpDefaultDir = nullptr;
+	object_ptr<IABContainer> m_lpDefaultDir;
 	sMailState m_mailState;
 	convert_context m_converter;
 

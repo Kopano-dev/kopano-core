@@ -40,14 +40,9 @@ ECMAPITable::ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, UL
 	if(this->lpNotifyClient)
 		this->lpNotifyClient->AddRef();
 
-	this->lpsSortOrderSet = NULL;
-	this->lpsPropTags = NULL;
 	this->ulFlags = ulFlags;
 	this->lpTableOps = NULL;
 	
-	m_lpSetColumns = NULL;
-	m_lpRestrict = NULL;
-	m_lpSortTable = NULL;
 	m_ulRowCount = 0;
 	m_ulFlags = 0;
 	m_ulDeferredFlags = 0;
@@ -67,12 +62,9 @@ HRESULT ECMAPITable::FlushDeferred(LPSRowSet *lppRowSet)
 	hr = lpTableOps->HrMulti(m_ulDeferredFlags, m_lpSetColumns, m_lpRestrict, m_lpSortTable, m_ulRowCount, m_ulFlags, lppRowSet);
 
 	// Reset deferred items
-	MAPIFreeBuffer(m_lpSetColumns);
-	m_lpSetColumns = NULL;
-	MAPIFreeBuffer(m_lpRestrict);
-	m_lpRestrict = NULL;
-	MAPIFreeBuffer(m_lpSortTable);
-	m_lpSortTable = NULL;
+	m_lpSetColumns.reset();
+	m_lpRestrict.reset();
+	m_lpSortTable.reset();
 	m_ulRowCount = 0;
 	m_ulFlags = 0;
 	m_ulDeferredFlags = 0;
@@ -96,16 +88,11 @@ ECMAPITable::~ECMAPITable()
 		Unadvise(*iterMapIntDel);
 	}
 
-	delete[] this->lpsPropTags;
-	MAPIFreeBuffer(m_lpRestrict);
-	MAPIFreeBuffer(m_lpSetColumns);
-	MAPIFreeBuffer(m_lpSortTable);
 	if(lpNotifyClient)
 		lpNotifyClient->Release();
 
 	if(lpTableOps)
 		lpTableOps->Release();	// closes the table on the server too
-	delete[] lpsSortOrderSet;
 }
 
 HRESULT ECMAPITable::Create(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags, ECMAPITable **lppECMAPITable)
@@ -189,15 +176,8 @@ HRESULT ECMAPITable::SetColumns(const SPropTagArray *lpPropTagArray,
 		return MAPI_E_INVALID_PARAMETER;
 
 	scoped_rlock lock(m_hLock);
-	delete[] this->lpsPropTags;
-	lpsPropTags = (LPSPropTagArray) new BYTE[CbNewSPropTagArray(lpPropTagArray->cValues)];
 
-	lpsPropTags->cValues = lpPropTagArray->cValues;
-	memcpy(&lpsPropTags->aulPropTag, &lpPropTagArray->aulPropTag, lpPropTagArray->cValues * sizeof(ULONG));
-	MAPIFreeBuffer(m_lpSetColumns);
-	m_lpSetColumns = NULL;
-
-	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpPropTagArray->cValues), (void **)&m_lpSetColumns);
+	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpPropTagArray->cValues), &~m_lpSetColumns);
 	if (hr != hrSuccess)
 		return hr;
         
@@ -295,9 +275,8 @@ HRESULT ECMAPITable::Restrict(LPSRestriction lpRestriction, ULONG ulFlags)
 	HRESULT hr = hrSuccess;
 
 	scoped_rlock lock(m_hLock);
-	MAPIFreeBuffer(m_lpRestrict);
     if(lpRestriction) {
-        if ((hr = MAPIAllocateBuffer(sizeof(SRestriction), (void **)&m_lpRestrict)) != hrSuccess)
+        if ((hr = MAPIAllocateBuffer(sizeof(SRestriction), &~m_lpRestrict)) != hrSuccess)
 			return hr;
         
         hr = Util::HrCopySRestriction(m_lpRestrict, lpRestriction, m_lpRestrict);
@@ -306,7 +285,7 @@ HRESULT ECMAPITable::Restrict(LPSRestriction lpRestriction, ULONG ulFlags)
     } else {
 		// setting the restriction to NULL is not the same as not setting the restriction at all
 		m_ulDeferredFlags |= TABLE_MULTI_CLEAR_RESTRICTION;
-        m_lpRestrict = NULL;
+        m_lpRestrict.reset();
     }
 	if (!(ulFlags & TBL_BATCH))
 		hr = FlushDeferred();
@@ -341,13 +320,12 @@ HRESULT ECMAPITable::SortTable(const SSortOrderSet *lpSortCriteria,
 
 	scoped_rlock lock(m_hLock);
 
-	delete[] lpsSortOrderSet;
-	lpsSortOrderSet = (LPSSortOrderSet) new BYTE[CbSSortOrderSet(lpSortCriteria)];
+	HRESULT hr = MAPIAllocateBuffer(CbSSortOrderSet(lpSortCriteria), &~lpsSortOrderSet);
+	if (hr != hrSuccess)
+		return hr;
 
 	memcpy(lpsSortOrderSet, lpSortCriteria, CbSSortOrderSet(lpSortCriteria));
-	MAPIFreeBuffer(m_lpSortTable);
-	HRESULT hr = MAPIAllocateBuffer(CbSSortOrderSet(lpSortCriteria),
-		reinterpret_cast<void **>(&m_lpSortTable));
+	hr = MAPIAllocateBuffer(CbSSortOrderSet(lpSortCriteria), &~m_lpSortTable);
 	if (hr != hrSuccess)
 		return hr;
     memcpy(m_lpSortTable, lpSortCriteria, CbSSortOrderSet(lpSortCriteria));
@@ -359,7 +337,7 @@ HRESULT ECMAPITable::SortTable(const SSortOrderSet *lpSortCriteria,
 
 HRESULT ECMAPITable::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 {
-	LPSSortOrderSet lpSortCriteria = NULL;
+	memory_ptr<SSortOrderSet> lpSortCriteria;
 	scoped_rlock lock(m_hLock);
 
 	HRESULT hr = FlushDeferred();
@@ -367,9 +345,9 @@ HRESULT ECMAPITable::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 		return hr;
 
 	if(lpsSortOrderSet)
-		hr = ECAllocateBuffer(CbSSortOrderSet(lpsSortOrderSet), (void **) &lpSortCriteria);
+		hr = ECAllocateBuffer(CbSSortOrderSet(lpsSortOrderSet), &~lpSortCriteria);
 	else
-		hr = ECAllocateBuffer(CbNewSSortOrderSet(0), (void **) &lpSortCriteria);
+		hr = ECAllocateBuffer(CbNewSSortOrderSet(0), &~lpSortCriteria);
 
 	if(hr != hrSuccess)
 		return hr;
@@ -378,7 +356,7 @@ HRESULT ECMAPITable::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 	else
 		memset(lpSortCriteria, 0, CbNewSSortOrderSet(0));
 
-	*lppSortCriteria = lpSortCriteria;
+	*lppSortCriteria = lpSortCriteria.release();
 	return hr;
 }
 
