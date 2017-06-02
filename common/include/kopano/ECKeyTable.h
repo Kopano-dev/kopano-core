@@ -77,10 +77,10 @@ struct ObjectTableKeyCompare {
 	}
 };
 
-bool operator!=(const sObjectTableKey& a, const sObjectTableKey& b);
-extern _kc_export bool operator==(const sObjectTableKey &, const sObjectTableKey &);
-extern _kc_export bool operator<(const sObjectTableKey &, const sObjectTableKey &);
-bool operator>(const sObjectTableKey& a, const sObjectTableKey& b);
+extern bool operator!=(const sObjectTableKey &, const sObjectTableKey &) noexcept;
+extern _kc_export bool operator==(const sObjectTableKey &, const sObjectTableKey &) noexcept;
+extern _kc_export bool operator<(const sObjectTableKey &, const sObjectTableKey &) noexcept;
+extern bool operator>(const sObjectTableKey &, const sObjectTableKey &) noexcept;
 
 typedef std::map<sObjectTableKey, unsigned int, ObjectTableKeyCompare>  ECObjectTableMap;
 typedef std::list<sObjectTableKey> ECObjectTableList;

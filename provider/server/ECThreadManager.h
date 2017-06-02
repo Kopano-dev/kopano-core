@@ -41,15 +41,14 @@ struct WORKITEM {
 struct ACTIVESOCKET _kc_final {
     struct soap *soap;
     time_t ulLastActivity;
-    
-    bool operator < (const ACTIVESOCKET &a) const { return a.soap->socket < this->soap->socket; };
+
+	bool operator<(const ACTIVESOCKET &a) const noexcept { return a.soap->socket < this->soap->socket; };
 };
 
 class FindSocket _kc_final {
 public:
 	FindSocket(SOAP_SOCKET s) { this->s = s; };
-
-	bool operator()(const ACTIVESOCKET &a) const { return a.soap->socket == s; }
+	bool operator()(const ACTIVESOCKET &a) const noexcept { return a.soap->socket == s; }
 private:
 	SOAP_SOCKET s;
 };
@@ -57,8 +56,7 @@ private:
 class FindListenSocket _kc_final {
 public:
 	FindListenSocket(SOAP_SOCKET s) { this->s = s; };
-
-	bool operator()(struct soap *soap) const { return soap->socket == s; }
+	bool operator()(struct soap *soap) const noexcept { return soap->socket == s; }
 private:
 	SOAP_SOCKET s;
 };

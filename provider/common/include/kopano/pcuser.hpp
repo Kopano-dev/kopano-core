@@ -35,16 +35,16 @@ struct objectid_t {
 		id(xid), objclass(xoc)
 	{}
 	explicit objectid_t(const std::string &str);
-
-	bool operator==(const objectid_t &x) const;
-	bool operator!=(const objectid_t &x) const;
+	bool operator==(const objectid_t &x) const noexcept;
+	bool operator!=(const objectid_t &x) const noexcept;
 	std::string tostring() const;
 
 	std::string id;
 	objectclass_t objclass = OBJECTCLASS_UNKNOWN;
 };
 
-inline bool operator < (const objectid_t &a, const objectid_t &b) {
+inline bool operator<(const objectid_t &a, const objectid_t &b) noexcept
+{
 	if (a.objclass < b.objclass)
 		return true;
 	if ((a.objclass == b.objclass) && a.id < b.id)

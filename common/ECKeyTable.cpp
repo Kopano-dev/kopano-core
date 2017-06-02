@@ -24,23 +24,23 @@
 
 namespace KC {
 
-bool operator!=(const sObjectTableKey& a, const sObjectTableKey& b)
+bool operator!=(const sObjectTableKey &a, const sObjectTableKey &b) noexcept
 {
 	return !(a.ulObjId==b.ulObjId && a.ulOrderId == b.ulOrderId);
 }
 
-bool operator==(const sObjectTableKey& a, const sObjectTableKey& b)
+bool operator==(const sObjectTableKey &a, const sObjectTableKey &b) noexcept
 {
 	return (a.ulObjId==b.ulObjId && a.ulOrderId == b.ulOrderId);
 }
 
-bool operator<(const sObjectTableKey& a, const sObjectTableKey& b)
+bool operator<(const sObjectTableKey &a, const sObjectTableKey &b) noexcept
 {
 
 	return a.ulObjId < b.ulObjId || (a.ulObjId==b.ulObjId && a.ulOrderId < b.ulOrderId);
 }
 
-bool operator>(const sObjectTableKey& a, const sObjectTableKey& b)
+bool operator>(const sObjectTableKey &a, const sObjectTableKey &b) noexcept
 {
 	return a.ulObjId > b.ulObjId || (a.ulObjId==b.ulObjId && a.ulOrderId > b.ulOrderId);
 }

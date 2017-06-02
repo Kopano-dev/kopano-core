@@ -56,12 +56,12 @@ objectid_t::objectid_t(const std::string &str)
 	}
 }
 
-bool objectid_t::operator==(const objectid_t &x) const
+bool objectid_t::operator==(const objectid_t &x) const noexcept
 {
 	return this->objclass == x.objclass && this->id == x.id;
 }
 
-bool objectid_t::operator!=(const objectid_t &x) const
+bool objectid_t::operator!=(const objectid_t &x) const noexcept
 {
 	return this->objclass != x.objclass || this->id != x.id;
 }

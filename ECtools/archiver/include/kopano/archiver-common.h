@@ -194,7 +194,7 @@ public:
 	 * @param[in,out]	other
 	 *						The other entryid to swap content with.
 	 */
-	_kc_hidden void swap(entryid_t &other)
+	_kc_hidden void swap(entryid_t &other) noexcept
 	{
 		std::swap(m_vEntryId, other.m_vEntryId);
 	}
@@ -426,7 +426,8 @@ public:
 	 * @param[in,out]	other
 	 *						The other entryid to swap content with.
 	 */
-	void swap(abentryid_t &other) {
+	void swap(abentryid_t &other) noexcept
+	{
 		std::swap(m_vEntryId, other.m_vEntryId);
 	}
 	

@@ -48,10 +48,10 @@ class _kc_export DB_RESULT _kc_final {
 	~DB_RESULT(void);
 	DB_RESULT &operator=(DB_RESULT &&o);
 	operator bool(void) const { return m_res != nullptr; }
-	bool operator==(std::nullptr_t) const { return m_res == nullptr; }
-	bool operator!=(std::nullptr_t) const { return m_res != nullptr; }
-	void *get(void) const { return m_res; }
-	void *release(void)
+	bool operator==(std::nullptr_t) const noexcept { return m_res == nullptr; }
+	bool operator!=(std::nullptr_t) const noexcept { return m_res != nullptr; }
+	void *get(void) const noexcept { return m_res; }
+	void *release(void) noexcept
 	{
 		void *p = m_res;
 		m_res = nullptr;

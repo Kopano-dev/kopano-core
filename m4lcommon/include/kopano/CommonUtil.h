@@ -36,8 +36,8 @@
 #define CLIENT_VERSION_LATEST			CLIENT_VERSION_OLK2010 /* UPDATE ME */
 
 /* darn, no sane place because of depend include on mapidefs.h */
-extern _kc_export bool operator==(const SBinary &, const SBinary &);
-bool operator <(const SBinary &a, const SBinary &b);
+extern _kc_export bool operator==(const SBinary &, const SBinary &) noexcept;
+extern bool operator<(const SBinary &, const SBinary &) noexcept;
 
 namespace KC {
 

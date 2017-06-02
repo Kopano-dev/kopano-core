@@ -105,7 +105,7 @@ public:
 
 class ECsIndexObject _kc_final : public ECsCacheEntry {
 public:
-	inline bool operator==(const ECsIndexObject &other) const
+	inline bool operator==(const ECsIndexObject &other) const noexcept
 	{
 		if (ulObjId == other.ulObjId && ulTag == other.ulTag)
 			return true;
@@ -113,7 +113,7 @@ public:
 		return false;
 	}
 
-	inline bool operator<(const ECsIndexObject &other) const
+	inline bool operator<(const ECsIndexObject &other) const noexcept
 	{
 		if(ulObjId < other.ulObjId)
 			return true;
@@ -161,7 +161,7 @@ public:
     }
 
 	// @todo check this function, is this really ok?
-	inline bool operator<(const ECsIndexProp &other) const
+	inline bool operator<(const ECsIndexProp &other) const noexcept
 	{
 
 		if(cbData < other.cbData)
@@ -182,7 +182,7 @@ public:
 		return false;
 	}
 
-	inline bool operator==(const ECsIndexProp &other) const
+	inline bool operator==(const ECsIndexProp &other) const noexcept
 	{
 
 		if(cbData != other.cbData || ulTag != other.ulTag)
@@ -391,7 +391,7 @@ struct ECsSortKeyKey {
 };
 
 struct lessindexobjectkey {
-	bool operator()(const ECsIndexObject& a, const ECsIndexObject& b) const
+	bool operator()(const ECsIndexObject &a, const ECsIndexObject &b) const noexcept
 	{
 		if(a.ulObjId < b.ulObjId)
 			return true;
@@ -403,7 +403,7 @@ struct lessindexobjectkey {
 
 };
 
-inline unsigned int IPRSHash(const ECsIndexProp& _Keyval1)
+inline unsigned int IPRSHash(const ECsIndexProp &_Keyval1) noexcept
 {
 	unsigned int b    = 378551;
 	unsigned int a    = 63689;
@@ -424,14 +424,15 @@ namespace std {
 	template<>
 	struct hash<ECsIndexProp> {
 		public:
-			size_t operator() (const ECsIndexProp &value) const { return IPRSHash(value); }
+		size_t operator()(const ECsIndexProp &value) const noexcept { return IPRSHash(value); }
 	};
 
 	// hash function for type ECsIndexObject
 	template<>
 	struct hash<ECsIndexObject> {
 		public:
-			size_t operator() (const ECsIndexObject &value) const {
+		size_t operator()(const ECsIndexObject &value) const noexcept
+		{
 					hash<unsigned int> hasher;
 					// @TODO check the hash function!
 					return hasher(value.ulObjId * value.ulTag ) ;
