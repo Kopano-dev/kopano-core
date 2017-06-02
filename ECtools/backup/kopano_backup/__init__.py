@@ -287,9 +287,9 @@ class FolderImporter:
     def delete(self, item, flags): # XXX batch as well, 'updating' cache?
         """ deleted item from 'items' and 'index' databases """
 
-        with log_exc(self.log, self.stats),\
-             closing(dbopen(self.folder_path+'/items')) as db_items,\
-             closing(dbopen(self.folder_path+'/index')) as db_index:
+        with log_exc(self.log, self.stats):
+         with closing(dbopen(self.folder_path+'/items')) as db_items:
+          with closing(dbopen(self.folder_path+'/index')) as db_index:
 
             self.log.debug('folder %s: deleted document with sourcekey %s', self.folder.sourcekey, item.sourcekey)
 
@@ -308,11 +308,12 @@ class FolderImporter:
 
         t0 = time.time()
         with closing(dbopen(self.folder_path+'/items')) as item_db:
-            with closing(dbopen(self.folder_path+'/index')) as index_db:
-                for sourcekey, data in self.item_updates:
-                    item_db[sourcekey] = data
-                for sourcekey, idx in self.index_updates:
-                    index_db[sourcekey] = idx
+         with closing(dbopen(self.folder_path+'/index')) as index_db:
+
+            for sourcekey, data in self.item_updates:
+                item_db[sourcekey] = data
+            for sourcekey, idx in self.index_updates:
+                index_db[sourcekey] = idx
 
         self.log.debug('commit took %.2f seconds (%d items)', time.time()-t0, len(self.item_updates))
         self.reset_cache()
@@ -494,24 +495,24 @@ class Service(kopano.Service):
                 orig_dir = data_path+'/'+orig_sk_dir[both_sk]
 
                 # now merge new data
-                with closing(dbopen(orig_dir+'/items')) as orig_db_items, \
-                     closing(dbopen(orig_dir+'/index')) as orig_db_index, \
-                     closing(dbopen(folder_dir+'/items')) as diff_db_items, \
-                     closing(dbopen(folder_dir+'/index')) as diff_db_index:
+                with closing(dbopen(orig_dir+'/items')) as orig_db_items:
+                 with closing(dbopen(orig_dir+'/index')) as orig_db_index:
+                  with closing(dbopen(folder_dir+'/items')) as diff_db_items:
+                   with closing(dbopen(folder_dir+'/index')) as diff_db_index:
 
-                     if diff_db_index: # XXX check higher if file exists
-                         self.log.debug("merging '%s' (%d updates)", fpath, len(diff_db_index))
+                    if diff_db_index: # XXX check higher if file exists
+                        self.log.debug("merging '%s' (%d updates)", fpath, len(diff_db_index))
 
-                         for key, value in diff_db_index.items():
-                             if key in orig_db_index:
-                                 idx = pickle.loads(orig_db_index[key])
-                                 idx.update(pickle.loads(value)) # possibly only update 'backup_deleted' (differential)
-                             else:
-                                 idx = pickle.loads(value)
-                             orig_db_index[key] = pickle.dumps(idx)
+                        for key, value in diff_db_index.items():
+                            if key in orig_db_index:
+                                idx = pickle.loads(orig_db_index[key])
+                                idx.update(pickle.loads(value)) # possibly only update 'backup_deleted' (differential)
+                            else:
+                                idx = pickle.loads(value)
+                            orig_db_index[key] = pickle.dumps(idx)
 
-                             if key in diff_db_items:
-                                 orig_db_items[key] = diff_db_items[key] # differential may contain pure delete (no item)
+                            if key in diff_db_items:
+                                orig_db_items[key] = diff_db_items[key] # differential may contain pure delete (no item)
 
                 _copy_folder(folder_dir, orig_dir, keep_db=True)
 
