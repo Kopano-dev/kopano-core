@@ -112,7 +112,7 @@ void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 	fclose(fp);
 }
 
-bool ECConfigCheck::isDirty()
+bool ECConfigCheck::isDirty() const
 {
 	if (m_bDirty)
 		cerr << "Validation of " << m_lpszName << " failed: file could not be read (" << m_lpszConfigFile << ")" << endl;

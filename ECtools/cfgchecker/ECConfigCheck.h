@@ -58,7 +58,7 @@ public:
 	/* Must be overwritten by subclass */
 	virtual void loadChecks() = 0;
 
-	bool isDirty();
+	bool isDirty() const;
 	void setHosted(bool hosted);
 	void setMulti(bool multi);
 	void validate();
