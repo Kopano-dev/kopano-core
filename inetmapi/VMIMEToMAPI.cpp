@@ -1616,11 +1616,11 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 
 	HRESULT hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~pAtt);
 	if (hr != hrSuccess)
-		goto next;
+		return;
 	hr = pAtt->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0,
 	     MAPI_CREATE | MAPI_MODIFY, &~lpNewMessage);
 	if (hr != hrSuccess)
-		goto next;
+		return;
 
 	// handle message-in-message, save current state variables
 	savedState = m_mailState;
@@ -1633,7 +1633,7 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 	m_mailState = savedState;
 
 	if (hr != hrSuccess)
-		goto next;
+		return;
 	if (HrGetOneProp(lpNewMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
 		// Set PR_ATTACH_FILENAME of attachment to message subject, (WARNING: abuse of lpSubject variable)
 		lpSubject->ulPropTag = PR_DISPLAY_NAME_W;
@@ -1646,9 +1646,6 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 
 	lpNewMessage->SaveChanges(0);
 	pAtt->SaveChanges(0);
-
- next:
-	;
 }
 
 HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,

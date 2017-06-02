@@ -816,20 +816,17 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		hr = abe.lpABLogon->OpenEntry(0, nullptr, &IID_IABContainer, 0,
 		     &ulObjType, &~lpABContainer);
 		if (hr != hrSuccess)
-			goto next_container;
+			continue;
 		hr = lpABContainer->GetHierarchyTable(ulFlags, &~lpABHierarchy);
 		if (hr != hrSuccess)
-			goto next_container;
+			continue;
 		hr = lpABHierarchy->QueryColumns(TBL_ALL_COLUMNS, &~lpPropArray);
 		if (hr != hrSuccess)
-			goto next_container;
+			continue;
 
 		std::copy(lpPropArray->aulPropTag, lpPropArray->aulPropTag + lpPropArray->cValues, std::inserter(stProps, stProps.begin()));
 		lpABHierarchy->AddRef();
 		lHierarchies.push_back(lpABHierarchy);
-
-	next_container:
-		;
 	}
 
 	// remove key row

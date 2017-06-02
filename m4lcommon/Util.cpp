@@ -2626,23 +2626,23 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 		auto lpAttachNum = PCpropFindProp(lpRows->aRow[i].lpProps, lpRows->aRow[i].cValues, PR_ATTACH_NUM);
 		if (!lpAttachNum) {
 			bPartial = true;
-			goto next_attach;
+			continue;
 		}
 		hr = lpSrc->OpenAttach(lpAttachNum->Value.ul, NULL, 0, &~lpSrcAttach);
 		if (hr != hrSuccess) {
 			bPartial = true;
-			goto next_attach;
+			continue;
 		}
 		hr = lpDest->CreateAttach(NULL, 0, &ulAttachNr, &~lpDestAttach);
 		if (hr != hrSuccess) {
 			bPartial = true;
-			goto next_attach;
+			continue;
 		}
 
 		hr = CopyAttachmentProps(lpSrcAttach, lpDestAttach);
 		if (hr != hrSuccess) {
 			bPartial = true;
-			goto next_attach;
+			continue;
 		}
 
 		/*
@@ -2654,8 +2654,6 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 		hr = lpDestAttach->SaveChanges(0);
 		if (hr != hrSuccess)
 			return hr;
-next_attach:
-		;
 	}
 
 	if (bPartial)

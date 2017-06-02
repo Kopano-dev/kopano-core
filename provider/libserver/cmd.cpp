@@ -10096,42 +10096,42 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		er = gcache->GetObjectFromProp(PROP_ID(ulPropTag), sSourceKeyPairs.__ptr[i].sObjectKey.__size, sSourceKeyPairs.__ptr[i].sObjectKey.__ptr, &ulObjectId);
 		if(er != erSuccess) {
 		    er = erSuccess;
-			goto next_object;
+			continue;
         }
         
         if(sSourceKeyPairs.__ptr[i].sParentKey.__size) {
 			er = gcache->GetObjectFromProp(PROP_ID(ulPropTag), sSourceKeyPairs.__ptr[i].sParentKey.__size, sSourceKeyPairs.__ptr[i].sParentKey.__ptr, &ulParentId);
             if(er != erSuccess) {
                 er = erSuccess;
-                goto next_object;
+				continue;
             }
 			er = gcache->GetObject(ulObjectId, &ulParentCheck, nullptr, &ulObjFlags, nullptr);
             if (er != erSuccess) {
                 er = erSuccess;
-                goto next_object;
+				continue;
             }
             
             if (ulParentId != ulParentCheck) {
                 assert(false);
-                goto next_object;
+				continue;
             }
         }
         		
 		if ((ulObjFlags & MSGFLAG_DELETED) != (ulFlags & MSGFLAG_DELETED))
-			goto next_object;
+			continue;
 		
 		// Check security
 		er = sec->CheckPermission(ulObjectId, ecSecurityRead);
 		if (er != erSuccess) {
 		    er = erSuccess;
-			goto next_object;
+			continue;
         }
         
 		// Get store
 		er = gcache->GetStore(ulObjectId, &ulStoreId, &sGuid);
 		if(er != erSuccess) {
 		    er = erSuccess;
-			goto next_object;
+			continue;
         }
         
 
@@ -10157,8 +10157,6 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		++ulObjCnt;
 		// Remember the object ID since we need it later
 		rows.push_back({ulObjectId, 0});
-next_object:
-		;
 	}
 	lpsResponse->sMsgStreams.__size = ulObjCnt;
                     
