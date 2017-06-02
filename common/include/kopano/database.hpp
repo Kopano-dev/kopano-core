@@ -46,11 +46,7 @@ class _kc_export DB_RESULT _kc_final {
 	DB_RESULT(KDatabase *d, void *r) : m_res(r), m_db(d) {}
 	DB_RESULT(DB_RESULT &&o) = default;
 	~DB_RESULT(void);
-	void operator=(DB_RESULT &&o)
-	{
-		std::swap(m_res, o.m_res);
-		std::swap(m_db, o.m_db);
-	}
+	DB_RESULT &operator=(DB_RESULT &&o);
 	operator bool(void) const { return m_res != nullptr; }
 	bool operator==(std::nullptr_t) const { return m_res == nullptr; }
 	bool operator!=(std::nullptr_t) const { return m_res != nullptr; }

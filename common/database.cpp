@@ -38,6 +38,19 @@ DB_RESULT::~DB_RESULT(void)
 	m_res = nullptr;
 }
 
+DB_RESULT &DB_RESULT::operator=(DB_RESULT &&o)
+{
+	if (m_res != nullptr) {
+		assert(m_db != nullptr);
+		m_db->FreeResult_internal(m_res);
+	}
+	m_res = o.m_res;
+	m_db = o.m_db;
+	o.m_res = nullptr;
+	o.m_db = nullptr;
+	return *this;
+}
+
 size_t DB_RESULT::get_num_rows(void) const
 {
 	return mysql_num_rows(static_cast<MYSQL_RES *>(m_res));
