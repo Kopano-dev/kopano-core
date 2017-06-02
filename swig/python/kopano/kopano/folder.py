@@ -93,7 +93,10 @@ class Folder(Base):
         try:
             self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
         except MAPIErrorNotFound:
-            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
+            try:
+                self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
+            except MAPIErrorNotFound:
+                raise NotFoundError("cannot open folder with entryid '%s'" % _hex(self._entryid)) # XXX check too late??
         except MAPIErrorNoAccess: # XXX XXX
             self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
 
@@ -122,7 +125,7 @@ class Folder(Base):
         if self.entryid != self.store.root.entryid:
             try:
                 return Folder(self.store, _hex(self.prop(PR_PARENT_ENTRYID).value))
-            except NotFoundError: # XXX: Should not happen
+            except NotFoundError:
                 pass
 
     @property
@@ -647,7 +650,7 @@ class Folder(Base):
         if self.primary_store:
             try:
                 return self.primary_store.folder(entryid=codecs.encode(entryid, 'hex'))
-            except MAPIErrorNotFound:
+            except NotFoundError:
                 pass
 
     @property

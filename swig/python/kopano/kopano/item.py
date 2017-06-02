@@ -364,7 +364,7 @@ class Item(Base):
             return self._folder
         try:
             return _folder.Folder(self.store, _hex(HrGetOneProp(self.mapiobj, PR_PARENT_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
