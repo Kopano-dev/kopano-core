@@ -119,21 +119,6 @@ public:
 	_kc_hidden ULONG countDaysOfMonth(time_t date);
 	_kc_hidden ULONG DaysTillMonth(time_t date, ULONG month);
 	_kc_hidden std::list<time_t> getModifiedOccurrences(void);
-
-	/* TODO: */
-/*
-	_kc_hidden HRESULT setDeletedOccurrence(time_t);
-	_kc_hidden HRESULT removeDeletedOccurrence(time_t);
-	_kc_hidden std::list<time_t> getDeletedOccurrences(void);
-	_kc_hidden HRESULT getChangedOccurrence(time_t, RecurrenceState::Exception *);
-	_kc_hidden HRESULT setChangedOccurrence(RecurrenceState::Exception);
-	_kc_hidden HRESULT removeChangedOccurrence(time_t);
-	_kc_hidden std::list<RecurrenceState::Exception> getChangedOccurrences(void);
-	_kc_hidden std::list<time_t> getExceptions(void);
-	_kc_hidden bool isOccurrence(time_t);
-	_kc_hidden bool isRuleOccurrence(time_t);
-	_kc_hidden bool isAfter(time_t);
-*/
 	time_t calcStartDate();
 	time_t calcEndDate();
 	ULONG calcCount();
@@ -163,11 +148,6 @@ private:
 	std::vector<std::wstring> vExceptionsSubject;
 	std::vector<std::wstring> vExceptionsLocation;
 
-/*
-	std::list<time_t> exceptions;
-	std::list<time_t> deleted_occurrences;	
-	std::list<RecurrenceState::Exception> changed_occurrences;
-*/
 	_kc_hidden ULONG calcBits(ULONG x);
 	_kc_hidden bool CheckAddValidOccr(time_t now, time_t start, time_t end, TIMEZONE_STRUCT, ULONG busy_status, OccrInfo **occrinfoall, ULONG *nvals);
 };
