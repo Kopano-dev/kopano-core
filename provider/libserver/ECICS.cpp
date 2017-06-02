@@ -337,7 +337,8 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			
 		key.ulObjId = ulObjId;
 		key.ulOrderId = 0;
-		lpSession->GetSessionManager()->GetCacheManager()->SetCell(&key, PR_PREDECESSOR_CHANGE_LIST, &sProp);
+		auto cache = lpSession->GetSessionManager()->GetCacheManager();
+		cache->SetCell(&key, PR_PREDECESSOR_CHANGE_LIST, &sProp);
 
 		sProp.ulPropTag = PR_CHANGE_KEY;
 		sProp.__union = SOAP_UNION_propValData_bin;
@@ -350,7 +351,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			return er;
 		key.ulObjId = ulObjId;
 		key.ulOrderId = 0;
-		lpSession->GetSessionManager()->GetCacheManager()->SetCell(&key, PR_CHANGE_KEY, &sProp);
+		cache->SetCell(&key, PR_CHANGE_KEY, &sProp);
 		if (lpstrChangeKey != nullptr)
 			lpstrChangeKey->assign(szChangeKey, sizeof(szChangeKey));
 		if (lpstrChangeList != nullptr)
@@ -472,6 +473,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	std::unique_ptr<ECGetContentChangesHelper> lpHelper;
 	
 	ec_log(EC_LOGLEVEL_ICS, "GetChanges(): sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
+	auto gcache = g_lpSessionManager->GetCacheManager();
 
     // Get database object
 	auto er = lpSession->GetDatabase(&lpDatabase);
@@ -555,7 +557,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		sFolderSourceKey = SOURCEKEY(lpDBLen[1], lpDBRow[1]);
 
         if(!sFolderSourceKey.empty()) {
-            er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sFolderSourceKey.size(), sFolderSourceKey, &ulFolderId);
+			er = gcache->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sFolderSourceKey.size(), sFolderSourceKey, &ulFolderId);
             if(er != erSuccess)
                 goto exit;
         } else {
@@ -660,7 +662,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			if(ulChangeId != 0){
 				std::unique_ptr<unsigned char[], sfree_delete> lpSourceKeyData;
-				if (folder_id != 0 && g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), folder_id, nullptr, &cbSourceKeyData, &unique_tie(lpSourceKeyData)) != erSuccess)
+				if (folder_id != 0 && gcache->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), folder_id, nullptr, &cbSourceKeyData, &unique_tie(lpSourceKeyData)) != erSuccess)
 					continue; // Item is hard deleted?
 
 				// Search folder changed folders
@@ -938,6 +940,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
             i=0;
                 
+			auto usrmgt = lpSession->GetUserManagement();
             while(1) {
                 objectid_t id;
                 unsigned int ulType;
@@ -961,7 +964,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                     goto exit;
 
                 lpChanges->__ptr[i].ulChangeId = ulMaxChange;
-                er = lpSession->GetUserManagement()->CreateABEntryID(soap,
+				er = usrmgt->CreateABEntryID(soap,
                      bAcceptABEID ? 1 : 0, atoui(lpDBRow[0]), ulType, &id,
                      &lpChanges->__ptr[i].sSourceKey.__size,
                      reinterpret_cast<ABEID **>(&lpChanges->__ptr[i].sSourceKey.__ptr));

@@ -214,6 +214,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 	sObjectTableKey		sRowItem;
 
 	entryId				sEntryId;
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 	ulock_rec biglock(m_hLock);
 
 	ECRESULT er = Populate();
@@ -257,8 +258,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 	{
 		sEntryId.__ptr = lpsRestrict->lpProp->lpProp->Value.bin->__ptr;
 		sEntryId.__size = lpsRestrict->lpProp->lpProp->Value.bin->__size;
-
-		er = lpSession->GetSessionManager()->GetCacheManager()->GetObjectFromEntryId(&sEntryId, &sRowItem.ulObjId);
+		er = cache->GetObjectFromEntryId(&sEntryId, &sRowItem.ulObjId);
 		if(er != erSuccess)
 			goto exit;
 
@@ -299,7 +299,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 		assert(lpRowSet->__size == static_cast<gsoap_size_t>(ecRowList.size()));
 		for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
 			// Match the row
-			er = MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], lpsRestrict, lpSubResults, m_locale, &fMatch);
+			er = MatchRowRestrict(cache, &lpRowSet->__ptr[i], lpsRestrict, lpSubResults, m_locale, &fMatch);
 			if(er != erSuccess)
 				goto exit;
 
@@ -939,6 +939,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 		}
 
 		// Send all this data to the internal key table
+		auto cache = lpSession->GetSessionManager()->GetCacheManager();
 		for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
 			lpCategory = NULL;
 
@@ -951,8 +952,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 
 			// Match the row with the restriction, if any
 			if(lpsRestrict) {
-				MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], lpsRestrict, lpSubResults, m_locale, &fMatch);
-
+				MatchRowRestrict(cache, &lpRowSet->__ptr[i], lpsRestrict, lpSubResults, m_locale, &fMatch);
 				if(fMatch == false) {
 					// this row isn't in the table, as it does not match the restrict criteria. Remove it as if it had
 					// been deleted if it was already in the table.

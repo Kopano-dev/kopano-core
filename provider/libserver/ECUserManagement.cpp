@@ -303,6 +303,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 	if (er != erSuccess)
 		return er;
 
+	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
 	for (const auto &sig : lstSignatures) {
 		auto iterExternLocal = mapExternToLocal.find(sig.id);
 		if (iterExternLocal == mapExternToLocal.cend())
@@ -312,7 +313,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 
 		// Check if the cache contains the details or if we are going to request
 		// it from the plugin.
-		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetUserDetails(ulObjectId, &details);
+		er = cache->GetUserDetails(ulObjectId, &details);
 		if (er != erSuccess) {
 			lstExternIds.push_back(sig.id);
 			er = erSuccess;
@@ -358,8 +359,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 		else
 			lpDetails->push_back({ulObjectId, ext_det.second});
 
-		// Update cache
-		m_lpSession->GetSessionManager()->GetCacheManager()->SetUserDetails(ulObjectId, &ext_det.second);
+		cache->SetUserDetails(ulObjectId, &ext_det.second);
 	}
 	return erSuccess;
 }
@@ -1152,7 +1152,8 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 	if (er != erSuccess)
 		return er;
 
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetUserDetails(ulId, &detailscached);
+	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
+	er = cache->GetUserDetails(ulId, &detailscached);
 	if (er == erSuccess) {
 		// @todo should compare signature, and see if we need new details for this user
 		er = UpdateUserDetailsToClient(&detailscached);
@@ -1186,8 +1187,7 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 	/* Update cache so we don't have to bug the plugin until the data has changed.
 	 * Note that we don't care if the update succeeded, if it fails we will retry
 	 * when the user details are requested for a second time. */
-	m_lpSession->GetSessionManager()->GetCacheManager()->SetUserDetails(ulId, details.get());
-
+	cache->SetUserDetails(ulId, details.get());
 	if (! IsInternalObject(ulId)) {
 		er = UpdateUserDetailsToClient(details.get());
 		if (er != erSuccess)
@@ -1419,7 +1419,9 @@ ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetail
 		return er;
 	}
 
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetQuota(ulId, bGetUserDefault, lpDetails);
+	auto sesmgr = m_lpSession->GetSessionManager();
+	auto cache = sesmgr->GetCacheManager();
+	er = cache->GetQuota(ulId, bGetUserDefault, lpDetails);
 	if (er == erSuccess)
 		return erSuccess; /* Cache contained requested information, we're done. */
 
@@ -1431,7 +1433,7 @@ ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetail
 	if (er != erSuccess)
 		return er;
 
-	if ((userid.objclass == CONTAINER_COMPANY && !m_lpSession->GetSessionManager()->IsHostedSupported()) ||
+	if ((userid.objclass == CONTAINER_COMPANY && !sesmgr->IsHostedSupported()) ||
 	    (userid.objclass != CONTAINER_COMPANY && bGetUserDefault))
 		return KCERR_NO_SUPPORT;
 
@@ -1448,8 +1450,7 @@ ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetail
 	/* Update cache so we don't have to bug the plugin until the data has changed.
 	 * Note that we don't care if the update succeeded, if it fails we will retry
 	 * when the quota is requested for a second time. */
-	m_lpSession->GetSessionManager()->GetCacheManager()->SetQuota(ulId, bGetUserDefault, details);
-
+	cache->SetQuota(ulId, bGetUserDefault, details);
 	*lpDetails = std::move(details);
 	return erSuccess;
 }
@@ -1645,7 +1646,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 	objectdetails_t details;
 	UserPlugin *lpPlugin = NULL;
 	string signature;
-
+	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
 	auto er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if (er != erSuccess)
 		goto exit;
@@ -1676,7 +1677,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 		}
 		
 		// See if the item data is cached
-		if (m_lpSession->GetSessionManager()->GetCacheManager()->GetUserDetails(row.ulObjId, &mapAllObjectDetails[externid]) != erSuccess) {
+		if (cache->GetUserDetails(row.ulObjId, &mapAllObjectDetails[externid]) != erSuccess) {
 			// Item needs to be retrieved from the plugin
 			lstObjects.push_back(externid);
 			// remove from all map, since the address reference added an empty entry in the map
@@ -1701,7 +1702,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 				continue;
 
 			// Add data to the cache
-			m_lpSession->GetSessionManager()->GetCacheManager()->SetUserDetails(iterObjectId->second, &eod.second);
+			cache->SetUserDetails(iterObjectId->second, &eod.second);
 		}
 		/* We convert user and companyname to loginname later this function */
 	} catch (objectnotfound &) {
@@ -2844,6 +2845,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	bool bTransaction = false;
 	SOURCEKEY sSourceKey;
+	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
 
 	if(IsInternalObject(ulObjectId)) {
 		er = KCERR_NO_ACCESS;
@@ -2931,8 +2933,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 		er = lpDatabase->Commit();
 		if (er != erSuccess)
 			goto exit;
-
-		er = m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulObjectId);
+		er = cache->UpdateUser(ulObjectId);
 		if (er != erSuccess)
 			goto exit;
 
@@ -2952,7 +2953,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	bTransaction = false;
 
 	// Purge the usercache because we also need to remove sendas relations
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->PurgeCache(PURGE_CACHE_USEROBJECT | PURGE_CACHE_EXTERNID | PURGE_CACHE_USERDETAILS);
+	er = cache->PurgeCache(PURGE_CACHE_USEROBJECT | PURGE_CACHE_EXTERNID | PURGE_CACHE_USERDETAILS);
 	if(er != erSuccess)
 		goto exit;
 
@@ -4187,7 +4188,8 @@ ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
 
 	/* We pretend that the Public store is a company. So request (and later store) it as such. */
 	// type passed was , CONTAINER_COMPANY .. still working?
-	auto er = m_lpSession->GetSessionManager()->GetCacheManager()->GetUserDetails(KOPANO_UID_EVERYONE, lpDetails);
+	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
+	auto er = cache->GetUserDetails(KOPANO_UID_EVERYONE, lpDetails);
 	if (er == erSuccess)
 		return erSuccess; /* Cache contained requested information, we're done.*/
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
@@ -4208,8 +4210,7 @@ ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
 	/* Update cache so we don't have to bug the plugin until the data has changed.
 	 * Note that we don't care if the update succeeded, if it fails we will retry
 	 * when the user details are requested for a second time. */
-	m_lpSession->GetSessionManager()->GetCacheManager()->SetUserDetails(KOPANO_UID_EVERYONE, details.get());
-
+	cache->SetUserDetails(KOPANO_UID_EVERYONE, details.get());
 	*lpDetails = *details;
 	return erSuccess;
 }
@@ -4220,7 +4221,8 @@ ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, server
 	UserPlugin *lpPlugin = NULL;
 
 	// Try the cache first
-	auto er = m_lpSession->GetSessionManager()->GetCacheManager()->GetServerDetails(strServer, lpDetails);
+	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
+	auto er = cache->GetServerDetails(strServer, lpDetails);
 	if (er == erSuccess)
 		return erSuccess;
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
@@ -4229,7 +4231,7 @@ ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, server
 
 	try {
 		details = lpPlugin->getServerDetails(strServer);
-		m_lpSession->GetSessionManager()->GetCacheManager()->SetServerDetails(strServer, *details);
+		cache->SetServerDetails(strServer, *details);
 	} catch (objectnotfound &) {
 		return KCERR_NOT_FOUND;
 	} catch (notsupported &) {

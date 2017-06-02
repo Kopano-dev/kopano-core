@@ -1631,7 +1631,8 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	
 	unsigned int ulAffected = 0;
 	unsigned int ulParent = 0;
-	
+	auto sesmgr = lpSession->GetSessionManager();
+	auto cache = sesmgr->GetCacheManager();
 	ECDatabase *lpDatabase = NULL;
 
 	er = lpSession->GetDatabase(&lpDatabase);
@@ -1719,8 +1720,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
     // Trigger an assertion since in practice this should never happen
 //	assert(false);
 	g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
-
-	er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);
+	er = cache->GetParent(ulObjId, &ulParent);
 	if(er != erSuccess) {
 		// No parent -> root folder. Nothing else we need to do now.
 		er = erSuccess;
@@ -1748,8 +1748,8 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
         
     // Clear cache and update table entries. We do not send an object notification since the object hasn't really changed and
     // this is normally called just before opening an entry anyway, so the counters retrieved there will be ok.
-    lpSession->GetSessionManager()->GetCacheManager()->Update(fnevObjectModified, ulObjId);
-    er = lpSession->GetSessionManager()->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulObjId, MAPI_FOLDER);
+	cache->Update(fnevObjectModified, ulObjId);
+	er = sesmgr->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulObjId, MAPI_FOLDER);
     if(er != erSuccess)
     	goto exit;
     	

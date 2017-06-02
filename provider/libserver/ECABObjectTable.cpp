@@ -368,9 +368,11 @@ ECRESULT ECABObjectTable::Load()
 	objectid_t objectid;
 
 	// If the GAB is disabled, don't show any entries except the top-level object
-	if(lpODAB->ulABParentId != 0 && parseBool(lpSession->GetSessionManager()->GetConfig()->GetSetting("enable_gab")) == false && lpSession->GetSecurity()->GetAdminLevel() == 0)
+	auto sesmgr = lpSession->GetSessionManager();
+	auto sec = lpSession->GetSecurity();
+	if (lpODAB->ulABParentId != 0 && parseBool(sesmgr->GetConfig()->GetSetting("enable_gab")) == false && sec->GetAdminLevel() == 0)
 		return erSuccess;
-	auto er = lpSession->GetSecurity()->IsUserObjectVisible(lpODAB->ulABParentId);
+	auto er = sec->IsUserObjectVisible(lpODAB->ulABParentId);
 	if (er != erSuccess)
 		return er;
 	/*
@@ -389,7 +391,7 @@ ECRESULT ECABObjectTable::Load()
 		/*
 		 * Load contents of Global Address Book
 		 */
-		er = lpSession->GetSecurity()->GetUserCompany(&ulObjectId);
+		er = sec->GetUserCompany(&ulObjectId);
 		if (er != erSuccess)
 			return er;
 		er = LoadContentsCompany(ulObjectId, AB_FILTER_ADDRESSLIST, &unique_tie(lpObjects));
@@ -411,8 +413,9 @@ ECRESULT ECABObjectTable::Load()
 		/*
 		 * Load contents of distlist, company or addresslist
 		 */
-		if (!lpSession->GetUserManagement()->IsInternalObject(lpODAB->ulABParentId)) {
-			er = lpSession->GetUserManagement()->GetExternalId(lpODAB->ulABParentId, &objectid);
+		auto usrmgt = lpSession->GetUserManagement();
+		if (!usrmgt->IsInternalObject(lpODAB->ulABParentId)) {
+			er = usrmgt->GetExternalId(lpODAB->ulABParentId, &objectid);
 			if (er != erSuccess)
 				return er;
 
@@ -460,7 +463,7 @@ ECRESULT ECABObjectTable::Load()
 
 	for (const auto &obj : *lpObjects) {
 		/* Only add visible items */
-		if (lpSession->GetSecurity()->IsUserObjectVisible(obj.ulId) != erSuccess)
+		if (sec->IsUserObjectVisible(obj.ulId) != erSuccess)
 			continue;
 		lstObjects.push_back(obj.ulId);
 	}

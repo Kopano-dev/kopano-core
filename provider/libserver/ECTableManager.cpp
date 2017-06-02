@@ -324,12 +324,13 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
-	er = lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulParent, &ulStoreId, &sGuid);
+	auto sesmgr = lpSession->GetSessionManager();
+	er = sesmgr->GetCacheManager()->GetStore(ulParent, &ulStoreId, &sGuid);
 	if(er != erSuccess)
 		return er;
 
-	ECLocale locale = lpSession->GetSessionManager()->GetSortLocale(ulStoreId);
-	if(lpSession->GetSessionManager()->GetSearchFolders()->IsSearchFolder(ulStoreId, ulParent) == erSuccess) {
+	auto locale = sesmgr->GetSortLocale(ulStoreId);
+	if (sesmgr->GetSearchFolders()->IsSearchFolder(ulStoreId, ulParent) == erSuccess) {
 		if (ulFlags & (MSGFLAG_DELETED | MAPI_ASSOCIATED))
 			return KCERR_NO_SUPPORT;
 		er = lpSession->GetSecurity()->CheckPermission(ulParent, ecSecurityFolderVisible);
@@ -374,12 +375,13 @@ static void AuditStatsAccess(ECSession *lpSession, const char *access, const cha
 		return;
 	std::string strUsername;
 	std::string strImpersonator;
-	
-	lpSession->GetSecurity()->GetUsername(&strUsername);
-	if (lpSession->GetSecurity()->GetImpersonator(&strImpersonator) == erSuccess)
-		ZLOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s impersonator=%s", access, table, strUsername.c_str(), strImpersonator.c_str());
+	auto sec = lpSession->GetSecurity();
+	sec->GetUsername(&strUsername);
+	auto audit = lpSession->GetSessionManager()->GetAudit();
+	if (sec->GetImpersonator(&strImpersonator) == erSuccess)
+		ZLOG_AUDIT(audit, "access %s table='%s stats' username=%s impersonator=%s", access, table, strUsername.c_str(), strImpersonator.c_str());
 	else
-		ZLOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s", access, table, strUsername.c_str());
+		ZLOG_AUDIT(audit, "access %s table='%s stats' username=%s", access, table, strUsername.c_str());
 }
 
 ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int ulFlags, unsigned int *lpulTableId)

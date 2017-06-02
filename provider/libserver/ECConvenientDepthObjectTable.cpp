@@ -132,6 +132,8 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 		if (er != erSuccess)
 			return er;
 
+		auto cache = lpSession->GetSessionManager()->GetCacheManager();
+		auto sec = lpSession->GetSecurity();
 		while (1) {
 		    FOLDERINFO sFolderInfo;
 		    
@@ -151,8 +153,8 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
             mapSortKey[sFolderInfo.ulFolderId] = sFolderInfo.sortKey;
             
             // Since we have this information, give the cache manager the hierarchy information for this object
-			lpSession->GetSessionManager()->GetCacheManager()->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[1]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]));
-			if (lpSession->GetSecurity()->CheckPermission(sFolderInfo.ulFolderId, ecSecurityFolderVisible) != erSuccess)
+			cache->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[1]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]));
+			if (sec->CheckPermission(sFolderInfo.ulFolderId, ecSecurityFolderVisible) != erSuccess)
 				continue;
 			
 			// Push folders onto end of list
@@ -192,8 +194,9 @@ ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap, ECSes
 	lpPropVal->__union = SOAP_UNION_propValData_ul;
 	lpPropVal->Value.ul = 0;
 
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 	while(ulObjId != m_ulFolderId && lpPropVal->Value.ul < 50){
-		auto er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulObjId, nullptr, nullptr, &ulObjType);
+		auto er = cache->GetObject(ulObjId, &ulObjId, nullptr, nullptr, &ulObjType);
 		if(er != erSuccess) {
 			// should never happen
 			assert(false);

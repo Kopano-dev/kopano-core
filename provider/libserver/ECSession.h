@@ -75,12 +75,12 @@ public:
 	_kc_hidden virtual ~BTSession(void) _kc_impdtor;
 	_kc_hidden virtual ECRESULT Shutdown(unsigned int timeout);
 	_kc_hidden virtual ECRESULT ValidateOriginator(struct soap *);
-	_kc_hidden virtual ECSESSIONID GetSessionId(void) const { return m_sessionID; }
-	_kc_hidden virtual time_t GetSessionTime(void) const { return m_sessionTime + m_ulSessionTimeout; }
+	_kc_hidden virtual ECSESSIONID GetSessionId(void) const _kc_final { return m_sessionID; }
+	_kc_hidden virtual time_t GetSessionTime(void) const _kc_final { return m_sessionTime + m_ulSessionTimeout; }
 	_kc_hidden virtual void UpdateSessionTime(void);
-	_kc_hidden virtual unsigned int GetCapabilities(void) const { return m_ulClientCapabilities; }
-	_kc_hidden virtual ECSessionManager *GetSessionManager(void) const { return m_lpSessionManager; }
-	_kc_hidden virtual ECUserManagement *GetUserManagement(void) const { return m_lpUserManagement; }
+	_kc_hidden virtual unsigned int GetCapabilities(void) const _kc_final { return m_ulClientCapabilities; }
+	_kc_hidden virtual ECSessionManager *GetSessionManager(void) const _kc_final { return m_lpSessionManager; }
+	_kc_hidden virtual ECUserManagement *GetUserManagement(void) const _kc_final { return m_lpUserManagement; }
 	virtual ECRESULT GetDatabase(ECDatabase **);
 	_kc_hidden virtual ECRESULT GetAdditionalDatabase(ECDatabase **);
 	_kc_hidden ECRESULT GetServerGUID(GUID *);
@@ -90,7 +90,7 @@ public:
 	_kc_hidden virtual void GetClientApplicationMisc(std::string *);
 	virtual void Lock(void);
 	virtual void Unlock(void);
-	_kc_hidden virtual bool IsLocked(void) const { return m_ulRefCount > 0; }
+	_kc_hidden virtual bool IsLocked(void) const _kc_final { return m_ulRefCount > 0; }
 	_kc_hidden virtual void RecordRequest(struct soap *);
 	_kc_hidden virtual unsigned int GetRequests(void);
 	_kc_hidden virtual void GetClientPort(unsigned int *);
@@ -142,8 +142,8 @@ protected:
 class _kc_export_dycast ECSession _kc_final : public BTSession {
 public:
 	_kc_hidden ECSession(const char *addr, ECSESSIONID, ECSESSIONGROUPID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps, AUTHMETHOD, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
-	_kc_hidden virtual ECSESSIONGROUPID GetSessionGroupId(void) const { return m_ecSessionGroupId; }
-	_kc_hidden virtual int GetConnectingPid(void) const { return m_ulConnectingPid; }
+	_kc_hidden virtual ECSESSIONGROUPID GetSessionGroupId(void) const _kc_final { return m_ecSessionGroupId; }
+	_kc_hidden virtual int GetConnectingPid(void) const _kc_final { return m_ulConnectingPid; }
 	_kc_hidden virtual ~ECSession(void);
 	_kc_hidden virtual ECRESULT Shutdown(unsigned int timeout);
 

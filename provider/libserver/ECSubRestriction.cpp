@@ -148,6 +148,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
     sObjectTableKey sKey;
     ECDatabase *lpDatabase = NULL;
 
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
@@ -223,7 +224,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
     iterObject = lstSubObjects.cbegin();
     // Loop through all the rows, see if they match
     for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
-        er = ECGenericObjectTable::MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], lpRestrict->lpSubObject, NULL, locale, &fMatch);
+		er = ECGenericObjectTable::MatchRowRestrict(cache, &lpRowSet->__ptr[i], lpRestrict->lpSubObject, nullptr, locale, &fMatch);
         if(er != erSuccess)
             goto exit;
             

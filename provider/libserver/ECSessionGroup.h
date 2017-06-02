@@ -77,12 +77,12 @@ public:
 	 */
 	virtual void Lock();
 	virtual void Unlock();
-	virtual bool IsLocked(void) const { return m_ulRefCount > 0; }
+	virtual bool IsLocked(void) const _kc_final { return m_ulRefCount > 0; }
 
 	/*
 	 * Returns the SessionGroupId
 	 */
-	virtual ECSESSIONGROUPID GetSessionGroupId(void) const { return m_sessionGroupId; }
+	virtual ECSESSIONGROUPID GetSessionGroupId(void) const _kc_final { return m_sessionGroupId; }
 
 	/*
 	 * Add/Remove Session from group

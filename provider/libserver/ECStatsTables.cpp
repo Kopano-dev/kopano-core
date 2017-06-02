@@ -121,11 +121,11 @@ ECRESULT ECSystemStatsTable::Load()
 	id = 0;
 	g_lpStatsCollector->ForEachString(this->GetStatsCollectorData, (void*)this);
 	g_lpStatsCollector->ForEachStat(this->GetStatsCollectorData, (void*)this);
-	lpSession->GetSessionManager()->GetCacheManager()->ForEachCacheItem(this->GetStatsCollectorData, (void*)this);
+	auto sesmgr = lpSession->GetSessionManager();
+	sesmgr->GetCacheManager()->ForEachCacheItem(this->GetStatsCollectorData, (void*)this);
 
 	// Receive session stats
-	lpSession->GetSessionManager()->GetStats(this->GetStatsCollectorData, (void*)this);
-
+	sesmgr->GetStats(this->GetStatsCollectorData, static_cast<void *>(this));
 	kopano_get_server_stats(&ulQueueLen, &dblAge, &ulThreads, &ulIdleThreads);
 
 	GetStatsCollectorData("queuelen", "Current queue length", stringify(ulQueueLen), this);
@@ -133,7 +133,7 @@ ECRESULT ECSystemStatsTable::Load()
 	GetStatsCollectorData("threads", "Number of threads running to process items", stringify(ulThreads), this);
 	GetStatsCollectorData("threads_idle", "Number of idle threads", stringify(ulIdleThreads), this);
 
-	lpSession->GetSessionManager()->GetLicensedUsers(0 /*SERVICE_TYPE_ZCP*/, &ulLicensedUsers);
+	sesmgr->GetLicensedUsers(0 /*SERVICE_TYPE_ZCP*/, &ulLicensedUsers);
 	lpSession->GetUserManagement()->GetCachedUserCount(&userCount);
 
 	GetStatsCollectorData("usercnt_licensed", "Number of allowed users", stringify(ulLicensedUsers), this);
@@ -145,7 +145,7 @@ ECRESULT ECSystemStatsTable::Load()
 	GetStatsCollectorData("usercnt_contact", "Number of contacts", stringify(userCount[usercount_t::ucContact]), this);
 
 	// @todo report licensed archived users and current archieved users
-	//lpSession->GetSessionManager()->GetLicensedUsers(1/*SERVICE_TYPE_ARCHIVE*/, &ulLicensedArchivedUsers);
+	//sesmgr->GetLicensedUsers(1/*SERVICE_TYPE_ARCHIVE*/, &ulLicensedArchivedUsers);
 	//GetStatsCollectorData("??????????", "Number of allowed archive users", stringify(ulLicensedArchivedUsers), this);
 
 	load_tcmalloc();
@@ -155,8 +155,7 @@ ECRESULT ECSystemStatsTable::Load()
 	GetStatsCollectorData("pt_allocated", "Current allocated memory by libc ptmalloc, in bytes", stringify_int64(malloc_info.uordblks), this);
 #endif
 	/* Configuration data */
-	auto lpConfig = lpSession->GetSessionManager()->GetConfig();
-	GetStatsCollectorData("userplugin", "User plugin used", lpConfig->GetSetting("user_plugin"), this);
+	GetStatsCollectorData("userplugin", "User plugin used", sesmgr->GetConfig()->GetSetting("user_plugin"), this);
 
 	// add all items to the keytable
 	for (unsigned int i = 0; i < id; ++i)
@@ -580,8 +579,9 @@ ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	sObjectTableKey sRowItem;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
-	bool bDistrib = lpSession->GetSessionManager()->IsDistributedSupported();
-	const char* server = lpSession->GetSessionManager()->GetConfig()->GetSetting("server_name");
+	auto sesmgr = lpSession->GetSessionManager();
+	bool bDistrib = sesmgr->IsDistributedSupported();
+	auto server = sesmgr->GetConfig()->GetSetting("server_name");
 	std::list<unsigned int> lstObjId;
 
 	auto er = lpUserManagement->GetCompanyObjectListAndSync(OBJECTCLASS_USER,
