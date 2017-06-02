@@ -3254,8 +3254,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 	sfolder.lpParentFolder = parent_folder;
 	sfolder.strFolderName = in_folder_name;
 	sfolder.bHasSubfolders = true;
-	folders.push_front(sfolder);
-
+	folders.push_front(std::move(sfolder));
 	parent_folder = folders.cbegin();
 
 	enum { EID, PEID, NAME, IMAPID, SUBFOLDERS, CONTAINERCLASS, NUM_COLS };
@@ -3318,7 +3317,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 				sfolder.strFolderName = foldername;
 				sfolder.sEntryID = entry_id;
 				sfolder.bHasSubfolders = subfolders;
-				folders.push_front(sfolder);
+				folders.push_front(std::move(sfolder));
 			}
 			catch (const KMAPIError &e) {
 				/* just continue */
