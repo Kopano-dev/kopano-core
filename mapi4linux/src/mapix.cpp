@@ -1550,11 +1550,8 @@ M4LAddrBook::M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin,
 }
 
 M4LAddrBook::~M4LAddrBook() {
-	for (const auto &i : m_lABProviders) {
+	for (const auto &i : m_lABProviders)
 		i.lpABLogon->Logoff(0);
-		i.lpABLogon->Release();
-		i.lpABProvider->Release();	// TODO: call shutdown too? useless..
-	}
 	if(m_lpMAPISup)
 		m_lpMAPISup->Release();
 	if (m_lpSavedSearchPath)
@@ -1566,11 +1563,11 @@ HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::stri
 	ULONG cbSecurity;
 	memory_ptr<BYTE> lpSecurity;
 	memory_ptr<MAPIERROR> lpMAPIError;
-	LPABLOGON lpABLogon = NULL;
+	object_ptr<IABLogon> lpABLogon;
 	abEntry entry;
 
 	hr = newProvider->Logon(m_lpMAPISup, 0, reinterpret_cast<const TCHAR *>(profilename.c_str()),
-	     0, &cbSecurity, &~lpSecurity, &~lpMAPIError, &lpABLogon);
+	     0, &cbSecurity, &~lpSecurity, &~lpMAPIError, &~lpABLogon);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::addProvider(): logon fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
@@ -1580,11 +1577,9 @@ HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::stri
 
 	memcpy(&entry.muid, lpUID, sizeof(MAPIUID));
 	entry.displayname = displayname;
-	entry.lpABProvider = newProvider;
-	newProvider->AddRef();
-	entry.lpABLogon = lpABLogon;
-
-	m_lABProviders.push_back(entry);
+	entry.lpABProvider.reset(newProvider);
+	entry.lpABLogon = std::move(lpABLogon);
+	m_lABProviders.push_back(std::move(entry));
 	return hrSuccess;
 }
 

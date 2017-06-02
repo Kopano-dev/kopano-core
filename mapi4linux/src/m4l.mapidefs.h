@@ -24,6 +24,7 @@
 #include <mapispi.h>
 #include <list>
 #include <map>
+#include <kopano/memory.hpp>
 
 class M4LMsgServiceAdmin;
 
@@ -131,8 +132,8 @@ public:
 struct abEntry {
 	MAPIUID muid;
 	std::string displayname;
-	LPABPROVIDER lpABProvider;
-	LPABLOGON lpABLogon;
+	KCHL::object_ptr<IABProvider> lpABProvider;
+	KCHL::object_ptr<IABLogon> lpABLogon;
 };
 
 class M4LABContainer _kc_final : public IABContainer, public M4LMAPIContainer {
