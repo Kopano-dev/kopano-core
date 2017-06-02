@@ -57,7 +57,6 @@ private:	// methods
 	_kc_hidden virtual bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
 	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
 	_kc_hidden static void *threadFunc(void *);
-	_kc_hidden static bool isCurrentThread(const pthread_t &);
 	
 	ThreadSet	m_setThreads;
 	ThreadSet	m_setTerminated;
