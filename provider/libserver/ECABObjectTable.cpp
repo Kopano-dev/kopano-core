@@ -403,7 +403,7 @@ ECRESULT ECABObjectTable::Load()
 		 * that one isn't visible.
 		 */
 		if (!ulObjectId)
-			lpObjects->push_front(localobjectdetails_t(ulObjectId, CONTAINER_COMPANY));
+			lpObjects->push_front({ulObjectId, CONTAINER_COMPANY});
 	} else if (lpODAB->ulABParentId == KOPANO_UID_GLOBAL_ADDRESS_LISTS && lpODAB->ulABParentType == MAPI_ABCONT) {
 		/*
 		 * Load contents of Global Address Lists

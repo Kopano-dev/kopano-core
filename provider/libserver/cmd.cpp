@@ -9293,7 +9293,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 
 	if (OBJECTCLASS_TYPE(details.GetClass())== OBJECTTYPE_MAILUSER) {
 		/* The main recipient (the user over quota) must be the first entry */
-		lpUsers->push_front(localobjectdetails_t(ulUserid, details));
+		lpUsers->push_front({ulUserid, details});
 	} else if (details.GetClass() == CONTAINER_COMPANY) {
 		/* Append the system administrator for the company */
 		unsigned int ulSystem;
@@ -9306,11 +9306,9 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		er = usrmgt->GetObjectDetails(ulSystem, &systemdetails);
 		if (er != erSuccess)
 			return er;
-
-		lpUsers->push_front(localobjectdetails_t(ulSystem, systemdetails));
-
+		lpUsers->push_front({ulSystem, systemdetails});
 		/* The main recipient (the company's public store) must be the first entry */
-		lpUsers->push_front(localobjectdetails_t(ulUserid, details));
+		lpUsers->push_front({ulUserid, details});
 	}
 
 	lpsUserList->sUserArray.__size = 0;
