@@ -29,7 +29,7 @@ class outputStreamMAPIAdapter _kc_final : public vmime::utility::outputStream {
 public:
 	outputStreamMAPIAdapter(IStream *lpStream);
 	virtual ~outputStreamMAPIAdapter();
-	virtual void writeImpl(const unsigned char *, const size_t);
+	virtual void writeImpl(const unsigned char *, const size_t) _kc_override;
 	virtual void flush(void) _kc_override;
 
 private:

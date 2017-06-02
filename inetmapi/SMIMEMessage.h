@@ -49,7 +49,7 @@ namespace KC {
  */
 class SMIMEMessage _kc_final : public vmime::message {
 public:
-	void generateImpl(const vmime::generationContext &, vmime::utility::outputStream &, size_t curLinePos = 0, size_t *newLinePos = NULL) const;
+	void generateImpl(const vmime::generationContext &, vmime::utility::outputStream &, size_t curLinePos = 0, size_t *newLinePos = NULL) const _kc_override;
 	void setSMIMEBody(const char *body) { m_body = body; }
 private:
     std::string m_body;

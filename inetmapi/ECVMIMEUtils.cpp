@@ -51,9 +51,9 @@ public:
 	virtual ~mapiTimeoutHandler(void) _kc_impdtor;
 
 	// @todo add logging
-	virtual bool isTimeOut() { return getTime() >= (m_last + 5*60); };
-	virtual void resetTimeOut() { m_last = getTime(); };
-	virtual bool handleTimeOut() { return false; };
+	virtual bool isTimeOut() _kc_override { return getTime() >= (m_last + 5*60); };
+	virtual void resetTimeOut() _kc_override { m_last = getTime(); };
+	virtual bool handleTimeOut() _kc_override { return false; };
 
 	const unsigned int getTime() const {
 		return vmime::platform::getHandler()->getUnixTime();
@@ -65,7 +65,7 @@ private:
 
 class mapiTimeoutHandlerFactory : public vmime::net::timeoutHandlerFactory {
 public:
-	vmime::shared_ptr<vmime::net::timeoutHandler> create(void)
+	vmime::shared_ptr<vmime::net::timeoutHandler> create(void) override
 	{
 		return vmime::make_shared<mapiTimeoutHandler>();
 	};
