@@ -35,7 +35,6 @@ class IECImportContentsChanges : public IExchangeImportContentsChanges {
 public:
 	virtual HRESULT ConfigForConversionStream(IStream * lpStream, ULONG ulFlags, ULONG cValuesConversion, LPSPropValue lpPropArrayConversion) = 0;
 	virtual HRESULT ImportMessageChangeAsAStream(ULONG cValues, LPSPropValue lpProps, ULONG ulFlags, IStream ** lppStream) = 0;
-	virtual HRESULT SetMessageInterface(const IID& refiid) = 0;
 	%extend {
 		virtual ~IECImportContentsChanges() { self->Release(); }
 	}

@@ -326,7 +326,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	}
 
 	// *lpulId now contains the local propid, update the cache
-	m_mapNameIds.insert(nameidmap_t::value_type(key, *lpulId));
+	m_mapNameIds.insert({key, *lpulId});
 	return erSuccess;
 }
 
@@ -376,7 +376,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	}
 
 	// *lpulId now contains the local propid, update the cache
-	m_mapNameStrings.insert(namestringmap_t::value_type(key, *lpulId));
+	m_mapNameStrings.insert({key, *lpulId});
 	return erSuccess;
 }
 

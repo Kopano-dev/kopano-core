@@ -56,7 +56,9 @@ HRESULT ZCABProvider::Shutdown(ULONG * lpulFlags)
 	return hrSuccess;
 }
 
-HRESULT ZCABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG * lpulcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR * lppMAPIError, LPABLOGON * lppABLogon)
+HRESULT ZCABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
+    LPTSTR lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
+    LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<ZCABLogon> lpABLogon;
@@ -88,4 +90,4 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, Shutdown, (ULONG *, lpulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, Logon, (LPMAPISUP, lpMAPISup), (ULONG, ulUIParam), (LPTSTR, lpszProfileName), (ULONG, ulFlags), (ULONG *, lpulcbSecurity), (LPBYTE *, lppbSecurity), (LPMAPIERROR *, lppMAPIError), (LPABLOGON *, lppABLogon))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, Logon, (LPMAPISUP, lpMAPISup), (ULONG_PTR, ulUIParam), (LPTSTR, lpszProfileName), (ULONG, ulFlags), (ULONG *, lpulcbSecurity), (LPBYTE *, lppbSecurity), (LPMAPIERROR *, lppMAPIError), (LPABLOGON *, lppABLogon))

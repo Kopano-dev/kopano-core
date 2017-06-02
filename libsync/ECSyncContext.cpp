@@ -448,7 +448,7 @@ HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncSt
 		return MAPI_E_NOT_FOUND;
 
 	// update the sourcekey to syncid map.
-	m_mapStates.insert(SyncStateMap::value_type(strSourceKey, sSyncState));
+	m_mapStates.insert({strSourceKey, sSyncState});
 	*lpsSyncState = std::move(sSyncState);
 	return hrSuccess;
 }

@@ -1537,7 +1537,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	case ECKeyTable::TABLE_ROW_ADD:
 		for (const auto &obj_id : *lstObjId) {
 			/* Add the object to our list of objects */
-			ecRowsItem.push_back(sObjectTableKey(obj_id, 0));
+			ecRowsItem.push_back({obj_id, 0});
 
             if(IsMVSet() == true) {
                 // get new mvprop count

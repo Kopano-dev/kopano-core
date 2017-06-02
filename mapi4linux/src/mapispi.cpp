@@ -106,7 +106,7 @@ HRESULT M4LMAPISupport::Subscribe(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulF
 	memcpy(lpNewKey, lpKey, sizeof(*lpKey));
 	l_adv.lock();
 	++m_connections;
-	m_advises.insert(M4LSUPPORTADVISES::value_type(m_connections, M4LSUPPORTADVISE(lpNewKey, ulEventMask, ulFlags, lpAdviseSink)));
+	m_advises.insert({m_connections, {lpNewKey, ulEventMask, ulFlags, lpAdviseSink}});
 	*lpulConnection = m_connections;
 	return hrSuccess;
 }

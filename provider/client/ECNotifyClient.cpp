@@ -212,7 +212,7 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 
 	{
 		scoped_rlock biglock(m_hMutex);
-		m_mapAdvise.insert(ECMAPADVISE::value_type(ulConnection, pEcAdvise.release()));
+		m_mapAdvise.insert({ulConnection, pEcAdvise.release()});
 	}
 
 	// Since we're ready to receive notifications now, register ourselves with the master
@@ -255,7 +255,7 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
 	{
 		scoped_rlock biglock(m_hMutex);
 		lpChangeAdviseSink->AddRef();
-		m_mapChangeAdvise.insert(ECMAPCHANGEADVISE::value_type(ulConnection, pEcAdvise.release()));
+		m_mapChangeAdvise.insert({ulConnection, pEcAdvise.release()});
 	}
 
 	// Since we're ready to receive notifications now, register ourselves with the master

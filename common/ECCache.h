@@ -188,12 +188,9 @@ public:
 	
 	ECRESULT AddCacheItem(const key_type &key, const mapped_type &value)
 	{
-		typedef typename _MapType::value_type value_type;
-
 		if (MaxSize() == 0)
 			return erSuccess;
-
-		auto result = m_map.insert(value_type(key, value));
+		auto result = m_map.insert({key, value});
 		if (result.second == false) {
 			// The key already exists but its value is unmodified. So update it now
 			m_ulSize += GetCacheAdditionalSize(value);

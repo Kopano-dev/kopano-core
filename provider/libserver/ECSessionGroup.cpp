@@ -79,7 +79,7 @@ void ECSessionGroup::Unlock()
 void ECSessionGroup::AddSession(ECSession *lpSession)
 {
 	scoped_rlock lock(m_hSessionMapLock);
-	m_mapSessions.insert(SESSIONINFOMAP::value_type(lpSession->GetSessionId(), sessionInfo(lpSession)));
+	m_mapSessions.insert({lpSession->GetSessionId(), sessionInfo(lpSession)});
 }
 
 void ECSessionGroup::ReleaseSession(ECSession *lpSession)
@@ -132,7 +132,7 @@ ECRESULT ECSessionGroup::AddAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 
 	{
 		scoped_lock lock(m_hNotificationLock);
-		m_mapSubscribe.insert(SUBSCRIBEMAP::value_type(ulConnection, sSubscribeItem));
+		m_mapSubscribe.insert({ulConnection, sSubscribeItem});
 	}
 	
 	if(ulEventMask & (fnevNewMail | fnevObjectModified | fnevObjectCreated | fnevObjectCopied | fnevObjectDeleted | fnevObjectMoved)) {
@@ -159,7 +159,7 @@ ECRESULT ECSessionGroup::AddChangeAdvise(ECSESSIONID ulSessionId, unsigned int u
 	sSubscribeItem.sSyncState = *lpSyncState;
 
 	scoped_lock lock(m_hNotificationLock);
-	m_mapChangeSubscribe.insert(CHANGESUBSCRIBEMAP::value_type(lpSyncState->ulSyncId, sSubscribeItem));
+	m_mapChangeSubscribe.insert({lpSyncState->ulSyncId, sSubscribeItem});
 	return erSuccess;
 }
 

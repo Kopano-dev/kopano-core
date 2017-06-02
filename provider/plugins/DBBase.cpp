@@ -865,7 +865,6 @@ DBPlugin::CreateSignatureList(const std::string &query)
 	DB_LENGTHS lpDBLen = NULL;
 	string signature;
 	objectclass_t objclass;
-	objectid_t objectid;
 
 	er = m_lpDatabase->DoSelect(query, &lpResult);
 	if (er != erSuccess)
@@ -883,9 +882,7 @@ DBPlugin::CreateSignatureList(const std::string &query)
 		assert(lpDBLen != NULL);
 		if (lpDBLen[0] == 0)
 			throw runtime_error(string("db_row_failed: object empty"));
-
-		objectid = objectid_t(string(lpDBRow[0], lpDBLen[0]), objclass);
-		objectlist->push_back(objectsignature_t(objectid, signature));
+		objectlist->push_back({{{lpDBRow[0], lpDBLen[0]}, objclass}, signature});
 	}
 
 	return objectlist;

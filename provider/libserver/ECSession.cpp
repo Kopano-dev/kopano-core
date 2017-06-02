@@ -562,8 +562,7 @@ ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int 
 ECRESULT ECSession::LockObject(unsigned int ulObjId)
 {
 	scoped_lock lock(m_hLocksLock);
-
-	auto res = m_mapLocks.insert(LockMap::value_type(ulObjId, ECObjectLock()));
+	auto res = m_mapLocks.insert({ulObjId, {}});
 	if (res.second == true)
 		return m_lpSessionManager->GetLockManager()->LockObject(ulObjId, m_sessionID, &res.first->second);
 	return erSuccess;

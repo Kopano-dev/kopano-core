@@ -74,7 +74,11 @@ HRESULT ECMSProvider::Shutdown(ULONG * lpulFlags)
 	return hrSuccess;
 }
 
-HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
+    LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
+    ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity,
+    LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError,
+    LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<WSTransport> lpTransport;
@@ -185,7 +189,11 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 //FIXME: What todo with offline??
 //TODO: online/offline state???
-HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
+    LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
+    ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity,
+    LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon,
+    LPMDB *lppMDB)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<WSTransport> lpTransport;
@@ -357,13 +365,21 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, QueryInterface, (REFIID, ref
 DEF_HRMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, Shutdown, (ULONG *, lpulFlags))
 
 /* has 12 args, no macro deals with it atm */
-HRESULT ECMSProvider::xMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+HRESULT ECMSProvider::xMSProvider::Logon(LPMAPISUP lpMAPISup,
+    ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
+    LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
+    ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity,
+    LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
 	return pThis->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
 }
 
-HRESULT ECMSProvider::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+HRESULT ECMSProvider::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup,
+    ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
+    LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
+    ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity,
+    LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
 	return pThis->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);

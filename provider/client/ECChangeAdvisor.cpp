@@ -312,7 +312,7 @@ HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 			if (!(m_ulFlags & SYNC_CATCHUP))
 				listSyncStates.push_back(*lpsSyncState);
 			else
-				listConnections.push_back(ConnectionMap::value_type(lpsSyncState->ulSyncId, 0));
+				listConnections.push_back({lpsSyncState->ulSyncId, 0});
 		} else {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, " - Key %u: Invalid size=%u", i, lpEntryList->lpbin[i].cb);
 			hr = MAPI_E_INVALID_PARAMETER;

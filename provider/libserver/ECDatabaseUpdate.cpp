@@ -1131,12 +1131,12 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 		return er;
 
 	// database stored typed, convert to the new objectclass_t values
-	mapTypes.insert(std::pair<unsigned int, unsigned int>(1, ACTIVE_USER)); // USEROBJECT_TYPE_USER
-	mapTypes.insert(std::pair<unsigned int, unsigned int>(2, DISTLIST_GROUP)); // USEROBJECT_TYPE_GROUP
-	mapTypes.insert(std::pair<unsigned int, unsigned int>(3, NONACTIVE_CONTACT)); // USEROBJECT_TYPE_CONTACT (unused, but who knows..)
-	mapTypes.insert(std::pair<unsigned int, unsigned int>(4, CONTAINER_COMPANY)); // USEROBJECT_TYPE_COMPANY
-	mapTypes.insert(std::pair<unsigned int, unsigned int>(5, NONACTIVE_USER)); // USEROBJECT_TYPE_NONACTIVE
-	mapTypes.insert(std::pair<unsigned int, unsigned int>(6, CONTAINER_ADDRESSLIST)); // USEROBJECT_TYPE_ADDRESSLIST
+	mapTypes.insert({1, ACTIVE_USER}); // USEROBJECT_TYPE_USER
+	mapTypes.insert({2, DISTLIST_GROUP}); // USEROBJECT_TYPE_GROUP
+	mapTypes.insert({3, NONACTIVE_CONTACT}); // USEROBJECT_TYPE_CONTACT (unused, but who knows..)
+	mapTypes.insert({4, CONTAINER_COMPANY}); // USEROBJECT_TYPE_COMPANY
+	mapTypes.insert({5, NONACTIVE_USER}); // USEROBJECT_TYPE_NONACTIVE
+	mapTypes.insert({6, CONTAINER_ADDRESSLIST}); // USEROBJECT_TYPE_ADDRESSLIST
 
 	for (const auto &p : mapTypes) {
 		// extern id, because it links to object table for DB plugin
@@ -1213,7 +1213,7 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 		lpDBLen = lpResult.fetch_row_lengths();
-		mapIdToName.insert(pair<string,string>(string(lpDBRow[0], lpDBLen[0]), string(lpDBRow[1], lpDBLen[1])));
+		mapIdToName.insert({{lpDBRow[0], lpDBLen[0]}, {lpDBRow[1], lpDBLen[1]}});
 	}
 
 	// update objects to link via externid in companyid, not companyname anymore
@@ -1330,7 +1330,7 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 		auto lpDBLen = lpResult.fetch_row_lengths();
-		lstRelations.push_back(pair<string,string>(string(lpDBRow[0], lpDBLen[0]), string(lpDBRow[1], lpDBLen[1])));
+		lstRelations.push_back({{lpDBRow[0], lpDBLen[0]}, {lpDBRow[1], lpDBLen[1]}});
 	}
 
 	er = lpDatabase->DoDelete("DELETE FROM objectrelation WHERE relationtype=6");
@@ -1373,7 +1373,7 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 		auto lpDBLen = lpResult.fetch_row_lengths();
-		mapStoreInbox.insert(pair<string,string>(string(lpDBRow[0], lpDBLen[0]), string(lpDBRow[1], lpDBLen[1])));
+		mapStoreInbox.insert({{lpDBRow[0], lpDBLen[0]}, {lpDBRow[1], lpDBLen[1]}});
 	}
 
 	for (const auto &p : mapStoreInbox) {

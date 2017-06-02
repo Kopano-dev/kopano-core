@@ -325,16 +325,16 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 			switch (ICS_ACTION(m_lpChanges[ulStep].ulChangeType)) {
 			case ICS_NEW:
 			case ICS_CHANGE:
-				mapChanges.insert(ChangeMap::value_type(m_lpChanges[ulStep].sSourceKey, lstChange.insert(lstChange.end(), m_lpChanges[ulStep])));
+				mapChanges.insert({m_lpChanges[ulStep].sSourceKey, lstChange.insert(lstChange.end(), m_lpChanges[ulStep])});
 				break;
 			case ICS_FLAG:
-				mapChanges.insert(ChangeMap::value_type(m_lpChanges[ulStep].sSourceKey, m_lstFlag.insert(m_lstFlag.end(), m_lpChanges[ulStep])));
+				mapChanges.insert({m_lpChanges[ulStep].sSourceKey, m_lstFlag.insert(m_lstFlag.end(), m_lpChanges[ulStep])});
 				break;
 			case ICS_SOFT_DELETE:
-				mapChanges.insert(ChangeMap::value_type(m_lpChanges[ulStep].sSourceKey, m_lstSoftDelete.insert(m_lstSoftDelete.end(), m_lpChanges[ulStep])));
+				mapChanges.insert({m_lpChanges[ulStep].sSourceKey, m_lstSoftDelete.insert(m_lstSoftDelete.end(), m_lpChanges[ulStep])});
 				break;
 			case ICS_HARD_DELETE:
-				mapChanges.insert(ChangeMap::value_type(m_lpChanges[ulStep].sSourceKey, m_lstHardDelete.insert(m_lstHardDelete.end(), m_lpChanges[ulStep])));
+				mapChanges.insert({m_lpChanges[ulStep].sSourceKey, m_lstHardDelete.insert(m_lstHardDelete.end(), m_lpChanges[ulStep])});
 				break;
 			default:
 				break;

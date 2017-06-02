@@ -147,10 +147,7 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	hr = lpECABProvider->QueryInterface(IID_IABProvider, (void **)&sProviderInfo.lpABProviderOnline);
 	if(hr != hrSuccess)
 		return hr;
-
-	//Add provider in map
-	lpmapProvider->insert(std::map<string, PROVIDER_INFO>::value_type(lpszProfileName, sProviderInfo));
-
+	lpmapProvider->insert({lpszProfileName, sProviderInfo});
 	*lpsProviderInfo = std::move(sProviderInfo);
 	return hrSuccess;
 }

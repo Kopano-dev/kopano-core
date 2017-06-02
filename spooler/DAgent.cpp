@@ -873,10 +873,10 @@ static HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips,
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Find or insert
-	auto iterCMP = lpCompanyRecips->insert(companyrecipients_t::value_type(lpRecipient->wstrCompany, serverrecipients_t())).first;
+	auto iterCMP = lpCompanyRecips->insert({lpRecipient->wstrCompany, {}}).first;
 
 	// Find or insert
-	auto iterSRV = iterCMP->second.insert(serverrecipients_t::value_type(lpRecipient->wstrServerDisplayName, recipients_t())).first;
+	auto iterSRV = iterCMP->second.insert({lpRecipient->wstrServerDisplayName, {}}).first;
 
 	// insert into sorted set
 	auto iterRecip = iterSRV->second.find(lpRecipient);
@@ -917,7 +917,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 
 	/* Single server environment, use default path */
 	if (lpServerNameRecips->size() == 1 && lpServerNameRecips->begin()->first.empty()) {
-		lpServerPathRecips->insert(serverrecipients_t::value_type(convert_to<wstring>(strDefaultPath), lpServerNameRecips->begin()->second));
+		lpServerPathRecips->insert({convert_to<std::wstring>(strDefaultPath), lpServerNameRecips->begin()->second});
 		return hrSuccess;
 	}
 	hr = HrOpenDefaultStore(lpSession, &~lpAdminStore);
@@ -984,7 +984,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 
 		ec_log_debug("%d recipient(s) on server '%ls' (url %ls)", (int)iter->second.size(),
 						lpSrvList->lpsaServer[i].lpszName, lpSrvList->lpsaServer[i].lpszPreferedPath);
-		lpServerPathRecips->insert(serverrecipients_t::value_type((LPWSTR)lpSrvList->lpsaServer[i].lpszPreferedPath, iter->second));
+		lpServerPathRecips->insert({reinterpret_cast<wchar_t *>(lpSrvList->lpsaServer[i].lpszPreferedPath), iter->second});
 	}
 	return hrSuccess;
 }

@@ -245,8 +245,7 @@ public:
     //    virtual ~IABProvider() = 0;
 
     virtual HRESULT Shutdown(ULONG * lpulFlags) = 0; 
-    virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG * lpulpcbSecurity,
-			  LPBYTE * lppbSecurity, LPMAPIERROR * lppMAPIError, LPABLOGON * lppABLogon) = 0;
+	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG *lpulpcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon) = 0;
 };
 
 
@@ -476,12 +475,8 @@ public:
     //    virtual ~IMSProvider() = 0;
     
     virtual HRESULT Shutdown(ULONG * lpulFlags) = 0; 
-    virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
-			  ULONG ulFlags, LPCIID lpInterface, ULONG * lpcbSpoolSecurity, LPBYTE * lppbSpoolSecurity,
-			  LPMAPIERROR * lppMAPIError, LPMSLOGON * lppMSLogon, LPMDB * lppMDB) = 0; 
-    virtual HRESULT SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID,
-				 LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity,
-				 LPBYTE lpbSpoolSecurity, LPMAPIERROR * lppMAPIError, LPMSLOGON * lppMSLogon, LPMDB * lppMDB) = 0; 
+	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB) = 0;
+	virtual HRESULT SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB) = 0;
     virtual HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2,
 				    ULONG ulFlags, ULONG * lpulResult) = 0;
 };

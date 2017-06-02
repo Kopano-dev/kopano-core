@@ -707,10 +707,7 @@ ECRESULT ECKeyTable::CreateBookmark(unsigned int* lpulbkPosition)
 
 	// set unique bookmark id higher
 	ulbkPosition = m_ulBookmarkPosition++;
-
-	// insert into list
-	m_mapBookmarks.insert( ECBookmarkMap::value_type(ulbkPosition, sbkPosition) );
-
+	m_mapBookmarks.insert({ulbkPosition, sbkPosition});
 	*lpulbkPosition = ulbkPosition;
 	return erSuccess;
 }

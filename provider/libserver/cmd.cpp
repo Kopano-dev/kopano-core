@@ -4834,8 +4834,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 				ec_log_err("setReadFlags(): columns null");
 				goto exit;
 			}
-
-			lObjectIds.push_back( std::pair<unsigned int, unsigned int>( atoui(lpDBRow[0]), atoui(lpDBRow[1]) ));
+			lObjectIds.push_back({atoui(lpDBRow[0]), atoui(lpDBRow[1])});
 			++i;
 		}
 
@@ -4890,8 +4889,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 				ec_log_err("setReadFlags(): columns null(2)");
 				goto exit;
 			}
-
-			lObjectIds.push_back( std::pair<unsigned int, unsigned int>( atoui(lpDBRow[0]), atoui(lpDBRow[1]) ) );
+			lObjectIds.push_back({atoui(lpDBRow[0]), atoui(lpDBRow[1])});
 			++i;
 		}
 	}
@@ -4954,9 +4952,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		er = g_lpSessionManager->GetCacheManager()->GetObject(op.first, &ulParent, NULL, NULL);
 		if (er != erSuccess)
 			goto exit;
-        	
-		mapParents.insert(std::pair<unsigned int, unsigned int>(ulParent, 0));
-		
+		mapParents.insert({ulParent, 0});
 		if (ulFlagsAdd & MSGFLAG_READ &&
 		    (op.second & MSGFLAG_READ) == 0)
 			--mapParents[ulParent]; // Decrease unread count
@@ -8035,9 +8031,8 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 	}
 	
 	for (unsigned int i = 0; i < aMessages->__size; ++i)
-	    setEntryIds.insert(EntryId(aMessages->__ptr[i]));
-	setEntryIds.insert(EntryId(sDestFolderId));
-	
+		setEntryIds.insert({aMessages->__ptr[i]});
+	setEntryIds.insert({sDestFolderId});	
 	er = BeginLockFolders(lpDatabase, setEntryIds, LOCK_EXCLUSIVE);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyObjects: failed locking folders: %s (%x)", GetMAPIErrorMessage(er), er);
@@ -10036,15 +10031,13 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		std::set<EntryId>	setEntryIDs;
 
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
-	        setEntryIDs.insert(EntryId(sSourceKeyPairs.__ptr[i].sObjectKey));
-
+			setEntryIDs.insert({sSourceKeyPairs.__ptr[i].sObjectKey});
     	er = BeginLockFolders(lpDatabase, setEntryIDs, LOCK_SHARED);
 	} else if (ulPropTag == PR_SOURCE_KEY) {
 		std::set<SOURCEKEY> setParentSourcekeys;
 
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
-	        setParentSourcekeys.insert(SOURCEKEY(sSourceKeyPairs.__ptr[i].sParentKey));
-
+			setParentSourcekeys.insert({sSourceKeyPairs.__ptr[i].sParentKey});
     	er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED);
     } else
         er = KCERR_INVALID_PARAMETER;
@@ -10162,7 +10155,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.id = s_strcpy(soap, string("emcas-" + stringify(ulObjCnt, false)).c_str());
 		++ulObjCnt;
 		// Remember the object ID since we need it later
-		rows.push_back(sObjectTableKey(ulObjectId, 0));
+		rows.push_back({ulObjectId, 0});
 next_object:
 		;
 	}

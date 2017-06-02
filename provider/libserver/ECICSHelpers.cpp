@@ -723,9 +723,9 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 		if (fMatch) {
 			er = m_lpMsgProcessor->ProcessAccepted(lpDBRow, lpDBLen, &ulChangeType, &ulFlags);
 			if (m_lpsRestrict != NULL)
-				m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[icsSourceKey],
-					lpDBRow[icsSourceKey]), SAuxMessageData(SOURCEKEY(lpDBLen[icsParentSourceKey],
-					lpDBRow[icsParentSourceKey]), ICS_CHANGE_FLAG_NEW, ulFlags)));
+				m_setNewMessages.insert({SOURCEKEY(lpDBLen[icsSourceKey],
+					lpDBRow[icsSourceKey]), {SOURCEKEY(lpDBLen[icsParentSourceKey],
+					lpDBRow[icsParentSourceKey]), ICS_CHANGE_FLAG_NEW, ulFlags}});
 		} else {
 			er = m_lpMsgProcessor->ProcessRejected(lpDBRow, lpDBLen, &ulChangeType);
 		}
@@ -847,7 +847,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	 * at all is rare, having all messages isn't.
 	 **/
 	if (m_lpsRestrict && m_setNewMessages.empty())
-		m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(1, "\x00"), SAuxMessageData(m_sFolderSourceKey, 0, 0)));
+		m_setNewMessages.insert({SOURCEKEY(1, "\x00"), {m_sFolderSourceKey, 0, 0}});
 
 	if (m_setNewMessages.empty()) {
 		*lpulMaxChange = ulMaxChange;
@@ -964,7 +964,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 		sRow.ulObjId = i.second;
 		sRow.ulOrderId = 0;
 		lstRows.push_back(sRow);
-		source_keys.push_back(SOURCEKEY(i.first.cbData, reinterpret_cast<const char *>(i.first.lpData)));
+		source_keys.push_back({i.first.cbData, reinterpret_cast<const char *>(i.first.lpData)});
 		ulObjId = i.second; /* no need to split QueryRowData call per-objtype (always same) */
 	}
 
@@ -1040,7 +1040,7 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 			return KCERR_DATABASE_ERROR; /* this should never happen */
 		}
 
-		auto iResult = lpsetMessages->insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0), lpDBRow[3]?atoui(lpDBRow[3]):0)));
+		auto iResult = lpsetMessages->insert({SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), 1 << (lpDBRow[2] != nullptr ? atoui(lpDBRow[2]) : 0), lpDBRow[3] != nullptr ? atoui(lpDBRow[3]) : 0)});
 		if (iResult.second == false && lpDBRow[2] != nullptr)
 			iResult.first->second.ulChangeTypes |= 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0);
 	}

@@ -207,7 +207,7 @@ ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sessionGroupID, ECSe
 			lr_group.unlock();
 			lw_group.lock();
 			lpSessionGroup = new ECSessionGroup(sessionGroupID, this);
-			m_mapSessionGroups.insert(EC_SESSIONGROUPMAP::value_type(sessionGroupID, lpSessionGroup));
+			m_mapSessionGroups.insert({sessionGroupID, lpSessionGroup});
 			g_lpStatsCollector->Increment(SCN_SESSIONGROUPS_CREATED);
 		} else
 			lpSessionGroup = iter->second;
@@ -428,7 +428,7 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 	        lpAuthSession->Lock();
 	if (bRegisterSession) {
 		std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
-		m_mapSessions.insert( SESSIONMAP::value_type(newSessionID, lpAuthSession) );
+		m_mapSessions.insert({newSessionID, lpAuthSession});
 		l_cache.unlock();
 		g_lpStatsCollector->Increment(SCN_SESSIONS_CREATED);
 	}
@@ -550,7 +550,7 @@ ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
 		lpSession->Lock();
 
 	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
-	m_mapSessions.insert( SESSIONMAP::value_type(newSID, lpSession) );
+	m_mapSessions.insert({newSID, lpSession});
 	l_cache.unlock();
 	*lpSessionID = std::move(newSID);
 	*lppSession = lpSession;

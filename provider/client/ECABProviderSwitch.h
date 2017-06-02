@@ -30,7 +30,7 @@ public:
 	static  HRESULT Create(ECABProviderSwitch **lppECABProvider);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
     virtual HRESULT Shutdown(ULONG * lpulFlags);
-	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG * lpulcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR * lppMAPIError, LPABLOGON * lppABLogon);
+	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity, LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon);
 
 	class xABProvider _kc_final : public IABProvider {
 		#include <kopano/xclsfrag/IUnknown.hpp>

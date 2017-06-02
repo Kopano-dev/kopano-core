@@ -756,27 +756,27 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 
 	lstLDAPObjectClasses = GetClasses(class_user_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), OBJECTCLASS_USER)); // Could still be active or nonactive, will resolve later
+		lstMatches.push_back({lstLDAPObjectClasses.size(), OBJECTCLASS_USER}); // Could still be active or nonactive, will resolve later
 
 	lstLDAPObjectClasses = GetClasses(class_contact_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), NONACTIVE_CONTACT));
+		lstMatches.push_back({lstLDAPObjectClasses.size(), NONACTIVE_CONTACT});
 
 	lstLDAPObjectClasses = GetClasses(class_group_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), OBJECTCLASS_DISTLIST)); // Could be permission or distribution group, will resolve later
+		lstMatches.push_back({lstLDAPObjectClasses.size(), OBJECTCLASS_DISTLIST}); // Could be permission or distribution group, will resolve later
 
 	lstLDAPObjectClasses = GetClasses(class_dynamic_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), DISTLIST_DYNAMIC));
+		lstMatches.push_back({lstLDAPObjectClasses.size(), DISTLIST_DYNAMIC});
 
 	lstLDAPObjectClasses = GetClasses(class_company_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), CONTAINER_COMPANY));
+		lstMatches.push_back({lstLDAPObjectClasses.size(), CONTAINER_COMPANY});
 
 	lstLDAPObjectClasses = GetClasses(class_address_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), CONTAINER_ADDRESSLIST));
+		lstMatches.push_back({lstLDAPObjectClasses.size(), CONTAINER_ADDRESSLIST});
 
 	// lstMatches now contains all the kopano object classes that the object COULD be, now sort by number of object classes
 
@@ -906,15 +906,13 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 				continue;
 			}
 
-			signatures->push_back(objectsignature_t(objectid, signature));
-
+			signatures->push_back({objectid, signature});
 			if (bCache) {
-				std::pair<map<objectclass_t, dn_cache_t*>::iterator, bool> retval;
-				retval = mapDNCache.insert(make_pair(objectid.objclass, (dn_cache_t*)NULL));
+				auto retval = mapDNCache.insert({objectid.objclass, nullptr});
 				if (retval.second)
 					retval.first->second = new dn_cache_t();
 				auto iterDNCache = retval.first;
-				iterDNCache->second->insert(make_pair(objectid, dn));
+				iterDNCache->second->insert({objectid, dn});
 			}
 		}
 		END_FOREACH_ENTRY

@@ -64,7 +64,7 @@ public:
 	typedef HRESULT (*DeleteFunc)(void *lpParam); /* Caller's function to remove lpParam data from memory */
 
 private:
-	_kc_hidden ECMemStream(char *buffer, ULONG data_len, ULONG flags, CommitFunc, DeleteFunc, void *param);
+	_kc_hidden ECMemStream(const char *buffer, ULONG data_len, ULONG flags, CommitFunc, DeleteFunc, void *param);
 	_kc_hidden ECMemStream(ECMemBlock *, ULONG flags, CommitFunc, DeleteFunc, void *param);
 	_kc_hidden ~ECMemStream(void);
 
@@ -94,8 +94,8 @@ public:
 	} m_xStream;
 
 private:
-	ULARGE_INTEGER	liPos;
-	ECMemBlock		*lpMemBlock;
+	ULARGE_INTEGER liPos = {{0}};
+	ECMemBlock *lpMemBlock = nullptr;
 	CommitFunc		lpCommitFunc;
 	DeleteFunc		lpDeleteFunc;
 	void *			lpParam;

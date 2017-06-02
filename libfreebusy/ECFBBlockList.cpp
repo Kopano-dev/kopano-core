@@ -38,7 +38,7 @@ HRESULT ECFBBlockList::Add(FBBlock_1* lpFBBlock)
 {
 	if (lpFBBlock == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	m_FBMap.insert(mapFB::value_type(lpFBBlock->m_tmStart, *lpFBBlock));
+	m_FBMap.insert({lpFBBlock->m_tmStart, *lpFBBlock});
 	return hrSuccess;
 }
 

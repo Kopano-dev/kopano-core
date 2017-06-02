@@ -210,6 +210,6 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	hr = ptrArchiveStore->QueryInterface(IID_ECMsgStore, (LPVOID*)lppArchiveStore);
 	if (hr != hrSuccess)
 		return hr;
-	m_mapStores.insert(MsgStoreMap::value_type(eid, ptrArchiveStore));
+	m_mapStores.insert({eid, ptrArchiveStore});
 	return hrSuccess;
 }
