@@ -218,12 +218,12 @@ class FolderImporter:
         """ commit data to storage """
 
         t0 = time.time()
-        with closing(dbopen(self.folder_path+'/items')) as item_db,\
-             closing(dbopen(self.folder_path+'/index')) as index_db:
-            for sourcekey, data in self.item_updates:
-                item_db[sourcekey] = data
-            for sourcekey, idx in self.index_updates:
-                index_db[sourcekey] = idx
+        with closing(dbopen(self.folder_path+'/items')) as item_db:
+            with closing(dbopen(self.folder_path+'/index')) as index_db:
+                for sourcekey, data in self.item_updates:
+                    item_db[sourcekey] = data
+                for sourcekey, idx in self.index_updates:
+                    index_db[sourcekey] = idx
 
         self.log.debug('commit took %.2f seconds (%d items)', time.time()-t0, len(self.item_updates))
         self.reset_cache()
