@@ -551,7 +551,7 @@ class Service(kopano.Service):
                 if store.public:
                     target = 'public' + ('@'+store.company.name if store.company.name != 'Default' else '')
                 else:
-                    target = store.entryid
+                    target = store.guid
                 jobs.append((store, None, os.path.join(output_dir, target)))
 
         return [(job[0].entryid,)+job[1:] for job in sorted(jobs, reverse=True, key=lambda x: x[0].size)]
