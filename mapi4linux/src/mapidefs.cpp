@@ -803,7 +803,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	ULONG n = 0;
 
 	// make a list of all hierarchy tables, and create the combined column list
-	std::list<LPMAPITABLE> lHierarchies;
+	std::list<object_ptr<IMAPITable>> lHierarchies;
 	std::set<ULONG> stProps;
 	memory_ptr<SPropTagArray> lpColumns;
 
@@ -825,8 +825,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 			continue;
 
 		std::copy(lpPropArray->aulPropTag, lpPropArray->aulPropTag + lpPropArray->cValues, std::inserter(stProps, stProps.begin()));
-		lpABHierarchy->AddRef();
-		lHierarchies.push_back(lpABHierarchy);
+		lHierarchies.push_back(std::move(lpABHierarchy));
 	}
 
 	// remove key row
@@ -846,7 +845,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	++lpColumns->cValues;
 
 	n = 0;
-	for (const auto mt : lHierarchies) {
+	for (const auto &mt : lHierarchies) {
 		hr = mt->SetColumns(lpColumns, 0);
 		if (hr != hrSuccess)
 			goto exit;
@@ -873,10 +872,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		goto exit;
 		
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
 exit:
-	for (const auto mt : lHierarchies)
-		mt->Release();
 	return hr;
 }
 
