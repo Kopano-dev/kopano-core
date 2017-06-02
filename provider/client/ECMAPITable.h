@@ -27,8 +27,6 @@
 #include <set>
 #include <kopano/memory.hpp>
 
-using namespace KCHL;
-
 /*
  * This is the superclass which contains common code for the Hierarchy and Contents
  * tables implementations
@@ -83,16 +81,16 @@ private:
 	std::recursive_mutex m_hLock;
 	WSTableView			*lpTableOps;
 	ECNotifyClient		*lpNotifyClient;
-	memory_ptr<SSortOrderSet> lpsSortOrderSet;
+	KCHL::memory_ptr<SSortOrderSet> lpsSortOrderSet;
 	ULONG				ulFlags; // Currently unused
 	std::set<ULONG>		m_ulConnectionList;
 	std::recursive_mutex m_hMutexConnectionList;
 	
 	// Deferred calls
 	ULONG				m_ulDeferredFlags;
-	memory_ptr<SPropTagArray> m_lpSetColumns;
-	memory_ptr<SRestriction> m_lpRestrict;
-	memory_ptr<SSortOrderSet> m_lpSortTable;
+	KCHL::memory_ptr<SPropTagArray> m_lpSetColumns;
+	KCHL::memory_ptr<SRestriction> m_lpRestrict;
+	KCHL::memory_ptr<SSortOrderSet> m_lpSortTable;
 	ULONG				m_ulRowCount;
 	ULONG				m_ulFlags;		// Flags from queryrows
 	

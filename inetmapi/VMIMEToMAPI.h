@@ -27,8 +27,6 @@
 #include <kopano/charset/convert.h>
 #include <kopano/memory.hpp>
 
-using namespace KCHL;
-
 namespace KC {
 
 #define MAPI_CHARSET vmime::charset(vmime::charsets::UTF_8)
@@ -73,7 +71,7 @@ public:
 private:
 	delivery_options m_dopt;
 	LPADRBOOK m_lpAdrBook;
-	object_ptr<IABContainer> m_lpDefaultDir;
+	KCHL::object_ptr<IABContainer> m_lpDefaultDir;
 	sMailState m_mailState;
 	convert_context m_converter;
 

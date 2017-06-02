@@ -22,8 +22,6 @@
 #include <kopano/zcdefs.h>
 #include "ClientProto.h"
 
-using namespace KCHL;
-
 /**
  * @defgroup gateway_pop3 POP3 
  * @ingroup gateway
@@ -85,10 +83,10 @@ private:
 	std::string DotFilter(const char *input);
 	BOOL IsAuthorized() { return !!lpStore; }
 
-	object_ptr<IMAPISession> lpSession;
-	object_ptr<IMsgStore> lpStore;
-	object_ptr<IMAPIFolder> lpInbox;
-	object_ptr<IAddrBook> lpAddrBook;
+	KCHL::object_ptr<IMAPISession> lpSession;
+	KCHL::object_ptr<IMsgStore> lpStore;
+	KCHL::object_ptr<IMAPIFolder> lpInbox;
+	KCHL::object_ptr<IAddrBook> lpAddrBook;
 	sending_options sopt;
 
 	std::string szUser;

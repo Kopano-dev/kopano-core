@@ -26,8 +26,6 @@
 #include <kopano/memory.hpp>
 #include <list>
 
-using namespace KCHL;
-
 namespace KC {
 
 /*

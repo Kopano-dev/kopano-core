@@ -33,6 +33,8 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECInterfaceDefs.h>
 
+using namespace KCHL;
+
 ECMAPITable::ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags) : ECUnknown("IMAPITable")
 {
 	this->lpNotifyClient = lpNotifyClient;
