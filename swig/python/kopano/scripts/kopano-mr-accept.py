@@ -91,10 +91,10 @@ def main():
         if decline_message:
             mr.decline(message=decline_message)
         else:
-            mr.accept()
+            mr.accept(add_bcc=True)
 
     elif mr.is_cancellation:
-        mr.process_cancellation()
+        mr.process_cancellation(delete=True)
 
     now = datetime.now()
     user.freebusy.publish(now - timedelta(7), now + timedelta(180))

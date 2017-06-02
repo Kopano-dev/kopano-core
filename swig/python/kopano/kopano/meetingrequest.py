@@ -275,7 +275,7 @@ class MeetingRequest(object):
             cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [organizer_props])
             cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
-    def accept(self, tentative=False, response=True):
+    def accept(self, tentative=False, response=True, add_bcc=False):
         """ Accept meeting request
 
         :param tentative: accept tentatively?
@@ -334,12 +334,13 @@ class MeetingRequest(object):
                 rec = cal_item.recurrence
                 for item in existing_items:
                     rec.create_exception(item.meetingrequest.basedate, item, merge=True)
-                calendar.delete(existing_items)
+
+            calendar.delete(existing_items)
 
             self._init_calitem(cal_item, tentative, merge)
 
             # XXX why filter recipients?
-            if merge:
+            if merge or not add_bcc:
                 table = cal_item.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
                 table.SetColumns(RECIP_PROPS, 0)
                 rows = table.QueryRows(-1, 0)
@@ -367,7 +368,7 @@ class MeetingRequest(object):
             SPropValue(PR_RECIPIENT_TRACKSTATUS, 0),
             SPropValue(PR_RECIPIENT_TYPE, MAPI_BCC),
         ])
-        if not merge:
+        if add_bcc and not merge:
             cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [props])
             cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -390,8 +391,11 @@ class MeetingRequest(object):
         if response:
             self._respond('Declined', message_class, message)
 
-    def process_cancellation(self):
-        """ Process meeting request cancellation """
+    def process_cancellation(self, delete=False):
+        """ Process meeting request cancellation
+
+        :param delete: delete appointment from calendar
+        """
 
         if not self.is_cancellation:
             raise Error('item is not a meeting request cancellation')
@@ -417,22 +421,29 @@ class MeetingRequest(object):
                     PR_RCVD_REPRESENTING_NAME_W,
                 ])
 
-                if recurrence.is_exception(basedate):
-                    recurrence.modify_exception(basedate, self.item, copytags)
+                if delete:
+                    recurrence.delete_exception(basedate, self.item, copytags)
                 else:
-                    recurrence.create_exception(basedate, self.item, copytags)
+                    if recurrence.is_exception(basedate):
+                        recurrence.modify_exception(basedate, self.item, copytags)
+                    else:
+                        recurrence.create_exception(basedate, self.item, copytags)
 
-                message = recurrence.exception_message(basedate)
-                message.prop(PidLidBusyStatus).value = libfreebusy.fbFree
-                message.prop(PR_MESSAGE_FLAGS).value = 9 # XXX
+                    message = recurrence.exception_message(basedate)
+                    message.prop(PidLidBusyStatus).value = libfreebusy.fbFree
+                    message.prop(PR_MESSAGE_FLAGS).value = 9 # XXX
 
-                message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
+                    message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
 
         else:
-            self.item.mapiobj.CopyTo([], [], 0, None, IID_IMessage, cal_item.mapiobj, 0)
-            cal_item.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')])
+            if delete:
+                self.calendar.delete(cal_item)
+            else:
+                self.item.mapiobj.CopyTo([], [], 0, None, IID_IMessage, cal_item.mapiobj, 0)
+                cal_item.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')])
 
-        cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        if cal_item:
+            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def process_response(self):
         """ Process meeting request response """

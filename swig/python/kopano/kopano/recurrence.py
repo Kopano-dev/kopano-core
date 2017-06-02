@@ -87,21 +87,16 @@ class Recurrence(object):
         self.calendar_type = _utils.unpack_short(value, 4 * SHORT)
         self.first_datetime = _utils.unpack_long(value, 5 * SHORT)
         self.period = _utils.unpack_long(value, 5 * SHORT + LONG) # 12 for year, coincedence?
-        self.regen = _utils.unpack_long(value, 5 * SHORT + 2 * LONG)
+        self.slidingflag = _utils.unpack_long(value, 5 * SHORT + 2 * LONG)
 
         pos = 5 * SHORT + 3 * LONG
 
-        if self.patterntype == 1: # Weekly recurrence
-            self.pattern = _utils.unpack_long(value, pos) # WeekDays
+        if self.patterntype != 0:
+            self.pattern = _utils.unpack_long(value, pos)
             pos += LONG
-        if self.patterntype in (2, 4, 10, 12): # Monthly recurrence
-            self.pattern = _utils.unpack_long(value, pos) # Day Of Month
-            pos += LONG
-        elif self.patterntype in (3, 11): # Yearly recurrence
-            weekday = _utils.unpack_long(value, pos)
-            pos += LONG
-            weeknumber = _utils.unpack_long(value, pos)
-            pos += LONG
+            if self.patterntype in (3, 0xB):
+                self.pattern2 = _utils.unpack_long(value, pos)
+                pos += LONG
 
         self.endtype = _utils.unpack_long(value, pos)
         pos += LONG
@@ -146,7 +141,7 @@ class Recurrence(object):
         pos += SHORT
 
         self.exceptions = []
-        for i in range(0, self.exception_count):
+        for i in range(0, self.modcount): # using modcount, as PHP seems to not update exception_count? equal according to docs
             exception = {}
 
             val = _utils.unpack_long(value, pos)
@@ -246,27 +241,27 @@ class Recurrence(object):
             self.extended_exceptions.append(extended_exception)
 
     def _save(self):
-        data = struct.pack('<BBBBHI', 0x04, 0x30, 0x04, 0x30, self.recurrence_frequency, self.patterntype)
+        data = struct.pack('<BBBBHHH', 0x04, 0x30, 0x04, 0x30, self.recurrence_frequency, self.patterntype, self.calendar_type)
 
-        if self.recurrence_frequency == 0x200b:
-            # weekly
-            data += struct.pack('<IIII', 0, self.period, 0, self.pattern) # XXX firstocc
+        data += struct.pack('<III', self.first_datetime, self.period, self.slidingflag)
+
+        if self.patterntype != 0:
+            data += struct.pack('<I', self.pattern)
+            if self.patterntype in (3, 0xB):
+                data += struct.pack('<I', self.pattern2)
 
         data += struct.pack('<I', self.endtype)
 
-        # XXX php sets 0x2021 for an enddate!?
-        if self.endtype == 0x2021: # stop after date XXX should compute in this case
+        # XXX check specs, php seems wrong
+        if self.endtype == 0x2021: # stop after date
             occurrence_count = 0xa
-#        elif self.endtype == 0x2022: # stop after N occurrences
-#            occurrence_count = self.occurrence_count
-        else: # no end date XXX should be 0xa
+        elif self.endtype == 0x2022: # stop after N occurrences
+            occurrence_count = self.occurrence_count
+        else:
             occurrence_count = 0
         data += struct.pack('<I', occurrence_count)
 
-        if  self.recurrence_frequency == 0x200b and self.patterntype == 1: # XXX check doc
-            data += struct.pack('<I', 1)
-        else:
-            data += struct.pack('<I', 0)
+        data += struct.pack('<I', self.first_dow)
 
         data += struct.pack('<I', self.delcount)
         for val in self.del_vals:
@@ -283,6 +278,7 @@ class Recurrence(object):
 
         # ExceptionInfo
         data += struct.pack('<H', self.modcount)
+
         for exception in self.exceptions:
             data += struct.pack('<I', exception['startdatetime_val'])
             data += struct.pack('<I', exception['enddatetime_val'])
@@ -375,39 +371,37 @@ class Recurrence(object):
     def recurrences(self):
         # FIXME; doesn't dateutil have a list of this?
         rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA} # FIXME: remove above
+        rule = rruleset()
 
         # FIXME: merge exception details with normal appointment data to recurrence.occurences() (Class occurence)
         if self.patterntype == 0: # DAILY
-            recurrences = rrule(DAILY, dtstart=self._start, until=self._end, interval=self.period/(24*60))
+            rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self.period/(24*60)))
+
         if self.patterntype == 1: # WEEKLY
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
                 if (self.pattern >> index ) & 1:
                     byweekday += (week,)
-            # Setup our rule
-            rule = rruleset()
             # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
             # But the recurrence is on 8:00 that day and we should include it.
             rule.rrule(rrule(WEEKLY, dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday))
 
-            recurrences = rule
-            # self.recurrences = rrule(WEEKLY, dtstart=self.start, until=self.end, byweekday=byweekday)
         elif self.patterntype == 2: # MONTHLY
             # X Day of every Y month(s)
             # The Xnd Y (day) of every Z Month(s)
-            recurrences = rrule(MONTHLY, dtstart=self._start, until=self._end, bymonthday=self.pattern, interval=self.period)
+            rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, bymonthday=self.pattern, interval=self.period))
             # self.pattern is either day of month or
-        elif self.patterntype == 3: # MONTHY, YEARLY
+
+        elif self.patterntype == 3: # MONTHY, YEARLY # XXX what about 4 etc..
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
-                if (weekday >> index ) & 1:
-                    byweekday += (week(weeknumber),)
+                if (self.pattern >> index ) & 1:
+                    byweekday += (week,)
             # Yearly, the last XX of YY
-            recurrences = rrule(MONTHLY, dtstart=self._start, until=self._end, interval=self.period, byweekday=byweekday)
+            rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, interval=self.period, byweekday=byweekday))
 
         # Remove deleted ocurrences
         for del_date in self._del_recurrences:
-            # XXX: Somehow rule.rdate does not work in combination with rule.exdate
             del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self._start.hour, self._start.minute)
             if del_date not in self._mod_recurrences:
                 rule.exdate(del_date)
@@ -416,7 +410,7 @@ class Recurrence(object):
         for exception in self.exceptions:
             rule.rdate(datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exception['startdatetime_val'])))
 
-        return recurrences
+        return rule
 
     def exception_message(self, basedate):
         for message in self.item.items():
@@ -684,6 +678,34 @@ class Recurrence(object):
         self._save()
 
         # update calitem
+        self._update_calitem(item)
+
+    def delete_exception(self, basedate, item, copytags):
+        tz = item.get_value('appointment:33331')
+
+        basedate2 = _utils._from_gmt(basedate, tz)
+        basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate2.timetuple()))
+
+        if self.is_exception(basedate):
+            self.modify_exception(basedate, item, copytags)
+
+            for i, exc in enumerate(self.exceptions):
+                if exc['originalstartdate_val'] == basedate_val:
+                    break
+
+            self.modcount -= 1
+            self.mod_vals = [m for m in self.mod_vals if m != exc['startdatetime_val']]
+
+            del self.exceptions[i]
+            del self.extended_exceptions[i]
+
+        else:
+            self.delcount += 1
+
+            self.del_vals.append(basedate_val)
+            self.del_vals.sort()
+
+        self._save()
         self._update_calitem(item)
 
     def __unicode__(self):
