@@ -67,12 +67,19 @@ class FreeBusy(object):
         """
 
         eid = self.store.user.userid.decode('hex')
-        ftstart, ftend = datetime_to_filetime(start), datetime_to_filetime(end) # XXX tz?
+        if start:
+            ftstart = datetime_to_filetime(start)
+        else:
+            ftstart = FileTime(0)
+        if end:
+            ftend = datetime_to_filetime(end)
+        else:
+            ftend = FileTime(0xFFFFFFFFFFFFFFFF)
 
         fb = libfreebusy.IFreeBusySupport()
         fb.Open(self.store.server.mapisession, self.store.mapiobj, False)
         fbdata = fb.LoadFreeBusyData([eid], None)
-        if fbdata in (0, 1): # XXX what
+        if fbdata in (0, 1): # XXX what?
             return
         data, status = fbdata
         fb.Close()
@@ -86,7 +93,7 @@ class FreeBusy(object):
             else:
                 break
 
-    def publish(self, start=None, end=None): # XXX implement
+    def publish(self, start=None, end=None):
         """ Publish freebusy data
 
         :param start: start of period
