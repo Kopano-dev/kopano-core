@@ -554,18 +554,21 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 	std::wstring name;
 	std::wstring type;
 	std::wstring addr;
+	uint16_t tmp2;
+	uint32_t tmp4;
 
 	if (cbEntryID < (8 + sizeof(MAPIUID)) || lpEntryID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	if(*reinterpret_cast<const unsigned int *>(lpBuffer) != 0)
+	memcpy(&tmp4, lpBuffer, sizeof(tmp4));
+	if (tmp4 != 0)
 		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += 4;
 
 	if (memcmp(&muidOneOff, lpBuffer, sizeof(MAPIUID)) != 0)
 		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += sizeof(MAPIUID);
-
-	if (*reinterpret_cast<const unsigned short *>(lpBuffer) != 0)
+	memcpy(&tmp2, lpBuffer, sizeof(tmp2));
+	if (tmp2 != 0)
 		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += 2;
 
