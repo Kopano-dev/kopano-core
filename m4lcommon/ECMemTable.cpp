@@ -797,33 +797,41 @@ HRESULT ECMemTableView::GetBinarySortKey(const SPropValue *lpsPropVal,
 	unsigned char	*lpSortData = NULL;
 	unsigned int	ulSortLen = 0;
 	unsigned char	ulFlags = 0;
+	unsigned short tmp2;
+	unsigned int tmp4;
+	double tmp8;
 
 	switch(PROP_TYPE(lpsPropVal->ulPropTag)) {
 	case PT_BOOLEAN:
 	case PT_I2:
 		ulSortLen = 2;
 		lpSortData = new unsigned char[2];
-		*(unsigned short *)lpSortData = htons(lpsPropVal->Value.b);
+		tmp2 = htons(lpsPropVal->Value.b);
+		static_assert(sizeof(short) == 2, "ECMemTable hardcode");
+		memcpy(lpSortData, &tmp2, sizeof(tmp2));
 		break;
 	case PT_LONG:
 		ulSortLen = 4;
 		lpSortData = new unsigned char[4];
-		*(unsigned int *)lpSortData = htonl(lpsPropVal->Value.ul);
+		tmp4 = htonl(lpsPropVal->Value.ul);
+		static_assert(sizeof(int) == 4, "ECMemTable hardcode");
+		memcpy(lpSortData, &tmp4, sizeof(tmp4));
 		break;
 	case PT_R4:
 		ulSortLen = sizeof(double);
 		lpSortData = new unsigned char[sizeof(double)];
-		*(double *)lpSortData = lpsPropVal->Value.flt;
+		tmp8 = lpsPropVal->Value.flt;
+		memcpy(lpSortData, &tmp8, sizeof(tmp8));
 		break;
 	case PT_DOUBLE:
 		ulSortLen = sizeof(double);
 		lpSortData = new unsigned char[sizeof(double)];
-		*(double *)lpSortData = lpsPropVal->Value.dbl;
+		memcpy(lpSortData, &lpsPropVal->Value.dbl, sizeof(double));
 		break;
 	case PT_APPTIME:
 		ulSortLen = sizeof(double);
 		lpSortData = new unsigned char[sizeof(double)];
-		*(double *)lpSortData = lpsPropVal->Value.at;
+		memcpy(lpSortData, &lpsPropVal->Value.at, sizeof(double));
 		break;
 	case PT_CURRENCY:// FIXME: unsortable
 		ulSortLen = 0;
@@ -832,14 +840,18 @@ HRESULT ECMemTableView::GetBinarySortKey(const SPropValue *lpsPropVal,
 	case PT_SYSTIME:
 		ulSortLen = 8;
 		lpSortData = new unsigned char[8];
-		*(unsigned int *)lpSortData = htonl(lpsPropVal->Value.ft.dwHighDateTime);
-		*(unsigned int *)(lpSortData+4) = htonl(lpsPropVal->Value.ft.dwLowDateTime);
+		tmp4 = htonl(lpsPropVal->Value.ft.dwHighDateTime);
+		memcpy(lpSortData, &tmp4, sizeof(tmp4));
+		tmp4 = htonl(lpsPropVal->Value.ft.dwLowDateTime);
+		memcpy(lpSortData + 4, &tmp4, sizeof(tmp4));
 		break;
 	case PT_I8:
 		ulSortLen = 8;
 		lpSortData = new unsigned char[8];
-		*(unsigned int *)lpSortData = htonl((unsigned int)(lpsPropVal->Value.li.QuadPart >> 32));
-		*(unsigned int *)(lpSortData+4) = htonl((unsigned int)lpsPropVal->Value.li.QuadPart);
+		tmp4 = htonl((unsigned int)(lpsPropVal->Value.li.QuadPart >> 32));
+		memcpy(lpSortData, &tmp4, sizeof(tmp4));
+		tmp4 = htonl((unsigned int)lpsPropVal->Value.li.QuadPart);
+		memcpy(lpSortData + 4, &tmp4, sizeof(tmp4));
 		break;
 	case PT_STRING8: 
 	case PT_UNICODE: {
