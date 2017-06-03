@@ -136,8 +136,13 @@ AC_SUBST(DISTRO)
 dnl These are the only two I will allow to edit LIBS
 AC_ARG_WITH([asan], AS_HELP_STRING([--with-asan], [Activate Address Sanitizer]),
 	[ZCXXFLAGS="$ZCXXFLAGS -fsanitize=address"])
+dnl Cannot reliably mix hidden visibility with UBSAN currently
+dnl [https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80963]
+NO_VSYM=""
 AC_ARG_WITH([ubsan], AS_HELP_STRING([--with-ubsan], [Activate Undefined Behavior Sanitizer]),
-	[ZCXXFLAGS="$ZCXXFLAGS -fsanitize=undefined"])
+	[ZCXXFLAGS="$ZCXXFLAGS -fsanitize=undefined"; VISCXXFLAGS=""; NO_VSYM=1],
+	[ZCXXFLAGS="$ZCXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"])
+AC_SUBST([NO_VSYM])
 
 AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [enable debug mode (Adds debug code)]),
   [want_debug=${enableval}],[want_debug=no])
