@@ -17,7 +17,7 @@
 #include <memory>
 #include <cstring>
 #include <cstdlib>
-#include <endian.h>
+#include <kopano/platform.h>
 #include "rtf.h"
 
 namespace KC {
@@ -69,11 +69,11 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 	
 	lpSrc += sizeof(struct RTFHeader);
 	
-	if(lpHeader->ulMagic == 0x414c454d) {
+	if (le32_to_cpu(lpHeader->ulMagic) == 0x414c454d) {
 		// Uncompressed RTF
 		memcpy(lpDest, lpSrc, ulBufSize - sizeof(RTFHeader));
 		return 0;
-	} else if (lpHeader->ulMagic != 0x75465a4c) {
+	} else if (le32_to_cpu(lpHeader->ulMagic) != 0x75465a4c) {
 		return 1;
 	}
 	// Allocate a buffer to decompress into (uncompressed size plus prebuffered data)

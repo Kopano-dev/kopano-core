@@ -494,6 +494,7 @@ HRESULT ECCreateOneOff(const TCHAR *lpszName, const TCHAR *lpszAdrType,
 	strOneOff.append(4, '\0'); // abFlags
 	strOneOff.append(reinterpret_cast<const char *>(&uid), sizeof(MAPIUID));
 	strOneOff.append(2, '\0'); // version (0)
+	usFlags = cpu_to_le16(usFlags);
 	strOneOff.append(reinterpret_cast<const char *>(&usFlags), sizeof(usFlags));
 
 	if(ulFlags & MAPI_UNICODE)
@@ -561,6 +562,7 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 	if (cbEntryID < (8 + sizeof(MAPIUID)) || lpEntryID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	memcpy(&tmp4, lpBuffer, sizeof(tmp4));
+	tmp4 = le32_to_cpu(tmp4);
 	if (tmp4 != 0)
 		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += 4;
@@ -569,12 +571,13 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += sizeof(MAPIUID);
 	memcpy(&tmp2, lpBuffer, sizeof(tmp2));
+	tmp2 = le16_to_cpu(tmp2);
 	if (tmp2 != 0)
 		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += 2;
 
 	memcpy(&usFlags, lpBuffer, sizeof(usFlags));
-
+	usFlags = le16_to_cpu(usFlags);
 	lpBuffer += 2;
 
 	if(usFlags & MAPI_ONE_OFF_UNICODE) {

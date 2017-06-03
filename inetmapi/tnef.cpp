@@ -1017,27 +1017,31 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 	lpProp->ulPropTag = ulPropTag;
 
 	for (ulMVProp = 0; ulMVProp < ulCount; ++ulMVProp) {
+		uint16_t tmp2;
+		uint32_t tmp4;
 		switch(PROP_TYPE(ulPropTag) & ~MV_FLAG) {
 		case PT_I2:
-			if(ulPropTag & MV_FLAG)
-				memcpy(&lpProp->Value.MVi.lpi[ulMVProp], lpBuffer, sizeof(short));
+			memcpy(&tmp2, lpBuffer, sizeof(tmp2));
+			if (ulPropTag & MV_FLAG)
+				lpProp->Value.MVi.lpi[ulMVProp] = le16_to_cpu(tmp2);
 			else
-				memcpy(&lpProp->Value.i, lpBuffer, sizeof(short));
+				lpProp->Value.i = le16_to_cpu(tmp2);
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
 		case PT_LONG:
+			memcpy(&tmp4, lpBuffer, sizeof(tmp4));
 			if(ulPropTag & MV_FLAG)
-				memcpy(&lpProp->Value.MVl.lpl[ulMVProp], lpBuffer, sizeof(ULONG));
+				lpProp->Value.MVl.lpl[ulMVProp] = le32_to_cpu(tmp4);
 			else
-				memcpy(&lpProp->Value.ul, lpBuffer, sizeof(ULONG));
+				lpProp->Value.ul = le32_to_cpu(tmp4);
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
 		case PT_BOOLEAN: {
 			BOOL tmp;
 			memcpy(&tmp, lpBuffer, sizeof(tmp));
-			lpProp->Value.b = tmp;
+			lpProp->Value.b = le32_to_cpu(tmp);
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
@@ -1075,12 +1079,15 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 		case PT_CURRENCY:
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
+			memcpy(&tmp4, lpBuffer, sizeof(tmp4));
 			if(ulPropTag & MV_FLAG) {
-				memcpy(&lpProp->Value.MVcur.lpcur[ulMVProp].Lo, lpBuffer, sizeof(ULONG));
-				memcpy(&lpProp->Value.MVcur.lpcur[ulMVProp].Hi, lpBuffer + 4, sizeof(ULONG));
+				lpProp->Value.MVcur.lpcur[ulMVProp].Lo = le32_to_cpu(tmp4);
+				memcpy(&tmp4, lpBuffer + 4, sizeof(tmp4));
+				lpProp->Value.MVcur.lpcur[ulMVProp].Hi = le32_to_cpu(tmp4);
 			} else {
-				memcpy(&lpProp->Value.cur.Lo, lpBuffer, sizeof(ULONG));
-				memcpy(&lpProp->Value.cur.Hi, lpBuffer + 4, sizeof(ULONG));
+				lpProp->Value.cur.Lo = le32_to_cpu(tmp4);
+				memcpy(&tmp4, lpBuffer + 4, sizeof(tmp4));
+				lpProp->Value.cur.Hi = le32_to_cpu(tmp4);
 			}
 
 			lpBuffer += 8;
@@ -1090,12 +1097,15 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
 			static_assert(sizeof(ULONG) == sizeof(DWORD), "tnef code restriction");
+			memcpy(&tmp4, lpBuffer, sizeof(tmp4));
 			if(ulPropTag & MV_FLAG) {
-				memcpy(&lpProp->Value.MVft.lpft[ulMVProp].dwLowDateTime, lpBuffer, sizeof(ULONG));
-				memcpy(&lpProp->Value.MVft.lpft[ulMVProp].dwHighDateTime, lpBuffer + 4, sizeof(ULONG));
+				lpProp->Value.MVft.lpft[ulMVProp].dwLowDateTime = le32_to_cpu(tmp4);
+				memcpy(&tmp4, lpBuffer + 4, sizeof(tmp4));
+				lpProp->Value.MVft.lpft[ulMVProp].dwHighDateTime = le32_to_cpu(tmp4);
 			} else {
-				memcpy(&lpProp->Value.ft.dwLowDateTime, lpBuffer, sizeof(ULONG));
-				memcpy(&lpProp->Value.ft.dwHighDateTime, lpBuffer + 4, sizeof(ULONG));
+				lpProp->Value.ft.dwLowDateTime = le32_to_cpu(tmp4);
+				memcpy(&tmp4, lpBuffer + 4, sizeof(tmp4));
+				lpProp->Value.ft.dwHighDateTime = le32_to_cpu(tmp4);
 			}
 			lpBuffer += 8;
 			ulSize -= 8;
@@ -1103,12 +1113,15 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 		case PT_I8:
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
+			memcpy(&tmp4, lpBuffer, sizeof(tmp4));
 			if(ulPropTag & MV_FLAG) {
-				memcpy(&lpProp->Value.MVli.lpli[ulMVProp].LowPart, lpBuffer, sizeof(ULONG));
-				memcpy(&lpProp->Value.MVli.lpli[ulMVProp].HighPart, lpBuffer + 4, sizeof(ULONG));
+				lpProp->Value.MVli.lpli[ulMVProp].LowPart = le32_to_cpu(tmp4);
+				memcpy(&tmp4, lpBuffer + 4, sizeof(tmp4));
+				lpProp->Value.MVli.lpli[ulMVProp].HighPart = le32_to_cpu(tmp4);
 			} else {
-				memcpy(&lpProp->Value.li.LowPart, lpBuffer, sizeof(ULONG));
-				memcpy(&lpProp->Value.li.HighPart, lpBuffer + 4, sizeof(ULONG));
+				lpProp->Value.li.LowPart = le32_to_cpu(tmp4);
+				memcpy(&tmp4, lpBuffer + 4, sizeof(tmp4));
+				lpProp->Value.li.HighPart = le32_to_cpu(tmp4);
 			} 
 
 			lpBuffer += 8;
@@ -1122,6 +1135,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 	    		ulSize -= 4;
             }
             memcpy(&ulLen, lpBuffer, sizeof(ULONG));
+			ulLen = le32_to_cpu(ulLen);
 			lpBuffer += 4; 
 			ulSize -= 4;
 
@@ -1158,6 +1172,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 	    		ulSize -= 4;
             }
             memcpy(&ulLen, lpBuffer, sizeof(ULONG)); // Assumes 'len' in file is BYTES, not chars
+			ulLen = le32_to_cpu(ulLen);
 			lpBuffer += 4;
 			ulSize -= 4;
 			if (ulSize < ulLen)
@@ -1196,6 +1211,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 	    		ulSize -= 4;
             }
             memcpy(&ulLen, lpBuffer, sizeof(ULONG));
+			ulLen = le32_to_cpu(ulLen);
 			lpBuffer += 4;
 			ulSize -= 4;
 

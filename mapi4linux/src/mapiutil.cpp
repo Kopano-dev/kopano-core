@@ -348,7 +348,9 @@ HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
 		auto ci = reinterpret_cast<CONVERSATION_INDEX *>(pbConvIndex);
 		ci->ulReserved1 = 1;
 		UnixTimeToFileTime(time(NULL), &ft);
-		memcpy(ci->ftTime, &ft, 5);
+		uint32_t tmp = cpu_to_le32(ft.dwLowDateTime);
+		memcpy(ci->ftTime, &tmp, sizeof(tmp));
+		ci->ftTime[4] = ft.dwHighDateTime;
 		CoCreateGuid(&ci->guid);
 	} else {
 		FILETIME now;
@@ -360,14 +362,17 @@ HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
 		cbConvIndex = cbParent+5;
 		memcpy(pbConvIndex, lpbParent, cbParent);
 
-		memset(&parent, 0, sizeof(FILETIME));
-		memcpy(&parent, ((CONVERSATION_INDEX*)lpbParent)->ftTime, 5);
-
+		auto ci = reinterpret_cast<const CONVERSATION_INDEX *>(lpbParent);
+		memcpy(&parent.dwLowDateTime, &ci->ftTime, sizeof(DWORD));
+		parent.dwLowDateTime = le32_to_cpu(parent.dwLowDateTime);
+		parent.dwHighDateTime = lpbParent[4];
 		UnixTimeToFileTime(time(NULL), &now);
 
 		diff = FtSubFt(now, parent);
-
-		memcpy(pbConvIndex + sizeof(CONVERSATION_INDEX), &diff, 5);
+		diff.dwLowDateTime = cpu_to_le32(diff.dwLowDateTime);
+		diff.dwHighDateTime = cpu_to_le32(diff.dwHighDateTime);
+		memcpy(pbConvIndex + sizeof(CONVERSATION_INDEX), &diff.dwLowDateTime, 4);
+		pbConvIndex[sizeof(CONVERSATION_INDEX)+4] = diff.dwHighDateTime;
 	}
 
 	*lppbConvIndex = pbConvIndex;
