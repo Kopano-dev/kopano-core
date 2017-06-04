@@ -67,7 +67,7 @@ HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder, LPEXCHAN
 	object_ptr<ECExchangeImportContentsChanges> lpEICC(new(std::nothrow) ECExchangeImportContentsChanges(lpFolder));
 	if (lpEICC == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = HrGetOneProp(&lpFolder->m_xMAPIProp, PR_SOURCE_KEY, &lpEICC->m_lpSourceKey);
+	hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &lpEICC->m_lpSourceKey);
 	if (hr != hrSuccess)
 		return hr;
 	return lpEICC->QueryInterface(IID_IExchangeImportContentsChanges,

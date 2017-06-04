@@ -83,7 +83,7 @@ HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 #ifdef DEBUG
 	{
 		LPSPropValue lpDisplay;
-		HrGetOneProp(&this->m_xMAPIProp, PR_DISPLAY_NAME_A, &lpDisplay);
+		HrGetOneProp(this, PR_DISPLAY_NAME_A, &lpDisplay);
 		if (lpDisplay != nullptr)
 			strName = lpDisplay->Value.lpszA;
 	}
@@ -118,7 +118,7 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 #ifdef DEBUG
 	{
 		LPSPropValue lpDisplay;
-		HrGetOneProp(&this->m_xMAPIProp, PR_DISPLAY_NAME_A, &lpDisplay);
+		HrGetOneProp(this, PR_DISPLAY_NAME_A, &lpDisplay);
 		if (lpDisplay != nullptr)
 			strName = lpDisplay->Value.lpszA;
 	}

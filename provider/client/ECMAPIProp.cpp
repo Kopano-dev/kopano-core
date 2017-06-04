@@ -123,9 +123,9 @@ HRESULT ECMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECMAPIProp, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMAPIProp);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xMAPIProp);
-	REGISTER_INTERFACE2(IECSecurity, &this->m_xECSecurity);
+	REGISTER_INTERFACE2(IMAPIProp, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	REGISTER_INTERFACE2(IECSecurity, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -703,14 +703,14 @@ HRESULT ECMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return Util::DoCopyTo(&IID_IMAPIProp, static_cast<IMAPIProp *>(&this->m_xMAPIProp), ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return Util::DoCopyTo(&IID_IMAPIProp, static_cast<IMAPIProp *>(this), ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 HRESULT ECMAPIProp::CopyProps(const SPropTagArray *lpIncludeProps,
     ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return Util::DoCopyProps(&IID_IMAPIProp, static_cast<IMAPIProp *>(&this->m_xMAPIProp), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return Util::DoCopyProps(&IID_IMAPIProp, static_cast<IMAPIProp *>(this), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 // Pass call off to lpMsgStore
@@ -873,30 +873,3 @@ HRESULT ECMAPIProp::SetParentID(ULONG cbParentID, LPENTRYID lpParentID)
 	memcpy(m_lpParentID, lpParentID, cbParentID);
 	return hrSuccess;
 }
-
-// Interface IMAPIProp
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
-
-// Interface ECSecurity
-DEF_HRMETHOD0(ECMAPIProp, ECSecurity, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD0(ECMAPIProp, ECSecurity, AddRef, (void))
-DEF_ULONGMETHOD0(ECMAPIProp, ECSecurity, Release, (void))
-DEF_HRMETHOD0(ECMAPIProp, ECSecurity, GetOwner, (ULONG *, lpcbOwner), (LPENTRYID *, lppOwner))
-DEF_HRMETHOD0(ECMAPIProp, ECSecurity, GetUserList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcUsers), (ECUSER **, lpsUsers))
-DEF_HRMETHOD0(ECMAPIProp, ECSecurity, GetGroupList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcGroups), (ECGROUP **, lppsGroups))
-DEF_HRMETHOD0(ECMAPIProp, ECSecurity, GetCompanyList, (ULONG, ulFlags), (ULONG *, lpcCompanies), (ECCOMPANY **, lppsCompanies))
-DEF_HRMETHOD0(ECMAPIProp, ECSecurity, GetPermissionRules, (int, ulType), (ULONG *, lpcPermissions), (ECPERMISSION **, lppECPermissions))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, ECSecurity, SetPermissionRules, (ULONG, cPermissions), (ECPERMISSION *, lpECPermissions))

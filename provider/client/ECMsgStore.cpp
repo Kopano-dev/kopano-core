@@ -223,7 +223,7 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 
 	REGISTER_INTERFACE2(IECServiceAdmin, &this->m_xECServiceAdmin);
 	REGISTER_INTERFACE2(IECSpooler, &this->m_xECSpooler);
-	REGISTER_INTERFACE2(IECSecurity, &this->m_xECSecurity);
+	REGISTER_INTERFACE2(IECSecurity, this);
 	REGISTER_INTERFACE2(IProxyStoreObject, &this->m_xProxyStoreObject);
 
 	if (refiid == IID_ECMsgStoreOnline)
