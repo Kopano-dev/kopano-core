@@ -79,35 +79,21 @@ HRESULT	ECABContainer::Create(void* lpProvider, ULONG ulObjType, BOOL fModify, E
 
 HRESULT	ECABContainer::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
-	HRESULT			hr = hrSuccess;
-
 	if (lpiid == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
 	switch (ulPropTag) {
 	case PR_CONTAINER_CONTENTS:
-		if(*lpiid == IID_IMAPITable)
-			hr = GetContentsTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
-		else
-			hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-		if (hr != hrSuccess)
-			return hr;
-		break;
+		if (*lpiid != IID_IMAPITable)
+			return MAPI_E_INTERFACE_NOT_SUPPORTED;
+		return GetContentsTable(ulInterfaceOptions, reinterpret_cast<IMAPITable **>(lppUnk));
 	case PR_CONTAINER_HIERARCHY:
-		if (*lpiid == IID_IMAPITable)
-			hr = GetHierarchyTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
-		else
-			hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-		if (hr != hrSuccess)
-			return hr;
-		break;
+		if (*lpiid != IID_IMAPITable)
+			return MAPI_E_INTERFACE_NOT_SUPPORTED;
+		return GetHierarchyTable(ulInterfaceOptions, reinterpret_cast<IMAPITable **>(lppUnk));
 	default:
-		hr = ECABProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-		if (hr != hrSuccess)
-			return hr;
-		break;
+		return ECABProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 	}
-	return hr;
 }
 
 HRESULT ECABContainer::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
