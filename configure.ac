@@ -89,8 +89,10 @@ for i in "c++11" "c++0x"; do
 	AS_IF([test -n "$cxxmode"], [break])
 done
 CXXFLAGS="$CXXFLAGS_system"
-ZCXXFLAGS="$ZCXXFLAGS -std=$cxxmode"
-AC_MSG_RESULT([$cxxmode])
+AS_IF([test -n "$cxxmode"], [
+	ZCXXFLAGS="$ZCXXFLAGS -std=$cxxmode"
+	AC_MSG_RESULT([$cxxmode])
+])
 
 # disable variadic-macros: too much warning: anonymous variadic macros were introduced in C99, only on new compilers
 AC_MSG_CHECKING([whether C++ compiler understands -Wno-variadic-macros option])
