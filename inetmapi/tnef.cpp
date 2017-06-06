@@ -1022,40 +1022,45 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 		switch(PROP_TYPE(ulPropTag) & ~MV_FLAG) {
 		case PT_I2:
 			if(ulPropTag & MV_FLAG)
-				lpProp->Value.MVi.lpi[ulMVProp] = *reinterpret_cast<const unsigned short *>(lpBuffer);
+				memcpy(&lpProp->Value.MVi.lpi[ulMVProp], lpBuffer, sizeof(short));
 			else
-				lpProp->Value.i = *reinterpret_cast<const unsigned short *>(lpBuffer);
+				memcpy(&lpProp->Value.i, lpBuffer, sizeof(short));
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
 		case PT_LONG:
 			if(ulPropTag & MV_FLAG)
-				lpProp->Value.MVl.lpl[ulMVProp] = *reinterpret_cast<const ULONG *>(lpBuffer);
+				memcpy(&lpProp->Value.MVl.lpl[ulMVProp], lpBuffer, sizeof(ULONG));
 			else
-				lpProp->Value.ul = *reinterpret_cast<const ULONG *>(lpBuffer);
+				memcpy(&lpProp->Value.ul, lpBuffer, sizeof(ULONG));
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
-		case PT_BOOLEAN:
-			lpProp->Value.b = *reinterpret_cast<const BOOL *>(lpBuffer);
+		case PT_BOOLEAN: {
+			BOOL tmp;
+			memcpy(&tmp, lpBuffer, sizeof(tmp));
+			lpProp->Value.b = tmp;
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
+		}
 		case PT_R4:
+			static_assert(sizeof(float) == 4, "hard limitation of tnef code");
 			if(ulPropTag & MV_FLAG)
-				lpProp->Value.MVflt.lpflt[ulMVProp] = *reinterpret_cast<const float *>(lpBuffer);
+				memcpy(&lpProp->Value.MVflt.lpflt[ulMVProp], lpBuffer, sizeof(float));
 			else
-				lpProp->Value.flt = *reinterpret_cast<const float *>(lpBuffer);
+				memcpy(&lpProp->Value.flt, lpBuffer, sizeof(float));
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
 		case PT_APPTIME:
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
+			static_assert(sizeof(double) == 8, "hard limitation of tnef code");
 			if(ulPropTag & MV_FLAG)
-				lpProp->Value.MVat.lpat[ulMVProp] = *reinterpret_cast<const double *>(lpBuffer);
+				memcpy(&lpProp->Value.MVat.lpat[ulMVProp], lpBuffer, sizeof(double));
 			else
-				lpProp->Value.at = *reinterpret_cast<const double *>(lpBuffer);
+				memcpy(&lpProp->Value.at, lpBuffer, sizeof(double));
 			lpBuffer += 8;
 			ulSize -= 8;
 			break;
@@ -1063,9 +1068,9 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
 			if(ulPropTag & MV_FLAG)
-				lpProp->Value.MVdbl.lpdbl[ulMVProp] = *reinterpret_cast<const double *>(lpBuffer);
+				memcpy(&lpProp->Value.MVdbl.lpdbl[ulMVProp], lpBuffer, sizeof(double));
 			else
-				lpProp->Value.dbl = *reinterpret_cast<const double *>(lpBuffer);
+				memcpy(&lpProp->Value.dbl, lpBuffer, sizeof(double));
 			lpBuffer += 8;
 			ulSize -= 8;
 			break;
@@ -1073,11 +1078,11 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
 			if(ulPropTag & MV_FLAG) {
-				lpProp->Value.MVcur.lpcur[ulMVProp].Lo = *reinterpret_cast<const ULONG *>(lpBuffer);
-				lpProp->Value.MVcur.lpcur[ulMVProp].Hi = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
+				memcpy(&lpProp->Value.MVcur.lpcur[ulMVProp].Lo, lpBuffer, sizeof(ULONG));
+				memcpy(&lpProp->Value.MVcur.lpcur[ulMVProp].Hi, lpBuffer + 4, sizeof(ULONG));
 			} else {
-				lpProp->Value.cur.Lo = *reinterpret_cast<const ULONG *>(lpBuffer);
-				lpProp->Value.cur.Hi = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
+				memcpy(&lpProp->Value.cur.Lo, lpBuffer, sizeof(ULONG));
+				memcpy(&lpProp->Value.cur.Hi, lpBuffer + 4, sizeof(ULONG));
 			}
 
 			lpBuffer += 8;
@@ -1086,12 +1091,13 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 		case PT_SYSTIME:
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
+			static_assert(sizeof(ULONG) == sizeof(DWORD), "tnef code restriction");
 			if(ulPropTag & MV_FLAG) {
-				lpProp->Value.MVft.lpft[ulMVProp].dwLowDateTime = *reinterpret_cast<const ULONG *>(lpBuffer);
-				lpProp->Value.MVft.lpft[ulMVProp].dwHighDateTime = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
+				memcpy(&lpProp->Value.MVft.lpft[ulMVProp].dwLowDateTime, lpBuffer, sizeof(ULONG));
+				memcpy(&lpProp->Value.MVft.lpft[ulMVProp].dwHighDateTime, lpBuffer + 4, sizeof(ULONG));
 			} else {
-				lpProp->Value.ft.dwLowDateTime = *reinterpret_cast<const ULONG *>(lpBuffer);
-				lpProp->Value.ft.dwHighDateTime = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
+				memcpy(&lpProp->Value.ft.dwLowDateTime, lpBuffer, sizeof(ULONG));
+				memcpy(&lpProp->Value.ft.dwHighDateTime, lpBuffer + 4, sizeof(ULONG));
 			}
 			lpBuffer += 8;
 			ulSize -= 8;
@@ -1100,11 +1106,11 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
 			if(ulPropTag & MV_FLAG) {
-				lpProp->Value.MVli.lpli[ulMVProp].LowPart = *reinterpret_cast<const ULONG *>(lpBuffer);
-				lpProp->Value.MVli.lpli[ulMVProp].HighPart = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
+				memcpy(&lpProp->Value.MVli.lpli[ulMVProp].LowPart, lpBuffer, sizeof(ULONG));
+				memcpy(&lpProp->Value.MVli.lpli[ulMVProp].HighPart, lpBuffer + 4, sizeof(ULONG));
 			} else {
-				lpProp->Value.li.LowPart = *reinterpret_cast<const ULONG *>(lpBuffer);
-				lpProp->Value.li.HighPart = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
+				memcpy(&lpProp->Value.li.LowPart, lpBuffer, sizeof(ULONG));
+				memcpy(&lpProp->Value.li.HighPart, lpBuffer + 4, sizeof(ULONG));
 			} 
 
 			lpBuffer += 8;
@@ -1117,7 +1123,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
     			lpBuffer += 4; // Skip next 4 bytes, they are always '1'
 	    		ulSize -= 4;
             }
-			ulLen = *reinterpret_cast<const ULONG *>(lpBuffer);
+            memcpy(&ulLen, lpBuffer, sizeof(ULONG));
 			lpBuffer += 4; 
 			ulSize -= 4;
 
@@ -1153,7 +1159,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
     			lpBuffer += 4; // Skip next 4 bytes, they are always '1'
 	    		ulSize -= 4;
             }
-			ulLen = *reinterpret_cast<const ULONG *>(lpBuffer); // Assumes 'len' in file is BYTES, not chars
+            memcpy(&ulLen, lpBuffer, sizeof(ULONG)); // Assumes 'len' in file is BYTES, not chars
 			lpBuffer += 4;
 			ulSize -= 4;
 			if (ulSize < ulLen)
@@ -1191,7 +1197,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
     			lpBuffer += 4;	// Skip next 4 bytes, it's always '1' (ULONG)
 	    		ulSize -= 4;
             }
-			ulLen = *reinterpret_cast<const ULONG *>(lpBuffer);
+            memcpy(&ulLen, lpBuffer, sizeof(ULONG));
 			lpBuffer += 4;
 			ulSize -= 4;
 

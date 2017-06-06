@@ -3835,12 +3835,14 @@ HRESULT Util::ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned shor
 	while (true) {
 		if (lpPos + 8 > lpEnd)
 			return MAPI_E_NOT_FOUND;
-		if (*reinterpret_cast<unsigned short *>(lpPos) == 0)
+		unsigned short pos;
+		memcpy(&pos, lpPos, sizeof(pos));
+		if (pos == 0)
 			return MAPI_E_NOT_FOUND;
-		if (*(unsigned short *)lpPos != usBlockType) {
+		if (pos != usBlockType) {
 			unsigned short usLen = 0;
 			lpPos += 2;	// Skip ID
-			usLen = *(unsigned short*)lpPos;
+			memcpy(&usLen, lpPos, sizeof(usLen));
 			lpPos += 2;
 			if (lpPos + usLen > lpEnd)
 				return MAPI_E_CORRUPT_DATA;
@@ -3849,10 +3851,11 @@ HRESULT Util::ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned shor
 		}
 		unsigned short usLen = 0;
 		lpPos += 4;	// Skip ID + total length
-		if (*reinterpret_cast<unsigned short *>(lpPos) != RSF_ELID_ENTRYID)
+		memcpy(&pos, lpPos, sizeof(pos));
+		if (pos != RSF_ELID_ENTRYID)
 			return MAPI_E_CORRUPT_DATA;
 		lpPos += 2;	// Skip check
-		usLen = *(unsigned short *)lpPos;
+		memcpy(&usLen, lpPos, sizeof(usLen));
 		lpPos += 2;
 		if (lpPos + usLen > lpEnd)
 			return MAPI_E_CORRUPT_DATA;

@@ -33,8 +33,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
 	${VMIME_CFLAGS} ${XML2_CFLAGS}
-AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare -fvisibility=hidden \
-	-fvisibility-inlines-hidden
+AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
 
 
 #
@@ -105,6 +104,8 @@ BUILT_SOURCES =
 CLEANFILES = ${noinst_DATA}
 EXTRA_DIST = autoconf/1075.h php-ext/mapi.sym
 default_sym = ${top_builddir}/default.sym
+default_SYFLAGS = -Wl,--version-script=${default_sym}
+plugin_SYFLAGS = -Wl,--version-script=provider/plugin.sym
 
 
 #
@@ -275,7 +276,7 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/ECArchiverLogger.cpp ECtools/archiver/ECArchiverLogger.h \
 	ECtools/archiver/ECIterators.cpp ECtools/archiver/ECIterators.h
 libkcarchiver_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=${default_sym}
+	${default_SYFLAGS${NO_VSYM}}
 libkcarchiver_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la
 EXTRA_libkcarchiver_la_DEPENDENCIES = ${default_sym}
 
@@ -308,7 +309,7 @@ libkcarchivercore_la_SOURCES = \
 	ECtools/archiver/arc_mysql.cpp ECtools/archiver/arc_mysql.hpp \
 	common/database.cpp common/include/kopano/database.hpp
 libkcarchivercore_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=${default_sym}
+	${default_SYFLAGS${NO_VSYM}}
 libkcarchivercore_la_LIBADD = \
 	libmapi.la libkcmapi.la libkcarchiver.la \
 	${PROG_LIBS} ${SSL_LIBS} ${MYSQL_LIBS}
@@ -387,8 +388,9 @@ libkcclient_la_LIBADD = \
 	libkcmapi.la libkcssl.la libkcutil.la libkcfreebusy.la libkcsync.la \
 	libmapi.la ${COND_libkcrosie_la} libkcsoap.la -lstdc++ \
 	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${UUID_LIBS} ${KRB5_LIBS}
+libkcclient_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
 libkcclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
-	-Wl,--version-script=provider/provider.sym
+	${libkcclient_la_SYFLAGS${NO_VSYM}}
 EXTRA_libkcclient_la_DEPENDENCIES = provider/provider.sym
 
 
@@ -403,8 +405,9 @@ libkccontacts_la_SOURCES = \
 	provider/contacts/ZCMAPIProp.h provider/contacts/ZCMAPIProp.cpp
 libkccontacts_la_LIBADD = \
 	libkcutil.la libkcmapi.la libmapi.la -lstdc++ ${UUID_LIBS} ${ICU_LIBS}
+libkccontacts_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
 libkccontacts_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
-	-Wl,--version-script=provider/provider.sym
+	${libkccontacts_la_SYFLAGS${NO_VSYM}}
 EXTRA_libkccontacts_la_DEPENDENCIES = provider/provider.sym
 
 
@@ -427,7 +430,7 @@ libkcfreebusy_la_SOURCES = \
 libkcfreebusy_la_LIBADD = \
 	libkcutil.la libkcmapi.la libmapi.la
 libkcfreebusy_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=${default_sym}
+	${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcfreebusy_la_DEPENDENCIES = ${default_sym}
 
 
@@ -436,8 +439,9 @@ EXTRA_libkcfreebusy_la_DEPENDENCIES = ${default_sym}
 #
 libkchl_la_SOURCES = mapi4linux/src/hl.cpp
 libkchl_la_LIBADD = libmapi.la
+libkchl_la_SYFLAGS = -Wl,--version-script=mapi4linux/src/libkchl.sym
 libkchl_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
-	-Wl,--version-script=mapi4linux/src/libkchl.sym
+	${libkchl_la_SYFLAGS${NO_VSYM}}
 EXTRA_libkchl_la_DEPENDENCIES = mapi4linux/src/libkchl.sym
 
 
@@ -465,7 +469,7 @@ libkcicalmapi_la_SOURCES = \
 libkcicalmapi_la_LIBADD = \
 	libkcfreebusy.la libmapi.la libkcmapi.la libkcutil.la ${ICAL_LIBS}
 libkcicalmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
-	-Wl,--version-script=${default_sym}
+	${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcicalmapi_la_DEPENDENCIES = ${default_sym}
 
 
@@ -497,7 +501,7 @@ libkcinetmapi_la_LIBADD = \
 	libmapi.la libkcmapi.la libkcutil.la libkcicalmapi.la \
 	${COND_libkcrosie_la} ${VMIME_LIBS} ${XML2_LIBS}
 libkcinetmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-version-info 0:0:0 -Wl,-z -Wl,now -Wl,--version-script=${default_sym}
+	-version-info 0:0:0 -Wl,-z -Wl,now ${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcinetmapi_la_DEPENDENCIES = ${default_sym}
 
 
@@ -566,8 +570,9 @@ libkcserver_la_LIBADD = \
 	libkcutil.la libkcmapi.la libkcssl.la libkcsoap.la \
 	-lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
 	${GSOAP_LIBS} ${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}
+libkcserver_la_SYFLAGS = -Wl,--version-script=provider/libkcserver.sym
 libkcserver_la_LDFLAGS = ${AM_LDFLAGS} \
-	-Wl,--version-script=provider/libkcserver.sym
+	${libkcserver_la_SYFLAGS${NO_VSYM}}
 EXTRA_libkcserver_la_DEPENDENCIES = provider/libkcserver.sym
 
 provider/libkcserver.sym: ${top_builddir}/config.status
@@ -586,8 +591,9 @@ libkcmapi_la_SOURCES = \
 	common/IStreamAdapter.cpp common/MAPIErrors.cpp common/kcodes.cpp \
 	common/codepage.cpp common/rtfutil.cpp
 libkcmapi_la_LIBADD = libkcutil.la -lpthread
+libkcmapi_la_SYFLAGS = -Wl,--version-script=common/libkcmapi.sym
 libkcmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=common/libkcmapi.sym
+	${libkcmapi_la_SYFLAGS${NO_VSYM}}
 EXTRA_libkcmapi_la_DEPENDENCIES = common/libkcmapi.sym
 
 common/libkcmapi.sym: ${top_builddir}/config.status
@@ -600,7 +606,7 @@ include_HEADERS = librosie/librosie.h
 libkcrosie_la_SOURCES = librosie/librosie.cpp
 libkcrosie_la_LIBADD  = libkcutil.la -ltidy
 libkcrosie_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
-	-Wl,--version-script=${default_sym}
+	${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcrosie_la_DEPENDENCIES = ${default_sym}
 
 
@@ -615,8 +621,9 @@ libkcsoap_la_SOURCES = \
 	provider/common/versions.h
 libkcsoap_la_CXXFLAGS = ${AM_CXXFLAGS} -fvisibility=default
 libkcsoap_la_LIBADD = libkcutil.la libkcmapi.la ${GSOAP_LIBS}
+libkcsoap_la_SYFLAGS = -Wl,--version-script=provider/libkcsoap.sym
 libkcsoap_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=provider/libkcsoap.sym
+	${libkcsoap_la_SYFLAGS${NO_VSYM}}
 EXTRA_libkcsoap_la_DEPENDENCIES = provider/libkcsoap.sym
 
 provider/libkcsoap.sym: ${top_builddir}/config.status
@@ -630,7 +637,7 @@ libkcssl_la_SOURCES = \
 	common/ECChannel.cpp common/ECChannelClient.cpp common/SSLUtil.cpp
 libkcssl_la_LIBADD = libkcutil.la -lpthread ${SSL_LIBS}
 libkcssl_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=${default_sym}
+	${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcssl_la_DEPENDENCIES = ${default_sym}
 
 
@@ -647,7 +654,7 @@ libkcsync_la_SOURCES = \
 	libsync/ECSyncSettings.cpp libsync/ECSyncUtil.cpp
 libkcsync_la_LIBADD = libkcmapi.la libmapi.la
 libkcsync_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=${default_sym}
+	${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcsync_la_DEPENDENCIES = ${default_sym}
 
 
@@ -674,8 +681,9 @@ libkcutil_la_SOURCES = \
 	common/charset/localeutil.cpp common/ustringutil/utfutil.cpp
 libkcutil_la_LIBADD = \
 	-lpthread -lz ${CRYPTO_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${UUID_LIBS}
+libkcutil_la_SYFLAGS = -Wl,--version-script=common/libkcutil.sym
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=common/libkcutil.sym
+	${libkcutil_la_SYFLAGS${NO_VSYM}}
 EXTRA_libkcutil_la_DEPENDENCIES = common/libkcutil.sym
 
 
@@ -738,8 +746,9 @@ libmapi_la_SOURCES = \
 	m4lcommon/include/kopano/xclsfrag/IUnknown.hpp
 libmapi_la_LIBADD = \
 	libkcutil.la libkcmapi.la -lpthread ${PROG_LIBS} ${DL_LIBS}
+libmapi_la_SYFLAGS = -Wl,--version-script=mapi4linux/src/libmapi.sym
 libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
-	-Wl,--version-script=mapi4linux/src/libmapi.sym
+	${libmapi_la_SYFLAGS${NO_VSYM}}
 EXTRA_libmapi_la_DEPENDENCIES = mapi4linux/src/libmapi.sym
 
 mapi4linux/src/libmapi.sym: ${top_builddir}/config.status
@@ -796,8 +805,9 @@ mapi_la_SOURCES += \
 endif
 mapi_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la libkcfreebusy.la \
 	libkcinetmapi.la libkcicalmapi.la ${PROG_LIBS} -lpthread
+mapi_la_SYFLAGS = -Wl,--version-script=${srcdir}/php-ext/mapi.sym
 mapi_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module ${PHP_LDFLAGS} \
-	-Wl,--version-script=${srcdir}/php-ext/mapi.sym
+	${mapi_la_SYFLAGS${NO_VSYM}}
 EXTRA_mapi_la_DEPENDENCIES = ${srcdir}/php-ext/mapi.sym
 
 
@@ -876,7 +886,7 @@ dbplugin_la_SOURCES = \
 dbplugin_la_LIBADD = \
 	libkcutil.la libkcserver.la ${MYSQL_LIBS}
 dbplugin_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
-	-Wl,--version-script=provider/plugin.sym
+	${plugin_SYFLAGS${NO_VSYM}}
 EXTRA_dbplugin_la_DEPENDENCIES = provider/plugin.sym
 
 if WITH_UNIX
@@ -888,7 +898,7 @@ unixplugin_la_SOURCES = \
 unixplugin_la_LIBADD = \
 	libkcutil.la libkcserver.la ${MYSQL_LIBS} ${CRYPT_LIBS}
 unixplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
-	-Wl,--version-script=provider/plugin.sym
+	${plugin_SYFLAGS${NO_VSYM}}
 EXTRA_unixplugin_la_DEPENDENCIES = provider/plugin.sym
 endif
 
@@ -905,7 +915,7 @@ ldapplugin_la_LIBADD = \
 	libkcutil.la \
 	libkcserver.la ${CRYPTO_LIBS} ${LDAP_LIBS}
 ldapplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
-	-Wl,--version-script=provider/plugin.sym
+	${plugin_SYFLAGS${NO_VSYM}}
 EXTRA_ldapplugin_la_DEPENDENCIES = provider/plugin.sym
 
 .libs/ldapmsplugin.so: ldapplugin.la

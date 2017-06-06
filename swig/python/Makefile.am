@@ -20,15 +20,17 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
 	-I${top_srcdir}/common -I${top_srcdir}/m4lcommon \
 	$(PYTHON_INCLUDES) -I${top_srcdir}/swig -w \
 	-DSWIG_PYTHON_OUTPUT_TUPLE -DSWIG_TYPE_TABLE=MAPI
+AM_CXXFLAGS = ${ZCXXFLAGS} -fvisibility=default
+python_SYFLAGS = -Wl,--version-script=python.sym
 
 libkcpyconv_la_SOURCES = conversion.cpp
-libkcpyconv_la_LDFLAGS = ${AM_LDFLAGS} -Wl,--version-script=python.sym
+libkcpyconv_la_LDFLAGS = ${AM_LDFLAGS} ${python_SYFLAGS${NO_VSYM}}
 libkcpyconv_la_LIBADD  = ${PYTHON_LIBS} \
 	${top_builddir}/libmapi.la
 EXTRA_libkcpyconv_la_DEPENDENCIES = python.sym
 
 libkcpydirector_la_SOURCES = ../director_util.cpp
-libkcpydirector_la_LDFLAGS = ${AM_LDFLAGS} -Wl,--version-script=python.sym
+libkcpydirector_la_LDFLAGS = ${AM_LDFLAGS} ${python_SYFLAGS${NO_VSYM}}
 libkcpydirector_la_LIBADD  = -lpthread
 EXTRA_libkcpydirector_la_DEPENDENCIES = python.sym
 
