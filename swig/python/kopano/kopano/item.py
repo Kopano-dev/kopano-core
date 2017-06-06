@@ -706,21 +706,22 @@ class Item(Base):
         return Recurrence(self)
 
     def occurrences(self, start=None, end=None):
-        try:
-            if self.recurring:
-                recurrences = self.recurrence.recurrences
-                if start and end:
-                    recurrences = recurrences.between(start, end)
-                for d in recurrences:
-                    occ = Occurrence(self, d, d + datetime.timedelta(hours=1)) # XXX
-                    if (not start or occ.start >= start) and (not end or occ.end < end): # XXX slow for now; overlaps with start, end?
-                        yield occ
-            else:
-                occ = Occurrence(self, self.start, self.end)
-                if (not start or occ.start >= start) and (not end or occ.end < end):
+        if self.recurring: # XXX move most to recurrence.py
+            tz = self.get_value('appointment:33331')
+            recurrence = self.recurrence
+            minutes = recurrence.endtime_offset - recurrence.starttime_offset
+            recurrences = recurrence.recurrences
+            if start and end:
+                recurrences = recurrences.between(start, end)
+            for d in recurrences:
+                d = _utils._to_gmt(d, tz)
+                occ = Occurrence(self, d, d + datetime.timedelta(minutes=minutes)) # XXX exceptions
+                if (not start or occ.start >= start) and (not end or occ.end < end): # XXX slow for now; overlaps with start, end?
                     yield occ
-        except MAPIErrorNotFound: # XXX shouldn't happen
-            pass
+        else:
+            occ = Occurrence(self, self.start, self.end)
+            if (not start or occ.start >= start) and (not end or occ.end < end):
+                yield occ
 
     @property
     def meetingrequest(self):
