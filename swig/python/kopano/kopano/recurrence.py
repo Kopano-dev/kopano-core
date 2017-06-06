@@ -481,7 +481,6 @@ class Recurrence(object):
             extended_exception['originalstartdate_val'] = basedate_val
 
     def _update_calitem(self, item):
-        tz = item.get_value('appointment:33331')
         cal_item = self.item
 
         cal_item.prop(PidLidSideEffects, create=True).value = 3441 # XXX check php
@@ -492,7 +491,7 @@ class Recurrence(object):
             occs = list(cal_item.occurrences(datetime.datetime.now(), datetime.datetime(2038,1,1))) # XXX slow for daily?
             occs.sort(key=lambda occ: occ.start) # XXX check if needed
             for occ in occs: # XXX check default/reminder props
-                dueby = _utils._to_gmt(occ.start, tz) - datetime.timedelta(minutes=cal_item.prop(PidLidReminderDelta).value)
+                dueby = occ.start - datetime.timedelta(minutes=cal_item.prop(PidLidReminderDelta).value)
                 if dueby > datetime.datetime.now():
                     cal_item.prop(PidLidReminderSignalTime).value = dueby
                     break
