@@ -708,6 +708,31 @@ class Recurrence(object):
         self._save()
         self._update_calitem(item)
 
+    def occurrences(self, start=None, end=None):
+        tz = self.item.get_value('appointment:33331')
+
+        recurrences = self.recurrences
+        if start and end:
+            recurrences = recurrences.between(_util.from_gmt(start, tz), _util.from_gmt(end, tz))
+
+        start_end = {}
+        for exc in self.exceptions:
+            start_end[exc['startdatetime_val']] = exc['enddatetime_val']
+
+        for d in recurrences:
+            startdatetime_val = _utils.unixtime_to_rectime(time.mktime(d.timetuple()))
+
+            if startdatetime_val in start_end:
+                minutes = start_end[startdatetime_val] - startdatetime_val
+            else:
+                minutes = self.endtime_offset - self.starttime_offset
+
+            d = _utils._to_gmt(d, tz)
+
+            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes)) # XXX exceptions
+            if (not start or occ.start >= start) and (not end or occ.end < end): # XXX slow for now; overlaps with start, end?
+                yield occ
+
     def __unicode__(self):
         return u'Recurrence(start=%s - end=%s)' % (self.start, self.end)
 
