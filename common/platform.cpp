@@ -143,32 +143,31 @@ HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime)
  *
  * For dates, everything is 1-index (1st January is 1-1) and year is full (2008)
  */
- 
-bool operator ==(const FILETIME &a, const FILETIME &b)
+bool operator==(const FILETIME &a, const FILETIME &b) noexcept
 {
 	return a.dwLowDateTime == b.dwLowDateTime && a.dwHighDateTime == b.dwHighDateTime;
 }
 
-bool operator >(const FILETIME &a, const FILETIME &b)
+bool operator>(const FILETIME &a, const FILETIME &b) noexcept
 {
 	return ((a.dwHighDateTime > b.dwHighDateTime) ||
 		((a.dwHighDateTime == b.dwHighDateTime) &&
 		 (a.dwLowDateTime > b.dwLowDateTime)));
 }
 
-bool operator >=(const FILETIME &a, const FILETIME &b)
+bool operator>=(const FILETIME &a, const FILETIME &b) noexcept
 {
 	return a > b || a == b;
 }
 
-bool operator <(const FILETIME &a, const FILETIME &b)
+bool operator<(const FILETIME &a, const FILETIME &b) noexcept
 {
 	return ((a.dwHighDateTime < b.dwHighDateTime) ||
 		((a.dwHighDateTime == b.dwHighDateTime) &&
 		 (a.dwLowDateTime < b.dwLowDateTime)));
 }
 
-bool operator <=(const FILETIME &a, const FILETIME &b)
+bool operator<=(const FILETIME &a, const FILETIME &b) noexcept
 {
 	return a < b || a == b;
 }

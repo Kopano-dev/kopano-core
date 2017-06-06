@@ -115,7 +115,8 @@ public:
 	friend class KC::SessionRestorer;
 };
 
-inline bool operator <(const GUID &a, const GUID &b) {
+inline bool operator<(const GUID &a, const GUID &b) noexcept
+{
     return memcmp(&a, &b, sizeof(GUID)) < 0;
 }
 

@@ -115,7 +115,7 @@ public:
 			delete[] lpb;
 	}
 
-	bool operator==(const BinaryArray &b) const
+	bool operator==(const BinaryArray &b) const noexcept
 	{
 		if (b.cb == 0 && this->cb == 0)
 			return true;
@@ -148,7 +148,7 @@ public:
 };
 
 struct lessBinaryArray {
-	bool operator()(const BinaryArray& a, const BinaryArray& b) const
+	bool operator()(const BinaryArray &a, const BinaryArray &b) const noexcept
 	{
 		if (a.cb < b.cb || (a.cb == b.cb && memcmp(a.lpb, b.lpb, a.cb) < 0) )
 			return true;
@@ -248,19 +248,10 @@ private:
 		bool bRecent;				// \Recent flag
 		std::string strFlags;		// String of all flags, including \Recent
 
-		bool operator <(const SMail &sMail) const
-		{
-			return this->ulUid < sMail.ulUid;
-		}
-		bool operator < (ULONG ulUid) const {
-			return this->ulUid < ulUid;
-		}
-		operator ULONG() const {
-			return this->ulUid;
-		}
-		bool operator == (ULONG ulUid) const {
-		    return this->ulUid == ulUid;
-		}
+		bool operator<(const SMail &sMail) const noexcept { return this->ulUid < sMail.ulUid; }
+		bool operator<(ULONG ulUid) const noexcept { return this->ulUid < ulUid; }
+		operator ULONG() const noexcept { return this->ulUid; }
+		bool operator==(ULONG ulUid) const noexcept { return this->ulUid == ulUid; }
 	};
 
 	KCHL::object_ptr<IMAPISession> lpSession;

@@ -90,12 +90,12 @@ static constexpr const SizedSPropTagArray(4, sPropNewMailColumns) = {
 
 } /* namespace */
 
-bool operator ==(const SBinary &left, const SBinary &right)
+bool operator==(const SBinary &left, const SBinary &right) noexcept
 {
 	return left.cb == right.cb && memcmp(left.lpb, right.lpb, left.cb) == 0;
 }
 
-bool operator <(const SBinary &left, const SBinary &right)
+bool operator<(const SBinary &left, const SBinary &right) noexcept
 {
 	return left.cb < right.cb || (left.cb == right.cb && memcmp(left.lpb, right.lpb, left.cb) < 0);
 }

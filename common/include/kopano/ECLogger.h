@@ -252,7 +252,7 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 		_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) _kc_override __LIKE_PRINTF(3, 4);
 		_kc_hidden virtual void LogVA(unsigned int level, const char *fmt, va_list &) _kc_override;
 		_kc_hidden int GetFileDescriptor(void) _kc_override;
-		bool IsStdErr();
+		bool IsStdErr() const { return logname == "-"; }
 
 	private:
 	_kc_hidden void init_for_stderr(void);

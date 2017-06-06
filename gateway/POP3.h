@@ -81,7 +81,7 @@ private:
 	HRESULT HrMakeMailList();
 	HRESULT HrLogin(const std::string &strUsername, const std::string &strPassword);
 	std::string DotFilter(const char *input);
-	BOOL IsAuthorized() { return !!lpStore; }
+	BOOL IsAuthorized() const { return !!lpStore; }
 
 	KCHL::object_ptr<IMAPISession> lpSession;
 	KCHL::object_ptr<IMsgStore> lpStore;

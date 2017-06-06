@@ -92,14 +92,8 @@ public:
 		d->usFlags = ulFlags;
     }
 
-    bool operator == (const EntryId &s) const {
-        return m_data == s.m_data;
-    }
-	
-	bool operator < (const EntryId &s) const {
-	    return m_data < s.m_data;
-	}
-
+	bool operator==(const EntryId &s) const noexcept { return m_data == s.m_data; }
+	bool operator<(const EntryId &s) const noexcept { return m_data < s.m_data; }
     operator const std::string& () const { return m_data; }    
     operator unsigned char *() const { return (unsigned char *)m_data.data(); }
     operator entryId *() { return &m_sEntryId; }
@@ -137,7 +131,10 @@ struct DELETEITEM {
 // Used to group notify flags and object type.
 struct TABLECHANGENOTIFICATION {
 	TABLECHANGENOTIFICATION(unsigned int t, unsigned int f): ulFlags(f), ulType(t) {}
-	bool operator<(const TABLECHANGENOTIFICATION &rhs) const { return ulFlags < rhs.ulFlags || (ulFlags == rhs.ulFlags && ulType < rhs.ulType); }
+	bool operator<(const TABLECHANGENOTIFICATION &rhs) const noexcept
+	{
+		return ulFlags < rhs.ulFlags || (ulFlags == rhs.ulFlags && ulType < rhs.ulType);
+	}
 
 	unsigned int ulFlags;
 	unsigned int ulType;

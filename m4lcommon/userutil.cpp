@@ -59,7 +59,8 @@ public:
 		return (LPTSTR)m_strName.c_str();
 	}
 
-	bool operator<(const servername &other) const {
+	bool operator<(const servername &other) const noexcept
+	{
 		return wcscasecmp(m_strName.c_str(), other.m_strName.c_str()) < 0;
 	}
 

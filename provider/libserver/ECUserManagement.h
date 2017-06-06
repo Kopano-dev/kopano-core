@@ -40,9 +40,8 @@ public:
 	localobjectdetails_t(void) = default;
 	localobjectdetails_t(unsigned int id, objectclass_t objclass) : objectdetails_t(objclass), ulId(id) {};
 	localobjectdetails_t(unsigned int id, const objectdetails_t &details) : objectdetails_t(details), ulId(id) {};
-
-	bool operator==(const localobjectdetails_t &obj) const { return ulId == obj.ulId; };
-	bool operator<(const localobjectdetails_t &obj) const { return ulId < obj.ulId; } ;
+	bool operator==(const localobjectdetails_t &obj) const noexcept { return ulId == obj.ulId; };
+	bool operator<(const localobjectdetails_t &obj) const noexcept { return ulId < obj.ulId; } ;
 
 	unsigned int ulId = 0;
 };
@@ -76,7 +75,8 @@ public:
 		memcpy(m_ulCounts, other.m_ulCounts, sizeof(m_ulCounts));
 	}
 
-	void swap(usercount_t &other) {
+	void swap(usercount_t &other) noexcept
+	{
 		std::swap(m_bValid, other.m_bValid);
 		for (unsigned i = 0; i < ucMAX; ++i)
 			std::swap(m_ulCounts[i], other.m_ulCounts[i]);

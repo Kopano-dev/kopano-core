@@ -157,7 +157,7 @@ template<typename _T, typename _Deleter = default_delete> class memory_ptr {
 		if (__p != pointer())
 			_Deleter()(__p);
 	}
-	void swap(memory_ptr &__o)
+	void swap(memory_ptr &__o) noexcept
 	{
 		std::swap(_m_ptr, __o._m_ptr);
 	}
@@ -215,7 +215,11 @@ template<typename _T> class object_ptr {
 	}
 	object_ptr(object_ptr &&__o)
 	{
-		std::swap(__o._m_ptr, _m_ptr);
+		auto __old = get();
+		_m_ptr = __o._m_ptr;
+		__o._m_ptr = pointer();
+		if (__old != pointer())
+			__old->Release();
 	}
 	/* Observers */
 	_T &operator*(void) const { return *_m_ptr; }
@@ -240,7 +244,7 @@ template<typename _T> class object_ptr {
 		if (__p != pointer())
 			__p->Release();
 	}
-	void swap(object_ptr &__o)
+	void swap(object_ptr &__o) noexcept
 	{
 		std::swap(_m_ptr, __o._m_ptr);
 	}
@@ -260,7 +264,11 @@ template<typename _T> class object_ptr {
 	}
 	object_ptr &operator=(object_ptr &&__o) noexcept
 	{
-		std::swap(__o._m_ptr, _m_ptr);
+		auto __old = get();
+		_m_ptr = __o._m_ptr;
+		__o._m_ptr = pointer();
+		if (__old != pointer())
+			__old->Release();
 		return *this;
 	}
 	private:

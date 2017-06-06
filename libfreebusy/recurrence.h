@@ -41,65 +41,56 @@ public:
 	enum freq_type { DAILY, WEEKLY, MONTHLY, YEARLY };
 	enum term_type { DATE, NUMBER, NEVER };
 
-	freq_type getFrequency();
+	freq_type getFrequency() const;
 	HRESULT setFrequency(freq_type ft);
-	_kc_hidden time_t getStartDate(void);
+	_kc_hidden time_t getStartDate() const;
 	_kc_hidden HRESULT setStartDate(time_t);
-	time_t getEndDate();
+	time_t getEndDate() const;
 	HRESULT setEndDate(time_t tEnd);
-
-	ULONG getStartTimeOffset();
+	ULONG getStartTimeOffset() const;
 	_kc_hidden HRESULT setStartTimeOffset(ULONG minutes_since_midnight);
-	_kc_hidden ULONG getEndTimeOffset(void);
+	_kc_hidden ULONG getEndTimeOffset(void) const;
 	HRESULT setEndTimeOffset(ULONG ulMinutesSinceMidnight);
-
-	time_t getStartDateTime();
+	time_t getStartDateTime() const;
 	HRESULT setStartDateTime(time_t tStart);
-	_kc_hidden time_t getEndDateTime(void);
+	_kc_hidden time_t getEndDateTime() const;
 	_kc_hidden HRESULT setEndDateTime(time_t);
-	ULONG getCount();
+	ULONG getCount() const;
 	HRESULT setCount(ULONG ulCount);
-
-	term_type getEndType();
+	term_type getEndType() const;
 	HRESULT setEndType(term_type);
-
-	ULONG getInterval();
+	ULONG getInterval() const;
 	HRESULT setInterval(ULONG);
-	_kc_hidden ULONG getSlidingFlag(void) { return m_sRecState.ulSlidingFlag; }
+	_kc_hidden ULONG getSlidingFlag() const { return m_sRecState.ulSlidingFlag; }
 	_kc_hidden HRESULT setSlidingFlag(ULONG);
-	_kc_hidden ULONG getFirstDOW(void);
+	_kc_hidden ULONG getFirstDOW() const;
 	HRESULT setFirstDOW(ULONG);
-
-	UCHAR getWeekDays();
+	UCHAR getWeekDays() const;
 	HRESULT setWeekDays(UCHAR);
-
-	UCHAR getDayOfMonth();
+	UCHAR getDayOfMonth() const;
 	HRESULT setDayOfMonth(UCHAR);
-
-	UCHAR getMonth();
+	UCHAR getMonth() const;
  	HRESULT setMonth(UCHAR);
-
-	UCHAR getWeekNumber();		/* 1..4 and 5 (last) */
+	UCHAR getWeekNumber() const; /* 1..4 and 5 (last) */
 	HRESULT setWeekNumber(UCHAR);
 
 	/* exception handling */
 
 	HRESULT addDeletedException(time_t);
-	std::list<time_t> getDeletedExceptions();
-
-	ULONG getModifiedCount();
-	ULONG getModifiedFlags(ULONG id); /* 0..getModifiedCount() */
-	time_t getModifiedStartDateTime(ULONG id);
-	time_t getModifiedEndDateTime(ULONG id);
-	_kc_hidden time_t getModifiedOriginalDateTime(ULONG id); /* used as recurrence-id */
-	std::wstring getModifiedSubject(ULONG id);
-	_kc_hidden ULONG getModifiedMeetingType(ULONG id);
-	LONG getModifiedReminderDelta(ULONG id);
-	ULONG getModifiedReminder(ULONG id);
-	std::wstring getModifiedLocation(ULONG id);
-	ULONG getModifiedBusyStatus(ULONG id);
-	_kc_hidden ULONG getModifiedAttachment(ULONG id);
-	ULONG getModifiedSubType(ULONG id);
+	std::list<time_t> getDeletedExceptions() const;
+	ULONG getModifiedCount() const;
+	ULONG getModifiedFlags(ULONG id) const; /* 0..getModifiedCount() */
+	time_t getModifiedStartDateTime(ULONG id) const;
+	time_t getModifiedEndDateTime(ULONG id) const;
+	_kc_hidden time_t getModifiedOriginalDateTime(ULONG id) const; /* used as recurrence-id */
+	std::wstring getModifiedSubject(ULONG id) const;
+	_kc_hidden ULONG getModifiedMeetingType(ULONG id) const;
+	LONG getModifiedReminderDelta(ULONG id) const;
+	ULONG getModifiedReminder(ULONG id) const;
+	std::wstring getModifiedLocation(ULONG id) const;
+	ULONG getModifiedBusyStatus(ULONG id) const;
+	_kc_hidden ULONG getModifiedAttachment(ULONG id) const;
+	ULONG getModifiedSubType(ULONG id) const;
 
 	HRESULT addModifiedException(time_t tStart, time_t tEnd, time_t tOriginalStart, ULONG *id);
 	HRESULT setModifiedSubject(ULONG id, const std::wstring &strSubject);
@@ -113,30 +104,15 @@ public:
 	_kc_hidden HRESULT setModifiedApptColor(ULONG id, ULONG color);
 	HRESULT setModifiedBody(ULONG id);
 	_kc_hidden HRESULT AddValidOccr(time_t occr_start, time_t occr_end, ULONG busy_status, OccrInfo **fbblocksall, ULONG *nvals);
-	_kc_hidden bool isOccurrenceValid(time_t period_start, time_t period_end, time_t new_occ);
-	_kc_hidden bool isDeletedOccurrence(time_t occ_date);
-	_kc_hidden bool isException(time_t occ_date);
-	_kc_hidden ULONG countDaysOfMonth(time_t date);
-	_kc_hidden ULONG DaysTillMonth(time_t date, ULONG month);
-	_kc_hidden std::list<time_t> getModifiedOccurrences(void);
-
-	/* TODO: */
-/*
-	_kc_hidden HRESULT setDeletedOccurrence(time_t);
-	_kc_hidden HRESULT removeDeletedOccurrence(time_t);
-	_kc_hidden std::list<time_t> getDeletedOccurrences(void);
-	_kc_hidden HRESULT getChangedOccurrence(time_t, RecurrenceState::Exception *);
-	_kc_hidden HRESULT setChangedOccurrence(RecurrenceState::Exception);
-	_kc_hidden HRESULT removeChangedOccurrence(time_t);
-	_kc_hidden std::list<RecurrenceState::Exception> getChangedOccurrences(void);
-	_kc_hidden std::list<time_t> getExceptions(void);
-	_kc_hidden bool isOccurrence(time_t);
-	_kc_hidden bool isRuleOccurrence(time_t);
-	_kc_hidden bool isAfter(time_t);
-*/
-	time_t calcStartDate();
-	time_t calcEndDate();
-	ULONG calcCount();
+	_kc_hidden bool isOccurrenceValid(time_t period_start, time_t period_end, time_t new_occ) const;
+	_kc_hidden bool isDeletedOccurrence(time_t occ_date) const;
+	_kc_hidden bool isException(time_t occ_date) const;
+	_kc_hidden ULONG countDaysOfMonth(time_t date) const;
+	_kc_hidden ULONG DaysTillMonth(time_t date, ULONG month) const;
+	_kc_hidden std::list<time_t> getModifiedOccurrences() const;
+	time_t calcStartDate() const;
+	time_t calcEndDate() const;
+	ULONG calcCount() const;
 	_kc_hidden static time_t MonthInSeconds(ULONG year, ULONG month);
 	_kc_hidden static time_t MonthsInSeconds(ULONG months);
 	_kc_hidden static time_t Minutes2Time(ULONG);
@@ -163,12 +139,7 @@ private:
 	std::vector<std::wstring> vExceptionsSubject;
 	std::vector<std::wstring> vExceptionsLocation;
 
-/*
-	std::list<time_t> exceptions;
-	std::list<time_t> deleted_occurrences;	
-	std::list<RecurrenceState::Exception> changed_occurrences;
-*/
-	_kc_hidden ULONG calcBits(ULONG x);
+	_kc_hidden ULONG calcBits(ULONG x) const;
 	_kc_hidden bool CheckAddValidOccr(time_t now, time_t start, time_t end, TIMEZONE_STRUCT, ULONG busy_status, OccrInfo **occrinfoall, ULONG *nvals);
 };
 

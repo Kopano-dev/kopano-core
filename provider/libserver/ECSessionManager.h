@@ -60,8 +60,8 @@ struct TABLESUBSCRIPTION {
      unsigned int ulObjectType;
      unsigned int ulObjectFlags;
      
-     bool operator==(const TABLESUBSCRIPTION &b) const { return memcmp(this, &b, sizeof(*this)) == 0; }
-     bool operator<(const TABLESUBSCRIPTION &b) const { return memcmp(this, &b, sizeof(*this)) < 0; }
+	bool operator==(const TABLESUBSCRIPTION &b) const noexcept { return memcmp(this, &b, sizeof(*this)) == 0; }
+	bool operator<(const TABLESUBSCRIPTION &b) const noexcept { return memcmp(this, &b, sizeof(*this)) < 0; }
 };
 
 typedef std::multimap<TABLESUBSCRIPTION, ECSESSIONID> TABLESUBSCRIPTIONMULTIMAP;

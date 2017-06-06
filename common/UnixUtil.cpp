@@ -41,7 +41,7 @@ namespace KC {
 static int unix_runpath(ECConfig *conf)
 {
 	const char *path = conf->GetSetting("running_path");
-	int ret;
+	int ret = 0;
 
 	if (path != NULL) {
 		ret = chdir(path);

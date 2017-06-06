@@ -319,15 +319,6 @@ std::string ECLogger_File::DoPrefix() {
 	return out;
 }
 
-/**
- * Check if the ECLogger_File instance is logging to stderr.
- * @retval	true	This instance is logging to stderr.
- * @retval	false	This instance is not logging to stderr.
- */
-bool ECLogger_File::IsStdErr() {
-	return logname == "-";
-}
-
 bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &message) {
 	bool exit_with_true = false;
 	KC::shared_lock<KC::shared_mutex> lr_dup(dupfilter_lock);

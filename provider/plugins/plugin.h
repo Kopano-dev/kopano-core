@@ -80,7 +80,7 @@ public:
 	 *					will be ignored.
 	 * @return TRUE if the objects are equal
 	 */
-    bool operator==(const objectsignature_t &sig) const { return id == sig.id; };
+	bool operator==(const objectsignature_t &sig) const noexcept { return id == sig.id; };
 
 	/**
 	 * Object signature less-then comparison
@@ -91,7 +91,7 @@ public:
 	 *					the signature will be ignored.
 	 * @return TRUE if the current object is less then the sig object
 	 */
-    bool operator< (const objectsignature_t &sig) { return id.id < sig.id.id; };
+	bool operator<(const objectsignature_t &sig) const noexcept { return id.id < sig.id.id; };
 
 	/**
 	 * externid with objectclass

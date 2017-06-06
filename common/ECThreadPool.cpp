@@ -135,7 +135,8 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 		m_hCondition.wait(locker);
 		
 	if (bTerminate) {
-		auto iThread = std::find_if(m_setThreads.cbegin(), m_setThreads.cend(), &isCurrentThread);
+		auto iThread = std::find_if(m_setThreads.cbegin(), m_setThreads.cend(),
+			[](pthread_t t) { return pthread_equal(t, pthread_self()) != 0; });
 		assert(iThread != m_setThreads.cend());
 		m_setTerminated.insert(*iThread);
 		m_setThreads.erase(iThread);
@@ -160,16 +161,6 @@ void ECThreadPool::joinTerminated(ulock_normal &locker)
 		pthread_join(thr, NULL);
 	
 	m_setTerminated.clear();
-}
-
-/**
- * Check if the calling thread equals the passed thread handle.
- * @param[in]	hThread		The thread handle to compare with.
- * @retval	true when matched, false otherwise.
- */
-inline bool ECThreadPool::isCurrentThread(const pthread_t &hThread) 
-{
-	return pthread_equal(hThread, pthread_self()) != 0;
 }
 
 /**

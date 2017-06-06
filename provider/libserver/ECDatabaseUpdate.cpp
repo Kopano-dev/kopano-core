@@ -145,7 +145,10 @@ bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an
 
 struct SObject {
 	SObject(unsigned int id, unsigned int type) {ulId = id; ulType = type;}
-	bool operator<(const SObject &rhs) const {return (ulId < rhs.ulId || (ulId == rhs.ulId && ulType < rhs.ulType));}
+	bool operator<(const SObject &rhs) const noexcept
+	{
+		return (ulId < rhs.ulId || (ulId == rhs.ulId && ulType < rhs.ulType));
+	}
 	unsigned int ulId;
 	unsigned int ulType;
 };

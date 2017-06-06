@@ -44,7 +44,7 @@ public:
 	ECObjectLock(ECObjectLock &&);
 
 	ECObjectLock& operator=(const ECObjectLock &other);
-	void swap(ECObjectLock &other);
+	void swap(ECObjectLock &other) noexcept;
 
 	ECRESULT Unlock();
 
@@ -67,7 +67,8 @@ inline ECObjectLock& ECObjectLock::operator=(const ECObjectLock &other) {
 	return *this;
 }
 
-inline void ECObjectLock::swap(ECObjectLock &other) {
+inline void ECObjectLock::swap(ECObjectLock &other) noexcept
+{
 	m_ptrImpl.swap(other.m_ptrImpl);
 }
 

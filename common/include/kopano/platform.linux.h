@@ -441,8 +441,8 @@ typedef OLECHAR** SNB;
 typedef DWORD LCID;
 
 /* functions */
-extern _kc_export bool operator!=(const GUID &, const GUID &);
-extern _kc_export bool operator==(REFIID, const GUID &);
+extern _kc_export bool operator!=(const GUID &, const GUID &) noexcept;
+extern _kc_export bool operator==(REFIID, const GUID &) noexcept;
 
 extern "C" {
 

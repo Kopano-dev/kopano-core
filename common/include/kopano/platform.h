@@ -71,12 +71,11 @@ extern _kc_export struct tm *gmtime_safe(const time_t *timer, struct tm *result)
 struct timespec GetDeadline(unsigned int ulTimeoutMs);
 
 extern _kc_export double timespec2dbl(const struct timespec &);
-
-bool operator ==(const FILETIME &, const FILETIME &);
-extern _kc_export bool operator >(const FILETIME &, const FILETIME &);
-bool operator >=(const FILETIME &, const FILETIME &);
-extern _kc_export bool operator <(const FILETIME &, const FILETIME &);
-bool operator <=(const FILETIME &, const FILETIME &);
+extern bool operator==(const FILETIME &, const FILETIME &) noexcept;
+extern _kc_export bool operator >(const FILETIME &, const FILETIME &) noexcept;
+extern bool operator>=(const FILETIME &, const FILETIME &) noexcept;
+extern _kc_export bool operator <(const FILETIME &, const FILETIME &) noexcept;
+extern bool operator<=(const FILETIME &, const FILETIME &) noexcept;
 extern _kc_export time_t operator -(const FILETIME &, const FILETIME &);
 
 /* convert struct tm to time_t in timezone UTC0 (GM time) */

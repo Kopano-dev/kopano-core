@@ -1847,7 +1847,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
  * check if named property exists which is used to hold voting options
  */
 
-bool MAPIToVMIME::is_voting_request(IMessage *lpMessage)
+bool MAPIToVMIME::is_voting_request(IMessage *lpMessage) const
 {
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropTagArray> lpPropTags;
@@ -1867,7 +1867,7 @@ bool MAPIToVMIME::is_voting_request(IMessage *lpMessage)
 /**
  * CCheck if the named property exists which denotes if reminder is set
  */
-bool MAPIToVMIME::has_reminder(IMessage *msg)
+bool MAPIToVMIME::has_reminder(IMessage *msg) const
 {
 	memory_ptr<SPropTagArray> tags;
 	memory_ptr<SPropValue> content_type;
