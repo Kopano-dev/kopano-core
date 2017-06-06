@@ -1,4 +1,4 @@
-class IECSpooler {
+class IECSpooler : public virtual IUnknown {
 public:
 	// Gets an IMAPITable containing all the outgoing messages on the server
 	virtual HRESULT GetMasterOutgoingTable(ULONG ulFlags, IMAPITable **lppTable) = 0;

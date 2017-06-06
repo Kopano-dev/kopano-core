@@ -33,7 +33,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/ECConfig.h>
-#include <kopano/IECUnknown.h>
 #include <kopano/ecversion.h>
 #include <kopano/IECSecurity.h>
 #include <kopano/IECServiceAdmin.h>
@@ -1761,7 +1760,7 @@ static HRESULT PostSendProcessing(ULONG cbEntryId, const ENTRYID *lpEntryId,
 		ec_log_err("Unable to get PR_EC_OBJECT in post-send processing: 0x%08X", hr);
 		return hr;
 	}
-	hr = ((IECUnknown *)lpObject->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
+	hr = reinterpret_cast<IUnknown *>(lpObject->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
 	if(hr != hrSuccess) {
 		ec_log_err("Unable to get spooler interface for message: 0x%08X", hr);
 		return hr;
@@ -2274,13 +2273,13 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	}
 
 	// NOTE: object is placed in Value.lpszA, not Value.x
-	hr = ((IECUnknown *)lpsProp->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
+	hr = reinterpret_cast<IUnknown *>(lpsProp->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if (hr != hrSuccess) {
 		ec_log_err("ServiceAdmin interface not supported: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
-	hr = ((IECUnknown *)lpsProp->Value.lpszA)->QueryInterface(IID_IECSecurity, &~lpSecurity);
+	hr = reinterpret_cast<IUnknown *>(lpsProp->Value.lpszA)->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess) {
 		ec_log_err("IID_IECSecurity not supported by store: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);

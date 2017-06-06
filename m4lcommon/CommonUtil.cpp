@@ -48,7 +48,6 @@
 #include <edkguid.h>
 #include <kopano/mapiguidext.h>
 #include <edkmdb.h>
-#include <kopano/IECUnknown.h>
 #include <kopano/IECServiceAdmin.h>
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECRestriction.h>
@@ -406,7 +405,7 @@ static HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStor
 {
 	HRESULT	hr = hrSuccess;
 	object_ptr<IProxyStoreObject> lpProxyStoreObject;
-	IECUnknown* lpECMsgStore = NULL;
+	IUnknown *lpECMsgStore = nullptr;
 	memory_ptr<SPropValue> lpPropValue;
 
 	if (lpMsgStore == nullptr || lppMsgStore == nullptr)
@@ -418,7 +417,7 @@ static HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStor
 		(*lppMsgStore)->AddRef();
 		return hrSuccess;
 	} else if (HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue) == hrSuccess) {
-		lpECMsgStore = (IECUnknown *)lpPropValue->Value.lpszA;
+		lpECMsgStore = reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA);
 		if (lpECMsgStore == nullptr)
 			return MAPI_E_INVALID_PARAMETER;
 		return lpECMsgStore->QueryInterface(IID_IMsgStore, (void**)lppMsgStore);

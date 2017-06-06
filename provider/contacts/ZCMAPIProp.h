@@ -25,7 +25,7 @@
 
 #include <map>
 
-class ZCMAPIProp _no_final : public ECUnknown {
+class ZCMAPIProp _no_final : public ECUnknown, public IMailUser {
 protected:
 	ZCMAPIProp(ULONG ulObjType, const char *szClassName = NULL);
 	virtual ~ZCMAPIProp();
@@ -53,12 +53,6 @@ public:
 	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
 	virtual HRESULT GetNamesFromIDs(LPSPropTagArray * lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG * lpcPropNames, LPMAPINAMEID ** lpppPropNames);
 	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID * lppPropNames, ULONG ulFlags, LPSPropTagArray * lppPropTags);
-
-private:
-	class xMailUser _kc_final : public IMailUser {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp>
-	} m_xMailUser;
 
 private:
 	SPropValue *m_base = nullptr;

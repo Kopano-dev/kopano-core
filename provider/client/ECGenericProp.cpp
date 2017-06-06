@@ -67,8 +67,8 @@ ECGenericProp::~ECGenericProp()
 HRESULT ECGenericProp::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xMAPIProp);
-	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMAPIProp);
+	REGISTER_INTERFACE2(IUnknown, this);
+	REGISTER_INTERFACE2(IMAPIProp, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -323,7 +323,7 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 		 * machines.
 		 */
 		lpsPropValue->ulPropTag = PR_EC_OBJECT;
-		lpsPropValue->Value.lpszA = reinterpret_cast<char *>(static_cast<IECUnknown *>(lpProp));
+		lpsPropValue->Value.lpszA = reinterpret_cast<char *>(static_cast<IUnknown *>(lpProp));
 		break;
 	case PROP_ID(PR_NULL):
 		// outlook with export contacts to csv (IMessage)(0x00000000) <- skip this one
@@ -1088,37 +1088,4 @@ HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID,
 		return hr;
 	m_sMapiObject->bChangedInstance = true;
 	return hr;
-}
-
-// Interface IMAPIProp
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD0(ECGenericProp, MAPIProp, AddRef, (void))
-DEF_ULONGMETHOD0(ECGenericProp, MAPIProp, Release, (void))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
-
-// Proxy routines for IECSingleInstance
-DEF_HRMETHOD1(TRACE_MAPI, ECGenericProp, ECSingleInstance, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECGenericProp, ECSingleInstance, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECGenericProp, ECSingleInstance, Release, (void))
-
-HRESULT __stdcall ECGenericProp::xECSingleInstance::GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID)
-{
-	METHOD_PROLOGUE_(ECGenericProp , ECSingleInstance);
-	return pThis->GetSingleInstanceId(lpcbInstanceID, lppInstanceID);
-}
-
-HRESULT __stdcall ECGenericProp::xECSingleInstance::SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID)
-{
-	METHOD_PROLOGUE_(ECGenericProp , ECSingleInstance);
-	return pThis->SetSingleInstanceId(cbInstanceID, lpInstanceID);
 }

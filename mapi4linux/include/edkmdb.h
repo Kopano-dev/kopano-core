@@ -39,7 +39,7 @@
 #include <initializer_list>
 #include <edkguid.h>
 
-class IExchangeManageStore : public IUnknown {
+class IExchangeManageStore : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG	ulFlags, ULONG *lpcbEntryID,
 												 LPENTRYID *lppEntryID) = 0;
@@ -52,7 +52,7 @@ public:
 };
 IID_OF(IExchangeManageStore);
 
-class IExchangeManageStore6 : public IUnknown {
+class IExchangeManageStore6 : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG	ulFlags, ULONG *lpcbEntryID,
 												 LPENTRYID *lppEntryID) = 0;
@@ -66,7 +66,7 @@ public:
                                                  ULONG *lpcbEntryID, LPENTRYID *lppEntryID) = 0;
 };
 
-class IExchangeManageStoreEx : public IUnknown {
+class IExchangeManageStoreEx : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG	ulFlags, ULONG *lpcbEntryID,
 												 LPENTRYID *lppEntryID) = 0;
@@ -633,7 +633,7 @@ typedef struct ROWLIST *LPROWLIST;
 #define CbNewROWLIST(_centries) \
     (offsetof(ROWLIST,aEntries) + (_centries)*sizeof(ROWENTRY))
 
-class IExchangeModifyTable : public IUnknown {
+class IExchangeModifyTable : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT __stdcall GetTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
@@ -856,7 +856,7 @@ HRESULT HrDeserializeActions(IMAPIProp * pprop, BYTE * pbActions, ULONG cbAction
  * Used for get actions from a Deferred Action Message.
  */
 
-class IExchangeRuleAction : public IUnknown {
+class IExchangeRuleAction : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall ActionCount(ULONG *lpcActions) = 0;
 	virtual HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) = 0;
@@ -948,7 +948,7 @@ typedef struct READSTATE *LPREADSTATE;
 
 #define SYNC_READ					0x01
 
-class IExchangeExportChanges : public IUnknown {
+class IExchangeExportChanges : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
@@ -958,7 +958,7 @@ public:
 
 typedef IExchangeExportChanges* LPEXCHANGEEXPORTCHANGES;
 
-class IExchangeImportContentsChanges : public IUnknown {
+class IExchangeImportContentsChanges : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags) = 0;
@@ -971,7 +971,7 @@ public:
 
 typedef IExchangeImportContentsChanges* LPEXCHANGEIMPORTCONTENTSCHANGES;
 
-class IExchangeImportHierarchyChanges : public IUnknown {
+class IExchangeImportHierarchyChanges : public virtual IUnknown {
 public:
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags) = 0;
@@ -982,7 +982,7 @@ public:
 
 typedef IExchangeImportHierarchyChanges* LPEXCHANGEIMPORTHIERARCHYCHANGES;
 
-class IProxyStoreObject : public IUnknown {
+class IProxyStoreObject : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall PlaceHolder1() = 0;
 	virtual HRESULT __stdcall UnwrapNoRef(LPVOID *ppvObject) = 0;
@@ -996,7 +996,7 @@ typedef IProxyStoreObject* LPPROXYSTOREOBJECT;
 
 // Outlook 2007
 // Provides information about a folder's support for sharing.
-class IFolderSupport : public IUnknown {
+class IFolderSupport : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall GetSupportMask(DWORD *pdwSupportMask) = 0;
 };

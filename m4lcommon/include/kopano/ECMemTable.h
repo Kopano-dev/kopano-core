@@ -71,7 +71,7 @@ protected:
 	virtual ~ECMemTable();
 public:
 	static HRESULT Create(const SPropTagArray *lpsPropTagArray, ULONG ulRowPropTag, ECMemTable **lppRecipTable);
-	_kc_hidden virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
+	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT HrGetView(const ECLocale &locale, ULONG ulFlags, ECMemTableView **lpView);
 	virtual HRESULT HrModifyRow(ULONG flags, const SPropValue *id, const SPropValue *prop, ULONG n);
 	virtual HRESULT HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG cValues);
@@ -100,7 +100,8 @@ protected:
 	ALLOC_WRAP_FRIEND;
 };
 
-class _kc_export ECMemTableView _kc_final : public ECUnknown {
+class _kc_export ECMemTableView _kc_final :
+    public ECUnknown, public IMAPITable {
 protected:
 	_kc_hidden ECMemTableView(ECMemTable *, const ECLocale &, ULONG flags);
 	_kc_hidden virtual ~ECMemTableView(void);
@@ -132,11 +133,6 @@ public:
 	_kc_hidden virtual HRESULT WaitForCompletion(ULONG flags, ULONG timeout, ULONG *table_status);
 	_kc_hidden virtual HRESULT GetCollapseState(ULONG flags, ULONG ikey_size, LPBYTE ikey, ULONG *collapse_size, LPBYTE *collapse_state);
 	_kc_hidden virtual HRESULT SetCollapseState(ULONG flags, ULONG collapse_size, LPBYTE collapse_state, BOOKMARK *location);
-
-	class _kc_hidden xMAPITable _kc_final : public IMAPITable {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMAPITable.hpp>
-	} m_xMAPITable;
 
 private:
 	_kc_hidden HRESULT __stdcall GetBinarySortKey(const SPropValue *pv, unsigned int *sortlen, unsigned char *flags, unsigned char **sortdata);

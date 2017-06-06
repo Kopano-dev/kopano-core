@@ -112,7 +112,6 @@
 #include <inetmapi/options.h>
 #include <kopano/charset/convert.h>
 #include <kopano/IECServiceAdmin.h>
-#include <kopano/IECUnknown.h>
 #include <kopano/ECTags.h>
 #include "ECFeatures.h"
 
@@ -933,7 +932,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	}
 
 	// NOTE: object is placed in Value.lpszA, not Value.x
-	hr = ((IECUnknown *)lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
+	hr = reinterpret_cast<IUnknown *>(lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if(hr != hrSuccess) {
 		ec_log_err("Unable to get service admin, error code: 0x%08X", hr);
 		return hr;

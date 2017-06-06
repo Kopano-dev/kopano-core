@@ -533,7 +533,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 	std::wstring strFromName, strFromType, strFromAddress;
 	std::wstring strRuleName, strRuleType, strRuleAddress;
 
-	hr = HrGetAddress(lpAdrBook, (IMessage*)lpMessage,
+	hr = HrGetAddress(lpAdrBook, dynamic_cast<IMessage *>(lpMessage),
 	     PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W,
 	     PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
 	     strFromName, strFromType, strFromAddress);

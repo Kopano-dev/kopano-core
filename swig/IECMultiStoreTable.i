@@ -1,4 +1,4 @@
-class IECMultiStoreTable : public IUnknown {
+class IECMultiStoreTable : public virtual IUnknown {
 public:
 	/* ulFlags is currently unused */
 	virtual HRESULT OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, IMAPITable **OUTPUT) = 0;

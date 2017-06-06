@@ -51,8 +51,6 @@
 #include <mapiutil.h>
 #include <mapidefs.h>
 #include <mapiguid.h>
-
-#include <kopano/IECUnknown.h>
 #include "IECSpooler.h"
 #include <kopano/IECServiceAdmin.h>
 #include <kopano/IECSecurity.h>
@@ -625,8 +623,7 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-
-	hr = ((IECUnknown *)lpsProp->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
+	hr = reinterpret_cast<IUnknown *>(lpsProp->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
 	if (hr != hrSuccess) {
 		ec_log_err("Spooler interface not supported: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);

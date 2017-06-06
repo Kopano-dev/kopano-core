@@ -88,7 +88,7 @@ Interface identifier: IID_IMAPIOffline
 Remarks:
 The client must implement this interface and pass a pointer to it as a member in MAPIOFFLINE_ADVISEINFO when setting up callbacks using IMAPIOfflineMgr::Advise. Subsequently, Outlook will be able to use this interface to send notification callbacks to the client.
 */
-class IMAPIOffline : public IUnknown {
+class IMAPIOffline : public virtual IUnknown {
 public:
 	/*
 	Sets the current state of an offline object to online or offline.

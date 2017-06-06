@@ -59,7 +59,7 @@ HRESULT ECAttach::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE3(IAttachment, IAttach, &this->m_xAttach);
 	REGISTER_INTERFACE2(IMAPIProp, &this->m_xAttach);
 	REGISTER_INTERFACE2(IUnknown, &this->m_xAttach);
-	REGISTER_INTERFACE2(IECSingleInstance, &this->m_xECSingleInstance);
+	REGISTER_INTERFACE2(IECSingleInstance, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

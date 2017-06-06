@@ -24,7 +24,7 @@ namespace KC {
 
 // This is our special spooler interface
 
-class IECSpooler : public IUnknown {
+class IECSpooler : public virtual IUnknown {
 public:
 	// Gets an IMAPITable containing all the outgoing messages on the server
 	virtual HRESULT __stdcall GetMasterOutgoingTable(ULONG ulFlags, IMAPITable **lppTable) = 0;

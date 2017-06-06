@@ -61,8 +61,8 @@ HRESULT ECEnumFBBlock::QueryInterface(REFIID refiid , void** lppInterface)
 {
 	REGISTER_INTERFACE2(ECEnumFBBlock, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IEnumFBBlock, &this->m_xEnumFBBlock);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xEnumFBBlock);
+	REGISTER_INTERFACE2(IEnumFBBlock, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -106,14 +106,5 @@ HRESULT ECEnumFBBlock::Restrict(FILETIME ftmStart, FILETIME ftmEnd)
 
 	return m_FBBlock.Restrict(rtmStart, rtmEnd);
 }
-
-DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, QueryInterface, (REFIID, refiid), (void**, lppInterface))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Next, (LONG, celt), (FBBlock_1 *, pblk), (LONG *, pcfetch))
-DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Skip, (LONG, celt))
-DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Reset, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Clone, (IEnumFBBlock **, ppclone))
-DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Restrict, (FILETIME, ftmStart), (FILETIME, ftmEnd))
 
 } /* namespace */

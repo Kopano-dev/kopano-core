@@ -490,7 +490,10 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		return hr;
 	if (*lpiid == IID_IStorage) { //*lpiid == IID_IStreamDocfile ||
 		//FIXME: Unknown what to do with flag STGSTRM_CURRENT
-		hr = GetMsgStore()->lpSupport->IStorageFromStream((LPUNKNOWN)&lpStream->m_xStream, NULL, ((ulFlags &MAPI_MODIFY)?STGSTRM_MODIFY : 0) | ((ulFlags & MAPI_CREATE)?STGSTRM_CREATE:0), (LPSTORAGE*)lppUnk);
+		hr = GetMsgStore()->lpSupport->IStorageFromStream(lpStream, nullptr,
+		     ((ulFlags & MAPI_MODIFY) ? STGSTRM_MODIFY : 0) |
+		     ((ulFlags & MAPI_CREATE) ? STGSTRM_CREATE : 0),
+		     reinterpret_cast<IStorage **>(lppUnk));
 		if (hr != hrSuccess)
 			return hr;
 	} else

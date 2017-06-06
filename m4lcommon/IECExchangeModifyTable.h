@@ -23,7 +23,7 @@
 
 namespace KC {
 
-class IECExchangeModifyTable : public IExchangeModifyTable {
+class IECExchangeModifyTable : public virtual IExchangeModifyTable {
 	public:
 		virtual HRESULT __stdcall DisablePushToServer() = 0;
 };

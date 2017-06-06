@@ -240,7 +240,7 @@ typedef IABProvider* LPABPROVIDER;
 class IABLogon;
 typedef IABLogon* LPABLOGON;
 
-class IABProvider : public IUnknown {
+class IABProvider : public virtual IUnknown {
 public:
     //    virtual ~IABProvider() = 0;
 
@@ -248,8 +248,7 @@ public:
 	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *profname, ULONG ulFlags, ULONG *lpulpcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon) = 0;
 };
 
-
-class IABLogon : public IUnknown {
+class IABLogon : public virtual IUnknown {
 public: 
     //    virtual ~IABLogon() = 0;
     
@@ -468,8 +467,7 @@ class IMSProvider;
 typedef IMSProvider* LPMSPROVIDER;
 
 /* Message Store Provider Interface (IMSPROVIDER) */
-
-class IMSProvider : public IUnknown {
+class IMSProvider : public virtual IUnknown {
 public: 
     //    virtual ~IMSProvider() = 0;
     
@@ -483,7 +481,7 @@ public:
 /* The MSLOGON object is returned by the Logon() method of the
  * MSPROVIDER interface.  This object is for use by MAPIX.DLL.
  */
-class IMSLogon : public IUnknown {
+class IMSLogon : public virtual IUnknown {
 public: 
     //    virtual ~IMSLogon() = 0;
     

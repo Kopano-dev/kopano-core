@@ -71,15 +71,15 @@ HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 	if (m_lpDistList == NULL)
 		REGISTER_INTERFACE2(ZCABContainer, this);
 	else
-		REGISTER_INTERFACE(IID_ZCDistList, this);
+		REGISTER_INTERFACE3(ZCDistList, ZCABContainer, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
 
 	if (m_lpDistList == NULL)
-		REGISTER_INTERFACE2(IABContainer, &this->m_xABContainer);
+		REGISTER_INTERFACE2(IABContainer, this);
 	else
-		REGISTER_INTERFACE2(IDistList, &this->m_xDistList);
-	REGISTER_INTERFACE2(IMAPIProp, &this->m_xABContainer);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xABContainer);
+		REGISTER_INTERFACE2(IDistList, this);
+	REGISTER_INTERFACE2(IMAPIProp, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -1075,64 +1075,52 @@ HRESULT ZCABContainer::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 	return MAPI_E_NO_SUPPORT;
 }
 
-// Interface IUnknown
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, QueryInterface, (REFIID, refiid), (void**, lppInterface))
-DEF_ULONGMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, Release, (void))
+HRESULT ZCABContainer::GetLastError(HRESULT, ULONG, MAPIERROR **)
+{
+	return MAPI_E_NO_SUPPORT;
+}
 
-// Interface IABContainer
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, CreateEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulCreateFlags), (LPMAPIPROP*, lppMAPIPropEntry))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, CopyEntries, (LPENTRYLIST, lpEntries), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, DeleteEntries, (LPENTRYLIST, lpEntries), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, ResolveNames, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (LPADRLIST, lpAdrList), (LPFlagList, lpFlagList))
+HRESULT ZCABContainer::SaveChanges(ULONG)
+{
+	return MAPI_E_NO_SUPPORT;
+}
 
-// Interface IMAPIContainer
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetContentsTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetHierarchyTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, OpenEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, SetSearchCriteria, (LPSRestriction, lpRestriction), (LPENTRYLIST, lpContainerList), (ULONG, ulSearchFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetSearchCriteria, (ULONG, ulFlags), (LPSRestriction *, lppRestriction), (LPENTRYLIST *, lppContainerList), (ULONG *, lpulSearchState))
+HRESULT ZCABContainer::OpenProperty(ULONG, const IID *, ULONG, ULONG,
+    IUnknown **)
+{
+	return MAPI_E_NO_SUPPORT;
+}
 
-// Interface IMAPIProp
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
+HRESULT ZCABContainer::SetProps(ULONG, const SPropValue *, SPropProblemArray **)
+{
+	return MAPI_E_NO_SUPPORT;
+}
 
-// Interface IUnknown
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, QueryInterface, (REFIID, refiid), (void**, lppInterface))
-DEF_ULONGMETHOD1(TRACE_MAPI, ZCABContainer, DistList, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ZCABContainer, DistList, Release, (void))
+HRESULT ZCABContainer::DeleteProps(const SPropTagArray *, SPropProblemArray **)
+{
+	return MAPI_E_NO_SUPPORT;
+}
 
-// Interface IABContainer
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, CreateEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulCreateFlags), (LPMAPIPROP*, lppMAPIPropEntry))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, CopyEntries, (LPENTRYLIST, lpEntries), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, DeleteEntries, (LPENTRYLIST, lpEntries), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, ResolveNames, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (LPADRLIST, lpAdrList), (LPFlagList, lpFlagList))
+HRESULT ZCABContainer::CopyTo(ULONG, const IID *, const SPropTagArray *, ULONG,
+    IMAPIProgress *, const IID *, void *, ULONG, SPropProblemArray **)
+{
+	return MAPI_E_NO_SUPPORT;
+}
 
-// Interface IMAPIContainer
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, GetContentsTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, GetHierarchyTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, OpenEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, SetSearchCriteria, (LPSRestriction, lpRestriction), (LPENTRYLIST, lpContainerList), (ULONG, ulSearchFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, GetSearchCriteria, (ULONG, ulFlags), (LPSRestriction *, lppRestriction), (LPENTRYLIST *, lppContainerList), (ULONG *, lpulSearchState))
+HRESULT ZCABContainer::CopyProps(const SPropTagArray *, ULONG, IMAPIProgress *,
+    const IID *, void *, ULONG, SPropProblemArray **)
+{
+	return MAPI_E_NO_SUPPORT;
+}
 
-// Interface IMAPIProp
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, DistList, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, DistList, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, DistList, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, DistList, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, DistList, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, DistList, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, DistList, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, DistList, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, DistList, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, DistList, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
+HRESULT ZCABContainer::GetNamesFromIDs(SPropTagArray **, GUID *, ULONG,
+    ULONG *, MAPINAMEID ***)
+{
+	return MAPI_E_NO_SUPPORT;
+}
+
+HRESULT ZCABContainer::GetIDsFromNames(ULONG, MAPINAMEID **, ULONG,
+    SPropTagArray **)
+{
+	return MAPI_E_NO_SUPPORT;
+}

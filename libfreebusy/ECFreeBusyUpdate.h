@@ -43,7 +43,7 @@ namespace KC {
 /**
  * Implementatie of the IFreeBusyUpdate interface
  */
-class ECFreeBusyUpdate _kc_final : public ECUnknown {
+class ECFreeBusyUpdate _kc_final : public ECUnknown, public IFreeBusyUpdate {
 private:
 	ECFreeBusyUpdate(IMessage* lpMessage);
 	~ECFreeBusyUpdate(void);
@@ -58,19 +58,6 @@ public:
 	virtual HRESULT SaveChanges(FILETIME ftStart, FILETIME ftEnd);
 	virtual HRESULT GetFBTimes(void) { return S_OK; }
 	virtual HRESULT Intersect(void) { return S_OK; }
-
-	class xFreeBusyUpdate _kc_final : public IFreeBusyUpdate {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		// <kopano/xclsfrag/IFreeBusyUpdate.hpp>
-		virtual HRESULT __stdcall Reload(void) _kc_override;
-		virtual HRESULT __stdcall PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks) _kc_override;
-		virtual HRESULT __stdcall RemoveAppt(void) _kc_override;
-		virtual HRESULT __stdcall ResetPublishedFreeBusy(void) _kc_override;
-		virtual HRESULT __stdcall ChangeAppt(void) _kc_override;
-		virtual HRESULT __stdcall SaveChanges(FILETIME ftBegin, FILETIME ftEnd) _kc_override;
-		virtual HRESULT __stdcall GetFBTimes(void) _kc_override;
-		virtual HRESULT __stdcall Intersect(void) _kc_override;
-	} m_xFreeBusyUpdate;
 
 private:
 	IMessage*		m_lpMessage; /**< Pointer to the free/busy message received from GetFreeBusyMessage */

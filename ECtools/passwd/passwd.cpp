@@ -29,8 +29,6 @@
 #include <mapiutil.h>
 
 #include <kopano/IECServiceAdmin.h>
-#include <kopano/IECUnknown.h>
-
 #include <kopano/ECTags.h>
 #include <kopano/ECGuid.h>
 #include <kopano/CommonUtil.h>
@@ -82,7 +80,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPISession> lpSession;
-	object_ptr<IECUnknown> lpECMsgStore;
+	object_ptr<IUnknown> lpECMsgStore;
 	object_ptr<IMsgStore> lpMsgStore;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG cbUserId = 0;
@@ -119,7 +117,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue);
 	if(hr != hrSuccess || !lpPropValue)
 		return hr;
-	lpECMsgStore.reset(reinterpret_cast<IECUnknown *>(lpPropValue->Value.lpszA), false);
+	lpECMsgStore.reset(reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA), false);
 	if(!lpECMsgStore)
 		return hr;
 	lpECMsgStore->AddRef();

@@ -26,7 +26,7 @@
 
 namespace KC {
 
-class IECMultiStoreTable : public IUnknown {
+class IECMultiStoreTable : public virtual IUnknown {
 public:
 	/* ulFlags is currently unused */
 	virtual HRESULT __stdcall OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LPMAPITABLE *lppTable) = 0;

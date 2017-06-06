@@ -20,7 +20,7 @@
 
 namespace KC {
 
-class IECChangeAdviseSink : public IUnknown {
+class IECChangeAdviseSink : public virtual IUnknown {
 public:
 	virtual ULONG __stdcall OnNotify(ULONG ulFLags, LPENTRYLIST lpEntryList) = 0;
 };

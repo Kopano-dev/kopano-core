@@ -25,7 +25,6 @@
 #include <edkmdb.h> /* ROWLIST */
 #include <kopano/ECGuid.h>
 #include <kopano/ECTags.h>
-#include <kopano/IECUnknown.h>
 
 namespace KCHL {
 using namespace KC;
@@ -349,7 +348,7 @@ HRESULT object_ptr<_T>::QueryInterface(_U &result)
 		KCHL::memory_ptr<SPropValue> pv;
 		if (HrGetOneProp(_m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
 			return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
-		auto unk = reinterpret_cast<IECUnknown *>(pv->Value.lpszA);
+		auto unk = reinterpret_cast<IUnknown *>(pv->Value.lpszA);
 		hr = unk->QueryInterface(iid_of(newobj), reinterpret_cast<void **>(&newobj));
 		if (hr == hrSuccess)
 			result.reset(newobj, false);

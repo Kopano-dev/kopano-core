@@ -6,7 +6,7 @@ namespace EdkMdb {
 using namespace EdkMdb;
 %}
 
-class IExchangeImportContentsChanges : public IUnknown {
+class IExchangeImportContentsChanges : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* OUTPUT /*lppMAPIError*/) = 0;
 	virtual HRESULT Config(IStream * lpStream, ULONG ulFlags) = 0;
@@ -21,7 +21,7 @@ public:
 	}
 };
 
-class IExchangeImportHierarchyChanges : public IUnknown {
+class IExchangeImportHierarchyChanges : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* OUTPUT /*lppMAPIError*/) = 0;
 	virtual HRESULT Config(IStream * lpStream, ULONG ulFlags) = 0;
@@ -33,7 +33,7 @@ public:
 	}
 };
 
-class IExchangeExportChanges : public IUnknown {
+class IExchangeExportChanges : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* OUTPUT /*lppMAPIError*/) = 0;
 	virtual HRESULT Config(IStream * lpStream, ULONG ulFlags, IUnknown *lpUnk, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
@@ -44,7 +44,7 @@ public:
 	}
 };
 
-class IExchangeManageStore : public IUnknown {
+class IExchangeManageStore : public virtual IUnknown {
 public:
 	virtual HRESULT CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *OUTPUT,	LPENTRYID *OUTPUT) = 0;
 	virtual HRESULT EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *OUTPUT, LPENTRYID *OUTPUT) = 0;
@@ -56,7 +56,7 @@ public:
 	}
 };
 
-class IExchangeModifyTable : public IUnknown {
+class IExchangeModifyTable : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* OUTPUT /*lppMAPIError*/) = 0;
 	virtual HRESULT GetTable(ULONG ulFlags, IMAPITable ** OUTPUT /*lppTable*/) = 0;

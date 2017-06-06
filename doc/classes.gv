@@ -179,10 +179,15 @@ digraph {
 	IABLogon -> IUnknown;
 	ZCABContainer -> ECUnknown;
 	ZCABContainer -> IABContainer;
+	ZCABContainer -> IDistList;
 	ZCABLogon -> ECUnknown;
 	ZCABLogon -> IABLogon;
 	ZCABProvider -> ECUnknown;
 	ZCABProvider -> IABProvider;
 	ZCMAPIProp -> ECUnknown;
-	ZCMAPIProp -> IMAPIProp;
+	ZCMAPIProp -> IMailUser;
+
+	ECChangeAdviseSink -> ECUnknown;
+	ECChangeAdviseSink -> IECChangeAdviseSink;
+	IECChangeAdviseSink -> IUnknown;
 }

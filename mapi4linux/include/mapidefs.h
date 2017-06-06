@@ -675,7 +675,7 @@ IID_OF(IUnknown);
 typedef IUnknown *LPUNKNOWN;
 
 /* IStream Interface */
-class ISequentialStream : public IUnknown {
+class ISequentialStream : public virtual IUnknown {
 	public:
 	virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead) = 0;
 	virtual HRESULT Write(const void *pv, ULONG cb, ULONG *pcbWritten) = 0;
@@ -694,7 +694,7 @@ DEFINE_OLEGUID(IID_IEnumSTATSTG, 0x0D, 0, 0);
 #endif
 IID_OF(IEnumSTATSTG);
 
-class IStream : public ISequentialStream {
+class IStream : public virtual ISequentialStream {
 	public:
 	virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition) = 0;
 	virtual HRESULT SetSize(ULARGE_INTEGER libNewSize) = 0;
@@ -1047,7 +1047,7 @@ struct _SSortOrderSet_ ## _name { \
 #define FLDSTATUS_HIDDEN        ((ULONG) 0x00000004)
 #define FLDSTATUS_DELMARKED     ((ULONG) 0x00000008)
 
-class IMAPIFolder : public IMAPIContainer {
+class IMAPIFolder : public virtual IMAPIContainer {
 public:
     //    virtual ~IMAPIFolder() = 0;
 
@@ -1107,7 +1107,7 @@ IID_OF(IMAPIFolder);
 #define IMPORTANCE_NORMAL       ((long) 1)
 #define IMPORTANCE_HIGH         ((long) 2)
 
-class IMessage : public IMAPIProp {
+class IMessage : public virtual IMAPIProp {
 public:
     //    virtual ~IMessage() = 0;
 
@@ -1133,7 +1133,7 @@ IID_OF(IMessage);
 #define ATTACH_EMBEDDED_MSG     ((ULONG) 0x00000005)
 #define ATTACH_OLE              ((ULONG) 0x00000006)
 
-class IAttach : public IMAPIProp {
+class IAttach : public virtual IMAPIProp {
 public:
     //    virtual ~IAttach() = 0;
 };
@@ -1267,7 +1267,7 @@ IID_OF(IMailUser);
 /*
  * IDistList Interface
  */
-class IDistList : public IMAPIContainer {
+class IDistList : public virtual IMAPIContainer {
 public:
     //    virtual ~IDistList() = 0;
 

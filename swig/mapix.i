@@ -133,7 +133,7 @@ public:
 /* IAddrBook Interface ----------------------------------------------------- */
 
 
-class IAddrBook : public IMAPIProp {
+class IAddrBook : public virtual IMAPIProp {
 public:
     //    virtual ~IAddrBook() = 0;
 

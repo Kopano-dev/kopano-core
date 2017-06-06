@@ -32,7 +32,7 @@ struct zcabFolderEntry {
 	std::wstring strwDisplayName;
 };
 
-class ZCABLogon _kc_final : public ECUnknown {
+class ZCABLogon _kc_final : public ECUnknown, public IABLogon {
 protected:
 	ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID);
 	virtual ~ZCABLogon();
@@ -50,12 +50,6 @@ public:
 	virtual HRESULT OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateID, ULONG ulTemplateFlags, LPMAPIPROP lpMAPIPropData, LPCIID lpInterface, LPMAPIPROP * lppMAPIPropNew, LPMAPIPROP lpMAPIPropSibling);
 	virtual HRESULT GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable);
 	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
-
-private:
-	class xABLogon _kc_final : public IABLogon {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IABLogon.hpp>
-	} m_xABLogon;
 
 private:
 	HRESULT AddFolder(const WCHAR* lpwDisplayName, ULONG cbStore, LPBYTE lpStore, ULONG cbFolder, LPBYTE lpFolder);

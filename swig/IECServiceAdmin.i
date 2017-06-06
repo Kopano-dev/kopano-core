@@ -42,7 +42,7 @@
 #define ECSTORE_TYPE_PUBLIC               	1
 #define ECSTORE_TYPE_ARCHIVE				2
 
-class IECServiceAdmin : public IUnknown {
+class IECServiceAdmin : public virtual IUnknown {
 public:
 	// Create/Delete stores
 	virtual HRESULT CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId) = 0;

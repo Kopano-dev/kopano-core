@@ -58,7 +58,7 @@ private:
 /* 
  * This is an IStream-compatible wrapper for ECMemBlock
  */
-class _kc_export ECMemStream _kc_final : public ECUnknown {
+class _kc_export ECMemStream _kc_final : public ECUnknown, public IStream {
 public:
 	typedef HRESULT (*CommitFunc)(IStream *lpStream, void *lpParam);
 	typedef HRESULT (*DeleteFunc)(void *lpParam); /* Caller's function to remove lpParam data from memory */
@@ -86,12 +86,6 @@ public:
 	_kc_hidden virtual HRESULT Clone(IStream **);
 	virtual ULONG GetSize();
 	virtual char* GetBuffer();
-
-	class _kc_hidden xStream _kc_final : public IStream {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/ISequentialStream.hpp>
-		#include <kopano/xclsfrag/IStream.hpp>
-	} m_xStream;
 
 private:
 	ULARGE_INTEGER liPos = {{0}};

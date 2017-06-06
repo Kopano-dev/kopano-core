@@ -27,7 +27,8 @@
 #include "ZCMAPIProp.h"
 
 /* should be derived from IMAPIProp, but since we don't do anything with those functions, let's skip the red tape. */
-class ZCABContainer _kc_final : public ECUnknown {
+class ZCABContainer _kc_final :
+    public ECUnknown, public IABContainer, public IDistList {
 protected:
 	ZCABContainer(std::vector<zcabFolderEntry> *lpFolders, IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider, const char *szClassName);
 	virtual ~ZCABContainer();
@@ -61,21 +62,15 @@ public:
 	// very limited IMAPIProp, passed to ZCMAPIProp for m_lpDistList.
 	virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray);
 	virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray);
-
-private:
-	class xABContainer _kc_final : public IABContainer {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		// <kopano/xclsfrag/IDistList.hpp>
-		#include <kopano/xclsfrag/IABContainer.hpp>
-		#include <kopano/xclsfrag/IMAPIContainer.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp> /* mostly MAPI_E_NO_SUPPORT */
-	} m_xABContainer;
-	class xDistList _kc_final : public IDistList {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMAPIContainer.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp> /* mostly MAPI_E_NO_SUPPORT */
-		#include <kopano/xclsfrag/IABContainer.hpp>
-	} m_xDistList;
+	virtual HRESULT GetLastError(HRESULT, ULONG, MAPIERROR **) _kc_override;
+	virtual HRESULT SaveChanges(ULONG) _kc_override;
+	virtual HRESULT OpenProperty(ULONG, const IID *, ULONG, ULONG, IUnknown **) _kc_override;
+	virtual HRESULT SetProps(ULONG, const SPropValue *, SPropProblemArray **) _kc_override;
+	virtual HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) _kc_override;
+	virtual HRESULT CopyTo(ULONG, const IID *, const SPropTagArray *, ULONG, IMAPIProgress *, const IID *, void *, ULONG, SPropProblemArray **) _kc_override;
+	virtual HRESULT CopyProps(const SPropTagArray *, ULONG, IMAPIProgress *, const IID *, void *, ULONG, SPropProblemArray **) _kc_override;
+	virtual HRESULT GetNamesFromIDs(SPropTagArray **, GUID *, ULONG, ULONG *, MAPINAMEID ***) _kc_override;
+	virtual HRESULT GetIDsFromNames(ULONG, MAPINAMEID **, ULONG, SPropTagArray **) _kc_override;
 
 private:
 	/* reference to ZCABLogon .. ZCABLogon needs to live because of this, so AddChild */
