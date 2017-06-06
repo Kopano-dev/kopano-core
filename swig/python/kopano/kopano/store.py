@@ -287,7 +287,7 @@ class Store(Base):
         for d in delgs:
             d._delete()
 
-    def folder(self, path=None, entryid=None, recurse=False, create=False): # XXX sloowowowww
+    def folder(self, path=None, entryid=None, recurse=False, create=False):
         """ Return :class:`Folder` with given path or entryid; raise exception if not found
 
         """
@@ -332,7 +332,10 @@ class Store(Base):
         item = _item.Item() # XXX copy-pasting..
         item.store = self
         item.server = self.server
-        item.mapiobj = _utils.openentry_raw(self.mapiobj, _unhex(entryid), MAPI_MODIFY) # XXX soft-deleted item?
+        try:
+            item.mapiobj = _utils.openentry_raw(self.mapiobj, _unhex(entryid), MAPI_MODIFY) # XXX soft-deleted item?
+        except MAPIErrorNotFound:
+            raise NotFoundError("no item with entryid '%s'" % entryid)
         return item
 
     @property

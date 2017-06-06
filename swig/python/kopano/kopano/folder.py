@@ -71,7 +71,7 @@ else:
 class Folder(Base):
     """Folder class"""
 
-    def __init__(self, store=None, entryid=None, associated=False, deleted=False, mapiobj=None):
+    def __init__(self, store=None, entryid=None, associated=False, deleted=False, mapiobj=None, _check_mapiobj=True):
         if store:
             self.store = store
             self.server = store.server
@@ -84,6 +84,9 @@ class Folder(Base):
         self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
         self._sourcekey = None
         self._mapiobj = None
+
+        if _check_mapiobj: # raise error for specific key
+            self.mapiobj
 
     @property
     def mapiobj(self):
@@ -202,7 +205,10 @@ class Folder(Base):
     def item(self, entryid):
         """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
 
-        mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
+        try:
+            mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
+        except MAPIErrorNotFound:
+            raise NotFoundError("no item with entryid '%s'" % entryid)
         item = _item.Item(self, mapiobj=mapiobj) # XXX copy-pasting..
         return item
 
@@ -452,7 +458,7 @@ class Folder(Base):
         children = collections.defaultdict(list)
 
         for row in table.rows():
-            folder = Folder(self.store, _hex(row[0].value))
+            folder = Folder(self.store, _hex(row[0].value), _check_mapiobj=False)
             folders[_hex(row[0].value)] = folder, _hex(row[1].value)
             names[_hex(row[0].value)] = row[2].value
             children[_hex(row[1].value)].append((_hex(row[0].value), folder))
