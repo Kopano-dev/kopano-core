@@ -1002,7 +1002,7 @@ class Item(Base):
 
         try:
             return self.folder.primary_store.item(entryid=codecs.encode(entryid, 'hex'))
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     def restore(self):
