@@ -487,7 +487,7 @@ class Server(object):
 
         try:
             return self.store(guid)
-        except NotFoundError:
+        except Error:
             pass
 
     def stores(self, system=False, remote=False, parse=True): # XXX implement remote
