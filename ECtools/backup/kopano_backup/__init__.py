@@ -89,7 +89,7 @@ def dbopen(path): # unfortunately dbhash.open doesn't seem to accept unicode
 def _decode(s):
     return s.decode(sys.stdout.encoding or 'utf8')
 
-def _copy_folder(from_dir, to_dir, keep_db=False):
+def _copy_folder_meta(from_dir, to_dir, keep_db=False):
     if not os.path.exists(to_dir):
         os.makedirs(to_dir)
 
@@ -99,6 +99,13 @@ def _copy_folder(from_dir, to_dir, keep_db=False):
             to_path = to_dir+'/'+filename
             if os.path.exists(from_path):
                 shutil.copy(from_path, to_dir) # overwrites
+
+def _copy_store_meta(from_dir, to_dir):
+    for filename in ('delegates', 'store', 'user'):
+        from_path = from_dir+'/'+filename
+        to_path = to_dir+'/'+filename
+        if os.path.exists(from_path):
+            shutil.copy(from_path, to_dir) # overwrites
 
 def _mark_deleted(index, fpath, timestamp, log):
     log.debug("marking deleted folder '%s'", fpath)
@@ -486,7 +493,7 @@ class Service(kopano.Service):
                 to_dir = data_path+'/folders/'+new_sk
                 fpath = file(from_dir+'/path').read().decode('utf8')
                 self.log.debug("merging new folder '%s'", fpath)
-                _copy_folder(from_dir, to_dir)
+                _copy_folder_meta(from_dir, to_dir)
 
             # update existing folders # XXX check matching & higher syncstate?
             for both_sk in set(orig_sk_dir) & set(diff_sk_dir):
@@ -514,7 +521,7 @@ class Service(kopano.Service):
                             if key in diff_db_items:
                                 orig_db_items[key] = diff_db_items[key] # differential may contain pure delete (no item)
 
-                _copy_folder(folder_dir, orig_dir, keep_db=True)
+                _copy_folder_meta(folder_dir, orig_dir, keep_db=True)
 
             # timestamp deleted folders
             for del_sk in set(orig_sk_dir) - set(diff_sk_dir):
@@ -522,6 +529,8 @@ class Service(kopano.Service):
                 fpath = file(orig_dir+'/path').read().decode('utf8')
 
                 _mark_deleted(orig_dir+'/index', fpath, timestamp, self.log)
+
+            _copy_store_meta(diff_path, data_path)
 
     def create_jobs(self):
         """ check command-line options and determine which stores should be backed up """
