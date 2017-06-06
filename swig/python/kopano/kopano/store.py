@@ -105,6 +105,18 @@ class Store(Base):
         return bin2hex(self.prop(PR_STORE_RECORD_KEY).value)
 
     @property
+    def name(self):
+        """ User name ('public' for public store), or GUID """
+
+        user = self.user
+        if user:
+            return user.name
+        elif self.public:
+            return 'public'
+        else:
+            return self.guid
+
+    @property
     def hierarchyid(self):
         return self.prop(PR_EC_HIERARCHYID).value
 

@@ -197,7 +197,7 @@ class IndexWorker(kopano.Worker):
                 if (folder not in (store.root, store.outbox, store.drafts)) and \
                    (folder != store.junk or config['index_junk']):
                     suggestions = config['suggestions'] and folder != store.junk
-                    self.log.info('syncing folder: %s %s', storeguid, folder.name)
+                    self.log.info('syncing folder: "%s" "%s"', store.name, folder.name)
                     importer = FolderImporter(server.guid, config, plugin, suggestions, self.log)
                     state = db_get(state_db, folder.entryid) if not reindex else None
                     if state:
@@ -209,7 +209,7 @@ class IndexWorker(kopano.Worker):
                         db_put(state_db, folder.entryid, new_state)
                         self.log.info('saved folder sync state: %s', new_state)
                         changes = importer.changes + importer.deletes 
-                        self.log.info('syncing folder %s %s took %.2f seconds (%d changes, %d attachments)', storeguid, folder.name, time.time()-t0, changes, importer.attachments)
+                        self.log.info('syncing folder "%s" took %.2f seconds (%d changes, %d attachments)', folder.name, time.time()-t0, changes, importer.attachments)
             self.oqueue.put(changes)
 
 class FolderImporter:
@@ -350,8 +350,8 @@ class Service(kopano.Service):
             with log_exc(self.log):
                 try:
                     storeid = self.reindex_queue.get(block=False)
-                    self.log.info('handling reindex request for store %s', storeid)
                     store = self.server.store(storeid)
+                    self.log.info('handling reindex request for "%s"', store.name)
                     self.plugin.reindex(self.server.guid, store.guid)
                     self.initial_sync([store], reindex=True)
                 except Empty:
