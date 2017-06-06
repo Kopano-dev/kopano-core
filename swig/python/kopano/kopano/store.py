@@ -112,7 +112,10 @@ class Store(Base):
     def root(self):
         """ :class:`Folder` designated as store root """
 
-        return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_ENTRYID).Value))
+        try:
+            return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_ENTRYID).Value))
+        except (MAPIErrorNotFound, NotFoundError):
+            pass
 
     @property
     def subtree(self):
@@ -125,7 +128,7 @@ class Store(Base):
                 ipmsubtreeid = HrGetOneProp(self.mapiobj, PR_IPM_SUBTREE_ENTRYID).Value
 
             return _folder.Folder(self, _hex(ipmsubtreeid))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -134,7 +137,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self.mapiobj, PR_FINDER_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -143,7 +146,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(self.mapiobj.GetReceiveFolder(u'IPM', MAPI_UNICODE)[0]))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -153,7 +156,7 @@ class Store(Base):
         # PR_ADDITIONAL_REN_ENTRYIDS is a multi-value property, 4th entry is the junk folder
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_ADDITIONAL_REN_ENTRYIDS).Value[4]))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -162,7 +165,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_APPOINTMENT_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -171,7 +174,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self.mapiobj, PR_IPM_OUTBOX_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -180,7 +183,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_CONTACT_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -198,7 +201,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_DRAFTS_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -207,7 +210,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self.mapiobj, PR_IPM_WASTEBASKET_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -216,7 +219,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_JOURNAL_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -225,7 +228,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_NOTE_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -234,7 +237,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self.mapiobj, PR_IPM_SENTMAIL_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
@@ -243,7 +246,7 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_IPM_TASK_ENTRYID).Value))
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
