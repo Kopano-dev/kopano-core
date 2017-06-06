@@ -22,8 +22,6 @@
 #include <mapi.h>
 #include "Http.h"
 
-using namespace KCHL;
-
 class ProtocolBase {
 public:
 	ProtocolBase(Http *, IMAPISession *, const std::string &srv_tz, const std::string &charset);
@@ -35,18 +33,17 @@ public:
 	
 protected:
 	Http *m_lpRequest = nullptr;
-	object_ptr<IMAPISession> m_lpSession;
+	KCHL::object_ptr<IMAPISession> m_lpSession;
 	std::string m_strSrvTz;
 	std::string m_strCharset;
-
-	object_ptr<IMsgStore> m_lpDefStore; //!< We always need the store of the user that is logged in.
-	object_ptr<IMsgStore> m_lpActiveStore; //!< The store we're acting on
-	object_ptr<IAddrBook> m_lpAddrBook;
-	object_ptr<IMailUser> m_lpLoginUser; //!< the logged in user
-	object_ptr<IMailUser> m_lpActiveUser; //!< the owner of m_lpActiveStore
-	object_ptr<IMAPIFolder> m_lpUsrFld; //!< The active folder (calendar, inbox, outbox)
-	object_ptr<IMAPIFolder> m_lpIPMSubtree; //!< IPMSubtree of active store, used for CopyFolder/CreateFolder
-	memory_ptr<SPropTagArray> m_lpNamedProps; //!< named properties of the active store
+	KCHL::object_ptr<IMsgStore> m_lpDefStore; //!< We always need the store of the user that is logged in.
+	KCHL::object_ptr<IMsgStore> m_lpActiveStore; //!< The store we're acting on
+	KCHL::object_ptr<IAddrBook> m_lpAddrBook;
+	KCHL::object_ptr<IMailUser> m_lpLoginUser; //!< the logged in user
+	KCHL::object_ptr<IMailUser> m_lpActiveUser; //!< the owner of m_lpActiveStore
+	KCHL::object_ptr<IMAPIFolder> m_lpUsrFld; //!< The active folder (calendar, inbox, outbox)
+	KCHL::object_ptr<IMAPIFolder> m_lpIPMSubtree; //!< IPMSubtree of active store, used for CopyFolder/CreateFolder
+	KCHL::memory_ptr<SPropTagArray> m_lpNamedProps; //!< named properties of the active store
 	std::wstring m_wstrFldOwner;   //!< url owner part
 	std::wstring m_wstrFldName;	   //!< url foldername part
 

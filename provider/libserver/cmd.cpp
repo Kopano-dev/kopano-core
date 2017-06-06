@@ -7046,26 +7046,25 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 
 		// Check permission, source messages
 		er = sec->CheckPermission(sItem.ulId, ecSecurityDelete);
-		if(er == erSuccess) {
-
-			// Check if the source and dest the same store
-			er = cache->GetStore(sItem.ulId, &ulSourceStoreId, nullptr);
-			if(er != erSuccess || ulSourceStoreId != ulDestStoreId) {
-				bPartialCompletion = true;
-				er = erSuccess;
-				continue;
-			}
-
-			lstCopyItems.push_back(sItem);
-			ulItemSize += (lpDBRow[5] != NULL)? atoi(lpDBRow[5]) : 0;
-
-			// check if it a deleted item
-			if (lpDBRow[3] != NULL && atoi(lpDBRow[3]) & MSGFLAG_DELETED)
-				bUpdateDeletedSize = true;
-		}else {
+		if (er != erSuccess) {
 			bPartialCompletion = true;
 			er = erSuccess;
+			continue;
 		}
+
+		// Check if the source and dest the same store
+		er = cache->GetStore(sItem.ulId, &ulSourceStoreId, nullptr);
+		if (er != erSuccess || ulSourceStoreId != ulDestStoreId) {
+			bPartialCompletion = true;
+			er = erSuccess;
+			continue;
+		}
+
+		lstCopyItems.push_back(sItem);
+		ulItemSize += (lpDBRow[5] != NULL)? atoi(lpDBRow[5]) : 0;
+		// check if it a deleted item
+		if (lpDBRow[3] != NULL && atoi(lpDBRow[3]) & MSGFLAG_DELETED)
+			bUpdateDeletedSize = true;
 	}
 	
 	// Check the quota size when the item is a softdelete item
@@ -8277,144 +8276,137 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 	}
 
 	//check copy or a move
-	if(ulFlags & FOLDER_MOVE ) {
-		if (ulObjFlags & MSGFLAG_DELETED) {
-			/*
-			 * The folder we are moving used to be deleted. This
-			 * effictively makes this call an un-delete. We need to
-			 * get the folder size for quota management.
-			 */
-			er = GetFolderSize(lpDatabase, ulFolderId, &llFolderSize);
-			if (er != erSuccess) {
-				ec_log_err("SOAP::copyFolder(): cannot find size of folder %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
-				return er;
-			}
-		}
-
-		// Get grandParent of the old folder
-		gcache->GetParent(ulOldParent, &ulOldGrandParent);
-		er = lpDatabase->Begin();
-		if (er != erSuccess) {
-			ec_log_err("SOAP::copyFolder(): cannot start transaction: %s (%x)", GetMAPIErrorMessage(er), er);
-			return er;
-		}
-
-		// Move the folder to the dest. folder
-		
-		// FIXME update modtime
-		strQuery = "UPDATE hierarchy SET parent="+stringify(ulDestFolderId)+", flags=flags&"+stringify(~MSGFLAG_DELETED)+" WHERE id="+stringify(ulFolderId);
-		if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
-			lpDatabase->Rollback();
-			ec_log_err("SOAP::copyFolder(): update of modification time failed: %s (%x)", GetMAPIErrorMessage(er), er);
-			return KCERR_DATABASE_ERROR;
-		}
-
-		if(ulAffRows != 1) {
-		    lpDatabase->Rollback();
-			ec_log_err("SOAP::copyFolder(): unexpected number of affected rows (expected: 1, got: %u)", ulAffRows);
-			return KCERR_DATABASE_ERROR;
-		}
-
-		// Update the folder to the destination folder
-		//Info: Always an update, It's not faster first check and than update/or not
-		strQuery = "UPDATE properties SET val_string = '" + lpDatabase->Escape(lpszNewFolderName) + "' WHERE tag=" + stringify(KOPANO_TAG_DISPLAY_NAME) + " AND hierarchyid="+stringify(ulFolderId) + " AND type=" + stringify(PT_STRING8);
-		if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
-			ec_log_err("SOAP::copyFolder(): actual move of folder %s failed: %s (%x)", lpszNewFolderName, GetMAPIErrorMessage(er), er);
-		    lpDatabase->Rollback();
-			return KCERR_DATABASE_ERROR;
-		}
-
-		// remove PR_DELETED_ON, as the folder is a softdelete folder
-		strQuery = "DELETE FROM properties WHERE hierarchyid="+stringify(ulFolderId)+" AND tag="+stringify(PROP_ID(PR_DELETED_ON))+" AND type="+stringify(PROP_TYPE(PR_DELETED_ON));
-		er = lpDatabase->DoDelete(strQuery);
-		if(er != erSuccess) {
-			ec_log_err("SOAP::copyFolder(): cannot remove PR_DELETED_ON property for %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
-			lpDatabase->Rollback();
-			return KCERR_DATABASE_ERROR;
-		}
-
-		// Update the store size if we did an undelete. Note ulSourceStoreId == ulDestStoreId.
-		if (llFolderSize > 0) {
-			er = UpdateObjectSize(lpDatabase, ulSourceStoreId, MAPI_STORE, UPDATE_ADD, llFolderSize);
-			if (er != erSuccess) {
-				ec_log_err("SOAP::copyFolder(): problem updating store (%u) size: %s (%x)", ulSourceStoreId, GetMAPIErrorMessage(er), er);
-				return er;
-			}
-		}
-
-		// ICS
-		GetSourceKey(ulFolderId, &sSourceKey);
-		GetSourceKey(ulDestFolderId, &sDestSourceKey);
-		GetSourceKey(ulOldParent, &sParentSourceKey);
-			
-		AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_FOLDER_CHANGE);
-		AddChange(lpecSession, ulSyncId, sSourceKey, sDestSourceKey, ICS_FOLDER_CHANGE);
-
-		// Update folder counters
-		if (ulObjFlags & MSGFLAG_DELETED) {
-			// Undelete
-			er = UpdateFolderCount(lpDatabase, ulOldParent, PR_DELETED_FOLDER_COUNT, -1);
-			if (er == erSuccess)
-				er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_SUBFOLDERS, 1);
-			if (er == erSuccess)
-				er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_FOLDER_CHILD_COUNT, 1);
-		} else {
-			// Move
-			er = UpdateFolderCount(lpDatabase, ulOldParent, PR_SUBFOLDERS, -1);
-			if (er == erSuccess)
-				er = UpdateFolderCount(lpDatabase, ulOldParent, PR_FOLDER_CHILD_COUNT, -1);
-			if (er == erSuccess)
-				er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_SUBFOLDERS, 1);
-			if (er == erSuccess)
-				er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_FOLDER_CHILD_COUNT, 1);
-		}
-
-		if (er != erSuccess) {
-			ec_log_err("SOAP::copyFolder(): updating folder counts failed: %s (%x)", GetMAPIErrorMessage(er), er);
-			return er;
-		}
-
-		er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, ulOldParent, ulFolderId);
-		if (er != erSuccess) {
-			ec_log_err("SOAP::copyFolder(): ECTPropsPurge::AddDeferredUpdate failed: %s (%x)", GetMAPIErrorMessage(er), er);
-			return er;
-		}
-
-		er = lpDatabase->Commit();
-		if(er != erSuccess) {
-			ec_log_err("SOAP::copyFolder(): database commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
-			lpDatabase->Rollback();
-			return er;
-		}
-
-		// Cache update for objects
-		gcache->Update(fnevObjectMoved, ulFolderId);
-		// Notify that the folder has moved
-		g_lpSessionManager->NotificationMoved(MAPI_FOLDER, ulFolderId, ulDestFolderId, ulOldParent);
-
-		// Update the old folder
-		gcache->Update(fnevObjectModified, ulOldParent);
-		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, ulOldParent, ulFolderId, MAPI_FOLDER);
-		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulOldParent);
-
-		// Update the old folder's parent
-		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulOldGrandParent, ulOldParent, MAPI_FOLDER);
-
-		// Update the destination folder
-		gcache->Update(fnevObjectModified, ulDestFolderId);
-		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulDestFolderId, ulFolderId, MAPI_FOLDER);
-		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
-
-		// Update the destination's parent
-		gcache->GetParent(ulDestFolderId, &ulGrandParent);
-		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, ulDestFolderId, MAPI_FOLDER);
-	}else {// a copy
+	if (!(ulFlags & FOLDER_MOVE)) {
 		er = CopyFolderObjects(soap, lpecSession, ulFolderId, ulDestFolderId, lpszNewFolderName, !!(ulFlags&COPY_SUBFOLDERS), ulSyncId);
-		if (er != erSuccess) {
+		if (er != erSuccess)
 			ec_log_err("SOAP::copyFolder(): CopyFolderObjects (src folder: %u, dest folder: %u, new name: \"%s\") failed: %s (%x)", ulFolderId, ulDestFolderId, lpszNewFolderName, GetMAPIErrorMessage(er), er);
+		return er;
+	}
+	if (ulObjFlags & MSGFLAG_DELETED) {
+		/*
+		 * The folder we are moving used to be deleted. This
+		 * effictively makes this call an un-delete. We need to
+		 * get the folder size for quota management.
+		 */
+		er = GetFolderSize(lpDatabase, ulFolderId, &llFolderSize);
+		if (er != erSuccess) {
+			ec_log_err("SOAP::copyFolder(): cannot find size of folder %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
 			return er;
 		}
 	}
+
+	// Get grandParent of the old folder
+	gcache->GetParent(ulOldParent, &ulOldGrandParent);
+	er = lpDatabase->Begin();
+	if (er != erSuccess) {
+		ec_log_err("SOAP::copyFolder(): cannot start transaction: %s (%x)", GetMAPIErrorMessage(er), er);
+		return er;
+	}
+
+	// Move the folder to the dest. folder
+	// FIXME update modtime
+	strQuery = "UPDATE hierarchy SET parent="+stringify(ulDestFolderId)+", flags=flags&"+stringify(~MSGFLAG_DELETED)+" WHERE id="+stringify(ulFolderId);
+	if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
+		lpDatabase->Rollback();
+		ec_log_err("SOAP::copyFolder(): update of modification time failed: %s (%x)", GetMAPIErrorMessage(er), er);
+		return KCERR_DATABASE_ERROR;
+	}
+
+	if(ulAffRows != 1) {
+	    lpDatabase->Rollback();
+		ec_log_err("SOAP::copyFolder(): unexpected number of affected rows (expected: 1, got: %u)", ulAffRows);
+		return KCERR_DATABASE_ERROR;
+	}
+
+	// Update the folder to the destination folder
+	//Info: Always an update, It's not faster first check and than update/or not
+	strQuery = "UPDATE properties SET val_string = '" + lpDatabase->Escape(lpszNewFolderName) + "' WHERE tag=" + stringify(KOPANO_TAG_DISPLAY_NAME) + " AND hierarchyid="+stringify(ulFolderId) + " AND type=" + stringify(PT_STRING8);
+	if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
+		ec_log_err("SOAP::copyFolder(): actual move of folder %s failed: %s (%x)", lpszNewFolderName, GetMAPIErrorMessage(er), er);
+		lpDatabase->Rollback();
+		return KCERR_DATABASE_ERROR;
+	}
+
+	// remove PR_DELETED_ON, as the folder is a softdelete folder
+	strQuery = "DELETE FROM properties WHERE hierarchyid=" + stringify(ulFolderId) + " AND tag=" + stringify(PROP_ID(PR_DELETED_ON)) + " AND type=" + stringify(PROP_TYPE(PR_DELETED_ON));
+	er = lpDatabase->DoDelete(strQuery);
+	if (er != erSuccess) {
+		ec_log_err("SOAP::copyFolder(): cannot remove PR_DELETED_ON property for %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
+		lpDatabase->Rollback();
+		return KCERR_DATABASE_ERROR;
+	}
+
+	// Update the store size if we did an undelete. Note ulSourceStoreId == ulDestStoreId.
+	if (llFolderSize > 0) {
+		er = UpdateObjectSize(lpDatabase, ulSourceStoreId, MAPI_STORE, UPDATE_ADD, llFolderSize);
+		if (er != erSuccess) {
+			ec_log_err("SOAP::copyFolder(): problem updating store (%u) size: %s (%x)", ulSourceStoreId, GetMAPIErrorMessage(er), er);
+			return er;
+		}
+	}
+
+	// ICS
+	GetSourceKey(ulFolderId, &sSourceKey);
+	GetSourceKey(ulDestFolderId, &sDestSourceKey);
+	GetSourceKey(ulOldParent, &sParentSourceKey);
+	AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_FOLDER_CHANGE);
+	AddChange(lpecSession, ulSyncId, sSourceKey, sDestSourceKey, ICS_FOLDER_CHANGE);
+
+	// Update folder counters
+	if (ulObjFlags & MSGFLAG_DELETED) {
+		// Undelete
+		er = UpdateFolderCount(lpDatabase, ulOldParent, PR_DELETED_FOLDER_COUNT, -1);
+		if (er == erSuccess)
+			er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_SUBFOLDERS, 1);
+		if (er == erSuccess)
+			er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_FOLDER_CHILD_COUNT, 1);
+	} else {
+		// Move
+		er = UpdateFolderCount(lpDatabase, ulOldParent, PR_SUBFOLDERS, -1);
+		if (er == erSuccess)
+			er = UpdateFolderCount(lpDatabase, ulOldParent, PR_FOLDER_CHILD_COUNT, -1);
+		if (er == erSuccess)
+			er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_SUBFOLDERS, 1);
+		if (er == erSuccess)
+			er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_FOLDER_CHILD_COUNT, 1);
+	}
+	if (er != erSuccess) {
+		ec_log_err("SOAP::copyFolder(): updating folder counts failed: %s (%x)", GetMAPIErrorMessage(er), er);
+		return er;
+	}
+	er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, ulOldParent, ulFolderId);
+	if (er != erSuccess) {
+		ec_log_err("SOAP::copyFolder(): ECTPropsPurge::AddDeferredUpdate failed: %s (%x)", GetMAPIErrorMessage(er), er);
+		return er;
+	}
+	er = lpDatabase->Commit();
+	if(er != erSuccess) {
+		ec_log_err("SOAP::copyFolder(): database commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
+		lpDatabase->Rollback();
+		return er;
+	}
+
+	// Cache update for objects
+	gcache->Update(fnevObjectMoved, ulFolderId);
+	// Notify that the folder has moved
+	g_lpSessionManager->NotificationMoved(MAPI_FOLDER, ulFolderId, ulDestFolderId, ulOldParent);
+
+	// Update the old folder
+	gcache->Update(fnevObjectModified, ulOldParent);
+	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, ulOldParent, ulFolderId, MAPI_FOLDER);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulOldParent);
+
+	// Update the old folder's parent
+	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulOldGrandParent, ulOldParent, MAPI_FOLDER);
+
+	// Update the destination folder
+	gcache->Update(fnevObjectModified, ulDestFolderId);
+	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulDestFolderId, ulFolderId, MAPI_FOLDER);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
+
+	// Update the destination's parent
+	gcache->GetParent(ulDestFolderId, &ulGrandParent);
+	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, ulDestFolderId, MAPI_FOLDER);
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -10104,42 +10096,42 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		er = gcache->GetObjectFromProp(PROP_ID(ulPropTag), sSourceKeyPairs.__ptr[i].sObjectKey.__size, sSourceKeyPairs.__ptr[i].sObjectKey.__ptr, &ulObjectId);
 		if(er != erSuccess) {
 		    er = erSuccess;
-			goto next_object;
+			continue;
         }
         
         if(sSourceKeyPairs.__ptr[i].sParentKey.__size) {
 			er = gcache->GetObjectFromProp(PROP_ID(ulPropTag), sSourceKeyPairs.__ptr[i].sParentKey.__size, sSourceKeyPairs.__ptr[i].sParentKey.__ptr, &ulParentId);
             if(er != erSuccess) {
                 er = erSuccess;
-                goto next_object;
+				continue;
             }
 			er = gcache->GetObject(ulObjectId, &ulParentCheck, nullptr, &ulObjFlags, nullptr);
             if (er != erSuccess) {
                 er = erSuccess;
-                goto next_object;
+				continue;
             }
             
             if (ulParentId != ulParentCheck) {
                 assert(false);
-                goto next_object;
+				continue;
             }
         }
         		
 		if ((ulObjFlags & MSGFLAG_DELETED) != (ulFlags & MSGFLAG_DELETED))
-			goto next_object;
+			continue;
 		
 		// Check security
 		er = sec->CheckPermission(ulObjectId, ecSecurityRead);
 		if (er != erSuccess) {
 		    er = erSuccess;
-			goto next_object;
+			continue;
         }
         
 		// Get store
 		er = gcache->GetStore(ulObjectId, &ulStoreId, &sGuid);
 		if(er != erSuccess) {
 		    er = erSuccess;
-			goto next_object;
+			continue;
         }
         
 
@@ -10165,8 +10157,6 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		++ulObjCnt;
 		// Remember the object ID since we need it later
 		rows.push_back({ulObjectId, 0});
-next_object:
-		;
 	}
 	lpsResponse->sMsgStreams.__size = ulObjCnt;
                     

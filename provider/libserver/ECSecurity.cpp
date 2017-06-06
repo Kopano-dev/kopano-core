@@ -107,23 +107,23 @@ ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpers
 	else
 		m_ulCompanyID = 0;
 
-	if (m_ulImpersonatorID != EC_NO_IMPERSONATOR) {
-		unsigned int ulAdminLevel = 0;
+	if (m_ulImpersonatorID == EC_NO_IMPERSONATOR)
+		/* Don't initialize… (see below) */
+		return erSuccess;
 
-		er = lpUserManagement->GetObjectDetails(m_ulImpersonatorID, &m_impersonatorDetails);
-		if (er != erSuccess)
-			return er;
+	unsigned int ulAdminLevel = 0;
+	er = lpUserManagement->GetObjectDetails(m_ulImpersonatorID, &m_impersonatorDetails);
+	if (er != erSuccess)
+		return er;
 
-		ulAdminLevel = m_impersonatorDetails.GetPropInt(OB_PROP_I_ADMINLEVEL);
-		if (ulAdminLevel == 0) {
+	ulAdminLevel = m_impersonatorDetails.GetPropInt(OB_PROP_I_ADMINLEVEL);
+	if (ulAdminLevel == 0) {
+		return KCERR_NO_ACCESS;
+	} else if (sesmgr->IsHostedSupported() == true && ulAdminLevel < ADMIN_LEVEL_SYSADMIN) {
+		unsigned int ulCompanyID = m_impersonatorDetails.GetPropInt(OB_PROP_I_COMPANYID);
+		if (ulCompanyID != m_ulCompanyID)
 			return KCERR_NO_ACCESS;
-		} else if (sesmgr->IsHostedSupported() == true && ulAdminLevel < ADMIN_LEVEL_SYSADMIN) {
-			unsigned int ulCompanyID = m_impersonatorDetails.GetPropInt(OB_PROP_I_COMPANYID);
-			if (ulCompanyID != m_ulCompanyID)
-				return KCERR_NO_ACCESS;
-		}
 	}
-
 	/*
 	 * Don't initialize m_lpGroups, m_lpViewCompanies and m_lpAdminCompanies
 	 * We should wait with that until the first time we actually use it,
@@ -580,43 +580,41 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 		return er;
 
 	ulCount = lpDBResult.get_num_rows();
-	if(ulCount > 0)
-	{
-		lpsRightsArray->__ptr = s_alloc<rights>(nullptr, ulCount);
-		lpsRightsArray->__size = ulCount;
+	if (ulCount <= 0) {
+		lpsRightsArray->__ptr = nullptr;
+		lpsRightsArray->__size = 0;
+		return erSuccess;
+	}
 
-		memset(lpsRightsArray->__ptr, 0, sizeof(struct rights) * ulCount);
-		auto usrmgt = m_lpSession->GetUserManagement();
-		for (i = 0; i < ulCount; ++i) {
-			lpDBRow = lpDBResult.fetch_row();
-			if(lpDBRow == NULL) {
-				ec_log_err("ECSecurity::GetRights(): row is null");
-				return KCERR_DATABASE_ERROR;
-			}
+	lpsRightsArray->__ptr = s_alloc<rights>(nullptr, ulCount);
+	lpsRightsArray->__size = ulCount;
+	memset(lpsRightsArray->__ptr, 0, sizeof(struct rights) * ulCount);
+	auto usrmgt = m_lpSession->GetUserManagement();
+	for (i = 0; i < ulCount; ++i) {
+		lpDBRow = lpDBResult.fetch_row();
+		if (lpDBRow == NULL) {
+			ec_log_err("ECSecurity::GetRights(): row is null");
+			return KCERR_DATABASE_ERROR;
+		}
 
-			lpsRightsArray->__ptr[i].ulUserid = atoi(lpDBRow[0]);
-			lpsRightsArray->__ptr[i].ulType   = atoi(lpDBRow[1]);
-			lpsRightsArray->__ptr[i].ulRights = atoi(lpDBRow[2]);
-			lpsRightsArray->__ptr[i].ulState  = RIGHT_NORMAL;
+		lpsRightsArray->__ptr[i].ulUserid = atoi(lpDBRow[0]);
+		lpsRightsArray->__ptr[i].ulType   = atoi(lpDBRow[1]);
+		lpsRightsArray->__ptr[i].ulRights = atoi(lpDBRow[2]);
+		lpsRightsArray->__ptr[i].ulState  = RIGHT_NORMAL;
 
-			// do not use internal IDs with the cache
-			if (lpsRightsArray->__ptr[i].ulUserid == KOPANO_UID_SYSTEM) {
-				sExternId = objectid_t(ACTIVE_USER);
-			} else if (lpsRightsArray->__ptr[i].ulUserid == KOPANO_UID_EVERYONE) {
-				sExternId = objectid_t(DISTLIST_GROUP);
-			} else {
-				er = usrmgt->GetExternalId(lpsRightsArray->__ptr[i].ulUserid, &sExternId);
-				if (er != erSuccess)
-					return er;
-			}
-
-			er = ABIDToEntryID(NULL, lpsRightsArray->__ptr[i].ulUserid, sExternId, &lpsRightsArray->__ptr[i].sUserId);
+		// do not use internal IDs with the cache
+		if (lpsRightsArray->__ptr[i].ulUserid == KOPANO_UID_SYSTEM) {
+			sExternId = objectid_t(ACTIVE_USER);
+		} else if (lpsRightsArray->__ptr[i].ulUserid == KOPANO_UID_EVERYONE) {
+			sExternId = objectid_t(DISTLIST_GROUP);
+		} else {
+			er = usrmgt->GetExternalId(lpsRightsArray->__ptr[i].ulUserid, &sExternId);
 			if (er != erSuccess)
 				return er;
 		}
-	}else{
-		lpsRightsArray->__ptr = NULL;
-		lpsRightsArray->__size = 0;
+		er = ABIDToEntryID(NULL, lpsRightsArray->__ptr[i].ulUserid, sExternId, &lpsRightsArray->__ptr[i].sUserId);
+		if (er != erSuccess)
+			return er;
 	}
 	return erSuccess;
 }

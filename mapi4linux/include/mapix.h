@@ -91,7 +91,7 @@ extern _kc_export MAPIUNINITIALIZE MAPIUninitialize;
 
 /*  Extended MAPI Logon function */
 
-typedef HRESULT (MAPILOGONEX)(ULONG ui_param, const TCHAR *profname, const TCHAR *password, ULONG flags, IMAPISession **);
+typedef HRESULT (MAPILOGONEX)(ULONG_PTR ui_param, const TCHAR *profname, const TCHAR *password, ULONG flags, IMAPISession **);
 typedef MAPILOGONEX* LPMAPILOGONEX;
 extern _kc_export MAPILOGONEX MAPILogonEx;
 

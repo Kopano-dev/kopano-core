@@ -832,24 +832,23 @@ ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, con
 	}
 
 	er = CreateLocalObjectSimple(signature, ulPreferredId);
-	if (er != erSuccess) {
-		/*
-		 * Failed to create object locally, it should be removed from external DB.
-		 * Otherwise it will remain present in the external DB and synced later while
-		 * ECSync will also perform a retry to create the object. Obviously this
-		 * can lead to unexpected behavior because the Offline server should never(!)
-		 * sync between plugin and ECUsermanagement somewhere else other than this
-		 * function
-		 */
-		try {
-			lpPlugin->deleteObject(signature.id);
-		} catch (std::exception &e) {
-			ec_log_warn("Unable to delete %s from external database after failed (partial) creation: %s",
-				ObjectClassToName(sExternId.objclass), e.what());
-		}
-		return er;
+	if (er == erSuccess)
+		return erSuccess;
+	/*
+	 * Failed to create object locally, it should be removed from external DB.
+	 * Otherwise it will remain present in the external DB and synced later while
+	 * ECSync will also perform a retry to create the object. Obviously this
+	 * can lead to unexpected behavior because the Offline server should never(!)
+	 * sync between plugin and ECUsermanagement somewhere else other than this
+	 * function
+	 */
+	try {
+		lpPlugin->deleteObject(signature.id);
+	} catch (std::exception &e) {
+		ec_log_warn("Unable to delete %s from external database after failed (partial) creation: %s",
+			ObjectClassToName(sExternId.objclass), e.what());
 	}
-	return erSuccess;
+	return er;
 }
 
 // Add a member to a group, with on-the-fly delete of the specified group id
@@ -1325,20 +1324,19 @@ ECRESULT ECUserManagement::CreateObjectAndSync(const objectdetails_t &details, u
 	}
 
 	er = MoveOrCreateLocalObject(objectsignature, lpulId, NULL);
+	if (er == erSuccess)
+		return erSuccess;
 
-	if(er != erSuccess) {
-		// We could not create the object in the local database. This means that we have to rollback
-		// our object creation in the plugin, because otherwise the database and the plugin would stay
-		// out-of-sync until you add new licenses. Also, it would be impossible for the user to manually
-		// rollback the object creation, as you need a Kopano object id to delete an object, and we don't have
-		// one of those, because CreateLocalObject() failed.
-
-		try {
-			lpPlugin->deleteObject(objectsignature.id);
-		} catch(std::exception &e) {
-			ec_log_warn("Unable to delete %s from plugin database after failed creation: %s", ObjectClassToName(details.GetClass()), e.what());
-			return KCERR_PLUGIN_ERROR;
-		}
+	// We could not create the object in the local database. This means that we have to rollback
+	// our object creation in the plugin, because otherwise the database and the plugin would stay
+	// out-of-sync until you add new licenses. Also, it would be impossible for the user to manually
+	// rollback the object creation, as you need a Kopano object id to delete an object, and we don't have
+	// one of those, because CreateLocalObject() failed.
+	try {
+		lpPlugin->deleteObject(objectsignature.id);
+	} catch (std::exception &e) {
+		ec_log_warn("Unable to delete %s from plugin database after failed creation: %s", ObjectClassToName(details.GetClass()), e.what());
+		return KCERR_PLUGIN_ERROR;
 	}
 	return er;
 }

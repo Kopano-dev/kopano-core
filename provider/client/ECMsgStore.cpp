@@ -197,7 +197,7 @@ static HRESULT GetIMsgStoreObject(BOOL bOffline, std::string strProfname,
 	if (hr != hrSuccess)
 		return hr;
 	return sProviderInfo.lpMSProviderOnline->Logon(lpMAPISup, 0,
-	       (LPTSTR)lpszProfileName, cbEntryId, lpEntryId,
+	       reinterpret_cast<const TCHAR *>(lpszProfileName), cbEntryId, lpEntryId,
 	       bModify ? MAPI_BEST_ACCESS | MDB_NO_DIALOG : MDB_NO_DIALOG,
 	       nullptr, nullptr, nullptr, nullptr, nullptr, lppIMsgStore);
 }

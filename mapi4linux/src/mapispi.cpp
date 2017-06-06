@@ -268,12 +268,12 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 		if (hr != hrSuccess) {
 			// partial, or error to calling client?
 			bPartial = true;
-			goto next_item;
+			continue;
 		}
 		hr = lpDest->CreateMessage(&IID_IMessage, MAPI_MODIFY, &~lpDestMessage);
 		if (hr != hrSuccess) {
 			bPartial = true;
-			goto next_item;
+			continue;
 		}
 
 		hr = this->DoCopyTo(&IID_IMessage, lpSrcMessage, 0, NULL, NULL, ulUIParam, lpProgress, &IID_IMessage, lpDestMessage, 0, NULL);
@@ -281,7 +281,7 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 			return hr;
 		} else if (hr != hrSuccess) {
 			bPartial = true;
-			goto next_item;
+			continue;
 		}
 
 		hr = lpDestMessage->SaveChanges(0);
@@ -292,9 +292,6 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 			lpDeleteEntries->lpbin[lpDeleteEntries->cValues].lpb = lpMsgList->lpbin[i].lpb;
 			++lpDeleteEntries->cValues;
 		}
-
-next_item:
-		;
 	}
 
 	if ((ulFlags & MAPI_MOVE) && lpDeleteEntries->cValues > 0 &&

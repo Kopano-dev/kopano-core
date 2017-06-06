@@ -108,111 +108,22 @@ typedef struct MapiMessage *lpMapiMessage;
 extern "C" {
 
 /* Function definitions */
-ULONG MAPILogon(
-    ULONG ulUIParam,
-    LPSTR lpszProfileName,
-    LPSTR lpszPassword,
-    FLAGS flFlags,
-    ULONG ulReserved,
-    LPLHANDLE lplhSession
-);
-
-ULONG MAPILogoff(
-    LHANDLE lhSession,
-    ULONG ulUIParam,
-    FLAGS flFlags,
-    ULONG ulReserved
-);
-
-
+extern ULONG MAPILogon(ULONG_PTR ulUIParam, const char *lpszProfileName, const char *lpszPassword, FLAGS flFlags, ULONG ulReserved, LPLHANDLE lplhSession);
+extern ULONG MAPILogoff(LHANDLE lhSession, ULONG_PTR ulUIParam, FLAGS flFlags, ULONG ulReserved);
 
 /* Simple MAPI functions */
-ULONG MAPISendMail(
-    LHANDLE lhSession,
-    ULONG ulUIParam,
-    lpMapiMessage lpMessage,
-    FLAGS flFlags,
-    ULONG ulReserved
-);
-
-ULONG MAPISendDocuments(
-    ULONG ulUIParam,
-    LPSTR lpszDelimChar,
-    LPSTR lpszFilePaths,
-    LPSTR lpszFileNames,
-    ULONG ulReserved
-);
-
-ULONG MAPIFindNext(
-    LHANDLE lhSession,
-    ULONG ulUIParam,
-    LPSTR lpszMessageType,
-    LPSTR lpszSeedMessageID,
-    FLAGS flFlags,
-    ULONG ulReserved,
-    LPSTR lpszMessageID
-);
-
-ULONG MAPIReadMail(
-    LHANDLE lhSession,
-    ULONG ulUIParam,
-    LPSTR lpszMessageID,
-    FLAGS flFlags,
-    ULONG ulReserved,
-    lpMapiMessage *lppMessage
-);
-
-ULONG MAPISaveMail(
-    LHANDLE lhSession,
-    ULONG ulUIParam,
-    lpMapiMessage lpMessage,
-    FLAGS flFlags,
-    ULONG ulReserved,
-    LPSTR lpszMessageID
-);
-
-ULONG MAPIDeleteMail(
-    LHANDLE lhSession,
-    ULONG ulUIParam,
-    LPSTR lpszMessageID,
-    FLAGS flFlags,
-    ULONG ulReserved
-);
-
+extern ULONG MAPISendMail(LHANDLE lhSession, ULONG_PTR ulUIParam, lpMapiMessage lpMessage, FLAGS flFlags, ULONG ulReserved);
+extern ULONG MAPISendDocuments(ULONG_PTR ulUIParam, const char *lpszDelimChar, const char *lpszFilePaths, const char *lpszFileNames, ULONG ulReserved);
+extern ULONG MAPIFindNext(LHANDLE lhSession, ULONG_PTR ulUIParam, const char *lpszMessageType, const char *lpszSeedMessageID, FLAGS flFlags, ULONG ulReserved, const char *lpszMessageID);
+extern ULONG MAPIReadMail(LHANDLE lhSession, ULONG_PTR ulUIParam, const char *lpszMessageID, FLAGS flFlags, ULONG ulReserved, lpMapiMessage *lppMessage);
+extern ULONG MAPISaveMail(LHANDLE lhSession, ULONG_PTR ulUIParam, lpMapiMessage lpMessage, FLAGS flFlags, ULONG ulReserved, const char *lpszMessageID);
+extern ULONG MAPIDeleteMail(LHANDLE lhSession, ULONG_PTR ulUIParam, const char *lpszMessageID, FLAGS flFlags, ULONG ulReserved);
 ULONG MAPIFreeBuffer(
     LPVOID pv
 );
-
-ULONG MAPIAddress(
-    LHANDLE lhSession,
-    ULONG ulUIParam,
-    LPSTR lpszCaption,
-    ULONG nEditFields,
-    LPSTR lpszLabels,
-    ULONG nRecips,
-    lpMapiRecipDesc lpRecips,
-    FLAGS flFlags,
-    ULONG ulReserved,
-    LPULONG lpnNewRecips,
-    lpMapiRecipDesc *lppNewRecips
-);
-
-ULONG MAPIDetails(
-    LHANDLE lhSession,
-    ULONG ulUIParam,
-    lpMapiRecipDesc lpRecip,
-    FLAGS flFlags,
-    ULONG ulReserved
-);
-
-ULONG MAPIResolveName(
-    LHANDLE lhSession,
-    ULONG ulUIParam,
-    LPSTR lpszName,
-    FLAGS flFlags,
-    ULONG ulReserved,
-    lpMapiRecipDesc *lppRecip
-);
+extern ULONG MAPIAddress(LHANDLE lhSession, ULONG_PTR ulUIParam, const char *lpszCaption, ULONG nEditFields, const char *lpszLabels, ULONG nRecips, lpMapiRecipDesc lpRecips, FLAGS flFlags, ULONG ulReserved, LPULONG lpnNewRecips, lpMapiRecipDesc *lppNewRecips);
+extern ULONG MAPIDetails(LHANDLE lhSession, ULONG_PTR ulUIParam, lpMapiRecipDesc lpRecip, FLAGS flFlags, ULONG ulReserved);
+extern ULONG MAPIResolveName(LHANDLE lhSession, ULONG_PTR ulUIParam, const char *lpszName, FLAGS flFlags, ULONG ulReserved, lpMapiRecipDesc *lppRecip);
 
 /* Return codes */
 #define SUCCESS_SUCCESS                 0

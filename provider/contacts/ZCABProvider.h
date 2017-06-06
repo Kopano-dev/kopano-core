@@ -31,7 +31,7 @@ public:
 	static  HRESULT Create(ZCABProvider **lppZCABProvider);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
     virtual HRESULT Shutdown(ULONG * lpulFlags);
-	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity, LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon);
+	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity, LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon);
 
 private:
 	class xABProvider _kc_final : public IABProvider {
