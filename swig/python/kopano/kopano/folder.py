@@ -162,10 +162,12 @@ class Folder(Base):
     def path(self):
         names = []
         parent = self
-        while parent and not parent.entryid == self.store.subtree.entryid:
+        subtree_entryid = self.store.subtree.entryid
+        while parent and parent.entryid != subtree_entryid:
             names.append(parent.name)
             parent = parent.parent
-        return '/'.join(reversed(names))
+        if parent is not None:
+            return '/'.join(reversed(names))
 
     @name.setter
     def name(self, name):

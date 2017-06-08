@@ -194,10 +194,12 @@ class IndexWorker(kopano.Worker):
                 (_, storeguid, folderid, reindex) = self.iqueue.get()
                 store = server.store(storeguid)
                 folder = kopano.Folder(store, folderid)
-                if (folder not in (store.root, store.outbox, store.drafts)) and \
+                path = folder.path
+                if path and \
+                   (folder not in (store.outbox, store.drafts)) and \
                    (folder != store.junk or config['index_junk']):
                     suggestions = config['suggestions'] and folder != store.junk
-                    self.log.info('syncing folder: "%s" "%s"', store.name, folder.name)
+                    self.log.info('syncing folder: "%s" "%s"', store.name, path)
                     importer = FolderImporter(server.guid, config, plugin, suggestions, self.log)
                     state = db_get(state_db, folder.entryid) if not reindex else None
                     if state:
@@ -209,7 +211,7 @@ class IndexWorker(kopano.Worker):
                         db_put(state_db, folder.entryid, new_state)
                         self.log.info('saved folder sync state: %s', new_state)
                         changes = importer.changes + importer.deletes 
-                        self.log.info('syncing folder "%s" took %.2f seconds (%d changes, %d attachments)', folder.name, time.time()-t0, changes, importer.attachments)
+                        self.log.info('syncing folder "%s" took %.2f seconds (%d changes, %d attachments)', path, time.time()-t0, changes, importer.attachments)
             self.oqueue.put(changes)
 
 class FolderImporter:
