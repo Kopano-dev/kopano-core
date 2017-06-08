@@ -14,7 +14,7 @@ from MAPI.Tags import (
     PR_EC_OUTOFOFFICE_MSG_W, PR_EC_OUTOFOFFICE_FROM,
     PR_EC_OUTOFOFFICE_UNTIL
 )
-from MAPI.Struct import SPropValue, MAPIErrorNotFound
+from MAPI.Struct import SPropValue
 from MAPI.Time import unixtime
 
 from .compat import repr as _repr, fake_unicode as _unicode

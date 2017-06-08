@@ -424,7 +424,7 @@ class Server(object):
         try:
             for ecgroup in self.sa.GetGroupList(None, MAPI_UNICODE):
                 yield Group(ecgroup.Groupname, self)
-        except MAPIErrorNotFound: # XXX what to do here (single-tenant..), as groups do exist?
+        except NotFoundError: # XXX what to do here (single-tenant..), as groups do exist?
             pass
 
     def group(self, name):

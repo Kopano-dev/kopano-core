@@ -223,7 +223,7 @@ class User(Base):
         try:
             entryid = self.server.ems.CreateStoreEntryID(None, self._name, MAPI_UNICODE)
             return Store(entryid=_hex(entryid), server=self.server)
-        except MAPIErrorNotFound:
+        except NotFoundError:
             pass
 
     # XXX deprecated? user.store = .., user.archive_store = ..

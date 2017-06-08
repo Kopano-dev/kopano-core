@@ -82,7 +82,10 @@ class Store(Base):
         if guid:
             mapiobj = self.server._store(guid)
         elif entryid:
-            mapiobj = self.server._store2(_unhex(entryid))
+            try:
+                mapiobj = self.server._store2(_unhex(entryid))
+            except MAPIErrorNotFound:
+                raise NotFoundError("cannot open store with entryid '%s'" % entryid)
 
         self.mapiobj = mapiobj
         # XXX: fails if store is orphaned and guid is given..
@@ -307,7 +310,7 @@ class Store(Base):
         if entryid is not None:
             try:
                 return _folder.Folder(self, entryid)
-            except (MAPIErrorInvalidEntryid, MAPIErrorNotFound):
+            except (MAPIErrorInvalidEntryid, MAPIErrorNotFound): # XXX move to Folder
                 raise NotFoundError("no folder with entryid: '%s'" % entryid)
 
         return self.subtree.folder(path, recurse=recurse, create=create)
@@ -404,7 +407,7 @@ class Store(Base):
         try:
             userid = HrGetOneProp(self.mapiobj, PR_MAILBOX_OWNER_ENTRYID).Value # XXX
             return _user.User(self.server.sa.GetUser(userid, MAPI_UNICODE).Username, self.server)
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, NotFoundError):
             pass
 
     @property
