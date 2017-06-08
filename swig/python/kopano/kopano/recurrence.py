@@ -347,7 +347,6 @@ class Recurrence(object):
         data += struct.pack('<I', 0)
 
         self.item.prop('appointment:33302').value = data
-        return data # XXX remove
 
     @property
     def _start(self):
@@ -369,11 +368,9 @@ class Recurrence(object):
 
     @property
     def recurrences(self):
-        # FIXME; doesn't dateutil have a list of this?
-        rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA} # FIXME: remove above
+        rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()
 
-        # FIXME: merge exception details with normal appointment data to recurrence.occurences() (Class occurence)
         if self.patterntype == 0: # DAILY
             rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self.period/(24*60)))
 
@@ -396,7 +393,10 @@ class Recurrence(object):
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
                 if (self.pattern >> index ) & 1:
-                    byweekday += (week,)
+                    if self.pattern2 == 5:
+                        byweekday += (week(-1),) # last week of month
+                    else:
+                        byweekday += (week(self.pattern2),)
             # Yearly, the last XX of YY
             rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, interval=self.period, byweekday=byweekday))
 
@@ -712,7 +712,7 @@ class Recurrence(object):
 
         recurrences = self.recurrences
         if start and end:
-            recurrences = recurrences.between(_util.from_gmt(start, tz), _util.from_gmt(end, tz))
+            recurrences = recurrences.between(_utils._from_gmt(start, tz), _utils._from_gmt(end, tz))
 
         start_end = {}
         for exc in self.exceptions:
