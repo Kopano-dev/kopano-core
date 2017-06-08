@@ -172,7 +172,8 @@ class BackupWorker(kopano.Worker):
             if user:
                 file(path+'/user', 'w').write(dump_props(user.props(), stats, self.log))
                 if not options.skip_meta:
-                    file(path+'/delegates', 'w').write(dump_delegates(user, server, stats, self.log))
+                    file(path+'/delegates', 'w').write(dump_delegates(user, server, stats, self.log)) # XXX why 'if user'?
+                    file(path+'/acl', 'w').write(dump_acl(store, user, server, stats, self.log))
 
         # time of last backup
         file(path+'/timestamp', 'w').write(pickle.dumps(self.service.timestamp))
@@ -404,6 +405,8 @@ class Service(kopano.Service):
                 store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
             if os.path.exists('%s/delegates' % data_path):
                 load_delegates(user, self.server, file('%s/delegates' % data_path).read(), stats, self.log)
+            if os.path.exists('%s/acl' % data_path):
+                load_acl(store, user, self.server, file('%s/acl' % data_path).read(), stats, self.log)
 
         # determine stored and specified folders
         path_folder = folder_struct(data_path, self.options)
@@ -744,12 +747,12 @@ def dump_props(props, stats, log):
         data = dict((prop.proptag, prop.mapiobj.Value) for prop in props)
     return pickle.dumps(data)
 
-def dump_acl(folder, user, server, stats, log):
-    """ dump acl for given folder """
+def dump_acl(obj, user, server, stats, log):
+    """ dump acl for given store or folder """
 
     rows = []
     with log_exc(log, stats):
-        acl_table = folder.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
+        acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
         table = acl_table.GetTable(0)
         for row in table.QueryRows(-1,0):
             entryid = row[1].Value
@@ -764,8 +767,8 @@ def dump_acl(folder, user, server, stats, log):
             rows.append(row)
     return pickle.dumps(rows)
 
-def load_acl(folder, user, server, data, stats, log):
-    """ load acl for given folder """
+def load_acl(obj, user, server, data, stats, log):
+    """ load acl for given store or folder """
 
     with log_exc(log, stats):
         data = pickle.loads(data)
@@ -781,7 +784,7 @@ def load_acl(folder, user, server, data, stats, log):
                 rows.append(row)
             except kopano.NotFoundError:
                 log.warning("skipping access control entry for unknown user/group '%s'", value)
-        acltab = folder.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
+        acltab = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
         acltab.ModifyTable(0, [ROWENTRY(ROW_ADD, row) for row in rows])
 
 def dump_rules(folder, user, server, stats, log):
