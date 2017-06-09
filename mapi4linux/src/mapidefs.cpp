@@ -306,7 +306,10 @@ HRESULT M4LMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropName
 }
 
 HRESULT M4LMAPIProp::QueryInterface(REFIID refiid, void **lpvoid) {
-	if (refiid == IID_IMAPIProp) {
+	if (refiid == IID_IMailUser) {
+		AddRef();
+		*lpvoid = static_cast<IMailUser *>(this);
+	} else if (refiid == IID_IMAPIProp) {
 		AddRef();
 		*lpvoid = static_cast<IMAPIProp *>(this);
 	} else if (refiid == IID_IUnknown) {
