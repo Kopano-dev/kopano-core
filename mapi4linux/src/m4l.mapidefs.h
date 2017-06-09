@@ -39,7 +39,7 @@ public:
 	virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
 	virtual HRESULT __stdcall GetProps(const SPropTagArray *proptag, ULONG flags, ULONG *nvals, LPSPropValue *prop) _kc_override;
 	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *proptag) _kc_override;
-	virtual HRESULT __stdcall OpenProperty(ULONG proptag, LPCIID lpiid, ULONG ifaceopts, ULONG flags, LPUNKNOWN *) _kc_override;
+	virtual HRESULT __stdcall OpenProperty(ULONG proptag, LPCIID lpiid, ULONG ifaceopts, ULONG flags, LPUNKNOWN *) _kc_override __attribute__((nonnull(3)));
 	virtual HRESULT __stdcall SetProps(ULONG nvals, const SPropValue *prop, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall DeleteProps(const SPropTagArray *proptag, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID iface, LPVOID dest_obj, ULONG flags, LPSPropProblemArray *) _kc_override;

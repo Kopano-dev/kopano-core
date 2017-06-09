@@ -2,7 +2,7 @@ virtual HRESULT __stdcall GetLastError(HRESULT hError, ULONG flags, LPMAPIERROR 
 virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
 virtual HRESULT __stdcall GetProps(const SPropTagArray *lpPropTagArray, ULONG flags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
 virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *lppPropTagArray) _kc_override;
-virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG flags, LPUNKNOWN *lppUnk) _kc_override;
+virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG flags, LPUNKNOWN *lppUnk) _kc_override __attribute__((nonnull(3)));
 virtual HRESULT __stdcall SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems) _kc_override;
 virtual HRESULT __stdcall DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems) _kc_override;
 virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *exclprop, ULONG ui_param, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *lppProblems) _kc_override;
