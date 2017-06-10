@@ -1059,6 +1059,14 @@ class Item(Base):
 
         return self.copy(folder, _delete=True)
 
+    def __eq__(self, i): # XXX check same store?
+        if isinstance(i, Item):
+            return self.entryid == i.entryid
+        return False
+
+    def __ne__(self, i):
+        return not self == i
+
     def __iter__(self):
         return self.props()
 
