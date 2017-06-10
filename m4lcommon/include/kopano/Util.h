@@ -102,8 +102,6 @@ class Util _kc_final {
 	_kc_export static HRESULT HrGetQuotaStatus(IMsgStore *, ECQUOTA *, ECQUOTASTATUS **ret);
 	_kc_export static HRESULT HrDeleteResidualProps(LPMESSAGE dstmsg, LPMESSAGE srcmsg, LPSPropTagArray valid_props);
 	static HRESULT ValidMapiPropInterface(LPCIID lpInterface);
-	static HRESULT QueryInterfaceMapiPropOrValidFallback(LPUNKNOWN lpInObj, LPCIID lpInterface, LPUNKNOWN *lppOutObj);
-
 	static HRESULT HrFindEntryIDs(ULONG cbEID, LPENTRYID lpEID, ULONG cbEntryIDs, LPSPropValue lpEntryIDs, BOOL *lpbFound, ULONG* lpPos);
 	_kc_export static HRESULT HrDeleteAttachments(LPMESSAGE);
 	_kc_export static HRESULT HrDeleteRecipients(LPMESSAGE);

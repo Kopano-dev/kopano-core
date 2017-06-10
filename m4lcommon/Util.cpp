@@ -2895,6 +2895,24 @@ HRESULT Util::AddProblemToArray(const SPropProblem *lpProblem,
 	return hrSuccess;
 }
 
+static HRESULT qi_void_to_imapiprop(void *p, const IID &iid, IMAPIProp **pptr)
+{
+#define R(Tp) do { return static_cast<Tp *>(p)->QueryInterface(IID_IMAPIProp, reinterpret_cast<void **>(pptr)); } while (false)
+	if (iid == IID_IMAPIProp)		R(IMAPIProp);
+	else if (iid == IID_IMailUser)		R(IMailUser);
+	else if (iid == IID_IMAPIContainer)	R(IMAPIContainer);
+	else if (iid == IID_IMAPIFolder)	R(IMAPIFolder);
+	else if (iid == IID_IABContainer)	R(IABContainer);
+	else if (iid == IID_IDistList)		R(IDistList);
+	else if (iid == IID_IAddrBook)		R(IAddrBook);
+	else if (iid == IID_IAttachment)	R(IAttach);
+	else if (iid == IID_IMessage)		R(IMessage);
+	else if (iid == IID_IMsgStore)		R(IMsgStore);
+	else if (iid == IID_IProfSect)		R(IProfSect);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
+#undef R
+}
+
 /** 
  * Copies a MAPI object in-memory to a new MAPI object. Only
  * IID_IStream or IID_IMAPIProp compatible interfaces can be copied.
@@ -2919,7 +2937,6 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	HRESULT hr = hrSuccess;
-	LPUNKNOWN lpUnkSrc = (LPUNKNOWN)lpSrcObj, lpUnkDest = (LPUNKNOWN)lpDestObj;
 	bool bPartial = false;
 	// Properties that can never be copied (if you do this wrong, copying a message to a PST will fail)
 	SizedSPropTagArray(23, sExtraExcludes) = { 19, { PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_MAPPING_SIGNATURE,
@@ -3010,10 +3027,10 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 	}
 
 	// we have a IMAPIProp compatible interface here, and we don't want to crash
-	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkSrc, lpSrcInterface, &~lpPropSrc);
+	hr = qi_void_to_imapiprop(lpSrcObj, *lpSrcInterface, &~lpPropSrc);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkDest, lpDestInterface, &~lpPropDest);
+	hr = qi_void_to_imapiprop(lpDestObj, *lpDestInterface, &~lpPropDest);
 	if (hr != hrSuccess)
 		goto exit;
 	if (!FHasHTML(lpPropDest))
@@ -3079,59 +3096,6 @@ exit:
 	return hr;
 }
 
-/**
- * Check if the interface is a valid IMAPIProp interface
- *
- * @param[in] lpInterface Pointer to an interface GUID
- *
- * @retval MAPI_E_INTERFACE_NOT_SUPPORTED Interface not supported
- * @retval S_OK Interface supported
- */
-HRESULT Util::ValidMapiPropInterface(LPCIID lpInterface)
-{
-	if (!lpInterface)
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-	if (*lpInterface == IID_IAttachment ||
-		*lpInterface == IID_IMAPIProp ||
-		*lpInterface == IID_IProfSect ||
-		*lpInterface == IID_IMsgStore ||
-		*lpInterface == IID_IMessage ||
-		*lpInterface == IID_IAddrBook ||
-		*lpInterface == IID_IMailUser ||
-		*lpInterface == IID_IMAPIContainer ||
-		*lpInterface == IID_IMAPIFolder ||
-		*lpInterface == IID_IABContainer ||
-		*lpInterface == IID_IDistList)
-		return S_OK;
-	return MAPI_E_INTERFACE_NOT_SUPPORTED;
-}
-
-/**
- * Queryinterface IMAPIProp or a supported fallback interface
- *
- * @param[in] lpInObj		Pointer to an IUnknown supported interface
- * @param[in] lpInterface	Pointer to an interface GUID
- * @param[out] lppOutObj	Pointer to a pointer which support a IMAPIProp interface.
- *
- * @retval MAPI_E_INTERFACE_NOT_SUPPORTED Interface not supported
- * @retval S_OK Interface supported
- */
-HRESULT Util::QueryInterfaceMapiPropOrValidFallback(LPUNKNOWN lpInObj, LPCIID lpInterface, LPUNKNOWN *lppOutObj)
-{
-	if (lpInObj == NULL || lppOutObj == NULL)
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-	HRESULT hr = lpInObj->QueryInterface(IID_IMAPIProp,
-	             reinterpret_cast<void **>(lppOutObj));
-	if (hr == hrSuccess)
-		return hr;
-	hr = ValidMapiPropInterface(lpInterface);
-	if (hr != hrSuccess)
-		return hr;
-	return lpInObj->QueryInterface(*lpInterface, reinterpret_cast<void **>(lppOutObj));
-}
-
 /** 
  * Copy properties of one MAPI object to another. Only IID_IMAPIProp
  * compatible objects are supported.
@@ -3153,8 +3117,6 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
     LPCIID lpDestInterface, void *lpDestObj, ULONG ulFlags,
     SPropProblemArray **lppProblems)
 {
-	HRESULT hr = hrSuccess;
-	LPUNKNOWN lpUnkSrc = (LPUNKNOWN)lpSrcObj, lpUnkDest = (LPUNKNOWN)lpDestObj;
 	object_ptr<IUnknown> lpKopano;
 	memory_ptr<SPropValue> lpZObj, lpProps;
 	bool bPartial = false;
@@ -3184,11 +3146,10 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 	    inclprop == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	// q-i src and dest to check if IID_IMAPIProp is present
-	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkSrc, lpSrcInterface, &~lpSrcProp);
+	auto hr = qi_void_to_imapiprop(lpSrcObj, *lpSrcInterface, &~lpSrcProp);
 	if (hr != hrSuccess)
 		return hr;
-	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkDest, lpDestInterface, &~lpDestProp);
+	hr = qi_void_to_imapiprop(lpDestObj, *lpDestInterface, &~lpDestProp);
 	if (hr != hrSuccess)
 		return hr;
 
