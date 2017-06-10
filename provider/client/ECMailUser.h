@@ -24,7 +24,7 @@
 
 #include "ECABProp.h"
 
-class ECMailUser _kc_final : public ECABProp {
+class ECMailUser _kc_final : public ECABProp, public IMailUser {
 private:
 	ECMailUser(void* lpProvider, BOOL fModify);
 
@@ -38,11 +38,6 @@ public:
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
 	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
 	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
-
-	class xMailUser _kc_final : public IMailUser {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp>
-	} m_xMailUser;
 	ALLOC_WRAP_FRIEND;
 };
 
