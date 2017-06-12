@@ -76,8 +76,7 @@ PidLidIntendedBusyStatus = "PT_LONG:PSETID_Appointment:0x8224"
 PidLidAppointmentStartWhole = "PT_SYSTIME:PSETID_Appointment:0x820D"
 PidLidAppointmentEndWhole = "PT_SYSTIME:PSETID_Appointment:0x820E"
 
-# XXX check with MS-OXOCAL, section 2.2.1.44, and use same naming
-# XXX run parse/save with lots of existing data (data should not change)
+# see MS-OXOCAL, section 2.2.1.44.5, "AppointmentRecurrencePattern Structure"
 
 class Recurrence(object):
     def __init__(self, item):
@@ -88,159 +87,166 @@ class Recurrence(object):
         self._parse()
 
     def _parse(self):
-        value = self.item.prop(PidLidAppointmentRecur).value # recurrencestate
+        # AppointmentRecurrencePattern
+        value = self.item.prop(PidLidAppointmentRecur).value
 
-        self.recurrence_frequency = _utils.unpack_short(value, 2 * SHORT)
-        self.patterntype = _utils.unpack_short(value, 3 * SHORT)
+        # RecurrencePattern
+        self.reader_version = _utils.unpack_short(value, 0)
+        self.writer_version = _utils.unpack_short(value, SHORT)
+
+        self.recur_frequency = _utils.unpack_short(value, 2 * SHORT)
+        self.pattern_type = _utils.unpack_short(value, 3 * SHORT)
         self.calendar_type = _utils.unpack_short(value, 4 * SHORT)
         self.first_datetime = _utils.unpack_long(value, 5 * SHORT)
-        self.period = _utils.unpack_long(value, 5 * SHORT + LONG) # 12 for year, coincedence?
-        self.slidingflag = _utils.unpack_long(value, 5 * SHORT + 2 * LONG)
+        self.period = _utils.unpack_long(value, 5 * SHORT + LONG)
+        self.sliding_flag = _utils.unpack_long(value, 5 * SHORT + 2 * LONG)
 
         pos = 5 * SHORT + 3 * LONG
 
-        if self.patterntype != 0:
-            self.pattern = _utils.unpack_long(value, pos)
+        self.pattern_type_specific = []
+        if self.pattern_type != 0:
+            self.pattern_type_specific.append(_utils.unpack_long(value, pos))
             pos += LONG
-            if self.patterntype in (3, 0xB):
-                self.pattern2 = _utils.unpack_long(value, pos)
+            if self.pattern_type in (3, 0xB):
+                self.pattern_type_specific.append(_utils.unpack_long(value, pos))
                 pos += LONG
 
-        self.endtype = _utils.unpack_long(value, pos)
+        self.end_type = _utils.unpack_long(value, pos)
         pos += LONG
         self.occurrence_count = _utils.unpack_long(value, pos)
         pos += LONG
         self.first_dow = _utils.unpack_long(value, pos)
         pos += LONG
 
-        # deleted dates
-        self.delcount = _utils.unpack_long(value, pos)
+        self.deleted_instance_count = _utils.unpack_long(value, pos)
         pos += LONG
-        self.del_vals = []
-        for _ in range(0, self.delcount):
-            self.del_vals.append(_utils.unpack_long(value, pos))
+        self.deleted_instance_dates = []
+        for _ in range(0, self.deleted_instance_count):
+            self.deleted_instance_dates.append(_utils.unpack_long(value, pos))
             pos += LONG
 
-        # modified dates
-        self.modcount = _utils.unpack_long(value, pos)
+        self.modified_instance_count = _utils.unpack_long(value, pos)
         pos += LONG
 
-        self.mod_vals = []
-        for _ in range(0, self.modcount):
-            self.mod_vals.append(_utils.unpack_long(value, pos))
+        self.modified_instance_dates = []
+        for _ in range(0, self.modified_instance_count):
+            self.modified_instance_dates.append(_utils.unpack_long(value, pos))
             pos += LONG
 
-        self.start_val = _utils.unpack_long(value, pos)
+        self.start_date = _utils.unpack_long(value, pos)
         pos += LONG
-        self.end_val = _utils.unpack_long(value, pos)
+        self.end_date = _utils.unpack_long(value, pos)
         pos += LONG
 
-        self.reader_version = _utils.unpack_long(value, pos)
+        # AppointmentRecurrencePattern
+        self.reader_version2 = _utils.unpack_long(value, pos)
         pos += LONG
-        self.writer_version = _utils.unpack_long(value, pos)
+        self.writer_version2 = _utils.unpack_long(value, pos)
         pos += LONG
         self.starttime_offset = _utils.unpack_long(value, pos)
         pos += LONG
         self.endtime_offset = _utils.unpack_long(value, pos)
         pos += LONG
-
-        # exceptions
         self.exception_count = _utils.unpack_short(value, pos)
         pos += SHORT
 
+        # ExceptionInfo
         self.exceptions = []
-        for i in range(0, self.modcount): # using modcount, as PHP seems to not update exception_count? equal according to docs
+        for i in range(0, self.modified_instance_count): # using modcount, as PHP seems to not update exception_count? equal according to docs
             exception = {}
 
             val = _utils.unpack_long(value, pos)
-            exception['startdatetime_val'] = val
+            exception['start_datetime'] = val
             pos += LONG
             val = _utils.unpack_long(value, pos)
-            exception['enddatetime_val'] = val
+            exception['end_datetime'] = val
             pos += LONG
             val = _utils.unpack_long(value, pos)
-            exception['originalstartdate_val'] = val
+            exception['original_start_date'] = val
             pos += LONG
-            exception['overrideflags'] = _utils.unpack_short(value, pos)
+            exception['override_flags'] = _utils.unpack_short(value, pos)
             pos += SHORT
 
             # We have modified the subject
-            if exception['overrideflags'] & ARO_SUBJECT:
-                subject_length1 = _utils.unpack_short(value, pos) # XXX: unused?
+            if exception['override_flags'] & ARO_SUBJECT:
+                subject_length = _utils.unpack_short(value, pos) # XXX: unused?
                 pos += SHORT
                 subject_length2 = _utils.unpack_short(value, pos)
                 pos += SHORT
                 exception['subject'] = value[pos:pos+subject_length2]
                 pos += subject_length2
 
-            if exception['overrideflags'] & ARO_MEETINGTYPE:
-                exception['meetingtype'] = _utils.unpack_long(value, pos)
+            if exception['override_flags'] & ARO_MEETINGTYPE:
+                exception['meeting_type'] = _utils.unpack_long(value, pos)
                 pos += LONG
 
-            if exception['overrideflags'] & ARO_REMINDERDELTA:
-                exception['reminderdelta'] = _utils.unpack_long(value, pos) # XXX: datetime?
+            if exception['override_flags'] & ARO_REMINDERDELTA:
+                exception['reminder_delta'] = _utils.unpack_long(value, pos) # XXX: datetime?
                 pos += LONG
 
-            if exception['overrideflags'] & ARO_REMINDERSET:
-                exception['reminderset'] = _utils.unpack_long(value, pos) # XXX: bool?
+            if exception['override_flags'] & ARO_REMINDERSET:
+                exception['reminder_set'] = _utils.unpack_long(value, pos) # XXX: bool?
                 pos += LONG
 
-            if exception['overrideflags'] & ARO_LOCATION:
-                location_length1 = _utils.unpack_short(value, pos) # XXX: unused?
+            if exception['override_flags'] & ARO_LOCATION:
+                location_length = _utils.unpack_short(value, pos) # XXX: unused?
                 pos += SHORT
                 location_length2 = _utils.unpack_short(value, pos)
                 pos += SHORT
                 exception['location'] = value[pos:pos+location_length2]
                 pos += location_length2
 
-            if exception['overrideflags'] & ARO_BUSYSTATUS:
-                exception['busystatus'] = _utils.unpack_long(value, pos)
+            if exception['override_flags'] & ARO_BUSYSTATUS:
+                exception['busy_status'] = _utils.unpack_long(value, pos)
                 pos += LONG
 
-            if exception['overrideflags'] & ARO_ATTACHMENT:
+            if exception['override_flags'] & ARO_ATTACHMENT:
                 exception['attachment'] = _utils.unpack_long(value, pos)
                 pos += LONG
 
-            if exception['overrideflags'] & ARO_SUBTYPE:
-                exception['subtype'] = _utils.unpack_long(value, pos)
+            if exception['override_flags'] & ARO_SUBTYPE:
+                exception['sub_type'] = _utils.unpack_long(value, pos)
                 pos += LONG
 
-            if exception['overrideflags'] & ARO_APPTCOLOR:
-                exception['color'] = _utils.unpack_long(value, pos)
+            if exception['override_flags'] & ARO_APPTCOLOR:
+                exception['appointment_color'] = _utils.unpack_long(value, pos)
                 pos += LONG
 
             self.exceptions.append(exception)
 
-        pos += LONG # XXX read actual blocksize, also elsewhere..
+        # ReservedBlock1Size
+        pos += LONG
 
-        # extended exceptions
+        # ExtendedException
         self.extended_exceptions = []
         for exception in self.exceptions:
             extended_exception = {}
 
-            if self.writer_version >= 0x3009:
-                chl_size = _utils.unpack_long(value, pos)
+            if self.writer_version2 >= 0x3009:
+                change_highlight_size = _utils.unpack_long(value, pos)
                 pos += LONG
-                extended_exception['change_highlight'] = _utils.unpack_long(value, pos)
-                pos += chl_size
+                change_highlight_value = _utils.unpack_long(value, pos)
+                extended_exception['change_highlight'] = change_highlight_value
+                pos += change_highlight_size
 
-            pos += LONG # XXX actual blocksize
+            # Reserved
+            pos += LONG
 
-            if exception['overrideflags'] & ARO_SUBJECT or exception['overrideflags'] & ARO_LOCATION:
-                extended_exception['startdatetime_val'] = _utils.unpack_long(value, pos)
+            if exception['override_flags'] & ARO_SUBJECT or exception['override_flags'] & ARO_LOCATION:
+                extended_exception['start_datetime'] = _utils.unpack_long(value, pos)
                 pos += LONG
-                extended_exception['enddatetime_val'] = _utils.unpack_long(value, pos)
+                extended_exception['end_datetime'] = _utils.unpack_long(value, pos)
                 pos += LONG
-                extended_exception['originalstartdate_val'] = _utils.unpack_long(value, pos)
+                extended_exception['original_start_date'] = _utils.unpack_long(value, pos)
                 pos += LONG
 
-            if exception['overrideflags'] & ARO_SUBJECT:
+            if exception['override_flags'] & ARO_SUBJECT:
                 length = _utils.unpack_short(value, pos)
                 pos += SHORT
                 extended_exception['subject'] = value[pos:pos+2*length].decode('utf-16-le')
                 pos += 2*length
 
-            if exception['overrideflags'] & ARO_LOCATION:
+            if exception['override_flags'] & ARO_LOCATION:
                 length = _utils.unpack_short(value, pos)
                 pos += SHORT
                 extended_exception['location'] = value[pos:pos+2*length].decode('utf-16-le')
@@ -248,22 +254,27 @@ class Recurrence(object):
 
             self.extended_exceptions.append(extended_exception)
 
+        # ReservedBlock2Size
+        pos += LONG
+
     def _save(self):
-        data = struct.pack('<BBBBHHH', 0x04, 0x30, 0x04, 0x30, self.recurrence_frequency, self.patterntype, self.calendar_type)
+        # AppointmentRecurrencePattern
 
-        data += struct.pack('<III', self.first_datetime, self.period, self.slidingflag)
+        # RecurrencePattern
+        data = struct.pack('<HHHHH', self.reader_version, self.writer_version,
+            self.recur_frequency, self.pattern_type, self.calendar_type)
 
-        if self.patterntype != 0:
-            data += struct.pack('<I', self.pattern)
-            if self.patterntype in (3, 0xB):
-                data += struct.pack('<I', self.pattern2)
+        data += struct.pack('<III', self.first_datetime, self.period, self.sliding_flag)
 
-        data += struct.pack('<I', self.endtype)
+        for i in self.pattern_type_specific:
+            data += struct.pack('<I', i)
+
+        data += struct.pack('<I', self.end_type)
 
         # XXX check specs, php seems wrong
-        if self.endtype == 0x2021: # stop after date
+        if self.end_type == 0x2021: # stop after date
             occurrence_count = 0xa
-        elif self.endtype == 0x2022: # stop after N occurrences
+        elif self.end_type == 0x2022: # stop after N occurrences
             occurrence_count = self.occurrence_count
         else:
             occurrence_count = 0
@@ -271,73 +282,74 @@ class Recurrence(object):
 
         data += struct.pack('<I', self.first_dow)
 
-        data += struct.pack('<I', self.delcount)
-        for val in self.del_vals:
+        data += struct.pack('<I', self.deleted_instance_count)
+        for val in self.deleted_instance_dates:
             data += struct.pack('<I', val)
 
-        data += struct.pack('<I', self.modcount)
-        for val in self.mod_vals:
+        data += struct.pack('<I', self.modified_instance_count)
+        for val in self.modified_instance_dates:
             data += struct.pack('<I', val)
 
-        data += struct.pack('<II', self.start_val, self.end_val)
+        data += struct.pack('<II', self.start_date, self.end_date)
 
         data += struct.pack('<II', 0x3006, 0x3008)
         data += struct.pack('<II', self.starttime_offset, self.endtime_offset)
 
         # ExceptionInfo
-        data += struct.pack('<H', self.modcount)
+        data += struct.pack('<H', self.modified_instance_count)
 
         for exception in self.exceptions:
-            data += struct.pack('<I', exception['startdatetime_val'])
-            data += struct.pack('<I', exception['enddatetime_val'])
-            data += struct.pack('<I', exception['originalstartdate_val'])
-            data += struct.pack('<H', exception['overrideflags'])
+            data += struct.pack('<I', exception['start_datetime'])
+            data += struct.pack('<I', exception['end_datetime'])
+            data += struct.pack('<I', exception['original_start_date'])
+            data += struct.pack('<H', exception['override_flags'])
 
-            if exception['overrideflags'] & ARO_SUBJECT:
+            if exception['override_flags'] & ARO_SUBJECT:
                 subject = exception['subject']
                 data += struct.pack('<H', len(subject)+1)
                 data += struct.pack('<H', len(subject))
                 data += subject
 
-            if exception['overrideflags'] & ARO_MEETINGTYPE:
-                data += struct.pack('<I', exception['meetingtype'])
+            if exception['override_flags'] & ARO_MEETINGTYPE:
+                data += struct.pack('<I', exception['meeting_type'])
 
-            if exception['overrideflags'] & ARO_REMINDERDELTA:
-                data += struct.pack('<I', exception['reminderdelta'])
+            if exception['override_flags'] & ARO_REMINDERDELTA:
+                data += struct.pack('<I', exception['reminder_delta'])
 
-            if exception['overrideflags'] & ARO_REMINDERSET:
-                data += struct.pack('<I', exception['reminderset'])
+            if exception['override_flags'] & ARO_REMINDERSET:
+                data += struct.pack('<I', exception['reminder_set'])
 
-            if exception['overrideflags'] & ARO_LOCATION:
+            if exception['override_flags'] & ARO_LOCATION:
                 location = exception['location']
                 data += struct.pack('<H', len(location)+1)
                 data += struct.pack('<H', len(location))
                 data += location
 
-            if exception['overrideflags'] & ARO_BUSYSTATUS:
-                data += struct.pack('<I', exception['busystatus'])
+            if exception['override_flags'] & ARO_BUSYSTATUS:
+                data += struct.pack('<I', exception['busy_status'])
 
-            if exception['overrideflags'] & ARO_ATTACHMENT:
+            if exception['override_flags'] & ARO_ATTACHMENT:
                 data += struct.pack('<I', exception['attachment'])
 
-            if exception['overrideflags'] & ARO_SUBTYPE:
-                data += struct.pack('<I', exception['subtype'])
+            if exception['override_flags'] & ARO_SUBTYPE:
+                data += struct.pack('<I', exception['sub_type'])
 
-            if exception['overrideflags'] & ARO_APPTCOLOR:
-                data += struct.pack('<I', exception['color'])
+            if exception['override_flags'] & ARO_APPTCOLOR:
+                data += struct.pack('<I', exception['appointment_color'])
 
+        # ReservedBlock1Size
         data += struct.pack('<I', 0)
 
         # ExtendedException
         for exception, extended_exception in zip(self.exceptions, self.extended_exceptions):
             data += struct.pack('<I', 0)
 
-            overrideflags = exception['overrideflags']
+            overrideflags = exception['override_flags']
 
             if overrideflags & ARO_SUBJECT or overrideflags & ARO_LOCATION:
-                data += struct.pack('<I', extended_exception['startdatetime_val'])
-                data += struct.pack('<I', extended_exception['enddatetime_val'])
-                data += struct.pack('<I', extended_exception['originalstartdate_val'])
+                data += struct.pack('<I', extended_exception['start_datetime'])
+                data += struct.pack('<I', extended_exception['end_datetime'])
+                data += struct.pack('<I', extended_exception['original_start_date'])
 
             if overrideflags & ARO_SUBJECT:
                 subject = extended_exception['subject']
@@ -352,59 +364,60 @@ class Recurrence(object):
             if overrideflags & ARO_SUBJECT or overrideflags & ARO_LOCATION:
                 data += struct.pack('<I', 0)
 
+        # ReservedBlock2Size
         data += struct.pack('<I', 0)
 
         self.item.prop(PidLidAppointmentRecur).value = data
 
     @property
     def _start(self):
-        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self.start_val)) + datetime.timedelta(minutes=self.starttime_offset) # XXX local time..
+        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self.start_date)) + datetime.timedelta(minutes=self.starttime_offset) # XXX local time..
 
     @property
     def _end(self):
-        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self.end_val)) + datetime.timedelta(minutes=self.endtime_offset)# XXX local time..
+        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self.end_date)) + datetime.timedelta(minutes=self.endtime_offset)# XXX local time..
 
     @property
     def _del_recurrences(self): # XXX local time..
         return [datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(val)) \
-            for val in self.del_vals]
+            for val in self.deleted_instance_dates]
 
     @property
     def _mod_recurrences(self): # XXX local time..
         return [datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(val)) \
-            for val in self.mod_vals]
+            for val in self.modified_instance_dates]
 
     @property
     def recurrences(self):
         rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()
 
-        if self.patterntype == 0: # DAILY
+        if self.pattern_type == 0: # DAILY
             rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self.period/(24*60)))
 
-        if self.patterntype == 1: # WEEKLY
+        if self.pattern_type == 1: # WEEKLY
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
-                if (self.pattern >> index ) & 1:
+                if (self.pattern_type_specific[0] >> index ) & 1:
                     byweekday += (week,)
             # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
             # But the recurrence is on 8:00 that day and we should include it.
             rule.rrule(rrule(WEEKLY, dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday))
 
-        elif self.patterntype == 2: # MONTHLY
+        elif self.pattern_type == 2: # MONTHLY
             # X Day of every Y month(s)
             # The Xnd Y (day) of every Z Month(s)
-            rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, bymonthday=self.pattern, interval=self.period))
-            # self.pattern is either day of month or
+            rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, bymonthday=self.pattern_type_specific[0], interval=self.period))
+            # self.pattern_type_specific[0] is either day of month or
 
-        elif self.patterntype == 3: # MONTHY, YEARLY # XXX what about 4 etc..
+        elif self.pattern_type == 3: # MONTHY, YEARLY # XXX what about 4 etc..
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
-                if (self.pattern >> index ) & 1:
-                    if self.pattern2 == 5:
+                if (self.pattern_type_specific[0] >> index ) & 1:
+                    if self.pattern_type_specific[1] == 5:
                         byweekday += (week(-1),) # last week of month
                     else:
-                        byweekday += (week(self.pattern2),)
+                        byweekday += (week(self.pattern_type_specific[1]),)
             # Yearly, the last XX of YY
             rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, interval=self.period, byweekday=byweekday))
 
@@ -416,7 +429,7 @@ class Recurrence(object):
 
         # add exceptions
         for exception in self.exceptions:
-            rule.rdate(datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exception['startdatetime_val'])))
+            rule.rdate(datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exception['start_datetime'])))
 
         return rule
 
@@ -433,15 +446,15 @@ class Recurrence(object):
         return bool(item_prop)
 
     def _update_exceptions(self, cal_item, item, startdate_val, enddate_val, basedate_val, exception, extended_exception, copytags, create=False): # XXX kill copytags, create args, just pass all properties as in php
-        exception['startdatetime_val'] = startdate_val
-        exception['enddatetime_val'] = enddate_val
-        exception['originalstartdate_val'] = basedate_val
-        exception['overrideflags'] = 0
+        exception['start_datetime'] = startdate_val
+        exception['end_datetime'] = enddate_val
+        exception['original_start_date'] = basedate_val
+        exception['override_flags'] = 0
 
         extended = False
         if self._override_prop(PR_NORMALIZED_SUBJECT_W, cal_item, item):
             subject = item.value(PR_NORMALIZED_SUBJECT_W)
-            exception['overrideflags'] |= ARO_SUBJECT
+            exception['override_flags'] |= ARO_SUBJECT
             exception['subject'] = subject.encode('cp1252', 'replace')
             extended = True
             extended_exception['subject'] = subject
@@ -449,40 +462,40 @@ class Recurrence(object):
         # skip ARO_MEETINGTYPE (like php)
 
         if self._override_prop(PidLidReminderDelta, cal_item, item):
-            exception['overrideflags'] |= ARO_REMINDERDELTA
-            exception['reminderdelta'] = item.value(PidLidReminderDelta)
+            exception['override_flags'] |= ARO_REMINDERDELTA
+            exception['reminder_delta'] = item.value(PidLidReminderDelta)
 
         if self._override_prop(PidLidReminderSet, cal_item, item):
-            exception['overrideflags'] |= ARO_REMINDERSET
-            exception['reminderset'] = item.value(PidLidReminderSet)
+            exception['override_flags'] |= ARO_REMINDERSET
+            exception['reminder_set'] = item.value(PidLidReminderSet)
 
         if self._override_prop(PidLidLocation, cal_item, item):
             location = item.value(PidLidLocation)
-            exception['overrideflags'] |= ARO_LOCATION
+            exception['override_flags'] |= ARO_LOCATION
             exception['location'] = location.encode('cp1252', 'replace')
             extended = True
             extended_exception['location'] = location
 
         if self._override_prop(PidLidBusyStatus, cal_item, item):
-            exception['overrideflags'] |= ARO_BUSYSTATUS
-            exception['busystatus'] = item.value(PidLidBusyStatus)
+            exception['override_flags'] |= ARO_BUSYSTATUS
+            exception['busy_status'] = item.value(PidLidBusyStatus)
 
         # skip ARO_ATTACHMENT (like php)
 
         # XXX php doesn't set the following by accident? ("alldayevent" not in copytags..)
         if not copytags or not create:
             if self._override_prop(PidLidAppointmentSubType, cal_item, item):
-                exception['overrideflags'] |= ARO_SUBTYPE
-                exception['subtype'] = item.value(PidLidAppointmentSubType)
+                exception['override_flags'] |= ARO_SUBTYPE
+                exception['sub_type'] = item.value(PidLidAppointmentSubType)
 
         if self._override_prop(PidLidAppointmentColor, cal_item, item):
-            exception['overrideflags'] |= ARO_APPTCOLOR
-            exception['color'] = item.value(PidLidAppointmentColor)
+            exception['override_flags'] |= ARO_APPTCOLOR
+            exception['appointment_color'] = item.value(PidLidAppointmentColor)
 
         if extended:
-            extended_exception['startdatetime_val'] = startdate_val
-            extended_exception['enddatetime_val'] = enddate_val
-            extended_exception['originalstartdate_val'] = basedate_val
+            extended_exception['start_datetime'] = startdate_val
+            extended_exception['end_datetime'] = enddate_val
+            extended_exception['original_start_date'] = basedate_val
 
     def _update_calitem(self, item):
         cal_item = self.item
@@ -589,19 +602,19 @@ class Recurrence(object):
         # XXX attachments?
 
         # update blob
-        self.delcount += 1
+        self.deleted_instance_count += 1
         deldate = _utils._from_gmt(basedate, tz)
         deldate_val = _utils.unixtime_to_rectime(time.mktime(deldate.timetuple()))
-        self.del_vals.append(deldate_val)
-        self.del_vals.sort()
+        self.deleted_instance_dates.append(deldate_val)
+        self.deleted_instance_dates.sort()
 
-        self.modcount += 1
+        self.modified_instance_count += 1
         moddate = message.prop(PidLidAppointmentStartWhole).value
         daystart = moddate - datetime.timedelta(hours=moddate.hour, minutes=moddate.minute) # XXX different approach in php? seconds?
         localdaystart = _utils._from_gmt(daystart, tz)
         moddate_val = _utils.unixtime_to_rectime(time.mktime(localdaystart.timetuple()))
-        self.mod_vals.append(moddate_val)
-        self.mod_vals.sort()
+        self.modified_instance_dates.append(moddate_val)
+        self.modified_instance_dates.sort()
 
         startdate = _utils._from_gmt(message.prop(PidLidAppointmentStartWhole).value, tz)
         startdate_val = _utils.unixtime_to_rectime(time.mktime(startdate.timetuple()))
@@ -666,13 +679,13 @@ class Recurrence(object):
         enddate_val = _utils.unixtime_to_rectime(time.mktime(enddate.timetuple()))
 
         for i, exception in enumerate(self.exceptions):
-            if exception['originalstartdate_val'] == basedate_val:
-                current_startdate_val = exception['startdatetime_val'] - self.starttime_offset
+            if exception['original_start_date'] == basedate_val:
+                current_startdate_val = exception['start_datetime'] - self.starttime_offset
 
-                for j, val in enumerate(self.mod_vals):
+                for j, val in enumerate(self.modified_instance_dates):
                     if val == current_startdate_val:
-                        self.mod_vals[j] = startdate_val - self.starttime_offset
-                        self.mod_vals.sort()
+                        self.modified_instance_dates[j] = startdate_val - self.starttime_offset
+                        self.modified_instance_dates.sort()
                         break
 
                 extended_exception = self.extended_exceptions[i]
@@ -693,20 +706,20 @@ class Recurrence(object):
             self.modify_exception(basedate, item, copytags)
 
             for i, exc in enumerate(self.exceptions):
-                if exc['originalstartdate_val'] == basedate_val:
+                if exc['original_start_date'] == basedate_val:
                     break
 
-            self.modcount -= 1
-            self.mod_vals = [m for m in self.mod_vals if m != exc['startdatetime_val']]
+            self.modified_instance_count -= 1
+            self.modified_instance_dates = [m for m in self.modified_instance_dates if m != exc['start_datetime']]
 
             del self.exceptions[i]
             del self.extended_exceptions[i]
 
         else:
-            self.delcount += 1
+            self.deleted_instance_count += 1
 
-            self.del_vals.append(basedate_val)
-            self.del_vals.sort()
+            self.deleted_instance_dates.append(basedate_val)
+            self.deleted_instance_dates.sort()
 
         self._save()
         self._update_calitem(item)
@@ -720,7 +733,7 @@ class Recurrence(object):
 
         start_end = {}
         for exc in self.exceptions:
-            start_end[exc['startdatetime_val']] = exc['enddatetime_val']
+            start_end[exc['start_datetime']] = exc['end_datetime']
 
         for d in recurrences:
             startdatetime_val = _utils.unixtime_to_rectime(time.mktime(d.timetuple()))
