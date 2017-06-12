@@ -1725,7 +1725,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	if (hr != hrSuccess || lpIcalMapi->GetItemCount() != 1) {
 		ec_log_err("dissect_ical-1826: Unable to parse ical information: %s (%x), items: %d, adding as normal attachment",
 			GetMAPIErrorMessage(hr), hr, lpIcalMapi->GetItemCount());
-		return handleAttachment(vmHeader, vmBody, lpMessage);
+		return handleAttachment(vmHeader, vmBody, lpMessage, L"unparsable_ical");
 	}
 
 	if (lpIcalMessage != lpMessage) {
@@ -1838,7 +1838,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		}
 
 		if (force_raw) {
-			hr = handleAttachment(vmHeader, vmBody, lpMessage, true);
+			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_transfer_encoding", true);
 			if (hr != hrSuccess)
 				goto exit;
 		} else if (mt->getType() == "multipart") {
@@ -1904,7 +1904,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			m_mailState.bAttachSignature = true;
 		} else if (mt->getType() == vmime::mediaTypes::APPLICATION && (mt->getSubType() == "pkcs7-mime" || mt->getSubType() == "x-pkcs7-mime")) {
 			// smime encrypted message (smime.p7m), attachment may not be empty
-			hr = handleAttachment(vmHeader, vmBody, lpMessage, false);
+			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"smime.p7m", false);
 			if (hr == MAPI_E_NOT_FOUND) {
 				// skip empty attachment
 				hr = hrSuccess;
@@ -1946,7 +1946,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			}
 		} else {
 			/* RFC 2049 §2 item 7 */
-			hr = handleAttachment(vmHeader, vmBody, lpMessage);
+			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_content_type");
 			if (hr != hrSuccess)
 				goto exit;
 		}
@@ -2100,7 +2100,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 
 	if (!append) {
 		// we already had a plaintext or html body, so attach this text part
-		hr = handleAttachment(vmHeader, vmBody, lpMessage);
+		hr = handleAttachment(vmHeader, vmBody, lpMessage, L"secondary_object");
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to parse attached text mail");
 			return hr;
@@ -2130,7 +2130,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 		if (!ValidateCharset(mime_charset.getName().c_str())) {
 			/* RFC 2049 §2 item 6 subitem 5 */
 			ec_log_debug("Unknown Content-Type charset \"%s\". Storing as attachment instead.", mime_charset.getName().c_str());
-			return handleAttachment(vmHeader, vmBody, lpMessage, true);
+			return handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_content_type", true);
 		}
 		/*
 		 * Because PR_BODY is not of type PT_BINARY, the length is
@@ -2309,7 +2309,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 
 	if (!new_text) {
 		// already found html as body, so this is an attachment
-		hr = handleAttachment(vmHeader, vmBody, lpMessage);
+		hr = handleAttachment(vmHeader, vmBody, lpMessage, L"secondary_html_body");
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to parse attached text mail");
 			return hr;
@@ -2377,7 +2377,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		int cs_best = renovate_encoding(strHTML, cs_cand);
 		if (cs_best < 0) {
 			ec_log_err("HTML part not readable in any charset. Storing as attachment instead.");
-			return handleAttachment(vmHeader, vmBody, lpMessage, true);
+			return handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_html_charset", true);
 		}
 		/*
 		 * PR_HTML is a PT_BINARY, and can handle 0x00 bytes
@@ -2497,7 +2497,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
 HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
-    vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage, bool bAllowEmpty)
+    vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
+    const wchar_t *sugg_filename, bool bAllowEmpty)
 {
 	HRESULT		hr			= hrSuccess;
 	object_ptr<IStream> lpStream;
@@ -2623,8 +2624,10 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 			strLongFilename = getWideFromVmimeText(vmime::text(ctf->getParameter("name")->getValue()));
 		else {
 			auto mime_type = mt->getType() + "/" + mt->getSubType();
-			auto ext = mime_type_to_ext(mime_type.c_str(), "txt");
-			strLongFilename = L"inline." + m_converter.convert_to<std::wstring>(ext);
+			auto ext = mime_type_to_ext(mime_type.c_str(), "bin");
+			strLongFilename = sugg_filename != nullptr ? sugg_filename : L"inline";
+			strLongFilename += L".";
+			strLongFilename += m_converter.convert_to<std::wstring>(ext);
 		}
 
 		attProps[nProps].ulPropTag = PR_ATTACH_LONG_FILENAME_W;
