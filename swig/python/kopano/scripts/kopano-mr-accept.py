@@ -32,8 +32,11 @@ def conflict_occurrences(user, item):
     start = item.start
     end = start + timedelta(RECURRENCE_AVAILABILITY_RANGE)
 
+    # determine occurrences which might conflict
     item_occs = list(item.occurrences(start, end))
     cal_occs = list(user.calendar.occurrences(start, end))
+    cal_item = item.meetingrequest.calendar_item
+    cal_occs = [occ for occ in cal_occs if occ.item != cal_item]
 
     # create start/end markers for each occurrence
     dt_markers = collections.defaultdict(list)
