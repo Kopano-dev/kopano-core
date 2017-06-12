@@ -200,20 +200,20 @@ class BackupWorker(kopano.Worker):
             for sk, folder in sk_folder.items():
                 data_path = path+'/folders/'+folder.sourcekey
                 orig_data_path = sk_dir.get(sk)
-                self.backup_folder(data_path, orig_data_path, folder, subtree, config, options, stats, user, server)
+                self.backup_folder(data_path, orig_data_path, folder, subtree, config, options, stats, store, user, server)
             return
 
         # add new folders
         for new_sk in set(sk_folder) - set(sk_dir):
             data_path = path+'/folders/'+new_sk
             folder = sk_folder[new_sk]
-            self.backup_folder(data_path, data_path, folder, subtree, config, options, stats, user, server)
+            self.backup_folder(data_path, data_path, folder, subtree, config, options, stats, store, user, server)
 
         # update existing folders
         for both_sk in set(sk_folder) & set(sk_dir):
             data_path = path+'/'+sk_dir[both_sk]
             folder = sk_folder[both_sk]
-            self.backup_folder(data_path, data_path, folder, subtree, config, options, stats, user, server)
+            self.backup_folder(data_path, data_path, folder, subtree, config, options, stats, store, user, server)
 
         # timestamp deleted folders
         if not options.folders:
@@ -222,10 +222,10 @@ class BackupWorker(kopano.Worker):
                 index = (path+'/'+sk_dir[del_sk]+'/index')
                 _mark_deleted(index, fpath, self.service.timestamp, self.log)
 
-    def backup_folder(self, data_path, orig_data_path, folder, subtree, config, options, stats, user, server):
+    def backup_folder(self, data_path, orig_data_path, folder, subtree, config, options, stats, store, user, server):
         """ backup single folder """
 
-        self.log.debug('backing up folder: %s', folder.path)
+        self.log.debug('backing up folder: "%s" "%s"', store.name, folder.path)
 
         if not os.path.isdir(data_path):
             os.makedirs(data_path)
