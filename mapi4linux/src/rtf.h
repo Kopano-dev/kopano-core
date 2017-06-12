@@ -18,8 +18,14 @@
 #ifndef RTF_H
 #define RTF_H
 
-unsigned int rtf_get_uncompressed_length(char *lpData, unsigned int ulSize);
-unsigned int rtf_decompress(char *lpDest, char *lpSrc, unsigned int ulSize);
-unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSrc, unsigned int ulSize);
+#include <kopano/zcdefs.h>
+
+namespace KC {
+
+extern _kc_export unsigned int rtf_get_uncompressed_length(const char *data, unsigned int size);
+extern _kc_export unsigned int rtf_decompress(char *dst, const char *src, unsigned int src_size);
+extern _kc_export unsigned int rtf_compress(char **dst, unsigned int *dst_size, const char *src, unsigned int src_size);
+
+}
 
 #endif // RTF_H
