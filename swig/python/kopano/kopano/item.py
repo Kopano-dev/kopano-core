@@ -710,9 +710,8 @@ class Item(Base):
             for occ in self.recurrence.occurrences(start=start, end=end):
                 yield occ
         else:
-            occ = Occurrence(self, self.start, self.end)
-            if (not start or occ.start >= start) and (not end or occ.end < end):
-                yield occ
+            if (not start or self.end > start) and (not end or self.start < end):
+                yield Occurrence(self, max(self.start, start), min(self.end, end))
 
     @property
     def meetingrequest(self):
