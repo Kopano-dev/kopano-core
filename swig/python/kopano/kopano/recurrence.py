@@ -67,6 +67,14 @@ PidLidBusyStatus = "PT_LONG:appointment:0x8205"
 PidLidExceptionReplaceTime = "PT_SYSTIME:appointment:0x8228"
 PidLidAppointmentSubType = "PT_BOOLEAN:appointment:0x8215"
 PidLidResponseStatus = "PT_LONG:appointment:0x8218"
+PidLidTimeZoneStruct = "PT_BINARY:PSETID_Appointment:0x8233"
+PidLidAppointmentRecur = "PT_BINARY:PSETID_Appointment:0x8216"
+PidLidLocation = "PT_UNICODE:PSETID_Appointment:0x8208" # XXX PT_STRING8 doesn't work?
+PidLidAppointmentSubType = "PT_BOOLEAN:PSETID_Appointment:0x8215"
+PidLidAppointmentColor = "PT_LONG:PSETID_Appointment:0x8214"
+PidLidIntendedBusyStatus = "PT_LONG:PSETID_Appointment:0x8224"
+PidLidAppointmentStartWhole = "PT_SYSTIME:PSETID_Appointment:0x820D"
+PidLidAppointmentEndWhole = "PT_SYSTIME:PSETID_Appointment:0x820E"
 
 # XXX check with MS-OXOCAL, section 2.2.1.44, and use same naming
 # XXX run parse/save with lots of existing data (data should not change)
@@ -76,11 +84,11 @@ class Recurrence(object):
         # XXX add check if we actually have a recurrence, otherwise we throw a mapi exception which might not be desirable
 
         self.item = item
-        self.tz = item.get_value('appointment:33331')
+        self.tz = item.get_value(PidLidTimeZoneStruct)
         self._parse()
 
     def _parse(self):
-        value = self.item.prop('appointment:33302').value # recurrencestate
+        value = self.item.prop(PidLidAppointmentRecur).value # recurrencestate
 
         self.recurrence_frequency = _utils.unpack_short(value, 2 * SHORT)
         self.patterntype = _utils.unpack_short(value, 3 * SHORT)
@@ -346,7 +354,7 @@ class Recurrence(object):
 
         data += struct.pack('<I', 0)
 
-        self.item.prop('appointment:33302').value = data
+        self.item.prop(PidLidAppointmentRecur).value = data
 
     @property
     def _start(self):
@@ -414,7 +422,7 @@ class Recurrence(object):
 
     def exception_message(self, basedate):
         for message in self.item.items():
-            if message.prop('appointment:33320').value.date() == basedate.date():
+            if message.prop(PidLidExceptionReplaceTime).value.date() == basedate.date():
                 return message
 
     def is_exception(self, basedate):
@@ -448,32 +456,28 @@ class Recurrence(object):
             exception['overrideflags'] |= ARO_REMINDERSET
             exception['reminderset'] = item.value(PidLidReminderSet)
 
-        pidlid_location = 'appointment:33288'
-        if self._override_prop(pidlid_location, cal_item, item):
-            location = item.value(pidlid_location)
+        if self._override_prop(PidLidLocation, cal_item, item):
+            location = item.value(PidLidLocation)
             exception['overrideflags'] |= ARO_LOCATION
             exception['location'] = location.encode('cp1252', 'replace')
             extended = True
             extended_exception['location'] = location
 
-        pidlid_busystatus = 'appointment:33285'
-        if self._override_prop(pidlid_busystatus, cal_item, item):
+        if self._override_prop(PidLidBusyStatus, cal_item, item):
             exception['overrideflags'] |= ARO_BUSYSTATUS
-            exception['busystatus'] = item.value(pidlid_busystatus)
+            exception['busystatus'] = item.value(PidLidBusyStatus)
 
         # skip ARO_ATTACHMENT (like php)
 
         # XXX php doesn't set the following by accident? ("alldayevent" not in copytags..)
         if not copytags or not create:
-            pidlid_appointmentsubtype = 'appointment:33301'
-            if self._override_prop(pidlid_appointmentsubtype, cal_item, item):
+            if self._override_prop(PidLidAppointmentSubType, cal_item, item):
                 exception['overrideflags'] |= ARO_SUBTYPE
-                exception['subtype'] = item.value(pidlid_appointmentsubtype)
+                exception['subtype'] = item.value(PidLidAppointmentSubType)
 
-        pidlid_appointmentcolor = 'appointment:33300'
-        if self._override_prop(pidlid_appointmentcolor, cal_item, item):
+        if self._override_prop(PidLidAppointmentColor, cal_item, item):
             exception['overrideflags'] |= ARO_APPTCOLOR
-            exception['color'] = item.value(pidlid_appointmentcolor)
+            exception['color'] = item.value(PidLidAppointmentColor)
 
         if extended:
             extended_exception['startdatetime_val'] = startdate_val
@@ -510,16 +514,16 @@ class Recurrence(object):
         message.prop(PR_MESSAGE_CLASS_W).value = u'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}'
         message.prop(PidLidExceptionReplaceTime, create=True).value = basetime
 
-        intended_busystatus = cal_item.prop('appointment:33316').value # XXX tentative? merge with modify_exc?
+        intended_busystatus = cal_item.prop(PidLidIntendedBusyStatus).value # XXX tentative? merge with modify_exc?
 
         message.prop(PidLidBusyStatus, create=True).value = intended_busystatus
 
         message.prop(PidLidAppointmentSubType, create=True).value = cal_item.prop(PidLidAppointmentSubType).value
 
-        start = message.prop('appointment:33293').value
+        start = message.prop(PidLidAppointmentStartWhole).value
         start_local = unixtime(time.mktime(_utils._from_gmt(start, self.tz).timetuple())) # XXX why local??
 
-        end = message.prop('appointment:33294').value
+        end = message.prop(PidLidAppointmentEndWhole).value
         end_local = unixtime(time.mktime(_utils._from_gmt(end, self.tz).timetuple())) # XXX why local??
 
         props = [
@@ -542,7 +546,7 @@ class Recurrence(object):
         message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def create_exception(self, basedate, item, copytags=None, merge=False):
-        tz = item.get_value('appointment:33331')
+        tz = item.get_value(PidLidTimeZoneStruct)
         cal_item = self.item
 
         # create embedded item
@@ -592,17 +596,17 @@ class Recurrence(object):
         self.del_vals.sort()
 
         self.modcount += 1
-        moddate = message.prop('appointment:33293').value
+        moddate = message.prop(PidLidAppointmentStartWhole).value
         daystart = moddate - datetime.timedelta(hours=moddate.hour, minutes=moddate.minute) # XXX different approach in php? seconds?
         localdaystart = _utils._from_gmt(daystart, tz)
         moddate_val = _utils.unixtime_to_rectime(time.mktime(localdaystart.timetuple()))
         self.mod_vals.append(moddate_val)
         self.mod_vals.sort()
 
-        startdate = _utils._from_gmt(message.prop('appointment:33293').value, tz)
+        startdate = _utils._from_gmt(message.prop(PidLidAppointmentStartWhole).value, tz)
         startdate_val = _utils.unixtime_to_rectime(time.mktime(startdate.timetuple()))
 
-        enddate = _utils._from_gmt(message.prop('appointment:33294').value, tz)
+        enddate = _utils._from_gmt(message.prop(PidLidAppointmentEndWhole).value, tz)
         enddate_val = _utils.unixtime_to_rectime(time.mktime(enddate.timetuple()))
 
         exception = {}
@@ -617,12 +621,12 @@ class Recurrence(object):
         self._update_calitem(item)
 
     def modify_exception(self, basedate, item, copytags=None): # XXX 'item' too MR specific
-        tz = item.get_value('appointment:33331')
+        tz = item.get_value(PidLidTimeZoneStruct)
         cal_item = self.item
 
         # update embedded item
         for message in cal_item.items(): # XXX no cal_item? to helper
-            if message.prop('appointment:33320').value.date() == basedate.date():
+            if message.prop(PidLidExceptionReplaceTime).value.date() == basedate.date():
                 self._update_embedded(basedate, message, item, copytags)
 
                 if not copytags:
@@ -655,10 +659,10 @@ class Recurrence(object):
         # update blob
         basedate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(basedate, tz).timetuple()))
 
-        startdate = _utils._from_gmt(message.prop('appointment:33293').value, tz)
+        startdate = _utils._from_gmt(message.prop(PidLidAppointmentStartWhole).value, tz)
         startdate_val = _utils.unixtime_to_rectime(time.mktime(startdate.timetuple()))
 
-        enddate = _utils._from_gmt(message.prop('appointment:33294').value, tz)
+        enddate = _utils._from_gmt(message.prop(PidLidAppointmentEndWhole).value, tz)
         enddate_val = _utils.unixtime_to_rectime(time.mktime(enddate.timetuple()))
 
         for i, exception in enumerate(self.exceptions):
@@ -680,7 +684,7 @@ class Recurrence(object):
         self._update_calitem(item)
 
     def delete_exception(self, basedate, item, copytags):
-        tz = item.get_value('appointment:33331')
+        tz = item.get_value(PidLidTimeZoneStruct)
 
         basedate2 = _utils._from_gmt(basedate, tz)
         basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate2.timetuple()))
@@ -708,7 +712,7 @@ class Recurrence(object):
         self._update_calitem(item)
 
     def occurrences(self, start=None, end=None):
-        tz = self.item.get_value('appointment:33331')
+        tz = self.item.get_value(PidLidTimeZoneStruct)
 
         recurrences = self.recurrences
         if start and end:

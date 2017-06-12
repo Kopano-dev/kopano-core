@@ -180,8 +180,7 @@ class MeetingRequest(object):
     def calendar_item(self):
         """ Global calendar item :class:`item <Item>` (possibly in delegator store) """
 
-        goid = self.item.prop('meeting:35')
-
+        goid = self.item.prop(PidLidCleanGlobalObjectId)
         restriction = Restriction(SPropertyRestriction(
             RELOP_EQ, goid.proptag, SPropValue(goid.proptag, goid.mapiobj.Value))
         )
@@ -191,18 +190,18 @@ class MeetingRequest(object):
     def basedate(self):
         """ Exception date """
 
-        blob = self.item.prop('meeting:3').value
+        blob = self.item.prop(PidLidGlobalObjectId).value
         y, m, d = struct.unpack_from('>HBB', blob, 16)
         if (y, m, d) != (0, 0, 0):
             ts = timegm(datetime.datetime(y, m, d).timetuple())
-            tz = self.item.get_value('appointment:33331')
+            tz = self.item.get_value(PidLidTimeZoneStruct)
             return _utils._to_gmt(datetime.datetime.fromtimestamp(ts), tz)
 
     @property
     def update_counter(self):
         """ Update counter """
 
-        return self.item.prop('appointment:33281').value
+        return self.item.prop(PidLidAppointmentSequence).value
 
     @property
     def track_status(self):
@@ -261,12 +260,12 @@ class MeetingRequest(object):
         cal_item.message_class = 'IPM.Appointment'
 
         # busystatus
-        intended_busystatus = self.item.prop('appointment:33316').value
+        intended_busystatus = self.item.prop(PidLidIntendedBusyStatus).value
         if tentative and intended_busystatus != libfreebusy.fbFree: # XXX
             busystatus = libfreebusy.fbTentative
         else:
             busystatus = intended_busystatus
-        cal_item.prop('appointment:33285').value = busystatus
+        cal_item.prop(PidLidBusyStatus).value = busystatus
 
         # add organizer as recipient # XXX occurrence case in php?
         organizer_props = _organizer_props(cal_item, self.item)
@@ -317,7 +316,7 @@ class MeetingRequest(object):
                 calendar.delete(cal_item)
 
             # determine existing exceptions
-            goid = self.item.prop('meeting:35')
+            goid = self.item.prop(PidLidCleanGlobalObjectId)
             restriction = Restriction(SPropertyRestriction(
                 RELOP_EQ, goid.proptag, SPropValue(goid.proptag, goid.mapiobj.Value))
             )
@@ -485,7 +484,7 @@ class MeetingRequest(object):
                 trackstatus = PpropFindProp(row, PR_RECIPIENT_TRACKSTATUS)
                 trackstatus_time = PpropFindProp(row, PR_RECIPIENT_TRACKSTATUS_TIME)
 
-                attendee_crit_change = self.item.get_prop('meeting:1')
+                attendee_crit_change = self.item.get_prop(PidLidAttendeeCriticalChange)
                 if trackstatus_time and attendee_crit_change and \
                     attendee_crit_change.mapiobj.Value <= trackstatus_time.Value:
                     continue
@@ -501,18 +500,18 @@ class MeetingRequest(object):
                 else:
                     row.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, self.track_status))
 
-                if self.item.get_value('appointment:33367') is True:
+                if self.item.get_value(PidLidAppointmentCounterProposal) is True:
                     row.extend([
                         SPropValue(PR_PROPOSED_NEWTIME, True),
-                        SPropValue(PR_PROPOSED_NEWTIME_START, self.item.prop('appointment:33360').mapiobj.Value),
-                        SPropValue(PR_PROPOSED_NEWTIME_END, self.item.prop('appointment:33361').mapiobj.Value),
+                        SPropValue(PR_PROPOSED_NEWTIME_START, self.item.prop(PidLidAppointmentProposedStartWhole).mapiobj.Value),
+                        SPropValue(PR_PROPOSED_NEWTIME_END, self.item.prop(PidLidAppointmentProposedEndWhole).mapiobj.Value),
                     ])
 
         message.mapiobj.ModifyRecipients(MODRECIP_MODIFY, rows)
 
         # counter proposal
-        if self.item.get_value('appointment:33367') is True:
-            message.prop('appointment:33367', create=True, proptype=PT_BOOLEAN).value = True
+        if self.item.get_value(PidLidAppointmentCounterProposal) is True:
+            message.prop(PidLidAppointmentCounterProposal, create=True, proptype=PT_BOOLEAN).value = True
 
         # save all the things
         message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
