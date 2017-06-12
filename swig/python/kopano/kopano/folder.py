@@ -403,7 +403,7 @@ class Folder(Base):
             try:
                 return Folder(self, entryid)
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound, TypeError):
-                raise NotFoundError
+                raise NotFoundError('cannot open folder with entryid "%s"' % entryid)
 
         if '/' in path.replace('\\/', ''): # XXX MAPI folders may contain '/' (and '\') in their names..
             subfolder = self

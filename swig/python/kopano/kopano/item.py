@@ -253,7 +253,7 @@ class Item(Base):
 
         try:
             return self.prop(PR_NORMALIZED_SUBJECT_W).value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             return u''
 
     @property
@@ -395,7 +395,7 @@ class Item(Base):
 
         try:
             return self.prop('common:34054').value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             return False
 
     @private.setter
@@ -407,7 +407,7 @@ class Item(Base):
         """ PidLidReminderSet - Specifies whether a reminder is set on the object """
         try:
             return self.prop('common:34051').value
-        except MAPIErrorNotFound:
+        except NotFoundError:
             return False
 
     @reminder.setter
@@ -694,7 +694,7 @@ class Item(Base):
     def location(self):
         try:
             return self.prop('appointment:33288').value
-        except MAPIErrorNotFound: # XXX NotFoundError
+        except NotFoundError:
             pass
 
     @property

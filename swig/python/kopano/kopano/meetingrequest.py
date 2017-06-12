@@ -37,7 +37,6 @@ from MAPI.Defs import (
 
 from MAPI.Struct import (
     SPropValue, SPropertyRestriction, MAPIErrorUnknownEntryid,
-    MAPIErrorNotFound,
 )
 
 from .compat import repr as _repr
