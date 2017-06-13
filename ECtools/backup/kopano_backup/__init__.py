@@ -44,7 +44,7 @@ from MAPI.Tags import (
 )
 
 import kopano
-from kopano import log_exc
+from kopano import log_exc, Config
 
 """
 kopano-backup - a MAPI-level backup/restore tool built on python-kopano.
@@ -75,6 +75,10 @@ options can be combined when this makes sense, for example:
 kopano-backup --index user1 -f Inbox/subfolder --recursive --period-begin 2014-01-01
 
 """
+
+CONFIG = {
+    'backup_servers': Config.string(multiple=True, default=None),
+}
 
 CACHE_SIZE = 64000000 # XXX make configurable
 
@@ -543,12 +547,18 @@ class Service(kopano.Service):
 
         # specified companies/all users
         if self.options.companies or not (self.options.users or self.options.stores):
+            servers = self.config['backup_servers']
+            if servers is None:
+                servers = [self.server.name]
             for company in self.server.companies():
                 companyname = company.name if company.name != 'Default' else ''
                 for user in company.users():
-                    if user.store:
+                    if user.store and \
+                       (not servers or user.store.home_server in servers):
                         jobs.append((user.store, user.name, os.path.join(output_dir, companyname, user.name)))
-                if company.public_store and not self.options.skip_public:
+                public_store = company.public_store
+                if public_store and not self.options.skip_public and \
+                   (not servers or public_store.home_server in servers):
                     target = 'public@'+companyname if companyname else 'public'
                     jobs.append((company.public_store, None, os.path.join(output_dir, companyname, target)))
 
@@ -927,7 +937,7 @@ def main():
         show_contents(args[0], options)
     else:
         # start backup/restore
-        Service('backup', options=options, args=args).start()
+        Service('backup', options=options, config=CONFIG, args=args).start()
 
 if __name__ == '__main__':
     main()

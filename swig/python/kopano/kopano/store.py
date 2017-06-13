@@ -35,7 +35,7 @@ from MAPI.Tags import (
     PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE, PR_WLINK_ENTRYID,
     PR_EXTENDED_FOLDER_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
     PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES,
-    PR_DELEGATE_FLAGS
+    PR_DELEGATE_FLAGS, PR_MAPPING_SIGNATURE,
 )
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue,
@@ -581,6 +581,18 @@ class Store(Base):
                 yield guid_folder[row[1].Value]
             except KeyError:
                 pass
+
+    @property
+    def home_server(self):
+        if self.user:
+            return self.user.home_server
+        else:
+            try:
+                for node in self.server.nodes(): # XXX faster?
+                    if node.guid == _hex(self.prop(PR_MAPPING_SIGNATURE).value):
+                        return node.name
+            except MAPIErrorNotFound:
+                return self.server.name
 
     @property
     def freebusy(self):

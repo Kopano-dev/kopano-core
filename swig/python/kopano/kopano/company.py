@@ -230,7 +230,7 @@ class Company(Base):
             return
 
         if self._name == u'Default':
-            for user in self.server.users(system=system):
+            for user in self.server.users(system=system, remote=True):
                 yield user
         else:
             for ecuser in self.server.sa.GetUserList(self._eccompany.CompanyID, MAPI_UNICODE):
