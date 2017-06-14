@@ -711,7 +711,7 @@ class Recurrence(object):
         self._save()
         self._update_calitem(item)
 
-    def occurrences(self, start=None, end=None):
+    def occurrences(self, start=None, end=None): # XXX fit-to-period
         tz = self.item.get_value(PidLidTimeZoneStruct)
 
         recurrences = self.recurrences
@@ -732,8 +732,8 @@ class Recurrence(object):
 
             d = _utils._to_gmt(d, tz)
 
-            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes)) # XXX exceptions
-            if (not start or occ.start >= start) and (not end or occ.end < end): # XXX slow for now; overlaps with start, end?
+            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes))
+            if (not start or occ.end > start) and (not end or occ.start < end):
                 yield occ
 
     def __unicode__(self):
