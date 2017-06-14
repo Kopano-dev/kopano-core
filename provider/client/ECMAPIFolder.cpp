@@ -299,14 +299,14 @@ HRESULT ECMAPIFolder::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return Util::DoCopyTo(&IID_IMAPIFolder, &this->m_xMAPIFolder, ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return Util::DoCopyTo(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(&this->m_xMAPIFolder), ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 HRESULT ECMAPIFolder::CopyProps(const SPropTagArray *lpIncludeProps,
     ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return Util::DoCopyProps(&IID_IMAPIFolder, &this->m_xMAPIFolder, lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return Util::DoCopyProps(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(&this->m_xMAPIFolder), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 HRESULT ECMAPIFolder::SetProps(ULONG cValues, const SPropValue *lpPropArray,
@@ -483,7 +483,7 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	    lpFolderOps == nullptr) {
 		// Do copy with the storeobject
 		// Copy between two or more different stores
-		hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, &this->m_xMAPIFolder, lpMsgList, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
+		hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(&this->m_xMAPIFolder), lpMsgList, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
 		return hr == hrSuccess ? hrEC : hr;
 	}
 
@@ -530,7 +530,7 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	}
 	if (lpMsgListSupport->cValues > 0)
 	{
-		hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, &this->m_xMAPIFolder, lpMsgListSupport, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
+		hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(&this->m_xMAPIFolder), lpMsgListSupport, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
 		if(FAILED(hr))
 			goto exit;
 	}
@@ -622,7 +622,7 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		hr = this->lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
 	else
 		// Support object handled de copy/move
-		hr = this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, &this->m_xMAPIFolder, cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
+		hr = this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(&this->m_xMAPIFolder), cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
 	return hr;
 }
 

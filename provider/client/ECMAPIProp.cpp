@@ -703,14 +703,14 @@ HRESULT ECMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return Util::DoCopyTo(&IID_IMAPIProp, &this->m_xMAPIProp, ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return Util::DoCopyTo(&IID_IMAPIProp, static_cast<IMAPIProp *>(&this->m_xMAPIProp), ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 HRESULT ECMAPIProp::CopyProps(const SPropTagArray *lpIncludeProps,
     ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return Util::DoCopyProps(&IID_IMAPIProp, &this->m_xMAPIProp, lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return Util::DoCopyProps(&IID_IMAPIProp, static_cast<IMAPIProp *>(&this->m_xMAPIProp), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 // Pass call off to lpMsgStore

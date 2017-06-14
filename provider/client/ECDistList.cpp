@@ -69,14 +69,14 @@ HRESULT ECDistList::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return this->GetABStore()->m_lpMAPISup->DoCopyTo(&IID_IDistList, &this->m_xDistList, ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return this->GetABStore()->m_lpMAPISup->DoCopyTo(&IID_IDistList, static_cast<IDistList *>(&this->m_xDistList), ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 HRESULT ECDistList::CopyProps(const SPropTagArray *lpIncludeProps,
     ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return this->GetABStore()->m_lpMAPISup->DoCopyProps(&IID_IDistList, &this->m_xDistList, lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return this->GetABStore()->m_lpMAPISup->DoCopyProps(&IID_IDistList, static_cast<IDistList *>(&this->m_xDistList), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 // Interface IUnknown

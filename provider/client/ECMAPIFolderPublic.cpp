@@ -460,7 +460,7 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 	    memcmp(&guidFrom, &guidDest, sizeof(GUID)) != 0 ||
 	    lpFolderOps == nullptr)
 		// Support object handled de copy/move
-		return this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, &this->m_xMAPIFolder, cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
+		return this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(&this->m_xMAPIFolder), cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
 
 	// if the entryid a a publicfolders entryid just change the entryid to a server entryid
 	if (((ECMsgStorePublic *)GetMsgStore())->ComparePublicEntryId(ePE_PublicFolders, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, &ulResult) == hrSuccess && ulResult == TRUE)

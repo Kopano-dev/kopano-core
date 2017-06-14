@@ -133,9 +133,9 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 		this->fModify = fModifyCopy;
 		goto exit;
 	}
-	hr = Util::DoCopyProps(&IID_IMAPIProp, &m_ptrArchiveMsg->m_xMAPIProp,
+	hr = Util::DoCopyProps(&IID_IMAPIProp, static_cast<IMAPIProp *>(&m_ptrArchiveMsg->m_xMAPIProp),
 	     sptaRestoreProps, 0, NULL, &IID_IMAPIProp,
-	     &this->m_xMAPIProp, 0, NULL);
+	     static_cast<IMAPIProp *>(&this->m_xMAPIProp), 0, nullptr);
 	if (hr != hrSuccess) {
 		this->fModify = fModifyCopy;
 		goto exit;

@@ -2342,7 +2342,7 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 				return MAPI_E_NO_ACCESS;
 		}
 	}
-	return Util::DoCopyTo(&IID_IMessage, &this->m_xMessage, ciidExclude,
+	return Util::DoCopyTo(&IID_IMessage, static_cast<IMessage *>(&this->m_xMessage), ciidExclude,
 	       rgiidExclude, lpExcludeProps, ulUIParam, lpProgress,
 	       lpInterface, lpDestObj, ulFlags, lppProblems);
 }
@@ -2671,7 +2671,7 @@ HRESULT ECMessage::CopyProps(const SPropTagArray *lpIncludeProps,
     ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return Util::DoCopyProps(&IID_IMessage, &this->m_xMessage, lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return Util::DoCopyProps(&IID_IMessage, static_cast<IMessage *>(&this->m_xMessage), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, QueryInterface, (REFIID, refiid), (void **, lppInterface))
