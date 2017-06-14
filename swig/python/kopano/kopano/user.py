@@ -253,7 +253,7 @@ class User(Base):
 
     @property
     def home_server(self):
-        return self._ecuser.Servername
+        return self._ecuser.Servername or self.server.name
 
     @property
     def archive_server(self):
