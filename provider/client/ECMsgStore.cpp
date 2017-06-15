@@ -209,22 +209,22 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(ECMsgStore, this);
 	REGISTER_INTERFACE2(ECMAPIProp, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IMsgStore, &this->m_xMsgStore);
-	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMsgStore);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xMsgStore);
+	REGISTER_INTERFACE2(IMsgStore, this);
+	REGISTER_INTERFACE2(IMAPIProp, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 
 	if (refiid == IID_IExchangeManageStore && m_bOfflineStore == FALSE)
-		REGISTER_INTERFACE2(IExchangeManageStore, &this->m_xExchangeManageStore);
+		REGISTER_INTERFACE2(IExchangeManageStore, this);
 
 	REGISTER_INTERFACE2(IECServiceAdmin, &this->m_xECServiceAdmin);
-	REGISTER_INTERFACE2(IECSpooler, &this->m_xECSpooler);
+	REGISTER_INTERFACE2(IECSpooler, this);
 	REGISTER_INTERFACE2(IECSecurity, this);
-	REGISTER_INTERFACE2(IProxyStoreObject, &this->m_xProxyStoreObject);
+	REGISTER_INTERFACE2(IProxyStoreObject, this);
 
 	if (refiid == IID_ECMsgStoreOnline)
 	{
 		if (m_bOfflineStore == FALSE) {
-			*lppInterface = static_cast<IMsgStore *>(&this->m_xMsgStore);
+			*lppInterface = static_cast<IMsgStore *>(this);
 			AddRef();
 			return hrSuccess;
 		} 
@@ -2760,47 +2760,6 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 	return hrSuccess;
 }
 
-// IMsgStore interface
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, Advise, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, Unadvise, (ULONG, ulConnection))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, CompareEntryIDs, (ULONG, cbEntryID1), (LPENTRYID, lpEntryID1), (ULONG, cbEntryID2), (LPENTRYID, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, OpenEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, SetReceiveFolder, (LPTSTR, lpszMessageClass), (ULONG, ulFlags), (ULONG, cbEntryID), (LPENTRYID, lpEntryID))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetReceiveFolder, (LPTSTR, lpszMessageClass), (ULONG, ulFlags), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID), (LPTSTR *, lppszExplicitClass))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetReceiveFolderTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, StoreLogoff, (ULONG *, lpulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, AbortSubmit, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetOutgoingQueue, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, SetLockState, (LPMESSAGE, lpMessage), (ULONG, ulLockState))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, FinishedMsg, (ULONG, ulFlags), (ULONG, cbEntryID), (LPENTRYID, lpEntryID))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, NotifyNewMail, (LPNOTIFICATION, lpNotification))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetIDsFromNames, (ULONG, cNames), (MAPINAMEID **, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
-
-/*
- * IExchangeManageStore interface
- */
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, CreateStoreEntryID, (LPTSTR, lpszMsgStoreDN), (LPTSTR, lpszMailboxDN), (ULONG, ulFlags), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, EntryIDFromSourceKey, (ULONG, cFolderKeySize), (BYTE *, lpFolderSourceKey), (ULONG, cMessageKeySize), (BYTE *, lpMessageSourceKey), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, GetRights, (ULONG, cbUserEntryID), (LPENTRYID, lpUserEntryID), (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG *, lpulRights))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, GetMailboxTable, (LPTSTR, lpszServerName), (LPMAPITABLE *, lppTable), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, GetPublicFolderTable, (LPTSTR, lpszServerName), (LPMAPITABLE *, lppTable), (ULONG, ulFlags))
-
 // IECServiceAdmin
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, QueryInterface, (REFIID, refiid), (void **, lppInterface))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddRef, (void))
@@ -2862,19 +2821,6 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolvePseudoUrl, (const c
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetPublicStoreEntryID, (ULONG, ulFlags), (ULONG*, lpcbStoreID), (LPENTRYID*, lppStoreID))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetArchiveStoreEntryID, (LPCTSTR, lpszUserName), (LPCTSTR, lpszServerName), (ULONG, ulFlags), (ULONG*, lpcbStoreID), (LPENTRYID*, lppStoreID))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResetFolderCount, (ULONG, cbEntryId), (LPENTRYID, lpEntryId), (ULONG *, lpulUpdates))
-
-// IECSpooler
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, QueryInterface, (REFIID, refiid), (void**, lppInterface))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, GetMasterOutgoingTable, (ULONG, ulFlags), (IMAPITable **, lppOutgoingTable))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, DeleteFromMasterOutgoingTable, (ULONG, cbEntryID), (const ENTRYID *, lpEntryID), (ULONG, ulFlags))
-
-// Interface IProxyStoreObject
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, UnwrapNoRef, (LPVOID *, ppvObject))
 
 // IMsgStoreProxy interface
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AddRef, (void))

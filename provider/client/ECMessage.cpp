@@ -1430,7 +1430,7 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 				return hr;
 		}else {
 			// Open the default store, by using the username property
-			hr = HrGetOneProp(&GetMsgStore()->m_xMsgStore, PR_USER_NAME, &~lpsPropUserName);
+			hr = HrGetOneProp(GetMsgStore(), PR_USER_NAME, &~lpsPropUserName);
 			if (hr != hrSuccess)
 				return hr;
 			hr = GetMsgStore()->CreateStoreEntryID(nullptr, lpsPropUserName->Value.LPSZ, fMapiUnicode, &cbStoreID, &~lpStoreID);

@@ -52,8 +52,9 @@ public:
 	virtual HRESULT Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lppMessage) const = 0;
 };
 
-
-class ECMsgStore : public ECMAPIProp {
+class ECMsgStore :
+    public ECMAPIProp, public IMsgStore, public IExchangeManageStore,
+    public IProxyStoreObject, public IECSpooler {
 	typedef void (* RELEASECALLBACK)(ECUnknown *lpObject, ECMsgStore *lpMsgStore);
 protected:
 	ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore);
@@ -211,17 +212,6 @@ private:
 	static HRESULT MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string *lpstrPseudoUrl);
 
 public:
-	class xMsgStore _kc_final : public IMsgStore {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMsgStore.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp>
-	} m_xMsgStore;
-
-	class xExchangeManageStore _kc_final : public IExchangeManageStore {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IExchangeManageStore.hpp>
-	} m_xExchangeManageStore;
-
 	class xECServiceAdmin _kc_final : public IECServiceAdmin {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
@@ -282,20 +272,6 @@ public:
 		virtual HRESULT __stdcall GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG flags, ULONG *lpcbStoreID, LPENTRYID *lppStoreID) _kc_override;
 		virtual HRESULT __stdcall ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates) _kc_override;
 	} m_xECServiceAdmin;
-
-	class xECSpooler _kc_final : public IECSpooler {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		// <kopano/xclsfrag/IECSpooler.hpp>
-		virtual HRESULT __stdcall GetMasterOutgoingTable(ULONG flags, IMAPITable **lppOutgoingTable) _kc_override;
-		virtual HRESULT __stdcall DeleteFromMasterOutgoingTable(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG flags) _kc_override;
-	} m_xECSpooler;
-
-	class xProxyStoreObject _kc_final : public IProxyStoreObject {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-
-		// <kopano/xclsfrag/IProxyStoreObject.hpp>
-		virtual HRESULT __stdcall UnwrapNoRef(LPVOID *ppvObject) _kc_override;
-	} m_xProxyStoreObject;
 
 	class xMsgStoreProxy _kc_final : public IMsgStore {
 		#include <kopano/xclsfrag/IUnknown.hpp>

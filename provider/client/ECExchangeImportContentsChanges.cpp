@@ -592,7 +592,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 		ZLOG_DEBUG(m_lpLogger, "Failed to open 'IPM' receive folder, hr = 0x%08x", hr);
 		return hr;
 	}
-	hr = HrGetOneProp(&m_lpFolder->GetMsgStore()->m_xMsgStore, PR_IPM_SUBTREE_ENTRYID, &~lpIPMSubTree);
+	hr = HrGetOneProp(m_lpFolder->GetMsgStore(), PR_IPM_SUBTREE_ENTRYID, &~lpIPMSubTree);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to get ipm subtree id, hr = 0x%08x", hr);
 		return hr;
