@@ -26,7 +26,7 @@
 
 class WSTransport;
 
-class ECABLogon _kc_final : public ECUnknown {
+class ECABLogon _kc_final : public ECUnknown, public IABLogon {
 protected:
 	ECABLogon(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGUID);
 	virtual ~ECABLogon();
@@ -44,11 +44,6 @@ public:
 	virtual HRESULT OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateID, ULONG ulTemplateFlags, LPMAPIPROP lpMAPIPropData, LPCIID lpInterface, LPMAPIPROP * lppMAPIPropNew, LPMAPIPROP lpMAPIPropSibling);
 	virtual HRESULT GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable);
 	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
-
-	class xABLogon _kc_final : public IABLogon {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IABLogon.hpp>
-	} m_xABLogon;
 
 	LPMAPISUP			m_lpMAPISup;
 	WSTransport*		m_lpTransport;
