@@ -384,7 +384,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECMSLogon _kc_final : public ECUnknown {
+class ECMSLogon _kc_final : public ECUnknown, public IMSLogon {
 private:
 	ECMSLogon(ECMsgStore *lpStore);
 	ECMsgStore *m_lpStore;
@@ -399,19 +399,6 @@ public:
 	HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
 	HRESULT Unadvise(ULONG ulConnection);
 	HRESULT OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPVOID *lppEntry);
-	
-	class xMSLogon _kc_final : public IMSLogon {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-
-		// <kopano/xclsfrag/IMSLogon.hpp>
-		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
-		virtual HRESULT __stdcall Logoff(ULONG *flags) _kc_override;
-		virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _kc_override;
-		virtual HRESULT __stdcall CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG flags, ULONG *lpulResult) _kc_override;
-		virtual HRESULT __stdcall Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) _kc_override;
-		virtual HRESULT __stdcall Unadvise(ULONG ulConnection) _kc_override;
-		virtual HRESULT __stdcall OpenStatusEntry(LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPVOID *lppEntry) _kc_override;
-	} m_xMSLogon;
 	ALLOC_WRAP_FRIEND;
 };
 

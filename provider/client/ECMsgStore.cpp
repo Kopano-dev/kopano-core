@@ -3006,7 +3006,7 @@ HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)
 HRESULT ECMSLogon::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECMSLogon, this);
-	REGISTER_INTERFACE2(IMSLogon, &this->m_xMSLogon);
+	REGISTER_INTERFACE2(IMSLogon, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -3044,17 +3044,6 @@ HRESULT ECMSLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpu
 {
 	return MAPI_E_NO_SUPPORT;
 }
-
-DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, GetLastError, (HRESULT, hResult), (ULONG, ulFlags), (LPMAPIERROR *, lppMAPIError))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, Logoff, (ULONG *, lpulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, OpenEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, CompareEntryIDs, (ULONG, cbEntryID1), (LPENTRYID, lpEntryID1), (ULONG, cbEntryID2), (LPENTRYID, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, Advise, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, Unadvise, (ULONG, ulConnection))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, OpenStatusEntry, (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPVOID *, lppEntry))
 
 // IExchangeManageStore6
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, AddRef, (void))
