@@ -143,13 +143,12 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 
 	// Now remove any dummy attachment(s) and copy the attachments from the archive (except the properties
 	// that are too big in the firt place).
-	hr = Util::HrDeleteAttachments(&m_xMessage);
+	hr = Util::HrDeleteAttachments(this);
 	if (hr != hrSuccess) {
 		this->fModify = fModifyCopy;
 		goto exit;
 	}
-
-	hr = Util::CopyAttachments(&m_ptrArchiveMsg->m_xMessage, &m_xMessage, NULL);
+	hr = Util::CopyAttachments(m_ptrArchiveMsg, this, NULL);
 	this->fModify = fModifyCopy;
 exit:
 	m_bLoading = false;

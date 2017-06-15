@@ -39,7 +39,7 @@ public:
  * This class represents any kind of MAPI message and exposes it through
  * the IMessage interface.
  */
-class ECMessage : public ECMAPIProp {
+class ECMessage : public ECMAPIProp, public IMessage {
 protected:
 	/**
 	 * \param lpMsgStore	The store owning this message.
@@ -128,21 +128,6 @@ public:
 
 	// RTF overrides
 	virtual HRESULT HrSetRealProp(const SPropValue *lpsPropValue);
-
-	class xMessage _kc_final : public IMessage {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp>
-
-		// <kopano/xclsfrag/IMessage.hpp>
-		virtual HRESULT __stdcall GetAttachmentTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-		virtual HRESULT __stdcall OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG flags, LPATTACH *lppAttach) _kc_override;
-		virtual HRESULT __stdcall CreateAttach(LPCIID lpInterface, ULONG flags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach) _kc_override;
-		virtual HRESULT __stdcall DeleteAttach(ULONG ulAttachmentNum, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall GetRecipientTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-		virtual HRESULT __stdcall ModifyRecipients(ULONG flags, const ADRLIST *lpMods) _kc_override;
-		virtual HRESULT __stdcall SubmitMessage(ULONG flags) _kc_override;
-		virtual HRESULT __stdcall SetReadFlag(ULONG flags) _kc_override;
-	} m_xMessage;
 
 protected:
 	void RecursiveMarkDelete(MAPIOBJECT *lpObj);
