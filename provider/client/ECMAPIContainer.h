@@ -28,7 +28,7 @@
 #include "ECMsgStore.h"
 #include "ECMAPIProp.h"
 
-class ECMAPIContainer : public ECMAPIProp, public IMAPIContainer {
+class ECMAPIContainer : public ECMAPIProp, public virtual IMAPIContainer {
 public:
 	ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, const char *szClassName);
 	virtual ~ECMAPIContainer(void) _kc_impdtor;

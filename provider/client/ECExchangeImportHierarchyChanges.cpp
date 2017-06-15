@@ -144,7 +144,7 @@ HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlag
 		if(ulLen != 4) {
 			return MAPI_E_INVALID_PARAMETER;
 		}
-		hr = HrGetOneProp(&m_lpFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropSourceKey);
+		hr = HrGetOneProp(m_lpFolder, PR_SOURCE_KEY, &~lpPropSourceKey);
 		if(hr != hrSuccess)
 			return hr;
 

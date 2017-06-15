@@ -28,7 +28,8 @@
 class WSMessageStreamExporter;
 class WSMessageStreamImporter;
 
-class ECMAPIFolder : public ECMAPIContainer {
+class ECMAPIFolder :
+    public ECMAPIContainer, public IMAPIFolder, public IFolderSupport {
 protected:
 	ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, const char *szClassName);
 	virtual ~ECMAPIFolder();
@@ -80,31 +81,6 @@ public:
 	virtual HRESULT CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, WSMessageStreamImporter **lppsStreamImporter);
 	virtual HRESULT GetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK);
 	virtual HRESULT UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter);
-
-	class xMAPIFolder _kc_final : public IMAPIFolder {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp>
-		#include <kopano/xclsfrag/IMAPIContainer.hpp>
-
-		// <kopano/xclsfrag/IMAPIFolder.hpp>
-		virtual HRESULT __stdcall CreateMessage(LPCIID lpInterface, ULONG flags, LPMESSAGE *lppMessage) _kc_override;
-		virtual HRESULT __stdcall CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall DeleteMessages(LPENTRYLIST lpMsgList, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall CreateFolder(ULONG ulFolderType, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, LPCIID lpInterface, ULONG flags, LPMAPIFOLDER *lppFolder) _kc_override;
-		virtual HRESULT __stdcall CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, LPVOID lpDestFolder, LPTSTR lpszNewFolderName, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall SetReadFlags(LPENTRYLIST lpMsgList, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall GetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG flags, ULONG *lpulMessageStatus) _kc_override;
-		virtual HRESULT __stdcall SetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask, ULONG *lpulOldStatus) _kc_override;
-		virtual HRESULT __stdcall SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall EmptyFolder(ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
-	} m_xMAPIFolder;
-
-	class xFolderSupport _kc_final : public IFolderSupport {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		// <kopano/xclsfrag/IFolderSupport.hpp>
-		virtual HRESULT __stdcall GetSupportMask(DWORD *pdwSupportMask) _kc_override;
-	} m_xFolderSupport;
 
 protected:
 	WSMAPIFolderOps	*	lpFolderOps;

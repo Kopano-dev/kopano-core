@@ -208,11 +208,10 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 		return hr;
 
 	// build restriction
-	if (HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropTmp) != hrSuccess)
-	{
+	if (HrGetOneProp(m_lpECParentFolder, PR_SOURCE_KEY, &~lpPropTmp) != hrSuccess) {
 		hr = ECNotRestriction(ECExistRestriction(PR_FAV_PARENT_SOURCE_KEY)).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
 	} else {
-		hr = HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropTmp);
+		hr = HrGetOneProp(m_lpECParentFolder, PR_SOURCE_KEY, &~lpPropTmp);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp, ECRestriction::Cheap).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
