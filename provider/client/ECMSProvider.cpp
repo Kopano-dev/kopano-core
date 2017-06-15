@@ -65,7 +65,9 @@ HRESULT ECMSProvider::Create(ULONG ulFlags, ECMSProvider **lppECMSProvider) {
 
 HRESULT ECMSProvider::QueryInterface(REFIID refiid, void **lppInterface)
 {
+	REGISTER_INTERFACE2(ECMSProvider, this);
 	REGISTER_INTERFACE2(IMSProvider, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
