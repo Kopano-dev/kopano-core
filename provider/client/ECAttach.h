@@ -28,7 +28,7 @@
 
 class ECMsgStore;
 
-class ECAttach : public ECMAPIProp {
+class ECAttach : public ECMAPIProp, public IAttach {
 protected:
 	ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot);
 	virtual ~ECAttach(void) _kc_impdtor;
@@ -52,11 +52,6 @@ public:
 	virtual HRESULT HrSetRealProp(const SPropValue *lpsPropValue);
 	
 	virtual HRESULT HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
-
-	class xAttach _kc_final : public IAttach {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp>
-	} m_xAttach;
 
 private:
 	ULONG ulAttachNum;
