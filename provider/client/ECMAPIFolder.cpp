@@ -479,70 +479,61 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 		return hr;
 
 	// Check if the destination entryid is a kopano entryid and if there is a folder transport
-	if( IsKopanoEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb) &&
-		lpFolderOps != NULL) 
-	{
-		hr = HrGetStoreGuidFromEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb, &guidFolder);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Allocate memory for support list and kopano list
-		hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListEC);
-		if(hr != hrSuccess)
-			return hr;
-		lpMsgListEC->cValues = 0;
-
-		hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, (void**)&lpMsgListEC->lpbin);
-		if(hr != hrSuccess)
-			return hr;
-		hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListSupport);
-		if(hr != hrSuccess)
-			return hr;
-		lpMsgListSupport->cValues = 0;
-
-		hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, (void**)&lpMsgListSupport->lpbin);
-		if(hr != hrSuccess)
-			return hr;
-
-		//FIXME
-		//hr = lpMapiFolder->SetReadFlags(GENERATE_RECEIPT_ONLY);
-		//if(hr != hrSuccess)
-			//goto exit;
-
-		// Check if right store	
-		for (i = 0; i < lpMsgList->cValues; ++i) {
-			hr = HrGetStoreGuidFromEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb, &guidMsg);
-			// check if the message in the store of the folder (serverside copy possible)
-			if(hr == hrSuccess && IsKopanoEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb) && memcmp(&guidMsg, &guidFolder, sizeof(MAPIUID)) == 0)
-				lpMsgListEC->lpbin[lpMsgListEC->cValues++] = lpMsgList->lpbin[i];// cheap copy
-			else
-				lpMsgListSupport->lpbin[lpMsgListSupport->cValues++] = lpMsgList->lpbin[i];// cheap copy
-
-			hr = hrSuccess;
-		}
-		
-		if(lpMsgListEC->cValues > 0)
-		{
-			hr = this->lpFolderOps->HrCopyMessage(lpMsgListEC, lpDestPropArray[0].Value.bin.cb, (LPENTRYID)lpDestPropArray[0].Value.bin.lpb, ulFlags, 0);
-			if(FAILED(hr))
-				goto exit;
-			hrEC = hr;
-		}
-
-		if(lpMsgListSupport->cValues > 0)
-		{
-			hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, &this->m_xMAPIFolder, lpMsgListSupport, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
-			if(FAILED(hr))
-				goto exit;
-		}
-
-	}else
-	{
+	if (!IsKopanoEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb) ||
+	    lpFolderOps == nullptr) {
 		// Do copy with the storeobject
 		// Copy between two or more different stores
 		hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, &this->m_xMAPIFolder, lpMsgList, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
-	}	
+		return hr == hrSuccess ? hrEC : hr;
+	}
 
+	hr = HrGetStoreGuidFromEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb, &guidFolder);
+	if(hr != hrSuccess)
+		return hr;
+
+	// Allocate memory for support list and kopano list
+	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListEC);
+	if (hr != hrSuccess)
+		return hr;
+	lpMsgListEC->cValues = 0;
+	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, (void **)&lpMsgListEC->lpbin);
+	if (hr != hrSuccess)
+		return hr;
+	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListSupport);
+	if (hr != hrSuccess)
+		return hr;
+	lpMsgListSupport->cValues = 0;
+	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, (void **)&lpMsgListSupport->lpbin);
+	if (hr != hrSuccess)
+		return hr;
+	//FIXME
+	//hr = lpMapiFolder->SetReadFlags(GENERATE_RECEIPT_ONLY);
+	//if (hr != hrSuccess)
+		//goto exit;
+
+	// Check if right store	
+	for (i = 0; i < lpMsgList->cValues; ++i) {
+		hr = HrGetStoreGuidFromEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb, &guidMsg);
+		// check if the message in the store of the folder (serverside copy possible)
+		if (hr == hrSuccess && IsKopanoEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb) && memcmp(&guidMsg, &guidFolder, sizeof(MAPIUID)) == 0)
+			lpMsgListEC->lpbin[lpMsgListEC->cValues++] = lpMsgList->lpbin[i]; // cheap copy
+		else
+			lpMsgListSupport->lpbin[lpMsgListSupport->cValues++] = lpMsgList->lpbin[i]; // cheap copy
+		hr = hrSuccess;
+	}
+	if (lpMsgListEC->cValues > 0)
+	{
+		hr = this->lpFolderOps->HrCopyMessage(lpMsgListEC, lpDestPropArray[0].Value.bin.cb, (LPENTRYID)lpDestPropArray[0].Value.bin.lpb, ulFlags, 0);
+		if(FAILED(hr))
+			goto exit;
+		hrEC = hr;
+	}
+	if (lpMsgListSupport->cValues > 0)
+	{
+		hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, &this->m_xMAPIFolder, lpMsgListSupport, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
+		if(FAILED(hr))
+			goto exit;
+	}
 exit:
 	return (hr == hrSuccess)?hrEC:hr;
 }
