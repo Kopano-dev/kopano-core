@@ -229,7 +229,7 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	if (refiid == IID_ECMsgStoreOnline)
 	{
 		if (m_bOfflineStore == FALSE) {
-			*lppInterface = &this->m_xMsgStore;
+			*lppInterface = static_cast<IMsgStore *>(&this->m_xMsgStore);
 			AddRef();
 			return hrSuccess;
 		} 
