@@ -21,7 +21,8 @@ from MAPI.Tags import (
     PR_EXCEPTION_STARTTIME, PR_EXCEPTION_ENDTIME, PR_HASATTACH,
     PR_NORMALIZED_SUBJECT_W, PR_ATTACHMENT_LINKID, PR_ICON_INDEX,
     PR_MESSAGE_RECIPIENTS, IID_IMAPITable, PR_RECIPIENT_FLAGS,
-    PR_MESSAGE_FLAGS, PR_RECIPIENT_TRACKSTATUS,
+    PR_MESSAGE_FLAGS, PR_RECIPIENT_TRACKSTATUS, recipSendable,
+    recipExceptionalResponse, recipExceptionalDeleted, recipOrganizer,
 )
 
 from MAPI.Defs import (
@@ -582,12 +583,12 @@ class Recurrence(object):
         for recip in recips:
             flags = PpropFindProp(recip, PR_RECIPIENT_FLAGS)
             if not flags:
-                recip.append(SPropValue(PR_RECIPIENT_FLAGS, 17)) # XXX
+                recip.append(SPropValue(PR_RECIPIENT_FLAGS, recipExceptionalResponse | recipSendable))
 
         if copytags:
             for recip in recips:
-                recip.append(SPropValue(PR_RECIPIENT_FLAGS, 33)) # XXX
-                recip.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, 0)) # XXX
+                recip.append(SPropValue(PR_RECIPIENT_FLAGS, recipExceptionalDeleted | recipSendable))
+                recip.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, 0))
 
         organiser = _meetingrequest._organizer_props(message, item)
         if organiser and not merge: # XXX merge -> initialize?
@@ -658,8 +659,8 @@ class Recurrence(object):
             recips = list(table.QueryRows(-1, 0))
             for recip in recips:
                 flags = PpropFindProp(recip, PR_RECIPIENT_FLAGS)
-                if flags and flags.Value != 3:
-                    flags.Value = 33
+                if flags and flags.Value != (recipOrganizer | recipSendable):
+                    flags.Value = recipExceptionalDeleted | recipSendable
                     trackstatus = PpropFindProp(recip, PR_RECIPIENT_TRACKSTATUS)
                     recip.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, 0))
 

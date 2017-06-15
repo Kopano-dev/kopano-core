@@ -28,7 +28,8 @@ from MAPI.Tags import (
     PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
     PR_RECIPIENT_DISPLAY_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W,
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ACCOUNT_W, PR_DISPLAY_TYPE_EX,
-    PR_SUBJECT_W, PR_MESSAGE_FLAGS,
+    PR_SUBJECT_W, PR_MESSAGE_FLAGS, recipSendable, recipOrganizer,
+    recipOriginal,
 )
 
 from MAPI.Defs import (
@@ -143,7 +144,7 @@ def _organizer_props(cal_item, item):
     table = cal_item.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
     for row in table.QueryRows(-1, 0):
         recipient_flags = PpropFindProp(row, PR_RECIPIENT_FLAGS)
-        if recipient_flags and recipient_flags.Value == 3: # XXX
+        if recipient_flags and recipient_flags.Value == (recipOrganizer | recipSendable): # XXX
             has_organizer = True
             break
 
@@ -155,8 +156,8 @@ def _organizer_props(cal_item, item):
             SPropValue(PR_RECIPIENT_TYPE, MAPI_TO),
             SPropValue(PR_RECIPIENT_DISPLAY_NAME_W, item.prop(PR_SENT_REPRESENTING_NAME_W).value),
             SPropValue(PR_ADDRTYPE_W, item.prop(PR_SENT_REPRESENTING_ADDRTYPE_W).value), # XXX php
-            SPropValue(PR_RECIPIENT_TRACKSTATUS, 0), # XXX
-            SPropValue(PR_RECIPIENT_FLAGS, 3), # XXX
+            SPropValue(PR_RECIPIENT_TRACKSTATUS, 0),
+            SPropValue(PR_RECIPIENT_FLAGS, (recipOrganizer | recipSendable)),
             SPropValue(PR_SEARCH_KEY, item.prop(PR_SENT_REPRESENTING_SEARCH_KEY).value),
         ]
 
@@ -362,7 +363,7 @@ class MeetingRequest(object):
         props = user.mapiobj.GetProps(proptags, 0)
         props.extend([
             SPropValue(PR_RECIPIENT_ENTRYID, props[6].Value),
-            SPropValue(PR_RECIPIENT_FLAGS, 256 | 1), # XXX
+            SPropValue(PR_RECIPIENT_FLAGS, (recipOriginal | recipSendable)),
             SPropValue(PR_RECIPIENT_TRACKSTATUS, 0),
             SPropValue(PR_RECIPIENT_TYPE, MAPI_BCC),
         ])
