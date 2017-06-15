@@ -1177,14 +1177,19 @@ typedef struct FlagList *LPFlagList;
 #define MAPI_AMBIGUOUS          ((ULONG) 0x00000001)
 #define MAPI_RESOLVED           ((ULONG) 0x00000002)
 
-class IABContainer : public virtual IMAPIContainer {
-public:
-    //    virtual ~IABContainer() = 0;
+namespace KC {
 
-    virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry) = 0;
-    virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
-    virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) = 0;
-	virtual HRESULT ResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList) = 0;
+class IABContainer_DistList_base : public virtual IMAPIContainer {
+	public:
+	virtual HRESULT CreateEntry(ULONG eid_size, ENTRYID *eid, ULONG flags, IMAPIProp **) = 0;
+	virtual HRESULT CopyEntries(ENTRYLIST *, ULONG ui_param, IMAPIProgress *, ULONG flags) = 0;
+	virtual HRESULT DeleteEntries(ENTRYLIST *, ULONG flags) = 0;
+	virtual HRESULT ResolveNames(const SPropTagArray *, ULONG flags, ADRLIST *, FlagList *) = 0;
+};
+
+} /* namespace KC */
+
+class IABContainer : public virtual KC::IABContainer_DistList_base {
 };
 IID_OF(IABContainer);
 
@@ -1267,14 +1272,7 @@ IID_OF(IMailUser);
 /*
  * IDistList Interface
  */
-class IDistList : public virtual IMAPIContainer {
-public:
-    //    virtual ~IDistList() = 0;
-
-    virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry) = 0;
-    virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
-    virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) = 0;
-	virtual HRESULT ResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList) = 0;
+class IDistList : public virtual KC::IABContainer_DistList_base {
 };
 IID_OF(IDistList);
 
