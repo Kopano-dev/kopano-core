@@ -22,7 +22,7 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 
-class ECABProviderSwitch _kc_final : public ECUnknown {
+class ECABProviderSwitch _kc_final : public ECUnknown, public IABProvider {
 protected:
 	ECABProviderSwitch(void);
 
@@ -31,11 +31,6 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
     virtual HRESULT Shutdown(ULONG * lpulFlags);
 	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity, LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon);
-
-	class xABProvider _kc_final : public IABProvider {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IABProvider.hpp>
-	} m_xABProvider;
 	ALLOC_WRAP_FRIEND;
 };
 
