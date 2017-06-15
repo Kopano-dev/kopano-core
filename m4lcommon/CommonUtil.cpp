@@ -1187,22 +1187,22 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 	}
 
 	// Handle PR_DELETE_AFTER_SUBMIT
-	if(lpPropValue[DSM_DELETE_AFTER_SUBMIT].ulPropTag == PR_DELETE_AFTER_SUBMIT && lpPropValue[DSM_DELETE_AFTER_SUBMIT].Value.b == TRUE)
-	{
-		if(lpFolder == NULL)
-		{
-			// Open parent folder of the sent message
-			hr = lpMDB->OpenEntry(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.cb,
-			     reinterpret_cast<ENTRYID *>(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.lpb),
-			     &iid_of(lpFolder), MAPI_MODIFY, &ulType, &~lpFolder);
-			if(hr != hrSuccess)
-				return hr;
-		}
+	if (lpPropValue[DSM_DELETE_AFTER_SUBMIT].ulPropTag != PR_DELETE_AFTER_SUBMIT ||
+	    lpPropValue[DSM_DELETE_AFTER_SUBMIT].Value.b != TRUE)
+		return hr;
 
-		// Delete Message
-		hr = lpFolder->DeleteMessages(&sMsgList, 0, NULL, 0); 
+	if(lpFolder == NULL)
+	{
+		// Open parent folder of the sent message
+		hr = lpMDB->OpenEntry(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.lpb),
+		     &iid_of(lpFolder), MAPI_MODIFY, &ulType, &~lpFolder);
+		if(hr != hrSuccess)
+			return hr;
 	}
-	return hr;
+
+	// Delete Message
+	return lpFolder->DeleteMessages(&sMsgList, 0, nullptr, 0);
 }
 
 // This is a class that implements IMAPIProp's GetProps(), and nothing else. Its data
