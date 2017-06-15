@@ -64,8 +64,8 @@ HRESULT ECMSProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	/*refiid == IID_ECMSProviderSwitch */
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IMSProvider, &this->m_xMSProvider);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xMSProvider);
+	REGISTER_INTERFACE2(IMSProvider, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -323,30 +323,3 @@ HRESULT ECMSProviderSwitch::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryI
 {
 	return ::CompareStoreIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
 }
-
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, Shutdown, (ULONG *, lpulFlags))
-
-HRESULT ECMSProviderSwitch::xMSProvider::Logon(LPMAPISUP lpMAPISup,
-    ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID,
-    LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
-    ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity,
-    LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
-{
-	METHOD_PROLOGUE_(ECMSProviderSwitch, MSProvider);
-	return pThis->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
-}
-
-HRESULT ECMSProviderSwitch::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup,
-    ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID,
-    LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
-    ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity,
-    LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
-{
-	METHOD_PROLOGUE_(ECMSProviderSwitch, MSProvider);
-	return pThis->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
-}
-
-DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderSwitch, MSProvider, CompareStoreIDs, (ULONG, cbEntryID1), (LPENTRYID, lpEntryID1), (ULONG, cbEntryID2), (LPENTRYID, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
