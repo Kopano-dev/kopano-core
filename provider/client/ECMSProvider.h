@@ -25,7 +25,7 @@
 
 #include <string>
 
-class ECMSProvider _kc_final : public ECUnknown {
+class ECMSProvider _kc_final : public ECUnknown, public IMSProvider {
 protected:
 	ECMSProvider(ULONG ulFlags, const char *szClassName);
 	virtual ~ECMSProvider();
@@ -39,11 +39,6 @@ public:
 
 private:
 	static HRESULT LogonByEntryID(WSTransport **lppTransport, sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID, LPENTRYID lpEntryID);
-
-	class xMSProvider _kc_final : public IMSProvider {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMSProvider.hpp>
-	} m_xMSProvider;
 
 	ULONG			m_ulFlags;
 	std::string		m_strLastUser;
