@@ -171,25 +171,10 @@
 #define PRINT_ARGS_OUT_10(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10)			PRINT_ARGSSET_OUT s1, PRINT_ARGSSET_OUT s2, PRINT_ARGSSET_OUT s3, PRINT_ARGSSET_OUT s4, PRINT_ARGSSET_OUT s5, PRINT_ARGSSET_OUT s6, PRINT_ARGSSET_OUT s7, PRINT_ARGSSET_OUT s8, PRINT_ARGSSET_OUT s9, PRINT_ARGSSET_OUT s10
 #define PRINT_ARGS_OUT_11(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11)		PRINT_ARGSSET_OUT s1, PRINT_ARGSSET_OUT s2, PRINT_ARGSSET_OUT s3, PRINT_ARGSSET_OUT s4, PRINT_ARGSSET_OUT s5, PRINT_ARGSSET_OUT s6, PRINT_ARGSSET_OUT s7, PRINT_ARGSSET_OUT s8, PRINT_ARGSSET_OUT s9, PRINT_ARGSSET_OUT s10, PRINT_ARGSSET_OUT s11
 
-
-
 #define XCLASS(_iface)	x ##_iface
-#define ICLASS(_iface)	I ##_iface
 #define CLASSMETHOD(_class, _method)	_class::_method
-#define METHODSTR(_iface, _method)	METHODSTR_HELPER1(CLASSMETHOD(ICLASS(_iface), _method))
 #define METHODSTR_HELPER1(_method)	METHODSTR_HELPER2(_method)
 #define METHODSTR_HELPER2(_method)	#_method
-
-#define DEF_ULONGMETHOD(_trace, _class, _iface, _method, ...)														\
-ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	try {																										\
-		METHOD_PROLOGUE_(_class, _iface);																		\
-		return pThis->_method(ARGS(__VA_ARGS__)); \
-	} catch (const std::bad_alloc &) {																			\
-		return -1; \
-	}																											\
-	return 0; \
-}
 
 #define DEF_ULONGMETHOD1(_trace, _class, _iface, _method, ...) \
 ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	\
@@ -198,79 +183,10 @@ ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIS
 	return pThis->_method(ARGS(__VA_ARGS__)); \
 }
 
-#define DEF_ULONGMETHOD0(_class, _iface, _method, ...) \
-ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	\
-{ \
-	METHOD_PROLOGUE_(_class, _iface); \
-	return pThis->_method(ARGS(__VA_ARGS__)); \
-}
-
-#define DEF_HRMETHOD(_trace, _class, _iface, _method, ...)														\
-HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	try {																										\
-		METHOD_PROLOGUE_(_class, _iface);																		\
-		return pThis->_method(ARGS(__VA_ARGS__)); \
-	} catch (const std::bad_alloc &) {																			\
-		return MAPI_E_NOT_ENOUGH_MEMORY; \
-	}																											\
-	return hrSuccess; \
-}
-
 /* without exception passthrough */
 #define DEF_HRMETHOD1(_trace, _class, _iface, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
 { \
 	METHOD_PROLOGUE_(_class, _iface); \
 	return pThis->_method(ARGS(__VA_ARGS__)); \
-}
-
-/* and without tracing */
-#define DEF_HRMETHOD0(_class, _iface, _method, ...) \
-HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
-{ \
-	METHOD_PROLOGUE_(_class, _iface); \
-	return pThis->_method(ARGS(__VA_ARGS__)); \
-}
-
-#define DEF_HRMETHOD_EX(_trace, _class, _iface, _extra_fmt, _extra_arg, _method, ...)														\
-HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	METHOD_PROLOGUE_(_class, _iface);																		\
-	try {																										\
-		return pThis->_method(ARGS(__VA_ARGS__)); \
-	} catch (const std::bad_alloc &) {																			\
-		return MAPI_E_NOT_ENOUGH_MEMORY; \
-	}																											\
-	return hrSuccess; \
-}
-
-#define DEF_HRMETHOD_EX2(_trace, _class, _iface, _extra_fmt, _extra_arg1, _extra_arg2, _method, ...)														\
-HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	METHOD_PROLOGUE_(_class, _iface);																		\
-	try {																										\
-		return pThis->_method(ARGS(__VA_ARGS__)); \
-	} catch (const std::bad_alloc &) {																			\
-		return MAPI_E_NOT_ENOUGH_MEMORY; \
-	}																											\
-	return hrSuccess; \
-}
-
-#define DEF_HRMETHOD_FORWARD(_trace, _class, _iface, _method, _member, ...)														\
-HRESULT __stdcall CLASSMETHOD(_class, _method)(ARGLIST(__VA_ARGS__))	{			\
-	try {																										\
-		return _member->_method(ARGS(__VA_ARGS__)); \
-	} catch (const std::bad_alloc &) {																			\
-		return MAPI_E_NOT_ENOUGH_MEMORY; \
-	}																											\
-	return hrSuccess; \
-}
-
-#define DEF_HRMETHOD_NOSUPPORT(_trace, _class, _iface, _method, ...)														\
-HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
-	return MAPI_E_NO_SUPPORT; \
-}
-
-#define DEF_HRMETHOD0_NOSUPPORT(_class, _iface, _method, ...) \
-HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
-{ \
-	return MAPI_E_NO_SUPPORT; \
 }
