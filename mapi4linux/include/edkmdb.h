@@ -957,9 +957,7 @@ typedef IExchangeImportHierarchyChanges* LPEXCHANGEIMPORTHIERARCHYCHANGES;
 
 class IProxyStoreObject : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall PlaceHolder1() = 0;
 	virtual HRESULT __stdcall UnwrapNoRef(LPVOID *ppvObject) = 0;
-	virtual HRESULT __stdcall PlaceHolder2() = 0;
 };
 
 typedef IProxyStoreObject* LPPROXYSTOREOBJECT;

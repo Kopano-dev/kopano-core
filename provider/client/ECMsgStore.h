@@ -294,9 +294,7 @@ public:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IProxyStoreObject.hpp>
-		virtual HRESULT __stdcall PlaceHolder1(void) _kc_override;
 		virtual HRESULT __stdcall UnwrapNoRef(LPVOID *ppvObject) _kc_override;
-		virtual HRESULT __stdcall PlaceHolder2(void) _kc_override;
 	} m_xProxyStoreObject;
 
 	class xMsgStoreProxy _kc_final : public IMsgStore {

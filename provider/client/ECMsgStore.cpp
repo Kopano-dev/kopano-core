@@ -2874,9 +2874,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, DeleteFromMasterOutgoingTable, 
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, ProxyStoreObject, PlaceHolder1, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, UnwrapNoRef, (LPVOID *, ppvObject))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, ProxyStoreObject, PlaceHolder2, (void))
 
 // IMsgStoreProxy interface
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AddRef, (void))
