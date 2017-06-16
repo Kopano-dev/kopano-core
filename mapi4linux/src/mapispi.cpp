@@ -306,7 +306,8 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 								   LPCIID lpDestInterface, LPVOID lpDestFolder, LPTSTR lpszNewFolderName, ULONG ulUIParam,
 								   LPMAPIPROGRESS lpProgress, ULONG ulFlags) {
 	HRESULT hr = hrSuccess;
-	object_ptr<IMAPIFolder> lpSource, lpDest, lpFolder, lpSubFolder;
+	IMAPIFolder *lpSource, *lpDest;
+	object_ptr<IMAPIFolder> lpFolder, lpSubFolder;
 	KCHL::memory_ptr<SPropValue> lpSourceName;
 	ULONG ulObjType  = 0;
 	ULONG ulFolderFlags = 0;
@@ -317,14 +318,15 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 		return MAPI_E_INVALID_PARAMETER;
 	if (*lpSrcInterface != IID_IMAPIFolder)
 		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-	hr = ((LPUNKNOWN)lpSrcFolder)->QueryInterface(IID_IMAPIFolder, &~lpSource);
-	if (hr != hrSuccess)
-		return hr;
-
-	// lpDestInterface == NULL or IID_IMAPIFolder compatible
-	hr = ((LPUNKNOWN)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpDest);
-	if (hr != hrSuccess)
-		return hr;
+	/*
+	 * lpDestInterface == NULL or IID_IMAPIFolder compatible.
+	 * [Since IMAPIFolder has no known I* descendants, there is
+	 * just this one class to handle.]
+	 */
+	if (lpDestInterface != nullptr && *lpDestInterface != IID_IMAPIFolder)
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
+	lpSource = static_cast<IMAPIFolder *>(lpSrcFolder);
+	lpDest = static_cast<IMAPIFolder *>(lpDestFolder);
 	hr = lpSource->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpFolder);
 	if (hr != hrSuccess)
 		return hr;
