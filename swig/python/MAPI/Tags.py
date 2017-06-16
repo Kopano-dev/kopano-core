@@ -1727,9 +1727,6 @@ DTE_MASK_LOCAL        = 0x000000ff
 
 EC_TABLE_NOCAP        = 0x40000000
 
-
-# ENUMS
-
 respNone            = 0x00000000
 respOrganized       = 0x00000001
 respTentative       = 0x00000002
@@ -1748,3 +1745,10 @@ ICON_APPT_MEETING_TENTATIVE         = 0x00000407
 ICON_APPT_MEETING_CANCEL            = 0x00000408
 ICON_APPT_MEETING_UPDATE            = 0x00000409
 ICON_APPT_MEETING_FORWARD           = 0x0000040b
+
+# PR_RECIPIENT_FLAGS
+recipSendable = 0x00000001
+recipOrganizer = 0x00000002
+recipExceptionalResponse = 0x00000010
+recipExceptionalDeleted = 0x00000020
+recipOriginal = 0x00000100
