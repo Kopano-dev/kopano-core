@@ -52,8 +52,8 @@ ECExportAddressbookChanges::~ECExportAddressbookChanges() {
 
 HRESULT ECExportAddressbookChanges::QueryInterface(REFIID refiid, void **lppInterface) {
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IECExportAddressbookChanges, &this->m_xECExportAddressbookChanges);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xECExportAddressbookChanges);
+	REGISTER_INTERFACE2(IECExportAddressbookChanges, this);
+	REGISTER_INTERFACE2(IUnknown, this);
     return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -382,10 +382,3 @@ bool ECExportAddressbookChanges::LeftPrecedesRight(const ICSCHANGE &left, const 
 
 	return false;
 }
-
-DEF_ULONGMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, Config, (LPSTREAM, lpStream), (ULONG, ulFlags), (IECImportAddressbookChanges *, lpCollector))
-DEF_HRMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, Synchronize, (ULONG *, lpulSteps), (ULONG *, lpulProgress))
-DEF_HRMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, UpdateState, (LPSTREAM, lpStream))
