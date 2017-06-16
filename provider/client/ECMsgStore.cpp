@@ -2600,7 +2600,7 @@ HRESULT ECMsgStore::UnwrapNoRef(LPVOID *ppvObject)
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Because the function UnwrapNoRef return a non referenced object, QueryInterface isn't needed.
-	*ppvObject = &this->m_xMsgStoreProxy;	
+	*ppvObject = static_cast<IMsgStore *>(&this->m_xMsgStoreProxy);
 	return hrSuccess;
 }
 
