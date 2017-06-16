@@ -233,18 +233,6 @@ public:
 		#include <kopano/xclsfrag/IExchangeManageStore.hpp>
 	} m_xExchangeManageStore;
 
-	class xExchangeManageStore6 _kc_final : public IExchangeManageStore6 {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IExchangeManageStore.hpp>
-		virtual HRESULT __stdcall CreateStoreEntryIDEx(LPTSTR lpszMsgStoreDN, LPTSTR lpszEmail, LPTSTR lpszMailboxDN, ULONG flags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID) _kc_override;
-	} m_xExchangeManageStore6;
-
-	class xExchangeManageStoreEx _kc_final : public IExchangeManageStoreEx {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IExchangeManageStore.hpp>
-		virtual HRESULT __stdcall CreateStoreEntryID2(ULONG cValues, LPSPropValue lpProps, ULONG flags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID) _kc_override;
-	} m_xExchangeManageStoreEx;
-
 	class xECServiceAdmin _kc_final : public IECServiceAdmin {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
