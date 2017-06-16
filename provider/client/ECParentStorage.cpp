@@ -50,7 +50,7 @@ ECParentStorage::~ECParentStorage()
 HRESULT ECParentStorage::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECParentStorage, this);
-	REGISTER_INTERFACE2(IECPropStorage, &this->m_xECPropStorage);
+	REGISTER_INTERFACE2(IECPropStorage, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -124,20 +124,4 @@ HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 
 IECPropStorage* ECParentStorage::GetServerStorage() {
 	return m_lpServerStorage;
-}
-
-// Interface IECPropStorage
-DEF_ULONGMETHOD0(ECParentStorage, ECPropStorage, AddRef, (void))
-DEF_ULONGMETHOD0(ECParentStorage, ECPropStorage, Release, (void))
-DEF_HRMETHOD0(ECParentStorage, ECPropStorage, QueryInterface, (REFIID, refiid), (void**, lppInterface))
-DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrReadProps, (LPSPropTagArray *, lppPropTags), (ULONG *, cValues), (LPSPropValue *, lppValues))
-DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrLoadProp, (ULONG, ulObjId), (ULONG, ulPropTag), (LPSPropValue *, lppsPropValue))
-DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrWriteProps, (ULONG, cValues), (LPSPropValue, lpValues), (ULONG, ulFlags))
-DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrDeleteProps, (const SPropTagArray *, lpsPropTagArray))
-DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrSaveObject, (ULONG, ulFlags), (MAPIOBJECT *, lpsMapiObject))
-DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrLoadObject, (MAPIOBJECT **, lppsMapiObject))
-
-IECPropStorage* ECParentStorage::xECPropStorage::GetServerStorage() {
-	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);
-	return pThis->GetServerStorage();
 }

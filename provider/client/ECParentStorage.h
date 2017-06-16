@@ -36,7 +36,7 @@
 #include <mapi.h>
 #include <mapispi.h>
 
-class ECParentStorage _kc_final : public ECUnknown {
+class ECParentStorage _kc_final : public ECUnknown, public IECPropStorage {
 	/*
 	  lpParentObject:	The property object of the parent (eg. ECMessage for ECAttach)
 	  ulUniqueId:		A unique client-side to find the object in the children list on the parent (PR_ATTACH_NUM (attachments) or PR_ROWID (recipients))
@@ -73,12 +73,6 @@ private:
 	
 	// Returns the correct storage which can connect to the server
 	virtual IECPropStorage* GetServerStorage();
-
-public:
-	class xECPropStorage _kc_final : public IECPropStorage {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IECPropStorage.hpp>
-	} m_xECPropStorage;
 
 private:
 	ECGenericProp *m_lpParentObject;
