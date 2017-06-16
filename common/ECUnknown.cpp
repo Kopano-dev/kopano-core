@@ -23,7 +23,6 @@
 
 #include <kopano/ECUnknown.h>
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 
 namespace KC {
 

@@ -19,7 +19,6 @@
 #include <new>
 #include <mapix.h>
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
 #include "ECMemStream.h"
 #include <kopano/ECDebug.h>

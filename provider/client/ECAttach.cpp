@@ -26,7 +26,6 @@
 
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
-#include <kopano/ECInterfaceDefs.h>
 
 using namespace KCHL;
 

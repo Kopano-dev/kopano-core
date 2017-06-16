@@ -16,7 +16,6 @@
  */
 #include <new>
 #include <kopano/platform.h>
-#include <kopano/ECInterfaceDefs.h>
 #include "ECEnumFBBlock.h"
 #include "freebusyutil.h"
 #include <kopano/stringutil.h>

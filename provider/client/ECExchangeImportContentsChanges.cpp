@@ -17,7 +17,6 @@
 #include <new>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
 #include "ECExchangeImportContentsChanges.h"
 #include "WSMessageStreamImporter.h"

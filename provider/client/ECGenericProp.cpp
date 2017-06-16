@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
-#include <kopano/ECInterfaceDefs.h>
 #include <mapidefs.h>
 #include "WSTransport.h"
 #include "ECGenericProp.h"

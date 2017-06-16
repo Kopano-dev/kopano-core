@@ -17,7 +17,6 @@
 #include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
-#include <kopano/ECInterfaceDefs.h>
 #include <mapicode.h>
 #include <mapidefs.h>
 #include <mapitags.h>
@@ -31,7 +30,6 @@
 #include <kopano/Util.h>
 
 #include <kopano/ECDebug.h>
-#include <kopano/ECInterfaceDefs.h>
 
 using namespace KCHL;
 

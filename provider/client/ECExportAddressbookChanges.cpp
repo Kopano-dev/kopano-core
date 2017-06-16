@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 #include "ics.h"
 #include "pcutil.hpp"
 

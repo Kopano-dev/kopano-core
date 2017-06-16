@@ -16,7 +16,6 @@
  */
 #include <new>
 #include <kopano/platform.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include "kcore.hpp"

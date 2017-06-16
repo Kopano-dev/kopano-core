@@ -40,7 +40,6 @@
 #include "pcutil.hpp"
 #include <kopano/charset/convert.h>
 #include "utf8/unchecked.h"
-#include <kopano/ECInterfaceDefs.h>
 
 using namespace KCHL;
 

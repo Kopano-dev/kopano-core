@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include <new>
 #include "ECMessageStreamImporterIStreamAdapter.h"
-#include <kopano/ECInterfaceDefs.h>
 
 HRESULT ECMessageStreamImporterIStreamAdapter::Create(WSMessageStreamImporter *lpStreamImporter, IStream **lppStream)
 {

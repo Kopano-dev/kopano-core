@@ -21,7 +21,6 @@
 
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <mapiutil.h>
 #include "SOAPUtils.h"
 #include "WSUtil.h"

@@ -18,7 +18,6 @@
 #include "WSABPropStorage.h"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/charset/convert.h>

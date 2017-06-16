@@ -19,7 +19,6 @@
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <ECSyncLog.h>
 #include <kopano/ECDebug.h>
 #include <kopano/ECLogger.h>

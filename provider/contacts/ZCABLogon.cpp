@@ -24,7 +24,6 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECDebugPrint.h>
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
 #include "kcore.hpp"
 #include <mapix.h>

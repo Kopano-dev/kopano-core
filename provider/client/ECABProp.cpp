@@ -16,7 +16,6 @@
  */
 
 #include <kopano/platform.h>
-#include <kopano/ECInterfaceDefs.h>
 #include "kcore.hpp"
 #include "ECABProp.h"
 #include "Mem.h"

@@ -19,7 +19,6 @@
 #include <kopano/lockhelper.hpp>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
-#include <kopano/ECInterfaceDefs.h>
 #include <kopano/ECLogger.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
