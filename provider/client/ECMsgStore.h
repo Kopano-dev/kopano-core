@@ -54,7 +54,7 @@ public:
 
 class ECMsgStore :
     public ECMAPIProp, public IMsgStore, public IExchangeManageStore,
-    public IProxyStoreObject, public IECSpooler {
+    public IECServiceAdmin, public IProxyStoreObject, public IECSpooler {
 	typedef void (* RELEASECALLBACK)(ECUnknown *lpObject, ECMsgStore *lpMsgStore);
 protected:
 	ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore);
@@ -112,6 +112,8 @@ public:
 	virtual HRESULT ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
 	virtual HRESULT CreateUser(ECUSER *lpECUser, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId);
 	virtual HRESULT DeleteUser(ULONG cbUserId, LPENTRYID lpUserId);
+	virtual HRESULT GetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers) _kc_override;
+	virtual HRESULT GetGroupList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups) _kc_override;
 	virtual HRESULT SetUser(ECUSER *lpECUser, ULONG ulFlags);
 	virtual HRESULT GetUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ECUSER **lppECUser);
 	virtual HRESULT ResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId);
@@ -212,67 +214,6 @@ private:
 	static HRESULT MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string *lpstrPseudoUrl);
 
 public:
-	class xECServiceAdmin _kc_final : public IECServiceAdmin {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-
-		// <kopano/xclsfrag/IECServiceAdmin.hpp>
-		virtual HRESULT __stdcall CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG *lpcbStoreId, LPENTRYID *lppStoreId, ULONG *lpcbRootId, LPENTRYID *lppRootId) _kc_override;
-		virtual HRESULT __stdcall CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG flags, ULONG *lpcbStoreId, LPENTRYID *lppStoreId, ULONG *lpcbRootId, LPENTRYID *lppRootId) _kc_override;
-		virtual HRESULT __stdcall HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid) _kc_override;
-		virtual HRESULT __stdcall UnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId) _kc_override;
-		virtual HRESULT __stdcall RemoveStore(LPGUID lpGuid) _kc_override;
-		virtual HRESULT __stdcall ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG *lpcbStoreID, LPENTRYID *lppStoreID) _kc_override;
-		virtual HRESULT __stdcall CreateUser(ECUSER *lpECUser, ULONG flags, ULONG *lpcbUserId, LPENTRYID *lppUserId) _kc_override;
-		virtual HRESULT __stdcall DeleteUser(ULONG cbUserId, LPENTRYID lpUserId) _kc_override;
-		virtual HRESULT __stdcall SetUser(ECUSER *lpECUser, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall GetUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG flags, ECUSER **lppECUser) _kc_override;
-		virtual HRESULT __stdcall ResolveUserName(LPCTSTR lpszUserName, ULONG flags, ULONG *lpcbUserId, LPENTRYID *lppUserId) _kc_override;
-		virtual HRESULT __stdcall GetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG flags, ULONG *lpcUsers, ECUSER **lppsUsers) _kc_override;
-		virtual HRESULT __stdcall GetSendAsList(ULONG cbUserId, LPENTRYID lpUserId, ULONG flags, ULONG *lpcSenders, ECUSER **lppSenders) _kc_override;
-		virtual HRESULT __stdcall AddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId) _kc_override;
-		virtual HRESULT __stdcall DelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId) _kc_override;
-		virtual HRESULT __stdcall GetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG flags, ECUSERCLIENTUPDATESTATUS **lppECUCUS) _kc_override;
-		virtual HRESULT __stdcall RemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId) _kc_override;
-		virtual HRESULT __stdcall CreateGroup(ECGROUP *lpECGroup, ULONG flags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId) _kc_override;
-		virtual HRESULT __stdcall DeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId) _kc_override;
-		virtual HRESULT __stdcall SetGroup(ECGROUP *lpECGroup, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall GetGroup(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG flags, ECGROUP **lppECGroup) _kc_override;
-		virtual HRESULT __stdcall ResolveGroupName(LPCTSTR lpszGroupName, ULONG flags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId) _kc_override;
-		virtual HRESULT __stdcall GetGroupList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG flags, ULONG *lpcGroups, ECGROUP **lppsGroups) _kc_override;
-		virtual HRESULT __stdcall DeleteGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId) _kc_override;
-		virtual HRESULT __stdcall AddGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId) _kc_override;
-		virtual HRESULT __stdcall GetUserListOfGroup(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG flags, ULONG *lpcUsers, ECUSER **lppsUsers) _kc_override;
-		virtual HRESULT __stdcall GetGroupListOfUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG flags, ULONG *lpcGroups, ECGROUP **lppsGroups) _kc_override;
-		virtual HRESULT __stdcall CreateCompany(ECCOMPANY *lpECCompany, ULONG flags, ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId) _kc_override;
-		virtual HRESULT __stdcall DeleteCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId) _kc_override;
-		virtual HRESULT __stdcall SetCompany(ECCOMPANY *lpECCompany, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall GetCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG flags, ECCOMPANY **lppECCompany) _kc_override;
-		virtual HRESULT __stdcall ResolveCompanyName(LPCTSTR lpszCompanyName, ULONG flags, ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId) _kc_override;
-		virtual HRESULT __stdcall GetCompanyList(ULONG flags, ULONG *lpcCompanies, ECCOMPANY **lppsCompanies) _kc_override;
-		virtual HRESULT __stdcall AddCompanyToRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId) _kc_override;
-		virtual HRESULT __stdcall DelCompanyFromRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId) _kc_override;
-		virtual HRESULT __stdcall GetRemoteViewList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG flags, ULONG *lpcCompanies, ECCOMPANY **lppsCompanies) _kc_override;
-		virtual HRESULT __stdcall AddUserToRemoteAdminList(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbCompanyId, LPENTRYID lpCompanyId) _kc_override;
-		virtual HRESULT __stdcall DelUserFromRemoteAdminList(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbCompanyId, LPENTRYID lpCompanyId) _kc_override;
-		virtual HRESULT __stdcall GetRemoteAdminList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG flags, ULONG *lpcUsers, ECUSER **lppsUsers) _kc_override;
-		virtual HRESULT __stdcall SyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId) _kc_override;
-		virtual HRESULT __stdcall GetQuota(ULONG cbUserId, LPENTRYID lpUserId, bool bGetUserDefault, ECQUOTA **lppsQuota) _kc_override;
-		virtual HRESULT __stdcall SetQuota(ULONG cbUserId, LPENTRYID lpUserId, ECQUOTA *lpsQuota) _kc_override;
-		virtual HRESULT __stdcall AddQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType) _kc_override;
-		virtual HRESULT __stdcall DeleteQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCmopanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType) _kc_override;
-		virtual HRESULT __stdcall GetQuotaRecipients(ULONG cbUserId, LPENTRYID lpUserId, ULONG flags, ULONG *lpcUsers, ECUSER **lppsUsers) _kc_override;
-		virtual HRESULT __stdcall GetQuotaStatus(ULONG cbUserId, LPENTRYID lpUserId, ECQUOTASTATUS **lppsQuotaStatus) _kc_override;
-		virtual HRESULT __stdcall PurgeCache(ULONG flags) _kc_override;
-		virtual HRESULT __stdcall PurgeSoftDelete(ULONG ulDays) _kc_override;
-		virtual HRESULT __stdcall PurgeDeferredUpdates(ULONG *lpulDeferredRemaining) _kc_override;
-		virtual HRESULT __stdcall GetServerDetails(ECSVRNAMELIST *lpServerNameList, ULONG flags, ECSERVERLIST **lppsServerList) _kc_override;
-		virtual HRESULT __stdcall OpenUserStoresTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-		virtual HRESULT __stdcall ResolvePseudoUrl(const char *url, char **pathp, bool *ispeer) _kc_override;
-		virtual HRESULT __stdcall GetPublicStoreEntryID(ULONG flags, ULONG *lpcbStoreID, LPENTRYID *lppStoreID) _kc_override;
-		virtual HRESULT __stdcall GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG flags, ULONG *lpcbStoreID, LPENTRYID *lppStoreID) _kc_override;
-		virtual HRESULT __stdcall ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates) _kc_override;
-	} m_xECServiceAdmin;
-
 	class xMsgStoreProxy _kc_final : public IMsgStore {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMsgStore.hpp>

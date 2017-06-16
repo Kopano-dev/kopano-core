@@ -216,7 +216,7 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	if (refiid == IID_IExchangeManageStore && m_bOfflineStore == FALSE)
 		REGISTER_INTERFACE2(IExchangeManageStore, this);
 
-	REGISTER_INTERFACE2(IECServiceAdmin, &this->m_xECServiceAdmin);
+	REGISTER_INTERFACE2(IECServiceAdmin, this);
 	REGISTER_INTERFACE2(IECSpooler, this);
 	REGISTER_INTERFACE2(IECSecurity, this);
 	REGISTER_INTERFACE2(IProxyStoreObject, this);
@@ -2267,6 +2267,18 @@ HRESULT ECMsgStore::DeleteUser(ULONG cbUserId, LPENTRYID lpUserId)
 	return lpTransport->HrDeleteUser(cbUserId, lpUserId);
 }
 
+HRESULT ECMsgStore::GetUserList(ULONG company_size, ENTRYID *company_eid,
+    ULONG flags, ULONG *nusers, ECUSER **out)
+{
+	return ECMAPIProp::GetUserList(company_size, company_eid, flags, nusers, out);
+}
+
+HRESULT ECMsgStore::GetGroupList(ULONG company_size, ENTRYID *company_eid,
+    ULONG flags, ULONG *ngroups, ECGROUP **out)
+{
+	return ECMAPIProp::GetGroupList(company_size, company_eid, flags, ngroups, out);
+}
+
 HRESULT ECMsgStore::ResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId)
 {
 	return lpTransport->HrResolveUserName(lpszUserName, ulFlags, lpcbUserId, lppUserId);
@@ -2759,68 +2771,6 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 	*lppsStreamExporter = ptrStreamExporter.release();
 	return hrSuccess;
 }
-
-// IECServiceAdmin
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, CreateStore, (ULONG, ulStoreType), (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG*, lpcbStoreId), (LPENTRYID*, lppStoreId), (ULONG*, lpcbRootId), (LPENTRYID *, lppRootId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, CreateEmptyStore, (ULONG, ulStoreType), (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ULONG*, lpcbStoreId), (LPENTRYID*, lppStoreId), (ULONG*, lpcbRootId), (LPENTRYID *, lppRootId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, HookStore, (ULONG, ulStoreType), (ULONG, cbUserId), (LPENTRYID, lpUserId), (LPGUID, lpGuid))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, UnhookStore, (ULONG, ulStoreType), (ULONG, cbUserId), (LPENTRYID, lpUserId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, RemoveStore, (LPGUID, lpGuid))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolveStore, (LPGUID, lpGuid), (ULONG *, lpulUserID), (ULONG*, lpcbStoreID), (LPENTRYID*, lppStoreID))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, CreateUser, (ECUSER *, lpECUser), (ULONG, ulFlags), (ULONG *, lpcbUserId), (LPENTRYID *, lppUserId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, SetUser, (ECUSER *, lpECUser), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetUser, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ECUSER **, lppECUser))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DeleteUser, (ULONG, cbUserId), (LPENTRYID, lpUserId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetUserList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcUsers), (ECUSER **, lpsUsers))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetSendAsList, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ULONG *, lpcSenders), (ECUSER **, lppSenders))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddSendAsUser, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, cbSenderId), (LPENTRYID, lpSenderId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DelSendAsUser, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, cbSenderId), (LPENTRYID, lpSenderId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetUserClientUpdateStatus, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ECUSERCLIENTUPDATESTATUS **, lppECUCUS))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, RemoveAllObjects, (ULONG, cbUserId), (LPENTRYID, lpUserId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolveGroupName, (LPCTSTR, lpszGroupName), (ULONG, ulFlags), (ULONG *, lpcbGroupId), (LPENTRYID *, lppGroupId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolveUserName, (LPCTSTR, lpszUserName), (ULONG, ulFlags), (ULONG *, lpcbUserId), (LPENTRYID *, lppUserId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, CreateGroup, (ECGROUP *, lpECGroup), (ULONG, ulFlags), (ULONG *, lpcbGroupId), (LPENTRYID *, lppGroupId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, SetGroup, (ECGROUP *, lpECGroup), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetGroup, (ULONG, cbGroupId), (LPENTRYID, lpGroupId), (ULONG, ulFlags), (ECGROUP **, lppECGroup))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DeleteGroup, (ULONG, cbGroupId), (LPENTRYID, lpGroupId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetGroupList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcGroups), (ECGROUP **, lppsGroups))
-
-//Group and user functions
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DeleteGroupUser, (ULONG, cbGroupId), (LPENTRYID, lpGroupId), (ULONG, cbUserId), (LPENTRYID, lpUserId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddGroupUser, (ULONG, cbGroupId), (LPENTRYID, lpGroupId), (ULONG, cbUserId), (LPENTRYID, lpUserId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetUserListOfGroup, (ULONG, cbGroupId), (LPENTRYID, lpGroupId), (ULONG, ulFlags), (ULONG *, lpcUsers), (ECUSER **, lppsUsers))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetGroupListOfUser, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ULONG *, lpcGroups), (ECGROUP **, lppsGroups))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, CreateCompany, (ECCOMPANY *, lpECCompany), (ULONG, ulFlags), (ULONG *, lpcbCompanyId), (LPENTRYID *, lppCompanyId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DeleteCompany, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, SetCompany, (ECCOMPANY *, lpECCompany), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetCompany, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ECCOMPANY **, lppECCompany))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolveCompanyName, (LPCTSTR, lpszCompanyName), (ULONG, ulFlags), (ULONG *, lpcbCompanyId), (LPENTRYID *, lppCompanyId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetCompanyList, (ULONG, ulFlags), (ULONG *, lpcCompanies), (ECCOMPANY **, lppsCompanies))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddCompanyToRemoteViewList, (ULONG, cbSetCompanyId), (LPENTRYID, lpSetCompanyId), (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DelCompanyFromRemoteViewList, (ULONG, cbSetCompanyId), (LPENTRYID, lpSetCompanyId), (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetRemoteViewList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcCompanies), (ECCOMPANY **, lppsCompanies))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddUserToRemoteAdminList, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DelUserFromRemoteAdminList, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetRemoteAdminList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcUsers), (ECUSER **, lppsUsers))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, SyncUsers, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetQuota, (ULONG, cbUserId), (LPENTRYID, lpUserId), (bool, bGetUserDefault), (ECQUOTA **, lppsQuota))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, SetQuota, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ECQUOTA *, lpsQuota))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddQuotaRecipient, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, cbRecipientId), (LPENTRYID, lpRecipientId), (ULONG, ulType))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DeleteQuotaRecipient, (ULONG, cbCompanyId), (LPENTRYID, lpCmopanyId), (ULONG, cbRecipientId), (LPENTRYID, lpRecipientId), (ULONG, ulType))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetQuotaRecipients, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ULONG *, lpcUsers), (ECUSER **, lppsUsers))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetQuotaStatus, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ECQUOTASTATUS **, lppsQuotaStatus))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, PurgeCache, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, PurgeSoftDelete, (ULONG, ulDays))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, PurgeDeferredUpdates, (ULONG *, lpulRemaining))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetServerDetails, (ECSVRNAMELIST *, lpServerNameList), (ULONG, ulFlags), (ECSERVERLIST **, lppsServerList))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, OpenUserStoresTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolvePseudoUrl, (const char *, lpszPseudoUrl), (char **, lppszServerPath), (bool *, lpbIsPeer))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetPublicStoreEntryID, (ULONG, ulFlags), (ULONG*, lpcbStoreID), (LPENTRYID*, lppStoreID))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetArchiveStoreEntryID, (LPCTSTR, lpszUserName), (LPCTSTR, lpszServerName), (ULONG, ulFlags), (ULONG*, lpcbStoreID), (LPENTRYID*, lppStoreID))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResetFolderCount, (ULONG, cbEntryId), (LPENTRYID, lpEntryId), (ULONG *, lpulUpdates))
 
 // IMsgStoreProxy interface
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AddRef, (void))
