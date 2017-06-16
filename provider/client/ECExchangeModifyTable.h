@@ -56,17 +56,11 @@ private:
 	bool m_bPushToServer = true;
 };
 
-class ECExchangeRuleAction _kc_final : public ECUnknown {
+class ECExchangeRuleAction _kc_final :
+    public ECUnknown, public IExchangeRuleAction {
 public:
 	HRESULT __stdcall ActionCount(ULONG *lpcActions);
 	HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);
-
-	class xExchangeRuleAction _kc_final : public IExchangeRuleAction {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		// <kopano/xclsfrag/IExchangeRuleAction.hpp>
-		virtual HRESULT __stdcall ActionCount(ULONG *lpcActions) _kc_override;
-		virtual HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) _kc_override;
-	} m_xExchangeRuleAction;
 };
 
 #endif
