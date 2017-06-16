@@ -31,8 +31,8 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Create(WSMessageStreamImporter *l
 HRESULT ECMessageStreamImporterIStreamAdapter::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(ISequentialStream, &this->m_xStream);
-	REGISTER_INTERFACE2(IStream, &this->m_xStream);
+	REGISTER_INTERFACE2(ISequentialStream, this);
+	REGISTER_INTERFACE2(IStream, this);
 	return ECUnknown::QueryInterface(refiid, lppInterface);
 }
 
@@ -128,21 +128,3 @@ ECMessageStreamImporterIStreamAdapter::~ECMessageStreamImporterIStreamAdapter()
 {
 	Commit(0);	// This causes us to wait for the async thread.
 }
-
-// ISequentialStream proxies
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Release, (void))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Read, (void *, pv), (ULONG, cb), (ULONG *, pcbRead))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Write, (const void *, pv), (ULONG, cb), (ULONG *, pcbWritten))
-
-// IStream proxies
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Seek, (LARGE_INTEGER, dlibMove), (DWORD, dwOrigin), (ULARGE_INTEGER *, plibNewPosition))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, SetSize, (ULARGE_INTEGER, libNewSize))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, CopyTo, (IStream *, pstm), (ULARGE_INTEGER, cb), (ULARGE_INTEGER *, pcbRead), (ULARGE_INTEGER *, pcbWritten))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Commit, (DWORD, grfCommitFlags))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Revert, (void))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, LockRegion, (ULARGE_INTEGER, libOffset), (ULARGE_INTEGER, cb), (DWORD, dwLockType))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, UnlockRegion, (ULARGE_INTEGER, libOffset), (ULARGE_INTEGER, cb), (DWORD, dwLockType))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Stat, (STATSTG *, pstatstg), (DWORD, grfStatFlag))
-DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Clone, (IStream **, ppstm))
