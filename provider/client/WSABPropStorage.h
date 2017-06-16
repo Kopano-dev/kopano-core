@@ -31,7 +31,7 @@
 #include <mapi.h>
 #include <mapispi.h>
 
-class WSABPropStorage _kc_final : public ECUnknown {
+class WSABPropStorage _kc_final : public ECUnknown, public IECPropStorage {
 protected:
 	WSABPropStorage(ULONG cbEntryId, LPENTRYID, KCmd *, std::recursive_mutex &, ECSESSIONID, WSTransport *);
 	virtual ~WSABPropStorage();
@@ -65,12 +65,6 @@ private:
 
 	virtual HRESULT LockSoap();
 	virtual HRESULT UnLockSoap();
-
-public:
-	class xECPropStorage _kc_final : public IECPropStorage {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IECPropStorage.hpp>
-	} m_xECPropStorage;
 
 private:
 	entryId			m_sEntryId;
