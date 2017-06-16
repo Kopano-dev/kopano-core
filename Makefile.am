@@ -714,7 +714,7 @@ libmapi_la_SOURCES = \
 	m4lcommon/IECImportContentsChanges.h \
 	m4lcommon/IECImportHierarchyChanges.h \
 	m4lcommon/IECMultiStoreTable.h m4lcommon/IECSpooler.h \
-	m4lcommon/IECTestProtocol.h m4lcommon/IMAPIOffline.h \
+	m4lcommon/IECTestProtocol.h \
 	m4lcommon/MAPIConsoleTable.cpp m4lcommon/MAPIConsoleTable.h \
 	m4lcommon/MAPINotifSink.cpp m4lcommon/MAPINotifSink.h \
 	m4lcommon/Util.cpp \

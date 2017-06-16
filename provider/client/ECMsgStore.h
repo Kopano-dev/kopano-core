@@ -37,9 +37,6 @@
 #include "IECMultiStoreTable.h"
 #include <kopano/IECLicense.h>
 #include "IECTestProtocol.h"
-
-#include "IMAPIOffline.h"
-
 #include <set>
 
 namespace KC {
@@ -162,14 +159,6 @@ public:
 	virtual HRESULT GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
 	virtual HRESULT ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates);
 	
-	// MAPIOfflineMgr
-	virtual HRESULT SetCurrentState(ULONG ulFlags, ULONG ulMask, ULONG ulState, void* pReserved);
-	virtual HRESULT GetCapabilities(ULONG *pulCapabilities);
-	virtual HRESULT GetCurrentState(ULONG* pulState);
-
-	virtual HRESULT Advise(ULONG ulFlags, MAPIOFFLINE_ADVISEINFO* pAdviseInfo, ULONG* pulAdviseToken);
-	virtual HRESULT Unadvise(ULONG ulFlags,ULONG ulAdviseToken);
-
 	virtual HRESULT UnwrapNoRef(LPVOID *ppvObject);
 
 	// ECMultiStoreTable
@@ -300,19 +289,6 @@ public:
 		virtual HRESULT __stdcall GetMasterOutgoingTable(ULONG flags, IMAPITable **lppOutgoingTable) _kc_override;
 		virtual HRESULT __stdcall DeleteFromMasterOutgoingTable(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG flags) _kc_override;
 	} m_xECSpooler;
-
-	class xMAPIOfflineMgr _kc_final : public IMAPIOfflineMgr {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-
-		// <kopano/xclsfrag/IMAPIOffline.hpp>
-		virtual HRESULT __stdcall SetCurrentState(ULONG flags, ULONG ulMask, ULONG ulState, void *pReserved) _kc_override;
-		virtual HRESULT __stdcall GetCapabilities(ULONG *pulCapabilities) _kc_override;
-		virtual HRESULT __stdcall GetCurrentState(ULONG *pulState) _kc_override;
-
-		// <kopano/xclsfrag/IMAPIOfflineMgr.hpp>
-		virtual HRESULT __stdcall Advise(ULONG flags, MAPIOFFLINE_ADVISEINFO *pAdviseInfo, ULONG *pulAdviseToken) _kc_override;
-		virtual HRESULT __stdcall Unadvise(ULONG flags, ULONG ulAdviseToken) _kc_override;
-	} m_xMAPIOfflineMgr;
 
 	class xProxyStoreObject _kc_final : public IProxyStoreObject {
 		#include <kopano/xclsfrag/IUnknown.hpp>

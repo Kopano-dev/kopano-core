@@ -2593,32 +2593,6 @@ HRESULT ECMsgStore::DeleteFromMasterOutgoingTable(ULONG cbEntryId,
 	return this->lpTransport->HrFinishedMessage(cbEntryId, lpEntryId, EC_SUBMIT_MASTER | ulFlags);
 }
 
-// MAPIOfflineMgr
-HRESULT ECMsgStore::SetCurrentState(ULONG ulFlags, ULONG ulMask, ULONG ulState, void* pReserved)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMsgStore::GetCapabilities(ULONG *pulCapabilities)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMsgStore::GetCurrentState(ULONG* pulState)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMsgStore::Advise(ULONG ulFlags, MAPIOFFLINE_ADVISEINFO* pAdviseInfo, ULONG* pulAdviseToken)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMsgStore::Unadvise(ULONG ulFlags,ULONG ulAdviseToken)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 // ProxyStoreObject
 HRESULT ECMsgStore::UnwrapNoRef(LPVOID *ppvObject) 
 {
@@ -2895,16 +2869,6 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, GetMasterOutgoingTable, (ULONG, ulFlags), (IMAPITable **, lppOutgoingTable))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, DeleteFromMasterOutgoingTable, (ULONG, cbEntryID), (const ENTRYID *, lpEntryID), (ULONG, ulFlags))
-
-// Interface IMAPIOfflineMgr
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, SetCurrentState, (ULONG, ulFlags), (ULONG, ulMask), (ULONG, ulState), (void*, pReserved))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, GetCapabilities, (ULONG *, pulCapabilities))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, GetCurrentState, (ULONG*, pulState))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Advise, (ULONG, ulFlags), (MAPIOFFLINE_ADVISEINFO*, pAdviseInfo), (ULONG*, pulAdviseToken))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Unadvise, (ULONG, ulFlags), (ULONG, ulAdviseToken))
 
 // Interface IProxyStoreObject
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, AddRef, (void))
