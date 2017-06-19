@@ -585,7 +585,7 @@ noinst_HEADERS += \
 	common/ECMemStream.h common/HtmlEntity.h common/HtmlToTextParser.h \
 	common/IStreamAdapter.h common/rtfutil.h
 libkcmapi_la_SOURCES = \
-	common/ECABEntryID.cpp common/ECDebug.cpp common/ECDebugPrint.cpp \
+	common/ECABEntryID.cpp common/ECDebug.cpp \
 	common/ECGuid.cpp common/ECKeyTable.cpp common/ECMemStream.cpp \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
 	common/IStreamAdapter.cpp common/MAPIErrors.cpp common/kcodes.cpp \

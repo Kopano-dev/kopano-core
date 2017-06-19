@@ -21,9 +21,10 @@
 #include <list>
 #include <vector>
 #include <memory>
+#include <mapidefs.h>
 #include <kopano/zcdefs.h>
-#include <kopano/ECDebugPrint.h>
 #include <kopano/ArchiveControl.h>
+#include <kopano/stringutil.h>
 
 namespace KC {
 
