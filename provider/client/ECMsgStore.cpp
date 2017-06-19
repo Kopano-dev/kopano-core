@@ -244,9 +244,9 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 		return hrSuccess;
 	}
 	// is admin store?
-	REGISTER_INTERFACE2(IECMultiStoreTable, &this->m_xECMultiStoreTable);
-	REGISTER_INTERFACE2(IECLicense, &this->m_xECLicense);
-	REGISTER_INTERFACE2(IECTestProtocol, &this->m_xECTestProtocol);
+	REGISTER_INTERFACE2(IECMultiStoreTable, &this->m_xMsgStoreProxy);
+	REGISTER_INTERFACE2(IECLicense, &this->m_xMsgStoreProxy);
+	REGISTER_INTERFACE2(IECTestProtocol, &this->m_xMsgStoreProxy);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -2807,41 +2807,17 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetNamesFromIDs, (LPSPropTa
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
 
 // IECMultiStoreTable interface
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECMultiStoreTable, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECMultiStoreTable, Release, (void))
-
-HRESULT ECMsgStore::xECMultiStoreTable::QueryInterface(REFIID refiid, void **lppInterface) {
-	METHOD_PROLOGUE_(ECMsgStore, ECMultiStoreTable);
-	return pThis->QueryInterfaceProxy(refiid, lppInterface);
-}
-
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECMultiStoreTable, OpenMultiStoreTable, (LPENTRYLIST, lpMsgList), (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenMultiStoreTable, (LPENTRYLIST, lpMsgList), (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
 
 // IECLicense interface
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, Release, (void))
-
-HRESULT ECMsgStore::xECLicense::QueryInterface(REFIID refiid, void **lppInterface) {
-	METHOD_PROLOGUE_(ECMsgStore, ECLicense);
-	return pThis->QueryInterfaceProxy(refiid, lppInterface);
-}
-
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, LicenseAuth, (unsigned char *, lpData), (unsigned int, ulSize), (unsigned char **, lppResponse), (unsigned int *, lpulResponseSize))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, LicenseCapa, (unsigned int, ulServiceType), (char ***, lppszData), (unsigned int *, lpulSize))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, LicenseUsers, (unsigned int, ulServiceType), (unsigned int *, lpulUsers))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, LicenseAuth, (unsigned char *, lpData), (unsigned int, ulSize), (unsigned char **, lppResponse), (unsigned int *, lpulResponseSize))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, LicenseCapa, (unsigned int, ulServiceType), (char ***, lppszData), (unsigned int *, lpulSize))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, LicenseUsers, (unsigned int, ulServiceType), (unsigned int *, lpulUsers))
 
 // IECTestProtocol interface
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, Release, (void))
-
-HRESULT ECMsgStore::xECTestProtocol::QueryInterface(REFIID refiid, void **lppInterface) {
-	METHOD_PROLOGUE_(ECMsgStore, ECTestProtocol);
-	return pThis->QueryInterfaceProxy(refiid, lppInterface);
-}
-
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestPerform, (const char *, cmd), (unsigned int, argc), (char **, args))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestSet, (const char *, name), (const char *, value))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestGet, (const char *, name), (char **, value))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestPerform, (const char *, cmd), (unsigned int, argc), (char **, args))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestSet, (const char *, name), (const char *, value))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestGet, (const char *, name), (char **, value))
 
 ECMSLogon::ECMSLogon(ECMsgStore *lpStore) :
 	m_lpStore(lpStore)

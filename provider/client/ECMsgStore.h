@@ -214,34 +214,20 @@ private:
 	static HRESULT MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string *lpstrPseudoUrl);
 
 public:
-	class xMsgStoreProxy _kc_final : public IMsgStore {
+	class xMsgStoreProxy _kc_final :
+	    public IMsgStore, public IECMultiStoreTable, public IECLicense,
+	    public IECTestProtocol {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMsgStore.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
-	} m_xMsgStoreProxy;
-	
-	class xECMultiStoreTable _kc_final : public IECMultiStoreTable {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		// <kopano/xclsfrag/IECMultiStoreTable.hpp>
 		virtual HRESULT __stdcall OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-	} m_xECMultiStoreTable;
-
-	class xECLicense _kc_final : public IECLicense {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		// <kopano/xclsfrag/IECLicense.hpp>
 		virtual HRESULT __stdcall LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lpResponseData, unsigned int *lpulResponseSize) _kc_override;
 		virtual HRESULT __stdcall LicenseCapa(unsigned int ulServiceType, char ***lppszCapas, unsigned int *lpulSize) _kc_override;
 		virtual HRESULT __stdcall LicenseUsers(unsigned int ulServiceType, unsigned int *lpulUsers) _kc_override;
-    } m_xECLicense;
-
-	class xECTestProtocol _kc_final : public IECTestProtocol {
-    public:
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		// <kopano/xclsfrag/IECTestProtocol.hpp>
 		virtual HRESULT __stdcall TestPerform(const char *cmd, unsigned int argc, char **args) _kc_override;
 		virtual HRESULT __stdcall TestSet(const char *name, const char *value) _kc_override;
 		virtual HRESULT __stdcall TestGet(const char *name, char **value) _kc_override;
-    } m_xECTestProtocol;
+	} m_xMsgStoreProxy;
 	
 public:
 	LPMAPISUP			lpSupport;
