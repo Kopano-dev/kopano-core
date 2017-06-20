@@ -775,34 +775,6 @@ FILETIME FtMulDw(DWORD ftMultiplier, FILETIME ftMultiplicand)
 	return ft;
 }
 
-LONG MAPIInitIdle(LPVOID lpvReserved)
-{
-	return 0;
-}
-
-void MAPIDeinitIdle(void)
-{
-}
-
-void DeregisterIdleRoutine(FTG ftg)
-{
-}
-
-void EnableIdleRoutine(FTG ftg,  BOOL fEnable)
-{
-}
-
-void ChangeIdleRoutine(FTG ftg, PFNIDLE pfnIdle, LPVOID pvIdleParam,
-    short priIdle, ULONG csecIdle, USHORT iroIdle, USHORT ircIdle)
-{
-}
-
-FTG FtgRegisterIdleRoutine(PFNIDLE pfnIdle, LPVOID pvIdleParam, short priIdle,
-    ULONG csecIdle, USHORT iroIdle)
-{
-	return nullptr;
-}
-
 const WORD kwBaseOffset = 0xAC00;  // Hangul char range (AC00-D7AF)
 LPWSTR EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString)
 {

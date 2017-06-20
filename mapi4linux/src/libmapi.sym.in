@@ -3,11 +3,8 @@ global:
 	BuildDisplayTable;
 	CbOfEncoded;
 	CchOfEncoding;
-	ChangeIdleRoutine;
 	CloseIMsgSession;
 	DeinitMapiUtil;
-	DeregisterIdleRoutine;
-	EnableIdleRoutine;
 	EncodeID;
 	FBinFromHex;
 	FDecodeID;
@@ -18,7 +15,6 @@ global:
 	FtDivFtBogus;
 	FtMulDw;
 	FtSubFt;
-	FtgRegisterIdleRoutine;
 	GetAttribIMsgOnIStg;
 	HexFromBin;
 	HrAllocAdviseSink;
@@ -30,9 +26,7 @@ global:
 	MAPIAdminProfiles;
 	MAPIAllocateBuffer;
 	MAPIAllocateMore;
-	MAPIDeinitIdle;
 	MAPIFreeBuffer;
-	MAPIInitIdle;
 	MAPIInitialize;
 	MAPILogonEx;
 	MAPIUninitialize;
