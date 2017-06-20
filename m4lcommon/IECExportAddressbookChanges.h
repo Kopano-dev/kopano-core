@@ -24,9 +24,9 @@ class IECImportAddressbookChanges;
 
 class IECExportAddressbookChanges : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall Config(LPSTREAM lpState, ULONG ulFlags, IECImportAddressbookChanges *lpCollector) = 0;
-	virtual HRESULT __stdcall Synchronize(ULONG *lpulSteps, ULONG *lpulProgress) = 0;
-	virtual HRESULT __stdcall UpdateState(LPSTREAM lpState) = 0;
+	virtual HRESULT Config(LPSTREAM lpState, ULONG ulFlags, IECImportAddressbookChanges *lpCollector) = 0;
+	virtual HRESULT Synchronize(ULONG *lpulSteps, ULONG *lpulProgress) = 0;
+	virtual HRESULT UpdateState(LPSTREAM lpState) = 0;
 };
 
 } /* namespace */

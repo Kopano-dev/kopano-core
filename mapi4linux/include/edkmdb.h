@@ -41,14 +41,11 @@
 
 class IExchangeManageStore : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG	ulFlags, ULONG *lpcbEntryID,
-												 LPENTRYID *lppEntryID) = 0;
-	virtual HRESULT __stdcall EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize,
-												   BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID) = 0;
-	virtual HRESULT __stdcall GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID, ULONG cbEntryID, LPENTRYID lpEntryID,
-										ULONG *lpulRights) = 0;
-	virtual HRESULT __stdcall GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags) = 0;
-	virtual HRESULT __stdcall GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags) = 0;
+	virtual HRESULT CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG	ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID) = 0;
+	virtual HRESULT EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey, ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID) = 0;
+	virtual HRESULT GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulRights) = 0;
+	virtual HRESULT GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags) = 0;
+	virtual HRESULT GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags) = 0;
 };
 IID_OF(IExchangeManageStore);
 
@@ -608,9 +605,9 @@ typedef struct ROWLIST *LPROWLIST;
 
 class IExchangeModifyTable : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
-	virtual HRESULT __stdcall GetTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
-	virtual HRESULT __stdcall ModifyTable(ULONG ulFlags, LPROWLIST lpMods) = 0;
+	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
+	virtual HRESULT GetTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
+	virtual HRESULT ModifyTable(ULONG ulFlags, LPROWLIST lpMods) = 0;
 };
 IID_OF(IExchangeModifyTable);
 
@@ -831,8 +828,8 @@ HRESULT HrDeserializeActions(IMAPIProp * pprop, BYTE * pbActions, ULONG cbAction
 
 class IExchangeRuleAction : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall ActionCount(ULONG *lpcActions) = 0;
-	virtual HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) = 0;
+	virtual HRESULT ActionCount(ULONG *lpcActions) = 0;
+	virtual HRESULT GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) = 0;
 };
 
 typedef IExchangeRuleAction* LPEXCHANGERULEACTION;
@@ -841,7 +838,7 @@ typedef IExchangeRuleAction* LPEXCHANGERULEACTION;
 //Outlook 2007, Blocked Attachments
 class IAttachmentSecurity : public IUnknown {
 public:
-	virtual HRESULT __stdcall IsAttachmentBlocked(LPCWSTR pwszFileName, BOOL *pfBlocked) = 0;
+	virtual HRESULT IsAttachmentBlocked(LPCWSTR pwszFileName, BOOL *pfBlocked) = 0;
 };
 
 struct READSTATE {
@@ -923,41 +920,41 @@ typedef struct READSTATE *LPREADSTATE;
 
 class IExchangeExportChanges : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
-	virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
-	virtual HRESULT __stdcall Synchronize(ULONG *pulSteps, ULONG *pulProgress) = 0;
-	virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) = 0;
+	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
+	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
+	virtual HRESULT Synchronize(ULONG *pulSteps, ULONG *pulProgress) = 0;
+	virtual HRESULT UpdateState(LPSTREAM lpStream) = 0;
 };
 
 typedef IExchangeExportChanges* LPEXCHANGEEXPORTCHANGES;
 
 class IExchangeImportContentsChanges : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
-	virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags) = 0;
-	virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) = 0;
-	virtual HRESULT __stdcall ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage) = 0;
-	virtual HRESULT __stdcall ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) = 0;
-	virtual HRESULT __stdcall ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) = 0;
-	virtual HRESULT __stdcall ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) = 0;
+	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
+	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags) = 0;
+	virtual HRESULT UpdateState(LPSTREAM lpStream) = 0;
+	virtual HRESULT ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage) = 0;
+	virtual HRESULT ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) = 0;
+	virtual HRESULT ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) = 0;
+	virtual HRESULT ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) = 0;
 };
 
 typedef IExchangeImportContentsChanges* LPEXCHANGEIMPORTCONTENTSCHANGES;
 
 class IExchangeImportHierarchyChanges : public virtual IUnknown {
 public:
-    virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
-	virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags) = 0;
-	virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) = 0;
-	virtual HRESULT __stdcall ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray) = 0;
-	virtual HRESULT __stdcall ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) = 0;
+	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
+	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags) = 0;
+	virtual HRESULT UpdateState(LPSTREAM lpStream) = 0;
+	virtual HRESULT ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray) = 0;
+	virtual HRESULT ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) = 0;
 };
 
 typedef IExchangeImportHierarchyChanges* LPEXCHANGEIMPORTHIERARCHYCHANGES;
 
 class IProxyStoreObject : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall UnwrapNoRef(LPVOID *ppvObject) = 0;
+	virtual HRESULT UnwrapNoRef(LPVOID *ppvObject) = 0;
 };
 
 typedef IProxyStoreObject* LPPROXYSTOREOBJECT;
@@ -969,24 +966,23 @@ typedef IProxyStoreObject* LPPROXYSTOREOBJECT;
 // Provides information about a folder's support for sharing.
 class IFolderSupport : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall GetSupportMask(DWORD *pdwSupportMask) = 0;
+	virtual HRESULT GetSupportMask(DWORD *pdwSupportMask) = 0;
 };
 
 typedef IFolderSupport* LPIFOLDERSUPPORT;
 
 class IExchangeFavorites : public IUnknown {
 public:
-    virtual HRESULT __stdcall GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
-    virtual HRESULT __stdcall AddFavorites(LPENTRYLIST lpEntryList) = 0;
-    virtual HRESULT __stdcall DelFavorites(LPENTRYLIST lpEntryList) = 0;
+	virtual HRESULT GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
+	virtual HRESULT AddFavorites(LPENTRYLIST lpEntryList) = 0;
+	virtual HRESULT DelFavorites(LPENTRYLIST lpEntryList) = 0;
 };
 
 /* New from Outlook 2010 MAPI Extension */
 class IMAPIGetSession : public virtual IUnknown {
 public:
     //    virtual ~IMAPIGetSession() = 0;
-
-	virtual HRESULT __stdcall GetMAPISession(LPUNKNOWN *lppSession) = 0;
+	virtual HRESULT GetMAPISession(LPUNKNOWN *lppSession) = 0;
 };
 
 typedef IMAPIGetSession* LPMAPIGETSESSION;

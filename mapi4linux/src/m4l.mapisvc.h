@@ -30,8 +30,7 @@ typedef std::map<std::string, std::string> inf_section;
 typedef std::map<std::string, inf_section> inf;
 
 /* MAPI Providers EntryPoint functions */
-typedef HRESULT (__stdcall *SVC_MSGServiceEntry)(HINSTANCE, IMalloc *, IMAPISupport *, ULONG ui_param, ULONG flags, ULONG context, ULONG nprops, const SPropValue *props, IProviderAdmin *, MAPIERROR **errout);
-
+typedef HRESULT (*SVC_MSGServiceEntry)(HINSTANCE, IMalloc *, IMAPISupport *, ULONG ui_param, ULONG flags, ULONG context, ULONG nprops, const SPropValue *props, IProviderAdmin *, MAPIERROR **errout);
 typedef HRESULT(__cdecl *SVC_MSProviderInit)(HINSTANCE hInstance, LPMALLOC pmalloc,
 											 LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore, LPFREEBUFFER pfnFreeBuf,
 											 ULONG ulFlags, ULONG ulMAPIVersion, ULONG * pulMDBVersion, LPMSPROVIDER * ppmsp);

@@ -2275,7 +2275,7 @@ HRESULT M4LAddrBook::QueryInterface(REFIID refiid, void **lpvoid) {
 static std::unordered_map<void *, std::vector<void *> > mapi_allocmap;
 static std::mutex mapi_allocmap_lock;
 
-SCODE __stdcall MAPIAllocateBuffer(ULONG size, void **buf)
+SCODE MAPIAllocateBuffer(ULONG size, void **buf)
 {
 	if (buf == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2285,7 +2285,7 @@ SCODE __stdcall MAPIAllocateBuffer(ULONG size, void **buf)
 	return hrSuccess;
 }
 
-SCODE __stdcall MAPIAllocateMore(ULONG size, void *obj, void **buf)
+SCODE MAPIAllocateMore(ULONG size, void *obj, void **buf)
 {
 	if (obj == nullptr)
 		return MAPIAllocateBuffer(size, buf);
@@ -2297,7 +2297,7 @@ SCODE __stdcall MAPIAllocateMore(ULONG size, void *obj, void **buf)
 	return hrSuccess;
 }
 
-ULONG __stdcall MAPIFreeBuffer(void *buf)
+ULONG MAPIFreeBuffer(void *buf)
 {
 	if (buf == nullptr)
 		return S_OK;
@@ -2310,7 +2310,7 @@ ULONG __stdcall MAPIFreeBuffer(void *buf)
 
 #else /* DUMB_MAPIALLOC */
 
-SCODE __stdcall MAPIAllocateBuffer(ULONG cbSize, LPVOID* lppBuffer)
+SCODE MAPIAllocateBuffer(ULONG cbSize, LPVOID *lppBuffer)
 {
 	if (lppBuffer == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2339,7 +2339,8 @@ SCODE __stdcall MAPIAllocateBuffer(ULONG cbSize, LPVOID* lppBuffer)
  * @retval		MAPI_E_INVALID_PARAMETER	Invalid input parameters
  * @retval		MAPI_E_NOT_ENOUGH_MEMORY
  */
-SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffer) {
+SCODE MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID *lppBuffer)
+{
 	if (lppBuffer == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if (!lpObject)
@@ -2370,7 +2371,8 @@ SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffe
  * @param[in]	lpBuffer	Pointer to be freed.
  * @return		ULONG		Always 0 in Linux.
  */
-ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
+ULONG MAPIFreeBuffer(LPVOID lpBuffer)
+{
 	/* Well it could happen, especially according to the MSDN.. */
 	if (!lpBuffer)
 		return S_OK;
@@ -2409,7 +2411,7 @@ IProfAdmin *localProfileAdmin = NULL;
  * @retval		MAPI_E_CALL_FAILED	MAPIInitialize not called previously.
  * @retval		MAPI_E_INVALID_PARAMETER	No lppProfAdmin return parameter given.
  */
-HRESULT __stdcall MAPIAdminProfiles(ULONG ulFlags, IProfAdmin **lppProfAdmin)
+HRESULT MAPIAdminProfiles(ULONG ulFlags, IProfAdmin **lppProfAdmin)
 {
 	if (!localProfileAdmin) {
 		ec_log_err("MAPIAdminProfiles(): localProfileAdmin not set");
@@ -2438,7 +2440,7 @@ HRESULT __stdcall MAPIAdminProfiles(ULONG ulFlags, IProfAdmin **lppProfAdmin)
  * @retval		MAPI_E_INVALID_PARAMETER	No profilename or lppSession return pointer given.
  * @retval		MAPI_E_NOT_ENOUGH_MEMORY
  */
-HRESULT __stdcall MAPILogonEx(ULONG_PTR ulUIParam, const TCHAR *lpszProfileName,
+HRESULT MAPILogonEx(ULONG_PTR ulUIParam, const TCHAR *lpszProfileName,
     const TCHAR *lpszPassword, ULONG ulFlags, IMAPISession **lppSession)
 {
 	HRESULT hr = hrSuccess;
@@ -2502,7 +2504,8 @@ static std::mutex g_MAPILock;
  * @retval	MAPI_E_CALL_FAILED	Unable to use libkcclient.so
  * @retval	MAPI_E_NOT_ENOUGH_MEMORY Memory allocation failed
  */
-HRESULT __stdcall MAPIInitialize(LPVOID lpMapiInit) {
+HRESULT MAPIInitialize(LPVOID lpMapiInit)
+{
 	scoped_lock l_mapi(g_MAPILock);
 
 	if (_MAPIInitializeCount++) {
@@ -2542,7 +2545,8 @@ HRESULT __stdcall MAPIInitialize(LPVOID lpMapiInit) {
  * object from that library you still * have will be unusable,
  * and will make your program crash when used.
  */
-void __stdcall MAPIUninitialize(void) {
+void MAPIUninitialize(void)
+{
 	scoped_lock l_mapi(g_MAPILock);
 
 	if (_MAPIInitializeCount == 0)

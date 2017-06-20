@@ -25,12 +25,11 @@ namespace KC {
 
 class IECImportAddressbookChanges : public IUnknown {
 public:
-	virtual HRESULT __stdcall GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
-	virtual HRESULT __stdcall Config(LPSTREAM lpState, ULONG ulFlags) = 0;
-	virtual HRESULT __stdcall UpdateState(LPSTREAM lpState) = 0;
-
-	virtual HRESULT __stdcall ImportABChange(ULONG type, ULONG cbObjId, LPENTRYID lpObjId) = 0;
-	virtual HRESULT __stdcall ImportABDeletion(ULONG type, ULONG cbObjId, LPENTRYID lpObjId) = 0;
+	virtual HRESULT GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
+	virtual HRESULT Config(LPSTREAM lpState, ULONG ulFlags) = 0;
+	virtual HRESULT UpdateState(LPSTREAM lpState) = 0;
+	virtual HRESULT ImportABChange(ULONG type, ULONG cbObjId, LPENTRYID lpObjId) = 0;
+	virtual HRESULT ImportABDeletion(ULONG type, ULONG cbObjId, LPENTRYID lpObjId) = 0;
 };
 
 } /* namespace */

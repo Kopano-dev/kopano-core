@@ -45,7 +45,7 @@
 
 using namespace KCHL;
 
-ULONG __stdcall UlRelease(LPVOID lpUnknown)
+ULONG UlRelease(LPVOID lpUnknown)
 {
 	if(lpUnknown)
 		return ((IUnknown *)lpUnknown)->Release();
@@ -53,17 +53,17 @@ ULONG __stdcall UlRelease(LPVOID lpUnknown)
 		return 0;
 }
 
-void __stdcall DeinitMapiUtil(void)
+void DeinitMapiUtil(void)
 {
 }
 
-SPropValue * __stdcall PpropFindProp(SPropValue *lpPropArray, ULONG cValues,
+SPropValue *PpropFindProp(SPropValue *lpPropArray, ULONG cValues,
     ULONG ulPropTag)
 {
 	return const_cast<SPropValue *>(PCpropFindProp(lpPropArray, cValues, ulPropTag));
 }
 
-const SPropValue * __stdcall PCpropFindProp(const SPropValue *lpPropArray,
+const SPropValue *PCpropFindProp(const SPropValue *lpPropArray,
     ULONG cValues, ULONG ulPropTag)
 {
 	if (lpPropArray == NULL)
@@ -77,7 +77,7 @@ const SPropValue * __stdcall PCpropFindProp(const SPropValue *lpPropArray,
 }
 
 // Find a property with a given property Id in a property array. NOTE: doesn't care about prop type!
-LPSPropValue __stdcall LpValFindProp(ULONG ulPropTag, ULONG cValues, LPSPropValue lpProps)
+LPSPropValue LpValFindProp(ULONG ulPropTag, ULONG cValues, LPSPropValue lpProps)
 {
 	if (lpProps == NULL)
 		return nullptr;
@@ -87,12 +87,13 @@ LPSPropValue __stdcall LpValFindProp(ULONG ulPropTag, ULONG cValues, LPSPropValu
 	return nullptr;
 }
 
-SCODE __stdcall PropCopyMore( LPSPropValue lpSPropValueDest,  LPSPropValue lpSPropValueSrc,  ALLOCATEMORE * lpfAllocMore,  LPVOID lpvObject)
+SCODE PropCopyMore(LPSPropValue lpSPropValueDest, LPSPropValue lpSPropValueSrc,
+    ALLOCATEMORE *lpfAllocMore, LPVOID lpvObject)
 {
 	return Util::HrCopyProperty(lpSPropValueDest, lpSPropValueSrc, lpvObject, lpfAllocMore);
 }
 
-HRESULT __stdcall WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
+HRESULT WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
     ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,
     ENTRYID **lppWrappedEntry)
 {
@@ -128,7 +129,8 @@ HRESULT __stdcall WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
 	return hrSuccess;
 }
 
-void __stdcall FreeProws(LPSRowSet lpRows) {
+void FreeProws(LPSRowSet lpRows)
+{
 	if(lpRows == NULL)
 		return;
 	for (unsigned int i = 0; i < lpRows->cRows; ++i)
@@ -136,20 +138,24 @@ void __stdcall FreeProws(LPSRowSet lpRows) {
 	MAPIFreeBuffer(lpRows);
 }
 
-void __stdcall FreePadrlist(LPADRLIST lpAdrlist) {
+void FreePadrlist(LPADRLIST lpAdrlist)
+{
 	// it's the same in mapi4linux
 	FreeProws((LPSRowSet) lpAdrlist);
 }
 
 // M4LMAPIAdviseSink is in mapidefs.cpp
-HRESULT __stdcall HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext, LPMAPIADVISESINK *lppSink)
+HRESULT HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext,
+    LPMAPIADVISESINK *lppSink)
 {
 	return alloc_wrap<M4LMAPIAdviseSink>(lpFunction, lpContext)
 	       .as(IID_IMAPIAdviseSink, lppSink);
 }
 
 // Linux always has multithreaded advise sinks
-HRESULT __stdcall HrThisThreadAdviseSink(LPMAPIADVISESINK lpAdviseSink, LPMAPIADVISESINK *lppAdviseSink) {
+HRESULT HrThisThreadAdviseSink(LPMAPIADVISESINK lpAdviseSink,
+    LPMAPIADVISESINK *lppAdviseSink)
+{
 	*lppAdviseSink = lpAdviseSink;
 	lpAdviseSink->AddRef();
 	return hrSuccess;
@@ -220,7 +226,9 @@ exit:
 	return hr;
 }
 
-HRESULT __stdcall WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG ulFlags, LPSTREAM * lppUncompressedStream) {
+HRESULT WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG ulFlags,
+    LPSTREAM *lppUncompressedStream)
+{
 	// This functions doesn't really wrap the stream, but decodes the
 	// compressed stream, and writes the uncompressed data to the
 	// Uncompressed stream. This is usually not a problem, as the whole
@@ -279,14 +287,15 @@ HRESULT __stdcall WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG 
 }
 
 // RTFSync is not much use even in windows, so we don't implement it
-HRESULT __stdcall RTFSync(LPMESSAGE lpMessage, ULONG ulFlags, BOOL * lpfMessageUpdated) {
+HRESULT RTFSync(LPMESSAGE lpMessage, ULONG ulFlags, BOOL *lpfMessageUpdated)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 
 //--- php-ext used functions
-HRESULT __stdcall HrQueryAllRows(LPMAPITABLE lpTable,
-    const SPropTagArray *lpPropTags, LPSRestriction lpRestriction,
-    const SSortOrderSet *lpSortOrderSet, LONG crowsMax, LPSRowSet *lppRows)
+HRESULT HrQueryAllRows(LPMAPITABLE lpTable, const SPropTagArray *lpPropTags,
+    LPSRestriction lpRestriction, const SSortOrderSet *lpSortOrderSet,
+    LONG crowsMax, LPSRowSet *lppRows)
 {
 	auto hr = lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 	if (hr != hrSuccess)
@@ -314,7 +323,9 @@ HRESULT __stdcall HrQueryAllRows(LPMAPITABLE lpTable,
 	return lpTable->QueryRows(crowsMax, 0, lppRows);
 }
 
-HRESULT __stdcall HrGetOneProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPropVal) {
+HRESULT HrGetOneProp(IMAPIProp *lpProp, ULONG ulPropTag,
+    LPSPropValue *lppPropVal)
+{
 	SizedSPropTagArray(1, sPropTag) = { 1, { ulPropTag } };
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> lpPropVal;
@@ -328,20 +339,21 @@ HRESULT __stdcall HrGetOneProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue 
 	return hrSuccess;
 }
 
-HRESULT __stdcall HrSetOneProp(LPMAPIPROP lpMapiProp, const SPropValue *lpProp)
+HRESULT HrSetOneProp(LPMAPIPROP lpMapiProp, const SPropValue *lpProp)
 {
 	return lpMapiProp->SetProps(1, lpProp, nullptr);
 	// convert ProblemArray into HRESULT error?
 }
 
-BOOL __stdcall FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag)
+BOOL FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag)
 {
 	memory_ptr<SPropValue> lpPropVal;
 	return HrGetOneProp(lpMapiProp, ulPropTag, &~lpPropVal) == hrSuccess;
 }
 
 /* Actually not part of MAPI */
-HRESULT __stdcall CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease, IStream **lppStream)
+HRESULT CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease,
+    IStream **lppStream)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<ECMemStream> lpStream;
@@ -354,17 +366,17 @@ HRESULT __stdcall CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease, IS
 	return lpStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(lppStream));
 }
 
-HRESULT __stdcall OpenStreamOnFile(LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags,
-    LPTSTR lpszFileName, LPTSTR lpszPrefix, LPSTREAM *lppStream)
+HRESULT OpenStreamOnFile(LPALLOCATEBUFFER lpAllocateBuffer,
+    LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, LPTSTR lpszFileName,
+    LPTSTR lpszPrefix, LPSTREAM *lppStream)
 {
 	return MAPI_E_NOT_FOUND;
 }
 
-HRESULT __stdcall BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
-	LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc,
-	HINSTANCE hInstance, UINT cPages,
-	LPDTPAGE lpPage, ULONG ulFlags,
-	LPMAPITABLE * lppTable, LPTABLEDATA * lppTblData)
+HRESULT BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer,
+    LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc,
+    HINSTANCE hInstance, UINT cPages, LPDTPAGE lpPage, ULONG ulFlags,
+    LPMAPITABLE *lppTable, LPTABLEDATA *lppTblData)
 {
 	return MAPI_E_NO_SUPPORT;
 }
@@ -377,10 +389,8 @@ struct CONVERSATION_INDEX {
 };
 #pragma pack(pop)
 
-HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
-	LPBYTE lpbParent,
-	ULONG *lpcbConvIndex,
-	LPBYTE *lppbConvIndex)
+HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
+    ULONG *lpcbConvIndex, LPBYTE *lppbConvIndex)
 {
 	HRESULT hr;
 	ULONG cbConvIndex = 0;
@@ -421,7 +431,8 @@ HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
 	return hrSuccess;
 }
 
-SCODE __stdcall ScDupPropset( int cprop,  LPSPropValue rgprop,  LPALLOCATEBUFFER lpAllocateBuffer,  LPSPropValue *prgprop )
+SCODE ScDupPropset(int cprop, LPSPropValue rgprop,
+    LPALLOCATEBUFFER lpAllocateBuffer, LPSPropValue *prgprop)
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpDst = NULL;
@@ -440,23 +451,25 @@ SCODE __stdcall ScDupPropset( int cprop,  LPSPropValue rgprop,  LPALLOCATEBUFFER
 	return hrSuccess;
 }
 
-SCODE __stdcall ScRelocProps(int cprop, LPSPropValue rgprop, LPVOID pvBaseOld, LPVOID pvBaseNew, ULONG *pcb)
+SCODE ScRelocProps(int cprop, LPSPropValue rgprop, LPVOID pvBaseOld,
+    LPVOID pvBaseNew, ULONG *pcb)
 {
 	return S_FALSE;
 }
-ULONG __stdcall CbOfEncoded(LPCSTR lpszEnc)
+
+ULONG CbOfEncoded(LPCSTR lpszEnc)
 {
 	if (lpszEnc)
 		return (((strlen(lpszEnc) | 3) >> 2) + 1) * 3;
 	return 0;
 }
 
-ULONG __stdcall CchOfEncoding(LPCSTR lpszEnd)
+ULONG CchOfEncoding(LPCSTR lpszEnd)
 {
 	return 0;
 }
 
-SCODE __stdcall ScCopyProps( int cprop,  LPSPropValue rgprop,  LPVOID pvDst,  ULONG *pcb )
+SCODE ScCopyProps(int cprop, LPSPropValue rgprop, LPVOID pvDst, ULONG *pcb)
 {
 	auto lpHeap = static_cast<BYTE *>(pvDst) + sizeof(SPropValue) * cprop;
 	LPSPropValue lpProp = (LPSPropValue)pvDst;
@@ -594,7 +607,7 @@ SCODE __stdcall ScCopyProps( int cprop,  LPSPropValue rgprop,  LPVOID pvDst,  UL
 	return S_OK;
 }
 
-SCODE __stdcall ScCountProps(int cValues, LPSPropValue lpPropArray, ULONG *lpcb)
+SCODE ScCountProps(int cValues, LPSPropValue lpPropArray, ULONG *lpcb)
 {
 	SCODE sc = S_OK;
 	ULONG ulSize = 0;
@@ -647,12 +660,12 @@ SCODE __stdcall ScCountProps(int cValues, LPSPropValue lpPropArray, ULONG *lpcb)
 	return sc;
 }
 
-SCODE __stdcall ScInitMapiUtil(ULONG ulFlags)
+SCODE ScInitMapiUtil(ULONG ulFlags)
 {
 	return S_OK;
 }
 
-BOOL __stdcall FBinFromHex(LPTSTR sz, LPBYTE pb)
+BOOL FBinFromHex(LPTSTR sz, LPBYTE pb)
 {
 	ULONG len;
 	memory_ptr<BYTE> lpBin;
@@ -662,7 +675,7 @@ BOOL __stdcall FBinFromHex(LPTSTR sz, LPBYTE pb)
 	return true;
 }
 
-void __stdcall HexFromBin(LPBYTE pb, int cb, LPTSTR sz)
+void HexFromBin(LPBYTE pb, int cb, LPTSTR sz)
 {
 	std::string hex = bin2hex(cb, pb);
 	strcpy((char *)sz, hex.c_str());
@@ -670,39 +683,40 @@ void __stdcall HexFromBin(LPBYTE pb, int cb, LPTSTR sz)
 
 // @todo according to MSDN, this function also supports Unicode strings
 // 		but I don't see how that's easy possible
-LPTSTR __stdcall SzFindCh(LPCTSTR lpsz, USHORT ch)
+LPTSTR SzFindCh(LPCTSTR lpsz, USHORT ch)
 {
 	return reinterpret_cast<TCHAR *>(const_cast<char *>(strchr(reinterpret_cast<const char *>(lpsz), ch)));
 }
 
-int __stdcall MNLS_CompareStringW(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1, int cchCount1, LPCWSTR lpString2, int cchCount2)
+int MNLS_CompareStringW(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1,
+    int cchCount1, LPCWSTR lpString2, int cchCount2)
 {
 	// FIXME: we're ignoring Locale, dwCmpFlags, cchCount1 and cchCount2
 	return wcscmp(reinterpret_cast<const wchar_t *>(lpString1),
 	              reinterpret_cast<const wchar_t *>(lpString2));
 }
 
-int __stdcall MNLS_lstrlenW(LPCWSTR lpString)
+int MNLS_lstrlenW(LPCWSTR lpString)
 {
 	return lstrlenW(lpString);
 }
 
-int __stdcall MNLS_lstrlen(LPCSTR lpString)
+int MNLS_lstrlen(LPCSTR lpString)
 {
 	return lstrlenW((LPCWSTR)lpString);
 }
 
-int __stdcall MNLS_lstrcmpW(LPCWSTR lpString1, LPCWSTR lpString2)
+int MNLS_lstrcmpW(LPCWSTR lpString1, LPCWSTR lpString2)
 {
 	return lstrcmpW(lpString1, lpString2);
 }
 
-LPWSTR __stdcall MNLS_lstrcpyW(LPWSTR lpString1, LPCWSTR lpString2)
+LPWSTR MNLS_lstrcpyW(LPWSTR lpString1, LPCWSTR lpString2)
 {
 	return lstrcpyW(lpString1, lpString2);
 }
 
-FILETIME __stdcall FtAddFt( FILETIME Addend1,  FILETIME Addend2    )
+FILETIME FtAddFt(FILETIME Addend1, FILETIME Addend2)
 {
 	FILETIME ft;
 	unsigned long long l = ((unsigned long long)Addend1.dwHighDateTime << 32) + Addend1.dwLowDateTime;
@@ -713,7 +727,7 @@ FILETIME __stdcall FtAddFt( FILETIME Addend1,  FILETIME Addend2    )
 	return ft;
 }
 
-FILETIME __stdcall FtSubFt( FILETIME Minuend,  FILETIME Subtrahend )
+FILETIME FtSubFt(FILETIME Minuend, FILETIME Subtrahend)
 {
 	FILETIME ft;
 	unsigned long long l = ((unsigned long long)Minuend.dwHighDateTime << 32) + Minuend.dwLowDateTime;
@@ -724,7 +738,7 @@ FILETIME __stdcall FtSubFt( FILETIME Minuend,  FILETIME Subtrahend )
 	return ft;
 }
 
-FILETIME __stdcall FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n)
+FILETIME FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n)
 {
 	// Obtained by experiment: this function does (f*f2) >> (n+64)
 	// Since we don't have a good int64 * int64, we do our own addition_plus_bitshift
@@ -749,7 +763,7 @@ FILETIME __stdcall FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n)
 	return ft;
 }
 
-FILETIME __stdcall FtMulDw(DWORD ftMultiplier, FILETIME ftMultiplicand)
+FILETIME FtMulDw(DWORD ftMultiplier, FILETIME ftMultiplicand)
 {
 	FILETIME ft;
 	unsigned long long t = ((unsigned long long)ftMultiplicand.dwHighDateTime << 32) + (ftMultiplicand.dwLowDateTime & 0xffffffff);
@@ -761,34 +775,36 @@ FILETIME __stdcall FtMulDw(DWORD ftMultiplier, FILETIME ftMultiplicand)
 	return ft;
 }
 
-LONG __stdcall MAPIInitIdle( LPVOID lpvReserved  )
+LONG MAPIInitIdle(LPVOID lpvReserved)
 {
 	return 0;
 }
 
-void __stdcall MAPIDeinitIdle(void)
+void MAPIDeinitIdle(void)
 {
 }
 
-void __stdcall DeregisterIdleRoutine( FTG ftg  )
+void DeregisterIdleRoutine(FTG ftg)
 {
 }
 
-void __stdcall EnableIdleRoutine( FTG ftg,  BOOL fEnable  )
+void EnableIdleRoutine(FTG ftg,  BOOL fEnable)
 {
 }
 
-void __stdcall ChangeIdleRoutine(FTG ftg, PFNIDLE pfnIdle, LPVOID pvIdleParam, short priIdle, ULONG csecIdle, USHORT iroIdle, USHORT ircIdle)
+void ChangeIdleRoutine(FTG ftg, PFNIDLE pfnIdle, LPVOID pvIdleParam,
+    short priIdle, ULONG csecIdle, USHORT iroIdle, USHORT ircIdle)
 {
 }
 
-FTG __stdcall FtgRegisterIdleRoutine(PFNIDLE pfnIdle,  LPVOID pvIdleParam,  short priIdle,  ULONG csecIdle,  USHORT iroIdle)
+FTG FtgRegisterIdleRoutine(PFNIDLE pfnIdle, LPVOID pvIdleParam, short priIdle,
+    ULONG csecIdle, USHORT iroIdle)
 {
 	return nullptr;
 }
 
 const WORD kwBaseOffset = 0xAC00;  // Hangul char range (AC00-D7AF)
-LPWSTR __stdcall EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString)
+LPWSTR EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString)
 {
 	ULONG   i = 0;
 	LPWSTR  pwzDst = NULL;
@@ -813,62 +829,62 @@ LPWSTR __stdcall EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString)
 	return pwzIDEncoded;
 }
 
-void __stdcall FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncoded)
+void FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncoded)
 {
 	// ?
 }
 
-BOOL __stdcall FBadRglpszA(const TCHAR *, ULONG cStrings)
+BOOL FBadRglpszA(const TCHAR *, ULONG cStrings)
 {
 	return FALSE;
 }
 
-BOOL __stdcall FBadRglpszW(const wchar_t *, ULONG cStrings)
+BOOL FBadRglpszW(const wchar_t *, ULONG cStrings)
 {
 	return FALSE;
 }
 
-BOOL __stdcall FBadRowSet(const SRowSet *)
+BOOL FBadRowSet(const SRowSet *)
 {
 	return FALSE;
 }
 
-BOOL __stdcall FBadRglpNameID(LPMAPINAMEID *lppNameId, ULONG cNames)
+BOOL FBadRglpNameID(LPMAPINAMEID *lppNameId, ULONG cNames)
 {
 	return FALSE;
 }
 
-ULONG __stdcall FBadPropTag(ULONG ulPropTag)
+ULONG FBadPropTag(ULONG ulPropTag)
 {
 	return FALSE;
 }
 
-ULONG __stdcall FBadRow(const SRow *)
+ULONG FBadRow(const SRow *)
 {
 	return FALSE;
 }
 
-ULONG __stdcall FBadProp(const SPropValue *)
+ULONG FBadProp(const SPropValue *)
 {
 	return FALSE;
 }
 
-ULONG __stdcall FBadColumnSet(const SPropTagArray *lpptaCols)
+ULONG FBadColumnSet(const SPropTagArray *lpptaCols)
 {
 	return FALSE;
 }
 
-ULONG __stdcall FBadSortOrderSet(const SSortOrderSet *)
+ULONG FBadSortOrderSet(const SSortOrderSet *)
 {
 	return FALSE;
 }
 
-BOOL __stdcall FBadEntryList(const SBinaryArray *lpEntryList)
+BOOL FBadEntryList(const SBinaryArray *lpEntryList)
 {
 	return FALSE;
 }
 
-ULONG __stdcall FBadRestriction(const SRestriction *)
+ULONG FBadRestriction(const SRestriction *)
 {
 	return FALSE;
 }

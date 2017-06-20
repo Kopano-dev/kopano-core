@@ -30,9 +30,9 @@ private:
 public:
     M4LUnknown();
 	virtual ~M4LUnknown(void) _kc_impdtor;
-	virtual ULONG __stdcall AddRef(void) _kc_override;
-	virtual ULONG __stdcall Release(void) _kc_override;
-	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+	virtual ULONG AddRef(void) _kc_override;
+	virtual ULONG Release(void) _kc_override;
+	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
 #endif

@@ -26,10 +26,10 @@ class ECLogger;
 
 class IECExportChanges : public IExchangeExportChanges {
 public:
-	virtual HRESULT __stdcall ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
-	virtual HRESULT __stdcall GetChangeCount(ULONG *lpcChanges) = 0;
-	virtual HRESULT __stdcall SetMessageInterface(REFIID refiid) = 0;
-	virtual HRESULT __stdcall SetLogger(ECLogger *lpLogger) = 0;
+	virtual HRESULT ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
+	virtual HRESULT GetChangeCount(ULONG *lpcChanges) = 0;
+	virtual HRESULT SetMessageInterface(REFIID refiid) = 0;
+	virtual HRESULT SetLogger(ECLogger *lpLogger) = 0;
 };
 
 } /* namespace */

@@ -2316,7 +2316,7 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
  * 
  * @return MAPI Error code
  */
-LONG __stdcall IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
+LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
 {
 	auto lpIMAP = static_cast<IMAP *>(lpContext);

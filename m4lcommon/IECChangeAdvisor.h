@@ -29,7 +29,7 @@ namespace KC {
  */
 class IECChangeAdvisor : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
+	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 
 	/**
 	 * Configure the change change advisor based on a stream.
@@ -46,7 +46,7 @@ public:
 	 *					- SYNC_CATCHUP	Update the internal state, but don't perform any operations
 	 *									on the server.
 	 */
-	virtual HRESULT __stdcall Config(LPSTREAM lpStream, LPGUID lpGUID, IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags) = 0;
+	virtual HRESULT Config(LPSTREAM lpStream, LPGUID lpGUID, IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags) = 0;
 
 	/**
 	 * Store the current internal state in the stream pointed to by lpStream.
@@ -54,7 +54,7 @@ public:
 	 * @param[in]	lpStream
 	 *					The stream in which the current state will be stored.
 	 */
-	virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) = 0;
+	virtual HRESULT UpdateState(LPSTREAM lpStream) = 0;
 
 	/**
 	 * Register one or more folders for change notifications through this change advisor.
@@ -65,7 +65,7 @@ public:
 	 *					monitor. The second 4 bytes apecify the change id of the folder to monitor.
 	 *					Use the SSyncState structure to easily create and access this data.
 	 */
-	virtual HRESULT __stdcall AddKeys(LPENTRYLIST lpEntryList) = 0;
+	virtual HRESULT AddKeys(LPENTRYLIST lpEntryList) = 0;
 
 	/**
 	 * Unregister one or more folder for change notifications.
@@ -74,7 +74,7 @@ public:
 	 *					A list of keys specifying the folders to monitor. See AddKeys for
 	 *					information about the key format.
 	 */
-	virtual HRESULT __stdcall RemoveKeys(LPENTRYLIST lpEntryList) = 0;
+	virtual HRESULT RemoveKeys(LPENTRYLIST lpEntryList) = 0;
 
 	/**
 	 * Check if the change advisor is monitoring the folder specified by a particular sync id.
@@ -83,7 +83,7 @@ public:
 	 *					The sync id of the folder.
 	 * @return hrSuccess if the folder is being monitored.
 	 */
-    virtual HRESULT __stdcall IsMonitoringSyncId(ULONG ulSyncId) = 0;
+	virtual HRESULT IsMonitoringSyncId(ULONG ulSyncId) = 0;
 
 	/**
 	 * Update the changeid for a particular syncid.
@@ -96,7 +96,7 @@ public:
 	 * @param[in]	ulChangeId
 	 *					The new changeid for the specified syncid.
 	 */
-	virtual HRESULT __stdcall UpdateSyncState(ULONG ulSyncId, ULONG ulChangeId) = 0;
+	virtual HRESULT UpdateSyncState(ULONG ulSyncId, ULONG ulChangeId) = 0;
 };
 
 } /* namespace */

@@ -26,35 +26,36 @@
 #include <kopano/Util.h>
 #include <kopano/ECDebug.h>
 
-SCODE __stdcall OpenIMsgSession(LPMALLOC lpMalloc, ULONG ulFlags, LPMSGSESS *lppMsgSess)
+SCODE OpenIMsgSession(LPMALLOC lpMalloc, ULONG ulFlags, LPMSGSESS *lppMsgSess)
 {
 	return MAPI_E_NO_SUPPORT;
 }
 
-void __stdcall CloseIMsgSession(LPMSGSESS lpMsgSess)
+void CloseIMsgSession(LPMSGSESS lpMsgSess)
 {
 }
 
-SCODE __stdcall OpenIMsgOnIStg(	LPMSGSESS lpMsgSess, LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
-								LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc, LPVOID lpMapiSup, LPSTORAGE lpStg, 
-								MSGCALLRELEASE *lpfMsgCallRelease, ULONG ulCallerData, ULONG ulFlags, LPMESSAGE *lppMsg )
+SCODE OpenIMsgOnIStg(LPMSGSESS lpMsgSess, LPALLOCATEBUFFER lpAllocateBuffer,
+    LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc,
+    LPVOID lpMapiSup, LPSTORAGE lpStg, MSGCALLRELEASE *lpfMsgCallRelease,
+    ULONG ulCallerData, ULONG ulFlags, LPMESSAGE *lppMsg)
 {
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT __stdcall GetAttribIMsgOnIStg(LPVOID lpObject,
+HRESULT GetAttribIMsgOnIStg(LPVOID lpObject,
     const SPropTagArray *lpPropTagArray, SPropAttrArray **lppPropAttrArray)
 {
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT __stdcall SetAttribIMsgOnIStg(void *object, const SPropTagArray *,
+HRESULT SetAttribIMsgOnIStg(void *object, const SPropTagArray *,
     const SPropAttrArray *, SPropProblemArray **)
 {
 	return MAPI_E_NO_SUPPORT;
 }
 
-SCODE __stdcall MapStorageSCode( SCODE StgSCode )
+SCODE MapStorageSCode(SCODE StgSCode)
 {
 	return StgSCode;
 }

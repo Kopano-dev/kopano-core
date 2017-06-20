@@ -25,8 +25,7 @@
 extern "C" {
 
 typedef struct _MSGSESS *LPMSGSESS;
-
-typedef void (__stdcall MSGCALLRELEASE)( ULONG ulCallerData, LPMESSAGE lpMessage );
+typedef void (MSGCALLRELEASE)(ULONG ulCallerData, LPMESSAGE lpMessage);
 
 STDAPI_(SCODE) OpenIMsgSession(LPMALLOC lpMalloc, ULONG ulFlags, LPMSGSESS *lppMsgSess);
 

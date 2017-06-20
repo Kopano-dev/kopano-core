@@ -87,7 +87,7 @@ HRESULT ECMemTablePublic::QueryInterface(REFIID refiid, void **lppInterface)
 	This is used to build the favorits tree
 */
 
-static LONG __stdcall AdviseShortCutCallback(void *lpContext, ULONG cNotif,
+static LONG AdviseShortCutCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
 {
 	if (lpContext == NULL) {
@@ -143,7 +143,7 @@ static LONG __stdcall AdviseShortCutCallback(void *lpContext, ULONG cNotif,
 	return S_OK;
 }
 
-static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
+static LONG AdviseFolderCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
 {
 	if (lpContext == NULL)

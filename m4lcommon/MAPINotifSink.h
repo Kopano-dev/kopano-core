@@ -34,11 +34,11 @@ namespace KC {
 class _kc_export MAPINotifSink _kc_final : public IMAPIAdviseSink {
 public:
     static HRESULT Create(MAPINotifSink **lppSink);
-	_kc_hidden virtual ULONG __stdcall AddRef(void) _kc_override;
-	virtual ULONG __stdcall Release(void) _kc_override;
-	_kc_hidden virtual HRESULT __stdcall QueryInterface(REFIID iid, void **iface) _kc_override;
-	_kc_hidden virtual ULONG __stdcall OnNotify(ULONG n, LPNOTIFICATION notif) _kc_override;
-	virtual HRESULT __stdcall GetNotifications(ULONG *n, LPNOTIFICATION *notif, BOOL fNonBlock, ULONG timeout);
+	_kc_hidden virtual ULONG AddRef(void) _kc_override;
+	virtual ULONG Release(void) _kc_override;
+	_kc_hidden virtual HRESULT QueryInterface(REFIID iid, void **iface) _kc_override;
+	_kc_hidden virtual ULONG OnNotify(ULONG n, LPNOTIFICATION notif) _kc_override;
+	virtual HRESULT GetNotifications(ULONG *n, LPNOTIFICATION *notif, BOOL fNonBlock, ULONG timeout);
 
 private:
 	_kc_hidden MAPINotifSink(void) = default;

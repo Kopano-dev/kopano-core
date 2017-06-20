@@ -22,9 +22,9 @@ namespace KC {
 
 class IECTestProtocol : public virtual IUnknown {
 public:
-	virtual HRESULT __stdcall TestPerform(const char *cmd, unsigned int argc, char **args) = 0;
-	virtual HRESULT __stdcall TestSet(const char *name, const char *value) = 0;
-	virtual HRESULT __stdcall TestGet(const char *name, char **value) = 0;
+	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **args) = 0;
+	virtual HRESULT TestSet(const char *name, const char *value) = 0;
+	virtual HRESULT TestGet(const char *name, char **value) = 0;
 };
 
 } /* namespace */

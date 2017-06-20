@@ -72,9 +72,8 @@ inline int _vsnprintf_l(char *str, size_t size, const char *format, locale_t loc
 #include <sys/times.h>
 
 /* compiler definitions */
-#define __stdcall
 #define __cdecl
-#define STDAPI_(__type) __type __stdcall
+#define STDAPI_(__type) __type
 
 /* base types */
 typedef void			VOID;

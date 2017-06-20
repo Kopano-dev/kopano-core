@@ -27,10 +27,10 @@ namespace KC {
 class IECSpooler : public virtual IUnknown {
 public:
 	// Gets an IMAPITable containing all the outgoing messages on the server
-	virtual HRESULT __stdcall GetMasterOutgoingTable(ULONG ulFlags, IMAPITable **lppTable) = 0;
+	virtual HRESULT GetMasterOutgoingTable(ULONG ulFlags, IMAPITable **lppTable) = 0;
 
 	// Removes a message from the master outgoing table
-	virtual HRESULT __stdcall DeleteFromMasterOutgoingTable(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags) = 0;
+	virtual HRESULT DeleteFromMasterOutgoingTable(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags) = 0;
 };
 
 } /* namespace */

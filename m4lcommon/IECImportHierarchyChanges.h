@@ -22,7 +22,7 @@ namespace KC {
 
 class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {
 public:
-    virtual HRESULT __stdcall ImportFolderChangeEx(ULONG cValues, LPSPropValue lpPropArray, BOOL fNew) = 0;
+	virtual HRESULT ImportFolderChangeEx(ULONG cValues, LPSPropValue lpPropArray, BOOL fNew) = 0;
 };
 
 } /* namespace */

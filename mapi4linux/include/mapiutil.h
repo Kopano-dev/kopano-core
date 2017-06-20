@@ -556,11 +556,11 @@ SCODE ScLocalPathFromUNC(LPSTR lpszUNC, LPSTR lpszLocal,
 			 UINT cchLocal);
 
 /* Windows Unicode string functions */
-int __stdcall MNLS_CompareStringW(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1, int cchCount1, LPCWSTR lpString2, int cchCount2);
-int __stdcall MNLS_lstrlenW(LPCWSTR lpString);
-int __stdcall MNLS_lstrlen(LPCSTR lpString);
-int __stdcall MNLS_lstrcmpW(LPCWSTR lpString1, LPCWSTR lpString2);
-LPWSTR __stdcall MNLS_lstrcpyW(LPWSTR lpString1, LPCWSTR lpString2);
+extern int MNLS_CompareStringW(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1, int cchCount1, LPCWSTR lpString2, int cchCount2);
+extern int MNLS_lstrlenW(LPCWSTR lpString);
+extern int MNLS_lstrlen(LPCSTR lpString);
+extern int MNLS_lstrcmpW(LPCWSTR lpString1, LPCWSTR lpString2);
+extern LPWSTR MNLS_lstrcpyW(LPWSTR lpString1, LPCWSTR lpString2);
 
 /* 64-bit arithmetic with times */
 
@@ -606,9 +606,8 @@ extern _kc_export HRESULT WrapCompressedRTFStream(LPSTREAM compr_rtf_strm, ULONG
 
 SCODE ScInitMAPIUtil(ULONG ulFlags);
 void DeinitMAPIUtil(void);
-SCODE __stdcall ScInitMapiUtil(ULONG ulFlags);
-void __stdcall DeinitMapiUtil(void);
-
+extern SCODE ScInitMapiUtil(ULONG ulFlags);
+extern void DeinitMapiUtil(void);
 
 /*
  *  Entry point names.
