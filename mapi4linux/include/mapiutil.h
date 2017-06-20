@@ -404,13 +404,7 @@ SCODE ScLocalPathFromUNC(LPSTR lpszUNC, LPSTR lpszLocal,
 			 UINT cchLocal);
 
 /* 64-bit arithmetic with times */
-
-FILETIME FtAddFt(FILETIME ftAddend1, FILETIME ftAddend2);
-FILETIME FtMulDwDw(DWORD ftMultiplicand, DWORD ftMultiplier);
-FILETIME FtMulDw(DWORD ftMultiplier, FILETIME ftMultiplicand);
 FILETIME FtSubFt(FILETIME ftMinuend, FILETIME ftSubtrahend);
-FILETIME FtNegFt(FILETIME ft);
-FILETIME FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n);
 
 /* Message composition */
 extern _kc_export SCODE ScCreateConversationIndex(ULONG parent_size, LPBYTE parent, ULONG *conv_index_size, LPBYTE *conv_index);

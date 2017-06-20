@@ -31,8 +31,6 @@ STDAPI_(ULONG) CchOfEncoding(LPCSTR lpszEnd);
 STDAPI_(LPWSTR) EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString);
 STDAPI_(void) FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncoded);
 
-STDAPI_(FILETIME) FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n);
-
 /*
  * Non mapi32 utility function (only used internally withint M4L)
  */

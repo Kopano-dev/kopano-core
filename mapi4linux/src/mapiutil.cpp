@@ -688,17 +688,6 @@ LPTSTR SzFindCh(LPCTSTR lpsz, USHORT ch)
 	return reinterpret_cast<TCHAR *>(const_cast<char *>(strchr(reinterpret_cast<const char *>(lpsz), ch)));
 }
 
-FILETIME FtAddFt(FILETIME Addend1, FILETIME Addend2)
-{
-	FILETIME ft;
-	unsigned long long l = ((unsigned long long)Addend1.dwHighDateTime << 32) + Addend1.dwLowDateTime;
-	l += ((unsigned long long)Addend2.dwHighDateTime << 32) + Addend2.dwLowDateTime;
-
-	ft.dwHighDateTime = l >> 32;
-	ft.dwLowDateTime = l & 0xffffffff;
-	return ft;
-}
-
 FILETIME FtSubFt(FILETIME Minuend, FILETIME Subtrahend)
 {
 	FILETIME ft;
@@ -707,43 +696,6 @@ FILETIME FtSubFt(FILETIME Minuend, FILETIME Subtrahend)
 
 	ft.dwHighDateTime = l >> 32;
 	ft.dwLowDateTime = l & 0xffffffff;
-	return ft;
-}
-
-FILETIME FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n)
-{
-	// Obtained by experiment: this function does (f*f2) >> (n+64)
-	// Since we don't have a good int64 * int64, we do our own addition_plus_bitshift
-	// which discards the lowest 64 bits on the fly.
-	unsigned long long shift = 0;
-	unsigned long long ret = (unsigned long long)f.dwHighDateTime * f2.dwHighDateTime;
-	ret += ((unsigned long long)f.dwLowDateTime * f2.dwHighDateTime) >> 32;
-	ret += ((unsigned long long)f.dwHighDateTime * f2.dwLowDateTime) >> 32;
-
-	// The remainder may give us a few more, use the top 32 bits of the remainder.
-	shift += (((unsigned long long)f.dwLowDateTime * f2.dwHighDateTime) & 0xFFFFFFFF);
-	shift += (((unsigned long long)f.dwHighDateTime * f2.dwLowDateTime) & 0xFFFFFFFF);
-	shift += ((unsigned long long)f.dwLowDateTime * f2.dwLowDateTime) >> 32;
-
-	ret += shift >> 32;
-
-	ret >>= n;
-
-	FILETIME ft;
-	ft.dwHighDateTime = ret >> 32;
-	ft.dwLowDateTime = ret & 0xFFFFFFFF;
-	return ft;
-}
-
-FILETIME FtMulDw(DWORD ftMultiplier, FILETIME ftMultiplicand)
-{
-	FILETIME ft;
-	unsigned long long t = ((unsigned long long)ftMultiplicand.dwHighDateTime << 32) + (ftMultiplicand.dwLowDateTime & 0xffffffff);
-
-	t *= ftMultiplier;
-
-	ft.dwHighDateTime = t >> 32;
-	ft.dwLowDateTime = t & 0xFFFFFFFF;
 	return ft;
 }
 
