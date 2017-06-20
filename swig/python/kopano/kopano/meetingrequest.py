@@ -7,6 +7,7 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 from calendar import timegm
 import datetime
 import struct
+import sys
 
 import libfreebusy
 
@@ -44,8 +45,12 @@ from .compat import repr as _repr
 from .errors import Error
 from .restriction import Restriction
 
-import utils as _utils
-import prop as _prop
+if sys.hexversion >= 0x03000000:
+    from . import utils as _utils
+    from . import prop as _prop
+else:
+    import utils as _utils
+    import prop as _prop
 
 # XXX move all pidlids into separate definition file, plus short description of their meanings
 
