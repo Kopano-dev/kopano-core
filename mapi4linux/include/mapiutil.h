@@ -60,11 +60,6 @@ HRESULT HrDispatchNotifications (ULONG ulFlags);
 
 /* General utility functions */
 
-/* Related to the OLE Component object model */
-
-ULONG UlAddRef(LPVOID lpunk);
-ULONG UlRelease(LPVOID lpunk);
-
 /* Related to the MAPI interface */
 
 extern _kc_export HRESULT HrGetOneProp(LPMAPIPROP mprop, ULONG tag, LPSPropValue *ret);

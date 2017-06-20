@@ -43,14 +43,6 @@
 
 using namespace KCHL;
 
-ULONG UlRelease(LPVOID lpUnknown)
-{
-	if(lpUnknown)
-		return ((IUnknown *)lpUnknown)->Release();
-	else
-		return 0;
-}
-
 SPropValue *PpropFindProp(SPropValue *lpPropArray, ULONG cValues,
     ULONG ulPropTag)
 {
