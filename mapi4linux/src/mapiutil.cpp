@@ -121,15 +121,6 @@ HRESULT HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext,
 	       .as(IID_IMAPIAdviseSink, lppSink);
 }
 
-// Linux always has multithreaded advise sinks
-HRESULT HrThisThreadAdviseSink(LPMAPIADVISESINK lpAdviseSink,
-    LPMAPIADVISESINK *lppAdviseSink)
-{
-	*lppAdviseSink = lpAdviseSink;
-	lpAdviseSink->AddRef();
-	return hrSuccess;
-}
-
 // rtf funcions
 
 // This is called when a user calls Commit() on a wrapped (uncompressed) RTF Stream
