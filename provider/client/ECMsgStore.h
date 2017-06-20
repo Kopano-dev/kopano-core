@@ -217,9 +217,33 @@ public:
 	class xMsgStoreProxy _kc_final :
 	    public IMsgStore, public IECMultiStoreTable, public IECLicense,
 	    public IECTestProtocol {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMsgStore.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp>
+		virtual ULONG __stdcall AddRef(void) _kc_override;
+		virtual ULONG __stdcall Release(void) _kc_override;
+		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **iface) _kc_override;
+		virtual HRESULT __stdcall Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) _kc_override;
+		virtual HRESULT __stdcall Unadvise(ULONG ulConnection) _kc_override;
+		virtual HRESULT __stdcall CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG flags, ULONG *lpulResult) _kc_override;
+		virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _kc_override;
+		virtual HRESULT __stdcall SetReceiveFolder(LPTSTR lpszMessageClass, ULONG flags, ULONG cbEntryID, LPENTRYID lpEntryID) _kc_override;
+		virtual HRESULT __stdcall GetReceiveFolder(LPTSTR lpszMessageClass, ULONG flags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID, LPTSTR *lppszExplicitClass) _kc_override;
+		virtual HRESULT __stdcall GetReceiveFolderTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+		virtual HRESULT __stdcall StoreLogoff(ULONG *lpulFlags) _kc_override;
+		virtual HRESULT __stdcall AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG flags) _kc_override;
+		virtual HRESULT __stdcall GetOutgoingQueue(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+		virtual HRESULT __stdcall SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) _kc_override;
+		virtual HRESULT __stdcall FinishedMsg(ULONG flags, ULONG cbEntryID, LPENTRYID lpEntryID) _kc_override;
+		virtual HRESULT __stdcall NotifyNewMail(LPNOTIFICATION lpNotification) _kc_override;
+		virtual HRESULT __stdcall GetLastError(HRESULT hError, ULONG flags, LPMAPIERROR *lppMapiError) _kc_override;
+		virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
+		virtual HRESULT __stdcall GetProps(const SPropTagArray *lpPropTagArray, ULONG flags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
+		virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *lppPropTagArray) _kc_override;
+		virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG flags, LPUNKNOWN *lppUnk) _kc_override __attribute__((nonnull(3)));
+		virtual HRESULT __stdcall SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems) _kc_override;
+		virtual HRESULT __stdcall DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems) _kc_override;
+		virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *exclprop, ULONG ui_param, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *lppProblems) _kc_override;
+		virtual HRESULT __stdcall CopyProps(const SPropTagArray *inclprop, ULONG ui_param, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *lppProblems) _kc_override;
+		virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *pptaga, LPGUID lpguid, ULONG flags, ULONG *pcNames, LPMAPINAMEID **pppNames) _kc_override;
+		virtual HRESULT __stdcall GetIDsFromNames(ULONG cNames, LPMAPINAMEID *ppNames, ULONG flags, LPSPropTagArray *pptaga) _kc_override;
 		virtual HRESULT __stdcall OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 		virtual HRESULT __stdcall LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lpResponseData, unsigned int *lpulResponseSize) _kc_override;
 		virtual HRESULT __stdcall LicenseCapa(unsigned int ulServiceType, char ***lppszCapas, unsigned int *lpulSize) _kc_override;
