@@ -32,7 +32,7 @@
 #include "Mem.h"
 
 #include "DLLGlobal.h"
-#include "ECMSProviderSwitch.h"
+#include "ECMSProvider.h"
 #include "ECABProviderSwitch.h"
 #include <iostream>
 #include <kopano/ecversion.h>
