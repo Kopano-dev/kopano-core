@@ -33,18 +33,6 @@ STDAPI_(void) FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncode
 
 STDAPI_(FILETIME) FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n);
 
-extern STDAPI_(BOOL) FBadRglpszA(const TCHAR *, ULONG cStrings);
-extern STDAPI_(BOOL) FBadRglpszW(const wchar_t *, ULONG cStrings);
-extern STDAPI_(BOOL) FBadRowSet(const SRowSet *);
-STDAPI_(BOOL) FBadRglpNameID(LPMAPINAMEID *lppNameId, ULONG cNames);
-extern STDAPI_(BOOL) FBadEntryList(const SBinaryArray *);
-extern STDAPI_(ULONG) FBadRestriction(const SRestriction *);
-STDAPI_(ULONG) FBadPropTag(ULONG ulPropTag);
-extern STDAPI_(ULONG) FBadRow(const SRow *);
-extern STDAPI_(ULONG) FBadProp(const SPropValue *);
-extern STDAPI_(ULONG) FBadSortOrderSet(const SSortOrderSet *);
-extern STDAPI_(ULONG) FBadColumnSet(const SPropTagArray *lpptaCols);
-
 /*
  * Non mapi32 utility function (only used internally withint M4L)
  */

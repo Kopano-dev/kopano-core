@@ -778,61 +778,6 @@ void FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncoded)
 	// ?
 }
 
-BOOL FBadRglpszA(const TCHAR *, ULONG cStrings)
-{
-	return FALSE;
-}
-
-BOOL FBadRglpszW(const wchar_t *, ULONG cStrings)
-{
-	return FALSE;
-}
-
-BOOL FBadRowSet(const SRowSet *)
-{
-	return FALSE;
-}
-
-BOOL FBadRglpNameID(LPMAPINAMEID *lppNameId, ULONG cNames)
-{
-	return FALSE;
-}
-
-ULONG FBadPropTag(ULONG ulPropTag)
-{
-	return FALSE;
-}
-
-ULONG FBadRow(const SRow *)
-{
-	return FALSE;
-}
-
-ULONG FBadProp(const SPropValue *)
-{
-	return FALSE;
-}
-
-ULONG FBadColumnSet(const SPropTagArray *lpptaCols)
-{
-	return FALSE;
-}
-
-ULONG FBadSortOrderSet(const SSortOrderSet *)
-{
-	return FALSE;
-}
-
-BOOL FBadEntryList(const SBinaryArray *lpEntryList)
-{
-	return FALSE;
-}
-
-ULONG FBadRestriction(const SRestriction *)
-{
-	return FALSE;
-}
-
 HRESULT GetConnectionProperties(LPSPropValue lpServer, LPSPropValue lpUsername, ULONG *lpcValues, LPSPropValue *lppProps)
 {
 	HRESULT hr = hrSuccess;
