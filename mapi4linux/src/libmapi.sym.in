@@ -2,13 +2,11 @@ MAPI32_1 {
 global:
 	BuildDisplayTable;
 	CloseIMsgSession;
-	FBinFromHex;
 	FPropExists;
 	FreePadrlist;
 	FreeProws;
 	FtSubFt;
 	GetAttribIMsgOnIStg;
-	HexFromBin;
 	HrAllocAdviseSink;
 	HrGetOneProp;
 	HrQueryAllRows;

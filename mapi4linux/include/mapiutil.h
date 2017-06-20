@@ -310,13 +310,6 @@ HRESULT HrValidateIPMSubtree(LPMDB lpMDB, ULONG ulFlags,
 			     ULONG *lpcValues, LPSPropValue *lppValues,
 			     LPMAPIERROR *lpperr);
 
-/* Encoding and decoding strings */
-
-BOOL FBinFromHex(LPTSTR lpsz, LPBYTE lpb);
-SCODE ScBinFromHexBounded(LPTSTR lpsz, LPBYTE lpb, ULONG cb);
-void HexFromBin(LPBYTE lpb, int cb, LPTSTR lpsz);
-ULONG UlFromSzHex(LPCTSTR lpsz);
-
 /* 64-bit arithmetic with times */
 FILETIME FtSubFt(FILETIME ftMinuend, FILETIME ftSubtrahend);
 

@@ -416,22 +416,6 @@ HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
 	return hrSuccess;
 }
 
-BOOL FBinFromHex(LPTSTR sz, LPBYTE pb)
-{
-	ULONG len;
-	memory_ptr<BYTE> lpBin;
-
-	Util::hex2bin((char *)sz, strlen((char *)sz), &len, &~lpBin);
-	memcpy(pb, lpBin, len);
-	return true;
-}
-
-void HexFromBin(LPBYTE pb, int cb, LPTSTR sz)
-{
-	std::string hex = bin2hex(cb, pb);
-	strcpy((char *)sz, hex.c_str());
-}
-
 FILETIME FtSubFt(FILETIME Minuend, FILETIME Subtrahend)
 {
 	FILETIME ft;
