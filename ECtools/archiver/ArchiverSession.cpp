@@ -30,8 +30,6 @@
 
 namespace KC {
 
-typedef KCHL::memory_ptr<ECSERVERLIST> ECServerListPtr;
-
 /**
  * Create a ArchiverSession object based on the passed configuration and a specific logger
  *

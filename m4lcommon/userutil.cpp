@@ -42,8 +42,6 @@ using namespace std;
 
 namespace KC {
 
-typedef KCHL::object_ptr<IECLicense> ECLicensePtr;
-
 class servername _kc_final {
 public:
 	servername(LPCTSTR lpszName): m_strName(lpszName) {}

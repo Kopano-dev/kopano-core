@@ -47,7 +47,6 @@
 
 using namespace std;
 using namespace KCHL;
-typedef KCHL::memory_ptr<ECUSER> ECUserPtr;
 
 ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
 	ECUnknown(szClassName), m_ulFlags(ulFlags)

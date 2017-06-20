@@ -34,9 +34,6 @@
 #include "ClientUtil.h"
 #include "EntryPoint.h"
 #include "pcutil.hpp"
-
-typedef KCHL::memory_ptr<ECUSER> ECUserPtr;
-
 #include <kopano/ECGetText.h>
 
 using namespace std;

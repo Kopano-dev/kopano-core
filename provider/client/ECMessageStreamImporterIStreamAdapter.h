@@ -63,6 +63,4 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-typedef KCHL::object_ptr<ECMessageStreamImporterIStreamAdapter> ECMessageStreamImporterIStreamAdapterPtr;
-
 #endif // ndef ECMessageStreamImporterIStreamAdapter_INCLUDED
