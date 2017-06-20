@@ -2,7 +2,6 @@ MAPI32_1 {
 global:
 	BuildDisplayTable;
 	CloseIMsgSession;
-	DeinitMapiUtil;
 	FBinFromHex;
 	FPropExists;
 	FreePadrlist;
@@ -30,7 +29,6 @@ global:
 	PropCopyMore;
 	RTFSync;
 	ScCreateConversationIndex;
-	ScInitMapiUtil;
 	SetAttribIMsgOnIStg;
 	SzFindCh;
 	UlRelease;

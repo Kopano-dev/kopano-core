@@ -53,10 +53,6 @@ ULONG UlRelease(LPVOID lpUnknown)
 		return 0;
 }
 
-void DeinitMapiUtil(void)
-{
-}
-
 SPropValue *PpropFindProp(SPropValue *lpPropArray, ULONG cValues,
     ULONG ulPropTag)
 {
@@ -418,11 +414,6 @@ HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
 	*lppbConvIndex = pbConvIndex;
 	*lpcbConvIndex = cbConvIndex;
 	return hrSuccess;
-}
-
-SCODE ScInitMapiUtil(ULONG ulFlags)
-{
-	return S_OK;
 }
 
 BOOL FBinFromHex(LPTSTR sz, LPBYTE pb)

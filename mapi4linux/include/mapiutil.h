@@ -354,24 +354,6 @@ extern _kc_export HRESULT RTFSync(LPMESSAGE, ULONG flags, BOOL *msg_updated);
 extern _kc_export HRESULT WrapCompressedRTFStream(LPSTREAM compr_rtf_strm, ULONG flags, LPSTREAM *uncompr_rtf_strm);
 
 /*
- * Setup and cleanup. 
- *
- * Providers never need to make these calls.
- *
- * Test applications and the like which do not call MAPIInitialize
- * may want to call them, so that the few utility functions which
- * need MAPI allocators (and do not ask for them explicitly)
- * will work.
- */
-
-/* All flags are reserved for ScInitMAPIUtil. */
-
-SCODE ScInitMAPIUtil(ULONG ulFlags);
-void DeinitMAPIUtil(void);
-extern SCODE ScInitMapiUtil(ULONG ulFlags);
-extern void DeinitMapiUtil(void);
-
-/*
  *  Entry point names.
  *  
  *  These are for new entry points defined since MAPI first shipped
