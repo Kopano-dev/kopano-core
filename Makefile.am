@@ -370,7 +370,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ProviderUtil.cpp provider/client/ProviderUtil.h \
 	provider/client/SessionGroupData.cpp provider/client/SessionGroupData.h \
 	provider/client/WSABPropStorage.cpp provider/client/WSABPropStorage.h \
-	provider/client/WSABTableView.cpp provider/client/WSABTableView.h \
 	provider/client/WSMAPIFolderOps.cpp provider/client/WSMAPIFolderOps.h \
 	provider/client/WSMAPIPropStorage.cpp provider/client/WSMAPIPropStorage.h \
 	provider/client/WSMessageStreamExporter.cpp provider/client/WSMessageStreamExporter.h \

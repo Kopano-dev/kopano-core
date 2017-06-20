@@ -25,6 +25,8 @@
 #include "IECPropStorage.h"
 
 #include <kopano/kcodes.h>
+#include "ECABLogon.h"
+#include "WSTableView.h"
 #include "WSTransport.h"
 #include "soapKCmdProxy.h"
 
@@ -76,5 +78,14 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
+class WSABTableView _kc_final : public WSTableView {
+	public:
+	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECABLogon *, WSTransport *, WSTableView **);
+	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+
+	protected:
+	WSABTableView(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECABLogon *, WSTransport *);
+	ALLOC_WRAP_FRIEND;
+};
 
 #endif

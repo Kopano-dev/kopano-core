@@ -43,8 +43,6 @@
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/mapiext.h>
-
-#include "WSABTableView.h"
 #include "WSABPropStorage.h"
 #include <kopano/ecversion.h>
 #include "ClientUtil.h"
