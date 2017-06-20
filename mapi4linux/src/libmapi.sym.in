@@ -1,13 +1,9 @@
 MAPI32_1 {
 global:
 	BuildDisplayTable;
-	CbOfEncoded;
-	CchOfEncoding;
 	CloseIMsgSession;
 	DeinitMapiUtil;
-	EncodeID;
 	FBinFromHex;
-	FDecodeID;
 	FPropExists;
 	FreePadrlist;
 	FreeProws;

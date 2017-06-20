@@ -358,38 +358,6 @@ SCODE ScBinFromHexBounded(LPTSTR lpsz, LPBYTE lpb, ULONG cb);
 void HexFromBin(LPBYTE lpb, int cb, LPTSTR lpsz);
 ULONG UlFromSzHex(LPCTSTR lpsz);
 
-/* Encoding and decoding entry IDs */
-HRESULT HrEntryIDFromSz(LPTSTR lpsz, ULONG *lpcb,
-			LPENTRYID *lppEntryID);
-HRESULT HrSzFromEntryID(ULONG cb, LPENTRYID lpEntryID,
-			LPTSTR *lpsz);
-HRESULT HrComposeEID(LPMAPISESSION lpSession,
-		     ULONG cbStoreRecordKey, LPBYTE lpStoreRecordKey,
-		     ULONG cbMsgEntryID, LPENTRYID lpMsgEntryID,
-		     ULONG *lpcbEID, LPENTRYID *lppEntryID);
-HRESULT HrDecomposeEID(LPMAPISESSION lpSession,
-		       ULONG cbEntryID, LPENTRYID lpEntryID,
-		       ULONG *lpcbStoreEntryID,
-		       LPENTRYID *lppStoreEntryID,
-		       ULONG *lpcbMsgEntryID,
-		       LPENTRYID *lppMsgEntryID);
-HRESULT HrComposeMsgID(LPMAPISESSION lpSession,
-		       ULONG cbStoreSearchKey, LPBYTE pStoreSearchKey,
-		       ULONG cbMsgEntryID, LPENTRYID lpMsgEntryID,
-		       LPTSTR *lpszMsgID);
-HRESULT HrDecomposeMsgID(LPMAPISESSION lpSession,
-			 LPTSTR lpszMsgID,
-			 ULONG *lpcbStoreEntryID,
-			 LPENTRYID *lppStoreEntryID,
-			 ULONG *lppcbMsgEntryID,
-			 LPENTRYID *lppMsgEntryID);
-
-/* Other encodings */
-ULONG CbOfEncoded(LPCSTR lpszEnc);
-ULONG CchOfEncoding(LPCSTR lpszEnd);
-LPWSTR EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString);
-void FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncoded);
-
 /* C runtime substitutes */
 
 

@@ -457,18 +457,6 @@ SCODE ScRelocProps(int cprop, LPSPropValue rgprop, LPVOID pvBaseOld,
 	return S_FALSE;
 }
 
-ULONG CbOfEncoded(LPCSTR lpszEnc)
-{
-	if (lpszEnc)
-		return (((strlen(lpszEnc) | 3) >> 2) + 1) * 3;
-	return 0;
-}
-
-ULONG CchOfEncoding(LPCSTR lpszEnd)
-{
-	return 0;
-}
-
 SCODE ScCopyProps(int cprop, LPSPropValue rgprop, LPVOID pvDst, ULONG *pcb)
 {
 	auto lpHeap = static_cast<BYTE *>(pvDst) + sizeof(SPropValue) * cprop;
@@ -697,37 +685,6 @@ FILETIME FtSubFt(FILETIME Minuend, FILETIME Subtrahend)
 	ft.dwHighDateTime = l >> 32;
 	ft.dwLowDateTime = l & 0xffffffff;
 	return ft;
-}
-
-const WORD kwBaseOffset = 0xAC00;  // Hangul char range (AC00-D7AF)
-LPWSTR EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString)
-{
-	ULONG   i = 0;
-	LPWSTR  pwzDst = NULL;
-	LPBYTE  pbSrc = NULL;
-	LPWSTR  pwzIDEncoded = NULL;
-
-	// rgbID is the item Entry ID or the attachment ID
-	// cbID is the size in bytes of rgbID
-
-	// Allocate memory for pwzIDEncoded
-	pwzIDEncoded = new WCHAR[cbEID+1];
-	if (!pwzIDEncoded)
-		return pwzIDEncoded;
-
-	for (i = 0, pbSrc = (LPBYTE)rgbID, pwzDst = pwzIDEncoded;
-	     i < cbEID; ++i, ++pbSrc, ++pwzDst)
-		*pwzDst = (WCHAR) (*pbSrc + kwBaseOffset);
-
-	// Ensure NULL terminated
-	*pwzDst = L'\0';
-	// pwzIDEncoded now contains the entry ID encoded.
-	return pwzIDEncoded;
-}
-
-void FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncoded)
-{
-	// ?
 }
 
 HRESULT GetConnectionProperties(LPSPropValue lpServer, LPSPropValue lpUsername, ULONG *lpcValues, LPSPropValue *lppProps)

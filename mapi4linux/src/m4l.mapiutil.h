@@ -20,17 +20,6 @@
 
 #include <mapiutil.h>
 
-
-
-/*
- * Define some additional functions which are not defined in the Microsoft mapiutil.h
- * Although they are in fact mapiutil functions hidden somewhere in mapi32.
- */
-STDAPI_(ULONG) CbOfEncoded(LPCSTR lpszEnc);
-STDAPI_(ULONG) CchOfEncoding(LPCSTR lpszEnd);
-STDAPI_(LPWSTR) EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString);
-STDAPI_(void) FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncoded);
-
 /*
  * Non mapi32 utility function (only used internally withint M4L)
  */
