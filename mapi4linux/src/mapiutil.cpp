@@ -351,13 +351,6 @@ HRESULT CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease,
 	return lpStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(lppStream));
 }
 
-HRESULT OpenStreamOnFile(LPALLOCATEBUFFER lpAllocateBuffer,
-    LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, LPTSTR lpszFileName,
-    LPTSTR lpszPrefix, LPSTREAM *lppStream)
-{
-	return MAPI_E_NOT_FOUND;
-}
-
 HRESULT BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer,
     LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc,
     HINSTANCE hInstance, UINT cPages, LPDTPAGE lpPage, ULONG ulFlags,

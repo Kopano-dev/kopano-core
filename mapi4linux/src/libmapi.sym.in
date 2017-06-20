@@ -22,7 +22,6 @@ global:
 	MapStorageSCode;
 	OpenIMsgOnIStg;
 	OpenIMsgSession;
-	OpenStreamOnFile;
 	PpropFindProp;
 	PropCopyMore;
 	RTFSync;

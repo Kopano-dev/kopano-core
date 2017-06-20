@@ -124,36 +124,6 @@ SCODE CreateIProp(LPCIID             lpInterface,
 
 LPMALLOC MAPIGetDefaultMalloc(void);
 
-
-/* StreamOnFile (SOF) */
-
-/*
- *  Methods and #define's for implementing an OLE 2.0 storage stream
- *  (as defined in the OLE 2.0 specs) on top of a system file.
- */
-
-#define SOF_UNIQUEFILENAME  ((ULONG) 0x80000000)
-
-HRESULT OpenStreamOnFile(
-    LPALLOCATEBUFFER    lpAllocateBuffer,
-    LPFREEBUFFER        lpFreeBuffer,
-    ULONG               ulFlags,
-    LPTSTR              lpszFileName,
-    LPTSTR              lpszPrefix,
-    LPSTREAM *          lppStream);
-
-// uh?
-typedef HRESULT (*LPOPENSTREAMONFILE) (
-    LPALLOCATEBUFFER    lpAllocateBuffer,
-    LPFREEBUFFER        lpFreeBuffer,
-    ULONG               ulFlags,
-    LPTSTR              lpszFileName,
-    LPTSTR              lpszPrefix,
-    LPSTREAM *          lppStream);
-
-#define OPENSTREAMONFILE "OpenStreamOnFile"
-
-
 /* Property interface utilities */
 
 /*
