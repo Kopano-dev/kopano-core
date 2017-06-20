@@ -1098,11 +1098,9 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
     ULONG ulChanges, const SPropTagArray *lpsProps,
     WSMessageStreamExporter **lppsStreamExporter)
 {
-	typedef KCHL::memory_ptr<sourceKeyPairArray> sourceKeyPairArrayPtr;
-
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	sourceKeyPairArrayPtr ptrsSourceKeyPairs;
+	memory_ptr<sourceKeyPairArray> ptrsSourceKeyPairs;
 	WSMessageStreamExporterPtr ptrStreamExporter;
 	propTagArray sPropTags = {0, 0};
 	exportMessageChangesAsStreamResponse sResponse{__gszeroinit};

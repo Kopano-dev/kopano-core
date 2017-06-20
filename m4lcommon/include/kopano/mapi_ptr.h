@@ -34,7 +34,6 @@ namespace KC {
 
 typedef KCHL::object_ptr<IABContainer> ABContainerPtr;
 typedef KCHL::object_ptr<IAddrBook> AddrBookPtr;
-typedef KCHL::object_ptr<IDistList> DistListPtr;
 typedef KCHL::object_ptr<IECSecurity> ECSecurityPtr;
 typedef KCHL::object_ptr<IECServiceAdmin> ECServiceAdminPtr;
 typedef KCHL::object_ptr<IECSingleInstance> ECSingleInstancePtr;
@@ -51,20 +50,14 @@ typedef KCHL::object_ptr<IMsgStore> MsgStorePtr;
 typedef KCHL::object_ptr<IProfSect> ProfSectPtr;
 typedef KCHL::object_ptr<IStream> StreamPtr;
 typedef KCHL::object_ptr<IAttach> AttachPtr;
-typedef KCHL::object_ptr<IMAPIGetSession> MAPIGetSessionPtr;
 
 typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionPtr;
 typedef KCHL::memory_ptr<ENTRYID> EntryIdPtr;
 typedef KCHL::memory_ptr<ENTRYLIST> EntryListPtr;
-typedef KCHL::memory_ptr<ROWLIST> RowListPtr;
 typedef KCHL::memory_ptr<SPropValue> SPropValuePtr;
 typedef KCHL::memory_ptr<SPropTagArray> SPropTagArrayPtr;
 typedef KCHL::memory_ptr<SRestriction> SRestrictionPtr;
-typedef KCHL::memory_ptr<SSortOrderSet> SSortOrderSetPtr;
-typedef KCHL::memory_ptr<WCHAR> WStringPtr;
-typedef KCHL::memory_ptr<FlagList> FlagListPtr;
 
-typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionArrayPtr;
 typedef KCHL::memory_ptr<SPropValue> SPropArrayPtr;
 
 class SRowSetPtr : public KCHL::memory_ptr<SRowSet, KCHL::rowset_delete> {

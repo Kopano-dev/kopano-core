@@ -347,7 +347,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	MAPITablePtr ptrTable;
 	SPropValue sUserProps[2];
 	SPropValue sOtherProps[2];
-	RowListPtr ptrRowList;
+	KCHL::memory_ptr<ROWLIST> ptrRowList;
 	StoreHelperPtr ptrStoreHelper;
 	
 	hr = MAPIAllocateBuffer(CbNewROWLIST(2), &~ptrRowList);

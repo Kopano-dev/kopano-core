@@ -62,7 +62,6 @@
 #include <kopano/mapi_ptr.h>
 typedef KCHL::memory_ptr<char> MAPIStringPtr;
 typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
-typedef KCHL::object_ptr<ECMessage> ECMessagePtr;
 
 #include <kopano/charset/convstring.h>
 
@@ -868,7 +867,7 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 	ecmem_ptr<SPropValue> lpsPropArray;
 	ULONG			cValue = 0;
 	ULONG			ulSubmitFlag = 0;
-	ECMessagePtr	ptrECMessage;
+	object_ptr<ECMessage> ptrECMessage;
 	static constexpr const SizedSPropTagArray(2, sptaMessageProps) =
 		{2, {PR_SUBMIT_FLAGS, PR_ENTRYID}};
 	enum {IDX_SUBMIT_FLAGS, IDX_ENTRYID};

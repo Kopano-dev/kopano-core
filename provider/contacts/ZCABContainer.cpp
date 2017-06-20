@@ -828,7 +828,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 			// the folder is most likely in a store that is not yet available through this MAPI session
 			// try opening the store through the support object, and see if we can get it anyway
 			MsgStorePtr ptrStore;
-			MAPIGetSessionPtr ptrGetSession;
+			object_ptr<IMAPIGetSession> ptrGetSession;
 			MAPISessionPtr ptrSession;
 
 			hr = m_lpMAPISup->QueryInterface(IID_IMAPIGetSession, &~ptrGetSession);

@@ -47,8 +47,6 @@ using namespace KCHL;
 
 typedef object_ptr<IECChangeAdvisor> ECChangeAdvisorPtr;
 //DEFINEMAPIPTR(ECChangeAdvisor);
-typedef object_ptr<IECChangeAdviseSink> ECChangeAdviseSinkPtr;
-//DEFINEMAPIPTR(ECChangeAdviseSink);
 
 #define EC_SYNC_STATUS_VERSION			1
 
@@ -189,7 +187,7 @@ HRESULT ECSyncContext::HrReleaseChangeAdvisor()
 HRESULT ECSyncContext::HrResetChangeAdvisor()
 {
 	ECChangeAdvisorPtr ptrChangeAdvisor;
-	ECChangeAdviseSinkPtr ptrChangeAdviseSink;
+	object_ptr<IECChangeAdviseSink> ptrChangeAdviseSink;
 
 	HRESULT hr = HrReleaseChangeAdvisor();
 	if (hr != hrSuccess)

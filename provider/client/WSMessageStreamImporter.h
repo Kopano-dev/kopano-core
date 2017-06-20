@@ -28,8 +28,6 @@
 #include "WSTransport.h"
 
 class ECMAPIFolder;
-typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
-
 class WSMessageStreamImporter;
 
 /**
@@ -87,7 +85,7 @@ private:
 	entryId m_sFolderEntryId;
 	bool m_bNewMessage;
 	propVal m_sConflictItems;
-	WSTransportPtr m_ptrTransport;
+	KCHL::object_ptr<WSTransport> m_ptrTransport;
 
 	HRESULT m_hr = hrSuccess;
 	ECFifoBuffer m_fifoBuffer;

@@ -626,7 +626,7 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 	HRESULT hr;
 	ECSecurityPtr			ptrSecurity;
 	ULONG					cPerms = 0;
-	ECPermissionArrayPtr	ptrPerms;
+	memory_ptr<ECPERMISSION> ptrPerms;
 	ULONG					cSparePerms = 0;
 	ECPermissionPtr			ptrTmpPerms;
 	ECPERMISSION *lpPermissions = NULL;

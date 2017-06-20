@@ -68,7 +68,7 @@ struct initprov {
 	SPropValue prop[6];
 	EntryIdPtr eid;
 	/* referenced from prop[n] */
-	WStringPtr store_name;
+	memory_ptr<wchar_t> store_name;
 	EntryIdPtr wrap_eid;
 	memory_ptr<ABEID> abe_id;
 };

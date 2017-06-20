@@ -427,7 +427,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		const SPropValue *lpAddrType = NULL;
 		const SPropValue *lpDLEntryID = NULL;
 		ULONG ulObjType;
-		DistListPtr ptrDistList;
+		object_ptr<IDistList> ptrDistList;
 		MAPITablePtr ptrMemberTable;
 		SRowSetPtr ptrMembers;
 
