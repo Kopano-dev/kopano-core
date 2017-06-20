@@ -31,13 +31,8 @@ typedef std::map<std::string, inf_section> inf;
 
 /* MAPI Providers EntryPoint functions */
 typedef HRESULT (*SVC_MSGServiceEntry)(HINSTANCE, IMalloc *, IMAPISupport *, ULONG ui_param, ULONG flags, ULONG context, ULONG nprops, const SPropValue *props, IProviderAdmin *, MAPIERROR **errout);
-typedef HRESULT(__cdecl *SVC_MSProviderInit)(HINSTANCE hInstance, LPMALLOC pmalloc,
-											 LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore, LPFREEBUFFER pfnFreeBuf,
-											 ULONG ulFlags, ULONG ulMAPIVersion, ULONG * pulMDBVersion, LPMSPROVIDER * ppmsp);
-
-typedef HRESULT(__cdecl *SVC_ABProviderInit)(HINSTANCE hInstance, LPMALLOC lpMalloc, LPALLOCATEBUFFER lpAllocateBuffer,
-											 LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
-											 ULONG * lpulProviderVer, LPABPROVIDER * lppABProvider);
+typedef HRESULT (*SVC_MSProviderInit)(HINSTANCE hInstance, LPMALLOC pmalloc, LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore, LPFREEBUFFER pfnFreeBuf, ULONG ulFlags, ULONG ulMAPIVersion, ULONG *pulMDBVersion, LPMSPROVIDER *ppmsp);
+typedef HRESULT (*SVC_ABProviderInit)(HINSTANCE hInstance, LPMALLOC lpMalloc, LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer, ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider);
 
 class INFLoader _kc_final {
 public:

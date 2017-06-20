@@ -61,7 +61,7 @@ HRESULT MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 	return hr;
 }
 
-HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
+HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
     LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
     LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
     ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider)
