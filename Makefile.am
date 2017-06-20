@@ -701,7 +701,7 @@ libmapi_la_SOURCES = \
 	mapi4linux/src/m4l.mapisvc.cpp mapi4linux/src/m4l.mapisvc.h \
 	m4lcommon/CommonUtil.cpp \
 	m4lcommon/ECFeatures.cpp m4lcommon/ECFeatures.h \
-	m4lcommon/ECFeatureList.h m4lcommon/ECInvariantChecker.h \
+	m4lcommon/ECFeatureList.h \
 	m4lcommon/ECMemTable.cpp m4lcommon/HrException.h \
 	m4lcommon/ECRestriction.cpp \
 	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp \
