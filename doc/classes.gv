@@ -3,7 +3,8 @@ digraph {
 	rankdir=RL;
 	node [style=filled,fillcolor=green];
 	edge [color="#008000"];
-	IABContainer -> IMAPIContainer;
+	IABContainer -> IABContainer_DistList_base;
+	IABContainer_DistList_base -> IMAPIContainer;
 	IMAPIContainer -> IMAPIProp;
 	IMAPIProp -> IUnknown;
 	IMAPITable -> IUnknown;
@@ -133,7 +134,7 @@ digraph {
 	ECUnknown -> IUnknown;
 	IABProvider -> IUnknown;
 	IAttach -> IMAPIProp;
-	IDistList -> IMAPIContainer;
+	IDistList -> IABContainer_DistList_base;
 	IECChangeAdvisor -> IUnknown;
 	IECExchangeModifyTable -> IExchangeModifyTable;
 	IECExportAddressbookChanges -> IUnknown;

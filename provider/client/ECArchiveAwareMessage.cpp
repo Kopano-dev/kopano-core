@@ -133,9 +133,9 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 		this->fModify = fModifyCopy;
 		goto exit;
 	}
-	hr = Util::DoCopyProps(&IID_IMAPIProp, &m_ptrArchiveMsg->m_xMAPIProp,
+	hr = Util::DoCopyProps(&IID_IMAPIProp, static_cast<IMAPIProp *>(m_ptrArchiveMsg),
 	     sptaRestoreProps, 0, NULL, &IID_IMAPIProp,
-	     &this->m_xMAPIProp, 0, NULL);
+	     static_cast<IMAPIProp *>(this), 0, nullptr);
 	if (hr != hrSuccess) {
 		this->fModify = fModifyCopy;
 		goto exit;
@@ -143,13 +143,12 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 
 	// Now remove any dummy attachment(s) and copy the attachments from the archive (except the properties
 	// that are too big in the firt place).
-	hr = Util::HrDeleteAttachments(&m_xMessage);
+	hr = Util::HrDeleteAttachments(this);
 	if (hr != hrSuccess) {
 		this->fModify = fModifyCopy;
 		goto exit;
 	}
-
-	hr = Util::CopyAttachments(&m_ptrArchiveMsg->m_xMessage, &m_xMessage, NULL);
+	hr = Util::CopyAttachments(m_ptrArchiveMsg, this, NULL);
 	this->fModify = fModifyCopy;
 exit:
 	m_bLoading = false;
@@ -380,8 +379,7 @@ HRESULT ECArchiveAwareMessage::MapNamedProps()
 	PROPMAP_INIT_NAMED_ID(STUBBED,                PT_BOOLEAN,   PSETID_Archive, dispidStubbed);
 	PROPMAP_INIT_NAMED_ID(DIRTY,				  PT_BOOLEAN,   PSETID_Archive, dispidDirty);
 	PROPMAP_INIT_NAMED_ID(ORIGINAL_SOURCE_KEY,    PT_BINARY,    PSETID_Archive, dispidOrigSourceKey);
-	PROPMAP_INIT(&this->m_xMAPIProp);
-
+	PROPMAP_INIT(this);
 	m_bNamedPropsMapped = true;
  exitpm:
 	return hr;
@@ -403,7 +401,7 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
 
 	sPropVal.ulPropTag = PR_INTERNET_CPID;
 	sPropVal.Value.l = 65001;
-	hr = HrSetOneProp(&this->m_xMAPIProp, &sPropVal);
+	hr = HrSetOneProp(this, &sPropVal);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = OpenProperty(PR_HTML, &iid_of(ptrHtmlStream), 0, MAPI_CREATE | MAPI_MODIFY, &~ptrHtmlStream);

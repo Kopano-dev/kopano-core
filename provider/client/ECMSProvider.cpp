@@ -65,7 +65,9 @@ HRESULT ECMSProvider::Create(ULONG ulFlags, ECMSProvider **lppECMSProvider) {
 
 HRESULT ECMSProvider::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE2(IMSProvider, &this->m_xMSProvider);
+	REGISTER_INTERFACE2(ECMSProvider, this);
+	REGISTER_INTERFACE2(IMSProvider, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -358,31 +360,3 @@ HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileP
 	}
 	return hrSuccess;
 }
-
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, Shutdown, (ULONG *, lpulFlags))
-
-/* has 12 args, no macro deals with it atm */
-HRESULT ECMSProvider::xMSProvider::Logon(LPMAPISUP lpMAPISup,
-    ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID,
-    LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
-    ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity,
-    LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
-{
-	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
-	return pThis->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
-}
-
-HRESULT ECMSProvider::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup,
-    ULONG_PTR ulUIParam, const TCHAR * lpszProfileName, ULONG cbEntryID,
-    LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
-    ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity,
-    LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
-{
-	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
-	return pThis->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID,ulFlags, lpInterface, lpcbSpoolSecurity, lppbSpoolSecurity, lppMAPIError, lppMSLogon, lppMDB);
-}
-
-DEF_HRMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, CompareStoreIDs, (ULONG, cbEntryID1), (LPENTRYID, lpEntryID1), (ULONG, cbEntryID2), (LPENTRYID, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))

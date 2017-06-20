@@ -206,12 +206,12 @@ HRESULT	ECMAPIFolder::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(ECMAPIContainer, this);
 	REGISTER_INTERFACE2(ECMAPIProp, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IMAPIFolder, &this->m_xMAPIFolder);
-	REGISTER_INTERFACE2(IMAPIContainer, &this->m_xMAPIFolder);
-	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMAPIFolder);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xMAPIFolder);
-	REGISTER_INTERFACE2(IFolderSupport, &this->m_xFolderSupport);
-	REGISTER_INTERFACE2(IECSecurity, &this->m_xECSecurity);
+	REGISTER_INTERFACE2(IMAPIFolder, this);
+	REGISTER_INTERFACE2(IMAPIContainer, this);
+	REGISTER_INTERFACE2(IMAPIProp, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	REGISTER_INTERFACE2(IFolderSupport, this);
+	REGISTER_INTERFACE2(IECSecurity, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -277,16 +277,16 @@ HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterf
 		else if(*lpiid == IID_IExchangeImportContentsChanges)
 			hr = ECExchangeImportContentsChanges::Create(this, (LPEXCHANGEIMPORTCONTENTSCHANGES*)lppUnk);
 	} else if(ulPropTag == PR_HIERARCHY_SYNCHRONIZER) {
-		hr = HrGetOneProp(&m_xMAPIProp, PR_SOURCE_KEY, &~ptrSK);
+		hr = HrGetOneProp(this, PR_SOURCE_KEY, &~ptrSK);
 		if(hr != hrSuccess)
 			return hr;
-		HrGetOneProp(&m_xMAPIProp, PR_DISPLAY_NAME_W, &~ptrDisplay); // ignore error
+		HrGetOneProp(this, PR_DISPLAY_NAME_W, &~ptrDisplay); // ignore error
 		hr = ECExchangeExportChanges::Create(this->GetMsgStore(), *lpiid, std::string((const char*)ptrSK->Value.bin.lpb, ptrSK->Value.bin.cb), !ptrDisplay ? L"" : ptrDisplay->Value.lpszW, ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
-		hr = HrGetOneProp(&m_xMAPIProp, PR_SOURCE_KEY, &~ptrSK);
+		hr = HrGetOneProp(this, PR_SOURCE_KEY, &~ptrSK);
 		if(hr != hrSuccess)
 			return hr;
-		HrGetOneProp(&m_xMAPIProp, PR_DISPLAY_NAME, &~ptrDisplay); // ignore error
+		HrGetOneProp(this, PR_DISPLAY_NAME, &~ptrDisplay); // ignore error
 		hr = ECExchangeExportChanges::Create(this->GetMsgStore(), *lpiid, std::string((const char*)ptrSK->Value.bin.lpb, ptrSK->Value.bin.cb), !ptrDisplay ? L"" : ptrDisplay->Value.lpszW, ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else {
 		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
@@ -299,14 +299,14 @@ HRESULT ECMAPIFolder::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return Util::DoCopyTo(&IID_IMAPIFolder, &this->m_xMAPIFolder, ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return Util::DoCopyTo(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(this), ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 HRESULT ECMAPIFolder::CopyProps(const SPropTagArray *lpIncludeProps,
     ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	return Util::DoCopyProps(&IID_IMAPIFolder, &this->m_xMAPIFolder, lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+	return Util::DoCopyProps(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(this), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 HRESULT ECMAPIFolder::SetProps(ULONG cValues, const SPropValue *lpPropArray,
@@ -479,70 +479,61 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 		return hr;
 
 	// Check if the destination entryid is a kopano entryid and if there is a folder transport
-	if( IsKopanoEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb) &&
-		lpFolderOps != NULL) 
-	{
-		hr = HrGetStoreGuidFromEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb, &guidFolder);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Allocate memory for support list and kopano list
-		hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListEC);
-		if(hr != hrSuccess)
-			return hr;
-		lpMsgListEC->cValues = 0;
-
-		hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, (void**)&lpMsgListEC->lpbin);
-		if(hr != hrSuccess)
-			return hr;
-		hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListSupport);
-		if(hr != hrSuccess)
-			return hr;
-		lpMsgListSupport->cValues = 0;
-
-		hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, (void**)&lpMsgListSupport->lpbin);
-		if(hr != hrSuccess)
-			return hr;
-
-		//FIXME
-		//hr = lpMapiFolder->SetReadFlags(GENERATE_RECEIPT_ONLY);
-		//if(hr != hrSuccess)
-			//goto exit;
-
-		// Check if right store	
-		for (i = 0; i < lpMsgList->cValues; ++i) {
-			hr = HrGetStoreGuidFromEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb, &guidMsg);
-			// check if the message in the store of the folder (serverside copy possible)
-			if(hr == hrSuccess && IsKopanoEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb) && memcmp(&guidMsg, &guidFolder, sizeof(MAPIUID)) == 0)
-				lpMsgListEC->lpbin[lpMsgListEC->cValues++] = lpMsgList->lpbin[i];// cheap copy
-			else
-				lpMsgListSupport->lpbin[lpMsgListSupport->cValues++] = lpMsgList->lpbin[i];// cheap copy
-
-			hr = hrSuccess;
-		}
-		
-		if(lpMsgListEC->cValues > 0)
-		{
-			hr = this->lpFolderOps->HrCopyMessage(lpMsgListEC, lpDestPropArray[0].Value.bin.cb, (LPENTRYID)lpDestPropArray[0].Value.bin.lpb, ulFlags, 0);
-			if(FAILED(hr))
-				goto exit;
-			hrEC = hr;
-		}
-
-		if(lpMsgListSupport->cValues > 0)
-		{
-			hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, &this->m_xMAPIFolder, lpMsgListSupport, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
-			if(FAILED(hr))
-				goto exit;
-		}
-
-	}else
-	{
+	if (!IsKopanoEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb) ||
+	    lpFolderOps == nullptr) {
 		// Do copy with the storeobject
 		// Copy between two or more different stores
-		hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, &this->m_xMAPIFolder, lpMsgList, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
-	}	
+		hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(this), lpMsgList, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
+		return hr == hrSuccess ? hrEC : hr;
+	}
 
+	hr = HrGetStoreGuidFromEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb, &guidFolder);
+	if(hr != hrSuccess)
+		return hr;
+
+	// Allocate memory for support list and kopano list
+	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListEC);
+	if (hr != hrSuccess)
+		return hr;
+	lpMsgListEC->cValues = 0;
+	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, (void **)&lpMsgListEC->lpbin);
+	if (hr != hrSuccess)
+		return hr;
+	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListSupport);
+	if (hr != hrSuccess)
+		return hr;
+	lpMsgListSupport->cValues = 0;
+	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, (void **)&lpMsgListSupport->lpbin);
+	if (hr != hrSuccess)
+		return hr;
+	//FIXME
+	//hr = lpMapiFolder->SetReadFlags(GENERATE_RECEIPT_ONLY);
+	//if (hr != hrSuccess)
+		//goto exit;
+
+	// Check if right store	
+	for (i = 0; i < lpMsgList->cValues; ++i) {
+		hr = HrGetStoreGuidFromEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb, &guidMsg);
+		// check if the message in the store of the folder (serverside copy possible)
+		if (hr == hrSuccess && IsKopanoEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb) && memcmp(&guidMsg, &guidFolder, sizeof(MAPIUID)) == 0)
+			lpMsgListEC->lpbin[lpMsgListEC->cValues++] = lpMsgList->lpbin[i]; // cheap copy
+		else
+			lpMsgListSupport->lpbin[lpMsgListSupport->cValues++] = lpMsgList->lpbin[i]; // cheap copy
+		hr = hrSuccess;
+	}
+	if (lpMsgListEC->cValues > 0)
+	{
+		hr = this->lpFolderOps->HrCopyMessage(lpMsgListEC, lpDestPropArray[0].Value.bin.cb, (LPENTRYID)lpDestPropArray[0].Value.bin.lpb, ulFlags, 0);
+		if(FAILED(hr))
+			goto exit;
+		hrEC = hr;
+	}
+	if (lpMsgListSupport->cValues > 0)
+	{
+		hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(this), lpMsgListSupport, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
+		if(FAILED(hr))
+			goto exit;
+	}
 exit:
 	return (hr == hrSuccess)?hrEC:hr;
 }
@@ -631,7 +622,7 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		hr = this->lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
 	else
 		// Support object handled de copy/move
-		hr = this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, &this->m_xMAPIFolder, cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
+		hr = this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(this), cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
 	return hr;
 }
 
@@ -797,40 +788,3 @@ HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, L
 	*lppsStreamImporter = ptrStreamImporter.release();
 	return hrSuccess;
 }
-
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetContentsTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetHierarchyTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, OpenEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SetSearchCriteria, (LPSRestriction, lpRestriction), (LPENTRYLIST, lpContainerList), (ULONG, ulSearchFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetSearchCriteria, (ULONG, ulFlags), (LPSRestriction *, lppRestriction), (LPENTRYLIST *, lppContainerList), (ULONG *, lpulSearchState))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, CreateMessage, (LPCIID, lpInterface), (ULONG, ulFlags), (LPMESSAGE *, lppMessage))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, CopyMessages, (LPENTRYLIST, lpMsgList), (LPCIID, lpInterface), (LPVOID, lpDestFolder), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, DeleteMessages, (LPENTRYLIST, lpMsgList), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, CreateFolder, (ULONG, ulFolderType), (LPTSTR, lpszFolderName), (LPTSTR, lpszFolderComment), (LPCIID, lpInterface), (ULONG, ulFlags), (LPMAPIFOLDER *, lppFolder))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, CopyFolder, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (LPCIID, lpInterface), (LPVOID, lpDestFolder), (LPTSTR, lpszNewFolderName), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, DeleteFolder, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SetReadFlags, (LPENTRYLIST, lpMsgList), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetMessageStatus, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulFlags), (ULONG *, lpulMessageStatus))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SetMessageStatus, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulNewStatus), (ULONG, ulNewStatusMask), (ULONG *, lpulOldStatus))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SaveContentsSort, (const SSortOrderSet *, lpSortCriteria), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, EmptyFolder, (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
-
-// IFolderSupport
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, FolderSupport, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIFolder, FolderSupport, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIFolder, FolderSupport, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, FolderSupport, GetSupportMask, (DWORD *, pdwSupportMask))

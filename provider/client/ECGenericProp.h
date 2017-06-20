@@ -53,7 +53,7 @@ typedef std::map<short, ECPropertyEntry>		ECPropertyEntryMap;
 typedef ECPropertyEntryMap::iterator			ECPropertyEntryIterator;
 
 class ECGenericProp :
-    public ECUnknown, public IMAPIProp, public IECSingleInstance {
+    public ECUnknown, public virtual IMAPIProp, public IECSingleInstance {
 protected:
 	ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName = NULL);
 	virtual ~ECGenericProp();

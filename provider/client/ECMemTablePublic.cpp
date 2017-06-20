@@ -197,60 +197,52 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 	m_ulFlags = ulFlags;
 
 	// Get the messages to build a folder list
-	if (((ECMsgStorePublic *)m_lpECParentFolder->GetMsgStore())->GetDefaultShortcutFolder(&~lpShortcutFolder) == hrSuccess) {
-		HRESULT hr = lpShortcutFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &~lpShortcutTable);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpShortcutTable->SetColumns(GetShortCutTagArray(), MAPI_DEFERRED_ERRORS);
-		if(hr != hrSuccess)
-			return hr;
+	if (((ECMsgStorePublic *)m_lpECParentFolder->GetMsgStore())->GetDefaultShortcutFolder(&~lpShortcutFolder) != hrSuccess)
+		return hrSuccess;
 
-		// build restriction
-		if (HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropTmp) != hrSuccess)
-		{
-			hr = ECNotRestriction(ECExistRestriction(PR_FAV_PARENT_SOURCE_KEY)).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
-		}else {
-			hr = HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropTmp);
-			if (hr != hrSuccess)
-				return hr;
-			hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp, ECRestriction::Cheap).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
-		}
+	HRESULT hr = lpShortcutFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &~lpShortcutTable);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpShortcutTable->SetColumns(GetShortCutTagArray(), MAPI_DEFERRED_ERRORS);
+	if (hr != hrSuccess)
+		return hr;
+
+	// build restriction
+	if (HrGetOneProp(m_lpECParentFolder, PR_SOURCE_KEY, &~lpPropTmp) != hrSuccess) {
+		hr = ECNotRestriction(ECExistRestriction(PR_FAV_PARENT_SOURCE_KEY)).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
+	} else {
+		hr = HrGetOneProp(m_lpECParentFolder, PR_SOURCE_KEY, &~lpPropTmp);
 		if (hr != hrSuccess)
 			return hr;
+		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp, ECRestriction::Cheap).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
+	}
+	if (hr != hrSuccess)
+		return hr;
 	
-		// No advise needed because the client disable notifications
-		// If you remove this check the webaccess favorites doesn't work.
-		if(! (m_lpECParentFolder->GetMsgStore()->m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS) )
-		{
-
-			hr = HrAllocAdviseSink(AdviseShortCutCallback, this, &m_lpShortCutAdviseSink);
-			if (hr != hrSuccess)
-				return hr;
-
-			// NOTE: the advise will destruct at release time
-			hr = lpShortcutTable->Advise(fnevTableModified, m_lpShortCutAdviseSink, &ulConnection);
-			if (hr != hrSuccess)
-				return hr;
-		}
-
-		while(true)
-		{
-			rowset_ptr lpRows;
-			hr = lpShortcutTable->QueryRows(1, 0, &~lpRows);
-			if (hr != hrSuccess)
-				return hr;
-
-			if (lpRows->cRows == 0)
-				break;
-
-			ModifyRow(&lpRows->aRow[0].lpProps[SC_INSTANCE_KEY].Value.bin, &lpRows->aRow[0]);
-		}
-
-		hr = lpShortcutTable->QueryInterface(IID_IMAPITable, (void **)&m_lpShortcutTable);
+	// No advise needed because the client disable notifications
+	// If you remove this check the webaccess favorites doesn't work.
+	if (!(m_lpECParentFolder->GetMsgStore()->m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS))
+	{
+		hr = HrAllocAdviseSink(AdviseShortCutCallback, this, &m_lpShortCutAdviseSink);
+		if (hr != hrSuccess)
+			return hr;
+		// NOTE: the advise will destruct at release time
+		hr = lpShortcutTable->Advise(fnevTableModified, m_lpShortCutAdviseSink, &ulConnection);
 		if (hr != hrSuccess)
 			return hr;
 	}
-	return hrSuccess;
+
+	while (true)
+	{
+		rowset_ptr lpRows;
+		hr = lpShortcutTable->QueryRows(1, 0, &~lpRows);
+		if (hr != hrSuccess)
+			return hr;
+		if (lpRows->cRows == 0)
+			break;
+		ModifyRow(&lpRows->aRow[0].lpProps[SC_INSTANCE_KEY].Value.bin, &lpRows->aRow[0]);
+	}
+	return lpShortcutTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(&m_lpShortcutTable));
 }
 
 /*

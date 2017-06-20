@@ -26,7 +26,7 @@
 #include "ECABLogon.h"
 #include "ECABProp.h"
 
-class ECABContainer : public ECABProp {
+class ECABContainer : public ECABProp, public IABContainer {
 protected:
 	ECABContainer(void* lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName);
 	virtual ~ECABContainer();
@@ -56,13 +56,6 @@ public:
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
 	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
 	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
-
-	class xABContainer _kc_final : public IABContainer {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IABContainer.hpp>
-		#include <kopano/xclsfrag/IMAPIContainer.hpp>
-		#include <kopano/xclsfrag/IMAPIProp.hpp>
-	} m_xABContainer;
 
 private:
 	IECImportAddressbookChanges *m_lpImporter = nullptr;

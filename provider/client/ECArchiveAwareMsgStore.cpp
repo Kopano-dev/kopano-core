@@ -141,7 +141,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 		return iterStore->second->QueryInterface(IID_ECMsgStore, (LPVOID*)lppArchiveStore);
 	
 	// @todo: Consolidate this with ECMSProvider::LogonByEntryID
-	UnknownPtr ptrUnknown;
+	object_ptr<IMsgStore> ptrUnknown;
 	ECMsgStorePtr ptrOnlineStore;
 	ULONG cbEntryID = 0;
 	EntryIdPtr ptrEntryID;
