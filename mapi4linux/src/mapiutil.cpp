@@ -20,8 +20,6 @@
 #include <new>
 #include <cstdlib>
 #include <cmath> // for pow() 
-
-#include "m4l.mapiutil.h"
 #include "m4l.mapidefs.h"
 #include "m4l.mapix.h"
 #include "m4l.debug.h"
@@ -419,56 +417,3 @@ FILETIME FtSubFt(FILETIME Minuend, FILETIME Subtrahend)
 	ft.dwLowDateTime = l & 0xffffffff;
 	return ft;
 }
-
-HRESULT GetConnectionProperties(LPSPropValue lpServer, LPSPropValue lpUsername, ULONG *lpcValues, LPSPropValue *lppProps)
-{
-	HRESULT hr = hrSuccess;
-	memory_ptr<SPropValue> lpProps;
-	char *szUsername;
-	std::string strServerPath;
-	ULONG cProps = 0;
-
-	if (lpServer == nullptr || lpUsername == nullptr)
-		return MAPI_E_UNCONFIGURED;
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 5, &~lpProps);
-	if (hr != hrSuccess)
-		return hr;
-	if (m4l_lpConfig->GetSetting("server_address")[0])
-		strServerPath = (std::string)"https://" + m4l_lpConfig->GetSetting("server_address") + ":" + m4l_lpConfig->GetSetting("ssl_port") + "/";
-	else
-		strServerPath = (std::string)"https://" + lpServer->Value.lpszA + ":" + m4l_lpConfig->GetSetting("ssl_port") + "/";
-	szUsername = lpUsername->Value.lpszA;
-
-	if(strrchr(szUsername, '='))
-		szUsername = strrchr(szUsername, '=')+1;
-
-	lpProps[cProps].ulPropTag = PR_EC_PATH;
-	if ((hr = MAPIAllocateMore(strServerPath.size() + 1, lpProps, (void**)&lpProps[cProps].Value.lpszA)) != hrSuccess)
-		return hr;
-	memcpy(lpProps[cProps++].Value.lpszA, strServerPath.c_str(),strServerPath.size() + 1);
-
-	lpProps[cProps].ulPropTag = PR_EC_USERNAME_A;
-	if ((hr = MAPIAllocateMore(strlen(szUsername) + 1, lpProps, (void**)&lpProps[cProps].Value.lpszA)) != hrSuccess)
-		return hr;
-	memcpy(lpProps[cProps++].Value.lpszA, szUsername, strlen(szUsername) + 1);
-
-	lpProps[cProps].ulPropTag = PR_EC_USERPASSWORD_A;
-	if ((hr = MAPIAllocateMore(1, lpProps, (void**)&lpProps[cProps].Value.lpszA)) != hrSuccess)
-		return hr;
-	memcpy(lpProps[cProps++].Value.lpszA, "", 1);
-
-	lpProps[cProps].ulPropTag = PR_EC_SSLKEY_FILE;
-	if ((hr = MAPIAllocateMore(strlen(m4l_lpConfig->GetSetting("ssl_key_file")) + 1, lpProps, (void**)&lpProps[cProps].Value.lpszA)) != hrSuccess)
-		return hr;
-	memcpy(lpProps[cProps++].Value.lpszA, m4l_lpConfig->GetSetting("ssl_key_file"), strlen(m4l_lpConfig->GetSetting("ssl_key_file")) + 1);
-
-	lpProps[cProps].ulPropTag = PR_EC_SSLKEY_PASS;
-	if ((hr = MAPIAllocateMore(strlen(m4l_lpConfig->GetSetting("ssl_key_pass")) + 1, lpProps, (void**)&lpProps[cProps].Value.lpszA)) != hrSuccess)
-		return hr;
-	memcpy(lpProps[cProps++].Value.lpszA, m4l_lpConfig->GetSetting("ssl_key_pass"), strlen(m4l_lpConfig->GetSetting("ssl_key_pass")) + 1);
-
-	*lpcValues = cProps;
-	*lppProps = lpProps.release();
-	return hrSuccess;
-}
-

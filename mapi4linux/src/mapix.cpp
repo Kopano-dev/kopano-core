@@ -32,7 +32,6 @@
 #include "m4l.mapix.h"
 #include "m4l.mapispi.h"
 #include "m4l.debug.h"
-#include "m4l.mapiutil.h"
 #include "m4l.mapisvc.h"
 
 #include <mapi.h>
