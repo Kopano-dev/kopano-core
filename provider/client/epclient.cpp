@@ -73,6 +73,8 @@ struct initprov {
 	memory_ptr<ABEID> abe_id;
 };
 
+typedef KCHL::object_ptr<IProfSect> ProfSectPtr;
+
 static const uint32_t MAPI_S_SPECIAL_OK = MAKE_MAPI_S(0x900);
 
 // Client wide variable

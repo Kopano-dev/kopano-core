@@ -51,6 +51,8 @@ struct STREAMDATA {
 	ECMAPIProp *lpProp;
 };
 
+typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionPtr;
+
 static struct rights ECPermToRightsCheap(const ECPERMISSION &p)
 {
 	struct rights r = {0, p.ulType, p.ulRights, p.ulState};
