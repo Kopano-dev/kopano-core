@@ -317,19 +317,6 @@ SCODE ScBinFromHexBounded(LPTSTR lpsz, LPBYTE lpb, ULONG cb);
 void HexFromBin(LPBYTE lpb, int cb, LPTSTR lpsz);
 ULONG UlFromSzHex(LPCTSTR lpsz);
 
-/* C runtime substitutes */
-
-
-LPTSTR SzFindCh(LPCTSTR lpsz, USHORT ch);      /* strchr */
-LPTSTR SzFindLastCh(LPCTSTR lpsz, USHORT ch);  /* strrchr */
-LPTSTR SzFindSz(LPCTSTR lpsz, LPCTSTR lpszKey); /*strstr */
-unsigned int UFromSz(LPCTSTR lpsz);                  /* atoi */
-
-SCODE ScUNCFromLocalPath(LPSTR lpszLocal, LPSTR lpszUNC,
-			 UINT cchUNC);
-SCODE ScLocalPathFromUNC(LPSTR lpszUNC, LPSTR lpszLocal,
-			 UINT cchLocal);
-
 /* 64-bit arithmetic with times */
 FILETIME FtSubFt(FILETIME ftMinuend, FILETIME ftSubtrahend);
 

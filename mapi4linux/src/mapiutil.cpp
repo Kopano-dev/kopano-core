@@ -432,13 +432,6 @@ void HexFromBin(LPBYTE pb, int cb, LPTSTR sz)
 	strcpy((char *)sz, hex.c_str());
 }
 
-// @todo according to MSDN, this function also supports Unicode strings
-// 		but I don't see how that's easy possible
-LPTSTR SzFindCh(LPCTSTR lpsz, USHORT ch)
-{
-	return reinterpret_cast<TCHAR *>(const_cast<char *>(strchr(reinterpret_cast<const char *>(lpsz), ch)));
-}
-
 FILETIME FtSubFt(FILETIME Minuend, FILETIME Subtrahend)
 {
 	FILETIME ft;

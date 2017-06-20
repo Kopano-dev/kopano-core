@@ -30,7 +30,6 @@ global:
 	RTFSync;
 	ScCreateConversationIndex;
 	SetAttribIMsgOnIStg;
-	SzFindCh;
 	UlRelease;
 	WrapCompressedRTFStream;
 	WrapStoreEntryID;
