@@ -3640,46 +3640,6 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 	return lpDestMsg->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
-/** 
- * Find an EntryID using exact binary matches in an array of
- * properties.
- * 
- * @param[in]  cbEID number of bytes in lpEID
- * @param[in]  lpEID the EntryID to find in the property array
- * @param[in]  cbEntryIDs number of properties in lpEntryIDs
- * @param[in]  lpEntryIDs array of entryid properties
- * @param[out] lpbFound TRUE if folder was found
- * @param[out] lpPos index number the folder was found in if *lpbFound is TRUE, otherwise untouched
- * 
- * @return MAPI error code
- * @retval MAPI_E_INVALID_PARAMETER a passed parameter was invalid
- */
-HRESULT Util::HrFindEntryIDs(ULONG cbEID, LPENTRYID lpEID, ULONG cbEntryIDs, LPSPropValue lpEntryIDs, BOOL *lpbFound, ULONG* lpPos)
-{
-	BOOL bFound = FALSE;
-	ULONG i;
-
-	if (cbEID == 0 || lpEID == NULL || cbEntryIDs == 0 ||
-	    lpEntryIDs == NULL || lpbFound == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	for (i = 0; bFound == FALSE && i < cbEntryIDs; ++i) {
-		if (PROP_TYPE(lpEntryIDs[i].ulPropTag) != PT_BINARY)
-			continue;
-		if (cbEID != lpEntryIDs[i].Value.bin.cb)
-			continue;
-		if (memcmp(lpEID, lpEntryIDs[i].Value.bin.lpb, cbEID) == 0) {
-			bFound = TRUE;
-			break;
-		}
-	}
-
-	*lpbFound = bFound;
-	if (bFound && lpPos)
-		*lpPos = i;
-	return hrSuccess;
-}
-
 HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 {
 	MAPITablePtr ptrAttachTable;
