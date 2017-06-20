@@ -30,10 +30,6 @@ global:
 	MAPIInitialize;
 	MAPILogonEx;
 	MAPIUninitialize;
-	MNLS_CompareStringW;
-	MNLS_lstrcmpW;
-	MNLS_lstrcpyW;
-	MNLS_lstrlenW;
 	MapStorageSCode;
 	OpenIMsgOnIStg;
 	OpenIMsgSession;

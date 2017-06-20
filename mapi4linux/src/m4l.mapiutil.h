@@ -26,12 +26,6 @@
  * Define some additional functions which are not defined in the Microsoft mapiutil.h
  * Although they are in fact mapiutil functions hidden somewhere in mapi32.
  */
-STDAPI_(int) MNLS_CompareStringW(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1, int cchCount1, LPCWSTR lpString2, int cchCount2);
-STDAPI_(int) MNLS_lstrlenW(LPCWSTR lpString);
-STDAPI_(int) MNLS_lstrlen(LPCSTR lpString);
-STDAPI_(int) MNLS_lstrcmpW(LPCWSTR lpString1, LPCWSTR lpString2);
-STDAPI_(LPWSTR) MNLS_lstrcpyW(LPWSTR lpString1, LPCWSTR lpString2);
-
 STDAPI_(ULONG) CbOfEncoded(LPCSTR lpszEnc);
 STDAPI_(ULONG) CchOfEncoding(LPCSTR lpszEnd);
 STDAPI_(LPWSTR) EncodeID(ULONG cbEID, LPENTRYID rgbID, LPWSTR *lpWString);

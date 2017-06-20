@@ -688,34 +688,6 @@ LPTSTR SzFindCh(LPCTSTR lpsz, USHORT ch)
 	return reinterpret_cast<TCHAR *>(const_cast<char *>(strchr(reinterpret_cast<const char *>(lpsz), ch)));
 }
 
-int MNLS_CompareStringW(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1,
-    int cchCount1, LPCWSTR lpString2, int cchCount2)
-{
-	// FIXME: we're ignoring Locale, dwCmpFlags, cchCount1 and cchCount2
-	return wcscmp(reinterpret_cast<const wchar_t *>(lpString1),
-	              reinterpret_cast<const wchar_t *>(lpString2));
-}
-
-int MNLS_lstrlenW(LPCWSTR lpString)
-{
-	return lstrlenW(lpString);
-}
-
-int MNLS_lstrlen(LPCSTR lpString)
-{
-	return lstrlenW((LPCWSTR)lpString);
-}
-
-int MNLS_lstrcmpW(LPCWSTR lpString1, LPCWSTR lpString2)
-{
-	return lstrcmpW(lpString1, lpString2);
-}
-
-LPWSTR MNLS_lstrcpyW(LPWSTR lpString1, LPCWSTR lpString2)
-{
-	return lstrcpyW(lpString1, lpString2);
-}
-
 FILETIME FtAddFt(FILETIME Addend1, FILETIME Addend2)
 {
 	FILETIME ft;

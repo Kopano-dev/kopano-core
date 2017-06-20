@@ -403,13 +403,6 @@ SCODE ScUNCFromLocalPath(LPSTR lpszLocal, LPSTR lpszUNC,
 SCODE ScLocalPathFromUNC(LPSTR lpszUNC, LPSTR lpszLocal,
 			 UINT cchLocal);
 
-/* Windows Unicode string functions */
-extern int MNLS_CompareStringW(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1, int cchCount1, LPCWSTR lpString2, int cchCount2);
-extern int MNLS_lstrlenW(LPCWSTR lpString);
-extern int MNLS_lstrlen(LPCSTR lpString);
-extern int MNLS_lstrcmpW(LPCWSTR lpString1, LPCWSTR lpString2);
-extern LPWSTR MNLS_lstrcpyW(LPWSTR lpString1, LPCWSTR lpString2);
-
 /* 64-bit arithmetic with times */
 
 FILETIME FtAddFt(FILETIME ftAddend1, FILETIME ftAddend2);
