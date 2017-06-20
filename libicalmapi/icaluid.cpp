@@ -76,6 +76,7 @@ HRESULT HrGenerateUid(std::string *lpStrData)
  */
 HRESULT HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal)
 {
+	void *origbase = base;
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropVal = NULL;
 	std::string strUid, strBinUid;
@@ -108,7 +109,7 @@ HRESULT HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal)
 	*lppPropVal = lpPropVal;
 
 exit:
-	if (hr != hrSuccess && base == nullptr)
+	if (hr != hrSuccess && origbase == nullptr)
 		MAPIFreeBuffer(lpPropVal);
 
 	return hr;
