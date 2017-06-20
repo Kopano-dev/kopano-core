@@ -33,7 +33,7 @@
 
 #include "DLLGlobal.h"
 #include "ECMSProvider.h"
-#include "ECABProviderSwitch.h"
+#include "ECABProvider.h"
 #include <iostream>
 #include <kopano/ecversion.h>
 

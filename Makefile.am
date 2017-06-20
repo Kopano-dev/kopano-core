@@ -326,7 +326,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECABLogon.cpp provider/client/ECABLogon.h \
 	provider/client/ECABProp.cpp provider/client/ECABProp.h \
 	provider/client/ECABProvider.cpp provider/client/ECABProvider.h \
-	provider/client/ECABProviderSwitch.cpp provider/client/ECABProviderSwitch.h \
 	provider/client/ECArchiveAwareAttach.cpp provider/client/ECArchiveAwareAttach.h \
 	provider/client/ECArchiveAwareMessage.cpp provider/client/ECArchiveAwareMessage.h \
 	provider/client/ECArchiveAwareMsgStore.cpp provider/client/ECArchiveAwareMsgStore.h \
