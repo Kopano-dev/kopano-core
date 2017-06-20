@@ -1,6 +1,5 @@
 MAPI32_1 {
 global:
-	BuildDisplayTable;
 	CloseIMsgSession;
 	FPropExists;
 	FreePadrlist;

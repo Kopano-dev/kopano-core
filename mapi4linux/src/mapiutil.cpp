@@ -349,14 +349,6 @@ HRESULT CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease,
 	return lpStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(lppStream));
 }
 
-HRESULT BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer,
-    LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc,
-    HINSTANCE hInstance, UINT cPages, LPDTPAGE lpPage, ULONG ulFlags,
-    LPMAPITABLE *lppTable, LPTABLEDATA *lppTblData)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 #pragma pack(push, 1)
 struct CONVERSATION_INDEX {
 	char ulReserved1;

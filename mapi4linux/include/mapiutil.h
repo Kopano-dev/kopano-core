@@ -197,62 +197,6 @@ HrThisThreadAdviseSink( LPMAPIADVISESINK lpAdviseSink,
 
 HRESULT HrDispatchNotifications (ULONG ulFlags);
 
-
-/* Service Provider Utilities */
-
-/*
- *  Structures and utility function for building a display table
- *  from resources.
- */
-
-struct DTCTL {
-    ULONG           ulCtlType;          /* DTCT_LABEL, etc. */
-    ULONG           ulCtlFlags;         /* DT_REQUIRED, etc. */
-    LPBYTE          lpbNotif;           /*  pointer to notification data */
-    ULONG           cbNotif;            /* count of bytes of notification data */
-    LPTSTR          lpszFilter;         /* character filter for edit/combobox */
-    ULONG           ulItemID;           /* to validate parallel dlg template entry */
-    union {                             /* ulCtlType discriminates */
-        LPVOID          lpv;            /* Initialize this to avoid warnings */
-        LPDTBLLABEL     lplabel;
-        LPDTBLEDIT      lpedit;
-        LPDTBLLBX       lplbx;
-        LPDTBLCOMBOBOX  lpcombobox;
-        LPDTBLDDLBX     lpddlbx;
-        LPDTBLCHECKBOX  lpcheckbox;
-        LPDTBLGROUPBOX  lpgroupbox;
-        LPDTBLBUTTON    lpbutton;
-        LPDTBLRADIOBUTTON lpradiobutton;
-        LPDTBLMVLISTBOX lpmvlbx;
-        LPDTBLMVDDLBX   lpmvddlbx;
-        LPDTBLPAGE      lppage;
-    } ctl;
-};
-typedef struct DTCTL *LPDTCTL;
-
-struct DTPAGE {
-    ULONG           cctl;
-    LPTSTR          lpszResourceName;   /* as usual, may be an integer ID */
-    union {                             /* as usual, may be an integer ID */
-        LPTSTR          lpszComponent;
-        ULONG           ulItemID;
-    };
-    LPDTCTL         lpctl;
-};
-typedef struct DTPAGE *LPDTPAGE;
-
-HRESULT
-BuildDisplayTable(  LPALLOCATEBUFFER    lpAllocateBuffer,
-                    LPALLOCATEMORE      lpAllocateMore,
-                    LPFREEBUFFER        lpFreeBuffer,
-                    LPMALLOC            lpMalloc,
-                    HINSTANCE           hInstance,
-                    UINT                cPages,
-                    LPDTPAGE            lpPage,
-                    ULONG               ulFlags,
-                    LPMAPITABLE *       lppTable,
-                    LPTABLEDATA *       lppTblData );
-
 /* General utility functions */
 
 /* Related to the OLE Component object model */
@@ -328,11 +272,6 @@ typedef CREATECONVERSATIONINDEX* LPCREATECONVERSATIONINDEX;
 
 /* and this is from ol2e.h */
 extern _kc_export HRESULT CreateStreamOnHGlobal(void *global, BOOL delete_on_release, LPSTREAM *);
-HRESULT BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
-							LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc,
-							HINSTANCE hInstance, UINT cPages,
-							LPDTPAGE lpPage, ULONG ulFlags,
-							LPMAPITABLE * lppTable, LPTABLEDATA * lppTblData);
 
 } // EXTERN "C"
 
