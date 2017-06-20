@@ -981,7 +981,6 @@ public:
 /* New from Outlook 2010 MAPI Extension */
 class IMAPIGetSession : public virtual IUnknown {
 public:
-    //    virtual ~IMAPIGetSession() = 0;
 	virtual HRESULT GetMAPISession(LPUNKNOWN *lppSession) = 0;
 };
 

@@ -244,9 +244,6 @@ public:
     virtual ~ECDispatcherEPoll();
 
     virtual ECRESULT MainLoop();
-
-    //virtual ECRESULT ShutDown();
-
     virtual ECRESULT NotifyRestart(SOAP_SOCKET s);
 };
 #endif

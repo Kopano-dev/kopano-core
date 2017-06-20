@@ -47,8 +47,6 @@ public:
 	
 	static void FreeRelation(t_sRelation* lpRelation);
 	HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
-	//virtual ULONG AddRef(void) _kc_override;
-	//virtual ULONG Release(void) _kc_override;
 	HRESULT Init(ULONG ulFlags);
 
 	HRESULT ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow);

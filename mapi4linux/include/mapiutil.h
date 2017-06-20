@@ -40,8 +40,6 @@ typedef void (CALLERRELEASE)(
 
 class ITableData : public IUnknown {
 public:
-    //    virtual ~ITableData() = 0;
-
     virtual HRESULT HrGetView(LPSSortOrderSet lpSSortOrderSet, CALLERRELEASE* lpfCallerRelease, ULONG ulCallerData,
 			      LPMAPITABLE* lppMAPITable) = 0;
     virtual HRESULT HrModifyRow(LPSRow) = 0;
