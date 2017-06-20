@@ -59,8 +59,6 @@ protected:
 	_kc_hidden Archiver(void) {};
 };
 
-typedef std::unique_ptr<Archiver> ArchiverPtr;
-
 } /* namespace */
 
 #endif // !defined ARCHIVER_H_INCLUDED

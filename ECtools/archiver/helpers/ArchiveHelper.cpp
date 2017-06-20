@@ -343,7 +343,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 {
 	HRESULT hr;
 	MAPIFolderPtr ptrFolder;
-	ExchangeModifyTablePtr ptrEMT;
+	KCHL::object_ptr<IExchangeModifyTable> ptrEMT;
 	MAPITablePtr ptrTable;
 	SPropValue sUserProps[2];
 	SPropValue sOtherProps[2];

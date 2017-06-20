@@ -34,11 +34,8 @@ namespace KC {
 
 typedef KCHL::object_ptr<IABContainer> ABContainerPtr;
 typedef KCHL::object_ptr<IAddrBook> AddrBookPtr;
-typedef KCHL::object_ptr<IECSecurity> ECSecurityPtr;
 typedef KCHL::object_ptr<IECServiceAdmin> ECServiceAdminPtr;
-typedef KCHL::object_ptr<IECSingleInstance> ECSingleInstancePtr;
 typedef KCHL::object_ptr<IExchangeManageStore> ExchangeManageStorePtr;
-typedef KCHL::object_ptr<IExchangeModifyTable> ExchangeModifyTablePtr;
 typedef KCHL::object_ptr<IMAPIContainer> MAPIContainerPtr;
 typedef KCHL::object_ptr<IMAPIFolder> MAPIFolderPtr;
 typedef KCHL::object_ptr<IMAPIProp> MAPIPropPtr;

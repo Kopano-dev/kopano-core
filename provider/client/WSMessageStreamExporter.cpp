@@ -103,7 +103,7 @@ HRESULT WSMessageStreamExporter::GetSerializedMessage(ULONG ulIndex, WSSerialize
 		return SYNC_E_OBJECT_DELETED;
 	}
 
-	WSSerializedMessagePtr ptrMessage(new(std::nothrow) WSSerializedMessage(m_ptrTransport->m_lpCmd->soap, iStreamInfo->second->id, iStreamInfo->second->cbPropVals, iStreamInfo->second->ptrPropVals.get()));
+	KCHL::object_ptr<WSSerializedMessage> ptrMessage(new(std::nothrow) WSSerializedMessage(m_ptrTransport->m_lpCmd->soap, iStreamInfo->second->id, iStreamInfo->second->cbPropVals, iStreamInfo->second->ptrPropVals.get()));
 	if (ptrMessage == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	AddChild(ptrMessage);

@@ -48,8 +48,6 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-typedef KCHL::object_ptr<WSMessageStreamSink> WSMessageStreamSinkPtr;
-
 /**
  * This class is used to perform a message stream import to the server.
  * The actual import call to the server is deferred until StartTransfer is called. When that

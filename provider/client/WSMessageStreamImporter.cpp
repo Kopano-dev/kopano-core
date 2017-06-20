@@ -138,7 +138,7 @@ exit:
 HRESULT WSMessageStreamImporter::StartTransfer(WSMessageStreamSink **lppSink)
 {
 	HRESULT hr;
-	WSMessageStreamSinkPtr ptrSink;
+	KCHL::object_ptr<WSMessageStreamSink> ptrSink;
 	
 	if (!m_threadPool.dispatch(this))
 		return MAPI_E_CALL_FAILED;

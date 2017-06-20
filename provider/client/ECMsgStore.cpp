@@ -60,7 +60,6 @@
 #include "ECExchangeModifyTable.h"
 
 #include <kopano/mapi_ptr.h>
-typedef KCHL::memory_ptr<char> MAPIStringPtr;
 typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
 
 #include <kopano/charset/convstring.h>
@@ -1232,7 +1231,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 			return hr;
 	} else {
 		utf8string strPseudoUrl;
-		MAPIStringPtr ptrServerPath;
+		memory_ptr<char> ptrServerPath;
 		bool bIsPeer;
 
 		hr = MsgStoreDnToPseudoUrl(tstrMsgStoreDN, &strPseudoUrl);
@@ -1314,7 +1313,7 @@ HRESULT ECMsgStore::GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable
 	ULONG			cbEntryId = 0;
 	memory_ptr<ENTRYID> lpEntryId;
 	bool			bIsPeer = true;
-	MAPIStringPtr	ptrServerPath;
+	memory_ptr<char> ptrServerPath;
 	std::string		strPseudoUrl;
 	convstring		tstrServerName(lpszServerName, ulFlags);
 

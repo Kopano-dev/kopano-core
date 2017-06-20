@@ -534,7 +534,7 @@ HRESULT ECMAPIProp::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValue)
 {
 	HRESULT				hr = hrSuccess;
-	ECSecurityPtr		ptrSecurity;
+	object_ptr<IECSecurity> ptrSecurity;
 	ULONG				cPerms = 0;
 	ECPermissionPtr		ptrPerms;
 	struct soap			soap;
@@ -624,7 +624,7 @@ exit:
 HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 {
 	HRESULT hr;
-	ECSecurityPtr			ptrSecurity;
+	object_ptr<IECSecurity> ptrSecurity;
 	ULONG					cPerms = 0;
 	memory_ptr<ECPERMISSION> ptrPerms;
 	ULONG					cSparePerms = 0;

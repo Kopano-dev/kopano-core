@@ -793,7 +793,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 {
 	HRESULT hr;
 	SPropValuePtr ptrName;
-	ExchangeModifyTablePtr ptrACLModifyTable;
+	KCHL::object_ptr<IExchangeModifyTable> ptrACLModifyTable;
 	MAPITablePtr ptrACLTable;
 	SPropValue sPropUser;
 	SRowSetPtr ptrRows;

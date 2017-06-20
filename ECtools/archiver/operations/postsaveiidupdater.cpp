@@ -74,7 +74,7 @@ HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, UL
 {
 	HRESULT hr;
 	SPropValuePtr ptrServerUID;
-	ECSingleInstancePtr ptrInstance;
+	KCHL::object_ptr<IECSingleInstance> ptrInstance;
 	ULONG cbInstanceID = 0;
 	EntryIdPtr ptrInstanceID;
 
