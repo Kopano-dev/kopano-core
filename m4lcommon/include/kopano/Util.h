@@ -46,8 +46,6 @@ class Util _kc_final {
 	static HRESULT	HrCopyPropertyByRef(LPSPropValue lpDest, const SPropValue *lpSrc);
 	_kc_export static HRESULT HrCopySRestriction(LPSRestriction dst, const SRestriction *src, void *base);
 	_kc_export static HRESULT  HrCopySRestriction(LPSRestriction *dst, const SRestriction *src);
-	static HRESULT	HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc, void *lpBase);
-	static HRESULT	HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase);
 	static HRESULT	HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc, void *lpBase);
 	_kc_export static HRESULT HrCopySRow(LPSRow dest, const SRow *src, void *base);
 	_kc_export static HRESULT HrCopyPropTagArray(const SPropTagArray *src, LPSPropTagArray *dst);
@@ -78,23 +76,8 @@ class Util _kc_final {
 	_kc_export static HRESULT hex2bin(const char *input, size_t len, ULONG *outlen, LPBYTE *output, void *parent = nullptr);
 	static HRESULT hex2bin(const char *input, size_t len, LPBYTE output);
 
-	template <size_t N>
-	static bool StrCaseCompare(const WCHAR *lpString, const WCHAR (&lpFind)[N], size_t pos = 0) {
-		return wcsncasecmp(lpString + pos, lpFind, N-1) == 0;
-	}
-
 	/* DoCopyTo/DoCopyProps functions & their helpers */
-	static HRESULT FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs);
-	static HRESULT CopyStream(LPSTREAM lpSrc, LPSTREAM lpDest);
-	static HRESULT CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest);
-	static HRESULT CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst);
-	static HRESULT CopyAttachmentProps(LPATTACH lpSrcAttach, LPATTACH lpDestAttach, LPSPropTagArray lpExcludeProps = NULL);
 	_kc_export static HRESULT CopyAttachments(LPMESSAGE src, LPMESSAGE dst, LPSRestriction r);
-	static HRESULT CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFlags, ULONG ulUIParam, LPMAPIPROGRESS lpProgress);
-	static HRESULT CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFlags, ULONG ulUIParam, LPMAPIPROGRESS lpProgress);
-	static HRESULT TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag, LPMAPIPROP lpPropSrc, ULONG ulDestPropTag, LPMAPIPROP lpPropDest,
-								   LPSTREAM *lppSrcStream, LPSTREAM *lppDestStream);
-	static HRESULT AddProblemToArray(const SPropProblem *in, SPropProblemArray **out);
 	_kc_export static HRESULT DoCopyTo(LPCIID src_intf, LPVOID src_obj, ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID dst_intf, LPVOID dst_obj, ULONG flags, LPSPropProblemArray *);
 	_kc_export static HRESULT DoCopyProps(LPCIID src_intf, LPVOID src_obj, const SPropTagArray *inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID dst_intf, LPVOID dst_obj, ULONG flags, LPSPropProblemArray *);
 	_kc_export static HRESULT HrCopyIMAPData(LPMESSAGE src, LPMESSAGE dst);
@@ -106,7 +89,6 @@ class Util _kc_final {
 	_kc_export static HRESULT HrDeleteAttachments(LPMESSAGE);
 	_kc_export static HRESULT HrDeleteRecipients(LPMESSAGE);
 	_kc_export static HRESULT HrDeleteMessage(IMAPISession *, IMessage *);
-	static bool FHasHTML(IMAPIProp *lpProp);
 
 	struct SBinaryLess {
 		bool operator()(const SBinary &left, const SBinary &right) const {
