@@ -8,7 +8,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 import sys
 
 from MAPI import (
-    MAPI_UNICODE, MAPI_UNRESOLVED, ECSTORE_TYPE_PRIVATE,
+    MAPI_UNICODE, MAPI_UNRESOLVED, ECSTORE_TYPE_PRIVATE, ECSTORE_TYPE_ARCHIVE,
     WrapStoreEntryID
 )
 from MAPI.Defs import bin2hex, HrGetOneProp
@@ -239,6 +239,18 @@ class User(Base):
             self.server.sa.UnhookStore(ECSTORE_TYPE_PRIVATE, _unhex(self.userid))
         except MAPIErrorNotFound:
             raise NotFoundError("user '%s' has no hooked store" % self.name)
+
+    def hook_archive(self, store):
+        try:
+            self.server.sa.HookStore(ECSTORE_TYPE_ARCHIVE, _unhex(self.userid), _unhex(store.guid))
+        except MAPIErrorCollision:
+            raise DuplicateError("user '%s' already has hooked archive store" % self.name)
+
+    def unhook_archive(self):
+        try:
+            self.server.sa.UnhookStore(ECSTORE_TYPE_ARCHIVE, _unhex(self.userid))
+        except MAPIErrorNotFound:
+            raise NotFoundError("user '%s' has no hooked archive store" % self.name)
 
     @property
     def active(self):
