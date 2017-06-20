@@ -283,47 +283,6 @@ BuildDisplayTable(  LPALLOCATEBUFFER    lpAllocateBuffer,
                     LPMAPITABLE *       lppTable,
                     LPTABLEDATA *       lppTblData );
 
-
-/* MAPI structure validation/copy utilities */
-
-/*
- *  Validate, copy, and adjust pointers in MAPI structures:
- *      notification
- *      property value array
- *      option data
- */
-SCODE
-ScCountNotifications(int cNotifications, LPNOTIFICATION lpNotifications,
-        ULONG *lpcb);
-
-SCODE
-ScCopyNotifications(int cNotification, LPNOTIFICATION lpNotifications,
-        LPVOID lpvDst, ULONG *lpcb);
-
-SCODE
-ScRelocNotifications(int cNotification, LPNOTIFICATION lpNotifications,
-        LPVOID lpvBaseOld, LPVOID lpvBaseNew, ULONG *lpcb);
-
-
-SCODE
-ScCountProps(int cValues, LPSPropValue lpPropArray, ULONG *lpcb);
-
-LPSPropValue
-LpValFindProp(ULONG ulPropTag, ULONG cValues, LPSPropValue lpPropArray);
-
-SCODE
-ScCopyProps(int cValues, LPSPropValue lpPropArray, LPVOID lpvDst,
-        ULONG *lpcb);
-
-SCODE
-ScRelocProps(int cValues, LPSPropValue lpPropArray,
-        LPVOID lpvBaseOld, LPVOID lpvBaseNew, ULONG *lpcb);
-
-SCODE
-ScDupPropset(int cValues, LPSPropValue lpPropArray,
-        LPALLOCATEBUFFER lpAllocateBuffer, LPSPropValue *lppPropArray);
-
-
 /* General utility functions */
 
 /* Related to the OLE Component object model */

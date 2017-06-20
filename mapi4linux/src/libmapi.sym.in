@@ -15,7 +15,6 @@ global:
 	HrQueryAllRows;
 	HrSetOneProp;
 	HrThisThreadAdviseSink;
-	LpValFindProp;
 	MAPIAdminProfiles;
 	MAPIAllocateBuffer;
 	MAPIAllocateMore;
@@ -30,12 +29,8 @@ global:
 	PpropFindProp;
 	PropCopyMore;
 	RTFSync;
-	ScCopyProps;
-	ScCountProps;
 	ScCreateConversationIndex;
-	ScDupPropset;
 	ScInitMapiUtil;
-	ScRelocProps;
 	SetAttribIMsgOnIStg;
 	SzFindCh;
 	UlRelease;
