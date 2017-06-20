@@ -30,51 +30,6 @@ extern "C" {
 
 LPMALLOC MAPIGetDefaultMalloc(void);
 
-/* Property interface utilities */
-
-/*
- *  Copies a single SPropValue from Src to Dest.  Handles all the various
- *  types of properties and will link its allocations given the master
- *  allocation object and an allocate more function.
- */
-SCODE PropCopyMore(LPSPropValue      lpSPropValueDest,
-		   LPSPropValue      lpSPropValueSrc,
-		   ALLOCATEMORE *    lpfAllocMore,
-		   LPVOID            lpvObject );
-
-/*
- *  Returns the size in bytes of structure at lpSPropValue, including the
- *  Value.
- */
-ULONG UlPropSize(LPSPropValue    lpSPropValue);
-
-
-BOOL FEqualNames( LPMAPINAMEID lpName1, LPMAPINAMEID lpName2 );
-
-void GetInstance(LPSPropValue lpPropMv, LPSPropValue lpPropSv, ULONG uliInst);
-
-extern char rgchCsds[];
-extern char rgchCids[];
-extern char rgchCsdi[];
-extern char rgchCidi[];
-
-BOOL
-FPropContainsProp( LPSPropValue lpSPropValueDst,
-                   LPSPropValue lpSPropValueSrc,
-                   ULONG        ulFuzzyLevel );
-
-BOOL
-FPropCompareProp( LPSPropValue  lpSPropValue1,
-                  ULONG         ulRelOp,
-                  LPSPropValue  lpSPropValue2 );
-
-LONG
-LPropCompareProp( LPSPropValue  lpSPropValueA,
-                  LPSPropValue  lpSPropValueB );
-
-extern HRESULT HrAddColumns(LPMAPITABLE lptbl, const SPropTagArray *lpproptagColumnsNew, LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer);
-extern HRESULT HrAddColumnsEx(LPMAPITABLE lptbl, const SPropTagArray *lpproptagColumnsNew, LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer, void (*)(const SPropTagArray *ptaga));
-
 /* Notification utilities */
 
 /*

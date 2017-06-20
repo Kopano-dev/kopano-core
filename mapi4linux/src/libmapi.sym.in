@@ -22,7 +22,6 @@ global:
 	OpenIMsgOnIStg;
 	OpenIMsgSession;
 	PpropFindProp;
-	PropCopyMore;
 	RTFSync;
 	ScCreateConversationIndex;
 	SetAttribIMsgOnIStg;

@@ -70,12 +70,6 @@ const SPropValue *PCpropFindProp(const SPropValue *lpPropArray,
 	return nullptr;
 }
 
-SCODE PropCopyMore(LPSPropValue lpSPropValueDest, LPSPropValue lpSPropValueSrc,
-    ALLOCATEMORE *lpfAllocMore, LPVOID lpvObject)
-{
-	return Util::HrCopyProperty(lpSPropValueDest, lpSPropValueSrc, lpvObject, lpfAllocMore);
-}
-
 HRESULT WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
     ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,
     ENTRYID **lppWrappedEntry)
