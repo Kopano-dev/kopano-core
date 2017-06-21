@@ -3,7 +3,6 @@
 
 %{
 #include <kopano/IECInterfaces.hpp>
-#include <kopano/IECSingleInstance.h>
 %}
 
 class IECChangeAdvisor : public virtual IUnknown {

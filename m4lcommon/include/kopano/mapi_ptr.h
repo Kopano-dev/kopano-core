@@ -23,10 +23,7 @@
 #include <mapispi.h>
 #include <edkmdb.h>
 #include <edkguid.h>
-
-#include <kopano/IECServiceAdmin.h>
-#include <kopano/IECSecurity.h>
-#include <kopano/IECSingleInstance.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/ECGuid.h>
 #include <kopano/mapiguidext.h>
 

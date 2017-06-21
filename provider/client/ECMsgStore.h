@@ -31,10 +31,7 @@
 #include "WSTransport.h"
 #include "ECNotifyClient.h"
 #include "ECNamedProp.h"
-
-#include <kopano/IECServiceAdmin.h>
 #include <kopano/IECInterfaces.hpp>
-#include <kopano/IECLicense.h>
 #include <set>
 
 namespace KC {

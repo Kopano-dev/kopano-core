@@ -181,12 +181,7 @@ ZEND_END_ARG_INFO()
 #include <mapispi.h>
 #include <mapitags.h>
 #include <mapidefs.h>
-
-#include <kopano/IECServiceAdmin.h>
-#include <kopano/IECSecurity.h>
 #include <kopano/IECInterfaces.hpp>
-#include <kopano/IECLicense.h>
-
 #include <kopano/ECTags.h>
 #include <kopano/ECDefs.h>
 

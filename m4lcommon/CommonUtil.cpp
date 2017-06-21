@@ -48,7 +48,7 @@
 #include <edkguid.h>
 #include <kopano/mapiguidext.h>
 #include <edkmdb.h>
-#include <kopano/IECServiceAdmin.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>

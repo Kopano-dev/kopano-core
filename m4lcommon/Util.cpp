@@ -39,7 +39,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include "ECMemStream.h"
-#include <kopano/IECSingleInstance.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/ECGuid.h>
 #include <kopano/codepage.h>
 #include "rtfutil.h"

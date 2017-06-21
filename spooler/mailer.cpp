@@ -34,8 +34,6 @@
 #include <kopano/ECRestriction.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ecversion.h>
-#include <kopano/IECSecurity.h>
-#include <kopano/IECServiceAdmin.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/ECGuid.h>

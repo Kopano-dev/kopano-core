@@ -22,7 +22,7 @@
 #include <kopano/platform.h>
 #include <mapidefs.h>
 #include <mapix.h>
-#include <kopano/IECServiceAdmin.h>
+#include <kopano/IECInterfaces.hpp>
 #include <string>
 #include <set>
 

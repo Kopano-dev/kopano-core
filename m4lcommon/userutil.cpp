@@ -28,10 +28,9 @@
 #include <kopano/charset/convert.h>
 #include <kopano/ECDefs.h>
 #include <kopano/ECGuid.h>
-#include <kopano/IECServiceAdmin.h>
 #include <edkmdb.h>
 #include <edkguid.h>
-#include <kopano/IECLicense.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/mapi_ptr.h>

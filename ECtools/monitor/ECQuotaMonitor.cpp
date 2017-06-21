@@ -40,11 +40,9 @@
 #include <kopano/charset/convert.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/MAPIErrors.h>
-
-//#include <kopano/IECSecurity.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECTags.h>
-#include <kopano/IECServiceAdmin.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapiext.h>

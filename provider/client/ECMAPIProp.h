@@ -20,7 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include "kcore.hpp"
-#include <kopano/IECSecurity.h>
+#include <kopano/IECInterfaces.hpp>
 #include "ECGenericProp.h"
 
 // For HrSetFlags
