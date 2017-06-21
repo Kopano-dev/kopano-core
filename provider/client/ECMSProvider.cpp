@@ -178,18 +178,13 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 		if(hr != hrSuccess)
 			return hr;
 	}
-
+	if (lppMSLogon == nullptr)
+		return hrSuccess;
 	// We don't count lpMSLogon as a child, because its lifetime is coupled to lpMsgStore
-	if(lppMSLogon) {
-		hr = ECMSLogon::Create(lpECMsgStore, &~lpECMSLogon);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpECMSLogon->QueryInterface(IID_IMSLogon, (void **)lppMSLogon);
-		
-		if(hr != hrSuccess)
-			return hr;
-	}
-	return hrSuccess;
+	hr = ECMSLogon::Create(lpECMsgStore, &~lpECMSLogon);
+	if(hr != hrSuccess)
+		return hr;
+	return lpECMSLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
 }
 
 //FIXME: What todo with offline??
@@ -281,16 +276,12 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 		if(hr != hrSuccess)
 			return hr;
 	}
-
-	if(lppMSLogon) {
-		hr = ECMSLogon::Create(lpMsgStore, &~lpLogon);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpLogon->QueryInterface(IID_IMSLogon, (void **)lppMSLogon);
-		if(hr != hrSuccess)
-			return hr;
-	}
-	return hrSuccess;
+	if (lppMSLogon == nullptr)
+		return hrSuccess;
+	hr = ECMSLogon::Create(lpMsgStore, &~lpLogon);
+	if(hr != hrSuccess)
+		return hr;
+	return lpLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
 }
 	
 HRESULT ECMSProvider::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
@@ -338,29 +329,27 @@ HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileP
 			// profile section. We need this because some older versions wrote a non-pseudo URL, which
 			// we should still support - even when the hostname of the server changes for example.
 			hr = lpTransport->HrLogon(*lpsProfileProps);
-	} else {
-		string strServerPath;				// The resolved server path
-		bool bIsPeer;
-		WSTransport *lpAltTransport = NULL;
-
-		hr = lpTransport->HrLogon(*lpsProfileProps);
-		if (hr != hrSuccess)
-			return hr;
-
-		hr = HrResolvePseudoUrl(lpTransport, extractedServerPath.c_str(), strServerPath, &bIsPeer);
-		if (hr != hrSuccess)
-			return hr;
-
-		if (!bIsPeer) {
-			hr = lpTransport->CreateAndLogonAlternate(strServerPath.c_str(), &lpAltTransport);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpTransport->HrLogOff();
-			lpTransport->Release();
-			*lppTransport = lpAltTransport;
-		}
+		return hr;
 	}
+
+	string strServerPath; // The resolved server path
+	bool bIsPeer;
+	WSTransport *lpAltTransport = NULL;
+
+	hr = lpTransport->HrLogon(*lpsProfileProps);
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrResolvePseudoUrl(lpTransport, extractedServerPath.c_str(), strServerPath, &bIsPeer);
+	if (hr != hrSuccess)
+		return hr;
+	if (bIsPeer)
+		return hrSuccess;
+	hr = lpTransport->CreateAndLogonAlternate(strServerPath.c_str(), &lpAltTransport);
+	if (hr != hrSuccess)
+		return hr;
+	lpTransport->HrLogOff();
+	lpTransport->Release();
+	*lppTransport = lpAltTransport;
 	return hrSuccess;
 }
 
