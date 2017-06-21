@@ -33,10 +33,8 @@
 #include "ECNamedProp.h"
 
 #include <kopano/IECServiceAdmin.h>
-#include "IECSpooler.h"
-#include "IECMultiStoreTable.h"
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/IECLicense.h>
-#include "IECTestProtocol.h"
 #include <set>
 
 namespace KC {

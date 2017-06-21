@@ -2,11 +2,8 @@
 %include "typemaps.i"
 
 %{
-#include "IECChangeAdvisor.h"
-#include "IECChangeAdviseSink.h"
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/IECSingleInstance.h>
-#include "IECImportContentsChanges.h"
-#include "IECImportHierarchyChanges.h"
 %}
 
 class IECChangeAdvisor : public virtual IUnknown {

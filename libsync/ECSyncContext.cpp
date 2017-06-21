@@ -25,14 +25,11 @@
 #include "ECSyncContext.h"
 #include "ECSyncUtil.h"
 #include "ECSyncSettings.h"
-#include <IECExportAddressbookChanges.h>
-#include <IECExportChanges.h>
-#include <IECChangeAdvisor.h>
-
 #include <kopano/ECUnknown.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECTags.h>
 #include <kopano/ECLogger.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/Util.h>
 #include <mapix.h>

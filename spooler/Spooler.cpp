@@ -51,7 +51,7 @@
 #include <mapiutil.h>
 #include <mapidefs.h>
 #include <mapiguid.h>
-#include "IECSpooler.h"
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/IECServiceAdmin.h>
 #include <kopano/IECSecurity.h>
 #include <kopano/MAPIErrors.h>

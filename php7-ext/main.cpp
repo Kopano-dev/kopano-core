@@ -193,8 +193,7 @@ ZEND_END_ARG_INFO()
 
 #include <kopano/IECServiceAdmin.h>
 #include <kopano/IECSecurity.h>
-#include "IECExportChanges.h"
-#include "IECMultiStoreTable.h"
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/IECLicense.h>
 
 #include <kopano/ECTags.h>

@@ -14,21 +14,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#ifndef IECINTERFACES_HPP
+#define IECINTERFACES_HPP 1
 
-#ifndef IECCHANGEADVISOR_H
-#define IECCHANGEADVISOR_H
-
-#include <kopano/platform.h>
+#include <edkmdb.h>
+#include <kopano/ECDefs.h>
 #include <kopano/ECGuid.h>
-#include "IECChangeAdviseSink.h"
+#include <kopano/platform.h>
+#include <mapidefs.h>
 
 namespace KC {
+
+class IECChangeAdviseSink : public virtual IUnknown {
+	public:
+	virtual ULONG OnNotify(ULONG ulFLags, LPENTRYLIST lpEntryList) = 0;
+};
 
 /**
  * IECChangeAdvisor: Interface for registering change notifications on folders.
  */
 class IECChangeAdvisor : public virtual IUnknown {
-public:
+	public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 
 	/**
@@ -99,8 +105,75 @@ public:
 	virtual HRESULT UpdateSyncState(ULONG ulSyncId, ULONG ulChangeId) = 0;
 };
 
+class IECExchangeModifyTable : public virtual IExchangeModifyTable {
+	public:
+	virtual HRESULT DisablePushToServer() = 0;
+};
+
+class IECImportAddressbookChanges;
+
+class IECExportAddressbookChanges : public virtual IUnknown {
+	public:
+	virtual HRESULT Config(LPSTREAM lpState, ULONG ulFlags, IECImportAddressbookChanges *lpCollector) = 0;
+	virtual HRESULT Synchronize(ULONG *lpulSteps, ULONG *lpulProgress) = 0;
+	virtual HRESULT UpdateState(LPSTREAM lpState) = 0;
+};
+
+class ECLogger;
+
+class IECExportChanges : public IExchangeExportChanges {
+	public:
+	virtual HRESULT ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
+	virtual HRESULT GetChangeCount(ULONG *lpcChanges) = 0;
+	virtual HRESULT SetMessageInterface(REFIID refiid) = 0;
+	virtual HRESULT SetLogger(ECLogger *lpLogger) = 0;
+};
+
+class IECImportAddressbookChanges : public IUnknown {
+	public:
+	virtual HRESULT GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
+	virtual HRESULT Config(LPSTREAM lpState, ULONG ulFlags) = 0;
+	virtual HRESULT UpdateState(LPSTREAM lpState) = 0;
+	virtual HRESULT ImportABChange(ULONG type, ULONG cbObjId, LPENTRYID lpObjId) = 0;
+	virtual HRESULT ImportABDeletion(ULONG type, ULONG cbObjId, LPENTRYID lpObjId) = 0;
+};
+
+class IECImportContentsChanges : public IExchangeImportContentsChanges {
+	public:
+	virtual HRESULT ConfigForConversionStream(LPSTREAM lpStream, ULONG ulFlags, ULONG cValuesConversion, LPSPropValue lpPropArrayConversion) = 0;
+	virtual HRESULT ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPropValue ppvalChanges, ULONG ulFlags, LPSTREAM *lppstream) = 0;
+};
+
+class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {
+	public:
+	virtual HRESULT ImportFolderChangeEx(ULONG cValues, LPSPropValue lpPropArray, BOOL fNew) = 0;
+};
+
+class IECMultiStoreTable : public virtual IUnknown {
+	public:
+	/* ulFlags is currently unused */
+	virtual HRESULT OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
+};
+
+// This is our special spooler interface
+class IECSpooler : public virtual IUnknown {
+	public:
+	// Gets an IMAPITable containing all the outgoing messages on the server
+	virtual HRESULT GetMasterOutgoingTable(ULONG ulFlags, IMAPITable **lppTable) = 0;
+
+	// Removes a message from the master outgoing table
+	virtual HRESULT DeleteFromMasterOutgoingTable(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags) = 0;
+};
+
+class IECTestProtocol : public virtual IUnknown {
+	public:
+	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **args) = 0;
+	virtual HRESULT TestSet(const char *name, const char *value) = 0;
+	virtual HRESULT TestGet(const char *name, char **value) = 0;
+};
+
 } /* namespace */
 
 IID_OF2(KC::IECChangeAdvisor, IECChangeAdvisor);
 
-#endif
+#endif /* IECINTERFACES_HPP */

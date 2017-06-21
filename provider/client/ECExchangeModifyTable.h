@@ -23,7 +23,7 @@
 #include <kopano/ECMemTable.h>
 #include <mapidefs.h>
 #include <edkmdb.h>
-#include "IECExchangeModifyTable.h"
+#include <kopano/IECInterfaces.hpp>
 
 class ECExchangeModifyTable _kc_final :
     public ECUnknown, public IECExchangeModifyTable {

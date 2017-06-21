@@ -37,7 +37,7 @@
 #include <kopano/IECSecurity.h>
 #include <kopano/IECServiceAdmin.h>
 #include <kopano/MAPIErrors.h>
-#include "IECSpooler.h"
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
 #include <kopano/CommonUtil.h>

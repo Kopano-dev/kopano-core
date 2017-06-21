@@ -10,10 +10,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/IECServiceAdmin.h>
 #include <kopano/memory.hpp>
-#include "IECSpooler.h"
-#include "IECTestProtocol.h"
-#include "IECMultiStoreTable.h"
-#include "IECExportChanges.h"
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/IECLicense.h>
 #include <kopano/mapi_ptr.h>
 

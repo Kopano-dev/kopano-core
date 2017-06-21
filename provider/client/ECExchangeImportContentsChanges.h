@@ -23,7 +23,7 @@
 #include "ECMAPIFolder.h"
 
 #include <kopano/ECUnknown.h>
-#include <IECImportContentsChanges.h>
+#include <kopano/IECInterfaces.hpp>
 
 namespace KC {
 class ECLogger;

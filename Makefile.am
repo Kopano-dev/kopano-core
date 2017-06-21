@@ -705,16 +705,7 @@ libmapi_la_SOURCES = \
 	m4lcommon/ECMemTable.cpp m4lcommon/HrException.h \
 	m4lcommon/ECRestriction.cpp \
 	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp \
-	m4lcommon/IECChangeAdviseSink.h \
-	m4lcommon/IECChangeAdvisor.h \
-	m4lcommon/IECExchangeModifyTable.h \
-	m4lcommon/IECExportAddressbookChanges.h \
-	m4lcommon/IECExportChanges.h \
-	m4lcommon/IECImportAddressbookChanges.h \
-	m4lcommon/IECImportContentsChanges.h \
-	m4lcommon/IECImportHierarchyChanges.h \
-	m4lcommon/IECMultiStoreTable.h m4lcommon/IECSpooler.h \
-	m4lcommon/IECTestProtocol.h \
+	m4lcommon/IECInterfaces.hpp \
 	m4lcommon/MAPIConsoleTable.cpp m4lcommon/MAPIConsoleTable.h \
 	m4lcommon/MAPINotifSink.cpp m4lcommon/MAPINotifSink.h \
 	m4lcommon/Util.cpp \

@@ -23,7 +23,7 @@
 #include <mapidefs.h>
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
-#include <IECChangeAdvisor.h>
+#include <kopano/IECInterfaces.hpp>
 #include "ics_client.hpp"
 #include <kopano/kcodes.h>
 

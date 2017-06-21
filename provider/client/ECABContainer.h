@@ -20,9 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/Util.h>
-#include "IECExportAddressbookChanges.h"
-#include "IECImportAddressbookChanges.h"
-
+#include <kopano/IECInterfaces.hpp>
 #include "ECABLogon.h"
 #include "ECABProp.h"
 
