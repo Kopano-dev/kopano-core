@@ -41,13 +41,17 @@ LIBS_system=$LIBS
 
 # check build OS
 AC_CANONICAL_HOST
-BUILDOS=""
+ZCPPFLAGS=""
 case "$host_os" in
 	openbsd*)
-		BUILDOS="-DOPENBSD"
+		BUILDOS="openbsd"
+		ZCPPFLAGS="$ZCPPFLAGS -DOPENBSD"
+		LN_TFSV="ln -fs"
 		;;
 	linux*)
-		BUILDOS="-DLINUX"
+		BUILDOS="linux"
+		ZCPPFLAGS="$ZCPPFLAGS -DLINUX"
+		LN_TFSV="ln -Tfsv"
 		;;
 esac
 
@@ -61,7 +65,7 @@ AC_SUBST([ZPHPCXXFLAGS])
 
 # default to debug mode
 # disable write-strings: too much complains about "" being 'cast' to char* (since const char* is not in the declarations) on g++-4.2 and higher
-ZCPPFLAGS="$BUILDOS -DHAVE_CONFIG_H \
+ZCPPFLAGS="$ZCPPFLAGS \
 	-I\${top_builddir}/common/include \
 	-I\${top_srcdir}/common/include \
 	-I\${top_srcdir}/m4lcommon/include \
@@ -86,8 +90,10 @@ for i in "c++11" "c++0x"; do
 	AS_IF([test -n "$cxxmode"], [break])
 done
 CXXFLAGS="$CXXFLAGS_system"
-ZCXXFLAGS="$ZCXXFLAGS -std=$cxxmode"
-AC_MSG_RESULT([$cxxmode])
+AS_IF([test -n "$cxxmode"], [
+	ZCXXFLAGS="$ZCXXFLAGS -std=$cxxmode"
+	AC_MSG_RESULT([$cxxmode])
+])
 
 # disable variadic-macros: too much warning: anonymous variadic macros were introduced in C99, only on new compilers
 AC_MSG_CHECKING([whether C++ compiler understands -Wno-variadic-macros option])
@@ -120,6 +126,7 @@ if test "$want_unicode" = "yes"; then
 fi
 AC_SUBST([SWIG_FLAGS])
 
+AS_IF([test "$BUILDOS" = "linux"], [
 AC_MSG_CHECKING([specified Linux distribution name])
 AC_ARG_WITH([distro], AS_HELP_STRING([--with-distro], [set distribution name, used for sysconfig and initscripts only. available: rhel, suse or sles]),
   [with_distro=${withval}],[with_distro=rhel])
@@ -131,6 +138,9 @@ else
 	AC_MSG_RESULT([using $with_distro])
 fi
 DISTRO=$with_distro
+],
+[test "$BUILDOS" = "openbsd"], [DISTRO="openbsd"]
+)
 AC_SUBST(DISTRO)
 
 dnl These are the only two I will allow to edit LIBS
@@ -771,7 +781,7 @@ AC_CONFIG_FILES([ECtools/presence/kopano-presence], [chmod +x ECtools/presence/k
 AC_CONFIG_FILES([ECtools/migration-pst/kopano-migration-pst], [chmod +x ECtools/migration-pst/kopano-migration-pst])
 
 AC_OUTPUT
-ln -Tfsv "${abs_top_srcdir}" "@"
+$LN_TFSV "$abs_top_srcdir" "@"
 
 AC_MSG_RESULT([
 Install prefix	:	$prefix
