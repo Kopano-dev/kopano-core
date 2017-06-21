@@ -346,6 +346,31 @@ static int mpt_main_cast(bool which)
 	return EXIT_SUCCESS;
 }
 
+static int mpt_main_malloc(void)
+{
+	struct mpt_stat_entry dp;
+	void *base, *x;
+	int err = mpt_setup_tick();
+	if (err < 0)
+		return EXIT_FAILURE;
+
+	while (mpt_repeat-- > 0) {
+		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		auto ret = MAPIAllocateBuffer(sizeof(MAPIUID), &base);
+		if (ret != hrSuccess)
+			return EXIT_FAILURE;
+		for (unsigned int i = 0; i < 10000; ++i) {
+			ret = MAPIAllocateMore(sizeof(MAPIUID), base, &x);
+			if (ret != hrSuccess)
+				return EXIT_FAILURE;
+		}
+		MAPIFreeBuffer(base);
+		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		mpt_stat_record(dp);
+	}
+	return EXIT_SUCCESS;
+}
+
 static void mpt_usage(void)
 {
 	fprintf(stderr, "mapitime [-p pass] [-s server] [-u username] [-z count] benchmark_choice\n");
@@ -431,6 +456,8 @@ int main(int argc, char **argv)
 		return mpt_main_cast(0);
 	else if (strcmp(argv[1], "dycast") == 0)
 		return mpt_main_cast(1);
+	else if (strcmp(argv[1], "malloc") == 0)
+		return mpt_main_malloc();
 
 	mpt_usage();
 	return EXIT_FAILURE;
