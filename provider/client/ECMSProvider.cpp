@@ -58,10 +58,6 @@ ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
 {
 }
 
-ECMSProvider::~ECMSProvider()
-{
-}
-
 HRESULT ECMSProvider::Create(ULONG ulFlags, ECMSProvider **lppECMSProvider) {
 	return alloc_wrap<ECMSProvider>(ulFlags, "IMSProvider").put(lppECMSProvider);
 }

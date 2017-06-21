@@ -28,7 +28,6 @@
 class ECMSProvider _kc_final : public ECUnknown, public IMSProvider {
 protected:
 	ECMSProvider(ULONG ulFlags, const char *szClassName);
-	virtual ~ECMSProvider();
 public:
 	static  HRESULT Create(ULONG ulFlags, ECMSProvider **lppECMSProvider);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;

@@ -33,10 +33,6 @@ ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
 {
 }
 
-ProtocolBase::~ProtocolBase()
-{
-}
-
 /**
  * Opens the store and folders required for the Request. Also checks
  * if DELETE or RENAME actions are allowed on the folder.
