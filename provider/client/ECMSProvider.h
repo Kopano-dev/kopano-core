@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include "WSTransport.h"
 
 #include <string>
@@ -37,7 +38,7 @@ public:
 	virtual HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult);
 
 private:
-	static HRESULT LogonByEntryID(WSTransport **lppTransport, sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID, LPENTRYID lpEntryID);
+	static HRESULT LogonByEntryID(KCHL::object_ptr<WSTransport> &, sGlobalProfileProps *, ULONG eid_size, ENTRYID *eid);
 
 	ULONG			m_ulFlags;
 	std::string		m_strLastUser;

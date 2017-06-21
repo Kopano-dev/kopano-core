@@ -130,7 +130,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	hr = WSTransport::Create(ulFlags, &~lpTransport);
 	if(hr != hrSuccess)
 		return hr;
-	hr = LogonByEntryID(&+lpTransport, &sProfileProps, cbEntryID, lpEntryID);
+	hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER) {
 		memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
 	} else if (fIsDefaultStore == FALSE){
@@ -246,7 +246,7 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	hr = WSTransport::Create(ulFlags, &~lpTransport);
 	if(hr != hrSuccess)
 		return hr;
-	hr = LogonByEntryID(&+lpTransport, &sProfileProps, cbEntryID, lpEntryID);
+	hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	if(hr != hrSuccess) {
 		if (ulFlags & MDB_NO_DIALOG)
 			return MAPI_E_FAILONEPROVIDER;
@@ -300,16 +300,14 @@ HRESULT ECMSProvider::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, UL
  *
  * @retval	MAPI_E_FAILONEPROVIDER		Returned when the extraction of the URL failed.
  */
-HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID, LPENTRYID lpEntryID)
+HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
+    sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID, ENTRYID *lpEntryID)
 {
 	HRESULT hr;
 	string		extractedServerPath;		// The extracted server path
 	bool		bIsPseudoUrl = false;
-	WSTransport	*lpTransport = NULL;
 
-	assert(lppTransport != NULL && *lppTransport != NULL);
-	lpTransport = *lppTransport;
-
+	assert(lpTransport != nullptr);
 	hr = HrGetServerURLFromStoreEntryId(cbEntryID, lpEntryID, extractedServerPath, &bIsPseudoUrl);
 	if (hr != hrSuccess)
 		return MAPI_E_FAILONEPROVIDER;
@@ -330,7 +328,6 @@ HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileP
 
 	string strServerPath; // The resolved server path
 	bool bIsPeer;
-	WSTransport *lpAltTransport = NULL;
 
 	hr = lpTransport->HrLogon(*lpsProfileProps);
 	if (hr != hrSuccess)
@@ -340,12 +337,13 @@ HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileP
 		return hr;
 	if (bIsPeer)
 		return hrSuccess;
-	hr = lpTransport->CreateAndLogonAlternate(strServerPath.c_str(), &lpAltTransport);
+	object_ptr<WSTransport> lpAltTransport;
+	hr = lpTransport->CreateAndLogonAlternate(strServerPath.c_str(), &~lpAltTransport);
 	if (hr != hrSuccess)
 		return hr;
 	lpTransport->HrLogOff();
 	lpTransport->Release();
-	*lppTransport = lpAltTransport;
+	lpTransport = std::move(lpAltTransport);
 	return hrSuccess;
 }
 
