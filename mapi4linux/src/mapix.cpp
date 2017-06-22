@@ -92,10 +92,14 @@ enum mapibuf_ident {
 	MAPIBUF_MORE,
 };
 
+struct _kc_max_align mapiext_head {
+	struct mapiext_head *child;
+	_kc_max_align char data[];
+};
+
 struct _kc_max_align mapibuf_head {
 	std::mutex mtx;
-	/* Going for vector since 90% of TS objects have <= 1 child. */
-	std::vector<void *> children;
+	struct mapiext_head *child; /* singly-linked list */
 #if _MAPI_MEM_MORE_DEBUG
 	enum mapibuf_ident ident;
 #endif
@@ -2318,13 +2322,14 @@ SCODE MAPIAllocateBuffer(ULONG cbSize, LPVOID *lppBuffer)
 	if (bfr == nullptr)
 		return MAKE_MAPI_E(1);
 	try {
-		new(bfr) struct mapibuf_head; /* init mutex, vector */
+		new(bfr) struct mapibuf_head; /* init mutex */
+		bfr->child = nullptr;
 	} catch (std::exception &e) {
 		fprintf(stderr, "MAPIAllocateBuffer: %s\n", e.what());
 		free(bfr);
 		return MAKE_MAPI_E(1);
 	}
-	*lppBuffer = &bfr->data;
+	*lppBuffer = bfr->data;
 	return hrSuccess;
 }
 
@@ -2344,19 +2349,22 @@ SCODE MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID *lppBuffer)
 		return MAPI_E_INVALID_PARAMETER;
 	if (!lpObject)
 		return MAPIAllocateBuffer(cbSize, lppBuffer);
-	*lppBuffer = malloc(cbSize);
-	if (*lppBuffer == nullptr) {
+	cbSize += sizeof(struct mapiext_head);
+	auto bfr = static_cast<struct mapiext_head *>(malloc(cbSize));
+	if (bfr == nullptr) {
 		ec_log_crit("MAPIAllocateMore(): %s", strerror(errno));
 		return MAKE_MAPI_E(1);
 	}
 
 	auto head = container_of(lpObject, struct mapibuf_head, data);
-	scoped_lock lock(head->mtx);
 #if _MAPI_MEM_MORE_DEBUG
 	if (head->ident != MAPIBUF_BASE)
 		assert("AllocateMore on something that was not allocated with MAPIAllocateBuffer!\n" == nullptr);
 #endif
-	head->children.push_back(*lppBuffer);
+	scoped_lock lock(head->mtx);
+	bfr->child = head->child;
+	head->child = bfr;
+	*lppBuffer = bfr->data;
 #if _MAPI_MEM_DEBUG
 	fprintf(stderr, "Extra buffer: %p on %p\n", *lppBuffer, lpObject);
 #endif
@@ -2382,11 +2390,14 @@ ULONG MAPIFreeBuffer(LPVOID lpBuffer)
 #if _MAPI_MEM_MORE_DEBUG
 	assert(head->ident == MAPIBUF_BASE);
 #endif
-	for (auto i : head->children) {
+	auto p = head->child;
+	while (p != nullptr) {
+		auto q = p->child;
 #if _MAPI_MEM_DEBUG
 		fprintf(stderr, "  Freeing: %p\n", i);
 #endif
-		free(i);
+		free(p);
+		p = q;
 	}
 	head->~mapibuf_head();
 	free(head);

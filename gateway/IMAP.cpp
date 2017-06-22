@@ -1442,7 +1442,8 @@ IMAP::HrCmdList(const std::string &tag, const std::vector<std::string> &args)
 	return HrCmdList(tag, args, sub_only);
 }
 
-HRESULT IMAP::get_uid_next(KFolder &&folder, const std::string &tag, ULONG &uid_next)
+HRESULT IMAP::get_uid_next(KFolder &folder, const std::string &tag,
+    ULONG &uid_next)
 {
 	HRESULT hr = hrSuccess;
 
@@ -1461,7 +1462,9 @@ HRESULT IMAP::get_uid_next(KFolder &&folder, const std::string &tag, ULONG &uid_
 	return hr;
 }
 
-HRESULT IMAP::get_recent(KFolder &&folder, const std::string &tag, ULONG &recent, const ULONG &messages) {
+HRESULT IMAP::get_recent(KFolder &folder, const std::string &tag,
+    ULONG &recent, const ULONG &messages)
+{
 	HRESULT hr = hrSuccess;
 
 	try {
@@ -1598,11 +1601,11 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 			snprintf(szBuffer, 10, "%u", ulMessages);
 			strResponse += szBuffer;
 		} else if (strData.compare("RECENT") == 0) {
-			get_recent(std::move(lpStatusFolder), strTag, ulRecent, ulMessages);
+			get_recent(lpStatusFolder, strTag, ulRecent, ulMessages);
 			snprintf(szBuffer, 10, "%u", ulRecent);
 			strResponse += szBuffer;
 		} else if (strData.compare("UIDNEXT") == 0) {
-			get_uid_next(std::move(lpStatusFolder), strTag, ulUIDNext);
+			get_uid_next(lpStatusFolder, strTag, ulUIDNext);
 			snprintf(szBuffer, 10, "%u", ulUIDNext);
 			strResponse += szBuffer;
 		} else if (strData.compare("UIDVALIDITY") == 0) {
