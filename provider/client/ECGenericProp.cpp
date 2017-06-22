@@ -879,7 +879,9 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 		ecmem_ptr<SPropValue> lpsPropValue;
 		HRESULT hrT = hrSuccess;
 
-		ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
+		hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
+		if (hr != hrSuccess)
+			return hr;
 		hrT = iterCallBack->second.lpfnGetProp(iterCallBack->second.ulPropTag, this->lpProvider, ulFlags, lpsPropValue, this, lpsPropValue);
 		if (HR_FAILED(hrT) && hrT != MAPI_E_NOT_ENOUGH_MEMORY)
 			continue;
