@@ -258,8 +258,7 @@ int main(int argc, char* argv[])
 			strcpy(szOldPassword, oldpassword);
 
 			newpassword = get_password("Enter new password:");
-			if(oldpassword == NULL)
-			{
+			if (newpassword == nullptr) {
 				cerr << "Wrong new password" << endl;
 				goto exit;
 			}
