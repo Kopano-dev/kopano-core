@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <stdexcept>
+#include <utility>
 #include "ECICS.h"
 #include "SOAPUtils.h"
 
@@ -70,6 +71,13 @@ public:
         updateStruct();
         return *this;
     }
+
+	EntryId &operator=(EntryId &&s)
+	{
+		m_data = std::move(s.m_data);
+		updateStruct();
+		return *this;
+	}
 
 	/* EID_V0 is marked packed, so direct-access w/o memcpy is ok */
 
