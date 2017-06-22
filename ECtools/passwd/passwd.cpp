@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
+#include <memory>
 #include <kopano/charset/convert.h>
 #include <climits>
 #include <cmath>
@@ -151,10 +152,8 @@ int main(int argc, char* argv[])
 	HRESULT hr = hrSuccess;
 	const char *username = NULL;
 	const char *newpassword = NULL;
-	char	szOldPassword[80];
-	char	szNewPassword[80];
+	std::string szOldPassword, szNewPassword;
 	const char *oldpassword = NULL;
-	const char *repassword = NULL;
 	const char *path = NULL;
 	modes	mode = MODE_INVALID;
 	int		passprompt = 1;
@@ -246,32 +245,32 @@ int main(int argc, char* argv[])
 		
 		if(passprompt)
 		{
-			oldpassword = get_password("Enter old password:");
-			if(oldpassword == NULL)
-			{
+			std::unique_ptr<char[], cstdlib_deleter> tmp(get_password("Enter old password:"));
+			if (tmp == nullptr) {
 				cerr << "Wrong old password" << endl;
 				goto exit;
 			}
 			
 			cout << endl;
-
-			strcpy(szOldPassword, oldpassword);
-
-			newpassword = get_password("Enter new password:");
-			if (newpassword == nullptr) {
+			szOldPassword = tmp.get();
+			oldpassword = szOldPassword.c_str();
+			tmp.reset(get_password("Enter new password:"));
+			if (tmp == nullptr) {
 				cerr << "Wrong new password" << endl;
 				goto exit;
 			}
 
 			cout << endl;
-			kc_strlcpy(szNewPassword, newpassword, sizeof(szNewPassword));
-			repassword = get_password("Re-Enter password:");
-			if (strcmp(newpassword, repassword) != 0)
+			szNewPassword = tmp.get();
+			newpassword = szNewPassword.c_str();
+			tmp.reset(get_password("Re-Enter password:"));
+			if (tmp == nullptr) {
+				cerr << "Wrong new password" << endl;
+				goto exit;
+			}
+			if (szNewPassword != tmp.get())
 				cerr << "Passwords don't match" << endl;
 			cout << endl;
-
-			oldpassword = szOldPassword;
-			newpassword = szNewPassword;
 		}
 
 		hr = UpdatePassword(path, username, oldpassword, newpassword);
