@@ -881,16 +881,16 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 
 		ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 		hrT = iterCallBack->second.lpfnGetProp(iterCallBack->second.ulPropTag, this->lpProvider, ulFlags, lpsPropValue, this, lpsPropValue);
+		if (HR_FAILED(hrT) && hrT != MAPI_E_NOT_ENOUGH_MEMORY)
+			continue;
+		if (PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR &&
+		    lpsPropValue->Value.err != MAPI_E_NOT_ENOUGH_MEMORY)
+			continue;
 
-		if((!HR_FAILED(hrT) || hrT == MAPI_E_NOT_ENOUGH_MEMORY) && (PROP_TYPE(lpsPropValue->ulPropTag) != PT_ERROR || lpsPropValue->Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) {
-			ULONG ulPropTag = iterCallBack->second.ulPropTag;
-			
-			if (PROP_TYPE(ulPropTag) == PT_UNICODE ||
-			    PROP_TYPE(ulPropTag) == PT_STRING8)
-				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
-			
-			lpPropTagArray->aulPropTag[n++] = ulPropTag;
-		}
+		ULONG ulPropTag = iterCallBack->second.ulPropTag;
+		if (PROP_TYPE(ulPropTag) == PT_UNICODE || PROP_TYPE(ulPropTag) == PT_STRING8)
+			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
+		lpPropTagArray->aulPropTag[n++] = ulPropTag;
 	}
 
 	// Then add the others, if not added yet
