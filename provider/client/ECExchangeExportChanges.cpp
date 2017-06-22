@@ -16,7 +16,6 @@
  */
 #include <new>
 #include <kopano/platform.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/mapi_ptr.h>
@@ -114,9 +113,9 @@ HRESULT	ECExchangeExportChanges::QueryInterface(REFIID refiid, void **lppInterfa
 {
 	REGISTER_INTERFACE2(ECExchangeExportChanges, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IExchangeExportChanges, &this->m_xECExportChanges);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xECExportChanges);
-	REGISTER_INTERFACE2(IECExportChanges, &this->m_xECExportChanges);
+	REGISTER_INTERFACE2(IExchangeExportChanges, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	REGISTER_INTERFACE2(IECExportChanges, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -666,18 +665,6 @@ HRESULT ECExchangeExportChanges::SetMessageInterface(REFIID refiid) {
 	m_iidMessage = refiid;
 	return hrSuccess;
 }
-
-DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, Config, (LPSTREAM, lpStream), (ULONG, ulFlags), (LPUNKNOWN, lpCollector), (LPSRestriction, lpRestriction), (LPSPropTagArray, lpIncludeProps), (LPSPropTagArray, lpExcludeProps), (ULONG, ulBufferSize))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, ConfigSelective, (ULONG, ulPropTag), (LPENTRYLIST, lpEntries), (LPENTRYLIST, lpParents), (ULONG, ulFlags), (LPUNKNOWN, lpCollector), (LPSPropTagArray, lpIncludeProps), (LPSPropTagArray, lpExcludeProps), (ULONG, ulBufferSize))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, Synchronize, (ULONG *, pulSteps), (ULONG *, pulProgress))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, UpdateState, (LPSTREAM, lpStream))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, GetChangeCount, (ULONG *, lpcChanges))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, SetMessageInterface, (REFIID, refiid))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, SetLogger, (ECLogger *, lpLogger))
 
 HRESULT ECExchangeExportChanges::ExportMessageChanges() {
 	assert(m_lpImportContents != NULL);

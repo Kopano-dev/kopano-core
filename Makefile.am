@@ -585,7 +585,7 @@ noinst_HEADERS += \
 	common/ECMemStream.h common/HtmlEntity.h common/HtmlToTextParser.h \
 	common/IStreamAdapter.h common/rtfutil.h
 libkcmapi_la_SOURCES = \
-	common/ECABEntryID.cpp common/ECDebug.cpp common/ECDebugPrint.cpp \
+	common/ECABEntryID.cpp common/ECDebug.cpp \
 	common/ECGuid.cpp common/ECKeyTable.cpp common/ECMemStream.cpp \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
 	common/IStreamAdapter.cpp common/MAPIErrors.cpp common/kcodes.cpp \
@@ -714,7 +714,7 @@ libmapi_la_SOURCES = \
 	m4lcommon/IECImportContentsChanges.h \
 	m4lcommon/IECImportHierarchyChanges.h \
 	m4lcommon/IECMultiStoreTable.h m4lcommon/IECSpooler.h \
-	m4lcommon/IECTestProtocol.h m4lcommon/IMAPIOffline.h \
+	m4lcommon/IECTestProtocol.h \
 	m4lcommon/MAPIConsoleTable.cpp m4lcommon/MAPIConsoleTable.h \
 	m4lcommon/MAPINotifSink.cpp m4lcommon/MAPINotifSink.h \
 	m4lcommon/Util.cpp \

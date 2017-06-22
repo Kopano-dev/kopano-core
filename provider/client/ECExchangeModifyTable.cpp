@@ -40,7 +40,6 @@
 #include "pcutil.hpp"
 #include <kopano/charset/convert.h>
 #include "utf8/unchecked.h"
-#include <kopano/ECInterfaceDefs.h>
 
 using namespace KCHL;
 
@@ -176,9 +175,9 @@ empty:
 HRESULT ECExchangeModifyTable::QueryInterface(REFIID refiid, void **lppInterface) {
 	REGISTER_INTERFACE2(ECExchangeModifyTable, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IECExchangeModifyTable, &this->m_xECExchangeModifyTable);
-	REGISTER_INTERFACE2(IExchangeModifyTable, &this->m_xECExchangeModifyTable);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xECExchangeModifyTable);
+	REGISTER_INTERFACE2(IECExchangeModifyTable, this);
+	REGISTER_INTERFACE2(IExchangeModifyTable, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -555,16 +554,6 @@ exit:
 	return hr;
 }
 
-// wrappers for ExchangeModifyTable
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, AddRef, (void))
-DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, Release, (void))
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, GetTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable)) 
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, ModifyTable, (ULONG, ulFlags), (LPROWLIST, lpMods))
-
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, DisablePushToServer, (void))
-
 // ExchangeRuleAction object
 
 HRESULT __stdcall ECExchangeRuleAction::ActionCount(ULONG *lpcActions) {
@@ -575,11 +564,3 @@ HRESULT __stdcall ECExchangeRuleAction::ActionCount(ULONG *lpcActions) {
 HRESULT __stdcall ECExchangeRuleAction::GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) {
 	return MAPI_E_NO_SUPPORT;
 }
-
-// wrappers for ExchageRuleAction class
-
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeRuleAction, ExchangeRuleAction, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeRuleAction, ExchangeRuleAction, AddRef, (void))
-DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeRuleAction, ExchangeRuleAction, Release, (void))
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeRuleAction, ExchangeRuleAction, ActionCount, (ULONG*, lpcActions))
-DEF_HRMETHOD(TRACE_MAPI, ECExchangeRuleAction, ExchangeRuleAction, GetAction, (ULONG, ulActionNumber), (LARGE_INTEGER*, lpruleid), (LPACTION *, lppAction))

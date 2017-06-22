@@ -35,7 +35,7 @@ namespace KC {
 class convert_context;
 }
 
-class WSMAPIPropStorage _kc_final : public ECUnknown {
+class WSMAPIPropStorage _kc_final : public ECUnknown, public IECPropStorage {
 protected:
 	WSMAPIPropStorage(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, unsigned int ulServerCapabilities, WSTransport *);
 	virtual ~WSMAPIPropStorage();
@@ -91,12 +91,6 @@ private:
 
 	/* ECParentStorage may access my functions (used to read PR_ATTACH_DATA_BIN chunks through HrLoadProp()) */
 	friend class ECParentStorage;
-
-public:
-	class xECPropStorage _kc_final : public IECPropStorage {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IECPropStorage.hpp>
-	} m_xECPropStorage;
 
 private:
 	entryId			m_sEntryId;

@@ -27,7 +27,6 @@
 
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/namedprops.h>

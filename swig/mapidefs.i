@@ -286,9 +286,6 @@ public:
 
 class IProxyStoreObject : public virtual IUnknown {
 public:
-    virtual HRESULT PlaceHolder1() = 0;
-    virtual HRESULT PlaceHolder2() = 0;
-
     %extend {
         ~IProxyStoreObject() { self->Release(); }
 

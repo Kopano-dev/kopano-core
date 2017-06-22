@@ -25,7 +25,8 @@
 #include <edkmdb.h>
 #include "IECExchangeModifyTable.h"
 
-class ECExchangeModifyTable _kc_final : public ECUnknown {
+class ECExchangeModifyTable _kc_final :
+    public ECUnknown, public IECExchangeModifyTable {
 public:
 	ECExchangeModifyTable(ULONG ulUniqueTag, ECMemTable *table, ECMAPIProp *lpParent, ULONG ulStartRuleId, ULONG ulFlags);
 	virtual ~ECExchangeModifyTable();
@@ -39,14 +40,6 @@ public:
 	/* static creates */
 	static HRESULT __stdcall CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
 	static HRESULT __stdcall CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
-
-	class xECExchangeModifyTable _kc_final :
-	    public IECExchangeModifyTable {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IExchangeModifyTable.hpp>
-		// <kopano/xclsfrag/IECExchangeModifyTable.hpp>
-		virtual HRESULT __stdcall DisablePushToServer(void) _kc_override;
-	} m_xECExchangeModifyTable;
 
 private:
 	static HRESULT HrSerializeTable(ECMemTable *lpTable, char **lppSerialized);
@@ -63,17 +56,11 @@ private:
 	bool m_bPushToServer = true;
 };
 
-class ECExchangeRuleAction _kc_final : public ECUnknown {
+class ECExchangeRuleAction _kc_final :
+    public ECUnknown, public IExchangeRuleAction {
 public:
 	HRESULT __stdcall ActionCount(ULONG *lpcActions);
 	HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);
-
-	class xExchangeRuleAction _kc_final : public IExchangeRuleAction {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		// <kopano/xclsfrag/IExchangeRuleAction.hpp>
-		virtual HRESULT __stdcall ActionCount(ULONG *lpcActions) _kc_override;
-		virtual HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) _kc_override;
-	} m_xExchangeRuleAction;
 };
 
 #endif

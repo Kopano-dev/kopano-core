@@ -25,7 +25,6 @@
 #include "Mem.h"
 
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 #include "ECMSProvider.h"
 #include "ECMsgStore.h"
 #include "ECABProvider.h"

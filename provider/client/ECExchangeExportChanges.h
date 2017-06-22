@@ -33,7 +33,8 @@
 
 #include "WSMessageStreamExporter.h"
 
-class ECExchangeExportChanges _kc_final : public ECUnknown {
+class ECExchangeExportChanges _kc_final :
+    public ECUnknown, public IECExportChanges {
 protected:
 	ECExchangeExportChanges(ECMsgStore *lpStore, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType);
 	virtual ~ECExchangeExportChanges();
@@ -53,21 +54,6 @@ public:
 
 private:
 	void LogMessageProps(int loglevel, ULONG cValues, LPSPropValue lpPropArray);
-
-	class xECExportChanges _kc_final : public IECExportChanges {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-
-		// <kopano/xclsfrag/IExchangeExportChanges.hpp>
-		virtual HRESULT __stdcall GetLastError(HRESULT, ULONG flags, LPMAPIERROR *err) _kc_override;
-		virtual HRESULT __stdcall Config(LPSTREAM, ULONG flags, LPUNKNOWN collector, LPSRestriction, LPSPropTagArray inclprop, LPSPropTagArray exclprop, ULONG bufsize) _kc_override;
-		virtual HRESULT __stdcall Synchronize(ULONG *steps, ULONG *progress) _kc_override;
-		virtual HRESULT __stdcall UpdateState(LPSTREAM) _kc_override;
-		virtual HRESULT __stdcall ConfigSelective(ULONG proptag, LPENTRYLIST entries, LPENTRYLIST parents, ULONG flags, LPUNKNOWN collector, LPSPropTagArray inclprop, LPSPropTagArray exclprop, ULONG bufsize) _kc_override;
-		virtual HRESULT __stdcall GetChangeCount(ULONG *changes) _kc_override;
-		virtual HRESULT __stdcall SetMessageInterface(REFIID refiid) _kc_override;
-		virtual HRESULT __stdcall SetLogger(ECLogger *) _kc_override;
-	} m_xECExportChanges;
-	
 	HRESULT ExportMessageChanges();
 	HRESULT ExportMessageChangesSlow();
 	HRESULT ExportMessageChangesFast();

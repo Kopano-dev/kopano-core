@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <mapicode.h>
 #include <kopano/platform.h>
 #include <kopano/archiver-common.h>
 #include <kopano/stringutil.h>

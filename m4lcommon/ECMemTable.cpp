@@ -20,7 +20,6 @@
 #include <new>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
-#include <kopano/ECInterfaceDefs.h>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiutil.h>

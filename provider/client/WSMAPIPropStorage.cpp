@@ -18,7 +18,6 @@
 #include "WSMAPIPropStorage.h"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/Util.h>
@@ -77,7 +76,7 @@ WSMAPIPropStorage::~WSMAPIPropStorage()
 HRESULT WSMAPIPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(WSMAPIPropStorage, this);
-	REGISTER_INTERFACE2(IECPropStorage, &this->m_xECPropStorage);
+	REGISTER_INTERFACE2(IECPropStorage, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -608,7 +607,7 @@ exit:
 }
 
 IECPropStorage* WSMAPIPropStorage::GetServerStorage() {
-	return &this->m_xECPropStorage;				// I am the server storage
+	return this; /* I am the server storage */
 }
 
 //FIXME: one lock/unlock function
@@ -638,21 +637,4 @@ HRESULT WSMAPIPropStorage::HrSetSyncId(ULONG ulSyncId) {
 HRESULT WSMAPIPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 	static_cast<WSMAPIPropStorage *>(lpParam)->ecSessionId = sessionId;
 	return hrSuccess;
-}
-
-// Interface IECPropStorage
-DEF_ULONGMETHOD0(WSMAPIPropStorage, ECPropStorage, AddRef, (void))
-DEF_ULONGMETHOD0(WSMAPIPropStorage, ECPropStorage, Release, (void))
-DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrReadProps, (LPSPropTagArray *, lppPropTags), (ULONG *, cValues), (LPSPropValue *, lppValues))
-DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrLoadProp, (ULONG, ulObjId), (ULONG, ulPropTag), (LPSPropValue *, lppsPropValue))
-DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrWriteProps, (ULONG, cValues), (LPSPropValue, lpValues), (ULONG, ulFlags))
-DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrDeleteProps, (const SPropTagArray *, lpsPropTagArray))
-DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrSaveObject, (ULONG, ulFlags), (MAPIOBJECT *, lpsMapiObject))
-DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrLoadObject, (MAPIOBJECT **, lppsMapiObject))
-
-IECPropStorage* WSMAPIPropStorage::xECPropStorage::GetServerStorage()
-{
-	METHOD_PROLOGUE_(WSMAPIPropStorage, ECPropStorage);
-	return pThis->GetServerStorage();
 }

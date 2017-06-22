@@ -29,7 +29,8 @@ namespace KC {
 class ECLogger;
 }
 
-class ECExchangeImportContentsChanges _kc_final : public ECUnknown {
+class ECExchangeImportContentsChanges _kc_final :
+    public ECUnknown, public IECImportContentsChanges {
 protected:
 	ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder);
 	virtual ~ECExchangeImportContentsChanges();
@@ -52,24 +53,6 @@ public:
 	// IECImportContentsChanges
 	virtual HRESULT ConfigForConversionStream(LPSTREAM lpStream, ULONG ulFlags, ULONG cValuesConversion, LPSPropValue lpPropArrayConversion);
 	virtual HRESULT ImportMessageChangeAsAStream(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPSTREAM *lppstream);
-
-	class xECImportContentsChanges _kc_final :
-	    public IECImportContentsChanges {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-
-		// <kopano/xclsfrag/IExchangeImportContentsChanges.hpp>
-		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
-		virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG flags) _kc_override;
-		virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) _kc_override;
-		virtual HRESULT __stdcall ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG flags, LPMESSAGE *lppMessage) _kc_override;
-		virtual HRESULT __stdcall ImportMessageDeletion(ULONG flags, LPENTRYLIST lpSourceEntryList) _kc_override;
-		virtual HRESULT __stdcall ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) _kc_override;
-		virtual HRESULT __stdcall ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) _kc_override;
-
-		// <kopano/xclsfrag/IECImportContentsChanges.hpp>
-		virtual HRESULT __stdcall ConfigForConversionStream(LPSTREAM lpStream, ULONG flags, ULONG cValuesConversion, LPSPropValue lpPropArrayConversion) _kc_override;
-		virtual HRESULT __stdcall ImportMessageChangeAsAStream(ULONG cValue, LPSPropValue lpPropArray, ULONG flags, LPSTREAM *lppstream) _kc_override;
-	} m_xECImportContentsChanges;
 
 private:
 	bool IsProcessed(const SPropValue *remote_ck, const SPropValue *local_pcl);

@@ -17,7 +17,6 @@
 #include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
-#include <kopano/ECInterfaceDefs.h>
 #include "ECFreeBusySupport.h"
 
 #include "ECFreeBusyUpdate.h"

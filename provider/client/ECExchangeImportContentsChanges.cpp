@@ -17,7 +17,6 @@
 #include <new>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
 #include "ECExchangeImportContentsChanges.h"
 #include "WSMessageStreamImporter.h"
@@ -85,10 +84,10 @@ HRESULT	ECExchangeImportContentsChanges::QueryInterface(REFIID refiid, void **lp
 		m_lpFolder->GetMsgStore()->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
 		if (bCanStream == FALSE)
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-		REGISTER_INTERFACE2(IECImportContentsChanges, &this->m_xECImportContentsChanges);
+		REGISTER_INTERFACE2(IECImportContentsChanges, this);
 	}
-	REGISTER_INTERFACE2(IExchangeImportContentsChanges, &this->m_xECImportContentsChanges);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xECImportContentsChanges);
+	REGISTER_INTERFACE2(IExchangeImportContentsChanges, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -593,7 +592,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 		ZLOG_DEBUG(m_lpLogger, "Failed to open 'IPM' receive folder, hr = 0x%08x", hr);
 		return hr;
 	}
-	hr = HrGetOneProp(&m_lpFolder->GetMsgStore()->m_xMsgStore, PR_IPM_SUBTREE_ENTRYID, &~lpIPMSubTree);
+	hr = HrGetOneProp(m_lpFolder->GetMsgStore(), PR_IPM_SUBTREE_ENTRYID, &~lpIPMSubTree);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to get ipm subtree id, hr = 0x%08x", hr);
 		return hr;
@@ -1011,16 +1010,3 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 
 	return ptrRemindersFolder->SetSearchCriteria(ptrPreRestriction, ptrOrigContainerList, RESTART_SEARCH | (ulOrigSearchState & (SEARCH_FOREGROUND | SEARCH_RECURSIVE)));
 }
-
-DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, Config, (LPSTREAM, lpStream), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, UpdateState, (LPSTREAM, lpStream))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageChange, (ULONG, cValue), (LPSPropValue, lpPropArray), (ULONG, ulFlags), (LPMESSAGE *, lppMessage))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageDeletion, (ULONG, ulFlags), (LPENTRYLIST, lpSourceEntryList))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportPerUserReadStateChange, (ULONG, cElements), (LPREADSTATE, lpReadState))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageMove, (ULONG, cbSourceKeySrcFolder), (BYTE *, pbSourceKeySrcFolder), (ULONG, cbSourceKeySrcMessage), (BYTE *, pbSourceKeySrcMessage), (ULONG, cbPCLMessage), (BYTE *, pbPCLMessage), (ULONG, cbSourceKeyDestMessage), (BYTE *, pbSourceKeyDestMessage), (ULONG, cbChangeNumDestMessage), (BYTE *, pbChangeNumDestMessage))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ConfigForConversionStream, (LPSTREAM, lpStream), (ULONG, ulFlags), (ULONG, cValuesConversion), (LPSPropValue, lpPropArrayConversion))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageChangeAsAStream, (ULONG, cpvalChanges), (LPSPropValue, ppvalChanges), (ULONG, ulFlags), (LPSTREAM *, lppstream))

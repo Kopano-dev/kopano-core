@@ -121,10 +121,7 @@ digraph {
 	ECMsgStore -> IECServiceAdmin;
 	ECMsgStore -> IECSpooler;
 	ECMsgStore -> IECTestProtocol;
-	ECMsgStore -> IExchangeManageStore6;
 	ECMsgStore -> IExchangeManageStore;
-	ECMsgStore -> IExchangeManageStoreEx;
-	ECMsgStore -> IMAPIOfflineMgr;
 	ECMsgStore -> IMsgStore;
 	ECMsgStore -> IProxyStoreObject;
 	ECParentStorage -> ECUnknown;
@@ -153,8 +150,6 @@ digraph {
 	IExchangeImportContentsChanges -> IUnknown;
 	IExchangeImportHierarchyChanges -> IUnknown;
 	IExchangeManageStore -> IUnknown;
-	IExchangeManageStore6 -> IUnknown;
-	IExchangeManageStoreEx -> IUnknown;
 	IExchangeModifyTable -> IUnknown;
 	IExchangeRuleAction -> IUnknown;
 	IFolderSupport -> IUnknown;
@@ -163,8 +158,6 @@ digraph {
 	IFreeBusySupportOutlook2000 -> IUnknown;
 	IFreeBusyUpdate -> IUnknown;
 	IMAPIFolder -> IMAPIContainer;
-	IMAPIOffline -> IUnknown;
-	IMAPIOfflineMgr -> IMAPIOffline;
 	IMSLogon -> IUnknown;
 	IMSProvider -> IUnknown;
 	IMessage -> IMAPIProp;

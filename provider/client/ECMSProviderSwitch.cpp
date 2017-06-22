@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 
 #include <kopano/ECGetText.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapiutil.h>

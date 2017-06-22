@@ -15,7 +15,6 @@
  */
 #include <new>
 #include <kopano/platform.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <mapiutil.h>
 #include "kcore.hpp"
 #include <kopano/ECGuid.h>

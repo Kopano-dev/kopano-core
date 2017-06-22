@@ -31,7 +31,8 @@
  * On commit, the call thread will block until the asynchronous call has completed, and
  * the return value will be returned.
  */
-class ECMessageStreamImporterIStreamAdapter _kc_final : public ECUnknown {
+class ECMessageStreamImporterIStreamAdapter _kc_final :
+    public ECUnknown, public IStream {
 public:
 	static HRESULT Create(WSMessageStreamImporter *lpStreamImporter, IStream **lppStream);
 
@@ -56,12 +57,6 @@ public:
 private:
 	ECMessageStreamImporterIStreamAdapter(WSMessageStreamImporter *lpStreamImporter);
 	~ECMessageStreamImporterIStreamAdapter();
-
-	class xStream _kc_final : public IStream {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/ISequentialStream.hpp>
-		#include <kopano/xclsfrag/IStream.hpp>
-	} m_xStream;
 
 	WSMessageStreamImporterPtr	m_ptrStreamImporter;
 	WSMessageStreamSinkPtr		m_ptrSink;

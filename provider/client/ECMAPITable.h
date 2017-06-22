@@ -32,7 +32,7 @@
  * tables implementations
  */
 
-class ECMAPITable _kc_final : public ECUnknown {
+class ECMAPITable _kc_final : public ECUnknown, public IMAPITable {
 protected:
 	ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags);
 	virtual ~ECMAPITable();
@@ -71,11 +71,6 @@ public:
 	virtual HRESULT SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation);
 
 	static HRESULT Reload(void *lpParam);
-
-	class xMAPITable _kc_final : public IMAPITable {
-		#include <kopano/xclsfrag/IUnknown.hpp>
-		#include <kopano/xclsfrag/IMAPITable.hpp>
-	} m_xMAPITable;
 
 private:
 	std::recursive_mutex m_hLock;

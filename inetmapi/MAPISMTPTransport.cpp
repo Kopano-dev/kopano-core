@@ -56,7 +56,6 @@
 #include <vmime/utility/streamUtils.hpp>
 #include <vmime/utility/stringUtils.hpp>
 #include <vmime/net/defaultConnectionInfos.hpp>
-#include <kopano/ECDebugPrint.h>
 #include <kopano/ECLogger.h>
 #include <kopano/charset/traits.h>
 

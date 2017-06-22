@@ -961,7 +961,7 @@ IID_OF(IMAPIAdviseSink);
 #define FOLDER_COMMON_VIEWS_VALID       ((ULONG) 0x00000040)
 #define FOLDER_FINDER_VALID             ((ULONG) 0x00000080)
 
-class IMsgStore : public IMAPIProp {
+class IMsgStore : public virtual IMAPIProp {
 public:
     //    virtual ~IMsgStore() = 0;
 

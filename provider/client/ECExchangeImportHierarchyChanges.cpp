@@ -16,7 +16,6 @@
  */
 #include <new>
 #include <kopano/platform.h>
-#include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
 #include "ECExchangeImportHierarchyChanges.h"
 #include "ECExchangeImportContentsChanges.h"
@@ -64,8 +63,8 @@ HRESULT	ECExchangeImportHierarchyChanges::QueryInterface(REFIID refiid, void **l
 {
 	REGISTER_INTERFACE2(ECExchangeImportHierarchyChanges, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
-	REGISTER_INTERFACE2(IExchangeImportHierarchyChanges, &this->m_xExchangeImportHierarchyChanges);
-	REGISTER_INTERFACE2(IUnknown, &this->m_xExchangeImportHierarchyChanges);
+	REGISTER_INTERFACE2(IExchangeImportHierarchyChanges, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -421,12 +420,3 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderDeletion(ULONG ulFlags, LP
 	}
 	return hr;
 }
-
-DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, Release, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, QueryInterface, (REFIID, refiid), (void **, lppInterface))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, Config, (LPSTREAM, lpStream), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, UpdateState, (LPSTREAM, lpStream))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, ImportFolderChange, (ULONG, cValue), (LPSPropValue, lpPropArray))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, ImportFolderDeletion, (ULONG, ulFlags), (LPENTRYLIST, lpSourceEntryList))

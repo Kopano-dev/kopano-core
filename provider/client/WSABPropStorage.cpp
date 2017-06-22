@@ -18,7 +18,6 @@
 #include "WSABPropStorage.h"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-#include <kopano/ECInterfaceDefs.h>
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/charset/convert.h>
@@ -60,7 +59,7 @@ WSABPropStorage::~WSABPropStorage()
 HRESULT WSABPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(WSABPropStorage, this);
-	REGISTER_INTERFACE2(IECPropStorage, &this->m_xECPropStorage);
+	REGISTER_INTERFACE2(IECPropStorage, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -299,7 +298,7 @@ exit:
 
 IECPropStorage* WSABPropStorage::GetServerStorage()
 {
-	return &this->m_xECPropStorage;
+	return this;
 }
 
 HRESULT WSABPropStorage::LockSoap()
@@ -323,21 +322,4 @@ HRESULT WSABPropStorage::UnLockSoap()
 HRESULT WSABPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 	static_cast<WSABPropStorage *>(lpParam)->ecSessionId = sessionId;
 	return hrSuccess;
-}
-            
-// Interface IECPropStorage
-DEF_ULONGMETHOD0(WSABPropStorage, ECPropStorage, AddRef, (void))
-DEF_ULONGMETHOD0(WSABPropStorage, ECPropStorage, Release, (void))
-DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, QueryInterface, (REFIID, refiid), (void**, lppInterface))
-DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrReadProps, (LPSPropTagArray *, lppPropTags), (ULONG *, cValues), (LPSPropValue *, lppValues))
-DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrLoadProp, (ULONG, ulObjId), (ULONG, ulPropTag), (LPSPropValue *, lppsPropValue))
-DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrWriteProps, (ULONG, cValues), (LPSPropValue, lpValues), (ULONG, ulFlags))
-DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrDeleteProps, (const SPropTagArray *, lpsPropTagArray))
-DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrSaveObject, (ULONG, ulFlags), (MAPIOBJECT *, lpsMapiObject))
-DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrLoadObject, (MAPIOBJECT **, lppsMapiObject))
-
-IECPropStorage* WSABPropStorage::xECPropStorage::GetServerStorage()
-{
-	METHOD_PROLOGUE_(WSABPropStorage, ECPropStorage);
-	return pThis->GetServerStorage();
 }
