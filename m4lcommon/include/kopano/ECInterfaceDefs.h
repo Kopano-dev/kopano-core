@@ -80,7 +80,7 @@
 #define METHODSTR_HELPER2(_method)	#_method
 
 #define DEF_ULONGMETHOD1(_trace, _class, _iface, _method, ...) \
-ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	\
+ULONG CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	\
 { \
 	METHOD_PROLOGUE_(_class, _iface); \
 	return pThis->_method(ARGS(__VA_ARGS__)); \
@@ -88,7 +88,7 @@ ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIS
 
 /* without exception passthrough */
 #define DEF_HRMETHOD1(_trace, _class, _iface, _method, ...)														\
-HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
+HRESULT CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
 { \
 	METHOD_PROLOGUE_(_class, _iface); \
 	return pThis->_method(ARGS(__VA_ARGS__)); \

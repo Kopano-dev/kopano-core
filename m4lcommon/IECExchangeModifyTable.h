@@ -25,7 +25,7 @@ namespace KC {
 
 class IECExchangeModifyTable : public virtual IExchangeModifyTable {
 	public:
-		virtual HRESULT __stdcall DisablePushToServer() = 0;
+	virtual HRESULT DisablePushToServer() = 0;
 };
 
 } /* namespace */

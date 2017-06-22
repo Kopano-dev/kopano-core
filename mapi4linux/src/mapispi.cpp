@@ -19,7 +19,6 @@
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include "m4l.mapispi.h"
-#include "m4l.mapiutil.h"
 #include "m4l.mapix.h"
 #include "m4l.debug.h"
 

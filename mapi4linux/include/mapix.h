@@ -151,8 +151,6 @@ extern _kc_export MAPIADMINPROFILES MAPIAdminProfiles;
 
 class IMAPISession : public virtual IUnknown {
 public:
-    //    virtual ~IMAPISession() = 0;
-
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 	virtual HRESULT OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, LPMDB *lppMDB) = 0;
@@ -184,8 +182,6 @@ IID_OF(IMAPISession);
 
 class IAddrBook : public virtual IMAPIProp {
 public:
-    //    virtual ~IAddrBook() = 0;
-
     virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG * lpulObjType,
 		      LPUNKNOWN * lppUnk) = 0;
     virtual HRESULT CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags,
@@ -222,8 +218,6 @@ typedef IAddrBook* LPADRBOOK;
 
 class IProfAdmin : public virtual IUnknown {
 public:
-    //    virtual ~IProfAdmin() = 0;
-
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 	virtual HRESULT CreateProfile(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags) = 0;
@@ -251,8 +245,6 @@ IID_OF(IProfAdmin);
 
 class IMsgServiceAdmin : public virtual IUnknown {
 public:
-    //    virtual ~IMsgServiceAdmin() = 0;
-
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 	virtual HRESULT CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG_PTR ui_param, ULONG flags) = 0;

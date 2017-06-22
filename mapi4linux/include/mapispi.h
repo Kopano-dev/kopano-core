@@ -161,8 +161,6 @@ typedef HRESULT (REMOVEPREPROCESSINFO)(LPMESSAGE lpMessage);
 
 class IMAPISupport : public virtual IUnknown {
 public:
-    //    virtual ~IMAPISupport() = 0;
-
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR * lppMAPIError) = 0; 
     virtual HRESULT GetMemAllocRoutines(LPALLOCATEBUFFER * lpAllocateBuffer, LPALLOCATEMORE * lpAllocateMore,
 					LPFREEBUFFER * lpFreeBuffer) = 0; 
@@ -242,16 +240,12 @@ typedef IABLogon* LPABLOGON;
 
 class IABProvider : public virtual IUnknown {
 public:
-    //    virtual ~IABProvider() = 0;
-
     virtual HRESULT Shutdown(ULONG * lpulFlags) = 0; 
 	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *profname, ULONG ulFlags, ULONG *lpulpcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon) = 0;
 };
 
 class IABLogon : public virtual IUnknown {
 public: 
-    //    virtual ~IABLogon() = 0;
-    
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR * lppMAPIError) = 0; 
     virtual HRESULT Logoff(ULONG ulFlags) = 0; 
     virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG * lpulObjType,
@@ -321,8 +315,6 @@ typedef IXPLogon* LPXPLOGON;
 
 class IXPProvider : public IUnknown {
 public: 
-    //    virtual ~IXPProvider() = 0;
-    
     virtual HRESULT Shutdown(ULONG * lpulFlags) = 0; 
 	virtual HRESULT TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, const TCHAR *lpszProfileName, ULONG *lpulFlags, LPMAPIERROR *lppMAPIError, LPXPLOGON *lppXPLogon) = 0;
 };
@@ -391,8 +383,6 @@ typedef SCODE (OPTIONCALLBACK)(
 
 class IXPLogon : public IUnknown {
 public: 
-    //    virtual ~IXPLogon() = 0;
-
     virtual HRESULT AddressTypes(ULONG * lpulFlags, ULONG * lpcAdrType, LPTSTR** lpppAdrTypeArray,
 				   ULONG * lpcMAPIUID, LPMAPIUID * * lpppUIDArray) = 0; 
     virtual HRESULT RegisterOptions(ULONG * lpulFlags, ULONG * lpcOptions, LPOPTIONDATA * lppOptions) = 0; 
@@ -469,8 +459,6 @@ typedef IMSProvider* LPMSPROVIDER;
 /* Message Store Provider Interface (IMSPROVIDER) */
 class IMSProvider : public virtual IUnknown {
 public: 
-    //    virtual ~IMSProvider() = 0;
-    
     virtual HRESULT Shutdown(ULONG * lpulFlags) = 0; 
 	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB) = 0;
 	virtual HRESULT SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB) = 0;
@@ -483,8 +471,6 @@ public:
  */
 class IMSLogon : public virtual IUnknown {
 public: 
-    //    virtual ~IMSLogon() = 0;
-    
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR * lppMAPIError) = 0; 
     virtual HRESULT Logoff(ULONG * lpulFlags) = 0; 
     virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG * lpulObjType,

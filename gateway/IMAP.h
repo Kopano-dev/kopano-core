@@ -222,7 +222,7 @@ private:
 	void HrResponse(const std::string &untag, const std::string &resp);
 	/* Tagged response with result OK, NO or BAD */
 	void HrResponse(const std::string &result, const std::string &tag, const std::string &resp);
-	static LONG __stdcall IdleAdviseCallback(void *ctx, ULONG numnotif, LPNOTIFICATION);
+	static LONG IdleAdviseCallback(void *ctx, ULONG numnotif, LPNOTIFICATION);
 
 	bool bOnlyMailFolders;
 	bool bShowPublicFolder;

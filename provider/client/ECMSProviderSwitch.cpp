@@ -68,11 +68,6 @@ HRESULT ECMSProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-ULONG ECMSProviderSwitch::Release()
-{
-	return ECUnknown::Release();
-}
-
 HRESULT ECMSProviderSwitch::Shutdown(ULONG * lpulFlags) 
 {
 	HRESULT hr = hrSuccess;

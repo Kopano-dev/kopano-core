@@ -52,7 +52,7 @@
 
 using namespace KCHL;
 
-static LONG __stdcall AdviseECFolderCallback(void *lpContext, ULONG cNotif,
+static LONG AdviseECFolderCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
 {
 	if (lpContext == NULL)

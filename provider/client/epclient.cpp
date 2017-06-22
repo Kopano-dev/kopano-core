@@ -129,7 +129,7 @@ static HRESULT RemoveAllProviders(ECMapProvider *mp)
 // entrypoints
 
 // Called by MAPI to return a MSProvider object when a user opens a store based on our service
-HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
+HRESULT MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
     LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore,
     LPFREEBUFFER pfnFreeBuf, ULONG ulFlags, ULONG ulMAPIver,
     ULONG *lpulProviderVer, LPMSPROVIDER *ppmsp)
@@ -558,7 +558,7 @@ static std::string GetServerTypeFromPath(const char *szPath)
 }
 
 // Called by MAPI to configure, or create a service
-extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
+extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
     LPMALLOC lpMalloc, LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags,
     ULONG ulContext, ULONG cvals, const SPropValue *pvals,
     LPPROVIDERADMIN lpAdminProviders, MAPIERROR **lppMapiError)
@@ -764,7 +764,7 @@ exit:
 	return hr;
 }
 
-HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
+HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
     LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
     LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
     ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider)

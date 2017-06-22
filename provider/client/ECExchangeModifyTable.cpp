@@ -98,7 +98,9 @@ ECExchangeModifyTable::~ECExchangeModifyTable() {
 		m_lpParent->Release();
 }
 
-HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj) {
+HRESULT ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent,
+    ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj)
+{
 	HRESULT hr = hrSuccess;
 	object_ptr<ECMemTable> lpecTable;
 	ULONG ulUniqueId = 1;
@@ -122,7 +124,9 @@ HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, UL
 	       .as(IID_IExchangeModifyTable, lppObj);
 }
 
-HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj) {
+HRESULT ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent,
+    ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj)
+{
 	HRESULT hr = hrSuccess;
 	object_ptr<IStream> lpRulesData;
 	STATSTG statRulesData;
@@ -181,11 +185,14 @@ HRESULT ECExchangeModifyTable::QueryInterface(REFIID refiid, void **lppInterface
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT __stdcall ECExchangeModifyTable::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) {
+HRESULT ECExchangeModifyTable::GetLastError(HRESULT hResult, ULONG ulFlags,
+    LPMAPIERROR *lppMAPIError)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT __stdcall ECExchangeModifyTable::GetTable(ULONG ulFlags, LPMAPITABLE *lppTable) {
+HRESULT ECExchangeModifyTable::GetTable(ULONG ulFlags, LPMAPITABLE *lppTable)
+{
 	object_ptr<ECMemTableView> lpView;
 	HRESULT hr = m_ecTable->HrGetView(createLocaleFromName(""), m_ulFlags, &~lpView);
 	if(hr != hrSuccess)
@@ -194,7 +201,8 @@ HRESULT __stdcall ECExchangeModifyTable::GetTable(ULONG ulFlags, LPMAPITABLE *lp
 	       reinterpret_cast<void **>(lppTable));
 }
 
-HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods) {
+HRESULT ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods)
+{
 	HRESULT			hr = hrSuccess;
 	SPropValue		sRowId;
 	LPSPropValue	lpProps = NULL;
@@ -555,12 +563,14 @@ exit:
 }
 
 // ExchangeRuleAction object
-
-HRESULT __stdcall ECExchangeRuleAction::ActionCount(ULONG *lpcActions) {
+HRESULT ECExchangeRuleAction::ActionCount(ULONG *lpcActions)
+{
 	*lpcActions = 0;
 	return hrSuccess;
 }
 
-HRESULT __stdcall ECExchangeRuleAction::GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) {
+HRESULT ECExchangeRuleAction::GetAction(ULONG ulActionNumber,
+    LARGE_INTEGER *lpruleid, LPACTION *lppAction)
+{
 	return MAPI_E_NO_SUPPORT;
 }

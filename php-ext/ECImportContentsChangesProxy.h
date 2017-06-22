@@ -32,18 +32,17 @@ private:
 public:
     ECImportContentsChangesProxy(zval *objTarget TSRMLS_DC);
     ~ECImportContentsChangesProxy();
-
-	virtual ULONG __stdcall AddRef(void) _kc_override;
-	virtual ULONG __stdcall Release(void) _kc_override;
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, void **lpvoid) _kc_override;
+	virtual ULONG AddRef(void) _kc_override;
+	virtual ULONG Release(void) _kc_override;
+	virtual HRESULT QueryInterface(REFIID iid, void **lpvoid) _kc_override;
     
-	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _kc_override;
-	virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags) _kc_override;
-	virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) _kc_override;
-	virtual HRESULT __stdcall ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE *lppMessage) _kc_override;
-	virtual HRESULT __stdcall ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) _kc_override;
-	virtual HRESULT __stdcall ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) _kc_override;
-	virtual HRESULT __stdcall ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) _kc_override;
+	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _kc_override;
+	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags) _kc_override;
+	virtual HRESULT UpdateState(LPSTREAM lpStream) _kc_override;
+	virtual HRESULT ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE *lppMessage) _kc_override;
+	virtual HRESULT ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) _kc_override;
+	virtual HRESULT ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) _kc_override;
+	virtual HRESULT ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) _kc_override;
 };
 
 #endif

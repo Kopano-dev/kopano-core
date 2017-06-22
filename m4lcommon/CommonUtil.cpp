@@ -1210,13 +1210,13 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 class ECRowWrapper _kc_final : public IMAPIProp {
 public:
 	ECRowWrapper(LPSPropValue lpProps, ULONG cValues) : m_cValues(cValues), m_lpProps(lpProps) {};
-	ULONG __stdcall AddRef(void) _kc_override { return 1; } // no ref. counting
-	ULONG __stdcall Release(void) _kc_override { return 1; }
-	HRESULT __stdcall QueryInterface(const IID &iid, LPVOID *lpvoid) _kc_override { return MAPI_E_INTERFACE_NOT_SUPPORTED; }
+	ULONG AddRef(void) _kc_override { return 1; } // no ref counting
+	ULONG Release(void) _kc_override { return 1; }
+	HRESULT QueryInterface(const IID &iid, LPVOID *lpvoid) _kc_override { return MAPI_E_INTERFACE_NOT_SUPPORTED; }
 
-	HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _kc_override { return MAPI_E_NOT_FOUND; }
-	HRESULT __stdcall SaveChanges(ULONG ulFlags) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall GetProps(const SPropTagArray *lpTags, ULONG ulFlags, ULONG *lpcValues, SPropValue **lppProps) _kc_override
+	HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _kc_override { return MAPI_E_NOT_FOUND; }
+	HRESULT SaveChanges(ULONG ulFlags) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT GetProps(const SPropTagArray *lpTags, ULONG ulFlags, ULONG *lpcValues, SPropValue **lppProps) _kc_override
 	{
 		HRESULT hr = hrSuccess;
 		BOOL bError;
@@ -1265,14 +1265,14 @@ public:
 
 		return hr;
 	};
-	HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray *lppTags) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall SetProps(ULONG cValues, const SPropValue *lpProps, SPropProblemArray **lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall DeleteProps(const SPropTagArray *, SPropProblemArray **) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall GetNamesFromIDs( LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall GetIDsFromNames( ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray *lppTags) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT SetProps(ULONG cValues, const SPropValue *lpProps, SPropProblemArray **lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT GetNamesFromIDs( LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT GetIDsFromNames( ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _kc_override { return MAPI_E_NO_SUPPORT; }
 private:
 	ULONG			m_cValues;
 	LPSPropValue	m_lpProps;
@@ -2065,9 +2065,8 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
  * @retval MAPI_E_INVALID_ENTRYID
  *				The entry ID is not valid. It shouyld be a wrapped entry identifier
  */
-HRESULT __stdcall UnWrapStoreEntryID(ULONG cbOrigEntry,
-    const ENTRYID *lpOrigEntry, ULONG *lpcbUnWrappedEntry,
-    ENTRYID **lppUnWrappedEntry)
+HRESULT UnWrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry,
+    ULONG *lpcbUnWrappedEntry, ENTRYID **lppUnWrappedEntry)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cbRemove = 0;

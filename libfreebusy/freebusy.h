@@ -153,7 +153,7 @@ public:
 	 * Unknown function, Possible reload the freebusydata ?
 	 * @return This member must return S_OK
 	 */
-	virtual HRESULT __stdcall Reload() = 0;
+	virtual HRESULT Reload() = 0;
 
 	/**
 	 * Add freebusy blocks, May be called more than once successively
@@ -161,23 +161,23 @@ public:
 	 * @param lpBlocks an array of free/busy blocks to publish
 	 * @param nBlocks Number of freebusy blocks
 	 */
-	virtual HRESULT __stdcall PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks) = 0;
+	virtual HRESULT PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks) = 0;
 
 	/**
 	 * Unknown function, this member not supported
 	 *
 	 * @note The variables of the function are possible wrong should be like, 
-	          int __stdcall IFreeBusyUpdate__RemoveAppt(int,int,int,int);
+	          int IFreeBusyUpdate__RemoveAppt(int,int,int,int);
 	 * @return This member must return S_OK
 	 */
-	virtual HRESULT __stdcall RemoveAppt() = 0;
+	virtual HRESULT RemoveAppt() = 0;
 
 	/**
 	 * Remove all Freebusy data
 	 * Alternative name: RemoveAllAppt
 	 * @return This member must return S_OK
 	 */
-	virtual HRESULT __stdcall ResetPublishedFreeBusy() = 0;
+	virtual HRESULT ResetPublishedFreeBusy() = 0;
 
 	/**
 	 * Unknown function, this member not supported
@@ -185,12 +185,12 @@ public:
 	 * @note The variables of the function are possible wrong
 	 * @return This member must return S_OK
 	 */
-	virtual HRESULT __stdcall ChangeAppt() = 0; //retn = 10h
+	virtual HRESULT ChangeAppt() = 0;
 
 	/**
 	 * Save the freebusydata with time frame between the begintime and endtime.
 	 */
-	virtual HRESULT __stdcall SaveChanges(FILETIME ftBegin, FILETIME ftEnd) = 0;
+	virtual HRESULT SaveChanges(FILETIME ftBegin, FILETIME ftEnd) = 0;
 
 	/**
 	 * Unknown function, this member not supported
@@ -198,7 +198,7 @@ public:
 	 * @note The variables of the function are possible wrong
 	 * @return This member must return S_OK
 	 */
-	virtual HRESULT __stdcall GetFBTimes() = 0; //retn = 8?
+	virtual HRESULT GetFBTimes() = 0;
 
 	/**
 	 * Unknown function, this member not supported
@@ -206,7 +206,7 @@ public:
 	 * @note The variables of the function are possible wrong
 	 * @return This member must return S_OK
 	 */
-	virtual HRESULT __stdcall Intersect() = 0; //retn = 10 ?
+	virtual HRESULT Intersect() = 0;
 };
 
 /**
@@ -240,7 +240,7 @@ public:
 	 * @retval S_OK The requested number of blocks has been returned.
 	 * @retval S_FALSE The requested number of blocks has not been returned.
 	 */
-	virtual HRESULT __stdcall Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch) = 0;
+	virtual HRESULT Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch) = 0;
 
 
 	/**
@@ -250,13 +250,13 @@ public:
 	 *
 	 * @retval S_OK The requested number of blocks has been skiped.
 	 */
-	virtual HRESULT __stdcall Skip(LONG celt) = 0;
+	virtual HRESULT Skip(LONG celt) = 0;
 
 
 	/**
 	 * Resets the enumerator by setting the cursor to the beginning.
 	 */
-	virtual HRESULT __stdcall Reset() = 0;
+	virtual HRESULT Reset() = 0;
 
 
 	/**
@@ -268,7 +268,7 @@ public:
 	 * @retval E_OUTOFMEMORY There is insufficient memory for making the copy.
 	 
 	 */
-	virtual HRESULT __stdcall Clone(IEnumFBBlock **ppclone) = 0;
+	virtual HRESULT Clone(IEnumFBBlock **ppclone) = 0;
 
 
 	/**
@@ -279,7 +279,7 @@ public:
 	 *
 	 * @note This method also resets the enumeration.
 	 */
-	virtual HRESULT __stdcall Restrict(FILETIME ftmStart, FILETIME ftmEnd) = 0;
+	virtual HRESULT Restrict(FILETIME ftmStart, FILETIME ftmEnd) = 0;
 
 };
 
@@ -304,7 +304,7 @@ public:
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall Reload(void*) = 0;
+	virtual HRESULT Reload(void*) = 0;
 
 	/**
 	 * Gets an interface for a user that enumerates free/busy blocks of data within a 
@@ -322,27 +322,27 @@ public:
 	 * A free/busy provider can also subsequently use the returned IEnumFBBlock interface
 	 * to access the enumeration.
 	 */
-	virtual HRESULT __stdcall EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) = 0;
+	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall Merge(void *) = 0;
+	virtual HRESULT Merge(void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall GetDelegateInfo(void *) = 0;
+	virtual HRESULT GetDelegateInfo(void *) = 0;
 
 	/**
 	 * This member not supported must return S_OK.
 	 */
-	virtual HRESULT __stdcall FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) = 0;
+	virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall InterSect(void *, LONG, void *) = 0;
+	virtual HRESULT InterSect(void *, LONG, void *) = 0;
 
 	/**
 	 * Sets the range of time for an enumeration of free/busy block of data for a user.
@@ -359,12 +359,12 @@ public:
 	 *	The values of ftmStart and ftmEnd are cached and returned in a subsequent call of 
 	 *	IFreeBusyData::GetFBPublishRange.
 	 */
-	virtual HRESULT __stdcall SetFBRange(LONG rtmStart, LONG rtmEnd) = 0;
+	virtual HRESULT SetFBRange(LONG rtmStart, LONG rtmEnd) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) = 0;
+	virtual HRESULT NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) = 0;
 
 
 	/**
@@ -383,7 +383,7 @@ public:
 	 *	return the cached values for the time range set by the most recent call for
 	 *	IFreeBusyData::EnumBlocks or IFreeBusyData::SetFBRange.
 	 */
-	virtual HRESULT __stdcall GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd) = 0;
+	virtual HRESULT GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd) = 0;
 };
 
 /**
@@ -418,9 +418,7 @@ public:
 	 *		Unknown data, is true if lpMsgStore isn't NULL
 	 *	
 	 */
-	
-	virtual HRESULT __stdcall Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgStore, BOOL bStore) = 0;
-
+	virtual HRESULT Open(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, BOOL bStore) = 0;
 
 	/**
 	 * Close the free/busy support object data.
@@ -428,7 +426,7 @@ public:
 	 * It will release session and store which are initialized by IFreeBusySupport::Open
 	 * 
 	 */
-	virtual HRESULT __stdcall Close() = 0;
+	virtual HRESULT Close() = 0;
 
 	/**
 	 * Returns, for each specified user, an interface for enumerating free/busy blocks
@@ -454,9 +452,7 @@ public:
 	 * @retval S_OK 
 	 *				The call is successful.
 	 */
-	virtual HRESULT __stdcall LoadFreeBusyData(	ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata,
-										HRESULT *phrStatus, ULONG *pcRead) = 0;//18
-
+	virtual HRESULT LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata, HRESULT *phrStatus, ULONG *pcRead) = 0;
 
 	/**
 	 * This member is a placeholder and is not supported, but hacked now. 
@@ -482,62 +478,62 @@ public:
 	 *
 	 * @todo research for lpDate4
 	 */
-	virtual HRESULT __stdcall LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4) = 0;
+	virtual HRESULT LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4) = 0;
 
 	/**
 	 * This member not supported must return S_OK.
 	 */
-	virtual HRESULT __stdcall CommitChanges() = 0;
+	virtual HRESULT CommitChanges() = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall GetDelegateInfo(FBUser, void *) = 0;
+	virtual HRESULT GetDelegateInfo(FBUser, void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall SetDelegateInfo(void *) = 0;
+	virtual HRESULT SetDelegateInfo(void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall AdviseFreeBusy(void *) = 0;
+	virtual HRESULT AdviseFreeBusy(void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall Reload(void *) = 0;
+	virtual HRESULT Reload(void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall GetFBDetailSupport(void **, BOOL ) = 0;
+	virtual HRESULT GetFBDetailSupport(void **, BOOL) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall HrHandleServerSched(void *) = 0;
+	virtual HRESULT HrHandleServerSched(void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall HrHandleServerSchedAccess() = 0;
+	virtual HRESULT HrHandleServerSchedAccess() = 0;
 
 	/**
 	 * This member not supported must return FALSE.
 	 */
-	virtual BOOL __stdcall FShowServerSched(BOOL ) = 0;
+	virtual BOOL FShowServerSched(BOOL) = 0;
 
 	/**
 	 * This member not supported must return S_OK.
 	 */
-	virtual HRESULT __stdcall HrDeleteServerSched() = 0;
+	virtual HRESULT HrDeleteServerSched() = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall GetFReadOnly(void *) = 0;
+	virtual HRESULT GetFReadOnly(void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
@@ -546,29 +542,29 @@ public:
 	 *		DEFINE_GUID(IID_I????, 0x00067069, 0x0, 0x0, 0xc0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x46);//{00067069-0000-0000-C000-000000000046}
 	 *      lpData vtable are total 24 functions
 	 */
-	virtual HRESULT __stdcall SetLocalFB(void *) = 0;
+	virtual HRESULT SetLocalFB(void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall PrepareForSync() = 0;
+	virtual HRESULT PrepareForSync() = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall GetFBPublishMonthRange(void *) = 0;
+	virtual HRESULT GetFBPublishMonthRange(void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall PublishRangeChanged() = 0;
+	virtual HRESULT PublishRangeChanged() = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 *
 	 * Alternative name: Clean
 	 */
-	virtual HRESULT __stdcall CleanTombstone() = 0;
+	virtual HRESULT CleanTombstone() = 0;
 
 	/**
 	 * Get delegate information of a user.
@@ -584,12 +580,12 @@ public:
 	 * @todo change type of prtmStart and prtmEnd from unsigned int to LONG
 	 * @todo change type lpulStatus to void or the right struct
 	 */
-	virtual HRESULT __stdcall GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
+	virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall PushDelegateInfoToWorkspace() = 0;
+	virtual HRESULT PushDelegateInfoToWorkspace() = 0;
 };
 
 /**
@@ -614,77 +610,74 @@ class IFreeBusySupportOutlook2000 : public virtual IUnknown {
 public:
 
 	/*! @copydoc IFreeBusySupport::Open */
-	virtual HRESULT __stdcall Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgStore, BOOL bStore) = 0;
-
+	virtual HRESULT Open(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, BOOL bStore) = 0;
 
 	/*! @copydoc IFreeBusySupport::Close */
-	virtual HRESULT __stdcall Close() = 0;
+	virtual HRESULT Close() = 0;
 
 	/*! @copydoc IFreeBusySupport::LoadFreeBusyData */
-	virtual HRESULT __stdcall LoadFreeBusyData(	ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata,
-										HRESULT *phrStatus, ULONG *pcRead) = 0;//18
-
+	virtual HRESULT LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata, HRESULT *phrStatus, ULONG *pcRead) = 0;
 
 	/*! @copydoc IFreeBusySupport::LoadFreeBusyUpdate */
-	virtual HRESULT __stdcall LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4) = 0;
+	virtual HRESULT LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4) = 0;
 
 	/*! @copydoc IFreeBusySupport::CommitChanges */
-	virtual HRESULT __stdcall CommitChanges() = 0;
+	virtual HRESULT CommitChanges() = 0;
 
 	/*! @copydoc IFreeBusySupport::GetDelegateInfo */
-	virtual HRESULT __stdcall GetDelegateInfo(FBUser, void *) = 0;
+	virtual HRESULT GetDelegateInfo(FBUser, void *) = 0;
 
 	/*! @copydoc IFreeBusySupport::SetDelegateInfo */
-	virtual HRESULT __stdcall SetDelegateInfo(void *) = 0;
+	virtual HRESULT SetDelegateInfo(void *) = 0;
 
 	/*! @copydoc IFreeBusySupport::AdviseFreeBusy */
-	virtual HRESULT __stdcall AdviseFreeBusy(void *) = 0;
+	virtual HRESULT AdviseFreeBusy(void *) = 0;
 
 	/*! @copydoc IFreeBusySupport::Reload */
-	virtual HRESULT __stdcall Reload(void *) = 0;
+	virtual HRESULT Reload(void *) = 0;
 
 	/*! @copydoc IFreeBusySupport::GetFBDetailSupport */
-	virtual HRESULT __stdcall GetFBDetailSupport(void **, BOOL ) = 0;
+	virtual HRESULT GetFBDetailSupport(void **, BOOL) = 0;
 
 	/*! @copydoc IFreeBusySupport::HrHandleServerSched */
-	virtual HRESULT __stdcall HrHandleServerSched(void *) = 0;
+	virtual HRESULT HrHandleServerSched(void *) = 0;
 
 	/*! @copydoc IFreeBusySupport::HrHandleServerSchedAccess */
-	virtual HRESULT __stdcall HrHandleServerSchedAccess() = 0;
+	virtual HRESULT HrHandleServerSchedAccess() = 0;
 
 	/*! @copydoc IFreeBusySupport::FShowServerSched */
-	virtual BOOL __stdcall FShowServerSched(BOOL ) = 0;
+	virtual BOOL FShowServerSched(BOOL) = 0;
 
 	/*! @copydoc IFreeBusySupport::HrDeleteServerSched */
-	virtual HRESULT __stdcall HrDeleteServerSched() = 0;
+	virtual HRESULT HrDeleteServerSched() = 0;
 
 	/*! @copydoc IFreeBusySupport::GetFReadOnly */
-	virtual HRESULT __stdcall GetFReadOnly(void *) = 0;
+	virtual HRESULT GetFReadOnly(void *) = 0;
 
 	/*! @copydoc IFreeBusySupport::SetLocalFB */
-	virtual HRESULT __stdcall SetLocalFB(void *) = 0;
+	virtual HRESULT SetLocalFB(void *) = 0;
 
 	/*! @copydoc IFreeBusySupport::PrepareForSync */
-	virtual HRESULT __stdcall PrepareForSync() = 0;
+	virtual HRESULT PrepareForSync() = 0;
 
 	/*! @copydoc IFreeBusySupport::GetFBPublishMonthRange */
-	virtual HRESULT __stdcall GetFBPublishMonthRange(void *) = 0;
+	virtual HRESULT GetFBPublishMonthRange(void *) = 0;
 
 	/*! @copydoc IFreeBusySupport::PublishRangeChanged */
-	virtual HRESULT __stdcall PublishRangeChanged() = 0;
+	virtual HRESULT PublishRangeChanged() = 0;
 
 	/*! 
 	* @copydoc IFreeBusySupport::CleanTombstone
 	*
 	* Not supported in outlook 2000
 	*/
-	// virtual HRESULT __stdcall CleanTombstone() = 0;
+	//virtual HRESULT CleanTombstone() = 0;
 
 	/*! @copydoc IFreeBusySupport::GetDelegateInfoEx */
-	virtual HRESULT __stdcall GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
+	virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
 
 	/*! @copydoc IFreeBusySupport::PushDelegateInfoToWorkspace */
-	virtual HRESULT __stdcall PushDelegateInfoToWorkspace() = 0;
+	virtual HRESULT PushDelegateInfoToWorkspace() = 0;
 };
 
 namespace KC {

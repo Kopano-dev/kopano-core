@@ -25,7 +25,7 @@
 
 using namespace KCHL;
 
-HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
+HRESULT MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
     LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags, ULONG ulContext,
     ULONG cvals, const SPropValue *pvals, IProviderAdmin *lpAdminProviders,
     MAPIERROR **lppMapiError)
@@ -61,7 +61,7 @@ HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 	return hr;
 }
 
-HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
+HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
     LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
     LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
     ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider)

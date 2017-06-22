@@ -695,8 +695,8 @@ common/libkcutil.sym: ${top_builddir}/config.status
 #
 libmapi_la_SOURCES = \
 	mapi4linux/src/common.cpp mapi4linux/src/mapidefs.cpp mapi4linux/src/mapispi.cpp mapi4linux/src/mapiutil.cpp \
-	mapi4linux/src/mapix.cpp mapi4linux/src/rtf.cpp mapi4linux/src/imessage.cpp mapi4linux/src/m4l.common.h \
-	mapi4linux/src/m4l.mapidefs.h mapi4linux/src/m4l.mapispi.h mapi4linux/src/m4l.mapiutil.h \
+	mapi4linux/src/mapix.cpp mapi4linux/src/rtf.cpp mapi4linux/src/m4l.common.h \
+	mapi4linux/src/m4l.mapidefs.h mapi4linux/src/m4l.mapispi.h \
 	mapi4linux/src/m4l.mapix.h mapi4linux/src/mapi4linux.h mapi4linux/src/m4l.debug.h mapi4linux/src/rtf.h \
 	mapi4linux/src/m4l.mapisvc.cpp mapi4linux/src/m4l.mapisvc.h \
 	m4lcommon/CommonUtil.cpp \
@@ -719,30 +719,7 @@ libmapi_la_SOURCES = \
 	m4lcommon/MAPINotifSink.cpp m4lcommon/MAPINotifSink.h \
 	m4lcommon/Util.cpp \
 	m4lcommon/favoritesutil.cpp m4lcommon/favoritesutil.h \
-	m4lcommon/mapicontact.h \
-	m4lcommon/include/kopano/xclsfrag/IABContainer.hpp \
-	m4lcommon/include/kopano/xclsfrag/IABLogon.hpp \
-	m4lcommon/include/kopano/xclsfrag/IABProvider.hpp \
-	m4lcommon/include/kopano/xclsfrag/IECExchangeModifyTable.hpp \
-	m4lcommon/include/kopano/xclsfrag/IECExportAddressbookChanges.hpp \
-	m4lcommon/include/kopano/xclsfrag/IECPropStorage.hpp \
-	m4lcommon/include/kopano/xclsfrag/IECSecurity.hpp \
-	m4lcommon/include/kopano/xclsfrag/IECSingleInstance.hpp \
-	m4lcommon/include/kopano/xclsfrag/IExchangeExportChanges.hpp \
-	m4lcommon/include/kopano/xclsfrag/IExchangeManageStore.hpp \
-	m4lcommon/include/kopano/xclsfrag/IExchangeModifyTable.hpp \
-	m4lcommon/include/kopano/xclsfrag/IExchangeRuleAction.hpp \
-	m4lcommon/include/kopano/xclsfrag/IFolderSupport.hpp \
-	m4lcommon/include/kopano/xclsfrag/IFreeBusySupport.hpp \
-	m4lcommon/include/kopano/xclsfrag/IMAPIContainer.hpp \
-	m4lcommon/include/kopano/xclsfrag/IMAPIFolder.hpp \
-	m4lcommon/include/kopano/xclsfrag/IMAPIProp.hpp \
-	m4lcommon/include/kopano/xclsfrag/IMAPITable.hpp \
-	m4lcommon/include/kopano/xclsfrag/IMSProvider.hpp \
-	m4lcommon/include/kopano/xclsfrag/IMsgStore.hpp \
-	m4lcommon/include/kopano/xclsfrag/ISequentialStream.hpp \
-	m4lcommon/include/kopano/xclsfrag/IStream.hpp \
-	m4lcommon/include/kopano/xclsfrag/IUnknown.hpp
+	m4lcommon/mapicontact.h
 libmapi_la_LIBADD = \
 	libkcutil.la libkcmapi.la -lpthread ${PROG_LIBS} ${DL_LIBS}
 libmapi_la_SYFLAGS = -Wl,--version-script=mapi4linux/src/libmapi.sym

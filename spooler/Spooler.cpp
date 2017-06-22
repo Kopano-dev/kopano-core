@@ -170,7 +170,7 @@ static wstring decodestring(const char *lpszA) {
  * @param[in]	cNotif		number of notifications in lpNotif
  * @param[in]	lpNotif		notification data
  */
-static LONG __stdcall AdviseCallback(void *lpContext, ULONG cNotif,
+static LONG AdviseCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
 {
 	std::unique_lock<std::mutex> lk(hMutexMessagesWaiting);

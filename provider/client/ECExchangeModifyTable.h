@@ -31,15 +31,14 @@ public:
 	ECExchangeModifyTable(ULONG ulUniqueTag, ECMemTable *table, ECMAPIProp *lpParent, ULONG ulStartRuleId, ULONG ulFlags);
 	virtual ~ECExchangeModifyTable();
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
-	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT __stdcall GetTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT __stdcall ModifyTable(ULONG ulFlags, LPROWLIST lpMods);
-
-	virtual HRESULT __stdcall DisablePushToServer();
+	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
+	virtual HRESULT GetTable(ULONG ulFlags, LPMAPITABLE *lppTable);
+	virtual HRESULT ModifyTable(ULONG ulFlags, LPROWLIST lpMods);
+	virtual HRESULT DisablePushToServer();
 
 	/* static creates */
-	static HRESULT __stdcall CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
-	static HRESULT __stdcall CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
+	static HRESULT CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
+	static HRESULT CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
 
 private:
 	static HRESULT HrSerializeTable(ECMemTable *lpTable, char **lppSerialized);
@@ -59,8 +58,8 @@ private:
 class ECExchangeRuleAction _kc_final :
     public ECUnknown, public IExchangeRuleAction {
 public:
-	HRESULT __stdcall ActionCount(ULONG *lpcActions);
-	HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);
+	HRESULT ActionCount(ULONG *lpcActions);
+	HRESULT GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);
 };
 
 #endif

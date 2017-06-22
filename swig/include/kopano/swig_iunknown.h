@@ -40,7 +40,8 @@ public:
 	virtual ~IUnknownImplementor() { 
 	}
 
-	ULONG __stdcall AddRef() {
+	ULONG AddRef()
+	{
 		PyGILState_STATE gstate;
 		gstate = PyGILState_Ensure();
 		
@@ -56,7 +57,8 @@ public:
 		return o->ob_refcnt;
 	}
 
-	ULONG __stdcall Release() {
+	ULONG Release()
+	{
 		PyGILState_STATE gstate;
 		gstate = PyGILState_Ensure();
 		
@@ -73,7 +75,8 @@ public:
 		return cnt-1;
 	}
 
-	HRESULT __stdcall QueryInterface(REFIID iid , void** ppvObject) {
+	HRESULT QueryInterface(REFIID iid , void **ppvObject)
+	{
 		if (m_interfaces.find(iid) == m_interfaces.end())
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 			

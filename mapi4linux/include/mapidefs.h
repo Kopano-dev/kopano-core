@@ -743,8 +743,6 @@ typedef IStorage *LPSTORAGE;
 
 class IMAPIProp : public virtual IUnknown {
 public:
-    //    virtual ~IMAPIProp() = 0;
-
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT SaveChanges(ULONG ulFlags) = 0;
 	virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray) = 0;
@@ -778,8 +776,6 @@ IID_OF(IMAPIProp);
 
 class IMAPIContainer : public virtual IMAPIProp {
 public:
-    //    virtual ~IMAPIContainer() = 0;
-
     virtual HRESULT GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
     virtual HRESULT GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
     virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType,
@@ -914,8 +910,6 @@ typedef NOTIFCALLBACK *LPNOTIFCALLBACK;
 /* Interface used for registering and issuing notification callbacks. */
 class IMAPIAdviseSink : public virtual IUnknown {
 public:
-    //    virtual ~IMAPIAdviseSink() = 0;
-
     virtual ULONG OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) = 0;
 };
 IID_OF(IMAPIAdviseSink);
@@ -963,8 +957,6 @@ IID_OF(IMAPIAdviseSink);
 
 class IMsgStore : public virtual IMAPIProp {
 public:
-    //    virtual ~IMsgStore() = 0;
-
     virtual HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink,
 			   ULONG *lpulConnection) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
@@ -1049,8 +1041,6 @@ struct _SSortOrderSet_ ## _name { \
 
 class IMAPIFolder : public virtual IMAPIContainer {
 public:
-    //    virtual ~IMAPIFolder() = 0;
-
     virtual HRESULT CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE* lppMessage) = 0;
     virtual HRESULT CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam,
 				 LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
@@ -1109,8 +1099,6 @@ IID_OF(IMAPIFolder);
 
 class IMessage : public virtual IMAPIProp {
 public:
-    //    virtual ~IMessage() = 0;
-
     virtual HRESULT GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
     virtual HRESULT OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, LPATTACH *lppAttach) = 0;
     virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach) = 0;
@@ -1135,7 +1123,6 @@ IID_OF(IMessage);
 
 class IAttach : public virtual IMAPIProp {
 public:
-    //    virtual ~IAttach() = 0;
 };
 IID_OF2(IAttach, IAttachment);
 
@@ -1265,7 +1252,6 @@ IID_OF(IABContainer);
 
 class IMailUser : public virtual IMAPIProp {
 public:
-    //    virtual ~IMailUser() = 0;
 };
 IID_OF(IMailUser);
 
@@ -1278,7 +1264,6 @@ IID_OF(IDistList);
 
 class IMAPIStatus : public IMAPIProp {
 public:
-    //    virtual ~IMAPIStatus() = 0;
 	virtual HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags) = 0;
     virtual HRESULT SettingsDialog(ULONG ulUIParam, ULONG ulFlags) = 0;
 	virtual HRESULT ChangePassword(const TCHAR *oldpw, const TCHAR *newpw, ULONG flags) = 0;
@@ -1483,8 +1468,6 @@ struct SRestriction {
 
 class IMAPITable : public virtual IUnknown {
 public:
-    //    virtual ~IMAPITable() = 0;
-
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
     virtual HRESULT Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
@@ -1586,7 +1569,6 @@ IID_OF(IMAPITable);
 
 class IProfSect : public virtual IMAPIProp {
 public:
-    //    virtual ~IProfSect() = 0;
 };
 IID_OF(IProfSect);
 
@@ -1597,8 +1579,6 @@ IID_OF(IProfSect);
 
 class IMAPIProgress : public IUnknown {
 public:
-    //    virtual ~IMAPIProgress() = 0;
-
     virtual HRESULT Progress(ULONG ulValue, ULONG ulCount, ULONG ulTotal) = 0;
     virtual HRESULT GetFlags(ULONG* lpulFlags) = 0;
     virtual HRESULT GetMax(ULONG* lpulMax) = 0;
@@ -1617,8 +1597,6 @@ IID_OF(IMAPIProgress);
 
 class IProviderAdmin : public virtual IUnknown {
 public:
-    //    virtual ~IProviderAdmin() = 0;
-
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 	virtual HRESULT CreateProvider(const TCHAR *name, ULONG nprops, const SPropValue *props, ULONG ui_param, ULONG flags, MAPIUID *uid) = 0;
@@ -1756,8 +1734,6 @@ typedef struct ADRPARM *LPADRPARM;
 #define  MAPI_DISABLED      ((ULONG) 0x00000001)
 class IMAPIControl : public IUnknown {
 public:
-    //    virtual ~IMAPIControl() = 0;
-
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT Activate(ULONG ulFlags, ULONG ulUIParam) = 0;
     virtual HRESULT GetState(ULONG ulFlags, ULONG* lpulState) = 0;
