@@ -23,8 +23,7 @@
 #include <kopano/ECUnknown.h>
 #include "IECPropStorage.h"
 #include "ECPropertyEntry.h"
-#include <kopano/IECSingleInstance.h>
-
+#include <kopano/IECInterfaces.hpp>
 #include <list>
 #include <map>
 #include <set>

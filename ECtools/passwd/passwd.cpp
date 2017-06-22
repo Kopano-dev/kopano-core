@@ -27,8 +27,7 @@
 #include <mapispi.h>
 #include <mapix.h>
 #include <mapiutil.h>
-
-#include <kopano/IECServiceAdmin.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/ECTags.h>
 #include <kopano/ECGuid.h>
 #include <kopano/CommonUtil.h>

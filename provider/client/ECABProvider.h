@@ -36,4 +36,16 @@ public:
 	ALLOC_WRAP_FRIEND;
 };
 
+class ECABProviderSwitch _kc_final : public ECUnknown, public IABProvider {
+protected:
+	ECABProviderSwitch(void);
+
+public:
+	static  HRESULT Create(ECABProviderSwitch **lppECABProvider);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+    virtual HRESULT Shutdown(ULONG * lpulFlags);
+	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity, LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon);
+	ALLOC_WRAP_FRIEND;
+};
+
 #endif // #ifndef ECABPROVIDER

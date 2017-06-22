@@ -326,7 +326,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECABLogon.cpp provider/client/ECABLogon.h \
 	provider/client/ECABProp.cpp provider/client/ECABProp.h \
 	provider/client/ECABProvider.cpp provider/client/ECABProvider.h \
-	provider/client/ECABProviderSwitch.cpp provider/client/ECABProviderSwitch.h \
 	provider/client/ECArchiveAwareAttach.cpp provider/client/ECArchiveAwareAttach.h \
 	provider/client/ECArchiveAwareMessage.cpp provider/client/ECArchiveAwareMessage.h \
 	provider/client/ECArchiveAwareMsgStore.cpp provider/client/ECArchiveAwareMsgStore.h \
@@ -350,7 +349,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECMAPIProp.cpp provider/client/ECMAPIProp.h \
 	provider/client/ECMAPITable.cpp provider/client/ECMAPITable.h \
 	provider/client/ECMSProvider.cpp provider/client/ECMSProvider.h \
-	provider/client/ECMSProviderSwitch.cpp provider/client/ECMSProviderSwitch.h \
 	provider/client/ECMailUser.cpp provider/client/ECMailUser.h \
 	provider/client/ECMemTablePublic.cpp provider/client/ECMemTablePublic.h \
 	provider/client/ECMessage.cpp provider/client/ECMessage.h \
@@ -370,7 +368,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ProviderUtil.cpp provider/client/ProviderUtil.h \
 	provider/client/SessionGroupData.cpp provider/client/SessionGroupData.h \
 	provider/client/WSABPropStorage.cpp provider/client/WSABPropStorage.h \
-	provider/client/WSABTableView.cpp provider/client/WSABTableView.h \
 	provider/client/WSMAPIFolderOps.cpp provider/client/WSMAPIFolderOps.h \
 	provider/client/WSMAPIPropStorage.cpp provider/client/WSMAPIPropStorage.h \
 	provider/client/WSMessageStreamExporter.cpp provider/client/WSMessageStreamExporter.h \
@@ -701,20 +698,11 @@ libmapi_la_SOURCES = \
 	mapi4linux/src/m4l.mapisvc.cpp mapi4linux/src/m4l.mapisvc.h \
 	m4lcommon/CommonUtil.cpp \
 	m4lcommon/ECFeatures.cpp m4lcommon/ECFeatures.h \
-	m4lcommon/ECFeatureList.h m4lcommon/ECInvariantChecker.h \
+	m4lcommon/ECFeatureList.h \
 	m4lcommon/ECMemTable.cpp m4lcommon/HrException.h \
 	m4lcommon/ECRestriction.cpp \
 	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp \
-	m4lcommon/IECChangeAdviseSink.h \
-	m4lcommon/IECChangeAdvisor.h \
-	m4lcommon/IECExchangeModifyTable.h \
-	m4lcommon/IECExportAddressbookChanges.h \
-	m4lcommon/IECExportChanges.h \
-	m4lcommon/IECImportAddressbookChanges.h \
-	m4lcommon/IECImportContentsChanges.h \
-	m4lcommon/IECImportHierarchyChanges.h \
-	m4lcommon/IECMultiStoreTable.h m4lcommon/IECSpooler.h \
-	m4lcommon/IECTestProtocol.h \
+	m4lcommon/IECInterfaces.hpp \
 	m4lcommon/MAPIConsoleTable.cpp m4lcommon/MAPIConsoleTable.h \
 	m4lcommon/MAPINotifSink.cpp m4lcommon/MAPINotifSink.h \
 	m4lcommon/Util.cpp \

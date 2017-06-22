@@ -25,14 +25,11 @@
 #include "ECSyncContext.h"
 #include "ECSyncUtil.h"
 #include "ECSyncSettings.h"
-#include <IECExportAddressbookChanges.h>
-#include <IECExportChanges.h>
-#include <IECChangeAdvisor.h>
-
 #include <kopano/ECUnknown.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECTags.h>
 #include <kopano/ECLogger.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/Util.h>
 #include <mapix.h>
@@ -47,8 +44,6 @@ using namespace KCHL;
 
 typedef object_ptr<IECChangeAdvisor> ECChangeAdvisorPtr;
 //DEFINEMAPIPTR(ECChangeAdvisor);
-typedef object_ptr<IECChangeAdviseSink> ECChangeAdviseSinkPtr;
-//DEFINEMAPIPTR(ECChangeAdviseSink);
 
 #define EC_SYNC_STATUS_VERSION			1
 
@@ -189,7 +184,7 @@ HRESULT ECSyncContext::HrReleaseChangeAdvisor()
 HRESULT ECSyncContext::HrResetChangeAdvisor()
 {
 	ECChangeAdvisorPtr ptrChangeAdvisor;
-	ECChangeAdviseSinkPtr ptrChangeAdviseSink;
+	object_ptr<IECChangeAdviseSink> ptrChangeAdviseSink;
 
 	HRESULT hr = HrReleaseChangeAdvisor();
 	if (hr != hrSuccess)

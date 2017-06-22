@@ -22,7 +22,7 @@
 #include "pcutil.hpp"
 
 #include "ECABContainer.h"
-#include "IECImportAddressbookChanges.h"
+#include <kopano/IECInterfaces.hpp>
 #include "ECMsgStore.h"
 
 #include "ECExportAddressbookChanges.h"

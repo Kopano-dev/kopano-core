@@ -40,8 +40,6 @@ using namespace std;
 using namespace KC::helpers;
 using namespace KC::operations;
 
-typedef std::unique_ptr<Copier::Helper> HelperPtr;
-
 #ifdef UNICODE
 typedef std::wostringstream tostringstream;
 #else
@@ -86,7 +84,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	ObjectEntryList lstArchives;
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
-	HelperPtr ptrHelper;
+	std::unique_ptr<Copier::Helper> ptrHelper;
 	list<pair<MessagePtr,PostSaveActionPtr> > lstArchivedMessages;
 	ArchiveResult result;
 	ObjectEntryList lstReferences;
@@ -238,7 +236,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	ObjectEntryList lstArchives;
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
-	HelperPtr ptrHelper;
+	std::unique_ptr<Copier::Helper> ptrHelper;
 	list<pair<MessagePtr,PostSaveActionPtr> > lstArchivedMessages;
 	ArchiveResult result;
 	static constexpr const SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};

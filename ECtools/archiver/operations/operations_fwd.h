@@ -25,9 +25,6 @@ namespace KC { namespace operations {
 class IArchiveOperation;
 typedef std::shared_ptr<IArchiveOperation> ArchiveOperationPtr;
 
-class Copier;
-typedef std::shared_ptr<Copier> CopierPtr;
-
 class Deleter;
 typedef std::shared_ptr<Deleter> DeleterPtr;
 

@@ -209,10 +209,7 @@ private:
 
 	DeleterPtr m_ptrDeleteOp;
 	StubberPtr m_ptrStubOp;
-
-	typedef std::unique_ptr<Helper> HelperPtr;
-	HelperPtr m_ptrHelper;
-
+	std::unique_ptr<Helper> m_ptrHelper;
 	TransactionPtr m_ptrTransaction;
 	InstanceIdMapperPtr m_ptrMapper;
 };

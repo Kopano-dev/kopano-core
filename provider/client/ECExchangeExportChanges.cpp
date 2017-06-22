@@ -923,7 +923,7 @@ exit:
 HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 {
 	HRESULT hr = hrSuccess;
-	WSSerializedMessagePtr ptrSerializedMessage;
+	object_ptr<WSSerializedMessage> ptrSerializedMessage;
 	ULONG cbProps = 0;
 	SPropValuePtr ptrProps;
 	const SPropValue *lpPropVal = NULL;

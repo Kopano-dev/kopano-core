@@ -23,10 +23,7 @@
 #include <mapispi.h>
 #include <edkmdb.h>
 #include <edkguid.h>
-
-#include <kopano/IECServiceAdmin.h>
-#include <kopano/IECSecurity.h>
-#include <kopano/IECSingleInstance.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/ECGuid.h>
 #include <kopano/mapiguidext.h>
 
@@ -34,50 +31,24 @@ namespace KC {
 
 typedef KCHL::object_ptr<IABContainer> ABContainerPtr;
 typedef KCHL::object_ptr<IAddrBook> AddrBookPtr;
-typedef KCHL::object_ptr<IDistList> DistListPtr;
-typedef KCHL::object_ptr<IECSecurity> ECSecurityPtr;
 typedef KCHL::object_ptr<IECServiceAdmin> ECServiceAdminPtr;
-typedef KCHL::object_ptr<IECSingleInstance> ECSingleInstancePtr;
 typedef KCHL::object_ptr<IExchangeManageStore> ExchangeManageStorePtr;
-typedef KCHL::object_ptr<IExchangeModifyTable> ExchangeModifyTablePtr;
-typedef KCHL::object_ptr<IExchangeExportChanges> ExchangeExportChangesPtr;
-typedef KCHL::object_ptr<IMAPIAdviseSink> MAPIAdviseSinkPtr;
-typedef KCHL::object_ptr<IMAPIContainer> MAPIContainerPtr;
 typedef KCHL::object_ptr<IMAPIFolder> MAPIFolderPtr;
 typedef KCHL::object_ptr<IMAPIProp> MAPIPropPtr;
 typedef KCHL::object_ptr<IMAPISession> MAPISessionPtr;
 typedef KCHL::object_ptr<IMAPITable> MAPITablePtr;
 typedef KCHL::object_ptr<IMailUser> MailUserPtr;
 typedef KCHL::object_ptr<IMessage> MessagePtr;
-typedef KCHL::object_ptr<IMsgServiceAdmin> MsgServiceAdminPtr;
 typedef KCHL::object_ptr<IMsgStore> MsgStorePtr;
-typedef KCHL::object_ptr<IProfAdmin> ProfAdminPtr;
-typedef KCHL::object_ptr<IProfSect> ProfSectPtr;
-typedef KCHL::object_ptr<IProviderAdmin> ProviderAdminPtr;
-typedef KCHL::object_ptr<IUnknown> UnknownPtr;
 typedef KCHL::object_ptr<IStream> StreamPtr;
 typedef KCHL::object_ptr<IAttach> AttachPtr;
-typedef KCHL::object_ptr<IMAPIGetSession> MAPIGetSessionPtr;
 
-typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionPtr;
 typedef KCHL::memory_ptr<ENTRYID> EntryIdPtr;
 typedef KCHL::memory_ptr<ENTRYLIST> EntryListPtr;
-typedef KCHL::memory_ptr<MAPIERROR> MAPIErrorPtr;
-typedef KCHL::memory_ptr<ROWLIST> RowListPtr;
-typedef KCHL::memory_ptr<SPropProblemArray> SPropProblemArrayPtr;
 typedef KCHL::memory_ptr<SPropValue> SPropValuePtr;
 typedef KCHL::memory_ptr<SPropTagArray> SPropTagArrayPtr;
 typedef KCHL::memory_ptr<SRestriction> SRestrictionPtr;
-typedef KCHL::memory_ptr<SRow> SRowPtr;
-typedef KCHL::memory_ptr<SSortOrderSet> SSortOrderSetPtr;
-typedef KCHL::memory_ptr<char> StringPtr;
-typedef KCHL::memory_ptr<WCHAR> WStringPtr;
-typedef KCHL::memory_ptr<FlagList> FlagListPtr;
-typedef KCHL::memory_ptr<SBinary> SBinaryPtr;
-typedef KCHL::memory_ptr<BYTE> BytePtr;
-typedef KCHL::memory_ptr<MAPINAMEID> MAPINameIdPtr;
 
-typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionArrayPtr;
 typedef KCHL::memory_ptr<SPropValue> SPropArrayPtr;
 
 class SRowSetPtr : public KCHL::memory_ptr<SRowSet, KCHL::rowset_delete> {

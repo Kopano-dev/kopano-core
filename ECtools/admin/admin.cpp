@@ -29,8 +29,7 @@
 #include <mapix.h>
 #include <mapiutil.h>
 #include <kopano/automapi.hpp>
-#include <kopano/IECServiceAdmin.h>
-#include <kopano/IECSecurity.h>
+#include <kopano/IECInterfaces.hpp>
 #include "SSLUtil.h"
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>

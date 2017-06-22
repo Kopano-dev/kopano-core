@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <iostream>
+#include <memory>
 #include <climits>
 #include <getopt.h>
 #include <kopano/stringutil.h>
@@ -235,7 +236,7 @@ int main(int argc, char *argv[])
     bool bAutoAttach = false;
     bool bForceCleanup = false;
     unsigned ulAttachFlags = 0;
-    ArchiverPtr ptrArchiver;
+	std::unique_ptr<Archiver> ptrArchiver;
     convert_context converter;
     std::list<configsetting_t> lSettings;
 

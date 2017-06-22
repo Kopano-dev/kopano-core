@@ -47,8 +47,6 @@ private:
 	WSMessageStreamExporter(const WSMessageStreamExporter &) = delete;
 	WSMessageStreamExporter &operator=(const WSMessageStreamExporter &) = delete;
 
-	typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
-
 	struct StreamInfo {
 		std::string	id;
 		unsigned long	cbPropVals;
@@ -57,7 +55,7 @@ private:
 	typedef std::map<ULONG, StreamInfo*>	StreamInfoMap;
 
 	ULONG m_ulExpectedIndex = 0, m_ulMaxIndex = 0;
-	WSTransportPtr	m_ptrTransport;
+	KCHL::object_ptr<WSTransport> m_ptrTransport;
 	StreamInfoMap	m_mapStreamInfo;
 };
 

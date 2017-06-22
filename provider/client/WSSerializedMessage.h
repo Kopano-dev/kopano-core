@@ -57,6 +57,4 @@ private:
 	HRESULT m_hr = hrSuccess;
 };
 
-typedef KCHL::object_ptr<WSSerializedMessage> WSSerializedMessagePtr;
-
 #endif // ndef WSSerializedMessage_INCLUDED

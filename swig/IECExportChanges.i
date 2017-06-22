@@ -1,5 +1,5 @@
 %{
-#include "IECExportChanges.h"
+#include <kopano/IECInterfaces.hpp>
 %}
 
 class IECExportChanges : public IExchangeExportChanges{

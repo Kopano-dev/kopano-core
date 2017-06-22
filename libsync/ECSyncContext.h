@@ -25,9 +25,7 @@
 #include <map>
 #include <set>
 #include <string>
-
-#include <IECChangeAdvisor.h>
-#include <IECChangeAdviseSink.h>
+#include <kopano/IECInterfaces.hpp>
 
 namespace KC {
 

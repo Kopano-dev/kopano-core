@@ -436,8 +436,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	MAPIFolderPtr ptrSearchStubFolder;
 	ObjectEntryList lstArchives;
 	bool bHaveErrors = false;
-
-	CopierPtr	ptrCopyOp;
+	std::shared_ptr<Copier> ptrCopyOp;
 	DeleterPtr	ptrDeleteOp;
 	StubberPtr	ptrStubOp;
 
@@ -671,7 +670,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrTable;
 	SRestrictionPtr ptrRestriction;
-	SSortOrderSetPtr ptrSortOrder;
+	KCHL::memory_ptr<SSortOrderSet> ptrSortOrder;
 	SRowSetPtr ptrRowSet;
 	MessagePtr ptrMessage;
 	bool bHaveErrors = false;

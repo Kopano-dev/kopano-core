@@ -36,7 +36,7 @@
 #include <kopano/mapiguidext.h>
 #include <kopano/charset/convert.h>
 #include <kopano/hl.hpp>
-#include "IECExchangeModifyTable.h"
+#include <kopano/IECInterfaces.hpp>
 #include "PyMapiPlugin.h"
 #include "spmain.h"
 

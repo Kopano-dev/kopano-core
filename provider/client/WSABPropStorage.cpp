@@ -323,3 +323,29 @@ HRESULT WSABPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 	static_cast<WSABPropStorage *>(lpParam)->ecSessionId = sessionId;
 	return hrSuccess;
 }
+
+WSABTableView::WSABTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport) :
+	WSTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId,
+	    lpEntryId, lpTransport, "WSABTableView")
+{
+	m_lpProvider = lpABLogon;
+	m_ulTableType = TABLETYPE_AB;
+}
+
+HRESULT WSABTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport,
+    WSTableView **lppTableView)
+{
+	return alloc_wrap<WSABTableView>(ulType, ulFlags, lpCmd, lpDataLock,
+	       ecSessionId, cbEntryId, lpEntryId, lpABLogon, lpTransport)
+	       .as(IID_ECTableView, lppTableView);
+}
+
+HRESULT WSABTableView::QueryInterface(REFIID refiid, void **lppInterface)
+{
+	REGISTER_INTERFACE3(ECTableView, WSTableView, this);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
+}

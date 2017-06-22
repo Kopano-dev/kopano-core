@@ -21,8 +21,8 @@
 #include <mutex>
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/Util.h>
-#include <IECChangeAdviseSink.h>
 #include "ics_client.hpp"
 #include "ECNotifyMaster.h"
 #include <map>

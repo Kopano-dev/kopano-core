@@ -94,9 +94,7 @@ private:
 	};
 	eMode	m_mode;
 	bool	m_bChanged;
-
-	typedef KCHL::object_ptr<ECMessage> ECMessagePtr;
-	ECMessagePtr	m_ptrArchiveMsg;
+	KCHL::object_ptr<ECMessage> m_ptrArchiveMsg;
 	ALLOC_WRAP_FRIEND;
 };
 

@@ -39,7 +39,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include "ECMemStream.h"
-#include <kopano/IECSingleInstance.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/ECGuid.h>
 #include <kopano/codepage.h>
 #include "rtfutil.h"
@@ -84,6 +84,9 @@ public:
 };
 
 typedef std::set<ULONG,PropTagCompare> PropTagSet;
+
+static HRESULT HrCopyActions(ACTIONS *, const ACTIONS *, void *);
+static HRESULT HrCopyAction(ACTION *, const ACTION *, void *);
 
 /** 
  * Add or replaces a prop value in a an SPropValue array
@@ -137,7 +140,7 @@ HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 #ifndef STORE_HTML_OK
 #define STORE_HTML_OK 0x00010000
 #endif
-bool Util::FHasHTML(IMAPIProp *lpProp)
+static bool FHasHTML(IMAPIProp *lpProp)
 {
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropSupport = NULL;
@@ -439,7 +442,7 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 		hr = lpfAllocMore(sizeof(ACTIONS), lpBase, (void **)&lpDest->Value.lpszA);
 		if (hr != hrSuccess)
 			return hr;
-		hr = Util::HrCopyActions((ACTIONS *)lpDest->Value.lpszA, (ACTIONS *)lpSrc->Value.lpszA, lpBase);
+		hr = HrCopyActions(reinterpret_cast<ACTIONS *>(lpDest->Value.lpszA), reinterpret_cast<ACTIONS *>(lpSrc->Value.lpszA), lpBase);
 		break;
 	case PT_NULL:
 		break;
@@ -693,7 +696,7 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
  * 
  * @return MAPI error code
  */
-HRESULT	Util::HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc,
+static HRESULT HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc,
     void *lpBase)
 {
 	unsigned int i;
@@ -724,7 +727,7 @@ HRESULT	Util::HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc,
  * 
  * @return MAPI error code
  */
-HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
+static HRESULT HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 {
 	HRESULT hr = hrSuccess;
 
@@ -772,9 +775,9 @@ HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 		hr = MAPIAllocateMore(CbNewSRowSet(lpSrc->lpadrlist->cEntries), lpBase, reinterpret_cast<void **>(&lpDest->lpadrlist));
 		if (hr != hrSuccess)
 			return hr;
-		return HrCopySRowSet((LPSRowSet)lpDest->lpadrlist, (LPSRowSet)lpSrc->lpadrlist, lpBase);
+		return Util::HrCopySRowSet(reinterpret_cast<SRowSet *>(lpDest->lpadrlist), reinterpret_cast<SRowSet *>(lpSrc->lpadrlist), lpBase);
 	case OP_TAG:
-		return HrCopyProperty(&lpDest->propTag, &lpSrc->propTag, lpBase);
+		return Util::HrCopyProperty(&lpDest->propTag, &lpSrc->propTag, lpBase);
 	case OP_DELETE:
 	case OP_MARK_AS_READ:
 		break;
@@ -1875,6 +1878,12 @@ HRESULT Util::HrHtmlToText(IStream *html, IStream *text, ULONG ulCodepage)
 	return text->Write(strText.data(), (strText.size()+1)*sizeof(WCHAR), NULL);
 }
 
+template<size_t N> static bool StrCaseCompare(const wchar_t *lpString,
+    const wchar_t (&lpFind)[N], size_t pos = 0)
+{
+	return wcsncasecmp(lpString + pos, lpFind, N - 1) == 0;
+}
+
 /**
  * This converts from HTML to RTF by doing to following:
  *
@@ -2442,7 +2451,8 @@ bool Util::IsBodyProp(ULONG ulPropTag)
  * @return MAPI error code
  * @retval MAPI_E_NOT_FOUND interface not found in array
  */
-HRESULT Util::FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs) {
+static HRESULT FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs)
+{
 	HRESULT hr = MAPI_E_NOT_FOUND;
 	ULONG i;
 
@@ -2466,7 +2476,8 @@ HRESULT Util::FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs) {
  * 
  * @return MAPI error code
  */
-HRESULT Util::CopyStream(LPSTREAM lpSrc, LPSTREAM lpDest) {
+static HRESULT CopyStream(IStream *lpSrc, IStream *lpDest)
+{
 	ULARGE_INTEGER liRead = {{0}}, liWritten = {{0}};
 	STATSTG stStatus;
 	HRESULT hr = lpSrc->Stat(&stStatus, 0);
@@ -2488,7 +2499,8 @@ HRESULT Util::CopyStream(LPSTREAM lpSrc, LPSTREAM lpDest) {
  * 
  * @return MAPI error code
  */
-HRESULT Util::CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
+static HRESULT CopyRecipients(IMessage *lpSrc, IMessage *lpDest)
+{
 	HRESULT hr;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
@@ -2525,7 +2537,7 @@ HRESULT Util::CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
  * 
  * @return always hrSuccess
  */
-HRESULT Util::CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst)
+static HRESULT CopyInstanceIds(IMAPIProp *lpSrc, IMAPIProp *lpDst)
 {
 	object_ptr<IECSingleInstance> lpSrcInstance, lpDstInstance;
 	ULONG cbInstanceID = 0;
@@ -2564,7 +2576,8 @@ HRESULT Util::CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst)
  * 
  * @return MAPI error code
  */
-HRESULT Util::CopyAttachmentProps(LPATTACH lpSrcAttach, LPATTACH lpDstAttach, LPSPropTagArray lpExcludeProps)
+static HRESULT CopyAttachmentProps(IAttach *lpSrcAttach, IAttach *lpDstAttach,
+    SPropTagArray *lpExcludeProps = nullptr)
 {
 	return Util::DoCopyTo(&IID_IAttachment, lpSrcAttach, 0, NULL,
 	       lpExcludeProps, 0, NULL, &IID_IAttachment, lpDstAttach, 0, NULL);
@@ -2676,7 +2689,9 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
  *
  * @return MAPI error code.
  */
-HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFlags, ULONG ulUIParam, LPMAPIPROGRESS lpProgress) {
+static HRESULT CopyHierarchy(IMAPIFolder *lpSrc, IMAPIFolder *lpDest,
+    ULONG ulFlags, ULONG ulUIParam, IMAPIProgress *lpProgress)
+{
 	HRESULT hr;
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
@@ -2752,7 +2767,10 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
  * @return MAPI error code
  */
 #define MAX_ROWS 50
-HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFlags, ULONG ulUIParam, LPMAPIPROGRESS lpProgress) {
+static HRESULT CopyContents(ULONG ulWhat, IMAPIFolder *lpSrc,
+    IMAPIFolder *lpDest, ULONG ulFlags, ULONG ulUIParam,
+    IMAPIProgress *lpProgress)
+{
 	HRESULT hr;
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
@@ -2839,7 +2857,10 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
  * 
  * @return MAPI error code
  */
-HRESULT Util::TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag, LPMAPIPROP lpPropSrc, ULONG ulDestPropTag, LPMAPIPROP lpPropDest, LPSTREAM *lppSrcStream, LPSTREAM *lppDestStream) {
+static HRESULT TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag,
+    IMAPIProp *lpPropSrc, ULONG ulDestPropTag, IMAPIProp *lpPropDest,
+    IStream **lppSrcStream, IStream **lppDestStream)
+{
 	HRESULT hr;
 	object_ptr<IStream> lpSrc, lpDest;
 
@@ -2868,7 +2889,7 @@ HRESULT Util::TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag, LPMAPIPROP l
  * 
  * @return MAPI error code
  */
-HRESULT Util::AddProblemToArray(const SPropProblem *lpProblem,
+static HRESULT AddProblemToArray(const SPropProblem *lpProblem,
     SPropProblemArray **lppProblems)
 {
 	HRESULT hr;
@@ -3222,7 +3243,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 		if (*lpSrcInterface == IID_IMessage) {
 			if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_RECIPIENTS)
 				// TODO: add ulFlags, and check for MAPI_NOREPLACE
-				hr = Util::CopyRecipients((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj);
+				hr = CopyRecipients(static_cast<IMessage *>(lpSrcObj), static_cast<IMessage *>(lpDestObj));
 			else if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_ATTACHMENTS)
 				// TODO: add ulFlags, and check for MAPI_NOREPLACE
 				hr = Util::CopyAttachments((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj, NULL);
@@ -3268,7 +3289,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 						isProblem = true;
 						goto next_include_check;
 					}
-					hr = Util::CopyStream(lpSrcStream, lpDestStream);
+					hr = CopyStream(lpSrcStream, lpDestStream);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
@@ -3283,7 +3304,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 						isProblem = true;
 						goto next_include_check;
 					}
-					hr = Util::CopyStream(lpSrcStream, lpDestStream);
+					hr = CopyStream(lpSrcStream, lpDestStream);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
@@ -3406,7 +3427,7 @@ next_include_check:
 			continue;
 		assert(PROP_ID(lpIncludeProps->aulPropTag[i]) == PROP_ID(lpProps[i].ulPropTag));
 		object_ptr<IStream> lpSrcStream, lpDestStream;
-		hr = Util::TryOpenProperty(PROP_TYPE(lpIncludeProps->aulPropTag[i]), lpProps[i].ulPropTag, lpSrcProp, lpsDestTagArray->aulPropTag[i], lpDestProp, &~lpSrcStream, &~lpDestStream);
+		hr = TryOpenProperty(PROP_TYPE(lpIncludeProps->aulPropTag[i]), lpProps[i].ulPropTag, lpSrcProp, lpsDestTagArray->aulPropTag[i], lpDestProp, &~lpSrcStream, &~lpDestStream);
 		if (hr != hrSuccess) {
 			// TODO: check, partial or problemarray?
 			// when the prop was not found (body property), it actually wasn't present, so don't mark as partial
@@ -3414,7 +3435,7 @@ next_include_check:
 				bPartial = true;
 			continue;
 		}
-		hr = Util::CopyStream(lpSrcStream, lpDestStream);
+		hr = CopyStream(lpSrcStream, lpDestStream);
 		if (hr != hrSuccess)
 			bPartial = true;
 	}
@@ -3470,15 +3491,15 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 
 	// special case: get PR_EC_IMAP_BODY if present, and copy with single instance
 	// hidden property in kopano, try to copy contents
-	if (Util::TryOpenProperty(PT_BINARY, PR_EC_IMAP_EMAIL, lpSrcMsg,
+	if (TryOpenProperty(PT_BINARY, PR_EC_IMAP_EMAIL, lpSrcMsg,
 	    PR_EC_IMAP_EMAIL, lpDstMsg, &~lpSrcStream, &~lpDestStream) != hrSuccess ||
-	    Util::CopyStream(lpSrcStream, lpDestStream) != hrSuccess)
+	    CopyStream(lpSrcStream, lpDestStream) != hrSuccess)
 		return hrSuccess;
 	/*
 	 * Try making a single instance copy for IMAP body data (without sending the data to server).
 	 * No error checking, we do not care if this fails, we still have all the data.
 	 */
-	Util::CopyInstanceIds(lpSrcMsg, lpDstMsg);
+	CopyInstanceIds(lpSrcMsg, lpDstMsg);
 
 	// Since we have a copy of the original email body, copy the other properties for IMAP too
 	hr = lpSrcMsg->GetProps(sptaIMAP, 0, &cValues, &~lpIMAPProps);
@@ -3617,46 +3638,6 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 	if (hr != hrSuccess)
 		return hr;
 	return lpDestMsg->SaveChanges(KEEP_OPEN_READWRITE);
-}
-
-/** 
- * Find an EntryID using exact binary matches in an array of
- * properties.
- * 
- * @param[in]  cbEID number of bytes in lpEID
- * @param[in]  lpEID the EntryID to find in the property array
- * @param[in]  cbEntryIDs number of properties in lpEntryIDs
- * @param[in]  lpEntryIDs array of entryid properties
- * @param[out] lpbFound TRUE if folder was found
- * @param[out] lpPos index number the folder was found in if *lpbFound is TRUE, otherwise untouched
- * 
- * @return MAPI error code
- * @retval MAPI_E_INVALID_PARAMETER a passed parameter was invalid
- */
-HRESULT Util::HrFindEntryIDs(ULONG cbEID, LPENTRYID lpEID, ULONG cbEntryIDs, LPSPropValue lpEntryIDs, BOOL *lpbFound, ULONG* lpPos)
-{
-	BOOL bFound = FALSE;
-	ULONG i;
-
-	if (cbEID == 0 || lpEID == NULL || cbEntryIDs == 0 ||
-	    lpEntryIDs == NULL || lpbFound == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	for (i = 0; bFound == FALSE && i < cbEntryIDs; ++i) {
-		if (PROP_TYPE(lpEntryIDs[i].ulPropTag) != PT_BINARY)
-			continue;
-		if (cbEID != lpEntryIDs[i].Value.bin.cb)
-			continue;
-		if (memcmp(lpEID, lpEntryIDs[i].Value.bin.lpb, cbEID) == 0) {
-			bFound = TRUE;
-			break;
-		}
-	}
-
-	*lpbFound = bFound;
-	if (bFound && lpPos)
-		*lpPos = i;
-	return hrSuccess;
 }
 
 HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)

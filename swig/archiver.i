@@ -182,7 +182,7 @@ public:
 	%extend {
 		static Archiver *Create(const char *lpszAppName, const char *lpszConfig, unsigned int ulFlags = 0) {
 			eResult r = Success;
-			ArchiverPtr ptr;
+			std::unique_ptr<Archiver> ptr;
 
 			r = Archiver::Create(&ptr);
 			if (r != Success)

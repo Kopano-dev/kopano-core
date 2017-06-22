@@ -32,8 +32,8 @@
 #include "Mem.h"
 
 #include "DLLGlobal.h"
-#include "ECMSProviderSwitch.h"
-#include "ECABProviderSwitch.h"
+#include "ECMSProvider.h"
+#include "ECABProvider.h"
 #include <iostream>
 #include <kopano/ecversion.h>
 
@@ -68,10 +68,12 @@ struct initprov {
 	SPropValue prop[6];
 	EntryIdPtr eid;
 	/* referenced from prop[n] */
-	WStringPtr store_name;
+	memory_ptr<wchar_t> store_name;
 	EntryIdPtr wrap_eid;
 	memory_ptr<ABEID> abe_id;
 };
+
+typedef KCHL::object_ptr<IProfSect> ProfSectPtr;
 
 static const uint32_t MAPI_S_SPECIAL_OK = MAKE_MAPI_S(0x900);
 

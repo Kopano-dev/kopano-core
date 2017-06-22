@@ -28,9 +28,7 @@
 
 #include <kopano/ECLogger.h>
 #include <kopano/ECUnknown.h>
-#include <IECExportChanges.h>
-#include <IECImportContentsChanges.h>
-
+#include <kopano/IECInterfaces.hpp>
 #include "WSMessageStreamExporter.h"
 
 class ECExchangeExportChanges _kc_final :

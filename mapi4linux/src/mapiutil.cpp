@@ -43,14 +43,6 @@
 
 using namespace KCHL;
 
-ULONG UlRelease(LPVOID lpUnknown)
-{
-	if(lpUnknown)
-		return ((IUnknown *)lpUnknown)->Release();
-	else
-		return 0;
-}
-
 SPropValue *PpropFindProp(SPropValue *lpPropArray, ULONG cValues,
     ULONG ulPropTag)
 {
@@ -127,15 +119,6 @@ HRESULT HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext,
 {
 	return alloc_wrap<M4LMAPIAdviseSink>(lpFunction, lpContext)
 	       .as(IID_IMAPIAdviseSink, lppSink);
-}
-
-// Linux always has multithreaded advise sinks
-HRESULT HrThisThreadAdviseSink(LPMAPIADVISESINK lpAdviseSink,
-    LPMAPIADVISESINK *lppAdviseSink)
-{
-	*lppAdviseSink = lpAdviseSink;
-	lpAdviseSink->AddRef();
-	return hrSuccess;
 }
 
 // rtf funcions

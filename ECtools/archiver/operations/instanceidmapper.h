@@ -28,7 +28,6 @@ namespace KC {
 class ECConfig;
 class ECLogger;
 class KCMDatabaseMySQL;
-typedef std::shared_ptr<KCMDatabaseMySQL> DatabasePtr;
 
 namespace operations {
 
@@ -42,7 +41,7 @@ class _kc_export InstanceIdMapper _kc_final {
 	_kc_hidden InstanceIdMapper(ECLogger *);
 	_kc_hidden HRESULT Init(ECConfig *);
 
-		DatabasePtr m_ptrDatabase;
+	std::shared_ptr<KCMDatabaseMySQL> m_ptrDatabase;
 };
 
 }} /* namespace */

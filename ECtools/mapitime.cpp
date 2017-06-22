@@ -14,7 +14,7 @@
 #include <kopano/ECMemTable.h>
 #include <kopano/automapi.hpp>
 #include <kopano/memory.hpp>
-#include <m4lcommon/IECTestProtocol.h>
+#include <kopano/IECInterfaces.hpp>
 #ifdef HAVE_CURL_CURL_H
 #	include <curl/curl.h>
 #endif

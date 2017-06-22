@@ -23,6 +23,8 @@
 
 namespace KC {
 
+typedef KCHL::object_ptr<IMAPIContainer> MAPIContainerPtr;
+
 class _kc_export ECHierarchyIteratorBase {
 public:
 	_kc_hidden ECHierarchyIteratorBase(void) :

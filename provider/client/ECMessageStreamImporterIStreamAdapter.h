@@ -59,10 +59,8 @@ private:
 	~ECMessageStreamImporterIStreamAdapter();
 
 	WSMessageStreamImporterPtr	m_ptrStreamImporter;
-	WSMessageStreamSinkPtr		m_ptrSink;
+	KCHL::object_ptr<WSMessageStreamSink> m_ptrSink;
 	ALLOC_WRAP_FRIEND;
 };
-
-typedef KCHL::object_ptr<ECMessageStreamImporterIStreamAdapter> ECMessageStreamImporterIStreamAdapterPtr;
 
 #endif // ndef ECMessageStreamImporterIStreamAdapter_INCLUDED

@@ -8,13 +8,8 @@
 #include <mapicode.h>
 #include <mapiutil.h>
 #include <kopano/CommonUtil.h>
-#include <kopano/IECServiceAdmin.h>
 #include <kopano/memory.hpp>
-#include "IECSpooler.h"
-#include "IECTestProtocol.h"
-#include "IECMultiStoreTable.h"
-#include "IECExportChanges.h"
-#include <kopano/IECLicense.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/mapi_ptr.h>
 
 // DIRTIEST HACK IN THE WORLD WARNING: we need to fix the broken swig output for mapi_wrap.h .....

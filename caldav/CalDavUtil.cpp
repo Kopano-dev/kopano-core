@@ -717,7 +717,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	WEBDAVFBUSERINFO sWebFbUserInfo;
 	std::list<std::string>::const_iterator itUsers;
 	adrlist_ptr lpAdrList;
-	FlagListPtr ptrFlagList;
+	memory_ptr<FlagList> ptrFlagList;
 
 	EntryIdPtr ptrEntryId;
 	ULONG cbEntryId		= 0;

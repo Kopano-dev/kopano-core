@@ -51,6 +51,8 @@ struct STREAMDATA {
 	ECMAPIProp *lpProp;
 };
 
+typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionPtr;
+
 static struct rights ECPermToRightsCheap(const ECPERMISSION &p)
 {
 	struct rights r = {0, p.ulType, p.ulRights, p.ulState};
@@ -534,7 +536,7 @@ HRESULT ECMAPIProp::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValue)
 {
 	HRESULT				hr = hrSuccess;
-	ECSecurityPtr		ptrSecurity;
+	object_ptr<IECSecurity> ptrSecurity;
 	ULONG				cPerms = 0;
 	ECPermissionPtr		ptrPerms;
 	struct soap			soap;
@@ -624,9 +626,9 @@ exit:
 HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 {
 	HRESULT hr;
-	ECSecurityPtr			ptrSecurity;
+	object_ptr<IECSecurity> ptrSecurity;
 	ULONG					cPerms = 0;
-	ECPermissionArrayPtr	ptrPerms;
+	memory_ptr<ECPERMISSION> ptrPerms;
 	ULONG					cSparePerms = 0;
 	ECPermissionPtr			ptrTmpPerms;
 	ECPERMISSION *lpPermissions = NULL;

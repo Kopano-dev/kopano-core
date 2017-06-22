@@ -90,11 +90,11 @@ const configsetting_t* Archiver::GetConfigDefaults()
 	return s_lpDefaults;
 }
 
-eResult Archiver::Create(auto_ptr_type *lpptrArchiver)
+eResult Archiver::Create(std::unique_ptr<Archiver> *lpptrArchiver)
 {
 	if (lpptrArchiver == NULL)
 		return InvalidParameter;
-	auto_ptr_type ptrArchiver(new(std::nothrow) ArchiverImpl);
+	std::unique_ptr<Archiver> ptrArchiver(new(std::nothrow) ArchiverImpl);
 	if (ptrArchiver == nullptr)
 		return OutOfMemory;
 	*lpptrArchiver = std::move(ptrArchiver);

@@ -111,7 +111,7 @@
 #include "helpers/MAPIPropHelper.h"
 #include <inetmapi/options.h>
 #include <kopano/charset/convert.h>
-#include <kopano/IECServiceAdmin.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/ECTags.h>
 #include "ECFeatures.h"
 
