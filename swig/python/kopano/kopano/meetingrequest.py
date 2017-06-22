@@ -12,8 +12,8 @@ import sys
 import libfreebusy
 
 from MAPI import (
-    MAPI_UNICODE, MODRECIP_MODIFY, KEEP_OPEN_READWRITE, RELOP_EQ,
-    MODRECIP_ADD, MAPI_TO, MAPI_BCC, SUPPRESS_RECEIPT,
+    MAPI_UNICODE, MODRECIP_MODIFY, MODRECIP_REMOVE, KEEP_OPEN_READWRITE,
+    RELOP_EQ, MODRECIP_ADD, MAPI_TO, MAPI_BCC, SUPPRESS_RECEIPT,
 )
 
 from MAPI.Tags import (
@@ -273,10 +273,17 @@ class MeetingRequest(object):
             busystatus = intended_busystatus
         cal_item.prop(PidLidBusyStatus).value = busystatus
 
-        # add organizer as recipient # XXX occurrence case in php?
+        # add organizer as recipient
         organizer_props = _organizer_props(cal_item, self.item)
         if organizer_props and not merge:
-            cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [organizer_props])
+            table = cal_item.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
+            table.SetColumns(RECIP_PROPS, 0)
+            rows = table.QueryRows(-1, 0)
+            if tentative: # XXX php-compat: php checks 'move' flag, should we
+                cal_item.mapiobj.ModifyRecipients(MODRECIP_REMOVE, rows)
+                cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [organizer_props] + rows)
+            else:
+                cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [organizer_props])
             cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def accept(self, tentative=False, response=True, add_bcc=False):
