@@ -30,8 +30,10 @@ def parser_opt_args():
     parser.add_option('--password', help='Password', **_name())
     parser.add_option('--password-prompt', help='Password (prompt)', **_true())
     parser.add_option('--create-store', help='Create store', **_true())
-    parser.add_option('--unhook-store', help='Unhook store', **_true()) # XXX archive
-    parser.add_option('--hook-store', help='Hook store', **_guid()) # XXX archive
+    parser.add_option('--unhook-store', help='Unhook (public) store', **_true())
+    parser.add_option('--unhook-archive', help='Unhook archive store', **_true())
+    parser.add_option('--hook-store', help='Hook store', **_guid())
+    parser.add_option('--hook-archive', help='Hook archive store', **_guid())
     parser.add_option('--reset-folder-count', help='Reset folder counts', **_true())
     parser.add_option('--add-companyquota-recipient', help='User to add to companyquota recipients', **_list_name())
     parser.add_option('--remove-companyquota-recipient', help='User to remove from companyquota recipients', **_list_name())
@@ -82,7 +84,7 @@ UPDATE_MATRIX = {
     ('name',): ('companies', 'groups', 'users'),
     ('email', 'fullname', 'add_sendas', 'remove_sendas'): ('users', 'groups'),
     ('password', 'password_prompt', 'admin_level', 'active', 'reset_folder_count'): ('users',),
-    ('mr_accept', 'mr_accept_conflicts', 'mr_accept_recurring'): ('users',),
+    ('mr_accept', 'mr_accept_conflicts', 'mr_accept_recurring', 'hook_archive', 'unhook_archive'): ('users',),
     ('ooo_active', 'ooo_clear', 'ooo_subject', 'ooo_message', 'ooo_from', 'ooo_until'): ('users',),
     ('add_feature', 'remove_feature', 'add_delegate', 'remove_delegate', 'add_permission', 'remove_permission'): ('users',),
     ('add_user', 'remove_user'): ('groups',),
@@ -172,6 +174,11 @@ def user_details(user):
     if user.store:
         print('Store:\t\t' + user.store.guid)
         print('Store size:\t%.2f MB' % (user.store.size / 2**20))
+
+        if user.archive_store:
+            print('Archive store:\t' + user.archive_store.guid)
+        if user.archive_folder:
+            print('Archive folder:\t' + user.archive_folder.path)
 
         print('Send-as:\t' + ', '.join(_encode(sendas.name) for sendas in user.send_as()))
         print('Delegation:\t' + ', '.join(_encode(dlg.user.name) for dlg in user.delegations()))
@@ -266,6 +273,10 @@ def user_options(name, options, server):
         user.unhook()
     if options.hook_store:
         user.hook(server.store(options.hook_store))
+    if options.unhook_archive:
+        user.unhook_archive()
+    if options.hook_archive:
+        user.hook_archive(server.store(options.hook_archive))
 
     if options.reset_folder_count:
         for folder in [user.root] + list(user.folders()):
