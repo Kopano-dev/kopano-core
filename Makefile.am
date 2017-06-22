@@ -702,7 +702,6 @@ libmapi_la_SOURCES = \
 	m4lcommon/ECMemTable.cpp m4lcommon/HrException.h \
 	m4lcommon/ECRestriction.cpp \
 	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp \
-	m4lcommon/IECInterfaces.hpp \
 	m4lcommon/MAPIConsoleTable.cpp m4lcommon/MAPIConsoleTable.h \
 	m4lcommon/MAPINotifSink.cpp m4lcommon/MAPINotifSink.h \
 	m4lcommon/Util.cpp \
