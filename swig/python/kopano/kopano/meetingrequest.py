@@ -12,8 +12,9 @@ import sys
 import libfreebusy
 
 from MAPI import (
-    MAPI_UNICODE, MODRECIP_MODIFY, MODRECIP_REMOVE, KEEP_OPEN_READWRITE,
-    RELOP_EQ, MODRECIP_ADD, MAPI_TO, MAPI_BCC, SUPPRESS_RECEIPT,
+    MAPI_UNICODE, MODRECIP_MODIFY, KEEP_OPEN_READWRITE, RELOP_EQ,
+    MODRECIP_ADD, MAPI_TO, MAPI_BCC, SUPPRESS_RECEIPT, MSGFLAG_READ,
+    MSGFLAG_UNSENT, MODRECIP_REMOVE,
 )
 
 from MAPI.Tags import (
@@ -442,7 +443,7 @@ class MeetingRequest(object):
 
                     message = recurrence.exception_message(basedate)
                     message.prop(PidLidBusyStatus).value = libfreebusy.fbFree
-                    message.prop(PR_MESSAGE_FLAGS).value = 9 # XXX
+                    message.prop(PR_MESSAGE_FLAGS).value = MSGFLAG_UNSENT | MSGFLAG_READ
 
                     message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
 
