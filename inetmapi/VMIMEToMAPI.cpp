@@ -3330,6 +3330,9 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 	auto vmHeader = vmMessage->getHeader();
 	std::string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
+	vmime::generationContext ctx;
+	ctx.setMaxLineLength(vmime::lineLengthLimits::infinite);
+	ctx.setWrapMessageId(false);
 
 	// date
 	vmime::shared_ptr<vmime::datetime> date;
@@ -3340,12 +3343,11 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 		// date must not be empty, so force epoch as the timestamp
 		date = vmime::make_shared<vmime::datetime>(0);
 	}
-	date->generate(os);
+	date->generate(ctx, os);
 	lItems.push_back("\"" + buffer + "\"");
 
 	buffer.clear();
-
-	vmHeader->Subject()->getValue()->generate(os);
+	vmHeader->Subject()->getValue()->generate(ctx, os);
 	// encoded subjects never contain ", so escape won't break those.
 	buffer = StringEscape(buffer.c_str(), "\"", '\\');
 	lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
@@ -3414,12 +3416,12 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 	buffer.clear();
 
 	// in-reply-to
-	vmHeader->InReplyTo()->getValue()->generate(os);
+	vmHeader->InReplyTo()->getValue()->generate(ctx, os);
 	lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	buffer.clear();
 
 	// message-id
-	vmHeader->MessageId()->getValue()->generate(os);
+	vmHeader->MessageId()->getValue()->generate(ctx, os);
 	if (buffer.compare("<>") == 0)
 		buffer.clear();
 	lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
