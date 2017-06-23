@@ -1,0 +1,6 @@
+#!/usr/bin/env @PYTHON@
+import sys
+import kopano_cli
+
+if __name__ == '__main__':
+    sys.exit(kopano_cli.main())

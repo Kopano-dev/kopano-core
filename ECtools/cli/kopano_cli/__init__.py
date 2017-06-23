@@ -13,14 +13,14 @@ def parser_opt_args():
     parser.add_option('--debug', help='Debug mode', **_true())
     parser.add_option('--lang', help='Create folders in this language')
     parser.add_option('--sync', help='Synchronize users and groups with external source', **_true())
-    parser.add_option('--clear-cache', help='Clear all caches in the server', **_true())
-    parser.add_option('--purge-softdelete', help='Purge items in marked as softdeleted that are older than N days', **_int())
+    parser.add_option('--clear-cache', help='Clear all server caches', **_true())
+    parser.add_option('--purge-softdelete', help='Purge items marked as softdeleted more than N days ago', **_int())
     parser.add_option('--purge-deferred', help='Purge all items in the deferred update table', **_true())
     parser.add_option('--list-users', help='List users', **_true())
     parser.add_option('--list-groups', help='List groups', **_true())
     parser.add_option('--list-companies', help='List companies', **_true())
     parser.add_option('--list-orphans', help='List orphan stores', **_true())
-    parser.add_option('--user-count', help='Output the system user counts', **_true())
+    parser.add_option('--user-count', help='Output user counts', **_true())
     parser.add_option('--remove-store', help='Remove orphaned store', **_guid())
     parser.add_option('--create', help='Create object', **_true())
     parser.add_option('--delete', help='Delete object', **_true())
@@ -489,26 +489,28 @@ def check_options(options, server):
             if getattr(options, opt) is not None:
                 raise Exception('%s option requires --company for multitenant setup' % orig_option(opt))
 
-def main(options):
-    server = kopano.Server(options)
-    check_options(options, server)
-
-    global_options(options, server)
-    for c in options.companies:
-        company_options(c, options, server)
-    for g in options.groups:
-        group_options(g, options, server)
-    for u in options.users:
-        user_options(u, options, server)
-
-if __name__ == '__main__':
+def main():
     try:
         parser, options, args = parser_opt_args()
         if args:
             raise Exception("extra argument '%s' specified" % args[0])
-        main(options)
+
+        server = kopano.Server(options)
+        check_options(options, server)
+
+        global_options(options, server)
+        for c in options.companies:
+            company_options(c, options, server)
+        for g in options.groups:
+            group_options(g, options, server)
+        for u in options.users:
+            user_options(u, options, server)
+
     except Exception as e:
         if 'options' in locals() and options.debug:
             print(traceback.format_exc(e))
         else:
             print(_encode(str(e)))
+
+if __name__ == '__main__':
+    main()
