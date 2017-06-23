@@ -90,10 +90,12 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
 	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess)
 		return er;
+	ec_log_notice("Querying database for searchfolders. This may take a while.");
     er = lpDatabase->DoSelect(strQuery, &lpResult);
     if(er != erSuccess)
 		return er;
         
+	ec_log_notice("Loading search folders.");
 	while ((lpRow = lpResult.fetch_row()) != nullptr) {
         if(lpRow[0] == NULL)
             continue;
@@ -137,6 +139,7 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
     if(lpSearchCriteria)
         FreeSearchCriteria(lpSearchCriteria);
         
+	ec_log_notice("Done loading search folders.");
     return er;
 }
 
