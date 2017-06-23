@@ -1283,7 +1283,6 @@ static int running_server(char *szName, const char *szConfig,
 		goto exit;
 
 	// Load search folders from disk
-	ec_log_notice("Loading searchfolders");
 	er = g_lpSessionManager->GetSearchFolders()->LoadSearchFolders();
 	if (er != erSuccess) {
 		ec_log_err("Unable to load searchfolders");
