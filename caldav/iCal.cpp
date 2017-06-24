@@ -307,8 +307,7 @@ exit:
 
 	for (mpIterJ = mpSrvEntries.cbegin(); mpIterJ != mpSrvEntries.cend(); ++mpIterJ)
 		MAPIFreeBuffer(mpIterJ->second.lpb);
-	if(lpICalToMapi)
-		delete lpICalToMapi;
+	delete lpICalToMapi;
 	mpSrvEntries.clear();
 	mpIcalEntries.clear();
 	mpSrvTimes.clear();
