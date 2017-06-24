@@ -18,7 +18,7 @@
 #include <kopano/platform.h>
 #include "iCal.h"
 #include "CalDavUtil.h"
-
+#include <memory>
 #include <vector>
 
 #include <kopano/CommonUtil.h>
@@ -140,7 +140,6 @@ HRESULT iCal::HrHandleIcalPost()
 	SBinary sbUid = {0,0};
 	ULONG ulItemCount = 0;
 	ULONG ulProptag = 0;
-	ICalToMapi *lpICalToMapi = NULL;
 	time_t tLastMod = 0;
 	bool blCensorPrivate = false;
 
@@ -162,7 +161,8 @@ HRESULT iCal::HrHandleIcalPost()
 	//Include PR_ENTRYID,PR_LAST_MODIFICATION_TIME & Named Prop GlobalObjUid.
 	
 	//retrive entries from ical data.
-	CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &lpICalToMapi);
+	std::unique_ptr<ICalToMapi> lpICalToMapi;
+	CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
 
 	m_lpRequest->HrGetBody(&strIcal);
 	if(!strIcal.empty())
@@ -240,7 +240,7 @@ HRESULT iCal::HrHandleIcalPost()
 			}
 			++mpIterJ;
 		} else if (mpIcalEntries.cend() != mpIterI && mpSrvEntries.cend() == mpIterJ) {
-			hr = HrAddMessage(lpICalToMapi, mpIterI->second);
+			hr = HrAddMessage(lpICalToMapi.get(), mpIterI->second);
 			if(hr != hrSuccess)
 			{
 				ec_log_err("Unable to Add New Message: 0x%08X", hr);
@@ -256,7 +256,7 @@ HRESULT iCal::HrHandleIcalPost()
 				FileTimeToUnixTime(ftModTime, &tUnixModTime);
 				if(tUnixModTime != tLastMod && etype == VEVENT)
 				{
-					hr = HrModify(lpICalToMapi, mpIterJ->second, mpIterI->second, blCensorPrivate);
+					hr = HrModify(lpICalToMapi.get(), mpIterJ->second, mpIterI->second, blCensorPrivate);
 					if(hr != hrSuccess)
 					{
 						ec_log_err("Unable to Modify Message: 0x%08X", hr);
@@ -268,7 +268,7 @@ HRESULT iCal::HrHandleIcalPost()
 			}
 			else if( mpIterI->first.compare(mpIterJ->first) < 0 )
 			{
-				hr = HrAddMessage(lpICalToMapi, mpIterI->second);
+				hr = HrAddMessage(lpICalToMapi.get(), mpIterI->second);
 				if(hr != hrSuccess)
 				{
 					ec_log_err("Unable to Add New Message: 0x%08X", hr);
@@ -307,7 +307,6 @@ exit:
 
 	for (mpIterJ = mpSrvEntries.cbegin(); mpIterJ != mpSrvEntries.cend(); ++mpIterJ)
 		MAPIFreeBuffer(mpIterJ->second.lpb);
-	delete lpICalToMapi;
 	mpSrvEntries.clear();
 	mpIcalEntries.clear();
 	mpSrvTimes.clear();
