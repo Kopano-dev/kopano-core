@@ -2213,10 +2213,7 @@ ECRESULT ECUserManagement::UpdateUserDetailsToClient(objectdetails_t *lpDetails)
 	er = ConvertExternIDsToLocalIDs(lpDetails);
 	if (er != erSuccess)
 		return er;
-	er = ComplementDefaultFeatures(lpDetails);
-	if (er != erSuccess)
-		return er;
-	return erSuccess;
+	return ComplementDefaultFeatures(lpDetails);
 }
 
 /** 
@@ -2234,10 +2231,7 @@ ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetail
 	er = ConvertLocalIDsToExternIDs(lpDetails);
 	if (er != erSuccess)
 		return er;
-	er = RemoveDefaultFeatures(lpDetails);
-	if (er != erSuccess)
-		return er;
-	return erSuccess;
+	return RemoveDefaultFeatures(lpDetails);
 }
 
 // ******************************************************************************************************
@@ -4315,10 +4309,7 @@ ECRESULT ECUserManagement::ProcessModification(unsigned int ulId, const std::str
 	er = lpDatabase->DoUpdate("UPDATE users SET signature=" + lpDatabase->EscapeBinary((unsigned char *)newsignature.c_str(), newsignature.size()) + " WHERE id=" + stringify(ulId));
 	if(er != erSuccess)
 		return er;
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulId);
-	if (er != erSuccess)
-		return er;
-	return erSuccess;
+	return m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulId);
 }
 
 ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lpsSourceKey)

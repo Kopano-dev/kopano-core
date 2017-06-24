@@ -914,12 +914,9 @@ HRESULT ArchiveHelper::PrepareForFirstUse(ECLogger *lpLogger)
 	sEntryId.Value.bin.cb = 0;
 	sEntryId.Value.bin.lpb = NULL;
 	hr = HrSetOneProp(m_ptrArchiveStore, &sEntryId);
-	if (hr != hrSuccess) {
-		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to clear wasebasket entryid (hr=0x%08x)", hr);
-		return hr;
-	}
-	return hrSuccess;
+	if (hr != hrSuccess && lpLogger != nullptr)
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to clear wasebasket entryid (hr=0x%08x)", hr);
+	return hr;
 }
 
 }} /* namespace */

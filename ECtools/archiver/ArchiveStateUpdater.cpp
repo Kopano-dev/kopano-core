@@ -577,11 +577,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 	hr = AddCouplingBased(info.userName, lstCouplings, ulAttachFlags);
 	if (hr != hrSuccess)
 		return hr;
-	hr = AddServerBased(info.userName, userId, lstServers, ulAttachFlags);
-	if (hr != hrSuccess)
-		return hr;
-
-	return hrSuccess;
+	return AddServerBased(info.userName, userId, lstServers, ulAttachFlags);
 }
 
 /**
@@ -608,12 +604,9 @@ HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const t
 		return hr;
 
 	hr = ptrArchiveHelper->GetArchiveEntry(false, lpObjEntry);
-	if (hr != hrSuccess) {
-		if (hr != MAPI_E_NOT_FOUND)
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive entry for folder '" TSTRING_PRINTF "', hr=0x%08x", strFolder.c_str(), hr);
-		return hr;
-	}
-	return hrSuccess;
+	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND)
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive entry for folder '" TSTRING_PRINTF "', hr=0x%08x", strFolder.c_str(), hr);
+	return hr;
 }
 
 } /* namespace */

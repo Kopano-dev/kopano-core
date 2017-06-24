@@ -248,8 +248,5 @@ HRESULT FsckTask::ValidateItem(LPMESSAGE lpMessage,
 	hr = ValidateTimestamps(lpMessage);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ValidateCompletion(lpMessage);
-	if (hr != hrSuccess)
-		return hr;
-	return hrSuccess;
+	return ValidateCompletion(lpMessage);
 }

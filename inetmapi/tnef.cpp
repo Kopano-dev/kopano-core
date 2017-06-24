@@ -1837,10 +1837,7 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, IStream *lpSourceStream, ULO
     hr = lpSourceStream->CopyTo(lpDestStream, sStat.cbSize, NULL, NULL);
     if(hr != hrSuccess)
 		return hr;
-    hr = HrWriteWord(lpDestStream, ulChecksum);
-    if(hr != hrSuccess)
-		return hr;
-    return hrSuccess;
+	return HrWriteWord(lpDestStream, ulChecksum);
 }
 
 /** 

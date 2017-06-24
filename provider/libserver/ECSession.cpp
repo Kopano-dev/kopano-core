@@ -975,11 +975,7 @@ ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName,
 		er = ValidateSSOData_KRB5(soap, lpszName, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, lppOutput);
 	if (er != erSuccess)
 		return er;
-
-	er = ProcessImpersonation(lpszImpersonateUser);
-	if (er != erSuccess)
-		return er;
-	return erSuccess;
+	return ProcessImpersonation(lpszImpersonateUser);
 }
 
 #ifdef HAVE_GSSAPI

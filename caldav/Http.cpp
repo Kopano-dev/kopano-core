@@ -729,11 +729,7 @@ HRESULT Http::HrRequestAuth(std::string strMsg)
 		return hr;
 
 	strMsg = "Basic realm=\"" + strMsg + "\"";
-	hr = HrResponseHeader("WWW-Authenticate", strMsg);
-	if (hr != hrSuccess)
-		return hr;
-
-	return hrSuccess;
+	return HrResponseHeader("WWW-Authenticate", strMsg);
 }
 
 /**

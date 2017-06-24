@@ -1495,10 +1495,7 @@ ECRESULT ECCacheManager::_AddIndexData(const ECsIndexObject *lpObject,
 	auto er = m_PropToObjectCache.AddCacheItem(*lpProp, *lpObject);
 	if(er != erSuccess)
 		return er;
-	er = m_ObjectToPropCache.AddCacheItem(*lpObject, *lpProp);
-	if(er != erSuccess)
-		return er;
-	return erSuccess;
+	return m_ObjectToPropCache.AddCacheItem(*lpObject, *lpProp);
 }
 
 ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulObjId, struct soap *soap, unsigned int* lpcbData, unsigned char** lppData)
