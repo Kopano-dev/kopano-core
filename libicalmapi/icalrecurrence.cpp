@@ -155,7 +155,11 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 
 		if (icRRule.by_day[0] < 0) {
 			// outlook can only have _one_ last day of the month/year (not daily or weekly here!)
-			ulWeekDays |= (1 << (abs(icRRule.by_day[0]%8) - 1));
+			auto dy = abs(icRRule.by_day[0] % 8);
+			if (dy != 0)
+				ulWeekDays = 1 << (dy - 1);
+			else
+				ulWeekDays = 0b1111111;
 			// next call also changes pattern to 3!
 			lpRec->setWeekNumber(5);
 		} else if (icRRule.by_day[0] >= 1 && icRRule.by_day[0] <= 7) {
@@ -187,7 +191,11 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 			}
 		} else {
 			// monthly, first sunday: 9, monday: 10
-			ulWeekDays |= (1 << ((icRRule.by_day[0]%8) - 1));
+			auto dy = icRRule.by_day[0] % 8;
+			if (dy != 0)
+				ulWeekDays = 1 << (dy - 1);
+			else
+				ulWeekDays = 0b1111111;
 			lpRec->setWeekNumber((int)(icRRule.by_day[0]/8)); // 1..4
 		}
 		lpRec->setWeekDays(ulWeekDays);
