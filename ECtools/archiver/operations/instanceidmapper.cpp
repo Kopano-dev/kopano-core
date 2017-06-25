@@ -19,6 +19,7 @@
 #include <memory>
 #include <new>
 #include <string>
+#include <utility>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include "instanceidmapper.h"
@@ -32,33 +33,25 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 {
 	HRESULT hr = hrSuccess;
 	std::unique_ptr<InstanceIdMapper> lpMapper;
-	ECConfig *lpLocalConfig = lpConfig;
+	std::unique_ptr<ECConfig> lpLocalConfig;
 
 	// Get config if required.
-	if (lpLocalConfig == NULL) {
-		lpLocalConfig = ECConfig::Create(Archiver::GetConfigDefaults());
+	if (lpConfig == nullptr) {
+		lpLocalConfig.reset(ECConfig::Create(Archiver::GetConfigDefaults()));
 		if (!lpLocalConfig->LoadSettings(Archiver::GetConfigPath()))
 			// Just log warnings and errors and continue with default.
-			LogConfigErrors(lpLocalConfig);
+			LogConfigErrors(lpLocalConfig.get());
+		lpConfig = lpLocalConfig.get();
 	}
 	lpMapper.reset(new(std::nothrow) InstanceIdMapper(lpLogger));
-	if (lpMapper == nullptr) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-
-	hr = lpMapper->Init(lpLocalConfig);
+	if (lpMapper == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	hr = lpMapper->Init(lpConfig);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	static_assert(sizeof(InstanceIdMapper) || true, "incomplete type must not be used");
-	lpptrMapper->reset(lpMapper.release());
-exit:
-	if (lpConfig == NULL) {
-		assert(lpLocalConfig != NULL);
-		delete lpLocalConfig;
-	}
-
-	return hr;
+	*lpptrMapper = std::move(lpMapper);
+	return hrSuccess;
 }
 
 InstanceIdMapper::InstanceIdMapper(ECLogger *lpLogger) :

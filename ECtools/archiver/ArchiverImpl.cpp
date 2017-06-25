@@ -31,28 +31,15 @@
 
 namespace KC {
 
-ArchiverImpl::~ArchiverImpl()
-{
-	if (m_lpLogger)
-		m_lpLogger->Release();
-
-	if (m_lpLogLogger)
-		m_lpLogLogger->Release();
-
-	delete m_lpsConfig;
-	delete[] m_lpDefaults;
-}
-
 eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags)
 {
 	MAPIINIT_0 sMapiInit = {MAPI_INIT_VERSION, MAPI_MULTITHREAD_NOTIFICATIONS};
 
-	if (lpExtraSettings == NULL)
-		m_lpsConfig = ECConfig::Create(Archiver::GetConfigDefaults());
-
-	else {
-		m_lpDefaults = ConcatSettings(Archiver::GetConfigDefaults(), lpExtraSettings);
-		m_lpsConfig = ECConfig::Create(m_lpDefaults);
+	if (lpExtraSettings == nullptr) {
+		m_lpsConfig.reset(ECConfig::Create(Archiver::GetConfigDefaults()));
+	} else {
+		m_lpDefaults.reset(ConcatSettings(Archiver::GetConfigDefaults(), lpExtraSettings));
+		m_lpsConfig.reset(ECConfig::Create(m_lpDefaults.get()));
 	}
 
 	if (!m_lpsConfig->LoadSettings(lpszConfig) && (ulFlags & RequireConfig))
@@ -64,52 +51,43 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 		if (!(ulFlags & InhibitErrorLogging)) {
 			KCHL::object_ptr<ECLogger> lpLogger(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false));
 			ec_log_set(lpLogger);
-			LogConfigErrors(m_lpsConfig);
+			LogConfigErrors(m_lpsConfig.get());
 		}
 
 		return InvalidConfig;
 	}
 
-	m_lpLogLogger = CreateLogger(m_lpsConfig, (char*)lpszAppName, "");
+	m_lpLogLogger.reset(CreateLogger(m_lpsConfig.get(), const_cast<char *>(lpszAppName), ""));
 	if (ulFlags & InhibitErrorLogging) {
 		// We need to check if we're logging to stderr. If so we'll replace
 		// the logger with a NULL logger.
-		auto lpFileLogger = dynamic_cast<ECLogger_File *>(m_lpLogLogger);
-		if (lpFileLogger && lpFileLogger->IsStdErr()) {
-			m_lpLogLogger->Release();
-			m_lpLogLogger = new ECLogger_Null();
-		}
-		if (m_lpLogger != NULL)
-			m_lpLogger->Release();
-		m_lpLogger = m_lpLogLogger;
-		m_lpLogger->AddRef();
+		auto lpFileLogger = dynamic_cast<ECLogger_File *>(m_lpLogLogger.get());
+		if (lpFileLogger && lpFileLogger->IsStdErr())
+			m_lpLogLogger.reset(new ECLogger_Null);
+		m_lpLogger.reset(m_lpLogLogger);
 	} else if (ulFlags & AttachStdErr) {
 		// We need to check if the current logger isn't logging to the console
 		// as that would give duplicate messages
-		auto lpFileLogger = dynamic_cast<ECLogger_File *>(m_lpLogLogger);
+		auto lpFileLogger = dynamic_cast<ECLogger_File *>(m_lpLogLogger.get());
 		if (lpFileLogger == NULL || !lpFileLogger->IsStdErr()) {
 			auto lpTeeLogger = new ECLogger_Tee();
 			lpTeeLogger->AddLogger(m_lpLogLogger);
-
 			KCHL::object_ptr<ECLogger_File> lpConsoleLogger(new ECLogger_File(EC_LOGLEVEL_ERROR, 0, "-", false));
 			lpTeeLogger->AddLogger(lpConsoleLogger);
-			m_lpLogger = lpTeeLogger;
+			m_lpLogger.reset(lpTeeLogger);
 		} else {
-			m_lpLogger = m_lpLogLogger;
-			m_lpLogger->AddRef();
+			m_lpLogger.reset(m_lpLogLogger);
 		}
 	} else {
-		m_lpLogger = m_lpLogLogger;
-		m_lpLogger->AddRef();
+		m_lpLogger.reset(m_lpLogLogger);
 	}
 
 	ec_log_set(m_lpLogger);
 	if (m_lpsConfig->HasWarnings())
-		LogConfigErrors(m_lpsConfig);
-
+		LogConfigErrors(m_lpsConfig.get());
 	if (m_MAPI.Initialize(&sMapiInit) != hrSuccess)
 		return Failure;
-	if (ArchiverSession::Create(m_lpsConfig, m_lpLogger, &m_ptrSession) != hrSuccess)
+	if (ArchiverSession::Create(m_lpsConfig.get(), m_lpLogger, &m_ptrSession) != hrSuccess)
 		return Failure;
 
 	return Success;
@@ -121,15 +99,14 @@ eResult ArchiverImpl::GetControl(ArchiveControlPtr *lpptrControl, bool bForceCle
 	if (!m_MAPI.IsInitialized())
 		return Uninitialized;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::GetControl(): about to create an ArchiveControlImpl object");
-	return MAPIErrorToArchiveError(ArchiveControlImpl::Create(m_ptrSession, m_lpsConfig, m_lpLogger, bForceCleanup, lpptrControl));
+	return MAPIErrorToArchiveError(ArchiveControlImpl::Create(m_ptrSession, m_lpsConfig.get(), m_lpLogger, bForceCleanup, lpptrControl));
 }
 
 eResult ArchiverImpl::GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage)
 {
 	if (!m_MAPI.IsInitialized())
 		return Uninitialized;
-
-	return MAPIErrorToArchiveError(ArchiveManageImpl::Create(m_ptrSession, m_lpsConfig, lpszUser, m_lpLogger, lpptrManage));
+	return MAPIErrorToArchiveError(ArchiveManageImpl::Create(m_ptrSession, m_lpsConfig.get(), lpszUser, m_lpLogger, lpptrManage));
 }
 
 eResult ArchiverImpl::AutoAttach(unsigned int ulFlags)

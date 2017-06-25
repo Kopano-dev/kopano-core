@@ -18,6 +18,7 @@
 #include <kopano/zcdefs.h>
 #include <new>
 #include <utility>
+#include <kopano/memory.hpp>
 #include <kopano/platform.h>
 #include <kopano/userutil.h>
 #include "ArchiveStateCollector.h"
@@ -39,23 +40,16 @@ namespace details {
 	class MailboxDataCollector _kc_final : public DataCollector {
 	public:
 		MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, ECLogger *lpLogger);
-		~MailboxDataCollector();
 		HRESULT GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const _kc_override;
 		HRESULT CollectData(LPMAPITABLE lpStoreTable) _kc_override;
 
 	private:
 		ArchiveStateCollector::ArchiveInfoMap &m_mapArchiveInfo;
-		ECLogger *m_lpLogger;
+		KCHL::object_ptr<ECLogger> m_lpLogger;
 	};
 
 	MailboxDataCollector::MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, ECLogger *lpLogger): m_mapArchiveInfo(mapArchiveInfo), m_lpLogger(lpLogger)
 	{
-		m_lpLogger->AddRef();
-	}
-
-	MailboxDataCollector::~MailboxDataCollector()
-	{
-		m_lpLogger->Release();
 	}
 
 	HRESULT MailboxDataCollector::GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const
@@ -166,11 +160,6 @@ ArchiveStateCollector::ArchiveStateCollector(const ArchiverSessionPtr &ptrSessio
 : m_ptrSession(ptrSession)
 , m_lpLogger(new ECArchiverLogger(lpLogger))
 { }
-
-ArchiveStateCollector::~ArchiveStateCollector()
-{
-	m_lpLogger->Release();
-}
 
 /**
  * Return an ArchiveStateUpdater instance that can update the current state

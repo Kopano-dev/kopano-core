@@ -24,14 +24,6 @@ ECArchiverLogger::ECArchiverLogger(ECLogger *lpLogger)
 : ECLogger(0)
 , m_lpLogger(lpLogger)
 {
-	if (m_lpLogger)
-		m_lpLogger->AddRef();
-}
-
-ECArchiverLogger::~ECArchiverLogger()
-{
-	if (m_lpLogger)
-		m_lpLogger->Release();
 }
 
 tstring ECArchiverLogger::SetUser(tstring strUser)

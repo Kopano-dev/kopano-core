@@ -19,6 +19,7 @@
 #include <new>
 #include <utility>
 #include <kopano/archiver-common.h>
+#include <kopano/memory.hpp>
 #include "ArchiveStateUpdater.h"
 #include "ArchiverSession.h"
 #include "helpers/StoreHelper.h"
@@ -123,17 +124,13 @@ HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession, ECLogg
  * 								should have an archive attached to their
  * 								primary store.
  */
-ArchiveStateUpdater::ArchiveStateUpdater(const ArchiverSessionPtr &ptrSession, ECLogger *lpLogger, const ArchiveInfoMap &mapArchiveInfo): m_ptrSession(ptrSession), m_lpLogger(lpLogger), m_mapArchiveInfo(mapArchiveInfo)
+ArchiveStateUpdater::ArchiveStateUpdater(const ArchiverSessionPtr &ptrSession,
+    ECLogger *lpLogger, const ArchiveInfoMap &mapArchiveInfo) :
+	m_ptrSession(ptrSession), m_lpLogger(lpLogger),
+	m_mapArchiveInfo(mapArchiveInfo)
 {
-	if (m_lpLogger)
-		m_lpLogger->AddRef();
-	else
-		m_lpLogger = new ECLogger_Null();
-}
-
-ArchiveStateUpdater::~ArchiveStateUpdater()
-{
-	m_lpLogger->Release();
+	if (m_lpLogger == nullptr)
+		m_lpLogger.reset(new ECLogger_Null);
 }
 
 /**

@@ -14,7 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include <memory>
 #include <new>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ArchiverSession.h"
@@ -45,21 +47,17 @@ namespace KC {
 HRESULT ArchiverSession::Create(ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
 {
 	HRESULT hr;
-	ArchiverSession *lpSession = NULL;
 
 	if (!lpConfig || !lpLogger)
 		return MAPI_E_INVALID_PARAMETER;
-	lpSession = new(std::nothrow) ArchiverSession(lpLogger);
+	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(lpLogger));
 	if (lpSession == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpSession->Init(lpConfig);
-	if (FAILED(hr)) {
-		delete lpSession;
+	if (FAILED(hr))
 		return hr;
-	}
-	
-	lpptrSession->reset(lpSession);
-	return hr;
+	*lpptrSession = std::move(lpSession);
+	return hrSuccess;
 }
 
 /**
@@ -96,7 +94,6 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECLogger *lpLo
 HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
 {
 	HRESULT hr = hrSuccess;
-	ArchiverSession *lpSession = NULL;
 	KCHL::object_ptr<ECLogger> lpLocalLogger;
 	const char *lpszSslKeyFile = NULL;
 	const char *lpszSslKeyPass = NULL;
@@ -111,25 +108,18 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpCo
 		lpszSslKeyPass = lpConfig->GetSetting("sslkey_pass", "", NULL);
 	}
 
-	lpSession = new ArchiverSession(lpLocalLogger);
+	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(lpLocalLogger));
+	if (lpSession == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpSession->Init(ptrSession, lpszSslKeyFile, lpszSslKeyPass);
-	if (FAILED(hr)) {
-		delete lpSession;
+	if (FAILED(hr))
 		return hr;
-	}
-
-	lpptrSession->reset(lpSession);
-	return hr;
-}
-
-ArchiverSession::~ArchiverSession()
-{
-	m_lpLogger->Release();
+	*lpptrSession = std::move(lpSession);
+	return hrSuccess;
 }
 
 ArchiverSession::ArchiverSession(ECLogger *lpLogger): m_lpLogger(lpLogger)
 {
-	m_lpLogger->AddRef();
 }
 
 /**
@@ -578,15 +568,14 @@ HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entry
  */
 HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
 {
-	auto lpSession = new ArchiverSession(lpLogger);
+	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(lpLogger));
+	if (lpSession == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	HRESULT hr = lpSession->Init(lpszServerPath, m_strSslPath.c_str(), m_strSslPass.c_str());
-	if (FAILED(hr)) {
-		delete lpSession;
+	if (FAILED(hr))
 		return hr;
-	}
-	
-	lpptrSession->reset(lpSession);
-	return hr;
+	*lpptrSession = std::move(lpSession);
+	return hrSuccess;
 }
 
 HRESULT ArchiverSession::OpenMAPIProp(ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPIPROP *lppProp)

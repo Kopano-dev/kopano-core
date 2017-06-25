@@ -90,11 +90,6 @@ ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *
 {
 }
 
-ArchiveControlImpl::~ArchiveControlImpl()
-{
-	m_lpLogger->Release();
-}
-
 /**
  * Initialize the Archiver object.
  */

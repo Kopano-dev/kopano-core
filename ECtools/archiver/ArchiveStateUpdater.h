@@ -18,6 +18,7 @@
 #ifndef ARCHIVESTATEUPDATER_H_INCLUDED
 #define ARCHIVESTATEUPDATER_H_INCLUDED
 
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "ArchiveStateCollector.h"
 
@@ -32,7 +33,6 @@ public:
 	typedef ArchiveStateCollector::ArchiveInfoMap	ArchiveInfoMap;
 
 	_kc_hidden static HRESULT Create(const ArchiverSessionPtr &, ECLogger *, const ArchiveInfoMap &, ArchiveStateUpdaterPtr *);
-	_kc_hidden virtual ~ArchiveStateUpdater(void);
 	HRESULT UpdateAll(unsigned int ulAttachFlags);
 	HRESULT Update(const tstring &userName, unsigned int ulAttachFlags);
 
@@ -49,8 +49,7 @@ private:
 	_kc_hidden HRESULT FindArchiveEntry(const tstring &archive, const tstring &folder, SObjectEntry *obj_entry);
 
 	ArchiverSessionPtr	m_ptrSession;
-	ECLogger	*m_lpLogger;
-
+	KCHL::object_ptr<ECLogger> m_lpLogger;
 	ArchiveInfoMap	m_mapArchiveInfo;
 };
 

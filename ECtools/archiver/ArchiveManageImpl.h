@@ -18,6 +18,7 @@
 #ifndef ARCHIVEMANAGEIMPL_H_INCLUDED
 #define ARCHIVEMANAGEIMPL_H_INCLUDED
 
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include "helpers/ArchiveHelper.h"
@@ -42,7 +43,6 @@ public:
 	_kc_hidden eResult AutoAttach(unsigned int flags) _kc_override;
 	_kc_hidden HRESULT AttachTo(const char *server, const TCHAR *archive, const TCHAR *folder, unsigned int flags, helpers::AttachType);
 	_kc_hidden HRESULT AttachTo(LPMDB store, const tstring &folder, const char *server, const abentryid_t &user_eid, unsigned int flags, helpers::AttachType);
-	_kc_hidden ~ArchiveManageImpl(void) _kc_override;
 
 private:
 	_kc_hidden ArchiveManageImpl(ArchiverSessionPtr, ECConfig *, const tstring &user, ECLogger *);
@@ -53,7 +53,7 @@ private:
 	ArchiverSessionPtr	m_ptrSession;
 	ECConfig	*m_lpConfig;
 	tstring	m_strUser;
-	ECArchiverLogger *m_lpLogger;
+	KCHL::object_ptr<ECArchiverLogger> m_lpLogger;
 	MsgStorePtr	m_ptrUserStore;
 };
 

@@ -99,7 +99,7 @@ ArchiveManageImpl::ArchiveManageImpl(ArchiverSessionPtr ptrSession, ECConfig *lp
 	m_lpConfig(lpConfig),
 	m_strUser(strUser)
 {
-	m_lpLogger = new(std::nothrow) ECArchiverLogger(lpLogger);
+	m_lpLogger.reset(new(std::nothrow) ECArchiverLogger(lpLogger));
 	if (m_lpLogger == nullptr)
 		return;
 	m_lpLogger->SetUser(strUser);
@@ -110,11 +110,6 @@ ArchiveManageImpl::ArchiveManageImpl(ArchiverSessionPtr ptrSession, ECConfig *lp
 		return;
 	unsigned int loglevel = strtoul(loglevelstring, NULL, 0);
 	m_lpLogger->SetLoglevel(loglevel);
-}
-
-ArchiveManageImpl::~ArchiveManageImpl()
-{
-	m_lpLogger->Release();
 }
 
 /**
