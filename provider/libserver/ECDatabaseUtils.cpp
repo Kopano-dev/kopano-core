@@ -375,47 +375,20 @@ ECRESULT ParseMVProp(const char *lpRowData, ULONG ulSize,
 
 ULONG GetColOffset(unsigned int ulPropTag)
 {
-	ULONG ulField = 0;
-	
 	switch(PROP_TYPE(ulPropTag) & ~ (MV_FLAG | MV_INSTANCE)) {
-	case PT_I2:
-		ulField = FIELD_NR_ULONG;
-		break;
-	case PT_LONG:
-		ulField = FIELD_NR_ULONG;
-		break;
-	case PT_R4:
-		ulField = FIELD_NR_DOUBLE;
-		break;
-	case PT_BOOLEAN:
-		ulField = FIELD_NR_ULONG;
-		break;
-	case PT_DOUBLE:
-		ulField = FIELD_NR_DOUBLE;
-		break;
-	case PT_APPTIME:
-		ulField = FIELD_NR_DOUBLE;
-		break;
-	case PT_I8:
-		ulField = FIELD_NR_LONGINT;
-		break;
-	case PT_STRING8:
-		ulField = FIELD_NR_STRING;
-		break;
-	case PT_UNICODE:
-		ulField = FIELD_NR_STRING;
-		break;
-	case PT_CLSID:
-		ulField = FIELD_NR_BINARY;
-		break;
-	case PT_BINARY:
-		ulField = FIELD_NR_BINARY;
-		break;
-	default:
-		break;
+	case PT_I2:      return FIELD_NR_ULONG;
+	case PT_LONG:    return FIELD_NR_ULONG;
+	case PT_R4:      return FIELD_NR_DOUBLE;
+	case PT_BOOLEAN: return FIELD_NR_ULONG;
+	case PT_DOUBLE:  return FIELD_NR_DOUBLE;
+	case PT_APPTIME: return FIELD_NR_DOUBLE;
+	case PT_I8:      return FIELD_NR_LONGINT;
+	case PT_STRING8: return FIELD_NR_STRING;
+	case PT_UNICODE: return FIELD_NR_STRING;
+	case PT_CLSID:   return FIELD_NR_BINARY;
+	case PT_BINARY:  return FIELD_NR_BINARY;
+	default:         return 0;
 	}
-	
-	return ulField;
 }
 
 std::string GetPropColOrder(unsigned int ulPropTag,

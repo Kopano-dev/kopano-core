@@ -45,39 +45,18 @@ enum modes {
 
 static const char *modename(modes mode)
 {
-    const char* retval = "";
     switch (mode) {
-    case MODE_INVALID:
-        retval = "Invalid mode";
-        break;
-    case MODE_ATTACH:
-        retval = "Attach";
-        break;
-    case MODE_DETACH:
-        retval = "Detach";
-        break;
-    case MODE_DETACH_IDX:
-        retval = "Detach by index";
-        break;
-    case MODE_LIST:
-        retval = "List";
-        break;
-    case MODE_LIST_ARCHUSER:
-        retval = "List archive users";
-        break;
-    case MODE_ARCHIVE:
-        retval = "Archive";
-        break;
-    case MODE_CLEANUP:
-        retval = "Clean-up";
-        break;
-    case MODE_AUTO_ATTACH:
-        retval = "Auto attach";
-        break;
-    default:
-        retval = "Undefined mode";
+	case MODE_INVALID: return "Invalid mode";
+	case MODE_ATTACH: return "Attach";
+	case MODE_DETACH: return "Detach";
+	case MODE_DETACH_IDX: return "Detach by index";
+	case MODE_LIST: return "List";
+	case MODE_LIST_ARCHUSER: return "List archive users";
+	case MODE_ARCHIVE: return "Archive";
+	case MODE_CLEANUP: return "Clean-up";
+	case MODE_AUTO_ATTACH: return "Auto attach";
+	default: return "Undefined mode";
     }
-    return retval;
 }
 
 /**

@@ -1113,7 +1113,6 @@ string LDAPUserPlugin::getObjectSearchFilter(const objectid_t &id, const char *a
 		return getObjectSearchFilter(id,
 			m_config->GetSetting("ldap_user_unique_attribute"),
 			m_config->GetSetting("ldap_user_unique_attribute_type"));
-		break;
 	case OBJECTCLASS_DISTLIST:
 		return
 			"(&" +
@@ -1126,18 +1125,15 @@ string LDAPUserPlugin::getObjectSearchFilter(const objectid_t &id, const char *a
 						m_config->GetSetting("ldap_dynamicgroup_unique_attribute"),
 						m_config->GetSetting("ldap_dynamicgroup_unique_attribute_type")) +
 				"))";
-		break;
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 		return getObjectSearchFilter(id,
 			m_config->GetSetting("ldap_group_unique_attribute"),
 			m_config->GetSetting("ldap_group_unique_attribute_type"));
-		break;
 	case DISTLIST_DYNAMIC:
 		return getObjectSearchFilter(id,
 			m_config->GetSetting("ldap_dynamicgroup_unique_attribute"),
 			m_config->GetSetting("ldap_dynamicgroup_unique_attribute_type"));
-		break;
 	case OBJECTCLASS_CONTAINER:
 		return
 			"(&" +
@@ -1150,17 +1146,14 @@ string LDAPUserPlugin::getObjectSearchFilter(const objectid_t &id, const char *a
 						m_config->GetSetting("ldap_addresslist_unique_attribute"),
 						m_config->GetSetting("ldap_addresslist_unique_attribute_type")) +
 				"))";
-		break;
 	case CONTAINER_COMPANY:
 		return getObjectSearchFilter(id,
 			m_config->GetSetting("ldap_company_unique_attribute"),
 			m_config->GetSetting("ldap_company_unique_attribute_type"));
-		break;
 	case CONTAINER_ADDRESSLIST:
 		return getObjectSearchFilter(id,
 			m_config->GetSetting("ldap_addresslist_unique_attribute"),
 			m_config->GetSetting("ldap_addresslist_unique_attribute_type"));
-		break;
 	case OBJECTCLASS_UNKNOWN:
 	default:
 		throw runtime_error("Object is wrong type");

@@ -117,28 +117,15 @@ eResult MAPIErrorToArchiveError(HRESULT hr)
 
 const char* ArchiveResultString(eResult result)
 {
-    const char* retval = "Unknown result";
     switch (result)
     {
-        case Success:
-            retval = "Success";
-            break;
-        case OutOfMemory:
-            retval = "Out of memory";
-            break;
-        case InvalidParameter:
-            retval = "Invalid parameter";
-            break;
-        case PartialCompletion:
-            retval = "Partial completion";
-            break;
-        case Failure:
-            retval = "Failure";
-            break;
-        default:
-            /* do nothing */;
+	case Success: return "Success";
+	case OutOfMemory: return "Out of memory";
+	case InvalidParameter: return "Invalid parameter";
+	case PartialCompletion: return "Partial completion";
+	case Failure: return "Failure";
+	default: return "Unknown result";
     }
-    return retval;
 }
 
 } /* namespace */

@@ -1132,14 +1132,13 @@ int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned i
 	CollationKey ckA(lpKey1, cbKey1);
 	CollationKey ckB(lpKey2, cbKey2);
 
-	int cmp = 1;
 	UErrorCode status = U_ZERO_ERROR;
 	switch (ckA.compareTo(ckB, status)) {
-	case UCOL_LESS:		cmp = -1; break;
-	case UCOL_EQUAL:	cmp =  0; break;
-	case UCOL_GREATER:	cmp =  1; break;
+	case UCOL_LESS: return -1;
+	case UCOL_EQUAL: return 0;
+	case UCOL_GREATER: return 1;
 	}
-	return cmp;
+	return 1;
 }
 
 } /* namespace */
