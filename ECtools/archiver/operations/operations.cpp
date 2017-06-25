@@ -169,35 +169,35 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 			bReloadFolder = true;
 		}
 	}
-	
-	if (m_ptrCurFolderEntryId == nullptr || bReloadFolder) {
-		SPropValuePtr ptrPropValue;
-        
-		Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening folder (%s)", bin2hex(lpFolderEntryId->Value.bin.cb, lpFolderEntryId->Value.bin.lpb).c_str());
-		hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb,
-		     reinterpret_cast<ENTRYID *>(lpFolderEntryId->Value.bin.lpb),
-		     &iid_of(m_ptrCurFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors,
-		     &ulType, &~m_ptrCurFolder);
-		if (hr != hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open folder. (hr=%s)", stringify(hr, true).c_str());
-			return hr;
-		}
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrCurFolderEntryId);
-		if (hr != hrSuccess)
-			return hr;
-		hr = Util::HrCopyProperty(m_ptrCurFolderEntryId, lpFolderEntryId, m_ptrCurFolderEntryId);
-		if (hr != hrSuccess)
-			return hr;
-		if (HrGetOneProp(m_ptrCurFolder, PR_DISPLAY_NAME, &~ptrPropValue) == hrSuccess)
-			Logger()->SetFolder(ptrPropValue->Value.LPSZ);
-		else
-			Logger()->SetFolder(_T("<Unnamed>"));
 
-		hr = EnterFolder(m_ptrCurFolder);
-		if (hr != hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to enter folder. (hr=%s)", stringify(hr, true).c_str());
-			return hr;
-		}
+	if (m_ptrCurFolderEntryId != nullptr && !bReloadFolder)
+		return DoProcessEntry(cProps, lpProps);
+
+	SPropValuePtr ptrPropValue;
+	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening folder (%s)", bin2hex(lpFolderEntryId->Value.bin.cb, lpFolderEntryId->Value.bin.lpb).c_str());
+	hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb,
+	     reinterpret_cast<ENTRYID *>(lpFolderEntryId->Value.bin.lpb),
+	     &iid_of(m_ptrCurFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors,
+	     &ulType, &~m_ptrCurFolder);
+	if (hr != hrSuccess) {
+		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open folder. (hr=%s)", stringify(hr, true).c_str());
+		return hr;
+	}
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrCurFolderEntryId);
+	if (hr != hrSuccess)
+		return hr;
+	hr = Util::HrCopyProperty(m_ptrCurFolderEntryId, lpFolderEntryId, m_ptrCurFolderEntryId);
+	if (hr != hrSuccess)
+		return hr;
+	if (HrGetOneProp(m_ptrCurFolder, PR_DISPLAY_NAME, &~ptrPropValue) == hrSuccess)
+		Logger()->SetFolder(ptrPropValue->Value.LPSZ);
+	else
+		Logger()->SetFolder(_T("<Unnamed>"));
+
+	hr = EnterFolder(m_ptrCurFolder);
+	if (hr != hrSuccess) {
+		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to enter folder. (hr=%s)", stringify(hr, true).c_str());
+		return hr;
 	}
 	return DoProcessEntry(cProps, lpProps);
 }
