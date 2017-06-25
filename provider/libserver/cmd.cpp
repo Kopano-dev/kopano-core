@@ -8313,10 +8313,8 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid,
 		lpUsers->emplace_front(ulUserid, details);
 	} else if (details.GetClass() == CONTAINER_COMPANY) {
 		/* Append the system administrator for the company */
-		unsigned int ulSystem;
 		objectdetails_t systemdetails;
-
-		ulSystem = details.GetPropInt(OB_PROP_I_SYSADMIN);
+		auto ulSystem = details.GetPropInt(OB_PROP_I_SYSADMIN);
 		er = sec->IsUserObjectVisible(ulSystem);
 		if (er != erSuccess)
 			return er;
@@ -8821,21 +8819,17 @@ typedef MTOMStreamInfo * LPMTOMStreamInfo;
 
 static ECRESULT SerializeObject(void *arg)
 {
-	ECRESULT            er = erSuccess;
-	LPMTOMStreamInfo	lpStreamInfo = NULL;
-	ECSerializer		*lpSink = NULL;
-
-	lpStreamInfo = (LPMTOMStreamInfo)arg;
+	auto lpStreamInfo = static_cast<MTOMStreamInfo *>(arg);
 	assert(lpStreamInfo != NULL);
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadInit();
 
-	lpSink = new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::serialize);
-	er = SerializeMessage(lpStreamInfo->lpSessionInfo->lpecSession,
+	std::unique_ptr<ECFifoSerializer> lpSink(new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::serialize));
+	auto er = SerializeMessage(lpStreamInfo->lpSessionInfo->lpecSession,
 	     lpStreamInfo->lpSessionInfo->lpSharedDatabase.get(),
 	     lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), nullptr,
 	     lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId,
-	     &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
-	delete lpSink;
+	     &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink.get(), true);
+	lpSink.reset();
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadEnd();
 	lpStreamInfo->lpSessionInfo->er = er;
 	return er;
@@ -8844,9 +8838,7 @@ static ECRESULT SerializeObject(void *arg)
 static void *MTOMReadOpen(struct soap *soap, void *handle, const char *id,
     const char* /*type*/, const char* /*options*/)
 {
-	LPMTOMStreamInfo	lpStreamInfo = NULL;
-
-	lpStreamInfo = (LPMTOMStreamInfo)handle;
+	auto lpStreamInfo = static_cast<MTOMStreamInfo *>(handle);
 	assert(lpStreamInfo != NULL);
 	if (lpStreamInfo->lpSessionInfo->er != erSuccess) {
 		soap->error = SOAP_FATAL_ERROR;

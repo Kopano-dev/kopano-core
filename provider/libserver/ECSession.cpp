@@ -86,9 +86,9 @@ BTSession::BTSession(const char *src_addr, ECSESSIONID sessionID,
     ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager,
     unsigned int ulCapabilities) :
 	m_strSourceAddr(src_addr), m_sessionID(sessionID),
-	m_sessionTime(GetProcessTime()), m_lpDatabaseFactory(lpDatabaseFactory),
-	m_lpSessionManager(lpSessionManager),
-	m_ulClientCapabilities(ulCapabilities)
+	m_sessionTime(GetProcessTime()), m_ulClientCapabilities(ulCapabilities),
+	m_lpDatabaseFactory(lpDatabaseFactory),
+	m_lpSessionManager(lpSessionManager)
 {}
 
 void BTSession::SetClientMeta(const char *const lpstrClientVersion, const char *const lpstrClientMisc)

@@ -98,20 +98,17 @@ protected:
 	ECSESSIONID		m_sessionID;
 	bool m_bCheckIP = true;
 	time_t			m_sessionTime;
-	unsigned int m_ulSessionTimeout = 300;
+	unsigned int m_ulSessionTimeout = 300, m_ulClientCapabilities;
+	unsigned int m_ulRequests = 0, m_ulLastRequestPort = 0;
 	ECDatabaseFactory	*m_lpDatabaseFactory;
 	ECSessionManager	*m_lpSessionManager;
-	unsigned int		m_ulClientCapabilities;
 	/*
 	 * Protects the object from deleting while a thread is running on a
 	 * method in this object.
 	 */
 	std::condition_variable m_hThreadReleased;
-	std::mutex m_hThreadReleasedMutex;
-	std::mutex m_hRequestStats;
-	unsigned int m_ulRequests = 0, m_ulLastRequestPort = 0;
-	std::string		m_strLastRequestURL;
-	std::string		m_strProxyHost;
+	std::mutex m_hThreadReleasedMutex, m_hRequestStats;
+	std::string m_strLastRequestURL, m_strProxyHost;
 	std::string		m_strClientApplicationVersion, m_strClientApplicationMisc;
 };
 

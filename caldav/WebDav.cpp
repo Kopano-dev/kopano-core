@@ -655,7 +655,6 @@ HRESULT WebDav::HrPropertySearchSet()
  */
 HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 {
-	HRESULT hr = hrSuccess;
 	WEBDAVMULTISTATUS sWebMStatus;
 	std::string strXml;
 
@@ -687,7 +686,7 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 		sWebMStatus.lstResp.emplace_back(std::move(sWebResPonse));
 	}
 
-	hr = RespStructToXml(&sWebMStatus, &strXml);
+	auto hr = RespStructToXml(&sWebMStatus, &strXml);
 	if (hr != hrSuccess)
 		goto exit;
 exit:
@@ -1177,7 +1176,6 @@ void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,
  */
 HRESULT WebDav::HrPropPatch()
 {
-	HRESULT hr = hrSuccess;
 	WEBDAVPROP sDavProp;
 	WEBDAVMULTISTATUS sDavMStatus;
 	std::string strFldPath;
@@ -1185,7 +1183,7 @@ HRESULT WebDav::HrPropPatch()
 	xmlNode * lpXmlNode = NULL;
 
 	//libxml parser parses the xml data and returns the DomTree pointer.
-	hr = HrParseXml();
+	auto hr = HrParseXml();
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1277,11 +1275,10 @@ exit:
 */
 HRESULT WebDav::HrMkCalendar()
 {
-	HRESULT hr = hrSuccess;
 	xmlNode * lpXmlNode = NULL;
 	WEBDAVPROP sDavProp;
 
-	hr = HrParseXml();
+	auto hr = HrParseXml();
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Parsing Error For MKCALENDAR");

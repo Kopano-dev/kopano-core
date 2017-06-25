@@ -1516,20 +1516,8 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 {
 	ECRESULT		er = erSuccess;
 	bool			fMatch = false;
-	int				lCompare = 0;
-	struct propVal	*lpProp = NULL;
-	struct propVal	*lpProp2 = NULL;
-	char* lpSearchString;
-	char* lpSearchData;
-	unsigned int ulSearchDataSize;
-	unsigned int ulSearchStringSize;
-	ULONG ulPropType;
-	ULONG ulFuzzyLevel;
 	unsigned int ulSubRestrict = 0;
 	entryId sEntryId;
-	unsigned int ulResId = 0;
-	unsigned int ulPropTagRestrict;
-	unsigned int ulPropTagValue;
 
 	if(lpulSubRestriction == NULL) // called externally
 	    lpulSubRestriction = &ulSubRestrict;
@@ -1581,8 +1569,8 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		    lpsRestrict->lpContent->lpProp == NULL)
 			return KCERR_INVALID_TYPE;
 		// FIXME: FL_IGNORENONSPACE and FL_LOOSE are ignored
-		ulPropTagRestrict = lpsRestrict->lpContent->ulPropTag;
-		ulPropTagValue = lpsRestrict->lpContent->lpProp->ulPropTag;
+		auto ulPropTagRestrict = lpsRestrict->lpContent->ulPropTag;
+		auto ulPropTagValue = lpsRestrict->lpContent->lpProp->ulPropTag;
 
 		// use the same string type in compares
 		if ((PROP_TYPE(ulPropTagRestrict) & PT_MV_STRING8) == PT_STRING8)
@@ -1608,7 +1596,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		}
 
 		// find using original proptag from restriction
-		lpProp = FindProp(lpPropVals, lpsRestrict->lpContent->ulPropTag);
+		auto lpProp = FindProp(lpPropVals, lpsRestrict->lpContent->ulPropTag);
 		if(lpProp == NULL) {
 			fMatch = false;
 			break;
@@ -1621,7 +1609,10 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 			else
 				ulScan = lpProp->Value.mvbin.__size;
 		}
-		ulPropType = PROP_TYPE(ulPropTagRestrict) & ~MVI_FLAG;
+
+		auto ulPropType = PROP_TYPE(ulPropTagRestrict) & ~MVI_FLAG;
+		unsigned int ulSearchStringSize, ulSearchDataSize;
+		const char *lpSearchString, *lpSearchData;
 		if (PROP_TYPE(ulPropTagValue) == PT_TSTRING) {
 			lpSearchString = lpsRestrict->lpContent->lpProp->Value.lpszA;
 			ulSearchStringSize = (lpSearchString) ? strlen(lpSearchString) : 0;
@@ -1650,7 +1641,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 				ulSearchDataSize = lpProp->Value.bin->__size;
 			}
 
-			ulFuzzyLevel = lpsRestrict->lpContent->ulFuzzyLevel;
+			auto ulFuzzyLevel = lpsRestrict->lpContent->ulFuzzyLevel;
 			switch (ulFuzzyLevel & 0xFFFF) {
 			case FL_FULLSTRING:
 				if (ulSearchDataSize != ulSearchStringSize)
@@ -1680,14 +1671,13 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		}
 		break;
 	}
-	case RES_PROPERTY:
+	case RES_PROPERTY: {
 		if (lpsRestrict->lpProp == NULL ||
 		    lpsRestrict->lpProp->lpProp == NULL)
 			return KCERR_INVALID_TYPE;
 
-		ulPropTagRestrict = lpsRestrict->lpProp->ulPropTag;
-		ulPropTagValue = lpsRestrict->lpProp->lpProp->ulPropTag;
-
+		auto ulPropTagRestrict = lpsRestrict->lpProp->ulPropTag;
+		auto ulPropTagValue = lpsRestrict->lpProp->lpProp->ulPropTag;
 		// use the same string type in compares
 		if ((PROP_TYPE(ulPropTagRestrict) & PT_MV_STRING8) == PT_STRING8)
 			ulPropTagRestrict = CHANGE_PROP_TYPE(ulPropTagRestrict, PT_TSTRING);
@@ -1705,7 +1695,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		    regex_t reg;
 
 			// find using original restriction proptag
-			lpProp = FindProp(lpPropVals, lpsRestrict->lpProp->ulPropTag);
+			auto lpProp = FindProp(lpPropVals, lpsRestrict->lpProp->ulPropTag);
 			if(lpProp == NULL) {
 				fMatch = false;
 				break;
@@ -1729,11 +1719,12 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		if(PROP_ID(ulPropTagRestrict) == PROP_ID(PR_ANR))
 		{
 			for (size_t j = 0; j < ARRAY_SIZE(sANRProps); ++j) {
-				lpProp = FindProp(lpPropVals, sANRProps[j]);
+				auto lpProp = FindProp(lpPropVals, sANRProps[j]);
                 // We need this because CompareProp will fail if the types are not the same
 				if (lpProp == nullptr)
 					continue;
 				lpProp->ulPropTag = lpsRestrict->lpProp->lpProp->ulPropTag;
+				int lCompare = 0;
 				CompareProp(lpProp, lpsRestrict->lpProp->lpProp, locale, &lCompare); // IGNORE error
 
 				// PR_ANR has special semantics, lCompare is 1 if the substring is found, 0 if not
@@ -1751,7 +1742,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		}
 
 		// find using original restriction proptag
-		lpProp = FindProp(lpPropVals, lpsRestrict->lpProp->ulPropTag);
+		auto lpProp = FindProp(lpPropVals, lpsRestrict->lpProp->ulPropTag);
 		if (lpProp == NULL) {
 			if (lpsRestrict->lpProp->ulType == RELOP_NE)
 				fMatch = true;
@@ -1771,6 +1762,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 			}
 			break;
 		}
+		int lCompare = 0;
 		er = CompareProp(lpProp, lpsRestrict->lpProp->lpProp, locale, &lCompare);
 		if (er != erSuccess)
 		{
@@ -1781,17 +1773,13 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		}
 		fMatch = match(lpsRestrict->lpProp->ulType, lCompare);
 		break;
-
-	case RES_COMPAREPROPS:
+	}
+	case RES_COMPAREPROPS: {
 		if (lpsRestrict->lpCompare == NULL)
 			return KCERR_INVALID_TYPE;
 
-		unsigned int ulPropTag1;
-		unsigned int ulPropTag2;
-
-		ulPropTag1 = lpsRestrict->lpCompare->ulPropTag1;
-		ulPropTag2 = lpsRestrict->lpCompare->ulPropTag2;
-
+		auto ulPropTag1 = lpsRestrict->lpCompare->ulPropTag1;
+		auto ulPropTag2 = lpsRestrict->lpCompare->ulPropTag2;
 		// use the same string type in compares
 		if ((PROP_TYPE(ulPropTag1) & PT_MV_STRING8) == PT_STRING8)
 			ulPropTag1 = CHANGE_PROP_TYPE(ulPropTag1, PT_TSTRING);
@@ -1810,12 +1798,13 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 			return KCERR_INVALID_TYPE;
 
 		// find using original restriction proptag
-		lpProp = FindProp(lpPropVals, lpsRestrict->lpCompare->ulPropTag1);
-		lpProp2 = FindProp(lpPropVals, lpsRestrict->lpCompare->ulPropTag2);
+		auto lpProp = FindProp(lpPropVals, lpsRestrict->lpCompare->ulPropTag1);
+		auto lpProp2 = FindProp(lpPropVals, lpsRestrict->lpCompare->ulPropTag2);
 		if(lpProp == NULL || lpProp2 == NULL) {
 			fMatch = false;
 			break;
 		}
+		int lCompare = 0;
 		er = CompareProp(lpProp, lpProp2, locale, &lCompare);
 		if(er != erSuccess)
 		{
@@ -1849,14 +1838,14 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 			break;
 		}
 		break;
-
-	case RES_BITMASK:
+	}
+	case RES_BITMASK: {
 		if (lpsRestrict->lpBitmask == NULL)
 			return KCERR_INVALID_TYPE;
 		// We can only bitmask 32-bit LONG values (aka ULONG)
 		if (PROP_TYPE(lpsRestrict->lpBitmask->ulPropTag) != PT_LONG)
 			return KCERR_INVALID_TYPE;
-		lpProp = FindProp(lpPropVals, lpsRestrict->lpBitmask->ulPropTag);
+		auto lpProp = FindProp(lpPropVals, lpsRestrict->lpBitmask->ulPropTag);
 		if(lpProp == NULL) {
 			fMatch = false;
 			break;
@@ -1865,11 +1854,11 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		if(lpsRestrict->lpBitmask->ulType == BMR_EQZ)
 			fMatch = !fMatch;
 		break;
-
-	case RES_SIZE:
+	}
+	case RES_SIZE: {
 		if (lpsRestrict->lpSize == NULL)
 			return KCERR_INVALID_TYPE;
-		lpProp = FindProp(lpPropVals, lpsRestrict->lpSize->ulPropTag);
+		auto lpProp = FindProp(lpPropVals, lpsRestrict->lpSize->ulPropTag);
 		if (lpProp == NULL)
 			return KCERR_INVALID_TYPE;
 		switch(lpsRestrict->lpSize->ulType) {
@@ -1896,15 +1885,14 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 			break;
 		}
 		break;
-
+	}
 	case RES_EXIST:
 		if (lpsRestrict->lpExist == NULL)
 			return KCERR_INVALID_TYPE;
-		lpProp = FindProp(lpPropVals, lpsRestrict->lpExist->ulPropTag);
-		fMatch = (lpProp != NULL);
+		fMatch = FindProp(lpPropVals, lpsRestrict->lpExist->ulPropTag) != nullptr;
 		break;
-	case RES_SUBRESTRICTION:
-	    lpProp = FindProp(lpPropVals, PR_ENTRYID);
+	case RES_SUBRESTRICTION: {
+		auto lpProp = FindProp(lpPropVals, PR_ENTRYID);
 		if (lpProp == NULL)
 			return KCERR_INVALID_TYPE;
 	    if(lpSubResults == NULL) {
@@ -1920,6 +1908,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		fMatch = false;
 		sEntryId.__ptr = lpProp->Value.bin->__ptr;
 		sEntryId.__size = lpProp->Value.bin->__size;
+		unsigned int ulResId = 0;
 		if (lpCacheManager->GetObjectFromEntryId(&sEntryId, &ulResId) == erSuccess)
 		{
 			auto r = (*lpSubResults)[ulSubRestrict].find(ulResId); // If the item is in the set, it matched
@@ -1927,7 +1916,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 				fMatch = true;
 		}
 		break;
-
+	}
 	default:
 		return KCERR_INVALID_TYPE;
 	}

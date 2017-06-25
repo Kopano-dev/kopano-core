@@ -1175,19 +1175,15 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	ULONG cValues;
 
 	const wchar_t *szSubject = L"Out of office";
-	char szHeader[PATH_MAX] = {0};
+	char szHeader[PATH_MAX] = {0}, szTemp[PATH_MAX] = {0};
 	wchar_t szwHeader[PATH_MAX] = {0};
-	char szTemp[PATH_MAX] = {0};
 	int fd = -1;
 	wstring	strFromName, strFromType, strFromEmail, strBody;
 	string  unquoted, quoted;
 	std::vector<std::string> cmdline = {strBaseCommand};
 	// Environment
 	size_t s = 0;
-	std::string strToMe;
-	std::string strCcMe, strBccMe;
-	std::string strTmpFile;
-	std::string strTmpFileEnv;
+	std::string strToMe, strCcMe, strBccMe, strTmpFile, strTmpFileEnv;
 
 	sc -> countInc("DAgent", "OutOfOffice");
 

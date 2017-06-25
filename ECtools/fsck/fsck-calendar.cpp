@@ -493,7 +493,6 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 HRESULT FsckCalendar::ValidateItem(LPMESSAGE lpMessage,
     const std::string &strClass)
 {
-	HRESULT hr;
 	bool bChanged = false;
 
 	if (strClass != "IPM.Appointment") {
@@ -501,7 +500,7 @@ HRESULT FsckCalendar::ValidateItem(LPMESSAGE lpMessage,
 		return E_INVALIDARG;
 	}
 
-	hr = ValidateMinimalNamedFields(lpMessage);
+	auto hr = ValidateMinimalNamedFields(lpMessage);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ValidateTimestamps(lpMessage);
