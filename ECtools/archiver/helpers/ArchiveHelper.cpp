@@ -624,19 +624,18 @@ HRESULT ArchiveHelper::GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFo
 	HRESULT hr;
 	StoreHelperPtr ptrStoreHelper;
 
-	if (!m_ptrArchiveFolder) {
-		hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
-		if (hr != hrSuccess)
-			return hr;
-		
-		if (m_strFolder.empty())
-			hr = ptrStoreHelper->GetIpmSubtree(&~m_ptrArchiveFolder);
-		else
-			hr = ptrStoreHelper->GetFolder(m_strFolder, bCreate, &~m_ptrArchiveFolder);
-		if (hr != hrSuccess)
-			return hr;
-	}
-	
+	if (m_ptrArchiveFolder != nullptr)
+		return m_ptrArchiveFolder->QueryInterface(IID_IMAPIFolder,
+			reinterpret_cast<LPVOID *>(lppArchiveFolder));
+	hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
+	if (hr != hrSuccess)
+		return hr;
+	if (m_strFolder.empty())
+		hr = ptrStoreHelper->GetIpmSubtree(&~m_ptrArchiveFolder);
+	else
+		hr = ptrStoreHelper->GetFolder(m_strFolder, bCreate, &~m_ptrArchiveFolder);
+	if (hr != hrSuccess)
+		return hr;
 	return m_ptrArchiveFolder->QueryInterface(IID_IMAPIFolder,
 		reinterpret_cast<LPVOID *>(lppArchiveFolder));
 }
