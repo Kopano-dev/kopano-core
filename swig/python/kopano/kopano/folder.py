@@ -204,14 +204,31 @@ class Folder(Base):
 
         return self.prop(PR_CONTENT_UNREAD).value
 
-    def item(self, entryid):
-        """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
+    def item(self, entryid=None, sourcekey=None):
+        """ Return :class:`Item` with given entryid or sourcekey
 
+        :param entryid: item entryid
+        :param sourcekey: item sourcekey
+        """
+
+        # resolve sourcekey to entryid
+        if sourcekey is not None:
+            restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, sourcekey.decode('hex')))
+            table = self.mapiobj.GetContentsTable(0)
+            table.SetColumns([PR_ENTRYID, PR_SOURCE_KEY], 0)
+            table.Restrict(restriction, 0)
+            rows = list(table.QueryRows(-1, 0))
+            if not rows:
+                raise NotFoundError("no item with sourcekey '%s'" % sourcekey)
+            entryid = _hex(rows[0][0].Value)
+
+        # open message with entryid
         try:
             mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
         except MAPIErrorNotFound:
             raise NotFoundError("no item with entryid '%s'" % entryid)
-        item = _item.Item(self, mapiobj=mapiobj) # XXX copy-pasting..
+
+        item = _item.Item(self, mapiobj=mapiobj)
         return item
 
     def items(self, restriction=None):
