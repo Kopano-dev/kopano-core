@@ -19,7 +19,7 @@ from MAPI.Defs import (
 )
 from MAPI.Tags import (
     PR_ENTRYID, PR_MDB_PROVIDER, ZARAFA_STORE_PUBLIC_GUID,
-    PR_STORE_RECORD_KEY, PR_EC_HIERARCHYID,
+    PR_STORE_RECORD_KEY, PR_EC_HIERARCHYID, PR_REM_ONLINE_ENTRYID,
     PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_SUBTREE_ENTRYID,
     PR_FINDER_ENTRYID, PR_ADDITIONAL_REN_ENTRYIDS,
     PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_OUTBOX_ENTRYID,
@@ -152,6 +152,15 @@ class Store(Base):
 
         try:
             return _folder.Folder(self, _hex(HrGetOneProp(self.mapiobj, PR_FINDER_ENTRYID).Value))
+        except (MAPIErrorNotFound, NotFoundError):
+            pass
+
+    @property
+    def reminders(self):
+        """ :class:`Folder` designated as reminders """
+
+        try:
+            return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_REM_ONLINE_ENTRYID).Value))
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
