@@ -14,6 +14,7 @@ Enhancements:
 * gateway: add option to ignore commands during IDLE
 * php: copy back improvements from the Z-Push project's bundled copy [KC-463]
 * search: make searchfolder creation in shared stores configurable [KC-565]
+* mapi: disable very slow RTF compression [KC-622]
 * icalmapi: handle up to three email addresses in a vcard [KC-420]
 * inetmapi: add the right extension for attachments without filename [KC-624]
 * search: index embedded messages (recursively) [KC-151]
@@ -23,6 +24,10 @@ Enhancements:
 * pyko: support cancellation of existing exception [KC-612]
 * icalmapi: support ADR, ORG, TITLE tags in VCF files
 * swig: lazy opening of folder objects [KC-632]
+* backup: the "backup_servers" option is back again [KC-364]
+* backup: save and restore store-level ACLs [KC-687]
+* backup: use store GUID for backup directory [KC-686]
+* backup: merge store-level metadata [KC-627]
 Fixes:
 * spooler: do not run mr-process before mr-accept [KC-498]
 * Coverity reports on absent return value checks [KC-595];
@@ -32,6 +37,7 @@ Fixes:
 * server plugins: more escaping in SQL commands [KC-620]
 * gateway: set PR_FOLLOWUP_ICON for WebApp [KC-653]
 * server: avoid crash when NTLM subprocess gives no newline [KC-656]
+* pyko: avoid hang on shutdown of Python services with logging [KC-643]
 Changes:
 * server: the underlying call for traditional-style fd monitoring was
   changed from select(2) to poll(2) [ZCP-13065]
