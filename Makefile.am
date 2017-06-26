@@ -3,7 +3,7 @@
 ACLOCAL_AMFLAGS = -I autoconf
 
 SUBDIRS = . ECtools/archiver/include/kopano ECtools/backup ECtools/presence \
-	ECtools/migration-pst \
+	ECtools/migration-pst ECtools/cli \
 	ECtools/search common/include/kopano m4lcommon/include/kopano \
 	mapi4linux/include inetmapi/include/inetmapi provider/include \
 	spooler/python

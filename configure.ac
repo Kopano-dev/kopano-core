@@ -737,6 +737,7 @@ AC_CONFIG_FILES([Makefile
 		common/include/kopano/Makefile
 		ECtools/archiver/include/kopano/Makefile
 		ECtools/backup/Makefile
+		ECtools/cli/Makefile
 		ECtools/presence/Makefile
 		ECtools/search/Makefile
 		ECtools/migration-pst/Makefile
@@ -777,6 +778,7 @@ AC_CONFIG_FILES([Makefile
 
 AC_CONFIG_FILES([ECtools/search/kopano-search], [chmod +x ECtools/search/kopano-search])
 AC_CONFIG_FILES([ECtools/backup/kopano-backup], [chmod +x ECtools/backup/kopano-backup])
+AC_CONFIG_FILES([ECtools/cli/kopano-cli], [chmod +x ECtools/cli/kopano-cli])
 AC_CONFIG_FILES([ECtools/presence/kopano-presence], [chmod +x ECtools/presence/kopano-presence])
 AC_CONFIG_FILES([ECtools/migration-pst/kopano-migration-pst], [chmod +x ECtools/migration-pst/kopano-migration-pst])
 
