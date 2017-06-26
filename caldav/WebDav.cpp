@@ -810,15 +810,12 @@ void WebDav::RegisterNs(const std::string &strNs, std::string *lpstrNsPrefix)
  */
 HRESULT WebDav::GetNs(std::string * lpstrPrefx, std::string *lpstrNs)
 {
-	HRESULT hr = hrSuccess;
 	auto itMpNs = m_mapNs.find(*lpstrNs);
-	if (itMpNs != m_mapNs.cend()) {
-		lpstrPrefx->assign(itMpNs->second);
-		lpstrNs->clear();
-	}
-	else
-		hr = MAPI_E_NOT_FOUND;
-	return hr;
+	if (itMpNs == m_mapNs.cend())
+		return MAPI_E_NOT_FOUND;
+	lpstrPrefx->assign(itMpNs->second);
+	lpstrNs->clear();
+	return hrSuccess;
 }
 /**
  * Converts WEBDAVRESPONSE structure to xml data
