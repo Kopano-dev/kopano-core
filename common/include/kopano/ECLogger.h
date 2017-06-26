@@ -23,12 +23,15 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <list>
+#include <memory>
+#include <mutex>
 #include <pthread.h>
 #include <csignal>
 #include <cstdarg>
 #include <cstdio>
 #include <string>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #ifndef KC_LIKE_PRINTF
 #	define KC_LIKE_PRINTF(_fmt, _va)
 #endif
@@ -263,7 +266,7 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
  */
 class _kc_export_dycast ECLogger_Syslog _kc_final : public ECLogger {
 	private:
-		char *m_ident;
+	std::unique_ptr<char[], KCHL::cstdlib_deleter> m_ident;
 	static const int levelmap[16]; /* converts to syslog levels */
 
 	public:
@@ -307,12 +310,10 @@ extern _kc_export ECLogger *StartLoggerProcess(ECConfig *, ECLogger *file_logger
  */
 class _kc_export ECLogger_Tee _kc_final : public ECLogger {
 	private:
-		typedef std::list<ECLogger*> LoggerList;
-		LoggerList m_loggers;
+	std::list<KCHL::object_ptr<ECLogger>> m_loggers;
 
 	public:
 		ECLogger_Tee();
-		_kc_hidden ~ECLogger_Tee(void);
 		_kc_hidden virtual void Reset(void) _kc_override;
 		_kc_hidden virtual bool Log(unsigned int level) _kc_override;
 		_kc_hidden virtual void Log(unsigned int level, const std::string &msg) _kc_override;

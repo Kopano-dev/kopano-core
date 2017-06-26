@@ -18,6 +18,7 @@
 #ifndef ICONV_H
 #define ICONV_H
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/charset/convert.h>
 #include <string>
@@ -27,14 +28,12 @@ namespace KC {
 class _kc_export ECIConv _kc_final {
 public:
     ECIConv(const std::string &strToCharset, const std::string &strFromCharset);
-    ~ECIConv();
-    
 	_kc_hidden bool canConvert(void) const { return m_lpContext != NULL; }
     std::string convert(const std::string &input);
 
 private:
 	typedef details::iconv_context<std::string, std::string> context_t;
-	context_t *m_lpContext;
+	std::unique_ptr<context_t> m_lpContext;
 };
 
 } /* namespace */

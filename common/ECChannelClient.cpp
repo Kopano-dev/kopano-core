@@ -49,11 +49,6 @@ ECChannelClient::ECChannelClient(const char *szPath, const char *szTokenizer)
 	m_ulPort = atoi(GetServerPortFromPath(szPath).c_str());
 }
 
-ECChannelClient::~ECChannelClient()
-{
-	delete m_lpChannel;
-}
-
 ECRESULT ECChannelClient::DoCmd(const std::string &strCommand, std::vector<std::string> &lstResponse)
 {
 	ECRESULT er;
@@ -120,8 +115,7 @@ ECRESULT ECChannelClient::ConnectSocket()
 		er = KCERR_NETWORK_ERROR;
 		goto exit;
 	}
-
-	m_lpChannel = new(std::nothrow) ECChannel(fd);
+	m_lpChannel.reset(new(std::nothrow) ECChannel(fd));
 	if (!m_lpChannel) {
 		er = KCERR_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -175,8 +169,7 @@ ECRESULT ECChannelClient::ConnectHttp()
 		er = KCERR_NETWORK_ERROR;
 		goto exit;
 	}
-
-	m_lpChannel = new(std::nothrow) ECChannel(fd);
+	m_lpChannel.reset(new(std::nothrow) ECChannel(fd));
 	if (!m_lpChannel) {
 		er = KCERR_NOT_ENOUGH_MEMORY;
 		goto exit;

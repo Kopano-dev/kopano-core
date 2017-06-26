@@ -18,21 +18,19 @@
 #ifndef ECCHANNELCLIENT_H
 #define ECCHANNELCLIENT_H
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>
+#include <kopano/ECChannel.h>
 
 namespace KC {
-
-class ECChannel;
 
 class _kc_export ECChannelClient {
 public:
 	ECChannelClient(const char *szPath, const char *szTokenizer);
-	~ECChannelClient();
-
 	ECRESULT DoCmd(const std::string &strCommand, std::vector<std::string> &lstResponse);
 
 protected:
@@ -47,7 +45,7 @@ private:
 	std::string m_strPath;
 	bool m_bSocket;
 	uint16_t m_ulPort;
-	ECChannel *m_lpChannel = nullptr;
+	std::unique_ptr<ECChannel> m_lpChannel;
 };
 
 } /* namespace */

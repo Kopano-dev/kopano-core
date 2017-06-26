@@ -22,15 +22,9 @@ namespace KC {
 
 ECIConv::ECIConv(const std::string &strToCharset, const std::string &strFromCharset) {
 	try {
-		m_lpContext = new context_t(strToCharset.c_str(), strFromCharset.c_str());
+		m_lpContext.reset(new context_t(strToCharset.c_str(), strFromCharset.c_str()));
 	} catch (const convert_exception &) {
-		m_lpContext = NULL;
 	}
-}
-
-ECIConv::~ECIConv()
-{
-	delete m_lpContext;
 }
 
 std::string ECIConv::convert(const std::string &strinput)
