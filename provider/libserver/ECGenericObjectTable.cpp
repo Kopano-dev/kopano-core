@@ -1603,12 +1603,8 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		}
 		unsigned int ulScan = 1;
 		if (ulPropTagRestrict & MV_FLAG)
-		{
-			if (PROP_TYPE(ulPropTagRestrict) == PT_MV_TSTRING)
-				ulScan = lpProp->Value.mvszA.__size;
-			else
-				ulScan = lpProp->Value.mvbin.__size;
-		}
+			ulScan = PROP_TYPE(ulPropTagRestrict) == PT_MV_TSTRING ?
+			         lpProp->Value.mvszA.__size : lpProp->Value.mvbin.__size;
 
 		auto ulPropType = PROP_TYPE(ulPropTagRestrict) & ~MVI_FLAG;
 		unsigned int ulSearchStringSize, ulSearchDataSize;
@@ -1732,8 +1728,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 				// Note that RELOP_EQ will work as expected, but RELOP_GT and RELOP_LT will
 				// not work. Use of these is undefined anyway. RELOP_NE is useless since one of the
 				// strings will definitely not match, so RELOP_NE will almost match.
-				lCompare = lCompare ? 0 : -1;
-                fMatch = match(lpsRestrict->lpProp->ulType, lCompare);
+				fMatch = match(lpsRestrict->lpProp->ulType, lCompare ? 0 : -1);
                 if(fMatch)
                     break;
             }
@@ -1744,10 +1739,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		// find using original restriction proptag
 		auto lpProp = FindProp(lpPropVals, lpsRestrict->lpProp->ulPropTag);
 		if (lpProp == NULL) {
-			if (lpsRestrict->lpProp->ulType == RELOP_NE)
-				fMatch = true;
-			else
-				fMatch = false;
+			fMatch = lpsRestrict->lpProp->ulType == RELOP_NE;
 			break;
 		}
 

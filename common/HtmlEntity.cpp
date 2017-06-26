@@ -527,10 +527,7 @@ WCHAR CHtmlEntity::toChar( const WCHAR *name )
 	HTMLEntity_t key = {0};
 	key.s = name;
 	auto result = static_cast<HTMLEntity_t *>(bsearch(&key, &_HTMLEntity, cHTMLEntity, sizeof(HTMLEntity_t), compareHTMLEntityToChar));
-	if (result)
-		return result->c;
-	else
-		return 0;
+	return result != nullptr ? result->c : 0;
 }
 
 const WCHAR *CHtmlEntity::toName( WCHAR c )
@@ -538,10 +535,7 @@ const WCHAR *CHtmlEntity::toName( WCHAR c )
 	HTMLEntityToName_t key = {0};
 	key.c = c;
 	auto result = static_cast<HTMLEntityToName_t *>(bsearch(&key, &_HTMLEntityToName, cHTMLEntityToName, sizeof(HTMLEntityToName_t), compareHTMLEntityToName));
-	if (result)
-		return result->s;
-	else
-		return NULL;
+	return result != nullptr ? result->s : nullptr;
 }
 
 /**
@@ -606,10 +600,8 @@ bool CHtmlEntity::validateHtmlEntity(const std::wstring &strEntity)
 	if (pos == std::wstring::npos || pos < 3)
 		return false;
 	if (strEntity[1] == '#') {
-		int base = 10;
 		auto str = strEntity.substr(2, pos - 2);
-		if(str[0] == 'x')
-			base = 16;
+		auto base = (str[0] == 'x') ? 16 : 10;
 		return wcstoul(str.c_str() + 1, NULL, base) != 0;
 	}
 	auto str = strEntity.substr(1, pos - 2);
@@ -627,9 +619,7 @@ WCHAR CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
 {
 	if (strEntity[0] != '#') {
 		unsigned int ulCode = toChar(strEntity.c_str());
-		if (ulCode > 0)
-			return (WCHAR)ulCode;
-		return '?';
+		return (ulCode > 0) ? ulCode : L'?';
 	}
 	// We have a unicode number, use iconv to get the WCHAR
 	std::string strUnicode;

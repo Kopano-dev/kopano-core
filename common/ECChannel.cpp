@@ -219,10 +219,8 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		szFile = lpConfig->GetSetting("ssl_verify_file");
 	if (lpConfig->GetSetting("ssl_verify_path")[0])
 		szPath = lpConfig->GetSetting("ssl_verify_path");
-	if (szFile || szPath) {
-		if (SSL_CTX_load_verify_locations(lpCTX, szFile, szPath) != 1)
-			ec_log_err("SSL CTX error loading verify locations: %s", ERR_error_string(ERR_get_error(), 0));
-	}
+	if ((szFile || szPath) && SSL_CTX_load_verify_locations(lpCTX, szFile, szPath) != 1)
+		ec_log_err("SSL CTX error loading verify locations: %s", ERR_error_string(ERR_get_error(), 0));
 exit:
 	if (hr != hrSuccess)
 		HrFreeCtx();

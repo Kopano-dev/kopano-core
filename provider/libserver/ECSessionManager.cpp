@@ -1235,9 +1235,8 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 		return KCERR_NOT_FOUND;
 	}
 
-	*lpLcid = strtoul(lpDBRow[0], NULL, 10);
 	new_prop.ulPropTag = PR_SORT_LOCALE_ID;
-	new_prop.Value.ul = *lpLcid;
+	new_prop.Value.ul = *lpLcid = strtoul(lpDBRow[0], nullptr, 10);
 	new_prop.__union = SOAP_UNION_propValData_ul;
 	return cache->SetCell(&key, PR_SORT_LOCALE_ID, &new_prop);
 }

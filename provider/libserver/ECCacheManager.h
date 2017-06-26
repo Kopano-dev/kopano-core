@@ -257,9 +257,9 @@ public:
 
 	std::vector<unsigned int> GetPropTags() {
 		std::vector<unsigned int> result;
-		for (auto iter = mapPropVals.cbegin(); iter != mapPropVals.cend(); iter++) {
-			result.push_back(iter->first);
-		}
+		result.reserve(mapPropVals.size());
+		for (const auto &p : mapPropVals)
+			result.push_back(p.first);
 		return result;
 	}
 

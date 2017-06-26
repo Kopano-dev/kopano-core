@@ -748,10 +748,9 @@ std::shared_ptr<ECLogger> StartLoggerProcess(ECConfig *lpConfig,
 	if (child == 0) {
 		// close all files except the read pipe and the logfile
 		int t = getdtablesize();
-		for (int i = 3; i < t; ++i) {
-			if (i == pipefds[0] || i == filefd) continue;
-			close(i);
-		}
+		for (int i = 3; i < t; ++i)
+			if (i != pipefds[0] && i != filefd)
+				close(i);
 		PrivatePipe::PipePassLoop(pipefds[0], std::move(lpLogger), lpConfig);
 		close(pipefds[0]);
 		delete lpConfig;
