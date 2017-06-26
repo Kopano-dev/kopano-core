@@ -13,6 +13,7 @@ import time
 
 from MAPI import (
     MAPI_UNICODE, KEEP_OPEN_READWRITE, MODRECIP_ADD, MODRECIP_MODIFY,
+    MSGFLAG_READ, MSGFLAG_UNSENT, ATTACH_EMBEDDED_MSG,
 )
 
 from MAPI.Tags import (
@@ -23,6 +24,7 @@ from MAPI.Tags import (
     PR_MESSAGE_RECIPIENTS, IID_IMAPITable, PR_RECIPIENT_FLAGS,
     PR_MESSAGE_FLAGS, PR_RECIPIENT_TRACKSTATUS, recipSendable,
     recipExceptionalResponse, recipExceptionalDeleted, recipOrganizer,
+    respOrganized, respDeclined,
 )
 
 from MAPI.Defs import (
@@ -510,7 +512,7 @@ class Recurrence(object):
     def _update_calitem(self, item):
         cal_item = self.item
 
-        cal_item.prop(PidLidSideEffects, create=True).value = 3441 # XXX check php
+        cal_item.prop(PidLidSideEffects, create=True).value = 3441 # XXX spec, check php
         cal_item.prop(PidLidSmartNoAttach, create=True).value = True
 
         # reminder
@@ -550,11 +552,11 @@ class Recurrence(object):
         end_local = unixtime(time.mktime(_utils._from_gmt(end, self.tz).timetuple())) # XXX why local??
 
         props = [
-            SPropValue(PR_ATTACHMENT_FLAGS, 2),
+            SPropValue(PR_ATTACHMENT_FLAGS, 2), # XXX cannot find spec
             SPropValue(PR_ATTACHMENT_HIDDEN, True),
             SPropValue(PR_ATTACHMENT_LINKID, 0),
             SPropValue(PR_ATTACH_FLAGS, 0),
-            SPropValue(PR_ATTACH_METHOD, 5),
+            SPropValue(PR_ATTACH_METHOD, ATTACH_EMBEDDED_MSG),
             SPropValue(PR_DISPLAY_NAME_W, u'Exception'),
             SPropValue(PR_EXCEPTION_STARTTIME, start_local),
             SPropValue(PR_EXCEPTION_ENDTIME, end_local),
@@ -573,14 +575,14 @@ class Recurrence(object):
         cal_item = self.item
 
         # create embedded item
-        message_flags = 1
+        message_flags = MSGFLAG_READ
         if item.prop(PR_MESSAGE_FLAGS).value == 0: # XXX wut/php compat
-            message_flags = 9
+            message_flags |= MSGFLAG_UNSENT
         message = cal_item.create_item(message_flags)
 
         self._update_embedded(basedate, message, item, copytags, create=True)
 
-        message.prop(PidLidResponseStatus).value = 5 # XXX php bug for merge case?
+        message.prop(PidLidResponseStatus).value = respDeclined | respOrganized # XXX php bug for merge case?
         if copytags:
             message.prop(PidLidBusyStatus).value = 0
 
