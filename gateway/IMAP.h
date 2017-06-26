@@ -21,6 +21,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 #include <list>
 #include <set>
@@ -141,7 +142,25 @@ public:
 		bcheap = false;
 		return *this;
 	}
-    
+
+	BinaryArray &operator=(BinaryArray &&b)
+	{
+		cb = b.cb;
+		bcheap = false;
+		if (b.cb == 0) {
+			lpb = nullptr;
+		} else if (!b.bcheap) {
+			lpb = b.lpb;
+			b.lpb = nullptr;
+			b.cb = 0;
+			b.bcheap = false;
+		} else {
+			lpb = new BYTE[cb];
+			memcpy(lpb, b.lpb, cb);
+		}
+		return *this;
+	}
+
 	BYTE *lpb;
 	ULONG cb;
 	bool bcheap;

@@ -71,9 +71,6 @@ inline int _vsnprintf_l(char *str, size_t size, const char *format, locale_t loc
 #include <sys/wait.h>
 #include <sys/times.h>
 
-/* compiler definitions */
-#define STDAPI_(__type) __type
-
 /* base types */
 typedef void			VOID;
 typedef unsigned char	BYTE;

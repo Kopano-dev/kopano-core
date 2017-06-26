@@ -553,7 +553,7 @@ int ns__getClientUpdate(struct soap *soap, struct clientUpdateInfoRequest sClien
 	soap->fmimereadclose = &mime_file_read_close;
 
 	// Setup the MTOM Attachments
-	lpsResponse->sStreamData.xop__Include.__ptr = (unsigned char*)fd;
+	lpsResponse->sStreamData.xop__Include.__ptr = reinterpret_cast<unsigned char *>(fd); /* keep open */
 	lpsResponse->sStreamData.xop__Include.__size = 0;
 	lpsResponse->sStreamData.xop__Include.type = s_strcpy(soap, "application/binary");
 	lpsResponse->sStreamData.xop__Include.id = s_strcpy(soap, "zarafaclient");
@@ -574,9 +574,6 @@ exit:
 
 	lpsResponse->er = er;
 	free(lpLicenseResponse);
-	if (er && fd)
-		fclose(fd);
-
 	soap->mode &= ~SOAP_XML_TREE;
 	soap->omode &= ~SOAP_XML_TREE;
 
