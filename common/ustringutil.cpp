@@ -985,9 +985,9 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
  * @param[in]	nCap		Base the key on the first nCap characters of s (if larger than 0).
  * @param[in]	locale		The locale used to create the sort key.
  *
- * @returns		ECSortKey object containing the blob
+ * @returns		ECUSortKey object containing the blob
  */
-static ECSortKey createSortKey(UnicodeString s, int nCap,
+static ECUSortKey createSortKey(UnicodeString s, int nCap,
     const ECLocale &locale)
 {
 	if (nCap > 1)
@@ -1099,9 +1099,9 @@ void createSortKeyDataFromUTF8(const char *s, int nCap, const ECLocale &locale, 
  * @param[in]	nCap		Base the key on the first nCap characters of s (if larger than 0).
  * @param[in]	locale		The locale used to create the sort key.
  *
- * @returns		The ECSortKey containing the blob.
+ * @returns		The ECUSortKey containing the blob.
  */
-ECSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale)
+ECUSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale)
 {
 	assert(s != NULL);
 	return createSortKey(UTF8ToUnicode(s), nCap, locale);

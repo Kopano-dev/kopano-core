@@ -50,8 +50,8 @@ ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *lpSession,
  * around 5 or so.
  *
  */
+typedef std::list<ECUSortKey> SortKey;
 
-typedef std::list<ECSortKey> SortKey;
 struct FOLDERINFO {
     unsigned int ulFolderId;		// Actual folder id in the DB
     std::string strFolderName;		// Folder name like 'inbox'
