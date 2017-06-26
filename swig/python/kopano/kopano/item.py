@@ -124,7 +124,7 @@ class Item(Base):
         self._folder = None
         self.mapiobj = mapiobj
         self._entryid = entryid
-        self._content_flag = content_flag
+        self._content_flag = content_flag or 0
 
         if isinstance(parent, _folder.Folder):
             self._folder = parent
@@ -181,7 +181,7 @@ class Item(Base):
     @property
     def mapiobj(self):
         if not self._mapiobj:
-            flags = MAPI_MODIFY | self._content_flag or 0
+            flags = MAPI_MODIFY | self._content_flag
 
             self.mapiobj = _utils.openentry_raw(
                 self.store.mapiobj, self._entryid, flags
