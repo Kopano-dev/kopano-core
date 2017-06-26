@@ -45,8 +45,8 @@ Packager notes:
 * libicu changed from optional to required build dependency
 
 
-Release notes for 8.3.1 [2017-05-29]
-====================================
+Release notes for 8.3.1
+=======================
 Enhancements:
 * gateway: add option to ignore commands during IDLE
 Fixes:
@@ -57,7 +57,11 @@ Fixes:
 * spooler: custom bounce message text for forward_whitelist_domain [KC-618]
 * server: avoid unchecked return value and unsigned underflow [KC-656]
 * php: rework pointer value storing
-* daemons: call initgroups when switching user [KC-684]
+* daemons: call initgroups when switching user and don't fall over
+  [KC-684,KC-690]
+* gateway: fix an IMAP protocol error [KC-668]
+  Apple Mail/Alpine did not show mails with long encoded subjects
+* common: restore ability to output crashdump [KC-630]
 
 
 Release notes for 8.3.0 [2017-04-27]

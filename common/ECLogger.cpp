@@ -990,11 +990,16 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 	ec_log_crit("Faulting address: %p, affected fd: %d", si->si_addr, si->si_fd);
 	lpLogger->Log(EC_LOGLEVEL_FATAL, "When reporting this traceback, please include Linux distribution name (and version), system architecture and Kopano version.");
 	/* Reset to DFL to avoid recursion */
-	if (signal(signr, SIG_DFL) < 0)
-		ec_log_warn("Cannot reset signal handler: %s", strerror(errno));
-	else if (kill(getpid(), signr) <= 0)
-		ec_log_warn("Killing self with signal had no effect. Error code: %s", strerror(errno));
-	ec_log_warn("Regular exit without coredump.");
+	if (signal(signr, SIG_DFL) == SIG_ERR)
+		ec_log_warn("signal(%d, SIG_DFL): %s", signr, strerror(errno));
+	sigset_t mask;
+	sigemptyset(&mask);
+	sigaddset(&mask, signr);
+	if (pthread_sigmask(SIG_UNBLOCK, &mask, nullptr) < 0)
+		ec_log_warn("pthread_sigmask: %s", strerror(errno));
+	if (raise(signr) < 0)
+		ec_log_warn("raise(%d): %s", signr, strerror(errno));
+	ec_log_warn("Raising signal %d had no effect. Normal exit.", signr);
 	_exit(1);
 }
 
