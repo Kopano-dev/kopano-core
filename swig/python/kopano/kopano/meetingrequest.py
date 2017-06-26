@@ -30,7 +30,7 @@ from MAPI.Tags import (
     PR_RECIPIENT_DISPLAY_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W,
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ACCOUNT_W, PR_DISPLAY_TYPE_EX,
     PR_SUBJECT_W, PR_MESSAGE_FLAGS, recipSendable, recipOrganizer,
-    recipOriginal,
+    recipOriginal, respTentative, respAccepted, respDeclined,
 )
 
 from MAPI.Defs import (
@@ -214,9 +214,9 @@ class MeetingRequest(object):
         """ Track status """
 
         return {
-            'IPM.Schedule.Meeting.Resp.Pos': 3,
-            'IPM.Schedule.Meeting.Resp.Tent': 2,
-            'IPM.Schedule.Meeting.Resp.Neg': 4,
+            'IPM.Schedule.Meeting.Resp.Tent': respTentative,
+            'IPM.Schedule.Meeting.Resp.Pos': respAccepted,
+            'IPM.Schedule.Meeting.Resp.Neg': respDeclined,
         }.get(self.item.message_class)
 
     @property

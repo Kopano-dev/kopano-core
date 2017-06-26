@@ -43,6 +43,7 @@ from dateutil.rrule import (
 from datetime import timedelta
 
 from .compat import repr as _repr
+from .errors import NotSupportedError
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
     ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
@@ -76,6 +77,11 @@ PidLidAppointmentColor = "PT_LONG:PSETID_Appointment:0x8214"
 PidLidIntendedBusyStatus = "PT_LONG:PSETID_Appointment:0x8224"
 PidLidAppointmentStartWhole = "PT_SYSTIME:PSETID_Appointment:0x820D"
 PidLidAppointmentEndWhole = "PT_SYSTIME:PSETID_Appointment:0x820E"
+
+DAILY = 0
+WEEKLY = 1
+MONTHLY = 2
+MONTH_NTH = 3
 
 # see MS-OXOCAL, section 2.2.1.44.5, "AppointmentRecurrencePattern Structure"
 
@@ -393,10 +399,10 @@ class Recurrence(object):
         rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()
 
-        if self.pattern_type == 0: # DAILY
+        if self.pattern_type == DAILY:
             rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self.period/(24*60)))
 
-        if self.pattern_type == 1: # WEEKLY
+        if self.pattern_type == WEEKLY:
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
                 if (self.pattern_type_specific[0] >> index ) & 1:
@@ -405,13 +411,13 @@ class Recurrence(object):
             # But the recurrence is on 8:00 that day and we should include it.
             rule.rrule(rrule(WEEKLY, dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday, interval=self.period))
 
-        elif self.pattern_type == 2: # MONTHLY
+        elif self.pattern_type == MONTHLY:
             # X Day of every Y month(s)
             # The Xnd Y (day) of every Z Month(s)
             rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, bymonthday=self.pattern_type_specific[0], interval=self.period))
             # self.pattern_type_specific[0] is either day of month or
 
-        elif self.pattern_type == 3: # MONTHY, YEARLY # XXX what about 4 etc..
+        elif self.pattern_type == MONTH_NTH:
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
                 if (self.pattern_type_specific[0] >> index ) & 1:
@@ -421,6 +427,9 @@ class Recurrence(object):
                         byweekday += (week(self.pattern_type_specific[1]),)
             # Yearly, the last XX of YY
             rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, interval=self.period, byweekday=byweekday))
+
+        else:
+            raise NotSupportedError('Unsupported recurrence pattern: %d' % self.pattern_type)
 
         # Remove deleted ocurrences
         for del_date in self._del_recurrences:
