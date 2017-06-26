@@ -16,6 +16,7 @@
  */
 #include <kopano/platform.h>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <new>
 #include <climits>
@@ -33,6 +34,7 @@
 
 #include <kopano/ECScheduler.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/automapi.hpp>
 #include <kopano/my_getopt.h>
 #include "ECMonitorDefs.h"
 #include "ECQuotaMonitor.h"
@@ -45,60 +47,37 @@
 using std::cout;
 using std::endl;
 
-static void deleteThreadMonitor(ECTHREADMONITOR *lpThreadMonitor,
-    bool base = false)
-{
-	if(lpThreadMonitor == NULL)
-		return;
-
-	delete lpThreadMonitor->lpConfig;
-	if(lpThreadMonitor->lpLogger)
-		lpThreadMonitor->lpLogger->Release();
-
-	if(base)
-		delete lpThreadMonitor;
-}
-
-static ECTHREADMONITOR *m_lpThreadMonitor;
-
+static std::unique_ptr<ECTHREADMONITOR> m_lpThreadMonitor;
 static std::mutex m_hExitMutex;
 static std::condition_variable m_hExitSignal;
 static pthread_t			mainthread;
 
 static HRESULT running_service(void)
 {
-	HRESULT hr = hrSuccess;
-	ECScheduler *lpECScheduler = nullptr;
+	KCHL::AutoMAPI mapiinit;
 	unsigned int ulInterval = 0;
-	bool bMapiInit = false;
 	ulock_normal l_exit(m_hExitMutex, std::defer_lock_t());
 
-	hr = MAPIInitialize(nullptr);
+	auto hr = mapiinit.Initialize(nullptr);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI");
-		goto exit;
+		return hr;
 	}
-	bMapiInit = true;
-	lpECScheduler = new ECScheduler(m_lpThreadMonitor->lpLogger);
+	std::unique_ptr<ECScheduler> lpECScheduler(new ECScheduler(m_lpThreadMonitor->lpLogger));
 	ulInterval = atoi(m_lpThreadMonitor->lpConfig->GetSetting("quota_check_interval", nullptr, "15"));
 	if (ulInterval == 0)
 		ulInterval = 15;
 	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION " (pid %d)", getpid());
 
 	// Add Quota monitor
-	hr = lpECScheduler->AddSchedule(SCHEDULE_MINUTES, ulInterval, ECQuotaMonitor::Create, m_lpThreadMonitor);
+	hr = lpECScheduler->AddSchedule(SCHEDULE_MINUTES, ulInterval, ECQuotaMonitor::Create, m_lpThreadMonitor.get());
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to add quota monitor schedule");
-		goto exit;
+		return hr;
 	}
 	l_exit.lock();
 	m_hExitSignal.wait(l_exit);
-	l_exit.unlock();
- exit:
-	delete lpECScheduler;
-	if (bMapiInit)
-		MAPIUninitialize();
-	return hr;
+	return hrSuccess;
 }
 
 static void sighandle(int sig)
@@ -247,24 +226,24 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	m_lpThreadMonitor = new(std::nothrow) ECTHREADMONITOR;
+	m_lpThreadMonitor.reset(new(std::nothrow) ECTHREADMONITOR);
 	if (m_lpThreadMonitor == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
 
-	m_lpThreadMonitor->lpConfig = ECConfig::Create(lpDefaults);
+	m_lpThreadMonitor->lpConfig.reset(ECConfig::Create(lpDefaults));
 	if (!m_lpThreadMonitor->lpConfig->LoadSettings(szConfig) ||
 	    m_lpThreadMonitor->lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors())) {
 		/* Create fatal logger without a timestamp to stderr. */
-		m_lpThreadMonitor->lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
+		m_lpThreadMonitor->lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false));
 		if (m_lpThreadMonitor->lpLogger == nullptr) {
 			hr = MAPI_E_NOT_ENOUGH_MEMORY;
 			goto exit;
 		}
-		ec_log_set(m_lpThreadMonitor->lpLogger);
-		LogConfigErrors(m_lpThreadMonitor->lpConfig);
+		ec_log_set(m_lpThreadMonitor->lpLogger.get());
+		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());
 		hr = E_FAIL;
 		goto exit;
 	}
@@ -272,10 +251,10 @@ int main(int argc, char *argv[]) {
 	mainthread = pthread_self();
 
 	// setup logging
-	m_lpThreadMonitor->lpLogger = CreateLogger(m_lpThreadMonitor->lpConfig, argv[0], "Kopano-Monitor");
-	ec_log_set(m_lpThreadMonitor->lpLogger);
+	m_lpThreadMonitor->lpLogger.reset(CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0], "Kopano-Monitor"));
+	ec_log_set(m_lpThreadMonitor->lpLogger.get());
 	if ((bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors()) || m_lpThreadMonitor->lpConfig->HasWarnings())
-		LogConfigErrors(m_lpThreadMonitor->lpConfig);
+		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());
 
 	// set socket filename
 	if (!szPath)
@@ -307,20 +286,17 @@ int main(int argc, char *argv[]) {
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(m_lpThreadMonitor->lpConfig))
+	if (unix_runas(m_lpThreadMonitor->lpConfig.get()))
 		goto exit;
-	if (daemonize && unix_daemonize(m_lpThreadMonitor->lpConfig))
+	if (daemonize && unix_daemonize(m_lpThreadMonitor->lpConfig.get()))
 		goto exit;
 	if (!daemonize)
 		setsid();
-	if (unix_create_pidfile(argv[0], m_lpThreadMonitor->lpConfig, false) < 0)
+	if (unix_create_pidfile(argv[0], m_lpThreadMonitor->lpConfig.get(), false) < 0)
 		goto exit;
 
 	// Init exit threads
 	hr = running_service();
 exit:
-	if(m_lpThreadMonitor)
-		deleteThreadMonitor(m_lpThreadMonitor, true);
-
 	return hr == hrSuccess ? 0 : 1;
 }

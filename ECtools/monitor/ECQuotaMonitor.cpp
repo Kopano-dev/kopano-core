@@ -67,22 +67,6 @@ ECQuotaMonitor::ECQuotaMonitor(ECTHREADMONITOR *lpThreadMonitor,
 	m_lpThreadMonitor(lpThreadMonitor),
 	m_lpMAPIAdminSession(lpMAPIAdminSession), m_lpMDBAdmin(lpMDBAdmin)
 {
-	if(lpMAPIAdminSession)
-		lpMAPIAdminSession->AddRef();
-	if(lpMDBAdmin)
-		lpMDBAdmin->AddRef();
-}
-
-/**
- * Releases references to passed MAPI objects.
- */
-ECQuotaMonitor::~ECQuotaMonitor()
-{
-	if(m_lpMDBAdmin)
-		m_lpMDBAdmin->Release();
-
-	if(m_lpMAPIAdminSession)
-		m_lpMAPIAdminSession->Release();
 }
 
 /** Creates ECQuotaMonitor object and calls

@@ -40,7 +40,6 @@ private:
 	ECQuotaMonitor(ECTHREADMONITOR *lpThreadMonitor, LPMAPISESSION lpMAPIAdminSession, LPMDB lpMDBAdmin);
 
 public:
-	virtual ~ECQuotaMonitor(void);
 	static void* Create(void* lpVoid);
 
 	HRESULT	CheckQuota();
@@ -63,8 +62,8 @@ private:
 	HRESULT Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany, ECQUOTASTATUS *lpecQuotaStatus, LPMDB lpStore);
 
 	ECTHREADMONITOR *m_lpThreadMonitor;
-	LPMAPISESSION		m_lpMAPIAdminSession;
-	LPMDB				m_lpMDBAdmin;
+	KCHL::object_ptr<IMAPISession> m_lpMAPIAdminSession;
+	KCHL::object_ptr<IMsgStore> m_lpMDBAdmin;
 	ULONG m_ulProcessed = 0, m_ulFailed = 0;
 };
 
