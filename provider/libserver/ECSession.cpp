@@ -1378,8 +1378,12 @@ retry:
 		strAnswer.assign(buffer + 3, bytes - 3);
 
 	if (buffer[0] == 'B' && buffer[1] == 'H') {
-		// Broken Helper
-		ec_log_err("Incorrect data fed to ntlm_auth");
+		/*
+		 * "Broken Helper". Either we fed nonsensical data to ntlm_auth
+		 * (unlikely), or ntlm_auth found some reason not to complete,
+		 * like /var/lib/samba/winbindd_privileged being inaccessible.
+		 */
+		ec_log_err("ntlm_auth returned generic error \"%.*s\"", bytes, buffer);
 		return er;
 	} else if (buffer[0] == 'T' && buffer[1] == 'T') {
 		// Try This
