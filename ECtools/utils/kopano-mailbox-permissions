@@ -442,8 +442,8 @@ class DelegateRuleData(object):
     def _load(self):
         self.gab = getGlobalAddressbook(self.session)
 
-        self.rulesemt = self.inbox.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, 0, 0)
-        self.table = self.rulesemt.GetTable(MAPI_UNICODE)
+        rulesemt = self.inbox.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, 0, 0)
+        self.table = rulesemt.GetTable(MAPI_UNICODE)
 
         self.table.SetColumns([PR_RULE_ACTIONS, PR_RULE_ID], TBL_BATCH)
 
@@ -552,7 +552,8 @@ class DelegateRuleData(object):
             if self.replace == True:
                 flags = ROWLIST_REPLACE
 
-            self.rulesemt.ModifyTable(flags, rulerows)
+            rulesemt = self.inbox.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, 0, 0)
+            rulesemt.ModifyTable(flags, rulerows)
 
 def updateDelegateEntries(ab, fbProps, members, privateflag):
 
