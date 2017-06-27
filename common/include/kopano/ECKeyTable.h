@@ -91,7 +91,7 @@ typedef std::list<sObjectTableKey> ECObjectTableList;
 
 class _kc_export ECTableRow _kc_final {
 public:
-	ECTableRow(sObjectTableKey sKey, unsigned int ulSortCols, const unsigned int *lpSortLen, const unsigned char *lpFlags, unsigned char **lppSortData, bool fHidden);
+	ECTableRow(const sObjectTableKey &, unsigned int ulSortCols, const unsigned int *lpSortLen, const unsigned char *lpFlags, unsigned char **lppSortData, bool fHidden);
 	ECTableRow(const ECTableRow &other);
 	~ECTableRow();
 	_kc_hidden unsigned int GetObjectSize(void) const;
