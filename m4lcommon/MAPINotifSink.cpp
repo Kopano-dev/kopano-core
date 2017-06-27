@@ -129,69 +129,78 @@ static HRESULT CopyNotification(const NOTIFICATION *lpSrc, void *lpBase,
     lpDst->ulEventType = lpSrc->ulEventType;
     
     switch(lpSrc->ulEventType) {
-        case fnevCriticalError:
-            MAPICopyMem(lpSrc->info.err.cbEntryID, 		lpSrc->info.err.lpEntryID, 		lpBase, &lpDst->info.err.cbEntryID, 	(void**)&lpDst->info.err.lpEntryID);
-            
-            lpDst->info.err.scode =  lpSrc->info.err.scode;
-            lpDst->info.err.ulFlags = lpSrc->info.err.ulFlags;
-            
-            CopyMAPIERROR(lpSrc->info.err.lpMAPIError, lpBase, &lpDst->info.err.lpMAPIError);
-            
-            break;
-        case fnevNewMail:
-            MAPICopyMem(lpSrc->info.newmail.cbEntryID, 		lpSrc->info.newmail.lpEntryID, 		lpBase, &lpDst->info.newmail.cbEntryID, 	(void**)&lpDst->info.newmail.lpEntryID);
-            MAPICopyMem(lpSrc->info.newmail.cbParentID, 	lpSrc->info.newmail.lpParentID, 	lpBase, &lpDst->info.newmail.cbParentID, 	(void**)&lpDst->info.newmail.lpParentID);
-            
-            lpDst->info.newmail.ulFlags = lpSrc->info.newmail.ulFlags;
-			if (lpSrc->info.newmail.ulFlags&MAPI_UNICODE)
-				MAPICopyUnicode((LPWSTR)lpSrc->info.newmail.lpszMessageClass, lpBase, (LPWSTR*)&lpDst->info.newmail.lpszMessageClass);
+		case fnevCriticalError: {
+			auto &src = lpSrc->info.err;
+			auto &dst = lpDst->info.err;
+			MAPICopyMem(src.cbEntryID, src.lpEntryID, lpBase, &dst.cbEntryID, reinterpret_cast<void **>(&dst.lpEntryID));
+			dst.scode = src.scode;
+			dst.ulFlags = src.ulFlags;
+			CopyMAPIERROR(src.lpMAPIError, lpBase, &dst.lpMAPIError);
+			break;
+		}
+		case fnevNewMail: {
+			auto &src = lpSrc->info.newmail;
+			auto &dst = lpDst->info.newmail;
+			MAPICopyMem(src.cbEntryID,  src.lpEntryID,  lpBase, &dst.cbEntryID,  reinterpret_cast<void **>(&dst.lpEntryID));
+			MAPICopyMem(src.cbParentID, src.lpParentID, lpBase, &dst.cbParentID, reinterpret_cast<void **>(&dst.lpParentID));
+			dst.ulFlags = src.ulFlags;
+			if (src.ulFlags & MAPI_UNICODE)
+				MAPICopyUnicode(reinterpret_cast<const wchar_t *>(src.lpszMessageClass), lpBase, reinterpret_cast<wchar_t **>(&dst.lpszMessageClass));
 			else
-				MAPICopyString((char*)lpSrc->info.newmail.lpszMessageClass, lpBase, (char**)&lpDst->info.newmail.lpszMessageClass);
-			
-            lpDst->info.newmail.ulMessageFlags = lpSrc->info.newmail.ulMessageFlags;
-            
-            break;
+				MAPICopyString(reinterpret_cast<const char *>(src.lpszMessageClass), lpBase, reinterpret_cast<char **>(&dst.lpszMessageClass));
+			dst.ulMessageFlags = src.ulMessageFlags;
+			break;
+		}
         case fnevObjectCreated:
         case fnevObjectDeleted:
         case fnevObjectModified:
         case fnevObjectMoved:
         case fnevObjectCopied:
-        case fnevSearchComplete:
-            lpDst->info.obj.ulObjType = lpSrc->info.obj.ulObjType;
-            
-            MAPICopyMem(lpSrc->info.obj.cbEntryID, 		lpSrc->info.obj.lpEntryID, 		lpBase, &lpDst->info.obj.cbEntryID, 	(void**)&lpDst->info.obj.lpEntryID);
-            MAPICopyMem(lpSrc->info.obj.cbParentID, 	lpSrc->info.obj.lpParentID, 	lpBase, &lpDst->info.obj.cbParentID, 	(void**)&lpDst->info.obj.lpParentID);
-            MAPICopyMem(lpSrc->info.obj.cbOldID, 		lpSrc->info.obj.lpOldID, 		lpBase, &lpDst->info.obj.cbOldID, 		(void**)&lpDst->info.obj.lpOldID);
-            MAPICopyMem(lpSrc->info.obj.cbOldParentID, 	lpSrc->info.obj.lpOldParentID, 	lpBase, &lpDst->info.obj.cbOldParentID, (void**)&lpDst->info.obj.lpOldParentID);
-
-            if(lpSrc->info.obj.lpPropTagArray)           
-                MAPICopyMem(CbSPropTagArray(lpSrc->info.obj.lpPropTagArray), lpSrc->info.obj.lpPropTagArray, lpBase, NULL, (void**)&lpDst->info.obj.lpPropTagArray);
-            break;
-        case fnevTableModified:
-            lpDst->info.tab.ulTableEvent = lpSrc->info.tab.ulTableEvent;
-            lpDst->info.tab.hResult = lpSrc->info.tab.hResult;
-            hr = Util::HrCopyProperty(&lpDst->info.tab.propPrior, &lpSrc->info.tab.propPrior, lpBase);
-            if (hr != hrSuccess)
-			return hr;
-            hr = Util::HrCopyProperty(&lpDst->info.tab.propIndex, &lpSrc->info.tab.propIndex, lpBase);
-            if (hr != hrSuccess)
-			return hr;
-            if ((hr = MAPIAllocateMore(lpSrc->info.tab.row.cValues * sizeof(SPropValue), lpBase, (void **)&lpDst->info.tab.row.lpProps)) != hrSuccess)
-			return hr;
-            hr = Util::HrCopyPropertyArray(lpSrc->info.tab.row.lpProps, lpSrc->info.tab.row.cValues, lpDst->info.tab.row.lpProps, lpBase);
-            if (hr != hrSuccess)
-			return hr;
-            lpDst->info.tab.row.cValues = lpSrc->info.tab.row.cValues;
-            break;
-        case fnevStatusObjectModified:
-            MAPICopyMem(lpSrc->info.statobj.cbEntryID, 		lpSrc->info.statobj.lpEntryID, 		lpBase, &lpDst->info.statobj.cbEntryID, 	(void**)&lpDst->info.statobj.lpEntryID);
-            if ((hr = MAPIAllocateMore(lpSrc->info.statobj.cValues * sizeof(SPropValue), lpBase, (void **)&lpDst->info.statobj.lpPropVals)) != hrSuccess)
-			return hr;
-            hr = Util::HrCopyPropertyArray(lpSrc->info.statobj.lpPropVals, lpSrc->info.statobj.cValues, lpDst->info.statobj.lpPropVals, lpBase);
-            if (hr != hrSuccess)
-			return hr;
-            lpDst->info.statobj.cValues = lpSrc->info.statobj.cValues;
-            break;
+		case fnevSearchComplete: {
+			auto &src = lpSrc->info.obj;
+			auto &dst = lpDst->info.obj;
+			dst.ulObjType = src.ulObjType;
+			MAPICopyMem(src.cbEntryID,     src.lpEntryID,     lpBase, &dst.cbEntryID,     reinterpret_cast<void **>(&dst.lpEntryID));
+			MAPICopyMem(src.cbParentID,    src.lpParentID,    lpBase, &dst.cbParentID,    reinterpret_cast<void **>(&dst.lpParentID));
+			MAPICopyMem(src.cbOldID,       src.lpOldID,       lpBase, &dst.cbOldID,       reinterpret_cast<void **>(&dst.lpOldID));
+			MAPICopyMem(src.cbOldParentID, src.lpOldParentID, lpBase, &dst.cbOldParentID, reinterpret_cast<void **>(&dst.lpOldParentID));
+			if (src.lpPropTagArray != nullptr)
+				MAPICopyMem(CbSPropTagArray(src.lpPropTagArray), src.lpPropTagArray, lpBase, nullptr, reinterpret_cast<void **>(&dst.lpPropTagArray));
+			break;
+		}
+		case fnevTableModified: {
+			auto &src = lpSrc->info.tab;
+			auto &dst = lpDst->info.tab;
+			dst.ulTableEvent = src.ulTableEvent;
+			dst.hResult = src.hResult;
+			hr = Util::HrCopyProperty(&dst.propPrior, &src.propPrior, lpBase);
+			if (hr != hrSuccess)
+				return hr;
+			hr = Util::HrCopyProperty(&dst.propIndex, &src.propIndex, lpBase);
+			if (hr != hrSuccess)
+				return hr;
+			hr = MAPIAllocateMore(src.row.cValues * sizeof(SPropValue), lpBase, reinterpret_cast<void **>(&dst.row.lpProps));
+			if (hr != hrSuccess)
+				return hr;
+			hr = Util::HrCopyPropertyArray(src.row.lpProps, src.row.cValues, dst.row.lpProps, lpBase);
+			if (hr != hrSuccess)
+				return hr;
+			dst.row.cValues = src.row.cValues;
+			break;
+		}
+		case fnevStatusObjectModified: {
+			auto &src = lpSrc->info.statobj;
+			auto &dst = lpDst->info.statobj;
+			MAPICopyMem(src.cbEntryID, src.lpEntryID, lpBase, &dst.cbEntryID, reinterpret_cast<void **>(&dst.lpEntryID));
+			hr = MAPIAllocateMore(src.cValues * sizeof(SPropValue), lpBase, reinterpret_cast<void **>(&dst.lpPropVals));
+			if (hr != hrSuccess)
+				return hr;
+			hr = Util::HrCopyPropertyArray(src.lpPropVals, src.cValues, dst.lpPropVals, lpBase);
+			if (hr != hrSuccess)
+				return hr;
+			dst.cValues = src.cValues;
+			break;
+		}
 	}
 	return hrSuccess;
 }
