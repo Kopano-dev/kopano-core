@@ -25,6 +25,7 @@
 #include "ECSessionManager.h"
 #include "ECSearchObjectTable.h"
 #include "ECSession.h"
+#include "ECSecurity.h"
 
 namespace KC {
 
@@ -47,8 +48,17 @@ ECRESULT ECSearchObjectTable::Create(ECSession *lpSession,
 }
 
 ECRESULT ECSearchObjectTable::Load() {
-    sObjectTableKey		sRowItem;
-    std::list<unsigned int> lstObjId;
+	sObjectTableKey		sRowItem;
+	std::list<unsigned int> lstObjId;
+	std::set<unsigned int> setObjIdPrivate;
+	std::list<unsigned int> lstObjId2;
+	ECDatabase*		lpDatabase = NULL;
+	DB_RESULT lpDBResult;
+	DB_ROW			lpDBRow = NULL;
+	std::string strQuery;
+	std::string strInQuery;
+	bool reminders = false;
+
 	scoped_rlock biglock(m_hLock);
 
 	if (m_ulFolderId == 0)
@@ -57,7 +67,53 @@ ECRESULT ECSearchObjectTable::Load() {
 	auto er = lpSession->GetSessionManager()->GetSearchFolders()->GetSearchResults(m_ulStoreId, m_ulFolderId, &lstObjId);
 	if (er != erSuccess)
 		return er;
-	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &lstObjId, 0, true);
+
+	er = lpSession->GetDatabase(&lpDatabase);
+	if (er != erSuccess)
+		return er;
+
+        // are we loading reminders?
+	strQuery = "SELECT val_string FROM properties where hierarchyid=" + stringify(m_ulFolderId) + " AND tag = " + stringify(PROP_ID(PR_CONTAINER_CLASS))+ ";";
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if(er != erSuccess)
+		return er;
+	if (lpDBResult.get_num_rows() == 1) {
+		lpDBRow = lpDBResult.fetch_row();
+		if (lpDBRow == NULL || lpDBRow[0] == NULL ) {
+			ec_log_err("ECSearchObjectTable::Load(): row or columns null");
+			return KCERR_DATABASE_ERROR;
+		}
+		if(!strcmp(lpDBRow[0], "Outlook.Reminder"))
+			reminders = true;
+	}
+
+	// if so, filter out private items
+	if(reminders == false || lstObjId.size() == 0 || lpSession->GetSecurity()->IsOwner(m_ulFolderId) != KCERR_NO_ACCESS)
+		return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &lstObjId, 0, true);
+
+	for(auto it = lstObjId.begin(); it != lstObjId.end(); ++it) {
+	    if(it != lstObjId.begin())
+		strInQuery += ",";
+	    strInQuery += stringify(*it);
+	}
+
+	strQuery = "SELECT hierarchyid FROM properties WHERE hierarchyid IN (" + strInQuery + ") AND tag = " + stringify(PROP_ID(PR_SENSITIVITY)) + " AND val_ulong >= 2;";
+
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if(er != erSuccess)
+		return er;
+
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
+		if(lpDBRow == NULL || lpDBRow[0] == NULL)
+			continue;
+		setObjIdPrivate.insert(atoui(lpDBRow[0]));
+	}
+
+	for(auto it = lstObjId.begin(); it != lstObjId.end(); ++it)
+		if (setObjIdPrivate.find(*it) == setObjIdPrivate.end())
+			lstObjId2.push_back(*it);
+
+	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &lstObjId2, 0, true);
 }
 
 } /* namespace */
