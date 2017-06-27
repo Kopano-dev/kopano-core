@@ -46,7 +46,7 @@ extern _kc_export std::string GetServerFQDN(void);
 extern _kc_export HRESULT HrOpenECAdminSession(IMAPISession **, const char *const app_ver, const char *app_misc, const char *path = nullptr, ULONG profflags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr);
 extern _kc_export HRESULT HrOpenECSession(IMAPISession **ses, const char *app_ver, const char *app_misc, const wchar_t *user, const wchar_t *pass, const char *path = nullptr, ULONG profile_flags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr, const char *profname = nullptr);
 extern _kc_export HRESULT HrOpenECPublicStoreOnline(IMAPISession *, IMsgStore **ret);
-extern _kc_export HRESULT ECCreateOneOff(LPTSTR name, LPTSTR addrtype, LPTSTR addr, ULONG flags, ULONG *eid_size, LPENTRYID *eid);
+extern _kc_export HRESULT ECCreateOneOff(const TCHAR * name, const TCHAR * addrtype, const TCHAR * addr, ULONG flags, ULONG *eid_size, LPENTRYID *eid);
 extern _kc_export HRESULT ECParseOneOff(const ENTRYID *eid, ULONG eid_size, std::wstring &name, std::wstring &type, std::wstring &addr);
 extern _kc_export std::string ToQuotedPrintable(const std::string &s, const std::string &charset, bool header = true, bool imap = false);
 extern _kc_export HRESULT HrNewMailNotification(IMsgStore *, IMessage *);
