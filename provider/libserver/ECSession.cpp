@@ -1383,7 +1383,7 @@ retry:
 		 * (unlikely), or ntlm_auth found some reason not to complete,
 		 * like /var/lib/samba/winbindd_privileged being inaccessible.
 		 */
-		ec_log_err("ntlm_auth returned generic error \"%.*s\"", bytes, buffer);
+		ec_log_err("ntlm_auth returned generic error \"%.*s\"", static_cast<int>(bytes), buffer);
 		return er;
 	} else if (buffer[0] == 'T' && buffer[1] == 'T') {
 		// Try This
