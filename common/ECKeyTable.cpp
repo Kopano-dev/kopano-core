@@ -142,17 +142,6 @@ ECTableRow::ECTableRow(const ECTableRow &other)
 	initSortCols(other.ulSortCols, other.lpSortLen, other.lpFlags, other.lppSortKeys);
 }
 
-ECTableRow& ECTableRow::operator=(const ECTableRow &other)
-{
-    if(this == &other)
-        return *this;
-        
-    freeSortCols();
-    initSortCols(other.ulSortCols, other.lpSortLen, other.lpFlags, other.lppSortKeys);
-    
-    return *this;
-}
-
 void ECTableRow::freeSortCols()
 {
 	unsigned int i=0;

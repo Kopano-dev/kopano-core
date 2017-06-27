@@ -104,7 +104,7 @@ public:
 private:
 	_kc_hidden void initSortCols(unsigned int sortcols, const int *sortlen, const unsigned char *flags, unsigned char **sortdata);
 	_kc_hidden void freeSortCols(void);
-	_kc_hidden ECTableRow &operator=(const ECTableRow &);
+	ECTableRow &operator=(const ECTableRow &) = delete;
 public:
 	sObjectTableKey	sKey;
 
