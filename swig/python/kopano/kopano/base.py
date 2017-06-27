@@ -69,5 +69,12 @@ class Base(object):
         except NotFoundError:
             pass
 
+    def set_value(self, proptag, value):
+        """ Set :class:`property <Property> value for given proptag,
+        creating the property if it doesn't exist
+        """
+
+        self.prop(proptag, create=True).value = value
+
     def __repr__(self):
         return _repr(self)
