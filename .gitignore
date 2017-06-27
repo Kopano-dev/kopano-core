@@ -51,6 +51,7 @@ stamp-h2
 /provider/soap/
 /ECtools/backup/kopano-backup
 /ECtools/backup/build/
+/ECtools/cli/kopano-cli
 /ECtools/presence/kopano-presence
 /ECtools/presence/build/
 /ECtools/search/kopano-search
