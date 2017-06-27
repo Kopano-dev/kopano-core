@@ -187,28 +187,30 @@ class MeetingRequest(object):
     def calendar_item(self):
         """ Global calendar item :class:`item <Item>` (possibly in delegator store) """
 
-        goid = self.item.prop(PidLidCleanGlobalObjectId)
-        restriction = Restriction(SPropertyRestriction(
-            RELOP_EQ, goid.proptag, SPropValue(goid.proptag, goid.mapiobj.Value))
-        )
-        return next(self.calendar.items(restriction), None)
+        goid = self.item.get_prop(PidLidCleanGlobalObjectId)
+        if goid is not None:
+            restriction = Restriction(SPropertyRestriction(
+                RELOP_EQ, goid.proptag, SPropValue(goid.proptag, goid.mapiobj.Value))
+            )
+            return next(self.calendar.items(restriction), None)
 
     @property
     def basedate(self):
         """ Exception date """
 
-        blob = self.item.prop(PidLidGlobalObjectId).value
-        y, m, d = struct.unpack_from('>HBB', blob, 16)
-        if (y, m, d) != (0, 0, 0):
-            ts = timegm(datetime.datetime(y, m, d).timetuple())
-            tz = self.item.get_value(PidLidTimeZoneStruct)
-            return _utils._to_gmt(datetime.datetime.fromtimestamp(ts), tz)
+        blob = self.item.get_value(PidLidGlobalObjectId)
+        if blob is not None:
+            y, m, d = struct.unpack_from('>HBB', blob, 16)
+            if (y, m, d) != (0, 0, 0):
+                ts = timegm(datetime.datetime(y, m, d).timetuple())
+                tz = self.item.get_value(PidLidTimeZoneStruct)
+                return _utils._to_gmt(datetime.datetime.fromtimestamp(ts), tz)
 
     @property
     def update_counter(self):
         """ Update counter """
 
-        return self.item.prop(PidLidAppointmentSequence).value
+        return self.item.get_value(PidLidAppointmentSequence)
 
     @property
     def track_status(self):
@@ -224,14 +226,11 @@ class MeetingRequest(object):
     def processed(self):
         """ Has the request/response been processed """
 
-        processed = self.item.get_prop(PR_PROCESSED)
-        if processed:
-            return processed.value
-        return False
+        processed = self.item.get_value(PR_PROCESSED) or False
 
     @processed.setter
     def processed(self, value):
-        self.item.prop(PR_PROCESSED, create=True).value = value
+        self.item.set_value(PR_PROCESSED, value)
 
     def _check_processed(self):
         if self.processed:
@@ -267,12 +266,13 @@ class MeetingRequest(object):
         cal_item.message_class = 'IPM.Appointment'
 
         # busystatus
-        intended_busystatus = self.item.prop(PidLidIntendedBusyStatus).value
-        if tentative and intended_busystatus != libfreebusy.fbFree: # XXX
-            busystatus = libfreebusy.fbTentative
-        else:
-            busystatus = intended_busystatus
-        cal_item.prop(PidLidBusyStatus).value = busystatus
+        intended_busystatus = self.item.get_value(PidLidIntendedBusyStatus)
+        if intended_busystatus is not None:
+            if tentative and intended_busystatus != libfreebusy.fbFree: # XXX
+                busystatus = libfreebusy.fbTentative
+            else:
+                busystatus = intended_busystatus
+            cal_item.set_value(PidLidBusyStatus, busystatus)
 
         # add organizer as recipient
         organizer_props = _organizer_props(cal_item, self.item)
@@ -325,7 +325,10 @@ class MeetingRequest(object):
         else:
             # remove existing recurrence
             if cal_item and cal_item.recurring:
-                if self.update_counter <= cal_item.meetingrequest.update_counter:
+                mr_counter = self.update_counter
+                cal_counter = cal_item.meetingrequest.update_counter
+                if mr_counter is not None and cal_counter is not None and \
+                   mr_counter <= cal_counter:
                     raise Error('trying to accept out-of-date meeting request')
                 calendar.delete(cal_item)
 
