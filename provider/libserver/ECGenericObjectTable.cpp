@@ -1350,22 +1350,22 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
     
 	/* @cst now contains the collapse state for all categories, apply them now. */
 	for (gsoap_size_t i = 0; i < cst.sCategoryStates.__size; ++i) {
-		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[cst.sCategoryStates.__ptr[i].sProps.__size]);
-		std::unique_ptr<unsigned char *[]> lpSortData(new unsigned char *[cst.sCategoryStates.__ptr[i].sProps.__size]);
-		std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[cst.sCategoryStates.__ptr[i].sProps.__size]);
-    
-		memset(lpSortData.get(), 0, cst.sCategoryStates.__ptr[i].sProps.__size * sizeof(unsigned char *));
+		const auto &catprop = cst.sCategoryStates.__ptr[i].sProps;
+		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[catprop.__size]);
+		std::unique_ptr<unsigned char *[]> lpSortData(new unsigned char *[catprop.__size]);
+		std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[catprop.__size]);
+		memset(lpSortData.get(), 0, catprop.__size * sizeof(unsigned char *));
         
 		// Get the binary sortkeys for all properties
-		for (gsoap_size_t n = 0; n < cst.sCategoryStates.__ptr[i].sProps.__size; ++n) {
-			if (GetBinarySortKey(&cst.sCategoryStates.__ptr[i].sProps.__ptr[n], &lpSortLen[n], &lpSortData[n]) != erSuccess)
+		for (gsoap_size_t n = 0; n < catprop.__size; ++n) {
+			if (GetBinarySortKey(&catprop.__ptr[n], &lpSortLen[n], &lpSortData[n]) != erSuccess)
 				goto next;
-			if (GetSortFlags(cst.sCategoryStates.__ptr[i].sProps.__ptr[n].ulPropTag, &lpSortFlags[n]) != erSuccess)
+			if (GetSortFlags(catprop.__ptr[n].ulPropTag, &lpSortFlags[n]) != erSuccess)
 				goto next;
 		}
 
 		// Find the category and expand or collapse it. If it's not there anymore, just ignore it.
-		if (lpKeyTable->Find(cst.sCategoryStates.__ptr[i].sProps.__size,
+		if (lpKeyTable->Find(catprop.__size,
 		    reinterpret_cast<int *>(lpSortLen.get()),
 		    lpSortData.get(), lpSortFlags.get(), &sKey) == erSuccess) {
 
@@ -1378,7 +1378,7 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
 				CollapseRow(sInstanceKey, 0, NULL);
 		}
 next:        
-		for (gsoap_size_t j = 0; j < cst.sCategoryStates.__ptr[i].sProps.__size; ++j)
+		for (gsoap_size_t j = 0; j < catprop.__size; ++j)
 			delete[] lpSortData[j];
     }
     
