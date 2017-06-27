@@ -1220,78 +1220,81 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		hr = modifyFromAddressBook(&lpRecipients->aEntries[iRecipNum].rgPropVals,
 		     &lpRecipients->aEntries[iRecipNum].cValues,
 		     strSearch.c_str(), NULL, ulRecipType, sptaRecipientProps);
-		if (hr != hrSuccess) {
-			// Fallback if the entry was not found (or errored) in the addressbook
-			int iNumTags = 8;
-	
-			iRecipNum = lpRecipients->cEntries;
-
-			if (wstrName.empty())
-				wstrName = m_converter.convert_to<wstring>(strEmail);
-
-			// will be cleaned up by caller.
-			hr = MAPIAllocateBuffer(sizeof(SPropValue) * iNumTags, (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals);	
-			if (hr != hrSuccess)
-				return hr;
-			
-			lpRecipients->aEntries[iRecipNum].cValues						= iNumTags;	
-			lpRecipients->aEntries[iRecipNum].ulReserved1					= 0;
-			
-			lpRecipients->aEntries[iRecipNum].rgPropVals[0].ulPropTag		= PR_RECIPIENT_TYPE;
-			lpRecipients->aEntries[iRecipNum].rgPropVals[0].Value.l			= ulRecipType;
-		
-			lpRecipients->aEntries[iRecipNum].rgPropVals[1].ulPropTag		= PR_DISPLAY_NAME_W;
-			hr = MAPIAllocateMore((wstrName.size()+1) * sizeof(WCHAR), lpRecipients->aEntries[iRecipNum].rgPropVals,
-			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW);
-			if (hr != hrSuccess)
-				return hr;
-			wcscpy(lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW, wstrName.c_str());
-
-			lpRecipients->aEntries[iRecipNum].rgPropVals[2].ulPropTag		= PR_SMTP_ADDRESS_A;
-			hr = MAPIAllocateMore(strEmail.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
-			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA);
-			if (hr != hrSuccess)
-				return hr;
-			strcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA, strEmail.c_str());
-
-			lpRecipients->aEntries[iRecipNum].rgPropVals[3].ulPropTag		= PR_ENTRYID;
-			hr = ECCreateOneOff((LPTSTR)wstrName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strEmail).c_str(),
-			     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
-			if (hr != hrSuccess)
-				return hr;
-				
-			hr = MAPIAllocateMore(cbEntryID, lpRecipients->aEntries[iRecipNum].rgPropVals,
-			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.lpb);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.cb = cbEntryID;
-			memcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.lpb, lpEntryID, cbEntryID);
-
-			lpRecipients->aEntries[iRecipNum].rgPropVals[4].ulPropTag	= PR_ADDRTYPE_W;
-			lpRecipients->aEntries[iRecipNum].rgPropVals[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-
-			strSearch = strToUpper("SMTP:" + strEmail);
-			lpRecipients->aEntries[iRecipNum].rgPropVals[5].ulPropTag	= PR_SEARCH_KEY;
-			lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.cb = strSearch.size() + 1; // we include the trailing 0 as MS does this also
-			hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
-			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb);
-			if (hr != hrSuccess)
-				return hr;
-			memcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
-
-			// Add Email address
-			lpRecipients->aEntries[iRecipNum].rgPropVals[6].ulPropTag		= PR_EMAIL_ADDRESS_A;
-			hr = MAPIAllocateMore(strEmail.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
-			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA);
-			if (hr != hrSuccess)
-				return hr;
-			strcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA, strEmail.c_str());
-
-			// Add display type
-			lpRecipients->aEntries[iRecipNum].rgPropVals[7].ulPropTag = PR_DISPLAY_TYPE;
-			lpRecipients->aEntries[iRecipNum].rgPropVals[7].Value.ul = DT_MAILUSER;			
+		if (hr == hrSuccess) {
+			++lpRecipients->cEntries;
+			continue;
 		}
+
+		// Fallback if the entry was not found (or errored) in the addressbook
+		int iNumTags = 8;
+
+		iRecipNum = lpRecipients->cEntries;
+
+		if (wstrName.empty())
+			wstrName = m_converter.convert_to<wstring>(strEmail);
+
+		// will be cleaned up by caller.
+		hr = MAPIAllocateBuffer(sizeof(SPropValue) * iNumTags, (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals);
+		if (hr != hrSuccess)
+			return hr;
+
+		lpRecipients->aEntries[iRecipNum].cValues = iNumTags;
+		lpRecipients->aEntries[iRecipNum].ulReserved1 = 0;
+
+		lpRecipients->aEntries[iRecipNum].rgPropVals[0].ulPropTag = PR_RECIPIENT_TYPE;
+		lpRecipients->aEntries[iRecipNum].rgPropVals[0].Value.l = ulRecipType;
+
+		lpRecipients->aEntries[iRecipNum].rgPropVals[1].ulPropTag = PR_DISPLAY_NAME_W;
+		hr = MAPIAllocateMore((wstrName.size()+1) * sizeof(WCHAR), lpRecipients->aEntries[iRecipNum].rgPropVals,
+		     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW);
+		if (hr != hrSuccess)
+			return hr;
+		wcscpy(lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW, wstrName.c_str());
+
+		lpRecipients->aEntries[iRecipNum].rgPropVals[2].ulPropTag = PR_SMTP_ADDRESS_A;
+		hr = MAPIAllocateMore(strEmail.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
+		     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA);
+		if (hr != hrSuccess)
+			return hr;
+		strcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA, strEmail.c_str());
+
+		lpRecipients->aEntries[iRecipNum].rgPropVals[3].ulPropTag = PR_ENTRYID;
+		hr = ECCreateOneOff((LPTSTR)wstrName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strEmail).c_str(),
+		     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
+		if (hr != hrSuccess)
+			return hr;
+
+		hr = MAPIAllocateMore(cbEntryID, lpRecipients->aEntries[iRecipNum].rgPropVals,
+		     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.lpb);
+		if (hr != hrSuccess)
+			return hr;
+
+		lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.cb = cbEntryID;
+		memcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.lpb, lpEntryID, cbEntryID);
+
+		lpRecipients->aEntries[iRecipNum].rgPropVals[4].ulPropTag = PR_ADDRTYPE_W;
+		lpRecipients->aEntries[iRecipNum].rgPropVals[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
+
+		strSearch = strToUpper("SMTP:" + strEmail);
+		lpRecipients->aEntries[iRecipNum].rgPropVals[5].ulPropTag = PR_SEARCH_KEY;
+		lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.cb = strSearch.size() + 1; // we include the trailing 0 as MS does this also
+		hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
+		     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb);
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
+
+		// Add Email address
+		lpRecipients->aEntries[iRecipNum].rgPropVals[6].ulPropTag = PR_EMAIL_ADDRESS_A;
+		hr = MAPIAllocateMore(strEmail.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
+		     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA);
+		if (hr != hrSuccess)
+			return hr;
+		strcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA, strEmail.c_str());
+
+		// Add display type
+		lpRecipients->aEntries[iRecipNum].rgPropVals[7].ulPropTag = PR_DISPLAY_TYPE;
+		lpRecipients->aEntries[iRecipNum].rgPropVals[7].Value.ul = DT_MAILUSER;
 		++lpRecipients->cEntries;
 	}
 	return hrSuccess;
