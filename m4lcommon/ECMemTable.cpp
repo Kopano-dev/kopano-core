@@ -907,9 +907,6 @@ HRESULT ECMemTableView::UpdateSortOrRestrict() {
 
 HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKey* lpsPrevRow, ULONG *lpulAction)
 {
-	std::unique_ptr<unsigned int[]> lpulSortLen;
-	std::unique_ptr<char *[]> lpSortKeys;
-	std::unique_ptr<uint8_t[]> lpFlags;
 	ULONG j;
 
 	// FIXME: mvprops?
@@ -921,18 +918,12 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 	if (iterData == lpMemTable->mapRows.cend())
 		return MAPI_E_NOT_FOUND;
 
-	if (lpsSortOrderSet && lpsSortOrderSet->cSorts > 0){
-		lpulSortLen.reset(new unsigned int [lpsSortOrderSet->cSorts]);
-		lpFlags.reset(new uint8_t[lpsSortOrderSet->cSorts]);
-		lpSortKeys.reset(new char *[lpsSortOrderSet->cSorts]);
-	}
-
 	// Check if there is a restriction in place, and if so, apply it
 	if (this->lpsRestriction != nullptr &&
 	    TestRestriction(this->lpsRestriction, iterData->second.cValues, iterData->second.lpsPropVal, m_locale) != hrSuccess) {
 		// no match
 		// Remove the row, ignore error
-		lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, lpsRowItem, 0, NULL, NULL, NULL, lpsPrevRow, false, (ECKeyTable::UpdateType*)lpulAction);
+		lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, lpsRowItem, {}, lpsPrevRow, false, (ECKeyTable::UpdateType *)lpulAction);
 		return hrSuccess;
 	}
 
@@ -940,37 +931,18 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 		return hrSuccess;
 
 	// Get all the sort columns and package them as binary keys
+	std::vector<ECSortCol> sortcols(lpsSortOrderSet->cSorts);
 	for (j = 0; j < lpsSortOrderSet->cSorts; ++j) {
 		auto lpsSortID = PCpropFindProp(iterData->second.lpsPropVal, iterData->second.cValues, lpsSortOrderSet->aSort[j].ulPropTag);
-		ECSortCol sc;
-		if (lpsSortID == NULL || GetBinarySortKey(lpsSortID, sc) != hrSuccess) {
-			lpulSortLen[j] = 0;
-			lpSortKeys[j] = NULL;
-			lpFlags[j] = 0;
+		if (lpsSortID == nullptr || GetBinarySortKey(lpsSortID, sortcols[j]) != hrSuccess)
 			continue;
-		}
-		if (!sc.isnull) {
-			lpulSortLen[j] = sc.key.size();
-			lpSortKeys[j] = new char[lpulSortLen[j]];
-			memcpy(lpSortKeys[j], sc.key.c_str(), lpulSortLen[j]);
-			lpFlags[j] = sc.flags;
-		} else {
-			lpulSortLen[j] = 0;
-			lpSortKeys[j] = nullptr;
-			lpFlags[j] = 0;
-		}
-
 		// Mark as descending if required
 		if(lpsSortOrderSet->aSort[j].ulOrder == TABLE_SORT_DESCEND)
-			lpFlags[j] |= TABLEROW_FLAG_DESC;
+			sortcols[j].flags |= TABLEROW_FLAG_DESC;
 	}
 	lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, lpsRowItem,
-		lpsSortOrderSet->cSorts, lpulSortLen.get(), lpFlags.get(),
-		lpSortKeys.get(), lpsPrevRow, false,
-		(ECKeyTable::UpdateType*)lpulAction);
-	// clean up GetBinarySortKey() allocs
-	for (j = 0; j < lpsSortOrderSet->cSorts; ++j)
-		delete[] lpSortKeys[j];
+		sortcols, lpsPrevRow, false,
+		reinterpret_cast<ECKeyTable::UpdateType *>(lpulAction));
 	return hrSuccess;
 }
 
@@ -1148,7 +1120,7 @@ HRESULT ECMemTableView::UpdateRow(ULONG ulUpdateType, ULONG ulId)
 	if(((this->lpsSortOrderSet == NULL  || this->lpsSortOrderSet->cSorts == 0) && this->lpsRestriction == NULL) ||
 		ulUpdateType == ECKeyTable::TABLE_ROW_DELETE)
 	{
-		er = lpKeyTable->UpdateRow((ECKeyTable::UpdateType)ulUpdateType, &sRowItem, 0, NULL, NULL, NULL, &sPrevRow, false, (ECKeyTable::UpdateType*)&ulTableEvent);
+		er = lpKeyTable->UpdateRow((ECKeyTable::UpdateType)ulUpdateType, &sRowItem, {}, &sPrevRow, false, reinterpret_cast<ECKeyTable::UpdateType *>(&ulTableEvent));
 		hr = kcerr_to_mapierr(er);
 	} else {
 		hr = ModifyRowKey(&sRowItem, &sPrevRow, &ulTableEvent);

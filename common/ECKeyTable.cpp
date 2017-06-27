@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <cassert>
 #include <kopano/ECKeyTable.h>
 #include <kopano/lockhelper.hpp>
@@ -81,72 +82,28 @@ bool operator>(const sObjectTableKey &a, const sObjectTableKey &b) noexcept
  *
  * Rows are immutable, changes are done with a delete/add
  */
-ECTableRow::ECTableRow(const sObjectTableKey &k, unsigned int ulSortCols,
-    const unsigned int *lpSortLen, const uint8_t *lpFlags,
-    char **lppSortData, bool hidden) :
-	sKey(k), fHidden(hidden)
+ECTableRow::ECTableRow(const sObjectTableKey &k,
+    const std::vector<ECSortCol> &cols, bool hidden) :
+	sKey(k), m_cols(cols), fHidden(hidden)
 {
-	initSortCols(ulSortCols, lpSortLen, lpFlags, lppSortData);
 }
 
 void ECTableRow::initSortCols(unsigned int ulSortCols,
     const unsigned int *lpSortLen, const uint8_t *lpFlags, char **lppSortData)
 {
-	int len = 0;
-
-	this->ulSortCols = ulSortCols;
-	
-	if(lpFlags) {
-		this->lpFlags = new uint8_t[ulSortCols];
-		memcpy(this->lpFlags, lpFlags, ulSortCols * sizeof(uint8_t));
-	} else {
-		this->lpFlags = NULL;
-	}
-	this->lpSortLen = new unsigned int[ulSortCols];
-	this->lppSortKeys = new char *[ulSortCols];
-
-	// Copy sort lengths
-	assert(ulSortCols == 0 || lpSortLen != NULL);
-	if (ulSortCols != 0 && lpSortLen != nullptr)
-		memcpy(this->lpSortLen, lpSortLen, sizeof(unsigned int) * ulSortCols);
-
-	// Copy sort keys
-	for (unsigned int i = 0; i < ulSortCols; ++i) {
-		len = lpSortLen[i];
-		len = len < 0 ? -len : len;
-		if (lppSortData[i] == nullptr) {
-			this->lppSortKeys[i] = nullptr;
-			continue;
-		}
-		this->lppSortKeys[i] = new char[len];
-		memcpy(this->lppSortKeys[i], lppSortData[i], len);
-	}
 }
 
 ECTableRow::ECTableRow(const ECTableRow &other) :
-	sKey(other.sKey), fHidden(other.fHidden)
+	sKey(other.sKey), m_cols(other.m_cols), fHidden(other.fHidden)
 {
-	initSortCols(other.ulSortCols, other.lpSortLen, other.lpFlags, other.lppSortKeys);
 }
 
 void ECTableRow::freeSortCols()
 {
-	unsigned int i=0;
-
-	delete[] lpSortLen;
-	if(lppSortKeys)
-	{
-		for (i = 0; i < ulSortCols; ++i)
-			delete [] lppSortKeys[i];
-
-		delete [] lppSortKeys;
-	}
-	delete[] lpFlags;
 }
 
 ECTableRow::~ECTableRow()
 {
-    freeSortCols();
 }
 
 /*
@@ -165,62 +122,54 @@ bool ECTableRow::rowcompare(const ECTableRow *a, const ECTableRow *b)
 		return true;
 	if(b->fRoot)
 		return false;
-		
-    return rowcompare(a->ulSortCols, a->lpSortLen, a->lppSortKeys, a->lpFlags, b->ulSortCols, b->lpSortLen, b->lppSortKeys, b->lpFlags);
+	return rowcompare(a->m_cols, b->m_cols);
 }
 
 // Does a normal row compare between two rows
-bool ECTableRow::rowcompare(unsigned int ulSortColsA,
-    const unsigned int *lpSortLenA, char **lppSortKeysA,
-    const uint8_t *lpSortFlagsA, unsigned int ulSortColsB,
-    const unsigned int *lpSortLenB, char **lppSortKeysB,
-    const uint8_t *lpSortFlagsB, bool fIgnoreOrder)
+bool ECTableRow::rowcompare(const ECSortColView &a, const ECSortColView &b,
+    bool fIgnoreOrder)
 {
-	unsigned int i=0;
 	bool ret = false;
-	unsigned int ulSortCols;
-	
-	ulSortCols = ulSortColsA < ulSortColsB ? ulSortColsA : ulSortColsB;
+	size_t i, ulSortCols = a.size() < b.size() ? a.size() : b.size();
 
 	for (i = 0; i < ulSortCols; ++i) {
+		const auto &ak = a[i].key, &bk = b[i].key;
 	    int cmp = 0;
 	    
-	    if(lpSortFlagsA && lpSortFlagsA[i] & TABLEROW_FLAG_FLOAT) {
-	        if(lpSortLenA[i] != sizeof(double) || lpSortLenB[i] != sizeof(double)) {
+	    if (a[i].flags & TABLEROW_FLAG_FLOAT) {
+			if (ak.size() != sizeof(double) || bk.size() != sizeof(double)) {
 	            cmp = 0;
             } else {
-                // only good way to cast from unsigned char * -> double is via a pointer
-    	        double *ad, *bd;
-	            ad = (double *)lppSortKeysA[i];
-	            bd = (double *)lppSortKeysB[i];
-	            
-	            if(*ad == *bd)
-	                cmp = 0;
-                else if(*ad < *bd)
-                    cmp = -1;
-                else cmp = 1;
+				double ad, bd;
+				memcpy(&ad, ak.c_str(), sizeof(double));
+				memcpy(&bd, bk.c_str(), sizeof(double));
+				if (ad == bd)
+					cmp = 0;
+				else if (ad < bd)
+					cmp = -1;
+				else
+					cmp = 1;
             }
-		} else if (lppSortKeysA[i] == nullptr && lppSortKeysB[i] == nullptr) {
+		} else if (a[i].isnull && b[i].isnull) {
 			cmp = 0;
-		} else if (lppSortKeysA[i] == nullptr) {
+		} else if (a[i].isnull) {
 			cmp = -1;
-		} else if (lppSortKeysB[i] == nullptr) {
+		} else if (b[i].isnull) {
 			cmp = 1;
-		} else if (lpSortFlagsA != nullptr && lpSortFlagsA[i] & TABLEROW_FLAG_STRING) {
-			cmp = compareSortKeys(std::string(lppSortKeysA[i], lpSortLenA[i]),
-			      std::string(lppSortKeysB[i], lpSortLenB[i]));
+		} else if (a[i].flags & TABLEROW_FLAG_STRING) {
+			cmp = compareSortKeys(ak, bk);
 		} else {
 	        // Sort data is pre-constructed so a simple memcmp suffices for sorting
-		    cmp = memcmp(lppSortKeysA[i], lppSortKeysB[i], lpSortLenA[i] < lpSortLenB[i] ? lpSortLenA[i] : lpSortLenB[i]);
+			cmp = memcmp(ak.c_str(), bk.c_str(), ak.size() < bk.size() ? ak.size() : bk.size());
         }
         
 		if(cmp < 0) {
 			ret = true;
 			break;
 		} else if (cmp == 0) {
-			if(lpSortLenA[i] == lpSortLenB[i])
+			if (ak.size() == bk.size())
 				continue;
-			ret = lpSortLenA[i] < lpSortLenB[i];
+			ret = ak.size() < bk.size();
 			break;
 		} else {
 			ret = false;
@@ -229,34 +178,30 @@ bool ECTableRow::rowcompare(unsigned int ulSortColsA,
 	}
  
 	if(i == ulSortCols) {
-		if (ulSortColsA == ulSortColsB)
+		if (a.size() == b.size())
 			// equal, always return false independent of asc/desc
 			return false;
 		// unequal number of sort columns, the item with the least sort columns comes first, independent of asc/desc
-		return ulSortColsA < ulSortColsB;
+		return a.size() < b.size();
 	}
 	// Unequal, flip order if desc
-	if (!fIgnoreOrder && lpSortFlagsA && (lpSortFlagsA[i] & TABLEROW_FLAG_DESC))
+	if (!fIgnoreOrder && a[i].flags & TABLEROW_FLAG_DESC)
 		return !ret;
 	else
 		return ret;
 }
 
 // Compares a row by looking only at a certain prefix of sort columns
-bool ECTableRow::rowcompareprefix(unsigned int ulPrefix,
-    unsigned int ulSortColsA, const unsigned int *lpSortLenA,
-    char **lppSortKeysA, const uint8_t *lpSortFlagsA, unsigned int ulSortColsB,
-    const unsigned int *lpSortLenB, char **lppSortKeysB,
-    const uint8_t *lpSortFlagsB)
+bool ECTableRow::rowcompareprefix(size_t prefix,
+    const std::vector<ECSortCol> &a, const std::vector<ECSortCol> &b)
 {
-    return ECTableRow::rowcompare(ulSortColsA > ulPrefix ? ulPrefix : ulSortColsA, lpSortLenA, lppSortKeysA, lpSortFlagsA,
-                                  ulSortColsB > ulPrefix ? ulPrefix : ulSortColsB, lpSortLenB, lppSortKeysB, lpSortFlagsB);
+	return rowcompare(ECSortColView(a, 0, a.size() > prefix ? prefix : a.size()),
+	                  ECSortColView(b, 0, b.size() > prefix ? prefix : b.size()));
 }
 
 bool ECTableRow::operator <(const ECTableRow &other) const
 {
-    return ECTableRow::rowcompare(ulSortCols, lpSortLen, lppSortKeys, lpFlags,
-                                  other.ulSortCols, other.lpSortLen, other.lppSortKeys, other.lpFlags, true);
+	return rowcompare(m_cols, other.m_cols, true);
 }
 
 /**
@@ -266,15 +211,9 @@ bool ECTableRow::operator <(const ECTableRow &other) const
  */
 unsigned int ECTableRow::GetObjectSize(void) const
 {
-	unsigned int ulSize = sizeof(*this);
-
-	if (ulSortCols > 0)
-	{
-		ulSize += (1 + 1 + sizeof(unsigned int)) * ulSortCols; // flag, SortKey, Sortlen
-		for (unsigned int i = 0; i < ulSortCols; ++i)
-			ulSize += lpSortLen[i];
-	}
-
+	size_t ulSize = sizeof(*this) + sizeof(ECSortCol) * m_cols.size();
+	for (const auto &p : m_cols)
+		ulSize += p.key.size();
 	return ulSize;
 }
 
@@ -282,8 +221,7 @@ ECKeyTable::ECKeyTable()
 {
 	sObjectTableKey sKey;
 	memset(&sKey, 0, sizeof(sObjectTableKey));
-
-	this->lpRoot = new ECTableRow(sKey, 0, NULL, NULL, NULL, false);
+	lpRoot = new ECTableRow(sKey, {}, false);
 	this->lpRoot->fRoot = true;
 	this->lpCurrent = lpRoot;
 
@@ -337,8 +275,7 @@ ECRESULT ECKeyTable::UpdateCounts(ECTableRow *lpRow)
 }
 
 ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
-    const sObjectTableKey *lpsRowItem, unsigned int ulSortCols,
-    const unsigned int *lpSortLen, const uint8_t *lpFlags, char **lppSortData,
+    const sObjectTableKey *lpsRowItem, const std::vector<ECSortCol> &dat,
     sObjectTableKey *lpsPrevRow, bool fHidden, UpdateType *lpulAction)
 {
 	ECRESULT er = erSuccess;
@@ -464,8 +401,7 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 				*lpulAction = TABLE_ROW_MODIFY;
 
 			// Create a new node
-			lpNewRow = new ECTableRow(*lpsRowItem, ulSortCols, lpSortLen, lpFlags, lppSortData, fHidden);
-
+			lpNewRow = new ECTableRow(*lpsRowItem, dat, fHidden);
 			if (iterMap->second == lpCurrent)
 			    fRelocateCursor = true;
 
@@ -508,7 +444,7 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 				return er;
 			}
 			// new row data is different, so delete the old row now
-			er = UpdateRow(TABLE_ROW_DELETE, lpsRowItem, 0, NULL, NULL, NULL, NULL);
+			er = UpdateRow(TABLE_ROW_DELETE, lpsRowItem, {}, nullptr);
 			if (er != erSuccess) {
 				// Delete the unused new node
 				delete lpNewRow;
@@ -521,7 +457,7 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 
 		// Create the row that we will be inserting
 		if(lpNewRow == NULL)
-			lpNewRow = new ECTableRow(*lpsRowItem, ulSortCols, lpSortLen, lpFlags, lppSortData, fHidden);
+			lpNewRow = new ECTableRow(*lpsRowItem, dat, fHidden);
 
 		// Do a binary search in the tree
 		while(1) {
@@ -1113,10 +1049,6 @@ void ECKeyTable::RestructureRecursive(ECTableRow *lpRow)
 ECRESULT ECKeyTable::GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTableList *lpRowList)
 {
     ECTableRow *lpCursor = NULL;
-    unsigned int ulSortColPrefixLen = 0;
-	char **lppSortData = nullptr;
-	unsigned int *lpSortLen = nullptr;
-	uint8_t *lpFlags = nullptr;
 	scoped_rlock biglock(mLock);
 	
 	lpCursor = lpCurrent;
@@ -1124,15 +1056,10 @@ ECRESULT ECKeyTable::GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTa
 	ECRESULT er = SeekId(lpsRowItem);
 	if(er != erSuccess)
 		return er;
-	    
-    ulSortColPrefixLen = lpCurrent->ulSortCols;
-    lppSortData = lpCurrent->lppSortKeys;
-    lpSortLen = lpCurrent->lpSortLen;
-    lpFlags = lpCurrent->lpFlags;
-	
+	const auto &dat = lpCurrent->m_cols;
     while(lpCurrent) {
         // Stop when lpCurrent > prefix, so prefix < lpCurrent
-        if(ECTableRow::rowcompareprefix(ulSortColPrefixLen, ulSortColPrefixLen, lpSortLen, lppSortData, lpFlags, lpCurrent->ulSortCols, lpCurrent->lpSortLen, lpCurrent->lppSortKeys, lpCurrent->lpFlags))
+		if (ECTableRow::rowcompareprefix(dat.size(), dat, lpCurrent->m_cols))
             break;
             
         lpRowList->push_back(lpCurrent->sKey);
@@ -1148,28 +1075,19 @@ ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lp
 {
     BOOL fCursorHidden = false;
     ECTableRow *lpCursor = NULL;
-    unsigned int ulSortColPrefixLen = 0;
-	char **lppSortData = nullptr;
-	unsigned int *lpSortLen = nullptr;
-	uint8_t *lpFlags = nullptr;
 	scoped_rlock biglock(mLock);
 
 	lpCursor = lpCurrent;
 	ECRESULT er = SeekId(lpsRowItem);
 	if(er != erSuccess)
 		return er;
-	    
-    ulSortColPrefixLen = lpCurrent->ulSortCols;
-    lppSortData = lpCurrent->lppSortKeys;
-    lpSortLen = lpCurrent->lpSortLen;
-    lpFlags = lpCurrent->lpFlags;
-	
+	const auto &dat = lpCurrent->m_cols;
     // Go to next row; we never hide the first row, as it is the header
     Next();
     
     while(lpCurrent) {
         // Stop hiding when lpCurrent > prefix, so prefix < lpCurrent
-        if(ECTableRow::rowcompareprefix(ulSortColPrefixLen, ulSortColPrefixLen, lpSortLen, lppSortData, lpFlags, lpCurrent->ulSortCols, lpCurrent->lpSortLen, lpCurrent->lppSortKeys, lpCurrent->lpFlags))
+		if (ECTableRow::rowcompareprefix(dat.size(), dat, lpCurrent->m_cols))
             break;
             
         lpHiddenList->push_back(lpCurrent->sKey);
@@ -1196,22 +1114,12 @@ ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lp
 // @todo lpCurrent should stay pointing at the same row we started at?
 ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lpUnhiddenList)
 {
-    unsigned int ulSortColPrefixLen = 0;
-    unsigned int ulFirstCols = 0;
-	char **lppSortData = nullptr;
-	unsigned int *lpSortLen = nullptr;
-	uint8_t *lpFlags = nullptr;
 	scoped_rlock biglock(mLock);
 
 	ECRESULT er = SeekId(lpsRowItem);
 	if(er != erSuccess)
 		return er;
-	    
-    ulSortColPrefixLen = lpCurrent->ulSortCols;
-    lppSortData = lpCurrent->lppSortKeys;
-    lpSortLen = lpCurrent->lpSortLen;
-    lpFlags = lpCurrent->lpFlags;
-    
+	const auto &dat = lpCurrent->m_cols;
 	if (lpCurrent->fHidden)
 		/* You cannot expand a category whose header is hidden */
 		return KCERR_NOT_FOUND;
@@ -1222,16 +1130,14 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
     if(lpCurrent == NULL)
 		return erSuccess; /* No more rows */
             
-    ulFirstCols = lpCurrent->ulSortCols;
-
+	auto ulFirstCols = lpCurrent->m_cols.size();
     while(lpCurrent) {
         // Stop unhiding when lpCurrent > prefix, so prefix < lpCurrent
-        if(ECTableRow::rowcompareprefix(ulSortColPrefixLen, ulSortColPrefixLen, lpSortLen, lppSortData, lpFlags, lpCurrent->ulSortCols, lpCurrent->lpSortLen, lpCurrent->lppSortKeys, lpCurrent->lpFlags))
+		if (ECTableRow::rowcompareprefix(dat.size(), dat, lpCurrent->m_cols))
             break;
 
         // Only unhide items with the same amount of sort columns as the first row (ensures we only expand the first layer)
-        if(lpCurrent->ulSortCols == ulFirstCols) {
-                
+		if (lpCurrent->m_cols.size() == ulFirstCols) {
             lpUnhiddenList->push_back(lpCurrent->sKey);
             lpCurrent->fHidden = false;
 
@@ -1243,8 +1149,7 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
 	return erSuccess;
 }
         
-ECRESULT ECKeyTable::LowerBound(unsigned int ulSortCols,
-    unsigned int *lpSortLen, char **lppSortData, uint8_t *lpFlags)
+ECRESULT ECKeyTable::LowerBound(const std::vector<ECSortCol> &cols)
 {
 	scoped_rlock biglock(mLock);
 
@@ -1254,7 +1159,7 @@ ECRESULT ECKeyTable::LowerBound(unsigned int ulSortCols,
 
     // This is a standard binary search through the entire tree	
 	while(lpCurrent) {
-	    if(ECTableRow::rowcompare(lpCurrent->ulSortCols, lpCurrent->lpSortLen, lpCurrent->lppSortKeys, lpCurrent->lpFlags, ulSortCols, lpSortLen, lppSortData, lpFlags)) {
+		if (ECTableRow::rowcompare(lpCurrent->m_cols, cols)) {
 	        // Value we're looking for is right
 	        if(lpCurrent->lpRight == NULL) {
                 // Value is not equal, go to next value
@@ -1275,16 +1180,14 @@ ECRESULT ECKeyTable::LowerBound(unsigned int ulSortCols,
 }
 
 // Find an exact match for a sort key
-ECRESULT ECKeyTable::Find(unsigned int ulSortCols, unsigned int *lpSortLen,
-    char **lppSortData, uint8_t *lpFlags, sObjectTableKey *lpsKey)
+ECRESULT ECKeyTable::Find(const std::vector<ECSortCol> &cols, sObjectTableKey *lpsKey)
 {
     ECRESULT er = erSuccess;
 	ECTableRow *lpCurPos = NULL;
 	scoped_rlock biglock(mLock);
 
 	lpCurPos = lpCurrent;
-
-    er = LowerBound(ulSortCols, lpSortLen, lppSortData, lpFlags);
+	er = LowerBound(cols);
     if(er != erSuccess)
         goto exit;
      
@@ -1295,10 +1198,10 @@ ECRESULT ECKeyTable::Find(unsigned int ulSortCols, unsigned int *lpSortLen,
     }
         
     // Lower bound has put us either on the first matching row, or at the first item which is *lpCurrent > *search, aka *lpCurrent >= *search
-    if(ECTableRow::rowcompare(ulSortCols, lpSortLen, lppSortData, lpFlags, lpCurrent->ulSortCols, lpCurrent->lpSortLen, lpCurrent->lppSortKeys, lpCurrent->lpFlags)) {
+    if (ECTableRow::rowcompare(cols, lpCurrent->m_cols))
         // *lpCurrent >= *search && *lpCurrent > *search, so *lpCurrent != *search
         er = KCERR_NOT_FOUND;
-    } else
+	else
 		*lpsKey = lpCurrent->sKey;
     
     // *lpCurrent >= *search && !(*lpCurrent > *search), so *lpCurrent >= *search && *lpCurrent <= *search, so *lpCurrent == *search
@@ -1344,44 +1247,26 @@ unsigned int ECKeyTable::GetObjectSize()
  * @return result
  */
 ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem,
-    unsigned int ulColumn, char *lpSortData, unsigned int ulSortLen,
-    uint8_t ulFlags, sObjectTableKey *lpsPrevRow, bool *lpfHidden,
-    ECKeyTable::UpdateType *lpulAction)
+    size_t ulColumn, const ECSortCol &col, sObjectTableKey *lpsPrevRow,
+    bool *lpfHidden, ECKeyTable::UpdateType *lpulAction)
 {
     ECRESULT er = erSuccess;
     ECTableRow *lpCursor = NULL;
-	std::unique_ptr<char *[]> lppSortKeys;
-	std::unique_ptr<unsigned int[]> lpSortLen;
-	std::unique_ptr<uint8_t[]> lpFlags;
 	ulock_rec biglock(mLock);
 
     er = GetRow(lpsRowItem, &lpCursor);
     if(er != erSuccess)
 		return er;
-	if (ulColumn >= lpCursor->ulSortCols)
+	if (ulColumn >= lpCursor->m_cols.size())
 		return KCERR_INVALID_PARAMETER;
     
-    // Copy the sortkeys that we used to have
-	lppSortKeys.reset(new char *[lpCursor->ulSortCols]);
-	lpSortLen.reset(new unsigned int[lpCursor->ulSortCols]);
-	lpFlags.reset(new uint8_t[lpCursor->ulSortCols]);
-
-    // Note: we can just copy the pointers of the sort data here, since they are still valid, and are also valid
-    // to pass into UpdateRow()        
-	memcpy(lppSortKeys.get(), lpCursor->lppSortKeys, sizeof(char *) * lpCursor->ulSortCols);
-	memcpy(lpSortLen.get(), lpCursor->lpSortLen, sizeof(unsigned int) * lpCursor->ulSortCols);
-	memcpy(lpFlags.get(), lpCursor->lpFlags, lpCursor->ulSortCols);
-    
-    // Modify the updated colum
-    lppSortKeys[ulColumn] = lpSortData;
-    lpSortLen[ulColumn] = ulSortLen;
-    lpFlags[ulColumn] = ulFlags;
-    
+	/* Copy the sortkeys that we used to have; modify the updated colum */
+	auto copy = lpCursor->m_cols;
+	copy[ulColumn] = col;
     if(lpfHidden)
 		*lpfHidden = lpCursor->fHidden;
-	return UpdateRow(TABLE_ROW_MODIFY, lpsRowItem, lpCursor->ulSortCols,
-	       lpSortLen.get(), lpFlags.get(), lppSortKeys.get(), lpsPrevRow,
-	       lpCursor->fHidden, lpulAction);
+	return UpdateRow(TABLE_ROW_MODIFY, lpsRowItem, copy,
+	       lpsPrevRow, lpCursor->fHidden, lpulAction);
 }
 
 /**

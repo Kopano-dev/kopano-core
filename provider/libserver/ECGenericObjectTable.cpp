@@ -1010,7 +1010,7 @@ ECRESULT ECGenericObjectTable::DeleteRow(sObjectTableKey sRow, unsigned int ulFl
     ECKeyTable::UpdateType ulAction;
 
     // Delete the row from the key table    
-	auto er = lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, &sRow, 0, NULL, NULL, NULL, NULL, false, &ulAction);
+	auto er = lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, &sRow, {}, nullptr, false, &ulAction);
     if(er != erSuccess)
 		return er;
     
@@ -1334,31 +1334,18 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
 	/* @cst now contains the collapse state for all categories, apply them now. */
 	for (gsoap_size_t i = 0; i < cst.sCategoryStates.__size; ++i) {
 		const auto &catprop = cst.sCategoryStates.__ptr[i].sProps;
-		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[catprop.__size]);
-		std::unique_ptr<char *[]> lpSortData(new char *[catprop.__size]);
-		std::unique_ptr<uint8_t[]> lpSortFlags(new uint8_t[catprop.__size]);
-		memset(lpSortData.get(), 0, catprop.__size * sizeof(char *));
-        
+		std::vector<ECSortCol> zort(catprop.__size);
+
 		// Get the binary sortkeys for all properties
 		for (gsoap_size_t n = 0; n < catprop.__size; ++n) {
-			ECSortCol sc;
-			if (GetBinarySortKey(&catprop.__ptr[n], sc) != erSuccess)
+			if (GetBinarySortKey(&catprop.__ptr[n], zort[n]) != erSuccess)
 				goto next;
-			if (!sc.isnull) {
-				lpSortLen[n] = sc.key.size();
-				lpSortData[n] = new char[lpSortLen[n]];
-				memcpy(lpSortData[n], sc.key.c_str(), lpSortLen[n]);
-			} else {
-				lpSortLen[n] = 0;
-			}
-			if (GetSortFlags(catprop.__ptr[n].ulPropTag, &lpSortFlags[n]) != erSuccess)
+			if (GetSortFlags(catprop.__ptr[n].ulPropTag, &zort[n].flags) != erSuccess)
 				goto next;
 		}
 
 		// Find the category and expand or collapse it. If it's not there anymore, just ignore it.
-		if (lpKeyTable->Find(catprop.__size, lpSortLen.get(),
-		    lpSortData.get(), lpSortFlags.get(), &sKey) == erSuccess) {
-
+		if (lpKeyTable->Find(zort, &sKey) == erSuccess) {
             sInstanceKey.__size = 8;
 			sInstanceKey.__ptr = (unsigned char *)&sKey;
             
@@ -1367,44 +1354,27 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
 			else
 				CollapseRow(sInstanceKey, 0, NULL);
 		}
-next:        
-		for (gsoap_size_t j = 0; j < catprop.__size; ++j)
-			delete[] lpSortData[j];
+ next: ;
     }
     
     // There is also a row stored in the collapse state which we have to create a bookmark at and return that. If it is not found,
     // we return a bookmark to the nearest next row.
 	if (cst.sBookMarkProps.__size > 0) {
-		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[cst.sBookMarkProps.__size]);
-		std::unique_ptr<char *[]> lpSortData(new char *[cst.sBookMarkProps.__size]);
-		std::unique_ptr<uint8_t[]> lpSortFlags(new uint8_t[cst.sBookMarkProps.__size]);
-		memset(lpSortData.get(), 0, cst.sBookMarkProps.__size * sizeof(char *));
-
+		std::vector<ECSortCol> zort(cst.sBookMarkProps.__size);
 		gsoap_size_t n;
+
 		for (n = 0; n < cst.sBookMarkProps.__size; ++n) {
-			ECSortCol sc;
-			if (GetBinarySortKey(&cst.sBookMarkProps.__ptr[n], sc) != erSuccess)
+			if (GetBinarySortKey(&cst.sBookMarkProps.__ptr[n], zort[n]) != erSuccess)
 				break;
-			if (!sc.isnull) {
-				lpSortLen[n] = sc.key.size();
-				lpSortData[n] = new char[lpSortLen[n]];
-				memcpy(lpSortData[n], sc.key.c_str(), lpSortLen[n]);
-			} else {
-				lpSortLen[n] = 0;
-			}
-			if (GetSortFlags(cst.sBookMarkProps.__ptr[n].ulPropTag, &lpSortFlags[n]) != erSuccess)
+			if (GetSortFlags(cst.sBookMarkProps.__ptr[n].ulPropTag, &zort[n].flags) != erSuccess)
 				break;
 		}
     
         // If an error occurred in the previous loop, just ignore the whole bookmark thing, just return bookmark 0 (BOOKMARK_BEGINNING)    
 		if (n == cst.sBookMarkProps.__size) {
-			lpKeyTable->LowerBound(cst.sBookMarkProps.__size,
-				lpSortLen.get(), lpSortData.get(), lpSortFlags.get());
+			lpKeyTable->LowerBound(zort);
             lpKeyTable->CreateBookmark(lpulBookmark);
         }
-
-		for (gsoap_size_t j = 0; j < cst.sBookMarkProps.__size; ++j)
-			delete[] lpSortData[j];
     }
     
 	/*
@@ -2297,9 +2267,6 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
     bool fPrevUnread = false;
     bool fNewLeaf = false;
     unsigned int i = 0;
-	std::unique_ptr<unsigned int[]> lpSortLen;
-	std::unique_ptr<char *[]> lppSortKeys;
-	std::unique_ptr<uint8_t[]> lpSortFlags;
     sObjectTableKey sPrevRow(0,0);
     ECCategory *lpCategory = NULL;
     LEAFINFO sLeafInfo;
@@ -2312,29 +2279,17 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
     bool fHidden = false;
     
     if(m_ulCategories == 0)
-		goto exit;
+		return erSuccess;
     
-	lpSortLen.reset(new unsigned int[cProps]);
-	lppSortKeys.reset(new char *[cProps]);
-	lpSortFlags.reset(new uint8_t[cProps]);
-	memset(lppSortKeys.get(), 0, cProps * sizeof(char *));
-
     // Build binary sort keys
     
     // +1 because we may have a trailing category followed by a MINMAX column
+	std::vector<ECSortCol> zort(cProps);
     for (i = 0; i < m_ulCategories + 1 && i < cProps; ++i) {
-		ECSortCol sc;
-		if (GetBinarySortKey(&lpProps[i], sc) != erSuccess)
-        	lppSortKeys[i] = NULL;
-		if (!sc.isnull) {
-			lpSortLen[i] = sc.key.size();
-			lppSortKeys[i] = new char[lpSortLen[i]];
-			memcpy(lppSortKeys[i], sc.key.c_str(), lpSortLen[i]);
-		} else {
-			lpSortLen[i] = 0;
-		}
-        if(GetSortFlags(lpProps[i].ulPropTag, &lpSortFlags[i]) != erSuccess)
-        	lpSortFlags[i] = 0;
+		if (GetBinarySortKey(&lpProps[i], zort[i]) != erSuccess)
+			zort[i].isnull = true;
+		if (GetSortFlags(lpProps[i].ulPropTag, &zort[i].flags) != erSuccess)
+			zort[i].flags = 0;
     }
 
     // See if we're dealing with a changed row, not a new row
@@ -2372,7 +2327,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
     for (i = 0; i < m_ulCategories && i < cProps; ++i) {
     	unsigned int ulDepth = i;
         bool fCategoryMoved = false; // TRUE if the entire category has moved somewhere (due to CATEG_MIN / CATEG_MAX change)
-		ECTableRow row(sObjectTableKey(0, 0), i + 1, lpSortLen.get(), lpSortFlags.get(), lppSortKeys.get(), false);
+		ECTableRow row(sObjectTableKey(0, 0), std::vector<ECSortCol>(&zort[0], &zort[i+1]), false);
 
         // Find the actual category in our sorted category map
 	auto iterCategoriesSorted = m_mapSortedCategories.find(row);
@@ -2478,11 +2433,11 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 				// Update the keytable with the new effective sort data for this column
 				
 				bool bDescend = lpsSortOrderArray->__ptr[ulDepth].ulOrder == EC_TABLE_SORT_DESCEND; // Column we're updating is descending
-				
+				auto oldflags = zort[i].flags;
+				zort[i].flags |= bDescend ? TABLEROW_FLAG_DESC : 0;
 				er = lpKeyTable->UpdatePartialSortKey(&obj,
-				     ulDepth, lppSortKeys[i], lpSortLen[i],
-				     lpSortFlags[i] | (bDescend ? TABLEROW_FLAG_DESC : 0),
-				     &sPrevRow, &fHidden, &ulAction);
+				     ulDepth, zort[i], &sPrevRow, &fHidden, &ulAction);
+				zort[i].flags = oldflags;
 				if (er != erSuccess)
 					goto exit;
 				if ((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden)
@@ -2512,9 +2467,6 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 		*lppCategory = lpCategory;
 	assert(m_mapCategories.size() == m_mapSortedCategories.size());
 exit:
-	if (lppSortKeys != nullptr)
-		for (i = 0; i < m_ulCategories + 1 && i < cProps; ++i)
-			delete[] lppSortKeys[i];
 	return er;
 }
 
@@ -2596,13 +2548,8 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
     }
 	
 	std::unique_ptr<struct propVal[]> lpOrderedProps(new struct propVal[cValues]);
-	std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[cValues]);
-	std::unique_ptr<char *[]> lppSortKeys(new char *[cValues]);
-	std::unique_ptr<uint8_t[]> lpSortFlags(new uint8_t[cValues]);
+	std::vector<ECSortCol> zort(cValues);
 	memset(lpOrderedProps.get(), 0, sizeof(struct propVal) * cValues);
-	memset(lpSortLen.get(), 0, sizeof(unsigned int) * cValues);
-	memset(lppSortKeys.get(), 0, sizeof(char *) * cValues);
-	memset(lpSortFlags.get(), 0, cValues);
 
 	for (unsigned int i = 0; i < cValues; ++i) {
 		if (ISMINMAX(lpsSortOrderArray->__ptr[i].ulOrder)) {
@@ -2628,31 +2575,21 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 	
     // Build binary sort keys from updated data
     for (int i = 0; i < n; ++i) {
-		ECSortCol sc;
-		if (GetBinarySortKey(&lpOrderedProps[i], sc) != erSuccess)
-        	lppSortKeys[i] = NULL;
-		if (!sc.isnull) {
-			lpSortLen[i] = sc.key.size();
-			lppSortKeys[i] = new char[lpSortLen[i]];
-			memcpy(lppSortKeys[i], sc.key.c_str(), lpSortLen[i]);
-		}
-        if(GetSortFlags(lpOrderedProps[i].ulPropTag, &lpSortFlags[i]) != erSuccess)
-        	lpSortFlags[i] = 0;
+		if (GetBinarySortKey(&lpOrderedProps[i], zort[i]) != erSuccess)
+			zort[i].isnull = true;
+		if (GetSortFlags(lpOrderedProps[i].ulPropTag, &zort[i].flags) != erSuccess)
+			zort[i].flags = 0;
         if(lpsSortOrderArray->__ptr[i].ulOrder == EC_TABLE_SORT_DESCEND)
-            lpSortFlags[i] |= TABLEROW_FLAG_DESC;
+			zort[i].flags |= TABLEROW_FLAG_DESC;
     }
 
     // Update row
 	er = lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, lpsRowKey,
-	     cValues, lpSortLen.get(), lpSortFlags.get(), lppSortKeys.get(),
-	     lpsPrevRow, fHidden, lpulAction);
+	     zort, lpsPrevRow, fHidden, lpulAction);
 exit:
 	if (lpOrderedProps != nullptr)
 		for (unsigned int i = 0; i < cValues; ++i)
 			FreePropVal(&lpOrderedProps[i], false);
-	if (lppSortKeys != nullptr)
-		for (unsigned int i = 0; i < cValues; ++i)
-			delete[] lppSortKeys[i];
 	return er;
 }
 
@@ -2680,8 +2617,6 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
     bool fModified = false;
     bool fHidden = false;
     unsigned int ulDepth = 0;
-	unsigned int ulSortLen = 0;
-	unsigned char ulSortFlags = 0;
 	struct propVal sProp;
 	
 	sProp.ulPropTag = PR_NULL;
@@ -2736,22 +2671,14 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 						sProp.Value.ul = KCERR_NOT_FOUND;
 					}
 
-					std::unique_ptr<char[]> lpSortKey;
-					ECSortCol sc;
-					if (GetBinarySortKey(&sProp, sc) != erSuccess)
-						lpSortKey = NULL;
-					if (!sc.isnull) {
-						ulSortLen = sc.key.size();
-						lpSortKey.reset(new char[ulSortLen]);
-						memcpy(lpSortKey.get(), sc.key.c_str(), ulSortLen);
-					} else {
-						ulSortLen = 0;
-					}
-					if(GetSortFlags(sProp.ulPropTag, &ulSortFlags) != erSuccess)
-						ulSortFlags = 0;
+					ECSortCol scol;
+					if (GetBinarySortKey(&sProp, scol) != erSuccess)
+						scol.isnull = true;
+					if (GetSortFlags(sProp.ulPropTag, &scol.flags) != erSuccess)
+						scol.flags = 0;
 					
-					ulSortFlags |=  lpsSortOrderArray->__ptr[ulDepth].ulOrder == EC_TABLE_SORT_DESCEND ? TABLEROW_FLAG_DESC : 0;
-					er = lpKeyTable->UpdatePartialSortKey(&obj, ulDepth, lpSortKey.get(), ulSortLen, ulSortFlags, &sPrevRow, &fHidden, &ulAction);
+					scol.flags |= lpsSortOrderArray->__ptr[ulDepth].ulOrder == EC_TABLE_SORT_DESCEND ? TABLEROW_FLAG_DESC : 0;
+					er = lpKeyTable->UpdatePartialSortKey(&obj, ulDepth, scol, &sPrevRow, &fHidden, &ulAction);
 					if (er != erSuccess)
 						goto exit;
 					if ((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden)
@@ -2776,7 +2703,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
         	m_mapSortedCategories.erase(lpCategory->iSortedCategory);
         	
         	// Remove the category from the keytable
-            lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, &sCatRow, 0, NULL, NULL, NULL, NULL, false, &ulAction);
+			lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, &sCatRow, {}, nullptr, false, &ulAction);
 
             // Remove the category from the category map
             assert(m_mapCategories.find(sCatRow) != m_mapCategories.end());
