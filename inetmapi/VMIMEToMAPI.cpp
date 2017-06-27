@@ -1134,7 +1134,7 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 /**
  * Adds recipients from a vmime list to rows for the recipient
  * table. Starts adding at offset in cEntries member of the lpRecipients
- * struct.
+ * struct. The caller must ensure that lpRecipients has enough storage.
  *
  * Entries are either converted to an addressbook entry, or an one-off entry.
  *
@@ -1156,7 +1156,6 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 	vmime::shared_ptr<vmime::address> vmAddress;
 	std::wstring	wstrName;
 	std::string		strEmail, strSearch;
-	unsigned int 	iRecipNum		= 0;
 
 	// order and types are important for modifyFromAddressBook()
 	static constexpr const SizedSPropTagArray(7, sptaRecipientProps) =
@@ -1209,7 +1208,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 			return MAPI_E_CALL_FAILED;
 		}
 
-		iRecipNum = lpRecipients->cEntries;
+		const unsigned int iRecipNum = lpRecipients->cEntries;
 
 		// use email address or fullname to find GAB entry, do not pass fullname to keep resolved addressbook fullname
 		strSearch = strEmail;
@@ -1227,9 +1226,6 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 
 		// Fallback if the entry was not found (or errored) in the addressbook
 		int iNumTags = 8;
-
-		iRecipNum = lpRecipients->cEntries;
-
 		if (wstrName.empty())
 			wstrName = m_converter.convert_to<wstring>(strEmail);
 
