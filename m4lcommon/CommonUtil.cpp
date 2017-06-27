@@ -1280,7 +1280,6 @@ private:
 
 static HRESULT TestRelop(ULONG relop, int result, bool* fMatch)
 {
-	HRESULT hr = hrSuccess;
 	switch (relop) {
 	case RELOP_LT:
 		*fMatch = result < 0;
@@ -1303,10 +1302,9 @@ static HRESULT TestRelop(ULONG relop, int result, bool* fMatch)
 	case RELOP_RE:
 	default:
 		*fMatch = false;
-		hr = MAPI_E_TOO_COMPLEX;
-		break;
+		return MAPI_E_TOO_COMPLEX;
 	};
-	return hr;
+	return hrSuccess;
 }
 
 #define RESTRICT_MAX_RECURSE_LEVEL 16

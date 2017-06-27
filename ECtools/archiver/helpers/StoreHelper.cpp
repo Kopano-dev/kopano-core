@@ -180,11 +180,7 @@ HRESULT StoreHelper::UpdateSearchFolders()
 	ptrPropValue->Value.MVbin.lpbin[1].lpb = ptrSearchDeleteEntryId->Value.bin.lpb;
 	ptrPropValue->Value.MVbin.lpbin[2].cb = ptrSearchStubEntryId->Value.bin.cb;
 	ptrPropValue->Value.MVbin.lpbin[2].lpb = ptrSearchStubEntryId->Value.bin.lpb;
-	
-	hr = HrSetOneProp(m_ptrMsgStore, ptrPropValue);
-	if (hr != hrSuccess)
-		return hr;
-	return hrSuccess;
+	return HrSetOneProp(m_ptrMsgStore, ptrPropValue);
 }
 
 /**

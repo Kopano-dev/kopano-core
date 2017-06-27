@@ -305,10 +305,7 @@ HRESULT vcftomapi_impl::vobject_to_named_prop(VObject *v, SPropValue &s,
 	hr = m_propobj->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
 	if (hr != hrSuccess)
 		return hr;
-	hr = vobject_to_prop(v, s, proptag->aulPropTag[0]);
-	if (hr != hrSuccess)
-		return hr;
-	return hrSuccess;
+	return vobject_to_prop(v, s, proptag->aulPropTag[0]);
 }
 
 HRESULT vcftomapi_impl::unicode_to_named_prop(const wchar_t *v, SPropValue &s,

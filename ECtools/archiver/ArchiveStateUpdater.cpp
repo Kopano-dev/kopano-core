@@ -333,28 +333,23 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive was explicitly attached");
 	}
 
-	if (ulDetachCount > 0) {
-		hr = ptrUserStoreHelper->SetArchiveList(lstCurrentArchives, true);
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to set archive list, hr=0x%08x", hr);
-			return hr;
-		}
-
-		if (!userName.empty())
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from '" TSTRING_PRINTF "'.", ulDetachCount, userName.c_str());
-		else {
-			tstring strUserName;
-			if (m_ptrSession->GetUserInfo(userId, &strUserName, NULL) == hrSuccess)
-				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from '" TSTRING_PRINTF "'.", ulDetachCount, strUserName.c_str());
-			else
-				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s).", ulDetachCount);
-		}
-
-		hr = ptrUserStoreHelper->UpdateSearchFolders();
-		if (hr != hrSuccess)
-			return hr;
+	if (ulDetachCount == 0)
+		return hrSuccess;
+	hr = ptrUserStoreHelper->SetArchiveList(lstCurrentArchives, true);
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to set archive list, hr=0x%08x", hr);
+		return hr;
 	}
-	return hrSuccess;
+	if (!userName.empty())
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from '" TSTRING_PRINTF "'.", ulDetachCount, userName.c_str());
+	else {
+		tstring strUserName;
+		if (m_ptrSession->GetUserInfo(userId, &strUserName, NULL) == hrSuccess)
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from '" TSTRING_PRINTF "'.", ulDetachCount, strUserName.c_str());
+		else
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s).", ulDetachCount);
+	}
+	return ptrUserStoreHelper->UpdateSearchFolders();
 }
 
 /**
@@ -577,11 +572,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 	hr = AddCouplingBased(info.userName, lstCouplings, ulAttachFlags);
 	if (hr != hrSuccess)
 		return hr;
-	hr = AddServerBased(info.userName, userId, lstServers, ulAttachFlags);
-	if (hr != hrSuccess)
-		return hr;
-
-	return hrSuccess;
+	return AddServerBased(info.userName, userId, lstServers, ulAttachFlags);
 }
 
 /**
@@ -608,12 +599,9 @@ HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const t
 		return hr;
 
 	hr = ptrArchiveHelper->GetArchiveEntry(false, lpObjEntry);
-	if (hr != hrSuccess) {
-		if (hr != MAPI_E_NOT_FOUND)
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive entry for folder '" TSTRING_PRINTF "', hr=0x%08x", strFolder.c_str(), hr);
-		return hr;
-	}
-	return hrSuccess;
+	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND)
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive entry for folder '" TSTRING_PRINTF "', hr=0x%08x", strFolder.c_str(), hr);
+	return hr;
 }
 
 } /* namespace */

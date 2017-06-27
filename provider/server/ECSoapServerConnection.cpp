@@ -400,10 +400,5 @@ ECRESULT ECSoapServerConnection::GetStats(unsigned int *lpulQueueLength, double 
     er = m_lpDispatcher->GetFrontItemAge(lpdblAge);
     if(er != erSuccess)
 		return er;
-        
-    er = m_lpDispatcher->GetThreadCount(lpulThreadCount, lpulIdleThreads);
-    if(er != erSuccess)
-		return er;
-
-	return erSuccess;
+	return m_lpDispatcher->GetThreadCount(lpulThreadCount, lpulIdleThreads);
 }

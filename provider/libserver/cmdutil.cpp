@@ -1274,10 +1274,7 @@ ECRESULT UpdateFolderCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsi
 	er = lpDatabase->DoUpdate(strQuery);
 	if(er != erSuccess)
 		return er;
-	er = UpdateTProp(lpDatabase, ulPropTag, ulParentId, ulFolderId);
-	if(er != erSuccess)
-		return er;
-	return erSuccess;
+	return UpdateTProp(lpDatabase, ulPropTag, ulParentId, ulFolderId);
 }
 
 ECRESULT CheckQuota(ECSession *lpecSession, ULONG ulStoreId)

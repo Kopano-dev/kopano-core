@@ -1652,10 +1652,8 @@ ZEND_FUNCTION(mapi_folder_createfolder) {
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	if (FolderCommentLen == 0) {
+	if (FolderCommentLen == 0)
 		lpszFolderComment = NULL;
-	}
 
 	ZEND_FETCH_RESOURCE_C(lpSrcFolder, LPMAPIFOLDER, &srcFolder, -1, name_mapi_folder, le_mapi_folder);
 

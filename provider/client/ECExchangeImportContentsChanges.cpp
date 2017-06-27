@@ -200,12 +200,7 @@ HRESULT ECExchangeImportContentsChanges::UpdateState(LPSTREAM lpStream){
 	hr = lpStream->Write(&m_ulSyncId, 4, &ulLen);
 	if(hr != hrSuccess)
 		return hr;
-
-	hr = lpStream->Write(&m_ulChangeId, 4, &ulLen);
-	if(hr != hrSuccess)
-		return hr;
-
-	return hrSuccess;
+	return lpStream->Write(&m_ulChangeId, 4, &ulLen);
 }
 
 HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage){

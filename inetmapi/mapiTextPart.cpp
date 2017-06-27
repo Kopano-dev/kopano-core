@@ -288,9 +288,7 @@ bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& paren
 				auto p = part.getBody()->getPartAt(i);
 				if (p.get() == &parent ||     // if "text/html" is in "multipart/related"
 				    p.get() == &textPart)     // if not...
-				{
 					foundPart = p;
-				}
 			}
 
 			if (foundPart)

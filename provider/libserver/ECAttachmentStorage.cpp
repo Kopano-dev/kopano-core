@@ -416,10 +416,7 @@ ECRESULT ECAttachmentStorage::LoadAttachment(struct soap *soap, ULONG ulObjId, U
 	auto er = GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId);
 	if (er != erSuccess)
 		return er;
-	er = LoadAttachmentInstance(soap, ulInstanceId, lpiSize, lppData);
-	if (er != erSuccess)
-		return er;
-	return erSuccess;
+	return LoadAttachmentInstance(soap, ulInstanceId, lpiSize, lppData);
 }
 
 /** 
@@ -442,10 +439,7 @@ ECRESULT ECAttachmentStorage::LoadAttachment(ULONG ulObjId, ULONG ulPropId, size
 	auto er = GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId);
 	if (er != erSuccess)
 		return er;
-	er = LoadAttachmentInstance(ulInstanceId, lpiSize, lpSink);
-	if (er != erSuccess)
-		return er;
-	return erSuccess;
+	return LoadAttachmentInstance(ulInstanceId, lpiSize, lpSink);
 }
 
 /** 

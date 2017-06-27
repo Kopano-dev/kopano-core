@@ -338,10 +338,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	hr = ptrServiceAdmin->GetServerDetails(lpSrvNameList, MAPI_UNICODE, &~lpSrvList);
 	if (hr == MAPI_E_NETWORK_ERROR) {
 		//support single server
-		hr = GetMailboxDataPerServer(lpMapiSession, "", lpCollector);
-		if (hr != hrSuccess)
-			return hr;
-		return hrSuccess;
+		return GetMailboxDataPerServer(lpMapiSession, "", lpCollector);
 	} else if (FAILED(hr)) {
 		ec_log_err("Unable to get server details: 0x%08X", hr);
 		if (hr == MAPI_E_NOT_FOUND) {

@@ -2036,7 +2036,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 		else if ((PROP_TYPE(ulPropTag2) & PT_MV_STRING8) == PT_MV_STRING8)
 			ulPropTag2 = CHANGE_PROP_TYPE(ulPropTag2, PT_MV_TSTRING);
 
-		// FIXME: Is this check correct, PT_STRING8 vs PT_ERROR == false and not a error? (RELOP_NE == true)
+		// FIXME: Is this check correct, PT_STRING8 vs PT_ERROR == false and not an error? (RELOP_NE == true)
 		if (PROP_TYPE(ulPropTag1) != PROP_TYPE(ulPropTag2))
 			// cannot compare two different types
 			return KCERR_INVALID_TYPE;

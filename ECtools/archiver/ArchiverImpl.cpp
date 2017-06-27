@@ -165,15 +165,14 @@ eResult ArchiverImpl::AutoAttach(unsigned int ulFlags)
 
 ECLogger* ArchiverImpl::GetLogger(eLogType which) const
 {
-    ECLogger* retval = NULL;
 	switch (which) {
 		case DefaultLog:
-            retval = ec_log_get();
-            break;
+			return ec_log_get();
 		case LogOnly:
-            retval = m_lpLogLogger;
+			return m_lpLogLogger;
+		default:
+			return nullptr;
 	}
-	return retval;
 }
 
 configsetting_t* ArchiverImpl::ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2)

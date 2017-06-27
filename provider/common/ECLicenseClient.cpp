@@ -123,14 +123,9 @@ ECRESULT ECLicenseClient::Auth(const unsigned char *lpData,
 
 ECRESULT ECLicenseClient::SetSerial(unsigned int ulServiceType, const std::string &strSerial, const std::vector<std::string> &lstCALs)
 {
-	ECRESULT er;
 	std::string strServiceType;
 
-	er = ServiceTypeToServiceTypeString(ulServiceType, strServiceType);
-	if (er != erSuccess)
-		return er;
-
-	return erSuccess;
+	return ServiceTypeToServiceTypeString(ulServiceType, strServiceType);
 }
 
 } /* namespace */

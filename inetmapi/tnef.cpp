@@ -854,11 +854,9 @@ HRESULT ECTNEF::HrReadPropStream(const char *lpBuffer, ULONG ulSize,
 
 		proplist.push_back(std::move(lpProp));
 		--ulProps;
-
-		if(ulRead & 3) {
+		if (ulRead & 3)
 			// Skip padding
 			lpBuffer += 4 - (ulRead & 3);
-		}
 	}
 
 	return hr;
@@ -1839,10 +1837,7 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, IStream *lpSourceStream, ULO
     hr = lpSourceStream->CopyTo(lpDestStream, sStat.cbSize, NULL, NULL);
     if(hr != hrSuccess)
 		return hr;
-    hr = HrWriteWord(lpDestStream, ulChecksum);
-    if(hr != hrSuccess)
-		return hr;
-    return hrSuccess;
+	return HrWriteWord(lpDestStream, ulChecksum);
 }
 
 /** 

@@ -31,7 +31,6 @@ LDAPCache::LDAPCache()
 
 bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 {
-	bool bCached = false;
 	scoped_rlock biglock(m_hMutex);
 
 	switch (objclass) {
@@ -41,24 +40,19 @@ bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		bCached = !m_lpUserCache->empty();
-		break;
+		return !m_lpUserCache->empty();
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		bCached = !m_lpGroupCache->empty();
-		break;
+		return !m_lpGroupCache->empty();
 	case CONTAINER_COMPANY:
-		bCached = !m_lpCompanyCache->empty();
-		break;
+		return !m_lpCompanyCache->empty();
 	case CONTAINER_ADDRESSLIST:
-		bCached = !m_lpAddressListCache->empty();
-		break;
+		return !m_lpAddressListCache->empty();
 	default:
-		break;
+		return false;
 	}
-	return bCached;
 }
 
 void LDAPCache::setObjectDNCache(objectclass_t objclass,

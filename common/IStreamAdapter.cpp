@@ -54,10 +54,9 @@ HRESULT IStreamAdapter::Read(void *pv, ULONG cb, ULONG *pcbRead)
 
 HRESULT IStreamAdapter::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 {
-	if(m_pos + cb > m_str.size()) {
+	if (m_pos + cb > m_str.size())
 		m_str.resize(m_pos+cb);
-	}
-	
+
 	memcpy(const_cast<char *>(m_str.data() + m_pos), pv, cb);
 	m_pos += cb;
 	

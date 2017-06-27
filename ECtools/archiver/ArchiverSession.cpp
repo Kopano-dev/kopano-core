@@ -277,31 +277,25 @@ HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPM
 	MsgStorePtr ptrUserStore;
 	ArchiverSessionPtr ptrSession;
 	
-	if (sEntryId.isWrapped()) {
-		entryid_t sTempEntryId = sEntryId;
-		std::string	strPath;
-
-		sTempEntryId.unwrap(&strPath);
-
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive store entryid is wrapped.");
-		
-		hr = CreateRemote(strPath.c_str(), m_lpLogger, &ptrSession);
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to create ArchiverSession on '%s' (hr=%s)", strPath.c_str(), stringify(hr, true).c_str());
-			return hr;
-		}
-		
-		hr = ptrSession->OpenStore(sTempEntryId, ulFlags, lppMsgStore);		
-	} else {	
+	if (!sEntryId.isWrapped()) {
 		hr = m_ptrSession->OpenMsgStore(0, sEntryId.size(), sEntryId, &iid_of(ptrUserStore), ulFlags, &~ptrUserStore);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open store. (entryid=%s, hr=%s)", sEntryId.tostring().c_str(), stringify(hr, true).c_str());
 			return hr;
 		}
-			
-		hr = ptrUserStore->QueryInterface(IID_IMsgStore, (LPVOID*)lppMsgStore);
+		return ptrUserStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMsgStore));
 	}
-	return hr;
+
+	entryid_t sTempEntryId = sEntryId;
+	std::string strPath;
+	sTempEntryId.unwrap(&strPath);
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive store entryid is wrapped.");
+	hr = CreateRemote(strPath.c_str(), m_lpLogger, &ptrSession);
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to create ArchiverSession on '%s' (hr=%s)", strPath.c_str(), stringify(hr, true).c_str());
+		return hr;
+	}
+	return ptrSession->OpenStore(sTempEntryId, ulFlags, lppMsgStore);
 }
 
 /**

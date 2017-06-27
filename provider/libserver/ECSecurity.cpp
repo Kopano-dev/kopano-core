@@ -986,10 +986,7 @@ ECRESULT ECSecurity::IsStoreOwner(unsigned int ulObjId) const
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL);
 	if(er != erSuccess)
 		return er;
-	er = IsOwner(ulStoreId);
-	if(er != erSuccess)
-		return er;
-	return erSuccess;
+	return IsOwner(ulStoreId);
 }
 
 /** 

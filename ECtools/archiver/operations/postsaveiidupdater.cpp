@@ -108,17 +108,17 @@ TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(const AttachPtr &pt
 { }
 
 HRESULT TaskVerifyAndUpdateInstanceId::DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) {
-	HRESULT hr = hrSuccess;
 	SBinary lhs, rhs;
 	lhs.cb = cbDestInstanceID;
 	lhs.lpb = (LPBYTE)lpDestInstanceID;
 	rhs.cb = m_destInstanceID.size();
 	rhs.lpb = m_destInstanceID;
 
-	if (Util::CompareSBinary(lhs, rhs) != 0)
-		hr = ptrMapper->SetMappedInstances(ulPropTag, sourceServerUID, cbSourceInstanceID, lpSourceInstanceID, destServerUID, cbDestInstanceID, lpDestInstanceID);
-
-	return hr;
+	if (Util::CompareSBinary(lhs, rhs) == 0)
+		return hrSuccess;
+	return ptrMapper->SetMappedInstances(ulPropTag, sourceServerUID,
+	       cbSourceInstanceID, lpSourceInstanceID, destServerUID,
+	       cbDestInstanceID, lpDestInstanceID);
 }
 
 PostSaveInstanceIdUpdater::PostSaveInstanceIdUpdater(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const TaskList &lstDeferred)

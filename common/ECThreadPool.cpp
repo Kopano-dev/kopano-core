@@ -245,28 +245,21 @@ void ECWaitableTask::execute()
  */
 bool ECWaitableTask::wait(unsigned timeout, unsigned waitMask) const
 {
-	bool bResult = false;
 	ulock_normal locker(m_hMutex);
 	
 	switch (timeout) {
 	case 0:
-		bResult = ((m_state & waitMask) != 0);
-		break;
-		
+		return (m_state & waitMask) != 0;
 	case WAIT_INFINITE:
 		m_hCondition.wait(locker, [&](void) { return m_state & waitMask; });
-		bResult = true;
-		break;
-		
+		return true;
 	default: 
 		while (!(m_state & waitMask))
 			if (m_hCondition.wait_for(locker, std::chrono::milliseconds(timeout)) ==
 			    std::cv_status::timeout)
 				break;
-		bResult = ((m_state & waitMask) != 0);
-		break;
+		return (m_state & waitMask) != 0;
 	}
-	return bResult;
 }
 
 } /* namespace */
