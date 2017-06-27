@@ -1209,6 +1209,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		}
 
 		const unsigned int iRecipNum = lpRecipients->cEntries;
+		auto &recip = lpRecipients->aEntries[iRecipNum];
 
 		// use email address or fullname to find GAB entry, do not pass fullname to keep resolved addressbook fullname
 		strSearch = strEmail;
@@ -1216,8 +1217,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 			strSearch = m_converter.convert_to<std::string>(wstrName);
 
 		// @todo: maybe make strSearch a wide string and check if we need to use the fullname argument for modifyFromAddressBook
-		hr = modifyFromAddressBook(&lpRecipients->aEntries[iRecipNum].rgPropVals,
-		     &lpRecipients->aEntries[iRecipNum].cValues,
+		hr = modifyFromAddressBook(&recip.rgPropVals, &recip.cValues,
 		     strSearch.c_str(), NULL, ulRecipType, sptaRecipientProps);
 		if (hr == hrSuccess) {
 			++lpRecipients->cEntries;
@@ -1225,72 +1225,71 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		}
 
 		// Fallback if the entry was not found (or errored) in the addressbook
-		int iNumTags = 8;
+		const int iNumTags = 8;
 		if (wstrName.empty())
 			wstrName = m_converter.convert_to<wstring>(strEmail);
 
 		// will be cleaned up by caller.
-		hr = MAPIAllocateBuffer(sizeof(SPropValue) * iNumTags, (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue) * iNumTags, reinterpret_cast<void **>(&recip.rgPropVals));
 		if (hr != hrSuccess)
 			return hr;
 
-		lpRecipients->aEntries[iRecipNum].cValues = iNumTags;
-		lpRecipients->aEntries[iRecipNum].ulReserved1 = 0;
-
-		lpRecipients->aEntries[iRecipNum].rgPropVals[0].ulPropTag = PR_RECIPIENT_TYPE;
-		lpRecipients->aEntries[iRecipNum].rgPropVals[0].Value.l = ulRecipType;
-
-		lpRecipients->aEntries[iRecipNum].rgPropVals[1].ulPropTag = PR_DISPLAY_NAME_W;
-		hr = MAPIAllocateMore((wstrName.size()+1) * sizeof(WCHAR), lpRecipients->aEntries[iRecipNum].rgPropVals,
-		     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW);
+		recip.cValues = iNumTags;
+		recip.ulReserved1 = 0;
+		auto &prop = recip.rgPropVals;
+		prop[0].ulPropTag = PR_RECIPIENT_TYPE;
+		prop[0].Value.l = ulRecipType;
+		prop[1].ulPropTag = PR_DISPLAY_NAME_W;
+		hr = MAPIAllocateMore((wstrName.size() + 1) * sizeof(wchar_t), prop,
+		     reinterpret_cast<void **>(&prop[1].Value.lpszW));
 		if (hr != hrSuccess)
 			return hr;
-		wcscpy(lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW, wstrName.c_str());
+		wcscpy(prop[1].Value.lpszW, wstrName.c_str());
 
-		lpRecipients->aEntries[iRecipNum].rgPropVals[2].ulPropTag = PR_SMTP_ADDRESS_A;
-		hr = MAPIAllocateMore(strEmail.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
-		     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA);
+		prop[2].ulPropTag = PR_SMTP_ADDRESS_A;
+		hr = MAPIAllocateMore(strEmail.size() + 1, prop,
+		     reinterpret_cast<void **>(&prop[2].Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
-		strcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA, strEmail.c_str());
+		strcpy(prop[2].Value.lpszA, strEmail.c_str());
 
-		lpRecipients->aEntries[iRecipNum].rgPropVals[3].ulPropTag = PR_ENTRYID;
+		prop[3].ulPropTag = PR_ENTRYID;
 		hr = ECCreateOneOff((LPTSTR)wstrName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strEmail).c_str(),
 		     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess)
 			return hr;
 
-		hr = MAPIAllocateMore(cbEntryID, lpRecipients->aEntries[iRecipNum].rgPropVals,
-		     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.lpb);
+		hr = MAPIAllocateMore(cbEntryID, prop,
+		     reinterpret_cast<void **>(&prop[3].Value.bin.lpb));
 		if (hr != hrSuccess)
 			return hr;
 
-		lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.cb = cbEntryID;
-		memcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.lpb, lpEntryID, cbEntryID);
+		prop[3].Value.bin.cb = cbEntryID;
+		memcpy(prop[3].Value.bin.lpb, lpEntryID, cbEntryID);
 
-		lpRecipients->aEntries[iRecipNum].rgPropVals[4].ulPropTag = PR_ADDRTYPE_W;
-		lpRecipients->aEntries[iRecipNum].rgPropVals[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
+		prop[4].ulPropTag = PR_ADDRTYPE_W;
+		prop[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 
 		strSearch = strToUpper("SMTP:" + strEmail);
-		lpRecipients->aEntries[iRecipNum].rgPropVals[5].ulPropTag = PR_SEARCH_KEY;
-		lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.cb = strSearch.size() + 1; // we include the trailing 0 as MS does this also
-		hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
-		     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb);
+		prop[5].ulPropTag = PR_SEARCH_KEY;
+		prop[5].Value.bin.cb = strSearch.size() + 1; // we include the trailing 0 as MS does this also
+		hr = MAPIAllocateMore(strSearch.size() + 1, prop,
+		     reinterpret_cast<void **>(&prop[5].Value.bin.lpb));
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
+		memcpy(prop[5].Value.bin.lpb, strSearch.c_str(), strSearch.size() + 1);
 
 		// Add Email address
-		lpRecipients->aEntries[iRecipNum].rgPropVals[6].ulPropTag = PR_EMAIL_ADDRESS_A;
-		hr = MAPIAllocateMore(strEmail.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
-		     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA);
+		prop[6].ulPropTag = PR_EMAIL_ADDRESS_A;
+		hr = MAPIAllocateMore(strEmail.size() + 1, prop,
+		     reinterpret_cast<void **>(&prop[6].Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
-		strcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA, strEmail.c_str());
+		strcpy(prop[6].Value.lpszA, strEmail.c_str());
 
 		// Add display type
-		lpRecipients->aEntries[iRecipNum].rgPropVals[7].ulPropTag = PR_DISPLAY_TYPE;
-		lpRecipients->aEntries[iRecipNum].rgPropVals[7].Value.ul = DT_MAILUSER;
+		prop[7].ulPropTag = PR_DISPLAY_TYPE;
+		prop[7].Value.ul = DT_MAILUSER;
 		++lpRecipients->cEntries;
 	}
 	return hrSuccess;
@@ -1347,20 +1346,20 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	if (hr != hrSuccess)
 		return hr;
 	lpAdrList->cEntries = 1;
-	lpAdrList->aEntries[0].cValues = 1;
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[0].rgPropVals);
+	auto &aent = lpAdrList->aEntries[0];
+	aent.cValues = 1;
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&aent.rgPropVals));
 	if (hr != hrSuccess)
 		return hr;
 
 	// static reference is OK here
 	if (!email || *email == '\0') {
-		lpAdrList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
-		lpAdrList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR *)fullname; // try to find with fullname for groups without email addresses
+		aent.rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
+		aent.rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(fullname); // try to find with fullname for groups without email addresses
 	}
 	else {
-		lpAdrList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_A;
-		lpAdrList->aEntries[0].rgPropVals[0].Value.lpszA = (char *)email; // normally resolve on email address
+		aent.rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_A;
+		aent.rgPropVals[0].Value.lpszA = const_cast<char *>(email); // normally resolve on email address
 	}
 	hr = MAPIAllocateBuffer(CbNewFlagList(1), &~lpFlagList);
 	if (hr != hrSuccess)
@@ -1381,7 +1380,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	// some, so asserts in some places).
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[0]) != PT_NULL) {
-		lpProp = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ADDRTYPE_W);
+		lpProp = PCpropFindProp(aent.rgPropVals, aent.cValues, PR_ADDRTYPE_W);
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[0]; // PR_xxx_ADDRTYPE;
 		assert(lpProp);
 		if (!lpProp) {
@@ -1394,14 +1393,14 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	}
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[1]) != PT_NULL) {
-		lpProp = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_DISPLAY_NAME_W);
+		lpProp = PCpropFindProp(aent.rgPropVals, aent.cValues, PR_DISPLAY_NAME_W);
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[1];	// PR_xxx_DISPLAY_NAME;
 		if (lpProp)
 			sRecipProps[cValues].Value.lpszW = lpProp->Value.lpszW;	// use addressbook version
 		else if (fullname && *fullname != '\0')
-			sRecipProps[cValues].Value.lpszW = (WCHAR *)fullname;	// use email version
+			sRecipProps[cValues].Value.lpszW = const_cast<wchar_t *>(fullname); // use email version
 		else if (email && *email != '\0')
-			sRecipProps[cValues].Value.lpszW = (WCHAR *)email;	// use email address
+			sRecipProps[cValues].Value.lpszW = reinterpret_cast<wchar_t *>(const_cast<char *>(email)); // use email address
 		else {
 			sRecipProps[cValues].ulPropTag = CHANGE_PROP_TYPE(lpPropsList->aulPropTag[1], PT_ERROR);
 			sRecipProps[cValues].Value.err = MAPI_E_NOT_FOUND;
@@ -1410,7 +1409,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	}
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[2]) != PT_NULL) {
-		lpProp = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_DISPLAY_TYPE);
+		lpProp = PCpropFindProp(aent.rgPropVals, aent.cValues, PR_DISPLAY_TYPE);
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[2]; // PR_xxx_DISPLAY_TYPE;
 		if (lpProp == nullptr)
 			sRecipProps[cValues].Value.ul = DT_MAILUSER;
@@ -1420,7 +1419,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	}
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[3]) != PT_NULL) {
-		lpProp = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_EMAIL_ADDRESS_W);
+		lpProp = PCpropFindProp(aent.rgPropVals, aent.cValues, PR_EMAIL_ADDRESS_W);
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[3]; // PR_xxx_EMAIL_ADDRESS;
 		assert(lpProp);
 		if (!lpProp) {
@@ -1433,7 +1432,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	}
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[4]) != PT_NULL) {
-		lpProp = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ENTRYID);
+		lpProp = PCpropFindProp(aent.rgPropVals, aent.cValues, PR_ENTRYID);
 		assert(lpProp);
 		if (lpProp == nullptr)
 			// the one exception I guess? Let the fallback code create a one off entryid
@@ -1444,7 +1443,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	}
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[5]) != PT_NULL) {
-		lpProp = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_SEARCH_KEY);
+		lpProp = PCpropFindProp(aent.rgPropVals, aent.cValues, PR_SEARCH_KEY);
 		if (!lpProp) {
 			sRecipProps[cValues].ulPropTag = CHANGE_PROP_TYPE(lpPropsList->aulPropTag[5], PT_ERROR);
 			sRecipProps[cValues].Value.err = MAPI_E_NOT_FOUND;
@@ -1456,7 +1455,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	}
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[6]) != PT_NULL) {
-		lpProp = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_SMTP_ADDRESS_W);
+		lpProp = PCpropFindProp(aent.rgPropVals, aent.cValues, PR_SMTP_ADDRESS_W);
 		if (!lpProp) {
 			sRecipProps[cValues].ulPropTag = CHANGE_PROP_TYPE(lpPropsList->aulPropTag[6], PT_ERROR); // PR_xxx_SMTP_ADDRESS;
 			sRecipProps[cValues].Value.err = MAPI_E_NOT_FOUND;
@@ -1467,7 +1466,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 		++cValues;
 	}
 
-	lpProp = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_OBJECT_TYPE);
+	lpProp = PCpropFindProp(aent.rgPropVals, aent.cValues, PR_OBJECT_TYPE);
 	assert(lpProp);
 	if (lpProp == nullptr)
 		sRecipProps[cValues].Value.ul = MAPI_MAILUSER;
