@@ -128,6 +128,7 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 
 	lpCmd->endpoint = strdup(strServerPath);
 	lpCmd->soap->sndbuf = lpCmd->soap->rcvbuf = 0;
+	lpCmd->soap->maxoccurs = SIZE_MAX; // override default limit of 100000, as this breaks ICS for large folders at least
 
 	// default allow SSLv3, TLSv1, TLSv1.1 and TLSv1.2
 	lpCmd->soap->ctx = SSL_CTX_new(SSLv23_method());
