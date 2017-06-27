@@ -898,6 +898,7 @@ endif
 dist_man_MANS = \
 	doc/kopano.7 \
 	doc/kopano-admin.8 \
+	doc/kopano-cli.8 \
 	doc/kopano-archiver.8 doc/kopano-archiver.cfg.5 \
 	doc/kopano-autorespond.8 \
 	doc/kopano-cfgchecker.8 \
