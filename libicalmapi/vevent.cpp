@@ -470,8 +470,11 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, m_lpNamedProps->aulPropTag[PROP_COUNTERPROPOSAL]);
 	if(lpPropVal && PROP_TYPE(lpPropVal->ulPropTag) == PT_BOOLEAN && lpPropVal->Value.b) {
 		bCounterProposal = true;
-		ulStartIndex = PROP_PROPOSEDSTART;
-		ulEndIndex = PROP_PROPOSEDEND;
+	        if(PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PROPOSEDSTART], PT_SYSTIME)) &&
+		   PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PROPOSEDEND], PT_SYSTIME))) {
+			ulStartIndex = PROP_PROPOSEDSTART;
+			ulEndIndex = PROP_PROPOSEDEND;
+		}
 	}
  	
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
