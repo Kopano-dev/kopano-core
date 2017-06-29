@@ -376,7 +376,7 @@ class Recurrence(object):
         # ReservedBlock2Size
         data += struct.pack('<I', 0)
 
-        self.item.prop(PidLidAppointmentRecur).value = data
+        self.item.set_value(PidLidAppointmentRecur, data)
 
     @property
     def _start(self):
@@ -430,7 +430,7 @@ class Recurrence(object):
             # Yearly, the last XX of YY
             rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, interval=self.period, byweekday=byweekday))
 
-        else:
+        elif self.pattern_type != 0: # XXX check 0
             raise NotSupportedError('Unsupported recurrence pattern: %d' % self.pattern_type)
 
         # Remove deleted ocurrences
@@ -447,15 +447,12 @@ class Recurrence(object):
 
     def exception_message(self, basedate):
         for message in self.item.items():
-            if message.prop(PidLidExceptionReplaceTime).value.date() == basedate.date():
+            replacetime = message.get_value(PidLidExceptionReplaceTime)
+            if replacetime and replacetime.date() == basedate.date():
                 return message
 
     def is_exception(self, basedate):
         return self.exception_message(basedate) is not None
-
-    def _override_prop(self, proptag, cal_item, item):
-        item_prop = item.get_prop(proptag) # XXX faster lookup
-        return bool(item_prop)
 
     def _update_exceptions(self, cal_item, item, startdate_val, enddate_val, basedate_val, exception, extended_exception, copytags, create=False): # XXX kill copytags, create args, just pass all properties as in php
         exception['start_datetime'] = startdate_val
@@ -464,8 +461,8 @@ class Recurrence(object):
         exception['override_flags'] = 0
 
         extended = False
-        if self._override_prop(PR_NORMALIZED_SUBJECT_W, cal_item, item):
-            subject = item.value(PR_NORMALIZED_SUBJECT_W)
+        subject = item.get_value(PR_NORMALIZED_SUBJECT_W)
+        if subject is not None:
             exception['override_flags'] |= ARO_SUBJECT
             exception['subject'] = subject.encode('cp1252', 'replace')
             extended = True
@@ -473,36 +470,41 @@ class Recurrence(object):
 
         # skip ARO_MEETINGTYPE (like php)
 
-        if self._override_prop(PidLidReminderDelta, cal_item, item):
+        reminder_delta = item.get_value(PidLidReminderDelta)
+        if reminder_delta is not None:
             exception['override_flags'] |= ARO_REMINDERDELTA
-            exception['reminder_delta'] = item.value(PidLidReminderDelta)
+            exception['reminder_delta'] = reminder_delta
 
-        if self._override_prop(PidLidReminderSet, cal_item, item):
+        reminder_set = item.get_value(PidLidReminderSet)
+        if reminder_set is not None:
             exception['override_flags'] |= ARO_REMINDERSET
-            exception['reminder_set'] = item.value(PidLidReminderSet)
+            exception['reminder_set'] = reminder_set
 
-        if self._override_prop(PidLidLocation, cal_item, item):
-            location = item.value(PidLidLocation)
+        location = item.get_value(PidLidLocation)
+        if location is not None:
             exception['override_flags'] |= ARO_LOCATION
             exception['location'] = location.encode('cp1252', 'replace')
             extended = True
             extended_exception['location'] = location
 
-        if self._override_prop(PidLidBusyStatus, cal_item, item):
+        busy_status = item.get_value(PidLidBusyStatus)
+        if busy_status is not None:
             exception['override_flags'] |= ARO_BUSYSTATUS
-            exception['busy_status'] = item.value(PidLidBusyStatus)
+            exception['busy_status'] = busy_status
 
         # skip ARO_ATTACHMENT (like php)
 
         # XXX php doesn't set the following by accident? ("alldayevent" not in copytags..)
         if not copytags or not create:
-            if self._override_prop(PidLidAppointmentSubType, cal_item, item):
+            sub_type = item.get_value(PidLidAppointmentSubType)
+            if sub_type is not None:
                 exception['override_flags'] |= ARO_SUBTYPE
-                exception['sub_type'] = item.value(PidLidAppointmentSubType)
+                exception['sub_type'] = sub_type
 
-        if self._override_prop(PidLidAppointmentColor, cal_item, item):
+        appointment_color = item.get_value(PidLidAppointmentColor)
+        if appointment_color is not None:
             exception['override_flags'] |= ARO_APPTCOLOR
-            exception['appointment_color'] = item.value(PidLidAppointmentColor)
+            exception['appointment_color'] = appointment_color
 
         if extended:
             extended_exception['start_datetime'] = startdate_val
@@ -512,17 +514,17 @@ class Recurrence(object):
     def _update_calitem(self, item):
         cal_item = self.item
 
-        cal_item.prop(PidLidSideEffects, create=True).value = 3441 # XXX spec, check php
-        cal_item.prop(PidLidSmartNoAttach, create=True).value = True
+        cal_item.set_value(PidLidSideEffects, 3441) # XXX spec, check php
+        cal_item.set_value(PidLidSmartNoAttach, True)
 
         # reminder
-        if cal_item.prop(PidLidReminderSet).value:
+        if cal_item.get_value(PidLidReminderSet) and cal_item.get_value(PidLidReminderDelta):
             occs = list(cal_item.occurrences(datetime.datetime.now(), datetime.datetime(2038,1,1))) # XXX slow for daily?
             occs.sort(key=lambda occ: occ.start)
             for occ in occs: # XXX check default/reminder props
-                dueby = occ.start - datetime.timedelta(minutes=cal_item.prop(PidLidReminderDelta).value)
+                dueby = occ.start - datetime.timedelta(minutes=cal_item.get_value(PidLidReminderDelta))
                 if dueby > datetime.datetime.now():
-                    cal_item.prop(PidLidReminderSignalTime).value = dueby
+                    cal_item.set_value(PidLidReminderSignalTime, dueby)
                     break
 
     def _update_embedded(self, basedate, message, item, copytags=None, create=False):
@@ -536,20 +538,16 @@ class Recurrence(object):
 
         message.mapiobj.SetProps(props)
 
-        message.prop(PR_MESSAGE_CLASS_W).value = u'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}'
-        message.prop(PidLidExceptionReplaceTime, create=True).value = basetime
+        message.set_value(PR_MESSAGE_CLASS_W, u'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}')
+        message.set_value(PidLidExceptionReplaceTime, basetime)
 
-        intended_busystatus = cal_item.prop(PidLidIntendedBusyStatus).value # XXX tentative? merge with modify_exc?
+        intended_busystatus = cal_item.get_value(PidLidIntendedBusyStatus) # XXX tentative? merge with modify_exc?
+        if intended_busystatus is not None:
+            message.set_value(PidLidBusyStatus, intended_busystatus)
 
-        message.prop(PidLidBusyStatus, create=True).value = intended_busystatus
-
-        message.prop(PidLidAppointmentSubType, create=True).value = cal_item.prop(PidLidAppointmentSubType).value
-
-        start = message.prop(PidLidAppointmentStartWhole).value
-        start_local = unixtime(time.mktime(_utils._from_gmt(start, self.tz).timetuple())) # XXX why local??
-
-        end = message.prop(PidLidAppointmentEndWhole).value
-        end_local = unixtime(time.mktime(_utils._from_gmt(end, self.tz).timetuple())) # XXX why local??
+        sub_type = cal_item.get_value(PidLidAppointmentSubType)
+        if sub_type is not None:
+            message.set_value(PidLidAppointmentSubType, sub_type)
 
         props = [
             SPropValue(PR_ATTACHMENT_FLAGS, 2), # XXX cannot find spec
@@ -558,9 +556,17 @@ class Recurrence(object):
             SPropValue(PR_ATTACH_FLAGS, 0),
             SPropValue(PR_ATTACH_METHOD, ATTACH_EMBEDDED_MSG),
             SPropValue(PR_DISPLAY_NAME_W, u'Exception'),
-            SPropValue(PR_EXCEPTION_STARTTIME, start_local),
-            SPropValue(PR_EXCEPTION_ENDTIME, end_local),
         ]
+
+        start = message.get_value(PidLidAppointmentStartWhole)
+        if start is not None:
+            start_local = unixtime(time.mktime(_utils._from_gmt(start, self.tz).timetuple())) # XXX why local??
+            props.append(SPropValue(PR_EXCEPTION_STARTTIME, start_local))
+
+        end = message.prop(PidLidAppointmentEndWhole).value
+        if end is not None:
+            end_local = unixtime(time.mktime(_utils._from_gmt(end, self.tz).timetuple())) # XXX why local??
+            props.append(SPropValue(PR_EXCEPTION_ENDTIME, end_local))
 
         message._attobj.SetProps(props)
         if not create: # XXX php bug?
@@ -576,15 +582,15 @@ class Recurrence(object):
 
         # create embedded item
         message_flags = MSGFLAG_READ
-        if item.prop(PR_MESSAGE_FLAGS).value == 0: # XXX wut/php compat
+        if item.get_value(PR_MESSAGE_FLAGS) == 0: # XXX wut/php compat
             message_flags |= MSGFLAG_UNSENT
         message = cal_item.create_item(message_flags)
 
         self._update_embedded(basedate, message, item, copytags, create=True)
 
-        message.prop(PidLidResponseStatus).value = respDeclined | respOrganized # XXX php bug for merge case?
+        message.set_value(PidLidResponseStatus, respDeclined | respOrganized) # XXX php bug for merge case?
         if copytags:
-            message.prop(PidLidBusyStatus).value = 0
+            message.set_value(PidLidBusyStatus, 0)
 
         # copy over recipients (XXX check php delta stuff..)
         table = item.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
@@ -651,18 +657,21 @@ class Recurrence(object):
 
         # update embedded item
         for message in cal_item.items(): # XXX no cal_item? to helper
-            if message.prop(PidLidExceptionReplaceTime).value.date() == basedate.date():
+            replacetime = message.get_value(PidLidExceptionReplaceTime)
+            if replacetime and replacetime.date() == basedate.date():
                 self._update_embedded(basedate, message, item, copytags)
 
-                if not copytags:
-                    message.prop(PR_ICON_INDEX).value = item.prop(PR_ICON_INDEX).value
+                icon_index = item.get_value(PR_ICON_INDEX)
+                if not copytags and icon_index is not None:
+                    message.set_value(PR_ICON_INDEX, icon_index)
 
                 message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
-
                 break
+        else:
+            return # XXX exception
 
         if copytags: # XXX bug in php code? (setallrecipients, !empty..)
-            message.prop(PidLidBusyStatus).value = 0
+            message.set_value(PidLidBusyStatus, 0)
 
             table = message.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
             table.SetColumns(_meetingrequest.RECIP_PROPS, 0)

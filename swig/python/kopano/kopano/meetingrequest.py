@@ -333,12 +333,15 @@ class MeetingRequest(object):
                 calendar.delete(cal_item)
 
             # determine existing exceptions
-            goid = self.item.prop(PidLidCleanGlobalObjectId)
-            restriction = Restriction(SPropertyRestriction(
-                RELOP_EQ, goid.proptag, SPropValue(goid.proptag, goid.mapiobj.Value))
-            )
-            existing_items = list(calendar.items(restriction))
-            existing_items.sort(key=lambda i: i.prop(PidLidAppointmentStartWhole).value) # XXX check php
+            goid = self.item.get_prop(PidLidCleanGlobalObjectId)
+            if goid is not None:
+                restriction = Restriction(SPropertyRestriction(
+                    RELOP_EQ, goid.proptag, SPropValue(goid.proptag, goid.mapiobj.Value))
+                )
+                existing_items = list(calendar.items(restriction))
+                existing_items.sort(key=lambda i: i.get_value(PidLidAppointmentStartWhole)) # XXX check php
+            else:
+                existing_items = []
 
             # create new recurrence
             cal_item = self.item.copy(calendar)
@@ -445,8 +448,8 @@ class MeetingRequest(object):
                         recurrence.create_exception(basedate, self.item, copytags)
 
                     message = recurrence.exception_message(basedate)
-                    message.prop(PidLidBusyStatus).value = libfreebusy.fbFree
-                    message.prop(PR_MESSAGE_FLAGS).value = MSGFLAG_UNSENT | MSGFLAG_READ
+                    message.set_value(PidLidBusyStatus, libfreebusy.fbFree)
+                    message.set_value(PR_MESSAGE_FLAGS, MSGFLAG_UNSENT | MSGFLAG_READ)
 
                     message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -483,7 +486,9 @@ class MeetingRequest(object):
                 if recurrence.is_exception(basedate):
                     message = recurrence.exception_message(basedate)
 
-                    message.prop(PR_OWNER_APPT_ID, create=True).value = self.item.prop(PR_OWNER_APPT_ID).value
+                    owner_appt_id = self.item.get_value(PR_OWNER_APPT_ID)
+                    if owner_appt_id is not None:
+                        message.set_value(PR_OWNER_APPT_ID, owner_appt_id)
                     attach = message._attobj
         else:
             message = cal_item
@@ -527,8 +532,8 @@ class MeetingRequest(object):
         message.mapiobj.ModifyRecipients(MODRECIP_MODIFY, rows)
 
         # counter proposal
-        if self.item.get_value(PidLidAppointmentCounterProposal) is True:
-            message.prop(PidLidAppointmentCounterProposal, create=True, proptype=PT_BOOLEAN).value = True
+        if self.item.get_value(PidLidAppointmentCounterProposal):
+            message.set_value(PidLidAppointmentCounterProposal, True)
 
         # save all the things
         message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
