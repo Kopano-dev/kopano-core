@@ -192,7 +192,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 			return MAPI_E_NOT_FOUND;
 
 		rowset_ptr lpRows;
-		hr = MAPIAllocateBuffer(sizeof(SRowSet), &~lpRows);
+		hr = MAPIAllocateBuffer(CbNewSRowSet(1), &~lpRows);
 		if (hr != hrSuccess)
 			return hr;
 		lpRows->cRows = 1;
