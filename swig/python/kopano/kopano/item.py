@@ -937,7 +937,7 @@ class Item(Base):
 
     @property
     def embedded(self): # XXX deprecate?
-        return self.items().next()
+        return next(self.items())
 
     def create_item(self, message_flags=None):
         """ Create embedded :class:`item <Item>` """

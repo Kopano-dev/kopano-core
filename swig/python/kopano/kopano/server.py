@@ -198,7 +198,7 @@ class Server(object):
         self._gab = None
         entryid = HrGetOneProp(self.mapistore, PR_STORE_ENTRYID).Value
         self.pseudo_url = entryid[entryid.find(b'pseudo:'):-1] # XXX ECSERVER
-        self.name = self.pseudo_url[9:] # XXX get this kind of stuff from pr_ec_statstable_servers..?
+        self.name = self.pseudo_url[9:].decode('ascii') # XXX encoding, get this kind of stuff from pr_ec_statstable_servers..?
 
     def nodes(self): # XXX delay mapi sessions until actually needed
         for row in self.table(PR_EC_STATSTABLE_SERVERS).dict_rows():
