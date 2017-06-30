@@ -514,7 +514,10 @@ class Server(object):
                 yield store
 
     def remove_store(self, store):
-        self.sa.RemoveStore(_unhex(store.guid))
+        try:
+            self.sa.RemoveStore(_unhex(store.guid))
+        except MAPIErrorCollision:
+            raise Error("cannot remove store with GUID '%s'" % store.guid)
 
     def sync_users(self):
         self.sa.SyncUsers(None)
