@@ -37,49 +37,9 @@ kopano-migration-pst \- Utility to import PST files into Kopano
 kopano\-migration\-pst is a utility to import PST files into Kopano\&. As PST files are basically MAPI dumps, and Kopano also uses MAPI internally, there should be practically no data loss, even including calendar data\&.
 .SH "OPTIONS"
 .PP
-\fB\-\-user\fR, \fB\-u\fR \fINAME\fR
+\fB\-\-auth\-pass\fR, \fB\-P\fR \fIPASS\fR
 .RS 4
-Name of user(s) for who to import the specified PST file(s)\&.
-.RE
-.PP
-\fB\-\-stats\fR
-.RS 4
-List folders contained in specified PST file(s)\&.
-.RE
-.PP
-\fB\-\-index\fR
-.RS 4
-List messages/items contained in specified PST file(s)\&.
-.RE
-.PP
-\fB\-\-import\-root\fR \fIPATH\fR
-.RS 4
-Import data under folder with specific path (or name)\&.
-.RE
-.PP
-\fB\-\-clean\-folders\fR
-.RS 4
-Empty target folders before importing into them\&.
-.RE
-.PP
-\fB\-\-folder\fR, \fB\-f\fR \fIPATH\fR
-.RS 4
-Import only folder(s) with specified path\&.
-.RE
-.PP
-\fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
-.RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq\&.
-.RE
-.PP
-\fB\-\-config\fR, \fB\-c\fR \fIFILE\fR
-.RS 4
-Load configuration settings from specified file\&.
-.RE
-.PP
-\fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
-.RS 4
-Connect to storage server through specified socket\&.
+Authenticate with specified password\&.
 .RE
 .PP
 \fB\-\-auth\-user\fR, \fB\-U\fR \fINAME\fR
@@ -87,9 +47,39 @@ Connect to storage server through specified socket\&.
 Authenticate as specified user\&.
 .RE
 .PP
-\fB\-\-auth\-pass\fR, \fB\-P\fR \fIPASS\fR
+\fB\-\-clean\-folders\fR
 .RS 4
-Authenticate with specified password\&.
+Empty target folders before importing into them\&.
+.RE
+.PP
+\fB\-\-config\fR, \fB\-c\fR \fIFILE\fR
+.RS 4
+Load configuration settings from specified file\&.
+.RE
+.PP
+\fB\-\-folder\fR, \fB\-f\fR \fIPATH\fR
+.RS 4
+Import only folder(s) with specified path(s)\&.
+.RE
+.PP
+\fB\-\-import\-root\fR \fIPATH\fR
+.RS 4
+Import data under folder with specific path (or name)\&.
+.RE
+.PP
+\fB\-\-index\fR
+.RS 4
+List messages/items contained in specified PST file\&.
+.RE
+.PP
+\fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
+.RS 4
+Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq\&.
+.RE
+.PP
+\fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
+.RS 4
+Connect to storage server through specified socket\&.
 .RE
 .PP
 \fB\-\-ssl\-key\fR, \fB\-k\fR \fIFILE\fR
@@ -101,6 +91,30 @@ Specify SSL key file\&.
 .RS 4
 Specify SSL key password\&.
 .RE
+.PP
+\fB\-\-stats\fR
+.RS 4
+List folders contained in specified PST file\&.
+.RE
+.PP
+\fB\-\-store\fR, \fB\-S\fR \fIGUID\fR
+.RS 4
+GUID of store where to import specified PST file (or "public" to import to public store)\&.
+.RE
+.PP
+\fB\-\-user\fR, \fB\-u\fR \fINAME\fR
+.RS 4
+Name of user for who to import the specified PST file\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Import PST file name "outlook.pst" to store of user "bert":
+.PP
+\fBkopano\-migration\-pst \-u bert outlook.pst\fR
+.PP
+Import PST file name "public.pst" into (new or existing) "imported" folder of public store:
+.PP
+\fBkopano\-migration\-pst \-S public --import-root=imported=public.pst\fR
 .SH "AUTHOR"
 .PP
 Written by Kopano\&.
