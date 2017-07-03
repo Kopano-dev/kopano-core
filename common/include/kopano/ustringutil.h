@@ -24,6 +24,7 @@
 
 #include <unicode/coll.h>
 #include <unicode/sortkey.h>
+#include <unicode/unistr.h>
 
 namespace KC {
 typedef Locale ECLocale;

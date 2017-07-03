@@ -73,8 +73,7 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include <unicode/coleitr.h>
 #include <unicode/normlzr.h>
 #include <unicode/ustring.h>
-
-#include "ustringutil/utfutil.h"
+#include <kopano/charset/convert.h>
 
 typedef std::unique_ptr<Collator> unique_ptr_Collator;
 
@@ -114,6 +113,23 @@ exit:
 	freelocale(loc);
 
 	return needlestart;
+}
+
+static inline UnicodeString StringToUnicode(const char *sz)
+{
+	// *tocode, const _From_Type &_from, size_t cbBytes, const char *fromcode
+	auto strUTF16 = convert_context().convert_to<std::string>("UTF-16LE", sz, rawsize(sz), "");
+	return UnicodeString(reinterpret_cast<const UChar *>(strUTF16.data()), strUTF16.length() / 2);
+}
+
+static inline UnicodeString UTF8ToUnicode(const char *utf8)
+{
+	return UnicodeString::fromUTF8(utf8);
+}
+
+static inline UnicodeString WCHARToUnicode(const wchar_t *sz)
+{
+	return UnicodeString::fromUTF32(reinterpret_cast<const UChar32 *>(sz), -1);
 }
 
 /**
@@ -1067,7 +1083,7 @@ void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale, unsig
 	assert(lpcbKey != NULL);
 	assert(lppKey != NULL);
 	UnicodeString ustring;
-	ustring = UTF32ToUnicode((const UChar32*)s);
+	ustring = WCHARToUnicode(s);
 	createSortKeyData(ustring, nCap, locale, lpcbKey, lppKey);
 }
 

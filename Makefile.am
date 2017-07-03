@@ -662,7 +662,7 @@ noinst_HEADERS += \
 	common/ConsoleTable.h common/ECACL.h common/ECCache.h common/ECConfigImpl.h \
 	common/ECFifoBuffer.h common/ECSerializer.h common/StatsClient.h \
 	common/SymmetricCrypt.h common/TimeUtil.h common/TmpPath.h common/fileutil.h \
-	common/charset/localeutil.h common/ustringutil/utfutil.h \
+	common/charset/localeutil.h \
 	common/utf8/core.h common/utf8/unchecked.h
 libkcutil_la_SOURCES = \
 	common/ConsoleTable.cpp common/ECACL.cpp common/ECCache.cpp \
@@ -675,7 +675,7 @@ libkcutil_la_SOURCES = \
 	common/platform.linux.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
 	common/charset/convstring.cpp common/charset/traits.cpp \
-	common/charset/localeutil.cpp common/ustringutil/utfutil.cpp
+	common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
 	-lpthread -lz ${CRYPTO_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${UUID_LIBS}
 libkcutil_la_SYFLAGS = -Wl,--version-script=common/libkcutil.sym
