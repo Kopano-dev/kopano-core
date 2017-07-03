@@ -1,5 +1,5 @@
 """
-Part of the high-level python bindings for Kopano
+Part of the high-level python bindings for Kopano.
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
@@ -67,9 +67,9 @@ else:
 # avoid module-class-decorator-cache-store references, which are
 # somehow not dereferenced correctly (python bug?), resulting in
 # many valgrind errors
-def clear_cache():
+def _clear_cache():
     Server._store2.cache_clear()
-atexit.register(clear_cache)
+atexit.register(_clear_cache)
 
 def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     # used with permission from will mcgugan, https://www.willmcgugan.com
@@ -101,25 +101,27 @@ def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     return decorate
 
 class Server(object):
-    """Server class
-
-    By default, tries to connect to a storage server as configured in ``/etc/kopano/admin.cfg`` or
-    at UNIX socket ``/var/run/kopano/server.sock``
-
-    Looks at command-line to see if another server address or other related options were given (such as -c, -s, -k, -p)
-
-    :param server_socket: similar to 'server_socket' option in config file
-    :param sslkey_file: similar to 'sslkey_file' option in config file
-    :param sslkey_pass: similar to 'sslkey_pass' option in config file
-    :param config: path of configuration file containing common server options, for example ``/etc/kopano/admin.cfg``
-    :param auth_user: username to user for user authentication
-    :param auth_pass: password to use for user authentication
-    :param log: logger object to receive useful (debug) information
-    :param options: OptionParser instance to get settings from (see :func:`parser`)
-    :param parse_args: set this True if cli arguments should be parsed
-    """
+    """Server class."""
 
     def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True):
+        """
+        Create Server instance.
+
+        By default, tries to connect to a storage server as configured in ``/etc/kopano/admin.cfg`` or
+        at UNIX socket ``/var/run/kopano/server.sock``
+
+        Looks at command-line to see if another server address or other related options were given (such as -c, -s, -k, -p)
+
+        :param server_socket: similar to 'server_socket' option in config file
+        :param sslkey_file: similar to 'sslkey_file' option in config file
+        :param sslkey_pass: similar to 'sslkey_pass' option in config file
+        :param config: path of configuration file containing common server options, for example ``/etc/kopano/admin.cfg``
+        :param auth_user: username to user for user authentication
+        :param auth_pass: password to use for user authentication
+        :param log: logger object to receive useful (debug) information
+        :param options: OptionParser instance to get settings from (see :func:`parser`)
+        :param parse_args: set this True if cli arguments should be parsed
+        """
         self.options = options
         self.config = config
         self.sslkey_file = sslkey_file
@@ -220,7 +222,6 @@ class Server(object):
 
     @property
     def ab(self):
-        """ Address Book """
         if not self._ab:
             self._ab = self.mapisession.OpenAddressBook(0, None, 0) # XXX
         return self._ab
@@ -233,21 +234,17 @@ class Server(object):
 
     @property
     def gab(self):
-        """ Global Address Book """
-
         if not self._gab:
             self._gab = self.ab.OpenEntry(self.ab.GetDefaultDir(), None, 0)
         return self._gab
 
     @property
     def guid(self):
-        """ Server GUID """
-
+        """Return server GUID."""
         return bin2hex(HrGetOneProp(self.mapistore, PR_MAPPING_SIGNATURE).Value)
 
     def user(self, name=None, email=None, create=False):
-        """ Return :class:`user <User>` with given name """
-
+        """Return :class:`user <User>` with given name."""
         try:
             return _user.User(name, email=email, server=self)
         except NotFoundError:
@@ -257,20 +254,18 @@ class Server(object):
                 raise
 
     def get_user(self, name):
-        """ Return :class:`user <User>` with given name or *None* if not found """
-
+        """Return :class:`user <User>` with given name or *None* if not found."""
         try:
             return self.user(name)
         except NotFoundError:
             pass
 
     def users(self, remote=False, system=False, parse=True):
-        """ Return all :class:`users <User>` on server
+        """Return all :class:`users <User>` on server.
 
-            :param remote: include users on remote server nodes
-            :param system: include system users
+        :param remote: include users on remote server nodes
+        :param system: include system users
         """
-
         if parse and getattr(self.options, 'users', None):
             for username in self.options.users:
                 yield _user.User(_decode(username), self)
@@ -287,9 +282,9 @@ class Server(object):
                         yield _user.User(server=self, ecuser=ecuser)
 
     def create_user(self, name, email=None, password=None, company=None, fullname=None, create_store=True):
-        """ Create a new :class:`user <Users>` on the server
+        """Create a new :class:`user <User>` on the server.
 
-        :param name: the login name of the new user
+        :param name: the login name of the user
         :param email: the email address of the user
         :param password: the login password of the user
         :param company: the company of the user
@@ -330,8 +325,7 @@ class Server(object):
         self.sa.DeleteUser(user._ecuser.UserID)
 
     def company(self, name, create=False):
-        """ Return :class:`company <Company>` with given name """
-
+        """Return :class:`company <Company>` with given name."""
         try:
             return Company(name, self)
         except MAPIErrorNoSupport:
@@ -343,8 +337,7 @@ class Server(object):
                 raise
 
     def get_company(self, name):
-        """ Return :class:`company <Company>` with given name or *None* if not found """
-
+        """Return :class:`company <Company>` with given name or *None* if not found."""
         try:
             return self.company(name)
         except NotFoundError:
@@ -363,8 +356,7 @@ class Server(object):
 
     @property
     def multitenant(self):
-        """ Return boolean showing if the server is multitenant """
-
+        """Return boolean showing if the server is multitenant."""
         try:
             self._companylist()
             return True
@@ -372,9 +364,9 @@ class Server(object):
             return False
 
     def companies(self, remote=False, parse=True): # XXX remote?
-        """ Return all :class:`companies <Company>` on server
+        """Return all :class:`companies <Company>` on server.
 
-            :param remote: include companies without users on this server node
+        :param remote: include companies without users on this server node
         """
         if parse and getattr(self.options, 'companies', None):
             for name in self.options.companies:
@@ -391,6 +383,10 @@ class Server(object):
             yield Company(u'Default', self)
 
     def create_company(self, name):
+        """Create a new :class:`company <Company>` on the server.
+
+        :param name: the name of the company
+        """
         name = _unicode(name)
         try:
             self.sa.CreateCompany(ECCOMPANY(name, None), MAPI_UNICODE)
@@ -419,8 +415,7 @@ class Server(object):
         return self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore, MDB_WRITE)
 
     def groups(self):
-        """ Return all :class:`groups <Group>` on server """
-
+        """Return all :class:`groups <Group>` on server."""
         try:
             for ecgroup in self.sa.GetGroupList(None, MAPI_UNICODE):
                 yield Group(ecgroup.Groupname, self)
@@ -428,11 +423,16 @@ class Server(object):
             pass
 
     def group(self, name):
-        """ Return :class:`group <Group>` with given name """
-
+        """Return :class:`group <Group>` with given name."""
         return Group(name, self)
 
     def create_group(self, name, fullname='', email='', hidden=False, groupid=None):
+        """Create a new :class:`group <Group>` on the server.
+
+        :param name: the name of the group
+        :param fullname: the full name of the group (optional)
+        :param email: the email address of the group (optional)
+        """
         name = _unicode(name) # XXX: fullname/email unicode?
         email = _unicode(email)
         fullname = _unicode(fullname)
@@ -447,13 +447,17 @@ class Server(object):
         group = self.group(name)
         self.sa.DeleteGroup(group._ecgroup.GroupID)
 
-    def delete(self, items):
-        if isinstance(items, (_user.User, Group, Company, _store.Store)):
-            items = [items]
-        else:
-            items = list(items)
+    def delete(self, objects):
+        """Delete users, groups, companies or stores from server.
 
-        for item in items:
+        :param objects: users, groups, companies or stores
+        """
+        if isinstance(objects, (_user.User, Group, Company, _store.Store)):
+            objects = [objects]
+        else:
+            objects = list(objects)
+
+        for item in objects:
             if isinstance(item, _user.User):
                 self.remove_user(item.name)
             elif isinstance(item, Group):
@@ -475,29 +479,25 @@ class Server(object):
             return company.public_store
 
     def store(self, guid=None, entryid=None):
-        """ Return :class:`store <Store>` with given GUID """
-
+        """Return :class:`store <Store>` with given GUID."""
         if _unicode(guid).split('@')[0] == 'public':
             return self._pubstore(guid)
         else:
             return _store.Store(guid=guid, entryid=entryid, server=self)
 
     def get_store(self, guid):
-        """ Return :class:`store <Store>` with given GUID or *None* if not found """
-
+        """Return :class:`store <Store>` with given GUID or *None* if not found."""
         try:
             return self.store(guid)
         except Error:
             pass
 
     def stores(self, system=False, remote=False, parse=True): # XXX implement remote
-        """ Return all :class:`stores <Store>` on server node
+        """Return all :class:`stores <Store>` on server node.
 
         :param system: include system stores
         :param remote: include stores on other nodes
-
         """
-
         if parse and getattr(self.options, 'stores', None):
             for guid in self.options.stores:
                 if guid.split('@')[0] == 'public':
@@ -543,36 +543,36 @@ class Server(object):
 
     @property
     def public_store(self):
-        """ public :class:`store <Store>` in single-company mode """
-
+        """Return public :class:`store <Store>` in single-company mode."""
         return self._pubhelper().public_store
 
     def create_public_store(self):
-
+        """Create public :class:`store <Store>` in single-company mode."""
         return self._pubhelper().create_public_store()
 
     def hook_public_store(self, store):
+        """Hook public :class:`store <Store>` in single-company mode.
 
+        :param store: store to hook
+        """
         return self._pubhelper().hook_public_store(store)
 
     def unhook_public_store(self):
-
+        """Unhook public :class:`store <Store>` in single-company mode."""
         return self._pubhelper().unhook_public_store()
 
     @property
     def state(self):
-        """ Current server state """
-
+        """Return current server state."""
         return _ics.state(self.mapistore)
 
     def sync(self, importer, state, log=None, max_changes=None, window=None, begin=None, end=None, stats=None):
-        """ Perform synchronization against server node
+        """Perform synchronization against server node.
 
         :param importer: importer instance with callbacks to process changes
         :param state: start from this state (has to be given)
         :log: logger instance to receive important warnings/errors
         """
-
         importer.store = None
         return _ics.sync(self, self.mapistore, importer, state, log or self.log, max_changes, window=window, begin=begin, end=end, stats=stats)
 
