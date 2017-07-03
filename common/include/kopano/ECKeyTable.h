@@ -89,6 +89,12 @@ typedef std::list<sObjectTableKey> ECObjectTableList;
 #define TABLEROW_FLAG_FLOAT		0x00000002
 #define TABLEROW_FLAG_STRING	0x00000004
 
+struct ECSortCol {
+	public:
+	bool isnull = false; /* go use std::optional with C++17 */
+	std::string key;
+};
+
 class _kc_export ECTableRow _kc_final {
 public:
 	ECTableRow(const sObjectTableKey &, unsigned int ulSortCols, const unsigned int *lpSortLen, const unsigned char *lpFlags, unsigned char **lppSortData, bool fHidden);
