@@ -4,7 +4,15 @@ Part of the high-level python bindings for Kopano
 Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 """
 
-from .compat import repr as _repr
+from MAPI.Tags import (
+    PR_RULE_CONDITION, PR_RULE_ACTIONS, PR_RULE_PROVIDER, ACTTYPE, PR_ENTRYID,
+)
+from MAPI.Defs import (
+    PpropFindProp
+)
+from .compat import (
+    hex as _hex, repr as _repr,
+)
 from .defs import *
 
 class Delegation(object):
@@ -34,7 +42,31 @@ class Delegation(object):
         fbmsg.SetProps([flags])
         fbmsg.SaveChanges(0)
 
+    @property # XXX setter
+    def send_copy(self):
+        """Delegate receives copies of meeting requests."""
+        for rule in self.store.inbox.rules():
+            if rule.mapirow[PR_RULE_PROVIDER] == 'Schedule+ EMS Interface':
+                actions = rule.mapirow[PR_RULE_ACTIONS].lpAction
+                if actions[0].acttype == ACTTYPE.OP_DELEGATE:
+                    for addrentry in actions[0].actobj.lpadrlist:
+                        entryid = PpropFindProp(addrentry, PR_ENTRYID)
+                        return _hex(entryid.Value) == self.user.userid
+        return False
+
+    @staticmethod
+    def _delete_after_copy(store):
+        """Delete meetingrequests after copying them to delegates."""
+        for rule in store.inbox.rules():
+            if rule.mapirow[PR_RULE_PROVIDER] == 'Schedule+ EMS Interface':
+                actions = rule.mapirow[PR_RULE_ACTIONS].lpAction
+                if len(actions) >= 2 and actions[1].acttype == ACTTYPE.OP_DELETE:
+                    return True
+        return False
+
     def _delete(self):
+        # XXX update delegate rule
+
         fbmsg, (entryids, names, flags) = self.store._fbmsg_delgs()
         pos = entryids.Value.index(self.user.userid.decode('hex'))
 

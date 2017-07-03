@@ -535,6 +535,11 @@ class Store(Base):
         else:
             raise NotFoundError("no delegation for user '%s'" % user.name)
 
+    @property # XXX better name? setter
+    def delegation_delete_after_copy(self):
+        """Delete meetingrequests after copying them to delegates."""
+        return Delegation._delete_after_copy(self)
+
     def favorites(self):
         """Returns all favorite folders"""
 
