@@ -37,7 +37,7 @@ if sys.hexversion >= 0x03000000:
         return pickle.loads(s, encoding='bytes')
 
     def hex(s):
-        return codecs.encode(s, 'hex').upper()
+        return codecs.encode(s, 'hex').upper().decode('ascii')
 
     def unhex(s):
         return codecs.decode(s, 'hex')

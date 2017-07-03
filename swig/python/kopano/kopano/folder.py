@@ -489,12 +489,11 @@ class Folder(Base):
                 yield f
                 for f in folders_recursive(children[feid], depth+1):
                     yield f
+
         rootfolders = []
         for eid, (folder, parenteid) in folders.items():
             if parenteid not in folders:
                 rootfolders.append((eid, folder))
-            else:
-                children[folders[parenteid][0]].append((eid, folder))
         for f in folders_recursive(rootfolders):
             yield f
 
