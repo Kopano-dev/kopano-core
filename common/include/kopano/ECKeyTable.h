@@ -121,19 +121,12 @@ class _kc_export ECTableRow _kc_final {
 public:
 	ECTableRow(const sObjectTableKey &, const std::vector<ECSortCol> &, bool hidden);
 	ECTableRow(const ECTableRow &other);
-	~ECTableRow();
 	_kc_hidden unsigned int GetObjectSize(void) const;
 	_kc_hidden static bool rowcompare(const ECTableRow *, const ECTableRow *);
 	_kc_hidden static bool rowcompare(const ECSortColView &, const ECSortColView &, bool ignore_order = false);
 	_kc_hidden static bool rowcompareprefix(size_t prefix, const std::vector<ECSortCol> &, const std::vector<ECSortCol> &);
 	bool operator < (const ECTableRow &other) const;
-	
 
-private:
-	_kc_hidden void initSortCols(unsigned int sortcols, const unsigned int *sortlen, const uint8_t *flags, char **sortdata);
-	_kc_hidden void freeSortCols(void);
-	ECTableRow &operator=(const ECTableRow &) = delete;
-public:
 	sObjectTableKey	sKey;
 	std::vector<ECSortCol> m_cols;
 

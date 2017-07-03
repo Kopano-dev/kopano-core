@@ -88,21 +88,8 @@ ECTableRow::ECTableRow(const sObjectTableKey &k,
 {
 }
 
-void ECTableRow::initSortCols(unsigned int ulSortCols,
-    const unsigned int *lpSortLen, const uint8_t *lpFlags, char **lppSortData)
-{
-}
-
 ECTableRow::ECTableRow(const ECTableRow &other) :
 	sKey(other.sKey), m_cols(other.m_cols), fHidden(other.fHidden)
-{
-}
-
-void ECTableRow::freeSortCols()
-{
-}
-
-ECTableRow::~ECTableRow()
 {
 }
 
