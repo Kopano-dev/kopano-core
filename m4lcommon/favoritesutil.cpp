@@ -197,12 +197,12 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	lpsMsgList->cValues = 0;
 
 	// add entryid
-	lpsMsgList->lpbin[lpsMsgList->cValues].cb = lpRows->aRow[0].lpProps[0].Value.bin.cb;
-
-	if ((hr = MAPIAllocateMore(lpsMsgList->lpbin[lpsMsgList->cValues].cb, lpsMsgList, (void **) &lpsMsgList->lpbin[lpsMsgList->cValues].lpb)) != hrSuccess)
+	auto bin = &lpsMsgList->lpbin[lpsMsgList->cValues];
+	bin->cb = lpRows->aRow[0].lpProps[0].Value.bin.cb;
+	hr = MAPIAllocateMore(bin->cb, lpsMsgList, reinterpret_cast<void **>(&bin->lpb));
+	if (hr != hrSuccess)
 		return hr;
-
-	memcpy(lpsMsgList->lpbin[lpsMsgList->cValues].lpb, lpRows->aRow[0].lpProps[0].Value.bin.lpb, lpsMsgList->lpbin[lpsMsgList->cValues].cb);
+	memcpy(bin->lpb, lpRows->aRow[0].lpProps[0].Value.bin.lpb, bin->cb);
 	++lpsMsgList->cValues;
 
 	strSourceKey.assign((char*)lpRows->aRow[0].lpProps[1].Value.bin.lpb, lpRows->aRow[0].lpProps[1].Value.bin.cb);
@@ -233,11 +233,12 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 //FIXME: check the properties in the row!!!!
 
 			// add entryid
-			lpsMsgList->lpbin[lpsMsgList->cValues].cb = lpRows->aRow[0].lpProps[0].Value.bin.cb;
-
-			if ((hr = MAPIAllocateMore(lpsMsgList->lpbin[lpsMsgList->cValues].cb, lpsMsgList, (void **) &lpsMsgList->lpbin[lpsMsgList->cValues].lpb)) != hrSuccess)
+			bin = &lpsMsgList->lpbin[lpsMsgList->cValues];
+			bin->cb = lpRows->aRow[0].lpProps[0].Value.bin.cb;
+			hr = MAPIAllocateMore(bin->cb, lpsMsgList, reinterpret_cast<void **>(&bin->lpb));
+			if (hr != hrSuccess)
 				return hr;
-			memcpy(lpsMsgList->lpbin[lpsMsgList->cValues].lpb, lpRows->aRow[0].lpProps[0].Value.bin.lpb, lpsMsgList->lpbin[lpsMsgList->cValues].cb);
+			memcpy(bin->lpb, lpRows->aRow[0].lpProps[0].Value.bin.lpb, bin->cb);
 			++lpsMsgList->cValues;
 
 			// Add sourcekey into the list

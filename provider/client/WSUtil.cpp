@@ -2157,83 +2157,90 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notifica
 	case fnevCriticalError:// ERROR_NOTIFICATION
 		hr = MAPI_E_INVALID_PARAMETER;
 		break;
-	case fnevNewMail://NEWMAIL_NOTIFICATION
+	case fnevNewMail: { // NEWMAIL_NOTIFICATION
+		auto &dst = lpNotification->info.newmail;
 		if (lpSrc->newmail->pEntryId != nullptr)
 			// Ignore error now
 			// FIXME: This must exist, so maybe give an error or skip them
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pEntryId, &lpNotification->info.newmail.cbEntryID, &lpNotification->info.newmail.lpEntryID, lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pEntryId, &dst.cbEntryID, &dst.lpEntryID, lpNotification);
 		if (lpSrc->newmail->pParentId != nullptr)
 			// Ignore error
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pParentId, &lpNotification->info.newmail.cbParentID, &lpNotification->info.newmail.lpParentID, lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pParentId, &dst.cbParentID, &dst.lpParentID, lpNotification);
 		if(lpSrc->newmail->lpszMessageClass != NULL) {
 			nLen = strlen(lpSrc->newmail->lpszMessageClass)+1;
-			hr = ECAllocateMore(nLen, lpNotification, reinterpret_cast<void **>(&lpNotification->info.newmail.lpszMessageClass));
+			hr = ECAllocateMore(nLen, lpNotification, reinterpret_cast<void **>(&dst.lpszMessageClass));
 			if (hr != hrSuccess)
 				break;
-			memcpy(lpNotification->info.newmail.lpszMessageClass, lpSrc->newmail->lpszMessageClass, nLen);
+			memcpy(dst.lpszMessageClass, lpSrc->newmail->lpszMessageClass, nLen);
 		}
-		lpNotification->info.newmail.ulFlags = 0;
-		lpNotification->info.newmail.ulMessageFlags = lpSrc->newmail->ulMessageFlags;
+		dst.ulFlags = 0;
+		dst.ulMessageFlags = lpSrc->newmail->ulMessageFlags;
 		break;
+	}
 	case fnevObjectCreated:// OBJECT_NOTIFICATION
 	case fnevObjectDeleted:
 	case fnevObjectModified:
 	case fnevObjectCopied:
 	case fnevObjectMoved:
-	case fnevSearchComplete:
+	case fnevSearchComplete: {
+		auto &dst = lpNotification->info.obj;
 		// FIXME for each if statement below, check the ELSE .. we can't send a TABLE_ROW_ADDED without lpProps for example ..
-		lpNotification->info.obj.ulObjType = lpSrc->obj->ulObjType;
+		dst.ulObjType = lpSrc->obj->ulObjType;
 
 		// All errors of CopySOAPEntryIdToMAPIEntryId are ignored
 		if (lpSrc->obj->pEntryId != NULL)
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pEntryId, &lpNotification->info.obj.cbEntryID, &lpNotification->info.obj.lpEntryID, lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pEntryId, &dst.cbEntryID, &dst.lpEntryID, lpNotification);
 		if (lpSrc->obj->pParentId != NULL)
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pParentId, &lpNotification->info.obj.cbParentID, &lpNotification->info.obj.lpParentID, lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pParentId, &dst.cbParentID, &dst.lpParentID, lpNotification);
 		if (lpSrc->obj->pOldId != NULL)
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldId, &lpNotification->info.obj.cbOldID, &lpNotification->info.obj.lpOldID, lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldId, &dst.cbOldID, &dst.lpOldID, lpNotification);
 		if (lpSrc->obj->pOldParentId != NULL)
-			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldParentId, &lpNotification->info.obj.cbOldParentID, &lpNotification->info.obj.lpOldParentID, lpNotification);
+			CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldParentId, &dst.cbOldParentID, &dst.lpOldParentID, lpNotification);
 		if (lpSrc->obj->pPropTagArray != nullptr)
 			// ignore errors
-			CopySOAPPropTagArrayToMAPIPropTagArray(lpSrc->obj->pPropTagArray, &lpNotification->info.obj.lpPropTagArray, lpNotification);
+			CopySOAPPropTagArrayToMAPIPropTagArray(lpSrc->obj->pPropTagArray, &dst.lpPropTagArray, lpNotification);
 		break;
-	case fnevTableModified:// TABLE_NOTIFICATION
-		lpNotification->info.tab.ulTableEvent = lpSrc->tab->ulTableEvent;
-		lpNotification->info.tab.propIndex.ulPropTag = lpSrc->tab->propIndex.ulPropTag;
+	}
+	case fnevTableModified: { // TABLE_NOTIFICATION
+		auto &dst = lpNotification->info.tab;
+		dst.ulTableEvent = lpSrc->tab->ulTableEvent;
+		dst.propIndex.ulPropTag = lpSrc->tab->propIndex.ulPropTag;
 
 		if (lpSrc->tab->propIndex.Value.bin){
-			lpNotification->info.tab.propIndex.Value.bin.cb = lpSrc->tab->propIndex.Value.bin->__size;
-			hr = ECAllocateMore(lpNotification->info.tab.propIndex.Value.bin.cb, lpNotification,
-			     reinterpret_cast<void **>(&lpNotification->info.tab.propIndex.Value.bin.lpb));
+			auto &bin = dst.propIndex.Value.bin;
+			bin.cb = lpSrc->tab->propIndex.Value.bin->__size;
+			hr = ECAllocateMore(bin.cb, lpNotification,
+			     reinterpret_cast<void **>(&bin.lpb));
 			if (hr != hrSuccess)
 				break;
-			memcpy(lpNotification->info.tab.propIndex.Value.bin.lpb, lpSrc->tab->propIndex.Value.bin->__ptr, lpSrc->tab->propIndex.Value.bin->__size);
+			memcpy(bin.lpb, lpSrc->tab->propIndex.Value.bin->__ptr, lpSrc->tab->propIndex.Value.bin->__size);
 		}
 
-		lpNotification->info.tab.propPrior.ulPropTag = lpSrc->tab->propPrior.ulPropTag;
+		dst.propPrior.ulPropTag = lpSrc->tab->propPrior.ulPropTag;
 
 		if (lpSrc->tab->propPrior.Value.bin){
-			lpNotification->info.tab.propPrior.Value.bin.cb = lpSrc->tab->propPrior.Value.bin->__size;
-			hr = ECAllocateMore(lpNotification->info.tab.propPrior.Value.bin.cb, lpNotification,
-			     reinterpret_cast<void **>(&lpNotification->info.tab.propPrior.Value.bin.lpb));
+			auto &bin = dst.propPrior.Value.bin;
+			bin.cb = lpSrc->tab->propPrior.Value.bin->__size;
+			hr = ECAllocateMore(bin.cb, lpNotification,
+			     reinterpret_cast<void **>(&bin.lpb));
 			if (hr != hrSuccess)
 				break;
-			memcpy(lpNotification->info.tab.propPrior.Value.bin.lpb, lpSrc->tab->propPrior.Value.bin->__ptr, lpSrc->tab->propPrior.Value.bin->__size);
+			memcpy(bin.lpb, lpSrc->tab->propPrior.Value.bin->__ptr, lpSrc->tab->propPrior.Value.bin->__size);
 		}
 
 		if(lpSrc->tab->pRow)
 		{
-			lpNotification->info.tab.row.cValues = lpSrc->tab->pRow->__size;
-			hr = ECAllocateMore(sizeof(SPropValue)*lpNotification->info.tab.row.cValues, lpNotification,
-			     reinterpret_cast<void **>(&lpNotification->info.tab.row.lpProps));
+			dst.row.cValues = lpSrc->tab->pRow->__size;
+			hr = ECAllocateMore(sizeof(SPropValue) * dst.row.cValues, lpNotification,
+			     reinterpret_cast<void **>(&dst.row.lpProps));
 			if (hr != hrSuccess)
 				break;
-			CopySOAPRowToMAPIRow(lpProvider, lpSrc->tab->pRow,
-				lpNotification->info.tab.row.lpProps,
+			CopySOAPRowToMAPIRow(lpProvider, lpSrc->tab->pRow, dst.row.lpProps,
 				reinterpret_cast<void **>(lpNotification.get()),
 				lpSrc->tab->ulObjType, lpConverter);
 		}
 		break;
+	}
 	case fnevStatusObjectModified: // STATUS_OBJECT_NOTIFICATION
 		hr = MAPI_E_INVALID_PARAMETER;
 		break;

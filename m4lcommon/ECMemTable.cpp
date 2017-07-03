@@ -510,32 +510,34 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 	memset(lpNotification, 0, sizeof(NOTIFICATION));
 
 	lpNotification->ulEventType = fnevTableModified;
-	lpNotification->info.tab.ulTableEvent = ulTableEvent;
+	auto &tab = lpNotification->info.tab;
+	tab.ulTableEvent = ulTableEvent;
 
 	if (lpsPrevRow == NULL || lpsPrevRow->ulObjId == 0) {
-		lpNotification->info.tab.propPrior.ulPropTag = PR_NULL;
+		tab.propPrior.ulPropTag = PR_NULL;
 	} else {
-		lpNotification->info.tab.propPrior.ulPropTag = PR_INSTANCE_KEY;
-
-		lpNotification->info.tab.propPrior.Value.bin.cb = sizeof(ULONG)*2;
-		hr = MAPIAllocateMore(lpNotification->info.tab.propPrior.Value.bin.cb, lpNotification, (void**)&lpNotification->info.tab.propPrior.Value.bin.lpb);
+		tab.propPrior.ulPropTag = PR_INSTANCE_KEY;
+		auto &bin = tab.propPrior.Value.bin;
+		bin.cb = sizeof(ULONG) * 2;
+		hr = MAPIAllocateMore(bin.cb, lpNotification, reinterpret_cast<void **>(&bin.lpb));
 		if(hr != hrSuccess)
 			return hr;
-		memcpy(lpNotification->info.tab.propPrior.Value.bin.lpb, &lpsPrevRow->ulObjId, sizeof(ULONG));
-		memcpy(lpNotification->info.tab.propPrior.Value.bin.lpb+sizeof(ULONG), &lpsPrevRow->ulOrderId, sizeof(ULONG));
+		memcpy(bin.lpb, &lpsPrevRow->ulObjId, sizeof(ULONG));
+		memcpy(bin.lpb + sizeof(ULONG), &lpsPrevRow->ulOrderId, sizeof(ULONG));
 
 	}
 
 	if (lpsRowItem == NULL || lpsRowItem->ulObjId == 0) {
-		lpNotification->info.tab.propIndex.ulPropTag = PR_NULL;
+		tab.propIndex.ulPropTag = PR_NULL;
 	} else {
-		lpNotification->info.tab.propIndex.ulPropTag = PR_INSTANCE_KEY;
-		lpNotification->info.tab.propIndex.Value.bin.cb = sizeof(ULONG)*2;
-		hr = MAPIAllocateMore(lpNotification->info.tab.propIndex.Value.bin.cb, lpNotification, (void**)&lpNotification->info.tab.propIndex.Value.bin.lpb);
+		tab.propIndex.ulPropTag = PR_INSTANCE_KEY;
+		auto &bin = tab.propIndex.Value.bin;
+		bin.cb = sizeof(ULONG) * 2;
+		hr = MAPIAllocateMore(bin.cb, lpNotification, reinterpret_cast<void **>(&bin.lpb));
 		if(hr != hrSuccess)
 			return hr;
-		memcpy(lpNotification->info.tab.propIndex.Value.bin.lpb, &lpsRowItem->ulObjId, sizeof(ULONG));
-		memcpy(lpNotification->info.tab.propIndex.Value.bin.lpb+sizeof(ULONG), &lpsRowItem->ulOrderId, sizeof(ULONG));
+		memcpy(bin.lpb, &lpsRowItem->ulObjId, sizeof(ULONG));
+		memcpy(bin.lpb + sizeof(ULONG), &lpsRowItem->ulOrderId, sizeof(ULONG));
 	}
 	
 	switch(ulTableEvent) {
@@ -547,8 +549,8 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 		hr = QueryRowData(&sRowList, &~lpRows);
 		if(hr != hrSuccess)
 			return hr;
-		lpNotification->info.tab.row.cValues = lpRows->aRow[0].cValues;
-		lpNotification->info.tab.row.lpProps = lpRows->aRow[0].lpProps;
+		tab.row.cValues = lpRows->aRow[0].cValues;
+		tab.row.lpProps = lpRows->aRow[0].lpProps;
 		break;
 	default:
 		break;// no row needed
@@ -1073,69 +1075,69 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 			return hr;
 
 		for (j = 0; j < lpsPropTags->cValues; ++j) {
+			auto &prop = lpRows->aRow[i].lpProps[j];
 			// Handle some fixed properties
 			if(lpsPropTags->aulPropTag[j] == lpMemTable->ulRowPropTag) {
-				lpRows->aRow[i].lpProps[j].ulPropTag = lpMemTable->ulRowPropTag;
-				
+				prop.ulPropTag = lpMemTable->ulRowPropTag;
 				//FIXME: now only support 32 bits of the PT_I8
 				if(PROP_TYPE(lpMemTable->ulRowPropTag) == PT_I8)
-					lpRows->aRow[i].lpProps[j].Value.li.QuadPart = 0; //empty memory
-				
-				lpRows->aRow[i].lpProps[j].Value.ul = rowlist.ulObjId;
+					prop.Value.li.QuadPart = 0; //empty memory
+				prop.Value.ul = rowlist.ulObjId;
 				continue;
 			}
 			if (PROP_TYPE(lpsPropTags->aulPropTag[j]) == PT_NULL) {
-				lpRows->aRow[i].lpProps[j].Value.ul = 0;
-				lpRows->aRow[i].lpProps[j].ulPropTag = lpsPropTags->aulPropTag[j];
+				prop.Value.ul = 0;
+				prop.ulPropTag = lpsPropTags->aulPropTag[j];
 				continue;
 			} else if(lpsPropTags->aulPropTag[j] == PR_INSTANCE_KEY) {
-
-				lpRows->aRow[i].lpProps[j].ulPropTag = PR_INSTANCE_KEY;
-				lpRows->aRow[i].lpProps[j].Value.bin.cb = sizeof(ULONG)*2;
-				hr = MAPIAllocateMore(lpRows->aRow[i].lpProps[j].Value.bin.cb, lpRows->aRow[i].lpProps, (void **)&lpRows->aRow[i].lpProps[j].Value.bin.lpb);
+				prop.ulPropTag = PR_INSTANCE_KEY;
+				prop.Value.bin.cb = sizeof(ULONG)*2;
+				hr = MAPIAllocateMore(prop.Value.bin.cb, lpRows->aRow[i].lpProps, reinterpret_cast<void **>(&prop.Value.bin.lpb));
 				if(hr != hrSuccess)
 					return hr;
-				memcpy(lpRows->aRow[i].lpProps[j].Value.bin.lpb, &rowlist.ulObjId, sizeof(ULONG));
-				memcpy(lpRows->aRow[i].lpProps[j].Value.bin.lpb + sizeof(ULONG), &rowlist.ulOrderId, sizeof(ULONG));
+				memcpy(prop.Value.bin.lpb, &rowlist.ulObjId, sizeof(ULONG));
+				memcpy(prop.Value.bin.lpb + sizeof(ULONG), &rowlist.ulOrderId, sizeof(ULONG));
 				continue;
 			}
 			// Find the property in the data (locate the property by property ID, since we may need conversion)
 			auto lpsProp = PCpropFindProp(iterRows->second.lpsPropVal, iterRows->second.cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(lpsPropTags->aulPropTag[j])));
 			if (lpsProp == nullptr) {
 				/* Not found */
-				lpRows->aRow[i].lpProps[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));
-				lpRows->aRow[i].lpProps[j].Value.err = MAPI_E_NOT_FOUND;
+				prop.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));
+				prop.Value.err = MAPI_E_NOT_FOUND;
 				continue;
 			}
 			if (PROP_TYPE(lpsPropTags->aulPropTag[j]) == PT_UNICODE && PROP_TYPE(lpsProp->ulPropTag) == PT_STRING8) {
 				// PT_UNICODE requested, and PT_STRING8 provided. Do conversion.
-				lpRows->aRow[i].lpProps[j].ulPropTag = PROP_TAG(PT_UNICODE, PROP_ID(lpsPropTags->aulPropTag[j]));
+				prop.ulPropTag = PROP_TAG(PT_UNICODE, PROP_ID(lpsPropTags->aulPropTag[j]));
 				const wstring strTmp = converter.convert_to<wstring>(lpsProp->Value.lpszA);
-				if ((hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(wstring::value_type), lpRows->aRow[i].lpProps, (void **)&lpRows->aRow[i].lpProps[j].Value.lpszW)) != hrSuccess)
+				hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(wstring::value_type), lpRows->aRow[i].lpProps, reinterpret_cast<void **>(&prop.Value.lpszW));
+				if (hr != hrSuccess)
 					return hr;
-				memcpy(lpRows->aRow[i].lpProps[j].Value.lpszW, strTmp.c_str(), (strTmp.size() + 1) * sizeof(wstring::value_type));
+				memcpy(prop.Value.lpszW, strTmp.c_str(), (strTmp.size() + 1) * sizeof(wstring::value_type));
 				continue; // Finished with this property
 			} else if (PROP_TYPE(lpsPropTags->aulPropTag[j]) == PT_STRING8 && PROP_TYPE(lpsProp->ulPropTag) == PT_UNICODE) {
 				// PT_STRING8 requested, and PT_UNICODE provided. Do conversion.
-				lpRows->aRow[i].lpProps[j].ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(lpsPropTags->aulPropTag[j]));
+				prop.ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(lpsPropTags->aulPropTag[j]));
 				const string strTmp = converter.convert_to<string>(lpsProp->Value.lpszW);
-				if ((hr = MAPIAllocateMore(strTmp.size() + 1, lpRows->aRow[i].lpProps, (void **)&lpRows->aRow[i].lpProps[j].Value.lpszA)) != hrSuccess)
+				hr = MAPIAllocateMore(strTmp.size() + 1, lpRows->aRow[i].lpProps, reinterpret_cast<void **>(&prop.Value.lpszA));
+				if (hr != hrSuccess)
 					return hr;
-				memcpy(lpRows->aRow[i].lpProps[j].Value.lpszA, strTmp.c_str(), strTmp.size() + 1);
+				memcpy(prop.Value.lpszA, strTmp.c_str(), strTmp.size() + 1);
 				continue; // Finished with this property
 			} else if (lpsPropTags->aulPropTag[j] == lpsProp->ulPropTag) {
 				// Exact property requested that we have
-				hr = Util::HrCopyProperty(&lpRows->aRow[i].lpProps[j], lpsProp, (void *)lpRows->aRow[i].lpProps);
+				hr = Util::HrCopyProperty(&prop, lpsProp, (void *)lpRows->aRow[i].lpProps);
 				if (hr != hrSuccess) {
-					lpRows->aRow[i].lpProps[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));
-					lpRows->aRow[i].lpProps[j].Value.err = MAPI_E_NOT_FOUND;
+					prop.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));
+					prop.Value.err = MAPI_E_NOT_FOUND;
 					hr = hrSuccess; // ignore this error for the return code
 				}
 				continue;
 			}
 			// Not found
-			lpRows->aRow[i].lpProps[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));
-			lpRows->aRow[i].lpProps[j].Value.err = MAPI_E_NOT_FOUND;
+			prop.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));
+			prop.Value.err = MAPI_E_NOT_FOUND;
 		}
 		++i;
 	}

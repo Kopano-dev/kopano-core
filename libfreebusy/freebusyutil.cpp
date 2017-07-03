@@ -487,16 +487,20 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 	hr = MAPIAllocateBuffer(2 * sizeof(SPropValue), &~lpPropFBDataArray);
 	if (hr != hrSuccess)
 		return hr;
-	
-	lpPropFBDataArray[0].Value.MVl.cValues = 0;
-	lpPropFBDataArray[1].Value.MVbin.cValues = 0;
 
-	if ((hr = MAPIAllocateMore((ulMonths+1) * sizeof(ULONG), lpPropFBDataArray, (void**)&lpPropFBDataArray[0].Value.MVl.lpl)) != hrSuccess)	 // +1 for free/busy in two months
+	auto &xmo = lpPropFBDataArray[0].Value.MVl;
+	auto &fbd = lpPropFBDataArray[1].Value.MVbin;
+	xmo.cValues = 0;
+	fbd.cValues = 0;
+
+	hr = MAPIAllocateMore((ulMonths + 1) * sizeof(ULONG), lpPropFBDataArray, reinterpret_cast<void **>(&xmo.lpl));  // +1 for free/busy in two months
+	if (hr != hrSuccess)
 		return hr;
-	if ((hr = MAPIAllocateMore((ulMonths+1) * sizeof(SBinary), lpPropFBDataArray, (void**)&lpPropFBDataArray[1].Value.MVbin.lpbin)) != hrSuccess) // +1 for free/busy in two months
+	hr = MAPIAllocateMore((ulMonths + 1) * sizeof(SBinary), lpPropFBDataArray, reinterpret_cast<void **>(&fbd.lpbin)); // +1 for free/busy in two months
+	if (hr != hrSuccess)
 		return hr;
 
-	//memset(&lpPropFBDataArray[1].Value.MVbin.lpbin, 0, ulArrayItems);
+	//memset(&fbd.lpbin, 0, ulArrayItems);
 
 	lpPropFBDataArray[0].ulPropTag = ulPropMonths;
 	lpPropFBDataArray[1].ulPropTag = ulPropEvents;
@@ -520,13 +524,13 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 			if(tmStart.tm_year > ulLastYear || tmStart.tm_mon > ulLastMonth)
 			{
 				++iMonth;
-				lpPropFBDataArray[0].Value.MVl.lpl[iMonth] =  FB_YEARMONTH((tmStart.tm_year+1900), (tmStart.tm_mon+1));
-				++lpPropFBDataArray[0].Value.MVl.cValues;
-				++lpPropFBDataArray[1].Value.MVbin.cValues;
-				if ((hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, (void**)&lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb)) != hrSuccess)
+				xmo.lpl[iMonth] = FB_YEARMONTH(tmStart.tm_year + 1900, tmStart.tm_mon + 1);
+				++xmo.cValues;
+				++fbd.cValues;
+				hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, reinterpret_cast<void **>(&fbd.lpbin[iMonth].lpb));
+				if (hr != hrSuccess)
 					return hr;
-				lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb = 0;
-				
+				fbd.lpbin[iMonth].cb = 0;
 			}
 
 			//Different months in a block
@@ -536,10 +540,9 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 				getMaxMonthMinutes((short)tmStart.tm_year+1900, (short)tmStart.tm_mon, (short*)&fbEvent.rtmEnd);
 
 				// Add item to struct
-				memcpy(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb+lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb, &fbEvent, sizeof(sfbEvent));
-				lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb += sizeof(sfbEvent);
-				assert(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb <= ulMaxItemDataSize);
-
+				memcpy(fbd.lpbin[iMonth].lpb+fbd.lpbin[iMonth].cb, &fbEvent, sizeof(sfbEvent));
+				fbd.lpbin[iMonth].cb += sizeof(sfbEvent);
+				assert(fbd.lpbin[iMonth].cb <= ulMaxItemDataSize);
 				ulDiffMonths = DiffYearMonthToMonth(&tmStart, &tmEnd);
 
 				tmTmp = tmStart;
@@ -547,42 +550,39 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 				// Set the day on the begin of the month because: if mday is 31 and the next month is 30 then you get the wrong month
 				tmTmp.tm_mday = 1;
 				
-				for (i = 1; i < ulDiffMonths && lpPropFBDataArray[0].Value.MVl.cValues < ulMonths; ++i) {
+				for (i = 1; i < ulDiffMonths && xmo.cValues < ulMonths; ++i) {
 					++iMonth;
 					tmTmp.tm_isdst = -1;
 					++tmTmp.tm_mon;
 					mktime(&tmTmp);
-					
-
-					lpPropFBDataArray[0].Value.MVl.lpl[iMonth] = FB_YEARMONTH((tmTmp.tm_year+1900), (tmTmp.tm_mon+1));
-					++lpPropFBDataArray[0].Value.MVl.cValues;
-					++lpPropFBDataArray[1].Value.MVbin.cValues;
-
-					if ((hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, (void**)&lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb)) != hrSuccess)
+					xmo.lpl[iMonth] = FB_YEARMONTH(tmTmp.tm_year + 1900, tmTmp.tm_mon + 1);
+					++xmo.cValues;
+					++fbd.cValues;
+					hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, reinterpret_cast<void **>(&fbd.lpbin[iMonth].lpb));
+					if (hr != hrSuccess)
 						return hr;
-					lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb = 0;
+					fbd.lpbin[iMonth].cb = 0;
 				
 					fbEvent.rtmStart = 0;					
 					getMaxMonthMinutes((short)tmTmp.tm_year+1900, (short)tmTmp.tm_mon, (short*)&fbEvent.rtmEnd);
 
 					// Add item to struct
-					memcpy(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb+lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb, &fbEvent, sizeof(sfbEvent));
-					lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb += sizeof(sfbEvent);
-					assert(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb <= ulMaxItemDataSize);
+					memcpy(fbd.lpbin[iMonth].lpb + fbd.lpbin[iMonth].cb, &fbEvent, sizeof(sfbEvent));
+					fbd.lpbin[iMonth].cb += sizeof(sfbEvent);
+					assert(fbd.lpbin[iMonth].cb <= ulMaxItemDataSize);
 				}
 
 				++iMonth;
 				++tmTmp.tm_mon;
 				tmTmp.tm_isdst = -1;
 				mktime(&tmTmp);
-
-				lpPropFBDataArray[0].Value.MVl.lpl[iMonth] = FB_YEARMONTH((tmTmp.tm_year+1900), (tmTmp.tm_mon+1));
-				++lpPropFBDataArray[0].Value.MVl.cValues;
-				++lpPropFBDataArray[1].Value.MVbin.cValues;
-
-				if ((hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, (void**)&lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb)) != hrSuccess)
+				xmo.lpl[iMonth] = FB_YEARMONTH(tmTmp.tm_year + 1900, tmTmp.tm_mon + 1);
+				++xmo.cValues;
+				++fbd.cValues;
+				hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, reinterpret_cast<void **>(&fbd.lpbin[iMonth].lpb));
+				if (hr != hrSuccess)
 					return hr;
-				lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb = 0;
+				fbd.lpbin[iMonth].cb = 0;
 
 				fbEvent.rtmStart = 0;
 				fbEvent.rtmEnd = (short)( ((tmEnd.tm_mday-1)*24*60) + (tmEnd.tm_hour*60) + tmEnd.tm_min);
@@ -592,18 +592,18 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 			}
 
 			// Add item to struct
-			memcpy(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb+lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb, &fbEvent, sizeof(sfbEvent));
-			lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb += sizeof(sfbEvent);
+			memcpy(fbd.lpbin[iMonth].lpb + fbd.lpbin[iMonth].cb, &fbEvent, sizeof(sfbEvent));
+			fbd.lpbin[iMonth].cb += sizeof(sfbEvent);
 
 			ulLastYear = tmEnd.tm_year;
 			ulLastMonth = tmEnd.tm_mon;
 
 			bFound = true;
-			assert(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb <= ulMaxItemDataSize);
+			assert(fbd.lpbin[iMonth].cb <= ulMaxItemDataSize);
 		}
 		assert(iMonth == -1 || (iMonth >= 0 && static_cast<ULONG>(iMonth) < ulMonths + 1));
-		assert(lpPropFBDataArray[1].Value.MVbin.cValues <= ulMonths + 1);
-		assert(lpPropFBDataArray[0].Value.MVl.cValues <= ulMonths + 1);
+		assert(fbd.cValues <= ulMonths + 1);
+		assert(xmo.cValues <= ulMonths + 1);
 	}
 
 	if(bFound == false)

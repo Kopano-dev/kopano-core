@@ -483,7 +483,9 @@ static HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags,
  *
  * @note If UNICODE strings are used, we must use windows UCS-2 format.
  */
-HRESULT ECCreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, ULONG ulFlags, ULONG* lpcbEntryID, LPENTRYID* lppEntryID)
+HRESULT ECCreateOneOff(const TCHAR *lpszName, const TCHAR *lpszAdrType,
+    const TCHAR *lpszAddress, ULONG ulFlags, ULONG *lpcbEntryID,
+    ENTRYID **lppEntryID)
 {
 	std::string strOneOff;
 	MAPIUID uid = {MAPI_ONE_OFF_UID};
@@ -493,9 +495,9 @@ HRESULT ECCreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, 
 		return MAPI_E_INVALID_PARAMETER;
 
 	strOneOff.append(4, '\0'); // abFlags
-	strOneOff.append((char *)&uid, sizeof(MAPIUID));
+	strOneOff.append(reinterpret_cast<const char *>(&uid), sizeof(MAPIUID));
 	strOneOff.append(2, '\0'); // version (0)
-	strOneOff.append((char *)&usFlags, sizeof(usFlags));
+	strOneOff.append(reinterpret_cast<const char *>(&usFlags), sizeof(usFlags));
 
 	if(ulFlags & MAPI_UNICODE)
 	{
@@ -507,18 +509,21 @@ HRESULT ECCreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, 
 		else
 			wstrName = (WCHAR*)lpszAddress;
 		strUnicode = convert_to<std::u16string>(wstrName);
-		strOneOff.append((char*)strUnicode.c_str(), (strUnicode.length()+1)*sizeof(unsigned short));
-		strUnicode = convert_to<std::u16string>(reinterpret_cast<wchar_t *>(lpszAdrType));
-		strOneOff.append((char*)strUnicode.c_str(), (strUnicode.length()+1)*sizeof(unsigned short));
-		strUnicode = convert_to<std::u16string>(reinterpret_cast<wchar_t *>(lpszAddress));
-		strOneOff.append((char*)strUnicode.c_str(), (strUnicode.length()+1)*sizeof(unsigned short));
+		strOneOff.append(reinterpret_cast<const char *>(strUnicode.c_str()), (strUnicode.length() + 1) * sizeof(char16_t));
+		strUnicode = convert_to<std::u16string>(reinterpret_cast<const wchar_t *>(lpszAdrType));
+		strOneOff.append(reinterpret_cast<const char *>(strUnicode.c_str()), (strUnicode.length() + 1) * sizeof(char16_t));
+		strUnicode = convert_to<std::u16string>(reinterpret_cast<const wchar_t *>(lpszAddress));
+		strOneOff.append(reinterpret_cast<const char *>(strUnicode.c_str()), (strUnicode.length() + 1) * sizeof(char16_t));
 	} else {
+		auto name = reinterpret_cast<const char *>(lpszName);
+		auto atyp = reinterpret_cast<const char *>(lpszAdrType);
+		auto addr = reinterpret_cast<const char *>(lpszAddress);
 		if (lpszName)
-			strOneOff.append((char *)lpszName, strlen((char *)lpszName) + 1);
+			strOneOff.append(name, strlen(name) + 1);
 		else
 			strOneOff.append(1, '\0');
-		strOneOff.append((char *)lpszAdrType, strlen((char *)lpszAdrType) + 1);
-		strOneOff.append((char *)lpszAddress, strlen((char *)lpszAddress) + 1);
+		strOneOff.append(atyp, strlen(atyp) + 1);
+		strOneOff.append(addr, strlen(addr) + 1);
 	}
 
 	HRESULT hr = MAPIAllocateBuffer(strOneOff.size(),
