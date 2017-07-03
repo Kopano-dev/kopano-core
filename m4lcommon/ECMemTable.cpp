@@ -862,10 +862,14 @@ HRESULT ECMemTableView::GetBinarySortKey(const SPropValue *lpsPropVal,
 				break;
 			}
 
+			std::string kd;
 			if (PROP_TYPE(lpsPropVal->ulPropTag) == PT_STRING8)
-				createSortKeyData(lpsPropVal->Value.lpszA, 255, m_locale, &ulSortLen, &lpSortData);
+				kd = createSortKeyData(lpsPropVal->Value.lpszA, 255, m_locale);
 			else
-				createSortKeyData(lpsPropVal->Value.lpszW, 255, m_locale, &ulSortLen, &lpSortData);
+				kd = createSortKeyData(lpsPropVal->Value.lpszW, 255, m_locale);
+			ulSortLen = kd.size();
+			lpSortData = new unsigned char[ulSortLen];
+			memcpy(lpSortData, kd.c_str(), ulSortLen);
 		}
 		break;
 	case PT_CLSID:

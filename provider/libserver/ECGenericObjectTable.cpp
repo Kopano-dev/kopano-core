@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <kopano/lockhelper.hpp>
 #include <kopano/tie.hpp>
 
@@ -726,7 +727,10 @@ ECRESULT ECGenericObjectTable::GetBinarySortKey(struct propVal *lpsPropVal, unsi
 				break;
 			}
 			
-			createSortKeyDataFromUTF8(lpsPropVal->Value.lpszA, 255, m_locale, &ulSortLen, &lpSortData);
+			auto kd = createSortKeyDataFromUTF8(lpsPropVal->Value.lpszA, 255, m_locale);
+			ulSortLen = kd.size();
+			lpSortData = new unsigned char[ulSortLen];
+			memcpy(lpSortData, kd.c_str(), ulSortLen);
 		}
 		break;
 	case PT_CLSID:
