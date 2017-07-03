@@ -1003,7 +1003,7 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
  *
  * @returns		ECUSortKey object containing the blob
  */
-static ECUSortKey createSortKey(UnicodeString s, int nCap,
+static ECUSortKey createSortKey(UnicodeString &&s, int nCap,
     const ECLocale &locale)
 {
 	if (nCap > 1)
@@ -1016,8 +1016,7 @@ static ECUSortKey createSortKey(UnicodeString s, int nCap,
 	CollationKey key;
 	UErrorCode status = U_ZERO_ERROR;
 	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
-	ptrCollator->getCollationKey(s, key, status);	// Create a collation key for sorting
-
+	ptrCollator->getCollationKey(std::move(s), key, status); // Create a collation key for sorting
 	return key;
 }
 
@@ -1032,12 +1031,11 @@ static ECUSortKey createSortKey(UnicodeString s, int nCap,
  * @param[out]	lpcbKeys	The size in bytes of the returned key.
  * @param[ou]t	lppKey		The returned key.
  */
-static void createSortKeyData(const UnicodeString &s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey)
+static void createSortKeyData(UnicodeString &&s, int nCap,
+    const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey)
 {
 	unsigned char *lpKey = NULL;
-
-	CollationKey key = createSortKey(s, nCap, locale);
-
+	auto key = createSortKey(std::move(s), nCap, locale);
 	int32_t 		cbKeyData = 0;
 	const uint8_t	*lpKeyData = key.getByteArray(cbKeyData);
 
@@ -1082,9 +1080,7 @@ void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale, unsig
 	assert(s != NULL);
 	assert(lpcbKey != NULL);
 	assert(lppKey != NULL);
-	UnicodeString ustring;
-	ustring = WCHARToUnicode(s);
-	createSortKeyData(ustring, nCap, locale, lpcbKey, lppKey);
+	createSortKeyData(WCHARToUnicode(s), nCap, locale, lpcbKey, lppKey);
 }
 
 /**
