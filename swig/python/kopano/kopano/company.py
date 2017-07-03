@@ -1,5 +1,5 @@
 """
-Part of the high-level python bindings for Kopano
+Part of the high-level python bindings for Kopano.
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
@@ -42,7 +42,7 @@ else:
     import store as _store
 
 class Company(Base):
-    """Company class"""
+    """Company class."""
 
     def __init__(self, name, server=None):
         self.server = server or _server.Server()
@@ -70,10 +70,10 @@ class Company(Base):
 
     @property
     def admin(self):
+        """Company :class:`administrator <User>` in multi-tenant mode."""
         if self._name != u'Default':
             ecuser = self.server.sa.GetUser(self._eccompany.AdministratorID, MAPI_UNICODE)
             return self.server.user(ecuser.Username)
-        # XXX
 
     @admin.setter
     def admin(self, user):
@@ -82,14 +82,14 @@ class Company(Base):
 
     @property
     def hidden(self):
+        """The company is hidden from the addressbook."""
         if self._name != u'Default':
-            return self._eccompany.IsHidden
-        # XXX
+            return bool(self._eccompany.IsHidden)
+        return False
 
     @property
     def name(self):
-        """ Company name """
-
+        """Company name."""
         return self._name
 
     @name.setter
@@ -100,6 +100,7 @@ class Company(Base):
         self.server.sa.SetCompany(self._eccompany, MAPI_UNICODE)
 
     def store(self, guid):
+        """Return :class:`store <Store>` with given GUID."""
         if guid == 'public':
             if not self.public_store:
                 raise NotFoundError("no public store for company '%s'" % self.name)
@@ -108,6 +109,7 @@ class Company(Base):
             return self.server.store(guid)
 
     def stores(self):
+        """Return all company :class:`stores <Store>`."""
         if self.server.multitenant:
             table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
             table.Restrict(SPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_W, SPropValue(PR_EC_COMPANY_NAME_W, self.name)), TBL_BATCH)
@@ -121,8 +123,7 @@ class Company(Base):
 
     @property
     def public_store(self):
-        """ Company public :class:`store <Store>` """
-
+        """Company public :class:`store <Store>`."""
         if not self._public_store:
             if self._name == u'Default': # XXX
                 pubstore = GetPublicStore(self.server.mapisession)
@@ -141,8 +142,7 @@ class Company(Base):
         return self._public_store
 
     def create_public_store(self):
-        """ Create company public :class:`store <Store>` """
-
+        """Create company public :class:`store <Store>`."""
         if self._name == u'Default':
             try:
                 storeid_rootid = self.server.sa.CreateStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE)
@@ -160,11 +160,10 @@ class Company(Base):
         return self._public_store
 
     def hook_public_store(self, store):
-        """ Hook company public :class:`store <Store>`
+        """Hook company public :class:`store <Store>`.
 
-            :param store: store to hook as public store
+        :param store: store to hook as public store
         """
-
         if self._name == u'Default':
             try:
                 self.server.sa.HookStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE, _unhex(store.guid))
@@ -179,8 +178,7 @@ class Company(Base):
         self._public_store = store
 
     def unhook_public_store(self):
-        """ Unhook company public :class:`store <Store>` """
-
+        """Unhook company public :class:`store <Store>`."""
         if self._name == u'Default':
             try:
                 self.server.sa.UnhookStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE)
@@ -194,12 +192,11 @@ class Company(Base):
         self._public_store = None
 
     def user(self, name, create=False):
-        """ Return :class:`user <User>` with given name
+        """Return :class:`user <User>` with given name.
 
-            :param name: user name
-            :param create: create user if it doesn't exist (default False)
+        :param name: user name
+        :param create: create user if it doesn't exist (default False)
         """
-
         if not '@' in name and self._name != 'Default':
             name = name + '@' + self._name
         try:
@@ -211,19 +208,17 @@ class Company(Base):
                 raise
 
     def get_user(self, name):
-        """ Return :class:`user <User>` with given name or *None* if not found
+        """Return :class:`user <User>` with given name or *None* if not found.
 
-            :param name: user name
+        :param name: user name
         """
-
         try:
             return self.user(name)
         except NotFoundError:
             pass
 
     def users(self, parse=True, system=False):
-        """ Return all :class:`users <User>` within company """
-
+        """Return all :class:`users <User>` within company."""
         if parse and getattr(self.server.options, 'users', None):
             for username in self.server.options.users:
                 yield _user.User(username, self.server)
@@ -270,30 +265,27 @@ class Company(Base):
             raise NotFoundError("company '%s' not in view-list for company '%s'" % (company.name, self.name))
 
     def create_user(self, name, password=None):
-        """ Create a new :class:`user <User>` within the company
+        """Create a new :class:`user <User>` within the company.
 
-            :param name: user name
+        :param name: user name
         """
-
         name = name.split('@')[0]
         self.server.create_user(name, password=password, company=self._name)
         return self.user('%s@%s' % (name, self._name))
 
     #XXX create_group/create=True
     def group(self, name):
-        """ Return :class:`group <Group>` with given name
+        """Return :class:`group <Group>` with given name.
 
-            :param name: group name
+        :param name: group name
         """
-
         for group in self.groups(): # XXX
             if group.name == name:
                 return group
         raise NotFoundError("no such group: '%s'" % name)
 
     def groups(self):
-        """ Return all :class:`groups <Group>` within the company """
-
+        """Return all :class:`groups <Group>` within the company."""
         if self.name == u'Default': # XXX
             for group in self.server.groups():
                 yield group
@@ -303,8 +295,7 @@ class Company(Base):
 
     @property
     def quota(self):
-        """ Company :class:`Quota` """
-
+        """Company :class:`Quota`."""
         if self._name == u'Default':
             return Quota(self.server, None)
         else:

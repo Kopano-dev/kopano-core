@@ -103,7 +103,8 @@ class Group(Base):
 
     @property
     def hidden(self):
-        return self._ecgroup.IsHidden
+        """The group is hidden from the addressbook."""
+        return bool(self._ecgroup.IsHidden)
 
     @hidden.setter
     def hidden(self, value):
