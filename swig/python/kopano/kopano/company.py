@@ -77,7 +77,7 @@ class Company(Base):
 
     @admin.setter
     def admin(self, user):
-        self._eccompany.AdminstratorID = user._ecuser.UserID
+        self._eccompany.AdministratorID = user._ecuser.UserID
         self.server.sa.SetCompany(self._eccompany, MAPI_UNICODE)
 
     @property

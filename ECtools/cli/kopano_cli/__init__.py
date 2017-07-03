@@ -203,15 +203,13 @@ def user_details(user):
     if user.store:
         print('Permissions:')
         for perm in user.permissions():
-            if perm.rights: # XXX pyko remove ACE if empty
-                print(_encode(' (store): ' + perm.member.name + ':' + ','.join(perm.rights)))
-        for delegate in user.delegations(): # XXX merge all rights into permissions()?
+            print(_encode(' (store): ' + perm.member.name + ':' + ','.join(perm.rights)))
+        for delegate in user.delegations():
             if delegate.see_private:
                 print(_encode(' (store): ' + delegate.user.name + ':see_private'))
         for folder in user.folders():
             for perm in folder.permissions():
-                if perm.rights:
-                    print(_encode(' ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights)))
+                print(_encode(' ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights)))
 
 def group_details(group):
     print('Groupname:\t' + _encode(group.name))
@@ -225,7 +223,7 @@ def group_details(group):
 def company_details(company, server):
     print('Companyname:\t' + _encode(company.name))
     if company.admin:
-        print('Admin:\t\t' + _encode(company.admin.name))
+        print('Sysadmin:\t\t' + _encode(company.admin.name))
     print('Address Book:\t' + ('Hidden' if company.hidden else 'Visible'))
     if company.public_store:
         print('Public store:\t\t' + company.public_store.guid)

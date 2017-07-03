@@ -299,8 +299,6 @@ class MVPROPMAP(MAPIStruct):
     def __str__(self):
         return 'MVPROPMAP(%s)' % (self.ulPropId)
 
-# @todo sUserId ECENTRYID?
-# @todo propmap?
 class ECUSER(MAPIStruct):
     def __init__(self, Username, Password, Email, FullName, Servername = None, Class = 0x10001, IsAdmin = False, IsHidden = False, Capacity = 0, UserID = None, MVPropMap = None):
         self.Username = Username
@@ -317,7 +315,6 @@ class ECUSER(MAPIStruct):
     def __str__(self):
         return 'ECUSER(%s,%s,%s)' % (self.Username, self.Email, self.FullName)
 
-# @todo sGroupId ECENTRYID?
 # @todo propmap?
 class ECGROUP(MAPIStruct):
     def __init__(self, Groupname, Fullname, Email, IsHidden = False, GroupID = None, MVPropMap = None):
@@ -328,8 +325,6 @@ class ECGROUP(MAPIStruct):
         self.GroupID = GroupID
         self.MVPropMap = MVPropMap
 
-# @todo sCompanyId ECENTRYID?
-# @todo sAdministrator ECENTRYID?
 # @todo propmap?
 class ECCOMPANY(MAPIStruct):
     def __init__(self, Companyname, Servername, IsHidden = False, CompanyID = None, MVPropMap = None, AdministratorID = None):
