@@ -91,6 +91,7 @@ typedef std::list<sObjectTableKey> ECObjectTableList;
 
 struct ECSortCol {
 	public:
+	unsigned char flags = 0;
 	bool isnull = false; /* go use std::optional with C++17 */
 	std::string key;
 };
