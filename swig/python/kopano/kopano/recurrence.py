@@ -526,6 +526,9 @@ class Recurrence(object):
                 if dueby > datetime.datetime.now():
                     cal_item.set_value(PidLidReminderSignalTime, dueby)
                     break
+            else:
+                cal_item.prop(PidLidReminderSet).value = False
+                cal_item.prop(PidLidReminderSignalTime).value = datetime.datetime.fromtimestamp(0x7ff00000)
 
     def _update_embedded(self, basedate, message, item, copytags=None, create=False):
         basetime = basedate + datetime.timedelta(minutes=self.starttime_offset)
