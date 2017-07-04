@@ -89,9 +89,16 @@ typedef std::list<sObjectTableKey> ECObjectTableList;
 #define TABLEROW_FLAG_FLOAT		0x00000002
 #define TABLEROW_FLAG_STRING	0x00000004
 
+struct ECSortCol {
+	public:
+	unsigned char flags = 0;
+	bool isnull = false; /* go use std::optional with C++17 */
+	std::string key;
+};
+
 class _kc_export ECTableRow _kc_final {
 public:
-	ECTableRow(sObjectTableKey sKey, unsigned int ulSortCols, const unsigned int *lpSortLen, const unsigned char *lpFlags, unsigned char **lppSortData, bool fHidden);
+	ECTableRow(const sObjectTableKey &, unsigned int ulSortCols, const unsigned int *lpSortLen, const unsigned char *lpFlags, unsigned char **lppSortData, bool fHidden);
 	ECTableRow(const ECTableRow &other);
 	~ECTableRow();
 	_kc_hidden unsigned int GetObjectSize(void) const;
@@ -104,7 +111,7 @@ public:
 private:
 	_kc_hidden void initSortCols(unsigned int sortcols, const int *sortlen, const unsigned char *flags, unsigned char **sortdata);
 	_kc_hidden void freeSortCols(void);
-	_kc_hidden ECTableRow &operator=(const ECTableRow &);
+	ECTableRow &operator=(const ECTableRow &) = delete;
 public:
 	sObjectTableKey	sKey;
 

@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <kopano/lockhelper.hpp>
 #include <kopano/tie.hpp>
 
@@ -661,91 +662,73 @@ ECRESULT ECGenericObjectTable::SetSortOrder(const struct sortOrderArray *lpsSort
 	return lpKeyTable->SeekRow(0, 0, NULL);
 }
 
-ECRESULT ECGenericObjectTable::GetBinarySortKey(struct propVal *lpsPropVal, unsigned int *lpSortLen, unsigned char **lppSortData)
+ECRESULT ECGenericObjectTable::GetBinarySortKey(struct propVal *lpsPropVal,
+    ECSortCol &sc)
 {
-	unsigned char	*lpSortData = NULL;
-	unsigned int	ulSortLen = 0;
+#define R(x) reinterpret_cast<const char *>(x)
 
 	switch(PROP_TYPE(lpsPropVal->ulPropTag)) {
 	case PT_BOOLEAN:
 	case PT_I2: {
-		ulSortLen = 2;
-		lpSortData = new unsigned char[2];
 		unsigned short tmp = lpsPropVal->Value.b;
-		memcpy(lpSortData, &tmp, sizeof(tmp));
+		sc.key.assign(R(&tmp), sizeof(tmp));
 		break;
 	}
 	case PT_LONG: {
-		ulSortLen = 4;
-		lpSortData = new unsigned char[4];
 		unsigned int tmp = htonl(lpsPropVal->Value.ul);
-		memcpy(lpSortData, &tmp, sizeof(tmp));
+		sc.key.assign(R(&tmp), sizeof(tmp));
 		break;
 	}
 	case PT_R4: {
-	    ulSortLen = sizeof(double);
-	    lpSortData = new unsigned char[sizeof(double)];
 		double tmp = lpsPropVal->Value.flt;
-		memcpy(lpSortData, &tmp, sizeof(tmp));
+		sc.key.assign(R(&tmp), sizeof(tmp));
 		break;
 	}
 	case PT_APPTIME:
 	case PT_DOUBLE:
-	    ulSortLen = sizeof(double);
-	    lpSortData = new unsigned char[sizeof(double)];
-		memcpy(lpSortData, &lpsPropVal->Value.dbl, sizeof(double));
+		sc.key.assign(R(&lpsPropVal->Value.dbl), sizeof(double));
 	    break;
 	case PT_CURRENCY:
-	    ulSortLen = 0;
-	    lpSortData = NULL;
+		sc.isnull = true;
 		break;
 	case PT_SYSTIME: {
-		ulSortLen = 8;
-		lpSortData = new unsigned char[8];
 		unsigned int tmp = htonl(lpsPropVal->Value.hilo->hi);
-		memcpy(lpSortData, &tmp, sizeof(tmp));
+		sc.key.reserve(sizeof(tmp) * 2);
+		sc.key.assign(R(&tmp), sizeof(tmp));
 		tmp = htonl(lpsPropVal->Value.hilo->lo);
-		memcpy(lpSortData + 4, &tmp, sizeof(tmp));
+		sc.key.append(R(&tmp), sizeof(tmp));
 		break;
 	}
 	case PT_I8: {
-		ulSortLen = 8;
-		lpSortData = new unsigned char[8];
-		unsigned int tmp = htonl((unsigned int)(lpsPropVal->Value.li >> 32));
-		memcpy(lpSortData, &tmp, sizeof(tmp));
-		tmp = htonl((unsigned int)lpsPropVal->Value.li);
-		memcpy(lpSortData + 4, &tmp, sizeof(tmp));
+		unsigned int tmp = htonl(static_cast<unsigned int>(lpsPropVal->Value.li >> 32));
+		sc.key.reserve(sizeof(tmp) * 2);
+		sc.key.assign(R(&tmp), sizeof(tmp));
+		tmp = htonl(static_cast<unsigned int>(lpsPropVal->Value.li));
+		sc.key.append(R(&tmp), sizeof(tmp));
 		break;
 	}
 	case PT_STRING8:
-	case PT_UNICODE: {
-			// is this check needed here, or is it already checked 50 times along the way?
-			if (!lpsPropVal->Value.lpszA) {
-				ulSortLen = 0;
-				lpSortData = NULL;
-				break;
-			}
-			
-			createSortKeyDataFromUTF8(lpsPropVal->Value.lpszA, 255, m_locale, &ulSortLen, &lpSortData);
+	case PT_UNICODE:
+		// is this check needed here, or is it already checked 50 times along the way?
+		if (!lpsPropVal->Value.lpszA) {
+			sc.key.clear();
+			sc.isnull = true;
+			break;
 		}
+		sc.key = createSortKeyDataFromUTF8(lpsPropVal->Value.lpszA, 255, m_locale);
 		break;
 	case PT_CLSID:
 	case PT_BINARY:
-		ulSortLen = lpsPropVal->Value.bin->__size;
-		lpSortData = new unsigned char [ulSortLen];
-		memcpy(lpSortData, lpsPropVal->Value.bin->__ptr, ulSortLen); // could be optimized to one func
+		sc.key.assign(reinterpret_cast<char *>(lpsPropVal->Value.bin->__ptr), lpsPropVal->Value.bin->__size);
 		break;
 	case PT_ERROR:
-		ulSortLen = 0;
-		lpSortData = NULL;
+		sc.isnull = true;
 		break;
 	default:
 		return KCERR_INVALID_TYPE;
 	}
-
-	*lpSortLen = ulSortLen;
-	*lppSortData = lpSortData;
 	return erSuccess;
+#undef R
 }
 
 /**
@@ -1358,8 +1341,16 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
         
 		// Get the binary sortkeys for all properties
 		for (gsoap_size_t n = 0; n < catprop.__size; ++n) {
-			if (GetBinarySortKey(&catprop.__ptr[n], &lpSortLen[n], &lpSortData[n]) != erSuccess)
+			ECSortCol sc;
+			if (GetBinarySortKey(&catprop.__ptr[n], sc) != erSuccess)
 				goto next;
+			if (!sc.isnull) {
+				lpSortLen[n] = sc.key.size();
+				lpSortData[n] = new unsigned char[lpSortLen[n]];
+				memcpy(lpSortData[n], sc.key.c_str(), lpSortLen[n]);
+			} else {
+				lpSortLen[n] = 0;
+			}
 			if (GetSortFlags(catprop.__ptr[n].ulPropTag, &lpSortFlags[n]) != erSuccess)
 				goto next;
 		}
@@ -1393,8 +1384,16 @@ next:
 
 		gsoap_size_t n;
 		for (n = 0; n < cst.sBookMarkProps.__size; ++n) {
-			if (GetBinarySortKey(&cst.sBookMarkProps.__ptr[n], &lpSortLen[n], &lpSortData[n]) != erSuccess)
+			ECSortCol sc;
+			if (GetBinarySortKey(&cst.sBookMarkProps.__ptr[n], sc) != erSuccess)
 				break;
+			if (!sc.isnull) {
+				lpSortLen[n] = sc.key.size();
+				lpSortData[n] = new unsigned char[lpSortLen[n]];
+				memcpy(lpSortData[n], sc.key.c_str(), lpSortLen[n]);
+			} else {
+				lpSortLen[n] = 0;
+			}
 			if (GetSortFlags(cst.sBookMarkProps.__ptr[n].ulPropTag, &lpSortFlags[n]) != erSuccess)
 				break;
 		}
@@ -2321,13 +2320,22 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 	lpSortLen.reset(new unsigned int[cProps]);
 	lppSortKeys.reset(new unsigned char *[cProps]);
 	lpSortFlags.reset(new unsigned char[cProps]);
+	memset(lppSortKeys.get(), 0, cProps * sizeof(unsigned char *));
 
     // Build binary sort keys
     
     // +1 because we may have a trailing category followed by a MINMAX column
     for (i = 0; i < m_ulCategories + 1 && i < cProps; ++i) {
-        if(GetBinarySortKey(&lpProps[i], &lpSortLen[i], &lppSortKeys[i]) != erSuccess)
+		ECSortCol sc;
+		if (GetBinarySortKey(&lpProps[i], sc) != erSuccess)
         	lppSortKeys[i] = NULL;
+		if (!sc.isnull) {
+			lpSortLen[i] = sc.key.size();
+			lppSortKeys[i] = new unsigned char[lpSortLen[i]];
+			memcpy(lppSortKeys[i], sc.key.c_str(), lpSortLen[i]);
+		} else {
+			lpSortLen[i] = 0;
+		}
         if(GetSortFlags(lpProps[i].ulPropTag, &lpSortFlags[i]) != erSuccess)
         	lpSortFlags[i] = 0;
     }
@@ -2623,8 +2631,14 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 	
     // Build binary sort keys from updated data
     for (int i = 0; i < n; ++i) {
-        if(GetBinarySortKey(&lpOrderedProps[i], &lpSortLen[i], &lppSortKeys[i]) != erSuccess)
+		ECSortCol sc;
+		if (GetBinarySortKey(&lpOrderedProps[i], sc) != erSuccess)
         	lppSortKeys[i] = NULL;
+		if (!sc.isnull) {
+			lpSortLen[i] = sc.key.size();
+			lppSortKeys[i] = new unsigned char[lpSortLen[i]];
+			memcpy(lppSortKeys[i], sc.key.c_str(), lpSortLen[i]);
+		}
         if(GetSortFlags(lpOrderedProps[i].ulPropTag, &lpSortFlags[i]) != erSuccess)
         	lpSortFlags[i] = 0;
         if(lpsSortOrderArray->__ptr[i].ulOrder == EC_TABLE_SORT_DESCEND)
@@ -2726,8 +2740,16 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 					}
 
 					std::unique_ptr<unsigned char[]> lpSortKey;
-					if(GetBinarySortKey(&sProp, &ulSortLen, &unique_tie(lpSortKey)) != erSuccess)
+					ECSortCol sc;
+					if (GetBinarySortKey(&sProp, sc) != erSuccess)
 						lpSortKey = NULL;
+					if (!sc.isnull) {
+						ulSortLen = sc.key.size();
+						lpSortKey.reset(new unsigned char[ulSortLen]);
+						memcpy(lpSortKey.get(), sc.key.c_str(), ulSortLen);
+					} else {
+						ulSortLen = 0;
+					}
 					if(GetSortFlags(sProp.ulPropTag, &ulSortFlags) != erSuccess)
 						ulSortFlags = 0;
 					

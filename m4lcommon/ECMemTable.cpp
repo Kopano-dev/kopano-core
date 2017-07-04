@@ -791,100 +791,75 @@ HRESULT ECMemTableView::FreeBookmark(BOOKMARK bkPosition)
 }
 
 // This is the client version of ECGenericObjectTable::GetBinarySortKey()
-HRESULT ECMemTableView::GetBinarySortKey(const SPropValue *lpsPropVal,
-    unsigned int *lpSortLen, unsigned char *lpFlags,
-    unsigned char **lppSortData)
+HRESULT ECMemTableView::GetBinarySortKey(const SPropValue *lpsPropVal, ECSortCol &sc)
 {
-	unsigned char	*lpSortData = NULL;
-	unsigned int	ulSortLen = 0;
-	unsigned char	ulFlags = 0;
-	unsigned short tmp2;
-	unsigned int tmp4;
-	double tmp8;
-
+#define R(x) reinterpret_cast<const char *>(x)
 	switch(PROP_TYPE(lpsPropVal->ulPropTag)) {
 	case PT_BOOLEAN:
-	case PT_I2:
-		ulSortLen = 2;
-		lpSortData = new unsigned char[2];
-		tmp2 = htons(lpsPropVal->Value.b);
-		static_assert(sizeof(short) == 2, "ECMemTable hardcode");
-		memcpy(lpSortData, &tmp2, sizeof(tmp2));
+	case PT_I2: {
+		unsigned short tmp = htons(lpsPropVal->Value.b);
+		sc.key.assign(R(&tmp), sizeof(tmp));
 		break;
-	case PT_LONG:
-		ulSortLen = 4;
-		lpSortData = new unsigned char[4];
-		tmp4 = htonl(lpsPropVal->Value.ul);
-		static_assert(sizeof(int) == 4, "ECMemTable hardcode");
-		memcpy(lpSortData, &tmp4, sizeof(tmp4));
+	}
+	case PT_LONG: {
+		unsigned int tmp = htonl(lpsPropVal->Value.ul);
+		sc.key.assign(R(&tmp), sizeof(tmp));
 		break;
-	case PT_R4:
-		ulSortLen = sizeof(double);
-		lpSortData = new unsigned char[sizeof(double)];
-		tmp8 = lpsPropVal->Value.flt;
-		memcpy(lpSortData, &tmp8, sizeof(tmp8));
+	}
+	case PT_R4: {
+		double tmp = lpsPropVal->Value.flt;
+		sc.key.assign(R(&tmp), sizeof(tmp));
 		break;
+	}
 	case PT_DOUBLE:
-		ulSortLen = sizeof(double);
-		lpSortData = new unsigned char[sizeof(double)];
-		memcpy(lpSortData, &lpsPropVal->Value.dbl, sizeof(double));
+		sc.key.assign(R(&lpsPropVal->Value.dbl), sizeof(double));
 		break;
 	case PT_APPTIME:
-		ulSortLen = sizeof(double);
-		lpSortData = new unsigned char[sizeof(double)];
-		memcpy(lpSortData, &lpsPropVal->Value.at, sizeof(double));
+		sc.key.assign(R(&lpsPropVal->Value.at), sizeof(double));
 		break;
 	case PT_CURRENCY:// FIXME: unsortable
-		ulSortLen = 0;
-		lpSortData = NULL;
+		sc.isnull = true;
 		break;
-	case PT_SYSTIME:
-		ulSortLen = 8;
-		lpSortData = new unsigned char[8];
-		tmp4 = htonl(lpsPropVal->Value.ft.dwHighDateTime);
-		memcpy(lpSortData, &tmp4, sizeof(tmp4));
-		tmp4 = htonl(lpsPropVal->Value.ft.dwLowDateTime);
-		memcpy(lpSortData + 4, &tmp4, sizeof(tmp4));
+	case PT_SYSTIME: {
+		unsigned int tmp = htonl(lpsPropVal->Value.ft.dwHighDateTime);
+		sc.key.reserve(sizeof(tmp) * 2);
+		sc.key.assign(R(&tmp), sizeof(tmp));
+		tmp = htonl(lpsPropVal->Value.ft.dwLowDateTime);
+		sc.key.append(R(&tmp), sizeof(tmp));
 		break;
-	case PT_I8:
-		ulSortLen = 8;
-		lpSortData = new unsigned char[8];
-		tmp4 = htonl((unsigned int)(lpsPropVal->Value.li.QuadPart >> 32));
-		memcpy(lpSortData, &tmp4, sizeof(tmp4));
-		tmp4 = htonl((unsigned int)lpsPropVal->Value.li.QuadPart);
-		memcpy(lpSortData + 4, &tmp4, sizeof(tmp4));
+	}
+	case PT_I8: {
+		unsigned int tmp = htonl(static_cast<unsigned int>(lpsPropVal->Value.li.QuadPart >> 32));
+		sc.key.reserve(sizeof(tmp) * 2);
+		sc.key.assign(R(&tmp), sizeof(tmp));
+		tmp = htonl(static_cast<unsigned int>(lpsPropVal->Value.li.QuadPart));
+		sc.key.append(R(&tmp), sizeof(tmp));
 		break;
+	}
 	case PT_STRING8: 
-	case PT_UNICODE: {
-			if (!lpsPropVal->Value.lpszA) {	// Checks both lpszA and lpszW
-				ulSortLen = 0;
-				lpSortData = NULL;
-				break;
-			}
-
-			if (PROP_TYPE(lpsPropVal->ulPropTag) == PT_STRING8)
-				createSortKeyData(lpsPropVal->Value.lpszA, 255, m_locale, &ulSortLen, &lpSortData);
-			else
-				createSortKeyData(lpsPropVal->Value.lpszW, 255, m_locale, &ulSortLen, &lpSortData);
+	case PT_UNICODE:
+		if (!lpsPropVal->Value.lpszA) {	// Checks both lpszA and lpszW
+			sc.key.clear();
+			sc.isnull = true;
+			break;
 		}
+		if (PROP_TYPE(lpsPropVal->ulPropTag) == PT_STRING8)
+			sc.key = createSortKeyData(lpsPropVal->Value.lpszA, 255, m_locale);
+		else
+			sc.key = createSortKeyData(lpsPropVal->Value.lpszW, 255, m_locale);
 		break;
 	case PT_CLSID:
 	case PT_BINARY:
-		ulSortLen = lpsPropVal->Value.bin.cb;
-		lpSortData = new unsigned char [ulSortLen];
-		memcpy(lpSortData, lpsPropVal->Value.bin.lpb, ulSortLen); // could be optimized to one func
+		sc.key.assign(R(lpsPropVal->Value.bin.lpb), lpsPropVal->Value.bin.cb);
 		break;
 	case PT_ERROR:
-		ulSortLen = 0;
-		lpSortData = NULL;
+		sc.isnull = true;
 		break;
 	default:
 		return MAPI_E_INVALID_TYPE;
 	}
-	*lpSortLen = ulSortLen;
-	*lppSortData = lpSortData;
-	*lpFlags = ulFlags;
 	return hrSuccess;
+#undef R
 }
 
 HRESULT ECMemTableView::SortTable(const SSortOrderSet *lpSortCriteria,
@@ -967,11 +942,22 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 	// Get all the sort columns and package them as binary keys
 	for (j = 0; j < lpsSortOrderSet->cSorts; ++j) {
 		auto lpsSortID = PCpropFindProp(iterData->second.lpsPropVal, iterData->second.cValues, lpsSortOrderSet->aSort[j].ulPropTag);
-		if (lpsSortID == NULL || GetBinarySortKey(lpsSortID, &lpulSortLen[j], &lpFlags[j], &lpSortKeys[j]) != hrSuccess) {
+		ECSortCol sc;
+		if (lpsSortID == NULL || GetBinarySortKey(lpsSortID, sc) != hrSuccess) {
 			lpulSortLen[j] = 0;
 			lpSortKeys[j] = NULL;
 			lpFlags[j] = 0;
 			continue;
+		}
+		if (!sc.isnull) {
+			lpulSortLen[j] = sc.key.size();
+			lpSortKeys[j] = new unsigned char[lpulSortLen[j]];
+			memcpy(lpSortKeys[j], sc.key.c_str(), lpulSortLen[j]);
+			lpFlags[j] = sc.flags;
+		} else {
+			lpulSortLen[j] = 0;
+			lpSortKeys[j] = nullptr;
+			lpFlags[j] = 0;
 		}
 
 		// Mark as descending if required

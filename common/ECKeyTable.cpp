@@ -81,14 +81,11 @@ bool operator>(const sObjectTableKey &a, const sObjectTableKey &b) noexcept
  *
  * Rows are immutable, changes are done with a delete/add
  */
-
-ECTableRow::ECTableRow(sObjectTableKey sKey, unsigned int ulSortCols,
+ECTableRow::ECTableRow(const sObjectTableKey &k, unsigned int ulSortCols,
     const unsigned int *lpSortLen, const unsigned char *lpFlags,
-    unsigned char **lppSortData, bool fHidden)
+    unsigned char **lppSortData, bool hidden) :
+	sKey(k), fHidden(hidden)
 {
-	this->sKey = sKey;
-	this->fHidden = fHidden;
-
 	initSortCols(ulSortCols, reinterpret_cast<const int *>(lpSortLen),
 	             lpFlags, lppSortData);
 }
@@ -127,30 +124,10 @@ void ECTableRow::initSortCols(unsigned int ulSortCols, const int *lpSortLen,
 	}
 }
 
-ECTableRow::ECTableRow(const ECTableRow &other)
+ECTableRow::ECTableRow(const ECTableRow &other) :
+	sKey(other.sKey), fHidden(other.fHidden)
 {
-	this->sKey = other.sKey;
-	this->lpParent = NULL;
-	this->lpLeft = NULL;
-	this->lpRight = NULL;
-	this->fLeft = 0;
-	this->ulBranchCount = 0;
-	this->fRoot = false;
-	this->ulHeight = 0;
-	this->fHidden = other.fHidden;
-
 	initSortCols(other.ulSortCols, other.lpSortLen, other.lpFlags, other.lppSortKeys);
-}
-
-ECTableRow& ECTableRow::operator=(const ECTableRow &other)
-{
-    if(this == &other)
-        return *this;
-        
-    freeSortCols();
-    initSortCols(other.ulSortCols, other.lpSortLen, other.lpFlags, other.lppSortKeys);
-    
-    return *this;
 }
 
 void ECTableRow::freeSortCols()

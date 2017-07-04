@@ -67,14 +67,14 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include "utf8/unchecked.h"
 #include <cassert>
 #include <memory>
+#include <string>
 #include <unicode/unorm.h>
 #include <unicode/coll.h>
 #include <unicode/tblcoll.h>
 #include <unicode/coleitr.h>
 #include <unicode/normlzr.h>
 #include <unicode/ustring.h>
-
-#include "ustringutil/utfutil.h"
+#include <kopano/charset/convert.h>
 
 typedef std::unique_ptr<Collator> unique_ptr_Collator;
 
@@ -114,6 +114,23 @@ exit:
 	freelocale(loc);
 
 	return needlestart;
+}
+
+static inline UnicodeString StringToUnicode(const char *sz)
+{
+	// *tocode, const _From_Type &_from, size_t cbBytes, const char *fromcode
+	auto strUTF16 = convert_context().convert_to<std::string>("UTF-16LE", sz, rawsize(sz), "");
+	return UnicodeString(reinterpret_cast<const UChar *>(strUTF16.data()), strUTF16.length() / 2);
+}
+
+static inline UnicodeString UTF8ToUnicode(const char *utf8)
+{
+	return UnicodeString::fromUTF8(utf8);
+}
+
+static inline UnicodeString WCHARToUnicode(const wchar_t *sz)
+{
+	return UnicodeString::fromUTF32(reinterpret_cast<const UChar32 *>(sz), -1);
 }
 
 /**
@@ -985,9 +1002,9 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
  * @param[in]	nCap		Base the key on the first nCap characters of s (if larger than 0).
  * @param[in]	locale		The locale used to create the sort key.
  *
- * @returns		ECSortKey object containing the blob
+ * @returns		ECUSortKey object containing the blob
  */
-static ECSortKey createSortKey(UnicodeString s, int nCap,
+static ECUSortKey createSortKey(UnicodeString &&s, int nCap,
     const ECLocale &locale)
 {
 	if (nCap > 1)
@@ -1000,8 +1017,7 @@ static ECSortKey createSortKey(UnicodeString s, int nCap,
 	CollationKey key;
 	UErrorCode status = U_ZERO_ERROR;
 	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
-	ptrCollator->getCollationKey(s, key, status);	// Create a collation key for sorting
-
+	ptrCollator->getCollationKey(std::move(s), key, status); // Create a collation key for sorting
 	return key;
 }
 
@@ -1013,23 +1029,16 @@ static ECSortKey createSortKey(UnicodeString s, int nCap,
  * @param[in]	s			The string to compare.
  * @param[in]	nCap		Base the key on the first nCap characters of s (if larger than 0).
  * @param[in]	locale		The locale used to create the sort key.
- * @param[out]	lpcbKeys	The size in bytes of the returned key.
- * @param[ou]t	lppKey		The returned key.
  */
-static void createSortKeyData(const UnicodeString &s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey)
+static std::string createSortKeyData(UnicodeString &&s, int nCap,
+    const ECLocale &locale)
 {
-	unsigned char *lpKey = NULL;
-
-	CollationKey key = createSortKey(s, nCap, locale);
-
+	auto key = createSortKey(std::move(s), nCap, locale);
 	int32_t 		cbKeyData = 0;
 	const uint8_t	*lpKeyData = key.getByteArray(cbKeyData);
-
-	lpKey = new unsigned char[cbKeyData];
-	memcpy(lpKey, lpKeyData, cbKeyData);		
-
-	*lpcbKey = cbKeyData;
-	*lppKey = lpKey;
+	if (lpKeyData == nullptr)
+		return {};
+	return std::string(reinterpret_cast<const char *>(lpKeyData), cbKeyData);
 }
 
 /**
@@ -1040,15 +1049,11 @@ static void createSortKeyData(const UnicodeString &s, int nCap, const ECLocale &
  * @param[in]	s			The string to compare.
  * @param[in]	nCap		Base the key on the first nCap characters of s (if larger than 0).
  * @param[in]	locale		The locale used to create the sort key.
- * @param[out]	lpcbKeys	The size in bytes of the returned key.
- * @param[ou]t	lppKey		The returned key.
  */
-void createSortKeyData(const char *s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey)
+std::string createSortKeyData(const char *s, int nCap, const ECLocale &locale)
 {
 	assert(s != NULL);
-	assert(lpcbKey != NULL);
-	assert(lppKey != NULL);
-	createSortKeyData(UnicodeString(s), nCap, locale, lpcbKey, lppKey);
+	return createSortKeyData(UnicodeString(s), nCap, locale);
 }
 
 /**
@@ -1058,17 +1063,11 @@ void createSortKeyData(const char *s, int nCap, const ECLocale &locale, unsigned
  *
  * @param[in]	s			The string to compare.
  * @param[in]	locale		The locale used to create the sort key.
- * @param[out]	lpcbKeys	The size in bytes of the returned key.
- * @param[ou]t	lppKey		The returned key.
  */
-void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey)
+std::string createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale)
 {
 	assert(s != NULL);
-	assert(lpcbKey != NULL);
-	assert(lppKey != NULL);
-	UnicodeString ustring;
-	ustring = UTF32ToUnicode((const UChar32*)s);
-	createSortKeyData(ustring, nCap, locale, lpcbKey, lppKey);
+	return createSortKeyData(WCHARToUnicode(s), nCap, locale);
 }
 
 /**
@@ -1079,15 +1078,12 @@ void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale, unsig
  * @param[in]	s			The string to compare.
  * @param[in]	nCap		Base the key on the first nCap characters of s (if larger than 0).
  * @param[in]	locale		The locale used to create the sort key.
- * @param[out]	lpcbKeys	The size in bytes of the returned key.
- * @param[ou]t	lppKey		The returned key.
  */
-void createSortKeyDataFromUTF8(const char *s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey)
+std::string createSortKeyDataFromUTF8(const char *s, int nCap,
+    const ECLocale &locale)
 {
 	assert(s != NULL);
-	assert(lpcbKey != NULL);
-	assert(lppKey != NULL);
-	createSortKeyData(UTF8ToUnicode(s), nCap, locale, lpcbKey, lppKey);
+	return createSortKeyData(UTF8ToUnicode(s), nCap, locale);
 }
 
 /**
@@ -1099,9 +1095,9 @@ void createSortKeyDataFromUTF8(const char *s, int nCap, const ECLocale &locale, 
  * @param[in]	nCap		Base the key on the first nCap characters of s (if larger than 0).
  * @param[in]	locale		The locale used to create the sort key.
  *
- * @returns		The ECSortKey containing the blob.
+ * @returns		The ECUSortKey containing the blob.
  */
-ECSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale)
+ECUSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale)
 {
 	assert(s != NULL);
 	return createSortKey(UTF8ToUnicode(s), nCap, locale);

@@ -201,7 +201,7 @@ protected:
 	ECRESULT 	UpdateCategoryMinMax(sObjectTableKey& lpKey, ECCategory *lpCategory, size_t i, struct propVal *lpProps, size_t cProps, bool *lpfModified);
 
 	virtual ECRESULT	ReloadKeyTable();
-	ECRESULT	GetBinarySortKey(struct propVal *lpsPropVal, unsigned int *lpSortLen, unsigned char **lppSortData);
+	ECRESULT GetBinarySortKey(struct propVal *in, ECSortCol &out);
 	ECRESULT	GetSortFlags(unsigned int ulPropTag, unsigned char *lpFlags);
 
 	virtual ECRESULT GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount);
