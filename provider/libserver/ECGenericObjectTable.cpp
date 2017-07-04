@@ -1335,9 +1335,9 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
 	for (gsoap_size_t i = 0; i < cst.sCategoryStates.__size; ++i) {
 		const auto &catprop = cst.sCategoryStates.__ptr[i].sProps;
 		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[catprop.__size]);
-		std::unique_ptr<unsigned char *[]> lpSortData(new unsigned char *[catprop.__size]);
-		std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[catprop.__size]);
-		memset(lpSortData.get(), 0, catprop.__size * sizeof(unsigned char *));
+		std::unique_ptr<char *[]> lpSortData(new char *[catprop.__size]);
+		std::unique_ptr<uint8_t[]> lpSortFlags(new uint8_t[catprop.__size]);
+		memset(lpSortData.get(), 0, catprop.__size * sizeof(char *));
         
 		// Get the binary sortkeys for all properties
 		for (gsoap_size_t n = 0; n < catprop.__size; ++n) {
@@ -1346,7 +1346,7 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
 				goto next;
 			if (!sc.isnull) {
 				lpSortLen[n] = sc.key.size();
-				lpSortData[n] = new unsigned char[lpSortLen[n]];
+				lpSortData[n] = new char[lpSortLen[n]];
 				memcpy(lpSortData[n], sc.key.c_str(), lpSortLen[n]);
 			} else {
 				lpSortLen[n] = 0;
@@ -1356,8 +1356,7 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
 		}
 
 		// Find the category and expand or collapse it. If it's not there anymore, just ignore it.
-		if (lpKeyTable->Find(catprop.__size,
-		    reinterpret_cast<int *>(lpSortLen.get()),
+		if (lpKeyTable->Find(catprop.__size, lpSortLen.get(),
 		    lpSortData.get(), lpSortFlags.get(), &sKey) == erSuccess) {
 
             sInstanceKey.__size = 8;
@@ -1377,10 +1376,9 @@ next:
     // we return a bookmark to the nearest next row.
 	if (cst.sBookMarkProps.__size > 0) {
 		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[cst.sBookMarkProps.__size]);
-		std::unique_ptr<unsigned char *[]> lpSortData(new unsigned char *[cst.sBookMarkProps.__size]);
-		std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[cst.sBookMarkProps.__size]);
-        
-		memset(lpSortData.get(), 0, cst.sBookMarkProps.__size * sizeof(unsigned char *));
+		std::unique_ptr<char *[]> lpSortData(new char *[cst.sBookMarkProps.__size]);
+		std::unique_ptr<uint8_t[]> lpSortFlags(new uint8_t[cst.sBookMarkProps.__size]);
+		memset(lpSortData.get(), 0, cst.sBookMarkProps.__size * sizeof(char *));
 
 		gsoap_size_t n;
 		for (n = 0; n < cst.sBookMarkProps.__size; ++n) {
@@ -1389,7 +1387,7 @@ next:
 				break;
 			if (!sc.isnull) {
 				lpSortLen[n] = sc.key.size();
-				lpSortData[n] = new unsigned char[lpSortLen[n]];
+				lpSortData[n] = new char[lpSortLen[n]];
 				memcpy(lpSortData[n], sc.key.c_str(), lpSortLen[n]);
 			} else {
 				lpSortLen[n] = 0;
@@ -1401,8 +1399,7 @@ next:
         // If an error occurred in the previous loop, just ignore the whole bookmark thing, just return bookmark 0 (BOOKMARK_BEGINNING)    
 		if (n == cst.sBookMarkProps.__size) {
 			lpKeyTable->LowerBound(cst.sBookMarkProps.__size,
-				reinterpret_cast<int *>(lpSortLen.get()),
-				lpSortData.get(), lpSortFlags.get());
+				lpSortLen.get(), lpSortData.get(), lpSortFlags.get());
             lpKeyTable->CreateBookmark(lpulBookmark);
         }
 
@@ -2301,8 +2298,8 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
     bool fNewLeaf = false;
     unsigned int i = 0;
 	std::unique_ptr<unsigned int[]> lpSortLen;
-	std::unique_ptr<unsigned char *[]> lppSortKeys;
-	std::unique_ptr<unsigned char[]> lpSortFlags;
+	std::unique_ptr<char *[]> lppSortKeys;
+	std::unique_ptr<uint8_t[]> lpSortFlags;
     sObjectTableKey sPrevRow(0,0);
     ECCategory *lpCategory = NULL;
     LEAFINFO sLeafInfo;
@@ -2318,9 +2315,9 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 		goto exit;
     
 	lpSortLen.reset(new unsigned int[cProps]);
-	lppSortKeys.reset(new unsigned char *[cProps]);
-	lpSortFlags.reset(new unsigned char[cProps]);
-	memset(lppSortKeys.get(), 0, cProps * sizeof(unsigned char *));
+	lppSortKeys.reset(new char *[cProps]);
+	lpSortFlags.reset(new uint8_t[cProps]);
+	memset(lppSortKeys.get(), 0, cProps * sizeof(char *));
 
     // Build binary sort keys
     
@@ -2331,7 +2328,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
         	lppSortKeys[i] = NULL;
 		if (!sc.isnull) {
 			lpSortLen[i] = sc.key.size();
-			lppSortKeys[i] = new unsigned char[lpSortLen[i]];
+			lppSortKeys[i] = new char[lpSortLen[i]];
 			memcpy(lppSortKeys[i], sc.key.c_str(), lpSortLen[i]);
 		} else {
 			lpSortLen[i] = 0;
@@ -2600,11 +2597,11 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 	
 	std::unique_ptr<struct propVal[]> lpOrderedProps(new struct propVal[cValues]);
 	std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[cValues]);
-	std::unique_ptr<unsigned char *[]> lppSortKeys(new unsigned char *[cValues]);
-	std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[cValues]);
+	std::unique_ptr<char *[]> lppSortKeys(new char *[cValues]);
+	std::unique_ptr<uint8_t[]> lpSortFlags(new uint8_t[cValues]);
 	memset(lpOrderedProps.get(), 0, sizeof(struct propVal) * cValues);
 	memset(lpSortLen.get(), 0, sizeof(unsigned int) * cValues);
-	memset(lppSortKeys.get(), 0, sizeof(unsigned char *) * cValues);
+	memset(lppSortKeys.get(), 0, sizeof(char *) * cValues);
 	memset(lpSortFlags.get(), 0, cValues);
 
 	for (unsigned int i = 0; i < cValues; ++i) {
@@ -2636,7 +2633,7 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
         	lppSortKeys[i] = NULL;
 		if (!sc.isnull) {
 			lpSortLen[i] = sc.key.size();
-			lppSortKeys[i] = new unsigned char[lpSortLen[i]];
+			lppSortKeys[i] = new char[lpSortLen[i]];
 			memcpy(lppSortKeys[i], sc.key.c_str(), lpSortLen[i]);
 		}
         if(GetSortFlags(lpOrderedProps[i].ulPropTag, &lpSortFlags[i]) != erSuccess)
@@ -2739,13 +2736,13 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 						sProp.Value.ul = KCERR_NOT_FOUND;
 					}
 
-					std::unique_ptr<unsigned char[]> lpSortKey;
+					std::unique_ptr<char[]> lpSortKey;
 					ECSortCol sc;
 					if (GetBinarySortKey(&sProp, sc) != erSuccess)
 						lpSortKey = NULL;
 					if (!sc.isnull) {
 						ulSortLen = sc.key.size();
-						lpSortKey.reset(new unsigned char[ulSortLen]);
+						lpSortKey.reset(new char[ulSortLen]);
 						memcpy(lpSortKey.get(), sc.key.c_str(), ulSortLen);
 					} else {
 						ulSortLen = 0;

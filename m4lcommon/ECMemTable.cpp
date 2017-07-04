@@ -908,8 +908,8 @@ HRESULT ECMemTableView::UpdateSortOrRestrict() {
 HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKey* lpsPrevRow, ULONG *lpulAction)
 {
 	std::unique_ptr<unsigned int[]> lpulSortLen;
-	std::unique_ptr<unsigned char *[]> lpSortKeys;
-	std::unique_ptr<unsigned char[]> lpFlags;
+	std::unique_ptr<char *[]> lpSortKeys;
+	std::unique_ptr<uint8_t[]> lpFlags;
 	ULONG j;
 
 	// FIXME: mvprops?
@@ -923,8 +923,8 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 
 	if (lpsSortOrderSet && lpsSortOrderSet->cSorts > 0){
 		lpulSortLen.reset(new unsigned int [lpsSortOrderSet->cSorts]);
-		lpFlags.reset(new unsigned char [lpsSortOrderSet->cSorts]);
-		lpSortKeys.reset(new unsigned char * [lpsSortOrderSet->cSorts]);
+		lpFlags.reset(new uint8_t[lpsSortOrderSet->cSorts]);
+		lpSortKeys.reset(new char *[lpsSortOrderSet->cSorts]);
 	}
 
 	// Check if there is a restriction in place, and if so, apply it
@@ -951,7 +951,7 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 		}
 		if (!sc.isnull) {
 			lpulSortLen[j] = sc.key.size();
-			lpSortKeys[j] = new unsigned char[lpulSortLen[j]];
+			lpSortKeys[j] = new char[lpulSortLen[j]];
 			memcpy(lpSortKeys[j], sc.key.c_str(), lpulSortLen[j]);
 			lpFlags[j] = sc.flags;
 		} else {

@@ -91,34 +91,34 @@ typedef std::list<sObjectTableKey> ECObjectTableList;
 
 struct ECSortCol {
 	public:
-	unsigned char flags = 0;
+	uint8_t flags = 0;
 	bool isnull = false; /* go use std::optional with C++17 */
 	std::string key;
 };
 
 class _kc_export ECTableRow _kc_final {
 public:
-	ECTableRow(const sObjectTableKey &, unsigned int ulSortCols, const unsigned int *lpSortLen, const unsigned char *lpFlags, unsigned char **lppSortData, bool fHidden);
+	ECTableRow(const sObjectTableKey &, unsigned int ulSortCols, const unsigned int *lpSortLen, const uint8_t *lpFlags, char **lppSortData, bool fHidden);
 	ECTableRow(const ECTableRow &other);
 	~ECTableRow();
 	_kc_hidden unsigned int GetObjectSize(void) const;
 	_kc_hidden static bool rowcompare(const ECTableRow *, const ECTableRow *);
-	_kc_hidden static bool rowcompare(unsigned int sortcols_a, const int *sortlen_a, unsigned char **sortkeys_a, const unsigned char *sortflags_a, unsigned int sortcols_b, const int *sortlen_b, unsigned char **sortkeys_b, const unsigned char *sortflags_b, bool ignore_order = false);
-	_kc_hidden static bool rowcompareprefix(unsigned int sortcolprefix, unsigned int sortcols_a, const int *sortlen_a, unsigned char **sortkeys_a, const unsigned char *sortflags_a, unsigned int sortcols_b, const int *sortlen_b, unsigned char **sortkeys_b, const unsigned char *sortflags_b);
+	_kc_hidden static bool rowcompare(unsigned int sortcols_a, const unsigned int *sortlen_a, char **sortkeys_a, const uint8_t *sortflags_a, unsigned int sortcols_b, const unsigned int *sortlen_b, char **sortkeys_b, const uint8_t *sortflags_b, bool ignore_order = false);
+	_kc_hidden static bool rowcompareprefix(unsigned int sortcolprefix, unsigned int sortcols_a, const unsigned int *sortlen_a, char **sortkeys_a, const uint8_t *sortflags_a, unsigned int sortcols_b, const unsigned int *sortlen_b, char **sortkeys_b, const uint8_t *sortflags_b);
 	bool operator < (const ECTableRow &other) const;
 	
 
 private:
-	_kc_hidden void initSortCols(unsigned int sortcols, const int *sortlen, const unsigned char *flags, unsigned char **sortdata);
+	_kc_hidden void initSortCols(unsigned int sortcols, const unsigned int *sortlen, const uint8_t *flags, char **sortdata);
 	_kc_hidden void freeSortCols(void);
 	ECTableRow &operator=(const ECTableRow &) = delete;
 public:
 	sObjectTableKey	sKey;
 
 	unsigned int ulSortCols;
-	int *lpSortLen;
-	unsigned char **lppSortKeys;
-	unsigned char *lpFlags;
+	unsigned int *lpSortLen;
+	char **lppSortKeys;
+	uint8_t *lpFlags;
 
 	// b-tree data
 	ECTableRow *lpParent = nullptr;
@@ -156,7 +156,7 @@ public:
 	ECKeyTable();
 	~ECKeyTable();
 
-	ECRESULT	UpdateRow(UpdateType ulType, const sObjectTableKey *lpsRowItem, unsigned int ulSortCols, const unsigned int *lpSortLen, const unsigned char *lpFlags, unsigned char **lppSortData, sObjectTableKey *lpsPrevRow, bool fHidden = false, UpdateType *lpulAction = NULL);
+	ECRESULT UpdateRow(UpdateType ulType, const sObjectTableKey *lpsRowItem, unsigned int ulSortCols, const unsigned int *lpSortLen, const uint8_t *lpFlags, char **lppSortData, sObjectTableKey *lpsPrevRow, bool fHidden = false, UpdateType *lpulAction = NULL);
 	ECRESULT	GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTableKey *lpsPrevItem);
 	ECRESULT	SeekRow(unsigned int ulBookmark, int lSeekTo, int *lplRowsSought);
 	ECRESULT	SeekId(const sObjectTableKey *lpsRowItem);
@@ -173,11 +173,9 @@ public:
 	ECRESULT	UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lpUnhiddenList);
 
 	// Returns the first row where the sort columns are not less than the specified sortkey
-	ECRESULT	LowerBound(unsigned int ulSortColPrefixLen, int *lpSortLen, unsigned char **lppSortData, unsigned char *lpFlags);
-	ECRESULT 	Find(unsigned int ulSortCols, int *lpSortLen, unsigned char **lppSortData, unsigned char *lpFlags, sObjectTableKey *lpsKey);
-
-	ECRESULT	UpdatePartialSortKey(sObjectTableKey *lpsRowItem, unsigned int ulColumn, unsigned char *lpSortData, unsigned int ulSortLen, unsigned char ulFlags, sObjectTableKey *lpsPrevRow,  bool *lpfHidden,  ECKeyTable::UpdateType *lpulAction);
-
+	ECRESULT LowerBound(unsigned int ulSortColPrefixLen, unsigned int *lpSortLen, char **lppSortData, uint8_t *lpFlags);
+	ECRESULT Find(unsigned int ulSortCols, unsigned int *lpSortLen, char **lppSortData, uint8_t *lpFlags, sObjectTableKey *lpsKey);
+	ECRESULT UpdatePartialSortKey(sObjectTableKey *lpsRowItem, unsigned int ulColumn, char *lpSortData, unsigned int ulSortLen, uint8_t ulFlags, sObjectTableKey *lpsPrevRow, bool *lpfHidden, ECKeyTable::UpdateType *lpulAction);
 	ECRESULT 	GetRow(sObjectTableKey *lpsRowItem, ECTableRow **lpRow);
 	
 
