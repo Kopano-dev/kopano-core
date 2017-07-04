@@ -201,14 +201,14 @@ bool ECTableRow::rowcompare(unsigned int ulSortColsA, const int *lpSortLenA,
                     cmp = -1;
                 else cmp = 1;
             }
-	    } else if (lpSortFlagsA && lpSortFlagsA[i] & TABLEROW_FLAG_STRING) {
-			cmp = compareSortKeys(lpSortLenA[i], lppSortKeysA[i], lpSortLenB[i], lppSortKeysB[i]);
 		} else if (lppSortKeysA[i] == nullptr && lppSortKeysB[i] == nullptr) {
 			cmp = 0;
 		} else if (lppSortKeysA[i] == nullptr) {
 			cmp = -1;
 		} else if (lppSortKeysB[i] == nullptr) {
 			cmp = 1;
+		} else if (lpSortFlagsA != nullptr && lpSortFlagsA[i] & TABLEROW_FLAG_STRING) {
+			cmp = compareSortKeys(lpSortLenA[i], lppSortKeysA[i], lpSortLenB[i], lppSortKeysB[i]);
 		} else {
 	        // Sort data is pre-constructed so a simple memcmp suffices for sorting
 		    cmp = memcmp(lppSortKeysA[i], lppSortKeysB[i], lpSortLenA[i] < lpSortLenB[i] ? lpSortLenA[i] : lpSortLenB[i]);

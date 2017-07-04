@@ -1119,12 +1119,6 @@ int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned i
 {
 	assert(!(cbKey1 != 0 && lpKey1 == NULL));
 	assert(!(cbKey2 != 0 && lpKey2 == NULL));
-	if (lpKey1 == nullptr && lpKey2 == nullptr)
-		return 0;
-	if (lpKey1 == nullptr)
-		return -1;
-	if (lpKey2 == nullptr)
-		return 1;
 	CollationKey ckA(lpKey1, cbKey1);
 	CollationKey ckB(lpKey2, cbKey2);
 
