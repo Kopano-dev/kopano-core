@@ -53,8 +53,8 @@ def parser_opt_args():
     parser.add_option('--admin-level', help='Admin level', **_int())
     parser.add_option('--add-sendas', help='User to add to send-as', **_list_name())
     parser.add_option('--remove-sendas', help='User to remove from send-as', **_list_name())
-    parser.add_option('--add-delegate', help='User to add to delegation', **_list_name())
-    parser.add_option('--remove-delegate', help='User to remove from delegation', **_list_name())
+    parser.add_option('--add-delegation', help='Delegation to add (user:flag1,flag2..)', **_list_name())
+    parser.add_option('--remove-delegation', help='Delegation to remove', **_list_name())
     parser.add_option('--add-permission', help='Permission to add (member:right1,right2..)', **_list_name())
     parser.add_option('--remove-permission', help='Permission to remove', **_list_name())
     parser.add_option('--add-user', help='User to add', **_list_name())
@@ -86,7 +86,7 @@ UPDATE_MATRIX = {
     ('password', 'password_prompt', 'admin_level', 'active', 'reset_folder_count'): ('users',),
     ('mr_accept', 'mr_accept_conflicts', 'mr_accept_recurring', 'hook_archive', 'unhook_archive'): ('users',),
     ('ooo_active', 'ooo_clear', 'ooo_subject', 'ooo_message', 'ooo_from', 'ooo_until'): ('users',),
-    ('add_feature', 'remove_feature', 'add_delegate', 'remove_delegate', 'add_permission', 'remove_permission'): ('users',),
+    ('add_feature', 'remove_feature', 'add_delegation', 'remove_delegation', 'add_permission', 'remove_permission'): ('users',),
     ('add_user', 'remove_user'): ('groups',),
     ('quota_override', 'quota_hard', 'quota_soft', 'quota_warn'): ('global', 'companies', 'users'),
     ('create_store', 'unhook_store', 'hook_store'): ('global', 'companies', 'users'),
@@ -104,6 +104,14 @@ def orig_option(o):
 
 def yesno(x):
     return 'yes' if x else 'no'
+
+def name_flags(s):
+    if ':' in s:
+        name, flags = s.split(':')
+        flags = flags.split(',')
+    else:
+        name, flags = s, None
+    return name, flags
 
 def list_users(intro, users):
     users = list(users)
@@ -181,7 +189,7 @@ def user_details(user):
             print('Archive folder:\t' + user.archive_folder.path)
 
         print('Send-as:\t' + ', '.join(_encode(sendas.name) for sendas in user.send_as()))
-        print('Delegation:\t' + ', '.join(_encode(dlg.user.name) for dlg in user.delegations()))
+        print('Delegation:\t' + ', '.join(_encode(dlg.user.name+':'+','.join(dlg.flags)) for dlg in user.delegations()))
         print('Auto-accept meeting req:\t' + yesno(user.autoaccept.enabled))
         if user.autoaccept.enabled:
             print('Decline dbl meetingreq:\t' + yesno(not user.autoaccept.conflicts))
@@ -204,9 +212,6 @@ def user_details(user):
         print('Permissions:')
         for perm in user.permissions():
             print(_encode(' (store): ' + perm.member.name + ':' + ','.join(perm.rights)))
-        for delegate in user.delegations():
-            if delegate.see_private:
-                print(_encode(' (store): ' + delegate.user.name + ':see_private'))
         for folder in user.folders():
             for perm in folder.permissions():
                 print(_encode(' ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights)))
@@ -303,17 +308,21 @@ def user_options(name, options, server):
 
     quota_options(user, options)
 
-    for delegate in options.add_delegate:
-        user.delegation(server.user(delegate), create=True)
-    for delegate in options.remove_delegate:
-        user.delete(user.delegation(server.user(delegate)))
+    # XXX move name_flags() syntax stuff into pyko
 
-    def member_rights(perm): # XXX groups
-        username, rights = perm.split(':')
-        rights = rights.split(',')
-        see_private = 'see_private' in rights
-        rights = [r for r in rights if r != 'see_private']
-        return server.user(username), rights, see_private
+    for delegation in options.add_delegation:
+        name, flags = name_flags(delegation)
+        dlg = user.delegation(server.user(name), create=True)
+        if flags:
+            dlg.flags += flags
+    for delegation in options.remove_delegation:
+        name, flags = name_flags(delegation)
+        dlg = user.delegation(server.user(name))
+        if flags is None:
+            user.delete(dlg)
+        else:
+            dlg.flags = [f for f in dlg.flags if f not in flags]
+
     if (options.add_permission or options.remove_permission) and not user.store:
         raise Exception("user '%s' has no store" % user.name)
     if options.folders:
@@ -321,19 +330,21 @@ def user_options(name, options, server):
     else:
         objs = [user.store]
     for perm in options.add_permission:
-        user2, rights, see_private = member_rights(perm)
+        name, rights = name_flags(perm)
+        member = server.get_user(name) or server.group(name) # XXX ugly error
         for obj in objs:
-            perm = obj.permission(user2, create=True)
-            perm.rights += rights
-        if see_private:
-            user.delegation(user2).see_private = True
+            perm = obj.permission(member, create=True)
+            if rights:
+                perm.rights += rights # XXX
     for perm in options.remove_permission:
-        user2, rights, see_private = member_rights(perm)
+        name, rights = name_flags(perm)
+        member = server.get_user(name) or server.group(name) # XXX ugly error
         for obj in objs:
-            perm = obj.permission(user2)
-            perm.rights = [r for r in perm.rights if r not in rights]
-        if see_private:
-            user.delegation(user2).see_private = False
+            perm = obj.permission(member)
+            if rights is None:
+                obj.delete(perm)
+            else:
+                perm.rights = [r for r in perm.rights if r not in rights] # XXX check rights
 
     if options.ooo_active is not None:
         user.outofoffice.enabled = options.ooo_active

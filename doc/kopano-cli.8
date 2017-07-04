@@ -53,9 +53,9 @@ Add specified user as "remote-admin" for company specified with --company.
 Add specified user to companyquota recipients for company specified with --company.
 .RE
 .PP
-\fB\-\-add-delegate\fR \fINAME\fR
+\fB\-\-add-delegation\fR \fINAME\fR
 .RS 4
-Add specified user as delegate for user specified with --user.
+Add specified delegation (flags) to user specified with --user. The syntax to be used for delegation (flags) is 'user:flag1,flag2,..' where 'user' is a user name, and flags are optionally chosen from the following: see_private, send_copy.
 .RE
 .PP
 \fB\-\-add-feature\fR \fINAME\fR
@@ -65,7 +65,7 @@ Enable specified feature for user specified with --user.
 .PP
 \fB\-\-add-permission\fR \fINAME\fR
 .RS 4
-Add specified permissions to store of user specified with --user. Can be used with --folder to add permissions for a specific folder. The syntax to be used for permissions is 'member:right1,right..', where 'member' is a group or user name, and rights are chosen from the following: read_items, create_items, create_subfolders, edit_own, edit_all, delete_own, delete_all, folder_owner, folder_contact and folder_visible. So for example, to add certain permissions to the inbox of a user 'user2', to the inbox of user 'user1': --user user1 --folder Inbox --add-permission user2:read_items,create_subfolders.
+Add specified permissions to store of user specified with --user. Can be used with --folder to add permissions for a specific folder. The syntax to be used for permissions is 'member:right1,right..', where 'member' is a group or user name, and rights are chosen from the following: read_items, create_items, create_subfolders, edit_own, edit_all, delete_own, delete_all, folder_owner, folder_contact and folder_visible. So for example, to add certain permissions to the inbox of a user 'user2', to the inbox of user 'user1': --user user1 --folder Inbox --add-permission user2:read_items,create_subfolders. The colon is optional.
 .RE
 .PP
 \fB\-\-add-sendas\fR \fINAME\fR
@@ -294,9 +294,9 @@ Remove specified user as "remote-admin" for company specified with --company.
 Remove specified user from companyquota recipients for company specified with --company.
 .RE
 .PP
-\fB\-\-remove-delegate\fR \fINAME\fR
+\fB\-\-remove-delegation\fR \fINAME\fR
 .RS 4
-Remove specified user as delegate for user specified with --user.
+Remove delegation (flags) for user specified with --user. The syntax to be used is described for the --add-delegation option.
 .RE
 .PP
 \fB\-\-remove-feature\fR \fINAME\fR

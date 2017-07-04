@@ -54,6 +54,19 @@ class Delegation(object):
                         return _hex(entryid.Value) == self.user.userid
         return False
 
+    @property
+    def flags(self):
+        flags = []
+        if self.see_private:
+            flags.append('see_private')
+        if self.send_copy:
+            flags.append('send_copy')
+        return flags
+
+    @flags.setter
+    def flags(self, value):
+        self.see_private = ('see_private' in value)
+
     @staticmethod
     def _delete_after_copy(store):
         """Delete meetingrequests after copying them to delegates."""
