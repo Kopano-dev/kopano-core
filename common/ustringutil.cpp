@@ -1115,13 +1115,10 @@ ECUSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale
  * @retval	0	Key1 equals key2
  * @retval	>0	Key1 is greater than key2
  */
-int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned int cbKey2, const unsigned char *lpKey2)
+int compareSortKeys(const std::string &a, const std::string &b)
 {
-	assert(!(cbKey1 != 0 && lpKey1 == NULL));
-	assert(!(cbKey2 != 0 && lpKey2 == NULL));
-	CollationKey ckA(lpKey1, cbKey1);
-	CollationKey ckB(lpKey2, cbKey2);
-
+	CollationKey ckA(reinterpret_cast<const uint8_t *>(a.c_str()), a.size());
+	CollationKey ckB(reinterpret_cast<const uint8_t *>(b.c_str()), b.size());
 	UErrorCode status = U_ZERO_ERROR;
 	switch (ckA.compareTo(ckB, status)) {
 	case UCOL_LESS: return -1;

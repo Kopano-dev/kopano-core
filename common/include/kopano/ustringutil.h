@@ -69,7 +69,7 @@ extern _kc_export ECRESULT LocaleIdToLCID(const char *locale, ULONG *id);
 extern _kc_export ECRESULT LCIDToLocaleId(ULONG id, const char **locale);
 extern _kc_export std::string createSortKeyDataFromUTF8(const char *s, int ncap, const ECLocale &);
 extern _kc_export ECUSortKey createSortKeyFromUTF8(const char *s, int ncap, const ECLocale &);
-extern _kc_export int compareSortKeys(unsigned int nkey1, const unsigned char *key1, unsigned int nkey2, const unsigned char *key2);
+extern _kc_export int compareSortKeys(const std::string &, const std::string &);
 extern _kc_export std::string createSortKeyData(const char *s, int ncap, const ECLocale &);
 extern _kc_export std::string createSortKeyData(const wchar_t *s, int ncap, const ECLocale &);
 

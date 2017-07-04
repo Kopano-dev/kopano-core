@@ -208,7 +208,8 @@ bool ECTableRow::rowcompare(unsigned int ulSortColsA, const int *lpSortLenA,
 		} else if (lppSortKeysB[i] == nullptr) {
 			cmp = 1;
 		} else if (lpSortFlagsA != nullptr && lpSortFlagsA[i] & TABLEROW_FLAG_STRING) {
-			cmp = compareSortKeys(lpSortLenA[i], lppSortKeysA[i], lpSortLenB[i], lppSortKeysB[i]);
+			cmp = compareSortKeys(std::string(reinterpret_cast<const char *>(lppSortKeysA[i]), lpSortLenA[i]),
+			      std::string(reinterpret_cast<const char *>(lppSortKeysB[i]), lpSortLenB[i]));
 		} else {
 	        // Sort data is pre-constructed so a simple memcmp suffices for sorting
 		    cmp = memcmp(lppSortKeysA[i], lppSortKeysB[i], lpSortLenA[i] < lpSortLenB[i] ? lpSortLenA[i] : lpSortLenB[i]);
