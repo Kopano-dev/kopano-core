@@ -240,7 +240,7 @@ class Server(object):
 
     @property
     def guid(self):
-        """Return server GUID."""
+        """Server GUID."""
         return bin2hex(HrGetOneProp(self.mapistore, PR_MAPPING_SIGNATURE).Value)
 
     def user(self, name=None, email=None, create=False):
@@ -347,7 +347,7 @@ class Server(object):
         company = self.company(name)
 
         if company.name == u'Default':
-            raise NotSupportedError('cannot remove company in singletenant mode')
+            raise NotSupportedError('cannot remove company in single-tenant mode')
         else:
             self.sa.DeleteCompany(company._eccompany.CompanyID)
 
@@ -356,7 +356,7 @@ class Server(object):
 
     @property
     def multitenant(self):
-        """Return boolean showing if the server is multitenant."""
+        """The server is multi-tenant."""
         try:
             self._companylist()
             return True
@@ -393,7 +393,7 @@ class Server(object):
         except MAPIErrorCollision:
             raise DuplicateError("company '%s' already exists" % name)
         except MAPIErrorNoSupport:
-            raise NotSupportedError("cannot create company in singletenant mode")
+            raise NotSupportedError("cannot create company in single-tenant mode")
         return self.company(name)
 
     def _store(self, guid):
@@ -537,33 +537,33 @@ class Server(object):
     def _pubhelper(self):
         try:
             self.sa.GetCompanyList(MAPI_UNICODE)
-            raise Error('request for server-wide public store in multi-company setup')
+            raise Error('request for server-wide public store in multi-tenant setup')
         except MAPIErrorNoSupport:
             return next(self.companies())
 
     @property
     def public_store(self):
-        """Return public :class:`store <Store>` in single-company mode."""
+        """Public :class:`store <Store>` in single-tenant mode."""
         return self._pubhelper().public_store
 
     def create_public_store(self):
-        """Create public :class:`store <Store>` in single-company mode."""
+        """Create public :class:`store <Store>` in single-tenant mode."""
         return self._pubhelper().create_public_store()
 
     def hook_public_store(self, store):
-        """Hook public :class:`store <Store>` in single-company mode.
+        """Hook public :class:`store <Store>` in single-tenant mode.
 
         :param store: store to hook
         """
         return self._pubhelper().hook_public_store(store)
 
     def unhook_public_store(self):
-        """Unhook public :class:`store <Store>` in single-company mode."""
+        """Unhook public :class:`store <Store>` in single-tenant mode."""
         return self._pubhelper().unhook_public_store()
 
     @property
     def state(self):
-        """Return current server state."""
+        """Current server state."""
         return _ics.state(self.mapistore)
 
     def sync(self, importer, state, log=None, max_changes=None, window=None, begin=None, end=None, stats=None):

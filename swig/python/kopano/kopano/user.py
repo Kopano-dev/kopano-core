@@ -91,7 +91,8 @@ class User(Base):
 
     @property
     def hidden(self):
-        return self._ecuser.IsHidden
+        """The user is hidden from the addressbook."""
+        return bool(self._ecuser.IsHidden)
 
     @property
     def name(self):
