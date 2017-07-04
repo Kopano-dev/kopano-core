@@ -18,6 +18,7 @@
 #include <kopano/zcdefs.h>
 #include <memory>
 #include <new>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <mapidefs.h>
@@ -941,7 +942,7 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 			sortcols[j].flags |= TABLEROW_FLAG_DESC;
 	}
 	lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, lpsRowItem,
-		sortcols, lpsPrevRow, false,
+		std::move(sortcols), lpsPrevRow, false,
 		reinterpret_cast<ECKeyTable::UpdateType *>(lpulAction));
 	return hrSuccess;
 }

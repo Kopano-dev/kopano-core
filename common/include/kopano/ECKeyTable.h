@@ -120,6 +120,8 @@ class ECSortColView {
 class _kc_export ECTableRow _kc_final {
 public:
 	ECTableRow(const sObjectTableKey &, const std::vector<ECSortCol> &, bool hidden);
+	ECTableRow(const sObjectTableKey &, std::vector<ECSortCol> &&, bool hidden);
+	ECTableRow(sObjectTableKey &&, std::vector<ECSortCol> &&, bool hidden);
 	ECTableRow(const ECTableRow &other);
 	_kc_hidden unsigned int GetObjectSize(void) const;
 	_kc_hidden static bool rowcompare(const ECTableRow *, const ECTableRow *);
@@ -165,7 +167,7 @@ public:
 	
 	ECKeyTable();
 	~ECKeyTable();
-	ECRESULT UpdateRow(UpdateType ulType, const sObjectTableKey *lpsRowItem, const std::vector<ECSortCol> &, sObjectTableKey *lpsPrevRow, bool fHidden = false, UpdateType *lpulAction = nullptr);
+	ECRESULT UpdateRow(UpdateType ulType, const sObjectTableKey *lpsRowItem, std::vector<ECSortCol> &&, sObjectTableKey *lpsPrevRow, bool fHidden = false, UpdateType *lpulAction = nullptr);
 	ECRESULT	GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTableKey *lpsPrevItem);
 	ECRESULT	SeekRow(unsigned int ulBookmark, int lSeekTo, int *lplRowsSought);
 	ECRESULT	SeekId(const sObjectTableKey *lpsRowItem);

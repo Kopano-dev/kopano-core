@@ -88,6 +88,18 @@ ECTableRow::ECTableRow(const sObjectTableKey &k,
 {
 }
 
+ECTableRow::ECTableRow(const sObjectTableKey &k, std::vector<ECSortCol> &&cols,
+    bool hidden) :
+	sKey(k), m_cols(std::move(cols)), fHidden(hidden)
+{
+}
+
+ECTableRow::ECTableRow(sObjectTableKey &&k, std::vector<ECSortCol> &&cols,
+    bool hidden) :
+	sKey(std::move(k)), m_cols(std::move(cols)), fHidden(hidden)
+{
+}
+
 ECTableRow::ECTableRow(const ECTableRow &other) :
 	sKey(other.sKey), m_cols(other.m_cols), fHidden(other.fHidden)
 {
@@ -208,7 +220,7 @@ ECKeyTable::ECKeyTable()
 {
 	sObjectTableKey sKey;
 	memset(&sKey, 0, sizeof(sObjectTableKey));
-	lpRoot = new ECTableRow(sKey, {}, false);
+	lpRoot = new ECTableRow(std::move(sKey), {}, false);
 	this->lpRoot->fRoot = true;
 	this->lpCurrent = lpRoot;
 
@@ -262,7 +274,7 @@ ECRESULT ECKeyTable::UpdateCounts(ECTableRow *lpRow)
 }
 
 ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
-    const sObjectTableKey *lpsRowItem, const std::vector<ECSortCol> &dat,
+    const sObjectTableKey *lpsRowItem, std::vector<ECSortCol> &&dat,
     sObjectTableKey *lpsPrevRow, bool fHidden, UpdateType *lpulAction)
 {
 	ECRESULT er = erSuccess;
@@ -388,7 +400,7 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 				*lpulAction = TABLE_ROW_MODIFY;
 
 			// Create a new node
-			lpNewRow = new ECTableRow(*lpsRowItem, dat, fHidden);
+			lpNewRow = new ECTableRow(*lpsRowItem, std::move(dat), fHidden);
 			if (iterMap->second == lpCurrent)
 			    fRelocateCursor = true;
 
@@ -444,7 +456,7 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 
 		// Create the row that we will be inserting
 		if(lpNewRow == NULL)
-			lpNewRow = new ECTableRow(*lpsRowItem, dat, fHidden);
+			lpNewRow = new ECTableRow(*lpsRowItem, std::move(dat), fHidden);
 
 		// Do a binary search in the tree
 		while(1) {
@@ -1252,7 +1264,7 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem,
 	copy[ulColumn] = col;
     if(lpfHidden)
 		*lpfHidden = lpCursor->fHidden;
-	return UpdateRow(TABLE_ROW_MODIFY, lpsRowItem, copy,
+	return UpdateRow(TABLE_ROW_MODIFY, lpsRowItem, std::move(copy),
 	       lpsPrevRow, lpCursor->fHidden, lpulAction);
 }
 

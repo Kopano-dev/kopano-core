@@ -2585,7 +2585,7 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 
     // Update row
 	er = lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, lpsRowKey,
-	     zort, lpsPrevRow, fHidden, lpulAction);
+	     std::move(zort), lpsPrevRow, fHidden, lpulAction);
 exit:
 	if (lpOrderedProps != nullptr)
 		for (unsigned int i = 0; i < cValues; ++i)
