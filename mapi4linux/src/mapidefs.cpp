@@ -833,14 +833,13 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	stProps.erase(PR_ROWID);
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size() + 1), &~lpColumns);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	lpColumns->cValues = stProps.size();
 	std::copy(stProps.begin(), stProps.end(), lpColumns->aulPropTag);
 	lpColumns->aulPropTag[lpColumns->cValues] = PR_NULL; // will be used for PR_ROWID
 	hr = ECMemTable::Create(lpColumns, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// get enough columns from queryrows to add the PR_ROWID
 	++lpColumns->cValues;
@@ -849,13 +848,13 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	for (const auto &mt : lHierarchies) {
 		hr = mt->SetColumns(lpColumns, 0);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		while (true) {
 			rowset_ptr lpsRows;
 			hr = mt->QueryRows(1, 0, &~lpsRows);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			if (lpsRows->cRows == 0)
 				break;
 
@@ -864,17 +863,14 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 
 			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpsRows->aRow[0].lpProps, lpsRows->aRow[0].cValues);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
 
 	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
-		goto exit;
-		
-	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-exit:
-	return hr;
+		return hr;
+	return lpTableView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 }
 
 HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType, LPUNKNOWN* lppUnk) {

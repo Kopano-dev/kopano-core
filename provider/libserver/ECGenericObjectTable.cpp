@@ -2306,7 +2306,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
             // Otherwise, compare the properties
             er = CompareProp(&iterLeafs->second.lpCategory->m_lpProps[i], &lpProps[i], m_locale, &fResult);
             if (er != erSuccess)
-                goto exit;
+				return er;
             if(fResult != 0)
                 break;
         }
@@ -2317,7 +2317,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
             fNewLeaf = true; // We're re-adding the leaf
         } else if (fUnread == iterLeafs->second.fUnread) {
 	            // Nothing to do, the leaf was already in the correct category, and the readstate has not changed
-	            goto exit;
+			return erSuccess;
         }
     } else {
     	fNewLeaf = true;
@@ -2356,8 +2356,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
             // Make sure the category has the current row as min/max value
             er = UpdateCategoryMinMax(sObjKey, lpCategory, i, lpProps, cProps, NULL);
             if(er != erSuccess)
-            	goto exit;
-            
+				return er;
             if(fUnread)
             	lpCategory->IncUnread();
 
@@ -2369,8 +2368,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 			// Update the keytable with the effective sort columns
 			er = UpdateKeyTableRow(lpCategory, &sCatRow, lpProps, i+1, fHidden, &sPrevRow, &ulAction);
 			if (er != erSuccess)
-				goto exit;
-
+				return er;
             lpParent = lpCategory;
         } else {
             // Category already available
@@ -2385,8 +2383,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 			auto iterCategory = m_mapCategories.find(sCatRow);
 			if (iterCategory == m_mapCategories.cend()) {
 				assert(false);
-				er = KCERR_NOT_FOUND;
-				goto exit;
+				return KCERR_NOT_FOUND;
 			}
 
 			lpCategory = iterCategory->second;
@@ -2413,8 +2410,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
             // Update category min/max values
             er = UpdateCategoryMinMax(sObjKey, lpCategory, i, lpProps, cProps, &fCategoryMoved); 
             if(er != erSuccess)
-            	goto exit;
-            	
+				return er;
 			ulAction = ECKeyTable::TABLE_ROW_MODIFY;
         }
 
@@ -2426,7 +2422,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 			// Get the rows that are affected
 			er = lpKeyTable->GetRowsBySortPrefix(&sCatRow, &lstObjects);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 				
 			// Update the keytable to reflect the new change
 			for (auto &obj : lstObjects) {
@@ -2439,7 +2435,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 				     ulDepth, zort[i], &sPrevRow, &fHidden, &ulAction);
 				zort[i].flags = oldflags;
 				if (er != erSuccess)
-					goto exit;
+					return er;
 				if ((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden)
 					AddTableNotif(ulAction, obj, &sPrevRow);
 			}
@@ -2466,7 +2462,6 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 	if(lppCategory)
 		*lppCategory = lpCategory;
 	assert(m_mapCategories.size() == m_mapSortedCategories.size());
-exit:
 	return er;
 }
 
