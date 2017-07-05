@@ -40,8 +40,8 @@ bool KeyEntryOrder(const KeyEntry<Key> &a, const KeyEntry<Key> &b) {
 	return a.ulLastAccess < b.ulLastAccess;
 }
 
-template<typename Value>
-unsigned int GetCacheAdditionalSize(const Value &val) {
+template<typename Value> size_t GetCacheAdditionalSize(const Value &val)
+{
 	return 0;
 }
 
@@ -223,7 +223,7 @@ private:
 		lstEntries.sort(KeyEntryOrder<key_type>);
 
 		// We now have a list of all cache items, sorted by access time, (oldest first)
-		unsigned int ulDelete = (unsigned int)(m_map.size() * ratio);
+		size_t ulDelete = m_map.size() * ratio;
 
 		// Remove the oldest ulDelete entries from the cache, removing [ratio] % of all
 		// cache entries.
