@@ -12,7 +12,7 @@ import sys
 from MAPI import (
     MAPI_UNICODE, MAPI_MODIFY, KEEP_OPEN_READWRITE, PT_MV_BINARY,
     RELOP_EQ, TBL_BATCH, ECSTORE_TYPE_PUBLIC, FOLDER_SEARCH,
-    MAPI_ASSOCIATED, MAPI_DEFERRED_ERRORS
+    MAPI_ASSOCIATED, MAPI_DEFERRED_ERRORS, ROW_REMOVE,
 )
 from MAPI.Defs import (
     bin2hex, HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
@@ -21,14 +21,14 @@ from MAPI.Tags import (
     PR_ENTRYID, PR_MDB_PROVIDER, ZARAFA_STORE_PUBLIC_GUID,
     PR_STORE_RECORD_KEY, PR_EC_HIERARCHYID, PR_REM_ONLINE_ENTRYID,
     PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_SUBTREE_ENTRYID,
-    PR_FINDER_ENTRYID, PR_ADDITIONAL_REN_ENTRYIDS,
+    PR_FINDER_ENTRYID, PR_ADDITIONAL_REN_ENTRYIDS, PR_ACL_TABLE,
     PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_OUTBOX_ENTRYID,
     PR_IPM_CONTACT_ENTRYID, PR_COMMON_VIEWS_ENTRYID,
     PR_IPM_DRAFTS_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID,
-    PR_IPM_JOURNAL_ENTRYID, PR_IPM_NOTE_ENTRYID,
+    PR_IPM_JOURNAL_ENTRYID, PR_IPM_NOTE_ENTRYID, PR_MEMBER_ID,
     PR_IPM_SENTMAIL_ENTRYID, PR_IPM_TASK_ENTRYID,
     PR_IPM_OL2007_ENTRYIDS, PR_MESSAGE_SIZE_EXTENDED,
-    PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME,
+    PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME, IID_IExchangeModifyTable,
     PR_MAILBOX_OWNER_ENTRYID, PR_EC_STOREGUID, PR_EC_STORETYPE,
     PR_EC_USERNAME_W, PR_EC_COMPANY_NAME_W, PR_MESSAGE_CLASS,
     PR_SUBJECT, PR_WLINK_FLAGS, PR_WLINK_ORDINAL,
@@ -38,7 +38,7 @@ from MAPI.Tags import (
     PR_DELEGATE_FLAGS, PR_MAPPING_SIGNATURE,
 )
 from MAPI.Struct import (
-    SPropertyRestriction, SPropValue,
+    SPropertyRestriction, SPropValue, ROWENTRY,
     MAPIErrorNotFound, MAPIErrorInvalidEntryid
 )
 
@@ -53,6 +53,7 @@ from .autoaccept import AutoAccept
 from .outofoffice import OutOfOffice
 from .prop import Property
 from .delegation import Delegation
+from .permission import Permission
 from .freebusy import FreeBusy
 
 from .compat import (
@@ -294,12 +295,11 @@ class Store(Base):
             pass
 
     def delete(self, objects):
-        """Delete properties or delegations from a Store
+        """Delete properties, delegations or permissions from a Store.
 
         :param props: The object(s) to remove
         """
-
-        if isinstance(objects, (Property, Delegation)):
+        if isinstance(objects, (Property, Delegation, Permission)):
             objects = [objects]
 
         props = [o for o in objects if isinstance(o, Property)]
@@ -310,6 +310,11 @@ class Store(Base):
         delgs = [o for o in objects if isinstance(o, Delegation)]
         for d in delgs:
             d._delete()
+
+        perms = [o for o in objects if isinstance(o, Permission)]
+        for perm in perms:
+            acl_table = self.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
+            acl_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE, [SPropValue(PR_MEMBER_ID, perm.mapirow[PR_MEMBER_ID])])])
 
     def folder(self, path=None, entryid=None, recurse=False, create=False):
         """ Return :class:`Folder` with given path or entryid; raise exception if not found
