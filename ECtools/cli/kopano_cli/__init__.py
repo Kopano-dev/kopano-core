@@ -86,7 +86,8 @@ UPDATE_MATRIX = {
     ('password', 'password_prompt', 'admin_level', 'active', 'reset_folder_count'): ('users',),
     ('mr_accept', 'mr_accept_conflicts', 'mr_accept_recurring', 'hook_archive', 'unhook_archive'): ('users',),
     ('ooo_active', 'ooo_clear', 'ooo_subject', 'ooo_message', 'ooo_from', 'ooo_until'): ('users',),
-    ('add_feature', 'remove_feature', 'add_delegation', 'remove_delegation', 'add_permission', 'remove_permission'): ('users',),
+    ('add_feature', 'remove_feature', 'add_delegation', 'remove_delegation'): ('users',),
+    ('add_permission', 'remove_permission'): ('global', 'companies', 'users'),
     ('add_user', 'remove_user'): ('groups',),
     ('quota_override', 'quota_hard', 'quota_soft', 'quota_warn'): ('global', 'companies', 'users'),
     ('create_store', 'unhook_store', 'hook_store'): ('global', 'companies', 'users'),
@@ -105,6 +106,7 @@ def orig_option(o):
 def yesno(x):
     return 'yes' if x else 'no'
 
+# XXX move name_flags() syntax stuff into pyko
 def name_flags(s):
     if ':' in s:
         name, flags = s.split(':')
@@ -157,6 +159,15 @@ def list_orphans(server):
     users = [user for user in server.users() if not user.store]
     list_users('Users without stores', users)
 
+def list_permissions(store):
+    if store:
+        print('Permissions:')
+        for perm in store.permissions():
+            print(_encode(' (store): ' + perm.member.name + ':' + ','.join(perm.rights)))
+        for folder in store.folders():
+            for perm in folder.permissions():
+                print(_encode(' ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights)))
+
 def user_counts(server): # XXX allowed/available
     stats = server.table(PR_EC_STATSTABLE_SYSTEM).dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE)
     print 'User counts:'
@@ -208,13 +219,7 @@ def user_details(user):
 
     list_groups('Groups', user.groups())
 
-    if user.store:
-        print('Permissions:')
-        for perm in user.permissions():
-            print(_encode(' (store): ' + perm.member.name + ':' + ','.join(perm.rights)))
-        for folder in user.folders():
-            for perm in folder.permissions():
-                print(_encode(' ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights)))
+    list_permissions(user.store)
 
 def group_details(group):
     print('Groupname:\t' + _encode(group.name))
@@ -239,6 +244,7 @@ def company_details(company, server):
         user = company.users().next()
         print('Userquota-recipient list:\t' + ', '.join(_encode(u.name) for u in user.quota.recipients() if u.name != 'SYSTEM'))
         print('Companyquota-recipient list:\t' + ', '.join(_encode(u.name) for u in company.quota.recipients() if u.name != 'SYSTEM'))
+    list_permissions(company.public_store)
 
 def shared_options(obj, options, server):
     if options.name:
@@ -262,6 +268,30 @@ def quota_options(user, options):
         user.quota.soft_limit = options.quota_soft
     if options.quota_hard is not None:
         user.quota.hard_limit = options.quota_hard
+
+def permission_options(store, options, server):
+    if not store:
+        raise NotFoundError('no store')
+    if options.folders:
+        objs = [store.folder(f) for f in options.folders]
+    else:
+        objs = [store]
+    for perm in options.add_permission:
+        name, rights = name_flags(perm)
+        member = server.get_user(name) or server.group(name) # XXX ugly error
+        for obj in objs:
+            perm = obj.permission(member, create=True)
+            if rights:
+                perm.rights += rights # XXX
+    for perm in options.remove_permission:
+        name, rights = name_flags(perm)
+        member = server.get_user(name) or server.group(name) # XXX ugly error
+        for obj in objs:
+            perm = obj.permission(member)
+            if rights is None:
+                obj.delete(perm)
+            else:
+                perm.rights = [r for r in perm.rights if r not in rights] # XXX check rights
 
 def user_options(name, options, server):
     if options.create:
@@ -308,8 +338,6 @@ def user_options(name, options, server):
 
     quota_options(user, options)
 
-    # XXX move name_flags() syntax stuff into pyko
-
     for delegation in options.add_delegation:
         name, flags = name_flags(delegation)
         dlg = user.delegation(server.user(name), create=True)
@@ -323,28 +351,7 @@ def user_options(name, options, server):
         else:
             dlg.flags = [f for f in dlg.flags if f not in flags]
 
-    if (options.add_permission or options.remove_permission) and not user.store:
-        raise Exception("user '%s' has no store" % user.name)
-    if options.folders:
-        objs = [user.folder(f) for f in options.folders]
-    else:
-        objs = [user.store]
-    for perm in options.add_permission:
-        name, rights = name_flags(perm)
-        member = server.get_user(name) or server.group(name) # XXX ugly error
-        for obj in objs:
-            perm = obj.permission(member, create=True)
-            if rights:
-                perm.rights += rights # XXX
-    for perm in options.remove_permission:
-        name, rights = name_flags(perm)
-        member = server.get_user(name) or server.group(name) # XXX ugly error
-        for obj in objs:
-            perm = obj.permission(member)
-            if rights is None:
-                obj.delete(perm)
-            else:
-                perm.rights = [r for r in perm.rights if r not in rights] # XXX check rights
+    permission_options(user.store, options, server)
 
     if options.ooo_active is not None:
         user.outofoffice.enabled = options.ooo_active
@@ -416,6 +423,8 @@ def company_update_options(company, options, server):
         company.quota.add_recipient(server.user(user), company=True)
     for user in options.remove_companyquota_recipient:
         company.quota.remove_recipient(server.user(user), company=True)
+
+    permission_options(company.public_store, options, server)
 
     for user in company.users(): # there are only server-wide settings
         quota_options(user, options)
