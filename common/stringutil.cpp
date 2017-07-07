@@ -20,6 +20,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <cctype>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
@@ -500,8 +501,7 @@ void StringTabtoSpaces(const std::wstring &strInput, std::wstring *lpstrOutput) 
 			strOutput.append(4, ' ');
 		else
 			strOutput.append(1, c);
-
-	lpstrOutput->swap(strOutput);
+	*lpstrOutput = std::move(strOutput);
 }
 
 /**
@@ -525,7 +525,7 @@ void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput) {
 			strOutput.append(1, *iInput);
 		
 	}
-	lpstrOutput->swap(strOutput);
+	*lpstrOutput = std::move(strOutput);
 }
 
 /** 
@@ -545,8 +545,7 @@ void StringLFtoCRLF(std::string &strInOut)
 			strOutput.append("\r\n");
 		else
 			strOutput.append(1, *i);
-
-	swap(strInOut, strOutput);
+	strInOut = std::move(strOutput);
 }
 
 std::string format(const char *const fmt, ...) {

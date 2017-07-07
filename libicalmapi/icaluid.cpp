@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <utility>
 #include <kopano/platform.h>
 #include "icaluid.h"
 #include <mapix.h>
@@ -62,7 +62,7 @@ HRESULT HrGenerateUid(std::string *lpStrData)
 	strBinUid += "0000000000000000"; // Padding
 	strBinUid += bin2hex(sizeof(ULONG), &ulSize); // always 1
 	strBinUid += bin2hex(sizeof(GUID), &sGuid); // new guid
-	lpStrData->swap(strBinUid);
+	*lpStrData = std::move(strBinUid);
 	return hrSuccess;
 }
 
@@ -135,8 +135,7 @@ HRESULT HrGetICalUidFromBinUid(const SBinary &sBin, std::string *lpStrUid)
 		strUid = (char*)sBin.lpb + 0x34;
 	else
 		strUid = bin2hex(sBin.cb, sBin.lpb);
-	lpStrUid->swap(strUid);
-
+	*lpStrUid = std::move(strUid);
 	return hr;
 }
 
@@ -163,9 +162,7 @@ HRESULT HrMakeBinUidFromICalUid(const std::string &strUid, std::string *lpStrBin
 	strBinUid.append((char*)&len, 4);
 	strBinUid.append(strUid);
 	strBinUid.append("\x00", 1);
-
-	lpStrBinUid->swap(strBinUid);
-
+	*lpStrBinUid = std::move(strBinUid);
 	return hr;
 }
 

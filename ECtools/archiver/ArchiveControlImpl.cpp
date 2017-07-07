@@ -19,6 +19,7 @@
 #include <memory>
 #include <new>          // std::bad_alloc
 #include <list>          // std::list
+#include <utility>
 #include "ArchiveControlImpl.h"
 #include "ECArchiverLogger.h"
 #include "ArchiverSession.h"
@@ -1067,7 +1068,7 @@ HRESULT ArchiveControlImpl::GetAllReferences(LPMDB lpUserStore, LPGUID lpArchive
 		return hr;
 	}
 	
-	lpReferences->swap(setRefs);
+	*lpReferences = std::move(setRefs);
 	return hrSuccess;
 }
 
@@ -1189,7 +1190,7 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 		return hr;
 	}
 	
-	lpEntries->swap(setEntries);
+	*lpEntries = std::move(setEntries);
 	return hrSuccess;
 }
 

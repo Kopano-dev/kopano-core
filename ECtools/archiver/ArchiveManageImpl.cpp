@@ -690,7 +690,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		lstEntries.push_back(std::move(entry));
 	}
 
-	lplstArchives->swap(lstEntries);
+	*lplstArchives = std::move(lstEntries);
 	return MAPIErrorToArchiveError(hrSuccess);
 }
 
@@ -737,7 +737,7 @@ eResult ArchiveManageImpl::ListAttachedUsers(UserList *lplstUsers)
 		return MAPIErrorToArchiveError(hr);
 
 	std::transform(lstUsers.begin(), lstUsers.end(), std::back_inserter(lstUserEntries), &MakeUserEntry);
-	lplstUsers->swap(lstUserEntries);
+	*lplstUsers = std::move(lstUserEntries);
 	return MAPIErrorToArchiveError(hr);
 }
 
