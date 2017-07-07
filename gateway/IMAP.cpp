@@ -3931,11 +3931,8 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 		} else if (item.compare("ENVELOPE") == 0) {
 			auto lpProp = PCpropFindProp(lpProps, cValues, m_lpsIMAPTags->aulPropTag[0]);
 			if (lpProp) {
-				std::string e = "(";
-				std::copy_if(lpProp->Value.lpszA, lpProp->Value.lpszA + strlen(lpProp->Value.lpszA), std::back_inserter(e), [](char x) { return x != '\r' && x != '\n'; });
 				vProps.push_back(item);
-				e += ")";
-				vProps.push_back(e);
+				vProps.push_back("(" + string_strip_crlf(lpProp->Value.lpszA) + ")");
 			} else if (lpMessage) {
 				string strEnvelope;
 				HrGetMessageEnvelope(strEnvelope, lpMessage);
