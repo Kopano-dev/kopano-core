@@ -224,7 +224,7 @@ class Recurrence(object):
             self.exceptions.append(exception)
 
         # ReservedBlock1Size
-        pos += LONG
+        pos += _utils.unpack_long(value, pos) + LONG
 
         # ExtendedException
         self.extended_exceptions = []
@@ -262,9 +262,6 @@ class Recurrence(object):
                 pos += 2*length
 
             self.extended_exceptions.append(extended_exception)
-
-        # ReservedBlock2Size
-        pos += LONG
 
     def _save(self):
         # AppointmentRecurrencePattern
