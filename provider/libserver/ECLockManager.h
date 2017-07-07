@@ -40,39 +40,17 @@ class ECObjectLock _kc_final {
 public:
 	ECObjectLock(void) = default;
 	ECObjectLock(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
-	ECObjectLock(const ECObjectLock &other);
-	ECObjectLock(ECObjectLock &&);
-
-	ECObjectLock& operator=(const ECObjectLock &other);
-	void swap(ECObjectLock &other) noexcept;
-
+	ECObjectLock(ECObjectLock &&o) : m_ptrImpl(std::move(o.m_ptrImpl)) {}
+	ECObjectLock &operator=(ECObjectLock &&o)
+	{
+		m_ptrImpl = std::move(o.m_ptrImpl);
+		return *this;
+	}
 	ECRESULT Unlock();
 
 private:
 	std::shared_ptr<ECObjectLockImpl> m_ptrImpl;
 };
-
-///////////////////////
-// ECObjectLock inlines
-///////////////////////
-inline ECObjectLock::ECObjectLock(const ECObjectLock &other): m_ptrImpl(other.m_ptrImpl) {}
-
-inline ECObjectLock::ECObjectLock(ECObjectLock &&other) : m_ptrImpl(std::move(other.m_ptrImpl)) {}
-
-inline ECObjectLock& ECObjectLock::operator=(const ECObjectLock &other) {
-	if (&other != this) {
-		ECObjectLock tmp(other);
-		swap(tmp);
-	}
-	return *this;
-}
-
-inline void ECObjectLock::swap(ECObjectLock &other) noexcept
-{
-	m_ptrImpl.swap(other.m_ptrImpl);
-}
-
-
 
 ////////////////
 // ECLockManager
