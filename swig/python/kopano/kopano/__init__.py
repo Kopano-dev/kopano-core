@@ -105,6 +105,12 @@ class Module(object):
     def users(self, *args, **kwargs):
         return self._server.users(*args, **kwargs)
 
+    def group(self, *args, **kwargs):
+        return self._server.group(*args, **kwargs)
+
+    def groups(self, *args, **kwargs):
+        return self._server.groups(*args, **kwargs)
+
     def store(self, *args, **kwargs):
         return self._server.store(*args, **kwargs)
 
