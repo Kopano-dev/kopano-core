@@ -14,6 +14,7 @@ from .compat import (
     hex as _hex, repr as _repr,
 )
 from .defs import *
+from .errors import NotFoundError
 
 class Delegation(object):
     """Delegation class"""
@@ -81,7 +82,10 @@ class Delegation(object):
         # XXX update delegate rule
 
         fbmsg, (entryids, names, flags) = self.store._fbmsg_delgs()
-        pos = entryids.Value.index(self.user.userid.decode('hex'))
+        try:
+            pos = entryids.Value.index(self.user.userid.decode('hex'))
+        except ValueError:
+            raise NotFoundError("no delegation for user '%s'" % self.user.name)
 
         del entryids.Value[pos]
         del names.Value[pos]
