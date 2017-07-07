@@ -9,6 +9,7 @@
 #include <zlib.h>
 #include <mapidefs.h>
 #include <mapitags.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/stringutil.h>
 #include "../../common/ECSerializer.h"
 #include "../common/SOAPUtils.h"
@@ -114,8 +115,7 @@ int ECS3Attachment::put_obj_cb(int bufferSize, char *buffer, void *cbdata)
 
 ECRESULT ECS3Attachment::StaticInit(ECConfig *cf)
 {
-	ec_log_info("Initializing S3 Attachment Storage");
-
+	ec_log_info("S3: initializing attachment storage");
 	/*
 	 * Do a dlopen of libs3.so.3 so that the implicit pull-in of
 	 * libldap-2.4.so.2 symbols does not pollute our namespace of
@@ -149,7 +149,7 @@ ECRESULT ECS3Attachment::StaticInit(ECConfig *cf)
 
 	S3Status status = DY_initialize("Kopano Mail", S3_INIT_ALL, cf->GetSetting("attachment_s3_hostname"));
 	if (status != S3StatusOK) {
-		ec_log_err("Error while initializing S3 Attachment Storage, error type: %s",
+		ec_log_err("S3: error while initializing attachment storage: %s",
 			DY_get_status_name(status));
 		return KCERR_NETWORK_ERROR;
 	}
@@ -158,7 +158,7 @@ ECRESULT ECS3Attachment::StaticInit(ECConfig *cf)
 
 ECRESULT ECS3Attachment::StaticDeinit(void)
 {
-	ec_log_info("Deinitializing S3 Attachment Storage");
+	ec_log_info("S3: deinitializing attachment storage");
 	/* Deinitialize the S3 storage environment */
 	if (ec_libs3_handle != NULL) {
 		DY_deinitialize();
@@ -257,9 +257,9 @@ S3Status ECS3Attachment::response_prop(const S3ResponseProperties *properties, v
 
 	if (properties->contentLength != 0) {
 		data->size = properties->contentLength;
-		ec_log_debug("Received the response properties, content length: %zu", data->size);
+		ec_log_debug("S3: received the response properties, content length: %zu", data->size);
 	} else {
-		ec_log_debug("Received the response properties");
+		ec_log_debug("S3: received the response properties");
 	}
 	/*
 	 * Only allocate memory if we are not able to use a serializer sink, we
@@ -268,7 +268,7 @@ S3Status ECS3Attachment::response_prop(const S3ResponseProperties *properties, v
 	if (data->sink == NULL && data->alloc_data && data->data == NULL) {
 		data->data = s_alloc_nothrow<unsigned char>(data->soap, data->size);
 		if (data->data == NULL) {
-			ec_log_err("Unable to claim memory of size: %zu bytes.", data->size);
+			ec_log_err("S3: cannot allocate %zu bytes", data->size);
 			return S3StatusAbortedByCallback;
 		}
 	}
@@ -291,21 +291,21 @@ void ECS3Attachment::response_complete(S3Status status,
 	auto data = static_cast<struct s3_cd *>(cbdata);
 	data->status = status;
 
-	ec_log_debug("Response completed: %s.", DY_get_status_name(status));
+	ec_log_debug("S3: response completed: %s.", DY_get_status_name(status));
 	if (status == S3StatusOK)
 		return;
 	if (error == 0) {
-		ec_log_err("Amazon S3 return status %s", DY_get_status_name(status));
+		ec_log_err("S3: Amazon return status %s", DY_get_status_name(status));
 		return;
 	}
-	ec_log_err("Amazon S3 return status %s, error: %s, resource: \"%s\"",
+	ec_log_err("S3: Amazon return status %s, error: %s, resource: \"%s\"",
 		DY_get_status_name(status),
 		error->message ? error->message : "<unknown>",
 		error->resource ? error->resource : "<none>");
 	if (error->furtherDetails != NULL)
-		ec_log_err("Amazon S3 error details: %s", error->furtherDetails);
+		ec_log_err("S3: Amazon error details: %s", error->furtherDetails);
 	for (ssize_t i = 0; i < error->extraDetailsCount; ++i)
-		ec_log_err("Amazon S3 error details: %s: %s",
+		ec_log_err("S3: Amazon error details: %s: %s",
 			error->extraDetails[i].name, error->extraDetails[i].value);
 }
 
@@ -339,12 +339,13 @@ S3Status ECS3Attachment::get_obj(int bufferSize, const char *buffer, void *cbdat
 	if (data->processed + bufferSize > data->size)
 		return S3StatusAbortedByCallback;
 
-	ec_log_debug("Getting bytes from S3 callback: Remaining bytes to get: %zu. Reading %d bytes",
+	ec_log_debug("S3: Getting bytes from callback: Remaining bytes to get: %zu. Reading %d bytes",
 		data->size - data->processed, bufferSize);
 	if (data->sink != NULL) {
 		er = data->sink->Write(buffer, 1, bufferSize);
 		if (er != erSuccess) {
-			ec_log_err("Unable to write to serializer sink");
+			ec_log_err("S3: unable to write to serializer sink: %s (0x%x)",
+				GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 			return S3StatusAbortedByCallback;
 		}
 	} else {
@@ -383,14 +384,14 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
 	remaining = data->size - data->processed;
 	if (remaining > 0) {
 		toRead = remaining > bufferSize ? bufferSize : remaining;
-		ec_log_debug("Putting data using callback: "
+		ec_log_debug("S3: Putting data using callback: "
 			"Remaining bytes to put: %d - Writing %d bytes in %d buffer",
 			remaining, toRead, bufferSize);
 
 		if (data->sink != NULL) {
 			ret = data->sink->Read(buffer, 1, toRead);
 			if (ret != erSuccess) {
-				ec_log_err("Unable to read from the serializer sink");
+				ec_log_err("S3: Unable to read from the serializer sink");
 				return -1;
 			}
 		} else {
@@ -398,7 +399,7 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
 		}
 		data->processed += toRead;
 	} else {
-		ec_log_debug("Putting data using callback: Remaining bytes to put: %d - We processed all the data, but S3 expects more", remaining);
+		ec_log_debug("S3: putting data using callback: Remaining bytes to put: %d - We processed all the data, but S3 expects more", remaining);
 	}
 	return toRead;
 }
@@ -419,22 +420,21 @@ bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
 	cwdata.cbdata = cdp;
 
 	std::string filename = make_att_filename(ins_id, false);
-	ec_log_debug("Checking whether the attachment exists: %s", filename.c_str());
+	auto fn = filename.c_str();
+	ec_log_debug("S3: checking presence of %s", fn);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_head_object(&m_bucket_ctx, filename.c_str(), 0,
-			&m_response_handler, &cwdata);
+		DY_head_object(&m_bucket_ctx, fn, 0, &m_response_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
-			ec_log_debug("Existence check result in while: %s",
-				DY_get_status_name(cdp->status));
+			ec_log_debug("S3: presence %s: retryable status: %s",
+				fn, DY_get_status_name(cdp->status));
 	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Result of the existence check: %s",
-		DY_get_status_name(cdp->status));
+	ec_log_debug("S3: presence %s: %s", fn, DY_get_status_name(cdp->status));
 	return cdp->status == S3StatusOK;
 }
 
@@ -469,26 +469,26 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	cwdata.cbdata = cdp;
 
 	std::string filename = make_att_filename(ins_id, false);
-	ec_log_debug("Load attachment instance: %s", filename.c_str());
+	auto fn = filename.c_str();
+	ec_log_debug("S3: loading %s into buffer", fn);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_get_object(&m_bucket_ctx, filename.c_str(),
-			&m_get_conditions, /*startByte*/ 0, /*byteCount*/ 0, 0,
+		DY_get_object(&m_bucket_ctx, fn, &m_get_conditions,
+			/*startByte*/ 0, /*byteCount*/ 0, 0,
 			&m_get_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
-			ec_log_debug("Load instance result in while: %s",
-				DY_get_status_name(cdp->status));
+			ec_log_debug("S3: load %s: retryable status: %s",
+				fn, DY_get_status_name(cdp->status));
 	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Result of the load instance: %s",
-		DY_get_status_name(cdp->status));
-
+	ec_log_debug("S3: load %s: %s", fn, DY_get_status_name(cdp->status));
 	if (cdp->size != cdp->processed) {
-		ec_log_err("Short read while reading attachment data, key: %s", filename.c_str());
+		ec_log_err("S3: load %s: short read %zu/%zu bytes",
+			fn, cdp->processed, cdp->size);
 		ret = KCERR_DATABASE_ERROR;
 		goto exit;
 	} else if (cdp->data == NULL) {
@@ -542,25 +542,26 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 	cwdata.cbdata = cdp;
 
 	std::string filename = make_att_filename(ins_id, false);
-	ec_log_debug("Load attachment instance: %s", filename.c_str());
+	auto fn = filename.c_str();
+	ec_log_debug("S3: loading %s into serializer", fn);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_get_object(&m_bucket_ctx, filename.c_str(),
-			&m_get_conditions, /*startByte*/ 0, /*byteCount*/ 0, 0,
+		DY_get_object(&m_bucket_ctx, fn, &m_get_conditions,
+			/*startByte*/ 0, /*byteCount*/ 0, 0,
 			&m_get_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
-			ec_log_debug("Load instance result in while: %s",
-				DY_get_status_name(cdp->status));
+			ec_log_debug("S3: load %s: retryable status: %s",
+				fn, DY_get_status_name(cdp->status));
 	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Result of the load instance: %s",
-		DY_get_status_name(cdp->status));
+	ec_log_debug("S3: load %s: %s", fn, DY_get_status_name(cdp->status));
 	if (cdp->size != cdp->processed) {
-		ec_log_err("Short read while reading attachment data from S3, key: %s", filename.c_str());
+		ec_log_err("S3: load %s: short read %zu/%zu bytes",
+			fn, cdp->processed, cdp->size);
 		ret = KCERR_DATABASE_ERROR;
 		goto exit;
 	} else if (cdp->status == S3StatusOK) {
@@ -606,28 +607,29 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	cwdata.cbdata = cdp;
 
 	std::string filename = make_att_filename(ins_id, comp && size != 0);
-	ec_log_debug("Save attachment instance data: %s: %d of %zu", filename.c_str(), cdp->data != NULL, size);
+	auto fn = filename.c_str();
+	ec_log_debug("S3: saving %s (buffer of %zu bytes)", fn, size);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_put_object(&m_bucket_ctx, filename.c_str(), size, NULL,
-			NULL, &m_put_obj_handler, &cwdata);
+		DY_put_object(&m_bucket_ctx, fn, size, nullptr, nullptr,
+			&m_put_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
-			ec_log_debug("Save attachment result in while: %s",
-				DY_get_status_name(cdp->status));
+			ec_log_debug("S3: save %s: retryable status: %s",
+				fn, DY_get_status_name(cdp->status));
 	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Result of the save attachment: %s",
-		DY_get_status_name(cdp->status));
+	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cdp->status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.insert(ins_id);
 
 	if (cdp->size != cdp->processed) {
-		ec_log_err("Unable to write attachment data to S3, key: %s", filename.c_str());
+		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
+			fn, cdp->processed, cdp->size);
 		ret = KCERR_DATABASE_ERROR;
 		goto exit;
 	} else if (cdp->status == S3StatusOK) {
@@ -665,29 +667,30 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	cwdata.cbdata = cdp;
 
 	std::string filename = make_att_filename(ins_id, comp && size != 0);
-	ec_log_debug("Save attachment instance source: %s: %d of %zu", filename.c_str(), cdp->sink != NULL, size);
+	auto fn = filename.c_str();
+	ec_log_debug("S3: saving %s (serializer with %zu bytes)", fn, size);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_put_object(&m_bucket_ctx, filename.c_str(), size, NULL,
-			NULL, &m_put_obj_handler, &cwdata);
+		DY_put_object(&m_bucket_ctx, fn, size, nullptr, nullptr,
+			&m_put_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
-			ec_log_debug("Save attachment result in while: %s",
-				DY_get_status_name(cdp->status));
+			ec_log_debug("S3: save %s: retryable status: %s",
+				fn, DY_get_status_name(cdp->status));
 	}
 	while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Result of the save attachment: %s",
-		DY_get_status_name(cdp->status));
+	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cdp->status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.insert(ins_id);
 
 	if (cdp->size != cdp->processed) {
-		ec_log_err("Unable to write attachment data to S3, key: %s", filename.c_str());
+		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
+			fn, cdp->processed, cdp->size);
 		ret = KCERR_DATABASE_ERROR;
 		goto exit;
 	} else if (cdp->status == S3StatusOK) {
@@ -728,7 +731,7 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstances(const std::list<ULONG> &lstDe
  */
 ECRESULT ECS3Attachment::mark_att_for_del(ULONG ins_id)
 {
-	ec_log_debug("Mark attachment for deletion");
+	ec_log_debug("S3: set delete mark for %u", ins_id);
 	m_marked_att.insert(ins_id);
 	return erSuccess;
 }
@@ -742,7 +745,7 @@ ECRESULT ECS3Attachment::mark_att_for_del(ULONG ins_id)
  */
 ECRESULT ECS3Attachment::restore_marked_att(ULONG ins_id)
 {
-	ec_log_debug("Restored attachment, unmark for deletion");
+	ec_log_debug("S3: removed delete mark for %u", ins_id);
 	m_marked_att.erase(ins_id);
 	return erSuccess;
 }
@@ -763,22 +766,21 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 	cwdata.cbdata = cdp;
 
 	std::string filename = make_att_filename(ins_id, false);
-	ec_log_debug("Delete marked attachment: %s", filename.c_str());
+	auto fn = filename.c_str();
+	ec_log_debug("S3: delete marked attachment: %s", fn);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of
 	 * S3 reply with a redirect, we actually try again and process it.
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_delete_object(&m_bucket_ctx, filename.c_str(), 0,
-			&m_response_handler, &cwdata);
+		DY_delete_object(&m_bucket_ctx, fn, 0, &m_response_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
-			ec_log_debug("Delete marked attachment result in while: %s",
-				DY_get_status_name(cdp->status));
+			ec_log_debug("S3: delete %s: retryable status: %s",
+				fn, DY_get_status_name(cdp->status));
 	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Result of the delete marked attachment: %s",
-		DY_get_status_name(cdp->status));
+	ec_log_debug("S3: delete %s: %s", fn, DY_get_status_name(cdp->status));
 	if (cdp->status == S3StatusOK)
 		return erSuccess;
 	return KCERR_NOT_FOUND;
@@ -880,23 +882,22 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 	cwdata.cbdata = cdp;
 
 	std::string filename = make_att_filename(ins_id, comp);
-	ec_log_debug("Get size attachment instance: %s", filename.c_str());
+	auto fn = filename.c_str();
+	ec_log_debug("S3: getsize %s", fn);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of
 	 * S3 reply with a redirect, we actually try again and process it.
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_head_object(&m_bucket_ctx, filename.c_str(), 0,
-			&m_response_handler, &cwdata);
+		DY_head_object(&m_bucket_ctx, fn, 0, &m_response_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
-			ec_log_debug("Get size attachment result in while: %s",
-				DY_get_status_name(cdp->status));
+			ec_log_debug("S3: getsize %s: retryable status: %s",
+				fn, DY_get_status_name(cdp->status));
 	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Get size of attachment: %s -> %zu",
-		DY_get_status_name(cdp->status), cdp->size);
-
+	ec_log_debug("S3: getsize %s: %s, %zu bytes",
+		fn, DY_get_status_name(cdp->status), cdp->size);
 	if (cdp->status == S3StatusOK) {
 		*size_p = cdp->size;
 		if (compr_p != NULL)
@@ -908,7 +909,7 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 
 ECRESULT ECS3Attachment::Begin(void)
 {
-	ec_log_debug("Begin transaction");
+	ec_log_debug("S3: begin transaction");
 	if (m_transact) {
 		/* Possible a duplicate begin call, don't destroy the data in production */
 		assert(false);
@@ -925,7 +926,7 @@ ECRESULT ECS3Attachment::Commit(void)
 {
 	bool error = false;
 
-	ec_log_debug("Commit transaction");
+	ec_log_debug("S3: commit transaction");
 	if (!m_transact) {
 		assert(false);
 		return erSuccess;
@@ -952,7 +953,7 @@ ECRESULT ECS3Attachment::Rollback(void)
 {
 	bool error = false;
 
-	ec_log_debug("Rollback transaction");
+	ec_log_debug("S3: rollback transaction");
 	if (!m_transact) {
 		assert(false);
 		return erSuccess;
