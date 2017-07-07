@@ -1,5 +1,5 @@
 """
-Part of the high-level python bindings for Kopano
+Part of the high-level python bindings for Kopano.
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)

@@ -271,7 +271,7 @@ def quota_options(user, options):
 
 def permission_options(store, options, server):
     if not store:
-        raise NotFoundError('no store')
+        return
     if options.folders:
         objs = [store.folder(f) for f in options.folders]
     else:
