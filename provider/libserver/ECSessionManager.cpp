@@ -464,6 +464,8 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	auto er = this->CreateAuthSession(soap, ulCapabilities, lpSessionID, &unique_tie(lpAuthSession), false, false);
 	if (er != erSuccess)
 		goto exit;
+	if (szClientApp == nullptr)
+		szClientApp = "<unknown>";
 
 	// If we've connected with SSL, check if there is a certificate, and check if we accept that certificate for that user
 	if (soap->ssl && lpAuthSession->ValidateUserCertificate(soap, szName, szImpersonateUser) == erSuccess) {
@@ -488,7 +490,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 
 	// whoops, out of auth options.
 	ZLOG_AUDIT(m_lpAudit, "authenticate failed user='%s' from='%s' program='%s'",
-			  szName, from.c_str(), szClientApp ? szClientApp : "<unknown>");
+		szName, from.c_str(), szClientApp);
 
 	er = KCERR_LOGON_FAILED;			
 	g_lpStatsCollector->Increment(SCN_LOGIN_DENIED);
@@ -498,8 +500,7 @@ authenticated:
 	if (strcmp(KOPANO_SYSTEM_USER, szName) != 0)
 		/* Do not log successful SYSTEM logins */
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok user='%s' from='%s' method='%s' program='%s'",
-				  szName, from.c_str(), method, szClientApp ? szClientApp : "<unknown>");
-
+			szName, from.c_str(), method, szClientApp);
 	er = RegisterSession(lpAuthSession.get(), sessionGroupID,
 	     szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc,
 	     lpSessionID, &lpSession, fLockSession);
@@ -507,7 +508,7 @@ authenticated:
 		if (er == KCERR_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
 			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\"", szImpersonateUser, szName);
 			ZLOG_AUDIT(m_lpAudit, "impersonate failed user='%s', from='%s' program='%s' impersonator='%s'",
-					  szImpersonateUser, from.c_str(), szClientApp ? szClientApp : "<unknown>", szName);
+				szImpersonateUser, from.c_str(), szClientApp, szName);
 		} else
 			ec_log_err("User \"%s\" authenticated, but failed to create session. Error 0x%08X", szName, er);
 		goto exit;
@@ -520,7 +521,7 @@ authenticated:
 			szImpersonateUser, szName,
 			static_cast<unsigned long long>(*lpSessionID));
 		ZLOG_AUDIT(m_lpAudit, "impersonate ok user='%s', from='%s' program='%s' impersonator='%s'",
-				  szImpersonateUser, from.c_str(), szClientApp ? szClientApp : "<unknown>", szName);
+			szImpersonateUser, from.c_str(), szClientApp, szName);
 	}
 
 exit:
