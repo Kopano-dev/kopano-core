@@ -411,7 +411,7 @@ class Recurrence(object):
                     byweekday += (week,)
             # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
             # But the recurrence is on 8:00 that day and we should include it.
-            rule.rrule(rrule(WEEKLY, dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday, interval=self.period))
+            rule.rrule(rrule(WEEKLY, wkst = self._start.weekday(), dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday, interval=self.period))
 
         elif self.pattern_type == PATTERN_MONTHLY:
             # X Day of every Y month(s)
