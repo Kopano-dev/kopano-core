@@ -498,33 +498,27 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	goto exit;
 
 authenticated:
-	if (strcmp(KOPANO_SYSTEM_USER, szName) != 0)
-		/* Do not log successful SYSTEM logins */
-		ZLOG_AUDIT(m_lpAudit, "authenticate ok user='%s' from='%s' method='%s' program='%s'",
-			szName, from.c_str(), method, szClientApp);
 	er = RegisterSession(lpAuthSession.get(), sessionGroupID,
 	     szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc,
 	     lpSessionID, &lpSession, fLockSession);
 	if (er != erSuccess) {
 		if (er == KCERR_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
 			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\": %s (0x%x)", szImpersonateUser, szName, GetMAPIErrorMessage(er), er);
-			ZLOG_AUDIT(m_lpAudit, "impersonate failed user='%s', from='%s' program='%s' impersonator='%s'",
-				szImpersonateUser, from.c_str(), szClientApp, szName);
-		} else
+			ZLOG_AUDIT(m_lpAudit, "authenticate ok, impersonate failed: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\"",
+				from.c_str(), szImpersonateUser, szName, method, szClientApp);
+		} else {
 			ec_log_err("User \"%s\" authenticated, but failed to create session: %s (0x%x)", szName, GetMAPIErrorMessage(er), er);
+			ZLOG_AUDIT(m_lpAudit, "authenticate ok, session failed: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\"",
+				from.c_str(), szImpersonateUser, szName, method, szClientApp);
+		}
 		goto exit;
 	}
 	if (!szImpersonateUser || *szImpersonateUser == '\0')
-		ec_log_debug("User \"%s\" receives session %llu",
-			szName, static_cast<unsigned long long>(*lpSessionID));
-	else {
-		ec_log_debug("User \"%s\" impersonated by \"%s\" receives session %llu",
-			szImpersonateUser, szName,
-			static_cast<unsigned long long>(*lpSessionID));
-		ZLOG_AUDIT(m_lpAudit, "impersonate ok user='%s', from='%s' program='%s' impersonator='%s'",
-			szImpersonateUser, from.c_str(), szClientApp, szName);
-	}
-
+		ZLOG_AUDIT(m_lpAudit, "authenticate ok: from=\"%s\" user=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
+			from.c_str(), szName, method, szClientApp, static_cast<unsigned long long>(*lpSessionID));
+	else
+		ZLOG_AUDIT(m_lpAudit, "authenticate ok, impersonate ok: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
+			from.c_str(), szImpersonateUser, szName, method, szClientApp, static_cast<unsigned long long>(*lpSessionID));
 exit:
 	*lppSession = lpSession;
 
