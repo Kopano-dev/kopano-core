@@ -581,9 +581,15 @@ class Folder(Base):
         return Folder(self.store, self.entryid, deleted=True)
 
     def permissions(self):
+        """Return all :class:`permissions <Permission>` set for this folder."""
         return _utils.permissions(self)
 
     def permission(self, member, create=False):
+        """Return :class:`permission <Permission>` for user or group set for this folder.
+
+        :param member: user or group
+        :param create: create new permission for this folder
+        """
         return _utils.permission(self, member, create)
 
     def rights(self, member):

@@ -495,9 +495,15 @@ class Store(Base):
         return _folder.Folder(self, mapiobj=mapiobj)
 
     def permissions(self):
+        """Return all :class:`permissions <Permission>` set for this store."""
         return _utils.permissions(self)
 
     def permission(self, member, create=False):
+        """Return :class:`permission <Permission>` for user or group set for this store.
+
+        :param member: user or group
+        :param create: create new permission for this store
+        """
         return _utils.permission(self, member, create)
 
     def _fbmsg_delgs(self):

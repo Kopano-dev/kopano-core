@@ -1,5 +1,5 @@
 """
-Part of the high-level python bindings for Kopano
+Part of the high-level python bindings for Kopano.
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
@@ -14,7 +14,7 @@ from .defs import RIGHT_NAME, NAME_RIGHT
 from .errors import NotFoundError
 
 class Permission(object):
-    """Permission class"""
+    """Permission class."""
 
     def __init__(self, mapitable, mapirow, server): # XXX fix args
         self.mapitable = mapitable
@@ -23,6 +23,7 @@ class Permission(object):
 
     @property
     def member(self): # XXX company?
+        """:class:`User <User>` or :class:`group <Group>` given specific rights."""
         try:
             return self.server.user(self.server.sa.GetUser(self.mapirow[PR_MEMBER_ENTRYID], MAPI_UNICODE).Username)
         except (NotFoundError, MAPIErrorNotFound):
@@ -30,6 +31,13 @@ class Permission(object):
 
     @property
     def rights(self):
+        """Rights given to member.
+
+        Possible rights:
+
+        read_items, create_items, create_subfolders, edit_own, edit_all,
+        delete_own, delete_all, folder_owner, folder_contact, folder_visible
+        """
         r = []
         for right, name in RIGHT_NAME.items():
             if self.mapirow[PR_MEMBER_RIGHTS] & right:
