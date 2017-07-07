@@ -356,7 +356,10 @@ std::string urlEncode(const std::string &input)
 {
 	std::string output;
 	static const char digits[] = "0123456789ABCDEF";
-
+	/*
+	 * Need at least this much, but otherwise have no strategy better
+	 * than the default for reallocs.
+	 */
 	output.reserve(input.length());
 	for (size_t i = 0; i < input.length(); ++i) {
 		if (static_cast<unsigned char>(input[i]) <= 33 ||
@@ -486,7 +489,10 @@ void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsiz
 void StringTabtoSpaces(const std::wstring &strInput, std::wstring *lpstrOutput) {
 
 	std::wstring strOutput;
-
+	/*
+	 * With this reservation, at worst, when every input char is a tab,
+	 * at most two reallocs happen (with capacity doubling).
+	 */
 	strOutput.reserve(strInput.length());
 
 	for (auto c : strInput)
@@ -531,7 +537,7 @@ void StringLFtoCRLF(std::string &strInOut)
 {
 	std::string strOutput;
 	std::string::const_iterator i;
-
+	/* Output at most double the size of input => one realloc normally */
 	strOutput.reserve(strInOut.size());
 
 	for (i = strInOut.begin(); i != strInOut.end(); ++i)
@@ -594,6 +600,7 @@ std::string base64_encode(const unsigned char *bytes_to_encode, unsigned int in_
 	unsigned char char_array_3[3], char_array_4[4];
 	int i = 0, j = 0;
 	std::string ret;
+	ret.reserve((in_len + 2) / 3 * 4);
 	
 	while (in_len--) {
 		char_array_3[i++] = *(bytes_to_encode++);
@@ -628,6 +635,7 @@ std::string base64_decode(const std::string &encoded_string)
 	int in_len = encoded_string.size(), i = 0, j = 0, in_ = 0;
 	unsigned char char_array_4[4], char_array_3[3];
 	std::string ret;
+	ret.reserve((in_len + 1) / 4 * 3);
 
 	while (in_len-- && encoded_string[in_] != '=' && is_base64(encoded_string[in_])) {
 		char_array_4[i++] = encoded_string[in_++];
@@ -675,6 +683,8 @@ std::string zcp_md5_final_hex(MD5_CTX *ctx)
 std::string string_strip_nuls(const std::string &i)
 {
 	std::string o;
+	/* Expectation: no NULs to begin with. Hence reserving the entire size. */
+	o.reserve(i.size());
 	std::copy_if(i.cbegin(), i.cend(), std::back_inserter(o),
 		[](char c) { return c != '\0'; });
 	return o;
@@ -683,6 +693,7 @@ std::string string_strip_nuls(const std::string &i)
 std::wstring string_strip_nuls(const std::wstring &i)
 {
 	std::wstring o;
+	o.reserve(i.size());
 	std::copy_if(i.cbegin(), i.cend(), std::back_inserter(o),
 		[](wchar_t c) { return c != L'\0'; });
 	return o;
@@ -691,6 +702,12 @@ std::wstring string_strip_nuls(const std::wstring &i)
 std::string string_strip_crlf(const char *s)
 {
 	std::string o;
+	/*
+	 * Expectation: 2 bytes (CRLF) every 78 bytes; and an input usually not
+	 * longer than 480 bytes. Allocating the same length is therefore
+	 * acceptable.
+	 */
+	o.reserve(strlen(s));
 	std::copy_if(s, s + strlen(s), std::back_inserter(o),
 		[](char c) { return c != '\n' && c != '\r'; });
 	return o;
