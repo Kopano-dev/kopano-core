@@ -688,4 +688,12 @@ std::wstring string_strip_nuls(const std::wstring &i)
 	return o;
 }
 
+std::string string_strip_crlf(const char *s)
+{
+	std::string o;
+	std::copy_if(s, s + strlen(s), std::back_inserter(o),
+		[](char c) { return c != '\n' && c != '\r'; });
+	return o;
+}
+
 } /* namespace */

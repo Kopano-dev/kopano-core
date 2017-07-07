@@ -51,8 +51,14 @@ Packager notes:
 * libicu changed from optional to required build dependency
 
 
-Release notes for 8.3.2
+Release notes for 8.3.3
 =======================
+Fixes:
+* gateway: fix another IMAP protocol error [KC-720]
+
+
+Release notes for 8.3.2 [2017-07-06]
+====================================
 Fixes:
 * gateway: fix an IMAP protocol error [KC-668]
   Apple Mail/Alpine did not show mails with long encoded subjects
