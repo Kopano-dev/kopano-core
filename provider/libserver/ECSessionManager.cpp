@@ -487,9 +487,6 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	}
 
 	// whoops, out of auth options.
-	ec_log_warn("Failed to authenticate user \"%s\" from \"%s\" using program \"%s\"",
-					szName, from.c_str(), szClientApp ? szClientApp : "<unknown>");
-
 	ZLOG_AUDIT(m_lpAudit, "authenticate failed user='%s' from='%s' program='%s'",
 			  szName, from.c_str(), szClientApp ? szClientApp : "<unknown>");
 
@@ -498,7 +495,6 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	goto exit;
 
 authenticated:
-	ec_log_debug("User \"%s\" from \"%s\" authenticated through \"%s\" using program %s", szName, from.c_str(), method, szClientApp ? szClientApp : "<unknown>");
 	if (strcmp(KOPANO_SYSTEM_USER, szName) != 0)
 		/* Do not log successful SYSTEM logins */
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok user='%s' from='%s' method='%s' program='%s'",

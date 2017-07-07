@@ -811,14 +811,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				soap_free(newsoap);
 				continue;
 			}
-			if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-				ec_log_debug("Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
-			else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-				ec_log_debug("Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
-			else
-				ec_log_debug("Accepted incoming%sconnection from %s",
-					ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
-					newsoap->host);
 			newsoap->socket = ec_relocate_fd(newsoap->socket);
 			g_lpStatsCollector->Max(SCN_MAX_SOCKET_NUMBER, (LONGLONG)newsoap->socket);
 			g_lpStatsCollector->Increment(SCN_SERVER_CONNECTIONS);
