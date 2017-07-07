@@ -33,23 +33,19 @@ class ECObjectLockImpl;
 
 typedef std::shared_ptr<ECLockManager> ECLockManagerPtr;
 
-///////////////
-// ECObjectLock
-///////////////
 class ECObjectLock _kc_final {
 public:
-	ECObjectLock(void) = default;
-	ECObjectLock(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
-	ECObjectLock(ECObjectLock &&o) : m_ptrImpl(std::move(o.m_ptrImpl)) {}
-	ECObjectLock &operator=(ECObjectLock &&o)
-	{
-		m_ptrImpl = std::move(o.m_ptrImpl);
-		return *this;
-	}
+	ECObjectLock() = default;
+	ECObjectLock(std::shared_ptr<ECLockManager>, unsigned int obj_id, ECSESSIONID);
+	ECObjectLock(ECObjectLock &&);
+	~ECObjectLock() { Unlock(); }
+	ECObjectLock &operator=(ECObjectLock &&);
 	ECRESULT Unlock();
 
 private:
-	std::shared_ptr<ECObjectLockImpl> m_ptrImpl;
+	std::weak_ptr<ECLockManager> m_ptrLockManager;
+	unsigned int m_ulObjId;
+	ECSESSIONID m_sessionId;
 };
 
 ////////////////
