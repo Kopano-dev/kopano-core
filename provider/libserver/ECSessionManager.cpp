@@ -22,6 +22,7 @@
 #include <pthread.h>
 #include <mapidefs.h>
 #include <mapitags.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/tie.hpp>
 #include "ECMAPI.h"
@@ -506,11 +507,11 @@ authenticated:
 	     lpSessionID, &lpSession, fLockSession);
 	if (er != erSuccess) {
 		if (er == KCERR_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
-			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\"", szImpersonateUser, szName);
+			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\": %s (0x%x)", szImpersonateUser, szName, GetMAPIErrorMessage(er), er);
 			ZLOG_AUDIT(m_lpAudit, "impersonate failed user='%s', from='%s' program='%s' impersonator='%s'",
 				szImpersonateUser, from.c_str(), szClientApp, szName);
 		} else
-			ec_log_err("User \"%s\" authenticated, but failed to create session. Error 0x%08X", szName, er);
+			ec_log_err("User \"%s\" authenticated, but failed to create session: %s (0x%x)", szName, GetMAPIErrorMessage(er), er);
 		goto exit;
 	}
 	if (!szImpersonateUser || *szImpersonateUser == '\0')
