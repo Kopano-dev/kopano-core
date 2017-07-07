@@ -3945,12 +3945,12 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			// table version
 			auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY);
 			vProps.push_back(item);
-			vProps.push_back(lpProp ? lpProp->Value.lpszA : "NIL");
+			vProps.push_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : std::string("NIL"));
 		} else if (bSkipOpen && item.compare("BODYSTRUCTURE") == 0) {
 			// table version
 			auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE);
 			vProps.push_back(item);
-			vProps.push_back(lpProp ? lpProp->Value.lpszA : "NIL");
+			vProps.push_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : std::string("NIL"));
 		} else if (Prefix(item, "BODY") || Prefix(item, "RFC822")) {
 			// the only exceptions when we don't need to generate anything yet.
 			if (item.compare("RFC822.SIZE") == 0) {
