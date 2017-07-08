@@ -12,6 +12,7 @@ Fixes:
 * common: restore ability to output crashdump [KC-630]
 * caldav: counter proposal without dates [KC-710]
 * inetmapi: avoid short allocation on group expansion [KC-388,KC-727]
+* server: support ICS initial sync with more than 100000 items again [KC-683]
 Changes:
 * server: improve wording of ntlm_auth messages [KC-572]
 
