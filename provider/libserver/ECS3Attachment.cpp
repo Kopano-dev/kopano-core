@@ -464,23 +464,20 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 		ec_log_err("S3: load %s: short read %zu/%zu bytes",
 			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
-		goto exit;
 	} else if (cd.data == nullptr) {
 		ret = KCERR_NOT_ENOUGH_MEMORY;
-		goto exit;
 	} else if (cd.status != S3StatusOK) {
 		ret = KCERR_NETWORK_ERROR;
-		goto exit;
+	} else {
+		/*
+		 * We allocated the data in cd.data, which is referred to by
+		 * data_p. The caller of this function is responsible for freeing the
+		 * memory after its use.
+		 */
+		*size_p = cd.size;
+		*data_p = cd.data;
+		ret = erSuccess;
 	}
-	/*
-	 * We allocated the data in cd.data, which is referred to by
-	 * data_p. The caller of this function is responsible for freeing the
-	 * memory after its use.
-	 */
-	*size_p = cd.size;
-	*data_p = cd.data;
-	ret = erSuccess;
- exit:
 	if (ret != erSuccess && cd.data != nullptr && soap == nullptr)
 		delete cd.data;
 	/*
@@ -532,16 +529,13 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 		ec_log_err("S3: load %s: short read %zu/%zu bytes",
 			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
-		goto exit;
 	} else if (cd.data == nullptr) {
 		ret = KCERR_NOT_ENOUGH_MEMORY;
-		goto exit;
 	} else if (cd.status != S3StatusOK) {
 		ret = erSuccess;
-		goto exit;
+	} else {
+		*size_p = cd.size;
 	}
-	*size_p = cd.size;
- exit:
 	/*
 	 * Make sure we do not write to the sink accidentally, therefore reset
 	 * it to NULL.
@@ -597,12 +591,9 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
 			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
-		goto exit;
 	} else if (cd.status == S3StatusOK) {
 		ret = erSuccess;
-		goto exit;
 	}
- exit:
 	cd.data = NULL;
 	return ret;
 }
@@ -655,12 +646,9 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
 			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
-		goto exit;
 	} else if (cd.status == S3StatusOK) {
 		ret = erSuccess;
-		goto exit;
 	}
- exit:
 	cd.sink = NULL;
 	return ret;
 }
