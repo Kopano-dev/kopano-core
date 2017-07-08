@@ -15,6 +15,7 @@ Enhancements:
 * php: copy back improvements from the Z-Push project's bundled copy [KC-463]
 * search: make searchfolder creation in shared stores configurable [KC-565]
 * mapi: disable very slow RTF compression [KC-622]
+* server: add entry cache for S3 backend [KC-702]
 * icalmapi: handle up to three email addresses in a vcard [KC-420]
 * inetmapi: add the right extension for attachments without filename [KC-624]
 * search: index embedded messages (recursively) [KC-151]

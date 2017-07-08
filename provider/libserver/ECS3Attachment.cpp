@@ -2,6 +2,8 @@
 #ifdef HAVE_LIBS3_H
 #include <kopano/platform.h>
 #include <algorithm>
+#include <chrono>
+#include <map>
 #include <mutex>
 #include <stdexcept>
 #include <cerrno>
@@ -17,6 +19,8 @@
 #include "ECS3Attachment.h"
 #include "StreamUtil.h"
 
+using steady_clock = std::chrono::steady_clock;
+
 namespace KC {
 
 /* Number of times the server should retry to send the command to the S3 servers, this is required to process redirects. */
@@ -24,6 +28,9 @@ namespace KC {
 
 /* Number of seconds to sleep before trying again */
 #define S3_SLEEP_DELAY 1
+
+#define now_positive() (std::chrono::steady_clock::now() + std::chrono::seconds(600))
+#define now_negative() (std::chrono::steady_clock::now() + std::chrono::seconds(60))
 
 /* callback data */
 struct s3_cd {
@@ -42,6 +49,12 @@ struct s3_cdw {
 	void *cbdata;
 };
 
+struct s3_cache_entry {
+	std::chrono::time_point<std::chrono::steady_clock> valid_until;
+	size_t size;
+};
+#define S3_NEGATIVE_ENTRY SIZE_MAX
+
 static void *ec_libs3_handle;
 #define W(n) static decltype(S3_ ## n) *DY_ ## n;
 W(put_object)
@@ -53,6 +66,10 @@ W(head_object)
 W(delete_object)
 W(get_object)
 #undef W
+
+/* This ought to be moved into ECS3Attachment, if and when that becomes a singleton. */
+static std::mutex m_cachelock;
+static std::map<ULONG, s3_cache_entry> m_cache;
 
 /**
  * Static function used to forward the response properties callback to the
@@ -534,6 +551,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 	} else if (cd.status != S3StatusOK) {
 		ret = erSuccess;
 	} else {
+		scoped_lock locker(m_cachelock);
+		m_cache[ins_id] = {now_positive(), cd.size};
 		*size_p = cd.size;
 	}
 	/*
@@ -592,6 +611,8 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
 	} else if (cd.status == S3StatusOK) {
+		scoped_lock locker(m_cachelock);
+		m_cache[ins_id] = {now_positive(), cd.size};
 		ret = erSuccess;
 	}
 	cd.data = NULL;
@@ -647,6 +668,8 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
 	} else if (cd.status == S3StatusOK) {
+		scoped_lock locker(m_cachelock);
+		m_cache[ins_id] = {now_positive(), cd.size};
 		ret = erSuccess;
 	}
 	cd.sink = NULL;
@@ -703,9 +726,14 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
 
 	ec_log_debug("S3: delete %s: %s", fn, DY_get_status_name(cd.status));
-	if (cd.status == S3StatusOK)
-		return erSuccess;
-	return KCERR_NOT_FOUND;
+	if (cd.status == S3StatusOK || cd.status == S3StatusHttpErrorNotFound) {
+		/* Delete successful, or did not exist before */
+		scoped_lock locker(m_cachelock);
+		m_cache[ins_id] = {now_negative(), S3_NEGATIVE_ENTRY};
+	}
+	/* else { do not touch cache for network errors, etc. } */
+
+	return cd.status == S3StatusOK ? erSuccess : KCERR_NOT_FOUND;
 }
 
 /**
@@ -770,15 +798,27 @@ bool ECS3Attachment::should_retry(struct s3_cd &cd)
 ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
     bool *compr_p)
 {
-	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
+	std::string filename = make_att_filename(ins_id, comp);
+	auto fn = filename.c_str();
+
+	ulock_normal locker(m_cachelock);
+	auto cache_item = m_cache.find(ins_id);
+	if (cache_item != m_cache.cend() && steady_clock::now() < cache_item->second.valid_until) {
+		if (cache_item->second.size == S3_NEGATIVE_ENTRY)
+			return KCERR_NOT_FOUND;
+		*size_p = cache_item->second.size;
+		if (compr_p != nullptr)
+			*compr_p = comp;
+		return erSuccess;
+	}
+	locker.unlock();
+
 	struct s3_cd cd;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, comp);
-	auto fn = filename.c_str();
 	ec_log_debug("S3: getsize %s", fn);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of
@@ -794,13 +834,19 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 
 	ec_log_debug("S3: getsize %s: %s, %zu bytes",
 		fn, DY_get_status_name(cd.status), cd.size);
-	if (cd.status == S3StatusOK) {
-		*size_p = cd.size;
-		if (compr_p != NULL)
-			*compr_p = comp;
-		ret = erSuccess;
+	if (cd.status == S3StatusHttpErrorNotFound) {
+		locker.lock();
+		m_cache[ins_id] = {now_negative(), S3_NEGATIVE_ENTRY};
+		return KCERR_NOT_FOUND;
 	}
-	return ret;
+	if (cd.status != S3StatusOK)
+		return KCERR_NOT_FOUND;
+	locker.lock();
+	m_cache[ins_id] = {now_positive(), cd.size};
+	*size_p = cd.size;
+	if (compr_p != NULL)
+		*compr_p = comp;
+	return erSuccess;
 }
 
 ECRESULT ECS3Attachment::Begin(void)
