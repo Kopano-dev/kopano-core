@@ -686,34 +686,6 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstances(const std::list<ULONG> &lstDe
 }
 
 /**
- * Mark a file deleted by renaming it
- *
- * @param[in] ins_id instance id to mark
- *
- * @return Kopano error code
- */
-ECRESULT ECS3Attachment::mark_att_for_del(ULONG ins_id)
-{
-	ec_log_debug("S3: set delete mark for %u", ins_id);
-	m_marked_att.insert(ins_id);
-	return erSuccess;
-}
-
-/**
- * Revert a delete marked instance
- *
- * @param[in] ins_id instance id to restore
- *
- * @return Kopano error code
- */
-ECRESULT ECS3Attachment::restore_marked_att(ULONG ins_id)
-{
-	ec_log_debug("S3: removed delete mark for %u", ins_id);
-	m_marked_att.erase(ins_id);
-	return erSuccess;
-}
-
-/**
  * Delete a marked instance from the filesystem
  *
  * @param[in] ins_id instance id to remove
@@ -759,17 +731,12 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 ECRESULT ECS3Attachment::DeleteAttachmentInstance(ULONG ins_id,
     bool bReplace)
 {
-	ECRESULT ret = erSuccess;
 	std::string filename = make_att_filename(ins_id, m_bFileCompression);
 
 	if (!m_transact)
 		return del_marked_att(ins_id);
-
-	ret = mark_att_for_del(ins_id);
-	if (ret != erSuccess && ret != KCERR_NOT_FOUND) {
-		assert(false);
-		return ret;
-	}
+	ec_log_debug("S3: set delete mark for %u", ins_id);
+	m_marked_att.insert(ins_id);
 	return erSuccess;
 }
 
@@ -909,10 +876,10 @@ ECRESULT ECS3Attachment::Rollback(void)
 		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
 			error = true;
 	/* Restore marked attachment */
-	for (auto att_id : m_marked_att)
-		if (restore_marked_att(att_id) != erSuccess)
-			error = true;
-
+	for (auto att_id : m_marked_att) {
+		ec_log_debug("S3: removed delete mark for %u", att_id);
+		m_marked_att.erase(att_id);
+	}
 	m_new_att.clear();
 	m_marked_att.clear();
 	return error ? KCERR_DATABASE_ERROR : erSuccess;
