@@ -413,28 +413,8 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
  */
 bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
 {
-	struct s3_cd cd;
-	struct s3_cdw cwdata;
-	cwdata.caller = this;
-	cwdata.cbdata = &cd;
-
-	std::string filename = make_att_filename(ins_id, false);
-	auto fn = filename.c_str();
-	ec_log_debug("S3: checking presence of %s", fn);
-	/*
-	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
-	 * reply with a redirect, we actually try again and process it.
-	 */
-	cd.retries = S3_RETRIES;
-	do {
-		DY_head_object(&m_bucket_ctx, fn, 0, &m_response_handler, &cwdata);
-		if (DY_status_is_retryable(cd.status))
-			ec_log_debug("S3: presence %s: retryable status: %s",
-				fn, DY_get_status_name(cd.status));
-	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
-
-	ec_log_debug("S3: presence %s: %s", fn, DY_get_status_name(cd.status));
-	return cd.status == S3StatusOK;
+	size_t ignored;
+	return GetSizeInstance(ins_id, &ignored, nullptr) == hrSuccess;
 }
 
 /**
