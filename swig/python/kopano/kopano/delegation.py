@@ -69,9 +69,10 @@ class Delegation(object):
         fbmsg.SetProps([flags])
         fbmsg.SaveChanges(0)
 
-    def _parse_rule(self):
+    @staticmethod
+    def _parse_rule(store):
         userids, deletion = [], False
-        for rule in self.store.inbox.rules():
+        for rule in store.inbox.rules():
             if PR_RULE_PROVIDER in rule.mapirow and PR_RULE_ACTIONS in rule.mapirow:
                 if rule.mapirow[PR_RULE_PROVIDER] == 'Schedule+ EMS Interface':
                     actions = rule.mapirow[PR_RULE_ACTIONS].lpAction
@@ -80,17 +81,20 @@ class Delegation(object):
                             entryid = PpropFindProp(addrentry, PR_ENTRYID)
                             if entryid:
                                 userids.append(entryid.Value)
+                    if len(actions) >= 2 and actions[1].acttype == ACTTYPE.OP_DELETE:
+                        deletion = True
         return userids, deletion
 
-    def _save_rule(self, userids, deletion):
+    @staticmethod
+    def _save_rule(store, userids, deletion):
         # remove existing rule # XXX update
-        for rule in self.store.inbox.rules():
+        for rule in store.inbox.rules():
             if rule.mapirow[PR_RULE_PROVIDER] == 'Schedule+ EMS Interface' and \
                PR_RULE_ID in rule.mapirow:
                 pr_rule_id = rule.mapirow[PR_RULE_ID]
 
                 rulerows = [ROWENTRY(ROW_REMOVE, [SPropValue(PR_RULE_ID, pr_rule_id)])]
-                table = self.store.inbox.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, 0, 0)
+                table = store.inbox.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, 0, 0)
                 table.ModifyTable(0, rulerows)
 
         # create new rule
@@ -106,11 +110,12 @@ class Delegation(object):
         actions = []
         userprops = []
         for userid in userids:
-            user = self.store.server.gab.OpenEntry(userid, None, MAPI_BEST_ACCESS)
+            user = store.server.gab.OpenEntry(userid, None, MAPI_BEST_ACCESS)
             userprops.append(user.GetProps(USERPROPS, MAPI_UNICODE))
 
         actions.append(ACTION( ACTTYPE.OP_DELEGATE, 0, None, None, 0, actFwdDelegate(userprops)))
-#        # XXX deletion
+        if deletion:
+            actions.append(ACTION( ACTTYPE.OP_DELETE,  0, None, None, 0, None))
         row.append(SPropValue(PR_RULE_ACTIONS, ACTIONS(1, actions)))
 
         cond = SAndRestriction([SContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS_W, SPropValue(PR_MESSAGE_CLASS_W, u"IPM.Schedule.Meeting")),
@@ -120,23 +125,23 @@ class Delegation(object):
         ])
         row.append(SPropValue(PR_RULE_CONDITION, cond))
         rulerows = [ROWENTRY(ROW_ADD, row)]
-        table = self.store.inbox.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, 0, 0)
+        table = store.inbox.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, 0, 0)
         table.ModifyTable(0, rulerows)
 
     @property
     def send_copy(self):
         """Delegate receives copies of meeting requests."""
-        userids, deletion = self._parse_rule()
+        userids, deletion = self._parse_rule(self.store)
         return self.user.userid.decode('hex') in userids
 
     @send_copy.setter
     def send_copy(self, value):
-        userids, deletion = self._parse_rule()
+        userids, deletion = self._parse_rule(self.store)
         if value:
             userids.append(self.user.userid.decode('hex')) # XXX dupe
         else:
             userids = [u for u in userids if u != self.user.userid.decode('hex')]
-        self._save_rule(userids, deletion)
+        self._save_rule(self.store, userids, deletion)
 
     @property
     def flags(self):
@@ -153,14 +158,15 @@ class Delegation(object):
         self.send_copy = ('send_copy' in value)
 
     @staticmethod
-    def _delete_after_copy(store):
+    def _send_only_to_delegates(store):
         """Delete meetingrequests after copying them to delegates."""
-        for rule in store.inbox.rules():
-            if rule.mapirow[PR_RULE_PROVIDER] == 'Schedule+ EMS Interface':
-                actions = rule.mapirow[PR_RULE_ACTIONS].lpAction
-                if len(actions) >= 2 and actions[1].acttype == ACTTYPE.OP_DELETE:
-                    return True
-        return False
+        userids, deletion = Delegation._parse_rule(store)
+        return deletion
+
+    @staticmethod
+    def _set_send_only_to_delegates(store, value):
+        userids, deletion = Delegation._parse_rule(store)
+        Delegation._save_rule(store, userids, value)
 
     def _delete(self):
         # XXX update delegate rule

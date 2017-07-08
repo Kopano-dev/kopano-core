@@ -55,7 +55,7 @@ Add specified user to companyquota recipients for company specified with --compa
 .PP
 \fB\-\-add-delegation\fR \fINAME\fR
 .RS 4
-Add specified delegation (flags) to user specified with --user. The syntax to be used for delegation (flags) is 'user:flag1,flag2,..' where 'user' is a user name, and flags are optionally chosen from the following: see_private, send_copy.
+Add specified delegation (flags) to user specified with --user. The syntax to be used for delegation (flags) is 'user:flag1,flag2,..' where 'user' is a user name, and flags are optionally chosen from the following: see_private, send_copy. The first means that delegates can see private items, and the second that meeting requests and responses are also sent to the delegates.
 .RE
 .PP
 \fB\-\-add-feature\fR \fINAME\fR
@@ -332,6 +332,11 @@ Remove specified user from group specified with --group.
 \fB\-\-reset-folder-count\fR
 .RS 4
 Reset folder counts for all folders of user given with --user.
+.RE
+.PP
+\fB\-\-send-only-to-delegates\fR \fIYESNO\fR
+.RS 4
+When sending meeting requests and responses to delegates, only send them to the delegates.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR

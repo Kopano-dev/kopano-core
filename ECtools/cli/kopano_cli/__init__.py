@@ -55,6 +55,7 @@ def parser_opt_args():
     parser.add_option('--remove-sendas', help='User to remove from send-as', **_list_name())
     parser.add_option('--add-delegation', help='Delegation to add (user:flag1,flag2..)', **_list_name())
     parser.add_option('--remove-delegation', help='Delegation to remove', **_list_name())
+    parser.add_option('--send-only-to-delegates', help='Send meeting requests only to delegates', **_bool())
     parser.add_option('--add-permission', help='Permission to add (member:right1,right2..)', **_list_name())
     parser.add_option('--remove-permission', help='Permission to remove', **_list_name())
     parser.add_option('--add-user', help='User to add', **_list_name())
@@ -87,6 +88,7 @@ UPDATE_MATRIX = {
     ('mr_accept', 'mr_accept_conflicts', 'mr_accept_recurring', 'hook_archive', 'unhook_archive'): ('users',),
     ('ooo_active', 'ooo_clear', 'ooo_subject', 'ooo_message', 'ooo_from', 'ooo_until'): ('users',),
     ('add_feature', 'remove_feature', 'add_delegation', 'remove_delegation'): ('users',),
+    ('send_only_to_delegates',): ('users',),
     ('add_permission', 'remove_permission'): ('global', 'companies', 'users'),
     ('add_user', 'remove_user'): ('groups',),
     ('quota_override', 'quota_hard', 'quota_soft', 'quota_warn'): ('global', 'companies', 'users'),
@@ -200,7 +202,7 @@ def user_details(user):
             print('Archive folder:\t' + user.archive_folder.path)
 
         print('Send-as:\t' + ', '.join(_encode(sendas.name) for sendas in user.send_as()))
-        print('Delegation:\t' + ', '.join(_encode(dlg.user.name+':'+','.join(dlg.flags)) for dlg in user.delegations()))
+        print('Delegation:\t' + ', '.join(_encode(dlg.user.name+':'+','.join(dlg.flags)) for dlg in user.delegations()) + (' (send only to delegates)' if user.send_only_to_delegates else ''))
         print('Auto-accept meeting req:\t' + yesno(user.autoaccept.enabled))
         if user.autoaccept.enabled:
             print('Decline dbl meetingreq:\t' + yesno(not user.autoaccept.conflicts))
@@ -268,6 +270,22 @@ def quota_options(user, options):
         user.quota.soft_limit = options.quota_soft
     if options.quota_hard is not None:
         user.quota.hard_limit = options.quota_hard
+
+def delegation_options(user, options, server):
+    for delegation in options.add_delegation:
+        name, flags = name_flags(delegation)
+        dlg = user.delegation(server.user(name), create=True)
+        if flags:
+            dlg.flags += flags
+    for delegation in options.remove_delegation:
+        name, flags = name_flags(delegation)
+        dlg = user.delegation(server.user(name))
+        if flags is None:
+            user.delete(dlg)
+        else:
+            dlg.flags = [f for f in dlg.flags if f not in flags]
+    if options.send_only_to_delegates is not None:
+        user.store.send_only_to_delegates = options.send_only_to_delegates # XXX user.store
 
 def permission_options(store, options, server):
     if not store:
@@ -337,20 +355,7 @@ def user_options(name, options, server):
         user.remove_feature(feature)
 
     quota_options(user, options)
-
-    for delegation in options.add_delegation:
-        name, flags = name_flags(delegation)
-        dlg = user.delegation(server.user(name), create=True)
-        if flags:
-            dlg.flags += flags
-    for delegation in options.remove_delegation:
-        name, flags = name_flags(delegation)
-        dlg = user.delegation(server.user(name))
-        if flags is None:
-            user.delete(dlg)
-        else:
-            dlg.flags = [f for f in dlg.flags if f not in flags]
-
+    delegation_options(user, options, server)
     permission_options(user.store, options, server)
 
     if options.ooo_active is not None:
