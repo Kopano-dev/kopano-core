@@ -62,7 +62,6 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	std::string m_basepath;
 	S3BucketContext m_bucket_ctx;
 	std::set<ULONG> m_new_att;
-	std::set<ULONG> m_deleted_att;
 	std::set<ULONG> m_marked_att;
 	bool m_transact = false;
 

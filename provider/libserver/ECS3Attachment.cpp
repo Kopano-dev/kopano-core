@@ -824,7 +824,6 @@ ECRESULT ECS3Attachment::Begin(void)
 		return erSuccess;
 	}
 	m_new_att.clear();
-	m_deleted_att.clear();
 	m_marked_att.clear();
 	m_transact = true;
 	return erSuccess;
@@ -842,17 +841,12 @@ ECRESULT ECS3Attachment::Commit(void)
 
 	/* Disable the transaction */
 	m_transact = false;
-	/* Delete the attachments */
-	for (auto att_id : m_deleted_att)
-		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
-			error = true;
 	/* Delete marked attachments */
 	for (auto att_id : m_marked_att)
 		if (del_marked_att(att_id) != erSuccess)
 			error = true;
 
 	m_new_att.clear();
-	m_deleted_att.clear();
 	m_marked_att.clear();
 	return error ? KCERR_DATABASE_ERROR : erSuccess;
 }
@@ -869,8 +863,6 @@ ECRESULT ECS3Attachment::Rollback(void)
 
 	/* Disable the transaction */
 	m_transact = false;
-	/* Do not delete the attachments */
-	m_deleted_att.clear();
 	/* Remove the created attachments */
 	for (auto att_id : m_new_att)
 		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
