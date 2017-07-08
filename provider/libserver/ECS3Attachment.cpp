@@ -533,11 +533,11 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
 		goto exit;
-	} else if (cd.status == S3StatusOK) {
-		ret = erSuccess;
-		goto exit;
 	} else if (cd.data == nullptr) {
 		ret = KCERR_NOT_ENOUGH_MEMORY;
+		goto exit;
+	} else if (cd.status != S3StatusOK) {
+		ret = erSuccess;
 		goto exit;
 	}
 	*size_p = cd.size;
