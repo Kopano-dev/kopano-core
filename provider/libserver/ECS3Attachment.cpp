@@ -414,10 +414,9 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
 bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
 {
 	struct s3_cd cd;
-	struct s3_cd *cdp = &cd;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
-	cwdata.cbdata = cdp;
+	cwdata.cbdata = &cd;
 
 	std::string filename = make_att_filename(ins_id, false);
 	auto fn = filename.c_str();
@@ -426,16 +425,16 @@ bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
-	cdp->retries = S3_RETRIES;
+	cd.retries = S3_RETRIES;
 	do {
 		DY_head_object(&m_bucket_ctx, fn, 0, &m_response_handler, &cwdata);
-		if (DY_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: presence %s: retryable status: %s",
-				fn, DY_get_status_name(cdp->status));
-	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
+				fn, DY_get_status_name(cd.status));
+	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: presence %s: %s", fn, DY_get_status_name(cdp->status));
-	return cdp->status == S3StatusOK;
+	ec_log_debug("S3: presence %s: %s", fn, DY_get_status_name(cd.status));
+	return cd.status == S3StatusOK;
 }
 
 /**
@@ -457,12 +456,11 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	struct s3_cd cd;
-	struct s3_cd *cdp = &cd;
-	cdp->alloc_data = true;
-	cdp->soap = soap;
+	cd.alloc_data = true;
+	cd.soap = soap;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
-	cwdata.cbdata = cdp;
+	cwdata.cbdata = &cd;
 
 	std::string filename = make_att_filename(ins_id, false);
 	auto fn = filename.c_str();
@@ -471,45 +469,45 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
-	cdp->retries = S3_RETRIES;
+	cd.retries = S3_RETRIES;
 	do {
 		DY_get_object(&m_bucket_ctx, fn, &m_get_conditions,
 			/*startByte*/ 0, /*byteCount*/ 0, 0,
 			&m_get_obj_handler, &cwdata);
-		if (DY_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: load %s: retryable status: %s",
-				fn, DY_get_status_name(cdp->status));
-	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
+				fn, DY_get_status_name(cd.status));
+	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: load %s: %s", fn, DY_get_status_name(cdp->status));
-	if (cdp->size != cdp->processed) {
+	ec_log_debug("S3: load %s: %s", fn, DY_get_status_name(cd.status));
+	if (cd.size != cd.processed) {
 		ec_log_err("S3: load %s: short read %zu/%zu bytes",
-			fn, cdp->processed, cdp->size);
+			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
 		goto exit;
-	} else if (cdp->data == NULL) {
+	} else if (cd.data == nullptr) {
 		ret = KCERR_NOT_ENOUGH_MEMORY;
 		goto exit;
-	} else if (cdp->status != S3StatusOK) {
+	} else if (cd.status != S3StatusOK) {
 		ret = KCERR_NETWORK_ERROR;
 		goto exit;
 	}
 	/*
-	 * We allocated the data in cdp->data, which is referred to by
+	 * We allocated the data in cd.data, which is referred to by
 	 * data_p. The caller of this function is responsible for freeing the
 	 * memory after its use.
 	 */
-	*size_p = cdp->size;
-	*data_p = cdp->data;
+	*size_p = cd.size;
+	*data_p = cd.data;
 	ret = erSuccess;
  exit:
-	if (ret != erSuccess && cdp->data != NULL && soap == NULL)
-		delete cdp->data;
+	if (ret != erSuccess && cd.data != nullptr && soap == nullptr)
+		delete cd.data;
 	/*
-	 * Make sure we clear the cdp->data variable so we cannot write
+	 * Make sure we clear the cd.data variable so we cannot write
 	 * to it after it is freed externally.
 	 */
-	cdp->data = NULL;
+	cd.data = nullptr;
 	return ret;
 }
 
@@ -527,11 +525,10 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	struct s3_cd cd;
-	struct s3_cd *cdp = &cd;
-	cdp->sink = sink;
+	cd.sink = sink;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
-	cwdata.cbdata = cdp;
+	cwdata.cbdata = &cd;
 
 	std::string filename = make_att_filename(ins_id, false);
 	auto fn = filename.c_str();
@@ -540,36 +537,36 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
-	cdp->retries = S3_RETRIES;
+	cd.retries = S3_RETRIES;
 	do {
 		DY_get_object(&m_bucket_ctx, fn, &m_get_conditions,
 			/*startByte*/ 0, /*byteCount*/ 0, 0,
 			&m_get_obj_handler, &cwdata);
-		if (DY_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: load %s: retryable status: %s",
-				fn, DY_get_status_name(cdp->status));
-	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
+				fn, DY_get_status_name(cd.status));
+	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: load %s: %s", fn, DY_get_status_name(cdp->status));
-	if (cdp->size != cdp->processed) {
+	ec_log_debug("S3: load %s: %s", fn, DY_get_status_name(cd.status));
+	if (cd.size != cd.processed) {
 		ec_log_err("S3: load %s: short read %zu/%zu bytes",
-			fn, cdp->processed, cdp->size);
+			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
 		goto exit;
-	} else if (cdp->status == S3StatusOK) {
+	} else if (cd.status == S3StatusOK) {
 		ret = erSuccess;
 		goto exit;
-	} else if (cdp->data == NULL) {
+	} else if (cd.data == nullptr) {
 		ret = KCERR_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
-	*size_p = cdp->size;
+	*size_p = cd.size;
  exit:
 	/*
 	 * Make sure we do not write to the sink accidentally, therefore reset
 	 * it to NULL.
 	 */
-	cdp->sink = NULL;
+	cd.sink = nullptr;
 	return ret;
 }
 
@@ -589,12 +586,11 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
 	struct s3_cd cd;
-	struct s3_cd *cdp = &cd;
-	cdp->data = data;
-	cdp->size = size;
+	cd.data = data;
+	cd.size = size;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
-	cwdata.cbdata = cdp;
+	cwdata.cbdata = &cd;
 
 	std::string filename = make_att_filename(ins_id, comp && size != 0);
 	auto fn = filename.c_str();
@@ -603,31 +599,31 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
-	cdp->retries = S3_RETRIES;
+	cd.retries = S3_RETRIES;
 	do {
 		DY_put_object(&m_bucket_ctx, fn, size, nullptr, nullptr,
 			&m_put_obj_handler, &cwdata);
-		if (DY_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
-				fn, DY_get_status_name(cdp->status));
-	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
+				fn, DY_get_status_name(cd.status));
+	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cdp->status));
+	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.insert(ins_id);
 
-	if (cdp->size != cdp->processed) {
+	if (cd.size != cd.processed) {
 		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
-			fn, cdp->processed, cdp->size);
+			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
 		goto exit;
-	} else if (cdp->status == S3StatusOK) {
+	} else if (cd.status == S3StatusOK) {
 		ret = erSuccess;
 		goto exit;
 	}
  exit:
-	cdp->data = NULL;
+	cd.data = NULL;
 	return ret;
 }
 
@@ -647,12 +643,11 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
 	struct s3_cd cd;
-	struct s3_cd *cdp = &cd;
-	cdp->sink = source;
-	cdp->size = size;
+	cd.sink = source;
+	cd.size = size;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
-	cwdata.cbdata = cdp;
+	cwdata.cbdata = &cd;
 
 	std::string filename = make_att_filename(ins_id, comp && size != 0);
 	auto fn = filename.c_str();
@@ -661,32 +656,32 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
-	cdp->retries = S3_RETRIES;
+	cd.retries = S3_RETRIES;
 	do {
 		DY_put_object(&m_bucket_ctx, fn, size, nullptr, nullptr,
 			&m_put_obj_handler, &cwdata);
-		if (DY_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
-				fn, DY_get_status_name(cdp->status));
+				fn, DY_get_status_name(cd.status));
 	}
-	while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
+	while (DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cdp->status));
+	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.insert(ins_id);
 
-	if (cdp->size != cdp->processed) {
+	if (cd.size != cd.processed) {
 		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
-			fn, cdp->processed, cdp->size);
+			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
 		goto exit;
-	} else if (cdp->status == S3StatusOK) {
+	} else if (cd.status == S3StatusOK) {
 		ret = erSuccess;
 		goto exit;
 	}
  exit:
-	cdp->sink = NULL;
+	cd.sink = NULL;
 	return ret;
 }
 
@@ -748,10 +743,9 @@ ECRESULT ECS3Attachment::restore_marked_att(ULONG ins_id)
 ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 {
 	struct s3_cd cd;
-	struct s3_cd *cdp = &cd;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
-	cwdata.cbdata = cdp;
+	cwdata.cbdata = &cd;
 
 	std::string filename = make_att_filename(ins_id, false);
 	auto fn = filename.c_str();
@@ -760,16 +754,16 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of
 	 * S3 reply with a redirect, we actually try again and process it.
 	 */
-	cdp->retries = S3_RETRIES;
+	cd.retries = S3_RETRIES;
 	do {
 		DY_delete_object(&m_bucket_ctx, fn, 0, &m_response_handler, &cwdata);
-		if (DY_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: delete %s: retryable status: %s",
-				fn, DY_get_status_name(cdp->status));
-	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
+				fn, DY_get_status_name(cd.status));
+	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: delete %s: %s", fn, DY_get_status_name(cdp->status));
-	if (cdp->status == S3StatusOK)
+	ec_log_debug("S3: delete %s: %s", fn, DY_get_status_name(cd.status));
+	if (cd.status == S3StatusOK)
 		return erSuccess;
 	return KCERR_NOT_FOUND;
 }
@@ -820,11 +814,11 @@ std::string ECS3Attachment::make_att_filename(ULONG ins_id, bool comp)
  *
  * @return whether we should retry
  */
-bool ECS3Attachment::should_retry(struct s3_cd *cdp)
+bool ECS3Attachment::should_retry(struct s3_cd &cd)
 {
-	if (cdp->retries <= 0)
+	if (cd.retries <= 0)
 		return false;
-	--cdp->retries;
+	--cd.retries;
 	sleep(S3_SLEEP_DELAY);
 	return true;
 }
@@ -844,10 +838,9 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
 	struct s3_cd cd;
-	struct s3_cd *cdp = &cd;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
-	cwdata.cbdata = cdp;
+	cwdata.cbdata = &cd;
 
 	std::string filename = make_att_filename(ins_id, comp);
 	auto fn = filename.c_str();
@@ -856,18 +849,18 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of
 	 * S3 reply with a redirect, we actually try again and process it.
 	 */
-	cdp->retries = S3_RETRIES;
+	cd.retries = S3_RETRIES;
 	do {
 		DY_head_object(&m_bucket_ctx, fn, 0, &m_response_handler, &cwdata);
-		if (DY_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: getsize %s: retryable status: %s",
-				fn, DY_get_status_name(cdp->status));
-	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
+				fn, DY_get_status_name(cd.status));
+	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
 
 	ec_log_debug("S3: getsize %s: %s, %zu bytes",
-		fn, DY_get_status_name(cdp->status), cdp->size);
-	if (cdp->status == S3StatusOK) {
-		*size_p = cdp->size;
+		fn, DY_get_status_name(cd.status), cd.size);
+	if (cd.status == S3StatusOK) {
+		*size_p = cd.size;
 		if (compr_p != NULL)
 			*compr_p = comp;
 		ret = erSuccess;

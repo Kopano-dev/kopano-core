@@ -54,7 +54,7 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	int put_obj(int, char *, void *);
 
 	std::string make_att_filename(ULONG, bool);
-	bool should_retry(struct s3_cd *);
+	bool should_retry(struct s3_cd &);
 	struct s3_cd create_cd(void);
 
 	/* helper functions for transacted deletion */
