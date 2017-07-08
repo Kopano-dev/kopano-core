@@ -27,13 +27,13 @@ namespace KC {
 
 /* callback data */
 struct s3_cd {
-	struct soap *soap;
-	unsigned char *data;
-	ECSerializer *sink;
-	bool alloc_data;
-	size_t size, processed;
-	int retries;
-	S3Status status;
+	struct soap *soap = nullptr;
+	unsigned char *data = nullptr;
+	ECSerializer *sink = nullptr;
+	bool alloc_data = false;
+	size_t size = 0, processed = 0;
+	int retries = 0;
+	S3Status status = S3StatusOK;
 };
 
 /* callback data wrapper */
@@ -413,8 +413,8 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
  */
 bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
 {
-	struct s3_cd cdata = create_cd();
-	struct s3_cd *cdp = &cdata;
+	struct s3_cd cd;
+	struct s3_cd *cdp = &cd;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
 	cwdata.cbdata = cdp;
@@ -456,13 +456,9 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
     ULONG ins_id, size_t *size_p, unsigned char **data_p)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
-	struct s3_cd cdata = create_cd();
-	struct s3_cd *cdp = &cdata;
-	cdp->sink = NULL;
-	cdp->data = NULL;
+	struct s3_cd cd;
+	struct s3_cd *cdp = &cd;
 	cdp->alloc_data = true;
-	cdp->size = 0;
-	cdp->processed = 0;
 	cdp->soap = soap;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
@@ -530,13 +526,9 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, ECSerializer *sink)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
-	struct s3_cd cdata = create_cd();
-	struct s3_cd *cdp = &cdata;
+	struct s3_cd cd;
+	struct s3_cd *cdp = &cd;
 	cdp->sink = sink;
-	cdp->data = NULL;
-	cdp->alloc_data = false;
-	cdp->size = 0;
-	cdp->processed = 0;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
 	cwdata.cbdata = cdp;
@@ -596,12 +588,10 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
-	struct s3_cd cdata = create_cd();
-	struct s3_cd *cdp = &cdata;
-	cdp->sink = NULL;
+	struct s3_cd cd;
+	struct s3_cd *cdp = &cd;
 	cdp->data = data;
 	cdp->size = size;
-	cdp->alloc_data = false;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
 	cwdata.cbdata = cdp;
@@ -656,11 +646,9 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
-	struct s3_cd cdata = create_cd();
-	struct s3_cd *cdp = &cdata;
+	struct s3_cd cd;
+	struct s3_cd *cdp = &cd;
 	cdp->sink = source;
-	cdp->data = NULL;
-	cdp->alloc_data = false;
 	cdp->size = size;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
@@ -759,8 +747,8 @@ ECRESULT ECS3Attachment::restore_marked_att(ULONG ins_id)
  */
 ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 {
-	struct s3_cd cdata = create_cd();
-	struct s3_cd *cdp = &cdata;
+	struct s3_cd cd;
+	struct s3_cd *cdp = &cd;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
 	cwdata.cbdata = cdp;
@@ -842,26 +830,6 @@ bool ECS3Attachment::should_retry(struct s3_cd *cdp)
 }
 
 /**
- * This function creates a nrew S3Attachment Callback Data struct instance,
- * this will make sure that all the variables are initialized to default
- * values.
- *
- * @return a new s3_cd struct instance
- */
-struct s3_cd ECS3Attachment::create_cd(void)
-{
-	struct s3_cd c;
-	c.soap = NULL;
-	c.data = NULL;
-	c.sink = NULL;
-	c.alloc_data = false;
-	c.size = 0;
-	c.processed = 0;
-	c.status = S3StatusOK;
-	return c;
-}
-
-/**
  * Return the size of an instance
  *
  * @param[in] ins_id InstanceID to check the size for
@@ -875,8 +843,8 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
-	struct s3_cd cdata = create_cd();
-	struct s3_cd *cdp = &cdata;
+	struct s3_cd cd;
+	struct s3_cd *cdp = &cd;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
 	cwdata.cbdata = cdp;
