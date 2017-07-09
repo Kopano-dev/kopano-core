@@ -29,12 +29,16 @@
 
 using namespace KCHL;
 
-HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach) const
+HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType,
+    BOOL fModify, ULONG ulAttachNum, const ECMAPIProp *lpRoot,
+    ECAttach **lppAttach) const
 {
 	return ECAttach::Create(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot, lppAttach);
 }
 
-ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot) : ECMAPIProp(lpMsgStore, ulObjType, fModify, lpRoot, "IAttach")
+ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify,
+    ULONG ulAttachNum, const ECMAPIProp *lpRoot) :
+	ECMAPIProp(lpMsgStore, ulObjType, fModify, lpRoot, "IAttach")
 {
 	this->ulAttachNum = ulAttachNum;
 
@@ -44,7 +48,8 @@ ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG 
 	this->HrAddPropHandlers(PR_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 }
 
-HRESULT ECAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach)
+HRESULT ECAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify,
+    ULONG ulAttachNum, const ECMAPIProp *lpRoot, ECAttach **lppAttach)
 {
 	return alloc_wrap<ECAttach>(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot)
 	       .put(lppAttach);

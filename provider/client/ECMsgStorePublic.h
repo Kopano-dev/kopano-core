@@ -31,13 +31,13 @@
 
 class ECMsgStorePublic _kc_final : public ECMsgStore {
 protected:
-	ECMsgStorePublic(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore);
+	ECMsgStorePublic(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, ULONG profile_flags, BOOL is_spooler, BOOL offline_store);
 	~ECMsgStorePublic(void);
 
 public:
 	static HRESULT GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
-	static HRESULT	Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore, ECMsgStore **lppECMsgStore);
+	static HRESULT Create(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, ULONG profile_flags, BOOL is_spooler, BOOL offline_store, ECMsgStore **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk);

@@ -44,7 +44,7 @@ class ECMAPIFolder;
 
 class IMessageFactory {
 public:
-	virtual HRESULT Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lppMessage) const = 0;
+	virtual HRESULT Create(ECMsgStore *, BOOL fnew, BOOL modify, ULONG flags, BOOL embedded, const ECMAPIProp *root, ECMessage **) const = 0;
 };
 
 class ECMsgStore :

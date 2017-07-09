@@ -28,11 +28,11 @@ class WSTransport;
 
 class ECABLogon _kc_final : public ECUnknown, public IABLogon {
 protected:
-	ECABLogon(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGUID);
+	ECABLogon(IMAPISupport *, WSTransport *, ULONG profile_flags, const GUID *);
 	virtual ~ECABLogon();
 
 public:
-	static  HRESULT Create(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGUID, ECABLogon **lppECABLogon);
+	static  HRESULT Create(IMAPISupport *, WSTransport *, ULONG profile_flags, const GUID *, ECABLogon **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT Logoff(ULONG ulFlags);

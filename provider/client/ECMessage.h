@@ -30,7 +30,7 @@
 class ECAttach;
 class IAttachFactory {
 public:
-	virtual HRESULT Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach) const = 0;
+	virtual HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **) const = 0;
 };
 
 /**
@@ -49,7 +49,7 @@ protected:
 	 * \param bEmbedded		Specifies whether the message is embedded.
 	 * \param lpRoot		The parent object when the message is embedded.
 	 */
-	ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot);
+	ECMessage(ECMsgStore *, BOOL fnew, BOOL modify, ULONG flags, BOOL embedded, const ECMAPIProp *root);
 	virtual ~ECMessage();
 
 public:
@@ -68,7 +68,7 @@ public:
 	 *
 	 * \return hrSuccess on success.
 	 */
-	static HRESULT	Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lpMessage);
+	static HRESULT Create(ECMsgStore *, BOOL fnew, BOOL modify, ULONG flags, BOOL embedded, const ECMAPIProp *root, ECMessage **);
 
 	/**
 	 * \brief Handles GetProp requests for previously registered properties.
@@ -178,7 +178,7 @@ public:
 
 class ECMessageFactory _kc_final : public IMessageFactory {
 public:
-	HRESULT Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lpMessage) const;
+	HRESULT Create(ECMsgStore *, BOOL fnew, BOOL modify, ULONG flags, BOOL embedded, const ECMAPIProp *root, ECMessage **) const;
 };
 
 namespace KC {

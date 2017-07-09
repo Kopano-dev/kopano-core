@@ -26,20 +26,20 @@ class ECArchiveAwareMessage;
 
 class ECArchiveAwareAttach _kc_final : public ECAttach {
 protected:
-	ECArchiveAwareAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot);
+	ECArchiveAwareAttach(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root);
 
 public:
-	static	HRESULT Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach);
+	static HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **);
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 
 private:
-	ECArchiveAwareMessage	*m_lpRoot;
+	const ECArchiveAwareMessage *m_lpRoot;
 	ALLOC_WRAP_FRIEND;
 };
 
 class ECArchiveAwareAttachFactory _kc_final : public IAttachFactory {
 public:
-	HRESULT Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach) const;
+	HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **) const;
 };
 
 

@@ -157,8 +157,10 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 		return hr;
 
 	// Get a message store object
-	hr = CreateMsgStoreObject((LPSTR)sProfileProps.strProfileName.c_str(), lpMAPISup, cbEntryID, lpEntryID, ulFlags, sProfileProps.ulProfileFlags, lpTransport,
-	     &guidMDBProvider, false, fIsDefaultStore, bOfflineStore, &~lpECMsgStore);
+	hr = CreateMsgStoreObject(reinterpret_cast<const char *>(sProfileProps.strProfileName.c_str()),
+	     lpMAPISup, cbEntryID, lpEntryID, ulFlags,
+	     sProfileProps.ulProfileFlags, lpTransport, &guidMDBProvider,
+	     false, fIsDefaultStore, bOfflineStore, &~lpECMsgStore);
 	if(hr != hrSuccess)
 		return hr;
 

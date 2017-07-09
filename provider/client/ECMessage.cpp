@@ -62,13 +62,15 @@ static constexpr const SizedSPropTagArray(8, sPropAttachColumns) =
 	PR_RENDERING_POSITION, PR_ATTACH_FILENAME_W, PR_ATTACH_METHOD,
 	PR_DISPLAY_NAME_W, PR_ATTACH_LONG_FILENAME_W}};
 
-HRESULT ECMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lpMessage) const
+HRESULT ECMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew,
+    BOOL fModify, ULONG ulFlags, BOOL bEmbedded, const ECMAPIProp *lpRoot,
+    ECMessage **lpMessage) const
 {
 	return ECMessage::Create(lpMsgStore, fNew, fModify, ulFlags, bEmbedded, lpRoot, lpMessage);
 }
 
 ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify,
-    ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot) :
+    ULONG ulFlags, BOOL bEmbedded, const ECMAPIProp *lpRoot) :
 	ECMAPIProp(lpMsgStore, MAPI_MESSAGE, fModify, lpRoot, "IMessage"),
 	m_bEmbedded(bEmbedded)
 {
@@ -135,7 +137,9 @@ ECMessage::~ECMessage()
 		lpAttachments->Release();
 }
 
-HRESULT	ECMessage::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lppMessage)
+HRESULT ECMessage::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify,
+    ULONG ulFlags, BOOL bEmbedded, const ECMAPIProp *lpRoot,
+    ECMessage **lppMessage)
 {
 	return alloc_wrap<ECMessage>(lpMsgStore, fNew, fModify, ulFlags,
 	       bEmbedded, lpRoot).put(lppMessage);
@@ -2305,8 +2309,6 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 	object_ptr<IUnknown> lpECUnknown;
 	memory_ptr<SPropValue> lpECObject;
 	object_ptr<ECMAPIProp> lpECMAPIProp;
-	ECMAPIProp *lpDestTop = NULL;
-	ECMAPIProp *lpSourceTop = NULL;
 	GUID sDestServerGuid = {0};
 	GUID sSourceServerGuid = {0};
 
@@ -2321,8 +2323,8 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 	// creating large recursive objects.
 	if(lpECUnknown && lpECUnknown->QueryInterface(IID_ECMAPIProp, &~lpECMAPIProp) == hrSuccess) {
 		// Find the top-level objects for both source and destination objects
-		lpDestTop = lpECMAPIProp->m_lpRoot;
-		lpSourceTop = this->m_lpRoot;
+		auto lpDestTop = lpECMAPIProp->m_lpRoot;
+		auto lpSourceTop = this->m_lpRoot;
 
 		// destination may not be a child of the source, but source can be a child of destination
 		if (!this->IsChildOf(lpDestTop)) {

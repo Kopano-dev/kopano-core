@@ -31,7 +31,7 @@ class ECMsgStore;
 
 class ECMAPIProp : public ECGenericProp, public IECSecurity {
 protected:
-	ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify, ECMAPIProp *lpRoot, const char *szClassName = NULL);
+	ECMAPIProp(void *provider, ULONG obj_type, BOOL modify, const ECMAPIProp *root, const char *class_name = nullptr);
 	virtual ~ECMAPIProp();
 
 public:
@@ -84,7 +84,7 @@ protected:
 	virtual HRESULT SetPermissionRules(ULONG cPermissions, ECPERMISSION *lpECPermissions);
 
 public:
-	ECMsgStore*				GetMsgStore();
+	ECMsgStore *GetMsgStore() const;
 
 private:
 	BOOL m_bICSObject = false; // coming from the ICS system
@@ -92,7 +92,7 @@ private:
 	ENTRYID *m_lpParentID = nullptr; // Overrides the parentid from the server
 
 public:
-	ECMAPIProp *m_lpRoot;		// Points to the 'root' object that was opened by OpenEntry; normally points to 'this' except for Attachments and Submessages
+	const ECMAPIProp *m_lpRoot; // Points to the 'root' object that was opened by OpenEntry; normally points to 'this' except for Attachments and Submessages
 };
 
 #endif // ECMAPIPROP_H

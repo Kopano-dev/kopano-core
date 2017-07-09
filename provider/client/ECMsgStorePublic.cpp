@@ -36,8 +36,11 @@
 using namespace std;
 using namespace KCHL;
 
-ECMsgStorePublic::ECMsgStorePublic(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore) :
-	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, false, bOfflineStore)
+ECMsgStorePublic::ECMsgStorePublic(const char *lpszProfname,
+    IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
+    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore) :
+	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify,
+	    ulProfileFlags, fIsSpooler, false, bOfflineStore)
 {
 	HrAddPropHandlers(PR_IPM_SUBTREE_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	HrAddPropHandlers(PR_IPM_PUBLIC_FOLDERS_ENTRYID,	GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
@@ -57,7 +60,11 @@ ECMsgStorePublic::~ECMsgStorePublic(void)
 	MAPIFreeBuffer(m_lpIPMPublicFoldersID);
 }
 
-HRESULT	ECMsgStorePublic::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore, ECMsgStore **lppECMsgStore) {
+HRESULT ECMsgStorePublic::Create(const char *lpszProfname,
+    IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
+    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore,
+    ECMsgStore **lppECMsgStore)
+{
 	return alloc_wrap<ECMsgStorePublic>(lpszProfname, lpSupport,
 	       lpTransport, fModify, ulProfileFlags,
 	       fIsSpooler, bOfflineStore)

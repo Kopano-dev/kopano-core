@@ -49,7 +49,9 @@ private:
 	ULONG m_ulPropTag;
 };
 
-HRESULT ECArchiveAwareMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp* lpRoot, ECMessage **lppMessage) const
+HRESULT ECArchiveAwareMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew,
+    BOOL fModify, ULONG ulFlags, BOOL bEmbedded, const ECMAPIProp *lpRoot,
+    ECMessage **lppMessage) const
 {
 	auto lpArchiveAwareStore = dynamic_cast<ECArchiveAwareMsgStore *>(lpMsgStore);
 

@@ -25,11 +25,18 @@
 
 using namespace KCHL;
 
-ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore)
-: ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore)
+ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(const char *lpszProfname,
+    IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
+    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore,
+    BOOL bOfflineStore) :
+	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify,
+	    ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore)
 { }
 
-HRESULT ECArchiveAwareMsgStore::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
+HRESULT ECArchiveAwareMsgStore::Create(const char *lpszProfname,
+    IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
+    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore,
+    BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
 	return alloc_wrap<ECArchiveAwareMsgStore>(lpszProfname, lpSupport,
 	       lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,

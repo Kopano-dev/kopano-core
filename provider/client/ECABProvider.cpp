@@ -91,7 +91,7 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	hr = lpTransport->HrLogon(sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
-	hr = ECABLogon::Create(lpMAPISup, lpTransport, sProfileProps.ulProfileFlags, (GUID *)lpGuid, &~lpABLogon);
+	hr = ECABLogon::Create(lpMAPISup, lpTransport, sProfileProps.ulProfileFlags, reinterpret_cast<const GUID *>(lpGuid), &~lpABLogon);
 	if(hr != hrSuccess)
 		return hr;
 	AddChild(lpABLogon);

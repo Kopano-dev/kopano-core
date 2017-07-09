@@ -38,7 +38,7 @@
 using namespace KCHL;
 
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport *lpTransport,
-    ULONG ulProfileFlags, GUID *lpGUID) :
+    ULONG ulProfileFlags, const GUID *lpGUID) :
 	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup),
 	m_lpTransport(lpTransport)
 {
@@ -73,7 +73,8 @@ ECABLogon::~ECABLogon()
 		m_lpTransport->Release();
 }
 
-HRESULT ECABLogon::Create(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGuid, ECABLogon **lppECABLogon)
+HRESULT ECABLogon::Create(IMAPISupport *lpMAPISup, WSTransport *lpTransport,
+    ULONG ulProfileFlags, const GUID *lpGuid, ECABLogon **lppECABLogon)
 {
 	return alloc_wrap<ECABLogon>(lpMAPISup, lpTransport, ulProfileFlags,
 	       lpGuid).put(lppECABLogon);
