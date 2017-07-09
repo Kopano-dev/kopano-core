@@ -945,7 +945,7 @@ int main(int argc, char *argv[]) {
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/spooler.pid" },
 		{ "running_path", "/var/lib/kopano" },
-		{ "coredump_enabled", "no" },
+		{"coredump_enabled", "systemdefault"},
 		{ "log_method","file" },
 		{ "log_file","-" },
 		{ "log_level", "3", CONFIGSETTING_RELOADABLE },
@@ -1132,7 +1132,7 @@ int main(int argc, char *argv[]) {
     sigaction(SIGABRT, &act, NULL);
 
 	bQuit = bMessagesWaiting = false;
-	unix_coredump_enable(parseBool(g_lpConfig->GetSetting("coredump_enabled")));
+	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads

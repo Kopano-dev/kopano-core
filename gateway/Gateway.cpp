@@ -285,7 +285,7 @@ int main(int argc, char *argv[]) {
 		{ "pid_file", "/var/run/kopano/gateway.pid" },
 		{ "running_path", "/var/lib/kopano" },
 		{ "process_model", "fork" },
-		{ "coredump_enabled", "no" },
+		{"coredump_enabled", "systemdefault"},
 		{ "pop3_enable", "yes" },
 		{ "pop3_port", "110" },
 		{ "pop3s_enable", "no" },
@@ -577,7 +577,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
     
 	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
 		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", KC_DESIRED_FILEDES, getdtablesize());
-	unix_coredump_enable(parseBool(g_lpConfig->GetSetting("coredump_enabled")));
+	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads

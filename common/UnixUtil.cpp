@@ -153,23 +153,23 @@ static int linux_sysctl1(const char *tunable)
 	return c == EOF ? '\0' : c;
 }
 
-void unix_coredump_enable(bool enable)
+void unix_coredump_enable(const char *mode)
 {
-	/*
-	 * At the whim of the init system, the system may already have
-	 * coredumping allowed in some quantity. coredump_enable=no in the
-	 * config file means to just leave it as is rather than explicit
-	 * disablement.
-	 */
-	if (!enable)
+	if (strcasecmp(mode, "systemdefault") == 0) {
+		ec_log_info("Coredump status left at system default.");
 		return;
+	}
+	struct rlimit limit;
+	if (!parseBool(mode)) {
+		limit.rlim_cur = limit.rlim_max = 0;
+		if (setrlimit(RLIMIT_CORE, &limit) == 0)
+			ec_log_notice("Coredumps are disabled via configuration file.");
+		return;
+	}
 	if (linux_sysctl1("/proc/sys/fs/suid_dumpable") == '0')
 		ec_log_err("Coredumps will not be generated: kopano-server requires the fs.suid_dumpable sysctl to contain the value 2, not 0.");
 	else if (linux_sysctl1("/proc/sys/kernel/core_pattern") == '\0')
 		ec_log_err("Coredumps are not enabled in the OS: sysctl kernel.core_pattern is empty.");
-
-	struct rlimit limit;
-
 	limit.rlim_cur = RLIM_INFINITY;
 	limit.rlim_max = RLIM_INFINITY;
 	if (setrlimit(RLIMIT_CORE, &limit) < 0) {
@@ -178,7 +178,7 @@ void unix_coredump_enable(bool enable)
 		limit.rlim_max = 0;
 		getrlimit(RLIMIT_CORE, &limit);
 		ec_log_err("Cannot set coredump limit to infinity: %s. Current limit: %llu bytes.",
-			strerror(err), static_cast<unsigned long long>(limit.rlim_max));
+			strerror(err), static_cast<unsigned long long>(limit.rlim_cur));
 	}
 }
 
