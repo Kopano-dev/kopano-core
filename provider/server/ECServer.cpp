@@ -589,21 +589,33 @@ static int kc_reexec_with_allocator(char **argv, const char *lib)
 	if (lib == NULL || *lib == '\0')
 		return 0;
 	const char *s = getenv("KC_ALLOCATOR_DONE");
-	if (s != NULL)
-		/* avoid repeatedly reexecing ourselves */
+	if (s != NULL) {
+		/*
+		 * KC_ALLOCATOR_DONE is a sign that we should not reexec again.
+		 * Now, restore the previous LD_PRELOAD so we do not start,
+		 * for example, ntlm_auth, with it.
+		 */
+		s = getenv("KC_ORIGINAL_PRELOAD");
+		if (s == nullptr)
+			unsetenv("LD_PRELOAD");
+		else
+			setenv("LD_PRELOAD", s, true);
 		return 0;
+	}
 	s = getenv("LD_PRELOAD");
-	if (s == NULL)
+	if (s == nullptr) {
 		setenv("LD_PRELOAD", lib, true);
-	else if (strstr(s, "/valgrind/") != NULL)
+	} else if (strstr(s, "/valgrind/") != nullptr) {
 		/*
 		 * Within vg, everything is a bit different — since it catches
 		 * execve itself. Execing /proc/self/exe therefore won't work,
 		 * we would need to use argv[0]. But… don't bother.
 		 */
 		return 0;
-	else
+	} else {
+		setenv("KC_ORIGINAL_PRELOAD", s, true);
 		setenv("LD_PRELOAD", (std::string(s) + ":" + lib).c_str(), true);
+	}
 	void *handle = dlopen(lib, RTLD_LAZY | RTLD_LOCAL);
 	if (handle == NULL)
 		/*
