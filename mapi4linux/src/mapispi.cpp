@@ -200,8 +200,10 @@ HRESULT M4LMAPISupport::OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateI
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulOpenFlags, ULONG * lpulObjType,
-								  LPUNKNOWN * lppUnk) {
+HRESULT M4LMAPISupport::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulOpenFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
+{
 	return session->OpenEntry(cbEntryID, lpEntryID, lpInterface,
 	       ulOpenFlags, lpulObjType, lppUnk);
 }

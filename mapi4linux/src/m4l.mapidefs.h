@@ -122,7 +122,8 @@ class M4LMAPIContainer : public M4LMAPIProp, public virtual IMAPIContainer {
 public:
 	virtual HRESULT GetContentsTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 	virtual HRESULT GetHierarchyTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-	virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _kc_override;
+	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
+//	OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _kc_override;
 	virtual HRESULT SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) _kc_override;
 	virtual HRESULT GetSearchCriteria(ULONG flags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState) _kc_override;
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
@@ -147,7 +148,7 @@ public:
 	virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG flags) _kc_override;
 	virtual HRESULT ResolveNames(const SPropTagArray *, ULONG flags, LPADRLIST lpAdrList, LPFlagList lpFlagList) _kc_override;
 	virtual HRESULT GetHierarchyTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-	virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _kc_override;
+	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 

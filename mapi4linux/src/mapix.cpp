@@ -1219,8 +1219,9 @@ HRESULT M4LMAPISession::GetStatusTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
  * @retval		MAPI_E_INVALID_ENTRYID			lpEntryID does not point to an entryid
  * @retval		MAPI_E_INTERFACE_NOT_SUPPORTED	Invalid lpInterface parameter for found object
  */
-HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType,
-								  LPUNKNOWN* lppUnk) 
+HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
 {
     HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
@@ -1659,8 +1660,10 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
  *
  * @return		HRESULT
  */
-HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG * lpulObjType,
-							   LPUNKNOWN * lppUnk) {
+HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
+{
 	HRESULT hr = hrSuccess;
 	std::wstring name, type, email;
 	SPropValue sProps[5];

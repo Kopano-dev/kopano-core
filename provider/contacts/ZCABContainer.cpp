@@ -801,10 +801,12 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
  * 
  * @return MAPI Error code
  */
-HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
+HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
 {
 	HRESULT hr = hrSuccess;
-	auto lpCABEntryID = reinterpret_cast<cabEntryID *>(lpEntryID);
+	auto lpCABEntryID = reinterpret_cast<const cabEntryID *>(lpEntryID);
 	ULONG cbNewCABEntryID = CbNewCABENTRYID(0);
 	ULONG cbFolder = 0;
 	LPENTRYID lpFolder = NULL;

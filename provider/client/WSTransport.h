@@ -103,7 +103,7 @@ public:
 	// Interface to get/set properties
 	virtual HRESULT HrOpenPropStorage(ULONG parent_eid_size, const ENTRYID *parent, ULONG eid_size, const ENTRYID *eid, ULONG flags, IECPropStorage **);
 	virtual HRESULT HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, IECPropStorage **lppPropStorage);
-	virtual HRESULT HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, IECPropStorage **lppPropStorage);
+	virtual HRESULT HrOpenABPropStorage(ULONG eid_size, const ENTRYID *eid, IECPropStorage **);
 
 	// Interface for folder operations (create/delete)
 	virtual HRESULT HrOpenFolderOps(ULONG eid_size, const ENTRYID *eid, WSMAPIFolderOps **);

@@ -149,7 +149,9 @@ HRESULT ZCABLogon::ClearFolderList()
  * 
  * @return 
  */
-HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
+HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<ZCABContainer> lpRootContainer;

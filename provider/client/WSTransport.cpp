@@ -773,7 +773,8 @@ HRESULT WSTransport::HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ul
 	       reinterpret_cast<void **>(lppPropStorage));
 }
 
-HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, IECPropStorage **lppPropStorage)
+HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, IECPropStorage **lppPropStorage)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<WSABPropStorage> lpPropStorage;

@@ -735,7 +735,9 @@ HRESULT M4LMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPIContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType, LPUNKNOWN* lppUnk) {
+HRESULT M4LMAPIContainer::OpenEntry(ULONG eid_size, const ENTRYID *eid,
+    const IID *intf, ULONG flags, ULONG *objtype, IUnknown **res)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 
@@ -875,7 +877,10 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	return lpTableView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 }
 
-HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType, LPUNKNOWN* lppUnk) {
+HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
+{
 	LPABLOGON lpABLogon = NULL;
 	MAPIUID muidEntry;
 

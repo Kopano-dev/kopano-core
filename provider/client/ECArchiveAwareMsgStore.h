@@ -33,7 +33,7 @@ class _kc_export_dycast ECArchiveAwareMsgStore _kc_final : public ECMsgStore {
 public:
 	_kc_hidden ECArchiveAwareMsgStore(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, ULONG profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store);
 	_kc_hidden static HRESULT Create(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, ULONG profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store, ECMsgStore **ret);
-	_kc_hidden virtual HRESULT OpenEntry(ULONG eid_size, LPENTRYID eid, LPCIID, ULONG flags, ULONG *obj_type, LPUNKNOWN *ret);
+	_kc_hidden virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
 	_kc_hidden virtual HRESULT OpenItemFromArchive(LPSPropValue propstore_eids, LPSPropValue propitem_eids, ECMessage **ret);
 
 private:

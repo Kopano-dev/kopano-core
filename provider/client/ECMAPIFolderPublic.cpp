@@ -397,7 +397,7 @@ HRESULT ECMAPIFolderPublic::DeleteProps(const SPropTagArray *lpPropTagArray,
 	return ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
-HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, ENTRYID *eid,
+HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, const ENTRYID *eid,
     const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
     IUnknown **lppUnk)
 {

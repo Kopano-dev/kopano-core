@@ -43,7 +43,9 @@ HRESULT ECArchiveAwareMsgStore::Create(const char *lpszProfname,
 	       bOfflineStore).as(IID_ECMsgStore, lppECMsgStore);
 }
 
-HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
+HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, const IID *lpInterface, ULONG ulFlags,
+    ULONG *lpulObjType, IUnknown **lppUnk)
 {
 	// By default we'll try to open an archive aware message when a message is opened. The exception
 	// is when the client is not licensed to do so or when it's explicitly disabled by passing 
