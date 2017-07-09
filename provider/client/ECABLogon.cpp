@@ -116,7 +116,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	object_ptr<ECABContainer> lpABContainer;
 	BOOL			fModifyObject = FALSE;
 	ABEID			eidRoot =  ABEID(MAPI_ABCONT, MUIDECSAB, 0);
-	ABEID *lpABeid = NULL;
+	ABEID lpABeid;
 	object_ptr<IECPropStorage> lpPropStorage;
 	object_ptr<ECMailUser> lpMailUser;
 	object_ptr<ECDistList> 	lpDistList;
@@ -138,10 +138,9 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	*/
 
 	if(cbEntryID == 0 && lpEntryID == NULL) {
-		lpABeid = &eidRoot;
-
-		cbEntryID = CbABEID(lpABeid);
-		lpEntryID = (LPENTRYID)lpABeid;
+		memcpy(&lpABeid, &eidRoot, sizeof(lpABeid));
+		cbEntryID = CbABEID(&lpABeid);
+		lpEntryID = reinterpret_cast<ENTRYID *>(&lpABeid);
 	} else {
 		if (cbEntryID == 0 || lpEntryID == nullptr)
 			return MAPI_E_UNKNOWN_ENTRYID;
@@ -151,24 +150,23 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 
 		memcpy(lpEntryIDServer, lpEntryID, cbEntryID);
 		lpEntryID = lpEntryIDServer;
-
-		lpABeid = reinterpret_cast<ABEID *>(lpEntryID);
+		memcpy(&lpABeid, lpEntryID, sizeof(ABEID));
 
 		// Check sane entryid
-		if (lpABeid->ulType != MAPI_ABCONT && lpABeid->ulType != MAPI_MAILUSER && lpABeid->ulType != MAPI_DISTLIST) 
+		if (lpABeid.ulType != MAPI_ABCONT &&
+		    lpABeid.ulType != MAPI_MAILUSER &&
+		    lpABeid.ulType != MAPI_DISTLIST)
 			return MAPI_E_UNKNOWN_ENTRYID;
 
 		// Check entryid GUID, must be either MUIDECSAB or m_ABPGuid
-		if (memcmp(&lpABeid->guid, &MUIDECSAB, sizeof(MAPIUID)) != 0 &&
-		    memcmp(&lpABeid->guid, &m_ABPGuid, sizeof(MAPIUID)) != 0)
+		if (memcmp(&lpABeid.guid, &MUIDECSAB, sizeof(MAPIUID)) != 0 &&
+		    memcmp(&lpABeid.guid, &m_ABPGuid, sizeof(MAPIUID)) != 0)
 			return MAPI_E_UNKNOWN_ENTRYID;
-
-		memcpy(&lpABeid->guid, &MUIDECSAB, sizeof(MAPIUID));
+		memcpy(&lpABeid.guid, &MUIDECSAB, sizeof(MAPIUID));
 	}
 
 	//TODO: check entryid serverside?
-
-	switch(lpABeid->ulType) {
+	switch (lpABeid.ulType) {
 	case MAPI_ABCONT:
 		hr = ECABContainer::Create(this, MAPI_ABCONT, fModifyObject, &~lpABContainer);
 		if (hr != hrSuccess)
@@ -237,7 +235,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	}
 
 	if(lpulObjType)
-		*lpulObjType = lpABeid->ulType;
+		*lpulObjType = lpABeid.ulType;
 	return hrSuccess;
 }
 
