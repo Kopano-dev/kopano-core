@@ -47,7 +47,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
     UserPlugin *lpPlugin = NULL;
 
     if(m_dl == NULL) {    
-        const char *pluginpath = m_config->GetSetting("plugin_path");
+		const char *pluginpath = PKGLIBEXECDIR;
         const char *pluginname = m_config->GetSetting("user_plugin");
         char filename[PATH_MAX + 1];
 
@@ -55,7 +55,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
             pluginpath = "";
         if (!pluginname || !strcmp(pluginname, "")) {
 			ec_log_crit("User plugin is unavailable.");
-			ec_log_crit("Please correct your configuration file and set the \"plugin_path\" and \"user_plugin\" options.");
+			ec_log_crit("Please check the value of the \"user_plugin\" option and verify that it exists in \"%s\".", pluginpath);
 			return KCERR_NOT_FOUND;
         }
 

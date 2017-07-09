@@ -12,6 +12,7 @@ SUBDIRS += installer po swig
 
 AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-DMAPICONFIGDIR=\"${MAPICONFIGDIR}\" -DPKGLIBDIR='"${pkglibdir}"' \
+	-DPKGLIBEXECDIR='"${pkglibexecdir}"' \
 	-DSOAP_CMAC='__attribute__((visibility("default")))' \
 	-DSOAP_FMAC3=SOAP_CMAC -DSOAP_FMAC5=SOAP_CMAC -DSOAP_NMAC=SOAP_CMAC \
 	-Iprovider/soap \
@@ -85,6 +86,8 @@ noinst_DATA = \
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
+serverplugindir = ${pkglibexecdir}
+serverplugin_LTLIBRARIES =
 
 
 #
@@ -843,7 +846,7 @@ CLEANFILES += ${SOAP_CPP_SRC} provider/soap/*
 #
 COMMON_PLUGIN_FILES = provider/plugins/plugin.h
 COMMON_DBPLUGIN_FILES = provider/plugins/DBBase.h provider/plugins/DBBase.cpp
-pkglib_LTLIBRARIES += dbplugin.la
+serverplugin_LTLIBRARIES += dbplugin.la
 noinst_DATA += dbplugin.ldd
 dbplugin_la_SOURCES = \
 	provider/plugins/DBUserPlugin.cpp provider/plugins/DBUserPlugin.h \
@@ -855,7 +858,7 @@ dbplugin_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
 EXTRA_dbplugin_la_DEPENDENCIES = provider/plugin.sym
 
 if WITH_UNIX
-pkglib_LTLIBRARIES += unixplugin.la
+serverplugin_LTLIBRARIES += unixplugin.la
 noinst_DATA += unixplugin.ldd
 unixplugin_la_SOURCES = \
 	provider/plugins/UnixUserPlugin.cpp provider/plugins/UnixUserPlugin.h \
@@ -868,7 +871,7 @@ EXTRA_unixplugin_la_DEPENDENCIES = provider/plugin.sym
 endif
 
 if WITH_LDAP
-pkglib_LTLIBRARIES += ldapplugin.la
+serverplugin_LTLIBRARIES += ldapplugin.la
 noinst_DATA += ldapplugin.ldd
 noinst_DATA += .libs/ldapmsplugin.so
 ldapplugin_la_SOURCES = \
@@ -887,8 +890,8 @@ EXTRA_ldapplugin_la_DEPENDENCIES = provider/plugin.sym
 	${AM_V_GEN}ln -fs ldapplugin.so .libs/ldapmsplugin.so
 
 install-exec-local:
-	${MKDIR_P} ${DESTDIR}${pkglibdir}
-	ln -fs ldapplugin.so ${DESTDIR}${pkglibdir}/ldapmsplugin.so
+	${MKDIR_P} ${DESTDIR}${pkglibexecdir}
+	ln -fs ldapplugin.so ${DESTDIR}${pkglibexecdir}/ldapmsplugin.so
 endif
 
 

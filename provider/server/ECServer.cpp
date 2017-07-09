@@ -862,7 +862,7 @@ static int running_server(char *szName, const char *szConfig,
 		{ "audit_log_timestamp",		"0" },
 
 		// user plugin
-		{ "plugin_path",				PKGLIBDIR },
+		{"plugin_path", "(ignored)"},
 		{ "user_plugin",				"db" },
 		{ "user_plugin_config",			"/etc/kopano/ldap.cfg" },
 		{ "createuser_script",			"/etc/kopano/userscripts/createuser", CONFIGSETTING_RELOADABLE },
