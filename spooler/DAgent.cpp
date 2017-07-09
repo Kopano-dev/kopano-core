@@ -3291,8 +3291,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 
 	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
 		ec_log_err("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors (%s)", KC_DESIRED_FILEDES, getdtablesize(), strerror(errno));
-	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
-		unix_coredump_enable();
+	unix_coredump_enable(parseBool(g_lpConfig->GetSetting("coredump_enabled")));
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads

@@ -1110,8 +1110,7 @@ static int running_server(char *szName, const char *szConfig,
 		ec_log_warn("WARNING: Either start the process as root, or increase user limits for open file descriptors.");
 	}
 
-	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
-		unix_coredump_enable();
+	unix_coredump_enable(parseBool(g_lpConfig->GetSetting("coredump_enabled")));
 	if (unix_runas(g_lpConfig)) {
 		er = MAPI_E_CALL_FAILED;
 		goto exit;

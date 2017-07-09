@@ -1132,8 +1132,7 @@ int main(int argc, char *argv[]) {
     sigaction(SIGABRT, &act, NULL);
 
 	bQuit = bMessagesWaiting = false;
-	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
-		unix_coredump_enable();
+	unix_coredump_enable(parseBool(g_lpConfig->GetSetting("coredump_enabled")));
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
