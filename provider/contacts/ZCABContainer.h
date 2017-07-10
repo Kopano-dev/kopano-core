@@ -30,15 +30,15 @@
 class ZCABContainer _kc_final :
     public ECUnknown, public IABContainer, public IDistList {
 protected:
-	ZCABContainer(std::vector<zcabFolderEntry> *lpFolders, IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider, const char *szClassName);
+	ZCABContainer(const std::vector<zcabFolderEntry> *folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, const char *class_name);
 	virtual ~ZCABContainer();
 
 private:
 	HRESULT MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulObjType, ULONG ulOffset, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 
 public:
-	static HRESULT	Create(std::vector<zcabFolderEntry> *lpFolders, IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void* lpProvider, ZCABContainer **lppABContainer);
-	static HRESULT	Create(IMessage *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPISUP lpMAPISup, ZCABContainer **lppABContainer);
+	static HRESULT Create(const std::vector<zcabFolderEntry> *folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, ZCABContainer **);
+	static HRESULT Create(IMessage *contact, ULONG eid_size, const ENTRYID *eid, IMAPISupport *, ZCABContainer **);
 
 	HRESULT GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 	HRESULT GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable);
@@ -74,7 +74,7 @@ public:
 
 private:
 	/* reference to ZCABLogon .. ZCABLogon needs to live because of this, so AddChild */
-	std::vector<zcabFolderEntry> *m_lpFolders;
+	const std::vector<zcabFolderEntry> *m_lpFolders;
 	IMAPIFolder *m_lpContactFolder;
 	LPMAPISUP m_lpMAPISup;
 	void *m_lpProvider;

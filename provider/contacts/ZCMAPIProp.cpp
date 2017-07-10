@@ -229,7 +229,8 @@ HRESULT ZCMAPIProp::ConvertDistList(LPSPropTagArray lpNames, ULONG cValues, LPSP
  * 
  * @return 
  */
-HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulIndex)
+HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ULONG ulIndex)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
@@ -284,10 +285,11 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYI
 	return hr;
 }
 
-HRESULT ZCMAPIProp::Create(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, ZCMAPIProp **lppZCMAPIProp)
+HRESULT ZCMAPIProp::Create(IMAPIProp *lpContact, ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ZCMAPIProp **lppZCMAPIProp)
 {
 	HRESULT	hr = hrSuccess;
-	auto lpCABEntryID = reinterpret_cast<cabEntryID *>(lpEntryID);
+	auto lpCABEntryID = reinterpret_cast<const cabEntryID *>(lpEntryID);
 
 	if (lpCABEntryID->ulObjType != MAPI_MAILUSER && lpCABEntryID->ulObjType != MAPI_DISTLIST)
 		return MAPI_E_INVALID_OBJECT;

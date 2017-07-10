@@ -32,13 +32,13 @@ protected:
 
 	HRESULT ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSPropValue lpProps, ULONG ulIndex);
 	HRESULT ConvertDistList(LPSPropTagArray lpNames, ULONG cValues, LPSPropValue lpProps);
-	HRESULT ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulIndex);
+	HRESULT ConvertProps(IMAPIProp *contact, ULONG eid_size, const ENTRYID *eid, ULONG index);
 
 	/* getprops helper */
 	HRESULT CopyOneProp(convert_context &converter, ULONG ulFlags, const std::map<short, SPropValue>::const_iterator &i, LPSPropValue lpProp, LPSPropValue lpBase);
 
 public:
-	static HRESULT Create(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, ZCMAPIProp **lppZCMAPIProp);
+	static HRESULT Create(IMAPIProp *lpContact, ULONG eid_size, const ENTRYID *eid, ZCMAPIProp **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	// From IMAPIProp

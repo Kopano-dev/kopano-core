@@ -30,7 +30,8 @@
 
 using namespace KCHL;
 
-ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) :
+ZCABLogon::ZCABLogon(IMAPISupport *lpMAPISup, ULONG ulProfileFlags,
+    const GUID *lpGUID) :
 	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup)
 {
 	// The specific GUID for *this* addressbook provider, if available
@@ -46,7 +47,8 @@ ZCABLogon::~ZCABLogon()
 		m_lpMAPISup->Release();
 }
 
-HRESULT ZCABLogon::Create(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGuid, ZCABLogon **lppZCABLogon)
+HRESULT ZCABLogon::Create(IMAPISupport *lpMAPISup, ULONG ulProfileFlags,
+    const GUID *lpGuid, ZCABLogon **lppZCABLogon)
 {
 	return alloc_wrap<ZCABLogon>(lpMAPISup, ulProfileFlags, lpGuid).put(lppZCABLogon);
 }

@@ -34,11 +34,11 @@ struct zcabFolderEntry {
 
 class ZCABLogon _kc_final : public ECUnknown, public IABLogon {
 protected:
-	ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID);
+	ZCABLogon(IMAPISupport *, ULONG profile_flags, const GUID *);
 	virtual ~ZCABLogon();
 
 public:
-	static  HRESULT Create(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID, ZCABLogon **lppZCABLogon);
+	static HRESULT Create(IMAPISupport *, ULONG profile_flags, const GUID *, ZCABLogon **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT Logoff(ULONG ulFlags);
