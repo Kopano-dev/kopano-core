@@ -26,15 +26,11 @@
 
 namespace KC {
 
-bool IsKopanoEntryId(ULONG cb, LPBYTE lpEntryId)
+bool IsKopanoEntryId(ULONG cb, const BYTE *lpEntryId)
 {
-	EID*	peid = NULL;
-
 	if(lpEntryId == NULL)
 		return false;
-
-	peid = (PEID)lpEntryId;
-
+	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	/* TODO: maybe also a check on objType */
 	if( (cb == sizeof(EID) && peid->ulVersion == 1) ||
 		(cb == sizeof(EID_V0) && peid->ulVersion == 0 ) )
@@ -43,16 +39,11 @@ bool IsKopanoEntryId(ULONG cb, LPBYTE lpEntryId)
 	return false;
 }
 
-bool ValidateZEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int ulCheckType)
+bool ValidateZEntryId(ULONG cb, const BYTE *lpEntryId, unsigned int ulCheckType)
 {
-
-	EID*	peid = NULL;
-
 	if(lpEntryId == NULL)
 		return false;
-
-	peid = (PEID)lpEntryId;
-
+	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	if( ((cb == sizeof(EID) && peid->ulVersion == 1) ||
 		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
 		 peid->usType == ulCheckType)
@@ -69,17 +60,13 @@ bool ValidateZEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int ulCheckType)
  *
  * @return bool			true if all the items in the lpMsgList matches with the object type
  */
-bool ValidateZEntryList(LPENTRYLIST lpMsgList, unsigned int ulCheckType)
+bool ValidateZEntryList(const ENTRYLIST *lpMsgList, unsigned int ulCheckType)
 {
-
-	EID*	peid = NULL;
-
 	if (lpMsgList == NULL)
 		return false;
 
 	for (ULONG i = 0; i < lpMsgList->cValues; ++i) {
-		peid = (PEID)lpMsgList->lpbin[i].lpb;
-
+		auto peid = reinterpret_cast<const EID *>(lpMsgList->lpbin[i].lpb);
 		if( !(((lpMsgList->lpbin[i].cb == sizeof(EID) && peid->ulVersion == 1) ||
 			 (lpMsgList->lpbin[i].cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
 			 peid->usType == ulCheckType))
@@ -88,15 +75,12 @@ bool ValidateZEntryList(LPENTRYLIST lpMsgList, unsigned int ulCheckType)
 	return true;
 }
 
-ECRESULT GetStoreGuidFromEntryId(ULONG cb, LPBYTE lpEntryId, LPGUID lpguidStore)
+ECRESULT GetStoreGuidFromEntryId(ULONG cb, const BYTE *lpEntryId,
+    GUID *lpguidStore)
 {
-	EID*	peid = NULL;
-
 	if(lpEntryId == NULL || lpguidStore == NULL)
 		return KCERR_INVALID_PARAMETER;
-
-	peid = (PEID)lpEntryId;
-
+	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	if(!((cb == sizeof(EID) && peid->ulVersion == 1) ||
 		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
 		return KCERR_INVALID_ENTRYID;
@@ -105,15 +89,12 @@ ECRESULT GetStoreGuidFromEntryId(ULONG cb, LPBYTE lpEntryId, LPGUID lpguidStore)
 	return erSuccess;
 }
 
-ECRESULT GetObjTypeFromEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulObjType)
+ECRESULT GetObjTypeFromEntryId(ULONG cb, const BYTE *lpEntryId,
+    unsigned int *lpulObjType)
 {
-	EID*	peid = NULL;
-
 	if (lpEntryId == NULL || lpulObjType == NULL)
 		return KCERR_INVALID_PARAMETER;
-
-	peid = (PEID)lpEntryId;
-
+	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	if(!((cb == sizeof(EID) && peid->ulVersion == 1) ||
 		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
 		return KCERR_INVALID_ENTRYID;
@@ -122,25 +103,31 @@ ECRESULT GetObjTypeFromEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulObj
 	return erSuccess;
 }
 
-ECRESULT GetObjTypeFromEntryId(entryId sEntryId,  unsigned int* lpulObjType) {
+ECRESULT GetObjTypeFromEntryId(const entryId &sEntryId,
+    unsigned int *lpulObjType)
+{
     return GetObjTypeFromEntryId(sEntryId.__size, sEntryId.__ptr, lpulObjType);
 }
 
-ECRESULT GetStoreGuidFromEntryId(entryId sEntryId, LPGUID lpguidStore) {
+ECRESULT GetStoreGuidFromEntryId(const entryId &sEntryId, GUID *lpguidStore)
+{
     return GetStoreGuidFromEntryId(sEntryId.__size, sEntryId.__ptr, lpguidStore);
 }
 
-HRESULT HrGetStoreGuidFromEntryId(ULONG cb, LPBYTE lpEntryId, LPGUID lpguidStore)
+HRESULT HrGetStoreGuidFromEntryId(ULONG cb, const BYTE *lpEntryId,
+    GUID *lpguidStore)
 {
 	return kcerr_to_mapierr(GetStoreGuidFromEntryId(cb, lpEntryId, lpguidStore));
 }
 
-HRESULT HrGetObjTypeFromEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulObjType)
+HRESULT HrGetObjTypeFromEntryId(ULONG cb, const BYTE *lpEntryId,
+    unsigned int *lpulObjType)
 {
 	return kcerr_to_mapierr(GetObjTypeFromEntryId(cb, lpEntryId, lpulObjType));
 }
 
-ECRESULT ABEntryIDToID(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulID, objectid_t* lpsExternId, unsigned int* lpulMapiType)
+ECRESULT ABEntryIDToID(ULONG cb, const BYTE *lpEntryId, unsigned int *lpulID,
+    objectid_t *lpsExternId, unsigned int *lpulMapiType)
 {
 	unsigned int	ulID = 0;
 	objectid_t		sExternId;
@@ -168,14 +155,16 @@ ECRESULT ABEntryIDToID(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulID, objecti
 	return erSuccess;
 }
 
-ECRESULT ABEntryIDToID(entryId* lpsEntryId, unsigned int* lpulID, objectid_t* lpsExternId, unsigned int *lpulMapiType)
+ECRESULT ABEntryIDToID(const entryId *lpsEntryId, unsigned int *lpulID,
+    objectid_t *lpsExternId, unsigned int *lpulMapiType)
 {
 	if (lpsEntryId == NULL)
 		return KCERR_INVALID_PARAMETER;
 	return ABEntryIDToID(lpsEntryId->__size, lpsEntryId->__ptr, lpulID, lpsExternId, lpulMapiType);
 }
 
-ECRESULT SIEntryIDToID(ULONG cb, LPBYTE lpInstanceId, LPGUID guidServer, unsigned int *lpulInstanceId, unsigned int *lpulPropId)
+ECRESULT SIEntryIDToID(ULONG cb, const BYTE *lpInstanceId, GUID *guidServer,
+    unsigned int *lpulInstanceId, unsigned int *lpulPropId)
 {
 	LPSIEID lpInstanceEid;
 
@@ -204,7 +193,8 @@ template<typename T> static int twcmp(T a, T b)
  *  0 same, or invalid
  * >0 right first
  */
-int SortCompareABEID(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2)
+int SortCompareABEID(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
+    ULONG cbEntryID2, const ENTRYID *lpEntryID2)
 {
 	int rv = 0;
 	auto peid1 = reinterpret_cast<const ABEID *>(lpEntryID1);
@@ -240,7 +230,8 @@ int SortCompareABEID(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, L
 	return 0;
 }
 
-bool CompareABEID(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2)
+bool CompareABEID(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
+    ULONG cbEntryID2, const ENTRYID *lpEntryID2)
 {
 	auto peid1 = reinterpret_cast<const ABEID *>(lpEntryID1);
 	auto peid2 = reinterpret_cast<const ABEID *>(lpEntryID2);
@@ -277,7 +268,8 @@ bool CompareABEID(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPEN
 	return true;
 }
 
-HRESULT HrSIEntryIDToID(ULONG cb, LPBYTE lpInstanceId, LPGUID guidServer, unsigned int *lpulInstanceId, unsigned int *lpulPropId)
+HRESULT HrSIEntryIDToID(ULONG cb, const BYTE *lpInstanceId, GUID *guidServer,
+    unsigned int *lpulInstanceId, unsigned int *lpulPropId)
 {
 	if(lpInstanceId == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -318,7 +310,8 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 	return erSuccess;
 }
 
-ECRESULT SIIDToEntryID(struct soap *soap, LPGUID guidServer, unsigned int ulInstanceId, unsigned int ulPropId, entryId *lpsInstanceId)
+ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
+    unsigned int ulInstanceId, unsigned int ulPropId, entryId *lpsInstanceId)
 {
 	LPSIEID lpInstanceEid = NULL;
 	ULONG ulSize = 0;
@@ -343,7 +336,8 @@ ECRESULT SIIDToEntryID(struct soap *soap, LPGUID guidServer, unsigned int ulInst
 	return erSuccess;
 }
 
-ECRESULT SIEntryIDToID(entryId* sInstanceId, LPGUID guidServer, unsigned int *lpulInstanceId, unsigned int *lpulPropId)
+ECRESULT SIEntryIDToID(const entryId *sInstanceId, GUID *guidServer,
+    unsigned int *lpulInstanceId, unsigned int *lpulPropId)
 {
 	if (sInstanceId == NULL)
 		return KCERR_INVALID_PARAMETER;
