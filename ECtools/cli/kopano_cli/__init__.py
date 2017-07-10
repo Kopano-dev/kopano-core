@@ -82,8 +82,8 @@ ACTION_MATRIX = {
 
 UPDATE_MATRIX = {
     ('name',): ('companies', 'groups', 'users'),
-    ('email', 'fullname', 'add_sendas', 'remove_sendas'): ('users', 'groups'),
-    ('password', 'password_prompt', 'admin_level', 'active', 'reset_folder_count'): ('users',),
+    ('email', 'add_sendas', 'remove_sendas'): ('users', 'groups'),
+    ('fullname', 'password', 'password_prompt', 'admin_level', 'active', 'reset_folder_count'): ('users',),
     ('mr_accept', 'mr_accept_conflicts', 'mr_accept_recurring', 'hook_archive', 'unhook_archive'): ('users',),
     ('ooo_active', 'ooo_clear', 'ooo_subject', 'ooo_message', 'ooo_from', 'ooo_until'): ('users',),
     ('add_feature', 'remove_feature', 'add_delegation', 'remove_delegation'): ('users',),
@@ -182,9 +182,9 @@ def user_counts(server): # XXX allowed/available
     print(fmt.format('Total', int(stats['usercnt_active'])+int(stats['usercnt_nonactive'])))
 
 def user_details(user):
-    print('Username:\t' + _encode(user.name))
-    print('Fullname:\t' + _encode(user.fullname))
-    print('Emailaddress:\t' + user.email)
+    print('Name:\t' + _encode(user.name))
+    print('Full name:\t\t' + _encode(user.fullname))
+    print('Email address:\t' + user.email)
     print('Active:\t\t' + yesno(user.active))
     print('Administrator:\t' + yesno(user.admin) + (' (system)' if user.admin_level == 2 else ''))
     print('Address Book:\t' + ('Hidden' if user.hidden else 'Visible'))
@@ -222,16 +222,15 @@ def user_details(user):
     list_permissions(user.store)
 
 def group_details(group):
-    print('Groupname:\t' + _encode(group.name))
-    print('Fullname:\t' + _encode(group.fullname))
-    print('Emailaddress:\t' + group.email)
+    print('Name:\t\t' + _encode(group.name))
+    print('Email address:\t' + group.email)
     print('Address Book:\t' + ('Hidden' if group.hidden else 'Visible'))
     print('Send-as:\t' + ', '.join(_encode(sendas.name) for sendas in group.send_as()))
 
     list_users('Users', group.users())
 
 def company_details(company, server):
-    print('Companyname:\t' + _encode(company.name))
+    print('Name:\t\t' + _encode(company.name))
     if company.admin:
         print('Sysadmin:\t\t' + _encode(company.admin.name))
     print('Address Book:\t' + ('Hidden' if company.hidden else 'Visible'))
@@ -249,8 +248,6 @@ def company_details(company, server):
 def shared_options(obj, options, server):
     if options.name:
         obj.name = options.name
-    if options.fullname:
-        obj.fullname = options.fullname
     if options.email:
         obj.email = options.email
 
@@ -315,6 +312,8 @@ def user_options(name, options, server):
         for folder in [user.root] + list(user.folders()):
             folder.recount()
 
+    if options.fullname:
+        user.fullname = options.fullname
     if options.password:
         user.password = options.password
     if options.password_prompt:
