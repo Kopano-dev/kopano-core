@@ -1167,7 +1167,7 @@ namespace KC {
 
 class IABContainer_DistList_base : public virtual IMAPIContainer {
 	public:
-	virtual HRESULT CreateEntry(ULONG eid_size, ENTRYID *eid, ULONG flags, IMAPIProp **) = 0;
+	virtual HRESULT CreateEntry(ULONG eid_size, const ENTRYID *eid, ULONG flags, IMAPIProp **) = 0;
 	virtual HRESULT CopyEntries(ENTRYLIST *, ULONG ui_param, IMAPIProgress *, ULONG flags) = 0;
 	virtual HRESULT DeleteEntries(ENTRYLIST *, ULONG flags) = 0;
 	virtual HRESULT ResolveNames(const SPropTagArray *, ULONG flags, ADRLIST *, FlagList *) = 0;

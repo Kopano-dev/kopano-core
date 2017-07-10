@@ -771,7 +771,9 @@ HRESULT M4LMAPIContainer::QueryInterface(REFIID refiid, void **lpvoid) {
 M4LABContainer::M4LABContainer(const std::list<abEntry> &lABEntries) : m_lABEntries(lABEntries) {
 }
 
-HRESULT M4LABContainer::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry) {
+HRESULT M4LABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
+    ULONG flags, IMAPIProp **)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 

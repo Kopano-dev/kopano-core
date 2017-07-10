@@ -142,7 +142,7 @@ private:
 
 public:
 	M4LABContainer(const std::list<abEntry> &lABEntries);
-	virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP *lppMAPIPropEntry) _kc_override;
+	virtual HRESULT CreateEntry(ULONG eid_size, const ENTRYID *eid, ULONG flags, IMAPIProp **) _kc_override;
 	virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ui_param, LPMAPIPROGRESS, ULONG flags) _kc_override;
 	virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG flags) _kc_override;
 	virtual HRESULT ResolveNames(const SPropTagArray *, ULONG flags, LPADRLIST lpAdrList, LPFlagList lpFlagList) _kc_override;
