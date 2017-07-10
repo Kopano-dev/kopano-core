@@ -33,7 +33,7 @@ public:
 	static HRESULT GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
-	virtual HRESULT SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId);
+	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 
 public:
 	// Override ECMAPIContainer

@@ -61,8 +61,7 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	HRESULT SetProvider(void* lpProvider);
-	HRESULT SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId);
-
+	HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 	static HRESULT		DefaultGetPropGetReal(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);	
 	static HRESULT		DefaultGetPropNotFound(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT DefaultSetPropComputed(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);

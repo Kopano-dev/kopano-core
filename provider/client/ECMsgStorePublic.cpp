@@ -107,7 +107,7 @@ HRESULT ECMsgStorePublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 	}
 }
 
-HRESULT ECMsgStorePublic::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
+HRESULT ECMsgStorePublic::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	HRESULT hr;
 	

@@ -41,8 +41,7 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk);
-	virtual HRESULT SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId);
-
+	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *lpEntryId);
 	HRESULT InitEntryIDs();
 	HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID, void *lpBase, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	HRESULT ComparePublicEntryId(enumPublicEntryID ePublicEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulResult);

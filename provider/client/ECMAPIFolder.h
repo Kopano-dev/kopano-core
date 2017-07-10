@@ -74,7 +74,7 @@ public:
 	virtual HRESULT GetSupportMask(DWORD * pdwSupportMask);
 
 	// Override genericprops
-	virtual HRESULT SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId);
+	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 	virtual HRESULT HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProps);
 	
 	// Streaming support

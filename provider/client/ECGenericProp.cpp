@@ -80,7 +80,7 @@ HRESULT ECGenericProp::SetProvider(void* lpProvider)
 	return hr;
 }
 
-HRESULT ECGenericProp::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
+HRESULT ECGenericProp::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	assert(m_lpEntryId == NULL);
 	return Util::HrCopyEntryId(cbEntryId, lpEntryId, &m_cbEntryId, &m_lpEntryId);

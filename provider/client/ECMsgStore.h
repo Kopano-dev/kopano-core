@@ -89,8 +89,7 @@ public:
 	virtual HRESULT GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulRights);
 	virtual HRESULT GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags);
 	virtual HRESULT GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags);
-
-	virtual HRESULT SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId);
+	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 	virtual ULONG Release(void) _kc_override;
 	virtual HRESULT HrSetReleaseCallback(ECUnknown *lpObject, RELEASECALLBACK lpfnCallback);
 

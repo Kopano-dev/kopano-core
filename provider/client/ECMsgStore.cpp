@@ -1136,7 +1136,7 @@ HRESULT	ECMsgStore::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 	return hr;
 }
 
-HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
+HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	assert(m_lpNotifyClient == NULL);
 	HRESULT hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);

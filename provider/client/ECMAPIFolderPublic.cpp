@@ -414,7 +414,7 @@ HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCI
 	return ECMAPIFolder::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 }
 
-HRESULT ECMAPIFolderPublic::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
+HRESULT ECMAPIFolderPublic::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	if (m_ePublicEntryID == ePE_Favorites || m_ePublicEntryID == ePE_IPMSubtree)
 		return ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
