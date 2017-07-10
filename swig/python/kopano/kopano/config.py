@@ -6,10 +6,15 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import os
+import sys
 
 from .compat import decode as _decode
 from .errors import ConfigError
-from .utils import human_to_bytes as _human_to_bytes
+
+if sys.hexversion >= 0x03000000:
+    from . import utils as _utils
+else:
+    import utils as _utils
 
 class ConfigOption:
     def __init__(self, type_, **kwargs):
@@ -50,7 +55,7 @@ class ConfigOption:
         return {'no': False, 'yes': True, '0': False, '1': True, 'false': False, 'true': True}[value]
 
     def parse_size(self, key, value):
-        return _human_to_bytes(value)
+        return _utils.human_to_bytes(value)
 
 class Config:
     """
