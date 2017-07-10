@@ -332,7 +332,8 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 	return hrSuccess;
 }
 
-HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulResult)
+HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID,
+    ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG *lpulResult)
 {
 	HRESULT hr;
 	ULONG ulResult = 0;

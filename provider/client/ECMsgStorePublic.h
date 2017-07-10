@@ -44,8 +44,7 @@ public:
 	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *lpEntryId);
 	HRESULT InitEntryIDs();
 	HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID, void *lpBase, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
-	HRESULT ComparePublicEntryId(enumPublicEntryID ePublicEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulResult);
-
+	HRESULT ComparePublicEntryId(enumPublicEntryID, ULONG eid_size, const ENTRYID *eid, ULONG *result);
 	ECMemTable *GetIPMSubTree();
 
 	// Folder with the favorites links

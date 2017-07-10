@@ -180,8 +180,10 @@ HRESULT M4LMAPISupport::SetProviderUID(LPMAPIUID lpProviderID, ULONG ulFlags) {
     return hrSuccess;
 }
 
-HRESULT M4LMAPISupport::CompareEntryIDs(ULONG cbEntry1, LPENTRYID lpEntry1, ULONG cbEntry2, LPENTRYID lpEntry2,
-										ULONG ulCompareFlags, ULONG * lpulResult) {
+HRESULT M4LMAPISupport::CompareEntryIDs(ULONG cbEntry1, const ENTRYID *lpEntry1,
+    ULONG cbEntry2, const ENTRYID *lpEntry2, ULONG ulCompareFlags,
+    ULONG *lpulResult)
+{
 	if (cbEntry1 != cbEntry2)
 		*lpulResult = FALSE;
 	else if (!lpEntry1 || !lpEntry2)

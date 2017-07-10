@@ -109,8 +109,7 @@ public:
     virtual HRESULT GetStatusTable(ULONG ulFlags, IMAPITable ** OUTPUT /*lppTable*/) = 0;
     virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* OUTPUT /*lpulObjType*/,
 		      IUnknown ** OUTPUT /*lppUnk*/) = 0;
-    virtual HRESULT CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags,
-			    ULONG* OUTPUT /*lpulResult*/) = 0;
+	virtual HRESULT CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1, ULONG cbEntryID2, const ENTRYID *lpEntryID2, ULONG ulFlags, ULONG *OUTPUT /*lpulResult*/) = 0;
     virtual HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG* OUTPUT /*lpulConnection*/) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
 	virtual HRESULT MessageOptions(ULONG_PTR ulUIParam, ULONG ulFlags, LPTSTR lpszAdrType, LPMESSAGE lpMessage) = 0;
@@ -139,8 +138,7 @@ public:
 
     virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* OUTPUT /*lpulObjType*/,
 		      IUnknown** OUTPUT /*lppUnk*/) = 0;
-    virtual HRESULT CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags,
-			    ULONG* OUTPUT /*lpulResult*/) = 0;
+	virtual HRESULT CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1, ULONG cbEntryID2, const ENTRYID *lpEntryID2, ULONG ulFlags, ULONG *OUTPUT /*lpulResult*/) = 0;
     virtual HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG* OUTPUT /*lpulConnection*/) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
     virtual HRESULT CreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, ULONG ulFlags, ULONG* OUTPUT /*lpcbEntryID*/,

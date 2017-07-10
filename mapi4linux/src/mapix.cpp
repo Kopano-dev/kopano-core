@@ -1376,8 +1376,10 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
  * @return		HRESULT
  * @retval		MAPI_E_INVALID_ENTRYID	either lpEntryID1 or lpEntryID2 is NULL
  */
-HRESULT M4LMAPISession::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags,
-										ULONG* lpulResult) {
+HRESULT M4LMAPISession::CompareEntryIDs(ULONG cbEntryID1,
+    const ENTRYID *lpEntryID1, ULONG cbEntryID2, const ENTRYID *lpEntryID2,
+    ULONG ulFlags, ULONG *lpulResult)
+{
 	if (cbEntryID1 != cbEntryID2)
 		*lpulResult = FALSE;
 	else if (!lpEntryID1 || !lpEntryID2)
@@ -1749,8 +1751,9 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpIn
  * 
  * @return 
  */
-HRESULT M4LAddrBook::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2,
-									 ULONG ulFlags, ULONG* lpulResult)
+HRESULT M4LAddrBook::CompareEntryIDs(ULONG cbEntryID1,
+    const ENTRYID *lpEntryID1, ULONG cbEntryID2, const ENTRYID *lpEntryID2,
+    ULONG ulFlags, ULONG *lpulResult)
 {
 	HRESULT hr = hrSuccess;
 

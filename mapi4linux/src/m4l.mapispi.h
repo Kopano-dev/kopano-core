@@ -99,7 +99,7 @@ public:
 	virtual HRESULT SpoolerNotify(ULONG ulFlags, LPVOID lpvData);
 	virtual HRESULT CreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	virtual HRESULT SetProviderUID(LPMAPIUID lpProviderID, ULONG ulFlags);
-	virtual HRESULT CompareEntryIDs(ULONG cbEntry1, LPENTRYID lpEntry1, ULONG cbEntry2, LPENTRYID lpEntry2, ULONG ulCompareFlags, ULONG *lpulResult);
+	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result);
 	virtual HRESULT OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateID, ULONG ulTemplateFlags, LPMAPIPROP lpMAPIPropData, LPCIID lpInterface, LPMAPIPROP *lppMAPIPropNew, LPMAPIPROP lpMAPIPropSibling);
 	virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulOpenFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk);
 	virtual HRESULT GetOneOffTable(ULONG ulFlags, LPMAPITABLE *lppTable);
