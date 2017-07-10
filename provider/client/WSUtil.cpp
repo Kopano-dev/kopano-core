@@ -2042,7 +2042,8 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags, const sGlobalProfileProps
 }
 
 // Wrap the server store entryid to client store entry. (Add a servername)
-HRESULT WrapServerClientStoreEntry(const char* lpszServerName, entryId* lpsStoreId, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
+HRESULT WrapServerClientStoreEntry(const char *lpszServerName,
+    const entryId *lpsStoreId, ULONG *lpcbStoreID, ENTRYID **lppStoreID)
 {
 	LPENTRYID	lpStoreID = NULL;
 	ULONG		ulSize;
@@ -2070,7 +2071,9 @@ HRESULT WrapServerClientStoreEntry(const char* lpszServerName, entryId* lpsStore
 }
 
 // Un wrap the client store entryid to server store entry. (remove a servername)
-HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID, LPENTRYID lpWrapStoreID, ULONG* lpcbUnWrapStoreID, LPENTRYID* lppUnWrapStoreID)
+HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID,
+    const ENTRYID *lpWrapStoreID, ULONG *lpcbUnWrapStoreID,
+    ENTRYID **lppUnWrapStoreID)
 {
 	LPENTRYID lpUnWrapStoreID = NULL;
 	ULONG	ulSize = 0;
@@ -2078,7 +2081,7 @@ HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID, LPENTRYID lpWrapStoreI
 	if (lpWrapStoreID == NULL || lppUnWrapStoreID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	auto peid = reinterpret_cast<EID *>(lpWrapStoreID);
+	auto peid = reinterpret_cast<const EID *>(lpWrapStoreID);
 	if (peid->ulVersion == 0)
 		ulSize = sizeof(EID_V0);
 	else if (peid->ulVersion == 1)
@@ -2103,7 +2106,8 @@ HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID, LPENTRYID lpWrapStoreI
 	return hrSuccess;
 }
 
-HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, LPENTRYID lpWrapABID, ULONG* lpcbUnWrapABID, LPENTRYID* lppUnWrapABID)
+HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, const ENTRYID *lpWrapABID,
+    ULONG *lpcbUnWrapABID, ENTRYID **lppUnWrapABID)
 {
 	LPENTRYID lpUnWrapABID = NULL;
 	ULONG	ulSize = 0;
@@ -2140,7 +2144,10 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, LPENTRYID lpWrapABID, ULONG*
 	return hrSuccess;
 }
 
-HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notification *lpSrc, LPNOTIFICATION *lppDst, convert_context *lpConverter) {
+HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider,
+    const struct notification *lpSrc, NOTIFICATION **lppDst,
+    convert_context *lpConverter)
+{
 	ecmem_ptr<NOTIFICATION> lpNotification;
 	int nLen;
 
@@ -2257,7 +2264,8 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notifica
 	return hrSuccess;
 }
 
-HRESULT CopySOAPChangeNotificationToSyncState(struct notification *lpSrc, LPSBinary *lppDst, void *lpBase)
+HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
+    SBinary **lppDst, void *lpBase)
 {
 	HRESULT hr = hrSuccess;
 	LPSBinary lpSBinary = NULL;
