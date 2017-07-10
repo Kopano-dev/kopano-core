@@ -755,19 +755,18 @@ class Item(Base):
         self.mapiobj.ModifyRecipients(0, names)
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
 
-    def delete(self, items):
-        """Delete properties or attachments from an Item
+    def delete(self, objects):
+        """Delete properties or attachments from item.
 
-        :param items: The Attachments or Properties
+        :param objects: The object(s) to delete
         """
-
-        if isinstance(items, (Attachment, _prop.Property)):
-            items = [items]
+        if isinstance(objects, (Attachment, _prop.Property)):
+            objects = [objects]
         else:
-            items = list(items)
+            objects = list(objects)
 
-        attach_ids = [item.number for item in items if isinstance(item, Attachment)]
-        proptags = [item.proptag for item in items if isinstance(item, _prop.Property)]
+        attach_ids = [item.number for item in objects if isinstance(item, Attachment)]
+        proptags = [item.proptag for item in objects if isinstance(item, _prop.Property)]
         if proptags:
             self.mapiobj.DeleteProps(proptags)
         for attach_id in attach_ids:

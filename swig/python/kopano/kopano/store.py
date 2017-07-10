@@ -295,12 +295,14 @@ class Store(Base):
             pass
 
     def delete(self, objects):
-        """Delete properties, delegations or permissions from a Store.
+        """Delete properties, delegations or permissions from store.
 
-        :param props: The object(s) to remove
+        :param props: The object(s) to delete
         """
         if isinstance(objects, (Property, Delegation, Permission)):
             objects = [objects]
+        else:
+            objects = list(objects)
 
         props = [o for o in objects if isinstance(o, Property)]
         if props:

@@ -372,11 +372,10 @@ class Folder(Base):
         return item_entryids, folder_entryids, perms, props
 
     def delete(self, objects): # XXX associated
-        """Delete items, subfolders, properties or permissions from folder
+        """Delete items, subfolders, properties or permissions from folder.
 
-        :param objects: The items, subfolders, properties or permissions
+        :param objects: The object(s) to delete
         """
-
         item_entryids, folder_entryids, perms, props = self._get_entryids(objects)
         if item_entryids:
             self.mapiobj.DeleteMessages(item_entryids, 0, None, DELETE_HARD_DELETE)
@@ -389,12 +388,11 @@ class Folder(Base):
             self.mapiobj.DeleteProps([prop.proptag for prop in props])
 
     def copy(self, objects, folder, _delete=False):
-        """Copy items or subfolders to folder
+        """Copy items or subfolders to folder.
 
         :param objects: The items or subfolders to copy
         :param folder: The target folder
         """
-
         item_entryids, folder_entryids, _, _ = self._get_entryids(objects) # XXX copy/move perms?? XXX error for perms/props
         if item_entryids:
             self.mapiobj.CopyMessages(item_entryids, IID_IMAPIFolder, folder.mapiobj, 0, None, (MESSAGE_MOVE if _delete else 0))
