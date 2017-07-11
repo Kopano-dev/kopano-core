@@ -54,19 +54,14 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	int put_obj(int, char *, void *);
 
 	std::string make_att_filename(ULONG, bool);
-	bool should_retry(struct s3_cd *);
+	bool should_retry(struct s3_cd &);
 	struct s3_cd create_cd(void);
-
-	/* helper functions for transacted deletion */
-	ECRESULT mark_att_for_del(ULONG);
 	ECRESULT del_marked_att(ULONG);
-	ECRESULT restore_marked_att(ULONG);
 
 	/* Variables: */
 	std::string m_basepath;
 	S3BucketContext m_bucket_ctx;
 	std::set<ULONG> m_new_att;
-	std::set<ULONG> m_deleted_att;
 	std::set<ULONG> m_marked_att;
 	bool m_transact = false;
 

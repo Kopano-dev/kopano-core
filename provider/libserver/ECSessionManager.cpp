@@ -95,9 +95,6 @@ ECSessionManager::~ECSessionManager()
 		delete iSession->second;
 		auto iSessionNext = iSession;
 		++iSessionNext;
-		ec_log_info("End of session (shutdown) %llu",
-			static_cast<unsigned long long>(iSession->first));
-
 		m_mapSessions.erase(iSession);
 
 		iSession = iSessionNext;
@@ -568,10 +565,6 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 		delete lpSession;
 		return er;
 	}
-
-	ec_log_debug("New internal session (%llu)",
-		static_cast<unsigned long long>(newSID));
-
 	g_lpStatsCollector->Increment(SCN_SESSIONS_INTERNAL_CREATED);
 
 	*lppSession = lpSession;
@@ -589,8 +582,6 @@ void ECSessionManager::RemoveSessionInternal(ECSession *lpSession)
 ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
 	BTSession	*lpSession	= NULL;
 	
-	ec_log_debug("End of session (logoff) %llu",
-		static_cast<unsigned long long>(sessionID));
 	g_lpStatsCollector->Increment(SCN_SESSIONS_DELETED);
 
 	// Make sure no other thread can read or write the sessions list
@@ -727,8 +718,6 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 			auto iRemove = iIterator++;
 			// Remove the session from the list, no new threads can start on this session after this point.
 			g_lpStatsCollector->Increment(SCN_SESSIONS_TIMEOUT);
-			ec_log_info("End of session (timeout) %llu",
-				static_cast<unsigned long long>(iRemove->first));
 			lpSessionManager->m_mapSessions.erase(iRemove);
 		}
 
