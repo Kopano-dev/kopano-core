@@ -405,8 +405,6 @@ struct rights {
 	unsigned int ulRights;
 	unsigned int ulState;
 	entryId		 sUserId;
-	rights();
-	rights(unsigned int, unsigned int = 0, unsigned int = 0, unsigned int = 0);
 };
 
 struct rightsArray {

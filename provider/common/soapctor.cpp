@@ -6,7 +6,6 @@
 C(_act)
 C(propTagArray)
 C(propValData)
-C(rights)
 
 mv_binary::mv_binary() : __ptr(), __size() {}
 mv_double::mv_double() : __ptr(), __size() {}
@@ -20,12 +19,5 @@ mv_string8::mv_string8() : __ptr(), __size() {}
 propTagArray::propTagArray(unsigned int *a, int b) :
 	__ptr(a), __size(b)
 {}
-
-rights::rights(unsigned int a, unsigned int b, unsigned int c, unsigned int d) :
-	ulUserid(a), ulType(b), ulRights(c), ulState(d)
-{
-	sUserId.__ptr = nullptr;
-	sUserId.__size = 0;
-}
 
 xsd__base64Binary::xsd__base64Binary() : __ptr(), __size() {}
