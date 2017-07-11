@@ -34,6 +34,9 @@ struct hiloLong {
 struct xsd__base64Binary {
 	unsigned char *__ptr;
 	int __size;
+	/* needed because present in a union */
+	xsd__base64Binary();
+	xsd__base64Binary(unsigned char *a, int b = 0);
 };
 
 struct xsd__Binary {
@@ -47,41 +50,51 @@ typedef struct xsd__base64Binary entryId;
 struct mv_i2 {
 	short int *__ptr;
 	int __size;
+	mv_i2(); /* union presence */
 };
 
 struct mv_long {
 	unsigned int *__ptr;
 	int __size;
+	/* union presence */
+	mv_long();
+	mv_long(unsigned int *a, int b = 0);
 };
 
 struct mv_r4 {
 	float *__ptr;
 	int __size;
+	mv_r4(); /* union presence */
 };
 
 struct mv_double {
 	double *__ptr;
 	int __size;
+	mv_double(); /* union presence */
 };
 
 struct mv_string8 {
 	char**__ptr;
 	int __size;
+	mv_string8(); /* union presence */
 };
 
 struct mv_hiloLong {
 	struct hiloLong *__ptr;
 	int __size;
+	mv_hiloLong(); /* union presence */
 };
 
 struct mv_binary {
 	struct xsd__base64Binary *__ptr;
 	int __size;
+	mv_binary(); /* union presence */
 };
 
 struct mv_i8 {
 	LONG64 *__ptr;
 	int __size;
+	mv_i8(); /* union presence */
 };
 
 struct restrictTable;
@@ -106,6 +119,7 @@ union propValData {
 	struct mv_i8			mvli;		/* case PT_MV_I8 */
 	struct restrictTable	*res;
 	struct actions			*actions;
+	propValData();
 };
 
 struct propVal {
@@ -786,6 +800,7 @@ struct action {
 		unsigned int bouncecode;
 		struct rowSet *adrlist;
 		struct propVal *prop;
+		_act();
 	} act;
 };
 
