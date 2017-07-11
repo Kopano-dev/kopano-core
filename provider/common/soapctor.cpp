@@ -4,7 +4,6 @@
 #include "soapStub.h"
 #define C(X) X::X(void) { static_assert(std::is_standard_layout<X>::value, ""); memset(this, 0, sizeof(*this)); }
 C(_act)
-C(notifySyncState)
 C(propTagArray)
 C(propValData)
 C(rights)
@@ -20,10 +19,6 @@ mv_string8::mv_string8() : __ptr(), __size() {}
 
 propTagArray::propTagArray(unsigned int *a, int b) :
 	__ptr(a), __size(b)
-{}
-
-notifySyncState::notifySyncState(unsigned int a, unsigned int b) :
-	ulSyncId(a), ulChangeId(b)
 {}
 
 rights::rights(unsigned int a, unsigned int b, unsigned int c, unsigned int d) :

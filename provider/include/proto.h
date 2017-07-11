@@ -383,8 +383,6 @@ struct ns:notifyResponse {
 struct notifySyncState {
 	unsigned int ulSyncId;
 	unsigned int ulChangeId;
-	notifySyncState();
-	notifySyncState(unsigned int, unsigned int = 0);
 };
 
 struct notifySubscribe {

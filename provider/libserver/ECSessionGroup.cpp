@@ -286,9 +286,10 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 	notification notifyItem{__gszeroinit};
 	notificationICS ics{__gszeroinit};
 	entryId syncStateBin;
-	notifySyncState	syncState = {0, ulChangeId};
+	notifySyncState	syncState;
 	std::map<ECSESSIONID,unsigned int> mapInserted;
 
+	syncState.ulChangeId = ulChangeId;
 	notifyItem.ulEventType = fnevKopanoIcsChange;
 	notifyItem.ics = &ics;
 	notifyItem.ics->pSyncState = &syncStateBin;
@@ -332,8 +333,10 @@ ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned
 	notification notifyItem{__gszeroinit};
 	notificationICS ics{__gszeroinit};
 	entryId syncStateBin;
-	notifySyncState	syncState = { ulSyncId, static_cast<unsigned int>(ulChangeId) };
+	notifySyncState	syncState;
 
+	syncState.ulSyncId = ulSyncId;
+	syncState.ulChangeId = ulChangeId;
 	notifyItem.ulEventType = fnevKopanoIcsChange;
 	notifyItem.ics = &ics;
 	notifyItem.ics->pSyncState = &syncStateBin;
