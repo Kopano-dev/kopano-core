@@ -402,13 +402,13 @@ AC_CHECK_FUNCS([pthread_getname_np])
 
 AC_MSG_CHECKING([for soapcpp2])
 mkdir "conftest.d$$"
-if ! soapcpp2 -d "conftest.d$$" -z1 "${srcdir}/autoconf/1075.h" 2>"conftest.d$$/fail.log"; then
+if ! soapcpp2 -d "conftest.d$$" -z1 "${srcdir}/autoconf/1126.h" 2>"conftest.d$$/fail.log"; then
 	cat "conftest.d$$/fail.log" || :
 	AC_MSG_ERROR([Failed to run soapcpp])
 	exit 1
 fi
-if ! grep -Fq "Foo[[]]" "conftest.d$$/soapC.cpp" 2>/dev/null; then
-	AC_MSG_ERROR([ERROR: This gsoap generator did not produce an acceptable wire protocol. http://sf.net/p/gsoap2/bugs/1075/])
+if grep -Fq "int foo" "conftest.d$$/soapStub.h" 2>/dev/null; then
+	AC_MSG_ERROR([ERROR: gsoap generator is too old -- version 2.8.49 or higher is required. http://sf.net/p/gsoap2/bugs/1126/])
 	exit 1
 fi
 AC_MSG_RESULT([ok])
