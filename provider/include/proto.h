@@ -34,9 +34,7 @@ struct hiloLong {
 struct xsd__base64Binary {
 	unsigned char *__ptr;
 	int __size;
-	/* needed because present in a union */
-	xsd__base64Binary();
-	xsd__base64Binary(unsigned char *a, int b = 0);
+	xsd__base64Binary(); /* needed because present in a union */
 };
 
 struct xsd__Binary {

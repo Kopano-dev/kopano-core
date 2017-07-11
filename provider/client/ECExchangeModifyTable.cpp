@@ -366,8 +366,7 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 	memory_ptr<ULONG> lpulStatus;
 	memory_ptr<ECPERMISSION> lpECPermissions;
 	ULONG			cECPerm = 0;
-
-	entryId sEntryId = {0};
+	entryId sEntryId;
 	object_ptr<IECSecurity> lpSecurity;
 
 	// Get the ACLS

@@ -34,4 +34,3 @@ rights::rights(unsigned int a, unsigned int b, unsigned int c, unsigned int d) :
 }
 
 xsd__base64Binary::xsd__base64Binary() : __ptr(), __size() {}
-xsd__base64Binary::xsd__base64Binary(unsigned char *a, int b) : __ptr(a), __size(b) {}

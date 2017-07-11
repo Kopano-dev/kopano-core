@@ -274,7 +274,7 @@ static ECRESULT GetABEntryID(unsigned int ulUserId, soap *lpSoap,
     entryId *lpUserId)
 {
 	ECRESULT er;
-	entryId				sUserId = {0};
+	entryId sUserId;
 	objectid_t			sExternId;
 
 	if (lpSoap == NULL)
@@ -5167,7 +5167,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId, entryId sUserId, struct getUserResponse *lpsGetUserResponse)
 {
 	objectdetails_t	details;
-	entryId			sTmpUserId = {0};
+	entryId sTmpUserId;
 
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
@@ -5211,7 +5211,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId sCompanyId, struct userListResponse *lpsUserList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
-	entryId		sUserEid = {0};
+	entryId sUserEid;
 
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
@@ -5266,7 +5266,7 @@ SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId, entryId 
 {
 	objectdetails_t userDetails, senderDetails;
 	list<unsigned int> userIds;
-	entryId sSenderEid = {0};
+	entryId sSenderEid;
 
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
@@ -5720,7 +5720,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId, entryId sGroupId, struct getGroupResponse *lpsResponse)
 {
 	objectdetails_t details;
-	entryId			sTmpGroupId = {0};
+	entryId sTmpGroupId;
 
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
@@ -5755,7 +5755,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entryId sCompanyId, struct groupListResponse *lpsGroupList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpGroups;
-	entryId	sGroupEid = {0};
+	entryId	sGroupEid;
 
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
@@ -5895,7 +5895,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, entryId sGroupId, struct userListResponse *lpsUserList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
-	entryId		sUserEid = {0};
+	entryId sUserEid;
 
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
@@ -5943,7 +5943,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId, entryId sUserId, struct groupListResponse *lpsGroupList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpGroups;
-	entryId sGroupEid = {0};
+	entryId sGroupEid;
 
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
@@ -6086,8 +6086,7 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId, entryId 
 {
 	objectdetails_t details;
 	unsigned int ulAdmin = 0;
-	entryId sAdminEid = {0};
-	entryId sTmpCompanyId = {0};
+	entryId sAdminEid, sTmpCompanyId;
 
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
@@ -6162,8 +6161,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse *lpsCompanyList)
 {
 	unsigned int	ulAdmin = 0;
-	entryId			sCompanyEid = {0};
-	entryId			sAdminEid = {0};
+	entryId sCompanyEid, sAdminEid;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 
 	if (!g_lpSessionManager->IsHostedSupported())
@@ -6244,8 +6242,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId, entryId sCompanyId, struct companyListResponse *lpsCompanyList)
 {
 	unsigned int	ulAdmin = 0;
-	entryId			sCompanyEid = {0};
-	entryId			sAdminEid = {0};
+	entryId sCompanyEid, sAdminEid;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 
 	if (!g_lpSessionManager->IsHostedSupported())
@@ -6341,7 +6338,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, entryId sCompanyId, struct userListResponse *lpsUserList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
-	entryId		sUserEid = {0};
+	entryId sUserEid;
 
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
@@ -9250,7 +9247,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 	userobject_relation_t relation;
 	unsigned int ulCompanyId;
 	bool bHasLocalStore = false;
-	entryId		sUserEid = {0};
+	entryId sUserEid;
 
 	// does not return full class in sExternId.objclass
 	er = GetLocalId(sUserId, ulUserid, &ulUserid, &sExternId);
