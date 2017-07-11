@@ -6,6 +6,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import csv
+import sys
 
 try:
     from StringIO import StringIO
@@ -20,7 +21,11 @@ from MAPI.Struct import MAPIErrorNotFound, SSort, SSortOrderSet
 
 from .defs import REV_TAG
 from .compat import fake_unicode as _unicode, repr as _repr
-from .prop import Property
+
+if sys.hexversion >= 0x03000000:
+    from . import prop as _prop
+else:
+    import prop as _prop
 
 class Table(object):
     """Table class"""
@@ -49,7 +54,7 @@ class Table(object):
                     break
 
                 for row in result:
-                    yield [Property(self.server.mapistore, c) for c in row]
+                    yield [_prop.Property(self.server.mapistore, c) for c in row]
                 offset += batch_size
 
         except MAPIErrorNotFound:
