@@ -204,15 +204,11 @@ enum SortOrderType { EC_TABLE_SORT_ASCEND=0, EC_TABLE_SORT_DESCEND, EC_TABLE_SOR
 struct sortOrder {
 	unsigned int ulPropTag;
 	unsigned int ulOrder;
-	sortOrder();
-	sortOrder(unsigned int, unsigned int = 0);
 };
 
 struct sortOrderArray {
 	struct sortOrder *__ptr;
 	int __size;
-	sortOrderArray();
-	sortOrderArray(struct sortOrder *, int = 0);
 };
 
 struct ns:readPropsResponse {

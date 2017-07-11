@@ -8,8 +8,6 @@ C(notifySyncState)
 C(propTagArray)
 C(propValData)
 C(rights)
-C(sortOrder)
-C(sortOrderArray)
 
 mv_binary::mv_binary() : __ptr(), __size() {}
 mv_double::mv_double() : __ptr(), __size() {}
@@ -21,14 +19,6 @@ mv_r4::mv_r4() : __ptr(), __size() {}
 mv_string8::mv_string8() : __ptr(), __size() {}
 
 propTagArray::propTagArray(unsigned int *a, int b) :
-	__ptr(a), __size(b)
-{}
-
-sortOrder::sortOrder(unsigned int a, unsigned int b) :
-	ulPropTag(a), ulOrder(b)
-{}
-
-sortOrderArray::sortOrderArray(struct sortOrder *a, int b) :
 	__ptr(a), __size(b)
 {}
 

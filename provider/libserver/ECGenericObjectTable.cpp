@@ -2521,8 +2521,12 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 	ECRESULT er = erSuccess;
     struct propVal sProp;
     struct sortOrderArray *lpsSortOrderArray = this->lpsSortOrderArray;
-    struct sortOrder sSortHierarchy = { PR_EC_HIERARCHYID, EC_TABLE_SORT_DESCEND };
-    struct sortOrderArray sSortSimple = { &sSortHierarchy, 1 };
+	struct sortOrder sSortHierarchy;
+	sSortHierarchy.ulPropTag = PR_EC_HIERARCHYID;
+	sSortHierarchy.ulOrder   = EC_TABLE_SORT_DESCEND;
+	struct sortOrderArray sSortSimple;
+	sSortSimple.__ptr = &sSortHierarchy;
+	sSortSimple.__size = 1;
     int n = 0;
     
     assert(cValues <= static_cast<unsigned int>(lpsSortOrderArray->__size));
