@@ -42,7 +42,6 @@ struct xsd__base64Binary {
 struct xsd__Binary {
 	_xop__Include xop__Include; // attachment
 	@char *xmlmime__contentType; // and its contentType 
-	xsd__Binary();
 };
 
 typedef struct xsd__base64Binary entryId;
@@ -126,14 +125,11 @@ struct propVal {
 	unsigned int ulPropTag;
 	int __union;
 	union propValData Value;
-	propVal();
 };
 
 struct propValArray {
 	struct propVal *__ptr;
 	int __size;
-	propValArray();
-	propValArray(struct propVal *, int = 0);
 };
 
 struct propTagArray {
@@ -240,7 +236,6 @@ struct ns:createFolderResponse {
 struct ns:tableOpenResponse {
 	unsigned int er;
 	unsigned int ulTableId;
-	//tableOpenResponse();
 };
 
 struct tableOpenRequest {
@@ -248,7 +243,6 @@ struct tableOpenRequest {
     unsigned int ulTableType;
     unsigned int ulType;
     unsigned int ulFlags;
-	tableOpenRequest();
 };
 
 struct tableSortRequest {
@@ -322,14 +316,12 @@ struct tableMultiRequest {
     struct restrictTable *lpRestrict;			// Restrict
     struct tableSortRequest *lpSort;			// Sort
     struct tableQueryRowsRequest *lpQueryRows; 	// QueryRows
-	tableMultiRequest();
 };
 
 struct ns:tableMultiResponse {
     unsigned int er;
     unsigned int ulTableId;
     struct rowSet sRowSet; 						// QueryRows
-	//tableMultiResponse();
 };
 
 struct categoryState {
@@ -375,7 +367,6 @@ struct notificationNewMail {
 struct notificationICS {
 	struct xsd__base64Binary *pSyncState;
 	unsigned int ulChangeType;
-	notificationICS();
 };
 
 struct notification {
@@ -385,7 +376,6 @@ struct notification {
 	struct notificationTable *tab;
 	struct notificationNewMail *newmail;
 	struct notificationICS *ics;
-	notification();
 };
 
 struct notificationArray {
@@ -410,13 +400,11 @@ struct notifySubscribe {
 	struct xsd__base64Binary sKey;
 	unsigned int ulEventMask;
 	struct notifySyncState sSyncState;
-	notifySubscribe();
 };
 
 struct notifySubscribeArray {
 	int __size;
 	struct notifySubscribe *__ptr;
-	notifySubscribeArray();
 };
 
 #define TABLE_NOADVANCE 1
@@ -635,7 +623,6 @@ struct user {
 	struct propmapPairArray *lpsPropmap;
 	struct propmapMVPairArray *lpsMVPropmap;
 	entryId		sUserId;
-	user();
 };
 
 struct userArray {
@@ -668,7 +655,6 @@ struct group {
 	unsigned int	ulIsABHidden;
 	struct propmapPairArray *lpsPropmap;
 	struct propmapMVPairArray *lpsMVPropmap;
-	group();
 };
 
 struct groupArray {
@@ -702,7 +688,6 @@ struct company {
 	unsigned int	ulIsABHidden;
 	struct propmapPairArray *lpsPropmap;
 	struct propmapMVPairArray *lpsMVPropmap;
-	company();
 };
 
 struct companyArray {
@@ -870,7 +855,6 @@ struct ns:resolvePseudoUrlResponse {
 	char *lpszServerPath;
 	bool bIsPeer;
 	unsigned int er;
-	//resolvePseudoUrlResponse();
 };
 
 struct licenseCapabilities {
@@ -905,7 +889,6 @@ struct serverList {
 struct ns:getServerDetailsResponse {
 	struct serverList sServerList;
 	unsigned int er;
-	//getServerDetailsResponse();
 };
 
 struct ns:getServerBehaviorResponse {
@@ -937,14 +920,12 @@ struct messageStreamArray {
 struct ns:exportMessageChangesAsStreamResponse {
 	struct messageStreamArray sMsgStreams;
 	unsigned int er;
-	//exportMessageChangesAsStreamResponse();
 };
 
 struct ns:getChangeInfoResponse {
 	struct propVal sPropPCL;
 	struct propVal sPropCK;
 	unsigned int er;
-	//getChangeInfoResponse();
 };
 
 struct syncState {
@@ -981,7 +962,6 @@ struct ns:userClientUpdateStatusResponse {
 struct ns:resetFolderCountResponse {
 	unsigned int ulUpdates;
 	unsigned int er;
-	//resetFolderCountResponse();
 };
 
 //TableType flags for function ns__tableOpen

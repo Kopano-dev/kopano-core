@@ -4,8 +4,6 @@ global:
 		ns__*;
 		soap_*;
 		_act::*;
-		company::*;
-		group::*;
 		mv_binary::*;
 		mv_double::*;
 		mv_hiloLong::*;
@@ -14,22 +12,12 @@ global:
 		mv_long::*;
 		mv_r4::*;
 		mv_string8::*;
-		notification::*;
-		notificationICS::*;
-		notifySubscribe::*;
-		notifySubscribeArray::*;
 		notifySyncState::*;
 		propTagArray::*;
-		propVal::*;
 		propValData::*;
-		propValArray::*;
 		rights::*;
 		sortOrder::*;
 		sortOrderArray::*;
-		tableMultiRequest::*;
-		tableOpenRequest::*;
-		user::*;
-		xsd__Binary::*;
 		xsd__base64Binary::*;
 
 		KC::*;
