@@ -795,29 +795,22 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			if (ulType == CONNECTION_TYPE_NAMED_PIPE ||
 			    ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
 				int socket = accept(newsoap->master, NULL, 0);
+				newsoap->errnum = errno;
 				newsoap->socket = socket;
 			} else {
 				soap_accept(newsoap);
 			}
 			if (newsoap->socket == SOAP_INVALID_SOCKET) {
 				if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-					ec_log_debug("Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+					ec_log_debug("Error accepting incoming connection from file://%s: %s", m_lpConfig->GetSetting("server_pipe_name"), strerror(newsoap->errnum));
 				else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-					ec_log_debug("Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+					ec_log_debug("Error accepting incoming connection from file://%s: %s", m_lpConfig->GetSetting("server_pipe_priority"), strerror(newsoap->errnum));
 				else
-					ec_log_debug("Error accepting incoming connection from network.");
+					ec_log_debug("Error accepting incoming connection from network: %s", *soap_faultstring(newsoap));
 				kopano_end_soap_connection(newsoap);
 				soap_free(newsoap);
 				continue;
 			}
-			if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-				ec_log_debug("Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
-			else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-				ec_log_debug("Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
-			else
-				ec_log_debug("Accepted incoming%sconnection from %s",
-					ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
-					newsoap->host);
 			newsoap->socket = ec_relocate_fd(newsoap->socket);
 			g_lpStatsCollector->Max(SCN_MAX_SOCKET_NUMBER, (LONGLONG)newsoap->socket);
 			g_lpStatsCollector->Increment(SCN_SERVER_CONNECTIONS);

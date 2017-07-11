@@ -381,9 +381,8 @@ HRESULT ArchiveStateUpdater::ParseCoupling(const tstring &strCoupling, tstring *
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Invalid coupling: archive='" TSTRING_PRINTF "', folder='" TSTRING_PRINTF "'", strArchive.c_str(), strFolder.c_str());
 		return MAPI_E_INVALID_PARAMETER;
 	}
-
-	lpstrArchive->swap(strArchive);
-	lpstrFolder->swap(strFolder);
+	*lpstrArchive = std::move(strArchive);
+	*lpstrFolder = std::move(strFolder);
 	return hrSuccess;
 }
 

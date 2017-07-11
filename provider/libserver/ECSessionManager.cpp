@@ -22,6 +22,7 @@
 #include <pthread.h>
 #include <mapidefs.h>
 #include <mapitags.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/tie.hpp>
 #include "ECMAPI.h"
@@ -464,6 +465,8 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	auto er = this->CreateAuthSession(soap, ulCapabilities, lpSessionID, &unique_tie(lpAuthSession), false, false);
 	if (er != erSuccess)
 		goto exit;
+	if (szClientApp == nullptr)
+		szClientApp = "<unknown>";
 
 	// If we've connected with SSL, check if there is a certificate, and check if we accept that certificate for that user
 	if (soap->ssl && lpAuthSession->ValidateUserCertificate(soap, szName, szImpersonateUser) == erSuccess) {
@@ -487,46 +490,35 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	}
 
 	// whoops, out of auth options.
-	ec_log_warn("Failed to authenticate user \"%s\" from \"%s\" using program \"%s\"",
-					szName, from.c_str(), szClientApp ? szClientApp : "<unknown>");
-
 	ZLOG_AUDIT(m_lpAudit, "authenticate failed user='%s' from='%s' program='%s'",
-			  szName, from.c_str(), szClientApp ? szClientApp : "<unknown>");
+		szName, from.c_str(), szClientApp);
 
 	er = KCERR_LOGON_FAILED;			
 	g_lpStatsCollector->Increment(SCN_LOGIN_DENIED);
 	goto exit;
 
 authenticated:
-	ec_log_debug("User \"%s\" from \"%s\" authenticated through \"%s\" using program %s", szName, from.c_str(), method, szClientApp ? szClientApp : "<unknown>");
-	if (strcmp(KOPANO_SYSTEM_USER, szName) != 0)
-		/* Do not log successful SYSTEM logins */
-		ZLOG_AUDIT(m_lpAudit, "authenticate ok user='%s' from='%s' method='%s' program='%s'",
-				  szName, from.c_str(), method, szClientApp ? szClientApp : "<unknown>");
-
 	er = RegisterSession(lpAuthSession.get(), sessionGroupID,
 	     szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc,
 	     lpSessionID, &lpSession, fLockSession);
 	if (er != erSuccess) {
 		if (er == KCERR_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
-			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\"", szImpersonateUser, szName);
-			ZLOG_AUDIT(m_lpAudit, "impersonate failed user='%s', from='%s' program='%s' impersonator='%s'",
-					  szImpersonateUser, from.c_str(), szClientApp ? szClientApp : "<unknown>", szName);
-		} else
-			ec_log_err("User \"%s\" authenticated, but failed to create session. Error 0x%08X", szName, er);
+			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\": %s (0x%x)", szImpersonateUser, szName, GetMAPIErrorMessage(er), er);
+			ZLOG_AUDIT(m_lpAudit, "authenticate ok, impersonate failed: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\"",
+				from.c_str(), szImpersonateUser, szName, method, szClientApp);
+		} else {
+			ec_log_err("User \"%s\" authenticated, but failed to create session: %s (0x%x)", szName, GetMAPIErrorMessage(er), er);
+			ZLOG_AUDIT(m_lpAudit, "authenticate ok, session failed: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\"",
+				from.c_str(), szImpersonateUser, szName, method, szClientApp);
+		}
 		goto exit;
 	}
 	if (!szImpersonateUser || *szImpersonateUser == '\0')
-		ec_log_debug("User \"%s\" receives session %llu",
-			szName, static_cast<unsigned long long>(*lpSessionID));
-	else {
-		ec_log_debug("User \"%s\" impersonated by \"%s\" receives session %llu",
-			szImpersonateUser, szName,
-			static_cast<unsigned long long>(*lpSessionID));
-		ZLOG_AUDIT(m_lpAudit, "impersonate ok user='%s', from='%s' program='%s' impersonator='%s'",
-				  szImpersonateUser, from.c_str(), szClientApp ? szClientApp : "<unknown>", szName);
-	}
-
+		ZLOG_AUDIT(m_lpAudit, "authenticate ok: from=\"%s\" user=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
+			from.c_str(), szName, method, szClientApp, static_cast<unsigned long long>(*lpSessionID));
+	else
+		ZLOG_AUDIT(m_lpAudit, "authenticate ok, impersonate ok: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
+			from.c_str(), szImpersonateUser, szName, method, szClientApp, static_cast<unsigned long long>(*lpSessionID));
 exit:
 	*lppSession = lpSession;
 

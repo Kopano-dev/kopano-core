@@ -15,6 +15,7 @@
  *
  */
 #include <new>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECArchiveAwareMsgStore.h"
@@ -124,10 +125,8 @@ HRESULT ECArchiveAwareMsgStore::CreateCacheBasedReorderedList(SBinaryArray sbaSt
 
 	lstStoreEIDs.splice(lstStoreEIDs.end(), lstUncachedStoreEIDs);
 	lstItemEIDs.splice(lstItemEIDs.end(), lstUncachedItemEIDs);
-
-	lplstStoreEIDs->swap(lstStoreEIDs);
-	lplstItemEIDs->swap(lstItemEIDs);
-
+	*lplstStoreEIDs = std::move(lstStoreEIDs);
+	*lplstItemEIDs = std::move(lstItemEIDs);
 	return hrSuccess;
 }
 

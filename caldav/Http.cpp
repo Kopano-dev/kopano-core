@@ -105,11 +105,9 @@ exit:
 		*lpulFlag = ulFlag;
 
 	if (lpstrUrlUser)
-		lpstrUrlUser->swap(strUrlUser);
-
+		*lpstrUrlUser = std::move(strUrlUser);
 	if (lpstrFolder)
-		lpstrFolder->swap(strFolder);
-
+		*lpstrFolder = std::move(strFolder);
 	return hr;
 }
 

@@ -833,7 +833,7 @@ static int running_server(char *szName, const char *szConfig,
 		{"attachment_s3_bucketname", ""},
 		{"attachment_s3_region", ""},
 #endif
-		{ "attachment_path",			"Kopano Data" },
+		{"attachment_path", "/var/lib/kopano/attachments"},
 		{ "attachment_compression",		"6" },
 
 		// Log options

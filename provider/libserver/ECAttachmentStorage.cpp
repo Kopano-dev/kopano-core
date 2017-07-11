@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <stdexcept>
+#include <utility>
 #include <climits>
 #include <mapidefs.h>
 #include <cerrno>
@@ -233,8 +234,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 
 		lstInstanceIds.push_back(atoi(lpDBRow[0]));
 	}
-
-	lstAttachIds->swap(lstInstanceIds);
+	*lstAttachIds = std::move(lstInstanceIds);
 	return erSuccess;
 }
 
@@ -294,8 +294,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId, std::
 
 		lstObjIds.push_back(atoi(lpDBRow[0]));
 	}
-
-	lplstObjIds->swap(lstObjIds);
+	*lplstObjIds = std::move(lstObjIds);
 	return erSuccess;
 }
 

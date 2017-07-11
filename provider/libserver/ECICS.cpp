@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/tie.hpp>
 #include "kcore.hpp"
 #include <mapidefs.h>
@@ -110,7 +111,7 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 		}
 		sFilteredIds.insert(atoui(lpDBRow[0]));
 	}
-	lpsFilteredIds->swap(sFilteredIds);
+	*lpsFilteredIds = std::move(sFilteredIds);
 	return erSuccess;
 }
 

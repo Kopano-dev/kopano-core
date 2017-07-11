@@ -84,7 +84,7 @@ public:
 	UserListCollector(IMAPISession *lpSession);
 	virtual HRESULT GetRequiredPropTags(LPMAPIPROP prop, LPSPropTagArray *) const _kc_override;
 	virtual HRESULT CollectData(LPMAPITABLE store_table) _kc_override;
-	void swap_result(std::list<string_type> *lplstUsers);
+	void move_result(std::list<string_type> *lplstUsers);
 
 private:
 	void push_back(LPSPropValue lpPropAccount);
@@ -181,8 +181,8 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 }
 
 template<typename string_type, ULONG prAccount>
-void UserListCollector<string_type, prAccount>::swap_result(std::list<string_type> *lplstUsers) {
-	lplstUsers->swap(m_lstUsers);
+void UserListCollector<string_type, prAccount>::move_result(std::list<string_type> *lplstUsers) {
+	*lplstUsers = std::move(m_lstUsers);
 }
 
 template<>
@@ -203,7 +203,7 @@ HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	             bLocalOnly, &collector);
 	if (hr != hrSuccess)
 		return hr;
-	collector.swap_result(lplstUsers);
+	collector.move_result(lplstUsers);
 	return hrSuccess;
 }
 
@@ -215,7 +215,7 @@ HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	             bLocalOnly, &collector);
 	if (hr != hrSuccess)
 		return hr;
-	collector.swap_result(lplstUsers);
+	collector.move_result(lplstUsers);
 	return hrSuccess;
 }
 

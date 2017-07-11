@@ -79,8 +79,7 @@ HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectE
 	hr = ptrNewMessage->QueryInterface(IID_IMessage, (LPVOID*)lppArchivedMsg);
 	if (hr != hrSuccess)
 		return hr;
-
-	lpptrPSAction->swap(ptrPSAction);
+	*lpptrPSAction = std::move(ptrPSAction);
 	return hrSuccess;
 }
 
@@ -180,8 +179,7 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 			return hr;
 		}
 	}
-
-	lpptrPSAction->swap(ptrPSAction);
+	*lpptrPSAction = std::move(ptrPSAction);
  exitpm:
 	return hr;
 }

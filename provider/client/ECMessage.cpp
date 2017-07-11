@@ -15,6 +15,7 @@
  *
  */
 #include <new>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/mapi_ptr.h>
@@ -2643,7 +2644,7 @@ HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 		strRtfData.append(lpBuf, ulRead);
 	}
 
-	lpstrRtfData->swap(strRtfData);
+	*lpstrRtfData = std::move(strRtfData);
 	return hrSuccess;
 }
 

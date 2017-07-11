@@ -453,8 +453,7 @@ exit:
 		fclose(fp);
 
 	// Restore the path of the previous file.
-	m_currentFile.swap(prevFile);
-
+	m_currentFile = std::move(prevFile);
 	return bReturn;
 }
 

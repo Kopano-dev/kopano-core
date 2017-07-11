@@ -21,7 +21,7 @@
 #include <iostream>
 #include <cctype>
 #include <algorithm>
-
+#include <utility>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapicode.h>
@@ -261,8 +261,6 @@ HRESULT LMTP::HrParseAddress(const std::string &strInput, std::string *strAddres
 	strAddr = strInput.substr(pos1+1, pos2-pos1-1);
 
 	trim(strAddr);
-
-	strAddress->swap(strAddr);
-
+	*strAddress = std::move(strAddr);
 	return hrSuccess;
 }
