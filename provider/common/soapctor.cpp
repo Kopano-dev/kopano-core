@@ -17,7 +17,6 @@ mv_hiloLong::mv_hiloLong() : __ptr(), __size() {}
 mv_i2::mv_i2() : __ptr(), __size() {}
 mv_i8::mv_i8() : __ptr(), __size() {}
 mv_long::mv_long() : __ptr(), __size() {}
-mv_long::mv_long(unsigned int *a, int b) : __ptr(a), __size(b) {}
 mv_r4::mv_r4() : __ptr(), __size() {}
 mv_string8::mv_string8() : __ptr(), __size() {}
 

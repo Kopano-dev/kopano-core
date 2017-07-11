@@ -55,9 +55,7 @@ struct mv_i2 {
 struct mv_long {
 	unsigned int *__ptr;
 	int __size;
-	/* union presence */
-	mv_long();
-	mv_long(unsigned int *a, int b = 0);
+	mv_long(); /* union presence */
 };
 
 struct mv_r4 {

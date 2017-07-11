@@ -1059,7 +1059,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
-	mv_long ulConnArray = {0};
+	mv_long ulConnArray;
 	unsigned i = 0;
 
 	ulConnArray.__size = lstConnections.size();
@@ -4177,7 +4177,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 {
 	HRESULT							hr = hrSuccess;
 	ECRESULT						er = erSuccess;
-	mv_long							ulaSyncId = {0};
+	mv_long ulaSyncId;
 	getSyncStatesReponse sResponse{__gszeroinit};
 	SSyncState						sSyncState = {0};
 
