@@ -30,7 +30,7 @@ from .quota import Quota
 from .defs import (
     ACTIVE_USER, NONACTIVE_USER,
 )
-from .errors import NotFoundError, NotSupportedError, DuplicateError
+from .errors import Error, NotFoundError, NotSupportedError, DuplicateError
 from .compat import (
     hex as _hex, unhex as _unhex, fake_unicode as _unicode
 )
@@ -125,8 +125,8 @@ class User(Base):
         self._update(email=_unicode(value))
 
     @property
-    def password(self): # XXX not coming through SWIG?
-        return self._ecuser.Password
+    def password(self):
+        raise Error('passwords are write-only')
 
     @password.setter
     def password(self, value):

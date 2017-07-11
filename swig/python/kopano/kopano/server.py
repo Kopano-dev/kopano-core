@@ -244,7 +244,12 @@ class Server(object):
         return bin2hex(HrGetOneProp(self.mapistore, PR_MAPPING_SIGNATURE).Value)
 
     def user(self, name=None, email=None, create=False):
-        """Return :class:`user <User>` with given name."""
+        """Return :class:`user <User>` with given name or email address.
+
+        :param name: user name
+        :param email: email address
+        :param create: create user if it doesn't exist (name required)
+        """
         try:
             return _user.User(name, email=email, server=self)
         except NotFoundError:
@@ -325,7 +330,11 @@ class Server(object):
         self.sa.DeleteUser(user._ecuser.UserID)
 
     def company(self, name, create=False):
-        """Return :class:`company <Company>` with given name."""
+        """Return :class:`company <Company>` with given name.
+
+        :param name: company name
+        :param create: create company if it doesn't exist
+        """
         try:
             return Company(name, self)
         except MAPIErrorNoSupport:
@@ -422,9 +431,19 @@ class Server(object):
         except NotFoundError: # XXX what to do here (single-tenant..), as groups do exist?
             pass
 
-    def group(self, name):
-        """Return :class:`group <Group>` with given name."""
-        return Group(name, self)
+    def group(self, name, create=False):
+        """Return :class:`group <Group>` with given name.
+
+        :param name: group name
+        :param create: create group if it doesn't exist
+        """
+        try:
+            return Group(name, self)
+        except NotFoundError:
+            if create:
+                return self.create_group(name)
+            else:
+                raise
 
     def create_group(self, name, fullname='', email='', hidden=False, groupid=None):
         """Create a new :class:`group <Group>` on the server.

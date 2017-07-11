@@ -99,14 +99,14 @@ class Quota(object):
             for ecuser in self.server.sa.GetQuotaRecipients(self.userid, 0):
                 yield self.server.user(ecuser.Username)
 
-    def add_recipient(self, user, company=False):
+    def add_recipient(self, user, company=False): # XXX remove company flag
         objclass = CONTAINER_COMPANY if company else ACTIVE_USER
         try:
             self.server.sa.AddQuotaRecipient(self.userid, user._ecuser.UserID, objclass)
         except MAPIErrorCollision:
             raise DuplicateError("user '%s' already in %squota recipients" % (user.name, 'company' if company else 'user'))
 
-    def remove_recipient(self, user, company=False):
+    def remove_recipient(self, user, company=False): # XXX remove company flag
         objclass = CONTAINER_COMPANY if company else ACTIVE_USER
         try:
             self.server.sa.DeleteQuotaRecipient(self.userid, user._ecuser.UserID, objclass)
