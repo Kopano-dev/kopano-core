@@ -35,7 +35,7 @@ class Quota(object):
             self._hard_limit = quota.llHardSize
             # XXX: logical name for variable
             # Use default quota set in /etc/kopano/server.cfg
-            self._use_default_quota = quota.bUseDefaultQuota
+            self._use_default_quota = bool(quota.bUseDefaultQuota)
             # XXX: is this for multitenancy?
             self._isuser_default_quota = quota.bIsUserDefaultQuota
 

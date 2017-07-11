@@ -469,7 +469,7 @@ class Server(object):
     def delete(self, objects):
         """Delete users, groups, companies or stores from server.
 
-        :param objects: users, groups, companies or stores
+        :param objects: The object(s) to delete
         """
         if isinstance(objects, (_user.User, Group, Company, _store.Store)):
             objects = [objects]
