@@ -433,7 +433,12 @@ int main(int argc, char **argv)
 	int ret = mpt_option_parse(argc, argv);
 	if (ret != EXIT_SUCCESS)
 		return ret;
+	argc -= optind - 1;
 	argv += optind - 1;
+	if (argc < 2) {
+		mpt_usage();
+		return EXIT_FAILURE;
+	}
 	if (strcmp(argv[1], "init") == 0 || strcmp(argv[1], "i") == 0)
 		return mpt_main_init();
 	else if (strcmp(argv[1], "li") == 0)
