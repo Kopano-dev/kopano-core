@@ -1,7 +1,10 @@
 import datetime
 import math
+import MAPI
+import MAPI.Defs
 import MAPI.Tags
 
+reverse_proptags_exact = {}
 reverse_proptags = {}
 
 class CURRENCY_printer:
@@ -121,9 +124,12 @@ class SPropValue_printer:
 	def to_string(self):
 		tag = ""
 		try:
-			tag = reverse_proptags[int(self.value["ulPropTag"])]
+			tag = reverse_proptags_exact[int(self.value["ulPropTag"])]
 		except KeyError:
-			tag = hex(int(self.value["ulPropTag"]))
+			try:
+				tag = reverse_proptags[int(self.value["ulPropTag"]) >> 16]
+			except KeyError:
+				tag = hex(int(self.value["ulPropTag"]))
 		return tag + " " + self.s_decode()
 
 	def s_decode(self):
@@ -198,6 +204,11 @@ def lookup_type(val):
 for key in dir(MAPI.Tags):
 	if not key.startswith("PR_"):
 		continue
-	reverse_proptags[int(getattr(MAPI.Tags, key))] = key
+	value = int(getattr(MAPI.Tags, key))
+	reverse_proptags_exact[value] = key
+	if (MAPI.Defs.PROP_TYPE(value) == MAPI.PT_STRING8 and key.endswith("_A")) or \
+	   (MAPI.Defs.PROP_TYPE(value) == MAPI.PT_UNICODE and key.endswith("_W")):
+		key = key[:-2]
+	reverse_proptags[value >> 16] = key
 
 gdb.pretty_printers.append(lookup_type)
