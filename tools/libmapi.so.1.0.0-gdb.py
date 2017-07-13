@@ -1,5 +1,8 @@
 import datetime
 import math
+import MAPI.Tags
+
+reverse_proptags = {}
 
 class CURRENCY_printer:
 	def __init__(self, value):
@@ -116,6 +119,14 @@ class SPropValue_printer:
 		return "PT_MV_??"
 
 	def to_string(self):
+		tag = ""
+		try:
+			tag = reverse_proptags[int(self.value["ulPropTag"])]
+		except KeyError:
+			tag = hex(int(self.value["ulPropTag"]))
+		return tag + " " + self.s_decode()
+
+	def s_decode(self):
 		type = self.value["ulPropTag"] & 0xFFFF
 		v = self.value["Value"]
 		if ((type & 0x1000) == 0x1000):
@@ -181,5 +192,12 @@ def lookup_type(val):
 	if iname == "CURRENCY":
 		return CURRENCY_printer(val)
 	return None
+
+# main
+
+for key in dir(MAPI.Tags):
+	if not key.startswith("PR_"):
+		continue
+	reverse_proptags[int(getattr(MAPI.Tags, key))] = key
 
 gdb.pretty_printers.append(lookup_type)
