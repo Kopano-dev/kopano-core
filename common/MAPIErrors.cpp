@@ -147,15 +147,14 @@ const char* GetMAPIErrorMessage(HRESULT errorCode)
 std::string getMapiCodeString(HRESULT hr, const char* object /* = "object" */)
 {
 	std::string retval = GetMAPIErrorMessage(hr);
-	std::string space(" ");
 	std::string objectstring(object != nullptr ? object : "");
 	switch (hr) {
 	case MAPI_E_NOT_FOUND:
-		return objectstring + space + retval;
+		return "\"" + objectstring + "\" " + retval;
 	case MAPI_E_COLLISION:
-		return objectstring + " already exists";
+		return "\"" + objectstring + "\" already exists";
 	case MAPI_E_NO_ACCESS:
-		return retval + space + objectstring;
+		return retval + " \"" + objectstring + "\"";
 	case MAPI_E_UNABLE_TO_COMPLETE:
 		return "please check your license";
 	case MAPI_E_INVALID_TYPE:

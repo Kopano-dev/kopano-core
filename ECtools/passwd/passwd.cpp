@@ -133,7 +133,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	// get old features. we need these, because not setting them would mean: remove them
 	hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
 	if (hr != hrSuccess) {
-		cerr << "Unable to get user details, " << getMapiCodeString(hr, lpUsername) << endl;
+		cerr << "Unable to get user details: " << getMapiCodeString(hr, lpUsername) << endl;
 		return hr;
 	}
 
