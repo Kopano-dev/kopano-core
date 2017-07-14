@@ -2067,7 +2067,11 @@ std::string DBGGUIDToString(REFIID iid)
 	}
 
 	if (guidIDD.empty()) {
-		snprintf(szGuidId, DEBUGBUFSIZE, "{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", iid.Data1, iid.Data2, iid.Data3, iid.Data4[0], iid.Data4[1], iid.Data4[2], iid.Data4[3], iid.Data4[4], iid.Data4[5], iid.Data4[6], iid.Data4[7]);
+		snprintf(szGuidId, DEBUGBUFSIZE, "{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}",
+			le32_to_cpu(iid.Data1), le16_to_cpu(iid.Data2),
+			le16_to_cpu(iid.Data3), iid.Data4[0], iid.Data4[1],
+			iid.Data4[2], iid.Data4[3], iid.Data4[4], iid.Data4[5],
+			iid.Data4[6], iid.Data4[7]);
 		guidIDD = "Unknown ";
 		guidIDD+=szGuidId;
 	}
