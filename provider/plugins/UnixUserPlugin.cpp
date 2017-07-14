@@ -992,30 +992,28 @@ std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 
 void UnixUserPlugin::errnoCheck(const std::string &user, int e) const
 {
-	if (e != 0) {
-		char buffer[256];
-		char *retbuf;
-		retbuf = strerror_r(e, buffer, 256);
+	if (e == 0)
+		return;
+	char buffer[256];
+	char *retbuf;
+	retbuf = strerror_r(e, buffer, 256);
 
-		// from the getpwnam() man page: (notice the last or...)
-		//  ERRORS
-		//    0 or ENOENT or ESRCH or EBADF or EPERM or ...
-		//    The given name or uid was not found.
+	// from the getpwnam() man page: (notice the last or...)
+	//  ERRORS
+	//    0 or ENOENT or ESRCH or EBADF or EPERM or ...
+	//    The given name or uid was not found.
 
-		switch (e) {
-			// 0 is handled in top if()
-		case ENOENT:
-		case ESRCH:
-		case EBADF:
-		case EPERM:
-			// calling function must check pw == NULL to throw objectnotfound()
-			break;
-
-		default:
-			// broken system .. do not delete user from database
-			throw runtime_error(string("unable to query for user ")+user+string(". Error: ")+retbuf);
-		};
-
-	}
+	switch (e) {
+		// 0 is handled in top if()
+	case ENOENT:
+	case ESRCH:
+	case EBADF:
+	case EPERM:
+		// calling function must check pw == NULL to throw objectnotfound()
+		break;
+	default:
+		// broken system .. do not delete user from database
+		throw runtime_error(string("unable to query for user ") + user + string(". Error: ") + retbuf);
+	};
 }
 

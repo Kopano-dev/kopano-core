@@ -227,27 +227,22 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 		if (lpDBLen == NULL || lpDBLen[2] == 0)
 			throw runtime_error("Trying to authenticate failed: database error");
 
-		if(strcmp(lpDBRow[0], OP_PASSWORD) == 0)
-		{
-			// Check Password
-			MD5_CTX crypt;
-			salt = lpDBRow[1];
-			salt.resize(8);
+		if (strcmp(lpDBRow[0], OP_PASSWORD) != 0)
+			throw login_error("Trying to authenticate failed: wrong username or password");
 
-			MD5_Init(&crypt);
-			MD5_Update(&crypt, salt.c_str(), salt.length());
-			MD5_Update(&crypt, password.c_str(), password.size());
-			strMD5 = salt + zcp_md5_final_hex(&crypt);
-
-			if(strMD5.compare((string)lpDBRow[1]) == 0) {
-				objectid = objectid_t(string(lpDBRow[2], lpDBLen[2]), ACTIVE_USER);	// Password is oke
-			} else {
-				throw login_error("Trying to authenticate failed: wrong username or password");
-			}
+		// Check Password
+		MD5_CTX crypt;
+		salt = lpDBRow[1];
+		salt.resize(8);
+		MD5_Init(&crypt);
+		MD5_Update(&crypt, salt.c_str(), salt.length());
+		MD5_Update(&crypt, password.c_str(), password.size());
+		strMD5 = salt + zcp_md5_final_hex(&crypt);
+		if (strMD5.compare((string)lpDBRow[1]) == 0) {
+			objectid = objectid_t(string(lpDBRow[2], lpDBLen[2]), ACTIVE_USER);	// Password is oke
 		} else {
 			throw login_error("Trying to authenticate failed: wrong username or password");
 		}
-
 		if(lpDBRow[3] != NULL)
 			signature = lpDBRow[3];
 

@@ -453,21 +453,21 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 			continue;
 
 		for (const auto &prop : mva.second) {
-			if (!prop.empty()) {
-				if (!bFirstOne)
-					strQuery += ",";
-				if (PROP_TYPE(mva.first) == PT_MV_BINARY)
-					strData = base64_encode(reinterpret_cast<const unsigned char *>(prop.c_str()), prop.size());
-				else
-					strData = prop;
-				strQuery +=
-					"((" + strSubQuery + "),"
-					"'" + m_lpDatabase->Escape(stringify(mva.first, true)) + "',"
-					"" + stringify(ulOrderId) + ","
-					"'" +  m_lpDatabase->Escape(strData) + "')";
-				++ulOrderId;
-				bFirstOne = false;
-			}
+			if (prop.empty())
+				continue;
+			if (!bFirstOne)
+				strQuery += ",";
+			if (PROP_TYPE(mva.first) == PT_MV_BINARY)
+				strData = base64_encode(reinterpret_cast<const unsigned char *>(prop.c_str()), prop.size());
+			else
+				strData = prop;
+			strQuery +=
+				"((" + strSubQuery + "),"
+				"'" + m_lpDatabase->Escape(stringify(mva.first, true)) + "',"
+				"" + stringify(ulOrderId) + ","
+				"'" +  m_lpDatabase->Escape(strData) + "')";
+			++ulOrderId;
+			bFirstOne = false;
 		}
 	}
 
