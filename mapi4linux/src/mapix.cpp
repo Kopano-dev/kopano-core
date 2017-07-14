@@ -470,15 +470,11 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	int n = 0;
 	std::wstring wServiceName, wDisplayName;
 	convert_context converter;
-	static constexpr const SizedSPropTagArray(3, sptaProviderColsUnicode) =
+	SizedSPropTagArray(3, sptaProviderCols) =
 		{3, {PR_SERVICE_UID, PR_SERVICE_NAME_W, PR_DISPLAY_NAME_W}};
-	static constexpr const SizedSPropTagArray(3, sptaProviderColsAscii) =
-		{3, {PR_SERVICE_UID, PR_SERVICE_NAME_A, PR_DISPLAY_NAME_A}};
 
-	if (ulFlags & MAPI_UNICODE)
-		hr = ECMemTable::Create(sptaProviderColsUnicode, PR_ROWID, &~lpTable);
-	else
-		hr = ECMemTable::Create(sptaProviderColsAscii, PR_ROWID, &~lpTable);
+	Util::proptag_change_unicode(ulFlags, sptaProviderCols);
+	hr = ECMemTable::Create(sptaProviderCols, PR_ROWID, &~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LMsgServiceAdmin::GetMsgServiceTable(): failed to create memtable %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
@@ -825,12 +821,8 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 	SizedSPropTagArray(11, sptaProviderCols) = {11, {PR_MDB_PROVIDER, PR_AB_PROVIDER_ID, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ENTRYID,
 												   PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_PROVIDER_UID, PR_RESOURCE_TYPE,
 												   PR_PROVIDER_DISPLAY_A, PR_SERVICE_UID}};
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
-	if (hr != hrSuccess) {
-		ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): Util::HrCopyUnicodePropTagArray fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpTable);
+	Util::proptag_change_unicode(ulFlags, sptaProviderCols);
+	hr = ECMemTable::Create(sptaProviderCols, PR_ROWID, &~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): ECMemTable::Create fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
@@ -942,16 +934,11 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	SPropValue sPropID;
 	int n = 0;
 	memory_ptr<SPropTagArray> lpPropTagArray;
-
 	SizedSPropTagArray(11, sptaProviderCols) = {11, {PR_MDB_PROVIDER, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ENTRYID,
 												   PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_RESOURCE_TYPE, PR_PROVIDER_UID,
 												   PR_RESOURCE_FLAGS, PR_DEFAULT_STORE, PR_PROVIDER_DISPLAY_A}};
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
-	if(hr != hrSuccess) {
-		ec_log_err("M4LMAPISession::GetMsgStoresTable(): Util::HrCopyUnicodePropTagArray fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpTable);
+	Util::proptag_change_unicode(ulFlags, sptaProviderCols);
+	hr = ECMemTable::Create(sptaProviderCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess) {
 		ec_log_err("M4LMAPISession::GetMsgStoresTable(): ECMemTable::Create fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;

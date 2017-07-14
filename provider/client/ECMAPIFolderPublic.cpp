@@ -300,7 +300,7 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 	object_ptr<ECMemTable> lpMemTable;
 	object_ptr<ECMemTableView> lpView;
 	memory_ptr<SPropTagArray> lpPropTagArray;
-	static constexpr const SizedSPropTagArray(11, sPropsContentColumns) =
+	SizedSPropTagArray(11, sPropsContentColumns) =
 		{11, {PR_ENTRYID, PR_DISPLAY_NAME, PR_MESSAGE_FLAGS, PR_SUBJECT,
 		PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK,
 		PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ACCESS, PR_ACCESS_LEVEL}};
@@ -309,11 +309,8 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 		return ECMAPIFolder::GetContentsTable(ulFlags, lppTable);
 	if (ulFlags & SHOW_SOFT_DELETES)
 		return MAPI_E_NO_SUPPORT;
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags,
-	     sPropsContentColumns, &~lpPropTagArray);
-	if (hr != hrSuccess)
-		return hr;
-	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpMemTable);
+	Util::proptag_change_unicode(ulFlags, sPropsContentColumns);
+	hr = ECMemTable::Create(sPropsContentColumns, PR_ROWID, &~lpMemTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);

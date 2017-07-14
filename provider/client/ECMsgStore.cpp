@@ -70,18 +70,6 @@ using namespace KCHL;
 // FIXME: from libserver/ECMAPI.h
 #define MSGFLAG_DELETED                           ((ULONG) 0x00000400)
 
-static constexpr const SizedSPropTagArray(NUM_RFT_PROPS, sPropRFTColumns) =
-{
-	NUM_RFT_PROPS,
-	{
-		PR_ROWID,
-		PR_INSTANCE_KEY,
-		PR_ENTRYID,
-		PR_RECORD_KEY,
-		PR_MESSAGE_CLASS_A
-	}
-};
-
 /**
  * ECMsgStore
  **/
@@ -783,6 +771,10 @@ HRESULT ECMsgStore::GetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULO
 
 HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
+	SizedSPropTagArray(NUM_RFT_PROPS, sPropRFTColumns) =
+		{NUM_RFT_PROPS, {PR_ROWID, PR_INSTANCE_KEY, PR_ENTRYID,
+		PR_RECORD_KEY,PR_MESSAGE_CLASS_A}};
+
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECMemTableView> lpView = NULL;
 	object_ptr<ECMemTable> lpMemTable;
@@ -797,10 +789,8 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	// Check input/output variables
 	if (lppTable == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sPropRFTColumns, &~lpPropTagArray);
-	if(hr != hrSuccess)
-		return hr;
-	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpMemTable); // PR_INSTANCE_KEY
+	Util::proptag_change_unicode(ulFlags, sPropRFTColumns);
+	hr = ECMemTable::Create(sPropRFTColumns, PR_ROWID, &~lpMemTable); // PR_INSTANCE_KEY
 	if(hr != hrSuccess)
 		return hr;
 

@@ -861,33 +861,22 @@ HRESULT	Util::HrCopyPropTagArray(const SPropTagArray *lpSrc,
 }
 
 /**
- * Copies a LPSPropTagArray while forcing all string types to either
- * PT_STRING8 or PT_UNICODE according to the MAPI_UNICODE flag in
- * ulFlags.
+ * Forces all string types in an SPropTagArray to either PT_STRING8 or
+ * PT_UNICODE according to the MAPI_UNICODE flag in ulFlags.
  *
  * @param[in]	ulFlags	0 or MAPI_UNICODE for PT_STRING8 or PT_UNICODE proptags
  * @param[in]	lpSrc	Source SPropTagArray to copy to lppDest
  * @param[out]	lppDest	Destination SPropTagArray with fixed types for strings
  */
-HRESULT Util::HrCopyUnicodePropTagArray(ULONG ulFlags,
-    const SPropTagArray *lpSrc, LPSPropTagArray *lppDest)
+void Util::proptag_change_unicode(ULONG flags, SPropTagArray &src)
 {
-	LPSPropTagArray lpPropTagArray = NULL;
-	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues),
-	             reinterpret_cast<void **>(&lpPropTagArray));
-	if (hr != hrSuccess)
-		return hr;
-
-	for (ULONG n = 0; n < lpSrc->cValues; ++n) {
-		if (PROP_TYPE(lpSrc->aulPropTag[n]) == PT_STRING8 || PROP_TYPE(lpSrc->aulPropTag[n]) == PT_UNICODE)
-			lpPropTagArray->aulPropTag[n] = CHANGE_PROP_TYPE(lpSrc->aulPropTag[n], ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
-		else
-			lpPropTagArray->aulPropTag[n] = lpSrc->aulPropTag[n];
+	unsigned int newtype = (flags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8;
+	for (ULONG n = 0; n < src.cValues; ++n) {
+		if (PROP_TYPE(src.aulPropTag[n]) != PT_STRING8 &&
+		    PROP_TYPE(src.aulPropTag[n]) != PT_UNICODE)
+			continue;
+		src.aulPropTag[n] = CHANGE_PROP_TYPE(src.aulPropTag[n], newtype);
 	}
-	lpPropTagArray->cValues = lpSrc->cValues;
-
-	*lppDest = lpPropTagArray;
-	return hrSuccess;
 }
 
 /** 

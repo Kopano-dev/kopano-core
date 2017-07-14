@@ -507,15 +507,13 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	SPropValue sPropID;
 	int n = 0;
 	memory_ptr<SPropTagArray> lpPropTagArray;
-	static constexpr const SizedSPropTagArray(8, sptaProviderCols) =
+	SizedSPropTagArray(8, sptaProviderCols) =
 		{8, {PR_MDB_PROVIDER, PR_INSTANCE_KEY, PR_RECORD_KEY,
 		PR_ENTRYID, PR_DISPLAY_NAME_A, PR_OBJECT_TYPE,
 		PR_RESOURCE_TYPE, PR_PROVIDER_UID}};
 
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
-	if(hr != hrSuccess)
-		return hr;
-	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpTable);
+	Util::proptag_change_unicode(ulFlags, sptaProviderCols);
+	hr = ECMemTable::Create(sptaProviderCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
 	
