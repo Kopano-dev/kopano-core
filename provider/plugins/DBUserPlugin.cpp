@@ -49,10 +49,12 @@ UserPlugin *getUserPluginInstance(std::mutex &pluginlock,
 		delete up;
 	}
 
-	int getUserPluginVersion() {
-		return PROJECT_VERSION_REVISION;
-	}
+unsigned long getUserPluginVersion()
+{
+	return PROJECT_VERSION_REVISION;
 }
+
+} /* extern "C" */
 
 DBUserPlugin::DBUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :

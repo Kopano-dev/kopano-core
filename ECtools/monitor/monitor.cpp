@@ -82,7 +82,7 @@ static HRESULT running_service(void)
 	ulInterval = atoi(m_lpThreadMonitor->lpConfig->GetSetting("quota_check_interval", nullptr, "15"));
 	if (ulInterval == 0)
 		ulInterval = 15;
-	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION_MONITOR_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION " (pid %d)", getpid());
 
 	// Add Quota monitor
 	hr = lpECScheduler->AddSchedule(SCHEDULE_MINUTES, ulInterval, ECQuotaMonitor::Create, m_lpThreadMonitor);
@@ -143,8 +143,7 @@ static void sighup(int signr)
 // SIGSEGV catcher
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(m_lpThreadMonitor->lpLogger, "Monitor",
-		PROJECT_VERSION_MONITOR_STR, signr, si, uc);
+	generic_sigsegv_handler(m_lpThreadMonitor->lpLogger, "kopano-monitor", PROJECT_VERSION, signr, si, uc);
 }
 
 static void print_help(const char *name)
@@ -238,8 +237,7 @@ int main(int argc, char *argv[]) {
 			bIgnoreUnknownConfigOptions = true;
 			break;
 		case 'V':
-			cout << "Product version:\t" <<  PROJECT_VERSION_MONITOR_STR << endl
-				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
+			cout << "kopano-monitor " PROJECT_VERSION << endl;
 			return 1;
 		case OPT_HELP:
 		default:

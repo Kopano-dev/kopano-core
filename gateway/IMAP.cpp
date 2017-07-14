@@ -763,7 +763,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 		flags |= EC_PROFILE_FLAGS_NO_UID_AUTH;
 
 	// do not disable notifications for imap connections, may be idle and sessions on the storage server will disappear.
-	hr = HrOpenECSession(&~lpSession, "gateway/imap", PROJECT_SVN_REV_STR,
+	hr = HrOpenECSession(&~lpSession, "gateway/imap", PROJECT_VERSION,
 	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
 	     flags, NULL, NULL);
 	if (hr != hrSuccess) {

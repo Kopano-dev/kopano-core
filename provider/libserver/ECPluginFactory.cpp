@@ -69,15 +69,15 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 			ec_log_crit("Please correct your configuration file and set the \"plugin_path\" and \"user_plugin\" options.");
 			goto out;
         }
-
-        int (*fngetUserPluginInstance)() = (int (*)()) dlsym(m_dl, "getUserPluginVersion");
+        auto fngetUserPluginInstance = reinterpret_cast<unsigned long (*)()>(dlsym(m_dl, "getUserPluginVersion"));
         if (fngetUserPluginInstance == NULL) {
 			ec_log_crit("Failed to load getUserPluginVersion from plugin: %s", dlerror());
 			goto out;
         }
-        int version = fngetUserPluginInstance(); 
+	unsigned long version = fngetUserPluginInstance();
         if (version != PROJECT_VERSION_REVISION) {
-			ec_log_crit("Version of the plugin \"%s\" is not the same for the server. Expected %d, plugin %d", filename, PROJECT_VERSION_REVISION, version);
+			ec_log_crit("Version of the plugin \"%s\" is not the same for the server. Expected 0x%lx (%s), plugin 0x%lx",
+				filename, PROJECT_VERSION_REVISION, PROJECT_VERSION, version);
 			goto out;
 	}
     

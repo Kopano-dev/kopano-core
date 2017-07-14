@@ -64,7 +64,7 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 			}
 
 			s_lpLogger->Log(EC_LOGLEVEL_FATAL, "********************");
-			s_lpLogger->Log(EC_LOGLEVEL_FATAL, "New sync log session openend (Kopano-" PROJECT_VERSION_CLIENT_STR ")");
+			s_lpLogger->Log(EC_LOGLEVEL_FATAL, "New sync log session openend (Kopano " PROJECT_VERSION ")");
 			s_lpLogger->Log(EC_LOGLEVEL_FATAL, " - Log level: %u", lpSettings->SyncLogLevel());
 			s_lpLogger->Log(EC_LOGLEVEL_FATAL, " - Sync stream: %s", lpSettings->SyncStreamEnabled() ? "enabled" : "disabled");
 			s_lpLogger->Log(EC_LOGLEVEL_FATAL, " - Change notifications: %s", lpSettings->ChangeNotificationsEnabled() ? "enabled" : "disabled");

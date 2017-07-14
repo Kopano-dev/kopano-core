@@ -342,8 +342,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 		strwPassword = convert_to<wstring>(strPass);
 	if (strAltUser)
 		strwAltUsername = convert_to<wstring>(strAltUser);
-
-	hr = HrOpenECSession(&~lpSession, "kopano-fsck", PROJECT_SVN_REV_STR,
+	hr = HrOpenECSession(&~lpSession, "fsck", PROJECT_VERSION,
 	     strwUsername.c_str(), strwPassword.c_str(), strHost, 0, NULL, NULL);
 	if(hr != hrSuccess) {
 		cout << "Wrong username or password." << endl;

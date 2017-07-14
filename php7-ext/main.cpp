@@ -510,7 +510,7 @@ zend_module_entry mapi_module_entry =
 	PHP_RINIT(mapi),	/* Request init function */
 	PHP_RSHUTDOWN(mapi),/* Request shutdown function */
 	PHP_MINFO(mapi),	/* Info function */
-	PROJECT_VERSION_DOT_STR "-" PROJECT_SVN_REV_STR, /* version */
+	PROJECT_VERSION,
 	STANDARD_MODULE_PROPERTIES
 };
 
@@ -528,8 +528,7 @@ PHP_MINFO_FUNCTION(mapi)
 {
 	php_info_print_table_start();
 	php_info_print_table_row(2, "MAPI Support", "enabled");
-	php_info_print_table_row(2, "Version", PROJECT_VERSION_EXT_STR);
-	php_info_print_table_row(2, "Git version", PROJECT_SVN_REV_STR);
+	php_info_print_table_row(2, "Version", PROJECT_VERSION);
 	php_info_print_table_end();
 }
 
@@ -577,9 +576,7 @@ static int LoadSettingsFile(void)
 		lpLogger = new(std::nothrow) ECLogger_Null();
 	if (lpLogger == NULL)
 		return FAILURE;
-
-	lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI instantiated " PROJECT_VERSION_EXT_STR);
-
+	lpLogger->Log(EC_LOGLEVEL_INFO, "php7-mapi " PROJECT_VERSION " instantiated");
 	ec_log_set(lpLogger);
 	if (mapi_debug)
 		lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI trace level set to %d", mapi_debug);

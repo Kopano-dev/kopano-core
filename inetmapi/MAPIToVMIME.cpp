@@ -1492,7 +1492,7 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	// When adding a X-Priority, spamassassin may add a severe punishment because no User-Agent header
 	// or X-Mailer header is present. So we set the X-Mailer header :)
 	if (flags & MTV_SPOOL)
-		vmHeader->appendField(hff->create("X-Mailer", "Kopano " PROJECT_VERSION_DOT_STR "-" PROJECT_SVN_REV_STR));
+		vmHeader->appendField(hff->create("X-Mailer", "Kopano " PROJECT_VERSION));
 
 	// PR_CONVERSATION_INDEX
 	if (HrGetOneProp(lpMessage, PR_CONVERSATION_INDEX, &~lpConversationIndex) == hrSuccess) {

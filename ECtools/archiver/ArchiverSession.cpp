@@ -161,8 +161,8 @@ HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPat
 {
 	HRESULT hr;
 	
-	hr = HrOpenECAdminSession(&~m_ptrSession, "kopano-archiver:system",
-	     PROJECT_SVN_REV_STR, const_cast<char *>(lpszServerPath),
+	hr = HrOpenECAdminSession(&~m_ptrSession, "archiver:system",
+	     PROJECT_VERSION, const_cast<char *>(lpszServerPath),
 	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS, const_cast<char *>(lpszSslPath),
 	     const_cast<char *>(lpszSslPass));
 	if (hr != hrSuccess) {

@@ -301,8 +301,7 @@ static void sigchld(int)
 // Look for segmentation faults
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(g_lpLogger, "Spooler/DAgent",
-		PROJECT_VERSION_SPOOLER_STR, signr, si, uc);
+	generic_sigsegv_handler(g_lpLogger, "kopano-dagent", PROJECT_VERSION, signr, si, uc);
 }
 
 /**
@@ -2150,7 +2149,7 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 	struct passwd *pwd = NULL;
 	string strUnixUser;
 
-	hr = HrOpenECSession(lppSession, "spooler/dagent", PROJECT_SVN_REV_STR,
+	hr = HrOpenECSession(lppSession, "dagent", PROJECT_VERSION,
 	     szUsername, L"", lpArgs->strPath.c_str(), 0,
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
@@ -2206,8 +2205,8 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	object_ptr<IMAPISession> lpUserSession;
 	SPropValuePtr ptrProp;
 
-	hr = HrOpenECSession(&~lpUserSession, "spooler/dagent:delivery",
-	     PROJECT_SVN_REV_STR, lpRecip->wstrUsername.c_str(), L"",
+	hr = HrOpenECSession(&~lpUserSession, "dagent:delivery",
+	     PROJECT_VERSION, lpRecip->wstrUsername.c_str(), L"",
 	     lpArgs->strPath.c_str(), EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
@@ -2480,7 +2479,10 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 			else {
 				const char *server = g_lpConfig->GetSetting("server_socket");
 				server = GetServerUnixSocket(server); // let environment override if present
-				hr = HrOpenECAdminSession(&~ptrAdminSession, "spooler/dagent:system", PROJECT_SVN_REV_STR, server, EC_PROFILE_FLAGS_NO_NOTIFICATIONS, g_lpConfig->GetSetting("sslkey_file", "", NULL), g_lpConfig->GetSetting("sslkey_pass", "", NULL));
+				hr = HrOpenECAdminSession(&~ptrAdminSession, "dagent:system",
+				     PROJECT_VERSION, server, EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
+				     g_lpConfig->GetSetting("sslkey_file", "", nullptr),
+				     g_lpConfig->GetSetting("sslkey_pass", "", nullptr));
 			}
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to open admin session for archive access: 0x%08X", hr);
@@ -2590,8 +2592,8 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 	if (lpUserSession)
 		hr = lpUserSession->QueryInterface(IID_IMAPISession, &~lpSession);
 	else
-		hr = HrOpenECAdminSession(&~lpSession, "spooler/dagent/delivery:system",
-		     PROJECT_SVN_REV_STR, strServer.c_str(),
+		hr = HrOpenECAdminSession(&~lpSession, "dagent/delivery:system",
+		     PROJECT_VERSION, strServer.c_str(),
 		     EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
 		     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 		     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
@@ -3316,7 +3318,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	}
 	sc = new StatsClient(g_lpLogger);
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent LMTP mode version " PROJECT_VERSION_DAGENT_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	ec_log_info("Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
 	pollfd.fd = ulListenLMTP;
 	pollfd.events = POLLIN | POLLRDHUP;
 
@@ -3743,8 +3745,7 @@ int main(int argc, char *argv[]) {
 			break;
 
 		case 'V':
-			cout << "Product version:\t" <<  PROJECT_VERSION_DAGENT_STR << endl
-				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
+			cout << "kopano-dagent " PROJECT_VERSION << endl;
 			return EX_USAGE;
 		case 'R':
 			sDeliveryArgs.bResolveAddress = true;

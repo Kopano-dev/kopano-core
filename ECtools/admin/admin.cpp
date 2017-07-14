@@ -2571,8 +2571,7 @@ int main(int argc, char* argv[])
 			break;
 		case OPT_VERSION:
 		case 'V':
-			cout << "Product version:\t" << PROJECT_VERSION_PROFADMIN_STR << endl
-			     << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
+			cout << "kopano-admin " PROJECT_VERSION << endl;
 			return EXIT_SUCCESS;
 		case OPT_SELECT_NODE:
 			node = validateInput(optarg);
@@ -2944,7 +2943,7 @@ int main(int argc, char* argv[])
 		path = GetServerUnixSocket(path);
 	}
 
-	hr = HrOpenECAdminSession(&~lpSession, "admin", PROJECT_SVN_REV_STR,
+	hr = HrOpenECAdminSession(&~lpSession, "admin", PROJECT_VERSION,
 	     path, EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
 	     lpsConfig->GetSetting("sslkey_file", "", NULL),
 	     lpsConfig->GetSetting("sslkey_pass", "", NULL));

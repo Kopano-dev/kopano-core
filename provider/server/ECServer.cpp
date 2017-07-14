@@ -175,8 +175,7 @@ static void process_signal(int sig)
 
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(g_lpLogger, "Server",
-		PROJECT_VERSION_SERVER_STR, signr, si, uc);
+	generic_sigsegv_handler(g_lpLogger, "kopano-server", PROJECT_VERSION, signr, si, uc);
 }
 
 static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
@@ -680,9 +679,9 @@ int main(int argc, char* argv[])
 			config = optarg;
 			break;
 		case OPT_HELP:
-			cout << "Kopano " PROJECT_VERSION_SERVER_STR " ";
+			cout << "kopano-server " PROJECT_VERSION;
 #ifdef EMBEDDED_MYSQL
-			cout << "with embedded SQL server";
+			cout << " with embedded SQL server";
 #endif
 			cout << endl;
 			cout << argv[0] << " [options...]" << endl;
@@ -697,8 +696,7 @@ int main(int argc, char* argv[])
 			cout << "     --ignore-db-thread-stack-size           Start even if the thread_stack setting for MySQL is too low" << endl;
 			return 0;
 		case 'V':
-			cout << "Product version:\t" <<  PROJECT_VERSION_SERVER_STR << endl
-				<< "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
+			cout << "kopano-server " PROJECT_VERSION << endl;
 			return 0;
 		case 'F':
 			daemonize = 0;
@@ -994,7 +992,7 @@ static int running_server(char *szName, const char *szConfig,
 	else
 		ec_log_info("Audit logging not enabled.");
 
-	ec_log_always("Starting server version " PROJECT_VERSION_SERVER_STR ", pid %d", getpid());
+	ec_log_info("Starting kopano-server version " PROJECT_VERSION " (pid %d)", getpid());
 	if (g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig);
 

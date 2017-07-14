@@ -1,6 +1,5 @@
 AC_PREREQ(2.60)
-m4_define([xm4_pkg_version], esyscmd([tr -d '\n' <version.in]))
-AC_INIT([kopano], [xm4_pkg_version], [development@kopano.io])
+AC_INIT([kopano], [8.4.0], [development@kopano.io])
 AC_CONFIG_SRCDIR([provider/server/ECServer.cpp])
 AC_CONFIG_HEADERS([common/config.h])
 AC_CONFIG_AUX_DIR([autoconf])
@@ -21,7 +20,10 @@ AC_PROG_INSTALL
 AC_PROG_SED
 PKG_PROG_PKG_CONFIG
 
-PACKAGE_ABI=$($SED 's/\([[0-9]][[0-9]]*\.[[0-9]][[0-9]]*\).*/\1/' <"$srcdir/version.in")
+if test ! -e version || test -f version -a ! -s version; then
+	echo "$PACKAGE_VERSION" >version
+fi
+PACKAGE_ABI=$($SED 's/\([[0-9]][[0-9]]*\.[[0-9]][[0-9]]*\).*/\1/' <version)
 AC_SUBST([PACKAGE_ABI])
 AS_IF([test -z "$PACKAGE_ABI"], [AC_MSG_ERROR([Something was not right with a sed call of ours])])
 abs_top_srcdir=`cd $srcdir; pwd`
@@ -769,7 +771,6 @@ AC_CONFIG_FILES([Makefile
 		mapi4linux/src/libkchl.sym
 		provider/plugin.sym provider/provider.sym
 		provider/libkcserver.sym provider/libkcsoap.sym
-		version
 ])
 
 # Python tools

@@ -447,8 +447,7 @@ int main(int argc, char *argv[])
     }
 
 	ec_log_crit("Startup command: %s", kc_join(argc, argv, "\" \"").c_str());
-    ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Version: %s", PROJECT_VERSION_ARCHIVER_STR);
-
+	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Version %s", PROJECT_VERSION);
     lSettings = ptrArchiver->GetConfig()->GetAllSettings();
 
     ECLogger* filelogger = ptrArchiver->GetLogger(Archiver::LogOnly);
