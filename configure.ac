@@ -156,7 +156,7 @@ AC_ARG_WITH([ubsan], AS_HELP_STRING([--with-ubsan], [Activate Undefined Behavior
 	[ZCXXFLAGS="$ZCXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"])
 AC_SUBST([NO_VSYM])
 
-AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [enable debug mode (Adds debug code)]),
+AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [Enable debug mode (adds debug code, not the -g flag)]),
   [want_debug=${enableval}],[want_debug=no])
 if test "$want_debug" = "yes"; then
     DEBUGFLAGS="-DDEBUG"
