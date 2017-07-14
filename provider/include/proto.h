@@ -852,7 +852,7 @@ struct ns:getLicenseAuthResponse {
     unsigned int er;
 };
 struct ns:resolvePseudoUrlResponse {
-	char *lpszServerPath;
+	const char *lpszServerPath;
 	bool bIsPeer;
 	unsigned int er;
 	//resolvePseudoUrlResponse();
@@ -987,8 +987,8 @@ struct ns:resetFolderCountResponse {
 
 #define fnevKopanoIcsChange			(fnevExtended | 0x00000001)
 
-int ns__logon(char * szUsername, char * szPassword, char * szImpersonateUser, char * szVersion, unsigned int ulCapabilities, unsigned int ulFlags, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, char *szClientApp, char *szClientAppVersion, char *szClientAppMisc, struct ns:logonResponse *lpsLogonResponse);
-int ns__ssoLogon(ULONG64 ulSessionId, char *szUsername, char * szImpersonateUser, struct xsd__base64Binary *lpInput, char *clientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, char *szClientApp, char *szClientAppVersion, char *szClientAppMisc, struct ns:ssoLogonResponse *lpsResponse);
+int ns__logon(const char *szUsername, const char *szPassword, const char *szImpersonateUser, const char *szVersion, unsigned int ulCapabilities, unsigned int ulFlags, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, const char *szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, struct ns:logonResponse *lpsLogonResponse);
+int ns__ssoLogon(ULONG64 ulSessionId, const char *szUsername, const char *szImpersonateUser, struct xsd__base64Binary *lpInput, const char *clientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, const char *szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, struct ns:ssoLogonResponse *lpsResponse);
 
 int ns__getStore(ULONG64 ulSessionId, entryId* lpsEntryId, struct ns:getStoreResponse *lpsResponse);
 int ns__getStoreName(ULONG64 ulSessionId, entryId sEntryId, struct ns:getStoreNameResponse* lpsResponse);
@@ -1005,15 +1005,15 @@ int ns__loadProp(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulObjId, un
 int ns__saveObject(ULONG64 ulSessionId, entryId sParentEntryId, entryId sEntryId, struct saveObject *lpsSaveObj, unsigned int ulFlags, unsigned int ulSyncId, struct ns:loadObjectResponse *lpsLoadObjectResponse);
 int ns__loadObject(ULONG64 ulSessionId, entryId sEntryId, struct notifySubscribe *lpsNotSubscribe, unsigned int ulFlags, struct ns:loadObjectResponse *lpsLoadObjectResponse);
 
-int ns__createFolder(ULONG64 ulSessionId, entryId sParentId, entryId* lpsNewEntryId, unsigned int ulType, char *szName, char *szComment, bool fOpenIfExists, unsigned int ulSyncId, struct xsd__base64Binary sOrigSourceKey, struct ns:createFolderResponse *lpsCreateFolderResponse);
+int ns__createFolder(ULONG64 ulSessionId, entryId sParentId, entryId *lpsNewEntryId, unsigned int ulType, const char *szName, const char *szComment, bool fOpenIfExists, unsigned int ulSyncId, struct xsd__base64Binary sOrigSourceKey, struct ns:createFolderResponse *lpsCreateFolderResponse);
 int ns__deleteObjects(ULONG64 ulSessionId, unsigned int ulFlags, struct entryList *aMessages, unsigned int ulSyncId, unsigned int *result);
 int ns__copyObjects(ULONG64 ulSessionId, struct entryList *aMessages, entryId sDestFolderId, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result);
 int ns__emptyFolder(ULONG64 ulSessionId, entryId sEntryId,  unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result);
 int ns__deleteFolder(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result);
-int ns__copyFolder(ULONG64 ulSessionId, entryId sEntryId, entryId sDestFolderId, char *lpszNewFolderName, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result);
+int ns__copyFolder(ULONG64 ulSessionId, entryId sEntryId, entryId sDestFolderId, const char *lpszNewFolderName, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result);
 int ns__setReadFlags(ULONG64 ulSessionId, unsigned int ulFlags, entryId* lpsEntryId, struct entryList *lpMessages, unsigned int ulSyncId, unsigned int *result);
-int ns__setReceiveFolder(ULONG64 ulSessionId, entryId sStoreId, entryId* lpsEntryId, char* lpszMessageClass, unsigned int *result);
-int ns__getReceiveFolder(ULONG64 ulSessionId, entryId sStoreId, char* lpszMessageClass, struct ns:receiveFolderResponse *lpsReceiveFolder);
+int ns__setReceiveFolder(ULONG64 ulSessionId, entryId sStoreId, entryId *lpsEntryId, const char *lpszMessageClass, unsigned int *result);
+int ns__getReceiveFolder(ULONG64 ulSessionId, entryId sStoreId, const char *lpszMessageClass, struct ns:receiveFolderResponse *lpsReceiveFolder);
 int ns__getReceiveFolderTable(ULONG64 ulSessionId, entryId sStoreId, struct ns:receiveFolderTableResponse *lpsReceiveFolderTable);
 
 int ns__getMessageStatus(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags, struct ns:messageStatus* lpsStatus);
@@ -1057,7 +1057,7 @@ int ns__isMessageInQueue(ULONG64 ulSessionId, entryId sEntryId, unsigned int *re
 
 // Get user ID / store for username (username == NULL for current user)
 int ns__resolveStore(ULONG64 ulSessionId, struct xsd__base64Binary sStoreGuid, struct ns:resolveUserStoreResponse *lpsResponse);
-int ns__resolveUserStore(ULONG64 ulSessionId, char *szUserName, unsigned int ulStoreTypeMask, unsigned int ulFlags, struct ns:resolveUserStoreResponse *lpsResponse);
+int ns__resolveUserStore(ULONG64 ulSessionId, const char *szUserName, unsigned int ulStoreTypeMask, unsigned int ulFlags, struct ns:resolveUserStoreResponse *lpsResponse);
 
 // Actual user creation/deletion in the external user source
 int ns__createUser(ULONG64 ulSessionId, struct user *lpsUser, struct ns:setUserResponse *lpsUserSetResponse);
@@ -1092,14 +1092,14 @@ int ns__hookStore(ULONG64 ulSessionId, unsigned int ulStoreType, entryId sUserId
 int ns__unhookStore(ULONG64 ulSessionId, unsigned int ulStoreType, entryId sUserId, unsigned int ulSyncId, unsigned int *result);
 
 int ns__getOwner(ULONG64 ulSessionId, entryId sEntryId, struct ns:getOwnerResponse *lpsResponse);
-int ns__resolveUsername(ULONG64 ulSessionId,  char *lpszUsername, struct ns:resolveUserResponse *lpsResponse);
+int ns__resolveUsername(ULONG64 ulSessionId, const char *lpszUsername, struct ns:resolveUserResponse *lpsResponse);
 
 int ns__createGroup(ULONG64 ulSessionId, struct group *lpsGroup, struct ns:setGroupResponse *lpsSetGroupResponse);
 int ns__setGroup(ULONG64 ulSessionId, struct group *lpsGroup, unsigned int *result);
 int ns__getGroup(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, struct ns:getGroupResponse *lpsReponse);
 int ns__getGroupList(ULONG64 ulSessionId,  unsigned int ulCompanyId, entryId sCompanyId, struct ns:groupListResponse *lpsGroupList);
 int ns__groupDelete(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, unsigned int *result);
-int ns__resolveGroupname(ULONG64 ulSessionId,  char *lpszGroupname, struct ns:resolveGroupResponse *lpsResponse);
+int ns__resolveGroupname(ULONG64 ulSessionId, const char *lpszGroupname, struct ns:resolveGroupResponse *lpsResponse);
 
 int ns__deleteGroupUser(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, unsigned int ulUserId, entryId sUserId, unsigned int *result);
 int ns__addGroupUser(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, unsigned int ulUserId, entryId sUserId, unsigned int *result);
@@ -1110,7 +1110,7 @@ int ns__createCompany(ULONG64 ulSessionId, struct company *lpsCompany, struct ns
 int ns__deleteCompany(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result);
 int ns__setCompany(ULONG64 ulSessionId, struct company *lpsCompany, unsigned int *result);
 int ns__getCompany(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, struct ns:getCompanyResponse *lpsResponse);
-int ns__resolveCompanyname(ULONG64 ulSessionId, char *lpszCompanyname, struct ns:resolveCompanyResponse *lpsResponse);
+int ns__resolveCompanyname(ULONG64 ulSessionId, const char *lpszCompanyname, struct ns:resolveCompanyResponse *lpsResponse);
 int ns__getCompanyList(ULONG64 ulSessionId, struct ns:companyListResponse *lpsCompanyList);
 
 int ns__addCompanyToRemoteViewList(ULONG64 ecSessionId, unsigned int ulSetCompanyId, entryId sSetCompanyId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result);
@@ -1156,7 +1156,7 @@ int ns__getLicenseCapa(ULONG64 ulSessionId, unsigned int ulServiceType, struct n
 int ns__getLicenseUsers(ULONG64 ulSessionId, unsigned int ulServiceType, struct ns:getLicenseUsersResponse *lpsResponse);
 
 // Multi Server
-int ns__resolvePseudoUrl(ULONG64 ulSessionId, char *lpszPseudoUrl, struct ns:resolvePseudoUrlResponse* lpsResponse);
+int ns__resolvePseudoUrl(ULONG64 ulSessionId, const char *lpszPseudoUrl, struct ns:resolvePseudoUrlResponse *lpsResponse);
 int ns__getServerDetails(ULONG64 ulSessionId, struct mv_string8 szaSvrNameList, unsigned int ulFlags, struct ns:getServerDetailsResponse* lpsResponse);
 
 // Server Behavior, legacy calls for 6.30 clients, unused and may be removed in the future
