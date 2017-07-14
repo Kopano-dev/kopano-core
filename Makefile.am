@@ -510,8 +510,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECABObjectTable.cpp provider/libserver/ECABObjectTable.h \
 	provider/libserver/ECAttachmentStorage.cpp provider/libserver/ECAttachmentStorage.h \
 	provider/libserver/ECCacheManager.cpp provider/libserver/ECCacheManager.h \
-	provider/libserver/ECConvenientDepthABObjectTable.cpp \
-	provider/libserver/ECConvenientDepthABObjectTable.h \
 	provider/libserver/ECConvenientDepthObjectTable.cpp \
 	provider/libserver/ECConvenientDepthObjectTable.h \
 	provider/libserver/ECConversion.cpp provider/libserver/ECConversion.h \
