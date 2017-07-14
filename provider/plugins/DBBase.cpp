@@ -509,14 +509,12 @@ objectsignature_t DBPlugin::createObject(const objectdetails_t &details)
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	objectid = details.GetPropObject(OB_PROP_O_EXTERNID);
-	if (!objectid.id.empty()) {
+	if (!objectid.id.empty())
 		// Offline "force" create object
 		CreateObjectWithExternId(objectid, details);
-
-	} else {
+	else
 		// kopano-admin online create object
 		objectid = CreateObject(details);
-	}
 
 	// Insert all properties into the database
 	changeObject(objectid, details, NULL);
@@ -566,44 +564,39 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 				"DELETE FROM " + (string)DB_OBJECT_RELATION_TABLE + " "
 				"WHERE objectid IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
-			if (er != erSuccess){
-				//ignore error
-			}
+			if (er != erSuccess)
+				;//ignore error
 
 			strQuery =
 				"DELETE FROM " + (string)DB_OBJECT_RELATION_TABLE + " "
 				"WHERE parentobjectid IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
-			if (er != erSuccess){
-				//ignore error
-			}
+			if (er != erSuccess)
+				;//ignore error
 
 			// delete object properties
 			strQuery =
 				"DELETE FROM " + (string)DB_OBJECTPROPERTY_TABLE + " "
 				"WHERE objectid IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
-			if (er != erSuccess){
-				//ignore error
-			}
+			if (er != erSuccess)
+				;//ignore error
 
 			// delete objects themselves
 			strQuery =
 				"DELETE FROM " + (string)DB_OBJECT_TABLE + " "
 				"WHERE id IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
-			if (er != erSuccess){
-				//ignore error
-			}
+			if (er != erSuccess)
+				;//ignore error
 		}
 	}
 
 	// first delete details of user, since we need the id from the sub query, which is removed next
 	strQuery = "DELETE FROM "+(string)DB_OBJECTPROPERTY_TABLE+" WHERE objectid=("+strSubQuery+")";
 	er = m_lpDatabase->DoDelete(strQuery);
-	if (er != erSuccess){
-		// ignore error
-	}
+	if (er != erSuccess)
+		;// ignore error
 
 	// delete user from object table .. we now have no reference to the user anymore.
 	strQuery =
@@ -612,10 +605,8 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
 
 	er = m_lpDatabase->DoDelete(strQuery, &ulAffRows);
-	if(er != erSuccess){
-		//FIXME: ....
-	}
-	
+	if (er != erSuccess)
+		;//FIXME: ....
 	if (ulAffRows != 1)
 		throw objectnotfound("db_user: " + objectid.id);
 }
@@ -717,11 +708,10 @@ std::unique_ptr<signatures_t> DBPlugin::searchObjects(const std::string &match,
 		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
 			"ON op.objectid=o.id ";
     
-	if (return_prop) {
+	if (return_prop != nullptr)
 		strQuery +=
 			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS opret "
 				"ON opret.objectid=o.id ";
-	}
 
 	strQuery +=
 		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "

@@ -233,11 +233,10 @@ objectsignature_t UnixUserPlugin::resolveName(objectclass_t objclass, const stri
 	objectsignature_t user;
 	objectsignature_t group;
 
-	if (company.id.empty()) {
+	if (company.id.empty())
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
-	} else {
+	else
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
-	}
 
 	switch (OBJECTCLASS_TYPE(objclass)) {
 	case OBJECTTYPE_UNKNOWN:
@@ -322,15 +321,14 @@ bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, uns
 	bool matched = false;
 
 	// username or fullname
-	if(ulFlags & EMS_AB_ADDRESS_LOOKUP) {
+	if (ulFlags & EMS_AB_ADDRESS_LOOKUP)
 		matched =
 			(strcasecmp(pw->pw_name, (char*)match.c_str()) == 0) ||
 			(strcasecmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str()) == 0);
-	} else {
+	else
 		matched =
 			(strncasecmp(pw->pw_name, (char*)match.c_str(), match.size()) == 0) ||
 			(strncasecmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str(), match.size()) == 0);
-	}
 
 	if (matched)
 		return matched;
@@ -917,11 +915,10 @@ UnixUserPlugin::objectdetailsFromPwent(struct passwd *pw)
 
 	// gecos may contain room/phone number etc. too
 	comma = gecos.find(",");
-	if (comma != string::npos) {
+	if (comma != string::npos)
 		ud->SetPropString(OB_PROP_S_FULLNAME, gecos.substr(0,comma));
-	} else {
+	else
 		ud->SetPropString(OB_PROP_S_FULLNAME, gecos);
-	}
 
 	if (!strcmp(pw->pw_passwd, "x")) {
 		// shadow password entry
