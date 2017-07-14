@@ -19,8 +19,14 @@ from .errors import NotFoundError, DuplicateError
 from .compat import fake_unicode as _unicode
 
 if sys.hexversion >= 0x03000000:
-    from . import server as _server
-    from . import user as _user
+    try:
+        from . import server as _server
+    except ImportError:
+        _server = sys.modules[__package__+'.server']
+    try:
+        from . import user as _user
+    except ImportError:
+        _user = sys.modules[__package__+'.user']
 else:
     import server as _server
     import user as _user

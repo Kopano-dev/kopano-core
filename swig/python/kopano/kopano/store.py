@@ -63,10 +63,16 @@ from .compat import (
 
 if sys.hexversion >= 0x03000000:
     from . import server as _server
-    from . import user as _user
+    try:
+        from . import user as _user
+    except ImportError:
+        _user = sys.modules[__package__+'.user']
     from . import folder as _folder
     from . import item as _item
-    from . import utils as _utils
+    try:
+        from . import utils as _utils
+    except ImportError:
+        _utils = sys.modules[__package__+'.utils']
 else:
     import server as _server
     import user as _user

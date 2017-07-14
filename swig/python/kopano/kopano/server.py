@@ -54,10 +54,19 @@ from .compat import (
 )
 
 if sys.hexversion >= 0x03000000:
-    from . import user as _user
-    from . import config as _config
+    try:
+        from . import user as _user
+    except ImportError:
+        _user = sys.modules[__package__+'.user']
+    try:
+        from . import config as _config
+    except ImportError:
+        _config = sys.modules[__package__+'.config']
     from . import ics as _ics
-    from . import store as _store
+    try:
+        from . import store as _store
+    except ImportError:
+        _store = sys.modules[__package__+'.store']
 else:
     import user as _user
     import config as _config

@@ -86,9 +86,18 @@ from .table import Table
 
 if sys.hexversion >= 0x03000000:
     from . import folder as _folder
-    from . import store as _store
-    from . import user as _user
-    from . import utils as _utils
+    try:
+        from . import store as _store
+    except ImportError:
+        _store = sys.modules[__package__+'.store']
+    try:
+        from . import user as _user
+    except ImportError:
+        _user = sys.modules[__package__+'.user']
+    try:
+        from . import utils as _utils
+    except ImportError:
+        _utils = sys.modules[__package__+'.utils']
     from . import prop as _prop
 else:
     import folder as _folder
