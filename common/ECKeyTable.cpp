@@ -994,13 +994,12 @@ int ECKeyTable::GetBalance(ECTableRow *lpPivot)
 {
 	int balance = 0;
 
-	if(lpPivot) {
-		if(lpPivot->lpLeft)
-			balance += lpPivot->lpLeft->ulHeight;
-		if(lpPivot->lpRight)
-			balance -= lpPivot->lpRight->ulHeight;
-	}
-
+	if (lpPivot == nullptr)
+		return 0;
+	if(lpPivot->lpLeft)
+		balance += lpPivot->lpLeft->ulHeight;
+	if(lpPivot->lpRight)
+		balance -= lpPivot->lpRight->ulHeight;
 	return balance;
 }
 
