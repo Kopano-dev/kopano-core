@@ -32,6 +32,16 @@ namespace KC {
  */
 ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::string &strPassword, std::string *lpstrError);
 
+/**
+ * Authenticate a user through a PAM service
+ * @param szPamService The PAM service name which exists in /etc/pam.d/
+ * @param strUsername Username
+ * @param strPassword Password
+ * @param *lpstrError On error, an error string will be returned
+ * @return erSuccess, KCERR_LOGON_FAILURE or other error
+ */
+extern ECRESULT ECPAMAuthenticateUser(const char *service, const std::string &user, const std::string &pass, std::string *error);
+
 } /* namespace */
 
 #endif

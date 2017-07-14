@@ -534,7 +534,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECMultiStoreTable.cpp provider/libserver/ECMultiStoreTable.h \
 	provider/libserver/ECNotification.cpp provider/libserver/ECNotification.h \
 	provider/libserver/ECNotificationManager.cpp provider/libserver/ECNotificationManager.h \
-	provider/libserver/ECPamAuth.cpp provider/libserver/ECPamAuth.h \
 	provider/libserver/ECPluginFactory.cpp provider/libserver/ECPluginFactory.h \
 	provider/libserver/ECPluginSharedData.cpp \
 	provider/libserver/ECS3Attachment.cpp provider/libserver/ECS3Attachment.h \

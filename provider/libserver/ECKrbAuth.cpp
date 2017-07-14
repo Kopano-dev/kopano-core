@@ -18,7 +18,8 @@
 #include "ECKrbAuth.h"
 #ifndef HAVE_KRB5
 namespace KC {
-ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::string &strPassword, std::string *lpstrError)
+ECRESULT ECKrb5AuthenticateUser(const std::string &user,
+    const std::string &pass, std::string *lpstrError)
 {
 	*lpstrError = "Server is not compiled with kerberos support.";
 	return KCERR_NO_SUPPORT;
@@ -75,22 +76,82 @@ ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::strin
 		er = KCERR_LOGON_FAILED;
 		goto exit;
 	} 
-
 exit:
 	if (name)
 		krb5_free_unparsed_name(ctx, name);
-
 	if (me)
 		krb5_free_principal(ctx, me);
-
 	if (ctx)
 		krb5_free_context(ctx);
-
 	memset(&ctx, 0, sizeof(ctx));
 	memset(&me, 0, sizeof(me));
-
 	return er;
 }
 
 } /* namespace */
-#endif
+#endif /* HAVE_KRB5 */
+
+#ifndef HAVE_PAM
+namespace KC {
+ECRESULT ECPAMAuthenticateUser(const char *szPamService,
+    const std::string &strUsername, const std::string &strPassword,
+    std::string *lpstrError)
+{
+	*lpstrError = "Server is not compiled with pam support.";
+	return KCERR_NO_SUPPORT;
+}
+}
+#else
+#include <security/pam_appl.h>
+
+namespace KC {
+
+static int converse(int num_msg, const struct pam_message **msg,
+    struct pam_response **resp, void *appdata_ptr)
+{
+	auto password = static_cast<const char *>(appdata_ptr);
+
+	if (!resp || !msg || !password)
+		return PAM_CONV_ERR;
+	auto response = static_cast<struct pam_response *>(malloc(num_msg * sizeof(**resp)));
+	if (!response)
+		return PAM_BUF_ERR;
+
+	for (int i = 0; i < num_msg; ++i) {
+		response[i].resp_retcode = 0;
+		response[i].resp = 0;
+
+		if (msg[i]->msg_style == PAM_PROMPT_ECHO_OFF) {
+			response[i].resp = strdup(password);
+		} else {
+			free(response);
+			return PAM_CONV_ERR;
+		}
+	}
+
+	*resp = response;
+	return PAM_SUCCESS;
+}
+
+ECRESULT ECPAMAuthenticateUser(const char *szPamService,
+    const std::string &strUsername, const std::string &strPassword,
+    std::string *lpstrError)
+{
+	pam_handle_t *pamh = nullptr;
+	struct pam_conv conv_info = {&converse, const_cast<char *>(strPassword.c_str())};
+	auto res = pam_start(szPamService, strUsername.c_str(), &conv_info, &pamh);
+	if (res != PAM_SUCCESS) {
+		*lpstrError = pam_strerror(nullptr, res);
+		return KCERR_LOGON_FAILED;
+	}
+	res = pam_authenticate(pamh, PAM_SILENT);
+	pam_end(pamh, res);
+	if (res != PAM_SUCCESS) {
+		*lpstrError = pam_strerror(nullptr, res);
+		return KCERR_LOGON_FAILED;
+	}
+	return erSuccess;
+}
+
+} /* namespace */
+#endif /* HAVE_PAM */
