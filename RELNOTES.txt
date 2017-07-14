@@ -5,6 +5,7 @@ Fixes:
 * server: fix depth level count for attachments [KC-745]
 * common: fix incorrect condition in scheduler [KC-638]
   Fixes timing of softdeletes, sync-table cleanups, kopano-monitor.
+* server: disable reminders from shared stores [KC-728]
 Changes:
 * server: build with libs3 4.1 [KC-751]
 
