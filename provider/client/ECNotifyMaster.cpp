@@ -110,18 +110,6 @@ HRESULT ECNotifyMaster::AddSession(ECNotifyClient* lpClient)
 	return hrSuccess;
 }
 
-struct findConnectionClient
-{
-	ECNotifyClient* lpClient;
-
-	findConnectionClient(ECNotifyClient* lpClient) : lpClient(lpClient) {}
-
-	bool operator()(const NOTIFYCONNECTIONCLIENTMAP::value_type &entry) const
-	{
-		return entry.second.IsClient(lpClient);
-	}
-};
-
 HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 {
 	scoped_rlock biglock(m_hMutex);
@@ -129,7 +117,7 @@ HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 	/* Remove all connections attached to client */
 	auto iter = m_mapConnections.cbegin();
 	while (true) {
-		iter = find_if(iter, m_mapConnections.cend(), findConnectionClient(lpClient));
+		iter = find_if(iter, m_mapConnections.cend(), [lpClient](const NOTIFYCONNECTIONCLIENTMAP::value_type &entry) { return entry.second.IsClient(lpClient); });
 		if (iter == m_mapConnections.cend())
 			break;
 		m_mapConnections.erase(iter++);
