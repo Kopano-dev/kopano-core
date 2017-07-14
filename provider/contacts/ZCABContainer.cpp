@@ -331,35 +331,30 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 			memset(lpColData, 0, sizeof(lpColData));
 
-			if (ptrRows[i].lpProps[I_MV_INDEX].ulPropTag == (ptrNameTags->aulPropTag[0] & ~MVI_FLAG)) {
+			auto props = ptrRows[i].lpProps;
+			if (props[I_MV_INDEX].ulPropTag == (ptrNameTags->aulPropTag[0] & ~MVI_FLAG)) {
 				// do not index outside named properties
-				if (ptrRows[i].lpProps[I_MV_INDEX].Value.ul > 5)
+				if (props[I_MV_INDEX].Value.ul > 5)
 					continue;
-				ulOffset = ptrRows[i].lpProps[I_MV_INDEX].Value.ul * 5;
+				ulOffset = props[I_MV_INDEX].Value.ul * 5;
 			}
 
-			if (PROP_TYPE(ptrRows[i].lpProps[I_MESSAGE_CLASS].ulPropTag) == PT_ERROR)
+			if (PROP_TYPE(props[I_MESSAGE_CLASS].ulPropTag) == PT_ERROR)
 				// no PR_MESSAGE_CLASS, unusable
 				continue;
 
-			if (
-				((ulFlags & MAPI_UNICODE) && wcscasecmp(ptrRows[i].lpProps[I_MESSAGE_CLASS].Value.lpszW, L"IPM.Contact") == 0) ||
-				((ulFlags & MAPI_UNICODE) == 0 && strcasecmp(ptrRows[i].lpProps[I_MESSAGE_CLASS].Value.lpszA, "IPM.Contact") == 0)
-				)
-			{
+			if (((ulFlags & MAPI_UNICODE) && wcscasecmp(props[I_MESSAGE_CLASS].Value.lpszW, L"IPM.Contact") == 0) ||
+			    ((ulFlags & MAPI_UNICODE) == 0 && strcasecmp(props[I_MESSAGE_CLASS].Value.lpszA, "IPM.Contact") == 0)) {
 				lpColData[O_DISPLAY_TYPE].ulPropTag = PR_DISPLAY_TYPE;
 				lpColData[O_DISPLAY_TYPE].Value.ul = DT_MAILUSER;
 
 				lpColData[O_OBJECT_TYPE].ulPropTag = PR_OBJECT_TYPE;
 				lpColData[O_OBJECT_TYPE].Value.ul = MAPI_MAILUSER;
 
-				lpColData[O_ADDRTYPE].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ADDRTYPE], PROP_TYPE(ptrRows[i].lpProps[I_NAMEDSTART + ulOffset + 1].ulPropTag));
-				lpColData[O_ADDRTYPE].Value = ptrRows[i].lpProps[I_NAMEDSTART + ulOffset + 1].Value;
-			} else if (
-					   ((ulFlags & MAPI_UNICODE) && wcscasecmp(ptrRows[i].lpProps[I_MESSAGE_CLASS].Value.lpszW, L"IPM.DistList") == 0) ||
-					   ((ulFlags & MAPI_UNICODE) == 0 && strcasecmp(ptrRows[i].lpProps[I_MESSAGE_CLASS].Value.lpszA, "IPM.DistList") == 0)
-					   )
-			{
+				lpColData[O_ADDRTYPE].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ADDRTYPE], PROP_TYPE(props[I_NAMEDSTART+ulOffset+1].ulPropTag));
+				lpColData[O_ADDRTYPE].Value = props[I_NAMEDSTART+ulOffset+1].Value;
+			} else if (((ulFlags & MAPI_UNICODE) && wcscasecmp(props[I_MESSAGE_CLASS].Value.lpszW, L"IPM.DistList") == 0) ||
+			    ((ulFlags & MAPI_UNICODE) == 0 && strcasecmp(props[I_MESSAGE_CLASS].Value.lpszA, "IPM.DistList") == 0)) {
 				lpColData[O_DISPLAY_TYPE].ulPropTag = PR_DISPLAY_TYPE;
 				lpColData[O_DISPLAY_TYPE].Value.ul = DT_PRIVATE_DISTLIST;
 
@@ -374,7 +369,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 			// divide by 5 since a block of properties on a contact is a set of 5 (see mnNamedProps above)
 			memory_ptr<ENTRYID> wrapped_eid;
-			hr = MakeWrappedEntryID(ptrRows[i].lpProps[I_ENTRYID].Value.bin.cb, (LPENTRYID)ptrRows[i].lpProps[I_ENTRYID].Value.bin.lpb,
+			hr = MakeWrappedEntryID(props[I_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(props[I_ENTRYID].Value.bin.lpb),
 									lpColData[O_OBJECT_TYPE].Value.ul, ulOffset/5,
 						&lpColData[O_ENTRYID].Value.bin.cb, &~wrapped_eid);
 			if (hr != hrSuccess)
@@ -384,44 +379,39 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 			ulOffset += I_NAMEDSTART;
 
-			lpColData[O_DISPLAY_NAME].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_DISPLAY_NAME], PROP_TYPE(ptrRows[i].lpProps[ulOffset + 0].ulPropTag));
+			lpColData[O_DISPLAY_NAME].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_DISPLAY_NAME], PROP_TYPE(props[ulOffset+0].ulPropTag));
 			if (PROP_TYPE(lpColData[O_DISPLAY_NAME].ulPropTag) == PT_ERROR)
 				// Email#Display not available, fallback to normal PR_DISPLAY_NAME
-				lpColData[O_DISPLAY_NAME] = ptrRows[i].lpProps[I_DISPLAY_NAME];
+				lpColData[O_DISPLAY_NAME] = props[I_DISPLAY_NAME];
 			else
-				lpColData[O_DISPLAY_NAME].Value = ptrRows[i].lpProps[ulOffset + 0].Value;
+				lpColData[O_DISPLAY_NAME].Value = props[ulOffset + 0].Value;
 
-			lpColData[O_EMAIL_ADDRESS].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_EMAIL_ADDRESS], PROP_TYPE(ptrRows[i].lpProps[ulOffset + 2].ulPropTag));
+			lpColData[O_EMAIL_ADDRESS].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_EMAIL_ADDRESS], PROP_TYPE(props[ulOffset+2].ulPropTag));
 			if (PROP_TYPE(lpColData[O_EMAIL_ADDRESS].ulPropTag) == PT_ERROR)
 				// Email#Address not available, fallback to normal PR_EMAIL_ADDRESS
-				lpColData[O_EMAIL_ADDRESS] = ptrRows[i].lpProps[I_EMAIL_ADDRESS];
+				lpColData[O_EMAIL_ADDRESS] = props[I_EMAIL_ADDRESS];
 			else
-				lpColData[O_EMAIL_ADDRESS].Value = ptrRows[i].lpProps[ulOffset + 2].Value;
+				lpColData[O_EMAIL_ADDRESS].Value = props[ulOffset+2].Value;
 
-			lpColData[O_NORMALIZED_SUBJECT].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_NORMALIZED_SUBJECT], PROP_TYPE(ptrRows[i].lpProps[ulOffset + 3].ulPropTag));
+			lpColData[O_NORMALIZED_SUBJECT].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_NORMALIZED_SUBJECT], PROP_TYPE(props[ulOffset+3].ulPropTag));
 			if (PROP_TYPE(lpColData[O_NORMALIZED_SUBJECT].ulPropTag) == PT_ERROR)
 				// Email#OriginalDisplayName not available, fallback to normal PR_NORMALIZED_SUBJECT
-				lpColData[O_NORMALIZED_SUBJECT] = ptrRows[i].lpProps[I_NORMALIZED_SUBJECT];
+				lpColData[O_NORMALIZED_SUBJECT] = props[I_NORMALIZED_SUBJECT];
 			else
-				lpColData[O_NORMALIZED_SUBJECT].Value = ptrRows[i].lpProps[ulOffset + 3].Value;
+				lpColData[O_NORMALIZED_SUBJECT].Value = props[ulOffset+3].Value;
 
-			lpColData[O_ORIGINAL_DISPLAY_NAME].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ORIGINAL_DISPLAY_NAME], PROP_TYPE(ptrRows[i].lpProps[I_DISPLAY_NAME].ulPropTag));
-			lpColData[O_ORIGINAL_DISPLAY_NAME].Value = ptrRows[i].lpProps[I_DISPLAY_NAME].Value;
-
-			lpColData[O_ZC_ORIGINAL_ENTRYID].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ZC_ORIGINAL_ENTRYID], PROP_TYPE(ptrRows[i].lpProps[I_ENTRYID].ulPropTag));
-			lpColData[O_ZC_ORIGINAL_ENTRYID].Value = ptrRows[i].lpProps[I_ENTRYID].Value;
-
-			lpColData[O_ZC_ORIGINAL_PARENT_ENTRYID].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ZC_ORIGINAL_PARENT_ENTRYID], PROP_TYPE(ptrRows[i].lpProps[I_PARENT_ENTRYID].ulPropTag));
-			lpColData[O_ZC_ORIGINAL_PARENT_ENTRYID].Value = ptrRows[i].lpProps[I_PARENT_ENTRYID].Value;
-
-			lpColData[O_ZC_ORIGINAL_SOURCE_KEY].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ZC_ORIGINAL_SOURCE_KEY], PROP_TYPE(ptrRows[i].lpProps[I_SOURCE_KEY].ulPropTag));
-			lpColData[O_ZC_ORIGINAL_SOURCE_KEY].Value = ptrRows[i].lpProps[I_SOURCE_KEY].Value;
-
-			lpColData[O_ZC_ORIGINAL_PARENT_SOURCE_KEY].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ZC_ORIGINAL_PARENT_SOURCE_KEY], PROP_TYPE(ptrRows[i].lpProps[I_PARENT_SOURCE_KEY].ulPropTag));
-			lpColData[O_ZC_ORIGINAL_PARENT_SOURCE_KEY].Value = ptrRows[i].lpProps[I_PARENT_SOURCE_KEY].Value;
-
-			lpColData[O_ZC_ORIGINAL_CHANGE_KEY].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ZC_ORIGINAL_CHANGE_KEY], PROP_TYPE(ptrRows[i].lpProps[I_CHANGE_KEY].ulPropTag));
-			lpColData[O_ZC_ORIGINAL_CHANGE_KEY].Value = ptrRows[i].lpProps[I_CHANGE_KEY].Value;
+			lpColData[O_ORIGINAL_DISPLAY_NAME].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ORIGINAL_DISPLAY_NAME], PROP_TYPE(props[I_DISPLAY_NAME].ulPropTag));
+			lpColData[O_ORIGINAL_DISPLAY_NAME].Value = props[I_DISPLAY_NAME].Value;
+			lpColData[O_ZC_ORIGINAL_ENTRYID].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ZC_ORIGINAL_ENTRYID], PROP_TYPE(props[I_ENTRYID].ulPropTag));
+			lpColData[O_ZC_ORIGINAL_ENTRYID].Value = props[I_ENTRYID].Value;
+			lpColData[O_ZC_ORIGINAL_PARENT_ENTRYID].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ZC_ORIGINAL_PARENT_ENTRYID], PROP_TYPE(props[I_PARENT_ENTRYID].ulPropTag));
+			lpColData[O_ZC_ORIGINAL_PARENT_ENTRYID].Value = props[I_PARENT_ENTRYID].Value;
+			lpColData[O_ZC_ORIGINAL_SOURCE_KEY].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ZC_ORIGINAL_SOURCE_KEY], PROP_TYPE(props[I_SOURCE_KEY].ulPropTag));
+			lpColData[O_ZC_ORIGINAL_SOURCE_KEY].Value = props[I_SOURCE_KEY].Value;
+			lpColData[O_ZC_ORIGINAL_PARENT_SOURCE_KEY].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ZC_ORIGINAL_PARENT_SOURCE_KEY], PROP_TYPE(props[I_PARENT_SOURCE_KEY].ulPropTag));
+			lpColData[O_ZC_ORIGINAL_PARENT_SOURCE_KEY].Value = props[I_PARENT_SOURCE_KEY].Value;
+			lpColData[O_ZC_ORIGINAL_CHANGE_KEY].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ZC_ORIGINAL_CHANGE_KEY], PROP_TYPE(props[I_CHANGE_KEY].ulPropTag));
+			lpColData[O_ZC_ORIGINAL_CHANGE_KEY].Value = props[I_CHANGE_KEY].Value;
 
 			// @note, outlook seems to set the gab original search key (if possible, otherwise SMTP). The IMessage contact in the folder contains some unusable binary blob.
 			if (PROP_TYPE(lpColData[O_ADDRTYPE].ulPropTag) == PT_STRING8 &&
