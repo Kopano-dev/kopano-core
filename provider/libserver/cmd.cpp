@@ -3286,17 +3286,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 	unsigned int	timeTags [] = { PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME };
 	time_t			now = 0;
 	struct propVal  sProp;
-	struct hiloLong sHilo;
-
-	// Search folder creation is only allowed in shared store if 'external_searchfolders' setting is enabled
-
-	if (type == FOLDER_SEARCH &&
-	    lpecSession->GetSecurity()->IsStoreOwner(ulParentId) != erSuccess &&
-	    strcasecmp(g_lpSessionManager->GetConfig()->GetSetting("external_searchfolders"), "no") == 0 &&
-	    (lpecSession->GetSecurity()->IsAdminOverOwnerOfObject(ulParentId) != erSuccess)) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
+    struct hiloLong sHilo;
 
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulParentId, &ulStoreId, &guid);
 	if(er != erSuccess)
