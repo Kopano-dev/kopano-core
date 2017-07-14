@@ -235,7 +235,6 @@ exit:
  */
 bool DuplicateFile(FILE *lpFile, std::string &strFileName)
 {
-	bool bResult = true;
 	size_t	ulReadsize = 0;
 	std::unique_ptr<char[]> lpBuffer;
 
@@ -243,8 +242,7 @@ bool DuplicateFile(FILE *lpFile, std::string &strFileName)
 	std::unique_ptr<FILE, file_deleter> pfNew(fopen(strFileName.c_str(), "wb"));
 	if(pfNew == NULL) {
 		ec_log_err("Unable to create file %s: %s", strFileName.c_str(), strerror(errno));
-		bResult = false;
-		goto exit;
+		return false;
 	}
 
 	// Set file pointer at the begin.
@@ -260,18 +258,14 @@ bool DuplicateFile(FILE *lpFile, std::string &strFileName)
 		ulReadsize = fread(lpBuffer.get(), 1, BLOCKSIZE, lpFile);
 		if (ferror(lpFile)) {
 			ec_log_crit("DuplicateFile: fread: %s", strerror(errno));
-			bResult = false;
-			goto exit;
+			return false;
 		}
 		if (fwrite(lpBuffer.get(), 1, ulReadsize, pfNew.get()) != ulReadsize) {
 			ec_log_crit("Error during write to \"%s\": %s", strFileName.c_str(), strerror(errno));
-			bResult = false;
-			goto exit;
+			return false;
 		}
 	}
-
-exit:
-	return bResult;
+	return true;
 }
 
 } /* namespace */
