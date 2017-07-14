@@ -511,7 +511,6 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		{8, {PR_MDB_PROVIDER, PR_INSTANCE_KEY, PR_RECORD_KEY,
 		PR_ENTRYID, PR_DISPLAY_NAME_A, PR_OBJECT_TYPE,
 		PR_RESOURCE_TYPE, PR_PROVIDER_UID}};
-	ulock_rec l_srv(msa->m_mutexserviceadmin);
 
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
 	if(hr != hrSuccess)
@@ -521,6 +520,7 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		return hr;
 	
 	// Loop through all providers, add each to the table
+	ulock_rec l_srv(msa->m_mutexserviceadmin);
 	for (auto &prov : msa->providers) {
 		memory_ptr<SPropValue> lpsProps, lpDest;
 

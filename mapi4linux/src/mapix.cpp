@@ -210,7 +210,6 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	int n = 0;
 	std::wstring wDisplayName;
 	SizedSPropTagArray(2, sptaProfileCols) = {2, {PR_DEFAULT_PROFILE, PR_DISPLAY_NAME}};
-	ulock_rec l_prof(m_mutexProfiles);
 
 	if (ulFlags & MAPI_UNICODE)
 		sptaProfileCols.aulPropTag[1] = CHANGE_PROP_TYPE(PR_DISPLAY_NAME_W, PT_UNICODE);
@@ -221,6 +220,7 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	if(hr != hrSuccess)
 		return hr;
 
+	ulock_rec l_prof(m_mutexProfiles);
 	for (auto &prof : profiles) {
 		sProps[0].ulPropTag = PR_DEFAULT_PROFILE;
 		sProps[0].Value.b = false; //FIXME: support setDefaultProfile
@@ -474,7 +474,6 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 		{3, {PR_SERVICE_UID, PR_SERVICE_NAME_W, PR_DISPLAY_NAME_W}};
 	static constexpr const SizedSPropTagArray(3, sptaProviderColsAscii) =
 		{3, {PR_SERVICE_UID, PR_SERVICE_NAME_A, PR_DISPLAY_NAME_A}};
-	ulock_rec l_srv(m_mutexserviceadmin);
 
 	if (ulFlags & MAPI_UNICODE)
 		hr = ECMemTable::Create(sptaProviderColsUnicode, PR_ROWID, &~lpTable);
@@ -486,6 +485,7 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	}
 	
 	// Loop through all providers, add each to the table
+	ulock_rec l_srv(m_mutexserviceadmin);
 	for (auto &serv : services) {
 		sProps[0].ulPropTag = PR_SERVICE_UID;
 		sProps[0].Value.bin.lpb = reinterpret_cast<BYTE *>(&serv->muid);
@@ -825,8 +825,18 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 	SizedSPropTagArray(11, sptaProviderCols) = {11, {PR_MDB_PROVIDER, PR_AB_PROVIDER_ID, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ENTRYID,
 												   PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_PROVIDER_UID, PR_RESOURCE_TYPE,
 												   PR_PROVIDER_DISPLAY_A, PR_SERVICE_UID}};
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
+	if (hr != hrSuccess) {
+		ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): Util::HrCopyUnicodePropTagArray fail %x: %s", hr, GetMAPIErrorMessage(hr));
+		return hr;
+	}
+	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpTable);
+	if (hr != hrSuccess) {
+		ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): ECMemTable::Create fail %x: %s", hr, GetMAPIErrorMessage(hr));
+		return hr;
+	}
+
 	ulock_rec l_srv(m_mutexserviceadmin);
-	
 	for (auto &serv : services) {
 		if (serv->bInitialize)
 			continue;
@@ -841,17 +851,6 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 		serv->bInitialize = true;
 	}
 
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
-	if(hr != hrSuccess) {
-		ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): Util::HrCopyUnicodePropTagArray fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpTable);
-	if(hr != hrSuccess) {
-		ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): ECMemTable::Create fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-	
 	// Loop through all providers, add each to the table
 	for (auto &prov : providers) {
 		memory_ptr<SPropValue> lpDest, lpsProps;
@@ -947,7 +946,6 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	SizedSPropTagArray(11, sptaProviderCols) = {11, {PR_MDB_PROVIDER, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ENTRYID,
 												   PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_RESOURCE_TYPE, PR_PROVIDER_UID,
 												   PR_RESOURCE_FLAGS, PR_DEFAULT_STORE, PR_PROVIDER_DISPLAY_A}};
-	ulock_rec l_srv(serviceAdmin->m_mutexserviceadmin);
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
 	if(hr != hrSuccess) {
 		ec_log_err("M4LMAPISession::GetMsgStoresTable(): Util::HrCopyUnicodePropTagArray fail %x: %s", hr, GetMAPIErrorMessage(hr));
@@ -960,6 +958,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	}
 	
 	// Loop through all providers, add each to the table
+	ulock_rec l_srv(serviceAdmin->m_mutexserviceadmin);
 	for (auto &prov : serviceAdmin->providers) {
 		memory_ptr<SPropValue> lpDest, lpsProps;
 
