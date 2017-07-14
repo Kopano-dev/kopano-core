@@ -20,10 +20,68 @@
 #include "kcore.hpp"
 #include <kopano/CommonUtil.h>
 #include "ECMailUser.h"
-
+#include "ECMAPITable.h"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
+
+ECDistList::ECDistList(void *lpProvider, BOOL fModify) :
+	ECABContainer(lpProvider, MAPI_DISTLIST, fModify, "IDistList")
+{
+	// since we have no OpenProperty / abLoadProp, remove the 8k prop limit
+	this->m_ulMaxPropSize = 0;
+}
+
+HRESULT ECDistList::QueryInterface(REFIID refiid, void **lppInterface)
+{
+	REGISTER_INTERFACE2(ECDistList, this);
+	REGISTER_INTERFACE2(ECABContainer, this);
+	REGISTER_INTERFACE2(ECABProp, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IDistList, this);
+	REGISTER_INTERFACE2(IABContainer, this);
+	REGISTER_INTERFACE2(IMAPIProp, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
+}
+
+HRESULT ECDistList::Create(void *lpProvider, BOOL fModify,
+    ECDistList **lppDistList)
+{
+	return alloc_wrap<ECDistList>(lpProvider, fModify).put(lppDistList);
+}
+
+HRESULT ECDistList::TableRowGetProp(void *provider, struct propVal *src,
+    SPropValue *dst, void **base, ULONG type)
+{
+	return MAPI_E_NOT_FOUND;
+}
+
+HRESULT ECDistList::OpenProperty(ULONG ulPropTag, LPCIID lpiid,
+    ULONG ulInterfaceOptions, ULONG ulFlags, IUnknown **lppUnk)
+{
+	if (lpiid == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	return ECABProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions,
+	       ulFlags, lppUnk);
+}
+
+HRESULT ECDistList::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
+    const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
+    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
+    ULONG ulFlags, SPropProblemArray **lppProblems)
+{
+	return this->GetABStore()->m_lpMAPISup->DoCopyTo(&IID_IDistList, static_cast<IDistList *>(this), ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+}
+
+HRESULT ECDistList::CopyProps(const SPropTagArray *lpIncludeProps,
+    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
+{
+	return this->GetABStore()->m_lpMAPISup->DoCopyProps(&IID_IDistList,
+	       static_cast<IDistList *>(this), lpIncludeProps, ulUIParam,
+	       lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+}
 
 ECMailUser::ECMailUser(void* lpProvider, BOOL fModify) : ECABProp(lpProvider, MAPI_MAILUSER, fModify, "IMailUser")
 {

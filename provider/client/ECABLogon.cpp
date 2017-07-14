@@ -24,8 +24,6 @@
 
 #include "ECABContainer.h"
 #include "ECMailUser.h"
-#include "ECDistList.h"
-
 #include <kopano/ECDebug.h>
 
 #include "WSTransport.h"
