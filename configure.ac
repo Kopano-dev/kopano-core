@@ -299,14 +299,6 @@ AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
   AC_ARG_WITH([mysql-config], AS_HELP_STRING([--with-mysql-config=PATH], [path to the mysql-config script of mysql 4.1]),
     [MYSQL_CONFIG="$withval"])
 
-  AC_ARG_ENABLE([embedded-mysql], AS_HELP_STRING([--enable-embedded-mysql], [Compile server with the embedded MySQL server]),
-  [
-	EMBEDDED=1
-	ZCPPFLAGS="$ZCPPFLAGS -DEMBEDDED_MYSQL"
-  ],[
-	EMBEDDED=0
-  ])
-
   MYSQL_INCLUDES=`$MYSQL_CONFIG --include`
   if test "$EMBEDDED" -eq 1; then
     MYSQL_LIBS=`$MYSQL_CONFIG --libmysqld-libs`
