@@ -35,7 +35,7 @@ ECSyncSettings* ECSyncSettings::GetInstance()
 ECSyncSettings::ECSyncSettings(void) :
 	m_ulSyncLogLevel(EC_LOGLEVEL_INFO)
 {
-	char *env = getenv("KOPANO_SYNC_LOGLEVEL");
+	const char *env = getenv("KOPANO_SYNC_LOGLEVEL");
 	if (env && env[0] != '\0') {
 		unsigned loglevel = strtoul(env, NULL, 10);
 		if (loglevel > 0) {
