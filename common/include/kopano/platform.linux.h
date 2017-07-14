@@ -34,7 +34,6 @@
 #include <cstddef>
 #include <libgen.h>
 #include <byteswap.h>
-#include <endian.h>
 #include <cerrno>
 #include <clocale>
 
@@ -498,22 +497,6 @@ namespace KC {
 #define _dstbias 0
 
 extern _kc_export time_t GetProcessTime(void);
-
-#ifndef ntohll
-	#if __BYTE_ORDER == __LITTLE_ENDIAN
-		#define ntohll(x) __bswap_64(x)
-	#else
-		#define ntohll(x) (x)
-	#endif
-#endif
-
-#ifndef htonll
-	#if __BYTE_ORDER == __LITTLE_ENDIAN
-		#define htonll(x) __bswap_64(x)
-	#else
-		#define htonll(x) (x)
-	#endif
-#endif
 
 #define OutputDebugStringA(dstr) fprintf(stderr,"%s",dstr)
 #define kc_threadid() static_cast<unsigned long>(pthread_self())

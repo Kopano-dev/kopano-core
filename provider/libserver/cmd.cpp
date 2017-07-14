@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <utility>
+#include <cstdint>
 #include <kopano/ECChannel.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
@@ -428,7 +429,7 @@ ECRESULT ECFifoSerializer::Write(const void *ptr, size_t size, size_t nmemb)
 		break;
 	case 8:
 		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
-			tmp.ll = htonll(static_cast<const long long *>(ptr)[x]);
+			tmp.ll = cpu_to_be64(static_cast<const uint64_t *>(ptr)[x]);
 			er = m_lpBuffer->Write(&tmp, size, STR_DEF_TIMEOUT, nullptr);
 		}
 		break;
@@ -478,7 +479,7 @@ ECRESULT ECFifoSerializer::Read(void *ptr, size_t size, size_t nmemb)
 		for (size_t x = 0; x < nmemb; ++x) {
 			uint64_t tmp;
 			memcpy(&tmp, static_cast<uint64_t *>(ptr) + x, sizeof(tmp));
-			tmp = ntohll(tmp);
+			tmp = be64_to_cpu(tmp);
 			memcpy(static_cast<uint64_t *>(ptr) + x, &tmp, sizeof(tmp));
 		}
 		break;

@@ -31,6 +31,7 @@ enum {
 #include <string>
 #include <type_traits>
 #include <cstddef>
+#include <endian.h>
 #include <pthread.h>
 
 namespace KC {
@@ -125,6 +126,22 @@ template<typename T> static inline constexpr const IID &iid_of(const T &)
 {
 	return iid_of<typename std::remove_cv<typename std::remove_pointer<T>::type>::type>();
 }
+
+#if __BYTE_ORDER == __BIG_ENDIAN
+#	define cpu_to_le16(x) __builtin_bswap16(x)
+#	define cpu_to_le32(x) __builtin_bswap32(x)
+#	define cpu_to_be64(x) (x)
+#	define le16_to_cpu(x) __builtin_bswap16(x)
+#	define le32_to_cpu(x) __builtin_bswap32(x)
+#	define be64_to_cpu(x) (x)
+#else
+#	define cpu_to_le16(x) (x)
+#	define cpu_to_le32(x) (x)
+#	define cpu_to_be64(x) __builtin_bswap64(x)
+#	define le16_to_cpu(x) (x)
+#	define le32_to_cpu(x) (x)
+#	define be64_to_cpu(x) __builtin_bswap64(x)
+#endif
 
 } /* namespace */
 
