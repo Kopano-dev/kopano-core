@@ -599,12 +599,6 @@ AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
 LIBKRB5_WITH_KRB5_CONFIG
 AM_CONDITIONAL([WITH_KRB5], [test "$KRB5_LIBS" != ""])
 
-# libcurl for report
-if ! test "$want_oss" = "yes"; then
-AC_CHECK_LIB([curl], [curl_easy_perform], [CURL_LIBS="-lcurl"], AC_MSG_ERROR([required library libcurl missing or unusable]))
-AC_SUBST(CURL_LIBS)
-fi # oss only
-
 # Check for libs3 amazon s3 availability
 LIBS_system="$LIBS"
 AC_CHECK_HEADERS([libs3.h])
@@ -816,7 +810,7 @@ Clients libs	:	$PROG_LIBS
 LDAP support	:	$want_ldap
 LDAP flags	:	$LDAP_FLAGS
 LDAP libs	:	$LDAP_LIBS
-Curl libs	:	$CURL_LIBS
+Curl libs	:	$curl_LIBS
 Pam libs	:	$PAM_LIBS
 Krb5 libs	:	$KRB5_LIBS
 TCMalloc lib	:	$TCMALLOC_LIBS
