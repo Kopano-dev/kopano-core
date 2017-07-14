@@ -239,9 +239,8 @@ initprov_service(struct initprov &d, const sGlobalProfileProps &profprop)
 		return hrSuccess;
 
 	/* Set/update the default store home server. */
-	auto guid = reinterpret_cast<MAPIUID *>(const_cast<char *>(pbGlobalProfileSectionGuid));
 	ProfSectPtr globprofsect;
-	ret = d.provadm->OpenProfileSection(guid, nullptr, MAPI_MODIFY, &~globprofsect);
+	ret = d.provadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~globprofsect);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -630,7 +629,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		// Do not break here
 	case MSG_SERVICE_CREATE:
 		/* Open global {profile section}, add the store. (for show list, delete etc.). */
-		hr = lpAdminProviders->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, nullptr, MAPI_MODIFY , &~ptrGlobalProfSect);
+		hr = lpAdminProviders->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
 		if(hr != hrSuccess)
 			goto exit;
 

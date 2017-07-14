@@ -179,7 +179,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		// you can only open the top level container
 		if (memcmp((LPBYTE)lpEntryID +4, &MUIDZCSAB, sizeof(GUID)) != 0)
 			return MAPI_E_UNKNOWN_ENTRYID;
-		hr = m_lpMAPISup->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, 0, &~lpProfileSection);
+		hr = m_lpMAPISup->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), 0, &~lpProfileSection);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpProfileSection->GetProps(sptaFolderProps, 0, &cValues, &~lpFolderProps);

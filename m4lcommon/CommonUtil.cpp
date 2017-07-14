@@ -154,9 +154,6 @@ exit:
 	return retval;
 }
 
-// FIXME: replace it to the right place
-#define	pbGlobalProfileSectionGuid	"\x13\xDB\xB0\xC8\xAA\x05\x10\x1A\x9B\xB0\x00\xAA\x00\x2F\xC4\x5A"
-
 /**
  * Creates a new profile with given information.
  *
