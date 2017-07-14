@@ -119,7 +119,7 @@ else
     ZCXXFLAGS="$ZCXXFLAGS -pedantic -Wno-long-long"
 fi
 
-AC_ARG_ENABLE([unicode], AS_HELP_STRING([--enable-unicode], [enable unicode mode (compile flags -DUNICODE)]),
+AC_ARG_ENABLE([unicode], AS_HELP_STRING([--disable-unicode], [enable unicode mode (compile flag -DUNICODE)]),
   [want_unicode=${enableval}],[want_unicode=yes])
 SWIG_FLAGS=""
 if test "$want_unicode" = "yes"; then
