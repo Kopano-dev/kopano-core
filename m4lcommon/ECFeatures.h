@@ -23,15 +23,12 @@
 #include <mapidefs.h>
 #include <mapix.h>
 #include <kopano/IECInterfaces.hpp>
-#include <string>
-#include <set>
 
 namespace KC {
 
 extern _kc_export bool isFeature(const char *);
 extern HRESULT hasFeature(const char *feature, const SPropValue *lpProps);
 extern _kc_export HRESULT hasFeature(const wchar_t *feature, const SPropValue *props);
-std::set<std::string> getFeatures();
 extern _kc_export bool isFeatureDisabled(const char *, IAddrBook *, IMsgStore *user);
 
 } /* namespace */

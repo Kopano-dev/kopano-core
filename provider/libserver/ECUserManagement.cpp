@@ -2092,6 +2092,16 @@ ECRESULT ECUserManagement::ConvertLocalIDsToExternIDs(objectdetails_t *lpDetails
 	return erSuccess;
 }
 
+/**
+ * Return a set of all available kopano features.
+ *
+ * @return unique set of feature names
+ */
+static inline std::set<std::string> getFeatures()
+{
+	return {kopano_features, kopano_features + ARRAY_SIZE(kopano_features)};
+}
+
 /** 
  * Add default server settings of enabled/disabled features to the
  * user explicit feature lists.

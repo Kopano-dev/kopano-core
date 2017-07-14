@@ -29,16 +29,6 @@ static const char *const kopano_features[] = {
 	"imap", "pop3", "mobile", "outlook"
 };
 
-/** 
- * Return a set of all available kopano features.
- * 
- * @return unique set of feature names
- */
-inline std::set<std::string> getFeatures() {
-	return std::set<std::string>(kopano_features,
-	       kopano_features + ARRAY_SIZE(kopano_features));
-}
-
 } /* namespace */
 
 #endif
