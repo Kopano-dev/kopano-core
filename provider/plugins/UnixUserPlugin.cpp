@@ -77,7 +77,7 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
 	DBPlugin(pluginlock, shareddata)
 {
-	const configsetting_t lpDefaults [] = {
+	static constexpr const configsetting_t lpDefaults[] = {
 		{ "fullname_charset", "iso-8859-15" }, // US-ASCII compatible with support for high characters
 		{ "default_domain", "localhost" },			// no sane default
 		{ "non_login_shell", "/bin/false", CONFIGSETTING_RELOADABLE },	// create a non-login box when a user has this shell
@@ -831,7 +831,7 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 
 	// See if we get matches based on database details as well
 	try {
-		const char *search_props[] = { OP_EMAILADDRESS, NULL };
+		static constexpr const char *const search_props[] = {OP_EMAILADDRESS, nullptr};
 		objects = DBPlugin::searchObjects(match, search_props, NULL, ulFlags);
 
 		for (const auto &sig : *objects) {

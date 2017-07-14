@@ -302,8 +302,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	property_map anonymousProps;
 	property_mv_map anonymousMVProps;
 	unsigned int ulOrderId = 0;
-
-	struct props sUserValidProps[] = {
+	const struct props sUserValidProps[] = {
 		{ OB_PROP_S_LOGIN, OP_LOGINNAME, },
 		{ OB_PROP_S_PASSWORD, OP_PASSWORD, },
 		{ OB_PROP_S_EMAIL, OP_EMAILADDRESS, },
@@ -313,19 +312,19 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		{ OB_PROP_B_AB_HIDDEN, OB_AB_HIDDEN, },
 		{ (property_key_t)0, NULL },
 	};
-	struct props sGroupValidProps[] = {
+	const struct props sGroupValidProps[] = {
 		{ OB_PROP_S_FULLNAME, OP_GROUPNAME, },
 		{ OB_PROP_O_COMPANYID, OP_COMPANYID, },
 		{ OB_PROP_S_EMAIL, OP_EMAILADDRESS, },
 		{ OB_PROP_B_AB_HIDDEN, OB_AB_HIDDEN, },
 		{ (property_key_t)0, NULL },
 	};
-	struct props sCompanyValidProps[] = {
+	const struct props sCompanyValidProps[] = {
 		{ OB_PROP_S_FULLNAME, OP_COMPANYNAME, },
 		{ OB_PROP_O_SYSADMIN, OP_COMPANYADMIN, },
 		{ (property_key_t)0, NULL },
 	};
-	struct props *sValidProps;
+	const struct props *sValidProps;
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
@@ -701,7 +700,8 @@ void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const obj
 }
 
 std::unique_ptr<signatures_t> DBPlugin::searchObjects(const std::string &match,
-    const char **search_props, const char *return_prop, unsigned int ulFlags)
+    const char *const *search_props, const char *return_prop,
+    unsigned int ulFlags)
 {
 	objectid_t objectid;
 	std::unique_ptr<signatures_t> lpSignatures(new signatures_t());
