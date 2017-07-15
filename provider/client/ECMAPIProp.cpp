@@ -74,17 +74,6 @@ static ECPERMISSION RightsToECPermCheap(const struct rights r)
 	return p;
 }
 
-class FindUser {
-public:
-	FindUser(const ECENTRYID &sEntryID): m_sEntryID(sEntryID) {}
-	bool operator()(const ECPERMISSION &sPermission) const {
-		return CompareABEID(m_sEntryID.cb, (LPENTRYID)m_sEntryID.lpb, sPermission.sUserId.cb, (LPENTRYID)sPermission.sUserId.lpb);
-	}
-
-private:
-	const ECENTRYID &m_sEntryID;
-};
-
 ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
     const ECMAPIProp *lpRoot, const char *szClassName) :
 	ECGenericProp(lpProvider, ulObjType, fModify, szClassName)
@@ -640,7 +629,12 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 	// But there can also be overlap, where some items are left unchanged, and
 	// other modified.
 	for (ULONG i = 0; i < cPerms; ++i) {
-		ECPERMISSION *lpMatch = std::find_if(lpNewPerms, lpNewPerms + cNewPerms, FindUser(ptrPerms[i].sUserId));
+		auto lpMatch = std::find_if(lpNewPerms, lpNewPerms + cNewPerms,
+			[&](const ECPERMISSION &r) {
+				auto &l = ptrPerms[i].sUserId;
+				return CompareABEID(l.cb, reinterpret_cast<ENTRYID *>(l.lpb),
+				       r.sUserId.cb, reinterpret_cast<ENTRYID *>(r.sUserId.lpb));
+			});
 		if (lpMatch == lpNewPerms + cNewPerms) {
 			// Not in new set, so delete
 			ptrPerms[i].ulState = RIGHT_DELETED;

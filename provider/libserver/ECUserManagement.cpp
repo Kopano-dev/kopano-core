@@ -2192,16 +2192,6 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 	return erSuccess;
 }
 
-class filterDefaults {
-public:
-	filterDefaults(const set<string>& d) : def(d) {};
-	bool operator()(const string& x) const {
-		return def.find(x) != def.end();
-	}
-private:
-	const set<string>& def;
-};
-
 /** 
  * Make the enabled and disabled feature list of user details an explicit list.
  * This way, changing the default in the server will have a direct effect.
@@ -2229,7 +2219,9 @@ ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails)
 	}
 
 	// remove all default enabled features from explicit list
-	userEnabled.remove_if(filterDefaults(defaultEnabled));
+	userEnabled.remove_if([&](const std::string &x) {
+		return defaultEnabled.find(x) != defaultEnabled.end();
+	});
 
 	// save lists back to user details
 	lpDetails->SetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A, userEnabled);
