@@ -188,6 +188,8 @@ initprov_storepub(struct initprov &d, const sGlobalProfileProps &profprop)
 		ret = d.transport->HrGetPublicStore(0, &d.eid_size, &~d.eid, &redir_srv);
 
 	if (ret == MAPI_E_UNABLE_TO_COMPLETE) {
+		ec_log_debug("Received a redirect from %s to %s for public store",
+			profprop.strServerPath.c_str(), redir_srv.c_str());
 		d.transport->HrLogOff();
 		auto new_props = profprop;
 		new_props.strServerPath = redir_srv;
@@ -218,6 +220,8 @@ initprov_service(struct initprov &d, const sGlobalProfileProps &profprop)
 	}
 
 	/* MAPI_E_UNABLE_TO_COMPLETE */
+	ec_log_debug("Received a redirect from %s to %s for store",
+		profprop.strServerPath.c_str(), redir_srv.c_str());
 	d.transport->HrLogOff();
 	auto new_props = profprop;
 	new_props.strServerPath = redir_srv;
@@ -274,6 +278,8 @@ initprov_storedl(struct initprov &d, const sGlobalProfileProps &profprop)
 	if (ret != MAPI_E_UNABLE_TO_COMPLETE)
 		return ret;
 
+	ec_log_debug("Received a redirect from %s to %s for delegate store",
+		profprop.strServerPath.c_str(), redir_srv.c_str());
 	d.transport->HrLogOff();
 	auto new_props = profprop;
 	new_props.strServerPath = redir_srv;
@@ -422,7 +428,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
     ULONG *lpcStoreID, LPENTRYID *lppStoreID, WSTransport *transport)
 {
 	HRESULT hr = hrSuccess;
-	SPropValuePtr	ptrPropValueResourceType;
+	SPropValuePtr ptrPropValueResourceType, dspname;
 	SPropValuePtr	ptrPropValueProviderUid;
 	std::string		strServiceName;
 	ULONG			ulResourceType=0;
@@ -451,7 +457,11 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		d.provuid = reinterpret_cast<MAPIUID *>(ptrPropValueProviderUid.get()->Value.bin.lpb);
 	else
 		d.provuid = nullptr;
+
 	ulResourceType = ptrPropValueResourceType->Value.l;
+	hr = HrGetOneProp(d.profsect, PR_DISPLAY_NAME_A, &~dspname);
+	ec_log_debug("Initializing provider \"%s\"",
+		dspname != nullptr ? dspname->Value.lpszA : "(unnamed)");
 
 	if (transport != NULL) {
 		d.transport.reset(transport);
