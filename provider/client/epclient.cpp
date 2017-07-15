@@ -434,7 +434,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	if (d.provadm != NULL) {
 		hr = GetServiceName(d.provadm, &strServiceName);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 		SPropValuePtr psn;
 		hr = HrGetOneProp(d.profsect, PR_SERVICE_NAME_A, &~psn);
@@ -443,11 +443,9 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		hr = hrSuccess;
 	}
 	hr = HrGetOneProp(d.profsect, PR_RESOURCE_TYPE, &~ptrPropValueResourceType);
-	if(hr != hrSuccess) {
+	if (hr != hrSuccess)
 		// Ignore this provider; apparently it has no resource type, so just skip it
-		hr = hrSuccess;
-		goto exit;
-	}
+		return hrSuccess;
 	if (HrGetOneProp(d.profsect, PR_PROVIDER_UID, &~ptrPropValueProviderUid) == hrSuccess &&
 	    ptrPropValueProviderUid != nullptr)
 		d.provuid = reinterpret_cast<MAPIUID *>(ptrPropValueProviderUid.get()->Value.bin.lpb);
@@ -460,45 +458,42 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	} else {
 		hr = WSTransport::Create(0, &~d.transport);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = d.transport->HrLogon(sProfileProps);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if(ulResourceType == MAPI_STORE_PROVIDER)
 	{
 		hr = initprov_mapi_store(d, sProfileProps);
-		if (hr != hrSuccess)
-			goto exit;
+		if (hr == MAPI_S_SPECIAL_OK)
+			return hrSuccess;
+		else if (hr != hrSuccess)
+			return hr;
 	} else if(ulResourceType == MAPI_AB_PROVIDER) {
 		hr = initprov_addrbook(d);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 		assert(false);
 	}
 
 	hr = d.profsect->SetProps(d.count, d.prop, NULL);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = d.profsect->SaveChanges(0);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (lpcStoreID && lppStoreID) {
 		*lpcStoreID = d.eid_size;
 		hr = MAPIAllocateBuffer(d.eid_size, reinterpret_cast<void **>(lppStoreID));
 		if(hr != hrSuccess)
-			goto exit;
-		
+			return hr;
 		memcpy(*lppStoreID, d.eid, d.eid_size);
 	}
-exit:
-	if (hr == MAPI_S_SPECIAL_OK)
-		return hrSuccess;
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
