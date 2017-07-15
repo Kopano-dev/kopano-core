@@ -447,7 +447,7 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 	case PT_NULL:
 		break;
 	case PT_OBJECT:
-		lpDest->Value.x = 0;
+		lpDest->Value.lpszA = lpSrc->Value.lpszA;
 		break;
 	// MV properties
 	case PT_MV_I2:
