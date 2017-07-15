@@ -26,6 +26,7 @@
 #include <kopano/memory.hpp>
 #include <memory>
 #include <string>
+#include <utility>
 #include <cassert>
 
 #include "kcore.hpp"
@@ -63,7 +64,7 @@ struct initprov {
 	IProviderAdmin *provadm;
 	MAPIUID *provuid;
 	IProfSect *profsect;
-	WSTransport *transport;
+	KCHL::object_ptr<WSTransport> transport;
 	unsigned int count, eid_size, wrap_eid_size;
 	SPropValue prop[6];
 	EntryIdPtr eid;
@@ -312,16 +313,14 @@ static HRESULT initprov_storearc(struct initprov &d)
 		return MAPI_S_SPECIAL_OK;
 	}
 
-	WSTransport *alt_transport;
+	KCHL::object_ptr<WSTransport> alt_transport;
 	ret = GetTransportToNamedServer(d.transport, server->Value.LPSZ,
 	      (PROP_TYPE(name->ulPropTag) == PT_STRING8 ? 0 : MAPI_UNICODE),
-	      &alt_transport);
+	      &~alt_transport);
 	if (ret != hrSuccess)
 		return ret;
 
-	std::swap(d.transport, alt_transport);
-	alt_transport->Release();
-	alt_transport = NULL;
+	d.transport = std::move(alt_transport);
 	return d.transport->HrResolveTypedStore(convstring::from_SPropValue(name),
 	       ECSTORE_TYPE_ARCHIVE, &d.eid_size, &~d.eid);
 }
@@ -431,7 +430,6 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	d.provadm = lpAdminProvider;
 	d.profsect = lpProfSect;
 	d.count = d.eid_size = 0;
-	d.transport = NULL;
 
 	if (d.provadm != NULL) {
 		hr = GetServiceName(d.provadm, &strServiceName);
@@ -458,9 +456,9 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	ulResourceType = ptrPropValueResourceType->Value.l;
 
 	if (transport != NULL) {
-		d.transport = transport;
+		d.transport.reset(transport);
 	} else {
-		hr = WSTransport::Create(0, &d.transport);
+		hr = WSTransport::Create(0, &~d.transport);
 		if (hr != hrSuccess)
 			goto exit;
 		hr = d.transport->HrLogon(sProfileProps);
@@ -498,9 +496,6 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		memcpy(*lppStoreID, d.eid, d.eid_size);
 	}
 exit:
-	//Free allocated memory
-	if (d.transport != NULL && d.transport != transport)
-		d.transport->Release(); /* implies logoff */
 	if (hr == MAPI_S_SPECIAL_OK)
 		return hrSuccess;
 	return hr;
