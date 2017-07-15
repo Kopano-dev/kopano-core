@@ -30,6 +30,7 @@ static std::wstring mpt_userw, mpt_passw;
 static const wchar_t *mpt_user, *mpt_pass;
 static const char *mpt_socket;
 static size_t mpt_repeat = ~0U;
+static int mpt_loglevel = EC_LOGLEVEL_NOTICE;
 
 static void mpt_stat_dump(int s = 0)
 {
@@ -395,20 +396,24 @@ static int mpt_option_parse(int argc, char **argv)
 		mpt_usage();
 		return EXIT_FAILURE;
 	}
-	while ((c = getopt(argc, argv, "p:s:u:z:")) != -1) {
-		if (c == 'p')
+	while ((c = getopt(argc, argv, "p:s:u:vz:")) != -1) {
+		if (c == 'p') {
 			pass = optarg;
-		else if (c == 'u')
+		} else if (c == 'u') {
 			user = optarg;
-		else if (c == 's')
+		} else if (c == 's') {
 			mpt_socket = optarg;
-		else if (c == 'z')
+		} else if (c == 'v') {
+			if (mpt_loglevel <= EC_LOGLEVEL_DEBUG)
+			++mpt_loglevel;
+		} else if (c == 'z') {
 			mpt_repeat = strtoul(optarg, NULL, 0);
-		else {
+		} else {
 			fprintf(stderr, "Error: unknown option -%c\n", c);
 			mpt_usage();
 		}
 	}
+	ec_log_get()->SetLoglevel(mpt_loglevel);
 	if (user == NULL) {
 		user = "foo";
 		fprintf(stderr, "Info: defaulting to username \"foo\"\n");
