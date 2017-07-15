@@ -771,6 +771,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			break;
 
         case PT_OBJECT:
+			/* XXX: Possible UB? The object pointer is normally ->Value.lpszA in KC. */
 		case PT_BINARY:
 			if(lpProp->ulPropTag & MV_FLAG) {
 				ulLen = lpProp->Value.MVbin.lpbin[ulMVProp].cb;
