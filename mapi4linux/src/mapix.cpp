@@ -548,33 +548,28 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
  */
 HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 {
-	string name;
 	decltype(services)::iterator i;
 	decltype(providers)::iterator p, pNext;
 	scoped_rlock l_srv(m_mutexserviceadmin);
 
-	for (i = services.begin(); i != services.end(); ++i) {
-		if (memcmp(&(*i)->muid, lpUID, sizeof(MAPIUID)) != 0)
-			continue;
-		name = (*i)->servicename;
-		services.erase(i);
-		break;
-	}
-    
-    if(name.empty()) {
+	for (i = services.begin(); i != services.end(); ++i)
+		if (memcmp(&(*i)->muid, lpUID, sizeof(MAPIUID)) == 0)
+			break;
+	if (i == services.cend()) {
 		ec_log_err("M4LMsgServiceAdmin::DeleteMsgService(): GUID not found");
 		return MAPI_E_NOT_FOUND;
 	}
     
     p = providers.begin();
     while (p != providers.end()) {
-		if ((*p)->servicename != name)
+		if ((*p)->servicename != (*i)->servicename)
 			continue;
 		pNext = p;
 		++pNext;
 		providers.erase(p);
 		p = pNext;
     }
+	services.erase(i);
 	return hrSuccess;
 }
 
