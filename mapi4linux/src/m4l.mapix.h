@@ -95,6 +95,7 @@ private:
 
 public:
     M4LMsgServiceAdmin(M4LProfSect *profilesection);
+	~M4LMsgServiceAdmin();
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG_PTR ui_param, ULONG flags);

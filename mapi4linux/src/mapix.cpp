@@ -359,6 +359,27 @@ M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *ps) :
 {
 }
 
+M4LMsgServiceAdmin::~M4LMsgServiceAdmin()
+{
+	for (auto &i : services) {
+		auto p = providers.begin();
+		while (p != providers.end()) {
+			if ((*p)->servicename != i->servicename)
+				continue;
+			auto pNext = p;
+			++pNext;
+			providers.erase(p);
+			p = pNext;
+		}
+		try {
+			i->service->MSGServiceEntry()(0, nullptr, nullptr,
+				0, 0, MSG_SERVICE_DELETE, 0, nullptr,
+				i->provideradmin, nullptr);
+		} catch (...) {
+		}
+	}
+}
+
 serviceEntry *M4LMsgServiceAdmin::findServiceAdmin(const TCHAR *name)
 {
 	for (auto &serv : services)
@@ -569,6 +590,10 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 		providers.erase(p);
 		p = pNext;
     }
+	auto ret = (*i)->service->MSGServiceEntry()(0, nullptr, nullptr, 0, 0,
+	           MSG_SERVICE_DELETE, 0, nullptr, (*i)->provideradmin, nullptr);
+	if (ret != hrSuccess)
+		/* ignore */;
 	services.erase(i);
 	return hrSuccess;
 }
