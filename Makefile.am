@@ -12,7 +12,6 @@ SUBDIRS += installer po swig
 
 AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-DMAPICONFIGDIR=\"${MAPICONFIGDIR}\" -DPKGLIBDIR='"${pkglibdir}"' \
-	-DPKGLIBEXECDIR='"${pkglibexecdir}"' \
 	-DSOAP_CMAC='__attribute__((visibility("default")))' \
 	-DSOAP_FMAC3=SOAP_CMAC -DSOAP_FMAC5=SOAP_CMAC -DSOAP_NMAC=SOAP_CMAC \
 	-Iprovider/soap \
@@ -86,8 +85,6 @@ noinst_DATA = \
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
-serverplugindir = ${pkglibexecdir}
-serverplugin_LTLIBRARIES =
 
 
 #
@@ -841,52 +838,52 @@ CLEANFILES += ${SOAP_CPP_SRC} provider/soap/*
 #
 COMMON_PLUGIN_FILES = provider/plugins/plugin.h
 COMMON_DBPLUGIN_FILES = provider/plugins/DBBase.h provider/plugins/DBBase.cpp
-serverplugin_LTLIBRARIES += dbplugin.la
-noinst_DATA += dbplugin.ldd
-dbplugin_la_SOURCES = \
+lib_LTLIBRARIES += libkcserver-db.la
+noinst_DATA += libkcserver-db.ldd
+libkcserver_db_la_SOURCES = \
 	provider/plugins/DBUserPlugin.cpp provider/plugins/DBUserPlugin.h \
 	${COMMON_PLUGIN_FILES} ${COMMON_DBPLUGIN_FILES}
-dbplugin_la_LIBADD = \
+libkcserver_db_la_LIBADD = \
 	libkcutil.la libkcserver.la ${MYSQL_LIBS}
-dbplugin_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
+libkcserver_db_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
 	${plugin_SYFLAGS${NO_VSYM}}
-EXTRA_dbplugin_la_DEPENDENCIES = provider/plugin.sym
+EXTRA_libkcserver_db_la_DEPENDENCIES = provider/plugin.sym
 
 if WITH_UNIX
-serverplugin_LTLIBRARIES += unixplugin.la
-noinst_DATA += unixplugin.ldd
-unixplugin_la_SOURCES = \
+lib_LTLIBRARIES += libkcserver-unix.la
+noinst_DATA += libkcserver-unix.ldd
+libkcserver_unix_la_SOURCES = \
 	provider/plugins/UnixUserPlugin.cpp provider/plugins/UnixUserPlugin.h \
 	${COMMON_PLUGIN_FILES} ${COMMON_DBPLUGIN_FILES}
-unixplugin_la_LIBADD = \
+libkcserver_unix_la_LIBADD = \
 	libkcutil.la libkcserver.la ${MYSQL_LIBS} ${CRYPT_LIBS}
-unixplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
+libkcserver_unix_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
 	${plugin_SYFLAGS${NO_VSYM}}
-EXTRA_unixplugin_la_DEPENDENCIES = provider/plugin.sym
+EXTRA_libkcserver_unix_la_DEPENDENCIES = provider/plugin.sym
 endif
 
 if WITH_LDAP
-serverplugin_LTLIBRARIES += ldapplugin.la
-noinst_DATA += ldapplugin.ldd
-noinst_DATA += .libs/ldapmsplugin.so
-ldapplugin_la_SOURCES = \
+lib_LTLIBRARIES += libkcserver-ldap.la
+noinst_DATA += libkcserver-ldap.ldd
+noinst_DATA += .libs/libkcserver-ldapms.so
+libkcserver_ldap_la_SOURCES = \
 	provider/plugins/LDAPUserPlugin.cpp provider/plugins/LDAPUserPlugin.h \
 	provider/plugins/LDAPCache.cpp provider/plugins/LDAPCache.h \
 	provider/plugins/ldappasswords.cpp provider/plugins/ldappasswords.h \
 	${COMMON_PLUGIN_FILES}
-ldapplugin_la_LIBADD = \
+libkcserver_ldap_la_LIBADD = \
 	libkcutil.la \
 	libkcserver.la ${CRYPTO_LIBS} ${LDAP_LIBS}
-ldapplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
+libkcserver_ldap_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
 	${plugin_SYFLAGS${NO_VSYM}}
-EXTRA_ldapplugin_la_DEPENDENCIES = provider/plugin.sym
+EXTRA_libkcserver_ldap_la_DEPENDENCIES = provider/plugin.sym
 
-.libs/ldapmsplugin.so: ldapplugin.la
-	${AM_V_GEN}ln -fs ldapplugin.so .libs/ldapmsplugin.so
+.libs/libkcserver-ldapms.so: libkcserver-ldap.la
+	${AM_V_GEN}ln -fs libkcserver-ldap.so .libs/libkcserver-ldapms.so
 
 install-exec-local:
-	${MKDIR_P} ${DESTDIR}${pkglibexecdir}
-	ln -fs ldapplugin.so ${DESTDIR}${pkglibexecdir}/ldapmsplugin.so
+	${MKDIR_P} ${DESTDIR}${libdir}
+	ln -fs libkcserver_ldap.so ${DESTDIR}${libdir}/libkcserver-ldapms.so
 endif
 
 

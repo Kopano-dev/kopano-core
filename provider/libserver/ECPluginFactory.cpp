@@ -47,20 +47,14 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
     UserPlugin *lpPlugin = NULL;
 
     if(m_dl == NULL) {    
-		const char *pluginpath = PKGLIBEXECDIR;
         const char *pluginname = m_config->GetSetting("user_plugin");
         char filename[PATH_MAX + 1];
-
-        if (pluginpath == nullptr || strcmp(pluginpath, "") == 0)
-            pluginpath = "";
         if (!pluginname || !strcmp(pluginname, "")) {
 			ec_log_crit("No user plugin was declared in the config file.");
 			return KCERR_NOT_FOUND;
         }
-
-        snprintf(filename, PATH_MAX + 1, "%s%c%splugin.%s", 
-                 pluginpath, PATH_SEPARATOR, pluginname, SHARED_OBJECT_EXTENSION);
-        
+		snprintf(filename, sizeof(filename), "libkcserver-%s.%s",
+		         pluginname, SHARED_OBJECT_EXTENSION);
         m_dl = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
 
         if (!m_dl) {
