@@ -117,7 +117,7 @@
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 %apply (ULONG cbEntryID, LPENTRYID lpEntryID) {(ULONG cFolderKeySize, BYTE *lpFolderSourceKey), (ULONG cMessageKeySize, BYTE *lpMessageSourceKey), (ULONG cbInstanceKey, BYTE *pbInstanceKey), (ULONG cbCollapseState, BYTE *pbCollapseState)};
-%apply (ULONG cbEntryID, LPENTRYID lpEntryID) {(ULONG cbEntryID1, LPENTRYID lpEntryID1), (ULONG cbEntryID2, LPENTRYID lpEntryID2), 
+%apply (ULONG cbEntryID, LPENTRYID lpEntryID) {(ULONG cbEntryID1, ENTRYID *lpEntryID1), (ULONG cbEntryID2, ENTRYID *lpEntryID2),
 (ULONG cbEIDContainer, LPENTRYID lpEIDContainer), (ULONG cbEIDNewEntryTpl, LPENTRYID lpEIDNewEntryTpl), (ULONG cbUserEntryID, LPENTRYID lpUserEntryID) };
 
 // Output

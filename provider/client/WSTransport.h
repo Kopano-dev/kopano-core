@@ -98,15 +98,15 @@ public:
 	virtual HRESULT HrGetPublicStore(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID, std::string *lpstrRedirServer = NULL);
 
 	// Check item exist with flags
-	virtual HRESULT HrCheckExistObject(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags);
+	virtual HRESULT HrCheckExistObject(ULONG eid_size, const ENTRYID *eid, ULONG flags);
 
 	// Interface to get/set properties
-	virtual HRESULT HrOpenPropStorage(ULONG cbParentEntryID, LPENTRYID lpParentEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, IECPropStorage **lppPropStorage);
+	virtual HRESULT HrOpenPropStorage(ULONG parent_eid_size, const ENTRYID *parent, ULONG eid_size, const ENTRYID *eid, ULONG flags, IECPropStorage **);
 	virtual HRESULT HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, IECPropStorage **lppPropStorage);
-	virtual HRESULT HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, IECPropStorage **lppPropStorage);
+	virtual HRESULT HrOpenABPropStorage(ULONG eid_size, const ENTRYID *eid, IECPropStorage **);
 
 	// Interface for folder operations (create/delete)
-	virtual HRESULT HrOpenFolderOps(ULONG cbEntryID, LPENTRYID lpEntryID, WSMAPIFolderOps **lppFolderOps);
+	virtual HRESULT HrOpenFolderOps(ULONG eid_size, const ENTRYID *eid, WSMAPIFolderOps **);
 	virtual HRESULT HrExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag, const ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, const SPropTagArray *lpsProps, WSMessageStreamExporter **lppsStreamExporter);
 	virtual HRESULT HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppStreamImporter);
 

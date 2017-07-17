@@ -30,30 +30,29 @@
 
 namespace KC {
 
-bool IsKopanoEntryId(ULONG cb, LPBYTE lpEntryId);
-bool ValidateZEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int ulCheckType);
-bool ValidateZEntryList(LPENTRYLIST lpMsgList, unsigned int ulCheckType);
-ECRESULT ABEntryIDToID(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulID, objectid_t* lpsExternId, unsigned int* lpulMapiType);
-ECRESULT SIEntryIDToID(ULONG cb, LPBYTE lpInstanceId, LPGUID guidServer, unsigned int *lpulInstanceId, unsigned int *lpulPropId = NULL);
-int SortCompareABEID(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2);
-bool CompareABEID(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2);
-
+extern bool IsKopanoEntryId(ULONG eid_size, const BYTE *eid);
+extern bool ValidateZEntryId(ULONG eid_size, const BYTE *eid, unsigned int check_type);
+extern bool ValidateZEntryList(const ENTRYLIST *, unsigned int check_type);
+extern ECRESULT ABEntryIDToID(ULONG eid_size, const BYTE *eid, unsigned int *id, objectid_t *extern_id, unsigned int *mapi_type);
+extern ECRESULT SIEntryIDToID(ULONG eid_size, const BYTE *instance_eid, GUID *server_guid, unsigned int *instance_nid, unsigned int *prop_id = nullptr);
+extern int SortCompareABEID(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b);
+extern bool CompareABEID(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b);
 ECRESULT ParseKopanoVersion(const std::string &strVersion, unsigned int *lpulVersion);
 
 //Clientside functions
-HRESULT HrGetStoreGuidFromEntryId(ULONG cb, LPBYTE lpEntryId, LPGUID lpguidStore);
-HRESULT HrGetObjTypeFromEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulObjType);
-HRESULT HrSIEntryIDToID(ULONG cb, LPBYTE lpInstanceId, LPGUID guidServer, unsigned int *lpulID, unsigned int *lpulPropId = NULL);
+extern HRESULT HrGetStoreGuidFromEntryId(ULONG eid_size, const BYTE *eid, GUID *store_guid);
+extern HRESULT HrGetObjTypeFromEntryId(ULONG eid_size, const BYTE *eid, unsigned int *obj_type);
+extern HRESULT HrSIEntryIDToID(ULONG eid_size, const BYTE *instance_eid, GUID *server_guid, unsigned int *id, unsigned int *prop_id = nullptr);
 
 // Serverside functions
-ECRESULT GetStoreGuidFromEntryId(ULONG cb, LPBYTE lpEntryId, LPGUID guidStore);
-ECRESULT GetObjTypeFromEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulObjType);
-ECRESULT GetStoreGuidFromEntryId(entryId sEntryId, LPGUID guidStore);
-ECRESULT GetObjTypeFromEntryId(entryId sEntryId, unsigned int* lpulObjType);
-ECRESULT ABEntryIDToID(entryId* lpsEntryId, unsigned int* lpulID, objectid_t* lpsExternId, unsigned int* lpulMapiType);
-ECRESULT SIEntryIDToID(entryId* sInstanceId, LPGUID guidServer, unsigned int *lpulInstanceId, unsigned int *lpulPropId = NULL);
+extern ECRESULT GetStoreGuidFromEntryId(ULONG eid_size, const BYTE *eid, GUID *store_guid);
+extern ECRESULT GetObjTypeFromEntryId(ULONG eid_size, const BYTE *eid, unsigned int *obj_type);
+extern ECRESULT GetStoreGuidFromEntryId(const entryId &, GUID *store_guid);
+extern ECRESULT GetObjTypeFromEntryId(const entryId &, unsigned int *obj_type);
+extern ECRESULT ABEntryIDToID(const entryId *eid, unsigned int *id, objectid_t *extern_id, unsigned int *mapi_type);
+extern ECRESULT SIEntryIDToID(const entryId *instance_eid, GUID *server_guid, unsigned int *instance_nid, unsigned int *prop_id = nullptr);
 ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& strExternId, entryId *lpsEntryId);
-ECRESULT SIIDToEntryID(struct soap *soap, LPGUID guidServer, unsigned int ulInstanceId, unsigned int ulPropId, entryId *lpsInstanceId);
+extern ECRESULT SIIDToEntryID(struct soap *soap, const GUID *server_guid, unsigned int instance_id, unsigned int prop_id, entryId *instance_eid);
 ECRESULT MAPITypeToType(ULONG ulMAPIType, objectclass_t *lpsUserObjClass);
 ECRESULT TypeToMAPIType(objectclass_t sUserObjClass, ULONG *lpulMAPIType);
 

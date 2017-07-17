@@ -704,7 +704,8 @@ HRESULT WSTransport::logoff_nd(void)
 	return er;
 }
 
-HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags)
+HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ULONG ulFlags)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -734,7 +735,9 @@ HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID, LPENTRYID lpEntryID, UL
 	return hr;
 }
 
-HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID, LPENTRYID lpParentEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, IECPropStorage **lppPropStorage)
+HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID,
+    const ENTRYID *lpParentEntryID, ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG ulFlags, IECPropStorage **lppPropStorage)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<WSMAPIPropStorage> lpPropStorage;
@@ -770,7 +773,8 @@ HRESULT WSTransport::HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ul
 	       reinterpret_cast<void **>(lppPropStorage));
 }
 
-HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, IECPropStorage **lppPropStorage)
+HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, IECPropStorage **lppPropStorage)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<WSABPropStorage> lpPropStorage;
@@ -788,7 +792,8 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, I
 	       reinterpret_cast<void **>(lppPropStorage));
 }
 
-HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, LPENTRYID lpEntryID, WSMAPIFolderOps **lppFolderOps)
+HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    WSMAPIFolderOps **lppFolderOps)
 {
 	HRESULT hr = hrSuccess;
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;

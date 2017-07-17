@@ -180,8 +180,10 @@ HRESULT M4LMAPISupport::SetProviderUID(LPMAPIUID lpProviderID, ULONG ulFlags) {
     return hrSuccess;
 }
 
-HRESULT M4LMAPISupport::CompareEntryIDs(ULONG cbEntry1, LPENTRYID lpEntry1, ULONG cbEntry2, LPENTRYID lpEntry2,
-										ULONG ulCompareFlags, ULONG * lpulResult) {
+HRESULT M4LMAPISupport::CompareEntryIDs(ULONG cbEntry1, const ENTRYID *lpEntry1,
+    ULONG cbEntry2, const ENTRYID *lpEntry2, ULONG ulCompareFlags,
+    ULONG *lpulResult)
+{
 	if (cbEntry1 != cbEntry2)
 		*lpulResult = FALSE;
 	else if (!lpEntry1 || !lpEntry2)
@@ -198,8 +200,10 @@ HRESULT M4LMAPISupport::OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateI
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulOpenFlags, ULONG * lpulObjType,
-								  LPUNKNOWN * lppUnk) {
+HRESULT M4LMAPISupport::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulOpenFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
+{
 	return session->OpenEntry(cbEntryID, lpEntryID, lpInterface,
 	       ulOpenFlags, lpulObjType, lppUnk);
 }

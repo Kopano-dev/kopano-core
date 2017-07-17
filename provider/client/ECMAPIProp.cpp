@@ -83,7 +83,7 @@ private:
 };
 
 ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
-    ECMAPIProp *lpRoot, const char *szClassName) :
+    const ECMAPIProp *lpRoot, const char *szClassName) :
 	ECGenericProp(lpProvider, ulObjType, fModify, szClassName)
 {
 	this->HrAddPropHandlers(PR_STORE_ENTRYID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
@@ -130,7 +130,7 @@ HRESULT ECMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-ECMsgStore* ECMAPIProp::GetMsgStore()
+ECMsgStore *ECMAPIProp::GetMsgStore() const
 {
 	return (ECMsgStore*)lpProvider;
 }

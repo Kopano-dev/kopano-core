@@ -38,7 +38,7 @@
 using namespace KCHL;
 
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport *lpTransport,
-    ULONG ulProfileFlags, GUID *lpGUID) :
+    ULONG ulProfileFlags, const GUID *lpGUID) :
 	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup),
 	m_lpTransport(lpTransport)
 {
@@ -73,7 +73,8 @@ ECABLogon::~ECABLogon()
 		m_lpTransport->Release();
 }
 
-HRESULT ECABLogon::Create(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGuid, ECABLogon **lppECABLogon)
+HRESULT ECABLogon::Create(IMAPISupport *lpMAPISup, WSTransport *lpTransport,
+    ULONG ulProfileFlags, const GUID *lpGuid, ECABLogon **lppECABLogon)
 {
 	return alloc_wrap<ECABLogon>(lpMAPISup, lpTransport, ulProfileFlags,
 	       lpGuid).put(lppECABLogon);
@@ -110,13 +111,15 @@ HRESULT ECABLogon::Logoff(ULONG ulFlags)
 	return hr;
 }
 
-HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
+HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECABContainer> lpABContainer;
 	BOOL			fModifyObject = FALSE;
 	ABEID			eidRoot =  ABEID(MAPI_ABCONT, MUIDECSAB, 0);
-	ABEID *lpABeid = NULL;
+	ABEID lpABeid;
 	object_ptr<IECPropStorage> lpPropStorage;
 	object_ptr<ECMailUser> lpMailUser;
 	object_ptr<ECDistList> 	lpDistList;
@@ -138,10 +141,9 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	*/
 
 	if(cbEntryID == 0 && lpEntryID == NULL) {
-		lpABeid = &eidRoot;
-
-		cbEntryID = CbABEID(lpABeid);
-		lpEntryID = (LPENTRYID)lpABeid;
+		memcpy(&lpABeid, &eidRoot, sizeof(lpABeid));
+		cbEntryID = CbABEID(&lpABeid);
+		lpEntryID = reinterpret_cast<ENTRYID *>(&lpABeid);
 	} else {
 		if (cbEntryID == 0 || lpEntryID == nullptr)
 			return MAPI_E_UNKNOWN_ENTRYID;
@@ -151,24 +153,23 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 
 		memcpy(lpEntryIDServer, lpEntryID, cbEntryID);
 		lpEntryID = lpEntryIDServer;
-
-		lpABeid = reinterpret_cast<ABEID *>(lpEntryID);
+		memcpy(&lpABeid, lpEntryID, sizeof(ABEID));
 
 		// Check sane entryid
-		if (lpABeid->ulType != MAPI_ABCONT && lpABeid->ulType != MAPI_MAILUSER && lpABeid->ulType != MAPI_DISTLIST) 
+		if (lpABeid.ulType != MAPI_ABCONT &&
+		    lpABeid.ulType != MAPI_MAILUSER &&
+		    lpABeid.ulType != MAPI_DISTLIST)
 			return MAPI_E_UNKNOWN_ENTRYID;
 
 		// Check entryid GUID, must be either MUIDECSAB or m_ABPGuid
-		if (memcmp(&lpABeid->guid, &MUIDECSAB, sizeof(MAPIUID)) != 0 &&
-		    memcmp(&lpABeid->guid, &m_ABPGuid, sizeof(MAPIUID)) != 0)
+		if (memcmp(&lpABeid.guid, &MUIDECSAB, sizeof(MAPIUID)) != 0 &&
+		    memcmp(&lpABeid.guid, &m_ABPGuid, sizeof(MAPIUID)) != 0)
 			return MAPI_E_UNKNOWN_ENTRYID;
-
-		memcpy(&lpABeid->guid, &MUIDECSAB, sizeof(MAPIUID));
+		memcpy(&lpABeid.guid, &MUIDECSAB, sizeof(MAPIUID));
 	}
 
 	//TODO: check entryid serverside?
-
-	switch(lpABeid->ulType) {
+	switch (lpABeid.ulType) {
 	case MAPI_ABCONT:
 		hr = ECABContainer::Create(this, MAPI_ABCONT, fModifyObject, &~lpABContainer);
 		if (hr != hrSuccess)
@@ -237,11 +238,13 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	}
 
 	if(lpulObjType)
-		*lpulObjType = lpABeid->ulType;
+		*lpulObjType = lpABeid.ulType;
 	return hrSuccess;
 }
 
-HRESULT ECABLogon::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
+HRESULT ECABLogon::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
+    ULONG cbEntryID2, const ENTRYID *lpEntryID2, ULONG ulFlags,
+    ULONG *lpulResult)
 {
 	if(lpulResult)
 		*lpulResult = (CompareABEID(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2) ? TRUE : FALSE);

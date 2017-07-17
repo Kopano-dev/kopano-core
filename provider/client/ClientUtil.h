@@ -64,20 +64,19 @@ public:
 	// Get MSEMS emulator config
 	static HRESULT GetConfigPath(std::string *lpConfigPath);
 	// Convert MSEMS profile properties into ZARAFA profile properties
-	static HRESULT ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG *lpcValues, LPSPropValue *lppProps);
+	static HRESULT ConvertMSEMSProps(ULONG niprop, const SPropValue *iprop, ULONG *noprop, SPropValue **oprop);
 
 };
 
-HRESULT HrCreateEntryId(GUID guidStore, unsigned int ulObjType, ULONG* lpcbEntryId, LPENTRYID* lppEntryId);
-HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId, LPENTRYID lpEntryId, std::string& rServerPath, bool *lpbIsPseudoUrl);
+extern HRESULT HrCreateEntryId(const GUID &store_guid, unsigned int obj_type, ULONG *eid_size, ENTRYID **eid);
+extern HRESULT HrGetServerURLFromStoreEntryId(ULONG eid_size, const ENTRYID *eid, std::string &srv_path, bool *pseudo);
 HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, const char *lpszUrl, std::string& serverPath, bool *lpbIsPeer);
-HRESULT HrCompareEntryIdWithStoreGuid(ULONG cbEntryID, LPENTRYID lpEntryID, LPCGUID guidStore);
+extern HRESULT HrCompareEntryIdWithStoreGuid(ULONG eid_size, const ENTRYID *eid, const GUID *store_guid);
 
 enum enumPublicEntryID { ePE_None, ePE_IPMSubtree, ePE_Favorites, ePE_PublicFolders, ePE_FavoriteSubFolder };
 
-HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID, GUID guidStore, void *lpBase, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
-
-BOOL CompareMDBProvider(LPBYTE lpguid, const GUID *lpguidKopano);
-BOOL CompareMDBProvider(MAPIUID* lpguid, const GUID *lpguidKopano);
+extern HRESULT GetPublicEntryId(enumPublicEntryID, const GUID &store_guid, void *base, ULONG *eid_size, ENTRYID **eid);
+extern BOOL CompareMDBProvider(const BYTE *guid, const GUID *kopano_guid);
+extern BOOL CompareMDBProvider(const MAPIUID *guid, const GUID *kopano_guid);
 
 #endif

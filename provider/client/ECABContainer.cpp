@@ -307,7 +307,9 @@ HRESULT ECABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	return hr;
 }
 
-HRESULT ECABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
+HRESULT ECABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
 {
 	return GetABStore()->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 }
@@ -323,7 +325,8 @@ HRESULT ECABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestr
 }
 
 // IABContainer
-HRESULT ECABContainer::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry)
+HRESULT ECABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
+    ULONG flags, IMAPIProp **)
 {
 	return MAPI_E_NO_SUPPORT;
 }

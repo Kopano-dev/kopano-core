@@ -397,14 +397,20 @@ HRESULT ECMAPIFolderPublic::DeleteProps(const SPropTagArray *lpPropTagArray,
 	return ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
-HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
+HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, const ENTRYID *eid,
+    const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
 {
-	HRESULT hr;
 	unsigned int ulObjType = 0;
+	memory_ptr<ENTRYID> lpEntryID;
+	auto hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryID);
+	if (hr != hrSuccess)
+		return hr;
+	memcpy(lpEntryID, eid, cbEntryID);
 
 	if (cbEntryID > 0)
 	{
-		hr = HrGetObjTypeFromEntryId(cbEntryID, (LPBYTE)lpEntryID, &ulObjType);
+		hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID.get()), &ulObjType);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -414,7 +420,7 @@ HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCI
 	return ECMAPIFolder::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 }
 
-HRESULT ECMAPIFolderPublic::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
+HRESULT ECMAPIFolderPublic::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	if (m_ePublicEntryID == ePE_Favorites || m_ePublicEntryID == ePE_IPMSubtree)
 		return ECGenericProp::SetEntryId(cbEntryId, lpEntryId);

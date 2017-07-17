@@ -36,8 +36,11 @@
 using namespace std;
 using namespace KCHL;
 
-ECMsgStorePublic::ECMsgStorePublic(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore) :
-	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, false, bOfflineStore)
+ECMsgStorePublic::ECMsgStorePublic(const char *lpszProfname,
+    IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
+    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore) :
+	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify,
+	    ulProfileFlags, fIsSpooler, false, bOfflineStore)
 {
 	HrAddPropHandlers(PR_IPM_SUBTREE_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	HrAddPropHandlers(PR_IPM_PUBLIC_FOLDERS_ENTRYID,	GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
@@ -57,7 +60,11 @@ ECMsgStorePublic::~ECMsgStorePublic(void)
 	MAPIFreeBuffer(m_lpIPMPublicFoldersID);
 }
 
-HRESULT	ECMsgStorePublic::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore, ECMsgStore **lppECMsgStore) {
+HRESULT ECMsgStorePublic::Create(const char *lpszProfname,
+    IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
+    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore,
+    ECMsgStore **lppECMsgStore)
+{
 	return alloc_wrap<ECMsgStorePublic>(lpszProfname, lpSupport,
 	       lpTransport, fModify, ulProfileFlags,
 	       fIsSpooler, bOfflineStore)
@@ -107,7 +114,7 @@ HRESULT ECMsgStorePublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 	}
 }
 
-HRESULT ECMsgStorePublic::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
+HRESULT ECMsgStorePublic::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	HRESULT hr;
 	
@@ -118,7 +125,9 @@ HRESULT ECMsgStorePublic::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
 	return BuildIPMSubTree();
 }
 
-HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
+HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
 {
 	HRESULT				hr = hrSuccess;
 	unsigned int		ulObjType = 0;
@@ -332,7 +341,8 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 	return hrSuccess;
 }
 
-HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulResult)
+HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID,
+    ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG *lpulResult)
 {
 	HRESULT hr;
 	ULONG ulResult = 0;

@@ -41,7 +41,7 @@
 using namespace std;
 using namespace KCHL;
 
-ZCABContainer::ZCABContainer(std::vector<zcabFolderEntry> *lpFolders,
+ZCABContainer::ZCABContainer(const std::vector<zcabFolderEntry> *lpFolders,
     IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider,
     const char *szClassName) :
 	ECUnknown(szClassName), m_lpFolders(lpFolders),
@@ -94,12 +94,16 @@ HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
  * 
  * @return 
  */
-HRESULT	ZCABContainer::Create(std::vector<zcabFolderEntry> *lpFolders, IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void* lpProvider, ZCABContainer **lppABContainer)
+HRESULT ZCABContainer::Create(const std::vector<zcabFolderEntry> *lpFolders,
+    IMAPIFolder *lpContacts, IMAPISupport *lpMAPISup, void *lpProvider,
+    ZCABContainer **lppABContainer)
 {
 	return alloc_wrap<ZCABContainer>(lpFolders, lpContacts, lpMAPISup, lpProvider, "IABContainer").put(lppABContainer);
 }
 
-HRESULT	ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPISUP lpMAPISup, ZCABContainer **lppABContainer)
+HRESULT ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID,
+    const ENTRYID *lpEntryID, IMAPISupport *lpMAPISup,
+    ZCABContainer **lppABContainer)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<ZCMAPIProp> lpDistList;
@@ -797,10 +801,12 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
  * 
  * @return MAPI Error code
  */
-HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
+HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
+    IUnknown **lppUnk)
 {
 	HRESULT hr = hrSuccess;
-	auto lpCABEntryID = reinterpret_cast<cabEntryID *>(lpEntryID);
+	auto lpCABEntryID = reinterpret_cast<const cabEntryID *>(lpEntryID);
 	ULONG cbNewCABEntryID = CbNewCABENTRYID(0);
 	ULONG cbFolder = 0;
 	LPENTRYID lpFolder = NULL;
@@ -911,7 +917,8 @@ HRESULT ZCABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestr
 }
 
 // IABContainer
-HRESULT ZCABContainer::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry)
+HRESULT ZCABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
+    ULONG flags, IMAPIProp **)
 {
 	return MAPI_E_NO_SUPPORT;
 }

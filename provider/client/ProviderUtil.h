@@ -34,11 +34,7 @@ struct PROVIDER_INFO {
 typedef std::map<std::string, PROVIDER_INFO> ECMapProvider;
 
 HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult);
-
-HRESULT CreateMsgStoreObject(char *lpszProfname, LPMAPISUP lpMAPISup, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulMsgFlags, ULONG ulProfileFlags, WSTransport* lpTransport,
-							MAPIUID* lpguidMDBProvider, BOOL bSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
-							ECMsgStore** lppMsgStore);
-
+extern HRESULT CreateMsgStoreObject(const char *profile, IMAPISupport *, ULONG eid_size, ENTRYID *eid, ULONG msg_flags, ULONG profile_flags, WSTransport *, const MAPIUID *mdb_prov, BOOL spooler, BOOL deflt_store, BOOL offline_store, ECMsgStore **);
 HRESULT SetProviderMode(IMAPISupport *lpMAPISup, ECMapProvider *lpmapProvider, LPCSTR lpszProfileName, ULONG ulConnectType);
 HRESULT GetProviders(ECMapProvider *lpmapProvider, IMAPISupport *lpMAPISup, LPCSTR lpszProfileName, ULONG ulFlags, PROVIDER_INFO *lpsProviderInfo);
 

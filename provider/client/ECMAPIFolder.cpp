@@ -242,7 +242,7 @@ HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProp
 	return ECGenericProp::HrSetPropStorage(lpStorage, fLoadProps);
 }
 
-HRESULT ECMAPIFolder::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
+HRESULT ECMAPIFolder::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	return ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
 }

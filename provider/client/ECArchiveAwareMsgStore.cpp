@@ -25,18 +25,27 @@
 
 using namespace KCHL;
 
-ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore)
-: ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore)
+ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(const char *lpszProfname,
+    IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
+    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore,
+    BOOL bOfflineStore) :
+	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify,
+	    ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore)
 { }
 
-HRESULT ECArchiveAwareMsgStore::Create(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
+HRESULT ECArchiveAwareMsgStore::Create(const char *lpszProfname,
+    IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
+    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore,
+    BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
 	return alloc_wrap<ECArchiveAwareMsgStore>(lpszProfname, lpSupport,
 	       lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,
 	       bOfflineStore).as(IID_ECMsgStore, lppECMsgStore);
 }
 
-HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
+HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, const IID *lpInterface, ULONG ulFlags,
+    ULONG *lpulObjType, IUnknown **lppUnk)
 {
 	// By default we'll try to open an archive aware message when a message is opened. The exception
 	// is when the client is not licensed to do so or when it's explicitly disabled by passing 

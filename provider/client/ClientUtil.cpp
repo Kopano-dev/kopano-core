@@ -716,11 +716,12 @@ HRESULT ClientUtil::GetConfigPath(std::string *lpConfigPath)
  * @param lpcValues[out] Number of properties in lppProps
  * @param lppProps[out] New ZARAFA properties
  */
-HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG *lpcValues, LPSPropValue *lppProps)
+HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, const SPropValue *pValues,
+    ULONG *lpcValues, SPropValue **lppProps)
 {
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpProps;
-	char *szUsername;
+	const char *szUsername;
 	std::string strServerPath;
 	std::wstring strUsername;
 	ULONG cProps = 0;
@@ -827,7 +828,8 @@ entryid functions
 
 */
 
-HRESULT HrCreateEntryId(GUID guidStore, unsigned int ulObjType, ULONG* lpcbEntryId, LPENTRYID* lppEntryId)
+HRESULT HrCreateEntryId(const GUID &guidStore, unsigned int ulObjType,
+    ULONG *lpcbEntryId, ENTRYID **lppEntryId)
 {
 	HRESULT		hr;
 	EID			eid;
@@ -870,7 +872,8 @@ HRESULT HrCreateEntryId(GUID guidStore, unsigned int ulObjType, ULONG* lpcbEntry
  * @retval	MAPI_E_NOT_FOUND		The extracted server path does not start
  *						with http://, https://, file:// or pseudo://
  */
-HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId, LPENTRYID lpEntryId, std::string& rServerPath, bool *lpbIsPseudoUrl)
+HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId,
+    const ENTRYID *lpEntryId, std::string &rServerPath, bool *lpbIsPseudoUrl)
 {
 	PEID	peid = (PEID)lpEntryId;
 	EID_V0*	peid_V0 = NULL;
@@ -942,7 +945,8 @@ HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, const char *lpszUrl, std::s
 	return hrSuccess;
 }
 
-HRESULT HrCompareEntryIdWithStoreGuid(ULONG cbEntryID, LPENTRYID lpEntryID, LPCGUID guidStore)
+HRESULT HrCompareEntryIdWithStoreGuid(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const GUID *guidStore)
 {
 	if (lpEntryID == NULL || guidStore == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -953,7 +957,9 @@ HRESULT HrCompareEntryIdWithStoreGuid(ULONG cbEntryID, LPENTRYID lpEntryID, LPCG
 	return hrSuccess;
 }
 
-HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID, GUID guidStore, void *lpBase, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
+    const GUID &guidStore, void *lpBase, ULONG *lpcbEntryID,
+    ENTRYID **lppEntryID)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cbEntryID = 0;
@@ -995,11 +1001,12 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID, GUID guidStore, void 
 	return hrSuccess;
 }
 
-BOOL CompareMDBProvider(LPBYTE lpguid, const GUID *lpguidKopano) {
-	return CompareMDBProvider((MAPIUID*)lpguid, lpguidKopano);
+BOOL CompareMDBProvider(const BYTE *lpguid, const GUID *lpguidKopano)
+{
+	return CompareMDBProvider(reinterpret_cast<const MAPIUID *>(lpguid), lpguidKopano);
 }
 
-BOOL CompareMDBProvider(MAPIUID* lpguid, const GUID *lpguidKopano)
+BOOL CompareMDBProvider(const MAPIUID *lpguid, const GUID *lpguidKopano)
 {
 	if (memcmp(lpguid, lpguidKopano, sizeof(GUID)) == 0)
 		return TRUE;

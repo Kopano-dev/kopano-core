@@ -19,14 +19,18 @@
 #include "ECArchiveAwareAttach.h"
 #include "ECArchiveAwareMessage.h"
 
-HRESULT ECArchiveAwareAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach) const
+HRESULT ECArchiveAwareAttachFactory::Create(ECMsgStore *lpMsgStore,
+    ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, const ECMAPIProp *lpRoot,
+    ECAttach **lppAttach) const
 {
 	return ECArchiveAwareAttach::Create(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot, lppAttach);
 }
 
-ECArchiveAwareAttach::ECArchiveAwareAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot) 
-: ECAttach(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot)
-, m_lpRoot(dynamic_cast<ECArchiveAwareMessage*>(lpRoot))
+ECArchiveAwareAttach::ECArchiveAwareAttach(ECMsgStore *lpMsgStore,
+    ULONG ulObjType, BOOL fModify, ULONG ulAttachNum,
+    const ECMAPIProp *lpRoot) :
+	ECAttach(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot),
+	m_lpRoot(dynamic_cast<const ECArchiveAwareMessage *>(lpRoot))
 {
 	assert(m_lpRoot != NULL);	// We don't expect an ECArchiveAwareAttach to be ever created by any other object than a ECArchiveAwareMessage.
 
@@ -34,7 +38,9 @@ ECArchiveAwareAttach::ECArchiveAwareAttach(ECMsgStore *lpMsgStore, ULONG ulObjTy
 	this->HrAddPropHandlers(PR_ATTACH_SIZE, ECAttach::GetPropHandler, SetPropHandler, (void*)this, FALSE, FALSE);
 }
 
-HRESULT	ECArchiveAwareAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach)
+HRESULT ECArchiveAwareAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType,
+    BOOL fModify, ULONG ulAttachNum, const ECMAPIProp *lpRoot,
+    ECAttach **lppAttach)
 {
 	return alloc_wrap<ECArchiveAwareAttach>(lpMsgStore, ulObjType, fModify,
 	       ulAttachNum, lpRoot).as(IID_ECAttach, lppAttach);
