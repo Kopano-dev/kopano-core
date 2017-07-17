@@ -56,11 +56,26 @@ from .errors import NotFoundError, Error, _DeprecationWarning
 from .compat import hex as _hex, unhex as _unhex, fake_unicode as _unicode
 
 if sys.hexversion >= 0x03000000:
-    from . import user as _user
-    from . import store as _store
-    from . import item as _item
-    from . import utils as _utils
-    from . import ics as _ics
+    try:
+        from . import user as _user
+    except ImportError:
+        _user = sys.modules[__package__+'.user']
+    try:
+        from . import store as _store
+    except ImportError:
+        _store = sys.modules[__package__+'.store']
+    try:
+        from . import item as _item
+    except ImportError:
+        _item = sys.modules[__package__+'.item']
+    try:
+        from . import utils as _utils
+    except ImportError:
+        _utils = sys.modules[__package__+'.utils']
+    try:
+        from . import ics as _ics
+    except ImportError:
+        _ics = sys.modules[__package__+'.ics']
 else:
     import user as _user
     import store as _store

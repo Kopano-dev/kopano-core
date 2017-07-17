@@ -53,7 +53,10 @@ from .defs import (
 )
 
 if sys.hexversion >= 0x03000000:
-    from . import utils as _utils
+    try:
+        from . import utils as _utils
+    except ImportError:
+        _utils = sys.modules[__package__+'.utils']
     from . import meetingrequest as _meetingrequest
 else:
     import utils as _utils

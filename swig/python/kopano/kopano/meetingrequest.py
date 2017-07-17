@@ -47,7 +47,10 @@ from .errors import Error
 from .restriction import Restriction
 
 if sys.hexversion >= 0x03000000:
-    from . import utils as _utils
+    try:
+        from . import utils as _utils
+    except ImportError:
+        _utils = sys.modules[__package__+'.utils']
     from . import prop as _prop
 else:
     import utils as _utils
