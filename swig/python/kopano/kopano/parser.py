@@ -38,6 +38,9 @@ def _guid():
 def _name():
     return {'type': 'str', 'action': 'callback', 'callback': parse_str, 'metavar': 'NAME'}
 
+def _path():
+    return {'type': 'str', 'action': 'callback', 'callback': parse_str, 'metavar': 'PATH'}
+
 def _bool():
     return {'type': 'str', 'action': 'callback', 'callback': parse_bool, 'metavar': 'YESNO'}
 

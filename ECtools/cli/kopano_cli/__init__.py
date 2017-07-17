@@ -6,7 +6,7 @@ import traceback
 
 from MAPI.Tags import PR_EC_STATSTABLE_SYSTEM, PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE, PR_EC_RESYNC_ID
 import kopano
-from kopano.parser import _true, _int, _name, _guid, _bool, _list_name, _date
+from kopano.parser import _true, _int, _name, _guid, _bool, _list_name, _date, _path
 
 def parser_opt_args():
     parser = kopano.parser('skpcuGCf')
@@ -67,7 +67,7 @@ def parser_opt_args():
     parser.add_option('--ooo-active', help='Out-of-office is active', **_bool())
     parser.add_option('--ooo-clear', help='Clear Out-of-office settings', **_true())
     parser.add_option('--ooo-subject', help='Out-of-office subject', **_name())
-    parser.add_option('--ooo-message', help='Out-of-office message (file)', **_name())
+    parser.add_option('--ooo-message', help='Out-of-office message (path to file)', **_path())
     parser.add_option('--ooo-from', help='Out-of-office from date', **_date())
     parser.add_option('--ooo-until', help='Out-of-office until date', **_date())
 
