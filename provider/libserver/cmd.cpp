@@ -3194,19 +3194,40 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 			er = KCERR_NO_ACCESS;
 			goto exit;
 		}
-		
+
 		ulParentObjType = MAPI_FOLDER;
 	} else if(ulObjType == MAPI_FOLDER) {
-        er = g_lpSessionManager->GetCacheManager()->GetObject(ulParentId, NULL, NULL, NULL, &ulParentObjType);
+		er = g_lpSessionManager->GetCacheManager()->GetObject(ulParentId, NULL, NULL, NULL, &ulParentObjType);
 		if (er != erSuccess)
 			goto exit;
-			
-        // Reset folder counts now (Note: runs in a DB transaction!). Note: we only update counts when lpNotSubscribe is not NULL; this
-        // makes sure that we only reset folder counts on the first open of a folder, and not when the folder properties are updated (eg
-        // due to counter changes)
-        if(lpsNotSubscribe && ulObjFlags != FOLDER_SEARCH && parseBool(g_lpSessionManager->GetConfig()->GetSetting("counter_reset")))
-            ResetFolderCount(lpecSession, ulObjId);
-    }
+
+		// avoid reminders from shared stores by detecting that we are opening non-owned reminders folder
+		if((ulObjFlags&FOLDER_SEARCH) && lpecSession->GetSecurity()->IsOwner(ulObjId) == KCERR_NO_ACCESS) {
+			strQuery = "SELECT val_string FROM properties where hierarchyid=" + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_CONTAINER_CLASS))+ ";";
+			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+			if(er != erSuccess)
+				goto exit;
+
+			if (lpDBResult.get_num_rows() == 1) {
+				lpDBRow = lpDBResult.fetch_row();
+				if (lpDBRow == NULL || lpDBRow[0] == NULL ) {
+					ec_log_err("ECSearchObjectTable::Load(): row or columns null");
+					er = KCERR_DATABASE_ERROR;
+					goto exit;
+				}
+				if(!strcmp(lpDBRow[0], "Outlook.Reminder")) {
+					er = KCERR_NOT_FOUND;
+					goto exit;
+				}
+			}
+		}
+
+		// Reset folder counts now (Note: runs in a DB transaction!). Note: we only update counts when lpNotSubscribe is not NULL; this
+		// makes sure that we only reset folder counts on the first open of a folder, and not when the folder properties are updated (eg
+		// due to counter changes)
+		if(lpsNotSubscribe && ulObjFlags != FOLDER_SEARCH && parseBool(g_lpSessionManager->GetConfig()->GetSetting("counter_reset")))
+			ResetFolderCount(lpecSession, ulObjId);
+	}
 
 	// check if flags were passed, older clients call checkExistObject
     if(ulFlags & 0x80000000) {
@@ -3265,17 +3286,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 	unsigned int	timeTags [] = { PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME };
 	time_t			now = 0;
 	struct propVal  sProp;
-	struct hiloLong sHilo;
-
-	// Search folder creation is only allowed in shared store if 'external_searchfolders' setting is enabled
-
-	if (type == FOLDER_SEARCH &&
-	    lpecSession->GetSecurity()->IsStoreOwner(ulParentId) != erSuccess &&
-	    strcasecmp(g_lpSessionManager->GetConfig()->GetSetting("external_searchfolders"), "no") == 0 &&
-	    (lpecSession->GetSecurity()->IsAdminOverOwnerOfObject(ulParentId) != erSuccess)) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
+    struct hiloLong sHilo;
 
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulParentId, &ulStoreId, &guid);
 	if(er != erSuccess)
