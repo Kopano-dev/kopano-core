@@ -113,8 +113,7 @@
 #include <kopano/charset/convert.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/ECTags.h>
-#include "ECFeatures.h"
-
+#include <kopano/ECFeatures.hpp>
 #include <kopano/ECChannel.h>
 #include <kopano/UnixUtil.h>
 #include "LMTP.h"

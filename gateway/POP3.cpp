@@ -40,8 +40,7 @@
 #include <kopano/charset/convert.h>
 #include <kopano/ecversion.h>
 #include <kopano/charset/utf8string.h>
-#include "ECFeatures.h"
-
+#include <kopano/ECFeatures.hpp>
 #include "POP3.h"
 using namespace std;
 using namespace KCHL;

@@ -57,7 +57,7 @@
 #include <kopano/ecversion.h>
 #include <kopano/ECGuid.h>
 #include <kopano/namedprops.h>
-#include "ECFeatures.h"
+#include <kopano/ECFeatures.hpp>
 #include <kopano/mapi_ptr.h>
 #include "IMAP.h"
 using namespace std;

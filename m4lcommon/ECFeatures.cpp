@@ -14,8 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#include "ECFeatures.h"
+#include <kopano/ECFeatures.hpp>
 #include "ECFeatureList.h"
 #include <kopano/CommonUtil.h>
 #include <kopano/mapi_ptr.h>

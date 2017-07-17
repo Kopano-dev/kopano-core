@@ -46,7 +46,7 @@
 #include <kopano/charset/convert.h>
 #include "ConsoleTable.h"
 #include <kopano/mapi_ptr.h>
-#include "ECFeatures.h"
+#include <kopano/ECFeatures.hpp>
 #include "ECACL.h"
 #include "charset/localeutil.h"
 #include <kopano/MAPIErrors.h>
