@@ -1,36 +1,23 @@
-#!/bin/bash
+#!/bin/sh
 
-svnrev=0
-if [ -f revision ]; then
-	svnrev=$(cat revision)
-fi
-
-dot_version=`cat version`
-major_version=$(sed <version -e 's;^\([^.]*\).*;\1;')
-minor_version=$(sed <version -e 's;^[^.]*\.\([^.]*\).*;\1;')
-micro_version=$(sed <version -e 's;^[^.]*\.[^.]*\.\([^.]*\).*;\1;')
-comma_version="$major_version,$minor_version,$micro_version,$svnrev"
+version=$(cat version 2>/dev/null)
+if test -z "$version"; then version="unspecified"; fi
+set -- $(sed -e 's/[^0-9a-z][^0-9a-z]*/ /g' <version 2>/dev/null)
+major_version="$1"
+minor_version="$2"
+micro_version="$3"
+localrev="$4"
+if test -z "$major_version"; then major_version=0; fi
+if test -z "$minor_version"; then minor_version=0; fi
+if test -z "$micro_version"; then micro_version=0; fi
+if test -z "$localrev"; then localrev=0; fi
+globalrev=$(( $localrev | ($micro_version << 16) | ($minor_version << 20) | ($major_version << 28) ))
 
 cat << EOF
-#define PROJECT_VERSION_SERVER          $comma_version
-#define PROJECT_VERSION_SERVER_STR      "$comma_version"
-#define PROJECT_VERSION_CLIENT          $comma_version
-#define PROJECT_VERSION_CLIENT_STR      "$comma_version"
-#define PROJECT_VERSION_EXT_STR         "$comma_version"
-#define PROJECT_VERSION_SPOOLER_STR     "$comma_version"
-#define PROJECT_VERSION_GATEWAY_STR     "$comma_version"
-#define PROJECT_VERSION_CALDAV_STR      "$comma_version"
-#define PROJECT_VERSION_DAGENT_STR      "$comma_version"
-#define PROJECT_VERSION_PROFADMIN_STR   "$comma_version"
-#define PROJECT_VERSION_MONITOR_STR     "$comma_version"
-#define PROJECT_VERSION_PASSWD_STR      "$comma_version"
-#define PROJECT_VERSION_FBSYNCER_STR    "$comma_version"
-#define PROJECT_VERSION_SEARCH_STR      "$comma_version"
-#define PROJECT_VERSION_ARCHIVER_STR    "$comma_version"
-#define PROJECT_VERSION_DOT_STR         "$dot_version"
-#define PROJECT_SVN_REV_STR             "$svnrev"
+#define PROJECT_VERSION                 "$version"
 #define PROJECT_VERSION_MAJOR           $major_version
 #define PROJECT_VERSION_MINOR           $minor_version
 #define PROJECT_VERSION_MICRO           $micro_version
-#define PROJECT_VERSION_REVISION        $svnrev
+#define PROJECT_VERSION_REVISION        ${globalrev}UL
+#define PROJECT_VERSION_COMMIFIED       "$major_version,$minor_version,$micro_version"
 EOF

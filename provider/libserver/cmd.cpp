@@ -652,7 +652,7 @@ int ns__logon(struct soap *soap, char *user, char *pass, char *impersonate, char
 		szClientApp = ECStringCompat::WTF1252_to_UTF8(soap, szClientApp);
 	}
 
-	lpsResponse->lpszVersion = const_cast<char *>("0," PROJECT_VERSION_SERVER_STR);
+	lpsResponse->lpszVersion = const_cast<char *>("0," PROJECT_VERSION_COMMIFIED);
 	lpsResponse->ulCapabilities = KOPANO_LATEST_CAPABILITIES;
 	/*
 	 * Client desires compression, so turn it on, but only if remote.
@@ -754,8 +754,7 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, char 
 	lpszEnabled = g_lpSessionManager->GetConfig()->GetSetting("enable_sso");
 	if (!(lpszEnabled && strcasecmp(lpszEnabled, "yes") == 0))
 		goto nosso;
-
-	lpsResponse->lpszVersion = const_cast<char *>("0," PROJECT_VERSION_SERVER_STR);
+	lpsResponse->lpszVersion = const_cast<char *>("0," PROJECT_VERSION_COMMIFIED);
 	lpsResponse->ulCapabilities = KOPANO_LATEST_CAPABILITIES;
 
 	/* See ns__logon for comments. */

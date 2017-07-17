@@ -844,7 +844,7 @@ private:
 extern "C" {
 	extern _kc_export UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData *);
 	extern _kc_export void deleteUserPluginInstance(UserPlugin *);
-	extern _kc_export int getUserPluginVersion(void);
+	extern _kc_export unsigned long getUserPluginVersion(void);
 }
 /** @} */
 #endif

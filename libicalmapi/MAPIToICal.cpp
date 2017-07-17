@@ -108,7 +108,7 @@ HRESULT MapiToICalImpl::HrInitializeVCal()
 {
 	m_lpicCalender = icalcomponent_new(ICAL_VCALENDAR_COMPONENT);
 	icalcomponent_add_property(m_lpicCalender, icalproperty_new_version("2.0"));
-	icalcomponent_add_property(m_lpicCalender, icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION_DOT_STR "-" PROJECT_SVN_REV_STR "//EN"));
+	icalcomponent_add_property(m_lpicCalender, icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION "//EN"));
 	icalcomponent_add_property(m_lpicCalender, icalproperty_new_calscale("GREGORIAN"));
 
 	return hrSuccess;
@@ -196,7 +196,7 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
 		m_lpicCalender = icalcomponent_new(ICAL_VCALENDAR_COMPONENT);
 
 		icalcomponent_add_property(m_lpicCalender, icalproperty_new_version("2.0"));
-		icalcomponent_add_property(m_lpicCalender, icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION_DOT_STR "-" PROJECT_SVN_REV_STR "//EN"));		
+		icalcomponent_add_property(m_lpicCalender, icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION "//EN"));
 	}
 	
 	HRESULT hr = HrFbBlock2ICal(lpsFbblk, ulBlocks, tStart, tEnd,

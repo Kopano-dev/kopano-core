@@ -105,8 +105,8 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 	lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Quota monitor starting");
 
 	//Open admin session
-	hr = HrOpenECAdminSession(&~lpMAPIAdminSession, "kopano-monitor:create",
-	     PROJECT_SVN_REV_STR, lpPath, 0,
+	hr = HrOpenECAdminSession(&~lpMAPIAdminSession, "monitor:create",
+	     PROJECT_VERSION, lpPath, 0,
 	     lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", NULL),
 	     lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
@@ -323,7 +323,10 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 				continue;
 			}
 		} else {
-			hr = HrOpenECAdminSession(&~lpSession, "kopano-monitor:check-company", PROJECT_SVN_REV_STR, lpszConnection, 0, m_lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", nullptr), m_lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", nullptr));
+			hr = HrOpenECAdminSession(&~lpSession, "monitor:check-company",
+			     PROJECT_VERSION, lpszConnection, 0,
+			     m_lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", nullptr),
+			     m_lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", nullptr));
 			if (hr != hrSuccess) {
 				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to connect to server %s, error code 0x%08X", lpszConnection.get(), hr);
 				++m_ulFailed;

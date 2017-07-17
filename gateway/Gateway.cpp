@@ -116,8 +116,7 @@ static void sigchld(int)
 // SIGSEGV catcher
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(g_lpLogger, "Gateway",
-		PROJECT_VERSION_GATEWAY_STR, signr, si, uc);
+	generic_sigsegv_handler(g_lpLogger, "kopano-gateway", PROJECT_VERSION, signr, si, uc);
 }
 
 static HRESULT running_service(const char *szPath, const char *servicename);
@@ -374,8 +373,7 @@ int main(int argc, char *argv[]) {
 			bIgnoreUnknownConfigOptions = true;
 			break;
 		case 'V':
-			cout << "Product version:\t" <<  PROJECT_VERSION_GATEWAY_STR << endl
-				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
+			cout << "kopano-gateway " PROJECT_VERSION << endl;
 			return 1;
 		case OPT_HELP:
 		default:
@@ -599,7 +597,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		goto exit;
 	}
 
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION_GATEWAY_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	ec_log_info("Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
 	if (bListenPOP3) {
 		pfd_pop3 = nfds;
 		pollfd[nfds++].fd = ulListenPOP3;

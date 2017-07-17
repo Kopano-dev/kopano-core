@@ -100,7 +100,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	else
 		lpLogger = new ECLogger_Null();
 	ec_log_set(lpLogger);
-	hr = HrOpenECSession(&~lpSession, "kopano-passwd", PROJECT_SVN_REV_STR,
+	hr = HrOpenECSession(&~lpSession, "passwd", PROJECT_VERSION,
 	     strwUsername.c_str(), strwPassword.c_str(), lpPath,
 	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 	     NULL, NULL);
@@ -192,10 +192,7 @@ int main(int argc, char* argv[])
 			path = optarg;
 			break;
 		case 'V':
-			cout << "Product version:\t" <<
-			        PROJECT_VERSION_PASSWD_STR << endl <<
-			        "File version:\t\t" << PROJECT_SVN_REV_STR <<
-			        endl;
+			cout << "kopano-passwd " PROJECT_VERSION << endl;
 			return 1;			
 		case 'v':
 			verbose = true;

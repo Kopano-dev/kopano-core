@@ -1084,7 +1084,7 @@ ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	strQuery += stringify(PROJECT_VERSION_MAJOR) + std::string(", ") + stringify(PROJECT_VERSION_MINOR) + std::string(", ");
 	if (have_micro)
 		strQuery += stringify(PROJECT_VERSION_MICRO) + std::string(", ");
-	strQuery += std::string("'") + std::string(PROJECT_SVN_REV_STR) +  std::string("', ") + stringify(ulDatabaseRevision) + ", FROM_UNIXTIME("+stringify(time(NULL))+") )";
+	strQuery += "'" + stringify(PROJECT_VERSION_REVISION) + "', " + stringify(ulDatabaseRevision) + ", FROM_UNIXTIME(" + stringify(time(nullptr)) + "))";
 	return DoInsert(strQuery);
 }
 /**

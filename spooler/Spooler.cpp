@@ -656,8 +656,8 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	static constexpr const SizedSSortOrderSet(1, sSort) =
 		{1, 0, 0, {{PR_EC_HIERARCHYID, TABLE_SORT_ASCEND}}};
 
-	hr = HrOpenECAdminSession(&~lpAdminSession, "kopano-spooler:system",
-	     PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	hr = HrOpenECAdminSession(&~lpAdminSession, "spooler:system",
+	     PROJECT_VERSION, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
@@ -790,8 +790,7 @@ exit:
  */
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(g_lpLogger, "Spooler",
-		PROJECT_VERSION_SPOOLER_STR, signr, si, uc);
+	generic_sigsegv_handler(g_lpLogger, "kopano-spooler", PROJECT_VERSION, signr, si, uc);
 }
 
 /** 
@@ -870,8 +869,7 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
     const char *szPath)
 {
 	HRESULT hr = hrSuccess;
-
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-spooler version " PROJECT_VERSION_SPOOLER_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	ec_log_info("Starting kopano-spooler version " PROJECT_VERSION " (pid %d)", getpid());
 	ec_log_debug("Using SMTP server: %s, port %d", szSMTP, ulPort);
 
 	disconnects = 0;
@@ -1029,8 +1027,7 @@ int main(int argc, char *argv[]) {
 			bIgnoreUnknownConfigOptions = true;
 			break;
 		case 'V':
-			cout << "Product version:\t" <<  PROJECT_VERSION_SPOOLER_STR << endl
-				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
+			cout << "kopano-spooler " PROJECT_VERSION << endl;
 			return 1;
 		case OPT_HELP:
 		default:

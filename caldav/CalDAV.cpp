@@ -108,8 +108,7 @@ static void sigchld(int)
 
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(g_lpLogger, "CalDAV",
-		PROJECT_VERSION_GATEWAY_STR, signr, si, uc);
+	generic_sigsegv_handler(g_lpLogger, "kopano-ical", PROJECT_VERSION, signr, si, uc);
 }
 
 static void PrintHelp(const char *name)
@@ -125,7 +124,7 @@ static void PrintHelp(const char *name)
 
 static void PrintVersion(void)
 {
-	cout << "Product version:\t"  <<  PROJECT_VERSION_CALDAV_STR << endl << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
+	cout << "kopano-ical " PROJECT_VERSION << endl;
 }
 
 int main(int argc, char **argv) {
@@ -300,9 +299,7 @@ int main(int argc, char **argv) {
 
 	if (g_bThreads)
 		mainthread = pthread_self();
-
-	ec_log_info("Starting kopano-ical version " PROJECT_VERSION_CALDAV_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
-
+	ec_log_info("Starting kopano-ical version " PROJECT_VERSION " (pid %d)", getpid());
 	hr = HrProcessConnections(ulListenCalDAV, ulListenCalDAVs);
 	if (hr != hrSuccess)
 		goto exit2;

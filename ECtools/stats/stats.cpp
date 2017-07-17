@@ -615,7 +615,7 @@ int main(int argc, char *argv[])
 	strwUsername = convert_to<wstring>(user ? user : "SYSTEM");
 	strwPassword = convert_to<wstring>(pass ? pass : "");
 
-	hr = HrOpenECSession(&~lpSession, "kopano-stats", PROJECT_SVN_REV_STR,
+	hr = HrOpenECSession(&~lpSession, "stats", PROJECT_VERSION,
 	     strwUsername.c_str(), strwPassword.c_str(), host,
 	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
 	if (hr != hrSuccess) {
