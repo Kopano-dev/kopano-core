@@ -26,12 +26,12 @@
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
+#include <kopano/ECLogger.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/Util.h>
 #include "m4l.mapix.h"
 #include "m4l.mapispi.h"
-#include "m4l.debug.h"
 #include "m4l.mapisvc.h"
 
 #include <mapi.h>
@@ -107,71 +107,7 @@ struct _kc_max_align mapibuf_head {
 };
 
 /* Some required globals */
-ECConfig *m4l_lpConfig = NULL;
-ECLogger *m4l_lpLogger = NULL;
 MAPISVC *m4l_lpMAPISVC = NULL;
-
-/**
- * Internal MAPI4Linux function to create m4l internal ECConfig and ECLogger objects
- */
-static HRESULT HrCreateM4LServices(void)
-{
-	std::basic_string<TCHAR> configfile;
-
-	static const configsetting_t settings[] = {
-		{ "ssl_port", "237" },
-		{ "ssl_key_file", "c:\\program files\\kopano\\exchange-redirector.pem" },
-		{ "ssl_key_pass", "kopano", CONFIGSETTING_EXACT },
-		{ "server_address", "" },
-		{ "log_method","file" },
-		{ "log_file","-" },
-		{ "log_level", "3", CONFIGSETTING_RELOADABLE },
-		{ "log_timestamp","1" },
-		{ "log_buffer_size", "0" },
-		{ NULL, NULL },
-	};
-
-	/* Go for default location of kopano configuration */
-	configfile = _T("/etc/kopano/");
-	configfile += PATH_SEPARATOR;
-	configfile += _T("exchange-redirector.cfg");
-
-	if (!m4l_lpConfig) {
-		m4l_lpConfig = ECConfig::Create(std::nothrow, settings);
-		if (!m4l_lpConfig)
-			return MAPI_E_NOT_ENOUGH_MEMORY;
-		m4l_lpConfig->LoadSettings(configfile.c_str());
-	}
-
-	if (ec_log_has_target()) {
-		m4l_lpLogger = ec_log_get();
-		m4l_lpLogger->AddRef();
-		return hrSuccess;
-	}
-	m4l_lpLogger = CreateLogger(m4l_lpConfig, "exchange-redirector", "ExchangeRedirector");
-	if (!m4l_lpLogger)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	/*
-	 * You already knew that MAPIInitialize() could only be called
-	 * from single-threaded context.
-	 */
-	ec_log_set(m4l_lpLogger);
-	return hrSuccess;
-}
-
-/**
- * Internal MAPI4Linux function to clean m4l internal ECConfig and ECLogger objects
- */
-static void HrFreeM4LServices(void)
-{
-	if (m4l_lpLogger) {
-		m4l_lpLogger->Release();
-		m4l_lpLogger = NULL;
-	}
-
-	delete m4l_lpConfig;
-	m4l_lpConfig = NULL;
-}
 
 // ---
 // M4LProfAdmin
@@ -423,6 +359,27 @@ M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *ps) :
 {
 }
 
+M4LMsgServiceAdmin::~M4LMsgServiceAdmin()
+{
+	for (auto &i : services) {
+		auto p = providers.begin();
+		while (p != providers.end()) {
+			if ((*p)->servicename != i->servicename)
+				continue;
+			auto pNext = p;
+			++pNext;
+			providers.erase(p);
+			p = pNext;
+		}
+		try {
+			i->service->MSGServiceEntry()(0, nullptr, nullptr,
+				0, 0, MSG_SERVICE_DELETE, 0, nullptr,
+				i->provideradmin, nullptr);
+		} catch (...) {
+		}
+	}
+}
+
 serviceEntry *M4LMsgServiceAdmin::findServiceAdmin(const TCHAR *name)
 {
 	for (auto &serv : services)
@@ -612,33 +569,32 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
  */
 HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 {
-	string name;
 	decltype(services)::iterator i;
 	decltype(providers)::iterator p, pNext;
 	scoped_rlock l_srv(m_mutexserviceadmin);
 
-	for (i = services.begin(); i != services.end(); ++i) {
-		if (memcmp(&(*i)->muid, lpUID, sizeof(MAPIUID)) != 0)
-			continue;
-		name = (*i)->servicename;
-		services.erase(i);
-		break;
-	}
-    
-    if(name.empty()) {
+	for (i = services.begin(); i != services.end(); ++i)
+		if (memcmp(&(*i)->muid, lpUID, sizeof(MAPIUID)) == 0)
+			break;
+	if (i == services.cend()) {
 		ec_log_err("M4LMsgServiceAdmin::DeleteMsgService(): GUID not found");
 		return MAPI_E_NOT_FOUND;
 	}
     
     p = providers.begin();
     while (p != providers.end()) {
-		if ((*p)->servicename != name)
+		if ((*p)->servicename != (*i)->servicename)
 			continue;
 		pNext = p;
 		++pNext;
 		providers.erase(p);
 		p = pNext;
     }
+	auto ret = (*i)->service->MSGServiceEntry()(0, nullptr, nullptr, 0, 0,
+	           MSG_SERVICE_DELETE, 0, nullptr, (*i)->provideradmin, nullptr);
+	if (ret != hrSuccess)
+		/* ignore */;
+	services.erase(i);
 	return hrSuccess;
 }
 
@@ -2516,16 +2472,9 @@ HRESULT MAPIInitialize(LPVOID lpMapiInit)
 		return hrSuccess;
 	}
 
-	/* Allocate special M4L services (logger, config, ...) */
-	auto hr = HrCreateM4LServices();
-	if (hr != hrSuccess) {
-		ec_log_err("MAPIInitialize(): HrCreateM4LServices fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
 	// Loads the mapisvc.inf, and finds all providers and entry point functions
 	m4l_lpMAPISVC = new MAPISVC();
-	hr = m4l_lpMAPISVC->Init();
+	auto hr = m4l_lpMAPISVC->Init();
 	if (hr != hrSuccess) {
 		ec_log_crit("MAPIInitialize(): MAPISVC::Init fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
@@ -2563,8 +2512,6 @@ void MAPIUninitialize(void)
 		delete m4l_lpMAPISVC;
 
 		localProfileAdmin = NULL;
-
-		HrFreeM4LServices();
 	}
 }
 

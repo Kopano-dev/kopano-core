@@ -534,7 +534,8 @@ ECRESULT ECFifoSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
  * - If bProxy is FALSE:
  *   - If existing connection is HTTP, return first available of: HTTP, HTTPS
  *   - If existing connection is HTTPS, return HTTPS
- *   - If existing connection is FILE, return first available of: HTTPS, HTTP
+ *   - If existing connection is FILE, return first available of: (FILE,) HTTPS, HTTP
+ *     (Only ever outputs FILE if it turns out we point to ourselves)
  *
  * @param[in] soap SOAP structure for incoming request
  * @param[in] lpecSession Session for the request

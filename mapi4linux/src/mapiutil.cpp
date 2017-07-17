@@ -22,7 +22,6 @@
 #include <cmath> // for pow() 
 #include "m4l.mapidefs.h"
 #include "m4l.mapix.h"
-#include "m4l.debug.h"
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>

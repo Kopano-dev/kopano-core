@@ -23,7 +23,6 @@
 #include <kopano/memory.hpp>
 #include "m4l.mapidefs.h"
 #include "m4l.mapix.h"
-#include "m4l.debug.h"
 #include <kopano/ECDebug.h>
 #include <kopano/Util.h>
 #include <kopano/ECMemTable.h>
@@ -218,11 +217,8 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	if (lpPropArray == nullptr || cValues == 0)
 		return MAPI_E_INVALID_PARAMETER;
 
-	for (c = 0; c < cValues; ++c)
 		// TODO: return MAPI_E_INVALID_PARAMETER, if multivalued property in 
 		//       the array and its cValues member is set to zero.		
-		if (PROP_TYPE(lpPropArray[c].ulPropTag) == PT_OBJECT)
-			return MAPI_E_INVALID_PARAMETER;
 
     // remove possible old properties
 	for (c = 0; c < cValues; ++c) {
