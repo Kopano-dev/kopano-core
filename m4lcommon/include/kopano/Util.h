@@ -49,7 +49,7 @@ class Util _kc_final {
 	static HRESULT	HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc, void *lpBase);
 	_kc_export static HRESULT HrCopySRow(LPSRow dest, const SRow *src, void *base);
 	_kc_export static HRESULT HrCopyPropTagArray(const SPropTagArray *src, LPSPropTagArray *dst);
-	_kc_export static HRESULT HrCopyUnicodePropTagArray(ULONG flags, const SPropTagArray *src, LPSPropTagArray *dst);
+	_kc_export static void proptag_change_unicode(ULONG flags, SPropTagArray &);
 	_kc_export static HRESULT HrCopyBinary(ULONG size, const BYTE *src, ULONG *destsize, LPBYTE *dest, LPVOID lpBase = nullptr);
 	_kc_export static HRESULT HrCopyEntryId(ULONG size, const ENTRYID *src, ULONG *destsize, LPENTRYID *dest, LPVOID base = nullptr);
 	_kc_export static int CompareSBinary(const SBinary &, const SBinary &);

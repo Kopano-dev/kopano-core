@@ -1,0 +1,25 @@
+# Print attachments, their sizes and filenames.
+# (instanceid = identifier for use within /var/lib/kopano/attachments/)
+#
+SELECT h.id, si.instanceid, pz.val_ulong, pn.val_string
+FROM hierarchy AS h
+INNER JOIN properties AS pn ON h.id=pn.hierarchyid AND h.type=7 AND pn.tag=0x3707
+INNER JOIN properties AS pz ON h.id=pz.hierarchyid AND pz.tag=0xE20
+LEFT JOIN singleinstances AS si ON h.id=si.hierarchyid;
+
+# with attachments that have no instance id (either because the attachment
+# is a message stored as a MAPI object, or there is a problem with the
+# database)
+#
++ WHERE si.instanceid IS NULL;
+
+# List messages whose attachments have no instanceid, print subject and date
+#
+SELECT hm.owner, hm.id AS msgid, ha.id AS attid, si.instanceid AS insid, ps.val_string AS subj,
+       FROM_UNIXTIME(((pt.val_hi<<32)+pt.val_lo-116444736000000000)/10000000) AS tm
+FROM hierarchy AS hm
+INNER JOIN hierarchy AS ha ON hm.id=ha.parent AND hm.type=5 AND ha.type=7
+LEFT JOIN singleinstances AS si ON ha.id=si.hierarchyid
+INNER JOIN properties AS ps ON hm.id=ps.hierarchyid AND ps.tag=0x37
+INNER JOIN properties AS pt ON hm.id=pt.hierarchyid AND pt.tag=0xE06
+WHERE si.instanceid IS NULL ORDER BY tm DESC LIMIT 5;

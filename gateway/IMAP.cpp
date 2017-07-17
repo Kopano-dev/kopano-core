@@ -1654,7 +1654,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	string strAppendUid;
 	ULONG ulFolderUid = 0;
 	ULONG ulMsgUid = 0;
-	SizedSPropTagArray(10, delFrom) = { 10, {
+	static constexpr const SizedSPropTagArray(10, delFrom) = {10, {
 			PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W,
 			PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_SEARCH_KEY,
 			PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W,

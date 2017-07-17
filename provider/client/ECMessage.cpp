@@ -52,16 +52,6 @@ using namespace KCHL;
 
 #define MAX_TABLE_PROPSIZE 8192
 
-static constexpr const SizedSPropTagArray(15, sPropRecipColumns) =
-	{15, {PR_7BIT_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_INSTANCE_KEY,
-	PR_RECORD_KEY, PR_SEARCH_KEY, PR_SEND_RICH_INFO, PR_DISPLAY_NAME_W,
-	PR_RECIPIENT_TYPE, PR_ROWID, PR_DISPLAY_TYPE, PR_ENTRYID,
-	PR_SPOOLER_STATUS, PR_OBJECT_TYPE, PR_ADDRTYPE_W, PR_RESPONSIBILITY}};
-static constexpr const SizedSPropTagArray(8, sPropAttachColumns) =
-	{8, {PR_ATTACH_NUM, PR_INSTANCE_KEY, PR_RECORD_KEY,
-	PR_RENDERING_POSITION, PR_ATTACH_FILENAME_W, PR_ATTACH_METHOD,
-	PR_DISPLAY_NAME_W, PR_ATTACH_LONG_FILENAME_W}};
-
 HRESULT ECMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew,
     BOOL fModify, ULONG ulFlags, BOOL bEmbedded, const ECMAPIProp *lpRoot,
     ECMessage **lpMessage) const
@@ -835,6 +825,10 @@ HRESULT ECMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterface
 
 HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
+	SizedSPropTagArray(8, sPropAttachColumns) =
+		{8, {PR_ATTACH_NUM, PR_INSTANCE_KEY, PR_RECORD_KEY,
+		PR_RENDERING_POSITION, PR_ATTACH_FILENAME_W, PR_ATTACH_METHOD,
+		PR_DISPLAY_NAME_W, PR_ATTACH_LONG_FILENAME_W}};
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropID = NULL;
 	LPSPropValue lpPropType = NULL;
@@ -850,11 +844,8 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	}
 
 	if (this->lpAttachments == NULL) {
-		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
-		     sPropAttachColumns, &~lpPropTagArray);
-		if(hr != hrSuccess)
-			return hr;
-		hr = ECMemTable::Create(lpPropTagArray, PR_ATTACH_NUM, &this->lpAttachments);
+		Util::proptag_change_unicode(ulFlags, sPropAttachColumns);
+		hr = ECMemTable::Create(sPropAttachColumns, PR_ATTACH_NUM, &this->lpAttachments);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1064,6 +1055,12 @@ HRESULT ECMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPR
 
 HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
+	SizedSPropTagArray(15, sPropRecipColumns) =
+		{15, {PR_7BIT_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W,
+		PR_INSTANCE_KEY, PR_RECORD_KEY, PR_SEARCH_KEY,
+		PR_SEND_RICH_INFO, PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE,
+		PR_ROWID, PR_DISPLAY_TYPE, PR_ENTRYID, PR_SPOOLER_STATUS,
+		PR_OBJECT_TYPE, PR_ADDRTYPE_W, PR_RESPONSIBILITY}};
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	scoped_rlock lock(m_hMutexMAPIObject);
@@ -1077,11 +1074,8 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	}
 
 	if (this->lpRecips == NULL) {
-		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
-		     sPropRecipColumns, &~lpPropTagArray);
-		if(hr != hrSuccess)
-			return hr;
-		hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &lpRecips);
+		Util::proptag_change_unicode(ulFlags, sPropRecipColumns);
+		hr = ECMemTable::Create(sPropRecipColumns, PR_ROWID, &lpRecips);
 		if(hr != hrSuccess)
 			return hr;
 

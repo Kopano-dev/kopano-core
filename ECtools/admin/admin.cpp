@@ -1354,12 +1354,12 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	case CONTAINER_COMPANY:
 		hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)lpszName, 0, &cbObjectId, &lpObjectId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to resolve company, " << getMapiCodeString(hr, lpszName) << endl;
+			cerr << "Unable to resolve company: " << getMapiCodeString(hr, lpszName) << endl;
 			return hr;
 		}
 		hr = lpServiceAdmin->GetCompany(cbObjectId, lpObjectId, 0, &~lpECCompany);
 		if (hr != hrSuccess) {
-			cerr << "Unable to show company details, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to show company details: " << getMapiCodeString(hr) << endl;
 			return hr;
 		}
 		hr = lpECMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
@@ -1379,17 +1379,17 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 		}
 		hr = lpServiceAdmin->GetUser(lpECCompany->sAdministrator.cb, (LPENTRYID)lpECCompany->sAdministrator.lpb, 0, &~lpECUser);
 		if (hr != hrSuccess) {
-			cerr << "Unable to resolve company administrator, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to resolve company administrator: " << getMapiCodeString(hr) << endl;
 			return hr;
 		}
 		hr = lpServiceAdmin->GetRemoteAdminList(cbObjectId, lpObjectId, 0, &cAdmins, &~lpECAdmins);
 		if (hr != hrSuccess) {
-			cerr << "Unable to display remote-admin list, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to display remote-admin list: " << getMapiCodeString(hr) << endl;
 			hr = hrSuccess; /* Don't make error fatal */
 		}
 		hr = lpServiceAdmin->GetRemoteViewList(cbObjectId, lpObjectId, 0, &cViews, &~lpECViews);
 		if (hr != hrSuccess) {
-			cerr << "Unable to display remote-view list, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to display remote-view list: " << getMapiCodeString(hr) << endl;
 			hr = hrSuccess; /* Don't make error fatal */
 		}
 		print_company_settings(lpECCompany, lpECUser);
@@ -1400,17 +1400,17 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	case DISTLIST_DYNAMIC:
 		hr = lpServiceAdmin->ResolveGroupName((LPTSTR)lpszName, 0, &cbObjectId, &lpObjectId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to resolve group, " << getMapiCodeString(hr, lpszName) << endl;
+			cerr << "Unable to resolve group: " << getMapiCodeString(hr, lpszName) << endl;
 			return hr;
 		}
 		hr = lpServiceAdmin->GetGroup(cbObjectId, lpObjectId, 0, &~lpECGroup);
 		if (hr != hrSuccess) {
-			cerr << "Unable to show group details, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to show group details: " << getMapiCodeString(hr) << endl;
 			return hr;
 		}
 		hr = lpServiceAdmin->GetUserListOfGroup(cbObjectId, lpObjectId, 0, &cUsers, &~lpECUsers);
 		if (hr != hrSuccess) {
-			cerr << "Unable to request users for group, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to request users for group: " << getMapiCodeString(hr) << endl;
 			hr = hrSuccess; /* Don't make error fatal */
 		}
 		print_group_settings(lpECGroup);
@@ -1424,12 +1424,12 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	default:
 		hr = lpServiceAdmin->ResolveUserName((LPTSTR)lpszName, 0, &cbObjectId, &lpObjectId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to resolve user, " << getMapiCodeString(hr, lpszName) << endl;
+			cerr << "Unable to resolve user: " << getMapiCodeString(hr, lpszName) << endl;
 			return hr;
 		}
 		hr = lpServiceAdmin->GetUser(cbObjectId, lpObjectId, 0, &~lpECUser);
 		if (hr != hrSuccess) {
-			cerr << "Unable to show user details, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to show user details: " << getMapiCodeString(hr) << endl;
 			return hr;
 		}
 		hr = lpECMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
@@ -1455,19 +1455,19 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 		}
 		hr = lpServiceAdmin->GetGroupListOfUser(cbObjectId, lpObjectId, 0, &cGroups, &~lpECGroups);
 		if (hr != hrSuccess) {
-			cerr << "Unable to request groups for user, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to request groups for user: " << getMapiCodeString(hr) << endl;
 			hr = hrSuccess; /* Don't make error fatal */
 		}
 		hr = ArchiveManage::Create(lpSession, NULL, converter.convert_to<LPTSTR>(lpszName), &ptrArchiveManage);
 		if (hr != hrSuccess) {
 			if (hr != MAPI_E_NOT_FOUND)
-				cerr << "Error while obtaining archive details, " << getMapiCodeString(hr) << endl;
+				cerr << "Error while obtaining archive details: " << getMapiCodeString(hr) << endl;
 			hr = hrSuccess; /* Don't make error fatal */
 		}
 		if (ptrArchiveManage.get() != NULL) {
 			hr = ptrArchiveManage->ListArchives(&lstArchives, "Root Folder");
 			if (hr != hrSuccess) {
-				cerr << "Error while obtaining archive list, " << getMapiCodeString(hr) << endl;
+				cerr << "Error while obtaining archive list: " << getMapiCodeString(hr) << endl;
 				hr = hrSuccess; /* Don't make error fatal */
 			}
 		}
@@ -1486,12 +1486,12 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	if (ulClass != DISTLIST_GROUP) {
 		hr = lpServiceAdmin->GetQuota(cbObjectId, lpObjectId, false, &~lpsQuota);
 		if (hr != hrSuccess) {
-			cerr << "Unable to show object quota, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to show object quota: " << getMapiCodeString(hr) << endl;
 			hr = hrSuccess; /* Don't make error fatal */
 		} else {
 			hr = Util::HrGetQuotaStatus(lpStore, lpsQuota, &~lpsQuotaStatus);
 			if (hr != hrSuccess) {
-				cerr << "Unable to show object quota information, " << getMapiCodeString(hr) << endl;
+				cerr << "Unable to show object quota information: " << getMapiCodeString(hr) << endl;
 				hr = hrSuccess; /* Don't make error fatal */
 			} else
 				print_quota(lpsQuota, lpsQuotaStatus, (ulClass == CONTAINER_COMPANY));
@@ -1501,7 +1501,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	if (ulClass == CONTAINER_COMPANY) {
 		hr = lpServiceAdmin->GetQuota(cbObjectId, lpObjectId, true, &~lpsQuota);
 		if (hr != hrSuccess) {
-			cerr << "Unable to get user default quota for company, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to get user default quota for company: " << getMapiCodeString(hr) << endl;
 			hr = hrSuccess; /* not fatal */
 		} else
 			print_quota(lpsQuota, NULL, false);
@@ -1587,7 +1587,7 @@ static HRESULT ListUsers(IECServiceAdmin *lpServiceAdmin, ECCOMPANY *lpCompany)
 
 	hr = lpServiceAdmin->GetUserList(lpCompany->sCompanyId.cb, (LPENTRYID)lpCompany->sCompanyId.lpb, 0, &cUsers, &~lpECUsers);
 	if (hr != hrSuccess) {
-		cerr << "Unable to list users, " << getMapiCodeString(hr) << endl;
+		cerr << "Unable to list users: " << getMapiCodeString(hr) << endl;
 		return hr;
 	}
 
@@ -1613,7 +1613,7 @@ static HRESULT ListGroups(IECServiceAdmin *lpServiceAdmin,
 
 	hr = lpServiceAdmin->GetGroupList(lpCompany->sCompanyId.cb, (LPENTRYID)lpCompany->sCompanyId.lpb, 0, &cGroups, &~lpECGroups);
 	if (hr != hrSuccess) {
-		cerr << "Unable to list groups, " << getMapiCodeString(hr) << endl;
+		cerr << "Unable to list groups: " << getMapiCodeString(hr) << endl;
 		return hr;
 	}
 
@@ -1638,7 +1638,7 @@ static HRESULT SyncUsers(IECServiceAdmin *lpServiceAdmin)
 	// we don't sync one company, since the complete cache is flushed in the server
 	hr = lpServiceAdmin->SyncUsers(0, NULL);
 	if (hr != hrSuccess)
-		cerr << "User/group synchronization failed, " << getMapiCodeString(hr) << endl;
+		cerr << "User/group synchronization failed: " << getMapiCodeString(hr) << endl;
 	return hr;
 }
 
@@ -1666,7 +1666,7 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
 	if (lpszCompanyName) {
 		hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)lpszCompanyName, 0, &cbCompanyId, &~lpCompanyId);
 		if (hr != hrSuccess) {
-			cerr << "Failed to resolve company name, " << getMapiCodeString(hr, lpszCompanyName) << endl;
+			cerr << "Failed to resolve company name: " << getMapiCodeString(hr, lpszCompanyName) << endl;
 			return hr;
 		}
 
@@ -3117,7 +3117,7 @@ int main(int argc, char* argv[])
 		 * pass the company id as the group id for the store. */
 		hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PUBLIC, cbCompanyId, lpCompanyId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
 		if(hr != hrSuccess) {
-			cerr << "Unable to create store, " << getMapiCodeString(hr, "public") << endl;
+			cerr << "Unable to create store: " << getMapiCodeString(hr, "public") << endl;
 			goto exit;
 		}
 		cout << "Public created." << endl;
@@ -3157,7 +3157,7 @@ int main(int argc, char* argv[])
 
 		hr = lpServiceAdmin->CreateUser(&sECUser, 0, &cbUserId, &~lpUserId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to create user, " << getMapiCodeString(hr, username) << endl;
+			cerr << "Unable to create user: " << getMapiCodeString(hr, username) << endl;
 			cerr << "Check server.log for details." << endl;
 			goto exit;
 		}
@@ -3174,7 +3174,7 @@ int main(int argc, char* argv[])
 	case MODE_CREATE_STORE:
 		hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PRIVATE, cbUserId, lpUserId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to create store, " << getMapiCodeString(hr, "store") << endl;
+			cerr << "Unable to create store: " << getMapiCodeString(hr, "store") << endl;
 			goto exit;
 		}
 		cout << "User store '" << username << "' created." << endl;
@@ -3183,7 +3183,7 @@ int main(int argc, char* argv[])
 	case MODE_DELETE_USER:
 		hr = lpServiceAdmin->DeleteUser(cbUserId, lpUserId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to delete user, " << getMapiCodeString(hr, username) << endl;
+			cerr << "Unable to delete user: " << getMapiCodeString(hr, username) << endl;
 			goto exit;
 		}
 		cout << "User deleted." << endl;
@@ -3211,34 +3211,34 @@ int main(int argc, char* argv[])
 			// Open store the orphan store
 			hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, nullptr, MAPI_BEST_ACCESS, &~lpUserStore);
 			if (hr != hrSuccess) {
-				cerr << "Unable to open the orphan store, " << getMapiCodeString(hr) << endl;
+				cerr << "Unable to open the orphan store: " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
 
 			// Open the root container for copy the folders
 			hr = lpUserStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_BEST_ACCESS, &ulObjType, &~lpRootFolder);
 			if (hr != hrSuccess) {
-				cerr << "Unable to open root folder of the orphan store, " << getMapiCodeString(hr) << endl;
+				cerr << "Unable to open root folder of the orphan store: " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
 
 			hr = HrGetOneProp(lpUserStore, PR_IPM_SUBTREE_ENTRYID, &~lpPropValue);
 			if (hr != hrSuccess) {
-				cerr << "Unable to open the orphans store sub-entry, " << getMapiCodeString(hr) << endl;
+				cerr << "Unable to open the orphans store sub-entry: " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
 
 			// Open the public store
 			hr = GetPublicStore(lpSession, lpUserStore, strCompanyName, &~lpPublicStore);
 			if (hr != hrSuccess) {
-				cerr << "Unable to open the public store, " << getMapiCodeString(hr) << endl;
+				cerr << "Unable to open the public store: " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
 
 			// open/create folders admin/stores
 			hr = OpenDeletedStoresFolder(lpPublicStore, &~lpDeletedStoresFolder);
 			if (hr != hrSuccess) {
-				cerr << "Unable to open the folder \"deleted stores\", " << getMapiCodeString(hr) << endl;
+				cerr << "Unable to open the folder \"deleted stores\": " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
 
@@ -3270,7 +3270,7 @@ int main(int argc, char* argv[])
 					cerr << "Unable to copy the store to the public," << getMapiCodeString(hr) << endl;
 					goto exit;
 				} else if (hr != hrSuccess) {
-					cerr << "Warning, the copy succeeded, but not all entries were copied (" << getMapiCodeString(hr) << ")" << endl;
+					cerr << "Warning: the copy succeeded, but not all entries were copied (" << getMapiCodeString(hr) << ")" << endl;
 					break;
 				} else {
 					cerr << "Copy succeeded" << endl;
@@ -3299,7 +3299,7 @@ int main(int argc, char* argv[])
 				goto exit;
 			}
 			if (hr != hrSuccess) {
-				cerr << "Unable to find " << detailstype << ", " << getMapiCodeString(hr, username) << endl;
+				cerr << "Unable to find " << detailstype << ": " << getMapiCodeString(hr, username) << endl;
 				goto exit;
 			}
 
@@ -3307,7 +3307,7 @@ int main(int argc, char* argv[])
 				// check if this user should exist on the connected server. depending on --force, print a warning or an error
 				hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
 				if (hr != hrSuccess) {
-					cerr << "Unable to load details, " << getMapiCodeString(hr, username) << endl;
+					cerr << "Unable to load details: " << getMapiCodeString(hr, username) << endl;
 					goto exit;
 				}
 
@@ -3324,7 +3324,7 @@ int main(int argc, char* argv[])
 					lpsServer->lpszaServer[0] = lpECUser->lpszServername;
 					hr = lpServiceAdmin->GetServerDetails(lpsServer, 0, &~lpServerDetails);
 					if (hr != hrSuccess) {
-						cerr << "Unable to load server details, " << getMapiCodeString(hr, (char*)lpECUser->lpszServername) << endl;
+						cerr << "Unable to load server details: " << getMapiCodeString(hr, (char*)lpECUser->lpszServername) << endl;
 						goto exit;
 					}
 					if ((lpServerDetails->lpsaServer[0].ulFlags & EC_SDFLAG_IS_PEER) == 0)
@@ -3336,7 +3336,7 @@ int main(int argc, char* argv[])
 			// the server won't let you hook public stores to users and vice-versa.
 			hr = lpServiceAdmin->HookStore(ulStoreType, cbUserId, lpUserId, lpGUID);
 			if (hr != hrSuccess) {
-				cerr << "Unable to hook store, " << getMapiCodeString(hr) << endl;
+				cerr << "Unable to hook store: " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
 			cout << "Store hooked." << endl;
@@ -3366,7 +3366,7 @@ int main(int argc, char* argv[])
 			goto exit;
 		}
 		if (hr != hrSuccess) {
-			cerr << "Unable to find " << detailstype << ", " << getMapiCodeString(hr, username) << endl;
+			cerr << "Unable to find " << detailstype << ": " << getMapiCodeString(hr, username) << endl;
 			goto exit;
 		}
 
@@ -3374,7 +3374,7 @@ int main(int argc, char* argv[])
 			if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
 				hr = lpServiceAdmin->GetArchiveStoreEntryID(reinterpret_cast<LPTSTR>(username), NULL, 0, &cbStoreId, &~lpStoreId);
 				if (hr != hrSuccess) {
-					cout << "Unable to unhook store, unable to retrieve store entryid, " << getMapiCodeString(hr, "entryid") << endl;
+					cout << "Unable to unhook store, unable to retrieve store entryid: " << getMapiCodeString(hr, "entryid") << endl;
 					goto exit;
 				}
 			} else {
@@ -3388,38 +3388,38 @@ int main(int argc, char* argv[])
 					if (hr == MAPI_E_NOT_FOUND)
 						cout << "Unable to unhook store. User '" << username << "' has no store attached." << endl;
 					else
-						cout << "Unable to unhook store. Can not create store entryid, " << getMapiCodeString(hr, "store") << endl;
+						cout << "Unable to unhook store. Can not create store entryid: " << getMapiCodeString(hr, "store") << endl;
 					goto exit;
 				}
 			}
 
 			hr = UnWrapStoreEntryID(cbStoreId, lpStoreId, &cbUnWrappedEntry, &~lpUnWrappedEntry);
 			if (hr != hrSuccess) {
-				cout << "Unable to unhook store. Unable to unwrap the store entryid, " << getMapiCodeString(hr, "entryid") << endl;
+				cout << "Unable to unhook store. Unable to unwrap the store entryid: " << getMapiCodeString(hr, "entryid") << endl;
 				goto exit;
 			}
 		} else {
 			// ns__resolveUserStore (CreateStoreEntryID) does not work with normal (non-company) public store
 			hr = GetPublicStore(lpSession, lpMsgStore, strCompanyName, &~lpPublicStore);
 			if (hr != hrSuccess) {
-				cerr << "Unable to open public store, " << getMapiCodeString(hr, "public") << endl;
+				cerr << "Unable to open public store: " << getMapiCodeString(hr, "public") << endl;
 				goto exit;
 			}
 			hr = HrGetOneProp(lpPublicStore, PR_STORE_ENTRYID, &~lpPropValue);
 			if (hr != hrSuccess) {
-				cerr << "Unable to get public store entryid, " << getMapiCodeString(hr, "store") << endl;
+				cerr << "Unable to get public store entryid: " << getMapiCodeString(hr, "store") << endl;
 				goto exit;
 			}
 			hr = UnWrapStoreEntryID(lpPropValue->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue->Value.bin.lpb), &cbUnWrappedEntry, &~lpUnWrappedEntry);
 			if (hr != hrSuccess) {
-				cout << "Unable to unhook store. Unable to unwrap the store entryid, " << getMapiCodeString(hr, "entryid") << endl;
+				cout << "Unable to unhook store. Unable to unwrap the store entryid: " << getMapiCodeString(hr, "entryid") << endl;
 				goto exit;
 			}
 		}
 
 		hr = lpServiceAdmin->UnhookStore(ulStoreType, cbUserId, lpUserId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to unhook store, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to unhook store: " << getMapiCodeString(hr) << endl;
 			goto exit;
 		}
 
@@ -3434,7 +3434,7 @@ int main(int argc, char* argv[])
 		}
 		hr = lpServiceAdmin->RemoveStore(lpGUID);
 		if (hr != hrSuccess) {
-			cerr << "Unable to remove store, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to remove store: " << getMapiCodeString(hr) << endl;
 			goto exit;
 		}
 		cout << "Store removed." << endl;
@@ -3453,7 +3453,7 @@ int main(int argc, char* argv[])
 		// get old features. we need these, because not setting them would mean: remove
 		hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
 		if (hr != hrSuccess) {
-			cerr << "Unable to get user details, " << getMapiCodeString(hr, username) << endl;
+			cerr << "Unable to get user details: " << getMapiCodeString(hr, username) << endl;
 			goto exit;
 		}
 
@@ -3525,7 +3525,7 @@ int main(int argc, char* argv[])
 				goto exit;
 			hr = lpServiceAdmin->SetUser(&sECUser, 0);
 			if (hr != hrSuccess) {
-				cerr << "Unable to update user information, " << getMapiCodeString(hr) << endl;
+				cerr << "Unable to update user information: " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
 		}
@@ -3575,7 +3575,7 @@ int main(int argc, char* argv[])
 		if (sendas_user) {
 			hr = lpServiceAdmin->ResolveUserName((LPTSTR)sendas_user, 0, &cbSenderId, &~lpSenderId);
 			if (hr != hrSuccess) {
-				cerr << "Unable to update user, sendas user not available, " << getMapiCodeString(hr, sendas_user) << endl;
+				cerr << "Unable to update user, sendas user not available: " << getMapiCodeString(hr, sendas_user) << endl;
 				goto exit;
 			}
 			if (sendas_action == 0)
@@ -3599,7 +3599,7 @@ int main(int argc, char* argv[])
 				goto exit;
 			default:
 				if (hr != hrSuccess) {
-					cerr << "Unable to update user, unable to update sendas list, " << getMapiCodeString(hr, username) << endl;
+					cerr << "Unable to update user, unable to update sendas list: " << getMapiCodeString(hr, username) << endl;
 					goto exit;
 				}
 				break;
@@ -3612,7 +3612,7 @@ int main(int argc, char* argv[])
 		sECCompany.lpszCompanyname = (LPTSTR)companyname;
 		hr = lpServiceAdmin->CreateCompany(&sECCompany, 0, &cbCompanyId, &~lpCompanyId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to create company, " << getMapiCodeString(hr, companyname) << endl;
+			cerr << "Unable to create company: " << getMapiCodeString(hr, companyname) << endl;
 			goto exit;
 		}
 		if (quota != -1) {
@@ -3643,7 +3643,7 @@ int main(int argc, char* argv[])
 	case MODE_DELETE_COMPANY:
 		hr = lpServiceAdmin->DeleteCompany(cbCompanyId, lpCompanyId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to delete company, " << getMapiCodeString(hr, companyname) << endl;
+			cerr << "Unable to delete company: " << getMapiCodeString(hr, companyname) << endl;
 			goto exit;
 		}
 		cout << "Company deleted" << endl;
@@ -3651,7 +3651,7 @@ int main(int argc, char* argv[])
 	case MODE_LIST_COMPANY:
 		hr = lpServiceAdmin->GetCompanyList(0, &cCompanies, &lpECCompanies);
 		if(hr != hrSuccess) {
-			cerr << "Unable to list companies, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to list companies: " << getMapiCodeString(hr) << endl;
 			goto exit;
 		}
 
@@ -3663,7 +3663,7 @@ int main(int argc, char* argv[])
 			ct.AddColumn(0, (LPSTR)lpECCompanies[i].lpszCompanyname);
 			hr = lpServiceAdmin->GetUser(lpECCompanies[i].sAdministrator.cb, reinterpret_cast<ENTRYID *>(lpECCompanies[i].sAdministrator.lpb), 0, &~lpECUser);
 			if (hr != hrSuccess) {
-				cerr << "Unable to get administrator details, " << getMapiCodeString(hr, "administrator") << endl;
+				cerr << "Unable to get administrator details: " << getMapiCodeString(hr, "administrator") << endl;
 				goto exit;
 			}
 			ct.AddColumn(1, (LPSTR)lpECUser->lpszUsername);
@@ -3677,7 +3677,7 @@ int main(int argc, char* argv[])
 		sECGroup.lpszFullEmail = (LPTSTR)emailadr;
 		hr = lpServiceAdmin->CreateGroup(&sECGroup, 0, &cbGroupId, &~lpGroupId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to create group, " << getMapiCodeString(hr, groupname) << endl;
+			cerr << "Unable to create group: " << getMapiCodeString(hr, groupname) << endl;
 			goto exit;
 		}
 		cout << "Group created." << endl;
@@ -3685,7 +3685,7 @@ int main(int argc, char* argv[])
 	case MODE_UPDATE_GROUP:
 		hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to update group, " << getMapiCodeString(hr, groupname) << endl;
+			cerr << "Unable to update group: " << getMapiCodeString(hr, groupname) << endl;
 			goto exit;
 		}
 
@@ -3702,7 +3702,7 @@ int main(int argc, char* argv[])
 
 			hr = lpServiceAdmin->SetGroup(&sECGroup, 0);
 			if (hr != hrSuccess) {
-				cerr << "Unable to update group information, " << getMapiCodeString(hr) << endl;
+				cerr << "Unable to update group information: " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
 		}
@@ -3710,7 +3710,7 @@ int main(int argc, char* argv[])
 		if (sendas_user) {
 			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(sendas_user), 0, &cbSenderId, &~lpSenderId);
 			if (hr != hrSuccess) {
-				cerr << "Unable to update group, sendas user not available, " << getMapiCodeString(hr, sendas_user) << endl;
+				cerr << "Unable to update group, sendas user not available: " << getMapiCodeString(hr, sendas_user) << endl;
 				goto exit;
 			}
 			if (sendas_action == 0)
@@ -3734,7 +3734,7 @@ int main(int argc, char* argv[])
 				goto exit;
 			default:
 				if (hr != hrSuccess) {
-					cerr << "Unable to update group, unable to update sendas list, " << getMapiCodeString(hr, username) << endl;
+					cerr << "Unable to update group, unable to update sendas list: " << getMapiCodeString(hr, username) << endl;
 					goto exit;
 				}
 				break;
@@ -3745,7 +3745,7 @@ int main(int argc, char* argv[])
 	case MODE_DELETE_GROUP:
 		hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to delete group, " << getMapiCodeString(hr, groupname) << endl;
+			cerr << "Unable to delete group: " << getMapiCodeString(hr, groupname) << endl;
 			goto exit;
 		}
 		hr = lpServiceAdmin->DeleteGroup(cbGroupId, lpGroupId);
@@ -3763,7 +3763,7 @@ int main(int argc, char* argv[])
 	case MODE_ADDUSER_GROUP:
 		hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to add user to group, " << getMapiCodeString(hr, groupname) << endl;
+			cerr << "Unable to add user to group: " << getMapiCodeString(hr, groupname) << endl;
 			goto exit;
 		}
 		hr = lpServiceAdmin->AddGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
@@ -3776,7 +3776,7 @@ int main(int argc, char* argv[])
 	case MODE_DELETEUSER_GROUP:
 		hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
 		if (hr != hrSuccess) {
-			cerr << "Unable to remove user from group, " << getMapiCodeString(hr, groupname) << endl;
+			cerr << "Unable to remove user from group: " << getMapiCodeString(hr, groupname) << endl;
 			goto exit;
 		}
 		hr = lpServiceAdmin->DeleteGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
@@ -3795,7 +3795,7 @@ int main(int argc, char* argv[])
 	case MODE_ADD_VIEW:
 		hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(set_companyname), 0, &cbSetCompanyId, &~lpSetCompanyId);
 		if (hr != hrSuccess) {
-			cerr << "Failed to resolve company name, " << getMapiCodeString(hr, set_companyname) << endl;
+			cerr << "Failed to resolve company name: " << getMapiCodeString(hr, set_companyname) << endl;
 			goto exit;
 		}
 		hr = lpServiceAdmin->AddCompanyToRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
@@ -3808,12 +3808,12 @@ int main(int argc, char* argv[])
 	case MODE_DEL_VIEW:
 		hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(set_companyname), 0, &cbSetCompanyId, &~lpSetCompanyId);
 		if (hr != hrSuccess) {
-			cerr << "Failed to resolve company name, " << getMapiCodeString(hr, set_companyname) << endl;
+			cerr << "Failed to resolve company name: " << getMapiCodeString(hr, set_companyname) << endl;
 			goto exit;
 		}
 		hr = lpServiceAdmin->DelCompanyFromRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
 		if (hr != hrSuccess) {
-			cerr << "Failed to remove company from remote-view list, " << getMapiCodeString(hr) << endl;
+			cerr << "Failed to remove company from remote-view list: " << getMapiCodeString(hr) << endl;
 			goto exit;
 		}
 		cout << "Company " << set_companyname << " removed from the remote-view list of " << companyname << endl;
@@ -3821,7 +3821,7 @@ int main(int argc, char* argv[])
 	case MODE_LIST_VIEW:
 		hr = lpServiceAdmin->GetRemoteViewList(cbCompanyId, lpCompanyId, 0, &cCompanies, &lpECCompanies);
 		if (hr != hrSuccess) {
-			cerr << "Unable to display remote-view list, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to display remote-view list: " << getMapiCodeString(hr) << endl;
 			goto exit;
 		}
 		cout << "remote-view list ("<< cCompanies <<"):" << endl;
@@ -3832,7 +3832,7 @@ int main(int argc, char* argv[])
 	case MODE_ADD_ADMIN:
 		hr = lpServiceAdmin->AddUserToRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
 		if (hr != hrSuccess) {
-			cerr << "Failed to add user to remote-admin list, " << getMapiCodeString(hr) << endl;
+			cerr << "Failed to add user to remote-admin list: " << getMapiCodeString(hr) << endl;
 			goto exit;
 		}
 		cout << "User " << username << " added to the remote-admin list of " << companyname << endl;
@@ -3840,7 +3840,7 @@ int main(int argc, char* argv[])
 	case MODE_DEL_ADMIN:
 		hr = lpServiceAdmin->DelUserFromRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
 		if (hr != hrSuccess) {
-			cerr << "Failed to delete user from remote-admin list, " << getMapiCodeString(hr) << endl;
+			cerr << "Failed to delete user from remote-admin list: " << getMapiCodeString(hr) << endl;
 			goto exit;
 		}
 		cout << "User " << username << " removed from the remote-admin list of " << companyname << endl;
@@ -3848,7 +3848,7 @@ int main(int argc, char* argv[])
 	case MODE_LIST_ADMIN:
 		hr = lpServiceAdmin->GetRemoteAdminList(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
 		if (hr != hrSuccess) {
-			cerr << "Unable to display remote-admin list, " << getMapiCodeString(hr) << endl;
+			cerr << "Unable to display remote-admin list: " << getMapiCodeString(hr) << endl;
 			goto exit;
 		}
 		cout << "remote-admin list ("<< cUsers <<"):" << endl;
@@ -3948,7 +3948,7 @@ int main(int argc, char* argv[])
 		}
 
 		if (hr != hrSuccess) {
-			cerr << "Failed to resolve "<< detailstype <<" name, " << getMapiCodeString(hr, username) << endl;
+			cerr << "Failed to resolve "<< detailstype <<" name: " << getMapiCodeString(hr, username) << endl;
 			goto exit;
 		}
 		hr = lpServiceAdmin->GetSendAsList(cbUserId, lpUserId, 0, &cSenders, &~lpSenders);

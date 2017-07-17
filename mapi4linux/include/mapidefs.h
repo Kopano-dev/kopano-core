@@ -261,6 +261,7 @@ typedef struct SPropTagArray *LPSPropTagArray;
 struct _SPropTagArray_ ## _name { \
     ULONG   cValues; \
     ULONG   aulPropTag[_ctag]; \
+	operator SPropTagArray &() { return *reinterpret_cast<SPropTagArray *>(this); } \
 	operator const SPropTagArray *(void) const { return reinterpret_cast<const SPropTagArray *>(this); } \
 } _name
 
