@@ -371,16 +371,23 @@ class Folder(Base):
         props = [item for item in items if isinstance(item, Property)]
         return item_entryids, folder_entryids, perms, props
 
-    def delete(self, objects): # XXX associated
+    def delete(self, objects, soft=False): # XXX associated
         """Delete items, subfolders, properties or permissions from folder.
 
         :param objects: The object(s) to delete
+        :param soft: In case of items or folders, are they soft-deleted
         """
         item_entryids, folder_entryids, perms, props = self._get_entryids(objects)
         if item_entryids:
-            self.mapiobj.DeleteMessages(item_entryids, 0, None, DELETE_HARD_DELETE)
+            if soft:
+                self.mapiobj.DeleteMessages(item_entryids, 0, None, 0)
+            else:
+                self.mapiobj.DeleteMessages(item_entryids, 0, None, DELETE_HARD_DELETE)
         for entryid in folder_entryids:
-            self.mapiobj.DeleteFolder(entryid, 0, None, DEL_FOLDERS | DEL_MESSAGES)
+            if soft:
+                self.mapiobj.DeleteFolder(entryid, 0, None, DEL_FOLDERS | DEL_MESSAGES)
+            else:
+                self.mapiobj.DeleteFolder(entryid, 0, None, DEL_FOLDERS | DEL_MESSAGES | DELETE_HARD_DELETE)
         for perm in perms:
             acl_table = self.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
             acl_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE, [SPropValue(PR_MEMBER_ID, perm.mapirow[PR_MEMBER_ID])])])
