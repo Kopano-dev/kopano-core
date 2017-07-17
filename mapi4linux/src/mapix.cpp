@@ -364,8 +364,10 @@ M4LMsgServiceAdmin::~M4LMsgServiceAdmin()
 	for (auto &i : services) {
 		auto p = providers.begin();
 		while (p != providers.end()) {
-			if ((*p)->servicename != i->servicename)
+			if ((*p)->servicename != i->servicename) {
+				++p;
 				continue;
+			}
 			auto pNext = p;
 			++pNext;
 			providers.erase(p);
@@ -583,8 +585,10 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
     
     p = providers.begin();
     while (p != providers.end()) {
-		if ((*p)->servicename != (*i)->servicename)
+		if ((*p)->servicename != (*i)->servicename) {
+			++p;
 			continue;
+		}
 		pNext = p;
 		++pNext;
 		providers.erase(p);
