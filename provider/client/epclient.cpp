@@ -386,20 +386,18 @@ initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 
 static HRESULT initprov_addrbook(struct initprov &d)
 {
-	ABEID *eidptr;
 	size_t abe_size = CbNewABEID("");
-	HRESULT ret = MAPIAllocateBuffer(abe_size, reinterpret_cast<void **>(&eidptr));
+	HRESULT ret = MAPIAllocateBuffer(abe_size, &~d.abe_id);
 	if (ret != hrSuccess)
 		return ret;
 
-	d.abe_id.reset(eidptr);
-	memset(eidptr, 0, abe_size);
+	memset(d.abe_id, 0, abe_size);
 	memcpy(&d.abe_id->guid, &MUIDECSAB, sizeof(GUID));
 	d.abe_id->ulType = MAPI_ABCONT;
 
 	d.prop[d.count].ulPropTag = PR_ENTRYID;
 	d.prop[d.count].Value.bin.cb = abe_size;
-	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(eidptr);
+	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(d.abe_id.get());
 	d.prop[d.count].ulPropTag = PR_RECORD_KEY;
 	d.prop[d.count].Value.bin.cb = sizeof(MAPIUID);
 	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<GUID *>(&MUIDECSAB));
