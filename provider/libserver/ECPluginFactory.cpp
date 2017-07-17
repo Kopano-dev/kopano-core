@@ -66,7 +66,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 
         if (!m_dl) {
 			ec_log_crit("Failed to load \"%s\": %s", filename, dlerror());
-			ec_log_crit("Please correct your configuration file and set the \"plugin_path\" and \"user_plugin\" options.");
+			ec_log_crit("Please correct your configuration file and set the \"user_plugin\" option.");
 			goto out;
         }
         auto fngetUserPluginInstance = reinterpret_cast<unsigned long (*)()>(dlsym(m_dl, "getUserPluginVersion"));
