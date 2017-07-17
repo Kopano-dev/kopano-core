@@ -3291,8 +3291,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 
 	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
 		ec_log_err("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors (%s)", KC_DESIRED_FILEDES, getdtablesize(), strerror(errno));
-	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
-		unix_coredump_enable();
+	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
@@ -3605,7 +3604,7 @@ int main(int argc, char *argv[]) {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/dagent.pid" },
-		{ "coredump_enabled", "no" },
+		{"coredump_enabled", "systemdefault"},
 		{ "lmtp_port", "2003" },
 		{ "lmtp_max_threads", "20" },
 		{ "process_model", "", CONFIGSETTING_UNUSED },
