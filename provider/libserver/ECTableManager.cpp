@@ -29,7 +29,6 @@
 #include "ECUserStoreTable.h"
 #include "ECABObjectTable.h"
 #include "ECStatsTables.h"
-#include "ECConvenientDepthABObjectTable.h"
 #include "ECTableManager.h"
 #include "ECSessionManager.h"
 #include "ECSession.h"

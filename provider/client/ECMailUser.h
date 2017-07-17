@@ -21,8 +21,26 @@
 #include <kopano/zcdefs.h>
 #include <kopano/Util.h>
 #include <mapidefs.h>
-
+#include "ECABContainer.h"
 #include "ECABProp.h"
+
+class ECDistList _kc_final : public ECABContainer, public IDistList {
+	public:
+	static HRESULT Create(void *provider, BOOL modify, ECDistList **);
+	static HRESULT TableRowGetProp(void *provider, struct propVal *src, SPropValue *dst, void **base, ULONG type);
+
+	// Override IMAPIProp
+	virtual HRESULT CopyTo(ULONG nexcl, const IID *excl, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **);
+	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **);
+
+	// override IUnknown
+	virtual HRESULT	QueryInterface(REFIID refiid, void **) _kc_override;
+	virtual HRESULT OpenProperty(ULONG proptag, const IID *, ULONG iface_opts, ULONG flags, IUnknown **);
+
+	protected:
+	ECDistList(void *provider, BOOL modify);
+	ALLOC_WRAP_FRIEND;
+};
 
 class ECMailUser _kc_final : public ECABProp, public IMailUser {
 private:

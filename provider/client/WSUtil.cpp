@@ -31,7 +31,6 @@
 #include "ECMessage.h"
 
 #include "ECMailUser.h"
-#include "ECDistList.h"
 #include "ECABContainer.h"
 
 #include "SOAPUtils.h"

@@ -335,7 +335,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECAttach.cpp provider/client/ECAttach.h \
 	provider/client/ECChangeAdvisor.cpp provider/client/ECChangeAdvisor.h \
 	provider/client/ECDisplayTable.cpp \
-	provider/client/ECDistList.cpp provider/client/ECDistList.h \
 	provider/client/ECExchangeExportChanges.cpp provider/client/ECExchangeExportChanges.h \
 	provider/client/ECExchangeImportContentsChanges.cpp \
 	provider/client/ECExchangeImportContentsChanges.h \
@@ -513,8 +512,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECABObjectTable.cpp provider/libserver/ECABObjectTable.h \
 	provider/libserver/ECAttachmentStorage.cpp provider/libserver/ECAttachmentStorage.h \
 	provider/libserver/ECCacheManager.cpp provider/libserver/ECCacheManager.h \
-	provider/libserver/ECConvenientDepthABObjectTable.cpp \
-	provider/libserver/ECConvenientDepthABObjectTable.h \
 	provider/libserver/ECConvenientDepthObjectTable.cpp \
 	provider/libserver/ECConvenientDepthObjectTable.h \
 	provider/libserver/ECConversion.cpp provider/libserver/ECConversion.h \
@@ -535,9 +532,8 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECMAPI.h \
 	provider/libserver/ECMailBoxTable.cpp provider/libserver/ECMailBoxTable.h \
 	provider/libserver/ECMultiStoreTable.cpp provider/libserver/ECMultiStoreTable.h \
-	provider/libserver/ECNotification.cpp provider/libserver/ECNotification.h \
+	provider/libserver/ECNotification.h \
 	provider/libserver/ECNotificationManager.cpp provider/libserver/ECNotificationManager.h \
-	provider/libserver/ECPamAuth.cpp provider/libserver/ECPamAuth.h \
 	provider/libserver/ECPluginFactory.cpp provider/libserver/ECPluginFactory.h \
 	provider/libserver/ECPluginSharedData.cpp \
 	provider/libserver/ECS3Attachment.cpp provider/libserver/ECS3Attachment.h \

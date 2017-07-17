@@ -40,7 +40,6 @@
 #include "ECSecurity.h"
 #include <kopano/ECIConv.h>
 #include "SymmetricCrypt.h"
-#include "ECPamAuth.h"
 #include "ECKrbAuth.h"
 #include <kopano/UnixUtil.h>
 #include "ECICS.h"
