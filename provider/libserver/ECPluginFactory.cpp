@@ -54,8 +54,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
         if (pluginpath == nullptr || strcmp(pluginpath, "") == 0)
             pluginpath = "";
         if (!pluginname || !strcmp(pluginname, "")) {
-			ec_log_crit("User plugin is unavailable.");
-			ec_log_crit("Please check the value of the \"user_plugin\" option and verify that it exists in \"%s\".", pluginpath);
+			ec_log_crit("No user plugin was declared in the config file.");
 			return KCERR_NOT_FOUND;
         }
 
