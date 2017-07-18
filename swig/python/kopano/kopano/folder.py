@@ -228,7 +228,7 @@ class Folder(Base):
 
         # resolve sourcekey to entryid
         if sourcekey is not None:
-            restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, sourcekey.decode('hex')))
+            restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _unhex(sourcekey)))
             table = self.mapiobj.GetContentsTable(0)
             table.SetColumns([PR_ENTRYID, PR_SOURCE_KEY], 0)
             table.Restrict(restriction, 0)
