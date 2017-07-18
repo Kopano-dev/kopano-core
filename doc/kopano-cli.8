@@ -38,7 +38,7 @@ Kopano\-cli is used to manage a Kopano server (cluster), including users, stores
 .PP
 .SH "OPTIONS"
 .PP
-\fB\-\-active\fR \fIYESNO\fR
+\fB\-\-active\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
 Change or specify if user is active. Should be combined with --user (and optionally --create).
 .RE
@@ -169,17 +169,17 @@ Hook archive store with specified GUID. Should be used in combination with --use
 Specify language in which new stores are created, determining e.g. the name of the inbox.
 .RE
 .PP
-\fB\-\-mr-accept\fR \fIYESNO\fR
+\fB\-\-mr-accept\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
 Change or specify if meeting requests are automatically accepted (by script specified in dagent.cfg). Should be combined with --user.
 .RE
 .PP
-\fB\-\-mr-accept-conflicts\fR \fIYESNO\fR
+\fB\-\-mr-accept-conflicts\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
 Change or specify if overlapping meeting requests are automatically declined by accept script. Should be combined with --user.
 .RE
 .PP
-\fB\-\-mr-accept-recurring\fR \fIYESNO\fR
+\fB\-\-mr-accept-recurring\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
 Change or specify if recurring meeting requests are automatically declined by accept script. Should be combined with --user.
 .RE
@@ -209,7 +209,7 @@ List orphans, meaning stores that are currently not hooked to a user or public s
 Change or specify object name. Can be used with --user, --group or --company (and optionally --create).
 .RE
 .PP
-\fB\-\-ooo-active\fR \fIYESNO\fR
+\fB\-\-ooo-active\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
 Enable or disable out-of-office replies for user specified with --user.
 .RE
@@ -259,7 +259,7 @@ Purge items marked as softdeleted more than N days ago.
 Purge all items in the deferred update table.
 .RE
 .PP
-\fB\-\-quota-override\fR \fIYESNO\fR
+\fB\-\-quota-override\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
 Override server quota limits for user specified with --user or company specified with --company.
 .RE
@@ -334,7 +334,7 @@ Remove specified user from group specified with --group.
 Reset folder counts for all folders of user given with --user.
 .RE
 .PP
-\fB\-\-send-only-to-delegates\fR \fIYESNO\fR
+\fB\-\-send-only-to-delegates\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
 When sending meeting requests and responses to delegates, only send them to the delegates.
 .RE
