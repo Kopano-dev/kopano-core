@@ -571,7 +571,7 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlob
 	HRESULT			hr = hrSuccess;
 	object_ptr<IProfSect> lpGlobalProfSect;
 
-	hr = lpMAPISup->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, MAPI_MODIFY, &~lpGlobalProfSect);
+	hr = lpMAPISup->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), MAPI_MODIFY, &~lpGlobalProfSect);
 	if(hr != hrSuccess)
 		return hr;
 	return ClientUtil::GetGlobalProfileProperties(lpGlobalProfSect, lpsProfileProps);

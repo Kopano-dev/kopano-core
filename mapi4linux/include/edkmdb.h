@@ -568,9 +568,6 @@ typedef IExchangeManageStore* LPEXCHANGEMANAGESTORE;
 #define PR_ADDR_CC_A					PROP_TAG(PT_STRING8, pidStoreNonTransMin+0x58)
 #define PR_ADDR_CC_W					PROP_TAG(PT_UNICODE, pidStoreNonTransMin+0x58)
 
-#define pbGlobalProfileSectionGuid	"\x13\xDB\xB0\xC8\xAA\x05\x10\x1A\x9B\xB0\x00\xAA\x00\x2F\xC4\x5A"
-
-
 /*
  *	IExchangeModifyTable
  *

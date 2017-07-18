@@ -2959,7 +2959,7 @@ static void *HandlerLMTP(void *lpArg)
 
 	sc -> countInc("DAgent::LMTP", "sessions");
 	ec_log_info("Starting worker for LMTP request pid %d", getpid());
-	char *lpEnvGDB  = getenv("GDB");
+	const char *lpEnvGDB  = getenv("GDB");
 	if (lpEnvGDB && parseBool(lpEnvGDB)) {
 		lmtp.HrResponse("220-DEBUG MODE, please wait");
 		Sleep(10000); //wait 10 seconds so you can attach gdb

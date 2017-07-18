@@ -678,7 +678,7 @@ HRESULT M4LMsgServiceAdmin::OpenProfileSection(const MAPIUID *lpUID,
 	providerEntry* entry;
 	ulock_rec l_srv(m_mutexserviceadmin);
 
-	if(lpUID && memcmp(lpUID, pbGlobalProfileSectionGuid, sizeof(MAPIUID)) == 0) {
+	if(lpUID && memcmp(lpUID, &pbGlobalProfileSectionGuid, sizeof(MAPIUID)) == 0) {
 		hr = this->profilesection->QueryInterface( (lpInterface)?*lpInterface:IID_IProfSect, (void**)lppProfSect);
 	} else if (lpUID && memcmp(lpUID, &MUID_PROFILE_INSTANCE, sizeof(MAPIUID)) == 0) {
 		// hack to support MUID_PROFILE_INSTANCE
@@ -2597,7 +2597,7 @@ HRESULT kc_session_save(IMAPISession *ses, std::string &serout)
 		ret = kc_sesave_propvals(rows->aRow[0].lpProps, rows->aRow[0].cValues, serout);
 		if (ret != hrSuccess)
 			return ret;
-		ret = svcadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(pbGlobalProfileSectionGuid), nullptr, 0, &~sect);
+		ret = svcadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, 0, &~sect);
 		if (ret != hrSuccess)
 			return ret;
 		ret = kc_sesave_profsect(sect, serout);

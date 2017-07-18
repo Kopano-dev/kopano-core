@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <utility>
+#include <cstdint>
 #include <kopano/ECChannel.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
@@ -428,7 +429,7 @@ ECRESULT ECFifoSerializer::Write(const void *ptr, size_t size, size_t nmemb)
 		break;
 	case 8:
 		for (size_t x = 0; x < nmemb && er == erSuccess; ++x) {
-			tmp.ll = htonll(static_cast<const long long *>(ptr)[x]);
+			tmp.ll = cpu_to_be64(static_cast<const uint64_t *>(ptr)[x]);
 			er = m_lpBuffer->Write(&tmp, size, STR_DEF_TIMEOUT, nullptr);
 		}
 		break;
@@ -478,7 +479,7 @@ ECRESULT ECFifoSerializer::Read(void *ptr, size_t size, size_t nmemb)
 		for (size_t x = 0; x < nmemb; ++x) {
 			uint64_t tmp;
 			memcpy(&tmp, static_cast<uint64_t *>(ptr) + x, sizeof(tmp));
-			tmp = ntohll(tmp);
+			tmp = be64_to_cpu(tmp);
 			memcpy(static_cast<uint64_t *>(ptr) + x, &tmp, sizeof(tmp));
 		}
 		break;
@@ -633,7 +634,12 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession, unsigned long long ulS
 /**
  * logon: log on and create a session with provided credentials
  */
-int ns__logon(struct soap *soap, char *user, char *pass, char *impersonate, char *clientVersion, unsigned int clientCaps, unsigned int logonFlags, struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup, char *szClientApp, char *szClientAppVersion, char *szClientAppMisc, struct logonResponse *lpsResponse)
+int ns__logon(struct soap *soap, const char *user, const char *pass,
+    const char *impersonate, const char *clientVersion, unsigned int clientCaps,
+    unsigned int logonFlags, struct xsd__base64Binary sLicenseRequest,
+    ULONG64 ullSessionGroup, const char *szClientApp,
+    const char *szClientAppVersion, const char *szClientAppMisc,
+    struct logonResponse *lpsResponse)
 {
 	ECRESULT	er = erSuccess;
 	ECSession	*lpecSession = NULL;
@@ -733,7 +739,12 @@ exit:
 /**
  * logon: log on and create a session with provided credentials
  */
-int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, char *szImpersonateUser, struct xsd__base64Binary *lpInput, char *szClientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup, char *szClientApp, char *szClientAppVersion, char *szClientAppMisc, struct ssoLogonResponse *lpsResponse)
+int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, const char *szUsername,
+    const char *szImpersonateUser, struct xsd__base64Binary *lpInput,
+    const char *szClientVersion, unsigned int clientCaps,
+    struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup,
+    const char *szClientApp, const char *szClientAppVersion,
+    const char *szClientAppMisc, struct ssoLogonResponse *lpsResponse)
 {
 	ECRESULT		er = KCERR_LOGON_FAILED;
 	ECAuthSession	*lpecAuthSession = NULL;
@@ -3267,7 +3278,7 @@ SOAP_ENTRY_END()
 // if lpsOrigSourceKey is NULL this function creates a new sourcekey
 static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
     unsigned int ulParentId, entryId *lpsNewEntryId, unsigned int type,
-    const char *name, char *comment, bool openifexists, bool bNotify,
+    const char *name, const char *comment, bool openifexists, bool bNotify,
     unsigned int ulSyncId, const struct xsd__base64Binary *lpsOrigSourceKey,
     unsigned int *lpFolderId, bool *lpbExist)
 {
@@ -3399,8 +3410,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		if (comment) {
 		    sProp.ulPropTag = PR_COMMENT_A;
 		    sProp.__union = SOAP_UNION_propValData_lpszA;
-		    sProp.Value.lpszA = comment;
-		    
+			sProp.Value.lpszA = const_cast<char *>(comment);
 		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
 			if(er != erSuccess)
 				goto exit;
@@ -3492,7 +3502,11 @@ exit:
  *
  */
 
-SOAP_ENTRY_START(createFolder, lpsResponse->er, entryId sParentId, entryId* lpsNewEntryId, unsigned int ulType, char *szName, char *szComment, bool fOpenIfExists, unsigned int ulSyncId, struct xsd__base64Binary sOrigSourceKey, struct createFolderResponse *lpsResponse)
+SOAP_ENTRY_START(createFolder, lpsResponse->er, entryId sParentId,
+    entryId *lpsNewEntryId, unsigned int ulType, const char *szName,
+    const char *szComment, bool fOpenIfExists, unsigned int ulSyncId,
+    struct xsd__base64Binary sOrigSourceKey,
+    struct createFolderResponse *lpsResponse)
 {
 	unsigned int	ulParentId = 0;
 	unsigned int	ulFolderId = 0;
@@ -4537,7 +4551,8 @@ SOAP_ENTRY_START(getNamesFromIDs, lpsResponse->er, struct propTagArray *lpPropTa
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId, char* msg_class, struct receiveFolderResponse *lpsReceiveFolder)
+SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId,
+    const char *msg_class, struct receiveFolderResponse *lpsReceiveFolder)
 {
 	const char *lpszMessageClass = msg_class;
 	unsigned int	ulStoreid = 0;
@@ -4594,7 +4609,8 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId, char*
 SOAP_ENTRY_END()
 
 // FIXME: should be able to delete an entry too
-SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId, entryId* lpsEntryId, char* msg_class, unsigned int *result)
+SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId,
+    entryId *lpsEntryId, const char *msg_class, unsigned int *result)
 {
 	const char *lpszMessageClass = msg_class;
 	bool			bIsUpdate = false;
@@ -5812,7 +5828,8 @@ SOAP_ENTRY_START(groupDelete, *result, unsigned int ulGroupId, entryId sGroupId,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(resolveUsername, lpsResponse->er, char *lpszUsername, struct resolveUserResponse *lpsResponse)
+SOAP_ENTRY_START(resolveUsername, lpsResponse->er, const char *lpszUsername,
+    struct resolveUserResponse *lpsResponse)
 {
 	unsigned int		ulUserId = 0;
 
@@ -5834,7 +5851,8 @@ SOAP_ENTRY_START(resolveUsername, lpsResponse->er, char *lpszUsername, struct re
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(resolveGroupname, lpsResponse->er, char *lpszGroupname, struct resolveGroupResponse *lpsResponse)
+SOAP_ENTRY_START(resolveGroupname, lpsResponse->er, const char *lpszGroupname,
+    struct resolveGroupResponse *lpsResponse)
 {
 	unsigned int	ulGroupId = 0;
 
@@ -6134,7 +6152,8 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId, entryId 
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(resolveCompanyname, lpsResponse->er, char *lpszCompanyname, struct resolveCompanyResponse *lpsResponse)
+SOAP_ENTRY_START(resolveCompanyname, lpsResponse->er,
+    const char *lpszCompanyname, struct resolveCompanyResponse *lpsResponse)
 {
 	unsigned int ulCompanyId = 0;
 
@@ -6824,7 +6843,9 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreG
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned int ulStoreTypeMask, unsigned int ulFlags, struct resolveUserStoreResponse *lpsResponse)
+SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
+    unsigned int ulStoreTypeMask, unsigned int ulFlags,
+    struct resolveUserStoreResponse *lpsResponse)
 {
 	unsigned int		ulObjectId = 0;
 	objectdetails_t		sUserDetails;
@@ -7771,7 +7792,7 @@ exit:
  */
 static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
     unsigned int ulFolderFrom, unsigned int ulDestFolderId,
-    char *lpszNewFolderName, bool bCopySubFolder, unsigned int ulSyncId)
+    const char *lpszNewFolderName, bool bCopySubFolder, unsigned int ulSyncId)
 {
 	ECRESULT		er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
@@ -8118,7 +8139,9 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, char *lpszNewFolderName, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result)
+SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId,
+    const char *lpszNewFolderName, unsigned int ulFlags, unsigned int ulSyncId,
+    unsigned int *result)
 {
 	unsigned int	ulAffRows = 0;
 	unsigned int	ulOldParent = 0;
@@ -8279,8 +8302,9 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 			return KCERR_NOT_FOUND;
 		}
 
-		lpszNewFolderName = s_alloc<char>(soap, strlen(lpDBRow[0])+1);
-		memcpy(lpszNewFolderName, lpDBRow[0], strlen(lpDBRow[0])+1);
+		auto newname = s_alloc<char>(soap, strlen(lpDBRow[0]) + 1);
+		memcpy(newname, lpDBRow[0], strlen(lpDBRow[0]) + 1);
+		lpszNewFolderName = newname;
 	}
 
 	//check copy or a move
@@ -8445,7 +8469,8 @@ SOAP_ENTRY_START(notify, *result, struct notification sNotification, unsigned in
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er, entryId sStoreId, struct receiveFolderTableResponse *lpsReceiveFolderTable)
+SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er,
+    entryId sStoreId, struct receiveFolderTableResponse *lpsReceiveFolderTable)
 {
 	int				ulRows = 0;
 	int				i;
@@ -9756,7 +9781,8 @@ SOAP_ENTRY_START(getLicenseUsers, lpsResponse->er, unsigned int ulServiceType, s
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(resolvePseudoUrl, lpsResponse->er, char *lpszPseudoUrl, struct resolvePseudoUrlResponse* lpsResponse)
+SOAP_ENTRY_START(resolvePseudoUrl, lpsResponse->er, const char *lpszPseudoUrl,
+    struct resolvePseudoUrlResponse *lpsResponse)
 {
 	std::string		strServerPath;
 

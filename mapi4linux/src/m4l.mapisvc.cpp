@@ -194,7 +194,7 @@ const inf_section* INFLoader::GetSection(const string& strSectionName) const
 vector<string> INFLoader::GetINFPaths()
 {
 	vector<string> ret;
-	char *env = getenv("MAPI_CONFIG_PATH");
+	const char *env = getenv("MAPI_CONFIG_PATH");
 	if (env)
 		ret = tokenize(env, ':', true);
 	else

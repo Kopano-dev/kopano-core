@@ -573,26 +573,6 @@ private:
 	entryid_t m_sEntryId;
 };
 
-
-/**
- * Check if the store entryid from a SObjectEntry is wrapped with a server path.
- *
- * This class is used as the predicate argument in find_if. 
- */
-class IsNotWrapped _kc_final {
-public:
-	/**
-	 * This method is called for each SObjectEntry for which the store entryid needs to be
-	 * checked if it is wrapped or not.
-	 *
-	 * @param[in]	sEntry	The SObjectEntry under inspection.
-	 *
-	 * @retval	true	The store entryid from the passed SObjectEntry is wrapped.
-	 * @retval	false	The store entryid from the passed SObjectEntry is not wrapped.
-	 */
-	bool operator()(const SObjectEntry &sEntry) const { return !sEntry.sStoreEntryId.isWrapped(); }
-};
-
 extern _kc_export eResult MAPIErrorToArchiveError(HRESULT);
 extern _kc_export const char *ArchiveResultString(eResult);
 
