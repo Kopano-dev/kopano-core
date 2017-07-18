@@ -5,7 +5,6 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-import codecs
 import datetime
 import sys
 import time

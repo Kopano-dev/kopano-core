@@ -218,7 +218,7 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
         if log:
             log.warn("Sync state does not exist on server (anymore); requesting new one")
 
-        syncid, changeid = struct.unpack('<II', state.decode('hex'))
+        syncid, changeid = struct.unpack('<II', _unhex(state))
         stream = IStream()
         stream.Write(struct.pack('<II', 0, changeid))
         stream.Seek(0, STREAM_SEEK_SET)

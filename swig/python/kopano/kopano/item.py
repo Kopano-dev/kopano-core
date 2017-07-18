@@ -5,7 +5,6 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-import codecs
 import datetime
 import email.parser
 import email.utils
@@ -613,7 +612,7 @@ class Item(Base):
 
         # byte array id
         classid = '040000008200e00074c5b7101a82e008'
-        goid = classid.decode('hex')
+        goid = _unhex(classid)
         # YEARHIGH, YEARLOW, MONTH, DATE
         goid += struct.pack('>H2B', 0, 0, 0)
         # Creation time, lowdatetime, highdatetime
@@ -999,7 +998,7 @@ class Item(Base):
         entryid = HrGetOneProp(self.mapiobj, PROP_REF_ITEM_ENTRYID).Value
 
         try:
-            return self.folder.primary_store.item(entryid=codecs.encode(entryid, 'hex'))
+            return self.folder.primary_store.item(entryid=_hex(entryid))
         except NotFoundError:
             pass
 

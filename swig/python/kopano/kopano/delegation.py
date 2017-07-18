@@ -9,9 +9,9 @@ from MAPI import (
     MAPI_UNICODE,
 )
 from MAPI.Tags import (
-    PR_RULE_CONDITION, PR_RULE_ACTIONS, PR_RULE_PROVIDER, ACTTYPE, PR_ENTRYID,
+    PR_RULE_CONDITION, PR_RULE_ACTIONS, PR_RULE_PROVIDER_W, ACTTYPE, PR_ENTRYID,
     PR_RULE_ID, PR_RULES_TABLE, IID_IExchangeModifyTable, PR_RULE_LEVEL,
-    PR_RULE_NAME, PR_RULE_SEQUENCE, PR_RULE_STATE, PR_RULE_PROVIDER_DATA,
+    PR_RULE_NAME_W, PR_RULE_SEQUENCE, PR_RULE_STATE, PR_RULE_PROVIDER_DATA,
     PR_MESSAGE_CLASS_W, PR_DELEGATED_BY_RULE, PR_SENSITIVITY, PR_ADDRTYPE_W,
     PR_EMAIL_ADDRESS_W, PR_DISPLAY_NAME_W, PR_SEARCH_KEY, PR_SMTP_ADDRESS_W,
     PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TYPE,
@@ -25,7 +25,7 @@ from MAPI.Struct import (
     SExistRestriction,
 )
 from .compat import (
-    hex as _hex, repr as _repr,
+    hex as _hex, unhex as _unhex, repr as _repr,
 )
 from .defs import *
 from .errors import NotFoundError
@@ -52,14 +52,14 @@ class Delegation(object):
     @property
     def see_private(self):
         fbmsg, (entryids, names, flags) = self.store._fbmsg_delgs()
-        pos = entryids.Value.index(self.user.userid.decode('hex'))
+        pos = entryids.Value.index(_unhex(self.user.userid))
 
         return bool(flags.Value[pos] & 1)
 
     @see_private.setter
     def see_private(self, b):
         fbmsg, (entryids, names, flags) = self.store._fbmsg_delgs()
-        pos = entryids.Value.index(self.user.userid.decode('hex'))
+        pos = entryids.Value.index(_unhex(self.user.userid))
 
         if b:
             flags.Value[pos] |= 1
@@ -73,8 +73,8 @@ class Delegation(object):
     def _parse_rule(store):
         userids, deletion = [], False
         for rule in store.inbox.rules():
-            if PR_RULE_PROVIDER in rule.mapirow and PR_RULE_ACTIONS in rule.mapirow:
-                if rule.mapirow[PR_RULE_PROVIDER] == 'Schedule+ EMS Interface':
+            if PR_RULE_PROVIDER_W in rule.mapirow and PR_RULE_ACTIONS in rule.mapirow:
+                if rule.mapirow[PR_RULE_PROVIDER_W] == u'Schedule+ EMS Interface':
                     actions = rule.mapirow[PR_RULE_ACTIONS].lpAction
                     if actions and actions[0].acttype == ACTTYPE.OP_DELEGATE:
                         for addrentry in actions[0].actobj.lpadrlist:
@@ -89,7 +89,7 @@ class Delegation(object):
     def _save_rule(store, userids, deletion):
         # remove existing rule # XXX update
         for rule in store.inbox.rules():
-            if rule.mapirow[PR_RULE_PROVIDER] == 'Schedule+ EMS Interface' and \
+            if rule.mapirow[PR_RULE_PROVIDER_W] == u'Schedule+ EMS Interface' and \
                PR_RULE_ID in rule.mapirow:
                 pr_rule_id = rule.mapirow[PR_RULE_ID]
 
@@ -100,11 +100,11 @@ class Delegation(object):
         # create new rule
         row = [
             SPropValue(PR_RULE_LEVEL, 0),
-            SPropValue(PR_RULE_NAME, "Delegate Meetingrequest service"),
-            SPropValue(PR_RULE_PROVIDER, "Schedule+ EMS Interface"),
+            SPropValue(PR_RULE_NAME_W, u"Delegate Meetingrequest service"),
+            SPropValue(PR_RULE_PROVIDER_W, u"Schedule+ EMS Interface"),
             SPropValue(PR_RULE_SEQUENCE, 0),
             SPropValue(PR_RULE_STATE, 1),
-            SPropValue(PR_RULE_PROVIDER_DATA, ''),
+            SPropValue(PR_RULE_PROVIDER_DATA, b''),
         ]
 
         actions = []
@@ -132,15 +132,15 @@ class Delegation(object):
     def send_copy(self):
         """Delegate receives copies of meeting requests."""
         userids, deletion = self._parse_rule(self.store)
-        return self.user.userid.decode('hex') in userids
+        return _unhex(self.user.userid) in userids
 
     @send_copy.setter
     def send_copy(self, value):
         userids, deletion = self._parse_rule(self.store)
         if value:
-            userids.append(self.user.userid.decode('hex')) # XXX dupe
+            userids.append(_unhex(self.user.userid)) # XXX dupe
         else:
-            userids = [u for u in userids if u != self.user.userid.decode('hex')]
+            userids = [u for u in userids if u != _unhex(self.user.userid)]
         self._save_rule(self.store, userids, deletion)
 
     @property
@@ -173,7 +173,7 @@ class Delegation(object):
 
         fbmsg, (entryids, names, flags) = self.store._fbmsg_delgs()
         try:
-            pos = entryids.Value.index(self.user.userid.decode('hex'))
+            pos = entryids.Value.index(_unhex(self.user.userid))
         except ValueError:
             raise NotFoundError("no delegation for user '%s'" % self.user.name)
 

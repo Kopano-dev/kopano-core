@@ -5,7 +5,6 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-import codecs
 import sys
 
 from MAPI import (
@@ -125,7 +124,7 @@ class Company(Base):
             for row in table.QueryRows(-1, 0):
                 prop = PpropFindProp(row, PR_EC_STOREGUID)
                 if prop:
-                    yield _store.Store(codecs.encode(prop.Value, 'hex'), self.server)
+                    yield _store.Store(_hex(prop.Value), self.server)
         else:
             for store in self.server.stores():
                 yield store

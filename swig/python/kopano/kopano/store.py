@@ -5,7 +5,6 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-import codecs
 import uuid
 import sys
 
@@ -34,7 +33,7 @@ from MAPI.Tags import (
     PR_SUBJECT, PR_WLINK_FLAGS, PR_WLINK_ORDINAL,
     PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE, PR_WLINK_ENTRYID,
     PR_EXTENDED_FOLDER_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
-    PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES,
+    PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES_W,
     PR_DELEGATE_FLAGS, PR_MAPPING_SIGNATURE,
 )
 from MAPI.Struct import (
@@ -471,7 +470,7 @@ class Store(Base):
         except MAPIErrorNotFound:
             return
 
-        return self.archive_store.folder(entryid=codecs.encode(arch_folderid, 'hex'))
+        return self.archive_store.folder(entryid=_hex(arch_folderid))
 
     @property
     def company(self):
@@ -520,11 +519,11 @@ class Store(Base):
 
         try:
             entryids = HrGetOneProp(fbmsg, PR_SCHDINFO_DELEGATE_ENTRYIDS)
-            names = HrGetOneProp(fbmsg, PR_SCHDINFO_DELEGATE_NAMES)
+            names = HrGetOneProp(fbmsg, PR_SCHDINFO_DELEGATE_NAMES_W)
             flags = HrGetOneProp(fbmsg, PR_DELEGATE_FLAGS)
         except MAPIErrorNotFound:
             entryids = SPropValue(PR_SCHDINFO_DELEGATE_ENTRYIDS, [])
-            names = SPropValue(PR_SCHDINFO_DELEGATE_NAMES, [])
+            names = SPropValue(PR_SCHDINFO_DELEGATE_NAMES_W, [])
             flags = SPropValue(PR_DELEGATE_FLAGS, [])
 
         return fbmsg, (entryids, names, flags)
@@ -543,7 +542,7 @@ class Store(Base):
         if create:
             fbmsg, (entryids, names, flags) = self._fbmsg_delgs()
 
-            entryids.Value.append(user.userid.decode('hex'))
+            entryids.Value.append(_unhex(user.userid))
             names.Value.append(user.name)
             flags.Value.append(1 if see_private else 0)
 

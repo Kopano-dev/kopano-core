@@ -5,7 +5,6 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-import codecs
 import collections
 import mailbox
 import sys
@@ -26,10 +25,10 @@ from MAPI.Tags import (
     PR_MESSAGE_DELIVERY_TIME, MNID_ID, PT_SYSTIME, PT_BOOLEAN,
     DELETE_HARD_DELETE, PR_MESSAGE_SIZE, PR_ACL_TABLE,
     PR_MEMBER_ID, PR_RULES_TABLE, IID_IExchangeModifyTable,
-    IID_IMAPITable, PR_CONTAINER_CONTENTS,
+    IID_IMAPITable, PR_CONTAINER_CONTENTS, PR_RULE_STATE,
     PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
     PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME,
-    CONVENIENT_DEPTH, PR_DEPTH
+    CONVENIENT_DEPTH, PR_DEPTH,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -301,7 +300,7 @@ class Folder(Base):
             )
             table.mapitable.Restrict(restriction, 0)
             for row in table.rows():
-                entryid = codecs.encode(row[0].value, 'hex')
+                entryid = _hex(row[0].value)
                 for occurrence in self.item(entryid).occurrences(start, end):
                     yield occurrence
 
@@ -530,7 +529,7 @@ class Folder(Base):
         return folder
 
     def rules(self):
-        rule_table = self.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, 0, 0)
+        rule_table = self.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, MAPI_UNICODE, 0)
         table = Table(self.server, rule_table.GetTable(0), PR_RULES_TABLE)
         for row in table.dict_rows():
             yield Rule(row)
@@ -558,13 +557,13 @@ class Folder(Base):
         """
 
         if state is None:
-            state = codecs.encode(8 * b'\0', 'hex').upper()
+            state = _hex(8 * b'\0')
         importer.store = self.store
         return _ics.sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
 
     def hierarchy_sync(self, importer, state=None):
         if state is None:
-            state = codecs.encode(8 * b'\0', 'hex').upper()
+            state = _hex(8 * b'\0')
         importer.store = self.store
         return _ics.hierarchy_sync(self.store.server, self.mapiobj, importer, state)
 
@@ -678,7 +677,7 @@ class Folder(Base):
             return
 
         archive_store = self.server._store2(arch_storeid)
-        return _store.Store(mapiobj=archive_store, server=self.server).folder(entryid=codecs.encode(arch_folderid, 'hex'))
+        return _store.Store(mapiobj=archive_store, server=self.server).folder(entryid=_hex(arch_folderid))
 
     @property
     def primary_store(self):
@@ -699,7 +698,7 @@ class Folder(Base):
 
         if self.primary_store:
             try:
-                return self.primary_store.folder(entryid=codecs.encode(entryid, 'hex'))
+                return self.primary_store.folder(entryid=_hex(entryid))
             except NotFoundError:
                 pass
 
