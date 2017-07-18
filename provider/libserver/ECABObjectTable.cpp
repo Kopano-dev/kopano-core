@@ -60,35 +60,28 @@ ECABObjectTable::ECABObjectTable(ECSession *lpSession, unsigned int ulABId, unsi
 	m_ulUserManagementFlags = USERMANAGEMENT_IDS_ONLY | USERMANAGEMENT_ADDRESSBOOK;
 
 	// Set the default sort order for Address Book entries
-	struct sortOrder sObjectType[] = {
-		{
-			/*
-			 * The Global Address Book must be the first entry
-			 * in getHierarchyTable() otherwise it will not
-			 * be set as default directory!
-			 *
-			 * To support future hierarchy additions like
-			 * company subcontainers, or other global containers
-			 * besides the GAB, we should sort the table using the
-			 * PR_EMS_AB_HIERARCHY_PATH property which is formatted
-			 * as followed for the GAB and Address Lists :
-			 *
-			 * 		/Global Address Book
-			 *		/Global Address Book/Company A
-			 *		/Global Address Book/Company B
-			 *		/Global Address Lists/Addresslist A
-			 *		/Global Address Lists/Addresslist B
-			 */
-			PR_EMS_AB_HIERARCHY_PATH,
-			EC_TABLE_SORT_ASCEND,
-		},
-	};
-
-	struct sortOrderArray sDefaultSortOrder = {
-		sObjectType,
-		ARRAY_SIZE(sObjectType),
-	};
-
+	/*
+	 * The Global Address Book must be the first entry in
+	 * getHierarchyTable() otherwise it will not be set as default
+	 * directory!
+	 *
+	 * To support future hierarchy additions like company subcontainers, or
+	 * other global containers besides the GAB, we should sort the table
+	 * using the PR_EMS_AB_HIERARCHY_PATH property which is formatted as
+	 * followed for the GAB and Address Lists:
+	 *
+	 * /Global Address Book
+	 * /Global Address Book/Company A
+	 * /Global Address Book/Company B
+	 * /Global Address Lists/Addresslist A
+	 * /Global Address Lists/Addresslist B
+	 */
+	struct sortOrder sObjectType;
+	sObjectType.ulPropTag = PR_EMS_AB_HIERARCHY_PATH;
+	sObjectType.ulOrder   = EC_TABLE_SORT_ASCEND;
+	struct sortOrderArray sDefaultSortOrder;
+	sDefaultSortOrder.__ptr = &sObjectType;
+	sDefaultSortOrder.__size = 1;
 	SetSortOrder(&sDefaultSortOrder, 0, 0);
 }
 

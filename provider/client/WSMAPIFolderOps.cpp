@@ -445,7 +445,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, L
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	entryId		sEntryId = {0};
+	entryId sEntryId;
 	KCHL::memory_ptr<SPropValue> lpSPropValPCL, lpSPropValCK;
 	getChangeInfoResponse sChangeInfo{__gszeroinit};
 

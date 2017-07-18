@@ -34,12 +34,12 @@ struct hiloLong {
 struct xsd__base64Binary {
 	unsigned char *__ptr;
 	int __size;
+	xsd__base64Binary(); /* needed because present in a union */
 };
 
 struct xsd__Binary {
 	_xop__Include xop__Include; // attachment
 	@char *xmlmime__contentType; // and its contentType 
-	xsd__Binary();
 };
 
 typedef struct xsd__base64Binary entryId;
@@ -47,41 +47,49 @@ typedef struct xsd__base64Binary entryId;
 struct mv_i2 {
 	short int *__ptr;
 	int __size;
+	mv_i2(); /* union presence */
 };
 
 struct mv_long {
 	unsigned int *__ptr;
 	int __size;
+	mv_long(); /* union presence */
 };
 
 struct mv_r4 {
 	float *__ptr;
 	int __size;
+	mv_r4(); /* union presence */
 };
 
 struct mv_double {
 	double *__ptr;
 	int __size;
+	mv_double(); /* union presence */
 };
 
 struct mv_string8 {
 	char**__ptr;
 	int __size;
+	mv_string8(); /* union presence */
 };
 
 struct mv_hiloLong {
 	struct hiloLong *__ptr;
 	int __size;
+	mv_hiloLong(); /* union presence */
 };
 
 struct mv_binary {
 	struct xsd__base64Binary *__ptr;
 	int __size;
+	mv_binary(); /* union presence */
 };
 
 struct mv_i8 {
 	LONG64 *__ptr;
 	int __size;
+	mv_i8(); /* union presence */
 };
 
 struct restrictTable;
@@ -106,20 +114,18 @@ union propValData {
 	struct mv_i8			mvli;		/* case PT_MV_I8 */
 	struct restrictTable	*res;
 	struct actions			*actions;
+	propValData();
 };
 
 struct propVal {
 	unsigned int ulPropTag;
 	int __union;
 	union propValData Value;
-	propVal();
 };
 
 struct propValArray {
 	struct propVal *__ptr;
 	int __size;
-	propValArray();
-	propValArray(struct propVal *, int = 0);
 };
 
 struct propTagArray {
@@ -196,15 +202,11 @@ enum SortOrderType { EC_TABLE_SORT_ASCEND=0, EC_TABLE_SORT_DESCEND, EC_TABLE_SOR
 struct sortOrder {
 	unsigned int ulPropTag;
 	unsigned int ulOrder;
-	sortOrder();
-	sortOrder(unsigned int, unsigned int = 0);
 };
 
 struct sortOrderArray {
 	struct sortOrder *__ptr;
 	int __size;
-	sortOrderArray();
-	sortOrderArray(struct sortOrder *, int = 0);
 };
 
 struct ns:readPropsResponse {
@@ -226,7 +228,6 @@ struct ns:createFolderResponse {
 struct ns:tableOpenResponse {
 	unsigned int er;
 	unsigned int ulTableId;
-	//tableOpenResponse();
 };
 
 struct tableOpenRequest {
@@ -234,7 +235,6 @@ struct tableOpenRequest {
     unsigned int ulTableType;
     unsigned int ulType;
     unsigned int ulFlags;
-	tableOpenRequest();
 };
 
 struct tableSortRequest {
@@ -308,14 +308,12 @@ struct tableMultiRequest {
     struct restrictTable *lpRestrict;			// Restrict
     struct tableSortRequest *lpSort;			// Sort
     struct tableQueryRowsRequest *lpQueryRows; 	// QueryRows
-	tableMultiRequest();
 };
 
 struct ns:tableMultiResponse {
     unsigned int er;
     unsigned int ulTableId;
     struct rowSet sRowSet; 						// QueryRows
-	//tableMultiResponse();
 };
 
 struct categoryState {
@@ -361,7 +359,6 @@ struct notificationNewMail {
 struct notificationICS {
 	struct xsd__base64Binary *pSyncState;
 	unsigned int ulChangeType;
-	notificationICS();
 };
 
 struct notification {
@@ -371,7 +368,6 @@ struct notification {
 	struct notificationTable *tab;
 	struct notificationNewMail *newmail;
 	struct notificationICS *ics;
-	notification();
 };
 
 struct notificationArray {
@@ -387,8 +383,6 @@ struct ns:notifyResponse {
 struct notifySyncState {
 	unsigned int ulSyncId;
 	unsigned int ulChangeId;
-	notifySyncState();
-	notifySyncState(unsigned int, unsigned int = 0);
 };
 
 struct notifySubscribe {
@@ -396,13 +390,11 @@ struct notifySubscribe {
 	struct xsd__base64Binary sKey;
 	unsigned int ulEventMask;
 	struct notifySyncState sSyncState;
-	notifySubscribe();
 };
 
 struct notifySubscribeArray {
 	int __size;
 	struct notifySubscribe *__ptr;
-	notifySubscribeArray();
 };
 
 #define TABLE_NOADVANCE 1
@@ -413,8 +405,6 @@ struct rights {
 	unsigned int ulRights;
 	unsigned int ulState;
 	entryId		 sUserId;
-	rights();
-	rights(unsigned int, unsigned int = 0, unsigned int = 0, unsigned int = 0);
 };
 
 struct rightsArray {
@@ -621,7 +611,6 @@ struct user {
 	struct propmapPairArray *lpsPropmap;
 	struct propmapMVPairArray *lpsMVPropmap;
 	entryId		sUserId;
-	user();
 };
 
 struct userArray {
@@ -654,7 +643,6 @@ struct group {
 	unsigned int	ulIsABHidden;
 	struct propmapPairArray *lpsPropmap;
 	struct propmapMVPairArray *lpsMVPropmap;
-	group();
 };
 
 struct groupArray {
@@ -688,7 +676,6 @@ struct company {
 	unsigned int	ulIsABHidden;
 	struct propmapPairArray *lpsPropmap;
 	struct propmapMVPairArray *lpsMVPropmap;
-	company();
 };
 
 struct companyArray {
@@ -786,6 +773,7 @@ struct action {
 		unsigned int bouncecode;
 		struct rowSet *adrlist;
 		struct propVal *prop;
+		_act();
 	} act;
 };
 
@@ -855,7 +843,6 @@ struct ns:resolvePseudoUrlResponse {
 	char *lpszServerPath;
 	bool bIsPeer;
 	unsigned int er;
-	//resolvePseudoUrlResponse();
 };
 
 struct licenseCapabilities {
@@ -890,7 +877,6 @@ struct serverList {
 struct ns:getServerDetailsResponse {
 	struct serverList sServerList;
 	unsigned int er;
-	//getServerDetailsResponse();
 };
 
 struct ns:getServerBehaviorResponse {
@@ -922,14 +908,12 @@ struct messageStreamArray {
 struct ns:exportMessageChangesAsStreamResponse {
 	struct messageStreamArray sMsgStreams;
 	unsigned int er;
-	//exportMessageChangesAsStreamResponse();
 };
 
 struct ns:getChangeInfoResponse {
 	struct propVal sPropPCL;
 	struct propVal sPropCK;
 	unsigned int er;
-	//getChangeInfoResponse();
 };
 
 struct syncState {
@@ -966,7 +950,6 @@ struct ns:userClientUpdateStatusResponse {
 struct ns:resetFolderCountResponse {
 	unsigned int ulUpdates;
 	unsigned int er;
-	//resetFolderCountResponse();
 };
 
 //TableType flags for function ns__tableOpen

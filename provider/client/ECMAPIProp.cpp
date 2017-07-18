@@ -55,7 +55,10 @@ typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionPtr;
 
 static struct rights ECPermToRightsCheap(const ECPERMISSION &p)
 {
-	struct rights r = {0, p.ulType, p.ulRights, p.ulState};
+	struct rights r;
+	r.ulType = p.ulType;
+	r.ulRights = p.ulRights;
+	r.ulState = p.ulState;
 	r.sUserId.__size = p.sUserId.cb;
 	r.sUserId.__ptr = p.sUserId.lpb;
 

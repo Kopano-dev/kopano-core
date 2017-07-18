@@ -83,8 +83,7 @@ WSMessageStreamSink::~WSMessageStreamSink()
 HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSTransport *lpTransport, WSMessageStreamImporter **lppStreamImporter)
 {
 	HRESULT hr = hrSuccess;
-	entryId sEntryId = {0};
-	entryId sFolderEntryId = {0};
+	entryId sEntryId, sFolderEntryId;
 	struct propVal sConflictItems{__gszeroinit};
 	WSMessageStreamImporterPtr ptrStreamImporter;
 	ECSyncSettings* lpSyncSettings = NULL;
@@ -190,8 +189,7 @@ WSMessageStreamImporter::~WSMessageStreamImporter()
 void WSMessageStreamImporter::run()
 {
 	unsigned int ulResult = 0;
-	struct xsd__Binary sStreamData{__gszeroinit};
-
+	struct xsd__Binary sStreamData;
 	struct soap *lpSoap = m_ptrTransport->m_lpCmd->soap;
 	propVal *lpsConflictItems = NULL;
 

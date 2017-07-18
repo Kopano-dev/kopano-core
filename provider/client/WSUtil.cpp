@@ -2302,7 +2302,7 @@ static HRESULT CopyMAPISourceKeyToSoapSourceKey(const SBinary *lpsMAPISourceKey,
     struct xsd__base64Binary *lpsSoapSourceKey, void *lpBase)
 {
 	HRESULT hr;
-	struct xsd__base64Binary	sSoapSourceKey = {0};
+	struct xsd__base64Binary sSoapSourceKey;
 
 	if (lpsMAPISourceKey == NULL || lpsSoapSourceKey == NULL)
 		return MAPI_E_INVALID_PARAMETER;

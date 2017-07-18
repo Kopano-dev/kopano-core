@@ -121,7 +121,7 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 {
 	unsigned int		cbAbeid		= cbEntryId;
 	auto lpAbeid = reinterpret_cast<ABEID *>(lpEntryId);
-	entryId				sEntryId	= {0};
+	entryId sEntryId;
 	SOURCEKEY			sSourceKey;
 	objectid_t			sExternId;
 

@@ -3,23 +3,22 @@ global:
 	extern "C++" {
 		ns__*;
 		soap_*;
-		company::*;
-		group::*;
-		notification::*;
-		notificationICS::*;
-		notifySubscribe::*;
-		notifySubscribeArray::*;
+		_act::*;
+		mv_binary::*;
+		mv_double::*;
+		mv_hiloLong::*;
+		mv_i2::*;
+		mv_i8::*;
+		mv_long::*;
+		mv_r4::*;
+		mv_string8::*;
 		notifySyncState::*;
 		propTagArray::*;
-		propVal::*;
-		propValArray::*;
+		propValData::*;
 		rights::*;
 		sortOrder::*;
 		sortOrderArray::*;
-		tableMultiRequest::*;
-		tableOpenRequest::*;
-		user::*;
-		xsd__Binary::*;
+		xsd__base64Binary::*;
 
 		KC::*;
 		typeinfo*;

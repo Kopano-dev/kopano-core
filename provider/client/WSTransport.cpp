@@ -189,7 +189,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	bool		bPipeConnection = false;
 	unsigned int	ulServerVersion = 0;
 	struct logonResponse sResponse;
-	struct xsd__base64Binary sLicenseRequest = {0,0};
+	struct xsd__base64Binary sLicenseRequest;
 	
 	convert_context	converter;
 	utf8string	strUserName = converter.convert_to<utf8string>(sProfileProps.strUserName);
@@ -418,9 +418,8 @@ ECRESULT WSTransport::TrySSOLogon(KCmd* lpCmd, LPCSTR szServer, utf8string strUs
 	gss_ctx_id_t gss_ctx = GSS_C_NO_CONTEXT;
 	gss_OID_desc mech_spnego = {6, const_cast<char *>("\053\006\001\005\005\002")};
 	gss_buffer_desc secbufout, secbufin;
-	struct xsd__base64Binary sso_data;
+	struct xsd__base64Binary sso_data, licreq;
 	struct ssoLogonResponse resp;
-	struct xsd__base64Binary licreq = {0, 0};
 
 	pr_buf.value = const_cast<char *>(KOPANO_GSS_SERVICE);
 	pr_buf.length = sizeof(KOPANO_GSS_SERVICE) - 1;
@@ -530,8 +529,7 @@ HRESULT WSTransport::HrGetStore(ULONG cbMasterID, LPENTRYID lpMasterID, ULONG* l
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	
-	entryId		sEntryId = {0,0}; // Do not free
+	entryId sEntryId; // Do not free
 	struct getStoreResponse sResponse;
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
@@ -709,8 +707,7 @@ HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID,
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	entryId		sEntryId = {0}; // Do not free
-
+	entryId sEntryId; // Do not free
 	LockSoap();
 
 	if(cbEntryID == 0 || lpEntryID == NULL) {
@@ -1059,7 +1056,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
-	mv_long ulConnArray = {0};
+	mv_long ulConnArray;
 	unsigned i = 0;
 
 	ulConnArray.__size = lstConnections.size();
@@ -1319,7 +1316,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 	LPSRowSet	lpsRowSet = NULL;
 	ULONG		ulRowId = 0;
 	int			nLen = 0;
-	entryId		sEntryId = {0}; // Do not free
+	entryId sEntryId; // Do not free
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 	std::wstring unicode;
@@ -1417,7 +1414,7 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreE
 
 	ECRESULT	er = erSuccess;
 	HRESULT		hr = hrSuccess;
-	entryId		sEntryId = {0}; // Do not free
+	entryId sEntryId; // Do not free
 	ULONG		cbEntryID = 0;
 	ecmem_ptr<ENTRYID> lpEntryID, lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
@@ -1472,8 +1469,7 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID, LPENTRYID lpStoreID, co
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	unsigned int result;
-	entryId		sStoreId = {0}; // Do not free
-	entryId		sEntryId = {0}; // Do not free
+	entryId sStoreId, sEntryId; // Do not free
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
@@ -1507,7 +1503,7 @@ HRESULT WSTransport::HrSetReadFlag(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG u
 	ECRESULT	er = erSuccess;
 
 	struct entryList sEntryList;
-	entryId			 sEntryId;
+	entryId sEntryId;
 
 	sEntryId.__ptr = (unsigned char*)lpEntryID;
 	sEntryId.__size = cbEntryID;
@@ -1535,8 +1531,7 @@ HRESULT WSTransport::HrSubmitMessage(ULONG cbMessageID, LPENTRYID lpMessageID, U
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	entryId		sEntryId = {0}; // Do not free
-
+	entryId sEntryId; // Do not free
 	LockSoap();
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbMessageID, lpMessageID, &sEntryId, true);
@@ -1560,8 +1555,7 @@ HRESULT WSTransport::HrFinishedMessage(ULONG cbEntryID,
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
-	entryId		sEntryId = {0}; // Do not free
-
+	entryId sEntryId; // Do not free
 	LockSoap();
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
@@ -1584,8 +1578,7 @@ HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
-	entryId		sEntryId = {0}; // Do not free
-
+	entryId sEntryId; // Do not free
 	LockSoap();
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
@@ -1608,8 +1601,7 @@ HRESULT WSTransport::HrIsMessageInQueue(ULONG cbEntryID, LPENTRYID lpEntryID)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
-	entryId		sEntryId = {0}; // Do not free
-
+	entryId sEntryId; // Do not free
 	LockSoap();
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
@@ -1633,8 +1625,7 @@ HRESULT WSTransport::HrResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpc
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	struct resolveUserStoreResponse sResponse;
-	struct xsd__base64Binary sStoreGuid = {0,0};
-
+	struct xsd__base64Binary sStoreGuid;
 	LockSoap();
 
 	if (!lpGuid){
@@ -1843,7 +1834,7 @@ HRESULT WSTransport::HrGetUser(ULONG cbUserID, LPENTRYID lpUserID,
 	ECRESULT er = erSuccess;
 	struct getUserResponse	sResponse;
 	ecmem_ptr<ECUSER> lpECUser;
-	entryId	sUserId = {0};
+	entryId	sUserId;
 	ULONG ulUserId = 0;
 
 	LockSoap();
@@ -1963,11 +1954,7 @@ HRESULT WSTransport::HrCreateStore(ULONG ulStoreType, ULONG cbUserID, LPENTRYID 
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
-
-	entryId sUserId = {0};
-	entryId	sStoreId = {0};
-	entryId	sRootId = {0};
-
+	entryId sUserId, sStoreId, sRootId;
 	LockSoap();
 
 	if(lpUserID == NULL || lpStoreID == NULL || lpRootID == NULL) {
@@ -2002,9 +1989,8 @@ HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lp
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	entryId		sUserId = {0};
-	struct xsd__base64Binary sStoreGuid = {0,0};
-
+	entryId sUserId;
+	struct xsd__base64Binary sStoreGuid;
 	LockSoap();
 
 	if (cbUserId == 0 || lpUserId == NULL || lpGuid == NULL) {
@@ -2035,8 +2021,7 @@ HRESULT WSTransport::HrUnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID 
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	entryId		sUserId = {0};
-
+	entryId sUserId;
 	LockSoap();
 
 	if (cbUserId == 0 || lpUserId == NULL) {
@@ -2064,8 +2049,7 @@ HRESULT WSTransport::HrRemoveStore(LPGUID lpGuid, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	struct xsd__base64Binary sStoreGuid = {0,0};
-
+	struct xsd__base64Binary sStoreGuid;
 	LockSoap();
 
 	if (lpGuid == NULL) {
@@ -2092,8 +2076,7 @@ HRESULT WSTransport::HrDeleteUser(ULONG cbUserId, LPENTRYID lpUserId)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId sUserId = {0};
-
+	entryId sUserId;
 	LockSoap();
 	
 	if(cbUserId < CbNewABEID("") || lpUserId == NULL) {
@@ -2133,8 +2116,7 @@ HRESULT WSTransport::HrGetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId,
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId sCompanyId = {0};
-
+	entryId sCompanyId;
 	struct userListResponse sResponse;
 
 	LockSoap();
@@ -2297,8 +2279,7 @@ HRESULT WSTransport::HrGetGroup(ULONG cbGroupID, LPENTRYID lpGroupID,
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	ECGROUP *lpGroup = NULL;
-	entryId sGroupId = {0};
-
+	entryId sGroupId;
 	struct getGroupResponse sResponse;
 	
 	LockSoap();
@@ -2336,8 +2317,7 @@ HRESULT WSTransport::HrDeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId sGroupId = {0};
-
+	entryId sGroupId;
 	LockSoap();
 	
 	if(cbGroupId < CbNewABEID("") || lpGroupId == NULL) {
@@ -2377,8 +2357,7 @@ HRESULT WSTransport::HrGetSendAsList(ULONG cbUserId, LPENTRYID lpUserId,
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct userListResponse sResponse;
-	entryId sUserId = {0};
-
+	entryId sUserId;
 	LockSoap();
 	
 	if(cbUserId < CbNewABEID("") || lpUserId == NULL || lpcSenders == NULL || lppSenders == NULL) {
@@ -2412,9 +2391,7 @@ HRESULT WSTransport::HrAddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG c
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId sUserId = {0};
-	entryId sSenderId = {0};
-
+	entryId sUserId, sSenderId;
 	LockSoap();
 
 	if (cbUserId < CbNewABEID("") || lpUserId == NULL || cbSenderId < CbNewABEID("") || lpSenderId == NULL)
@@ -2447,9 +2424,7 @@ HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG c
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId sUserId = {0};
-	entryId sSenderId = {0};
-
+	entryId sUserId, sSenderId;
 	LockSoap();
 
 	if (cbUserId < CbNewABEID("") || lpUserId == NULL || cbSenderId < CbNewABEID("") || lpSenderId == NULL)
@@ -2482,7 +2457,7 @@ HRESULT WSTransport::HrGetUserClientUpdateStatus(ULONG cbUserId,
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId sUserId = {0};
+	entryId sUserId;
 	struct userClientUpdateStatusResponse sResponse;
 
     LockSoap();
@@ -2516,8 +2491,7 @@ HRESULT WSTransport::HrRemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId)
 {
     ECRESULT er = erSuccess;
     HRESULT hr = hrSuccess;
-    entryId sUserId = {0};
-    
+	entryId sUserId;
     LockSoap();
     
 	if (cbUserId < CbNewABEID("") || lpUserId == NULL)
@@ -2639,8 +2613,7 @@ HRESULT WSTransport::HrGetGroupList(ULONG cbCompanyId, LPENTRYID lpCompanyId,
 	HRESULT		hr = hrSuccess;
 
  	struct groupListResponse sResponse;
-	entryId					sCompanyId = {0};
-
+	entryId sCompanyId;
 	LockSoap();
 
 	if(lpcGroups == NULL || lppsGroups == NULL) {
@@ -2676,9 +2649,7 @@ HRESULT WSTransport::HrDeleteGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULO
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId sGroupId = {0};
-	entryId sUserId = {0};
-
+	entryId sGroupId, sUserId;
 	LockSoap();
 
 	if (!lpGroupId || !lpUserId) {
@@ -2710,10 +2681,7 @@ HRESULT WSTransport::HrAddGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG 
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-
-	entryId sGroupId = {0};
-	entryId sUserId = {0};
-
+	entryId sGroupId, sUserId;
 	LockSoap();
 
 	if (!lpGroupId || !lpUserId) {
@@ -2757,8 +2725,7 @@ HRESULT WSTransport::HrGetUserListOfGroup(ULONG cbGroupId, LPENTRYID lpGroupId,
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct userListResponse sResponse;
-	entryId sGroupId = {0};
-
+	entryId sGroupId;
 	LockSoap();
 
 	if(lpGroupId == NULL || lpcUsers == NULL || lppsUsers == NULL) {
@@ -2805,8 +2772,7 @@ HRESULT WSTransport::HrGetGroupListOfUser(ULONG cbUserId, LPENTRYID lpUserId,
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct groupListResponse sResponse;
-	entryId sUserId = {0};
-
+	entryId sUserId;
 	LockSoap();
 
 	if(lpcGroup == NULL || lpUserId == NULL || lppsGroups == NULL) {
@@ -2896,8 +2862,7 @@ HRESULT WSTransport::HrDeleteCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId sCompanyId = {0};
-
+	entryId sCompanyId;
 	LockSoap();
 	
 	if(cbCompanyId < CbNewABEID("") || lpCompanyId == NULL) {
@@ -2994,8 +2959,7 @@ HRESULT WSTransport::HrGetCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId,
 	HRESULT hr = hrSuccess;
 	ECCOMPANY *lpCompany = NULL;
 	struct getCompanyResponse sResponse;
-	entryId sCompanyId = {0};
-
+	entryId sCompanyId;
 	LockSoap();
 
 	if (lpCompanyId == NULL || lppECCompany == NULL)
@@ -3115,10 +3079,7 @@ HRESULT WSTransport::HrAddCompanyToRemoteViewList(ULONG cbSetCompanyId, LPENTRYI
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-
-	entryId sSetCompanyId = {0};
-	entryId	sCompanyId = {0};
-
+	entryId sSetCompanyId, sCompanyId;
 	LockSoap();
 
 	if (lpSetCompanyId == NULL || lpCompanyId == NULL)
@@ -3150,9 +3111,7 @@ HRESULT WSTransport::HrDelCompanyFromRemoteViewList(ULONG cbSetCompanyId, LPENTR
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId sSetCompanyId = {0};
-	entryId sCompanyId = {0};
-
+	entryId sSetCompanyId, sCompanyId;
 	LockSoap();
 
 	if (lpSetCompanyId == NULL || lpCompanyId == NULL)
@@ -3197,8 +3156,7 @@ HRESULT WSTransport::HrGetRemoteViewList(ULONG cbCompanyId,
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct companyListResponse sResponse;
-	entryId sCompanyId = {0};
-
+	entryId sCompanyId;
 	LockSoap();
 
 	if(lpcCompanies == NULL || lpCompanyId == NULL || lppsCompanies == NULL) {
@@ -3234,9 +3192,7 @@ HRESULT WSTransport::HrAddUserToRemoteAdminList(ULONG cbUserId, LPENTRYID lpUser
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId	sUserId = {0};
-	entryId sCompanyId = {0};
-
+	entryId	sUserId, sCompanyId;
 	LockSoap();
 
 	if (lpUserId == NULL || lpCompanyId == NULL)
@@ -3268,9 +3224,7 @@ HRESULT WSTransport::HrDelUserFromRemoteAdminList(ULONG cbUserId, LPENTRYID lpUs
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId	sUserId = {0};
-	entryId sCompanyId = {0};
-
+	entryId	sUserId, sCompanyId;
 	LockSoap();
 
 	if (lpUserId == NULL || lpCompanyId == NULL)
@@ -3314,8 +3268,7 @@ HRESULT WSTransport::HrGetRemoteAdminList(ULONG cbCompanyId,
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct userListResponse sResponse;
-	entryId sCompanyId = {0};
-
+	entryId sCompanyId;
 	LockSoap();
 
 	if(lpcUsers == NULL || lpCompanyId == NULL || lppsUsers == NULL) {
@@ -3353,7 +3306,7 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 {
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;
-	entryId			sEntryId = {0}; // Do not free
+	entryId sEntryId; // Do not free
 	ecmem_ptr<ECPERMISSION> lpECPermissions;
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG			cbUnWrapStoreID = 0;
@@ -3412,7 +3365,7 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID, LPENTRYID lpEntryID,
 {
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;
-	entryId			sEntryId = {0}; // Do not free
+	entryId sEntryId; // Do not free
 	int				nChangedItems = 0;
 	unsigned int	i,
 					nItem;
@@ -3475,7 +3428,7 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpc
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId	sEntryId = {0}; // Do not free
+	entryId	sEntryId; // Do not free
 	struct getOwnerResponse sResponse;
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
@@ -3596,7 +3549,7 @@ HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId)
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	unsigned int sResponse;
-	entryId sCompanyId = {0};
+	entryId sCompanyId;
 	ULONG ulCompanyId = 0;
 
 	LockSoap();
@@ -3630,8 +3583,7 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, LPENTRYID lpUserId,
 	HRESULT					hr = hrSuccess;
 	struct quotaResponse	sResponse;
 	ECQUOTA *lpsQuota =  NULL;
-	entryId					sUserId = {0};
-	
+	entryId sUserId;
 	LockSoap();
 	
 	if(lppsQuota == NULL || lpUserId == NULL) {
@@ -3675,8 +3627,7 @@ HRESULT WSTransport::SetQuota(ULONG cbUserId, LPENTRYID lpUserId,
 	HRESULT					hr = hrSuccess;
 	unsigned int			sResponse;
 	struct quota			sQuota;
-	entryId					sUserId = {0};
-	
+	entryId sUserId;
 	LockSoap();
 
 	if(lpsQuota == NULL || lpUserId == NULL) {
@@ -3712,9 +3663,7 @@ HRESULT WSTransport::AddQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId,
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId	sCompanyId = {0};
-	entryId	sRecipientId = {0};
-
+	entryId	sCompanyId, sRecipientId;
 	LockSoap();
 
 	if (lpCompanyId == NULL || lpRecipientId == NULL)
@@ -3745,9 +3694,7 @@ HRESULT WSTransport::DeleteQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompany
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	entryId sCompanyId = {0};
-	entryId sRecipientId = {0};
-
+	entryId sCompanyId, sRecipientId;
 	LockSoap();
 
 	if (lpCompanyId == NULL || lpRecipientId == NULL)
@@ -3780,7 +3727,7 @@ HRESULT WSTransport::GetQuotaRecipients(ULONG cbUserId, LPENTRYID lpUserId,
 {
 	ECRESULT	er = erSuccess;
 	HRESULT		hr = hrSuccess;
-	entryId		sUserId = {0};
+	entryId sUserId;
 	struct userListResponse sResponse;
 
 	LockSoap();
@@ -3821,8 +3768,7 @@ HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, LPENTRYID lpUserId,
 	HRESULT					hr = hrSuccess;
 	struct quotaStatus		sResponse;
 	ECQUOTASTATUS *lpsQuotaStatus =  NULL;
-	entryId					sUserId = {0};
-	
+	entryId sUserId;
 	LockSoap();
 
 	if(lppsQuotaStatus == NULL) {
@@ -4177,7 +4123,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 {
 	HRESULT							hr = hrSuccess;
 	ECRESULT						er = erSuccess;
-	mv_long							ulaSyncId = {0};
+	mv_long ulaSyncId;
 	getSyncStatesReponse sResponse{__gszeroinit};
 	SSyncState						sSyncState = {0};
 
