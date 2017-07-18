@@ -21,7 +21,9 @@ from MAPI.Time import (
 
 import MAPI.Struct
 
-from .compat import repr as _repr
+from .compat import (
+    unhex as _unhex, repr as _repr
+)
 
 # XXX to utils.py?
 NANOSECS_BETWEEN_EPOCH = 116444736000000000
@@ -66,7 +68,7 @@ class FreeBusy(object):
         :param end: end of period
         """
 
-        eid = self.store.user.userid.decode('hex')
+        eid = _unhex(self.store.user.userid)
         if start:
             ftstart = datetime_to_filetime(start)
         else:
@@ -99,7 +101,7 @@ class FreeBusy(object):
         :param start: start of period
         :param end: end of period
         """
-        eid = self.store.user.userid.decode('hex') # XXX merge with blocks
+        eid = _unhex(self.store.user.userid) # XXX merge with blocks
         ftstart, ftend = datetime_to_filetime(start), datetime_to_filetime(end) # XXX tz?
 
         fb = libfreebusy.IFreeBusySupport()
