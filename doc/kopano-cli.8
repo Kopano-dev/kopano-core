@@ -380,7 +380,21 @@ Output user statistics, such as active and non-active users and total user count
 .RE
 .SH "EXAMPLES"
 .PP
-TODO
+To create a new user:
+.PP
+\fBkopano\-cli \-\-create \-u john \-\-fullname "john doe" \-\-password john \-\-email john@doe.com\fR
+.PP
+To modify the password and e-mail address:
+.PP
+\fBkopano\-cli \-u john \-\-password john \-\-email john@doe.com\fR
+.PP
+To set out of office for a user:
+.PP
+\fBkopano\-cli \-u john \-\-ooo-active yes \-\-ooo-subject "On vacation" \-\-ooo-message /etc/kopano/ooo/vacation.html\fR
+.PP
+To delete a user:
+.PP
+\fBkopano\-cli \-\-delete \-u john\fR
 .SH "AUTHOR"
 .PP
 Written by Kopano\&.
