@@ -617,7 +617,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		hr = hrSuccess;
 		break;
 	case MSG_SERVICE_DELETE:
-		hr = lpAdminProviders->OpenProfileSection(reinterpret_cast<const MAPIUID *>(pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
+		hr = lpAdminProviders->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
 		if (hr != hrSuccess)
 			goto exit;
 		hr = HrGetOneProp(ptrGlobalProfSect, PR_EC_TRANSPORTOBJECT, &~lpsPropValue);
