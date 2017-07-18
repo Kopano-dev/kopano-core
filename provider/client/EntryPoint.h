@@ -32,7 +32,7 @@ extern _kc_export HRESULT  ABProviderInit(HINSTANCE, LPMALLOC, LPALLOCATEBUFFER,
 }
 
 class WSTransport;
-HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSect, const sGlobalProfileProps &, ULONG *lpcStoreID, LPENTRYID *lppStoreID, WSTransport * = NULL);
+extern HRESULT InitializeProvider(IProviderAdmin *, IProfSect *, const sGlobalProfileProps &, ULONG *eid_size, ENTRYID **store_eid);
 
 // Global values
 extern tstring	g_strCommonFilesKopano;

@@ -20,6 +20,7 @@
 #include "WSUtil.h"
 #include <kopano/ECIConv.h>
 #include <kopano/ECGuid.h>
+#include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include "Mem.h"
 
@@ -2049,6 +2050,10 @@ HRESULT WrapServerClientStoreEntry(const char *lpszServerName,
 
 	if (lpsStoreId == NULL || lpszServerName == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	if (lpsStoreId->__size < 4) {
+		ec_log_crit("Assertion lpsStoreId->__size >= 4 failed");
+		return MAPI_E_INVALID_PARAMETER;
+	}
 
 	// The new entryid size is, current size + servername size + 1 byte term 0 - 4 bytes padding
 	ulSize = lpsStoreId->__size+strlen(lpszServerName)+1-4;

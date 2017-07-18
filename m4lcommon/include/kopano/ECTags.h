@@ -18,6 +18,9 @@
 #ifndef ECTAGS_H
 #define ECTAGS_H
 
+/*
+ * Inside MAPI, p.38: private range for service providers (6600-67ff)
+ */
 // Public Kopano properties
 #define PR_EC_BASE			0x6700
 
@@ -152,6 +155,9 @@
 #define PR_EC_STATS_SERVER_HTTPURL		PROP_TAG(PT_STRING8,	PR_EC_BASE+0xF6)
 #define PR_EC_STATS_SERVER_HTTPSURL		PROP_TAG(PT_STRING8, 	PR_EC_BASE+0xF7)
 #define PR_EC_STATS_SERVER_FILEURL		PROP_TAG(PT_STRING8,	PR_EC_BASE+0xF8)
+
+/* WSTransport within a profile, exposed as IUnknown */
+#define PR_EC_TRANSPORTOBJECT			PROP_TAG(PT_OBJECT,	PR_EC_BASE+0x7e)
 
 /*
  * The hidden object property which can be used to access the underlying

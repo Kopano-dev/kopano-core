@@ -1012,3 +1012,16 @@ BOOL CompareMDBProvider(const MAPIUID *lpguid, const GUID *lpguidKopano)
 		return TRUE;
 	return FALSE;
 }
+
+WSTransport *kc_transport_from_profile(IMAPISupport *sup)
+{
+	object_ptr<IProfSect> ps;
+	auto ret = sup->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), MAPI_MODIFY, &~ps);
+	if (ret != hrSuccess)
+		return nullptr;
+	memory_ptr<SPropValue> pv;
+	ret = HrGetOneProp(ps, PR_EC_TRANSPORTOBJECT, &~pv);
+	if (ret == hrSuccess)
+		return reinterpret_cast<WSTransport *>(pv->Value.lpszA);
+	return nullptr;
+}

@@ -385,20 +385,18 @@ initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 
 static HRESULT initprov_addrbook(struct initprov &d)
 {
-	ABEID *eidptr;
 	size_t abe_size = CbNewABEID("");
-	HRESULT ret = MAPIAllocateBuffer(abe_size, reinterpret_cast<void **>(&eidptr));
+	HRESULT ret = MAPIAllocateBuffer(abe_size, &~d.abe_id);
 	if (ret != hrSuccess)
 		return ret;
 
-	d.abe_id.reset(eidptr);
-	memset(eidptr, 0, abe_size);
+	memset(d.abe_id, 0, abe_size);
 	memcpy(&d.abe_id->guid, &MUIDECSAB, sizeof(GUID));
 	d.abe_id->ulType = MAPI_ABCONT;
 
 	d.prop[d.count].ulPropTag = PR_ENTRYID;
 	d.prop[d.count].Value.bin.cb = abe_size;
-	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(eidptr);
+	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(d.abe_id.get());
 	d.prop[d.count].ulPropTag = PR_RECORD_KEY;
 	d.prop[d.count].Value.bin.cb = sizeof(MAPIUID);
 	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<GUID *>(&MUIDECSAB));
@@ -424,10 +422,10 @@ static HRESULT initprov_addrbook(struct initprov &d)
  */
 HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
     IProfSect *lpProfSect, const sGlobalProfileProps &sProfileProps,
-    ULONG *lpcStoreID, LPENTRYID *lppStoreID, WSTransport *transport)
+    ULONG *lpcStoreID, ENTRYID **lppStoreID)
 {
 	HRESULT hr = hrSuccess;
-	SPropValuePtr ptrPropValueResourceType, dspname;
+	memory_ptr<SPropValue> ptrPropValueResourceType, dspname, tpprop;
 	SPropValuePtr	ptrPropValueProviderUid;
 	std::string		strServiceName;
 	ULONG			ulResourceType=0;
@@ -462,9 +460,14 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	ec_log_debug("Initializing provider \"%s\"",
 		dspname != nullptr ? dspname->Value.lpszA : "(unnamed)");
 
-	if (transport != NULL) {
-		d.transport.reset(transport);
-	} else {
+	object_ptr<IProfSect> globprof;
+	hr = lpAdminProvider->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~globprof);
+	if (hr == hrSuccess) {
+		hr = HrGetOneProp(globprof, PR_EC_TRANSPORTOBJECT, &~tpprop);
+		if (hr == hrSuccess)
+			d.transport.reset(reinterpret_cast<WSTransport *>(tpprop->Value.lpszA));
+	}
+	if (d.transport == nullptr) {
 		hr = WSTransport::Create(0, &~d.transport);
 		if (hr != hrSuccess)
 			return hr;
@@ -506,7 +509,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 }
 
 static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
-    const sGlobalProfileProps &sProfileProps, WSTransport *transport)
+    const sGlobalProfileProps &sProfileProps)
 {
 	ProfSectPtr		ptrProfSect;
 	MAPITablePtr	ptrTable;
@@ -541,8 +544,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 
 		// Set already PR_PROVIDER_UID, ignore error
 		HrSetOneProp(ptrProfSect, lpsProviderUID);
-
-		hr = InitializeProvider(lpAdminProviders, ptrProfSect, sProfileProps, NULL, NULL, transport);
+		hr = InitializeProvider(lpAdminProviders, ptrProfSect, sProfileProps, nullptr, nullptr);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -587,6 +589,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	ULONG			cDelegateStores = 0;
 	convert_context	converter;
 	bool bInitStores = true;
+	SPropValue spv;
 
 	_hInstance = hInst;
 
@@ -614,6 +617,15 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		hr = hrSuccess;
 		break;
 	case MSG_SERVICE_DELETE:
+		hr = lpAdminProviders->OpenProfileSection(reinterpret_cast<const MAPIUID *>(pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
+		if (hr != hrSuccess)
+			goto exit;
+		hr = HrGetOneProp(ptrGlobalProfSect, PR_EC_TRANSPORTOBJECT, &~lpsPropValue);
+		if (hr == hrSuccess) {
+			static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
+			reinterpret_cast<WSTransport *>(lpsPropValue->Value.lpszA)->Release();
+			ptrGlobalProfSect->DeleteProps(tags, nullptr);
+		}
 		hr = hrSuccess;
 		break;
 	case MSG_SERVICE_PROVIDER_CREATE:
@@ -657,9 +669,18 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		ClientUtil::GetGlobalProfileDelegateStoresProp(ptrGlobalProfSect, &cDelegateStores, &~lpDelegateStores);
 
 		// init defaults
+		hr = HrGetOneProp(ptrGlobalProfSect, PR_EC_TRANSPORTOBJECT, &~lpsPropValue);
+		if (hr == hrSuccess)
+			reinterpret_cast<WSTransport *>(lpsPropValue->Value.lpszA)->Release();
 		hr = WSTransport::Create(ulFlags & SERVICE_UI_ALLOWED ? 0 : MDB_NO_DIALOG, &~lpTransport);
 		if(hr != hrSuccess)
 			goto exit;
+		spv.ulPropTag = PR_EC_TRANSPORTOBJECT;
+		spv.Value.lpszA = reinterpret_cast<char *>(lpTransport.get());
+		hr = HrSetOneProp(ptrGlobalProfSect, &spv);
+		if (hr != hrSuccess)
+			goto exit;
+		lpTransport->AddRef();
 
 		// Check the path, username and password
 		while(1)
@@ -705,7 +726,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		}// while(1)
 
 		if(bInitStores) {
-			hr = UpdateProviders(lpAdminProviders, sProfileProps, lpTransport);
+			hr = UpdateProviders(lpAdminProviders, sProfileProps);
 			if(hr != hrSuccess)
 				goto exit;
 		}
