@@ -83,17 +83,14 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	if(hr != hrSuccess)
 		return hr;
 
-	lpTransport.reset(kc_transport_from_profile(lpMAPISup));
-	if (lpTransport == nullptr) {
-		// Create a transport for this provider
-		hr = WSTransport::Create(ulFlags, &~lpTransport);
-		if (hr != hrSuccess)
-			return hr;
-		// Log on the transport to the server
-		hr = lpTransport->HrLogon(sProfileProps);
-		if (hr != hrSuccess)
-			return hr;
-	}
+	// Create a transport for this provider
+	hr = WSTransport::Create(ulFlags, &~lpTransport);
+	if(hr != hrSuccess)
+		return hr;
+	// Log on the transport to the server
+	hr = lpTransport->HrLogon(sProfileProps);
+	if(hr != hrSuccess)
+		return hr;
 	hr = ECABLogon::Create(lpMAPISup, lpTransport, sProfileProps.ulProfileFlags, reinterpret_cast<const GUID *>(lpGuid), &~lpABLogon);
 	if(hr != hrSuccess)
 		return hr;

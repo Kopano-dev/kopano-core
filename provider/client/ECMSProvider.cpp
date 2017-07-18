@@ -126,14 +126,11 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS &&
 	    lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE)
 		fIsDefaultStore = TRUE;
-	lpTransport.reset(kc_transport_from_profile(lpMAPISup));
-	if (lpTransport == nullptr) {
-		// Create a transport for this message store
-		hr = WSTransport::Create(ulFlags, &~lpTransport);
-		if (hr != hrSuccess)
-			return hr;
-		hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
-	}
+	// Create a transport for this message store
+	hr = WSTransport::Create(ulFlags, &~lpTransport);
+	if(hr != hrSuccess)
+		return hr;
+	hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER) {
 		memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
 	} else if (fIsDefaultStore == FALSE){
@@ -247,14 +244,11 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	sProfileProps.strUserName = (wchar_t*)lpbSpoolSecurity;
 	sProfileProps.strPassword = strSep;
 
-	lpTransport.reset(kc_transport_from_profile(lpMAPISup));
-	if (lpTransport == nullptr) {
-		// Create a transport for this message store
-		hr = WSTransport::Create(ulFlags, &~lpTransport);
-		if (hr != hrSuccess)
-			return hr;
-		hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
-	}
+	// Create a transport for this message store
+	hr = WSTransport::Create(ulFlags, &~lpTransport);
+	if(hr != hrSuccess)
+		return hr;
+	hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	if(hr != hrSuccess) {
 		if (ulFlags & MDB_NO_DIALOG)
 			return MAPI_E_FAILONEPROVIDER;
