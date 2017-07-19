@@ -1952,7 +1952,6 @@ ECRESULT ECUserManagement::ConvertLoginToUserAndCompany(objectdetails_t *lpDetai
 ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetails)
 {
 	bool bHosted = m_lpSession->GetSessionManager()->IsHostedSupported();
-	string login;
 	unsigned int ulCompanyId;
 	objectdetails_t sCompanyDetails;
 	/*
@@ -1960,11 +1959,9 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	 * when we perform this operation on SYSTEM or EVERYONE (since they don't belong to a company),
 	 * or when the user objecttype does not need any conversions.
 	 */
+	auto login = lpDetails->GetPropString(OB_PROP_S_LOGIN);
 	if (!bHosted ||	login == KOPANO_ACCOUNT_SYSTEM || login == KOPANO_ACCOUNT_EVERYONE || lpDetails->GetClass() == CONTAINER_COMPANY)
 		return erSuccess;
-
-	std::string format = m_lpConfig->GetSetting("loginname_format");
-	login  = lpDetails->GetPropString(OB_PROP_S_LOGIN);
 
 	/*
 	 * Since we already need the company name here, we convert the
@@ -1999,6 +1996,7 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	 */
 	if (login.empty() || company.empty())
 		return KCERR_UNABLE_TO_COMPLETE;
+	std::string format = m_lpConfig->GetSetting("loginname_format");
 	auto pos = format.find("%u");
 	if (pos != string::npos)
 		format.replace(pos, 2, login);
