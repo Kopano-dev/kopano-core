@@ -28,6 +28,7 @@
 #include <inetmapi/options.h>
 #include <mapidefs.h>
 #include <kopano/charset/convert.h>
+#include <kopano/memory.hpp>
 #include "SMIMEMessage.h"
 
 namespace KC {
@@ -45,15 +46,13 @@ class MAPIToVMIME _kc_final {
 public:
 	MAPIToVMIME();
 	MAPIToVMIME(IMAPISession *, IAddrBook *, sending_options);
-	~MAPIToVMIME();
-
 	HRESULT convertMAPIToVMIME(IMessage *in, vmime::shared_ptr<vmime::message> *out, unsigned int = MTV_NONE);
 	std::wstring getConversionError(void) const;
 
 private:
 	sending_options sopt;
-	LPADRBOOK m_lpAdrBook;
-	LPMAPISESSION m_lpSession;
+	KCHL::object_ptr<IAddrBook> m_lpAdrBook;
+	KCHL::object_ptr<IMAPISession> m_lpSession;
 	std::wstring m_strError;
 	convert_context m_converter;
 	vmime::charset m_vmCharset;		//!< charset to use in email

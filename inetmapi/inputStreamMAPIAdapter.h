@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
+#include <kopano/memory.hpp>
 #include <vmime/utility/inputStream.hpp>
 
 namespace KC {
@@ -27,8 +28,6 @@ namespace KC {
 class inputStreamMAPIAdapter _kc_final : public vmime::utility::inputStream {
 public:
 	inputStreamMAPIAdapter(IStream *lpStream);
-	virtual ~inputStreamMAPIAdapter();
-
 	virtual size_t read(vmime::byte_t *, size_t) _kc_override;
 	virtual size_t skip(size_t) _kc_override;
 	virtual void reset(void) _kc_override;
@@ -36,7 +35,7 @@ public:
 
 private:
 	bool ateof = false;
-	IStream *lpStream;
+	KCHL::object_ptr<IStream> lpStream;
 };
 
 } /* namespace */

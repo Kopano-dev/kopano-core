@@ -21,18 +21,9 @@
 
 namespace KC {
 
-outputStreamMAPIAdapter::outputStreamMAPIAdapter(IStream *lpStream)
-{
-	this->lpStream = lpStream;
-	if(lpStream)
-		lpStream->AddRef();
-}
-
-outputStreamMAPIAdapter::~outputStreamMAPIAdapter()
-{
-	if(lpStream)
-		lpStream->Release();
-}
+outputStreamMAPIAdapter::outputStreamMAPIAdapter(IStream *s) :
+	lpStream(s)
+{}
 
 void outputStreamMAPIAdapter::writeImpl(const vmime::byte_t *data, size_t count)
 {

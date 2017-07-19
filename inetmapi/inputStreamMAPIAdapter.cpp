@@ -21,18 +21,9 @@
 
 namespace KC {
 
-inputStreamMAPIAdapter::inputStreamMAPIAdapter(IStream *lpStream)
-{
-	this->lpStream = lpStream;
-	if (lpStream)
-		lpStream->AddRef();
-}
-
-inputStreamMAPIAdapter::~inputStreamMAPIAdapter()
-{
-	if (lpStream)
-		lpStream->Release();
-}
+inputStreamMAPIAdapter::inputStreamMAPIAdapter(IStream *s) :
+	lpStream(s)
+{}
 
 size_t inputStreamMAPIAdapter::read(unsigned char *data, size_t count)
 {
