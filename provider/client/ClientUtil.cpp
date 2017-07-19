@@ -304,7 +304,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	if(FAILED(hr) != hrSuccess)
 		return hr;
 
-#define HAVE(tag) (spv[RR_ ## tag].ulPropTag != (PR_ ## tag))
+#define HAVE(tag) (spv[RR_ ## tag].ulPropTag == (PR_ ## tag))
 	// important properties
 	if (!HAVE(REPORT_ENTRYID))
 		return MAPI_E_INVALID_PARAMETER;
