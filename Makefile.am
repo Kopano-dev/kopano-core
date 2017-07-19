@@ -502,8 +502,6 @@ libkcinetmapi_la_SOURCES = \
 	inetmapi/inputStreamMAPIAdapter.h \
 	inetmapi/mapiAttachment.cpp inetmapi/mapiAttachment.h \
 	inetmapi/mapiTextPart.cpp inetmapi/mapiTextPart.h \
-	inetmapi/outputStreamMAPIAdapter.cpp \
-	inetmapi/outputStreamMAPIAdapter.h \
 	inetmapi/serviceRegistration.inl \
 	inetmapi/tnef.cpp inetmapi/tnef.h
 # Add '-z now' -> -Wl,-z, -Wl,now to LD flags so that we do early binding of

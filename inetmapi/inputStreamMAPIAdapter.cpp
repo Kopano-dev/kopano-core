@@ -63,4 +63,18 @@ size_t inputStreamMAPIAdapter::skip(size_t count)
 	return ulSize.QuadPart;
 }
 
+outputStreamMAPIAdapter::outputStreamMAPIAdapter(IStream *s) :
+	lpStream(s)
+{}
+
+void outputStreamMAPIAdapter::writeImpl(const vmime::byte_t *data, size_t count)
+{
+	lpStream->Write(data, count, NULL);
+}
+
+void outputStreamMAPIAdapter::flush()
+{
+    // just ignore the call, or call Commit() ?
+}
+
 } /* namespace */

@@ -64,7 +64,7 @@
 // inetmapi
 #include "ECMapiUtils.h"
 #include "ECVMIMEUtils.h"
-#include "outputStreamMAPIAdapter.h"
+#include "inputStreamMAPIAdapter.h"
 
 // vcal support
 #include "ICalToMAPI.h"

@@ -45,7 +45,6 @@
 #include "ECMapiUtils.h"
 #include "MAPIToVMIME.h"
 #include "VMIMEToMAPI.h"
-#include "outputStreamMAPIAdapter.h"
 #include "inputStreamMAPIAdapter.h"
 #include "mapiAttachment.h"
 #include "mapiTextPart.h"

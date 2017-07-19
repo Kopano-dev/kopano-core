@@ -20,8 +20,10 @@
 
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
+#include <sys/types.h>
 #include <kopano/memory.hpp>
 #include <vmime/utility/inputStream.hpp>
+#include <vmime/utility/outputStream.hpp>
 
 namespace KC {
 
@@ -35,6 +37,16 @@ public:
 
 private:
 	bool ateof = false;
+	KCHL::object_ptr<IStream> lpStream;
+};
+
+class outputStreamMAPIAdapter _kc_final : public vmime::utility::outputStream {
+	public:
+	outputStreamMAPIAdapter(IStream *);
+	virtual void writeImpl(const unsigned char *, const size_t) _kc_override;
+	virtual void flush(void) _kc_override;
+
+	private:
 	KCHL::object_ptr<IStream> lpStream;
 };
 
