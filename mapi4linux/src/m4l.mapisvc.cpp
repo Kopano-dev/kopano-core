@@ -369,7 +369,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 		return MAPI_E_NOT_FOUND;
 
 	m_dl = dlopen(lpSO->Value.lpszA, RTLD_NOW);
-	if (!m_dl) {
+	if (m_dl == nullptr && strchr(lpSO->Value.lpszA, '/') == nullptr) {
 		snprintf(filename, PATH_MAX + 1, "%s%c%s", PKGLIBDIR, PATH_SEPARATOR, lpSO->Value.lpszA);
 		m_dl = dlopen(filename, RTLD_NOW);
 	}
