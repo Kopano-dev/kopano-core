@@ -305,6 +305,7 @@ function getDefaultStore($session)
     foreach ($msgstores as $row) {
         if($row[PR_DEFAULT_STORE]) {
             $storeentryid = $row[PR_ENTRYID];
+            break;
         }
     }
 
