@@ -302,8 +302,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	property_map anonymousProps;
 	property_mv_map anonymousMVProps;
 	unsigned int ulOrderId = 0;
-
-	struct props sUserValidProps[] = {
+	const struct props sUserValidProps[] = {
 		{ OB_PROP_S_LOGIN, OP_LOGINNAME, },
 		{ OB_PROP_S_PASSWORD, OP_PASSWORD, },
 		{ OB_PROP_S_EMAIL, OP_EMAILADDRESS, },
@@ -313,19 +312,19 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		{ OB_PROP_B_AB_HIDDEN, OB_AB_HIDDEN, },
 		{ (property_key_t)0, NULL },
 	};
-	struct props sGroupValidProps[] = {
+	const struct props sGroupValidProps[] = {
 		{ OB_PROP_S_FULLNAME, OP_GROUPNAME, },
 		{ OB_PROP_O_COMPANYID, OP_COMPANYID, },
 		{ OB_PROP_S_EMAIL, OP_EMAILADDRESS, },
 		{ OB_PROP_B_AB_HIDDEN, OB_AB_HIDDEN, },
 		{ (property_key_t)0, NULL },
 	};
-	struct props sCompanyValidProps[] = {
+	const struct props sCompanyValidProps[] = {
 		{ OB_PROP_S_FULLNAME, OP_COMPANYNAME, },
 		{ OB_PROP_O_SYSADMIN, OP_COMPANYADMIN, },
 		{ (property_key_t)0, NULL },
 	};
-	struct props *sValidProps;
+	const struct props *sValidProps;
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
@@ -454,21 +453,21 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 			continue;
 
 		for (const auto &prop : mva.second) {
-			if (!prop.empty()) {
-				if (!bFirstOne)
-					strQuery += ",";
-				if (PROP_TYPE(mva.first) == PT_MV_BINARY)
-					strData = base64_encode(reinterpret_cast<const unsigned char *>(prop.c_str()), prop.size());
-				else
-					strData = prop;
-				strQuery +=
-					"((" + strSubQuery + "),"
-					"'" + m_lpDatabase->Escape(stringify(mva.first, true)) + "',"
-					"" + stringify(ulOrderId) + ","
-					"'" +  m_lpDatabase->Escape(strData) + "')";
-				++ulOrderId;
-				bFirstOne = false;
-			}
+			if (prop.empty())
+				continue;
+			if (!bFirstOne)
+				strQuery += ",";
+			if (PROP_TYPE(mva.first) == PT_MV_BINARY)
+				strData = base64_encode(reinterpret_cast<const unsigned char *>(prop.c_str()), prop.size());
+			else
+				strData = prop;
+			strQuery +=
+				"((" + strSubQuery + "),"
+				"'" + m_lpDatabase->Escape(stringify(mva.first, true)) + "',"
+				"" + stringify(ulOrderId) + ","
+				"'" +  m_lpDatabase->Escape(strData) + "')";
+			++ulOrderId;
+			bFirstOne = false;
 		}
 	}
 
@@ -510,14 +509,12 @@ objectsignature_t DBPlugin::createObject(const objectdetails_t &details)
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	objectid = details.GetPropObject(OB_PROP_O_EXTERNID);
-	if (!objectid.id.empty()) {
+	if (!objectid.id.empty())
 		// Offline "force" create object
 		CreateObjectWithExternId(objectid, details);
-
-	} else {
+	else
 		// kopano-admin online create object
 		objectid = CreateObject(details);
-	}
 
 	// Insert all properties into the database
 	changeObject(objectid, details, NULL);
@@ -567,44 +564,39 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 				"DELETE FROM " + (string)DB_OBJECT_RELATION_TABLE + " "
 				"WHERE objectid IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
-			if (er != erSuccess){
-				//ignore error
-			}
+			if (er != erSuccess)
+				;//ignore error
 
 			strQuery =
 				"DELETE FROM " + (string)DB_OBJECT_RELATION_TABLE + " "
 				"WHERE parentobjectid IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
-			if (er != erSuccess){
-				//ignore error
-			}
+			if (er != erSuccess)
+				;//ignore error
 
 			// delete object properties
 			strQuery =
 				"DELETE FROM " + (string)DB_OBJECTPROPERTY_TABLE + " "
 				"WHERE objectid IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
-			if (er != erSuccess){
-				//ignore error
-			}
+			if (er != erSuccess)
+				;//ignore error
 
 			// delete objects themselves
 			strQuery =
 				"DELETE FROM " + (string)DB_OBJECT_TABLE + " "
 				"WHERE id IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
-			if (er != erSuccess){
-				//ignore error
-			}
+			if (er != erSuccess)
+				;//ignore error
 		}
 	}
 
 	// first delete details of user, since we need the id from the sub query, which is removed next
 	strQuery = "DELETE FROM "+(string)DB_OBJECTPROPERTY_TABLE+" WHERE objectid=("+strSubQuery+")";
 	er = m_lpDatabase->DoDelete(strQuery);
-	if (er != erSuccess){
-		// ignore error
-	}
+	if (er != erSuccess)
+		;// ignore error
 
 	// delete user from object table .. we now have no reference to the user anymore.
 	strQuery =
@@ -613,10 +605,8 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
 
 	er = m_lpDatabase->DoDelete(strQuery, &ulAffRows);
-	if(er != erSuccess){
-		//FIXME: ....
-	}
-	
+	if (er != erSuccess)
+		;//FIXME: ....
 	if (ulAffRows != 1)
 		throw objectnotfound("db_user: " + objectid.id);
 }
@@ -701,7 +691,8 @@ void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const obj
 }
 
 std::unique_ptr<signatures_t> DBPlugin::searchObjects(const std::string &match,
-    const char **search_props, const char *return_prop, unsigned int ulFlags)
+    const char *const *search_props, const char *return_prop,
+    unsigned int ulFlags)
 {
 	objectid_t objectid;
 	std::unique_ptr<signatures_t> lpSignatures(new signatures_t());
@@ -717,11 +708,10 @@ std::unique_ptr<signatures_t> DBPlugin::searchObjects(const std::string &match,
 		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
 			"ON op.objectid=o.id ";
     
-	if (return_prop) {
+	if (return_prop != nullptr)
 		strQuery +=
 			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS opret "
 				"ON opret.objectid=o.id ";
-	}
 
 	strQuery +=
 		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "

@@ -1,0 +1,33 @@
+
+Mandatory build-time dependencies and their minimum versions (if any):
+
+	* g++ 4.7 or clang++ 3.8
+	* pkg-config
+	* gsoap 2.8.49, generator and library
+	* libcrypt with crypt_r
+	* libgettext (where separate from libc)
+	* libical 0.9.x
+	* libiconv (where separate from libc)
+	* libicu 52
+	* libcrypto and libssl from LibreSSL or OpenSSL 0.9.8
+	* libmysqlclient: MySQL-compatible C connector library
+	* libncurses 5
+	* libvmime 0.9.2
+	* libxml2 2.6
+
+Optional build-time dependencies and their minimum versions:
+
+	* google-perftools libtcmalloc
+	* MIT Kerberos libkrb5
+	* libcurl
+	* libs3 3.0 (for Amazon S3 attachment storing)
+	* Linux-PAM
+	* OpenLDAP libldap_r
+	* php 5.4
+	* libpython 2.6 & swig 2.x
+
+Optional components during runtime:
+
+	* libtcmalloc or jemalloc as an alternate allocator
+          (preload declarable in server.cfg)
+	* libs3 (dlopened)

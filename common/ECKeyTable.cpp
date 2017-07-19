@@ -811,12 +811,11 @@ ECRESULT ECKeyTable::QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList
 
 	lpOrig = lpCurrent;
 	
-	if(bDirBackward == true && lpCurrent == NULL) {
+	if (bDirBackward && lpCurrent == nullptr)
 		SeekRow(EC_SEEK_CUR, -1, NULL);
-	}else if(lpCurrent == lpRoot && lpRoot->ulBranchCount) {
+	else if (lpCurrent == lpRoot && lpRoot->ulBranchCount != 0)
 		// Go to actual first row if still pre-first row
 		SeekRow(EC_SEEK_SET, 0 , NULL);
-	}
 
 	// Cap to max. table length. (probably smaller due to cursor position not at start)
 	ulRows = ulRows > lpRoot->ulBranchCount ? lpRoot->ulBranchCount : ulRows;
@@ -831,11 +830,10 @@ ECRESULT ECKeyTable::QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList
 		if(bDirBackward == true && lpCurrent == lpRoot->lpRight)
 			break;
 	
-		if(bDirBackward == true) {
+		if (bDirBackward)
 		    Prev();
-		} else{// Go to next row
+		else /* Go to next row */
 		    Next();
-		}
 	}
 
 	if(ulFlags & EC_TABLE_NOADVANCE)

@@ -149,11 +149,9 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		ssl_name = strtok(NULL, " ");
 	}
 
-	if (ssl_include != 0) {
+	if (ssl_include != 0)
 		// Exclude everything, except those that are included (and let excludes still override those)
 		ssl_exclude |= 0x1f & ~ssl_include;
-	}
-
 	if ((ssl_exclude & 0x01) != 0)
 		ssl_op |= SSL_OP_NO_SSLv2;
 	if ((ssl_exclude & 0x02) != 0)
@@ -168,10 +166,8 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	if ((ssl_exclude & 0x10) != 0)
 		ssl_op |= SSL_OP_NO_TLSv1_2;
 #endif
-
-	if (ssl_protocols) {
+	if (ssl_protocols)
 		SSL_CTX_set_options(lpCTX, ssl_op);
-	}
 
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);

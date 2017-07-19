@@ -181,7 +181,6 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-#ifndef EMBEDDED_MYSQL
 	string strQuery;
 	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
@@ -200,7 +199,6 @@ static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 		ec_log_crit("  ALTER TABLE <table name> ENGINE='InnoDB';");
 		ec_log_crit("This process may take a very long time, depending on the size of your database.");
 	}
-#endif
 	return er;
 }
 
@@ -692,9 +690,6 @@ int main(int argc, char* argv[])
 			break;
 		case OPT_HELP:
 			cout << "kopano-server " PROJECT_VERSION;
-#ifdef EMBEDDED_MYSQL
-			cout << " with embedded SQL server";
-#endif
 			cout << endl;
 			cout << argv[0] << " [options...]" << endl;
 			cout << "  -c --config=FILE                           Set new config file location. Default: " << default_config << endl;
@@ -829,10 +824,6 @@ static int running_server(char *szName, const char *szConfig,
 		{ "mysql_password",				"",	CONFIGSETTING_EXACT },
 		{ "mysql_database",				"kopano" },
 		{ "mysql_socket",				"" },
-#if defined(EMBEDDED_MYSQL)
-		{ "mysql_database_path",		"/var/kopano/data" },
-		{ "mysql_config_file",			"/etc/kopano/my.cnf" },
-#endif
 		{ "attachment_storage",			"database" },
 #ifdef HAVE_LIBS3_H
 		{"attachment_s3_hostname", ""},
@@ -1187,24 +1178,6 @@ static int running_server(char *szName, const char *szConfig,
 
 	if (tmplock == -1)
 		ec_log_warn("WARNING: Unable to place upgrade lockfile: %s", strerror(errno));
-
-#ifdef EMBEDDED_MYSQL
-{
-	unsigned int ulResult = 0;
-	// setting upgrade_tables
-	// 1 = upgrade from mysql 4.1.23 to 5.22
-	if(GetDatabaseSettingAsInteger(lpDatabase, "upgrade_tables", &ulResult) != erSuccess || ulResult == 0) {
-
-		er = lpDatabase->ValidateTables();
-		if (er != erSuccess) {
-			ec_log_err("Unable to validate the database.");
-			goto exit;
-		}
-
-		SetDatabaseSetting(lpDatabase, "upgrade_tables", 1);
-	}
-}
-#endif
 
 	// perform database upgrade .. may take a very long time
 	er = lpDatabaseFactory->UpdateDatabase(m_bForceDatabaseUpdate, dbError);

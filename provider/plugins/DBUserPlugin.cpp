@@ -80,11 +80,10 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	string signature;
 	const char *lpszSearchProperty;
 
-	if (company.id.empty()) {
+	if (company.id.empty())
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
-	} else {
+	else
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
-	}
 
 	switch (objclass) {
 	case OBJECTCLASS_USER:
@@ -129,14 +128,14 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	if (lpszSearchProperty)
 		strQuery += "AND user.propname = '" + (string)lpszSearchProperty + "' ";
 
-	if (m_bHosted && !company.id.empty()) {
+	if (m_bHosted && !company.id.empty())
 		// join company, company itself inclusive
 		strQuery +=
 			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS usercompany "
 				"ON usercompany.objectid = o.id "
 				"AND (usercompany.propname = '" + OP_COMPANYID + "' AND usercompany.value = hex('" + m_lpDatabase->Escape(company.id) + "') OR "
 					"usercompany.propname = '" + OP_COMPANYNAME + "' AND usercompany.objectid = '" + m_lpDatabase->Escape(company.id) + "')";
-	}
+
 	strQuery +=
 		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
 			"ON modtime.propname = '" + OP_MODTIME + "' "
@@ -145,9 +144,8 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 		strQuery += "WHERE " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objclass);
 
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
-	if(er != erSuccess) {
+	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
-	}
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[3] == NULL)
@@ -195,14 +193,14 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 		"ON o.id = op.objectid "
 		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS pass "
 		"ON pass.objectid = o.id ";
-	if (m_bHosted && !company.id.empty()) {
+	if (m_bHosted && !company.id.empty())
 		// join company, company itself inclusive
 		strQuery +=
 			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS usercompany "
 				"ON usercompany.objectid = o.id "
 				"AND (usercompany.propname = '" + OP_COMPANYID + "' AND usercompany.value = hex('" + m_lpDatabase->Escape(company.id) + "') OR "
 					"usercompany.propname = '" + OP_COMPANYNAME + "' AND usercompany.objectid = '" + m_lpDatabase->Escape(company.id) + "')";
-	}
+
 	strQuery +=
 		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
 		"ON modtime.objectid = o.id "
@@ -213,9 +211,8 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 		"AND pass.propname = '" + (string)OP_PASSWORD "'";
 
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
-	if(er != erSuccess) {
+	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
-	}
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[4] == NULL)
@@ -227,27 +224,21 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 		if (lpDBLen == NULL || lpDBLen[2] == 0)
 			throw runtime_error("Trying to authenticate failed: database error");
 
-		if(strcmp(lpDBRow[0], OP_PASSWORD) == 0)
-		{
-			// Check Password
-			MD5_CTX crypt;
-			salt = lpDBRow[1];
-			salt.resize(8);
-
-			MD5_Init(&crypt);
-			MD5_Update(&crypt, salt.c_str(), salt.length());
-			MD5_Update(&crypt, password.c_str(), password.size());
-			strMD5 = salt + zcp_md5_final_hex(&crypt);
-
-			if(strMD5.compare((string)lpDBRow[1]) == 0) {
-				objectid = objectid_t(string(lpDBRow[2], lpDBLen[2]), ACTIVE_USER);	// Password is oke
-			} else {
-				throw login_error("Trying to authenticate failed: wrong username or password");
-			}
-		} else {
+		if (strcmp(lpDBRow[0], OP_PASSWORD) != 0)
 			throw login_error("Trying to authenticate failed: wrong username or password");
-		}
 
+		// Check Password
+		MD5_CTX crypt;
+		salt = lpDBRow[1];
+		salt.resize(8);
+		MD5_Init(&crypt);
+		MD5_Update(&crypt, salt.c_str(), salt.length());
+		MD5_Update(&crypt, password.c_str(), password.size());
+		strMD5 = salt + zcp_md5_final_hex(&crypt);
+		if (strMD5.compare(lpDBRow[1]) == 0)
+			objectid = objectid_t(string(lpDBRow[2], lpDBLen[2]), ACTIVE_USER);	// Password is oke
+		else
+			throw login_error("Trying to authenticate failed: wrong username or password");
 		if(lpDBRow[3] != NULL)
 			signature = lpDBRow[3];
 

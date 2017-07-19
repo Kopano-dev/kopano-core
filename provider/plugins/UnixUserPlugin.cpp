@@ -77,7 +77,7 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
 	DBPlugin(pluginlock, shareddata)
 {
-	const configsetting_t lpDefaults [] = {
+	static constexpr const configsetting_t lpDefaults[] = {
 		{ "fullname_charset", "iso-8859-15" }, // US-ASCII compatible with support for high characters
 		{ "default_domain", "localhost" },			// no sane default
 		{ "non_login_shell", "/bin/false", CONFIGSETTING_RELOADABLE },	// create a non-login box when a user has this shell
@@ -233,11 +233,10 @@ objectsignature_t UnixUserPlugin::resolveName(objectclass_t objclass, const stri
 	objectsignature_t user;
 	objectsignature_t group;
 
-	if (company.id.empty()) {
+	if (company.id.empty())
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
-	} else {
+	else
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
-	}
 
 	switch (OBJECTCLASS_TYPE(objclass)) {
 	case OBJECTTYPE_UNKNOWN:
@@ -322,15 +321,14 @@ bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, uns
 	bool matched = false;
 
 	// username or fullname
-	if(ulFlags & EMS_AB_ADDRESS_LOOKUP) {
+	if (ulFlags & EMS_AB_ADDRESS_LOOKUP)
 		matched =
 			(strcasecmp(pw->pw_name, (char*)match.c_str()) == 0) ||
 			(strcasecmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str()) == 0);
-	} else {
+	else
 		matched =
 			(strncasecmp(pw->pw_name, (char*)match.c_str(), match.size()) == 0) ||
 			(strncasecmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str(), match.size()) == 0);
-	}
 
 	if (matched)
 		return matched;
@@ -831,7 +829,7 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 
 	// See if we get matches based on database details as well
 	try {
-		const char *search_props[] = { OP_EMAILADDRESS, NULL };
+		static constexpr const char *const search_props[] = {OP_EMAILADDRESS, nullptr};
 		objects = DBPlugin::searchObjects(match, search_props, NULL, ulFlags);
 
 		for (const auto &sig : *objects) {
@@ -917,11 +915,10 @@ UnixUserPlugin::objectdetailsFromPwent(struct passwd *pw)
 
 	// gecos may contain room/phone number etc. too
 	comma = gecos.find(",");
-	if (comma != string::npos) {
+	if (comma != string::npos)
 		ud->SetPropString(OB_PROP_S_FULLNAME, gecos.substr(0,comma));
-	} else {
+	else
 		ud->SetPropString(OB_PROP_S_FULLNAME, gecos);
-	}
 
 	if (!strcmp(pw->pw_passwd, "x")) {
 		// shadow password entry
@@ -992,30 +989,28 @@ std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 
 void UnixUserPlugin::errnoCheck(const std::string &user, int e) const
 {
-	if (e != 0) {
-		char buffer[256];
-		char *retbuf;
-		retbuf = strerror_r(e, buffer, 256);
+	if (e == 0)
+		return;
+	char buffer[256];
+	char *retbuf;
+	retbuf = strerror_r(e, buffer, 256);
 
-		// from the getpwnam() man page: (notice the last or...)
-		//  ERRORS
-		//    0 or ENOENT or ESRCH or EBADF or EPERM or ...
-		//    The given name or uid was not found.
+	// from the getpwnam() man page: (notice the last or...)
+	//  ERRORS
+	//    0 or ENOENT or ESRCH or EBADF or EPERM or ...
+	//    The given name or uid was not found.
 
-		switch (e) {
-			// 0 is handled in top if()
-		case ENOENT:
-		case ESRCH:
-		case EBADF:
-		case EPERM:
-			// calling function must check pw == NULL to throw objectnotfound()
-			break;
-
-		default:
-			// broken system .. do not delete user from database
-			throw runtime_error(string("unable to query for user ")+user+string(". Error: ")+retbuf);
-		};
-
-	}
+	switch (e) {
+		// 0 is handled in top if()
+	case ENOENT:
+	case ESRCH:
+	case EBADF:
+	case EPERM:
+		// calling function must check pw == NULL to throw objectnotfound()
+		break;
+	default:
+		// broken system .. do not delete user from database
+		throw runtime_error(string("unable to query for user ") + user + string(". Error: ") + retbuf);
+	};
 }
 

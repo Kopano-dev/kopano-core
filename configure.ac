@@ -119,7 +119,7 @@ else
     ZCXXFLAGS="$ZCXXFLAGS -pedantic -Wno-long-long"
 fi
 
-AC_ARG_ENABLE([unicode], AS_HELP_STRING([--enable-unicode], [enable unicode mode (compile flags -DUNICODE)]),
+AC_ARG_ENABLE([unicode], AS_HELP_STRING([--disable-unicode], [enable unicode mode (compile flag -DUNICODE)]),
   [want_unicode=${enableval}],[want_unicode=yes])
 SWIG_FLAGS=""
 if test "$want_unicode" = "yes"; then
@@ -156,7 +156,7 @@ AC_ARG_WITH([ubsan], AS_HELP_STRING([--with-ubsan], [Activate Undefined Behavior
 	[ZCXXFLAGS="$ZCXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"])
 AC_SUBST([NO_VSYM])
 
-AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [enable debug mode (Adds debug code)]),
+AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [Enable debug mode (adds debug code, not the -g flag)]),
   [want_debug=${enableval}],[want_debug=no])
 if test "$want_debug" = "yes"; then
     DEBUGFLAGS="-DDEBUG"
@@ -298,14 +298,6 @@ AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
   AC_PATH_PROGS([MYSQL_CONFIG], [mysql_config mariadb_config])
   AC_ARG_WITH([mysql-config], AS_HELP_STRING([--with-mysql-config=PATH], [path to the mysql-config script of mysql 4.1]),
     [MYSQL_CONFIG="$withval"])
-
-  AC_ARG_ENABLE([embedded-mysql], AS_HELP_STRING([--enable-embedded-mysql], [Compile server with the embedded MySQL server]),
-  [
-	EMBEDDED=1
-	ZCPPFLAGS="$ZCPPFLAGS -DEMBEDDED_MYSQL"
-  ],[
-	EMBEDDED=0
-  ])
 
   MYSQL_INCLUDES=`$MYSQL_CONFIG --include`
   if test "$EMBEDDED" -eq 1; then
@@ -599,12 +591,6 @@ AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
 LIBKRB5_WITH_KRB5_CONFIG
 AM_CONDITIONAL([WITH_KRB5], [test "$KRB5_LIBS" != ""])
 
-# libcurl for report
-if ! test "$want_oss" = "yes"; then
-AC_CHECK_LIB([curl], [curl_easy_perform], [CURL_LIBS="-lcurl"], AC_MSG_ERROR([required library libcurl missing or unusable]))
-AC_SUBST(CURL_LIBS)
-fi # oss only
-
 # Check for libs3 amazon s3 availability
 LIBS_system="$LIBS"
 AC_CHECK_HEADERS([libs3.h])
@@ -816,7 +802,7 @@ Clients libs	:	$PROG_LIBS
 LDAP support	:	$want_ldap
 LDAP flags	:	$LDAP_FLAGS
 LDAP libs	:	$LDAP_LIBS
-Curl libs	:	$CURL_LIBS
+Curl libs	:	$curl_LIBS
 Pam libs	:	$PAM_LIBS
 Krb5 libs	:	$KRB5_LIBS
 TCMalloc lib	:	$TCMALLOC_LIBS

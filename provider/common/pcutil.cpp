@@ -217,11 +217,10 @@ int SortCompareABEID(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 			return rv;
 	}
 
-	if (peid1->ulVersion == 0) {
+	if (peid1->ulVersion == 0)
 		rv = twcmp(peid1->ulId, peid2->ulId);
-	} else {
+	else
 		rv = strcmp((char*)peid1->szExId, (char*)peid2->szExId);
-	}
 	if (rv != 0)
 		return rv;
 	rv = memcmp(&peid1->guid, &peid2->guid, sizeof(GUID));
