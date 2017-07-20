@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright 2005 - 2016 Zarafa and its licensors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -777,11 +777,11 @@ static int running_server(char *szName, const char *szConfig,
 		{ "server_hostname",			"" }, // used by kerberos, if empty, gethostbyname is used
 		// server connections
 		{ "server_bind",				"" },
-		{ "server_tcp_port",			"236" },
-		{ "server_tcp_enabled",			"yes" },
-		{ "server_pipe_enabled",		"yes" },
-		{ "server_pipe_name",			KOPANO_SERVER_PIPE },
-		{ "server_pipe_priority",		KOPANO_SERVER_PRIO },
+		{"server_tcp_port", "236", CONFIGSETTING_NONEMPTY},
+		{"server_tcp_enabled", "yes", CONFIGSETTING_NONEMPTY},
+		{"server_pipe_enabled", "yes", CONFIGSETTING_NONEMPTY},
+		{"server_pipe_name", KOPANO_SERVER_PIPE, CONFIGSETTING_NONEMPTY},
+		{"server_pipe_priority", KOPANO_SERVER_PRIO, CONFIGSETTING_NONEMPTY},
 		{ "server_recv_timeout",		"5", CONFIGSETTING_RELOADABLE },	// timeout before reading next XML request
 		{ "server_read_timeout",		"60", CONFIGSETTING_RELOADABLE }, // timeout during reading of XML request
 		{ "server_send_timeout",		"60", CONFIGSETTING_RELOADABLE },
@@ -800,9 +800,8 @@ static int running_server(char *szName, const char *szConfig,
 		{ "license_socket",			"/var/run/kopano/licensed.sock" },
 		{ "license_timeout", 		"10", CONFIGSETTING_RELOADABLE},
 		{ "system_email_address",		"postmaster@localhost", CONFIGSETTING_RELOADABLE },
-
-		{ "server_ssl_enabled",			"no" },
-		{ "server_ssl_port",			"237" },
+		{"server_ssl_enabled", "no", CONFIGSETTING_NONEMPTY},
+		{"server_ssl_port", "237", CONFIGSETTING_NONEMPTY},
 		{"server_ssl_key_file", "/etc/kopano/ssl/server.pem", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_key_pass", "server", CONFIGSETTING_EXACT | CONFIGSETTING_RELOADABLE},
 		{"server_ssl_ca_file", "/etc/kopano/ssl/cacert.pem", CONFIGSETTING_RELOADABLE},

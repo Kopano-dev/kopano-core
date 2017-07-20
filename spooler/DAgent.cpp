@@ -3606,7 +3606,7 @@ int main(int argc, char *argv[]) {
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/dagent.pid" },
 		{"coredump_enabled", "systemdefault"},
-		{ "lmtp_port", "2003" },
+		{"lmtp_port", "2003", CONFIGSETTING_NONEMPTY},
 		{ "lmtp_max_threads", "20" },
 		{ "process_model", "", CONFIGSETTING_UNUSED },
 		{ "log_method", "file" },
