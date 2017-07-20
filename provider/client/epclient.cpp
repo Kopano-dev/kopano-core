@@ -617,19 +617,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		hr = hrSuccess;
 		break;
 	case MSG_SERVICE_DELETE:
-		hr = lpAdminProviders->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
-		if (hr != hrSuccess || ptrGlobalProfSect == nullptr) {
-			hr = hrSuccess;
-			break;
-		}
-		hr = HrGetOneProp(ptrGlobalProfSect, PR_EC_TRANSPORTOBJECT, &~lpsPropValue);
-		if (hr == hrSuccess && lpsPropValue != nullptr && lpsPropValue->Value.lpszA != nullptr) {
-			static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
-			reinterpret_cast<WSTransport *>(lpsPropValue->Value.lpszA)->Release();
-			ptrGlobalProfSect->DeleteProps(tags, nullptr);
-		}
-		hr = hrSuccess;
-		break;
 	case MSG_SERVICE_PROVIDER_CREATE:
 		break;
 	case MSG_SERVICE_PROVIDER_DELETE:
@@ -732,6 +719,10 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 			if(hr != hrSuccess)
 				goto exit;
 		}
+
+		static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
+		lpTransport->Release();
+		ptrGlobalProfSect->DeleteProps(tags, nullptr);
 		break;
 	} // switch(ulContext)
 
