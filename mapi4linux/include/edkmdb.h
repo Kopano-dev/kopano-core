@@ -47,7 +47,7 @@ public:
 	virtual HRESULT GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags) = 0;
 	virtual HRESULT GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags) = 0;
 };
-IID_OF(IExchangeManageStore);
+IID_OF(IExchangeManageStore)
 
 typedef IExchangeManageStore* LPEXCHANGEMANAGESTORE;
 
@@ -606,7 +606,7 @@ public:
 	virtual HRESULT GetTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
 	virtual HRESULT ModifyTable(ULONG ulFlags, LPROWLIST lpMods) = 0;
 };
-IID_OF(IExchangeModifyTable);
+IID_OF(IExchangeModifyTable)
 
 typedef IExchangeModifyTable* LPEXCHANGEMODIFYTABLE;
 

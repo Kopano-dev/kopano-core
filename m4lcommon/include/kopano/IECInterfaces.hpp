@@ -273,8 +273,8 @@ class IECTestProtocol : public virtual IUnknown {
 
 } /* namespace */
 
-IID_OF2(KC::IECChangeAdvisor, IECChangeAdvisor);
-IID_OF2(KC::IECServiceAdmin, IECServiceAdmin);
-IID_OF2(KC::IECSingleInstance, IECSingleInstance);
+IID_OF2(KC::IECChangeAdvisor, IECChangeAdvisor)
+IID_OF2(KC::IECServiceAdmin, IECServiceAdmin)
+IID_OF2(KC::IECSingleInstance, IECSingleInstance)
 
 #endif /* IECINTERFACES_HPP */
