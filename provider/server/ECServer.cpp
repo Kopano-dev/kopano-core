@@ -837,16 +837,16 @@ static int running_server(char *szName, const char *szConfig,
 		{ "attachment_compression",		"6" },
 
 		// Log options
-		{ "log_method",					"file" },
-		{ "log_file",					"-" },
-		{ "log_level",					"3", CONFIGSETTING_RELOADABLE },
+		{"log_method", "file", CONFIGSETTING_NONEMPTY},
+		{"log_file", "-", CONFIGSETTING_NONEMPTY},
+		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 		{ "log_timestamp",				"1" },
 		{ "log_buffer_size", "0" },
 		// security log options
-		{ "audit_log_enabled",			"no" },
-		{ "audit_log_method",			"syslog" },
-		{ "audit_log_file",				"-" },
-		{ "audit_log_level",			"1", CONFIGSETTING_RELOADABLE },
+		{"audit_log_enabled", "no", CONFIGSETTING_NONEMPTY},
+		{"audit_log_method", "syslog", CONFIGSETTING_NONEMPTY},
+		{"audit_log_file", "-", CONFIGSETTING_NONEMPTY},
+		{"audit_log_level", "1", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 		{ "audit_log_timestamp",		"0" },
 
 		// user plugin
@@ -1292,7 +1292,7 @@ exit:
 	if (er != erSuccess) {
 		auto msg = format("An error occurred (%x).", er);
 		if (g_lpConfig)
-			msg += format(" Please check %s for details.", g_lpConfig->GetSetting("log_file"));
+			msg += format(" Please check logfile \"%s\" for details.", g_lpConfig->GetSetting("log_file"));
 		else
 			msg += " Please check logfile for details.";
 

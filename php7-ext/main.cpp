@@ -37,8 +37,6 @@
 #include "php-ext/phpconfig.h"
 #include "php-ext/ECRulesTableProxy.h"
 
-#define LOGFILE_PATH "/var/log/kopano"
-
 /*
  * Things to notice when reading/editing this source:
  *
@@ -541,9 +539,9 @@ static int LoadSettingsFile(void)
 	struct stat st;
 	if (stat(cfg_file, &st) == 0) {
 		static const configsetting_t settings[] = {
-			{ "log_method", "syslog" },
-			{ "log_file", LOGFILE_PATH "/php-mapi.log" },
-			{ "log_level", "3", CONFIGSETTING_RELOADABLE },
+			{"log_method", "syslog", CONFIGSETTING_NONEMPTY},
+			{"log_file", "/var/log/kopano/php-mapi.log", CONFIGSETTING_NONEMPTY},
+			{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 			{ "log_timestamp", "0" },
 			{ "log_buffer_size", "0" },
 			{ "log_buffer_size", "0" },
