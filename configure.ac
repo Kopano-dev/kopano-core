@@ -20,9 +20,8 @@ AC_PROG_INSTALL
 AC_PROG_SED
 PKG_PROG_PKG_CONFIG
 
-if test ! -e version || test -f version -a ! -s version; then
-	echo "$PACKAGE_VERSION" >version
-fi
+rm -f version
+echo "$PACKAGE_VERSION" >version
 PACKAGE_ABI=$($SED 's/\([[0-9]][[0-9]]*\.[[0-9]][[0-9]]*\).*/\1/' <version)
 AC_SUBST([PACKAGE_ABI])
 AS_IF([test -z "$PACKAGE_ABI"], [AC_MSG_ERROR([Something was not right with a sed call of ours])])
