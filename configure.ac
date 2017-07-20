@@ -1,5 +1,6 @@
 AC_PREREQ(2.60)
 AC_INIT([kopano], [8.4.0], [development@kopano.io])
+PACKAGE_ABI=8.4
 AC_CONFIG_SRCDIR([provider/server/ECServer.cpp])
 AC_CONFIG_HEADERS([common/config.h])
 AC_CONFIG_AUX_DIR([autoconf])
@@ -22,9 +23,7 @@ PKG_PROG_PKG_CONFIG
 
 rm -f version
 echo "$PACKAGE_VERSION" >version
-PACKAGE_ABI=$($SED 's/\([[0-9]][[0-9]]*\.[[0-9]][[0-9]]*\).*/\1/' <version)
 AC_SUBST([PACKAGE_ABI])
-AS_IF([test -z "$PACKAGE_ABI"], [AC_MSG_ERROR([Something was not right with a sed call of ours])])
 abs_top_srcdir=`cd $srcdir; pwd`
 abs_top_builddir=`pwd`
 
