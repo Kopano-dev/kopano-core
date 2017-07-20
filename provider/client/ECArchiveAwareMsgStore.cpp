@@ -55,16 +55,9 @@ HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID,
 	// pass an ECMessageFactory instance to our parents OpenEntry.
 	// Otherwise we'll pass an ECArchiveAwareMessageFactory instance, which will check the license
 	// create the appropriate message type. If the object turns out to be a message that is.
-
-	const bool bRawMessage = (lpInterface && memcmp(lpInterface, &IID_IECMessageRaw, sizeof(IID)) == 0);
-	HRESULT hr = hrSuccess;
-
-	if (bRawMessage)
-		hr = ECMsgStore::OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, ulFlags, ECMessageFactory(), lpulObjType, lppUnk);
-	else
-		hr = ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, ECArchiveAwareMessageFactory(), lpulObjType, lppUnk);
-
-	return hr;
+	if (lpInterface != nullptr && memcmp(lpInterface, &IID_IECMessageRaw, sizeof(IID)) == 0)
+		return ECMsgStore::OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, ulFlags, ECMessageFactory(), lpulObjType, lppUnk);
+	return ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, ECArchiveAwareMessageFactory(), lpulObjType, lppUnk);
 }
 
 HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs, LPSPropValue lpPropItemEIDs, ECMessage **lppMessage)
