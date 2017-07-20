@@ -42,8 +42,8 @@ from MAPI.Struct import (
 )
 
 from .defs import (
-    RSF_PID_SUGGESTED_CONTACTS, RSF_PID_RSS_SUBSCRIPTION,
-    NAMED_PROPS_ARCHIVER
+    RSF_PID_SUGGESTED_CONTACTS, RSF_PID_TODO_SEARCH,
+    RSF_PID_RSS_SUBSCRIPTION, NAMED_PROPS_ARCHIVER
 )
 
 from .errors import NotFoundError
@@ -285,6 +285,16 @@ class Store(Base):
 
         try:
             entryid = _utils.extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_SUGGESTED_CONTACTS)
+            return _folder.Folder(self, entryid)
+        except NotFoundError:
+            pass
+
+    @property
+    def todo_search(self):
+        """ :class`Folder` designated as To-Do Search folder"""
+
+        try:
+            entryid = _utils.extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_TODO_SEARCH)
             return _folder.Folder(self, entryid)
         except NotFoundError:
             pass

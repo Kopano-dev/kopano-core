@@ -154,6 +154,7 @@ ARO_EXCEPTIONAL_BODY = 0x0200
 
 # location of entryids in PR_IPM_OL2007_ENTRYIDS
 RSF_PID_RSS_SUBSCRIPTION = 0x8001
+RSF_PID_TODO_SEARCH = 0x8004
 RSF_PID_SUGGESTED_CONTACTS = 0x8008
 
 ENGLISH_FOLDER_MAP = { # XXX should we make the names pretty much identical, except for case?
