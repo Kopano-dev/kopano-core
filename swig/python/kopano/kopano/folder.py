@@ -109,10 +109,10 @@ class Folder(Base):
 
         try:
             self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
-        except MAPIErrorNotFound:
+        except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
             try:
                 self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
-            except MAPIErrorNotFound:
+            except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
                 raise NotFoundError("cannot open folder with entryid '%s'" % _hex(self._entryid)) # XXX check too late??
         except MAPIErrorNoAccess: # XXX XXX
             self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
