@@ -646,13 +646,8 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 std::string ToQuotedBase64Header(const std::string &input,
     const std::string &charset)
 {
-	std::string output;
-
-	output = "=?"+charset+"?B?";
-	output += base64_encode(input.c_str(), input.length());
-	output += "?=";
-
-	return output;
+	return "=?" + charset + "?B?" +
+	       base64_encode(input.c_str(), input.length()) += "?=";
 }
 
 /**
