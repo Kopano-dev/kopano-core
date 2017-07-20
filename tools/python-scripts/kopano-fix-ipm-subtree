@@ -2,37 +2,24 @@
 # -*- coding: utf-8 -*-
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 #
-from MAPI import *
-from MAPI.Util import *
 import sys
+import kopano
+from MAPI.Tags import PR_IPM_SUBTREE_ENTRYID
 
-if len(sys.argv) < 2:
-    sys.exit('Usage: %s username' % sys.argv[0])
+server = kopano.Server(auth_user='SYSTEM', auth_pass='')
 
-s = OpenECSession(sys.argv[1], '', 'default:')
-st = GetDefaultStore(s)
-subtreeid = st.GetProps([PR_IPM_SUBTREE_ENTRYID], 0)[0].Value
+if not len(server.options.users):
+    sys.exit('Usage: %s -u username' % sys.argv[0])
 
-openroot = st.OpenEntry(None, None, 0)
-table = openroot.GetHierarchyTable(0)
-table.SetColumns([PR_DISPLAY_NAME, PR_ENTRYID], 0)
+user = kopano.User(server.options.users[0])
+if user.store.subtree:
+    sys.exit()
 
-while True:
-        rows = table.QueryRows(20, 0) # Get 20 folders under the root
+subtree = user.store.root.folder('IPM_SUBTREE')
+if not subtree:
+    sys.exit("Result: IPM_SUBTREE folder not found")
 
-        if len(rows) == 0: # No results, die
-                break
-
-        for row in rows: # Run through the array
-                if row[0].Value == "IPM_SUBTREE": # Find IPM_SUBTREE
-                        eid = row[1].Value # Value of IPM_SUBTREE
-                        if subtreeid == eid: # Both match, nothing to fix
-                                print 'Result: OK - IPM_SUBTREE_ENTRYID already matched IPM_SUBTREE!'
-                                print 'IPM_SUBTREE_ENTRYID: ' + subtreeid.encode('hex') + '\nIPM_SUBTREE: ' + eid.encode('hex')
-                        elif len(eid) < 2: # Check to ensure the proper ID is actually given
-                                print 'Result: INVALID - Invalid IPM_SUBTREE entryid found, aborting...'
-                        else: # Broken, fix it
-                                print 'Result: FIXED - Setting PR_IPM_SUBTREE_ENTRYID to IPM_SUBTREE'
-                                print 'PR_IPM_SUBTREE_ENTRYID current value: ' + subtreeid.encode('hex')
-                                st.SetProps([SPropValue(PR_IPM_SUBTREE_ENTRYID, eid)]) # Set the proper ENTRYID
-                                print 'PR_IPM_SUBTREE_ENTRYID set to: ' + subtreeid.encode('hex')
+print('Result: FIXED - Setting PR_IPM_SUBTREE_ENTRYID to IPM_SUBTREE')
+print('PR_IPM_SUBTREE_ENTRYID current value: ' + user.store.prop(PR_IPM_SUBTREE_ENTRYID).strval)
+user.store.prop(PR_IPM_SUBTREE_ENTRYID).value = subtree.entryid.decode('hex')
+print('PR_IPM_SUBTREE_ENTRYID set to: ' + subtree.entryid)
