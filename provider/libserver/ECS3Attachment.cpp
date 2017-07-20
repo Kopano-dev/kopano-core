@@ -117,14 +117,14 @@ ECRESULT ECS3Attachment::StaticInit(ECConfig *cf)
 	ec_log_info("Initializing S3 Attachment Storage");
 
 	/*
-	 * Do a dlopen of libs3.so.2 so that the implicit pull-in of
+	 * Do a dlopen of libs3.so.4 so that the implicit pull-in of
 	 * libldap-2.4.so.2 symbols does not pollute our namespace of
 	 * libldap_r-2.4.so.2 symbols.
 	 */
-	void *h = ec_libs3_handle = dlopen("libs3.so.2", RTLD_LAZY | RTLD_LOCAL);
+	void *h = ec_libs3_handle = dlopen("libs3.so.4", RTLD_LAZY | RTLD_LOCAL);
 	const char *err;
 	if (ec_libs3_handle == NULL) {
-		ec_log_warn("dlopen libs3.so.2: %s", (err = dlerror()) ? err : "<none>");
+		ec_log_warn("dlopen libs3.so.4: %s", (err = dlerror()) ? err : "<none>");
 		return KCERR_DATABASE_ERROR;
 	}
 #define W(n) do { \
@@ -424,7 +424,7 @@ bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_head_object(&m_bucket_ctx, filename.c_str(), 0,
+		DY_head_object(&m_bucket_ctx, filename.c_str(), nullptr, 0,
 			&m_response_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Existence check result in while: %s",
@@ -474,9 +474,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_get_object(&m_bucket_ctx, filename.c_str(),
-			&m_get_conditions, /*startByte*/ 0, /*byteCount*/ 0, 0,
-			&m_get_obj_handler, &cwdata);
+		DY_get_object(&m_bucket_ctx, filename.c_str(), &m_get_conditions, 0, 0,
+			nullptr, 0, &m_get_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Load instance result in while: %s",
 				DY_get_status_name(cdp->status));
@@ -547,9 +546,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_get_object(&m_bucket_ctx, filename.c_str(),
-			&m_get_conditions, /*startByte*/ 0, /*byteCount*/ 0, 0,
-			&m_get_obj_handler, &cwdata);
+		DY_get_object(&m_bucket_ctx, filename.c_str(), &m_get_conditions, 0, 0,
+			nullptr, 0, &m_get_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Load instance result in while: %s",
 				DY_get_status_name(cdp->status));
@@ -611,8 +609,8 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_put_object(&m_bucket_ctx, filename.c_str(), size, NULL,
-			NULL, &m_put_obj_handler, &cwdata);
+		DY_put_object(&m_bucket_ctx, filename.c_str(), size, nullptr, nullptr, 0,
+			&m_put_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Save attachment result in while: %s",
 				DY_get_status_name(cdp->status));
@@ -670,8 +668,8 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_put_object(&m_bucket_ctx, filename.c_str(), size, NULL,
-			NULL, &m_put_obj_handler, &cwdata);
+		DY_put_object(&m_bucket_ctx, filename.c_str(), size, nullptr, nullptr, 0,
+			&m_put_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Save attachment result in while: %s",
 				DY_get_status_name(cdp->status));
@@ -770,7 +768,7 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_delete_object(&m_bucket_ctx, filename.c_str(), 0,
+		DY_delete_object(&m_bucket_ctx, filename.c_str(), nullptr, 0,
 			&m_response_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Delete marked attachment result in while: %s",
@@ -887,7 +885,7 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		DY_head_object(&m_bucket_ctx, filename.c_str(), 0,
+		DY_head_object(&m_bucket_ctx, filename.c_str(), nullptr, 0,
 			&m_response_handler, &cwdata);
 		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Get size attachment result in while: %s",
