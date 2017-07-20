@@ -84,27 +84,6 @@ def rectime_to_unixtime(t):
 def unixtime_to_rectime(t):
     return int(t / 60) + 194074560
 
-def extract_ipm_ol2007_entryids(blob, offset):
-    # Extracts entryids from PR_IPM_OL2007_ENTRYIDS blob using
-    # logic from common/Util.cpp Util::ExtractAdditionalRenEntryID.
-    pos = 0
-    while True:
-        blocktype = unpack_short(blob, pos)
-        if blocktype == 0:
-            break
-        pos += 2
-
-        totallen = unpack_short(blob, pos)
-        pos += 2
-
-        if blocktype == offset:
-            pos += 2 # skip check
-            sublen = unpack_short(blob, pos)
-            pos += 2
-            return _hex(blob[pos:pos + sublen])
-        else:
-            pos += totallen
-
 def permissions(obj):
         try:
             acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
