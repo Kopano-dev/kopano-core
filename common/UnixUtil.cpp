@@ -184,7 +184,10 @@ void unix_coredump_enable(const char *mode)
 
 int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 {
-	string pidfilename = "/var/run/kopano/" + string(argv0) + ".pid";
+	auto progname = strrchr(argv0, '/');
+	if (progname == nullptr)
+		progname = argv0;
+	auto pidfilename = std::string("/var/run/kopano/") + progname + ".pid";
 	FILE *pidfile;
 	int oldpid;
 	char tmp[256];
