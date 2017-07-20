@@ -462,9 +462,9 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 
 	object_ptr<IProfSect> globprof;
 	hr = lpAdminProvider->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~globprof);
-	if (hr == hrSuccess) {
+	if (hr == hrSuccess && globprof != nullptr) {
 		hr = HrGetOneProp(globprof, PR_EC_TRANSPORTOBJECT, &~tpprop);
-		if (hr == hrSuccess)
+		if (hr == hrSuccess && tpprop != nullptr)
 			d.transport.reset(reinterpret_cast<WSTransport *>(tpprop->Value.lpszA));
 	}
 	if (d.transport == nullptr) {
@@ -618,10 +618,12 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		break;
 	case MSG_SERVICE_DELETE:
 		hr = lpAdminProviders->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
-		if (hr != hrSuccess)
-			goto exit;
+		if (hr != hrSuccess || ptrGlobalProfSect == nullptr) {
+			hr = hrSuccess;
+			break;
+		}
 		hr = HrGetOneProp(ptrGlobalProfSect, PR_EC_TRANSPORTOBJECT, &~lpsPropValue);
-		if (hr == hrSuccess) {
+		if (hr == hrSuccess && lpsPropValue != nullptr && lpsPropValue->Value.lpszA != nullptr) {
 			static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
 			reinterpret_cast<WSTransport *>(lpsPropValue->Value.lpszA)->Release();
 			ptrGlobalProfSect->DeleteProps(tags, nullptr);
@@ -670,7 +672,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 
 		// init defaults
 		hr = HrGetOneProp(ptrGlobalProfSect, PR_EC_TRANSPORTOBJECT, &~lpsPropValue);
-		if (hr == hrSuccess)
+		if (hr == hrSuccess && lpsPropValue != nullptr && lpsPropValue->Value.lpszA != nullptr)
 			reinterpret_cast<WSTransport *>(lpsPropValue->Value.lpszA)->Release();
 		hr = WSTransport::Create(ulFlags & SERVICE_UI_ALLOWED ? 0 : MDB_NO_DIALOG, &~lpTransport);
 		if(hr != hrSuccess)
