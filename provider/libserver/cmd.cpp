@@ -2739,6 +2739,9 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 	     /* message itself occupies another level */
 	     1 + atoui(g_lpSessionManager->GetConfig()->GetSetting("embedded_attachment_limit")),
 	     &fHaveChangeKey);
+	if (er == KCERR_TOO_COMPLEX)
+		ec_log_debug("saveObject: refusing to store object \"%s\" (store %u): too many levels of attachments/subobjects",
+			sEntryId.__ptr != nullptr ? base64_encode(sEntryId.__ptr, sEntryId.__size).c_str() : "", ulStoreId);
 	if (er != erSuccess)
 		goto exit;
 
