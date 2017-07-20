@@ -344,7 +344,6 @@ HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
 	if (hr != hrSuccess)
 		return hr;
 	lpTransport->HrLogOff();
-	lpTransport->Release();
 	lpTransport = std::move(lpAltTransport);
 	return hrSuccess;
 }
