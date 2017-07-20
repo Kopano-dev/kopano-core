@@ -2425,6 +2425,8 @@ HRESULT MAPILogonEx(ULONG_PTR ulUIParam, const TCHAR *lpszProfileName,
 			strProfname = convert_to<std::string>(reinterpret_cast<const wchar_t *>(lpszProfileName));
 		} catch (illegal_sequence_exception &) {
 			return MAPI_E_INVALID_PARAMETER;
+		} catch (unknown_charset_exception &) {
+			return MAPI_E_CALL_FAILED;
 		}
 	} else {
 		strProfname = (char*)lpszProfileName;
