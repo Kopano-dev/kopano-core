@@ -97,15 +97,6 @@ std::wstring wstringify(unsigned int x, bool usehex, bool _signed)
 	return s.str();
 }
 
-unsigned int xtoi(const char *lpszHex)
-{
-	unsigned int ulHex = 0;
-
-	sscanf(lpszHex, "%X", &ulHex);
-
-	return ulHex;
-}
-
 int memsubstr(const void* haystack, size_t haystackSize, const void* needle, size_t needleSize)
 {
 	size_t pos = 0;
