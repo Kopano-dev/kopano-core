@@ -191,7 +191,7 @@ template<typename T> std::string kc_join(const T &v, const char *sep)
 	return s;
 }
 
-extern _kc_export std::string base64_encode(const unsigned char *, unsigned int);
+extern _kc_export std::string base64_encode(const void *, unsigned int);
 extern _kc_export std::string base64_decode(const std::string &);
 extern _kc_export std::string zcp_md5_final_hex(MD5_CTX *);
 extern _kc_export std::string string_strip_nuls(const std::string &);

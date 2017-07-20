@@ -4359,8 +4359,7 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 	ECRESULT er = GetExternalId(ulUserId, &sExternId);
 	if (er != erSuccess)
 		return er;
-
-	auto strEncExId = base64_encode(reinterpret_cast<const unsigned char *>(sExternId.id.c_str()), sExternId.id.size());
+	auto strEncExId = base64_encode(sExternId.id.c_str(), sExternId.id.size());
 	er = TypeToMAPIType(sExternId.objclass, &ulType);
 	if (er != erSuccess)
 		return er;
@@ -4420,9 +4419,7 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 		} else if(ulVersion == 1) {
 			if (lpExternId == NULL)
 				return KCERR_INVALID_PARAMETER;
-			
-			strEncExId = base64_encode((unsigned char*)lpExternId->id.c_str(), lpExternId->id.size());
-
+			strEncExId = base64_encode(lpExternId->id.c_str(), lpExternId->id.size());
 			ulSize = CbNewABEID(strEncExId.c_str());
 			lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
 			memset(lpEid, 0, ulSize);

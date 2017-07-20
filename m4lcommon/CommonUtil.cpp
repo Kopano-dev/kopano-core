@@ -649,7 +649,7 @@ std::string ToQuotedBase64Header(const std::string &input,
 	std::string output;
 
 	output = "=?"+charset+"?B?";
-	output += base64_encode((const unsigned char*)input.c_str(), input.length());
+	output += base64_encode(input.c_str(), input.length());
 	output += "?=";
 
 	return output;

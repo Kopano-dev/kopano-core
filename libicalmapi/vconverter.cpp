@@ -2320,7 +2320,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 		return hrSuccess;
 
 	string rtfbase64;
-	rtfbase64 = base64_encode((unsigned char*)rtf.c_str(), rtf.size());
+	rtfbase64 = base64_encode(rtf.c_str(), rtf.size());
 	lpicValue = icalvalue_new_x(rtfbase64.c_str());
 	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
 	lpProp = icalproperty_new_x(lpszTemp);

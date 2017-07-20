@@ -1755,7 +1755,7 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 		lpsoapPropmap->__ptr = s_alloc<struct propmapPair>(soap, propmap.size());
 		for (const auto &iter : propmap) {
 			if (PROP_TYPE(iter.first) == PT_BINARY && bCopyBinary) {
-				string strData = base64_encode((const unsigned char *)iter.second.data(), iter.second.size());
+				string strData = base64_encode(iter.second.data(), iter.second.size());
 				lpsoapPropmap->__ptr[lpsoapPropmap->__size].ulPropId = iter.first;
 				lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = s_strcpy(soap, strData.c_str());
 				continue;
@@ -1779,7 +1779,7 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size = iter.second.size();
 				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr = s_alloc<char *>(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
 				for (const auto &entry : iter.second) {
-					string strData = base64_encode(reinterpret_cast<const unsigned char *>(entry.data()), entry.size());
+					string strData = base64_encode(entry.data(), entry.size());
 					lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j] = s_strcpy(soap, strData.c_str());
 					++j;
 				}

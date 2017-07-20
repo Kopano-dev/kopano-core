@@ -278,7 +278,7 @@ HRESULT HrSIEntryIDToID(ULONG cb, const BYTE *lpInstanceId, GUID *guidServer,
 ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& sExternId, entryId *lpsEntryId)
 {
 	ECRESULT er;
-	std::string		strEncExId  = base64_encode((unsigned char*)sExternId.id.c_str(), sExternId.id.size());
+	auto strEncExId = base64_encode(sExternId.id.c_str(), sExternId.id.size());
 	unsigned int	ulLen       = 0;
 
 	if (lpsEntryId == NULL)

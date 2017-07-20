@@ -225,8 +225,7 @@ static int password_check_ssha(const char *data, unsigned int len, const char *c
 	digest.assign((char*)SHA_out, SHA_DIGEST_LENGTH);
 	if (bSalted)
 		digest += salt;
-	pwd = base64_encode((const unsigned char*)digest.c_str(), digest.length());
-
+	pwd = base64_encode(digest.c_str(), digest.length());
 	if (!strcmp(pwd.c_str(), crypted))
 		return 0;
 	else

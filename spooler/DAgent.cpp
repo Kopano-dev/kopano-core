@@ -1589,7 +1589,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 
 	// write body
 	unquoted = convert_to<string>("UTF-8", strBody, rawsize(strBody), CHARSET_WCHAR);
-	quoted = base64_encode((const unsigned char*)unquoted.c_str(), unquoted.length());
+	quoted = base64_encode(unquoted.c_str(), unquoted.length());
 	hr = WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76);
 	if (hr != hrSuccess) {
 		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(10) %x", hr);

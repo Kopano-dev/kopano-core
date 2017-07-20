@@ -415,7 +415,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		if (!bFirstOne)
 			strQuery += ",";
 		if (PROP_TYPE(ap.first) == PT_BINARY)
-			strData = base64_encode(reinterpret_cast<const unsigned char *>(ap.second.c_str()), ap.second.size());
+			strData = base64_encode(ap.second.c_str(), ap.second.size());
 		else
 			strData = ap.second;
 		strQuery +=
@@ -458,7 +458,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 			if (!bFirstOne)
 				strQuery += ",";
 			if (PROP_TYPE(mva.first) == PT_MV_BINARY)
-				strData = base64_encode(reinterpret_cast<const unsigned char *>(prop.c_str()), prop.size());
+				strData = base64_encode(prop.c_str(), prop.size());
 			else
 				strData = prop;
 			strQuery +=
