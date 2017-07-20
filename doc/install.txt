@@ -23,7 +23,7 @@ Optional build-time dependencies and their minimum versions:
 	* google-perftools libtcmalloc
 	* MIT Kerberos libkrb5
 	* libcurl
-	* libs3 3.0 (for Amazon S3 attachment storing)
+	* libs3 4.1 (for Amazon S3 attachment storing)
 	* libtidy 5.0 from tidy-html
 	* Linux-PAM
 	* OpenLDAP libldap_r
