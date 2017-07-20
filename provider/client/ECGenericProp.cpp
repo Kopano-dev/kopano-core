@@ -169,10 +169,7 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 			hr = lpProperty->GetLastError();
 			goto exit;
 		}
-
-		ECPropertyEntry entry(lpProperty);
-
-		lstProps->insert(std::make_pair(PROP_ID(lpsPropValue->ulPropTag), entry));
+		lstProps->insert({PROP_ID(lpsPropValue->ulPropTag), ECPropertyEntry(lpProperty)});
 	}
 
 	// Property is now added/modified and marked 'dirty' for saving
@@ -536,10 +533,8 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	for (auto tag : m_sMapiObject->lstAvailable) {
 		// ONLY if not present
 		auto ip = lstProps->find(PROP_ID(tag));
-		if (ip == lstProps->cend() || ip->second.GetPropTag() != tag) {
-			ECPropertyEntry entry(tag);
-			lstProps->insert(std::make_pair(PROP_ID(tag), entry));
-		}
+		if (ip == lstProps->cend() || ip->second.GetPropTag() != tag)
+			lstProps->insert({PROP_ID(tag), ECPropertyEntry(tag)});
 	}
 	m_sMapiObject->lstAvailable.clear();
 
@@ -711,10 +706,8 @@ HRESULT ECGenericProp::HrLoadProps()
 
 	// Add *all* the entries as with empty values; values for these properties will be
 	// retrieved on-demand
-	for (auto tag : m_sMapiObject->lstAvailable) {
-		ECPropertyEntry entry(tag);
-		lstProps->insert(std::make_pair(PROP_ID(tag), entry));
-	}
+	for (auto tag : m_sMapiObject->lstAvailable)
+		lstProps->insert({PROP_ID(tag), ECPropertyEntry(tag)});
 
 	// Load properties
 	for (const auto &pv : m_sMapiObject->lstProperties)
