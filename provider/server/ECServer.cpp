@@ -906,10 +906,10 @@ static int running_server(char *szName, const char *szConfig,
 		
 		{ "cache_sortkey_size",		"0", CONFIGSETTING_UNUSED }, // Option not support, only for backward compatibility of all configurations under the 6.20
 
-		{ "client_update_enabled",	"no" }, /* OBSOLETE */
-		{ "client_update_log_level", "1", CONFIGSETTING_RELOADABLE }, /* OBSOLETE */
-		{ "client_update_path",		"/var/lib/kopano/client", CONFIGSETTING_RELOADABLE }, /* OBSOLETE */
-		{ "client_update_log_path",	"/var/log/kopano/autoupdate", CONFIGSETTING_RELOADABLE }, /* OBSOLETE */
+		{"client_update_enabled", "no", CONFIGSETTING_UNUSED},
+		{"client_update_log_level", "1", CONFIGSETTING_UNUSED | CONFIGSETTING_RELOADABLE},
+		{"client_update_path", "/var/lib/kopano/client", CONFIGSETTING_UNUSED | CONFIGSETTING_RELOADABLE},
+		{"client_update_log_path", "/var/log/kopano/autoupdate", CONFIGSETTING_UNUSED | CONFIGSETTING_RELOADABLE},
 		{ "index_services_enabled", "", CONFIGSETTING_UNUSED },
 		{ "index_services_path",    "", CONFIGSETTING_UNUSED },
 		{ "index_services_search_timeout", "", CONFIGSETTING_UNUSED },
