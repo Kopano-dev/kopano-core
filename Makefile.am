@@ -49,7 +49,7 @@ dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \
 	ECtools/archiver/scripts/kopano-archiver-restore
-noinst_PROGRAMS = kopano-cfgchecker rtfcomp
+noinst_PROGRAMS = kopano-cfgchecker
 if HAVE_TIDY
 noinst_PROGRAMS += rosie-test
 endif
@@ -796,8 +796,6 @@ mapitime_LDADD = -lrt libmapi.la libkcmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
 rosie_test_SOURCES = librosie/test.cpp
 rosie_test_LDADD = libkcrosie.la
-rtfcomp_SOURCES = ECtools/rtfcomp.cpp
-rtfcomp_LDADD = libmapi.la
 
 
 #
