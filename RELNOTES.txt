@@ -39,6 +39,10 @@ Fixes:
 * gateway: set PR_FOLLOWUP_ICON for WebApp [KC-653]
 * server: avoid crash when NTLM subprocess gives no newline [KC-656]
 * pyko: avoid hang on shutdown of Python services with logging [KC-643]
+* server: disable reminders from shared stores [KC-728]
+* server: improved error reporting when users/groups/group members
+  are not found/not complete [KC-497]
+* backup: avoid emitting tracebacks [KC-411]
 Changes:
 * server: the underlying call for traditional-style fd monitoring was
   changed from select(2) to poll(2) [ZCP-13065]
@@ -49,8 +53,10 @@ Changes:
 * pyko/backup: change error into warning for 'missing' attachments
   [KC-545, KC-555, KC-575]
 * server: hide private messages' reminders from shared stores [KC-565]
+* server: drop ZCP client update support [KC-644]
 Packager notes:
 * libicu changed from optional to required build dependency
+* kopano-server S3 store required libs3 4.1 [KC-751]
 
 
 Release notes for 8.3.3
