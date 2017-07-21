@@ -46,6 +46,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <unordered_set>
+#include <utility>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -3639,6 +3640,7 @@ int main(int argc, char *argv[]) {
 		 "your administrator about the forward_whitelist_domains setting.\n"},
 		{"forward_whitelist_domain_subject", "REJECT: %subject not forwarded (administratively blocked)"},
 		{"html_safety_filter", "no"},
+		{"unknown_charset_substitutions", ""},
 		{ NULL, NULL },
 	};
 
@@ -3825,6 +3827,14 @@ int main(int argc, char *argv[]) {
 	sDeliveryArgs.strPath = GetServerUnixSocket((char*)sDeliveryArgs.strPath.c_str()); // let environment override if present
 	sDeliveryArgs.sDeliveryOpts.ascii_upgrade = g_lpConfig->GetSetting("default_charset");
 	sDeliveryArgs.sDeliveryOpts.html_safety_filter = strcasecmp(g_lpConfig->GetSetting("html_safety_filter"), "yes") == 0;
+	{
+		auto s = g_lpConfig->GetSetting("unknown_charset_substitutions");
+		if (s != nullptr) {
+			auto t = tokenize(s, ' ', true);
+			for (size_t i = 0; i + 1 < t.size(); i += 2)
+				sDeliveryArgs.sDeliveryOpts.cset_subst[t[i]] = std::move(t[i+1]);
+		}
+	}
 
 	if (bListenLMTP) {
 		/* MAPIInitialize done inside running_service */

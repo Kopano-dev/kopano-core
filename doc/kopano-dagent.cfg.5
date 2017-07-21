@@ -337,6 +337,15 @@ A custom-defined reply message to the user with a rule forwarding to a
 Default:
 \fIThe Kopano mail system has rejected your request to forward your e-mail with subject %subject (via mail filters) to %sender: the operation is not permitted\&.\\n\\nRemove the rule or contact your administrator about the forward_whitelist_domains setting\&.\fR
 .RE
+.PP
+\fBunknown_charset_substitution\fP
+.RS 4
+A space-separated list of pairs of space-separated charset name and replacement
+to use when encountering mail bodies with unrecognized character set encodings.
+This is a \fBlossy\fP operation; its use is not recommended. Normally, dagent
+would store such mail bodies as attachments to preserve their content, with
+decoding left to the user who can try any number of encodings, not just one.
+.RE
 .SH "RELOADING"
 .PP
 The following options are reloadable by sending the kopano\-dagent process a HUP signal:
