@@ -2077,6 +2077,21 @@ int VMIMEToMAPI::renovate_encoding(std::string &data,
 	return -1;
 }
 
+static bool ValidateCharset(const char *charset)
+{
+	/*
+	 * iconv does not like to convert wchar_t to wchar_t, so filter that
+	 * one. https://sourceware.org/bugzilla/show_bug.cgi?id=20804
+	 */
+	if (strcmp(charset, CHARSET_WCHAR) == 0)
+		return true;
+	iconv_t cd = iconv_open(CHARSET_WCHAR, charset);
+	if (cd == (iconv_t)(-1))
+		return false;
+	iconv_close(cd);
+	return true;
+}
+
 /**
  * Saves a plain text body part in the body or creates a new attachment.
  *

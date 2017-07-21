@@ -60,8 +60,6 @@ public:
 	_kc_hidden virtual const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
 };
 
-bool ValidateCharset(const char *charset);
-
 /* c wrapper to create object */
 extern _kc_export ECSender *CreateSender(const std::string &smtphost, int port);
 
