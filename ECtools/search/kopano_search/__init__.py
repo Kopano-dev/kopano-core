@@ -9,13 +9,12 @@ from multiprocessing import Queue, Value
 import time
 import sys
 
-# Upgrading from Python 2 to Python 3 is not supported
-try:
-    import dbhash
-    from Queue import Empty
-except ImportError:
-    import dbm as dbhash
+if sys.hexversion >= 0x03000000:
+    import bsddb3 as bsddb
     from queue import Empty
+else:
+    import bsddb
+    from Queue import Empty
 
 from kopano_search import plaintext
 import kopano
@@ -28,7 +27,7 @@ kopano-search v3 - a process-based indexer and query handler built on python-kop
 initial indexing is performed in parallel using N instances of class IndexWorker, fed with a queue containing folder-ids.
 
 incremental indexing is later performed in the same fashion. when there is no pending work, we
-check if there are reindex requests and handle one of these (again parallellized). so incremental syncing is currently paused 
+check if there are reindex requests and handle one of these (again parallellized). so incremental syncing is currently paused
 during reindexing.
 
 search queries from outlook/webapp are dealt with by a single instance of class SearchWorker.
@@ -40,7 +39,7 @@ after initial indexing folder states are not updated anymore.
 
 the used search engine is pluggable, but by default we use xapian (plugin_xapian.py).
 
-a tricky bit is that outlook/exchange perform 'prefix' searches by default and we want to be compatible with this, so terms get an 
+a tricky bit is that outlook/exchange perform 'prefix' searches by default and we want to be compatible with this, so terms get an
 implicit '*' at the end. not every search engine may perform well for this, but we could make this configurable perhaps.
 
 """
@@ -81,14 +80,18 @@ CONFIG = {
 
 def db_get(db_path, key):
     """ get value from db file """
-    with closing(dbhash.open(db_path, 'c')) as db:
+    if not isinstance(key, bytes): # python3
+        key = key.encode('ascii')
+    with closing(bsddb.hashopen(db_path, 'c')) as db:
         return db.get(key)
 
 def db_put(db_path, key, value):
     """ store key, value in db file """
+    if not isinstance(key, bytes): # python3
+        key = key.encode('ascii')
     with open(db_path+'.lock', 'w') as lockfile:
         fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
-        with closing(dbhash.open(db_path, 'c')) as db:
+        with closing(bsddb.hashopen(db_path, 'c')) as db:
             db[key] = value
 
 if sys.hexversion >= 0x03000000:
@@ -268,7 +271,7 @@ class FolderImporter:
                 self.term_cache_size = 0
 
     def delete(self, item, flags):
-        """ for a deleted item, determine store and ask indexing plugin to delete """ 
+        """ for a deleted item, determine store and ask indexing plugin to delete """
 
         with log_exc(self.log):
             self.deletes += 1
@@ -278,7 +281,7 @@ class FolderImporter:
                 doc = {'serverid': self.serverid, 'storeid': storeid, 'sourcekey': item.sourcekey}
                 self.log.debug('store %s: deleted document with sourcekey %s', doc['storeid'], item.sourcekey)
                 self.plugin.delete(doc)
-        
+
 class ServerImporter:
     """ tracks changes for a server node; queues encountered folders for updating """ # XXX improve ICS to track changed folders?
 
@@ -360,7 +363,7 @@ class Service(kopano.Service):
                     pass
                 importer = ServerImporter(self.server.guid, self.config, self.iqueue, self.log)
                 t0 = time.time()
-                new_state = self.server.sync(importer, self.state, log=self.log) 
+                new_state = self.server.sync(importer, self.state, log=self.log)
                 if new_state != self.state:
                     changes = sum([self.oqueue.get() for i in range(len(importer.queued))]) # blocking
                     for f in importer.queued:
@@ -400,6 +403,6 @@ def main():
         service.reindex()
     else:
         service.start()
-    
+
 if __name__ == '__main__':
     main()

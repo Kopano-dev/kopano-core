@@ -20,15 +20,15 @@ import socket
 import ssl
 import sys
 
-try:
-    import daemon
-    import daemon.pidlockfile
-except ImportError:
-    pass
-
 from .compat import decode as _decode
 
 if sys.hexversion >= 0x03000000:
+    try:
+        import daemon # picks system version
+        import daemon.pidfile as pidlockfile
+    except ImportError:
+        pass
+
     from . import config as _config
     from . import log as _log
     from . import server as _server
@@ -36,6 +36,12 @@ if sys.hexversion >= 0x03000000:
     from . import parser as _parser
     from . import log as _log
 else:
+    try:
+        import daemon # picks bundled version
+        import daemon.pidlockfile as pidlockfile
+    except ImportError:
+        pass
+
     import config as _config
     import log as _log
     import server as _server
@@ -73,7 +79,7 @@ def _daemonize(func, options=None, foreground=False, log=None, config=None, serv
     if not pidfile and service:
         pidfile = "/var/run/kopano/%s.pid" % service.name
     if pidfile:
-        pidfile = daemon.pidlockfile.TimeoutPIDLockFile(pidfile, 10)
+        pidfile = pidlockfile.TimeoutPIDLockFile(pidfile, 10)
         oldpid = pidfile.read_pid()
         if oldpid is None:
             # there was no pidfile, remove the lock if it's there
