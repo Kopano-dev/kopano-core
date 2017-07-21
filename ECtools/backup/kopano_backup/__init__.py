@@ -83,7 +83,6 @@ CONFIG = {
 CACHE_SIZE = 64000000 # XXX make configurable
 
 def fatal(s):
-    sys.stderr.write("FATAL ERROR: ")
     sys.stderr.write(s + "\n")
     sys.exit(1)
 
@@ -357,7 +356,10 @@ class Service(kopano.Service):
                        for i in range(self.config['worker_processes'])]
         for worker in workers:
             worker.start()
-        jobs = self.create_jobs()
+        try:
+            jobs = self.create_jobs()
+        except kopano.Error as e:
+            fatal(e.message)
         for job in jobs:
             self.iqueue.put(job)
         self.log.info('queued %d store(s) for parallel backup (%s processes)', len(jobs), len(workers))
@@ -576,6 +578,11 @@ class Service(kopano.Service):
                 else:
                     target = store.guid
                 jobs.append((store, None, os.path.join(output_dir, target)))
+
+        # check folders
+        if self.options.folders:
+            for job in jobs:
+                list(job[0].folders())
 
         return [(job[0].entryid,)+job[1:] for job in sorted(jobs, reverse=True, key=lambda x: x[0].size)]
 
