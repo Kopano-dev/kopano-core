@@ -2141,9 +2141,16 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 		}
 		mime_charset = vtm_upgrade_charset(mime_charset, m_dopt.ascii_upgrade);
 		if (!ValidateCharset(mime_charset.getName().c_str())) {
-			/* RFC 2049 §2 item 6 subitem 5 */
-			ec_log_debug("Unknown Content-Type charset \"%s\". Storing as attachment instead.", mime_charset.getName().c_str());
-			return handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_content_type", true);
+			auto newcs = mime_charset;
+			auto r = m_dopt.cset_subst.find(mime_charset.getName());
+			if (r != m_dopt.cset_subst.cend())
+				newcs = r->second;
+			if (!ValidateCharset(newcs.getName().c_str())) {
+				/* RFC 2049 §2 item 6 subitem 5 */
+				ec_log_debug("Unknown Content-Type charset \"%s\". Storing as attachment instead.", mime_charset.getName().c_str());
+				return handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_content_type", true);
+			}
+			mime_charset = std::move(newcs);
 		}
 		/*
 		 * Because PR_BODY is not of type PT_BINARY, the length is

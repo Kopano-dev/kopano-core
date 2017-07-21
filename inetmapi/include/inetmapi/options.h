@@ -19,6 +19,8 @@
 #define __INETMAPI_OPTIONS_H
 
 #include <kopano/zcdefs.h>
+#include <map>
+#include <string>
 
 namespace KC {
 
@@ -39,6 +41,7 @@ struct delivery_options {
 	LPSBinary user_entryid;			// If not NULL, specifies the entryid of the user for whom we are delivering. If set, allows generating PR_MESSAGE_*_ME properties.
 	const char *ascii_upgrade; // Upgrade ASCII parts to this new (ASCII-compatible) charset
 	bool html_safety_filter;
+	std::map<std::string, std::string> cset_subst; /* custom substitutions for broken charsets */
 };
 
 struct sending_options {
