@@ -691,10 +691,21 @@ AC_SUBST([ZCXXFLAGS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
-AC_PATH_PROG([SWIG_EXEC], [swig])
-AS_IF([test "x$SWIG_EXEC" = "x"], [AC_MSG_ERROR([Cannot find swig binary])])
-AM_PATH_PYTHON([2.5])
-PKG_CHECK_MODULES([PYTHON], [python])
+AH_TEMPLATE([ENABLE_PYTHON], [Build dagent/spooler with Python plugin support])
+AC_ARG_ENABLE([python], [AS_HELP_STRING([--enable-python], [Enable building of Python bindings (default: auto)])],
+	[want_python="$enableval"], [want_python=auto])
+AS_IF([test "$want_python" != no], [
+	PKG_CHECK_MODULES([PYTHON], [python], [], [:])
+	AS_IF([test -n "$PYTHON_LIBS"], [
+		AC_PATH_PROG([SWIG_EXEC], [swig])
+		AM_PATH_PYTHON([2.5])
+		AS_IF([test -z "$SWIG_EXEC"], [AC_MSG_ERROR([swig is required for Python])])
+		AC_DEFINE([ENABLE_PYTHON], [1])
+	], [test "$want_python" = yes], [
+		AC_MSG_ERROR([python requested but not satisfiable])
+	])
+])
+AM_CONDITIONAL([ENABLE_PYTHON], [test "$want_python" != no -a -n "$PYTHON_LIBS"])
 
 
 #

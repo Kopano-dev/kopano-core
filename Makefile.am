@@ -2,12 +2,15 @@
 
 ACLOCAL_AMFLAGS = -I autoconf
 
-SUBDIRS = . ECtools/archiver/include/kopano ECtools/backup ECtools/presence \
-	ECtools/migration-pst ECtools/cli \
-	ECtools/search common/include/kopano m4lcommon/include/kopano \
+SUBDIRS = . ECtools/archiver/include/kopano \
+	common/include/kopano m4lcommon/include/kopano \
 	mapi4linux/include inetmapi/include/inetmapi provider/include \
 	spooler/python
-SUBDIRS += installer po swig
+SUBDIRS += installer po
+if ENABLE_PYTHON
+SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
+	ECtools/presence ECtools/search swig
+endif
 
 
 AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
@@ -72,7 +75,10 @@ lib_LTLIBRARIES = \
 	libkcfreebusy.la libkcsync.la libkcsoap.la libkcserver.la \
 	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
 	libkcarchiver.la libkcarchivercore.la
-noinst_LTLIBRARIES = libkcpyplug.la
+noinst_LTLIBRARIES =
+if ENABLE_PYTHON
+noinst_LTLIBRARIES += libkcpyplug.la
+endif
 noinst_DATA = \
 	kopano-archiver.ldx kopano-cfgchecker.ldx kopano-dagent.ldx \
 	kopano-gateway.ldx kopano-ical.ldx kopano-monitor.ldx \
@@ -160,8 +166,11 @@ kopano_dagent_SOURCES = \
 	spooler/rules.cpp spooler/rules.h spooler/spmain.h
 kopano_dagent_LDADD = \
 	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
-	libkchl.la libkcarchiver.la libkcarchivercore.la libkcpyplug.la \
+	libkchl.la libkcarchiver.la libkcarchivercore.la \
 	${PROG_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
+if ENABLE_PYTHON
+kopano_dagent_LDADD += libkcpyplug.la
+endif
 
 
 #
@@ -227,8 +236,10 @@ kopano_spooler_SOURCES = \
 	spooler/mailer.cpp spooler/mailer.h spooler/spmain.h
 kopano_spooler_LDADD = \
 	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
-	libkcarchiver.la libkcarchivercore.la libkcpyplug.la \
-	${PROG_LIBS} ${XML2_LIBS}
+	libkcarchiver.la libkcarchivercore.la ${PROG_LIBS} ${XML2_LIBS}
+if ENABLE_PYTHON
+kopano_spooler_LDADD += libkcpyplug.la
+endif
 
 
 #
