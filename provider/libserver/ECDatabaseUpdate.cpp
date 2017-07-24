@@ -73,8 +73,8 @@ bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an
 	Version 5.00 (not included)
 	* Add column storeid in properties table and update the ids
 	* Add freebusy folders in public store
-	* Set the permissions on the free/busy folders	
-		
+	* Set the permissions on the free/busy folders
+
 	Version 5.10
 	* Add table version
 	* Add table searchfolders
@@ -133,7 +133,7 @@ bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an
 
 	Version 7.0.1
 	* update receive folder to unicode and increase the messageclass column size
-	
+
 	Version 7.1.0
 	* update WLINK entries to new record key format
 
@@ -619,7 +619,7 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 	// Find public stores (For every company)
 	// Join the subtree, publicfolders and favorites entryid
 
-	std::string strQuery ="SELECT s.hierarchy_id, isub.hierarchyid, ipf.hierarchyid, iff.hierarchyid FROM users AS u "
+	std::string strQuery ="SELECT s.hierarchy_id, isub.hierarchyid, ipf.hierarchyid, ipf2.hierarchyid FROM users AS u "
 				"JOIN stores AS s ON s.user_id=u.id "
 				"JOIN properties AS psub ON "
 					"psub.tag = 0x35E0 AND psub.type = 0x102 AND psub.storeid = s.hierarchy_id " // PR_IPM_SUBTREE_ENTRYID
@@ -631,8 +631,8 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 					"ipf.tag=0xFFF AND ipf.val_binary = pf.val_binary "
 				"LEFT JOIN properties AS ff ON "
 					"ff.tag = 0x6630 AND ff.type = 0x102 AND ff.storeid = s.hierarchy_id " //PR_IPM_FAVORITES_ENTRYID
-				"LEFT JOIN indexedproperties AS iff ON "
-					"iff.tag=0xFFF AND iff.val_binary = ff.val_binary "
+				"LEFT JOIN indexedproperties AS ipf2 ON "
+					"ipf2.tag=0xFFF AND ipf2.val_binary = ff.val_binary "
 				"WHERE u.object_type=4 OR u.id = 1"; // object_type=USEROBJECT_TYPE_COMPANY or id=KOPANO_UID_EVERYONE
 	auto er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
@@ -642,7 +642,7 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 		auto lpDBRow = lpResult.fetch_row();
 		if (lpDBRow == NULL)
 			break;
-		
+
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 			ec_log_crit("  Skip store: Unable to get the store information for storeid \"%s\"", (lpDBRow[0])?lpDBRow[0]:"Unknown");
 			continue;
