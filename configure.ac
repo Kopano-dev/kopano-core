@@ -114,7 +114,7 @@ if test "$want_release" = "yes"; then
     ZCPPFLAGS="$ZCPPFLAGS -DNDEBUG"
     ZCXXFLAGS="$ZCXXFLAGS -O2 -fno-strict-aliasing"
 else
-    ZCXXFLAGS="$ZCXXFLAGS -pedantic -Wno-long-long"
+    ZCXXFLAGS="$ZCXXFLAGS -Wno-long-long"
 fi
 
 AC_ARG_ENABLE([unicode], AS_HELP_STRING([--disable-unicode], [enable unicode mode (compile flag -DUNICODE)]),
