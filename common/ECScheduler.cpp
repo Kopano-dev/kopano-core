@@ -132,7 +132,7 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 		ulock_normal l_exit(lpScheduler->m_hExitMutex);
 		if (lpScheduler->m_bExit)
 			break;
-		if (lpScheduler->m_hExitSignal.wait_for(l_exit, std::chrono::seconds(SCHEDULER_POLL_FREQUENCY)) ==
+		if (lpScheduler->m_hExitSignal.wait_for(l_exit, std::chrono::seconds(SCHEDULER_POLL_FREQUENCY)) !=
 		    std::cv_status::timeout)
 			break;
 		l_exit.unlock();
