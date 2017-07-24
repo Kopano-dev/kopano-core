@@ -298,12 +298,7 @@ AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
     [MYSQL_CONFIG="$withval"])
 
   MYSQL_INCLUDES=`$MYSQL_CONFIG --include`
-  if test "$EMBEDDED" -eq 1; then
-    MYSQL_LIBS=`$MYSQL_CONFIG --libmysqld-libs`
-  else
-    MYSQL_LIBS=`$MYSQL_CONFIG --libs`
-  fi
-  
+  MYSQL_LIBS=`$MYSQL_CONFIG --libs`
   MYSQL_VERSION=`$MYSQL_CONFIG --version`
 
   if test -z "$MYSQL_VERSION"; then
