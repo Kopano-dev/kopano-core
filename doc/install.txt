@@ -12,8 +12,12 @@ Mandatory build-time dependencies and their minimum versions (if any):
 	* libcrypto and libssl from LibreSSL or OpenSSL 0.9.8
 	* libmysqlclient: MySQL-compatible C connector library
 	* libncurses 5
+	* libpython 2.x & swig 2.x
+	* libuuid from util-linux
 	* libvmime 0.9.2
 	* libxml2 2.6
+	* swig 2.x/3.x
+	* zlib
 
 Optional build-time dependencies and their minimum versions:
 
@@ -21,10 +25,10 @@ Optional build-time dependencies and their minimum versions:
 	* MIT Kerberos libkrb5
 	* libcurl
 	* libs3 3.0 (for Amazon S3 attachment storing)
+	* libtidy 5.0 from tidy-html
 	* Linux-PAM
 	* OpenLDAP libldap_r
 	* php 5.4
-	* libpython 2.6 & swig 2.x
 
 Optional components during runtime:
 
