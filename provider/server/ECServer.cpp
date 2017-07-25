@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright 2005 - 2016 Zarafa and its licensors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -777,16 +777,16 @@ static int running_server(char *szName, const char *szConfig,
 		{ "server_hostname",			"" }, // used by kerberos, if empty, gethostbyname is used
 		// server connections
 		{ "server_bind",				"" },
-		{ "server_tcp_port",			"236" },
-		{ "server_tcp_enabled",			"yes" },
-		{ "server_pipe_enabled",		"yes" },
-		{ "server_pipe_name",			KOPANO_SERVER_PIPE },
-		{ "server_pipe_priority",		KOPANO_SERVER_PRIO },
+		{"server_tcp_port", "236", CONFIGSETTING_NONEMPTY},
+		{"server_tcp_enabled", "yes", CONFIGSETTING_NONEMPTY},
+		{"server_pipe_enabled", "yes", CONFIGSETTING_NONEMPTY},
+		{"server_pipe_name", KOPANO_SERVER_PIPE, CONFIGSETTING_NONEMPTY},
+		{"server_pipe_priority", KOPANO_SERVER_PRIO, CONFIGSETTING_NONEMPTY},
 		{ "server_recv_timeout",		"5", CONFIGSETTING_RELOADABLE },	// timeout before reading next XML request
 		{ "server_read_timeout",		"60", CONFIGSETTING_RELOADABLE }, // timeout during reading of XML request
 		{ "server_send_timeout",		"60", CONFIGSETTING_RELOADABLE },
 		{ "server_max_keep_alive_requests",	"100" },
-		{ "thread_stacksize",			"512" },
+		{"thread_stacksize", "512", CONFIGSETTING_UNUSED},
 		{ "allow_local_users",			"yes", CONFIGSETTING_RELOADABLE },			// allow any user connect through the Unix socket
 		{ "local_admin_users",			"root", CONFIGSETTING_RELOADABLE },			// this local user is admin
 		{ "run_as_user",			"kopano" }, // drop root privileges, and run as this user/group
@@ -800,9 +800,8 @@ static int running_server(char *szName, const char *szConfig,
 		{ "license_socket",			"/var/run/kopano/licensed.sock" },
 		{ "license_timeout", 		"10", CONFIGSETTING_RELOADABLE},
 		{ "system_email_address",		"postmaster@localhost", CONFIGSETTING_RELOADABLE },
-
-		{ "server_ssl_enabled",			"no" },
-		{ "server_ssl_port",			"237" },
+		{"server_ssl_enabled", "no", CONFIGSETTING_NONEMPTY},
+		{"server_ssl_port", "237", CONFIGSETTING_NONEMPTY},
 		{"server_ssl_key_file", "/etc/kopano/ssl/server.pem", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_key_pass", "server", CONFIGSETTING_EXACT | CONFIGSETTING_RELOADABLE},
 		{"server_ssl_ca_file", "/etc/kopano/ssl/cacert.pem", CONFIGSETTING_RELOADABLE},
@@ -838,16 +837,16 @@ static int running_server(char *szName, const char *szConfig,
 		{ "attachment_compression",		"6" },
 
 		// Log options
-		{ "log_method",					"file" },
-		{ "log_file",					"-" },
-		{ "log_level",					"3", CONFIGSETTING_RELOADABLE },
+		{"log_method", "file", CONFIGSETTING_NONEMPTY},
+		{"log_file", "-", CONFIGSETTING_NONEMPTY},
+		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 		{ "log_timestamp",				"1" },
 		{ "log_buffer_size", "0" },
 		// security log options
-		{ "audit_log_enabled",			"no" },
-		{ "audit_log_method",			"syslog" },
-		{ "audit_log_file",				"-" },
-		{ "audit_log_level",			"1", CONFIGSETTING_RELOADABLE },
+		{"audit_log_enabled", "no", CONFIGSETTING_NONEMPTY},
+		{"audit_log_method", "syslog", CONFIGSETTING_NONEMPTY},
+		{"audit_log_file", "-", CONFIGSETTING_NONEMPTY},
+		{"audit_log_level", "1", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 		{ "audit_log_timestamp",		"0" },
 
 		// user plugin
@@ -889,7 +888,7 @@ static int running_server(char *szName, const char *szConfig,
 		{ "companyquota_hard",		"0", CONFIGSETTING_UNUSED },
 		{ "session_timeout",		"300", CONFIGSETTING_RELOADABLE },		// 5 minutes
 		{ "sync_lifetime",			"365", CONFIGSETTING_RELOADABLE },		// 1 year
-		{ "sync_log_all_changes",	"default" },	// Log All ICS changes
+		{"sync_log_all_changes", "default", CONFIGSETTING_UNUSED}, // Log All ICS changes
 		{ "auth_method",			"plugin", CONFIGSETTING_RELOADABLE },		// plugin (default), pam, kerberos
 		{ "pam_service",			"passwd", CONFIGSETTING_RELOADABLE },		// pam service, found in /etc/pam.d/
 		{ "enable_sso_ntlmauth",	"no", CONFIGSETTING_UNUSED },			// default disables ntlm_auth, so we don't log errors on useless things
@@ -906,10 +905,10 @@ static int running_server(char *szName, const char *szConfig,
 		
 		{ "cache_sortkey_size",		"0", CONFIGSETTING_UNUSED }, // Option not support, only for backward compatibility of all configurations under the 6.20
 
-		{ "client_update_enabled",	"no" }, /* OBSOLETE */
-		{ "client_update_log_level", "1", CONFIGSETTING_RELOADABLE }, /* OBSOLETE */
-		{ "client_update_path",		"/var/lib/kopano/client", CONFIGSETTING_RELOADABLE }, /* OBSOLETE */
-		{ "client_update_log_path",	"/var/log/kopano/autoupdate", CONFIGSETTING_RELOADABLE }, /* OBSOLETE */
+		{"client_update_enabled", "no", CONFIGSETTING_UNUSED},
+		{"client_update_log_level", "1", CONFIGSETTING_UNUSED | CONFIGSETTING_RELOADABLE},
+		{"client_update_path", "/var/lib/kopano/client", CONFIGSETTING_UNUSED | CONFIGSETTING_RELOADABLE},
+		{"client_update_log_path", "/var/log/kopano/autoupdate", CONFIGSETTING_UNUSED | CONFIGSETTING_RELOADABLE},
 		{ "index_services_enabled", "", CONFIGSETTING_UNUSED },
 		{ "index_services_path",    "", CONFIGSETTING_UNUSED },
 		{ "index_services_search_timeout", "", CONFIGSETTING_UNUSED },
@@ -992,9 +991,6 @@ static int running_server(char *szName, const char *szConfig,
 	ec_log_info("Starting kopano-server version " PROJECT_VERSION " (pid %d)", getpid());
 	if (g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig);
-
-	if (strcmp(g_lpConfig->GetSetting("sync_log_all_changes"), "default") != 0)
-		ec_log_warn("sync_log_all_changes is deprecated, please remove from your config");
 
 	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
 		// directory will be created using startup (probably root) and then chowned to the new 'runas' username
@@ -1296,7 +1292,7 @@ exit:
 	if (er != erSuccess) {
 		auto msg = format("An error occurred (%x).", er);
 		if (g_lpConfig)
-			msg += format(" Please check %s for details.", g_lpConfig->GetSetting("log_file"));
+			msg += format(" Please check logfile \"%s\" for details.", g_lpConfig->GetSetting("log_file"));
 		else
 			msg += " Please check logfile for details.";
 

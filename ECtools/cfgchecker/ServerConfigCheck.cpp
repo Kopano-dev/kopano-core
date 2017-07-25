@@ -53,8 +53,6 @@ void ServerConfigCheck::loadChecks()
 
 	addCheck("enable_distributed_kopano", 0, &testBoolean);
 	addCheck("server_name", CONFIG_MULTI_USED);
-// 	addCheck("thread_stacksize", 0, &testMinInt, 25);
-
 	addCheck("enable_gab", 0, &testBoolean);
 	addCheck("enable_sso_ntlmauth", 0, &testBoolean);
 	addCheck("client_update_enabled", 0, &testBoolean);
