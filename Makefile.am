@@ -882,7 +882,7 @@ EXTRA_libkcserver_ldap_la_DEPENDENCIES = provider/plugin.sym
 
 install-exec-local:
 	${MKDIR_P} ${DESTDIR}${libdir}
-	ln -fs libkcserver_ldap.so ${DESTDIR}${libdir}/libkcserver-ldapms.so
+	ln -fs libkcserver-ldap.so ${DESTDIR}${libdir}/libkcserver-ldapms.so
 endif
 
 
