@@ -16,7 +16,6 @@ Mandatory build-time dependencies and their minimum versions (if any):
 	* libuuid from util-linux
 	* libvmime 0.9.2
 	* libxml2 2.6
-	* swig 2.x/3.x
 	* zlib
 
 Optional build-time dependencies and their minimum versions:
@@ -24,7 +23,7 @@ Optional build-time dependencies and their minimum versions:
 	* google-perftools libtcmalloc
 	* MIT Kerberos libkrb5
 	* libcurl
-	* libs3 3.0 (for Amazon S3 attachment storing)
+	* libs3 4.1 (for Amazon S3 attachment storing)
 	* libtidy 5.0 from tidy-html
 	* Linux-PAM
 	* OpenLDAP libldap_r

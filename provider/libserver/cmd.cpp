@@ -2868,7 +2868,15 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 		}
 	}
 
-	er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage, ulStoreId, ulParentObjId, ulParentObjType, ulFlags, ulSyncId, lpsSaveObj, &sReturnObject, atoui(g_lpSessionManager->GetConfig()->GetSetting("embedded_attachment_limit")), &fHaveChangeKey);
+	er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage,
+	     ulStoreId, ulParentObjId, ulParentObjType, ulFlags, ulSyncId,
+	     lpsSaveObj, &sReturnObject,
+	     /* message itself occupies another level */
+	     1 + atoui(g_lpSessionManager->GetConfig()->GetSetting("embedded_attachment_limit")),
+	     &fHaveChangeKey);
+	if (er == KCERR_TOO_COMPLEX)
+		ec_log_debug("saveObject: refusing to store object \"%s\" (store %u): too many levels of attachments/subobjects",
+			sEntryId.__ptr != nullptr ? base64_encode(sEntryId.__ptr, sEntryId.__size).c_str() : "", ulStoreId);
 	if (er != erSuccess)
 		goto exit;
 
@@ -10099,8 +10107,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	} else if (er != erSuccess)
 		goto exit;
 
-	ulDepth = atoui(lpecSession->GetSessionManager()->GetConfig()->GetSetting("embedded_attachment_limit"));
-	
+	ulDepth = atoui(lpecSession->GetSessionManager()->GetConfig()->GetSetting("embedded_attachment_limit")) + 1;
 	er = lpecSession->GetAdditionalDatabase(&lpBatchDB);
 	if (er != erSuccess)
 	    goto exit;

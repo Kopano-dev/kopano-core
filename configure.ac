@@ -630,11 +630,8 @@ AC_ARG_ENABLE([epoll], AS_HELP_STRING([--enable-epoll], [enable building epoll s
 AM_CONDITIONAL(WITH_EPOLL, test "$want_epoll" = "yes")
 if test "$want_epoll" = "yes"; then
 AC_CHECK_FUNCS([epoll_create])
-EPOLL_CFLAGS=-DUSE_EPOLL
-else
-EPOLL_CFLAGS=
+ZCPPFLAGS="$ZCPPFLAGS -DUSE_EPOLL"
 fi
-AC_SUBST(EPOLL_CFLAGS)
 
 tidy_CPPFLAGS="-I/usr/include/tidy"
 CPPFLAGS="$CPPFLAGS $tidy_CPPFLAGS"
