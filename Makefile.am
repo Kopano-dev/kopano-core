@@ -933,7 +933,7 @@ EXTRA_DIST += version versionheader.sh \
 	common/include/kopano/ecversion.h
 
 BUILT_SOURCES += source-moved-check common/include/kopano/ecversion.h
-CLEANFILES += common/include/kopano/ecversion.h
+CLEANFILES += common/include/kopano/ecversion.h version
 
 dist_sbin_SCRIPTS += tools/python-scripts/kopano-cachestat
 gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
