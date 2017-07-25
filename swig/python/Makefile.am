@@ -18,7 +18,7 @@ CLEANFILES = ${noinst_DATA}
 AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
 	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/common \
 	-I${top_srcdir}/common -I${top_srcdir}/m4lcommon \
-	$(PYTHON_INCLUDES) -I${top_srcdir}/swig -w \
+	${PYTHON_CFLAGS} -I${top_srcdir}/swig -w \
 	-DSWIG_PYTHON_OUTPUT_TUPLE -DSWIG_TYPE_TABLE=MAPI
 AM_CXXFLAGS = ${ZCXXFLAGS} -fvisibility=default
 python_SYFLAGS = -Wl,--version-script=python.sym

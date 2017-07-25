@@ -694,10 +694,7 @@ AC_SUBST([AM_LDFLAGS])
 AC_PATH_PROG([SWIG_EXEC], [swig])
 AS_IF([test "x$SWIG_EXEC" = "x"], [AC_MSG_ERROR([Cannot find swig binary])])
 AM_PATH_PYTHON([2.5])
-PYTHON_LIBS=$("$PYTHON" -c "import sys; import distutils.sysconfig as x; print('-lpython' + x.get_config_var('VERSION') + getattr(sys, 'abiflags', '') + ' ' + x.get_config_var('LIBS') + ' ' + x.get_config_var('SYSLIBS'))")
-PYTHON_INCLUDES=$("$PYTHON" -c "import distutils.sysconfig as x; print('-I' + x.get_python_inc())")
-AC_SUBST([PYTHON_LIBS])
-AC_SUBST([PYTHON_INCLUDES])
+PKG_CHECK_MODULES([PYTHON], [python])
 
 
 #
@@ -798,6 +795,6 @@ Krb5 libs	:	$KRB5_LIBS
 TCMalloc lib	:	$TCMALLOC_LIBS
 S3 lib		:	$s3_LIBS
 ICU libs	:	$icu_uc_LIBS $icu_i18n_LIBS
-Python flags	:	$PYTHON_INCLUDES
+Python flags	:	$PYTHON_CFLAGS
 Python libs	:	$PYTHON_LIBS
 ])
