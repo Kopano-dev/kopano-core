@@ -30,7 +30,7 @@ from MAPI import (
     MAPI_CREATE, MAPI_MODIFY, MAPI_DEFERRED_ERRORS,
     ATTACH_BY_VALUE, ATTACH_EMBEDDED_MSG, STGM_WRITE, STGM_TRANSACTED,
     MAPI_UNICODE, MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_E_NOT_FOUND,
-    MAPI_E_NOT_ENOUGH_MEMORY, PT_SYSTIME
+    MAPI_E_NOT_ENOUGH_MEMORY, PT_SYSTIME, MAPI_ASSOCIATED
 )
 from MAPI.Defs import HrGetOneProp, CHANGE_PROP_TYPE, bin2hex
 from MAPI.Struct import (
@@ -142,7 +142,7 @@ class Item(Base):
             self.server = store.server
 
         if create:
-            self.mapiobj = self.folder.mapiobj.CreateMessage(None, 0)
+            self.mapiobj = self.folder.mapiobj.CreateMessage(None, MAPI_ASSOCIATED if self.folder.content_flag & MAPI_ASSOCIATED else 0)
             self.store = self.folder.store
             self.server = server = self.store.server # XXX
 
