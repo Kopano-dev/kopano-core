@@ -146,7 +146,7 @@ class SearchWorker(kopano.Worker):
                         response(conn, 'OK:')
                     elif cmd == 'FIND':
                         pos = data.find(':')
-                        fields = map(int, data[:pos].split()[1:])
+                        fields = [int(x) for x in data[:pos].split()[1:]]
                         orig = data[pos+1:].lower()
                         # Limit number of terms (32) so people do not
                         # inadvertently DoS it if they paste prose.
