@@ -900,10 +900,10 @@ class Item(Base):
         }
 
     def dump(self, f, attachments=True, archiver=True):
-        pickle.dump(self._dump(attachments=attachments, archiver=archiver), f, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(self._dump(attachments=attachments, archiver=archiver), f, protocol=2)
 
     def dumps(self, attachments=True, archiver=True, skip_broken=False):
-        return pickle.dumps(self._dump(attachments=attachments, archiver=archiver, skip_broken=skip_broken), pickle.HIGHEST_PROTOCOL)
+        return pickle.dumps(self._dump(attachments=attachments, archiver=archiver, skip_broken=skip_broken), protocol=2)
 
     def _load(self, d, attachments):
         # props
