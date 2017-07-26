@@ -19,7 +19,7 @@ def main():
     for store in kopano.stores():
         findroot = store.root.get_folder('FINDER_ROOT')
         if not findroot:
-            print 'creating FINDER_ROOT for store %s' % store.guid
+            print('creating FINDER_ROOT for store %s' % store.guid)
 
             # create findroot
             findroot = store.root.folder('FINDER_ROOT', create=True)
