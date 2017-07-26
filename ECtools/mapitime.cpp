@@ -1,5 +1,6 @@
 #include "config.h"
 #include <chrono>
+#include <memory>
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
@@ -15,6 +16,7 @@
 #include <kopano/ECMemTable.h>
 #include <kopano/automapi.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/stringutil.h>
 #include <kopano/IECInterfaces.hpp>
 #ifdef HAVE_CURL_CURL_H
 #	include <curl/curl.h>
@@ -378,6 +380,25 @@ static int mpt_main_malloc(void)
 	return EXIT_SUCCESS;
 }
 
+static int mpt_main_bin2hex()
+{
+	int err = mpt_setup_tick();
+	if (err < 0)
+		return EXIT_FAILURE;
+
+	struct mpt_stat_entry dp;
+	static constexpr const size_t bufsize = 1048576;
+	std::unique_ptr<char[]> temp(new char[bufsize]);
+	memset(temp.get(), 0, bufsize);
+	while (mpt_repeat-- > 0) {
+		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		bin2hex(bufsize, reinterpret_cast<const unsigned char *>(temp.get()));
+		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		mpt_stat_record(dp);
+	}
+	return EXIT_SUCCESS;
+}
+
 static void mpt_usage(void)
 {
 	fprintf(stderr, "mapitime [-p pass] [-s server] [-u username] [-z count] benchmark_choice\n");
@@ -392,6 +413,10 @@ static void mpt_usage(void)
 	fprintf(stderr, "  vft         Measure C++ class dispatching\n");
 	fprintf(stderr, "  pagetime    Measure webpage retrieval time\n");
 	fprintf(stderr, "  exectime    Measure process runtime\n");
+	fprintf(stderr, "  qicast      Measure QueryInterface throughput\n");
+	fprintf(stderr, "  dycast      Measure dynamic_cast<> throughput\n");
+	fprintf(stderr, "  malloc      Measure MAPIAllocateMore throughput\n");
+	fprintf(stderr, "  bin2hex     Measure bin2hex throughput\n");
 }
 
 static int mpt_option_parse(int argc, char **argv)
@@ -474,6 +499,8 @@ int main(int argc, char **argv)
 		return mpt_main_cast(1);
 	else if (strcmp(argv[1], "malloc") == 0)
 		return mpt_main_malloc();
+	else if (strcmp(argv[1], "bin2hex") == 0)
+		return mpt_main_bin2hex();
 
 	mpt_usage();
 	return EXIT_FAILURE;
