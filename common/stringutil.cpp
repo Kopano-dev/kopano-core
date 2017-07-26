@@ -284,20 +284,20 @@ std::string hex2bin(const std::wstring &input)
 
 std::string bin2hex(size_t inLength, const void *vinput)
 {
-	std::string buffer;
 	if (vinput == nullptr)
-		return buffer;
+		return "";
 	if (inLength > 2048)
 		ec_log_warn("Unexpectedly large bin2hex call, %zu bytes\n", inLength);
 	else if (inLength > 64)
 		ec_log_debug("Unexpectedly large bin2hex call, %zu bytes\n", inLength);
-	static const char digits[] = "0123456789ABCDEF";
-	auto input = static_cast<const unsigned char *>(vinput);
-
-	buffer.reserve(inLength * 2);
-	for (size_t i = 0; i < inLength; ++i) {
-		buffer += digits[input[i]>>4];
-		buffer += digits[input[i]&0x0F];
+	static constexpr const char digits[] = "0123456789ABCDEF";
+	auto input = static_cast<const char *>(vinput);
+	std::string buffer;
+	buffer.resize(inLength * 2);
+	for (size_t j = 0; inLength-- > 0; j += 2) {
+		buffer[j]   = digits[(*input >> 4) & 0x0F];
+		buffer[j+1] = digits[*input & 0x0F];
+		++input;
 	}
 
 	return buffer;
