@@ -5,6 +5,6 @@ global:
 		List_to_*;
 		Object_from_*;
 		Object_to_*;
-		*::_Rep::_S_empty_rep_storage;
+		std::*::_S_*;
 	};
 };
