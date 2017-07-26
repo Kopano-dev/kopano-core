@@ -97,16 +97,7 @@ extern _kc_export unsigned char x2b(char);
 extern _kc_export std::string hex2bin(const std::string &);
 extern _kc_export std::string hex2bin(const std::wstring &);
 extern _kc_export std::string bin2hex(const std::string &);
-std::wstring bin2hexw(const std::string &input);
 extern _kc_export std::string bin2hex(size_t len, const void *input);
-extern std::wstring bin2hexw(size_t len, const void *input);
-
-#ifdef UNICODE
-#define bin2hext bin2hexw
-#else
-#define bin2hext bin2hex
-#endif
-
 extern _kc_export std::string urlEncode(const std::string &);
 extern _kc_export std::string urlEncode(const std::wstring &, const char *charset);
 extern _kc_export std::string urlEncode(const wchar_t *input, const char *charset);
