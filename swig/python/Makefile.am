@@ -24,13 +24,15 @@ AM_CXXFLAGS = ${ZCXXFLAGS} -fvisibility=default
 python_SYFLAGS = -Wl,--version-script=python.sym
 
 libkcpyconv_la_SOURCES = conversion.cpp
-libkcpyconv_la_LDFLAGS = ${AM_LDFLAGS} ${python_SYFLAGS${NO_VSYM}}
+libkcpyconv_la_LDFLAGS = ${AM_LDFLAGS} ${python_SYFLAGS${NO_VSYM}} \
+	-release ${PYTHON_VERSION}
 libkcpyconv_la_LIBADD  = ${PYTHON_LIBS} \
 	${top_builddir}/libmapi.la
 EXTRA_libkcpyconv_la_DEPENDENCIES = python.sym
 
 libkcpydirector_la_SOURCES = ../director_util.cpp
-libkcpydirector_la_LDFLAGS = ${AM_LDFLAGS} ${python_SYFLAGS${NO_VSYM}}
+libkcpydirector_la_LDFLAGS = ${AM_LDFLAGS} ${python_SYFLAGS${NO_VSYM}} \
+	-release ${PYTHON_VERSION}
 libkcpydirector_la_LIBADD  = -lpthread
 EXTRA_libkcpydirector_la_DEPENDENCIES = python.sym
 
