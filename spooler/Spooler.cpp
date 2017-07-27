@@ -255,7 +255,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 
 	if (pid == 0) {
 		char *bname = strdup(szCommand);
-		ec_log_debug("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s NULL",
+		ec_log_debug("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s",
 			  szCommand, basename(bname) /* argv[0] */,
 			  "--send-message-entryid", bin2hex(cbMsgEntryId, lpMsgEntryId).c_str(),
 			  "--send-username-enc", encodestring(szUsername).c_str(),
