@@ -76,7 +76,7 @@ class Plugin:
         enquire.set_query(query)
         matches = []
         for match in enquire.get_mset(0, db.get_doccount()): # XXX catch exception if database is being updated?
-            matches.append(match.document.get_value(0))
+            matches.append(match.document.get_value(0).decode('ascii'))
         db.close()
         return matches
 
