@@ -347,7 +347,7 @@ private:
 	HRESULT HrGetDataItems(std::string msgdata_itemnames, std::vector<std::string> &data_items);
 	HRESULT HrSemicolonToComma(std::string &data);
 
-	// fetch calls an other fetch depending on the data items requested
+	// fetch calls another fetch depending on the data items requested
 	HRESULT HrPropertyFetch(std::list<ULONG> &mails, std::vector<std::string> &data_items);
 	HRESULT save_generated_properties(const std::string &text, IMessage *message);
 	HRESULT HrPropertyFetchRow(LPSPropValue props, ULONG nprops, std::string &response, ULONG mail_nr, bool bounce_flags, const std::vector<std::string> &data_items);
