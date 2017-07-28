@@ -26,7 +26,10 @@ def is_str(s):
 
 def to_str(s):
     if sys.hexversion >= 0x03000000:
-        return bytes(s, 'ascii')
+        if isinstance(s, bytes):
+            return s
+        else:
+            return bytes(s, 'ascii')
     else:
         return str(s)
 
