@@ -24,4 +24,4 @@ fi
 
 # Find cannot cope with unreadable cwd
 cd "$KOPANO_USER_SCRIPTS"
-find "${KOPANO_USER_SCRIPTS}" -maxdepth 1 -type f -perm -u=x -not -name \*~ -not -name \#\* -not -name \*.rpm\* -not -name \*.bak -not -name \*.old -exec {} \;
+find "${KOPANO_USER_SCRIPTS}" -maxdepth 1 -type f -perm -u=x ! -name \*~ ! -name \#\* ! -name \*.rpm\* ! -name \*.bak ! -name \*.old -exec {} \;
