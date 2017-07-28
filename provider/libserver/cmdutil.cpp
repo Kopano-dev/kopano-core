@@ -1086,12 +1086,10 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 
 		// Update local commit time on top level folders
 		for (const auto &di : lstDeleteItems) {
-			bool k = !(ulFlags & EC_DELETE_HARD_DELETE) &&
-				di.fRoot && di.ulParentType == MAPI_FOLDER &&
+			bool k = di.fRoot && di.ulParentType == MAPI_FOLDER &&
 				di.ulObjType == MAPI_MESSAGE;
 			if (!k)
 				continue;
-			// directly hard-delete the item is not supported for updating PR_LOCAL_COMMIT_TIME_MAX
 			er = WriteLocalCommitTimeMax(NULL, lpDatabase, di.ulParent, NULL);
 			if (er != erSuccess) {
 				ec_log_info("Error while updating folder access time after delete, error code %u", er);
