@@ -74,7 +74,8 @@ class Company(Base):
 
     @property
     def companyid(self): # XXX single-tenant case
-        return bin2hex(self._eccompany.CompanyID)
+        if self._name != u'Default':
+            return bin2hex(self._eccompany.CompanyID)
 
     @property
     def admin(self):
@@ -254,7 +255,7 @@ class Company(Base):
         try:
             self.server.sa.DelUserFromRemoteAdminList(user._ecuser.UserID, self._eccompany.CompanyID)
         except MAPIErrorNotFound:
-            raise DuplicateError("user '%s' no admin for company '%s'" % (user.name, self.name))
+            raise NotFoundError("user '%s' no admin for company '%s'" % (user.name, self.name))
 
     def views(self):
         for eccompany in self.server.sa.GetRemoteViewList(self._eccompany.CompanyID, MAPI_UNICODE):
