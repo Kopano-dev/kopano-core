@@ -17,8 +17,15 @@
 %include "std_vector.i"
 %include "std_wstring.i"
 
-%cstring_input_binary(const char *lpData, unsigned int ulLen);
 %cstring_output_allocate_size(char **lpData, unsigned int *lpulLen, MAPIFreeBuffer(*$1));
+
+%typemap(in) (const char *lpData, unsigned int ulLen) (char *buf = NULL, Py_ssize_t size)
+{
+  if(PyBytes_AsStringAndSize($input, &buf, &size) == -1)
+    %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
+  $1 = %reinterpret_cast(buf, $1_ltype);
+  $2 = %numeric_cast(size, $2_ltype);
+}
 
 /* parse header file to generate wrappers */
 %include "RecurrenceState.swig.h"
@@ -129,7 +136,7 @@ def Summarize(rs):
     # beware of the crash!
     le = rs.lstExceptions
     lee = rs.lstExtendedExceptions
-    for n in xrange(0,rs.ulExceptionCount):
+    for n in range(0,rs.ulExceptionCount):
         print("Exception " + str(n))
         print("  SDT %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(le[n].ulStartDateTime))))
         print("  EDT %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(le[n].ulEndDateTime))))
