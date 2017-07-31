@@ -7,7 +7,6 @@
 #include <inetmapi/inetmapi.h>
 %}
 
-%include "std_string.i"
 %include "cstring.i"
 %include <kopano/typemap.i>
 
@@ -20,6 +19,15 @@
 %typemap(argout) (std::string *) {
 	/* @todo fix this not to go through a cstring */
 	%append_output(SWIG_FromCharPtrAndSize($1->c_str(), $1->length()));
+}
+
+%typemap(in) (const std::string &input) (std::string temp, char *buf=NULL, Py_ssize_t size)
+{
+    if(PyBytes_AsStringAndSize($input, &buf, &size) == -1)
+        %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
+
+    temp = std::string(buf, size);
+    $1 = &temp;
 }
 
 struct sending_options {
