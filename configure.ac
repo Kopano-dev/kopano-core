@@ -298,12 +298,7 @@ AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
     [MYSQL_CONFIG="$withval"])
 
   MYSQL_INCLUDES=`$MYSQL_CONFIG --include`
-  if test "$EMBEDDED" -eq 1; then
-    MYSQL_LIBS=`$MYSQL_CONFIG --libmysqld-libs`
-  else
-    MYSQL_LIBS=`$MYSQL_CONFIG --libs`
-  fi
-  
+  MYSQL_LIBS=`$MYSQL_CONFIG --libs`
   MYSQL_VERSION=`$MYSQL_CONFIG --version`
 
   if test -z "$MYSQL_VERSION"; then
@@ -696,13 +691,21 @@ AC_SUBST([ZCXXFLAGS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
-AC_PATH_PROG([SWIG_EXEC], [swig])
-AS_IF([test "x$SWIG_EXEC" = "x"], [AC_MSG_ERROR([Cannot find swig binary])])
-AM_PATH_PYTHON([2.5])
-PYTHON_LIBS=$("$PYTHON" -c "import sys; import distutils.sysconfig as x; print('-lpython' + x.get_config_var('VERSION') + getattr(sys, 'abiflags', '') + ' ' + x.get_config_var('LIBS') + ' ' + x.get_config_var('SYSLIBS'))")
-PYTHON_INCLUDES=$("$PYTHON" -c "import distutils.sysconfig as x; print('-I' + x.get_python_inc())")
-AC_SUBST([PYTHON_LIBS])
-AC_SUBST([PYTHON_INCLUDES])
+AH_TEMPLATE([ENABLE_PYTHON], [Build dagent/spooler with Python plugin support])
+AC_ARG_ENABLE([python], [AS_HELP_STRING([--enable-python], [Enable building of Python bindings (default: auto)])],
+	[want_python="$enableval"], [want_python=auto])
+AS_IF([test "$want_python" != no], [
+	PKG_CHECK_MODULES([PYTHON], [python], [], [:])
+	AS_IF([test -n "$PYTHON_LIBS"], [
+		AC_PATH_PROG([SWIG_EXEC], [swig])
+		AM_PATH_PYTHON([2.5])
+		AS_IF([test -z "$SWIG_EXEC"], [AC_MSG_ERROR([swig is required for Python])])
+		AC_DEFINE([ENABLE_PYTHON], [1])
+	], [test "$want_python" = yes], [
+		AC_MSG_ERROR([python requested but not satisfiable])
+	])
+])
+AM_CONDITIONAL([ENABLE_PYTHON], [test "$want_python" != no -a -n "$PYTHON_LIBS"])
 
 
 #
@@ -803,6 +806,6 @@ Krb5 libs	:	$KRB5_LIBS
 TCMalloc lib	:	$TCMALLOC_LIBS
 S3 lib		:	$s3_LIBS
 ICU libs	:	$icu_uc_LIBS $icu_i18n_LIBS
-Python flags	:	$PYTHON_INCLUDES
+Python flags	:	$PYTHON_CFLAGS
 Python libs	:	$PYTHON_LIBS
 ])
