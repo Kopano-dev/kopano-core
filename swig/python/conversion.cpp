@@ -1299,18 +1299,30 @@ PyObject *		Object_from_LPACTION(LPACTION lpAction)
 	switch(lpAction->acttype) {
 	case OP_MOVE:
 	case OP_COPY:
+#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
+		act = PyObject_CallFunction(PyTypeActMoveCopy, "y#y#",
+#else
 		act = PyObject_CallFunction(PyTypeActMoveCopy, "s#s#",
+#endif
 									lpAction->actMoveCopy.lpStoreEntryId, lpAction->actMoveCopy.cbStoreEntryId,
 									lpAction->actMoveCopy.lpFldEntryId, lpAction->actMoveCopy.cbFldEntryId);
 		break;
 	case OP_REPLY:
 	case OP_OOF_REPLY:
+#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
+		act = PyObject_CallFunction(PyTypeActReply, "y#y#",
+#else
 		act = PyObject_CallFunction(PyTypeActReply, "s#s#",
+#endif
 									lpAction->actReply.lpEntryId, lpAction->actReply.cbEntryId,
 									&lpAction->actReply.guidReplyTemplate, sizeof(GUID));
 		break;
 	case OP_DEFER_ACTION:
+#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
+		act = PyObject_CallFunction(PyTypeActDeferAction, "y#",
+#else
 		act = PyObject_CallFunction(PyTypeActDeferAction, "s#",
+#endif
 									lpAction->actDeferAction.pbData, lpAction->actDeferAction.cbData);
 		break;
 	case OP_BOUNCE:
@@ -2203,7 +2215,11 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 
 		if (!proptags)
 			return NULL;
+#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
+		elem = PyObject_CallFunction(PyTypeOBJECT_NOTIFICATION, "(ly#ly#y#y#O)",
+#else
 		elem = PyObject_CallFunction(PyTypeOBJECT_NOTIFICATION, "(ls#ls#s#s#O)",
+#endif
 			lpNotif->ulEventType,
 			lpNotif->info.obj.lpEntryID, lpNotif->info.obj.cbEntryID,
 			lpNotif->info.obj.ulObjType,
@@ -2229,7 +2245,12 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 		Py_DECREF(row);
 		break;
 	case fnevNewMail:
-		elem = PyObject_CallFunction(PyTypeNEWMAIL_NOTIFICATION, "(s#s#lsl)", lpNotif->info.newmail.lpEntryID, lpNotif->info.newmail.cbEntryID,
+#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
+		elem = PyObject_CallFunction(PyTypeNEWMAIL_NOTIFICATION, "(y#y#lsl)",
+#else
+		elem = PyObject_CallFunction(PyTypeNEWMAIL_NOTIFICATION, "(s#s#lsl)",
+#endif
+		        lpNotif->info.newmail.lpEntryID, lpNotif->info.newmail.cbEntryID,
 			lpNotif->info.newmail.lpParentID, lpNotif->info.newmail.cbParentID,
 			lpNotif->info.newmail.ulFlags,
 			lpNotif->info.newmail.lpszMessageClass,
