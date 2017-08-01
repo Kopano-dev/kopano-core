@@ -1772,7 +1772,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 		}
 
 		if (er == erSuccess) {
-			if (gzflush(gzfp, Z_FINISH)) {
+			if (gzflush(gzfp, 0)) {
 				int saved_errno = errno;
 				int zerror;
 				const char *zstrerr = gzerror(gzfp, &zerror);
