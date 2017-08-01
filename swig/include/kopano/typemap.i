@@ -17,7 +17,7 @@
 %include "cwstring.i"
 %cstring_output_allocate_size(char **lpOutput, ULONG *ulRead, MAPIFreeBuffer(*$1));
 
-%typemap(in) (const void *pv, ULONG cb) (int res, char *buf = 0, Py_ssize_t size, int alloc = 0)
+%typemap(in) (const void *pv, ULONG cb) (int res, char *buf = NULL, Py_ssize_t size, int alloc = 0)
 {
   if(PyBytes_AsStringAndSize($input, &buf, &size) == -1)
     %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
@@ -100,7 +100,7 @@
 // ULONG+LP
 
 // Input
-%typemap(in, fragment="SWIG_AsCharPtrAndSize")				(ULONG cbEntryID, LPENTRYID lpEntryID) (int res, char *buf = 0, size_t size, int alloc = 0)
+%typemap(in, fragment="SWIG_AsCharPtrAndSize")				(ULONG cbEntryID, LPENTRYID lpEntryID) (int res, char *buf = NULL, size_t size, int alloc = 0)
 {
   if($input == Py_None) {
     $1 = 0;
@@ -133,7 +133,7 @@
 %apply (ULONG *OUTPUT, LPENTRYID *OUTPUT) {(ULONG* lpcbStoreId, LPENTRYID* lppStoreId), (ULONG* lpcbRootId, LPENTRYID *lppRootId), (ULONG *lpulOutput, LPBYTE *lpOutput)};
 
 // Optional In & Output
-%typemap(in) (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) (int res, char *buf = 0, size_t size, int alloc = 0, ULONG cbEntryID = 0, KCHL::memory_ptr<ENTRYID> tmp) {
+%typemap(in) (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) (int res, char *buf = NULL, size_t size, int alloc = 0, ULONG cbEntryID = 0, KCHL::memory_ptr<ENTRYID> tmp) {
   $1 = &cbEntryID;
 
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
@@ -297,7 +297,7 @@
 }
 
 // unsigned char *, unsigned int
-%typemap(in,numinputs=1) (unsigned char *, unsigned int) (int res, char *buf = 0, size_t size, int alloc = 0)
+%typemap(in,numinputs=1) (unsigned char *, unsigned int) (int res, char *buf = NULL, size_t size, int alloc = 0)
 {
 	res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
 	if (!SWIG_IsOK(res)) {
