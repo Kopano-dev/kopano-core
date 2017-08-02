@@ -42,8 +42,8 @@ from MAPI.Struct import (
 )
 
 from .defs import (
-    RSF_PID_SUGGESTED_CONTACTS, RSF_PID_RSS_SUBSCRIPTION,
-    NAMED_PROPS_ARCHIVER
+    RSF_PID_SUGGESTED_CONTACTS, RSF_PID_TODO_SEARCH,
+    RSF_PID_RSS_SUBSCRIPTION, NAMED_PROPS_ARCHIVER
 )
 
 from .errors import NotFoundError
@@ -284,8 +284,16 @@ class Store(Base):
         """ :class`Folder` designated as Suggested contacts"""
 
         try:
-            entryid = _utils.extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_SUGGESTED_CONTACTS)
-            return _folder.Folder(self, entryid)
+            return _folder.Folder(self, self._extract_ipm_ol2007_entryid(RSF_PID_SUGGESTED_CONTACTS))
+        except NotFoundError:
+            pass
+
+    @property
+    def todo_search(self):
+        """ :class`Folder` designated as To-Do Search folder"""
+
+        try:
+            return _folder.Folder(self, self._extract_ipm_ol2007_entryid(RSF_PID_TODO_SEARCH))
         except NotFoundError:
             pass
 
@@ -294,10 +302,31 @@ class Store(Base):
         """ :class`Folder` designated as RSS items"""
 
         try:
-            entryid = _utils.extract_ipm_ol2007_entryids(self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value, RSF_PID_RSS_SUBSCRIPTION)
-            return _folder.Folder(self, entryid)
+            return _folder.Folder(self, self._extract_ipm_ol2007_entryid(RSF_PID_RSS_SUBSCRIPTION))
         except NotFoundError:
             pass
+
+    def _extract_ipm_ol2007_entryid(self, offset):
+        """Extracts entryids from PR_IPM_OL2007_ENTRYIDS blob using logic from common/Util.cpp Util::ExtractAdditionalRenEntryID"""
+        blob = self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value
+        pos = 0
+        while True:
+            blocktype = _utils.unpack_short(blob, pos)
+            if blocktype == 0:
+                break
+            pos += 2
+
+            totallen = _utils.unpack_short(blob, pos)
+            pos += 2
+
+            if blocktype == offset:
+                pos += 2  # skip check
+                sublen = _utils.unpack_short(blob, pos)
+                pos += 2
+                return _hex(blob[pos:pos + sublen])
+            else:
+                pos += totallen
+        raise NotFoundError('entryid not found')
 
     def delete(self, objects):
         """Delete properties, delegations or permissions from store.
