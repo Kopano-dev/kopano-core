@@ -22,7 +22,7 @@ global:
 		typeinfo*;
 		vtable*;
 		VTT*;
-		*::_Rep::_S_empty_rep_storage;
+		std::*::_S_*;
 	};
 local:
 	*;
