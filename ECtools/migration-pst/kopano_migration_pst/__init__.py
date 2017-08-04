@@ -104,7 +104,7 @@ class Service(kopano.Service):
                 for message in p.message_generator(folder):
                     with log_exc(self.log, self.stats):
                         self.log.debug("importing message '%s'" % (message.Subject or ''))
-                        message2 = folder2.create_item()
+                        message2 = folder2.create_item(save=False)
                         self.import_attachments(message, message2.mapiobj)
                         self.import_recipients(message, message2.mapiobj)
                         self.import_props(message, message2.mapiobj)
