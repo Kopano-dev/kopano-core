@@ -1252,10 +1252,10 @@ ECRESULT ECSecurity::CheckQuota(unsigned int ulStoreId, long long llStoreSize,
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulStoreId, NULL, NULL, &ulStoreType);
 	if (er != erSuccess)
 		return er;
-		
-	if(ulStoreType != ECSTORE_TYPE_PRIVATE) {
+
+	if(GetAdminLevel() == ADMIN_LEVEL_SYSADMIN || ulStoreType != ECSTORE_TYPE_PRIVATE) {
 		*lpQuotaStatus = QUOTA_OK;
-		return er; // all is good, no quota on non-private stores.
+		return er; // all is good for admin user and/or non-private stores.
 	}
 
 	// Get the store owner

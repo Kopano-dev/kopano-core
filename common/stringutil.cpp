@@ -308,32 +308,6 @@ std::string bin2hex(const std::string &input)
 	return bin2hex(input.size(), input.c_str());
 }
 
-std::wstring bin2hexw(size_t inLength, const void *vinput)
-{
-	std::wstring buffer;
-	if (vinput == nullptr)
-		return buffer;
-	if (inLength > 2048)
-		ec_log_warn("Unexpectedly large bin2hex call, %zu bytes\n", inLength);
-	else if (inLength > 64)
-		ec_log_debug("Unexpectedly large bin2hex call, %zu bytes\n", inLength);
-	static const wchar_t digits[] = L"0123456789ABCDEF";
-	auto input = static_cast<const unsigned char *>(vinput);
-
-	buffer.reserve(inLength * 2);
-	for (size_t i = 0; i < inLength; ++i) {
-		buffer += digits[input[i]>>4];
-		buffer += digits[input[i]&0x0F];
-	}
-
-	return buffer;
-}
-
-std::wstring bin2hexw(const std::string &input)
-{
-	return bin2hexw(input.size(), input.c_str());
-}
-
 /** 
  * Encodes a string for inclusion into an url.
  *

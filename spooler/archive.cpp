@@ -35,6 +35,7 @@
 
 #include <kopano/Util.h>
 #include <kopano/ECDebug.h>
+#include "PyMapiPlugin.h"
 
 using namespace std;
 using namespace KC::helpers;
@@ -378,3 +379,15 @@ void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
 
 	m_strErrorMessage.assign(oss.str());
 }
+
+#ifndef ENABLE_PYTHON
+PyMapiPluginFactory::PyMapiPluginFactory() {}
+PyMapiPluginFactory::~PyMapiPluginFactory() {}
+
+HRESULT PyMapiPluginFactory::create_plugin(ECConfig *, ECLogger *,
+    const char *, pym_plugin_intf **ret)
+{
+	*ret = new(std::nothrow) pym_plugin_intf;
+	return *ret != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
+}
+#endif

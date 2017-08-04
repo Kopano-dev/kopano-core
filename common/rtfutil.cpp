@@ -1047,9 +1047,12 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf_unfilt,
  */
 bool isrtfhtml(const char *buf, unsigned int len)
 {
+	if (len < 9)
+		return false;
+	assert(buf != nullptr);
 	for (const char *c = buf; c < buf + len - 9; ++c)
-		if (strncmp(c, "\\from", 5) == 0)
-			return strncmp(c, "\\fromhtml", 9) == 0;
+		if (memcmp(c, "\\fromhtml", 9) == 0)
+			return true;
 	return false;
 }
 
@@ -1066,9 +1069,12 @@ bool isrtfhtml(const char *buf, unsigned int len)
  */
 bool isrtftext(const char *buf, unsigned int len)
 {
+	if (len < 9)
+		return false;
+	assert(buf != nullptr);
 	for (const char *c = buf; c < buf + len - 9; ++c)
-		if (strncmp(c, "\\from", 5) == 0)
-			return strncmp(c, "\\fromtext", 9) == 0;
+		if (memcmp(c, "\\fromtext", 9) == 0)
+			return true;
 	return false;
 }
 
