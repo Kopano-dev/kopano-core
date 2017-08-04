@@ -125,7 +125,7 @@ class PersistentList(list):
 class Item(Base):
     """Item class"""
 
-    def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None, entryid=None, content_flag=None):
+    def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None, entryid=None, content_flag=None, save=True):
 
         self.emlfile = None
         self._architem = None
@@ -183,8 +183,8 @@ class Item(Base):
                         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Contact')]) # XXX set default props
                     elif container_class == 'IPF.Appointment':
                         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')]) # XXX set default props
-
-            self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            if save:
+                self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
     def mapiobj(self):
