@@ -1,6 +1,6 @@
-#!/bin/bash
-# -*- Mode: sh -*-
-# bash completion for Kopano admin command
+#-*- mode: shell-script;-*-
+
+# kopano completion (admin, backup, dagent, archiver, fsck, passwd..)
 
 shopt -q extglob
 _kopano_old_extglob=$?
