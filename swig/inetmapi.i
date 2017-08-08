@@ -7,10 +7,7 @@
 #include <inetmapi/inetmapi.h>
 %}
 
-%include "cstring.i"
 %include <kopano/typemap.i>
-
-%cstring_output_allocate(char** lppchardelete, delete []*$1);
 
 /* Finalize output parameters */
 %typemap(in,numinputs=0) (std::string *) (std::string temp) {
@@ -28,6 +25,17 @@
 
     temp = std::string(buf, size);
     $1 = &temp;
+}
+
+%typemap(in,numinputs=0) (char** lppchardelete) (char *temp) {
+	$1 = &temp;
+}
+%typemap(argout) (char** lppchardelete)
+{
+  if (*$1) {
+    %append_output(PyBytes_FromString(*$1));
+    delete[](*$1);
+  }
 }
 
 struct sending_options {
