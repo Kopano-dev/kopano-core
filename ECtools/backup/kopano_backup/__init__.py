@@ -1,26 +1,24 @@
 #!/usr/bin/env python
 import binascii
+from contextlib import closing
 import csv
 import datetime
-from contextlib import closing
 import fcntl
-try:
-    import cPickle as pickle
-except ImportError:
-    import _pickle as pickle
-
-try:
-    import dbhash
-except ImportError:
-    import dbm as dbhash
-
-import shutil
 from multiprocessing import Queue
 import os.path
+import shutil
 import sys
 import time
 from xml.etree import ElementTree
 import zlib
+try:
+    import cPickle as pickle
+except ImportError:
+    import _pickle as pickle
+if sys.hexversion >= 0x03000000:
+    import bsddb3 as bsddb
+else:
+    import bsddb
 
 from MAPI import (
     PT_UNICODE, PT_ERROR, MAPI_UNICODE, KEEP_OPEN_READWRITE, MAPI_MODIFY,
@@ -82,12 +80,40 @@ CONFIG = {
 
 CACHE_SIZE = 64000000 # XXX make configurable
 
+if sys.hexversion >= 0x03000000:
+    def _decode(s):
+        return s
+
+    def _encode(s):
+        return s
+
+    def pickle_dumps(s):
+        return pickle.dumps(s, protocol=2)
+
+    def pickle_loads(s):
+        return pickle.loads(s, encoding='bytes')
+else:
+    def _decode(s):
+        return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
+
+    def _encode(s):
+        return s.encode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
+
+    def pickle_dumps(s):
+        return pickle.dumps(s, protocol=2)
+
+    def pickle_loads(s):
+        return pickle.loads(s)
+
 def fatal(s):
     sys.stderr.write(s + "\n")
     sys.exit(1)
 
-def dbopen(path): # unfortunately dbhash.open doesn't seem to accept unicode
-    return dbhash.open(path.encode(sys.stdout.encoding or 'utf8'), 'c')
+def dbopen(path):
+    if sys.hexversion >= 0x03000000:
+        return bsddb.hashopen(path, 'c')
+    else:
+        return bsddb.hashopen(_encode(path), 'c')
 
 def _decode(s):
     return s.decode(sys.stdout.encoding or 'utf8')
@@ -114,11 +140,11 @@ def _mark_deleted(index, fpath, timestamp, log):
     log.debug("marking deleted folder '%s'", fpath)
 
     with closing(dbopen(index)) as db_index:
-        idx = db_index.get('folder')
-        d = pickle.loads(idx) if idx else {}
-        if not d.get('backup_deleted'):
-            d['backup_deleted'] = timestamp
-            db_index['folder'] = pickle.dumps(d)
+        idx = db_index.get(b'folder')
+        d = pickle_loads(idx) if idx else {}
+        if not d.get(b'backup_deleted'):
+            d[b'backup_deleted'] = timestamp
+            db_index[b'folder'] = pickle_dumps(d)
 
 class BackupWorker(kopano.Worker):
     """ each worker takes stores from a queue, and backs them up to disk (or syncs them),
@@ -171,15 +197,15 @@ class BackupWorker(kopano.Worker):
     def backup_hierarchy(self, path, stats, options, store, user, server, config):
         # backup user and store properties
         if not options.folders:
-            file(path+'/store', 'w').write(dump_props(store.props(), stats, self.log))
+            open(path+'/store', 'wb').write(dump_props(store.props(), stats, self.log))
             if user:
-                file(path+'/user', 'w').write(dump_props(user.props(), stats, self.log))
+                open(path+'/user', 'wb').write(dump_props(user.props(), stats, self.log))
                 if not options.skip_meta:
-                    file(path+'/delegates', 'w').write(dump_delegates(user, server, stats, self.log)) # XXX why 'if user'?
-                    file(path+'/acl', 'w').write(dump_acl(store, user, server, stats, self.log))
+                    open(path+'/delegates', 'wb').write(dump_delegates(user, server, stats, self.log)) # XXX why 'if user'?
+                    open(path+'/acl', 'wb').write(dump_acl(store, user, server, stats, self.log))
 
         # time of last backup
-        file(path+'/timestamp', 'w').write(pickle.dumps(self.service.timestamp))
+        open(path+'/timestamp', 'wb').write(pickle_dumps(self.service.timestamp))
         if not os.path.exists(path+'/folders'):
             os.makedirs(path+'/folders')
 
@@ -221,7 +247,7 @@ class BackupWorker(kopano.Worker):
         # timestamp deleted folders
         if not options.folders:
             for del_sk in set(sk_dir) - set(sk_folder):
-                fpath = file(path+'/'+sk_dir[del_sk]+'/path').read().decode('utf8')
+                fpath = open(path+'/'+sk_dir[del_sk]+'/path', 'rb').read().decode('utf8')
                 index = (path+'/'+sk_dir[del_sk]+'/index')
                 _mark_deleted(index, fpath, self.service.timestamp, self.log)
 
@@ -234,11 +260,11 @@ class BackupWorker(kopano.Worker):
             os.makedirs(data_path)
 
         # backup folder properties, path, metadata
-        file(data_path+'/path', 'w').write(folder.path.encode('utf8'))
-        file(data_path+'/folder', 'w').write(dump_props(folder.props(), stats, self.log))
+        open(data_path+'/path', 'wb').write(folder.path.encode('utf8'))
+        open(data_path+'/folder', 'wb').write(dump_props(folder.props(), stats, self.log))
         if not options.skip_meta:
-            file(data_path+'/acl', 'w').write(dump_acl(folder, user, server, stats, self.log))
-            file(data_path+'/rules', 'w').write(dump_rules(folder, user, server, stats, self.log))
+            open(data_path+'/acl', 'wb').write(dump_acl(folder, user, server, stats, self.log))
+            open(data_path+'/rules', 'wb').write(dump_rules(folder, user, server, stats, self.log))
         if options.only_meta:
             return
 
@@ -248,13 +274,13 @@ class BackupWorker(kopano.Worker):
         if orig_data_path:
             orig_statepath = '%s/state' % orig_data_path
             if os.path.exists(orig_statepath):
-                state = file(orig_statepath).read()
+                state = open(orig_statepath, 'rb').read()
                 self.log.info('found previous folder sync state: %s', state)
         new_state = folder.sync(importer, state, log=self.log, stats=stats, begin=options.period_begin, end=options.period_end)
         if new_state != state or options.differential:
             importer.commit()
             statepath = '%s/state' % data_path
-            file(statepath, 'w').write(new_state)
+            open(statepath, 'wb').write(new_state.encode('ascii'))
             self.log.debug('saved folder sync state: %s', new_state)
 
 class FolderImporter:
@@ -281,11 +307,11 @@ class FolderImporter:
             orig_prop = item.get_prop(PR_EC_BACKUP_SOURCE_KEY)
             if orig_prop:
                 orig_prop = orig_prop.value.encode('hex').upper()
-            idx = pickle.dumps({
-                'subject': item.subject,
-                'orig_sourcekey': orig_prop,
-                'last_modified': item.last_modified,
-                'backup_updated': self.service.timestamp,
+            idx = pickle_dumps({
+                b'subject': item.subject,
+                b'orig_sourcekey': orig_prop,
+                b'last_modified': item.last_modified,
+                b'backup_updated': self.service.timestamp,
             })
             self.index_updates.append((item.sourcekey, idx))
 
@@ -305,12 +331,12 @@ class FolderImporter:
             self.log.debug('folder %s: deleted document with sourcekey %s', self.folder.sourcekey, item.sourcekey)
 
             if item.sourcekey in db_items: # ICS may generate delete events without update events (soft-deletes?)
-                idx = pickle.loads(db_index[item.sourcekey])
-                idx['backup_deleted'] = self.service.timestamp
-                db_index[item.sourcekey] = pickle.dumps(idx)
+                idx = pickle_loads(db_index[item.sourcekey])
+                idx[b'backup_deleted'] = self.service.timestamp
+                db_index[item.sourcekey.encode('ascii')] = pickle_dumps(idx)
             else:
-                db_index[item.sourcekey] = pickle.dumps({
-                    'backup_deleted': self.service.timestamp
+                db_index[item.sourcekey.encode('ascii')] = pickle_dumps({
+                    b'backup_deleted': self.service.timestamp
                 })
             self.stats['deletes'] += 1
 
@@ -322,9 +348,9 @@ class FolderImporter:
          with closing(dbopen(self.folder_path+'/index')) as index_db:
 
             for sourcekey, data in self.item_updates:
-                item_db[sourcekey] = data
+                item_db[sourcekey.encode('ascii')] = data
             for sourcekey, idx in self.index_updates:
-                index_db[sourcekey] = idx
+                index_db[sourcekey.encode('ascii')] = idx
 
         self.log.debug('commit took %.2f seconds (%d items)', time.time()-t0, len(self.item_updates))
         self.reset_cache()
@@ -400,7 +426,7 @@ class Service(kopano.Service):
         # restore metadata (webapp/mapi settings)
         if user and not self.options.folders and not self.options.skip_meta:
             if os.path.exists('%s/store' % data_path):
-                storeprops = pickle.loads(file('%s/store' % data_path).read())
+                storeprops = pickle_loads(open('%s/store' % data_path, 'rb').read())
                 for proptag in (PR_EC_WEBACCESS_SETTINGS_JSON, PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG,
                                 PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL):
                     if PROP_TYPE(proptag) == PT_TSTRING:
@@ -410,9 +436,9 @@ class Service(kopano.Service):
                         store.mapiobj.SetProps([SPropValue(proptag, value)])
                 store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
             if os.path.exists('%s/delegates' % data_path):
-                load_delegates(user, self.server, file('%s/delegates' % data_path).read(), stats, self.log)
+                load_delegates(user, self.server, open('%s/delegates' % data_path, 'rb').read(), stats, self.log)
             if os.path.exists('%s/acl' % data_path):
-                load_acl(store, user, self.server, file('%s/acl' % data_path).read(), stats, self.log)
+                load_acl(store, user, self.server, open('%s/acl' % data_path, 'rb').read(), stats, self.log)
 
         # determine stored and specified folders
         path_folder = folder_struct(data_path, self.options)
@@ -447,8 +473,8 @@ class Service(kopano.Service):
         if not (self.options.sourcekeys or self.options.skip_meta):
             self.log.info('restoring metadata')
             for (folder, fpath) in restored:
-                load_acl(folder, user, self.server, file(fpath+'/acl').read(), stats, self.log)
-                load_rules(folder, user, self.server, file(fpath+'/rules').read(), stats, self.log)
+                load_acl(folder, user, self.server, open(fpath+'/acl', 'rb').read(), stats, self.log)
+                load_rules(folder, user, self.server, open(fpath+'/rules', 'rb').read(), stats, self.log)
 
         self.log.info('restore completed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)',
             time.time()-t0, stats['changes'], stats['changes']/(time.time()-t0), stats['errors'])
@@ -471,8 +497,8 @@ class Service(kopano.Service):
                 with closing(dbopen(fpath+'/items')) as db_items:
                     with closing(dbopen(fpath+'/index')) as db_index:
                         for item, idx in db_index.items():
-                            d = pickle.loads(idx)
-                            backup_deleted = d.get('backup_deleted')
+                            d = pickle_loads(idx)
+                            backup_deleted = d.get(b'backup_deleted')
                             if backup_deleted and (self.timestamp - backup_deleted).days > self.options.purge:
                                 self.log.debug('purging item: %s', item)
                                 stats['items'] += 1
@@ -491,7 +517,7 @@ class Service(kopano.Service):
             diff_path = diff_base+'/'+diff_id
             self.log.info("merging differential backup '%s' into '%s'", diff_path, data_path)
 
-            timestamp = pickle.loads(file(diff_path+'/timestamp').read())
+            timestamp = pickle_loads(open(diff_path+'/timestamp', 'rb').read())
 
             orig_sk_dir = sk_struct(data_path, self.options)
             diff_sk_dir = sk_struct(diff_path, self.options)
@@ -500,14 +526,14 @@ class Service(kopano.Service):
             for new_sk in set(diff_sk_dir) - set(orig_sk_dir):
                 from_dir = diff_path+'/'+diff_sk_dir[new_sk]
                 to_dir = data_path+'/folders/'+new_sk
-                fpath = file(from_dir+'/path').read().decode('utf8')
+                fpath = open(from_dir+'/path', 'rb').read().decode('utf8')
                 self.log.debug("merging new folder '%s'", fpath)
                 _copy_folder_meta(from_dir, to_dir)
 
             # update existing folders # XXX check matching & higher syncstate?
             for both_sk in set(orig_sk_dir) & set(diff_sk_dir):
                 folder_dir = diff_path+'/'+diff_sk_dir[both_sk]
-                fpath = file(folder_dir+'/path').read().decode('utf8')
+                fpath = open(folder_dir+'/path', 'rb').read().decode('utf8')
                 orig_dir = data_path+'/'+orig_sk_dir[both_sk]
 
                 # now merge new data
@@ -521,11 +547,11 @@ class Service(kopano.Service):
 
                         for key, value in diff_db_index.items():
                             if key in orig_db_index:
-                                idx = pickle.loads(orig_db_index[key])
-                                idx.update(pickle.loads(value)) # possibly only update 'backup_deleted' (differential)
+                                idx = pickle_loads(orig_db_index[key])
+                                idx.update(pickle_loads(value)) # possibly only update 'backup_deleted' (differential)
                             else:
-                                idx = pickle.loads(value)
-                            orig_db_index[key] = pickle.dumps(idx)
+                                idx = pickle_loads(value)
+                            orig_db_index[key] = pickle_dumps(idx)
 
                             if key in diff_db_items:
                                 orig_db_items[key] = diff_db_items[key] # differential may contain pure delete (no item)
@@ -535,7 +561,7 @@ class Service(kopano.Service):
             # timestamp deleted folders
             for del_sk in set(orig_sk_dir) - set(diff_sk_dir):
                 orig_dir = data_path+'/'+orig_sk_dir[del_sk]
-                fpath = file(orig_dir+'/path').read().decode('utf8')
+                fpath = open(orig_dir+'/path', 'rb').read().decode('utf8')
 
                 _mark_deleted(orig_dir+'/index', fpath, timestamp, self.log)
 
@@ -598,7 +624,7 @@ class Service(kopano.Service):
             self.log.debug('restoring folder %s', path)
 
             # restore container class
-            folderprops = pickle.loads(file('%s/folder' % data_path).read())
+            folderprops = pickle_loads(open('%s/folder' % data_path, 'rb').read())
             container_class = folderprops.get(long(PR_CONTAINER_CLASS_W))
             if container_class:
                 folder.container_class = container_class
@@ -615,7 +641,7 @@ class Service(kopano.Service):
 
         # load entry from 'index', so we don't have to unpickle everything
         with closing(dbopen(data_path+'/index')) as db:
-            index = dict((a, pickle.loads(b)) for (a,b) in db.iteritems())
+            index = dict((a, pickle_loads(b)) for (a,b) in db.iteritems())
 
         # now dive into 'items', and restore desired items
         with closing(dbopen(data_path+'/items')) as db:
@@ -627,14 +653,14 @@ class Service(kopano.Service):
             for sourcekey2 in sourcekeys:
                 with log_exc(self.log, stats):
                     # date check against 'index'
-                    last_modified = index[sourcekey2]['last_modified']
+                    last_modified = index[sourcekey2][b'last_modified']
                     if ((self.options.period_begin and last_modified < self.options.period_begin) or
                         (self.options.period_end and last_modified >= self.options.period_end) or
-                        (index[sourcekey2].get('backup_deleted') and self.options.deletes in (None, 'no'))):
+                        (index[sourcekey2].get(b'backup_deleted') and self.options.deletes in (None, 'no'))):
                         continue
 
                     # check for duplicates
-                    if sourcekey2 in existing or index[sourcekey2]['orig_sourcekey'] in existing:
+                    if sourcekey2 in existing or index[sourcekey2][b'orig_sourcekey'] in existing:
                         self.log.warning('skipping duplicate item with sourcekey %s', sourcekey2)
                     else:
                         # actually restore item
@@ -684,7 +710,7 @@ def folder_struct(data_path, options, mapper=None): # XXX deprecate?
     if mapper is None:
         mapper = {}
     if os.path.exists(data_path+'/path'):
-        path = file(data_path+'/path').read().decode('utf8')
+        path = open(data_path+'/path', 'rb').read().decode('utf8')
         mapper[path] = data_path
     if os.path.exists(data_path+'/folders'):
         for f in os.listdir(data_path+'/folders'):
@@ -705,10 +731,10 @@ def folder_path(folder, subtree):
 
 def folder_deleted(data_path):
     if os.path.exists(data_path+'/index'):
-        with closing(dbhash.open(data_path+'/index')) as db:
-           idx = db.get('folder')
-           if idx and pickle.loads(idx).get('backup_deleted'):
-               return pickle.loads(idx).get('backup_deleted')
+        with closing(bsddb.hashopen(data_path+'/index')) as db:
+           idx = db.get(b'folder')
+           if idx and pickle_loads(idx).get(b'backup_deleted'):
+               return pickle_loads(idx).get(b'backup_deleted')
     return None
 
 def show_contents(data_path, options):
@@ -735,26 +761,26 @@ def show_contents(data_path, options):
 
         # filter items on date using 'index' database
         if os.path.exists(data_path+'/index'):
-            with closing(dbhash.open(data_path+'/index')) as db:
+            with closing(bsddb.hashopen(data_path+'/index')) as db:
                 for key, value in db.iteritems():
-                    d = pickle.loads(value)
-                    if ((key == 'folder') or
-                        (options.period_begin and d['last_modified'] < options.period_begin) or
-                        (options.period_end and d['last_modified'] >= options.period_end) or
-                        (options.deletes == 'no' and d.get('backup_deleted'))):
+                    d = pickle_loads(value)
+                    if ((key == b'folder') or
+                        (options.period_begin and d[b'last_modified'] < options.period_begin) or
+                        (options.period_end and d[b'last_modified'] >= options.period_end) or
+                        (options.deletes == 'no' and d.get(b'backup_deleted'))):
                         continue
-                    if 'last_modified' in d: # ignore sourcekey-only deletes (differential)
+                    if b'last_modified' in d: # ignore sourcekey-only deletes (differential)
                         items.append((key, d))
 
         # --stats: one entry per folder
         if options.stats:
-            writer.writerow([path.encode(sys.stdout.encoding or 'utf8'), len(items)])
+            writer.writerow([_encode(path), len(items)])
 
         # --index: one entry per item
         elif options.index:
-            items = sorted(items, key=lambda item: item[1]['last_modified'])
+            items = sorted(items, key=lambda item: item[1][b'last_modified'])
             for key, d in items:
-                writer.writerow([key, path.encode(sys.stdout.encoding or 'utf8'), d['last_modified'], d['subject'].encode(sys.stdout.encoding or 'utf8')])
+                writer.writerow([key.decode('ascii'), _encode(path), d[b'last_modified'], _encode(d[b'subject'])])
 
 def dump_props(props, stats, log):
     """ dump given MAPI properties """
@@ -762,7 +788,7 @@ def dump_props(props, stats, log):
     data = {}
     with log_exc(log, stats):
         data = dict((prop.proptag, prop.mapiobj.Value) for prop in props)
-    return pickle.dumps(data)
+    return pickle_dumps(data)
 
 def dump_acl(obj, user, server, stats, log):
     """ dump acl for given store or folder """
@@ -782,13 +808,13 @@ def dump_acl(obj, user, server, stats, log):
                     log.warning("skipping access control entry for unknown user/group %s", entryid.encode('hex').upper())
                     continue
             rows.append(row)
-    return pickle.dumps(rows)
+    return pickle_dumps(rows)
 
 def load_acl(obj, user, server, data, stats, log):
     """ load acl for given store or folder """
 
     with log_exc(log, stats):
-        data = pickle.loads(data)
+        data = pickle_loads(data)
         rows = []
         for row in data:
             try:
@@ -832,13 +858,13 @@ def dump_rules(folder, user, server, stats, log):
                     except (MAPIErrorNotFound, kopano.NotFoundError, binascii.Error):
                         log.warning("cannot serialize rule for unknown store/folder")
             ruledata = ElementTree.tostring(etxml)
-    return pickle.dumps(ruledata)
+    return pickle_dumps(ruledata)
 
 def load_rules(folder, user, server, data, stats, log):
     """ load rules for given folder """
 
     with log_exc(log, stats):
-        data = pickle.loads(data)
+        data = pickle_loads(data)
         if data:
             etxml = ElementTree.fromstring(data)
             for actions in etxml.findall('./item/item/actions'):
@@ -883,14 +909,14 @@ def dump_delegates(user, server, stats, log):
             except MAPIErrorNotFound:
                 log.warning("skipping delegate user for unknown userid")
 
-    return pickle.dumps(usernames)
+    return pickle_dumps(usernames)
 
 def load_delegates(user, server, data, stats, log):
     """ load delegate users for given user """
 
     with log_exc(log, stats):
         userids = []
-        for name in pickle.loads(data):
+        for name in pickle_loads(data):
             try:
                 userids.append(server.user(name).userid.decode('hex'))
             except kopano.NotFoundError:
