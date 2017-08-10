@@ -141,11 +141,11 @@ void *ECWorkerThread::Work(void *lpParam)
     ECRESULT er = erSuccess;
     bool fStop = false;
 	int err = 0;
+	pthread_t thrself = pthread_self();
 
-	ec_log_debug("Started%sthread %08x", lpPrio ? " priority " : " ", (ULONG)pthread_self());
-    
+	ec_log_debug("Started%sthread %08x", lpPrio ? " priority " : " ", static_cast<ULONG>(thrself));
     while(1) {
-		set_thread_name(pthread_self(), "z-s: idle thread");
+		set_thread_name(thrself, "z-s: idle thread");
 
         // Get the next work item, don't wait for new items
         if(lpThis->m_lpDispatcher->GetNextWorkItem(&lpWorkItem, false, lpPrio != NULL) != erSuccess) {
@@ -154,7 +154,7 @@ void *ECWorkerThread::Work(void *lpParam)
             
             // We were requested to exit due to idle state
             if(fStop) {
-				ec_log_debug("Thread %08x idle and requested to exit", (ULONG)pthread_self());
+				ec_log_debug("Thread %08x idle and requested to exit", static_cast<ULONG>(thrself));
                 break;
             }
                 
@@ -165,7 +165,7 @@ void *ECWorkerThread::Work(void *lpParam)
                 continue;
         }
 
-		set_thread_name(pthread_self(), format("z-s: %s", lpWorkItem->soap->host).c_str());
+		set_thread_name(thrself, format("z-s: %s", lpWorkItem->soap->host).c_str());
 
 		// For SSL connections, we first must do the handshake and pass it back to the queue
 		if (lpWorkItem->soap->ctx && !lpWorkItem->soap->ssl) {
@@ -240,7 +240,7 @@ done:
 
             // Tell the session we're done processing the request for this session. This will also tell the session that this
             // thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
-            g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, pthread_self());
+			g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
             
 		// Track cpu usage server-wide
 		g_lpStatsCollector->Increment(SCN_SOAP_REQUESTS);
