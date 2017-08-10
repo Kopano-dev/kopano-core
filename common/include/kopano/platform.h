@@ -150,6 +150,7 @@ extern _kc_export void give_filesize_hint(int fd, off_t len);
 
 extern _kc_export bool force_buffers_to_disk(int fd);
 extern _kc_export int ec_relocate_fd(int);
+extern _kc_export void kcsrv_blocksigs(void);
 
 } /* namespace */
 

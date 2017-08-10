@@ -47,6 +47,7 @@ static void submitThreadDo(void *p)
 
 static void *submitThread(void *p)
 {
+	kcsrv_blocksigs();
 	StatsClient *const psc = (StatsClient *)p;
 
 	psc -> getLogger() -> Log(EC_LOGLEVEL_DEBUG, "Submit thread started");

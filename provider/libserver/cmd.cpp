@@ -8722,6 +8722,7 @@ namespace KC {
 
 void *SoftDeleteRemover(void *lpTmpMain)
 {
+	kcsrv_blocksigs();
 	ECRESULT		er = erSuccess;
 	ECRESULT*		lper = NULL;
 	const char *lpszSetting = NULL;

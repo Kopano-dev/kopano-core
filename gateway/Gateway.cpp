@@ -261,6 +261,16 @@ exit:
 	return NULL;
 }
 
+static void *Handler_Threaded(void *a)
+{
+	/*
+	 * Steer the control signals to the main thread for consistency with
+	 * the forked mode.
+	 */
+	kcsrv_blocksigs();
+	return Handler(a);
+}
+
 int main(int argc, char *argv[]) {
 	HRESULT hr = hrSuccess;
 	int c = 0;
@@ -659,7 +669,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			const char *model = bThreads ? "thread" : "process";
 			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Starting worker %s for %s request", model, method);
 			if (bThreads) {
-				if (pthread_create(&POP3Thread, &ThreadAttr, Handler, lpHandlerArgs) != 0) {
+				if (pthread_create(&POP3Thread, &ThreadAttr, Handler_Threaded, lpHandlerArgs) != 0) {
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't create %s %s.", method, model);
 					// just keep running
 					delete lpHandlerArgs->lpChannel;
@@ -714,7 +724,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			const char *model = bThreads ? "thread" : "process";
 			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Starting worker %s for %s request", model, method);
 			if (bThreads) {
-				if (pthread_create(&IMAPThread, &ThreadAttr, Handler, lpHandlerArgs) != 0) {
+				if (pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs) != 0) {
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create %s %s.", method, model);
 					// just keep running
 					delete lpHandlerArgs->lpChannel;
