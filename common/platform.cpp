@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#define _GNU_SOURCE 1
 #include <kopano/platform.h>
 #include <cerrno>
 #include <cstdlib>
@@ -26,6 +26,7 @@
 #include <unistd.h>
 
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <sys/time.h> /* gettimeofday */
 #include <kopano/ECLogger.h>
 #include "TmpPath.h"
@@ -374,6 +375,21 @@ void kcsrv_blocksigs(void)
 	sigaddset(&m, SIGHUP);
 	sigaddset(&m, SIGTERM);
 	pthread_sigmask(SIG_BLOCK, &m, nullptr);
+}
+
+/*
+ * Used for logging only. Can return anything as long as it is unique
+ * per thread.
+ */
+unsigned long kc_threadid(void)
+{
+#if defined(LINUX)
+	return syscall(SYS_gettid);
+#elif defined(OPENBSD)
+	return getthrid();
+#else
+	return pthread_self();
+#endif
 }
 
 } /* namespace */

@@ -143,7 +143,7 @@ void *ECWorkerThread::Work(void *lpParam)
 	int err = 0;
 	pthread_t thrself = pthread_self();
 
-	ec_log_debug("Started%sthread %08x", lpPrio ? " priority " : " ", static_cast<ULONG>(thrself));
+	ec_log_debug("Started%sthread %lu", lpPrio ? " priority " : " ", kc_threadid());
     while(1) {
 		set_thread_name(thrself, "z-s: idle thread");
 
@@ -154,7 +154,7 @@ void *ECWorkerThread::Work(void *lpParam)
             
             // We were requested to exit due to idle state
             if(fStop) {
-				ec_log_debug("Thread %08x idle and requested to exit", static_cast<ULONG>(thrself));
+				ec_log_debug("Thread %lu idle and requested to exit", kc_threadid());
                 break;
             }
                 
