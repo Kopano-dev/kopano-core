@@ -19,7 +19,7 @@ def _convert(s):
 class FileTime(object):
     def __init__(self, filetime):
         self.filetime = filetime
-        
+
     def datetime(self):
         return datetime.datetime.fromtimestamp(self.unixtime)
 
@@ -28,7 +28,7 @@ class FileTime(object):
             return (self.filetime - NANOSECS_BETWEEN_EPOCH) / 10000000;
         else:
             raise AttributeError
-        
+
     def __setstate__(self, d):
         # XXX pickle with python2, unpickle with python3 (encoding='bytes')
         for k, v in d.items():
@@ -39,18 +39,25 @@ class FileTime(object):
             self.filetime = val * 10000000 + NANOSECS_BETWEEN_EPOCH
         else:
             object.__setattr__(self, attr, val)
-            
+
     def __repr__(self):
         try:
             return time.strftime("%Y/%m/%d %H:%M:%S GMT", time.gmtime(self.unixtime))
         except ValueError:
             return '%d' % (self.filetime)
-    def __cmp__(self, other):
-        return cmp(self.filetime, other.filetime)
-        
 
+    def __lt__(self, other):
+        return self.filetime < other.filetime
+    def __le__(self, other):
+        return self.filetime <= other.filetime
+    def __gt__(self, other):
+        return self.filetime > other.filetime
+    def __ge__(self, other):
+        return self.filetime >= other.filetime
     def __eq__(self, other):
-        return isinstance(other, FileTime) and self.__dict__ == other.__dict__
+        return isinstance(other, FileTime) and self.filetime == other.filetime
+    def __ne__(self, other):
+        return not isinstance(other, FileTime) or self.filetime != other.filetime
 
 # convert unixtime to PT_SYSTIME.. (bad name, as it sounds like the result is a unixtime)
 
