@@ -7,6 +7,8 @@ Fixes:
 * common: fix incorrect condition in scheduler [KC-638]
   Fixes timing of softdeletes, sync-table cleanups, kopano-monitor.
 * server: disable reminders from shared stores [KC-728]
+* libserver: avoid creating multi-stream gzip files [KC-104, KC-314, KC-597]
+* monitor: do not check quota for admin user [KC-773]
 Changes:
 * server: build with libs3 4.1 [KC-751]
 
