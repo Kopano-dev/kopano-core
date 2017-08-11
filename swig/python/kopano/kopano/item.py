@@ -45,7 +45,7 @@ from MAPI.Tags import (
     PR_MESSAGE_DELIVERY_TIME, PR_LAST_MODIFICATION_TIME,
     PR_MESSAGE_FLAGS, PR_PARENT_ENTRYID, PR_IMPORTANCE,
     PR_ATTACH_NUM, PR_ATTACH_METHOD, PR_ATTACH_DATA_BIN,
-    PR_TRANSPORT_MESSAGE_HEADERS_W, PR_ATTACH_DATA_OBJ, PR_ICON_INDEX,
+    PR_TRANSPORT_MESSAGE_HEADERS, PR_ATTACH_DATA_OBJ, PR_ICON_INDEX,
     PR_EC_IMAP_EMAIL, PR_SENTMAIL_ENTRYID, PR_DELETE_AFTER_SUBMIT,
     PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W,
     PR_SENDER_ENTRYID, PR_SENT_REPRESENTING_ADDRTYPE_W,
@@ -467,8 +467,11 @@ class Item(Base):
         """ Return transport message headers """
 
         try:
-            message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS_W)
-            headers = email.parser.Parser().parsestr(_encode(message_headers.value), headersonly=True)
+            message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS)
+            if sys.hexversion >= 0x03000000:
+                headers = email.parser.BytesParser().parsebytes(message_headers.value, headersonly=True)
+            else:
+                headers = email.parser.Parser().parsestr(message_headers.value, headersonly=True)
             return headers
         except NotFoundError:
             return {}
