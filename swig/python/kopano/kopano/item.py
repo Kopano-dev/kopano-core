@@ -665,10 +665,10 @@ class Item(Base):
         """ Return recipient :class:`addresses <Address>` """
 
         for row in self.table(PR_MESSAGE_RECIPIENTS):
-            row = dict([(x.proptag, x) for x in row])
-            if not _type or row[PR_RECIPIENT_TYPE].value == _type:
-                args = [row[p].value if p in row else None for p in (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_SEARCH_KEY)]
-                yield Address(self.server, *args)
+            row2 = dict([(x.proptag, x) for x in row])
+            if not _type or row2[PR_RECIPIENT_TYPE].value == _type:
+                args = [row2[p].value if p in row2 else None for p in (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_SEARCH_KEY)]
+                yield Address(self.server, *args, props=row)
 
     @property
     def to(self):
