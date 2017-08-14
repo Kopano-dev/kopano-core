@@ -342,7 +342,7 @@ class Property(object):
                 return u'01'[v]
             elif v is None:
                 return ''
-            elif self.type_ in (PT_BINARY, PT_MV_BINARY):
+            elif self.type_ in (PT_BINARY, PT_MV_BINARY) or isinstance(v, bytes):
                 return _hex(v)
             else:
                 return _unicode(v)
