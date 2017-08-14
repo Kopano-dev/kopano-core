@@ -56,7 +56,7 @@ class Plugin:
         tg.index_text(text)
         return [t.term.decode('utf-8') for t in doc.termlist()]
 
-    def search(self, server_guid, store_guid, folder_ids, fields_terms, query, log):
+    def search(self, server_guid, store_guid, folder_ids, fields_terms, query, limit_results, log):
         """ handle query; see links in the top for a description of the Xapian API """
 
         db = self.open_db(server_guid, store_guid, log=log)
@@ -75,7 +75,7 @@ class Plugin:
         enquire = xapian.Enquire(db)
         enquire.set_query(query)
         matches = []
-        for match in enquire.get_mset(0, db.get_doccount()): # XXX catch exception if database is being updated?
+        for match in enquire.get_mset(0, limit_results or db.get_doccount()): # XXX catch exception if database is being updated?
             matches.append(match.document.get_value(0).decode('ascii'))
         db.close()
         return matches

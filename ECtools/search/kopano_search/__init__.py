@@ -173,8 +173,7 @@ class SearchWorker(kopano.Worker):
                             else:
                                 restrictions.append('('+' AND '.join('%s*' % term for term in terms)+')')
                         query = ' AND '.join(restrictions) # plugin doesn't have to use this relatively standard query format
-                        docids = plugin.search(server_guid, store_guid, folder_ids, fields_terms, query, self.log)
-                        docids = docids[:config['limit_results'] or len(docids)]
+                        docids = plugin.search(server_guid, store_guid, folder_ids, fields_terms, query, config['limit_results'], self.log)
                         response(conn, 'OK: '+' '.join(map(str, docids)))
                         self.log.info('found %d results in %.2f seconds', len(docids), time.time()-t0)
                         break
