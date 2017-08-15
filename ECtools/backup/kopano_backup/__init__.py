@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import binascii
+import codecs
 from contextlib import closing
 import csv
 import datetime
@@ -105,6 +106,12 @@ else:
     def pickle_loads(s):
         return pickle.loads(s)
 
+def _hex(s):
+    return codecs.encode(s, 'hex').upper()
+
+def _unhex(s):
+    return codecs.decode(s, 'hex')
+
 def fatal(s):
     sys.stderr.write(s + "\n")
     sys.exit(1)
@@ -114,9 +121,6 @@ def dbopen(path):
         return bsddb.hashopen(path, 'c')
     else:
         return bsddb.hashopen(_encode(path), 'c')
-
-def _decode(s):
-    return s.decode(sys.stdout.encoding or 'utf8')
 
 def _copy_folder_meta(from_dir, to_dir, keep_db=False):
     if not os.path.exists(to_dir):
@@ -275,7 +279,7 @@ class BackupWorker(kopano.Worker):
             orig_statepath = '%s/state' % orig_data_path
             if os.path.exists(orig_statepath):
                 state = open(orig_statepath, 'rb').read()
-                self.log.info('found previous folder sync state: %s', state)
+                self.log.debug('found previous folder sync state: %s', state)
         new_state = folder.sync(importer, state, log=self.log, stats=stats, begin=options.period_begin, end=options.period_end)
         if new_state != state or options.differential:
             importer.commit()
@@ -306,7 +310,7 @@ class FolderImporter:
 
             orig_prop = item.get_prop(PR_EC_BACKUP_SOURCE_KEY)
             if orig_prop:
-                orig_prop = orig_prop.value.encode('hex').upper()
+                orig_prop = _hex(orig_prop.value)
             idx = pickle_dumps({
                 b'subject': item.subject,
                 b'orig_sourcekey': orig_prop,
@@ -625,7 +629,7 @@ class Service(kopano.Service):
 
             # restore container class
             folderprops = pickle_loads(open('%s/folder' % data_path, 'rb').read())
-            container_class = folderprops.get(long(PR_CONTAINER_CLASS_W))
+            container_class = folderprops.get(PR_CONTAINER_CLASS_W)
             if container_class:
                 folder.container_class = container_class
 
@@ -635,9 +639,9 @@ class Service(kopano.Service):
         table.SetColumns([PR_SOURCE_KEY, PR_EC_BACKUP_SOURCE_KEY], 0)
         for row in table.QueryRows(-1, 0):
             if PROP_TYPE(row[1].ulPropTag) != PT_ERROR:
-                existing.add(row[1].Value.encode('hex').upper())
+                existing.add(_hex(row[1].Value))
             else:
-                existing.add(row[0].Value.encode('hex').upper())
+                existing.add(_hex(row[0].Value))
 
         # load entry from 'index', so we don't have to unpickle everything
         with closing(dbopen(data_path+'/index')) as db:
@@ -671,7 +675,7 @@ class Service(kopano.Service):
                         try:
                             item.prop(PR_EC_BACKUP_SOURCE_KEY)
                         except (MAPIErrorNotFound, kopano.NotFoundError):
-                            item.mapiobj.SetProps([SPropValue(PR_EC_BACKUP_SOURCE_KEY, sourcekey2.decode('hex'))])
+                            item.mapiobj.SetProps([SPropValue(PR_EC_BACKUP_SOURCE_KEY, _unhex(sourcekey2))])
                             item.mapiobj.SaveChanges(0)
 
                         stats['changes'] += 1
@@ -805,7 +809,7 @@ def dump_acl(obj, user, server, stats, log):
                 try:
                     row[1].Value = ('group', server.sa.GetGroup(entryid, MAPI_UNICODE).Groupname)
                 except MAPIErrorNotFound:
-                    log.warning("skipping access control entry for unknown user/group %s", entryid.encode('hex').upper())
+                    log.warning("skipping access control entry for unknown user/group %s", _hex(entryid))
                     continue
             rows.append(row)
     return pickle_dumps(rows)
@@ -823,7 +827,7 @@ def load_acl(obj, user, server, data, stats, log):
                     entryid = server.user(value).userid
                 else:
                     entryid = server.group(value).groupid
-                row[1].Value = entryid.decode('hex')
+                row[1].Value = _unhex(entryid)
                 rows.append(row)
             except kopano.NotFoundError:
                 log.warning("skipping access control entry for unknown user/group '%s'", value)
@@ -846,14 +850,14 @@ def dump_rules(folder, user, server, stats, log):
                     try:
                         s = movecopy.findall('store')[0]
                         store = server.mapisession.OpenMsgStore(0, s.text.decode('base64'), None, 0)
-                        guid = HrGetOneProp(store, PR_STORE_RECORD_KEY).Value.encode('hex')
+                        guid = _hex(HrGetOneProp(store, PR_STORE_RECORD_KEY).Value)
                         store = server.store(guid) # XXX guid doesn't work for multiserver?
                         if store.public:
                             s.text = 'public'
                         else:
                             s.text = store.user.name if store != user.store else ''
                         f = movecopy.findall('folder')[0]
-                        path = store.folder(entryid=f.text.decode('base64').encode('hex')).path
+                        path = store.folder(entryid=_hex(f.text.decode('base64'))).path
                         f.text = path
                     except (MAPIErrorNotFound, kopano.NotFoundError, binascii.Error):
                         log.warning("cannot serialize rule for unknown store/folder")
@@ -875,9 +879,9 @@ def load_rules(folder, user, server, data, stats, log):
                             store = server.public_store
                         else:
                             store = server.user(s.text).store if s.text else user.store
-                        s.text = store.entryid.decode('hex').encode('base64').strip()
+                        s.text = _unhex(store.entryid).encode('base64').strip()
                         f = movecopy.findall('folder')[0]
-                        f.text = store.folder(f.text).entryid.decode('hex').encode('base64').strip()
+                        f.text = _unhex(store.folder(f.text).entryid).encode('base64').strip()
                     except kopano.NotFoundError:
                         log.warning("skipping rule for unknown store/folder")
             etxml = ElementTree.tostring(etxml)
@@ -918,7 +922,7 @@ def load_delegates(user, server, data, stats, log):
         userids = []
         for name in pickle_loads(data):
             try:
-                userids.append(server.user(name).userid.decode('hex'))
+                userids.append(_unhex(server.user(name).userid))
             except kopano.NotFoundError:
                 log.warning("skipping delegation for unknown user '%s'", name)
 
