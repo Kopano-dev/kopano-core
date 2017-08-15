@@ -22,7 +22,7 @@ if o.eml == None:
 	print('EML file missing')
 	sys.exit(1)
 
-eml_file_data = open(o.eml).read()
+eml_file_data = open(o.eml, 'rb').read()
 
 random.seed()
 
