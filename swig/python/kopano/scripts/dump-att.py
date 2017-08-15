@@ -19,5 +19,5 @@ for user in server.users(): # checks command-line for -u/--user
                 h = md5.new(item.subject + ' ' + att.filename + ' ' + item.sourcekey).hexdigest()
                 filename = h + '_' + att.filename
                 print 'file %s: %d bytes' % (filename, len(att.data))
-                with open(filename, 'w') as f:
+                with open(filename, 'wb') as f:
                     f.write(att.data)

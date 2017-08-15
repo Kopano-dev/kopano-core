@@ -11,6 +11,13 @@ DT_EQUIPMENT = 8
 
 # XXX ZCP-9901 still relevant without outlook?
 
+if sys.hexversion >= 0x03000000:
+    def _decode(s):
+        return s
+else:
+    def _decode(s):
+        return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
+
 def capacity(user): # XXX pyko?
     """ equipment resources can be overbooked up to N times """
 
@@ -72,7 +79,7 @@ def conflict_message(occurrences):
     return '\n'.join(lines)
 
 def main():
-    username, config, entryid = [arg.decode('utf8') for arg in sys.argv[1:]]
+    username, config, entryid = [_decode(arg) for arg in sys.argv[1:]]
 
     server = kopano.Server()
     user = server.user(username)

@@ -3,8 +3,15 @@ from datetime import datetime, timedelta
 import sys
 import kopano
 
+if sys.hexversion >= 0x03000000:
+    def _decode(s):
+        return s
+else:
+    def _decode(s):
+        return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
+
 def main():
-    username, config, entryid = [arg.decode('utf8') for arg in sys.argv[1:]]
+    username, config, entryid = [_decode(arg) for arg in sys.argv[1:]]
 
     server = kopano.Server()
     user = server.user(username)
