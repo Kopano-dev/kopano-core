@@ -72,6 +72,7 @@ CONFIG = {
     'search_engine': Config.string(default='xapian'),
     'suggestions': Config.boolean(default=True),
     'index_junk': Config.boolean(default=True),
+    'index_drafts': Config.boolean(default=True),
     'server_bind_name': Config.string(default='file:///var/run/kopano/search.sock'),
     'ssl_private_key_file': Config.path(default=None, check=False), # XXX don't check when default=None?
     'ssl_certificate_file': Config.path(default=None, check=False),
@@ -199,8 +200,9 @@ class IndexWorker(kopano.Worker):
                 folder = kopano.Folder(store, folderid)
                 path = folder.path
                 if path and \
-                   (folder not in (store.outbox, store.drafts)) and \
-                   (folder != store.junk or config['index_junk']):
+                   (folder != store.outbox) and \
+                   (folder != store.junk or config['index_junk']) and \
+                   (folder != store.drafts or config['index_drafts']):
                     suggestions = config['suggestions'] and folder != store.junk
                     self.log.info('syncing folder: "%s" "%s"', store.name, path)
                     importer = FolderImporter(server.guid, config, plugin, suggestions, self.log)
