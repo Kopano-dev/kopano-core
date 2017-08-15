@@ -10,13 +10,22 @@ from .compat import repr as _repr
 class Address(object):
     """Address class"""
 
-    def __init__(self, server=None, addrtype=None, name=None, email=None, entryid=None, searchkey=None):
+    def __init__(self, server=None, addrtype=None, name=None, email=None, entryid=None, searchkey=None, props=None):
         self.server = server
         self.addrtype = addrtype
         self._name = name
         self._email = email
         self.entryid = entryid
         self._searchkey = searchkey
+        self._props = props
+
+    def props(self):
+        """ Return all :class:`properties <Property>` """
+
+        for prop in self._props:
+            yield prop
+
+    # XXX prop()
 
     @property
     def name(self):
