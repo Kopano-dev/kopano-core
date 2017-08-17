@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
+import datetime
 import logging
 import sys
 import traceback
@@ -27,8 +28,6 @@ By default, all users/folders are included.
 
 """
 
-# TODO embedded items (very important for eg calendar data)
-
 if sys.hexversion >= 0x03000000:
     def _encode(s):
         return s
@@ -53,6 +52,45 @@ IGNORE = [
     PR_EC_SERVER_UID,
 ]
 
+DEFAULT_DATETIME = datetime.datetime(1978, 1, 1)
+
+def dump_folder(folder):
+    print('(FOLDER)', _encode(folder.name)) # XXX show folder.path
+
+    def item_key(item):
+        return (
+            item.received if item.received else DEFAULT_DATETIME,
+            item.subject,
+            item.name,
+        ) # XXX contacts may not have any of this
+
+    items = sorted(folder.items(), key=item_key)
+    for item in items:
+        dump_item(item)
+
+def dump_item(item, depth=0):
+    print('(ITEM)' if depth == 0 else '(EMBEDDED ITEM)')
+    print(_encode(item.subject), item.received.isoformat(' ') if item.received else '')
+    try:
+        dump_props(item.props())
+
+        recipients = sorted(item.recipients(), key=lambda x: x.name)
+        for recipient in item.recipients():
+            print('(RECIPIENT)')
+            dump_props(recipient.props())
+
+        attachments = item.attachments()
+        attachments = sorted(item.attachments(), key=lambda x: x.filename)
+        for attachment in attachments:
+            print('(ATTACHMENT)')
+            dump_props(attachment.props())
+
+        for item in item.items():
+            dump_item(item, depth+1)
+    except:
+        print('(ERROR)')
+        traceback.print_exc()
+
 def dump_props(props):
     for prop in props:
         if prop.proptag not in IGNORE:
@@ -71,31 +109,7 @@ def main():
 
         for base in folders:
             for folder in [base] + list(base.folders()):
-                print('(FOLDER)', _encode(folder.name))
-
-                items = [item for item in folder.items() if item.received is not None] # XXX
-
-                items = sorted(items, key=lambda x: (x.received, x.subject))
-                for item in items:
-                    try:
-                        print(item.received.strftime('%Y-%M-%D %H:%M:%S'), _encode(item.subject))
-                        print('(ITEM)')
-                        dump_props(item.props())
-
-                        recipients = item.recipients()
-                        recipients = sorted(recipients, key = lambda x: x.name)
-                        for recipient in item.recipients():
-                            print('(RECIPIENT)')
-                            dump_props(recipient.props())
-
-                        attachments = item.attachments()
-                        attachments = sorted(item.attachments(), key=lambda x: x.filename)
-                        for attachment in attachments:
-                            print('(ATTACHMENT)')
-                            dump_props(attachment.props())
-
-                    except Exception as e:
-                        traceback.print_exc()
+                dump_folder(folder)
 
 if __name__ == '__main__':
     main()
