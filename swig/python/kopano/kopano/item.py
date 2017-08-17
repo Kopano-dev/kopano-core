@@ -243,7 +243,7 @@ class Item(Base):
 
     @property
     def subject(self):
-        """ Item subject or *None* if no subject """
+        """ Item subject """
 
         try:
             return self.prop(PR_SUBJECT_W).value
@@ -256,8 +256,17 @@ class Item(Base):
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
+    def name(self):
+        """ Item (display) name """
+
+        try:
+            return self.prop(PR_DISPLAY_NAME_W).value
+        except NotFoundError:
+            return u''
+
+    @property
     def normalized_subject(self):
-        """ Normalized item subject or *None* if no subject """
+        """ Normalized item subject """
 
         try:
             return self.prop(PR_NORMALIZED_SUBJECT_W).value
