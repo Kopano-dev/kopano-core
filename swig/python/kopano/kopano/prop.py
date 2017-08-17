@@ -340,8 +340,10 @@ class Property(object):
                 return u','.join(flatten(e) for e in v)
             elif isinstance(v, bool):
                 return u'01'[v]
+            elif isinstance(v, datetime.datetime):
+                return _unicode(v.isoformat(' '))
             elif v is None:
-                return ''
+                return u''
             elif self.type_ in (PT_BINARY, PT_MV_BINARY) or isinstance(v, bytes):
                 return _hex(v)
             else:
