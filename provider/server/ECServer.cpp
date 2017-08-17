@@ -961,6 +961,7 @@ static int running_server(char *szName, const char *szConfig,
 		{ "owner_auto_full_access", "true" },
 		{ "attachment_files_fsync", "false", 0 },
 		{ "tmp_path", "/tmp" },
+		{ "disable_shared_reminders", "no", CONFIGSETTING_RELOADABLE }, // disable reminders for shared stores
 		{ NULL, NULL },
 	};
 

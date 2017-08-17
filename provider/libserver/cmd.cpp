@@ -3087,7 +3087,10 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 			goto exit;
 
 		// avoid reminders from shared stores by detecting that we are opening non-owned reminders folder
-		if((ulObjFlags&FOLDER_SEARCH) && lpecSession->GetSecurity()->IsStoreOwner(ulObjId) == KCERR_NO_ACCESS) {
+		if((ulObjFlags & FOLDER_SEARCH) &&
+		   (lpecSession->GetSecurity()->IsStoreOwner(ulObjId) == KCERR_NO_ACCESS) &&
+		   (parseBool(g_lpSessionManager->GetConfig()->GetSetting("disable_shared_reminders"))))
+		{
 			strQuery = "SELECT val_string FROM properties where hierarchyid=" + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_CONTAINER_CLASS))+ ";";
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er != erSuccess)
