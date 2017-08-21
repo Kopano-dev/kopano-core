@@ -25,7 +25,7 @@ class FileTime(object):
 
     def __getattr__(self, attr):
         if attr == 'unixtime':
-            return (self.filetime - NANOSECS_BETWEEN_EPOCH) / 10000000;
+            return (self.filetime - NANOSECS_BETWEEN_EPOCH) / 10000000.0;
         else:
             raise AttributeError
 
