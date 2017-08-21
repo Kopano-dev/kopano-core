@@ -402,7 +402,7 @@ class Recurrence(object):
         rule = rruleset()
 
         if self.pattern_type == PATTERN_DAILY:
-            rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self.period/(24*60)))
+            rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self.period//(24*60)))
 
         if self.pattern_type == PATTERN_WEEKLY:
             byweekday = () # Set
