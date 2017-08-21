@@ -26,6 +26,7 @@ from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound, MAPIErrorNoSupport,
     MAPIErrorNotEnoughMemory
 )
+import MAPI.Tags
 from MAPI.Tags import (
     PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED, PR_RTF_IN_SYNC, PR_NULL
 )
@@ -35,7 +36,8 @@ from .defs import (
     REV_TAG, REV_TYPE, GUID_NAMESPACE, MAPINAMEID, NAMESPACE_GUID, STR_GUID,
 )
 from .compat import (
-    repr as _repr, fake_unicode as _unicode, is_int as _is_int, hex as _hex
+    repr as _repr, fake_unicode as _unicode, is_int as _is_int, hex as _hex,
+    is_str as _is_str,
 )
 from .errors import Error, NotFoundError
 
@@ -148,10 +150,13 @@ def _proptag_to_name(proptag, store, proptype=False):
 
 def create_prop(self, mapiobj, proptag, value=None, proptype=None): # XXX selfie
 
-    if _is_int(proptag):
-        proptag2, proptype2 = proptag, proptype
-        if proptype is None:
-            proptype2 = PROP_TYPE(proptag)
+    if _is_int(proptag) or \
+       (_is_str(proptag) and ':' not in proptag):
+        if _is_str(proptag):
+            proptag2 = getattr(MAPI.Tags, proptag)
+        else:
+            proptag2 = proptag
+        proptype2 = proptype or PROP_TYPE(proptag)
 
     else: # named property
         proptag2, proptype2, _, _ = _name_to_proptag(proptag, mapiobj, proptype)
@@ -183,8 +188,11 @@ def create_prop(self, mapiobj, proptag, value=None, proptype=None): # XXX selfie
     return prop(self, mapiobj, proptag)
 
 def prop(self, mapiobj, proptag, create=False, value=None, proptype=None): # XXX selfie
-    if _is_int(proptag): # regular property
+    if _is_int(proptag) or \
+       (_is_str(proptag) and ':' not in proptag):
         # search for property
+        if _is_str(proptag):
+            proptag = getattr(MAPI.Tags, proptag)
         try:
             sprop = HrGetOneProp(mapiobj, proptag)
         except MAPIErrorNotEnoughMemory:
