@@ -8,7 +8,7 @@ import MAPI.Time
 import kopano
 from kopano import log_exc
 
-import pst
+from . import pst
 
 def _encode(s):
     return s.encode(sys.stdout.encoding or 'utf8')
@@ -89,7 +89,7 @@ class Service(kopano.Service):
 
     def import_pst(self, p, store):
         folders = p.folder_generator()
-        root_path = folders.next().path # skip root
+        root_path = next(folders).path # skip root
         for folder in folders:
             with log_exc(self.log, self.stats):
                 path = folder.path[len(root_path)+1:]
@@ -148,7 +148,7 @@ def show_contents(args, options):
     for arg in args:
         p = pst.PST(arg)
         folders = p.folder_generator()
-        root_path = folders.next().path # skip root
+        root_path = next(folders).path # skip root
         for folder in folders:
             path = folder.path[len(root_path)+1:]
             if options.folders and path not in options.folders:
