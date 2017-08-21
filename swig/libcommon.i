@@ -47,13 +47,22 @@ class CHtmlToTextParser {
 };
 
 // std::string&
+
+%typemap(in) (std::string) (char *buf=NULL, Py_ssize_t size)
+{
+    if(PyBytes_AsStringAndSize($input, &buf, &size) == -1)
+        %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
+
+    $1 = std::string(buf, size);
+}
+
 %typemap(in,numinputs=0) std::string &OUTPUT	(std::string s)
 {
 	$1 = &s;
 }
 %typemap(argout,fragment="SWIG_FromCharPtr") (std::string &OUTPUT)
 {
-	%append_output(SWIG_FromCharPtr($1->c_str()));
+	%append_output(PyBytes_FromString($1->c_str()));
 	if(PyErr_Occurred())
 		goto fail;
 }

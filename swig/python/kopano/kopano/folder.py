@@ -569,7 +569,10 @@ class Folder(Base):
 
     def readmbox(self, location):
         for message in mailbox.mbox(location):
-            _item.Item(self, eml=message.__str__(), create=True)
+            if sys.hexversion >= 0x03000000:
+                _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
+            else:
+                _item.Item(self, eml=message.as_string(unixfrom=True), create=True)
 
     def mbox(self, location): # FIXME: inconsistent with maildir()
         mboxfile = mailbox.mbox(location)
@@ -587,7 +590,10 @@ class Folder(Base):
 
     def read_maildir(self, location):
         for message in mailbox.MH(location):
-            _item.Item(self, eml=message.__str__(), create=True)
+            if sys.hexversion >= 0x03000000:
+                _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
+            else:
+                _item.Item(self, eml=message.as_string(unixfrom=True), create=True)
 
     @property
     def associated(self):
