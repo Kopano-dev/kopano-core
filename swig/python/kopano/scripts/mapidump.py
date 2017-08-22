@@ -50,6 +50,7 @@ IGNORE = [
     PR_STORE_ENTRYID,
     PR_MAPPING_SIGNATURE,
     PR_EC_SERVER_UID,
+    PR_MESSAGE_SIZE, # XXX why would there be a valid difference?
 ]
 
 DEFAULT_DATETIME = datetime.datetime(1978, 1, 1)
@@ -58,11 +59,17 @@ def dump_folder(folder):
     print('(FOLDER)', _encode(folder.name)) # XXX show folder.path
 
     def item_key(item):
+        # extend as needed to make as much items unique as possible
+        # XXX generic solution based on all common properties
         return (
-            item.received if item.received else DEFAULT_DATETIME,
+            item.received or DEFAULT_DATETIME,
             item.subject,
             item.name,
-        ) # XXX contacts may not have any of this
+            item.get_value('address:32896'),
+            item.get_value(PR_CLIENT_SUBMIT_TIME) or DEFAULT_DATETIME,
+            item.get_value(PR_COMPANY_NAME_W),
+            item.get_value(PR_INTERNET_ARTICLE_NUMBER) or 0,
+        )
 
     items = sorted(folder.items(), key=item_key)
     for item in items:
