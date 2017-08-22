@@ -236,7 +236,14 @@ def props(mapiobj, namespace=None):
     sprops = mapiobj.GetProps(proptags, MAPI_UNICODE)
     sprops = [s for s in sprops if not (PROP_TYPE(s.ulPropTag) == PT_ERROR and s.Value == MAPI_E_NOT_FOUND)]
     props = [Property(mapiobj, sprop) for sprop in sprops]
-    for p in sorted(props):
+
+    def prop_key(prop): # sort identically across servers
+        if prop.named:
+            return (prop.guid, prop.kind, prop.name)
+        else:
+            return ('', prop.proptag)
+
+    for p in sorted(props, key=prop_key):
         if not namespace or p.namespace == namespace:
             yield p
 
@@ -357,9 +364,6 @@ class Property(object):
             else:
                 return _unicode(v)
         return flatten(self.value)
-
-    def __lt__(self, prop):
-        return self.proptag < prop.proptag
 
     def __unicode__(self):
         return u'Property(%s)' % self.strid
