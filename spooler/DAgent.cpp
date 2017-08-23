@@ -2382,6 +2382,9 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 	object_ptr<IABContainer> lpAddrDir;
 	ULONG ulResult = 0;
 	ULONG ulNewMailNotify = 0;
+	object_ptr<IECServiceAdmin> lpServiceAdmin;
+	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
+	bool over_quota = false;
 
 	// single user deliver did not lookup the user
 	if (lpRecip->strSMTP.empty()) {
@@ -2486,9 +2489,26 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 	// Do rules & out-of-office
 	hr = HrPostDeliveryProcessing(lppyMapiPlugin, lpAdrBook, lpTargetStore, lpInbox, lpTargetFolder, &+lpDeliveryMessage, lpRecip, lpArgs);
 	if (hr != MAPI_E_CANCEL) {
-		// ignore other errors for rules, still want to save the delivered message
-		// Save message changes, message becomes visible for the user
-		hr = lpDeliveryMessage->SaveChanges(KEEP_OPEN_READWRITE);
+		if(bIsAdmin) {
+			hr = lpStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
+			if(hr != hrSuccess)
+				ec_log_err("ProcessDeliveryToRecipient(): unable to access serviceadmin interface %x", hr);
+			else {
+				hr = lpServiceAdmin->GetQuotaStatus(lpRecip->sEntryId.cb, (LPENTRYID)lpRecip->sEntryId.lpb, &~lpsQuotaStatus);
+				if(hr != hrSuccess)
+					ec_log_err("ProcessDeliveryToRecipient(): unable to determine quota status %x", hr);
+				else
+					over_quota = lpsQuotaStatus->quotaStatus == QUOTA_HARDLIMIT;
+			}
+		}
+
+		if(over_quota)
+			hr = MAPI_E_STORE_FULL;
+		else
+			// ignore other errors for rules, still want to save the delivered message
+			// Save message changes, message becomes visible for the user
+			hr = lpDeliveryMessage->SaveChanges(KEEP_OPEN_READWRITE);
+
 		if (hr != hrSuccess) {
 			if (hr == MAPI_E_STORE_FULL)
 				// make sure the error is printed on stderr, so this will be bounced as error by the MTA.
