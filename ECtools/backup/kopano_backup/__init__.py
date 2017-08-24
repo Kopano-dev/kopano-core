@@ -804,10 +804,10 @@ def dump_acl(obj, user, server, stats, log):
         for row in table.QueryRows(-1,0):
             entryid = row[1].Value
             try:
-                row[1].Value = ('user', server.sa.GetUser(entryid, MAPI_UNICODE).Username)
+                row[1].Value = (b'user', server.sa.GetUser(entryid, MAPI_UNICODE).Username)
             except MAPIErrorNotFound:
                 try:
-                    row[1].Value = ('group', server.sa.GetGroup(entryid, MAPI_UNICODE).Groupname)
+                    row[1].Value = (b'group', server.sa.GetGroup(entryid, MAPI_UNICODE).Groupname)
                 except MAPIErrorNotFound:
                     log.warning("skipping access control entry for unknown user/group %s", _hex(entryid))
                     continue
@@ -823,7 +823,7 @@ def load_acl(obj, user, server, data, stats, log):
         for row in data:
             try:
                 member_type, value = row[1].Value
-                if member_type == 'user':
+                if member_type == b'user':
                     entryid = server.user(value).userid
                 else:
                     entryid = server.group(value).groupid
