@@ -10,8 +10,12 @@ from kopano import log_exc
 
 from . import pst
 
-def _encode(s):
-    return s.encode(sys.stdout.encoding or 'utf8')
+if sys.hexversion >= 0x03000000:
+    def _encode(s):
+        return s
+else:
+    def _encode(s):
+        return s.encode(sys.stdout.encoding or 'utf8')
 
 class Service(kopano.Service):
     def import_props(self, parent, mapiobj, embedded=False):
@@ -93,7 +97,8 @@ class Service(kopano.Service):
         for folder in folders:
             with log_exc(self.log, self.stats):
                 path = folder.path[len(root_path)+1:]
-                if self.options.folders and path not in self.options.folders:
+                if self.options.folders and \
+                   path.lower() not in [f.lower() for f in self.options.folders]:
                     continue
                 self.log.info("importing folder '%s'" % path)
                 if self.options.import_root:
@@ -151,7 +156,7 @@ def show_contents(args, options):
         root_path = next(folders).path # skip root
         for folder in folders:
             path = folder.path[len(root_path)+1:]
-            if options.folders and path not in options.folders:
+            if options.folders and path.lower() not in [f.lower() for f in options.folders]:
                 continue
             if options.stats:
                 writer.writerow([_encode(path), folder.ContentCount])
