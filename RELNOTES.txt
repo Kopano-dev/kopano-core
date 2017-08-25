@@ -59,6 +59,12 @@ Packager notes:
 * kopano-server S3 store required libs3 4.1 [KC-751]
 
 
+Release notes for 8.3.4
+=======================
+Fixes:
+* server: configurable shared reminders [KC-789]
+
+
 Release notes for 8.3.3
 =======================
 Fixes:
