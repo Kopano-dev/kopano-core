@@ -28,7 +28,7 @@ class Service(kopano.Service):
 
             nameid = self.propid_nameid.get(propid)
             if nameid:
-                propid = PROP_ID(mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], 0)[0])
+                propid = PROP_ID(mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], MAPI_CREATE)[0])
 
             if propid == (PR_SUBJECT>>16) and value and ord(value[0]) == 0x01:
                 value = value[2:] # \x01 plus another char indicates normalized-subject-prefix-length
