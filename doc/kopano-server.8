@@ -28,95 +28,95 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-server \- Start the Kopano storage server\&.
+kopano-server \- Start the Kopano storage server.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-server\fR\ 'u
 \fBkopano\-server\fR [\fIOPTION\fR]
 .SH "DESCRIPTION"
 .PP
-The kopano\-server is the Zafara storage server\&. It contacts a database server and provides services to Kopano clients\&. The user base can be retrieved from an external source, like LDAP, or can be setup with a separate list of users\&.
+The kopano\-server is the Zafara storage server. It contacts a database server and provides services to Kopano clients. The user base can be retrieved from an external source, like LDAP, or can be setup with a separate list of users.
 .PP
-After starting, the server keeps listening for connections on the configured TCP port and/or Unix socket\&.
+After starting, the server keeps listening for connections on the configured TCP port and/or Unix socket.
 .SH "OPTIONS"
 .PP
 The storage server program takes the following configuration options:
 .PP
 \fB\-\-config\fR, \fB\-c\fR \fIfile\fR
 .RS 4
-Specify the location of the configuration file\&.
+Specify the location of the configuration file.
 .sp
 Default:
-\fI/etc/kopano/server\&.cfg\fR
+\fI/etc/kopano/server.cfg\fR
 .RE
 .PP
 \fB\-\-foreground\fR, \fB\-F\fR
 .RS 4
-Run in the foreground\&. Normally the server will daemonize and run in the background\&.
+Run in the foreground. Normally the server will daemonize and run in the background.
 .RE
 .PP
 \fB\-\-restart\-searches\fR, \fB\-R\fR
 .RS 4
-Rebuild all search folders\&. This may take some time and is only needed when your search folders have become out\-of\-sync with the actual data in the database\&. The sync will start synchronously at the start of the server, and you will have to wait for all searches to complete before connecting to the server\&.
+Rebuild all search folders. This may take some time and is only needed when your search folders have become out\-of\-sync with the actual data in the database. The sync will start synchronously at the start of the server, and you will have to wait for all searches to complete before connecting to the server.
 .RE
 .PP
 \fB\-\-ignore\-database\-version\-conflict\fR
 .RS 4
-Ignore version information from the database\&. Kopano will normally not start the server if the database has a newer version than the kopano\-server binary\&. This makes sure you cannot downgrade your server binary while keeping the same database\&. If you know what you\*(Aqre doing, you can use this option to bypass the start\-up version check of the database\&.
+Ignore version information from the database. Kopano will normally not start the server if the database has a newer version than the kopano\-server binary. This makes sure you cannot downgrade your server binary while keeping the same database. If you know what you\*(Aqre doing, you can use this option to bypass the start\-up version check of the database.
 .RE
 .PP
 \fB\-\-ignore\-attachment\-storage\-conflict\fR
 .RS 4
-Override the attachment storage option from the configuration file\&. When you change the option of the location where to store attachments after you\*(Aqve already started the kopano\-server once, this location will conflict\&. Attachments will not be found when they are stored in a different location\&.
+Override the attachment storage option from the configuration file. When you change the option of the location where to store attachments after you\*(Aqve already started the kopano\-server once, this location will conflict. Attachments will not be found when they are stored in a different location.
 .RE
 .PP
 \fB\-\-override\-multiserver\-lock\fR
 .RS 4
-When you upgrade/downgrade from/to multiserver setups, the server will not start, because of database differences\&. If you know what you\*(Aqre doing, and want to circumvent this and start the server anyway, you can use this option\&.
+When you upgrade/downgrade from/to multiserver setups, the server will not start, because of database differences. If you know what you\*(Aqre doing, and want to circumvent this and start the server anyway, you can use this option.
 .RE
 .PP
 \fB\-\-force\-database\-upgrade\fR
 .RS 4
-Forcing the kopano\-server do the normal upgrade as usual\&. The server will only daemonize when the upgrade is complete\&. Simple progress can be followed in the log output of the server\&.
+Forcing the kopano\-server do the normal upgrade as usual. The server will only daemonize when the upgrade is complete. Simple progress can be followed in the log output of the server.
 .RE
 .PP
 \fB\-V\fR
 .RS 4
-Print the version and exit\&.
+Print the version and exit.
 .RE
 .PP
 When invoked with no options, the server will search for a configuration file in
-/etc/kopano/server\&.cfg\&. If no configuration file is found, default values are used\&. See
+/etc/kopano/server.cfg. If no configuration file is found, default values are used. See
 \fBkopano-server.cfg\fR(5)
-for all configuration options and their default values\&.
+for all configuration options and their default values.
 .SH "USAGE"
 .PP
 Starting the server with an alternative configuration:
 .PP
 \fBkopano\-server\fR
 \fB\-c\fR
-\fI/path/to/server\&.cfg\fR
+\fI/path/to/server.cfg\fR
 .PP
-You may also use the init\&.d scripts:
+You may also use the init.d scripts:
 .PP
-\fB/etc/init\&.d/kopano\-server\fR
+\fB/etc/init.d/kopano\-server\fR
 [\fIstart\fR|
 \fIstop\fR|
 \fIrestart\fR]
 .SH "FILES"
 .PP
-/etc/kopano/server\&.cfg
+/etc/kopano/server.cfg
 .RS 4
-The server configuration file\&.
+The server configuration file.
 .RE
 .PP
-Configuration options for user plugins are in their respective configuration file\&. The name of these files is set in the server\&.cfg file\&. See
+Configuration options for user plugins are in their respective configuration file. The name of these files is set in the server.cfg file. See
 \fBkopano-server.cfg\fR(5)
-for information on the server\&.cfg settings\&.
+for information on the server.cfg settings.
 .SH "DIAGNOSTICS"
 .PP
-If you run into problems, check the log for any errors\&. If you made a mistake in the configuration of the log method, this will be reported on standard error\&. You can also restart the server with a higher log level\&. Also, before starting the server, always make sure the database server is running at the right location and no other server is listening on the configured TCP port\&.
+If you run into problems, check the log for any errors. If you made a mistake in the configuration of the log method, this will be reported on standard error. You can also restart the server with a higher log level. Also, before starting the server, always make sure the database server is running at the right location and no other server is listening on the configured TCP port.
 .PP
-For extended diagnostics, there are special extended log options available for enhanced debugging capabilities\&. The parameter
+For extended diagnostics, there are special extended log options available for enhanced debugging capabilities. The parameter
 \fIlog_level\fR
 has special or\-ed values which can be set to investigate different modules within the server process:
 .PP
@@ -124,91 +124,91 @@ SQL: 0x00010000, User backend: 0x00020000, Server cache: 0x00040000, SOAP: 0x001
 .PP
 For example, if you are using LDAP as the user plugin, you can set the
 \fIlog_level\fR
-to 0x00020006 for extended LDAP logging (the last digit 6 enables extended verbose logging)\&. To enable SQL and LDAP logging at the same time, set
+to 0x00020006 for extended LDAP logging (the last digit 6 enables extended verbose logging). To enable SQL and LDAP logging at the same time, set
 \fIlog_level\fR
 to 0x00030006
 .PP
-WARNING: The log options create huge amounts of log entries in production environments, this results in abnormal large logfiles which can fill up available disk space very fast\&. Only use this with extreme caution\&.
+WARNING: The log options create huge amounts of log entries in production environments, this results in abnormal large logfiles which can fill up available disk space very fast. Only use this with extreme caution.
 .SH "SECURITY"
 .PP
-The normal way for user clients to connect to the server is over TCP, either direct using the Kopano port, or over HTTP when Apache is setup as a proxy\&. Users can only login with their username and password\&.
+The normal way for user clients to connect to the server is over TCP, either direct using the Kopano port, or over HTTP when Apache is setup as a proxy. Users can only login with their username and password.
 .PP
-The normal way for admin clients, like the spooler and admin tool, to connect to the server is through the Unix socket on Unix type servers\&. The admin clients are able to login when they are run as root or as the user the storage server process is running as\&. Most of the time this will be root only, since the storage server process runs as root by default\&.
+The normal way for admin clients, like the spooler and admin tool, to connect to the server is through the Unix socket on Unix type servers. The admin clients are able to login when they are run as root or as the user the storage server process is running as. Most of the time this will be root only, since the storage server process runs as root by default.
 .PP
-As an exception for the dagent, a unix user can also connect to its own store without a password\&. Any other store cannot be accessed this way\&.
+As an exception for the dagent, a unix user can also connect to its own store without a password. Any other store cannot be accessed this way.
 .PP
-Direct SSL connections are also possible\&. The server needs to be configured to accept SSL connections on a new port\&. Login via an SSL key is also possible\&. Please read the next section on how to setup SSL\&.
+Direct SSL connections are also possible. The server needs to be configured to accept SSL connections on a new port. Login via an SSL key is also possible. Please read the next section on how to setup SSL.
 .SH "SSL"
 .PP
-To accept SSL connections directly by the server, the storage server will need to listen on a different port to separate the normal connections from the encrypted connections\&. This is set in the
+To accept SSL connections directly by the server, the storage server will need to listen on a different port to separate the normal connections from the encrypted connections. This is set in the
 \fIserver_ssl_port\fR
-setting in the configuration file\&.
+setting in the configuration file.
 .PP
-Then, you must setup a signed SSL certificate\&. First, we\*(Aqll create a Certificate Authority to be able to sign certificate requests\&. We provide a script which makes it easy to create certificates on any distribution\&. This script is located in /usr/share/kopano, called ssl\-certificate\&.sh\&. Enter the following commands to create a certificate for the Kopano server\&.
+Then, you must setup a signed SSL certificate. First, we\*(Aqll create a Certificate Authority to be able to sign certificate requests. We provide a script which makes it easy to create certificates on any distribution. This script is located in /usr/share/kopano, called ssl\-certificate.sh. Enter the following commands to create a certificate for the Kopano server.
 .PP
 \fB mkdir \-p /etc/kopano/ssl \fR
 \fB cd /etc/kopano/ssl \fR
-\fB sh /usr/share/kopano/ssl\-certificate\&.sh server \fR
+\fB sh /usr/share/kopano/ssl\-certificate.sh server \fR
 .PP
-Press enter twice to start the creation of a new CA, probably called demoCA\&. Enter a password when asked for\&. This is the password later used to sign certificate requests\&. Then enter your certificate information\&. Do not leave the Common Name field blank, otherwise the creation will fail\&. A good example for the Common Name field is your hostname\&.
+Press enter twice to start the creation of a new CA, probably called demoCA. Enter a password when asked for. This is the password later used to sign certificate requests. Then enter your certificate information. Do not leave the Common Name field blank, otherwise the creation will fail. A good example for the Common Name field is your hostname.
 .PP
-Now that we have a CA, we can create self\-signed certificates\&. The script will automatically start the creation of this certificate\&. The CA certificate must be set in the server\&.cfg file in the
+Now that we have a CA, we can create self\-signed certificates. The script will automatically start the creation of this certificate. The CA certificate must be set in the server.cfg file in the
 \fIserver_ssl_ca_file\fR
-setting\&. We need a signed certificate for the server to start with SSL support\&.
+setting. We need a signed certificate for the server to start with SSL support.
 .PP
-Enter a password for the request, and enter the certificate details\&. Some details need to be different from what you typed when creating the CA\&. Type at least a different name in the \*(AqOrganizational Unit Name\*(Aq field\&. The challenge password at the end may be left empty\&.
+Enter a password for the request, and enter the certificate details. Some details need to be different from what you typed when creating the CA. Type at least a different name in the \*(AqOrganizational Unit Name\*(Aq field. The challenge password at the end may be left empty.
 .PP
-The script will automatically continue with signing this certificate request\&. You will need to enter your CA certificate password again to sign this request\&. Then you must accept the new certificate into the CA\&.
+The script will automatically continue with signing this certificate request. You will need to enter your CA certificate password again to sign this request. Then you must accept the new certificate into the CA.
 .PP
-After accepting, a new signed certificate is created, with the name server\&.pem\&. This file contains the private key, so keep this file safe\&.
+After accepting, a new signed certificate is created, with the name server.pem. This file contains the private key, so keep this file safe.
 .PP
-The script will ask if a public key should also be created\&. Since we\*(Aqre creating the certificate for the server, this is not needed\&. So enter \*(Aqn\*(Aq and press enter\&.
+The script will ask if a public key should also be created. Since we\*(Aqre creating the certificate for the server, this is not needed. So enter \*(Aqn\*(Aq and press enter.
 .PP
-The server\&.pem file should be set in the server\&.cfg file in the
+The server.pem file should be set in the server.cfg file in the
 \fIserver_ssl_key_file\fR
-option\&. See
+option. See
 \fBkopano-server.cfg\fR(5)
-for information on the possible SSL settings\&. The password of this key needs to be set in the
+for information on the possible SSL settings. The password of this key needs to be set in the
 \fIserver_ssl_key_pass\fR
-option\&. Do not forget this password in the server\&.cfg file, otherwise the kopano\-server program will ask for this password when an SSL connection is accepted\&.
+option. Do not forget this password in the server.cfg file, otherwise the kopano\-server program will ask for this password when an SSL connection is accepted.
 .PP
-To create a new certificate for a client service, run the script again\&. You can create one new certificate for all clients, or separate certificates for each client\&.
+To create a new certificate for a client service, run the script again. You can create one new certificate for all clients, or separate certificates for each client.
 .PP
-\fB sh /usr/share/kopano/ssl\-certificates\&.sh \fR
+\fB sh /usr/share/kopano/ssl\-certificates.sh \fR
 .PP
-When typing the certificate information, type at least a different \*(AqOrganizational Unit Name\*(Aq field\&. When asked for a public key, type \*(Aqy\*(Aq and enter to create the public key\&.
+When typing the certificate information, type at least a different \*(AqOrganizational Unit Name\*(Aq field. When asked for a public key, type \*(Aqy\*(Aq and enter to create the public key.
 .PP
-Install the new service\&.pem on the server that will be logging in\&. Install the service\-public\&.pem file in the /etc/kopano/sslkeys directory:
+Install the new service.pem on the server that will be logging in. Install the service\-public.pem file in the /etc/kopano/sslkeys directory:
 .PP
 \fB mkdir /etc/kopano/sslkeys \fR
-\fB mv service\-public\&.pem /etc/kopano/sslkeys \fR
+\fB mv service\-public.pem /etc/kopano/sslkeys \fR
 .PP
-The remote service, which has the service\&.pem private key, can now login with the certificate, because the known public key matches\&.
+The remote service, which has the service.pem private key, can now login with the certificate, because the known public key matches.
 .SH "ADDRESSBOOK SORTING"
 .PP
-With special chars (like umlauts) the sorting is working more the dictionary way according to DIN 5007\-1, section 6\&.1\&.1\&.4\&.1\&. Depending on the behaviour wanted, the collation setting can be changed with the (not per default included) parameter
-\fI default_sort_locale_id\fR\&. When setting this parameter to de_DE@collation=phonebook for example the sorting will be oriented to the DIN 5007\-2, section 6\&.1\&.1\&.4\&.2 standard which is rather used in phonebooks and actually decomposes umlauts for sorting inline within non\-umlaut based ASCII characters\&.
+With special chars (like umlauts) the sorting is working more the dictionary way according to DIN 5007\-1, section 6.1.1.4.1. Depending on the behaviour wanted, the collation setting can be changed with the (not per default included) parameter
+\fI default_sort_locale_id\fR. When setting this parameter to de_DE@collation=phonebook for example the sorting will be oriented to the DIN 5007\-2, section 6.1.1.4.2 standard which is rather used in phonebooks and actually decomposes umlauts for sorting inline within non\-umlaut based ASCII characters.
 .SH "SIGNALS"
 .PP
 The following signals can be sent to the storage server process:
 .PP
 \fBHUP\fR
 .RS 4
-When the HUP signal is received, some options from the configuration file are reloaded\&. The reloadable options are listed in the
+When the HUP signal is received, some options from the configuration file are reloaded. The reloadable options are listed in the
 \fBkopano-server.cfg\fR(5)
-manual page\&.
+manual page.
 .sp
 Also, when using
-\fIlog_method = file\fR, the logfile will be closed and a new logfile will be opened\&. You can use this signal in your logrotate system\&.
+\fIlog_method = file\fR, the logfile will be closed and a new logfile will be opened. You can use this signal in your logrotate system.
 .RE
 .PP
 \fBTERM\fR
 .RS 4
-To gracefully let the server exit, the normal TERM signal is used\&. Because of open sessions by clients it may take up to 60 seconds for the server to completely shutdown\&.
+To gracefully let the server exit, the normal TERM signal is used. Because of open sessions by clients it may take up to 60 seconds for the server to completely shutdown.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server.cfg\fR(5),

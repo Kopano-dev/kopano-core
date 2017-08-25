@@ -28,45 +28,45 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-archiver-aclsync \- Synchronizes archive ACL settings with those of the primary store\&.
+kopano-archiver-aclsync \- Synchronizes archive ACL settings with those of the primary store.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-archiver\-aclsync\fR\ 'u
 \fBkopano\-archiver\-aclsync\fR [\fIOPTION\fR...]
 .SH "DESCRIPTION"
 .PP
-When a user has set permissions for others on his or her store or folders, the other user will need at least read\-permissions on this persons archive as well in order to read stubbed messages or access the archive directly\&. These permissions can not be set by the owner of the archive if the archive was attached without write privileges\&. Even if the user has write permissions, it\*(Aqs a nuisance to have to set all the permissions twice (or more if multiple archives are attached)\&.
+When a user has set permissions for others on his or her store or folders, the other user will need at least read\-permissions on this persons archive as well in order to read stubbed messages or access the archive directly. These permissions can not be set by the owner of the archive if the archive was attached without write privileges. Even if the user has write permissions, it\*(Aqs a nuisance to have to set all the permissions twice (or more if multiple archives are attached).
 .PP
 \fBkopano\-archiver\-aclsync\fR
-can be used to propagate the ACL settings from the primary store to the archives\&. However, no user will ever get more right on a store or folder than the owner of the archive\&. So if the archive was attached without write permissions, no user will get write permissions on the archive\&.
+can be used to propagate the ACL settings from the primary store to the archives. However, no user will ever get more right on a store or folder than the owner of the archive. So if the archive was attached without write permissions, no user will get write permissions on the archive.
 .PP
 For every archived folder in an archived store
-\fBkopano\-archiver\-aclsync \fRwill first determine the rights for the owner of the archive\&. Then it will get all the entries from the ACL of the current folder except those of the owner\&. Each right will be masked with the rights of the owner before being added to the ACL of the archive folder\&.
+\fBkopano\-archiver\-aclsync \fRwill first determine the rights for the owner of the archive. Then it will get all the entries from the ACL of the current folder except those of the owner. Each right will be masked with the rights of the owner before being added to the ACL of the archive folder.
 .SH "OPTIONS"
 .PP
 \fB\-\-user\fR, \fB\-u\fR \fINAME\fR
 .RS 4
-Run the script for just the specified user(s)\&. By default, it runs for all users\&.
+Run the script for just the specified user(s). By default, it runs for all users.
 .RE
 .PP
 \fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
 .RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq\&.
+Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
 .RS 4
-Connect to storage server through specified socket\&.
+Connect to storage server through specified socket.
 .RE
 .PP
 \fB\-\-ssl\-key\fR, \fB\-k\fR \fIFILE\fR
 .RS 4
-Specify SSL key file\&.
+Specify SSL key file.
 .RE
 .PP
 \fB\-\-ssl\-pass\fR, \fB\-p\fR \fIPASSWORD\fR
 .RS 4
-Specify SSL key password\&.
+Specify SSL key password.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.

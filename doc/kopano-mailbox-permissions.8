@@ -28,45 +28,45 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-mailbox-permissions \- Manage mailbox delegate permissions\&.
+kopano-mailbox-permissions \- Manage mailbox delegate permissions.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-mailbox\-permissions\fR\ 'u
 \fBkopano\-mailbox\-permissions\fR \fIACTION\fR [\fIMAILBOXES\fR...]
 .SH "DESCRIPTION"
 .PP
-This script can be used to show delegate permissions and settings for users\&. The storage server must be running for
+This script can be used to show delegate permissions and settings for users. The storage server must be running for
 \fBkopano\-mailbox\-permissions\fR
-to work\&.
+to work.
 .PP
-You can show delegates and permissions information, and add or update delegate permissions on a mailbox\&.
+You can show delegates and permissions information, and add or update delegate permissions on a mailbox.
 .SH "ACTIONS"
 .PP
-kopano\-mailbox\-permissions needs an action command with the appropriate options\&. Valid actions are:
+kopano\-mailbox\-permissions needs an action command with the appropriate options. Valid actions are:
 .PP
 \fB\-\-update\-delegate\fR \fIusername\fR
 .RS 4
 Add or update delegate information for
 \fIusername\fR
 on specified
-\fImailboxes\fR\&.
+\fImailboxes\fR.
 .RE
 .PP
 \fB\-\-remove\-all\-permissions\fR
 .RS 4
 Removes all delegates and explicit permissions on folders from one or more
-\fImailboxes\fR\&.
+\fImailboxes\fR.
 .RE
 .PP
 \fB\-\-list\-permissions\fR
 .RS 4
 Show all delegates and folder permissions of one or more
-\fImailbox\fR\&.
+\fImailbox\fR.
 .RE
 .PP
 \fB\-\-list\-permissions\-per\-folder\fR
 .RS 4
 Show delegates and folder containing explicit permissions of one or more
-\fImailbox\fR\&.
+\fImailbox\fR.
 .RE
 .SH "OPTIONS"
 .PP
@@ -74,76 +74,76 @@ The options used by actions are as follows:
 .PP
 \fB\-a\fR, \fB\-\-all\fR
 .RS 4
-Perform the action on all available users in the kopano\-server\&.
+Perform the action on all available users in the kopano\-server.
 .RE
 .PP
 \fB\-h\fR, \fB\-\-host\fR \fIURL\fR
 .RS 4
-Use URL to connect to the kopano\-server\&. Default is
-\fIfile:///var/run/kopano/server\&.sock\fR\&.
+Use URL to connect to the kopano\-server. Default is
+\fIfile:///var/run/kopano/server.sock\fR.
 .RE
 .PP
 \fB\-s\fR, \fB\-\-sslkey\-file\fR \fIFILENAME\fR
 .RS 4
-Use this file as the SSL private key to connect to the kopano\-server\&. Default is no SSL key\&.
+Use this file as the SSL private key to connect to the kopano\-server. Default is no SSL key.
 .RE
 .PP
 \fB\-p\fR, \fB\-\-sslkey\-pass\fR \fIPASSWORD\fR
 .RS 4
-Use this password as the SSL private key password\&. Default is no SSL key password\&.
+Use this password as the SSL private key password. Default is no SSL key password.
 .RE
 .PP
 \fB\-\-verbose\fR
 .RS 4
-Currently unused, but may be used in the future for more information\&.
+Currently unused, but may be used in the future for more information.
 .RE
 .PP
 \fB\-\-calendar\fR \fI[none|readonly|secretary|owner]\fR
 .RS 4
 When updating a delegate, set these permissions on the default calendar folder of the given
-\fImailboxes\fR\&. Select one of the permission preset to set on the folder\&.
+\fImailboxes\fR. Select one of the permission preset to set on the folder.
 .RE
 .PP
 \fB\-\-tasks\fR \fI[none|readonly|secretary|owner]\fR
 .RS 4
 When updating a delegate, set these permissions on the default tasks folder of the given
-\fImailboxes\fR\&. Select one of the permission preset to set on the folder\&.
+\fImailboxes\fR. Select one of the permission preset to set on the folder.
 .RE
 .PP
 \fB\-\-inbox\fR \fI[none|readonly|secretary|owner]\fR
 .RS 4
 When updating a delegate, set these permissions on the default inbox folder of the given
-\fImailboxes\fR\&. Select one of the permission preset to set on the folder\&.
+\fImailboxes\fR. Select one of the permission preset to set on the folder.
 .RE
 .PP
 \fB\-\-notes\fR \fI[none|readonly|secretary|owner]\fR
 .RS 4
 When updating a delegate, set these permissions on the default notes folder of the given
-\fImailboxes\fR\&. Select one of the permission preset to set on the folder\&.
+\fImailboxes\fR. Select one of the permission preset to set on the folder.
 .RE
 .PP
 \fB\-\-journal\fR \fI[none|readonly|secretary|owner]\fR
 .RS 4
 When updating a delegate, set these permissions on the default journal folder of the given
-\fImailboxes\fR\&. Select one of the permission preset to set on the folder\&.
+\fImailboxes\fR. Select one of the permission preset to set on the folder.
 .RE
 .PP
 \fB\-\-store\fR \fI[denied|norights|readonly|secretary|owner|fullcontrol]\fR
 .RS 4
 When updating a delegate, set these permissions on the store of the given
-\fImailboxes\fR\&. All folders in the store inherit these permissions unless explicitly overwritten\&. Select one of the permission preset to set on the store\&.
+\fImailboxes\fR. All folders in the store inherit these permissions unless explicitly overwritten. Select one of the permission preset to set on the store.
 .RE
 .PP
 \fB\-\-see\-private\fR \fI[no|yes]\fR
 .RS 4
 When updating a delegate, allow the delegate to see private marked items of the given
-\fImailboxes\fR\&.
+\fImailboxes\fR.
 .RE
 .PP
 \fB\-\-sendcopy\fR \fI[no|yes]\fR
 .RS 4
 When updating a delegate, mark the delegate to receive a copy of meeting requests in their inbox for the given
-\fImailboxes\fR\&.
+\fImailboxes\fR.
 .RE
 .PP
 \fB\-\-send\-only\-to\-delegators\fR \fI[no|yes]\fR
@@ -151,16 +151,16 @@ When updating a delegate, mark the delegate to receive a copy of meeting request
 When updating a delegate, and
 \fB\-\-sendcopy\fR
 is used, let the delegates receive meeting requests only, and not the owner of the given
-\fImailboxes\fR\&.
+\fImailboxes\fR.
 .RE
 .PP
 \fB\-\-help\fR
 .RS 4
-Show a help text of the program and some usage examples\&.
+Show a help text of the program and some usage examples.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),
