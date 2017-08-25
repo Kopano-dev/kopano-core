@@ -606,9 +606,53 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 	ECRESULT er = erSuccess;
 	sObjectTableKey	sRow;
 	scoped_rlock lock(hListMutex);
+	bool filter_private = false;
+	std::string strInQuery;
+	std::string strQuery;
+	std::set<unsigned int> setObjIdPrivate;
+	std::list<unsigned int> lstChildId2;
+	ECDatabase *lpDatabase = NULL;
+	DB_RESULT lpDBResult;
+	DB_ROW                  lpDBRow = NULL;
 
 	// This is called when a table has changed, so we have to see if the table in question is actually loaded by this table
 	// manager, and then update the row if required.
+
+	// Outlook may show the subject of sensitive messages (e.g. in
+	// reminder popup), so filter these from shared store notifications
+
+	if(lpSession->GetSecurity()->IsStoreOwner(ulObjId) == KCERR_NO_ACCESS &&
+	    lpSession->GetSecurity()->GetAdminLevel() == 0 &&
+	    lstChildId.size() != 0) {
+
+		er = lpSession->GetDatabase(&lpDatabase);
+		if (er != erSuccess)
+			return er;
+
+		for(auto it = lstChildId.begin(); it != lstChildId.end(); ++it) {
+			if(it != lstChildId.begin())
+				strInQuery += ",";
+			strInQuery += stringify(*it);
+		}
+
+		strQuery = "SELECT hierarchyid FROM properties WHERE hierarchyid IN (" + strInQuery + ") AND tag = " + stringify(PROP_ID(PR_SENSITIVITY)) + " AND val_ulong >= 2;";
+
+		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		if(er != erSuccess)
+			return er;
+
+		while ( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) ) {
+			if(lpDBRow == NULL || lpDBRow[0] == NULL)
+				continue;
+			setObjIdPrivate.insert(atoui(lpDBRow[0]));
+		}
+
+		for(auto it = lstChildId.begin(); it != lstChildId.end(); ++it)
+			if (setObjIdPrivate.find(*it) == setObjIdPrivate.end())
+				lstChildId2.push_back(*it);
+
+		filter_private = true;
+	}
 
 	// First, do all the actual contents tables and hierarchy tables
 	for (const auto &t : mapTable) {
@@ -618,7 +662,10 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 		         t.second->sTable.sGeneric.ulObjectType == ulObjType;
 		if (!k)
 			continue;
-		er = t.second->lpTable->UpdateRows(ulType, &lstChildId, OBJECTTABLE_NOTIFY, false);
+		if(filter_private)
+			er = t.second->lpTable->UpdateRows(ulType, &lstChildId2, OBJECTTABLE_NOTIFY, false);
+		else
+			er = t.second->lpTable->UpdateRows(ulType, &lstChildId, OBJECTTABLE_NOTIFY, false);
 		// ignore errors from the update
 		er = erSuccess;
 	}
