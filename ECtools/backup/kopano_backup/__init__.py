@@ -140,7 +140,7 @@ def _copy_store_meta(from_dir, to_dir):
         if os.path.exists(from_path):
             shutil.copy(from_path, to_dir) # overwrites
 
-def _mark_deleted(index, fpath, timestamp, log):
+def _mark_deleted( index, fpath, timestamp, log):
     log.debug("marking deleted folder '%s'", fpath)
 
     with closing(dbopen(index)) as db_index:
@@ -365,13 +365,13 @@ class Service(kopano.Service):
     def main(self):
         self.timestamp = datetime.datetime.now()
 
-        if self.options.restore or self.options.purge or self.options.merge:
+        if self.options.restore or (self.options.purge is not None) or self.options.merge:
             data_path = _decode(self.args[0].rstrip('/'))
             with open(data_path+'/lock', 'w') as lockfile:
                 fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
                 if self.options.restore:
                     self.restore(data_path)
-                elif self.options.purge:
+                elif (self.options.purge is not None):
                     self.purge(data_path)
                 elif self.options.merge:
                     self.merge(data_path)
@@ -493,7 +493,7 @@ class Service(kopano.Service):
             # check if folder was deleted
             self.log.info('checking folder: %s', path)
             if folder_deleted(fpath):
-                if (self.timestamp - folder_deleted(fpath)).days > self.options.purge:
+                if (self.timestamp - folder_deleted(fpath)).days >= self.options.purge:
                     self.log.debug('purging folder')
                     shutil.rmtree(fpath)
                     stats['folders'] += 1
@@ -503,7 +503,7 @@ class Service(kopano.Service):
                         for item, idx in db_index.items():
                             d = pickle_loads(idx)
                             backup_deleted = d.get(b'backup_deleted')
-                            if backup_deleted and (self.timestamp - backup_deleted).days > self.options.purge:
+                            if backup_deleted and (self.timestamp - backup_deleted).days >= self.options.purge:
                                 self.log.debug('purging item: %s', item)
                                 stats['items'] += 1
                                 del db_items[item]
@@ -957,14 +957,14 @@ def main():
     options, args = parser.parse_args()
 
     options.service = False
-    if options.restore or options.merge or options.stats or options.index or options.purge:
+    if options.restore or options.merge or options.stats or options.index or (options.purge is not None):
         if len(args) != 1 or not os.path.isdir(args[0]):
             fatal('please specify path to backup data')
     elif len(args) != 0:
         fatal('too many arguments')
     if options.deletes and options.deletes not in ('yes', 'no'):
         fatal("--deletes option takes 'yes' or 'no'")
-    if options.folders and (options.differential or options.purge or options.merge):
+    if options.folders and (options.differential or (options.purge is not None) or options.merge):
         fatal('invalid use of --folder option')
     if options.output_dir and options.differential:
         fatal('invalid use of --output-dir option')
