@@ -28,7 +28,8 @@ from MAPI.Tags import (
     IID_IMAPITable, PR_CONTAINER_CONTENTS, PR_RULE_STATE,
     PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
     PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME,
-    CONVENIENT_DEPTH, PR_DEPTH,
+    CONVENIENT_DEPTH, PR_DEPTH, PR_CONTENT_COUNT, PR_ASSOC_CONTENT_COUNT,
+    PR_DELETED_MSG_COUNT,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -351,22 +352,18 @@ class Folder(Base):
         return size
 
     @property
-    def count(self, recurse=False): # XXX implement recurse?
-        """ Number of items in folder
+    def count(self):
+        """ Number of items in folder """
 
-        :param recurse: include items in sub-folders
+        folder = self.store.folder(entryid=self.entryid) # reopen to get up-to-date counters.. (XXX use flags when opening folder?)
 
-        """
-
-        try:
-            table = Table(
-                self.server,
-                self.mapiobj.GetContentsTable(self.content_flag),
-                PR_CONTAINER_CONTENTS
-            )
-            return table.count # XXX PR_CONTENT_COUNT, PR_ASSOCIATED_CONTENT_COUNT, PR_CONTENT_UNREAD?
-        except MAPIErrorNoSupport:
-            return 0
+        if self.content_flag == 0:
+            proptag = PR_CONTENT_COUNT
+        elif self.content_flag == MAPI_ASSOCIATED:
+            proptag = PR_ASSOC_CONTENT_COUNT
+        elif self.content_flag == SHOW_SOFT_DELETES:
+            proptag = PR_DELETED_MSG_COUNT
+        return folder.get_value(proptag) or 0
 
     def recount(self):
         self.server.sa.ResetFolderCount(_unhex(self.entryid))
