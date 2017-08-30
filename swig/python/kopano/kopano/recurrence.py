@@ -234,6 +234,7 @@ class Recurrence(object):
         for exception in self.exceptions:
             extended_exception = {}
 
+            # ChangeHighlight
             if self.writer_version2 >= 0x3009:
                 change_highlight_size = _utils.unpack_long(value, pos)
                 pos += LONG
@@ -241,9 +242,10 @@ class Recurrence(object):
                 extended_exception['change_highlight'] = change_highlight_value
                 pos += change_highlight_size
 
-            # Reserved
-            pos += LONG
+            # ReservedBlockEE1
+            pos += _utils.unpack_long(value, pos) + LONG
 
+            # StartDateTime, EndDateTime, OriginalStartDate
             if exception['override_flags'] & ARO_SUBJECT or exception['override_flags'] & ARO_LOCATION:
                 extended_exception['start_datetime'] = _utils.unpack_long(value, pos)
                 pos += LONG
@@ -252,17 +254,23 @@ class Recurrence(object):
                 extended_exception['original_start_date'] = _utils.unpack_long(value, pos)
                 pos += LONG
 
+            # WideCharSubject
             if exception['override_flags'] & ARO_SUBJECT:
                 length = _utils.unpack_short(value, pos)
                 pos += SHORT
                 extended_exception['subject'] = value[pos:pos+2*length].decode('utf-16-le')
                 pos += 2*length
 
+            # WideCharLocation
             if exception['override_flags'] & ARO_LOCATION:
                 length = _utils.unpack_short(value, pos)
                 pos += SHORT
                 extended_exception['location'] = value[pos:pos+2*length].decode('utf-16-le')
                 pos += 2*length
+
+            # ReservedBlockEE2
+            if exception['override_flags'] & ARO_SUBJECT or exception['override_flags'] & ARO_LOCATION:
+                pos += _utils.unpack_long(value, pos) + LONG
 
             self.extended_exceptions.append(extended_exception)
 
