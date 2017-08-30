@@ -89,6 +89,7 @@ class Folder(Base):
         if store:
             self.store = store
             self.server = store.server
+        # XXX else, determine store dynamically?
         if mapiobj:
             self._mapiobj = mapiobj
             self._entryid = HrGetOneProp(self.mapiobj, PR_ENTRYID).Value
@@ -437,7 +438,7 @@ class Folder(Base):
 
         if entryid is not None:
             try:
-                return Folder(self, entryid)
+                return Folder(self.store, entryid)
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound, TypeError):
                 raise NotFoundError('cannot open folder with entryid "%s"' % entryid)
 

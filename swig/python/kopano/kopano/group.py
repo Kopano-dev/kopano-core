@@ -32,7 +32,7 @@ else:
     import user as _user
 
 class Group(Base):
-    """Group class"""
+    """Group class."""
 
     def __init__(self, name, server=None):
         self.server = server or _server.Server()
@@ -52,20 +52,22 @@ class Group(Base):
 
     @property
     def groupid(self):
+        """Group identifier."""
+
         return bin2hex(self._ecgroup.GroupID)
 
-    def users(self):
-        """Users in group"""
+    def users(self): # XXX recurse?
+        """Return all :class:`users <User>` in group."""
 
         return self.members(groups=False)
 
-    def groups(self):
-        """Groups in group"""
+    def groups(self): # XXX recurse?
+        """Return all :class:`groups <Group>` in group."""
 
         return self.members(users=False)
 
-    def members(self, groups=True, users=True):
-        """All members in group, users or groups"""
+    def members(self, groups=True, users=True): # XXX recurse?
+        """Return all members in group (:class:`users <User>` or :class:`groups <Group>`)."""
 
         for ecuser in self.server.sa.GetUserListOfGroup(self._ecgroup.GroupID, MAPI_UNICODE):
             if ecuser.Username == 'SYSTEM':
@@ -85,6 +87,7 @@ class Group(Base):
 
     @property
     def name(self):
+        """Group name."""
         return self._name
 
     @name.setter
@@ -93,6 +96,7 @@ class Group(Base):
 
     @property
     def email(self):
+        """Group email address."""
         return self._ecgroup.Email
 
     @email.setter
@@ -117,16 +121,25 @@ class Group(Base):
         self._update(hidden=value)
 
     def send_as(self):
+        """Return :class:`users <User>` in send-as list."""
         for u in self.server.sa.GetSendAsList(self._ecgroup.GroupID, MAPI_UNICODE):
             yield self.server.user(u.Username)
 
     def add_send_as(self, user):
+        """Add :class:`user <User>` to send-as list.
+
+        :param user: user to add
+        """
         try:
             self.server.sa.AddSendAsUser(self._ecgroup.GroupID, user._ecuser.UserID)
         except MAPIErrorCollision:
             raise DuplicateError("user '%s' already in send-as for group '%s'" % (user.name, self.name))
 
     def remove_send_as(self, user):
+        """Remove :class:`user <User>` from send-as list.
+
+        :param user: user to remove
+        """
         try:
             self.server.sa.DelSendAsUser(self._ecgroup.GroupID, user._ecuser.UserID)
         except MAPIErrorNotFound:
@@ -134,6 +147,10 @@ class Group(Base):
 
     # XXX: also does groups..
     def add_user(self, user):
+        """Add :class:`user <User>` to group.
+
+        :param user: user to add
+        """
         if isinstance(user, Group):
             self.server.sa.AddGroupUser(self._ecgroup.GroupID, user._ecgroup.GroupID)
         else:
@@ -143,6 +160,10 @@ class Group(Base):
                 raise DuplicateError("group '%s' already contains user '%s'" % (self.name, user.name))
 
     def remove_user(self, user):
+        """Remove :class:`user <User>` from group.
+
+        :param user: user to remove
+        """
         try:
             self.server.sa.DeleteGroupUser(self._ecgroup.GroupID, user._ecuser.UserID)
         except MAPIErrorNotFound:
