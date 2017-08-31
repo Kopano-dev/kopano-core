@@ -344,7 +344,7 @@ class Property(object):
         if self.named:
             return u'%s:%s' % (self.namespace, self.name)
         else:
-            return self.idname or u'' # FIXME: should never be None
+            return self.idname or hex(self.proptag)
 
     @property
     def strval(self):
