@@ -31,72 +31,72 @@ using namespace KC;
 
 template<typename T> class memory_proxy _kc_final {
 	public:
-	memory_proxy(T **__p) noexcept : _m_ptr(__p) {}
-	operator T **(void) noexcept { return _m_ptr; }
+	memory_proxy(T **p) noexcept : m_ptr(p) {}
+	operator T **(void) noexcept { return m_ptr; }
 	template<typename U> U **as(void) const noexcept
 	{
 		static_assert(sizeof(U *) == sizeof(T *), "This hack won't work");
-		return reinterpret_cast<U **>(_m_ptr);
+		return reinterpret_cast<U **>(m_ptr);
 	}
 	operator void **(void) noexcept { return as<void>(); }
 
 	private:
-	T **_m_ptr;
+	T **m_ptr;
 };
 
 template<typename T> class memory_proxy2 _kc_final {
 	public:
-	memory_proxy2(T **__p) noexcept : _m_ptr(__p) {}
+	memory_proxy2(T **p) noexcept : m_ptr(p) {}
 	memory_proxy<T> operator&(void)
 	{
-		return memory_proxy<T>(_m_ptr);
+		return memory_proxy<T>(m_ptr);
 	}
 
 	private:
-	T **_m_ptr;
+	T **m_ptr;
 };
 
 template<typename T> class object_proxy _kc_final {
 	public:
-	object_proxy(T **__p) noexcept : _m_ptr(__p) {}
-	operator T **(void) noexcept { return _m_ptr; }
+	object_proxy(T **p) noexcept : m_ptr(p) {}
+	operator T **(void) noexcept { return m_ptr; }
 	template<typename U> U **as(void) const noexcept
 	{
 		static_assert(sizeof(U *) == sizeof(T *), "This hack won't work");
-		return reinterpret_cast<U **>(_m_ptr);
+		return reinterpret_cast<U **>(m_ptr);
 	}
 	operator void **(void) noexcept { return as<void>(); }
 	operator IUnknown **(void) noexcept { return as<IUnknown>(); }
 
 	private:
-	T **_m_ptr;
+	T **m_ptr;
 };
 
 template<> class object_proxy<IUnknown> _kc_final {
 	public:
-	object_proxy(IUnknown **__p) noexcept : _m_ptr(__p) {}
-	operator IUnknown **(void) noexcept { return _m_ptr; }
+	object_proxy(IUnknown **p) noexcept : m_ptr(p) {}
+	operator IUnknown **(void) noexcept { return m_ptr; }
 	template<typename U> U **as(void) const noexcept
 	{
 		static_assert(sizeof(U *) == sizeof(IUnknown *), "This hack won't work");
-		return reinterpret_cast<U **>(_m_ptr);
+		return reinterpret_cast<U **>(m_ptr);
 	}
 	operator void **(void) noexcept { return as<void>(); }
 
 	private:
-	IUnknown **_m_ptr;
+	IUnknown **m_ptr;
 };
 
 template<typename T> class object_proxy2 _kc_final {
 	public:
-	object_proxy2(T **__p) noexcept : _m_ptr(__p) {}
+	object_proxy2(T **p) noexcept : m_ptr(p) {}
 	object_proxy<T> operator&(void)
 	{
-		return object_proxy<T>(_m_ptr);
+		return object_proxy<T>(m_ptr);
 	}
 
 	private:
-	T **_m_ptr;
+	T **m_ptr;
 };
 
 class default_delete {
@@ -117,62 +117,62 @@ class default_delete {
  *  - methods "is_null", "free" and "as" are gone
  *  - operator void** and operator! is gone
  */
-template<typename T, typename _Deleter = default_delete> class memory_ptr {
+template<typename T, typename Deleter = default_delete> class memory_ptr {
 	public:
 	typedef T value_type;
 	typedef T *pointer;
 	constexpr memory_ptr(void) noexcept {}
 	constexpr memory_ptr(std::nullptr_t) noexcept {}
-	explicit memory_ptr(T *__p) noexcept : _m_ptr(__p) {}
+	explicit memory_ptr(T *p) noexcept : m_ptr(p) {}
 	~memory_ptr(void)
 	{
-		if (_m_ptr != nullptr)
-			_Deleter()(_m_ptr);
+		if (m_ptr != nullptr)
+			Deleter()(m_ptr);
 		/*
 		 * We normally don't need the following. Or maybe don't even
 		 * want. But g++'s stdlib has it, probably for robustness
 		 * reasons when placement delete is involved.
 		 */
-		_m_ptr = pointer();
+		m_ptr = pointer();
 	}
 	memory_ptr(const memory_ptr &) = delete;
-	memory_ptr(memory_ptr &&__o) : _m_ptr(__o.release()) {}
+	memory_ptr(memory_ptr &&o) : m_ptr(o.release()) {}
 	/* Observers */
-	T &operator*(void) const { return *_m_ptr; }
-	T *operator->(void) const noexcept { return _m_ptr; }
-	T *get(void) const noexcept { return _m_ptr; }
-	operator T *(void) const noexcept { return _m_ptr; }
-	T *operator+(size_t __n) const noexcept { return _m_ptr + __n; }
+	T &operator*(void) const { return *m_ptr; }
+	T *operator->(void) const noexcept { return m_ptr; }
+	T *get(void) const noexcept { return m_ptr; }
+	operator T *(void) const noexcept { return m_ptr; }
+	T *operator+(size_t n) const noexcept { return m_ptr + n; }
 	/* Modifiers */
 	T *release(void) noexcept
 	{
-		T *__p = get();
-		_m_ptr = pointer();
-		return __p;
+		T *p = get();
+		m_ptr = pointer();
+		return p;
 	}
-	void reset(T *__p = pointer()) noexcept
+	void reset(T *p = pointer()) noexcept
 	{
-		std::swap(_m_ptr, __p);
-		if (__p != pointer())
-			_Deleter()(__p);
+		std::swap(m_ptr, p);
+		if (p != pointer())
+			Deleter()(p);
 	}
-	void swap(memory_ptr &__o) noexcept
+	void swap(memory_ptr &o) noexcept
 	{
-		std::swap(_m_ptr, __o._m_ptr);
+		std::swap(m_ptr, o.m_ptr);
 	}
 	memory_proxy2<T> operator~(void)
 	{
 		reset();
-		return memory_proxy2<T>(&_m_ptr);
+		return memory_proxy2<T>(&m_ptr);
 	}
 	memory_proxy2<T> operator+(void)
 	{
-		return memory_proxy2<T>(&_m_ptr);
+		return memory_proxy2<T>(&m_ptr);
 	}
 	memory_ptr &operator=(const memory_ptr &) = delete;
-	memory_ptr &operator=(memory_ptr &&__o) noexcept
+	memory_ptr &operator=(memory_ptr &&o) noexcept
 	{
-		reset(__o.release());
+		reset(o.release());
 		return *this;
 	}
 	memory_ptr &operator=(std::nullptr_t) noexcept
@@ -184,7 +184,7 @@ template<typename T, typename _Deleter = default_delete> class memory_ptr {
 	private:
 	void operator&(void) const noexcept {} /* flag everyone */
 
-	T *_m_ptr = nullptr;
+	T *m_ptr = nullptr;
 };
 
 /**
@@ -197,84 +197,84 @@ template<typename T> class object_ptr {
 	typedef T *pointer;
 	constexpr object_ptr(void) noexcept {}
 	constexpr object_ptr(std::nullptr_t) noexcept {}
-	explicit object_ptr(T *__p, bool __addref = true) : _m_ptr(__p)
+	explicit object_ptr(T *p, bool addref = true) : m_ptr(p)
 	{
-		if (__addref && _m_ptr != pointer())
-			_m_ptr->AddRef();
+		if (addref && m_ptr != pointer())
+			m_ptr->AddRef();
 	}
 	~object_ptr(void)
 	{
-		if (_m_ptr != pointer())
-			_m_ptr->Release();
-		_m_ptr = pointer();
+		if (m_ptr != pointer())
+			m_ptr->Release();
+		m_ptr = pointer();
 	}
-	object_ptr(const object_ptr &__o)
+	object_ptr(const object_ptr &o)
 	{
-		reset(__o._m_ptr, true);
+		reset(o.m_ptr, true);
 	}
-	object_ptr(object_ptr &&__o)
+	object_ptr(object_ptr &&o)
 	{
-		auto __old = get();
-		_m_ptr = __o._m_ptr;
-		__o._m_ptr = pointer();
-		if (__old != pointer())
-			__old->Release();
+		auto old = get();
+		m_ptr = o.m_ptr;
+		o.m_ptr = pointer();
+		if (old != pointer())
+			old->Release();
 	}
 	/* Observers */
-	T &operator*(void) const { return *_m_ptr; }
-	T *operator->(void) const noexcept { return _m_ptr; }
-	T *get(void) const noexcept { return _m_ptr; }
-	operator T *(void) const noexcept { return _m_ptr; }
+	T &operator*(void) const { return *m_ptr; }
+	T *operator->(void) const noexcept { return m_ptr; }
+	T *get(void) const noexcept { return m_ptr; }
+	operator T *(void) const noexcept { return m_ptr; }
 	template<typename U> HRESULT QueryInterface(U &);
 	template<typename P> P as();
 
 	/* Modifiers */
 	T *release(void) noexcept
 	{
-		T *__p = get();
-		_m_ptr = pointer();
-		return __p;
+		T *p = get();
+		m_ptr = pointer();
+		return p;
 	}
-	void reset(T *__p = pointer(), bool __addref = true) noexcept
+	void reset(T *p = pointer(), bool addref = true) noexcept
 	{
-		if (__addref && __p != pointer())
-			__p->AddRef();
-		std::swap(_m_ptr, __p);
-		if (__p != pointer())
-			__p->Release();
+		if (addref && p != pointer())
+			p->AddRef();
+		std::swap(m_ptr, p);
+		if (p != pointer())
+			p->Release();
 	}
-	void swap(object_ptr &__o) noexcept
+	void swap(object_ptr &o) noexcept
 	{
-		std::swap(_m_ptr, __o._m_ptr);
+		std::swap(m_ptr, o.m_ptr);
 	}
 	object_proxy2<T> operator~(void)
 	{
 		reset();
-		return object_proxy2<T>(&_m_ptr);
+		return object_proxy2<T>(&m_ptr);
 	}
 	object_proxy2<T> operator+(void)
 	{
-		return object_proxy2<T>(&_m_ptr);
+		return object_proxy2<T>(&m_ptr);
 	}
-	object_ptr &operator=(const object_ptr &__o) noexcept
+	object_ptr &operator=(const object_ptr &o) noexcept
 	{
-		reset(__o._m_ptr, true);
+		reset(o.m_ptr, true);
 		return *this;
 	}
-	object_ptr &operator=(object_ptr &&__o) noexcept
+	object_ptr &operator=(object_ptr &&o) noexcept
 	{
-		auto __old = get();
-		_m_ptr = __o._m_ptr;
-		__o._m_ptr = pointer();
-		if (__old != pointer())
-			__old->Release();
+		auto old = get();
+		m_ptr = o.m_ptr;
+		o.m_ptr = pointer();
+		if (old != pointer())
+			old->Release();
 		return *this;
 	}
 	private:
 	void operator=(std::nullptr_t) noexcept {}
 	void operator&(void) const noexcept {} /* flag everyone */
 
-	T *_m_ptr = nullptr;
+	T *m_ptr = nullptr;
 };
 
 class cstdlib_deleter {
@@ -294,15 +294,15 @@ typedef memory_ptr<SRowSet, rowset_delete> rowset_ptr;
 typedef memory_ptr<ROWLIST, rowset_delete> rowlist_ptr;
 
 template<typename T> inline void
-swap(memory_ptr<T> &__x, memory_ptr<T> &__y) noexcept
+swap(memory_ptr<T> &x, memory_ptr<T> &y) noexcept
 {
-	__x.swap(__y);
+	x.swap(y);
 }
 
 template<typename T> inline void
-swap(object_ptr<T> &__x, object_ptr<T> &__y) noexcept
+swap(object_ptr<T> &x, object_ptr<T> &y) noexcept
 {
-	__x.swap(__y);
+	x.swap(y);
 }
 
 } /* namespace KCHL */
@@ -322,10 +322,10 @@ namespace KCHL {
 template<typename T > template<typename U>
 HRESULT object_ptr<T>::QueryInterface(U &result)
 {
-	if (_m_ptr == nullptr)
+	if (m_ptr == nullptr)
 		return MAPI_E_NOT_INITIALIZED;
 	typename U::pointer newobj = nullptr;
-	HRESULT hr = _m_ptr->QueryInterface(iid_of(result), reinterpret_cast<void **>(&newobj));
+	HRESULT hr = m_ptr->QueryInterface(iid_of(result), reinterpret_cast<void **>(&newobj));
 	if (hr == hrSuccess)
 		result.reset(newobj, false);
 	/*
@@ -346,7 +346,7 @@ HRESULT object_ptr<T>::QueryInterface(U &result)
 	else if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED &&
 	    std::is_base_of<IMAPIProp, value_type>::value) {
 		KCHL::memory_ptr<SPropValue> pv;
-		if (HrGetOneProp(_m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
+		if (HrGetOneProp(m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
 			return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
 		auto unk = reinterpret_cast<IUnknown *>(pv->Value.lpszA);
 		hr = unk->QueryInterface(iid_of(newobj), reinterpret_cast<void **>(&newobj));
