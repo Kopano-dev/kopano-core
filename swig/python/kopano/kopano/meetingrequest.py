@@ -171,6 +171,8 @@ def _organizer_props(cal_item, item):
         ]
 
 class MeetingRequest(object):
+    """MeetingRequest class"""
+
     def __init__(self, item):
         self.item = item
 

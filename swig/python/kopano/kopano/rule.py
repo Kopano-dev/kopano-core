@@ -15,6 +15,8 @@ from .compat import repr as _repr, fake_unicode as _unicode
 from .restriction import Restriction
 
 class Rule(object):
+    """Rule class"""
+
     def __init__(self, mapirow):
         self.mapirow = mapirow
         self.name = mapirow[PR_RULE_NAME_W]

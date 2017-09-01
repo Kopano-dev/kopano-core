@@ -111,7 +111,7 @@ def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     return decorate
 
 class Server(object):
-    """Server class."""
+    """Server class"""
 
     def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True):
         """

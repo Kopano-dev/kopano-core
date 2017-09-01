@@ -91,6 +91,8 @@ PATTERN_MONTHNTH = 3
 # see MS-OXOCAL, section 2.2.1.44.5, "AppointmentRecurrencePattern Structure"
 
 class Recurrence(object):
+    """Recurrence class"""
+
     def __init__(self, item):
         # XXX add check if we actually have a recurrence, otherwise we throw a mapi exception which might not be desirable
 
@@ -781,6 +783,8 @@ class Recurrence(object):
 
 
 class Occurrence(object):
+    """Occurrence class"""
+
     def __init__(self, item, start, end): # XXX make sure all GMT?
         self.item = item
         self.start = start

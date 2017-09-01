@@ -61,8 +61,7 @@ class Attachment(Base):
 
     @property
     def mimetype(self):
-        """ Mime-type or *None* if not found """
-
+        """Mime-type"""
         try:
             return HrGetOneProp(self.mapiobj, PR_ATTACH_MIME_TAG_W).Value
         except MAPIErrorNotFound:
@@ -70,8 +69,7 @@ class Attachment(Base):
 
     @property
     def filename(self):
-        """ Filename or *None* if not found """
-
+        """Filename"""
         try:
             return HrGetOneProp(self.mapiobj, PR_ATTACH_LONG_FILENAME_W).Value
         except MAPIErrorNotFound:
@@ -79,7 +77,7 @@ class Attachment(Base):
 
     @property
     def size(self):
-        """ Size """
+        """Size"""
         # XXX size of the attachment object, so more than just the attachment data
         # XXX (useful when calculating store size, for example.. sounds interesting to fix here)
         try:
@@ -92,8 +90,7 @@ class Attachment(Base):
 
     @property
     def data(self):
-        """ Binary data """
-
+        """Binary data"""
         if self._data is None:
             self._data = _utils.stream(self.mapiobj, PR_ATTACH_DATA_BIN)
         return self._data

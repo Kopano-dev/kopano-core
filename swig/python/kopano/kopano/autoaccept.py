@@ -15,6 +15,8 @@ from MAPI.Struct import SPropValue
 from MAPI import MAPI_MODIFY, KEEP_OPEN_READWRITE
 
 class AutoAccept(object):
+    """AutoAccept class"""
+
     def __init__(self, store):
         fbeid = store.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
         self._fb = store.mapiobj.OpenEntry(fbeid, None, MAPI_MODIFY)
@@ -22,6 +24,7 @@ class AutoAccept(object):
 
     @property
     def enabled(self):
+        """Auto-accept is enabled."""
         return HrGetOneProp(self._fb, PR_PROCESS_MEETING_REQUESTS).Value
 
     @enabled.setter
@@ -31,6 +34,7 @@ class AutoAccept(object):
 
     @property
     def conflicts(self):
+        """Conflicting appointments are accepted."""
         return not HrGetOneProp(self._fb, PR_DECLINE_CONFLICTING_MEETING_REQUESTS).Value
 
     @conflicts.setter
@@ -40,6 +44,7 @@ class AutoAccept(object):
 
     @property
     def recurring(self):
+        """Recurring appointments are accepted."""
         return not HrGetOneProp(self._fb, PR_DECLINE_RECURRING_MEETING_REQUESTS).Value
 
     @recurring.setter

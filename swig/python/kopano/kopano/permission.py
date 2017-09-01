@@ -14,7 +14,7 @@ from .defs import RIGHT_NAME, NAME_RIGHT
 from .errors import NotFoundError
 
 class Permission(object):
-    """Permission class."""
+    """Permission class"""
 
     def __init__(self, mapitable, mapirow, server): # XXX fix args
         self.mapitable = mapitable
