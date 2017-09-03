@@ -482,7 +482,8 @@ ECRESULT ECDatabaseMySQL::InitEngine()
 	// We always wants reconnect OFF, because we want to know when the connection
 	// is broken since this creates a new MySQL session, and we want to set some session
 	// variables
-	m_lpMySQL.reconnect = 0;
+	my_bool value = false;
+	mysql_options(&m_lpMySQL, MYSQL_OPT_RECONNECT, &value);
 	return erSuccess;
 }
 

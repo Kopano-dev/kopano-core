@@ -74,7 +74,8 @@ ECRESULT ECDatabaseMySQL::InitEngine()
 	// Set auto reconnect
 	// mysql < 5.0.4 default on, mysql 5.0.4 > reconnection default off
 	// Kopano always wants to reconnect
-	m_lpMySQL.reconnect = 1;
+	my_bool xtrue = true;
+	mysql_options(&m_lpMySQL, MYSQL_OPT_RECONNECT, &xtrue);
 	return erSuccess;
 }
 
