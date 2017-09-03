@@ -180,11 +180,11 @@ namespace priv {
  * a native value that's part of a struct (on both sides). The actual conversion
  * is delegated to a specialization of the private::conv_out template.
  *
- * @tparam			_ObjType	The type of the structure containing the values that
+ * @tparam	ObjType	The type of the structure containing the values that
  * 								are to be converted.
- * @tparam			_MemType	The type of the member for which this particular instantiation
+ * @tparam	MemType	The type of the member for which this particular instantiation
  * 								is intended.
- * @tparam			_Member		The data member pointer that points to the actual field
+ * @tparam	Member	The data member pointer that points to the actual field
  * 								for which this particula instantiation is intended.
  * @param[in,out]	lpObj		The native object whos members will be populated with
  * 								values converted from the scripted object.
@@ -194,13 +194,14 @@ namespace priv {
  * @param[in]		flags		Allowed values:
  *								@remark @c MAPI_UNICODE If the data is a string, it's a wide character string
  */
-template <typename _ObjType, typename _MemType, _MemType(_ObjType::*_Member)>
-void conv_out_default(_ObjType *lpObj, PyObject *elem, const char *lpszMember, LPVOID lpBase, ULONG ulFlags) {
+template<typename ObjType, typename MemType, MemType(ObjType::*Member)>
+void conv_out_default(ObjType *lpObj, PyObject *elem, const char *lpszMember,
+    void *lpBase, ULONG ulFlags)
+{
 	PyObject *value = PyObject_GetAttrString(elem, const_cast<char*>(lpszMember));	// Older versions of python might expect a non-const char pointer.
 	if (PyErr_Occurred())
 		return;
-
-	priv::conv_out(value, lpBase, ulFlags, &(lpObj->*_Member));
+	priv::conv_out(value, lpBase, ulFlags, &(lpObj->*Member));
 	Py_DECREF(value);
 }
 
@@ -208,10 +209,8 @@ void conv_out_default(_ObjType *lpObj, PyObject *elem, const char *lpszMember, L
  * This structure is used to create a list of items that need to be converted from
  * their scripted representation to their native representation.
  */
-template <typename _ObjType>
-struct conv_out_info {
-	typedef void(*conv_out_func_t)(_ObjType*, PyObject*, const char*, LPVOID lpBase, ULONG ulFlags);
-	
+template<typename ObjType> struct conv_out_info {
+	typedef void (*conv_out_func_t)(ObjType *, PyObject *, const char *, void *lpBase, ULONG ulFlags);
 	conv_out_func_t		conv_out_func;
 	const char*			membername;
 };
@@ -228,8 +227,10 @@ struct conv_out_info {
  * @param[in]		flags		Allowed values:
  *								@remark @c MAPI_UNICODE If the data is a string, it's a wide character string
  */
-template <typename _ObjType, size_t N>
-void process_conv_out_array(_ObjType *lpObj, PyObject *elem, const conv_out_info<_ObjType> (&array)[N], LPVOID lpBase, ULONG ulFlags) {
+template<typename ObjType, size_t N>
+void process_conv_out_array(ObjType *lpObj, PyObject *elem,
+    const conv_out_info<ObjType> (&array)[N], void *lpBase, ULONG ulFlags)
+{
 	for (size_t n = 0; !PyErr_Occurred() && n < N; ++n)
 		array[n].conv_out_func(lpObj, elem, array[n].membername, lpBase, ulFlags);
 }

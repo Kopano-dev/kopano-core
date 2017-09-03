@@ -89,7 +89,7 @@
 /* ENTRYID */
 struct ENTRYID {
 	ENTRYID(void) = delete;
-	template<typename _T> ENTRYID(std::initializer_list<_T>) = delete;
+	template<typename T> ENTRYID(std::initializer_list<T>) = delete;
     BYTE    abFlags[4];
     BYTE    ab[MAPI_DIM];
 };
@@ -245,7 +245,7 @@ typedef struct MAPIUID *LPMAPIUID;
 /* Property Tag Array */
 struct SPropTagArray {
 	SPropTagArray(void) = delete;
-	template<typename _T> SPropTagArray(std::initializer_list<_T>) = delete;
+	template<typename T> SPropTagArray(std::initializer_list<T>) = delete;
     ULONG   cValues;
     ULONG   aulPropTag[MAPI_DIM];
 };
@@ -400,7 +400,7 @@ typedef struct SPropProblem *LPSPropProblem;
 
 struct SPropProblemArray {
 	SPropProblemArray(void) = delete;
-	template<typename _T> SPropProblemArray(std::initializer_list<_T>) = delete;
+	template<typename T> SPropProblemArray(std::initializer_list<T>) = delete;
     ULONG           cProblem;
     SPropProblem    aProblem[MAPI_DIM];
 };
@@ -423,7 +423,7 @@ typedef SBinaryArray ENTRYLIST, *LPENTRYLIST;
 
 struct FLATENTRY {
 	FLATENTRY(void) = delete;
-	template<typename _T> FLATENTRY(std::initializer_list<_T>) = delete;
+	template<typename T> FLATENTRY(std::initializer_list<T>) = delete;
     ULONG cb;
     BYTE abEntry[MAPI_DIM];
 };
@@ -431,7 +431,7 @@ typedef struct FLATENTRY *LPFLATENTRY;
 
 struct FLATENTRYLIST {
 	FLATENTRYLIST(void) = delete;
-	template<typename _T> FLATENTRYLIST(std::initializer_list<_T>) = delete;
+	template<typename T> FLATENTRYLIST(std::initializer_list<T>) = delete;
     ULONG       cEntries;
     ULONG       cbEntries;
     BYTE        abEntries[MAPI_DIM];
@@ -440,7 +440,7 @@ typedef struct FLATENTRYLIST *LPFLATENTRYLIST;
 
 struct MTSID {
 	MTSID(void) = delete;
-	template<typename _T> MTSID(std::initializer_list<_T>) = delete;
+	template<typename T> MTSID(std::initializer_list<T>) = delete;
     ULONG       cb;
     BYTE        ab[MAPI_DIM];
 };
@@ -448,7 +448,7 @@ typedef struct MTSID *LPMTSID;
 
 struct FLATMTSIDLIST {
 	FLATMTSIDLIST(void) = delete;
-	template<typename _T> FLATMTSIDLIST(std::initializer_list<_T>) = delete;
+	template<typename T> FLATMTSIDLIST(std::initializer_list<T>) = delete;
     ULONG       cMTSIDs;
     ULONG       cbMTSIDs;
     BYTE        abMTSIDs[MAPI_DIM];
@@ -475,7 +475,7 @@ typedef struct ADRENTRY *LPADRENTRY;
 
 struct ADRLIST {
 	ADRLIST(void) = delete;
-	template<typename _T> ADRLIST(std::initializer_list<_T>) = delete;
+	template<typename T> ADRLIST(std::initializer_list<T>) = delete;
     ULONG           cEntries;
     ADRENTRY        aEntries[MAPI_DIM];
 };
@@ -502,7 +502,7 @@ typedef struct SRow *LPSRow;
 
 struct SRowSet {
 	SRowSet(void) = delete;
-	template<typename _T> SRowSet(std::initializer_list<_T>) = delete;
+	template<typename T> SRowSet(std::initializer_list<T>) = delete;
     ULONG           cRows;
     SRow            aRow[MAPI_DIM];
 	operator const SRowSet *(void) const { return reinterpret_cast<const SRowSet *>(this); }
@@ -989,7 +989,7 @@ typedef struct SSortOrder *LPSSortOrder;
 
 struct SSortOrderSet {
 	SSortOrderSet(void) = delete;
-	template<typename _T> SSortOrderSet(std::initializer_list<_T>) = delete;
+	template<typename T> SSortOrderSet(std::initializer_list<T>) = delete;
     ULONG           cSorts;     /* Number of sort columns in aSort below*/
     ULONG           cCategories;    /* 0 for non-categorized, up to cSorts */
     ULONG           cExpanded;      /* 0 if no categories start expanded, */
@@ -1138,7 +1138,7 @@ IID_OF2(IAttach, IAttachment)
  */
 struct FlagList {
 	FlagList(void) = delete;
-	template<typename _T> FlagList(std::initializer_list<_T>) = delete;
+	template<typename T> FlagList(std::initializer_list<T>) = delete;
     ULONG cFlags;
     ULONG ulFlag[MAPI_DIM];
 };

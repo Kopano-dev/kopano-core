@@ -146,10 +146,10 @@ std::vector<std::basic_string<T> > tokenize(const T* str, const T* delimiters)
 	return tokenize(std::basic_string<T>(str), std::basic_string<T>(delimiters));
 }
 
-template<typename _InputIterator, typename _Tp>
-_Tp join(_InputIterator __first, _InputIterator __last, _Tp __sep)
+template<typename InputIterator, typename Tp>
+Tp join(InputIterator __first, InputIterator __last, Tp __sep)
 {
-    _Tp s;
+	Tp s;
     for (; __first != __last; ++__first) {
         if(!s.empty())
             s += __sep;

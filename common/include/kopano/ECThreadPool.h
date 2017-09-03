@@ -162,7 +162,7 @@ inline bool ECWaitableTask::done() const {
  * an ECThreadPool or derived class.
  * To call a function with more than one argument boost::bind can be used.
  */
-template<typename _Rt, typename _Fn, typename _At>
+template<typename Rt, typename Fn, typename At>
 class ECDeferredFunc _kc_final : public ECWaitableTask {
 public:
 	/**
@@ -170,7 +170,7 @@ public:
 	 * @param[in]	fn		The function to execute
 	 * @param[in]	arg		The argument to pass to fn.
 	 */
-	ECDeferredFunc(_Fn fn, const _At &arg) : m_fn(fn), m_arg(arg)
+	ECDeferredFunc(Fn fn, const At &arg) : m_fn(fn), m_arg(arg)
 	{ }
 	
 	virtual void run(void) _kc_override
@@ -182,15 +182,16 @@ public:
 	 * Get the result of the asynchronous function. This method will
 	 * block until the method has been executed.
 	 */
-	_Rt result() const {
+	Rt result() const
+	{
 		wait();
 		return m_result;
 	}
 	
 private:
-	_Rt m_result = 0;
-	_Fn m_fn;
-	_At m_arg;
+	Rt m_result = 0;
+	Fn m_fn;
+	At m_arg;
 };
 
 } /* namespace */

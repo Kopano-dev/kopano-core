@@ -77,7 +77,7 @@ typedef IMAPISupport* LPMAPISUP;
 
 struct NOTIFKEY {
 	NOTIFKEY(void) = delete;
-	template<typename _T> NOTIFKEY(std::initializer_list<_T>) = delete;
+	template<typename T> NOTIFKEY(std::initializer_list<T>) = delete;
     ULONG       cb;             /* How big the key is */
     BYTE        ab[MAPI_DIM];   /* Key contents */
 };
