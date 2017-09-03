@@ -511,7 +511,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	if (hr == MAPI_E_UNCONFIGURED)
 		goto exit;
 	if (hr != hrSuccess || lpProp->ulPropTag != PR_DISPLAY_NAME_A) {
-		lpDisplayName = _A("Unknown");
+		lpDisplayName = KC_A("Unknown");
 		hr = hrSuccess;
 	} else {
 		lpDisplayName = lpProp->Value.lpszA;

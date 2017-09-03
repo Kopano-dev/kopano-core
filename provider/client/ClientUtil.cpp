@@ -103,7 +103,7 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 
 	// Set the PR_STATUS_STRING property
 	lpspvStatusRow[cCurVal].ulPropTag = PR_STATUS_STRING_W;
-	lpspvStatusRow[cCurVal++].Value.lpszW = _W("Available");
+	lpspvStatusRow[cCurVal++].Value.lpszW = KC_W("Available");
 
 	// Set the PR_IDENTITY_ENTRYID property
 	lpspvStatusRow[cCurVal].ulPropTag = PR_IDENTITY_ENTRYID;
