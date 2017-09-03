@@ -281,8 +281,7 @@ ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int 
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_USERSTORES;
-	memset(&lpEntry->sTable, 0, sizeof(TABLE_ENTRY::__sTable));
-
+	memset(&lpEntry->sTable, 0, sizeof(lpEntry->sTable));
 	er = lpTable->SetColumns(&sPropTagArrayUserStores, true);
 	if (er != erSuccess)
 		return er;
@@ -306,7 +305,7 @@ ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned in
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_MULTISTORE;
-	memset(&lpEntry->sTable, 0, sizeof(TABLE_ENTRY::__sTable));
+	memset(&lpEntry->sTable, 0, sizeof(lpEntry->sTable));
 	AddTableEntry(lpEntry.release(), lpulTableId);
 	return er;
 }
@@ -466,7 +465,7 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
-	memset(&lpEntry->sTable, 0, sizeof(TABLE_ENTRY::__sTable));
+	memset(&lpEntry->sTable, 0, sizeof(lpEntry->sTable));
 	AddTableEntry(lpEntry.release(), lpulTableId);
 	return erSuccess;
 }
@@ -486,7 +485,7 @@ ECRESULT ECTableManager::OpenMailBoxTable(unsigned int ulflags, unsigned int *lp
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_MAILBOX;
-	memset(&lpEntry->sTable, 0, sizeof(TABLE_ENTRY::__sTable));
+	memset(&lpEntry->sTable, 0, sizeof(lpEntry->sTable));
 
 	//@todo check this list!!!
 	er = lpTable->SetColumns(&sPropTagArrayUserStores, true);

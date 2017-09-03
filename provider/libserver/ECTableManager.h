@@ -51,13 +51,13 @@ struct TABLE_ENTRY {
 		   
     TABLE_TYPE ulTableType;
     
-	union __sTable {
-		struct __sGeneric {
+	union {
+		struct {
 			unsigned int ulParentId;
 			unsigned int ulObjectType;
 			unsigned int ulObjectFlags;
 		} sGeneric ;
-		struct __sOutgoingQueue {
+		struct {
 			unsigned int ulStoreId;
 			unsigned int ulFlags;
 		} sOutgoingQueue;
