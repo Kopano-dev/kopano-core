@@ -104,7 +104,7 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
  */
 PublishFreeBusy::PublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore,
     time_t tsStart, ULONG ulMonths) :
-	__propmap(7)
+	m_propmap(7)
 {
 	m_lpSession = lpSession;
 	m_lpDefStore = lpDefStore;

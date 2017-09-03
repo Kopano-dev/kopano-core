@@ -86,7 +86,7 @@ ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *
 , m_lpConfig(lpConfig)
 , m_lpLogger(new ECArchiverLogger(lpLogger))
 , m_cleanupAction(caStore)
-, m_bForceCleanup(bForceCleanup), __propmap(5)
+, m_bForceCleanup(bForceCleanup), m_propmap(5)
 {
 }
 

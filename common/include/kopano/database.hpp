@@ -117,7 +117,7 @@ class _kc_export KDatabase {
 	bool isConnected(void) const { return m_bConnected; }
 	ECRESULT IsInnoDBSupported(void);
 	virtual ECRESULT Query(const std::string &q);
-	ECRESULT _Update(const std::string &q, unsigned int *affected);
+	ECRESULT I_Update(const std::string &q, unsigned int *affected);
 
 	MYSQL m_lpMySQL;
 	unsigned int m_ulMaxAllowedPacket = KC_DFL_MAX_PACKET_SIZE;

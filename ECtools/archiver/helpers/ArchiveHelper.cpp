@@ -127,7 +127,7 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession, const SObjectEntry 
 ArchiveHelper::ArchiveHelper(LPMDB lpArchiveStore, const tstring &strFolder, const std::string &strServerPath)
 : m_ptrArchiveStore(lpArchiveStore, true)
 , m_strFolder(strFolder)
-, m_strServerPath(strServerPath), __propmap(4)
+, m_strServerPath(strServerPath), m_propmap(4)
 { }
 
 ArchiveHelper::ArchiveHelper(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const std::string &strServerPath)

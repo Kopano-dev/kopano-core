@@ -100,7 +100,8 @@ HRESULT ECSyncLog::SetLogger(ECLogger *lpLogger)
 std::mutex ECSyncLog::s_hMutex;
 ECLogger		*ECSyncLog::s_lpLogger = NULL;
 
-ECSyncLog::__initializer::~__initializer() {
+ECSyncLog::initializer::~initializer()
+{
 	if (ECSyncLog::s_lpLogger == nullptr)
 		return;
 	unsigned ulRef = ECSyncLog::s_lpLogger->Release();
@@ -109,4 +110,4 @@ ECSyncLog::__initializer::~__initializer() {
 		ulRef = ECSyncLog::s_lpLogger->Release();
 }
 
-ECSyncLog::__initializer ECSyncLog::__i;
+ECSyncLog::initializer ECSyncLog::xinit;

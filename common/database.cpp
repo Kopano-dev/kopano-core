@@ -255,7 +255,7 @@ ECRESULT KDatabase::Close(void)
 ECRESULT KDatabase::DoDelete(const std::string &q, unsigned int *aff)
 {
 	autolock alk(*this);
-	return _Update(q, aff);
+	return I_Update(q, aff);
 }
 
 /**
@@ -273,7 +273,7 @@ ECRESULT KDatabase::DoInsert(const std::string &q, unsigned int *idp,
     unsigned int *aff)
 {
 	autolock alk(*this);
-	auto er = _Update(q, aff);
+	auto er = I_Update(q, aff);
 	if (er == erSuccess && idp != nullptr)
 		*idp = GetInsertId();
 	return er;
@@ -381,7 +381,7 @@ ECRESULT KDatabase::DoSequence(const std::string &seq, unsigned int count,
 ECRESULT KDatabase::DoUpdate(const std::string &q, unsigned int *aff)
 {
 	autolock alk(*this);
-	return _Update(q, aff);
+	return I_Update(q, aff);
 }
 
 std::string KDatabase::Escape(const std::string &s)
@@ -504,10 +504,10 @@ ECRESULT KDatabase::Query(const std::string &q)
 	return KCERR_DATABASE_ERROR;
 }
 
-ECRESULT KDatabase::_Update(const std::string &q, unsigned int *aff)
+ECRESULT KDatabase::I_Update(const std::string &q, unsigned int *aff)
 {
 	if (Query(q) != 0) {
-		ec_log_err("KDatabase::_Update() query failed: %s: %s",
+		ec_log_err("KDatabase::I_Update() query failed: %s: %s",
 			q.c_str(), GetError());
 		return KCERR_DATABASE_ERROR;
 	}

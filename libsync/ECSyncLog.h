@@ -34,10 +34,10 @@ private:
 	static std::mutex s_hMutex;
 	static ECLogger			*s_lpLogger;
 
-	struct _kc_hidden __initializer _kc_final {
-		~__initializer();
+	struct _kc_hidden initializer _kc_final {
+		~initializer();
 	};
-	static __initializer __i;
+	static initializer xinit;
 };
 
 } /* namespace */
