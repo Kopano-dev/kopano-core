@@ -144,8 +144,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	sProps[0].Value.b = 1;
 	
 	sProps[1].ulPropTag = PR_BODY;
-	sProps[1].Value.LPSZ = const_cast<TCHAR *>(_T("This message is archived..."));
-
+	sProps[1].Value.LPSZ = const_cast<TCHAR *>(KC_T("This message is archived..."));
 	sProps[2].ulPropTag = PR_ICON_INDEX;
 	sProps[2].Value.l = 2;
 
@@ -183,7 +182,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		}
 		
 		sProp.ulPropTag = PR_ATTACH_FILENAME;
-		sProp.Value.LPSZ = const_cast<TCHAR *>(_T("dummy"));
+		sProp.Value.LPSZ = const_cast<TCHAR *>(KC_T("dummy"));
 		hr = ptrAttach->SetProps(1, &sProp, NULL);
 		if (hr != hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to set attachment properties. (hr=%s)", stringify(hr, true).c_str());

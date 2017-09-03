@@ -97,9 +97,8 @@ class CKopanoApp {
 public:
     CKopanoApp() {
         ssl_threading_setup();
-
-		g_strManufacturer = _T("Kopano");
-		g_strProductName = _T("Kopano Core");
+		g_strManufacturer = KC_T("Kopano");
+		g_strProductName = KC_T("Kopano Core");
 		g_isOEM = false;
 		g_ulLoadsim = FALSE;
 
@@ -736,7 +735,7 @@ exit:
 
 			if (Util::HrMAPIErrorToText(hr, &~lpszErrorMsg) == hrSuccess) {
 				// Set Error
-				strError = _T("EntryPoint: ");
+				strError = KC_T("EntryPoint: ");
 				strError += lpszErrorMsg;
 
 				// Some outlook 2007 clients can't allocate memory so check it

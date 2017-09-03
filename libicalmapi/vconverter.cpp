@@ -2369,7 +2369,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 	if (lpPropVal)
 		FileTimeToUnixTime(lpPropVal->Value.ft, &ttReminderTime);
 	lpPropVal = PCpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS);
-	if (lpPropVal && _tcsicmp(lpPropVal->Value.LPSZ, _T("IPM.Task")) == 0)
+	if (lpPropVal && _tcsicmp(lpPropVal->Value.LPSZ, KC_T("IPM.Task")) == 0)
 		bTask = true;
 
 	hr = HrParseReminder(lRemindBefore, ttReminderTime, bTask, &lpAlarm);

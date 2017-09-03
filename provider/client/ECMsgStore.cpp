@@ -1727,18 +1727,18 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 	hr = lpMapiFolderRoot->QueryInterface(IID_IMAPIFolder, &~lpFolderRoot);
 	if(hr != hrSuccess)
 		return hr;
-	hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("IPM_SUBTREE"), _T(""), PR_IPM_SUBTREE_ENTRYID, 0, NULL, &~lpFolderRootST);
+	hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("IPM_SUBTREE"), KC_T(""), PR_IPM_SUBTREE_ENTRYID, 0, NULL, &~lpFolderRootST);
 	if(hr != hrSuccess)
 		return hr;
 
 	if(ulStoreType == ECSTORE_TYPE_PUBLIC) { // Public folder action
 		// Create Folder NON_IPM_SUBTREE into the rootfolder
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("NON_IPM_SUBTREE"), _T(""), PR_NON_IPM_SUBTREE_ENTRYID, 0, NULL, &~lpFolderRootNST);
+		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("NON_IPM_SUBTREE"), KC_T(""), PR_NON_IPM_SUBTREE_ENTRYID, 0, NULL, &~lpFolderRootNST);
 		if (hr != hrSuccess)
 			return hr;
 
 		// Create Folder FINDER_ROOT into the rootfolder
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("FINDER_ROOT"), _T(""), PR_FINDER_ENTRYID, 0, NULL, &~lpMAPIFolder3);
+		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("FINDER_ROOT"), KC_T(""), PR_FINDER_ENTRYID, 0, NULL, &~lpMAPIFolder3);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1755,7 +1755,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			return hr;
 
 		//Free busy time folder
-		hr = CreateSpecialFolder(lpFolderRootNST, lpecMsgStore,_T( "SCHEDULE+ FREE BUSY"), _T(""), PR_SPLUS_FREE_BUSY_ENTRYID, 0, NULL, &~lpMAPIFolder);
+		hr = CreateSpecialFolder(lpFolderRootNST, lpecMsgStore, KC_T("SCHEDULE+ FREE BUSY"), KC_T(""), PR_SPLUS_FREE_BUSY_ENTRYID, 0, NULL, &~lpMAPIFolder);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1771,7 +1771,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		hr = lpECSecurity->SetPermissionRules(1, &sPermission);
 		if(hr != hrSuccess)
 			return hr;
-		hr = CreateSpecialFolder(lpMAPIFolder, lpecMsgStore, _T("Zarafa 1"), _T(""), PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID, 0, NULL, &~lpMAPIFolder2);
+		hr = CreateSpecialFolder(lpMAPIFolder, lpecMsgStore, KC_T("Zarafa 1"), KC_T(""), PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID, 0, NULL, &~lpMAPIFolder2);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1822,18 +1822,18 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 
 		// Create Folder COMMON_VIEWS into the rootfolder
 		// folder holds views that are standard for the message store
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("IPM_COMMON_VIEWS"), _T(""), PR_COMMON_VIEWS_ENTRYID, 0, NULL, NULL);
+		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("IPM_COMMON_VIEWS"), KC_T(""), PR_COMMON_VIEWS_ENTRYID, 0, NULL, NULL);
 		if(hr != hrSuccess)
 			return hr;
 
 		// Create Folder VIEWS into the rootfolder
 		// Personal: folder holds views that are defined by a particular user
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("IPM_VIEWS"), _T(""), PR_VIEWS_ENTRYID, 0, NULL, NULL);
+		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("IPM_VIEWS"), KC_T(""), PR_VIEWS_ENTRYID, 0, NULL, NULL);
 		if(hr != hrSuccess)
 			return hr;
 
 		// Create Folder FINDER_ROOT into the rootfolder
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("FINDER_ROOT"), _T(""), PR_FINDER_ENTRYID, 0, NULL, &~lpMAPIFolder3);
+		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("FINDER_ROOT"), KC_T(""), PR_FINDER_ENTRYID, 0, NULL, &~lpMAPIFolder3);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1851,12 +1851,12 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 
 		// Create Shortcuts
 		// Shortcuts for the favorites
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _("Shortcut"), _T(""), PR_IPM_FAVORITES_ENTRYID, 0, NULL, NULL);
+		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _("Shortcut"), KC_T(""), PR_IPM_FAVORITES_ENTRYID, 0, NULL, NULL);
 		if(hr != hrSuccess)
 			return hr;
 
 		// Create Schedule folder
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("Schedule"), _T(""), PR_SCHEDULE_FOLDER_ENTRYID, 0, NULL, NULL);
+		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("Schedule"), KC_T(""), PR_SCHEDULE_FOLDER_ENTRYID, 0, NULL, NULL);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1864,7 +1864,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		// Folders like: Inbox, outbox, tasks, agenda, notes, trashcan, send items, contacts,concepts
 
 		// Create Inbox
-		hr = CreateSpecialFolder(lpFolderRootST, NULL, _("Inbox"), _T(""), 0, 0, NULL, &~lpInboxFolder);
+		hr = CreateSpecialFolder(lpFolderRootST, NULL, _("Inbox"), KC_T(""), 0, 0, NULL, &~lpInboxFolder);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1886,22 +1886,22 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			return hr;
 
 		// Create Outbox
-		hr = CreateSpecialFolder(lpFolderRootST, lpecMsgStore, _("Outbox"), _T(""), PR_IPM_OUTBOX_ENTRYID, 0, NULL, NULL);
+		hr = CreateSpecialFolder(lpFolderRootST, lpecMsgStore, _("Outbox"), KC_T(""), PR_IPM_OUTBOX_ENTRYID, 0, NULL, NULL);
 		if(hr != hrSuccess)
 			return hr;
 
 		// Create Trashcan
-		hr = CreateSpecialFolder(lpFolderRootST, lpecMsgStore, _("Deleted Items"), _T(""), PR_IPM_WASTEBASKET_ENTRYID, 0, NULL, NULL);
+		hr = CreateSpecialFolder(lpFolderRootST, lpecMsgStore, _("Deleted Items"), KC_T(""), PR_IPM_WASTEBASKET_ENTRYID, 0, NULL, NULL);
 		if(hr != hrSuccess)
 			return hr;
 
 		// Create Sent Items
-		hr = CreateSpecialFolder(lpFolderRootST, lpecMsgStore, _("Sent Items"), _T(""), PR_IPM_SENTMAIL_ENTRYID, 0, NULL, NULL);
+		hr = CreateSpecialFolder(lpFolderRootST, lpecMsgStore, _("Sent Items"), KC_T(""), PR_IPM_SENTMAIL_ENTRYID, 0, NULL, NULL);
 		if(hr != hrSuccess)
 			return hr;
 
 		// Create Contacts
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Contacts"), _T(""), PR_IPM_CONTACT_ENTRYID, 0, _T("IPF.Contact"), &~lpMAPIFolder);
+		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Contacts"), KC_T(""), PR_IPM_CONTACT_ENTRYID, 0, KC_T("IPF.Contact"), &~lpMAPIFolder);
 		if(hr != hrSuccess)
 			return hr;
 		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_IPM_CONTACT_ENTRYID, 0);
@@ -1909,7 +1909,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			return hr;
 
 		// Create calendar
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Calendar"), _T(""), PR_IPM_APPOINTMENT_ENTRYID, 0, _T("IPF.Appointment"), &~lpCalendarFolder);
+		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Calendar"), KC_T(""), PR_IPM_APPOINTMENT_ENTRYID, 0, KC_T("IPF.Appointment"), &~lpCalendarFolder);
 		if(hr != hrSuccess)
 			return hr;
 		hr = SetSpecialEntryIdOnFolder(lpCalendarFolder, lpMapiFolderRoot, PR_IPM_APPOINTMENT_ENTRYID, 0);
@@ -1917,7 +1917,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			return hr;
 
 		// Create Drafts
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Drafts"), _T(""), PR_IPM_DRAFTS_ENTRYID, 0, _T("IPF.Note"), &~lpMAPIFolder);
+		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Drafts"), KC_T(""), PR_IPM_DRAFTS_ENTRYID, 0, KC_T("IPF.Note"), &~lpMAPIFolder);
 		if(hr != hrSuccess)
 			return hr;
 		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_IPM_DRAFTS_ENTRYID, 0);
@@ -1925,7 +1925,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			return hr;
 
 		// Create journal
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Journal"), _T(""), PR_IPM_JOURNAL_ENTRYID, 0, _T("IPF.Journal"), &~lpMAPIFolder);
+		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Journal"), KC_T(""), PR_IPM_JOURNAL_ENTRYID, 0, KC_T("IPF.Journal"), &~lpMAPIFolder);
 		if(hr != hrSuccess)
 			return hr;
 		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_IPM_JOURNAL_ENTRYID, 0);
@@ -1933,7 +1933,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			return hr;
 
 		// Create Notes
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Notes"), _T(""), PR_IPM_NOTE_ENTRYID, 0, _T("IPF.StickyNote"), &~lpMAPIFolder);
+		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Notes"), KC_T(""), PR_IPM_NOTE_ENTRYID, 0, KC_T("IPF.StickyNote"), &~lpMAPIFolder);
 		if(hr != hrSuccess)
 			return hr;
 		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_IPM_NOTE_ENTRYID, 0);
@@ -1941,7 +1941,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			return hr;
 
 		// Create Tasks
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Tasks"), _T(""), PR_IPM_TASK_ENTRYID, 0, _T("IPF.Task"), &~lpMAPIFolder);
+		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Tasks"), KC_T(""), PR_IPM_TASK_ENTRYID, 0, KC_T("IPF.Task"), &~lpMAPIFolder);
 		if(hr != hrSuccess)
 			return hr;
 		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_IPM_TASK_ENTRYID, 0);
@@ -1949,7 +1949,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			return hr;
 
 		// Create Junk mail (position 5(4 in array) in the mvprop PR_ADDITIONAL_REN_ENTRYIDS)
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Junk E-mail"), _T(""), PR_ADDITIONAL_REN_ENTRYIDS, 4, _T("IPF.Note"), &~lpMAPIFolder);
+		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, _("Junk E-mail"), KC_T(""), PR_ADDITIONAL_REN_ENTRYIDS, 4, KC_T("IPF.Note"), &~lpMAPIFolder);
 		if(hr != hrSuccess)
 			return hr;
 		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_ADDITIONAL_REN_ENTRYIDS, 4);
@@ -1962,16 +1962,16 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			return hr;
 
 		// Create Outlook 2007/2010 Additional folders
-		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_RSS_SUBSCRIPTION, _("RSS Feeds"), _("RSS Feed comment"), _T("IPF.Note.OutlookHomepage"), false);
+		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_RSS_SUBSCRIPTION, _("RSS Feeds"), _("RSS Feed comment"), KC_T("IPF.Note.OutlookHomepage"), false);
 		if(hr != hrSuccess)
 			return hr;
-		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_CONV_ACTIONS, _("Conversation Action Settings"), _T(""), _T("IPF.Configuration"), true);
+		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_CONV_ACTIONS, _("Conversation Action Settings"), KC_T(""), KC_T("IPF.Configuration"), true);
 		if(hr != hrSuccess)
 			return hr;
-		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_COMBINED_ACTIONS, _("Quick Step Settings"), _T(""), _T("IPF.Configuration"), true);
+		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_COMBINED_ACTIONS, _("Quick Step Settings"), KC_T(""), KC_T("IPF.Configuration"), true);
 		if(hr != hrSuccess)
 			return hr;
-		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_SUGGESTED_CONTACTS, _("Suggested Contacts"), _T(""), _T("IPF.Contact"), false);
+		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_SUGGESTED_CONTACTS, _("Suggested Contacts"), KC_T(""), KC_T("IPF.Contact"), false);
 		if(hr != hrSuccess)
 			return hr;
 

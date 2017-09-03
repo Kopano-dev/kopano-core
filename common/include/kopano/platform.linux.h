@@ -300,10 +300,10 @@ typedef wchar_t 	WCHAR;
 
 #ifdef UNICODE
   typedef WCHAR		TCHAR;
-#define _T(x) L##x
+#define KC_T(x) L##x
 #else
   typedef char		TCHAR;
-#define _T(x) x
+#define KC_T(x) x
 #endif
 namespace KC {
 typedef std::basic_string<TCHAR> tstring;

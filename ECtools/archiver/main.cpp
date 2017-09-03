@@ -525,7 +525,7 @@ int main(int argc, char *argv[])
 
     case MODE_LIST_ARCHUSER: {
         ArchiveManagePtr ptr;
-        r = ptrArchiver->GetManage(_T("SYSTEM"), &ptr);
+        r = ptrArchiver->GetManage(KC_T("SYSTEM"), &ptr);
         if (r != Success)
             return 1;
 

@@ -503,8 +503,8 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 			return hr;
 		
 		hr = ptrArchiveParentFolder->CreateFolder(FOLDER_GENERIC, 
-		     (LPTSTR)(PROP_TYPE(ptrPropArray[1].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[1].Value.LPSZ),
-		     (LPTSTR)(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[2].Value.LPSZ),
+		     const_cast<TCHAR *>(PROP_TYPE(ptrPropArray[1].ulPropTag) == PT_ERROR ? KC_T("") : ptrPropArray[1].Value.LPSZ),
+		     const_cast<TCHAR *>(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? KC_T("") : ptrPropArray[2].Value.LPSZ),
 		     &iid_of(ptrArchiveFolder), OPEN_IF_EXISTS | fMapiUnicode,
 		     &~ptrArchiveFolder);
 		if (hr != hrSuccess)
@@ -520,13 +520,16 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 			if (bIsSpecialFolder) {
 				ULONG ulCollisionCount = 0;
 				do {
-					tstring strFolderName((LPTSTR)(PROP_TYPE(ptrPropArray[1].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[1].Value.LPSZ));
+					tstring strFolderName(PROP_TYPE(ptrPropArray[1].ulPropTag) == PT_ERROR ? KC_T("") : ptrPropArray[1].Value.LPSZ);
 					if (ulCollisionCount > 0) {
-						strFolderName.append(_T(" ("));
+						strFolderName.append(KC_T(" ("));
 						strFolderName.append(tstringify(ulCollisionCount));
 						strFolderName.append(1, ')');
 					}
-					hr = ptrArchiveParentFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)strFolderName.c_str(), (LPTSTR)(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[2].Value.LPSZ), &iid_of(ptrArchiveFolder), fMapiUnicode, &~ptrArchiveFolder);
+					hr = ptrArchiveParentFolder->CreateFolder(FOLDER_GENERIC,
+					     const_cast<TCHAR *>(strFolderName.c_str()),
+					     const_cast<TCHAR *>(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? KC_T("") : ptrPropArray[2].Value.LPSZ),
+					     &iid_of(ptrArchiveFolder), fMapiUnicode, &~ptrArchiveFolder);
 					if (hr != hrSuccess && hr != MAPI_E_COLLISION)
 						return hr;
 
@@ -826,7 +829,7 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 	do {
 		tstring strFolderName(lpszName);
 		if (ulCollisionCount > 0) {
-			strFolderName.append(_T(" ("));
+			strFolderName.append(KC_T(" ("));
 			strFolderName.append(tstringify(ulCollisionCount));
 			strFolderName.append(1, ')');
 		}

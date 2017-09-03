@@ -371,12 +371,10 @@ void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
 	LPTSTR lpszDesc;
 
 	oss << lpszMessage << endl;
-	oss << _("Error code:") << _T(" ") << convert_to<tstring>(GetMAPIErrorDescription(hr))
-		<< _T(" (") << tstringify(hr, true) << _T(")") << endl;
-
+	oss << _("Error code:") << KC_T(" ") << convert_to<tstring>(GetMAPIErrorDescription(hr))
+		<< KC_T(" (") << tstringify(hr, true) << KC_T(")") << endl;
 	if (Util::HrMAPIErrorToText(hr, &lpszDesc) == hrSuccess)
-		oss << _("Error description:") << _T(" ") << lpszDesc << endl;
-
+		oss << _("Error description:") << KC_T(" ") << lpszDesc << endl;
 	m_strErrorMessage.assign(oss.str());
 }
 

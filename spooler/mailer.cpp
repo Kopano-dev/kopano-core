@@ -2012,7 +2012,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sPropSender[0].ulPropTag = PR_SENDER_NAME_W;
 	sPropSender[0].Value.LPSZ = lpUser->lpszFullName;
 	sPropSender[1].ulPropTag = PR_SENDER_ADDRTYPE_W;
-	sPropSender[1].Value.LPSZ = const_cast<TCHAR *>(_T("ZARAFA"));
+	sPropSender[1].Value.LPSZ = const_cast<TCHAR *>(KC_T("ZARAFA"));
 	sPropSender[2].ulPropTag = PR_SENDER_EMAIL_ADDRESS_W;
 	sPropSender[2].Value.LPSZ = lpUser->lpszMailAddress;
 

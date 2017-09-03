@@ -29,7 +29,7 @@ namespace KC {
 }
 #else
 	#define _A(string) string
-	#define _W(string) _T(string)
+	#define _W(string) KC_T(string)
 #endif
 
 // This must go. Obviously someone was trying to be clever, but a macro named _

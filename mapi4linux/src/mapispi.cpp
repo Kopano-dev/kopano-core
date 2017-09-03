@@ -442,8 +442,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		lpAddrType = PCpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ADDRTYPE);
 		if (!lpAddrType)
 			continue;
-
-		if (_tcscmp(lpAddrType->Value.LPSZ, _T("MAPIPDL")))
+		if (_tcscmp(lpAddrType->Value.LPSZ, KC_T("MAPIPDL")))
 			continue;
 
 		lpDLEntryID = PCpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ENTRYID);
