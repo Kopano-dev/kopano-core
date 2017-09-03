@@ -150,11 +150,10 @@ struct ABEID {
 	}
 };
 typedef struct ABEID *PABEID;
-#define _CbABEID(p)	((sizeof(ABEID)+strlen((char*)(p)->szExId))&~3)
-#define CbABEID(p)	(sizeof(ABEID)>_CbABEID((p))?sizeof(ABEID):_CbABEID((p)))
-
-#define _CbNewABEID(p) 	((sizeof(ABEID)+strlen((char*)(p)))&~3)
-#define CbNewABEID(p)	(sizeof(ABEID)>_CbNewABEID((p))?sizeof(ABEID):_CbNewABEID((p)))
+#define CbABEID_2(p) ((sizeof(ABEID) + strlen((char *)(p)->szExId)) & ~3)
+#define CbABEID(p) (sizeof(ABEID) > CbABEID_2(p) ? sizeof(ABEID) : CbABEID_2(p))
+#define CbNewABEID_2(p) ((sizeof(ABEID) + strlen((char *)(p))) & ~3)
+#define CbNewABEID(p) (sizeof(ABEID) > CbNewABEID_2(p) ? sizeof(ABEID) : CbNewABEID_2(p))
 
 static inline ULONG ABEID_TYPE(const ABEID *p)
 {
