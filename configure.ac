@@ -360,10 +360,11 @@ AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
 ])
 MYSQL_WITH_MYSQL_CONFIG
 
-# test for precense of mysql 5.0.7 function
 CXXFLAGS="$CXXFLAGS $MYSQL_INCLUDES"
 LIBS="$LIBS $MYSQL_LIBS"
-AC_CHECK_FUNCS([mysql_set_character_set])
+dnl get_option: mysql 5.7.0
+dnl set_character_set: mysql 5.0.7
+AC_CHECK_FUNCS([mysql_get_option mysql_set_character_set])
 LIBS=$LIBS_system
 CXXFLAGS=$CXXFLAGS_system
 
