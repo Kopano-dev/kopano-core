@@ -514,7 +514,7 @@ extern _kc_export time_t GetProcessTime(void);
  * NOTE: For non-static methods the this pointer has index 1.
  * There is no wprintf attribute :-(
  */
-#define __LIKE_PRINTF(_fmt, _va) __attribute__((format(printf, _fmt, _va)))
+#define KC_LIKE_PRINTF(fmt, va) __attribute__((format(printf, fmt, va)))
 
 std::vector<std::string> get_backtrace();
 

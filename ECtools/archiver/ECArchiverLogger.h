@@ -33,7 +33,7 @@ public:
 	_kc_hidden const tstring &GetFolder(void) const { return m_strFolder; }
 	_kc_hidden void Reset(void);
 	_kc_hidden void Log(unsigned int level, const std::string &msg);
-	void Log(unsigned int level, const char *fmt, ...) __LIKE_PRINTF(3, 4);
+	void Log(unsigned int level, const char *fmt, ...) KC_LIKE_PRINTF(3, 4);
 	_kc_hidden void LogVA(unsigned int level, const char *fmt, va_list &);
 
 private:

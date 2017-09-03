@@ -158,7 +158,7 @@ Tp join(InputIterator __first, InputIterator __last, Tp __sep)
     return s;
 }
 
-extern _kc_export std::string format(const char *fmt, ...) __LIKE_PRINTF(1, 2);
+extern _kc_export std::string format(const char *fmt, ...) KC_LIKE_PRINTF(1, 2);
 extern _kc_export char *kc_strlcpy(char *dst, const char *src, size_t n);
 extern _kc_export bool kc_starts_with(const std::string &, const std::string &);
 extern _kc_export bool kc_istarts_with(const std::string &, const std::string &);
