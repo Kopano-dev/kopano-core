@@ -857,31 +857,12 @@ def load_rules(folder, user, server, data, stats, log):
             etxml = ElementTree.tostring(etxml)
             folder.create_prop(PR_RULES_DATA, etxml)
 
-def _get_fbf(user, flags, log):
-    try:
-        fbeid = user.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
-        return user.store.mapiobj.OpenEntry(fbeid, None, flags)
-    except (MAPIErrorNotFound, kopano.NotFoundError):
-        log.warning("skipping delegation because of missing freebusy data")
-
 def dump_delegates(user, server, stats, log):
     """ dump delegate users for given user """
 
     usernames = []
     with log_exc(log, stats):
-        fbf = _get_fbf(user, 0, log)
-        delegate_uids = []
-        try:
-            if fbf:
-                delegate_uids = HrGetOneProp(fbf, PR_SCHDINFO_DELEGATE_ENTRYIDS).Value
-        except MAPIErrorNotFound:
-            pass
-
-        for uid in delegate_uids:
-            try:
-                usernames.append(server.sa.GetUser(uid, MAPI_UNICODE).Username)
-            except MAPIErrorNotFound:
-                log.warning("skipping delegate user for unknown userid")
+        usernames = [d.user.name for d in user.delegations()]
 
     return pickle.dumps(usernames)
 
@@ -889,17 +870,16 @@ def load_delegates(user, server, data, stats, log):
     """ load delegate users for given user """
 
     with log_exc(log, stats):
-        userids = []
+        users = []
         for name in pickle.loads(data):
             try:
-                userids.append(server.user(name).userid.decode('hex'))
+                users.append(server.user(name))
             except kopano.NotFoundError:
                 log.warning("skipping delegation for unknown user '%s'", name)
 
-        fbf = _get_fbf(user, MAPI_MODIFY, log)
-        if fbf:
-            fbf.SetProps([SPropValue(PR_SCHDINFO_DELEGATE_ENTRYIDS, userids)])
-            fbf.SaveChanges(0)
+        user.delete(user.delegations()) # XXX not in combination with --import-root, -f?
+        for user2 in users:
+            user.delegation(user2, create=True)
 
 def main():
     # select common options
