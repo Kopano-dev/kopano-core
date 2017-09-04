@@ -111,7 +111,7 @@ static void kcsrv_get_server_stats(unsigned int *lpulQueueLength,
 
 static void process_signal(int sig)
 {
-	ec_log_debug("Received signal %d", sig);
+	ec_log_debug("Received signal %d by TID %lu", sig, kc_threadid());
 	ZLOG_AUDIT(g_lpAudit, "server signalled sig=%d", sig);
 
 	if (m_bDatabaseUpdateIgnoreSignals) {
@@ -935,7 +935,7 @@ static int running_server(char *szName, const char *szConfig,
 		{ "owner_auto_full_access", "true" },
 		{ "attachment_files_fsync", "false", 0 },
 		{ "tmp_path", "/tmp" },
-		{ "disable_shared_reminders", "no", CONFIGSETTING_RELOADABLE }, // disable reminders for shared stores
+		{ "shared_reminders", "yes", CONFIGSETTING_RELOADABLE }, // enable/disable reminders for shared stores
 		{ NULL, NULL },
 	};
 

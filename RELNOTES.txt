@@ -59,10 +59,23 @@ Packager notes:
 * kopano-server S3 store required libs3 4.1 [KC-751]
 
 
+Release notes for 8.3.5
+=======================
+* server: complete signal blocking [KC-779]
+
+
 Release notes for 8.3.4
 =======================
 Fixes:
 * server: configurable shared reminders [KC-789]
+* migration-pst: create unknown named-properties [KC-788]
+* server: filter private shared messages from search,
+  and filter private shared notifications [KC-565]
+* dagent: check quota on delivery
+* m4lcommon: ensure right condition for SRowSetPtr::empty [KC-773]
+Changes:
+* server: rename disable_shared_reminders option [KC-565]
+
 
 
 Release notes for 8.3.3

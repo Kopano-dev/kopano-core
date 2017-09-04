@@ -59,7 +59,7 @@ class SRowSetPtr : public KCHL::memory_ptr<SRowSet, KCHL::rowset_delete> {
 	SRowSet **operator&(void) { return &~*this; }
 	size_type size(void) const { return (*this)->cRows; }
 	const SRow &operator[](size_t i) const { return (*this)->aRow[i]; }
-	bool empty(void) const { return (*this) != nullptr && (*this)->cRows == 0; }
+	bool empty(void) const { return (*this) == nullptr || (*this)->cRows == 0; }
 };
 
 } /* namespace */

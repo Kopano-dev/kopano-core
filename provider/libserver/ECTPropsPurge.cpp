@@ -61,6 +61,7 @@ ECTPropsPurge::~ECTPropsPurge()
  */
 void * ECTPropsPurge::Thread(void *param)
 {
+	kcsrv_blocksigs();
 	static_cast<ECTPropsPurge *>(param)->PurgeThread();
 	return NULL;
 }

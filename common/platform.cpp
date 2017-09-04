@@ -366,4 +366,14 @@ void give_filesize_hint(const int fd, const off_t len)
 #endif
 }
 
+void kcsrv_blocksigs(void)
+{
+	sigset_t m;
+	sigemptyset(&m);
+	sigaddset(&m, SIGINT);
+	sigaddset(&m, SIGHUP);
+	sigaddset(&m, SIGTERM);
+	pthread_sigmask(SIG_BLOCK, &m, nullptr);
+}
+
 } /* namespace */

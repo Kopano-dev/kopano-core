@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include "config.h"
 #include <memory>
 #include <string>
 #include <utility>
@@ -453,7 +454,8 @@ ECRESULT KDatabase::InitEngine(bool reconnect)
 		return KCERR_DATABASE_ERROR;
 	}
 	m_bMysqlInitialize = true;
-	m_lpMySQL.reconnect = reconnect;
+	my_bool xtrue = true;
+	mysql_options(&m_lpMySQL, MYSQL_OPT_RECONNECT, &xtrue);
 	return erSuccess;
 }
 
@@ -497,10 +499,15 @@ ECRESULT KDatabase::Query(const std::string &q)
 	if (err == 0)
 		return erSuccess;
 	/* Callers without reconnect will emit different messages. */
+	auto ers = mysql_error(&m_lpMySQL);
+#ifdef HAVE_MYSQL_GET_OPTION
+	my_bool reconn = false;
+	if (mysql_get_option(&m_lpMySQL, MYSQL_OPT_RECONNECT, &reconn) == 0 && reconn)
+#else
 	if (m_lpMySQL.reconnect)
+#endif
 		ec_log_err("%p: SQL Failed: %s, Query: \"%s\"",
-			static_cast<void *>(&m_lpMySQL), mysql_error(&m_lpMySQL),
-			q.c_str());
+			static_cast<void *>(&m_lpMySQL), ers, q.c_str());
 	return KCERR_DATABASE_ERROR;
 }
 

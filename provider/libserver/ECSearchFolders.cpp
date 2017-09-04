@@ -1207,6 +1207,7 @@ ECRESULT ECSearchFolders::GetState(unsigned int ulStoreId, unsigned int ulFolder
 // Entrypoint for the SearchThread
 void* ECSearchFolders::SearchThread(void *lpParam)
 {
+	kcsrv_blocksigs();
 	auto ti = static_cast<THREADINFO *>(lpParam);
 	auto lpFolder = ti->lpFolder; 					// The entry in the m_mapSearchFolders map
 	auto lpSearchFolders = ti->lpSearchFolders; // The main ECSearchFolders object
@@ -1650,6 +1651,7 @@ void ECSearchFolders::FlushAndWait()
  
 void * ECSearchFolders::ProcessThread(void *lpSearchFolders)
 {
+	kcsrv_blocksigs();
 	auto lpThis = static_cast<ECSearchFolders *>(lpSearchFolders);
     
     while(1) {    

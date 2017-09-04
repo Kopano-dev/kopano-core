@@ -690,6 +690,7 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 
 void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 {
+	kcsrv_blocksigs();
 	auto lpSessionManager = static_cast<ECSessionManager *>(lpTmpSessionManager);
 	list<BTSession*>		lstSessions;
 
