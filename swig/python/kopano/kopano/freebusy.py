@@ -45,6 +45,8 @@ CODE_STATUS = {
 }
 
 class FreeBusyBlock(object):
+    """FreeBusyBlock class"""
+
     def __init__(self, block):
         self.status = CODE_STATUS[block.status]
 
@@ -58,6 +60,8 @@ class FreeBusyBlock(object):
         return _repr(self)
 
 class FreeBusy(object):
+    """FreeBusy class"""
+
     def __init__(self, store):
         self.store = store
 

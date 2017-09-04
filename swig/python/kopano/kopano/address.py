@@ -20,8 +20,7 @@ class Address(object):
         self._props = props
 
     def props(self):
-        """ Return all :class:`properties <Property>` """
-
+        """Return all :class:`properties <Property>`."""
         for prop in self._props:
             yield prop
 
@@ -29,14 +28,12 @@ class Address(object):
 
     @property
     def name(self):
-        """ Full name """
-
+        """Full name"""
         return self._name or u''
 
     @property
     def email(self):
-        """ Email address """
-
+        """Email address"""
         if self.addrtype == 'ZARAFA':
             email = self.server._resolve_email(entryid=self.entryid)
             # cannot resolve email for deleted/non-existent user, so fallback to searchkey

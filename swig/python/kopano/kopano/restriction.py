@@ -10,6 +10,8 @@ from MAPI.Util import TestRestriction
 from .compat import repr as _repr
 
 class Restriction(object):
+    """Restriction class"""
+
     def __init__(self, mapiobj=None):
         self.mapiobj = mapiobj
 

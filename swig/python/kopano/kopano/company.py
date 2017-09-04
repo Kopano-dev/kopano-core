@@ -50,7 +50,7 @@ else:
     import store as _store
 
 class Company(Base):
-    """Company class."""
+    """Company class"""
 
     def __init__(self, name, server=None):
         self.server = server or _server.Server()

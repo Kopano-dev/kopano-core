@@ -411,10 +411,9 @@ class Store(Base):
 
     def config_item(self, name):
         """
-        Retrieve the config item for the given `name`.
+        Retrieve the config item for the given name.
 
         :param name: The config item name
-        Return :class:`Item` the config item
         """
 
         table = self.subtree.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED)

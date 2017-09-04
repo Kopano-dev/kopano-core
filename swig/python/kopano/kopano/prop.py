@@ -267,6 +267,7 @@ class Property(object):
 
     def __init__(self, parent_mapiobj, mapiobj): # XXX rethink attributes, names.. add guidname..?
         self._parent_mapiobj = parent_mapiobj
+        #: Property tag, e.g. 0x37001f for PR_SUBJECT
         self.proptag = mapiobj.ulPropTag
 
         if PROP_TYPE(mapiobj.ulPropTag) == PT_ERROR and mapiobj.Value == MAPI_E_NOT_ENOUGH_MEMORY:
@@ -337,6 +338,7 @@ class Property(object):
             value = unixtime(time.mktime(value.timetuple()))
         self._parent_mapiobj.SetProps([SPropValue(self.proptag, value)])
         self._parent_mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+    #: Property value, e.g. 'hello' for PR_SUBJECT
     value = property(get_value, set_value)
 
     @property
@@ -344,12 +346,11 @@ class Property(object):
         if self.named:
             return u'%s:%s' % (self.namespace, self.name)
         else:
-            return self.idname or u'' # FIXME: should never be None
+            return self.idname or hex(self.proptag)
 
     @property
     def strval(self):
-        """ String representation of value; useful for overviews, debugging """
-
+        """String representation of value; useful for overviews, debugging."""
         def flatten(v):
             if isinstance(v, list):
                 return u','.join(flatten(e) for e in v)
