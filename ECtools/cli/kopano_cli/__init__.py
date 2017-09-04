@@ -540,6 +540,7 @@ def main():
             print(traceback.format_exc())
         else:
             print(_encode(str(e)))
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
