@@ -270,7 +270,7 @@
 // Output
 %typemap(in,numinputs=0) (ULONG *OUTPUT, IUnknown **OUTPUT) (ULONG ulType, IUnknown *lpUnk)
 {
-	ulType = NULL;
+	ulType = 0;
 	lpUnk = NULL;
 
 	$1 = &ulType;
