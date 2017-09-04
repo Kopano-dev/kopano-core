@@ -397,16 +397,6 @@ class Recurrence(object):
         return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self.end_date)) + datetime.timedelta(minutes=self.endtime_offset)# XXX local time..
 
     @property
-    def _del_recurrences(self): # XXX local time..
-        return [datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(val)) \
-            for val in self.deleted_instance_dates]
-
-    @property
-    def _mod_recurrences(self): # XXX local time..
-        return [datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(val)) \
-            for val in self.modified_instance_dates]
-
-    @property
     def recurrences(self):
         rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()
@@ -443,15 +433,19 @@ class Recurrence(object):
         elif self.pattern_type != 0: # XXX check 0
             raise NotSupportedError('Unsupported recurrence pattern: %d' % self.pattern_type)
 
-        # Remove deleted ocurrences
-        for del_date in self._del_recurrences:
-            del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self._start.hour, self._start.minute)
-            if del_date not in self._mod_recurrences:
-                rule.exdate(del_date)
-
         # add exceptions
+        exc_starts = set()
         for exception in self.exceptions:
-            rule.rdate(datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exception['start_datetime'])))
+            exc_start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exception['start_datetime']))
+            rule.rdate(exc_start)
+            exc_starts.add(exc_start)
+
+        # Remove deleted ocurrences (skip added exceptions)
+        for del_date_val in self.deleted_instance_dates:
+            del_date = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(del_date_val))
+            del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self._start.hour, self._start.minute)
+            if del_date not in exc_starts:
+                rule.exdate(del_date)
 
         return rule
 
