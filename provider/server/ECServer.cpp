@@ -113,7 +113,7 @@ static void kcsrv_get_server_stats(unsigned int *lpulQueueLength,
 
 static void process_signal(int sig)
 {
-	ec_log_debug("Received signal %d", sig);
+	ec_log_debug("Received signal %d by TID %lu", sig, kc_threadid());
 	ZLOG_AUDIT(g_lpAudit, "server signalled sig=%d", sig);
 
 	if (m_bDatabaseUpdateIgnoreSignals) {

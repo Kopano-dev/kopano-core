@@ -275,6 +275,7 @@ exit:
 
 void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 {
+	kcsrv_blocksigs();
 	TRACE_NOTIFY(TRACE_ENTRY, "NotifyWatch", "");
 
 	ECNotifyMaster*		pNotifyMaster = (ECNotifyMaster *)pTmpNotifyMaster;

@@ -61,6 +61,7 @@ ECTPropsPurge::~ECTPropsPurge()
  */
 void * ECTPropsPurge::Thread(void *param)
 {
+	kcsrv_blocksigs();
 	ECTPropsPurge *lpThis = (ECTPropsPurge *)param;
 	lpThis->PurgeThread();
 	

@@ -94,15 +94,6 @@ static string GetSoapError(int err)
 	return stringify(err);
 }
 
-static void kcsrv_blocksigs(void)
-{
-	sigset_t m;
-	sigemptyset(&m);
-	sigaddset(&m, SIGINT);
-	sigaddset(&m, SIGHUP);
-	sigaddset(&m, SIGTERM);
-}
-
 ECWorkerThread::ECWorkerThread(ECThreadManager *lpManager,
     ECDispatcher *lpDispatcher, bool bDoNotStart)
 {
