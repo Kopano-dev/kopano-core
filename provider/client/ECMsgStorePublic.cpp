@@ -438,8 +438,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	++cProps;
 
 	lpProps[cProps].ulPropTag = PR_DISPLAY_NAME_W;
-	lpProps[cProps++].Value.lpszW = _W("Favorites"); // FIXME: Use dynamic name, read from global profile (like exchange)
-
+	lpProps[cProps++].Value.lpszW = KC_W("Favorites"); // FIXME: Use dynamic name, read from global profile (like exchange)
 	lpProps[cProps].ulPropTag = PR_CONTENT_COUNT;
 	lpProps[cProps++].Value.ul = 0;
 	lpProps[cProps].ulPropTag = PR_CONTENT_UNREAD;
@@ -530,8 +529,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	++cProps;
 
 	lpProps[cProps].ulPropTag = PR_DISPLAY_NAME_W;
-	lpProps[cProps++].Value.lpszW = _W("Public Folders"); // FIXME: Use dynamic name, read from global profile (like exchange)
-
+	lpProps[cProps++].Value.lpszW = KC_W("Public Folders"); // FIXME: Use dynamic name, read from global profile (like exchange)
 	lpProps[cProps].ulPropTag = PR_CONTENT_COUNT;
 	lpProps[cProps++].Value.ul = 0;
 	lpProps[cProps].ulPropTag = PR_CONTENT_UNREAD;

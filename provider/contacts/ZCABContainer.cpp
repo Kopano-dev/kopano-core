@@ -695,9 +695,9 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		sProps[DISPLAY_NAME].ulPropTag = sptaCols.aulPropTag[DISPLAY_NAME];
 		if ((ulFlags & MAPI_UNICODE) == 0) {
 			sProps[DISPLAY_NAME].ulPropTag = PR_DISPLAY_NAME_A;
-			sProps[DISPLAY_NAME].Value.lpszA = _A("Kopano Contacts Folders");
+			sProps[DISPLAY_NAME].Value.lpszA = KC_A("Kopano Contacts Folders");
 		} else {
-			sProps[DISPLAY_NAME].Value.lpszW = _W("Kopano Contacts Folders");
+			sProps[DISPLAY_NAME].Value.lpszW = KC_W("Kopano Contacts Folders");
 		}
 
 		sProps[OBJECT_TYPE].ulPropTag = sptaCols.aulPropTag[OBJECT_TYPE];

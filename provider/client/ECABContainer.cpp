@@ -210,11 +210,11 @@ HRESULT ECABContainer::TableRowGetProp(void* lpProvider, struct propVal *lpsProp
 	case PR_TRANSMITABLE_DISPLAY_NAME_W: {
 		LPWSTR lpszW = NULL;
 		if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Book" ) == 0)
-			lpszW = _W("Global Address Book");
+			lpszW = KC_W("Global Address Book");
 		else if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Lists" ) == 0)
-			lpszW = _W("Global Address Lists");
+			lpszW = KC_W("Global Address Lists");
 		else if (strcmp(lpsPropValSrc->Value.lpszA, "All Address Lists" ) == 0)
-			lpszW = _W("All Address Lists");
+			lpszW = KC_W("All Address Lists");
 		else
 			return MAPI_E_NOT_FOUND;
 		size = (wcslen(lpszW) + 1) * sizeof(WCHAR);
@@ -231,11 +231,11 @@ HRESULT ECABContainer::TableRowGetProp(void* lpProvider, struct propVal *lpsProp
 	case PR_TRANSMITABLE_DISPLAY_NAME_A: {
 		LPSTR lpszA = NULL;
 		if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Book" ) == 0)
-			lpszA = _A("Global Address Book");
+			lpszA = KC_A("Global Address Book");
 		else if (strcmp(lpsPropValSrc->Value.lpszA, "Global Address Lists" ) == 0)
-			lpszA = _A("Global Address Lists");
+			lpszA = KC_A("Global Address Lists");
 		else if (strcmp(lpsPropValSrc->Value.lpszA, "All Address Lists" ) == 0)
-			lpszA = _A("All Address Lists");
+			lpszA = KC_A("All Address Lists");
 		else
 			return MAPI_E_NOT_FOUND;
 		size = (strlen(lpszA) + 1) * sizeof(CHAR);

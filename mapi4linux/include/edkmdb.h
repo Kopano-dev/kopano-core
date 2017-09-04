@@ -591,7 +591,7 @@ typedef struct ROWENTRY *LPROWENTRY;
 
 struct ROWLIST {
 	ROWLIST(void) = delete;
-	template<typename _T> ROWLIST(std::initializer_list<_T>) = delete;
+	template<typename T> ROWLIST(std::initializer_list<T>) = delete;
 	ULONG			cEntries;
 	ROWENTRY		aEntries[MAPI_DIM];
 };

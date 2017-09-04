@@ -367,6 +367,7 @@ exit:
 }
 
 void* CleanupSyncsTable(void* lpTmpMain){
+	kcsrv_blocksigs();
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
@@ -411,6 +412,7 @@ exit:
 
 void *CleanupSyncedMessagesTable(void *lpTmpMain)
 {
+	kcsrv_blocksigs();
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
 	ECSession*		lpSession = NULL;

@@ -203,6 +203,7 @@ HRESULT ECNotificationManager::NotifyChange(ECSESSIONID ecSessionId)
 
 void * ECNotificationManager::Thread(void *lpParam)
 {
+	kcsrv_blocksigs();
 	return static_cast<ECNotificationManager *>(lpParam)->Work();
 }
 

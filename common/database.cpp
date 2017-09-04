@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include "config.h"
 #include <memory>
 #include <string>
 #include <utility>
@@ -255,7 +256,7 @@ ECRESULT KDatabase::Close(void)
 ECRESULT KDatabase::DoDelete(const std::string &q, unsigned int *aff)
 {
 	autolock alk(*this);
-	return _Update(q, aff);
+	return I_Update(q, aff);
 }
 
 /**
@@ -273,7 +274,7 @@ ECRESULT KDatabase::DoInsert(const std::string &q, unsigned int *idp,
     unsigned int *aff)
 {
 	autolock alk(*this);
-	auto er = _Update(q, aff);
+	auto er = I_Update(q, aff);
 	if (er == erSuccess && idp != nullptr)
 		*idp = GetInsertId();
 	return er;
@@ -381,7 +382,7 @@ ECRESULT KDatabase::DoSequence(const std::string &seq, unsigned int count,
 ECRESULT KDatabase::DoUpdate(const std::string &q, unsigned int *aff)
 {
 	autolock alk(*this);
-	return _Update(q, aff);
+	return I_Update(q, aff);
 }
 
 std::string KDatabase::Escape(const std::string &s)
@@ -453,7 +454,8 @@ ECRESULT KDatabase::InitEngine(bool reconnect)
 		return KCERR_DATABASE_ERROR;
 	}
 	m_bMysqlInitialize = true;
-	m_lpMySQL.reconnect = reconnect;
+	my_bool xtrue = true;
+	mysql_options(&m_lpMySQL, MYSQL_OPT_RECONNECT, &xtrue);
 	return erSuccess;
 }
 
@@ -497,17 +499,22 @@ ECRESULT KDatabase::Query(const std::string &q)
 	if (err == 0)
 		return erSuccess;
 	/* Callers without reconnect will emit different messages. */
+	auto ers = mysql_error(&m_lpMySQL);
+#ifdef HAVE_MYSQL_GET_OPTION
+	my_bool reconn = false;
+	if (mysql_get_option(&m_lpMySQL, MYSQL_OPT_RECONNECT, &reconn) == 0 && reconn)
+#else
 	if (m_lpMySQL.reconnect)
+#endif
 		ec_log_err("%p: SQL Failed: %s, Query: \"%s\"",
-			static_cast<void *>(&m_lpMySQL), mysql_error(&m_lpMySQL),
-			q.c_str());
+			static_cast<void *>(&m_lpMySQL), ers, q.c_str());
 	return KCERR_DATABASE_ERROR;
 }
 
-ECRESULT KDatabase::_Update(const std::string &q, unsigned int *aff)
+ECRESULT KDatabase::I_Update(const std::string &q, unsigned int *aff)
 {
 	if (Query(q) != 0) {
-		ec_log_err("KDatabase::_Update() query failed: %s: %s",
+		ec_log_err("KDatabase::I_Update() query failed: %s: %s",
 			q.c_str(), GetError());
 		return KCERR_DATABASE_ERROR;
 	}

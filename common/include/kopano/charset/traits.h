@@ -24,7 +24,7 @@
 
 namespace KC {
 
-template<typename _Type> class iconv_charset _kc_final {
+template<typename Type> class iconv_charset _kc_final {
 };
 
 #define CHARSET_CHAR "//TRANSLIT"
@@ -181,9 +181,9 @@ public:
 	}
 };
 
-template<typename _Type>
-size_t rawsize(const _Type &_x) {
-	return iconv_charset<_Type>::rawsize(_x);
+template<typename Type> size_t rawsize(const Type &_x)
+{
+	return iconv_charset<Type>::rawsize(_x);
 }
 
 } /* namespace */

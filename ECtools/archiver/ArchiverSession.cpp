@@ -437,14 +437,14 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 		if (PROP_TYPE(ptrUserProps[IDX_ACCOUNT].ulPropTag) != PT_ERROR)
 			lpstrUser->assign(ptrUserProps[IDX_ACCOUNT].Value.LPSZ);
 		else
-			lpstrUser->assign(_T("<Unknown>"));
+			lpstrUser->assign(KC_T("<Unknown>"));
 	}
 
 	if (lpstrFullname) {
 		if (PROP_TYPE(ptrUserProps[IDX_DISPLAY_NAME].ulPropTag) != PT_ERROR)
 			lpstrFullname->assign(ptrUserProps[IDX_DISPLAY_NAME].Value.LPSZ);
 		else
-			lpstrFullname->assign(_T("<Unknown>"));
+			lpstrFullname->assign(KC_T("<Unknown>"));
 	}
 	return hrSuccess;
 }
@@ -695,8 +695,8 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 		return hr;
 
 	hr = ptrRoot->CreateFolder(FOLDER_GENERIC,
-	     const_cast<TCHAR *>(_T("IPM_SUBTREE")),
-	     const_cast<TCHAR *>(_T("")), &IID_IMAPIFolder, fMapiUnicode,
+	     const_cast<TCHAR *>(KC_T("IPM_SUBTREE")),
+	     const_cast<TCHAR *>(KC_T("")), &IID_IMAPIFolder, fMapiUnicode,
 	     &~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;

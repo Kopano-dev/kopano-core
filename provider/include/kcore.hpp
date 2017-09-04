@@ -150,11 +150,10 @@ struct ABEID {
 	}
 };
 typedef struct ABEID *PABEID;
-#define _CbABEID(p)	((sizeof(ABEID)+strlen((char*)(p)->szExId))&~3)
-#define CbABEID(p)	(sizeof(ABEID)>_CbABEID((p))?sizeof(ABEID):_CbABEID((p)))
-
-#define _CbNewABEID(p) 	((sizeof(ABEID)+strlen((char*)(p)))&~3)
-#define CbNewABEID(p)	(sizeof(ABEID)>_CbNewABEID((p))?sizeof(ABEID):_CbNewABEID((p)))
+#define CbABEID_2(p) ((sizeof(ABEID) + strlen((char *)(p)->szExId)) & ~3)
+#define CbABEID(p) (sizeof(ABEID) > CbABEID_2(p) ? sizeof(ABEID) : CbABEID_2(p))
+#define CbNewABEID_2(p) ((sizeof(ABEID) + strlen((char *)(p))) & ~3)
+#define CbNewABEID(p) (sizeof(ABEID) > CbNewABEID_2(p) ? sizeof(ABEID) : CbNewABEID_2(p))
 
 static inline ULONG ABEID_TYPE(const ABEID *p)
 {
@@ -213,9 +212,9 @@ enum
     NUM_IDENTITY_PROPS      // Array size
 };
 
-#define TRANSPORT_ADDRESS_TYPE_SMTP		_T("SMTP")
-#define TRANSPORT_ADDRESS_TYPE_ZARAFA	_T("ZARAFA")
-#define TRANSPORT_ADDRESS_TYPE_FAX		_T("FAX")
+#define TRANSPORT_ADDRESS_TYPE_SMTP KC_T("SMTP")
+#define TRANSPORT_ADDRESS_TYPE_ZARAFA KC_T("ZARAFA")
+#define TRANSPORT_ADDRESS_TYPE_FAX KC_T("FAX")
 
 typedef EID * PEID;
 

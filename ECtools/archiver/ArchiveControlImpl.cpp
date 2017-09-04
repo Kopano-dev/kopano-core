@@ -86,7 +86,7 @@ ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *
 , m_lpConfig(lpConfig)
 , m_lpLogger(new ECArchiverLogger(lpLogger))
 , m_cleanupAction(caStore)
-, m_bForceCleanup(bForceCleanup), __propmap(5)
+, m_bForceCleanup(bForceCleanup), m_propmap(5)
 {
 }
 
@@ -830,8 +830,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 			}
 
 			for (ULONG i = 0; i < ptrFolderRows.size(); ++i) {
-				ScopedFolderLogging sfl(m_lpLogger, ptrFolderRows[i].lpProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME ? ptrFolderRows[i].lpProps[IDX_DISPLAY_NAME].Value.LPSZ : _T("<Unnamed>"));
-
+				ScopedFolderLogging sfl(m_lpLogger, ptrFolderRows[i].lpProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME ? ptrFolderRows[i].lpProps[IDX_DISPLAY_NAME].Value.LPSZ : KC_T("<Unnamed>"));
 				hr = PurgeArchiveFolder(ptrArchiveStore, ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin, lpRestriction);
 				if (hr != hrSuccess) {
 					m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to purge archive folder. (entryid=%s, hr=%s)", bin2hex(ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin.cb, ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin.lpb).c_str(), stringify(hr, true).c_str());
@@ -1300,7 +1299,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 			ULONG ulType = 0;
 			MAPIFolderPtr ptrPrimaryFolder;
 
-			ScopedFolderLogging sfl(m_lpLogger, ptrRows[i].lpProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME ? ptrRows[i].lpProps[IDX_DISPLAY_NAME].Value.LPSZ : _T("<Unnamed>"));
+			ScopedFolderLogging sfl(m_lpLogger, ptrRows[i].lpProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME ? ptrRows[i].lpProps[IDX_DISPLAY_NAME].Value.LPSZ : KC_T("<Unnamed>"));
 			
 			// If the cleanup action is delete, we don't want to delete a folder that's not empty because it might contain messages that
 			// have been moved in the primary store before the original folder was deleted. If we were to delete the folder in the archive

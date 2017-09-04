@@ -103,7 +103,7 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 
 	// Set the PR_STATUS_STRING property
 	lpspvStatusRow[cCurVal].ulPropTag = PR_STATUS_STRING_W;
-	lpspvStatusRow[cCurVal++].Value.lpszW = _W("Available");
+	lpspvStatusRow[cCurVal++].Value.lpszW = KC_W("Available");
 
 	// Set the PR_IDENTITY_ENTRYID property
 	lpspvStatusRow[cCurVal].ulPropTag = PR_IDENTITY_ENTRYID;
@@ -152,7 +152,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 		return hr;
 	memset(lpIdentityProps, 0, sizeof(SPropValue) * cValues);
 
-	strProfileSenderSearchKey = strToUpper(tstring(TRANSPORT_ADDRESS_TYPE_ZARAFA) + _T(":") + lpUser->lpszMailAddress);
+	strProfileSenderSearchKey = strToUpper(tstring(TRANSPORT_ADDRESS_TYPE_ZARAFA) + KC_T(":") + lpUser->lpszMailAddress);
 	lpIdentityProps[XPID_EID].ulPropTag = PR_SENDER_ENTRYID;
 	lpIdentityProps[XPID_EID].Value.bin.cb = lpUser->sUserId.cb;
 	hr = MAPIAllocateMore(lpUser->sUserId.cb, (LPVOID)lpIdentityProps, (void**)&lpIdentityProps[XPID_EID].Value.bin.lpb);
@@ -291,11 +291,11 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	GetSystemTimeAsFileTime(&ft);
 
 	if (ulFlags & MAPI_NON_READ) {
-		lpMsgClass = _T("REPORT.IPM.Note.IPNNRN");
+		lpMsgClass = KC_T("REPORT.IPM.Note.IPNNRN");
 		lpReadText = _("Not read:");
 		lpReportText = _("was not read because it expired before reading at time");
 	}else{
-		lpMsgClass = _T("REPORT.IPM.Note.IPNRN");
+		lpMsgClass = KC_T("REPORT.IPM.Note.IPNRN");
 		lpReadText = _("Read:");
 		lpReportText = _("was read on");
 	}
@@ -310,33 +310,33 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		return MAPI_E_INVALID_PARAMETER;
 
 	strBodyText = _("Your message");
-	strBodyText+= _T("\r\n\r\n");
+	strBodyText += KC_T("\r\n\r\n");
 
 	if (HAVE(DISPLAY_TO)) {
-		strBodyText+= _T("\t");
+		strBodyText += KC_T("\t");
 		strBodyText+= _("To:");
-		strBodyText+= _T(" ");
+		strBodyText += KC_T(" ");
 		strBodyText += spv[RR_DISPLAY_TO].Value.LPSZ;
-		strBodyText+= _T("\r\n");
+		strBodyText += KC_T("\r\n");
 	}
 	if (HAVE(DISPLAY_CC)) {
-		strBodyText+= _T("\t");
+		strBodyText += KC_T("\t");
 		strBodyText+= _("Cc:");
-		strBodyText+= _T(" ");
+		strBodyText += KC_T(" ");
 		strBodyText += spv[RR_DISPLAY_CC].Value.LPSZ;
-		strBodyText+= _T("\r\n");
+		strBodyText += KC_T("\r\n");
 	}
 	if (HAVE(SUBJECT)) {
-		strBodyText+= _T("\t");
+		strBodyText += KC_T("\t");
 		strBodyText+= _("Subject:");
-		strBodyText+= _T(" ");
+		strBodyText += KC_T(" ");
 		strBodyText += spv[RR_SUBJECT].Value.LPSZ;
-		strBodyText+= _T("\r\n");
+		strBodyText += KC_T("\r\n");
 	}
 	if (HAVE(CLIENT_SUBMIT_TIME)) {
-		strBodyText+= _T("\t");
+		strBodyText += KC_T("\t");
 		strBodyText+= _("Sent on:");
-		strBodyText+= _T(" ");
+		strBodyText += KC_T(" ");
 		FileTimeToUnixTime(spv[RR_CLIENT_SUBMIT_TIME].Value.ft, &tt);
 		tm = localtime(&tt);
 		if (tm == NULL)
@@ -344,12 +344,12 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		strftime(szTime, 255, "%c", tm);
 
 		strBodyText+= convert_to<tstring>(szTime, strlen(szTime), CHARSET_CHAR);
-		strBodyText+= _T("\r\n");
+		strBodyText += KC_T("\r\n");
 	}
 
-	strBodyText+= _T("\r\n");
+	strBodyText += KC_T("\r\n");
 	strBodyText+= lpReportText;
-	strBodyText+= _T(" ");
+	strBodyText += KC_T(" ");
 	
 	FileTimeToUnixTime(ft, &tt);
 	tm = localtime(&tt);
@@ -358,8 +358,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	strftime(szTime, 255, "%c", tm);
 
 	strBodyText+= convert_to<tstring>(szTime, strlen(szTime), CHARSET_CHAR);
-	strBodyText+= _T("\r\n");
-
+	strBodyText += KC_T("\r\n");
 	ulMaxDestValues = cSrcValues + 4;//+ default properties
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * ulMaxDestValues, &~dpv);
 	if(hr != hrSuccess)
@@ -386,7 +385,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	if (HAVE(SUBJECT)) {
 		dpv[dval].ulPropTag = PR_ORIGINAL_SUBJECT;
 		dpv[dval++].Value.LPSZ = spv[RR_SUBJECT].Value.LPSZ;
-		tSubject = tstring(lpReadText) + _T(" ") + spv[RR_SUBJECT].Value.LPSZ;
+		tSubject = tstring(lpReadText) + KC_T(" ") + spv[RR_SUBJECT].Value.LPSZ;
 		dpv[dval].ulPropTag = PR_SUBJECT;
 		dpv[dval++].Value.LPSZ = const_cast<TCHAR *>(tSubject.c_str());
 	}else {

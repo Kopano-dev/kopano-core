@@ -44,16 +44,16 @@ namespace KC {
 #define PROPCOL_HI		"val_hi"
 #define PROPCOL_LO		"val_lo"
 
-#define _PROPCOL_ULONG(_tab)	#_tab "." PROPCOL_ULONG
-#define _PROPCOL_STRING(_tab)	#_tab "." PROPCOL_STRING
-#define _PROPCOL_BINARY(_tab)	#_tab "." PROPCOL_BINARY
-#define _PROPCOL_DOUBLE(_tab)	#_tab "." PROPCOL_DOUBLE
-#define _PROPCOL_LONGINT(_tab)	#_tab "." PROPCOL_LONGINT
-#define _PROPCOL_HI(_tab)		#_tab "." PROPCOL_HI
-#define _PROPCOL_LO(_tab)		#_tab "." PROPCOL_LO
+#define I_PROPCOL_ULONG(_tab)	#_tab "." PROPCOL_ULONG
+#define I_PROPCOL_STRING(_tab)	#_tab "." PROPCOL_STRING
+#define I_PROPCOL_BINARY(_tab)	#_tab "." PROPCOL_BINARY
+#define I_PROPCOL_DOUBLE(_tab)	#_tab "." PROPCOL_DOUBLE
+#define I_PROPCOL_LONGINT(_tab)	#_tab "." PROPCOL_LONGINT
+#define I_PROPCOL_HI(_tab)	#_tab "." PROPCOL_HI
+#define I_PROPCOL_LO(_tab)	#_tab "." PROPCOL_LO
 
 #define PROPCOL_HILO		PROPCOL_HI "," PROPCOL_LO
-#define _PROPCOL_HILO(_tab)	PROPCOL_HI(_tab) "," PROPCOL_LO(_tab)
+#define I_PROPCOL_HILO(_tab)	PROPCOL_HI(_tab) "," PROPCOL_LO(_tab)
 
 /* make string of define value */
 #ifndef __STRING
@@ -62,8 +62,8 @@ namespace KC {
 #define STR(macro) __STRING(macro)
 
 // Warning! Code references the ordering of these values! Do not change unless you know what you're doing!
-#define PROPCOLVALUEORDER(_tab) 			_PROPCOL_ULONG(_tab) "," _PROPCOL_STRING(_tab) "," _PROPCOL_BINARY(_tab) "," _PROPCOL_DOUBLE(_tab) "," _PROPCOL_LONGINT(_tab) "," _PROPCOL_HI(_tab) "," _PROPCOL_LO(_tab)
-#define PROPCOLVALUEORDER_TRUNCATED(_tab) 	_PROPCOL_ULONG(_tab) ", LEFT(" _PROPCOL_STRING(_tab) "," STR(TABLE_CAP_STRING) "),LEFT(" _PROPCOL_BINARY(_tab) "," STR(TABLE_CAP_BINARY) ")," _PROPCOL_DOUBLE(_tab) "," _PROPCOL_LONGINT(_tab) "," _PROPCOL_HI(_tab) "," _PROPCOL_LO(_tab)
+#define PROPCOLVALUEORDER(_tab) I_PROPCOL_ULONG(_tab) "," I_PROPCOL_STRING(_tab) "," I_PROPCOL_BINARY(_tab) "," I_PROPCOL_DOUBLE(_tab) "," I_PROPCOL_LONGINT(_tab) "," I_PROPCOL_HI(_tab) "," I_PROPCOL_LO(_tab)
+#define PROPCOLVALUEORDER_TRUNCATED(_tab) I_PROPCOL_ULONG(_tab) ", LEFT(" I_PROPCOL_STRING(_tab) "," STR(TABLE_CAP_STRING) "),LEFT(" I_PROPCOL_BINARY(_tab) "," STR(TABLE_CAP_BINARY) ")," I_PROPCOL_DOUBLE(_tab) "," I_PROPCOL_LONGINT(_tab) "," I_PROPCOL_HI(_tab) "," I_PROPCOL_LO(_tab)
 enum { VALUE_NR_ULONG=0, VALUE_NR_STRING, VALUE_NR_BINARY, VALUE_NR_DOUBLE, VALUE_NR_LONGINT, VALUE_NR_HILO, VALUE_NR_MAX };
 
 #define PROPCOLORDER "0,properties.tag,properties.type," PROPCOLVALUEORDER(properties)

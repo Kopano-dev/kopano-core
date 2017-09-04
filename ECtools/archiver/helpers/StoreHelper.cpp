@@ -43,9 +43,9 @@ namespace KC { namespace helpers {
 #define ARCHIVE_SEARCH_VERSION 2
 
 const StoreHelper::search_folder_info_t StoreHelper::s_infoSearchFolders[] = {
-	{_T("Archive"), _T("This folder contains messages that are eligible for archiving"), &StoreHelper::SetupSearchArchiveFolder},
-	{_T("Delete"), _T("This folder contains messages that are eligible for deletion"), &StoreHelper::SetupSearchDeleteFolder},
-	{_T("Stub"), _T("This folder contains messages that are eligible for stubbing"), &StoreHelper::SetupSearchStubFolder}
+	{KC_T("Archive"), KC_T("This folder contains messages that are eligible for archiving"), &StoreHelper::SetupSearchArchiveFolder},
+	{KC_T("Delete"), KC_T("This folder contains messages that are eligible for deletion"), &StoreHelper::SetupSearchDeleteFolder},
+	{KC_T("Stub"), KC_T("This folder contains messages that are eligible for stubbing"), &StoreHelper::SetupSearchStubFolder}
 };
 
 /**
@@ -77,7 +77,7 @@ HRESULT StoreHelper::Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStore
  */
 StoreHelper::StoreHelper(MsgStorePtr &ptrMsgStore)
 : MAPIPropHelper(ptrMsgStore.as<MAPIPropPtr>())
-, m_ptrMsgStore(ptrMsgStore), __propmap(8)
+, m_ptrMsgStore(ptrMsgStore), m_propmap(8)
 { }
 
 /**
@@ -675,9 +675,9 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 	sPropStubbed.Value.b = 1;
 
 	sPropMsgClass[0].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[0].Value.LPSZ = const_cast<TCHAR *>(_T("IPM.Note"));
+	sPropMsgClass[0].Value.LPSZ = const_cast<TCHAR *>(KC_T("IPM.Note"));
 	sPropMsgClass[1].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[1].Value.LPSZ = const_cast<TCHAR *>(_T("IPM.Note.")); // RES_CONTENT w FL_PREFIX
+	sPropMsgClass[1].Value.LPSZ = const_cast<TCHAR *>(KC_T("IPM.Note.")); // RES_CONTENT w FL_PREFIX
 
 	// Create/Update the search folder that tracks non-stubbed archived message that are not flagged to be never stubbed.
 	resStubFolder +=
@@ -717,23 +717,23 @@ HRESULT StoreHelper::GetClassCheckRestriction(ECOrRestriction *lpresClassCheck)
 	ECOrRestriction resClassCheck;
 
 	sPropMsgClass[0].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[0].Value.LPSZ = const_cast<TCHAR *>(_T("IPM.Note"));
+	sPropMsgClass[0].Value.LPSZ = const_cast<TCHAR *>(KC_T("IPM.Note"));
 	sPropMsgClass[1].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[1].Value.LPSZ = const_cast<TCHAR *>(_T("IPM.Note.")); // RES_CONTENT w FL_PREFIX
+	sPropMsgClass[1].Value.LPSZ = const_cast<TCHAR *>(KC_T("IPM.Note.")); // RES_CONTENT w FL_PREFIX
 	sPropMsgClass[2].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[2].Value.LPSZ = const_cast<TCHAR *>(_T("IPM.Schedule.Meeting.Request"));
+	sPropMsgClass[2].Value.LPSZ = const_cast<TCHAR *>(KC_T("IPM.Schedule.Meeting.Request"));
 	sPropMsgClass[3].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[3].Value.LPSZ = const_cast<TCHAR *>(_T("IPM.Schedule.Meeting.Resp.Pos"));
+	sPropMsgClass[3].Value.LPSZ = const_cast<TCHAR *>(KC_T("IPM.Schedule.Meeting.Resp.Pos"));
 	sPropMsgClass[4].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[4].Value.LPSZ = const_cast<TCHAR *>(_T("IPM.Schedule.Meeting.Resp.Neg"));
+	sPropMsgClass[4].Value.LPSZ = const_cast<TCHAR *>(KC_T("IPM.Schedule.Meeting.Resp.Neg"));
 	sPropMsgClass[5].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[5].Value.LPSZ = const_cast<TCHAR *>(_T("IPM.Schedule.Meeting.Resp.Tent"));
+	sPropMsgClass[5].Value.LPSZ = const_cast<TCHAR *>(KC_T("IPM.Schedule.Meeting.Resp.Tent"));
 	sPropMsgClass[6].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[6].Value.LPSZ = const_cast<TCHAR *>(_T("IPM.Schedule.Meeting.Canceled"));
+	sPropMsgClass[6].Value.LPSZ = const_cast<TCHAR *>(KC_T("IPM.Schedule.Meeting.Canceled"));
 	sPropMsgClass[7].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[7].Value.LPSZ = const_cast<TCHAR *>(_T("Report.IPM.Note.NDR"));
+	sPropMsgClass[7].Value.LPSZ = const_cast<TCHAR *>(KC_T("Report.IPM.Note.NDR"));
 	sPropMsgClass[8].ulPropTag = PR_MESSAGE_CLASS;
-	sPropMsgClass[8].Value.LPSZ = const_cast<TCHAR *>(_T("Report.IPM.Note.IPNRN"));
+	sPropMsgClass[8].Value.LPSZ = const_cast<TCHAR *>(KC_T("Report.IPM.Note.IPNRN"));
 
 	// Build the message class restriction.
 	resClassCheck +=

@@ -160,7 +160,7 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 		else if (lpFolder->m_ePublicEntryID == ePE_Favorites)
 			lpszName = _("Favorites");
 		else if (lpFolder->m_ePublicEntryID == ePE_IPMSubtree)
-			lpszName = _T("IPM_SUBTREE");
+			lpszName = KC_T("IPM_SUBTREE");
 
 		if (lpszName)
 		{

@@ -89,11 +89,10 @@ private:
 	size_type m_ulCacheHit = 0, m_ulCacheValid = 0;
 };
 
-
-template<typename _MapType> class ECCache _kc_final : public ECCacheBase {
+template<typename MapType> class ECCache _kc_final : public ECCacheBase {
 public:
-	typedef typename _MapType::key_type		key_type;
-	typedef typename _MapType::mapped_type	mapped_type;
+	typedef typename MapType::key_type key_type;
+	typedef typename MapType::mapped_type mapped_type;
 	
 	ECCache(const std::string &strCachename, size_type ulMaxSize, long lMaxAge)
 		: ECCacheBase(strCachename, ulMaxSize, lMaxAge)
@@ -116,7 +115,7 @@ public:
 	size_type Size(void) const _kc_override
 	{
 		/* It works with map and unordered_map. */
-		return (m_map.size() * (sizeof(typename _MapType::value_type) + sizeof(_MapType) )) + m_ulSize;
+		return m_map.size() * (sizeof(typename MapType::value_type) + sizeof(MapType)) + m_ulSize;
 	}
 
 	ECRESULT RemoveCacheItem(const key_type &key) 
@@ -171,7 +170,7 @@ public:
 		return KCERR_NOT_FOUND;
 	}
 
-	ECRESULT GetCacheRange(const key_type &lower, const key_type &upper, std::list<typename _MapType::value_type> *values)
+	ECRESULT GetCacheRange(const key_type &lower, const key_type &upper, std::list<typename MapType::value_type> *values)
 	{
 		auto iLower = m_map.lower_bound(lower);
 		auto iUpper = m_map.upper_bound(upper);
@@ -249,7 +248,7 @@ private:
 		return erSuccess;
 	}
 
-	_MapType			m_map;	
+	MapType m_map;	
 	size_type			m_ulSize;
 };
 

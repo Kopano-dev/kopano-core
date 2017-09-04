@@ -159,7 +159,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 		
 		if (nResult != 0) {
 			Logger()->Log(EC_LOGLEVEL_DEBUG, "Leaving folder (%s)", bin2hex(m_ptrCurFolderEntryId->Value.bin.cb, m_ptrCurFolderEntryId->Value.bin.lpb).c_str());
-			Logger()->SetFolder(_T(""));
+			Logger()->SetFolder(KC_T(""));
 			hr = LeaveFolder();
 			if (hr != hrSuccess) {
 				Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to leave folder. (hr=%s)", stringify(hr, true).c_str());
@@ -192,7 +192,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 	if (HrGetOneProp(m_ptrCurFolder, PR_DISPLAY_NAME, &~ptrPropValue) == hrSuccess)
 		Logger()->SetFolder(ptrPropValue->Value.LPSZ);
 	else
-		Logger()->SetFolder(_T("<Unnamed>"));
+		Logger()->SetFolder(KC_T("<Unnamed>"));
 
 	hr = EnterFolder(m_ptrCurFolder);
 	if (hr != hrSuccess) {

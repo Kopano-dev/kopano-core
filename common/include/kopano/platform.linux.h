@@ -248,9 +248,8 @@ typedef int				SCODE;
 #define E_ACCESSDENIED ((HRESULT)0x80070005)
 
 /* winerror.h definitions */
-#define _HRESULT_TYPEDEF_(_sc) ((HRESULT)_sc)
-#define STG_E_INVALIDFUNCTION            _HRESULT_TYPEDEF_(0x80030001L)
-
+#define KC_HRESULT_TYPEDEF_(_sc) ((HRESULT)_sc)
+#define STG_E_INVALIDFUNCTION KC_HRESULT_TYPEDEF_(0x80030001L)
 
 /*
  Values are 32 bit values layed out as follows:
@@ -300,10 +299,10 @@ typedef wchar_t 	WCHAR;
 
 #ifdef UNICODE
   typedef WCHAR		TCHAR;
-#define _T(x) L##x
+#define KC_T(x) L##x
 #else
   typedef char		TCHAR;
-#define _T(x) x
+#define KC_T(x) x
 #endif
 namespace KC {
 typedef std::basic_string<TCHAR> tstring;
@@ -514,7 +513,7 @@ extern _kc_export time_t GetProcessTime(void);
  * NOTE: For non-static methods the this pointer has index 1.
  * There is no wprintf attribute :-(
  */
-#define __LIKE_PRINTF(_fmt, _va) __attribute__((format(printf, _fmt, _va)))
+#define KC_LIKE_PRINTF(fmt, va) __attribute__((format(printf, fmt, va)))
 
 std::vector<std::string> get_backtrace();
 

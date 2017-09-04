@@ -58,7 +58,7 @@ HRESULT MAPIPropHelper::Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptr
 }
 
 MAPIPropHelper::MAPIPropHelper(MAPIPropPtr ptrMapiProp) :
-    m_ptrMapiProp(ptrMapiProp), __propmap(8)
+    m_ptrMapiProp(ptrMapiProp), m_propmap(8)
 { }
 
 /**
