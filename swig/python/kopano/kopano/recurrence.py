@@ -759,21 +759,26 @@ class Recurrence(object):
         if start and end:
             recurrences = recurrences.between(_utils._from_gmt(start, tz), _utils._from_gmt(end, tz))
 
-        start_end = {}
-        for exc in self.exceptions:
-            start_end[exc['start_datetime']] = exc['end_datetime']
+        start_exc_ext = {}
+        for exc, ext in zip(self.exceptions, self.extended_exceptions):
+            start_exc_ext[exc['start_datetime']] = exc, ext
 
         for d in recurrences:
             startdatetime_val = _utils.unixtime_to_rectime(time.mktime(d.timetuple()))
 
-            if startdatetime_val in start_end:
-                minutes = start_end[startdatetime_val] - startdatetime_val
+            subject = self.item.subject
+            location = self.item.location
+            if startdatetime_val in start_exc_ext:
+                exc, ext = start_exc_ext[startdatetime_val]
+                minutes = exc['end_datetime'] - startdatetime_val
+                subject = ext.get('subject', subject)
+                location = ext.get('location', location)
             else:
                 minutes = self.endtime_offset - self.starttime_offset
 
             d = _utils._to_gmt(d, tz)
 
-            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes))
+            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location)
             if (not start or occ.end > start) and (not end or occ.start < end):
                 yield occ
 
@@ -787,10 +792,12 @@ class Recurrence(object):
 class Occurrence(object):
     """Occurrence class"""
 
-    def __init__(self, item, start, end): # XXX make sure all GMT?
+    def __init__(self, item, start, end, subject, location):
         self.item = item
         self.start = start
         self.end = end
+        self.subject = subject
+        self.location = location
 
     def __getattr__(self, x):
         return getattr(self.item, x)
