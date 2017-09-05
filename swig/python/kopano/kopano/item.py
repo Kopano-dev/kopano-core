@@ -550,7 +550,7 @@ class Item(Base):
     def ics(self, charset="UTF-8"):
         mic = icalmapi.CreateMapiToICal(self.server.ab, charset)
         mic.AddMessage(self.mapiobj, "", 0)
-        method, data = mic.Finalize(0)
+        _, data = mic.Finalize(0)
         return data
 
     def send(self):
