@@ -33,6 +33,8 @@ def backup(user):
                 data, ext = item.eml(), 'eml'
             elif item.message_class == 'IPM.Appointment':
                 data, ext = item.ics(), 'ics'
+            elif item.message_class.startswith('IPM.Schedule.Meeting'):
+                data, ext = item.ics(), 'ics'
             elif item.message_class == 'IPM.Contact':
                 data, ext = item.vcf(), 'vcf'
             else:
