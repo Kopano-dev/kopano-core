@@ -28,39 +28,39 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-spooler \- Start the Kopano spooler\&.
+kopano-spooler \- Start the Kopano spooler.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-spooler\fR\ 'u
 \fBkopano\-spooler\fR [\fIOPTION\fR...] [\fISERVERNAME\fR]
 .SH "DESCRIPTION"
 .PP
-The spooler sends all pending Kopano e\-mail to the recipients\&. When started, the program will keep running and sending messages whenever needed\&.
+The spooler sends all pending Kopano e\-mail to the recipients. When started, the program will keep running and sending messages whenever needed.
 .PP
-The outgoing mailserver can be overwritten from the config file by specifying this on the commandline\&.
+The outgoing mailserver can be overwritten from the config file by specifying this on the commandline.
 .PP
 The default settings of the spooler program are defined in
-\fBkopano-spooler.cfg\fR(5)\&.
+\fBkopano-spooler.cfg\fR(5).
 .SH "OPTIONS"
 .PP
-Various options are possible\&. None of these options are required\&.
+Various options are possible. None of these options are required.
 .PP
-\fB\-\-config\fR, \fB\-c\fR \fIspooler\&.cfg\fR
+\fB\-\-config\fR, \fB\-c\fR \fIspooler.cfg\fR
 .RS 4
-Specify the location of the spooler\&.cfg file\&. If the spooler\&.cfg file is not specified, the spooler will try to load
-/etc/kopano/spooler\&.cfg\&. If that file is not present, it will continue using its default settings\&.
+Specify the location of the spooler.cfg file. If the spooler.cfg file is not specified, the spooler will try to load
+/etc/kopano/spooler.cfg. If that file is not present, it will continue using its default settings.
 .RE
 .PP
 \fB\-\-host\fR, \fB\-h\fR \fIpath\fR
 .RS 4
 Connect to the storage server through
-\fIpath\fR, e\&.g\&.
-file:///path/to/socket\&. Default:
-file:///var/run/kopano/server\&.sock\&. Overrides the config file setting\&.
+\fIpath\fR, e.g.
+file:///path/to/socket. Default:
+file:///var/run/kopano/server.sock. Overrides the config file setting.
 .RE
 .PP
 \fB\-\-foreground\fR, \fB\-F\fR
 .RS 4
-Run in the foreground\&. Normally the spooler will daemonize and run in the background\&.
+Run in the foreground. Normally the spooler will daemonize and run in the background.
 .RE
 .SH "USAGE"
 .PP
@@ -69,14 +69,14 @@ To start the spooler delivering e\-mail to recipients:
 \fBkopano\-spooler\fR
 .PP
 To start the spooler delivering e\-mail through
-smtp\&.example\&.com:
+smtp.example.com:
 .PP
 \fBkopano\-spooler\fR
-smtp\&.example\&.com
+smtp.example.com
 .PP
-The spooler process will keep running and watching the outgoing queue for new mail to send\&. You may also use the init\&.d scripts:
+The spooler process will keep running and watching the outgoing queue for new mail to send. You may also use the init.d scripts:
 .PP
-\fB/etc/init\&.d/kopano\-spooler\fR
+\fB/etc/init.d/kopano\-spooler\fR
 [\fIstart\fR|
 \fIstop\fR|
 \fIrestart\fR]
@@ -86,21 +86,21 @@ The following signals can be sent to the kopano\-spooler process:
 .PP
 \fBHUP\fR
 .RS 4
-When the HUP signal is received, some options from the configuration file are reloaded\&. The reloadable options are listed in the
+When the HUP signal is received, some options from the configuration file are reloaded. The reloadable options are listed in the
 \fBkopano-spooler.cfg\fR(5)
-manual page\&.
+manual page.
 .sp
 Also, when using
-\fIlog_method = file\fR, the logfile will be closed and a new logfile will be opened\&. You can use this signal in your logrotate system\&.
+\fIlog_method = file\fR, the logfile will be closed and a new logfile will be opened. You can use this signal in your logrotate system.
 .RE
 .PP
 \fBTERM\fR
 .RS 4
-To gracefully let the service exit, the normal TERM signal is used\&. Because of multiple running threads, it may take up to 60 seconds for the server to completely shutdown\&.
+To gracefully let the service exit, the normal TERM signal is used. Because of multiple running threads, it may take up to 60 seconds for the server to completely shutdown.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-spooler.cfg\fR(5),

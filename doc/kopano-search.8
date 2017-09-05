@@ -28,72 +28,72 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-search \- Kopano Indexed Search Service\&.
+kopano-search \- Kopano Indexed Search Service.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-search\fR\ 'u
 \fBkopano\-search\fR
 .SH "DESCRIPTION"
 .PP
-The kopano\-search daemon is used to index all messages for all users in the kopano\-server\&. Indexing messages greatly enhances the search performance of the kopano\-server\&.
+The kopano\-search daemon is used to index all messages for all users in the kopano\-server. Indexing messages greatly enhances the search performance of the kopano\-server.
 .PP
 After starting, the search daemon will continuously update the store index files and will keep listening for connections on the configured TCP port and/or Unix socket for search requests from the
-\fBkopano-server\fR(8)\&.
+\fBkopano-server\fR(8).
 .SH "OPTIONS"
 .PP
 The Kopano search program takes the following configuration options:
 .PP
 \fB\-\-config\fR, \fB\-c\fR \fIfile\fR
 .RS 4
-Specify the location of the configuration file\&.
+Specify the location of the configuration file.
 .sp
 Default:
-\fI/etc/kopano/search\&.cfg\fR
+\fI/etc/kopano/search.cfg\fR
 .RE
 .PP
 \fB\-\-foreground\fR, \fB\-F\fR
 .RS 4
-Run in the foreground\&. Normally the kopano\-search process will daemonize and run in the background\&.
+Run in the foreground. Normally the kopano\-search process will daemonize and run in the background.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fIpath\fR
 .RS 4
 Connect to the storage server through
-\fIpath\fR, e\&.g\&.
-file:///path/to/socket\&. Default:
-file:///var/run/kopano/server\&.sock\&.
+\fIpath\fR, e.g.
+file:///path/to/socket. Default:
+file:///var/run/kopano/server.sock.
 .RE
 .PP
 \fB\-\-reindex\fR \fIuser/store\fR
 .RS 4
-Remove the current index of the given user or store and start to make a new index immediately\&.
+Remove the current index of the given user or store and start to make a new index immediately.
 .sp
-The given argument can be a user name, store GUID or \*(Aqpublic\*(Aq (without quotes) to indicate the public store\&.
+The given argument can be a user name, store GUID or \*(Aqpublic\*(Aq (without quotes) to indicate the public store.
 .sp
-The kopano\-search daemon must already be running on the same machine\&.
+The kopano\-search daemon must already be running on the same machine.
 .RE
 .PP
 When invoked with no options, the kopano\-search daemon will search for a configuration file in
-/etc/kopano/search\&.cfg\&. If no configuration file is found, default values are used\&. See
+/etc/kopano/search.cfg. If no configuration file is found, default values are used. See
 \fBkopano-search.cfg\fR(5)
-for all configuration options and their default values\&.
+for all configuration options and their default values.
 .SH "USAGE"
 .PP
 Starting the kopano\-search daemon with an alternative configuration:
 .PP
-\fBkopano\-search\fR\ \&
-\fB\-c\fR\ \&
-\fI/path/to/search\&.cfg\fR
+\fBkopano\-search\fR\ 
+\fB\-c\fR\ 
+\fI/path/to/search.cfg\fR
 .PP
-You may also use the init\&.d scripts:
+You may also use the init.d scripts:
 .PP
-\fB/etc/init\&.d/kopano\-search\fR
+\fB/etc/init.d/kopano\-search\fR
 [\fIstart\fR|
 \fIstop\fR|
 \fIrestart\fR|
 \fIreload\fR]
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),

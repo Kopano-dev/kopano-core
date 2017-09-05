@@ -28,33 +28,33 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-passwd \- Change Kopano user password\&.
+kopano-passwd \- Change Kopano user password.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-passwd\fR\ 'u
 \fBkopano\-passwd\fR \fIACTION\fR [\fIOPTION\fR...]
 .SH "DESCRIPTION"
 .PP
-This tool can be used to change a user password\&. The storage server must be running for
+This tool can be used to change a user password. The storage server must be running for
 \fBkopano\-passwd\fR
-to work\&.
+to work.
 .PP
-If no action is given, an error message is printed\&. When invalid actions or not enough options for an action are given, an error message is printed\&.
+If no action is given, an error message is printed. When invalid actions or not enough options for an action are given, an error message is printed.
 .PP
-The Kopano passwd works only with the dbplugin\&. Please see the
+The Kopano passwd works only with the dbplugin. Please see the
 \fBEXTERNAL USERS\fR()
-section for more information\&.
+section for more information.
 .SH "ACTIONS"
 .PP
-kopano\-passwd needs an action command with the appropriate options\&. Valid actions are:
+kopano\-passwd needs an action command with the appropriate options. Valid actions are:
 .PP
 \fB\-u\fR \fIusername\fR
 .RS 4
-Update the password\&. Valid parameters are:
+Update the password. Valid parameters are:
 \fI[\-p]\fR
 and
 \fI\-o\fR
 .sp
-Default the password can be entered on the password prompt\&. The password will not be shown\&.
+Default the password can be entered on the password prompt. The password will not be shown.
 .RE
 .SH "OPTIONS"
 .PP
@@ -62,26 +62,26 @@ The options used by actions are as follows:
 .PP
 \fB\-p\fR \fI\*(Aqnew password\*(Aq\fR
 .RS 4
-Set new password for a user\&. This option is only valid with the
-\fI\-o\fR\&.
+Set new password for a user. This option is only valid with the
+\fI\-o\fR.
 .RE
 .PP
 \fB\-o\fR \fIoldpassword\fR
 .RS 4
-old password of a user\&. This option is only valid with the
-\fI\-p\fR\&.
+old password of a user. This option is only valid with the
+\fI\-p\fR.
 .RE
 .PP
 \fB\-\-host\fR, \fB\-h\fR \fIpath\fR
 .RS 4
 Connect to the storage server through
-\fIpath\fR, e\&.g\&.
-file:///path/to/socket\&. Default:
-file:///var/run/kopano/server\&.sock\&. This option can always be specified\&.
+\fIpath\fR, e.g.
+file:///path/to/socket. Default:
+file:///var/run/kopano/server.sock. This option can always be specified.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),

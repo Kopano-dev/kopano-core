@@ -7,7 +7,7 @@
 .\"    Source: Kopano 8
 .\"  Language: English
 .\"
-.TH "KOPANO\-MIGRATION\-P" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.TH "KOPANO\-MIGRATION\-PST" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -34,77 +34,77 @@ kopano-migration-pst \- Utility to import PST files into Kopano
 \fBkopano\-migration\-pst\fR [\fIOPTION\fR...] [\fIPATH\fR]
 .SH "DESCRIPTION"
 .PP
-kopano\-migration\-pst is a utility to import PST files into Kopano\&. As PST files are basically MAPI dumps, and Kopano also uses MAPI internally, there should be practically no data loss, even including calendar data\&.
+kopano\-migration\-pst is a utility to import PST files into Kopano. As PST files are basically MAPI dumps, and Kopano also uses MAPI internally, there should be practically no data loss, even including calendar data.
 .SH "OPTIONS"
 .PP
 \fB\-\-auth\-pass\fR, \fB\-P\fR \fIPASS\fR
 .RS 4
-Authenticate with specified password\&.
+Authenticate with specified password.
 .RE
 .PP
 \fB\-\-auth\-user\fR, \fB\-U\fR \fINAME\fR
 .RS 4
-Authenticate as specified user\&.
+Authenticate as specified user.
 .RE
 .PP
 \fB\-\-clean\-folders\fR
 .RS 4
-Empty target folders before importing into them\&.
+Empty target folders before importing into them.
 .RE
 .PP
 \fB\-\-config\fR, \fB\-c\fR \fIFILE\fR
 .RS 4
-Load configuration settings from specified file\&.
+Load configuration settings from specified file.
 .RE
 .PP
 \fB\-\-folder\fR, \fB\-f\fR \fIPATH\fR
 .RS 4
-Import only folder(s) with specified path(s)\&.
+Import only folder(s) with specified path(s).
 .RE
 .PP
 \fB\-\-import\-root\fR \fIPATH\fR
 .RS 4
-Import data under folder with specific path (or name)\&.
+Import data under folder with specific path (or name).
 .RE
 .PP
 \fB\-\-index\fR
 .RS 4
-List messages/items contained in specified PST file\&.
+List messages/items contained in specified PST file.
 .RE
 .PP
 \fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
 .RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq\&.
+Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
 .RS 4
-Connect to storage server through specified socket\&.
+Connect to storage server through specified socket.
 .RE
 .PP
 \fB\-\-ssl\-key\fR, \fB\-k\fR \fIFILE\fR
 .RS 4
-Specify SSL key file\&.
+Specify SSL key file.
 .RE
 .PP
 \fB\-\-ssl\-pass\fR, \fB\-p\fR \fIPASSWORD\fR
 .RS 4
-Specify SSL key password\&.
+Specify SSL key password.
 .RE
 .PP
 \fB\-\-stats\fR
 .RS 4
-List folders contained in specified PST file\&.
+List folders contained in specified PST file.
 .RE
 .PP
 \fB\-\-store\fR, \fB\-S\fR \fIGUID\fR
 .RS 4
-GUID of store where to import specified PST file (or "public" to import to public store)\&.
+GUID of store where to import specified PST file (or "public" to import to public store).
 .RE
 .PP
 \fB\-\-user\fR, \fB\-u\fR \fINAME\fR
 .RS 4
-Name of user for who to import the specified PST file\&.
+Name of user for who to import the specified PST file.
 .RE
 .SH "EXAMPLES"
 .PP
@@ -117,4 +117,4 @@ Import PST file name "public.pst" into (new or existing) "imported" folder of pu
 \fBkopano\-migration\-pst \-S public --import-root=imported=public.pst\fR
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.

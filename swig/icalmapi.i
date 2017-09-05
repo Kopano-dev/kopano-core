@@ -27,14 +27,14 @@
 	$1 = &temp;
 }
 %typemap(argout) eIcalType* value {
-	%append_output(SWIG_From_long(*$1));
+	%append_output(PyInt_FromLong(*$1));
 }
 
 %typemap(in,numinputs=0) (time_t *) (time_t temp) {
 	$1 = &temp;
 }
 %typemap(argout) time_t* value {
-	%append_output(SWIG_From_long(*$1));
+	%append_output(PyInt_FromLong(*$1));
 }
 
 %typemap(in,numinputs=0) (SBinary *) (SBinary temp) {

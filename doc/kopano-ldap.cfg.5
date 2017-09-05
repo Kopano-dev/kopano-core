@@ -7,7 +7,7 @@
 .\"    Source: Kopano 8
 .\"  Language: English
 .\"
-.TH "KOPANO\-LDAP\&.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
+.TH "KOPANO\-LDAP.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,15 +31,15 @@
 kopano-ldap.cfg \- The Kopano LDAP configuration file
 .SH "SYNOPSIS"
 .PP
-\fBldap\&.cfg\fR
+\fBldap.cfg\fR
 .SH "DESCRIPTION"
 .PP
 The
-ldap\&.cfg
-is a configuration file for LDAP user plugin\&. All options to correctly retrieve user and group information can be set here\&.
+ldap.cfg
+is a configuration file for LDAP user plugin. All options to correctly retrieve user and group information can be set here.
 .SH "FILE FORMAT"
 .PP
-The file consists of one big section, but parameters can be grouped by functionality\&.
+The file consists of one big section, but parameters can be grouped by functionality.
 .PP
 The parameters are written in the form:
 .PP
@@ -47,7 +47,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based\&. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive\&. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano\&. Parameter names are case sensitive\&. Lines beginning with `!\*(Aq are directives\&.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -61,22 +61,22 @@ The following directives exist:
 Include and process
 \fIargument\fR
 .sp
-Example: !include common\&.cfg
+Example: !include common.cfg
 .RE
 .PP
 \fBpropmap\fR
 .RS 4
-Propmap delivers the capabilities to map additional attributes to addressbook properties (e\&.g\&. firstname, lastname, telephonenumber)\&.
+Propmap delivers the capabilities to map additional attributes to addressbook properties (e.g. firstname, lastname, telephonenumber).
 .sp
-In the propmap the configuration names must be the hex property tag of the requested property\&. The value given to the configuration name must be the LDAP attribute to which the property should be mapped\&.
+In the propmap the configuration names must be the hex property tag of the requested property. The value given to the configuration name must be the LDAP attribute to which the property should be mapped.
 .sp
-Example: !propmap ldap\&.propmap\&.cfg
+Example: !propmap ldap.propmap.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
 .PP
 \fBldap_host\fR
 .RS 4
-The hostname or ip\-adress of the LDAP server\&.
+The hostname or ip\-adress of the LDAP server.
 .sp
 Default:
 \fIlocalhost\fR
@@ -84,7 +84,7 @@ Default:
 .PP
 \fBldap_port\fR
 .RS 4
-The port number of the LDAP server\&. LDAP normally runs on port 389\&.
+The port number of the LDAP server. LDAP normally runs on port 389.
 .sp
 Default:
 \fI389\fR
@@ -92,7 +92,7 @@ Default:
 .PP
 \fBldap_protocol\fR
 .RS 4
-The protocol to be used to connect to the LDAP server\&. Can be either \*(Aqldap\*(Aq or \*(Aqldaps\*(Aq for SSL connections\&. You will probably have to specify port 636 for ldap_port also\&. Kopano will not use STARTTLS for such an SSL connection but instead will connect directly to an SSL encrypted port\&.
+The protocol to be used to connect to the LDAP server. Can be either \*(Aqldap\*(Aq or \*(Aqldaps\*(Aq for SSL connections. You will probably have to specify port 636 for ldap_port also. Kopano will not use STARTTLS for such an SSL connection but instead will connect directly to an SSL encrypted port.
 .sp
 Default:
 \fIldap\fR
@@ -100,14 +100,14 @@ Default:
 .PP
 \fBldap_uri\fR
 .RS 4
-Instead of using ldap_host, ldap_port and ldap_protocol, you may also use ldap_uri which should specify the URI of the LDAP server like \*(Aqldap://server:389\*(Aq\&. If ldap_uri is set, the values of ldap_host, ldap_port and ldap_protocol are ignored\&. You may also specify multiple space\-separated LDAP server URI\*(Aqs\&.
+Instead of using ldap_host, ldap_port and ldap_protocol, you may also use ldap_uri which should specify the URI of the LDAP server like \*(Aqldap://server:389\*(Aq. If ldap_uri is set, the values of ldap_host, ldap_port and ldap_protocol are ignored. You may also specify multiple space\-separated LDAP server URI\*(Aqs.
 .sp
 Default:
 .RE
 .PP
 \fBldap_server_charset\fR
 .RS 4
-The charset that the LDAP server uses to store strings\&. All strings sent to the LDAP server or retrieved from the server will be interpreted in this charset\&. In most setups, utf\-8 is used, but may also be iso\-8859\-15\&. All charsets supported by the system iconv() are supported here\&.
+The charset that the LDAP server uses to store strings. All strings sent to the LDAP server or retrieved from the server will be interpreted in this charset. In most setups, utf\-8 is used, but may also be iso\-8859\-15. All charsets supported by the system iconv() are supported here.
 .sp
 Default:
 \fIutf\-8\fR
@@ -115,21 +115,21 @@ Default:
 .PP
 \fBldap_bind_user\fR
 .RS 4
-The bind dn as to connect to the LDAP server\&. Leave empty to connect anonymous\&.
+The bind dn as to connect to the LDAP server. Leave empty to connect anonymous.
 .sp
-Default value is empty\&.
+Default value is empty.
 .RE
 .PP
 \fBldap_bind_passwd\fR
 .RS 4
-When ldap_bind_user is a valid DN, this should be filled in too\&.
+When ldap_bind_user is a valid DN, this should be filled in too.
 .sp
-Default value is empty\&.
+Default value is empty.
 .RE
 .PP
 \fBldap_network_timeout\fR
 .RS 4
-The timeout for network operations in seconds\&.
+The timeout for network operations in seconds.
 .sp
 Default:
 \fI30\fR
@@ -137,7 +137,7 @@ Default:
 .PP
 \fBldap_last_modification_attribute\fR
 .RS 4
-This value is used to detect changes in the item in the LDAP server\&. Since it is a standard LDAP attribute, you should never have to change this\&. It is mainly used for addressbook synchronisation between your server and your offline data\&.
+This value is used to detect changes in the item in the LDAP server. Since it is a standard LDAP attribute, you should never have to change this. It is mainly used for addressbook synchronisation between your server and your offline data.
 .sp
 Default:
 \fImodifyTimeStamp\fR
@@ -145,7 +145,7 @@ Default:
 .PP
 \fBldap_page_size\fR
 .RS 4
-Limit result sets in pages of this size, downloading fewer results at a time from the LDAP server\&.
+Limit result sets in pages of this size, downloading fewer results at a time from the LDAP server.
 .sp
 Default:
 \fI1000\fR
@@ -153,7 +153,7 @@ Default:
 .PP
 \fBldap_search_base\fR
 .RS 4
-This is the subtree entry where all objects are defined in the LDAP server\&.
+This is the subtree entry where all objects are defined in the LDAP server.
 .sp
 Default:
 \fIdc=kopano,dc=com\fR
@@ -161,11 +161,11 @@ Default:
 .PP
 \fBldap_object_type_attribute\fR
 .RS 4
-An object is defined by this attribute what type it is, eg\&. user, group, etc\&. Every object type should have a unique value in this attribute in order to define what which entry is\&.
+An object is defined by this attribute what type it is, eg. user, group, etc. Every object type should have a unique value in this attribute in order to define what which entry is.
 .sp
-The value of this attribute must be specified in the ldap_*_type_attribute_value settings\&. Each of those settings may specify multiple values for the type attribute, separated by comma\*(Aqs\&. All of these values must be present in the objects type attribute for a match to be made and the object to be recognised as that type\&.
+The value of this attribute must be specified in the ldap_*_type_attribute_value settings. Each of those settings may specify multiple values for the type attribute, separated by comma\*(Aqs. All of these values must be present in the objects type attribute for a match to be made and the object to be recognised as that type.
 .sp
-It is possible for ambiguities to arise by setting the same string for multiple ldap_*_type_attribute_value settings\&. This ambiguity will be resolved by preferring objects with more matching values\&. If the ambiguity cannot be resolved in this way, then the first possibility is chosen from the list (addresslist, tenant, dynamic group, group, contact, user)\&.
+It is possible for ambiguities to arise by setting the same string for multiple ldap_*_type_attribute_value settings. This ambiguity will be resolved by preferring objects with more matching values. If the ambiguity cannot be resolved in this way, then the first possibility is chosen from the list (addresslist, tenant, dynamic group, group, contact, user).
 .sp
 Default:
 \fIobjectClass\fR
@@ -175,7 +175,7 @@ Default:
 .RS 4
 The value in
 \fBldap_object_type_attribute\fR
-which defines a user\&.
+which defines a user.
 .sp
 Default for OpenLDAP:
 \fIposixAccount\fR
@@ -188,7 +188,7 @@ Default for ADS:
 .RS 4
 The value in
 \fBldap_object_type_attribute\fR
-which defines a group\&.
+which defines a group.
 .sp
 Default for OpenLDAP:
 \fIposixGroup\fR
@@ -201,7 +201,7 @@ Default for ADS:
 .RS 4
 The value in
 \fBldap_object_type_attribute\fR
-which defines a contact\&.
+which defines a contact.
 .sp
 Default for OpenLDAP:
 \fIinetOrgPerson\fR
@@ -214,7 +214,7 @@ Default for ADS:
 .RS 4
 The value in
 \fBldap_object_type_attribute\fR
-which defines a tenant\&. This option is only used in multi\-tenancy installations\&.
+which defines a tenant. This option is only used in multi\-tenancy installations.
 .sp
 Default for OpenLDAP:
 \fIorganizationalUnit\fR
@@ -227,7 +227,7 @@ Default for ADS:
 .RS 4
 The value in
 \fBldap_object_type_attribute\fR
-which defines an addresslist\&.
+which defines an addresslist.
 .sp
 Default:
 \fIkopano\-addresslist\fR
@@ -237,7 +237,7 @@ Default:
 .RS 4
 The value in
 \fBldap_object_type_attribute\fR
-which defines a dynamic group\&.
+which defines a dynamic group.
 .sp
 Default:
 \fIkopano\-dynamicgroup\fR
@@ -245,11 +245,11 @@ Default:
 .PP
 \fBldap_user_search_filter\fR
 .RS 4
-Adds an extra filter to the user search\&.
+Adds an extra filter to the user search.
 .sp
-Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano users\&.
+Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano users.
 .sp
-Default for OpenLDAP is empty\&.
+Default for OpenLDAP is empty.
 .sp
 Default for ADS:
 \fI(objectCategory=Person)\fR
@@ -257,7 +257,7 @@ Default for ADS:
 .PP
 \fBldap_user_unique_attribute\fR
 .RS 4
-This is the unique attribute of a user which is never going to change, unless the user is removed from LDAP\&. When this value changes, Kopano will remove the previous user and store from the database, and create a new user with this unique value\&.
+This is the unique attribute of a user which is never going to change, unless the user is removed from LDAP. When this value changes, Kopano will remove the previous user and store from the database, and create a new user with this unique value.
 .sp
 Default for OpenLDAP:
 \fIuidNumber\fR
@@ -269,10 +269,10 @@ Default for ADS:
 \fBldap_user_unique_attribute_type\fR
 .RS 4
 Contents type for the
-\fBldap_user_unique_attribute\fR\&. This value can be
+\fBldap_user_unique_attribute\fR. This value can be
 \fIbinary\fR
 or
-\fItext\fR\&.
+\fItext\fR.
 .sp
 Default for OpenLDAP:
 \fItext\fR
@@ -283,7 +283,7 @@ Default for ADS:
 .PP
 \fBldap_fullname_attribute\fR
 .RS 4
-This value is the fullname of a user\&. It will be used on outgoing messages, and store names\&.
+This value is the fullname of a user. It will be used on outgoing messages, and store names.
 .sp
 Default:
 \fIcn\fR
@@ -291,7 +291,7 @@ Default:
 .PP
 \fBldap_loginname_attribute\fR
 .RS 4
-This value is the loginname of a user\&. This is what the user uses to login on kopano\&. The DAgent will use this value to open the store of the user\&.
+This value is the loginname of a user. This is what the user uses to login on kopano. The DAgent will use this value to open the store of the user.
 .sp
 Default for OpenLDAP:
 \fIuid\fR
@@ -302,12 +302,12 @@ Default for ADS:
 .PP
 \fBldap_password_attribute\fR
 .RS 4
-This value is the password of a user\&. When using
+This value is the password of a user. When using
 \fBldap_authentication_method\fR
 =
-\fIpassword\fR, this value will be checked\&. The
+\fIpassword\fR, this value will be checked. The
 \fBldap_bind_user\fR
-should have enough access rights to read the password field\&.
+should have enough access rights to read the password field.
 .sp
 Default for OpenLDAP:
 \fIuserPassword\fR
@@ -321,9 +321,9 @@ Default for ADS:
 This value can be
 \fIbind\fR
 or
-\fIpassword\fR\&. When set to bind, the plugin will authenticate by opening a new connection to the LDAP server as the user with the given password\&. When set to password, the plugin will read and match the password field from the LDAP server itself\&. When set to password, the
+\fIpassword\fR. When set to bind, the plugin will authenticate by opening a new connection to the LDAP server as the user with the given password. When set to password, the plugin will read and match the password field from the LDAP server itself. When set to password, the
 \fBldap_bind_user\fR
-should have enough access rights to read the password field\&.
+should have enough access rights to read the password field.
 .sp
 Default for OpenLDAP:
 \fIbind\fR
@@ -334,7 +334,7 @@ Default for ADS:
 .PP
 \fBldap_emailaddress_attribute\fR
 .RS 4
-This value is the email address of a user\&. It will be used to set the From on outgoing messages\&.
+This value is the email address of a user. It will be used to set the From on outgoing messages.
 .sp
 Default:
 \fImail\fR
@@ -342,7 +342,7 @@ Default:
 .PP
 \fBldap_emailaliases_attribute\fR
 .RS 4
-This value is the email aliases of a user\&. It can be used to find extra valid email accounts for incoming email\&. These email addresses cannot be used for outgoing email\&.
+This value is the email aliases of a user. It can be used to find extra valid email accounts for incoming email. These email addresses cannot be used for outgoing email.
 .sp
 Default:
 \fIkopanoAliases\fR
@@ -350,7 +350,7 @@ Default:
 .PP
 \fBldap_isadmin_attribute\fR
 .RS 4
-This value indicates if a user has administrator rights\&. 0 or not presents means no\&. 1 means yes\&. In multi\-tenancy environment a value of 1 means that the user is administrator over his own tenant\&. A value of 2 means he is administrator over all companies within the environment\&.
+This value indicates if a user has administrator rights. 0 or not presents means no. 1 means yes. In multi\-tenancy environment a value of 1 means that the user is administrator over his own tenant. A value of 2 means he is administrator over all companies within the environment.
 .sp
 Default:
 \fIkopanoAdmin\fR
@@ -358,9 +358,9 @@ Default:
 .PP
 \fBldap_nonactive_attribute\fR
 .RS 4
-This value indicates if a user is nonactive\&. Nonactive users cannot login, but the store can be used as a shared store for other users\&.
+This value indicates if a user is nonactive. Nonactive users cannot login, but the store can be used as a shared store for other users.
 .sp
-Setting this value to 1 will make a mailbox nonactive\&. The nonactive attribute provided by the Kopano schema for nonactive users is
+Setting this value to 1 will make a mailbox nonactive. The nonactive attribute provided by the Kopano schema for nonactive users is
 \fIkopanoSharedStoreOnly\fR
 .sp
 Default:
@@ -369,11 +369,11 @@ Default:
 .PP
 \fBldap_resource_type_attribute\fR
 .RS 4
-This attribute can change the type of a non\-active user\&. The value of this attribute can be
+This attribute can change the type of a non\-active user. The value of this attribute can be
 \fIroom\fR
 or
 \fIequipment\fR
-to make it such a resource\&. If this attribute is not present, or not one of the previously described values, the user will be a normal non\-active user\&.
+to make it such a resource. If this attribute is not present, or not one of the previously described values, the user will be a normal non\-active user.
 .sp
 Default:
 \fIkopanoResourceType\fR
@@ -381,7 +381,7 @@ Default:
 .PP
 \fBldap_resource_capacity_attribute\fR
 .RS 4
-Resources often have a limited capacity\&. Use this attribute to control this value\&. user\&.
+Resources often have a limited capacity. Use this attribute to control this value. user.
 .sp
 Default:
 \fIkopanoResourceCapacity\fR
@@ -389,7 +389,7 @@ Default:
 .PP
 \fBldap_sendas_attribute\fR
 .RS 4
-This attribute contains the list of users for which the user can use the sendas feature\&.
+This attribute contains the list of users for which the user can use the sendas feature.
 .sp
 Default:
 \fIkopanoSendAsPrivilege\fR
@@ -403,7 +403,7 @@ this value can be
 \fIdn\fR,
 \fIbinary\fR
 or
-\fItext\fR\&.
+\fItext\fR.
 .sp
 Default for OpenLDAP:
 \fItext\fR
@@ -414,13 +414,13 @@ Default for ADS:
 .PP
 \fBldap_sendas_relation_attribute\fR
 .RS 4
-This value is used to find the users in the sendas list\&.
+This value is used to find the users in the sendas list.
 .sp
 Defaults to empty value, using the
 \fBldap_user_unique_attribute\fR
-setting\&. By using the DN, you can also add groups to the sendas list\&.
+setting. By using the DN, you can also add groups to the sendas list.
 .sp
-Default for OpenLDAP is empty\&.
+Default for OpenLDAP is empty.
 .sp
 Default for ADS:
 \fIdistinguishedName\fR
@@ -428,7 +428,7 @@ Default for ADS:
 .PP
 \fBldap_user_certificate_attribute\fR
 .RS 4
-The attribute which contains the user\*(Aqs public certificate to be used for encrypted S/MIME messages\&. Both Active Directory and OpenLDAP use the same ldap attribute by default\&. The format of the certificate should be the binary DER format\&.
+The attribute which contains the user\*(Aqs public certificate to be used for encrypted S/MIME messages. Both Active Directory and OpenLDAP use the same ldap attribute by default. The format of the certificate should be the binary DER format.
 .sp
 Default:
 \fIuserCertificate\fR
@@ -436,11 +436,11 @@ Default:
 .PP
 \fBldap_group_search_filter\fR
 .RS 4
-Adds an extra filter to the group search\&.
+Adds an extra filter to the group search.
 .sp
-Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano groups\&.
+Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano groups.
 .sp
-Default for OpenLDAP is empty\&.
+Default for OpenLDAP is empty.
 .sp
 Default for ADS:
 \fI(objectCategory=Group)\fR
@@ -448,7 +448,7 @@ Default for ADS:
 .PP
 \fBldap_group_unique_attribute\fR
 .RS 4
-This is the unique attribute of a group which is never going to change, unless the group is removed from LDAP\&. When this value changes, Kopano will remove the previous group from the database, and create a new group with this unique value\&.
+This is the unique attribute of a group which is never going to change, unless the group is removed from LDAP. When this value changes, Kopano will remove the previous group from the database, and create a new group with this unique value.
 .sp
 Default for OpenLDAP:
 \fIgidNumber\fR
@@ -464,7 +464,7 @@ Contents type for the
 this value can be
 \fIbinary\fR
 or
-\fItext\fR\&.
+\fItext\fR.
 .sp
 Default for OpenLDAP:
 \fItext\fR
@@ -475,7 +475,7 @@ Default for ADS:
 .PP
 \fBldap_groupname_attribute\fR
 .RS 4
-This value is the name of a group\&.
+This value is the name of a group.
 .sp
 Default:
 \fIcn\fR
@@ -483,7 +483,7 @@ Default:
 .PP
 \fBldap_groupmembers_attribute\fR
 .RS 4
-This value is the member list of a group\&.
+This value is the member list of a group.
 .sp
 Default for OpenLDAP:
 \fImemberUid\fR
@@ -500,7 +500,7 @@ this value can be
 \fIdn\fR,
 \fIbinary\fR
 or
-\fItext\fR\&.
+\fItext\fR.
 .sp
 Default for OpenLDAP:
 \fItext\fR
@@ -514,18 +514,18 @@ Default for ADS:
 This value is used to find the users in a group if
 \fBldap_groupmembers_attribute_type\fR
 is
-\fItext\fR\&.
+\fItext\fR.
 .sp
 Defaults to empty value, using the
 \fBldap_user_unique_attribute\fR
-setting\&.
+setting.
 .sp
-Default is empty\&.
+Default is empty.
 .RE
 .PP
 \fBldap_group_security_attribute\fR
 .RS 4
-If this attribute is present, you can make a group a security group\&. These groups can be used to place permissions on folders\&.
+If this attribute is present, you can make a group a security group. These groups can be used to place permissions on folders.
 .sp
 Default for OpenLDAP:
 \fIkopanoSecurityGroup\fR
@@ -538,10 +538,10 @@ Default for ADS:
 .RS 4
 The type of the
 \fBldap_group_security_attribute\fR
-is very different for ADS and OpenLDAP\&. The value of this option can be
+is very different for ADS and OpenLDAP. The value of this option can be
 \fIboolean\fR
 or
-\fIads\fR\&. The ads option only looks at the highest bit in the numeric value of the groupType attribute\&.
+\fIads\fR. The ads option only looks at the highest bit in the numeric value of the groupType attribute.
 .sp
 Default for OpenLDAP:
 \fIboolean\fR
@@ -552,11 +552,11 @@ Default for ADS:
 .PP
 \fBldap_company_search_filter\fR
 .RS 4
-Add an extra filter to the tenant search\&.
+Add an extra filter to the tenant search.
 .sp
-Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano companies\&.
+Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano companies.
 .sp
-Default for OpenLDAP is empty\&.
+Default for OpenLDAP is empty.
 .sp
 Default for ADS:
 \fI(objectCategory=Company)\fR
@@ -564,7 +564,7 @@ Default for ADS:
 .PP
 \fBldap_company_unique_attribute\fR
 .RS 4
-This is the unique attribute of a tenant which is never going to change, unless the tenant is removed from LDAP\&. When this value changes, Kopano will remove the previous tenant from the database, and create a new tenant with this unique value\&.
+This is the unique attribute of a tenant which is never going to change, unless the tenant is removed from LDAP. When this value changes, Kopano will remove the previous tenant from the database, and create a new tenant with this unique value.
 .sp
 Default for OpenLDAP:
 \fIou\fR
@@ -580,7 +580,7 @@ Contents type for the
 this value can be
 \fIbinary\fR
 or
-\fItext\fR\&.
+\fItext\fR.
 .sp
 Default for OpenLDAP:
 \fItext\fR
@@ -591,7 +591,7 @@ Default for ADS:
 .PP
 \fBldap_companyname_attribute\fR
 .RS 4
-This value is the name of a tenant\&.
+This value is the name of a tenant.
 .sp
 Default:
 \fIcn\fR
@@ -599,7 +599,7 @@ Default:
 .PP
 \fBldap_company_view_attribute\fR
 .RS 4
-This attribute contains the list of tenants which can view the members of the tenant where this attribute is set on\&. tenants which are not listed in this attribute cannot see the presence of the tenant space itself nor its members\&.
+This attribute contains the list of tenants which can view the members of the tenant where this attribute is set on. tenants which are not listed in this attribute cannot see the presence of the tenant space itself nor its members.
 .sp
 Default:
 \fIkopanoViewPrivilege\fR
@@ -613,7 +613,7 @@ this value can be
 \fIdn\fR,
 \fIbinary\fR
 or
-\fItext\fR\&.
+\fItext\fR.
 .sp
 Default for OpenLDAP:
 \fItext\fR
@@ -625,7 +625,7 @@ Default for ADS:
 \fBldap_company_view_relation_attribute\fR
 .RS 4
 The attribute of the tenant which is listed in
-\fBldap_company_view_attribute\fR\&.
+\fBldap_company_view_attribute\fR.
 .sp
 Default: Empty, using the
 \fBldap_company_unique_attribute\fR
@@ -633,9 +633,9 @@ Default: Empty, using the
 .PP
 \fBldap_company_admin_attribute\fR
 .RS 4
-This attribute contains the list of users outside of the selected tenant space who are administrator over the selected tenant space\&. Note that local users should not be listed as administrator here, those users need the
+This attribute contains the list of users outside of the selected tenant space who are administrator over the selected tenant space. Note that local users should not be listed as administrator here, those users need the
 \fBldap_isadmin_attribute\fR
-attribute\&.
+attribute.
 .sp
 Default:
 \fIkopanoAdminPrivilege\fR
@@ -649,7 +649,7 @@ this value can be
 \fIdn\fR,
 \fIbinary\fR
 or
-\fItext\fR\&.
+\fItext\fR.
 .sp
 Default for OpenLDAP:
 \fItext\fR
@@ -661,7 +661,7 @@ Default for ADS:
 \fBldap_company_admin_relation_attribute\fR
 .RS 4
 The attribute of the user which is listed in
-\fBldap_company_admin_attribute\fR\&.
+\fBldap_company_admin_attribute\fR.
 .sp
 Default: Empty, using the
 \fBldap_user_unique_attribute\fR
@@ -669,7 +669,7 @@ Default: Empty, using the
 .PP
 \fBldap_company_system_admin_attribute\fR
 .RS 4
-This attribute contains the user who acts as the system administrator of this tenatn space\&. This can either be a local user or a user from a different tenant space\&. At the moment this user is set as the sender of quota warning emails\&.
+This attribute contains the user who acts as the system administrator of this tenatn space. This can either be a local user or a user from a different tenant space. At the moment this user is set as the sender of quota warning emails.
 .sp
 Default:
 \fIkopanoSystemAdmin\fR
@@ -683,7 +683,7 @@ this value can be
 \fIdn\fR,
 \fIbinary\fR
 or
-\fItext\fR\&.
+\fItext\fR.
 .sp
 Default for OpenLDAP:
 \fItext\fR
@@ -695,7 +695,7 @@ Default for ADS:
 \fBldap_company_system_admin_relation_attribute\fR
 .RS 4
 The attribute of the user which is listed in
-\fBldap_system_admin_attribute\fR\&.
+\fBldap_system_admin_attribute\fR.
 .sp
 Default: Empty, using the
 \fBldap_user_unique_attribute\fR
@@ -703,9 +703,9 @@ Default: Empty, using the
 .PP
 \fBldap_addresslist_search_filter\fR
 .RS 4
-Add a filter to the addresslist search\&.
+Add a filter to the addresslist search.
 .sp
-Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano addresslists\&.
+Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano addresslists.
 .sp
 Default:
 \fI(objectClass=kopano\-addresslist)\fR
@@ -713,7 +713,7 @@ Default:
 .PP
 \fBldap_addresslist_unique_attribute\fR
 .RS 4
-This is the unique attribute of a addresslist which is never going to change, unless the addresslist is removed from LDAP\&. When this value changes, Kopano will remove the previous addresslist from the database, and create a new addresslist with this unique value\&.
+This is the unique attribute of a addresslist which is never going to change, unless the addresslist is removed from LDAP. When this value changes, Kopano will remove the previous addresslist from the database, and create a new addresslist with this unique value.
 .sp
 Default:
 \fIcn\fR
@@ -727,8 +727,8 @@ this value can be
 \fIdn\fR,
 \fIbinary\fR
 or
-\fItext\fR\&. On LDAP this value should be
-\fItext\fR\&. On ADS this value should be
+\fItext\fR. On LDAP this value should be
+\fItext\fR. On ADS this value should be
 \fIdn\fR
 .sp
 Default:
@@ -737,7 +737,7 @@ Default:
 .PP
 \fBldap_addresslist_filter_attribute\fR
 .RS 4
-This is the name of the attribute on the addresslist object that specifies the filter to be applied for this addresslist\&. All users matching this filter AND matching the default ldap_user_search_filter will be included in the addresslist\&.
+This is the name of the attribute on the addresslist object that specifies the filter to be applied for this addresslist. All users matching this filter AND matching the default ldap_user_search_filter will be included in the addresslist.
 .sp
 Default:
 \fIkopanoFilter\fR
@@ -745,7 +745,7 @@ Default:
 .PP
 \fBldap_addresslist_search_base_attribute\fR
 .RS 4
-This is the name of the attribute on the addresslist object that specifies the search base to be applied for this addresslist\&.
+This is the name of the attribute on the addresslist object that specifies the search base to be applied for this addresslist.
 .sp
 Default:
 \fIkopanoBase\fR
@@ -761,16 +761,16 @@ Default:
 .PP
 \fBldap_dynamicgroup_search_filter\fR
 .RS 4
-Add an extra filter to the dynamicgroup search\&.
+Add an extra filter to the dynamicgroup search.
 .sp
-Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano dynamic groups\&.
+Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano dynamic groups.
 .sp
-Default is empty\&.
+Default is empty.
 .RE
 .PP
 \fBldap_dynamicgroup_unique_attribute\fR
 .RS 4
-This is the unique attribute of a dynamicgroup which is never going to change, unless the dynamicgroup is removed from LDAP\&. When this value changes, Kopano will remove the previous dynamicgroup from the database, and create a new dynamicgroup with this unique value\&.
+This is the unique attribute of a dynamicgroup which is never going to change, unless the dynamicgroup is removed from LDAP. When this value changes, Kopano will remove the previous dynamicgroup from the database, and create a new dynamicgroup with this unique value.
 .sp
 Default:
 \fIcn\fR
@@ -783,8 +783,8 @@ Contents type for the
 this value can be
 \fIbinary\fR
 or
-\fItext\fR\&. On LDAP this value should be
-\fItext\fR\&. On ADS this value should be
+\fItext\fR. On LDAP this value should be
+\fItext\fR. On ADS this value should be
 \fIbinary\fR
 .sp
 Default:
@@ -793,7 +793,7 @@ Default:
 .PP
 \fBldap_dynamicgroup_filter_attribute\fR
 .RS 4
-This is the name of the attribute on the dynamicgroup object that specifies the filter to be applied for this dynamicgroup\&. All users matching this filter AND matching the default search filters for objects will be included in the dynamicgroup\&.
+This is the name of the attribute on the dynamicgroup object that specifies the filter to be applied for this dynamicgroup. All users matching this filter AND matching the default search filters for objects will be included in the dynamicgroup.
 .sp
 Default:
 \fIkopanoFilter\fR
@@ -801,7 +801,7 @@ Default:
 .PP
 \fBldap_dynamicgroup_search_base_attribute\fR
 .RS 4
-This is the name of the attribute on the dynamicgroup object that specifies the search base to be applied for this dynamicgroup\&.
+This is the name of the attribute on the dynamicgroup object that specifies the search base to be applied for this dynamicgroup.
 .sp
 Default:
 \fIkopanoBase\fR
@@ -809,7 +809,7 @@ Default:
 .PP
 \fBldap_dynamicgroup_name_attribute\fR
 .RS 4
-The attribute containing the name of the dynamicgroup\&.
+The attribute containing the name of the dynamicgroup.
 .sp
 Default:
 \fIcn\fR
@@ -865,7 +865,7 @@ Default:
 .PP
 \fBldap_quota_multiplier\fR
 .RS 4
-This value is used to multiply the quota values to bytes\&. When the values in LDAP are in Kb, use 1024 here\&.
+This value is used to multiply the quota values to bytes. When the values in LDAP are in Kb, use 1024 here.
 .sp
 Default:
 \fI1\fR
@@ -873,7 +873,7 @@ Default:
 .PP
 \fBldap_quota_userwarning_recipients_attribute\fR
 .RS 4
-This attribute contains the list of users who will receive an email when a user exceeds his quota\&. User who exceeds his quota will be automatically added to the recipients list, this list only indicates who else will be notified\&.
+This attribute contains the list of users who will receive an email when a user exceeds his quota. User who exceeds his quota will be automatically added to the recipients list, this list only indicates who else will be notified.
 .sp
 Default:
 \fIkopanoQuotaUserWarningRecipients\fR
@@ -887,8 +887,8 @@ this value can be
 \fIdn\fR,
 \fIbinary\fR
 or
-\fItext\fR\&. On LDAP this value should be
-\fItext\fR\&. On ADS this value should be
+\fItext\fR. On LDAP this value should be
+\fItext\fR. On ADS this value should be
 \fIdn\fR
 .sp
 Default:
@@ -906,7 +906,7 @@ Default: Empty, using
 .PP
 \fBldap_quota_companywarning_recipients_attribute\fR
 .RS 4
-This attribute contains the list of users who will receive an email when a tenant exceeds its quota\&. The system administrator of the tenant that is over quota will automatically be added to the recipients list, this list only indicates who else will be notified\&.
+This attribute contains the list of users who will receive an email when a tenant exceeds its quota. The system administrator of the tenant that is over quota will automatically be added to the recipients list, this list only indicates who else will be notified.
 .sp
 Default:
 \fIkopanoQuotaCompanyWarningRecipients\fR
@@ -920,8 +920,8 @@ this value can be
 \fIdn\fR,
 \fIbinary\fR
 or
-\fItext\fR\&. On LDAP this value should be
-\fItext\fR\&. On ADS this value should be
+\fItext\fR. On LDAP this value should be
+\fItext\fR. On ADS this value should be
 \fIdn\fR
 .sp
 Default:
@@ -939,7 +939,7 @@ Default: Empty, using
 .PP
 \fBldap_addressbook_hide_attribute\fR
 .RS 4
-The attribute indicating the object must be hidden from the addressbook\&. The object will still be detected as kopano user and is allowed to login and work as regular kopano user, but will not be visible in the addressbook for other users\&.
+The attribute indicating the object must be hidden from the addressbook. The object will still be detected as kopano user and is allowed to login and work as regular kopano user, but will not be visible in the addressbook for other users.
 .sp
 Default:
 \fIkopanoHidden\fR
@@ -947,13 +947,13 @@ Default:
 .PP
 \fBldap_object_search_filter\fR
 .RS 4
-When searching in the addressbook, this filter will be used\&. Normally, the storage server will only search in the unique attribute, loginname, fullname and emailaddress\&. You might want to search in more fields, like \*(Aqlastname\*(Aq\&. Kopano also uses a postfix wildcard only\&. Using the \*(Aq*\*(Aq wildcard with prefixes makes a search slower, but can return more results\&.
+When searching in the addressbook, this filter will be used. Normally, the storage server will only search in the unique attribute, loginname, fullname and emailaddress. You might want to search in more fields, like \*(Aqlastname\*(Aq. Kopano also uses a postfix wildcard only. Using the \*(Aq*\*(Aq wildcard with prefixes makes a search slower, but can return more results.
 .sp
-Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano objects\&.
+Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano objects.
 .sp
-You can set a custom search filter here\&. \*(Aq%s\*(Aq will be replaced with the string being searched\&.
+You can set a custom search filter here. \*(Aq%s\*(Aq will be replaced with the string being searched.
 .sp
-Active Directory has a shortcut for searching in the addressbook using the \*(Aqanr\*(Aq attribute\&. This is recommended on ADS installations\&.
+Active Directory has a shortcut for searching in the addressbook using the \*(Aqanr\*(Aq attribute. This is recommended on ADS installations.
 .sp
 Default:
 .sp
@@ -966,27 +966,27 @@ Optional for OpenLDAP installations:
 .PP
 \fBldap_filter_cutoff_elements\fR
 .RS 4
-When the ldap plugin retrieves information from the LDAP Server, large queries can be created to retrieve data for multiple objects at once\&. These large queries can perform badly on some LDAP server implementations\&. This option limits the number of elements that can be retrieved in one search filter and therefore limits the size of the filter\&. Instead, a broader search filter is created which retrieves all objects from the LDAP server\&. This results in slightly higher processing overhead and network activity, but with the bonus that the query can be served by the LDAP server much faster (a factor of 40 in 5000\-object queries has been observed)\&.
+When the ldap plugin retrieves information from the LDAP Server, large queries can be created to retrieve data for multiple objects at once. These large queries can perform badly on some LDAP server implementations. This option limits the number of elements that can be retrieved in one search filter and therefore limits the size of the filter. Instead, a broader search filter is created which retrieves all objects from the LDAP server. This results in slightly higher processing overhead and network activity, but with the bonus that the query can be served by the LDAP server much faster (a factor of 40 in 5000\-object queries has been observed).
 .sp
-Setting this value to 0 will never limit the filter, setting it to a value of 1 will always limit the filter (since all queries will be retrieving one or more objects)\&.
+Setting this value to 0 will never limit the filter, setting it to a value of 1 will always limit the filter (since all queries will be retrieving one or more objects).
 .sp
 Default:
 \fI1000\fR
 .RE
 .SH "FILES"
 .PP
-/etc/kopano/server\&.cfg
+/etc/kopano/server.cfg
 .RS 4
-The server configuration file\&.
+The server configuration file.
 .RE
 .PP
-/etc/kopano/ldap\&.cfg
+/etc/kopano/ldap.cfg
 .RS 4
-The Kopano LDAP configuration file\&.
+The Kopano LDAP configuration file.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),

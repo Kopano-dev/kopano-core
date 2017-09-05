@@ -7,7 +7,7 @@
 .\"    Source: Kopano 8
 .\"  Language: English
 .\"
-.TH "KOPANO\-SPOOLER\&.CF" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
+.TH "KOPANO\-SPOOLER.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,17 +31,17 @@
 kopano-spooler.cfg \- The Kopano spooler configuration file
 .SH "SYNOPSIS"
 .PP
-\fBspooler\&.cfg\fR
+\fBspooler.cfg\fR
 .SH "DESCRIPTION"
 .PP
 The
-spooler\&.cfg
-is a configuration file for the Kopano Spooler\&.
-spooler\&.cfg
-contains instructions for the software to set up the logging system and outgoing smtp relay server\&.
+spooler.cfg
+is a configuration file for the Kopano Spooler.
+spooler.cfg
+contains instructions for the software to set up the logging system and outgoing smtp relay server.
 .SH "FILE FORMAT"
 .PP
-The file consists of one big section, but parameters can be grouped by functionality\&.
+The file consists of one big section, but parameters can be grouped by functionality.
 .PP
 The parameters are written in the form:
 .PP
@@ -49,7 +49,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based\&. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive\&. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano\&. Parameter names are case sensitive\&. Lines beginning with `!\*(Aq are directives\&.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -63,13 +63,13 @@ The following directives exist:
 Include and process
 \fIargument\fR
 .sp
-Example: !include common\&.cfg
+Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
 .PP
 \fBsmtp_server\fR
 .RS 4
-Hostname or IP address of the outgoing SMTP server\&. This server needs to relay mail for your server\&.
+Hostname or IP address of the outgoing SMTP server. This server needs to relay mail for your server.
 .sp
 Default:
 \fIlocalhost\fR
@@ -77,7 +77,7 @@ Default:
 .PP
 \fBsmtp_port\fR
 .RS 4
-TCP Port number for smtp_server\&.
+TCP Port number for smtp_server.
 .sp
 Default:
 \fI25\fR
@@ -85,37 +85,37 @@ Default:
 .PP
 \fBserver_socket\fR
 .RS 4
-Unix socket to find the connection to the Kopano server\&.
+Unix socket to find the connection to the Kopano server.
 .sp
 Default:
-\fIfile:///var/run/kopano/server\&.sock\fR
+\fIfile:///var/run/kopano/server.sock\fR
 .RE
 .PP
 \fBrun_as_user\fR
 .RS 4
-After correctly starting, the spooler process will become this user, dropping root privileges\&. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation\&. This can also be achieved by setting the correct group and permissions\&.
+After correctly starting, the spooler process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
 .sp
-Default value is empty, not changing the user after starting\&.
+Default value is empty, not changing the user after starting.
 .RE
 .PP
 \fBrun_as_group\fR
 .RS 4
-After correctly starting, the spooler process will become this group, dropping root privileges\&.
+After correctly starting, the spooler process will become this group, dropping root privileges.
 .sp
-Default value is empty, not changing the group after starting\&.
+Default value is empty, not changing the group after starting.
 .RE
 .PP
 \fBpid_file\fR
 .RS 4
-Write the process ID number to this file\&. This is used by the init\&.d script to correctly stop/restart the service\&.
+Write the process ID number to this file. This is used by the init.d script to correctly stop/restart the service.
 .sp
 Default:
-\fI/var/run/kopano/spooler\&.pid\fR
+\fI/var/run/kopano/spooler.pid\fR
 .RE
 .PP
 \fBrunning_path\fR
 .RS 4
-Change directory to this path when running in daemonize mode\&. When using the \-F switch to run in the foreground the directory will not be changed\&.
+Change directory to this path when running in daemonize mode. When using the \-F switch to run in the foreground the directory will not be changed.
 .sp
 Default:
 \fI/\fR
@@ -123,34 +123,34 @@ Default:
 .PP
 \fBsslkey_file\fR
 .RS 4
-Use this file as key to logon to the server\&. This is only used when server_socket is set to an HTTPS transport\&. See the
+Use this file as key to logon to the server. This is only used when server_socket is set to an HTTPS transport. See the
 \fBkopano-server\fR(8)
-manual page on how to setup SSL keys\&.
+manual page on how to setup SSL keys.
 .sp
-Default: value not set\&.
+Default: value not set.
 .RE
 .PP
 \fBsslkey_pass\fR
 .RS 4
-The password of the SSL key file that is set in sslkey_file\&.
+The password of the SSL key file that is set in sslkey_file.
 .sp
-Default: value not set\&.
+Default: value not set.
 .RE
 .PP
 \fBlog_method\fR
 .RS 4
-The method which should be used for logging\&. Valid values are:
+The method which should be used for logging. Valid values are:
 .PP
 \fIsyslog\fR
 .RS 4
-Use the Linux system log\&. All messages will be written to the mail facility\&. See also
-\fBsyslog.conf\fR(5)\&.
+Use the Linux system log. All messages will be written to the mail facility. See also
+\fBsyslog.conf\fR(5).
 .RE
 .PP
 \fIfile\fR
 .RS 4
-Log to a file\&. The filename will be specified in
-\fBlog_file\fR\&.
+Log to a file. The filename will be specified in
+\fBlog_file\fR.
 .RE
 .sp
 Default:
@@ -159,17 +159,17 @@ Default:
 .PP
 \fBlog_file\fR
 .RS 4
-When logging to a file, specify the filename in this parameter\&. Use
+When logging to a file, specify the filename in this parameter. Use
 \fI\-\fR
-(minus sign) for stderr output\&.
+(minus sign) for stderr output.
 .sp
 Default:
-\fI/var/log/kopano/spooler\&.log\fR
+\fI/var/log/kopano/spooler.log\fR
 .RE
 .PP
 \fBlog_timestamp\fR
 .RS 4
-Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode\&.
+Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
 .sp
 Default:
 \fI1\fR
@@ -177,7 +177,7 @@ Default:
 .PP
 \fBlog_buffer_size\fR
 .RS 4
-Buffer logging in what sized blocks\&. The special value 0 selects line buffering\&.
+Buffer logging in what sized blocks. The special value 0 selects line buffering.
 .sp
 Default:
 \fI0\fR
@@ -185,7 +185,7 @@ Default:
 .PP
 \fBlog_level\fR
 .RS 4
-The level of output for logging in the range from 0 to 5\&. 0 means no logging, 5 means full logging\&.
+The level of output for logging in the range from 0 to 5. 0 means no logging, 5 means full logging.
 .sp
 Default:
 \fI2\fR
@@ -193,7 +193,7 @@ Default:
 .PP
 \fBmax_threads\fR
 .RS 4
-The maximum number of threads used to send outgoing messages\&. For each email in the outgoing queue a separate thread will be started in order to allow multiple emails to be send out simultaneously\&.
+The maximum number of threads used to send outgoing messages. For each email in the outgoing queue a separate thread will be started in order to allow multiple emails to be send out simultaneously.
 .sp
 Default:
 \fI5\fR
@@ -201,14 +201,14 @@ Default:
 .PP
 \fBfax_domain\fR
 .RS 4
-When an email is sent to a contact with a FAX type email address, the address will be rewritten to a normal SMTP address, using the scheme: <faxnumber>@<fax_domain>\&. You can install software in your SMTP server which handles these email addresses to actually fax the message to that number\&.
+When an email is sent to a contact with a FAX type email address, the address will be rewritten to a normal SMTP address, using the scheme: <faxnumber>@<fax_domain>. You can install software in your SMTP server which handles these email addresses to actually fax the message to that number.
 .sp
 Default:
 .RE
 .PP
 \fBfax_international\fR
 .RS 4
-When sending an international fax, the number will start with a \*(Aq+\*(Aq sign\&. You can rewrite this to the digits you need to dial when dialing to another country\&.
+When sending an international fax, the number will start with a \*(Aq+\*(Aq sign. You can rewrite this to the digits you need to dial when dialing to another country.
 .sp
 Default:
 \fI+\fR
@@ -216,7 +216,7 @@ Default:
 .PP
 \fBalways_send_delegates\fR
 .RS 4
-Normally, a user needs to give explicit rights to other users to be able to send under their name\&. When setting this value to \*(Aqyes\*(Aq, the spooler will not check these permissions, and will always send the email with \*(AqOn behalf of\*(Aq headers\&. Please note that this feature overrides \*(Aqsend\-as\*(Aq functionality\&.
+Normally, a user needs to give explicit rights to other users to be able to send under their name. When setting this value to \*(Aqyes\*(Aq, the spooler will not check these permissions, and will always send the email with \*(AqOn behalf of\*(Aq headers. Please note that this feature overrides \*(Aqsend\-as\*(Aq functionality.
 .sp
 Default:
 \fIno\fR
@@ -224,9 +224,9 @@ Default:
 .PP
 \fBalways_send_tnef\fR
 .RS 4
-Meeting requests will be sent using iCalendar files\&. This adds compatibility to more calendar programs\&. To use the previous TNEF (winmail\&.dat) method, set this option to \*(Aqyes\*(Aq\&.
+Meeting requests will be sent using iCalendar files. This adds compatibility to more calendar programs. To use the previous TNEF (winmail.dat) method, set this option to \*(Aqyes\*(Aq.
 .sp
-When an email body is written in RTF text, normally this data is sent using TNEF\&. If you want to send an HTML representation of the email instead and not use TNEF, set this to \*(Aqminimal\*(Aq\&.
+When an email body is written in RTF text, normally this data is sent using TNEF. If you want to send an HTML representation of the email instead and not use TNEF, set this to \*(Aqminimal\*(Aq.
 .sp
 Default:
 \fIno\fR
@@ -234,7 +234,7 @@ Default:
 .PP
 \fBalways_send_utf8\fR
 .RS 4
-E\-mails can be sent in any charset that the e\-mail was written in\&. It may be desirable to always send in the UTF\-8 charset, which may be more widely supported\&. To enable e\-mail to always be sent in the utf\-8 charset, set this option to \*(Aqyes\*(Aq\&.
+E\-mails can be sent in any charset that the e\-mail was written in. It may be desirable to always send in the UTF\-8 charset, which may be more widely supported. To enable e\-mail to always be sent in the utf\-8 charset, set this option to \*(Aqyes\*(Aq.
 .sp
 Default:
 \fIno\fR
@@ -242,7 +242,7 @@ Default:
 .PP
 \fBenable_dsn\fR
 .RS 4
-Enable the Delivery Status Notifications (DSN) for users\&. If a user requests a DSN the spooler sends the request to the MTA and when the MTA support this the user will receive the report in the mailbox\&. When the MTA doesn\*(Aqt support DSN the user will not receive a report\&. Ensure you have a supported MTA like postfix 2\&.3 and higher\&. If DSN is disabled and the user request a DSN then it will be ignored and the delivery report is not sent\&.
+Enable the Delivery Status Notifications (DSN) for users. If a user requests a DSN the spooler sends the request to the MTA and when the MTA support this the user will receive the report in the mailbox. When the MTA doesn\*(Aqt support DSN the user will not receive a report. Ensure you have a supported MTA like postfix 2.3 and higher. If DSN is disabled and the user request a DSN then it will be ignored and the delivery report is not sent.
 .sp
 Default:
 \fIyes\fR
@@ -250,7 +250,7 @@ Default:
 .PP
 \fBcharset_upgrade\fR
 .RS 4
-Upgrades the us\-ascii charset to this charset\&. This makes sure high\-characters in recipients and attachment filenames are correctly sent when the body is in plain text\&. Not used when always_send_utf8 is enabled\&.
+Upgrades the us\-ascii charset to this charset. This makes sure high\-characters in recipients and attachment filenames are correctly sent when the body is in plain text. Not used when always_send_utf8 is enabled.
 .sp
 Default:
 \fIwindows\-1252\fR
@@ -258,7 +258,7 @@ Default:
 .PP
 \fBallow_redirect_spoofing\fR
 .RS 4
-Normally, users are not allowed to send e\-mail from a different e\-mail address than their own\&. However, the \*(Aqredirect\*(Aq rule sends e\-mails with their original \*(Aqfrom\*(Aq address\&. Enabling this option allows redirected e\-mails to be sent with their original \*(Aqfrom\*(Aq e\-mail address\&.
+Normally, users are not allowed to send e\-mail from a different e\-mail address than their own. However, the \*(Aqredirect\*(Aq rule sends e\-mails with their original \*(Aqfrom\*(Aq address. Enabling this option allows redirected e\-mails to be sent with their original \*(Aqfrom\*(Aq e\-mail address.
 .sp
 Default:
 \fIyes\fR
@@ -266,7 +266,7 @@ Default:
 .PP
 \fBcopy_delegate_mails\fR
 .RS 4
-Make a copy of the sent mail of delegates in the sent items folder of the representee\&. This is done for both delegate and send\-as e\-mails\&.
+Make a copy of the sent mail of delegates in the sent items folder of the representee. This is done for both delegate and send\-as e\-mails.
 .sp
 Default:
 \fIyes\fR
@@ -274,7 +274,7 @@ Default:
 .PP
 \fBallow_delegate_meeting_request\fR
 .RS 4
-Normally, users are not allowed to send meeting requests as external delegate\&. However, when you want to forward meeting requests you need delegate permissions\&. Enabling this option allows you to sent and forward a meeting request as a delegate Kopano and SMTP user\&.
+Normally, users are not allowed to send meeting requests as external delegate. However, when you want to forward meeting requests you need delegate permissions. Enabling this option allows you to sent and forward a meeting request as a delegate Kopano and SMTP user.
 .sp
 Default:
 \fIyes\fR
@@ -282,7 +282,7 @@ Default:
 .PP
 \fBallow_send_to_everyone\fR
 .RS 4
-When set to \*(Aqno\*(Aq, sending to the \*(Aqeveryone\*(Aq group is disallowed\&. The entire message will be bounced if this is attempted\&. When set to \*(Aqyes\*(Aq, this allows sending to all users in the \*(Aqeveryone\*(Aq group\&.
+When set to \*(Aqno\*(Aq, sending to the \*(Aqeveryone\*(Aq group is disallowed. The entire message will be bounced if this is attempted. When set to \*(Aqyes\*(Aq, this allows sending to all users in the \*(Aqeveryone\*(Aq group.
 .sp
 Default:
 \fIyes\fR
@@ -290,7 +290,7 @@ Default:
 .PP
 \fBexpand_groups\fR
 .RS 4
-Expand groups in headers of sent e\-mails\&. This means that the recipient of an e\-mail with one or more groups as recipients will see the members of the groups instead of the groups themselves\&. If a group has an e\-mail address, the group is not expanded irrespective of this setting, since having an e\-mail address for the group implies that this address can be used to send messages to the group\&.
+Expand groups in headers of sent e\-mails. This means that the recipient of an e\-mail with one or more groups as recipients will see the members of the groups instead of the groups themselves. If a group has an e\-mail address, the group is not expanded irrespective of this setting, since having an e\-mail address for the group implies that this address can be used to send messages to the group.
 .sp
 Default:
 \fIno\fR
@@ -298,9 +298,9 @@ Default:
 .PP
 \fBarchive_on_send\fR
 .RS 4
-Archive outgoing messages\&. If an archive is attached to the mailbox from which a message is send, the message will immediately be archived to the special Outgoing folder\&.
+Archive outgoing messages. If an archive is attached to the mailbox from which a message is send, the message will immediately be archived to the special Outgoing folder.
 .sp
-Messages that are archived this way are not attached to the original message in the primary store\&. So there\*(Aqs no easy way to find the original sent item based on an archive or find an archive based on the sent item in the primary store\&. This option is only intended to make sure all outgoing messages are stored without the possibility for the owner to delete them\&.
+Messages that are archived this way are not attached to the original message in the primary store. So there\*(Aqs no easy way to find the original sent item based on an archive or find an archive based on the sent item in the primary store. This option is only intended to make sure all outgoing messages are stored without the possibility for the owner to delete them.
 .sp
 Default:
 \fIno\fR
@@ -308,7 +308,7 @@ Default:
 .PP
 \fBplugin_enabled\fR
 .RS 4
-Enable or disable the spooler plugin framework\&.
+Enable or disable the spooler plugin framework.
 .sp
 Default:
 \fIyes\fR
@@ -316,7 +316,7 @@ Default:
 .PP
 \fBplugin_manager_path\fR
 .RS 4
-The path to the spooler plugin manager\&.
+The path to the spooler plugin manager.
 .sp
 Default:
 \fI/usr/share/kopano\-spooler/python\fR
@@ -324,17 +324,17 @@ Default:
 .PP
 \fBplugin_path\fR
 .RS 4
-Path to the activated spooler plugins\&. This folder contains symlinks to the kopano plugins and custom scripts\&. The plugins are installed in
-\fI/usr/share/kopano\-spooler/python/plugins\fR\&. To activate a plugin create a symbolic link in the
+Path to the activated spooler plugins. This folder contains symlinks to the kopano plugins and custom scripts. The plugins are installed in
+\fI/usr/share/kopano\-spooler/python/plugins\fR. To activate a plugin create a symbolic link in the
 \fIplugin_path\fR
-directory\&.
+directory.
 .sp
 Example:
 .sp
 \fBln\fR
 \fB\-s\fR
-\fI/usr/share/kopano\-spooler/python/plugins/BMP2PNG\&.py\fR
-\fI/var/lib/kopano/spooler/plugins/BMP2PNG\&.py\fR
+\fI/usr/share/kopano\-spooler/python/plugins/BMP2PNG.py\fR
+\fI/var/lib/kopano/spooler/plugins/BMP2PNG.py\fR
 .sp
 Default:
 \fI/var/lib/kopano/spooler/plugins\fR
@@ -348,13 +348,13 @@ log_level, max_threads, archive_on_send
 .RE
 .SH "FILES"
 .PP
-/etc/kopano/spooler\&.cfg
+/etc/kopano/spooler.cfg
 .RS 4
-The Kopano spooler configuration file\&.
+The Kopano spooler configuration file.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-spooler\fR(8)

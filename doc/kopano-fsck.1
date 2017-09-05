@@ -28,97 +28,97 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-fsck \- Start the Kopano fsck calendar check program\&.
+kopano-fsck \- Start the Kopano fsck calendar check program.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-fsck\fR\ 'u
 \fBkopano\-fsck\fR [\fIOPTION\fR...] [\fIFILTER\fR...]
 .SH "DESCRIPTION"
 .PP
-The program finds all items in the default calendar folder of the given user, and checks if all items are compatible with Microsoft Outlook\&. It specifically tests for known issues with reminders and recurrcences\&.
+The program finds all items in the default calendar folder of the given user, and checks if all items are compatible with Microsoft Outlook. It specifically tests for known issues with reminders and recurrcences.
 .SH "OPTIONS"
 .PP
-Various options are possible\&. Only the \-\-user options is required\&.
+Various options are possible. Only the \-\-user options is required.
 .PP
 \fB\-\-user\fR, \fB\-u\fR \fIusername\fR
 .RS 4
-The name of the user to login with, and to check the calendar of\&.
+The name of the user to login with, and to check the calendar of.
 .RE
 .PP
 \fB\-\-pass\fR, \fB\-p\fR \fIpassword\fR
 .RS 4
-The password of the user to login with\&. If this is not passed, you will be prompted for the password, and it will not be displayed when typed\&.
+The password of the user to login with. If this is not passed, you will be prompted for the password, and it will not be displayed when typed.
 .RE
 .PP
 \fB\-\-prompt\fR, \fB\-P\fR
 .RS 4
-Prompt for the password of the user to login with\&. Overrides the \-\-pass option\&.
+Prompt for the password of the user to login with. Overrides the \-\-pass option.
 .RE
 .PP
 \fB\-\-acceptdisclaimer\fR
 .RS 4
-Auto accept the disclaimer so no user input is needed to accept the disclaimer\&. This can be used for scripts along with
-\fI\-\-autofix \fRargument\&.
+Auto accept the disclaimer so no user input is needed to accept the disclaimer. This can be used for scripts along with
+\fI\-\-autofix \fRargument.
 .RE
 .PP
 \fB\-\-public\fR
 .RS 4
 Check the public store for user given with the
-\fI\-\-user\fRargument\&.
+\fI\-\-user\fRargument.
 .RE
 .PP
 \fB\-\-host\fR, \fB\-h\fR \fIpath\fR
 .RS 4
 Connect to the storage server through
-\fIpath\fR, e\&.g\&.
-file:///path/to/socket\&. Default:
-file:///var/run/kopano/server\&.sock\&.
+\fIpath\fR, e.g.
+file:///path/to/socket. Default:
+file:///var/run/kopano/server.sock.
 .RE
 .PP
 \fB\-\-autofix\fR \fI[yes|no]\fR
 .RS 4
-Whether the items should immediately be fixed, and not be prompted for\&.
+Whether the items should immediately be fixed, and not be prompted for.
 .RE
 .PP
 \fB\-\-autodel\fR \fI[yes|no]\fR
 .RS 4
-When the item certainly is broken, and cannot be fixed by the program, it may be deleted\&.
+When the item certainly is broken, and cannot be fixed by the program, it may be deleted.
 .RE
 .PP
 \fB\-\-checkonly\fR
 .RS 4
-You will only receive a report of which items are probably broken\&. The calendar folder will not be written to\&.
+You will only receive a report of which items are probably broken. The calendar folder will not be written to.
 .RE
 .PP
 \fB\-\-help\fR
 .RS 4
-Print a help screen of all possible options\&.
+Print a help screen of all possible options.
 .RE
 .SH "FILTERS"
 .PP
-At least one filter is required\&. A filter defines which kind of items are checked\&.
+At least one filter is required. A filter defines which kind of items are checked.
 .PP
 \fB\-\-calendar\fR
 .RS 4
-All calendar folders in the store will be checked, and only calendar items will be tried to fix if needed\&.
+All calendar folders in the store will be checked, and only calendar items will be tried to fix if needed.
 .RE
 .PP
 \fB\-\-contact\fR
 .RS 4
-All contact folders in the store will be checked, and only contact items will be tried to fix if needed\&.
+All contact folders in the store will be checked, and only contact items will be tried to fix if needed.
 .RE
 .PP
 \fB\-\-task\fR
 .RS 4
-All task folders in the store will be checked, and only task items will be tried to fix if needed\&.
+All task folders in the store will be checked, and only task items will be tried to fix if needed.
 .RE
 .PP
 \fB\-\-all\fR
 .RS 4
-All filters listed above will be checked\&.
+All filters listed above will be checked.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano\fR(7)

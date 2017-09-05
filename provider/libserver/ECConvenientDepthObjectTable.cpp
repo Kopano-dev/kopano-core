@@ -61,7 +61,8 @@ struct FOLDERINFO {
     std::string strFolderName;		// Folder name like 'inbox'
     SortKey sortKey;				// List of collation keys of the folder names.
     
-    bool operator < (const FOLDERINFO &a) {
+	bool operator<(const FOLDERINFO &a) const
+	{
 		SortKey::const_iterator iKeyThis = sortKey.cbegin();
 		SortKey::const_iterator iKeyOther = a.sortKey.cbegin();
 

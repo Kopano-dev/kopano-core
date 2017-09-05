@@ -28,78 +28,78 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano \- Kopano server overview\&.
+kopano \- Kopano server overview.
 .SH "DESCRIPTION"
 .PP
-Kopano is a full\-featured e\-mail and groupware solution, focused towards clients using the MAPI standard\&. The Kopano suite consists of the following parts:
+Kopano is a full\-featured e\-mail and groupware solution, focused towards clients using the MAPI standard. The Kopano suite consists of the following parts:
 .PP
 kopano\-server
 .RS 4
-The main server process, accepting client connections, and managing storage and retrieval of data from the database\&.
+The main server process, accepting client connections, and managing storage and retrieval of data from the database.
 .RE
 .PP
 kopano\-spooler
 .RS 4
-The outgoing e\-mail spooler\&. This service makes sure that e\-mails sent by clients are converted to internet e\-mail and forwarded to an SMTP server\&.
+The outgoing e\-mail spooler. This service makes sure that e\-mails sent by clients are converted to internet e\-mail and forwarded to an SMTP server.
 .RE
 .PP
 kopano\-dagent
 .RS 4
-The Kopano delivery agent is called by your MTA to deliver an incoming e\-mail message into a user\*(Aqs inbox\&.
+The Kopano delivery agent is called by your MTA to deliver an incoming e\-mail message into a user\*(Aqs inbox.
 .RE
 .PP
 kopano\-admin
 .RS 4
-The admin program can be started from the command line to perform various administrational tasks such add creating users, and managing groups\&.
+The admin program can be started from the command line to perform various administrational tasks such add creating users, and managing groups.
 .RE
 .PP
 kopano\-monitor
 .RS 4
-The monitor server process monitors user stores for quota limits\&. When a user goes over the warning quota level, kopano\-monitor will issue a warning e\-mail\&.
+The monitor server process monitors user stores for quota limits. When a user goes over the warning quota level, kopano\-monitor will issue a warning e\-mail.
 .RE
 .PP
 kopano\-gateway
 .RS 4
-The gateway server process enables POP3 and/or IMAP connectivity to the storage server\&. Users with other non\-Outlook or webaccess clients can still retrieve their e\-mail from the server\&.
+The gateway server process enables POP3 and/or IMAP connectivity to the storage server. Users with other non\-Outlook or webaccess clients can still retrieve their e\-mail from the server.
 .RE
 .PP
 kopano\-passwd
 .RS 4
-The passwd program can be started from the command line to update the user password when the server is running with dbplugin\&.
+The passwd program can be started from the command line to update the user password when the server is running with dbplugin.
 .RE
 .PP
 kopano\-fsck
 .RS 4
-The fsck program can be started from the command line to check and possibly fix broken items in your calendar or tasks folder\&.
+The fsck program can be started from the command line to check and possibly fix broken items in your calendar or tasks folder.
 .RE
 .PP
 kopano\-backup
 .RS 4
-The backup tool creates an incremental dump of a store\&. The data can be restored by the same tool\&. This tool can be used as a brick\-level\-backup\&. From a performance point of view it might not make sense to be used as a disaster\-recovery tool\&.
+The backup tool creates an incremental dump of a store. The data can be restored by the same tool. This tool can be used as a brick\-level\-backup. From a performance point of view it might not make sense to be used as a disaster\-recovery tool.
 .RE
 .PP
 kopano\-ical
 .RS 4
-The iCal/CalDAV gateway enables users to retrieve their own Kopano calendar using the iCalendar standard\&.
+The iCal/CalDAV gateway enables users to retrieve their own Kopano calendar using the iCalendar standard.
 .RE
 .PP
 kopano\-stats
 .RS 4
-A simple program that dumps some statistics the kopano\-server program collects\&.
+A simple program that dumps some statistics the kopano\-server program collects.
 .RE
 .PP
 kopano\-cfgchecker
 .RS 4
-This program tests for common configuration errors for a given config file\&.
+This program tests for common configuration errors for a given config file.
 .RE
 .PP
 kopano\-search
 .RS 4
-The kopano\-search daemon is used to index all messages for all users in the kopano\-server\&. Indexing messages greatly enhances the search performance of the kopano\-server\&.
+The kopano\-search daemon is used to index all messages for all users in the kopano\-server. Indexing messages greatly enhances the search performance of the kopano\-server.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),
