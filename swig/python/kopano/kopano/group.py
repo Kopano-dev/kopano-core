@@ -104,11 +104,11 @@ class Group(Base):
         self._update(email=_unicode(value))
 
     @property
-    def fullname(self): # XXX deprecate, seems always identical to 'name'?
+    def fullname(self): # currently identical to name (may change later?)
         return self._ecgroup.Fullname
 
     @fullname.setter
-    def fullname(self, value): # XXX deprecate
+    def fullname(self, value):
         self._update(fullname=_unicode(value))
 
     @property
