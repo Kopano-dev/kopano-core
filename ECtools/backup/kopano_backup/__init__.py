@@ -398,7 +398,7 @@ class Service(kopano.Service):
         stats = {'changes': 0, 'errors': 0}
 
         # restore metadata (webapp/mapi settings)
-        if user and not self.options.folders and not self.options.skip_meta:
+        if user and not self.options.folders and not self.options.restore_root and not self.options.skip_meta:
             if os.path.exists('%s/store' % data_path):
                 storeprops = pickle.loads(file('%s/store' % data_path).read())
                 for proptag in (PR_EC_WEBACCESS_SETTINGS_JSON, PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG,
