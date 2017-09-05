@@ -34,7 +34,7 @@ def backup(user):
 
     for folder in user.folders():
         for item in folder:
-            if item.message_class == 'IPM.Note':
+            if item.message_class.startswith('IPM.Note'):
                 data, ext = item.eml(), 'eml'
             elif item.message_class == 'IPM.Appointment':
                 data, ext = item.ics(), 'ics'
