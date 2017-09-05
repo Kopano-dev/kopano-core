@@ -397,16 +397,6 @@ class Recurrence(object):
         return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self.end_date)) + datetime.timedelta(minutes=self.endtime_offset)# XXX local time..
 
     @property
-    def _del_recurrences(self): # XXX local time..
-        return [datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(val)) \
-            for val in self.deleted_instance_dates]
-
-    @property
-    def _mod_recurrences(self): # XXX local time..
-        return [datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(val)) \
-            for val in self.modified_instance_dates]
-
-    @property
     def recurrences(self):
         rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()
@@ -443,15 +433,19 @@ class Recurrence(object):
         elif self.pattern_type != 0: # XXX check 0
             raise NotSupportedError('Unsupported recurrence pattern: %d' % self.pattern_type)
 
-        # Remove deleted ocurrences
-        for del_date in self._del_recurrences:
-            del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self._start.hour, self._start.minute)
-            if del_date not in self._mod_recurrences:
-                rule.exdate(del_date)
-
         # add exceptions
+        exc_starts = set()
         for exception in self.exceptions:
-            rule.rdate(datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exception['start_datetime'])))
+            exc_start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exception['start_datetime']))
+            rule.rdate(exc_start)
+            exc_starts.add(exc_start)
+
+        # Remove deleted ocurrences (skip added exceptions)
+        for del_date_val in self.deleted_instance_dates:
+            del_date = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(del_date_val))
+            del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self._start.hour, self._start.minute)
+            if del_date not in exc_starts:
+                rule.exdate(del_date)
 
         return rule
 
@@ -765,21 +759,26 @@ class Recurrence(object):
         if start and end:
             recurrences = recurrences.between(_utils._from_gmt(start, tz), _utils._from_gmt(end, tz))
 
-        start_end = {}
-        for exc in self.exceptions:
-            start_end[exc['start_datetime']] = exc['end_datetime']
+        start_exc_ext = {}
+        for exc, ext in zip(self.exceptions, self.extended_exceptions):
+            start_exc_ext[exc['start_datetime']] = exc, ext
 
         for d in recurrences:
             startdatetime_val = _utils.unixtime_to_rectime(time.mktime(d.timetuple()))
 
-            if startdatetime_val in start_end:
-                minutes = start_end[startdatetime_val] - startdatetime_val
+            subject = self.item.subject
+            location = self.item.location
+            if startdatetime_val in start_exc_ext:
+                exc, ext = start_exc_ext[startdatetime_val]
+                minutes = exc['end_datetime'] - startdatetime_val
+                subject = ext.get('subject', subject)
+                location = ext.get('location', location)
             else:
                 minutes = self.endtime_offset - self.starttime_offset
 
             d = _utils._to_gmt(d, tz)
 
-            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes))
+            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location)
             if (not start or occ.end > start) and (not end or occ.start < end):
                 yield occ
 
@@ -793,10 +792,12 @@ class Recurrence(object):
 class Occurrence(object):
     """Occurrence class"""
 
-    def __init__(self, item, start, end): # XXX make sure all GMT?
+    def __init__(self, item, start, end, subject, location):
         self.item = item
         self.start = start
         self.end = end
+        self.subject = subject
+        self.location = location
 
     def __getattr__(self, x):
         return getattr(self.item, x)
