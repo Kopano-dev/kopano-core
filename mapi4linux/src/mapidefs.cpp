@@ -665,12 +665,10 @@ HRESULT M4LProviderAdmin::OpenProfileSection(const MAPIUID *lpUID,
     const IID *lpInterface, ULONG ulFlags, IProfSect **lppProfSect)
 {
 	providerEntry *provider = NULL;
-	// See provider/client/guid.h
-	static const unsigned char globalGuid[] = {0x13, 0xDB, 0xB0, 0xC8, 0xAA, 0x05, 0x10, 0x1A, 0x9B, 0xB0, 0x00, 0xAA, 0x00, 0x2F, 0xC4, 0x5A};
 	scoped_rlock l_srv(msa->m_mutexserviceadmin);
 
 	// Special ID: the global guid opens the profile's global profile section instead of a local profile
-	if (memcmp(lpUID,&globalGuid,sizeof(MAPIUID)) == 0)
+	if (memcmp(lpUID, &pbGlobalProfileSectionGuid, sizeof(*lpUID)) == 0)
 		return msa->OpenProfileSection(lpUID, lpInterface, ulFlags, lppProfSect);
 	provider = msa->findProvider(lpUID);
 	if (provider == nullptr)
