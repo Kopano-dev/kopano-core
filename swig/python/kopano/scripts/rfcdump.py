@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import os
+import sys
 
 import kopano
 
@@ -25,7 +26,11 @@ def opt_args():
     return parser.parse_args()
 
 def backup(user):
-    os.makedirs(user.name)
+    try:
+        os.makedirs(user.name)
+    except FileExistsError:
+        print("Target directory '{}' already exists".format(user.name))
+        sys.exit(1)
 
     for folder in user.folders():
         for item in folder:
