@@ -5,6 +5,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import json
 import uuid
 import sys
 
@@ -34,7 +35,7 @@ from MAPI.Tags import (
     PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE, PR_WLINK_ENTRYID,
     PR_EXTENDED_FOLDER_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
     PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES_W,
-    PR_DELEGATE_FLAGS, PR_MAPPING_SIGNATURE,
+    PR_DELEGATE_FLAGS, PR_MAPPING_SIGNATURE, PR_EC_WEBACCESS_SETTINGS_JSON
 )
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ROWENTRY,
@@ -128,6 +129,13 @@ class Store(Base):
     @property
     def hierarchyid(self):
         return self.prop(PR_EC_HIERARCHYID).value
+
+    @property
+    def webapp_settings(self):
+        try:
+            return json.loads(self.user.store.prop(PR_EC_WEBACCESS_SETTINGS_JSON).value)
+        except NotFoundError:
+            pass
 
     @property
     def root(self):
