@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 from __future__ import print_function
+import os
+import sys
 
 import kopano
-import os
 
 """
 Backup/restore user store as .eml/.ics/.vcf files
@@ -25,13 +26,19 @@ def opt_args():
     return parser.parse_args()
 
 def backup(user):
-    os.makedirs(user.name)
+    try:
+        os.makedirs(user.name)
+    except FileExistsError:
+        print("Target directory '{}' already exists".format(user.name))
+        sys.exit(1)
 
     for folder in user.folders():
         for item in folder:
-            if item.message_class == 'IPM.Note':
+            if item.message_class.startswith('IPM.Note'):
                 data, ext = item.eml(), 'eml'
             elif item.message_class == 'IPM.Appointment':
+                data, ext = item.ics(), 'ics'
+            elif item.message_class.startswith('IPM.Schedule.Meeting'):
                 data, ext = item.ics(), 'ics'
             elif item.message_class == 'IPM.Contact':
                 data, ext = item.vcf(), 'vcf'
