@@ -222,10 +222,10 @@ Default:
 .PP
 \fBcoredump_enabled\fR
 .RS 4
-When a segfault occurs, a coredump file will be written in the running_path directory. This file should be sent along with the crash report.
-.sp
-Default:
-\fIyes\fR
+When a crash occurs or an assertion fails, a coredump file can be generated.
+This file should be sent along with the crash report. It is turned on by
+default in Kopano, but your system may have it disabled. For details, see the
+\fBkopano\-coredump\fP(5) manpage.
 .RE
 .PP
 \fBsession_timeout\fR

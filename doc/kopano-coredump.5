@@ -1,0 +1,74 @@
+.TH kopano\-coredump 5 2017-09 "Kopano 8" "Kopano Core user reference"
+.SH Description
+.PP
+Coredump generation is largely controlled by the surrounding operating system.
+Kopano daemons only have little control over it (see end of this document).
+.SH System configuration
+.SS Permission to generate
+.PP
+Most kopano daemons are configured to switch user IDs during operation (cf.
+"run_as_user" and "run_as_group" configuration file directives), and so the
+\fBfs.suid_dumpable\fP sysctl needs to be changed to non-zero. The recommended
+value for when you want to enable Kopano coredumps is \fB2\fP. See the
+\fBprocfs\fP(5) manual page for other options.
+.PP
+When setting \fBfs.suid_dumpable=2\fP, \fBkernel.core_pattern\fP must not
+be a relative path.
+.SS Location for dumps
+.PP
+Ensure that the \fBkernel.core_pattern\fP sysctl specifies a template which is
+writable for the (unprivileged) daemon process. If the template is left at the
+default value ("core") and the working directory of the daemon, controlled with
+the "running_path" directive in the config file, happens to be an unwritable
+directory such as the root directory, a dump cannot be generated.
+.PP
+If in doubt, set \fBkernel.core_pattern\fP to something like
+\fB/tmp/core.%E.%p\fP, which produces standard uncompressed ELF cores. Ensure
+enough disk space is available. You should compress it before sending it to
+Kopano.
+.PP
+sysctls may not necessarily be settable from within a Linux container, in which
+case this has to be done in the top namespace.
+.SS Applicable limits
+.PP
+When starting the service via systemd/systemctl: The coredump size limit is by
+default infinite. It is possible to define a global coredump limit in
+\fB/etc/systemd/system.conf\fP, so ensure that no custom value (cf.
+"DefaultLimitCORE" directive) has been set.
+.PP
+To check for a particular service's current applied policy, you can also use:
+`systemctl show kopano-server` and look at the \fBLimitCORE=\fP directive.
+.PP
+Alternatively, when starting the program directly from a shell prompt
+without the use of a service manager: The user shell limits are
+defined in \fB/etc/security/limits.conf\fP and often need to be adjusted,
+such as by adding a line like:
+.nf
+	* hard core unlimited
+.fi
+.SH Kopano service settings
+.PP
+Once the system is set up for core generation, there is one more option on the
+kopano side.
+.IP \(bu 4
+kopano-dagent, kopano-gateway and kopano-spooler offer a "coredump_enabled"
+directive in their configuration file, and its default value is
+"systemdefault".
+.IP \(bu 4
+kopano-server has a "coredump_enabled" directive as well, and it defaults to
+"yes".
+.PP
+All other daemons which recognize no such directive in their config file behave
+as if \fBcoredump_enabled=systemdefault\fP was in effect.
+.IP \(bu 4
+When \fBcoredump_enabled=no\fP, the daemon sets the maximum core size to zero,
+which effectively deactivates dump generation even if otherwise
+permitted by the system.
+.IP \(bu 4
+When \fBcoredump_enabled=systemdefault\fP, the system configuration is
+used as is.
+.IP \(bu 4
+When \fBcoredump_enabled=yes\fP, the daemon attempts to increase the inherited
+system default value for itself to infinity. This is only really
+necessary if the system defaults (LimitNCORE, see above) specify a
+low limit.
