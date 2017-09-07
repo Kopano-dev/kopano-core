@@ -182,7 +182,7 @@ protected:
 	KC::shared_mutex m_hCacheRWLock; ///< locking of the sessionMap
 	KC::shared_mutex m_hGroupLock; ///< locking of session group map and lonely list
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
-	std::condition_variable m_hExitSignal; /* Signal that should be send to the sessionncleaner when to exit */
+	std::condition_variable m_hExitSignal; /* Signal that should be sent to the sessionncleaner when to exit */
 	pthread_t			m_hSessionCleanerThread;///< Thread that is used for the sessioncleaner
 	bool				m_bTerminateThread;
 	ECConfig*			m_lpConfig;
