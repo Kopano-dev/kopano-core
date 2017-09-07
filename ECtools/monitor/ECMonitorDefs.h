@@ -22,16 +22,9 @@
 #include <kopano/ECConfig.h>
 
 struct ECTHREADMONITOR {
-	ECLogger*		lpLogger;
-	ECConfig*		lpConfig;
-	bool			bShutdown;
-
-	ECTHREADMONITOR(void)
-	{
-		lpLogger = NULL;
-		lpConfig = NULL;
-		bShutdown = false;
-	};
+	ECLogger *lpLogger = nullptr;
+	ECConfig *lpConfig = nullptr;
+	bool bShutdown = false;
 };
 
 #endif
