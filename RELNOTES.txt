@@ -1,6 +1,7 @@
 Release notes for 8.3.5
 =======================
 * server: complete signal blocking [KC-779]
+* ical: avoid freeing garbage pointers [KC-803]
 
 
 Release notes for 8.3.4

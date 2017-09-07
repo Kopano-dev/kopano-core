@@ -782,7 +782,8 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void **)&lppFBData);
 	if (hr != hrSuccess)
 		goto exit;
-	
+	memset(lppFBData, '\0', sizeof(IFreeBusyData *) * cUsers);
+
 	// retrieve freebusy for the attendees
 	hr = lpFBSupport->LoadFreeBusyData(cUsers, lpUsers, lppFBData, NULL, &cFBData);
 	if (hr != hrSuccess)
