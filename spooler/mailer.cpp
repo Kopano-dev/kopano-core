@@ -425,7 +425,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			// 3..5 == fax email offsets
 			lpContabEntryID->email_offset -= 3;
 
-			object_ptr<IMailUser> lpFaxMailuser;
+			object_ptr<IMAPIProp> lpFaxMailuser;
 			hr = lpMAPISession->OpenEntry(lpContabEntryID->cbeid,
 			     reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid),
 			     &iid_of(lpFaxMailuser), 0, &ulObjType, &~lpFaxMailuser);
@@ -1123,7 +1123,7 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	auto lpContabEntryID = reinterpret_cast<const CONTAB_ENTRYID *>(lpEntryId);
 	auto guid = reinterpret_cast<const GUID *>(&lpContabEntryID->muid);
 	ULONG ulObjType;
-	object_ptr<IMailUser> lpContact;
+	object_ptr<IMAPIProp> lpContact;
 	ULONG cValues;
 	LPSPropValue lpEntryIds = NULL;
 	memory_ptr<SPropTagArray> lpPropTags;
@@ -1359,7 +1359,7 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulObjType = 0;
-	object_ptr<IMailUser> lpRepresenting;
+	object_ptr<IMAPIProp> lpRepresenting;
 	memory_ptr<SPropValue> lpRepAccount;
 	object_ptr<IExchangeManageStore> lpExchangeManageStore;
 	ULONG ulRepStoreCB = 0;
@@ -1481,7 +1481,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	bool bAllowed = false;
 	bool bHasStore = false;
 	ULONG ulObjType;
-	object_ptr<IMailUser> lpMailboxOwner, lpRepresenting;
+	object_ptr<IMAPIProp> lpMailboxOwner, lpRepresenting;
 	memory_ptr<SPropValue> lpOwnerProps, lpRepresentProps;
 	SPropValue sSpoofEID = {0};
 	ULONG ulCmpRes = 0;
