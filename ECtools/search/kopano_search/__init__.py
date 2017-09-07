@@ -248,13 +248,15 @@ class FolderImporter:
                         elif isinstance(prop.value, list):
                             doc['mapi%d' % prop.id_] += u' ' + u' '.join(x for x in prop.value if _is_unicode(x))
 
-                if self.config['index_attachments']:
-                    for a in subitem.attachments():
-                        self.log.debug('checking attachment (filename=%s, size=%d, mimetag=%s)', a.filename, len(a), a.mimetype)
-                        if 0 < len(a) < self.config['index_attachment_max_size'] and a.filename != 'inline.txt': # XXX inline attachment check
-                            self.attachments += 1
-                            attach_text.append(plaintext.get(a, mimetype=a.mimetype, log=self.log))
-                        attach_text.append(u' '+(a.filename or u''))
+                for attachment in subitem.attachments():
+                    if self.config['index_attachments'] and \
+                       0 < len(attachment) < self.config['index_attachment_max_size'] and \
+                       attachment.filename != 'inline.txt': # XXX inline attachment check
+                        self.log.debug('indexing attachment (filename=%s, size=%d, mimetag=%s)',
+                            attachment.filename, len(attachment), attachment.mimetype)
+                        self.attachments += 1
+                        attach_text.append(plaintext.get(attachment, mimetype=attachment.mimetype, log=self.log))
+                    attach_text.append(attachment.filename or u'')
 
                 doc['mapi4096'] += u' ' + subitem.text + u' ' + u' '.join(attach_text) # PR_BODY
                 doc['mapi3098'] += u' ' + u' '.join([subitem.sender.name, subitem.sender.email, subitem.from_.name, subitem.from_.email]) # PR_SENDER_NAME
