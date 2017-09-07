@@ -435,7 +435,7 @@ std::string StripGuid(const std::string &strInput)
 		++ulFoundSlash;
 
 	ulFound = strInput.rfind(".ics");
-	if(ulFound != wstring::npos)
+	if (ulFound != string::npos)
 		strRetVal.assign(strInput.begin() + ulFoundSlash, strInput.begin() + ulFound);
 
 	return strRetVal;
