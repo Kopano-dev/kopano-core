@@ -115,6 +115,7 @@ extern _kc_export void give_filesize_hint(int fd, off_t len);
 extern _kc_export bool force_buffers_to_disk(int fd);
 extern _kc_export int ec_relocate_fd(int);
 extern _kc_export void kcsrv_blocksigs(void);
+extern _kc_export unsigned long kc_threadid(void);
 
 /* Determine the size of an array */
 template<typename T, size_t N> constexpr inline size_t ARRAY_SIZE(T (&)[N]) { return N; }
@@ -128,7 +129,9 @@ template<typename T> static inline constexpr const IID &iid_of(const T &)
 	return iid_of<typename std::remove_cv<typename std::remove_pointer<T>::type>::type>();
 }
 
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if (defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN) || \
+    (defined(_BYTE_ORDER) && _BYTE_ORDER == _BIG_ENDIAN)
+	/* We need to use constexpr functions, and htole16 unfortunately is not. */
 #	define cpu_to_le16(x) __builtin_bswap16(x)
 #	define cpu_to_le32(x) __builtin_bswap32(x)
 #	define cpu_to_be64(x) (x)

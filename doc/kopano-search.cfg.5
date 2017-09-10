@@ -7,7 +7,7 @@
 .\"    Source: Kopano 8
 .\"  Language: English
 .\"
-.TH "KOPANO\-SEARCH\&.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
+.TH "KOPANO\-SEARCH.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,17 +31,17 @@
 kopano-search.cfg \- The Kopano Search configuration file
 .SH "SYNOPSIS"
 .PP
-\fBsearch\&.cfg\fR
+\fBsearch.cfg\fR
 .SH "DESCRIPTION"
 .PP
 The
-search\&.cfg
-is a configuration file for the Kopano Search Service\&.
-search\&.cfg
-contains instructions for the software to set up the connection, indexing and logging systems\&.
+search.cfg
+is a configuration file for the Kopano Search Service.
+search.cfg
+contains instructions for the software to set up the connection, indexing and logging systems.
 .SH "FILE FORMAT"
 .PP
-The file consists of one big section, but parameters can be grouped by functionality\&.
+The file consists of one big section, but parameters can be grouped by functionality.
 .PP
 The parameters are written in the form:
 .PP
@@ -49,7 +49,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based\&. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive\&. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano\&. Parameter names are case sensitive\&. Lines beginning with `!\*(Aq are directives\&.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -63,13 +63,13 @@ The following directives exist:
 Include and process
 \fIargument\fR
 .sp
-Example: !include common\&.cfg
+Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF THE SERVICE SETTINGS PARAMETERS"
 .PP
 \fBindex_path\fR
 .RS 4
-Directory under which all index files will be placed\&.
+Directory under which all index files will be placed.
 .sp
 Default:
 \fI/var/lib/kopano/index/\fR
@@ -77,29 +77,29 @@ Default:
 .PP
 \fBrun_as_user\fR
 .RS 4
-After correctly starting, the server process will become this user, dropping root privileges\&. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation\&. This can also be achieved by setting the correct group and permissions\&.
+After correctly starting, the server process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
 .sp
-Default value is empty, not changing the user after starting\&.
+Default value is empty, not changing the user after starting.
 .RE
 .PP
 \fBrun_as_group\fR
 .RS 4
-After correctly starting, the server process will become this group, dropping root privileges\&.
+After correctly starting, the server process will become this group, dropping root privileges.
 .sp
-Default value is empty, not changing the group after starting\&.
+Default value is empty, not changing the group after starting.
 .RE
 .PP
 \fBpid_file\fR
 .RS 4
-Write the process ID number to this file\&. This is used by the init\&.d script to correctly stop/restart the service\&.
+Write the process ID number to this file. This is used by the init.d script to correctly stop/restart the service.
 .sp
 Default:
-\fI/var/run/kopano/search\&.pid\fR
+\fI/var/run/kopano/search.pid\fR
 .RE
 .PP
 \fBrunning_path\fR
 .RS 4
-Change directory to this path when running in daemonize mode\&. When using the \-F switch to run in the foreground the directory will not be changed\&.
+Change directory to this path when running in daemonize mode. When using the \-F switch to run in the foreground the directory will not be changed.
 .sp
 Default:
 \fI/\fR
@@ -107,7 +107,7 @@ Default:
 .PP
 \fBlimit_results\fR
 .RS 4
-Limit the number of results returned to the server\&. If set to a nonzero value, only the N most relevant results will be returned to the server\&. This in turn limits the number of results that the user will see\&. If the limit is set to 0, all results will be returned\&.
+Limit the number of results returned to the server. If set to a nonzero value, only the N most relevant results will be returned to the server. This in turn limits the number of results that the user will see. If the limit is set to 0, all results will be returned.
 .sp
 Default:\fI0\fR
 .RE
@@ -115,77 +115,77 @@ Default:\fI0\fR
 .PP
 \fBserver_socket\fR
 .RS 4
-Socket to find the connection to the Kopano server\&.
+Socket to find the connection to the Kopano server.
 .sp
 Default:
-\fIfile:///var/run/kopano/server\&.sock\fR
+\fIfile:///var/run/kopano/server.sock\fR
 .RE
 .PP
 \fBssl_key_file\fR
 .RS 4
-The file containing the private key and certificate\&. Please read the SSL section in the
+The file containing the private key and certificate. Please read the SSL section in the
 \fBkopano-server\fR(8)
-manual on how to create this file\&.
+manual on how to create this file.
 .sp
 Default:
-\fI/etc/kopano/ssl/search\&.pem\fR
+\fI/etc/kopano/ssl/search.pem\fR
 .RE
 .PP
 \fBssl_key_pass\fR
 .RS 4
-Enter your password here when your key file contains a password to be readable\&.
+Enter your password here when your key file contains a password to be readable.
 .sp
-No default set\&.
+No default set.
 .RE
 .SH "EXPLANATION OF THE LISTEN SETTINGS PARAMETERS"
 .PP
 \fBserver_bind_name\fR
 .RS 4
-Connection path to which other processes can connect with the kopano\-search for performing search queries\&.
+Connection path to which other processes can connect with the kopano\-search for performing search queries.
 .sp
 Use
-\fIhttp://0\&.0\&.0\&.0:port\fR
+\fIhttp://0.0.0.0:port\fR
 to listen as an HTTP service on all IPv4 interfaces on the given
 \fIport\fR
-number\&.
+number.
 .sp
 Default:
-\fIfile:///var/run/kopano/search\&.sock\fR
+\fIfile:///var/run/kopano/search.sock\fR
 .RE
 .PP
 \fBssl_private_key_file\fR
 .RS 4
-kopano\-search will use this file as private key for SSL TLS\&. This file can be created with:
-\fBopenssl genrsa \-out /etc/kopano/search/privkey\&.pem 2048\fR\&.
+kopano\-search will use this file as private key for SSL TLS. This file can be created with:
+\fBopenssl genrsa \-out /etc/kopano/search/privkey.pem 2048\fR.
 .sp
 Default:
-\fI/etc/kopano/search/privkey\&.pem\fR
+\fI/etc/kopano/search/privkey.pem\fR
 .RE
 .PP
 \fBssl_certificate_file\fR
 .RS 4
-kopano\-search will use this file as certificate for SSL TLS\&. A self\-signed certificate can be created with:
-\fBopenssl req \-new \-x509 \-key /etc/kopano/search/privkey\&.pem \-out /etc/kopano/search/cert\&.pem \-days 1095\fR\&.
+kopano\-search will use this file as certificate for SSL TLS. A self\-signed certificate can be created with:
+\fBopenssl req \-new \-x509 \-key /etc/kopano/search/privkey.pem \-out /etc/kopano/search/cert.pem \-days 1095\fR.
 .sp
 Default:
-\fI/etc/kopano/search/cert\&.pem\fR
+\fI/etc/kopano/search/cert.pem\fR
 .RE
 .SH "EXPLANATION OF THE LOG SETTINGS PARAMETERS"
 .PP
 \fBlog_method\fR
 .RS 4
-The method which should be used for logging\&. Valid values are:
+The method which should be used for logging. Valid values are:
 .PP
 \fIsyslog\fR
 .RS 4
-Use the Linux system log\&. All messages will be written to the mail facility\&. See also
-\fBsyslog.conf\fR(5)\&.
+Use the Linux system log. All messages will be written to the mail facility. See also
+\fBsyslog.conf\fR(5).
 .RE
 .PP
 \fIfile\fR
 .RS 4
-Log to a file\&. The filename will be specified in
-\fBlog_file\fR\&.
+Log to a file. The filename will be specified in
+\fBlog_file\fR.
 .RE
 .sp
 Default:
@@ -194,7 +194,7 @@ Default:
 .PP
 \fBlog_level\fR
 .RS 4
-The level of output for logging in the range from 0 to 5\&. 0 means no logging, 5 means full logging\&.
+The level of output for logging in the range from 0 to 5. 0 means no logging, 5 means full logging.
 .sp
 Default:
 \fI3\fR
@@ -202,17 +202,17 @@ Default:
 .PP
 \fBlog_file\fR
 .RS 4
-When logging to a file, specify the filename in this parameter\&. Use
+When logging to a file, specify the filename in this parameter. Use
 \fI\-\fR
-(minus sign) for stderr output\&.
+(minus sign) for stderr output.
 .sp
 Default:
-\fI/var/log/kopano/search\&.log\fR
+\fI/var/log/kopano/search.log\fR
 .RE
 .PP
 \fBlog_timestamp\fR
 .RS 4
-Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode\&.
+Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
 .sp
 Default:
 \fI1\fR
@@ -220,7 +220,7 @@ Default:
 .PP
 \fBlog_buffer_size\fR
 .RS 4
-Buffer logging in what sized blocks\&. The special value 0 selects line buffering\&.
+Buffer logging in what sized blocks. The special value 0 selects line buffering.
 .sp
 Default:
 \fI0\fR
@@ -229,28 +229,28 @@ Default:
 .PP
 \fBsearch_engine\fR
 .RS 4
-Backend search engine (currently only xapian is supported)\&.
+Backend search engine (currently only xapian is supported).
 .sp
 Default: xapian
 .RE
 .PP
 \fBterm_cache_size\fR
 .RS 4
-The size in bytes of the term cache used when writing terms to the index\&. A larger term cache will increase indexing speed when indexing large number of documents in a single store\&. This will barely affect incremental updates after the initial indexing has finished\&. This value may contain a k, m or g multiplier\&.
+The size in bytes of the term cache used when writing terms to the index. A larger term cache will increase indexing speed when indexing large number of documents in a single store. This will barely affect incremental updates after the initial indexing has finished. This value may contain a k, m or g multiplier.
 .sp
 Default: 64M
 .RE
 .PP
 \fBindex_exclude_properties\fR
 .RS 4
-Some properties are ignored because they contain unrelated information for users to find their messages on\&. A default set of ignored property ids is set here, but can be expanded\&. Only the id part of a property is needed, and must be string typed properties\&. The field is space separated\&.
+Some properties are ignored because they contain unrelated information for users to find their messages on. A default set of ignored property ids is set here, but can be expanded. Only the id part of a property is needed, and must be string typed properties. The field is space separated.
 .sp
 Default: 007D 0064 0C1E 0075 678E 678F
 .RE
 .PP
 \fBindex_processes\fR
 .RS 4
-Number of indexing processes used during initial indexing\&. Setting this to a higher value can greatly speed up initial indexing, especially when attachments are indexed\&.
+Number of indexing processes used during initial indexing. Setting this to a higher value can greatly speed up initial indexing, especially when attachments are indexed.
 .sp
 Default: 1
 .RE
@@ -271,7 +271,7 @@ Default: yes
 .PP
 \fBsuggestions\fR
 .RS 4
-Prepare search suggestions ("did\-you\-mean?") during indexing\&. Junk folders are excluded\&. This takes up a large percentage of the used disk space\&.
+Prepare search suggestions ("did\-you\-mean?") during indexing. Junk folders are excluded. This takes up a large percentage of the used disk space.
 .sp
 Default: yes
 .RE
@@ -279,9 +279,9 @@ Default: yes
 .PP
 \fBindex_attachments\fR
 .RS 4
-Enable indexing of attachments\&. When attachments are being indexed, searching for keywords in the body of a message will automatically cause the attachment to be searched as well\&.
+Enable indexing of attachments. When attachments are being indexed, searching for keywords in the body of a message will automatically cause the attachment to be searched as well.
 .sp
-This will slow down the indexing process, require more system memory and increases index file size\&.
+This will slow down the indexing process, require more system memory and increases index file size.
 .sp
 Default:
 \fIno\fR
@@ -289,14 +289,14 @@ Default:
 .PP
 \fBindex_attachment_max_size\fR
 .RS 4
-Maxiumum file size for attachments to be indexed\&. Any attachment larger then this amount will not be indexed\&. This value may contain a k, m or g multiplier\&.
+Maxiumum file size for attachments to be indexed. Any attachment larger then this amount will not be indexed. This value may contain a k, m or g multiplier.
 .sp
 Default:
 \fI5M\fR
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-search\fR(8)

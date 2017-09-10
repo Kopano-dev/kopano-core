@@ -305,11 +305,11 @@ std::string ECLogger_File::DoPrefix() {
 		char name[32] = { 0 };
 
 		if (pthread_getname_np(th, name, sizeof name))
-			out += format("[0x%lx] ", kc_threadid());
+			out += format("[T%lu] ", kc_threadid());
 		else
-			out += format("[%s|0x%lx] ", name, kc_threadid());
+			out += format("[%s|T%lu] ", name, kc_threadid());
 #else
-		out += format("[0x%lx] ", kc_threadid());
+		out += format("[T%lu] ", kc_threadid());
 #endif
 	}
 	else if (prefix == LP_PID) {
@@ -562,7 +562,7 @@ void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message) {
 
 	if (prefix == LP_TID)
 		len = snprintf(msgbuffer + off, sizeof(msgbuffer) - off,
-		      "[0x%lx] ", kc_threadid());
+		      "[T%lu] ", kc_threadid());
 	else if (prefix == LP_PID)
 		len = snprintf(msgbuffer + off, sizeof msgbuffer - off, "[%5d] ", getpid());
 
@@ -606,7 +606,7 @@ void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va
 	off += 1;
 
 	if (prefix == LP_TID)
-		len = snprintf(msgbuffer + off, sizeof(msgbuffer) - off, "[0x%lx] ", kc_threadid());
+		len = snprintf(msgbuffer + off, sizeof(msgbuffer) - off, "[T%lu] ", kc_threadid());
 	else if (prefix == LP_PID)
 		len = snprintf(msgbuffer + off, sizeof msgbuffer - off, "[%5d] ", getpid());
 

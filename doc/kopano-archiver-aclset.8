@@ -7,7 +7,7 @@
 .\"    Source: Kopano 8
 .\"  Language: English
 .\"
-.TH "KOPANO\-ARCHIVER\-AC" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.TH "KOPANO\-ARCHIVER\-ACLSET" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,53 +28,53 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-archiver-aclset \- Reset the archive ACL settings for the owner\&.
+kopano-archiver-aclset \- Reset the archive ACL settings for the owner.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-archiver\-aclset\fR\ 'u
 \fBkopano\-archiver\-aclset\fR [\fIOPTION\fR...]
 .SH "DESCRIPTION"
 .PP
 \fBkopano\-archiver\-aclset\fR
-sets or updates the permissions on an archive store for the owner of that store\&.
+sets or updates the permissions on an archive store for the owner of that store.
 .PP
-When an archive is attached to a store, the owner of the store gets read\-only or read/write permissions on the archive based on the configuration or command line options passed at the time of attaching\&. Also when an archive is attached to a store of a non\-active user, no permissions for that non\-active user are set because that\*(Aqs not possible\&.
+When an archive is attached to a store, the owner of the store gets read\-only or read/write permissions on the archive based on the configuration or command line options passed at the time of attaching. Also when an archive is attached to a store of a non\-active user, no permissions for that non\-active user are set because that\*(Aqs not possible.
 .PP
-In the first case it can be desirable to change the permissions at a later time because of company policy changes or because the original setting was just wrong\&.
+In the first case it can be desirable to change the permissions at a later time because of company policy changes or because the original setting was just wrong.
 .PP
-In the second case, if the user is converted to an active user, it\*(Aqs required to reset the permissions because the owner won\*(Aqt have any permissions on his archive\&.
+In the second case, if the user is converted to an active user, it\*(Aqs required to reset the permissions because the owner won\*(Aqt have any permissions on his archive.
 .SH "OPTIONS"
 .PP
 \fB\-w\fR
 .RS 4
 By default
 \fBkopano\-archiver\-aclset\fR
-makes an archive read\-only for the user\&. By passing this option, the user will get read/write permissions in the attached archive\&.
+makes an archive read\-only for the user. By passing this option, the user will get read/write permissions in the attached archive.
 .RE
 .PP
 \fB\-\-user\fR, \fB\-u\fR \fINAME\fR
 .RS 4
-Run the script for just the specified user(s)\&. By default, it runs for all users\&.
+Run the script for just the specified user(s). By default, it runs for all users.
 .RE
 .PP
 \fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
 .RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq\&.
+Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
 .RS 4
-Connect to storage server through specified socket\&.
+Connect to storage server through specified socket.
 .RE
 .PP
 \fB\-\-ssl\-key\fR, \fB\-k\fR \fIFILE\fR
 .RS 4
-Specify SSL key file\&.
+Specify SSL key file.
 .RE
 .PP
 \fB\-\-ssl\-pass\fR, \fB\-p\fR \fIPASSWORD\fR
 .RS 4
-Specify SSL key password\&.
+Specify SSL key password.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.

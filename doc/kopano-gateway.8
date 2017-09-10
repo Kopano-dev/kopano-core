@@ -28,40 +28,40 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-gateway \- Start the Kopano IMAP/POP3 Gateway\&.
+kopano-gateway \- Start the Kopano IMAP/POP3 Gateway.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-gateway\fR\ 'u
 \fBkopano\-gateway\fR [\fIOPTION\fR...]
 .SH "DESCRIPTION"
 .PP
-The gateway enables other e\-mail clients to connect through POP3 or IMAP to the storage server to read their e\-mail\&. With IMAP, it is also possible to view the contents of other folders and subfolders\&. The gateway can be configured to listen for POP3, POP3S, IMAP and/or IMAPS\&.
+The gateway enables other e\-mail clients to connect through POP3 or IMAP to the storage server to read their e\-mail. With IMAP, it is also possible to view the contents of other folders and subfolders. The gateway can be configured to listen for POP3, POP3S, IMAP and/or IMAPS.
 .PP
 The default settings of the gateway program are defined in
-\fBkopano-gateway.cfg\fR(5)\&.
+\fBkopano-gateway.cfg\fR(5).
 .SH "OPTIONS"
 .PP
-Various options are possible\&. None of these options are required\&.
+Various options are possible. None of these options are required.
 .PP
 .PP
-\fB\-\-config\fR, \fB\-c\fR \fIgateway\&.cfg\fR
+\fB\-\-config\fR, \fB\-c\fR \fIgateway.cfg\fR
 .RS 4
-Specify the location of the gateway\&.cfg file\&. If the gateway\&.cfg file is not specified, the gateway will continue using its default settings\&.
+Specify the location of the gateway.cfg file. If the gateway.cfg file is not specified, the gateway will continue using its default settings.
 .sp
 Default:
-\fI/etc/kopano/gateway\&.cfg\fR
+\fI/etc/kopano/gateway.cfg\fR
 .RE
 .PP
 \fB\-\-host\fR, \fB\-h\fR \fIpath\fR
 .RS 4
 Connect to the storage server through
-\fIpath\fR, e\&.g\&.
-file:///path/to/socket\&. Default:
-file:///var/run/kopano/server\&.sock\&. Overrides the config file setting\&.
+\fIpath\fR, e.g.
+file:///path/to/socket. Default:
+file:///var/run/kopano/server.sock. Overrides the config file setting.
 .RE
 .PP
 \fB\-\-foreground\fR, \fB\-F\fR
 .RS 4
-Run in the foreground\&. Normally the gateway will daemonize and run in the background\&.
+Run in the foreground. Normally the gateway will daemonize and run in the background.
 .RE
 .SH "SIGNALS"
 .PP
@@ -69,17 +69,17 @@ The following signals can be sent to the kopano\-gateway process:
 .PP
 \fBHUP\fR
 .RS 4
-When the HUP signal is received, some options from the configuration file are reloaded\&. The reloadable options are listed in the
+When the HUP signal is received, some options from the configuration file are reloaded. The reloadable options are listed in the
 \fBkopano-gateway.cfg\fR(5)
-manual page\&.
+manual page.
 .sp
 Also, when using
-\fIlog_method = file\fR, the logfile will be closed and a new logfile will be opened\&. You can use this signal in your logrotate system\&.
+\fIlog_method = file\fR, the logfile will be closed and a new logfile will be opened. You can use this signal in your logrotate system.
 .RE
 .PP
 \fBTERM\fR
 .RS 4
-To gracefully let the service exit, the normal TERM signal is used\&.
+To gracefully let the service exit, the normal TERM signal is used.
 .RE
 .SH "USAGE"
 .PP
@@ -87,15 +87,15 @@ To start the gateway:
 .PP
 \fBkopano\-gateway\fR
 .PP
-The gateway process will keep running\&. You may also use the init\&.d scripts:
+The gateway process will keep running. You may also use the init.d scripts:
 .PP
-\fB/etc/init\&.d/kopano\-gateway\fR
+\fB/etc/init.d/kopano\-gateway\fR
 [\fIstart\fR|
 \fIstop\fR|
 \fIrestart\fR]
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-gateway.cfg\fR(5),

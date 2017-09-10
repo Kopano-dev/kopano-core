@@ -154,6 +154,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	memory_ptr<SPropValue> folder;
 	static constexpr const SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
 	auto wstrFldId = wstrFldIdOrig;
+	memory_ptr<ENTRYID> lpEntryID;
 
 	// wstrFldId can be:
 	//   FOLDER_PREFIX + hexed named folder id
@@ -165,8 +166,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 
 	// Hack Alert #47 -- get Inbox and Outbox as special folders
 	if (wstrFldId.compare(L"Inbox") == 0) {
-		memory_ptr<ENTRYID> lpEntryID;
-
 		hr = lpMsgStore->GetReceiveFolder(const_cast<TCHAR *>(KC_T("IPM")), fMapiUnicode, &cbEntryID, &~lpEntryID, NULL);
 		if (hr != hrSuccess) {
 			ec_log_err("Cannot open Inbox Folder, no Receive Folder EntryID: 0x%08X", hr);

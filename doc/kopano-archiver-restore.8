@@ -7,7 +7,7 @@
 .\"    Source: Kopano 8
 .\"  Language: English
 .\"
-.TH "KOPANO\-ARCHIVER\-RE" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.TH "KOPANO\-ARCHIVER\-RESTORE" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,63 +28,63 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-archiver-restore \- Restore all stubbed and removed messages in a primary store with the messages found in the currently or previously attached archives(s)\&.
+kopano-archiver-restore \- Restore all stubbed and removed messages in a primary store with the messages found in the currently or previously attached archives(s).
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-archiver\-restore\fR\ 'u
 \fBkopano\-archiver\-restore\fR [\fIOPTION\fR...]
 .SH "DESCRIPTION"
 .PP
-kopano\-archiver\-restore can be used to repopulate a primary store to a state where no archive is required to read any message\&. In a less cryptic way this means that all stubbed messages are destubbed and all messages that were deleted after archiving are restored\&.
+kopano\-archiver\-restore can be used to repopulate a primary store to a state where no archive is required to read any message. In a less cryptic way this means that all stubbed messages are destubbed and all messages that were deleted after archiving are restored.
 .PP
-The advantage of using kopano\-archiver\-restore over dragging the messages back from the archive in Outlook or Webaccess is that the restores messages are sanitized, allowing them to be properly rearchived later\&.
+The advantage of using kopano\-archiver\-restore over dragging the messages back from the archive in Outlook or Webaccess is that the restores messages are sanitized, allowing them to be properly rearchived later.
 .SH "STRATEGY"
 .PP
-The strategy taken by kopano\-archiver\-restore is that it iterates through all folder in the primary store, and tries to open the archive folders that are attached to that store\&. There can be more than one attached archive folder, and these folders are not required to exist in an archive that is currently attached\&. So folders of previously used archives will be restored as well if they still exist\&.
+The strategy taken by kopano\-archiver\-restore is that it iterates through all folder in the primary store, and tries to open the archive folders that are attached to that store. There can be more than one attached archive folder, and these folders are not required to exist in an archive that is currently attached. So folders of previously used archives will be restored as well if they still exist.
 .PP
-Once the archives have been resolved, kopano\-archiver\-restore will create a list of restorable messages based on the reference entryid found in the archived copies\&. When multiple archives are found, multiple archived copies for the same primary message can exist\&. In that case kopano\-archiver\-restore will choose the most recent one\&.
+Once the archives have been resolved, kopano\-archiver\-restore will create a list of restorable messages based on the reference entryid found in the archived copies. When multiple archives are found, multiple archived copies for the same primary message can exist. In that case kopano\-archiver\-restore will choose the most recent one.
 .PP
-Once the list of restorable messages is complete, kopano\-archiver\-restore will start restoring by first determining if the primary message, referenced by the reference entryid from the archived copies exist and if so if it is stubbed\&. If the primary message exists and is not stubbed, there\*(Aqs no need to restore anything\&. If the message exists but is stubbed, it will be destubbed\&. If the primary message does not exist, a new message is created based on the archived copy\&. In this case the archived copy is updated so it will reference the newly created message\&. This is needed to make sure a subsequent run of kopano\-archiver\-restore won\*(Aqt create another copy\&.
+Once the list of restorable messages is complete, kopano\-archiver\-restore will start restoring by first determining if the primary message, referenced by the reference entryid from the archived copies exist and if so if it is stubbed. If the primary message exists and is not stubbed, there\*(Aqs no need to restore anything. If the message exists but is stubbed, it will be destubbed. If the primary message does not exist, a new message is created based on the archived copy. In this case the archived copy is updated so it will reference the newly created message. This is needed to make sure a subsequent run of kopano\-archiver\-restore won\*(Aqt create another copy.
 .SH "OPTIONS"
 .PP
 \fB\-\-detach\fR
 .RS 4
-Detach the selected or all archive stores before starting the restore procedure\&. This avoids the archiver from re\-archiving restored messages\&.
+Detach the selected or all archive stores before starting the restore procedure. This avoids the archiver from re\-archiving restored messages.
 .RE
 .PP
 \fB\-\-unhook\fR
 .RS 4
-Unhook the selected ot all archive stores once the restore process has completed\&. This implies \-\-detach and only works on archive stores\&.
+Unhook the selected ot all archive stores once the restore process has completed. This implies \-\-detach and only works on archive stores.
 .RE
 .PP
 \fB\-\-remove\fR
 .RS 4
-Remove the selected ot all archive stores once the restore process has completed\&. This implies \-\-unhook and only works on archive stores\&.
+Remove the selected ot all archive stores once the restore process has completed. This implies \-\-unhook and only works on archive stores.
 .RE
 .PP
 \fB\-\-user\fR, \fB\-u\fR \fINAME\fR
 .RS 4
-Run the script for just the specified user(s)\&. By default, it runs for all users\&.
+Run the script for just the specified user(s). By default, it runs for all users.
 .RE
 .PP
 \fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
 .RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq\&.
+Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
 .RS 4
-Connect to storage server through specified socket\&.
+Connect to storage server through specified socket.
 .RE
 .PP
 \fB\-\-ssl\-key\fR, \fB\-k\fR \fIFILE\fR
 .RS 4
-Specify SSL key file\&.
+Specify SSL key file.
 .RE
 .PP
 \fB\-\-ssl\-pass\fR, \fB\-p\fR \fIPASSWORD\fR
 .RS 4
-Specify SSL key password\&.
+Specify SSL key password.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Zarafa\&.
+Written by Zarafa.

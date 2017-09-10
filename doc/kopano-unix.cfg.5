@@ -7,7 +7,7 @@
 .\"    Source: Kopano 8
 .\"  Language: English
 .\"
-.TH "KOPANO\-UNIX\&.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
+.TH "KOPANO\-UNIX.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,15 +31,15 @@
 kopano-unix.cfg \- The Kopano Unix user plugin configuration file
 .SH "SYNOPSIS"
 .PP
-\fBunix\&.cfg\fR
+\fBunix.cfg\fR
 .SH "DESCRIPTION"
 .PP
 The
-unix\&.cfg
-is a configuration file for the unix user plugin\&. All options to correctly retrieve user and group information can be set here\&.
+unix.cfg
+is a configuration file for the unix user plugin. All options to correctly retrieve user and group information can be set here.
 .SH "FILE FORMAT"
 .PP
-The file consists of one big section, but parameters can be grouped by functionality\&.
+The file consists of one big section, but parameters can be grouped by functionality.
 .PP
 The parameters are written in the form:
 .PP
@@ -47,7 +47,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based\&. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive\&. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano\&. Parameter names are case sensitive\&. Lines beginning with `!\*(Aq are directives\&.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -61,13 +61,13 @@ The following directives exist:
 Include and process
 \fIargument\fR
 .sp
-Example: !include common\&.cfg
+Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
 .PP
 \fBfullname_charset\fR
 .RS 4
-The charset that is used in /etc/passwd for the fullname of a user\&. In most setups, us\-ascii is used, but may also be iso\-8859\-15\&. All charsets supported by the system iconv() are supported here\&. Since iso\-8859\-15 is an extension on us\-ascii, this is used as the default to support high characters for most latin languages\&. If your default shell is in UTF\-8 (see your locales settings), enter utf\-8 here\&.
+The charset that is used in /etc/passwd for the fullname of a user. In most setups, us\-ascii is used, but may also be iso\-8859\-15. All charsets supported by the system iconv() are supported here. Since iso\-8859\-15 is an extension on us\-ascii, this is used as the default to support high characters for most latin languages. If your default shell is in UTF\-8 (see your locales settings), enter utf\-8 here.
 .sp
 Default:
 \fIiso\-8859\-15\fR
@@ -75,16 +75,16 @@ Default:
 .PP
 \fBdefault_domain\fR
 .RS 4
-The default domain name to set as e\-mail address\&. When a user is created, its email address will be set to
-\fIusername@default_domain\fR\&.
+The default domain name to set as e\-mail address. When a user is created, its email address will be set to
+\fIusername@default_domain\fR.
 .sp
 Default:
-\fIno default present\fR\&.
+\fIno default present\fR.
 .RE
 .PP
 \fBmin_user_uid\fR
 .RS 4
-This is the minimal uid a user must have to be created as a Kopano user\&. This is to skip system users present in the /etc/passwd file\&. Normally, users start at 1000\&.
+This is the minimal uid a user must have to be created as a Kopano user. This is to skip system users present in the /etc/passwd file. Normally, users start at 1000.
 .sp
 Default:
 \fI1000\fR
@@ -92,7 +92,7 @@ Default:
 .PP
 \fBmax_user_uid\fR
 .RS 4
-This is the maximum uid a user may have to be created as a Kopano user\&. This is to skip system users present in the /etc/passwd file with a high uid, as user nobody does\&.
+This is the maximum uid a user may have to be created as a Kopano user. This is to skip system users present in the /etc/passwd file with a high uid, as user nobody does.
 .sp
 Default:
 \fI10000\fR
@@ -100,7 +100,7 @@ Default:
 .PP
 \fBexcept_user_uids\fR
 .RS 4
-A whitespace separated list of uids that are within the min_user_uid and max_user_uid range, but shouldn\*(Aqt be considered as users\&.
+A whitespace separated list of uids that are within the min_user_uid and max_user_uid range, but shouldn\*(Aqt be considered as users.
 .sp
 Default:
 \fIempty\fR
@@ -108,7 +108,7 @@ Default:
 .PP
 \fBmin_group_gid\fR
 .RS 4
-This is the minimal gid a group must have to be created as a Kopano group\&. This is to skip system groups present in the /etc/group file\&. Normally, groups start at 1000\&.
+This is the minimal gid a group must have to be created as a Kopano group. This is to skip system groups present in the /etc/group file. Normally, groups start at 1000.
 .sp
 Default:
 \fI1000\fR
@@ -116,7 +116,7 @@ Default:
 .PP
 \fBmax_group_gid\fR
 .RS 4
-This is the maximum gid a group may have to be created as a Kopano group\&. This is to skip system groups present in the /etc/group file with a high gid, as group nogroup does\&.
+This is the maximum gid a group may have to be created as a Kopano group. This is to skip system groups present in the /etc/group file with a high gid, as group nogroup does.
 .sp
 Default:
 \fI10000\fR
@@ -124,7 +124,7 @@ Default:
 .PP
 \fBexcept_group_gids\fR
 .RS 4
-A whitespace separated list of gids that are within the min_group_gid and max_group_gid range, but shouldn\*(Aqt be considered as groups\&.
+A whitespace separated list of gids that are within the min_group_gid and max_group_gid range, but shouldn\*(Aqt be considered as groups.
 .sp
 Default:
 \fIempty\fR
@@ -132,45 +132,45 @@ Default:
 .PP
 \fBnon_login_shell\fR
 .RS 4
-This this the shell a user has to be created as a non\-login box\&. Mail can be delivered to this box, but you cannot directly login with this username\&. The uid must be within the defined limits\&.
+This this the shell a user has to be created as a non\-login box. Mail can be delivered to this box, but you cannot directly login with this username. The uid must be within the defined limits.
 .sp
 Default:
 \fI/bin/false\fR
 .RE
 .SH "USER ATTRIBUTES"
 .PP
-Not all Kopano attributes can be used from the system files\&. The following attributes are used from the system files:
+Not all Kopano attributes can be used from the system files. The following attributes are used from the system files:
 .PP
 username
 .RS 4
-The login name of the user\&.
+The login name of the user.
 .RE
 .PP
 fullname
 .RS 4
-The fullname of the user\&.
+The fullname of the user.
 .RE
 .PP
 password
 .RS 4
-The password is in the /etc/shadow file\&. Kopano needs reads access to this file to correctly work with the Unix plugin\&.
+The password is in the /etc/shadow file. Kopano needs reads access to this file to correctly work with the Unix plugin.
 .RE
 .PP
-Other attributes like quota settings, admin setting and e\-mail address are kept in the database like the db user plugin does\&.
+Other attributes like quota settings, admin setting and e\-mail address are kept in the database like the db user plugin does.
 .SH "FILES"
 .PP
-/etc/kopano/server\&.cfg
+/etc/kopano/server.cfg
 .RS 4
-The server configuration file\&.
+The server configuration file.
 .RE
 .PP
-/etc/kopano/unix\&.cfg
+/etc/kopano/unix.cfg
 .RS 4
-The Kopano Unix user plugin configuration file\&.
+The Kopano Unix user plugin configuration file.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),

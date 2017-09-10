@@ -135,8 +135,9 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 		m_hCondition.wait(locker);
 		
 	if (bTerminate) {
+		pthread_t self = pthread_self();
 		auto iThread = std::find_if(m_setThreads.cbegin(), m_setThreads.cend(),
-			[](pthread_t t) { return pthread_equal(t, pthread_self()) != 0; });
+			[self](pthread_t t) { return pthread_equal(t, self) != 0; });
 		assert(iThread != m_setThreads.cend());
 		m_setTerminated.insert(*iThread);
 		m_setThreads.erase(iThread);

@@ -7,7 +7,7 @@
 .\"    Source: Kopano 8
 .\"  Language: English
 .\"
-.TH "KOPANO\-GATEWAY\&.CF" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
+.TH "KOPANO\-GATEWAY.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,17 +31,17 @@
 kopano-gateway.cfg \- The Kopano gateway configuration file
 .SH "SYNOPSIS"
 .PP
-\fBgateway\&.cfg\fR
+\fBgateway.cfg\fR
 .SH "DESCRIPTION"
 .PP
 The
-gateway\&.cfg
-is a configuration file for the Kopano Gateway\&.
-gateway\&.cfg
-contains instructions for the software to set up the logging system and to enable or disable the POP3, POP3S, IMAP or IMAPS part of the service\&.
+gateway.cfg
+is a configuration file for the Kopano Gateway.
+gateway.cfg
+contains instructions for the software to set up the logging system and to enable or disable the POP3, POP3S, IMAP or IMAPS part of the service.
 .SH "FILE FORMAT"
 .PP
-The file consists of one big section, but parameters can be grouped by functionality\&.
+The file consists of one big section, but parameters can be grouped by functionality.
 .PP
 The parameters are written in the form:
 .PP
@@ -49,7 +49,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based\&. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive\&. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano\&. Parameter names are case sensitive\&. Lines beginning with `!\*(Aq are directives\&.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -63,27 +63,27 @@ The following directives exist:
 Include and process
 \fIargument\fR
 .sp
-Example: !include common\&.cfg
+Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
 .PP
 \fBserver_bind\fR
 .RS 4
-IP address to bind to\&. Leave empty to bind to all addresses\&.
+IP address to bind to. Leave empty to bind to all addresses.
 .sp
 Default: (empty)
 .RE
 .PP
 \fBserver_hostname\fR
 .RS 4
-Hostname of the server to print to a client in the logon greeting\&. Leave empty to use DNS to find the hostname\&.
+Hostname of the server to print to a client in the logon greeting. Leave empty to use DNS to find the hostname.
 .sp
 Default:
 .RE
 .PP
 \fBserver_hostname_greeting\fR
 .RS 4
-Whether to show the hostname in the logon greeting to clients\&. This config option is reloadable using the HUP signal\&.
+Whether to show the hostname in the logon greeting to clients. This config option is reloadable using the HUP signal.
 .sp
 Default:
 \fIno\fR
@@ -91,7 +91,7 @@ Default:
 .PP
 \fBpop3_enable\fR
 .RS 4
-Enable POP3 service with value yes\&. All other values disable the service\&.
+Enable POP3 service with value yes. All other values disable the service.
 .sp
 Default:
 \fIyes\fR
@@ -99,7 +99,7 @@ Default:
 .PP
 \fBpop3_port\fR
 .RS 4
-The POP3 service will listen on this port for incoming connections\&.
+The POP3 service will listen on this port for incoming connections.
 .sp
 Default:
 \fI110\fR
@@ -107,7 +107,7 @@ Default:
 .PP
 \fBpop3s_enable\fR
 .RS 4
-Enable POP3S service with value yes\&. All other values disable the service\&.
+Enable POP3S service with value yes. All other values disable the service.
 .sp
 Default:
 \fIyes\fR
@@ -115,7 +115,7 @@ Default:
 .PP
 \fBpop3s_port\fR
 .RS 4
-The POP3S service will listen on this port for incoming connections\&.
+The POP3S service will listen on this port for incoming connections.
 .sp
 Default:
 \fI995\fR
@@ -123,7 +123,7 @@ Default:
 .PP
 \fBimap_enable\fR
 .RS 4
-Enable IMAP service with value yes\&. All other values disable the service\&.
+Enable IMAP service with value yes. All other values disable the service.
 .sp
 Default:
 \fIyes\fR
@@ -131,7 +131,7 @@ Default:
 .PP
 \fBimap_port\fR
 .RS 4
-The IMAP service will listen on this port for incoming connections\&.
+The IMAP service will listen on this port for incoming connections.
 .sp
 Default:
 \fI143\fR
@@ -139,7 +139,7 @@ Default:
 .PP
 \fBimaps_enable\fR
 .RS 4
-Enable IMAPS service with value yes\&. All other values disable the service\&.
+Enable IMAPS service with value yes. All other values disable the service.
 .sp
 Default:
 \fIyes\fR
@@ -147,7 +147,7 @@ Default:
 .PP
 \fBimaps_port\fR
 .RS 4
-The IMAPS service will listen on this port for incoming connections\&.
+The IMAPS service will listen on this port for incoming connections.
 .sp
 Default:
 \fI993\fR
@@ -155,40 +155,40 @@ Default:
 .PP
 \fBserver_socket\fR
 .RS 4
-The http address of the storage server\&.
+The http address of the storage server.
 .sp
 Default:
 \fIhttp://localhost:236/\fR
 .sp
-It is not advised to specify the UNIX socket here, but the http address instead\&. In default configuration the gateway will then be trusted by the storage server (as set in its local_admin_users configuration setting)\&. Unless is run as an untrusted user, by specifying the
+It is not advised to specify the UNIX socket here, but the http address instead. In default configuration the gateway will then be trusted by the storage server (as set in its local_admin_users configuration setting). Unless is run as an untrusted user, by specifying the
 \fBrun_as_user\fR, the gateway always authenticates users even if they provide no or wrong credentials!
 .RE
 .PP
 \fBrun_as_user\fR
 .RS 4
-After correctly starting, the gateway process will become this user, dropping root privileges\&. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation\&. This can also be achieved by setting the correct group and permissions\&.
+After correctly starting, the gateway process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
 .sp
-Default value is empty, not changing the user after starting\&.
+Default value is empty, not changing the user after starting.
 .RE
 .PP
 \fBrun_as_group\fR
 .RS 4
-After correctly starting, the gateway process will become this group, dropping root privileges\&.
+After correctly starting, the gateway process will become this group, dropping root privileges.
 .sp
-Default value is empty, not changing the group after starting\&.
+Default value is empty, not changing the group after starting.
 .RE
 .PP
 \fBpid_file\fR
 .RS 4
-Write the process ID number to this file\&. This is used by the init\&.d script to correctly stop/restart the service\&.
+Write the process ID number to this file. This is used by the init.d script to correctly stop/restart the service.
 .sp
 Default:
-\fI/var/run/kopano/gateway\&.pid\fR
+\fI/var/run/kopano/gateway.pid\fR
 .RE
 .PP
 \fBrunning_path\fR
 .RS 4
-Change directory to this path when running in daemonize mode\&. When using the \-F switch to run in the foreground the directory will not be changed\&.
+Change directory to this path when running in daemonize mode. When using the \-F switch to run in the foreground the directory will not be changed.
 .sp
 Default:
 \fI/\fR
@@ -199,7 +199,7 @@ Default:
 You can change the process model between
 \fIfork\fR
 and
-\fIthread\fR\&. The forked model uses somewhat more resources, but if a crash is triggered, this will only affect one user\&. In the threaded model, a crash means all users are affected, and will not be able to use the service\&.
+\fIthread\fR. The forked model uses somewhat more resources, but if a crash is triggered, this will only affect one user. In the threaded model, a crash means all users are affected, and will not be able to use the service.
 .sp
 Default:
 \fIfork\fR
@@ -207,7 +207,7 @@ Default:
 .PP
 \fBbypass_auth\fR
 .RS 4
-This parameter can be used to skip password verification when connecting over the UNIX socket\&. Connecting through the UNIX socket can have a big performance gain, compared to the TCP socket of kopano-server\&. As kopano-gateway is usually running as the user kopano (which is a local_admin_user in kopano-server) this would normally mean that kopano-gateway would only verify usernames and no password (because its running as an administrator)\&. When set to \fIno\fR (default value) forces verification of passwords, even when running as an administrator\&. For migrations you will want to set \fIyes\fR\&.
+This parameter can be used to skip password verification when connecting over the UNIX socket. Connecting through the UNIX socket can have a big performance gain, compared to the TCP socket of kopano-server. As kopano-gateway is usually running as the user kopano (which is a local_admin_user in kopano-server) this would normally mean that kopano-gateway would only verify usernames and no password (because its running as an administrator). When set to \fIno\fR (default value) forces verification of passwords, even when running as an administrator. For migrations you will want to set \fIyes\fR.
 .sp
 Default:
 \fIno\fR
@@ -215,7 +215,7 @@ Default:
 .PP
 \fBimap_only_mailfolders\fR
 .RS 4
-Enable the IMAP and IMAPS service to only show the mailfolders\&. This is the default behaviour\&. When this option is set to \*(Aqno\*(Aq, you will also be able to select you calendar and contacts and such\&. These views will not contain all information, since these items cannot be converted to a rfc\-822 mail item\&.
+Enable the IMAP and IMAPS service to only show the mailfolders. This is the default behaviour. When this option is set to \*(Aqno\*(Aq, you will also be able to select you calendar and contacts and such. These views will not contain all information, since these items cannot be converted to a rfc\-822 mail item.
 .sp
 Default:
 \fIyes\fR
@@ -223,7 +223,7 @@ Default:
 .PP
 \fBimap_public_folders\fR
 .RS 4
-Enable the IMAP and IMAPS service to also show the public store with subfolders\&. This is the default behaviour\&. When this option is set to \*(Aqno\*(Aq, IMAP clients will only see the users\*(Aq folder\&.
+Enable the IMAP and IMAPS service to also show the public store with subfolders. This is the default behaviour. When this option is set to \*(Aqno\*(Aq, IMAP clients will only see the users\*(Aq folder.
 .sp
 Default:
 \fIyes\fR
@@ -231,7 +231,7 @@ Default:
 .PP
 \fBimap_capability_idle\fR
 .RS 4
-Allow IMAP clients to issue the IDLE command\&. When an IMAP client is idle, it may receive notifications from the server about changes of the selected folder\&. This may increase load on the server when many users are using the IMAP service\&.
+Allow IMAP clients to issue the IDLE command. When an IMAP client is idle, it may receive notifications from the server about changes of the selected folder. This may increase load on the server when many users are using the IMAP service.
 .sp
 Default:
 \fIyes\fR
@@ -239,7 +239,7 @@ Default:
 .PP
 \fBimap_generate_utf8\fR
 .RS 4
-Normally e\-mails specify the correct charset for their contents\&. This may be altered to make it always UTF\-8\&. This will only happen on e\-mails that do not have the extra imap data properties, which is true for users without the \*(Aqimap\*(Aq feature enabled\&.
+Normally e\-mails specify the correct charset for their contents. This may be altered to make it always UTF\-8. This will only happen on e\-mails that do not have the extra imap data properties, which is true for users without the \*(Aqimap\*(Aq feature enabled.
 .sp
 Default:
 \fIno\fR
@@ -247,7 +247,7 @@ Default:
 .PP
 \fBimap_max_messagesize\fR
 .RS 4
-Limit the maximum message size (in bytes) which can be created by an IMAP client\&. The maximum of this value is 4GB although this is not recommended\&. If the value is too high it will cause a segmentation fault\&. This value may contain a k, m or g multiplier\&.
+Limit the maximum message size (in bytes) which can be created by an IMAP client. The maximum of this value is 4GB although this is not recommended. If the value is too high it will cause a segmentation fault. This value may contain a k, m or g multiplier.
 .sp
 Default:
 \fI128M\fR
@@ -255,8 +255,8 @@ Default:
 .PP
 \fBimap_expunge_on_delete\fR
 .RS 4
-Normally when you delete an e\-mail in an IMAP client, it will only be marked as deleted, and not removed from the folder\&. The client should send the EXPUNGE command to actually remove the item from the folder (where Kopano will place it in the soft\-delete system)\&. When this option is set to
-\fIyes\fR, the kopano\-gateway will issue the expunge command itself directly after a \*(Aqmark as delete\*(Aq command was received\&.
+Normally when you delete an e\-mail in an IMAP client, it will only be marked as deleted, and not removed from the folder. The client should send the EXPUNGE command to actually remove the item from the folder (where Kopano will place it in the soft\-delete system). When this option is set to
+\fIyes\fR, the kopano\-gateway will issue the expunge command itself directly after a \*(Aqmark as delete\*(Aq command was received.
 .sp
 Default:
 \fIno\fR
@@ -264,8 +264,8 @@ Default:
 .PP
 \fBimap_store_rfc822\fR
 .RS 4
-Store the rfc822 data with the message in MAPI\&. The Kopano Gateway stores the original rfc822 data of an APPENDed message in the database for later retrieval\&. This makes sure that the exact message that was delivered into the Kopano gateway is available for retrieval later, which is the behaviour when set to
-\fIyes\fR\&. If set to no, the kopano\-gateway will not store the original rfc822 text\&. This means that the rfc822 data must be re\-created when retrieved\&. This may cause changes in encoding or charset and some loss of fidelity\&. This will also invalidate any signatures in the stored messages\&.
+Store the rfc822 data with the message in MAPI. The Kopano Gateway stores the original rfc822 data of an APPENDed message in the database for later retrieval. This makes sure that the exact message that was delivered into the Kopano gateway is available for retrieval later, which is the behaviour when set to
+\fIyes\fR. If set to no, the kopano\-gateway will not store the original rfc822 text. This means that the rfc822 data must be re\-created when retrieved. This may cause changes in encoding or charset and some loss of fidelity. This will also invalidate any signatures in the stored messages.
 .sp
 Default:
 \fIyes\fR
@@ -273,8 +273,8 @@ Default:
 .PP
 \fBimap_max_fail_commands\fR
 .RS 4
-Maximum of failed commands before forcibly closing connection of client\&. This makes sure that a client which does repeatedly fails on a specific connection (like opening folders over and over again which do not exist) does not affect the overall performance of the gateway process\&. With the default value set to
-\fI10\fR, normal operation will work for most productionenvironments\&. With IMAP migrations, this value should be set higher as many traditional IMAP migration tools try to fetch folders which do not necessarily exist before, so in a migration scenario this value should be set higher, at minimum to the number of folders to be migrated from the largest mailbox\&.
+Maximum of failed commands before forcibly closing connection of client. This makes sure that a client which does repeatedly fails on a specific connection (like opening folders over and over again which do not exist) does not affect the overall performance of the gateway process. With the default value set to
+\fI10\fR, normal operation will work for most productionenvironments. With IMAP migrations, this value should be set higher as many traditional IMAP migration tools try to fetch folders which do not necessarily exist before, so in a migration scenario this value should be set higher, at minimum to the number of folders to be migrated from the largest mailbox.
 .sp
 Default:
 \fI10\fR
@@ -284,8 +284,8 @@ Default:
 .RS 4
 Some MUAs are sending commands via idle causing the connection
 to reach \fIimap_max_fail_commands\fR and leaves the client in a
-broken state\&. The clients include Apple Mail\&. If you experience
-problems or uses Apple Mail set this option to \fIyes\fR\&.
+broken state. The clients include Apple Mail. If you experience
+problems or uses Apple Mail set this option to \fIyes\fR.
 .sp
 Default:
 \fIno\fR
@@ -293,11 +293,11 @@ Default:
 .PP
 \fBdisable_plaintext_auth\fR
 .RS 4
-Disable all plaintext POP3 and IMAP authentications unless SSL/TLS is used (except for connections originating from localhost, to allow saslauthd with rimap)\&. Obviously, this requires at least
+Disable all plaintext POP3 and IMAP authentications unless SSL/TLS is used (except for connections originating from localhost, to allow saslauthd with rimap). Obviously, this requires at least
 \fIssl_private_key_file\fR
 and
 \fIssl_certificate_file\fR
-to take effect\&.
+to take effect.
 .sp
 Default:
 \fIno\fR
@@ -305,25 +305,25 @@ Default:
 .PP
 \fBssl_private_key_file\fR
 .RS 4
-The gateway will use this file as private key for SSL TLS\&. This file can be created with:
-\fBopenssl genrsa \-out /etc/kopano/gateway/privkey\&.pem 2048\fR\&.
+The gateway will use this file as private key for SSL TLS. This file can be created with:
+\fBopenssl genrsa \-out /etc/kopano/gateway/privkey.pem 2048\fR.
 .sp
 Default:
-\fI/etc/kopano/gateway/privkey\&.pem\fR
+\fI/etc/kopano/gateway/privkey.pem\fR
 .RE
 .PP
 \fBssl_certificate_file\fR
 .RS 4
-The gateway will use this file as certificate for SSL TLS\&. A self\-signed certificate can be created with:
-\fBopenssl req \-new \-x509 \-key /etc/kopano/gateway/privkey\&.pem \-out /etc/kopano/gateway/cert\&.pem \-days 1095\fR\&.
+The gateway will use this file as certificate for SSL TLS. A self\-signed certificate can be created with:
+\fBopenssl req \-new \-x509 \-key /etc/kopano/gateway/privkey.pem \-out /etc/kopano/gateway/cert.pem \-days 1095\fR.
 .sp
 Default:
-\fI/etc/kopano/gateway/cert\&.pem\fR
+\fI/etc/kopano/gateway/cert.pem\fR
 .RE
 .PP
 \fBssl_verify_client\fR
 .RS 4
-Enable client certificate verification with value yes\&. All other values disable the verification\&.
+Enable client certificate verification with value yes. All other values disable the verification.
 .sp
 Default:
 \fIno\fR
@@ -331,30 +331,30 @@ Default:
 .PP
 \fBssl_verify_file\fR
 .RS 4
-The file to verify the clients certificates with\&.
+The file to verify the clients certificates with.
 .sp
-Default: value not set\&.
+Default: value not set.
 .RE
 .PP
 \fBssl_verify_path\fR
 .RS 4
-The path with the files to verify the clients certificates with\&.
+The path with the files to verify the clients certificates with.
 .sp
-Default: value not set\&.
+Default: value not set.
 .RE
 .PP
 \fBssl_protocols\fR
 .RS 4
-Disabled or enabled protocol names\&. Supported protocol names are
+Disabled or enabled protocol names. Supported protocol names are
 \fISSLv3\fR
 and
-\fITLSv1\fR\&. If Kopano was linked against OpenSSL 1\&.0\&.1 or later there is additional support for the new protocols
-\fITLSv1\&.1\fR
+\fITLSv1\fR. If Kopano was linked against OpenSSL 1.0.1 or later there is additional support for the new protocols
+\fITLSv1.1\fR
 and
-\fITLSv1\&.2\fR\&. To exclude both SSLv3 and TLSv1, set
+\fITLSv1.2\fR. To exclude both SSLv3 and TLSv1, set
 \fBserver_ssl_protocols\fR
 to
-\fI!SSLv3 !TLSv1\fR\&.
+\fI!SSLv3 !TLSv1\fR.
 .sp
 Default: SSLv2 being disabled
 .RE
@@ -363,7 +363,7 @@ Default: SSLv2 being disabled
 .RS 4
 SSL ciphers to use, set to
 \fIALL\fR
-for backward compatibility\&.
+for backward compatibility.
 .sp
 Default:
 \fIALL:!LOW:!SSLv2:!EXP:!aNULL\fR
@@ -371,7 +371,7 @@ Default:
 .PP
 \fBssl_prefer_server_ciphers\fR
 .RS 4
-Prefer the server\*(Aqs order of SSL ciphers over client\*(Aqs\&.
+Prefer the server\*(Aqs order of SSL ciphers over client\*(Aqs.
 .sp
 Default:
 \fIno\fR
@@ -379,18 +379,18 @@ Default:
 .PP
 \fBlog_method\fR
 .RS 4
-The method which should be used for logging\&. Valid values are:
+The method which should be used for logging. Valid values are:
 .PP
 \fIsyslog\fR
 .RS 4
-Use the Linux system log\&. All messages will be written to the mail facility\&. See also
-\fBsyslog.conf\fR(5)\&.
+Use the Linux system log. All messages will be written to the mail facility. See also
+\fBsyslog.conf\fR(5).
 .RE
 .PP
 \fIfile\fR
 .RS 4
-Log to a file\&. The filename will be specified in
-\fBlog_file\fR\&.
+Log to a file. The filename will be specified in
+\fBlog_file\fR.
 .RE
 .sp
 Default:
@@ -399,17 +399,17 @@ Default:
 .PP
 \fBlog_file\fR
 .RS 4
-When logging to a file, specify the filename in this parameter\&. Use
+When logging to a file, specify the filename in this parameter. Use
 \fI\-\fR
-(minus sign) for stderr output\&.
+(minus sign) for stderr output.
 .sp
 Default:
-\fI/var/log/kopano/gateway\&.log\fR
+\fI/var/log/kopano/gateway.log\fR
 .RE
 .PP
 \fBlog_level\fR
 .RS 4
-The level of output for logging in the range from 0 to 5\&. 0=no logging, 5=full logging\&.
+The level of output for logging in the range from 0 to 5. 0=no logging, 5=full logging.
 .sp
 Default:
 \fI2\fR
@@ -417,7 +417,7 @@ Default:
 .PP
 \fBlog_timestamp\fR
 .RS 4
-Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode\&.
+Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
 .sp
 Default:
 \fI1\fR
@@ -425,7 +425,7 @@ Default:
 .PP
 \fBlog_buffer_size\fR
 .RS 4
-Buffer logging in what sized blocks\&. The special value 0 selects line buffering\&.
+Buffer logging in what sized blocks. The special value 0 selects line buffering.
 .sp
 Default:
 \fI0\fR
@@ -439,13 +439,13 @@ log_level
 .RE
 .SH "FILES"
 .PP
-/etc/kopano/gateway\&.cfg
+/etc/kopano/gateway.cfg
 .RS 4
-The Kopano gateway configuration file\&.
+The Kopano gateway configuration file.
 .RE
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-gateway\fR(8)

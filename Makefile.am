@@ -265,8 +265,9 @@ kopano_server_SOURCES = \
 kopano_server_LDADD = \
 	libkcutil.la libkcmapi.la libkcssl.la \
 	libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
-	${PROG_LIBS} ${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
-	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} -lpthread -lrt
+	${PROG_LIBS} ${clock_LIBS} \
+	${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
+	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} -lpthread
 kopano_server_LDFLAGS = ${AM_LDFLAGS}
 
 
@@ -805,7 +806,7 @@ dist_phpdata_DATA = \
 # test programs
 #
 mapitime_SOURCES = ECtools/mapitime.cpp
-mapitime_LDADD = -lrt libmapi.la libkcmapi.la libkcutil.la \
+mapitime_LDADD = ${clock_LIBS} libmapi.la libkcmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
 rosie_test_SOURCES = librosie/test.cpp
 rosie_test_LDADD = libkcrosie.la

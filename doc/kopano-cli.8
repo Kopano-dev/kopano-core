@@ -34,7 +34,7 @@ kopano-cli \- The Kopano Command-line Interface
 \fBkopano\-cli\fR [\fIOPTION\fR...]
 .SH "DESCRIPTION"
 .PP
-Kopano\-cli is used to manage a Kopano server (cluster), including users, stores, groups and companies\&. This includes listing/creation/deletion of objects, and changing settings such as quota limits, delegation, out-of-office settings and store and folder-level permissions.
+Kopano\-cli is used to manage a Kopano server (cluster), including users, stores, groups and companies. This includes listing/creation/deletion of objects, and changing settings such as quota limits, delegation, out-of-office settings and store and folder-level permissions.
 .PP
 .SH "OPTIONS"
 .PP
@@ -105,12 +105,12 @@ Clear all server caches.
 .PP
 \fB\-\-company\fR, \fB\-C\fR \fINAME\fR
 .RS 4
-Specify company\&. Without further arguments, this will show information about the given company. Can also be used in combination with e.g. --list-users\&.
+Specify company. Without further arguments, this will show information about the given company. Can also be used in combination with e.g. --list-users.
 .RE
 .PP
 \fB\-\-config\fR, \fB\-c\fR \fIFILE\fR
 .RS 4
-Load configuration settings from specified file\&.
+Load configuration settings from specified file.
 .RE
 .PP
 \fB\-\-create\fR
@@ -125,7 +125,7 @@ Create and hook store. Without further arguments, a public store is created for 
 .PP
 \fB\-\-debug\fR
 .RS 4
-Enable debug mode\&, meaning full tracebacks are shown in addition to error messages.
+Enable debug mode, meaning full tracebacks are shown in addition to error messages.
 .RE
 .PP
 \fB\-\-delete\fR
@@ -140,8 +140,8 @@ Change or specify object email address. Can be used with --user or --group (and 
 .PP
 \fB\-\-folder\fR, \fB\-f\fR \fIPATH\fR
 .RS 4
-Specify folder\&. Can be used in combination with e.g. --add-permission, to add permissions for a specific folder\&.
-\fI\-\-recursive\fR\&.
+Specify folder. Can be used in combination with e.g. --add-permission, to add permissions for a specific folder.
+\fI\-\-recursive\fR.
 .RE
 .PP
 \fB\-\-fullname\fR \fINAME\fR
@@ -151,7 +151,7 @@ Change or specify object full name. Can be used with --user, --group or --compan
 .PP
 \fB\-\-group\fR, \fB\-G\fR \fINAME\fR
 .RS 4
-Specify group\&. Without further arguments, this will show information about the given group. Can also be used in combination with e.g. --list-users\&.
+Specify group. Without further arguments, this will show information about the given group. Can also be used in combination with e.g. --list-users.
 .RE
 .PP
 \fB\-\-hook-store\fR \fIGUID\fR
@@ -341,17 +341,17 @@ When sending meeting requests and responses to delegates, only send them to the 
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
 .RS 4
-Connect to storage server through specified socket\&.
+Connect to storage server through specified socket.
 .RE
 .PP
 \fB\-\-ssl\-key\fR, \fB\-k\fR \fIFILE\fR
 .RS 4
-Specify SSL key file\&.
+Specify SSL key file.
 .RE
 .PP
 \fB\-\-ssl\-pass\fR, \fB\-p\fR \fIPASSWORD\fR
 .RS 4
-Specify SSL key password\&.
+Specify SSL key password.
 .RE
 .PP
 \fB\-\-sync\fR
@@ -371,7 +371,7 @@ Unhook store. Without further arguments, the public store is unhooked. Can be us
 .PP
 \fB\-\-user\fR, \fB\-u\fR \fINAME\fR
 .RS 4
-Specify user\&. Without further arguments, this will show information about the given user.
+Specify user. Without further arguments, this will show information about the given user.
 .RE
 .PP
 \fB\-\-user-count\fR
@@ -397,4 +397,4 @@ To delete a user:
 \fBkopano\-cli \-\-delete \-u john\fR
 .SH "AUTHOR"
 .PP
-Written by Kopano\&.
+Written by Kopano.
