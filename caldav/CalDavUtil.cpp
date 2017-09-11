@@ -426,7 +426,6 @@ std::string StripGuid(const std::string &strInput)
 {
 	size_t ulFound = -1;
 	size_t ulFoundSlash = -1;
-	std::string strRetVal;
 
 	ulFoundSlash = strInput.rfind('/');
 	if(ulFoundSlash == string::npos)
@@ -434,11 +433,10 @@ std::string StripGuid(const std::string &strInput)
 	else
 		++ulFoundSlash;
 
-	ulFound = strInput.rfind(".ics");
-	if(ulFound != wstring::npos)
-		strRetVal.assign(strInput.begin() + ulFoundSlash, strInput.begin() + ulFound);
-
-	return strRetVal;
+	ulFound = strInput.find(".ics", ulFoundSlash);
+	if (ulFound != string::npos)
+		return {strInput.cbegin() + ulFoundSlash, strInput.cbegin() + ulFound};
+	return "";
 }
 
 /**
