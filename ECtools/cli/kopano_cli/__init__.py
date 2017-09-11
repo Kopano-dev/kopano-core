@@ -217,8 +217,8 @@ def user_details(user):
 
         ooo = 'disabled'
         if user.outofoffice.enabled:
-            ooo = user.outofoffice.period_desc + ('(currently %s)' % ('active' if user.outofoffice.active else 'inactive'))
-        print(fmt.format('Out-Of-Office:', ooo))
+            ooo = user.outofoffice.period_desc + (' (currently %s)' % ('active' if user.outofoffice.active else 'inactive'))
+        print(fmt.format('Out-Of-Office:', ooo.strip()))
 
     print('Current user store quota settings:')
     print(fmt.format('    Quota overrides:', yesno(not user.quota.use_default)))
