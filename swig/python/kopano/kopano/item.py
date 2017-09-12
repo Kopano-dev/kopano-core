@@ -921,18 +921,20 @@ class Item(Base):
 
         # attachments
         for props, data in d[b'attachments']:
-            props = [SPropValue(proptag, value) for (proptag, value, nameid) in props]
-            (id_, attach) = self.mapiobj.CreateAttach(None, 0)
-            attach.SetProps(props)
-            if isinstance(data, dict): # embedded message
-                msg = attach.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
-                item = Item(mapiobj=msg)
-                item._load(data, attachments) # recursion
-            elif attachments:
-                stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
-                stream.Write(data)
-                stream.Commit(0)
-            attach.SaveChanges(KEEP_OPEN_READWRITE)
+            if attachments or isinstance(data, dict):
+                props = [SPropValue(proptag, value) for (proptag, value, nameid) in props]
+                (id_, attach) = self.mapiobj.CreateAttach(None, 0)
+                attach.SetProps(props)
+                if isinstance(data, dict): # embedded message
+                    msg = attach.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
+                    item = Item(mapiobj=msg)
+                    item._load(data, attachments) # recursion
+                else:
+                    stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
+                    stream.Write(data)
+                    stream.Commit(0)
+                attach.SaveChanges(KEEP_OPEN_READWRITE)
+
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
 
     def load(self, f, attachments=True):
