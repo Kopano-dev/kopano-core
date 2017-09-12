@@ -618,7 +618,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	 * inbox probably) to the calendar. If you don't, it is copied into
      * your calendar.
 	 *@param boolean $tentative true if user as tentative accepted the meeting
-	 *@param boolean $sendresponse true if a response has to be send to organizer
+	 * @param boolean $sendresponse true if a response has to be sent to organizer
 	 *@param boolean $move true if the meeting request should be moved to the deleted items after processing
 	 *@param string $newProposedStartTime contains starttime if user has proposed other time
 	 *@param string $newProposedEndTime contains endtime if user has proposed other time
@@ -1249,7 +1249,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 		/**
 		 * While sending recurrence meeting exceptions are not send as attachments
-		 * because first all exceptions are send and then recurrence meeting is sent.
+		 * because first all exceptions are sent and then recurrence meeting is sent.
 		 */
 		if (isset($messageprops[$this->proptags['recurring']]) && $messageprops[$this->proptags['recurring']] && !$basedate) {
 			// Book resource
@@ -1276,7 +1276,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				}
 			}
 		} else {
-			// Basedate found, an exception is to be send
+			// Basedate found, an exception is to be sent
 			if ($basedate) {
 				$recurr = new Recurrence($this->openDefaultStore(), $this->message);
 
@@ -1957,7 +1957,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	}
 
 	/**
-	 * Function which sets basedate in globalID of changed occurrance which is to be send.
+	 * Function which sets basedate in globalID of changed occurrance which is to be sent.
 	 *@param binary $goid globalID
 	 *@param string basedate of changed occurrance
 	 *@return binary globalID with basedate in it
@@ -2416,7 +2416,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 	/**
 	 * Function which submits meeting request based on arguments passed to it.
-	 *@param resource $message MAPI_message whose meeting request is to be send
+	 * @param resource $message MAPI_message whose meeting request is to be sent
 	 *@param boolean $cancel if true send request, else send cancellation
 	 *@param string $prefix subject prefix
 	 *@param integer $basedate basedate for an occurrence
@@ -2667,8 +2667,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	 * also additionally we are sending these properties.
 	 * Ref: MS-OXCICAL 2.2.1.20.20 Property: RECURRENCE-ID
 	 * @param Object $recurObject instance of recurrence class for this message
-	 * @param Array $messageprops properties of meeting object that is going to be send
-	 * @param Array $newmessageprops properties of meeting request/response that is going to be send
+	 * @param Array $messageprops properties of meeting object that is going to be sent
+	 * @param Array $newmessageprops properties of meeting request/response that is going to be sent
 	 */
 	function generateRecurDates($recurObject, $messageprops, &$newmessageprops)
 	{

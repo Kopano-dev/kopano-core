@@ -1781,7 +1781,7 @@ static HRESULT PostSendProcessing(ULONG cbEntryId, const ENTRYID *lpEntryId,
  * @param[in]	lpAddrBook		The Global Addressbook of the user.
  * @param[in]	lpMailer		ECSender object (inetmapi), used to send the mail.
  * @param[in]	cbMsgEntryId	Number of bytes in lpMsgEntryId
- * @param[in]	lpMsgEntryId	EntryID of the message to be send.
+ * @param[in]	lpMsgEntryId	EntryID of the message to be sent.
  * @param[out]	lppMessage		The message that processed. Always returned if opened.
  *
  * @note The mail will be removed by the calling process when we return an error, except for the errors/warnings listed below.

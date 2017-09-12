@@ -143,7 +143,7 @@ HRESULT HrGetICalUidFromBinUid(const SBinary &sBin, std::string *lpStrUid)
  * Converts ical UID to Outlook compatible UIDs.
  *
  * Add a special Outlook GUID and marker to the Ical UID. This format
- * is used in Outlook for non-outlook UIDs send by other ICal clients.
+ * is used in Outlook for non-outlook UIDs sent by other ICal clients.
  *
  * @param[in]	strUid			ical UID
  * @param[out]	lpStrBinUid		returned outlook compatible string UID 

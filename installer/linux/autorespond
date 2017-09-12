@@ -21,7 +21,7 @@ BASE_PATH=/var/lib/kopano/autorespond
 # File which contains where vacation message was sent
 SENDDB=$BASE_PATH/vacation-$USER.db
 
-# Tempfile containing message that will be send
+# Tempfile containing message that will be sent
 SENDDBTMP=$BASE_PATH/vacation-$USER-$$.tmp
 
 # Customize your actual mail command, normally sendmail

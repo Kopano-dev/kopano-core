@@ -5,7 +5,7 @@ Your mailbox size is ${KOPANO_QUOTA_STORE_SIZE}.
 
 Mailbox size limits:
 	* Warninglevel (${KOPANO_QUOTA_WARN_SIZE})
-		- When this limit is exceeded a warning message will be send
+		- When this limit is exceeded a warning message will be sent
 	* Softlevel (${KOPANO_QUOTA_SOFT_SIZE})
 		- When this limit is exceeded you will not be able to send new email
 	* Hardlevel (${KOPANO_QUOTA_HARD_SIZE})

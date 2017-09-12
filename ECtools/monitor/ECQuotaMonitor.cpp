@@ -1084,7 +1084,7 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
 	if (hr != hrSuccess)
 		return hr;
 
-	/* Determine when the last warning mail was send, and if a new one should be send. */
+	/* Determine when the last warning mail was send, and if a new one should be sent. */
 	lpResendInterval = m_lpThreadMonitor->lpConfig->GetSetting("mailquota_resend_interval");
 	ulResendInterval = (lpResendInterval && atoui(lpResendInterval) > 0) ? atoui(lpResendInterval) : 1;
 	GetSystemTimeAsFileTime(&ft);

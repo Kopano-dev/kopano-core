@@ -151,7 +151,7 @@ public:
 	 * Send a new mail notification through the current sync context.
 	 *
 	 * @Param[in]	lpNotification
-	 *					Pointer to a NOTIFICATION structure that will be send as the
+	 *					Pointer to a NOTIFICATION structure that will be sent as the
 	 *					new mail notification.
 	 */
 	HRESULT HrNotifyNewMail(LPNOTIFICATION lpNotification);
