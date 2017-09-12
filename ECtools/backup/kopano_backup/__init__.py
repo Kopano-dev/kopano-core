@@ -110,7 +110,7 @@ def _copy_store_meta(from_dir, to_dir):
         if os.path.exists(from_path):
             shutil.copy(from_path, to_dir) # overwrites
 
-def _mark_deleted(index, fpath, timestamp, log):
+def _mark_deleted( index, fpath, timestamp, log):
     log.debug("marking deleted folder '%s'", fpath)
 
     with closing(dbopen(index)) as db_index:
@@ -335,13 +335,13 @@ class Service(kopano.Service):
     def main(self):
         self.timestamp = datetime.datetime.now()
 
-        if self.options.restore or self.options.purge or self.options.merge:
+        if self.options.restore or (self.options.purge is not None) or self.options.merge:
             data_path = _decode(self.args[0].rstrip('/'))
             with open(data_path+'/lock', 'w') as lockfile:
                 fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
                 if self.options.restore:
                     self.restore(data_path)
-                elif self.options.purge:
+                elif (self.options.purge is not None):
                     self.purge(data_path)
                 elif self.options.merge:
                     self.merge(data_path)
@@ -398,7 +398,7 @@ class Service(kopano.Service):
         stats = {'changes': 0, 'errors': 0}
 
         # restore metadata (webapp/mapi settings)
-        if user and not self.options.folders and not self.options.skip_meta:
+        if user and not self.options.folders and not self.options.restore_root and not self.options.skip_meta:
             if os.path.exists('%s/store' % data_path):
                 storeprops = pickle.loads(file('%s/store' % data_path).read())
                 for proptag in (PR_EC_WEBACCESS_SETTINGS_JSON, PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG,
@@ -463,7 +463,7 @@ class Service(kopano.Service):
             # check if folder was deleted
             self.log.info('checking folder: %s', path)
             if folder_deleted(fpath):
-                if (self.timestamp - folder_deleted(fpath)).days > self.options.purge:
+                if (self.timestamp - folder_deleted(fpath)).days >= self.options.purge:
                     self.log.debug('purging folder')
                     shutil.rmtree(fpath)
                     stats['folders'] += 1
@@ -473,7 +473,7 @@ class Service(kopano.Service):
                         for item, idx in db_index.items():
                             d = pickle.loads(idx)
                             backup_deleted = d.get('backup_deleted')
-                            if backup_deleted and (self.timestamp - backup_deleted).days > self.options.purge:
+                            if backup_deleted and (self.timestamp - backup_deleted).days >= self.options.purge:
                                 self.log.debug('purging item: %s', item)
                                 stats['items'] += 1
                                 del db_items[item]
@@ -857,31 +857,12 @@ def load_rules(folder, user, server, data, stats, log):
             etxml = ElementTree.tostring(etxml)
             folder.create_prop(PR_RULES_DATA, etxml)
 
-def _get_fbf(user, flags, log):
-    try:
-        fbeid = user.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
-        return user.store.mapiobj.OpenEntry(fbeid, None, flags)
-    except (MAPIErrorNotFound, kopano.NotFoundError):
-        log.warning("skipping delegation because of missing freebusy data")
-
 def dump_delegates(user, server, stats, log):
     """ dump delegate users for given user """
 
     usernames = []
     with log_exc(log, stats):
-        fbf = _get_fbf(user, 0, log)
-        delegate_uids = []
-        try:
-            if fbf:
-                delegate_uids = HrGetOneProp(fbf, PR_SCHDINFO_DELEGATE_ENTRYIDS).Value
-        except MAPIErrorNotFound:
-            pass
-
-        for uid in delegate_uids:
-            try:
-                usernames.append(server.sa.GetUser(uid, MAPI_UNICODE).Username)
-            except MAPIErrorNotFound:
-                log.warning("skipping delegate user for unknown userid")
+        usernames = [d.user.name for d in user.delegations()]
 
     return pickle.dumps(usernames)
 
@@ -889,17 +870,16 @@ def load_delegates(user, server, data, stats, log):
     """ load delegate users for given user """
 
     with log_exc(log, stats):
-        userids = []
+        users = []
         for name in pickle.loads(data):
             try:
-                userids.append(server.user(name).userid.decode('hex'))
+                users.append(server.user(name))
             except kopano.NotFoundError:
                 log.warning("skipping delegation for unknown user '%s'", name)
 
-        fbf = _get_fbf(user, MAPI_MODIFY, log)
-        if fbf:
-            fbf.SetProps([SPropValue(PR_SCHDINFO_DELEGATE_ENTRYIDS, userids)])
-            fbf.SaveChanges(0)
+        user.delete(user.delegations()) # XXX not in combination with --import-root, -f?
+        for user2 in users:
+            user.delegation(user2, create=True)
 
 def main():
     # select common options
@@ -927,14 +907,14 @@ def main():
     options, args = parser.parse_args()
 
     options.service = False
-    if options.restore or options.merge or options.stats or options.index or options.purge:
+    if options.restore or options.merge or options.stats or options.index or (options.purge is not None):
         if len(args) != 1 or not os.path.isdir(args[0]):
             fatal('please specify path to backup data')
     elif len(args) != 0:
         fatal('too many arguments')
     if options.deletes and options.deletes not in ('yes', 'no'):
         fatal("--deletes option takes 'yes' or 'no'")
-    if options.folders and (options.differential or options.purge or options.merge):
+    if options.folders and (options.differential or (options.purge is not None) or options.merge):
         fatal('invalid use of --folder option')
     if options.output_dir and options.differential:
         fatal('invalid use of --output-dir option')
