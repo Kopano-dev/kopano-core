@@ -829,42 +829,43 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		if(lpProp->Value.res)
 			FreeRestrictTable(lpProp->Value.res);
 		break;
-	case PT_ACTIONS:
-		if(lpProp->Value.actions) {
-			struct actions *lpActions = lpProp->Value.actions;
+	case PT_ACTIONS: {
+		if (lpProp->Value.actions == nullptr)
+			break;
 
-			for (gsoap_size_t i = 0; i < lpActions->__size; ++i) {
-				struct action *lpAction = &lpActions->__ptr[i];
+		struct actions *lpActions = lpProp->Value.actions;
+		for (gsoap_size_t i = 0; i < lpActions->__size; ++i) {
+			struct action *lpAction = &lpActions->__ptr[i];
 
-				switch(lpAction->acttype) {
-				case OP_COPY:
-				case OP_MOVE:
-					s_free(nullptr, lpAction->act.moveCopy.store.__ptr);
-					s_free(nullptr, lpAction->act.moveCopy.folder.__ptr);
-					break;
-				case OP_REPLY:
-				case OP_OOF_REPLY:
-					s_free(nullptr, lpAction->act.reply.message.__ptr);
-					s_free(nullptr, lpAction->act.reply.guid.__ptr);
-					break;
-				case OP_DEFER_ACTION:
-					s_free(nullptr, lpAction->act.defer.bin.__ptr);
-					break;
-				case OP_BOUNCE:
-					break;
-				case OP_FORWARD:
-				case OP_DELEGATE:
-					FreeRowSet(lpAction->act.adrlist, true);
-					break;
-				case OP_TAG:
-					FreePropVal(lpAction->act.prop, true);
-					break;
-				}
+			switch(lpAction->acttype) {
+			case OP_COPY:
+			case OP_MOVE:
+				s_free(nullptr, lpAction->act.moveCopy.store.__ptr);
+				s_free(nullptr, lpAction->act.moveCopy.folder.__ptr);
+				break;
+			case OP_REPLY:
+			case OP_OOF_REPLY:
+				s_free(nullptr, lpAction->act.reply.message.__ptr);
+				s_free(nullptr, lpAction->act.reply.guid.__ptr);
+				break;
+			case OP_DEFER_ACTION:
+				s_free(nullptr, lpAction->act.defer.bin.__ptr);
+				break;
+			case OP_BOUNCE:
+				break;
+			case OP_FORWARD:
+			case OP_DELEGATE:
+				FreeRowSet(lpAction->act.adrlist, true);
+				break;
+			case OP_TAG:
+				FreePropVal(lpAction->act.prop, true);
+				break;
 			}
-			s_free(nullptr, lpActions->__ptr);
-			s_free(nullptr, lpProp->Value.actions);
 		}
+		s_free(nullptr, lpActions->__ptr);
+		s_free(nullptr, lpProp->Value.actions);
 		break;
+	}
 	default:
 		er = KCERR_INVALID_TYPE;
 	}
