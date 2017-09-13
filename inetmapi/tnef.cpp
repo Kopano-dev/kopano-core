@@ -288,7 +288,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 	std::unique_ptr<char[]> szSClass;
 	// Attachments props
 	memory_ptr<SPropValue> lpProp;
-	memory_ptr<tnefattachment> lpTnefAtt;
+	std::unique_ptr<tnefattachment> lpTnefAtt;
 
 	hr = HrReadDWord(m_lpStream, &ulSignature);
 	if(hr != hrSuccess)
@@ -394,12 +394,11 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
                     if (lpTnefAtt->data || !lpTnefAtt->lstProps.empty()) // end marker previous attachment
                         lstAttachments.push_back(std::move(lpTnefAtt));
                 }
-				hr = MAPIAllocateBuffer(sizeof(tnefattachment), &~lpTnefAtt);
-				if (hr != hrSuccess)
-					return hr;
-
-                lpTnefAtt->size = 0;
-                lpTnefAtt->data = NULL;
+				lpTnefAtt.reset(new(std::nothrow) tnefattachment);
+				if (lpTnefAtt == nullptr) {
+					hr = MAPI_E_NOT_ENOUGH_MEMORY;
+					goto exit;
+				}
                 lpTnefAtt->rdata = *lpData;
             }
 			break;
@@ -1300,12 +1299,11 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID,
     AttachRendData sData;
 	static constexpr const SizedSPropTagArray(2, sptaTags) =
 		{2, {PR_ATTACH_METHOD, PR_RENDERING_POSITION}};
-	memory_ptr<tnefattachment> sTnefAttach;
+	std::unique_ptr<tnefattachment> sTnefAttach;
 
-	hr = MAPIAllocateBuffer(sizeof(tnefattachment), &~sTnefAttach);
-	if (hr != hrSuccess)
-		return hr;
-
+	sTnefAttach.reset(new(std::nothrow) tnefattachment);
+	if (sTnefAttach == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	if (ulFlags != TNEF_COMPONENT_ATTACHMENT)
 		return MAPI_E_NO_SUPPORT;
 	if (this->ulFlags != TNEF_ENCODE)

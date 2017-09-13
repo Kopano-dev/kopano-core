@@ -92,11 +92,11 @@ private:
 
 	struct tnefattachment {
 		std::list<KCHL::memory_ptr<SPropValue>> lstProps;
-		ULONG size;
+		ULONG size = 0;
 		KCHL::memory_ptr<unsigned char> data;
 		AttachRendData rdata;
 	};
-	std::list<KCHL::memory_ptr<tnefattachment>> lstAttachments;
+	std::list<std::unique_ptr<tnefattachment>> lstAttachments;
 };
 
 // Flags for constructor
