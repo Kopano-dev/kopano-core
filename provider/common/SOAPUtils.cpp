@@ -1419,12 +1419,9 @@ ECRESULT FreeEntryList(struct entryList *lpEntryList, bool bFreeBase)
 {
 	if(lpEntryList == NULL)
 		return erSuccess;
-
-	if(lpEntryList->__ptr) {
-		for (unsigned int i = 0; i < lpEntryList->__size; ++i)
-			s_free(nullptr, lpEntryList->__ptr[i].__ptr);
-		s_free(nullptr, lpEntryList->__ptr);
-	}
+	for (unsigned int i = 0; i < lpEntryList->__size; ++i)
+		s_free(nullptr, lpEntryList->__ptr[i].__ptr);
+	s_free(nullptr, lpEntryList->__ptr);
 	if (bFreeBase)
 		s_free(nullptr, lpEntryList);
 	return erSuccess;
