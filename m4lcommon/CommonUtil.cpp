@@ -1102,7 +1102,7 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, 
 	hr = lpAdrBook->OpenEntry(cbEntryID, lpEntryID, &IID_IMailUser, 0, &ulType, &~lpMailUser);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpMailUser->GetProps(sptaAddressProps, 0, &cMailUserValues, &~lpMailUserProps);
+	hr = lpMailUser->GetProps(sptaAddressProps, MAPI_UNICODE, &cMailUserValues, &~lpMailUserProps);
 	if (FAILED(hr))
 		return hr;
 	if(lpMailUserProps[0].ulPropTag == PR_DISPLAY_NAME_W)

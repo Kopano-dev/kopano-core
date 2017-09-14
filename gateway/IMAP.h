@@ -57,7 +57,7 @@ class ECRestriction;
 
 class BinaryArray _kc_final {
 public:
-	BinaryArray(void) : lpb(NULL), cb(0), bcheap(false) {}
+	BinaryArray(void) = default;
 	BinaryArray(KCHL::KEntryId &entry_id) : lpb(reinterpret_cast<BYTE *>(entry_id.lpb())), cb(entry_id.cb()), bcheap(true) {}
 	BinaryArray(BYTE *lpData, ULONG cbData, bool bcheap = false)
 	{
@@ -161,9 +161,9 @@ public:
 		return *this;
 	}
 
-	BYTE *lpb;
-	ULONG cb;
-	bool bcheap;
+	BYTE *lpb = nullptr;
+	ULONG cb = 0;
+	bool bcheap = false;
 };
 
 struct lessBinaryArray {

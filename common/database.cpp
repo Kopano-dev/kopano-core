@@ -304,7 +304,7 @@ ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
 	autolock alk(*this);
 
 	if (Query(q) != erSuccess) {
-		ec_log_err("KDatabsae::DoSelect(): query failed: %s: %s", q.c_str(), GetError());
+		ec_log_err("KDatabase::DoSelect(): query failed: %s: %s", q.c_str(), GetError());
 		return KCERR_DATABASE_ERROR;
 	}
 

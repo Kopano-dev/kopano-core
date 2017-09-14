@@ -457,6 +457,10 @@ class Service(kopano.Service):
                 self.log.error('no such folder: %s', path)
                 stats['errors'] += 1
             else:
+                fpath = path_folder[path]
+                if self.options.deletes in (None, 'no') and folder_deleted(fpath):
+                    continue
+
                 # handle --restore-root, filter and start restore
                 restore_path = _decode(self.options.restore_root)+'/'+path if self.options.restore_root else path
                 folder = store.subtree.folder(restore_path, create=True)
@@ -464,10 +468,6 @@ class Service(kopano.Service):
                     ((self.options.skip_junk and folder == store.junk) or \
                     (self.options.skip_deleted and folder == store.wastebasket))):
                         continue
-                fpath = path_folder[path]
-
-                if self.options.deletes in (None, 'no') and folder_deleted(fpath):
-                    continue
 
                 if not self.options.only_meta:
                     self.restore_folder(folder, path, fpath, store, store.subtree, stats, user, self.server)

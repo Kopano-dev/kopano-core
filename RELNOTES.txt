@@ -57,11 +57,20 @@ Changes:
 Packager notes:
 * libicu changed from optional to required build dependency
 * kopano-server S3 store required libs3 4.1 [KC-751]
+* python/swig is now optional [KC-753]
 
 
 Release notes for 8.3.5
 =======================
+Fixes:
 * server: complete signal blocking [KC-779]
+* ical: avoid freeing garbage pointers [KC-803]
+* caldav: fix unbounded copy/iteration past end [KC-792]
+* migration-pst: skip archiver properties [KC-812]
+* icalmapi: cure a NULL dereference when generating VCFs
+* inetmapi: support embedded messages once again [KC-540, KC-775]
+* inetmapi: stop generating <"@"@hostname> [KC-689, KC-772]
+* server: admin user is to always open shared reminders [KC-813]
 
 
 Release notes for 8.3.4

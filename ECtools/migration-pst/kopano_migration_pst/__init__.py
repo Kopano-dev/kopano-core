@@ -17,6 +17,8 @@ else:
     def _encode(s):
         return s.encode(sys.stdout.encoding or 'utf8')
 
+PSETID_Archive = DEFINE_GUID(0x72e98ebc, 0x57d2, 0x4ab5, 0xb0, 0xaa, 0xd5, 0x0a, 0x7b, 0x53, 0x1c, 0xb9)
+
 class Service(kopano.Service):
     def import_props(self, parent, mapiobj, embedded=False):
         props2 = []
@@ -29,6 +31,8 @@ class Service(kopano.Service):
             nameid = self.propid_nameid.get(propid)
             if nameid:
                 propid = PROP_ID(mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], MAPI_CREATE)[0])
+                if nameid[0] == PSETID_Archive:
+                    continue
 
             if propid == (PR_SUBJECT>>16) and value and ord(value[0]) == 0x01:
                 value = value[2:] # \x01 plus another char indicates normalized-subject-prefix-length

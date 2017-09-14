@@ -56,7 +56,10 @@ class OutOfOffice(object):
 
     @subject.setter
     def subject(self, value):
-        self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_SUBJECT_W, _unicode(value))])
+        if value is None:
+            self.store.mapiobj.DeleteProps([PR_EC_OUTOFOFFICE_SUBJECT_W])
+        else:
+            self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_SUBJECT_W, _unicode(value))])
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
@@ -70,7 +73,10 @@ class OutOfOffice(object):
 
     @message.setter
     def message(self, value):
-        self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_MSG_W, _unicode(value))])
+        if value is None:
+            self.store.mapiobj.DeleteProps([PR_EC_OUTOFOFFICE_MSG_W])
+        else:
+            self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_MSG_W, _unicode(value))])
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property

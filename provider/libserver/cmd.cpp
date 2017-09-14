@@ -3223,6 +3223,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 		// avoid reminders from shared stores by detecting that we are opening non-owned reminders folder
 		if((ulObjFlags & FOLDER_SEARCH) &&
 		   (lpecSession->GetSecurity()->IsStoreOwner(ulObjId) == KCERR_NO_ACCESS) &&
+		   (lpecSession->GetSecurity()->GetAdminLevel() == 0) &&
 		   (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("shared_reminders"))))
 		{
 			strQuery = "SELECT val_string FROM properties where hierarchyid=" + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_CONTAINER_CLASS))+ ";";
@@ -8929,7 +8930,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct readPropsResponse *readPropsResponse)
 {
-	// FIXME: when props are PT_ERROR, they shouldn't be send to the client
+	// FIXME: when props are PT_ERROR, they should not be sent to the client
 	// now we have properties in the client which are MAPI_E_NOT_ENOUGH_MEMORY,
 	// while they shouldn't be present (or atleast MAPI_E_NOT_FOUND)
 
