@@ -1365,6 +1365,15 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID,
     return hrSuccess;
 }
 
+static inline bool is_embedded_msg(const std::list<SPropValue *> &proplist)
+{
+	for (auto pp : proplist)
+		if (pp->ulPropTag == PR_ATTACH_METHOD &&
+		    pp->Value.ul == ATTACH_EMBEDDED_MSG)
+			return true;
+	return false;
+}
+
 /**
  * Finalize the TNEF object. If the constructors ulFlags was
  * TNEF_DECODE, the properties will be saved to the given message. If
@@ -1410,6 +1419,8 @@ HRESULT ECTNEF::Finish()
 			sProp.ulPropTag = PR_ATTACH_METHOD;
 			if (att->rdata.usType == AttachTypeOle)
 				sProp.Value.ul = ATTACH_OLE;
+			else if (is_embedded_msg(att->lstProps))
+				sProp.Value.ul = ATTACH_EMBEDDED_MSG;
 			else
 				sProp.Value.ul = ATTACH_BY_VALUE;
 

@@ -1190,8 +1190,6 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 		vmMailboxNew = vmime::make_shared<vmime::mailboxGroup>(getVmimeTextFromWide(strName));
 	} else if (sopt.no_recipients_workaround == true) {
 		// gateway must always return a mailbox object
-		if (strEmail.empty())
-			strEmail = L"@";	// force having an address to avoid vmime problems
 		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail));
 	} else {
 		if (strEmail.empty()) {
