@@ -7,6 +7,7 @@
 #include <inetmapi/inetmapi.h>
 %}
 
+%include <std_string.i>
 %include <kopano/typemap.i>
 
 /* Finalize output parameters */
@@ -25,6 +26,9 @@
 
     temp = std::string(buf, size);
     $1 = &temp;
+}
+
+%typemap(freearg) (const std::string &input) {
 }
 
 %typemap(in,numinputs=0) (char** lppchardelete) (char *temp) {
