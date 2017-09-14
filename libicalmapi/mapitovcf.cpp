@@ -96,8 +96,10 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	HRESULT hr2 = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop2);
 	if (hr == hrSuccess || hr2 == hrSuccess) {
 		auto node = addGroup(root, VCNameProp);
-		to_prop(node, VCGivenNameProp, *msgprop);
-		to_prop(node, VCFamilyNameProp, *msgprop2);
+		if (msgprop != nullptr)
+			to_prop(node, VCGivenNameProp, *msgprop);
+		if (msgprop2 != nullptr)
+			to_prop(node, VCFamilyNameProp, *msgprop2);
 	} else if (hr != MAPI_E_NOT_FOUND) {
 		return hr;
 	} else if (hr2 != MAPI_E_NOT_FOUND) {
