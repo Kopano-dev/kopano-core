@@ -57,6 +57,7 @@ Changes:
 Packager notes:
 * libicu changed from optional to required build dependency
 * kopano-server S3 store required libs3 4.1 [KC-751]
+* python/swig is now optional [KC-753]
 
 
 Release notes for 8.3.5
