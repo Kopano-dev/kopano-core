@@ -1365,9 +1365,9 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID,
     return hrSuccess;
 }
 
-static inline bool is_embedded_msg(const std::list<SPropValue *> &proplist)
+static inline bool is_embedded_msg(const std::list<KCHL::memory_ptr<SPropValue>> &proplist)
 {
-	for (auto pp : proplist)
+	for (const auto &pp : proplist)
 		if (pp->ulPropTag == PR_ATTACH_METHOD &&
 		    pp->Value.ul == ATTACH_EMBEDDED_MSG)
 			return true;
