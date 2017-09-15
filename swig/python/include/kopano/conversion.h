@@ -70,10 +70,10 @@ PyObject *Object_from_SSortOrderSet(const SSortOrderSet *lpSortOrderSet);
 
 extern PyObject *List_from_SRowSet(const SRowSet *);
 extern PyObject *List_from_LPSRowSet(const SRowSet *);
-extern SRowSet *List_to_p_SRowSet(PyObject *, ULONG flags = CONV_COPY_SHALLOW);
-extern SRowSet *List_to_LPSRowSet(PyObject *, ULONG flags = CONV_COPY_SHALLOW);
-extern ADRLIST *List_to_p_ADRLIST(PyObject *, ULONG flags = CONV_COPY_SHALLOW);
-extern ADRLIST *List_to_LPADRLIST(PyObject *, ULONG flags = CONV_COPY_SHALLOW);
+extern SRowSet *List_to_p_SRowSet(PyObject *, ULONG flags = CONV_COPY_SHALLOW, void *lpBase = nullptr);
+extern SRowSet *List_to_LPSRowSet(PyObject *, ULONG flags = CONV_COPY_SHALLOW, void *lpBase = nullptr);
+extern ADRLIST *List_to_p_ADRLIST(PyObject *, ULONG flags = CONV_COPY_SHALLOW, void *lpBase = nullptr);
+extern ADRLIST *List_to_LPADRLIST(PyObject *, ULONG flags = CONV_COPY_SHALLOW, void *lpBase = nullptr);
 extern PyObject *List_from_ADRLIST(const ADRLIST *);
 extern PyObject *List_from_LPADRLIST(const ADRLIST *);
 
