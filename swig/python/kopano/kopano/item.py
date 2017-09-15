@@ -188,12 +188,7 @@ class Item(Base):
     @property
     def mapiobj(self):
         if not self._mapiobj:
-            flags = MAPI_MODIFY | self._content_flag
-
-            self.mapiobj = _utils.openentry_raw(
-                self.store.mapiobj, self._entryid, flags
-            )
-
+            self.mapiobj = _utils.openentry_raw(self.store.mapiobj, self._entryid, self._content_flag)
         return self._mapiobj
 
     @mapiobj.setter

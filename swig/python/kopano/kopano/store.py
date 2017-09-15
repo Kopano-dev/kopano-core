@@ -369,7 +369,7 @@ class Store(Base):
         item.store = self
         item.server = self.server
         try:
-            item.mapiobj = _utils.openentry_raw(self.mapiobj, _unhex(entryid), MAPI_MODIFY) # XXX soft-deleted item?
+            item.mapiobj = _utils.openentry_raw(self.mapiobj, _unhex(entryid), 0) # XXX soft-deleted item?
         except MAPIErrorNotFound:
             raise NotFoundError("no item with entryid '%s'" % entryid)
         return item
