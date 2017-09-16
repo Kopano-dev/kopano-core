@@ -4470,15 +4470,24 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
  * return a number or a UID, depending on the input.
  * A special treatment for 
  * 
- * @param[in] szNr a number of the sequence input
+ * @param[in] szNr a number of the sequence input (RFC 3501 page 89)
  * @param[in] bUID sequence input are UID numbers or not
  * 
  * @return the number corresponding to the input.
  */
 ULONG IMAP::LastOrNumber(const char *szNr, bool bUID)
 {
-	if (*szNr != '*')
-		return atoui(szNr);
+	if (*szNr != '*') {
+		char *end = nullptr;
+		ULONG r = strtoul(szNr, &end, 10); /* RFC 3501 page 87 */
+		/*
+		 * This function may be called to parse the first part of a
+		 * sequence, so need to ignore the colon.
+		 * */
+		if (end != nullptr && *end != '\0' && *end != ':')
+			ec_log_debug("Illegal sequence number \"%s\" found; client is not compliant to RFC 3501.", szNr);
+		return r;
+	}
 
 	if (!bUID)
 		return lstFolderMailEIDs.size();
