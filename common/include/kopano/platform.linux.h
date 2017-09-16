@@ -397,12 +397,6 @@ enum STREAM_SEEK {
     STREAM_SEEK_END	= 2
 };
 
-enum LOCKTYPE {
-    LOCK_WRITE		= 1,
-    LOCK_EXCLUSIVE	= 2,
-    LOCK_ONLYONCE	= 4
-};
-
 enum STATFLAG {
     STATFLAG_DEFAULT	= 0,
     STATFLAG_NONAME	= 1,
