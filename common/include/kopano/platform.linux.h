@@ -370,15 +370,6 @@ struct SYSTEMTIME {
 };
 typedef struct SYSTEMTIME *PSYSTEMTIME;
 
-struct TZREG {
-	LONG bias;
-	LONG stdbias;
-	LONG dstbias;
-	SYSTEMTIME stStandardDate;
-	SYSTEMTIME stDaylightDate;
-};
-typedef struct TZREG *PTZREG;
-
 struct STATSTG {
     LPSTR pwcsName;		// was LPOLESTR .. wtf is that?
     DWORD type;
