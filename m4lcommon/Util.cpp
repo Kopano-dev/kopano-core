@@ -1443,42 +1443,6 @@ HRESULT Util::HrTextToHtml(const WCHAR *text, std::string &strHTML, ULONG ulCode
 	return hr;
 }
 
-static const struct _rtfcodepages {
-	int id;						// RTF codepage ID
-	ULONG ulCodepage;			// Windows codepage
-} RTFCODEPAGES[] = {
-	{437, 437},					// United States IBM
-	{708, 0},					// Arabic (ASMO 708)
-	{709, 0},					// Arabic (ASMO 449+, BCON V4)
-	{710, 0},					// Arabic (transparent Arabic)
-	{711, 0},					// Arabic (Nafitha Enhanced)
-	{720, 0},					// Arabic (transparent ASMO)
-	{819, 0},		 // Windows 3.1 (United States and Western Europe)
-	{850, 1252},		 // IBM multilingual
-	{852, 1251},		 // Eastern European
-	{860, 0},		 // Portuguese
-	{862, 0},		 // Hebrew
-	{863, 0},		 // French Canadian
-	{864, 0},		 // Arabic
-	{865, 0},		 // Norwegian
-	{866, 0},		 // Soviet Union
-	{874, 0},		 // Thai
-	{932, 50220},		 // Japanese
-	{936, 936},		 // Simplified Chinese
-	{949, 0},		 // Korean
-	{950, 0},		 // Traditional Chinese
-	{1250, 0},		 // Windows 3.1 (Eastern European)
-	{1251, 0},		 // Windows 3.1 (Cyrillic)
-	{1252, 0},		 // Western European
-	{1253, 0},		 // Greek
-	{1254, 0},		 // Turkish
-	{1255, 0},		 // Hebrew
-	{1256, 0},		 // Arabic
-	{1257, 0},		 // Baltic
-	{1258, 0},		 // Vietnamese
-	{1361, 0},		 // Johab
-};
-
 /**
  * Convert plaintext to uncompressed RTF using streams.
  *
