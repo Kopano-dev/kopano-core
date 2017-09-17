@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <exception>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -2158,7 +2159,7 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 	list<string> userEnabled = lpDetails->GetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A);
 	list<string> userDisabled = lpDetails->GetPropListString((property_key_t)PR_EC_DISABLED_FEATURES_A);
 	std::vector<std::string> ddv = tokenize(m_lpConfig->GetSetting("disabled_features"), "\t ");
-	std::set<std::string> defaultDisabled(ddv.begin(), ddv.end());
+	std::set<std::string> defaultDisabled(std::make_move_iterator(ddv.begin()), std::make_move_iterator(ddv.end()));
 
 	for (auto i = defaultDisabled.cbegin(); i != defaultDisabled.cend(); ) {
 		if (i->empty()) {
@@ -2210,7 +2211,7 @@ ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails)
 	list<string> userDisabled = lpDetails->GetPropListString((property_key_t)PR_EC_DISABLED_FEATURES_A);
 
 	std::vector<std::string> ddv = tokenize(m_lpConfig->GetSetting("disabled_features"), "\t ");
-	std::set<std::string> defaultDisabled(ddv.begin(), ddv.end());
+	std::set<std::string> defaultDisabled(std::make_move_iterator(ddv.begin()), std::make_move_iterator(ddv.end()));
 
 	// remove all default disabled from enabled and user explicit list
 	for (const auto &s : defaultDisabled) {

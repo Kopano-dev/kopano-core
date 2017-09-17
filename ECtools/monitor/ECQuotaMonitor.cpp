@@ -270,7 +270,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 	if(lpszServersConfig) {
 		// split approach taken from kopano-backup/backup.cpp
 		std::vector<std::string> ddv = tokenize(lpszServersConfig, "\t ");
-		std::move(ddv.begin(), ddv.end(), std::inserter(setServersConfig, setServersConfig.begin()));
+		setServersConfig.insert(std::make_move_iterator(ddv.begin()), std::make_move_iterator(ddv.end()));
 	}
 
 	for (const auto &server : setServers) {
