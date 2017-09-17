@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 CADIR=./demoCA
-DAYS=$[3*365]
+DAYS=$((3*365))
 NAME=$1
 
 if [ -d /usr/share/ssl/misc ]; then
