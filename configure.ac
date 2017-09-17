@@ -510,8 +510,10 @@ LIBS=$LIBS_system
 
 AC_SEARCH_LIBS([crypt_r], [crypt], [CRYPT_LIBS="-lcrypt"; LIBS="$LIBS_system"])
 AC_SEARCH_LIBS([clock_gettime], [rt], [clock_LIBS="-lrt"; LIBS="$LIBS_system"])
+AC_SEARCH_LIBS([timer_create], [rt], [timer_LIBS="-lrt"; LIBS="$LIBS_system"])
 AC_SUBST([CRYPT_LIBS])
 AC_SUBST([clock_LIBS])
+AC_SUBST([timer_LIBS])
 PKG_CHECK_EXISTS([libssl],
 	[
 		PKG_CHECK_MODULES([SSL], [libssl], [], [ssl_LIBS=-lssl])
