@@ -519,6 +519,8 @@ LIBS="$LIBS_system"
 AC_SEARCH_LIBS([timer_create], [rt], [
 	AS_IF([test "$LIBS" = "$LIBS_system"], [timer_LIBS=""], [timer_LIBS="-lrt"])
 ])
+dnl AC_SEARCH_LIBS does not set any define in config.h, so check again
+AC_CHECK_FUNCS([timer_create])
 LIBS="$LIBS_system"
 AC_SUBST([CRYPT_LIBS])
 AC_SUBST([clock_LIBS])
