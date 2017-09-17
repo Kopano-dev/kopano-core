@@ -900,8 +900,8 @@ static int running_server(char *szName, const char *szConfig,
         { "enable_enhanced_ics",    "yes", CONFIGSETTING_RELOADABLE },			// (dis)allow enhanced ICS operations (stream and notifications)
         { "enable_sql_procedures",  "no" },			// (dis)allow SQL procedures (requires mysql config stack adjustment), not reloadable because in the middle of the streaming flip
 		
-		{ "report_path",			"/etc/kopano/report", CONFIGSETTING_RELOADABLE },
-		{ "report_ca_path",			"/etc/kopano/report-ca", CONFIGSETTING_RELOADABLE },
+		{"report_path", "/etc/kopano/report", CONFIGSETTING_RELOADABLE | CONFIGSETTING_UNUSED},
+		{"report_ca_path", "/etc/kopano/report-ca", CONFIGSETTING_RELOADABLE | CONFIGSETTING_UNUSED},
 		
 		{ "cache_sortkey_size",		"0", CONFIGSETTING_UNUSED }, // Option not support, only for backward compatibility of all configurations under the 6.20
 
