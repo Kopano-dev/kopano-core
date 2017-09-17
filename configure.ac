@@ -508,9 +508,18 @@ iconv_t i; i = iconv_open("", "");
 AC_SUBST(ICONV_LIBS)
 LIBS=$LIBS_system
 
-AC_SEARCH_LIBS([crypt_r], [crypt], [CRYPT_LIBS="-lcrypt"; LIBS="$LIBS_system"])
-AC_SEARCH_LIBS([clock_gettime], [rt], [clock_LIBS="-lrt"; LIBS="$LIBS_system"])
-AC_SEARCH_LIBS([timer_create], [rt], [timer_LIBS="-lrt"; LIBS="$LIBS_system"])
+AC_SEARCH_LIBS([crypt_r], [crypt], [
+	AS_IF([test "$LIBS" = "$LIBS_system"], [CRYPT_LIBS=""], [CRYPT_LIBS="-lcrypt"])
+])
+LIBS="$LIBS_system"
+AC_SEARCH_LIBS([clock_gettime], [rt], [
+	AS_IF([test "$LIBS" = "$LIBS_system"], [clock_LIBS=""], [clock_LIBS="-lrt"])
+])
+LIBS="$LIBS_system"
+AC_SEARCH_LIBS([timer_create], [rt], [
+	AS_IF([test "$LIBS" = "$LIBS_system"], [timer_LIBS=""], [timer_LIBS="-lrt"])
+])
+LIBS="$LIBS_system"
 AC_SUBST([CRYPT_LIBS])
 AC_SUBST([clock_LIBS])
 AC_SUBST([timer_LIBS])
