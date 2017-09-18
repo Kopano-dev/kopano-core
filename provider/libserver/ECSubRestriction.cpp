@@ -114,11 +114,15 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
 	auto lpResults = new SUBRESTRICTIONRESULTS;
 	for (unsigned int i = 0; i < ulCount; ++i) {
         er = GetSubRestriction(lpRestrict, i, &lpSubRestrict);
-        if(er != erSuccess)
-			return er;
+        if (er != erSuccess) {
+		delete lpResults;
+		return er;
+	}
         er = RunSubRestriction(lpSession, lpECODStore, lpSubRestrict, lpObjects, locale, &lpResult);
-        if(er != erSuccess)
-			return er;
+        if (er != erSuccess) { 
+		delete lpResults;
+		return er;
+	}
             
         lpResults->push_back(lpResult);
     }
