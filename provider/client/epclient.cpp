@@ -727,55 +727,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	} // switch(ulContext)
 
 exit:
-	if (lppMapiError) {
-		
-		*lppMapiError = NULL;
-
-		if(hr != hrSuccess) {
-			memory_ptr<TCHAR> lpszErrorMsg;
-
-			if (Util::HrMAPIErrorToText(hr, &~lpszErrorMsg) == hrSuccess) {
-				// Set Error
-				strError = KC_T("EntryPoint: ");
-				strError += lpszErrorMsg;
-
-				// Some outlook 2007 clients can't allocate memory so check it
-				if(MAPIAllocateBuffer(sizeof(MAPIERROR), (void**)&lpMapiError) == hrSuccess) { 
-
-					memset(lpMapiError, 0, sizeof(MAPIERROR));				
-					if (ulFlags & MAPI_UNICODE) {
-						std::wstring wstrErrorMsg = convert_to<std::wstring>(strError);
-						std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
-							
-						if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
-							goto exit;
-						wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
-						
-						if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
-							goto exit;
-						wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
-					} else {
-						std::string strErrorMsg = convert_to<std::string>(strError);
-						std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
-
-						if ((hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
-							goto exit;
-						strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
-						
-						if ((hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
-							goto exit;
-						strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());  
-					}
-				
-					lpMapiError->ulVersion = 0;
-					lpMapiError->ulLowLevelError = 0;
-					lpMapiError->ulContext = 0;
-
-					*lppMapiError = lpMapiError;
-				}
-			}
-		}
-	}
 	return hr;
 }
 
