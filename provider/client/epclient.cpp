@@ -678,7 +678,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 						
 			if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS) && (strServerName.empty() || sProfileProps.strUserName.empty())){
 				hr = MAPI_E_UNCONFIGURED;
-				goto exit;
+				goto exit2;
 			}else if(!strServerName.empty() && !sProfileProps.strUserName.empty()) {
 				//Logon the server
 				hr = lpTransport->HrLogon(sProfileProps);
@@ -701,14 +701,14 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 				// what do we do on linux?
 				cout << "Access Denied: Incorrect username and/or password." << endl;
 				hr = MAPI_E_UNCONFIGURED;
-				goto exit;
+				goto exit2;
 			}else if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS)){
 				// Do not reset the logon error from HrLogon()
 				// The DAgent uses this value to determain if the delivery is fatal or not
 				// 
 				// Although this error is not in the online spec from MS, it should not really matter .... right?
 				// hr = MAPI_E_UNCONFIGURED;
-				goto exit;
+				goto exit2;
 			}
 
 		}// while(1)
@@ -716,9 +716,10 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		if(bInitStores) {
 			hr = UpdateProviders(lpAdminProviders, sProfileProps);
 			if(hr != hrSuccess)
-				goto exit;
+				goto exit2;
 		}
 
+ exit2:
 		static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
 		lpTransport->Release();
 		ptrGlobalProfSect->DeleteProps(tags, nullptr);
