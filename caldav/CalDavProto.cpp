@@ -1355,19 +1355,16 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 		if(hr != hrSuccess)
 		{
 			ec_log_debug("CalDAV::HrListCalendar HrGetOneProp(PR_IPM_WASTEBASKET_ENTRYID) failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-			hr = hrSuccess;
 			goto nowaste;
 		}
 		hr = m_lpActiveStore->OpenEntry(lpSpropWbEID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpSpropWbEID->Value.bin.lpb), &iid_of(lpWasteBox), MAPI_BEST_ACCESS, &ulObjType, &~lpWasteBox);
 		if(hr != hrSuccess)
 		{
-			hr = hrSuccess;
 			goto nowaste;
 		}
 		hr = HrGetSubCalendars(m_lpSession, lpWasteBox, nullptr, &~lpDelHichyTable);
 		if(hr != hrSuccess)
 		{
-			hr = hrSuccess;
 			goto nowaste;
 		}
 	}
