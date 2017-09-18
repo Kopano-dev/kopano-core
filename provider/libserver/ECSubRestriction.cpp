@@ -32,6 +32,8 @@
 
 namespace KC {
 
+static ECRESULT RunSubRestriction(ECSession *, const void *ecod_store, struct restrictSub *, ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULT **);
+
 static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
     unsigned int *lpulCount, unsigned int ulSubRestriction,
     struct restrictSub **lppSubRestrict, unsigned int maxdepth)
@@ -128,7 +130,7 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
 }
 
 // Run a single subquery on a set of objects
-ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
+static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
     struct restrictSub *lpRestrict, ECObjectTableList *lpObjects,
     const ECLocale &locale, SUBRESTRICTIONRESULT **lppResult)
 {
