@@ -622,8 +622,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		ulCount = 1;
 	}
 
-	ulMVProp = 0;
-
 	for (ulMVProp = 0; ulMVProp < ulCount; ++ulMVProp) {
 		switch(PROP_TYPE(lpProp->ulPropTag) &~ MV_FLAG) {
 		case PT_I2:
