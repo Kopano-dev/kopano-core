@@ -789,18 +789,13 @@ SPropValue *List_to_p_SPropValue(PyObject *object, ULONG *cValues,
 
 	size = PyObject_Size(object);
 
-	if(lpBase != nullptr) {
-		if (MAPIAllocateMore(sizeof(SPropValue)*size, lpBase, reinterpret_cast<void**>(&lpProps)) != hrSuccess)
-			goto exit;
-	} else {
-		if (MAPIAllocateBuffer(sizeof(SPropValue)*size, reinterpret_cast<void**>(&lpProps)) != hrSuccess)
-			goto exit;
-	}
+	if (MAPIAllocateMore(sizeof(SPropValue)*size, lpBase, reinterpret_cast<void**>(&lpProps)) != hrSuccess)
+		goto exit;
 
 	memset(lpProps, 0, sizeof(SPropValue)*size);
 
 	while((elem = PyIter_Next(iter))) {
-		Object_to_LPSPropValue(elem, &lpProps[i], ulFlags, lpProps);
+		Object_to_LPSPropValue(elem, &lpProps[i], ulFlags, lpBase != nullptr? lpBase : lpProps);
 		if(PyErr_Occurred())
 			goto exit;
 
@@ -1459,7 +1454,7 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 	{
 		PyObject *poAdrList = PyObject_GetAttrString(poActObject, "lpadrlist");
 		// @todo fix memleak
-		lpAction->lpadrlist = List_to_LPADRLIST(poAdrList);
+		lpAction->lpadrlist = List_to_LPADRLIST(poAdrList, CONV_COPY_SHALLOW, lpBase);
 		Py_DECREF(poAdrList);
 		break;
 	}
@@ -1537,7 +1532,7 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 
 	i = 0;
 	while ((elem = PyIter_Next(iter))) {
-		Object_to_LPACTION(elem, &lpActions->lpAction[i++], lpActions);
+		Object_to_LPACTION(elem, &lpActions->lpAction[i++], lpBase != nullptr? lpBase : lpActions);
 		Py_DECREF(elem);
 	}
 
@@ -1707,7 +1702,7 @@ PyObject *List_from_LPSRowSet(const SRowSet *s)
 	return List_from_SRowSet(s);
 }
 
-SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags)
+SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags, void *lpBase)
 {
 	PyObject *iter = NULL;
 	PyObject *elem = NULL;
@@ -1726,13 +1721,13 @@ SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags)
 
 	// Zero out the whole struct so that failures halfway don't leave the struct
 	// in an uninitialized state for FreeProws()
-	if (MAPIAllocateBuffer(CbNewSRowSet(len), (void **)&lpsRowSet) != hrSuccess)
+	if (MAPIAllocateMore(CbNewSRowSet(len), lpBase, (void **)&lpsRowSet) != hrSuccess)
 		goto exit;
 
 	memset(lpsRowSet, 0, CbNewSRowSet(len));
 
 	while((elem = PyIter_Next(iter))) {
-		lpsRowSet->aRow[i].lpProps = List_to_LPSPropValue(elem, &lpsRowSet->aRow[i].cValues, ulFlags);
+		lpsRowSet->aRow[i].lpProps = List_to_LPSPropValue(elem, &lpsRowSet->aRow[i].cValues, ulFlags, lpBase);
 
 		if(PyErr_Occurred())
 			goto exit;
@@ -1758,21 +1753,21 @@ exit:
 	return lpsRowSet;
 }
 
-SRowSet *List_to_LPSRowSet(PyObject *obj, ULONG flags)
+SRowSet *List_to_LPSRowSet(PyObject *obj, ULONG flags, void *lpBase)
 {
-	return List_to_p_SRowSet(obj, flags);
+	return List_to_p_SRowSet(obj, flags, lpBase);
 }
 
-ADRLIST *List_to_p_ADRLIST(PyObject *av, ULONG ulFlags)
+ADRLIST *List_to_p_ADRLIST(PyObject *av, ULONG ulFlags, void *lpBase)
 {
 	// Binary compatible
-	return (LPADRLIST) List_to_LPSRowSet(av, ulFlags);
+	return (LPADRLIST) List_to_LPSRowSet(av, ulFlags, lpBase);
 }
 
-ADRLIST *List_to_LPADRLIST(PyObject *av, ULONG ulFlags)
+ADRLIST *List_to_LPADRLIST(PyObject *av, ULONG ulFlags, void *lpBase)
 {
 	// Binary compatible
-	return (LPADRLIST) List_to_LPSRowSet(av, ulFlags);
+	return (LPADRLIST) List_to_LPSRowSet(av, ulFlags, lpBase);
 }
 
 PyObject *List_from_ADRLIST(const ADRLIST *lpAdrList)
