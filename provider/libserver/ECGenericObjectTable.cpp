@@ -2132,8 +2132,8 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 				sEntryId.__size = lpProp->Value.bin->__size;
 				if(lpCacheManager->GetObjectFromEntryId(&sEntryId, &ulResId) == erSuccess)
 				{
-					auto r = (*lpSubResults)[ulSubRestrict]->find(ulResId); // If the item is in the set, it matched
-					if (r != (*lpSubResults)[ulSubRestrict]->cend())
+					auto r = (*lpSubResults)[ulSubRestrict].find(ulResId); // If the item is in the set, it matched
+					if (r != (*lpSubResults)[ulSubRestrict].cend())
 						fMatch = true;
 				}
             }

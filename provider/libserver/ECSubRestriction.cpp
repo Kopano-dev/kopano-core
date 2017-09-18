@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include <cassert>
 #include "ECSubRestriction.h"
 
@@ -32,7 +33,7 @@
 
 namespace KC {
 
-static ECRESULT RunSubRestriction(ECSession *, const void *ecod_store, struct restrictSub *, ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULT **);
+static ECRESULT RunSubRestriction(ECSession *, const void *ecod_store, struct restrictSub *, ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULT &);
 
 static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
     unsigned int *lpulCount, unsigned int ulSubRestriction,
@@ -106,7 +107,6 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
     const ECLocale &locale, SUBRESTRICTIONRESULTS **lppResults)
 {
     unsigned int ulCount = 0;
-    SUBRESTRICTIONRESULT *lpResult = NULL;
     struct restrictSub *lpSubRestrict = NULL;
     
 	auto er = GetSubRestrictionCount(lpRestrict, &ulCount);
@@ -118,11 +118,11 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
         er = GetSubRestriction(lpRestrict, i, &lpSubRestrict);
         if(er != erSuccess)
 			return er;
-        er = RunSubRestriction(lpSession, lpECODStore, lpSubRestrict, lpObjects, locale, &lpResult);
+		SUBRESTRICTIONRESULT result;
+		er = RunSubRestriction(lpSession, lpECODStore, lpSubRestrict, lpObjects, locale, result);
         if(er != erSuccess)
 			return er;
-            
-        lpResults->push_back(lpResult);
+        lpResults->push_back(std::move(result));
     }
     
 	*lppResults = lpResults;
@@ -132,7 +132,7 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
 // Run a single subquery on a set of objects
 static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
     struct restrictSub *lpRestrict, ECObjectTableList *lpObjects,
-    const ECLocale &locale, SUBRESTRICTIONRESULT **lppResult)
+    const ECLocale &locale, SUBRESTRICTIONRESULT &result)
 {
     unsigned int ulType = 0;
     std::string strQuery;
@@ -234,8 +234,7 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
             auto iterParent = mapParent.find(iterObject->ulObjId);
             if (iterParent != mapParent.cend())
                 // Remember the id of the message one of whose subobjects matched
-
-                lpResult->insert(iterParent->second);
+                result.insert(iterParent->second);
         }
         
         // Optimisation possibility: if one of the subobjects matches, we shouldn't bother checking
@@ -246,8 +245,6 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
     }
 
 exit:
-	if (er == erSuccess)
-		*lppResult = lpResult.release();
     if(lpRowSet)
         FreeRowSet(lpRowSet, true);
     if(lpPropTags)
@@ -258,8 +255,6 @@ exit:
 
 // Frees a SUBRESTRICTIONRESULTS object
 ECRESULT FreeSubRestrictionResults(SUBRESTRICTIONRESULTS *lpResults) {
-	for (const auto &r : *lpResults)
-		delete r;
     delete lpResults;
 	return erSuccess;
 }

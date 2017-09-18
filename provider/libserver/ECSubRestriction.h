@@ -50,7 +50,7 @@ class ECSession;
 // attachment id)
 typedef std::set<unsigned int> SUBRESTRICTIONRESULT;
 // A list of sets of subquery matches
-typedef std::vector<SUBRESTRICTIONRESULT *> SUBRESTRICTIONRESULTS;
+typedef std::vector<SUBRESTRICTIONRESULT> SUBRESTRICTIONRESULTS;
 
 ECRESULT GetSubRestrictionCount(struct restrictTable *lpRestrict, unsigned int *lpulCount);
 ECRESULT GetSubRestriction(struct restrictTable *lpBase, unsigned int ulCount, struct restrictSub **lppSubRestrict);
