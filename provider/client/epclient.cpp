@@ -631,13 +631,13 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		/* Open global {profile section}, add the store. (for show list, delete etc.). */
 		hr = lpAdminProviders->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if(cvals) {
 			hr = ptrGlobalProfSect->SetProps(cvals, pvals, NULL);
 
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		hr = ClientUtil::GetGlobalProfileProperties(ptrGlobalProfSect, &sProfileProps);
@@ -662,12 +662,12 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 			reinterpret_cast<WSTransport *>(lpsPropValue->Value.lpszA)->Release();
 		hr = WSTransport::Create(ulFlags & SERVICE_UI_ALLOWED ? 0 : MDB_NO_DIALOG, &~lpTransport);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		spv.ulPropTag = PR_EC_TRANSPORTOBJECT;
 		spv.Value.lpszA = reinterpret_cast<char *>(lpTransport.get());
 		hr = HrSetOneProp(ptrGlobalProfSect, &spv);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpTransport->AddRef();
 
 		// Check the path, username and password
@@ -725,8 +725,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		ptrGlobalProfSect->DeleteProps(tags, nullptr);
 		break;
 	} // switch(ulContext)
-
-exit:
 	return hr;
 }
 
