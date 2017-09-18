@@ -7,6 +7,7 @@
 #include <ctime>
 #include <getopt.h>
 #include <spawn.h>
+#include <unistd.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
@@ -59,6 +60,7 @@ static void mpt_stat_record(const struct mpt_stat_entry &dp, size_t limit = 50)
 
 static int mpt_setup_tick(void)
 {
+#ifdef HAVE_TIMER_CREATE
 	struct sigaction sa;
 	sa.sa_handler = mpt_stat_dump;
 	sa.sa_flags = SA_RESTART;
@@ -83,6 +85,10 @@ static int mpt_setup_tick(void)
 		perror("timer_settime");
 		return -errno;
 	}
+#else
+	/* Not guaranteed to use CLOCK_MONOTONIC */
+	alarm(1);
+#endif
 	return 1;
 }
 

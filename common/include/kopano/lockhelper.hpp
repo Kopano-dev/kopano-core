@@ -21,7 +21,6 @@ class shared_mutex {
 
 	private:
 	pthread_rwlock_t mtx = PTHREAD_RWLOCK_INITIALIZER;
-	bool locked = false;
 };
 
 template<class _Mutex> class shared_lock {

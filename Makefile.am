@@ -807,7 +807,8 @@ dist_phpdata_DATA = \
 # test programs
 #
 mapitime_SOURCES = ECtools/mapitime.cpp
-mapitime_LDADD = ${clock_LIBS} libmapi.la libkcmapi.la libkcutil.la \
+mapitime_LDADD = ${clock_LIBS} ${timer_LIBS} \
+	libmapi.la libkcmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
 rosie_test_SOURCES = librosie/test.cpp
 rosie_test_LDADD = libkcrosie.la

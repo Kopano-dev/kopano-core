@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#!/bin/sh
 
 FROM=$1
 TO=$2
@@ -10,7 +10,7 @@ MSG=$5
 self="${0##*/}"
 AUTORESPOND_CC=0
 AUTORESPOND_NORECIP=0
-TIMELIMIT=$[24*60*60]
+TIMELIMIT=$((24*60*60))
 BASE_PATH=/var/lib/kopano/autorespond
 SENDDB=$BASE_PATH/vacation-$USER.db
 SENDDBTMP=$BASE_PATH/vacation-$USER-$$.tmp
@@ -80,7 +80,7 @@ if [ -f "$SENDDB" ]; then
 	if [ "$TO" != "$to" ]; then
 	    continue
 	fi
-	if [ $[$last+$TIMELIMIT] -ge $TIMESTAMP ]; then
+	if [ $(($last+$TIMELIMIT)) -ge $TIMESTAMP ]; then
 	    exit 0;
 	fi
     done < "$SENDDB"

@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include "config.h"
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
 #include <kopano/lockhelper.hpp>
@@ -986,8 +986,12 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 	ec_log_bt(EC_LOGLEVEL_CRIT, "Backtrace:");
 	ec_log_crit("Signal errno: %s, signal code: %d", strerror(si->si_errno), si->si_code);
 	ec_log_crit("Sender pid: %d, sender uid: %d, si_status: %d", si->si_pid, si->si_uid, si->si_status);
-	ec_log_crit("User time: %ld, system time: %ld, signal value: %d", si->si_utime, si->si_stime, si->si_value.sival_int);
-	ec_log_crit("Faulting address: %p, affected fd: %d", si->si_addr, si->si_fd);
+	ec_log_crit("User time: %ld, system time: %ld, signal value: %d",
+		static_cast<long>(si->si_utime), static_cast<long>(si->si_stime), si->si_value.sival_int);
+	ec_log_crit("Faulting address: %p", si->si_addr);
+#ifdef HAVE_SIGINFO_T_SI_FD
+	ec_log_crit("Affected fd: %d", si->si_fd);
+#endif
 	lpLogger->Log(EC_LOGLEVEL_FATAL, "When reporting this traceback, please include Linux distribution name (and version), system architecture and Kopano version.");
 	/* Reset to DFL to avoid recursion */
 	if (signal(signr, SIG_DFL) == SIG_ERR)
