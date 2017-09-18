@@ -4196,7 +4196,6 @@ HRESULT IMAP::HrGetMessageEnvelope(string &strResponse, LPMESSAGE lpMessage) {
 recipientsdone:
 	if (hr != hrSuccess) {
 		strResponse += "NIL NIL NIL ";
-		hr = hrSuccess;
 	}
 
 	// in reply to

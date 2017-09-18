@@ -180,7 +180,6 @@ HRESULT ECQuotaMonitor::CheckQuota()
 	if (hr == MAPI_E_NO_SUPPORT) {
 		lpsCompanyList = &sRootCompany;
 		cCompanies = 1;
-		hr = hrSuccess;
 	} else if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get companylist, error code 0x%08X", hr);
 		return hr;
@@ -456,7 +455,6 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 			}
 			hr = OpenUserStore(lpsUserList[u].lpszUsername, ACTIVE_USER, &~ptrStore);
 			if (hr != hrSuccess) {
-				hr = hrSuccess;
 				continue;
 			}
 			hr = Notify(&lpsUserList[u], lpecCompany, &sQuotaStatus, ptrStore);

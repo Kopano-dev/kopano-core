@@ -276,8 +276,6 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 	    HrOpenUserMsgStore(m_lpSession, ptrName->Value.LPSZ, &~ptrStore) == hrSuccess)
 	{
 		GetAutoAcceptSettings(ptrStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
-		// ignore error, default true.
-		hr = hrSuccess;
 	}
 
 	switch (m_ulOutlookVersion) {

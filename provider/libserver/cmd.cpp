@@ -2607,8 +2607,6 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 
 				// More cache
 				if (g_lpSessionManager->GetCacheManager()->GetObject(lpsReturnObj->ulServerId, &ulParentTmp, &ulOwnerTmp, &ulFlagsTmp, &ulTypeTmp) == erSuccess) {
-					ulFlags &= ~MSGFLAG_HASATTACH;
-					ulFlags |= fHasAttach ? MSGFLAG_HASATTACH : 0;
 					g_lpSessionManager->GetCacheManager()->SetObject(lpsReturnObj->ulServerId, ulParentTmp, ulOwnerTmp, ulFlagsTmp, ulTypeTmp);
 				}
 			}

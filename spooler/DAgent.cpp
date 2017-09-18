@@ -3229,7 +3229,7 @@ static void *HandlerLMTP(void *lpArg)
 
 		case LMTP_Command_QUIT:
 			lmtp.HrResponse("221 2.0.0 Bye");
-			bLMTPQuit = 1;
+			bLMTPQuit = true;
 			break;	
 		}
 	}
