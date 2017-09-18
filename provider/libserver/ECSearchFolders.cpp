@@ -438,7 +438,6 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
     unsigned int ulOwner = 0;
     ECSession *lpSession = NULL;
 	ECODStore ecOBStore;
-	SUBRESTRICTIONRESULTS *lpSubResults = NULL;
     struct rowSet *lpRowSet = NULL;
     struct propTagArray *lpPropTags = NULL;
     unsigned int ulParent = 0;
@@ -598,8 +597,9 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						ec_log_crit("ECSearchFolders::ProcessMessageChange(): ECStoreObjectTable::QueryRowData failed %d", er);
 						goto exit;
 					}
-						
-					er = RunSubRestrictions(lpSession, &ecOBStore, folder.second->lpSearchCriteria->lpRestrict, lstObjectIDs, locale, &lpSubResults);
+
+					SUBRESTRICTIONRESULTS sub_results;
+					er = RunSubRestrictions(lpSession, &ecOBStore, folder.second->lpSearchCriteria->lpRestrict, lstObjectIDs, locale, sub_results);
 					if(er != erSuccess) {
 						ec_log_crit("ECSearchFolders::ProcessMessageChange(): RunSubRestrictions failed %d", er);
 						goto exit;
@@ -611,8 +611,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						bool fMatch;
 
 						// Match the restriction
-						er = ECGenericObjectTable::MatchRowRestrict(cache, &lpRowSet->__ptr[i], folder.second->lpSearchCriteria->lpRestrict, lpSubResults, locale, &fMatch);
-
+						er = ECGenericObjectTable::MatchRowRestrict(cache, &lpRowSet->__ptr[i], folder.second->lpSearchCriteria->lpRestrict, &sub_results, locale, &fMatch);
 						if (er != erSuccess)
 							continue;
 						if (fMatch) {
@@ -682,11 +681,6 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					FreeRowSet(lpRowSet, true);
 					lpRowSet = NULL;
 				}
-				if(lpSubResults){
-					FreeSubRestrictionResults(lpSubResults);
-					lpSubResults = NULL;
-				}
-
 			} else {
 				// Not in a target folder, remove from search results
 				for (const auto &obj_id : *lstObjectIDs)
@@ -768,9 +762,6 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
         lpSession->Unlock();
         m_lpSessionManager->RemoveSessionInternal(lpSession);
     }
-        
-	delete lpSubResults;
-        
     if(lpRowSet)
         FreeRowSet(lpRowSet, true);
         
@@ -806,7 +797,6 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 {
 	ECRESULT er = erSuccess;
 	struct rowSet *lpRowSet = NULL;
-	SUBRESTRICTIONRESULTS *lpSubResults = NULL;
 	int lCount = 0;
 	int lUnreadCount = 0;
 	bool fMatch = false;
@@ -814,6 +804,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 	unsigned int ulParent = 0;
 	std::list<unsigned int> lstMatches;
 	std::list<unsigned int> lstFlags;
+	SUBRESTRICTIONRESULTS sub_results;
 	
 	assert(lpPropTags->__ptr[0] == PR_MESSAGE_FLAGS);
 	auto iterRows = ecRows.cbegin();
@@ -840,7 +831,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 	}
         
     // Get the subrestriction results for the search
-    er = RunSubRestrictions(lpSession, lpODStore, lpRestrict, &ecRows, locale, &lpSubResults);
+    er = RunSubRestrictions(lpSession, lpODStore, lpRestrict, &ecRows, locale, sub_results);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() RunSubRestrictions failed %d", er);
 		goto exit;
@@ -850,7 +841,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     lCount=0;
     lUnreadCount=0;
     for (gsoap_size_t j = 0; j< lpRowSet->__size && (!lpbCancel || !*lpbCancel); ++j, ++iterRows) {
-		if (ECGenericObjectTable::MatchRowRestrict(cache, &lpRowSet->__ptr[j], lpRestrict, lpSubResults, locale, &fMatch) != erSuccess)
+		if (ECGenericObjectTable::MatchRowRestrict(cache, &lpRowSet->__ptr[j], lpRestrict, &sub_results, locale, &fMatch) != erSuccess)
             continue;
 
         if(!fMatch)
@@ -910,12 +901,6 @@ exit:
         FreeRowSet(lpRowSet, true);
         lpRowSet = NULL;
     }
-    
-    if(lpSubResults) {
-        FreeSubRestrictionResults(lpSubResults);
-        lpSubResults = NULL;
-    }
-    
     return er;
 }    
 

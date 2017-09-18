@@ -101,19 +101,19 @@ ECRESULT GetSubRestriction(struct restrictTable *lpBase, unsigned int ulCount, s
 	return GetSubRestrictionRecursive(lpBase, NULL, ulCount, lppSubRestrict, SUBRESTRICTION_MAXDEPTH);
 }
 
-// Get results for all subqueries for a set of objects (should be freed with FreeSubRestrictionResults() )
+// Get results for all subqueries for a set of objects
 ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
     struct restrictTable *lpRestrict, ECObjectTableList *lpObjects,
-    const ECLocale &locale, SUBRESTRICTIONRESULTS **lppResults)
+    const ECLocale &locale, SUBRESTRICTIONRESULTS &results)
 {
     unsigned int ulCount = 0;
     struct restrictSub *lpSubRestrict = NULL;
-    
+
+	results.clear();
 	auto er = GetSubRestrictionCount(lpRestrict, &ulCount);
     if(er != erSuccess)
 		return er;
-    
-	auto lpResults = new SUBRESTRICTIONRESULTS;
+
 	for (unsigned int i = 0; i < ulCount; ++i) {
         er = GetSubRestriction(lpRestrict, i, &lpSubRestrict);
         if(er != erSuccess)
@@ -122,10 +122,8 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
 		er = RunSubRestriction(lpSession, lpECODStore, lpSubRestrict, lpObjects, locale, result);
         if(er != erSuccess)
 			return er;
-        lpResults->push_back(std::move(result));
+		results.push_back(std::move(result));
     }
-    
-	*lppResults = lpResults;
 	return erSuccess;
 }
 
@@ -251,12 +249,6 @@ exit:
         FreePropTagArray(lpPropTags);
         
     return er;
-}
-
-// Frees a SUBRESTRICTIONRESULTS object
-ECRESULT FreeSubRestrictionResults(SUBRESTRICTIONRESULTS *lpResults) {
-    delete lpResults;
-	return erSuccess;
 }
 
 } /* namespace */

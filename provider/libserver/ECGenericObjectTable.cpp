@@ -206,8 +206,6 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 	unsigned int	ulRow = 0;
 	unsigned int	ulCount = 0;
 	int				ulTraversed = 0;
-	SUBRESTRICTIONRESULTS *lpSubResults = NULL;
-	
 	struct propTagArray	*lpPropTags = NULL;
 	struct rowSet		*lpRowSet = NULL;
 
@@ -293,14 +291,15 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 		if(er != erSuccess)
 			goto exit;
 			
-        er = RunSubRestrictions(lpSession, m_lpObjectData, lpsRestrict, &ecRowList, m_locale, &lpSubResults);
+		SUBRESTRICTIONRESULTS sub_results;
+		er = RunSubRestrictions(lpSession, m_lpObjectData, lpsRestrict, &ecRowList, m_locale, sub_results);
         if(er != erSuccess)
             goto exit;
 
 		assert(lpRowSet->__size == static_cast<gsoap_size_t>(ecRowList.size()));
 		for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
 			// Match the row
-			er = MatchRowRestrict(cache, &lpRowSet->__ptr[i], lpsRestrict, lpSubResults, m_locale, &fMatch);
+			er = MatchRowRestrict(cache, &lpRowSet->__ptr[i], lpsRestrict, &sub_results, m_locale, &fMatch);
 			if(er != erSuccess)
 				goto exit;
 
@@ -324,11 +323,6 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 		// Free memory
 		FreeRowSet(lpRowSet, true);
 		lpRowSet = NULL;
-		
-		if(lpSubResults)
-			FreeSubRestrictionResults(lpSubResults);
-        lpSubResults = NULL;
-
 	}
 
 	if(!fMatch) {
@@ -338,9 +332,6 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 
 exit:
 	biglock.unlock();
-	if(lpSubResults)
-		FreeSubRestrictionResults(lpSubResults);
-	    
 	if(lpRowSet)
 		FreeRowSet(lpRowSet, true);
 
@@ -834,7 +825,6 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	unsigned int	ulLoaded = 0;
 	bool			bExist;
 	bool			fHidden = false;
-	SUBRESTRICTIONRESULTS *lpSubResults = NULL;
 	ECObjectTableList sQueryRows;
 
 	struct propTagArray	sPropTagArray = {0, 0};
@@ -915,8 +905,9 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 		if(er != erSuccess)
 			goto exit;
 			
+		SUBRESTRICTIONRESULTS sub_results;
 		if(lpsRestrict) {
-			er = RunSubRestrictions(lpSession, m_lpObjectData, lpsRestrict, &sQueryRows, m_locale, &lpSubResults);
+			er = RunSubRestrictions(lpSession, m_lpObjectData, lpsRestrict, &sQueryRows, m_locale, sub_results);
 			if(er != erSuccess)
 				goto exit;
 		}
@@ -935,7 +926,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 
 			// Match the row with the restriction, if any
 			if(lpsRestrict) {
-				MatchRowRestrict(cache, &lpRowSet->__ptr[i], lpsRestrict, lpSubResults, m_locale, &fMatch);
+				MatchRowRestrict(cache, &lpRowSet->__ptr[i], lpsRestrict, &sub_results, m_locale, &fMatch);
 				if(fMatch == false) {
 					// this row isn't in the table, as it does not match the restrict criteria. Remove it as if it had
 					// been deleted if it was already in the table.
@@ -963,10 +954,6 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 			++ulLoaded;
 		}
 
-		if(lpSubResults) {
-			FreeSubRestrictionResults(lpSubResults);
-			lpSubResults = NULL;
-		}
 		FreeRowSet(lpRowSet, true);
 		lpRowSet = NULL;
 	}
@@ -976,9 +963,6 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 
 exit:
 	biglock.unlock();
-	if(lpSubResults)
-		FreeSubRestrictionResults(lpSubResults);
-
 	if(lpRowSet)
 		FreeRowSet(lpRowSet, true);
 
@@ -1682,8 +1666,10 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTags(struct restrictTable *lpsRest
 
 // Simply matches the restriction with the given data. Make sure you pass all the data
 // needed for the restriction in lpPropVals. (missing columns do not match, ever.)
-
-ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, propValArray *lpPropVals, restrictTable *lpsRestrict, SUBRESTRICTIONRESULTS *lpSubResults, const ECLocale &locale, bool *lpfMatch, unsigned int *lpulSubRestriction)
+ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
+    propValArray *lpPropVals, restrictTable *lpsRestrict,
+    const SUBRESTRICTIONRESULTS *lpSubResults, const ECLocale &locale,
+    bool *lpfMatch, unsigned int *lpulSubRestriction)
 {
 	ECRESULT		er = erSuccess;
 	bool			fMatch = false;
