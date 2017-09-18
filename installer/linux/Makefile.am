@@ -76,15 +76,12 @@ dist_sysconf_cron_SCRIPTS = kopano-client-update.cron
 sysconf_bcdir = ${sysconfdir}/bash_completion.d
 dist_sysconf_bc_DATA = kopano-bash-completion.sh
 
-sysconf_certdir = ${sysconfdir}/kopano/report-ca
-
 EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
 	$(rhel_initscript_files) $(cbs4_initscript_files) \
 	${debian_initscript_files} sysconfig.txt
 
 install-data-hook:
 	install -d -m 755 ${DESTDIR}/${sysconfdir}/kopano/license
-	install -d -m 755 ${DESTDIR}/${localstatedir}/lib/kopano/report
 	mv -v ${DESTDIR}${sysconf_rotatedir}/kopano.logrotate ${DESTDIR}${sysconf_rotatedir}/kopano
 	mv -v ${DESTDIR}${sysconf_crondir}/kopano-client-update.cron ${DESTDIR}${sysconf_crondir}/kopano-client-update
 	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \

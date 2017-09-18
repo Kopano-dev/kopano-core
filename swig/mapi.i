@@ -1,7 +1,6 @@
 %module(directors="1") MAPICore
 
 %{
-#undef LOCK_WRITE
 #include <kopano/platform.h>
 #include <mapi.h>
 #include <mapidefs.h>
@@ -101,12 +100,6 @@ enum STREAM_SEEK {
     STREAM_SEEK_SET     = 0,
     STREAM_SEEK_CUR     = 1,
     STREAM_SEEK_END     = 2
-};
-
-enum LOCKTYPE {
-    LOCK_WRITE          = 1,
-    LOCK_EXCLUSIVE      = 2,
-    LOCK_ONLYONCE       = 4
 };
 
 enum STATFLAG {

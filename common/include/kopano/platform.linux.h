@@ -370,15 +370,6 @@ struct SYSTEMTIME {
 };
 typedef struct SYSTEMTIME *PSYSTEMTIME;
 
-struct TZREG {
-	LONG bias;
-	LONG stdbias;
-	LONG dstbias;
-	SYSTEMTIME stStandardDate;
-	SYSTEMTIME stDaylightDate;
-};
-typedef struct TZREG *PTZREG;
-
 struct STATSTG {
     LPSTR pwcsName;		// was LPOLESTR .. wtf is that?
     DWORD type;
@@ -404,12 +395,6 @@ enum STREAM_SEEK {
     STREAM_SEEK_SET	= 0,
     STREAM_SEEK_CUR	= 1,
     STREAM_SEEK_END	= 2
-};
-
-enum LOCKTYPE {
-    LOCK_WRITE		= 1,
-    LOCK_EXCLUSIVE	= 2,
-    LOCK_ONLYONCE	= 4
 };
 
 enum STATFLAG {
