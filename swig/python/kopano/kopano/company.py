@@ -25,7 +25,7 @@ from .group import Group
 
 from .defs import EID_EVERYONE
 from .errors import (
-    Error, NotFoundError, DuplicateError
+    NotFoundError, DuplicateError
 )
 from .compat import (
     hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
