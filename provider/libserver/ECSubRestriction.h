@@ -50,15 +50,13 @@ class ECSession;
 // attachment id)
 typedef std::set<unsigned int> SUBRESTRICTIONRESULT;
 // A list of sets of subquery matches
-typedef std::vector<SUBRESTRICTIONRESULT *> SUBRESTRICTIONRESULTS;
+typedef std::vector<SUBRESTRICTIONRESULT> SUBRESTRICTIONRESULTS;
 
 ECRESULT GetSubRestrictionCount(struct restrictTable *lpRestrict, unsigned int *lpulCount);
 ECRESULT GetSubRestriction(struct restrictTable *lpBase, unsigned int ulCount, struct restrictSub **lppSubRestrict);
 
 // Get results for all subqueries for a set of objects
-extern ECRESULT RunSubRestrictions(ECSession *, const void *ecod_store, struct restrictTable *, ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULTS **);
-extern ECRESULT RunSubRestriction(ECSession *, const void *ecod_store, struct restrictSub *, ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULT **);
-ECRESULT FreeSubRestrictionResults(SUBRESTRICTIONRESULTS *lpResults);
+extern ECRESULT RunSubRestrictions(ECSession *, const void *ecod_store, struct restrictTable *, ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULTS &);
 
 #define SUBRESTRICTION_MAXDEPTH	64
 
