@@ -383,7 +383,7 @@ def printrules(filters, user, server):
              unicode(rulestate[rule[2].Value])])
 
     table = AsciiTable(table_data)
-    print table.table
+    print(table.table)
 
 
 def changerule(filters, number, state):
@@ -601,7 +601,7 @@ def createrule(options, lastid):
                 try:
                     user = server.user(action_var[1])
                 except kopano.NotFoundError:
-                    print "user '%s' not found" % action_var[1]
+                    print("user '%s' not found" % action_var[1])
                     sys.exit()
                 except IndexError:
                     user = server.user(options.user)
@@ -616,7 +616,7 @@ def createrule(options, lastid):
                             getfolder = getfolder.folder(searchfolder)
                         num += 1
                     except kopano.NotFoundError:
-                        print "Folder '%s' does not exist" % searchfolder
+                        print("Folder '%s' does not exist" % searchfolder)
                         sys.exit()
             else:
                 user = server.user(options.user)
@@ -757,7 +757,7 @@ def main():
     options, args = opt_args()
 
     if not options.user:
-        print 'Usage:\n %s --user <username>  ' % (sys.argv[0])
+        print('Usage:\n %s --user <username>  ' % (sys.argv[0]))
         sys.exit(1)
     server = kopano.Server(options)
     user = server.user(options.user)
@@ -768,14 +768,14 @@ def main():
     filters = table.QueryRows(-1, 0)
 
     if options.printrules:
-        print user.name
+        print(user.name)
         printrules(filters, user, server)
 
     if options.state:
         rowlist, name = changerule(filters, options.rule, options.state)
         if options.state == 'enable' or options.state == 'disable' or options.state == 'delete':
             rule_table.ModifyTable(0, rowlist)
-            print "Rule '%s' is %sd for user '%s'" % (name, options.state, user.name)
+            print("Rule '%s' is %sd for user '%s'" % (name, options.state, user.name))
 
     if options.createrule:
         try:
@@ -784,7 +784,7 @@ def main():
             lastid = 0
         rowlist = createrule(options, lastid)
         rule_table.ModifyTable(0, rowlist)
-        print "Rule '%s' created " % options.createrule
+        print("Rule '%s' created " % options.createrule)
 
 
 if __name__ == "__main__":
