@@ -370,13 +370,8 @@ class Folder(Base):
         self.server.sa.ResetFolderCount(_unhex(self.entryid))
 
     def _get_entryids(self, items):
-        if isinstance(items, (_item.Item, Folder, Permission, Property)):
-            items = [items]
-        else:
-            try:
-                items = list(items)
-            except TypeError:
-                raise Error("attempt to delete object of type '%s' from folder" % items.__class__.__name__)
+        items = _utils.arg_objects(items, (_item.Item, Folder, Permission, Property), 'Folder.delete')
+
         item_entryids = [_unhex(item.entryid) for item in items if isinstance(item, _item.Item)]
         folder_entryids = [_unhex(item.entryid) for item in items if isinstance(item, Folder)]
         perms = [item for item in items if isinstance(item, Permission)]

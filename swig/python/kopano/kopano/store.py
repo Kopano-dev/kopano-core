@@ -341,10 +341,8 @@ class Store(Base):
 
         :param props: The object(s) to delete
         """
-        if isinstance(objects, (Property, Delegation, Permission)):
-            objects = [objects]
-        else:
-            objects = list(objects)
+
+        objects = _utils.arg_objects(objects, (Property, Delegation, Permission), 'Store.delete')
 
         props = [o for o in objects if isinstance(o, Property)]
         if props:
