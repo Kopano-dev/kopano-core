@@ -336,6 +336,10 @@ class Server(object):
         return user
 
     def remove_user(self, name): # XXX delete(object)?
+        """Remove a user
+
+        :param name: the login name of the user
+        """
         user = self.user(name)
         self.sa.DeleteUser(user._ecuser.UserID)
 
@@ -356,7 +360,11 @@ class Server(object):
                 raise
 
     def get_company(self, name):
-        """Return :class:`company <Company>` with given name or *None* if not found."""
+        """:class:`company <Company>` with given name
+
+        :param name: the company name
+        :return: :class:`company <Company>` with given name or *None* if not found.
+        """
         try:
             return self.company(name)
         except NotFoundError:
@@ -385,7 +393,9 @@ class Server(object):
     def companies(self, remote=False, parse=True): # XXX remote?
         """Return all :class:`companies <Company>` on server.
 
-        :param remote: include companies without users on this server node
+        :param remote: include companies without users on this server node (default False)
+        :param parse: take cli argument --companies into account (default True)
+        :return: Generator of :class:`companies <Company>` on server.
         """
         if parse and getattr(self.options, 'companies', None):
             for name in self.options.companies:
@@ -461,6 +471,9 @@ class Server(object):
         :param name: the name of the group
         :param fullname: the full name of the group (optional)
         :param email: the email address of the group (optional)
+        :param hidden: hide the group (optional)
+        :param groupid: the id of the group (optional)
+        :return: :class:`group <Group>` the created group
         """
         name = _unicode(name) # XXX: fullname/email unicode?
         email = _unicode(email)
