@@ -370,8 +370,6 @@ class Folder(Base):
         self.server.sa.ResetFolderCount(_unhex(self.entryid))
 
     def _get_entryids(self, items):
-        items = _utils.arg_objects(items, (_item.Item, Folder, Permission, Property), 'Folder.delete')
-
         item_entryids = [_unhex(item.entryid) for item in items if isinstance(item, _item.Item)]
         folder_entryids = [_unhex(item.entryid) for item in items if isinstance(item, Folder)]
         perms = [item for item in items if isinstance(item, Permission)]
@@ -384,6 +382,7 @@ class Folder(Base):
         :param objects: The object(s) to delete
         :param soft: In case of items or folders, are they soft-deleted
         """
+        objects = _utils.arg_objects(objects, (_item.Item, Folder, Permission, Property), 'Folder.delete')
         item_entryids, folder_entryids, perms, props = self._get_entryids(objects)
         if item_entryids:
             if soft:
@@ -407,6 +406,7 @@ class Folder(Base):
         :param objects: The items or subfolders to copy
         :param folder: The target folder
         """
+        objects = _utils.arg_objects(objects, (_item.Item, Folder), 'Folder.copy')
         item_entryids, folder_entryids, _, _ = self._get_entryids(objects) # XXX copy/move perms?? XXX error for perms/props
         if item_entryids:
             self.mapiobj.CopyMessages(item_entryids, IID_IMAPIFolder, folder.mapiobj, 0, None, (MESSAGE_MOVE if _delete else 0))

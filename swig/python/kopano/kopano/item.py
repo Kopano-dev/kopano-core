@@ -775,6 +775,7 @@ class Item(Base):
         :param objects: The object(s) to delete
         """
         objects = _utils.arg_objects(objects, (Attachment, _prop.Property), 'Item.delete')
+        # XXX embedded items?
 
         attach_ids = [item.number for item in objects if isinstance(item, Attachment)]
         proptags = [item.proptag for item in objects if isinstance(item, _prop.Property)]
