@@ -4570,12 +4570,16 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 			// range
 			ulBeginMailnr = LastOrNumber(vSequences[i].c_str(), true);
 			ulMailnr = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
-
-			if (ulBeginMailnr > ulMailnr && ulBeginMailnr <= lstFolderMailEIDs.size())
+			if (ulBeginMailnr > ulMailnr)
+				/*
+				 * RFC 3501 page 89 allows swapping; seq-range
+				 * essentially describes a set rather than a
+				 * strictly ordered range.
+				 */
 				swap(ulBeginMailnr, ulMailnr);
 
 			auto b = std::lower_bound(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulBeginMailnr);
-			auto e = std::upper_bound(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
+			auto e = std::upper_bound(b, lstFolderMailEIDs.cend(), ulMailnr);
 			for (auto i = b; i != e; ++i)
 				lstMails.push_back(std::distance(lstFolderMailEIDs.cbegin(), i));
 		}

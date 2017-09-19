@@ -176,8 +176,7 @@ public:
 
 	static ECRESULT	GetRestrictPropTagsRecursive(struct restrictTable *lpsRestrict, std::list<ULONG> *lpPropTags, ULONG ulLevel);
 	static ECRESULT	GetRestrictPropTags(struct restrictTable *lpsRestrict, std::list<ULONG> *lpPrefixTags, struct propTagArray **lppPropTags);
-	static ECRESULT	MatchRowRestrict(ECCacheManager* lpCacheManager, struct propValArray *lpPropVals, struct restrictTable *lpsRestruct, SUBRESTRICTIONRESULTS *lpSubResults, const ECLocale &locale, bool *fMatch, unsigned int *lpulSubRestriction = NULL);
-
+	static ECRESULT	MatchRowRestrict(ECCacheManager *, struct propValArray *, struct restrictTable *, const SUBRESTRICTIONRESULTS *, const ECLocale &, bool *match, unsigned int *nsubr = nullptr);
 	virtual ECRESULT GetComputedDepth(struct soap *soap, ECSession *lpSession, unsigned int ulObjId, struct propVal *lpProp);
 
 	bool IsMVSet();

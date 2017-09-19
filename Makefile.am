@@ -427,14 +427,15 @@ libkcfreebusydir = ${includedir}/libfreebusy
 libkcfreebusy_HEADERS = \
 	libfreebusy/ECEnumFBBlock.h libfreebusy/ECFBBlockList.h \
 	libfreebusy/ECFreeBusyData.h libfreebusy/ECFreeBusySupport.h \
-	libfreebusy/ECFreeBusyUpdate.h libfreebusy/PublishFreeBusy.h \
+	libfreebusy/PublishFreeBusy.h \
 	libfreebusy/freebusy.h libfreebusy/freebusyguid.h \
 	libfreebusy/freebusytags.h libfreebusy/freebusyutil.h \
 	libfreebusy/recurrence.h
 libkcfreebusy_la_SOURCES = \
 	libfreebusy/ECEnumFBBlock.cpp libfreebusy/ECFBBlockList.cpp \
 	libfreebusy/ECFreeBusyData.cpp libfreebusy/ECFreeBusySupport.cpp \
-	libfreebusy/ECFreeBusyUpdate.cpp libfreebusy/PublishFreeBusy.cpp \
+	libfreebusy/ECFreeBusyUpdate.cpp libfreebusy/ECFreeBusyUpdate.h \
+	libfreebusy/PublishFreeBusy.cpp \
 	libfreebusy/freebusyutil.cpp libfreebusy/recurrence.cpp
 libkcfreebusy_la_LIBADD = \
 	libkcutil.la libkcmapi.la libmapi.la
@@ -806,7 +807,8 @@ dist_phpdata_DATA = \
 # test programs
 #
 mapitime_SOURCES = ECtools/mapitime.cpp
-mapitime_LDADD = ${clock_LIBS} libmapi.la libkcmapi.la libkcutil.la \
+mapitime_LDADD = ${clock_LIBS} ${timer_LIBS} \
+	libmapi.la libkcmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
 rosie_test_SOURCES = librosie/test.cpp
 rosie_test_LDADD = libkcrosie.la

@@ -69,7 +69,7 @@ public:
 		DEBUGPRINT("%s ", bin2hex(2, m_lpData + m_ulCursor).c_str());
 		unsigned short tmp;
 		memcpy(&tmp, m_lpData + m_ulCursor, sizeof(tmp));
-		*lpData = tmp;
+		*lpData = le16_to_cpu(tmp);
         m_ulCursor+=2;
         
         DEBUGPRINT("%10u %08X ", *lpData, *lpData);
@@ -81,7 +81,9 @@ public:
             return -1;
             
 		DEBUGPRINT("%s ", bin2hex(4, m_lpData + m_ulCursor).c_str());
-		memcpy(lpData, m_lpData + m_ulCursor, sizeof(*lpData));
+		unsigned int tmp;
+		memcpy(&tmp, m_lpData + m_ulCursor, sizeof(tmp));
+		*lpData = le32_to_cpu(tmp);
         m_ulCursor+=4;
         
         DEBUGPRINT("%10u %08X ", *lpData, *lpData);

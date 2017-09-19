@@ -240,7 +240,7 @@ class Folder(Base):
 
         # open message with entryid
         try:
-            mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), MAPI_MODIFY | self.content_flag)
+            mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), self.content_flag)
         except MAPIErrorNotFound:
             raise NotFoundError("no item with entryid '%s'" % entryid)
 

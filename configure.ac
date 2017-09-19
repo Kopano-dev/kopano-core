@@ -275,6 +275,7 @@ LIBNCURSES_WITH_CONFIG
 
 AC_CHECK_HEADERS([syslog.h sys/un.h sys/stat.h malloc.h])
 AC_CHECK_FUNCS([mallinfo timegm getpeereid getpwnam_r vsyslog vsnprintf_l])
+AC_CHECK_MEMBERS([siginfo_t.si_fd], [], [], [#include <csignal>])
 
 
 #
@@ -514,10 +515,23 @@ iconv_t i; i = iconv_open("", "");
 AC_SUBST(ICONV_LIBS)
 LIBS=$LIBS_system
 
-AC_SEARCH_LIBS([crypt_r], [crypt], [CRYPT_LIBS="-lcrypt"; LIBS="$LIBS_system"])
-AC_SEARCH_LIBS([clock_gettime], [rt], [clock_LIBS="-lrt"; LIBS="$LIBS_system"])
+AC_SEARCH_LIBS([crypt_r], [crypt], [
+	AS_IF([test "$LIBS" = "$LIBS_system"], [CRYPT_LIBS=""], [CRYPT_LIBS="-lcrypt"])
+])
+LIBS="$LIBS_system"
+AC_SEARCH_LIBS([clock_gettime], [rt], [
+	AS_IF([test "$LIBS" = "$LIBS_system"], [clock_LIBS=""], [clock_LIBS="-lrt"])
+])
+LIBS="$LIBS_system"
+AC_SEARCH_LIBS([timer_create], [rt], [
+	AS_IF([test "$LIBS" = "$LIBS_system"], [timer_LIBS=""], [timer_LIBS="-lrt"])
+])
+dnl AC_SEARCH_LIBS does not set any define in config.h, so check again
+AC_CHECK_FUNCS([timer_create])
+LIBS="$LIBS_system"
 AC_SUBST([CRYPT_LIBS])
 AC_SUBST([clock_LIBS])
+AC_SUBST([timer_LIBS])
 PKG_CHECK_EXISTS([libssl],
 	[
 		PKG_CHECK_MODULES([SSL], [libssl], [], [ssl_LIBS=-lssl])

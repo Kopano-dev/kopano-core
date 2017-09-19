@@ -10,7 +10,7 @@ import struct
 import sys
 
 from MAPI import (
-    WrapCompressedRTFStream, PT_UNICODE, ROW_ADD
+    WrapCompressedRTFStream, PT_UNICODE, ROW_ADD, MAPI_MODIFY,
 )
 from MAPI.Defs import (
     PROP_TYPE
@@ -22,7 +22,8 @@ from MAPI.Tags import (
     IID_IStream, IID_IECMessageRaw, IID_IExchangeModifyTable
 )
 from MAPI.Struct import (
-    MAPIErrorNotFound, MAPIErrorInterfaceNotSupported, SPropValue, ROWENTRY
+    MAPIErrorNotFound, MAPIErrorInterfaceNotSupported, SPropValue, ROWENTRY,
+    MAPIErrorNoAccess
 )
 
 from .compat import unhex as _unhex, hex as _hex
@@ -62,12 +63,17 @@ def stream(mapiobj, proptag):
 
     return data
 
-def openentry_raw(mapistore, entryid, flags): # avoid underwater action for archived items
+def _openentry_helper(mapistore, entryid, flags): # avoid underwater action for archived items
     try:
         return mapistore.OpenEntry(entryid, IID_IECMessageRaw, flags)
     except MAPIErrorInterfaceNotSupported:
         return mapistore.OpenEntry(entryid, None, flags)
 
+def openentry_raw(mapistore, entryid, flags): # try to open read/write, falling back to read-only
+    try:
+        return _openentry_helper(mapistore, entryid, flags | MAPI_MODIFY)
+    except MAPIErrorNoAccess:
+        return _openentry_helper(mapistore, entryid, flags)
 
 def unpack_short(s, pos):
     return struct.unpack_from('<H', s, pos)[0]

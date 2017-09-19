@@ -33,11 +33,47 @@
 #include "freebusyutil.h"
 #include "ECFreeBusySupport.h"
 #include <mapiutil.h>
+#include <mapix.h>
+#include <kopano/CommonUtil.h>
+#include "freebusy.h"
 
 using namespace std;
 using namespace KCHL;
 
 namespace KC {
+
+class PublishFreeBusy _kc_final {
+	public:
+	PublishFreeBusy(IMAPISession *, IMsgStore *defstore, time_t start, ULONG months);
+	HRESULT HrInit();
+	HRESULT HrGetResctItems(IMAPITable **);
+	HRESULT HrProcessTable(IMAPITable *, FBBlock_1 **, ULONG *nvals);
+	HRESULT HrMergeBlocks(FBBlock_1 **, ULONG *nvals);
+	HRESULT HrPublishFBblocks(FBBlock_1 *, ULONG nvals);
+
+	private:
+	IMAPISession *m_lpSession;
+	IMsgStore *m_lpDefStore;
+	FILETIME m_ftStart;
+	FILETIME m_ftEnd;
+	time_t m_tsStart;
+	time_t m_tsEnd;
+
+	PROPMAP_DECL()
+	PROPMAP_DEF_NAMED_ID(APPT_STARTWHOLE)
+	PROPMAP_DEF_NAMED_ID(APPT_ENDWHOLE)
+	PROPMAP_DEF_NAMED_ID(APPT_CLIPEND)
+	PROPMAP_DEF_NAMED_ID(APPT_ISRECURRING)
+	PROPMAP_DEF_NAMED_ID(APPT_FBSTATUS)
+	PROPMAP_DEF_NAMED_ID(APPT_RECURRINGSTATE)
+	PROPMAP_DEF_NAMED_ID(APPT_TIMEZONESTRUCT)
+};
+
+struct TSARRAY {
+	ULONG ulType;
+	time_t tsTime;
+	ULONG ulStatus;
+};
 
 #define START_TIME 0
 #define END_TIME 1

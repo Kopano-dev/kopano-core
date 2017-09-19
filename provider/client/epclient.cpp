@@ -631,13 +631,13 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		/* Open global {profile section}, add the store. (for show list, delete etc.). */
 		hr = lpAdminProviders->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if(cvals) {
 			hr = ptrGlobalProfSect->SetProps(cvals, pvals, NULL);
 
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		hr = ClientUtil::GetGlobalProfileProperties(ptrGlobalProfSect, &sProfileProps);
@@ -662,12 +662,12 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 			reinterpret_cast<WSTransport *>(lpsPropValue->Value.lpszA)->Release();
 		hr = WSTransport::Create(ulFlags & SERVICE_UI_ALLOWED ? 0 : MDB_NO_DIALOG, &~lpTransport);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		spv.ulPropTag = PR_EC_TRANSPORTOBJECT;
 		spv.Value.lpszA = reinterpret_cast<char *>(lpTransport.get());
 		hr = HrSetOneProp(ptrGlobalProfSect, &spv);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpTransport->AddRef();
 
 		// Check the path, username and password
@@ -678,7 +678,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 						
 			if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS) && (strServerName.empty() || sProfileProps.strUserName.empty())){
 				hr = MAPI_E_UNCONFIGURED;
-				goto exit;
+				goto exit2;
 			}else if(!strServerName.empty() && !sProfileProps.strUserName.empty()) {
 				//Logon the server
 				hr = lpTransport->HrLogon(sProfileProps);
@@ -701,14 +701,14 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 				// what do we do on linux?
 				cout << "Access Denied: Incorrect username and/or password." << endl;
 				hr = MAPI_E_UNCONFIGURED;
-				goto exit;
+				goto exit2;
 			}else if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS)){
 				// Do not reset the logon error from HrLogon()
 				// The DAgent uses this value to determain if the delivery is fatal or not
 				// 
 				// Although this error is not in the online spec from MS, it should not really matter .... right?
 				// hr = MAPI_E_UNCONFIGURED;
-				goto exit;
+				goto exit2;
 			}
 
 		}// while(1)
@@ -716,65 +716,15 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		if(bInitStores) {
 			hr = UpdateProviders(lpAdminProviders, sProfileProps);
 			if(hr != hrSuccess)
-				goto exit;
+				goto exit2;
 		}
 
+ exit2:
 		static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
 		lpTransport->Release();
 		ptrGlobalProfSect->DeleteProps(tags, nullptr);
 		break;
 	} // switch(ulContext)
-
-exit:
-	if (lppMapiError) {
-		
-		*lppMapiError = NULL;
-
-		if(hr != hrSuccess) {
-			memory_ptr<TCHAR> lpszErrorMsg;
-
-			if (Util::HrMAPIErrorToText(hr, &~lpszErrorMsg) == hrSuccess) {
-				// Set Error
-				strError = KC_T("EntryPoint: ");
-				strError += lpszErrorMsg;
-
-				// Some outlook 2007 clients can't allocate memory so check it
-				if(MAPIAllocateBuffer(sizeof(MAPIERROR), (void**)&lpMapiError) == hrSuccess) { 
-
-					memset(lpMapiError, 0, sizeof(MAPIERROR));				
-					if (ulFlags & MAPI_UNICODE) {
-						std::wstring wstrErrorMsg = convert_to<std::wstring>(strError);
-						std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
-							
-						if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
-							goto exit;
-						wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
-						
-						if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
-							goto exit;
-						wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
-					} else {
-						std::string strErrorMsg = convert_to<std::string>(strError);
-						std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
-
-						if ((hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
-							goto exit;
-						strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
-						
-						if ((hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
-							goto exit;
-						strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());  
-					}
-				
-					lpMapiError->ulVersion = 0;
-					lpMapiError->ulLowLevelError = 0;
-					lpMapiError->ulContext = 0;
-
-					*lppMapiError = lpMapiError;
-				}
-			}
-		}
-	}
 	return hr;
 }
 
