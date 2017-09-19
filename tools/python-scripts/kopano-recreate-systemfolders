@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 #
+
+from __future__ import print_function
+
 import kopano
 from MAPI.Util import *
 import sys
@@ -30,11 +33,11 @@ def getprop(item, myprop):
 def main():
     options, args = opt_args()
     if not options.user:
-        print 'Usage:\n %s --user <username>  ' % (sys.argv[0])
+        print('Usage:\n %s --user <username>  ' % (sys.argv[0]))
         sys.exit(1)
 
     user = kopano.Server(options).user(options.user)
-    print user
+    print(user)
     whitelist = ['calendar', 'contacts', 'drafts', 'journal', 'notes', 'outbox', 'sentmail', 'task',
                  'wastebasket']
     if options.systemfolder in whitelist:
@@ -50,29 +53,29 @@ def main():
         else:
             name = uuid.uuid4()
         try:
-            print 'Create tmp folder', name
+            print('Create tmp folder %s' % name)
             tmp = user.store.subtree.create_folder(str(name))
         except MAPIErrorCollision:
-            print '%s already exist' % name
+            print('%s already exist' % name)
             sys.exit(1)
 
         if not options.create:
             # move all item to tmp folder
-            print 'Copy items from old', options.systemfolder
+            print('Copy items from old %s' % options.systemfolder)
             user.store.subtree.copy(oldfolder.items(), tmp)
             # delete old box
 
             if not options.safe:
-                print 'Delete %s folder' % options.systemfolder
+                print('Delete %s folder' % options.systemfolder)
                 getattr(user.store, options.systemfolder).delete(getattr(user.store, options.systemfolder))
             else:
                 newname = uuid.uuid4()
-                print 'Change the name of old %s folder to %s' % (options.systemfolder, newname)
+                print('Change the name of old %s folder to %s' % (options.systemfolder, newname))
                 getattr(user.store, options.systemfolder).mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME, str(newname))])
                 getattr(user.store, options.systemfolder).mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
 
-            print 'Change %s to %s' % (tmp.name, oldname)
+            print('Change %s to %s' % (tmp.name, oldname))
             tmp.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME, oldname)])
             tmp.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
         # promote tmp file to  sytemfolders
@@ -87,7 +90,7 @@ def main():
                   "notes": PR_IPM_NOTE_ENTRYID,
                   "tasks": PR_IPM_TASK_ENTRYID}
 
-        print 'Promote new folder to be a system folder'
+        print('Promote new folder to be a system folder')
         if options.systemfolder in storeid:
             user.store.mapiobj.SetProps(
                 [SPropValue(storeid.get(options.systemfolder), binascii.unhexlify(tmp.entryid))])
@@ -98,7 +101,7 @@ def main():
             user.store.root.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
         if options.safe and not options.create:
-            print '\n\nEntryid of old %s folder :%s\nNew name is:%s' % (oldname, oldid, newname)
+            print('\n\nEntryid of old %s folder :%s\nNew name is:%s' % (oldname, oldid, newname))
 
 
 if __name__ == "__main__":
