@@ -57,7 +57,7 @@ def backup(user, log):
                     os.makedirs(fpath)
                 open(os.path.join(fpath, item.sourcekey+'.'+ext), 'wb').write(data)
                 count += 1
-            except Exception, e:
+            except Exception as e:
                 log.error(traceback.format_exc())
                 errors += 1
     log.info('backed up %d items (%d errors, %d warnings)', count, errors, warnings)
@@ -81,7 +81,7 @@ def restore(path, user, log):
                 elif filename.endswith('.vcf'):
                     folder.create_item(vcf=data)
                 count += 1
-            except Exception, e:
+            except Exception as e:
                 log.error(traceback.format_exc())
                 errors += 1
     log.info('restored %d items (%d errors, %d warnings)', count, errors, warnings)
@@ -106,7 +106,7 @@ def main():
         else:
             user = server.user(options.users[0])
             backup(user, log)
-    except Exception, e:
+    except Exception as e:
         print(e.message or e.strerror)
         sys.exit(1)
 
