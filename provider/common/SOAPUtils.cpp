@@ -1622,7 +1622,8 @@ ECRESULT FreeRightsArray(struct rightsArray *lpRights)
 
 	if(lpRights->__ptr)
 	{
-		s_free(nullptr, lpRights->__ptr->sUserId.__ptr);
+		for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
+			s_free(nullptr, lpRights->__ptr[i].sUserId.__ptr);
 		s_free(nullptr, lpRights->__ptr);
 	}
 	s_free(nullptr, lpRights);
