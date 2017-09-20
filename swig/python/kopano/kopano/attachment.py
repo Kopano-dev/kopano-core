@@ -65,7 +65,7 @@ class Attachment(Base):
         try:
             return HrGetOneProp(self.mapiobj, PR_ATTACH_MIME_TAG_W).Value
         except MAPIErrorNotFound:
-            pass
+            return u''
 
     @property
     def filename(self):
@@ -73,7 +73,7 @@ class Attachment(Base):
         try:
             return HrGetOneProp(self.mapiobj, PR_ATTACH_LONG_FILENAME_W).Value
         except MAPIErrorNotFound:
-            pass
+            return u''
 
     @property
     def size(self):
