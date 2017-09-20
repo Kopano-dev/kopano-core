@@ -495,9 +495,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 		LOG_PLUGIN_DEBUG("Issuing LDAP bind");
 		if ((rc = ldap_simple_bind_s(ld, (char *)bind_dn, (char *)bind_pw)) == LDAP_SUCCESS)
 			break;
-
-		ec_log_warn("LDAP (simple) bind failed: %s", ldap_err2string(rc));
-
+		ec_log_warn("LDAP (simple) bind on %s failed: %s", bind_dn, ldap_err2string(rc));
 	fail:
 		if (ldap_unbind_s(ld) == -1)
 			ec_log_err("LDAP unbind failed");
