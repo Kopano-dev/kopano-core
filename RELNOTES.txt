@@ -60,8 +60,8 @@ Packager notes:
 * python/swig is now optional [KC-753]
 
 
-Release notes for 8.3.5
-=======================
+Release notes for 8.3.5 (2017-09-20)
+====================================
 Fixes:
 * server: complete signal blocking [KC-779]
 * ical: avoid freeing garbage pointers [KC-803]
@@ -73,8 +73,8 @@ Fixes:
 * server: admin user is to always open shared reminders [KC-813]
 
 
-Release notes for 8.3.4
-=======================
+Release notes for 8.3.4 (2017-09-01)
+====================================
 Fixes:
 * server: configurable shared reminders [KC-789]
 * migration-pst: create unknown named-properties [KC-788]
@@ -86,9 +86,8 @@ Changes:
 * server: rename disable_shared_reminders option [KC-565]
 
 
-
-Release notes for 8.3.3
-=======================
+Release notes for 8.3.3 (2017-08-09)
+====================================
 Fixes:
 * gateway: fix another IMAP protocol error [KC-720]
 * server: fix depth level count for attachments [KC-745]
