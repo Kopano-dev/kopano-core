@@ -68,11 +68,16 @@ if sys.hexversion >= 0x03000000:
         from . import store as _store
     except ImportError:
         _store = sys.modules[__package__+'.store']
+    try:
+        from . import utils as _utils
+    except ImportError:
+        _utils = sys.modules[__package__+'.utils']
 else:
     import user as _user
     import config as _config
     import ics as _ics
     import store as _store
+    import utils as _utils
 
 # avoid module-class-decorator-cache-store references, which are
 # somehow not dereferenced correctly (python bug?), resulting in
@@ -494,10 +499,7 @@ class Server(object):
 
         :param objects: The object(s) to delete
         """
-        if isinstance(objects, (_user.User, Group, Company, _store.Store)):
-            objects = [objects]
-        else:
-            objects = list(objects)
+        objects = _utils.arg_objects(objects, (_user.User, Group, Company, _store.Store), 'Server.delete')
 
         for item in objects:
             if isinstance(item, _user.User):

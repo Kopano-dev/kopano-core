@@ -336,15 +336,14 @@ class Store(Base):
                 pos += totallen
         raise NotFoundError('entryid not found')
 
-    def delete(self, objects):
-        """Delete properties, delegations or permissions from store.
+    def delete(self, objects, soft=False):
+        """Delete properties, delegations, permissions, folders or items from store.
 
         :param props: The object(s) to delete
         """
-        if isinstance(objects, (Property, Delegation, Permission)):
-            objects = [objects]
-        else:
-            objects = list(objects)
+
+        objects = _utils.arg_objects(objects, (_folder.Folder, _item.Item, Property, Delegation, Permission), 'Store.delete')
+        # XXX directly delete inbox rule?
 
         props = [o for o in objects if isinstance(o, Property)]
         if props:
@@ -359,6 +358,10 @@ class Store(Base):
         for perm in perms:
             acl_table = self.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
             acl_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE, [SPropValue(PR_MEMBER_ID, perm.mapirow[PR_MEMBER_ID])])])
+
+        others = [o for o in objects if isinstance(o, (_item.Item, _folder.Folder))]
+        if others:
+            self.root.delete(others, soft=soft)
 
     def folder(self, path=None, entryid=None, recurse=False, create=False):
         """ Return :class:`Folder` with given path or entryid; raise exception if not found

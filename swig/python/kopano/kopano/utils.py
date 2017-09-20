@@ -27,7 +27,7 @@ from MAPI.Struct import (
 )
 
 from .compat import unhex as _unhex, hex as _hex
-from .errors import NotFoundError
+from .errors import Error, NotFoundError
 
 if sys.hexversion >= 0x03000000:
     from . import table as _table
@@ -183,3 +183,16 @@ def _from_gmt(date, tz_data):
 
 def _to_gmt(date, tz_data):
     return date + datetime.timedelta(minutes=_get_timezone(date, tz_data))
+
+def arg_objects(arg, supported_classes, method_name):
+    if isinstance(arg, supported_classes):
+        objects = [arg]
+    else:
+        try:
+            objects = list(arg)
+        except TypeError:
+            raise Error('invalid argument to %s' % method_name)
+
+    if [o for o in objects if not isinstance(o, supported_classes)]:
+        raise Error('invalid argument to %s' % method_name)
+    return objects
