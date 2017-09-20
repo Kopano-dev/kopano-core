@@ -25,7 +25,7 @@ from .group import Group
 
 from .defs import EID_EVERYONE
 from .errors import (
-    Error, NotFoundError, DuplicateError
+    NotFoundError, DuplicateError
 )
 from .compat import (
     hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
@@ -109,7 +109,11 @@ class Company(Base):
         self.server.sa.SetCompany(self._eccompany, MAPI_UNICODE)
 
     def store(self, guid):
-        """Return :class:`store <Store>` with given GUID."""
+        """Store for the given GUID
+ 
+        :param guid: store guid
+        :return: :class:`store <Store>` with given GUID.
+        """
         if guid == 'public':
             if not self.public_store:
                 raise NotFoundError("no public store for company '%s'" % self.name)
@@ -214,7 +218,7 @@ class Company(Base):
             if create:
                 return self.create_user(name)
             else:
-                raise
+                raise # FIXME
 
     def get_user(self, name):
         """Return :class:`user <User>` with given name or *None* if not found.
@@ -227,7 +231,12 @@ class Company(Base):
             pass
 
     def users(self, parse=True, system=False):
-        """Return all :class:`users <User>` within company."""
+        """
+
+        :param parse: filter users on cli argument --user (default True)
+        :param system: include system users (default False)
+        :return: all :class:`users <User>` within company
+        """
         if parse and getattr(self.server.options, 'users', None):
             for username in self.server.options.users:
                 yield _user.User(username, self.server)
@@ -246,12 +255,22 @@ class Company(Base):
             yield self.server.user(ecuser.Username)
 
     def add_admin(self, user):
+        """Add user to admin list
+
+        :param user: the user class:`user <User>`
+        :raises: DuplicateError
+        """
         try:
             self.server.sa.AddUserToRemoteAdminList(user._ecuser.UserID, self._eccompany.CompanyID)
         except MAPIErrorCollision:
             raise DuplicateError("user '%s' already admin for company '%s'" % (user.name, self.name))
 
     def remove_admin(self, user):
+        """Remove user from admin list
+
+        :param user: the :class:`user <User>`
+        :raises: NotFoundError
+        """
         try:
             self.server.sa.DelUserFromRemoteAdminList(user._ecuser.UserID, self._eccompany.CompanyID)
         except MAPIErrorNotFound:
@@ -277,6 +296,7 @@ class Company(Base):
         """Create a new :class:`user <User>` within the company.
 
         :param name: user name
+        :param password: password (default None)
         """
         name = name.split('@')[0]
         self.server.create_user(name, password=password, company=self._name)
@@ -287,6 +307,7 @@ class Company(Base):
         """Return :class:`group <Group>` with given name.
 
         :param name: group name
+        :raises: NotFoundError
         """
         for group in self.groups(): # XXX
             if group.name == name:
