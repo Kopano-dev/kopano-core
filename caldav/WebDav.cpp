@@ -570,8 +570,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 		// strip url and .ics from guid, and convert %hex to real data
 		strGuid.erase(0, found);
 		strGuid.erase(strGuid.length() - 4);
-		strGuid = urlDecode(strGuid);
-		sWebVal.strValue = strGuid;
+		sWebVal.strValue = urlDecode(strGuid);
 		sRptMGet.lstWebVal.push_back(std::move(sWebVal));
 		lpXmlChildNode = lpXmlChildNode->next;
 	}
