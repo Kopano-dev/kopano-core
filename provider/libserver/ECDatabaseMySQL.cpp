@@ -399,7 +399,7 @@ ECRESULT ECDatabase::InitializeDBStateInner(void)
 			
 		er = DoUpdate(stored_procedures[i].szSQL);
 		if (er == erSuccess)
-			break;
+			continue;
 		int err = mysql_errno(&m_lpMySQL);
 		if (err == ER_DBACCESS_DENIED_ERROR) {
 			ec_log_err("The storage server is not allowed to create stored procedures");
