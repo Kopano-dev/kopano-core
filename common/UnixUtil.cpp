@@ -148,7 +148,7 @@ static int linux_sysctl1(const char *tunable)
 	auto fp = fopen(tunable, "r");
 	if (fp == nullptr)
 		return -1; /* indeterminate */
-	char c = fgetc(fp);
+	auto c = fgetc(fp);
 	fclose(fp);
 	return c == EOF ? '\0' : c;
 }
