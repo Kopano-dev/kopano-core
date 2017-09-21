@@ -423,7 +423,7 @@ class Folder(Base):
         self.copy(objects, folder, _delete=True)
 
     def folder(self, path=None, entryid=None, recurse=False, create=False): # XXX kill (slow) recursive search
-        """ Return :class:`Folder` with given path or entryid; raise exception if not found
+        """ Return :class:`Folder` with given path or entryid
 
             :param key: name, path or entryid
         """
@@ -662,7 +662,7 @@ class Folder(Base):
 
     @property
     def archive_folder(self):
-        """ Archive :class:`Folder` or *None* if not found """
+        """ Archive :class:`Folder` """
 
         ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
         PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)

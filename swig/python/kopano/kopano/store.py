@@ -364,7 +364,7 @@ class Store(Base):
             self.root.delete(others, soft=soft)
 
     def folder(self, path=None, entryid=None, recurse=False, create=False):
-        """ Return :class:`Folder` with given path or entryid; raise exception if not found
+        """ Return :class:`Folder` with given path or entryid
 
         """
 
@@ -403,7 +403,7 @@ class Store(Base):
                 yield folder
 
     def item(self, entryid):
-        """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
+        """ Return :class:`Item` with given entryid """
 
         item = _item.Item() # XXX copy-pasting..
         item.store = self
@@ -472,7 +472,7 @@ class Store(Base):
 
     @property
     def archive_store(self):
-        """ Archive :class:`Store` or *None* if not found """
+        """ Archive :class:`Store` """
 
         ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
         PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)
@@ -498,7 +498,7 @@ class Store(Base):
 
     @property
     def archive_folder(self):
-        """ Archive :class:`Folder` or *None* if not found """
+        """ Archive :class:`Folder` """
 
         ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
         PROP_ITEM_ENTRYIDS = CHANGE_PROP_TYPE(ids[1], PT_MV_BINARY)
