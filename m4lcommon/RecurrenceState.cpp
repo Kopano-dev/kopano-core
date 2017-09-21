@@ -137,16 +137,18 @@ public:
     }
     
     int WriteByte(unsigned int b) {
-        m_strData.append((char *)&b, 1);
+		m_strData.append(1, static_cast<char>(b));
         return 1;
     }
     
     int WriteShort(unsigned short s) {
+		s = cpu_to_le16(s);
         m_strData.append((char *)&s, 2);
         return 2;
     }
     
     int WriteLong(unsigned int l) {
+		l = cpu_to_le32(l);
         m_strData.append((char *)&l, 4);
         return 4;
     }

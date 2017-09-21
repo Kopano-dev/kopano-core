@@ -19,6 +19,7 @@
 #include <memory>
 #include <mutex>
 #include <utility>
+#include <cstdint>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
@@ -439,17 +440,19 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 		return MAPI_E_CORRUPT_DATA;
 	HrClearSyncStatus();
 
-	ulVersion = *((ULONG*)(lpsSyncState->lpb));
+	memcpy(&ulVersion, lpsSyncState->lpb, sizeof(ulVersion));
+	ulVersion = le32_to_cpu(ulVersion);
 	if (ulVersion != EC_SYNC_STATUS_VERSION)
 		return hrSuccess;
 
-	ulStatusCount = *((ULONG*)(lpsSyncState->lpb+4));
-
+	memcpy(&ulStatusCount, lpsSyncState->lpb + 4, sizeof(ulStatusCount));
+	ulStatusCount = le32_to_cpu(ulStatusCount);
 	ZLOG_DEBUG(m_lpLogger, "Loading sync status stream: version=%u, items=%u", ulVersion, ulStatusCount);
 
 	ulPos = 8;
 	for (ulStatusNumber = 0; ulStatusNumber < ulStatusCount; ++ulStatusNumber) {
-		ulSize = *((ULONG*)(lpsSyncState->lpb + ulPos));
+		memcpy(&ulSize, lpsSyncState->lpb + ulPos, sizeof(ulSize));
+		ulSize = le32_to_cpu(ulSize);
 		ulPos += 4;
 
 		if (ulSize <= 16 || ulPos + ulSize + 4 > lpsSyncState->cb)
@@ -457,7 +460,8 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 
 		strSourceKey.assign((char*)(lpsSyncState->lpb + ulPos), ulSize);
 		ulPos += ulSize;
-		ulSize = *((ULONG*)(lpsSyncState->lpb + ulPos));
+		memcpy(&ulSize, lpsSyncState->lpb + ulPos, sizeof(ulSize));
+		ulSize = le32_to_cpu(ulSize);
 		ulPos += 4;
 
 		if (ulSize < 8 || ulPos + ulSize > lpsSyncState->cb)
@@ -482,7 +486,6 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 {
 	HRESULT hr = hrSuccess;
-	std::string strSyncStatus;
 	ULONG ulSize = 0;
 	ULONG ulVersion = EC_SYNC_STATUS_VERSION;
 	LARGE_INTEGER liPos = {{0, 0}};
@@ -490,9 +493,11 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 	memory_ptr<SPropValue> lpSyncStatusProp;
 
 	assert(lppSyncStatusProp != NULL);
-	strSyncStatus.assign((char*)&ulVersion, 4);
+	uint32_t tmp4 = cpu_to_le32(ulVersion);
+	std::string strSyncStatus{reinterpret_cast<const char *>(&tmp4), 4};
 	ulSize = m_mapSyncStatus.size();
-	strSyncStatus.append((char*)&ulSize, 4);
+	tmp4 = cpu_to_le32(ulSize);
+	strSyncStatus.append(reinterpret_cast<const char *>(&tmp4), 4);
 
 	ZLOG_DEBUG(m_lpLogger, "Saving sync status stream: items=%u", ulSize);
 
@@ -500,14 +505,16 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 		std::unique_ptr<char[]> lpszStream;
 
 		ulSize = ssp.first.size();
-		strSyncStatus.append((char*)&ulSize, 4);
+		tmp4 = cpu_to_le32(ulSize);
+		strSyncStatus.append(reinterpret_cast<const char *>(&tmp4), 4);
 		strSyncStatus.append(ssp.first);
 
 		hr = ssp.second->Stat(&sStat, STATFLAG_NONAME);
 		if (hr != hrSuccess)
 			return hr;
 		ulSize = sStat.cbSize.LowPart;
-		strSyncStatus.append((char*)&ulSize, 4);
+		tmp4 = cpu_to_le32(ulSize);
+		strSyncStatus.append(reinterpret_cast<const char *>(&tmp4), 4);
 		ZLOG_DEBUG(m_lpLogger, "  Stream: size=%u, sourcekey=%s", ulSize,
 			bin2hex(ssp.first.size(), ssp.first.data()).c_str());
 		hr = ssp.second->Seek(liPos, STREAM_SEEK_SET, NULL);
