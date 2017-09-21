@@ -568,7 +568,7 @@ class Store(Base):
         return fbmsg, (entryids, names, flags)
 
     def delegations(self):
-        fbmsg, (entryids, names, flags) = self._fbmsg_delgs()
+        _, (entryids, _, _) = self._fbmsg_delgs()
 
         for entryid in entryids.Value:
             username = self.server.sa.GetUser(entryid, MAPI_UNICODE).Username
