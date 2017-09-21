@@ -93,11 +93,7 @@ ECSessionManager::~ECSessionManager()
 	auto iSession = m_mapSessions.begin();
 	while (iSession != m_mapSessions.cend()) {
 		delete iSession->second;
-		auto iSessionNext = iSession;
-		++iSessionNext;
-		m_mapSessions.erase(iSession);
-
-		iSession = iSessionNext;
+		iSession = m_mapSessions.erase(iSession);
 	}
 	
 	delete m_lpNotificationManager;
@@ -274,12 +270,7 @@ ECRESULT ECSessionManager::RemoveAllSessions()
 	auto iIterSession = m_mapSessions.begin();
 	while (iIterSession != m_mapSessions.cend()) {
 		lpSession = iIterSession->second;
-		auto iSessionNext = iIterSession;
-		++iSessionNext;
-		m_mapSessions.erase(iIterSession);
-
-		iIterSession = iSessionNext;
-
+		iIterSession = m_mapSessions.erase(iIterSession);
 		lstSessions.push_back(lpSession);
 	}
 
@@ -306,12 +297,9 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 			continue;
 		}
 		lpSession = iIterSession->second;
-		auto iSessionNext = iIterSession;
-		++iSessionNext;
 		// Tell the notification manager to wake up anyone waiting for this session
 		m_lpNotificationManager->NotifyChange(iIterSession->first);
-		m_mapSessions.erase(iIterSession);
-		iIterSession = iSessionNext;
+		iIterSession = m_mapSessions.erase(iIterSession);
 		lstSessions.push_back(lpSession);
 	}
 

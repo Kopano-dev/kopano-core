@@ -175,7 +175,7 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 		 * groups here to exclude.
 		 */
 		if (IsUserObjectVisible(iterGroups->ulId) != erSuccess || iterGroups->GetClass() == DISTLIST_DYNAMIC) {
-			lpGroups->erase(iterGroups++);
+			iterGroups = lpGroups->erase(iterGroups);
 			continue;
 		}
 		cSeenGroups.m_seen.insert(*iterGroups);

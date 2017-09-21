@@ -746,7 +746,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 					lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
 
                 // Remove from mapColumns so we know that we got a response from SQL
-                mapColumns.erase(iterColumns++);
+				iterColumns = mapColumns.erase(iterColumns);
             }
         }
     }

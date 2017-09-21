@@ -2158,7 +2158,7 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 	for (auto i = defaultDisabled.cbegin(); i != defaultDisabled.cend(); ) {
 		if (i->empty()) {
 			// nasty side effect of boost split, when input consists only of a split predicate.
-			defaultDisabled.erase(i++);
+			i = defaultDisabled.erase(i);
 			continue;
 		}
 		defaultEnabled.erase(*i);

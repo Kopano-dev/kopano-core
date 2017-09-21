@@ -120,7 +120,7 @@ HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 		iter = find_if(iter, m_mapConnections.cend(), [lpClient](const NOTIFYCONNECTIONCLIENTMAP::value_type &entry) { return entry.second.IsClient(lpClient); });
 		if (iter == m_mapConnections.cend())
 			break;
-		m_mapConnections.erase(iter++);
+		iter = m_mapConnections.erase(iter);
 	}
 
 	/* Remove client from list */

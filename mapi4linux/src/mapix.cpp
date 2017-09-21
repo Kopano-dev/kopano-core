@@ -368,10 +368,7 @@ M4LMsgServiceAdmin::~M4LMsgServiceAdmin()
 				++p;
 				continue;
 			}
-			auto pNext = p;
-			++pNext;
-			providers.erase(p);
-			p = pNext;
+			p = providers.erase(p);
 		}
 		try {
 			i->service->MSGServiceEntry()(0, nullptr, nullptr,
@@ -572,7 +569,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 {
 	decltype(services)::iterator i;
-	decltype(providers)::iterator p, pNext;
+	decltype(providers)::iterator p;
 	scoped_rlock l_srv(m_mutexserviceadmin);
 
 	for (i = services.begin(); i != services.end(); ++i)
@@ -589,10 +586,7 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 			++p;
 			continue;
 		}
-		pNext = p;
-		++pNext;
-		providers.erase(p);
-		p = pNext;
+		p = providers.erase(p);
     }
 	auto ret = (*i)->service->MSGServiceEntry()(0, nullptr, nullptr, 0, 0,
 	           MSG_SERVICE_DELETE, 0, nullptr, (*i)->provideradmin, nullptr);
