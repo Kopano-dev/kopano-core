@@ -165,10 +165,6 @@ static void AddChangeKeyToChangeList(std::string *strChangeList,
 	bool bFound = false;
 
 	std::string strChangeKey;
-
-	if(cbChangeKey > 0xFF)
-		return;
-
 	strChangeKey.assign((char *)&cbChangeKey,1);
 	strChangeKey.append(lpChangeKey, cbChangeKey);
 
