@@ -2761,7 +2761,9 @@ HRESULT SessionRestorer::restore_services(IProfAdmin *profadm)
 		if (svcuid_prop->Value.bin.cb != sizeof(entry->muid))
 			return MAPI_E_CORRUPT_DATA;
 		memcpy(&entry->muid, svcuid_prop->Value.bin.lpb, sizeof(entry->muid));
+		ulock_rec svclk(m_svcadm->m_mutexserviceadmin);
 		m_svcadm->services.push_back(std::move(entry));
+		svclk.unlock();
 
 		object_ptr<IProfSect> psect;
 		ret = m_svcadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, 0, &~psect);
@@ -2810,6 +2812,7 @@ HRESULT SessionRestorer::restore_providers()
 		ret = entry->profilesection->SetProps(ps_nprops, ps_props, nullptr);
 		if (ret != hrSuccess)
 			return ret;
+		scoped_rlock svclk(m_svcadm->m_mutexserviceadmin);
 		m_svcadm->providers.push_back(std::move(entry));
 	}
 	return hrSuccess;
