@@ -498,8 +498,7 @@ HRESULT MAPIToVMIME::parseMimeTypeFromFilename(std::wstring strFilename, vmime::
 	strMedType = ext_to_mime_type(strExt.c_str());
 
 	*lpMT = vmime::mediaType(strMedType);
-	*lpbSendBinary = strMedType != nullptr && strcmp(strMedType, "application/edifact") != 0;
-
+	*lpbSendBinary = strcmp(strMedType, "application/edifact") != 0;
 	return hrSuccess;
 }
 

@@ -287,7 +287,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 	ec_log_notice("Listening for SSL connections on port %d", nServerPort);
 exit:
 	free(server_ssl_protocols);
-	if (er != erSuccess && lpsSoap != nullptr)
+	if (er != erSuccess)
 		soap_free(lpsSoap);
 	return er;
 }
@@ -330,7 +330,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	soap_post_check_mime_attachments(lpsSoap);
 	ec_log_notice("Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
 exit:
-	if (er != erSuccess && lpsSoap != nullptr)
+	if (er != erSuccess)
 		soap_free(lpsSoap);
 	return er;
 }

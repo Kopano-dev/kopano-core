@@ -1145,14 +1145,10 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
     SetStatus(ulFolderId, EC_SEARCHFOLDER_STATUS_RUNNING);
     
 exit:
-    if(lpDatabase && er != erSuccess)
-        lpDatabase->Rollback();
-        
-    if(lpSession) {
-        lpSession->Unlock();
-        m_lpSessionManager->RemoveSessionInternal(lpSession);
-    }
-        
+	if (lpDatabase && er != erSuccess)
+		lpDatabase->Rollback();
+	lpSession->Unlock();
+	m_lpSessionManager->RemoveSessionInternal(lpSession);
     if(lpPropTags)
         FreePropTagArray(lpPropTags);
     if (lpAdditionalRestrict)
@@ -1284,7 +1280,7 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulStoreId, unsigned int ulFo
 		ec_log_err("ECSearchFolders::ResetResults(): database commit failed 0x%x", er);
 		
 exit:
-	if (er != erSuccess && lpDatabase)
+	if (er != erSuccess)
 		lpDatabase->Rollback();
         
     return er;
@@ -1576,9 +1572,8 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulStoreId, unsigned in
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): commit failed 0x%x", er);
 
 exit:
-    if(lpDatabase && er != erSuccess)
-        lpDatabase->Rollback();
-    
+	if (er != erSuccess)
+		lpDatabase->Rollback();
     return er;
 }
 
