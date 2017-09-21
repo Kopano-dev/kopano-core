@@ -176,6 +176,8 @@ def list_permissions(store):
 
 def user_counts(server): # XXX allowed/available
     stats = server.table(PR_EC_STATSTABLE_SYSTEM).dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE)
+    if sys.hexversion >= 0x03000000: # XXX shouldn't be necessary
+        stats = dict([(s.decode('ascii'), stats[s].decode('ascii')) for s in stats])
     print('User counts:')
     fmt = '\t{:>12}{:>10}'
     print(fmt.format('', 'Used'))
