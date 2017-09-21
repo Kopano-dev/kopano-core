@@ -502,7 +502,7 @@ class Server(object):
                 raise NotFoundError("no public store")
             return self.public_store
         else:
-            company = Company(name.split('@')[1])
+            company = Company(name.split('@')[1], self)
             if not company.public_store:
                 raise NotFoundError("no public store for company '%s'" % company.name)
             return company.public_store
