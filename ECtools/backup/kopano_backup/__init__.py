@@ -334,8 +334,8 @@ class FolderImporter:
 
             self.log.debug('folder %s: deleted document with sourcekey %s', self.folder.sourcekey, item.sourcekey)
 
-            if item.sourcekey in db_items: # ICS may generate delete events without update events (soft-deletes?)
-                idx = pickle_loads(db_index[item.sourcekey])
+            if item.sourcekey.encode('ascii') in db_items: # ICS may generate delete events without update events (soft-deletes?)
+                idx = pickle_loads(db_index[item.sourcekey.encode('ascii')])
                 idx[b'backup_deleted'] = self.service.timestamp
                 db_index[item.sourcekey.encode('ascii')] = pickle_dumps(idx)
             else:
@@ -389,7 +389,7 @@ class Service(kopano.Service):
         try:
             jobs = self.create_jobs()
         except kopano.Error as e:
-            fatal(e.message)
+            fatal(str(e))
         for job in jobs:
             self.iqueue.put(job)
         self.log.info('queued %d store(s) for parallel backup (%s processes)', len(jobs), len(workers))
@@ -622,7 +622,7 @@ class Service(kopano.Service):
         # check --sourcekey option (only restore specified item if it exists)
         if self.options.sourcekeys:
             with closing(dbopen(data_path+'/items')) as db:
-                if not [sk for sk in self.options.sourcekeys if sk in db]:
+                if not [sk for sk in self.options.sourcekeys if sk.encode('ascii') in db]:
                     return
         else:
             self.log.debug('restoring folder %s', path)
@@ -652,24 +652,27 @@ class Service(kopano.Service):
             # determine sourcekey(s) to restore
             sourcekeys = db.keys()
             if self.options.sourcekeys:
-                sourcekeys = [sk for sk in sourcekeys if sk in self.options.sourcekeys]
+                sourcekeys = [sk for sk in self.options.sourcekeys if sk.encode('ascii') in sourcekeys]
+            elif sys.hexversion >= 0x03000000:
+                sourcekeys = [sk.decode('ascii') for sk in sourcekeys]
 
             for sourcekey2 in sourcekeys:
+                sourcekey2a = sourcekey2.encode('ascii')
                 with log_exc(self.log, stats):
                     # date check against 'index'
-                    last_modified = index[sourcekey2][b'last_modified']
+                    last_modified = index[sourcekey2a][b'last_modified']
                     if ((self.options.period_begin and last_modified < self.options.period_begin) or
                         (self.options.period_end and last_modified >= self.options.period_end) or
-                        (index[sourcekey2].get(b'backup_deleted') and self.options.deletes in (None, 'no'))):
+                        (index[sourcekey2a].get(b'backup_deleted') and self.options.deletes in (None, 'no'))):
                         continue
 
                     # check for duplicates
-                    if sourcekey2 in existing or index[sourcekey2][b'orig_sourcekey'] in existing:
+                    if sourcekey2a in existing or index[sourcekey2a][b'orig_sourcekey'] in existing:
                         self.log.warning('skipping duplicate item with sourcekey %s', sourcekey2)
                     else:
                         # actually restore item
                         self.log.debug('restoring item with sourcekey %s', sourcekey2)
-                        item = folder.create_item(loads=zlib.decompress(db[sourcekey2]), attachments=not self.options.skip_attachments)
+                        item = folder.create_item(loads=zlib.decompress(db[sourcekey2a]), attachments=not self.options.skip_attachments)
 
                         # store original sourcekey or it is lost
                         try:
