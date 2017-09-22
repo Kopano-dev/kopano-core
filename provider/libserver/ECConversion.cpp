@@ -138,7 +138,8 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_default_searchCriteria52X(struct soap *soap, str
 SOAP_FMAC3 struct searchCriteria52X * SOAP_FMAC4 soap_get_searchCriteria52X(struct soap *soap, struct searchCriteria52X *p, const char *tag, const char *type)
 {
 	if ((p = soap_in_searchCriteria52X(soap, tag, p, type)))
-		soap_getindependent(soap);
+		if (soap_getindependent(soap) != SOAP_OK)
+			return nullptr;
 	return p;
 }
 

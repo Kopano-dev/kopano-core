@@ -1598,9 +1598,11 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(ECDatabase *lpDatabase, unsigned in
 
 	xmlsoap.os = &xml;
 	soap_serialize_searchCriteria(&xmlsoap, &sSearchCriteria);
-	soap_begin_send(&xmlsoap);
-	soap_put_searchCriteria(&xmlsoap, &sSearchCriteria, "SearchCriteria",NULL);
-	soap_end_send(&xmlsoap);
+	if (soap_begin_send(&xmlsoap) != 0 ||
+	    soap_put_searchCriteria(&xmlsoap, &sSearchCriteria, "SearchCriteria", nullptr) != 0)
+		return KCERR_NOT_ENOUGH_MEMORY;
+	if (soap_end_send(&xmlsoap) != 0)
+		return KCERR_NETWORK_ERROR;
 
 	// Make sure we're linking with the correct SOAP (c++ version)
 	assert(!xml.str().empty());
