@@ -81,7 +81,7 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
 	static constexpr const configsetting_t lpDefaults[] = {
 		{ "fullname_charset", "iso-8859-15" }, // US-ASCII compatible with support for high characters
 		{ "default_domain", "localhost" },			// no sane default
-		{ "non_login_shell", "/bin/false", CONFIGSETTING_RELOADABLE },	// create a non-login box when a user has this shell
+		{"non_login_shell", "/sbin/nologin /bin/false", CONFIGSETTING_RELOADABLE}, // create a non-login box when a user has this shell
 		{ "min_user_uid", "1000", CONFIGSETTING_RELOADABLE },
 		{ "max_user_uid", "10000", CONFIGSETTING_RELOADABLE },
 		{ "except_user_uids", "", CONFIGSETTING_RELOADABLE },
