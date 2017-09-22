@@ -851,7 +851,7 @@ class Item(Base):
         for row in self.table(PR_MESSAGE_ATTACHMENTS).dict_rows(): # XXX should we use GetAttachmentTable?
             try:
                 num = row[PR_ATTACH_NUM]
-                method = row[PR_ATTACH_METHOD] # XXX default
+                method = row.get(PR_ATTACH_METHOD, ATTACH_BY_VALUE)
                 att = self.mapiobj.OpenAttach(num, IID_IAttachment, 0)
                 if method == ATTACH_EMBEDDED_MSG:
                     try:
