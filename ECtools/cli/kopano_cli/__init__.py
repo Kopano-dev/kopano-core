@@ -485,9 +485,11 @@ def global_options(options, server):
         user_counts(server)
 
     if not (options.companies or options.groups or options.users):
-        for company in server.companies(parse=False):
+        companies = list(server.companies(parse=False))
+        for i, company in enumerate(companies):
             company_overview_options(company, options, server)
-            print
+            if i < len(companies)-1:
+                print
         company_update_options(server.company('Default'), options, server)
 
 def check_options(options, server):
