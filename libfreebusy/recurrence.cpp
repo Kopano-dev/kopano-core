@@ -412,12 +412,12 @@ HRESULT recurrence::setWeekDays(UCHAR d)
 
 UCHAR recurrence::getDayOfMonth() const
 {
-	if ((m_sRecState.ulRecurFrequency != RF_YEARLY &&
-	    m_sRecState.ulRecurFrequency != RF_MONTHLY) ||
-	    (m_sRecState.ulPatternType != PT_MONTH &&
-	    m_sRecState.ulPatternType != PT_MONTH_END))
-		return 0;
-	return m_sRecState.ulDayOfMonth;
+	if ((m_sRecState.ulRecurFrequency == RF_YEARLY ||
+	    m_sRecState.ulRecurFrequency == RF_MONTHLY) &&
+	    (m_sRecState.ulPatternType == PT_MONTH ||
+	    m_sRecState.ulPatternType == PT_MONTH_END))
+		return m_sRecState.ulDayOfMonth;
+	return 0;
 }
 
 HRESULT recurrence::setDayOfMonth(UCHAR d)
