@@ -450,11 +450,23 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 			for (size_t i = 0; i < myBody->getPartCount(); ++i) {
 				auto bPart = myBody->getPartAt(i);
 				auto ctf = bPart->getHeader()->findField(vmime::fields::CONTENT_TYPE);
+				if (ctf == nullptr)
+					continue;
+				auto cval = ctf->getValue();
+				if (cval == nullptr) {
+					ec_log_debug("MDN Content-Type field without value");
+					continue;
+				}
+				auto dval = vmime::dynamicCast<vmime::mediaType>(cval);
+				if (dval == nullptr) {
+					ec_log_debug("MDN Content-Type field not representable as vmime::mediaType");
+					continue;
+				}
 
-				if ((vmime::dynamicCast<vmime::mediaType>(ctf->getValue())->getType() == vmime::mediaTypes::TEXT &&
-				     vmime::dynamicCast<vmime::mediaType>(ctf->getValue())->getSubType() == vmime::mediaTypes::TEXT_PLAIN) ||
-				    (vmime::dynamicCast<vmime::mediaType>(ctf->getValue())->getType() == vmime::mediaTypes::MULTIPART &&
-				     vmime::dynamicCast<vmime::mediaType>(ctf->getValue())->getSubType() == vmime::mediaTypes::MULTIPART_ALTERNATIVE)) {
+				if ((dval->getType() == vmime::mediaTypes::TEXT &&
+				     dval->getSubType() == vmime::mediaTypes::TEXT_PLAIN) ||
+				    (dval->getType() == vmime::mediaTypes::MULTIPART &&
+				     dval->getSubType() == vmime::mediaTypes::MULTIPART_ALTERNATIVE)) {
 					hr = dissect_body(bPart->getHeader(), bPart->getBody(), lpMessage);
 					if (hr != hrSuccess) {
 						ec_log_err("Unable to parse MDN mail body");
