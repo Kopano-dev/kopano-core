@@ -38,8 +38,8 @@ class Address(object):
             email = self.server._resolve_email(entryid=self.entryid)
             # cannot resolve email for deleted/non-existent user, so fallback to searchkey
             # XXX make PR_SMTP_ADDRESS always contain email address?
-            if not email and self._searchkey and ':' in self._searchkey and '@' in self._searchkey:
-                email = self._searchkey.split(':')[1].rstrip('\x00').lower()
+            if not email and self._searchkey and b':' in self._searchkey and b'@' in self._searchkey:
+                email = self._searchkey.split(b':')[1].rstrip(b'\x00').lower()
         else:
             email = self._email or ''
         return email

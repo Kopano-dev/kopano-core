@@ -160,7 +160,7 @@ class Delegation(object):
     @staticmethod
     def _send_only_to_delegates(store):
         """Delete meetingrequests after copying them to delegates."""
-        userids, deletion = Delegation._parse_rule(store)
+        _, deletion = Delegation._parse_rule(store)
         return deletion
 
     @staticmethod
