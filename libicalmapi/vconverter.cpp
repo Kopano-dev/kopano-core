@@ -2763,13 +2763,12 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		}
 		
 		// 1. get new StartDateTime and EndDateTime from exception and make DTSTART and DTEND in sTimeZone
-		tNewTime = LocalToUTC(tNewTime, m_iCurrentTimeZone->second);
+		tNewTime = LocalToUTC(tNewTime, zone);
 		hr = HrSetTimeProperty(tNewTime, bIsAllDayException, lpicTZinfo,
 		     strTZid, ICAL_DTSTART_PROPERTY, lpicException.get());
 		if (hr != hrSuccess)
 			continue;
-
-		tNewTime = LocalToUTC(cRecurrence.getModifiedEndDateTime(i), m_iCurrentTimeZone->second);
+		tNewTime = LocalToUTC(cRecurrence.getModifiedEndDateTime(i), zone);
 		hr = HrSetTimeProperty(tNewTime, bIsAllDayException, lpicTZinfo,
 		     strTZid, ICAL_DTEND_PROPERTY, lpicException.get());
 		if (hr != hrSuccess)
