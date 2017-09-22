@@ -660,7 +660,7 @@ class Item(Base):
 
         for row in self.table(PR_MESSAGE_RECIPIENTS):
             row = dict([(x.proptag, x) for x in row])
-            if not _type or row[PR_RECIPIENT_TYPE].value == _type:
+            if not _type or (PR_RECIPIENT_TYPE in row and row[PR_RECIPIENT_TYPE].value == _type):
                 args = [row[p].value if p in row else None for p in (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_SEARCH_KEY)]
                 yield Address(self.server, *args)
 
