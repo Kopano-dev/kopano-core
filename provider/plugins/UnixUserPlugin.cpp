@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <algorithm>
 #include <exception>
 #include <iostream>
 #include <mutex>
@@ -199,20 +200,23 @@ void UnixUserPlugin::findGroup(const string &name, struct group *grp, char *buff
 			throw objectnotfound(name);
 }
 
+static objectclass_t shell_to_class(const std::vector<std::string> &nls, const char *shell)
+{
+	return std::find(nls.cbegin(), nls.cend(), shell) == nls.cend() ?
+	       ACTIVE_USER : NONACTIVE_USER;
+}
+
+static objectclass_t shell_to_class(ECConfig *cfg, const char *shell)
+{
+	return shell_to_class(tokenize(cfg->GetSetting("non_login_shell"), ' ', true), shell);
+}
+
 objectsignature_t UnixUserPlugin::resolveUserName(const string &name)
 {
 	char buffer[PWBUFSIZE];
 	struct passwd pws;
-	const char *lpszNonActive =  m_config->GetSetting("non_login_shell");
-	objectid_t objectid;
-
 	findUser(name, &pws, buffer);
-
-	if (strcmp(pws.pw_shell, lpszNonActive) != 0)
-		objectid = objectid_t(tostring(pws.pw_uid), ACTIVE_USER);
-	else
-		objectid = objectid_t(tostring(pws.pw_uid), NONACTIVE_USER);
-
+	objectid_t objectid{tostring(pws.pw_uid), shell_to_class(m_config, pws.pw_shell)};
 	return objectsignature_t(objectid, getDBSignature(objectid) + pws.pw_gecos + pws.pw_name);
 }
 
@@ -301,8 +305,7 @@ objectsignature_t UnixUserPlugin::authenticateUser(const string &username, const
 	for (unsigned i = 0; i < exceptuids.size(); ++i)
 		if (pw->pw_uid == fromstring<const std::string, uid_t>(exceptuids[i]))
 			throw objectnotfound(username);
-
-	if (strcmp(pw->pw_shell, m_config->GetSetting("non_login_shell")) == 0)
+	if (shell_to_class(m_config, pw->pw_shell) != ACTIVE_USER)
 		throw login_error("Non-active user disallowed to login");
 
 	ud = objectdetailsFromPwent(pw);
@@ -363,7 +366,7 @@ UnixUserPlugin::getAllUserObjects(const std::string &match,
 	struct passwd pws, *pw = NULL;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
-	const char *lpszNonActive =  m_config->GetSetting("non_login_shell");
+	auto forbid_sh = tokenize(m_config->GetSetting("non_login_shell"), ' ', true);
 	vector<string> exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
 	set<uid_t> exceptuidset;
 	objectid_t objectid;
@@ -386,12 +389,7 @@ UnixUserPlugin::getAllUserObjects(const std::string &match,
 
 		if (!match.empty() && !matchUserObject(pw, match, ulFlags))
 			continue;
-
-		if (strcmp(pw->pw_shell, lpszNonActive) != 0)
-			objectid = objectid_t(tostring(pw->pw_uid), ACTIVE_USER);
-		else
-			objectid = objectid_t(tostring(pw->pw_uid), NONACTIVE_USER);
-
+		objectid_t objectid{tostring(pw->pw_uid), shell_to_class(forbid_sh, pw->pw_shell)};
 		objectlist->push_back({objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name});
 	}
 	endpwent();
@@ -739,12 +737,11 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	struct group grp;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
-	const char *lpszNonActive =  m_config->GetSetting("non_login_shell");
+	auto forbid_sh = tokenize(m_config->GetSetting("non_login_shell"), ' ', true);
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
 	vector<string> exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
 	set<uid_t> exceptuidset;
-	objectid_t objectid;
 
 	if (relation != OBJECTRELATION_GROUP_MEMBER)
 		return DBPlugin::getSubObjectsForObject(relation, parentid);
@@ -779,10 +776,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 
 		// is it a member, and fits the default group in the range?
 		if (pw->pw_gid == grp.gr_gid && pw->pw_gid >= mingid && pw->pw_gid < maxgid) {
-			if (strcmp(pw->pw_shell, lpszNonActive) != 0)
-				objectid = objectid_t(tostring(pw->pw_uid), ACTIVE_USER);
-			else
-				objectid = objectid_t(tostring(pw->pw_uid), NONACTIVE_USER);
+			objectid_t objectid{tostring(pw->pw_uid), shell_to_class(forbid_sh, pw->pw_shell)};
 			objectlist->push_back({objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name});
 		}
 	}
@@ -906,11 +900,7 @@ UnixUserPlugin::objectdetailsFromPwent(struct passwd *pw)
 	size_t comma;
 
 	ud->SetPropString(OB_PROP_S_LOGIN, string(pw->pw_name));
-	if (strcmp(pw->pw_shell, m_config->GetSetting("non_login_shell")) == 0)
-		ud->SetClass(NONACTIVE_USER);
-	else
-		ud->SetClass(ACTIVE_USER);
-
+	ud->SetClass(shell_to_class(m_config, pw->pw_shell));
 	gecos = m_iconv->convert(pw->pw_gecos);
 
 	// gecos may contain room/phone number etc. too
