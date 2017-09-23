@@ -1180,29 +1180,31 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 	if (strName.empty() && !strEmail.empty()) {
 		// email address only
 		vmMailboxNew = vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail));
+		return hrSuccess;
 	} else if (strEmail.find('@') != string::npos) {
 		// email with fullname
 		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail));
+		return hrSuccess;
 	} else if (pPropObjectType && pPropObjectType->Value.ul == MAPI_DISTLIST) {
 		// if mailing to a group without email address
 		vmMailboxNew = vmime::make_shared<vmime::mailboxGroup>(getVmimeTextFromWide(strName));
+		return hrSuccess;
 	} else if (sopt.no_recipients_workaround == true) {
 		// gateway must always return a mailbox object
 		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail));
-	} else {
-		if (strEmail.empty()) {
-			// not an email address and not a group: invalid
-			m_strError = L"Invalid email address in recipient list found: \"" + strName + L"\". Email Address is empty.";
-			ec_log_err("%ls", m_strError.c_str());
-			return MAPI_E_INVALID_PARAMETER;
-		}
-
-		// we only want to have this recipient fail, and not the whole message, if the user has a username
-		m_strError = L"Invalid email address in recipient list found: \"" + strName + L"\" <" + strEmail + L">.";
+		return hrSuccess;
+	}
+	if (strEmail.empty()) {
+		// not an email address and not a group: invalid
+		m_strError = L"Invalid email address in recipient list found: \"" + strName + L"\". Email Address is empty.";
 		ec_log_err("%ls", m_strError.c_str());
 		return MAPI_E_INVALID_PARAMETER;
 	}
-	return hr;
+
+	// we only want to have this recipient fail, and not the whole message, if the user has a username
+	m_strError = L"Invalid email address in recipient list found: \"" + strName + L"\" <" + strEmail + L">.";
+	ec_log_err("%ls", m_strError.c_str());
+	return MAPI_E_INVALID_PARAMETER;
 }
 
 /**
