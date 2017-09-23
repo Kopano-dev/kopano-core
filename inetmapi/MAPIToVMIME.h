@@ -65,7 +65,7 @@ private:
 	HRESULT fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime::messageBuilder* lpVMMessageBuilder);
 
 	HRESULT handleTextparts(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder, eBestBody *bestBody);
-	HRESULT getMailBox(LPSRow lpRow, vmime::shared_ptr<vmime::address> *mbox);
+	HRESULT getMailBox(SRow *lpRow, vmime::shared_ptr<vmime::address> &mbox);
 	HRESULT processRecipients(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder);
 	HRESULT handleExtraHeaders(IMessage *in, vmime::shared_ptr<vmime::header> out, unsigned int);
 	HRESULT handleReplyTo(IMessage *in, vmime::shared_ptr<vmime::header> hdr);

@@ -228,7 +228,7 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 				continue;
 			}
 
-			hr = getMailBox(&pRows->aRow[i], &vmMailbox);
+			hr = getMailBox(&pRows->aRow[i], vmMailbox);
 			if (hr == MAPI_E_INVALID_PARAMETER)	// skip invalid addresses
 				continue;
 			if (hr != hrSuccess)
@@ -761,7 +761,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 			// no recipient, but need to continue ... is this correct??
 			vmRecipientbox = vmime::make_shared<vmime::mailbox>(string("undisclosed-recipients"));
 		} else {
-			hr = getMailBox(&pRows->aRow[0], &vmRecipientbox);
+			hr = getMailBox(&pRows->aRow[0], vmRecipientbox);
 			if (hr != hrSuccess)
 				return hr; // Logging done in getMailBox
 		}
@@ -1165,10 +1165,9 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
  * @retval MAPI_E_INVALID_PARAMTER email address in row is not usable for the SMTP protocol
  */
 HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
-    vmime::shared_ptr<vmime::address> *lpvmMailbox)
+    vmime::shared_ptr<vmime::address> &vmMailboxNew)
 {
 	HRESULT hr;
-	vmime::shared_ptr<vmime::address> vmMailboxNew;
 	std::wstring strName, strEmail, strType;
 
 	hr = HrGetAddress(m_lpAdrBook, lpRow->lpProps, lpRow->cValues, PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, strName, strType, strEmail);
@@ -1203,8 +1202,6 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 		ec_log_err("%ls", m_strError.c_str());
 		return MAPI_E_INVALID_PARAMETER;
 	}
-
-	*lpvmMailbox = std::move(vmMailboxNew);
 	return hr;
 }
 
