@@ -68,6 +68,7 @@ Fixes:
 * caldav: fix unbounded copy/iteration past end [KC-792]
 * migration-pst: skip archiver properties [KC-812]
 * icalmapi: cure a NULL dereference when generating VCFs
+* inetmapi: cure a NULL dereference when parsing MDNs [KC-814]
 * inetmapi: support embedded messages once again [KC-540, KC-775]
 * inetmapi: stop generating <"@"@hostname> [KC-689, KC-772]
 * server: admin user is to always open shared reminders [KC-813]
