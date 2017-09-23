@@ -122,25 +122,18 @@ std::string GetServerFQDN()
 	string retval = "localhost";
 	int rc;
 	char hostname[256] = {0};
-	struct addrinfo hints = {0};
 	struct addrinfo *aiResult = NULL;
-	struct sockaddr_in saddr = {0};
 
 	rc = gethostname(hostname, sizeof(hostname));
 	if (rc != 0)
 		goto exit;
 
 	retval = hostname;
-
-	rc = getaddrinfo(hostname, NULL, &hints, &aiResult);
-	if (rc != 0)
+	rc = getaddrinfo(hostname, nullptr, nullptr, &aiResult);
+	if (rc != 0 || aiResult == nullptr)
 		return retval;
-
-	// no need to set other contents of saddr struct, we're just intrested in the DNS lookup.
-	saddr = *((sockaddr_in*)aiResult->ai_addr);
-
 	// Name lookup is required, so set that flag
-	rc = getnameinfo((const sockaddr*)&saddr, sizeof(saddr), hostname, sizeof(hostname), NULL, 0, NI_NAMEREQD);
+	rc = getnameinfo(aiResult->ai_addr, aiResult->ai_addrlen, hostname, sizeof(hostname), nullptr, 0, NI_NAMEREQD);
 	if (rc != 0)
 		goto exit;
 
