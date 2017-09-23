@@ -227,7 +227,7 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 
 	m_lpDispatcher->AddListenSocket(lpsSoap);
     
-	// Manually check for attachments, independant of streaming support
+	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap);
 	ec_log_notice("Listening for TCP connections on port %d", nServerPort);
 	return erSuccess;
@@ -282,7 +282,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 
 	m_lpDispatcher->AddListenSocket(lpsSoap);
 
-	// Manually check for attachments, independant of streaming support
+	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap);
 	ec_log_notice("Listening for SSL connections on port %d", nServerPort);
 exit:
@@ -326,7 +326,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	memset(&lpsSoap->peer, 0, sizeof(lpsSoap->peer));
 	m_lpDispatcher->AddListenSocket(lpsSoap);
 
-	// Manually check for attachments, independant of streaming support
+	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap);
 	ec_log_notice("Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
 exit:

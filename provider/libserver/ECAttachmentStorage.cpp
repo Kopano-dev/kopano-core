@@ -193,7 +193,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag, UL
 }
 
 /** 
- * Get all instance ids from a list of hierarchy ids, independant of
+ * Get all instance ids from a list of hierarchy ids, independent of
  * the proptag.
  * @todo this should be for a given tag, or we should return the tags too (map<InstanceID, ulPropId>)
  * 
