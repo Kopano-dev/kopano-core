@@ -778,13 +778,13 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 			continue;
 
 		// is it a member, and fits the default group in the range?
-		if (pw->pw_gid == grp.gr_gid && pw->pw_gid >= mingid && pw->pw_gid < maxgid) {
-			if (strcmp(pw->pw_shell, lpszNonActive) != 0)
-				objectid = objectid_t(tostring(pw->pw_uid), ACTIVE_USER);
-			else
-				objectid = objectid_t(tostring(pw->pw_uid), NONACTIVE_USER);
-			objectlist->push_back({objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name});
-		}
+		if (pw->pw_gid != grp.gr_gid || pw->pw_gid < mingid || pw->pw_gid >= maxgid)
+			continue;
+		if (strcmp(pw->pw_shell, lpszNonActive) != 0)
+			objectid = objectid_t(tostring(pw->pw_uid), ACTIVE_USER);
+		else
+			objectid = objectid_t(tostring(pw->pw_uid), NONACTIVE_USER);
+		objectlist->push_back({objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name});
 	}
 	endpwent();
 	biglock.unlock();
