@@ -330,9 +330,9 @@ HRESULT HrExtractHTMLFromRTF(const std::string &rtf_unfilt,
 						++szInput;
 					}
 
-					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {
+					if (!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars)
 						sState[ulState].output.append(1,ulChar);
-					} else if (sState[ulState].ulSkipChars)
+					else if (sState[ulState].ulSkipChars)
 						--sState[ulState].ulSkipChars;
 
 					if(*szInput == '\\' && *(szInput+1) == '\'')
@@ -574,9 +574,8 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
 					bPar = true;
 				}
 				// Dump output data until now, if we're switching charsets
-				if(szANSICharset == NULL || strcmp(sState[ulState].szCharset, szANSICharset) != 0) {
+				if (szANSICharset == nullptr || strcmp(sState[ulState].szCharset, szANSICharset) != 0)
 					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-				}
 
 				while(*szInput == '\'')
 				{
@@ -606,21 +605,16 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
 				}
 
 				// Dump escaped data in charset 0 (ansicpg), if we had to switch charsets
-				if(szANSICharset == NULL || strcmp(sState[ulState].szCharset, szANSICharset) != 0) {
+				if (szANSICharset == nullptr || strcmp(sState[ulState].szCharset, szANSICharset) != 0)
 					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-				}
-
 			} else {
 				++szInput; // skip single character after '\'
 			}
 		} // Non-command
 		else if(*szInput == '{') {
 			// Dump output data
-
-			if (!sState[ulState].output.empty()) {
+			if (!sState[ulState].output.empty())
 				strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-			}
-
 			++ulState;
 			if (ulState >= RTF_MAXSTATE)
 				return MAPI_E_NOT_ENOUGH_MEMORY;

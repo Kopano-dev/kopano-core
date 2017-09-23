@@ -1422,17 +1422,15 @@ HRESULT WebDav::HrMkCalendar()
 			sProperty.strValue = (char*)lpXmlNode->children->content;
 
 		// @todo we should have a generic xml to structs converter, this is *way* too hackish
-		if (sProperty.sPropName.strPropname.compare("supported-calendar-component-set") == 0) {
+		if (sProperty.sPropName.strPropname.compare("supported-calendar-component-set") == 0)
 			for (auto lpXmlChild = lpXmlNode->children;
-			     lpXmlChild != nullptr; lpXmlChild = lpXmlChild->next) {
+			     lpXmlChild != nullptr; lpXmlChild = lpXmlChild->next)
 				if (lpXmlChild->type == XML_ELEMENT_NODE &&
 				    xmlStrcmp(lpXmlChild->name, reinterpret_cast<const xmlChar *>("comp")) == 0 &&
 				    lpXmlChild->properties != nullptr &&
 				    lpXmlChild->properties->children != nullptr &&
 				    lpXmlChild->properties->children->content != nullptr)
 					sProperty.strValue = reinterpret_cast<char *>(lpXmlChild->properties->children->content);
-			}
-		}
 		sDavProp.lstProps.push_back(std::move(sProperty));
 	}
 
