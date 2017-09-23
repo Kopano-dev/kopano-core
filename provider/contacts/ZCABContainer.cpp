@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <new>
+#include <cstring>
 #include "ZCABContainer.h"
 #include "ZCMAPIProp.h"
 #include <mapiutil.h>
@@ -477,8 +478,8 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	if (hr != hrSuccess)
 		return hr;
 
+	memset(&sKey, 0, sizeof(sKey));
 	sKey.ulPropTag = PR_ROWID;
-	sKey.Value.ul = 0;
 	for (ULONG i = 0; i < ptrEntries->Value.MVbin.cValues; ++i) {
 		ULONG ulOffset = 0;
 		BYTE cType = 0;

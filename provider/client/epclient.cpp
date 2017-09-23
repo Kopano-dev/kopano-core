@@ -582,8 +582,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	object_ptr<WSTransport> lpTransport;
 	memory_ptr<SPropValue> lpsPropValue;
 	bool			bShowDialog = false;
-
-	MAPIERROR		*lpMapiError = NULL;
 	memory_ptr<BYTE> lpDelegateStores;
 	ULONG			cDelegateStores = 0;
 	convert_context	converter;

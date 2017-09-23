@@ -41,6 +41,7 @@
  
 #include <kopano/platform.h>
 #include <memory>
+#include <cstdint>
 #include <mapidefs.h> 
 #include <mapiutil.h>
 #include <mapiguid.h>
@@ -891,7 +892,9 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 	if(ulSize < 8)
 		return MAPI_E_NOT_FOUND;
 
-	ulPropTag = *reinterpret_cast<const ULONG *>(lpBuffer);
+	uint32_t tmp4;
+	memcpy(&tmp4, lpBuffer, sizeof(tmp4));
+	ulPropTag = le32_to_cpu(tmp4);
 	lpBuffer += sizeof(ULONG);
 	ulSize -= 4;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpProp);
@@ -906,13 +909,15 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 
 		lpBuffer += sizeof(GUID);
 		ulSize -= sizeof(GUID);
-		ulIsNameId = *reinterpret_cast<const ULONG *>(lpBuffer);
+		memcpy(&tmp4, lpBuffer, sizeof(tmp4));
+		ulIsNameId = le32_to_cpu(tmp4);
 		lpBuffer += 4;
 		ulSize -= 4;
 
 		if(ulIsNameId != 0) {
 			// A string name follows
-			ulLen = *reinterpret_cast<const ULONG *>(lpBuffer);
+			memcpy(&tmp4, lpBuffer, sizeof(tmp4));
+			ulLen = le32_to_cpu(tmp4);
 			lpBuffer += 4;
 			ulSize -= 4;
 			if (ulLen > ulSize)
@@ -932,7 +937,8 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
 		} else {
 			sNameID.ulKind = MNID_ID;
-			sNameID.Kind.lID = *reinterpret_cast<const ULONG *>(lpBuffer);
+			memcpy(&tmp4, lpBuffer, sizeof(tmp4));
+			sNameID.Kind.lID = le32_to_cpu(tmp4);
 			lpBuffer += 4;
 			ulSize -= 4;
 		}
@@ -949,7 +955,8 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 	if(ulPropTag & MV_FLAG) {
 		if (ulSize < 4)
 			return MAPI_E_CORRUPT_DATA;
-		ulCount = *(ULONG *)lpBuffer;
+		memcpy(&tmp4, lpBuffer, sizeof(tmp4));
+		ulCount = le32_to_cpu(tmp4);
 		lpBuffer += 4;
 		ulSize -= 4;
 		
@@ -1016,7 +1023,6 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 
 	for (ulMVProp = 0; ulMVProp < ulCount; ++ulMVProp) {
 		uint16_t tmp2;
-		uint32_t tmp4;
 		switch(PROP_TYPE(ulPropTag) & ~MV_FLAG) {
 		case PT_I2:
 			memcpy(&tmp2, lpBuffer, sizeof(tmp2));

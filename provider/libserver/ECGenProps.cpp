@@ -602,8 +602,6 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 			case MAPI_MESSAGE:
 				sPropVal.Value.ul = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
 				break;
-			case MAPI_ATTACH:
-			case MAPI_STORE:
 			default:
 				er = KCERR_NOT_FOUND;
 				goto exit;
@@ -647,8 +645,6 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 			if ((ulRights & ecRightsDeleteAny) == ecRightsDeleteAny || (bOwner == true && (ulRights & ecRightsDeleteOwned) == ecRightsDeleteOwned))
 				sPropVal.Value.ul |= MAPI_ACCESS_DELETE;
 			break;
-		case MAPI_ATTACH:
-		case MAPI_STORE:
 		default:
 			er = KCERR_NOT_FOUND;
 			goto exit;

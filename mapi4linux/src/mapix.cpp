@@ -368,10 +368,7 @@ M4LMsgServiceAdmin::~M4LMsgServiceAdmin()
 				++p;
 				continue;
 			}
-			auto pNext = p;
-			++pNext;
-			providers.erase(p);
-			p = pNext;
+			p = providers.erase(p);
 		}
 		try {
 			i->service->MSGServiceEntry()(0, nullptr, nullptr,
@@ -511,13 +508,13 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 	serviceEntry *rawent;
 	SVCService* service = NULL;
 	const SPropValue *lpProp = NULL;
-	scoped_rlock l_srv(m_mutexserviceadmin);
 	
 	if(lpszService == NULL || lpszDisplayName == NULL) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): invalid parameters");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
+	scoped_rlock l_srv(m_mutexserviceadmin);
 	hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(lpszService), ulFlags, &service);
 	if (hr == MAPI_E_NOT_FOUND) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): get service \"%s\" failed: %s (%x). "
@@ -572,7 +569,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 {
 	decltype(services)::iterator i;
-	decltype(providers)::iterator p, pNext;
+	decltype(providers)::iterator p;
 	scoped_rlock l_srv(m_mutexserviceadmin);
 
 	for (i = services.begin(); i != services.end(); ++i)
@@ -589,10 +586,7 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 			++p;
 			continue;
 		}
-		pNext = p;
-		++pNext;
-		providers.erase(p);
-		p = pNext;
+		p = providers.erase(p);
     }
 	auto ret = (*i)->service->MSGServiceEntry()(0, nullptr, nullptr, 0, 0,
 	           MSG_SERVICE_DELETE, 0, nullptr, (*i)->provideradmin, nullptr);
@@ -634,12 +628,12 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(const MAPIUID *lpUID,
     const SPropValue *lpProps)
 {
     serviceEntry* entry;
-	ulock_rec l_srv(m_mutexserviceadmin);
 	
 	if (lpUID == NULL) {
 		ec_log_err("M4LMsgServiceAdmin::ConfigureMsgService() invalid parameters");
 		return MAPI_E_INVALID_PARAMETER;
 	}
+	ulock_rec l_srv(m_mutexserviceadmin);
 	entry = findServiceAdmin(lpUID);
 	if (!entry) {
 		ec_log_err("M4LMsgServiceAdmin::ConfigureMsgService() service not found");
@@ -2767,7 +2761,9 @@ HRESULT SessionRestorer::restore_services(IProfAdmin *profadm)
 		if (svcuid_prop->Value.bin.cb != sizeof(entry->muid))
 			return MAPI_E_CORRUPT_DATA;
 		memcpy(&entry->muid, svcuid_prop->Value.bin.lpb, sizeof(entry->muid));
+		ulock_rec svclk(m_svcadm->m_mutexserviceadmin);
 		m_svcadm->services.push_back(std::move(entry));
+		svclk.unlock();
 
 		object_ptr<IProfSect> psect;
 		ret = m_svcadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, 0, &~psect);
@@ -2816,6 +2812,7 @@ HRESULT SessionRestorer::restore_providers()
 		ret = entry->profilesection->SetProps(ps_nprops, ps_props, nullptr);
 		if (ret != hrSuccess)
 			return ret;
+		scoped_rlock svclk(m_svcadm->m_mutexserviceadmin);
 		m_svcadm->providers.push_back(std::move(entry));
 	}
 	return hrSuccess;

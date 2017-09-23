@@ -409,7 +409,7 @@ HRESULT ECNamedProp::HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void
 	*lppDst = lpDst;
 
 exit:
-	if(hr != hrSuccess && !lpBase && lpDst)
+	if (hr != hrSuccess && lpBase == nullptr)
 		ECFreeBuffer(lpDst);
 
 	return hr;

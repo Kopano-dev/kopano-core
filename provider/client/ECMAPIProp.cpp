@@ -761,6 +761,8 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 			return hr;
 		// read the data into the buffer
 		hr = lpStream->Read(buffer, (ULONG)sStat.cbSize.QuadPart, &ulSize);
+		/* no point in dealing with an incomplete multibyte sequence */
+		ulSize = ulSize / sizeof(wchar_t) * sizeof(wchar_t);
 	} else{
 		hr = lpStream->QueryInterface(IID_ECMemStream, &~lpECStream);
 		if(hr != hrSuccess)

@@ -748,7 +748,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			// EOF occurred, just close the socket and remove it from the socket list
 			kopano_end_soap_connection(iterSockets->second.soap);
 			soap_free(iterSockets->second.soap);
-			m_setSockets.erase(iterSockets++);
+				iterSockets = m_setSockets.erase(iterSockets);
 				continue;
 			}
 			// Actual data waiting, push it on the processing queue
@@ -757,7 +757,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			// Remove socket from listen list for now, since we're already handling data there and don't
 			// want to interfere with the thread that is now handling that socket. It will be passed back
 			// to us when the request is done.
-			m_setSockets.erase(iterSockets++);
+			iterSockets = m_setSockets.erase(iterSockets);
 		}
 		l_sock.unlock();
 

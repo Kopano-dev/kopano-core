@@ -164,12 +164,7 @@ static void AddChangeKeyToChangeList(std::string *strChangeList,
 	ULONG ulPos = 0;
 	bool bFound = false;
 
-	std::string strChangeKey;
-
-	if(cbChangeKey > 0xFF)
-		return;
-
-	strChangeKey.assign((char *)&cbChangeKey,1);
+	std::string strChangeKey{static_cast<char>(cbChangeKey)};
 	strChangeKey.append(lpChangeKey, cbChangeKey);
 
 	while(ulPos < strChangeList->size()){

@@ -16,6 +16,7 @@
  */
 #include <new>
 #include <utility>
+#include <cstdint>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/mapi_ptr.h>
@@ -2205,9 +2206,10 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		// The server did not supply a PR_SOURCE_KEY, generate one ourselves.
 
 		strServerGUID.assign((char*)&lpMessage->GetMsgStore()->GetStoreGuid(), sizeof(GUID));
-
-		if(lpMessage->m_sMapiObject)
-			strID.assign((char *)&lpMessage->m_sMapiObject->ulObjId, sizeof(lpMessage->m_sMapiObject->ulObjId));
+		if (lpMessage->m_sMapiObject != nullptr) {
+			uint32_t tmp4 = cpu_to_le32(lpMessage->m_sMapiObject->ulObjId);
+			strID.assign(reinterpret_cast<const char *>(&tmp4), sizeof(tmp4));
+		}
 							
 		// Resize so it trails 6 null bytes
 		strID.resize(6,0);

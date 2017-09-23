@@ -1,0 +1,3 @@
+#!/bin/sh
+which git >/dev/null 2>/dev/null && which perl >/dev/null 2>/dev/null && \
+git describe --match=$(git describe --first-parent | perl -pe 's{-\d+-g[0-9a-f]+$}{$1}') "$@"

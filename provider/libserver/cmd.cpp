@@ -3782,8 +3782,7 @@ SOAP_ENTRY_START(tableGetSearchCriteria, lpsResponse->er,  entryId sEntryId, str
 	lpsResponse->ulFlags = ulFlags;
 
 exit:
-	if(lpSearchCriteria)
-		FreeSearchCriteria(lpSearchCriteria);
+	FreeSearchCriteria(lpSearchCriteria);
 }
 SOAP_ENTRY_END()
 

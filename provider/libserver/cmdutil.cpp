@@ -397,7 +397,7 @@ static ECRESULT CheckICSDeleteScope(ECDatabase *lpDatabase,
 			// ignore delete of message
 			ec_log_debug("Message not in sync scope, ignoring delete");
 			FreeDeleteItem(&(*iterDeleteItems));
-			lstDeleted.erase(iterDeleteItems++);
+			iterDeleteItems = lstDeleted.erase(iterDeleteItems);
 		} else if (er != erSuccess)
 			return er;
 		else

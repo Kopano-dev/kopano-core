@@ -104,7 +104,11 @@ HRESULT WSABPropStorage::HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues
 	// Convert the property values to a MAPI propvalarray
 	*cValues = sResponse.aPropVal.__size;
 
-	if(sResponse.aPropTag.__size == 0) {
+	/*
+	 * aPropTag has none of the %PT_ERROR values that aPropVal might have;
+	 * so aPropTag.__size <= aPropVal.__size holds.
+	 */
+	if (sResponse.aPropVal.__size == 0) {
 		*ppValues = NULL;
 	} else {
 		hr = ECAllocateBuffer(sizeof(SPropValue) * sResponse.aPropVal.__size, (void **)ppValues);

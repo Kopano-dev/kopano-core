@@ -15,6 +15,7 @@
  *
  */
 #include <utility>
+#include <cstdint>
 #include <kopano/platform.h>
 #include "icaluid.h"
 #include <mapix.h>
@@ -153,12 +154,12 @@ HRESULT HrMakeBinUidFromICalUid(const std::string &strUid, std::string *lpStrBin
 {
 	HRESULT hr = hrSuccess;
 	std::string strBinUid;
-	int len = 13 + strUid.length();
+	uint32_t len = cpu_to_le32(13 + strUid.length());
 
 	strBinUid.insert(0, "\x04\x00\x00\x00\x82\x00\xE0\x00\x74\xC5\xB7\x10\x1A\x82\xE0\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 0x24);
 	strBinUid.append((char*) &len, 4);
 	strBinUid.append("vCal-Uid", 8);
-	len = 1;				// this is always 1
+	len = cpu_to_le32(1); /* this is always 1 */
 	strBinUid.append((char*)&len, 4);
 	strBinUid.append(strUid);
 	strBinUid.append("\x00", 1);

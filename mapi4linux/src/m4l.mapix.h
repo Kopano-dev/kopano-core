@@ -86,6 +86,7 @@ private:
 	std::list<std::unique_ptr<providerEntry> > providers;
 	std::list<std::unique_ptr<serviceEntry> > services;
 	KCHL::object_ptr<M4LProfSect> profilesection; // Global Profile Section
+	/* guards content in service (and provider) list */
 	std::recursive_mutex m_mutexserviceadmin;
 
     // functions

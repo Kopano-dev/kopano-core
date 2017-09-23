@@ -97,13 +97,8 @@ ECRESULT kopano_unloadlibrary(void)
 	auto iterDBObject = g_lpDBObjectList.cbegin();
 	while (iterDBObject != g_lpDBObjectList.cend())
 	{
-		auto iNext = iterDBObject;
-		++iNext;
 		delete (*iterDBObject);
-
-		g_lpDBObjectList.erase(iterDBObject);
-
-		iterDBObject = iNext;
+		iterDBObject = g_lpDBObjectList.erase(iterDBObject);
 	}
 	l_obj.unlock();
 
