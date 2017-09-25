@@ -55,7 +55,6 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netdb.h>
 
 using namespace std;
 using namespace KCHL;
@@ -110,48 +109,6 @@ const char *GetServerUnixSocket(const char *szPreferred)
 		return szPreferred;
 	else
 		return "";
-}
-
-/** 
- * Return the FQDN of this server (guessed).
- * 
- * @return hostname string
- */
-std::string GetServerFQDN()
-{
-	string retval = "localhost";
-	int rc;
-	char hostname[256] = {0};
-	struct addrinfo hints = {0};
-	struct addrinfo *aiResult = NULL;
-	struct sockaddr_in saddr = {0};
-
-	rc = gethostname(hostname, sizeof(hostname));
-	if (rc != 0)
-		goto exit;
-
-	retval = hostname;
-
-	rc = getaddrinfo(hostname, NULL, &hints, &aiResult);
-	if (rc != 0)
-		return retval;
-
-	// no need to set other contents of saddr struct, we're just intrested in the DNS lookup.
-	saddr = *((sockaddr_in*)aiResult->ai_addr);
-
-	// Name lookup is required, so set that flag
-	rc = getnameinfo((const sockaddr*)&saddr, sizeof(saddr), hostname, sizeof(hostname), NULL, 0, NI_NAMEREQD);
-	if (rc != 0)
-		goto exit;
-
-	if (hostname[0] != '\0')
-		retval = hostname;
-
-exit:
-	if (aiResult)
-		freeaddrinfo(aiResult);
-
-	return retval;
 }
 
 /**

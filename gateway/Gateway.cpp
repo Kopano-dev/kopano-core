@@ -20,6 +20,7 @@
 #include <new>
 #include <climits>
 #include <csignal>
+#include <netdb.h>
 #include <poll.h>
 #include <inetmapi/inetmapi.h>
 
@@ -278,6 +279,32 @@ static void *Handler_Threaded(void *a)
 	 */
 	kcsrv_blocksigs();
 	return Handler(a);
+}
+
+static std::string GetServerFQDN()
+{
+	std::string retval = "localhost";
+	char hostname[256] = {0};
+	struct addrinfo *result = nullptr;
+
+	auto rc = gethostname(hostname, sizeof(hostname));
+	if (rc != 0)
+		return retval;
+	retval = hostname;
+	rc = getaddrinfo(hostname, nullptr, nullptr, &result);
+	if (rc != 0 || result == nullptr)
+		return retval;
+	/* Name lookup is required, so set that flag */
+	rc = getnameinfo(result->ai_addr, result->ai_addrlen, hostname,
+	     sizeof(hostname), nullptr, 0, NI_NAMEREQD);
+	if (rc != 0)
+		goto exit;
+	if (hostname[0] != '\0')
+		retval = hostname;
+ exit:
+	if (result)
+		freeaddrinfo(result);
+	return retval;
 }
 
 int main(int argc, char *argv[]) {
