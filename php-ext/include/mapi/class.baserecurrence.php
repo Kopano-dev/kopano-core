@@ -1293,7 +1293,7 @@
 		 * @param int $week
 		 * @param int $day
 		 * @param int $hour
-		 * @return returns the timestamp of the given date, timezone-independant
+		 * @return returns the timestamp of the given date, timezone independent
 		 */
 		function getDateByYearMonthWeekDayHour($year, $month, $week, $day, $hour)
 		{

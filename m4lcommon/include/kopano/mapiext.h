@@ -570,7 +570,7 @@ PR_ADDITIONAL_REN_ENTRYIDS:
 #define NOTEIVERB_RECALL_MESSAGE	521	// RecallMessage
 #define NOTEIVERB_FORWARD_RESPONSE	522	// ForwardResponse
 
-#define ICON_FOLDER_DEFAULT			0xFFFFFFFF	// Different from documentation: -1 is dependant on folder the item is in
+#define ICON_FOLDER_DEFAULT			0xFFFFFFFF /* Different from documentation: -1 is dependent on folder the item is in */
 
 /* defines from [MS-OXOMSG].pdf for email icons */
 #define ICON_MAIL_READ				0x00000100	// Read mail

@@ -41,14 +41,14 @@ the provided data and will always perform a normalization before doing a compari
 
 @par Case mapping
 The case insensitive functions need a way to match code points regardless of their case. ICU provides a few methods for
-this, but they use a method called case-folding to avoid the need for a locale (changing case is dependant on a locale).
+this, but they use a method called case-folding to avoid the need for a locale (changing case is dependent on a locale).
 Since case-folding doesn't take a locale, it's a best guess method, which will produce wrong results in certain situations.
 The functions in this library apply a method called case-mapping, which basically means we perform a to-upper on all
 code-points with a provided locale.
 
 @par Collation
 The functions that try to match (sub)strings, have no interest in the order in which strings would appear if they would be
-sorted. However, the compare functions do produce a result that could be used for sorting. Since sorting is dependant on a
+sorted. However, the compare functions do produce a result that could be used for sorting. Since sorting is dependent on a
 locale as well, they would need a locale. However, ICU provides a Collator class that performs the actual comparison for a
 particular locale. Since we don't want to construct a Collator class for every string comparison, the string comparison
 functions take a Collator object as argument. This way the caller can reuse the Collator.
@@ -994,7 +994,7 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
 }
 
 /**
- * Create a locale independant blob that can be used to sort
+ * Create a locale independent blob that can be used to sort
  * strings fast. This is used when a string would be compared
  * multiple times.
  *
@@ -1022,7 +1022,7 @@ static ECUSortKey createSortKey(UnicodeString &&s, int nCap,
 }
 
 /**
- * Create a locale independant blob that can be used to sort
+ * Create a locale independent blob that can be used to sort
  * strings fast. This is used when a string would be compared
  * multiple times.
  *
@@ -1042,7 +1042,7 @@ static std::string createSortKeyData(UnicodeString &&s, int nCap,
 }
 
 /**
- * Create a locale independant blob that can be used to sort
+ * Create a locale independent blob that can be used to sort
  * strings fast. This is used when a string would be compared
  * multiple times.
  *
@@ -1057,7 +1057,7 @@ std::string createSortKeyData(const char *s, int nCap, const ECLocale &locale)
 }
 
 /**
- * Create a locale independant blob that can be used to sort
+ * Create a locale independent blob that can be used to sort
  * strings fast. This is used when a string would be compared
  * multiple times.
  *
@@ -1071,7 +1071,7 @@ std::string createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale
 }
 
 /**
- * Create a locale independant blob that can be used to sort
+ * Create a locale independent blob that can be used to sort
  * strings fast. This is used when a string would be compared
  * multiple times.
  *
@@ -1087,7 +1087,7 @@ std::string createSortKeyDataFromUTF8(const char *s, int nCap,
 }
 
 /**
- * Create a locale independant blob that can be used to sort
+ * Create a locale independent blob that can be used to sort
  * strings fast. This is used when a string would be compared
  * multiple times.
  *
