@@ -132,7 +132,10 @@ Default:
 .PP
 \fBnon_login_shell\fR
 .RS 4
-This this the shell a user has to be created as a non\-login box. Mail can be delivered to this box, but you cannot directly login with this username. The uid must be within the defined limits.
+A space-separated list of shells that, if a user account has one of them set as
+login shell, marks the corresponding Kopano user account as locked. Mail can be
+delivered to that user's inbox, but the user cannot directly login with this
+username.
 .sp
 Default:
 \fI/bin/false\fR
