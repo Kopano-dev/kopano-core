@@ -91,6 +91,7 @@ STR_GUID = {
     'PSETID_Common': PSETID_Common,
     'PSETID_Appointment': PSETID_Appointment,
     'PSETID_Meeting': PSETID_Meeting,
+    'PSETID_Address': PSETID_Address,
 # XXX moar
 }
 
