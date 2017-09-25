@@ -114,70 +114,63 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	else if ((ulFlags & MAPI_CREATE) && PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ) && *lpiid == IID_IMessage)
 		ulAttachType = ATTACH_EMBEDDED_MSG;
 
-	if(ulAttachType == ATTACH_EMBEDDED_MSG && (PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ) && *lpiid == IID_IMessage)) {
-		// Client is opening an IMessage submessage
-
-		if (!m_sMapiObject->lstChildren.empty()) {
-			fNew = FALSE;			// Create the submessage object from my sSavedObject data
-			ulObjId = (*m_sMapiObject->lstChildren.begin())->ulObjId;
-		} else {
-			if (!fModify || !(ulFlags & MAPI_CREATE))
-				return MAPI_E_NO_ACCESS;
-			fNew = TRUE;			// new message in message
-			ulObjId = 0;
-		}
-
-		hr = ECMessage::Create(this->GetMsgStore(), fNew, ulFlags & MAPI_MODIFY, 0, TRUE, m_lpRoot, &~lpMessage);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Client side unique ID is 0. Attachment can only have 1 submessage
-		hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, 0, ulObjId, this->lpStorage->GetServerStorage(), &~lpParentStorage);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpMessage->HrSetPropStorage(lpParentStorage, !fNew);
-		if(hr != hrSuccess)
-			return hr;
-
-		if (fNew) {
-			// Load an empty property set
-			hr = lpMessage->HrLoadEmptyProps();
-
-			if(hr != hrSuccess)
-				return hr;
-
-			//Set defaults
-			// Same as ECMAPIFolder::CreateMessage
-			hr = ECAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
-			if (hr != hrSuccess)
-				return hr;
-			hr = this->GetMsgStore()->lpSupport->NewUID(lpMapiUID);
-			if(hr != hrSuccess)
-				return hr;
-
-			sPropValue[0].ulPropTag = PR_MESSAGE_FLAGS;
-			sPropValue[0].Value.l = MSGFLAG_UNSENT | MSGFLAG_READ;
-
-			sPropValue[1].ulPropTag = PR_MESSAGE_CLASS_A;
-			sPropValue[1].Value.lpszA = const_cast<char *>("IPM");
-			
-			sPropValue[2].ulPropTag = PR_SEARCH_KEY;
-			sPropValue[2].Value.bin.cb = sizeof(MAPIUID);
-			sPropValue[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpMapiUID.get());
-			lpMessage->SetProps(3, sPropValue, NULL);
-		}
-
-		hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppUnk);
-
-		AddChild(lpMessage);
-
-	} else {
-		if(PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ))
-			ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(PR_ATTACH_DATA_OBJ));
+	if (ulAttachType != ATTACH_EMBEDDED_MSG ||
+	    PROP_ID(ulPropTag) != PROP_ID(PR_ATTACH_DATA_OBJ) ||
+	    *lpiid != IID_IMessage) {
+		if (PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ))
+			ulPropTag = PROP_TAG(PT_BINARY, PROP_ID(PR_ATTACH_DATA_OBJ));
 		if (ulAttachType == ATTACH_OLE && *lpiid != IID_IStorage && *lpiid != IID_IStream)
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
+		return ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 	}
+
+	/* Client is opening an IMessage submessage */
+	if (!m_sMapiObject->lstChildren.empty()) {
+		fNew = FALSE; // Create the submessage object from my sSavedObject data
+		ulObjId = (*m_sMapiObject->lstChildren.begin())->ulObjId;
+	} else {
+		if (!fModify || !(ulFlags & MAPI_CREATE))
+			return MAPI_E_NO_ACCESS;
+		fNew = TRUE; // new message in message
+		ulObjId = 0;
+	}
+	hr = ECMessage::Create(this->GetMsgStore(), fNew, ulFlags & MAPI_MODIFY, 0, TRUE, m_lpRoot, &~lpMessage);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Client side unique ID is 0. Attachment can only have 1 submessage
+	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, 0, ulObjId, this->lpStorage->GetServerStorage(), &~lpParentStorage);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpMessage->HrSetPropStorage(lpParentStorage, !fNew);
+	if (hr != hrSuccess)
+		return hr;
+
+	if (fNew) {
+		// Load an empty property set
+		hr = lpMessage->HrLoadEmptyProps();
+		if (hr != hrSuccess)
+			return hr;
+
+		//Set defaults
+		// Same as ECMAPIFolder::CreateMessage
+		hr = ECAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
+		if (hr != hrSuccess)
+			return hr;
+		hr = this->GetMsgStore()->lpSupport->NewUID(lpMapiUID);
+		if (hr != hrSuccess)
+			return hr;
+		sPropValue[0].ulPropTag = PR_MESSAGE_FLAGS;
+		sPropValue[0].Value.l = MSGFLAG_UNSENT | MSGFLAG_READ;
+		sPropValue[1].ulPropTag = PR_MESSAGE_CLASS_A;
+		sPropValue[1].Value.lpszA = const_cast<char *>("IPM");
+		sPropValue[2].ulPropTag = PR_SEARCH_KEY;
+		sPropValue[2].Value.bin.cb = sizeof(MAPIUID);
+		sPropValue[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpMapiUID.get());
+		lpMessage->SetProps(3, sPropValue, NULL);
+	}
+	hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppUnk);
+	AddChild(lpMessage);
 	return hr;
 }
 
