@@ -599,6 +599,8 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 
 	switch(lpSrc->rt) {
 	case RES_AND:
+		if (lpSrc->res.resAnd.cRes > 0 && lpSrc->res.resAnd.lpRes == nullptr)
+			return MAPI_E_INVALID_PARAMETER;
 		lpDest->res.resAnd.cRes = lpSrc->res.resAnd.cRes;
 		hr = MAPIAllocateMore(sizeof(SRestriction) * lpSrc->res.resAnd.cRes, lpBase, (void **)&lpDest->res.resAnd.lpRes);
 		if (hr != hrSuccess)
@@ -610,6 +612,8 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 		}
 		break;
 	case RES_OR:
+		if (lpSrc->res.resOr.cRes > 0 && lpSrc->res.resOr.lpRes == nullptr)
+			return MAPI_E_INVALID_PARAMETER;
 		lpDest->res.resOr.cRes = lpSrc->res.resOr.cRes;
 		hr = MAPIAllocateMore(sizeof(SRestriction) * lpSrc->res.resOr.cRes, lpBase, (void **)&lpDest->res.resOr.lpRes);
 		if (hr != hrSuccess)
@@ -621,11 +625,15 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 		}
 		break;
 	case RES_NOT:
+		if (lpSrc->res.resNot.lpRes == nullptr)
+			return MAPI_E_INVALID_PARAMETER;
 		hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpDest->res.resNot.lpRes);
 		if (hr != hrSuccess)
 			return hr;
 		return HrCopySRestriction(lpDest->res.resNot.lpRes, lpSrc->res.resNot.lpRes, lpBase);
 	case RES_CONTENT:
+		if (lpSrc->res.resContent.lpProp == nullptr)
+			return MAPI_E_INVALID_PARAMETER;
 		lpDest->res.resContent.ulFuzzyLevel = lpSrc->res.resContent.ulFuzzyLevel;
 		lpDest->res.resContent.ulPropTag = lpSrc->res.resContent.ulPropTag;
 		hr = MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDest->res.resContent.lpProp);
@@ -633,6 +641,8 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 			return hr;
 		return HrCopyProperty(lpDest->res.resContent.lpProp, lpSrc->res.resContent.lpProp, lpBase);
 	case RES_PROPERTY:
+		if (lpSrc->res.resProperty.lpProp == nullptr)
+			return MAPI_E_INVALID_PARAMETER;
 		lpDest->res.resProperty.relop = lpSrc->res.resProperty.relop;
 		lpDest->res.resProperty.ulPropTag = lpSrc->res.resProperty.ulPropTag;
 		hr = MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDest->res.resProperty.lpProp);
@@ -658,6 +668,8 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 		lpDest->res.resExist.ulPropTag = lpSrc->res.resExist.ulPropTag;
 		break;
 	case RES_SUBRESTRICTION:
+		if (lpSrc->res.resSub.lpRes == nullptr)
+			return MAPI_E_INVALID_PARAMETER;
 		lpDest->res.resSub.ulSubObject = lpSrc->res.resSub.ulSubObject;
 		hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **)&lpDest->res.resSub.lpRes);
 		if (hr != hrSuccess)
@@ -669,6 +681,8 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 
 		if (lpSrc->res.resComment.cValues > 0)
 		{
+			if (lpSrc->res.resComment.lpProp == nullptr)
+				return MAPI_E_INVALID_PARAMETER;
 			hr = MAPIAllocateMore(sizeof(SPropValue) * lpSrc->res.resComment.cValues, lpBase, (void **) &lpDest->res.resComment.lpProp);
 			if (hr != hrSuccess)
 				return hr;
@@ -677,6 +691,8 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 				return hr;
 		}
 		if (lpSrc->res.resComment.lpRes) {
+			if (lpSrc->res.resComment.lpRes == nullptr)
+				return MAPI_E_INVALID_PARAMETER;
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpDest->res.resComment.lpRes);
 			if (hr != hrSuccess)
 				return hr;
