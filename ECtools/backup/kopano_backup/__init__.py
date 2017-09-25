@@ -422,12 +422,53 @@ class Service(kopano.Service):
 
         user = store.user
 
+        # determine stored and specified folders
+        path_folder = folder_struct(data_path, self.options)
+        paths = self.options.folders or sorted(path_folder.keys())
+        if self.options.recursive:
+            paths = [path2 for path2 in path_folder for path in paths if (path2+'//').startswith(path+'/')]
+        for path in paths:
+            if path not in path_folder:
+                fatal('no such folder: %s' % path)
+
         # start restore
         self.log.info('restoring to store %s', store.entryid)
         t0 = time.time()
         stats = {'changes': 0, 'errors': 0}
 
-        # restore metadata (webapp/mapi settings)
+        # restore specified (parts of) folders
+        restored = []
+        for path in paths:
+            fpath = path_folder[path]
+            restore_path = _decode(self.options.restore_root)+'/'+path if self.options.restore_root else path
+
+            if self.options.sourcekeys:
+                with closing(dbopen(fpath+'/items')) as db:
+                    if not [sk for sk in self.options.sourcekeys if sk.encode('ascii') in db]:
+                        continue
+            else:
+                if self.options.deletes in (None, 'no') and folder_deleted(fpath):
+                    continue
+
+                folder = store.subtree.get_folder(restore_path)
+                if (folder and not store.public and \
+                    ((self.options.skip_junk and folder == store.junk) or \
+                    (self.options.skip_deleted and folder == store.wastebasket))):
+                        continue
+
+            if not self.options.only_meta:
+                folder = store.subtree.folder(restore_path, create=True)
+                self.restore_folder(folder, path, fpath, store, store.subtree, stats, user, self.server)
+            restored.append((folder, fpath))
+
+        # restore folder-level metadata
+        if not (self.options.sourcekeys or self.options.skip_meta):
+            self.log.info('restoring metadata')
+            for (folder, fpath) in restored:
+                load_acl(folder, user, self.server, open(fpath+'/acl', 'rb').read(), stats, self.log)
+                load_rules(folder, user, self.server, open(fpath+'/rules', 'rb').read(), stats, self.log)
+
+        # restore store-level metadata (webapp/mapi settings)
         if user and not self.options.folders and not self.options.restore_root and not self.options.skip_meta:
             if os.path.exists('%s/store' % data_path):
                 storeprops = pickle_loads(open('%s/store' % data_path, 'rb').read())
@@ -443,48 +484,6 @@ class Service(kopano.Service):
                 load_delegates(user, self.server, open('%s/delegates' % data_path, 'rb').read(), stats, self.log)
             if os.path.exists('%s/acl' % data_path):
                 load_acl(store, user, self.server, open('%s/acl' % data_path, 'rb').read(), stats, self.log)
-
-        # determine stored and specified folders
-        path_folder = folder_struct(data_path, self.options)
-        paths = self.options.folders or sorted(path_folder.keys())
-        if self.options.recursive:
-            paths = [path2 for path2 in path_folder for path in paths if (path2+'//').startswith(path+'/')]
-
-        # restore specified (parts of) folders
-        restored = []
-        for path in paths:
-            if path not in path_folder:
-                self.log.error('no such folder: %s', path)
-                stats['errors'] += 1
-            else:
-                fpath = path_folder[path]
-                restore_path = _decode(self.options.restore_root)+'/'+path if self.options.restore_root else path
-
-                if self.options.sourcekeys:
-                    with closing(dbopen(fpath+'/items')) as db:
-                        if not [sk for sk in self.options.sourcekeys if sk.encode('ascii') in db]:
-                            continue
-                else:
-                    if self.options.deletes in (None, 'no') and folder_deleted(fpath):
-                        continue
-
-                    folder = store.subtree.get_folder(restore_path)
-                    if (folder and not store.public and \
-                        ((self.options.skip_junk and folder == store.junk) or \
-                        (self.options.skip_deleted and folder == store.wastebasket))):
-                            continue
-
-                if not self.options.only_meta:
-                    folder = store.subtree.folder(restore_path, create=True)
-                    self.restore_folder(folder, path, fpath, store, store.subtree, stats, user, self.server)
-                restored.append((folder, fpath))
-
-        # restore metadata
-        if not (self.options.sourcekeys or self.options.skip_meta):
-            self.log.info('restoring metadata')
-            for (folder, fpath) in restored:
-                load_acl(folder, user, self.server, open(fpath+'/acl', 'rb').read(), stats, self.log)
-                load_rules(folder, user, self.server, open(fpath+'/rules', 'rb').read(), stats, self.log)
 
         self.log.info('restore completed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)',
             time.time()-t0, stats['changes'], stats['changes']/(time.time()-t0), stats['errors'])
@@ -754,8 +753,7 @@ def show_contents(data_path, options):
     paths = options.folders or sorted(path_folder)
     for path in paths:
         if path not in path_folder:
-            print('no such folder:', path)
-            sys.exit(-1)
+            fatal('no such folder: %s' % path)
     if options.recursive:
         paths = [p for p in path_folder if [f for f in paths if p.startswith(f)]]
 
