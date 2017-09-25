@@ -486,9 +486,7 @@ void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput) {
 		// skips /r if /r/n found together in the text
 		if (*iInput == '\r' && (iInput + 1 != strInput.end() && *(iInput + 1) == '\n')) 
 			continue;
-		else
-			strOutput.append(1, *iInput);
-		
+		strOutput.append(1, *iInput);
 	}
 	*lpstrOutput = std::move(strOutput);
 }
