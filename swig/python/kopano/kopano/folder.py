@@ -10,6 +10,8 @@ import mailbox
 import sys
 import time
 
+import icalmapi
+
 from MAPI import (
     MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE,
     RELOP_GT, RELOP_LT, RELOP_EQ,
@@ -587,6 +589,30 @@ class Folder(Base):
                 _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
             else:
                 _item.Item(self, eml=message.as_string(unixfrom=True), create=True)
+
+    def read_ics(self, ics):
+        """Import a complete ics calendar into the current folder
+
+        :param ics: the ics file to import
+        """
+        icm = icalmapi.CreateICalToMapi(self.mapiobj, self.server.ab, False)
+        icm.ParseICal(ics, 'utf-8', '', None, 0)
+        for i in range(0, icm.GetItemCount()):
+            mapiobj = self.mapiobj.CreateMessage(None, 0)
+            icm.GetItem(i, 0, mapiobj)
+            mapiobj.SaveChanges(0)
+
+    def ics(self, charset="UTF-8"):
+        """Export all calendar items in the folder to an ics file
+
+        :return: ics calendar string
+        """
+        mic = icalmapi.CreateMapiToICal(self.server.ab, charset)
+        for item in self.items():
+            if item.message_class.startswith('IPM.Appointment'):
+                mic.AddMessage(item.mapiobj, "", 0)
+        data = mic.Finalize(0)[1]
+        return data
 
     @property
     def associated(self):
