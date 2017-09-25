@@ -676,9 +676,8 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 	HRESULT hr = hrSuccess;
 	memory_ptr<char> lpRecBlob;
 	unsigned int ulRecBlob = 0;
-	memory_ptr<SPropValue> lpPropVal, lpsPropRecPattern;
+	memory_ptr<SPropValue> lpsPropRecPattern;
 	std::string strHRS;
-	ULONG i = 0;
 
 	hr = lpRecurrence->HrGetRecurrenceState(&~lpRecBlob, &ulRecBlob);
 	if (hr != hrSuccess)
@@ -687,32 +686,26 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 	if (hr != hrSuccess)
 		return hr;
 	// adjust number of props
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpPropVal);
-	if (hr != hrSuccess)
-		return hr;
-
-	lpPropVal[i].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN);
-	lpPropVal[i].Value.b = TRUE;
-	++i;
+	SPropValue pv[4];
+	pv[0].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN);
+	pv[0].Value.b = TRUE;
 
 	// TODO: combine with icon index in vevent .. the item may be a meeting request (meeting+recurring==1027)
-	lpPropVal[i].ulPropTag = PR_ICON_INDEX;
-	lpPropVal[i].Value.ul = ICON_APPT_RECURRING;
-	++i;
+	pv[1].ulPropTag = PR_ICON_INDEX;
+	pv[1].Value.ul = ICON_APPT_RECURRING;
+	pv[2].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
+	pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
+	pv[2].Value.bin.cb = ulRecBlob;
 
-	lpPropVal[i].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
-	lpPropVal[i].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
-	lpPropVal[i].Value.bin.cb = ulRecBlob;
-	++i;
-
+	unsigned int i = 3;
 	hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8), &~lpsPropRecPattern);
 	if(hr != hrSuccess)
 	{
-		lpPropVal[i].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8);
-		lpPropVal[i].Value.lpszA = (char*)strHRS.c_str();
+		pv[i].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8);
+		pv[i].Value.lpszA = const_cast<char *>(strHRS.c_str());
 		++i;
 	}
-	return lpMessage->SetProps(i, lpPropVal, NULL);
+	return lpMessage->SetProps(i, pv, nullptr);
 }
 
 /**

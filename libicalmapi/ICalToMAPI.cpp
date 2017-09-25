@@ -614,15 +614,10 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
  */
 HRESULT ICalToMapiImpl::SaveAttendeesString(const std::list<icalrecip> *lplstRecip, LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	std::wstring strAllAttendees;
 	std::wstring strToAttendees;
 	std::wstring strCCAttendees;
-	memory_ptr<SPropValue> lpsPropValue;
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 3, &~lpsPropValue);
-	if (hr != hrSuccess)
-		return hr;
+	SPropValue lpsPropValue[3];
 
 	// Create attendees string
 	for (const auto &recip : *lplstRecip) {
