@@ -4566,23 +4566,23 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 			auto i = find(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
 			if (i != lstFolderMailEIDs.cend())
 				lstMails.push_back(std::distance(lstFolderMailEIDs.cbegin(), i));
-		} else {
-			// range
-			ulBeginMailnr = LastOrNumber(vSequences[i].c_str(), true);
-			ulMailnr = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
-			if (ulBeginMailnr > ulMailnr)
-				/*
-				 * RFC 3501 page 89 allows swapping; seq-range
-				 * essentially describes a set rather than a
-				 * strictly ordered range.
-				 */
-				swap(ulBeginMailnr, ulMailnr);
-
-			auto b = std::lower_bound(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulBeginMailnr);
-			auto e = std::upper_bound(b, lstFolderMailEIDs.cend(), ulMailnr);
-			for (auto i = b; i != e; ++i)
-				lstMails.push_back(std::distance(lstFolderMailEIDs.cbegin(), i));
+			continue;
 		}
+		// range
+		ulBeginMailnr = LastOrNumber(vSequences[i].c_str(), true);
+		ulMailnr = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
+		if (ulBeginMailnr > ulMailnr)
+			/*
+			 * RFC 3501 page 89 allows swapping; seq-range
+			 * essentially describes a set rather than a
+			 * strictly ordered range.
+			 */
+			swap(ulBeginMailnr, ulMailnr);
+
+		auto b = std::lower_bound(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulBeginMailnr);
+		auto e = std::upper_bound(b, lstFolderMailEIDs.cend(), ulMailnr);
+		for (auto i = b; i != e; ++i)
+			lstMails.push_back(std::distance(lstFolderMailEIDs.cbegin(), i));
 	}
 
 	lstMails.sort();
@@ -4621,19 +4621,18 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
 			if (ulMailnr >= lstFolderMailEIDs.size())
 				return MAPI_E_CALL_FAILED;
 			lstMails.push_back(ulMailnr);
-		} else {
-			// range
-			ulBeginMailnr = LastOrNumber(vSequences[i].c_str(), false) - 1;
-			ulMailnr = LastOrNumber(vSequences[i].c_str() + ulPos + 1, false) - 1;
-
-			if (ulBeginMailnr > ulMailnr)
-				swap(ulBeginMailnr, ulMailnr);
-			if (ulBeginMailnr >= lstFolderMailEIDs.size() ||
-			    ulMailnr >= lstFolderMailEIDs.size())
-				return MAPI_E_CALL_FAILED;
-			for (ULONG j = ulBeginMailnr; j <= ulMailnr; ++j)
-				lstMails.push_back(j);
+			continue;
 		}
+		// range
+		ulBeginMailnr = LastOrNumber(vSequences[i].c_str(), false) - 1;
+		ulMailnr = LastOrNumber(vSequences[i].c_str() + ulPos + 1, false) - 1;
+		if (ulBeginMailnr > ulMailnr)
+			swap(ulBeginMailnr, ulMailnr);
+		if (ulBeginMailnr >= lstFolderMailEIDs.size() ||
+		    ulMailnr >= lstFolderMailEIDs.size())
+			return MAPI_E_CALL_FAILED;
+		for (ULONG j = ulBeginMailnr; j <= ulMailnr; ++j)
+			lstMails.push_back(j);
 	}
 
 	lstMails.sort();

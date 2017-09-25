@@ -325,7 +325,8 @@ static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 	
 	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (FAILED(hr)) {
-		ec_log_err("FNeedsAutoAccept(): GetProps failed %x", hr);
+		ec_log_err("FNeedsAutoAccept(): GetProps failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return false; /* hr */
 	}
 	if (PROP_TYPE(lpProps[1].ulPropTag) == PT_ERROR)
@@ -339,7 +340,8 @@ static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 	
 	hr = GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
 	if (hr != hrSuccess) {
-		ec_log_err("FNeedsAutoAccept(): GetAutoAcceptSettings failed %x", hr);
+		ec_log_err("FNeedsAutoAccept(): GetAutoAcceptSettings failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return false; /* hr */
 	}
 		
@@ -360,7 +362,8 @@ static bool FNeedsAutoProcessing(IMessage *lpMessage)
 
 	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (hr != hrSuccess) {
-		ec_log_err("FNeedsAutoProcessing(): GetProps failed %x", hr);
+		ec_log_err("FNeedsAutoProcessing(): GetProps failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return false; /* hr */
 	}
 	if (wcsncasecmp(lpProps[0].Value.lpszW, L"IPM.Schedule.Meeting.", wcslen(L"IPM.Schedule.Meeting.")) != 0)
@@ -402,29 +405,34 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 	// work on the copy.
 	hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulType, &~lpRootFolder);
 	if(hr != hrSuccess) {
-		ec_log_err("HrAutoAccept(): OpenEntry failed %x", hr);
+		ec_log_err("HrAutoAccept(): OpenEntry failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpMessageCopy);
 	if(hr != hrSuccess) {
-		ec_log_err("HrAutoAccept(): CreateMessage failed %x", hr);
+		ec_log_err("HrAutoAccept(): CreateMessage failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 		
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpMessageCopy, 0, NULL);
 	if(hr != hrSuccess) {
-		ec_log_err("HrAutoAccept(): CopyTo failed %x", hr);
+		ec_log_err("HrAutoAccept(): CopyTo failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 		
 	hr = lpMessageCopy->SaveChanges(0);
 	if(hr != hrSuccess) {
-		ec_log_err("HrAutoAccept(): SaveChanges failed %x", hr);
+		ec_log_err("HrAutoAccept(): SaveChanges failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess) {
-		ec_log_err("HrAutoAccept(): HrGetOneProp failed %x", hr);
+		ec_log_err("HrAutoAccept(): HrGetOneProp failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 		
@@ -441,7 +449,8 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 	ec_log_debug("Starting autoaccept with command line \"%s\"", kc_join(cmdline, "\" \"").c_str());
 	if (!unix_system(autoresponder, cmdline, const_cast<const char **>(environ))) {
 		hr = MAPI_E_CALL_FAILED;
-		ec_log_err("HrAutoAccept(): invoking autoaccept script failed %x", hr);
+		ec_log_err("HrAutoAccept(): invoking autoaccept script failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 	}
 		
 	// Delete the copy, irrespective of the outcome of the script.
@@ -479,29 +488,34 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 	// Pass a copy to the external script
 	hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulType, &~lpRootFolder);
 	if(hr != hrSuccess) {
-		ec_log_err("HrAutoProcess(): OpenEntry failed %x", hr);
+		ec_log_err("HrAutoProcess(): OpenEntry failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpMessageCopy);
 	if(hr != hrSuccess) {
-		ec_log_err("HrAutoProcess(): CreateMessage failed %x", hr);
+		ec_log_err("HrAutoProcess(): CreateMessage failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpMessageCopy, 0, NULL);
 	if(hr != hrSuccess) {
-		ec_log_err("HrAutoProcess(): CopyTo failed %x", hr);
+		ec_log_err("HrAutoProcess(): CopyTo failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	hr = lpMessageCopy->SaveChanges(0);
 	if(hr != hrSuccess) {
-		ec_log_err("HrAutoProcess(): SaveChanges failed %x", hr);
+		ec_log_err("HrAutoProcess(): SaveChanges failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess) {
-		ec_log_err("HrAutoProcess(): HrGetOneProp failed %x", hr);
+		ec_log_err("HrAutoProcess(): HrGetOneProp failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -633,7 +647,8 @@ static HRESULT OpenResolveAddrFolder(IMAPISession *lpSession,
 		return hrSuccess;
 	hr = OpenResolveAddrFolder(*lppAdrBook, lppAddrDir);
 	if(hr != hrSuccess)
-		ec_log_err("OpenResolveAddrFolder() OpenResolveAddrFolder failed %x", hr);
+		ec_log_err("OpenResolveAddrFolder() OpenResolveAddrFolder failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 	return hrSuccess;
 }
 
@@ -677,14 +692,16 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 
 	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRCPT), &~lpAdrList);
 	if (hr != hrSuccess) {
-		ec_log_err("ResolveUsers(): MAPIAllocateBuffer failed(1) %x", hr);
+		ec_log_err("ResolveUsers(): MAPIAllocateBuffer failed(1): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	lpAdrList->cEntries = ulRCPT;
 	hr = MAPIAllocateBuffer(CbNewFlagList(ulRCPT), &~lpFlagList);
 	if (hr != hrSuccess) {
-		ec_log_err("ResolveUsers(): MAPIAllocateBuffer failed(2) %x", hr);
+		ec_log_err("ResolveUsers(): MAPIAllocateBuffer failed(2): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -696,7 +713,8 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRCPT].rgPropVals);
 		if (hr != hrSuccess) {
-			ec_log_err("ResolveUsers(): MAPIAllocateBuffer failed(3) %x", hr);
+			ec_log_err("ResolveUsers(): MAPIAllocateBuffer failed(3): %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
@@ -824,7 +842,8 @@ static HRESULT ResolveUser(IABContainer *lpAddrFolder, ECRecipient *lpRecip)
 	list.insert(lpRecip);
 	hr = ResolveUsers(lpAddrFolder, &list);
 	if (hr != hrSuccess)
-		ec_log_err("ResolveUser(): ResolveUsers failed %x", hr);
+		ec_log_err("ResolveUser(): ResolveUsers failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 	else if (lpRecip->ulResolveFlags != MAPI_RESOLVED)
 		hr = MAPI_E_NOT_FOUND;
 
@@ -938,13 +957,15 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	}
 	hr = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpSrvNameList);
 	if (hr != hrSuccess) {
-		ec_log_err("ResolveServerToPath(): MAPIAllocateBuffer failed %x", hr);
+		ec_log_err("ResolveServerToPath(): MAPIAllocateBuffer failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	hr = MAPIAllocateMore(sizeof(WCHAR *) * lpServerNameRecips->size(), lpSrvNameList, (LPVOID *)&lpSrvNameList->lpszaServer);
 	if (hr != hrSuccess) {
-		ec_log_err("ResolveServerToPath(): MAPIAllocateMore failed(1) %x", hr);
+		ec_log_err("ResolveServerToPath(): MAPIAllocateMore failed(1): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -959,7 +980,8 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 		hr = MAPIAllocateMore((iter.first.size() + 1) * sizeof(wchar_t),
 		     lpSrvNameList, reinterpret_cast<LPVOID *>(&lpSrvNameList->lpszaServer[lpSrvNameList->cServers]));
 		if (hr != hrSuccess) {
-			ec_log_err("ResolveServerToPath(): MAPIAllocateMore failed(2) %x", hr);
+			ec_log_err("ResolveServerToPath(): MAPIAllocateMore failed(2): %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
@@ -969,7 +991,8 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 
 	hr = lpServiceAdmin->GetServerDetails(lpSrvNameList, EC_SERVERDETAIL_PREFEREDPATH | MAPI_UNICODE, &~lpSrvList);
 	if (hr != hrSuccess) {
-		ec_log_err("ResolveServerToPath(): GetServerDetails failed %x", hr);
+		ec_log_err("ResolveServerToPath(): GetServerDetails failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -1020,22 +1043,26 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 
 	hr = lpAdminStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 	if (hr != hrSuccess) {
-		ec_log_err("HrGetDeliveryStoreAndFolder(): QueryInterface failed %x", hr);
+		ec_log_err("HrGetDeliveryStoreAndFolder(): QueryInterface failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)lpRecip->wstrUsername.c_str(), MAPI_UNICODE | OPENSTORE_HOME_LOGON, &cbUserStoreEntryId, &~lpUserStoreEntryId);
 	if (hr != hrSuccess) {
-		ec_log_err("HrGetDeliveryStoreAndFolder(): CreateStoreEntry failed %x", hr);
+		ec_log_err("HrGetDeliveryStoreAndFolder(): CreateStoreEntry failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = lpSession->OpenMsgStore(0, cbUserStoreEntryId, lpUserStoreEntryId, nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpUserStore);
 	if (hr != hrSuccess) {
-		ec_log_err("HrGetDeliveryStoreAndFolder(): OpenMsgStore failed %x", hr);
+		ec_log_err("HrGetDeliveryStoreAndFolder(): OpenMsgStore failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = lpUserStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryId, &~lpEntryId, NULL);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to resolve incoming folder, error code: 0x%08X", hr);
+		ec_log_err("Unable to resolve incoming folder: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	
@@ -1156,7 +1183,8 @@ static HRESULT FallbackDelivery(LPMESSAGE lpMessage, const string &msg)
 	// set props
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 8, &~lpPropValue);
 	if (hr != hrSuccess) {
-		ec_log_err("FallbackDelivery(): MAPIAllocateBuffer failed %x", hr);
+		ec_log_err("FallbackDelivery(): MAPIAllocateBuffer failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -1198,26 +1226,30 @@ static HRESULT FallbackDelivery(LPMESSAGE lpMessage, const string &msg)
 	}
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 	if (hr != hrSuccess) {
-		ec_log_err("FallbackDelivery(): lpAttach->OpenProperty failed %x", hr);
+		ec_log_err("FallbackDelivery(): lpAttach->OpenProperty failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	hr = lpStream->Write(msg.c_str(), msg.size(), NULL);
 	if (hr != hrSuccess) {
-		ec_log_err("FallbackDelivery(): lpStream->Write failed %x", hr);
+		ec_log_err("FallbackDelivery(): lpStream->Write failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	hr = lpStream->Commit(0);
 	if (hr != hrSuccess) {
-		ec_log_err("FallbackDelivery(): lpStream->Commit failed %x", hr);
+		ec_log_err("FallbackDelivery(): lpStream->Commit failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	// Add attachment properties
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpAttPropValue);
 	if (hr != hrSuccess) {
-		ec_log_err("FallbackDelivery(): MAPIAllocateBuffer failed %x", hr);
+		ec_log_err("FallbackDelivery(): MAPIAllocateBuffer failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -1239,26 +1271,30 @@ static HRESULT FallbackDelivery(LPMESSAGE lpMessage, const string &msg)
 	// Add attachment properties
 	hr = lpAttach->SetProps(ulAttPropPos, lpAttPropValue, NULL);
 	if (hr != hrSuccess) {
-		ec_log_err("FallbackDelivery(): SetProps failed(1) %x", hr);
+		ec_log_err("FallbackDelivery(): SetProps failed(1): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	hr = lpAttach->SaveChanges(0);
 	if (hr != hrSuccess) {
-		ec_log_err("FallbackDelivery(): SaveChanges failed %x", hr);
+		ec_log_err("FallbackDelivery(): SaveChanges failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	// Add message properties
 	hr = lpMessage->SetProps(ulPropPos, lpPropValue, NULL);
 	if (hr != hrSuccess) {
-		ec_log_err("FallbackDelivery(): SetProps failed(2) %x", hr);
+		ec_log_err("FallbackDelivery(): SetProps failed(2): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess)
-		ec_log_err("FallbackDelivery(): lpMessage->SaveChanges failed %x", hr);
+		ec_log_err("FallbackDelivery(): lpMessage->SaveChanges failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 	return hr;
 }
 
@@ -1412,7 +1448,8 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	// @fixme need to stream PR_TRANSPORT_MESSAGE_HEADERS_A and PR_EC_OUTOFOFFICE_MSG_W if they're > 8Kb
 	hr = lpMDB->GetProps(sptaStoreProps, 0, &cValues, &~lpStoreProps);
 	if (FAILED(hr)) {
-		ec_log_err("SendOutOfOffice(): GetProps failed(1) %x", hr);
+		ec_log_err("SendOutOfOffice(): GetProps failed(1): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -1444,7 +1481,8 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 		szSubject = lpStoreProps[2].Value.lpszW;
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cValues, &~lpMessageProps);
 	if (FAILED(hr)) {
-		ec_log_err("SendOutOfOffice(): GetProps failed(2) %x", hr);
+		ec_log_err("SendOutOfOffice(): GetProps failed(2): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -1491,14 +1529,16 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	snprintf(szHeader, PATH_MAX, "From: %s <%s>", quoted.c_str(), lpRecip->strSMTP.c_str());
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(1) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(1): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	snprintf(szHeader, PATH_MAX, "\nTo: %ls", strFromEmail.c_str());
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(2) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(2): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1506,7 +1546,8 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	snprintf(szHeader, PATH_MAX, "\nX-Kopano-Vacation: autorespond");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(3) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(3): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1517,7 +1558,8 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	snprintf(szHeader, PATH_MAX, "\nX-Auto-Response-Suppress: All");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(4) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(4): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1529,7 +1571,8 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	snprintf(szHeader, PATH_MAX, "\nPrecedence: bulk");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(5) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(5): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1542,7 +1585,8 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	snprintf(szHeader, PATH_MAX, "\nSubject: %s", quoted.c_str());
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(4) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(4): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1556,35 +1600,40 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	}
 
 	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(5) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(5): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	snprintf(szHeader, PATH_MAX, "\nContent-Type: text/plain; charset=utf-8; format=flowed");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(6) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(6): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	snprintf(szHeader, PATH_MAX, "\nContent-Transfer-Encoding: base64");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(7) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(7): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	snprintf(szHeader, PATH_MAX, "\nMime-Version: 1.0"); // add mime-version header, so some clients show high-characters correctly
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(8) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(8): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	snprintf(szHeader, PATH_MAX, "\n\n"); // last header line has double \n
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(9) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(9): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1593,7 +1642,8 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	quoted = base64_encode(unquoted.c_str(), unquoted.length());
 	hr = WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76);
 	if (hr != hrSuccess) {
-		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(10) %x", hr);
+		ec_log_err("SendOutOfOffice(): WriteOrLogError failed(10): %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1663,13 +1713,15 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
 
 	hr = lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
 	if (hr != hrSuccess) {
-		ec_log_err("HrCreateMessage() QueryInterface:message failed %x", hr);
+		ec_log_err("HrCreateMessage() QueryInterface:message failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	hr = lpFolder->QueryInterface(IID_IMAPIFolder, (void**)lppDeliveryFolder);
 	if (hr != hrSuccess)
-		ec_log_err("HrCreateMessage() QueryInterface:folder failed %x", hr);
+		ec_log_err("HrCreateMessage() QueryInterface:folder failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 	return hr;
 }
 
@@ -1725,7 +1777,8 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 	// return the filled (real or fallback) message
 	hr = lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
 	if (hr != hrSuccess) {
-		ec_log_err("HrStringToMAPIMessage(): QueryInterface failed %x", hr);
+		ec_log_err("HrStringToMAPIMessage(): QueryInterface failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1822,12 +1875,14 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 
 	hr = lpMessage->GetRecipientTable (0, &~lpRecipTable);
 	if (hr != hrSuccess) {
-		ec_log_err("HrOverrideRecipProps(): GetRecipientTable failed %x", hr);
+		ec_log_err("HrOverrideRecipProps(): GetRecipientTable failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = lpRecipTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess) {
-		ec_log_err("HrOverrideRecipProps(): SetColumns failed %x", hr);
+		ec_log_err("HrOverrideRecipProps(): SetColumns failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -1849,7 +1904,8 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 		rowset_ptr lpsRows;
 		hr = lpRecipTable->QueryRows(1, 0, &~lpsRows);
 		if (hr != hrSuccess) {
-			ec_log_err("HrOverrideRecipProps(): QueryRows failed %x", hr);
+			ec_log_err("HrOverrideRecipProps(): QueryRows failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
@@ -1882,7 +1938,8 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 
 	hr = lpMessage->SetProps(4, sPropRecip, NULL);
 	if (hr != hrSuccess)
-		ec_log_err("HrOverrideRecipProps(): SetProps failed %x", hr);
+		ec_log_err("HrOverrideRecipProps(): SetProps failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 	return hr;
 }
 
@@ -2085,7 +2142,8 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 
 	hr = HrCreateMessage(lpDeliverFolder, lpFallbackFolder, &~lpFolder, &~lpMessage);
 	if (hr != hrSuccess) {
-		ec_log_err("HrCopyMessageForDelivery(): HrCreateMessage failed %x", hr);
+		ec_log_err("HrCopyMessageForDelivery(): HrCreateMessage failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -2093,7 +2151,8 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	hr = lpOrigMessage->CopyTo(0, NULL, sptaReceivedBy, 0, NULL,
 	     &IID_IMessage, lpMessage, 0, NULL);
 	if (hr != hrSuccess) {
-		ec_log_err("HrCopyMessageForDelivery(): CopyTo failed %x", hr);
+		ec_log_err("HrCopyMessageForDelivery(): CopyTo failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 		
@@ -2104,13 +2163,15 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	// Make sure the message is not attached to an archive
 	hr = helpers::MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrArchiveHelper);
 	if (hr != hrSuccess) {
-		ec_log_err("HrCopyMessageForDelivery(): helpers::MAPIPropHelper::Create failed %x", hr);
+		ec_log_err("HrCopyMessageForDelivery(): helpers::MAPIPropHelper::Create failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	
 	hr = ptrArchiveHelper->DetachFromArchives();
 	if (hr != hrSuccess) {
-		ec_log_err("HrCopyMessageForDelivery(): DetachFromArchives failed %x", hr);
+		ec_log_err("HrCopyMessageForDelivery(): DetachFromArchives failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -2120,7 +2181,8 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 		hr = Util::HrDeleteIMAPData(lpMessage); // make sure the imap data is not set for this user.
 
 	if (hr != hrSuccess) {
-		ec_log_err("HrCopyMessageForDelivery(): IMAP handling failed %x", hr);
+		ec_log_err("HrCopyMessageForDelivery(): IMAP handling failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -2353,19 +2415,22 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 	if (lpRecip->strSMTP.empty()) {
 		hr = OpenResolveAddrFolder(lpAdrBook, &~lpAddrDir);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToRecipient(): OpenResolveAddrFolder failed %x", hr);
+			ec_log_err("ProcessDeliveryToRecipient(): OpenResolveAddrFolder failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 		hr = ResolveUser(lpAddrDir, lpRecip);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToRecipient(): ResolveUser failed %x", hr);
+			ec_log_err("ProcessDeliveryToRecipient(): ResolveUser failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
 
 	hr = HrGetDeliveryStoreAndFolder(lpSession, lpStore, lpRecip, lpArgs, &~lpTargetStore, &~lpInbox, &~lpTargetFolder);
 	if (hr != hrSuccess) {
-		ec_log_err("ProcessDeliveryToRecipient(): HrGetDeliveryStoreAndFolder failed %x", hr);
+		ec_log_err("ProcessDeliveryToRecipient(): HrGetDeliveryStoreAndFolder failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -2375,12 +2440,14 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 
 		hr = HrCreateMessage(lpTargetFolder, lpInbox, &~lpFolder, &~lpMessageTmp);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToRecipient(): HrCreateMessage failed %x", hr);
+			ec_log_err("ProcessDeliveryToRecipient(): HrCreateMessage failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 		hr = HrStringToMAPIMessage(strMail, lpSession, lpTargetStore, lpAdrBook, lpFolder, lpMessageTmp, lpRecip, lpArgs, &~lpDeliveryMessage, &bFallbackDelivery);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToRecipient(): HrStringToMAPIMessage failed %x", hr);
+			ec_log_err("ProcessDeliveryToRecipient(): HrStringToMAPIMessage failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
@@ -2389,7 +2456,8 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 		 */
 		hr = HrMessageExpired(lpDeliveryMessage, &bExpired);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToRecipient(): HrMessageExpired failed %x", hr);
+			ec_log_err("ProcessDeliveryToRecipient(): HrMessageExpired failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 		if (bExpired)
@@ -2398,7 +2466,8 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 
 		hr = lppyMapiPlugin->MessageProcessing("PostConverting", lpSession, lpAdrBook, NULL, NULL, lpDeliveryMessage, &ulResult);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToRecipient(): MessageProcessing failed %x", hr);
+			ec_log_err("ProcessDeliveryToRecipient(): MessageProcessing failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
@@ -2408,34 +2477,39 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 		/* Copy message to prepare for new delivery */
 		hr = HrCopyMessageForDelivery(lpOrigMessage, lpTargetFolder, lpRecip, lpInbox, bFallbackDelivery, &~lpFolder, &~lpDeliveryMessage);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToRecipient(): HrCopyMessageForDelivery failed %x", hr);
+			ec_log_err("ProcessDeliveryToRecipient(): HrCopyMessageForDelivery failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
 
 	hr = HrOverrideRecipProps(lpDeliveryMessage, lpRecip);
 	if (hr != hrSuccess) {
-		ec_log_err("ProcessDeliveryToRecipient(): HrOverrideRecipProps failed %x", hr);
+		ec_log_err("ProcessDeliveryToRecipient(): HrOverrideRecipProps failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	if (bFallbackDelivery) {
 		hr = HrOverrideFallbackProps(lpDeliveryMessage, lpRecip);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToRecipient(): HrOverrideFallbackProps failed %x", hr);
+			ec_log_err("ProcessDeliveryToRecipient(): HrOverrideFallbackProps failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	} else {
 		hr = HrOverrideReceivedByProps(lpDeliveryMessage, lpRecip);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToRecipient(): HrOverrideReceivedByProps failed %x", hr);
+			ec_log_err("ProcessDeliveryToRecipient(): HrOverrideReceivedByProps failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
 
 	hr = lppyMapiPlugin->MessageProcessing("PreDelivery", lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulResult);
 	if (hr != hrSuccess) {
-		ec_log_err("ProcessDeliveryToRecipient(): MessageProcessing(2) failed %x", hr);
+		ec_log_err("ProcessDeliveryToRecipient(): MessageProcessing(2) failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -2455,11 +2529,13 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 		if(bIsAdmin) {
 			hr = lpStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 			if(hr != hrSuccess)
-				ec_log_err("ProcessDeliveryToRecipient(): unable to access serviceadmin interface %x", hr);
+				ec_log_err("ProcessDeliveryToRecipient(): unable to access serviceadmin interface: %s (%x)",
+					GetMAPIErrorMessage(hr), hr);
 			else {
 				hr = lpServiceAdmin->GetQuotaStatus(lpRecip->sEntryId.cb, (LPENTRYID)lpRecip->sEntryId.lpb, &~lpsQuotaStatus);
 				if(hr != hrSuccess)
-					ec_log_err("ProcessDeliveryToRecipient(): unable to determine quota status %x", hr);
+					ec_log_err("ProcessDeliveryToRecipient(): unable to determine quota status: %s (%x)",
+						GetMAPIErrorMessage(hr), hr);
 				else
 					over_quota = lpsQuotaStatus->quotaStatus == QUOTA_HARDLIMIT;
 			}
@@ -2484,7 +2560,8 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 
 		hr = lppyMapiPlugin->MessageProcessing("PostDelivery", lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulResult);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToRecipient(): MessageProcessing(3) failed %x", hr);
+			ec_log_err("ProcessDeliveryToRecipient(): MessageProcessing(3) failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
@@ -2725,7 +2802,8 @@ static HRESULT ProcessDeliveryToSingleRecipient(pym_plugin_intf *lppyMapiPlugin,
 	hr = ProcessDeliveryToServer(lppyMapiPlugin, lpSession, NULL, false, strMail, lpArgs->strPath, lstSingleRecip, lpAdrBook, lpArgs, NULL, NULL);
 
 	if (hr != hrSuccess)
-		ec_log_err("ProcessDeliveryToSingleRecipient: ProcessDeliveryToServer failed %x", hr);
+		ec_log_err("ProcessDeliveryToSingleRecipient: ProcessDeliveryToServer failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 	return hr;
 }
 
@@ -2771,7 +2849,8 @@ static HRESULT ProcessDeliveryToCompany(pym_plugin_intf *lppyMapiPlugin,
 
 	hr = ResolveServerToPath(lpSession, lpServerNameRecips, lpArgs->strPath, &listServerPathRecips);
 	if (hr != hrSuccess) {
-		ec_log_err("ProcessDeliveryToCompany(): ResolveServerToPath failed %x", hr);
+		ec_log_err("ProcessDeliveryToCompany(): ResolveServerToPath failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -2892,18 +2971,21 @@ static HRESULT ProcessDeliveryToList(pym_plugin_intf *lppyMapiPlugin,
 
 		hr = FindLowestAdminLevelSession(&comp.second, lpArgs, &~lpUserSession);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToList(): FindLowestAdminLevelSession failed %x", hr);
+			ec_log_err("ProcessDeliveryToList(): FindLowestAdminLevelSession failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 		hr = OpenResolveAddrFolder(lpUserSession, &~lpAdrBook, nullptr);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToList(): OpenResolveAddrFolder failed %x", hr);
+			ec_log_err("ProcessDeliveryToList(): OpenResolveAddrFolder failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
 		hr = ProcessDeliveryToCompany(lppyMapiPlugin, lpSession, lpAdrBook, fp, &comp.second, lpArgs);
 		if (hr != hrSuccess) {
-			ec_log_err("ProcessDeliveryToList(): ProcessDeliveryToCompany failed %x", hr);
+			ec_log_err("ProcessDeliveryToList(): ProcessDeliveryToCompany failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
@@ -2988,13 +3070,15 @@ static void *HandlerLMTP(void *lpArg)
 	}
 	hr = HrGetSession(lpArgs, KOPANO_SYSTEM_USER_W, &~lpSession);
 	if (hr != hrSuccess) {
-		ec_log_err("HandlerLMTP(): HrGetSession failed %x", hr);
+		ec_log_err("HandlerLMTP(): HrGetSession failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		lmtp.HrResponse("421 internal error: GetSession failed");
 		goto exit;
 	}
 	hr = OpenResolveAddrFolder(lpSession, &~lpAdrBook, &~lpAddrDir);
 	if (hr != hrSuccess) {
-		ec_log_err("HandlerLMTP(): OpenResolveAddrFolder failed %x", hr);
+		ec_log_err("HandlerLMTP(): OpenResolveAddrFolder failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		lmtp.HrResponse("421 internal error: OpenResolveAddrFolder failed");
 		goto exit;
 	}
@@ -3274,7 +3358,8 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	hr = HrListen(g_lpConfig->GetSetting("server_bind"),
 	              atoi(g_lpConfig->GetSetting("lmtp_port")), &ulListenLMTP);
 	if (hr != hrSuccess) {
-		ec_log_err("running_service(): HrListen failed %x", hr);
+		ec_log_err("running_service(): HrListen failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 		
@@ -3375,7 +3460,8 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		}
 		hr = HrAccept(ulListenLMTP, &lpDeliveryArgs->lpChannel);
 		if (hr != hrSuccess) {
-			ec_log_err("running_service(): HrAccept failed %x", hr);
+			ec_log_err("running_service(): HrAccept failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			// just keep running
 			hr = hrSuccess;
 			continue;
@@ -3464,12 +3550,14 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 		if (hr == hrSuccess) {
 			hr = OpenResolveAddrFolder(lpSession, &~lpAdrBook, &~lpAddrDir);
 			if (hr != hrSuccess) {
-				ec_log_err("deliver_recipient(): OpenResolveAddrFolder failed %x", hr);
+				ec_log_err("deliver_recipient(): OpenResolveAddrFolder failed: %s (%x)",
+					GetMAPIErrorMessage(hr), hr);
 				goto exit;
 			}
 			hr = ResolveUser(lpAddrDir, &single_recip);
 			if (hr != hrSuccess) {
-				ec_log_err("deliver_recipient(): ResolveUser failed %x", hr);
+				ec_log_err("deliver_recipient(): ResolveUser failed: %s (%x)",
+					GetMAPIErrorMessage(hr), hr);
 				if (hr == MAPI_E_NOT_FOUND)
 					g_bTempfail = false;
 				goto exit;
@@ -3493,7 +3581,8 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 	
 	hr = HrGetSession(lpArgs, single_recip.wstrUsername.c_str(), &~lpSession);
 	if (hr != hrSuccess) {
-		ec_log_err("deliver_recipient(): HrGetSession failed %x", hr);
+		ec_log_err("deliver_recipient(): HrGetSession failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		if (hr == MAPI_E_LOGON_FAILED)
 			// This is a hard failure, two things could have happened
 			// * strUsername does not exist
@@ -3505,7 +3594,8 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 	}
 	hr = OpenResolveAddrFolder(lpSession, &~lpAdrBook, &~lpAddrDir);
 	if (hr != hrSuccess) {
-		ec_log_err("deliver_recipient(): OpenResolveAddrFolder failed %x", hr);
+		ec_log_err("deliver_recipient(): OpenResolveAddrFolder failed: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 	
@@ -3888,7 +3978,8 @@ int main(int argc, char *argv[]) {
 
 		hr = deliver_recipient(ptrPyMapiPlugin.get(), argv[optind], strip_email, fp, &sDeliveryArgs);
 		if (hr != hrSuccess)
-			ec_log_err("main(): deliver_recipient failed %x", hr);
+			ec_log_err("main(): deliver_recipient failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 
 		fclose(fp);
  nonlmtpexit:

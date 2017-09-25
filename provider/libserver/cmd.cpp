@@ -3149,10 +3149,11 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 	 *  2. The owner of the store is not supposed to have a store on this server.
 	 */
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId, &ulEidFlags);
-	if ((ulEidFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
-		if (er == KCERR_NOT_FOUND &&	sEntryId.__size >= (int)min(sizeof(EID), sizeof(EID_V0)) && ((EID*)sEntryId.__ptr)->usType == MAPI_STORE)
-			er = KCERR_UNABLE_TO_COMPLETE;	// Reason 1
-	}
+	if ((ulEidFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0 &&
+	    er == KCERR_NOT_FOUND &&
+	    sEntryId.__size >= static_cast<int>(min(sizeof(EID), sizeof(EID_V0))) &&
+	    reinterpret_cast<EID *>(sEntryId.__ptr)->usType == MAPI_STORE)
+		er = KCERR_UNABLE_TO_COMPLETE;	// Reason 1
 	if (er != erSuccess)
 		goto exit;
 		
@@ -3161,47 +3162,45 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 		goto exit;
     
 	if(ulObjType == MAPI_STORE) {
-		if ((ulEidFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
-			if (lpecSession->GetSessionManager()->IsDistributedSupported() && !lpecSession->GetUserManagement()->IsInternalObject(ulOwnerId)) {
-				objectdetails_t sUserDetails;
+		if ((ulEidFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0 &&
+		    lpecSession->GetSessionManager()->IsDistributedSupported() &&
+		    !lpecSession->GetUserManagement()->IsInternalObject(ulOwnerId)) {
+			objectdetails_t sUserDetails;
 
-				if (lpecSession->GetUserManagement()->GetObjectDetails(ulOwnerId, &sUserDetails) == erSuccess) {
-					unsigned int ulStoreType;
-					er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
-					if (er != erSuccess)
+			if (lpecSession->GetUserManagement()->GetObjectDetails(ulOwnerId, &sUserDetails) == erSuccess) {
+				unsigned int ulStoreType;
+				er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
+				if (er != erSuccess)
+					goto exit;
+
+				if (ulStoreType == ECSTORE_TYPE_PRIVATE || ulStoreType == ECSTORE_TYPE_PUBLIC) {
+					std::string strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
+					if (strServerName.empty()) {
+						er = KCERR_NOT_FOUND;
 						goto exit;
+					}
 
-					if (ulStoreType == ECSTORE_TYPE_PRIVATE || ulStoreType == ECSTORE_TYPE_PUBLIC) {
-						std::string strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
-						if (strServerName.empty()) {
-							er = KCERR_NOT_FOUND;
-							goto exit;
-						}
-
-						if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
-							er = KCERR_UNABLE_TO_COMPLETE;	// Reason 2
-							goto exit;
-						}
-					} else if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
-						// We allow an archive store to be opened by sysadmins even if it's not supposed
-						// to exist on this server for a particular user.
-						if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN &&
-						   !sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true))
-						{
-							er = KCERR_NOT_FOUND;
-							goto exit;
-						}
-					} else {
+					if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
+						er = KCERR_UNABLE_TO_COMPLETE;	// Reason 2
+						goto exit;
+					}
+				} else if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
+					// We allow an archive store to be opened by sysadmins even if it's not supposed
+					// to exist on this server for a particular user.
+					if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN &&
+					   !sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true))
+					{
 						er = KCERR_NOT_FOUND;
 						goto exit;
 					}
 				} else {
-					// unhooked store of a deleted user
-					if(lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN) {
-						er = KCERR_NO_ACCESS;
-						goto exit;
-					}
+					er = KCERR_NOT_FOUND;
+					goto exit;
 				}
+			} else if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN) {
+				// unhooked store of a deleted user
+				er = KCERR_NO_ACCESS;
+				goto exit;
 			}
 		}
         ulParentObjType = 0;

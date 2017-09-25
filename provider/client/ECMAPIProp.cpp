@@ -562,9 +562,10 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 	soap_begin(&soap);
 	soap.os = &os;
 	soap_serialize_rightsArray(&soap, &rights);
-	soap_begin_send(&soap);
-	soap_put_rightsArray(&soap, &rights, "rights", "rightsArray");
-	soap_end_send(&soap);
+	if (soap_begin_send(&soap) != 0 ||
+	    soap_put_rightsArray(&soap, &rights, "rights", "rightsArray") != 0 ||
+	    soap_end_send(&soap) != 0)
+		return MAPI_E_NETWORK_ERROR;
 
 	strAclData = os.str();
 	lpsPropValue->Value.bin.cb = strAclData.size();

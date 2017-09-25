@@ -15,6 +15,8 @@
  *
  */
 #include <new>
+#include <cerrno>
+#include <cstring>
 #include "config.h"
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
@@ -242,7 +244,11 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	for (int i = 0; i < ATTACH_PATHDEPTH_LEVEL1; ++i)
 		for (int j = 0; j < ATTACH_PATHDEPTH_LEVEL2; ++j) {
 			string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
-			CreatePath(path.c_str());
+			auto ret = CreatePath(path.c_str());
+			if (ret != 0) {
+				ec_log_err("Cannot create %s: %s", path.c_str(), strerror(errno));
+				return MAPI_E_UNABLE_TO_COMPLETE;
+			}
 		}
 	return erSuccess;
 }
@@ -410,8 +416,6 @@ static ECRESULT check_server_fqdn(void)
 	ECRESULT er = erSuccess;
 	int rc;
 	char hostname[256] = {0};
-	struct sockaddr_in saddr = {0};
-	struct addrinfo hints = {0};
 	struct addrinfo *aiResult = NULL;
 	const char *option;
 
@@ -425,18 +429,13 @@ static ECRESULT check_server_fqdn(void)
 		return KCERR_NOT_FOUND;
 
 	// if we exit hereon after, hostname will always contain a correct hostname, which we can set in the config.
-
-	rc = getaddrinfo(hostname, NULL, &hints, &aiResult);
+	rc = getaddrinfo(hostname, nullptr, nullptr, &aiResult);
 	if (rc != 0) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
 	}
-
-	// no need to set other contents of saddr struct, we're just intrested in the DNS lookup.
-	saddr = *((sockaddr_in*)aiResult->ai_addr);
-
 	// Name lookup is required, so set that flag
-	rc = getnameinfo((const sockaddr*)&saddr, sizeof(saddr), hostname, sizeof(hostname), NULL, 0, NI_NAMEREQD);
+	rc = getnameinfo(aiResult->ai_addr, aiResult->ai_addrlen, hostname, sizeof(hostname), nullptr, 0, NI_NAMEREQD);
 	if (rc != 0) {
 		er = KCERR_NOT_FOUND;
 		goto exit;

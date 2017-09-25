@@ -232,7 +232,7 @@ class BackupWorker(kopano.Worker):
         if options.differential:
             for sk, folder in sk_folder.items():
                 data_path = path+'/folders/'+folder.sourcekey
-                orig_data_path = self.orig_path+'/'+sk_dir.get(sk)
+                orig_data_path = (self.orig_path+'/'+sk_dir[sk]) if sk in sk_dir else None
                 self.backup_folder(data_path, orig_data_path, folder, subtree, config, options, stats, store, user, server)
             return
 

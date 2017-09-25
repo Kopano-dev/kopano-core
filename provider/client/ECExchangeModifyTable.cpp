@@ -476,9 +476,10 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	soap_begin(&soap);
 	soap.os = &os;
 	soap_serialize_rowSet(&soap, lpSOAPRowSet);
-	soap_begin_send(&soap);
-	soap_put_rowSet(&soap, lpSOAPRowSet,"tableData","rowSet");
-	soap_end_send(&soap);
+	if (soap_begin_send(&soap) != 0 ||
+	    soap_put_rowSet(&soap, lpSOAPRowSet, "tableData", "rowSet") != 0 ||
+	    soap_end_send(&soap) != 0)
+		return MAPI_E_NETWORK_ERROR;
 
 	// os now contains XML for row data
 	szXML = new char [ os.str().size()+1 ];
@@ -520,7 +521,10 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
-	soap_end_recv(&soap); 
+	if (soap_end_recv(&soap) != 0) {
+		hr = MAPI_E_NETWORK_FAILURE;
+		goto exit;
+	}
 	hr = CopySOAPRowSetToMAPIRowSet(NULL, &sSOAPRowSet, &~lpsRowSet, 0);
 	if(hr != hrSuccess)
 		goto exit;

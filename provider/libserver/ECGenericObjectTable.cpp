@@ -1739,7 +1739,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		fMatch = !fMatch;
 		break;
 
-	case RES_CONTENT:
+	case RES_CONTENT: {
 		if (lpsRestrict->lpContent == NULL ||
 		    lpsRestrict->lpContent->lpProp == NULL)
 			return KCERR_INVALID_TYPE;
@@ -1776,82 +1776,74 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		if(lpProp == NULL) {
 			fMatch = false;
 			break;
+		}
+		unsigned int ulScan = 1;
+		if (ulPropTagRestrict & MV_FLAG)
+		{
+			if (PROP_TYPE(ulPropTagRestrict) == PT_MV_TSTRING)
+				ulScan = lpProp->Value.mvszA.__size;
+			else
+				ulScan = lpProp->Value.mvbin.__size;
+		}
+		ulPropType = PROP_TYPE(ulPropTagRestrict) & ~MVI_FLAG;
+		if (PROP_TYPE(ulPropTagValue) == PT_TSTRING) {
+			lpSearchString = lpsRestrict->lpContent->lpProp->Value.lpszA;
+			ulSearchStringSize = (lpSearchString) ? strlen(lpSearchString) : 0;
 		} else {
-			unsigned int ulScan = 1;
-			if(ulPropTagRestrict & MV_FLAG)
+			lpSearchString = (char *)lpsRestrict->lpContent->lpProp->Value.bin->__ptr;
+			ulSearchStringSize = lpsRestrict->lpContent->lpProp->Value.bin->__size;
+		}
+
+		// Default match is false
+		fMatch = false;
+		for (unsigned int ulPos = 0; ulPos < ulScan; ++ulPos) {
+			if (ulPropTagRestrict & MV_FLAG)
 			{
-				if(PROP_TYPE(ulPropTagRestrict) == PT_MV_TSTRING)
-					ulScan = lpProp->Value.mvszA.__size;
-				else
-					ulScan = lpProp->Value.mvbin.__size;
-			}
-
-			ulPropType = PROP_TYPE(ulPropTagRestrict)&~MVI_FLAG;
-			
-
-			if(PROP_TYPE(ulPropTagValue) == PT_TSTRING) {
-				lpSearchString = lpsRestrict->lpContent->lpProp->Value.lpszA;
-				ulSearchStringSize = (lpSearchString)?strlen(lpSearchString):0;
-			}else {
-				lpSearchString = (char*)lpsRestrict->lpContent->lpProp->Value.bin->__ptr;
-				ulSearchStringSize = lpsRestrict->lpContent->lpProp->Value.bin->__size;
-			}
-					
-			// Default match is false
-			fMatch = false;
-
-			for (unsigned int ulPos = 0; ulPos < ulScan; ++ulPos) {
-				if(ulPropTagRestrict & MV_FLAG)
-				{
-					if(PROP_TYPE(ulPropTagRestrict) == PT_MV_TSTRING)	{
-						lpSearchData = lpProp->Value.mvszA.__ptr[ulPos];
-						ulSearchDataSize = (lpSearchData)?strlen(lpSearchData):0;
-					}else {
-						lpSearchData = (char*)lpProp->Value.mvbin.__ptr[ulPos].__ptr;
-						ulSearchDataSize = lpProp->Value.mvbin.__ptr[ulPos].__size;
-					}
-				}else {
-					if(PROP_TYPE(ulPropTagRestrict) == PT_TSTRING)	{
-						lpSearchData = lpProp->Value.lpszA;
-						ulSearchDataSize = (lpSearchData)?strlen(lpSearchData):0;
-					}else {
-						lpSearchData = (char*)lpProp->Value.bin->__ptr;
-						ulSearchDataSize = lpProp->Value.bin->__size;
-					}
+				if (PROP_TYPE(ulPropTagRestrict) == PT_MV_TSTRING) {
+					lpSearchData = lpProp->Value.mvszA.__ptr[ulPos];
+					ulSearchDataSize = (lpSearchData) ? strlen(lpSearchData) : 0;
+				} else {
+					lpSearchData = (char *)lpProp->Value.mvbin.__ptr[ulPos].__ptr;
+					ulSearchDataSize = lpProp->Value.mvbin.__ptr[ulPos].__size;
 				}
-
-				ulFuzzyLevel = lpsRestrict->lpContent->ulFuzzyLevel;
-				switch(ulFuzzyLevel & 0xFFFF) {
-				case FL_FULLSTRING:
-					if(ulSearchDataSize == ulSearchStringSize)
-						if ((ulPropType == PT_TSTRING &&  (ulFuzzyLevel & FL_IGNORECASE) && u8_iequals(lpSearchData, lpSearchString, locale)) ||
-							(ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_equals(lpSearchData, lpSearchString, locale)) ||
-							(ulPropType != PT_TSTRING && memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
-							fMatch = true;							
-					break;
-
-				case FL_PREFIX: 
-					if(ulSearchDataSize >= ulSearchStringSize)
-						if ((ulPropType == PT_TSTRING &&  (ulFuzzyLevel & FL_IGNORECASE) && u8_istartswith(lpSearchData, lpSearchString, locale)) ||
-							(ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_startswith(lpSearchData, lpSearchString, locale)) ||
-							(ulPropType != PT_TSTRING && memcmp(lpSearchData, lpSearchString, ulSearchStringSize) == 0))
-							fMatch = true;
-					break;
-
-				case FL_SUBSTRING: 
-					if ((ulPropType == PT_TSTRING &&  (ulFuzzyLevel & FL_IGNORECASE) && u8_icontains(lpSearchData, lpSearchString, locale)) ||
-						(ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_contains(lpSearchData, lpSearchString, locale)) ||
-						(ulPropType != PT_TSTRING && memsubstr(lpSearchData, ulSearchDataSize, lpSearchString, ulSearchStringSize) == 0))
-						fMatch = true;
-					break;
-				}
-
-				if(fMatch)
-					break;
+			} else if (PROP_TYPE(ulPropTagRestrict) == PT_TSTRING) {
+				lpSearchData = lpProp->Value.lpszA;
+				ulSearchDataSize = (lpSearchData) ? strlen(lpSearchData) : 0;
+			} else {
+				lpSearchData = (char *)lpProp->Value.bin->__ptr;
+				ulSearchDataSize = lpProp->Value.bin->__size;
 			}
+
+			ulFuzzyLevel = lpsRestrict->lpContent->ulFuzzyLevel;
+			switch (ulFuzzyLevel & 0xFFFF) {
+			case FL_FULLSTRING:
+				if (ulSearchDataSize != ulSearchStringSize)
+					break;
+				if ((ulPropType == PT_TSTRING && (ulFuzzyLevel & FL_IGNORECASE) && u8_iequals(lpSearchData, lpSearchString, locale)) ||
+				    (ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_equals(lpSearchData, lpSearchString, locale)) ||
+				    (ulPropType != PT_TSTRING && memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
+					fMatch = true;
+				break;
+			case FL_PREFIX:
+				if (ulSearchDataSize < ulSearchStringSize)
+					break;
+				if ((ulPropType == PT_TSTRING && (ulFuzzyLevel & FL_IGNORECASE) && u8_istartswith(lpSearchData, lpSearchString, locale)) ||
+				    (ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_startswith(lpSearchData, lpSearchString, locale)) ||
+				    (ulPropType != PT_TSTRING && memcmp(lpSearchData, lpSearchString, ulSearchStringSize) == 0))
+					fMatch = true;
+				break;
+			case FL_SUBSTRING:
+				if ((ulPropType == PT_TSTRING && (ulFuzzyLevel & FL_IGNORECASE) && u8_icontains(lpSearchData, lpSearchString, locale)) ||
+				    (ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_contains(lpSearchData, lpSearchString, locale)) ||
+				    (ulPropType != PT_TSTRING && memsubstr(lpSearchData, ulSearchDataSize, lpSearchString, ulSearchStringSize) == 0))
+					fMatch = true;
+				break;
+			}
+			if (fMatch)
+				break;
 		}
 		break;
-
+	}
 	case RES_PROPERTY:
 		if (lpsRestrict->lpProp == NULL ||
 		    lpsRestrict->lpProp->lpProp == NULL)
@@ -1909,11 +1901,10 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 				lpProp = FindProp(lpPropVals, sANRProps[j]);
 
                 // We need this because CompareProp will fail if the types are not the same
-                if(lpProp) {
-                    lpProp->ulPropTag = lpsRestrict->lpProp->lpProp->ulPropTag;
-                    CompareProp(lpProp, lpsRestrict->lpProp->lpProp, locale, &lCompare); //IGNORE error
-                } else
-                	continue;
+				if (lpProp == nullptr)
+					continue;
+				lpProp->ulPropTag = lpsRestrict->lpProp->lpProp->ulPropTag;
+				CompareProp(lpProp, lpsRestrict->lpProp->lpProp, locale, &lCompare); // IGNORE error
                 	
 				// PR_ANR has special semantics, lCompare is 1 if the substring is found, 0 if not
 				
@@ -1930,40 +1921,38 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
             
             // Finished for this restriction
             break;
-		}else {
+		}
 
-			// find using original restriction proptag
-			lpProp = FindProp(lpPropVals, lpsRestrict->lpProp->ulPropTag);
-			if(lpProp == NULL) {
-				if(lpsRestrict->lpProp->ulType == RELOP_NE)
-					fMatch = true;
-				else
-					fMatch = false;
+		// find using original restriction proptag
+		lpProp = FindProp(lpPropVals, lpsRestrict->lpProp->ulPropTag);
+		if (lpProp == NULL) {
+			if (lpsRestrict->lpProp->ulType == RELOP_NE)
+				fMatch = true;
+			else
+				fMatch = false;
+			break;
+		}
+
+		if ((ulPropTagRestrict & MV_FLAG)) {
+			er = CompareMVPropWithProp(lpProp, lpsRestrict->lpProp->lpProp, lpsRestrict->lpProp->ulType, locale, &fMatch);
+			if (er != erSuccess)
+			{
+				assert(false);
+				er = erSuccess;
+				fMatch = false;
 				break;
 			}
-			
-			if((ulPropTagRestrict&MV_FLAG)) {
-				er = CompareMVPropWithProp(lpProp, lpsRestrict->lpProp->lpProp, lpsRestrict->lpProp->ulType, locale, &fMatch);
-				if(er != erSuccess)
-				{
-					assert(false);
-					er = erSuccess;
-					fMatch = false;
-					break;	
-				}
-			} else {
-				er = CompareProp(lpProp, lpsRestrict->lpProp->lpProp, locale, &lCompare);
-				if(er != erSuccess)
-				{
-					assert(false);
-					er = erSuccess;
-					fMatch = false;
-					break;	
-				}
-				
-				fMatch = match(lpsRestrict->lpProp->ulType, lCompare);
-			}
-		}// if(ulPropTagRestrict == PR_ANR)
+			break;
+		}
+		er = CompareProp(lpProp, lpsRestrict->lpProp->lpProp, locale, &lCompare);
+		if (er != erSuccess)
+		{
+			assert(false);
+			er = erSuccess;
+			fMatch = false;
+			break;
+		}
+		fMatch = match(lpsRestrict->lpProp->ulType, lCompare);
 		break;
 		
 	case RES_COMPAREPROPS:
@@ -2105,25 +2094,23 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 			return KCERR_INVALID_TYPE;
 	    if(lpSubResults == NULL) {
 	        fMatch = false;
-        } else {
-            // Find out if this object matches this subrestriction with the passed
-            // subrestriction results.
-         
-            if(lpSubResults->size() <= ulSubRestrict) {
-                fMatch = false; // No results in the results list for this subquery ??
-            } else {
-				fMatch = false;
-
-				sEntryId.__ptr = lpProp->Value.bin->__ptr;
-				sEntryId.__size = lpProp->Value.bin->__size;
-				if(lpCacheManager->GetObjectFromEntryId(&sEntryId, &ulResId) == erSuccess)
-				{
-					auto r = (*lpSubResults)[ulSubRestrict].find(ulResId); // If the item is in the set, it matched
-					if (r != (*lpSubResults)[ulSubRestrict].cend())
-						fMatch = true;
-				}
-            }
-        }
+			break;
+		}
+		// Find out if this object matches this subrestriction with the passed
+		// subrestriction results.
+		if (lpSubResults->size() <= ulSubRestrict) {
+			fMatch = false; // No results in the results list for this subquery ??
+			break;
+		}
+		fMatch = false;
+		sEntryId.__ptr = lpProp->Value.bin->__ptr;
+		sEntryId.__size = lpProp->Value.bin->__size;
+		if (lpCacheManager->GetObjectFromEntryId(&sEntryId, &ulResId) == erSuccess)
+		{
+			auto r = (*lpSubResults)[ulSubRestrict].find(ulResId); // If the item is in the set, it matched
+			if (r != (*lpSubResults)[ulSubRestrict].cend())
+				fMatch = true;
+		}
 		break;
 
 	default:

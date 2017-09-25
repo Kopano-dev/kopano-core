@@ -833,7 +833,7 @@ class Item(Base):
         for prop in self.props():
             if (bestbody != PR_NULL and prop.proptag in (PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED) and prop.proptag != bestbody):
                 continue
-            if prop.named: # named prop: prop.id_ system dependant..
+            if prop.named: # named prop: prop.id_ system dependent...
                 data = [prop.proptag, prop.mapiobj.Value, self.mapiobj.GetNamesFromIDs([prop.proptag], None, 0)[0]]
                 if not archiver and data[2].guid == PSETID_Archive:
                     continue
@@ -861,7 +861,7 @@ class Item(Base):
         for row in self.table(PR_MESSAGE_ATTACHMENTS).dict_rows(): # XXX should we use GetAttachmentTable?
             try:
                 num = row[PR_ATTACH_NUM]
-                method = row[PR_ATTACH_METHOD] # XXX default
+                method = row.get(PR_ATTACH_METHOD, ATTACH_BY_VALUE)
                 att = self.mapiobj.OpenAttach(num, IID_IAttachment, 0)
                 if method == ATTACH_EMBEDDED_MSG:
                     try:

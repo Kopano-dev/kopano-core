@@ -120,7 +120,7 @@ ECPriorityWorkerThread::ECPriorityWorkerThread(ECThreadManager *lpManager,
     ECDispatcher *lpDispatcher) :
 	ECWorkerThread(lpManager, lpDispatcher, true)
 {
-    if (pthread_create(&m_thread, NULL, ECWorkerThread::Work, this) != 0)
+	if (pthread_create(&m_thread, NULL, ECWorkerThread::Work, static_cast<ECWorkerThread *>(this)) != 0)
 		ec_log_crit("Unable to start thread: %s", strerror(errno));
     else
 	set_thread_name(m_thread, "ECPriorityWorkerThread");

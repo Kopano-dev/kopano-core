@@ -207,7 +207,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 
 	m_ulErrorCount = icalcomponent_count_errors(lpicCalendar.get());
 
-	// * find all timezone's, place in map
+	/* Find all timezones, place in map. */
 	lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
 	while (lpicComponent) {
 		hr = HrParseVTimeZone(lpicComponent, &strTZID, &ttTimeZone);
@@ -300,9 +300,9 @@ ULONG ICalToMapiImpl::GetItemCount()
  * Get some information about an ical item at a certain position.
  * 
  * @param[in]  ulPosition The position of the ical item (flat list)
- * @param[out] lpType Type of the object, VEVENT or VTODO. (VJOURNAL currently unsupported), NULL if not intrested
- * @param[out] lptLastModified Last modification timestamp of the object, NULL if not intrested
- * @param[out] lpUid UID of the object, NULL if not intrested
+ * @param[out] lpType Type of the object, VEVENT or VTODO. (VJOURNAL currently unsupported), nullptr if not interested
+ * @param[out] lptLastModified Last modification timestamp of the object, nullptr if not interested
+ * @param[out] lpUid UID of the object, nullptr if not interested
  * 
  * @return MAPI error code
  * @retval MAPI_E_INVALID_PARAMETER ulPosition out of range, or all return values NULL

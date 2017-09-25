@@ -775,10 +775,10 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 			continue;
 
 		// is it a member, and fits the default group in the range?
-		if (pw->pw_gid == grp.gr_gid && pw->pw_gid >= mingid && pw->pw_gid < maxgid) {
-			objectid_t objectid{tostring(pw->pw_uid), shell_to_class(forbid_sh, pw->pw_shell)};
-			objectlist->push_back({objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name});
-		}
+		if (pw->pw_gid != grp.gr_gid || pw->pw_gid < mingid || pw->pw_gid >= maxgid)
+			continue;
+		objectid_t objectid{tostring(pw->pw_uid), shell_to_class(forbid_sh, pw->pw_shell)};
+		objectlist->push_back({objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name});
 	}
 	endpwent();
 	biglock.unlock();

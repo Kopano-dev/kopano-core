@@ -391,10 +391,10 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		    if(ulSize == sizeof(struct AttachRendData) && lpBuffer) {
 				auto lpData = reinterpret_cast<AttachRendData *>(lpBuffer.get());
 		        
-                if (lpTnefAtt) {
-                    if (lpTnefAtt->data || !lpTnefAtt->lstProps.empty()) // end marker previous attachment
-                        lstAttachments.push_back(std::move(lpTnefAtt));
-                }
+				if (lpTnefAtt != nullptr && (lpTnefAtt->data != nullptr || !lpTnefAtt->lstProps.empty()))
+					/* end marker previous attachment */
+					lstAttachments.push_back(std::move(lpTnefAtt));
+
 				lpTnefAtt.reset(new(std::nothrow) tnefattachment);
 				if (lpTnefAtt == nullptr) {
 					hr = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -468,10 +468,9 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 	}
 
 exit:
-	if (lpTnefAtt) {
-		if (lpTnefAtt->data || !lpTnefAtt->lstProps.empty())	// attachment should be complete before adding
-			lstAttachments.push_back(std::move(lpTnefAtt));
-	}
+	if (lpTnefAtt != nullptr && (lpTnefAtt->data != nullptr || !lpTnefAtt->lstProps.empty()))
+		/* attachment should be complete before adding */
+		lstAttachments.push_back(std::move(lpTnefAtt));
 	return hr;
 }
 

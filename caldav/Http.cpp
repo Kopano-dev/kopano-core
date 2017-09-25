@@ -350,7 +350,7 @@ HRESULT Http::HrGetDepth(ULONG *ulDepth)
 	 */
 	hr = HrGetHeaderValue("Depth", &strDepth);
 	if (hr != hrSuccess)
-		*ulDepth = 0;		// default is no subfolders. default should become a parameter .. is action dependant
+		*ulDepth = 0; /* Default is no subfolders. Default should become a parameter. It is action dependent. */
 	else if (strDepth.compare("infinity") == 0)
 		*ulDepth = 2;
 	else {
