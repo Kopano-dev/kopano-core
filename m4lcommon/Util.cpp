@@ -1509,9 +1509,8 @@ HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 	rtf->Write(header, strlen(header), NULL);
 
 	while(1) {
-		text->Read(c, BUFSIZE * sizeof(WCHAR), &cRead);
-
-		if(cRead == 0)
+		auto ret = text->Read(c, BUFSIZE * sizeof(WCHAR), &cRead);
+		if (ret != hrSuccess || cRead == 0)
 			break;
 
 		cRead /= sizeof(WCHAR);

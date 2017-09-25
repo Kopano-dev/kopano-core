@@ -1492,7 +1492,7 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			    (ulPropType == PT_STRING8 && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpSearchData != NULL && lpSearchString != NULL && str_equals(lpSearchData, lpSearchString, locale)) ||
 			    (ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) && lpwSearchData != NULL && lpwSearchString != NULL && wcs_iequals(lpwSearchData, lpwSearchString, locale)) ||
 			    (ulPropType == PT_UNICODE && (ulFuzzyLevel & FL_IGNORECASE) == 0 && lpwSearchData != NULL && lpwSearchString != NULL && wcs_equals(lpwSearchData, lpwSearchString, locale)) ||
-			    (ulPropType == PT_BINARY && lpSearchData != NULL && lpwSearchString != NULL && memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
+			    (ulPropType == PT_BINARY && lpSearchData != NULL && lpSearchString != NULL && memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
 				fMatch = true;
 			break;
 		case FL_PREFIX:

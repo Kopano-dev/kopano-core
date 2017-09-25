@@ -15,6 +15,8 @@
  *
  */
 #include <new>
+#include <cerrno>
+#include <cstring>
 #include "config.h"
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
@@ -242,7 +244,11 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	for (int i = 0; i < ATTACH_PATHDEPTH_LEVEL1; ++i)
 		for (int j = 0; j < ATTACH_PATHDEPTH_LEVEL2; ++j) {
 			string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
-			CreatePath(path.c_str());
+			auto ret = CreatePath(path.c_str());
+			if (ret != 0) {
+				ec_log_err("Cannot create %s: %s", path.c_str(), strerror(errno));
+				return MAPI_E_UNABLE_TO_COMPLETE;
+			}
 		}
 	return erSuccess;
 }

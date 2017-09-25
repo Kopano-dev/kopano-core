@@ -88,7 +88,7 @@ int StatsClient::startup(const std::string &collectorSocket)
 
 	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient binding socket");
 
-	for (unsigned int retry = 0; retry < 3; ++retry) {
+	for (unsigned int retry = 3; retry > 0; --retry) {
 		struct sockaddr_un laddr;
 		memset(&laddr, 0, sizeof(laddr));
 		laddr.sun_family = AF_UNIX;
