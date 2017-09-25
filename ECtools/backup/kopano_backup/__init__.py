@@ -450,7 +450,7 @@ class Service(kopano.Service):
         if self.options.recursive:
             paths = [path2 for path2 in path_folder for path in paths if (path2+'//').startswith(path+'/')]
 
-        # restore specified folders
+        # restore specified (parts of) folders
         restored = []
         for path in paths:
             if path not in path_folder:
@@ -458,18 +458,24 @@ class Service(kopano.Service):
                 stats['errors'] += 1
             else:
                 fpath = path_folder[path]
-                if self.options.deletes in (None, 'no') and folder_deleted(fpath):
-                    continue
-
-                # handle --restore-root, filter and start restore
                 restore_path = _decode(self.options.restore_root)+'/'+path if self.options.restore_root else path
-                folder = store.subtree.folder(restore_path, create=True)
-                if (not store.public and \
-                    ((self.options.skip_junk and folder == store.junk) or \
-                    (self.options.skip_deleted and folder == store.wastebasket))):
+
+                if self.options.sourcekeys:
+                    with closing(dbopen(fpath+'/items')) as db:
+                        if not [sk for sk in self.options.sourcekeys if sk.encode('ascii') in db]:
+                            continue
+                else:
+                    if self.options.deletes in (None, 'no') and folder_deleted(fpath):
                         continue
 
+                    folder = store.subtree.get_folder(restore_path)
+                    if (folder and not store.public and \
+                        ((self.options.skip_junk and folder == store.junk) or \
+                        (self.options.skip_deleted and folder == store.wastebasket))):
+                            continue
+
                 if not self.options.only_meta:
+                    folder = store.subtree.folder(restore_path, create=True)
                     self.restore_folder(folder, path, fpath, store, store.subtree, stats, user, self.server)
                 restored.append((folder, fpath))
 
@@ -617,14 +623,9 @@ class Service(kopano.Service):
         return [(job[0].entryid,)+job[1:] for job in sorted(jobs, reverse=True, key=lambda x: x[0].size)]
 
     def restore_folder(self, folder, path, data_path, store, subtree, stats, user, server):
-        """ restore single folder (or item in folder) """
+        """ restore single folder (or potential item in folder) """
 
-        # check --sourcekey option (only restore specified item if it exists)
-        if self.options.sourcekeys:
-            with closing(dbopen(data_path+'/items')) as db:
-                if not [sk for sk in self.options.sourcekeys if sk.encode('ascii') in db]:
-                    return
-        else:
+        if not self.options.sourcekeys:
             self.log.debug('restoring folder %s', path)
 
             # restore container class
