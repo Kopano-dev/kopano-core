@@ -39,22 +39,18 @@ ECUnknown::~ECUnknown()
 }
 
 ULONG ECUnknown::AddRef() {
-	scoped_lock lock(mutex);
 	return ++this->m_cRef;
 }
 
 ULONG ECUnknown::Release() {
-	bool bLastRef = false;
-	
-	ulock_normal locker(mutex);
 	ULONG nRef = --this->m_cRef;
-	if((int)m_cRef == -1)
+	if (static_cast<int>(nRef) == -1)
 		assert(false);
-		
-	bLastRef = this->lstChildren.empty() && this->m_cRef == 0;
-	locker.unlock();
-	if(bLastRef)
-		this->Suicide();
+	if (nRef == 0) {
+		ulock_normal locker(mutex);
+		if (this->lstChildren.empty())
+			this->Suicide();
+	}
 
 	// The object may be deleted now
 
@@ -68,12 +64,11 @@ HRESULT ECUnknown::QueryInterface(REFIID refiid, void **lppInterface) {
 }
 
 HRESULT ECUnknown::AddChild(ECUnknown *lpChild) {
-	
+	if (lpChild == nullptr)
+		return hrSuccess;
 	scoped_lock locker(mutex);
-	if(lpChild) {
-		this->lstChildren.push_back(lpChild);
-		lpChild->SetParent(this);
-	}
+	this->lstChildren.push_back(lpChild);
+	lpChild->SetParent(this);
 	return hrSuccess;
 }
 

@@ -19,6 +19,7 @@
 #define ECUNKNOWN_H
 
 #include <kopano/zcdefs.h>
+#include <atomic>
 #include <list>
 #include <mutex>
 #include <mapi.h>
@@ -95,7 +96,7 @@ protected:
 	// Kills itself when lstChildren.empty() AND m_cREF == 0
 	virtual HRESULT			Suicide();
 
-	ULONG m_cRef = 0;
+	std::atomic<unsigned int> m_cRef{0};
 	const char *szClassName;
 	std::list<ECUnknown *>	lstChildren; 
 	std::mutex mutex;
