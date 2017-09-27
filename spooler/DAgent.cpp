@@ -3422,7 +3422,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	}
 	sc = new StatsClient(g_lpLogger);
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
-	ec_log_info("Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
 	pollfd.fd = ulListenLMTP;
 	pollfd.events = POLLIN | POLLRDHUP;
 
