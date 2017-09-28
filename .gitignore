@@ -94,6 +94,8 @@ stamp-h2
 /installer/linux/ldap.active-directory.cfg
 /installer/linux/ldapms.openldap.cfg
 /installer/linux/ldapms.active-directory.cfg
+/installer/linux/kopano-mr-accept.py
+/installer/linux/kopano-mr-process.py
 
 # /installer/userscripts/
 /installer/userscripts/creategroup
