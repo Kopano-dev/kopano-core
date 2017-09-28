@@ -1,0 +1,40 @@
+#include <tunables/global>
+
+/usr/sbin/kopano-server {
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+  #include <abstractions/user-tmp>
+  #include <abstractions/mysql>
+
+  capability chown,
+  capability dac_override,
+  capability dac_read_search,
+  capability setgid,
+  capability setuid,
+
+  network tcp,
+
+  /etc/kopano/debian-db.cfg r,
+  /etc/kopano/server.cfg r,
+
+  @{PROC}/@{pid}/task/@{tid}/comm rw,
+
+  /run/kopano/prio.sock rw,
+  /run/kopano/server.pid rw,
+  /run/kopano/server.sock rw,
+
+  /usr/lib/x86_64-linux-gnu/kopano/*.so m,
+
+  /var/lib/kopano/attachments/ r,
+  /var/lib/kopano/attachments/** rw,
+  /var/log/kopano/server.log rw,
+
+  /etc/kopano/userscripts/* Cxr -> kopano_userscripts,
+
+  # There's little we can do if the server is allowed to run
+  # arbitrary scripts
+  profile kopano_userscripts {
+    file,
+    network,
+  }
+}
