@@ -241,7 +241,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &rtf_unfilt,
 					sState[ulState].szCharset = szANSICharset;
 				} else if(strcmp(szCommand,"fcharset") == 0) {
 					if(sState[ulState].bInFontTbl) {
-						mapFontToCharset.insert(pair<int, int>(sState[ulState].ulFont, lArg));
+						mapFontToCharset.insert({sState[ulState].ulFont, lArg});
 					}
 				} else if(strcmp(szCommand,"htmltag") == 0) {
 				} else if(strcmp(szCommand,"mhtmltag") == 0) {
@@ -488,7 +488,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
 					sState[ulState].szCharset = szANSICharset;
 				} else if(strcmp(szCommand,"fcharset") == 0) {
 					if(sState[ulState].bInFontTbl) {
-						mapFontToCharset.insert(pair<int, int>(sState[ulState].ulFont, lArg));
+						mapFontToCharset.insert({sState[ulState].ulFont, lArg});
 					}
 				} else if(strcmp(szCommand,"htmltag") == 0) {
 				} else if(strcmp(szCommand,"mhtmltag") == 0) {
@@ -781,7 +781,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf_unfilt,
 					sState[ulState].szCharset = szANSICharset;
 				} else if(strcmp(szCommand,"fcharset") == 0) {
 					if(sState[ulState].bInFontTbl) {
-						mapFontToCharset.insert(pair<int, int>(sState[ulState].ulFont, lArg));
+						mapFontToCharset.insert({sState[ulState].ulFont, lArg});
 					}
 				} else if(strcmp(szCommand,"htmltag") == 0) {
 				} else if(strcmp(szCommand,"latentstyles") == 0) {
@@ -1141,7 +1141,7 @@ HRESULT HrExtractBODYFromTextRTF(const std::string &rtf_unfilt,
 					sState[ulState].szCharset = szANSICharset;
 				} else if(strcmp(szCommand,"fcharset") == 0) {
 					if(sState[ulState].bInFontTbl) {
-						mapFontToCharset.insert(pair<int, int>(sState[ulState].ulFont, lArg));
+						mapFontToCharset.insert({sState[ulState].ulFont, lArg});
 					}
 				} else if(strcmp(szCommand,"htmltag") == 0) {
 				} else if(strcmp(szCommand,"mhtmltag") == 0) {

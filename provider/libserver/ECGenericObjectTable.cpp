@@ -2336,7 +2336,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 			// Add the category into our sorted-category list and numbered-category list
             assert(m_mapSortedCategories.find(row) == m_mapSortedCategories.end());
             m_mapCategories[sCatRow] = lpCategory;
-            lpCategory->iSortedCategory = m_mapSortedCategories.insert(std::make_pair(row, sCatRow)).first;
+			lpCategory->iSortedCategory = m_mapSortedCategories.insert({row, sCatRow}).first;
 
 			// Update the keytable with the effective sort columns
 			er = UpdateKeyTableRow(lpCategory, &sCatRow, lpProps, i+1, fHidden, &sPrevRow, &ulAction);
@@ -2917,7 +2917,7 @@ ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, s
 		
 	auto iterMinMax = m_mapMinMax.find(sKey);
 	if (iterMinMax == m_mapMinMax.cend()) {
-		m_mapMinMax.insert(std::make_pair(sKey, lpNew));
+		m_mapMinMax.insert({sKey, lpNew});
 	} else {
 		FreePropVal(iterMinMax->second, true); // NOTE this may free lpNewValue, so you can't use that anymore now
 		iterMinMax->second = lpNew;

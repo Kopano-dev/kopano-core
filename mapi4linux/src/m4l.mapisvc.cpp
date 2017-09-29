@@ -149,7 +149,7 @@ HRESULT INFLoader::LoadINF(const char *filename)
 				if (pos == string::npos)
 					continue;	// skip line
 				strName = strLine.substr(1, pos-1);
-				auto rv = m_mapSections.insert(make_pair(strName, inf_section()));
+				auto rv = m_mapSections.insert({strName, inf_section()});
 				iSection = rv.first;
 			}
 			// always continue with next line.
@@ -160,7 +160,7 @@ HRESULT INFLoader::LoadINF(const char *filename)
 			continue;
 
 		// Parse strName in a property, else leave name?
-		iSection->second.insert(make_pair(trim(strName, " \t\r\n"), trim(strValue, " \t\r\n")));
+		iSection->second.insert({trim(strName, " \t\r\n"), trim(strValue, " \t\r\n")});
 	}
 
 	if (fp)
@@ -348,8 +348,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 			// *new function, new loop
 			for (const auto &i : tokenize(sp.second, ", \t")) {
 				infProvider = cINF.GetSection(i);
-
-				auto prov = m_sProviders.insert(make_pair(i, new SVCProvider));
+				auto prov = m_sProviders.insert({i, new SVCProvider});
 				if (prov.second == false)
 					continue;	// already exists
 
@@ -473,7 +472,7 @@ HRESULT MAPISVC::Init()
 	for (const auto &sp : *infServices) {
 		// ZARAFA6, ZCONTACTS
 		infService = inf.GetSection(sp.first);
-		auto i = m_sServices.insert(make_pair(sp.first, new SVCService()));
+		auto i = m_sServices.insert({sp.first, new SVCService});
 		if (i.second == false)
 			continue;			// already exists
 

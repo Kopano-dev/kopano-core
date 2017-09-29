@@ -57,7 +57,7 @@ struct ECCHANGEADVISE {
 using namespace KCHL;
 
 static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &sSyncAdvise) {
-	return std::make_pair(sSyncAdvise.sSyncState.ulSyncId,sSyncAdvise.ulConnection);
+	return {sSyncAdvise.sSyncState.ulSyncId, sSyncAdvise.ulConnection};
 }
 
 ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider,

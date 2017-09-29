@@ -109,9 +109,7 @@ HRESULT ECGenericProp::HrAddPropHandlers(ULONG ulPropTag, GetPropCallBack lpfnGe
 	sCallBack.lpParam = lpParam;
 	sCallBack.fRemovable = fRemovable;
 	sCallBack.fHidden = fHidden;
-
-	lstCallBack.insert(std::make_pair(PROP_ID(ulPropTag), sCallBack));
-
+	lstCallBack.insert({PROP_ID(ulPropTag), sCallBack});
 	dwLastError = hr;
 	return hr;
 }

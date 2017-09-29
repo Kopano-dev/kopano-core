@@ -216,14 +216,14 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 	if (i == lpMap->cend()) {
 		// Insert new value
 		data = new char[1024];
-		lpMap->insert(make_pair(s, data));
+		lpMap->insert({s, data});
 	} else {
 		// Actually remove and re-insert the map entry since we may be modifying
 		// ulFlags in the key (this is a bit of a hack, since you shouldn't be modifying
 		// stuff in the key, but this is the easiest)
 		data = i->second;
 		lpMap->erase(i);
-		lpMap->insert(make_pair(s, data));
+		lpMap->insert({s, data});
 	}
 	
 	if (bIsSize)

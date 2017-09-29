@@ -668,7 +668,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 				// Track counter changes
 				memset(&pi, 0, sizeof(pi));
 				pi.ulStoreId = iterDeleteItems->ulStoreId;
-				mapFolderCounts.insert(std::make_pair(iterDeleteItems->ulParent, pi));
+				mapFolderCounts.insert({iterDeleteItems->ulParent, pi});
 
 				if(iterDeleteItems->ulObjType == MAPI_MESSAGE) {
 					if(iterDeleteItems->ulFlags == MAPI_ASSOCIATED) {

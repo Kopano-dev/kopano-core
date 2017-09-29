@@ -81,7 +81,7 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 				hr = lpStream->Read(lpData.get(), ulSourceKeySize, NULL);
 				if(hr != hrSuccess)
 					return hr;
-				setProcessedChanged.insert(std::pair<unsigned int, std::string>(ulProcessedChangeId, std::string(lpData.get(), ulSourceKeySize)));
+				setProcessedChanged.insert({ulProcessedChangeId, std::string(lpData.get(), ulSourceKeySize)});
 			}
 		}
 	}

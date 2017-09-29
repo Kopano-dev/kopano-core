@@ -791,7 +791,7 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 			bin2hex(objid.id).c_str(), objid.objclass);
 		if (I_GetUEIdObject(objid.id, objid.objclass, NULL, &ulLocalId, NULL) == erSuccess)
 			/* Object was found in cache. */
-			lpmapLocalObjIds->insert(make_pair(objid, ulLocalId));
+			lpmapLocalObjIds->insert({objid, ulLocalId});
 		else
 			/* Object was not found in cache. */
 			lstExternIds.push_back(objid);
@@ -833,8 +833,7 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 		sExternId.objclass = (objectclass_t)atoi(lpDBRow[2]);
 		strSignature.assign(lpDBRow[3], lpDBLen[3]);
 		ulCompanyId = atoi(lpDBRow[4]);
-
-		lpmapLocalObjIds->insert(make_pair(sExternId, ulLocalId));
+		lpmapLocalObjIds->insert({sExternId, ulLocalId});
 		I_AddUEIdObject(sExternId.id, sExternId.objclass, ulCompanyId, ulLocalId, strSignature);
 		LOG_USERCACHE_DEBUG(" Get user objects result company %d, userid %d, signature '%s'", ulCompanyId, ulLocalId, bin2hex(strSignature).c_str());
 	}

@@ -158,7 +158,7 @@ HRESULT Http::HrReadHeaders()
 				iHeader->second += strBuffer.substr(start);
 			} else {
 				// new header
-				auto r = mapHeaders.insert(make_pair<string,string>(strBuffer.substr(0,pos), strBuffer.substr(pos+2)));
+				auto r = mapHeaders.insert({strBuffer.substr(0, pos), strBuffer.substr(pos + 2)});
 				iHeader = r.first;
 			}
 		}

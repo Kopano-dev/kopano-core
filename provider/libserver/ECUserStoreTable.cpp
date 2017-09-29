@@ -309,7 +309,7 @@ ECRESULT ECUserStoreTable::Load() {
 		// add to table
 		lstObjIds.push_back(iRowId);
 		// remember details
-		m_mapUserStoreData.insert(std::pair<unsigned int, ECUserStore>(iRowId++, sUserStore));
+		m_mapUserStoreData.insert({iRowId++, sUserStore});
 	}
 
 	LoadRows(&lstObjIds, 0);

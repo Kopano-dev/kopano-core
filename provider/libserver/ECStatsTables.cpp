@@ -1003,7 +1003,7 @@ ECRESULT ECServerStatsTable::Load()
 		
 	// Assign an ID to each server which is usable from QueryRowData
 	for (const auto &srv : servers) {
-		m_mapServers.insert(std::make_pair(i, srv));
+		m_mapServers.insert({i, srv});
 		// For each server, add a row in the table
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, i, 0);
 		++i;
