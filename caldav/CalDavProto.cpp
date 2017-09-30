@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <utility>
 #include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
@@ -26,7 +27,6 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/MAPIErrors.h>
 
-using namespace std;
 using namespace KCHL;
 
 /**
@@ -68,8 +68,8 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
 	HRESULT hr = hrSuccess;
 	memory_ptr<MAPINAMEID> lpNameID;
 	SPropTagArrayPtr ptrPropTags;
-	string strName;
-	wstring wstrName;
+	std::string strName;
+	std::wstring wstrName;
 
 	for (size_t i = 0; i < ARRAY_SIZE(sPropMap); ++i)
 		// @todo, we really should use the namespace here too
@@ -77,8 +77,7 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
 			return sPropMap[i].ulPropTag;
 
 	strName = sXmlPropName.strNS + "#" + sXmlPropName.strPropname;
-	wstrName = converter.convert_to<wstring>(strName, rawsize(strName), "UTF-8");
-
+	wstrName = converter.convert_to<std::wstring>(strName, rawsize(strName), "UTF-8");
 	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID);
 	if (hr != hrSuccess)
 		return PR_NULL;
@@ -671,7 +670,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	iterWebVal = sWebRMGet->lstWebVal.cbegin();
 
 	for (size_t i = 0; i < sWebRMGet->lstWebVal.size(); ++i, ++iterWebVal) {
-		wstring content = U2W(iterWebVal->strValue);
+		auto content = U2W(iterWebVal->strValue);
 		SPropValue pv;
 		pv.ulPropTag = GetPropIDForXMLProp(lpAbCont, iterWebVal->sPropName, m_converter);
 		pv.Value.lpszW = const_cast<wchar_t *>(content.c_str());
@@ -1167,7 +1166,7 @@ exit:
 HRESULT CalDAV::CreateAndGetGuid(SBinary sbEid, ULONG ulPropTag, std::string *lpstrGuid)
 {
 	HRESULT hr = hrSuccess;
-	string strGuid;
+	std::string strGuid;
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 	memory_ptr<SPropValue> lpProp;
@@ -1888,7 +1887,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		} else if (strProperty == "calendar-user-address-set" && (m_ulUrlFlag & REQ_PUBLIC) == 0 && !!ptrEmail) {
 			// rfc draft only: http://tools.ietf.org/html/draft-desruisseaux-caldav-sched-11
 			HrSetDavPropName(&(sWebVal.sPropName), "href", WEBDAVNS);
-			sWebVal.strValue = string("mailto:") + ptrEmail->Value.lpszA;
+			sWebVal.strValue = std::string("mailto:") + ptrEmail->Value.lpszA;
 			sWebProperty.lstValues.push_back(sWebVal);
 
 		} else if (strProperty == "acl" || strProperty == "current-user-privilege-set") {
@@ -2018,7 +2017,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 			// do not set on public, so thunderbird/lightning doesn't require calendar-user-address-set, schedule-inbox-URL and schedule-outbox-URL
 			// public doesn't do meeting requests
 			// check here, because lpFoundProp is set to display name and isn't binary
-			if ((m_ulUrlFlag & REQ_PUBLIC) == 0 || strAgent.find("Lightning") == string::npos) {
+			if ((m_ulUrlFlag & REQ_PUBLIC) == 0 || strAgent.find("Lightning") == std::string::npos) {
 				// Purpose: Identifies the URL of any WebDAV collections that contain
 				//          calendar collections owned by the associated principal resource.
 				// apple seems to use this as the root container where you have your calendars (and would create more)

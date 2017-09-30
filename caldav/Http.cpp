@@ -16,14 +16,14 @@
  */
 
 #include <kopano/platform.h>
+#include <string>
 #include <utility>
+#include <vector>
 #include "Http.h"
 #include <kopano/mapi_ptr.h>
 #include <kopano/stringutil.h>
 
 #include <kopano/ECConfig.h>
-
-using namespace std;
 
 /** 
  * Parse the incoming URL into known pieces:
@@ -46,8 +46,8 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	std::string strService;
 	std::string strFolder;
 	std::string strUrlUser;
-	vector<std::string> vcUrlTokens;
-	vector<std::string>::const_iterator iterToken;
+	std::vector<std::string> vcUrlTokens;
+	decltype(vcUrlTokens)::const_iterator iterToken;
 	ULONG ulFlag = 0;
 
 	vcUrlTokens = tokenize(strUrl, L'/', true);
@@ -55,7 +55,7 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 		// root should be present, no flags are set. mostly used on OPTIONS command
 		goto exit;
 
-	if (vcUrlTokens.back().rfind(".ics") != string::npos)
+	if (vcUrlTokens.back().rfind(".ics") != std::string::npos)
 		// Guid is retrieved using StripGuid().
 		vcUrlTokens.pop_back();
 	else
@@ -163,7 +163,7 @@ HRESULT Http::HrReadHeaders()
 			}
 		}
 
-		if (strBuffer.find("Authorization") != string::npos)
+		if (strBuffer.find("Authorization") != std::string::npos)
 			ec_log_debug("< Authorization: <value hidden>");
 		else
 			ec_log_debug("< "+strBuffer);
@@ -375,9 +375,8 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 {
 	bool ret = false;
 	bool invert = false;
-	string strIf;
+	std::string strIf, strValue;
 	SPropValuePtr ptrLastModTime;
-	string strValue;
 
 	if (lpProp != nullptr &&
 	    HrGetOneProp(lpProp, PR_LAST_MODIFICATION_TIME, &~ptrLastModTime) == hrSuccess) {
@@ -449,7 +448,7 @@ HRESULT Http::HrGetDestination(std::string *strDestination)
 	HRESULT hr;
 	std::string strHost;
 	std::string strDest;
-	string::size_type pos;
+	size_t pos;
 
 	// example:  Host: server:port
 	hr = HrGetHeaderValue("Host", &strHost);
@@ -466,7 +465,7 @@ HRESULT Http::HrGetDestination(std::string *strDestination)
 	}
 
 	pos = strDest.find(strHost);
-	if (pos == string::npos) {
+	if (pos == std::string::npos) {
 		ec_log_err("Refusing to move calendar item from %s to different host on url %s", strHost.c_str(), strDest.c_str());
 		return MAPI_E_CALL_FAILED;
 	}
@@ -641,7 +640,7 @@ HRESULT Http::HrFinalize()
 	char szTime[32];
 	time_t now = time(NULL);
 	tm local;
-	string strAgent;
+	std::string strAgent;
 	localtime_r(&now, &local);
 	// @todo we're in C LC_TIME locale to get the correct (month) format, but the timezone will be GMT, which is not wanted.
 	strftime(szTime, ARRAY_SIZE(szTime), "%d/%b/%Y:%H:%M:%S %z", &local);

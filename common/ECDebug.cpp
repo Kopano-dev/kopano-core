@@ -40,8 +40,6 @@
 #include <sstream>
 #include <kopano/mapi_ptr.h>
 
-using namespace std;
-
 namespace KC {
 
 #define RETURN_ERROR_CASE(x) \

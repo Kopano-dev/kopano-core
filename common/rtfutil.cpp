@@ -20,6 +20,8 @@
 
 #include <kopano/platform.h>
 #include <iostream>
+#include <map>
+#include <utility>
 #include <kopano/codepage.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
@@ -31,8 +33,6 @@
 
 #include <string> 
 #include <sstream>
-
-using namespace std;
 
 namespace KC {
 
@@ -88,7 +88,7 @@ struct RTFSTATE {
 
 #define RTF_MAXSTATE 	256
 #define RTF_MAXCMD		64
-typedef map<int,int> fontmap_t;
+typedef std::map<int, int> fontmap_t;
 
 /**
  * Converts RTF \ansicpgN <N> number to normal charset string.
@@ -190,8 +190,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &rtf_unfilt,
 		szHTMLCharset = "us-ascii";
 		hr = hrSuccess;
 	}
-	strConvertCharset = szHTMLCharset + string("//HTMLENTITIES");
-
+	strConvertCharset = szHTMLCharset + std::string("//HTMLENTITIES");
 	InitRTFState(&sState[0]);
 
 	while(*szInput) {
@@ -376,7 +375,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &rtf_unfilt,
 	strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
 
 	try {
-		lpStrHTMLOut = convertContext.convert_to<string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
+		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
 		hr = details::HrFromException(ce);
 	}
@@ -404,7 +403,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
 	const char *szInput = lpStrRTFIn.c_str();
 	const char *szANSICharset = "us-ascii";
 	const char *szHTMLCharset;
-	std::string strConvertCharset;
+	std::string strConvertCharset, tmp;
 	std::wstring strOutput;
 	int ulState = 0;
 	bool bPar = false;
@@ -412,7 +411,6 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
 	RTFSTATE sState[RTF_MAXSTATE];	
 	fontmap_t mapFontToCharset;
 	convert_context convertContext;
-	string tmp;
 
 	// select output charset
 	hr = HrGetCharsetByCP(ulCodepage, &szHTMLCharset);
@@ -420,7 +418,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
 		szHTMLCharset = "us-ascii";
 		hr = hrSuccess;
 	}
-	strConvertCharset = szHTMLCharset + string("//HTMLENTITIES");
+	strConvertCharset = szHTMLCharset + std::string("//HTMLENTITIES");
 
 	tmp =	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\r\n" \
 		 "<HTML>\r\n" \
@@ -668,7 +666,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
 		     L"</HTML>\r\n";
 
 	try {
-		lpStrHTMLOut = convertContext.convert_to<string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
+		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
 		hr = details::HrFromException(ce);
 	}
@@ -697,12 +695,11 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf_unfilt,
 	const char *szInput = lpStrRTFIn.c_str();
 	const char *szANSICharset = "us-ascii";
 	const char *szHTMLCharset;
-	std::string strConvertCharset;
+	std::string strConvertCharset, tmp;
 	std::wstring strOutput;
 	int ulState = 0;
 	RTFSTATE sState[RTF_MAXSTATE];	
 	convert_context convertContext;
-	string tmp;
 	fontmap_t mapFontToCharset;
 	bool bPar = false;
 
@@ -712,7 +709,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf_unfilt,
 		szHTMLCharset = "us-ascii";
 		hr = hrSuccess;
 	}
-	strConvertCharset = szHTMLCharset + string("//HTMLENTITIES");
+	strConvertCharset = szHTMLCharset + std::string("//HTMLENTITIES");
 
 	tmp =	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\r\n" \
 		 "<HTML>\r\n" \
@@ -1021,7 +1018,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf_unfilt,
 		     L"</HTML>\r\n";
 
 	try {
-		lpStrHTMLOut = convertContext.convert_to<string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
+		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
 		hr = details::HrFromException(ce);
 	}

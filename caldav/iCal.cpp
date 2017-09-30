@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include "iCal.h"
 #include "CalDavUtil.h"
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -32,7 +33,6 @@
 
 #include <kopano/mapi_ptr.h>
 
-using namespace std;
 using namespace KCHL;
 
 iCal::iCal(Http *lpRequest, IMAPISession *lpSession,
@@ -149,12 +149,11 @@ HRESULT iCal::HrHandleIcalPost()
 	eIcalType etype = VEVENT;
 	FILETIME ftModTime;
 	time_t tUnixModTime;
-	map<std::string, int> mpIcalEntries;
-	map<std::string, FILETIME> mpSrvTimes;
-	map<std::string,SBinary> mpSrvEntries;
-	
-	map<std::string, int>::const_iterator mpIterI;
-	map<std::string,SBinary>::const_iterator mpIterJ;
+	std::map<std::string, int> mpIcalEntries;
+	std::map<std::string, FILETIME> mpSrvTimes;
+	std::map<std::string, SBinary> mpSrvEntries;
+	decltype(mpIcalEntries)::const_iterator mpIterI;
+	decltype(mpSrvEntries)::const_iterator mpIterJ;
 
 	ulProptag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	SizedSPropTagArray(3, proptags) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, ulProptag}};
