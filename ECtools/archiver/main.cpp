@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <climits>
 #include <getopt.h>
 #include <kopano/stringutil.h>
@@ -26,10 +27,12 @@
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ecversion.h>
+#include <kopano/UnixUtil.h>
 #include "Archiver.h"
-#include "UnixUtil.cpp"
 
 namespace KC {
+
+using namespace std;
 
 enum modes {
     MODE_INVALID = 0,
