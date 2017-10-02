@@ -48,7 +48,7 @@ namespace KC {
 
 class mapiTimeoutHandler : public vmime::net::timeoutHandler {
 public:
-	virtual ~mapiTimeoutHandler(void) _kc_impdtor;
+	virtual ~mapiTimeoutHandler(void) = default;
 
 	// @todo add logging
 	virtual bool isTimeOut() _kc_override { return getTime() >= (m_last + 5*60); };

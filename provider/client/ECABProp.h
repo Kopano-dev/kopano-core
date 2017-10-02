@@ -28,7 +28,7 @@
 class ECABProp : public ECGenericProp {
 protected:
 	ECABProp(void* lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName = NULL);
-	virtual ~ECABProp(void) _kc_impdtor;
+	virtual ~ECABProp(void) = default;
 public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	static HRESULT DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);

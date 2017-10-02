@@ -70,7 +70,7 @@ class _kc_export DB_RESULT _kc_final {
 class _kc_export KDatabase {
 	public:
 	KDatabase(void);
-	virtual ~KDatabase(void) _kc_impdtor;
+	virtual ~KDatabase(void) = default;
 	ECRESULT Close(void);
 	virtual ECRESULT Connect(ECConfig *, bool, unsigned int, unsigned int);
 	virtual ECRESULT CreateDatabase(ECConfig *, bool);

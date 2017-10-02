@@ -53,7 +53,7 @@ public:
 		Shallow = 2		// Creates a new SPropValue, but point to the embedded data from the original structure.
 	};
 
-	_kc_hidden virtual ~ECRestriction(void) _kc_impdtor;
+	_kc_hidden virtual ~ECRestriction(void) = default;
 
 	/**
 	 * Create an LPSRestiction object that represents the restriction on which CreateMAPIRestriction was called.

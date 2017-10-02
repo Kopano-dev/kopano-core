@@ -134,7 +134,7 @@ public:
 		m_bDistributed(shareddata->IsDistributed())
 	{}
 
-	virtual ~UserPlugin(void) _kc_impdtor;
+	virtual ~UserPlugin(void) = default;
 
 	/**
 	 * Initialize plugin

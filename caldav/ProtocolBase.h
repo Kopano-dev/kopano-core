@@ -25,7 +25,7 @@
 class ProtocolBase {
 public:
 	ProtocolBase(Http *, IMAPISession *, const std::string &srv_tz, const std::string &charset);
-	virtual ~ProtocolBase() _kc_impdtor;
+	virtual ~ProtocolBase() = default;
 	HRESULT HrInitializeClass();
 
 	virtual HRESULT HrHandleCommand(const std::string &strMethod) = 0;

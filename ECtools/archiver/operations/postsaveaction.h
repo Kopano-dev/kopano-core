@@ -29,7 +29,7 @@ namespace KC { namespace operations {
  */
 class IPostSaveAction {
 public:
-	virtual ~IPostSaveAction(void) _kc_impdtor;
+	virtual ~IPostSaveAction(void) = default;
 	virtual HRESULT Execute() = 0;
 };
 typedef std::shared_ptr<IPostSaveAction> PostSaveActionPtr;
