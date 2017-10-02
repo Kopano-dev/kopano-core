@@ -92,18 +92,18 @@ enum mapibuf_ident {
 	MAPIBUF_MORE,
 };
 
-struct _kc_max_align mapiext_head {
+struct alignas(::max_align_t) mapiext_head {
 	struct mapiext_head *child;
-	_kc_max_align char data[];
+	alignas(::max_align_t) char data[];
 };
 
-struct _kc_max_align mapibuf_head {
+struct alignas(::max_align_t) mapibuf_head {
 	std::mutex mtx;
 	struct mapiext_head *child; /* singly-linked list */
 #if _MAPI_MEM_MORE_DEBUG
 	enum mapibuf_ident ident;
 #endif
-	_kc_max_align char data[];
+	alignas(::max_align_t) char data[];
 };
 
 /* Some required globals */

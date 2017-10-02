@@ -58,11 +58,9 @@
 #if defined(__GNUG__) && __GNUG__ == 4 && \
     defined(__GNUC_MINOR__) && __GNUC_MINOR__ < 8
 #	define _kc_lvqual
-#	define _kc_max_align __attribute__((aligned(16)))
 #else
 	/* From g++ 4.8 onwards */
 #	define _kc_lvqual &
-#	define _kc_max_align alignas(::max_align_t)
 #	define HAVE_MF_QUAL 1
 #endif
 
