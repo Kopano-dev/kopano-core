@@ -55,15 +55,6 @@
 /* Mark classes which explicitly must not be final in the C++ side… for SWIG */
 #define _no_final
 
-#if defined(__GNUG__) && __GNUG__ == 4 && \
-    defined(__GNUC_MINOR__) && __GNUC_MINOR__ < 8
-#	define _kc_lvqual
-#else
-	/* From g++ 4.8 onwards */
-#	define _kc_lvqual &
-#	define HAVE_MF_QUAL 1
-#endif
-
 /*
  * This is a marker for structs where we expect gsoap 2.8.30 or ourselves to
  * actually zero it.
