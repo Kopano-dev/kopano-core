@@ -415,18 +415,7 @@ GSOAP_LIBS="-lgsoapssl++"
 AC_SUBST(GSOAP_CFLAGS)
 AC_SUBST(GSOAP_LIBS)
 
-ICAL_CFLAGS=""
-ICAL_LIBS="-lical -licalss -licalvcal"
-AC_ARG_WITH(ical-prefix,
-  AS_HELP_STRING([--with-ical-prefix=PATH], [libical prefix, e.g. /usr/local, default /usr]),
-  [
-  ICAL_PREFIX="${withval}"
-  ICAL_CFLAGS="$ICAL_CFLAGS -I$ICAL_PREFIX/include"
-  # Hardcoding directories is bad… they may contain libraries of mismatching archictecture
-  ICAL_LIBS="$ICAL_LIBS -L$ICAL_PREFIX/lib -L$ICAL_PREFIX/lib64 -R$ICAL_PREFIX/lib -R$ICAL_PREFIX/lib64"
-  ])
-AC_SUBST(ICAL_CFLAGS)
-AC_SUBST(ICAL_LIBS)
+PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
 
 PKG_CHECK_MODULES([curl], [libcurl], [], [:])
 CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
