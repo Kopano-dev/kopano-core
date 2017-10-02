@@ -16,7 +16,11 @@ config_files = \
 	server.cfg unix.cfg presence.cfg \
 	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
 	autorespond archiver.cfg backup.cfg migration-pst.cfg
-
+apparmor_files = \
+	usr.sbin.kopano-dagent \
+	usr.sbin.kopano-search \
+	usr.sbin.kopano-server \
+	$(NULL)
 rhel_initscript_files = \
 	kopano-server.init.rhel kopano-spooler.init.rhel \
 	kopano-gateway.init.rhel kopano-monitor.init.rhel \
@@ -56,6 +60,10 @@ dist_doc_DATA = \
 	${top_srcdir}/tools/python-scripts/update-resource-recipients
 kgwdocdir = ${docdir}/../kopano-gateway
 dist_kgwdoc_DATA = ${top_srcdir}/tools/python-scripts/optimize-imap.py
+
+sysconf_apparmordir = ${docdir}/example-config/apparmor.d
+dist_sysconf_apparmor_DATA = ${apparmor_files}
+
 
 BUILT_SOURCES = ldap.openldap.cfg ldap.active-directory.cfg
 
