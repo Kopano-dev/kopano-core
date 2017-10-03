@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <new>
+#include <string>
 #include <utility>
 #include <cerrno>
 #include <cstring>
@@ -51,8 +52,6 @@
 #else
 #define WHITESPACE L" \t\n\r"
 #endif
-
-using namespace std;
 
 namespace KC {
 
@@ -334,7 +333,7 @@ ECRESULT ECSession::AddAdvise(unsigned int ulConnection, unsigned int ulKey, uns
 ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *lpSyncState)
 {
 	ECRESULT		er = erSuccess;
-	string			strQuery;
+	std::string strQuery;
 	ECDatabase*		lpDatabase = NULL;
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
@@ -644,7 +643,7 @@ ECAuthSession::~ECAuthSession()
 		waitpid(m_NTLM_pid, &status, 0);
 		ec_log_info("Removing ntlm_auth on pid %d. Exitstatus: %d", m_NTLM_pid, status);
 		if (status == -1) {
-			ec_log_err(string("System call waitpid failed: ") + strerror(errno));
+			ec_log_err(std::string("System call waitpid failed: ") + strerror(errno));
 		} else {
 #ifdef WEXITSTATUS
 				if(WIFEXITED(status)) { /* Child exited by itself */
@@ -1041,7 +1040,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpsz
 	gss_buffer_desc gssUserBuffer = GSS_C_EMPTY_BUFFER;
 	gss_buffer_desc gssOutputToken = GSS_C_EMPTY_BUFFER;
 	std::string strUsername;
-	string::size_type pos;
+	size_t pos;
 
 	struct xsd__base64Binary *lpOutput = NULL;
 
@@ -1136,7 +1135,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpsz
 	// kerberos returns: username@REALM, username is case-insensitive
 	strUsername.assign((char*)gssUserBuffer.value, gssUserBuffer.length);
 	pos = strUsername.find_first_of('@');
-	if (pos != string::npos)
+	if (pos != std::string::npos)
 		strUsername.erase(pos);
 
 	if (strcasecmp(strUsername.c_str(), lpszName) == 0) {
@@ -1218,7 +1217,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 		// TODO: configurable path?
 
 		if (pipe(m_NTLM_stdin) == -1 || pipe(m_NTLM_stdout) == -1 || pipe(m_NTLM_stderr) == -1) {
-			ec_log_crit(string("Unable to create communication pipes for ntlm_auth: ") + strerror(errno));
+			ec_log_crit(std::string("Unable to create communication pipes for ntlm_auth: ") + strerror(errno));
 			return er;
 		}
 
@@ -1239,7 +1238,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 		m_NTLM_pid = vfork();
 		if (m_NTLM_pid == -1) {
 			// broken
-			ec_log_crit(string("Unable to start new process for ntlm_auth: ") + strerror(errno));
+			ec_log_crit(std::string("Unable to start new process for ntlm_auth: ") + strerror(errno));
 			return er;
 		} else if (m_NTLM_pid == 0) {
 			// client
@@ -1260,7 +1259,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 
 			execl("/bin/sh", "sh", "-c", "ntlm_auth -d0 --helper-protocol=squid-2.5-ntlmssp", NULL);
 
-			ec_log_crit(string("Cannot start ntlm_auth: ") + strerror(errno));
+			ec_log_crit(std::string("Cannot start ntlm_auth: ") + strerror(errno));
 			_exit(2);
 		} else {
 			// parent
@@ -1292,8 +1291,7 @@ retry:
 	if (ret < 0) {
 		if (errno == EINTR)
 			goto retry;
-
-		ec_log_err(string("Error while waiting for data from ntlm_auth: ") + strerror(errno));
+		ec_log_err(std::string("Error while waiting for data from ntlm_auth: ") + strerror(errno));
 		return er;
 	}
 
@@ -1312,7 +1310,7 @@ retry:
 		buffer[bytes] = '\0';
 		// print in lower level. if ntlm_auth was not installed (kerberos only environment), you won't care that ntlm_auth doesn't work.
 		// login error is returned to the client, which was expected anyway.
-		ec_log_notice(string("Received error from ntlm_auth:\n") + buffer);
+		ec_log_notice(std::string("Received error from ntlm_auth:\n") + buffer);
 		return er;
 	}
 
@@ -1320,7 +1318,7 @@ retry:
 	memset(buffer, 0, NTLMBUFFER);
 	bytes = read(m_stdout, buffer, NTLMBUFFER-1);
 	if (bytes < 0) {
-		ec_log_err(string("Unable to read data from ntlm_auth: ") + strerror(errno));
+		ec_log_err(std::string("Unable to read data from ntlm_auth: ") + strerror(errno));
 		return er;
 	} else if (bytes == 0) {
 		ec_log_err("Nothing read from ntlm_auth");
@@ -1379,8 +1377,8 @@ retry:
 		ec_log_info("Found username (%s)", strAnswer.c_str());
 
 		// if the domain separator is not found, assume we only have the username (samba)
-		string::size_type pos = strAnswer.find_first_of(separator);
-		if (pos != string::npos) {
+		auto pos = strAnswer.find_first_of(separator);
+		if (pos != std::string::npos) {
 			++pos;
 			strAnswer.assign(strAnswer, pos, strAnswer.length()-pos);
 		}

@@ -15,6 +15,7 @@
  *
  */
 #include <new>
+#include <string>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
@@ -44,7 +45,6 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -239,8 +239,7 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 		// Item found without entryid, item already deleted, so delete the item from the queue
 		if (lpDBRow[1] == NULL) {
 			ec_log_err("Removing stray object \"%s\" from outgoing table", lpDBRow[0]);
-			strQuery = "DELETE FROM outgoingqueue WHERE hierarchy_id=" + string(lpDBRow[0]);
-			
+			strQuery = "DELETE FROM outgoingqueue WHERE hierarchy_id=" + std::string(lpDBRow[0]);
 			lpDatabase->DoDelete(strQuery); //ignore errors
 			continue;
 		}

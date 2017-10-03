@@ -26,8 +26,6 @@
 
 #include "ECConversion.h"
 
-using namespace std;
-
 namespace KC {
 
 // Convert search criteria from zarafa-5.2x to zarafa-6 format

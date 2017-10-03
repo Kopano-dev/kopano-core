@@ -14,7 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include <algorithm>
 #include <new>
+#include <string>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 
@@ -68,8 +70,6 @@
 #include "ECSession.h"
 
 #include <map>
-
-using namespace std;
 
 namespace KC {
 
@@ -298,7 +298,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 	ECListInt			listMVSortCols;//Other mvprops then normal column set
 	ECListInt			listMVIColIds;
-	string				strCol;
+	std::string strCol;
     sObjectTableKey sKey;
 	
 	std::set<std::pair<unsigned int, unsigned int> > setCellDone;
@@ -825,8 +825,8 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 			}
     	}
     	
-		ulMin = min(ulMin, PROP_ID(col.first));
-		ulMax = max(ulMax, PROP_ID(col.first));
+		ulMin = std::min(ulMin, PROP_ID(col.first));
+		ulMax = std::max(ulMax, PROP_ID(col.first));
     }
     
     for (const auto &ob : mapObjIds) {

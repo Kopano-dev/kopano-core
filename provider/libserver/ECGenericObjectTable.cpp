@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <list>
 #include <memory>
 #include <string>
 #include <kopano/lockhelper.hpp>
@@ -70,7 +71,6 @@
        
 #include "ECSession.h"
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -1547,7 +1547,8 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	return er;
 }
 
-ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable *lpsRestrict, list<ULONG> *lpPropTags, ULONG ulLevel)
+ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable *lpsRestrict,
+    std::list<ULONG> *lpPropTags, ULONG ulLevel)
 {
 	ECRESULT		er = erSuccess;
 
@@ -1637,7 +1638,8 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
  * @param[out] lppPropTags PropTagArray with proptags from lpsRestrict and lstPrefix
  * @return ECRESULT
  */
-ECRESULT ECGenericObjectTable::GetRestrictPropTags(struct restrictTable *lpsRestrict, std::list<ULONG> *lstPrefix, struct propTagArray **lppPropTags)
+ECRESULT ECGenericObjectTable::GetRestrictPropTags(struct restrictTable *lpsRestrict,
+    std::list<ULONG> *lstPrefix, struct propTagArray **lppPropTags)
 {
 	struct propTagArray *lpPropTagArray;
 

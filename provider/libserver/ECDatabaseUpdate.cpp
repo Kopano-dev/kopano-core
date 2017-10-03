@@ -15,6 +15,9 @@
  *
  */
 #include <kopano/zcdefs.h>
+#include <list>
+#include <map>
+#include <string>
 #include <utility>
 #include <kopano/platform.h>
 
@@ -44,8 +47,6 @@
 #include <zlib.h>
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
-
-using namespace std;
 
 namespace KC {
 
@@ -798,7 +799,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 	// Recreate the objects in the object_temp table and on the fly create the queries to regenerate
 	// their properties in the objectpropert_temp table.
 	for (const auto &obj : sObjectList) {
-		strQuery = (string)"INSERT INTO object_temp (objecttype, externid) VALUES (" +
+		strQuery = "INSERT INTO object_temp (objecttype, externid) VALUES (" +
 		           stringify(obj.ulType) + ", '" + stringify(obj.ulId) + "')";
 		er = lpDatabase->DoInsert(strQuery, &ulNewId);
 		if (er != erSuccess)
@@ -808,7 +809,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 		sObjectMap[obj] = ulNewId;
 
 		// Find the properties for this object
-		strQuery = (string)"SELECT propname, value FROM objectproperty WHERE objectid=" +
+		strQuery = "SELECT propname, value FROM objectproperty WHERE objectid=" +
 		           stringify(obj.ulId);
 		er = lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
@@ -995,15 +996,14 @@ ECRESULT UpdateDatabaseLockDistributed(ECDatabase *lpDatabase)
 // 28
 ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 {
-	string			strQuery;
+	std::string strQuery, strSyncId;
 	DB_RESULT lpResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	int				ulId = 0;
-	list<int>		syncIds;
-	list<string>	queries;
+	std::list<int> syncIds;
+	std::list<std::string> queries;
 	bool			fFirst = true;
-	string			strSyncId;
 
 	auto er = lpDatabase->DoInsert(Z_TABLEDEF_ABCHANGES);
 	if (er != erSuccess)
@@ -1027,7 +1027,7 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 		syncIds.push_back(ulId);
 
 		strQuery = "INSERT INTO abchanges (id, sourcekey, parentsourcekey, change_type";
-		strQuery += (string)") VALUES (" + lpDBRow[0] + ", " +
+		strQuery += std::string(") VALUES (") + lpDBRow[0] + ", " +
 								   lpDatabase->EscapeBinary((unsigned char*)lpDBRow[1], lpDBLen[1]) + ", " +
 								   lpDatabase->EscapeBinary((unsigned char*)lpDBRow[2], lpDBLen[2]) + ", " +
 								   lpDBRow[3];
@@ -1201,7 +1201,7 @@ ECRESULT UpdateDatabaseAddMVPropertyTable(ECDatabase *lpDatabase)
 // 35
 ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 {
-	map<string, string> mapIdToName;
+	std::map<std::string, std::string> mapIdToName;
 	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
@@ -1322,7 +1322,7 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 {
 	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
-	list<std::pair<string, string> > lstRelations;
+	std::list<std::pair<std::string, std::string>> lstRelations;
 
 	// relation 6 == OBJECTRELATION_USER_SENDAS
 	auto er = lpDatabase->DoSelect("SELECT objectid, parentobjectid FROM objectrelation WHERE relationtype=6", &lpResult);
@@ -1364,7 +1364,7 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 // 43
 ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 {
-	map<string, string> mapStoreInbox;
+	std::map<std::string, std::string> mapStoreInbox;
 	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 

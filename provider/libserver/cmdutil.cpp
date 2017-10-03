@@ -50,7 +50,6 @@
 #define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
 #define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -1615,15 +1614,11 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
-	std::string strQuery;
-	string strCC;		// Content count
-	string strACC;		// Assoc. content count
-	string strDMC;		// Deleted message count
-	string strDAC;		// Deleted assoc message count
-	string strCFC;		// Child folder count
-	string strDFC;		// Deleted folder count
-	string strCU;		// Content unread
-	
+	/*
+	 * Content count, assoc. content count, deleted message count,
+	 * child folder count, deleted folder count, content unread.
+	 */
+	std::string strQuery, strCC, strACC, strDMC, strDAC, strCFC, strDFC, strCU;
 	unsigned int ulAffected = 0;
 	unsigned int ulParent = 0;
 	auto sesmgr = lpSession->GetSessionManager();
@@ -1923,7 +1918,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 				setMessages.insert(ulId);
 			else
 				assert(false);
-		} catch (runtime_error &e) {
+		} catch (std::runtime_error &e) {
 			ec_log_err("eid.type(): %s\n", e.what());
 			return MAPI_E_CORRUPT_DATA;
 		}
@@ -2032,7 +2027,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid, unsign
 	try {
 		if (entryid.type() == MAPI_STORE)
 			return lpDatabase->Begin();
-	} catch (runtime_error &e) {
+	} catch (std::runtime_error &e) {
 		ec_log_err("entryid.type(): %s\n", e.what());
 		return KCERR_INVALID_PARAMETER;
 	}

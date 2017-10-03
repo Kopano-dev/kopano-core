@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <list>
 #include <memory>
 #include <new>
 #include "kcore.hpp"
@@ -37,7 +38,6 @@
 #include "ECSessionManager.h"
 #include <kopano/stringutil.h>
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -183,8 +183,8 @@ struct filter_objects {
 	}
 };
 
-ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId, unsigned int ulFlags,
-												   list<localobjectdetails_t> **lppObjects)
+ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId,
+    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
@@ -210,8 +210,8 @@ ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId, unsi
 	return erSuccess;
 }
 
-ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId, unsigned int ulFlags,
-											   list<localobjectdetails_t> **lppObjects)
+ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId,
+    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	ECSecurity *lpSecurity = lpSession->GetSecurity();
@@ -238,8 +238,8 @@ ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId, unsigned
 	return erSuccess;
 }
 
-ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId, unsigned int ulFlags,
-												 list<localobjectdetails_t> **lppObjects)
+ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId,
+    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	objectid_t objectid;
@@ -295,8 +295,8 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId, unsign
 	return erSuccess;
 }
 
-ECRESULT ECABObjectTable::LoadContentsAddressList(unsigned int ulObjectId, unsigned int ulFlags,
-												  list<localobjectdetails_t> **lppObjects)
+ECRESULT ECABObjectTable::LoadContentsAddressList(unsigned int ulObjectId,
+    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
@@ -313,8 +313,8 @@ ECRESULT ECABObjectTable::LoadContentsAddressList(unsigned int ulObjectId, unsig
 	return erSuccess;
 }
 
-ECRESULT ECABObjectTable::LoadContentsCompany(unsigned int ulObjectId, unsigned int ulFlags,
-											  list<localobjectdetails_t> **lppObjects)
+ECRESULT ECABObjectTable::LoadContentsCompany(unsigned int ulObjectId,
+    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
@@ -331,8 +331,8 @@ ECRESULT ECABObjectTable::LoadContentsCompany(unsigned int ulObjectId, unsigned 
 	return erSuccess;
 }
 
-ECRESULT ECABObjectTable::LoadContentsDistlist(unsigned int ulObjectId, unsigned int ulFlags,
-											   list<localobjectdetails_t> **lppObjects)
+ECRESULT ECABObjectTable::LoadContentsDistlist(unsigned int ulObjectId,
+    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 

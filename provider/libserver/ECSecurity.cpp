@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <kopano/platform.h>
+#include <list>
 #include <memory>
 #include <utility>
 #include <kopano/tie.hpp>
@@ -47,7 +48,6 @@
 #include "ECDBDef.h"
 #include "cmdutil.hpp"
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -776,7 +776,8 @@ ECRESULT ECSecurity::GetUserCompany(unsigned int *lpulCompanyId) const
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags, list<localobjectdetails_t> **lppObjects)
+ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags,
+    std::list<localobjectdetails_t> **lppObjects)
 {
 	ECRESULT er;
 	/*
@@ -797,7 +798,7 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags, list<localobjec
 	 * Because of the difference in flags it is possible we have
 	 * too many entries in the list. We need to filter those out now.
 	 */
-	*lppObjects = new list<localobjectdetails_t>();
+	*lppObjects = new std::list<localobjectdetails_t>;
 	for (const auto &i : *m_lpViewCompanies) {
 		if (m_ulUserID != 0 && (ulFlags & USERMANAGEMENT_ADDRESSBOOK) &&
 		    i.GetPropBool(OB_PROP_B_AB_HIDDEN))
@@ -917,7 +918,8 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags, list<localobjectdetails_t> **lppObjects)
+ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags,
+    std::list<localobjectdetails_t> **lppObjects)
 {
 	ECRESULT er = erSuccess;
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
@@ -1435,7 +1437,7 @@ size_t ECSecurity::GetObjectSize(void) const
 			++ulItems;
 			ulSize += i.GetObjectSize();
 		}
-		ulSize += MEMORY_USAGE_LIST(ulItems, list<localobjectdetails_t>);
+		ulSize += MEMORY_USAGE_LIST(ulItems, std::list<localobjectdetails_t>);
 	}
 
 	if (m_lpViewCompanies)
@@ -1445,7 +1447,7 @@ size_t ECSecurity::GetObjectSize(void) const
 			++ulItems;
 			ulSize += i.GetObjectSize();
 		}
-		ulSize += MEMORY_USAGE_LIST(ulItems, list<localobjectdetails_t>);
+		ulSize += MEMORY_USAGE_LIST(ulItems, std::list<localobjectdetails_t>);
 	}
 
 	if (m_lpAdminCompanies)
@@ -1455,7 +1457,7 @@ size_t ECSecurity::GetObjectSize(void) const
 			++ulItems;
 			ulSize += i.GetObjectSize();
 		}
-		ulSize += MEMORY_USAGE_LIST(ulItems, list<localobjectdetails_t>);
+		ulSize += MEMORY_USAGE_LIST(ulItems, std::list<localobjectdetails_t>);
 	}
 
 	return ulSize;

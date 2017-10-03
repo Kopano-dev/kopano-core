@@ -15,9 +15,11 @@
  */
 #include <kopano/platform.h>
 #include <chrono>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <new>
+#include <set>
 #include <utility>
 #include <pthread.h>
 #include <mapidefs.h>
@@ -40,7 +42,6 @@
 #include <edkmdb.h>
 #include "logontime.hpp"
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -439,10 +440,10 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	CONNECTION_TYPE ulType = SOAP_CONNECTION_TYPE(soap);
 
 	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-		from = string("file://") + m_lpConfig->GetSetting("server_pipe_priority");
+		from = std::string("file://") + m_lpConfig->GetSetting("server_pipe_priority");
 	else if (ulType == CONNECTION_TYPE_NAMED_PIPE)
 		// connected through Unix socket
-		from = string("file://") + m_lpConfig->GetSetting("server_pipe_name");
+		from = std::string("file://") + m_lpConfig->GetSetting("server_pipe_name");
 	else
 		// connected over network
 		from = soap->host;
@@ -680,7 +681,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 {
 	kcsrv_blocksigs();
 	auto lpSessionManager = static_cast<ECSessionManager *>(lpTmpSessionManager);
-	list<BTSession*>		lstSessions;
+	std::list<BTSession *> lstSessions;
 
 	if (lpSessionManager == NULL)
 		return 0;
@@ -1026,7 +1027,8 @@ exit:
 	return er;
 }
 
-ECRESULT ECSessionManager::NotificationChange(const set<unsigned int> &syncIds, unsigned int ulChangeId, unsigned int ulChangeType)
+ECRESULT ECSessionManager::NotificationChange(const std::set<unsigned int> &syncIds,
+    unsigned int ulChangeId, unsigned int ulChangeType)
 {
 	KC::shared_lock<KC::shared_mutex> grplk(m_hGroupLock);
 
@@ -1081,7 +1083,7 @@ void ECSessionManager::GetStats(void(callback)(const std::string &, const std::s
  */
 void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 {
-	list<ECSession*> vSessions;
+	std::list<ECSession *> vSessions;
 
 	memset(&sStats, 0, sizeof(sSessionManagerStats));
 
