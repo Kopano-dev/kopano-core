@@ -84,15 +84,12 @@ ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ul
 }
 
 ULONG ECAttachmentStorage::AddRef() {
-	scoped_lock lk(m_refcnt_lock);
 	return ++m_ulRef;
 }
 
 ULONG ECAttachmentStorage::Release() {
-	ulock_normal l_ref(m_refcnt_lock);
 	ULONG ulRef = --m_ulRef;
-	l_ref.unlock();
-	if (m_ulRef == 0)
+	if (ulRef == 0)
 		delete this;
 
 	return ulRef;
