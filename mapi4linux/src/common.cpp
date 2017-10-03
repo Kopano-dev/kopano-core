@@ -16,26 +16,18 @@
  */
 
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include "m4l.common.h"
 #include <mapicode.h>
 #include <mapidefs.h>
 #include <mapiguid.h>
 
-M4LUnknown::M4LUnknown() {
-    ref = 0;
-}
-
 ULONG M4LUnknown::AddRef() {
-	scoped_lock lock(mutex);
 	return ++ref;
 }
 
 ULONG M4LUnknown::Release() {
-	ulock_normal lock(mutex);
 	ULONG nRef = --this->ref;
-	lock.unlock();
-	if (ref == 0)
+	if (nRef == 0)
 		delete this;
 	return nRef;
 }
