@@ -634,7 +634,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		goto exit;
 	}
 
-	ec_log_info("Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
 	if (bListenPOP3) {
 		pfd_pop3 = nfds;
 		pollfd[nfds++].fd = ulListenPOP3;

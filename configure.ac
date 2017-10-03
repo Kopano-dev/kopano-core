@@ -275,8 +275,7 @@ LIBNCURSES_WITH_CONFIG
 
 AC_CHECK_HEADERS([syslog.h sys/un.h sys/stat.h malloc.h])
 AC_CHECK_FUNCS([mallinfo timegm getpeereid getpwnam_r vsyslog vsnprintf_l])
-AC_CHECK_MEMBERS([siginfo_t.si_fd], [], [], [#include <csignal>])
-
+AC_CHECK_MEMBERS([siginfo_t.si_fd siginfo_t.si_utime], [], [], [#include <csignal>])
 
 #
 # find required/optional libraries
@@ -414,20 +413,7 @@ GSOAP_CFLAGS="-DWITH_OPENSSL -DWITH_GZIP -DHAVE_OPENSSL_SSL_H -DHAVE_ZLIB_H"
 GSOAP_LIBS="-lgsoapssl++"
 AC_SUBST(GSOAP_CFLAGS)
 AC_SUBST(GSOAP_LIBS)
-
-ICAL_CFLAGS=""
-ICAL_LIBS="-lical -licalss -licalvcal"
-AC_ARG_WITH(ical-prefix,
-  AS_HELP_STRING([--with-ical-prefix=PATH], [libical prefix, e.g. /usr/local, default /usr]),
-  [
-  ICAL_PREFIX="${withval}"
-  ICAL_CFLAGS="$ICAL_CFLAGS -I$ICAL_PREFIX/include"
-  # Hardcoding directories is bad… they may contain libraries of mismatching archictecture
-  ICAL_LIBS="$ICAL_LIBS -L$ICAL_PREFIX/lib -L$ICAL_PREFIX/lib64 -R$ICAL_PREFIX/lib -R$ICAL_PREFIX/lib64"
-  ])
-AC_SUBST(ICAL_CFLAGS)
-AC_SUBST(ICAL_LIBS)
-
+PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
 PKG_CHECK_MODULES([curl], [libcurl], [], [:])
 CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
 AC_CHECK_HEADERS([curl/curl.h])

@@ -211,50 +211,6 @@ static int mpt_main_lsr(bool with_ping)
 	return EXIT_SUCCESS;
 }
 
-static int mpt_main_vft(void)
-{
-	AutoMAPI mapiinit;
-	HRESULT ret = mapiinit.Initialize();
-	if (ret != hrSuccess) {
-		perror("MAPIInitialize");
-		return EXIT_FAILURE;
-	}
-
-	int err = mpt_setup_tick();
-	if (err < 0)
-		return EXIT_FAILURE;
-
-	struct mpt_stat_entry dp;
-	static constexpr const SizedSPropTagArray(1, spta) = {1, {PR_ENTRYID}};
-	object_ptr<ECMemTable> mt;
-	ret = ECMemTable::Create(spta, PT_LONG, &~mt);
-	if (ret != hrSuccess) {
-		ec_log_err("ECMemTable::Create died");
-		return EXIT_FAILURE;
-	}
-	ECMemTableView *view;
-	ret = mt->HrGetView(createLocaleFromName(""), 0, &view);
-	if (ret != hrSuccess) {
-		ec_log_err("HrGetView died");
-		return EXIT_FAILURE;
-	}
-
-	while (mpt_repeat-- > 0) {
-		clock_gettime(CLOCK_MONOTONIC, &dp.start);
-		IMAPITable *imt = NULL;
-		IUnknown *iunk = NULL;
-		view->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(&imt));
-		view->QueryInterface(IID_IUnknown, reinterpret_cast<void **>(&iunk));
-		imt->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(&imt));
-		imt->QueryInterface(IID_IUnknown, reinterpret_cast<void **>(&iunk));
-		iunk->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(&imt));
-		iunk->QueryInterface(IID_IUnknown, reinterpret_cast<void **>(&iunk));
-		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
-		mpt_stat_record(dp);
-	}
-	return EXIT_SUCCESS;
-}
-
 static int mpt_main_pagetime(int argc, char **argv)
 {
 	if (argc < 2) {
@@ -410,7 +366,6 @@ static void mpt_usage(void)
 	fprintf(stderr, "  ping        Issue login/logoff/PING RPCs, and measure all\n");
 	fprintf(stderr, "  lsr         Measure profile save-restore cycle\n");
 	fprintf(stderr, "  lsr+ping    lsr with forced network access (PING RPC)\n");
-	fprintf(stderr, "  vft         Measure C++ class dispatching\n");
 	fprintf(stderr, "  pagetime    Measure webpage retrieval time\n");
 	fprintf(stderr, "  exectime    Measure process runtime\n");
 	fprintf(stderr, "  qicast      Measure QueryInterface throughput\n");
@@ -487,8 +442,6 @@ int main(int argc, char **argv)
 		return mpt_main_lsr(false);
 	else if (strcmp(argv[1], "lsr+ping") == 0)
 		return mpt_main_lsr(true);
-	else if (strcmp(argv[1], "vft") == 0)
-		return mpt_main_vft();
 	else if (strcmp(argv[1], "exectime") == 0)
 		return mpt_main_exectime(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "pagetime") == 0)

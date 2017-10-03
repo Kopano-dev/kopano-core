@@ -299,7 +299,7 @@ int main(int argc, char **argv) {
 
 	if (g_bThreads)
 		mainthread = pthread_self();
-	ec_log_info("Starting kopano-ical version " PROJECT_VERSION " (pid %d)", getpid());
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-ical version " PROJECT_VERSION " (pid %d)", getpid());
 	hr = HrProcessConnections(ulListenCalDAV, ulListenCalDAVs);
 	if (hr != hrSuccess)
 		goto exit2;
