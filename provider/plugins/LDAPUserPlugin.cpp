@@ -41,7 +41,6 @@
 #include "ECStatsCollector.h"
 #include <kopano/stringutil.h>
 
-using namespace std;
 using namespace KC;
 
 #include "LDAPUserPlugin.h"
@@ -73,6 +72,10 @@ unsigned long getUserPluginVersion()
 } /* extern "C" */
 
 namespace KC {
+
+using std::list;
+using std::runtime_error;
+using std::string;
 
 class ldap_delete {
 	public:
@@ -843,8 +846,7 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 	objectid_t				objectid;
 	string					dn;
 	string					signature;
-
-	map<objectclass_t, dn_cache_t*> mapDNCache;
+	std::map<objectclass_t, dn_cache_t *> mapDNCache;
 	std::unique_ptr<dn_list_t> dnFilter;
 
 	auto_free_ldap_message res;
@@ -932,7 +934,7 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 
 	if (lpszSearchBase == nullptr)
 		/* GetSetting returns "" for all options it knows.. */
-		throw logic_error("getSearchBase: unexpected nullptr");
+		throw std::logic_error("getSearchBase: unexpected nullptr");
 	if (!m_bHosted || company.id.empty())
 		return lpszSearchBase;
 
@@ -1533,7 +1535,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 		dn = objectUniqueIDtoObjectDN(signature.id, false);
 
 		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str());
-	} catch (exception &e) {
+	} catch (std::exception &e) {
 		throw login_error((string)"Trying to authenticate failed: " + e.what() + (string)"; username = " + username);
 	}
 	if (ld == nullptr)
@@ -1713,8 +1715,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	string						strDN;
 
 	list<postaction> lPostActions;
-
-	set<objectid_t>			setObjectIds;
+	std::set<objectid_t> setObjectIds;
 	list<configsetting_t>	lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
 	std::unique_ptr<attrArray> request_attrs(new attrArray(33 + lExtraAttrs.size()));
 
@@ -2021,7 +2022,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 				if (isadmin_attr && !strcasecmp(att, isadmin_attr)) {
 					ldap_attr = getLDAPAttributeValue(att, entry);
-					sObjDetails.SetPropInt(OB_PROP_I_ADMINLEVEL, min(2, atoi(ldap_attr.c_str())));
+					sObjDetails.SetPropInt(OB_PROP_I_ADMINLEVEL, std::min(2, atoi(ldap_attr.c_str())));
 				}
 
 				if (resource_type_attr && !strcasecmp(att, resource_type_attr)) {
@@ -2170,7 +2171,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 	// paged loop ended, so now we can process the postactions.
 	for (const auto &p : lPostActions) {
-		map<objectid_t, objectdetails_t>::iterator o = mapdetails->find(p.objectid);
+		auto o = mapdetails->find(p.objectid);
 		if (o == mapdetails->cend()) {
 			// this should never happen, but only some details will be missing, not the end of the world.
 			ec_log_crit("No object \"%s\" found for postaction", p.objectid.id.c_str());

@@ -73,7 +73,7 @@ public:
 	 * @throw objectnotfound When no object was found.
 	 * @throw toomanyobjects When more then one object was found.
 	 */
-	virtual objectsignature_t resolveName(objectclass_t objclass, const string &name, const objectid_t &company);
+	virtual objectsignature_t resolveName(objectclass_t objclass, const std::string &name, const objectid_t &company);
 
     /**
 	 * Authenticate user with username and password
@@ -89,7 +89,7 @@ public:
 	 * @throw runtime_error When a Database error occurred.
 	 * @throw login_error When no user was found or the password was incorrect.
 	 */
-	virtual objectsignature_t authenticateUser(const string &username, const string &password, const objectid_t &company);
+	virtual objectsignature_t authenticateUser(const std::string &username, const std::string &password, const objectid_t &company);
 
     /**
 	 * Search for all objects which match the given string,

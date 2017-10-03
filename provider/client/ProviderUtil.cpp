@@ -41,7 +41,6 @@
 
 #include <kopano/charset/convert.h>
 
-using namespace std;
 using namespace KCHL;
 
 HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)

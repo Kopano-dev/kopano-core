@@ -25,6 +25,7 @@
 
 #include <fstream>
 #include <new>
+#include <string>
 #include <kopano/ECIConv.h>
 #include <kopano/ECLogger.h>
 #include "WSTransport.h"
@@ -62,7 +63,6 @@
 #	include <gssapi/gssapi.h>
 #endif
 
-using namespace std;
 using namespace KCHL;
 
 /*
@@ -476,7 +476,8 @@ ECRESULT WSTransport::TrySSOLogon(KCmd* lpCmd, LPCSTR szServer, utf8string strUs
 #undef KOPANO_GSS_SERVICE
 }
 
-HRESULT WSTransport::HrGetPublicStore(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID, string *lpstrRedirServer)
+HRESULT WSTransport::HrGetPublicStore(ULONG ulFlags, ULONG *lpcbStoreID,
+    ENTRYID **lppStoreID, std::string *lpstrRedirServer)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
@@ -525,7 +526,9 @@ HRESULT WSTransport::HrGetPublicStore(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRY
 	return hr;
 }
 
-HRESULT WSTransport::HrGetStore(ULONG cbMasterID, LPENTRYID lpMasterID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID, ULONG* lpcbRootID, LPENTRYID* lppRootID, string *lpstrRedirServer)
+HRESULT WSTransport::HrGetStore(ULONG cbMasterID, ENTRYID *lpMasterID,
+    ULONG *lpcbStoreID, ENTRYID **lppStoreID, ULONG *lpcbRootID,
+    ENTRYID **lppRootID, std::string *lpstrRedirServer)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;

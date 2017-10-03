@@ -81,7 +81,7 @@ public:
 	 * @throw objectnotfound When no object was found.
 	 * @throw runtime_error When an unsupported objectclass was requested.
 	 */
-	virtual objectsignature_t resolveName(objectclass_t objclass, const string &name, const objectid_t &company);
+	virtual objectsignature_t resolveName(objectclass_t objclass, const std::string &name, const objectid_t &company);
 
     /**
 	 * Authenticate user with username and password
@@ -97,7 +97,7 @@ public:
 	 * @throw objectnotfound When no user with the given name exists.
 	 * @throw login_error When the wrong password is provied or the user is nonactive.
 	 */
-	virtual objectsignature_t authenticateUser(const string &username, const string &password, const objectid_t &company);
+	virtual objectsignature_t authenticateUser(const std::string &username, const std::string &password, const objectid_t &company);
 
     /**
 	 * Request a list of objects for a particular company and specified objectclass.
@@ -324,7 +324,7 @@ private:
 	 *					A buffer which will contain the strings for pwd
 	 * @throw objectnotfound If no user was found.
 	 */
-	void findUserID(const string &id, struct passwd *pwd, char *buffer);
+	void findUserID(const std::string &id, struct passwd *pwd, char *buffer);
 
 	/**
 	 * Find a user with specific name
@@ -337,7 +337,7 @@ private:
 	 *					A buffer which will contain the strings for pwd
 	 * @throw objectnotfound If no user was found.
 	 */
-	void findUser(const string &name, struct passwd *pwd, char *buffer);
+	void findUser(const std::string &name, struct passwd *pwd, char *buffer);
 
 	/**
 	 * Find a group with specific ID
@@ -350,7 +350,7 @@ private:
 	 *					A buffer which will contain the strings for grp
 	 * @throw objectnotfound If no group was found.
 	 */
-	void findGroupID(const string &id, struct group *grp, char *buffer);
+	void findGroupID(const std::string &id, struct group *grp, char *buffer);
 
 	/**
 	 * Find a group with specific name
@@ -363,7 +363,7 @@ private:
 	 *					A buffer which will contain the strings for grp
 	 * @throw objectnotfound If no group was found.
 	 */
-	void findGroup(const string &name, struct group *grp, char *buffer);
+	void findGroup(const std::string &name, struct group *grp, char *buffer);
 
 	/**
 	 * Resolve user name to objectsignature
@@ -375,7 +375,7 @@ private:
 	 * @return The objectsignature of the resolved object
 	 * @throw std::exception
 	 */
-	objectsignature_t resolveUserName(const string &name);
+	objectsignature_t resolveUserName(const std::string &name);
 
 	/**
 	 * Resolve group name to objectsignature
@@ -387,7 +387,7 @@ private:
 	 * @return The objectsignature of the resolved object
 	 * @throw std::exception
 	 */
-	objectsignature_t resolveGroupName(const string &name);
+	objectsignature_t resolveGroupName(const std::string &name);
 
 	/**
 	 * Match a user with given search query
@@ -401,7 +401,7 @@ private:
 	 *					email address otherwise a partial match is allowed.
 	 * @return True if the user matches the query
 	 */
-	bool matchUserObject(struct passwd *pw, const string &match, unsigned int ulFlags);
+	bool matchUserObject(struct passwd *pw, const std::string &match, unsigned int ulFlags);
 
 	/**
 	 * Match a group with given search query
@@ -415,7 +415,7 @@ private:
 	 *					email address otherwise a partial match is allowed.
 	 * @return True if the group matches the query
 	 */
-	bool matchGroupObject(struct group *gr, const string &match, unsigned int ulFlags);
+	bool matchGroupObject(struct group *gr, const std::string &match, unsigned int ulFlags);
 
 	/**
 	 * Create a list containing all users which optionally match the search term.

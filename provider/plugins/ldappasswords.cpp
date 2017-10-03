@@ -29,8 +29,6 @@
 #include <kopano/stringutil.h>
 #include "ldappasswords.h"
 
-using namespace std;
-
 namespace KC {
 
 static const char b64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

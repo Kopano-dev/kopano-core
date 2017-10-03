@@ -29,8 +29,6 @@
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 
-using namespace std;
-
 // we cannot patch http_post now (see external/gsoap/*.diff), so we redefine it
 static int
 #if GSOAP_VERSION >= 20850

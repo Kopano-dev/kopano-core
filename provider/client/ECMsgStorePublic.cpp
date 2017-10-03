@@ -15,6 +15,7 @@
  *
  */
 #include <new>
+#include <string>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECMsgStorePublic.h"
@@ -33,7 +34,6 @@
 
 #include <kopano/ECGuid.h>
 
-using namespace std;
 using namespace KCHL;
 
 ECMsgStorePublic::ECMsgStorePublic(const char *lpszProfname,
@@ -606,7 +606,7 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 	ULONG cbEntryId;
 	memory_ptr<ENTRYID> lpEntryId, lpStoreEntryID;
 	ULONG cbStoreEntryID;
-	string strRedirServer;
+	std::string strRedirServer;
 	object_ptr<WSTransport> lpTmpTransport;
 
 	if (m_lpDefaultMsgStore == NULL)

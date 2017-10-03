@@ -57,7 +57,6 @@
 
 #include <kopano/charset/convstring.h>
 
-using namespace std;
 using namespace KCHL;
 
 struct initprov {
@@ -697,7 +696,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 			// On incorrect password, and UI allowed, show incorrect password error
 			if((ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS)) {
 				// what do we do on linux?
-				cout << "Access Denied: Incorrect username and/or password." << endl;
+				std::cout << "Access Denied: Incorrect username and/or password." << std::endl;
 				hr = MAPI_E_UNCONFIGURED;
 				goto exit2;
 			}else if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS)){

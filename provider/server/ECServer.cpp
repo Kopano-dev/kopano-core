@@ -14,7 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include <iostream>
 #include <new>
+#include <string>
 #include <cerrno>
 #include <cstring>
 #include "config.h"
@@ -59,8 +61,6 @@
 #include "ECICS.h"
 #include <openssl/ssl.h>
 
-using namespace std;
-
 // The following value is based on:
 // http://dev.mysql.com/doc/refman/5.0/en/server-system-variables.html#sysvar_thread_stack
 // Since the remote MySQL server can be 32 or 64 bit we'll just go with the value specified
@@ -70,6 +70,10 @@ using namespace std;
 // list of all possible 32-bit architectures because if the architecture is unknown we'll
 // have to go with the safe value which is for 64-bit.
 #define MYSQL_MIN_THREAD_STACK (256*1024)
+
+using std::cout;
+using std::endl;
+using std::string;
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 

@@ -43,7 +43,6 @@
 #include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
 
-using namespace std;
 using namespace KCHL;
 
 // profile properties

@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <mutex>
+#include <string>
 #include "ECThreadManager.h"
 
 #include <cmath>
@@ -42,7 +43,7 @@
 	case x: \
 		return #x;
 
-using namespace std;
+using std::string;
 
 static string GetSoapError(int err)
 {

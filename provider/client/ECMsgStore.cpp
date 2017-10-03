@@ -23,6 +23,8 @@
 #include <edkguid.h>
 #include <list>
 #include <new>
+#include <string>
+#include <vector>
 #include <cstdint>
 
 #include <kopano/ECGetText.h>
@@ -65,7 +67,6 @@ typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
 
 #include <kopano/charset/convstring.h>
 
-using namespace std;
 using namespace KCHL;
 
 // FIXME: from libserver/ECMAPI.h
@@ -1213,7 +1214,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 
 	if (tstrMsgStoreDN.null_or_empty()) {
 		// No messagestore DN provided. Just try the current server and let it redirect us if neeeded.
-		string		strRedirServer;
+		std::string strRedirServer;
 
 		hr = lpTransport->HrResolveUserStore(tstrMailboxDN, ulFlags, NULL, &cbStoreEntryID, &~lpStoreEntryID, &strRedirServer);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
@@ -2699,17 +2700,14 @@ HRESULT ECMsgStore::TestGet(const char *szName, char **szValue)
  */
 HRESULT ECMsgStore::MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string *lpstrPseudoUrl)
 {
-	vector<string> parts;
-	vector<string>::const_reverse_iterator riPart;
-
-	parts = tokenize(strMsgStoreDN.str(), "/");
+	auto parts = tokenize(strMsgStoreDN.str(), "/");
 
 	// We need at least 2 parts.
 	if (parts.size() < 2)
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Check if the last part equals 'cn=Microsoft Private MDB'
-	riPart = parts.crbegin();
+	auto riPart = parts.crbegin();
 	if (strcasecmp(riPart->c_str(), "cn=Microsoft Private MDB") != 0)
 		return MAPI_E_INVALID_PARAMETER;
 
