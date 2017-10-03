@@ -986,9 +986,11 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 	ec_log_bt(EC_LOGLEVEL_CRIT, "Backtrace:");
 	ec_log_crit("Signal errno: %s, signal code: %d", strerror(si->si_errno), si->si_code);
 	ec_log_crit("Sender pid: %d, sender uid: %d, si_status: %d", si->si_pid, si->si_uid, si->si_status);
-	ec_log_crit("User time: %ld, system time: %ld, signal value: %d",
-		static_cast<long>(si->si_utime), static_cast<long>(si->si_stime), si->si_value.sival_int);
-	ec_log_crit("Faulting address: %p", si->si_addr);
+#ifdef HAVE_SIGINFO_T_SI_UTIME
+	ec_log_crit("User time: %ld, system time: %ld",
+		static_cast<long>(si->si_utime), static_cast<long>(si->si_stime));
+#endif
+	ec_log_crit("Signal value: %d, faulting address: %p", si->si_value.sival_int, si->si_addr);
 #ifdef HAVE_SIGINFO_T_SI_FD
 	ec_log_crit("Affected fd: %d", si->si_fd);
 #endif
