@@ -55,29 +55,6 @@
 /* Mark classes which explicitly must not be final in the C++ side… for SWIG */
 #define _no_final
 
-#if defined(__GNUG__) && __GNUG__ == 4 && \
-    defined(__GNUC_MINOR__) && __GNUC_MINOR__ < 8
-#	define _kc_lvqual
-#	define _kc_max_align __attribute__((aligned(16)))
-#else
-	/* From g++ 4.8 onwards */
-#	define _kc_lvqual &
-#	define _kc_max_align alignas(::max_align_t)
-#	define HAVE_MF_QUAL 1
-#endif
-
-#if (defined(__GNUG__) && __GNUG__ == 4 && \
-    defined(__GNUC_MINOR__) && __GNUC_MINOR__ < 8) || defined(IMPDTOR)
-	/* gcc 4.7.x chokes on
-	 * 	struct I { virtual ~I(void) = default; };
-	 * 	struct K : I { ~K(void) = default; };
-	 * so use {} instead of =default.
-	 */
-#	define _kc_impdtor {}
-#else
-#	define _kc_impdtor = default
-#endif
-
 /*
  * This is a marker for structs where we expect gsoap 2.8.30 or ourselves to
  * actually zero it.

@@ -38,7 +38,7 @@ private:
 	virtual HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) = 0;
 
 public:
-	virtual ~Fsck(void) _kc_impdtor;
+	virtual ~Fsck(void) = default;
 	HRESULT ValidateMessage(LPMESSAGE lpMessage, const std::string &strName, const std::string &strClass);
 	HRESULT ValidateFolder(LPMAPIFOLDER lpFolder, const std::string &strName);
 

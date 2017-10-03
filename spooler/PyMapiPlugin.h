@@ -39,7 +39,7 @@
 
 class pym_plugin_intf {
 	public:
-	virtual ~pym_plugin_intf() _kc_impdtor;
+	virtual ~pym_plugin_intf() = default;
 	virtual HRESULT MessageProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *result) { return hrSuccess; }
 	virtual HRESULT RulesProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IExchangeModifyTable *emt_rules, ULONG *result) { return hrSuccess; }
 	virtual HRESULT RequestCallExecution(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *do_callexe, ULONG *result) { return hrSuccess; }

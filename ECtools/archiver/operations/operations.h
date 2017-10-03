@@ -38,7 +38,7 @@ public:
 	/**
 	 * virtual destructor.
 	 */
-	virtual ~IArchiveOperation(void) _kc_impdtor;
+	virtual ~IArchiveOperation(void) = default;
 	
 	/**
 	 * Entrypoint for all archive operations.

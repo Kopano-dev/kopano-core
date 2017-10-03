@@ -54,7 +54,7 @@ public:
 		ReadOnly = 4
 	};
 
-	virtual ~ArchiveManage(void) _kc_impdtor;
+	virtual ~ArchiveManage(void) = default;
 	_kc_export static HRESULT Create(LPMAPISESSION, ECLogger *, const TCHAR *user, std::unique_ptr<ArchiveManage> *manage);
 	virtual eResult AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned int ulFlags) = 0;
 	virtual eResult DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder) = 0;

@@ -667,7 +667,7 @@ typedef struct MAPINAMEID *LPMAPINAMEID;
 /* IUnknown Interface */
 class IUnknown {
 public:
-	virtual ~IUnknown() _kc_impdtor;
+	virtual ~IUnknown() = default;
 	virtual ULONG AddRef() = 0;
 	virtual ULONG Release() = 0;
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) = 0;

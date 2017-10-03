@@ -29,7 +29,7 @@ private:
     
 public:
     M4LUnknown();
-	virtual ~M4LUnknown(void) _kc_impdtor;
+	virtual ~M4LUnknown(void) = default;
 	virtual ULONG AddRef(void) _kc_override;
 	virtual ULONG Release(void) _kc_override;
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
