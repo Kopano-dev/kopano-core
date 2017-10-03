@@ -7,6 +7,7 @@
 #include <mapicode.h>
 #include <mapiutil.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/ecversion.h>
 #include <kopano/memory.hpp>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/mapi_ptr.h>
@@ -321,6 +322,7 @@ LPCIID IIDFromType(const char *type)
 typedef IUnknownImplementor<IStream> Stream;
 %}
 
+%constant char *PROJECT_VERSION = PROJECT_VERSION;
 
 %feature("director") Stream;
 %feature("nodirector") Stream::QueryInterface;
