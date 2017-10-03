@@ -355,7 +355,7 @@ class Property(object):
             if isinstance(v, list):
                 return u','.join(flatten(e) for e in v)
             elif isinstance(v, bool):
-                return u'01'[v]
+                return str(v)
             elif isinstance(v, datetime.datetime):
                 return _unicode(v.isoformat(' '))
             elif v is None:
