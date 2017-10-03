@@ -56,7 +56,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -565,9 +564,7 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		 * Assumption: This should be an old OneOffEntryID in the
 		 * windows-1252 charset.
 		 */
-		string str;
-
-		str = (char*)lpBuffer;
+		std::string str = lpBuffer;
 		// can be 0 length
 		hr = TryConvert(lpBuffer, rawsize(lpBuffer), "windows-1252", name);
 		if (hr != hrSuccess)
@@ -638,7 +635,7 @@ std::string ToQuotedPrintable(const std::string &input,
     const std::string &charset, bool header, bool imap)
 {
 	ULONG i;
-	string tmp;
+	std::string tmp;
 	bool qp = false;
 	const char digits[] = "0123456789ABCDEF";
 
@@ -1007,19 +1004,19 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
 			if (PROP_TYPE(lpName->ulPropTag) == PT_UNICODE)
 				strName = lpName->Value.lpszW;
 			else
-				strName = converter.convert_to<wstring>(lpName->Value.lpszA);
+				strName = converter.convert_to<std::wstring>(lpName->Value.lpszA);
 		}
         if (lpType) {
 			if (PROP_TYPE(lpType->ulPropTag) == PT_UNICODE)
 				strType = lpType->Value.lpszW;
 			else
-				strType = converter.convert_to<wstring>(lpType->Value.lpszA);
+				strType = converter.convert_to<std::wstring>(lpType->Value.lpszA);
 		}
         if (lpAddress) {
 			if (PROP_TYPE(lpAddress->ulPropTag) == PT_UNICODE)
 				strEmailAddress = lpAddress->Value.lpszW;
 			else
-				strEmailAddress = converter.convert_to<wstring>(lpAddress->Value.lpszA);
+				strEmailAddress = converter.convert_to<std::wstring>(lpAddress->Value.lpszA);
 		}
     }
     		
@@ -1693,13 +1690,13 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 	// Loop through the folder string to find the wanted folder in the store
 	do {
 		object_ptr<IMAPITable> lpTable;
-		wstring subfld;
+		std::wstring subfld;
 
 		ptr = wcschr(folder, psep);
 		if (ptr)
-			subfld = wstring(folder, ptr-folder);
+			subfld.assign(folder, ptr - folder);
 		else
-			subfld = wstring(folder);
+			subfld = folder;
 		folder = ptr ? ptr+1 : NULL;
 		hr = lpFoundFolder->GetHierarchyTable(0, &~lpTable);
 		if (hr != hrSuccess) {

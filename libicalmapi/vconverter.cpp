@@ -37,10 +37,12 @@
 #include <kopano/namedprops.h>
 #include "icalmem.hpp"
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
+
+using std::string;
+using std::wstring;
 
 /**
  * Copies string from source to destination

@@ -25,11 +25,10 @@
 #include <kopano/mapiext.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/charset/convstring.h>
-
+#include <list>
 #include <string>
 #include <mapiutil.h>
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -158,8 +157,8 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	memory_ptr<ENTRYLIST> lpsMsgList;
 	static constexpr const SizedSPropTagArray(2, sPropDelFavo) =
 		{2, {PR_ENTRYID, PR_FAV_PUBLIC_SOURCE_KEY}};
-	std::list<string>	listSourceKey;
-	string strSourceKey;
+	std::list<std::string> listSourceKey;
+	std::string strSourceKey;
 	SPropValue sPropSourceKey;
 	ULONG ulMaxRows = 0;
 

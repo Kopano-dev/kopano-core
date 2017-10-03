@@ -24,8 +24,6 @@
 #include <iostream>
 #include "icalmem.hpp"
 
-using namespace std;
-
 namespace KC {
 
 /** 

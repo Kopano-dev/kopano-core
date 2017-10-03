@@ -19,8 +19,6 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/mapi_ptr.h>
 
-using namespace std;
-
 namespace KC {
 
 /** 
