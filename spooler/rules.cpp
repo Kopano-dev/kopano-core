@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <string>
 #include "rules.h"
 #include <mapi.h>
 #include <mapidefs.h>
@@ -40,8 +40,9 @@
 #include "PyMapiPlugin.h"
 #include "spmain.h"
 
-using namespace std;
 using namespace KCHL;
+using std::string;
+using std::wstring;
 
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)

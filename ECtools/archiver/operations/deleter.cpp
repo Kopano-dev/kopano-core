@@ -19,8 +19,6 @@
 #include "ECArchiverLogger.h"
 #include "deleter.h"
 
-using namespace std;
-
 namespace KC { namespace operations {
 
 /**

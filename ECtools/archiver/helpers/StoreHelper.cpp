@@ -22,8 +22,6 @@
 #include <mapix.h>
 #include <mapiutil.h>
 #include "StoreHelper.h"
-using namespace std;
-
 #include <kopano/mapi_ptr.h>
 
 #include <kopano/mapiguidext.h>

@@ -17,7 +17,9 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -42,8 +44,8 @@
 #include <kopano/charset/utf8string.h>
 #include <kopano/ECFeatures.hpp>
 #include "POP3.h"
-using namespace std;
 using namespace KCHL;
+using std::string;
 
 /**
  * @ingroup gateway_pop3
@@ -105,7 +107,7 @@ HRESULT POP3::HrCloseConnection(const std::string &strQuitMsg)
 HRESULT POP3::HrProcessCommand(const std::string &strInput)
 {
 	HRESULT hr = hrSuccess;
-	vector<string> vWords;
+	std::vector<std::string> vWords;
 	string strCommand;
 
 	vWords = tokenize(strInput, ' ');
@@ -703,8 +705,7 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 	ULONG cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 	ULONG ulObjType = 0;
-	wstring strwUsername;
-	wstring strwPassword;
+	std::wstring strwUsername, strwPassword;
 	unsigned int flags;
 
 	hr = TryConvert(strUsername, rawsize(strUsername), "windows-1252", strwUsername);

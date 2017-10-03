@@ -36,7 +36,6 @@
 #include <list>
 #include <string>
 
-using namespace std;
 using namespace KC::helpers;
 
 namespace KC { namespace operations {

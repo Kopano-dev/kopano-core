@@ -64,7 +64,8 @@
  * @{
  */
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 static int daemonize = 1;
 int quit = 0;
@@ -460,8 +461,7 @@ int main(int argc, char *argv[]) {
 	g_strHostString = g_lpConfig->GetSetting("server_hostname", NULL, "");
 	if (g_strHostString.empty())
 		g_strHostString = GetServerFQDN();
-	g_strHostString = string(" on ") + g_strHostString;
-
+	g_strHostString.insert(0, " on ");
 	hr = running_service(szPath, argv[0]);
 
 exit:

@@ -19,6 +19,7 @@
 #include "config.h"
 
 #include <iostream>
+#include <string>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <edkmdb.h>
@@ -41,8 +42,10 @@
 #include "MAPIConsoleTable.h"
 #include <kopano/ECLogger.h>
 
-using namespace std;
 using namespace KCHL;
+using std::cerr;
+using std::cout;
+using std::endl;
 
 enum eTableType { INVALID_STATS = -1, SYSTEM_STATS, SESSION_STATS, USER_STATS, COMPANY_STATS, SERVER_STATS, SESSION_TOP, OPTION_HOST, OPTION_USER, OPTION_DUMP };
 
@@ -551,8 +554,6 @@ int main(int argc, char *argv[])
 	const char *user = NULL;
 	const char *pass = NULL;
 	const char *host = NULL;
-	wstring strwUsername;
-	wstring strwPassword;
 	bool humanreadable(true);
 
 	setlocale(LC_MESSAGES, "");
@@ -612,9 +613,8 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	strwUsername = convert_to<wstring>(user ? user : "SYSTEM");
-	strwPassword = convert_to<wstring>(pass ? pass : "");
-
+	auto strwUsername = convert_to<std::wstring>(user ? user : "SYSTEM");
+	auto strwPassword = convert_to<std::wstring>(pass ? pass : "");
 	hr = HrOpenECSession(&~lpSession, "stats", PROJECT_VERSION,
 	     strwUsername.c_str(), strwPassword.c_str(), host,
 	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);

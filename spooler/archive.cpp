@@ -16,7 +16,9 @@
  */
 
 #include <kopano/platform.h>
+#include <iostream>
 #include <new>
+#include <utility>
 #include "archive.h"
 
 #include <kopano/ECLogger.h>
@@ -37,9 +39,12 @@
 #include <kopano/ECDebug.h>
 #include "PyMapiPlugin.h"
 
-using namespace std;
 using namespace KC::helpers;
 using namespace KC::operations;
+using std::endl;
+using std::list;
+using std::pair;
+using std::string;
 
 #ifdef UNICODE
 typedef std::wostringstream tostringstream;

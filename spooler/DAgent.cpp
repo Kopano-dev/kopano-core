@@ -45,6 +45,7 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <unordered_set>
 #include <utility>
 #include <climits>
@@ -124,9 +125,14 @@
 #include "StatsClient.h"
 #include <execinfo.h>
 
-using namespace std;
 using namespace KC;
 using namespace KCHL;
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::min;
+using std::string;
+using std::wstring;
 
 static StatsClient *sc = NULL;
 

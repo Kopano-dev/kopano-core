@@ -19,6 +19,8 @@
 
 #include <iostream>
 #include <map>
+#include <string>
+#include <utility>
 #include <climits>
 #include <getopt.h>
 #include <kopano/automapi.hpp>
@@ -39,8 +41,11 @@
 #include <kopano/ECLogger.h>
 #include "fsck.h"
 
-using namespace std;
 using namespace KCHL;
+using std::cin;
+using std::cout;
+using std::endl;
+using std::string;
 
 string auto_fix;
 string auto_del;
@@ -48,8 +53,8 @@ string auto_del;
 /*
  * Some typedefs to make typing easier. ;)
  */
-typedef pair<string, Fsck* > CHECKMAP_P;
-typedef map<string, Fsck* > CHECKMAP;
+typedef std::pair<std::string, Fsck *> CHECKMAP_P;
+typedef std::map<std::string, Fsck *> CHECKMAP;
 
 enum {
 	OPT_HELP = UCHAR_MAX + 1,
@@ -322,9 +327,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
     // user
     ULONG			cbUserStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpUserStoreEntryID, lpEntryIDSrc;
-	wstring strwUsername;
-	wstring strwAltUsername;
-	wstring strwPassword;
+	std::wstring strwUsername, strwAltUsername, strwPassword;
 	std::set<std::string> setFolderIgnore;
 	memory_ptr<SPropValue> lpAddRenProp;
 	ULONG cbEntryIDSrc = 0;
@@ -337,11 +340,11 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 
 	// input from commandline is current locale
 	if (strUser)
-		strwUsername = convert_to<wstring>(strUser);
+		strwUsername = convert_to<std::wstring>(strUser);
 	if (strPass)
-		strwPassword = convert_to<wstring>(strPass);
+		strwPassword = convert_to<std::wstring>(strPass);
 	if (strAltUser)
-		strwAltUsername = convert_to<wstring>(strAltUser);
+		strwAltUsername = convert_to<std::wstring>(strAltUser);
 	hr = HrOpenECSession(&~lpSession, "fsck", PROJECT_VERSION,
 	     strwUsername.c_str(), strwPassword.c_str(), strHost, 0, NULL, NULL);
 	if(hr != hrSuccess) {

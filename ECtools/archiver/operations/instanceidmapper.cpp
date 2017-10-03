@@ -18,14 +18,13 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <string>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include "instanceidmapper.h"
 #include "Archiver.h"
 #include <kopano/stringutil.h>
 #include "arc_mysql.hpp"
-
-using namespace std;
 
 namespace KC { namespace operations {
 
@@ -86,7 +85,7 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
-	string strQuery;
+	std::string strQuery;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpLengths = NULL;
@@ -137,7 +136,7 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID)
 {
 	ECRESULT er = erSuccess;
-	string strQuery;
+	std::string strQuery;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 

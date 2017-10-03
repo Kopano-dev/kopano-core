@@ -18,6 +18,9 @@
 #include <kopano/platform.h>
 
 #include <iostream>
+#include <list>
+#include <set>
+#include <string>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -58,8 +61,13 @@
 
 #include <kopano/MAPIErrors.h> // for declaration of GetMAPIErrorMessage()
 
-using namespace std;
 using namespace KCHL;
+using std::cerr;
+using std::cin;
+using std::cout;
+using std::endl;
+using std::string;
+using std::wstring;
 
 static int forcedExitCode = 0;
 
@@ -1839,7 +1847,7 @@ exit:
 }
 
 static HRESULT ForceResync(LPMAPISESSION lpSession, LPMDB lpAdminStore,
-    const list<string> &lstUsernames)
+    const std::list<std::string> &lstUsernames)
 {
 	HRESULT hr = hrSuccess;
 	bool bFail = false;
@@ -2134,7 +2142,7 @@ struct lstr {
 };
 
 static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
-    set<string, lstr> &sFeatures, void *lpBase)
+    std::set<std::string, lstr> &sFeatures, void *lpBase)
 {
 	HRESULT hr;
 
@@ -2221,8 +2229,7 @@ int main(int argc, char* argv[])
 	char *feature = NULL;
 	char *node = NULL;
 	bool bFeature = true;
-	set<string, lstr> sEnabled;
-	set<string, lstr> sDisabled;
+	std::set<std::string, lstr> sEnabled, sDisabled;
 	int quota = -1;
 	long long quotahard = -1;
 	long long quotasoft = -1;
@@ -2242,7 +2249,7 @@ int main(int argc, char* argv[])
 	int passprompt = 0;
 	bool bCopyToPublic = false;
 	int nFolderId = 0;
-	list<string> lstUsernames;
+	std::list<std::string> lstUsernames;
 
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
 	ULONG cbEntryID = 0;
@@ -2350,7 +2357,7 @@ int main(int argc, char* argv[])
 			if (isadmin == 0)
 				isadmin = parse_yesno(optarg);
 			else
-				isadmin = min(2, isadmin);
+				isadmin = std::min(2, isadmin);
 			break;
 		case 'n':
 			isnonactive = parse_yesno(optarg);

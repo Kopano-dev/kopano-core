@@ -32,7 +32,9 @@
 
 namespace KC {
 
-using namespace std;
+using std::cerr;
+using std::cout;
+using std::endl;
 
 enum modes {
     MODE_INVALID = 0,
@@ -70,7 +72,7 @@ static const char *modename(modes mode)
  * @param[in]	lpszName
  *					The name of the application to use in the output.
  */
-static void print_help(ostream &ostr, const char *lpszName)
+static void print_help(std::ostream &ostr, const char *lpszName)
 {
     ostr << endl;
     ostr << "Usage:" << endl;

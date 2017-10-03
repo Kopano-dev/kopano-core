@@ -21,6 +21,7 @@
 #include <iostream>
 #include <cctype>
 #include <algorithm>
+#include <string>
 #include <utility>
 #include <mapi.h>
 #include <mapix.h>
@@ -39,7 +40,7 @@
 #include <kopano/stringutil.h>
 #include "fileutil.h"
 
-using namespace std;
+using std::string;
 
 LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf)
 {
