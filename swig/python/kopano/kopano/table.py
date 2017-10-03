@@ -40,6 +40,8 @@ class Table(object):
             cols = mapitable.QueryColumns(TBL_ALL_COLUMNS) # some columns are hidden by default XXX result (if at all) depends on table implementation
             cols = cols or mapitable.QueryColumns(0) # fall-back
             mapitable.SetColumns(cols, 0)
+        if restriction:
+            self.mapitable.Restrict(restriction.mapiobj, TBL_BATCH)
 
     @property
     def header(self):
@@ -108,9 +110,6 @@ class Table(object):
         if not isinstance(tags, tuple):
             tags = (tags,)
         self.mapitable.SortTable(SSortOrderSet([SSort(abs(tag), TABLE_SORT_DESCEND if tag < 0 else TABLE_SORT_ASCEND) for tag in tags], 0, 0), 0)
-
-    def restrict(self, restriction):
-        return self.mapitable.Restrict(restriction.mapiobj, TBL_BATCH)
 
     def __iter__(self):
         return self.rows()
