@@ -86,13 +86,11 @@ ECSESSIONGROUPID SessionGroupData::GetSessionGroupId()
 
 ULONG SessionGroupData::AddRef()
 {
-	scoped_rlock lock(m_hRefMutex);
 	return ++m_cRef;
 }
 
 ULONG SessionGroupData::Release()
 {
-	scoped_rlock lock(m_hRefMutex);
 	return --m_cRef;
 }
 
