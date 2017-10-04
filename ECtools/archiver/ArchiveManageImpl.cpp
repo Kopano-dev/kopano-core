@@ -15,6 +15,7 @@
  *
  */
 #include <algorithm>
+#include <iterator>
 #include <string>
 #include <list>
 #include <memory>
@@ -729,9 +730,10 @@ eResult ArchiveManageImpl::ListAttachedUsers(UserList *lplstUsers)
 	     m_ptrSession->GetSSLPath(), m_ptrSession->GetSSLPass(), &lstUsers);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
-	std::transform(lstUsers.begin(), lstUsers.end(), std::back_inserter(lstUserEntries),
-		[](const std::string &u) -> UserEntry { return {u}; });
-	*lplstUsers = std::move(lstUserEntries);
+	lplstUsers->clear();
+	std::transform(std::make_move_iterator(lstUsers.begin()),
+		std::make_move_iterator(lstUsers.end()), std::back_inserter(*lplstUsers),
+		[](std::string &&u) -> UserEntry { return {std::move(u)}; });
 	return MAPIErrorToArchiveError(hr);
 }
 

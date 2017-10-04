@@ -138,7 +138,7 @@ HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 		return hr;
 
 	entry.eidMessage.assign(ptrMsgProps[IDX_ENTRYID].Value.bin);
-	m_lstDelete.push_back(entry);
+	m_lstDelete.push_back(std::move(entry));
 	return hrSuccess;
 }
 

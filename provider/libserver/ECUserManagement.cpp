@@ -2177,8 +2177,8 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 		defaultDisabled.insert(s);
 	}
 
-	userEnabled.assign(defaultEnabled.begin(), defaultEnabled.end());
-	userDisabled.assign(defaultDisabled.begin(), defaultDisabled.end());
+	userEnabled.assign(gcc5_make_move_iterator(defaultEnabled.begin()), gcc5_make_move_iterator(defaultEnabled.end()));
+	userDisabled.assign(gcc5_make_move_iterator(defaultDisabled.begin()), gcc5_make_move_iterator(defaultDisabled.end()));
 	
 	// save lists back to user details
 	lpDetails->SetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A, userEnabled);

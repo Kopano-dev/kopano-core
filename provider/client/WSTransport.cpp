@@ -4151,7 +4151,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	for (gsoap_size_t i = 0; i < sResponse.sSyncStates.__size; ++i) {
 		sSyncState.ulSyncId = sResponse.sSyncStates.__ptr[i].ulSyncId;
 		sSyncState.ulChangeId = sResponse.sSyncStates.__ptr[i].ulChangeId;
-		lplstSyncState->push_back(sSyncState);
+		lplstSyncState->push_back(std::move(sSyncState));
 	}
  exitm:
 	UnLockSoap();

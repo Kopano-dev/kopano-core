@@ -21,7 +21,7 @@
 #include <set>
 #include <string>
 #include <list>
-
+#include <utility>
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
@@ -450,8 +450,7 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 			if (pRows->aRow[i].lpProps[1].ulPropTag == PR_DISPLAY_NAME_A)   strData += pRows->aRow[i].lpProps[1].Value.lpszA;
 			if (pRows->aRow[i].lpProps[2].ulPropTag == PR_EMAIL_ADDRESS_A)  strData += pRows->aRow[i].lpProps[2].Value.lpszA;
 			if (pRows->aRow[i].lpProps[3].ulPropTag == PR_RECIPIENT_TYPE)   strData += stringify(pRows->aRow[i].lpProps[3].Value.ul);
-
-			auto res = mapRecip.insert(strData);
+			auto res = mapRecip.insert(std::move(strData));
 			if (res.second == false)
 				mapiReciptDel.push_back(pRows->aRow[i].lpProps[0].Value.ul);
 		}
