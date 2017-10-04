@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <algorithm>
 #include <string>
 #include <list>
 #include <memory>
@@ -37,12 +37,6 @@ using namespace KC::helpers;
 
 namespace KC {
     
-inline UserEntry ArchiveManageImpl::MakeUserEntry(const std::string &strUser) {
-	UserEntry entry;
-	entry.UserName = strUser;
-	return entry;
-}
-
 /**
  * Create an ArchiveManageImpl object.
  *
@@ -735,8 +729,8 @@ eResult ArchiveManageImpl::ListAttachedUsers(UserList *lplstUsers)
 	     m_ptrSession->GetSSLPath(), m_ptrSession->GetSSLPass(), &lstUsers);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
-
-	std::transform(lstUsers.begin(), lstUsers.end(), std::back_inserter(lstUserEntries), &MakeUserEntry);
+	std::transform(lstUsers.begin(), lstUsers.end(), std::back_inserter(lstUserEntries),
+		[](const std::string &u) -> UserEntry { return {u}; });
 	*lplstUsers = std::move(lstUserEntries);
 	return MAPIErrorToArchiveError(hr);
 }

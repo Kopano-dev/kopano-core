@@ -28,20 +28,9 @@
 
 using namespace KCHL;
 
-ULONG ECChangeAdvisor::GetSyncId(const ConnectionMap::value_type &sConnection)
-{
-	return sConnection.first;
-}
-
 ECChangeAdvisor::SyncStateMap::value_type ECChangeAdvisor::ConvertSyncState(const SSyncState &sSyncState)
 {
 	return SyncStateMap::value_type(sSyncState.ulSyncId, sSyncState.ulChangeId);
-}
-
-SSyncState ECChangeAdvisor::ConvertSyncStateMapEntry(const SyncStateMap::value_type &sMapEntry)
-{
-	SSyncState tmp = {sMapEntry.first, sMapEntry.second};
-	return tmp;
 }
 
 bool ECChangeAdvisor::CompareSyncId(const ConnectionMap::value_type &sConnection, const SyncStateMap::value_type &sSyncState)
@@ -219,7 +208,8 @@ HRESULT ECChangeAdvisor::PurgeStates()
 	std::list<ConnectionMap::value_type>::const_iterator iterObsolete;
 
 	// First get the most up to date change ids for all registered sync ids (we will ignore the changeids since we don't know if we actually got that far)
-	std::transform(m_mapConnections.begin(), m_mapConnections.end(), std::back_inserter(lstSyncId), &GetSyncId);
+	std::transform(m_mapConnections.begin(), m_mapConnections.end(), std::back_inserter(lstSyncId),
+		[](const ConnectionMap::value_type &s) { return s.first; });
 	hr = m_lpMsgStore->m_lpNotifyClient->UpdateSyncStates(lstSyncId, &lstSyncState);
 	if (hr != hrSuccess)
 		return hr;
@@ -404,7 +394,8 @@ HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
 
 	
 	// Now re-register the notifications
-	std::transform(lpChangeAdvisor->m_mapSyncStates.begin(), lpChangeAdvisor->m_mapSyncStates.end(), std::back_inserter(listSyncStates), &ConvertSyncStateMapEntry);
+	std::transform(lpChangeAdvisor->m_mapSyncStates.begin(), lpChangeAdvisor->m_mapSyncStates.end(), std::back_inserter(listSyncStates),
+		[](const SyncStateMap::value_type &e) -> SSyncState { return {e.first, e.second}; });
 	hr = lpChangeAdvisor->m_lpMsgStore->m_lpNotifyClient->Advise(listSyncStates, lpChangeAdvisor->m_lpChangeAdviseSink, &listConnections);
 	if (hr == hrSuccess)
 		lpChangeAdvisor->m_mapConnections.insert(listConnections.begin(), listConnections.end());

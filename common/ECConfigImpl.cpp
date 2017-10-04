@@ -68,11 +68,6 @@ bool ECConfigImpl::LoadSettings(const char *szFilename)
 	return InitConfigFile(LOADSETTING_OVERWRITE);
 }
 
-static int tounderscore(int c)
-{
-	return c == '-' ? '_' : c;
-}
-
 /**
  * Parse commandline parameters to override the values loaded from the
  * config files.
@@ -119,7 +114,8 @@ int ECConfigImpl::ParseParams(int argc, char **argv)
 		string strValue(eq+1);
 		strName = trim(strName, " \t\r\n");
 		strValue = trim(strValue, " \t\r\n");
-		std::transform(strName.begin(), strName.end(), strName.begin(), tounderscore);
+		std::transform(strName.begin(), strName.end(), strName.begin(),
+			[](int c) { return c == '-' ? '_' : c; });
 		configsetting_t setting = {strName.c_str(), strValue.c_str(), 0, 0};
 		// Overwrite an existing setting, and make sure it is not reloadable during HUP
 		AddSetting(&setting, LOADSETTING_OVERWRITE | LOADSETTING_CMDLINE_PARAM);
