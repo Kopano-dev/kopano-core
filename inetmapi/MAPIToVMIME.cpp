@@ -1546,7 +1546,7 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 
 		vmime::relay relay;
 		relay.setBy(std::string(buffer) + " (kopano-spooler)");
-		relay.getWithList().push_back("MAPI");
+		relay.getWithList().emplace_back("MAPI");
 		auto now = vmime::datetime::now();
 		relay.setDate(now);
 		auto header_field = hff->create("Received");
@@ -1934,7 +1934,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
             if(lpAttachRows->aRow[i].lpProps[0].ulPropTag == PR_ATTACH_METHOD && 
                 lpAttachRows->aRow[i].lpProps[1].ulPropTag == PR_ATTACH_NUM &&
                 lpAttachRows->aRow[i].lpProps[0].Value.ul == ATTACH_OLE)
-                lstOLEAttach.push_back(lpAttachRows->aRow[i].lpProps[1].Value.ul);
+				lstOLEAttach.emplace_back(lpAttachRows->aRow[i].lpProps[1].Value.ul);
 	
         // Start processing TNEF properties
 		if (HrGetOneProp(lpMessage, PR_EC_SEND_AS_ICAL, &~lpSendAsICal) != hrSuccess)

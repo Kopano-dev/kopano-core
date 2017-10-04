@@ -189,9 +189,9 @@ void mapiTextPart::findEmbeddedParts(const bodyPart& part,
 		// For a part to be an embedded object, it must have a
 		// Content-Id field or a Content-Location field.
 		if (p->getHeader()->hasField(fields::CONTENT_ID))
-			cidParts.push_back(p);
+			cidParts.emplace_back(p);
 		if (p->getHeader()->hasField(fields::CONTENT_LOCATION))
-			locParts.push_back(p);
+			locParts.emplace_back(p);
 		findEmbeddedParts(*p, cidParts, locParts);
 	}
 }
@@ -210,8 +210,7 @@ void mapiTextPart::addEmbeddedObject(const bodyPart& part, const string& id)
 		type = *vmime::dynamicCast<const vmime::mediaType>(ctf->getValue());
 	}
 	// Else assume "application/octet-stream".
-
-	m_objects.push_back(vmime::make_shared<embeddedObject>(
+	m_objects.emplace_back(vmime::make_shared<embeddedObject>(
 		vmime::dynamicCast<vmime::contentHandler>(part.getBody()->getContents()->clone()),
 		part.getBody()->getEncoding(), id, type, string(), string()));
 }
@@ -414,7 +413,7 @@ const string mapiTextPart::addObject(vmime::shared_ptr<vmime::contentHandler> da
     const vmime::encoding &enc, const vmime::mediaType &type,
     const std::string &id, const std::string &name, const std::string &loc)
 {
-	m_objects.push_back(vmime::make_shared<embeddedObject>(data, enc, id, type, name, loc));
+	m_objects.emplace_back(vmime::make_shared<embeddedObject>(data, enc, id, type, name, loc));
 	return (id);
 }
 

@@ -109,7 +109,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 		if (bAddrFetchSuccess && bItemIsAUser) {
 			if (setRecips.find(strEmail) == setRecips.end()) {
 				recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<std::string>(strEmail)));
-				setRecips.insert(strEmail);
+				setRecips.emplace(strEmail);
 				ec_log_debug("RCPT TO: %ls", strEmail.c_str());	
 			}
 			continue;
@@ -149,7 +149,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 			}
 		} else if (setRecips.find(strEmail) == setRecips.end()) {
 			recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<std::string>(strEmail)));
-			setRecips.insert(strEmail);
+			setRecips.emplace(strEmail);
 			ec_log_debug("Sending to group-address %s instead of expanded list",
 				convert_to<std::string>(strEmail).c_str());
 		}
@@ -226,7 +226,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 		return MAPI_E_TOO_COMPLEX;
 	
 	// Add group name to list of processed groups
-	setGroups.insert(lpEmailAddress->Value.lpszW);
+	setGroups.emplace(lpEmailAddress->Value.lpszW);
 	hr = lpGroup->GetContentsTable(MAPI_UNICODE, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
