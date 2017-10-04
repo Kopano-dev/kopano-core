@@ -69,7 +69,7 @@ HRESULT ECUnknown::AddChild(ECUnknown *lpChild) {
 	if (lpChild == nullptr)
 		return hrSuccess;
 	scoped_lock locker(mutex);
-	this->lstChildren.push_back(lpChild);
+	lstChildren.emplace_back(lpChild);
 	lpChild->SetParent(this);
 	return hrSuccess;
 }

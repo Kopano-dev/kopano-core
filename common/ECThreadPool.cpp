@@ -59,7 +59,7 @@ bool ECThreadPool::dispatch(ECTask *lpTask, bool bTakeOwnership)
 	gettimeofday(&sTaskInfo.tvQueueTime, NULL);
 	
 	ulock_normal locker(m_hMutex);
-	m_listTasks.push_back(std::move(sTaskInfo));
+	m_listTasks.emplace_back(std::move(sTaskInfo));
 	m_hCondition.notify_one();
 	joinTerminated(locker);
 	return true;
@@ -101,7 +101,7 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 		
 				pthread_create(&hThread, NULL, &threadFunc, this);
 				set_thread_name(hThread, "ECThreadPool");
-				m_setThreads.insert(hThread);
+				m_setThreads.emplace(hThread);
 			}
 		}
 	}
@@ -139,7 +139,7 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 		auto iThread = std::find_if(m_setThreads.cbegin(), m_setThreads.cend(),
 			[self](pthread_t t) { return pthread_equal(t, self) != 0; });
 		assert(iThread != m_setThreads.cend());
-		m_setTerminated.insert(*iThread);
+		m_setTerminated.emplace(*iThread);
 		m_setThreads.erase(iThread);
 		--m_ulTermReq;
 		m_hCondTerminated.notify_one();

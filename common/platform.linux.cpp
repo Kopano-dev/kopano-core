@@ -239,7 +239,7 @@ std::vector<std::string> get_backtrace(void)
 		return result;
 	char **symbollist = backtrace_symbols(addrlist, addrlen);
 	for (int i = 0; i < addrlen; ++i)
-		result.push_back(symbollist[i]);
+		result.emplace_back(symbollist[i]);
 	free(symbollist);
 	return result;
 #undef BT_MAX

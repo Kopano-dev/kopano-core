@@ -618,7 +618,7 @@ ECRESULT ECKeyTable::CreateBookmark(unsigned int* lpulbkPosition)
 
 	// set unique bookmark id higher
 	ulbkPosition = m_ulBookmarkPosition++;
-	m_mapBookmarks.insert({ulbkPosition, sbkPosition});
+	m_mapBookmarks.emplace(ulbkPosition, sbkPosition);
 	*lpulbkPosition = ulbkPosition;
 	return erSuccess;
 }
@@ -823,7 +823,7 @@ ECRESULT ECKeyTable::QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList
 	while(ulRows && lpCurrent) {
 		
 		if(!lpCurrent->fHidden || bShowHidden) {
-    		lpRowList->push_back(lpCurrent->sKey);
+			lpRowList->emplace_back(lpCurrent->sKey);
 		--ulRows;
         }
 		
@@ -1057,9 +1057,7 @@ ECRESULT ECKeyTable::GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTa
         // Stop when lpCurrent > prefix, so prefix < lpCurrent
 		if (ECTableRow::rowcompareprefix(dat.size(), dat, lpCurrent->m_cols))
             break;
-            
-        lpRowList->push_back(lpCurrent->sKey);
-            
+		lpRowList->emplace_back(lpCurrent->sKey);
         Next();
     }
     
@@ -1085,8 +1083,7 @@ ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lp
         // Stop hiding when lpCurrent > prefix, so prefix < lpCurrent
 		if (ECTableRow::rowcompareprefix(dat.size(), dat, lpCurrent->m_cols))
             break;
-            
-        lpHiddenList->push_back(lpCurrent->sKey);
+		lpHiddenList->emplace_back(lpCurrent->sKey);
         lpCurrent->fHidden = true;
         
         UpdateCounts(lpCurrent); // FIXME SLOW
@@ -1134,7 +1131,7 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
 
         // Only unhide items with the same amount of sort columns as the first row (ensures we only expand the first layer)
 		if (lpCurrent->m_cols.size() == ulFirstCols) {
-            lpUnhiddenList->push_back(lpCurrent->sKey);
+			lpUnhiddenList->emplace_back(lpCurrent->sKey);
             lpCurrent->fHidden = false;
 
             UpdateCounts(lpCurrent); // FIXME SLOW

@@ -155,7 +155,6 @@ void CHtmlToTextParser::addNewLine(bool forceLine) {
 void CHtmlToTextParser::addChar(WCHAR c) {
 	if (fScriptMode || fHeadMode || fStyleMode)
 		return;
-
 	strText.push_back(c);
 	cNewlines = 0;
 	fTDTHMode = false;
@@ -192,8 +191,7 @@ bool CHtmlToTextParser::parseEntity(const WCHAR* &lpwHTML)
 			entity += *lpwHTML;
 			++lpwHTML;
 		}
-
-		strText.push_back(wcstoul(entity.c_str(), NULL, base));
+		strText.push_back(wcstoul(entity.c_str(), nullptr, base));
 	} else {
 		for (int i = 0; *lpwHTML != ';' && *lpwHTML != 0 && i < 10; ++i) {
 			entity += *lpwHTML;
@@ -202,7 +200,7 @@ bool CHtmlToTextParser::parseEntity(const WCHAR* &lpwHTML)
 
 		WCHAR code = CHtmlEntity::toChar(entity.c_str());
 		if (code > 0)
-			strText.push_back( code );
+			strText.push_back(code);
 	}
 
 	if(*lpwHTML == ';')

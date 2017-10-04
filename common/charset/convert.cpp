@@ -126,7 +126,7 @@ namespace details {
 				else if (*i == "HTMLENTITIES" && strcasecmp(fromcode, CHARSET_WCHAR) == 0)
 					m_bHTML = true;
 				else
-					vOptionsFiltered.push_back(*i);
+					vOptionsFiltered.emplace_back(*i);
 				++i;
             }
 
@@ -232,7 +232,7 @@ void convert_context::persist_code(context_key &key, unsigned flags)
 		if (iCode == m_codes.cend()) {
 			auto tocode = new char[strlen(key.tocode)+1];
 			memcpy(tocode, key.tocode, strlen(key.tocode) + 1);
-			iCode = m_codes.insert(tocode).first;
+			iCode = m_codes.emplace(tocode).first;
 		}
 		key.tocode = *iCode;
 	}
@@ -241,7 +241,7 @@ void convert_context::persist_code(context_key &key, unsigned flags)
 		if (iCode == m_codes.cend()) {
 			auto fromcode = new char[strlen(key.fromcode)+1];
 			memcpy(fromcode, key.fromcode, strlen(key.fromcode) + 1);
-			iCode = m_codes.insert(fromcode).first;
+			iCode = m_codes.emplace(fromcode).first;
 		}
 		key.fromcode = *iCode;
 	}
@@ -249,13 +249,13 @@ void convert_context::persist_code(context_key &key, unsigned flags)
 
 char* convert_context::persist_string(const std::string &strValue)
 {
-	m_lstStrings.push_back(strValue);
+	m_lstStrings.emplace_back(strValue);
 	return const_cast<char*>(m_lstStrings.back().c_str());
 }
 
 wchar_t* convert_context::persist_string(const std::wstring &wstrValue)
 {
-	m_lstWstrings.push_back(wstrValue);
+	m_lstWstrings.emplace_back(wstrValue);
 	return const_cast<wchar_t*>(m_lstWstrings.back().c_str());
 }
 

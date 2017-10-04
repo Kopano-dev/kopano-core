@@ -163,7 +163,7 @@ public:
 		// Loop through all items and check
 		for (iter = m_map.begin(); iter != m_map.end(); ++iter)
 			if ((long)(tNow - iter->second.ulLastAccess) >= MaxAge())
-				dl.push_back(iter->first);
+				dl.emplace_back(iter->first);
 		for (const auto &i : dl)
 			m_map.erase(i);
 		IncrementHitCount();
@@ -175,8 +175,7 @@ public:
 		auto iLower = m_map.lower_bound(lower);
 		auto iUpper = m_map.upper_bound(upper);
 		for (auto i = iLower; i != iUpper; ++i)
-			values->push_back(*i);
-
+			values->emplace_back(*i);
 		return erSuccess;
 	}
 	
@@ -184,7 +183,7 @@ public:
 	{
 		if (MaxSize() == 0)
 			return erSuccess;
-		auto result = m_map.insert({key, value});
+		auto result = m_map.emplace(key, value);
 		if (result.second == false) {
 			// The key already exists but its value is unmodified. So update it now
 			m_ulSize += GetCacheAdditionalSize(value);
@@ -218,7 +217,7 @@ private:
 			KeyEntry<key_type> k;
 			k.key = im.first;
 			k.ulLastAccess = im.second.ulLastAccess;
-			lstEntries.push_back(std::move(k));
+			lstEntries.emplace_back(std::move(k));
 		}
 
 		lstEntries.sort(KeyEntryOrder<key_type>);
