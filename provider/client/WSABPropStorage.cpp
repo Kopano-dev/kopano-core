@@ -277,13 +277,13 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		goto exit;
 
 	for (gsoap_size_t i = 0; i < sResponse.aPropTag.__size; ++i)
-		mo->lstAvailable.push_back(sResponse.aPropTag.__ptr[i]);
+		mo->lstAvailable.emplace_back(sResponse.aPropTag.__ptr[i]);
 
 	for (gsoap_size_t i = 0; i < sResponse.aPropVal.__size; ++i) {
 		hr = CopySOAPPropValToMAPIPropVal(lpProp, &sResponse.aPropVal.__ptr[i], lpProp, &converter);
 		if (hr != hrSuccess)
 			goto exit;
-		mo->lstProperties.push_back(lpProp);
+		mo->lstProperties.emplace_back(lpProp);
 	}
 
 	*lppsMapiObject = mo;

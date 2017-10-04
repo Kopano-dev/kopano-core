@@ -102,8 +102,7 @@ HRESULT ECNotifyMaster::AddSession(ECNotifyClient* lpClient)
 {
 	scoped_rlock biglock(m_hMutex);
 
-	m_listNotifyClients.push_back(lpClient);
-
+	m_listNotifyClients.emplace_back(lpClient);
 	/* Enable Notifications */
 	if (StartNotifyWatch() != hrSuccess)
 		assert(false);
@@ -138,7 +137,7 @@ HRESULT ECNotifyMaster::ReserveConnection(ULONG *lpulConnection)
 HRESULT ECNotifyMaster::ClaimConnection(ECNotifyClient* lpClient, NOTIFYCALLBACK fnCallback, ULONG ulConnection)
 {
 	scoped_rlock lock(m_hMutex);
-	m_mapConnections.insert({ulConnection, {lpClient, fnCallback}});
+	m_mapConnections.emplace(ulConnection, ECNotifySink(lpClient, fnCallback));
 	return hrSuccess;
 }
 
@@ -305,8 +304,8 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			ULONG ulConnection = pNotifyArray->__ptr[item].ulConnection;
 
 			// No need to do a find before an insert with a default object.
-			auto iterNotifications = mapNotifications.insert({ulConnection, {}}).first;
-			iterNotifications->second.push_back(&pNotifyArray->__ptr[item]);
+			auto iterNotifications = mapNotifications.emplace(ulConnection, NOTIFYLIST()).first;
+			iterNotifications->second.emplace_back(&pNotifyArray->__ptr[item]);
 		}
 
 		for (const auto &p : mapNotifications) {

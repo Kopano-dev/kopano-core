@@ -95,8 +95,7 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 			hr = lpStream->Read(&ulProcessed, sizeof(ULONG), &ulRead);
 			if(hr != hrSuccess)
 				return hr;
-
-			m_setProcessed.insert(ulProcessed);
+			m_setProcessed.emplace(ulProcessed);
 			--ulCount;
 		}
 	}
@@ -260,7 +259,7 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 	}
 
 	// Mark the change as processed
-	m_setProcessed.insert(m_lpChanges[m_ulThisChange].ulChangeId);
+	m_setProcessed.emplace(m_lpChanges[m_ulThisChange].ulChangeId);
 	++m_ulThisChange;
 
     if(lpulSteps)

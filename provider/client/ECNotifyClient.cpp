@@ -212,7 +212,7 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 
 	{
 		scoped_rlock biglock(m_hMutex);
-		m_mapAdvise.insert({ulConnection, pEcAdvise.release()});
+		m_mapAdvise.emplace(ulConnection, pEcAdvise.release());
 	}
 
 	// Since we're ready to receive notifications now, register ourselves with the master
@@ -255,7 +255,7 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
 	{
 		scoped_rlock biglock(m_hMutex);
 		lpChangeAdviseSink->AddRef();
-		m_mapChangeAdvise.insert({ulConnection, pEcAdvise.release()});
+		m_mapChangeAdvise.emplace(ulConnection, pEcAdvise.release());
 	}
 
 	// Since we're ready to receive notifications now, register ourselves with the master
@@ -332,7 +332,7 @@ HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
 		if (hr != hrSuccess)
 			goto exit;
 		sSyncAdvise.sSyncState = state;
-		lstAdvises.push_back(std::move(sSyncAdvise));
+		lstAdvises.emplace_back(std::move(sSyncAdvise));
 	}
 
 	hr = m_lpTransport->HrSubscribeMulti(lstAdvises, fnevKopanoIcsChange);
@@ -458,8 +458,7 @@ HRESULT ECNotifyClient::NotifyReload()
 	notif.ulEventType = fnevTableModified;
 	notif.tab = &table;
 	notif.tab->ulTableEvent = TABLE_RELOAD;
-	
-	notifications.push_back(&notif);
+	notifications.emplace_back(&notif);
 
 	// The transport used for this notifyclient *may* have a broken session. Inform the
 	// transport that the session may be broken and it should verify that all is well.
@@ -487,7 +486,7 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 		hr = CopySOAPNotificationToMAPINotification(m_lpProvider, notp, &tmp);
 		if (hr != hrSuccess)
 			continue;
-		notifications.push_back(tmp);
+		notifications.emplace_back(tmp);
 	}
 
 	ulock_rec biglock(m_hMutex);
@@ -566,7 +565,7 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 		hr = CopySOAPChangeNotificationToSyncState(notp, &tmp, lpSyncStates);
 		if (hr != hrSuccess)
 			continue;
-		syncStates.push_back(tmp);
+		syncStates.emplace_back(tmp);
 	}
 
 	/* Search for the right connection */

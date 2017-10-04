@@ -324,16 +324,16 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 			switch (ICS_ACTION(m_lpChanges[ulStep].ulChangeType)) {
 			case ICS_NEW:
 			case ICS_CHANGE:
-				mapChanges.insert({m_lpChanges[ulStep].sSourceKey, lstChange.insert(lstChange.end(), m_lpChanges[ulStep])});
+				mapChanges.emplace(m_lpChanges[ulStep].sSourceKey, lstChange.emplace(lstChange.end(), m_lpChanges[ulStep]));
 				break;
 			case ICS_FLAG:
-				mapChanges.insert({m_lpChanges[ulStep].sSourceKey, m_lstFlag.insert(m_lstFlag.end(), m_lpChanges[ulStep])});
+				mapChanges.emplace(m_lpChanges[ulStep].sSourceKey, m_lstFlag.emplace(m_lstFlag.end(), m_lpChanges[ulStep]));
 				break;
 			case ICS_SOFT_DELETE:
-				mapChanges.insert({m_lpChanges[ulStep].sSourceKey, m_lstSoftDelete.insert(m_lstSoftDelete.end(), m_lpChanges[ulStep])});
+				mapChanges.emplace(m_lpChanges[ulStep].sSourceKey, m_lstSoftDelete.emplace(m_lstSoftDelete.end(), m_lpChanges[ulStep]));
 				break;
 			case ICS_HARD_DELETE:
-				mapChanges.insert({m_lpChanges[ulStep].sSourceKey, m_lstHardDelete.insert(m_lstHardDelete.end(), m_lpChanges[ulStep])});
+				mapChanges.emplace(m_lpChanges[ulStep].sSourceKey, m_lstHardDelete.emplace(m_lstHardDelete.end(), m_lpChanges[ulStep]));
 				break;
 			default:
 				break;
@@ -345,7 +345,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 				// However, if an object gets moved to another folder and back, we'll get a delete followed by an add. If that happens
 				// we skip the delete and morph the current add to a change.
 				if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE || ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_HARD_DELETE) {
-					ChangeListIter iterNewChange = lstChange.insert(lstChange.end(), *iterLastChange->second);
+					auto iterNewChange = lstChange.emplace(lstChange.end(), *iterLastChange->second);
 					iterNewChange->ulChangeType = (iterNewChange->ulChangeType & ~ICS_ACTION_MASK) | ICS_CHANGE;
 					if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE)
 						m_lstSoftDelete.erase(iterLastChange->second);
@@ -368,11 +368,11 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 						m_lstSoftDelete.erase(iterLastChange->second);
 					else
 						m_lstHardDelete.erase(iterLastChange->second);
-					iterLastChange->second = lstChange.insert(lstChange.end(), m_lpChanges[ulStep]);
+					iterLastChange->second = lstChange.emplace(lstChange.end(), m_lpChanges[ulStep]);
 					ZLOG_DEBUG(m_lpLogger, "Got an ICS_CHANGE change for a previously deleted object. sourcekey=%s", bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
 				} else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_FLAG) {
 					m_lstFlag.erase(iterLastChange->second);
-					iterLastChange->second = lstChange.insert(lstChange.end(), m_lpChanges[ulStep]);
+					iterLastChange->second = lstChange.emplace(lstChange.end(), m_lpChanges[ulStep]);
 					ZLOG_DEBUG(m_lpLogger, "Upgraded a previous ICS_FLAG to ICS_CHANGED. sourcekey=%s", bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
 				} else
 					ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_CHANGE due to a previous change. prev_change=%04x, sourcekey=%s", iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
@@ -401,9 +401,9 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 					m_lstHardDelete.erase(iterLastChange->second);
 
 				if (ICS_ACTION(m_lpChanges[ulStep].ulChangeType) == ICS_SOFT_DELETE)
-					iterLastChange->second = m_lstSoftDelete.insert(m_lstSoftDelete.end(), m_lpChanges[ulStep]);
+					iterLastChange->second = m_lstSoftDelete.emplace(m_lstSoftDelete.end(), m_lpChanges[ulStep]);
 				else
-					iterLastChange->second = m_lstHardDelete.insert(m_lstHardDelete.end(), m_lpChanges[ulStep]);
+					iterLastChange->second = m_lstHardDelete.emplace(m_lstHardDelete.end(), m_lpChanges[ulStep]);
 				break;
 			default:
 				ZLOG_DEBUG(m_lpLogger, "Got an unknown change. change=%04x, sourcekey=%s", m_lpChanges[ulStep].ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
@@ -654,7 +654,7 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 		m_lpChanges[i].ulChangeType = ICS_MESSAGE_NEW;
 
 		// Since all changes are 'change' modifications, duplicate all data in m_lpChanges in m_lstChange
-		m_lstChange.push_back(m_lpChanges[i]);
+		m_lstChange.emplace_back(m_lpChanges[i]);
 	}
 	
 	m_bConfiged = true;
@@ -907,7 +907,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 next:
 		// Mark this change as processed, even if we skipped it due to SYNC_E_IGNORE or because the item was deleted on the source server
 		const auto &sk = m_lstChange.at(m_ulStep).sSourceKey;
-		m_setProcessedChanges.insert({m_lstChange.at(m_ulStep).ulChangeId, std::string(reinterpret_cast<const char *>(sk.lpb), sk.cb)});
+		m_setProcessedChanges.emplace(m_lstChange.at(m_ulStep).ulChangeId, std::string(reinterpret_cast<const char *>(sk.lpb), sk.cb));
 		++m_ulStep;
 		++ulSteps;
 	}
@@ -1023,7 +1023,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	}
 
 skip:
-	m_setProcessedChanges.insert({m_lstChange.at(m_ulStep).ulChangeId, std::string(reinterpret_cast<const char *>(m_lstChange.at(m_ulStep).sSourceKey.lpb), m_lstChange.at(m_ulStep).sSourceKey.cb)});
+	m_setProcessedChanges.emplace(m_lstChange.at(m_ulStep).ulChangeId, std::string(reinterpret_cast<const char *>(m_lstChange.at(m_ulStep).sSourceKey.lpb), m_lstChange.at(m_ulStep).sSourceKey.cb));
 	if (++m_ulStep < m_lstChange.size())
 		hr = SYNC_W_PROGRESS;
 
@@ -1068,7 +1068,7 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 
 		// Mark the flag changes as processed
 		for (const auto &change : m_lstFlag)
-			m_setProcessedChanges.insert({change.ulChangeId, std::string(reinterpret_cast<const char *>(change.sSourceKey.lpb), change.sSourceKey.cb)});
+			m_setProcessedChanges.emplace(change.ulChangeId, std::string(reinterpret_cast<const char *>(change.sSourceKey.lpb), change.sSourceKey.cb));
 	}
 
 exit:
@@ -1206,7 +1206,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 next:
 		// Mark this change as processed
 		const auto &sk = m_lstChange.at(m_ulStep).sSourceKey;
-		m_setProcessedChanges.insert({m_lstChange.at(m_ulStep).ulChangeId, std::string(reinterpret_cast<const char *>(sk.lpb), sk.cb)});
+		m_setProcessedChanges.emplace(m_lstChange.at(m_ulStep).ulChangeId, std::string(reinterpret_cast<const char *>(sk.lpb), sk.cb));
 		++ulSteps;
 		++m_ulStep;
 	}
@@ -1371,8 +1371,8 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 HRESULT ECExchangeExportChanges::AddProcessedChanges(ChangeList &lstChanges)
 {
 	for (const auto &i : lstChanges)
-		m_setProcessedChanges.insert({i.ulChangeId,
-			std::string(reinterpret_cast<const char *>(i.sSourceKey.lpb), i.sSourceKey.cb)});
+		m_setProcessedChanges.emplace(i.ulChangeId,
+			std::string(reinterpret_cast<const char *>(i.sSourceKey.lpb), i.sSourceKey.cb));
 	return hrSuccess;
 }
 

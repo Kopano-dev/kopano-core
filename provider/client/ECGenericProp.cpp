@@ -109,7 +109,7 @@ HRESULT ECGenericProp::HrAddPropHandlers(ULONG ulPropTag, GetPropCallBack lpfnGe
 	sCallBack.lpParam = lpParam;
 	sCallBack.fRemovable = fRemovable;
 	sCallBack.fHidden = fHidden;
-	lstCallBack.insert({PROP_ID(ulPropTag), sCallBack});
+	lstCallBack.emplace(PROP_ID(ulPropTag), sCallBack);
 	dwLastError = hr;
 	return hr;
 }
@@ -147,8 +147,7 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 	if (iterProps != lstProps->end()) {
 		if (iterProps->second.GetPropTag() != lpsPropValue->ulPropTag) {
 			// type is different, remove the property and insert a new item
-			m_setDeletedProps.insert(lpsPropValue->ulPropTag);
-
+			m_setDeletedProps.emplace(lpsPropValue->ulPropTag);
 			iterProps->second.DeleteProperty();
 
 			lstProps->erase(iterProps);
@@ -167,7 +166,7 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 			hr = lpProperty->GetLastError();
 			goto exit;
 		}
-		lstProps->insert({PROP_ID(lpsPropValue->ulPropTag), ECPropertyEntry(lpProperty)});
+		lstProps->emplace(PROP_ID(lpsPropValue->ulPropTag), ECPropertyEntry(lpProperty));
 	}
 
 	// Property is now added/modified and marked 'dirty' for saving
@@ -278,8 +277,7 @@ HRESULT ECGenericProp::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwriteRO)
 		goto exit;
 	}
 
-	m_setDeletedProps.insert(iterProps->second.GetPropTag());
-
+	m_setDeletedProps.emplace(iterProps->second.GetPropTag());
 	iterProps->second.DeleteProperty();
 
 	lstProps->erase(iterProps);
@@ -489,7 +487,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	for (auto l : m_setDeletedProps) {
 		// Make sure the property is not present in deleted/modified list
 		HrRemoveModifications(m_sMapiObject, l);
-		m_sMapiObject->lstDeleted.push_back(l);
+		m_sMapiObject->lstDeleted.emplace_back(l);
 	}
 
 	for (auto &p : *lstProps) {
@@ -500,17 +498,17 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 			// Make sure the property is not present in deleted/modified list
 			HrRemoveModifications(m_sMapiObject, p.second.GetPropTag());
 			// Save modified property
-			m_sMapiObject->lstModified.push_back(*p.second.GetProperty());
+			m_sMapiObject->lstModified.emplace_back(*p.second.GetProperty());
 			// Save in the normal properties list
-			m_sMapiObject->lstProperties.push_back(*p.second.GetProperty());
+			m_sMapiObject->lstProperties.emplace_back(*p.second.GetProperty());
 			continue;
 		}
 
 		// Normal property: either non-loaded or loaded
 		if (!p.second.FIsLoaded())	// skip pt_error anyway
-			m_sMapiObject->lstAvailable.push_back(p.second.GetPropTag());
+			m_sMapiObject->lstAvailable.emplace_back(p.second.GetPropTag());
 		else
-			m_sMapiObject->lstProperties.push_back(*p.second.GetProperty());
+			m_sMapiObject->lstProperties.emplace_back(*p.second.GetProperty());
 	}
 
 	m_sMapiObject->bChanged = true;
@@ -532,7 +530,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 		// ONLY if not present
 		auto ip = lstProps->find(PROP_ID(tag));
 		if (ip == lstProps->cend() || ip->second.GetPropTag() != tag)
-			lstProps->insert({PROP_ID(tag), ECPropertyEntry(tag)});
+			lstProps->emplace(PROP_ID(tag), ECPropertyEntry(tag));
 	}
 	m_sMapiObject->lstAvailable.clear();
 
@@ -705,7 +703,7 @@ HRESULT ECGenericProp::HrLoadProps()
 	// Add *all* the entries as with empty values; values for these properties will be
 	// retrieved on-demand
 	for (auto tag : m_sMapiObject->lstAvailable)
-		lstProps->insert({PROP_ID(tag), ECPropertyEntry(tag)});
+		lstProps->emplace(PROP_ID(tag), ECPropertyEntry(tag));
 
 	// Load properties
 	for (const auto &pv : m_sMapiObject->lstProperties)

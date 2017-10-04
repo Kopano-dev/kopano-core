@@ -335,7 +335,7 @@ void WSMAPIPropStorage::DeleteSoapObject(struct saveObject *lpSaveObj)
 ECRESULT WSMAPIPropStorage::EcFillPropTags(struct saveObject *lpsSaveObj, MAPIOBJECT *lpsMapiObj)
 {
 	for (gsoap_size_t i = 0; i < lpsSaveObj->delProps.__size; ++i)
-		lpsMapiObj->lstAvailable.push_back(lpsSaveObj->delProps.__ptr[i]);
+		lpsMapiObj->lstAvailable.emplace_back(lpsSaveObj->delProps.__ptr[i]);
 	return erSuccess;
 }
 
@@ -353,7 +353,7 @@ ECRESULT WSMAPIPropStorage::EcFillPropValues(struct saveObject *lpsSaveObj, MAPI
 		ec = CopySOAPPropValToMAPIPropVal(lpsProp, &lpsSaveObj->modProps.__ptr[i], lpsProp, &context);
 		if (ec != erSuccess)
 			break;
-		lpsMapiObj->lstProperties.push_back(ECProperty(lpsProp));
+		lpsMapiObj->lstProperties.emplace_back(lpsProp);
 	}
 
 	return ec;
@@ -508,7 +508,7 @@ ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(struct saveObject *lpsSaveO
 		}
 
 		ECSoapObjectToMapiObject(&lpsSaveObj->__ptr[i], mo);
-		lpsMapiObject->lstChildren.insert(mo);
+		lpsMapiObject->lstChildren.emplace(mo);
 	}
 
 	if (lpsMapiObject->lpInstanceID) {

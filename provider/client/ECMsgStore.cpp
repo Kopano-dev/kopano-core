@@ -420,7 +420,7 @@ HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG u
 
 	if(hr != hrSuccess)
 		return hr;
-	m_setAdviseConnections.insert(*lpulConnection);
+	m_setAdviseConnections.emplace(*lpulConnection);
 	return hrSuccess;
 }
 
@@ -451,8 +451,7 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMa
 
 	if(m_lpNotifyClient->Advise(cbEntryID, (LPBYTE)lpEntryID, ulEventMask, lpAdviseSink, lpulConnection) != S_OK)
 		hr = MAPI_E_NO_SUPPORT;
-
-	m_setAdviseConnections.insert(*lpulConnection);
+	m_setAdviseConnections.emplace(*lpulConnection);
 	return hr;
 }
 
