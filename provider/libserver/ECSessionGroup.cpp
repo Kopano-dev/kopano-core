@@ -79,7 +79,7 @@ void ECSessionGroup::Unlock()
 void ECSessionGroup::AddSession(ECSession *lpSession)
 {
 	scoped_rlock lock(m_hSessionMapLock);
-	m_mapSessions.insert({lpSession->GetSessionId(), sessionInfo(lpSession)});
+	m_mapSessions.emplace(lpSession->GetSessionId(), sessionInfo(lpSession));
 }
 
 void ECSessionGroup::ReleaseSession(ECSession *lpSession)
@@ -132,7 +132,7 @@ ECRESULT ECSessionGroup::AddAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 
 	{
 		scoped_lock lock(m_hNotificationLock);
-		m_mapSubscribe.insert({ulConnection, sSubscribeItem});
+		m_mapSubscribe.emplace(ulConnection, sSubscribeItem);
 	}
 	
 	if(ulEventMask & (fnevNewMail | fnevObjectModified | fnevObjectCreated | fnevObjectCopied | fnevObjectDeleted | fnevObjectMoved)) {
@@ -143,7 +143,7 @@ ECRESULT ECSessionGroup::AddAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 		m_lpSessionManager->SubscribeObjectEvents(ulStore, this->m_sessionGroupId);
 		
 		scoped_lock lock(m_mutexSubscribedStores);
-		m_mapSubscribedStores.insert({ulKey, ulStore});
+		m_mapSubscribedStores.emplace(ulKey, ulStore);
 	}
 
 	return hr;
@@ -159,7 +159,7 @@ ECRESULT ECSessionGroup::AddChangeAdvise(ECSESSIONID ulSessionId, unsigned int u
 	sSubscribeItem.sSyncState = *lpSyncState;
 
 	scoped_lock lock(m_hNotificationLock);
-	m_mapChangeSubscribe.insert({lpSyncState->ulSyncId, sSubscribeItem});
+	m_mapChangeSubscribe.emplace(lpSyncState->ulSyncId, sSubscribeItem);
 	return erSuccess;
 }
 
@@ -204,7 +204,7 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 			!(notifyItem->ulEventType & i.second.ulEventMask))
 				continue;
 		notify.SetConnection(i.second.ulConnection);
-		m_listNotification.push_back(notify);
+		m_listNotification.emplace_back(notify);
 	}
 	l_note.unlock();
 	
@@ -311,8 +311,7 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 			// create ECNotification
 			ECNotification notify(notifyItem);
 			notify.SetConnection(iterItem->second.ulConnection);
-
-			m_listNotification.push_back(notify);
+			m_listNotification.emplace_back(notify);
 			mapInserted[iterItem->second.ulSession]++;
 		}
 	}
@@ -348,7 +347,7 @@ ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned
 	// create ECNotification
 	ECNotification notify(notifyItem);
 	notify.SetConnection(ulConnection);
-	m_listNotification.push_back(notify);
+	m_listNotification.emplace_back(notify);
 	l_note.unlock();
 
 	// Since we now have a notification ready to send, tell the session manager that we have something to send. Since

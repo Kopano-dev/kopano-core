@@ -93,12 +93,12 @@ ECRESULT ECSearchObjectTable::Load() {
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if(lpDBRow == NULL || lpDBRow[0] == NULL)
 			continue;
-		setObjIdPrivate.insert(atoui(lpDBRow[0]));
+		setObjIdPrivate.emplace(atoui(lpDBRow[0]));
 	}
 
 	for(auto it = lstObjId.begin(); it != lstObjId.end(); ++it)
 		if (setObjIdPrivate.find(*it) == setObjIdPrivate.end())
-			lstObjId2.push_back(*it);
+			lstObjId2.emplace_back(*it);
 
 	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &lstObjId2, 0, true);
 }

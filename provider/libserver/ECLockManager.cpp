@@ -81,8 +81,7 @@ ECRESULT ECLockManager::LockObject(unsigned int ulObjId, ECSESSIONID sessionId, 
 {
 	ECRESULT er = erSuccess;
 	std::lock_guard<KC::shared_mutex> lock(m_hRwLock);
-
-	auto res = m_mapLocks.insert({ulObjId, sessionId});
+	auto res = m_mapLocks.emplace(ulObjId, sessionId);
 	if (res.second == false && res.first->second != sessionId)
 		er = KCERR_NO_ACCESS;
 
