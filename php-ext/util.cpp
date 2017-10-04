@@ -26,7 +26,6 @@
 
 #include <string>
 
-using namespace std;
 using namespace KCHL;
 
 #include "util.h"

@@ -24,8 +24,6 @@
 #include <cmath>
 #include <ctime>
 
-using namespace std;
-
 namespace KC {
 
 /**

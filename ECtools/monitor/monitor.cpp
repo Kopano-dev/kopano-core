@@ -42,7 +42,8 @@
 #include <kopano/ecversion.h>
 #include "charset/localeutil.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 static void deleteThreadMonitor(ECTHREADMONITOR *lpThreadMonitor,
     bool base = false)

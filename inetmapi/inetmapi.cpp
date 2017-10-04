@@ -49,8 +49,9 @@
 #include <kopano/ECLogger.h>
 #include <kopano/mapi_ptr.h>
 
-using namespace std;
 using namespace KCHL;
+using std::string;
+using std::wstring;
 
 namespace KC {
 

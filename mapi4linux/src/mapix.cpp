@@ -56,7 +56,6 @@
 #define _MAPI_MEM_DEBUG 0
 #define _MAPI_MEM_MORE_DEBUG 0
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -419,7 +418,7 @@ HRESULT M4LMsgServiceAdmin::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIE
  */
 HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	HRESULT hr = hrSuccess;
-	list<serviceEntry *>::const_iterator i;
+	std::list<serviceEntry *>::const_iterator i;
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
 	SPropValue sProps[4];
@@ -1789,9 +1788,7 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
 		auto lpDisplay = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_A);
 		auto lpDisplayW = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_W);
 		auto lpEntryID = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_ENTRYID);
-		wstring strwDisplay;
-		wstring strwType;
-		wstring strwAddress;
+		std::wstring strwDisplay, strwType, strwAddress;
 
 		if(lpEntryID != NULL) {
 			// Item is already resolved, leave it untouched
@@ -2401,7 +2398,7 @@ HRESULT MAPILogonEx(ULONG_PTR ulUIParam, const TCHAR *lpszProfileName,
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMsgServiceAdmin> sa;
-	string strProfname;
+	std::string strProfname;
 
 	if (!lpszProfileName || !lppSession) {
 		ec_log_err("MAPILogonEx(): invalid parameter");

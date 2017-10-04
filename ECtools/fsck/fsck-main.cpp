@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <set>
+#include <string>
 #include <list>
 
 #include <kopano/CommonUtil.h>
@@ -30,8 +31,11 @@
 #include <kopano/stringutil.h>
 #include "fsck.h"
 
-using namespace std;
 using namespace KCHL;
+using std::endl;
+using std::cin;
+using std::cout;
+using std::string;
 
 static bool ReadYesNoMessage(const std::string &strMessage,
     const std::string &strAuto)

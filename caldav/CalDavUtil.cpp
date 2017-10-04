@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <utility>
 #include <kopano/ECRestriction.h>
 #include "CalDavUtil.h"
@@ -25,7 +26,6 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 
-using namespace std;
 using namespace KCHL;
 
 /**
@@ -70,7 +70,7 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 	if(wstrProperty->empty())
 	{
 		CoCreateGuid(&sGuid);
-		wstrProperty->assign(convert_to<wstring>(bin2hex(sizeof(GUID), &sGuid)));
+		wstrProperty->assign(convert_to<std::wstring>(bin2hex(sizeof(GUID), &sGuid)));
 	}
 
 	assert(PROP_TYPE(ulPropTag) == PT_UNICODE);
@@ -85,7 +85,7 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 			hr = HrGetOneProp(lpMapiProp, PR_ENTRYID, &~lpMsgProp);
 			if(hr != hrSuccess)
 				return hr;
-			wstrProperty->assign(convert_to<wstring>(bin2hex(lpMsgProp->Value.bin.cb, lpMsgProp->Value.bin.lpb)));
+			wstrProperty->assign(convert_to<std::wstring>(bin2hex(lpMsgProp->Value.bin.cb, lpMsgProp->Value.bin.lpb)));
 		}
 	} else if (hr == hrSuccess)
 		wstrProperty->assign(lpMsgProp->Value.lpszW);
@@ -430,13 +430,13 @@ std::string StripGuid(const std::string &strInput)
 	size_t ulFoundSlash = -1;
 
 	ulFoundSlash = strInput.rfind('/');
-	if(ulFoundSlash == string::npos)
+	if (ulFoundSlash == std::string::npos)
 		ulFoundSlash = 0;
 	else
 		++ulFoundSlash;
 
 	ulFound = strInput.find(".ics", ulFoundSlash);
-	if (ulFound != string::npos)
+	if (ulFound != std::string::npos)
 		return {strInput.cbegin() + ulFoundSlash, strInput.cbegin() + ulFound};
 	return "";
 }

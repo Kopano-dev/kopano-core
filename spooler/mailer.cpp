@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <utility>
 #include "mailer.h"
 #include "archive.h"
@@ -56,8 +57,10 @@
 #include <algorithm>
 #include "spmain.h"
 
-using namespace std;
 using namespace KCHL;
+using std::list;
+using std::string;
+using std::wstring;
 
 /**
  * Expand all rows in the lpTable to normal user recipient

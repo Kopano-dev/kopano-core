@@ -24,8 +24,6 @@
 #include <mapidefs.h>
 #include <kopano/stringutil.h>
 
-using namespace std;
-
 namespace KC {
 
 std::string RestrictionToString(const restrictTable *lpRestriction,

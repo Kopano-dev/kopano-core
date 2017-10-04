@@ -38,7 +38,6 @@
 #include "pcutil.hpp"
 #include <kopano/ECGetText.h>
 
-using namespace std;
 using namespace KCHL;
 
 ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :

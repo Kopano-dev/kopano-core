@@ -53,8 +53,9 @@
 
 #include <set>
 #include <string>
-using namespace std;
 using namespace KCHL;
+using std::set;
+using std::string;
 
 #define QUOTA_CONFIG_MSG "Kopano.Quota"
 
@@ -624,7 +625,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	ULONG ulPropArrayMax = 50;
 	ULONG ulPropArrayCur = 0;
 	FILETIME ft;
-	wstring name, email;
+	std::wstring name, email;
 	convert_context converter;
 
 	/* We are almost there, we have the mail and the recipients. Now we should create the Message */

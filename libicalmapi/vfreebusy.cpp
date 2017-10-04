@@ -22,8 +22,6 @@
 #include <kopano/mapiext.h>
 #include "nameids.h"
 
-using namespace std;
-
 namespace KC {
 
 /** 

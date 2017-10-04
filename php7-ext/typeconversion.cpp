@@ -21,8 +21,6 @@
 #include <mapiutil.h>
 #include "php-ext/phpconfig.h"
 
-using namespace std;
-
 extern "C" {
 	// Remove these defines to remove warnings
 	#undef PACKAGE_VERSION

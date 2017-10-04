@@ -16,8 +16,11 @@
  */
 
 #include <kopano/platform.h>
+#include <list>
+#include <map>
 #include <mutex>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <mapidefs.h>
 #include <mapitags.h>
@@ -33,8 +36,6 @@
 #include "ECGenericObjectTable.h"
 
 #include <algorithm>
-
-using namespace std;
 
 namespace KC {
 
@@ -766,7 +767,8 @@ exit:
 	return er;
 }
 
-ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds, map<objectid_t, unsigned int> *lpmapLocalObjIds)
+ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternObjIds,
+    std::map<objectid_t, unsigned int> *lpmapLocalObjIds)
 {
 	ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
@@ -774,10 +776,10 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 	DB_LENGTHS lpDBLen = NULL;
 	std::string strQuery;
 	ECDatabase *lpDatabase = NULL;
-	list<objectid_t> lstExternIds;
-	list<objectid_t>::const_iterator iter;
+	std::list<objectid_t> lstExternIds;
+	decltype(lstExternIds)::const_iterator iter;
 	objectid_t sExternId;
-	string strSignature;
+	std::string strSignature;
 	unsigned int ulLocalId = 0;
 	unsigned int ulCompanyId;
 
@@ -791,7 +793,7 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 			bin2hex(objid.id).c_str(), objid.objclass);
 		if (I_GetUEIdObject(objid.id, objid.objclass, NULL, &ulLocalId, NULL) == erSuccess)
 			/* Object was found in cache. */
-			lpmapLocalObjIds->insert(make_pair(objid, ulLocalId));
+			lpmapLocalObjIds->insert({objid, ulLocalId});
 		else
 			/* Object was not found in cache. */
 			lstExternIds.push_back(objid);
@@ -833,8 +835,7 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 		sExternId.objclass = (objectclass_t)atoi(lpDBRow[2]);
 		strSignature.assign(lpDBRow[3], lpDBLen[3]);
 		ulCompanyId = atoi(lpDBRow[4]);
-
-		lpmapLocalObjIds->insert(make_pair(sExternId, ulLocalId));
+		lpmapLocalObjIds->insert({sExternId, ulLocalId});
 		I_AddUEIdObject(sExternId.id, sExternId.objclass, ulCompanyId, ulLocalId, strSignature);
 		LOG_USERCACHE_DEBUG(" Get user objects result company %d, userid %d, signature '%s'", ulCompanyId, ulLocalId, bin2hex(strSignature).c_str());
 	}
@@ -1717,7 +1718,7 @@ ECRESULT ECCacheManager::GetObjectFromEntryId(const entryId *lpEntryId,
 	EntryId eid(lpEntryId);
 	try {
 		eid.setFlags(0);
-	} catch (runtime_error &e) {
+	} catch (std::runtime_error &e) {
 		ec_log_err("K-1573: eid.setFlags: %s\n", e.what());
 		/*
 		 * The subsequent functions will catch the too-small eid.size
@@ -1738,7 +1739,7 @@ ECRESULT ECCacheManager::SetObjectEntryId(const entryId *lpEntryId,
     EntryId eid(lpEntryId);
 	try {
 		eid.setFlags(0);
-	} catch (runtime_error &e) {
+	} catch (std::runtime_error &e) {
 		ec_log_err("K-1574: eid.setFlags: %s\n", e.what());
 		/* ignore exception - the following functions will catch the too-small eid.size */
 	}

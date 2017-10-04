@@ -20,9 +20,6 @@
 #include <iostream>
 #include <list>
 #include <getopt.h>
-
-using namespace std;
-
 #include "LDAPConfigCheck.h"
 #include "UnixConfigCheck.h"
 #include "ServerConfigCheck.h"
@@ -31,6 +28,9 @@ using namespace std;
 #include "MonitorConfigCheck.h"
 #include "SpoolerConfigCheck.h"
 #include "DAgentConfigCheck.h"
+
+using std::cout;
+using std::endl;
 
 static const struct option long_options[] = {
 	{ "help",   no_argument,		NULL, 'h' },
@@ -69,7 +69,7 @@ static void print_help(char *lpszName)
 
 int main(int argc, char* argv[])
 {
-	list<ECConfigCheck*> check;
+	std::list<ECConfigCheck *> check;
 	std::string strHosted, strMulti;
 	bool bHosted = false;
 	bool bMulti = false;

@@ -277,7 +277,7 @@ public:
         ulPropTag = NormalizeDBPropTag(ulPropTag); // Only cache PT_STRING8
         CopyPropVal(lpPropVal, &val, NULL, true);
         val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
-		auto res = mapPropVals.insert(std::make_pair(ulPropTag, val));
+		auto res = mapPropVals.insert({ulPropTag, val});
 		if (res.second == false) {
             FreePropVal(&res.first->second, false); 
             res.first->second = val;	// reassign

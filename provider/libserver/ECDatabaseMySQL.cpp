@@ -18,6 +18,8 @@
 #include <kopano/platform.h>
 
 #include <iostream>
+#include <list>
+#include <string>
 #include <errmsg.h>
 #include "mysqld_error.h"
 #include <kopano/stringutil.h>
@@ -40,8 +42,6 @@
 
 #include "ECDatabaseUpdate.h"
 #include "ECStatsCollector.h"
-
-using namespace std;
 
 namespace KC {
 
@@ -348,8 +348,7 @@ ECDatabase::~ECDatabase(void)
 ECRESULT ECDatabase::InitLibrary(const char *lpDatabaseDir,
     const char *lpConfigFile)
 {
-	string		strDatabaseDir;
-	string		strConfigFile;
+	std::string strDatabaseDir, strConfigFile;
 	int			ret = 0;
 
 	if(lpDatabaseDir) {
@@ -433,7 +432,7 @@ ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
 	DB_RESULT lpDBResult;
 
 	std::string strQuery = "SELECT 1 FROM information_schema.COLUMNS "
-				"WHERE TABLE_SCHEMA = '" + string(m_lpConfig->GetSetting("mysql_database")) + "' "
+				"WHERE TABLE_SCHEMA = '" + std::string(m_lpConfig->GetSetting("mysql_database")) + "' "
 				"AND TABLE_NAME = '" + strTable + "' "
 				"AND COLUMN_NAME = '" + strColumn + "'";
 	auto er = DoSelect(strQuery, &lpDBResult);
@@ -1092,8 +1091,7 @@ ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 */
 ECRESULT ECDatabase::ValidateTables(void)
 {
-	list<std::string> listTables;
-	list<std::string> listErrorTables;
+	std::list<std::string> listTables, listErrorTables;
 	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
 

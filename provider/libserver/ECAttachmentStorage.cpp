@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <climits>
 #include <mapidefs.h>
@@ -43,9 +44,9 @@
 #include "StreamUtil.h"
 #include "ECS3Attachment.h"
 
-using namespace std;
-
 namespace KC {
+
+using std::string;
 
 // chunk size for attachment blobs, must be equal or larger than MAX, MAX may never shrink below 384*1024.
 #define CHUNK_SIZE (384 * 1024)

@@ -48,7 +48,7 @@ ZCMAPIProp::~ZCMAPIProp()
 		if (hr != hrSuccess)											\
 			goto exitm; \
 		dest.ulPropTag = propid;										\
-		m_mapProperties.insert(std::make_pair(PROP_ID(propid), dest));	\
+		m_mapProperties.insert({PROP_ID(propid), dest}); \
 		src = NULL;														\
 	} \
 }
@@ -76,7 +76,7 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 	} else {
 		sValue.ulPropTag = PR_BODY;
 		sValue.Value.lpszW = empty;
-		m_mapProperties.insert(std::make_pair(PROP_ID(PR_BODY), sValue));
+		m_mapProperties.insert({PROP_ID(PR_BODY), sValue});
 	}
 
 	lpProp = PCpropFindProp(lpProps, cValues, PR_BUSINESS_ADDRESS_CITY);
@@ -96,7 +96,7 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 
 	sValue.ulPropTag = PR_DISPLAY_TYPE;
 	sValue.Value.ul = DT_MAILUSER;
-	m_mapProperties.insert(std::make_pair(PROP_ID(PR_DISPLAY_TYPE), sValue));
+	m_mapProperties.insert({PROP_ID(PR_DISPLAY_TYPE), sValue});
 
 	if (lpNames)
 		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[1], PT_UNICODE));
@@ -119,7 +119,7 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 
 	sValue.ulPropTag = PR_OBJECT_TYPE;
 	sValue.Value.ul = MAPI_MAILUSER;
-	m_mapProperties.insert(std::make_pair(PROP_ID(PR_OBJECT_TYPE), sValue));
+	m_mapProperties.insert({PROP_ID(PR_OBJECT_TYPE), sValue});
 
 	if (lpNames)
 		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[3], PT_UNICODE));
@@ -188,11 +188,11 @@ HRESULT ZCMAPIProp::ConvertDistList(LPSPropTagArray lpNames, ULONG cValues, LPSP
 
 	sValue.ulPropTag = PR_DISPLAY_TYPE;
 	sValue.Value.ul = DT_PRIVATE_DISTLIST;
-	m_mapProperties.insert(std::make_pair(PROP_ID(PR_DISPLAY_TYPE), sValue));
+	m_mapProperties.insert({PROP_ID(PR_DISPLAY_TYPE), sValue});
 
 	sValue.ulPropTag = PR_OBJECT_TYPE;
 	sValue.Value.ul = MAPI_DISTLIST;
-	m_mapProperties.insert(std::make_pair(PROP_ID(PR_OBJECT_TYPE), sValue));
+	m_mapProperties.insert({PROP_ID(PR_OBJECT_TYPE), sValue});
 
 	lpProp = PCpropFindProp(lpProps, cValues, PR_RECORD_KEY);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_RECORD_KEY);

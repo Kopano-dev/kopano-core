@@ -16,9 +16,13 @@
  */
 
 #include <kopano/platform.h>
+#include <algorithm>
+#include <list>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
+#include <string>
 #include "DBBase.h"
 #include <kopano/ECDefs.h>
 #include <kopano/EMSAbTag.h>
@@ -26,7 +30,8 @@
 #include <mapidefs.h>
 #include "ECServerEntrypoint.h"
 
-using namespace std;
+using std::runtime_error;
+using std::string;
 
 DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 	UserPlugin(pluginlock, shareddata)
@@ -71,7 +76,7 @@ std::unique_ptr<objectdetails_t>
 DBPlugin::getObjectDetails(const objectid_t &objectid)
 {
 	std::unique_ptr<std::map<objectid_t, objectdetails_t> > objectdetails;
-	list<objectid_t> objectids;
+	std::list<objectid_t> objectids;
 
 	objectids.push_back(objectid);
 	objectdetails = DBPlugin::getObjectDetails(objectids);
@@ -87,7 +92,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
 	auto mapdetails = new std::map<objectid_t, objectdetails_t>;
 	ECRESULT er;
-	map<objectclass_t, string> objectstrings;
+	std::map<objectclass_t, std::string> objectstrings;
 	string strQuery;
 	string strSubQuery;
 	DB_RESULT lpResult;
@@ -164,7 +169,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		else if(strcmp(lpDBRow[2], OP_EMAILADDRESS) == 0)
 			details.SetPropString(OB_PROP_S_EMAIL, lpDBRow[3]);
 		else if(strcmp(lpDBRow[2], OP_ISADMIN) == 0)
-			details.SetPropInt(OB_PROP_I_ADMINLEVEL, min(2, atoi(lpDBRow[3])));
+			details.SetPropInt(OB_PROP_I_ADMINLEVEL, std::min(2, atoi(lpDBRow[3])));
 		else if(strcmp(lpDBRow[2], OP_GROUPNAME) == 0) {
 			details.SetPropString(OB_PROP_S_LOGIN, lpDBRow[3]);
 			details.SetPropString(OB_PROP_S_FULLNAME, lpDBRow[3]);
@@ -887,7 +892,7 @@ ECRESULT DBPlugin::CreateMD5Hash(const std::string &strData, std::string* lpstrR
 	if (strData.empty() || lpstrResult == NULL)
 		return KCERR_INVALID_PARAMETER;
 
-	s.setf(ios::hex, ios::basefield);
+	s.setf(std::ios::hex, std::ios::basefield);
 	s.fill('0');
 	s.width(8);
 	s << rand_mt();

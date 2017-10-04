@@ -193,7 +193,7 @@ void StatsClient::countAdd(const std::string & key, const std::string & key_sub,
 
 	auto doubleIterator = countsMapDouble.find(kp);
 	if (doubleIterator == countsMapDouble.cend())
-		countsMapDouble.insert(std::pair<std::string, double>(kp, n));
+		countsMapDouble.insert({kp, n});
 	else
 		doubleIterator -> second += n;
 }
@@ -204,7 +204,7 @@ void StatsClient::countAdd(const std::string & key, const std::string & key_sub,
 
 	auto int64Iterator = countsMapInt64.find(kp);
 	if (int64Iterator == countsMapInt64.cend())
-		countsMapInt64.insert(std::pair<std::string, int64_t>(kp, n));
+		countsMapInt64.insert({kp, n});
 	else
 		int64Iterator -> second += n;
 }

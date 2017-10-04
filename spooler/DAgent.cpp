@@ -45,6 +45,7 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <unordered_set>
 #include <utility>
 #include <climits>
@@ -124,9 +125,14 @@
 #include "StatsClient.h"
 #include <execinfo.h>
 
-using namespace std;
 using namespace KC;
 using namespace KCHL;
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::min;
+using std::string;
+using std::wstring;
 
 static StatsClient *sc = NULL;
 
@@ -3265,9 +3271,9 @@ static void *HandlerLMTP(void *lpArg)
 						WCHAR wbuffer[4096];
 						for (const auto i : recip->vwstrRecipients) {
 							swprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
-							mapRecipientResults.insert(make_pair<std::string, std::string>(converter.convert_to<std::string>(i),
+							mapRecipientResults.insert({converter.convert_to<std::string>(i),
 								// rawsize([N]) returns N, not contents len, so cast to fix
-								converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR)));
+								converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR)});
 							if (save_all)
 								continue;
 							auto save_username = converter.convert_to<std::string>(recip->wstrUsername);

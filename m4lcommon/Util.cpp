@@ -52,7 +52,6 @@
 #include <kopano/ECLogger.h>
 #include "HtmlEntity.h"
 
-using namespace std;
 using namespace KCHL;
 
 #include <kopano/ECGetText.h>
@@ -170,7 +169,7 @@ HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
     ULONG *cDestValues)
 {
 	HRESULT hr = hrSuccess;
-	map<ULONG, const SPropValue *> mapPropSource;
+	std::map<ULONG, const SPropValue *> mapPropSource;
 	ULONG i = 0;
 	memory_ptr<SPropValue> lpProps;
 
@@ -1428,7 +1427,7 @@ HRESULT Util::HrTextToHtml(const WCHAR *text, std::string &strHTML, ULONG ulCode
 {
 	HRESULT hr = hrSuccess;
 	const char *lpszCharset;
-	wstring wHTML;
+	std::wstring wHTML;
 
 	hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
 	if (hr != hrSuccess) {
@@ -1452,7 +1451,7 @@ HRESULT Util::HrTextToHtml(const WCHAR *text, std::string &strHTML, ULONG ulCode
 	}
 
 	try {
-		strHTML += convert_to<string>(lpszCharset, wHTML, rawsize(wHTML), CHARSET_WCHAR);
+		strHTML += convert_to<std::string>(lpszCharset, wHTML, rawsize(wHTML), CHARSET_WCHAR);
 	} catch (const convert_exception &) {
 	}
 
@@ -1805,7 +1804,7 @@ HRESULT Util::HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::w
 {
 	const char *lpszCharset;
 	convert_context converter;
-	string data;
+	std::string data;
 	HRESULT hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
 	if (hr != hrSuccess) {
 		lpszCharset = "us-ascii";
@@ -1817,7 +1816,7 @@ HRESULT Util::HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::w
 		return hr;
 
 	try {
-		wstrOutput->assign(converter.convert_to<wstring>(CHARSET_WCHAR"//IGNORE", data, rawsize(data), lpszCharset));
+		wstrOutput->assign(converter.convert_to<std::wstring>(CHARSET_WCHAR"//IGNORE", data, rawsize(data), lpszCharset));
 	} catch (std::exception &) {
 		return MAPI_E_INVALID_PARAMETER;
 	}
@@ -1873,7 +1872,7 @@ template<size_t N> static bool StrCaseCompare(const wchar_t *lpString,
 HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
 {
 	int tag = 0, type = 0;
-	stack<unsigned int> stackTag;
+	std::stack<unsigned int> stackTag;
 	size_t pos = 0;
 	bool inTag = false;
 	int ulCommentMode = 0;		// 0=no comment, 1=just starting top-level comment, 2=inside comment level 1, 3=inside comment level 2, etc
@@ -2081,7 +2080,7 @@ HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
 				// both strChar and strEntity in output, unicode in rtf space, entity in html space
                 strRTF += std::string("\\htmlrtf ") + strChar + "\\htmlrtf0{\\*\\htmltag" +
 					stringify((ulParMode == 2 ? RTF_FLAG_INPAR : 0) | RTF_TAG_TYPE_STARTP | stackTag.top()) +
-					"&" + convert_to<string>(strEntity) + ";}";
+					"&" + convert_to<std::string>(strEntity) + ";}";
                 pos += strEntity.size() + 2;
                 continue;
             }
@@ -2170,7 +2169,7 @@ HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
  */
 HRESULT	Util::HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int ulCodepage)
 {
-	wstring wstrHTML;
+	std::wstring wstrHTML;
 	std::string strRTF;
 	HRESULT hr = HrConvertStreamToWString(html, ulCodepage, &wstrHTML);
 	if(hr != hrSuccess)

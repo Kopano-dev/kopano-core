@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <string>
 #include <utility>
 #include "recurrence.h"
 #include <cmath>
@@ -31,7 +32,6 @@
 
 #include <iostream>
 #include <algorithm>
-using namespace std;
 
 namespace KC {
 
@@ -570,7 +570,7 @@ time_t recurrence::getModifiedOriginalDateTime(ULONG id) const
 std::wstring recurrence::getModifiedSubject(ULONG id) const
 {
 	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return wstring();
+		return {};
 	return m_sRecState.lstExtendedExceptions[id].strWideCharSubject;
 }
 
@@ -598,7 +598,7 @@ ULONG recurrence::getModifiedReminder(ULONG id) const
 std::wstring recurrence::getModifiedLocation(ULONG id) const
 {
 	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return wstring();
+		return {};
 	return m_sRecState.lstExtendedExceptions[id].strWideCharLocation;
 }
 
@@ -667,7 +667,7 @@ HRESULT recurrence::setModifiedSubject(ULONG id, const std::wstring &strSubject)
 		return S_FALSE;
 
 	m_sRecState.lstExceptions[id].ulOverrideFlags |= ARO_SUBJECT;
-	m_sRecState.lstExceptions[id].strSubject = convert_to<string>(strSubject);
+	m_sRecState.lstExceptions[id].strSubject = convert_to<std::string>(strSubject);
 	m_sRecState.lstExtendedExceptions[id].strWideCharSubject = strSubject;
 
 	return S_OK;
@@ -713,7 +713,7 @@ HRESULT recurrence::setModifiedLocation(ULONG id,
 		return S_FALSE;
 
 	m_sRecState.lstExceptions[id].ulOverrideFlags |= ARO_LOCATION;
-	m_sRecState.lstExceptions[id].strLocation = convert_to<string>(strLocation);
+	m_sRecState.lstExceptions[id].strLocation = convert_to<std::string>(strLocation);
 	m_sRecState.lstExtendedExceptions[id].strWideCharLocation = strLocation;
 
 	return S_OK;

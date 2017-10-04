@@ -37,7 +37,6 @@
 #include <kopano/CommonUtil.h>
 #include "freebusy.h"
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {

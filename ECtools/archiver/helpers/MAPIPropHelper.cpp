@@ -29,8 +29,6 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 
-using namespace std;
-
 namespace KC { namespace helpers {
 
 /**

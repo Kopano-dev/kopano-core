@@ -17,6 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
+#include <string>
 #include <utility>
 #include <mapi.h>
 #include <mapiutil.h>
@@ -36,8 +37,6 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/Util.h>
-
-using namespace std;
 
 namespace KC {
 
@@ -62,7 +61,7 @@ public:
 	}
 
 private:
-	wstring	m_strName;
+	std::wstring m_strName;
 };
 
 static HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey, const char *lpSSLPass, DataCollector *lpCollector);

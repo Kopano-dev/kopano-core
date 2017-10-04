@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <string>
 #include <kopano/platform.h>
 #include <sys/un.h>
 #include "WSUtil.h"
@@ -43,7 +43,6 @@
 #include <kopano/ECGetText.h>
 #include "SOAPSock.h"
 
-using namespace std;
 using namespace KCHL;
 
 #define CONVERT_TO(_context, _charset, ...) ((_context) ? (_context)->convert_to<_charset>(__VA_ARGS__) : convert_to<_charset>(__VA_ARGS__))
@@ -385,7 +384,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
 		}
-		string s = CONVERT_TO(lpConverter, string, sp->Value.lpszA, rawsize(sp->Value.lpszA), "UTF-8");
+		auto s = CONVERT_TO(lpConverter, std::string, sp->Value.lpszA, rawsize(sp->Value.lpszA), "UTF-8");
 		hr = ECAllocateMore(s.length() + 1, lpBase, reinterpret_cast<void **>(&dp->Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
@@ -398,8 +397,8 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
 		}
-		wstring ws = CONVERT_TO(lpConverter, wstring, sp->Value.lpszA, rawsize(sp->Value.lpszA), "UTF-8");
-		hr = ECAllocateMore(sizeof(wstring::value_type) * (ws.length() + 1), lpBase, reinterpret_cast<void **>(&dp->Value.lpszW));
+		auto ws = CONVERT_TO(lpConverter, std::wstring, sp->Value.lpszA, rawsize(sp->Value.lpszA), "UTF-8");
+		hr = ECAllocateMore(sizeof(std::wstring::value_type) * (ws.length() + 1), lpBase, reinterpret_cast<void **>(&dp->Value.lpszW));
 		if (hr != hrSuccess)
 			return hr;
 		wcscpy(dp->Value.lpszW, ws.c_str());
@@ -581,7 +580,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 
 		for (unsigned int i = 0; i < dp->Value.MVszA.cValues; ++i) {
 			if (sp->Value.mvszA.__ptr[i] != NULL) {
-				string s = lpConverter->convert_to<string>(sp->Value.mvszA.__ptr[i], rawsize(sp->Value.mvszA.__ptr[i]), "UTF-8");
+				auto s = lpConverter->convert_to<std::string>(sp->Value.mvszA.__ptr[i], rawsize(sp->Value.mvszA.__ptr[i]), "UTF-8");
 				hr = ECAllocateMore(s.size() + 1, lpBase, reinterpret_cast<void **>(&dp->Value.MVszA.lppszA[i]));
 				if (hr != hrSuccess)
 					return hr;
@@ -619,8 +618,8 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 				dp->Value.MVszW.lppszW[i][0] = '\0';
 				continue;
 			}
-			wstring ws = lpConverter->convert_to<wstring>(sp->Value.mvszA.__ptr[i], rawsize(sp->Value.mvszA.__ptr[i]), "UTF-8");
-			hr = ECAllocateMore(sizeof(wstring::value_type) * (ws.length() + 1), lpBase,
+			auto ws = lpConverter->convert_to<std::wstring>(sp->Value.mvszA.__ptr[i], rawsize(sp->Value.mvszA.__ptr[i]), "UTF-8");
+			hr = ECAllocateMore(sizeof(std::wstring::value_type) * (ws.length() + 1), lpBase,
 			     reinterpret_cast<void **>(&dp->Value.MVszW.lppszW[i]));
 			if (hr != hrSuccess)
 				return hr;
@@ -2392,14 +2391,15 @@ HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse
 static HRESULT ConvertString8ToUnicode(const char *lpszA, WCHAR **lppszW,
     void *base, convert_context &converter)
 {
-	wstring wide;
+	std::wstring wide;
 	WCHAR *lpszW = NULL;
 
 	if (lpszA == NULL || lppszW == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
 	TryConvert(lpszA, wide);
-	auto hr = ECAllocateMore((wide.length() + 1) * sizeof(wstring::value_type), base, reinterpret_cast<void **>(&lpszW));
+	auto hr = ECAllocateMore((wide.length() + 1) * sizeof(std::wstring::value_type),
+	          base, reinterpret_cast<void **>(&lpszW));
 	if (hr != hrSuccess)
 		return hr;
 	wcscpy(lpszW, wide.c_str());

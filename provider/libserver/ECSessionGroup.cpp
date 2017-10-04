@@ -143,7 +143,7 @@ ECRESULT ECSessionGroup::AddAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 		m_lpSessionManager->SubscribeObjectEvents(ulStore, this->m_sessionGroupId);
 		
 		scoped_lock lock(m_mutexSubscribedStores);
-		m_mapSubscribedStores.insert(std::make_pair(ulKey, ulStore));
+		m_mapSubscribedStores.insert({ulKey, ulStore});
 	}
 
 	return hr;

@@ -16,13 +16,13 @@
  */
 
 #include <kopano/platform.h>
+#include <string>
 #include <utility>
+#include <vector>
 #include "WebDav.h"
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
 #include <libical/ical.h>
-
-using namespace std;
 
 /**
  * @param[in]	lpRequest	Pointer to http Request object
@@ -548,7 +548,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 		strGuid.assign((const char *) lpXmlContentNode->content);
 
 		found = strGuid.rfind("/");
-		if (found == string::npos || found + 1 == strGuid.length())
+		if (found == std::string::npos || found + 1 == strGuid.length())
 			continue;
 		++found;
 

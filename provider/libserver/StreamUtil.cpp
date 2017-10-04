@@ -68,7 +68,6 @@
 	  <message>
 */
 
-using namespace std;
 using namespace KCHL;
 
 static inline bool operator<(const GUID &lhs, const GUID &rhs)
@@ -884,14 +883,12 @@ static ECRESULT SerializeProps(struct propValArray *lpPropVals,
 }
 
 static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
-    string *lpstrBestBody)
+    std::string *lpstrBestBody)
 {
 	ECRESULT er = erSuccess;
 	DB_ROW 			lpDBRow = NULL;
 	DB_RESULT lpDBResult;
-	string strQuery;
-
-	strQuery = "SELECT tag FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag IN (0x1009, 0x1013) ORDER BY tag LIMIT 1";
+	auto strQuery = "SELECT tag FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag IN (0x1009, 0x1013) ORDER BY tag LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
@@ -951,8 +948,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		er = lpDatabase->GetNextResult(&lpDBResult);
 	} else {
 		// szGetProps
-		string strMode = "0";
-		string strBestBody = "0";
+		std::string strMode = "0", strBestBody = "0";
 		if(ulFlags & SYNC_BEST_BODY) {
 			strMode = "1";
 			er = GetBestBody(lpDatabase, ulObjId, &strBestBody);

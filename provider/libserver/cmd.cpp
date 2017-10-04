@@ -16,7 +16,10 @@
  */
 
 #include <kopano/platform.h>
+#include <algorithm>
+#include <list>
 #include <memory>
+#include <string>
 #include <utility>
 #include <cstdint>
 #include <kopano/ECChannel.h>
@@ -102,7 +105,6 @@
 #define LOG_SOAP_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SOAP, "soap: " _msg, ##__VA_ARGS__)
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -1271,7 +1273,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	if(er != erSuccess)
 		return er;
 	if ((ulFlags & EC_OVERRIDE_HOMESERVER) == 0)
-		lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strStoreServer).c_str());
+		lpsResponse->lpszServerPath = STROUT_FIX_CPY(std::string("pseudo://" + strStoreServer).c_str());
 	er = gcache->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, ulFlags, &lpsResponse->sStoreId);
 	if(er != erSuccess)
 		return er;
@@ -1293,8 +1295,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 	unsigned int	ulStoreId = 0;
 	unsigned int	ulUserId = 0;
 	objectdetails_t	sUserDetails;
-	string			strServerName;
-	string			strServerPath;
+	std::string strServerName, strServerPath;
     USE_DATABASE();
 
 	if (!lpsEntryId) {
@@ -1328,7 +1329,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
         strServerName = g_lpSessionManager->GetConfig()->GetSetting("server_name" ,"", "Unknown");
     
     // Always return a pseudo URL
-    lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strServerName).c_str());
+    lpsResponse->lpszServerPath = STROUT_FIX_CPY(std::string("pseudo://" + strServerName).c_str());
 
 	strQuery = "SELECT hierarchy.id, stores.guid, stores.hierarchy_id "
 	           "FROM stores join hierarchy on stores.hierarchy_id=hierarchy.parent ";
@@ -3151,7 +3152,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId, &ulEidFlags);
 	if ((ulEidFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0 &&
 	    er == KCERR_NOT_FOUND &&
-	    sEntryId.__size >= static_cast<int>(min(sizeof(EID), sizeof(EID_V0))) &&
+	    sEntryId.__size >= static_cast<int>(std::min(sizeof(EID), sizeof(EID_V0))) &&
 	    reinterpret_cast<EID *>(sEntryId.__ptr)->usType == MAPI_STORE)
 		er = KCERR_UNABLE_TO_COMPLETE;	// Reason 1
 	if (er != erSuccess)
@@ -4587,7 +4588,7 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId,
 		lpDest = strchr(lpDest, '.');
 
 		if(lpDest){
-			strQuery += " OR messageclass='"+lpDatabase->Escape(string(lpszMessageClass, lpDest-lpszMessageClass))+"'";
+			strQuery += " OR messageclass='" + lpDatabase->Escape(std::string(lpszMessageClass, lpDest - lpszMessageClass)) + "'";
 			++lpDest;
 		}
 
@@ -5290,7 +5291,6 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId, entryId sUserId, struct userListResponse *lpsUserList)
 {
 	objectdetails_t userDetails, senderDetails;
-	list<unsigned int> userIds;
 	entryId sSenderEid;
 
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
@@ -5305,8 +5305,7 @@ SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId, entryId 
 	if (er != erSuccess)
 		return er;
 
-	userIds = userDetails.GetPropListInt(OB_PROP_LI_SENDAS);
-
+	auto userIds = userDetails.GetPropListInt(OB_PROP_LI_SENDAS);
 	lpsUserList->sUserArray.__size = 0;
 	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, userIds.size());
 
@@ -6800,13 +6799,11 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreGuid, struct resolveUserStoreResponse *lpsResponse)
 {
 	USE_DATABASE();
-	string strStoreGuid;
 
 	if (sStoreGuid.__ptr == nullptr || sStoreGuid.__size == 0)
 		return KCERR_INVALID_PARAMETER;
 
-	strStoreGuid = lpDatabase->EscapeBinary(sStoreGuid.__ptr, sStoreGuid.__size);
-
+	auto strStoreGuid = lpDatabase->EscapeBinary(sStoreGuid.__ptr, sStoreGuid.__size);
 	// @todo: Check if this is supposed to work with public stores.
 	strQuery =
 		"SELECT u.id, s.hierarchy_id, s.guid, s.company "
@@ -6858,7 +6855,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 {
 	unsigned int		ulObjectId = 0;
 	objectdetails_t		sUserDetails;
-	string				strServerName;
+	std::string strServerName;
 
 	USE_DATABASE();
 
@@ -6898,13 +6895,13 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 	{
 		if (ulStoreTypeMask & (ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC)) {
 			/* Check if this is the correct server for its store */
-			string strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
+			auto strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
 			if (strServerName.empty())
 				return KCERR_NOT_FOUND;
 
 			if (strcasecmp(strServerName.c_str(), cfg->GetSetting("server_name")) != 0) {
 				if ((ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
-					string	strServerPath;
+					std::string strServerPath;
 
 					er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
 					if (er != erSuccess)
@@ -6950,7 +6947,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
     /* We found the store, so we don't need to check if this is the correct server. */
     strServerName = cfg->GetSetting("server_name", "", "Unknown");
     // Always return the pseudo URL.
-    lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strServerName).c_str());
+    lpsResponse->lpszServerPath = STROUT_FIX_CPY(std::string("pseudo://" + strServerName).c_str());
 
     er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, ulFlags & OPENSTORE_OVERRIDE_HOME_MDB, &lpsResponse->sStoreId);
 
@@ -7567,7 +7564,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	//Create new message (Only valid flag in hierarchy is MSGFLAG_ASSOCIATED)
 	strQuery = "INSERT INTO hierarchy(parent, type, flags, owner) VALUES(" +
 		stringify(ulDestFolderId) + ", " +
-		(string)lpDBRow[1] + ", " +
+		std::string(lpDBRow[1]) + ", " +
 		stringify(ulFlags) + "&" + stringify(MSGFLAG_ASSOCIATED) + "," +
 		stringify(lpecSession->GetSecurity()->GetUserId()) + ") ";
 	er = lpDatabase->DoInsert(strQuery, &ulNewObjectId);
@@ -8674,8 +8671,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 		goto exit;
 
 	// remove previous user of store
-	strQuery = "UPDATE stores SET user_id = " + string(lpDBRow[2]) + " WHERE user_id = " + stringify(ulUserId) + " AND type = " + stringify(ulStoreType);
-
+	strQuery = "UPDATE stores SET user_id = " + std::string(lpDBRow[2]) + " WHERE user_id = " + stringify(ulUserId) + " AND type = " + stringify(ulStoreType);
 	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
 	if (er != erSuccess)
 		goto exit;
@@ -8704,8 +8700,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 	}
 
 	// update owner of store
-	strQuery = "UPDATE hierarchy SET owner = " + stringify(ulUserId) + " WHERE id = " + string(lpDBRow[3]);
-
+	strQuery = "UPDATE hierarchy SET owner = " + stringify(ulUserId) + " WHERE id = " + lpDBRow[3];
 	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
 	if (er != erSuccess)
 		goto exit;
@@ -10202,7 +10197,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		memset(&lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData, 0, sizeof(lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData));
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.__ptr = (unsigned char*)lpStreamInfo;
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.type = s_strcpy(soap, "application/binary");
-		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.id = s_strcpy(soap, string("emcas-" + stringify(ulObjCnt, false)).c_str());
+		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.id = s_strcpy(soap, ("emcas-" + stringify(ulObjCnt, false)).c_str());
 		++ulObjCnt;
 		// Remember the object ID since we need it later
 		rows.push_back({ulObjectId, 0});

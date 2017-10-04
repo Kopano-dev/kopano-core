@@ -22,8 +22,6 @@
 #include "ECLockManager.h"
 #include <kopano/lockhelper.hpp>
 
-using namespace std;
-
 namespace KC {
 
 class ECObjectLockImpl _kc_final {

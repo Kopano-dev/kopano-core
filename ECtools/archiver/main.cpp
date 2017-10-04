@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <climits>
 #include <getopt.h>
 #include <kopano/stringutil.h>
@@ -26,10 +27,14 @@
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ecversion.h>
+#include <kopano/UnixUtil.h>
 #include "Archiver.h"
-#include "UnixUtil.cpp"
 
 namespace KC {
+
+using std::cerr;
+using std::cout;
+using std::endl;
 
 enum modes {
     MODE_INVALID = 0,
@@ -67,7 +72,7 @@ static const char *modename(modes mode)
  * @param[in]	lpszName
  *					The name of the application to use in the output.
  */
-static void print_help(ostream &ostr, const char *lpszName)
+static void print_help(std::ostream &ostr, const char *lpszName)
 {
     ostr << endl;
     ostr << "Usage:" << endl;

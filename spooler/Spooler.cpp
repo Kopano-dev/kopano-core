@@ -33,6 +33,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <new>
+#include <string>
 #include <utility>
 #include "mailer.h"
 #include <climits>
@@ -82,8 +83,12 @@
 #include <map>
 #include "spmain.h"
 
-using namespace std;
 using namespace KCHL;
+using std::cout;
+using std::endl;
+using std::map;
+using std::string;
+using std::wstring;
 
 static StatsClient *sc = NULL;
 

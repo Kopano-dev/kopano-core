@@ -17,6 +17,8 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
+#include <vector>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <kopano/stringutil.h>
@@ -34,12 +36,14 @@
 #include <climits>
 #include <kopano/UnixUtil.h>
 
-using namespace std;
-
 // linux version of PR_SERVICE_DLL_NAME
 #define PR_SERVICE_SO_NAME                         PROP_TAG( PT_TSTRING,   0x3D13)
 #define PR_SERVICE_SO_NAME_W                       PROP_TAG( PT_UNICODE,   0x3D13)
 #define PR_SERVICE_SO_NAME_A                       PROP_TAG( PT_STRING8,   0x3D13)
+
+using std::cerr;
+using std::cout;
+using std::endl;
 
 INFLoader::INFLoader()
 {
@@ -75,9 +79,8 @@ INFLoader::INFLoader()
 HRESULT INFLoader::LoadINFs()
 {
 	HRESULT hr;
-	vector<string> paths = GetINFPaths();
 
-	for (const auto &path : paths) {
+	for (const auto &path : GetINFPaths()) {
 		std::unique_ptr<DIR, fs_deleter> dh(opendir(path.c_str()));
 		if (dh == nullptr)
 			continue;
@@ -89,9 +92,8 @@ HRESULT INFLoader::LoadINFs()
 			if (stat(strFilename.c_str(), &sb) < 0 || !S_ISREG(sb.st_mode))
 				continue;
 
-			string::size_type pos = strFilename.rfind(".inf", strFilename.size(), strlen(".inf"));
-
-			if (pos == string::npos || strFilename.size() - pos != strlen(".inf"))
+			auto pos = strFilename.rfind(".inf", strFilename.size(), strlen(".inf"));
+			if (pos == std::string::npos || strFilename.size() - pos != strlen(".inf"))
 				// silently skip files not ending in pos
 				continue;
 			hr = LoadINF(strFilename.c_str());
@@ -117,9 +119,7 @@ HRESULT INFLoader::LoadINF(const char *filename)
 	FILE *fp = NULL;
 	char cBuffer[MAXLINELEN] = {0};
 	inf::iterator iSection = m_mapSections.end();
-	string strLine;
-	string strName;
-	string strValue;
+	std::string strLine, strName, strValue;
 	size_t pos;
 
 	fp = fopen(filename, "r");
@@ -131,25 +131,23 @@ HRESULT INFLoader::LoadINF(const char *filename)
 
 		if (!fgets(cBuffer, sizeof(cBuffer), fp))
 			continue;
-
-		strLine = trim(string(cBuffer), " \t");
-
+		strLine = trim(cBuffer, " \t");
 		/* Skip empty lines any lines which start with # */
 		if (strLine.empty() || strLine[0] == '#')
  			continue;
 
 		/* Get setting name */
 		pos = strLine.find('=');
-		if (pos != string::npos) {
+		if (pos != std::string::npos) {
 			strName = strLine.substr(0, pos);
 			strValue = strLine.substr(pos + 1);
 		} else {
 			if (strLine[0] == '[') {
 				pos = strLine.find(']');
-				if (pos == string::npos)
+				if (pos == std::string::npos)
 					continue;	// skip line
 				strName = strLine.substr(1, pos-1);
-				auto rv = m_mapSections.insert(make_pair(strName, inf_section()));
+				auto rv = m_mapSections.insert({strName, inf_section()});
 				iSection = rv.first;
 			}
 			// always continue with next line.
@@ -160,7 +158,7 @@ HRESULT INFLoader::LoadINF(const char *filename)
 			continue;
 
 		// Parse strName in a property, else leave name?
-		iSection->second.insert(make_pair(trim(strName, " \t\r\n"), trim(strValue, " \t\r\n")));
+		iSection->second.insert({trim(strName, " \t\r\n"), trim(strValue, " \t\r\n")});
 	}
 
 	if (fp)
@@ -176,7 +174,7 @@ HRESULT INFLoader::LoadINF(const char *filename)
  * 
  * @return corresponding info, or empty inf_section;
  */
-const inf_section* INFLoader::GetSection(const string& strSectionName) const
+const inf_section *INFLoader::GetSection(const std::string &strSectionName) const
 {
 	inf::const_iterator iSection = m_mapSections.find(strSectionName);
 	if (iSection == m_mapSections.cend()) {
@@ -191,9 +189,9 @@ const inf_section* INFLoader::GetSection(const string& strSectionName) const
  * 
  * @return path + filename of mapisvc.inf
  */
-vector<string> INFLoader::GetINFPaths()
+std::vector<std::string> INFLoader::GetINFPaths()
 {
-	vector<string> ret;
+	std::vector<std::string> ret;
 	const char *env = getenv("MAPI_CONFIG_PATH");
 	if (env)
 		ret = tokenize(env, ':', true);
@@ -332,7 +330,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 {
 	HRESULT hr;
 	const inf_section* infProvider = NULL;
-	vector<string> prop;
+	std::vector<std::string> prop;
 	void **cf;
 	char filename[PATH_MAX + 1];
 
@@ -348,8 +346,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 			// *new function, new loop
 			for (const auto &i : tokenize(sp.second, ", \t")) {
 				infProvider = cINF.GetSection(i);
-
-				auto prov = m_sProviders.insert(make_pair(i, new SVCProvider));
+				auto prov = m_sProviders.insert({i, new SVCProvider});
 				if (prov.second == false)
 					continue;	// already exists
 
@@ -427,9 +424,9 @@ SVCProvider* SVCService::GetProvider(const TCHAR *lpszProvider, ULONG ulFlags)
 	return i->second;
 }
 
-vector<SVCProvider*> SVCService::GetProviders()
+std::vector<SVCProvider *> SVCService::GetProviders()
 {
-	vector<SVCProvider*> ret;
+	std::vector<SVCProvider *> ret;
 
 	for (const auto &i : m_sProviders)
 		ret.push_back(i.second);
@@ -473,7 +470,7 @@ HRESULT MAPISVC::Init()
 	for (const auto &sp : *infServices) {
 		// ZARAFA6, ZCONTACTS
 		infService = inf.GetSection(sp.first);
-		auto i = m_sServices.insert(make_pair(sp.first, new SVCService()));
+		auto i = m_sServices.insert({sp.first, new SVCService});
 		if (i.second == false)
 			continue;			// already exists
 

@@ -20,8 +20,6 @@
 #include "ECStatsCollector.h"
 #include <kopano/stringutil.h>
 
-using namespace std;
-
 namespace KC {
 
 ECStatsCollector::ECStatsCollector() {

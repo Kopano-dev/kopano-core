@@ -15,6 +15,7 @@
  *
  */
 #include <new>
+#include <string>
 #include <utility>
 #include <cstdint>
 #include <kopano/platform.h>
@@ -48,7 +49,6 @@
 #include <librosie.h>
 #include "config.h"
 
-using namespace std;
 using namespace KCHL;
 
 #define MAX_TABLE_PROPSIZE 8192
@@ -505,7 +505,7 @@ HRESULT ECMessage::SyncRtf()
 	enum eRTFType { RTFTypeOther, RTFTypeFromText, RTFTypeFromHTML};
 
 	HRESULT hr = hrSuccess;
-	string strRTF;
+	std::string strRTF;
 	bool bDone = false;
 	unsigned int ulCodePage = 0;
 	StreamPtr ptrHTMLStream;
@@ -567,7 +567,7 @@ HRESULT ECMessage::SyncRtf()
 	}
 
 	if (!bDone) {
-		string strHTML;
+		std::string strHTML;
 		StreamPtr ptrBodyStream;
 
 		switch (rtfType) {

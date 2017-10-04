@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <utility>
 #include <cstdio>
 #include <cstdlib>
@@ -60,8 +61,12 @@
 #include <kopano/ECFeatures.hpp>
 #include <kopano/mapi_ptr.h>
 #include "IMAP.h"
-using namespace std;
 using namespace KCHL;
+using std::list;
+using std::string;
+using std::swap;
+using std::vector;
+using std::wstring;
 
 /** 
  * @ingroup gateway_imap
@@ -2363,7 +2368,7 @@ LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 
 			sMail.strFlags = lpIMAP->PropsToFlags(lpNotif[i].info.tab.row.lpProps, lpNotif[i].info.tab.row.cValues, true, false);
 			lpIMAP->lstFolderMailEIDs.push_back(sMail);
-			lpIMAP->m_ulLastUid = max(lpIMAP->m_ulLastUid, sMail.ulUid);
+			lpIMAP->m_ulLastUid = std::max(lpIMAP->m_ulLastUid, sMail.ulUid);
 			++ulRecent;
 			break;
 
@@ -3041,7 +3046,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 	bool bNewMail = false;
 	enum { EID, IKEY, IMAPID, FLAGS, FLAGSTATUS, MSGSTATUS, LAST_VERB, NUM_COLS };
 	vector<SMail>::const_iterator iterMail;
-	map<unsigned int, unsigned int> mapUIDs; // Map UID -> ID
+	std::map<unsigned int, unsigned int> mapUIDs; // Map UID -> ID
 	SPropValue sPropMax;
 	unsigned int ulUnseen = 0;
 	static constexpr const SizedSPropTagArray(2, sPropsFolderIDs) =
@@ -3122,8 +3127,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 
                 // Put message on the end of our message
     			lstFolderMailEIDs.push_back(sMail);
-
-                m_ulLastUid = max(sMail.ulUid, m_ulLastUid);
+				m_ulLastUid = std::max(sMail.ulUid, m_ulLastUid);
                 bNewMail = true;
                 
                 // Remember the first unseen message
@@ -3400,7 +3404,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 	SPropValue sPropVal;
 	string strResponse;
 	memory_ptr<SPropTagArray> lpPropTags;
-    set<ULONG> setProps;
+	std::set<ULONG> setProps;
     int n;
     LPSPropValue lpProps;
     ULONG cValues;
@@ -3671,7 +3675,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	string strMessage;
 	string strMessagePart;
 	unsigned int ulCount = 0;
-	ostringstream oss;
+	std::ostringstream oss;
 	string strFlags;
 	bool bSkipOpen = true;
 	vector<string> vProps;
@@ -3845,7 +3849,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 					assert(lpMessage);
 					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Generating message");
 
-					if (oss.tellp() == ostringstream::pos_type(0) && // already converted in previous loop?
+					if (oss.tellp() == std::ostringstream::pos_type(0) && // already converted in previous loop?
 					    (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess)) {
 						vProps.push_back(item);
 						vProps.push_back("NIL");
@@ -4412,7 +4416,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
          * eg. HEADER.FIELDS.NOT (SUBJECT)
          */
         bool bNot = Prefix(strPartName, "HEADER.FIELDS.NOT");
-        list<pair<string, string> > lstFields;
+		std::list<std::pair<std::string, std::string>> lstFields;
         string strFields;
         
         // Parse headers in message
@@ -4424,7 +4428,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
         strMessagePart.clear();
         
         if(bNot) {
-            set<string> setFields;
+			std::set<std::string> setFields;
 
             // Get fields as set
             HrTokenize(setFields, strFields);
@@ -4980,7 +4984,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 	ULONG ulMailnr, ulRownr;
 	enum { EID, NUM_COLS };
 	static constexpr const SizedSPropTagArray(NUM_COLS, spt) = {NUM_COLS, {PR_EC_IMAP_ID}};
-	map<unsigned int, unsigned int> mapUIDs;
+	std::map<unsigned int, unsigned int> mapUIDs;
 	int n = 0;
 	
 	if (strCurrentFolder.empty() || lpSession == nullptr)
@@ -5772,16 +5776,16 @@ bool IMAP::MatchFolderPath(wstring strFolder, const wstring& strPattern)
  * @param[in] strHeaders Email headers to parse (this data will be modified and should not be used after this function)
  * @param[out] lstHeaders list of headers, in header / value pairs
  */
-void IMAP::HrParseHeaders(const string &strHeaders, list<pair<string, string> > &lstHeaders)
+void IMAP::HrParseHeaders(const std::string &strHeaders,
+    std::list<std::pair<std::string, std::string>> &lstHeaders)
 {
     size_t pos = 0;
     string strLine;
     string strField;
     string strData;
-    list<pair<string, string> >::iterator iterLast;
     
     lstHeaders.clear();
-    iterLast = lstHeaders.end();
+	auto iterLast = lstHeaders.end();
     
     while(1) {
         size_t end = strHeaders.find("\r\n", pos);

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <algorithm>
 #include <exception>
 #include <memory>
 #include <string>
@@ -61,8 +62,10 @@
 // icalmapi
 #include "MAPIToICal.h"
 
-using namespace std;
 using namespace KCHL;
+using std::min;
+using std::string;
+using std::wstring;
 
 namespace KC {
 

@@ -33,7 +33,6 @@
 #include <kopano/mapiguidext.h>
 
 #include <algorithm>
-using namespace std;
 using namespace KC::helpers;
 
 namespace KC { namespace operations {

@@ -16,8 +16,10 @@
  */
 
 #include <kopano/zcdefs.h>
+#include <map>
 #include <memory>
 #include <new>
+#include <string>
 #include <utility>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
@@ -40,7 +42,6 @@
 // needed for htons()
 #include <netdb.h>
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -204,9 +205,7 @@ HRESULT ECMemTable::HrGetRowData(LPSPropValue lpRow, ULONG *lpcValues, LPSPropVa
 HRESULT ECMemTable::HrSetClean()
 {
 	HRESULT hr = hrSuccess;
-
-	map<unsigned int, ECTableEntry>::iterator iterRows;
-	map<unsigned int, ECTableEntry>::iterator iterNext;
+	std::map<unsigned int, ECTableEntry>::iterator iterRows, iterNext;
 	scoped_rlock l_data(m_hDataMutex);
 
 	for (iterRows = mapRows.begin(); iterRows != mapRows.end(); iterRows = iterNext) {
@@ -1069,16 +1068,17 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 			if (PROP_TYPE(lpsPropTags->aulPropTag[j]) == PT_UNICODE && PROP_TYPE(lpsProp->ulPropTag) == PT_STRING8) {
 				// PT_UNICODE requested, and PT_STRING8 provided. Do conversion.
 				prop.ulPropTag = PROP_TAG(PT_UNICODE, PROP_ID(lpsPropTags->aulPropTag[j]));
-				const wstring strTmp = converter.convert_to<wstring>(lpsProp->Value.lpszA);
-				hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(wstring::value_type), lpRows->aRow[i].lpProps, reinterpret_cast<void **>(&prop.Value.lpszW));
+				const auto strTmp = converter.convert_to<std::wstring>(lpsProp->Value.lpszA);
+				hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(std::wstring::value_type),
+				     lpRows->aRow[i].lpProps, reinterpret_cast<void **>(&prop.Value.lpszW));
 				if (hr != hrSuccess)
 					return hr;
-				memcpy(prop.Value.lpszW, strTmp.c_str(), (strTmp.size() + 1) * sizeof(wstring::value_type));
+				memcpy(prop.Value.lpszW, strTmp.c_str(), (strTmp.size() + 1) * sizeof(std::wstring::value_type));
 				continue; // Finished with this property
 			} else if (PROP_TYPE(lpsPropTags->aulPropTag[j]) == PT_STRING8 && PROP_TYPE(lpsProp->ulPropTag) == PT_UNICODE) {
 				// PT_STRING8 requested, and PT_UNICODE provided. Do conversion.
 				prop.ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(lpsPropTags->aulPropTag[j]));
-				const string strTmp = converter.convert_to<string>(lpsProp->Value.lpszW);
+				const auto strTmp = converter.convert_to<std::string>(lpsProp->Value.lpszW);
 				hr = MAPIAllocateMore(strTmp.size() + 1, lpRows->aRow[i].lpProps, reinterpret_cast<void **>(&prop.Value.lpszA));
 				if (hr != hrSuccess)
 					return hr;

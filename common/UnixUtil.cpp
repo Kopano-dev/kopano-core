@@ -34,7 +34,6 @@
 #include <sys/resource.h>
 
 #include <string>
-using namespace std;
 
 namespace KC {
 
@@ -438,7 +437,7 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	if (waitpid(pid, &status, 0) < 0)
 		return false;
 	if (status == -1) {
-		ec_log_err(string("System call \"system\" failed: ") + strerror(errno));
+		ec_log_err(std::string("System call \"system\" failed: ") + strerror(errno));
 		return false;
 	}
 	bool rv = true;

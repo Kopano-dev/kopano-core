@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ecversion.h>
+#include <algorithm>
 #include <memory>
 #include <new>
 #include <cstdio>
@@ -107,8 +108,6 @@
 // we need to include this in c++ space because php.h also includes it in
 // 'extern "C"'-space which doesn't work in win32
 #include <cmath>
-
-using namespace std;
 
 extern "C" {
 	// Remove these defines to remove warnings
@@ -3869,7 +3868,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	// amount of text we've read in so far. If our buffer wasn't big enough,
 	// we enlarge it and continue. We have to do this, instead of allocating
 	// it up front, because Stream::Stat() doesn't work for the unc.stream
-	bufsize = max(rtfBufferLen * 2, bufsize);
+	bufsize = std::max(rtfBufferLen * 2, bufsize);
 	htmlbuf.reset(new char[bufsize]);
 
 	while(1) {

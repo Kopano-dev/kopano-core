@@ -14,7 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include <algorithm>
 #include <new>
+#include <string>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 
@@ -68,8 +70,6 @@
 #include "ECSession.h"
 
 #include <map>
-
-using namespace std;
 
 namespace KC {
 
@@ -298,7 +298,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 	ECListInt			listMVSortCols;//Other mvprops then normal column set
 	ECListInt			listMVIColIds;
-	string				strCol;
+	std::string strCol;
     sObjectTableKey sKey;
 	
 	std::set<std::pair<unsigned int, unsigned int> > setCellDone;
@@ -449,7 +449,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 
             // Find out which columns we need
             for (k = 0; k < lpsPropTagArray->__size; ++k) {
-				if (setCellDone.count(std::make_pair(rowp.second, k)) != 0)
+				if (setCellDone.count({rowp.second, k}) != 0)
 					continue;
 				// Not done yet, remember that we need to get this column
 				unsigned int ulPropTag;
@@ -478,7 +478,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
         for (k = 0; k < lpsPropTagArray->__size; ++k) {
 			i = 0;
 			for (const auto &row : *lpRowList) {
-				if (setCellDone.count(std::make_pair(i, k)) != 0) {
+				if (setCellDone.count({i, k}) != 0) {
 					++i;
 					continue; /* already done */
 				}
@@ -825,8 +825,8 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 			}
     	}
     	
-		ulMin = min(ulMin, PROP_ID(col.first));
-		ulMax = max(ulMax, PROP_ID(col.first));
+		ulMin = std::min(ulMin, PROP_ID(col.first));
+		ulMax = std::max(ulMax, PROP_ID(col.first));
     }
     
     for (const auto &ob : mapObjIds) {
@@ -938,7 +938,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 	
 	for (const auto &col : mapColumns)
 		for (const auto &ob : mapObjIds)
-			if (setDone.count(std::make_pair(ob.second, col.second)) == 0) {
+			if (setDone.count({ob.second, col.second}) == 0) {
 				// We may be overwriting a value that was retrieved from the cache before.
 				if (soap == NULL && lpsRowSet->__ptr[ob.second].__ptr[col.second].ulPropTag != 0)
 					FreePropVal(&lpsRowSet->__ptr[ob.second].__ptr[col.second], false);

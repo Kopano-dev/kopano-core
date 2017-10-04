@@ -17,8 +17,10 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
+#include <list>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <utility>
 #include <cerrno>
 #include <climits>
@@ -35,10 +37,11 @@
 
 #include <kopano/charset/convert.h>
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
+
+using std::string;
 
 const directive_t ECConfigImpl::s_sDirectives[] = {
 	{ "include",	&ECConfigImpl::HandleInclude },
@@ -216,14 +219,14 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 	if (i == lpMap->cend()) {
 		// Insert new value
 		data = new char[1024];
-		lpMap->insert(make_pair(s, data));
+		lpMap->insert({s, data});
 	} else {
 		// Actually remove and re-insert the map entry since we may be modifying
 		// ulFlags in the key (this is a bit of a hack, since you shouldn't be modifying
 		// stuff in the key, but this is the easiest)
 		data = i->second;
 		lpMap->erase(i);
-		lpMap->insert(make_pair(s, data));
+		lpMap->insert({s, data});
 	}
 	
 	if (bIsSize)
@@ -279,8 +282,7 @@ const wchar_t *ECConfigImpl::GetSettingW(const char *szName)
 	auto result = m_convertCache.insert({value, L""});
 	auto iter = result.first;
 	if (result.second)
-		iter->second = convert_to<wstring>(value);
-
+		iter->second = convert_to<std::wstring>(value);
 	return iter->second.c_str();
 }
 
@@ -294,9 +296,9 @@ const wchar_t *ECConfigImpl::GetSettingW(const char *szName,
 		return value;
 }
 
-list<configsetting_t> ECConfigImpl::GetSettingGroup(unsigned int ulGroup)
+std::list<configsetting_t> ECConfigImpl::GetSettingGroup(unsigned int ulGroup)
 {
-	list<configsetting_t> lGroup;
+	std::list<configsetting_t> lGroup;
 	configsetting_t sSetting;
 
 	for (const auto &s : m_mapSettings)
@@ -308,7 +310,7 @@ list<configsetting_t> ECConfigImpl::GetSettingGroup(unsigned int ulGroup)
 
 std::list<configsetting_t> ECConfigImpl::GetAllSettings()
 {
-	list<configsetting_t> lSettings;
+	std::list<configsetting_t> lSettings;
 	configsetting_t sSetting;
 
 	for (const auto &s : m_mapSettings)

@@ -17,7 +17,9 @@
 
 #include <kopano/platform.h>
 #include <exception>
+#include <list>
 #include <utility>
+#include <vector>
 #include "VMIMEToMAPI.h"
 #include <kopano/ECGuid.h>
 #include <kopano/ECLogger.h>
@@ -68,8 +70,11 @@
 #include "ICalToMAPI.h"
 #include "config.h"
 
-using namespace std;
 using namespace KCHL;
+using std::list;
+using std::string;
+using std::vector;
+using std::wstring;
 
 namespace KC {
 

@@ -17,16 +17,17 @@
 
 #include <iostream>
 #include <algorithm>
-
+#include <string>
 #include <sys/stat.h>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <kopano/stringutil.h>
-
-using namespace std;
-
 #include "ECConfigCheck.h"
+
+using std::cerr;
+using std::cout;
+using std::endl;
 
 ECConfigCheck::ECConfigCheck(const char *lpszName, const char *lpszConfigFile)
 {
@@ -39,7 +40,7 @@ ECConfigCheck::ECConfigCheck(const char *lpszName, const char *lpszConfigFile)
 	readConfigFile(lpszConfigFile);
 }
 
-static string clearCharacters(string s, const string &whitespaces)
+static std::string clearCharacters(std::string s, const std::string &whitespaces)
 {
 	size_t pos = 0;
 
@@ -57,9 +58,8 @@ static string clearCharacters(string s, const string &whitespaces)
 	s.erase(0, pos);
 
 	pos = s.find_last_not_of(whitespaces);
-	if (pos != string::npos)
-		s.erase(pos + 1, string::npos);
-
+	if (pos != std::string::npos)
+		s.erase(pos + 1, std::string::npos);
 	return s;
 }
 
@@ -67,9 +67,7 @@ void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 {
 	FILE *fp = NULL;
 	char cBuffer[1024];
-	string strLine;
-	string strName;
-	string strValue;
+	std::string strLine, strName, strValue;
 	size_t pos;
 
 	if (!lpszConfigFile) {
@@ -88,7 +86,7 @@ void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 		if (!fgets(cBuffer, sizeof(cBuffer), fp))
 			continue;
 
-		strLine = string(cBuffer);
+		strLine = cBuffer;
 
 		/* Skip empty lines any lines which start with # */
 		if (strLine.empty() || strLine[0] == '#')
@@ -96,7 +94,7 @@ void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 
 		/* Get setting name */
 		pos = strLine.find('=');
-		if (pos != string::npos) {
+		if (pos != std::string::npos) {
 			strName = strLine.substr(0, pos);
 			strValue = strLine.substr(pos + 1);
 		} else
@@ -253,7 +251,7 @@ int ECConfigCheck::testCharset(const config_check_t *check)
 	}
 
 	char buffer[50];
-	string output;
+	std::string output;
 
 	memset(buffer, 0, sizeof(buffer));
 	if (fgets(buffer, sizeof(buffer), fp) == nullptr) {
@@ -263,7 +261,7 @@ int ECConfigCheck::testCharset(const config_check_t *check)
 	}
 	output = buffer;
 	pclose(fp);
-	if (output.find(v1) == string::npos) {
+	if (output.find(v1) == std::string::npos) {
 		printError(check->option1, "contains unknown chartype \"" + v1 + "\"");
 		return CHECK_ERROR;
 	}

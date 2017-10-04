@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <list>
 #include <memory>
 #include <utility>
 #include <kopano/tie.hpp>
@@ -38,7 +39,6 @@
 #include "soapH.h"
 #include "SOAPUtils.h"
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -465,9 +465,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	icsChangesArray*lpChanges = NULL;
 	bool			bAcceptABEID = false;
 	unsigned int	cbSourceKeyData = 0;
-	list<unsigned int> lstFolderIds;
-	// Contains a list of change IDs
-	list<unsigned int> lstChanges;
+	std::list<unsigned int> lstFolderIds, lstChanges;
 	std::unique_ptr<ECGetContentChangesHelper> lpHelper;
 	
 	ec_log(EC_LOGLEVEL_ICS, "GetChanges(): sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);

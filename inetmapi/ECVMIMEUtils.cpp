@@ -19,7 +19,7 @@
 #include <exception>
 #include <memory>
 #include <iostream>
-
+#include <string>
 #include "ECVMIMEUtils.h"
 #include "MAPISMTPTransport.h"
 #include <kopano/CommonUtil.h>
@@ -41,7 +41,6 @@
 #include <kopano/mapi_ptr.h>
 #include <vmime/base.hpp>
 
-using namespace std;
 using namespace KCHL;
 
 namespace KC {
@@ -109,7 +108,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 
 		if (bAddrFetchSuccess && bItemIsAUser) {
 			if (setRecips.find(strEmail) == setRecips.end()) {
-				recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
+				recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<std::string>(strEmail)));
 				setRecips.insert(strEmail);
 				ec_log_debug("RCPT TO: %ls", strEmail.c_str());	
 			}
@@ -149,7 +148,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 				return hr;
 			}
 		} else if (setRecips.find(strEmail) == setRecips.end()) {
-			recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
+			recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<std::string>(strEmail)));
 			setRecips.insert(strEmail);
 			ec_log_debug("Sending to group-address %s instead of expanded list",
 				convert_to<std::string>(strEmail).c_str());
@@ -347,7 +346,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 
 		vmMessage->generate(ossAdapter);
 
-		const string& str(oss.str()); // copy?
+		const std::string &str(oss.str()); // copy?
 		vmime::utility::inputStreamStringAdapter isAdapter(str); // direct oss.str() ?
 		
 		// send the email already!
@@ -372,7 +371,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 			}
 			ec_log_err("SMTP: %s Response: %s", e.what(), e.response().c_str());
 			smtpresult = atoi(e.response().substr(0, e.response().find_first_of(" ")).c_str());
-			error = convert_to<wstring>(e.response());
+			error = convert_to<std::wstring>(e.response());
 			// message should be cancelled, unsendable, test by smtp result code.
 			return MAPI_W_CANCEL_MESSAGE;
 		} 
@@ -383,7 +382,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 			}
 			ec_log_err("SMTP: %s Name: %s", e.what(), e.name());
 			//smtpresult = atoi(e.response().substr(0, e.response().find_first_of(" ")).c_str());
-			//error = convert_to<wstring>(e.response());
+			//error = convert_to<std::wstring>(e.response());
 			// message should be cancelled, unsendable, test by smtp result code.
 			return MAPI_W_CANCEL_MESSAGE;
 		} 
@@ -418,12 +417,12 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 	catch (vmime::exception& e) {
 		// connection_greeting_error, ...?
 		ec_log_err("%s", e.what());
-		error = convert_to<wstring>(e.what());
+		error = convert_to<std::wstring>(e.what());
 		return MAPI_E_NETWORK_ERROR;
 	}
 	catch (std::exception& e) {
 		ec_log_err("%s", e.what());
-		error = convert_to<wstring>(e.what());
+		error = convert_to<std::wstring>(e.what());
 		return MAPI_E_NETWORK_ERROR;
 	}
 	return hr;

@@ -19,8 +19,10 @@
 
 #include <kopano/platform.h>
 #include <kopano/ecversion.h>
+#include <algorithm>
 #include <memory>
 #include <new>
+#include <string>
 #include <cstdio>
 #include <cstdlib>
 #include <syslog.h>
@@ -234,8 +236,6 @@ private:
 	std::string what;
 	unsigned long long start_ts = 0;
 };
-
-using namespace std;
 
 static ECLogger *lpLogger = NULL;
 
@@ -805,9 +805,7 @@ ZEND_FUNCTION(mapi_createoneoff)
 	memory_ptr<ENTRYID> lpEntryID;
 	ULONG cbEntryID = 0;
 	// local
-	wstring name;
-	wstring type;
-	wstring email;
+	std::wstring name, type, email;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -3854,7 +3852,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	// amount of text we've read in so far. If our buffer wasn't big enough,
 	// we enlarge it and continue. We have to do this, instead of allocating
 	// it up front, because Stream::Stat() doesn't work for the unc.stream
-	bufsize = max(rtfBufferLen * 2, bufsize);
+	bufsize = std::max(rtfBufferLen * 2, bufsize);
 	htmlbuf.reset(new char[bufsize]);
 
 	while(1) {

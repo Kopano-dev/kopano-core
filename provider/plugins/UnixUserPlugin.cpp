@@ -19,9 +19,11 @@
 #include <algorithm>
 #include <exception>
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <string>
 #include <stdexcept>
+#include <vector>
 #include <sys/types.h>
 #include <pwd.h>
 #include <sstream>
@@ -43,9 +45,6 @@
 #include <kopano/ECPluginSharedData.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
-
-using namespace std;
-
 #include "UnixUserPlugin.h"
 #include <kopano/ecversion.h>
 
@@ -73,6 +72,10 @@ unsigned long getUserPluginVersion()
 }
 
 } /* extern "C" */
+
+using std::runtime_error;
+using std::string;
+//using std::vector;
 
 UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
@@ -121,7 +124,7 @@ void UnixUserPlugin::findUserID(const string &id, struct passwd *pwd, char *buff
 	struct passwd *pw = NULL;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
-	vector<string> exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
+	auto exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
 	objectid_t objectid;
 	int ret = getpwuid_r(atoi(id.c_str()), pwd, buffer, PWBUFSIZE, &pw);
 	if (ret != 0)
@@ -142,7 +145,7 @@ void UnixUserPlugin::findUser(const string &name, struct passwd *pwd, char *buff
 	struct passwd *pw = NULL;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
-	vector<string> exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
+	auto exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
 	objectid_t objectid;
 	int ret = getpwnam_r(name.c_str(), pwd, buffer, PWBUFSIZE, &pw);
 	if (ret != 0)
@@ -163,7 +166,7 @@ void UnixUserPlugin::findGroupID(const string &id, struct group *grp, char *buff
 	struct group *gr = NULL;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
-	vector<string> exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
+	auto exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
 	objectid_t objectid;
 	int ret = getgrgid_r(atoi(id.c_str()), grp, buffer, PWBUFSIZE, &gr);
 	if (ret != 0)
@@ -184,7 +187,7 @@ void UnixUserPlugin::findGroup(const string &name, struct group *grp, char *buff
 	struct group *gr = NULL;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
-	vector<string> exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
+	auto exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
 	objectid_t objectid;
 	int ret = getgrnam_r(name.c_str(), grp, buffer, PWBUFSIZE, &gr);
 	if (ret != 0)
@@ -284,7 +287,7 @@ objectsignature_t UnixUserPlugin::authenticateUser(const string &username, const
 	char buffer[PWBUFSIZE];
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
-	vector<string> exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
+	auto exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
 	std::unique_ptr<struct crypt_data> cryptdata;
 	std::unique_ptr<objectdetails_t> ud;
 	objectid_t objectid;
@@ -367,8 +370,8 @@ UnixUserPlugin::getAllUserObjects(const std::string &match,
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
 	auto forbid_sh = tokenize(m_config->GetSetting("non_login_shell"), ' ', true);
-	vector<string> exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
-	set<uid_t> exceptuidset;
+	auto exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
+	std::set<uid_t> exceptuidset;
 	objectid_t objectid;
 
 	transform(exceptuids.begin(), exceptuids.end(), inserter(exceptuidset, exceptuidset.begin()), fromstring<const std::string,uid_t>);
@@ -406,8 +409,8 @@ UnixUserPlugin::getAllGroupObjects(const std::string &match,
 	struct group grs, *gr = NULL;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
-	vector<string> exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
-	set<gid_t> exceptgidset;
+	auto exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
+	std::set<gid_t> exceptgidset;
 
 	transform(exceptgids.begin(), exceptgids.end(), inserter(exceptgidset, exceptgidset.begin()), fromstring<const std::string,uid_t>);
 
@@ -441,7 +444,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	ECRESULT er = erSuccess;
 	std::unique_ptr<signatures_t> objectlist(new signatures_t());
 	std::unique_ptr<signatures_t> objects;
-	map<objectclass_t, string> objectstrings;
+	std::map<objectclass_t, std::string> objectstrings;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	string strQuery;
@@ -673,8 +676,8 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	struct group grs, *gr = NULL;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
-	vector<string> exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
-	set<gid_t> exceptgidset;
+	auto exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
+	std::set<gid_t> exceptgidset;
 	string username;
 
 	if (relation != OBJECTRELATION_GROUP_MEMBER)
@@ -740,8 +743,8 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	auto forbid_sh = tokenize(m_config->GetSetting("non_login_shell"), ' ', true);
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
-	vector<string> exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
-	set<uid_t> exceptuidset;
+	auto exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
+	std::set<uid_t> exceptuidset;
 
 	if (relation != OBJECTRELATION_GROUP_MEMBER)
 		return DBPlugin::getSubObjectsForObject(relation, parentid);
@@ -867,7 +870,7 @@ std::unique_ptr<serverlist_t> UnixUserPlugin::getServers(void)
 std::unique_ptr<std::map<objectid_t, objectdetails_t> >
 UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
-	std::unique_ptr<std::map<objectid_t, objectdetails_t> > mapdetails(new map<objectid_t, objectdetails_t>());
+	std::unique_ptr<std::map<objectid_t, objectdetails_t>> mapdetails(new std::map<objectid_t, objectdetails_t>);
 	std::unique_ptr<objectdetails_t> uDetails;
 	objectdetails_t details;
 

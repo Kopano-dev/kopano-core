@@ -18,7 +18,9 @@
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
 #include <kopano/lockhelper.hpp>
+#include <algorithm>
 #include <mutex>
+#include <string>
 #include <cassert>
 #include <climits>
 #include <clocale>
@@ -41,8 +43,6 @@
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <kopano/ECConfig.h>
-
-using namespace std;
 
 namespace KC {
 
@@ -163,7 +163,7 @@ int ECLogger::snprintf(char *str, size_t size, const char *format, ...) {
 
 ECLogger_Null::ECLogger_Null() : ECLogger(EC_LOGLEVEL_NONE) {}
 void ECLogger_Null::Reset() {}
-void ECLogger_Null::Log(unsigned int loglevel, const string &message) {}
+void ECLogger_Null::Log(unsigned int loglevel, const std::string &message) {}
 void ECLogger_Null::Log(unsigned int loglevel, const char *format, ...) {}
 void ECLogger_Null::LogVA(unsigned int loglevel, const char *format, va_list& va) {}
 
@@ -345,7 +345,8 @@ bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &me
 	return false;
 }
 
-void ECLogger_File::Log(unsigned int loglevel, const string &message) {
+void ECLogger_File::Log(unsigned int loglevel, const std::string &message)
+{
 	if (!ECLogger::Log(loglevel))
 		return;
 	if (DupFilter(loglevel, message))
@@ -416,7 +417,8 @@ void ECLogger_Syslog::Reset() {
 	// not needed.
 }
 
-void ECLogger_Syslog::Log(unsigned int loglevel, const string &message) {
+void ECLogger_Syslog::Log(unsigned int loglevel, const std::string &message)
+{
 	if (!ECLogger::Log(loglevel))
 		return;
 
@@ -571,7 +573,7 @@ void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message) {
 	else
 		off += len;
 
-	len = min((int)message.length(), (int)sizeof msgbuffer - (off + 1));
+	len = std::min(static_cast<int>(message.length()), static_cast<int>(sizeof(msgbuffer) - (off + 1)));
 	if (len < 0)
 		len = 0;
 	else {
@@ -621,7 +623,7 @@ void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va
 	if (len < 0)
 		len = 0;
 
-	len = min(len, (int)sizeof msgbuffer - off - 2); // yes, -2, otherwise we could have 2 \0 at the end of the buffer
+	len = std::min(len, static_cast<int>(sizeof(msgbuffer) - off - 2)); // yes, -2, otherwise we could have 2 \0 at the end of the buffer
 	off += len;
 
 	msgbuffer[off] = '\0';
@@ -731,7 +733,7 @@ namespace PrivatePipe {
 					p = NULL;
 					continue;
 				}
-				lpFileLogger->Log(l, string(p, s));
+				lpFileLogger->Log(l, std::string(p, s));
 				++s;		// add \0
 				p += s;		// skip string
 				ret -= s;
@@ -820,7 +822,7 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
     const char *lpszServiceName, bool bAudit)
 {
 	ECLogger *lpLogger = NULL;
-	string prepend;
+	std::string prepend;
 	int loglevel = 0;
 	int syslog_facility = LOG_MAIL;
 	auto log_method = lpConfig->GetSetting("log_method");

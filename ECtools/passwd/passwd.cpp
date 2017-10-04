@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <memory>
+#include <string>
 #include <kopano/charset/convert.h>
 #include <climits>
 #include <cmath>
@@ -37,8 +38,10 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/ECLogger.h>
 
-using namespace std;
 using namespace KCHL;
+using std::cerr;
+using std::cout;
+using std::endl;
 
 static bool verbose = false;
 
@@ -88,12 +91,8 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	memory_ptr<SPropValue> lpPropValue;
 	memory_ptr<ECUSER> lpECUser;
 	convert_context converter;
-
-	std::wstring strwUsername, strwPassword;
-
-	strwUsername = converter.convert_to<wstring>(lpUsername);
-	strwPassword = converter.convert_to<wstring>(lpPassword);
-
+	auto strwUsername = converter.convert_to<std::wstring>(lpUsername);
+	auto strwPassword = converter.convert_to<std::wstring>(lpPassword);
 	ECLogger *lpLogger = NULL;
 	if (verbose)
 		lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false);

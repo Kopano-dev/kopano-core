@@ -45,9 +45,6 @@
 #include "SSLUtil.h"
 
 #include "TmpPath.h"
-
-using namespace std;
-
 #include <execinfo.h>
 #include <kopano/UnixUtil.h>
 #include <unicode/uclean.h>
@@ -110,6 +107,9 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
 	generic_sigsegv_handler(g_lpLogger, "kopano-ical", PROJECT_VERSION, signr, si, uc);
 }
+
+using std::cout;
+using std::endl;
 
 static void PrintHelp(const char *name)
 {

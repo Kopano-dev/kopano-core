@@ -31,8 +31,6 @@
 #include <kopano/ECPluginSharedData.h>
 
 #include <kopano/stringutil.h>
-
-using namespace std;
 #include "ECDatabaseFactory.h"
 #include "DBUserPlugin.h"
 #include <kopano/ecversion.h>
@@ -55,6 +53,9 @@ unsigned long getUserPluginVersion()
 }
 
 } /* extern "C" */
+
+using std::runtime_error;
+using std::string;
 
 DBUserPlugin::DBUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :

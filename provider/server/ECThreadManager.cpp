@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <mutex>
+#include <string>
 #include "ECThreadManager.h"
 
 #include <cmath>
@@ -42,7 +43,7 @@
 	case x: \
 		return #x;
 
-using namespace std;
+using std::string;
 
 static string GetSoapError(int err)
 {
@@ -469,9 +470,7 @@ ECRESULT ECDispatcher::AddListenSocket(struct soap *soap)
 	soap->max_keep_alive = m_nMaxKeepAlive;
 	soap->recv_timeout = m_nReadTimeout; // Use m_nReadTimeout, the value for timeouts during XML reads
 	soap->send_timeout = m_nSendTimeout;
-
-    m_setListenSockets.insert(std::make_pair(soap->socket, soap));
-    
+	m_setListenSockets.insert({soap->socket, soap});
     return erSuccess;
 }
 
@@ -565,7 +564,7 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
             time(&sActive.ulLastActivity);
             
 			ulock_normal l_sock(m_mutexSockets);
-			m_setSockets.insert(std::make_pair(soap->socket, sActive));
+			m_setSockets.insert({soap->socket, sActive});
 			l_sock.unlock();
             // Notify select restart, send socket number which is done
 			NotifyRestart(socket);
@@ -807,7 +806,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			g_lpStatsCollector->Increment(SCN_SERVER_CONNECTIONS);
 			sActive.soap = newsoap;
 			l_sock.lock();
-			m_setSockets.insert(std::make_pair(sActive.soap->socket, sActive));
+			m_setSockets.insert({sActive.soap->socket, sActive});
 			l_sock.unlock();
 		}
 	}
@@ -981,8 +980,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
 					// directly make worker thread active
                     sActive.soap = newsoap;
-                    m_setSockets.insert(std::make_pair(sActive.soap->socket, sActive));
-
+					m_setSockets.insert({sActive.soap->socket, sActive});
 					NotifyRestart(newsoap->socket);
 				}
 

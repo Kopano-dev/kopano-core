@@ -15,6 +15,8 @@
  *
  */
 
+#include <string>
+#include <vector>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ProtocolBase.h"
@@ -23,7 +25,6 @@
 #include "CalDavUtil.h"
 #include <kopano/mapi_ptr.h>
 
-using namespace std;
 using namespace KCHL;
 
 ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
@@ -45,9 +46,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 {
 	HRESULT hr = hrSuccess;
 	std::string strUrl;
-	std::string strMethod;
-	string strFldOwner;
-	string strFldName;
+	std::string strMethod, strFldOwner, strFldName;
 	memory_ptr<SPropValue> lpDefaultProp, lpFldProp;
 	SPropValuePtr lpEntryID;
 	ULONG ulRes = 0;
@@ -225,18 +224,18 @@ HRESULT ProtocolBase::HrInitializeClass()
 	 * Workaround for old users with sunbird / lightning on old url base.
 	 */
 	{
-		vector<string> parts;
+		std::vector<std::string> parts;
 		parts = tokenize(strUrl, '/', true);
 
 		m_lpRequest->HrGetHeaderValue("User-Agent", &strAgent);
 
 		// /caldav/
 		// /caldav/username/ (which we return in XML data! (and shouldn't)), since this isn't a calendar, but /caldav/username/Calendar/ is.
-		if ((strAgent.find("Sunbird/1") != string::npos || strAgent.find("Lightning/1") != string::npos) && parts.size() <= 2) {
+		if ((strAgent.find("Sunbird/1") != std::string::npos || strAgent.find("Lightning/1") != std::string::npos) && parts.size() <= 2) {
 			// Mozilla Sunbird / Lightning doesn't handle listing of calendars, only contents.
 			// We therefore redirect them to the default calendar url.
 			SPropValuePtr ptrDisplayName;
-			string strLocation = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8");
+			auto strLocation = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8");
 
 			if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &~ptrDisplayName) == hrSuccess) {
 				std::string part = urlEncode(ptrDisplayName->Value.lpszW, "UTF-8"); 
@@ -247,7 +246,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 			}
 
 			m_lpRequest->HrResponseHeader(301, "Moved Permanently");
-			m_lpRequest->HrResponseHeader("Location", m_converter.convert_to<string>(strLocation));
+			m_lpRequest->HrResponseHeader("Location", m_converter.convert_to<std::string>(strLocation));
 			return MAPI_E_NOT_ME;
 		}
 	}
@@ -285,7 +284,7 @@ HRESULT ProtocolBase::HrInitializeClass()
  */
 std::string ProtocolBase::W2U(const std::wstring &strWideChar)
 {
-	return m_converter.convert_to<string>(m_strCharset.c_str(), strWideChar, rawsize(strWideChar), CHARSET_WCHAR);
+	return m_converter.convert_to<std::string>(m_strCharset.c_str(), strWideChar, rawsize(strWideChar), CHARSET_WCHAR);
 }
 
 /**
@@ -295,7 +294,7 @@ std::string ProtocolBase::W2U(const std::wstring &strWideChar)
  */
 std::string ProtocolBase::W2U(const WCHAR* lpwWideChar)
 {
-	return m_converter.convert_to<string>(m_strCharset.c_str(), lpwWideChar, rawsize(lpwWideChar), CHARSET_WCHAR);
+	return m_converter.convert_to<std::string>(m_strCharset.c_str(), lpwWideChar, rawsize(lpwWideChar), CHARSET_WCHAR);
 }
 
 /**
@@ -305,7 +304,7 @@ std::string ProtocolBase::W2U(const WCHAR* lpwWideChar)
  */
 std::wstring ProtocolBase::U2W(const std::string &strUtfChar)
 {
-	return m_converter.convert_to<wstring>(strUtfChar, rawsize(strUtfChar), m_strCharset.c_str());	
+	return m_converter.convert_to<std::wstring>(strUtfChar, rawsize(strUtfChar), m_strCharset.c_str());	
 }
 
 /**

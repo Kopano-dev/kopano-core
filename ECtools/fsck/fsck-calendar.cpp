@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
+#include <string>
 #include <utility>
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
@@ -31,7 +32,6 @@
 #include <kopano/RecurrenceState.h>
 #include "fsck.h"
 
-using namespace std;
 using namespace KCHL;
 
 HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
@@ -233,7 +233,7 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	}
 
 	if ((*lpEnd - *lpStart) != (*lpCommonEnd - *lpCommonStart)) {
-		std::cout << "Difference in duration: " << endl;
+		std::cout << "Difference in duration: " << std::endl;
 		std::cout << "Common duration (" << (*lpCommonEnd - *lpCommonStart) << ") ";
 		std::cout << "- Whole duration (" << (*lpEnd - *lpStart) << ")" <<std::endl;
 		return E_INVALIDARG;
@@ -449,7 +449,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 			++iEx;
 
 		while (r.lstExtendedExceptions.size() < r.lstExceptions.size()) {
-			wstring wstr;
+			std::wstring wstr;
 			RecurrenceState::ExtendedException ex;
 
 			ex.ulStartDateTime = iEx->ulStartDateTime;
@@ -470,7 +470,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 		// Set some defaults for extended exceptions
 		iEx = r.lstExceptions.begin();
 		for (iEEx = r.lstExtendedExceptions.begin(); iEEx != r.lstExtendedExceptions.end(); ++iEEx) {
-			wstring wstr;
+			std::wstring wstr;
 			iEEx->strReservedBlock1 = "";
 			iEEx->strReservedBlock2 = "";
 			iEEx->ulChangeHighlightValue = 0;

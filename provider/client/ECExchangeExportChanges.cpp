@@ -316,7 +316,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	 */
 	for (ulStep = 0; ulStep < m_ulChanges; ++ulStep) {
 		// First check if this change hasn't been processed yet
-		if (m_setProcessedChanges.find(std::pair<unsigned int, std::string>(m_lpChanges[ulStep].ulChangeId, std::string((char *)m_lpChanges[ulStep].sSourceKey.lpb, m_lpChanges[ulStep].sSourceKey.cb))) != m_setProcessedChanges.end())
+		if (m_setProcessedChanges.find({m_lpChanges[ulStep].ulChangeId, std::string(reinterpret_cast<const char *>(m_lpChanges[ulStep].sSourceKey.lpb), m_lpChanges[ulStep].sSourceKey.cb)}) != m_setProcessedChanges.end())
 			continue;
 
 		iterLastChange = mapChanges.find(m_lpChanges[ulStep].sSourceKey);
@@ -906,8 +906,8 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 
 next:
 		// Mark this change as processed, even if we skipped it due to SYNC_E_IGNORE or because the item was deleted on the source server
-
-		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(m_lstChange.at(m_ulStep).ulChangeId, std::string((char *)m_lstChange.at(m_ulStep).sSourceKey.lpb, m_lstChange.at(m_ulStep).sSourceKey.cb)));
+		const auto &sk = m_lstChange.at(m_ulStep).sSourceKey;
+		m_setProcessedChanges.insert({m_lstChange.at(m_ulStep).ulChangeId, std::string(reinterpret_cast<const char *>(sk.lpb), sk.cb)});
 		++m_ulStep;
 		++ulSteps;
 	}
@@ -1023,7 +1023,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	}
 
 skip:
-	m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(m_lstChange.at(m_ulStep).ulChangeId, std::string((char *)m_lstChange.at(m_ulStep).sSourceKey.lpb, m_lstChange.at(m_ulStep).sSourceKey.cb)));
+	m_setProcessedChanges.insert({m_lstChange.at(m_ulStep).ulChangeId, std::string(reinterpret_cast<const char *>(m_lstChange.at(m_ulStep).sSourceKey.lpb), m_lstChange.at(m_ulStep).sSourceKey.cb)});
 	if (++m_ulStep < m_lstChange.size())
 		hr = SYNC_W_PROGRESS;
 
@@ -1068,7 +1068,7 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 
 		// Mark the flag changes as processed
 		for (const auto &change : m_lstFlag)
-			m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(change.ulChangeId, std::string(reinterpret_cast<const char *>(change.sSourceKey.lpb), change.sSourceKey.cb)));
+			m_setProcessedChanges.insert({change.ulChangeId, std::string(reinterpret_cast<const char *>(change.sSourceKey.lpb), change.sSourceKey.cb)});
 	}
 
 exit:
@@ -1205,7 +1205,8 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 		}
 next:
 		// Mark this change as processed
-		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(m_lstChange.at(m_ulStep).ulChangeId, std::string((char *)m_lstChange.at(m_ulStep).sSourceKey.lpb, m_lstChange.at(m_ulStep).sSourceKey.cb)));
+		const auto &sk = m_lstChange.at(m_ulStep).sSourceKey;
+		m_setProcessedChanges.insert({m_lstChange.at(m_ulStep).ulChangeId, std::string(reinterpret_cast<const char *>(sk.lpb), sk.cb)});
 		++ulSteps;
 		++m_ulStep;
 	}
@@ -1370,8 +1371,8 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 HRESULT ECExchangeExportChanges::AddProcessedChanges(ChangeList &lstChanges)
 {
 	for (const auto &i : lstChanges)
-		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(i.ulChangeId,
-			std::string(reinterpret_cast<const char *>(i.sSourceKey.lpb), i.sSourceKey.cb)));
+		m_setProcessedChanges.insert({i.ulChangeId,
+			std::string(reinterpret_cast<const char *>(i.sSourceKey.lpb), i.sSourceKey.cb)});
 	return hrSuccess;
 }
 

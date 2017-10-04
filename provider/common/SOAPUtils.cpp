@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <string>
 #include <cstring>
 #include <mapidefs.h>
 #include <mapitags.h>
@@ -27,8 +28,6 @@
 #include "SOAPAlloc.h"
 #include <kopano/stringutil.h>
 #include <kopano/ustringutil.h>
-
-using namespace std;
 
 namespace KC {
 
@@ -1750,7 +1749,7 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 		lpsoapPropmap->__ptr = s_alloc<struct propmapPair>(soap, propmap.size());
 		for (const auto &iter : propmap) {
 			if (PROP_TYPE(iter.first) == PT_BINARY && bCopyBinary) {
-				string strData = base64_encode(iter.second.data(), iter.second.size());
+				auto strData = base64_encode(iter.second.data(), iter.second.size());
 				lpsoapPropmap->__ptr[lpsoapPropmap->__size].ulPropId = iter.first;
 				lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = s_strcpy(soap, strData.c_str());
 				continue;
@@ -1774,7 +1773,7 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size = iter.second.size();
 				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr = s_alloc<char *>(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
 				for (const auto &entry : iter.second) {
-					string strData = base64_encode(entry.data(), entry.size());
+					auto strData = base64_encode(entry.data(), entry.size());
 					lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j] = s_strcpy(soap, strData.c_str());
 					++j;
 				}
@@ -1813,7 +1812,7 @@ CopyAnonymousDetailsFromSoap(struct propmapPairArray *lpsoapPropmap,
 	if (lpsoapPropmap) {
 		for (gsoap_size_t i = 0; i < lpsoapPropmap->__size; ++i)
 			if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) == PT_BINARY) {
-				string strData = base64_decode(lpsoapPropmap->__ptr[i].lpszValue);
+				auto strData = base64_decode(lpsoapPropmap->__ptr[i].lpszValue);
 				details->SetPropString((property_key_t)lpsoapPropmap->__ptr[i].ulPropId, strData);
 			} else if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) == PT_STRING8) {
 				details->SetPropString((property_key_t)lpsoapPropmap->__ptr[i].ulPropId, lpsoapPropmap->__ptr[i].lpszValue);
@@ -1822,10 +1821,10 @@ CopyAnonymousDetailsFromSoap(struct propmapPairArray *lpsoapPropmap,
 
 	if (lpsoapMVPropmap)
 		for (gsoap_size_t i = 0; i < lpsoapMVPropmap->__size; ++i) {
-			details->SetPropListString((property_key_t)lpsoapMVPropmap->__ptr[i].ulPropId, list<string>());
+			details->SetPropListString((property_key_t)lpsoapMVPropmap->__ptr[i].ulPropId, {});
 			for (gsoap_size_t j = 0; j < lpsoapMVPropmap->__ptr[i].sValues.__size; ++j)
 				if (PROP_TYPE(lpsoapMVPropmap->__ptr[i].ulPropId) == PT_MV_BINARY) {
-					string strData = base64_decode(lpsoapMVPropmap->__ptr[i].sValues.__ptr[j]);
+					auto strData = base64_decode(lpsoapMVPropmap->__ptr[i].sValues.__ptr[j]);
 					details->AddPropString((property_key_t)lpsoapMVPropmap->__ptr[i].ulPropId, strData);
 				} else {
 					details->AddPropString((property_key_t)lpsoapMVPropmap->__ptr[i].ulPropId, lpsoapMVPropmap->__ptr[i].sValues.__ptr[j]);
@@ -1864,7 +1863,8 @@ ECRESULT CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const obje
 	return er;
 }
 
-ECRESULT CopyUserDetailsFromSoap(struct user *lpUser, string *lpstrExternId, objectdetails_t *details, struct soap *soap)
+ECRESULT CopyUserDetailsFromSoap(struct user *lpUser,
+    std::string *lpstrExternId, objectdetails_t *details, struct soap *soap)
 {
 	ECRESULT er = erSuccess;
 
@@ -1925,7 +1925,8 @@ ECRESULT CopyGroupDetailsToSoap(unsigned int ulId, entryId *lpGroupEid, const ob
 	return er;
 }
 
-ECRESULT CopyGroupDetailsFromSoap(struct group *lpGroup, string *lpstrExternId, objectdetails_t *details, struct soap *soap)
+ECRESULT CopyGroupDetailsFromSoap(struct group *lpGroup,
+    std::string *lpstrExternId, objectdetails_t *details, struct soap *soap)
 {
 	ECRESULT er = erSuccess;
 
@@ -1975,7 +1976,9 @@ ECRESULT CopyCompanyDetailsToSoap(unsigned int ulId, entryId *lpCompanyEid, unsi
 	return er;
 }
 
-ECRESULT CopyCompanyDetailsFromSoap(struct company *lpCompany, string *lpstrExternId, unsigned int ulAdmin, objectdetails_t *details, struct soap *soap)
+ECRESULT CopyCompanyDetailsFromSoap(struct company *lpCompany,
+    std::string *lpstrExternId, unsigned int ulAdmin, objectdetails_t *details,
+    struct soap *soap)
 {
 	ECRESULT er = erSuccess;
 

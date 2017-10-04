@@ -39,7 +39,6 @@
 #include <iostream>
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
-using namespace std;
 using namespace KCHL;
 
 ZCABContainer::ZCABContainer(const std::vector<zcabFolderEntry> *lpFolders,

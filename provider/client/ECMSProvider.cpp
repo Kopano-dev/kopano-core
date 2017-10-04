@@ -15,6 +15,7 @@
  *
  */
 #include <new>
+#include <string>
 #include <kopano/platform.h>
 #include <mapi.h>
 #include <mapiutil.h>
@@ -50,7 +51,6 @@
 #include <csignal>
 #include <kopano/charset/convstring.h>
 
-using namespace std;
 using namespace KCHL;
 
 ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
@@ -306,7 +306,7 @@ HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
     sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID, ENTRYID *lpEntryID)
 {
 	HRESULT hr;
-	string		extractedServerPath;		// The extracted server path
+	std::string extractedServerPath; // The extracted server path
 	bool		bIsPseudoUrl = false;
 
 	assert(lpTransport != nullptr);
@@ -328,7 +328,7 @@ HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
 		return hr;
 	}
 
-	string strServerPath; // The resolved server path
+	std::string strServerPath; // The resolved server path
 	bool bIsPeer;
 
 	hr = lpTransport->HrLogon(*lpsProfileProps);
