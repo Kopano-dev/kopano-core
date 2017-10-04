@@ -645,13 +645,12 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow == NULL || lpDBRow[0] == NULL)
 				continue;
-			setObjIdPrivate.insert(atoui(lpDBRow[0]));
+			setObjIdPrivate.emplace(atoui(lpDBRow[0]));
 		}
 
 		for(auto it = lstChildId.begin(); it != lstChildId.end(); ++it)
 			if (setObjIdPrivate.find(*it) == setObjIdPrivate.end())
-				lstChildId2.push_back(*it);
-
+				lstChildId2.emplace_back(*it);
 		filter_private = true;
 	}
 

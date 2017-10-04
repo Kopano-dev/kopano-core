@@ -307,9 +307,9 @@ ECRESULT ECUserStoreTable::Load() {
 			sUserStore.ullStoreSize = 0;
 
 		// add to table
-		lstObjIds.push_back(iRowId);
+		lstObjIds.emplace_back(iRowId);
 		// remember details
-		m_mapUserStoreData.insert({iRowId++, sUserStore});
+		m_mapUserStoreData.emplace(iRowId++, sUserStore);
 	}
 
 	LoadRows(&lstObjIds, 0);

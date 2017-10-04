@@ -122,7 +122,7 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
 		er = RunSubRestriction(lpSession, lpECODStore, lpSubRestrict, lpObjects, locale, result);
         if(er != erSuccess)
 			return er;
-		results.push_back(std::move(result));
+		results.emplace_back(std::move(result));
     }
 	return erSuccess;
 }
@@ -207,8 +207,7 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
         // Add an item to the rows we want to be querying
         sKey.ulObjId = ulSubObject;
         sKey.ulOrderId = 0;
-        
-        lstSubObjects.push_back(sKey);
+		lstSubObjects.emplace_back(sKey);
     }
 
 	if (lstSubObjects.empty())
@@ -232,7 +231,7 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
             auto iterParent = mapParent.find(iterObject->ulObjId);
             if (iterParent != mapParent.cend())
                 // Remember the id of the message one of whose subobjects matched
-                result.insert(iterParent->second);
+				result.emplace(iterParent->second);
         }
         
         // Optimisation possibility: if one of the subobjects matches, we shouldn't bother checking
