@@ -55,7 +55,6 @@ ECNotifyMaster::ECNotifyMaster(SessionGroupData *lpData) :
 	m_lpSessionGroupData(lpData /* no addref */)
 {
 	memset(&m_hThread, 0, sizeof(m_hThread));
-	m_ulConnection = 1;
 }
 
 ECNotifyMaster::~ECNotifyMaster(void)
@@ -130,7 +129,6 @@ HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 
 HRESULT ECNotifyMaster::ReserveConnection(ULONG *lpulConnection)
 {
-	scoped_rlock lock(m_hMutex);
 	*lpulConnection = m_ulConnection++;
 	return hrSuccess;
 }

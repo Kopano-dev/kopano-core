@@ -18,6 +18,7 @@
 #ifndef ECNOTIFYMASTER_H
 #define ECNOTIFYMASTER_H
 
+#include <atomic>
 #include <list>
 #include <map>
 #include <mutex>
@@ -84,7 +85,7 @@ private:
 	/* Connection settings */
 	SessionGroupData *m_lpSessionGroupData;
 	WSTransport *m_lpTransport = nullptr;
-	ULONG m_ulConnection = 0;
+	std::atomic<unsigned int> m_ulConnection{1};
 
 	/* Threading information */
 	std::recursive_mutex m_hMutex;
