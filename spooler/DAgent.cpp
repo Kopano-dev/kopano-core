@@ -190,7 +190,7 @@ public:
 	{
 		/* strRCPT much match recipient string from LMTP caller */
 		wstrRCPT = wstrName;
-		vwstrRecipients.push_back(wstrName);
+		vwstrRecipients.emplace_back(wstrName);
 		sEntryId.cb = 0;
 		sEntryId.lpb = NULL;
 
@@ -205,7 +205,7 @@ public:
 	}
 
 	void combine(ECRecipient *lpRecip) {
-		vwstrRecipients.push_back(lpRecip->wstrRCPT);
+		vwstrRecipients.emplace_back(lpRecip->wstrRCPT);
 	}
 
 	// sort recipients on imap data flag, then on username so find() for combine() works correctly.
@@ -845,7 +845,7 @@ static HRESULT ResolveUser(IABContainer *lpAddrFolder, ECRecipient *lpRecip)
 	recipients_t list;
 
 	/* Simple wrapper around ResolveUsers */
-	list.insert(lpRecip);
+	list.emplace(lpRecip);
 	hr = ResolveUsers(lpAddrFolder, &list);
 	if (hr != hrSuccess)
 		ec_log_err("ResolveUser(): ResolveUsers failed: %s (%x)",
@@ -896,15 +896,15 @@ static HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips,
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Find or insert
-	auto iterCMP = lpCompanyRecips->insert({lpRecipient->wstrCompany, {}}).first;
+	auto iterCMP = lpCompanyRecips->emplace(lpRecipient->wstrCompany, serverrecipients_t()).first;
 
 	// Find or insert
-	auto iterSRV = iterCMP->second.insert({lpRecipient->wstrServerDisplayName, {}}).first;
+	auto iterSRV = iterCMP->second.emplace(lpRecipient->wstrServerDisplayName, decltype(iterCMP->second)::mapped_type()).first;
 
 	// insert into sorted set
 	auto iterRecip = iterSRV->second.find(lpRecipient);
 	if (iterRecip == iterSRV->second.cend()) {
-		iterSRV->second.insert(lpRecipient);
+		iterSRV->second.emplace(lpRecipient);
 		// The recipient is in the list, and no longer belongs to the caller
 		*lppRecipient = NULL;
 	} else {
@@ -940,7 +940,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 
 	/* Single server environment, use default path */
 	if (lpServerNameRecips->size() == 1 && lpServerNameRecips->begin()->first.empty()) {
-		lpServerPathRecips->insert({convert_to<std::wstring>(strDefaultPath), lpServerNameRecips->begin()->second});
+		lpServerPathRecips->emplace(convert_to<std::wstring>(strDefaultPath), lpServerNameRecips->begin()->second);
 		return hrSuccess;
 	}
 	hr = HrOpenDefaultStore(lpSession, &~lpAdminStore);
@@ -1011,7 +1011,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 
 		ec_log_debug("%d recipient(s) on server '%ls' (url %ls)", (int)iter->second.size(),
 						lpSrvList->lpsaServer[i].lpszName, lpSrvList->lpsaServer[i].lpszPreferedPath);
-		lpServerPathRecips->insert({reinterpret_cast<wchar_t *>(lpSrvList->lpsaServer[i].lpszPreferedPath), iter->second});
+		lpServerPathRecips->emplace(reinterpret_cast<wchar_t *>(lpSrvList->lpsaServer[i].lpszPreferedPath), iter->second);
 	}
 	return hrSuccess;
 }
@@ -1658,11 +1658,11 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 
 	// Args: From, To, Subject, Username, Msg_Filename
 	// Should run in UTF-8 to get correct strings in UTF-8 from shell_escape(wstring)
-	cmdline.push_back(lpRecip->strSMTP);
-	cmdline.push_back(convert_to<std::string>(strFromEmail));
-	cmdline.push_back(convert_to<std::string>(szSubject));
-	cmdline.push_back(convert_to<std::string>(lpRecip->wstrUsername));
-	cmdline.push_back(szTemp);
+	cmdline.emplace_back(lpRecip->strSMTP);
+	cmdline.emplace_back(convert_to<std::string>(strFromEmail));
+	cmdline.emplace_back(convert_to<std::string>(szSubject));
+	cmdline.emplace_back(convert_to<std::string>(lpRecip->wstrUsername));
+	cmdline.emplace_back(szTemp);
 
 	// Set MESSAGE_TO_ME and MESSAGE_CC_ME in environment
 	strToMe = (std::string)"MESSAGE_TO_ME=" + (lpMessageProps[1].ulPropTag == PR_MESSAGE_TO_ME && lpMessageProps[1].Value.b ? "1" : "0");
@@ -3190,7 +3190,7 @@ static void *HandlerLMTP(void *lpArg)
 					lmtp.HrResponse("503 5.1.1 Failed to add user to recipients");
 				else {
 					// Save original order for final response when mail is delivered in DATA command
-					lOrderedRecipients.push_back(strMailAddress);
+					lOrderedRecipients.emplace_back(strMailAddress);
 					lmtp.HrResponse("250 2.1.5 Ok");
 				}
 			} else if (hr == MAPI_E_NOT_FOUND) {
@@ -3271,9 +3271,9 @@ static void *HandlerLMTP(void *lpArg)
 						WCHAR wbuffer[4096];
 						for (const auto i : recip->vwstrRecipients) {
 							swprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
-							mapRecipientResults.insert({converter.convert_to<std::string>(i),
+							mapRecipientResults.emplace(converter.convert_to<std::string>(i),
 								// rawsize([N]) returns N, not contents len, so cast to fix
-								converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR)});
+								converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR));
 							if (save_all)
 								continue;
 							auto save_username = converter.convert_to<std::string>(recip->wstrUsername);
@@ -3605,7 +3605,7 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 		goto exit;
 	}
 	
-	lRCPT.insert(&single_recip);
+	lRCPT.emplace(&single_recip);
 	hr = ProcessDeliveryToSingleRecipient(lppyMapiPlugin, lpSession, lpAdrBook, fpMail, lRCPT, lpArgs);
 
 	// Over quota is a hard error

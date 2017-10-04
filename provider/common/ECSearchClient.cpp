@@ -49,7 +49,7 @@ ECRESULT ECSearchClient::GetProperties(setindexprops_t &setProps)
 	lstProps = tokenize(lstResponse[0], " ");
 
 	for (const auto &s : lstProps)
-		setProps.insert(atoui(s.c_str()));
+		setProps.emplace(atoui(s.c_str()));
 	return erSuccess;
 }
 
@@ -143,7 +143,7 @@ ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
 	lstResponseIds = tokenize(lstResponse[0], " ");
 
 	for (unsigned int i = 0; i < lstResponseIds.size(); ++i)
-		lstMatches.push_back(atoui(lstResponseIds[i].c_str()));
+		lstMatches.emplace_back(atoui(lstResponseIds[i].c_str()));
 	return erSuccess;
 }
 

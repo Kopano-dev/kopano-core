@@ -188,7 +188,7 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		 * recursive call to ExpandRecipientsRecursive().*/
 		hr = Util::HrCopyEntryId(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb,
 		     &sEntryId.cb, (LPENTRYID *)&sEntryId.lpb);
-		lpExpandedGroups->push_back(sEntryId);
+		lpExpandedGroups->emplace_back(sEntryId);
 
 		/* Don't expand group Everyone or companies since both already contain all users
 		 * which should be put in the recipient list. */

@@ -116,7 +116,7 @@ HRESULT ZCABLogon::AddFolder(const WCHAR* lpwDisplayName, ULONG cbStore, LPBYTE 
 	if (hr != hrSuccess)
 		return hr;
 	memcpy(entry.lpFolder, lpFolder, cbFolder);
-	m_lFolders.push_back(std::move(entry));
+	m_lFolders.emplace_back(std::move(entry));
 	return hrSuccess;
 }
 

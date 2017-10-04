@@ -984,7 +984,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 		// make joint proptags
 		std::copy(lpPropTagArray->aulPropTag, lpPropTagArray->aulPropTag + lpPropTagArray->cValues, std::inserter(stProps, stProps.begin()));
 		for (i = 0; i < lpAdrList->aEntries[0].cValues; ++i)
-			stProps.insert(lpAdrList->aEntries[0].rgPropVals[i].ulPropTag);
+			stProps.emplace(lpAdrList->aEntries[0].rgPropVals[i].ulPropTag);
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size()), &~ptrColumns);
 		if (hr != hrSuccess)
 			return hr;

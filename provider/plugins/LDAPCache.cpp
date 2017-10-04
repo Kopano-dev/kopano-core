@@ -166,7 +166,7 @@ LDAPCache::getChildrenForDN(const std::unique_ptr<dn_cache_t> &lpCache,
 		/* If key matches the end of the root dn, we have a positive match */
 		if (i.second.size() > dn.size() &&
 		    strcasecmp(i.second.c_str() + (i.second.size() - dn.size()), dn.c_str()) == 0)
-			list->push_back(i.second);
+			list->emplace_back(i.second);
 	return list;
 }
 

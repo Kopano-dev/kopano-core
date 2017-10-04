@@ -78,7 +78,7 @@ DBPlugin::getObjectDetails(const objectid_t &objectid)
 	std::unique_ptr<std::map<objectid_t, objectdetails_t> > objectdetails;
 	std::list<objectid_t> objectids;
 
-	objectids.push_back(objectid);
+	objectids.emplace_back(objectid);
 	objectdetails = DBPlugin::getObjectDetails(objectids);
 
 	if (objectdetails->size() != 1)
@@ -877,7 +877,7 @@ DBPlugin::CreateSignatureList(const std::string &query)
 		assert(lpDBLen != NULL);
 		if (lpDBLen[0] == 0)
 			throw runtime_error(string("db_row_failed: object empty"));
-		objectlist->push_back({{{lpDBRow[0], lpDBLen[0]}, objclass}, signature});
+		objectlist->emplace_back(objectid_t({lpDBRow[0], lpDBLen[0]}, objclass), signature);
 	}
 
 	return objectlist;
@@ -940,10 +940,8 @@ std::unique_ptr<abprops_t> DBPlugin::getExtraAddressbookProperties(void)
 		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
 				continue;
-
-			proplist->push_back(xtoi(lpDBRow[0]));
+			proplist->emplace_back(xtoi(lpDBRow[0]));
 		}
-
 	}
 
 	return proplist;

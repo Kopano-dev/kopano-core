@@ -280,7 +280,7 @@ ECThreadManager::ECThreadManager(ECDispatcher *lpDispatcher,
     // Start our worker threads
 	m_lpPrioWorker = new ECPriorityWorkerThread(this, lpDispatcher);
 	for (unsigned int i = 0; i < ulThreads; ++i)
-		m_lstThreads.push_back(new ECWorkerThread(this, lpDispatcher));
+		m_lstThreads.emplace_back(new ECWorkerThread(this, lpDispatcher));
 }
 
 ECThreadManager::~ECThreadManager()
@@ -306,7 +306,7 @@ ECRESULT ECThreadManager::ForceAddThread(int nThreads)
 {
 	scoped_lock l_thr(m_mutexThreads);
 	for (int i = 0; i < nThreads; ++i)
-		m_lstThreads.push_back(new ECWorkerThread(this, m_lpDispatcher));
+		m_lstThreads.emplace_back(new ECWorkerThread(this, m_lpDispatcher));
 	return erSuccess;
 }
 
@@ -328,7 +328,7 @@ ECRESULT ECThreadManager::SetThreadCount(unsigned int ulThreads)
     m_ulThreads = ulThreads;
 
     while(ulThreads > m_lstThreads.size())
-		m_lstThreads.push_back(new ECWorkerThread(this, m_lpDispatcher));
+		m_lstThreads.emplace_back(new ECWorkerThread(this, m_lpDispatcher));
     // If we are OVER the number of threads, then the code in NotifyIdle() will bring this down
     return erSuccess;
 }
@@ -470,7 +470,7 @@ ECRESULT ECDispatcher::AddListenSocket(struct soap *soap)
 	soap->max_keep_alive = m_nMaxKeepAlive;
 	soap->recv_timeout = m_nReadTimeout; // Use m_nReadTimeout, the value for timeouts during XML reads
 	soap->send_timeout = m_nSendTimeout;
-	m_setListenSockets.insert({soap->socket, soap});
+	m_setListenSockets.emplace(soap->socket, soap);
     return erSuccess;
 }
 
@@ -564,7 +564,7 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
             time(&sActive.ulLastActivity);
             
 			ulock_normal l_sock(m_mutexSockets);
-			m_setSockets.insert({soap->socket, sActive});
+			m_setSockets.emplace(soap->socket, sActive);
 			l_sock.unlock();
             // Notify select restart, send socket number which is done
 			NotifyRestart(socket);
@@ -806,7 +806,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			g_lpStatsCollector->Increment(SCN_SERVER_CONNECTIONS);
 			sActive.soap = newsoap;
 			l_sock.lock();
-			m_setSockets.insert({sActive.soap->socket, sActive});
+			m_setSockets.emplace(sActive.soap->socket, sActive);
 			l_sock.unlock();
 		}
 	}
@@ -980,7 +980,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
 					// directly make worker thread active
                     sActive.soap = newsoap;
-					m_setSockets.insert({sActive.soap->socket, sActive});
+					m_setSockets.emplace(sActive.soap->socket, sActive);
 					NotifyRestart(newsoap->socket);
 				}
 
