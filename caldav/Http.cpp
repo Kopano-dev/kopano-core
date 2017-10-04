@@ -158,7 +158,7 @@ HRESULT Http::HrReadHeaders()
 				iHeader->second += strBuffer.substr(start);
 			} else {
 				// new header
-				auto r = mapHeaders.insert({strBuffer.substr(0, pos), strBuffer.substr(pos + 2)});
+				auto r = mapHeaders.emplace(strBuffer.substr(0, pos), strBuffer.substr(pos + 2));
 				iHeader = r.first;
 			}
 		}
@@ -697,7 +697,7 @@ HRESULT Http::HrResponseHeader(unsigned int ulCode, const std::string &strRespon
  */
 HRESULT Http::HrResponseHeader(const std::string &strHeader, const std::string &strValue)
 {
-	m_lstHeaders.push_back(strHeader + ": " + strValue);
+	m_lstHeaders.emplace_back(strHeader + ": " + strValue);
 	return hrSuccess;
 }
 

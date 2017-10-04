@@ -122,7 +122,7 @@ HRESULT WebDav::HrPropfind()
 		WEBDAVPROPERTY sProperty;
 		
 		HrSetDavPropName(&(sProperty.sPropName),lpXmlNode);
-		sDavPropRet.lstProps.push_back(std::move(sProperty));
+		sDavPropRet.lstProps.emplace_back(std::move(sProperty));
 	}
 
 	/*
@@ -392,8 +392,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 				goto exit;	
 			}
 
-			sReptQuery.sFilter.lstFilters.push_back((char *)lpXmlChildAttr->content);
-
+			sReptQuery.sFilter.lstFilters.emplace_back(reinterpret_cast<char *>(lpXmlChildAttr->content));
 			lpXmlChildNode = lpXmlChildNode->children;
 			if (lpXmlChildNode->properties == nullptr || lpXmlChildNode->properties->children == nullptr) {
 				hr = MAPI_E_CORRUPT_DATA;
@@ -410,8 +409,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
-			sReptQuery.sFilter.lstFilters.push_back((char *)lpXmlChildAttr->content);
-
+			sReptQuery.sFilter.lstFilters.emplace_back(reinterpret_cast<char *>(lpXmlChildAttr->content));
 			// filter not done here.., time-range in lpXmlChildNode->children.
 			if (lpXmlChildNode->children) {
 				for (lpXmlChildNode = lpXmlChildNode->children; lpXmlChildNode != NULL; lpXmlChildNode = lpXmlChildNode->next) {
@@ -445,7 +443,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 				WEBDAVPROPERTY sWebProperty;
 
 				HrSetDavPropName(&(sWebProperty.sPropName),lpXmlChildNode);
-				sReptQuery.sProp.lstProps.push_back(std::move(sWebProperty));
+				sReptQuery.sProp.lstProps.emplace_back(std::move(sWebProperty));
 			}
 		} else {
 			ec_log_debug("Skipping unknown XML element: %s", lpXmlNode->name);
@@ -528,7 +526,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 		WEBDAVPROPERTY sWebProperty;
 	
 		HrSetDavPropName(&(sWebProperty.sPropName),lpXmlChildNode);
-		sRptMGet.sProp.lstProps.push_back(std::move(sWebProperty));
+		sRptMGet.sProp.lstProps.emplace_back(std::move(sWebProperty));
 	}
 	
 	if (lpXmlNode->next == nullptr) {
@@ -556,7 +554,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 		strGuid.erase(0, found);
 		strGuid.erase(strGuid.length() - 4);
 		sWebVal.strValue = urlDecode(strGuid);
-		sRptMGet.lstWebVal.push_back(std::move(sWebVal));
+		sRptMGet.lstWebVal.emplace_back(std::move(sWebVal));
 	}
 
 	//Retrieve Data from the Server and return WEBMULTISTATUS structure.
@@ -645,7 +643,7 @@ HRESULT WebDav::HrPropertySearch()
 		lpXmlChildNode = lpXmlChildNode->next;		
 		if(lpXmlChildNode->children->content)
 			sWebVal.strValue.assign((char*)lpXmlChildNode->children->content);
-		sRptMGet.lstWebVal.push_back(sWebVal);
+		sRptMGet.lstWebVal.emplace_back(sWebVal);
 		if(lpXmlNode->next)
 			lpXmlNode = lpXmlNode->next;
 	}
@@ -658,8 +656,7 @@ HRESULT WebDav::HrPropertySearch()
 	for (auto lpXmlChildNode = lpXmlNode->children;
 	     lpXmlChildNode != nullptr; lpXmlChildNode = lpXmlChildNode->next) {
 		HrSetDavPropName(&(sWebProperty.sPropName),lpXmlChildNode);
-		
-		sRptMGet.sProp.lstProps.push_back(sWebProperty);
+		sRptMGet.sProp.lstProps.emplace_back(sWebProperty);
 	}
 
 	//Retrieve Data from the Server and return WEBMULTISTATUS structure.
@@ -738,22 +735,20 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 		HrSetDavPropName(&sWebVal.sPropName,"href", WEBDAVNS);
 		
 		sWebVal.strValue = "mailto:" + ui.strUser;
-		sWebProperty.lstValues.push_back(sWebVal);
-		sWebResPonse.lstProps.push_back(sWebProperty);
-
+		sWebProperty.lstValues.emplace_back(sWebVal);
+		sWebResPonse.lstProps.emplace_back(sWebProperty);
 		sWebProperty.lstValues.clear();
 		
 		HrSetDavPropName(&sWebProperty.sPropName,"request-status", CALDAVNS);
 		sWebProperty.strValue = ui.strIcal.empty() ? "3.8;No authority" : "2.0;Success";
-		sWebResPonse.lstProps.push_back(sWebProperty);
+		sWebResPonse.lstProps.emplace_back(sWebProperty);
 		
 		if (!ui.strIcal.empty()) {
 			HrSetDavPropName(&sWebProperty.sPropName,"calendar-data", CALDAVNS);
 			sWebProperty.strValue = ui.strIcal;
-			sWebResPonse.lstProps.push_back(sWebProperty);
+			sWebResPonse.lstProps.emplace_back(sWebProperty);
 		}
-
-		sWebMStatus.lstResp.push_back(std::move(sWebResPonse));
+		sWebMStatus.lstResp.emplace_back(std::move(sWebResPonse));
 	}
 
 	hr = RespStructToXml(&sWebMStatus, &strXml);
@@ -1318,7 +1313,7 @@ HRESULT WebDav::HrPropPatch()
 		    lpXmlNode->children->content != nullptr)
 			sProperty.strValue = (char *)lpXmlNode->children->content;
 
-		sDavProp.lstProps.push_back(std::move(sProperty));
+		sDavProp.lstProps.emplace_back(std::move(sProperty));
 	}	
 
 	hr = HrHandlePropPatch(&sDavProp, &sDavMStatus);
@@ -1431,7 +1426,7 @@ HRESULT WebDav::HrMkCalendar()
 				    lpXmlChild->properties->children != nullptr &&
 				    lpXmlChild->properties->children->content != nullptr)
 					sProperty.strValue = reinterpret_cast<char *>(lpXmlChild->properties->children->content);
-		sDavProp.lstProps.push_back(std::move(sProperty));
+		sDavProp.lstProps.emplace_back(std::move(sProperty));
 	}
 
 	hr = HrHandleMkCal(&sDavProp);
