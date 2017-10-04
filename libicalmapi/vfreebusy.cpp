@@ -63,7 +63,7 @@ HRESULT HrGetFbInfo(icalcomponent *lpFbcomp, time_t *lptStart, time_t *lptEnd, s
 		if (strncasecmp(strEmail.c_str(), "mailto:", 7) == 0) {
 			strEmail.erase(0, 7);
 		}
-		lstUsers->push_back(std::move(strEmail));
+		lstUsers->emplace_back(std::move(strEmail));
 		lpicProp = icalcomponent_get_next_property(lpFbcomp, ICAL_ATTENDEE_PROPERTY);
 	}
 

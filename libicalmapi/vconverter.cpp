@@ -425,7 +425,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 			}
 		}
 
-		lplstIcalRecip->push_back(icalRecipient);
+		lplstIcalRecip->emplace_back(icalRecipient);
 		lplstIcalRecip->pop_front();
 		icalRecipient = lplstIcalRecip->front();
 	}
@@ -498,7 +498,7 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 
 	// set as dispidGlobalObjectID ...
 	sPropValue.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
-	lpIcalItem->lstMsgProps.push_back(sPropValue);
+	lpIcalItem->lstMsgProps.emplace_back(sPropValue);
 	
 	// replace date in GUID, the dispidCleanGlobalObjectID should be same for exceptions and reccurence message.
 	// used for exceptions in outlook
@@ -511,7 +511,7 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 
 	// set as dispidCleanGlobalObjectID...
 	sPropValue.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CLEANID], PT_BINARY);
-	lpIcalItem->lstMsgProps.push_back(sPropValue);
+	lpIcalItem->lstMsgProps.emplace_back(sPropValue);
 	// save the strUid to lookup for occurrences
 	lpIcalItem->sBinGuid = sPropValue;
 	return hrSuccess;
@@ -582,14 +582,14 @@ HRESULT VConverter::HrAddRecurrenceID(icalcomponent *lpiEvent, icalitem *lpIcalI
 		// set RecurStartTime as 00:00 AM
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURSTARTTIME], PT_LONG);
 		sPropVal.Value.ul = 0;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 		
 		// set RecurEndTime as 12:00 PM (24 hours)
 		// 60 sec -> highest pow of 2 after 60 -> 64 
 		// 60 mins -> 60 * 64 = 3840 -> highest pow of 2 after 3840 -> 4096
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURENDTIME], PT_LONG);
 		sPropVal.Value.ul = 24 * 4096;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	}
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME);
@@ -597,12 +597,12 @@ HRESULT VConverter::HrAddRecurrenceID(icalcomponent *lpiEvent, icalitem *lpIcalI
 		UnixTimeToFileTime(icaltime_as_timet(icalproperty_get_recurrenceid (icProp)), &sPropVal.Value.ft);
 	else
 		UnixTimeToFileTime(ICalTimeTypeToLocal(icProp), &sPropVal.Value.ft);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);	
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);	
 
 	//RECURRENCE-ID is present only for exception
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISEXCEPTION], PT_BOOLEAN);
 	sPropVal.Value.b = true;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	return hrSuccess;
 }
 
@@ -633,16 +633,16 @@ HRESULT VConverter::HrAddStaticProps(icalproperty_method icMethod, icalitem *lpI
 		sPropVal.Value.ul &= ~(seCoerceToInbox | seOpenForCtxMenu);
 	}
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_SIDEEFFECT], PT_LONG);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_SENDASICAL], PT_BOOLEAN);
 	sPropVal.Value.b = 1;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// Needed for deleting an occurrence of a recurring item in outlook
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONASSIGN], PT_LONG);
 	sPropVal.Value.ul = 0;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	return hr;
 }
@@ -674,9 +674,9 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 		hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalcomponent_get_summary(lpicEvent), &sPropVal.Value.lpszW);
 		if (hr != hrSuccess)
 			sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	} else {
-		lpIcalItem->lstDelPropTags.push_back(PR_SUBJECT);
+		lpIcalItem->lstDelPropTags.emplace_back(PR_SUBJECT);
 	}
 
 	// Set body / DESCRIPTION
@@ -689,9 +689,9 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 		hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalproperty_get_description(lpicProp), &sPropVal.Value.lpszW);
 		if (hr != hrSuccess)
 			sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	} else {
-		lpIcalItem->lstDelPropTags.push_back(PR_BODY_W);
+		lpIcalItem->lstDelPropTags.emplace_back(PR_BODY_W);
 	}
 
 	// Set location / LOCATION
@@ -702,13 +702,12 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 			sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
 
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_LOCATION], PT_UNICODE);
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGLOCATION], PT_UNICODE);
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	} else {
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_LOCATION], PT_UNICODE));
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGLOCATION], PT_UNICODE));
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_LOCATION], PT_UNICODE));
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGLOCATION], PT_UNICODE));
 	}
 
 	// Set importance and priority / PRIORITY
@@ -727,14 +726,13 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 		
 		sPropVal.ulPropTag = PR_IMPORTANCE;
 		sPropVal.Value.ul = lPriority + 1;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 		sPropVal.ulPropTag = PR_PRIORITY;
 		sPropVal.Value.l = lPriority;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	} else {
-		lpIcalItem->lstDelPropTags.push_back(PR_IMPORTANCE);
-		lpIcalItem->lstDelPropTags.push_back(PR_PRIORITY);
+		lpIcalItem->lstDelPropTags.emplace_back(PR_IMPORTANCE);
+		lpIcalItem->lstDelPropTags.emplace_back(PR_PRIORITY);
 	}
 	
 	// Private
@@ -743,7 +741,7 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 		lClass = icalproperty_get_class(lpicProp);
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 		sPropVal.Value.b = (lClass == ICAL_CLASS_PRIVATE);
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	}
 
 	// Sensitivity, from same class property
@@ -754,8 +752,7 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 		sPropVal.Value.ul = 3; // CompanyConfidential
 	else
 		sPropVal.Value.ul = 0; // Public
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
-
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	// hr not used with goto exit, always return success
 	return hrSuccess;
 }
@@ -813,8 +810,7 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 		
 		sPropVal.Value.ul = 1;
 	}
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
-
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	// save fbstatus in icalitem
 	lpIcalItem->ulFbStatus = sPropVal.Value.ul;
 
@@ -850,8 +846,7 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 	}
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_INTENDEDBUSYSTATUS], PT_LONG);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
-
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	return hr;
 }
 
@@ -889,7 +884,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ATTENDEECRITICALCHANGE], PT_SYSTIME);
 			UnixTimeToFileTime(ttCritcalChange, &sPropVal.Value.ft);
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE") == 0){
@@ -900,7 +895,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME);
 			UnixTimeToFileTime(ttCritcalChange, &sPropVal.Value.ft);
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-OWNERAPPTID") == 0){
@@ -910,7 +905,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 				continue;
 			sPropVal.ulPropTag = PR_OWNER_APPT_ID;
 			sPropVal.Value.ul = icalvalue_get_integer(lpicValue);
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			bOwnerApptID = true;
 			icalvalue_free(lpicValue);
 
@@ -942,7 +937,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			if (x == NULL)
 				x = "";
 			sPropVal.Value.b = strcmp(x, "TRUE") ? 0 : 1;
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 		}
 	}
@@ -957,19 +952,19 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 	if (bHaveCounter) {
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSEQNR], PT_LONG);
 		sPropVal.Value.ul = ulMaxCounter;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	}
 
 	if (!bOwnerApptID) {
 		sPropVal.ulPropTag = PR_OWNER_APPT_ID;
 		sPropVal.Value.ul = -1;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	}
 
 	if (bMozGen) {
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZGEN], PT_LONG);
 		sPropVal.Value.ul = ulMaxCounter;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	}
 
 	return hr;
@@ -993,12 +988,12 @@ HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	// Set keywords / CATEGORIES
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_CATEGORIES_PROPERTY);
 	if (!lpicProp) {
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_STRING8));
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_STRING8));
 		return hrSuccess;
 	}
 
 	while (lpicProp != NULL && (lpszCategories = icalproperty_get_categories(lpicProp)) != NULL) {
-		vCategories.push_back(lpszCategories);
+		vCategories.emplace_back(lpszCategories);
 		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_CATEGORIES_PROPERTY);
 	}
 
@@ -1018,7 +1013,7 @@ HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalIt
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_STRING8);
 	sPropVal.Value.MVszA.cValues = vCategories.size();
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	return hrSuccess;
 }
 
@@ -1045,37 +1040,37 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 	             strType.c_str(), &sPropVal.Value.lpszW);
 	if (hr != hrSuccess)
 		return hr;
-	lplstMsgProps->push_back(sPropVal);
+	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE;
-	lplstMsgProps->push_back(sPropVal);
+	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENDER_EMAIL_ADDRESS_W;
 	hr = HrCopyString(lpIcalItem->base, strEmail.c_str(), &sPropVal.Value.lpszW);
 	if (hr != hrSuccess)
 		return hr;
-	lplstMsgProps->push_back(sPropVal);
+	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
-	lplstMsgProps->push_back(sPropVal);
+	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENDER_NAME_W;
 	hr = HrCopyString(lpIcalItem->base, strName.c_str(), &sPropVal.Value.lpszW);
 	if (hr != hrSuccess)
 		return hr;
-	lplstMsgProps->push_back(sPropVal);
+	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENT_REPRESENTING_NAME;
-	lplstMsgProps->push_back(sPropVal);
+	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENDER_SEARCH_KEY;
 	hr = Util::HrCopyBinary(strSearchKey.length() + 1, (LPBYTE)strSearchKey.c_str(), &sPropVal.Value.bin.cb, &sPropVal.Value.bin.lpb, lpIcalItem->base);
 	if (hr != hrSuccess)
 		return hr;
-	lplstMsgProps->push_back(sPropVal);
+	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
-	lplstMsgProps->push_back(sPropVal);
+	lplstMsgProps->emplace_back(sPropVal);
 
 	// re-allocate memory to list with lpIcalItem
 	hr = Util::HrCopyBinary(cbEntryID, (LPBYTE)lpEntryID, &sPropVal.Value.bin.cb, &sPropVal.Value.bin.lpb, lpIcalItem->base);
@@ -1083,10 +1078,10 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 		return hr;
 
 	sPropVal.ulPropTag = PR_SENDER_ENTRYID;
-	lplstMsgProps->push_back(sPropVal);
+	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
-	lplstMsgProps->push_back(sPropVal);
+	lplstMsgProps->emplace_back(sPropVal);
 	return hrSuccess;
 }
 
@@ -1166,8 +1161,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		icrAttendee.strName = strName;
 		icrAttendee.ulRecipientType = MAPI_ORIG;
 		icrAttendee.ulTrackStatus = 0;
-	
-		lplstIcalRecip->push_back(icrAttendee);
+		lplstIcalRecip->emplace_back(icrAttendee);
 
 		// The DAgent does not want these properties from ical, since it writes them itself
 		if (!m_bNoRecipients)
@@ -1265,7 +1259,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			}
 		}
 		
-		lplstIcalRecip->push_back(icrAttendee);
+		lplstIcalRecip->emplace_back(icrAttendee);
 	}
 	return hrSuccess;
 }
@@ -1301,7 +1295,7 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 		}
 
 		icrAttendee.ulRecipientType = MAPI_TO;
-		lpIcalItem->lstRecips.push_back(icrAttendee);
+		lpIcalItem->lstRecips.emplace_back(icrAttendee);
 	}
 
 	// The DAgent does not want these properties from ical, since it writes them itself
@@ -1362,12 +1356,10 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 	if (lpicAlarm == NULL) {
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN);
 		sPropVal.Value.b = false;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME));
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
-
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME));
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
 		/* No alarms found, so we can safely exit here. */
 		return hrSuccess;
 	}
@@ -1398,7 +1390,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 			ttReminderNext = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone			
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME);
 			UnixTimeToFileTime(ttReminderNext, &sPropVal.Value.ft);
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			
 			// X-MOZ-SNOOZE-TIME-1231250400000000
 			strSuffix = icalproperty_get_x_name(lpicProp);
@@ -1408,7 +1400,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 				strSuffix.erase(0, strlen("X-MOZ-SNOOZE-TIME-"));
 				strSuffix.erase(10);									// ignoring trailing 6 zeros for hh:mm:ss
 				UnixTimeToFileTime(atoi(strSuffix.c_str()), &sPropVal.Value.ft);
-				lpIcalItem->lstMsgProps.push_back(sPropVal);
+				lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			}
 			icalvalue_free(lpicValue);
 		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-RTF") == 0) {
@@ -1422,8 +1414,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 			if (hr != hrSuccess)
 				return hr;
 			memcpy(sPropVal.Value.bin.lpb, (LPBYTE)rtf.c_str(), sPropVal.Value.bin.cb);
-
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 		}
 
@@ -1433,21 +1424,21 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 	if (bHasMozAck) { // save X-MOZ-LAST-ACK if found in request.
 		sPropMozAck.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZLASTACK], PT_SYSTIME);
 		UnixTimeToFileTime(ttMozLastAckMax, &sPropMozAck.Value.ft);		
-		lpIcalItem->lstMsgProps.push_back(sPropMozAck);
+		lpIcalItem->lstMsgProps.emplace_back(sPropMozAck);
 	}
 	else { //delete X-MOZ-LAST-ACK if not found in request.
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZLASTACK], PT_SYSTIME));		
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZLASTACK], PT_SYSTIME));		
 	}
 
 	// reminderset
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN);
 	sPropVal.Value.b = bReminderSet;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// remindbefore
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG);
 	sPropVal.Value.ul = ulRemindBefore;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// remindertime
 	if (ttReminderTime == 0) {
@@ -1460,17 +1451,17 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 	}
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME);
 	UnixTimeToFileTime(ttReminderTime, &sPropVal.Value.ft);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	if(ttReminderNext == 0)
 	{
 		if (bReminderSet) {
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME);
 			UnixTimeToFileTime(ttReminderTime - (ulRemindBefore * 60), &sPropVal.Value.ft);
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 		} else {
 			//delete the next-reminder time if X-MOZ-SNOOZE-TIME is absent and reminder is not set.
-			lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
+			lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
 		}
 	}
 	return hrSuccess;
@@ -1500,13 +1491,11 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 		// set isRecurring to false , property required by BlackBerry.
 		spSpropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN);
 		spSpropVal.Value.b = false;
-		lpIcalItem->lstMsgProps.push_back(spSpropVal);
-
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY));
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8));
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME));
-		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCE_END], PT_SYSTIME));
-
+		lpIcalItem->lstMsgProps.emplace_back(spSpropVal);
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY));
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8));
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME));
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCE_END], PT_SYSTIME));
 		lpIcalItem->lpRecurrence = NULL;
 
 		// remove all exception attachments from existing message, done in ICal2Mapi.cpp
@@ -1534,7 +1523,7 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 		    strcmp(icalproperty_get_x_name(lpicProp), "X-KOPANO-REC-PATTERN") == 0) {
 			spSpropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_UNICODE);
 			HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalproperty_get_x(lpicProp), &spSpropVal.Value.lpszW);
-			lpIcalItem->lstMsgProps.push_back(spSpropVal);
+			lpIcalItem->lstMsgProps.emplace_back(spSpropVal);
 		}
 		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
 	}
@@ -1582,7 +1571,7 @@ HRESULT VConverter::HrAddException(icalcomponent *lpEventRoot, icalcomponent *lp
 	hr = HrAddBaseProperties(icMethod, lpEvent, lpPrevItem->base, true, &ex.lstMsgProps);
 	if (hr != hrSuccess)
 		return hr;
-	lpPrevItem->lstExceptionAttachments.push_back(std::move(ex));
+	lpPrevItem->lstExceptionAttachments.emplace_back(std::move(ex));
 	return hrSuccess;
 }
 
@@ -2888,7 +2877,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			if (HrSetBody(lpException, &lpicProp) == hrSuccess)
 				icalcomponent_add_property(lpicException.get(), lpicProp);
 		}
-		lstExceptions.push_back(lpicException.release());
+		lstExceptions.emplace_back(lpicException.release());
 	}	
 
 	*lpEventList = std::move(lstExceptions);
@@ -3022,7 +3011,7 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 	}
 
 	HrCopyString(m_converter, m_strCharset, lpIcalItem->base, lpszTZID, &sPropVal.Value.lpszW);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// keep found timezone also as current timezone. will be used in recurrence
 	m_iCurrentTimeZone = m_mapTimeZones->find(lpszTZID);
@@ -3037,8 +3026,7 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 	if (hr != hrSuccess)
 		return hr;
 	memcpy(sPropVal.Value.bin.lpb, &m_iCurrentTimeZone->second, sizeof(TIMEZONE_STRUCT));
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
-
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	// save timezone in icalitem
 	lpIcalItem->tTZinfo = m_iCurrentTimeZone->second;
 	return hrSuccess;
@@ -3145,7 +3133,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	}
 
 	// push the main event in the front, before all exceptions
-	lstEvents.push_front(lpicEvent.release());
+	lstEvents.emplace_front(lpicEvent.release());
 	// end
 	*lpicMethod = icMainMethod;
 	*lpEventList = std::move(lstEvents);
