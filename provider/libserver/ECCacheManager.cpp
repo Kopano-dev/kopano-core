@@ -419,7 +419,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 		if (m_ObjectsCache.GetCacheItem(key.ulObjId, &lpsObject) == erSuccess)
 			mapObjects[key] = *lpsObject;
 		else
-			setUncached.insert(key);
+			setUncached.emplace(key);
     }
 
     if(!setUncached.empty()) {
@@ -486,7 +486,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 			ECsIndexProp p(PROP_ID(ulTag), lpdata[i], cbdata[i]);
 			mapObjects[std::move(p)] = objid;
 		} else {
-			uncached.push_back(i);
+			uncached.emplace_back(i);
 		}
 	}
 
@@ -796,7 +796,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 			lpmapLocalObjIds->insert({objid, ulLocalId});
 		else
 			/* Object was not found in cache. */
-			lstExternIds.push_back(objid);
+			lstExternIds.emplace_back(objid);
 	}
 
 	// Check if all objects have been collected from the cache
@@ -1765,8 +1765,7 @@ ECRESULT ECCacheManager::GetEntryListToObjectList(struct entryList *lpEntryList,
 			bPartialCompletion = true;
 			continue; // Unknown entryid, next item
 		}
-
-		lplObjectList->push_back(ulId);
+		lplObjectList->emplace_back(ulId);
 	}
 
 	if(bPartialCompletion)

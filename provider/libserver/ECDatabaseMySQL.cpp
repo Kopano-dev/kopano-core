@@ -1107,8 +1107,7 @@ ECRESULT ECDatabase::ValidateTables(void)
 			ec_log_err("Wrong table information.");
 			return KCERR_DATABASE_ERROR;
 		}
-
-		listTables.insert(listTables.end(), lpDBRow[0]);
+		listTables.emplace(listTables.end(), lpDBRow[0]);
 	}
 
 	for (const auto &table : listTables) {
@@ -1125,7 +1124,7 @@ ECRESULT ECDatabase::ValidateTables(void)
 
 		ec_log_info("%30s | %15s | %s", lpDBRow[0], lpDBRow[2], lpDBRow[3]);
 		if (strcmp(lpDBRow[2], "error") == 0)
-			listErrorTables.insert(listErrorTables.end(), lpDBRow[0]);
+			listErrorTables.emplace(listErrorTables.end(), lpDBRow[0]);
 	}
 
 	if (!listErrorTables.empty())

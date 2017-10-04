@@ -323,7 +323,7 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 	strDefaultQuery+= " FROM hierarchy AS h WHERE h.id IN ";
 
 	// Add the master id
-	lstFolders.push_back( ulStoreHierarchyId );
+	lstFolders.emplace_back(ulStoreHierarchyId);
 
 	auto iterFolders = lstFolders.begin();
 	while (iterFolders != lstFolders.cend()) {
@@ -363,8 +363,7 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 				ec_log_err("CreateRecursiveStoreEntryIds(): column is NULL");
 				return KCERR_DATABASE_ERROR;
 			}
-
-			 lstFolders.push_back(atoui(lpDBRow[0]));
+			 lstFolders.emplace_back(atoui(lpDBRow[0]));
 		}
 
 		iterFolders = lstFolders.begin();
@@ -792,8 +791,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 			ec_log_err("  object table contains invalid NULL records");
 			goto exit;
 		}
-
-		sObjectList.push_back(SObject(atoi(lpDBRow[0]), atoi(lpDBRow[1])));
+		sObjectList.emplace_back(atoi(lpDBRow[0]), atoi(lpDBRow[1]));
 	}
 
 	// Recreate the objects in the object_temp table and on the fly create the queries to regenerate
@@ -872,8 +870,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 			ec_log_crit("  objectrelation table contains invalid NULL records");
 			goto exit;
 		}
-
-		sRelationList.push_back(SRelation(atoi(lpDBRow[0]), atoi(lpDBRow[1]), atoi(lpDBRow[2])));
+		sRelationList.emplace_back(atoi(lpDBRow[0]), atoi(lpDBRow[1]), atoi(lpDBRow[2]));
 	}
 
 	strQuery.clear();
@@ -1024,15 +1021,14 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 		}
 
 		ulId = atoi(lpDBRow[0]);
-		syncIds.push_back(ulId);
-
+		syncIds.emplace_back(ulId);
 		strQuery = "INSERT INTO abchanges (id, sourcekey, parentsourcekey, change_type";
 		strQuery += std::string(") VALUES (") + lpDBRow[0] + ", " +
 								   lpDatabase->EscapeBinary((unsigned char*)lpDBRow[1], lpDBLen[1]) + ", " +
 								   lpDatabase->EscapeBinary((unsigned char*)lpDBRow[2], lpDBLen[2]) + ", " +
 								   lpDBRow[3];
 		strQuery += ")";
-		queries.push_back(std::move(strQuery));
+		queries.emplace_back(std::move(strQuery));
 	}
 	
 	// Populate the abchanges table with the extracted data
@@ -1134,12 +1130,12 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 		return er;
 
 	// database stored typed, convert to the new objectclass_t values
-	mapTypes.insert({1, ACTIVE_USER}); // USEROBJECT_TYPE_USER
-	mapTypes.insert({2, DISTLIST_GROUP}); // USEROBJECT_TYPE_GROUP
-	mapTypes.insert({3, NONACTIVE_CONTACT}); // USEROBJECT_TYPE_CONTACT (unused, but who knows..)
-	mapTypes.insert({4, CONTAINER_COMPANY}); // USEROBJECT_TYPE_COMPANY
-	mapTypes.insert({5, NONACTIVE_USER}); // USEROBJECT_TYPE_NONACTIVE
-	mapTypes.insert({6, CONTAINER_ADDRESSLIST}); // USEROBJECT_TYPE_ADDRESSLIST
+	mapTypes.emplace(1, ACTIVE_USER); // USEROBJECT_TYPE_USER
+	mapTypes.emplace(2, DISTLIST_GROUP); // USEROBJECT_TYPE_GROUP
+	mapTypes.emplace(3, NONACTIVE_CONTACT); // USEROBJECT_TYPE_CONTACT (unused, but who knows..)
+	mapTypes.emplace(4, CONTAINER_COMPANY); // USEROBJECT_TYPE_COMPANY
+	mapTypes.emplace(5, NONACTIVE_USER); // USEROBJECT_TYPE_NONACTIVE
+	mapTypes.emplace(6, CONTAINER_ADDRESSLIST); // USEROBJECT_TYPE_ADDRESSLIST
 
 	for (const auto &p : mapTypes) {
 		// extern id, because it links to object table for DB plugin
@@ -1174,13 +1170,12 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 			"UPDATE `users` SET `objectclass`=" + stringify(p.second) + " "
 			"WHERE `externid` IN " + strUpdate + " "
 			"AND `objectclass` = " + stringify(p.first);
-		lstUpdates.push_back(std::move(strQuery));
-
+		lstUpdates.emplace_back(std::move(strQuery));
 		strQuery =
 			"UPDATE `object` SET `objectclass`=" + stringify(p.second) + " "
 			"WHERE `externid` IN " + strUpdate + " "
 			"AND `objectclass` = " + stringify(p.first);
-		lstUpdates.push_back(std::move(strQuery));
+		lstUpdates.emplace_back(std::move(strQuery));
 	}
 
 	// process all type updates
@@ -1216,7 +1211,7 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 		lpDBLen = lpResult.fetch_row_lengths();
-		mapIdToName.insert({{lpDBRow[0], lpDBLen[0]}, {lpDBRow[1], lpDBLen[1]}});
+		mapIdToName.emplace(std::string(lpDBRow[0], lpDBLen[0]), std::string(lpDBRow[1], lpDBLen[1]));
 	}
 
 	// update objects to link via externid in companyid, not companyname anymore
@@ -1333,7 +1328,7 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 		auto lpDBLen = lpResult.fetch_row_lengths();
-		lstRelations.push_back({{lpDBRow[0], lpDBLen[0]}, {lpDBRow[1], lpDBLen[1]}});
+		lstRelations.emplace_back(std::string(lpDBRow[0], lpDBLen[0]), std::string(lpDBRow[1], lpDBLen[1]));
 	}
 
 	er = lpDatabase->DoDelete("DELETE FROM objectrelation WHERE relationtype=6");
@@ -1376,7 +1371,7 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 		auto lpDBLen = lpResult.fetch_row_lengths();
-		mapStoreInbox.insert({{lpDBRow[0], lpDBLen[0]}, {lpDBRow[1], lpDBLen[1]}});
+		mapStoreInbox.emplace(std::string(lpDBRow[0], lpDBLen[0]), std::string(lpDBRow[1], lpDBLen[1]));
 	}
 
 	for (const auto &p : mapStoreInbox) {

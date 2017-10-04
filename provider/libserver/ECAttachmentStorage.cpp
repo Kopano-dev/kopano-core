@@ -232,8 +232,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 			ec_log_err("ECAttachmentStorage::GetSingleInstanceIds(): column contains NULL");
 			return KCERR_DATABASE_ERROR;
 		}
-
-		lstInstanceIds.push_back(atoi(lpDBRow[0]));
+		lstInstanceIds.emplace_back(atoi(lpDBRow[0]));
 	}
 	*lstAttachIds = std::move(lstInstanceIds);
 	return erSuccess;
@@ -292,8 +291,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId, std::
 			ec_log_err("ECAttachmentStorage::GetSingleInstanceParents(): column contains NULL");
 			return KCERR_DATABASE_ERROR;
 		}
-
-		lstObjIds.push_back(atoi(lpDBRow[0]));
+		lstObjIds.emplace_back(atoi(lpDBRow[0]));
 	}
 	*lplstObjIds = std::move(lstObjIds);
 	return erSuccess;
@@ -1617,8 +1615,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 
 	// set in transaction before disk full check to remove empty file
 	if(m_bTransaction)
-		m_setNewAttachment.insert(ulInstanceId);
-
+		m_setNewAttachment.emplace(ulInstanceId);
 exit:
 	if (gzfp != NULL) {
 		int ret = gzclose(gzfp);
@@ -1671,7 +1668,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 
 		// file created on disk, now in transaction
 		if (m_bTransaction)
-			m_setNewAttachment.insert(ulInstanceId);
+			m_setNewAttachment.emplace(ulInstanceId);
 
 		while (iSizeLeft > 0) {
 			size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
@@ -1726,7 +1723,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 
 		// file created on disk, now in transaction
 		if (m_bTransaction)
-			m_setNewAttachment.insert(ulInstanceId);
+			m_setNewAttachment.emplace(ulInstanceId);
 
 		while (iSizeLeft > 0) {
 			size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
@@ -1902,12 +1899,12 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(ULONG ulInstanceId, bool bRe
 				assert(false);
 				return er;
 			} else if(er != KCERR_NOT_FOUND) {
-				 m_setMarkedAttachment.insert(ulInstanceId);
+				 m_setMarkedAttachment.emplace(ulInstanceId);
 			}
 
 			er = erSuccess;
 		} else {
-			m_setDeletedAttachment.insert(ulInstanceId);
+			m_setDeletedAttachment.emplace(ulInstanceId);
 		}
 		return er;
 	}
