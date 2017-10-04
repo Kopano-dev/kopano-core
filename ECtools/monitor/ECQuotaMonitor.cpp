@@ -277,7 +277,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 
 	for (ULONG i = 0; i < cUsers; ++i)
 		if (lpsUserList[i].lpszServername && lpsUserList[i].lpszServername[0] != '\0')
-			setServers.insert((char*)lpsUserList[i].lpszServername);
+			setServers.emplace(reinterpret_cast<const char *>(lpsUserList[i].lpszServername));
 
 	if (setServers.empty()) {
 		// call server function with current lpMDBAdmin / lpServiceAdmin

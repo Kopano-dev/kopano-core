@@ -514,7 +514,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		hr = FindArchiveEntry(strArchive, strFolder, &objEntry);
 		if (hr == MAPI_E_NOT_FOUND) {
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "store '" TSTRING_PRINTF "', folder '" TSTRING_PRINTF "' does not exist. Adding to coupling list", strArchive.c_str(), strFolder.c_str());
-			lstCouplings.push_back(i);
+			lstCouplings.emplace_back(i);
 			continue;
 		}
 		if (hr != hrSuccess) {
@@ -527,7 +527,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		if (iObjEntry == lstArchives.end()) {
 			// Found a coupling that's not yet attached. Add it to the to-attach-list.
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "store '" TSTRING_PRINTF "', folder '" TSTRING_PRINTF "' not yet attached. Adding to coupling list", strArchive.c_str(), strFolder.c_str());
-			lstCouplings.push_back(i);
+			lstCouplings.emplace_back(i);
 		} else {
 			// Found a coupling that's already attached. Remove it from lstArchives, which is later processed to remove all
 			// implicitly attached archives from it.
@@ -543,7 +543,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		hr = m_ptrSession->GetArchiveStoreEntryId(info.userName, i, &archiveId);
 		if (hr == MAPI_E_NOT_FOUND) {
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "archive store for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "' does not exist. Adding to server list", info.userName.c_str(), i.c_str());
-			lstServers.push_back(i);
+			lstServers.emplace_back(i);
 			continue;
 		}
 		if (hr != hrSuccess) {
@@ -556,7 +556,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		if (iObjEntry == lstArchives.end()) {
 			// Found a server/archive that's not yet attached. Add it to the to-attach-list.
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "archive store for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "' not yet attached. Adding to server list", info.userName.c_str(), i.c_str());
-			lstServers.push_back(i);
+			lstServers.emplace_back(i);
 		} else {
 			// Found a server/archive that's already attached. Remove it from lstArchives, which is later processed to remove all
 			// implicitly attached archives from it.

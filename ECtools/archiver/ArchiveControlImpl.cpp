@@ -898,8 +898,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 		}
 
 		for (ULONG i = 0; i < ptrRows.size(); ++i)
-			lstEntries.push_back(ptrRows[i].lpProps[0].Value.bin);
-
+			lstEntries.emplace_back(ptrRows[i].lpProps[0].Value.bin);
 		if (ptrRows.size() < 50)
 			break;
 	}

@@ -552,7 +552,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 		return hr;
 	objectEntry.sStoreEntryId.assign(ptrStoreEntryId->Value.bin);
 	objectEntry.sItemEntryId.assign(ptrFolderEntryId->Value.bin);
-	lstFolderArchives.push_back(objectEntry);
+	lstFolderArchives.emplace_back(objectEntry);
 	lstFolderArchives.sort();
 	lstFolderArchives.unique();
 	hr = ptrSourceFolderHelper->SetArchiveList(lstFolderArchives);

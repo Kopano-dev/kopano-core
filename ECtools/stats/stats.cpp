@@ -326,11 +326,9 @@ static void showtop(LPMDB lpStore)
                 session.dtimes.dblUser = session.dtimes.dblSystem = session.dtimes.dblReal = 0;
             }
             mapLastTimes[session.ullSessionId] = session.times;
-            
-            lstSessions.push_back(session);
-            setUsers.insert(session.strUser);
-            setHosts.insert(session.strIP);
-            
+			lstSessions.emplace_back(session);
+			setUsers.emplace(session.strUser);
+			setHosts.emplace(session.strIP);
             if(session.ullSessionGroupId != 0) {
                 auto iterSessionGroups = mapSessionGroups.find(session.ullSessionGroupId);
                 if (iterSessionGroups == mapSessionGroups.cend())

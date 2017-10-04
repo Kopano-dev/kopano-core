@@ -55,7 +55,7 @@ static void mpt_stat_dump(int s = 0)
 
 static void mpt_stat_record(const struct mpt_stat_entry &dp, size_t limit = 50)
 {
-	mpt_stat_list.push_back(dp);
+	mpt_stat_list.emplace_back(dp);
 	if (mpt_stat_list.size() > limit)
 		mpt_stat_list.pop_front();
 }

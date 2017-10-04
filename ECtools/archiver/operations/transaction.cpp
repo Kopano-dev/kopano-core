@@ -102,7 +102,7 @@ HRESULT Transaction::Save(IMessage *lpMessage, bool bDeleteOnFailure, const Post
 	se.bDeleteOnFailure = bDeleteOnFailure;
 	se.ptrMessage.reset(lpMessage, false);
 	se.ptrPSAction = ptrPSAction;
-	m_lstSave.push_back(std::move(se));
+	m_lstSave.emplace_back(std::move(se));
 	return hrSuccess;
 }
 
@@ -111,7 +111,7 @@ HRESULT Transaction::Delete(const SObjectEntry &objectEntry, bool bDeferredDelet
 	DelEntry de;
 	de.objectEntry = objectEntry;
 	de.bDeferredDelete = bDeferredDelete;
-	m_lstDelete.push_back(std::move(de));
+	m_lstDelete.emplace_back(std::move(de));
 	return hrSuccess;
 }
 
@@ -138,7 +138,7 @@ HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 		return hr;
 
 	entry.eidMessage.assign(ptrMsgProps[IDX_ENTRYID].Value.bin);
-	m_lstDelete.push_back(std::move(entry));
+	m_lstDelete.emplace_back(std::move(entry));
 	return hrSuccess;
 }
 

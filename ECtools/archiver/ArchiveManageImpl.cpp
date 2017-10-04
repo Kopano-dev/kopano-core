@@ -303,8 +303,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive entry (hr=%s).", stringify(hr, true).c_str());
 		return hr;
 	}
-
-	lstArchives.push_back(std::move(objectEntry));
+	lstArchives.emplace_back(std::move(objectEntry));
 	lstArchives.sort();
 	lstArchives.unique();
 	
@@ -610,7 +609,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open store (hr=%s)", stringify(hrTmp, true).c_str());
 			entry.StoreName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
-			lstEntries.push_back(std::move(entry));
+			lstEntries.emplace_back(std::move(entry));
 			continue;
 		}
 		
@@ -660,7 +659,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open folder (hr=%s)", stringify(hrTmp, true).c_str());
 			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
-			lstEntries.push_back(std::move(entry));
+			lstEntries.emplace_back(std::move(entry));
 			continue;
 		}
 		
@@ -682,7 +681,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		} else
 			entry.Rights = ARCHIVE_RIGHTS_ABSENT;
 
-		lstEntries.push_back(std::move(entry));
+		lstEntries.emplace_back(std::move(entry));
 	}
 
 	*lplstArchives = std::move(lstEntries);
