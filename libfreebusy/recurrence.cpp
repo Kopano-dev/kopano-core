@@ -478,9 +478,7 @@ HRESULT recurrence::addDeletedException(time_t tDelete)
 	ULONG rtime;
 
 	hr = UnixTimeToRTime(tDayDelete, (LONG*)&rtime);
-
-	m_sRecState.lstDeletedInstanceDates.push_back(rtime);
-
+	m_sRecState.lstDeletedInstanceDates.emplace_back(rtime);
 	return hr;
 }
 
@@ -503,7 +501,7 @@ std::list<time_t> recurrence::getDeletedExceptions() const
 	}
 	for (const auto &d : lstDeletedInstanceDates) {
 		RTimeToUnixTime(d, &tDayDelete);
-		lstDeletes.push_back(tDayDelete + offset);
+		lstDeletes.emplace_back(tDayDelete + offset);
 	}
 
 	return lstDeletes;
@@ -516,7 +514,7 @@ std::list<time_t> recurrence::getModifiedOccurrences() const
 
 	for (const auto &exc : m_sRecState.lstExceptions) {
 		RTimeToUnixTime(exc.ulOriginalStartDate, &tDayModified);
-		lstModified.push_back(tDayModified);
+		lstModified.emplace_back(tDayModified);
 	}
 
 	return lstModified;
@@ -642,20 +640,20 @@ HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOri
 
 	// move is the exception day start
 	UnixTimeToRTime(StartOfDay(tStart), &rDayStart);
-	m_sRecState.lstModifiedInstanceDates.push_back(rDayStart);
+	m_sRecState.lstModifiedInstanceDates.emplace_back(rDayStart);
 
 	// every modify is also a delete in the blob
 	// delete is the original start
 	UnixTimeToRTime(StartOfDay(tOriginalStart), &rDayStart);
-	m_sRecState.lstDeletedInstanceDates.push_back(rDayStart);
+	m_sRecState.lstDeletedInstanceDates.emplace_back(rDayStart);
 
 	sExtException.ulStartDateTime     = sException.ulStartDateTime     = rStart;
 	sExtException.ulEndDateTime       = sException.ulEndDateTime       = rEnd;
 	sExtException.ulOriginalStartDate = sException.ulOriginalStartDate = rOrig;
 	sExtException.ulChangeHighlightValue = 0;
 
-	m_sRecState.lstExceptions.push_back(std::move(sException));
-	m_sRecState.lstExtendedExceptions.push_back(std::move(sExtException));
+	m_sRecState.lstExceptions.emplace_back(std::move(sException));
+	m_sRecState.lstExtendedExceptions.emplace_back(std::move(sExtException));
 	*lpid = id;
 
 	return hr;

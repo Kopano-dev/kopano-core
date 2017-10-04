@@ -202,7 +202,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		return hr;
 	memcpy(bin->lpb, lpRows->aRow[0].lpProps[0].Value.bin.lpb, bin->cb);
 	++lpsMsgList->cValues;
-	listSourceKey.push_back(std::string(reinterpret_cast<char *>(lpRows->aRow[0].lpProps[1].Value.bin.lpb), lpRows->aRow[0].lpProps[1].Value.bin.cb));
+	listSourceKey.emplace_back(reinterpret_cast<char *>(lpRows->aRow[0].lpProps[1].Value.bin.lpb), lpRows->aRow[0].lpProps[1].Value.bin.cb);
 	lpRows.reset();
 
 	for (const auto &sk : listSourceKey) {
@@ -238,7 +238,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 			++lpsMsgList->cValues;
 
 			// Add sourcekey into the list
-			listSourceKey.push_back(std::string(reinterpret_cast<char *>(lpRows->aRow[0].lpProps[1].Value.bin.lpb), lpRows->aRow[0].lpProps[1].Value.bin.cb));
+			listSourceKey.emplace_back(reinterpret_cast<char *>(lpRows->aRow[0].lpProps[1].Value.bin.lpb), lpRows->aRow[0].lpProps[1].Value.bin.cb);
 		} //while(true)
 	}
 	return lpShortcutFolder->DeleteMessages(lpsMsgList, 0, nullptr, 0);

@@ -247,7 +247,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
     entry->profname = (char*)lpszProfileName;
     if (lpszPassword)
 		entry->password = (char*)lpszPassword;
-	profiles.push_back(std::move(entry));
+	profiles.emplace_back(std::move(entry));
 	return hrSuccess;
 }
 
@@ -551,7 +551,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 	entry->service = service;
 	rawent = entry.get();
 	/* @entry needs to be in the list for CreateProviders() to find it */
-	services.push_back(std::move(entry));
+	services.emplace_back(std::move(entry));
 	// calls entry->provideradmin->CreateProvider for each provider read from mapisvc.inf
 	hr = service->CreateProviders(rawent->provideradmin);
 	rawent->bInitialize = false;
@@ -1283,8 +1283,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		}
                   
 			// Keep the store open in case somebody else needs it later (only via this function)
-			mapStores.insert({guidProvider, lpMDB});
-
+			mapStores.emplace(guidProvider, lpMDB);
 			if(bStoreEntryID == true) {
 				hr = lpMDB->QueryInterface(IID_IMsgStore, (void**)lppUnk);
 				if (hr == hrSuccess)
@@ -1524,7 +1523,7 @@ HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::stri
 	entry.displayname = displayname;
 	entry.lpABProvider.reset(newProvider);
 	entry.lpABLogon = std::move(lpABLogon);
-	m_lABProviders.push_back(std::move(entry));
+	m_lABProviders.emplace_back(std::move(entry));
 	return hrSuccess;
 }
 
@@ -2239,7 +2238,7 @@ SCODE MAPIAllocateMore(ULONG size, void *obj, void **buf)
 	if (*buf == nullptr)
 		return MAKE_MAPI_E(1);
 	scoped_lock lock(mapi_allocmap_lock);
-	mapi_allocmap[obj].push_back(*buf);
+	mapi_allocmap[obj].emplace_back(*buf);
 	return hrSuccess;
 }
 
@@ -2759,7 +2758,7 @@ HRESULT SessionRestorer::restore_services(IProfAdmin *profadm)
 			return MAPI_E_CORRUPT_DATA;
 		memcpy(&entry->muid, svcuid_prop->Value.bin.lpb, sizeof(entry->muid));
 		ulock_rec svclk(m_svcadm->m_mutexserviceadmin);
-		m_svcadm->services.push_back(std::move(entry));
+		m_svcadm->services.emplace_back(std::move(entry));
 		svclk.unlock();
 
 		object_ptr<IProfSect> psect;
@@ -2810,7 +2809,7 @@ HRESULT SessionRestorer::restore_providers()
 		if (ret != hrSuccess)
 			return ret;
 		scoped_rlock svclk(m_svcadm->m_mutexserviceadmin);
-		m_svcadm->providers.push_back(std::move(entry));
+		m_svcadm->providers.emplace_back(std::move(entry));
 	}
 	return hrSuccess;
 }

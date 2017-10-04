@@ -103,7 +103,7 @@ HRESULT M4LMAPISupport::Subscribe(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulF
 	memcpy(lpNewKey, lpKey, sizeof(*lpKey));
 	l_adv.lock();
 	++m_connections;
-	m_advises.insert({m_connections, {lpNewKey, ulEventMask, ulFlags, lpAdviseSink}});
+	m_advises.emplace(m_connections, M4LSUPPORTADVISE(lpNewKey, ulEventMask, ulFlags, lpAdviseSink));
 	*lpulConnection = m_connections;
 	return hrSuccess;
 }
@@ -456,7 +456,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 				return hr;
 			continue;
 		}
-		setFilter.insert(std::string(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb));
+		setFilter.emplace(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb);
 		hr = ptrAddrBook->OpenEntry(lpDLEntryID->Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(lpDLEntryID->Value.bin.lpb),
 		     &iid_of(ptrDistList), 0, &ulObjType, &~ptrDistList);

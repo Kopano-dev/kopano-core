@@ -3578,7 +3578,7 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 
 	// Add the PropTags the message currently has
 	for (unsigned i = 0; i < lpsPropArray->cValues; ++i)
-		sPropTagSet.insert(lpsPropArray->aulPropTag[i]);
+		sPropTagSet.emplace(lpsPropArray->aulPropTag[i]);
 
 	// Remove the regular properties we want to keep
 	for (unsigned i = 0; i < lpsValidProps->cValues; ++i)

@@ -394,10 +394,10 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 				fbBlockTemp.m_tmEnd = sTsitem.tsTime;
 				fbBlockTemp.m_fbstatus = (enum FBStatus)(vctStatus.size()> 0 ? vctStatus.back(): 0);// sort it to get max of status
 				if(fbBlockTemp.m_fbstatus != 0)
-					vcFBblocks.push_back(std::move(fbBlockTemp));
+					vcFBblocks.emplace_back(std::move(fbBlockTemp));
 			}
 			++ulLevel;
-			vctStatus.push_back(sTsitem.ulStatus);
+			vctStatus.emplace_back(sTsitem.ulStatus);
 			tsLastTime = sTsitem.tsTime;
 			break;
 		case END_TIME:
@@ -408,7 +408,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 				fbBlockTemp.m_tmEnd = sTsitem.tsTime;
 				fbBlockTemp.m_fbstatus = (enum FBStatus)(vctStatus.size()> 0 ? vctStatus.back(): 0);
 				if(fbBlockTemp.m_fbstatus != 0)
-					vcFBblocks.push_back(std::move(fbBlockTemp));
+					vcFBblocks.emplace_back(std::move(fbBlockTemp));
 			}
 			--ulLevel;
 			if(!vctStatus.empty()){

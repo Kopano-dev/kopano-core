@@ -498,7 +498,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 		for (unsigned int i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag != PR_EC_HOMESERVER_NAME_W)
 				continue;
-			listServers.insert(ptrRows[i].lpProps[0].Value.lpszW);
+			listServers.emplace(ptrRows[i].lpProps[0].Value.lpszW);
 			if (ptrRows[i].lpProps[1].ulPropTag == PR_DISPLAY_NAME_W)
 				ec_log_info("User: %ls on server \"%ls\"", ptrRows[i].lpProps[1].Value.lpszW, ptrRows[i].lpProps[0].Value.lpszW);
 		}
