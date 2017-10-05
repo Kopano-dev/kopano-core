@@ -149,7 +149,6 @@ def _proptag_to_name(proptag, store, proptype=False):
     return u'%s:%s' % (namespace, name)
 
 def create_prop(self, mapiobj, proptag, value=None, proptype=None): # XXX selfie
-
     if _is_int(proptag) or \
        (_is_str(proptag) and ':' not in proptag):
         if _is_str(proptag):
@@ -182,6 +181,7 @@ def create_prop(self, mapiobj, proptag, value=None, proptype=None): # XXX selfie
     # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
     try:
         mapiobj.SetProps([SPropValue(proptag2, value)])
+        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
     except TypeError:
         raise Error('Could not create property, type and value did not match')
 
@@ -294,7 +294,7 @@ class Property(object):
         self.mapiobj = mapiobj
         self._value = None
 
-        self.idname = REV_TAG.get(self.proptag) # XXX slow, often unused: make into properties?
+        self.idname = REV_TAG.get(self.proptag)
         self.type_ = PROP_TYPE(self.proptag)
         self.typename = REV_TYPE.get(self.type_)
         self.named = False
@@ -317,7 +317,8 @@ class Property(object):
             except MAPIErrorNoSupport: # XXX user.props()?
                 pass
 
-    def get_value(self):
+    @property
+    def value(self):
         if self._value is None:
             if self.type_ == PT_SYSTIME: # XXX generalize, property?
                 #
@@ -332,14 +333,13 @@ class Property(object):
                 self._value = self.mapiobj.Value
         return self._value
 
-    def set_value(self, value):
+    @value.setter
+    def value(self, value):
         self._value = value
         if self.type_ == PT_SYSTIME:
             value = unixtime(time.mktime(value.timetuple()))
         self._parent_mapiobj.SetProps([SPropValue(self.proptag, value)])
         self._parent_mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
-    #: Property value, e.g. 'hello' for PR_SUBJECT
-    value = property(get_value, set_value)
 
     @property
     def strid(self):
