@@ -12,6 +12,10 @@ from functools import wraps
 import random
 import sys
 import struct
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import time
 import traceback
 import warnings
@@ -57,7 +61,7 @@ from MAPI.Tags import (
     PR_START_DATE, PR_END_DATE, PR_OWNER_APPT_ID, PR_RESPONSE_REQUESTED,
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ATTACHMENT_FLAGS,
     PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS,
-    PR_NORMALIZED_SUBJECT_W,
+    PR_NORMALIZED_SUBJECT_W, PR_ATTACHMENT_CONTACTPHOTO,
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
@@ -104,6 +108,12 @@ else:
     import user as _user
     import utils as _utils
     import prop as _prop
+
+PidLidEmail1AddressType = 'PT_UNICODE:PSETID_Address:0x8082'
+PidLidEmail1DisplayName = 'PT_UNICODE:PSETID_Address:0x8080'
+PidLidEmail1EmailAddress = 'PT_UNICODE:PSETID_Address:0x8083'
+PidLidEmail1OriginalDisplayName = 'PT_UNICODE:PSETID_Address:0x8084'
+PidLidEmail1OriginalEntryId = 'PT_BINARY:PSETID_Address:0x8085'
 
 class PersistentList(list):
     def __init__(self, mapiobj, proptag, *args, **kwargs):
@@ -257,6 +267,11 @@ class Item(Base):
             return self.prop(PR_DISPLAY_NAME_W).value
         except NotFoundError:
             return u''
+
+    @name.setter
+    def name(self, x):
+        self.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME_W, _unicode(x))])
+        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
     def normalized_subject(self):
@@ -1070,6 +1085,62 @@ class Item(Base):
         """
 
         return self.copy(folder, _delete=True)
+
+    # IPM.Contact
+
+    @property
+    def email(self):
+        return self.email1
+
+    @email.setter
+    def email(self, addr):
+        self.email1 = addr
+
+    @property
+    def email1(self):
+        if self.address1:
+            return self.address1.email
+
+    @email1.setter
+    def email1(self, addr):
+        self.address1 = addr
+
+    @property
+    def address1(self):
+        return Address(
+            self.server,
+            self.get_value(PidLidEmail1AddressType),
+            self.get_value(PidLidEmail1DisplayName),
+            self.get_value(PidLidEmail1EmailAddress),
+            self.get_value(PidLidEmail1OriginalEntryId),
+        )
+
+    @address1.setter
+    def address1(self, addr):
+        pr_addrtype, pr_dispname, pr_email, pr_entryid = self._addr_props(addr)
+
+        self.set_value(PidLidEmail1AddressType, _unicode(pr_addrtype))
+        self.set_value(PidLidEmail1DisplayName, pr_dispname)
+        self.set_value(PidLidEmail1EmailAddress, pr_email)
+        self.set_value(PidLidEmail1OriginalEntryId, pr_entryid)
+
+    @property
+    def photo(self):
+        for attachment in self.attachments():
+            if attachment.get_value(PR_ATTACHMENT_CONTACTPHOTO):
+                s = StringIO(attachment.data)
+                s.name = attachment.name
+                return s
+
+    @photo.setter
+    def photo(self, f):
+        name, data = f.name, f.read()
+        for attachment in self.attachments():
+            if attachment.get_value(PR_ATTACHMENT_CONTACTPHOTO):
+                self.delete(attachment)
+        attachment = self.create_attachment(name, data)
+        attachment.set_value(PR_ATTACHMENT_CONTACTPHOTO, True)
+        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX shouldn't be needed?
 
     def __eq__(self, i): # XXX check same store?
         if isinstance(i, Item):
