@@ -48,7 +48,9 @@ ULONG ECUnknown::Release() {
 		assert(false);
 	if (nRef == 0) {
 		ulock_normal locker(mutex);
-		if (this->lstChildren.empty())
+		bool lastref = lstChildren.empty();
+		locker.unlock();
+		if (lastref)
 			this->Suicide();
 	}
 
