@@ -26,7 +26,8 @@
  * @param[in]	lpProps		The properties returned from the original soap call. Only the pointer is stored, no
  *                          copy is made since our parent object will stay alive for our complete lifetime.
  */
-WSSerializedMessage::WSSerializedMessage(soap *lpSoap, const std::string strStreamId, ULONG cbProps, LPSPropValue lpProps)
+WSSerializedMessage::WSSerializedMessage(soap *lpSoap,
+    const std::string &strStreamId, ULONG cbProps, SPropValue *lpProps)
 : m_lpSoap(lpSoap)
 , m_strStreamId(strStreamId)
 , m_cbProps(cbProps)

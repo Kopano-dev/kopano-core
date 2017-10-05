@@ -33,7 +33,9 @@
 
 using namespace KCHL;
 
-ECMAPITable::ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags) : ECUnknown("IMAPITable")
+ECMAPITable::ECMAPITable(const std::string &strName,
+    ECNotifyClient *lpNotifyClient, ULONG ulFlags) :
+	ECUnknown("IMAPITable")
 {
 	this->lpNotifyClient = lpNotifyClient;
 	
@@ -95,7 +97,8 @@ ECMAPITable::~ECMAPITable()
 		lpTableOps->Release();	// closes the table on the server too
 }
 
-HRESULT ECMAPITable::Create(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags, ECMAPITable **lppECMAPITable)
+HRESULT ECMAPITable::Create(const std::string &strName,
+    ECNotifyClient *lpNotifyClient, ULONG ulFlags, ECMAPITable **lppECMAPITable)
 {
 	return alloc_wrap<ECMAPITable>(strName, lpNotifyClient, ulFlags)
 	       .put(lppECMAPITable);

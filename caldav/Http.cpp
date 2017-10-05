@@ -679,7 +679,7 @@ HRESULT Http::HrToHTTPCode(HRESULT hr)
  * @retval		MAPI_E_CALL_FAILED	The status is already set
  * 
  */
-HRESULT Http::HrResponseHeader(unsigned int ulCode, std::string strResponse)
+HRESULT Http::HrResponseHeader(unsigned int ulCode, const std::string &strResponse)
 {
 	m_ulRetCode = ulCode;
 	// do not set headers if once set
@@ -695,7 +695,7 @@ HRESULT Http::HrResponseHeader(unsigned int ulCode, std::string strResponse)
  * @param[in]	strValue	Value of the header to be set
  * @return		HRESULT		Always set to hrSuccess
  */
-HRESULT Http::HrResponseHeader(std::string strHeader, std::string strValue)
+HRESULT Http::HrResponseHeader(const std::string &strHeader, const std::string &strValue)
 {
 	m_lstHeaders.push_back(strHeader + ": " + strValue);
 	return hrSuccess;
@@ -706,7 +706,7 @@ HRESULT Http::HrResponseHeader(std::string strHeader, std::string strValue)
  * @param[in]	strResponse		The string to be added to http response body
  * return		HRESULT			Always set to hrSuccess
  */
-HRESULT Http::HrResponseBody(std::string strResponse)
+HRESULT Http::HrResponseBody(const std::string &strResponse)
 {
 	m_strRespBody += strResponse;
 	// data send in HrFinalize()
@@ -719,14 +719,12 @@ HRESULT Http::HrResponseBody(std::string strResponse)
  * @param[in]	strMsg	Message to be shown to the client
  * @return		HRESULT 
  */
-HRESULT Http::HrRequestAuth(std::string strMsg)
+HRESULT Http::HrRequestAuth(const std::string &strMsg)
 {
 	HRESULT hr = HrResponseHeader(401, "Unauthorized");
 	if (hr != hrSuccess)
 		return hr;
-
-	strMsg = "Basic realm=\"" + strMsg + "\"";
-	return HrResponseHeader("WWW-Authenticate", strMsg);
+	return HrResponseHeader("WWW-Authenticate", "Basic realm=\"" + strMsg + "\"");
 }
 
 /**

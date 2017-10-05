@@ -648,7 +648,8 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
  * @return		HRESULT
  * @retval		MAPI_E_NOT_FOUND	No message found containing the guid value. 
  */
-HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropTagArray lpNamedProps, IMessage **lppMessage)
+HRESULT HrFindAndGetMessage(const std::string &strGuid, IMAPIFolder *lpUsrFld,
+    SPropTagArray *lpNamedProps, IMessage **lppMessage)
 {
 	SBinary sbEid = {0,0};
 	memory_ptr<SRestriction> lpsRoot;

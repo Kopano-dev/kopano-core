@@ -79,10 +79,10 @@ class CHtmlToTextParser {
 }
 
 // some common/rtfutil.h functions
-HRESULT HrExtractHTMLFromRTF(std::string lpStrRTFIn, std::string &OUTPUT, ULONG ulCodepage);
-HRESULT HrExtractHTMLFromTextRTF(std::string lpStrRTFIn, std::string &OUTPUT, ULONG ulCodepage);
-HRESULT HrExtractHTMLFromRealRTF(std::string lpStrRTFIn, std::string &OUTPUT, ULONG ulCodepage);
-HRESULT HrExtractBODYFromTextRTF(std::string lpStrRTFIn, std::wstring &OUTPUT);
+extern HRESULT HrExtractHTMLFromRTF(const std::string &rtf, std::string &OUTPUT, ULONG codepage);
+extern HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf, std::string &OUTPUT, ULONG codepage);
+extern HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf, std::string &OUTPUT, ULONG codepage);
+extern HRESULT HrExtractBODYFromTextRTF(const std::string &rtf, std::wstring &OUTPUT);
 
 // functions from favoritesutil.h
 HRESULT GetShortcutFolder(IMAPISession *lpSession, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, ULONG ulFlags, IMAPIFolder **lppShortcutFolder);
