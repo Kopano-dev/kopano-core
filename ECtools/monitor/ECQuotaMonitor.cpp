@@ -1220,7 +1220,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 	 * will get a notification mail in his prefered language.
 	 */
 	for (ULONG i = 0; i < cToUsers; ++i) {
-		/* Company quota's shouldn't deliver to the first entry since that is the public store. */
+		/* Company quotas should not deliver to the first entry since that is the public store. */
 		if (i == 0 && sVars.ulClass == CONTAINER_COMPANY) {
 			if (cToUsers == 1)
 				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ERROR, "No quota recipients for over quota company %s", (LPSTR)lpecCompany->lpszCompanyname);

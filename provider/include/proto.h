@@ -196,7 +196,7 @@ struct ns:getStoreTypeResponse {
 };
 
 
-// Warning, this is synched with MAPI's types!
+/* Warning, this is synced with MAPI's types! */
 enum SortOrderType { EC_TABLE_SORT_ASCEND=0, EC_TABLE_SORT_DESCEND, EC_TABLE_SORT_COMBINE, EC_TABLE_SORT_CATEG_MAX = 4, EC_TABLE_SORT_CATEG_MIN = 8};
 
 struct sortOrder {

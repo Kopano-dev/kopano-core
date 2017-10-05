@@ -3688,7 +3688,7 @@ nil:
 	if (lpSimple)
 		*lpSimple = "(" + kc_join(lBody, " ") + ")";
 
-	// just push some NIL's or also inbetween?
+	/* just push some NILs or also inbetween? */
 	lBodyStructure.push_back("NIL");	// MD5 of body (use Content-MD5 header?)
 
 	lBodyStructure.push_back(getStructureExtendedFields(vmHeaderPart));

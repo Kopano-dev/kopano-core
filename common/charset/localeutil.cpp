@@ -27,7 +27,7 @@ locale_t createUTF8Locale()
 {
 	locale_t loc;
 
-	// this trick only works on newer distro's
+	/* this trick only works on newer distros */
 	loc = createlocale(LC_CTYPE, "C.UTF-8");
 	if (loc)
 		return loc;

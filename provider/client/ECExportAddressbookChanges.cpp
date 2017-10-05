@@ -347,10 +347,10 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
  * 4th rule.
  *
  * @param[in]	left
- *					An ICSCHANGE structure who's sSourceKey is interpreted as an ABEID stucture. It is compared to
+ *					An ICSCHANGE structure whose sSourceKey is interpreted as an ABEID stucture. It is compared to
  *					the right parameter.
  * @param[in]	right
- *					An ICSCHANGE structure who's sSourceKey is interpreted as an ABEID stucture. It is compared to
+ *					An ICSCHANGE structure whose sSourceKey is interpreted as an ABEID stucture. It is compared to
  *					the left parameter.
  *
  * @return		boolean

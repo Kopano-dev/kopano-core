@@ -202,7 +202,7 @@ ldap_groupmembers_attribute = ifelse(TYPE,`OPENLDAP',`memberUid',`member')
 ldap_groupmembers_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`dn')
 
 # The attribute of the user which is listed in ldap_groupmember_attribute
-# Active directory: empty, matching dn's
+# Active directory: empty, matching DNs
 # LDAP: uid, matching users in ldap_loginname_attribute
 ldap_groupmembers_relation_attribute = ifelse(TYPE,`OPENLDAP',`uid',`')
 

@@ -573,7 +573,7 @@ static string getMapiPropertyString(ULONG ulPropTag)
  *
  * @param[in]	cCompanies		Number of companies in lpECCompanies
  * @param[in]	lpECCompanies	Array of ECCompany structs
- * @param[in]	bList			true to list with comma's separation, otherwise enters are used.
+ * @param[in]	bList			true to list with comma separation, otherwise enters are used.
  */
 static void print_companies(unsigned int cCompanies,
     const ECCOMPANY *lpECCompanies, bool bList)

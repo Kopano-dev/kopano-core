@@ -244,7 +244,7 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 	object_ptr<IMAPITable> lpRTable;
 	bool bResend = false;
 	std::set<std::wstring> setGroups; // Set of groups to make sure we don't get into an expansion-loop
-	std::set<std::wstring> setRecips; // Set of recipients to make sure we don't send two identical RCPT TO's
+	std::set<std::wstring> setRecips; // Set of recipients to make sure we don't send two identical RCPT TOs
 	memory_ptr<SPropValue> lpMessageFlags;
 	
 	hr = HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpMessageFlags);
@@ -302,7 +302,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		vmTransport = vmSession->getTransport(url);
 		vmTransport->setTimeoutHandlerFactory(vmime::make_shared<mapiTimeoutHandlerFactory>());
 
-		// cast to access interface extra's
+		/* cast to access interface extras */
 		mapiTransport = vmime::dynamicCast<vmime::net::smtp::MAPISMTPTransport>(vmTransport);
 
 		// get expeditor for 'mail from:' smtp command

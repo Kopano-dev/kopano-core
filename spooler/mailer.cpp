@@ -219,7 +219,7 @@ remove_group:
  * This function builds the restriction, and calls the recursion
  * function, since we can have group-in-groups.
  *
- * @todo use restriction macro's for readability.
+ * @todo use restriction macros for readability.
  *
  * @param[in]	lpAddrBook	The Global Addressbook of the user sending lpMessage
  * @param[in]	lpMessage	The message to expand groups for.
@@ -661,7 +661,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	ULONG			cEntries = 0;
 	string			strName, strType, strEmail;
 
-	// CopyTo() var's
+	/* CopyTo() vars */
 	unsigned int	ulPropAttachPos;
 	ULONG			ulAttachNum;
 
@@ -1701,25 +1701,25 @@ static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
 
 	hr = HrGetOneProp(lpRepStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentItemsEntryID);
 	if (hr != hrSuccess) {
-		ec_log_warn("Unable to find representee's sent items folder: error 0x%08X", hr);
+		ec_log_warn("Unable to find the representee's Sent Items folder: error 0x%08X", hr);
 		return hr;
 	}
 
 	hr = lpRepStore->OpenEntry(lpSentItemsEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpSentItemsEntryID->Value.bin.lpb),
 	     &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, &~lpSentItems);
 	if (hr != hrSuccess) {
-		ec_log_warn("Unable to open representee's sent items folder: error 0x%08X", hr);
+		ec_log_warn("Unable to open the representee's Sent Items folder: error 0x%08X", hr);
 		return hr;
 	}
 	hr = lpSentItems->CreateMessage(nullptr, 0, &~lpDestMsg);
 	if (hr != hrSuccess) {
-		ec_log_warn("Unable to create representee's message: error 0x%08X", hr);
+		ec_log_warn("Unable to create the representee's message: error 0x%08X", hr);
 		return hr;
 	}
 
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpDestMsg, 0, NULL);
 	if (FAILED(hr)) {
-		ec_log_warn("Unable to copy representee's message: error 0x%08X", hr);
+		ec_log_warn("Unable to copy the representee's message: error 0x%08X", hr);
 		return hr;
 	}
 
@@ -1728,11 +1728,11 @@ static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
 
 	hr = lpDestMsg->SetProps(1, sProp, NULL);
 	if (hr != hrSuccess) {
-		ec_log_warn("Unable to edit representee's message: error 0x%08X", hr);
+		ec_log_warn("Unable to edit the representee's message: error 0x%08X", hr);
 		return hr;
 	}
 	*lppRepMessage = lpDestMsg.release();
-	ec_log_info("Copy placed in representee's sent items folder");
+	ec_log_info("Copy placed in the representee's Sent Items folder");
 	return hrSuccess;
 }
 
@@ -1926,8 +1926,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 	*/
 
-	// Set PR_SENT_REPRESENTING, as this is set on all 'sent' items and is the column
-	// that is shown by default in Outlook's 'sent items' folder
+	// Set PR_SENT_REPRESENTING, as this is set on all "Sent" items and is the column
+	// that is shown by default in Outlook's "Sent Items" folder
 	if (HrGetOneProp(lpMessage, PR_SENT_REPRESENTING_ENTRYID, &~lpRepEntryID) != hrSuccess) {
 		// set current user as sender (From header)
 		sPropSender[0].ulPropTag = PR_SENT_REPRESENTING_NAME_W;
@@ -2174,7 +2174,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		HRESULT hr2 = lpRepMessage->SaveChanges(0);
 
 		if (hr2 != hrSuccess)
-			ec_log_err("Representee's mail copy could not be saved: %s (%x)",
+			ec_log_err("The representee's mail copy could not be saved: %s (%x)",
 				GetMAPIErrorMessage(hr2), hr2);
 	}
 

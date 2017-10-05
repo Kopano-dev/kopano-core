@@ -618,8 +618,8 @@ ECRESULT ECGetContentChangesHelper::Init()
 	if (!m_setLegacyMessages.empty()) {
 		/*
 		 * The previous request was with a restriction, so we can't do an
-		 * incremental sync in any case, as that will only get us add's and
-		 * deletes for changes that happened after the last sync. But we
+		 * incremental sync in any case, as that will only get us additions and
+		 * deletions for changes that happened after the last sync. But we
 		 * can also have adds because certain older messages might not have
 		 * matched the previous restriction, but do match the current (where
 		 * no restriction is seen as a match-all restriction).

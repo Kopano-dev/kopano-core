@@ -1638,7 +1638,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
  * Set From and possibly Sender header.
  *
  * @param[in]	lpMessage	Message to get From and Sender of.
- * @param[in]	charset		charset to use for Fullname's of headers.
+ * @param[in]	charset		charset to use for Fullname headers.
  * @param[in]	vmHeader	vmime header object to modify.
  * @return Mapi error code
  */
@@ -1742,7 +1742,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
  * only convert the first.
  *
  * @param[in]	lpMessage	Message to get Reply-To value of.
- * @param[in]	charset		charset to use for Fullname's of headers.
+ * @param[in]	charset		charset to use for Fullname headers.
  * @param[in]	vmHeader	vmime header object to modify.
  * @return Mapi error code
  */
@@ -1891,7 +1891,7 @@ bool MAPIToVMIME::has_reminder(IMessage *msg) const
  * instead of TNEF.
  *
  * @param[in]	lpMessage	Message to get Reply-To value of.
- * @param[in]	charset		charset to use for Fullname's of headers.
+ * @param[in]	charset		charset to use for Fullname headers.
  * @param[in]	vmHeader	vmime header object to modify.
  * @return Mapi error code
  */

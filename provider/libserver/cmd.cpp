@@ -5630,7 +5630,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 	if(er != erSuccess)
 		goto exit;
 
-	// Set ACL's on public store
+	/* Set ACLs on public store */
 	if(ulStoreType == ECSTORE_TYPE_PUBLIC) {
 		// ulUserId == a group
 		// ulUserId 1 = group everyone
@@ -9805,8 +9805,8 @@ SOAP_ENTRY_START(resolvePseudoUrl, lpsResponse->er, const char *lpszPseudoUrl,
 	if (!lpecSession->GetSessionManager()->IsDistributedSupported())
 	{
 		/**
-         * Non distributed environments do issue pseudo url's, but merely to 
-         * make upgrading later possible. We'll just return the passed pseudo url
+		 * Non-distributed environments do issue pseudo URLs, but merely to
+		 * make upgrading later possible. We will just return the passed pseudo URL
 		 * and say that we're the peer. That would cause the client to keep on
 		 * using the current connection.
          **/

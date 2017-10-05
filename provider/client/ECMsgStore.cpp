@@ -1762,7 +1762,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		if(hr != hrSuccess)
 			return hr;
 
-		// Set acl's on the folder
+		/* Set ACLs on the folder */
 		sPermission.ulRights = ecRightsReadAny|ecRightsFolderVisible;
 		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
 		sPermission.ulType = ACCESS_TYPE_GRANT;
@@ -1778,7 +1778,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		if(hr != hrSuccess)
 			return hr;
 
-		// Set acl's on the folder
+		/* Set ACLs on the folder */
 		sPermission.ulRights = ecRightsAll;//ecRightsReadAny| ecRightsCreate | ecRightsEditOwned| ecRightsDeleteOwned | ecRightsCreateSubfolder | ecRightsFolderVisible;
 		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
 		sPermission.ulType = ACCESS_TYPE_GRANT;
@@ -1791,7 +1791,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		if(hr != hrSuccess)
 			return hr;
 
-		// Set acl's on the IPM subtree folder
+		/* Set ACLs on the IPM subtree folder */
 		sPermission.ulRights = ecRightsReadAny| ecRightsCreate | ecRightsEditOwned| ecRightsDeleteOwned | ecRightsCreateSubfolder | ecRightsFolderVisible;
 		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
 		sPermission.ulType = ACCESS_TYPE_GRANT;

@@ -708,7 +708,7 @@
 		 *
 		 * Also if assignor has request SOC then the assignor is also add as recipient type MAPI_BCC
 		 *
-		 * @param $task message MAPI message which assignee's copy of task
+		 * @param $task message MAPI message which is the assignee's copy of the task
 		 */
 		function setAssignorInRecipients($task)
 		{

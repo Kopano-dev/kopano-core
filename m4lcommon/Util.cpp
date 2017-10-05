@@ -1894,7 +1894,7 @@ template<size_t N> static bool StrCaseCompare(const wchar_t *lpString,
  * Always escape { and } to \{ and \}
  * Always escape \r\n to \par (dfq?)
  * All HTML tags are converted from, say <BODY onclick=bla> to \r\n{\htmltagX <BODY onclick=bla>}
- * Each tag with text content gets an extra {\htmltag64} to suppress generated <P>'s in the final HTML output
+ * Each tag with text content gets an extra {\htmltag64} to suppress generated <P>s in the final HTML output
  * Some tags output \htmlrtf \par \htmlrtf0 so that the plaintext version of the RTF has newlines in the right places
  * Some effort is done so that data between <STYLE> tags is output as a single entity
  * <!-- and --> tags are supported and output as a single htmltagX entity

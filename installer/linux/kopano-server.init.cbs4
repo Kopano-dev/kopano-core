@@ -9,7 +9,7 @@ CONFIG=/etc/kopano/server.cfg
 
 #     .........1.........2.........3.........4.........5........!
 NAME="Server"
-DESC="Collaboration Platform's Storage Server"
+DESC="Collaboration Platform Storage Server"
 
 #set -e
 

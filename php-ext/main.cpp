@@ -4042,9 +4042,7 @@ exit:
 }
 
 /**
-*
-* Add's, modifies or deletes rows from the rules table
-*
+ * Adds, modifies or deletes rows from the rules table
 */
 ZEND_FUNCTION(mapi_rules_modifytable) {
 	PMEASURE_FUNC;

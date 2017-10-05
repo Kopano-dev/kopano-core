@@ -282,8 +282,7 @@ static ECRESULT NormalizeGetOptimalMultiFieldSearch(
     if (er != erSuccess)
 		return er;
         
-    // Convert a series of AND's or a single text search into a new restriction and the multisearch
-    // terms
+	/* Convert a series of ANDs or a single text search into a new restriction and the multisearch terms. */
 	return NormalizeRestrictionMultiFieldSearch(lpRestrict, setExcludeProps, lpMultiSearches);
 }
 

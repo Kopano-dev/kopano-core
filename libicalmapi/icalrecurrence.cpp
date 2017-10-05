@@ -88,7 +88,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTEND_PROPERTY);
 	if (!lpicProp) {
-		// check for Task's DUE property.
+		/* check for the task's DUE property. */
 		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DUE_PROPERTY);
 	}
 	if (!lpicProp)
@@ -230,8 +230,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	} else {
 		// never ending story
 		lpRec->setEndType(recurrence::NEVER);
-
-		// outlook also sets 10, so this get's displayed in the recurrence dialog window
+		/* Outlook also sets 10, so this gets displayed in the recurrence dialog window. */
 		lpRec->setCount(10);
 		// 1. dtUTCEnd -> end time offset (set later)
 		// (date will overridden by recurrence.cpp when writing the blob)

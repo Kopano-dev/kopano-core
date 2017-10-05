@@ -505,13 +505,13 @@ private:
 	objectsignature_t objectDNtoObjectSignature(objectclass_t objclass, const std::string &dn);
 
 	/**
-	 * Convert a list of DN's to a list of object signatures
+	 * Convert a list of DNs to a list of object signatures
 	 *
 	 * @param[in]	objclass
 	 *					The objectclass to which this search should be restricted.
 	 *					The objectclass can be partially unknown (OBJECTCLASS_UNKNOWN, MAILUSER_UNKNOWN, ...)
 	 * @param[in]	dn
-	 *					List of DN's
+	 *					List of DNs
 	 * @return The list of objectsignatures
 	 */
 	std::unique_ptr<signatures_t> objectDNtoObjectSignatures(objectclass_t objclass, const std::list<std::string> &dn);

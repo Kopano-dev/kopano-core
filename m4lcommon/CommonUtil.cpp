@@ -1785,9 +1785,7 @@ static HRESULT HrOpenUserMsgStore(IMAPISession *lpSession, IMsgStore *lpStore,
 	return lpMsgStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppStore));
 }
 
-/*
- * NAMED PROPERTY util functions (used with PROPMAP_* macro's)
- */
+/* NAMED PROPERTY util functions (used with PROPMAP_* macros) */
 
 ECPropMapEntry::ECPropMapEntry(GUID guid, ULONG ulId) :
 	m_sGuid(guid)

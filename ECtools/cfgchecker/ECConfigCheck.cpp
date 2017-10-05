@@ -47,7 +47,7 @@ static string clearCharacters(string s, const string &whitespaces)
 	 * The line is build up like this:
 	 * config_name = bla bla
 	 *
-	 * Whe should clean it in such a way that it resolves to:
+	 * We should clean it in such a way that it resolves to:
 	 * config_name=bla bla
 	 *
 	 * Be careful _not_ to remove any whitespace characters

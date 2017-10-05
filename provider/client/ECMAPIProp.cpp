@@ -677,8 +677,8 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 		--cNewPerms;
 	}
 
-	// Now see if there are still some new ACL's left. If enough spare space is available
-	// we'll reuse the ptrPerms storage. If not we'll reallocate the whole array.
+	// Now see if there are still some new ACLs left. If enough spare space is available,
+	// we will reuse the ptrPerms storage. If not, we will reallocate the whole array.
 	lpPermissions = ptrPerms.get();
 	if (cNewPerms > 0) {
 		if (cNewPerms <= cSparePerms) {
