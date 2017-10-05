@@ -5115,7 +5115,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
 				ECPropertyRestriction(RELOP_LT, pv.ulPropTag, &pv, ECRestriction::Shallow));
@@ -5190,7 +5190,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = pv2.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			pv2.Value.ft = AddDay(pv.Value.ft);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
@@ -5213,7 +5213,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
 				ECPropertyRestriction(RELOP_LT, pv.ulPropTag, &pv, ECRestriction::Shallow));
@@ -5222,7 +5222,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = pv2.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			pv2.Value.ft = AddDay(pv.Value.ft);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
@@ -5233,7 +5233,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
 				ECPropertyRestriction(RELOP_GE, pv.ulPropTag, &pv, ECRestriction::Shallow));
@@ -5242,7 +5242,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
 				ECPropertyRestriction(RELOP_GE, pv.ulPropTag, &pv, ECRestriction::Shallow));
