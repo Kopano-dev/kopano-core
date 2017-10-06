@@ -258,13 +258,11 @@ class Folder(Base):
                 self.server,
                 self.mapiobj.GetContentsTable(self.content_flag),
                 PR_CONTAINER_CONTENTS,
-                columns=[PR_ENTRYID, PR_MESSAGE_DELIVERY_TIME]
+                columns=[PR_ENTRYID, PR_MESSAGE_DELIVERY_TIME],
+                restriction=restriction
             )
         except MAPIErrorNoSupport:
             return
-
-        if restriction:
-            table.restrict(restriction)
 
         table.sort(-1 * PR_MESSAGE_DELIVERY_TIME)
 

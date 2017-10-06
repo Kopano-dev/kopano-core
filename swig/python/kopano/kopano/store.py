@@ -55,6 +55,8 @@ from .prop import Property
 from .delegation import Delegation
 from .permission import Permission
 from .freebusy import FreeBusy
+from .table import Table
+from .restriction import Restriction
 
 from .compat import (
     hex as _hex, unhex as _unhex, decode as _decode, encode as _encode,
@@ -604,19 +606,20 @@ class Store(Base):
     def favorites(self):
         """Returns all favorite folders"""
 
-        table = self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED)
-        table.SetColumns([PR_MESSAGE_CLASS, PR_SUBJECT, PR_WLINK_ENTRYID, PR_WLINK_FLAGS, PR_WLINK_ORDINAL, PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE], 0)
-        table.Restrict(SPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, SPropValue(PR_MESSAGE_CLASS, "IPM.Microsoft.WunderBar.Link")), TBL_BATCH)
-
-        for row in table.QueryRows(-1, 0):
-            store_entryid = bin2hex(row[5].Value)
-
+        table = Table(
+            self.server,
+            self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED),
+            columns=[PR_WLINK_ENTRYID, PR_WLINK_STORE_ENTRYID],
+            restriction=Restriction(SPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS,
+                                    SPropValue(PR_MESSAGE_CLASS, b"IPM.Microsoft.WunderBar.Link")))
+        )
+        for entryid, store_entryid in table:
             try:
                 if store_entryid == self.entryid: # XXX: Handle favorites from public stores
-                    yield self.folder(entryid=bin2hex(row[2].Value))
+                    yield self.folder(entryid=_hex(entryid.value))
                 else:
-                    store = Store(entryid=store_entryid, server=self.server)
-                    yield store.folder(entryid=bin2hex(row[2].Value))
+                    store = Store(entryid=_hex(store_entryid.value), server=self.server)
+                    yield store.folder(entryid=_hex(entryid.value))
             except NotFoundError:
                 pass
 
