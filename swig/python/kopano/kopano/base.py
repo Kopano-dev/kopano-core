@@ -18,62 +18,55 @@ else:
 class Base(object):
 
     def prop(self, proptag, create=False, proptype=None):
-        """ Return :class:`property <Property>` with given property tag
+        """Return :class:`property <Property>` with given property tag.
 
         :param proptag: MAPI property tag
         :param create: create property if it doesn't exist
-
         """
-
         return _prop.prop(self, self.mapiobj, proptag, create=create, proptype=proptype)
 
     def get_prop(self, proptag):
-        """ Return :class:`property <Property>` with given proptag or *None* if not found
+        """Return :class:`property <Property>` with given proptag or
+        *None* if not found.
 
         :param proptag: MAPI property tag
         """
-
         try:
             return self.prop(proptag)
         except NotFoundError:
             pass
 
     def create_prop(self, proptag, value, proptype=None):
-        """ Create :class:`property <Property>` with given proptag
+        """Create :class:`property <Property>` with given proptag.
 
         :param proptag: MAPI property tag
         :param value: property value (or a default value is used)
         """
-
         return _prop.create_prop(self, self.mapiobj, proptag, value, proptype)
 
     def props(self, namespace=None):
-        """ Return all :class:`properties <Property>` """
-
+        """Return all :class:`properties <Property>`."""
         return _prop.props(self.mapiobj, namespace)
 
     def value(self, proptag):
-        """ Return :class:`property <Property>` value for given proptag """
-
+        """Return :class:`property <Property>` value for given proptag."""
         return self.prop(proptag).value
 
-    def get_value(self, proptag):
-        """ Return :class:`property <Property>` value for given proptag or
-        *None* if property does not exist
+    def get_value(self, proptag, default=None):
+        """Return :class:`property <Property>` value for given proptag or
+        *None* if property does not exist.
 
         :param proptag: MAPI property tag
         """
-
         try:
             return self.prop(proptag).value
         except NotFoundError:
-            pass
+            return default
 
     def set_value(self, proptag, value):
-        """ Set :class:`property <Property>` value for given proptag,
-        creating the property if it doesn't exist
+        """Set :class:`property <Property>` value for given proptag,
+        creating the property if it doesn't exist.
         """
-
         self.prop(proptag, create=True).value = value
 
     def __repr__(self):
