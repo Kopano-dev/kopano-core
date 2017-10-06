@@ -21,6 +21,8 @@ if sys.hexversion >= 0x03000000:
 else:
     import bsddb
 
+from .version import __version__
+
 from MAPI import (
     PT_UNICODE, PT_ERROR, MAPI_UNICODE, KEEP_OPEN_READWRITE, MAPI_MODIFY,
     ROW_ADD,

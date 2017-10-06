@@ -3,6 +3,7 @@
 dist_sbin_SCRIPTS = kopano-cli
 
 EXTRA_DIST = setup.py \
+	kopano_cli/version.py \
 	kopano_cli/__init__.py
 
 install-exec-local:

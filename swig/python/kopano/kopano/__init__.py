@@ -50,6 +50,7 @@ Main classes:
 
 import sys
 
+from .version import __version__
 from .config import Config, CONFIG
 from .errors import (
     Error, ConfigError, DuplicateError, NotFoundError, LogonError,

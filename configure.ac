@@ -776,6 +776,10 @@ AC_CONFIG_FILES([ECtools/presence/kopano-presence], [chmod +x ECtools/presence/k
 AC_CONFIG_FILES([ECtools/migration-pst/kopano-migration-pst], [chmod +x ECtools/migration-pst/kopano-migration-pst])
 AC_CONFIG_FILES([installer/linux/kopano-mr-accept.py], [chmod +x installer/linux/kopano-mr-accept.py])
 AC_CONFIG_FILES([installer/linux/kopano-mr-process.py], [chmod +x installer/linux/kopano-mr-process.py])
+AC_CONFIG_FILES([ECtools/search/kopano_search/version.py], [])
+AC_CONFIG_FILES([ECtools/backup/kopano_backup/version.py], [])
+AC_CONFIG_FILES([ECtools/cli/kopano_cli/version.py], [])
+AC_CONFIG_FILES([swig/python/kopano/kopano/version.py], [])
 
 AC_OUTPUT
 $LN_TFSV "$abs_top_srcdir" "@"
