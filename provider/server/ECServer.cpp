@@ -882,7 +882,7 @@ static int running_server(char *szName, const char *szConfig,
 		{ "cache_store_size",			"1M", CONFIGSETTING_SIZE },		// 1Mb, store table cache (storeid, storeguid), 40 bytes
 		{ "cache_server_size",			"1M", CONFIGSETTING_SIZE },		// 1Mb
 		{ "cache_server_lifetime",		"30" },							// 30 minutes
-		// default no quota's. Note: quota values are in Mb, and thus have no size flag.
+		/* Default no quotas. Note: quota values are in Mb, and thus have no size flag. */
 		{ "quota_warn",				"0", CONFIGSETTING_RELOADABLE },
 		{ "quota_soft",				"0", CONFIGSETTING_RELOADABLE },
 		{ "quota_hard",				"0", CONFIGSETTING_RELOADABLE },

@@ -196,7 +196,7 @@ private:
 	 * Open the history message referenced by lpArchivedMsg and update its reference. Continue doing that for all
 	 * history messages.
 	 *
-	 * @param[in]	lpArchivedMsg		The archived message who's predecessor to update.
+	 * @param[in]	lpArchivedMsg		The archived message whose predecessor to update.
 	 * @param[in]	refMsgEntry			The SObjectEntry describing to reference
 	 * @param[in]	ptrTransaction		A Transaction object used to save and delete the proper messages when everything is setup
 	 */

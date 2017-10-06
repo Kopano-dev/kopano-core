@@ -157,7 +157,7 @@ HRESULT ArchiveHelper::Init()
  *
  * @param[out]	lpsUserEntryId
  *					Pointer to a entryid_t that will be populated with the entryid of the user
- *					who's store is attached to this archive.
+ *					whose store is attached to this archive.
  */
 HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
 {
@@ -180,7 +180,7 @@ HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
  * Set the user that's attached to this archive.
  *
  * @param[in]	sUserEntryId
- *					The entryid of the user who's store is attached to this
+ *					The entryid of the user whose store is attached to this
  *					archive.
  */
 HRESULT ArchiveHelper::SetAttachedUser(const abentryid_t &sUserEntryId)

@@ -108,11 +108,11 @@ bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an
 	* Move public folders and remove favorites
 
 	Version 6.30
-	* Add externid column to object table (changed between beta's)
+	* Add externid column to object table (changed between betas)
 	* Add reference table for Single Instance Attachments
 	* Add distributed lock when upgrading to 6.30 (distributed only on clean 6.30)
 	* Add abchanges table to hold ab sourcekeys (since they don't fit in the changes table anymore)
-	* Set tag column in singleinstance to correct tag value (beta's have wrong value)
+	* Set tag column in singleinstance to correct tag value (betas have wrong value)
 
 	Version 6.40
 	* Rename object_type columns to objectclass, and fix their contents with the new defined values (in 2 steps)
@@ -670,7 +670,7 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 			if(er != erSuccess)
 				return er;
 
-			// Remove acl's from the subtree folder 
+			/* Remove ACLs from the subtree folder */
 			strQuery = "DELETE FROM acl WHERE hierarchy_id="+stringify(ulSubtreeFolder);
 			er = lpDatabase->DoDelete(strQuery);
 			if(er != erSuccess)
@@ -710,14 +710,14 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 			if(er != erSuccess)
 				return er;
 
-			// Remove acl's from the favorite folder 
+			/* Remove ACLs from the favorite folder */
 			strQuery = "DELETE FROM acl WHERE hierarchy_id="+stringify(ulFavoriteFolder);
 			er = lpDatabase->DoDelete(strQuery);
 			if(er != erSuccess)
 				return er;
 		}
 		
-		// Remove acl's from the store 
+		/* Remove ACLs from the store */
 		strQuery = "DELETE FROM acl WHERE hierarchy_id="+stringify(ulStoreId);
 		er = lpDatabase->DoDelete(strQuery);
 		if(er != erSuccess)

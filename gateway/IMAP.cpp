@@ -3348,7 +3348,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
  * @return hrSuccess
  */
 HRESULT IMAP::HrGetDataItems(string strMsgDataItemNames, vector<string> &lstDataItems) {
-	// translate macro's
+	/* translate macros */
 	strMsgDataItemNames = strToUpper(strMsgDataItemNames);
 	if (strMsgDataItemNames.compare("ALL") == 0)
 		strMsgDataItemNames = "FLAGS INTERNALDATE RFC822.SIZE ENVELOPE";
@@ -5058,7 +5058,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 
 	// this breaks to following search:
 	//   (or subject henk subject kees) (or to henk from kees)
-	// since this will translate in all or's, not: and(or(subj:henk,subj:kees),or(to:henk,from:kees))
+	// since this will translate in all ORs, not: and(or(subj:henk,subj:kees),or(to:henk,from:kees))
 	// however, thunderbird cannot build such a query, so we don't care currently.
 
 	while (ulStartCriteria < lstSearchCriteria.size())

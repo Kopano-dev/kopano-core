@@ -1091,8 +1091,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 					bMoved = true;
 				break;
 
-			// may become dam's, may become normal rules (ol2k3)
-
+			/* May become DAMs, may become normal rules (OL2003) */
 			case OP_REPLY:
 			case OP_OOF_REPLY:
 				sc->countInc("rules", "reply_and_oof");

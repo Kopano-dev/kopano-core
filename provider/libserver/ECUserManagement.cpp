@@ -2945,7 +2945,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	if(er != erSuccess)
 		goto exit;
 
-	// Delete the user ACL's
+	/* Delete the user ACLs */
 	strQuery =
 		"DELETE FROM acl "
 		"WHERE id=" + stringify(ulObjectId);

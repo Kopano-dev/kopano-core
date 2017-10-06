@@ -31,9 +31,9 @@ using namespace KCHL;
 /**
  * Open MAPI session
  *
- * @param[in]	strUser		User's login name
- * @param[in]	strPass		User's password
- * @param[in]	strPath		Kopano server's path
+ * @param[in]	strUser		User login name
+ * @param[in]	strPass		User password
+ * @param[in]	strPath		Kopano server path
  * @param[out]	lppSession	IMAPISession object if login is successful
  * @return		HRESULT
  * @retval		MAPI_E_LOGON_FAILED		Unable to login with the specified user-name and password

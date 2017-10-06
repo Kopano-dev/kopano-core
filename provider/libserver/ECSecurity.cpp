@@ -215,14 +215,13 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 	*lpulRights = 0;
 
 	// Get the deepest GRANT ACL that applies to this user or groups that this user is in
-	// WARNING we totally ignore DENY ACL's here. This means that the deepest GRANT counts. In practice
+	// WARNING we totally ignore DENY ACLs here. This means that the deepest GRANT counts. In practice
 	// this doesn't matter because GRANTmask = ~DENYmask.
 	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
 	while(true)
 	{
 		if (cache->GetACLs(ulCurObj, &lpRights) == erSuccess) {
-			// This object has ACL's, check if any of them are for this user
-
+			/* This object has ACLs, check if any of them are for this user. */
 			for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
 				if(lpRights->__ptr[i].ulType == ACCESS_TYPE_GRANT && lpRights->__ptr[i].ulUserid == m_ulUserID) {
 					*lpulRights |= lpRights->__ptr[i].ulRights;
@@ -747,9 +746,9 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 	}
 
 	if (lpsRightsArray->__size >= 0 && ulErrors == static_cast<size_t>(lpsRightsArray->__size))
-		er = KCERR_INVALID_PARAMETER;	// all acl's failed
+		er = KCERR_INVALID_PARAMETER; /* all ACLs failed */
 	else if (ulErrors != 0)
-		er = KCWARN_PARTIAL_COMPLETION;	// some acl's failed
+		er = KCWARN_PARTIAL_COMPLETION; /* some ACLs failed */
 	else
 		er = erSuccess;
 	return er;
@@ -978,7 +977,7 @@ unsigned int ECSecurity::GetUserId(unsigned int ulObjId)
  * @param[in] ulObjId hierarchy object id of object to check
  * 
  * @return Kopano error code
- * @retval erSuccess object is in current user's store
+ * @retval erSuccess object is in the current user's store
  */
 ECRESULT ECSecurity::IsStoreOwner(unsigned int ulObjId) const
 {

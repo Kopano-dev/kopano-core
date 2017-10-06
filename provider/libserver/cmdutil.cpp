@@ -201,7 +201,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	     iListObjectId != lpsObjectList->end(); ++iListObjectId)
 	{
 		sItem.fRoot = true;
-		// Lock the root records's parent counter to maintain locking order (counters/content/storesize/committimemax)
+		/* Lock the root records' parent counter to maintain locking order (counters/content/storesize/committimemax) */
 		er  = lpCacheManager->GetObject(*iListObjectId, &ulParent, NULL, NULL, NULL);
 		if(er != erSuccess)
 		    goto exit;
