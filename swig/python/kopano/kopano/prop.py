@@ -185,7 +185,7 @@ def create_prop(self, mapiobj, proptag, value=None, proptype=None): # XXX selfie
     except TypeError:
         raise Error('Could not create property, type and value did not match')
 
-    return prop(self, mapiobj, proptag)
+    return prop(self, mapiobj, proptag, proptype=proptype2)
 
 def prop(self, mapiobj, proptag, create=False, value=None, proptype=None): # XXX selfie
     if _is_int(proptag) or \
