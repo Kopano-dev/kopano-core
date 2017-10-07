@@ -204,7 +204,7 @@ ECRESULT ECCacheManager::I_GetObject(unsigned int ulObjId,
 	auto er = m_ObjectsCache.GetCacheItem(ulObjId, &sObject);
 	if(er != erSuccess)
 		return er;
-	assert(sObject->ulType == MAPI_FOLDER || (sObject->ulFlags & ~(MAPI_ASSOCIATED | MSGFLAG_DELETED)) == 0);
+	assert(sObject->ulType == MAPI_FOLDER || (sObject->ulFlags & ~(MSGFLAG_ASSOCIATED | MSGFLAG_DELETED)) == 0);
 	if(ulParent)
 		*ulParent = sObject->ulParent;
 
@@ -225,7 +225,7 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 
 	if(ulParent == 0 || ulObjId == 0 || ulOwner == 0)
 		return 1;
-	assert(ulType == MAPI_FOLDER || (ulFlags & ~(MAPI_ASSOCIATED | MSGFLAG_DELETED)) == 0);
+	assert(ulType == MAPI_FOLDER || (ulFlags & ~(MSGFLAG_ASSOCIATED | MSGFLAG_DELETED)) == 0);
 	sObjects.ulParent	= ulParent;
 	sObjects.ulOwner	= ulOwner;
 	sObjects.ulFlags	= ulFlags;
