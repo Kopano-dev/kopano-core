@@ -1661,8 +1661,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 	ecmem_ptr<ECCOMPANY> lpECCompany;
 	ecmem_ptr<ECGROUP> lpECGroup;
 
-	std::string			strBuffer;
-
 	ULONG				cbStoreId = 0;
 	LPENTRYID			lpStoreId = NULL;
 	ULONG				cbRootId = 0;

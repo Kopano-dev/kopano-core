@@ -484,7 +484,7 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 	object_ptr<IMAPIFolder> lpRootFolder;
 	object_ptr<IMessage> lpMessageCopy;
 	const char *autoprocessor = g_lpConfig->GetSetting("mr_autoprocessor");
-	std::string strEntryID, strCmdLine;
+	std::string strEntryID;
 	memory_ptr<SPropValue> lpEntryID;
 	ULONG ulType = 0;
 	ENTRYLIST sEntryList;

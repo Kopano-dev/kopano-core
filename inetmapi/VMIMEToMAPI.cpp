@@ -1520,7 +1520,7 @@ vtm_order_alternatives(vmime::shared_ptr<vmime::body> vmBody)
 	vmime::shared_ptr<vmime::header> vmHeader;
 	vmime::shared_ptr<vmime::bodyPart> vmBodyPart;
 	vmime::shared_ptr<vmime::mediaType> mt;
-	std::list<unsigned int> lBodies, pgtext;
+	std::list<unsigned int> lBodies;
 
 	for (size_t i = 0; i < vmBody->getPartCount(); ++i) {
 		vmBodyPart = vmBody->getPartAt(i);

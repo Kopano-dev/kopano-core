@@ -137,7 +137,6 @@ HRESULT WSTransport::HrOpenTransport(LPMAPISUP lpMAPISup, WSTransport **lppTrans
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<WSTransport> lpTransport;
-	std::string		strServerPath;
 	sGlobalProfileProps	sProfileProps;
 
 		// Get the username and password from the profile settings

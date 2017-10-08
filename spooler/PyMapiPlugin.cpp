@@ -189,7 +189,6 @@ HRESULT PyMapiPlugin::Init(ECLogger *lpLogger, PyObject *lpModMapiPlugin, const 
 	PyObjectAPtr	ptrPyLogger;
 	PyObjectAPtr	ptrClass;
 	PyObjectAPtr	ptrArgs;
-	std::string		strEnvPython;
 
 	if (!lpModMapiPlugin)
 		return S_OK;
