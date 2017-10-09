@@ -72,14 +72,6 @@ class zcp_versiontuple _kc_final {
 };
 
 static const sUpdateList_t sUpdateList[] = {
-	// Updates from version 5.20 to 6.00
-	{ Z_UPDATE_CONVERT_ENTRYIDS, 0, "Convert entryids: indexedproperties", UpdateDatabaseConvertEntryIDs },
-	{ Z_UPDATE_CONVERT_SC_ENTRYIDLIST, 0, "Update entrylist searchcriteria", UpdateDatabaseSearchCriteria },
-	{ Z_UPDATE_CONVERT_USER_OBJECT_TYPE, 0, "Add Object type to 'users' table", UpdateDatabaseAddUserObjectType },
-	{ Z_UPDATE_ADD_USER_SIGNATURE, 0, "Add signature to 'users' table", UpdateDatabaseAddUserSignature },
-	{ Z_UPDATE_ADD_SOURCE_KEY_SETTING, 0, "Add setting 'source_key_auto_increment'", UpdateDatabaseAddSourceKeySetting },
-	{ Z_UPDATE_FIX_USERS_RESTRICTIONS, 0, "Add restriction to 'users' table", UpdateDatabaseRestrictExternId },
-
 	// Update from version 6.00 to 6.10
 	{ Z_UPDATE_ADD_USER_COMPANY, 0, "Add company column to 'users' table", UpdateDatabaseAddUserCompany },
 	{ Z_UPDATE_ADD_OBJECT_RELATION_TYPE, 0, "Add Object relation type to 'objectrelation' table", UpdateDatabaseAddObjectRelationType },
@@ -976,8 +968,8 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	er = GetFirstUpdate(&ulDatabaseRevisionMin);
 	if(er != erSuccess)
 		return er;
-	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 11) {
-		strReport = format("DB schema is %u and older than v11 (ZCP 5.20). "
+	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 17) {
+		strReport = format("DB schema is %u and older than v17 (ZCP 6.00). "
 		            "KC 8.4 was the last version able to upgrade such.", ulDatabaseRevisionMin);
 		return KCERR_INVALID_VERSION;
 	}

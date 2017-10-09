@@ -27,14 +27,6 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
 
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase);
 
-ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase);
-ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulStoreHierarchyId, unsigned char* lpStoreGuid);
-ECRESULT UpdateDatabaseSearchCriteria(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseAddUserObjectType(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseAddUserSignature(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseAddSourceKeySetting(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseRestrictExternId(ECDatabase *lpDatabase);
-
 ECRESULT UpdateDatabaseAddUserCompany(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseAddObjectRelationType(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseDelUserCompany(ECDatabase *lpDatabase);
