@@ -25,12 +25,6 @@ namespace KC {
 
 ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
 
-ECRESULT UpdateDatabaseCreateVersionsTable(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateSearchFolders(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseFixUserNonActive(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateSearchFoldersFlags(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabasePopulateSearchFolders(ECDatabase *lpDatabase);
-
 ECRESULT UpdateDatabaseCreateChangesTable(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseCreateSyncsTable(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseCreateIndexedPropertiesTable(ECDatabase *lpDatabase);

@@ -55,13 +55,6 @@ bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an
 /*
 	database upgrade
 
-	Version 5.10
-	* Add table version
-	* Add table searchfolders
-	* Update non-login from 10 to 1
-	* (Beta update) Add flags in search table
-	* rebuild searchfolders
-
 	Version 5.20
 	* Create table changes
 	* Create table syncs
@@ -141,37 +134,6 @@ struct SRelation {
 	unsigned int ulParentObjectId;
 	unsigned int ulRelationType;
 };
-
-// 1
-ECRESULT UpdateDatabaseCreateVersionsTable(ECDatabase *lpDatabase)
-{
-	return lpDatabase->DoInsert(Z_TABLEDEF_VERSIONS);
-}
-
-// 2
-ECRESULT UpdateDatabaseCreateSearchFolders(ECDatabase *lpDatabase)
-{
-	return lpDatabase->DoInsert(Z_TABLEDEF_SEARCHRESULTS);
-}
-
-// 3
-ECRESULT UpdateDatabaseFixUserNonActive(ECDatabase *lpDatabase)
-{
-	return lpDatabase->DoUpdate("UPDATE users SET nonactive=1 WHERE nonactive=10");
-}
-
-// 4
-ECRESULT UpdateDatabaseCreateSearchFoldersFlags(ECDatabase *lpDatabase)
-{
-	return lpDatabase->DoUpdate("ALTER TABLE searchresults ADD COLUMN flags int(11) unsigned NOT NULL default '0'");
-}
-
-// 5
-ECRESULT UpdateDatabasePopulateSearchFolders(ECDatabase *lpDatabase)
-{
-	searchfolder_restart_required = 1;
-	return erSuccess;
-}
 
 // 6
 ECRESULT UpdateDatabaseCreateChangesTable(ECDatabase *lpDatabase)

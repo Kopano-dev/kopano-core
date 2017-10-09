@@ -72,14 +72,6 @@ class zcp_versiontuple _kc_final {
 };
 
 static const sUpdateList_t sUpdateList[] = {
-	// Updates from version 5.02 to 5.10
-	{ Z_UPDATE_CREATE_VERSIONS_TABLE, 0, "Create table: versions", UpdateDatabaseCreateVersionsTable },
-	{ Z_UPDATE_CREATE_SEARCHFOLDERS_TABLE, 0, "Create table: searchresults", UpdateDatabaseCreateSearchFolders },
-	{ Z_UPDATE_FIX_USERTABLE_NONACTIVE, 0, "Update table: users, field: nonactive", UpdateDatabaseFixUserNonActive },
-	// Only update if previous revision was after Z_UPDATE_CREATE_SEARCHFOLDERS_TABLE, because the definition has changed
-	{ Z_UPDATE_ADD_FLAGS_TO_SEARCHRESULTS, Z_UPDATE_CREATE_SEARCHFOLDERS_TABLE, "Update table: searchresults", UpdateDatabaseCreateSearchFoldersFlags },
-	{ Z_UPDATE_POPULATE_SEARCHFOLDERS, 0, "Populate search folders", UpdateDatabasePopulateSearchFolders },
-
 	// Updates from version 5.10 to 5.20
 	{ Z_UPDATE_CREATE_CHANGES_TABLE, 0, "Create table: changes", UpdateDatabaseCreateChangesTable },
 	{ Z_UPDATE_CREATE_SYNCS_TABLE, 0, "Create table: syncs", UpdateDatabaseCreateSyncsTable },
@@ -992,6 +984,11 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	er = GetFirstUpdate(&ulDatabaseRevisionMin);
 	if(er != erSuccess)
 		return er;
+	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 5) {
+		strReport = format("DB schema is %u and older than v5 (ZCP 5.10). "
+		            "KC 8.4 was the last version able to upgrade such.", ulDatabaseRevisionMin);
+		return KCERR_INVALID_VERSION;
+	}
 
 	//default error
 	strReport = "Unable to upgrade database from version " +
