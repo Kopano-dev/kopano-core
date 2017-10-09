@@ -23,25 +23,7 @@
 
 namespace KC {
 
-ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
-
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase);
-
-ECRESULT UpdateDatabaseAddStateKey(ECDatabase *lpDatabase);
-
-ECRESULT UpdateDatabaseConvertStoreUsername(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase);
-
-ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateCounters(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateCommonProps(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCheckAttachments(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateTProperties(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseConvertHierarchy(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateDeferred(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseConvertChanges(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseConvertNames(ECDatabase *lpDatabase);
 
 ECRESULT UpdateDatabaseReceiveFolderToUnicode(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseClientUpdateStatus(ECDatabase *lpDatabase);

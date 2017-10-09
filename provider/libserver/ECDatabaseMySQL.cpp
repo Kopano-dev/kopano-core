@@ -72,26 +72,6 @@ class zcp_versiontuple _kc_final {
 };
 
 static const sUpdateList_t sUpdateList[] = {
-	// Update within the 6.40
-	{ Z_UPDATE_ADD_STATE_KEY, 0, "Update changes table state key", UpdateDatabaseAddStateKey },
-
-	// Blocking upgrade from 6.40 to 7.00, tables are not unicode compatible.
-	{ Z_UPDATE_CONVERT_TO_UNICODE, 0, "Converting database to Unicode", UpdateDatabaseConvertToUnicode },
-
-	// Update from version 6.4x to 7.00
-	{ Z_UPDATE_CONVERT_STORE_USERNAME, 0, "Update stores table usernames", UpdateDatabaseConvertStoreUsername },
-	{ Z_UPDATE_CONVERT_RULES, 0, "Converting rules to Unicode", UpdateDatabaseConvertRules },
-	{ Z_UPDATE_CONVERT_SEARCH_FOLDERS, 0, "Converting search folders to Unicode", UpdateDatabaseConvertSearchFolders },
-	{ Z_UPDATE_CONVERT_PROPERTIES, 0, "Converting properties for IO performance", UpdateDatabaseConvertProperties },
-	{ Z_UPDATE_CREATE_COUNTERS, 0, "Creating counters for IO performance", UpdateDatabaseCreateCounters },
-	{ Z_UPDATE_CREATE_COMMON_PROPS, 0, "Creating common properties for IO performance", UpdateDatabaseCreateCommonProps },
-	{ Z_UPDATE_CHECK_ATTACHMENTS, 0, "Checking message attachment properties for IO performance", UpdateDatabaseCheckAttachments },
-	{ Z_UPDATE_CREATE_TPROPERTIES, 0, "Creating tproperties for IO performance", UpdateDatabaseCreateTProperties },
-	{ Z_UPDATE_CONVERT_HIERARCHY, 0, "Converting hierarchy for IO performance", UpdateDatabaseConvertHierarchy },
-	{ Z_UPDATE_CREATE_DEFERRED, 0, "Creating deferred table for IO performance", UpdateDatabaseCreateDeferred },
-	{ Z_UPDATE_CONVERT_CHANGES, 0, "Converting changes for IO performance", UpdateDatabaseConvertChanges },
-	{ Z_UPDATE_CONVERT_NAMES, 0, "Converting names table to Unicode", UpdateDatabaseConvertNames },
-
 	// Update from version 7.00 to 7.0.1
 	{ Z_UPDATE_CONVERT_RF_TOUNICODE, 0, "Converting receivefolder table to Unicode", UpdateDatabaseReceiveFolderToUnicode },
 
@@ -927,8 +907,8 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	er = GetFirstUpdate(&ulDatabaseRevisionMin);
 	if(er != erSuccess)
 		return er;
-	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 44) {
-		strReport = format("DB schema is %u and older than v44 (ZCP 6.40). "
+	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 58) {
+		strReport = format("DB schema is %u and older than v58 (ZCP 7.0). "
 		            "KC 8.4 was the last version able to upgrade such.", ulDatabaseRevisionMin);
 		return KCERR_INVALID_VERSION;
 	}
