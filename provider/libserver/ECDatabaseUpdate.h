@@ -27,11 +27,6 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
 
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase);
 
-ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateReferences(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseSetSingleinstanceTag(ECDatabase *lpDatabase);
-
 ECRESULT UpdateDatabaseCreateSyncedMessagesTable(ECDatabase *lpDatabase);
 
 ECRESULT UpdateDatabaseForceAbResync(ECDatabase *lpDatabase);
