@@ -55,27 +55,6 @@ bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an
 /*
 	database upgrade
 
-	Version 4.20 (not include)
-	* Add table object
-	* Add table objectproperty
-	* Add table objectrelation
-	* Change user table structure
-	* Converting users and group
-
-	Optional 4.20 / 5.0 (not include)
-	* Change database engine to INNODB
-	* Remove key val_string on the table mvproperties and properties
-	* Change the primary key, "ht" key and "hierarchyid" key on the hierarchy table
-	* Change externid to field to VARBINARY(255) and add externid key
-
-	Version 4.21 (not include)
-	* change the "parent" key on the hierarchy table
-
-	Version 5.00 (not included)
-	* Add column storeid in properties table and update the ids
-	* Add freebusy folders in public store
-	* Set the permissions on the free/busy folders
-
 	Version 5.10
 	* Add table version
 	* Add table searchfolders
