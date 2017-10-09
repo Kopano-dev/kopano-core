@@ -348,10 +348,6 @@
 															('charset', 'utf8');"
 
 // Database update definitions
-#define Z_UPDATE_CONVERT_RF_TOUNICODE			59
-#define Z_UPDATE_CREATE_CLIENTUPDATE_TABLE		60
-#define Z_UPDATE_CONVERT_STORES					61
-#define Z_UPDATE_UPDATE_STORES					62
 #define Z_UPDATE_UPDATE_WLINK_RECKEY			63
 #define Z_UPDATE_VERSIONTBL_MICRO 64
 #define Z_UPDATE_CHANGES_PKEY 65

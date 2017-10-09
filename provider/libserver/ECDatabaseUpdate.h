@@ -25,11 +25,6 @@ namespace KC {
 
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase);
 
-ECRESULT UpdateDatabaseReceiveFolderToUnicode(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseClientUpdateStatus(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseConvertStores(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseUpdateStores(ECDatabase *lpDatabase);
-
 ECRESULT UpdateWLinkRecordKeys(ECDatabase *lpDatabase);
 ECRESULT UpdateVersionsTbl(ECDatabase *db);
 ECRESULT UpdateChangesTbl(ECDatabase *db);

@@ -55,12 +55,6 @@ bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an
 /*
 	database upgrade
 
-	Version 7.0.1
-	* update receive folder to unicode and increase the messageclass column size
-
-	Version 7.1.0
-	* update WLINK entries to new record key format
-
 	Version independed
 	* Add setting for IMAP
 	* Change primary key in changetable and add an extra move key
@@ -77,46 +71,6 @@ ECRESULT InsertServerGUID(ECDatabase *lpDatabase)
 	}
 
 	return lpDatabase->DoInsert("INSERT INTO `settings` VALUES ('server_guid', " + lpDatabase->EscapeBinary(reinterpret_cast<unsigned char *>(&guid), sizeof(GUID)) + ")");
-}
-
-// 59
-ECRESULT UpdateDatabaseReceiveFolderToUnicode(ECDatabase *lpDatabase)
-{
-	std::string strQuery = "ALTER TABLE receivefolder MODIFY messageclass varchar(255) CHARSET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT''";
-	return lpDatabase->DoUpdate(strQuery);
-}
-
-// 60
-ECRESULT UpdateDatabaseClientUpdateStatus(ECDatabase *lpDatabase)
-{
-	return lpDatabase->DoInsert(Z_TABLEDEF_CLIENTUPDATESTATUS);
-}
-
-// 61
-ECRESULT UpdateDatabaseConvertStores(ECDatabase *lpDatabase)
-{
-	// user_hierarchy_id does not exist on all servers, depends on upgrade path
-	std::string strQuery = "ALTER TABLE stores "
-					"DROP KEY `user_hierarchy_id` ";
-	auto er = lpDatabase->DoUpdate(strQuery);
-	if (er != erSuccess) {
-		ec_log_err("Ignoring optional index error, and continuing database upgrade");
-		er = erSuccess;
-	}
-
-	strQuery = "ALTER TABLE stores "
-					"DROP PRIMARY KEY, "
-					"ADD COLUMN `type` smallint(6) unsigned NOT NULL default '0', "
-					"ADD PRIMARY KEY (`user_id`, `hierarchy_id`, `type`), "
-					"ADD UNIQUE KEY `id` (`id`)";
-	return lpDatabase->DoUpdate(strQuery);
-}
-
-// 62
-ECRESULT UpdateDatabaseUpdateStores(ECDatabase *lpDatabase)
-{
-	std::string strQuery = "UPDATE stores SET type=" + stringify(ECSTORE_TYPE_PUBLIC) + " WHERE user_id=1 OR user_id IN (SELECT id FROM users where objectclass=" + stringify(CONTAINER_COMPANY) + ")";
-	return lpDatabase->DoUpdate(strQuery);
 }
 
 // 63
