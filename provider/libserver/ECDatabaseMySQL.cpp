@@ -72,14 +72,6 @@ class zcp_versiontuple _kc_final {
 };
 
 static const sUpdateList_t sUpdateList[] = {
-	// Updates from version 5.10 to 5.20
-	{ Z_UPDATE_CREATE_CHANGES_TABLE, 0, "Create table: changes", UpdateDatabaseCreateChangesTable },
-	{ Z_UPDATE_CREATE_SYNCS_TABLE, 0, "Create table: syncs", UpdateDatabaseCreateSyncsTable },
-	{ Z_UPDATE_CREATE_INDEXEDPROPS_TABLE, 0, "Create table: indexedproperties", UpdateDatabaseCreateIndexedPropertiesTable },
-	{ Z_UPDATE_CREATE_SETTINGS_TABLE, 0, "Create table: settings", UpdateDatabaseCreateSettingsTable},
-	{ Z_UPDATE_CREATE_SERVER_GUID, 0, "Insert server GUID into settings", UpdateDatabaseCreateServerGUID },
-	{ Z_UPDATE_CREATE_SOURCE_KEYS, 0, "Insert source keys into indexedproperties", UpdateDatabaseCreateSourceKeys },
-
 	// Updates from version 5.20 to 6.00
 	{ Z_UPDATE_CONVERT_ENTRYIDS, 0, "Convert entryids: indexedproperties", UpdateDatabaseConvertEntryIDs },
 	{ Z_UPDATE_CONVERT_SC_ENTRYIDLIST, 0, "Update entrylist searchcriteria", UpdateDatabaseSearchCriteria },
@@ -96,7 +88,7 @@ static const sUpdateList_t sUpdateList[] = {
 
 	// Update from version x to x
 	{ Z_UPDATE_ADD_IMAP_SEQ, 0, "Add IMAP sequence number in 'settings' table", UpdateDatabaseAddIMAPSequenceNumber},
-	{ Z_UPDATE_KEYS_CHANGES, Z_UPDATE_CREATE_CHANGES_TABLE, "Update keys in 'changes' table", UpdateDatabaseKeysChanges},
+	{ Z_UPDATE_KEYS_CHANGES, 6, "Update keys in 'changes' table", UpdateDatabaseKeysChanges},
 
 	// Update from version 6.1x to 6.20
 	{ Z_UPDATE_MOVE_PUBLICFOLDERS, 0, "Moving publicfolders and favorites", UpdateDatabaseMoveFoldersInPublicFolder},
@@ -984,8 +976,8 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	er = GetFirstUpdate(&ulDatabaseRevisionMin);
 	if(er != erSuccess)
 		return er;
-	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 5) {
-		strReport = format("DB schema is %u and older than v5 (ZCP 5.10). "
+	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 11) {
+		strReport = format("DB schema is %u and older than v11 (ZCP 5.20). "
 		            "KC 8.4 was the last version able to upgrade such.", ulDatabaseRevisionMin);
 		return KCERR_INVALID_VERSION;
 	}

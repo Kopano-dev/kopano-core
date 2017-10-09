@@ -55,14 +55,6 @@ bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an
 /*
 	database upgrade
 
-	Version 5.20
-	* Create table changes
-	* Create table syncs
-	* Create table indexedproperties
-	* Create table settings
-	* Insert server guid into settings table
-	* Create from object id a sourcekeys and add them into indexedproperties
-
 	Version 6.00
 	* Create from object id an entryid and add them into indexedproperties
 	* Update Search criteria
@@ -135,30 +127,6 @@ struct SRelation {
 	unsigned int ulRelationType;
 };
 
-// 6
-ECRESULT UpdateDatabaseCreateChangesTable(ECDatabase *lpDatabase)
-{
-	return lpDatabase->DoInsert(Z_TABLEDEF_CHANGES);
-}
-
-// 7
-ECRESULT UpdateDatabaseCreateSyncsTable(ECDatabase *lpDatabase)
-{
-	return lpDatabase->DoInsert(Z_TABLEDEF_SYNCS);
-}
-
-// 8
-ECRESULT UpdateDatabaseCreateIndexedPropertiesTable(ECDatabase *lpDatabase)
-{
-	return lpDatabase->DoInsert(Z_TABLEDEF_INDEXED_PROPERTIES);
-}
-
-// 9
-ECRESULT UpdateDatabaseCreateSettingsTable(ECDatabase *lpDatabase)
-{
-	return lpDatabase->DoInsert(Z_TABLEDEF_SETTINGS);
-}
-
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase)
 {
 	GUID guid;
@@ -169,44 +137,6 @@ ECRESULT InsertServerGUID(ECDatabase *lpDatabase)
 	}
 
 	return lpDatabase->DoInsert("INSERT INTO `settings` VALUES ('server_guid', " + lpDatabase->EscapeBinary(reinterpret_cast<unsigned char *>(&guid), sizeof(GUID)) + ")");
-}
-
-// 10
-ECRESULT UpdateDatabaseCreateServerGUID(ECDatabase *lpDatabase)
-{
-	return InsertServerGUID(lpDatabase);
-}
-
-// 11
-ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
-{
-	DB_RESULT lpResult;
-
-	std::string strQuery = "SELECT `value` FROM `settings` WHERE `name` = 'server_guid'";
-	auto er = lpDatabase->DoSelect(strQuery, &lpResult);
-	if(er != erSuccess)
-		return er;
-	auto lpDBRow = lpResult.fetch_row();
-	auto lpDBLenths = lpResult.fetch_row_lengths();
-	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBLenths == NULL || lpDBLenths[0] != sizeof(GUID)) {
-		ec_log_err("UpdateDatabaseCreateSourceKeys(): row or columns NULL");
-		return KCERR_DATABASE_ERROR;
-	}
-	
-	//Insert source keys for folders
-	strQuery = "INSERT INTO indexedproperties (tag, hierarchyid, val_binary) SELECT 26080, h.id, CONCAT(" + lpDatabase->EscapeBinary((unsigned char*)lpDBRow[0], sizeof(GUID));
-	strQuery += ", CHAR(h.id&0xFF, h.id>>8&0xFF, h.id>>16&0xFF, h.id>>24&0xFF))";
-	strQuery += " FROM hierarchy AS h WHERE h.type = 3";
-
-	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-		return er;
-
-	//Insert source keys for messages
-	strQuery = "INSERT INTO indexedproperties (tag, hierarchyid, val_binary) SELECT 26080, h.id, CONCAT(" + lpDatabase->EscapeBinary((unsigned char*)lpDBRow[0], sizeof(GUID));
-	strQuery += ", CHAR(h.id&0xFF, h.id>>8&0xFF, h.id>>16&0xFF, h.id>>24&0xFF))";
-	strQuery += " FROM hierarchy AS h LEFT JOIN hierarchy AS p ON h.parent = p.id WHERE h.type = 5 AND p.type = 3";
-	return lpDatabase->DoInsert(strQuery);
 }
 
 // 12

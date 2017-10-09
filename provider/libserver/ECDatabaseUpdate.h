@@ -25,13 +25,7 @@ namespace KC {
 
 ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
 
-ECRESULT UpdateDatabaseCreateChangesTable(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateSyncsTable(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateIndexedPropertiesTable(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateSettingsTable(ECDatabase *lpDatabase);
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateServerGUID(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase);
 
 ECRESULT UpdateDatabaseConvertEntryIDs(ECDatabase *lpDatabase);
 ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulStoreHierarchyId, unsigned char* lpStoreGuid);
