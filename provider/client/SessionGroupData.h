@@ -19,6 +19,7 @@
 #define ECSESSIONGROUPDATA_H
 
 #include <kopano/zcdefs.h>
+#include <atomic>
 #include <mutex>
 #include <mapispi.h>
 
@@ -71,8 +72,7 @@ private:
 	sGlobalProfileProps m_sProfileProps;
 
 	/* Refcounting */
-	std::recursive_mutex m_hRefMutex;
-	ULONG m_cRef = 0;
+	std::atomic<unsigned int> m_cRef;
 
 public:
 	SessionGroupData(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps);

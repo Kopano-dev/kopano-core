@@ -20,8 +20,8 @@
 
 #include <kopano/zcdefs.h>
 #include "ECDatabase.h"
+#include <atomic>
 #include <list>
-#include <mutex>
 #include <set>
 #include <string>
 #include <dirent.h>
@@ -95,8 +95,7 @@ protected:
 	ECDatabase *m_lpDatabase;
 	bool m_bFileCompression;
 	std::string m_CompressionLevel;
-	ULONG m_ulRef;
-	std::mutex m_refcnt_lock;
+	std::atomic<unsigned int> m_ulRef{0};
 };
 
 class _kc_export_dycast ECDatabaseAttachment _kc_final :
