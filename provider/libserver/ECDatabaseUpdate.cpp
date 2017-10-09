@@ -984,12 +984,6 @@ ECRESULT UpdateDatabaseCreateReferences(ECDatabase *lpDatabase)
 	return lpDatabase->DoUpdate(strQuery);
 }
 
-// 27
-ECRESULT UpdateDatabaseLockDistributed(ECDatabase *lpDatabase)
-{
-	return lpDatabase->DoInsert("INSERT INTO settings VALUES ('lock_distributed_kopano', 'upgrade')");
-}
-
 // 28
 ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 {

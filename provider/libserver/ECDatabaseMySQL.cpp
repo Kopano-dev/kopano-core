@@ -112,7 +112,6 @@ static const sUpdateList_t sUpdateList[] = {
 	// Update from version 6.2x to 6.30
 	{ Z_UPDATE_ADD_EXTERNID_TO_OBJECT, 0, "Adding externid to 'object' table", UpdateDatabaseAddExternIdToObject}, 
 	{ Z_UPDATE_CREATE_REFERENCES, 0, "Creating Single Instance Attachment table", UpdateDatabaseCreateReferences},
-	{ Z_UPDATE_LOCK_DISTRIBUTED, 0, "Locking multiserver capability", UpdateDatabaseLockDistributed},
 	{ Z_UPDATE_CREATE_ABCHANGES_TABLE, 0, "Creating Addressbook Changes table", UpdateDatabaseCreateABChangesTable},
 	{ Z_UPDATE_SINGLEINSTANCE_TAG, 0, "Updating 'singleinstances' table to correct tag value", UpdateDatabaseSetSingleinstanceTag},
 

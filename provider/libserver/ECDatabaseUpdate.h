@@ -59,7 +59,6 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase);
 
 ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseCreateReferences(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseLockDistributed(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseSetSingleinstanceTag(ECDatabase *lpDatabase);
 
