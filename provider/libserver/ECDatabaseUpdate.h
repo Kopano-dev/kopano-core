@@ -27,11 +27,6 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
 
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase);
 
-ECRESULT UpdateDatabaseAddIMAPSequenceNumber(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseKeysChanges(ECDatabase *lpDatabase);
-
-ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase);
-
 ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseCreateReferences(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase);

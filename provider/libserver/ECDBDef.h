@@ -348,9 +348,6 @@
 															('charset', 'utf8');"
 
 // Database update definitions
-#define Z_UPDATE_ADD_IMAP_SEQ					22
-#define Z_UPDATE_KEYS_CHANGES					23
-#define Z_UPDATE_MOVE_PUBLICFOLDERS				24
 #define Z_UPDATE_ADD_EXTERNID_TO_OBJECT			25
 #define Z_UPDATE_CREATE_REFERENCES				26
 #define Z_UPDATE_CREATE_ABCHANGES_TABLE			28
