@@ -72,12 +72,6 @@ class zcp_versiontuple _kc_final {
 };
 
 static const sUpdateList_t sUpdateList[] = {
-	// Update from version 6.00 to 6.10
-	{ Z_UPDATE_ADD_USER_COMPANY, 0, "Add company column to 'users' table", UpdateDatabaseAddUserCompany },
-	{ Z_UPDATE_ADD_OBJECT_RELATION_TYPE, 0, "Add Object relation type to 'objectrelation' table", UpdateDatabaseAddObjectRelationType },
-	{ Z_UPDATE_DEL_DEFAULT_COMPANY, 0, "Delete default company from 'users' table", UpdateDatabaseDelUserCompany},
-	{ Z_UPDATE_ADD_COMPANY_TO_STORES, 0, "Adding company to 'stores' table", UpdateDatabaseAddCompanyToStore},
-
 	// Update from version x to x
 	{ Z_UPDATE_ADD_IMAP_SEQ, 0, "Add IMAP sequence number in 'settings' table", UpdateDatabaseAddIMAPSequenceNumber},
 	{ Z_UPDATE_KEYS_CHANGES, 6, "Update keys in 'changes' table", UpdateDatabaseKeysChanges},
@@ -968,8 +962,8 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	er = GetFirstUpdate(&ulDatabaseRevisionMin);
 	if(er != erSuccess)
 		return er;
-	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 17) {
-		strReport = format("DB schema is %u and older than v17 (ZCP 6.00). "
+	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 21) {
+		strReport = format("DB schema is %u and older than v21 (ZCP 6.10). "
 		            "KC 8.4 was the last version able to upgrade such.", ulDatabaseRevisionMin);
 		return KCERR_INVALID_VERSION;
 	}

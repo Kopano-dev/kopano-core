@@ -348,10 +348,6 @@
 															('charset', 'utf8');"
 
 // Database update definitions
-#define Z_UPDATE_ADD_USER_COMPANY				18
-#define Z_UPDATE_ADD_OBJECT_RELATION_TYPE		19
-#define Z_UPDATE_DEL_DEFAULT_COMPANY			20
-#define Z_UPDATE_ADD_COMPANY_TO_STORES			21
 #define Z_UPDATE_ADD_IMAP_SEQ					22
 #define Z_UPDATE_KEYS_CHANGES					23
 #define Z_UPDATE_MOVE_PUBLICFOLDERS				24

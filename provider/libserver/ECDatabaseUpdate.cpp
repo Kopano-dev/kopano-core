@@ -55,11 +55,6 @@ bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an
 /*
 	database upgrade
 
-	Version 6.10
-	* Add company column
-	* Add company in user table
-	* Add company in objectproperty table
-
 	Version 6.20
 	* Move public folders and remove favorites
 
@@ -129,66 +124,6 @@ ECRESULT InsertServerGUID(ECDatabase *lpDatabase)
 	}
 
 	return lpDatabase->DoInsert("INSERT INTO `settings` VALUES ('server_guid', " + lpDatabase->EscapeBinary(reinterpret_cast<unsigned char *>(&guid), sizeof(GUID)) + ")");
-}
-
-// 18
-ECRESULT UpdateDatabaseAddUserCompany(ECDatabase *lpDatabase)
-{
-	auto er = lpDatabase->DoUpdate("ALTER TABLE users ADD COLUMN company int(11) NOT NULL default '0'");
-	if(er != erSuccess)
-		return er;
-	return lpDatabase->DoInsert("INSERT INTO `users` (`externid`, `object_type`, `signature`, `company`) VALUES (NULL, 4, '', 0)");
-}
-
-// 19
-ECRESULT UpdateDatabaseAddObjectRelationType(ECDatabase *lpDatabase)
-{
-	auto er = lpDatabase->DoUpdate("ALTER TABLE objectrelation ADD COLUMN relationtype tinyint(11) unsigned NOT NULL");
-	if(er != erSuccess)
-		return er;
-	er = lpDatabase->DoUpdate("ALTER TABLE objectrelation DROP PRIMARY KEY");
-	if(er != erSuccess)
-		return er;
-	er = lpDatabase->DoUpdate("ALTER TABLE objectrelation ADD PRIMARY KEY (`objectid`, `parentobjectid`, `relationtype`)");
-	if (er != erSuccess)
-		return er;
-	return lpDatabase->DoUpdate("UPDATE objectrelation SET relationtype = " + stringify(OBJECTRELATION_GROUP_MEMBER));
-}
-
-// 20
-ECRESULT UpdateDatabaseDelUserCompany(ECDatabase *lpDatabase)
-{
-	auto er = lpDatabase->DoDelete(
-		"DELETE FROM `users` "
-		"WHERE externid IS NULL "
-			"AND object_type = 4");
-	if (er != erSuccess)
-		return er;
-
-	return lpDatabase->DoDelete(
-		"DELETE FROM `objectproperty` "
-		"WHERE `propname` = 'companyid' "
-			"AND `value` = 'default'");
-}
-
-// 21
-ECRESULT UpdateDatabaseAddCompanyToStore(ECDatabase *lpDatabase)
-{
-	auto er = lpDatabase->DoUpdate("ALTER TABLE stores ADD COLUMN user_name varbinary(255) NOT NULL default ''");
-	if (er != erSuccess)
-		return er;
-	er = lpDatabase->DoUpdate("ALTER TABLE stores ADD COLUMN company smallint(11) NOT NULL default 0");
-	if (er != erSuccess)
-		return er;
-	/*
-	 * The user_name column should contain the actual username, but resolving the username for each
-	 * entry will be quite tiresome without much to gain. Instead we just push the userid as
-	 * username and only force the real username for new entries.
-	 * The company column contains the company id to which the user belongs, we can fetch this
-	 * information from the 'users' table. Note that this will always be correct regardless of
-	 * hosted is enabled or disabled since the default value in the 'users' table is 0.
-	 */
-	return lpDatabase->DoUpdate("UPDATE stores SET user_name = user_id, company = IFNULL( (SELECT company FROM users WHERE users.id = user_id), 0)");
 }
 
 // 22
