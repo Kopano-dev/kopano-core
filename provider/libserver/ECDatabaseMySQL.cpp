@@ -72,9 +72,6 @@ class zcp_versiontuple _kc_final {
 };
 
 static const sUpdateList_t sUpdateList[] = {
-	// Update from 7.0 to 7.1
-	{ Z_UPDATE_UPDATE_WLINK_RECKEY, 0, "Updating wunderbar record keys", UpdateWLinkRecordKeys },
-
 	// New in 7.2.2
 	{ Z_UPDATE_VERSIONTBL_MICRO, 0, "Add \"micro\" column to \"versions\" table", UpdateVersionsTbl },
 
@@ -898,8 +895,8 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	er = GetFirstUpdate(&ulDatabaseRevisionMin);
 	if(er != erSuccess)
 		return er;
-	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 62) {
-		strReport = format("DB schema is %u and older than v62 (ZCP 7.1). "
+	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 63) {
+		strReport = format("DB schema is %u and older than v63 (ZCP 7.2). "
 		            "KC 8.4 was the last version able to upgrade such.", ulDatabaseRevisionMin);
 		return KCERR_INVALID_VERSION;
 	}

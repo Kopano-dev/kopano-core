@@ -25,7 +25,6 @@ namespace KC {
 
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase);
 
-ECRESULT UpdateWLinkRecordKeys(ECDatabase *lpDatabase);
 ECRESULT UpdateVersionsTbl(ECDatabase *db);
 ECRESULT UpdateChangesTbl(ECDatabase *db);
 ECRESULT UpdateABChangesTbl(ECDatabase *db);

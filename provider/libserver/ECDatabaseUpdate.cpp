@@ -73,20 +73,6 @@ ECRESULT InsertServerGUID(ECDatabase *lpDatabase)
 	return lpDatabase->DoInsert("INSERT INTO `settings` VALUES ('server_guid', " + lpDatabase->EscapeBinary(reinterpret_cast<unsigned char *>(&guid), sizeof(GUID)) + ")");
 }
 
-// 63
-ECRESULT UpdateWLinkRecordKeys(ECDatabase *lpDatabase)
-{
-	std::string strQuery = "update stores "	// For each store
-				"join properties as p1 on p1.tag = 0x35E6 and p1.hierarchyid=stores.hierarchy_id " // Get PR_COMMON_VIEWS_ENTRYID
-				"join indexedproperties as i1 on i1.val_binary = p1.val_binary and i1.tag=0xfff " // Get hierarchy for common views
-				"join hierarchy as h2 on h2.parent=i1.hierarchyid " // Get children of common views
-				"join properties as p2 on p2.hierarchyid=h2.id and p2.tag=0x684d " // Get PR_WLINK_RECKEY for each child
-				"join properties as p3 on p3.hierarchyid=h2.id and p3.tag=0x684c " // Get PR_WLINK_ENTRYID for each child
-				"set p2.val_binary = p3.val_binary "								// Set PR_WLINK_RECKEY = PR_WLINK_ENTRYID
-				"where length(p3.val_binary) = 48";									// Where entryid length is 48 (kopano)
-	return lpDatabase->DoUpdate(strQuery);
-}
-
 /* Edit no. 64 */
 ECRESULT UpdateVersionsTbl(ECDatabase *db)
 {

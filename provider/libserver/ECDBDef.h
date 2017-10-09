@@ -348,7 +348,6 @@
 															('charset', 'utf8');"
 
 // Database update definitions
-#define Z_UPDATE_UPDATE_WLINK_RECKEY			63
 #define Z_UPDATE_VERSIONTBL_MICRO 64
 #define Z_UPDATE_CHANGES_PKEY 65
 #define Z_UPDATE_ABCHANGES_PKEY 66
