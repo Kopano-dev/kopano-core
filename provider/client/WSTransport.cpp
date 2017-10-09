@@ -407,7 +407,13 @@ HRESULT WSTransport::HrReLogon()
 	return hrSuccess;
 }
 
-ECRESULT WSTransport::TrySSOLogon(KCmd* lpCmd, LPCSTR szServer, utf8string strUsername, utf8string strImpersonateUser, unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId, char *szAppName, ECSESSIONID* lpSessionId, unsigned int* lpulServerCapabilities, unsigned long long *lpllFlags, LPGUID lpsServerGuid, const std::string appVersion, const std::string appMisc)
+ECRESULT WSTransport::TrySSOLogon(KCmd* lpCmd, const char *szServer,
+    const utf8string &strUsername, const utf8string &strImpersonateUser,
+    unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId,
+    const char *szAppName, ECSESSIONID *lpSessionId,
+    unsigned int *lpulServerCapabilities, unsigned long long *lpllFlags,
+    GUID *lpsServerGuid, const std::string &appVersion,
+    const std::string &appMisc)
 {
 #define KOPANO_GSS_SERVICE "kopano"
 	ECRESULT er = KCERR_LOGON_FAILED;
@@ -4151,7 +4157,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	for (gsoap_size_t i = 0; i < sResponse.sSyncStates.__size; ++i) {
 		sSyncState.ulSyncId = sResponse.sSyncStates.__ptr[i].ulSyncId;
 		sSyncState.ulChangeId = sResponse.sSyncStates.__ptr[i].ulChangeId;
-		lplstSyncState->push_back(sSyncState);
+		lplstSyncState->push_back(std::move(sSyncState));
 	}
  exitm:
 	UnLockSoap();

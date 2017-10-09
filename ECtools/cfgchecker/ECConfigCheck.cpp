@@ -40,7 +40,7 @@ ECConfigCheck::ECConfigCheck(const char *lpszName, const char *lpszConfigFile)
 	readConfigFile(lpszConfigFile);
 }
 
-static std::string clearCharacters(std::string s, const std::string &whitespaces)
+static void clearCharacters(std::string &s, const std::string &whitespaces)
 {
 	size_t pos = 0;
 
@@ -60,7 +60,6 @@ static std::string clearCharacters(std::string s, const std::string &whitespaces
 	pos = s.find_last_not_of(whitespaces);
 	if (pos != std::string::npos)
 		s.erase(pos + 1, std::string::npos);
-	return s;
 }
 
 void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
@@ -100,9 +99,8 @@ void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 		} else
 			continue;
 
-		strName = clearCharacters(strName, " \t\r\n");
-		strValue = clearCharacters(strValue, " \t\r\n");
-
+		clearCharacters(strName, " \t\r\n");
+		clearCharacters(strValue, " \t\r\n");
 		if(!strName.empty())
 			m_mSettings[strName] = strValue;
 	}

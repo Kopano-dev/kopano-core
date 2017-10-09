@@ -67,11 +67,10 @@ public:
 	HRESULT HrGetUserAgentVersion(std::string *strUserAgentVersion);
 
 	HRESULT HrToHTTPCode(HRESULT hr);
-	HRESULT HrResponseHeader(unsigned int ulCode, std::string strResponse);
-	HRESULT HrResponseHeader(std::string strHeader, std::string strValue);
-	HRESULT HrRequestAuth(std::string strMsg);
-	HRESULT HrResponseBody(std::string strResponse);
-
+	HRESULT HrResponseHeader(unsigned int code, const std::string &response);
+	HRESULT HrResponseHeader(const std::string &header, const std::string &value);
+	HRESULT HrRequestAuth(const std::string &msg);
+	HRESULT HrResponseBody(const std::string &response);
 	HRESULT HrSetKeepAlive(int ulKeepAlive);
 	HRESULT HrFinalize();
 

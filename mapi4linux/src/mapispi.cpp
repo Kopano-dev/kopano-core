@@ -409,7 +409,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	MAPITablePtr ptrRecipientTable;
 	SRowSetPtr ptrRow;
 	AddrBookPtr ptrAddrBook;
-	std::set<std::vector<unsigned char> > setFilter;
+	std::set<std::string> setFilter;
 	SPropTagArrayPtr ptrColumns;
 
 	hr = session->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~ptrAddrBook);
@@ -449,14 +449,14 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		if (!lpDLEntryID)
 			continue;
 
-		if (setFilter.find(std::vector<unsigned char>(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb)) != setFilter.end()) {
+		if (setFilter.find(std::string(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb)) != setFilter.end()) {
 			// already expanded this group so continue without opening
 			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRow.get());
 			if (hr != hrSuccess)
 				return hr;
 			continue;
 		}
-		setFilter.insert(std::vector<unsigned char>(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb));
+		setFilter.insert(std::string(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb));
 		hr = ptrAddrBook->OpenEntry(lpDLEntryID->Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(lpDLEntryID->Value.bin.lpb),
 		     &iid_of(ptrDistList), 0, &ulObjType, &~ptrDistList);

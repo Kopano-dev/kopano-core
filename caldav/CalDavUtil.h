@@ -78,9 +78,7 @@ bool IsPrivate(LPMESSAGE lpMessage, ULONG ulPropIDPrivate);
 bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore);
 
 HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedProps, LPSRestriction *lpsRectrict);
-
-HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropTagArray lpNamedProps, IMessage **lppMessage);
-
+extern HRESULT HrFindAndGetMessage(const std::string &guid, IMAPIFolder *, SPropTagArray *props, IMessage **);
 HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IAddrBook *lpAddrBook, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo);
 
 #endif

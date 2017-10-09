@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <utility>
@@ -4977,7 +4978,6 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 {
 	HRESULT hr = hrSuccess;
 	string strSearchCriterium;
-	vector<string> vSubSearch;
 	list<ULONG> lstMails;
 	object_ptr<IMAPIFolder> lpFolder;
 	object_ptr<IMAPITable> lpTable;
@@ -5071,12 +5071,12 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 					continue;
 				strSearchCriterium += c;
 			}
-			vSubSearch.clear();
+			std::vector<std::string> vSubSearch;
 			HrSplitInput(strSearchCriterium, vSubSearch);
 
 			// replace in list.
 			lstSearchCriteria.erase(lstSearchCriteria.begin() + ulStartCriteria);
-			lstSearchCriteria.insert(lstSearchCriteria.begin() + ulStartCriteria, vSubSearch.begin(), vSubSearch.end());
+			lstSearchCriteria.insert(lstSearchCriteria.begin() + ulStartCriteria, std::make_move_iterator(vSubSearch.begin()), std::make_move_iterator(vSubSearch.end()));
 		}
 
 		strSearchCriterium = lstSearchCriteria[ulStartCriteria];
@@ -5115,7 +5115,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
 				ECPropertyRestriction(RELOP_LT, pv.ulPropTag, &pv, ECRestriction::Shallow));
@@ -5190,7 +5190,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = pv2.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			pv2.Value.ft = AddDay(pv.Value.ft);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
@@ -5213,7 +5213,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
 				ECPropertyRestriction(RELOP_LT, pv.ulPropTag, &pv, ECRestriction::Shallow));
@@ -5222,7 +5222,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = pv2.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			pv2.Value.ft = AddDay(pv.Value.ft);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
@@ -5233,7 +5233,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
 				ECPropertyRestriction(RELOP_GE, pv.ulPropTag, &pv, ECRestriction::Shallow));
@@ -5242,7 +5242,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			pv.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1]);
 			top_rst += ECAndRestriction(
 				ECExistRestriction(pv.ulPropTag) +
 				ECPropertyRestriction(RELOP_GE, pv.ulPropTag, &pv, ECRestriction::Shallow));

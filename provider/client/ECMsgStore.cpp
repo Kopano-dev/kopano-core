@@ -162,7 +162,7 @@ ECMsgStore::~ECMsgStore() {
 }
 
 //FIXME: remove duplicate profilename
-static HRESULT GetIMsgStoreObject(BOOL bOffline, std::string strProfname,
+static HRESULT GetIMsgStoreObject(BOOL bOffline,
     BOOL bModify, ECMapProvider *lpmapProviders, IMAPISupport *lpMAPISup,
     ULONG cbEntryId, LPENTRYID lpEntryId, LPMDB *lppIMsgStore)
 {
@@ -217,7 +217,7 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 			return hrSuccess;
 		} 
 
-		hr = GetIMsgStoreObject(FALSE, this->m_strProfname, fModify, &g_mapProviders, lpSupport, m_cbEntryId, m_lpEntryId, (LPMDB*)lppInterface);
+		hr = GetIMsgStoreObject(FALSE, fModify, &g_mapProviders, lpSupport, m_cbEntryId, m_lpEntryId, (LPMDB*)lppInterface);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1332,7 +1332,7 @@ HRESULT ECMsgStore::GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable
 			hr = lpTmpTransport->HrResolveUserStore(strUserName, 0, NULL, &cbEntryId, &~lpEntryId);
 			if (hr != hrSuccess)
 				return hr;
-			hr = GetIMsgStoreObject(FALSE, this->m_strProfname, fModify, &g_mapProviders, lpSupport, cbEntryId, lpEntryId, &~lpMsgStoreOtherServer);
+			hr = GetIMsgStoreObject(FALSE, fModify, &g_mapProviders, lpSupport, cbEntryId, lpEntryId, &~lpMsgStoreOtherServer);
 			if (hr != hrSuccess)
 				return hr;
 			hr = lpMsgStoreOtherServer->QueryInterface(IID_ECMsgStore, &~lpMsgStore);

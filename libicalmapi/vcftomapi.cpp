@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <memory>
 #include <new>
+#include <utility>
 #include <kopano/ECRestriction.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapiext.h>
@@ -201,7 +202,7 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v)
 			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_COUNTRY);
 
 		if (s.ulPropTag > 0)
-			props.push_back(s);
+			props.push_back(std::move(s));
 	}
 
 	return hrSuccess;

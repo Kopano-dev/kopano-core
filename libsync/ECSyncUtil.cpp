@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <iterator>
 #include <memory>
 #include "ECSyncUtil.h"
 #include <kopano/mapi_ptr.h>
@@ -93,7 +94,7 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 		*lpulChangeId = ulChangeId;
 
 	if (lpSetProcessChanged)
-		lpSetProcessChanged->insert(setProcessedChanged.begin(), setProcessedChanged.end());
+		lpSetProcessChanged->insert(gcc5_make_move_iterator(setProcessedChanged.begin()), gcc5_make_move_iterator(setProcessedChanged.end()));
 	return hrSuccess;
 }
 

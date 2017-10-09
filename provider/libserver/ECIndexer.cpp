@@ -27,11 +27,12 @@
 #include <kopano/Util.h>
 #include "ECStatsCollector.h"
 #include "ECIndexer.h"
-
+#include <iterator>
 #include <map>
 #include <memory>
 #include <new>
 #include <string>
+#include <utility>
 #include <list>
 
 namespace KC {
@@ -157,18 +158,15 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
 			auto er = NormalizeGetMultiSearch(lpRestrict->lpOr->__ptr[i], setExcludeProps, terms);
             if (er != erSuccess)
                 return er;
-                
-            if(sMultiSearch.strTerm.empty()) {
+			if (sMultiSearch.strTerm.empty())
                 // This is the first term, copy it
-                sMultiSearch = terms;
-            } else {
-			if (sMultiSearch.strTerm == terms.strTerm)
+                sMultiSearch = std::move(terms);
+			else if (sMultiSearch.strTerm == terms.strTerm)
 				// Add the search fields from the subrestriction into ours
-				sMultiSearch.setFields.insert(terms.setFields.begin(), terms.setFields.end());
+				sMultiSearch.setFields.insert(gcc5_make_move_iterator(terms.setFields.begin()), gcc5_make_move_iterator(terms.setFields.end()));
 			else
 				// There are different search terms in this OR (case 2)
 				return KCERR_INVALID_PARAMETER;
-            }
         }
     } else if(lpRestrict->ulType == RES_CONTENT && (lpRestrict->lpContent->ulFuzzyLevel & (FL_SUBSTRING | FL_IGNORECASE)) == (FL_SUBSTRING | FL_IGNORECASE)) {
 		if (setExcludeProps.find(PROP_ID(lpRestrict->lpContent->ulPropTag)) != setExcludeProps.end())

@@ -34,13 +34,12 @@
 
 class ECMAPITable _kc_final : public ECUnknown, public IMAPITable {
 protected:
-	ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags);
+	ECMAPITable(const std::string &name, ECNotifyClient *, ULONG flags);
 	virtual ~ECMAPITable();
 
 
 public:
-	static	HRESULT Create(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags, ECMAPITable **lppECMAPITable);
-
+	static HRESULT Create(const std::string &name, ECNotifyClient *, ULONG flags, ECMAPITable **);
 	virtual HRESULT HrSetTableOps(WSTableView *lpTableOps, bool fLoad);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual BOOL IsDeferred();

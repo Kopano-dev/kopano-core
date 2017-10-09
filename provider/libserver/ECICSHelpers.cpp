@@ -1001,7 +1001,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 		if(er != erSuccess)
 			goto exit;
 		if (fMatch)
-			matches.insert(source_keys[j]);
+			matches.insert(std::move(source_keys[j]));
 	}
 
 	ec_log(EC_LOGLEVEL_ICS, "MatchRestrictions: %zu match(es) out of %d rows (%d properties)",

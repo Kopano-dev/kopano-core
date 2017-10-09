@@ -627,7 +627,7 @@ static int kc_reexec_with_allocator(char **argv, const char *lib)
 	setenv("KC_ALLOCATOR_DONE", lib, true);
 
 	/* Resolve "exe" symlink before exec to please the sysadmin */
-	std::vector<char> linkbuf(16);
+	std::vector<char> linkbuf(16); /* mutable std::string::data is C++17 only */
 	ssize_t linklen;
 	while (true) {
 		linklen = readlink("/proc/self/exe", &linkbuf[0], linkbuf.size());

@@ -61,6 +61,13 @@
  */
 #define __gszeroinit
 
+#if defined(__GNUG__) && __GNUG__ < 5
+	/* std::set::insert(it, it) has a problem with move_iterators */
+#	define gcc5_make_move_iterator(x) (x)
+#else
+#	define gcc5_make_move_iterator(x) std::make_move_iterator(x)
+#endif
+
 /* Don't like touching all cpp files just yet... */
 namespace KC {}
 using namespace KC;
