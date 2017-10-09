@@ -72,28 +72,6 @@ class zcp_versiontuple _kc_final {
 };
 
 static const sUpdateList_t sUpdateList[] = {
-	// Update from version 6.3x to 6.40
-	{ Z_UPDATE_CREATE_SYNCEDMESSAGES_TABLE, 0, "Create table: synced messages", UpdateDatabaseCreateSyncedMessagesTable},
-	
-	// Update from < 6.30 to >= 6.30
-	{ Z_UPDATE_FORCE_AB_RESYNC, 0, "Force Addressbook Resync", UpdateDatabaseForceAbResync},
-	
-	// Update from version 6.3x to 6.40
-	{ Z_UPDATE_RENAME_OBJECT_TYPE_TO_CLASS, 0, "Rename objecttype columns to objectclass", UpdateDatabaseRenameObjectTypeToObjectClass},
-	{ Z_UPDATE_CONVERT_OBJECT_TYPE_TO_CLASS, 0, "Convert objecttype columns to objectclass values", UpdateDatabaseConvertObjectTypeToObjectClass},
-	{ Z_UPDATE_ADD_OBJECT_MVPROPERTY_TABLE, 0, "Add object MV property table", UpdateDatabaseAddMVPropertyTable},
-	{ Z_UPDATE_COMPANYNAME_TO_COMPANYID, 0, "Link objects in DB plugin through companyid", UpdateDatabaseCompanyNameToCompanyId},
-	{ Z_UPDATE_OUTGOINGQUEUE_PRIMARY_KEY, 0, "Update outgoingqueue key", UpdateDatabaseOutgoingQueuePrimarykey},
-	{ Z_UPDATE_ACL_PRIMARY_KEY, 0, "Update acl key", UpdateDatabaseACLPrimarykey},
-	{ Z_UPDATE_BLOB_EXTERNID, 0, "Update externid in object table", UpdateDatabaseBlobExternId}, // Avoid MySQL 4.x traling spaces quirk
-	{ Z_UPDATE_KEYS_CHANGES_2, 0, "Update keys in 'changes' table", UpdateDatabaseKeysChanges2},
-	{ Z_UPDATE_MVPROPERTIES_PRIMARY_KEY, 0, "Update mvproperties key", UpdateDatabaseMVPropertiesPrimarykey},
-	{ Z_UPDATE_FIX_SECURITYGROUP_DBPLUGIN, 0, "Update DB plugin group to security groups", UpdateDatabaseFixDBPluginGroups},
-	{ Z_UPDATE_CONVERT_SENDAS_DBPLUGIN, 0, "Update DB/Unix plugin sendas settings", UpdateDatabaseFixDBPluginSendAs},
-
-	{ Z_UPDATE_MOVE_IMAP_SUBSCRIBES, 0, "Move IMAP subscribed list from store to inbox", UpdateDatabaseMoveSubscribedList},
-	{ Z_UPDATE_SYNC_TIME_KEY, 0, "Update sync table time index", UpdateDatabaseSyncTimeIndex },
-
 	// Update within the 6.40
 	{ Z_UPDATE_ADD_STATE_KEY, 0, "Update changes table state key", UpdateDatabaseAddStateKey },
 
@@ -949,8 +927,8 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	er = GetFirstUpdate(&ulDatabaseRevisionMin);
 	if(er != erSuccess)
 		return er;
-	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 29) {
-		strReport = format("DB schema is %u and older than v29 (ZCP 6.30). "
+	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 44) {
+		strReport = format("DB schema is %u and older than v44 (ZCP 6.40). "
 		            "KC 8.4 was the last version able to upgrade such.", ulDatabaseRevisionMin);
 		return KCERR_INVALID_VERSION;
 	}

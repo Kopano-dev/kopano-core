@@ -27,26 +27,6 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
 
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase);
 
-ECRESULT UpdateDatabaseCreateSyncedMessagesTable(ECDatabase *lpDatabase);
-
-ECRESULT UpdateDatabaseForceAbResync(ECDatabase *lpDatabase);
-
-ECRESULT UpdateDatabaseRenameObjectTypeToObjectClass(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseAddMVPropertyTable(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseOutgoingQueuePrimarykey(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseACLPrimarykey(ECDatabase *lpDatabase);
-
-ECRESULT UpdateDatabaseBlobExternId(ECDatabase *lpDatabase);
-
-ECRESULT UpdateDatabaseKeysChanges2(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseMVPropertiesPrimarykey(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseFixDBPluginGroups(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase);
-
-ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase);
-ECRESULT UpdateDatabaseSyncTimeIndex(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseAddStateKey(ECDatabase *lpDatabase);
 
 ECRESULT UpdateDatabaseConvertStoreUsername(ECDatabase *lpDatabase);
