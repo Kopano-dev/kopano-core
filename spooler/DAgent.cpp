@@ -3520,7 +3520,7 @@ exit:
  * @return		MAPI Error code.
  */
 static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
-    const char *recipient, bool bStringEmail, FILE *file,
+    const char *recipient, bool bStringEmail, FILE *fpMail,
     DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
@@ -3528,21 +3528,9 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 	object_ptr<IAddrBook> lpAdrBook;
 	object_ptr<IABContainer> lpAddrDir;
 	recipients_t lRCPT;
-	std::string strUsername;
+	std::string strUsername = recipient;
 	std::wstring strwLoginname;
-	FILE *fpMail = NULL;
 
-	sc -> countInc("DAgent::STDIN", "received");
-
-	/* Make sure file uses CRLF */
-	HRESULT hr2 = HrFileLFtoCRLF(file, &fpMail);
-	if (hr2 != hrSuccess) {
-		ec_log_warn("Unable to convert input to CRLF format: %s (%x)",
-			GetMAPIErrorMessage(hr2), hr2);
-		fpMail = file;
-	}
-
-	strUsername = recipient;
 	if (bStringEmail)
 		// we have to strip off the @domainname.tld to get the username
 		strUsername = strUsername.substr(0, strUsername.find_first_of("@"));
@@ -3616,9 +3604,29 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 	SaveRawMessage(fpMail, recipient);
 
 exit:
-	if (fpMail && fpMail != file)
-		fclose(fpMail);
 	return hr;
+}
+
+static HRESULT deliver_recipients(pym_plugin_intf *py_plugin,
+    unsigned int nrecip, char **recip, bool strip_em, FILE *file,
+    DeliveryArgs *args)
+{
+	HRESULT func_ret = hrSuccess;
+	sc->countInc("DAgent::STDIN", "received");
+	FILE *fpmail = nullptr;
+	auto ret = HrFileLFtoCRLF(file, &fpmail);
+	if (ret != hrSuccess) {
+		ec_log_warn("Unable to convert input to CRLF format: %s (%x)", GetMAPIErrorMessage(ret), ret);
+		fpmail = file;
+	}
+	for (unsigned int ridx = 0; ridx < nrecip; ++ridx) {
+		ret = deliver_recipient(py_plugin, recip[ridx], strip_em, fpmail, args);
+		if (ret != hrSuccess && func_ret == hrSuccess)
+			func_ret = ret;
+	}
+	if (fpmail != file)
+		fclose(fpmail);
+	return func_ret;
 }
 
 static void print_help(const char *name)
@@ -3982,7 +3990,7 @@ int main(int argc, char *argv[]) {
 			goto nonlmtpexit;
 		}
 
-		hr = deliver_recipient(ptrPyMapiPlugin.get(), argv[optind], strip_email, fp, &sDeliveryArgs);
+		hr = deliver_recipients(ptrPyMapiPlugin.get(), argc - optind, argv + optind, strip_email, fp, &sDeliveryArgs);
 		if (hr != hrSuccess)
 			ec_log_err("main(): deliver_recipient failed: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);

@@ -31,18 +31,23 @@
 kopano-dagent \- Deliver mails to Kopano.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-dagent\fR\ 'u
-\fBkopano\-dagent\fR [\fIOPTION\fR...] \fIRECIPIENT\fR
+\fBkopano\-dagent\fR [\fIOPTION\fR...] \fIRECIPIENT\fR...
 .SH "DESCRIPTION"
 .PP
 With
-\fBkopano\-dagent\fR, mail messages can be imported from Internet Mail format to Kopano. The message is read from standard in and delivered to the storage server in the mailbox of
-\fIRECIPIENT\fR. You can alter source and destination of this mail with various options.
+\fBkopano\-dagent\fR, mail messages can be imported from Internet Mail format
+to Kopano. The message is read from standard input and delivered to the
+storage server in the mailbox of one or more
+\fIRECIPIENT\fRs. You can alter source and destination of this mail with various options.
 .PP
 The
 \fIRECIPIENT\fR
-value is resolved by kopano\-dagent prior to delivery, and therefore accepts any unique identifier for the recipient. In practice it is most useful to pass the emailaddress of the user as the
+values are resolved by kopano\-dagent prior to delivery, and therefore accepts
+any unique identifier for the recipient. In practice, it is most useful to
+pass the emailaddress of the user as the
 \fIRECIPIENT\fR
-parameter since it is always unique (Note that login names are sometimes not unique since group names may overlap).
+parameter, since it is always unique. (Note that login names are sometimes not
+unique since group names may overlap).
 .PP
 The delivery agent will accept and deliver the message piped through it or specified by
 \fB\-f\fR
