@@ -50,10 +50,12 @@ void sync_logon_times(ECDatabase *db)
 	 */
 	bool failed = false;
 	ltm_ontime_mutex.lock();
-	decltype(ltm_ontime_cache) logon_time = std::move(ltm_ontime_cache);
+	decltype(ltm_ontime_cache) logon_time;
+	std::swap(ltm_ontime_cache, logon_time);
 	ltm_ontime_mutex.unlock();
 	ltm_offtime_mutex.lock();
-	decltype(ltm_offtime_cache) logoff_time = std::move(ltm_offtime_cache);
+	decltype(ltm_offtime_cache) logoff_time;
+	std::swap(ltm_offtime_cache, logoff_time);
 	ltm_offtime_mutex.unlock();
 	if (logon_time.size() > 0 || logoff_time.size() > 0)
 		ec_log_debug("Writing out logon/logoff time cache (%zu/%zu entries) to DB",
