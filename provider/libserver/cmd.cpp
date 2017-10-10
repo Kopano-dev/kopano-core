@@ -2602,11 +2602,9 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 				}
 
 				// More cache
-				if (g_lpSessionManager->GetCacheManager()->GetObject(lpsReturnObj->ulServerId, &ulParentTmp, &ulOwnerTmp, &ulFlagsTmp, &ulTypeTmp) == erSuccess) {
-					ulFlagsTmp &= ~MSGFLAG_HASATTACH;
-					ulFlagsTmp |= fHasAttach ? MSGFLAG_HASATTACH : 0;
+				/* All this seems to be doing is getting the object into the cache (if not already there), or updating the cache entry timestamp. Suspicious. */
+				if (g_lpSessionManager->GetCacheManager()->GetObject(lpsReturnObj->ulServerId, &ulParentTmp, &ulOwnerTmp, &ulFlagsTmp, &ulTypeTmp) == erSuccess)
 					g_lpSessionManager->GetCacheManager()->SetObject(lpsReturnObj->ulServerId, ulParentTmp, ulOwnerTmp, ulFlagsTmp, ulTypeTmp);
-				}
 			}
 		}
 		// 1. calc size of object, now that all children are saved.
