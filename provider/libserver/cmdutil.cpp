@@ -1767,7 +1767,7 @@ exit:
  *
  * @param[in] lpDatabase Database handle
  * @param[in] ulPropTag Property tag to scan for 
- * @param[in] lpData Data if the indexed property
+ * @param[in] lpData Data of the indexed property
  * @param[in] cbSize Bytes in lpData
  * @return result
  */

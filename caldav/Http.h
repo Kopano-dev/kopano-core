@@ -82,7 +82,7 @@ private:
 
 	/* request */
 	std::string m_strAction;	//!< full 1st-line
-	std::string m_strMethod;	//!< HTTP method, eg. GET, PROPFIND, etc.
+	std::string m_strMethod;	//!< HTTP method, e.g. GET, PROPFIND, etc.
 	std::string m_strURL;		//!< original action url
 	std::string m_strPath;		//!< decoded url
 	std::string m_strHttpVer;

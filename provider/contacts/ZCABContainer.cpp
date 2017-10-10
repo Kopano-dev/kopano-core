@@ -414,7 +414,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 			    PROP_TYPE(lpColData[O_EMAIL_ADDRESS].ulPropTag) == PT_UNICODE)
 				strSearchKey = strToUpper(convert_to<std::string>(std::wstring(lpColData[O_ADDRTYPE].Value.lpszW) + L":" + lpColData[O_EMAIL_ADDRESS].Value.lpszW));
 			else
-				// eg. distlists
+				// e.g. distlists
 				hr = MAPI_E_NOT_FOUND;
 			if (hr == hrSuccess) {
 				lpColData[O_SEARCH_KEY].ulPropTag = PR_SEARCH_KEY;

@@ -2525,7 +2525,7 @@ HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base, convert_context &conve
 		} else if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_ACTIONS) {
 			hr = ConvertString8ToUnicode((ACTIONS*)lpRow->lpProps[c].Value.lpszA, base ? base : lpRow->lpProps, converter);
 		} else if (base && PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_STRING8) {
-			// only for "base" items: eg. the lpadrlist data, not the PR_RULE_NAME from the top-level
+			// only for "base" items: e.g. the lpadrlist data, not the PR_RULE_NAME from the top-level
 			hr = ConvertString8ToUnicode(lpRow->lpProps[c].Value.lpszA, &lpRow->lpProps[c].Value.lpszW, base, converter);
 			if (hr != hrSuccess)
 				return hr;

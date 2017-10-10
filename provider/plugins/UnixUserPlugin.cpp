@@ -761,7 +761,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 
 	transform(exceptuids.begin(), exceptuids.end(), inserter(exceptuidset, exceptuidset.begin()), fromstring<const std::string,uid_t>);
 
-	// iterate through /etc/passwd users to find default group (eg. users) and add it to the list
+	// iterate through /etc/passwd users to find default group (e.g. users) and add it to the list
 	ulock_normal biglock(m_plugin_lock);
 	setpwent();
 	while (true) {

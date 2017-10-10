@@ -3539,7 +3539,7 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 	
 	// Always try to resolve the user unless we just stripped an email address.
 	if (!bStringEmail) {
-		// only suppress error when it has no meaning (eg. delivery of Unix user to itself)
+		// only suppress error when it has no meaning (e.g. delivery of Unix user to itself)
 		hr = HrGetSession(lpArgs, KOPANO_SYSTEM_USER_W, &~lpSession, !lpArgs->bResolveAddress);
 		if (hr == hrSuccess) {
 			hr = OpenResolveAddrFolder(lpSession, &~lpAdrBook, &~lpAddrDir);

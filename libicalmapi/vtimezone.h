@@ -43,7 +43,7 @@ time_t icaltime_as_timet_with_server_zone(const struct icaltimetype tt);
 HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* strTZID, TIMEZONE_STRUCT* lpTimeZone);
 HRESULT HrCreateVTimeZone(const std::string &strTZID, TIMEZONE_STRUCT &tsTimeZone, icalcomponent** lppVTZComp);
 
-/* convert Olson timezone name (eg. Europe/Amsterdam) to internal TIMEZONE_STRUCT */
+/* convert Olson timezone name (e.g. Europe/Amsterdam) to internal TIMEZONE_STRUCT */
 HRESULT HrGetTzStruct(const std::string &strTimezone, TIMEZONE_STRUCT *tStruct);
 
 } /* namespace */

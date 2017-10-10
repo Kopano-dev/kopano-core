@@ -207,7 +207,7 @@ static LONG AdviseCallback(void *lpContext, ULONG cNotif,
  * Starts a forked process which sends the actual mail, and removes it
  * from the queue, in normal situations.  On error, the
  * CleanFinishedMessages function will try to remove the failed
- * message if needed, else it will be tried again later (eg. timestamp
+ * message if needed, else it will be tried again later (e.g. timestamp
  * on sending, or SMTP not responding).
  *
  * @param[in]	szUsername	The username. This name is in unicode.
@@ -354,7 +354,7 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 
 /**
  * Cleans finished messages. Normally only prints a logmessage. If the
- * mailer completely failed (eg. segfault), this function will try to
+ * mailer completely failed (e.g. segfault), this function will try to
  * remove the faulty mail from the queue.
  *
  * @param[in]	lpAdminSession	MAPI session of the Kopano SYSTEM user

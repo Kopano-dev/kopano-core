@@ -834,7 +834,7 @@ HRESULT Util::HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc,
  * freed individually.  Make sure to free your RowSet with
  * FreeProws(), which frees the rows individually.
  *
- * However, when you have a rowset within a rowset (eg. lpadrlist in
+ * However, when you have a rowset within a rowset (e.g. lpadrlist in
  * OP_FORWARD and OP_DELEGATE rules) these need to be allocated to the
  * original row, and not separate
  * 

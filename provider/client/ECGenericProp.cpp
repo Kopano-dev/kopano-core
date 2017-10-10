@@ -381,7 +381,7 @@ HRESULT ECGenericProp::TableRowGetProp(void* lpProvider, struct propVal *lpsProp
 	return hr;
 }
 
-// Sets all the properties 'clean', ie. un-dirty
+// Sets all the properties 'clean', i.e. un-dirty
 HRESULT ECGenericProp::HrSetClean()
 {
 	HRESULT hr = hrSuccess;

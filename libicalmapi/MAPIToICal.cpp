@@ -159,7 +159,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	else
 		return MAPI_E_TYPE_NO_SUPPORT;
 
-	// converts item to ical item (eg. IPM.Appointment to VEVENT)
+	// converts item to ical item (e.g. IPM.Appointment to VEVENT)
 	hr = lpVEC->HrMAPI2ICal(lpMessage, &icMethod, &lstEvents);
 	if (hr != hrSuccess)
 		return hr;
@@ -214,7 +214,7 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
  * 
  * @param[in]  ulFlags Conversion flags
  * @arg @c M2IC_NO_VTIMEZONE Skip the VTIMEZONE parts in the output
- * @param[out] strMethod ICal method (eg. PUBLISH)
+ * @param[out] strMethod ICal method (e.g. PUBLISH)
  * @param[out] strIcal The ICal data in 8-bit string, charset given in constructor
  * 
  * @return MAPI error code

@@ -619,7 +619,7 @@ void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va
 
 	// return value is what WOULD have been written if enough space were available in the buffer
 	len = _vsnprintf_l(msgbuffer + off, sizeof msgbuffer - off - 1, format, datalocale, va);
-	// -1 can be returned on formatting error (eg. %ls in C locale)
+	// -1 can be returned on formatting error (e.g. %ls in C locale)
 	if (len < 0)
 		len = 0;
 

@@ -58,7 +58,7 @@ HRESULT VTodoConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *l
  * The properties set here are all required base properties for
  * different todo items and task requests.
  *
- * Finds the status of the message (eg. complete, cancelled) according
+ * Finds the status of the message (e.g. complete, cancelled) according
  * to the matching properties, or possebly the completion (in percent)
  * of the task. Lastly, the icon index (outlook icon displayed in list
  * view) is set.

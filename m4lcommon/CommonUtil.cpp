@@ -1640,7 +1640,7 @@ static HRESULT FindFolder(IMAPITable *lpTable, const wchar_t *folder,
  * subtree not by passing the foldername.
  *
  * @param[in]	lpMDB	A store to open the folder in. If you pass the public store, set the matching bool to true.
- * @param[in]	folder	The name of the folder you want to open. Can be at any depth, eg. INBOX/folder name1/folder name2. Pass / as separator.
+ * @param[in]	folder	The name of the folder you want to open. Can be at any depth, e.g. INBOX/folder name1/folder name2. Pass / as separator.
  *						Pass NULL to open the IPM subtree of the passed store.
  * @param[in]	psep	The foldername separator in the folder parameter.
  * @param[in]	bIsPublic	The lpMDB parameter is the public store if true, otherwise false.

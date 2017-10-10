@@ -307,7 +307,7 @@ HRESULT Http::HrGetRequestUrl(std::string *strURL)
 
 /**
  * Returns the full decoded path of request(e.g. /caldav/user name/folder)
- * (eg. %20 is converted to ' ')
+ * (e.g. %20 is converted to ' ')
  * @param[out]	strReqPath		Return string for path
  * @return		HRESULT
  * @retval		MAPI_E_NOT_FOUND	Empty path in request
@@ -434,7 +434,7 @@ HRESULT Http::HrGetCharSet(std::string *strCharset)
  * 
  * Specifies the destination of entry in MOVE request,
  * to move mapi message from one folder to another
- * for eg.
+ * for e.g.
  *
  * Destination: https://kopano.com:8080/caldav/USER/FOLDER-ID/ENTRY-GUID.ics
  *
@@ -691,7 +691,7 @@ HRESULT Http::HrResponseHeader(unsigned int ulCode, const std::string &strRespon
 
 /**
  * Adds response header to the list of headers
- * @param[in]	strHeader	Name of the header eg. Connection, Host, Date
+ * @param[in]	strHeader	Name of the header e.g. Connection, Host, Date
  * @param[in]	strValue	Value of the header to be set
  * @return		HRESULT		Always set to hrSuccess
  */

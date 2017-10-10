@@ -38,7 +38,7 @@
 
 class ECParentStorage _kc_final : public ECUnknown, public IECPropStorage {
 	/*
-	  lpParentObject:	The property object of the parent (eg. ECMessage for ECAttach)
+	  lpParentObject:	The property object of the parent (e.g. ECMessage for ECAttach)
 	  ulUniqueId:		A unique client-side to find the object in the children list on the parent (PR_ATTACH_NUM (attachments) or PR_ROWID (recipients))
 	  ulObjId:			The hierarchy id on the server (0 for a new item)
 	  lpServerStorage:	A WSMAPIPropStorage interface which has the communication line to the server

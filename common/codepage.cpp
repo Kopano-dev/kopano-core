@@ -88,7 +88,7 @@ static const struct CPMAP {
 /**
  * Converts a Windows codepage to a valid iconv charset string.
  *
- * @param[in]	codepage	Windows codepage number (eg. from PR_INTERNET_CPID)
+ * @param[in]	codepage	Windows codepage number (e.g. from PR_INTERNET_CPID)
  * @param[out]	lppszCharset	Pointer to internal structure containing iconv charset string
  * @retval MAPI_E_NOT_FOUND on unknown codepage, lppszCharset will be unchanged.
  */
@@ -106,7 +106,7 @@ HRESULT HrGetCharsetByCP(ULONG codepage, const char **lppszCharset)
 /**
  * Converts a Windows codepage to a valid iconv charset string.
  *
- * @param[in]	codepage	Windows codepage number (eg. from PR_INTERNET_CPID)
+ * @param[in]	codepage	Windows codepage number (e.g. from PR_INTERNET_CPID)
  * @param[out]	lppszCharset	Pointer to internal structure containing iconv charset string
  * @retval MAPI_E_NOT_FOUND on unknown codepage, lppszCharset will be unchanged.
  */
