@@ -241,9 +241,6 @@ ZEND_FUNCTION(mapi_zarafa_add_quota_recipient);
 ZEND_FUNCTION(mapi_zarafa_del_quota_recipient);
 ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist);
 
-ZEND_FUNCTION(mapi_zarafa_check_license);
-ZEND_FUNCTION(mapi_zarafa_getcapabilities);
-
 // permissions functions
 ZEND_FUNCTION(mapi_zarafa_getpermissionrules);
 ZEND_FUNCTION(mapi_zarafa_setpermissionrules);

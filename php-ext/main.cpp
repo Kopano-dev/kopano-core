@@ -402,8 +402,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_zarafa_add_quota_recipient, NULL)
 	ZEND_FE(mapi_zarafa_del_quota_recipient, NULL)
 	ZEND_FE(mapi_zarafa_get_quota_recipientlist, NULL)
-	ZEND_FE(mapi_zarafa_check_license, NULL)
-	ZEND_FE(mapi_zarafa_getcapabilities, NULL)
 	ZEND_FE(mapi_zarafa_getpermissionrules, NULL)
 	ZEND_FE(mapi_zarafa_setpermissionrules, NULL)
 
@@ -5784,84 +5782,6 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
 		add_assoc_zval(return_value, (char*)lpsUsers[i].lpszUsername, zval_data_value);
 	}
 
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
-}
-
-ZEND_FUNCTION(mapi_zarafa_check_license)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	zval *res = NULL;
-	IMsgStore *lpMsgStore = NULL;
-	char *szFeature = NULL;
-	unsigned int cbFeature = 0;
-	IUnknown *lpUnknown = nullptr;
-	object_ptr<IECLicense> lpLicense;
-	memory_ptr<char *> lpszCapas;
-	unsigned int ulCapas = 0;
-	
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &szFeature, &cbFeature) == FAILURE)
-	return;
-
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-
-	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
-	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECLicense, &~lpLicense);
-	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-	MAPI_G(hr) = lpLicense->LicenseCapa(0/*SERVICE_TYPE_ZCP*/, &~lpszCapas, &ulCapas);
-	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-        
-	for (ULONG i = 0; i < ulCapas; ++i)
-		if(strcasecmp(lpszCapas[i], szFeature) == 0) {
-			RETVAL_TRUE;
-			break;
-		}
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
-}
-
-ZEND_FUNCTION(mapi_zarafa_getcapabilities)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	zval *res = NULL;
-	IMsgStore *lpMsgStore = NULL;
-	IUnknown *lpUnknown = nullptr;
-	object_ptr<IECLicense> lpLicense;
-	memory_ptr<char *> lpszCapas;
-	unsigned int ulCapas = 0;
-	
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
-	return;
-
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-
-	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
-	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECLicense, &~lpLicense);
-	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-	MAPI_G(hr) = lpLicense->LicenseCapa(0/*SERVICE_TYPE_ZCP*/, &~lpszCapas, &ulCapas);
-	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-
-	array_init(return_value);
-	for (ULONG i = 0; i < ulCapas; ++i)
-		add_index_string(return_value, i, lpszCapas[i], 1);    
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
