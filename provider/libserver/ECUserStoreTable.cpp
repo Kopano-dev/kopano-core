@@ -215,13 +215,13 @@ ECRESULT ECUserStoreTable::Load() {
 	std::string strQuery =
 		" SELECT u.id, u.externid, u.objectclass, u.company, s.guid, s.type, s.user_name, s.company, s.hierarchy_id, p.val_longint, m.val_hi, m.val_lo FROM users AS u"
 		"  LEFT JOIN stores AS s ON s.user_id=u.id AND s.type=" + stringify(ECSTORE_TYPE_PRIVATE) + " LEFT JOIN hierarchy AS h ON h.id=s.hierarchy_id"
-		"  LEFT JOIN properties AS p ON p.hierarchyid=s.hierarchy_id and p.tag=0x0E08 and p.type=0x14"
-		"  LEFT JOIN properties AS m ON m.hierarchyid=s.hierarchy_id and m.tag=0x66A2 and m.type=0x40"
+		"  LEFT JOIN properties AS p ON p.hierarchyid=s.hierarchy_id and p.tag=3592 and p.type=20"
+		"  LEFT JOIN properties AS m ON m.hierarchyid=s.hierarchy_id and m.tag=26274 and m.type=64"
 		" UNION"
 		" SELECT u.id, u.externid, u.objectclass, u.company, s.guid, s.type, s.user_name, s.company, s.hierarchy_id, p.val_longint, m.val_hi, m.val_lo FROM users AS u"
 		"  RIGHT JOIN stores AS s ON s.user_id=u.id LEFT JOIN hierarchy AS h ON h.id=s.hierarchy_id"
-		"  LEFT JOIN properties AS p ON p.hierarchyid=s.hierarchy_id and p.tag=0x0E08 and p.type=0x14"
-		"  LEFT JOIN properties AS m ON m.hierarchyid=s.hierarchy_id and m.tag=0x66A2 and m.type=0x40";
+		"  LEFT JOIN properties AS p ON p.hierarchyid=s.hierarchy_id and p.tag=35928 and p.type=20"
+		"  LEFT JOIN properties AS m ON m.hierarchyid=s.hierarchy_id and m.tag=26274 and m.type=64";
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)

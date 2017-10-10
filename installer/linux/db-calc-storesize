@@ -24,7 +24,7 @@ if (!defined($db)) {
 sub getsize {
     my ($hierarchyid) = @_;
     
-    my $sth = $db->prepare("SELECT hierarchy.id, properties.val_ulong, hierarchy.type FROM hierarchy LEFT JOIN properties ON properties.hierarchyid=hierarchy.id AND properties.tag=0x0e08 AND properties.type=0x0003 WHERE hierarchy.parent=". $hierarchyid . " AND hierarchy.flags & 0x400 = 0");
+    my $sth = $db->prepare("SELECT hierarchy.id, properties.val_ulong, hierarchy.type FROM hierarchy LEFT JOIN properties ON properties.hierarchyid=hierarchy.id AND properties.tag=3592 AND properties.type=3 WHERE hierarchy.parent=". $hierarchyid . " AND hierarchy.flags & 0x400 = 0");
 
     $sth->execute();
     
@@ -76,7 +76,7 @@ print "Calculating store sizes..\n";
 
 
 # Add PR_SEARCH_KEY for all objects
-$sth = $db->prepare("SELECT hierarchy_id, users.id, user_name, val_longint FROM stores JOIN users ON users.id = stores.user_id JOIN properties ON hierarchy_id=properties.hierarchyid WHERE properties.tag=0x0e08 AND properties.type=0x0014 order by val_longint");
+$sth = $db->prepare("SELECT hierarchy_id, users.id, user_name, val_longint FROM stores JOIN users ON users.id = stores.user_id JOIN properties ON hierarchy_id=properties.hierarchyid WHERE properties.tag=3592 AND properties.type=20 order by val_longint");
 if(!$sth) {
   do_error(1);
 }
@@ -89,11 +89,11 @@ while(@row = $sth->fetchrow_array()) {
 	print "Size of store for user " . $row[1] ."(".$row[2].") is correct at " . $size . "\n";
 	} else {
 	print "Size of store for user " . $row[1] ."(".$row[2].") was ".$row[3].", now is " . $size . "\n";
-	$db->do("DELETE FROM properties WHERE hierarchyid = " . $row[0] . " AND tag=0x0e08 AND (type=0x0003 OR type=0x0014)");
+	$db->do("DELETE FROM properties WHERE hierarchyid = " . $row[0] . " AND tag=3592 AND (type=3 OR type=20)");
 		if ($version < 7) {
-			$db->do("INSERT INTO properties (storeid, hierarchyid, tag, type, val_longint) VALUES(" . $row[0]. ", " . $row[0] . ", 0x0e08, 0x0014, $size)");
+			$db->do("INSERT INTO properties (storeid, hierarchyid, tag, type, val_longint) VALUES(" . $row[0]. ", " . $row[0] . ", 3592, 20, $size)");
 		} else {
-			$db->do("INSERT INTO properties (hierarchyid, tag, type, val_longint) VALUES(" . $row[0] . ", 0x0e08, 0x0014, $size)");
+			$db->do("INSERT INTO properties (hierarchyid, tag, type, val_longint) VALUES(" . $row[0] . ", 3592, 20, $size)");
 		}
 	}
 }

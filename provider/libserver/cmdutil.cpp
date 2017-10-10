@@ -1304,8 +1304,7 @@ ECRESULT MapEntryIdToObjectId(ECSession *lpecSession, ECDatabase *lpDatabase, UL
 		ec_log_crit("ERROR: Collision detected while setting entryid. objectid=%u, entryid=%s, user=%u", ulObjId, bin2hex(sEntryId.__size, sEntryId.__ptr).c_str(), lpecSession->GetSecurity()->GetUserId());
 		return KCERR_DATABASE_ERROR;
 	}
-
-	strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES("+stringify(ulObjId)+", 0x0FFF, "+lpDatabase->EscapeBinary(sEntryId.__ptr, sEntryId.__size)+")";
+	strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES(" + stringify(ulObjId) + ", 4095, " + lpDatabase->EscapeBinary(sEntryId.__ptr, sEntryId.__size) + ")";
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
@@ -2079,14 +2078,12 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 				"JOIN hierarchy FORCE INDEX (parenttypeflags) "
 			        "ON properties.hierarchyid=hierarchy.id ";
 
-		strQuery +=
-		    "LEFT JOIN names "
-			    "ON (properties.tag-0x8501)=names.id ";
+		strQuery += "LEFT JOIN names ON properties.tag-34049=names.id ";
 		if (ulObjId)
 			strQuery += "WHERE hierarchyid=" + stringify(ulObjId);
 		else
 			strQuery += "WHERE hierarchy.parent=" + stringify(ulParentId);
-		strQuery += " AND (tag <= 0x8500 OR names.id IS NOT NULL)";
+		strQuery += " AND (tag <= 34048 OR names.id IS NOT NULL)";
 
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
@@ -2185,16 +2182,14 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 				"JOIN hierarchy "
 				    "ON mvproperties.hierarchyid=hierarchy.id ";
 
-		strQuery +=
-			"LEFT JOIN names "
-			    "ON (mvproperties.tag-0x8501)=names.id ";
+		strQuery += "LEFT JOIN names ON mvproperties.tag-34049=names.id ";
         if (ulObjId != 0)
             strQuery +=	"WHERE hierarchyid=" + stringify(ulObjId) +
-				" AND (tag <= 0x8500 OR names.id IS NOT NULL) "
+				" AND (tag <= 34048 OR names.id IS NOT NULL) "
 				" GROUP BY hierarchyid, tag";
         else
 			strQuery +=	"WHERE hierarchy.parent=" + stringify(ulParentId) +
-				" AND (tag <= 0x8500 OR names.id IS NOT NULL) "
+				" AND (tag <= 34048 OR names.id IS NOT NULL) "
 				"GROUP BY tag, mvproperties.type";
 
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);

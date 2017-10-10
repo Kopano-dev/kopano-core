@@ -69,8 +69,8 @@ enum { VALUE_NR_ULONG=0, VALUE_NR_STRING, VALUE_NR_BINARY, VALUE_NR_DOUBLE, VALU
 #define PROPCOLORDER "0,properties.tag,properties.type," PROPCOLVALUEORDER(properties)
 #define PROPCOLORDER_TRUNCATED "0,properties.tag,properties.type," PROPCOLVALUEORDER_TRUNCATED(properties)
 #define MVPROPCOLORDER "count(*),mvproperties.tag,mvproperties.type,group_concat(length(mvproperties.val_ulong),':', mvproperties.val_ulong ORDER BY mvproperties.orderid SEPARATOR ''), group_concat(length(mvproperties.val_string),':', mvproperties.val_string ORDER BY mvproperties.orderid SEPARATOR ''), group_concat(length(mvproperties.val_binary),':', mvproperties.val_binary ORDER BY mvproperties.orderid SEPARATOR ''), group_concat(length(mvproperties.val_double),':', mvproperties.val_double ORDER BY mvproperties.orderid SEPARATOR ''), group_concat(length(mvproperties.val_longint),':', mvproperties.val_longint ORDER BY mvproperties.orderid SEPARATOR ''), group_concat(length(mvproperties.val_hi),':', mvproperties.val_hi ORDER BY mvproperties.orderid SEPARATOR ''), group_concat(length(mvproperties.val_lo),':', mvproperties.val_lo ORDER BY mvproperties.orderid SEPARATOR '')"
-#define MVIPROPCOLORDER "0,mvproperties.tag,mvproperties.type | 0x2000," PROPCOLVALUEORDER(mvproperties)
-#define MVIPROPCOLORDER_TRUNCATED "0,mvproperties.tag,mvproperties.type | 0x2000," PROPCOLVALUEORDER_TRUNCATED(mvproperties)
+#define MVIPROPCOLORDER "0,mvproperties.tag,mvproperties.type | 8192," PROPCOLVALUEORDER(mvproperties)
+#define MVIPROPCOLORDER_TRUNCATED "0,mvproperties.tag,mvproperties.type | 8192," PROPCOLVALUEORDER_TRUNCATED(mvproperties)
 
 enum { FIELD_NR_ID=0, FIELD_NR_TAG, FIELD_NR_TYPE, FIELD_NR_ULONG, FIELD_NR_STRING, FIELD_NR_BINARY, FIELD_NR_DOUBLE, FIELD_NR_LONGINT, FIELD_NR_HI, FIELD_NR_LO, FIELD_NR_MAX };
 

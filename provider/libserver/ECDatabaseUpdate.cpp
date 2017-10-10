@@ -316,7 +316,7 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 
 	// Insert the entryids
 	std::string strDefaultQuery = "REPLACE INTO indexedproperties (tag, hierarchyid, val_binary) ";
-	strDefaultQuery+= "SELECT 0x0FFF, h.id, CONCAT('\\0\\0\\0\\0', "+ lpDatabase->EscapeBinary(lpStoreGuid, sizeof(GUID));
+	strDefaultQuery += "SELECT 4095, h.id, CONCAT('\\0\\0\\0\\0', "+ lpDatabase->EscapeBinary(lpStoreGuid, sizeof(GUID));
 	strDefaultQuery+= ", '\\0\\0\\0\\0',  CHAR(h.type&0xFF, h.type>>8&0xFF, h.type>>16&0xFF, h.type>>24&0xFF), ";
 	strDefaultQuery+= "CHAR(h.id&0xFF, h.id>>8&0xFF, h.id>>16&0xFF, h.id>>24&0xFF), '\\0\\0\\0\\0')";
 	strDefaultQuery+= " FROM hierarchy AS h WHERE h.id IN ";
@@ -622,17 +622,17 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 	std::string strQuery ="SELECT s.hierarchy_id, isub.hierarchyid, ipf.hierarchyid, iff.hierarchyid FROM users AS u "
 				"JOIN stores AS s ON s.user_id=u.id "
 				"JOIN properties AS psub ON "
-					"psub.tag = 0x35E0 AND psub.type = 0x102 AND psub.storeid = s.hierarchy_id " // PR_IPM_SUBTREE_ENTRYID
+					"psub.tag = 13792 AND psub.type = 258 AND psub.storeid = s.hierarchy_id " // PR_IPM_SUBTREE_ENTRYID
 				"JOIN indexedproperties AS isub ON "
-					"isub.tag=0xFFF AND isub.val_binary = psub.val_binary "
+					"isub.tag = 4095 AND isub.val_binary = psub.val_binary "
 				"LEFT JOIN properties AS pf ON "
-					"pf.tag = 0x6631 AND pf.type = 0x102 AND pf.storeid = s.hierarchy_id " //PR_IPM_PUBLIC_FOLDERS_ENTRYID
+					"pf.tag = 26161 AND pf.type = 258 AND pf.storeid = s.hierarchy_id " //PR_IPM_PUBLIC_FOLDERS_ENTRYID
 				"LEFT JOIN indexedproperties AS ipf ON "
-					"ipf.tag=0xFFF AND ipf.val_binary = pf.val_binary "
+					"ipf.tag = 4095 AND ipf.val_binary = pf.val_binary "
 				"LEFT JOIN properties AS ff ON "
-					"ff.tag = 0x6630 AND ff.type = 0x102 AND ff.storeid = s.hierarchy_id " //PR_IPM_FAVORITES_ENTRYID
+					"ff.tag = 26160 AND ff.type = 258 AND ff.storeid = s.hierarchy_id " //PR_IPM_FAVORITES_ENTRYID
 				"LEFT JOIN indexedproperties AS iff ON "
-					"iff.tag=0xFFF AND iff.val_binary = ff.val_binary "
+					"iff.tag = 4095 AND iff.val_binary = ff.val_binary "
 				"WHERE u.object_type=4 OR u.id = 1"; // object_type=USEROBJECT_TYPE_COMPANY or id=KOPANO_UID_EVERYONE
 	auto er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
@@ -724,8 +724,8 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 
 		// Remove the unused properties
 		strQuery = "DELETE FROM properties "
-						"WHERE (tag = 0x6631 AND type=0x102 AND storeid = "+stringify(ulStoreId) + ") OR " //PR_IPM_PUBLIC_FOLDERS_ENTRYID
-						"(tag = 0x6630 AND type = 0x102 AND storeid = "+stringify(ulStoreId) + ")";//PR_IPM_FAVORITES_ENTRYID
+			"WHERE (tag = 26161 AND type = 258 AND storeid = " + stringify(ulStoreId) + ") OR " // PR_IPM_PUBLIC_FOLDERS_ENTRYID
+			"(tag = 26160 AND type = 258 AND storeid = " + stringify(ulStoreId) + ")"; // PR_IPM_FAVORITES_ENTRYID
 
 		er = lpDatabase->DoUpdate(strQuery);
 		if(er != erSuccess)
@@ -1382,16 +1382,14 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 	for (const auto &p : mapStoreInbox) {
 		// Remove property if it's already there (possible if you run new gateway against old server before upgrade)
 		er = lpDatabase->DoDelete("DELETE FROM properties WHERE storeid=" +
-		     p.first + " AND hierarchyid=" + p.first +
-		     " AND tag=0x6784 AND type=0x0102");
+		     p.first + " AND hierarchyid=" + p.first + " AND tag=26500 AND type=258");
 		if (er != erSuccess)
 			return er;
 
 		// does not return an error if property was not in the database
 		er = lpDatabase->DoUpdate("UPDATE properties SET hierarchyid=" +
 		     p.second + " WHERE storeid=" + p.first +
-		     " AND hierarchyid=" + p.first +
-		     " AND tag=0x6784 AND type=0x0102");
+		     " AND hierarchyid=" + p.first + " AND tag=26500 AND type=258");
 		if (er != erSuccess)
 			return er;
 	}
@@ -1504,8 +1502,7 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 	DB_ROW		lpDBRow = NULL;
 
 	convert_context converter;
-
-	auto er = lpDatabase->DoSelect("SELECT p.hierarchyid, p.storeid, p.val_binary FROM properties AS p JOIN receivefolder AS r ON p.hierarchyid=r.objid AND p.storeid=r.storeid JOIN stores AS s ON r.storeid=s.hierarchy_id WHERE p.tag=0x3fe1 AND p.type=0x102 AND r.messageclass='IPM'", &lpResult);
+	auto er = lpDatabase->DoSelect("SELECT p.hierarchyid, p.storeid, p.val_binary FROM properties AS p JOIN receivefolder AS r ON p.hierarchyid=r.objid AND p.storeid=r.storeid JOIN stores AS s ON r.storeid=s.hierarchy_id WHERE p.tag=16353 AND p.type=258 AND r.messageclass='IPM'", &lpResult);
 	if (er != erSuccess)
 		return er;
 
@@ -1518,7 +1515,7 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 		// Use WTF-1252 here since the pre-unicode rule serializer didn't pass the SOAP_C_UTFSTRING flag, causing
 		// gsoap to encode the data as UTF8, eventhough it was already encoded as WINDOWS-1252.
 		std::unique_ptr<char[]> lpszConverted(ECStringCompat::WTF1252_to_UTF8(nullptr, lpDBRow[2], &converter));
-		er = lpDatabase->DoUpdate("UPDATE properties SET val_binary='" + lpDatabase->Escape(lpszConverted.get()) + "' WHERE hierarchyid=" + lpDBRow[0] + " AND storeid=" + lpDBRow[1] + " AND tag=0x3fe1 AND type=0x102");
+		er = lpDatabase->DoUpdate("UPDATE properties SET val_binary='" + lpDatabase->Escape(lpszConverted.get()) + "' WHERE hierarchyid=" + lpDBRow[0] + " AND storeid=" + lpDBRow[1] + " AND tag=16353 AND type=258");
 		if (er != erSuccess)
 			return er;
 	}
@@ -1591,7 +1588,7 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 	}
 
 	// update webaccess settings which were already utf8 in our latin1 table
-	strQuery = "UPDATE properties_temp JOIN hierarchy ON properties_temp.hierarchyid=hierarchy.id AND hierarchy.parent IS NULL SET val_string = CAST(CAST(CONVERT(val_string USING latin1) AS binary) AS CHAR CHARACTER SET utf8) WHERE properties_temp.type=0x1e AND properties_temp.tag=26480";
+	strQuery = "UPDATE properties_temp JOIN hierarchy ON properties_temp.hierarchyid=hierarchy.id AND hierarchy.parent IS NULL SET val_string = CAST(CAST(CONVERT(val_string USING latin1) AS binary) AS CHAR CHARACTER SET utf8) WHERE properties_temp.type=30 AND properties_temp.tag=26480";
 	er = lpDatabase->DoUpdate(strQuery);
 	if (er != erSuccess)
 		return er;
@@ -1830,11 +1827,11 @@ ECRESULT UpdateDatabaseUpdateStores(ECDatabase *lpDatabase)
 ECRESULT UpdateWLinkRecordKeys(ECDatabase *lpDatabase)
 {
 	std::string strQuery = "update stores "	// For each store
-				"join properties as p1 on p1.tag = 0x35E6 and p1.hierarchyid=stores.hierarchy_id " // Get PR_COMMON_VIEWS_ENTRYID
-				"join indexedproperties as i1 on i1.val_binary = p1.val_binary and i1.tag=0xfff " // Get hierarchy for common views
+				"join properties as p1 on p1.tag=13798 and p1.hierarchyid=stores.hierarchy_id " // Get PR_COMMON_VIEWS_ENTRYID
+				"join indexedproperties as i1 on i1.val_binary = p1.val_binary and i1.tag=4095 " // Get hierarchy for common views
 				"join hierarchy as h2 on h2.parent=i1.hierarchyid " // Get children of common views
-				"join properties as p2 on p2.hierarchyid=h2.id and p2.tag=0x684d " // Get PR_WLINK_RECKEY for each child
-				"join properties as p3 on p3.hierarchyid=h2.id and p3.tag=0x684c " // Get PR_WLINK_ENTRYID for each child
+				"join properties as p2 on p2.hierarchyid=h2.id and p2.tag=26701 " // Get PR_WLINK_RECKEY for each child
+				"join properties as p3 on p3.hierarchyid=h2.id and p3.tag=26700 " // Get PR_WLINK_ENTRYID for each child
 				"set p2.val_binary = p3.val_binary "								// Set PR_WLINK_RECKEY = PR_WLINK_ENTRYID
 				"where length(p3.val_binary) = 48";									// Where entryid length is 48 (kopano)
 	return lpDatabase->DoUpdate(strQuery);
