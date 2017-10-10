@@ -726,16 +726,6 @@ def folder_struct(data_path, options, mapper=None): # XXX deprecate?
                 folder_struct(d, options, mapper)
     return mapper
 
-def folder_path(folder, subtree):
-    """ determine path to folder in backup directory """
-
-    path = ''
-    parent = folder
-    while parent and parent != subtree:
-        path = '/folders/'+parent.sourcekey+path
-        parent = parent.parent
-    return path[1:]
-
 def folder_deleted(data_path):
     if os.path.exists(data_path+'/index'):
         with closing(bsddb.hashopen(data_path+'/index')) as db:
