@@ -106,7 +106,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive folder. (hr=%s)", stringify(hr, true).c_str());
 			return hr;
 		}
-		m_mapArchiveFolders.insert({archiveEntry.sStoreEntryId, ptrArchiveFolder});
+		m_mapArchiveFolders.emplace(archiveEntry.sStoreEntryId, ptrArchiveFolder);
 	} else {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder found in cache");
 		ptrArchiveFolder = iArchiveFolder->second;
@@ -324,8 +324,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 			hrTmp = m_ptrMapper->GetMappedInstanceId(ptrSourceServerUID->Value.bin, cbSourceSIID, ptrSourceSIID, ptrDestServerUID->Value.bin, &cbDestSIID, &~ptrDestSIID);
 			if (hrTmp == MAPI_E_NOT_FOUND) {
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No mapped IID found, list message for deferred creation of mapping");
-
-				lstDeferred.push_back(TaskPtr(new TaskMapInstanceId(ptrSourceAttach, MessagePtr(lpDest, true), i)));
+				lstDeferred.emplace_back(new TaskMapInstanceId(ptrSourceAttach, MessagePtr(lpDest, true), i));
 				continue;
 			}
 			if (hrTmp != hrSuccess) {
@@ -355,7 +354,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 				continue;
 			}
 
-			lstDeferred.push_back(TaskPtr(new TaskVerifyAndUpdateInstanceId(ptrSourceAttach, MessagePtr(lpDest, true), i, cbDestSIID, ptrDestSIID)));
+			lstDeferred.emplace_back(new TaskVerifyAndUpdateInstanceId(ptrSourceAttach, MessagePtr(lpDest, true), i, cbDestSIID, ptrDestSIID));
 		}
 	}
 
@@ -594,8 +593,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		}
 		if (hr != hrSuccess)
 			return hr;
-
-		lstTransactions.push_back(ptrTransaction);
+		lstTransactions.emplace_back(ptrTransaction);
 	}
 
 	// Once we reach this point all messages have been created and/or updated. We need to
@@ -616,8 +614,8 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 			return hr;
 		}
 		hr = hrSuccess;
-		lstRollbacks.push_back(ptrRollback);
-		lstNewMsgArchives.push_back(ta->GetObjectEntry());
+		lstRollbacks.emplace_back(ptrRollback);
+		lstNewMsgArchives.emplace_back(ta->GetObjectEntry());
 	}
 
 	if (state.isDirty()) {

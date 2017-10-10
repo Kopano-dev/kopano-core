@@ -393,7 +393,7 @@ UnixUserPlugin::getAllUserObjects(const std::string &match,
 		if (!match.empty() && !matchUserObject(pw, match, ulFlags))
 			continue;
 		objectid_t objectid{tostring(pw->pw_uid), shell_to_class(forbid_sh, pw->pw_shell)};
-		objectlist->push_back({objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name});
+		objectlist->emplace_back(objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name);
 	}
 	endpwent();
 
@@ -430,7 +430,7 @@ UnixUserPlugin::getAllGroupObjects(const std::string &match,
 
 		if (!match.empty() && !matchGroupObject(gr, match, ulFlags))
 			continue;
-		objectlist->push_back({{tostring(gr->gr_gid), DISTLIST_SECURITY}, gr->gr_name});
+		objectlist->emplace_back(objectid_t(tostring(gr->gr_gid), DISTLIST_SECURITY), gr->gr_name);
 	}
 	endgrent();
 
@@ -690,7 +690,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 
 	try {
 		findGroupID(tostring(pws.pw_gid), &grs, buffer);
-		objectlist->push_back({{tostring(grs.gr_gid), DISTLIST_SECURITY}, grs.gr_name});
+		objectlist->emplace_back(objectid_t(tostring(grs.gr_gid), DISTLIST_SECURITY), grs.gr_name);
 	} catch (std::exception &e) {
 		// Ignore error
 	}	
@@ -716,7 +716,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 
 		for (int i = 0; gr->gr_mem[i] != NULL; ++i)
 			if (strcmp(username.c_str(), gr->gr_mem[i]) == 0) {
-				objectlist->push_back({{tostring(gr->gr_gid), DISTLIST_SECURITY}, gr->gr_name});
+				objectlist->emplace_back(objectid_t(tostring(gr->gr_gid), DISTLIST_SECURITY), gr->gr_name);
 				break;
 			}
 	}
@@ -754,7 +754,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	findGroupID(parentid.id, &grp, buffer);
 	for (unsigned int i = 0; grp.gr_mem[i] != NULL; ++i)
 		try {
-			objectlist->push_back(resolveUserName(grp.gr_mem[i]));
+			objectlist->emplace_back(resolveUserName(grp.gr_mem[i]));
 		} catch (std::exception &e) {
 			// Ignore error
 		}
@@ -781,7 +781,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		if (pw->pw_gid != grp.gr_gid || pw->pw_gid < mingid || pw->pw_gid >= maxgid)
 			continue;
 		objectid_t objectid{tostring(pw->pw_uid), shell_to_class(forbid_sh, pw->pw_shell)};
-		objectlist->push_back({objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name});
+		objectlist->emplace_back(objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name);
 	}
 	endpwent();
 	biglock.unlock();
@@ -836,7 +836,7 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 				errnoCheck(sig.id.id, ret);
 			if (pw == NULL)	// object not found anymore
 				continue;
-			objectlist->push_back({sig.id, sig.signature + pw->pw_gecos + pw->pw_name});
+			objectlist->emplace_back(sig.id, sig.signature + pw->pw_gecos + pw->pw_name);
 		}
 	} catch (objectnotfound &e) {
 			// Ignore exception, we will check lObjects.empty() later.

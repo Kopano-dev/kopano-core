@@ -109,11 +109,11 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 
 		sPropVal.ulPropTag = PR_RESPONSE_REQUESTED;
 		sPropVal.Value.b = true;
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RESPONSESTATUS], PT_LONG);
 		sPropVal.Value.ul = respNotResponded;
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 
 		HrCopyString(base, L"IPM.Schedule.Meeting.Request", &sPropVal.Value.lpszW);
 		break;
@@ -121,14 +121,14 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 	case ICAL_METHOD_COUNTER:
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COUNTERPROPOSAL], PT_BOOLEAN);
 		sPropVal.Value.b = true;
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 
 		// Fall through to REPLY
 	case ICAL_METHOD_REPLY:
 		// This value with respAccepted/respDeclined/respTentative is only for imported items through the PUBLISH method, which we do not support.
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RESPONSESTATUS], PT_LONG);
 		sPropVal.Value.ul = respNone;
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 		
 		// skip the meetingstatus property
 		bMeeting = false;
@@ -164,7 +164,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 	case ICAL_METHOD_CANCEL:
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RESPONSESTATUS], PT_LONG);
 		sPropVal.Value.ul = respNotResponded;
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 
 		// make sure the cancel flag gets set
 		bMeeting = true;
@@ -183,13 +183,13 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 			sPropVal.Value.ul = 1;
 		else
 			sPropVal.Value.ul = 0;
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 		
 		// time(NULL) returns UTC time as libical sets application to UTC time.
 		tNow = time(NULL);
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTREPLYTIME], PT_SYSTIME);		
 		UnixTimeToFileTime(tNow, &sPropVal.Value.ft);
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 
 		// Publish is used when mixed events are in the vcalendar
 		// we should determine on other properties if this is a meeting request related item
@@ -206,25 +206,25 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 
 	if (!bisException) {
 		sPropVal.ulPropTag = PR_MESSAGE_CLASS_W;
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 	}
 
 	if (icMethod == ICAL_METHOD_CANCEL || icMethod == ICAL_METHOD_REQUEST)
 	{
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN); 
 		sPropVal.Value.b = true;
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 	} else if (icMethod == ICAL_METHOD_REPLY || icMethod == ICAL_METHOD_COUNTER) {
 		// This is only because outlook and the examples say so in [MS-OXCICAL].pdf
 		// Otherwise, it's completely contradictionary to what the documentation describes.
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN); 
 		sPropVal.Value.b = false;
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 	} else {
 		// PUBLISH method, depends on if we're the owner of the object
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN); 
 		sPropVal.Value.b = bMeetingOrganised;
-		lstMsgProps->push_back(sPropVal);
+		lstMsgProps->emplace_back(sPropVal);
 	}
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG);
@@ -238,7 +238,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 	} else {
 		sPropVal.Value.ul = 0; // this-is-a-meeting-object flag off
 	}
-	lstMsgProps->push_back(sPropVal);
+	lstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_ICON_INDEX;
 	if (!bMeeting)
@@ -252,7 +252,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 	// 1025: recurring item
 	// 1026: meeting request
 	// 1027: recurring meeting request
-	lstMsgProps->push_back(sPropVal);
+	lstMsgProps->emplace_back(sPropVal);
 	return hrSuccess;
 }
 
@@ -310,13 +310,13 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 			timeDTStartUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
 			UnixTimeToFileTime(timeDTStartUTC, &sPropVal.Value.ft);
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PROPOSEDSTART], PT_SYSTIME);
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 			// set new proposal end
 			timeDTEndUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTEndProp);
 			UnixTimeToFileTime(timeDTEndUTC, &sPropVal.Value.ft);
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PROPOSEDEND], PT_SYSTIME);
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 			// rebuild properties, so libical has the right value type in the property.
 			std::string strTmp;
@@ -346,20 +346,20 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 
 	// Set 0x820D / ApptStartWhole
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// Set 0x8516 / CommonStart
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// Set PR_START_DATE
 	sPropVal.ulPropTag = PR_START_DATE;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// Set 0x8215 / AllDayEvent
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN);
 	sPropVal.Value.b = bIsAllday;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// Set endtime / DTEND
 	if (lpicDTEndProp) {
@@ -388,15 +388,15 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 		UnixTimeToFileTime(timeDTEndUTC, &sPropVal.Value.ft);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	
 	// Set 0x8517 / CommonEnd
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// Set PR_END_DATE
 	sPropVal.ulPropTag = PR_END_DATE;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// Set duration
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTDURATION], PT_LONG);
@@ -413,7 +413,7 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 
 	// Convert from seconds to minutes.
 	sPropVal.Value.ul /= 60;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	// @todo add flags not to add these props ?? or maybe use a exclude filter in ICalToMAPI::GetItem()
 	// Set submit time / DTSTAMP
 	return hrSuccess;

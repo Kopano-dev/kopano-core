@@ -254,7 +254,7 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
     for (i = 0; i < ulDeletedInstanceCount; ++i) {
         unsigned int ulDeletedInstanceDate;
         READLONG(ulDeletedInstanceDate);
-        lstDeletedInstanceDates.push_back(ulDeletedInstanceDate);
+		lstDeletedInstanceDates.emplace_back(ulDeletedInstanceDate);
     }
     
     READLONG(ulModifiedInstanceCount);
@@ -262,7 +262,7 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
     for (i = 0; i < ulModifiedInstanceCount; ++i) {
         unsigned int ulModifiedInstanceDate;
         READLONG(ulModifiedInstanceDate);
-        lstModifiedInstanceDates.push_back(ulModifiedInstanceDate);
+		lstModifiedInstanceDates.emplace_back(ulModifiedInstanceDate);
     }
     
     READLONG(ulStartDate);
@@ -315,7 +315,7 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
             READLONG(sException.ulSubType);
         if (sException.ulOverrideFlags & ARO_APPTCOLOR)
             READLONG(sException.ulAppointmentColor);
-        lstExceptions.push_back(std::move(sException));
+		lstExceptions.emplace_back(std::move(sException));
     }
     
     bReadValid  = true;
@@ -367,7 +367,7 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
             READLONG(ulReservedBlock2Size);
             READSTRING(sExtendedException.strReservedBlock2, ulReservedBlock2Size);
         }
-        lstExtendedExceptions.push_back(std::move(sExtendedException));
+		lstExtendedExceptions.emplace_back(std::move(sExtendedException));
     }
 	bExtended = true;
 
@@ -400,7 +400,7 @@ exit:
 			TryConvert(converter, lstExceptions[i].strSubject, rawsize(lstExceptions[i].strSubject), "windows-1252", cEx.strWideCharSubject);
 		if (lstExceptions[i].ulOverrideFlags & ARO_LOCATION)
 			TryConvert(converter, lstExceptions[i].strLocation, rawsize(lstExceptions[i].strLocation), "windows-1252", cEx.strWideCharLocation);
-		lstExtendedExceptions.push_back(cEx);
+		lstExtendedExceptions.emplace_back(cEx);
 
 		// clear for next exception
 		cEx.strWideCharSubject.clear();

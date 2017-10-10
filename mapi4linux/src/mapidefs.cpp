@@ -253,7 +253,7 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 			MAPIFreeBuffer(pv);
 			return hr;
 		}
-		properties.push_back(pv);
+		properties.emplace_back(pv);
 	}
 	return hrSuccess;
 }
@@ -640,7 +640,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	entry->servicename = szService;
 	if(lpUID)
 		*lpUID = entry->uid;
-	msa->providers.push_back(std::move(entry));
+	msa->providers.emplace_back(std::move(entry));
 	// We should really call the MSGServiceEntry with MSG_SERVICE_PROVIDER_CREATE, but there
 	// isn't much use at the moment. (since we don't store the profile data on disk? or why not?)
 	// another rumor is that that is only called once per service, not once per created provider. huh?
@@ -823,7 +823,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 			continue;
 
 		std::copy(lpPropArray->aulPropTag, lpPropArray->aulPropTag + lpPropArray->cValues, std::inserter(stProps, stProps.begin()));
-		lHierarchies.push_back(std::move(lpABHierarchy));
+		lHierarchies.emplace_back(std::move(lpABHierarchy));
 	}
 
 	// remove key row

@@ -1049,8 +1049,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow == NULL || lpDBRow[0] == NULL)
 				continue;
-
-			lObjectIds.push_back(atoui(lpDBRow[0]));
+			lObjectIds.emplace_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
 		lpDBResult = DB_RESULT();
@@ -1096,8 +1095,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow == NULL || lpDBRow[0] == NULL)
 				continue;
-
-			lObjectIds.push_back(atoui(lpDBRow[0]));
+			lObjectIds.emplace_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
 		lpDBResult = DB_RESULT();
@@ -1136,8 +1134,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow == NULL || lpDBRow[0] == NULL)
 				continue;
-
-			lObjectIds.push_back(atoui(lpDBRow[0]));
+			lObjectIds.emplace_back(atoui(lpDBRow[0]));
 		}
 		// free before we call DeleteObjects()
 		lpDBResult = DB_RESULT();
@@ -2004,8 +2001,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			if(er != erSuccess)
 				return er;
 
-			setInserted.insert(lpPropValArray->__ptr[i].ulPropTag);
-
+			setInserted.emplace(lpPropValArray->__ptr[i].ulPropTag);
 			// Remember the source key in the cache
 			g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_SOURCE_KEY), lpPropValArray->__ptr[i].Value.bin->__size, lpPropValArray->__ptr[i].Value.bin->__ptr, ulObjId);
 			continue;
@@ -2141,7 +2137,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			}
 		}
 
-		setInserted.insert(lpPropValArray->__ptr[i].ulPropTag);
+		setInserted.emplace(lpPropValArray->__ptr[i].ulPropTag);
 	} // for (i = 0; i < lpPropValArray->__size; ++i)
 
 	if(!strInsert.empty()) {
@@ -2400,7 +2396,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		// Remove eml attachment
 		if (lpsPropTags->__ptr[i] == PR_EC_IMAP_EMAIL) {
 			std::list<ULONG> at_list;
-			at_list.push_back(ulObjId);
+			at_list.emplace_back(ulObjId);
 			at_storage->DeleteAttachments(at_list);
 		}
 
@@ -2469,8 +2465,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	if (lpsSaveObj->bDelete) {
 		// make list of all children object IDs in std::list<int> ?
 		ECListInt lstDel;
-
-		lstDel.push_back(lpsSaveObj->ulServerId);
+		lstDel.emplace_back(lpsSaveObj->ulServerId);
 
 		// we always hard delete, because we can only delete submessages here
 		// make sure we also delete message-in-message attachments, so all message related flags are on
@@ -4156,8 +4151,7 @@ SOAP_ENTRY_START(emptyFolder, *result, entryId sEntryId, unsigned int ulFlags, u
 		goto exit;
 
 	// Add object into the list
-	lObjectIds.push_back(ulId);
-
+	lObjectIds.emplace_back(ulId);
 	ulDeleteFlags = EC_DELETE_MESSAGES | EC_DELETE_FOLDERS | EC_DELETE_RECIPIENTS | EC_DELETE_ATTACHMENTS;
 	if (ulFlags & DELETE_HARD_DELETE)
 		ulDeleteFlags |= EC_DELETE_HARD_DELETE;
@@ -4205,8 +4199,7 @@ SOAP_ENTRY_START(deleteFolder, *result,  entryId sEntryId, unsigned int ulFlags,
 		goto exit;
 
 	// insert objectid into the delete list
-	lObjectIds.push_back(ulId);
-
+	lObjectIds.emplace_back(ulId);
 	ulDeleteFlags = EC_DELETE_CONTAINER;
 
 	if(ulFlags & DEL_FOLDERS)
@@ -4857,7 +4850,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 				ec_log_err("setReadFlags(): columns null");
 				goto exit;
 			}
-			lObjectIds.push_back({atoui(lpDBRow[0]), atoui(lpDBRow[1])});
+			lObjectIds.emplace_back(atoui(lpDBRow[0]), atoui(lpDBRow[1]));
 			++i;
 		}
 
@@ -4876,7 +4869,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 			// be done directly from the cache (assuming it's not too large)
 			if (g_lpSessionManager->GetCacheManager()->GetObject(hier_id, &ulParent, NULL, NULL) != erSuccess)
 			    continue;
-			setParents.insert(ulParent);
+			setParents.emplace(ulParent);
         }
 
         // Lock parent folders        
@@ -4912,7 +4905,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 				ec_log_err("setReadFlags(): columns null(2)");
 				goto exit;
 			}
-			lObjectIds.push_back({atoui(lpDBRow[0]), atoui(lpDBRow[1])});
+			lObjectIds.emplace_back(atoui(lpDBRow[0]), atoui(lpDBRow[1]));
 			++i;
 		}
 	}
@@ -4934,7 +4927,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
             strQuery += ",";
 
         strQuery += stringify(iObjectid->first);
-        lHierarchyIDs.push_back(iObjectid->first);
+		lHierarchyIDs.emplace_back(iObjectid->first);
     }
     strQuery += ")";
 
@@ -4975,7 +4968,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		er = g_lpSessionManager->GetCacheManager()->GetObject(op.first, &ulParent, NULL, NULL);
 		if (er != erSuccess)
 			goto exit;
-		mapParents.insert({ulParent, 0});
+		mapParents.emplace(ulParent, 0);
 		if (ulFlagsAdd & MSGFLAG_READ &&
 		    (op.second & MSGFLAG_READ) == 0)
 			--mapParents[ulParent]; // Decrease unread count
@@ -7094,8 +7087,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 			er = erSuccess;
 			continue;
 		}
-
-		lstCopyItems.push_back(sItem);
+		lstCopyItems.emplace_back(sItem);
 		ulItemSize += (lpDBRow[5] != NULL)? atoi(lpDBRow[5]) : 0;
 		// check if it a deleted item
 		if (lpDBRow[3] != NULL && atoi(lpDBRow[3]) & MSGFLAG_DELETED)
@@ -7365,7 +7357,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		// Update Store object
 		g_lpSessionManager->NotificationMoved(cop.ulType, cop.ulId,
 			ulDestFolderId, cop.ulParent, cop.sOldEntryId);
-		lstParent.push_back(cop.ulParent);
+		lstParent.emplace_back(cop.ulParent);
 	}
 
 	lstParent.sort();
@@ -8069,8 +8061,8 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 	}
 	
 	for (unsigned int i = 0; i < aMessages->__size; ++i)
-		setEntryIds.insert({aMessages->__ptr[i]});
-	setEntryIds.insert({sDestFolderId});	
+		setEntryIds.emplace(aMessages->__ptr[i]);
+	setEntryIds.emplace(sDestFolderId);
 	er = BeginLockFolders(lpDatabase, setEntryIds, LOCK_EXCLUSIVE);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyObjects: failed locking folders: %s (%x)", GetMAPIErrorMessage(er), er);
@@ -9337,7 +9329,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 
 	if (OBJECTCLASS_TYPE(details.GetClass())== OBJECTTYPE_MAILUSER) {
 		/* The main recipient (the user over quota) must be the first entry */
-		lpUsers->push_front({ulUserid, details});
+		lpUsers->emplace_front(ulUserid, details);
 	} else if (details.GetClass() == CONTAINER_COMPANY) {
 		/* Append the system administrator for the company */
 		unsigned int ulSystem;
@@ -9350,9 +9342,9 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		er = usrmgt->GetObjectDetails(ulSystem, &systemdetails);
 		if (er != erSuccess)
 			return er;
-		lpUsers->push_front({ulSystem, systemdetails});
+		lpUsers->emplace_front(ulSystem, systemdetails);
 		/* The main recipient (the company's public store) must be the first entry */
-		lpUsers->push_front({ulUserid, details});
+		lpUsers->emplace_front(ulUserid, details);
 	}
 
 	lpsUserList->sUserArray.__size = 0;
@@ -10082,13 +10074,13 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		std::set<EntryId>	setEntryIDs;
 
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
-			setEntryIDs.insert({sSourceKeyPairs.__ptr[i].sObjectKey});
+			setEntryIDs.emplace(sSourceKeyPairs.__ptr[i].sObjectKey);
     	er = BeginLockFolders(lpDatabase, setEntryIDs, LOCK_SHARED);
 	} else if (ulPropTag == PR_SOURCE_KEY) {
 		std::set<SOURCEKEY> setParentSourcekeys;
 
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
-			setParentSourcekeys.insert({sSourceKeyPairs.__ptr[i].sParentKey});
+			setParentSourcekeys.emplace(sSourceKeyPairs.__ptr[i].sParentKey);
     	er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED);
     } else
         er = KCERR_INVALID_PARAMETER;
@@ -10200,7 +10192,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.id = s_strcpy(soap, ("emcas-" + stringify(ulObjCnt, false)).c_str());
 		++ulObjCnt;
 		// Remember the object ID since we need it later
-		rows.push_back({ulObjectId, 0});
+		rows.emplace_back(ulObjectId, 0);
 	}
 	lpsResponse->sMsgStreams.__size = ulObjCnt;
                     
@@ -10416,7 +10408,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	    	// will be done when getting the property through MAPI.
 			ullIMAP = atoui(lpDBRow[0]);
 		
-		lObjectList.push_back(ulObjectId);
+		lObjectList.emplace_back(ulObjectId);
 
 		// Collect recursive parent objects, validate item and check the permissions
 		er = ExpandDeletedItems(lpecSession, lpDatabase, &lObjectList, ulDeleteFlags, true, &lstDeleteItems);

@@ -827,7 +827,7 @@ HRESULT POP3::HrMakeMailList() {
 		memcpy(sMailListItem.sbEntryID.lpb, lpRows->aRow[i].lpProps[EID].Value.bin.lpb, lpRows->aRow[i].lpProps[EID].Value.bin.cb);
 		sMailListItem.bDeleted = false;
 		sMailListItem.ulSize = lpRows->aRow[i].lpProps[SIZE].Value.l;
-		lstMails.push_back(std::move(sMailListItem));
+		lstMails.emplace_back(std::move(sMailListItem));
 	}
 	return hrSuccess;
 }

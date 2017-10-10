@@ -354,8 +354,7 @@ HRESULT ECMemTable::HrGetView(const ECLocale &locale, ULONG ulFlags, ECMemTableV
 	HRESULT hr = ECMemTableView::Create(this, locale, ulFlags, &lpView);
 	if (hr != hrSuccess)
 		return hr;
-
-	lstViews.push_back(lpView);
+	lstViews.emplace_back(lpView);
 	AddChild(lpView);
 	*lppView = lpView;
 	return hrSuccess;
@@ -474,7 +473,7 @@ HRESULT ECMemTableView::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink,
 	lpMemAdvise = new ECMEMADVISE;
 	lpMemAdvise->lpAdviseSink = lpAdviseSink;
 	lpMemAdvise->ulEventMask = ulEventMask;
-	m_mapAdvise.insert({ulConnection, lpMemAdvise});
+	m_mapAdvise.emplace(ulConnection, lpMemAdvise);
 	*lpulConnection = ulConnection;
 	return hrSuccess;
 }
@@ -545,7 +544,7 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 	case TABLE_ROW_MODIFIED:
 		if (lpsRowItem == nullptr)
 			return MAPI_E_INVALID_PARAMETER;
-		sRowList.push_back(*lpsRowItem);
+		sRowList.emplace_back(*lpsRowItem);
 		hr = QueryRowData(&sRowList, &~lpRows);
 		if(hr != hrSuccess)
 			return hr;
@@ -602,7 +601,7 @@ HRESULT ECMemTableView::QueryColumns(ULONG ulFlags, LPSPropTagArray *lppPropTagA
 		// Our standard set
 		for (i = 0; i < lpMemTable->lpsColumns->cValues; ++i)
 			// Return the string tags based on m_ulFlags (passed when the ECMemTable was created).
-			lstTags.push_back(fix(lpMemTable->lpsColumns->aulPropTag[i]));
+			lstTags.emplace_back(fix(lpMemTable->lpsColumns->aulPropTag[i]));
 
 		// All other property tags of all rows
 		for (const auto &rowp : lpMemTable->mapRows)
@@ -610,7 +609,7 @@ HRESULT ECMemTableView::QueryColumns(ULONG ulFlags, LPSPropTagArray *lppPropTagA
 				if (PROP_TYPE(rowp.second.lpsPropVal[i].ulPropTag) != PT_ERROR &&
 				    PROP_TYPE(rowp.second.lpsPropVal[i].ulPropTag) != PT_NULL)
 					// Return the string tags based on m_ulFlags (passed when the ECMemTable was created).
-					lstTags.push_back(fix(rowp.second.lpsPropVal[i].ulPropTag));
+					lstTags.emplace_back(fix(rowp.second.lpsPropVal[i].ulPropTag));
 
 		// Remove doubles
 		lstTags.sort();

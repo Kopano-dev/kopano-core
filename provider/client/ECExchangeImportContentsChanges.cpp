@@ -936,11 +936,9 @@ HrVerifyRemindersRestriction(const SRestriction *lpRestriction,
 
 	if (lpAdditionalREN->Value.MVbin.lpbin[0].cb == 0 || lpAdditionalREN->Value.MVbin.lpbin[2].cb == 0 || lpAdditionalREN->Value.MVbin.lpbin[3].cb == 0)
 		return hrSuccess;
-
-	lstEntryIds.push_back(lpAdditionalREN->Value.MVbin.lpbin[0]);
-	lstEntryIds.push_back(lpAdditionalREN->Value.MVbin.lpbin[2]);
-	lstEntryIds.push_back(lpAdditionalREN->Value.MVbin.lpbin[3]);
-
+	lstEntryIds.emplace_back(lpAdditionalREN->Value.MVbin.lpbin[0]);
+	lstEntryIds.emplace_back(lpAdditionalREN->Value.MVbin.lpbin[2]);
+	lstEntryIds.emplace_back(lpAdditionalREN->Value.MVbin.lpbin[3]);
 	return HrRestrictionContains(lpRestriction, lstEntryIds);
 }
 

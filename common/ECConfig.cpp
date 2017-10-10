@@ -67,7 +67,7 @@ const char* ECConfig::GetDefaultPath(const char* lpszBasename)
 
 	if (!lpszBasename)
 		lpszBasename = "";
-	auto result = s_mapPaths.insert({lpszBasename, std::string()});
+	auto result = s_mapPaths.emplace(lpszBasename, "");
 	if (result.second == true) {		// New item added, so create the actual path
 		const char *lpszDirname = getenv("KOPANO_CONFIG_PATH");
 		if (!lpszDirname || lpszDirname[0] == '\0')

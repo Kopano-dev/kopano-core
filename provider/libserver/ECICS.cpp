@@ -109,7 +109,7 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
 			return KCERR_DATABASE_ERROR;
 		}
-		sFilteredIds.insert(atoui(lpDBRow[0]));
+		sFilteredIds.emplace(atoui(lpDBRow[0]));
 	}
 	*lpsFilteredIds = std::move(sFilteredIds);
 	return erSuccess;
@@ -223,7 +223,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 				break;
 			unsigned int ulTmp = atoui((char*)lpDBRow[0]);
 			if (ulTmp != ulSyncId)
-				syncids.insert(ulTmp);
+				syncids.emplace(ulTmp);
 		}
     }
 
@@ -607,8 +607,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				ec_log_crit("ECGetContentChangesHelper::ProcessRow(): row null");
 				goto exit;
 			}
-			db_rows.push_back(lpDBRow);
-			db_lengths.push_back(lpDBLen);
+			db_rows.emplace_back(lpDBRow);
+			db_lengths.emplace_back(lpDBLen);
 			if (db_rows.size() == 1000) {
 				er = lpHelper->ProcessRows(db_rows, db_lengths);
 				if (er != erSuccess)
@@ -640,7 +640,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		// We traverse the tree by just looking at the current hierarchy. This means we will not traverse into deleted
 		// folders and changes within those deleted folders will therefore never reach whoever is requesting changes. In
 		// practice this shouldn't matter because the folder above will be deleted correctly.
-        lstFolderIds.push_back(ulFolderId);
+		lstFolderIds.emplace_back(ulFolderId);
 
 		// Recursive loop through all folders
 		for (auto folder_id : lstFolderIds) {
@@ -683,7 +683,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 						ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
 						goto exit;
 					}
-					lstChanges.push_back(atoui(lpDBRow[0]));
+					lstChanges.emplace_back(atoui(lpDBRow[0]));
 				}
 			}
 
@@ -703,8 +703,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
                         goto exit;
                     }
-
-                    lstFolderIds.push_back(atoui(lpDBRow[0]));
+					lstFolderIds.emplace_back(atoui(lpDBRow[0]));
                 }
             }
 		}
@@ -854,9 +853,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 					ec_log_crit("%s:%d invalid size for ab entryid %lu", __FUNCTION__, __LINE__, static_cast<unsigned long>(lpDBLen[1]));
                     goto exit;
 				}
-
-				lstChanges.push_back(ABChangeRecord(atoui(lpDBRow[0]), std::string(lpDBRow[1], lpDBLen[1]), std::string(lpDBRow[2], lpDBLen[2]), atoui(lpDBRow[3])));
-				sUserIds.insert(reinterpret_cast<ABEID *>(lpDBRow[1])->ulId);
+				lstChanges.emplace_back(atoui(lpDBRow[0]), std::string(lpDBRow[1], lpDBLen[1]), std::string(lpDBRow[2], lpDBLen[2]), atoui(lpDBRow[3]));
+				sUserIds.emplace(reinterpret_cast<ABEID *>(lpDBRow[1])->ulId);
 			}
 
 			if (!sUserIds.empty() && ulCompanyId != 0 && (lpSession->GetCapabilities() & KOPANO_CAP_MAX_ABCHANGEID)) {

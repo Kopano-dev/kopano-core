@@ -60,7 +60,7 @@ HRESULT ECScheduler::AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle
 	sECSchedule.lpFunction = lpFunction;
 	sECSchedule.lpData = lpData;
 	sECSchedule.tLastRunTime = 0;
-	m_listScheduler.push_back(std::move(sECSchedule));
+	m_listScheduler.emplace_back(std::move(sECSchedule));
 	return S_OK;
 }
 

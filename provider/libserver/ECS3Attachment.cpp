@@ -602,7 +602,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
-		m_new_att.insert(ins_id);
+		m_new_att.emplace(ins_id);
 
 	if (cd.size != cd.processed) {
 		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
@@ -659,7 +659,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
-		m_new_att.insert(ins_id);
+		m_new_att.emplace(ins_id);
 
 	if (cd.size != cd.processed) {
 		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
@@ -751,7 +751,7 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstance(ULONG ins_id,
 	if (!m_transact)
 		return del_marked_att(ins_id);
 	ec_log_debug("S3: set delete mark for %u", ins_id);
-	m_marked_att.insert(ins_id);
+	m_marked_att.emplace(ins_id);
 	return erSuccess;
 }
 

@@ -125,19 +125,19 @@ void objectdetails_t::SetPropObject(property_key_t propname,
 
 void objectdetails_t::AddPropInt(property_key_t propname, unsigned int value)
 {
-	m_mapMVProps[propname].push_back(stringify(value));
+	m_mapMVProps[propname].emplace_back(stringify(value));
 }
 
 void objectdetails_t::AddPropString(property_key_t propname,
     const std::string &value)
 {
-	m_mapMVProps[propname].push_back(value);
+	m_mapMVProps[propname].emplace_back(value);
 }
 
 void objectdetails_t::AddPropObject(property_key_t propname,
     const objectid_t &value)
 {
-	m_mapMVProps[propname].push_back(((objectid_t)value).tostring());
+	m_mapMVProps[propname].emplace_back(value.tostring());
 }
 
 std::list<unsigned int>
@@ -148,7 +148,7 @@ objectdetails_t::GetPropListInt(property_key_t propname) const
 		return std::list<unsigned int>();
 	std::list<unsigned int> l;
 	for (const auto &i : mvitem->second)
-		l.push_back(atoui(i.c_str()));
+		l.emplace_back(atoui(i.c_str()));
 	return l;
 }
 
@@ -169,7 +169,7 @@ objectdetails_t::GetPropListObject(property_key_t propname) const
 		return std::list<objectid_t>();
 	std::list<objectid_t> l;
 	for (const auto &i : mvitem->second)
-		l.push_back(objectid_t(i));
+		l.emplace_back(i);
 	return l;
 }
 
@@ -178,7 +178,7 @@ property_map objectdetails_t::GetPropMapAnonymous() const {
 
 	for (const auto &iter : m_mapProps)
 		if (((unsigned int)iter.first) & 0xffff0000)
-			anonymous.insert(iter);
+			anonymous.emplace(iter);
 	return anonymous;
 }
 
@@ -186,7 +186,7 @@ property_mv_map objectdetails_t::GetPropMapListAnonymous() const {
 	property_mv_map anonymous;
 	for (const auto &iter : m_mapMVProps)
 		if (((unsigned int)iter.first) & 0xffff0000)
-			anonymous.insert(iter);
+			anonymous.emplace(iter);
 	return anonymous;
 }
 

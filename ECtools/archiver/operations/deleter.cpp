@@ -52,8 +52,7 @@ HRESULT Deleter::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		if (hr != hrSuccess)
 			return hr;
 	}
-
-	m_lstEntryIds.push_back(lpEntryId->Value.bin);
+	m_lstEntryIds.emplace_back(lpEntryId->Value.bin);
 	return hrSuccess;
 }
 

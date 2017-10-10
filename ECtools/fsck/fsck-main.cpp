@@ -435,13 +435,13 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 		for (i = 0; i < pRows->cRows; ++i) {
 
 			if (pRows->aRow[i].lpProps[1].ulPropTag != PR_DISPLAY_NAME_A && pRows->aRow[i].lpProps[2].ulPropTag != PR_EMAIL_ADDRESS_A) {
-				mapiReciptDel.push_back(pRows->aRow[i].lpProps[0].Value.ul);
+				mapiReciptDel.emplace_back(pRows->aRow[i].lpProps[0].Value.ul);
 				continue;
 			}
 
 			// Invalid or missing entryid 
 			if (pRows->aRow[i].lpProps[4].ulPropTag != PR_ENTRYID || pRows->aRow[i].lpProps[4].Value.bin.cb == 0) {
-				mapiReciptDel.push_back(pRows->aRow[i].lpProps[0].Value.ul);
+				mapiReciptDel.emplace_back(pRows->aRow[i].lpProps[0].Value.ul);
 				continue;
 			}
 
@@ -450,9 +450,9 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 			if (pRows->aRow[i].lpProps[1].ulPropTag == PR_DISPLAY_NAME_A)   strData += pRows->aRow[i].lpProps[1].Value.lpszA;
 			if (pRows->aRow[i].lpProps[2].ulPropTag == PR_EMAIL_ADDRESS_A)  strData += pRows->aRow[i].lpProps[2].Value.lpszA;
 			if (pRows->aRow[i].lpProps[3].ulPropTag == PR_RECIPIENT_TYPE)   strData += stringify(pRows->aRow[i].lpProps[3].Value.ul);
-			auto res = mapRecip.insert(std::move(strData));
+			auto res = mapRecip.emplace(std::move(strData));
 			if (res.second == false)
-				mapiReciptDel.push_back(pRows->aRow[i].lpProps[0].Value.ul);
+				mapiReciptDel.emplace_back(pRows->aRow[i].lpProps[0].Value.ul);
 		}
 	}
 	// modify

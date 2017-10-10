@@ -85,7 +85,7 @@ static bool execute_script(const char *scriptname, ...)
 		strEnv = envname;
 		strEnv += '=';
 		strEnv += envval;
-		lstEnv.push_back(std::move(strEnv));
+		lstEnv.emplace_back(std::move(strEnv));
 	}
 	va_end(v);
 
@@ -314,7 +314,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 		// it from the plugin.
 		er = cache->GetUserDetails(ulObjectId, &details);
 		if (er != erSuccess) {
-			lstExternIds.push_back(sig.id);
+			lstExternIds.emplace_back(sig.id);
 			er = erSuccess;
 			continue;
 		}
@@ -325,7 +325,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 		// remove details, but keep the class information
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 			details = objectdetails_t(details.GetClass());
-		lpDetails->push_back({ulObjectId, details});
+		lpDetails->emplace_back(ulObjectId, details);
 	}
 
 	if (lstExternIds.empty())
@@ -354,9 +354,9 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 			if (MustHide(*lpSecurity, ulFlags, ext_det.second))
 				continue;
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
-			lpDetails->push_back({ulObjectId, {ext_det.second.GetClass()}});
+			lpDetails->emplace_back(ulObjectId, objectdetails_t(ext_det.second.GetClass()));
 		else
-			lpDetails->push_back({ulObjectId, ext_det.second});
+			lpDetails->emplace_back(ulObjectId, ext_det.second);
 
 		cache->SetUserDetails(ulObjectId, &ext_det.second);
 	}
@@ -445,9 +445,9 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			// Reset details, this saves time copying unwanted data, but keep the correct class
 			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 				details = objectdetails_t(details.GetClass());
-			lpObjects->push_back({loc_id, details});
+			lpObjects->emplace_back(loc_id, details);
 		} else if (GetExternalId(loc_id, &externid, NULL, &signature) == erSuccess) {
-			mapSignatureIdToLocal.insert({externid, {loc_id, signature}});
+			mapSignatureIdToLocal.emplace(externid, std::pair<unsigned int, std::string>(loc_id, signature));
 		} else {
 			// cached externid not found for local object id
 		}
@@ -504,7 +504,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			}
 
 			// Add to conversion map so we can obtain the details
-			mapExternIdToLocal.insert({ext_sig.id, ulObjectId});
+			mapExternIdToLocal.emplace(ext_sig.id, ulObjectId);
 		}
 	} else {
 		if (bIsSafeMode)
@@ -512,8 +512,8 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		lpExternSignatures.reset(new signatures_t());
 		// Dont sync, just use whatever is in the local user database
 		for (const auto &sil : mapSignatureIdToLocal) {
-			lpExternSignatures->push_back({sil.first, sil.second.second});
-			mapExternIdToLocal.insert({sil.first, sil.second.first});
+			lpExternSignatures->emplace_back(sil.first, sil.second.second);
+			mapExternIdToLocal.emplace(sil.first, sil.second.first);
 		}
 		
 	}
@@ -589,7 +589,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 
 		/* Fallback in case hosted is not supported */
 		if (lpCompanies->empty())
-			lpCompanies->push_back({0, CONTAINER_COMPANY});
+			lpCompanies->emplace_back(0, CONTAINER_COMPANY);
 
 		for (const auto &obj : *lpCompanies) {
 			std::unique_ptr<std::list<localobjectdetails_t> > lpObjectsTmp;
@@ -723,10 +723,10 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 			{
 				if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 					details = objectdetails_t(details.GetClass());
-				lpObjects->push_back({KOPANO_UID_EVERYONE, details});
+				lpObjects->emplace_back(KOPANO_UID_EVERYONE, details);
 			}
 		} else
-			lpObjects->push_back({KOPANO_UID_EVERYONE, {DISTLIST_SECURITY}});
+			lpObjects->emplace_back(KOPANO_UID_EVERYONE, objectdetails_t(DISTLIST_SECURITY));
 	}
 
 	// Convert details for client usage
@@ -1257,14 +1257,14 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const list<objectsignature
 	unsigned int ulObjectId;
 
 	for (const auto &sig : lstSignatures)
-		lstExternObjIds.push_back(sig.id);
+		lstExternObjIds.emplace_back(sig.id);
 
 	auto er = m_lpSession->GetSessionManager()->GetCacheManager()->GetUserObjects(lstExternObjIds, lpmapLocalObjIds);
 	if (er != erSuccess)
 		return er;
 
 	for (const auto &sig : lstSignatures) {
-		auto result = lpmapLocalObjIds->insert({sig.id, 0});
+		auto result = lpmapLocalObjIds->emplace(sig.id, 0);
 		if (result.second == false)
 			// object already exists
 			continue;
@@ -1315,8 +1315,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 
 		if(lpRow[0] == NULL)
 			continue;
-
-		lpObjects->push_back(atoi(lpRow[0]));
+		lpObjects->emplace_back(atoi(lpRow[0]));
 	}
 	*lppObjects = lpObjects.release();
 	return erSuccess;
@@ -1568,7 +1567,7 @@ ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsig
 				 * object type. (IMPORTANT: when doing this, make sure we still check
 				 * if the returned object is actually visible to the user or not!) */
 				lpObjectsignatures.reset(new signatures_t());
-				lpObjectsignatures->push_back(resolved);
+				lpObjectsignatures->emplace_back(resolved);
 				goto done;
 			}
 			catch (...) {
@@ -1635,7 +1634,7 @@ done:
 			if (sig.id.objclass == NONACTIVE_CONTACT)
 				combine = sig.id.objclass;
 			// Store the matching entry for later analysis
-			mapMatches[combine].push_back(ulIdTmp);
+			mapMatches[combine].emplace_back(ulIdTmp);
 		}
 	}
 
@@ -1708,13 +1707,13 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 		// See if the item data is cached
 		if (cache->GetUserDetails(row.ulObjId, &mapAllObjectDetails[externid]) != erSuccess) {
 			// Item needs to be retrieved from the plugin
-			lstObjects.push_back(externid);
+			lstObjects.emplace_back(externid);
 			// remove from all map, since the address reference added an empty entry in the map
 			mapAllObjectDetails.erase(externid);
 		}
 
-		mapExternIdToRowId.insert({externid, i});
-		mapExternIdToObjectId.insert({externid, row.ulObjId});
+		mapExternIdToRowId.emplace(externid, i);
+		mapExternIdToObjectId.emplace(externid, row.ulObjId);
 		++i;
 	}
 
@@ -1723,7 +1722,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 		mapExternObjectDetails = lpPlugin->getObjectDetails(lstObjects);
 		// Copy each item over
 		for (const auto &eod : *mapExternObjectDetails) {
-			mapAllObjectDetails.insert({eod.first, eod.second});
+			mapAllObjectDetails.emplace(eod.first, eod.second);
 
 			// Get the local object id for the item
 			auto iterObjectId = mapExternIdToObjectId.find(eod.first);
@@ -2168,13 +2167,13 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 	// explicit enable remove from default disable, and add in defaultEnabled
 	for (const auto &s : userEnabled) {
 		defaultDisabled.erase(s);
-		defaultEnabled.insert(s);
+		defaultEnabled.emplace(s);
 	}
 
 	// explicit disable remove from default enable, and add in defaultDisabled
 	for (const auto &s : userDisabled) {
 		defaultEnabled.erase(s);
-		defaultDisabled.insert(s);
+		defaultDisabled.emplace(s);
 	}
 
 	userEnabled.assign(gcc5_make_move_iterator(defaultEnabled.begin()), gcc5_make_move_iterator(defaultEnabled.end()));

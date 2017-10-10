@@ -534,7 +534,7 @@ void ECLogger_Tee::AddLogger(ECLogger *lpLogger) {
 	if (lpLogger == nullptr)
 		return;
 	lpLogger->AddRef();
-	m_loggers.push_back(lpLogger);
+	m_loggers.emplace_back(lpLogger);
 }
 
 ECLogger_Pipe::ECLogger_Pipe(int fd, pid_t childpid, int loglevel) :

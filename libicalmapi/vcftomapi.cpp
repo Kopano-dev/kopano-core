@@ -85,12 +85,12 @@ HRESULT vcftomapi_impl::handle_N(VObject *v)
 			auto ret = vobject_to_prop(vv, s, PR_SURNAME);
 			if (ret != hrSuccess)
 				return ret;
-			props.push_back(s);
+			props.emplace_back(s);
 		} else if (strcmp(name, VCGivenNameProp) == 0) {
 			auto ret = vobject_to_prop(vv, s, PR_GIVEN_NAME);
 			if (ret != hrSuccess)
 				return ret;
-			props.push_back(s);
+			props.emplace_back(s);
 		}
 	}
 	return hrSuccess;
@@ -112,13 +112,13 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 				auto ret = vobject_to_prop(v, s, PR_HOME_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.push_back(s);
+				props.emplace_back(s);
 			}
 			if (strcasecmp(token.c_str(), "MOBILE") == 0) {
 				auto ret = vobject_to_prop(v, s, PR_MOBILE_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.push_back(s);
+				props.emplace_back(s);
 			}
 		}
 	}
@@ -134,13 +134,13 @@ HRESULT vcftomapi_impl::handle_EMAIL(VObject *v)
 	unsigned int prop_id = 0x8083 + (email_count * 0x10);
 	SPropValue s;
 	vobject_to_named_prop(v, s, prop_id);
-	props.push_back(s);
+	props.emplace_back(s);
 
 	prop_id = 0x8082 + (email_count * 0x10);
 	auto ret = unicode_to_named_prop(L"SMTP", s, prop_id);
 	if (ret != hrSuccess)
 		return ret;
-	props.push_back(s);
+	props.emplace_back(s);
 
 	email_count++;
 	return hrSuccess;
@@ -202,7 +202,7 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v)
 			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_COUNTRY);
 
 		if (s.ulPropTag > 0)
-			props.push_back(std::move(s));
+			props.emplace_back(std::move(s));
 	}
 
 	return hrSuccess;
@@ -238,17 +238,17 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			hr = vobject_to_prop(v, s, PR_DISPLAY_NAME);
 			if (hr != hrSuccess)
 				return hr;
-			props.push_back(s);
+			props.emplace_back(s);
 		} else if (strcmp(name, VCTitleProp) == 0) {
 			hr = vobject_to_prop(v, s, PR_TITLE);
 			if (hr != hrSuccess)
 				return hr;
-			props.push_back(s);
+			props.emplace_back(s);
 		} else if (strcmp(name, VCOrgProp) == 0) {
 			hr = vobject_to_prop(v, s, PR_COMPANY_NAME);
 			if (hr != hrSuccess)
 				return hr;
-			props.push_back(s);
+			props.emplace_back(s);
 		} else if (strcmp(name, VCTelephoneProp) == 0) {
 			hr = handle_TEL(v);
 			if (hr != hrSuccess)

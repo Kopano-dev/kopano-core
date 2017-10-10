@@ -467,7 +467,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 			sRelFolder.ulAdviseConnectionId = 0;
 		}
 
-		m_mapRelation.insert({strInstanceKey, sRelFolder});
+		m_mapRelation.emplace(strInstanceKey, sRelFolder);
 		++m_ulRowId;
 	}
 

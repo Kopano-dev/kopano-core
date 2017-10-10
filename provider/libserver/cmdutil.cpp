@@ -246,7 +246,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			}
 
 			// Loop protection, don't insert duplicates.
-			if (setIDs.insert(atoui(lpDBRow[0])).second == false)
+			if (setIDs.emplace(atoui(lpDBRow[0])).second == false)
 				continue;
 		
 			sItem.ulId = atoui(lpDBRow[0]);
@@ -277,8 +277,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 				GetSourceKey(sItem.ulId, &sItem.sSourceKey);
 				GetSourceKey(sItem.ulParent, &sItem.sParentSourceKey);
 			}
-
-			lstDeleteItems.push_back(sItem);
+			lstDeleteItems.emplace_back(sItem);
 		}
 	}
 
@@ -300,7 +299,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 				continue;
 
 			// Loop protection, don't insert duplicates.
-			if (setIDs.insert(atoui(lpDBRow[0])).second == false)
+			if (setIDs.emplace(atoui(lpDBRow[0])).second == false)
 				continue;
 
 			// Add this object as a node to the end of the list
@@ -333,8 +332,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 				GetSourceKey(sItem.ulId, &sItem.sSourceKey);
 				GetSourceKey(sItem.ulParent, &sItem.sParentSourceKey);
 			}
-			
-			lstDeleteItems.push_back(sItem);
+			lstDeleteItems.emplace_back(sItem);
 		}
 	}
 	
@@ -659,15 +657,15 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 
 			// make new list for attachment deletes. messages can have imap "attachment".
 			if (iterDeleteItems->ulObjType == MAPI_ATTACH || (iterDeleteItems->ulObjType == MAPI_MESSAGE && iterDeleteItems->ulParentType == MAPI_FOLDER))
-				lstDeleteAttachments.push_back(iterDeleteItems->ulId);
+				lstDeleteAttachments.emplace_back(iterDeleteItems->ulId);
 
-			lstToBeDeleted.push_front(*iterDeleteItems);
+			lstToBeDeleted.emplace_front(*iterDeleteItems);
 
 			if(!(ulFlags&EC_DELETE_STORE) && iterDeleteItems->ulParentType == MAPI_FOLDER && iterDeleteItems->fRoot) {
 				// Track counter changes
 				memset(&pi, 0, sizeof(pi));
 				pi.ulStoreId = iterDeleteItems->ulStoreId;
-				mapFolderCounts.insert({iterDeleteItems->ulParent, pi});
+				mapFolderCounts.emplace(iterDeleteItems->ulParent, pi);
 
 				if(iterDeleteItems->ulObjType == MAPI_MESSAGE) {
 					if(iterDeleteItems->ulFlags == MAPI_ASSOCIATED) {
@@ -884,13 +882,13 @@ ECRESULT DeleteObjectNotifications(ECSession *lpSession, unsigned int ulFlags, E
 					MSGFLAG_DELETED, di.ulParent, di.ulId, di.ulObjType);
 		} else {
 			// We need to send a table change notifications later on
-			mapTableChangeNotifications[di.ulParent].insert(TABLECHANGENOTIFICATION(di.ulObjType, di.ulFlags & MSGFLAG_NOTIFY_FLAGS));
+			mapTableChangeNotifications[di.ulParent].emplace(di.ulObjType, di.ulFlags & MSGFLAG_NOTIFY_FLAGS);
 			if ((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
-				mapTableChangeNotifications[di.ulParent].insert(TABLECHANGENOTIFICATION(di.ulObjType, (di.ulFlags & MSGFLAG_NOTIFY_FLAGS) | MSGFLAG_DELETED));
+				mapTableChangeNotifications[di.ulParent].emplace(di.ulObjType, (di.ulFlags & MSGFLAG_NOTIFY_FLAGS) | MSGFLAG_DELETED);
 		}
 		// @todo: Is this correct ???
 		if (di.fRoot)
-			 lstParent.push_back(di.ulParent);
+			 lstParent.emplace_back(di.ulParent);
 	}
 
 	// We have a list of all the folders in which something was deleted, so get a unique list
@@ -1225,8 +1223,7 @@ ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned in
 ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned int ulFolderId, unsigned int ulObjId) {
     ECListInt list;
     
-    list.push_back(ulObjId);
-    
+	list.emplace_back(ulObjId);
     return UpdateTProp(lpDatabase, ulPropTag, ulFolderId, &list);
 }
 
@@ -1899,11 +1896,11 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     for (const auto &s : setIds) {
 		if (g_lpSessionManager->GetCacheManager()->QueryObjectFromProp(ulTag, s.size(),
 		    reinterpret_cast<unsigned char *>(const_cast<char *>(s.data())), &ulId) != erSuccess) {
-			setUncached.insert(s);
+			setUncached.emplace(s);
 			continue;
 		}
 		if (ulTag == PROP_ID(PR_SOURCE_KEY)) {
-			setFolders.insert(ulId);
+			setFolders.emplace(ulId);
 			continue;
 		} else if (ulTag != PROP_ID(PR_ENTRYID)) {
 			assert(false);
@@ -1913,9 +1910,9 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 		EntryId eid(s);
 		try {
 			if (eid.type() == MAPI_FOLDER)
-				setFolders.insert(ulId);
+				setFolders.emplace(ulId);
 			else if (eid.type() == MAPI_MESSAGE)
-				setMessages.insert(ulId);
+				setMessages.emplace(ulId);
 			else
 				assert(false);
 		} catch (std::runtime_error &e) {
@@ -1943,9 +1940,9 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
                 continue;
                 
             if(atoui(lpDBRow[1]) == MAPI_MESSAGE)
-                setFolders.insert(atoui(lpDBRow[2]));
+				setFolders.emplace(atoui(lpDBRow[2]));
             else if(atoui(lpDBRow[1]) == MAPI_FOLDER)
-                setFolders.insert(atoui(lpDBRow[0]));
+				setFolders.emplace(atoui(lpDBRow[0]));
         }
     }
         
@@ -1954,9 +1951,9 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
         unsigned int ulParent = 0;
         
 		if (g_lpSessionManager->GetCacheManager()->QueryParent(i, &ulParent) == erSuccess)
-			setFolders.insert(ulParent);
+			setFolders.emplace(ulParent);
 		else
-			setUncachedMessages.insert(i);
+			setUncachedMessages.emplace(i);
     }
     
     // Query uncached parents from the database
@@ -1976,8 +1973,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
         while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
             if(lpDBRow[0] == NULL)
                 continue;
-                
-            setFolders.insert(atoui(lpDBRow[0]));
+			setFolders.emplace(atoui(lpDBRow[0]));
         }    
     }
         
@@ -2031,9 +2027,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid, unsign
 		ec_log_err("entryid.type(): %s\n", e.what());
 		return KCERR_INVALID_PARAMETER;
 	}
-    
-    set.insert(entryid);
-    
+	set.emplace(entryid);
     return BeginLockFolders(lpDatabase, set, ulFlags);
 }
 
@@ -2102,7 +2096,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
         ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
         
         if (PROP_ID(ulPropTag) > 0x8500 && lpNamedPropDefs) {
-			auto resInsert = lpNamedPropDefs->insert({ulPropTag, {}});
+			auto resInsert = lpNamedPropDefs->emplace(ulPropTag, NAMEDPROPDEF());
             if (resInsert.second) {
                 // New entry
                 if (lpDBLen[FIELD_NR_NAMEGUID] != sizeof(resInsert.first->second.guid)) {
@@ -2141,7 +2135,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             sChild.lpPropVals = new DynamicPropValArray(soap, 20);
             
             // First property for this child
-			iterChild = lpChildProps->insert({ulChildId, sChild}).first;
+			iterChild = lpChildProps->emplace(ulChildId, sChild).first;
         }
         
         er = iterChild->second.lpPropTags->AddPropTag(ulPropTag);
@@ -2210,7 +2204,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
         if (lpNamedPropDefs) {
             unsigned int ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
             if (PROP_ID(ulPropTag) > 0x8500) {
-				auto resInsert = lpNamedPropDefs->insert({ulPropTag, {}});
+				auto resInsert = lpNamedPropDefs->emplace(ulPropTag, NAMEDPROPDEF());
                 if (resInsert.second) {
                     // New entry
                     if (lpDBLen[FIELD_NR_NAMEGUID] != sizeof(resInsert.first->second.guid)) {
@@ -2242,7 +2236,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             sChild.lpPropVals = new DynamicPropValArray(soap, 20);
             
             // First property for this child
-			iterChild = lpChildProps->insert({ulChildId, sChild}).first;
+			iterChild = lpChildProps->emplace(ulChildId, sChild).first;
         }
         
         er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);

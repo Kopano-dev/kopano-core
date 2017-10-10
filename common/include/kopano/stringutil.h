@@ -122,7 +122,7 @@ std::vector<T> tokenize(const T &str, const T &delimiters)
    	while (std::string::npos != pos || std::string::npos != lastPos)
    	{
        	// found a token, add it to the std::vector.
-       	tokens.push_back(str.substr(lastPos, pos - lastPos));
+		tokens.emplace_back(str.substr(lastPos, pos - lastPos));
 
        	// skip delimiters.  Note the "not_of"
        	lastPos = str.find_first_not_of(delimiters, pos);

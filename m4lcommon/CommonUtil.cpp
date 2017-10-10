@@ -1290,28 +1290,28 @@ static HRESULT GetRestrictTagsRecursive(const SRestriction *lpRestriction,
 		hr = GetRestrictTagsRecursive(lpRestriction->res.resNot.lpRes, lpList, ulLevel+1);
 		break;
 	case RES_CONTENT:
-		lpList->push_back(lpRestriction->res.resContent.ulPropTag);
-		lpList->push_back(lpRestriction->res.resContent.lpProp->ulPropTag);
+		lpList->emplace_back(lpRestriction->res.resContent.ulPropTag);
+		lpList->emplace_back(lpRestriction->res.resContent.lpProp->ulPropTag);
 		break;
 	case RES_PROPERTY:
-		lpList->push_back(lpRestriction->res.resProperty.ulPropTag);
-		lpList->push_back(lpRestriction->res.resProperty.lpProp->ulPropTag);
+		lpList->emplace_back(lpRestriction->res.resProperty.ulPropTag);
+		lpList->emplace_back(lpRestriction->res.resProperty.lpProp->ulPropTag);
 		break;
 	case RES_COMPAREPROPS:
-		lpList->push_back(lpRestriction->res.resCompareProps.ulPropTag1);
-		lpList->push_back(lpRestriction->res.resCompareProps.ulPropTag2);
+		lpList->emplace_back(lpRestriction->res.resCompareProps.ulPropTag1);
+		lpList->emplace_back(lpRestriction->res.resCompareProps.ulPropTag2);
 		break;
 	case RES_BITMASK:
-		lpList->push_back(lpRestriction->res.resBitMask.ulPropTag);
+		lpList->emplace_back(lpRestriction->res.resBitMask.ulPropTag);
 		break;
 	case RES_SIZE:
-		lpList->push_back(lpRestriction->res.resSize.ulPropTag);
+		lpList->emplace_back(lpRestriction->res.resSize.ulPropTag);
 		break;
 	case RES_EXIST:
-		lpList->push_back(lpRestriction->res.resExist.ulPropTag);
+		lpList->emplace_back(lpRestriction->res.resExist.ulPropTag);
 		break;
 	case RES_SUBRESTRICTION:
-		lpList->push_back(lpRestriction->res.resSub.ulSubObject);
+		lpList->emplace_back(lpRestriction->res.resSub.ulSubObject);
 		break;
 	case RES_COMMENT:
 		hr = GetRestrictTagsRecursive(lpRestriction->res.resComment.lpRes, lpList, ulLevel+1);
@@ -1847,10 +1847,10 @@ ECPropMap::ECPropMap(size_t hint)
     
 void ECPropMap::AddProp(ULONG *lpId, ULONG ulType, const ECPropMapEntry &entry)
 {
-    // Add reference to proptag for later Resolve();
-    lstNames.push_back(entry);
-    lstVars.push_back(lpId);
-    lstTypes.push_back(ulType);
+	// Add reference to proptag for later Resolve();
+	lstNames.emplace_back(entry);
+	lstVars.emplace_back(lpId);
+	lstTypes.emplace_back(ulType);
 }
     
 HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {

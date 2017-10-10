@@ -81,7 +81,7 @@ struct MAPIOBJECT {
 		this->lstAvailable = lpSource->lstAvailable;
 
 		for (const auto &i : lpSource->lstChildren)
-			this->lstChildren.insert(new MAPIOBJECT(i));
+			this->lstChildren.emplace(new MAPIOBJECT(i));
 	};
 
 	/* data */

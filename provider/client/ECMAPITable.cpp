@@ -140,7 +140,7 @@ HRESULT ECMAPITable::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, UL
 
 	// We lock the connection list separately
 	scoped_rlock l_conn(m_hMutexConnectionList);
-	m_ulConnectionList.insert(*lpulConnection);
+	m_ulConnectionList.emplace(*lpulConnection);
 	return hrSuccess;
 }
 

@@ -54,7 +54,7 @@ static void rosie_init(void)
 		auto it = rosie_good_attrs.find(p.first);
 		if (it != rosie_good_attrs.end())
 			continue;
-		rosie_good_tags.insert(p.first);
+		rosie_good_tags.emplace(p.first);
 	}
 }
 
@@ -147,44 +147,44 @@ bool rosie_clean_html(const std::string &in, std::string *const out,
 
 	rc = tidySetErrorBuffer(tdoc, &errbuf); /* capture diagnostics */
 	if (rc != 0 && errors != NULL)
-		errors->push_back(format("tidySetErrorBuffer(%d) ", rc));
+		errors->emplace_back(format("tidySetErrorBuffer(%d) ", rc));
 
 	if (rc >= 0)
 		rc = tidyParseString(tdoc, in.c_str());
 	if (rc != 0 && errors != NULL)
-		errors->push_back(format("tidyParseString(%d) ", rc));
+		errors->emplace_back(format("tidyParseString(%d) ", rc));
 
 	if (rc >= 0)
 		rc = tidyCleanAndRepair(tdoc);
 	if (rc != 0 && errors != NULL)
-		errors->push_back(format("tidyCleanAndRepair(%d) ", rc));
+		errors->emplace_back(format("tidyCleanAndRepair(%d) ", rc));
 
 	if (rc >= 0)
 		rc = rosie_strip_nodes(tdoc) ? 0 : -1;
 	if (rc != 0 && errors != NULL)
-		errors->push_back(format("RemoveBadHtml(%d) ", rc));
+		errors->emplace_back(format("RemoveBadHtml(%d) ", rc));
 
 	if (rc >= 0)
 		rc = tidyRunDiagnostics(tdoc); /* kvetch */
 	if (rc != 0 && errors != NULL)
-		errors->push_back(format("tidyRunDiagnostics(%d) ", rc));
+		errors->emplace_back(format("tidyRunDiagnostics(%d) ", rc));
 
 	tidyOptSetBool(tdoc, TidyForceOutput, yes);
 
 	if (rc >= 0)
 		rc = tidySaveBuffer(tdoc, &output); /* pretty print */
 	if (rc != 0 && errors != NULL)
-		errors->push_back(format("tidySaveBuffer(%d) ", rc));
+		errors->emplace_back(format("tidySaveBuffer(%d) ", rc));
 
 	out->assign(reinterpret_cast<const char *>(output.bp));
 	if (rc == 0 || rc == 1) {
 		/* rc==1: warnings emitted */
 		if (rc == 1 && errors != nullptr)
-			errors->push_back(format("%s: libtidy warning: %s",
+			errors->emplace_back(format("%s: libtidy warning: %s",
 				__PRETTY_FUNCTION__,
 				reinterpret_cast<const char *>(errbuf.bp)));
 	} else if (errors != nullptr) {
-		errors->push_back(format("%s: libtidy failed: %s",
+		errors->emplace_back(format("%s: libtidy failed: %s",
 			__PRETTY_FUNCTION__,
 			reinterpret_cast<const char *>(errbuf.bp)));
 	}

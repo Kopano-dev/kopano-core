@@ -213,7 +213,7 @@ HRESULT IMAP::HrSplitInput(const string &strInput, vector<string> &vWords) {
 			} while (specialPos != string::npos && strInput[specialPos-1] == '\\');
 
 			if (specialPos != string::npos) {
-				vWords.push_back(strInput.substr(findPos + 1, specialPos - findPos - 1));
+				vWords.emplace_back(strInput.substr(findPos + 1, specialPos - findPos - 1));
 				findPos = specialPos;
 				beginPos = findPos + 1;
 			}
@@ -224,7 +224,7 @@ HRESULT IMAP::HrSplitInput(const string &strInput, vector<string> &vWords) {
 				--uSpecialCount;
 		} else if (uSpecialCount == 0) {
 			if (findPos > beginPos)
-				vWords.push_back(strInput.substr(beginPos, findPos - beginPos));
+				vWords.emplace_back(strInput.substr(beginPos, findPos - beginPos));
 			beginPos = findPos + 1;
 		}
 
@@ -233,7 +233,7 @@ HRESULT IMAP::HrSplitInput(const string &strInput, vector<string> &vWords) {
 	}
 
 	if (beginPos < strInput.size())
-		vWords.push_back(strInput.substr(beginPos));
+		vWords.emplace_back(strInput.substr(beginPos));
 	return hrSuccess;
 }
 
@@ -2050,7 +2050,7 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &a
 			if (lstDataItems[ulCurrent].compare("UID") == 0)
 				bFound = true;
 		if (!bFound)
-			lstDataItems.push_back("UID");
+			lstDataItems.emplace_back("UID");
 	}
 
 	if (bUidMode)
@@ -2112,11 +2112,9 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &a
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + " error folder read only");
 		return MAPI_E_CALL_FAILED;
 	}
-
-	lstDataItems.push_back("FLAGS");
+	lstDataItems.emplace_back("FLAGS");
 	if (bUidMode)
-		lstDataItems.push_back("UID");
-
+		lstDataItems.emplace_back("UID");
 	if (bUidMode)
 		hr = HrParseSeqUidSet(strSeqSet, lstMails);
 	else
@@ -2368,7 +2366,7 @@ LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 				sMail.ulUid = lpNotif[i].info.tab.row.lpProps[IMAPID].Value.ul;
 
 			sMail.strFlags = lpIMAP->PropsToFlags(lpNotif[i].info.tab.row.lpProps, lpNotif[i].info.tab.row.cValues, true, false);
-			lpIMAP->lstFolderMailEIDs.push_back(sMail);
+			lpIMAP->lstFolderMailEIDs.emplace_back(sMail);
 			lpIMAP->m_ulLastUid = std::max(lpIMAP->m_ulLastUid, sMail.ulUid);
 			++ulRecent;
 			break;
@@ -2872,7 +2870,7 @@ HRESULT IMAP::HrGetSubscribedList() {
 		hr = lpStream->Read(lpb.get(), cb, &read);
 		if (hr != hrSuccess || read != cb)
 			return MAPI_E_NOT_FOUND;
-		m_vSubscriptions.push_back(BinaryArray(lpb.get(), cb));
+		m_vSubscriptions.emplace_back(lpb.get(), cb);
 	}
 	return hr;
 }
@@ -2941,7 +2939,7 @@ HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, LPENTRYID lp
 	               cbEntryID, true));
 	if (iFolder == m_vSubscriptions.cend()) {
 		if (bSubscribe) {
-			m_vSubscriptions.push_back(BinaryArray((BYTE*)lpEntryID, cbEntryID));
+			m_vSubscriptions.emplace_back(reinterpret_cast<BYTE *>(lpEntryID), cbEntryID);
 			bChanged = true;
 		}
 	} else if (!bSubscribe) {
@@ -2985,14 +2983,14 @@ HRESULT IMAP::HrMakeSpecialsList() {
 		return hr;
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayStore[i].ulPropTag) == PT_BINARY)
-			lstSpecialEntryIDs.insert(BinaryArray(lpPropArrayStore[i].Value.bin.lpb, lpPropArrayStore[i].Value.bin.cb));
+			lstSpecialEntryIDs.emplace(lpPropArrayStore[i].Value.bin.lpb, lpPropArrayStore[i].Value.bin.cb);
 
 	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess)
 		return hr;
 
 	// inbox is special too
-	lstSpecialEntryIDs.insert(BinaryArray(reinterpret_cast<unsigned char *>(lpEntryID.get()), cbEntryID));
+	lstSpecialEntryIDs.emplace(reinterpret_cast<unsigned char *>(lpEntryID.get()), cbEntryID);
 	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess)
 		return hr;
@@ -3001,15 +2999,15 @@ HRESULT IMAP::HrMakeSpecialsList() {
 		return hr;
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayInbox[i].ulPropTag) == PT_BINARY)
-			lstSpecialEntryIDs.insert(BinaryArray(lpPropArrayInbox[i].Value.bin.lpb, lpPropArrayInbox[i].Value.bin.cb));
+			lstSpecialEntryIDs.emplace(lpPropArrayInbox[i].Value.bin.lpb, lpPropArrayInbox[i].Value.bin.cb);
 
 	if (HrGetOneProp(lpInbox, PR_ADDITIONAL_REN_ENTRYIDS, &~lpPropVal) == hrSuccess &&
 	    lpPropVal->Value.MVbin.cValues >= 5 && lpPropVal->Value.MVbin.lpbin[4].cb != 0)
-		lstSpecialEntryIDs.insert(BinaryArray(lpPropVal->Value.MVbin.lpbin[4].lpb, lpPropVal->Value.MVbin.lpbin[4].cb));
+		lstSpecialEntryIDs.emplace(lpPropVal->Value.MVbin.lpbin[4].lpb, lpPropVal->Value.MVbin.lpbin[4].cb);
 	if(!lpPublicStore)
 		return hrSuccess;
 	if (HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropVal) == hrSuccess)
-		lstSpecialEntryIDs.insert(BinaryArray(lpPropVal->Value.bin.lpb, lpPropVal->Value.bin.cb));
+		lstSpecialEntryIDs.emplace(lpPropVal->Value.bin.lpb, lpPropVal->Value.bin.cb);
 	return hrSuccess;
 }
 
@@ -3127,7 +3125,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
                 sMail.strFlags = PropsToFlags(lpRows->aRow[ulMailnr].lpProps, lpRows->aRow[ulMailnr].cValues, sMail.bRecent, false);
 
                 // Put message on the end of our message
-    			lstFolderMailEIDs.push_back(sMail);
+				lstFolderMailEIDs.emplace_back(sMail);
 				m_ulLastUid = std::max(sMail.ulUid, m_ulLastUid);
                 bNewMail = true;
                 
@@ -3262,7 +3260,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 	sfolder.lpParentFolder = parent_folder;
 	sfolder.strFolderName = in_folder_name;
 	sfolder.bHasSubfolders = true;
-	folders.push_front(std::move(sfolder));
+	folders.emplace_front(std::move(sfolder));
 	parent_folder = folders.cbegin();
 
 	enum { EID, PEID, NAME, IMAPID, SUBFOLDERS, CONTAINERCLASS, NUM_COLS };
@@ -3325,7 +3323,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 				sfolder.strFolderName = foldername;
 				sfolder.sEntryID = entry_id;
 				sfolder.bHasSubfolders = subfolders;
-				folders.push_front(std::move(sfolder));
+				folders.emplace_front(std::move(sfolder));
 			}
 			catch (const KMAPIError &e) {
 				/* just continue */
@@ -3428,30 +3426,30 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		strDataItem = lstDataItems[ulDataItemNr];
 
 		if (strDataItem.compare("FLAGS") == 0) {
-			setProps.insert(PR_MESSAGE_FLAGS);
-			setProps.insert(PR_FLAG_STATUS);
-			setProps.insert(PR_MSG_STATUS);
-			setProps.insert(PR_LAST_VERB_EXECUTED);
+			setProps.emplace(PR_MESSAGE_FLAGS);
+			setProps.emplace(PR_FLAG_STATUS);
+			setProps.emplace(PR_MSG_STATUS);
+			setProps.emplace(PR_LAST_VERB_EXECUTED);
 		} else if (strDataItem.compare("XAOL.SIZE") == 0) {
 			// estimated size
-			setProps.insert(PR_MESSAGE_SIZE);
+			setProps.emplace(PR_MESSAGE_SIZE);
 		} else if (strDataItem.compare("INTERNALDATE") == 0) {
-			setProps.insert(PR_MESSAGE_DELIVERY_TIME);
-			setProps.insert(PR_CLIENT_SUBMIT_TIME);
+			setProps.emplace(PR_MESSAGE_DELIVERY_TIME);
+			setProps.emplace(PR_CLIENT_SUBMIT_TIME);
 		} else if (strDataItem.compare("BODY") == 0) {
-			setProps.insert(PR_EC_IMAP_BODY);
+			setProps.emplace(PR_EC_IMAP_BODY);
 		} else if (strDataItem.compare("BODYSTRUCTURE") == 0) {
-			setProps.insert(PR_EC_IMAP_BODYSTRUCTURE);
+			setProps.emplace(PR_EC_IMAP_BODYSTRUCTURE);
 		} else if (strDataItem.compare("ENVELOPE") == 0) {
-			setProps.insert(m_lpsIMAPTags->aulPropTag[0]);
+			setProps.emplace(m_lpsIMAPTags->aulPropTag[0]);
 		} else if (strDataItem.compare("RFC822.SIZE") == 0) {
 			// real size
-			setProps.insert(PR_EC_IMAP_EMAIL_SIZE);
+			setProps.emplace(PR_EC_IMAP_EMAIL_SIZE);
 		} else if (strstr(strDataItem.c_str(), "HEADER") != NULL) {
 			// RFC822.HEADER, BODY[HEADER or BODY.PEEK[HEADER
-			setProps.insert(PR_TRANSPORT_MESSAGE_HEADERS_A);
+			setProps.emplace(PR_TRANSPORT_MESSAGE_HEADERS_A);
 			// if we have the full body, we can skip some hacks to make headers match with the otherwise regenerated version.
-			setProps.insert(PR_EC_IMAP_EMAIL_SIZE);
+			setProps.emplace(PR_EC_IMAP_EMAIL_SIZE);
 
 			// this is where RFC822.HEADER seems to differ from BODY[HEADER] requests
 			// (according to dovecot and courier)
@@ -3460,19 +3458,17 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		} else if (Prefix(strDataItem, "BODY") || Prefix(strDataItem, "RFC822")) {
 			// we don't want PR_EC_IMAP_EMAIL in the table (size problem),
 			// and it must be in sync with PR_EC_IMAP_EMAIL_SIZE anyway, so detect presence from size
-			setProps.insert(PR_EC_IMAP_EMAIL_SIZE);
-
+			setProps.emplace(PR_EC_IMAP_EMAIL_SIZE);
 			if (strstr(strDataItem.c_str(), "PEEK") == NULL)
 				bMarkAsRead = true;
 		}
 	}
 
 	if (bMarkAsRead) {
-		setProps.insert(PR_MESSAGE_FLAGS);
-		setProps.insert(PR_FLAG_STATUS);
-		setProps.insert(PR_MSG_STATUS);
-		setProps.insert(PR_LAST_VERB_EXECUTED);
-
+		setProps.emplace(PR_MESSAGE_FLAGS);
+		setProps.emplace(PR_FLAG_STATUS);
+		setProps.emplace(PR_MSG_STATUS);
+		setProps.emplace(PR_LAST_VERB_EXECUTED);
 		hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 		if (hr != hrSuccess)
 			return hr;
@@ -3730,10 +3726,10 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			}
 		} else if (item.compare("XAOL.SIZE") == 0) {
 			auto lpProp = PCpropFindProp(lpProps, cValues, PR_MESSAGE_SIZE);
-			vProps.push_back(item);
-			vProps.push_back(lpProp ? stringify(lpProp->Value.ul) : "NIL");
+			vProps.emplace_back(item);
+			vProps.emplace_back(lpProp != nullptr ? stringify(lpProp->Value.ul) : "NIL");
 		} else if (item.compare("INTERNALDATE") == 0) {
-			vProps.push_back(item);
+			vProps.emplace_back(item);
 			auto lpProp = PCpropFindProp(lpProps, cValues, PR_MESSAGE_DELIVERY_TIME);
 			if (!lpProp)
 				lpProp = PCpropFindProp(lpProps, cValues, PR_CLIENT_SUBMIT_TIME);
@@ -3741,42 +3737,42 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				lpProp = PCpropFindProp(lpProps, cValues, PR_CREATION_TIME);
 
 			if (lpProp != NULL)
-				vProps.push_back("\"" + FileTimeToString(lpProp->Value.ft) + "\"");
+				vProps.emplace_back("\"" + FileTimeToString(lpProp->Value.ft) + "\"");
 			else
-				vProps.push_back("NIL");
+				vProps.emplace_back("NIL");
 		} else if (item.compare("UID") == 0) {
-			vProps.push_back(item);
-			vProps.push_back(stringify(lstFolderMailEIDs[ulMailnr].ulUid));
+			vProps.emplace_back(item);
+			vProps.emplace_back(stringify(lstFolderMailEIDs[ulMailnr].ulUid));
 		} else if (item.compare("ENVELOPE") == 0) {
 			auto lpProp = PCpropFindProp(lpProps, cValues, m_lpsIMAPTags->aulPropTag[0]);
 			if (lpProp) {
-				vProps.push_back(item);
-				vProps.push_back("(" + string_strip_crlf(lpProp->Value.lpszA) + ")");
+				vProps.emplace_back(item);
+				vProps.emplace_back("(" + string_strip_crlf(lpProp->Value.lpszA) + ")");
 			} else if (lpMessage) {
 				string strEnvelope;
 				HrGetMessageEnvelope(strEnvelope, lpMessage);
-				vProps.push_back(strEnvelope); // @note contains ENVELOPE (...)
+				vProps.emplace_back(strEnvelope); // @note contains ENVELOPE (...)
 			} else {
-				vProps.push_back(item);
-				vProps.push_back("NIL");
+				vProps.emplace_back(item);
+				vProps.emplace_back("NIL");
 			}
 		} else if (bSkipOpen && item.compare("BODY") == 0) {
 			// table version
 			auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY);
-			vProps.push_back(item);
-			vProps.push_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : std::string("NIL"));
+			vProps.emplace_back(item);
+			vProps.emplace_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : std::string("NIL"));
 		} else if (bSkipOpen && item.compare("BODYSTRUCTURE") == 0) {
 			// table version
 			auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE);
-			vProps.push_back(item);
-			vProps.push_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : std::string("NIL"));
+			vProps.emplace_back(item);
+			vProps.emplace_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : std::string("NIL"));
 		} else if (Prefix(item, "BODY") || Prefix(item, "RFC822")) {
 			// the only exceptions when we don't need to generate anything yet.
 			if (item.compare("RFC822.SIZE") == 0) {
 				auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE);
 				if (lpProp) {
-					vProps.push_back(item);
-					vProps.push_back(stringify(lpProp->Value.ul));
+					vProps.emplace_back(item);
+					vProps.emplace_back(stringify(lpProp->Value.ul));
 					continue;
 				}
 			}
@@ -3805,8 +3801,8 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 					lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY);
 
 				if (lpProp) {
-					vProps.push_back(item);
-					vProps.push_back(lpProp->Value.lpszA);
+					vProps.emplace_back(item);
+					vProps.emplace_back(lpProp->Value.lpszA);
 					continue;
 				}
 				// data not available in table, need to regenerate.
@@ -3852,8 +3848,8 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 
 					if (oss.tellp() == std::ostringstream::pos_type(0) && // already converted in previous loop?
 					    (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess)) {
-						vProps.push_back(item);
-						vProps.push_back("NIL");
+						vProps.emplace_back(item);
+						vProps.emplace_back("NIL");
 						lpLogger->Log(EC_LOGLEVEL_WARNING, "Error in generating message %d for user %ls in folder %ls", ulMailnr+1, m_strwUsername.c_str(), strCurrentFolder.c_str());
 						continue;
 					}
@@ -3877,8 +3873,8 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 
 			if (item.compare("RFC822.SIZE") == 0) {
 				// We must return the real size, since clients use this when using chunked mode to download the full message
-				vProps.push_back(item);
-				vProps.push_back(stringify(strMessage.size()));
+				vProps.emplace_back(item);
+				vProps.emplace_back(stringify(strMessage.size()));
 				continue;
 			} 			
 
@@ -3886,8 +3882,8 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				string strData;
 
 				HrGetBodyStructure(item.length() > 4, strData, strMessage);
-				vProps.push_back(item);
-				vProps.push_back(strData);
+				vProps.emplace_back(item);
+				vProps.emplace_back(strData);
 				continue;
 			}
 
@@ -3910,9 +3906,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				ulPos = strReply.rfind('<');
 				if (ulPos != string::npos)
 					strReply.erase(ulPos, string::npos);
-
-				vProps.push_back(strReply);
-
+				vProps.emplace_back(strReply);
 				// Handle BODY[] and RFC822 (entire message)
 				strMessagePart = strMessage;
 			} else {
@@ -3928,9 +3922,9 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 					strParts.erase(ulPos);
 
 				if (Prefix(item, "BODY"))
-					vProps.push_back("BODY[" + strParts + "]");
+					vProps.emplace_back("BODY[" + strParts + "]");
 				else
-					vProps.push_back("RFC822." + strParts);
+					vProps.emplace_back("RFC822." + strParts);
 
 				// Get the correct message part (1.2.3, TEXT, HEADER, 1.2.3.TEXT, 1.2.3.HEADER)
 				HrGetMessagePart(strMessagePart, strMessage, strParts);
@@ -3964,18 +3958,18 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			}
 
 			if (strMessagePart.empty()) {
-				vProps.push_back("NIL");
+				vProps.emplace_back("NIL");
 			} else {
 				// Output actual data
 				snprintf(szBuffer, IMAP_RESP_MAX, "{%u}\r\n", (ULONG)strMessagePart.size());
-				vProps.push_back(szBuffer);
+				vProps.emplace_back(szBuffer);
 				vProps.back() += strMessagePart;
 			}
 
 		} else {
 			// unknown item
-			vProps.push_back(item);
-			vProps.push_back("NIL");
+			vProps.emplace_back(item);
+			vProps.emplace_back("NIL");
 		}
 	}
 
@@ -3987,7 +3981,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 
 	// Output flags if modified
 	if (!strFlags.empty())
-		vProps.push_back(std::move(strFlags));
+		vProps.emplace_back(std::move(strFlags));
 	strResponse += kc_join(vProps, " ");
 	strResponse += ")";
 
@@ -4451,7 +4445,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
             
             // Output headers specified, in order of field set
             for (const auto &reqfield : lstReqFields) {
-                if (!seen.insert(reqfield).second)
+				if (!seen.emplace(reqfield).second)
                     continue;
                 for (const auto &field : lstFields) {
                     if (!CaseCompare(reqfield, field.first))
@@ -4570,7 +4564,7 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 
 			auto i = find(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
 			if (i != lstFolderMailEIDs.cend())
-				lstMails.push_back(std::distance(lstFolderMailEIDs.cbegin(), i));
+				lstMails.emplace_back(std::distance(lstFolderMailEIDs.cbegin(), i));
 			continue;
 		}
 		// range
@@ -4587,7 +4581,7 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 		auto b = std::lower_bound(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulBeginMailnr);
 		auto e = std::upper_bound(b, lstFolderMailEIDs.cend(), ulMailnr);
 		for (auto i = b; i != e; ++i)
-			lstMails.push_back(std::distance(lstFolderMailEIDs.cbegin(), i));
+			lstMails.emplace_back(std::distance(lstFolderMailEIDs.cbegin(), i));
 	}
 
 	lstMails.sort();
@@ -4625,7 +4619,7 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
 			ulMailnr = LastOrNumber(vSequences[i].c_str(), false) - 1;
 			if (ulMailnr >= lstFolderMailEIDs.size())
 				return MAPI_E_CALL_FAILED;
-			lstMails.push_back(ulMailnr);
+			lstMails.emplace_back(ulMailnr);
 			continue;
 		}
 		// range
@@ -4637,7 +4631,7 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
 		    ulMailnr >= lstFolderMailEIDs.size())
 			return MAPI_E_CALL_FAILED;
 		for (ULONG j = ulBeginMailnr; j <= ulMailnr; ++j)
-			lstMails.push_back(j);
+			lstMails.emplace_back(j);
 	}
 
 	lstMails.sort();
@@ -5007,22 +5001,22 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			return hr;
 		} else if (strSearchCriterium.compare("ALL") == 0) {
 			for (ulMailnr = 0; ulMailnr < lstFolderMailEIDs.size(); ++ulMailnr)
-				lstMailnr.push_back(ulMailnr);
+				lstMailnr.emplace_back(ulMailnr);
 			return hr;
 		} else if (strSearchCriterium.compare("RECENT") == 0) {
 			for (ulMailnr = 0; ulMailnr < lstFolderMailEIDs.size(); ++ulMailnr)
 			    if(lstFolderMailEIDs[ulMailnr].bRecent)
-    				lstMailnr.push_back(ulMailnr);
+					lstMailnr.emplace_back(ulMailnr);
 			return hr;
 		} else if (strSearchCriterium.compare("NEW") == 0) {
 			for (ulMailnr = 0; ulMailnr < lstFolderMailEIDs.size(); ++ulMailnr)
 			    if(lstFolderMailEIDs[ulMailnr].bRecent && lstFolderMailEIDs[ulMailnr].strFlags.find("Seen") == std::string::npos)
-    				lstMailnr.push_back(ulMailnr);
+					lstMailnr.emplace_back(ulMailnr);
 			return hr;
 		} else if (strSearchCriterium.compare("OLD") == 0) {
 			for (ulMailnr = 0; ulMailnr < lstFolderMailEIDs.size(); ++ulMailnr)
 			    if(!lstFolderMailEIDs[ulMailnr].bRecent)
-    				lstMailnr.push_back(ulMailnr);
+					lstMailnr.emplace_back(ulMailnr);
 			return hr;
 		}
 	}
@@ -5039,7 +5033,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 
 	ECAndRestriction root_rst;
 	std::vector<IRestrictionPush *> lstRestrictions;
-	lstRestrictions.push_back(&root_rst);
+	lstRestrictions.emplace_back(&root_rst);
 	/*
 	 * Add EXIST(PR_INSTANCE_KEY) to make sure that the query will not be
 	 * passed to the indexer.
@@ -5181,7 +5175,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			// NEW done with ALL
 		} else if (strSearchCriterium.compare("NOT") == 0) {
 			ECRestriction *r = top_rst += ECNotRestriction(nullptr);
-			lstRestrictions.push_back(static_cast<ECNotRestriction *>(r));
+			lstRestrictions.emplace_back(static_cast<ECNotRestriction *>(r));
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("OLD") == 0) {	// none?
 			top_rst += ECBitMaskRestriction(BMR_NEZ, PR_ENTRYID, 0);
@@ -5200,8 +5194,8 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 		} else if (strSearchCriterium.compare("OR") == 0) {
 			ECRestriction *new_rst = top_rst += ECOrRestriction();
 			auto or_rst = static_cast<ECOrRestriction *>(new_rst);
-			lstRestrictions.push_back(or_rst);
-			lstRestrictions.push_back(or_rst);
+			lstRestrictions.emplace_back(or_rst);
+			lstRestrictions.emplace_back(or_rst);
 			++ulStartCriteria;
 			// RECENT done with ALL
 		} else if (strSearchCriterium.compare("SEEN") == 0) {
@@ -5378,8 +5372,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 		if (iterUID == mapUIDs.cend())
 			// Found a match for a message that is not in our message list .. skip it
 			continue;
-        
-        lstMailnr.push_back(iterUID->second);
+		lstMailnr.emplace_back(iterUID->second);
     }
 
 	lstMailnr.sort();
@@ -5812,7 +5805,7 @@ void IMAP::HrParseHeaders(const std::string &strHeaders,
                 // Remove leading spaces
                 while (strData[0] == ' ')
                     strData.erase(0,1);
-				lstHeaders.push_back({strField, strData});
+				lstHeaders.emplace_back(strField, strData);
                 iterLast = --lstHeaders.end();
             }
             // else: Broken header ? (no :)

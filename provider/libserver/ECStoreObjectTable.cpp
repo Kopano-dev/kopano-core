@@ -181,29 +181,27 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 				continue;
 
 			ulPropID = atoi(lpDBRow[0]);
-
-			lplstProps->push_back(PROP_TAG(atoi(lpDBRow[1]), ulPropID));
+			lplstProps->emplace_back(PROP_TAG(atoi(lpDBRow[1]), ulPropID));
 		}
 	}
 
 	// Add some generated and standard properties
-	lplstProps->push_back(PR_ENTRYID);
-	lplstProps->push_back(PR_INSTANCE_KEY);
-	lplstProps->push_back(PR_RECORD_KEY);
-	lplstProps->push_back(PR_OBJECT_TYPE);
-	lplstProps->push_back(PR_LAST_MODIFICATION_TIME);
-	lplstProps->push_back(PR_CREATION_TIME);
-	lplstProps->push_back(PR_PARENT_ENTRYID);
-	lplstProps->push_back(PR_MAPPING_SIGNATURE);
+	lplstProps->emplace_back(PR_ENTRYID);
+	lplstProps->emplace_back(PR_INSTANCE_KEY);
+	lplstProps->emplace_back(PR_RECORD_KEY);
+	lplstProps->emplace_back(PR_OBJECT_TYPE);
+	lplstProps->emplace_back(PR_LAST_MODIFICATION_TIME);
+	lplstProps->emplace_back(PR_CREATION_TIME);
+	lplstProps->emplace_back(PR_PARENT_ENTRYID);
+	lplstProps->emplace_back(PR_MAPPING_SIGNATURE);
 
 	// Add properties only in the contents tables
 	if(lpODStore->ulObjType == MAPI_MESSAGE && (lpODStore->ulFlags&MSGFLAG_ASSOCIATED) == 0)
-		lplstProps->push_back(PR_MSG_STATUS);
-	
-	lplstProps->push_back(PR_ACCESS_LEVEL);
+		lplstProps->emplace_back(PR_MSG_STATUS);
+	lplstProps->emplace_back(PR_ACCESS_LEVEL);
 
 	//FIXME: only in folder or message table	
-	lplstProps->push_back(PR_ACCESS);
+	lplstProps->emplace_back(PR_ACCESS);
 	return er;
 }
 
@@ -258,7 +256,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 		sRowItem.ulOrderId = (lpDBRow[1] == NULL)? 0 : atoi(lpDBRow[1]);
 
 		if(sRowItem.ulOrderId > 0)
-			lplistRows->push_back(sRowItem);
+			lplistRows->emplace_back(sRowItem);
 	}
 	return erSuccess;
 }
@@ -362,14 +360,14 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
             		lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
             		lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
             	}
-				setCellDone.insert({i, k});
+				setCellDone.emplace(i, k);
             	continue;
             }
 
 			if (ECGenProps::IsPropComputedUncached(ulPropTag, lpODStore->ulObjType) == erSuccess) {
 				if (ECGenProps::GetPropComputedUncached(soap, lpODStore, lpSession, ulPropTag, row.ulObjId, row.ulOrderId, ulRowStoreId, lpODStore->ulFolderId, lpODStore->ulObjType, &lpsRowSet->__ptr[i].__ptr[k]) != erSuccess)
 					CopyEmptyCellToSOAPPropVal(soap, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k]);
-				setCellDone.insert({i, k});
+				setCellDone.emplace(i, k);
 				continue;
 			}
 
@@ -380,7 +378,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PR_DEPTH;
 					lpsRowSet->__ptr[i].__ptr[k].Value.ul = 0;
 				}
-				setCellDone.insert({i, k});
+				setCellDone.emplace(i, k);
 				continue;
 			}
 			
@@ -398,7 +396,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
     	    // FIXME bComputed always false
     	    // FIXME optimisation possible to GetCell: much more efficient to get all cells in one row at once
 			if (cache->GetCell(&row, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k], soap, false) == erSuccess) {
-				setCellDone.insert({i, k});
+				setCellDone.emplace(i, k);
 	            continue;
 			}
 
@@ -455,8 +453,8 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				unsigned int ulPropTag;
 				if (ECGenProps::GetPropSubstitute(lpODStore->ulObjType, lpsPropTagArray->__ptr[k], &ulPropTag) != erSuccess)
 					ulPropTag = lpsPropTagArray->__ptr[k];
-				mapColumns.insert({ulPropTag, k});
-				setCellDone.insert({rowp.second, k}); // Done now
+				mapColumns.emplace(ulPropTag, k);
+				setCellDone.emplace(rowp.second, k); // Done now
             }
             
             // Get actual data
@@ -484,8 +482,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				}
             	
             	// Remember that there was some data int this column that we need to get
-				setColumnIDs.insert(k);
-				
+				setColumnIDs.emplace(k);
                 if(lpODStore->ulFolderId == 0) {
 					auto iterObjects = mapObjects.find(row);
 					if (iterObjects != mapObjects.cend())
@@ -498,7 +495,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
                 	ulFolderId = lpODStore->ulFolderId;
                 }
                 mapStoreIdObjIds[ulFolderId][row] = i;
-				setCellDone.insert({i, k});
+				setCellDone.emplace(i, k);
                 ++i;
             }
             
@@ -513,7 +510,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
         	
 			if (ECGenProps::GetPropSubstitute(lpODStore->ulObjType, lpsPropTagArray->__ptr[col_id], &ulPropTag) != erSuccess)
 				ulPropTag = lpsPropTagArray->__ptr[col_id];
-			mapColumns.insert({ulPropTag, col_id});
+			mapColumns.emplace(ulPropTag, col_id);
         }
 		for (const auto &sio : mapStoreIdObjIds)
 			er = QueryRowDataByColumn(lpThis, soap, lpSession, mapColumns, sio.first, sio.second, lpsRowSet);
@@ -537,7 +534,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				}
 				// We only want one column in this row
 				mapColumns.clear();
-				mapColumns.insert({lpsPropTagArray->__ptr[k], k});
+				mapColumns.emplace(lpsPropTagArray->__ptr[k], k);
 				// Un-truncate this value
 				er = QueryRowDataByRow(lpThis, soap, lpSession, row, i, mapColumns, false, lpsRowSet);
 				if (er != erSuccess)
@@ -616,7 +613,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         
         // Remember the types of columns being requested for later use
         if(ECGenProps::GetPropSubquery(ulPropTag, strSubQuery) == erSuccess) {
-            setSubQueries.insert(ulPropTag);
+			setSubQueries.emplace(ulPropTag);
             bNeedSubQueries = true;
         } else if(ulPropTag & MV_FLAG) {
             if(ulPropTag & MV_INSTANCE)
@@ -817,7 +814,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
     	}
 		if ((col.first & MVI_FLAG) == 0) {
 			if (ECGenProps::GetPropSubquery(col.first, strSubquery) == erSuccess) {
-				setSubQueries.insert(col.first);
+				setSubQueries.emplace(col.first);
 			} else {
 				if (!strTags.empty())
 					strTags += ",";
@@ -922,8 +919,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 					cache->SetCell((sObjectTableKey*)&iterObjIds->first, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 				else if ((lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
 					lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
-				
-				setDone.insert({iterObjIds->second, iterColumns->second});
+				setDone.emplace(iterObjIds->second, iterColumns->second);
 				++iterColumns;
 			}
 			
@@ -1062,8 +1058,7 @@ ECRESULT ECStoreObjectTable::Load()
             // reading data.
             if(i > ulMaxItems)
                 continue;
-                
-			lstObjIds.push_back(atoi(lpDBRow[0]));
+			lstObjIds.emplace_back(atoi(lpDBRow[0]));
 			++i;
         }
 
@@ -1152,7 +1147,7 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     	 */
 	for (const auto &row : *lpRows)
 		if (setMatches.find(row.ulObjId) != setMatches.end())
-			sMatchedRows.push_back(row);
+			sMatchedRows.emplace_back(row);
     	
     	// Pass filtered results to AddRowKey, which will perform any further filtering required
     	er = ECGenericObjectTable::AddRowKey(&sMatchedRows, lpulLoaded, ulFlags, bLoad, true, lpNewRestrict);
@@ -1180,7 +1175,7 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId
 	if(er != erSuccess)
 		return er;
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
-		lpDeferred->push_back(atoui(lpDBRow[0]));
+		lpDeferred->emplace_back(atoui(lpDBRow[0]));
 	return erSuccess;
 }
 
@@ -1209,7 +1204,7 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRo
 	if(er != erSuccess)
 		return er;
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
-		lpDeferred->push_back(atoui(lpDBRow[0]));
+		lpDeferred->emplace_back(atoui(lpDBRow[0]));
 	return erSuccess;
 }
 

@@ -320,7 +320,7 @@ void ECConfigCheck::addCheck(const config_check_t &check, unsigned int flags)
 			addCheck(check.option2, 0, &testUsedWithMultiServer);
 	}
 
-	m_lChecks.push_back(check);
+	m_lChecks.emplace_back(check);
 }
 
 void ECConfigCheck::addCheck(const std::string &option, unsigned int flags,

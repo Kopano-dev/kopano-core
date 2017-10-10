@@ -442,8 +442,7 @@ HRESULT ECMessage::SyncPlainToRtf()
 	HrSetCleanProperty(PR_RTF_COMPRESSED);
 
 	// and mark it as deleted, since we want the server to remove the old version if this was in the database
-	m_setDeletedProps.insert(PR_RTF_COMPRESSED);
-
+	m_setDeletedProps.emplace(PR_RTF_COMPRESSED);
 exit:
 	m_bInhibitSync = FALSE;
 	return hr;
@@ -490,8 +489,7 @@ HRESULT ECMessage::SyncPlainToHtml()
 	HrSetCleanProperty(PR_HTML);
 
 	// and mark it as deleted, since we want the server to remove the old version if this was in the database
-	m_setDeletedProps.insert(PR_HTML);
-
+	m_setDeletedProps.emplace(PR_HTML);
 exit:
 	m_bInhibitSync = FALSE;
 	return hr;
@@ -616,19 +614,19 @@ HRESULT ECMessage::SyncRtf()
 		// No need to store the HTML.
 		HrSetCleanProperty(PR_HTML);
 		// And delete from server in case it changed.
-		m_setDeletedProps.insert(PR_HTML);
+		m_setDeletedProps.emplace(PR_HTML);
 	} else if (rtfType == RTFTypeFromText) {
 		// No need to store anything but the plain text.
 		HrSetCleanProperty(PR_RTF_COMPRESSED);
 		HrSetCleanProperty(PR_HTML);
 		// And delete them both.
-		m_setDeletedProps.insert(PR_RTF_COMPRESSED);
-		m_setDeletedProps.insert(PR_HTML);
+		m_setDeletedProps.emplace(PR_RTF_COMPRESSED);
+		m_setDeletedProps.emplace(PR_HTML);
 	} else if (rtfType == RTFTypeFromHTML) {
 		// No need to keep the RTF version
 		HrSetCleanProperty(PR_RTF_COMPRESSED);
 		// And delete from server.
-		m_setDeletedProps.insert(PR_RTF_COMPRESSED);
+		m_setDeletedProps.emplace(PR_RTF_COMPRESSED);
 	}
 
 exit:
@@ -732,8 +730,7 @@ HRESULT ECMessage::SyncHtmlToRtf()
 	HrSetCleanProperty(PR_RTF_COMPRESSED);
 
 	// and mark it as deleted, since we want the server to remove the old version if this was in the database
-	m_setDeletedProps.insert(PR_RTF_COMPRESSED);
-
+	m_setDeletedProps.emplace(PR_RTF_COMPRESSED);
 exit:
 	m_bInhibitSync = FALSE;
 	return hr;
@@ -1596,10 +1593,10 @@ HRESULT ECMessage::SaveRecips()
 			mo->bChanged = true;
 			for (j = 0; j < lpRowSet->aRow[i].cValues; ++j)
 				if(PROP_TYPE(lpRowSet->aRow[i].lpProps[j].ulPropTag) != PT_NULL) {
-					mo->lstModified.push_back(ECProperty(&lpRowSet->aRow[i].lpProps[j]));
+					mo->lstModified.emplace_back(&lpRowSet->aRow[i].lpProps[j]);
 					// as in ECGenericProp.cpp, we also save the properties to the known list,
 					// since this is used when we reload the object from memory.
-					mo->lstProperties.push_back(ECProperty(&lpRowSet->aRow[i].lpProps[j]));
+					mo->lstProperties.emplace_back(&lpRowSet->aRow[i].lpProps[j]);
 				}
 		} else if (lpulStatus[i] == ECROW_DELETED) {
 			mo->bDelete = true;
@@ -1607,7 +1604,7 @@ HRESULT ECMessage::SaveRecips()
 			// ECROW_NORMAL, untouched recipient
 			for (j = 0; j < lpRowSet->aRow[i].cValues; ++j)
 				if(PROP_TYPE(lpRowSet->aRow[i].lpProps[j].ulPropTag) != PT_NULL)
-					mo->lstProperties.push_back(ECProperty(&lpRowSet->aRow[i].lpProps[j]));
+					mo->lstProperties.emplace_back(&lpRowSet->aRow[i].lpProps[j]);
 		}
 
 		// find old recipient in child list, and remove if present
@@ -1616,7 +1613,7 @@ HRESULT ECMessage::SaveRecips()
 			FreeMapiObject(*iterSObj);
 			m_sMapiObject->lstChildren.erase(iterSObj);
 		}
-		m_sMapiObject->lstChildren.insert(mo);
+		m_sMapiObject->lstChildren.emplace(mo);
 	}
 	return lpRecips->HrSetClean();
 }
@@ -2523,8 +2520,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		m_sMapiObject->lstChildren.erase(iterSObj);
 	}
 
-	m_sMapiObject->lstChildren.insert(new MAPIOBJECT(lpsMapiObject));
-
+	m_sMapiObject->lstChildren.emplace(new MAPIOBJECT(lpsMapiObject));
 	// Update the attachment table. The attachment table contains all properties of the attachments
 	ulProps = lpsMapiObject->lstProperties.size();
 

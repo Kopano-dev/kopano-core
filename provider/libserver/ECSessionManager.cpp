@@ -202,7 +202,7 @@ ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sessionGroupID, ECSe
 			lr_group.unlock();
 			lw_group.lock();
 			lpSessionGroup = new ECSessionGroup(sessionGroupID, this);
-			m_mapSessionGroups.insert({sessionGroupID, lpSessionGroup});
+			m_mapSessionGroups.emplace(sessionGroupID, lpSessionGroup);
 			g_lpStatsCollector->Increment(SCN_SESSIONGROUPS_CREATED);
 		} else
 			lpSessionGroup = iter->second;
@@ -272,7 +272,7 @@ ECRESULT ECSessionManager::RemoveAllSessions()
 	while (iIterSession != m_mapSessions.cend()) {
 		lpSession = iIterSession->second;
 		iIterSession = m_mapSessions.erase(iIterSession);
-		lstSessions.push_back(lpSession);
+		lstSessions.emplace_back(lpSession);
 	}
 
 	l_cache.unlock();
@@ -301,7 +301,7 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 		// Tell the notification manager to wake up anyone waiting for this session
 		m_lpNotificationManager->NotifyChange(iIterSession->first);
 		iIterSession = m_mapSessions.erase(iIterSession);
-		lstSessions.push_back(lpSession);
+		lstSessions.emplace_back(lpSession);
 	}
 
 	l_cache.unlock();
@@ -415,7 +415,7 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 	        lpAuthSession->Lock();
 	if (bRegisterSession) {
 		std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
-		m_mapSessions.insert({newSessionID, lpAuthSession});
+		m_mapSessions.emplace(newSessionID, lpAuthSession);
 		l_cache.unlock();
 		g_lpStatsCollector->Increment(SCN_SESSIONS_CREATED);
 	}
@@ -528,7 +528,7 @@ ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
 		lpSession->Lock();
 
 	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
-	m_mapSessions.insert({newSID, lpSession});
+	m_mapSessions.emplace(newSID, lpSession);
 	l_cache.unlock();
 	*lpSessionID = std::move(newSID);
 	*lppSession = lpSession;
@@ -629,7 +629,7 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 	while (iterObjectSubscription != m_mapObjectSubscriptions.cend() &&
 	       iterObjectSubscription->first == ulStore) {
 		// Send a notification only once to a session group, even if it has subscribed multiple times
-		setGroups.insert(iterObjectSubscription->second);
+		setGroups.emplace(iterObjectSubscription->second);
 		++iterObjectSubscription;
 	}
 	l_sub.unlock();
@@ -704,7 +704,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 				continue;
 			}
 			// Remember all the session to be deleted
-			lstSessions.push_back(iIterator->second);
+			lstSessions.emplace_back(iIterator->second);
 			auto iRemove = iIterator++;
 			// Remove the session from the list, no new threads can start on this session after this point.
 			g_lpStatsCollector->Increment(SCN_SESSIONS_TIMEOUT);
@@ -747,8 +747,7 @@ ECRESULT ECSessionManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, u
 	TABLESUBSCRIPTION sSubscription;
 	std::list<unsigned int> lstObjId;
 	
-	lstObjId.push_back(ulObjId);
-
+	lstObjId.emplace_back(ulObjId);
 	sSubscription.ulType = TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE;
 	sSubscription.ulRootObjectId = ulFlags & EC_SUBMIT_MASTER ? 0 : ulStoreId; // in the master queue, use 0 as root object id
 	sSubscription.ulObjectType = ulObjType;
@@ -786,7 +785,7 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
 	auto iterSubscriptions = m_mapTableSubscriptions.find(sSubscription);
 	while (iterSubscriptions != m_mapTableSubscriptions.cend() &&
 	       iterSubscriptions->first == sSubscription) {
-        setSessions.insert(iterSubscriptions->second);
+		setSessions.emplace(iterSubscriptions->second);
         ++iterSubscriptions;
     }
 	l_sub.unlock();
@@ -1284,7 +1283,7 @@ ECRESULT ECSessionManager::SubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE ulType, 
     sSubscription.ulRootObjectId = ulTableRootObjectId;
     sSubscription.ulObjectType = ulObjectType;
     sSubscription.ulObjectFlags = ulObjectFlags;
-	m_mapTableSubscriptions.insert({sSubscription, sessionID});
+	m_mapTableSubscriptions.emplace(sSubscription, sessionID);
     return erSuccess;
 }
 
@@ -1316,7 +1315,7 @@ ECRESULT ECSessionManager::UnsubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE ulType
 ECRESULT ECSessionManager::SubscribeObjectEvents(unsigned int ulStoreId, ECSESSIONGROUPID sessionID)
 {
 	scoped_lock lock(m_mutexObjectSubscriptions);
-	m_mapObjectSubscriptions.insert({ulStoreId, sessionID});
+	m_mapObjectSubscriptions.emplace(ulStoreId, sessionID);
     return erSuccess;
 }
 

@@ -117,22 +117,22 @@ protected:
 class ECRestrictionList _kc_final {
 public:
 	ECRestrictionList(const ECRestriction &res1, const ECRestriction &res2) {
-		m_list.push_back(ResPtr(res1.Clone()));
-		m_list.push_back(ResPtr(res2.Clone()));
+		m_list.emplace_back(res1.Clone());
+		m_list.emplace_back(res2.Clone());
 	}
 	ECRestrictionList(ECRestriction &&o1, ECRestriction &&o2)
 	{
-		m_list.push_back(ResPtr(std::move(o1).Clone()));
-		m_list.push_back(ResPtr(std::move(o2).Clone()));
+		m_list.emplace_back(std::move(o1).Clone());
+		m_list.emplace_back(std::move(o2).Clone());
 	}
 	
 	ECRestrictionList& operator+(const ECRestriction &restriction) {
-		m_list.push_back(ResPtr(restriction.Clone()));
+		m_list.emplace_back(restriction.Clone());
 		return *this;
 	}
 	ECRestrictionList &operator+(ECRestriction &&o)
 	{
-		m_list.push_back(ResPtr(std::move(o).Clone()));
+		m_list.emplace_back(std::move(o).Clone());
 		return *this;
 	}
 
@@ -179,12 +179,12 @@ public:
 
 	ECRestriction *operator+=(const ECRestriction &restriction)
 	{
-		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
+		m_lstRestrictions.emplace_back(restriction.Clone());
 		return m_lstRestrictions.rbegin()->get();
 	}
 	ECRestriction *operator+=(ECRestriction &&o)
 	{
-		m_lstRestrictions.push_back(ResPtr(std::move(o).Clone()));
+		m_lstRestrictions.emplace_back(std::move(o).Clone());
 		return m_lstRestrictions.rbegin()->get();
 	}
 
@@ -208,12 +208,12 @@ public:
 
 	ECRestriction *operator+=(const ECRestriction &restriction)
 	{
-		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
+		m_lstRestrictions.emplace_back(restriction.Clone());
 		return m_lstRestrictions.rbegin()->get();
 	}
 	ECRestriction *operator+=(ECRestriction &&o)
 	{
-		m_lstRestrictions.push_back(ResPtr(std::move(o).Clone()));
+		m_lstRestrictions.emplace_back(std::move(o).Clone());
 		return m_lstRestrictions.rbegin()->get();
 	}
 

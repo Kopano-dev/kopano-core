@@ -58,10 +58,10 @@ static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
         
     for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i)
         if (lpRestrict->lpAnd->__ptr[i]->ulType == RES_EXIST)
-            setExist.insert(lpRestrict->lpAnd->__ptr[i]->lpExist->ulPropTag);
+			setExist.emplace(lpRestrict->lpAnd->__ptr[i]->lpExist->ulPropTag);
         else if (lpRestrict->lpAnd->__ptr[i]->ulType == RES_NOT &&
             lpRestrict->lpAnd->__ptr[i]->lpNot->lpNot->ulType == RES_EXIST)
-                setNotExist.insert(lpRestrict->lpAnd->__ptr[i]->lpNot->lpNot->lpExist->ulPropTag);
+			setNotExist.emplace(lpRestrict->lpAnd->__ptr[i]->lpNot->lpNot->lpExist->ulPropTag);
     
     set_intersection(setExist.begin(), setExist.end(), setNotExist.begin(), setNotExist.end(), inserter(setBoth, setBoth.begin()));
 	return !setBoth.empty();
@@ -98,14 +98,14 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
 
             // Now, get all the clauses from the child AND-clause and push them to this AND-clause
             for (gsoap_size_t j = 0; j < lpRestrict->lpAnd->__ptr[i]->lpAnd->__size; ++j)
-                lstClauses.push_back(lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr[j]);
+				lstClauses.emplace_back(lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr[j]);
 
 			s_free(nullptr, lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr);
 			s_free(nullptr, lpRestrict->lpAnd->__ptr[i]->lpAnd);
 			s_free(nullptr, lpRestrict->lpAnd->__ptr[i]);
             bModified = true;
         } else {
-            lstClauses.push_back(lpRestrict->lpAnd->__ptr[i]);
+			lstClauses.emplace_back(lpRestrict->lpAnd->__ptr[i]);
         }
     }
         
@@ -177,7 +177,7 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
 		    PROP_TYPE(lpRestrict->lpContent->lpProp->ulPropTag) != PT_UNICODE)
 			return KCERR_INVALID_PARAMETER;
         sMultiSearch.strTerm = lpRestrict->lpContent->lpProp->Value.lpszA;
-        sMultiSearch.setFields.insert(PROP_ID(lpRestrict->lpContent->ulPropTag));
+		sMultiSearch.setFields.emplace(PROP_ID(lpRestrict->lpContent->ulPropTag));
     } else {
         // Some other restriction type, unsupported (case 3)
         return KCERR_INVALID_PARAMETER;
@@ -233,7 +233,7 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
 	        ++i;
 	        continue;
 	    }
-            lpMultiSearches->push_back(sMultiSearch);
+			lpMultiSearches->emplace_back(sMultiSearch);
             // Remove it from the restriction since it is now handled as a multisearch
             FreeRestrictTable(lpRestrict->lpAnd->__ptr[i]);
             memmove(&lpRestrict->lpAnd->__ptr[i], &lpRestrict->lpAnd->__ptr[i+1], sizeof(struct restrictTable *) * (lpRestrict->lpAnd->__size - i - 1));
@@ -241,7 +241,7 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
         }
     } else if (NormalizeGetMultiSearch(lpRestrict, setExcludeProps, sMultiSearch) == erSuccess) {
         // Direct RES_CONTENT
-        lpMultiSearches->push_back(sMultiSearch);
+		lpMultiSearches->emplace_back(sMultiSearch);
 
         // We now have to remove the entire restriction since the top-level restriction here is
         // now obsolete. Since the above loop will generate an empty AND clause, we will do that here as well.

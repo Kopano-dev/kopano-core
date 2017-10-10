@@ -178,7 +178,7 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 			iterGroups = lpGroups->erase(iterGroups);
 			continue;
 		}
-		cSeenGroups.m_seen.insert(*iterGroups);
+		cSeenGroups.m_seen.emplace(*iterGroups);
 
 		std::list<localobjectdetails_t> *lpGroupInGroups = NULL;
 		er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
@@ -804,9 +804,9 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags,
 			continue;
 
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
-			(*lppObjects)->push_back({i.ulId, i.GetClass()});
+			(*lppObjects)->emplace_back(i.ulId, i.GetClass());
 		else
-			(*lppObjects)->push_back({i.ulId, i});
+			(*lppObjects)->emplace_back(i.ulId, i);
 	}
 	return erSuccess;
 }
@@ -900,7 +900,7 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 		} else {
 			details = objectdetails_t(CONTAINER_COMPANY);
 		}
-		lpObjects->push_back({m_ulCompanyID, details});
+		lpObjects->emplace_back(m_ulCompanyID, details);
 	}
 
 	lpObjects->sort();

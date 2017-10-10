@@ -196,7 +196,7 @@ HRESULT ECNotificationManager::NotifyChange(ECSESSIONID ecSessionId)
 {
     // Simply mark the session in our set of active sessions
 	scoped_lock l_ses(m_mutexSessions);
-	m_setActiveSessions.insert(ecSessionId);
+	m_setActiveSessions.emplace(ecSessionId);
 	m_condSessions.notify_all(); /* Wake up thread due to activity */
 	return hrSuccess;
 }

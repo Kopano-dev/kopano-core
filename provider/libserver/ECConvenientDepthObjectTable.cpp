@@ -115,8 +115,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	sRoot.ulFolderId = ulFolderId;
 	sRoot.strFolderName.clear();
 	//sRoot.strSortKey = "root";
-	
-	lstFolders.push_back(sRoot);
+	lstFolders.emplace_back(sRoot);
 	mapSortKey[ulFolderId] = sRoot.sortKey;
 
 	iterFolders = lstFolders.cbegin();
@@ -153,8 +152,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
             sFolderInfo.strFolderName = lpDBRow[5];
 
 			sFolderInfo.sortKey = mapSortKey[atoui(lpDBRow[1])];
-			sFolderInfo.sortKey.push_back(createSortKeyFromUTF8(sFolderInfo.strFolderName.c_str(), 0, GetLocale()));
-            
+			sFolderInfo.sortKey.emplace_back(createSortKeyFromUTF8(sFolderInfo.strFolderName.c_str(), 0, GetLocale()));
             mapSortKey[sFolderInfo.ulFolderId] = sFolderInfo.sortKey;
             
             // Since we have this information, give the cache manager the hierarchy information for this object
@@ -163,7 +161,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 				continue;
 			
 			// Push folders onto end of list
-            lstFolders.push_back(std::move(sFolderInfo));
+			lstFolders.emplace_back(std::move(sFolderInfo));
             
             // If we were pointing at the last item, point at the freshly inserted item
             if(iterFolders == lstFolders.end())
@@ -184,8 +182,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	for (iterFolders = lstFolders.begin(); iterFolders != lstFolders.end(); ++iterFolders) {
 		if(iterFolders->ulFolderId == m_ulFolderId)
 			continue;
-
-		lstObjIds.push_back(iterFolders->ulFolderId);
+		lstObjIds.emplace_back(iterFolders->ulFolderId);
     }
     
     LoadRows(&lstObjIds, 0);
@@ -287,7 +284,7 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 	root.ulId = lpODAB->ulABParentId;
 	root.ulDepth = -1; // Our children are at depth 0, so the root object is depth -1. Note that this object is not actually added as a row in the end.
 	root.strPath = "";
-	lstObjects.push_back(std::move(root));
+	lstObjects.emplace_back(std::move(root));
 
 	// 'Recursively' loop through all our containers and add each of those children to our object list
 	for (const auto &obj : lstObjects) {
@@ -299,7 +296,7 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 			folder.ulId = subobj.ulId;
 			folder.ulDepth = obj.ulDepth + 1;
 			folder.strPath = obj.strPath + "/" + subobj.GetPropString(OB_PROP_S_LOGIN);
-			lstObjects.push_back(std::move(folder));
+			lstObjects.emplace_back(std::move(folder));
 		}
 	}
 

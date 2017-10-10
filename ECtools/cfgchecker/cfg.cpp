@@ -81,31 +81,31 @@ int main(int argc, char* argv[])
 
 		switch (c) {
 		case 'l':
-			check.push_back(new LDAPConfigCheck(optarg));
+			check.emplace_back(new LDAPConfigCheck(optarg));
 			break;
 		case 'u':
-			check.push_back(new UnixConfigCheck(optarg));
+			check.emplace_back(new UnixConfigCheck(optarg));
 			break;
 		case 's':
-			check.push_back(new ServerConfigCheck(optarg));
+			check.emplace_back(new ServerConfigCheck(optarg));
 			/* Check if hosted is enabled, make sure we don't overwrite commandline */
 			if (strHosted.empty())
 				strHosted = (*check.rbegin())->getSetting("enable_hosted_kopano");
 			break;
 		case 'g':
-			check.push_back(new GatewayConfigCheck(optarg));
+			check.emplace_back(new GatewayConfigCheck(optarg));
 			break;
 		case 'i':
-			check.push_back(new IcalConfigCheck(optarg));
+			check.emplace_back(new IcalConfigCheck(optarg));
 			break;
 		case 'm':
-			check.push_back(new MonitorConfigCheck(optarg));
+			check.emplace_back(new MonitorConfigCheck(optarg));
 			break;
 		case 'p':
-			check.push_back(new SpoolerConfigCheck(optarg));
+			check.emplace_back(new SpoolerConfigCheck(optarg));
 			break;
 		case 'a':
-			check.push_back(new DAgentConfigCheck(optarg));
+			check.emplace_back(new DAgentConfigCheck(optarg));
 			break;
 		case 'c':
 			strHosted = optarg;

@@ -1527,15 +1527,15 @@ vtm_order_alternatives(vmime::shared_ptr<vmime::body> vmBody)
 		vmHeader = vmBodyPart->getHeader();
 		if (!vmHeader->hasField(vmime::fields::CONTENT_TYPE)) {
 			/* RFC 2046 §5.1 ¶2 says treat it as text/plain */
-			lBodies.push_front(i);
+			lBodies.emplace_front(i);
 			continue;
 		}
 		mt = vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue());
 		// mostly better alternatives for text/plain, so try that last
 		if (mt->getType() == vmime::mediaTypes::TEXT && mt->getSubType() == vmime::mediaTypes::TEXT_PLAIN)
-			lBodies.push_back(i);
+			lBodies.emplace_back(i);
 		else
-			lBodies.push_front(i);
+			lBodies.emplace_front(i);
 	}
 	return lBodies;
 }
@@ -2405,11 +2405,11 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 
 		/* Add secondary candidates and try all in order */
 		std::vector<std::string> cs_cand;
-		cs_cand.push_back(mime_charset.getName());
+		cs_cand.emplace_back(mime_charset.getName());
 		if (!m_dopt.charset_strict_rfc) {
 			if (mime_charset != html_charset)
-				cs_cand.push_back(html_charset.getName());
-			cs_cand.push_back(vmime::charsets::US_ASCII);
+				cs_cand.emplace_back(html_charset.getName());
+			cs_cand.emplace_back(vmime::charsets::US_ASCII);
 		}
 		int cs_best = renovate_encoding(strHTML, cs_cand);
 		if (cs_best < 0) {
@@ -3272,17 +3272,15 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbo
 	mbox->getName().generate(os);
 	// encoded names never contain "
 	buffer = StringEscape(buffer.c_str(), "\"", '\\');
-	lMBox.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
-
-	lMBox.push_back("NIL");	// at-domain-list (source route) ... whatever that means
-
+	lMBox.emplace_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
+	lMBox.emplace_back("NIL");	// at-domain-list (source route) ... whatever that means
 	buffer = "\"" + mbox->getEmail().toString() + "\"";
 	pos = buffer.find("@");
 	if (pos != string::npos)
 		buffer.replace(pos, 1, "\" \"");
-	lMBox.push_back(std::move(buffer));
+	lMBox.emplace_back(std::move(buffer));
 	if (pos == string::npos)
-		lMBox.push_back("NIL");	// domain was missing
+		lMBox.emplace_back("NIL");	// domain was missing
 	return "(" + kc_join(lMBox, " ") + ")";
 }
 
@@ -3309,7 +3307,7 @@ std::string VMIMEToMAPI::addressListToEnvelope(vmime::shared_ptr<vmime::addressL
 	for (int i = 0; i < aCount; ++i) {
 		try {
 			buffer += mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(aList->getAddressAt(i)));
-			lAddr.push_back(buffer);
+			lAddr.emplace_back(buffer);
 		} catch (vmime::exception &e) {
 		}
 	}
@@ -3381,50 +3379,48 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 		date = vmime::make_shared<vmime::datetime>(0);
 	}
 	date->generate(ctx, os);
-	lItems.push_back("\"" + buffer + "\"");
-
+	lItems.emplace_back("\"" + buffer + "\"");
 	buffer.clear();
 	vmHeader->Subject()->getValue()->generate(ctx, os);
 	// encoded subjects never contain ", so escape won't break those.
 	buffer = StringEscape(buffer.c_str(), "\"", '\\');
-	lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
-
+	lItems.emplace_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	buffer.clear();
 
 	// from
 	try {
 		buffer = mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue()));
-		lItems.push_back("(" + buffer + ")");
+		lItems.emplace_back("(" + buffer + ")");
 	} catch (vmime::exception &e) {
 		// this is not allowed, but better than nothing
-		lItems.push_back("NIL");
+		lItems.emplace_back("NIL");
 	}
 	buffer.clear();
 
 	// sender
 	try {
 		buffer = mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue()));
-		lItems.push_back("(" + buffer + ")");
+		lItems.emplace_back("(" + buffer + ")");
 	} catch (vmime::exception &e) {
-		lItems.push_back(lItems.back());
+		lItems.emplace_back(lItems.back());
 	}
 	buffer.clear();
 
 	// reply-to
 	try {
 		buffer = mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue()));
-		lItems.push_back("(" + buffer + ")");
+		lItems.emplace_back("(" + buffer + ")");
 	} catch (vmime::exception &e) {
-		lItems.push_back(lItems.back());
+		lItems.emplace_back(lItems.back());
 	}
 	buffer.clear();
 
 	// ((to),(to))
 	try {
 		buffer = addressListToEnvelope(vmime::dynamicCast<vmime::addressList>(vmHeader->To()->getValue()));
-		lItems.push_back(buffer);
+		lItems.emplace_back(buffer);
 	} catch (vmime::exception &e) {
-		lItems.push_back("NIL");
+		lItems.emplace_back("NIL");
 	}
 	buffer.clear();
 
@@ -3434,9 +3430,9 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 		int aCount = aList->getAddressCount();
 		for (int i = 0; i < aCount; ++i)
 			buffer += mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(aList->getAddressAt(i)));
-		lItems.push_back(buffer.empty() ? "NIL" : "(" + buffer + ")");
+		lItems.emplace_back(buffer.empty() ? "NIL" : "(" + buffer + ")");
 	} catch (vmime::exception &e) {
-		lItems.push_back("NIL");
+		lItems.emplace_back("NIL");
 	}
 	buffer.clear();
 
@@ -3446,23 +3442,22 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 		int aCount = aList->getAddressCount();
 		for (int i = 0; i < aCount; ++i)
 			buffer += mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(aList->getAddressAt(i)));
-		lItems.push_back(buffer.empty() ? "NIL" : "(" + buffer + ")");
+		lItems.emplace_back(buffer.empty() ? "NIL" : "(" + buffer + ")");
 	} catch (vmime::exception &e) {
-		lItems.push_back("NIL");
+		lItems.emplace_back("NIL");
 	}
 	buffer.clear();
 
 	// in-reply-to
 	vmHeader->InReplyTo()->getValue()->generate(ctx, os);
-	lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
+	lItems.emplace_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	buffer.clear();
 
 	// message-id
 	vmHeader->MessageId()->getValue()->generate(ctx, os);
 	if (buffer.compare("<>") == 0)
 		buffer.clear();
-	lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
-
+	lItems.emplace_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	return kc_join(lItems, " ");
 }
 
@@ -3540,8 +3535,8 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
 			string strBodyStructure;
 			for (size_t i = 0; i < vmBodyPart->getBody()->getPartCount(); ++i) {
 				messagePartToStructure(input, vmBodyPart->getBody()->getPartAt(i), &strBody, &strBodyStructure);
-				lBody.push_back(std::move(strBody));
-				lBodyStructure.push_back(std::move(strBodyStructure));
+				lBody.emplace_back(std::move(strBody));
+				lBodyStructure.emplace_back(std::move(strBodyStructure));
 				strBody.clear();
 				strBodyStructure.clear();
 			}
@@ -3550,21 +3545,18 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
 			strBodyStructure = kc_join(lBodyStructure, "");
 
 			lBody.clear();
-			lBody.push_back(std::move(strBody));
+			lBody.emplace_back(std::move(strBody));
 			lBodyStructure.clear();
-			lBodyStructure.push_back(std::move(strBodyStructure));
+			lBodyStructure.emplace_back(std::move(strBodyStructure));
 
 			// body:
 			//   (<SUB> "subtype")
 			// bodystructure:
 			//   (<SUB> "subtype" ("boundary" "value") "disposition" "language")
-			lBody.push_back("\"" + mt->getSubType() + "\"");
-			lBodyStructure.push_back("\"" + mt->getSubType() + "\"");
-
-			lBodyStructure.push_back(parameterizedFieldToStructure(ctf));
-
-			lBodyStructure.push_back(getStructureExtendedFields(vmHeaderPart));
-
+			lBody.emplace_back("\"" + mt->getSubType() + "\"");
+			lBodyStructure.emplace_back("\"" + mt->getSubType() + "\"");
+			lBodyStructure.emplace_back(parameterizedFieldToStructure(ctf));
+			lBodyStructure.emplace_back(getStructureExtendedFields(vmHeaderPart));
 			if (lpSimple)
 				*lpSimple = "(" + kc_join(lBody, " ") + ")";
 			if (lpExtended)
@@ -3609,54 +3601,52 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 	auto vmHeaderPart = vmBodyPart->getHeader();
 	if (!vmHeaderPart->hasField(vmime::fields::CONTENT_TYPE)) {
 		// create with text/plain; charset=us-ascii ?
-		lBody.push_back("NIL");
-		lBodyStructure.push_back("NIL");
+		lBody.emplace_back("NIL");
+		lBodyStructure.emplace_back("NIL");
 		goto nil;
 	}
 	ctf = vmime::dynamicCast<vmime::contentTypeField>(vmHeaderPart->findField(vmime::fields::CONTENT_TYPE));
 	mt = vmime::dynamicCast<vmime::mediaType>(ctf->getValue());
-
-	lBody.push_back("\"" + mt->getType() + "\"");
-	lBody.push_back("\"" + mt->getSubType() + "\"");
+	lBody.emplace_back("\"" + mt->getType() + "\"");
+	lBody.emplace_back("\"" + mt->getSubType() + "\"");
 
 	// if string == () force add charset.
-	lBody.push_back(parameterizedFieldToStructure(ctf));
-
+	lBody.emplace_back(parameterizedFieldToStructure(ctf));
 	if (vmHeaderPart->hasField(vmime::fields::CONTENT_ID)) {
 		buffer = vmime::dynamicCast<vmime::messageId>(vmHeaderPart->findField(vmime::fields::CONTENT_ID)->getValue())->getId();
-		lBody.push_back(buffer.empty() ? "NIL" : "\"<" + buffer + ">\"");
+		lBody.emplace_back(buffer.empty() ? "NIL" : "\"<" + buffer + ">\"");
 	} else {
-		lBody.push_back("NIL");
+		lBody.emplace_back("NIL");
 	}
 
 	if (vmHeaderPart->hasField(vmime::fields::CONTENT_DESCRIPTION)) {
 		buffer.clear();
 		vmHeaderPart->findField(vmime::fields::CONTENT_DESCRIPTION)->getValue()->generate(os);
-		lBody.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
+		lBody.emplace_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	} else {
-		lBody.push_back("NIL");
+		lBody.emplace_back("NIL");
 	}
 
 	if (vmHeaderPart->hasField(vmime::fields::CONTENT_TRANSFER_ENCODING)) {
 		buffer.clear();
 		vmHeaderPart->findField(vmime::fields::CONTENT_TRANSFER_ENCODING)->getValue()->generate(os);
-		lBody.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
+		lBody.emplace_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	} else {
-		lBody.push_back("NIL");
+		lBody.emplace_back("NIL");
 	}
 
 	if (mt->getType() == vmime::mediaTypes::TEXT) {
 		// body part size
 		buffer = stringify(vmBodyPart->getBody()->getParsedLength());
-		lBody.push_back(buffer);
+		lBody.emplace_back(buffer);
 
 		// body part number of lines
 		buffer = stringify(countBodyLines(input, vmBodyPart->getBody()->getParsedOffset(), vmBodyPart->getBody()->getParsedLength()));
-		lBody.push_back(buffer);
+		lBody.emplace_back(buffer);
 	} else {
 		// attachment: size only
 		buffer = stringify(vmBodyPart->getBody()->getParsedLength());
-		lBody.push_back(buffer);
+		lBody.emplace_back(buffer);
 	}
 
 	// up until now, they were the same
@@ -3676,17 +3666,16 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 		// envelope eerst, dan message, dan lines
 		vmBodyPart->getBody()->getContents()->extractRaw(os); // generate? raw?
 		subMessage->parse(buffer);
-
-		lBody.push_back("("+createIMAPEnvelope(subMessage)+")");
-		lBodyStructure.push_back("("+createIMAPEnvelope(subMessage)+")");
+		lBody.emplace_back("(" + createIMAPEnvelope(subMessage) + ")");
+		lBodyStructure.emplace_back("(" + createIMAPEnvelope(subMessage) + ")");
 
 		// recurse message-in-message
 		messagePartToStructure(buffer, subMessage, &strSubSingle, &strSubExtended);
-		lBody.push_back(std::move(strSubSingle));
-		lBodyStructure.push_back(std::move(strSubExtended));
+		lBody.emplace_back(std::move(strSubSingle));
+		lBodyStructure.emplace_back(std::move(strSubExtended));
 
 		// dus hier nog de line count van vmBodyPart->getBody buffer?
-		lBody.push_back(stringify(countBodyLines(buffer, 0, buffer.length())));
+		lBody.emplace_back(stringify(countBodyLines(buffer, 0, buffer.length())));
 	}
 
 nil:
@@ -3694,10 +3683,8 @@ nil:
 		*lpSimple = "(" + kc_join(lBody, " ") + ")";
 
 	/* just push some NILs or also inbetween? */
-	lBodyStructure.push_back("NIL");	// MD5 of body (use Content-MD5 header?)
-
-	lBodyStructure.push_back(getStructureExtendedFields(vmHeaderPart));
-
+	lBodyStructure.emplace_back("NIL"); // MD5 of body (use Content-MD5 header?)
+	lBodyStructure.emplace_back(getStructureExtendedFields(vmHeaderPart));
 	if (lpExtended)
 		*lpExtended = "(" + kc_join(lBodyStructure, " ") + ")";
 
@@ -3724,22 +3711,22 @@ std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::hea
 		// use findField because we want an exception when missing
 		auto cdf = vmime::dynamicCast<vmime::contentDispositionField>(vmHeaderPart->findField(vmime::fields::CONTENT_DISPOSITION));
 		auto cd = vmime::dynamicCast<vmime::contentDisposition>(cdf->getValue());
-		lItems.push_back("(\"" + cd->getName() + "\" " + parameterizedFieldToStructure(cdf) + ")");
+		lItems.emplace_back("(\"" + cd->getName() + "\" " + parameterizedFieldToStructure(cdf) + ")");
 	} else {
-		lItems.push_back("NIL");
+		lItems.emplace_back("NIL");
 	}
 
 	// language
-	lItems.push_back("NIL");
+	lItems.emplace_back("NIL");
 
 	// location
 	try {
 		buffer.clear();
 		vmHeaderPart->ContentLocation()->getValue()->generate(os);
-		lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
+		lItems.emplace_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	}
 	catch (vmime::exception &e) {
-		lItems.push_back("NIL");
+		lItems.emplace_back("NIL");
 	}
 	return kc_join(lItems, " ");
 }
@@ -3759,9 +3746,9 @@ std::string VMIMEToMAPI::parameterizedFieldToStructure(vmime::shared_ptr<vmime::
 
 	try {
 		for (const auto &param : vmParamField->getParameterList()) {
-			lParams.push_back("\"" + param->getName() + "\"");
+			lParams.emplace_back("\"" + param->getName() + "\"");
 			param->getValue().generate(os);
-			lParams.push_back("\"" + buffer + "\"");
+			lParams.emplace_back("\"" + buffer + "\"");
 			buffer.clear();
 		}
 	}

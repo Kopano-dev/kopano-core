@@ -53,7 +53,7 @@ typedef std::ostringstream tostringstream;
 #endif
 
 void ArchiveResult::AddMessage(MessagePtr ptrMessage) {
-	m_lstMessages.push_back(ptrMessage);
+	m_lstMessages.emplace_back(ptrMessage);
 }
 
 void ArchiveResult::Undo(IMAPISession *lpSession) {
@@ -176,8 +176,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 			ec_log_warn("Archive::HrArchiveMessageForDelivery(): CreateArchivedMessage failed %x", hr);
 			goto exit;
 		}
-
-		lstArchivedMessages.push_back({ptrArchivedMsg, ptrPSAction});
+		lstArchivedMessages.emplace_back(ptrArchivedMsg, ptrPSAction);
 	}
 
 	// Now save the messages one by one. On failure all saved messages need to be deleted.
@@ -195,8 +194,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 
 		refArchiveEntry.sItemEntryId.assign(ptrArchivedMsgProps[IDX_ENTRYID].Value.bin);
 		refArchiveEntry.sStoreEntryId.assign(ptrArchivedMsgProps[IDX_STORE_ENTRYID].Value.bin);
-		lstReferences.push_back(refArchiveEntry);
-
+		lstReferences.emplace_back(refArchiveEntry);
 		hr = msg.first->SaveChanges(KEEP_OPEN_READWRITE);
 		if (hr != hrSuccess) {
 			ec_log_warn("Archive::HrArchiveMessageForDelivery(): ArchivedMessage SaveChanges failed %x", hr);
@@ -338,7 +336,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		}
 
 		ec_log_info("Stored message in archive");
-		lstArchivedMessages.push_back({ptrArchivedMsg, ptrPSAction});
+		lstArchivedMessages.emplace_back(ptrArchivedMsg, ptrPSAction);
 	}
 
 	// Now save the messages one by one. On failure all saved messages need to be deleted.

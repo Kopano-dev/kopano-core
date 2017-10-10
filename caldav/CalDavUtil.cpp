@@ -267,55 +267,54 @@ HRESULT HrBuildReportSet(WEBDAVPROPERTY *lpsProperty)
 	sDavItem.sDavValue.sPropName.strPropname = "supported-report";
 	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "report";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "acl-principal-prop-set";
 	sDavItem.ulDepth = ulDepth + 2 ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "supported-report";
 	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "report";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "principal-match";
 	sDavItem.ulDepth = ulDepth + 2 ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 	
 	sDavItem.sDavValue.sPropName.strPropname = "supported-report";	
 	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "report";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "principal-property-search";
 	sDavItem.ulDepth = ulDepth + 2 ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 	
 	sDavItem.sDavValue.sPropName.strPropname = "supported-report";	
 	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "report";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "expand-property";
 	sDavItem.ulDepth = ulDepth + 2 ;
-	lpsProperty->lstItems.push_back(sDavItem);
-
+	lpsProperty->lstItems.emplace_back(sDavItem);
 	return hr;
 }
 
@@ -335,83 +334,82 @@ HRESULT HrBuildACL(WEBDAVPROPERTY *lpsProperty)
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
 	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "all";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
 	sDavItem.ulDepth = ulDepth ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "read-current-user-privilege-set";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
 	sDavItem.ulDepth = ulDepth ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "read";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
 	sDavItem.ulDepth = ulDepth ;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "write";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
 	sDavItem.ulDepth = ulDepth;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "write-content";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
 	sDavItem.ulDepth = ulDepth;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "write-properties";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
 	sDavItem.ulDepth = ulDepth;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "unlock";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
 	sDavItem.ulDepth = ulDepth;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "read-acl";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
 	sDavItem.ulDepth = ulDepth;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "bind";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
 	sDavItem.ulDepth = ulDepth;
-	lpsProperty->lstItems.push_back(sDavItem);
+	lpsProperty->lstItems.emplace_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "unbind";
 	sDavItem.ulDepth = ulDepth + 1;
-	lpsProperty->lstItems.push_back(sDavItem);
-
+	lpsProperty->lstItems.emplace_back(sDavItem);
 	return hr;
 }
 
@@ -828,8 +826,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 next:
 		sWebFbUserInfo.strUser = *itUsers;
 		sWebFbUserInfo.strIcal = strIcal;
-		lpFbInfo->lstFbUserInfo.push_back(sWebFbUserInfo);
-
+		lpFbInfo->lstFbUserInfo.emplace_back(sWebFbUserInfo);
 		++itUsers;
 
 		lpMapiToIcal->ResetObject();

@@ -326,7 +326,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	}
 
 	// *lpulId now contains the local propid, update the cache
-	m_mapNameIds.insert({key, *lpulId});
+	m_mapNameIds.emplace(key, *lpulId);
 	return erSuccess;
 }
 
@@ -376,7 +376,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	}
 
 	// *lpulId now contains the local propid, update the cache
-	m_mapNameStrings.insert({key, *lpulId});
+	m_mapNameStrings.emplace(key, *lpulId);
 	return erSuccess;
 }
 
@@ -942,7 +942,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	
 	// PR_SOURCE_KEY
 	if (bTop && ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_SOURCE_KEY, ulObjId, 0, ulStoreId, 0, ulObjType, &sPropVal) == erSuccess)
-		sPropValList.push_back(sPropVal);
+		sPropValList.emplace_back(sPropVal);
 
 	if (bUseSQLMulti) {
 		er = lpDatabase->GetNextResult(&lpDBResult);
@@ -1551,8 +1551,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			er = lpDatabase->DoInsert(strQuery);
 			if (er != erSuccess)
 				goto exit;
-
-			setInserted.insert(lpsPropval->ulPropTag);
+			setInserted.emplace(lpsPropval->ulPropTag);
 			gcache->SetObjectProp(PROP_ID(PR_SOURCE_KEY), lpsPropval->Value.bin->__size, lpsPropval->Value.bin->__ptr, ulObjId);
 			goto next_property;
 		}
@@ -1613,8 +1612,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			}
 		}
 
-		setInserted.insert(lpsPropval->ulPropTag);
-
+		setInserted.emplace(lpsPropval->ulPropTag);
 next_property:
 		soap_destroy(soap);
 		soap_end(soap);

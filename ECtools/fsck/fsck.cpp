@@ -400,7 +400,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 
 	if (HrGetOneProp(lpRootFolder, PR_IPM_OL2007_ENTRYIDS /*PR_ADDITIONAL_REN_ENTRYIDS_EX*/, &~lpAddRenProp) == hrSuccess &&
 	    Util::ExtractSuggestedContactsEntryID(lpAddRenProp, &cbEntryIDSrc, &~lpEntryIDSrc) == hrSuccess)
-		setFolderIgnore.insert(string(reinterpret_cast<const char *>(lpEntryIDSrc.get()), cbEntryIDSrc));
+		setFolderIgnore.emplace(reinterpret_cast<const char *>(lpEntryIDSrc.get()), cbEntryIDSrc);
 
 	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &~lpHierarchyTable);
 	if (hr != hrSuccess) {
@@ -492,22 +492,22 @@ int main(int argc, char *argv[])
 			print_help(argv[0]);
 			return 0;
 		case OPT_CALENDAR:
-			checkmap.insert(CHECKMAP_P("IPF.Appointment", new FsckCalendar()));
+			checkmap.emplace("IPF.Appointment", new FsckCalendar);
 			break;
 		//case OPT_STICKY:
-		//	checkmap.insert(CHECKMAP_P("IPF.StickyNote", new FsckStickyNote()));
+		//	checkmap.emplace("IPF.StickyNote", new FsckStickyNote);
 		//	break;
 		//case OPT_EMAIL:
-		//	checkmap.insert(CHECKMAP_P("IPF.Note", new FsckNote()));
+		//	checkmap.emplace("IPF.Note", new FsckNote);
 		//	break;
 		case OPT_CONTACT:
-			checkmap.insert(CHECKMAP_P("IPF.Contact", new FsckContact()));
+			checkmap.emplace("IPF.Contact", new FsckContact);
 			break;
 		case OPT_TASK:
-			checkmap.insert(CHECKMAP_P("IPF.Task", new FsckTask()));
+			checkmap.emplace("IPF.Task", new FsckTask);
 			break;
 		//case OPT_JOURNAL:
-		//	checkmap.insert(CHECKMAP_P("IPF.Journal", new FsckJournal()));
+		//	checkmap.emplace("IPF.Journal", new FsckJournal);
 		//	break;
 		case OPT_ALL:
 			bAll = true;
@@ -554,12 +554,12 @@ int main(int argc, char *argv[])
 	if (checkmap.empty()) {
 		if (!bAll)
 			cout << "Filter arguments missing, defaulting to --all" << endl;
-		checkmap.insert(CHECKMAP_P("IPF.Appointment", new FsckCalendar()));
-		//checkmap.insert(CHECKMAP_P("IPF.StickyNote", new FsckStickyNote()));
-		//checkmap.insert(CHECKMAP_P("IPF.Note", new FsckNote()));
-		checkmap.insert(CHECKMAP_P("IPF.Contact", new FsckContact()));
-		checkmap.insert(CHECKMAP_P("IPF.Task", new FsckTask()));
-		//checkmap.insert(CHECKMAP_P("IPF.Journal", new FsckJournal()));
+		checkmap.emplace("IPF.Appointment", new FsckCalendar);
+		//checkmap.emplace("IPF.StickyNote", new FsckStickyNote);
+		//checkmap.emplace("IPF.Note", new FsckNote);
+		checkmap.emplace("IPF.Contact", new FsckContact);
+		checkmap.emplace("IPF.Task", new FsckTask);
+		//checkmap.emplace("IPF.Journal", new FsckJournal);
 	}
 
 	hr = RunStoreValidation(strHost, strUser, strPass, strAltUser, bPublic, checkmap);

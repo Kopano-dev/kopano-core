@@ -187,11 +187,11 @@ std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep
 	while (*begin != '\0') {
 		end = wcschr(begin, sep);
 		if (!end) {
-			vct.push_back(begin);
+			vct.emplace_back(begin);
 			break;
 		}
 		if (!bFilterEmpty || std::distance(begin,end) > 0)
-			vct.push_back(std::wstring(begin,end));
+			vct.emplace_back(begin, end);
 		begin = end+1;
 	}
 
@@ -207,11 +207,11 @@ std::vector<std::string> tokenize(const std::string &strInput, const char sep, b
 	while (begin < last) {
 		end = strchr(begin, sep);
 		if (!end) {
-			vct.push_back(begin);
+			vct.emplace_back(begin);
 			break;
 		}
 		if (!bFilterEmpty || std::distance(begin,end) > 0)
-			vct.push_back(std::string(begin,end));
+			vct.emplace_back(begin, end);
 		begin = end+1;
 	}
 

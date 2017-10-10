@@ -592,7 +592,7 @@ ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 		// we only return users present on this server
 		if (bDistrib && obj.GetPropString(OB_PROP_S_SERVERNAME).compare(server) != 0)
 			continue;
-		lstObjId.push_back(obj.ulId);
+		lstObjId.emplace_back(obj.ulId);
 	}
 
 	UpdateRows(ECKeyTable::TABLE_ROW_ADD, &lstObjId, 0, false);
@@ -1003,7 +1003,7 @@ ECRESULT ECServerStatsTable::Load()
 		
 	// Assign an ID to each server which is usable from QueryRowData
 	for (const auto &srv : servers) {
-		m_mapServers.insert({i, srv});
+		m_mapServers.emplace(i, srv);
 		// For each server, add a row in the table
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, i, 0);
 		++i;

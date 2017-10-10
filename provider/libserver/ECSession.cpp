@@ -487,7 +487,7 @@ void ECSession::GetBusyStates(std::list<BUSYSTATE> *lpStates)
 	lpStates->clear();
 	scoped_lock lock(m_hStateLock);
 	for (const auto &p : m_mapBusyStates)
-		lpStates->push_back(p.second);
+		lpStates->emplace_back(p.second);
 }
 
 void ECSession::AddClocks(double dblUser, double dblSystem, double dblReal)
@@ -561,7 +561,7 @@ ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int 
 ECRESULT ECSession::LockObject(unsigned int ulObjId)
 {
 	scoped_lock lock(m_hLocksLock);
-	auto res = m_mapLocks.insert({ulObjId, {}});
+	auto res = m_mapLocks.emplace(ulObjId, ECObjectLock());
 	if (res.second == true)
 		return m_lpSessionManager->GetLockManager()->LockObject(ulObjId, m_sessionID, &res.first->second);
 	return erSuccess;

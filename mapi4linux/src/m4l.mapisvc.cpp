@@ -147,7 +147,7 @@ HRESULT INFLoader::LoadINF(const char *filename)
 				if (pos == std::string::npos)
 					continue;	// skip line
 				strName = strLine.substr(1, pos-1);
-				auto rv = m_mapSections.insert({strName, inf_section()});
+				auto rv = m_mapSections.emplace(strName, inf_section());
 				iSection = rv.first;
 			}
 			// always continue with next line.
@@ -158,7 +158,7 @@ HRESULT INFLoader::LoadINF(const char *filename)
 			continue;
 
 		// Parse strName in a property, else leave name?
-		iSection->second.insert({trim(strName, " \t\r\n"), trim(strValue, " \t\r\n")});
+		iSection->second.emplace(trim(strName, " \t\r\n"), trim(strValue, " \t\r\n"));
 	}
 
 	if (fp)
@@ -197,7 +197,7 @@ std::vector<std::string> INFLoader::GetINFPaths()
 		ret = tokenize(env, ':', true);
 	else
 	// @todo, load both, or just one?
-		ret.push_back(MAPICONFIGDIR);
+		ret.emplace_back(MAPICONFIGDIR);
 	return ret;
 }
 
@@ -346,7 +346,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 			// *new function, new loop
 			for (const auto &i : tokenize(sp.second, ", \t")) {
 				infProvider = cINF.GetSection(i);
-				auto prov = m_sProviders.insert({i, new SVCProvider});
+				auto prov = m_sProviders.emplace(i, new SVCProvider);
 				if (prov.second == false)
 					continue;	// already exists
 
@@ -429,7 +429,7 @@ std::vector<SVCProvider *> SVCService::GetProviders()
 	std::vector<SVCProvider *> ret;
 
 	for (const auto &i : m_sProviders)
-		ret.push_back(i.second);
+		ret.emplace_back(i.second);
 	return ret;
 }
 
@@ -470,7 +470,7 @@ HRESULT MAPISVC::Init()
 	for (const auto &sp : *infServices) {
 		// ZARAFA6, ZCONTACTS
 		infService = inf.GetSection(sp.first);
-		auto i = m_sServices.insert({sp.first, new SVCService});
+		auto i = m_sServices.emplace(sp.first, new SVCService);
 		if (i.second == false)
 			continue;			// already exists
 

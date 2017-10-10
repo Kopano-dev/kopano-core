@@ -67,8 +67,7 @@ ECRESULT ECMailBoxTable::Load()
 
 		if (!lpDBRow[0])
 			continue; // Broken store table?
-
-		lstObjIds.push_back(atoui(lpDBRow[0]));
+		lstObjIds.emplace_back(atoui(lpDBRow[0]));
 	}
 
 	LoadRows(&lstObjIds, 0);

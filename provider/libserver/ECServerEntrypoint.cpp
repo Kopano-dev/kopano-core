@@ -41,7 +41,7 @@ static bool g_bInitLib = false;
 void AddDatabaseObject(ECDatabase* lpDatabase)
 {
 	scoped_lock lk(g_hMutexDBObjectList);
-	g_lpDBObjectList.insert(lpDatabase);
+	g_lpDBObjectList.emplace(lpDatabase);
 }
 
 static void database_destroy(void *lpParam)

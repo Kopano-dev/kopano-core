@@ -239,8 +239,8 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
 
     // Get searches for this store, or add it to the list.
 	l_sf.lock();
-	iterStore = m_mapSearchFolders.insert({ulStoreId, {}}).first;
-	iterStore->second.insert({ulFolderId, lpSearchFolder});
+	iterStore = m_mapSearchFolders.emplace(ulStoreId, FOLDERIDSEARCH()).first;
+	iterStore->second.emplace(ulFolderId, lpSearchFolder);
 	g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_COUNT);
         
     if(bReStartSearch) {
@@ -359,8 +359,7 @@ ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreID)
 	if (iterStore == m_mapSearchFolders.cend())
 		return KCERR_NOT_FOUND;
 	for (const auto &p : iterStore->second)
-		listSearchFolders.push_back(p.second);
-
+		listSearchFolders.emplace_back(p.second);
 	iterStore->second.clear();
 	
 	// Remove store from list, items of the store will be delete in 'DestroySearchFolder'
@@ -421,7 +420,7 @@ ECRESULT ECSearchFolders::UpdateSearchFolders(unsigned int ulStoreId, unsigned i
     
 	scoped_rlock l_ev(m_mutexEvents);
     // Add the event to the queue
-	m_lstEvents.push_back(std::move(ev));
+	m_lstEvents.emplace_back(std::move(ev));
 	/*
 	 * Signal a change in the queue (actually only needed for the first
 	 * event, but this wastes almost no time and is safer.
@@ -449,8 +448,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 	std::list<ULONG> lstPrefix;
 	bool fInserted = false;
 	
-	lstPrefix.push_back(PR_MESSAGE_FLAGS);
-
+	lstPrefix.emplace_back(PR_MESSAGE_FLAGS);
 	ECLocale locale = m_lpSessionManager->GetSortLocale(ulStoreId);
 	ulock_rec l_sf(m_mutexMapSearchFolders);
 
@@ -535,14 +533,13 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					unsigned int ulAncestor = ulFolderId;
 					
 					// Get all the parents of this object (usually around 5 or 6)
-					setParents.insert(ulFolderId);
+					setParents.emplace(ulFolderId);
 					
 					while(1) {
 						er = cache->GetParent(ulAncestor, &ulAncestor);
 						if(er != erSuccess)
 							break;
-							
-						setParents.insert(ulAncestor);
+						setParents.emplace(ulAncestor);
 					}
 					
 					// setParents now contains all the parent of this object, now we can check if any of the ancestors
@@ -851,9 +848,8 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
             continue;
             
         ulObjFlags = lpRowSet->__ptr[j].__ptr[0].Value.ul & MSGFLAG_READ;
-        
-        lstMatches.push_back(iterRows->ulObjId);
-        lstFlags.push_back(ulObjFlags);
+		lstMatches.emplace_back(iterRows->ulObjId);
+		lstFlags.emplace_back(ulObjFlags);
     }
         
     // Add matched row to database
@@ -925,7 +921,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	std::string suggestion;
 
 	std::list<ULONG> lstPrefix;
-	lstPrefix.push_back(PR_MESSAGE_FLAGS);
+	lstPrefix.emplace_back(PR_MESSAGE_FLAGS);
 
 	//Indexer
 	std::list<unsigned int> lstIndexerResults;
@@ -997,7 +993,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 			if(er == erSuccess) {
 				while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
 					if(lpDBRow && lpDBRow[0])
-						lstFolders.push_back(atoi(lpDBRow[0]));
+						lstFolders.emplace_back(atoi(lpDBRow[0]));
 			} else
 				ec_log_crit("ECSearchFolders::Search() could not expand target folders: 0x%x", er);
 			++iterFolders;
@@ -1044,8 +1040,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
                  (lpbCancel == NULL || !*lpbCancel) && n < 200; ++iterResults) {
                 sRow.ulObjId = *iterResults;
                 sRow.ulOrderId = 0;
-                
-                ecRows.push_back(sRow);
+				ecRows.emplace_back(sRow);
             }
             
             if(ecRows.empty())
@@ -1118,8 +1113,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 						continue;
 					sRow.ulObjId = atoui(lpDBRow[0]);
 					sRow.ulOrderId = 0;
-			        
-					ecRows.push_back(sRow);
+					ecRows.emplace_back(sRow);
 					++i;
 				}
 				
@@ -1482,8 +1476,7 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
 		auto lpRow = lpResult.fetch_row();
         if(lpRow == NULL || lpRow[0] == NULL)
             break;
-
-        lstObjIds->push_back(atoui(lpRow[0]));
+		lstObjIds->emplace_back(atoui(lpRow[0]));
     }
 	return erSuccess;
 }
@@ -1724,8 +1717,7 @@ ECRESULT ECSearchFolders::FlushEvents()
             
         sRow.ulObjId = event.ulObjectId;
         sRow.ulOrderId = 0;
-        
-        lstObjectIDs.push_back(sRow);
+		lstObjectIDs.emplace_back(sRow);
     }
 
     // Flush last set

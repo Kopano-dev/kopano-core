@@ -144,7 +144,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	default:
 		return MAPI_E_INVALID_PARAMETER;
 	};
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// since we know the frequency, this value can be set correctly
 	lpRec->setInterval(icRRule.interval);
@@ -185,7 +185,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 
 				sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCETYPE], PT_LONG);
 				sPropVal.Value.ul = 2;
-				lpIcalItem->lstMsgProps.push_back(sPropVal);
+				lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			} else if (lpRec->getFrequency() == recurrence::YEARLY) {
 				return MAPI_E_NO_SUPPORT;
 			}
@@ -245,7 +245,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	// Set 0x8236, also known as ClipEnd in OutlookSpy
 	UnixTimeToFileTime(dtUTCUntil, &sPropVal.Value.ft);
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_END], PT_SYSTIME);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// find EXDATE properties, add to delete exceptions
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_EXDATE_PROPERTY);
@@ -275,12 +275,12 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	// set named prop 0x8510 to 353, needed for Outlook to ask for single or total recurrence when deleting
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_SIDEEFFECT], PT_LONG);
 	sPropVal.Value.ul = 353;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// Set 0x8235, also known as ClipStart in OutlookSpy
 	UnixTimeToFileTime(LocalToUTC(recurrence::StartOfDay(lpRec->getStartDateTime()), sTimeZone), &sPropVal.Value.ft);
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RECURRENCEID_PROPERTY);
 	if(!lpicProp) {
@@ -288,21 +288,20 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 
 		// Set 0x820D / ApptStartWhole
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 		// Set 0x8516 / CommonStart
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 		UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone), &sPropVal.Value.ft);
 
 		// Set 0x820E / ApptEndWhole
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 		// Set CommonEnd		
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
+		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	}
 	lpIcalItem->lpRecurrence = lpRec.release();
 	return hr;
@@ -386,71 +385,71 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME);
 	UnixTimeToFileTime(ttOriginalUtcTime, &sPropVal.Value.ft);
-	lpEx->lstMsgProps.push_back(sPropVal);
+	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_EXCEPTION_STARTTIME;
 	UnixTimeToFileTime(ttStartLocalTime, &sPropVal.Value.ft);
-	lpEx->lstAttachProps.push_back(sPropVal);
+	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_EXCEPTION_ENDTIME;
 	UnixTimeToFileTime(ttEndLocalTime, &sPropVal.Value.ft);
-	lpEx->lstAttachProps.push_back(sPropVal);
+	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
 	UnixTimeToFileTime(ttStartUtcTime, &sPropVal.Value.ft);	
-	lpEx->lstMsgProps.push_back(sPropVal);
+	lpEx->lstMsgProps.emplace_back(sPropVal);
 	
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
-	lpEx->lstMsgProps.push_back(sPropVal);
+	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME);
-	lpEx->lstMsgProps.push_back(sPropVal);
+	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
 	UnixTimeToFileTime(ttEndUtcTime, &sPropVal.Value.ft);	
-	lpEx->lstMsgProps.push_back(sPropVal);
+	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
-	lpEx->lstMsgProps.push_back(sPropVal);
+	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_END], PT_SYSTIME);
-	lpEx->lstMsgProps.push_back(sPropVal);
+	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_EXCEPTION_ENDTIME;
 	UnixTimeToFileTime(ttEndLocalTime, &sPropVal.Value.ft);
-	lpEx->lstAttachProps.push_back(sPropVal);
+	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_DISPLAY_NAME_W;
 	HrCopyString(lpIcalItem->base, L"Untitled", &sPropVal.Value.lpszW);
-	lpEx->lstAttachProps.push_back(sPropVal);
+	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_ATTACH_METHOD;
 	sPropVal.Value.ul = ATTACH_EMBEDDED_MSG;
-	lpEx->lstAttachProps.push_back(sPropVal);
+	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_ATTACH_FLAGS;
 	sPropVal.Value.ul = 0;
-	lpEx->lstAttachProps.push_back(sPropVal);
+	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_ATTACHMENT_LINKID;
 	sPropVal.Value.ul = 0;
-	lpEx->lstAttachProps.push_back(sPropVal);
+	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_ATTACHMENT_HIDDEN;
 	sPropVal.Value.b = TRUE;
-	lpEx->lstAttachProps.push_back(sPropVal);
+	lpEx->lstAttachProps.emplace_back(sPropVal);
 	
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_HIDE_ATTACH], PT_BOOLEAN);;
 	sPropVal.Value.b = TRUE;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	
 	sPropVal.ulPropTag = PR_ATTACHMENT_FLAGS;
 	sPropVal.Value.ul = 2;
-	lpEx->lstAttachProps.push_back(sPropVal);
+	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_MESSAGE_CLASS_W;
 	HrCopyString(lpIcalItem->base, L"IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}", &sPropVal.Value.lpszW);
-	lpEx->lstMsgProps.push_back(sPropVal);
+	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	// copy properties to exception and test if changed
 	for (const auto &prop : lpIcalItem->lstMsgProps)
@@ -458,7 +457,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 			if (sptaCopy.aulPropTag[i] == prop.ulPropTag) {
 				abOldPresent[i] = true;
 				if (sptaCopy.aulPropTag[i] != PR_BODY) // no need to copy body
-					lpEx->lstMsgProps.push_back(prop);
+					lpEx->lstMsgProps.emplace_back(prop);
 				if (sptaCopy.aulPropTag[i] == CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN))
 					bOldIsAllDay = prop.Value.b; // remember allday event status
 				break;
@@ -479,7 +478,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 				return hr;
 			sPropVal.ulPropTag = PR_SUBJECT_W;
 			HrCopyString(lpIcalItem->base, strIcalProp.c_str(), &sPropVal.Value.lpszW);
-			lpEx->lstMsgProps.push_back(sPropVal);
+			lpEx->lstMsgProps.emplace_back(sPropVal);
 			abNewPresent[0] = true;
 			break;
 		case ICAL_LOCATION_PROPERTY:
@@ -490,7 +489,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 				return hr;
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_LOCATION], PT_UNICODE);
 			HrCopyString(lpIcalItem->base, strIcalProp.c_str(), &sPropVal.Value.lpszW);
-			lpEx->lstMsgProps.push_back(sPropVal);
+			lpEx->lstMsgProps.emplace_back(sPropVal);
 			abNewPresent[1] = true;
 			break;
 		case ICAL_TRANSP_PROPERTY:
@@ -511,7 +510,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 					return hr;
 				sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG);
 				sPropVal.Value.ul = ulBusyStatus;
-				lpEx->lstMsgProps.push_back(sPropVal);
+				lpEx->lstMsgProps.emplace_back(sPropVal);
 				abNewPresent[7] = true;
 			}
 			break;
@@ -532,8 +531,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 
 				sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG);
 				sPropVal.Value.ul = ulBusyStatus;
-				lpEx->lstMsgProps.push_back(sPropVal);
-
+				lpEx->lstMsgProps.emplace_back(sPropVal);
 				bXMS = true;
 				abNewPresent[7] = true;
 			}
@@ -546,7 +544,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 				return hr;
 			sPropVal.ulPropTag = PR_BODY_W;
 			HrCopyString(lpIcalItem->base, strIcalProp.c_str(), &sPropVal.Value.lpszW);
-			lpEx->lstMsgProps.push_back(sPropVal);
+			lpEx->lstMsgProps.emplace_back(sPropVal);
 			abNewPresent[2] = true;
 			break;
 		default:
@@ -573,7 +571,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 						return hr;
 					sPropVal.ulPropTag = PR_SUBJECT_W;
 					sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
-					lpEx->lstMsgProps.push_back(sPropVal);
+					lpEx->lstMsgProps.emplace_back(sPropVal);
 					break;
 				case 1:
 					// location
@@ -582,7 +580,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 						return hr;
 					sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_LOCATION], PT_UNICODE);
 					sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
-					lpEx->lstMsgProps.push_back(sPropVal);
+					lpEx->lstMsgProps.emplace_back(sPropVal);
 					break;
 				case 2:
 					// body, ignore!
@@ -605,7 +603,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 							return hr;
 						sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN);
 						sPropVal.Value.ul = !bOldIsAllDay;
-						lpEx->lstMsgProps.push_back(sPropVal);
+						lpEx->lstMsgProps.emplace_back(sPropVal);
 					}
 					break;
 				case 7:
@@ -615,7 +613,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 						return hr;
 					sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG);
 					sPropVal.Value.ul = 1;
-					lpEx->lstMsgProps.push_back(sPropVal);
+					lpEx->lstMsgProps.emplace_back(sPropVal);
 					break;
 				};
 			}
@@ -636,14 +634,13 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 
 				sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN);
 				sPropVal.Value.b = bReminderSet;
-				lpEx->lstMsgProps.push_back(sPropVal);
-
+				lpEx->lstMsgProps.emplace_back(sPropVal);
 				if (ttReminderTime == 0)
 					ttReminderTime = ttStartLocalTime;
 
 				sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME);
 				UnixTimeToFileTime(ttReminderTime, &sPropVal.Value.ft);
-				lpEx->lstMsgProps.push_back(sPropVal);
+				lpEx->lstMsgProps.emplace_back(sPropVal);
 			}
 
 			hr = lpIcalItem->lpRecurrence->setModifiedReminderDelta(ulId, ulRemindBefore);
@@ -651,7 +648,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 				return hr;
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG);
 			sPropVal.Value.ul = ulRemindBefore;
-			lpEx->lstMsgProps.push_back(sPropVal);
+			lpEx->lstMsgProps.emplace_back(sPropVal);
 		}
 	} else if (abOldPresent[4]) {
 		// disable reminder in attachment
@@ -660,7 +657,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 			return hr;
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN);
 		sPropVal.Value.b = FALSE;
-		lpEx->lstMsgProps.push_back(sPropVal);
+		lpEx->lstMsgProps.emplace_back(sPropVal);
 	}
 	return hr;
 }

@@ -279,6 +279,6 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 		FreeMapiObject(*iterSObj);
 		m_sMapiObject->lstChildren.erase(iterSObj);
 	}
-	m_sMapiObject->lstChildren.insert(new MAPIOBJECT(lpsMapiObject));
+	m_sMapiObject->lstChildren.emplace(new MAPIOBJECT(lpsMapiObject));
 	return hrSuccess;
 }

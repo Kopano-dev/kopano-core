@@ -406,8 +406,7 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 			url = format("ldaps://%s:%s", ldap_host, ldap_port);
 		else
 			url = format("ldap://%s:%s", ldap_host, ldap_port);
-
-		ldap_servers.push_back(std::move(url));
+		ldap_servers.emplace_back(std::move(url));
 	}
 
 	if (ldap_servers.empty())
@@ -645,7 +644,7 @@ std::list<std::string> LDAPUserPlugin::GetClasses(const char *lpszClasses)
 	std::list<std::string> lstClasses;
 
 	for (unsigned int i = 0; i < vecClasses.size(); ++i)
-		lstClasses.push_back(trim(vecClasses[i]));
+		lstClasses.emplace_back(trim(vecClasses[i]));
 	return lstClasses;
 }
 
@@ -755,31 +754,31 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	 * override those with lower numerical values (most importantly, contacts override users)
 	 */
 	for (const auto &i : objclasses)
-		setObjectClasses.insert(strToUpper(i));
+		setObjectClasses.emplace(strToUpper(i));
 
 	lstLDAPObjectClasses = GetClasses(class_user_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back({lstLDAPObjectClasses.size(), OBJECTCLASS_USER}); // Could still be active or nonactive, will resolve later
+		lstMatches.emplace_back(lstLDAPObjectClasses.size(), OBJECTCLASS_USER); // Could still be active or nonactive, will resolve later
 
 	lstLDAPObjectClasses = GetClasses(class_contact_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back({lstLDAPObjectClasses.size(), NONACTIVE_CONTACT});
+		lstMatches.emplace_back(lstLDAPObjectClasses.size(), NONACTIVE_CONTACT);
 
 	lstLDAPObjectClasses = GetClasses(class_group_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back({lstLDAPObjectClasses.size(), OBJECTCLASS_DISTLIST}); // Could be permission or distribution group, will resolve later
+		lstMatches.emplace_back(lstLDAPObjectClasses.size(), OBJECTCLASS_DISTLIST); // Could be permission or distribution group, will resolve later
 
 	lstLDAPObjectClasses = GetClasses(class_dynamic_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back({lstLDAPObjectClasses.size(), DISTLIST_DYNAMIC});
+		lstMatches.emplace_back(lstLDAPObjectClasses.size(), DISTLIST_DYNAMIC);
 
 	lstLDAPObjectClasses = GetClasses(class_company_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back({lstLDAPObjectClasses.size(), CONTAINER_COMPANY});
+		lstMatches.emplace_back(lstLDAPObjectClasses.size(), CONTAINER_COMPANY);
 
 	lstLDAPObjectClasses = GetClasses(class_address_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.push_back({lstLDAPObjectClasses.size(), CONTAINER_ADDRESSLIST});
+		lstMatches.emplace_back(lstLDAPObjectClasses.size(), CONTAINER_ADDRESSLIST);
 
 	// lstMatches now contains all the kopano object classes that the object COULD be, now sort by number of object classes
 
@@ -907,14 +906,13 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 				ec_log_warn("Unique id not found for DN: %s", dn.c_str());
 				continue;
 			}
-
-			signatures->push_back({objectid, signature});
+			signatures->emplace_back(objectid, signature);
 			if (bCache) {
-				auto retval = mapDNCache.insert({objectid.objclass, nullptr});
+				auto retval = mapDNCache.emplace(objectid.objclass, nullptr);
 				if (retval.second)
 					retval.first->second = new dn_cache_t();
 				auto iterDNCache = retval.first;
-				iterDNCache->second->insert({objectid, dn});
+				iterDNCache->second->emplace(objectid, dn);
 			}
 		}
 		END_FOREACH_ENTRY
@@ -1288,7 +1286,7 @@ LDAPUserPlugin::objectDNtoObjectSignatures(objectclass_t objclass,
 
 	for (const auto &i : dn) {
 		try {
-			signatures->push_back(objectDNtoObjectSignature(objclass, i));
+			signatures->emplace_back(objectDNtoObjectSignature(objclass, i));
 		} catch (objectnotfound &e) {
 			// resolve failed, drop entry
 			continue;
@@ -1350,8 +1348,7 @@ objectsignature_t LDAPUserPlugin::resolveObjectFromAttributeType(objectclass_t o
 	std::unique_ptr<signatures_t> signatures;
 	list<string> objects;
 
-	objects.push_back(object);
-
+	objects.emplace_back(object);
 	signatures = resolveObjectsFromAttributeType(objclass, objects, lpAttr, lpAttrType, company);
 
 	if (!signatures.get() || signatures->empty())
@@ -1473,8 +1470,7 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const stri
 
 	if (attrs->empty())
 		throw runtime_error(string("Unable to resolve name with no attributes"));
-
-	objects.push_back(m_iconvrev->convert(name));
+	objects.emplace_back(m_iconvrev->convert(name));
 	signatures = resolveObjectsFromAttributes(objclass, objects, attrs->get(), company);
 
 	if (!signatures.get() || signatures->empty())
@@ -1667,7 +1663,7 @@ list<string> LDAPUserPlugin::getLDAPAttributeValues(char *attribute, LDAPMessage
 	if (berval != NULL)
 		for (int i = 0; berval[i] != NULL; ++i) {
 			s.assign(berval[i]->bv_val, berval[i]->bv_len);
-			r.push_back(std::move(s));
+			r.emplace_back(std::move(s));
 		}
 	return r;
 }
@@ -1923,7 +1919,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.relAttrType = "dn";
 
 					p.propname = (property_key_t)ulPropTag;
-					lPostActions.push_back(std::move(p));
+					lPostActions.emplace_back(std::move(p));
 					break;
                 }
 				case 0x3A4E:	/* PR_MANAGER_NAME */
@@ -1949,7 +1945,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.relAttrType = "dn";
 
 					p.propname = (property_key_t)ulPropTag;
-					lPostActions.push_back(std::move(p));
+					lPostActions.emplace_back(std::move(p));
 					break;
                 }
 				case 0x3A30:	/* PR_ASSISTANT */
@@ -1970,7 +1966,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.result_attr = m_config->GetSetting("ldap_fullname_attribute");
 					
 					p.propname = (property_key_t)ulPropTag;
-					lPostActions.push_back(std::move(p));
+					lPostActions.emplace_back(std::move(p));
 					break;
                 }
 				default:
@@ -2055,7 +2051,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 						p.relAttr = m_config->GetSetting("ldap_user_unique_attribute");
 
 					p.propname = OB_PROP_LO_SENDAS;
-					lPostActions.push_back(std::move(p));
+					lPostActions.emplace_back(std::move(p));
 				}
 				if (user_server_attr && !strcasecmp(att, user_server_attr)) {
 					ldap_attr = getLDAPAttributeValue(att, entry);
@@ -2095,7 +2091,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 						p.relAttr = m_config->GetSetting("ldap_user_unique_attribute");
 
 					p.propname = OB_PROP_LO_SENDAS;
-					lPostActions.push_back(std::move(p));
+					lPostActions.emplace_back(std::move(p));
 				}
 				break;
 			case DISTLIST_DYNAMIC:
@@ -2135,7 +2131,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.relAttr = sysadmin_attr_rel ? sysadmin_attr_rel : user_unique_attr;
 					p.relAttrType = sysadmin_attr_type;
 					p.propname = OB_PROP_O_SYSADMIN;
-					lPostActions.push_back(std::move(p));
+					lPostActions.emplace_back(std::move(p));
 				}
 
 				break;
@@ -2237,8 +2233,7 @@ LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 	std::unique_ptr<std::map<objectid_t, objectdetails_t> > mapDetails;
     list<objectid_t> objectids;
 
-    objectids.push_back(id);
-
+	objectids.emplace_back(id);
     mapDetails = getObjectDetails(objectids);
 	auto iterDetails = mapDetails->find(id);
 	if (iterDetails == mapDetails->cend())
@@ -2269,7 +2264,7 @@ static LDAPMod *newLDAPModification(char *attribute, const char *value) {
 	// Pretty lame function, all it does is use newLDAPModification
 	// with a list with only one element.
 	list<string> values;
-	values.push_back(value);
+	values.emplace_back(value);
 	return newLDAPModification(attribute, std::move(values));
 }
 
@@ -2770,9 +2765,6 @@ std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
 		throw objectnotfound("Distributed not enabled");
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
-
-	string strName;
-
 	ldap_basedn = getSearchBase();
 	search_filter =
 		"(&" +
@@ -2790,10 +2782,8 @@ std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
     FOREACH_ENTRY(res)
     {
     	FOREACH_ATTR(entry) {
-            if (name_attr && !strcasecmp(att, name_attr)) {
-                strName = m_iconv->convert(getLDAPAttributeValue(att, entry));
-                serverlist->push_back(std::move(strName));
-            }
+			if (name_attr != nullptr && strcasecmp(att, name_attr) == 0)
+				serverlist->emplace_back(m_iconv->convert(getLDAPAttributeValue(att, entry)));
         }
         END_FOREACH_ATTR
     }
@@ -3011,8 +3001,7 @@ std::unique_ptr<abprops_t> LDAPUserPlugin::getExtraAddressbookProperties(void)
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 	for (const auto &cs : lExtraAttrs)
-		lProps->push_back(xtoi(cs.szName));
-
+		lProps->emplace_back(xtoi(cs.szName));
 	return lProps;
 }
 

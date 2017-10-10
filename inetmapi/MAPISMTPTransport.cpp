@@ -256,13 +256,12 @@ void MAPISMTPTransport::helo()
 			// Special case: some servers send "AUTH=MECH [MECH MECH...]"
 			if (ext.length() >= 5 && utility::stringUtils::toUpper(ext.substr(0, 5)) == "AUTH=")
 			{
-				params.push_back(utility::stringUtils::toUpper(ext.substr(5)));
+				params.emplace_back(utility::stringUtils::toUpper(ext.substr(5)));
 				ext = "AUTH";
 			}
 
 			while (iss >> param)
-				params.push_back(utility::stringUtils::toUpper(param));
-
+				params.emplace_back(utility::stringUtils::toUpper(param));
 			m_extensions[ext] = params;
 		}
 	}
@@ -336,8 +335,7 @@ void MAPISMTPTransport::authenticateSASL()
 	{
 		try
 		{
-			mechList.push_back
-				(saslContext->createMechanism(saslMechs[i]));
+			mechList.emplace_back(saslContext->createMechanism(saslMechs[i]));
 		}
 		catch (exceptions::no_such_mechanism&)
 		{
@@ -575,19 +573,19 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 			 * 550 5.1.1 <fox>: Recipient address rejected: User unknown in virtual mailbox table
 			 * 550 5.7.1 REJECT action without code by means of e.g. /etc/postfix/header_checks
 			 */
-			mPermanentFailedRecipients.push_back(std::move(entry));
+			mPermanentFailedRecipients.emplace_back(std::move(entry));
 			ec_log_err("RCPT line gave SMTP error %d %s. (no retry)",
 				resp->getCode(), resp->getText().c_str());
 			continue;
 		} else if (code / 100 != 4) {
-			mPermanentFailedRecipients.push_back(std::move(entry));
+			mPermanentFailedRecipients.emplace_back(std::move(entry));
 			ec_log_err("RCPT line gave unexpected SMTP reply %d %s. (no retry)",
 				resp->getCode(), resp->getText().c_str());
 			continue;
 		}
 
 		/* Other 4xx codes (disk full, ... ?) */
-		mTemporaryFailedRecipients.push_back(std::move(entry));
+		mTemporaryFailedRecipients.emplace_back(std::move(entry));
 		ec_log_err("RCPT line gave SMTP error: %d %s. (will be retried)",
 			resp->getCode(), resp->getText().c_str());
 	}

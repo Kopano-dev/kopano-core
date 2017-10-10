@@ -459,7 +459,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 			ex.strWideCharSubject.assign(wstr.c_str(), wstr.size());
 			TryConvert(convertContext, iEx->strLocation, rawsize(iEx->strLocation), "windows-1252", wstr);
 			ex.strWideCharLocation.assign(wstr.c_str(), wstr.size());
-			r.lstExtendedExceptions.push_back(std::move(ex));
+			r.lstExtendedExceptions.emplace_back(std::move(ex));
 			++iEx;
 		}
 

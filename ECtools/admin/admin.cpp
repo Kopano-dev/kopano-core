@@ -3475,11 +3475,11 @@ int main(int argc, char* argv[])
 
 		if (feature) {
 			if (bFeature) {
-				sEnabled.insert(feature);
+				sEnabled.emplace(feature);
 				sDisabled.erase(feature);
 			} else {
 				sEnabled.erase(feature);
-				sDisabled.insert(feature);
+				sDisabled.emplace(feature);
 			}
 		}
 

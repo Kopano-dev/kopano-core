@@ -117,11 +117,11 @@ HRESULT ECArchiveAwareMsgStore::CreateCacheBasedReorderedList(SBinaryArray sbaSt
 	for (ULONG i = 0; i < sbaStoreEIDs.cValues; ++i) {
 		const std::vector<BYTE> eid(sbaStoreEIDs.lpbin[i].lpb, sbaStoreEIDs.lpbin[i].lpb + sbaStoreEIDs.lpbin[i].cb);
 		if (m_mapStores.find(eid) != m_mapStores.end()) {
-			lstStoreEIDs.push_back(sbaStoreEIDs.lpbin + i);
-			lstItemEIDs.push_back(sbaItemEIDs.lpbin + i);
+			lstStoreEIDs.emplace_back(sbaStoreEIDs.lpbin + i);
+			lstItemEIDs.emplace_back(sbaItemEIDs.lpbin + i);
 		} else {
-			lstUncachedStoreEIDs.push_back(sbaStoreEIDs.lpbin + i);
-			lstUncachedItemEIDs.push_back(sbaItemEIDs.lpbin + i);
+			lstUncachedStoreEIDs.emplace_back(sbaStoreEIDs.lpbin + i);
+			lstUncachedItemEIDs.emplace_back(sbaItemEIDs.lpbin + i);
 		}
 	}
 
@@ -211,6 +211,6 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	hr = ptrArchiveStore->QueryInterface(IID_ECMsgStore, (LPVOID*)lppArchiveStore);
 	if (hr != hrSuccess)
 		return hr;
-	m_mapStores.insert({eid, ptrArchiveStore});
+	m_mapStores.emplace(eid, ptrArchiveStore);
 	return hrSuccess;
 }

@@ -20,9 +20,9 @@
 
 void ECResyncSet::Append(const SBinary &sbinSourceKey, const SBinary &sbinEntryID, const FILETIME &lastModTime)
 {
-	m_map.insert({
-		{sbinSourceKey.lpb, sbinSourceKey.lpb + sbinSourceKey.cb},
-		{{sbinEntryID.lpb, sbinEntryID.lpb + sbinEntryID.cb}, lastModTime}});
+	m_map.emplace(
+		array_type(sbinSourceKey.lpb, sbinSourceKey.lpb + sbinSourceKey.cb),
+		storage_type({sbinEntryID.lpb, sbinEntryID.lpb + sbinEntryID.cb}, lastModTime));
 }
 
 bool ECResyncSet::Remove(const SBinary &sbinSourceKey)

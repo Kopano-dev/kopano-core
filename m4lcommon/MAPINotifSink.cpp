@@ -228,7 +228,7 @@ ULONG MAPINotifSink::OnNotify(ULONG cNotifications, LPNOTIFICATION lpNotificatio
 		}
 
 		if (CopyNotification(&lpNotifications[i], lpNotif, lpNotif) == 0)
-			m_lstNotifs.push_back(std::move(lpNotif));
+			m_lstNotifs.emplace_back(std::move(lpNotif));
 	}
 	biglock.unlock();
 	m_hCond.notify_all();

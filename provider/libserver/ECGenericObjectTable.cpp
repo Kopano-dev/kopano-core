@@ -420,7 +420,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 		if (bMVColsNew == true)
 			assert(false); //FIXME: error 1 mv prop set!!!
 		bMVColsNew = true;
-		listMVPropTag.push_back(lpsPropTagArray->__ptr[i]);
+		listMVPropTag.emplace_back(lpsPropTagArray->__ptr[i]);
 	}
 	
 	//Check for mvi props
@@ -430,7 +430,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 		if (bMVSortNew == true)
 			assert(false);
 		bMVSortNew = true;
-		listMVPropTag.push_back(lpsSortOrderArray->__ptr[i].ulPropTag);
+		listMVPropTag.emplace_back(lpsSortOrderArray->__ptr[i].ulPropTag);
 	}
 
 	listMVPropTag.sort();
@@ -450,7 +450,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	// Get all the Single Row IDs from the ID map
 	for (const auto &p : mapObjects)
 		if (p.first.ulOrderId == 0)
-			listRows.push_back(p.first);
+			listRows.emplace_back(p.first);
 	if(mapObjects.empty())
 		goto skip;
 
@@ -595,7 +595,7 @@ ECRESULT ECGenericObjectTable::ReloadKeyTable()
 
 	// Get all the Row IDs from the ID map
 	for (const auto &p : mapObjects)
-		listRows.push_back(p.first);
+		listRows.emplace_back(p.first);
 
 	// Reset the key table
 	lpKeyTable->Clear();
@@ -896,7 +896,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 
 		// if we use a restriction, memory usage goes up, so only fetch 20 rows at a time
 		for (size_t i = 0; i < (lpsRestrictPropTagArray ? 20 : 256) && iterRows != lpRows->cend(); ++i) {
-			sQueryRows.push_back(*iterRows);
+			sQueryRows.emplace_back(*iterRows);
 			++iterRows;
 		}
 
@@ -1012,8 +1012,7 @@ ECRESULT ECGenericObjectTable::AddTableNotif(ECKeyTable::UpdateType ulAction, sO
 	struct rowSet		*lpRowSetNotif = NULL;
     
     if(ulAction == ECKeyTable::TABLE_ROW_ADD || ulAction == ECKeyTable::TABLE_ROW_MODIFY) {
-        lstItems.push_back(sRowItem);
-        
+		lstItems.emplace_back(sRowItem);
         er = m_lpfnQueryRowData(this, NULL, lpSession, &lstItems, this->lpsPropTagArray, m_lpObjectData, &lpRowSetNotif, true, true);
         if(er != erSuccess)
             goto exit;
@@ -1251,9 +1250,7 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
             // If the row exists, we simply get the data from the properties of this row, including all properties used
             // in the current sort.
             ECObjectTableList list;
-            
-            list.push_back(sKey);
-            
+			list.emplace_back(sKey);
             er = m_lpfnQueryRowData(this, &xmlsoap, lpSession, &list, lpsPropTagArray, m_lpObjectData, &lpsRowSet, false, true);
             if(er != erSuccess)
                 goto exit;
@@ -1380,7 +1377,7 @@ ECRESULT ECGenericObjectTable::UpdateRow(unsigned int ulType, unsigned int ulObj
 {
     std::list<unsigned int> lstObjId;
     
-    lstObjId.push_back(ulObjId);
+	lstObjId.emplace_back(ulObjId);
 	return UpdateRows(ulType, &lstObjId, ulFlags, false);
 }
 
@@ -1442,8 +1439,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
         // Filter out any item we cannot access (for example, in search-results tables)
 		for (const auto &obj_id : *lstObjId)
 			if (CheckPermissions(obj_id) == erSuccess)
-				lstFilteredIds.push_back(obj_id);
-
+				lstFilteredIds.emplace_back(obj_id);
         // Use our filtered list now
         lstObjId = &lstFilteredIds;
     	break;
@@ -1468,7 +1464,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 			auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
 			while (iterMapObject != this->mapObjects.cend()) {
 				if (iterMapObject->first.ulObjId == obj_id)
-                    ecRowsItem.push_back(iterMapObject->first);
+					ecRowsItem.emplace_back(iterMapObject->first);
 				else if (iterMapObject->first.ulObjId != obj_id)
                     break;
                 ++iterMapObject;
@@ -1487,7 +1483,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	case ECKeyTable::TABLE_ROW_ADD:
 		for (const auto &obj_id : *lstObjId) {
 			/* Add the object to our list of objects */
-			ecRowsItem.push_back({obj_id, 0});
+			ecRowsItem.emplace_back(obj_id, 0);
 
             if(IsMVSet() == true) {
                 // get new mvprop count
@@ -1521,7 +1517,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
                 sRow = sObjectTableKey(obj_id, 0);
                 for (i = 1; i < cMVNew; ++i) { // 0 already added
                     sRow.ulOrderId = i;
-                    ecRowsItem.push_back(sRow);
+					ecRowsItem.emplace_back(sRow);
                 }
             }
         }
@@ -1587,7 +1583,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
 		break;
 
 	case RES_CONTENT:
-		lpPropTags->push_back(lpsRestrict->lpContent->ulPropTag);
+		lpPropTags->emplace_back(lpsRestrict->lpContent->ulPropTag);
 		break;
 
 	case RES_PROPERTY:
@@ -1595,30 +1591,30 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
 			lpPropTags->insert(lpPropTags->end(), sANRProps, sANRProps + ARRAY_SIZE(sANRProps));
 			
 		else {
-			lpPropTags->push_back(lpsRestrict->lpProp->lpProp->ulPropTag);
-			lpPropTags->push_back(lpsRestrict->lpProp->ulPropTag);
+			lpPropTags->emplace_back(lpsRestrict->lpProp->lpProp->ulPropTag);
+			lpPropTags->emplace_back(lpsRestrict->lpProp->ulPropTag);
 		}
 		break;
 
 	case RES_COMPAREPROPS:
-		lpPropTags->push_back(lpsRestrict->lpCompare->ulPropTag1);
-		lpPropTags->push_back(lpsRestrict->lpCompare->ulPropTag2);
+		lpPropTags->emplace_back(lpsRestrict->lpCompare->ulPropTag1);
+		lpPropTags->emplace_back(lpsRestrict->lpCompare->ulPropTag2);
 		break;
 
 	case RES_BITMASK:
-		lpPropTags->push_back(lpsRestrict->lpBitmask->ulPropTag);
+		lpPropTags->emplace_back(lpsRestrict->lpBitmask->ulPropTag);
 		break;
 
 	case RES_SIZE:
-		lpPropTags->push_back(lpsRestrict->lpSize->ulPropTag);
+		lpPropTags->emplace_back(lpsRestrict->lpSize->ulPropTag);
 		break;
 
 	case RES_EXIST:
-		lpPropTags->push_back(lpsRestrict->lpExist->ulPropTag);
+		lpPropTags->emplace_back(lpsRestrict->lpExist->ulPropTag);
 		break;
 
 	case RES_SUBRESTRICTION:
-	    lpPropTags->push_back(PR_ENTRYID); // we need the entryid in subrestriction searches, because we need to know which object to subsearch
+		lpPropTags->emplace_back(PR_ENTRYID); // we need the entryid in subrestriction searches, because we need to know which object to subsearch
 		break;
 	}
 	return erSuccess;
@@ -2338,8 +2334,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 			// Add the category into our sorted-category list and numbered-category list
             assert(m_mapSortedCategories.find(row) == m_mapSortedCategories.end());
             m_mapCategories[sCatRow] = lpCategory;
-			lpCategory->iSortedCategory = m_mapSortedCategories.insert({row, sCatRow}).first;
-
+			lpCategory->iSortedCategory = m_mapSortedCategories.emplace(row, sCatRow).first;
 			// Update the keytable with the effective sort columns
 			er = UpdateKeyTableRow(lpCategory, &sCatRow, lpProps, i+1, fHidden, &sPrevRow, &ulAction);
 			if (er != erSuccess)
@@ -2919,7 +2914,7 @@ ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, s
 		
 	auto iterMinMax = m_mapMinMax.find(sKey);
 	if (iterMinMax == m_mapMinMax.cend()) {
-		m_mapMinMax.insert({sKey, lpNew});
+		m_mapMinMax.emplace(sKey, lpNew);
 	} else {
 		FreePropVal(iterMinMax->second, true); // NOTE this may free lpNewValue, so you can't use that anymore now
 		iterMinMax->second = lpNew;

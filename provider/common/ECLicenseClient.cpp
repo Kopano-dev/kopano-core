@@ -60,19 +60,19 @@ ECRESULT ECLicenseClient::GetCapabilities(unsigned int ulServiceType, std::vecto
 
 	lstCapabilities.clear();
 	if (ulServiceType == 0) {
-		lstCapabilities.push_back("DEFAULT");
-		lstCapabilities.push_back("OUTLOOK");
-		lstCapabilities.push_back("OLENABLED");
-		lstCapabilities.push_back("BACKUP");
-		lstCapabilities.push_back("GATEWAY");
-		lstCapabilities.push_back("ICAL");
-		lstCapabilities.push_back("REPORT");
-		lstCapabilities.push_back("MIGRATION");
-		lstCapabilities.push_back("WA-ADVANCED-CALENDAR");
-		lstCapabilities.push_back("BES");
-		lstCapabilities.push_back("MULTISERVER");
-		lstCapabilities.push_back("UPDATER");
-		lstCapabilities.push_back("EWS");
+		lstCapabilities.emplace_back("DEFAULT");
+		lstCapabilities.emplace_back("OUTLOOK");
+		lstCapabilities.emplace_back("OLENABLED");
+		lstCapabilities.emplace_back("BACKUP");
+		lstCapabilities.emplace_back("GATEWAY");
+		lstCapabilities.emplace_back("ICAL");
+		lstCapabilities.emplace_back("REPORT");
+		lstCapabilities.emplace_back("MIGRATION");
+		lstCapabilities.emplace_back("WA-ADVANCED-CALENDAR");
+		lstCapabilities.emplace_back("BES");
+		lstCapabilities.emplace_back("MULTISERVER");
+		lstCapabilities.emplace_back("UPDATER");
+		lstCapabilities.emplace_back("EWS");
 	}
 	return erSuccess;
 }

@@ -299,9 +299,9 @@ HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 			}
 
 			if (!(m_ulFlags & SYNC_CATCHUP))
-				listSyncStates.push_back(*lpsSyncState);
+				listSyncStates.emplace_back(*lpsSyncState);
 			else
-				listConnections.push_back({lpsSyncState->ulSyncId, 0});
+				listConnections.emplace_back(lpsSyncState->ulSyncId, 0);
 		} else {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, " - Key %u: Invalid size=%u", i, lpEntryList->lpbin[i].cb);
 			hr = MAPI_E_INVALID_PARAMETER;
@@ -345,8 +345,7 @@ HRESULT ECChangeAdvisor::RemoveKeys(LPENTRYLIST lpEntryList)
 
 			// Unregister the sync state.
 			if (!(m_ulFlags & SYNC_CATCHUP))
-				listConnections.push_back(*iterConnection);
-
+				listConnections.emplace_back(*iterConnection);
 			// Remove from map
 			m_mapConnections.erase(iterConnection);
 		}
