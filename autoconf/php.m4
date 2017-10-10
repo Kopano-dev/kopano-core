@@ -33,6 +33,9 @@ AC_DEFUN([PHP_WITH_PHP_CONFIG],[
 		PHP_SYSCONF_DIR="/etc/php5/conf.d"
 	elif test -d "/etc/php5/apache2/conf.d"; then
 		PHP_SYSCONF_DIR="/etc/php5/apache2/conf.d"
+    elif test -d "/etc/opt/rh/rh-php70/php.d"; then
+        # For PHP7 builds on rhel/centos 7 the php-config has no configure-options, setting php sysconf path manually
+        PHP_SYSCONF_DIR="/etc/opt/rh/rh-php70/php.d"
 	else
 		# this happens on old distributions
 	    AC_MSG_RESULT([Cannot find php sysconf path, forcing /usr/share/doc/kopano])
