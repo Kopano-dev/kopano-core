@@ -665,7 +665,6 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 	icalproperty *lpicProp = NULL;
 	int lPriority;
 	int lClass = 0;
-	std::string strClass;
 
 	// Set subject / SUMMARY
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_SUMMARY_PROPERTY);

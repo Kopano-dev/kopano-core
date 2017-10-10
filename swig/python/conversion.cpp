@@ -2720,7 +2720,7 @@ PyObject *Object_from_MVPROPMAP(MVPROPMAP propmap, ULONG ulFlags)
 	 * server configuration.
 	 */
 	PyObject *MVProps = PyList_New(0);
-	PyObject *MVPropValues, *MVPropMap, *MVPropValue = NULL;
+	PyObject *MVPropMap, *MVPropValue = NULL;
 
 	MVPROPMAP *lpMVPropmap = &propmap;
 	for (unsigned int i = 0; i < lpMVPropmap->cEntries; ++i) {

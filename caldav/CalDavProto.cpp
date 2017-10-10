@@ -1159,7 +1159,6 @@ exit:
 HRESULT CalDAV::CreateAndGetGuid(SBinary sbEid, ULONG ulPropTag, std::string *lpstrGuid)
 {
 	HRESULT hr = hrSuccess;
-	std::string strGuid;
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 	memory_ptr<SPropValue> lpProp;

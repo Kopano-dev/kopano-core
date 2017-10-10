@@ -330,7 +330,6 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 {
 	HRESULT hr;
 	const inf_section* infProvider = NULL;
-	std::vector<std::string> prop;
 	void **cf;
 	char filename[PATH_MAX + 1];
 

@@ -235,7 +235,6 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 	LARGE_INTEGER			liPos = {{0}};
 	ULARGE_INTEGER			uliSize = {{0}};
 	ULONG					ulVal = 0;
-	SyncStateMap			mapChangeId;
 	scoped_rlock lock(m_hConnectionLock);
 
 	if (m_lpChangeAdviseSink == NULL && !(m_ulFlags & SYNC_CATCHUP))

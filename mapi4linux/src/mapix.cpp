@@ -418,7 +418,6 @@ HRESULT M4LMsgServiceAdmin::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIE
  */
 HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	HRESULT hr = hrSuccess;
-	std::list<serviceEntry *>::const_iterator i;
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
 	SPropValue sProps[4];

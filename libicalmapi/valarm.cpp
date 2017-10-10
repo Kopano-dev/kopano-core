@@ -87,7 +87,6 @@ HRESULT HrParseVAlarm(icalcomponent *lpicAlarm, LONG *lplRemindBefore, time_t *l
 	icalproperty *lpAction = NULL;
 	icaltriggertype sittTrigger;
 	icalproperty_action eipaAction;
-	std::string strValue;
 
 	LONG lRemindBefore = 0;
 	time_t ttReminderTime = 0;

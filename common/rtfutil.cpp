@@ -1087,7 +1087,6 @@ HRESULT HrExtractBODYFromTextRTF(const std::string &rtf_unfilt,
 	RTFSTATE sState[RTF_MAXSTATE];	
 	fontmap_t mapFontToCharset;
 	convert_context convertContext;
-	std::wstring strwAppend;
 
 	strBodyOut.resize(0,0);
 
