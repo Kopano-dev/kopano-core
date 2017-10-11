@@ -32,10 +32,7 @@ public:
 	_kc_hidden ECLicenseClient(const char * = nullptr, unsigned int = 0) {}
     
     ECRESULT GetCapabilities(unsigned int ulServiceType, std::vector<std::string > &lstCapabilities);
-    ECRESULT GetSerial(unsigned int ulServiceType, std::string &lpstrSerial, std::vector<std::string> &lstCALs);
     ECRESULT GetInfo(unsigned int ulServiceType, unsigned int *lpulUserCount);
-    ECRESULT Auth(const unsigned char *lpData, unsigned int ulSize, void **ret, unsigned int *retsize);
-    ECRESULT SetSerial(unsigned int ulServiceType, const std::string &strSerial, const std::vector<std::string> &lstCALs);
 
 private:
 	_kc_hidden ECRESULT ServiceTypeToServiceTypeString(unsigned int type, std::string &tname);

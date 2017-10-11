@@ -69,21 +69,6 @@ ECRESULT ECLicenseClient::GetCapabilities(unsigned int ulServiceType, std::vecto
 	return erSuccess;
 }
 
-ECRESULT ECLicenseClient::GetSerial(unsigned int ulServiceType, std::string &strSerial, std::vector<std::string> &lstCALs)
-{
-	ECRESULT er;
-	std::string strServiceType;
-
-	er = ServiceTypeToServiceTypeString(ulServiceType, strServiceType);
-	if (er != erSuccess)
-		return er;
-
-	strSerial = "";
-	lstCALs.clear();
-
-	return erSuccess;
-}
-
 ECRESULT ECLicenseClient::GetInfo(unsigned int ulServiceType, unsigned int *lpulUserCount)
 {
 	ECRESULT er;
@@ -95,29 +80,6 @@ ECRESULT ECLicenseClient::GetInfo(unsigned int ulServiceType, unsigned int *lpul
 
 	*lpulUserCount = 65535;
 	return erSuccess;
-}
-
-struct LICENSERESPONSE {
-	unsigned int ulVersion;			// Current: LICENSERESPONSE_VERSION
-	unsigned int ulTrackingId;
-	unsigned long long llFlags;
-	unsigned int ulStatus;
-	char szPadding[4];				// Make sure the struct is padded to a multiple of 8 bytes
-};
-
-ECRESULT ECLicenseClient::Auth(const unsigned char *lpData,
-    unsigned int ulSize, void **lppResponse, unsigned int *lpulResponseSize)
-{
-	*lppResponse = calloc(1, sizeof(LICENSERESPONSE));
-	*lpulResponseSize = sizeof(LICENSERESPONSE);
-	return erSuccess;
-}
-
-ECRESULT ECLicenseClient::SetSerial(unsigned int ulServiceType, const std::string &strSerial, const std::vector<std::string> &lstCALs)
-{
-	std::string strServiceType;
-
-	return ServiceTypeToServiceTypeString(ulServiceType, strServiceType);
 }
 
 } /* namespace */
