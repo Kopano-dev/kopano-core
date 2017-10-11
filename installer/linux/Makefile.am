@@ -49,10 +49,6 @@ dist_doc_DATA = \
 	db-calc-storesize db-convert-attachments-to-files \
 	createuser.dotforward ssl-certificates.sh ldap-switch-sendas.pl \
 	audit-parse.pl db-remove-orphaned-attachments \
-	${top_srcdir}/tools/python-scripts/kopano-fix-ipm-subtree \
-	${top_srcdir}/tools/python-scripts/kopano-localize-folders \
-	${top_srcdir}/tools/python-scripts/kopano-recreate-systemfolders \
-	${top_srcdir}/tools/python-scripts/kopano-rules \
 	${top_srcdir}/tools/python-scripts/update-resource-recipients
 kgwdocdir = ${docdir}/../kopano-gateway
 dist_kgwdoc_DATA = ${top_srcdir}/tools/python-scripts/optimize-imap.py
