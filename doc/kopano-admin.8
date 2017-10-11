@@ -137,12 +137,12 @@ Remove a user from a group. Use the
 to set the groupname.
 .RE
 .PP
-\fB\-l\fR
+\fB\-l\fR, \fB\-\-list\-users\fP
 .RS 4
 List all users available in Kopano. When using an external user source, this action will implicitly synchronize all users in the external source, creating, updating and/or removing users and stores.
 .RE
 .PP
-\fB\-L\fR
+\fB\-L\fR, \fB\-\-list\-groups\fP
 .RS 4
 List all groups available in Kopano. When using an external user source, this action will implicitly synchronize all groups in the external source, creating updating and/or removing groups and memberships.
 .RE
@@ -523,7 +523,7 @@ Use this parameter to rename a user. This option is only valid with the
 update action.
 .RE
 .PP
-\fB\-p\fR \fIpassword\fR
+\fB\-p\fR, \fB\-\-password\fP \fIpassword\fR
 .RS 4
 Set password for a user. This option is only valid with the
 \fI\-c\fR
@@ -532,7 +532,7 @@ create or
 update action.
 .RE
 .PP
-\fB\-P\fR
+\fB\-P\fR, \fB\-\-password\-prompt\fP
 .RS 4
 Set password for a user. The password can be entered on the password prompt. The password will not be shown. This option is only valid with the
 \fI\-c\fR
@@ -541,7 +541,7 @@ create or
 update action.
 .RE
 .PP
-\fB\-f\fR \fI\*(Aqfull name\*(Aq\fR
+\fB\-f\fR, \fB\-\-fullname\fP \fI\*(Aqfull name\*(Aq\fR
 .RS 4
 Specify full user name. Use single quotes around the name to pass it as a single parameter. This option is only valid with the
 \fI\-c\fR
@@ -550,7 +550,7 @@ create or
 update action.
 .RE
 .PP
-\fB\-e\fR \fI\*(Aqemail address\*(Aq\fR
+\fB\-e\fR, \fB\-\-email\fP \fI\*(Aqemail address\*(Aq\fR
 .RS 4
 Specify the email address. This address will be used to set the \*(AqFrom\*(Aq email address in outgoing email messages. Use single quotes around the name to pass it as a single parameter. This option is only valid with the
 \fI\-c\fR
