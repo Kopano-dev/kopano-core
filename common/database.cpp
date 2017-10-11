@@ -421,8 +421,8 @@ ECRESULT KDatabase::InitEngine(bool reconnect)
 		return KCERR_DATABASE_ERROR;
 	}
 	m_bMysqlInitialize = true;
-	my_bool xtrue = true;
-	mysql_options(&m_lpMySQL, MYSQL_OPT_RECONNECT, &xtrue);
+	my_bool value = reconnect;
+	mysql_options(&m_lpMySQL, MYSQL_OPT_RECONNECT, &value);
 	return erSuccess;
 }
 
