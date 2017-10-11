@@ -152,6 +152,8 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
 	}
+	if (reconnect)
+		mysql_options(&m_lpMySQL, MYSQL_INIT_COMMAND, query.c_str());
  exit:
 	if (er != erSuccess)
 		Close();
