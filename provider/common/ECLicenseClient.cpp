@@ -57,23 +57,15 @@ ECRESULT ECLicenseClient::GetCapabilities(unsigned int ulServiceType, std::vecto
 	er = ServiceTypeToServiceTypeString(ulServiceType, strServiceType);
 	if (er != erSuccess)
 		return er;
-
-	lstCapabilities.clear();
-	if (ulServiceType == 0) {
-		lstCapabilities.emplace_back("DEFAULT");
-		lstCapabilities.emplace_back("OUTLOOK");
-		lstCapabilities.emplace_back("OLENABLED");
-		lstCapabilities.emplace_back("BACKUP");
-		lstCapabilities.emplace_back("GATEWAY");
-		lstCapabilities.emplace_back("ICAL");
-		lstCapabilities.emplace_back("REPORT");
-		lstCapabilities.emplace_back("MIGRATION");
-		lstCapabilities.emplace_back("WA-ADVANCED-CALENDAR");
-		lstCapabilities.emplace_back("BES");
-		lstCapabilities.emplace_back("MULTISERVER");
-		lstCapabilities.emplace_back("UPDATER");
-		lstCapabilities.emplace_back("EWS");
+	if (ulServiceType != 0) {
+		lstCapabilities.clear();
+		return erSuccess;
 	}
+	lstCapabilities = std::vector<std::string>{
+		"DEFAULT", "OUTLOOK", "OLENABLED", "BACKUP", "GATEWAY", "ICAL",
+		"REPORT", "MIGRATION", "WA-ADVANCED-CALENDAR", "BES",
+		"MULTISERVER", "UPDATER", "EWS"
+	};
 	return erSuccess;
 }
 
