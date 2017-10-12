@@ -88,23 +88,16 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		PR_RECIPIENT_TYPE, PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_ENTRYID}};
 
 	hr = lpTable->SetColumns(sptaColumns, 0);
-	if (hr != hrSuccess) {
-		ec_log_err("ExpandRecipientsRecursive(): SetColumns failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("SetColumns failed", hr);
 
 	while (true) {
 		memory_ptr<SPropValue> lpSMTPAddress;
 		rowset_ptr lpsRowSet;
 		/* Request group from table */
 		hr = lpTable->QueryRows(1, 0, &~lpsRowSet);
-		if (hr != hrSuccess) {
-			ec_log_err("ExpandRecipientsRecursive(): QueryRows failed: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perrorf("QueryRows failed", hr);
 		if (lpsRowSet->cRows != 1)
 			break;
 
@@ -240,28 +233,17 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	 * PR_OBJECT_TYPE == MAPI_DISTLIST && PR_ADDR_TYPE == "ZARAFA"
 	 */
 	hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpRestriction);
-	if(hr != hrSuccess) {
-		ec_log_err("ExpandRecipients(): MAPIAllocateBuffer failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateBuffer failed", hr);
 	hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes);
-	if (hr != hrSuccess) {
-		ec_log_err("ExpandRecipients(): MAPIAllocateMore failed(1): %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateMore failed(1)", hr);
 	lpRestriction->rt = RES_AND;
 	lpRestriction->res.resAnd.cRes = 2;
 
 	hr = MAPIAllocateMore(sizeof(SPropValue), lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes[0].res.resProperty.lpProp);
-	if (hr != hrSuccess) {
-		ec_log_err("ExpandRecipients(): MAPIAllocateMore failed(2): %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateMore failed(2)", hr);
 
 	lpRestriction->res.resAnd.lpRes[0].rt = RES_PROPERTY;
 	lpRestriction->res.resAnd.lpRes[0].res.resProperty.relop = RELOP_EQ;
@@ -270,11 +252,8 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	lpRestriction->res.resAnd.lpRes[0].res.resProperty.lpProp->Value.ul = MAPI_DISTLIST;
 
 	hr = MAPIAllocateMore(sizeof(SPropValue), lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes[1].res.resProperty.lpProp);
-	if (hr != hrSuccess) {
-		ec_log_err("ExpandRecipients(): MAPIAllocateMore failed(3): %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateMore failed(3)", hr);
 
 	lpRestriction->res.resAnd.lpRes[1].rt = RES_PROPERTY;
 	lpRestriction->res.resAnd.lpRes[1].res.resProperty.relop = RELOP_EQ;
@@ -287,18 +266,11 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	 * PR_ADDR_TYPE == "ZARAFA"
 	 */
 	hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpEntryRestriction);
-	if(hr != hrSuccess) {
-		ec_log_err("ExpandRecipients(): MAPIAllocateBuffer failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateBuffer failed", hr);
 	hr = MAPIAllocateMore(sizeof(SPropValue), lpEntryRestriction, (LPVOID*)&lpEntryRestriction->res.resProperty.lpProp);
-	if (hr != hrSuccess) {
-		ec_log_err("ExpandRecipients(): MAPIAllocateMore failed(4): %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateMore failed(4)", hr);
 
 	lpEntryRestriction->rt = RES_PROPERTY;
 	lpEntryRestriction->res.resProperty.relop = RELOP_EQ;
@@ -306,11 +278,8 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	lpEntryRestriction->res.resProperty.lpProp->ulPropTag = PR_ADDRTYPE_W;
 	lpEntryRestriction->res.resProperty.lpProp->Value.lpszW = const_cast<wchar_t *>(L"ZARAFA");
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTable);
-	if(hr != hrSuccess) {
-		ec_log_err("ExpandRecipients(): GetRecipientTable failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("GetRecipientTable failed", hr);
 
 	/* The first table we send with ExpandRecipientsRecursive() is the RecipientTable itself,
 	 * we need to put a restriction on this table since the first time only the groups
@@ -318,11 +287,8 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	 * will send the group member table and will correct add the members to the recipients
 	 * table. */
 	hr = lpTable->Restrict(lpRestriction, 0);
-	if (hr != hrSuccess) {
-		ec_log_err("ExpandRecipients(): Restrict failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("Restrict failed", hr);
 
 	/* ExpandRecipientsRecursive() will run recursively expanding each group
 	 * it finds including all subgroups. It will use the lExpandedGroups list
@@ -330,8 +296,7 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	std::list<SBinary> lExpandedGroups;
 	hr = ExpandRecipientsRecursive(lpAddrBook, lpMessage, lpTable, lpEntryRestriction, MAPI_TO, &lExpandedGroups); 
 	if (hr != hrSuccess)
-		ec_log_err("ExpandRecipients(): ExpandRecipientsRecursive failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perrorf("ExpandRecipientsRecursive failed", hr);
 	for (const auto &g : lExpandedGroups)
 		MAPIFreeBuffer(g.lpb);
 	return hr;
@@ -366,36 +331,22 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 	if (!lpszFaxDomain || strcmp(lpszFaxDomain, "") == 0)
 		return hr;
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTable);
-	if (hr != hrSuccess) {
-		ec_log_err("RewriteRecipients(): GetRecipientTable failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("GetRecipientTable failed", hr);
 
 	// we need all columns when rewriting FAX to SMTP
 	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpRecipColumns);
-	if (hr != hrSuccess) {
-		ec_log_err("RewriteRecipients(): QueryColumns failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-	
+	if (hr != hrSuccess)
+		return kc_perrorf("QueryColumns failed", hr);
 	hr = lpTable->SetColumns(lpRecipColumns, 0);
-	if (hr != hrSuccess) {
-		ec_log_err("RewriteRecipients(): SetColumns failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("SetColumns failed", hr);
 
 	while (TRUE) {
 		rowset_ptr lpRowSet;
 		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
-		if (hr != hrSuccess) {
-			ec_log_err("RewriteRecipients(): QueryRows failed: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perrorf("QueryRows failed", hr);
 		if (lpRowSet->cRows == 0)
 			break;
 
@@ -540,8 +491,7 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE,
 		     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
 		if (hr != hrSuccess)
-			ec_log_err("Failed to remove duplicate entry: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
+			kc_perror("Failed to remove duplicate entry", hr);
 	}
 	return hrSuccess;
 }
@@ -555,27 +505,17 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 		{3, {PR_ROWID, PR_EMAIL_ADDRESS_W, PR_RECIPIENT_TYPE}};
 
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
-	if (hr != hrSuccess) {
-		ec_log_err("RewriteQuotedRecipients(): GetRecipientTable failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("GetRecipientTable failed", hr);
 	hr = lpTable->SetColumns(sptaColumns, 0);
-	if (hr != hrSuccess) {
-		ec_log_err("RewriteQuotedRecipients(): SetColumns failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("SetColumns failed", hr);
 
 	while (TRUE) {
 		rowset_ptr lpRowSet;
 		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
-		if (hr != hrSuccess) {
-			ec_log_err("RewriteQuotedRecipients(): QueryRows failed: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perrorf("QueryRows failed", hr);
 		if (lpRowSet->cRows == 0)
 			break;
 
@@ -594,11 +534,8 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
             lpEmailAddress->Value.lpszW = (WCHAR *)strEmail.c_str();
 			hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
 			     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
-			if (hr != hrSuccess) {
-				ec_log_err("Failed to rewrite quoted recipient: %s (%x)",
-					GetMAPIErrorMessage(hr), hr);
-				return hr;
-			}
+			if (hr != hrSuccess)
+				return kc_perrorf("Failed to rewrite quoted recipient", hr);
 		}
 	}
 	return hrSuccess;
@@ -620,29 +557,18 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 	sPropRestrict.Value.ul = MAPI_P1;
 
 	hr = lpMessage->GetRecipientTable(0, &~lpTable);
-	if(hr != hrSuccess) {
-		ec_log_err("RemoveP1Recipients(): GetRecipientTable failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-	
+	if (hr != hrSuccess)
+		return kc_perrorf("GetRecipientTable failed", hr);
 	hr = ECPropertyRestriction(RELOP_EQ, PR_RECIPIENT_TYPE,
 	     &sPropRestrict, ECRestriction::Cheap).RestrictTable(lpTable, 0);
-	if(hr != hrSuccess) {
-		ec_log_err("RemoveP1Recipients(): Restrict failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("Restrict failed", hr);
 	hr = lpTable->QueryRows(-1, 0, &~lpRows);
-	if(hr != hrSuccess) {
-		ec_log_err("RemoveP1Recipients(): QueryRows failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("QueryRows failed" ,hr);
 	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(lpRows.get()));
 	if (hr != hrSuccess)
-		ec_log_err("RemoveP1Recipients(): ModifyRecipients failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perrorf("ModifyRecipients failed", hr);
 	return hr;
 }
 
@@ -741,17 +667,11 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	// Get properties from the original message
 	hr = lpMessage->GetProps(sPropsOriginal, 0, &cValuesOriginal, &~lpPropArrayOriginal);
-	if (FAILED(hr)) {
-		ec_log_err("SendUndeliverable(): GetProps failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (FAILED(hr))
+		return kc_perrorf("GetProps failed", hr);
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 34, &~lpPropValue);
-	if(hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): MAPIAllocateBuffers failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateBuffers failed", hr);
 
 	// Subject
 	lpPropValue[ulPropPos].ulPropTag = PR_SUBJECT_W;
@@ -917,35 +837,20 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		return hr;
 	}
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpOriginalMessage);
-	if (hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): OpenProperty failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("OpenProperty failed", hr);
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpOriginalMessage, 0, NULL);
-	if (hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): CopyTo failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("CopyTo failed", hr);
 
 	// Remove MAPI_P1 recipients. These are present when you resend a resent message. They shouldn't be there since
 	// we should be resending the original message
 	hr = RemoveP1Recipients(lpOriginalMessage);
-	if (hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): RemoveP1Recipients failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("RemoveP1Recipients failed", hr);
 	hr = lpOriginalMessage->SaveChanges(KEEP_OPEN_READWRITE);
-	if (hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): SaveChanges failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("SaveChanges failed", hr);
 	ulPropAttachPos = 0;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpPropValueAttach);
 	if (hr != hrSuccess)
@@ -966,39 +871,22 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	lpPropValueAttach[ulPropAttachPos++].Value.ul = -1;
 
 	hr = lpAttach->SetProps(ulPropAttachPos, lpPropValueAttach, NULL);
-	if (hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): SetProps failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("SetProps failed", hr);
 	hr = lpAttach->SaveChanges(KEEP_OPEN_READWRITE);
-	if (hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): SaveChanges failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("SaveChanges failed", hr);
 
 	// add failed recipients to error report
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTableMods);
-	if (hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): GetRecipientTable failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("GetRecipientTable failed", hr);
 	hr = lpTableMods->SetColumns(sPropTagRecipient, TBL_BATCH);
-	if (hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): SetColumns failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("SetColumns failed", hr);
 	hr = lpTableMods->GetRowCount(0, &ulRows);
-	if (hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): GetRowCount failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("GetRowCount failed", hr);
 
 	if (ulRows == 0 || (permanentFailedRecipients.empty() && temporaryFailedRecipients.empty())) {
 		// No specific failed recipients, so the entire message failed
@@ -1017,17 +905,11 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 			// All recipients failed, therefore all recipient need to be in the MDN recipient table
 			rowset_ptr lpRows;
 			hr = lpTableMods->QueryRows(-1, 0, &~lpRows);
-			if (hr != hrSuccess) {
-				ec_log_err("SendUndeliverable(): QueryRows failed: %s (%x)",
-					GetMAPIErrorMessage(hr), hr);
-				return hr;
-			}
+			if (hr != hrSuccess)
+				return kc_perrorf("QueryRows failed", hr);
 			hr = lpErrorMsg->ModifyRecipients(MODRECIP_ADD, reinterpret_cast<ADRLIST *>(lpRows.get()));
-			if (hr != hrSuccess) {
-				ec_log_err("SendUndeliverable(): ModifyRecipients failed: %s (%x)",
-					GetMAPIErrorMessage(hr), hr);
-				return hr;
-			}
+			if (hr != hrSuccess)
+				return kc_perrorf("ModifyRecipients failed", hr);
 		}
 	}
 	else if (ulRows > 0)
@@ -1123,18 +1005,13 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	// Add properties
 	hr = lpErrorMsg->SetProps(ulPropPos, lpPropValue, NULL);
-	if (hr != hrSuccess) {
-		ec_log_err("SendUndeliverable(): SetProps failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("SetProps failed", hr);
 
 	// save message
 	hr = lpErrorMsg->SaveChanges(KEEP_OPEN_READONLY);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to commit message: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to commit message", hr);
 
 	// New mail notification
 	if (HrNewMailNotification(lpStore, lpErrorMsg) != hrSuccess)
@@ -1177,23 +1054,14 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 
 	hr = lpUserStore->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(const_cast<BYTE *>(lpContabEntryID->abeid)),
 	     &iid_of(lpContact), 0, &ulObjType, &~lpContact);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to open contact entryid: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to open contact entryid", hr);
 	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID) * 3, &~lpNames);
-	if (hr != hrSuccess) {
-		ec_log_err("No memory for named IDs from contact: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("No memory for named IDs from contact", hr);
 	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * 3, &~lppNames);
-	if (hr != hrSuccess) {
-		ec_log_err("No memory for named IDs from contact: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("No memory for named IDs from contact", hr);
 
 	// Email1EntryID
 	lpNames[0].lpguid = (GUID*)&PSETID_Address;
@@ -1214,31 +1082,19 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	lppNames[2] = &lpNames[2];
 
 	hr = lpContact->GetIDsFromNames(3, lppNames, 0, &~lpPropTags);
-	if (hr != hrSuccess) {
-		ec_log_err("Error while retrieving named data from contact: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Error while retrieving named data from contact", hr);
 	hr = lpContact->GetProps(lpPropTags, 0, &cValues, &lpEntryIds);
-	if (FAILED(hr)) {
-		ec_log_err("Unable to get named properties: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (FAILED(hr))
+		return kc_perror("Unable to get named properties", hr);
 	if (PROP_TYPE(lpEntryIds[lpContabEntryID->email_offset].ulPropTag) != PT_BINARY) {
 		ec_log_err("Offset %d not found in contact", lpContabEntryID->email_offset);
 		return MAPI_E_NOT_FOUND;
 	}
 
 	hr = MAPIAllocateBuffer(lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb, (void**)eidp);
-	if (hr != hrSuccess) {
-		ec_log_err("No memory for contact EID: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("No memory for contact EID", hr);
 	memcpy(*eidp, lpEntryIds[lpContabEntryID->email_offset].Value.bin.lpb, lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb);
 	*eid_size = lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb;
 	return hrSuccess;
@@ -1278,24 +1134,17 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 	lpAList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
 	lpAList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR*)wstrEmailAddress.c_str();
 	hr = lpAddrBook->ResolveName(0, EMS_AB_ADDRESS_LOOKUP, NULL, lpAList);
-	if (hr != hrSuccess) {
-		ec_log_err("SMTPToZarafa(): ResolveName failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hrSuccess;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("ResolveName failed", hr);
 	lpSpoofEID = PCpropFindProp(lpAList->aEntries[0].rgPropVals, lpAList->aEntries[0].cValues, PR_ENTRYID);
 	if (!lpSpoofEID) {
 		hr = MAPI_E_NOT_FOUND;
-		ec_log_err("SMTPToZarafa(): PpropFindProp failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("PpropFindProp failed", hr);
 		return hrSuccess;
 	}
 	hr = MAPIAllocateBuffer(lpSpoofEID->Value.bin.cb, (void**)&lpSpoofBin);
-	if (hr != hrSuccess) {
-		ec_log_err("SMTPToZarafa(): MAPIAllocateBuffer failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateBuffer failed", hr);
 	memcpy(lpSpoofBin, lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb);
 	*eidp = lpSpoofBin;
 	*eid_size = lpSpoofEID->Value.bin.cb;
@@ -1335,35 +1184,22 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 		return hr;
 	}
 	hr = lpAdrBook->OpenEntry(ulDistListCB, lpDistListEID, &iid_of(lpDistList), 0, &ulObjType, &~lpDistList);
-	if (hr != hrSuccess) {
-		ec_log_err("HrFindUserInGroup(): OpenEntry failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("OpenEntry failed", hr);
 	hr = lpDistList->GetContentsTable(0, &~lpMembersTable);
-	if (hr != hrSuccess) {
-		ec_log_err("HrFindUserInGroup(): GetContentsTable failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("GetContentsTable failed", hr);
 	hr = lpMembersTable->SetColumns(sptaIDProps, 0);
-	if (hr != hrSuccess) {
-		ec_log_err("HrFindUserInGroup(): SetColumns failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("SetColumns failed", hr);
 
 	// sort on PR_OBJECT_TYPE (MAILUSER < DISTLIST) ?
 
 	while (TRUE) {
 		rowset_ptr lpRowSet;
 		hr = lpMembersTable->QueryRows(1, 0, &~lpRowSet);
-		if (hr != hrSuccess) {
-			ec_log_err("HrFindUserInGroup(): QueryRows failed: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perrorf("QueryRows failed", hr);
 		if (lpRowSet->cRows == 0)
 			break;
 
@@ -1551,14 +1387,12 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	// representing entryid is now always a Kopano Entry ID. Open the user so we can log the display name
 	hr = lpAddrBook->OpenEntry(ulRepresentCB, lpRepresentEID, &iid_of(lpRepresenting), 0, &ulObjType, &~lpRepresenting);
 	if (hr != hrSuccess) {
-		ec_log_err("CheckSendAs(): OpenEntry failed(1): %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perrorf("OpenEntry failed(1)", hr);
 		goto exit;
 	}
 	hr = lpRepresenting->GetProps(sptaIDProps, 0, &cValues, &~lpRepresentProps);
 	if (FAILED(hr)) {
-		ec_log_err("CheckSendAs(): GetProps failed(1): %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perrorf("GetProps failed(1)", hr);
 		goto exit;
 	}
 
@@ -1566,14 +1400,12 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 
 	// Open the owner to get the displayname for logging
 	if (lpAddrBook->OpenEntry(ulOwnerCB, lpOwnerEID, &iid_of(lpMailboxOwner), 0, &ulObjType, &~lpMailboxOwner) != hrSuccess) {
-		ec_log_err("CheckSendAs(): OpenEntry failed(2): %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perrorf("OpenEntry failed(2)", hr);
 		goto exit;
 	}
 	hr = lpMailboxOwner->GetProps(sptaIDProps, 0, &cValues, &~lpOwnerProps);
 	if (FAILED(hr)) {
-		ec_log_err("CheckSendAs(): GetProps failed(2): %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perrorf("GetProps failed(2)", hr);
 		goto exit;
 	}
 
@@ -1667,8 +1499,7 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		goto exit;
 	}
 	else if (hr != hrSuccess) {
-		ec_log_err("CheckDelegate() HrOpenRepresentStore failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perrorf("HrOpenRepresentStore failed", hr);
 		goto exit;
 	}
 	hr = HrGetOneProp(lpUserStore, PR_MAILBOX_OWNER_NAME, &~lpUserOwnerName);
@@ -1717,8 +1548,7 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 
 	hr = HrCheckAllowedEntryIDArray("delegate", lpRepOwnerName ? lpRepOwnerName->Value.lpszW : L"<no name>", lpAddrBook, ulOwnerCB, lpOwnerEID, lpDelegates->Value.MVbin.cValues, lpDelegates->Value.MVbin.lpbin, &ulObjType, &bAllowed);
 	if (hr != hrSuccess) {
-		ec_log_err("CheckDelegate() HrCheckAllowedEntryIDArray failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perrorf("HrCheckAllowedEntryIDArray failed", hr);
 		goto exit;
 	}
 	if (bAllowed)
@@ -1815,18 +1645,11 @@ static HRESULT PostSendProcessing(ULONG cbEntryId, const ENTRYID *lpEntryId,
 	object_ptr<IECSpooler> lpSpooler;
 	
 	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpObject);
-	if(hr != hrSuccess) {
-		ec_log_err("Unable to get PR_EC_OBJECT in post-send processing: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to get PR_EC_OBJECT in post-send processing", hr);
 	hr = reinterpret_cast<IUnknown *>(lpObject->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
-	if(hr != hrSuccess) {
-		ec_log_err("Unable to get spooler interface for message: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-	
+	if (hr != hrSuccess)
+		return kc_perror("Unable to get spooler interface for message", hr);
 	hr = lpSpooler->DeleteFromMasterOutgoingTable(cbEntryId, lpEntryId, EC_SUBMIT_MASTER);
 	if (hr != hrSuccess)
 		ec_log_warn("Could not remove invalid message from queue: %s (%x)",
@@ -1922,16 +1745,14 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	// Get the owner of the store
 	hr = lpSecurity->GetOwner(&cbOwner, &~lpOwner);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to get owner information: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to get owner information", hr);
 		goto exit;
 	}
 
 	// We now have the owner ID, get the owner information through the ServiceAdmin
 	hr = lpServiceAdmin->GetUser(cbOwner, lpOwner, MAPI_UNICODE, &~lpUser);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to get user information from store: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to get user information from store", hr);
 		goto exit;
 	}
 
@@ -2009,8 +1830,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 		HRESULT hr2 = lpMessage->SetProps(4, sPropSender, NULL);
 		if (hr2 != hrSuccess) {
-			ec_log_err("Unable to set sender id for message: %s (%x)",
-				GetMAPIErrorMessage(hr2), hr2);
+			kc_perror("Unable to set sender id for message", hr2);
 			goto exit;
 		}
 	}
@@ -2028,8 +1848,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	} else {
 		hr = HrGetOneProp(lpUserStore, PR_MAILBOX_OWNER_ENTRYID, &~lpPropOwner);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to get Kopano mailbox owner id: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
+			kc_perror("Unable to get Kopano mailbox owner id", hr);
 			goto exit;
 		}
 		hr = lpAddrBook->CompareEntryIDs(lpPropOwner->Value.bin.cb, (LPENTRYID)lpPropOwner->Value.bin.lpb,
@@ -2090,15 +1909,13 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 	hr = lpMessage->SetProps(4, sPropSender, NULL);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to update message with sender: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to update message with sender", hr);
 		goto exit;
 	}
 
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to save message before sending: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to save message before sending", hr);
 		goto exit;
 	}
 
@@ -2113,15 +1930,13 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		// move PR_REPRESENTING to PR_SENDER_NAME
 		hr = lpMessage->GetProps(sptaMoveReprProps, 0, &cValuesMoveProps, &~lpMoveReprProps);
 		if (FAILED(hr)) {
-			ec_log_err("Unable to find sender information: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
+			kc_perror("Unable to find sender information", hr);
 			goto exit;
 		}
 
 		hr = lpMessage->DeleteProps(sptaMoveReprProps, NULL);
 		if (FAILED(hr)) {
-			ec_log_err("Unable to remove sender information: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
+			kc_perror("Unable to remove sender information", hr);
 			goto exit;
 		}
 
@@ -2133,8 +1948,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 		hr = lpMessage->SetProps(5, lpMoveReprProps, NULL);
 		if (FAILED(hr)) {
-			ec_log_err("Unable to update sender information: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
+			kc_perror("Unable to update sender information", hr);
 			goto exit;
 		}
 
@@ -2201,8 +2015,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		
 		hr = Archive::Create(lpAdminSession, &ptrArchive);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to instantiate archive object: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
+			kc_perror("Unable to instantiate archive object", hr);
 			goto exit;
 		}
 		
@@ -2242,8 +2055,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		HRESULT hr2 = lpRepMessage->SaveChanges(0);
 
 		if (hr2 != hrSuccess)
-			ec_log_err("The representee's mail copy could not be saved: %s (%x)",
-				GetMAPIErrorMessage(hr2), hr2);
+			kc_perror("The representee's mail copy could not be saved", hr2);
 	}
 
 exit:
@@ -2296,8 +2108,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to open admin session: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to open admin session", hr);
 		goto exit;
 	}
 
@@ -2315,40 +2126,34 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to open user session: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to open user session", hr);
 		goto exit;
 	}
 	hr = lpUserSession->OpenAddressBook(0, nullptr, AB_NO_DIALOG, &~lpAddrBook);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to open addressbook. %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to open addressbook", hr);
 		goto exit;
 	}
 	hr = HrOpenDefaultStore(lpUserSession, &~lpUserStore);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to open default store of user: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to open default store of user", hr);
 		goto exit;
 	}
 	hr = HrGetOneProp(lpUserStore, PR_EC_OBJECT, &~lpsProp);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to get Kopano internal object: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to get Kopano internal object", hr);
 		goto exit;
 	}
 
 	// NOTE: object is placed in Value.lpszA, not Value.x
 	hr = reinterpret_cast<IUnknown *>(lpsProp->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if (hr != hrSuccess) {
-		ec_log_err("ServiceAdmin interface not supported: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("ServiceAdmin interface not supported", hr);
 		goto exit;
 	}
 	hr = reinterpret_cast<IUnknown *>(lpsProp->Value.lpszA)->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess) {
-		ec_log_err("IID_IECSecurity not supported by store: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("IID_IECSecurity not supported by store", hr);
 		goto exit;
 	}
 
