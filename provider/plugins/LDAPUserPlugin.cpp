@@ -1580,11 +1580,12 @@ list<string> LDAPUserPlugin::getLDAPAttributeValues(char *attribute, LDAPMessage
 	string s;
 	auto_free_ldap_berval berval(ldap_get_values_len(m_ldap, entry, attribute));
 
-	if (berval != NULL)
-		for (int i = 0; berval[i] != NULL; ++i) {
-			s.assign(berval[i]->bv_val, berval[i]->bv_len);
-			r.emplace_back(std::move(s));
-		}
+	if (berval == NULL)
+		return r;
+	for (int i = 0; berval[i] != NULL; ++i) {
+		s.assign(berval[i]->bv_val, berval[i]->bv_len);
+		r.emplace_back(std::move(s));
+	}
 	return r;
 }
 
