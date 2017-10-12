@@ -102,9 +102,7 @@ HRESULT LMTP::HrResponse(const string &strResponse)
 	ec_log_debug("< %s", strResponse.c_str());
 	hr = m_lpChannel->HrWriteLine(strResponse);
 	if (hr != hrSuccess)
-		ec_log_err("LMTP write error: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-
+		kc_perror("LMTP write error", hr);
 	return hr;
 }
 
@@ -184,23 +182,16 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 	ssize_t ret, to_write;
 
 	hr = HrResponse("354 2.1.5 Start mail input; end with <CRLF>.<CRLF>");
-	if (hr != hrSuccess) {
-		ec_log_err("Error during DATA communication with client: %s (%x).",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Error during DATA communication with client", hr);
 
 	// Now the mail body needs to be read line by line until <CRLF>.<CRLF> is encountered
 	while (1) {
 		hr = m_lpChannel->HrReadLine(&inBuffer);
-		if (hr != hrSuccess) {
-			ec_log_err("Error during DATA communication with client: %s (%x).",
-				GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
-
-			if (inBuffer == ".")
-				break;
+		if (hr != hrSuccess)
+			return kc_perror("Error during DATA communication with client", hr);
+		if (inBuffer == ".")
+			break;
 
 		offset = 0;
 		if (inBuffer[0] == '.')

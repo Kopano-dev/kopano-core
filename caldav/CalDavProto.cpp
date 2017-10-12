@@ -310,10 +310,8 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	}
 
 	hr = m_lpUsrFld->GetContentsTable(0, &~lpTable);
-	if (hr != hrSuccess) {
-		ec_log_err("Error in GetContentsTable, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Error in GetContentsTable", hr);
 
 	// restrict on meeting requests and appointments
 	sResData.ulPropTag = PR_MESSAGE_CLASS_A;
@@ -324,10 +322,8 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	sResData.Value.lpszA = const_cast<char *>("IPM.Task");
 	rst += ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData, ECRestriction::Shallow);
 	hr = rst.RestrictTable(lpTable, 0);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to restrict folder contents, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to restrict folder contents", hr);
 
 	// +4 to add GlobalObjid, dispidApptTsRef , PR_ENTRYID and private in SetColumns along with requested data.
 	cbsize = (ULONG)sDavProp.lstProps.size() + 4;
@@ -350,10 +346,8 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
 
 	hr = m_lpUsrFld->GetProps(lpPropTagArr, 0, &cValues, &~lpProps);
-	if (FAILED(hr)) {
-		ec_log_err("Unable to receive folder properties, error 0x%08X %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (FAILED(hr))
+		return kc_perror("Unable to receive folder properties", hr);
 
 	// @todo, add "start time" property and recurrence data to table and filter in loop
 	// if lpsWebRCalQry->sFilter.tStart is set.
@@ -465,20 +459,16 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore))
 		blCensorPrivate = true;
 	hr = m_lpUsrFld->GetContentsTable(0, &~lpTable);
-	if(hr != hrSuccess) {
-		ec_log_err("Error in GetContentsTable, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Error in GetContentsTable", hr);
 
 	sDavProp = sWebRMGet->sProp;
 
 	//Add GUID in Setcolumns.
 	cbsize = (ULONG)sDavProp.lstProps.size() + 2;
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cbsize), &~lpPropTagArr);
-	if (hr != hrSuccess) {
-		ec_log_err("Error allocating memory, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Error allocating memory", hr);
 	
 	lpPropTagArr->cValues = cbsize;
 	lpPropTagArr->aulPropTag[0] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
@@ -678,7 +668,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	cbsize = (ULONG)sDavProp.lstProps.size() + 3;
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cbsize), &~lpPropTagArr);
 	if (hr != hrSuccess) {
-		ec_log_err("Error allocating memory, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("Error allocating memory", hr);
 		goto exit;
 	}
 	
@@ -786,13 +776,13 @@ HRESULT CalDAV::HrHandleDelete()
 	}
 	hr = HrGetOneProp(m_lpDefStore, PR_IPM_WASTEBASKET_ENTRYID, &~lpPropWstBxEID);
 	if(hr != hrSuccess) {
-		ec_log_err("Error finding \"Deleted items\" folder, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("Error finding \"Deleted items\" folder", hr);
 		goto exit;
 	}
 	hr = m_lpDefStore->OpenEntry(lpPropWstBxEID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropWstBxEID->Value.bin.lpb), &iid_of(lpWastBoxFld), MAPI_MODIFY, &ulObjType, &~lpWastBoxFld);
 	if (hr != hrSuccess)
 	{
-		ec_log_err("Error opening \"Deleted items\" folder, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("Error opening \"Deleted items\" folder", hr);
 		goto exit;
 	}
 	
@@ -847,13 +837,13 @@ HRESULT CalDAV::HrHandleDelete()
 		if (hr == MAPI_E_COLLISION) {
 			// rename the folder if same folder name is present in Deleted items folder
 			if (nFldId >= 1000) { // Max 999 folders
-				ec_log_err("Error Deleting Folder error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+				kc_perror("Error deleting folder", hr);
 				goto exit;
 			}
 			wstrFldTmpName = wstrFldName + std::to_wstring(nFldId);
 			++nFldId;
 		} else if (hr != hrSuccess ) {
-			ec_log_err("Error Deleting Folder error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+			kc_perror("Error deleting folder", hr);
 			goto exit;
 		} else
 			break;
@@ -903,11 +893,7 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	//Find Entry With Particular Guid
 	hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &~lpMessage);
 	if (hr != hrSuccess)
-	{
-		ec_log_err("Entry to be deleted not found: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
+		return kc_perror("Entry to be deleted not found", hr);
 	bMatch = ! m_lpRequest->CheckIfMatch(lpMessage);
 	if (bMatch)
 		return MAPI_E_DECLINE_COPY;
@@ -960,7 +946,7 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	if (m_ulFolderFlag & DEFAULT_FOLDER)
 		hr = HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION);
 	if (hr != hrSuccess)
-		ec_log_err("Error Publishing Freebusy, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("Error publishing freebusy", hr);
 	return hrSuccess;
 }
 
@@ -1015,7 +1001,7 @@ HRESULT CalDAV::HrPut()
 		blNewEntry = true;
 		hr = m_lpUsrFld->CreateMessage(nullptr, 0, &~lpMessage);
 		if (hr != hrSuccess) {
-			ec_log_err("Error creating new message, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+			kc_perror("Error creating new message", hr);
 			goto exit;
 		}
 
@@ -1027,7 +1013,7 @@ HRESULT CalDAV::HrPut()
 		sProp.Value.lpszA = (char*)strGuid.c_str();
 		hr = HrSetOneProp(lpMessage, &sProp);
 		if (hr != hrSuccess) {
-			ec_log_err("Error adding property to new message, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+			kc_perror("Error adding property to new message", hr);
 			goto exit;
 		}
 	}
@@ -1044,7 +1030,7 @@ HRESULT CalDAV::HrPut()
 	hr = lpICalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
 	if(hr!=hrSuccess)
 	{
-		ec_log_err("Error Parsing ical data in PUT request, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("Error parsing iCal data in PUT request", hr);
 		ec_log_debug("Error Parsing ical data: %s", strIcal.c_str());
 		goto exit;
 	}
@@ -1052,7 +1038,7 @@ HRESULT CalDAV::HrPut()
 	if (lpICalToMapi->GetItemCount() == 0)
 	{
 		hr = MAPI_E_INVALID_OBJECT;
-		ec_log_err("No message in ical data in PUT request, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("No message in iCal data in PUT request", hr);
 		goto exit;
 	}
 
@@ -1083,7 +1069,7 @@ HRESULT CalDAV::HrPut()
 	hr = lpICalToMapi->GetItem(0, 0, lpMessage);
 	if(hr != hrSuccess)
 	{
-		ec_log_err("Error converting ical data to Mapi message in PUT request, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("Error converting iCal data in PUT request to MAPI message", hr);
 		goto exit;
 	}
 
@@ -1109,14 +1095,14 @@ HRESULT CalDAV::HrPut()
 		hr = lpICalToMapi->GetItem(n, 0, lpMessage);
 		if(hr != hrSuccess)
 		{
-			ec_log_err("Error converting ical data to Mapi message in PUT request, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+			kc_perror("Error converting iCal data in PUT request to MAPI message", hr);
 			goto exit;
 		}
 	}
 
 	hr = lpMessage->SaveChanges(0);
 	if (hr != hrSuccess) {
-		ec_log_err("Error saving Mapi message in PUT request, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("Error saving MAPI message during PUT", hr);
 		goto exit;
 	}
 
@@ -1128,7 +1114,7 @@ HRESULT CalDAV::HrPut()
 	if (m_ulFolderFlag & DEFAULT_FOLDER &&
 	    HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION) != hrSuccess)
 		// @todo already logged, since we pass the logger in the publish function?
-		ec_log_err("Error Publishing Freebusy, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("Error publishing freebusy", hr);
 exit:
 	if (hr == hrSuccess && blNewEntry)
 		m_lpRequest->HrResponseHeader(201, "Created");
@@ -1164,22 +1150,14 @@ HRESULT CalDAV::CreateAndGetGuid(SBinary sbEid, ULONG ulPropTag, std::string *lp
 	memory_ptr<SPropValue> lpProp;
 
 	hr = m_lpActiveStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
-	if (hr != hrSuccess) {
-		ec_log_err("Error opening message to add Guid, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Error opening message to add GUID", hr);
 	hr = HrCreateGlobalID(ulPropTag, NULL, &~lpProp);
-	if (hr != hrSuccess) {
-		ec_log_err("Error creating Guid, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Error creating GUID", hr);
 	hr = lpMessage->SetProps(1, lpProp, NULL);
-	if (hr != hrSuccess) {
-		ec_log_err("Error while adding Guid to message, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Error while adding GUID to message", hr);
 	hr = lpMessage->SaveChanges(0);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::CreateAndGetGuid SaveChanges failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
@@ -1245,11 +1223,8 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_FLDID], PT_UNICODE);
 	// saves the url name (guid) into the guid named property, @todo fix function name to reflect action better
 	hr = HrAddProperty(lpUsrFld, ulPropTag, true, &m_wstrFldName);
-	if(hr != hrSuccess) {
-		ec_log_err("Cannot Add named property, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Cannot add named property", hr);
 	// @todo set all xml properties as named properties on this folder
 	return hrSuccess;
 }
@@ -1331,10 +1306,8 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	}
 
 	hr = HrGetSubCalendars(m_lpSession, m_lpIPMSubtree, nullptr, &~lpHichyTable);
-	if (hr != hrSuccess) {
-		ec_log_err("Error retrieving subcalendars for IPM_Subtree, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Error retrieving subcalendars for IPM_Subtree", hr);
 
 	// public definitly doesn't have a wastebasket to filter
 	if ((m_ulUrlFlag & REQ_PUBLIC) == 0)
@@ -1412,7 +1385,7 @@ nowaste:
 				hr = HrAddProperty(m_lpActiveStore, lpRowsALL->aRow[i].lpProps[0].Value.bin, ulPropTagFldId, true, &wstrFldPath);
 
 			if (hr != hrSuccess || wstrFldPath.empty()) {
-				ec_log_err("Error adding Folder id property, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+				kc_perror("Error adding folder id property", hr);
 				continue;
 			}
 			// @todo FOLDER_PREFIX only needed for ulPropTagFldId versions
@@ -1572,11 +1545,8 @@ HRESULT CalDAV::HrHandlePost()
 	}
 
 	hr = lpIcalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to parse received ical message: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Unable to parse received iCal message", hr);
 	if (lpIcalToMapi->GetFreeBusyInfo(NULL, NULL, NULL, NULL) == hrSuccess)
 		return HrHandleFreebusy(lpIcalToMapi.get());
 	return HrHandleMeeting(lpIcalToMapi.get());
@@ -1719,11 +1689,8 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 	}
 
 	hr = lpNewMsg->SubmitMessage(0);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to submit message: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
-	}
-
+	if (hr != hrSuccess)
+		kc_perror("Unable to submit message", hr);
 exit:
 	if(hr == hrSuccess)
 		m_lpRequest->HrResponseHeader(200, "Ok");
@@ -1751,25 +1718,13 @@ HRESULT CalDAV::HrConvertToIcal(const SPropValue *lpEid, MapiToICal *lpMtIcal,
 	hr = m_lpActiveStore->OpenEntry(lpEid->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEid->Value.bin.lpb),
 	     &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess || ulObjType != MAPI_MESSAGE)
-	{
-		ec_log_err("Error opening calendar entry, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
+		return kc_perror("Error opening calendar entry", hr);
 	hr = lpMtIcal->AddMessage(lpMessage, m_strSrvTz, ulFlags);
 	if (hr != hrSuccess)
-	{
-		ec_log_err("Error converting mapi message to ical, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
+		return kc_perror("Error converting MAPI message to iCal", hr);
 	hr = lpMtIcal->Finalize(0, NULL, lpstrIcal);
 	if (hr != hrSuccess)
-	{
-		ec_log_err("Error creating ical data, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
+		return kc_perror("Error creating iCal data", hr);
 	lpMtIcal->ResetObject();
 	return hrSuccess;
 }
