@@ -709,7 +709,8 @@ class Item(Base):
 
     @start.setter
     def start(self, val):
-        return self.create_prop('common:34070', val, proptype=PT_SYSTIME).value
+        self.create_prop('common:34070', val, PT_SYSTIME) # XXX check if exists?
+        self.create_prop('appointment:33293', val, PT_SYSTIME)
 
     @property
     def end(self): # XXX optimize, guid
@@ -717,7 +718,8 @@ class Item(Base):
 
     @end.setter
     def end(self, val):
-        return self.create_prop('common:34071', val, proptype=PT_SYSTIME).value
+        self.create_prop('common:34071', val, PT_SYSTIME) # XXX check if exists?
+        self.create_prop('appointment:33294', val, PT_SYSTIME)
 
     @property
     def location(self):
