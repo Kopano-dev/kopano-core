@@ -138,6 +138,12 @@ enum {
 	OPT_RESET_FOLDER_COUNT,
 	OPT_VERBOSITY,
 	OPT_VERSION,
+	OPT_LIST_USERS,
+	OPT_LIST_GROUPS,
+	OPT_PASSWORD,
+	OPT_PASSWORD_PROMPT,
+	OPT_FULLNAME,
+	OPT_EMAIL,
 };
 
 static const struct option long_options[] = {
@@ -199,6 +205,12 @@ static const struct option long_options[] = {
 	{ "reset-folder-count", 1, NULL, OPT_RESET_FOLDER_COUNT },
 	{ "verbose", required_argument, NULL, OPT_VERBOSITY },
 	{ "version", no_argument, NULL, OPT_VERSION },
+	{"list-users", no_argument, nullptr, OPT_LIST_USERS},
+	{"list-groups", no_argument, nullptr, OPT_LIST_GROUPS},
+	{"password", no_argument, nullptr, OPT_PASSWORD},
+	{"password-prompt", no_argument, nullptr, OPT_PASSWORD_PROMPT},
+	{"fullname", no_argument, nullptr, OPT_FULLNAME},
+	{"email", no_argument, nullptr, OPT_EMAIL},
 	{ NULL, 0, NULL, 0 }
 };
 
@@ -2293,6 +2305,7 @@ int main(int argc, char* argv[])
 				++loglevel;
 			break;
 		case 'l':
+		case OPT_LIST_USERS:
 			mode = MODE_LIST_USERS;
 			break;
 		case 's':
@@ -2320,6 +2333,7 @@ int main(int argc, char* argv[])
 			groupname = validateInput(optarg);
 			break;
 		case 'L':
+		case OPT_LIST_GROUPS:
 			mode = MODE_LIST_GROUP;
 			break;
 		case 'b':
@@ -2334,15 +2348,19 @@ int main(int argc, char* argv[])
 			new_username = validateInput(optarg);
 			break;
 		case 'P':
+		case OPT_PASSWORD:
 			passprompt = 1;
 			break;
 		case 'p':
+		case OPT_PASSWORD_PROMPT:
 			password = validateInput(optarg);
 			break;
 		case 'f':
+		case OPT_FULLNAME:
 			fullname = validateInput(optarg);
 			break;
 		case 'e':
+		case OPT_EMAIL:
 			emailadr = validateInput(optarg);
 			break;
 		case 'a':
