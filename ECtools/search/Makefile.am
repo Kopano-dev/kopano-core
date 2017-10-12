@@ -6,6 +6,7 @@ EXTRA_DIST = setup.py		\
 	kopano_search/magic.py \
 	kopano_search/plugin_solr.py  \
 	kopano_search/plugin_xapian.py  \
+	kopano_search/version.py  \
 	kopano_search/xmltotext.xslt
 
 install-exec-local:

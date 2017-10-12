@@ -1,5 +1,6 @@
 EXTRA_DIST = setup.py		\
 	kopano/__init__.py \
+	kopano/version.py \
 	kopano/lockfile.py \
 	kopano/daemon/LICENSE \
 	kopano/daemon/__init__.py \

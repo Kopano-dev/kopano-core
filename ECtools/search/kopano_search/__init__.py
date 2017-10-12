@@ -17,6 +17,7 @@ else:
     from Queue import Empty
 
 from kopano_search import plaintext
+from .version import __version__
 import kopano
 from kopano import log_exc, Config
 sys.path.insert(0, os.path.dirname(__file__)) # XXX for __import__ to work

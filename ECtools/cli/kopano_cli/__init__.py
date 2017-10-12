@@ -4,6 +4,8 @@ import locale
 import sys
 import traceback
 
+from .version import __version__
+
 from MAPI.Tags import PR_EC_STATSTABLE_SYSTEM, PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE
 import kopano
 from kopano.parser import _true, _int, _name, _guid, _bool, _list_name, _date, _path
