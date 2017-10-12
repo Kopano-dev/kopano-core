@@ -7,6 +7,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import datetime
 import optparse
+import sys
 
 from .compat import decode as _decode
 
@@ -25,6 +26,11 @@ def parse_list_str(option, opt_str, value, parser):
 def parse_bool(option, opt_str, value, parser):
     assert value in ('yes', 'no'), "error: %s option requires 'yes' or 'no' as argument" % opt_str
     setattr(parser.values, option.dest, value == 'yes')
+
+def show_version(*args):
+    import __main__
+    print(__main__.__version__)
+    sys.exit()
 
 def _true():
     return {'action': 'store_true'}
@@ -94,7 +100,7 @@ Available options:
 
 -v, --verbose: Enable verbose output (python-kopano does not check this!)
 
--V, --version: Show program version and exit
+-V, --version: Show program version
 """
 
     parser = optparse.OptionParser(formatter=optparse.IndentedHelpFormatter(max_help_position=42), usage=usage)
@@ -125,7 +131,7 @@ Available options:
     if 'm' in options: parser.add_option('-m', '--modify', dest='modify', action='store_true', help='enable database modification')
     if 'l' in options: parser.add_option('-l', '--log-level', dest='loglevel', action='callback', type='str', callback=parse_loglevel, help='set log level (CRITICAL, ERROR, WARNING, INFO, DEBUG)', metavar='LEVEL')
     if 'v' in options: parser.add_option('-v', '--verbose', dest='verbose', action='store_true', help='enable verbose output')
-    if 'V' in options: parser.add_option('-V', '--version', dest='version', action='store_true', help='show program version')
+    if 'V' in options: parser.add_option('-V', '--version', action='callback', help='show program version', callback=show_version)
 
     if 'w' in options: parser.add_option('-w', '--worker-processes', dest='worker_processes', help='number of parallel worker processes', metavar='N', type='int')
 

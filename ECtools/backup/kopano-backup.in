@@ -1,6 +1,7 @@
 #!/usr/bin/env @PYTHON@
 import sys
 import kopano_backup
+from kopano_backup import __version__
 
 if __name__ == '__main__':
     sys.exit(kopano_backup.main())
