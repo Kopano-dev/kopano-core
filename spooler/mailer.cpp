@@ -233,7 +233,6 @@ remove_group:
 static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	list<SBinary> lExpandedGroups;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SRestriction> lpRestriction, lpEntryRestriction;
 	/*
@@ -244,14 +243,14 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	if(hr != hrSuccess) {
 		ec_log_err("ExpandRecipients(): MAPIAllocateBuffer failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes);
 	if (hr != hrSuccess) {
 		ec_log_err("ExpandRecipients(): MAPIAllocateMore failed(1): %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	lpRestriction->rt = RES_AND;
@@ -261,7 +260,7 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	if (hr != hrSuccess) {
 		ec_log_err("ExpandRecipients(): MAPIAllocateMore failed(2): %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	lpRestriction->res.resAnd.lpRes[0].rt = RES_PROPERTY;
@@ -274,7 +273,7 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	if (hr != hrSuccess) {
 		ec_log_err("ExpandRecipients(): MAPIAllocateMore failed(3): %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	lpRestriction->res.resAnd.lpRes[1].rt = RES_PROPERTY;
@@ -291,14 +290,14 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	if(hr != hrSuccess) {
 		ec_log_err("ExpandRecipients(): MAPIAllocateBuffer failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = MAPIAllocateMore(sizeof(SPropValue), lpEntryRestriction, (LPVOID*)&lpEntryRestriction->res.resProperty.lpProp);
 	if (hr != hrSuccess) {
 		ec_log_err("ExpandRecipients(): MAPIAllocateMore failed(4): %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	lpEntryRestriction->rt = RES_PROPERTY;
@@ -310,7 +309,7 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	if(hr != hrSuccess) {
 		ec_log_err("ExpandRecipients(): GetRecipientTable failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	/* The first table we send with ExpandRecipientsRecursive() is the RecipientTable itself,
@@ -322,20 +321,17 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	if (hr != hrSuccess) {
 		ec_log_err("ExpandRecipients(): Restrict failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	/* ExpandRecipientsRecursive() will run recursively expanding each group
 	 * it finds including all subgroups. It will use the lExpandedGroups list
 	 * to protect itself for circular subgroup membership */
+	std::list<SBinary> lExpandedGroups;
 	hr = ExpandRecipientsRecursive(lpAddrBook, lpMessage, lpTable, lpEntryRestriction, MAPI_TO, &lExpandedGroups); 
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		ec_log_err("ExpandRecipients(): ExpandRecipientsRecursive failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
-	}
-
-exit:
 	for (const auto &g : lExpandedGroups)
 		MAPIFreeBuffer(g.lpb);
 	return hr;
