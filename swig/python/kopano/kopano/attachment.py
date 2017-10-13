@@ -1,8 +1,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
 import sys
@@ -78,8 +78,10 @@ class Attachment(Base):
     @property
     def size(self):
         """Size"""
-        # XXX size of the attachment object, so more than just the attachment data
-        # XXX (useful when calculating store size, for example.. sounds interesting to fix here)
+        # XXX size of the attachment object, so more than just the attachment
+        #     data
+        # XXX (useful when calculating store size, for example.. sounds
+        #     interesting to fix here)
         try:
             return int(HrGetOneProp(self.mapiobj, PR_ATTACH_SIZE).Value)
         except MAPIErrorNotFound:

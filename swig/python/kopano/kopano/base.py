@@ -1,8 +1,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2017 - Kopano and its licensors (see LICENSE file)
 """
 
 import sys
@@ -23,7 +23,8 @@ class Base(object):
         :param proptag: MAPI property tag
         :param create: create property if it doesn't exist
         """
-        return _prop.prop(self, self.mapiobj, proptag, create=create, proptype=proptype)
+        return _prop.prop(self, self.mapiobj, proptag, create=create,
+            proptype=proptype)
 
     def get_prop(self, proptag):
         """Return :class:`property <Property>` with given proptag or

@@ -50,7 +50,7 @@ from .group import Group
 from .property_ import _proptag_to_name
 
 from .compat import (
-    unhex as _unhex, decode as _decode, repr as _repr,
+    unhex as _unhex, decode as _decode, repr as _repr, is_str as _is_str,
     fake_unicode as _unicode, lru_cache as _lru_cache
 )
 
@@ -524,7 +524,7 @@ class Server(object):
 
     def store(self, guid=None, entryid=None):
         """Return :class:`store <Store>` with given GUID."""
-        if _unicode(guid).split('@')[0] == 'public':
+        if _is_str(guid) and _unicode(guid).split('@')[0] == 'public':
             return self._pubstore(guid)
         else:
             return _store.Store(guid=guid, entryid=entryid, server=self)
