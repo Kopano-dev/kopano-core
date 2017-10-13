@@ -114,6 +114,7 @@ PidLidEmail1DisplayName = 'PT_UNICODE:PSETID_Address:0x8080'
 PidLidEmail1EmailAddress = 'PT_UNICODE:PSETID_Address:0x8083'
 PidLidEmail1OriginalDisplayName = 'PT_UNICODE:PSETID_Address:0x8084'
 PidLidEmail1OriginalEntryId = 'PT_BINARY:PSETID_Address:0x8085'
+PidLidAppointmentStateFlags = 'PT_LONG:appointment:0x8217'
 
 class PersistentList(list):
     def __init__(self, mapiobj, proptag, *args, **kwargs):
@@ -192,6 +193,8 @@ class Item(Base):
                         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Contact')]) # XXX set default props
                     elif container_class == 'IPF.Appointment':
                         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')]) # XXX set default props
+                        self.from_ = self.store.user
+                        self.set_value(PidLidAppointmentStateFlags, 1)
             if save:
                 self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -570,7 +573,7 @@ class Item(Base):
             # XXX: Check if we can copy the calendar item.
             # XXX: Update the calendar item, for tracking status
             # XXX: Set the body of the message like WebApp / OL does.
-            item = self.store.outbox.create_item(subject=self.subject, to=self.to, start=self.start, end=self.end, body=self.body)
+            item = self.store.outbox.create_item(subject=self.subject, to=self.to, start=self.start, end=self.end, html=self.html)
             # Set meeting request props
             item.message_class = 'IPM.Schedule.Meeting.Request'
             item.create_prop(PR_START_DATE, self.start)
