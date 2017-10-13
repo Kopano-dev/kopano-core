@@ -312,22 +312,23 @@ static int mpt_main_cast(bool which)
 static int mpt_main_malloc(void)
 {
 	struct mpt_stat_entry dp;
-	void *base, *x;
 	int err = mpt_setup_tick();
 	if (err < 0)
 		return EXIT_FAILURE;
 
 	while (mpt_repeat-- > 0) {
 		clock_gettime(CLOCK_MONOTONIC, &dp.start);
-		auto ret = MAPIAllocateBuffer(sizeof(MAPIUID), &base);
+		memory_ptr<MAPIUID> base;
+		auto ret = MAPIAllocateBuffer(sizeof(MAPIUID), &~base);
 		if (ret != hrSuccess)
 			return EXIT_FAILURE;
 		for (unsigned int i = 0; i < 10000; ++i) {
+			void *x = nullptr;
 			ret = MAPIAllocateMore(sizeof(MAPIUID), base, &x);
 			if (ret != hrSuccess)
 				return EXIT_FAILURE;
 		}
-		MAPIFreeBuffer(base);
+		base.reset();
 		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
 		mpt_stat_record(dp);
 	}
