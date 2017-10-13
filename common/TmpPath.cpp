@@ -27,6 +27,8 @@
 
 namespace KC {
 
+TmpPath TmpPath::instance;
+
 TmpPath::TmpPath() {
 	const char *dummy = NULL;
 
@@ -71,12 +73,6 @@ bool TmpPath::OverridePath(ECConfig *const ec) {
 	setenv("TMP", newPath, 1);
 	setenv("TEMP", newPath, 1);
 	return rc;
-}
-
-TmpPath *TmpPath::getInstance()
-{
-        static std::unique_ptr<TmpPath> instance(new TmpPath);
-        return instance.get();
 }
 
 } /* namespace */

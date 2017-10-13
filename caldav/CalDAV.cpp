@@ -239,8 +239,7 @@ int main(int argc, char **argv) {
 	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig);
-
-	if (!TmpPath::getInstance() -> OverridePath(g_lpConfig))
+	if (!TmpPath::instance.OverridePath(g_lpConfig))
 		ec_log_err("Ignoring invalid path-setting!");
 
 	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0)

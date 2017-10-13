@@ -442,8 +442,7 @@ int main(int argc, char *argv[]) {
 
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig);
-
-	if (!TmpPath::getInstance() -> OverridePath(g_lpConfig))
+	if (!TmpPath::instance.OverridePath(g_lpConfig))
 		ec_log_err("Ignoring invalid path-setting!");
 	if (parseBool(g_lpConfig->GetSetting("bypass_auth")))
 		ec_log_warn("Gateway is started with bypass_auth=yes meaning username and password will not be checked.");
