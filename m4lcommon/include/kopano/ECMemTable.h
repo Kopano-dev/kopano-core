@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <vector>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <mapitags.h>
 #include <mapidefs.h>
@@ -140,7 +141,7 @@ private:
 	_kc_hidden HRESULT QueryRowData(ECObjectTableList *row_list, LPSRowSet *rows);
 	_kc_hidden HRESULT Notify(ULONG table_event, sObjectTableKey *row_item, sObjectTableKey *prev_row);
 
-	ECKeyTable *			lpKeyTable;
+	ECKeyTable lpKeyTable;
 	SSortOrderSet *lpsSortOrderSet = nullptr;
 	LPSPropTagArray			lpsPropTags;		// Columns
 	SRestriction *lpsRestriction = nullptr;
