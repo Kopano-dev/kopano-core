@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <climits>
@@ -49,12 +50,7 @@ using std::string;
 
 string auto_fix;
 string auto_del;
-
-/*
- * Some typedefs to make typing easier. ;)
- */
-typedef std::pair<std::string, Fsck *> CHECKMAP_P;
-typedef std::map<std::string, Fsck *> CHECKMAP;
+typedef std::map<std::string, std::unique_ptr<Fsck>> CHECKMAP;
 
 enum {
 	OPT_HELP = UCHAR_MAX + 1,
@@ -251,7 +247,6 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder;
-	Fsck *lpFsck = NULL;
 	ULONG ulObjectType = 0;
 	string strName;
 	string strClass;
@@ -297,14 +292,10 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 
 	for (const auto &i : checkmap)
 		if (i.first == strClass) {
-			lpFsck = i.second;
-			break;
+			i.second->ValidateFolder(lpFolder, strName);
+			return hrSuccess;
 		}
 
-	if (lpFsck != nullptr) {
-		lpFsck->ValidateFolder(lpFolder, strName);
-		return hrSuccess;
-	}
 	cout << "Ignoring folder: ";
 	cout << "\"" << strName << "\" (" << strClass << ")" << endl;
 	return hrSuccess;
@@ -492,22 +483,28 @@ int main(int argc, char *argv[])
 			print_help(argv[0]);
 			return 0;
 		case OPT_CALENDAR:
-			checkmap.emplace("IPF.Appointment", new FsckCalendar);
+			/*
+			 * g++ 4.9 is not smart enough to derive that "new
+			 * FsckCalendar" should be converted to
+			 * std::unique_ptr, so it needs to be spelled out.
+			 * (Fixed in modern g++s.)
+			 */
+			checkmap.emplace("IPF.Appointment", std::unique_ptr<Fsck>(new FsckCalendar));
 			break;
 		//case OPT_STICKY:
-		//	checkmap.emplace("IPF.StickyNote", new FsckStickyNote);
+		//	checkmap.emplace("IPF.StickyNote", std::unique_ptr<Fsck>(new FsckStickyNote));
 		//	break;
 		//case OPT_EMAIL:
-		//	checkmap.emplace("IPF.Note", new FsckNote);
+		//	checkmap.emplace("IPF.Note", std::unique_ptr<Fsck>(new FsckNote));
 		//	break;
 		case OPT_CONTACT:
-			checkmap.emplace("IPF.Contact", new FsckContact);
+			checkmap.emplace("IPF.Contact", std::unique_ptr<Fsck>(new FsckContact));
 			break;
 		case OPT_TASK:
-			checkmap.emplace("IPF.Task", new FsckTask);
+			checkmap.emplace("IPF.Task", std::unique_ptr<Fsck>(new FsckTask));
 			break;
 		//case OPT_JOURNAL:
-		//	checkmap.emplace("IPF.Journal", new FsckJournal);
+		//	checkmap.emplace("IPF.Journal", std::unique_ptr<Fsck>(new FsckJournal));
 		//	break;
 		case OPT_ALL:
 			bAll = true;
@@ -554,12 +551,12 @@ int main(int argc, char *argv[])
 	if (checkmap.empty()) {
 		if (!bAll)
 			cout << "Filter arguments missing, defaulting to --all" << endl;
-		checkmap.emplace("IPF.Appointment", new FsckCalendar);
-		//checkmap.emplace("IPF.StickyNote", new FsckStickyNote);
-		//checkmap.emplace("IPF.Note", new FsckNote);
-		checkmap.emplace("IPF.Contact", new FsckContact);
-		checkmap.emplace("IPF.Task", new FsckTask);
-		//checkmap.emplace("IPF.Journal", new FsckJournal);
+		checkmap.emplace("IPF.Appointment", std::unique_ptr<Fsck>(new FsckCalendar));
+		//checkmap.emplace("IPF.StickyNote", std::unique_ptr<Fsck>(new FsckStickyNote));
+		//checkmap.emplace("IPF.Note", std::unique_ptr<Fsck>(new FsckNote));
+		checkmap.emplace("IPF.Contact", std::unique_ptr<Fsck>(new FsckContact));
+		checkmap.emplace("IPF.Task", std::unique_ptr<Fsck>(new FsckTask));
+		//checkmap.emplace("IPF.Journal", std::unique_ptr<Fsck>(new FsckJournal));
 	}
 
 	hr = RunStoreValidation(strHost, strUser, strPass, strAltUser, bPublic, checkmap);
@@ -569,17 +566,8 @@ int main(int argc, char *argv[])
 	 */
 	if (hr == hrSuccess)
 		cout << endl << "Statistics:" << endl;
-
-	for (auto i = checkmap.begin(); i != checkmap.end();
-	     i = checkmap.begin()) {
-		Fsck *lpFsck = i->second;
-		
+	for (auto i = checkmap.begin(); i != checkmap.end(); )
 		if (hr == hrSuccess)
-			lpFsck->PrintStatistics(i->first);
-		
-		checkmap.erase(i);
-		delete lpFsck;
-	}
-
+			i->second->PrintStatistics(i->first);
 	return (hr == hrSuccess);
 }
