@@ -57,6 +57,9 @@ stamp-h2
 /ECtools/search/kopano-search
 /ECtools/search/build/
 /ECtools/migration-pst/kopano-migration-pst
+/ECtools/search/kopano_search/version.py
+/ECtools/backup/kopano_backup/version.py
+/ECtools/cli/kopano_cli/version.py
 
 # /autoconf/
 /autoconf/ltsugar.m4
