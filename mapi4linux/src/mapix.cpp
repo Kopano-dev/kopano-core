@@ -1181,7 +1181,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 				hr = lpAddrBook->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 				if(hr != hrSuccess)
 					kc_perrorf("OpenEntry(2) failed", hr);
-				break;
+				return hr;
 			} else {
 				hr = OpenMsgStore(0, lpsRows[0].lpProps[0].Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpsRows[0].lpProps[0].Value.bin.lpb),
 				     &IID_IMsgStore, MDB_WRITE | MDB_NO_DIALOG | MDB_TEMPORARY, &lpMDB);
@@ -1200,8 +1200,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 					if (hr != hrSuccess)
 						kc_perrorf("OpenEntry(3) failed", hr);
 				}
-			
-				break;
+				return hr;
 			}
 		}
 	}
