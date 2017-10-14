@@ -247,7 +247,7 @@ static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
 
 static HRESULT
 RunFolderValidation(const std::set<std::string> &setFolderIgnore,
-    LPMAPIFOLDER lpRootFolder, LPSRow lpRow, CHECKMAP checkmap)
+    IMAPIFolder *lpRootFolder, SRow *lpRow, const CHECKMAP &checkmap)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder;
@@ -312,7 +312,7 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 
 static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
     const char *strPass, const char *strAltUser, bool bPublic,
-    CHECKMAP checkmap)
+    const CHECKMAP &checkmap)
 {
 	HRESULT hr = hrSuccess;
 	AutoMAPI mapiinit;
