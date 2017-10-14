@@ -519,17 +519,18 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 			continue;
    
 		std::wstring strEmail = lpEmailAddress->Value.lpszW;
-        if((strEmail[0] == '\'' && strEmail[strEmail.size()-1] == '\'') ||
-           (strEmail[0] == '"' && strEmail[strEmail.size()-1] == '"')) {
+		bool quoted = (strEmail[0] == '\'' && strEmail[strEmail.size()-1] == '\'') ||
+		              (strEmail[0] == '"' && strEmail[strEmail.size()-1] == '"');
+		if (!quoted)
+			continue;
 
-            ec_log_info("Rewrite quoted recipient: %ls", strEmail.c_str());
-            strEmail = strEmail.substr(1, strEmail.size()-2);
-            lpEmailAddress->Value.lpszW = (WCHAR *)strEmail.c_str();
-			hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
-			     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
-			if (hr != hrSuccess)
-				return kc_perrorf("Failed to rewrite quoted recipient", hr);
-		}
+		ec_log_info("Rewrite quoted recipient: %ls", strEmail.c_str());
+		strEmail = strEmail.substr(1, strEmail.size() - 2);
+		lpEmailAddress->Value.lpszW = (WCHAR *)strEmail.c_str();
+		hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
+		     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
+		if (hr != hrSuccess)
+			return kc_perrorf("Failed to rewrite quoted recipient", hr);
 	}
 	return hrSuccess;
 }

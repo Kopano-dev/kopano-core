@@ -92,51 +92,45 @@ struct pym_factory_priv {
  */
 static HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
 {
-	HRESULT hr = hrSuccess;
-
-	if (!pyobj) 
-	{ 
-		PyObject *lpErr = PyErr_Occurred();
-		if(lpErr) {
-			PyObjectAPtr ptype, pvalue, ptraceback;
-			PyErr_Fetch(&~ptype, &~pvalue, &~ptraceback);
-			auto traceback = reinterpret_cast<PyTracebackObject *>(ptraceback.get());
-			const char *pStrErrorMessage = "Unknown";
-			const char *pStrType = "Unknown";
-
-			if (pvalue != nullptr)
-				pStrErrorMessage = PyString_AsString(pvalue.get());
-			if (ptype != nullptr)
-				pStrType = PyString_AsString(ptype.get());
-
-			if (lpLogger)
-			{
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python type: %s", pStrType);
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python error: %s", pStrErrorMessage);
-				
-				while (traceback && traceback->tb_next != NULL) {
-					auto frame = traceback->tb_frame;
-					if (frame) {
-						int line = frame->f_lineno;
-						const char *filename = PyString_AsString(frame->f_code->co_filename); 
-						const char *funcname = PyString_AsString(frame->f_code->co_name); 
-						
-						lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: %s(%d) %s", filename, line, funcname);
-					} else { 
-						lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: Unknown");
-					}
-					
-					traceback = traceback->tb_next;
-				}
-			}
-
-			PyErr_Clear();
-		} 
-		assert(false); 
-		hr = S_FALSE; 
+	if (pyobj != nullptr)
+		return hrSuccess;
+	PyObject *lpErr = PyErr_Occurred();
+	if (lpErr == nullptr) {
+		assert(false);
+		return S_FALSE;
 	}
+	PyObjectAPtr ptype, pvalue, ptraceback;
+	PyErr_Fetch(&~ptype, &~pvalue, &~ptraceback);
+	auto traceback = reinterpret_cast<PyTracebackObject *>(ptraceback.get());
+	const char *pStrErrorMessage = "Unknown";
+	const char *pStrType = "Unknown";
 
-	return hr;
+	if (pvalue != nullptr)
+		pStrErrorMessage = PyString_AsString(pvalue.get());
+	if (ptype != nullptr)
+		pStrType = PyString_AsString(ptype.get());
+
+	if (lpLogger)
+	{
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python type: %s", pStrType);
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python error: %s", pStrErrorMessage);
+
+		for (; traceback != nullptr && traceback->tb_next != nullptr;
+		     traceback = traceback->tb_next) {
+			auto frame = traceback->tb_frame;
+			if (frame == nullptr) {
+				lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: Unknown");
+				continue;
+			}
+			int line = frame->f_lineno;
+			const char *filename = PyString_AsString(frame->f_code->co_filename);
+			const char *funcname = PyString_AsString(frame->f_code->co_name);
+			lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: %s(%d) %s", filename, line, funcname);
+		}
+	}
+	PyErr_Clear();
+	assert(false);
+	return S_FALSE;
 }
 
 #define PY_HANDLE_ERROR(logger, pyobj) { \
