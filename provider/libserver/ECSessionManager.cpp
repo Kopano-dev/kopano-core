@@ -644,10 +644,9 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 			}
 			// Remember all the session to be deleted
 			lstSessions.emplace_back(iIterator->second);
-			auto iRemove = iIterator++;
 			// Remove the session from the list, no new threads can start on this session after this point.
 			g_lpStatsCollector->Increment(SCN_SESSIONS_TIMEOUT);
-			lpSessionManager->m_mapSessions.erase(iRemove);
+			iIterator = lpSessionManager->m_mapSessions.erase(iIterator);
 		}
 
 		// Release ownership of the rwlock object. This makes sure all threads are free to run (and exit).

@@ -205,22 +205,19 @@ HRESULT ECMemTable::HrGetRowData(LPSPropValue lpRow, ULONG *lpcValues, LPSPropVa
 HRESULT ECMemTable::HrSetClean()
 {
 	HRESULT hr = hrSuccess;
-	std::map<unsigned int, ECTableEntry>::iterator iterRows, iterNext;
 	scoped_rlock l_data(m_hDataMutex);
 
-	for (iterRows = mapRows.begin(); iterRows != mapRows.end(); iterRows = iterNext) {
-		iterNext = iterRows;
-		++iterNext;
-
+	for (auto iterRows = mapRows.begin(); iterRows != mapRows.end(); ) {
 		if(iterRows->second.fDeleted) {
 			MAPIFreeBuffer(iterRows->second.lpsID);
 			MAPIFreeBuffer(iterRows->second.lpsPropVal);
-			mapRows.erase(iterRows);
+			iterRows = mapRows.erase(iterRows);
 			continue;
 		}
 		iterRows->second.fDeleted = false;
 		iterRows->second.fDirty = false;
 		iterRows->second.fNew = false;
+		++iterRows;
 	}
 	return hr;
 }
