@@ -141,11 +141,10 @@ static void disclaimer(bool acceptDisclaimer)
 
 HRESULT allocNamedIdList(ULONG ulSize, LPMAPINAMEID **lpppNameArray)
 {
-	HRESULT hr;
 	memory_ptr<MAPINAMEID *> lppArray;
 	LPMAPINAMEID lpBuffer = NULL;
 
-	hr = MAPIAllocateBuffer(ulSize * sizeof(LPMAPINAMEID), &~lppArray);
+	auto hr = MAPIAllocateBuffer(ulSize * sizeof(LPMAPINAMEID), &~lppArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -162,11 +161,10 @@ HRESULT allocNamedIdList(ULONG ulSize, LPMAPINAMEID **lpppNameArray)
 HRESULT ReadProperties(LPMESSAGE lpMessage, ULONG ulCount, const ULONG *lpTag,
     LPSPropValue *lppPropertyArray)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
 	ULONG ulPropertyCount = 0;
 
-	hr = MAPIAllocateBuffer(sizeof(SPropTagArray) + (sizeof(ULONG) * ulCount), &~lpPropertyTagArray);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropTagArray) + (sizeof(ULONG) * ulCount), &~lpPropertyTagArray);
 	if (hr != hrSuccess)
 		return hr;
 	lpPropertyTagArray->cValues = ulCount;
@@ -182,10 +180,9 @@ HRESULT ReadProperties(LPMESSAGE lpMessage, ULONG ulCount, const ULONG *lpTag,
 HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount, LPMAPINAMEID *lppTag,
 			    LPSPropTagArray *lppPropertyTagArray, LPSPropValue *lppPropertyArray)
 {
-	HRESULT hr;
 	ULONG ulReadCount = 0;
 
-	hr = lpMessage->GetIDsFromNames(ulCount, lppTag, 0, lppPropertyTagArray);
+	auto hr = lpMessage->GetIDsFromNames(ulCount, lppTag, 0, lppPropertyTagArray);
 	if(hr != hrSuccess) {
 		cout << "Failed to obtain IDs from names." << endl;
 		/*
@@ -197,24 +194,21 @@ HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount, LPMAPINAMEID *lp
 	}
 
 	hr = lpMessage->GetProps(*lppPropertyTagArray, 0, &ulReadCount, lppPropertyArray);
-	if (FAILED(hr)) {
+	if (FAILED(hr))
 		cout << "Failed to obtain all properties." << endl;
-		return hr;
-	}
-	return hrSuccess;
+	return hr;
 }
 
 static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
     string *lpClass, ULONG *lpFolderType)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropertyArray;
 	ULONG ulPropertyCount = 0;
 	static constexpr const SizedSPropTagArray(3, PropertyTagArray) =
 		{3, {PR_DISPLAY_NAME_A, PR_CONTAINER_CLASS_A, PR_FOLDER_TYPE}};
 
-	hr = lpFolder->GetProps(PropertyTagArray, 0, &ulPropertyCount,
-	     &~lpPropertyArray);
+	auto hr = lpFolder->GetProps(PropertyTagArray, 0, &ulPropertyCount,
+	          &~lpPropertyArray);
 	if (FAILED(hr)) {
 		cout << "Failed to obtain all properties." << endl;
 		return hr;
@@ -245,7 +239,6 @@ static HRESULT
 RunFolderValidation(const std::set<std::string> &setFolderIgnore,
     IMAPIFolder *lpRootFolder, SRow *lpRow, const CHECKMAP &checkmap)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder;
 	ULONG ulObjectType = 0;
 	string strName;
@@ -255,11 +248,11 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 	auto lpItemProperty = PCpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ENTRYID);
 	if (!lpItemProperty) {
 		cout << "Row does not contain an EntryID." << endl;
-		return hr;
+		return hrSuccess;
 	}
-	hr = lpRootFolder->OpenEntry(lpItemProperty->Value.bin.cb,
-	     reinterpret_cast<ENTRYID *>(lpItemProperty->Value.bin.lpb),
-	     &IID_IMAPIFolder, 0, &ulObjectType, &~lpFolder);
+	auto hr = lpRootFolder->OpenEntry(lpItemProperty->Value.bin.cb,
+	          reinterpret_cast<ENTRYID *>(lpItemProperty->Value.bin.lpb),
+	          &IID_IMAPIFolder, 0, &ulObjectType, &~lpFolder);
 	if (hr != hrSuccess) {
 		cout << "Failed to open EntryID." << endl;
 		return hr;
@@ -305,7 +298,6 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
     const char *strPass, const char *strAltUser, bool bPublic,
     const CHECKMAP &checkmap)
 {
-	HRESULT hr = hrSuccess;
 	AutoMAPI mapiinit;
 	object_ptr<IMAPISession> lpSession;
 	object_ptr<IMsgStore> lpStore, lpAltStore;
@@ -323,7 +315,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	memory_ptr<SPropValue> lpAddRenProp;
 	ULONG cbEntryIDSrc = 0;
 
-	hr = mapiinit.Initialize();
+	auto hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		cout << "Unable to initialize session" << endl;
 		return hr;
@@ -430,9 +422,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 
 int main(int argc, char *argv[])
 {
-	HRESULT hr = hrSuccess;
 	CHECKMAP checkmap;
-	const char *strHost = NULL;
 	char* strUser = NULL;
 	const char *strPass = "";
 	char* strAltUser = NULL;
@@ -446,7 +436,7 @@ int main(int argc, char *argv[])
 	if (!forceUTF8Locale(true))
 		return -1;
 
-	strHost = GetServerUnixSocket();
+	auto strHost = GetServerUnixSocket();
 
 	/*
 	 * Read arguments.
@@ -559,8 +549,7 @@ int main(int argc, char *argv[])
 		//checkmap.emplace("IPF.Journal", std::unique_ptr<Fsck>(new FsckJournal));
 	}
 
-	hr = RunStoreValidation(strHost, strUser, strPass, strAltUser, bPublic, checkmap);
-
+	auto hr = RunStoreValidation(strHost, strUser, strPass, strAltUser, bPublic, checkmap);
 	/*
 	 * Cleanup
 	 */

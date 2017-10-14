@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <utility>
 #include <kopano/CommonUtil.h>
@@ -36,7 +37,6 @@ using namespace KCHL;
 
 HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
 	memory_ptr<MAPINAMEID *> lppTagArray;
@@ -53,7 +53,7 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -89,12 +89,10 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 
 HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
 	memory_ptr<MAPINAMEID *> lppTagArray;
 	const FILETIME *lpStart, *lpEnd, *lpCommonStart, *lpCommonEnd;
-	LONG ulDuration;
 
 	enum {
 		E_START,
@@ -108,7 +106,7 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -250,7 +248,7 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_DURATION], PT_LONG),
 					Value);
 
-	ulDuration = lpPropertyArray[E_DURATION].Value.l;
+	auto ulDuration = lpPropertyArray[E_DURATION].Value.l;
 	/*
 	 * We already compared duration between common and start,
 	 * now we have to check if that duration also equals what was set.
@@ -265,7 +263,6 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 
 HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
 	BOOL bRecurring = FALSE;
@@ -285,7 +282,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -430,8 +427,6 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	// Check the actual recurrence state
 	RecurrenceState r;
 	__UPV Value;
-	std::vector<RecurrenceState::Exception>::iterator iEx;
-	std::vector<RecurrenceState::ExtendedException>::iterator iEEx;
 	convert_context convertContext;
 
 	hr = r.ParseBlob(reinterpret_cast<char *>(lpPropertyArray[E_RECURRENCE_STATE].Value.bin.lpb), lpPropertyArray[E_RECURRENCE_STATE].Value.bin.cb, RECURRENCE_STATE_CALENDAR);
@@ -449,9 +444,8 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 		r.lstExtendedExceptions.erase(--r.lstExtendedExceptions.end());
 
 	// Add new extendedexceptions if missing
-	iEx = r.lstExceptions.begin();
-	for (size_t i = 0; i < r.lstExtendedExceptions.size(); ++i)
-		++iEx;
+	auto iEx = r.lstExceptions.begin();
+	std::advance(iEx, r.lstExtendedExceptions.size());
 
 	while (r.lstExtendedExceptions.size() < r.lstExceptions.size()) {
 		std::wstring wstr;
@@ -469,21 +463,21 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	}
 
 	// Set some defaults right for exceptions
-	for (iEx = r.lstExceptions.begin(); iEx != r.lstExceptions.end(); ++iEx)
-		iEx->ulOriginalStartDate = (iEx->ulOriginalStartDate / 1440) * 1440;
+	for (auto &ex : r.lstExceptions)
+		ex.ulOriginalStartDate = (ex.ulOriginalStartDate / 1440) * 1440;
 
 	// Set some defaults for extended exceptions
 	iEx = r.lstExceptions.begin();
-	for (iEEx = r.lstExtendedExceptions.begin(); iEEx != r.lstExtendedExceptions.end(); ++iEEx) {
+	for (auto &eex : r.lstExtendedExceptions) {
 		std::wstring wstr;
-		iEEx->strReservedBlock1 = "";
-		iEEx->strReservedBlock2 = "";
-		iEEx->ulChangeHighlightValue = 0;
-		iEEx->ulOriginalStartDate = (iEx->ulOriginalStartDate / 1440) * 1440;
+		eex.strReservedBlock1 = "";
+		eex.strReservedBlock2 = "";
+		eex.ulChangeHighlightValue = 0;
+		eex.ulOriginalStartDate = (iEx->ulOriginalStartDate / 1440) * 1440;
 		TryConvert(convertContext, iEx->strSubject, rawsize(iEx->strSubject), "windows-1252", wstr);
-		iEEx->strWideCharSubject.assign(wstr.c_str(), wstr.size());
+		eex.strWideCharSubject.assign(wstr.c_str(), wstr.size());
 		TryConvert(convertContext, iEx->strLocation, rawsize(iEx->strLocation), "windows-1252", wstr);
-		iEEx->strWideCharLocation.assign(wstr.c_str(), wstr.size());
+		eex.strWideCharLocation.assign(wstr.c_str(), wstr.size());
 		++iEx;
 	}
 

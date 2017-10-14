@@ -32,7 +32,6 @@ using namespace KCHL;
 
 HRESULT FsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
 
@@ -48,7 +47,7 @@ HRESULT FsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -79,7 +78,6 @@ HRESULT FsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 
 HRESULT FsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
 	memory_ptr<MAPINAMEID *> lppTagArray;
@@ -94,7 +92,7 @@ HRESULT FsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
 	 * Allocate the NameID list and initialize it to all
 	 * properties which could give us some information about the timestamps.
 	 */
-	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -138,7 +136,6 @@ HRESULT FsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
 
 HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
 	memory_ptr<MAPINAMEID *> lppTagArray;
@@ -155,7 +152,7 @@ HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the completion.
 	 */
-	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -229,14 +226,11 @@ HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
 HRESULT FsckTask::ValidateItem(LPMESSAGE lpMessage,
     const std::string &strClass)
 {
-	HRESULT hr;
-
 	if (strClass != "IPM.Task") {
 		std::cout << "Illegal class: \"" << strClass << "\"" << std::endl;
 		return E_INVALIDARG;
 	}
-
-	hr = ValidateMinimalNamedFields(lpMessage);
+	auto hr = ValidateMinimalNamedFields(lpMessage);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ValidateTimestamps(lpMessage);
