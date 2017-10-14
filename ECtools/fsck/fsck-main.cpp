@@ -261,12 +261,11 @@ HRESULT Fsck::AddMissingProperty(LPMESSAGE lpMessage,
 	cout << "Missing property " << strName << endl;
 
 	++this->ulProblems;
-	if (ReadYesNoMessage("Add missing property?", auto_fix)) {
-		hr = FixProperty(lpMessage, strName, ulTag, Value);
-		if (hr == hrSuccess)
-			++this->ulFixed;
-	}
-
+	if (!ReadYesNoMessage("Add missing property?", auto_fix))
+		return hrSuccess;
+	hr = FixProperty(lpMessage, strName, ulTag, Value);
+	if (hr == hrSuccess)
+		++this->ulFixed;
 	return hr;
 }
 
@@ -279,12 +278,11 @@ HRESULT Fsck::ReplaceProperty(LPMESSAGE lpMessage,
 	cout << "Invalid property " << strName << " - " << strError << endl;
 
 	++this->ulProblems;
-	if (ReadYesNoMessage("Fix broken property?", auto_fix)) {
-		hr = FixProperty(lpMessage, strName, ulTag, Value);
-		if (hr == hrSuccess)
-			++this->ulFixed;
-	}
-
+	if (!ReadYesNoMessage("Fix broken property?", auto_fix))
+		return hrSuccess;
+	hr = FixProperty(lpMessage, strName, ulTag, Value);
+	if (hr == hrSuccess)
+		++this->ulFixed;
 	return hr;
 }
 
@@ -381,12 +379,12 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 			hr = ValidateRecursiveDuplicateRecipients(lpSubMessage, bSubChanged);
 			if (hr != hrSuccess)
 				return hr;
-			if (bSubChanged) {
-				hr = lpAttach->SaveChanges(KEEP_OPEN_READWRITE);
-				if (hr != hrSuccess)
-					return hr;
-				bChanged = bSubChanged;
-			}
+			if (!bSubChanged)
+				continue;
+			hr = lpAttach->SaveChanges(KEEP_OPEN_READWRITE);
+			if (hr != hrSuccess)
+				return hr;
+			bChanged = bSubChanged;
 		}
 	}
 

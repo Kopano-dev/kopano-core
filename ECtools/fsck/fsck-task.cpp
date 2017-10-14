@@ -64,16 +64,15 @@ HRESULT FsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 		return hr;
 
 	for (ULONG i = 0; i < TAG_COUNT; ++i) {
-		if (PROP_TYPE(lpPropertyArray[i].ulPropTag) == PT_ERROR) {
-			__UPV Value;
-			Value.b = false;
-
-			hr = AddMissingProperty(lpMessage, strTagName[i],
-						CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[i], PT_BOOLEAN),
-						Value);
-			if (hr != hrSuccess)
-				return hr;
-		}
+		if (PROP_TYPE(lpPropertyArray[i].ulPropTag) != PT_ERROR)
+			continue;
+		__UPV Value;
+		Value.b = false;
+		hr = AddMissingProperty(lpMessage, strTagName[i],
+					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[i], PT_BOOLEAN),
+					Value);
+		if (hr != hrSuccess)
+			return hr;
 	}
 	return hrSuccess;
 }
@@ -118,28 +117,23 @@ HRESULT FsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
 	 * No further restrictions apply, but we will fill in missing tags
 	 * based on the results of the other tags.
 	 */
-	if (PROP_TYPE(lpPropertyArray[E_START_DATE].ulPropTag) != PT_ERROR &&
-	    PROP_TYPE(lpPropertyArray[E_DUE_DATE].ulPropTag) != PT_ERROR) {
-		const FILETIME *lpStart = &lpPropertyArray[E_START_DATE].Value.ft;
-		const FILETIME *lpDue = &lpPropertyArray[E_DUE_DATE].Value.ft;
+	if (PROP_TYPE(lpPropertyArray[E_START_DATE].ulPropTag) == PT_ERROR ||
+	    PROP_TYPE(lpPropertyArray[E_DUE_DATE].ulPropTag) == PT_ERROR)
+		return hrSuccess;
 
-		/*
-		 * We cannot start a task _after_ it is due.
-		 */
-		if (*lpStart > *lpDue) {
-			__UPV Value;
-			Value.ft = *lpDue;
-
-			hr = ReplaceProperty(lpMessage, "dispidTaskStartDate",
-					     CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_START_DATE], PT_SYSTIME),
-					     "Start date cannot be after due date",
-					     Value);
-			if (hr != hrSuccess)
-				return hr;
-		}
-	} else
-		hr = hrSuccess;
-	return hr;
+	const FILETIME *lpStart = &lpPropertyArray[E_START_DATE].Value.ft;
+	const FILETIME *lpDue = &lpPropertyArray[E_DUE_DATE].Value.ft;
+	/*
+	 * We cannot start a task _after_ it is due.
+	 */
+	if (!(*lpStart > *lpDue))
+		return hr;
+	__UPV Value;
+	Value.ft = *lpDue;
+	return ReplaceProperty(lpMessage, "dispidTaskStartDate",
+	       CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_START_DATE], PT_SYSTIME),
+	       "Start date cannot be after due date",
+	       Value);
 }
 
 HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
