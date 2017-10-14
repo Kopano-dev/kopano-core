@@ -74,7 +74,6 @@ HRESULT ECUnknown::AddChild(ECUnknown *lpChild) {
 
 HRESULT ECUnknown::RemoveChild(ECUnknown *lpChild) {
 	std::list<ECUnknown *>::iterator iterChild;
-	bool bLastRef;
 	ulock_normal locker(mutex);
 
 	if (lpChild != NULL)
@@ -85,7 +84,7 @@ HRESULT ECUnknown::RemoveChild(ECUnknown *lpChild) {
 		return MAPI_E_NOT_FOUND;
 	lstChildren.erase(iterChild);
 
-	bLastRef = this->lstChildren.empty() && this->m_cRef == 0;
+	bool bLastRef = this->lstChildren.empty() && this->m_cRef == 0;
 	locker.unlock();
 	if(bLastRef)
 		this->Suicide();
@@ -111,11 +110,10 @@ HRESULT ECUnknown::SetParent(ECUnknown *lpParent) {
  */
 BOOL ECUnknown::IsParentOf(const ECUnknown *lpObject) const
 {
-	while (lpObject && lpObject->lpParent) {
+	for (; lpObject != nullptr && lpObject->lpParent != nullptr;
+	     lpObject = lpObject->lpParent)
 		if (lpObject->lpParent == this)
 			return TRUE;
-		lpObject = lpObject->lpParent;
-	}
 	return FALSE;
 }
 
@@ -130,12 +128,9 @@ BOOL ECUnknown::IsChildOf(const ECUnknown *lpObject) const
 {
 	if (lpObject == nullptr)
 		return false;
-	for (auto p : lpObject->lstChildren) {
-		if (this == p)
+	for (auto p : lpObject->lstChildren)
+		if (this == p || this->IsChildOf(p))
 			return TRUE;
-		if (this->IsChildOf(p))
-			return TRUE;
-	}
 	return FALSE;
 }
 
