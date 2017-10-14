@@ -1167,42 +1167,41 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			return kc_perrorf("QueryRows failed", hr);
 		if (lpsRows->cRows != 1)
 			return MAPI_E_NOT_FOUND;
-			
-		if (lpsRows[0].lpProps[0].ulPropTag == PR_ENTRYID &&
-		    lpsRows[0].lpProps[1].ulPropTag == PR_RECORD_KEY &&
-		    lpsRows[0].lpProps[1].Value.bin.cb == sizeof(GUID) &&
-		    memcmp(lpsRows[0].lpProps[1].Value.bin.lpb, &guidProvider, sizeof(GUID)) == 0)
-		{
-			if (lpsRows[0].lpProps[2].ulPropTag == PR_RESOURCE_TYPE &&
-			    lpsRows[0].lpProps[2].Value.ul == MAPI_AB_PROVIDER) {
-				hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
-				if (hr != hrSuccess)
-					return kc_perrorf("OpenAddressBook(2) failed", hr);
-				hr = lpAddrBook->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-				if(hr != hrSuccess)
-					kc_perrorf("OpenEntry(2) failed", hr);
-				return hr;
-			} else {
-				hr = OpenMsgStore(0, lpsRows[0].lpProps[0].Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpsRows[0].lpProps[0].Value.bin.lpb),
-				     &IID_IMsgStore, MDB_WRITE | MDB_NO_DIALOG | MDB_TEMPORARY, &lpMDB);
-				if (hr != hrSuccess)
-					return kc_perrorf("OpenMsgStore failed", hr);
-                  
-			// Keep the store open in case somebody else needs it later (only via this function)
-			mapStores.emplace(guidProvider, object_ptr<IMsgStore>(lpMDB, false));
-			if(bStoreEntryID == true) {
-				hr = lpMDB->QueryInterface(IID_IMsgStore, (void**)lppUnk);
-				if (hr == hrSuccess)
-					*lpulObjType = MAPI_STORE;
-				}
-				else {
-					hr = lpMDB->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-					if (hr != hrSuccess)
-						kc_perrorf("OpenEntry(3) failed", hr);
-				}
-				return hr;
-			}
+		if (lpsRows[0].lpProps[0].ulPropTag != PR_ENTRYID ||
+		    lpsRows[0].lpProps[1].ulPropTag != PR_RECORD_KEY ||
+		    lpsRows[0].lpProps[1].Value.bin.cb != sizeof(GUID) ||
+		    memcmp(lpsRows[0].lpProps[1].Value.bin.lpb, &guidProvider, sizeof(GUID)) != 0)
+			continue;
+
+		if (lpsRows[0].lpProps[2].ulPropTag == PR_RESOURCE_TYPE &&
+		    lpsRows[0].lpProps[2].Value.ul == MAPI_AB_PROVIDER) {
+			hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
+			if (hr != hrSuccess)
+				return kc_perrorf("OpenAddressBook(2) failed", hr);
+			hr = lpAddrBook->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
+			if(hr != hrSuccess)
+				kc_perrorf("OpenEntry(2) failed", hr);
+			return hr;
 		}
+
+		hr = OpenMsgStore(0, lpsRows[0].lpProps[0].Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpsRows[0].lpProps[0].Value.bin.lpb),
+		     &IID_IMsgStore, MDB_WRITE | MDB_NO_DIALOG | MDB_TEMPORARY, &lpMDB);
+		if (hr != hrSuccess)
+			return kc_perrorf("OpenMsgStore failed", hr);
+
+		// Keep the store open in case somebody else needs it later (only via this function)
+		mapStores.emplace(guidProvider, object_ptr<IMsgStore>(lpMDB, false));
+		if (bStoreEntryID == true) {
+			hr = lpMDB->QueryInterface(IID_IMsgStore, (void **)lppUnk);
+			if (hr == hrSuccess)
+				*lpulObjType = MAPI_STORE;
+		}
+		else {
+			hr = lpMDB->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
+			if (hr != hrSuccess)
+				kc_perrorf("OpenEntry(3) failed", hr);
+		}
+		return hr;
 	}
 	return hr;
 }
