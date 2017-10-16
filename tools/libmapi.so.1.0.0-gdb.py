@@ -31,14 +31,14 @@ class GUID_printer:
 		self.value = value
 
 	def to_string(self):
-		return str(self.value.cast(gdb.lookup_type("_s_MAPIUID")))
+		return str(self.value.cast(gdb.lookup_type("MAPIUID")))
 
 class GUID_p_printer:
 	def __init__(self, value):
 		self.value = value
 
 	def to_string(self):
-		return str(self.value.cast(gdb.lookup_type("_s_MAPIUID").pointer()))
+		return str(self.value.cast(gdb.lookup_type("MAPIUID").pointer()))
 
 class LARGE_INTEGER_printer:
 	def __init__(self, value):

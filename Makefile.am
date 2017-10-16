@@ -51,7 +51,11 @@ sbin_PROGRAMS = \
 dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \
-	ECtools/archiver/scripts/kopano-archiver-restore
+	ECtools/archiver/scripts/kopano-archiver-restore \
+	tools/python-scripts/kopano-fix-ipm-subtree \
+	tools/python-scripts/kopano-localize-folders \
+	tools/python-scripts/kopano-recreate-systemfolders \
+	tools/python-scripts/kopano-rules
 noinst_PROGRAMS = kopano-cfgchecker
 if HAVE_TIDY
 noinst_PROGRAMS += rosie-test
