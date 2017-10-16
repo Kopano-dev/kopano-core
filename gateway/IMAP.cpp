@@ -4470,7 +4470,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
  * return a number or a UID, depending on the input.
  * A special treatment for 
  * 
- * @param[in] szNr a number of the sequence input (RFC 3501 page 89)
+ * @param[in] szNr a number of the sequence input (RFC 3501 page 90: seqset)
  * @param[in] bUID sequence input are UID numbers or not
  * 
  * @return the number corresponding to the input.
@@ -4479,7 +4479,7 @@ ULONG IMAP::LastOrNumber(const char *szNr, bool bUID)
 {
 	if (*szNr != '*') {
 		char *end = nullptr;
-		ULONG r = strtoul(szNr, &end, 10); /* RFC 3501 page 87 */
+		ULONG r = strtoul(szNr, &end, 10); /* RFC 3501 page 88 (nz-number) */
 		/*
 		 * This function may be called to parse the first part of a
 		 * sequence, so need to ignore the colon.
@@ -4583,7 +4583,7 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 		ulMailnr = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
 		if (ulBeginMailnr > ulMailnr)
 			/*
-			 * RFC 3501 page 89 allows swapping; seq-range
+			 * RFC 3501 page 90 allows swapping; seq-range
 			 * essentially describes a set rather than a
 			 * strictly ordered range.
 			 */
