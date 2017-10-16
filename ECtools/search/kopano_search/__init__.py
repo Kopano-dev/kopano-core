@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from .version import __version__
+
 import collections
 from contextlib import closing
 import codecs
@@ -17,7 +19,6 @@ else:
     from Queue import Empty
 
 from kopano_search import plaintext
-from .version import __version__
 import kopano
 from kopano import log_exc, Config
 sys.path.insert(0, os.path.dirname(__file__)) # XXX for __import__ to work
@@ -407,7 +408,7 @@ class Service(kopano.Service):
                 sys.exit(1)
 
 def main():
-    parser = kopano.parser('ckpsFl') # select common cmd-line options
+    parser = kopano.parser('ckpsFlV') # select common cmd-line options
     parser.add_option('-r', '--reindex', dest='reindex', action='append', default=[], help='Reindex user/store', metavar='USER')
     options, args = parser.parse_args()
     service = Service('search', config=CONFIG, options=options)

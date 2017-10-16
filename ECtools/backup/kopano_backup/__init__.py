@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from .version import __version__
+
 import binascii
 import codecs
 from contextlib import closing
@@ -20,8 +22,6 @@ if sys.hexversion >= 0x03000000:
     import bsddb3 as bsddb
 else:
     import bsddb
-
-from .version import __version__
 
 from MAPI import (
     PT_UNICODE, PT_ERROR, MAPI_UNICODE, KEEP_OPEN_READWRITE, MAPI_MODIFY,
@@ -907,7 +907,7 @@ def load_delegates(user, server, data, stats, log):
 
 def main():
     # select common options
-    parser = kopano.parser('ckpsufwUPCSlObe', usage='kopano-backup [PATH] [options]')
+    parser = kopano.parser('ckpsufwUPCSlObeV', usage='kopano-backup [PATH] [options]')
 
     # add custom options
     parser.add_option('', '--skip-junk', dest='skip_junk', action='store_true', help='skip junk folder')

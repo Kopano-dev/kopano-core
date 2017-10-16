@@ -1,17 +1,17 @@
 #!/usr/bin/env python
+from .version import __version__
+
 import getpass
 import locale
 import sys
 import traceback
-
-from .version import __version__
 
 from MAPI.Tags import PR_EC_STATSTABLE_SYSTEM, PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE
 import kopano
 from kopano.parser import _true, _int, _name, _guid, _bool, _list_name, _date, _path
 
 def parser_opt_args():
-    parser = kopano.parser('skpcuGCf')
+    parser = kopano.parser('skpcuGCfV')
     parser.add_option('--debug', help='Debug mode', **_true())
     parser.add_option('--lang', help='Create folders in this language')
     parser.add_option('--sync', help='Synchronize users and groups with external source', **_true())
