@@ -6018,7 +6018,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		convert_to_long_ex(value);
 		lpECPerms[j].ulRights = Z_LVAL_PP(value);
 
-		if (zend_hash_find(data, "state", sizeof("state"), (void **)&value) != SUCCESS) {
+		if (zend_hash_find(data, "state", sizeof("state"), (void **)&value) == SUCCESS) {
 		    convert_to_long_ex(value);
 			lpECPerms[j].ulState = Z_LVAL_PP(value);
 		} else {
