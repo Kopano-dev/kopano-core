@@ -118,6 +118,7 @@ extern "C" {
 	#undef PACKAGE_BUGREPORT
 
 	#if !__GNUC_PREREQ(6,0)
+	#define zend_isfinite(a) std::isfinite(a)
 	#define zend_isnan(a) std::isnan(a)
 	#endif
 
