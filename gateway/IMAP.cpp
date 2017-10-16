@@ -5298,7 +5298,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			std::string strSearch = (string)"^" + strSearchCriterium + ":.*" + lstSearchCriteria[ulStartCriteria+1];
 			pv.ulPropTag   = PR_TRANSPORT_MESSAGE_HEADERS_A;
 			pv.Value.lpszA = const_cast<char *>(strSearch.c_str());
-			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Shallow);
+			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Full);
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("UID") == 0) {
 			ECOrRestriction or_rst;
@@ -5352,7 +5352,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			std::string strSearch = "^" + lstSearchCriteria[ulStartCriteria+1] + ":.*" + lstSearchCriteria[ulStartCriteria+2];
 			pv.ulPropTag   = PR_TRANSPORT_MESSAGE_HEADERS_A;
 			pv.Value.lpszA = const_cast<char *>(strSearch.c_str());
-			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Shallow);
+			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Full);
 			ulStartCriteria += 3;
 		} else {
 			return MAPI_E_CALL_FAILED;
