@@ -51,11 +51,14 @@ stamp-h2
 /provider/soap/
 /ECtools/backup/kopano-backup
 /ECtools/backup/build/
+/ECtools/backup/staging/
 /ECtools/cli/kopano-cli
 /ECtools/presence/kopano-presence
 /ECtools/presence/build/
+/ECtools/presence/staging/
 /ECtools/search/kopano-search
 /ECtools/search/build/
+/ECtools/search/staging/
 /ECtools/migration-pst/kopano-migration-pst
 /ECtools/search/kopano_search/version.py
 /ECtools/backup/kopano_backup/version.py
@@ -113,6 +116,7 @@ stamp-h2
 
 # /swig/python/
 /swig/python/build/
+/swig/python/staging/
 /swig/python/MAPICore.py
 /swig/python/mapi_wrap.cxx
 /swig/python/mapi_wrap.h
