@@ -882,7 +882,6 @@ endif
 if WITH_LDAP
 lib_LTLIBRARIES += libkcserver-ldap.la
 noinst_DATA += libkcserver-ldap.ldd
-noinst_DATA += .libs/libkcserver-ldapms.so
 libkcserver_ldap_la_SOURCES = \
 	provider/plugins/LDAPUserPlugin.cpp provider/plugins/LDAPUserPlugin.h \
 	provider/plugins/LDAPCache.cpp provider/plugins/LDAPCache.h \
@@ -894,13 +893,6 @@ libkcserver_ldap_la_LIBADD = \
 libkcserver_ldap_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
 	${plugin_SYFLAGS${NO_VSYM}}
 EXTRA_libkcserver_ldap_la_DEPENDENCIES = provider/plugin.sym
-
-.libs/libkcserver-ldapms.so: libkcserver-ldap.la
-	${AM_V_GEN}ln -fs libkcserver-ldap.so .libs/libkcserver-ldapms.so
-
-install-exec-local:
-	${MKDIR_P} ${DESTDIR}${libdir}
-	ln -fs libkcserver-ldap.so ${DESTDIR}${libdir}/libkcserver-ldapms.so
 endif
 
 
