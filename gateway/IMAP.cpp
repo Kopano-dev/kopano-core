@@ -5918,57 +5918,36 @@ HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder
  */
 HRESULT IMAP::HrFindFolderEntryID(const wstring& strFolder, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
-    HRESULT hr = hrSuccess;
+	vector<wstring> folder_parts;
+	object_ptr<IMAPIFolder> folder;
 
-    list<SFolder> tmp_folders;
-    list<SFolder> *folders = &cached_folders;
+	auto hr = HrSplitPath(strFolder, folder_parts);
+	if (hr != hrSuccess)
+		return hr;
 
-    bool should_cache_folders = cache_folders_time_limit > 0;
-    time_t expire_time = cache_folders_last_used + cache_folders_time_limit;
+	ULONG cb_entry_id = 0;
+	memory_ptr<ENTRYID> entry_id;
+	for (unsigned int i = 0; i < folder_parts.size(); ++i) {
+		hr = HrFindSubFolder(folder, folder_parts[i], &cb_entry_id, &~entry_id);
+		if (hr != hrSuccess)
+			return hr;
 
-    if (should_cache_folders &&
-       (std::time(nullptr) > expire_time || !cached_folders.size())) {
-	    HrGetFolderList(cached_folders);
-	    cache_folders_last_used = std::time(nullptr);
-    }
-    else if (!should_cache_folders) {
-	    HrGetFolderList(tmp_folders);
-	    folders = &tmp_folders;
-    }
+		if (i == folder_parts.size() - 1)
+			break;
 
-    wstring find_folder = strFolder;
-    if (find_folder.length() == 0)
-	    return MAPI_E_NOT_FOUND;
+		ULONG obj_type = 0;
+		hr = lpSession->OpenEntry(cb_entry_id, entry_id, nullptr, MAPI_MODIFY, &obj_type, &~folder);
+		if (hr != hrSuccess)
+			return hr;
 
-    if (find_folder[0] != '/')
-	    find_folder = wstring(L"/") + find_folder;
+		if (obj_type != MAPI_FOLDER)
+			return MAPI_E_INVALID_PARAMETER;
+	}
 
-    find_folder = strToUpper(find_folder);
+	*lpcbEntryID = cb_entry_id;
+	*lppEntryID = entry_id.release();
 
-    auto iter = folders->cbegin();
-    for (; iter != folders->cend(); iter++) {
-	    wstring folder_name;
-
-	    hr = HrGetFolderPath(iter, *folders, folder_name);
-	    if (hr != hrSuccess)
-		    return hr;
-
-	    folder_name = strToUpper(folder_name);
-	    if (folder_name == find_folder)
-		    break;
-    }
-
-    if (iter == folders->cend())
-	    return MAPI_E_NOT_FOUND;
-
-    *lpcbEntryID = iter->sEntryID.cb;
-
-    hr = MAPIAllocateBuffer(*lpcbEntryID, (void **)lppEntryID);
-    if (hr != hrSuccess)
-	    return hr;
-
-    memcpy(*lppEntryID, iter->sEntryID.lpb, *lpcbEntryID);
-    return hrSuccess;
+	return hrSuccess;
 }
 
 /**
