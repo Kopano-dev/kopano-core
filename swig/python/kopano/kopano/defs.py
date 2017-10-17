@@ -1,8 +1,8 @@
 """
 Part of the high-level python bindings for Kopano.
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
 import re
@@ -11,6 +11,9 @@ import struct
 from MAPI.Defs import DEFINE_OLEGUID, DEFINE_GUID
 from MAPI.Struct import MAPINAMEID
 from MAPI import Tags
+from MAPI.Tags import (
+    PS_PUBLIC_STRINGS
+)
 from MAPI import MNID_STRING, MAPI_DISTLIST
 
 try:
@@ -31,24 +34,43 @@ except NameError:
         if K.startswith('PR_'):
             REV_TAG[Tags.__dict__[K]] = K
 
-PS_INTERNET_HEADERS = DEFINE_OLEGUID(0x00020386, 0, 0)
-PS_EC_IMAP = DEFINE_GUID(0x00f5f108, 0x8e3f, 0x46c7, 0xaf, 0x72, 0x5e, 0x20, 0x1c, 0x23, 0x49, 0xe7)
-PSETID_Archive = DEFINE_GUID(0x72e98ebc, 0x57d2, 0x4ab5, 0xb0, 0xaa, 0xd5, 0x0a, 0x7b, 0x53, 0x1c, 0xb9)
 PSETID_Appointment = DEFINE_OLEGUID(0x00062002, 0, 0)
 PSETID_Task = DEFINE_OLEGUID(0x00062003, 0, 0)
 PSETID_Address = DEFINE_OLEGUID(0x00062004, 0, 0)
 PSETID_Common = DEFINE_OLEGUID(0x00062008, 0, 0)
 PSETID_Log = DEFINE_OLEGUID(0x0006200A, 0, 0)
 PSETID_Note = DEFINE_OLEGUID(0x0006200E, 0, 0)
-PSETID_Meeting = DEFINE_GUID(0x6ED8DA90, 0x450B, 0x101B, 0x98, 0xDA, 0x00, 0xAA, 0x00, 0x3F, 0x13, 0x05)
-PSETID_Kopano_CalDav = DEFINE_GUID(0x77536087, 0xcb81, 0x4dc9, 0x99, 0x58, 0xea, 0x4c, 0x51, 0xbe, 0x34, 0x86)
-PSETID_AirSync = DEFINE_GUID(0x71035549, 0x0739, 0x4DCB, 0x91, 0x63, 0x00, 0xF0, 0x58, 0x0D, 0xBB, 0xDF)
 PSETID_Sharing = DEFINE_OLEGUID(0x00062040, 0, 0)
 PSETID_PostRss = DEFINE_OLEGUID(0x00062041, 0, 0)
-PSETID_UnifiedMessaging = DEFINE_GUID(0x4442858E, 0xA9E3, 0x4E80,0xB9, 0x00, 0x31, 0x7A, 0x21, 0x0C, 0xC1, 0x5B)
-PSETID_CONTACT_FOLDER_RECIPIENT = DEFINE_GUID(0x0AAA42FE, 0xC718, 0x101A, 0xE8, 0x85, 0x0B, 0x65, 0x1C, 0x24, 0x00, 0x00)
-PSETID_ZMT = DEFINE_GUID(0x8acdbf85, 0x4738, 0x4dc4, 0x94, 0xa9, 0xd4, 0x89, 0xa8, 0x3e, 0x5c, 0x41)
-PSETID_CalendarAssistant = DEFINE_GUID(0x11000E07, 0xB51B, 0x40D6, 0xAF, 0x21, 0xCA,0xA8, 0x5E, 0xDA, 0xB1, 0xD0)
+PS_INTERNET_HEADERS = DEFINE_OLEGUID(0x00020386, 0, 0)
+
+PSETID_Archive = DEFINE_GUID(
+    0x72e98ebc, 0x57d2, 0x4ab5, 0xb0, 0xaa, 0xd5, 0x0a, 0x7b, 0x53, 0x1c, 0xb9
+)
+PSETID_Meeting = DEFINE_GUID(
+    0x6ED8DA90, 0x450B, 0x101B, 0x98, 0xDA, 0x00, 0xAA, 0x00, 0x3F, 0x13, 0x05
+)
+PSETID_Kopano_CalDav = DEFINE_GUID(
+    0x77536087, 0xcb81, 0x4dc9, 0x99, 0x58, 0xea, 0x4c, 0x51, 0xbe, 0x34, 0x86
+)
+PSETID_AirSync = DEFINE_GUID(
+    0x71035549, 0x0739, 0x4DCB, 0x91, 0x63, 0x00, 0xF0, 0x58, 0x0D, 0xBB, 0xDF
+)
+PSETID_UnifiedMessaging = DEFINE_GUID(
+    0x4442858E, 0xA9E3, 0x4E80,0xB9, 0x00, 0x31, 0x7A, 0x21, 0x0C, 0xC1, 0x5B
+)
+PSETID_CONTACT_FOLDER_RECIPIENT = DEFINE_GUID(
+    0x0AAA42FE, 0xC718, 0x101A, 0xE8, 0x85, 0x0B, 0x65, 0x1C, 0x24, 0x00, 0x00
+)
+PSETID_ZMT = DEFINE_GUID(
+    0x8acdbf85, 0x4738, 0x4dc4, 0x94, 0xa9, 0xd4, 0x89, 0xa8, 0x3e, 0x5c, 0x41
+)
+PSETID_CalendarAssistant = DEFINE_GUID(
+    0x11000E07, 0xB51B, 0x40D6, 0xAF, 0x21, 0xCA,0xA8, 0x5E, 0xDA, 0xB1, 0xD0
+)
+PS_EC_IMAP = DEFINE_GUID(
+    0x00f5f108, 0x8e3f, 0x46c7, 0xaf, 0x72, 0x5e, 0x20, 0x1c, 0x23, 0x49, 0xe7
+)
 
 NAMED_PROPS_INTERNET_HEADERS = [
     MAPINAMEID(PS_INTERNET_HEADERS, MNID_STRING, u'x-original-to'),
@@ -64,7 +86,7 @@ NAMED_PROPS_ARCHIVER = [
     MAPINAMEID(PSETID_Archive, MNID_STRING, u'flags')
 ]
 
-NAMED_PROP_CATEGORY = MAPINAMEID(Tags.PS_PUBLIC_STRINGS, MNID_STRING, u'Keywords')
+NAMED_PROP_CATEGORY = MAPINAMEID(PS_PUBLIC_STRINGS, MNID_STRING, u'Keywords')
 
 GUID_NAMESPACE = {
     PSETID_Archive: 'archive',
@@ -92,7 +114,19 @@ STR_GUID = {
     'PSETID_Appointment': PSETID_Appointment,
     'PSETID_Meeting': PSETID_Meeting,
     'PSETID_Address': PSETID_Address,
-# XXX moar
+    'PSETID_Archive': PSETID_Archive,
+    'PSETID_Task': PSETID_Task,
+    'PSETID_Log': PSETID_Log,
+    'PS_INTERNET_HEADERS': PS_INTERNET_HEADERS,
+    'PS_EC_IMAP': PS_EC_IMAP,
+    'PSETID_Kopano_CalDav': PSETID_Kopano_CalDav,
+    'PSETID_AirSync': PSETID_AirSync,
+    'PSETID_Sharing': PSETID_Sharing,
+    'PSETID_PostRss': PSETID_PostRss,
+    'PSETID_UnifiedMessaging': PSETID_UnifiedMessaging,
+    'PSETID_CONTACT_FOLDER_RECIPIENT': PSETID_CONTACT_FOLDER_RECIPIENT,
+    'PSETID_ZMT': PSETID_ZMT,
+    'PSETID_CalendarAssistant': PSETID_CalendarAssistant,
 }
 
 # XXX copied from common/ECDefs.h
@@ -106,9 +140,12 @@ NONACTIVE_USER = OBJECTCLASS(OBJECTTYPE_MAILUSER, 2)
 CONTAINER_COMPANY = OBJECTCLASS(OBJECTTYPE_CONTAINER, 1)
 
 # XXX copied from msr/main.py
-MUIDECSAB = DEFINE_GUID(0x50a921ac, 0xd340, 0x48ee, 0xb3, 0x19, 0xfb, 0xa7, 0x53, 0x30, 0x44, 0x25)
+MUIDECSAB = DEFINE_GUID(
+    0x50a921ac, 0xd340, 0x48ee, 0xb3, 0x19, 0xfb, 0xa7, 0x53, 0x30, 0x44, 0x25
+)
 def DEFINE_ABEID(type, id):
-    return struct.pack("4B16s3I4B", 0, 0, 0, 0, MUIDECSAB, 0, type, id, 0, 0, 0, 0)
+    fmt = "4B16s3I4B"
+    return struct.pack(fmt, 0, 0, 0, 0, MUIDECSAB, 0, type, id, 0, 0, 0, 0)
 EID_EVERYONE = DEFINE_ABEID(MAPI_DISTLIST, 1)
 
 ADDR_PROPS = [
@@ -158,7 +195,8 @@ RSF_PID_RSS_SUBSCRIPTION = 0x8001
 RSF_PID_TODO_SEARCH = 0x8004
 RSF_PID_SUGGESTED_CONTACTS = 0x8008
 
-ENGLISH_FOLDER_MAP = { # XXX should we make the names pretty much identical, except for case?
+# XXX should we make the names pretty much identical, except for case?
+ENGLISH_FOLDER_MAP = {
     'Inbox': 'inbox',
     'Drafts': 'drafts',
     'Outbox': 'outbox',
