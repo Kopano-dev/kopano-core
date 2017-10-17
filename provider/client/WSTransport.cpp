@@ -4279,8 +4279,7 @@ HRESULT WSTransport::HrLicenseCapa(unsigned int ulServiceType, char ***lppszCapa
     HRESULT hr = hrSuccess;
     ECRESULT er = erSuccess;
     struct getLicenseCapaResponse sResponse;
-    
-    char **lpszCapas = NULL;
+	memory_ptr<char *> lpszCapas;
     
     LockSoap();
     
@@ -4294,7 +4293,7 @@ HRESULT WSTransport::HrLicenseCapa(unsigned int ulServiceType, char ***lppszCapa
 	}
 	END_SOAP_CALL
         
-    hr = MAPIAllocateBuffer(sResponse.sCapabilities.__size * sizeof(char *), (void **)&lpszCapas);
+	hr = MAPIAllocateBuffer(sResponse.sCapabilities.__size * sizeof(char *), &~lpszCapas);
     if(hr != hrSuccess)
 		goto exitm;
 
@@ -4304,7 +4303,7 @@ HRESULT WSTransport::HrLicenseCapa(unsigned int ulServiceType, char ***lppszCapa
         strcpy(lpszCapas[i], sResponse.sCapabilities.__ptr[i]);
     }
     
-    *lppszCapas = lpszCapas;
+	*lppszCapas = lpszCapas.release();
     *lpulSize = sResponse.sCapabilities.__size;
  exitm:
     UnLockSoap();

@@ -32,7 +32,7 @@ public:
 				   const vmime::encoding& enc,
 				   const vmime::mediaType& type,
 				   const std::string& contentid,
-				   const vmime::word filename,
+				   const vmime::word &filename,
 				   const vmime::text& desc = vmime::NULL_TEXT,
 				   const vmime::word& name = vmime::NULL_WORD);
 
