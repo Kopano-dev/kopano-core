@@ -22,6 +22,8 @@
 #ifndef ECSECURITY
 #define ECSECURITY
 
+#include <memory>
+#include <kopano/memory.hpp>
 #include "ECUserManagement.h"
 #include "plugin.h"
 
@@ -38,7 +40,6 @@ class ECSession;
 class ECSecurity _kc_final {
 public:
 	ECSecurity(ECSession *lpSession, ECConfig *lpConfig, ECLogger *lpAudit);
-	virtual ~ECSecurity();
 
 	/* must be called once the object is created */
 	virtual ECRESULT SetUserContext(unsigned int ulUserId, unsigned int ulImpersonatorID);
@@ -91,7 +92,7 @@ private:
 
 protected:
 	ECSession			*m_lpSession;
-	ECLogger			*m_lpAudit;
+	KCHL::object_ptr<ECLogger> m_lpAudit;
 	ECConfig			*m_lpConfig;
 
 	unsigned int m_ulUserID = 0; // current user id
@@ -101,9 +102,9 @@ protected:
     objectdetails_t 	m_impersonatorDetails;
 	bool				m_bRestrictedAdmin; // True if restricted admin permissions enabled
 	bool 				m_bOwnerAutoFullAccess;
-	std::list<localobjectdetails_t> *m_lpGroups = nullptr; // current user groups
-	std::list<localobjectdetails_t> *m_lpViewCompanies = nullptr; // current visible companies
-	std::list<localobjectdetails_t> *m_lpAdminCompanies = nullptr; // Companies where the user has admin rights on
+	std::unique_ptr<std::list<localobjectdetails_t>> m_lpGroups; // current user groups
+	std::unique_ptr<std::list<localobjectdetails_t>> m_lpViewCompanies; // current visible companies
+	std::unique_ptr<std::list<localobjectdetails_t>> m_lpAdminCompanies; // Companies where the user has admin rights on
 };
 
 } /* namespace */
