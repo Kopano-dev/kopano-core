@@ -73,10 +73,7 @@ public:
 #ifdef DEBUG
 	unsigned int m_ulTransactionState = 0;
 #endif
-	// Function requires m_bForceUpdate variable
-	friend ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase);
 };
-
 
 } /* namespace */
 

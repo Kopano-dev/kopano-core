@@ -1,4 +1,4 @@
-	/*
+/*
  * Copyright 2005 - 2016 Zarafa and its licensors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -87,7 +87,6 @@ static int daemonize = 1;
 static int restart_searches = 0;
 static bool m_bIgnoreDatabaseVersionConflict = false;
 static bool m_bIgnoreAttachmentStorageConflict = false;
-static bool m_bIgnoreDistributedKopanoConflict = false;
 static bool m_bForceDatabaseUpdate = false;
 static bool m_bIgnoreUnknownConfigOptions = false;
 static bool m_bIgnoreDbThreadStackSize = false;
@@ -254,36 +253,6 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 				return MAPI_E_UNABLE_TO_COMPLETE;
 			}
 		}
-	return erSuccess;
-}
-
-static ECRESULT check_distributed_kopano(ECDatabase *lpDatabase)
-{
-	ECRESULT er = erSuccess;
-	string strQuery;
-	DB_RESULT lpResult;
-	DB_ROW lpRow = NULL;
-	bool bConfigEnabled = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
-
-	er = lpDatabase->DoSelect("SELECT value FROM settings WHERE name = 'lock_distributed_kopano'", &lpResult);
-	if (er != erSuccess) {
-		ec_log_err("Unable to read from database");
-		return er;
-	}
-
-	lpRow = lpResult.fetch_row();
-	// If no value is found in the database any setting is valid
-	if (lpRow == NULL || lpRow[0] == NULL) 
-		return er;
-
-	// If any value is found, distributed is not allowed. The value specifies the reason.
-	if (bConfigEnabled) {
-		if (!m_bIgnoreDistributedKopanoConflict) {
-			ec_log_crit("Multiserver mode is locked, reason: '%s'. Contact Kopano for support.", lpRow[0]);
-			return KCERR_DATABASE_ERROR;
-		}
-		ec_log_warn("Ignoring multiserver mode lock as requested.");
-	}
 	return erSuccess;
 }
 
@@ -1230,11 +1199,6 @@ static int running_server(char *szName, const char *szConfig,
 
 	// check upgrade problem with wrong sequence in tproperties table primary key
 	er = check_database_tproperties_key(lpDatabase);
-	if (er != erSuccess)
-		goto exit;
-
-	// check distributed mode started with, and maybe reject startup
-	er = check_distributed_kopano(lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 

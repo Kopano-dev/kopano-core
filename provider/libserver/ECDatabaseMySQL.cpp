@@ -72,104 +72,6 @@ class zcp_versiontuple _kc_final {
 };
 
 static const sUpdateList_t sUpdateList[] = {
-	// Updates from version 5.02 to 5.10
-	{ Z_UPDATE_CREATE_VERSIONS_TABLE, 0, "Create table: versions", UpdateDatabaseCreateVersionsTable },
-	{ Z_UPDATE_CREATE_SEARCHFOLDERS_TABLE, 0, "Create table: searchresults", UpdateDatabaseCreateSearchFolders },
-	{ Z_UPDATE_FIX_USERTABLE_NONACTIVE, 0, "Update table: users, field: nonactive", UpdateDatabaseFixUserNonActive },
-	// Only update if previous revision was after Z_UPDATE_CREATE_SEARCHFOLDERS_TABLE, because the definition has changed
-	{ Z_UPDATE_ADD_FLAGS_TO_SEARCHRESULTS, Z_UPDATE_CREATE_SEARCHFOLDERS_TABLE, "Update table: searchresults", UpdateDatabaseCreateSearchFoldersFlags },
-	{ Z_UPDATE_POPULATE_SEARCHFOLDERS, 0, "Populate search folders", UpdateDatabasePopulateSearchFolders },
-
-	// Updates from version 5.10 to 5.20
-	{ Z_UPDATE_CREATE_CHANGES_TABLE, 0, "Create table: changes", UpdateDatabaseCreateChangesTable },
-	{ Z_UPDATE_CREATE_SYNCS_TABLE, 0, "Create table: syncs", UpdateDatabaseCreateSyncsTable },
-	{ Z_UPDATE_CREATE_INDEXEDPROPS_TABLE, 0, "Create table: indexedproperties", UpdateDatabaseCreateIndexedPropertiesTable },
-	{ Z_UPDATE_CREATE_SETTINGS_TABLE, 0, "Create table: settings", UpdateDatabaseCreateSettingsTable},
-	{ Z_UPDATE_CREATE_SERVER_GUID, 0, "Insert server GUID into settings", UpdateDatabaseCreateServerGUID },
-	{ Z_UPDATE_CREATE_SOURCE_KEYS, 0, "Insert source keys into indexedproperties", UpdateDatabaseCreateSourceKeys },
-
-	// Updates from version 5.20 to 6.00
-	{ Z_UPDATE_CONVERT_ENTRYIDS, 0, "Convert entryids: indexedproperties", UpdateDatabaseConvertEntryIDs },
-	{ Z_UPDATE_CONVERT_SC_ENTRYIDLIST, 0, "Update entrylist searchcriteria", UpdateDatabaseSearchCriteria },
-	{ Z_UPDATE_CONVERT_USER_OBJECT_TYPE, 0, "Add Object type to 'users' table", UpdateDatabaseAddUserObjectType },
-	{ Z_UPDATE_ADD_USER_SIGNATURE, 0, "Add signature to 'users' table", UpdateDatabaseAddUserSignature },
-	{ Z_UPDATE_ADD_SOURCE_KEY_SETTING, 0, "Add setting 'source_key_auto_increment'", UpdateDatabaseAddSourceKeySetting },
-	{ Z_UPDATE_FIX_USERS_RESTRICTIONS, 0, "Add restriction to 'users' table", UpdateDatabaseRestrictExternId },
-
-	// Update from version 6.00 to 6.10
-	{ Z_UPDATE_ADD_USER_COMPANY, 0, "Add company column to 'users' table", UpdateDatabaseAddUserCompany },
-	{ Z_UPDATE_ADD_OBJECT_RELATION_TYPE, 0, "Add Object relation type to 'objectrelation' table", UpdateDatabaseAddObjectRelationType },
-	{ Z_UPDATE_DEL_DEFAULT_COMPANY, 0, "Delete default company from 'users' table", UpdateDatabaseDelUserCompany},
-	{ Z_UPDATE_ADD_COMPANY_TO_STORES, 0, "Adding company to 'stores' table", UpdateDatabaseAddCompanyToStore},
-
-	// Update from version x to x
-	{ Z_UPDATE_ADD_IMAP_SEQ, 0, "Add IMAP sequence number in 'settings' table", UpdateDatabaseAddIMAPSequenceNumber},
-	{ Z_UPDATE_KEYS_CHANGES, Z_UPDATE_CREATE_CHANGES_TABLE, "Update keys in 'changes' table", UpdateDatabaseKeysChanges},
-
-	// Update from version 6.1x to 6.20
-	{ Z_UPDATE_MOVE_PUBLICFOLDERS, 0, "Moving publicfolders and favorites", UpdateDatabaseMoveFoldersInPublicFolder},
-
-	// Update from version 6.2x to 6.30
-	{ Z_UPDATE_ADD_EXTERNID_TO_OBJECT, 0, "Adding externid to 'object' table", UpdateDatabaseAddExternIdToObject}, 
-	{ Z_UPDATE_CREATE_REFERENCES, 0, "Creating Single Instance Attachment table", UpdateDatabaseCreateReferences},
-	{ Z_UPDATE_LOCK_DISTRIBUTED, 0, "Locking multiserver capability", UpdateDatabaseLockDistributed},
-	{ Z_UPDATE_CREATE_ABCHANGES_TABLE, 0, "Creating Addressbook Changes table", UpdateDatabaseCreateABChangesTable},
-	{ Z_UPDATE_SINGLEINSTANCE_TAG, 0, "Updating 'singleinstances' table to correct tag value", UpdateDatabaseSetSingleinstanceTag},
-
-	// Update from version 6.3x to 6.40
-	{ Z_UPDATE_CREATE_SYNCEDMESSAGES_TABLE, 0, "Create table: synced messages", UpdateDatabaseCreateSyncedMessagesTable},
-	
-	// Update from < 6.30 to >= 6.30
-	{ Z_UPDATE_FORCE_AB_RESYNC, 0, "Force Addressbook Resync", UpdateDatabaseForceAbResync},
-	
-	// Update from version 6.3x to 6.40
-	{ Z_UPDATE_RENAME_OBJECT_TYPE_TO_CLASS, 0, "Rename objecttype columns to objectclass", UpdateDatabaseRenameObjectTypeToObjectClass},
-	{ Z_UPDATE_CONVERT_OBJECT_TYPE_TO_CLASS, 0, "Convert objecttype columns to objectclass values", UpdateDatabaseConvertObjectTypeToObjectClass},
-	{ Z_UPDATE_ADD_OBJECT_MVPROPERTY_TABLE, 0, "Add object MV property table", UpdateDatabaseAddMVPropertyTable},
-	{ Z_UPDATE_COMPANYNAME_TO_COMPANYID, 0, "Link objects in DB plugin through companyid", UpdateDatabaseCompanyNameToCompanyId},
-	{ Z_UPDATE_OUTGOINGQUEUE_PRIMARY_KEY, 0, "Update outgoingqueue key", UpdateDatabaseOutgoingQueuePrimarykey},
-	{ Z_UPDATE_ACL_PRIMARY_KEY, 0, "Update acl key", UpdateDatabaseACLPrimarykey},
-	{ Z_UPDATE_BLOB_EXTERNID, 0, "Update externid in object table", UpdateDatabaseBlobExternId}, // Avoid MySQL 4.x traling spaces quirk
-	{ Z_UPDATE_KEYS_CHANGES_2, 0, "Update keys in 'changes' table", UpdateDatabaseKeysChanges2},
-	{ Z_UPDATE_MVPROPERTIES_PRIMARY_KEY, 0, "Update mvproperties key", UpdateDatabaseMVPropertiesPrimarykey},
-	{ Z_UPDATE_FIX_SECURITYGROUP_DBPLUGIN, 0, "Update DB plugin group to security groups", UpdateDatabaseFixDBPluginGroups},
-	{ Z_UPDATE_CONVERT_SENDAS_DBPLUGIN, 0, "Update DB/Unix plugin sendas settings", UpdateDatabaseFixDBPluginSendAs},
-
-	{ Z_UPDATE_MOVE_IMAP_SUBSCRIBES, 0, "Move IMAP subscribed list from store to inbox", UpdateDatabaseMoveSubscribedList},
-	{ Z_UPDATE_SYNC_TIME_KEY, 0, "Update sync table time index", UpdateDatabaseSyncTimeIndex },
-
-	// Update within the 6.40
-	{ Z_UPDATE_ADD_STATE_KEY, 0, "Update changes table state key", UpdateDatabaseAddStateKey },
-
-	// Blocking upgrade from 6.40 to 7.00, tables are not unicode compatible.
-	{ Z_UPDATE_CONVERT_TO_UNICODE, 0, "Converting database to Unicode", UpdateDatabaseConvertToUnicode },
-
-	// Update from version 6.4x to 7.00
-	{ Z_UPDATE_CONVERT_STORE_USERNAME, 0, "Update stores table usernames", UpdateDatabaseConvertStoreUsername },
-	{ Z_UPDATE_CONVERT_RULES, 0, "Converting rules to Unicode", UpdateDatabaseConvertRules },
-	{ Z_UPDATE_CONVERT_SEARCH_FOLDERS, 0, "Converting search folders to Unicode", UpdateDatabaseConvertSearchFolders },
-	{ Z_UPDATE_CONVERT_PROPERTIES, 0, "Converting properties for IO performance", UpdateDatabaseConvertProperties },
-	{ Z_UPDATE_CREATE_COUNTERS, 0, "Creating counters for IO performance", UpdateDatabaseCreateCounters },
-	{ Z_UPDATE_CREATE_COMMON_PROPS, 0, "Creating common properties for IO performance", UpdateDatabaseCreateCommonProps },
-	{ Z_UPDATE_CHECK_ATTACHMENTS, 0, "Checking message attachment properties for IO performance", UpdateDatabaseCheckAttachments },
-	{ Z_UPDATE_CREATE_TPROPERTIES, 0, "Creating tproperties for IO performance", UpdateDatabaseCreateTProperties },
-	{ Z_UPDATE_CONVERT_HIERARCHY, 0, "Converting hierarchy for IO performance", UpdateDatabaseConvertHierarchy },
-	{ Z_UPDATE_CREATE_DEFERRED, 0, "Creating deferred table for IO performance", UpdateDatabaseCreateDeferred },
-	{ Z_UPDATE_CONVERT_CHANGES, 0, "Converting changes for IO performance", UpdateDatabaseConvertChanges },
-	{ Z_UPDATE_CONVERT_NAMES, 0, "Converting names table to Unicode", UpdateDatabaseConvertNames },
-
-	// Update from version 7.00 to 7.0.1
-	{ Z_UPDATE_CONVERT_RF_TOUNICODE, 0, "Converting receivefolder table to Unicode", UpdateDatabaseReceiveFolderToUnicode },
-
-	// Update from 6.40.13 / 7.0.3
-	{ Z_UPDATE_CREATE_CLIENTUPDATE_TABLE, 0, "Creating client update status table", UpdateDatabaseClientUpdateStatus },
-
-	{ Z_UPDATE_CONVERT_STORES, 0, "Converting stores table", UpdateDatabaseConvertStores },
-	{ Z_UPDATE_UPDATE_STORES, 0, "Updating stores table", UpdateDatabaseUpdateStores },
-	
-	// Update from 7.0 to 7.1
-	{ Z_UPDATE_UPDATE_WLINK_RECKEY, 0, "Updating wunderbar record keys", UpdateWLinkRecordKeys },
-
 	// New in 7.2.2
 	{ Z_UPDATE_VERSIONTBL_MICRO, 0, "Add \"micro\" column to \"versions\" table", UpdateVersionsTbl },
 
@@ -993,6 +895,11 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	er = GetFirstUpdate(&ulDatabaseRevisionMin);
 	if(er != erSuccess)
 		return er;
+	if (ulDatabaseRevisionMin > 0 && ulDatabaseRevisionMin < 63) {
+		strReport = format("DB schema is %u and older than v63 (ZCP 7.2). "
+		            "KC 8.4 was the last version able to upgrade such.", ulDatabaseRevisionMin);
+		return KCERR_INVALID_VERSION;
+	}
 
 	//default error
 	strReport = "Unable to upgrade database from version " +
