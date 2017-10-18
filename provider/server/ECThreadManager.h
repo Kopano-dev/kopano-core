@@ -19,6 +19,7 @@
 #define ECTHREADMANAGER_H
 
 #include <kopano/zcdefs.h>
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -207,8 +208,7 @@ protected:
 	std::map<int, struct soap *> m_setListenSockets;
 	std::mutex m_mutexSockets;
 	bool m_bExit = false;
-	std::mutex m_mutexIdle;
-	unsigned int m_ulIdle = 0;
+	std::atomic<unsigned int> m_ulIdle{0};
 	CREATEPIPESOCKETCALLBACK m_lpCreatePipeSocketCallback;
 	void *					m_lpCreatePipeSocketParam;
 

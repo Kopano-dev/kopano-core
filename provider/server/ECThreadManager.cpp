@@ -522,15 +522,11 @@ ECRESULT ECDispatcher::GetNextWorkItem(WORKITEM **lppItem, bool bWait, bool bPri
 		return KCERR_NOT_FOUND;
     } else {
         // No item waiting
-		ulock_normal l_idle(m_mutexIdle);
 		++m_ulIdle;
-		l_idle.unlock();
 
 		/* If requested, wait until item is available */
 		condItems.wait(l_item);
-		l_idle.lock();
 		--m_ulIdle;
-		l_idle.unlock();
 
         if (queue->empty() || m_bExit)
             // Condition fired, but still nothing there. Probably exit requested or wrong queue signal
