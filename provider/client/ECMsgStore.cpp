@@ -702,7 +702,7 @@ HRESULT ECMsgStore::SetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULO
 }
 
 // If the open store a publicstore
-BOOL ECMsgStore::IsPublicStore()
+BOOL ECMsgStore::IsPublicStore() const
 {
 	BOOL fPublicStore = FALSE;
 
@@ -713,7 +713,7 @@ BOOL ECMsgStore::IsPublicStore()
 }
 
 // As the store is a delegate store
-BOOL ECMsgStore::IsDelegateStore()
+BOOL ECMsgStore::IsDelegateStore() const
 {
 	BOOL fDelegateStore = FALSE;
 

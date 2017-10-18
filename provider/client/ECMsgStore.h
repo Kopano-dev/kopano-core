@@ -180,11 +180,11 @@ protected:
 	HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, const IMessageFactory &, ULONG *obj_type, IUnknown **);
 
 public:
-	BOOL IsSpooler(){ return m_fIsSpooler; }
-	BOOL IsDefaultStore() { return m_fIsDefaultStore; }
-	BOOL IsPublicStore();
-	BOOL IsDelegateStore();
-	BOOL IsOfflineStore() { return m_bOfflineStore; }
+	BOOL IsSpooler() const { return m_fIsSpooler; }
+	BOOL IsDefaultStore() const { return m_fIsDefaultStore; }
+	BOOL IsPublicStore() const;
+	BOOL IsDelegateStore() const;
+	BOOL IsOfflineStore() const { return m_bOfflineStore; }
 	LPCSTR GetProfileName() const { return m_strProfname.c_str(); }
 
 	const GUID& GetStoreGuid();
