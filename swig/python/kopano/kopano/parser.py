@@ -1,18 +1,18 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
-import datetime
+from datetime import datetime
 import optparse
 import sys
 
 from .compat import decode as _decode
 
 def parse_date(option, opt_str, value, parser):
-    setattr(parser.values, option.dest, datetime.datetime.strptime(value, '%Y-%m-%d'))
+    setattr(parser.values, option.dest, datetime.strptime(value, '%Y-%m-%d'))
 
 def parse_loglevel(option, opt_str, value, parser):
     setattr(parser.values, option.dest, value.upper())
@@ -24,13 +24,23 @@ def parse_list_str(option, opt_str, value, parser):
     getattr(parser.values, option.dest).append(_decode(value))
 
 def parse_bool(option, opt_str, value, parser):
-    assert value in ('yes', 'no'), "error: %s option requires 'yes' or 'no' as argument" % opt_str
+    if value not in ('yes', 'no'):
+        raise Exception("error: %s option requires 'yes' or 'no'" % opt_str)
     setattr(parser.values, option.dest, value == 'yes')
 
 def show_version(*args):
     import __main__
     print(__main__.__version__)
     sys.exit()
+
+def _callback(**kwargs):
+    d = {
+        'type': 'str',
+        'action': 'callback',
+        'callback': parse_str
+    }
+    d.update(kwargs)
+    return d
 
 def _true():
     return {'action': 'store_true'}
@@ -39,28 +49,29 @@ def _int():
     return {'type': int, 'metavar': 'N'}
 
 def _guid():
-    return {'type': 'str', 'action': 'callback', 'callback': parse_str, 'metavar': 'GUID'}
+    return _callback(metavar='GUID')
 
 def _name():
-    return {'type': 'str', 'action': 'callback', 'callback': parse_str, 'metavar': 'NAME'}
+    return _callback(metavar='NAME')
 
 def _path():
-    return {'type': 'str', 'action': 'callback', 'callback': parse_str, 'metavar': 'PATH'}
+    return _callback(metavar='PATH')
 
 def _bool():
-    return {'type': 'str', 'action': 'callback', 'callback': parse_bool, 'metavar': 'YESNO'}
-
-def _list_name():
-    return {'type': 'str', 'default': [], 'action': 'callback', 'callback': parse_list_str, 'metavar': 'NAME'}
+    return _callback(callback=parse_bool, metavar='YESNO')
 
 def _date():
-    return {'type': 'str', 'action': 'callback', 'callback': parse_date, 'metavar': 'DATE'}
+    return _callback(callback=parse_date, metavar='DATE')
+
+def _list_name():
+    return _callback(callback=parse_list_str, default=[], metavar='NAME')
 
 def parser(options='cskpUPufmvCGSlbe', usage=None):
     """
-Return OptionParser instance from the standard ``optparse`` module, containing common kopano command-line options
+Return OptionParser instance from the standard ``optparse`` module,
+containing common kopano command-line options
 
-:param options: string containing a char for each desired option, default "cskpUPufmvV"
+:param options: string containing a char for each desired option
 
 Available options:
 
@@ -90,7 +101,7 @@ Available options:
 
 -F, --foreground: Run service in foreground
 
--m, --modify: Enable database modification (python-kopano does not check this!)
+-m, --modify: Enable modification (python-kopano does not check this!)
 
 -l, --log-level: Set log level (debug, info, warning, error, critical)
 
@@ -103,39 +114,100 @@ Available options:
 -V, --version: Show program version
 """
 
-    parser = optparse.OptionParser(formatter=optparse.IndentedHelpFormatter(max_help_position=42), usage=usage)
+    parser = optparse.OptionParser(
+        formatter=optparse.IndentedHelpFormatter(max_help_position=42),
+        usage=usage
+    )
 
-    kw_str = {'type': 'str', 'action': 'callback', 'callback': parse_str}
-    kw_date = {'type': 'str', 'action': 'callback', 'callback': parse_date}
-    kw_list_str = {'type': 'str', 'action': 'callback', 'callback': parse_list_str}
+    kw_str = _callback()
+    kw_date = _callback(callback=parse_date)
+    kw_list_str = _callback(callback=parse_list_str)
 
-    if 'c' in options: parser.add_option('-c', '--config', dest='config_file', help='load settings from FILE', metavar='FILE', **kw_str)
+    if 'c' in options:
+        parser.add_option('-c', '--config', dest='config_file',
+            help='load settings from FILE', metavar='FILE', **kw_str)
 
-    if 's' in options: parser.add_option('-s', '--server-socket', dest='server_socket', help='connect to server SOCKET', metavar='SOCKET', **kw_str)
-    if 'k' in options: parser.add_option('-k', '--ssl-key', dest='sslkey_file', help='SSL key file', metavar='FILE', **kw_str)
-    if 'p' in options: parser.add_option('-p', '--ssl-pass', dest='sslkey_pass', help='SSL key password', metavar='PASS', **kw_str)
-    if 'U' in options: parser.add_option('-U', '--auth-user', dest='auth_user', help='login as user', metavar='NAME', **kw_str)
-    if 'P' in options: parser.add_option('-P', '--auth-pass', dest='auth_pass', help='login with password', metavar='PASS', **kw_str)
+    if 's' in options:
+        parser.add_option('-s', '--server-socket', dest='server_socket',
+            help='connect to server SOCKET', metavar='SOCKET', **kw_str)
 
-    if 'G' in options: parser.add_option('-G', '--group', dest='groups', default=[], help='Specify group', metavar='NAME', **kw_list_str)
-    if 'C' in options: parser.add_option('-C', '--company', dest='companies', default=[], help='Specify company', metavar='NAME', **kw_list_str)
-    if 'u' in options: parser.add_option('-u', '--user', dest='users', default=[], help='Specify user', metavar='NAME', **kw_list_str)
-    if 'S' in options: parser.add_option('-S', '--store', dest='stores', default=[], help='Specify store', metavar='GUID', **kw_list_str)
-    if 'f' in options: parser.add_option('-f', '--folder', dest='folders', default=[], help='Specify folder', metavar='NAME', **kw_list_str)
+    if 'k' in options:
+        parser.add_option('-k', '--ssl-key', dest='sslkey_file',
+            help='SSL key file', metavar='FILE', **kw_str)
 
-    if 'b' in options: parser.add_option('-b', '--period-begin', dest='period_begin', help='Specify period', metavar='DATE', **kw_date)
-    if 'e' in options: parser.add_option('-e', '--period-end', dest='period_end', help='Specify period', metavar='DATE', **kw_date)
+    if 'p' in options:
+        parser.add_option('-p', '--ssl-pass', dest='sslkey_pass',
+            help='SSL key password', metavar='PASS', **kw_str)
 
-    if 'F' in options: parser.add_option('-F', '--foreground', dest='foreground', action='store_true', help='run program in foreground')
+    if 'U' in options:
+        parser.add_option('-U', '--auth-user', dest='auth_user',
+            help='login as user', metavar='NAME', **kw_str)
 
-    if 'm' in options: parser.add_option('-m', '--modify', dest='modify', action='store_true', help='enable database modification')
-    if 'l' in options: parser.add_option('-l', '--log-level', dest='loglevel', action='callback', type='str', callback=parse_loglevel, help='set log level (CRITICAL, ERROR, WARNING, INFO, DEBUG)', metavar='LEVEL')
-    if 'v' in options: parser.add_option('-v', '--verbose', dest='verbose', action='store_true', help='enable verbose output')
-    if 'V' in options: parser.add_option('-V', '--version', action='callback', help='show program version', callback=show_version)
+    if 'P' in options:
+        parser.add_option('-P', '--auth-pass', dest='auth_pass',
+            help='login with password', metavar='PASS', **kw_str)
 
-    if 'w' in options: parser.add_option('-w', '--worker-processes', dest='worker_processes', help='number of parallel worker processes', metavar='N', type='int')
+    if 'G' in options:
+        parser.add_option('-G', '--group', dest='groups', default=[],
+            help='Specify group', metavar='NAME', **kw_list_str)
 
-    if 'I' in options: parser.add_option('-I', '--input-dir', dest='input_dir', help='specify input directory', metavar='PATH', **kw_str)
-    if 'O' in options: parser.add_option('-O', '--output-dir', dest='output_dir', help='specify output directory', metavar='PATH', **kw_str)
+    if 'C' in options:
+        parser.add_option('-C', '--company', dest='companies', default=[],
+            help='Specify company', metavar='NAME', **kw_list_str)
+
+    if 'u' in options:
+        parser.add_option('-u', '--user', dest='users', default=[],
+            help='Specify user', metavar='NAME', **kw_list_str)
+
+    if 'S' in options:
+        parser.add_option('-S', '--store', dest='stores', default=[],
+            help='Specify store', metavar='GUID', **kw_list_str)
+
+    if 'f' in options:
+        parser.add_option('-f', '--folder', dest='folders', default=[],
+            help='Specify folder', metavar='NAME', **kw_list_str)
+
+    if 'b' in options: parser.add_option('-b', '--period-begin',
+            dest='period_begin', help='Specify period', metavar='DATE',
+            **kw_date)
+
+    if 'e' in options:
+        parser.add_option('-e', '--period-end', dest='period_end',
+            help='Specify period', metavar='DATE', **kw_date)
+
+    if 'F' in options:
+        parser.add_option('-F', '--foreground', dest='foreground',
+            action='store_true', help='run program in foreground')
+
+    if 'm' in options:
+        parser.add_option('-m', '--modify', dest='modify',
+            action='store_true', help='enable database modification')
+
+    if 'l' in options:
+        parser.add_option('-l', '--log-level', dest='loglevel',
+            action='callback', type='str', callback=parse_loglevel,
+            help='set log level (CRITICAL, ERROR, WARNING, INFO, DEBUG)',
+            metavar='LEVEL')
+
+    if 'v' in options:
+        parser.add_option('-v', '--verbose', dest='verbose',
+            action='store_true', help='enable verbose output')
+
+    if 'V' in options:
+        parser.add_option('-V', '--version', action='callback',
+            help='show program version', callback=show_version)
+
+    if 'w' in options:
+        parser.add_option('-w', '--worker-processes', dest='worker_processes',
+            help='number of parallel worker processes', type='int',
+            metavar='N')
+
+    if 'I' in options:
+        parser.add_option('-I', '--input-dir', dest='input_dir',
+            help='specify input directory', metavar='PATH', **kw_str)
+
+    if 'O' in options:
+        parser.add_option('-O', '--output-dir', dest='output_dir',
+        help='specify output directory', metavar='PATH', **kw_str)
 
     return parser
