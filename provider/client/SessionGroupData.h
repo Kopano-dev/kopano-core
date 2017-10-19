@@ -72,7 +72,7 @@ private:
 	sGlobalProfileProps m_sProfileProps;
 
 	/* Refcounting */
-	std::atomic<unsigned int> m_cRef;
+	std::atomic<unsigned int> m_cRef{0};
 
 public:
 	SessionGroupData(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps);
