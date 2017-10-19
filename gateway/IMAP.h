@@ -253,6 +253,7 @@ private:
 		bool bActive;			// Subscribed folder
 		bool bMailFolder;		// E-mail type folder
 		bool bSpecialFolder;	// 'special' folder (eg inbox)
+		ULONG ulSpecialFolderType;
 		bool bHasSubfolders;	// Has child folders
 		std::list<SFolder>::const_iterator lpParentFolder;
 	};
@@ -327,6 +328,7 @@ private:
 	HRESULT HrFindSubFolder(IMAPIFolder *lpFolder, const std::wstring &folder, ULONG *eid_size, LPENTRYID *eid);
 	bool IsSpecialFolder(IMAPIFolder *lpFolder);
 	bool IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID);
+	bool IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID, ULONG &folder_type);
 	bool IsMailFolder(IMAPIFolder *lpFolder);
 	bool IsSentItemFolder(IMAPIFolder *lpFolder);
 	HRESULT HrOpenParentFolder(ULONG cbEntryID, LPENTRYID lpEntryID, IMAPIFolder **lppFolder);

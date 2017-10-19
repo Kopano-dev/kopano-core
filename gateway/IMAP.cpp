@@ -1424,6 +1424,19 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 			strListProps = strAction + " (";
 			if (!iFld->bMailFolder)
 				strListProps += "\\Noselect ";
+			if (!bSubscribedOnly && iFld->bSpecialFolder) {
+				switch (iFld->ulSpecialFolderType) {
+				case PR_IPM_SENTMAIL_ENTRYID:
+					strListProps += "\\Sent ";
+					break;
+				case PR_IPM_WASTEBASKET_ENTRYID:
+					strListProps += "\\Trash ";
+					break;
+				case PR_IPM_DRAFTS_ENTRYID:
+					strListProps += "\\Drafts ";
+					break;
+				}
+			}
 			if (!bSubscribedOnly) {
 				// don't list flag on LSUB command
 				if (iFld->bHasSubfolders)
@@ -3024,6 +3037,14 @@ bool IMAP::IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID) {
 	       lstSpecialEntryIDs.end();
 }
 
+bool IMAP::IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID, ULONG &folder_type) {
+	auto iter = lstSpecialEntryIDs.find(BinaryArray(reinterpret_cast<BYTE *>(lpEntryID), cbEntryID, true));
+	if(iter == lstSpecialEntryIDs.cend())
+		return false;
+	folder_type = (*iter).second;
+	return true;
+}
+
 /** 
  * Make a list of all mails in the current selected folder.
  * 
@@ -3255,7 +3276,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 
 	SFolder sfolder;
 	sfolder.bActive = true;
-	sfolder.bSpecialFolder = IsSpecialFolder(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb));
+	sfolder.bSpecialFolder = IsSpecialFolder(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), sfolder.ulSpecialFolderType);
 	sfolder.bMailFolder = false;
 	sfolder.lpParentFolder = parent_folder;
 	sfolder.strFolderName = in_folder_name;
@@ -3317,7 +3338,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 				}
 				auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), BinaryArray(entry_id));
 				sfolder.bActive = subscribed_iter != m_vSubscriptions.cend();
-				sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb(), entry_id.lpb());
+				sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb(), entry_id.lpb(), sfolder.ulSpecialFolderType);
 				sfolder.bMailFolder = mailfolder;
 				sfolder.lpParentFolder = tmp_parent_folder;
 				sfolder.strFolderName = foldername;
