@@ -290,7 +290,7 @@ private:
 	KCHL::object_ptr<IMsgStore> lpStore, lpPublicStore;
 
 	// special folder entryids (not able to move/delete inbox and such ...)
-	std::set<BinaryArray, lessBinaryArray> lstSpecialEntryIDs;
+	std::map<BinaryArray, ULONG, lessBinaryArray> lstSpecialEntryIDs;
 
 	// Message cache
 	std::string m_strCache;

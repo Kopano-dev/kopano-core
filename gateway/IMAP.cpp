@@ -2983,14 +2983,14 @@ HRESULT IMAP::HrMakeSpecialsList() {
 		return hr;
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayStore[i].ulPropTag) == PT_BINARY)
-			lstSpecialEntryIDs.emplace(lpPropArrayStore[i].Value.bin.lpb, lpPropArrayStore[i].Value.bin.cb);
+			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayStore[i].Value.bin.lpb, lpPropArrayStore[i].Value.bin.cb), lpPropArrayStore[i].ulPropTag);
 
 	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess)
 		return hr;
 
 	// inbox is special too
-	lstSpecialEntryIDs.emplace(reinterpret_cast<unsigned char *>(lpEntryID.get()), cbEntryID);
+	lstSpecialEntryIDs.emplace(BinaryArray(reinterpret_cast<unsigned char *>(lpEntryID.get()), cbEntryID), 0);
 	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess)
 		return hr;
@@ -2999,15 +2999,15 @@ HRESULT IMAP::HrMakeSpecialsList() {
 		return hr;
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayInbox[i].ulPropTag) == PT_BINARY)
-			lstSpecialEntryIDs.emplace(lpPropArrayInbox[i].Value.bin.lpb, lpPropArrayInbox[i].Value.bin.cb);
+			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayInbox[i].Value.bin.lpb, lpPropArrayInbox[i].Value.bin.cb), lpPropArrayInbox[i].ulPropTag);
 
 	if (HrGetOneProp(lpInbox, PR_ADDITIONAL_REN_ENTRYIDS, &~lpPropVal) == hrSuccess &&
 	    lpPropVal->Value.MVbin.cValues >= 5 && lpPropVal->Value.MVbin.lpbin[4].cb != 0)
-		lstSpecialEntryIDs.emplace(lpPropVal->Value.MVbin.lpbin[4].lpb, lpPropVal->Value.MVbin.lpbin[4].cb);
+		lstSpecialEntryIDs.emplace(BinaryArray(lpPropVal->Value.MVbin.lpbin[4].lpb, lpPropVal->Value.MVbin.lpbin[4].cb), 0);
 	if(!lpPublicStore)
 		return hrSuccess;
 	if (HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropVal) == hrSuccess)
-		lstSpecialEntryIDs.emplace(lpPropVal->Value.bin.lpb, lpPropVal->Value.bin.cb);
+		lstSpecialEntryIDs.emplace(BinaryArray(lpPropVal->Value.bin.lpb, lpPropVal->Value.bin.cb), 0);
 	return hrSuccess;
 }
 
