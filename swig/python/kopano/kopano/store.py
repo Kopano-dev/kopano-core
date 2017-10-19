@@ -51,7 +51,7 @@ from .errors import NotFoundError
 from .base import Base
 from .autoaccept import AutoAccept
 from .outofoffice import OutOfOffice
-from .prop import Property
+from .property_ import Property
 from .delegation import Delegation
 from .permission import Permission
 from .freebusy import FreeBusy
