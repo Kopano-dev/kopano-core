@@ -1858,7 +1858,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
     IMAPISession *lpUserSession, IECServiceAdmin *lpServiceAdmin,
     IECSecurity *lpSecurity, IMsgStore *lpUserStore, IAddrBook *lpAddrBook,
     ECSender *lpMailer, ULONG cbMsgEntryId, LPENTRYID lpMsgEntryId,
-    IMessage **lppMessage)
+    IMessage **lppMessage, bool &doSentMail)
 {
 	HRESULT 		hr 				= hrSuccess;
 	object_ptr<IMessage> lpMessage;
@@ -1883,6 +1883,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	object_ptr<IMessage> lpRepMessage;
 	memory_ptr<SPropValue> lpRepEntryID, lpSubject, lpMsgSize;
 	memory_ptr<SPropValue> lpAutoForward, lpMsgClass, lpDeferSendTime;
+	memory_ptr<SPropValue> outbox_entryid, parent_entryid;
 
 	PyMapiPluginFactory pyMapiPluginFactory;
 	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
@@ -1941,6 +1942,16 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	if (hr != hrSuccess) {
 		ec_log_err("Could not open message in store from user %ls: %s (%x)",
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
+		goto exit;
+	}
+
+	HrGetOneProp(lpUserStore, PR_IPM_OUTBOX_ENTRYID, &~outbox_entryid);
+	HrGetOneProp(lpMessage, PR_PARENT_ENTRYID, &~parent_entryid);
+
+	if (outbox_entryid && parent_entryid &&
+	    memcmp(outbox_entryid->Value.bin.lpb, parent_entryid->Value.bin.lpb, outbox_entryid->Value.bin.cb) != 0) {
+		ec_log_err("Message is not in outbox, will not send");
+		doSentMail = false;
 		goto exit;
 	}
 
@@ -2355,7 +2366,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 
 	hr = ProcessMessage(lpAdminSession, lpUserSession, lpServiceAdmin,
 	     lpSecurity, lpUserStore, lpAddrBook, lpMailer.get(), cbMsgEntryId,
-	     lpMsgEntryId, &~lpMessage);
+	     lpMsgEntryId, &~lpMessage, bDoSentMail);
 	if (hr != hrSuccess && hr != MAPI_E_WAIT && hr != MAPI_W_NO_SERVICE && lpMessage) {
 		// use lpMailer to set body in SendUndeliverable
 		if (!lpMailer->haveError())
