@@ -39,9 +39,9 @@ class Address(object):
             # cannot resolve email for deleted/non-existent user, so fallback to searchkey
             # XXX make PR_SMTP_ADDRESS always contain email address?
             if not email and self._searchkey and b':' in self._searchkey and b'@' in self._searchkey:
-                email = self._searchkey.split(b':')[1].rstrip(b'\x00').lower()
+                email = self._searchkey.split(b':')[1].rstrip(b'\x00').decode('ascii').lower()
         else:
-            email = self._email or ''
+            email = self._email or u''
         return email
 
     def __unicode__(self):
