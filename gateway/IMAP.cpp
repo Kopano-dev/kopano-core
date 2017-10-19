@@ -1435,6 +1435,9 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 				case PR_IPM_DRAFTS_ENTRYID:
 					strListProps += "\\Drafts ";
 					break;
+				case PR_IPM_FAKEJUNK_ENTRYID:
+					strListProps += "\\Junk ";
+					break;
 				}
 			}
 			if (!bSubscribedOnly) {
@@ -3016,7 +3019,7 @@ HRESULT IMAP::HrMakeSpecialsList() {
 
 	if (HrGetOneProp(lpInbox, PR_ADDITIONAL_REN_ENTRYIDS, &~lpPropVal) == hrSuccess &&
 	    lpPropVal->Value.MVbin.cValues >= 5 && lpPropVal->Value.MVbin.lpbin[4].cb != 0)
-		lstSpecialEntryIDs.emplace(BinaryArray(lpPropVal->Value.MVbin.lpbin[4].lpb, lpPropVal->Value.MVbin.lpbin[4].cb), 0);
+		lstSpecialEntryIDs.emplace(BinaryArray(lpPropVal->Value.MVbin.lpbin[4].lpb, lpPropVal->Value.MVbin.lpbin[4].cb), PR_IPM_FAKEJUNK_ENTRYID);
 	if(!lpPublicStore)
 		return hrSuccess;
 	if (HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropVal) == hrSuccess)

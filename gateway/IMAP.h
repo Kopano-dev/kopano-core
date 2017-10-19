@@ -290,6 +290,7 @@ private:
 	std::vector<SMail> lstFolderMailEIDs;
 	KCHL::object_ptr<IMsgStore> lpStore, lpPublicStore;
 
+	enum { PR_IPM_FAKEJUNK_ENTRYID = PR_ADDITIONAL_REN_ENTRYIDS };
 	// special folder entryids (not able to move/delete inbox and such ...)
 	std::map<BinaryArray, ULONG, lessBinaryArray> lstSpecialEntryIDs;
 
