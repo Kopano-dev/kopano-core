@@ -1856,8 +1856,7 @@ bool MAPIToVMIME::is_voting_request(IMessage *lpMessage) const
 
 	hr = lpMessage->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &~lpPropTags);
 	if (hr != hrSuccess)
-		ec_log_err("Unable to read voting property. Error: %s (0x%08X)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to read voting property", hr);
 	else
 		hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_BINARY), &~lpPropContentType);
 	return hr == hrSuccess;
@@ -1876,8 +1875,7 @@ bool MAPIToVMIME::has_reminder(IMessage *msg) const
 
 	auto hr = msg->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &~tags);
 	if (hr != hrSuccess)
-		ec_log_err("Unable to read reminder property: %s (0x%08x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to read reminder property", hr);
 	else {
 		hr = HrGetOneProp(msg, CHANGE_PROP_TYPE(tags->aulPropTag[0], PT_BOOLEAN), &~content_type);
 		if(hr == hrSuccess)

@@ -1701,15 +1701,11 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		SPropValue sAttProps[3];
 
 		hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~ptrAttach);
-		if (hr != hrSuccess) {
-			ec_log_err("dissect_ical-1790: Unable to create attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("dissect_ical-1790: Unable to create attachment for iCal data", hr);
 		hr = ptrAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~ptrNewMessage);
-		if (hr != hrSuccess) {
-			ec_log_err("dissect_ical-1796: Unable to create message attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("dissect_ical-1796: Unable to create message attachment for iCal data", hr);
 
 		sAttProps[0].ulPropTag = PR_ATTACH_METHOD;
 		sAttProps[0].Value.ul = ATTACH_EMBEDDED_MSG;
@@ -1721,21 +1717,15 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		sAttProps[2].Value.ul = 0;
 
 		hr = ptrAttach->SetProps(3, sAttProps, NULL);
-		if (hr != hrSuccess) {
-			ec_log_err("dissect_ical-1811: Unable to create message attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perror("dissect_ical-1811: Unable to create message attachment for iCal data", hr);
 		lpIcalMessage = ptrNewMessage.get();
 	}
 
 	hr = CreateICalToMapi(lpMessage, m_lpAdrBook, true, &tmpicalmapi);
 	lpIcalMapi.reset(tmpicalmapi);
-	if (hr != hrSuccess) {
-		ec_log_err("dissect_ical-1820: Unable to create ical converter: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("dissect_ical-1820: Unable to create iCal converter", hr);
 	hr = lpIcalMapi->ParseICal(icaldata, strCharset, "UTC" , NULL, 0);
 	if (hr != hrSuccess || lpIcalMapi->GetItemCount() != 1) {
 		ec_log_err("dissect_ical-1826: Unable to parse ical information: %s (%x), items: %d, adding as normal attachment",
@@ -1745,10 +1735,8 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 
 	if (lpIcalMessage != lpMessage) {
 		hr = lpIcalMapi->GetItem(0, 0, lpIcalMessage);
-		if (hr != hrSuccess) {
-			ec_log_err("dissect_ical-1833: Error while converting ical to mapi: %s (%x)", GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("dissect_ical-1833: Error while converting iCal to MAPI", hr);
 	}
 
 	if (bIsAttachment)
@@ -1756,10 +1744,9 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 
 	/* Calendar properties need to be on the main message in any case. */
 	hr = lpIcalMapi->GetItem(0, ical_mapi_flags, lpMessage);
-	if (hr != hrSuccess) {
-		ec_log_err("dissect_ical-1834: Error while converting ical to mapi: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("dissect_ical-1834: Error while converting iCal to MAPI", hr);
+
 	/* Evaluate whether vconverter gave us an initial body */
 	if (!bIsAttachment && m_mailState.bodyLevel < BODY_PLAIN &&
 	    (FPropExists(lpMessage, PR_BODY_A) ||
@@ -1778,15 +1765,11 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	}
 
 	hr = ptrNewMessage->SaveChanges(0);
-	if (hr != hrSuccess) {
-		ec_log_err("dissect_ical-1851: Unable to save ical message: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("dissect_ical-1851: Unable to save iCal message", hr);
 	hr = ptrAttach->SaveChanges(0);
-	if (hr != hrSuccess) {
-		ec_log_err("dissect_ical-1856: Unable to save ical message attachment: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("dissect_ical-1856: Unable to save iCal message attachment", hr);
 
 	// make sure we show the attachment icon
 	m_mailState.attachLevel = ATTACH_NORMAL;
@@ -2496,11 +2479,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 	if (m_mailState.bodyLevel == BODY_NONE || (m_mailState.bodyLevel < BODY_HTML && !bAppendBody))
 		ulFlags |= MAPI_CREATE;
 	hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, ulFlags, &~lpHTMLStream);
-	if (hr != hrSuccess) {
-		ec_log_err("OpenProperty PR_HTML failed: %s", GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("OpenProperty PR_HTML failed", hr);
 	if (bAppendBody) {
 		static const LARGE_INTEGER liZero = {{0, 0}};
 		hr = lpHTMLStream->Seek(liZero, SEEK_END, NULL);

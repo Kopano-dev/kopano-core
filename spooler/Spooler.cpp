@@ -459,8 +459,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			if (sSendData.ulFlags & EC_SUBMIT_DOSENTMAIL && lpMessage) {
 				hr = DoSentMail(lpAdminSession, lpUserStore, 0, std::move(lpMessage));
 				if (hr != hrSuccess)
-					ec_log_err("Unable to move sent mail to sent-items folder: %s (%x)",
-						GetMAPIErrorMessage(hr), hr);
+					kc_perror("Unable to move sent mail to Sent Items folder", hr);
 			}
 		}
 
@@ -501,8 +500,7 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 
 	hr = lpTable->GetRowCount(0, &ulRowCount);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to get outgoing queue count: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to get outgoing queue count", hr);
 		goto exit;
 	}
 
@@ -621,17 +619,11 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
 		return hr;
 	}
 	hr = HrGetOneProp(lpMDB, PR_EC_OBJECT, &~lpsProp);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to get Kopano internal object: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to get Kopano internal object", hr);
 	hr = reinterpret_cast<IUnknown *>(lpsProp->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
-	if (hr != hrSuccess) {
-		ec_log_err("Spooler interface not supported: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Spooler interface not supported", hr);
 	*lppSpooler = lpSpooler.release();
 	return hr;
 }
@@ -689,28 +681,24 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	// Request the master outgoing table
 	hr = lpSpooler->GetMasterOutgoingTable(0, &~lpTable);
 	if (hr != hrSuccess) {
-		ec_log_err("Master outgoing queue not available: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Master outgoing queue not available", hr);
 		goto exit;
 	}
 	hr = lpTable->SetColumns(sOutgoingCols, 0);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to setColumns() on OutgoingQueue: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to setColumns() on OutgoingQueue", hr);
 		goto exit;
 	}
 	
 	// Sort by ascending hierarchyid: first in, first out queue
 	hr = lpTable->SortTable(sSort, 0);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to SortTable() on OutgoingQueue: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to SortTable() on OutgoingQueue", hr);
 		goto exit;
 	}
 	hr = HrAllocAdviseSink(AdviseCallback, nullptr, &~lpAdviseSink);	
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to allocate memory for advise sink: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		kc_perror("Unable to allocate memory for advise sink", hr);
 		goto exit;
 	}
 

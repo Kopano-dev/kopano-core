@@ -292,8 +292,7 @@ int main(int argc, char **argv) {
 
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
-		fprintf(stderr, "Messaging API could not be initialized: %s (%x)",
-		        GetMAPIErrorMessage(hr), hr);
+		kc_perror("Messaging API could not be initialized", hr);
 		goto exit;
 	}
 
@@ -479,7 +478,7 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 		hr = HrStartHandlerClient(lpChannel, bUseSSL, nCloseFDs, pCloseFDs);
 		if (hr != hrSuccess) {
 			delete lpChannel;	// destructor closes sockets
-			ec_log_err("Handling client connection failed. (0x%08X %s)", hr, GetMAPIErrorMessage(hr));
+			kc_perror("Handling client connection failed", hr);
 			continue;
 		}
 		if (g_bThreads == false)
@@ -631,7 +630,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 
 	hr = HrParseURL(strUrl, &ulFlag);
 	if (hr != hrSuccess) {
-		ec_log_err("Client request is invalid: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("Client request is invalid", hr);
 		lpRequest.HrResponseHeader(400, "Bad Request: " + stringify(hr,true));
 		goto exit;
 	}
