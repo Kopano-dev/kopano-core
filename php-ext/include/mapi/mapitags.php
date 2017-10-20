@@ -166,14 +166,14 @@ define('PR_TNEF_CORRELATION_KEY'                      ,mapi_prop_tag(PT_BINARY, 
 define('PR_MDN_DISPOSITION_TYPE'                      ,mapi_prop_tag(PT_STRING8,     0x0080));
 define('PR_MDN_DISPOSITION_SENDINGMODE'               ,mapi_prop_tag(PT_STRING8,     0x0081));
 
-define('PR_USER_ENTRYID'                              ,mapi_prop_tag(PT_BINARY,      0x6618+0x01));
-define('PR_USER_NAME'                                 ,mapi_prop_tag(PT_STRING8,     0x6618+0x02));
-define('PR_MAILBOX_OWNER_ENTRYID'                     ,mapi_prop_tag(PT_BINARY,      0x6618+0x03));
-define('PR_MAILBOX_OWNER_NAME'                        ,mapi_prop_tag(PT_STRING8,     0x6618+0x04));
+define('PR_USER_ENTRYID'                              ,mapi_prop_tag(PT_BINARY, 0x6619));
+define('PR_USER_NAME'                                 ,mapi_prop_tag(PT_STRING8, 0x661A));
+define('PR_MAILBOX_OWNER_ENTRYID'                     ,mapi_prop_tag(PT_BINARY, 0x661B));
+define('PR_MAILBOX_OWNER_NAME'                        ,mapi_prop_tag(PT_STRING8, 0x661C));
 
-define('PR_HIERARCHY_SYNCHRONIZER'                    ,mapi_prop_tag(PT_OBJECT, 	 0x6618+0x14));
-define('PR_CONTENTS_SYNCHRONIZER'                     ,mapi_prop_tag(PT_OBJECT, 	 0x6618+0x15));
-define('PR_COLLECTOR'                                 ,mapi_prop_tag(PT_OBJECT, 	 0x6618+0x16));
+define('PR_HIERARCHY_SYNCHRONIZER'                    ,mapi_prop_tag(PT_OBJECT, 0x662C));
+define('PR_CONTENTS_SYNCHRONIZER'                     ,mapi_prop_tag(PT_OBJECT, 0x662D));
+define('PR_COLLECTOR'                                 ,mapi_prop_tag(PT_OBJECT, 0x662E));
 
 define('PR_SMTP_ADDRESS'                              ,mapi_prop_tag(PT_TSTRING,     0x39FE));
  
@@ -823,23 +823,23 @@ define('PR_EC_WA_ATTACHMENT_HIDDEN_OVERRIDE', mapi_prop_tag(PT_BOOLEAN, PR_EC_BA
 
 // edkmdb, rules properties
 #define pidSpecialMin                                   0x6670
-define('PR_RULE_ID'                                   ,mapi_prop_tag(PT_I8,          0x6670+0x04)); // only lower 32 bits are used.
-define('PR_RULE_IDS'                                  ,mapi_prop_tag(PT_BINARY,      0x6670+0x05));
-define('PR_RULE_SEQUENCE'                             ,mapi_prop_tag(PT_LONG,        0x6670+0x06));
-define('PR_RULE_STATE'                                ,mapi_prop_tag(PT_LONG,        0x6670+0x07));
-define('PR_RULE_USER_FLAGS'                           ,mapi_prop_tag(PT_LONG,        0x6670+0x08));
-define('PR_RULE_CONDITION'                            ,mapi_prop_tag(PT_SRESTRICTION,0x6670+0x09));
-define('PR_RULE_ACTIONS'                              ,mapi_prop_tag(PT_ACTIONS,     0x6670+0x10));
-define('PR_RULE_PROVIDER'                             ,mapi_prop_tag(PT_STRING8,     0x6670+0x11));
-define('PR_RULE_NAME'                                 ,mapi_prop_tag(PT_TSTRING,     0x6670+0x12));
-define('PR_RULE_LEVEL'                                ,mapi_prop_tag(PT_LONG,        0x6670+0x13));
-define('PR_RULE_PROVIDER_DATA'                        ,mapi_prop_tag(PT_BINARY,      0x6670+0x14));
+define('PR_RULE_ID'                                   ,mapi_prop_tag(PT_I8, 0x6674)); // only lower 32 bits are used.
+define('PR_RULE_IDS'                                  ,mapi_prop_tag(PT_BINARY, 0x6675));
+define('PR_RULE_SEQUENCE'                             ,mapi_prop_tag(PT_LONG, 0x6676));
+define('PR_RULE_STATE'                                ,mapi_prop_tag(PT_LONG, 0x6677));
+define('PR_RULE_USER_FLAGS'                           ,mapi_prop_tag(PT_LONG, 0x6678));
+define('PR_RULE_CONDITION'                            ,mapi_prop_tag(PT_SRESTRICTION, 0x6679));
+define('PR_RULE_ACTIONS'                              ,mapi_prop_tag(PT_ACTIONS, 0x6680));
+define('PR_RULE_PROVIDER'                             ,mapi_prop_tag(PT_STRING8, 0x6681));
+define('PR_RULE_NAME'                                 ,mapi_prop_tag(PT_TSTRING, 0x6682));
+define('PR_RULE_LEVEL'                                ,mapi_prop_tag(PT_LONG, 0x6683));
+define('PR_RULE_PROVIDER_DATA'                        ,mapi_prop_tag(PT_BINARY, 0x6684));
 
 // edkmdb, ICS properties
-define('PR_SOURCE_KEY'								  ,mapi_prop_tag(PT_BINARY, 	0x65E0+0x00));
-define('PR_PARENT_SOURCE_KEY'						  ,mapi_prop_tag(PT_BINARY, 	0x65E0+0x01));
-define('PR_CHANGE_KEY'								  ,mapi_prop_tag(PT_BINARY, 	0x65E0+0x02));
-define('PR_PREDECESSOR_CHANGE_LIST'					  ,mapi_prop_tag(PT_BINARY, 	0x65E0+0x03));
+define('PR_SOURCE_KEY'								  ,mapi_prop_tag(PT_BINARY, 0x65E0));
+define('PR_PARENT_SOURCE_KEY'						  ,mapi_prop_tag(PT_BINARY, 0x65E1));
+define('PR_CHANGE_KEY'								  ,mapi_prop_tag(PT_BINARY, 0x65E2));
+define('PR_PREDECESSOR_CHANGE_LIST'					  ,mapi_prop_tag(PT_BINARY, 0x65E3));
 
 
 define('PR_PROCESS_MEETING_REQUESTS', mapi_prop_tag(PT_BOOLEAN, 0x686D));
