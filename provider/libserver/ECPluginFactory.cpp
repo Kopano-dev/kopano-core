@@ -53,6 +53,8 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 			ec_log_crit("No user plugin was declared in the config file.");
 			return KCERR_NOT_FOUND;
         }
+		if (strcmp(pluginname, "ldapms") == 0)
+			pluginname = "ldap";
 		snprintf(filename, sizeof(filename), "libkcserver-%s.%s",
 		         pluginname, SHARED_OBJECT_EXTENSION);
         m_dl = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
