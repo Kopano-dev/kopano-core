@@ -57,6 +57,6 @@ class Appointment(object):
         else:
             if (not start or self.end > start) and \
                (not end or self.start < end):
-                occ_start = max(self.start, start)
-                occ_end = min(self.end, end)
-                yield Occurrence(self, occ_start, occ_end)
+                start = max(self.start, start) if start else self.start
+                end = min(self.end, end) if end else self.end
+                yield Occurrence(self, start, end)

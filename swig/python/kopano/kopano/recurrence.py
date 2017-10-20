@@ -792,12 +792,14 @@ class Recurrence(object):
 class Occurrence(object):
     """Occurrence class"""
 
-    def __init__(self, item, start, end, subject, location):
+    def __init__(self, item, start, end, subject=None, location=None):
         self.item = item
         self.start = start
         self.end = end
-        self.subject = subject
-        self.location = location
+        if subject is not None:
+            self.subject = subject
+        if location is not None:
+            self.location = location
 
     def __getattr__(self, x):
         return getattr(self.item, x)
