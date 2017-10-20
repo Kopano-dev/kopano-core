@@ -48,7 +48,7 @@ from .defs import (
 )
 
 from .errors import NotFoundError
-from .base import Base
+from .properties import Properties
 from .autoaccept import AutoAccept
 from .outofoffice import OutOfOffice
 from .property_ import Property
@@ -82,7 +82,7 @@ else:
     import item as _item
     import utils as _utils
 
-class Store(Base):
+class Store(Properties):
     """Store class"""
 
     def __init__(self, guid=None, entryid=None, mapiobj=None, server=None):

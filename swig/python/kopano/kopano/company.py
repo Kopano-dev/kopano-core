@@ -19,7 +19,7 @@ from MAPI.Struct import (
 from MAPI.Tags import PR_EC_COMPANY_NAME_W, PR_EC_STOREGUID
 from MAPI.Util import GetPublicStore
 
-from .base import Base
+from .properties import Properties
 from .quota import Quota
 from .group import Group
 
@@ -49,7 +49,7 @@ else:
     import user as _user
     import store as _store
 
-class Company(Base):
+class Company(Properties):
     """Company class"""
 
     def __init__(self, name, server=None):

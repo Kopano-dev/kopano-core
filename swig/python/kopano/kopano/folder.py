@@ -44,7 +44,7 @@ from MAPI.Struct import (
 )
 from MAPI.Time import unixtime
 
-from .base import Base
+from .properties import Properties
 from .permission import Permission
 from .rule import Rule
 from .table import Table
@@ -85,7 +85,7 @@ else:
     import utils as _utils
     import ics as _ics
 
-class Folder(Base):
+class Folder(Properties):
     """Folder class"""
 
     def __init__(self, store=None, entryid=None, associated=False, deleted=False, mapiobj=None, _check_mapiobj=True):

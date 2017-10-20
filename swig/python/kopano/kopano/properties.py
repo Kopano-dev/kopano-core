@@ -15,7 +15,8 @@ if sys.hexversion >= 0x03000000:
 else:
     import property_ as _prop
 
-class Base(object):
+class Properties(object):
+    """Property mixin class"""
 
     def prop(self, proptag, create=False, proptype=None):
         """Return :class:`property <Property>` with given property tag.
@@ -48,12 +49,12 @@ class Base(object):
         """Return all :class:`properties <Property>`."""
         return _prop.props(self.mapiobj, namespace)
 
-    # XXX deprecate
+    # TODO deprecate in favor of __getitem__
     def value(self, proptag):
         """Return :class:`property <Property>` value for given proptag."""
         return self.prop(proptag).value
 
-    # XXX deprecate
+    # TODO deprecate in favor of get
     def get_value(self, proptag, default=None):
         """Return :class:`property <Property>` value for given proptag or
         *None* if property does not exist.
@@ -65,7 +66,7 @@ class Base(object):
         except NotFoundError:
             return default
 
-    # XXX deprecate
+    # TODO deprecate in favor of __setitem__
     def set_value(self, proptag, value):
         """Set :class:`property <Property>` value for given proptag,
         creating the property if it doesn't exist.

@@ -77,7 +77,7 @@ from .errors import Error, NotFoundError, _DeprecationWarning
 
 from .attachment import Attachment
 from .body import Body
-from .base import Base
+from .properties import Properties
 from .meetingrequest import MeetingRequest
 from .address import Address
 from .table import Table
@@ -125,7 +125,7 @@ class PersistentList(list):
             return ret
         return _func
 
-class Item(Base, Contact, Appointment):
+class Item(Properties, Contact, Appointment):
     """Item class"""
 
     def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None, entryid=None, content_flag=None, save=True):
