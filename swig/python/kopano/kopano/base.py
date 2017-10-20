@@ -48,10 +48,12 @@ class Base(object):
         """Return all :class:`properties <Property>`."""
         return _prop.props(self.mapiobj, namespace)
 
+    # XXX deprecate
     def value(self, proptag):
         """Return :class:`property <Property>` value for given proptag."""
         return self.prop(proptag).value
 
+    # XXX deprecate
     def get_value(self, proptag, default=None):
         """Return :class:`property <Property>` value for given proptag or
         *None* if property does not exist.
@@ -63,11 +65,30 @@ class Base(object):
         except NotFoundError:
             return default
 
+    # XXX deprecate
     def set_value(self, proptag, value):
         """Set :class:`property <Property>` value for given proptag,
         creating the property if it doesn't exist.
         """
         self.prop(proptag, create=True).value = value
+
+    def get(self, proptag, default=None):
+        """Return :class:`property <Property>` value for given proptag or
+        *None* if property does not exist.
+
+        :param proptag: MAPI property tag
+        """
+        return self.get_value(proptag, default=default)
+
+    def __getitem__(self, proptag):
+        """Return :class:`property <Property>` value for given proptag."""
+        return self.get_value(proptag)
+
+    def __setitem__(self, proptag, value):
+        """Set :class:`property <Property>` value for given proptag,
+        creating the property if it doesn't exist.
+        """
+        return self.set_value(proptag, value)
 
     def __repr__(self):
         return _repr(self)
