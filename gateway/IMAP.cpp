@@ -1643,7 +1643,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strFolderParam the folder to create the message in, in IMAP UTF-7 charset
  * @param[in] strData the RFC 2822 formatted email to save
- * @param[in] strFlags optional, contains a list of extra flags to save on the message (eg. \Seen)
+ * @param[in] strFlags optional, contains a list of extra flags to save on the message (e.g. \Seen)
  * @param[in] strTime optional, a timestamp for the message: internal date is received date
  * 
  * @return MAPI Error code
@@ -4407,8 +4407,8 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
          * field-name (as defined in [RFC-2822]) names, and return a
          * subset of the header.
          *
-         * eg. HEADER.FIELDS (SUBJECT TO)
-         * eg. HEADER.FIELDS.NOT (SUBJECT)
+         * e.g. HEADER.FIELDS (SUBJECT TO)
+         * e.g. HEADER.FIELDS.NOT (SUBJECT)
          */
         bool bNot = Prefix(strPartName, "HEADER.FIELDS.NOT");
 		std::list<std::pair<std::string, std::string>> lstFields;

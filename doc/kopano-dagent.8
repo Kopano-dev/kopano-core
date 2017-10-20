@@ -122,7 +122,7 @@ Strip the domain from the given username. For example, when the DAgent is called
 .PP
 \fB\-R\fR
 .RS 4
-The passed recipient name will always be resolved first. This means that the recipient can be a username, e\-mail address or any other resolvable, unique identifier for the user. However, if the resolve fails (eg. when running as a non\-trusted user), the passed name will be assumed to be a loginname of a user. Passing the \-R option will disable this and will cause kopano\-dagent to exit with an error when the resolve fails.
+The passed recipient name will always be resolved first. This means that the recipient can be a username, e\-mail address or any other resolvable, unique identifier for the user. However, if the resolve fails (e.g. when running as a non\-trusted user), the passed name will be assumed to be a loginname of a user. Passing the \-R option will disable this and will cause kopano\-dagent to exit with an error when the resolve fails.
 .sp
 In practice, the resolve will only fail if kopano\-dagent is not running in a trusted account and is therefore only really here for backward\-compatibility of earlier kopano\-dagent versions.
 .RE

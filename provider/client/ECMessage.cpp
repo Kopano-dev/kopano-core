@@ -2396,7 +2396,7 @@ HRESULT ECMessage::HrLoadProps()
 
 		hrTmp = GetBodyType(&m_ulBodyType);
 		if (FAILED(hrTmp)) {
-			// eg. this fails then RTF property is present but empty
+			// e.g. this fails then RTF property is present but empty
 			ec_log_warn("GetBestBody: Unable to determine body type based on RTF data, hr=0x%08x", hrTmp);
 		} else if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
 		    (m_ulBodyType == bodyTypeHTML && !fHTMLOK)) {

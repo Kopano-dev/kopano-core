@@ -130,7 +130,7 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
  * options enabled, or standalone CONTENT restrictions. Nested ORs are also supported as long as all the
  * CONTENT restrictions in an OR (and sub-ORs) contain the same search term. 
  *
- * eg.:
+ * e.g.:
  *
  * 1. (OR (OR (OR (f1: t1), f2: t1, f3: t1 ) ) ) => f1 f2 f3 : t1
  *

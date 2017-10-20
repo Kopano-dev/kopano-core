@@ -139,7 +139,7 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 		 * - Add + Change = Add
 		 * - Change + Delete = Delete
 		 * - Add + (Change +) Delete = -
-		 * - Delete + Add = Delete + Add (eg. user changes from object class from/to contact)
+		 * - Delete + Add = Delete + Add (e.g. user changes from object class from/to contact)
 		 */
 		std::stable_sort(m_lpRawChanges, m_lpRawChanges + m_ulChanges, LeftPrecedesRight);
 

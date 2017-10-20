@@ -269,7 +269,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 		};
 
 		if (hr == hrSuccess && item != nullptr && previtem != item) {
-			// previtem is equal to item when item was only updated (eg. vevent exception)
+			// previtem is equal to item when item was only updated (e.g. vevent exception)
 			m_vMessages.emplace_back(item);
 			previtem = item;
 		}

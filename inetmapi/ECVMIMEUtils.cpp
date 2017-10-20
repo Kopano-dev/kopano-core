@@ -139,10 +139,10 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 			hr = HrExpandGroup(lpAdrBook, lpGroupName, lpGroupEntryID, recipients, setGroups, setRecips, bAllowEveryone);
 
 			if (hr == MAPI_E_TOO_COMPLEX || hr == MAPI_E_INVALID_PARAMETER) {
-				// ignore group nesting loop and non user/group types (eg. companies)
+				// ignore group nesting loop and non user/group types (e.g. companies)
 				hr = hrSuccess;
 			} else if (hr != hrSuccess) {
-				// eg. MAPI_E_NOT_FOUND
+				// e.g. MAPI_E_NOT_FOUND
 				ec_log_err("Error while expanding group. Group: %ls, error: 0x%08x", lpGroupName->Value.lpszW, hr);
 				error = std::wstring(L"Error in group '") + lpGroupName->Value.lpszW + L"', unable to send e-mail";
 				return hr;

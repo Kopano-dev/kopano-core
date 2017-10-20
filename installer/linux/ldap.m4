@@ -206,7 +206,7 @@ ldap_groupmembers_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`dn')
 # LDAP: uid, matching users in ldap_loginname_attribute
 ldap_groupmembers_relation_attribute = ifelse(TYPE,`OPENLDAP',`uid',`')
 
-# A group can also be used for security, eg. setting permissions on folders.
+# A group can also be used for security, e.g. setting permissions on folders.
 # This makes a group a security group. The kopanoSecurityGroup value is boolean.
 # Optional, default = kopanoSecurityGroup
 # Active directory = groupType

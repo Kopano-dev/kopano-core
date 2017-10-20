@@ -438,7 +438,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 
 	LockSoap();
 
-	// ulFlags == object flags, eg. MAPI_ASSOCIATE for messages, FOLDER_SEARCH on folders...
+	// ulFlags == object flags, e.g. MAPI_ASSOCIATE for messages, FOLDER_SEARCH on folders...
 	START_SOAP_CALL
 	{
 		if (SOAP_OK != lpCmd->ns__saveObject(ecSessionId, m_sParentEntryId, m_sEntryId, &sSaveObj, ulFlags, m_ulSyncId, &sResponse))

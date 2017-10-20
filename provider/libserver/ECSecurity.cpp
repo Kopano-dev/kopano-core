@@ -188,7 +188,7 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 			remove_copy_if(lpGroupInGroups->begin(), lpGroupInGroups->end(), back_inserter(*lpGroups), cSeenGroups);
 			delete lpGroupInGroups;
 		}
-		// Ignore error (eg. cannot use that function on group Everyone)
+		// Ignore error (e.g. cannot use that function on group Everyone)
 		++iterGroups;
 	}
 

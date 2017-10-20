@@ -212,7 +212,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 
 	memset(lpSysTime, 0, sizeof(SYSTEMTIME));
 
-	// eg. japan doesn't have daylight saving switches.
+	// e.g. Japan doesn't have daylight saving switches.
 	if (!rRule) {
 		stRecurTime = TMToSystemTime(UTC_ICalTime2UnixTime(icTime));
 		lpSysTime->wMonth = stRecurTime.wMonth + 1; // fix for -1 in UTC_ICalTime2UnixTime, since TMToSystemTime doesn't do +1
@@ -278,7 +278,7 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
 	// if the timezone does no switching, daylight is not given, so we ignore the error (which is only MAPI_E_NOT_FOUND)
 	HrZoneToStruct(ICAL_XDAYLIGHT_COMPONENT, lpVTZ, &tzRet);
 
-	// unsupported case: only exceptions in the timezone switches, and no base rule (eg. very old Asia/Kolkata timezone)
+	// unsupported case: only exceptions in the timezone switches, and no base rule (e.g. very old Asia/Kolkata timezone)
 	{
 		icalcomponent *icComp = NULL;
 		icalproperty *tzSTDRule = NULL, *tzDSTRule = NULL;

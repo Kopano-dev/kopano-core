@@ -71,8 +71,8 @@ using namespace KCHL;
  * web service server is done through this object. Also, this file is the 
  * coupling point between MAPI and our internal (network) formats, and
  * codes. This means that any classes communicating with this one either
- * use MAPI syntax (ie. MAPI_E_NOT_ENOUGH_MEMORY) OR use the EC syntax
- * (ie. EC_E_NOT_FOUND), but never BOTH.
+ * use MAPI syntax (i.e. MAPI_E_NOT_ENOUGH_MEMORY) OR use the EC syntax
+ * (i.e. EC_E_NOT_FOUND), but never BOTH.
  *
  */
 

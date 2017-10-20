@@ -1,0 +1,6 @@
+# Show outgoing mail queue and if any mail resting there uses the
+# deferred delivery time feature.
+#
+SELECT q.hierarchy_id, FROM_UNIXTIME(((pt.val_hi<<32)+pt.val_lo-116444736000000000)/10000000) AS tm
+FROM outgoingqueue AS q
+LEFT JOIN properties AS pt ON q.hierarchy_id=pt.hierarchyid AND pt.tag=16367;

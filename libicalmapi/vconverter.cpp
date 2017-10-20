@@ -760,7 +760,7 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
  * Sets busy status in mapi property from ical.
  * 
  * @param[in]	lpicEvent		ical VEVENT component
- * @param[in]	icMethod		ical method (eg. REPLY, REQUEST)
+ * @param[in]	icMethod		ical method (e.g. REPLY, REQUEST)
  * @param[out]	lpIcalItem		icalitem in which mapi propertry is set
  * @return		MAPI error code
  */

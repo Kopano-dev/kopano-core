@@ -783,7 +783,7 @@ ZEND_FUNCTION(mapi_prop_tag)
 	// the compares within .php files can be correctly performed, so named props work.
 
 	// maybe we need to rewrite this system a bit, so proptags are always a string, and never interpreted
-	// eg. by prepending the assoc keys with 'PROPTAG' or something...
+	// e.g. by prepending the assoc keys with 'PROPTAG' or something...
 
 	RETURN_LONG((LONG)PROP_TAG(ulPropType, ulPropID));
 }
