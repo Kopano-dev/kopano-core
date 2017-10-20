@@ -111,7 +111,6 @@ eResult ArchiverImpl::GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrMa
 
 eResult ArchiverImpl::AutoAttach(unsigned int ulFlags)
 {
-	HRESULT hr;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::AutoAttach() function entry");
 	ArchiveStateCollectorPtr ptrArchiveStateCollector;
 	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
@@ -120,7 +119,7 @@ eResult ArchiverImpl::AutoAttach(unsigned int ulFlags)
 		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::AutoAttach() about to create collector");
-	hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
+	auto hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
 
@@ -154,12 +153,9 @@ ECLogger* ArchiverImpl::GetLogger(eLogType which) const
 
 configsetting_t* ArchiverImpl::ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2)
 {
-	configsetting_t *lpMergedSettings = NULL;
-	unsigned ulSettings = 0;
 	unsigned ulIndex = 0;
-
-	ulSettings = CountSettings(lpSettings1) + CountSettings(lpSettings2);
-	lpMergedSettings = new configsetting_t[ulSettings + 1];
+	auto ulSettings = CountSettings(lpSettings1) + CountSettings(lpSettings2);
+	auto lpMergedSettings = new configsetting_t[ulSettings + 1];
 
 	while (lpSettings1->szName != NULL)
 		lpMergedSettings[ulIndex++] = *lpSettings1++;
