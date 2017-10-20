@@ -147,30 +147,27 @@ eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsign
 	    ulFlags != ArchiveManage::ReadOnly && ulFlags != 0)
 		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
 
-	if (bAutoAttach || parseBool(m_lpConfig->GetSetting("enable_auto_attach"))) {
-		ArchiveStateCollectorPtr ptrArchiveStateCollector;
-		ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
+	if (!bAutoAttach && !parseBool(m_lpConfig->GetSetting("enable_auto_attach")))
+		return MAPIErrorToArchiveError(ProcessAll(bLocalOnly, &ArchiveControlImpl::DoArchive));
 
-		hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
-		if (hr != hrSuccess)
-			return MAPIErrorToArchiveError(hr);
+	ArchiveStateCollectorPtr ptrArchiveStateCollector;
+	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
 
-		hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
-		if (hr != hrSuccess)
-			return MAPIErrorToArchiveError(hr);
-
-		if (ulFlags == 0) {
-			if (parseBool(m_lpConfig->GetSetting("auto_attach_writable")))
-				ulFlags = ArchiveManage::Writable;
-			else
-				ulFlags = ArchiveManage::ReadOnly;
-		}
-
-		hr = ptrArchiveStateUpdater->UpdateAll(ulFlags);
-		if (hr != hrSuccess)
-			return MAPIErrorToArchiveError(hr);
+	hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
+	if (hr != hrSuccess)
+		return MAPIErrorToArchiveError(hr);
+	hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
+	if (hr != hrSuccess)
+		return MAPIErrorToArchiveError(hr);
+	if (ulFlags == 0) {
+		if (parseBool(m_lpConfig->GetSetting("auto_attach_writable")))
+			ulFlags = ArchiveManage::Writable;
+		else
+			ulFlags = ArchiveManage::ReadOnly;
 	}
-
+	hr = ptrArchiveStateUpdater->UpdateAll(ulFlags);
+	if (hr != hrSuccess)
+		return MAPIErrorToArchiveError(hr);
 	return MAPIErrorToArchiveError(ProcessAll(bLocalOnly, &ArchiveControlImpl::DoArchive));
 }
 
