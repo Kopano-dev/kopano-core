@@ -888,7 +888,7 @@ static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
 	ECRESULT er = erSuccess;
 	DB_ROW 			lpDBRow = NULL;
 	DB_RESULT lpDBResult;
-	auto strQuery = "SELECT tag FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag IN (0x1009, 0x1013) ORDER BY tag LIMIT 1";
+	auto strQuery = "SELECT tag FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag IN (4105, 4115) ORDER BY tag LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
@@ -958,11 +958,11 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			strMode = "2";
 		
 		strQuery = "SELECT " PROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM properties "
-			"LEFT JOIN names ON (properties.tag-0x8501)=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 0x8500 OR names.id IS NOT NULL) "
-			"AND (tag NOT IN (0x1009, 0x1013) OR " + strMode + " = 0 OR (" + strMode + " = 1 AND tag = " + strBestBody + ") ) "
+			"LEFT JOIN names ON properties.tag=names.id+34049 WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 34048 OR names.id IS NOT NULL) "
+			"AND (tag NOT IN (4105, 4115) OR " + strMode + " = 0 OR (" + strMode + " = 1 AND tag = " + strBestBody + ")) "
 			"UNION "
 			"SELECT " MVPROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM mvproperties "
-			"LEFT JOIN names ON (mvproperties.tag-0x8501)=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 0x8500 OR names.id IS NOT NULL) "
+			"LEFT JOIN names ON mvproperties.tag=names.id+34049 WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 34048 OR names.id IS NOT NULL) "
 			"GROUP BY tag, mvproperties.type"
 			;
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -1836,7 +1836,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			
 			// Update MSGFLAG_HASATTACH in the same way. We can assume PR_MESSAGE_FLAGS is already available, so we
 			// just do an update (instead of REPLACE INTO)
-			strQuery = (std::string)"UPDATE properties SET val_ulong = val_ulong " + (fHasAttach ? " | 0x10 " : " & ~0x10") + " WHERE hierarchyid = " + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
+			strQuery = std::string("UPDATE properties SET val_ulong = val_ulong ") + (fHasAttach ? " | 16 " : " & ~16") + " WHERE hierarchyid = " + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er != erSuccess)
 				goto exit;

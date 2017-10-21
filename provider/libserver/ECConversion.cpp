@@ -85,7 +85,7 @@ ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, str
 		memset(lpNewSearchCriteria->lpFolders->__ptr, 0, sizeof(entryId) * crit.lpFolders->__size);
 
 		// Get them from the database
-		strQuery = "SELECT val_binary FROM indexedproperties WHERE tag=0x0FFF AND hierarchyid IN ("; //PR_ENTRYID
+		strQuery = "SELECT val_binary FROM indexedproperties WHERE tag=4095 AND hierarchyid IN ("; //PR_ENTRYID
 		for (i = 0; i < crit.lpFolders->__size; ++i) {
 			if (i != 0)strQuery+= ",";
 			strQuery+= stringify(crit.lpFolders->__ptr[i]);

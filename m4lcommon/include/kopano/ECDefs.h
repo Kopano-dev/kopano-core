@@ -82,7 +82,7 @@ namespace KC {
 			"TRUE" : \
 			((__objclass) & 0xffff) ? \
 				__column " = " + stringify(__objclass) : \
-				"(" __column " & 0xffff0000) = " + stringify((__objclass) & 0xffff0000))
+				"(" __column " & 4294901760) = " + stringify((__objclass) & 0xffff0000))
 
 enum objecttype_t {
 	OBJECTTYPE_UNKNOWN		= 0,

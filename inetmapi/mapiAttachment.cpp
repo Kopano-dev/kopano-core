@@ -25,7 +25,7 @@ namespace KC {
 
 mapiAttachment::mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> data,
     const vmime::encoding &enc, const vmime::mediaType &type,
-    const std::string &contentid, const vmime::word filename,
+    const std::string &contentid, const vmime::word &filename,
     const vmime::text &desc, const vmime::word &name) :
 	defaultAttachment(data, enc, type, desc, name)
 {

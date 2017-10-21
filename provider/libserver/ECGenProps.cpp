@@ -87,7 +87,7 @@ ECRESULT ECGenProps::GetPropSubquery(unsigned int ulPropTagRequested, std::strin
 	switch(ulPropTagRequested) {
 	case PR_PARENT_DISPLAY_W:
 	case PR_PARENT_DISPLAY_A:
-		subquery = "SELECT properties.val_string FROM properties JOIN hierarchy as subquery ON properties.hierarchyid=subquery.parent WHERE subquery.id=hierarchy.id AND properties.tag=0x3001"; // PR_DISPLAY_NAME of parent
+		subquery = "SELECT properties.val_string FROM properties JOIN hierarchy as subquery ON properties.hierarchyid=subquery.parent WHERE subquery.id=hierarchy.id AND properties.tag=12289"; // PR_DISPLAY_NAME of parent
 		return erSuccess;
     case PR_EC_OUTGOING_FLAGS:
         subquery = "SELECT outgoingqueue.flags FROM outgoingqueue where outgoingqueue.hierarchy_id = hierarchy.id and outgoingqueue.flags & 1 = 1";

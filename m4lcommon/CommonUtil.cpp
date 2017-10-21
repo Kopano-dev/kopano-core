@@ -1175,10 +1175,11 @@ public:
 		HRESULT hr = hrSuccess;
 		BOOL bError;
 		ULONG i = 0;
-		LPSPropValue lpProps = NULL;
+		memory_ptr<SPropValue> lpProps;
 		convert_context converter;
 
-		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpTags->cValues, (void **) &lpProps)) != hrSuccess)
+		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpTags->cValues, &~lpProps);
+		if (hr != hrSuccess)
 			return hr;
 
 		for (i = 0; i<lpTags->cValues; ++i) {
@@ -1214,7 +1215,7 @@ public:
 			}
 		}
 
-		*lppProps = lpProps;
+		*lppProps = lpProps.release();
 		*lpcValues = lpTags->cValues;
 
 		return hr;

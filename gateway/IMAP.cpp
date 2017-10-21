@@ -4468,15 +4468,24 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
  * return a number or a UID, depending on the input.
  * A special treatment for 
  * 
- * @param[in] szNr a number of the sequence input
+ * @param[in] szNr a number of the sequence input (RFC 3501 page 90: seqset)
  * @param[in] bUID sequence input are UID numbers or not
  * 
  * @return the number corresponding to the input.
  */
 ULONG IMAP::LastOrNumber(const char *szNr, bool bUID)
 {
-	if (*szNr != '*')
-		return atoui(szNr);
+	if (*szNr != '*') {
+		char *end = nullptr;
+		ULONG r = strtoul(szNr, &end, 10); /* RFC 3501 page 88 (nz-number) */
+		/*
+		 * This function may be called to parse the first part of a
+		 * sequence, so need to ignore the colon.
+		 * */
+		if (end != nullptr && *end != '\0' && *end != ':')
+			ec_log_debug("Illegal sequence number \"%s\" found; client is not compliant to RFC 3501.", szNr);
+		return r;
+	}
 
 	if (!bUID)
 		return lstFolderMailEIDs.size();
@@ -4572,7 +4581,7 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 		ulMailnr = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
 		if (ulBeginMailnr > ulMailnr)
 			/*
-			 * RFC 3501 page 89 allows swapping; seq-range
+			 * RFC 3501 page 90 allows swapping; seq-range
 			 * essentially describes a set rather than a
 			 * strictly ordered range.
 			 */
@@ -5295,7 +5304,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			std::string strSearch = (string)"^" + strSearchCriterium + ":.*" + lstSearchCriteria[ulStartCriteria+1];
 			pv.ulPropTag   = PR_TRANSPORT_MESSAGE_HEADERS_A;
 			pv.Value.lpszA = const_cast<char *>(strSearch.c_str());
-			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Shallow);
+			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Full);
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("UID") == 0) {
 			ECOrRestriction or_rst;
@@ -5349,7 +5358,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			std::string strSearch = "^" + lstSearchCriteria[ulStartCriteria+1] + ":.*" + lstSearchCriteria[ulStartCriteria+2];
 			pv.ulPropTag   = PR_TRANSPORT_MESSAGE_HEADERS_A;
 			pv.Value.lpszA = const_cast<char *>(strSearch.c_str());
-			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Shallow);
+			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Full);
 			ulStartCriteria += 3;
 		} else {
 			return MAPI_E_CALL_FAILED;
@@ -5905,57 +5914,36 @@ HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder
  */
 HRESULT IMAP::HrFindFolderEntryID(const wstring& strFolder, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
-    HRESULT hr = hrSuccess;
+	vector<wstring> folder_parts;
+	object_ptr<IMAPIFolder> folder;
 
-    list<SFolder> tmp_folders;
-    list<SFolder> *folders = &cached_folders;
+	auto hr = HrSplitPath(strFolder, folder_parts);
+	if (hr != hrSuccess)
+		return hr;
 
-    bool should_cache_folders = cache_folders_time_limit > 0;
-    time_t expire_time = cache_folders_last_used + cache_folders_time_limit;
+	ULONG cb_entry_id = 0;
+	memory_ptr<ENTRYID> entry_id;
+	for (unsigned int i = 0; i < folder_parts.size(); ++i) {
+		hr = HrFindSubFolder(folder, folder_parts[i], &cb_entry_id, &~entry_id);
+		if (hr != hrSuccess)
+			return hr;
 
-    if (should_cache_folders &&
-       (std::time(nullptr) > expire_time || !cached_folders.size())) {
-	    HrGetFolderList(cached_folders);
-	    cache_folders_last_used = std::time(nullptr);
-    }
-    else if (!should_cache_folders) {
-	    HrGetFolderList(tmp_folders);
-	    folders = &tmp_folders;
-    }
+		if (i == folder_parts.size() - 1)
+			break;
 
-    wstring find_folder = strFolder;
-    if (find_folder.length() == 0)
-	    return MAPI_E_NOT_FOUND;
+		ULONG obj_type = 0;
+		hr = lpSession->OpenEntry(cb_entry_id, entry_id, nullptr, MAPI_MODIFY, &obj_type, &~folder);
+		if (hr != hrSuccess)
+			return hr;
 
-    if (find_folder[0] != '/')
-	    find_folder = wstring(L"/") + find_folder;
+		if (obj_type != MAPI_FOLDER)
+			return MAPI_E_INVALID_PARAMETER;
+	}
 
-    find_folder = strToUpper(find_folder);
+	*lpcbEntryID = cb_entry_id;
+	*lppEntryID = entry_id.release();
 
-    auto iter = folders->cbegin();
-    for (; iter != folders->cend(); iter++) {
-	    wstring folder_name;
-
-	    hr = HrGetFolderPath(iter, *folders, folder_name);
-	    if (hr != hrSuccess)
-		    return hr;
-
-	    folder_name = strToUpper(folder_name);
-	    if (folder_name == find_folder)
-		    break;
-    }
-
-    if (iter == folders->cend())
-	    return MAPI_E_NOT_FOUND;
-
-    *lpcbEntryID = iter->sEntryID.cb;
-
-    hr = MAPIAllocateBuffer(*lpcbEntryID, (void **)lppEntryID);
-    if (hr != hrSuccess)
-	    return hr;
-
-    memcpy(*lppEntryID, iter->sEntryID.lpb, *lpcbEntryID);
-    return hrSuccess;
+	return hrSuccess;
 }
 
 /**

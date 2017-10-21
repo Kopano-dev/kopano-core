@@ -145,7 +145,7 @@ $dbh->do("set character_set_connection = 'utf8'")
 $dbh->do("set character_set_results = 'utf8'")
 	or die "Database error: ".$DBI::errstr;
 
-$query = "SELECT val_string FROM properties WHERE type=0x1e and tag=? and hierarchyid=?";
+$query = "SELECT val_string FROM properties WHERE type=30 and tag=? and hierarchyid=?";
 $sth = $dbh->prepare($query)
 	or die "Database error: ".$DBI::errstr;
 $query = "select ph.id as pid, ph.type as ptype from hierarchy as ph join hierarchy on ph.id=hierarchy.parent where hierarchy.id=?";
