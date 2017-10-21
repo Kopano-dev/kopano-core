@@ -29,14 +29,9 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
-ECConfigCheck::ECConfigCheck(const char *lpszName, const char *lpszConfigFile)
+ECConfigCheck::ECConfigCheck(const char *lpszName, const char *lpszConfigFile) :
+	m_lpszName(lpszName), m_lpszConfigFile(lpszConfigFile)
 {
-	m_lpszName = lpszName;
-	m_lpszConfigFile = lpszConfigFile;
-	m_bDirty = false;
-	m_bHosted = false;
-	m_bMulti = false;
-
 	readConfigFile(lpszConfigFile);
 }
 

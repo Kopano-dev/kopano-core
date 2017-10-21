@@ -94,15 +94,10 @@ private:
 	void addCheck(const config_check_t &, unsigned int);
 
 	/* private variables */
-	const char *m_lpszName;
-	const char *m_lpszConfigFile;
-
+	const char *m_lpszName = nullptr, *m_lpszConfigFile = nullptr;
 	std::map<std::string, std::string> m_mSettings;
 	std::list<config_check_t> m_lChecks;
-
-	bool m_bDirty;
-	bool m_bHosted;
-	bool m_bMulti;
+	bool m_bDirty = false, m_bHosted = false, m_bMulti = false;
 };
 
 #endif
