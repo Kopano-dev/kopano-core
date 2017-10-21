@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <list>
+#include <memory>
 #include <getopt.h>
 #include "LDAPConfigCheck.h"
 #include "UnixConfigCheck.h"
@@ -69,7 +70,7 @@ static void print_help(char *lpszName)
 
 int main(int argc, char* argv[])
 {
-	std::list<ECConfigCheck *> check;
+	std::list<std::unique_ptr<ECConfigCheck>> check;
 	std::string strHosted, strMulti;
 	bool bHosted = false;
 	bool bMulti = false;
@@ -139,9 +140,6 @@ int main(int argc, char* argv[])
 		it->setMulti(bMulti);
 		it->loadChecks();
 		it->validate();
-		/* We are only looping through the list once, just cleanup
-		 * and don't care about leaving broken pointers in the list. */
-		delete it;
 	}
 
 	return 0;
