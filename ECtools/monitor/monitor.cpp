@@ -55,16 +55,13 @@ static pthread_t			mainthread;
 static HRESULT running_service(void)
 {
 	KCHL::AutoMAPI mapiinit;
-	unsigned int ulInterval = 0;
-	ulock_normal l_exit(m_hExitMutex, std::defer_lock_t());
-
 	auto hr = mapiinit.Initialize(nullptr);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI");
 		return hr;
 	}
 	std::unique_ptr<ECScheduler> lpECScheduler(new ECScheduler(m_lpThreadMonitor->lpLogger));
-	ulInterval = atoi(m_lpThreadMonitor->lpConfig->GetSetting("quota_check_interval", nullptr, "15"));
+	unsigned int ulInterval = atoi(m_lpThreadMonitor->lpConfig->GetSetting("quota_check_interval", nullptr, "15"));
 	if (ulInterval == 0)
 		ulInterval = 15;
 	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION " (pid %d)", getpid());
@@ -75,7 +72,7 @@ static HRESULT running_service(void)
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to add quota monitor schedule");
 		return hr;
 	}
-	l_exit.lock();
+	ulock_normal l_exit(m_hExitMutex);
 	m_hExitSignal.wait(l_exit);
 	return hrSuccess;
 }
@@ -141,7 +138,6 @@ int main(int argc, char *argv[]) {
 	HRESULT hr = hrSuccess;
 	const char *szConfig = ECConfig::GetDefaultPath("monitor.cfg");
 	const char *szPath = NULL;
-	int c;
 	int daemonize = 1;
 	bool bIgnoreUnknownConfigOptions = false;
 
@@ -192,8 +188,7 @@ int main(int argc, char *argv[]) {
 		goto exit;
 
 	while(1) {
-		c = my_getopt_long_permissive(argc, argv, "c:h:iuFV", long_options, NULL);
-		
+		auto c = my_getopt_long_permissive(argc, argv, "c:h:iuFV", long_options, NULL);
 		if(c == -1)
 			break;
 			
