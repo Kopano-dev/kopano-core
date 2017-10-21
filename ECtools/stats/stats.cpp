@@ -110,30 +110,20 @@ static const ULONG ulTableProps[] = {
 };
 
 struct TIMES {
-    double dblUser;
-    double dblSystem;
-    double dblReal;
+	double dblUser, dblSystem, dblReal;
     unsigned int ulRequests;
 };
 
 struct SESSION {
-    unsigned long long ullSessionId;
-    unsigned long long ullSessionGroupId;
-    TIMES times;
-    TIMES dtimes;
+	unsigned long long ullSessionId, ullSessionGroupId;
+	TIMES times, dtimes;
 
     unsigned int ulIdle;
     int ulPeerPid;
     bool bLocked;
-    
-    std::string strUser;
-    std::string strIP;
-    std::string strBusy;
-    std::string strState;
-    std::string strPeer;
-    std::string strClientVersion;
-    std::string strClientApp;
-    std::string strClientAppVersion, strClientAppMisc;
+	std::string strUser, strIP, strBusy, strState, strPeer;
+	std::string strClientVersion, strClientApp, strClientAppVersion;
+	std::string strClientAppMisc;
     
     bool operator <(const SESSION &b) const
     {
@@ -208,23 +198,14 @@ static double GetDouble(LPSPropValue lpProps, ULONG cValues, ULONG ulPropTag)
 static void showtop(LPMDB lpStore)
 {
 #ifdef HAVE_CURSES_H
-    HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-    WINDOW *win = NULL;
     std::map<unsigned long long, TIMES> mapLastTimes;
     std::map<std::string, std::string> mapStats;
     std::map<std::string, double> mapDiffStats;
-    std::list<SESSION> lstSessions;
-    std::set<std::string> setUsers;
-    std::set<std::string> setHosts;
-    std::map<unsigned long long, unsigned int> mapSessionGroups;
+	std::set<std::string> setHosts;
 	char date[64];
-	time_t now;
-    unsigned int ulSessGrp = 1;
-    double dblUser, dblSystem;
-    int wx,wy;
-    int key;
-    double dblLast = 0, dblTime = 0;
+	int wx, wy, key;
+    double dblLast = 0;
 
 	// columns in sizes, not literal offsets
 	static const unsigned int cols[] = {0, 4, 21, 8, 25, 16, 20, 8, 8, 7, 7, 5};
@@ -236,7 +217,7 @@ static void showtop(LPMDB lpStore)
 		{2, {PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE}};
 
     // Init ncurses
-    win = initscr(); 
+	auto win = initscr();
     if(win == NULL) {
         cerr << "ncurses error\n";
         return;
@@ -252,7 +233,7 @@ static void showtop(LPMDB lpStore)
     while(1) {
         int line = 0;
 		werase(win);
-		hr = lpStore->OpenProperty(PR_EC_STATSTABLE_SYSTEM, &IID_IMAPITable, 0, 0, &~lpTable);
+		auto hr = lpStore->OpenProperty(PR_EC_STATSTABLE_SYSTEM, &IID_IMAPITable, 0, 0, &~lpTable);
 		if(hr != hrSuccess)
 		    goto exit;
 		hr = lpTable->SetColumns(sptaSystem, 0);
@@ -264,7 +245,7 @@ static void showtop(LPMDB lpStore)
         if(hr != hrSuccess)
             goto exit;
             
-        dblTime = GetTimeOfDay() - dblLast;
+		auto dblTime = GetTimeOfDay() - dblLast;
         dblLast = GetTimeOfDay();
             
         for (ULONG i = 0; i < lpsRowSet->cRows; ++i) {
@@ -283,11 +264,11 @@ static void showtop(LPMDB lpStore)
         if(hr != hrSuccess)
             break;
             
-        lstSessions.clear();
-        mapSessionGroups.clear();
-        setUsers.clear();
-        dblUser = dblSystem = 0;
-        ulSessGrp = 1;
+		std::list<SESSION> lstSessions;
+		std::map<unsigned long long, unsigned int> mapSessionGroups;
+		std::set<std::string> setUsers;
+		double dblUser = 0, dblSystem = 0;
+		unsigned int ulSessGrp = 1;
         
         for (ULONG i = 0; i < lpsRowSet->cRows; ++i) {
             SESSION session;
@@ -344,9 +325,9 @@ static void showtop(LPMDB lpStore)
 			lstSessions.reverse();
 
         wmove(win, 0,0);
-		memset(date, 0, 64);
-		now = time(NULL);
-		strftime(date, 64, "%c", localtime(&now) );
+		memset(date, 0, sizeof(date));
+		auto now = time(nullptr);
+		strftime(date, sizeof(date), "%c", localtime(&now) );
         wprintw(win, "Last update: %s (%.1fs since last)", date, dblTime);
 		
         wmove(win, 1,0);
