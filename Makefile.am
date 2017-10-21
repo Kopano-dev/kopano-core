@@ -142,8 +142,6 @@ kopano_archiver_LDADD = \
 kopano_cfgchecker_SOURCES = \
 	ECtools/cfgchecker/DAgentConfigCheck.cpp ECtools/cfgchecker/DAgentConfigCheck.h \
 	ECtools/cfgchecker/ECConfigCheck.cpp ECtools/cfgchecker/ECConfigCheck.h \
-	ECtools/cfgchecker/GatewayConfigCheck.cpp ECtools/cfgchecker/GatewayConfigCheck.h \
-	ECtools/cfgchecker/IcalConfigCheck.cpp ECtools/cfgchecker/IcalConfigCheck.h \
 	ECtools/cfgchecker/LDAPConfigCheck.cpp ECtools/cfgchecker/LDAPConfigCheck.h \
 	ECtools/cfgchecker/MonitorConfigCheck.cpp ECtools/cfgchecker/MonitorConfigCheck.h \
 	ECtools/cfgchecker/ServerConfigCheck.cpp ECtools/cfgchecker/ServerConfigCheck.h \

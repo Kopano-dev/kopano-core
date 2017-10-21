@@ -24,8 +24,6 @@
 #include "LDAPConfigCheck.h"
 #include "UnixConfigCheck.h"
 #include "ServerConfigCheck.h"
-#include "GatewayConfigCheck.h"
-#include "IcalConfigCheck.h"
 #include "MonitorConfigCheck.h"
 #include "SpoolerConfigCheck.h"
 #include "DAgentConfigCheck.h"
@@ -92,10 +90,8 @@ int main(int argc, char* argv[])
 				strHosted = (*check.rbegin())->getSetting("enable_hosted_kopano");
 			break;
 		case 'g':
-			check.emplace_back(new GatewayConfigCheck(optarg));
-			break;
 		case 'i':
-			check.emplace_back(new IcalConfigCheck(optarg));
+			fprintf(stderr, "-%c option is currently ignored because no checks have been implemented", c);
 			break;
 		case 'm':
 			check.emplace_back(new MonitorConfigCheck(optarg));
