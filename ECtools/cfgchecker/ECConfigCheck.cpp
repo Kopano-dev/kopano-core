@@ -18,6 +18,7 @@
 #include <iostream>
 #include <algorithm>
 #include <string>
+#include <utility>
 #include <sys/stat.h>
 #include <cstdlib>
 #include <cstdio>
@@ -326,8 +327,7 @@ void ECConfigCheck::addCheck(const std::string &option, unsigned int flags,
 	config_check.option1 = option;
 	config_check.option2 = "";
 	config_check.check = check;
-
-	addCheck(config_check, flags);
+	addCheck(std::move(config_check), flags);
 }
 
 void ECConfigCheck::addCheck(const std::string &option1,
@@ -339,8 +339,7 @@ void ECConfigCheck::addCheck(const std::string &option1,
 	config_check.option1 = option1;
 	config_check.option2 = option2;
 	config_check.check = check;
-
-	addCheck(config_check, flags);
+	addCheck(std::move(config_check), flags);
 }
 
 const std::string &ECConfigCheck::getSetting(const std::string &option)
