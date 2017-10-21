@@ -33,7 +33,6 @@ ECHierarchyIteratorBase::ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, UL
 
 void ECHierarchyIteratorBase::increment()
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulType;
 
 	enum {IDX_ENTRYID};
@@ -42,7 +41,7 @@ void ECHierarchyIteratorBase::increment()
 		SPropValuePtr ptrFolderType;
 		static constexpr const SizedSPropTagArray(1, sptaColumnProps) = {1, {PR_ENTRYID}};
 
-		hr = HrGetOneProp(m_ptrContainer, PR_FOLDER_TYPE, &~ptrFolderType);
+		auto hr = HrGetOneProp(m_ptrContainer, PR_FOLDER_TYPE, &~ptrFolderType);
 		if (hr == hrSuccess && ptrFolderType->Value.ul == FOLDER_SEARCH) {
 			// No point in processing search folders
 			m_ptrCurrent.reset();
@@ -68,7 +67,7 @@ void ECHierarchyIteratorBase::increment()
 	}
 
 	if (!m_ptrRows.get()) {
-		hr = m_ptrTable->QueryRows(32, 0, &m_ptrRows);
+		auto hr = m_ptrTable->QueryRows(32, 0, &m_ptrRows);
 		if (hr != hrSuccess)
 			throw HrException(hr);
 		if (m_ptrRows.empty()) {
@@ -80,9 +79,9 @@ void ECHierarchyIteratorBase::increment()
 	}
 
 	assert(m_ulRowIndex < m_ptrRows.size());
-	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb,
-	     reinterpret_cast<ENTRYID *>(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb),
-	     &iid_of(m_ptrCurrent), m_ulFlags, &ulType, &~m_ptrCurrent);
+	auto hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb,
+	          reinterpret_cast<ENTRYID *>(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb),
+	          &iid_of(m_ptrCurrent), m_ulFlags, &ulType, &~m_ptrCurrent);
 	if (hr != hrSuccess)
 		throw HrException(hr);
 	if (++m_ulRowIndex == m_ptrRows.size())

@@ -79,13 +79,11 @@ namespace details {
 
 	HRESULT MailboxDataCollector::CollectData(LPMAPITABLE lpStoreTable)
 	{
-		HRESULT hr;
-		SRowSetPtr ptrRows;
-
 		enum {IDX_ENTRYID, IDX_MAILBOX_OWNER_ENTRYID, IDX_STORE_ENTRYIDS, IDX_ITEM_ENTRYIDS, IDX_MAX};
 
 		while (true) {
-			hr = lpStoreTable->QueryRows(50, 0, &ptrRows);
+			SRowSetPtr ptrRows;
+			auto hr = lpStoreTable->QueryRows(50, 0, &ptrRows);
 			if (hr != hrSuccess)
 				return hr;
 
@@ -168,10 +166,8 @@ ArchiveStateCollector::ArchiveStateCollector(const ArchiverSessionPtr &ptrSessio
  */
 HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater)
 {
-	HRESULT hr;
 	details::MailboxDataCollector mdc(m_mapArchiveInfo, m_lpLogger);
-
-	hr = PopulateUserList();
+	auto hr = PopulateUserList();
 	if (hr != hrSuccess)
 		return hr;
 
@@ -198,10 +194,9 @@ HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lp
  */
 HRESULT ArchiveStateCollector::PopulateUserList()
 {
-	HRESULT hr;
 	ABContainerPtr ptrABContainer;
 
-	hr = m_ptrSession->GetGAL(&~ptrABContainer);
+	auto hr = m_ptrSession->GetGAL(&~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
 	hr = PopulateFromContainer(ptrABContainer);
@@ -231,7 +226,6 @@ HRESULT ArchiveStateCollector::PopulateUserList()
  */
 HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 {
-	HRESULT hr;
 	SPropValue sPropObjType;
 	SPropValue sPropDispType;
 	MAPITablePtr ptrTable;
@@ -247,7 +241,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	sPropDispType.ulPropTag = PR_DISPLAY_TYPE;
 	sPropDispType.Value.ul = DT_MAILUSER;;
 
-	hr = lpContainer->GetContentsTable(0, &~ptrTable);
+	auto hr = lpContainer->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->SetColumns(sptaUserProps, TBL_BATCH);

@@ -76,10 +76,8 @@ namespace Predicates {
 		storeId_equals_compareEntryId(IMAPISession *lpSession, const entryid_t &storeId): m_lpSession(lpSession), m_storeId(storeId) {}
 		bool operator()(const SObjectEntry &objEntry) const
 		{
-			HRESULT hr = hrSuccess;
 			ULONG ulResult = 0;
-			
-			hr = m_lpSession->CompareEntryIDs(m_storeId.size(), m_storeId, objEntry.sStoreEntryId.size(), objEntry.sStoreEntryId, 0, &ulResult);
+			auto hr = m_lpSession->CompareEntryIDs(m_storeId.size(), m_storeId, objEntry.sStoreEntryId.size(), objEntry.sStoreEntryId, 0, &ulResult);
 			return (hr == hrSuccess && ulResult == 1);
 		}
 	private:
@@ -138,7 +136,6 @@ ArchiveStateUpdater::ArchiveStateUpdater(const ArchiverSessionPtr &ptrSession,
  */
 HRESULT ArchiveStateUpdater::UpdateAll(unsigned int ulAttachFlags)
 {
-	HRESULT hr = hrSuccess;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateAll() function entry");
 
 	for (const auto &i : m_mapArchiveInfo) {
@@ -146,8 +143,7 @@ HRESULT ArchiveStateUpdater::UpdateAll(unsigned int ulAttachFlags)
 		if (hrTmp != hrSuccess)
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user '" TSTRING_PRINTF "', hr=0x%08x", i.second.userName.c_str(), hrTmp);
 	}
-
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -156,7 +152,6 @@ HRESULT ArchiveStateUpdater::UpdateAll(unsigned int ulAttachFlags)
  */
 HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAttachFlags)
 {
-	HRESULT hr;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::Update(): function entry");
 
 	// First see if the username can be found in the map.
@@ -168,7 +163,7 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
 		abentryid_t userId;
 
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to find entry for user '" TSTRING_PRINTF "', trying to resolve.", userName.c_str());
-		hr = m_ptrSession->GetUserInfo(userName, &userId, NULL, NULL);
+		auto hr = m_ptrSession->GetUserInfo(userName, &userId, NULL, NULL);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -180,7 +175,7 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
 	}
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::Update(): about to call UpdateOne()");
-	hr = UpdateOne(i->first, i->second, ulAttachFlags);
+	auto hr = UpdateOne(i->first, i->second, ulAttachFlags);
 	if (hr != hrSuccess)
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), hr);
 	return hr;
@@ -238,15 +233,13 @@ return hr;
  */
 HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstring &userName, const abentryid_t &userId, const ObjectEntryList &lstArchives)
 {
-	HRESULT hr;
 	MsgStorePtr ptrUserStore;
 	StoreHelperPtr ptrUserStoreHelper;
 	ObjectEntryList lstCurrentArchives;
 	ULONG ulDetachCount = 0;
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Removing implicitly attached archives.");
-
-	hr = m_ptrSession->OpenStore(storeId, &~ptrUserStore);
+	auto hr = m_ptrSession->OpenStore(storeId, &~ptrUserStore);
 	if (hr == MAPI_E_INVALID_ENTRYID) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Got invalid entryid, attempting to resolve...");
 		
@@ -358,21 +351,15 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
  */
 HRESULT ArchiveStateUpdater::ParseCoupling(const tstring &strCoupling, tstring *lpstrArchive, tstring *lpstrFolder)
 {
-	tstring strArchive = strCoupling;
-	tstring strFolder;
-	tstring::size_type idxColon;
-	
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Coupling: '" TSTRING_PRINTF "'", strArchive.c_str());
-
-	idxColon = strArchive.find(':');
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Coupling: '" TSTRING_PRINTF "'", strCoupling.c_str());
+	auto idxColon = strCoupling.find(':');
 	if (idxColon == std::string::npos) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "No ':' separator found in coupling");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
-	strFolder.assign(strArchive.substr(idxColon + 1));
-	strArchive.resize(idxColon);
-
+	auto strArchive = strCoupling.substr(0, idxColon);
+	auto strFolder = strCoupling.substr(idxColon + 1);
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Coupling: archive='" TSTRING_PRINTF "', folder='" TSTRING_PRINTF "'", strArchive.c_str(), strFolder.c_str());
 	if (strArchive.empty() || strFolder.empty()) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Invalid coupling: archive='" TSTRING_PRINTF "', folder='" TSTRING_PRINTF "'", strArchive.c_str(), strFolder.c_str());
@@ -391,22 +378,17 @@ HRESULT ArchiveStateUpdater::ParseCoupling(const tstring &strCoupling, tstring *
  */
 HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std::list<tstring> &lstCouplings, unsigned int ulAttachFlags)
 {
-	HRESULT hr;
 	ArchiveManagePtr ptrManage;
-	ArchiveManageImpl* lpManage = NULL;
-
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching coupling based archives.");
 
 	if (lstCouplings.empty()) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Empty coupling list");
 		return hrSuccess;
 	}
-
-	hr = ArchiveManageImpl::Create(m_ptrSession, NULL, userName.c_str(), m_lpLogger, &ptrManage);
+	auto hr = ArchiveManageImpl::Create(m_ptrSession, nullptr, userName.c_str(), m_lpLogger, &ptrManage);
 	if (hr != hrSuccess)
 		return hr;
-
-	lpManage = dynamic_cast<ArchiveManageImpl*>(ptrManage.get());
+	auto lpManage = dynamic_cast<ArchiveManageImpl *>(ptrManage.get());
 	assert(lpManage != NULL);
 	if (lpManage == NULL) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to dynamic cast to ArchiveManageImpl pointer.");
@@ -443,22 +425,17 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
  */
 HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abentryid_t &userId, const std::list<tstring> &lstServers, unsigned int ulAttachFlags)
 {
-	HRESULT hr;
 	ArchiveManagePtr ptrManage;
-	ArchiveManageImpl* lpManage = NULL;
-
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching servername based archives.");
 
 	if (lstServers.empty()) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Empty servername list");
 		return hrSuccess;
 	}
-
-	hr = ArchiveManageImpl::Create(m_ptrSession, NULL, userName.c_str(), m_lpLogger, &ptrManage);
+	auto hr = ArchiveManageImpl::Create(m_ptrSession, nullptr, userName.c_str(), m_lpLogger, &ptrManage);
 	if (hr != hrSuccess)
 		return hr;
-
-	lpManage = dynamic_cast<ArchiveManageImpl*>(ptrManage.get());
+	auto lpManage = dynamic_cast<ArchiveManageImpl *>(ptrManage.get());
 	assert(lpManage != NULL);
 	if (lpManage == NULL) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to dynamic cast to ArchiveManageImpl pointer.");
@@ -493,7 +470,6 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
  */
 HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
-	HRESULT hr;
 	std::list<tstring> lstServers;
 	std::list<tstring> lstCouplings;
 	ObjectEntryList lstArchives = info.lstArchives;
@@ -504,7 +480,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		tstring strFolder;
 		SObjectEntry objEntry;
 
-		hr = ParseCoupling(i, &strArchive, &strFolder);
+		auto hr = ParseCoupling(i, &strArchive, &strFolder);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -537,7 +513,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 	for (const auto &i : info.lstServers) {
 		entryid_t archiveId;
 
-		hr = m_ptrSession->GetArchiveStoreEntryId(info.userName, i, &archiveId);
+		auto hr = m_ptrSession->GetArchiveStoreEntryId(info.userName, i, &archiveId);
 		if (hr == MAPI_E_NOT_FOUND) {
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "archive store for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "' does not exist. Adding to server list", info.userName.c_str(), i.c_str());
 			lstServers.emplace_back(i);
@@ -562,7 +538,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		}
 	}
 
-	hr = RemoveImplicit(info.storeId, info.userName, abentryid_t(), lstArchives);
+	auto hr = RemoveImplicit(info.storeId, info.userName, abentryid_t(), lstArchives);
 	if (hr != hrSuccess)
 		return hr;
 	hr = AddCouplingBased(info.userName, lstCouplings, ulAttachFlags);
@@ -580,11 +556,10 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
  */
 HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const tstring &strFolder, SObjectEntry *lpObjEntry)
 {
-	HRESULT hr;
 	MsgStorePtr ptrArchiveStore;
 	ArchiveHelperPtr ptrArchiveHelper;
 
-	hr = m_ptrSession->OpenStoreByName(strArchive, &~ptrArchiveStore);
+	auto hr = m_ptrSession->OpenStoreByName(strArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open store for user '" TSTRING_PRINTF "', hr=0x%08x", strArchive.c_str(), hr);
 		return hr;
