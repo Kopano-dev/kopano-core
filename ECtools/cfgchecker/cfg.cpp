@@ -72,8 +72,6 @@ int main(int argc, char* argv[])
 {
 	std::list<std::unique_ptr<ECConfigCheck>> check;
 	std::string strHosted, strMulti;
-	bool bHosted = false;
-	bool bMulti = false;
 
 	while (true) {
 		char c = getopt_long(argc, argv, "l:u:s:g:i:m:p:a:c:d:h", long_options, NULL);
@@ -126,10 +124,10 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	bHosted = (strHosted[0] == 'y' || strHosted[0] == 'Y' ||
+	bool bHosted = (strHosted[0] == 'y' || strHosted[0] == 'Y' ||
 			   strHosted[0] == 't' || strHosted[0] == 'T' ||
 			   strHosted[0] == '1');
-	bMulti = (strMulti[0] == 'y' || strMulti[0] == 'Y' ||
+	bool bMulti = (strMulti[0] == 'y' || strMulti[0] == 'Y' ||
 			   strMulti[0] == 't' || strMulti[0] == 'T' ||
 			   strMulti[0] == '1');
 

@@ -21,9 +21,7 @@
 
 ServerConfigCheck::ServerConfigCheck(const char *lpszConfigFile) : ECConfigCheck("Server Configuration file", lpszConfigFile)
 {
-	std::string setting;
-
-	setting = getSetting("enable_hosted_kopano");
+	std::string setting = getSetting("enable_hosted_kopano");
 	if (!setting.empty())
 		setHosted(parseBool(setting.c_str()));
 	setting = getSetting("enable_distributed_kopano");

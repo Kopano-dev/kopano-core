@@ -38,8 +38,6 @@ ECConfigCheck::ECConfigCheck(const char *lpszName, const char *lpszConfigFile) :
 
 static void clearCharacters(std::string &s, const std::string &whitespaces)
 {
-	size_t pos = 0;
-
 	/*
 	 * The line is build up like this:
 	 * config_name = bla bla
@@ -50,7 +48,7 @@ static void clearCharacters(std::string &s, const std::string &whitespaces)
 	 * Be careful _not_ to remove any whitespace characters
 	 * within the configuration value itself.
 	 */
-	pos = s.find_first_not_of(whitespaces);
+	auto pos = s.find_first_not_of(whitespaces);
 	s.erase(0, pos);
 
 	pos = s.find_last_not_of(whitespaces);
@@ -62,8 +60,6 @@ void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 {
 	FILE *fp = NULL;
 	char cBuffer[1024];
-	std::string strLine, strName, strValue;
-	size_t pos;
 
 	if (!lpszConfigFile) {
 		m_bDirty = true;
@@ -81,14 +77,14 @@ void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 		if (!fgets(cBuffer, sizeof(cBuffer), fp))
 			continue;
 
-		strLine = cBuffer;
+		std::string strLine = cBuffer, strName, strValue;
 
 		/* Skip empty lines any lines which start with # */
 		if (strLine.empty() || strLine[0] == '#')
 			continue;
 
 		/* Get setting name */
-		pos = strLine.find('=');
+		auto pos = strLine.find('=');
 		if (pos != std::string::npos) {
 			strName = strLine.substr(0, pos);
 			strValue = strLine.substr(pos + 1);
@@ -232,12 +228,10 @@ int ECConfigCheck::testUsedWithoutMultiServer(const config_check_t *check)
 
 int ECConfigCheck::testCharset(const config_check_t *check)
 {
-	FILE *fp = NULL;
-
 	/* When grepping iconv output, all lines have '//' appended,
 	 * additionally all charsets are uppercase */
 	auto v1 = strToUpper(check->value1);
-	fp = popen(("iconv -l | grep -x \"" + v1 + "//\"").c_str(), "r");
+	auto fp = popen(("iconv -l | grep -x \"" + v1 + "//\"").c_str(), "r");
 
 	if (fp == nullptr) {
 		printWarning(check->option1, "Failed to validate charset");
@@ -245,17 +239,14 @@ int ECConfigCheck::testCharset(const config_check_t *check)
 	}
 
 	char buffer[50];
-	std::string output;
-
 	memset(buffer, 0, sizeof(buffer));
 	if (fgets(buffer, sizeof(buffer), fp) == nullptr) {
 		printWarning(check->option1, "unable to validate charset: \"" + v1 + "\"");
 		pclose(fp);
 		return CHECK_WARNING;
 	}
-	output = buffer;
 	pclose(fp);
-	if (output.find(v1) == std::string::npos) {
+	if (std::string(buffer).find(v1) == std::string::npos) {
 		printError(check->option1, "contains unknown chartype \"" + v1 + "\"");
 		return CHECK_ERROR;
 	}
