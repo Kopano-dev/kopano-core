@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-#include "ServerConfigCheck.h"
+#include "ECConfigCheck.h"
 #include <kopano/stringutil.h>
 
 ServerConfigCheck::ServerConfigCheck(const char *lpszConfigFile) : ECConfigCheck("Server Configuration file", lpszConfigFile)

@@ -21,12 +21,7 @@
 #include <list>
 #include <memory>
 #include <getopt.h>
-#include "LDAPConfigCheck.h"
-#include "UnixConfigCheck.h"
-#include "ServerConfigCheck.h"
-#include "MonitorConfigCheck.h"
-#include "SpoolerConfigCheck.h"
-#include "DAgentConfigCheck.h"
+#include "ECConfigCheck.h"
 
 using std::cout;
 using std::endl;

@@ -349,3 +349,60 @@ void ECConfigCheck::printWarning(const std::string &option,
 {
 	cerr << "[WARNING] " << option << ": " << message << endl;
 }
+
+DAgentConfigCheck::DAgentConfigCheck(const char *lpszConfigFile) : ECConfigCheck("DAgent Configuration file", lpszConfigFile)
+{
+}
+
+void DAgentConfigCheck::loadChecks()
+{
+	addCheck("lmtp_max_threads", 0, &testNonZero);
+}
+
+MonitorConfigCheck::MonitorConfigCheck(const char *lpszConfigFile) :
+	ECConfigCheck("Monitor Configuration file", lpszConfigFile)
+{}
+
+void MonitorConfigCheck::loadChecks()
+{
+	addCheck("companyquota_warning_template", CONFIG_MANDATORY | CONFIG_HOSTED_USED, &testFile);
+	addCheck("companyquota_soft_template", CONFIG_MANDATORY | CONFIG_HOSTED_USED, &testFile);
+	addCheck("companyquota_hard_template", CONFIG_MANDATORY | CONFIG_HOSTED_USED, &testFile);
+	addCheck("userquota_warning_template", CONFIG_MANDATORY, &testFile);
+	addCheck("userquota_soft_template", CONFIG_MANDATORY, &testFile);
+	addCheck("userquota_hard_template", CONFIG_MANDATORY, &testFile);
+}
+
+SpoolerConfigCheck::SpoolerConfigCheck(const char *lpszConfigFile) :
+	ECConfigCheck("Spooler Configuration file", lpszConfigFile)
+{}
+
+void SpoolerConfigCheck::loadChecks()
+{
+	addCheck("max_threads", 0, &testNonZero);
+	addCheck("always_send_delegates", 0, &testBoolean);
+	addCheck("allow_redirect_spoofing", 0, &testBoolean);
+	addCheck("copy_delegate_mails", 0, &testBoolean);
+	addCheck("always_send_tnef", 0, &testBoolean);
+}
+
+UnixConfigCheck::UnixConfigCheck(const char *lpszConfigFile) :
+	ECConfigCheck("Unix Configuration file", lpszConfigFile)
+{}
+
+void UnixConfigCheck::loadChecks()
+{
+	addCheck("default_domain", CONFIG_MANDATORY);
+	addCheck("fullname_charset", 0, &testCharset);
+	addCheck("min_user_uid", "max_user_uid", CONFIG_MANDATORY, &testId);
+	addCheck("min_group_gid", "max_group_gid", CONFIG_MANDATORY, &testId);
+}
+
+int UnixConfigCheck::testId(const config_check_t *check)
+{
+	if (atoi(check->value1.c_str()) < atoi(check->value2.c_str()))
+		return CHECK_OK;
+	printError(check->option1, "is equal or greater then \"" + check->option2 +
+		"\" (" + check->value1 + ">=" + check->value2 + ")");
+	return CHECK_ERROR;
+}

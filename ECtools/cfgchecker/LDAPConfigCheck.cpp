@@ -15,7 +15,7 @@
  *
  */
 
-#include "LDAPConfigCheck.h"
+#include "ECConfigCheck.h"
 
 LDAPConfigCheck::LDAPConfigCheck(const char *lpszConfigFile) : ECConfigCheck("LDAP Configuration file", lpszConfigFile)
 {

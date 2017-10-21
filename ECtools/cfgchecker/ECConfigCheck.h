@@ -100,5 +100,58 @@ private:
 	bool m_bDirty = false, m_bHosted = false, m_bMulti = false;
 };
 
-#endif
+class DAgentConfigCheck final : public ECConfigCheck {
+	public:
+	DAgentConfigCheck(const char *file);
+	void loadChecks() override;
+};
 
+class LDAPConfigCheck final : public ECConfigCheck {
+	public:
+	LDAPConfigCheck(const char *file);
+	void loadChecks() override;
+
+	private:
+	static int testLdapScope(const config_check_t *);
+	static int testLdapType(const config_check_t *);
+	static int testLdapQuery(const config_check_t *);
+};
+
+class MonitorConfigCheck final : public ECConfigCheck {
+	public:
+	MonitorConfigCheck(const char *file);
+	void loadChecks() override;
+};
+
+class ServerConfigCheck final : public ECConfigCheck {
+	public:
+	ServerConfigCheck(const char *file);
+	void loadChecks() override;
+
+	private:
+	static int testAttachment(const config_check_t *);
+	static int testPluginConfig(const config_check_t *);
+	static int testAttachmentPath(const config_check_t *);
+	static int testPlugin(const config_check_t *);
+	static int testPluginPath(const config_check_t *);
+	static int testStorename(const config_check_t *);
+	static int testLoginname(const config_check_t *);
+	static int testAuthMethod(const config_check_t *);
+};
+
+class SpoolerConfigCheck final : public ECConfigCheck {
+	public:
+	SpoolerConfigCheck(const char *file);
+	void loadChecks() override;
+};
+
+class UnixConfigCheck final : public ECConfigCheck {
+	public:
+	UnixConfigCheck(const char *file);
+	void loadChecks() override;
+
+	private:
+	static int testId(const config_check_t *);
+};
+
+#endif
