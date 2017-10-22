@@ -66,23 +66,15 @@ HRESULT HrCopyString(convert_context& converter, std::string& strCharset, void *
 	return HrCopyString(base, strWide.c_str(), lppszDst);
 }
 
-HRESULT HrCopyString(void *base, const WCHAR* lpwszSrc, WCHAR** lppwszDst)
+HRESULT HrCopyString(void *base, const wchar_t *src, wchar_t **dst)
 {
-	WCHAR* lpwszDst = NULL;
-	std::wstring strText;
-
-	if(!lpwszSrc)
-		strText.clear();
-	else
-		strText = lpwszSrc;
-
-	HRESULT hr = MAPIAllocateMore((strText.length() + 1) * sizeof(WCHAR),
-	             base, reinterpret_cast<void **>(&lpwszDst));
+	if (src == nullptr)
+		src = L"";
+	auto len = (wcslen(src) + 1) * sizeof(*src);
+	HRESULT hr = MAPIAllocateMore(len, base, reinterpret_cast<void **>(dst));
 	if (hr != hrSuccess)
 		return hr;
-	wcsncpy(lpwszDst, strText.c_str(), strText.length()+1);
-
-	*lppwszDst = lpwszDst;
+	memcpy(*dst, src, len);
 	return hrSuccess;
 }
 
