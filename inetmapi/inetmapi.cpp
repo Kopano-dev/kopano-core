@@ -62,24 +62,8 @@ ECSender::ECSender(const std::string &strSMTPHost, int port)
 	smtpport = port;
 }
 
-int ECSender::getSMTPResult() {
-	return smtpresult;
-}
-
-const WCHAR* ECSender::getErrorString() {
-	return error.c_str();
-}
-
-void ECSender::setError(const std::wstring &newError) {
-	error = newError;
-}
-
 void ECSender::setError(const std::string &newError) {
 	error = convert_to<wstring>(newError);
-}
-
-bool ECSender::haveError() {
-	return ! error.empty();
 }
 
 static std::mutex vmInitLock;
