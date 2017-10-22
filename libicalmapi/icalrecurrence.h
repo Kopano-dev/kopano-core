@@ -33,19 +33,17 @@ namespace KC {
 class ICalRecurrence _kc_final {
 public:
 	/* ical -> mapi */
-	HRESULT HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, icalcomponent *lpicRootEvent, icalcomponent *lpicEvent,
-									  bool bIsAllday, LPSPropTagArray lpNamedProps, icalitem *lpIcalItem);
-	HRESULT HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomponent *lpicEvent, icalitem *lpIcalItem, bool bIsAllday, LPSPropTagArray lpNamedProps, std::string& strCharset, icalitem::exception *lpEx);
+	HRESULT HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &, icalcomponent *root_event, icalcomponent *event, bool all_day, const SPropTagArray *named_props, icalitem *);
+	HRESULT HrMakeMAPIException(icalcomponent *event_root, icalcomponent *event, icalitem *, bool all_day, SPropTagArray *named_props, const std::string &charset, icalitem::exception *);
 	HRESULT HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTagArray lpNamedProps, LPMESSAGE lpMessage);
 	bool HrValidateOccurrence(icalitem *lpItem, icalitem::exception lpEx);
 
 	/* mapi -> ical */
-	HRESULT HrCreateICalRecurrence(TIMEZONE_STRUCT sTimeZone, bool bIsAllDay, recurrence *lpRecurrence, icalcomponent *lpicEvent);
+	HRESULT HrCreateICalRecurrence(const TIMEZONE_STRUCT &, bool all_day, recurrence *, icalcomponent *event);
 	HRESULT HrMakeICalException(icalcomponent *lpicEvent, icalcomponent **lppicException);
 
 private:
-	HRESULT HrCreateICalRecurrenceType(TIMEZONE_STRUCT sTimeZone, bool bIsAllday, recurrence *lpRecurrence, icalrecurrencetype *lpicRRule);
-
+	HRESULT HrCreateICalRecurrenceType(const TIMEZONE_STRUCT &, bool all_day, recurrence *, icalrecurrencetype *rrule);
 	HRESULT WeekDaysToICalArray(ULONG ulWeekDays, struct icalrecurrencetype *lpRec);
 };
 

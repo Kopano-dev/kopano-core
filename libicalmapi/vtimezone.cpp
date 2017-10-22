@@ -34,7 +34,7 @@ namespace KC {
  * @param[in]	tt		icaltimetype
  * @return		Unix timestamp
  */
-time_t icaltime_as_timet_with_server_zone(const struct icaltimetype tt)
+time_t icaltime_as_timet_with_server_zone(const struct icaltimetype &tt)
 {
 	struct tm stm;
 	time_t t;
@@ -129,7 +129,7 @@ time_t ICalTimeTypeToLocal(icalproperty *lpicProp)
  * @param[in]	tt		icaltimetype time
  * @return		tm structure
  */
-static struct tm UTC_ICalTime2UnixTime(icaltimetype tt)
+static struct tm UTC_ICalTime2UnixTime(const icaltimetype &tt)
 {
 	struct tm stm = {0};
 
@@ -318,7 +318,8 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
  * @return		MAPI error code
  * @retval		MAPI_E_INVALID_PARAMETER timezone contains invalid data for a yearly daylightsaving
  */
-HRESULT HrCreateVTimeZone(const std::string &strTZID, TIMEZONE_STRUCT &tsTimeZone, icalcomponent** lppVTZComp)
+HRESULT HrCreateVTimeZone(const std::string &strTZID,
+    const TIMEZONE_STRUCT &tsTimeZone, icalcomponent **lppVTZComp)
 {
 	icalcomponent *icTZComp = NULL;
 	icalcomponent *icComp = NULL;

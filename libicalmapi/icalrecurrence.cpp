@@ -47,12 +47,13 @@ namespace KC {
  * @param[in]	lpicEvent		Ical VEVENT component containing the RRULE
  * @param[in]	bIsAllday		Allday status of the event
  * @param[in]	lpNamedProps	Named property tag array
- * @param[in]	lpIcalItem		Structure in which mapi properties are set
+ * @param[out]	lpIcalItem		Structure in which mapi properties are set
  * @return		MAPI error code
  * @retval		MAPI_E_NOT_FOUND	Start or end time not found in ical data 
  */
-HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, icalcomponent *lpicRootEvent, icalcomponent *lpicEvent,
-												  bool bIsAllday, LPSPropTagArray lpNamedProps, icalitem *lpIcalItem)
+HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZone,
+    icalcomponent *lpicRootEvent, icalcomponent *lpicEvent, bool bIsAllday,
+    const SPropTagArray *lpNamedProps, icalitem *lpIcalItem)
 {
 	HRESULT hr = hrSuccess;
 	std::unique_ptr<recurrence> lpRec;
@@ -320,7 +321,10 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
  * @return			MAPI error code
  * @retval			MAPI_E_NOT_FOUND	start time or end time of event is not set in ical data
  */
-HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomponent *lpicEvent, icalitem *lpIcalItem, bool bIsAllDay, LPSPropTagArray lpNamedProps, std::string& strCharset, icalitem::exception *lpEx)
+HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
+    icalcomponent *lpicEvent, icalitem *lpIcalItem, bool bIsAllDay,
+    SPropTagArray *lpNamedProps, const std::string &strCharset,
+    icalitem::exception *lpEx)
 {
 	HRESULT hr;
 	icalproperty *lpicProp = NULL;
@@ -742,7 +746,8 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
  * @return			MAPI error code
  * @retval			MAPI_E_INVALID_PARAMETER	Invalid recurrence type is set in mapi recurrence
  */
-HRESULT ICalRecurrence::HrCreateICalRecurrence(TIMEZONE_STRUCT sTimeZone, bool bIsAllDay, recurrence *lpRecurrence, icalcomponent *lpicEvent)
+HRESULT ICalRecurrence::HrCreateICalRecurrence(const TIMEZONE_STRUCT &sTimeZone,
+    bool bIsAllDay, recurrence *lpRecurrence, icalcomponent *lpicEvent)
 {
 	icalrecurrencetype icRRule;
 	std::list<time_t> lstExceptions;
@@ -785,7 +790,8 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(TIMEZONE_STRUCT sTimeZone, bool b
  * @return		MAPI error code
  * @retval		MAPI_E_INVALID_PARAMETER	invalid recurrence type is set in mapi recurrence structure
  */
-HRESULT ICalRecurrence::HrCreateICalRecurrenceType(TIMEZONE_STRUCT sTimeZone, bool bIsAllday, recurrence *lpRecurrence, icalrecurrencetype *lpicRRule)
+HRESULT ICalRecurrence::HrCreateICalRecurrenceType(const TIMEZONE_STRUCT &sTimeZone,
+    bool bIsAllday, recurrence *lpRecurrence, icalrecurrencetype *lpicRRule)
 {
 	struct icalrecurrencetype icRec;
 
