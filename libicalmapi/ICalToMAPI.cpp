@@ -421,44 +421,43 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 
 next:
 	// add recurring properties & add exceptions
-	if (lpItem->lpRecurrence) {
-		hr = cRec.HrMakeMAPIRecurrence(lpItem->lpRecurrence.get(), m_lpNamedProps, lpMessage);
-		// TODO: log error if any?
-		
-		// check if all exceptions are valid
-		for (const auto &ex : lpItem->lstExceptionAttachments)
-			if (!cRec.HrValidateOccurrence(lpItem, ex))
-				return MAPI_E_INVALID_OBJECT;
-		for (const auto &ex : lpItem->lstExceptionAttachments) {
-			object_ptr<IAttach> lpAttach;
-			object_ptr<IMessage> lpExMsg;
+	if (lpItem->lpRecurrence == nullptr)
+		return hrSuccess;
+	hr = cRec.HrMakeMAPIRecurrence(lpItem->lpRecurrence.get(), m_lpNamedProps, lpMessage);
+	// TODO: log error if any?
+	// check if all exceptions are valid
+	for (const auto &ex : lpItem->lstExceptionAttachments)
+		if (!cRec.HrValidateOccurrence(lpItem, ex))
+			return MAPI_E_INVALID_OBJECT;
+	for (const auto &ex : lpItem->lstExceptionAttachments) {
+		object_ptr<IAttach> lpAttach;
+		object_ptr<IMessage> lpExMsg;
 
-			hr = lpMessage->CreateAttach(nullptr, 0, &ulANr, &~lpAttach);
-			if (hr != hrSuccess)
-				return hr;
-			hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpExMsg);
-			if (hr != hrSuccess)
-				return hr;
-			if (!(ulFlags & IC2M_NO_RECIPIENTS))
-				hr = SaveRecipList(&ex.lstRecips, ulFlags, lpExMsg);
-			if (hr != hrSuccess)
-				return hr;
-			hr = SaveAttendeesString(&ex.lstRecips, lpExMsg);
-			if (hr != hrSuccess)
-				return hr;
-			hr = SaveProps(&ex.lstMsgProps, lpExMsg);
-			if (hr != hrSuccess)
-				return hr;
-			hr = SaveProps(&ex.lstAttachProps, lpAttach);
-			if (hr != hrSuccess)
-				return hr;
-			hr = lpExMsg->SaveChanges(0);
-			if (hr != hrSuccess)
-				return hr;
-			hr = lpAttach->SaveChanges(0);
-			if (hr != hrSuccess)
-				return hr;
-		}
+		hr = lpMessage->CreateAttach(nullptr, 0, &ulANr, &~lpAttach);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpExMsg);
+		if (hr != hrSuccess)
+			return hr;
+		if (!(ulFlags & IC2M_NO_RECIPIENTS))
+			hr = SaveRecipList(&ex.lstRecips, ulFlags, lpExMsg);
+		if (hr != hrSuccess)
+			return hr;
+		hr = SaveAttendeesString(&ex.lstRecips, lpExMsg);
+		if (hr != hrSuccess)
+			return hr;
+		hr = SaveProps(&ex.lstMsgProps, lpExMsg);
+		if (hr != hrSuccess)
+			return hr;
+		hr = SaveProps(&ex.lstAttachProps, lpAttach);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpExMsg->SaveChanges(0);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpAttach->SaveChanges(0);
+		if (hr != hrSuccess)
+			return hr;
 	}
 	return hr;
 }

@@ -1250,32 +1250,27 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 	}
 
 	// The DAgent does not want these properties from ical, since it writes them itself
-	if (!m_bNoRecipients) {
-		// @todo: what if >1 attendee ?!?
+	if (m_bNoRecipients)
+		return hrSuccess;
 
-		//PR_SENDER = ATTENDEE
-		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
-		if (lpicProp) {
-			const char *lpszProp = icalproperty_get_attendee(lpicProp);
-			strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
-			if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
-				strEmail.erase(0, 7);
-
-			auto lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
-			if (lpicParam) {
-				lpszProp = icalparameter_get_cn(lpicParam);
-				strName = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
-			}
+	// @todo: what if >1 attendee ?!?
+	//PR_SENDER = ATTENDEE
+	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
+	if (lpicProp) {
+		const char *lpszProp = icalproperty_get_attendee(lpicProp);
+		strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
+		if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
+			strEmail.erase(0, 7);
+		auto lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
+		if (lpicParam) {
+			lpszProp = icalparameter_get_cn(lpicParam);
+			strName = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
 		}
-
-		auto hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
-		if (hr != hrSuccess)
-			return hr;
-		hr = HrAddOrganizer(lpIcalItem, &lpIcalItem->lstMsgProps, strEmail, strName, "SMTP", cbEntryID, lpEntryID);
-		if (hr != hrSuccess)
-			return hr;
 	}
-	return hrSuccess;
+	auto hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
+	if (hr != hrSuccess)
+		return hr;
+	return HrAddOrganizer(lpIcalItem, &lpIcalItem->lstMsgProps, strEmail, strName, "SMTP", cbEntryID, lpEntryID);
 }
 
 /**
@@ -1398,17 +1393,16 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 	UnixTimeToFileTime(ttReminderTime, &sPropVal.Value.ft);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
-	if(ttReminderNext == 0)
-	{
-		if (bReminderSet) {
-			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME);
-			UnixTimeToFileTime(ttReminderTime - (ulRemindBefore * 60), &sPropVal.Value.ft);
-			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
-		} else {
-			//delete the next-reminder time if X-MOZ-SNOOZE-TIME is absent and reminder is not set.
-			lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
-		}
+	if (ttReminderNext != 0)
+		return hrSuccess;
+	if (!bReminderSet) {
+		//delete the next-reminder time if X-MOZ-SNOOZE-TIME is absent and reminder is not set.
+		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
+		return hrSuccess;
 	}
+	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME);
+	UnixTimeToFileTime(ttReminderTime - (ulRemindBefore * 60), &sPropVal.Value.ft);
+	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	return hrSuccess;
 }
 

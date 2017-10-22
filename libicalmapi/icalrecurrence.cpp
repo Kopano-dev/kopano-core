@@ -434,14 +434,14 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	// copy properties to exception and test if changed
 	for (const auto &prop : lpIcalItem->lstMsgProps)
 		for (ULONG i = 0; i < sptaCopy.cValues; ++i) {
-			if (sptaCopy.aulPropTag[i] == prop.ulPropTag) {
-				abOldPresent[i] = true;
-				if (sptaCopy.aulPropTag[i] != PR_BODY) // no need to copy body
-					lpEx->lstMsgProps.emplace_back(prop);
-				if (sptaCopy.aulPropTag[i] == CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN))
-					bOldIsAllDay = prop.Value.b; // remember allday event status
-				break;
-			}
+			if (sptaCopy.aulPropTag[i] != prop.ulPropTag)
+				continue;
+			abOldPresent[i] = true;
+			if (sptaCopy.aulPropTag[i] != PR_BODY) // no need to copy body
+				lpEx->lstMsgProps.emplace_back(prop);
+			if (sptaCopy.aulPropTag[i] == CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN))
+				bOldIsAllDay = prop.Value.b; // remember allday event status
+			break;
 		}
 
 	// find exceptional properties
@@ -475,50 +475,50 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 			abNewPresent[1] = true;
 			break;
 		}
-		case ICAL_TRANSP_PROPERTY:
-			if (!bXMS) {
-				ULONG ulBusyStatus = 2;	// default busy
-				switch(icalproperty_get_transp(lpicProp)){
-				case ICAL_TRANSP_TRANSPARENT: 
-					ulBusyStatus = 0;
-					break;
-				case ICAL_TRANSP_OPAQUE:
-					ulBusyStatus = 2;
-					break;
-				default:
-					break;
-				}
-				hr = lpIcalItem->lpRecurrence->setModifiedBusyStatus(ulId, ulBusyStatus);
-				if (hr != hrSuccess)
-					return hr;
-				sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG);
-				sPropVal.Value.ul = ulBusyStatus;
-				lpEx->lstMsgProps.emplace_back(sPropVal);
-				abNewPresent[7] = true;
+		case ICAL_TRANSP_PROPERTY: {
+			if (bXMS)
+				break;
+			ULONG ulBusyStatus = 2;	// default busy
+			switch (icalproperty_get_transp(lpicProp)) {
+			case ICAL_TRANSP_TRANSPARENT:
+				ulBusyStatus = 0;
+				break;
+			case ICAL_TRANSP_OPAQUE:
+				ulBusyStatus = 2;
+				break;
+			default:
+				break;
 			}
+			hr = lpIcalItem->lpRecurrence->setModifiedBusyStatus(ulId, ulBusyStatus);
+			if (hr != hrSuccess)
+				return hr;
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG);
+			sPropVal.Value.ul = ulBusyStatus;
+			lpEx->lstMsgProps.emplace_back(sPropVal);
+			abNewPresent[7] = true;
 			break;
-		case ICAL_X_PROPERTY:
-			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-BUSYSTATUS") == 0) {
-				ULONG ulBusyStatus = 2;	// default busy
-				const char *lpszIcalProp = icalproperty_get_x(lpicProp);
-				if (strcmp(lpszIcalProp, "FREE") == 0)
-					ulBusyStatus = 0;
-				else if (strcmp(lpszIcalProp, "TENTATIVE") == 0)
-					ulBusyStatus = 1;
-				else if (strcmp(lpszIcalProp, "OOF") == 0)
-					ulBusyStatus = 3;
-
-				hr = lpIcalItem->lpRecurrence->setModifiedBusyStatus(ulId, ulBusyStatus);
-				if (hr != hrSuccess)
-					return hr;
-
-				sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG);
-				sPropVal.Value.ul = ulBusyStatus;
-				lpEx->lstMsgProps.emplace_back(sPropVal);
-				bXMS = true;
-				abNewPresent[7] = true;
-			}
+		}
+		case ICAL_X_PROPERTY: {
+			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-BUSYSTATUS") != 0)
+				break;
+			ULONG ulBusyStatus = 2;	// default busy
+			const char *lpszIcalProp = icalproperty_get_x(lpicProp);
+			if (strcmp(lpszIcalProp, "FREE") == 0)
+				ulBusyStatus = 0;
+			else if (strcmp(lpszIcalProp, "TENTATIVE") == 0)
+				ulBusyStatus = 1;
+			else if (strcmp(lpszIcalProp, "OOF") == 0)
+				ulBusyStatus = 3;
+			hr = lpIcalItem->lpRecurrence->setModifiedBusyStatus(ulId, ulBusyStatus);
+			if (hr != hrSuccess)
+				return hr;
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG);
+			sPropVal.Value.ul = ulBusyStatus;
+			lpEx->lstMsgProps.emplace_back(sPropVal);
+			bXMS = true;
+			abNewPresent[7] = true;
 			break;
+		}
 		case ICAL_DESCRIPTION_PROPERTY: {
 			auto lpszProp = icalproperty_get_description(lpicProp);
 			auto strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
@@ -541,67 +541,66 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	abNewPresent[2] = abNewPresent[3] = abNewPresent[4] = abNewPresent[5] = true;
 	// test if properties were just removed
 	for (ULONG i = 0; i < sptaCopy.cValues; ++i) {
-		if (abOldPresent[i] == true && abNewPresent[i] == false) {
-			auto iProp = find(lpEx->lstMsgProps.begin(), lpEx->lstMsgProps.end(), sptaCopy.aulPropTag[i]);
-			if (iProp != lpEx->lstMsgProps.cend()) {
-				lpEx->lstMsgProps.erase(iProp);
-				switch (i) {
-				case 0:
-					// subject
-					hr = lpIcalItem->lpRecurrence->setModifiedSubject(ulId, std::wstring());
-					if (hr != hrSuccess)
-						return hr;
-					sPropVal.ulPropTag = PR_SUBJECT_W;
-					sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
-					lpEx->lstMsgProps.emplace_back(sPropVal);
-					break;
-				case 1:
-					// location
-					hr = lpIcalItem->lpRecurrence->setModifiedLocation(ulId, std::wstring());
-					if (hr != hrSuccess)
-						return hr;
-					sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_LOCATION], PT_UNICODE);
-					sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
-					lpEx->lstMsgProps.emplace_back(sPropVal);
-					break;
-				case 2:
-					// body, ignore!
-					break;
-				case 3:
-					// label, ignore
-					break;
-				case 4:
-					// reminder set, ignore
-					break;
-				case 5:
-					// reminder minutes, ignore
-					break;
-				case 6:
-					// allday event
-					if (bIsAllDay != bOldIsAllDay) {
-						// flip all day status
-						hr = lpIcalItem->lpRecurrence->setModifiedSubType(ulId, 1);
-						if (hr != hrSuccess)
-							return hr;
-						sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN);
-						sPropVal.Value.ul = !bOldIsAllDay;
-						lpEx->lstMsgProps.emplace_back(sPropVal);
-					}
-					break;
-				case 7:
-					// busy status, default: busy
-					hr = lpIcalItem->lpRecurrence->setModifiedBusyStatus(ulId, 1);
-					if (hr != hrSuccess)
-						return hr;
-					sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG);
-					sPropVal.Value.ul = 1;
-					lpEx->lstMsgProps.emplace_back(sPropVal);
-					break;
-				};
-			}
+		if (!abOldPresent[i] || abNewPresent[i])
+			continue;
+		auto iProp = find(lpEx->lstMsgProps.begin(), lpEx->lstMsgProps.end(), sptaCopy.aulPropTag[i]);
+		if (iProp == lpEx->lstMsgProps.cend())
+			continue;
+		lpEx->lstMsgProps.erase(iProp);
+		switch (i) {
+		case 0:
+			// subject
+			hr = lpIcalItem->lpRecurrence->setModifiedSubject(ulId, std::wstring());
+			if (hr != hrSuccess)
+				return hr;
+			sPropVal.ulPropTag = PR_SUBJECT_W;
+			sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
+			lpEx->lstMsgProps.emplace_back(sPropVal);
+			break;
+		case 1:
+			// location
+			hr = lpIcalItem->lpRecurrence->setModifiedLocation(ulId, std::wstring());
+			if (hr != hrSuccess)
+				return hr;
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_LOCATION], PT_UNICODE);
+			sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
+			lpEx->lstMsgProps.emplace_back(sPropVal);
+			break;
+		case 2:
+			// body, ignore!
+			break;
+		case 3:
+			// label, ignore
+			break;
+		case 4:
+			// reminder set, ignore
+			break;
+		case 5:
+			// reminder minutes, ignore
+			break;
+		case 6:
+			// allday event
+			if (bIsAllDay == bOldIsAllDay)
+				break;
+			// flip all day status
+			hr = lpIcalItem->lpRecurrence->setModifiedSubType(ulId, 1);
+			if (hr != hrSuccess)
+				return hr;
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN);
+			sPropVal.Value.ul = !bOldIsAllDay;
+			lpEx->lstMsgProps.emplace_back(sPropVal);
+			break;
+		case 7:
+			// busy status, default: busy
+			hr = lpIcalItem->lpRecurrence->setModifiedBusyStatus(ulId, 1);
+			if (hr != hrSuccess)
+				return hr;
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG);
+			sPropVal.Value.ul = 1;
+			lpEx->lstMsgProps.emplace_back(sPropVal);
+			break;
 		}
 	}
-	
 
 	// reminderset (flip reminder on/off) and reminderdelta (offset time change) in vevent component of this item
 	auto lpicAlarm = icalcomponent_get_first_component(lpicEvent, ICAL_VALARM_COMPONENT);
@@ -738,20 +737,18 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(const TIMEZONE_STRUCT &sTimeZone,
 
 	// all delete exceptions are in the delete list,
 	auto lstExceptions = lpRecurrence->getDeletedExceptions();
-	if (!lstExceptions.empty()) {
-		// add EXDATE props
-		for (const auto &exc : lstExceptions) {
-			if(bIsAllDay)
-				ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTZgmt), bIsAllDay, nullptr);
-			else
-				ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTimeZone), 0, nullptr);
+	if (lstExceptions.empty())
+		return hrSuccess;
 
-			ittExDate.is_utc = 1;
-
-			icalcomponent_add_property(lpicEvent, icalproperty_new_exdate(ittExDate));
-		}
+	// add EXDATE props
+	for (const auto &exc : lstExceptions) {
+		if (bIsAllDay)
+			ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTZgmt), bIsAllDay, nullptr);
+		else
+			ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTimeZone), 0, nullptr);
+		ittExDate.is_utc = 1;
+		icalcomponent_add_property(lpicEvent, icalproperty_new_exdate(ittExDate));
 	}
-
 	// modified exceptions are done by the caller because of the attachments with info
 	return hrSuccess;
 }
@@ -777,12 +774,12 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(const TIMEZONE_STRUCT &sTimeZ
 	case recurrence::DAILY:
 		icRec.freq = ICAL_DAILY_RECURRENCE;
 		// only weekdays selected in outlook
-		if (lpRecurrence->getWeekDays()) {
-			// iCal.app does not have daily-weekday type of recurrence
-			// so Daily-weekdays is converted to weekly recurrence
-			icRec.freq = ICAL_WEEKLY_RECURRENCE;
-			WeekDaysToICalArray(lpRecurrence->getWeekDays(), &icRec);
-		}
+		if (!lpRecurrence->getWeekDays())
+			break;
+		// iCal.app does not have daily-weekday type of recurrence
+		// so Daily-weekdays is converted to weekly recurrence
+		icRec.freq = ICAL_WEEKLY_RECURRENCE;
+		WeekDaysToICalArray(lpRecurrence->getWeekDays(), &icRec);
 		break;
 	case recurrence::WEEKLY:
 		icRec.freq = ICAL_WEEKLY_RECURRENCE;
