@@ -144,7 +144,7 @@ static constexpr const SizedSPropTagArray(54, sptaExclude) = {
  */
 MAPIToVMIME::MAPIToVMIME()
 {
-	srand((unsigned)time(NULL));
+	rand_init();
 	m_lpAdrBook = NULL;
 	imopt_default_sending_options(&sopt);
 	m_lpSession = NULL;
@@ -159,7 +159,7 @@ MAPIToVMIME::MAPIToVMIME()
 MAPIToVMIME::MAPIToVMIME(IMAPISession *lpSession, IAddrBook *lpAddrBook,
     sending_options sopt)
 {
-	srand((unsigned)time(NULL));
+	rand_init();
 	this->sopt = sopt;
 	if (lpSession != nullptr && lpAddrBook == nullptr)
 		lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &m_lpAdrBook);
