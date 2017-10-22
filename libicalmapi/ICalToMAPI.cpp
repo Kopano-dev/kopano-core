@@ -527,40 +527,37 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 			return hr;
 		lpRecipients->aEntries[i].cValues = 10;
 
-		lpRecipients->aEntries[i].rgPropVals[0].ulPropTag = PR_RECIPIENT_TYPE;
-		lpRecipients->aEntries[i].rgPropVals[0].Value.ul = recip.ulRecipientType;
-		lpRecipients->aEntries[i].rgPropVals[1].ulPropTag = PR_DISPLAY_NAME_W;
-		lpRecipients->aEntries[i].rgPropVals[1].Value.lpszW = const_cast<wchar_t *>(recip.strName.c_str());
-		lpRecipients->aEntries[i].rgPropVals[2].ulPropTag = PR_SMTP_ADDRESS_W;
-		lpRecipients->aEntries[i].rgPropVals[2].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
-		lpRecipients->aEntries[i].rgPropVals[3].ulPropTag = PR_ENTRYID;
-		lpRecipients->aEntries[i].rgPropVals[3].Value.bin.cb = recip.cbEntryID;
-		hr = MAPIAllocateMore(recip.cbEntryID,
-		     lpRecipients->aEntries[i].rgPropVals,
-		     reinterpret_cast<void **>(&lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb));
+		const auto &rg = lpRecipients->aEntries[i].rgPropVals;
+		rg[0].ulPropTag = PR_RECIPIENT_TYPE;
+		rg[0].Value.ul = recip.ulRecipientType;
+		rg[1].ulPropTag = PR_DISPLAY_NAME_W;
+		rg[1].Value.lpszW = const_cast<wchar_t *>(recip.strName.c_str());
+		rg[2].ulPropTag = PR_SMTP_ADDRESS_W;
+		rg[2].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
+		rg[3].ulPropTag = PR_ENTRYID;
+		rg[3].Value.bin.cb = recip.cbEntryID;
+		hr = MAPIAllocateMore(recip.cbEntryID, rg,
+		     reinterpret_cast<void **>(&rg[3].Value.bin.lpb));
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb, recip.lpEntryID, recip.cbEntryID);
-		
-		lpRecipients->aEntries[i].rgPropVals[4].ulPropTag = PR_ADDRTYPE_W;
-		lpRecipients->aEntries[i].rgPropVals[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-
+		memcpy(rg[3].Value.bin.lpb, recip.lpEntryID, recip.cbEntryID);
+		rg[4].ulPropTag = PR_ADDRTYPE_W;
+		rg[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 		strSearch = strToUpper("SMTP:" + converter.convert_to<std::string>(recip.strEmail));
-		lpRecipients->aEntries[i].rgPropVals[5].ulPropTag = PR_SEARCH_KEY;
-		lpRecipients->aEntries[i].rgPropVals[5].Value.bin.cb = strSearch.size() + 1;
-		if ((hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[i].rgPropVals, (void **)&lpRecipients->aEntries[i].rgPropVals[5].Value.bin.lpb)) != hrSuccess)
+		rg[5].ulPropTag = PR_SEARCH_KEY;
+		rg[5].Value.bin.cb = strSearch.size() + 1;
+		hr = MAPIAllocateMore(strSearch.size() + 1, rg, reinterpret_cast<void **>(&rg[5].Value.bin.lpb));
+		if (hr != hrSuccess)
 			return hr;
-		memcpy(lpRecipients->aEntries[i].rgPropVals[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
-
-		lpRecipients->aEntries[i].rgPropVals[6].ulPropTag = PR_EMAIL_ADDRESS_W;
-		lpRecipients->aEntries[i].rgPropVals[6].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
-		lpRecipients->aEntries[i].rgPropVals[7].ulPropTag = PR_DISPLAY_TYPE;
-		lpRecipients->aEntries[i].rgPropVals[7].Value.ul = DT_MAILUSER;
-
-		lpRecipients->aEntries[i].rgPropVals[8].ulPropTag = PR_RECIPIENT_FLAGS;
-		lpRecipients->aEntries[i].rgPropVals[8].Value.ul = recip.ulRecipientType == MAPI_ORIG? 3 : 1;
-		lpRecipients->aEntries[i].rgPropVals[9].ulPropTag = PR_RECIPIENT_TRACKSTATUS;
-		lpRecipients->aEntries[i].rgPropVals[9].Value.ul = recip.ulTrackStatus;
+		memcpy(rg[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
+		rg[6].ulPropTag = PR_EMAIL_ADDRESS_W;
+		rg[6].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
+		rg[7].ulPropTag = PR_DISPLAY_TYPE;
+		rg[7].Value.ul = DT_MAILUSER;
+		rg[8].ulPropTag = PR_RECIPIENT_FLAGS;
+		rg[8].Value.ul = recip.ulRecipientType == MAPI_ORIG? 3 : 1;
+		rg[9].ulPropTag = PR_RECIPIENT_TRACKSTATUS;
+		rg[9].Value.ul = recip.ulTrackStatus;
 		++lpRecipients->cEntries;
 		++i;
 	}
