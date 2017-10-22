@@ -141,9 +141,9 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 	}
 
 	lpIcalItem.reset(new icalitem);
-	if ((hr = MAPIAllocateBuffer(sizeof(void*), &lpIcalItem->base)) != hrSuccess)
+	hr = MAPIAllocateBuffer(sizeof(void *), &~lpIcalItem->base);
+	if (hr != hrSuccess)
 		return hr;
-	lpIcalItem->lpRecurrence = NULL;
 
 	// ---------------------------
 
@@ -215,8 +215,6 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 
 	*lppRet = lpIcalItem.release();
 exit:
-	if (lpIcalItem != nullptr)
-		MAPIFreeBuffer(lpIcalItem->base);
 	return hr;
 }
 
@@ -1495,8 +1493,7 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8));
 		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME));
 		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCE_END], PT_SYSTIME));
-		lpIcalItem->lpRecurrence = NULL;
-
+		lpIcalItem->lpRecurrence.reset();
 		// remove all exception attachments from existing message, done in ICal2Mapi.cpp
 		return hrSuccess;
 	}

@@ -304,7 +304,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
 		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	}
-	lpIcalItem->lpRecurrence = lpRec.release();
+	lpIcalItem->lpRecurrence = std::move(lpRec);
 	return hr;
 }
 /**

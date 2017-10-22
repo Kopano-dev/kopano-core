@@ -50,8 +50,6 @@ public:
 	    - Addressbook (Global AddressBook for looking up users)
 	 */
 	ICalToMapiImpl(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoRecipients);
-	virtual ~ICalToMapiImpl();
-
 	HRESULT ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZ, IMailUser *lpMailUser, ULONG ulFlags) _kc_override;
 	ULONG GetItemCount(void) _kc_override;
 	HRESULT GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t *lptLastModified, SBinary *lpUid) _kc_override;
@@ -64,7 +62,7 @@ private:
 	HRESULT SaveAttendeesString(const std::list<icalrecip> *lplstRecip, LPMESSAGE lpMessage);
 	HRESULT SaveProps(const std::list<SPropValue> *lpPropList, IMAPIProp *, unsigned int flags = 0);
 	HRESULT SaveRecipList(const std::list<icalrecip> *lplstRecip, ULONG ulFlag, LPMESSAGE lpMessage);
-	SPropTagArray *m_lpNamedProps = nullptr;
+	memory_ptr<SPropTagArray> m_lpNamedProps;
 	ULONG m_ulErrorCount = 0;
 	TIMEZONE_STRUCT ttServerTZ;
 	std::string strServerTimeZone;
@@ -72,7 +70,7 @@ private:
 	/* Contains a list of messages after ParseICal
 	 * Use GetItem() to get one of these messages
 	 */
-	std::vector<icalitem*> m_vMessages;
+	std::vector<std::unique_ptr<icalitem>> m_vMessages;
 
 	// freebusy information
 	bool m_bHaveFreeBusy = false;
@@ -113,15 +111,6 @@ ICalToMapiImpl::ICalToMapiImpl(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool b
 }
 
 /** 
- * Frees all used memory of the ICalToMapi class
- */
-ICalToMapiImpl::~ICalToMapiImpl()
-{
-	Clean();
-	MAPIFreeBuffer(m_lpNamedProps);
-}
-
-/** 
  * Frees and resets all used memory of the ICalToMapi class. The class
  * can be reused for another conversion after this call. Named
  * properties are kept, since you cannot switch items from a store.
@@ -129,12 +118,6 @@ ICalToMapiImpl::~ICalToMapiImpl()
 void ICalToMapiImpl::Clean()
 {
 	m_ulErrorCount = 0;
-	for (const auto i : m_vMessages) {
-		if (i->lpRecurrence != NULL)
-			delete i->lpRecurrence;
-		MAPIFreeBuffer(i->base);
-		delete i;
-	}
 	m_vMessages.clear();
 
 	m_bHaveFreeBusy = false;
@@ -170,7 +153,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 
 	Clean();
 	if (m_lpNamedProps == NULL) {
-		hr = HrLookupNames(m_lpPropObj, &m_lpNamedProps);
+		hr = HrLookupNames(m_lpPropObj, &~m_lpNamedProps);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -367,8 +350,6 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 {
 	HRESULT hr = hrSuccess;
 	ICalRecurrence cRec;
-	icalitem *lpItem = NULL;
-	std::vector<icalitem *>::const_iterator iItem;
 	ULONG ulANr = 0;
 	memory_ptr<SPropTagArray> lpsPTA;
 	object_ptr<IMAPITable> lpAttachTable;
@@ -379,8 +360,8 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	if (ulPosition >= m_vMessages.size() || lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	iItem = m_vMessages.begin() + ulPosition;
-	lpItem = *iItem;
+	auto iItem = m_vMessages.begin() + ulPosition;
+	auto lpItem = iItem->get();
 
 	if ((ulFlags & IC2M_APPEND_ONLY) == 0 && !lpItem->lstDelPropTags.empty()) {
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpItem->lstDelPropTags.size()), &~lpsPTA);
@@ -450,7 +431,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 next:
 	// add recurring properties & add exceptions
 	if (lpItem->lpRecurrence) {
-		hr = cRec.HrMakeMAPIRecurrence(lpItem->lpRecurrence, m_lpNamedProps, lpMessage);
+		hr = cRec.HrMakeMAPIRecurrence(lpItem->lpRecurrence.get(), m_lpNamedProps, lpMessage);
 		// TODO: log error if any?
 		
 		// check if all exceptions are valid

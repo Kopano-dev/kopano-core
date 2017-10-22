@@ -39,8 +39,6 @@ namespace KC {
 class MapiToICalImpl _kc_final : public MapiToICal {
 public:
 	MapiToICalImpl(LPADRBOOK lpAdrBook, const std::string &strCharset);
-	virtual ~MapiToICalImpl();
-
 	HRESULT AddMessage(LPMESSAGE lpMessage, const std::string &strSrvTZ, ULONG ulFlags) _kc_override;
 	HRESULT AddBlocks(FBBlock_1 *pblk, LONG ulblocks, time_t tStart, time_t tEnd, const std::string &strOrganiser, const std::string &strUser, const std::string &strUID) _kc_override;
 	HRESULT Finalize(ULONG ulFlags, std::string *strMethod, std::string *strIcal) _kc_override;
@@ -49,10 +47,9 @@ public:
 private:
 	LPADRBOOK m_lpAdrBook;
 	std::string m_strCharset;
-
-	SPropTagArray *m_lpNamedProps = nullptr;
+	KCHL::memory_ptr<SPropTagArray> m_lpNamedProps;
 	/* since we don't want depending projects to add include paths for libical, this is only in the implementation version */
-	icalcomponent *m_lpicCalender = nullptr;
+	icalcomp_ptr m_lpicCalender;
 	icalproperty_method m_icMethod = ICAL_METHOD_NONE;
 	timezone_map m_tzMap;			// contains all used timezones
 	ULONG m_ulEvents = 0;
@@ -91,26 +88,15 @@ MapiToICalImpl::MapiToICalImpl(LPADRBOOK lpAdrBook,
 	HrInitializeVCal();
 }
 
-/** 
- * Frees all used memory in conversion
- * 
- */
-MapiToICalImpl::~MapiToICalImpl()
-{
-	if (m_lpicCalender)
-		icalcomponent_free(m_lpicCalender);
-	MAPIFreeBuffer(m_lpNamedProps);
-}
 /**
  * Initialize ical component with basic ical info
  */
 HRESULT MapiToICalImpl::HrInitializeVCal()
 {
-	m_lpicCalender = icalcomponent_new(ICAL_VCALENDAR_COMPONENT);
-	icalcomponent_add_property(m_lpicCalender, icalproperty_new_version("2.0"));
-	icalcomponent_add_property(m_lpicCalender, icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION "//EN"));
-	icalcomponent_add_property(m_lpicCalender, icalproperty_new_calscale("GREGORIAN"));
-
+	m_lpicCalender.reset(icalcomponent_new(ICAL_VCALENDAR_COMPONENT));
+	icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_version("2.0"));
+	icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION "//EN"));
+	icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_calscale("GREGORIAN"));
 	return hrSuccess;
 }
 /** 
@@ -139,7 +125,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (m_lpNamedProps == NULL) {
-		hr = HrLookupNames(lpMessage, &m_lpNamedProps);
+		hr = HrLookupNames(lpMessage, &~m_lpNamedProps);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -165,7 +151,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 		return hr;
 	for (auto ev : lstEvents) {
 		++m_ulEvents;
-		icalcomponent_add_component(m_lpicCalender, ev);
+		icalcomponent_add_component(m_lpicCalender.get(), ev);
 	}
 
 	if (m_icMethod != ICAL_METHOD_NONE && m_icMethod != icMethod)
@@ -193,10 +179,9 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
 	icalcomponent *icFbComponent = NULL;
 
 	if (m_lpicCalender == NULL) {
-		m_lpicCalender = icalcomponent_new(ICAL_VCALENDAR_COMPONENT);
-
-		icalcomponent_add_property(m_lpicCalender, icalproperty_new_version("2.0"));
-		icalcomponent_add_property(m_lpicCalender, icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION "//EN"));
+		m_lpicCalender.reset(icalcomponent_new(ICAL_VCALENDAR_COMPONENT));
+		icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_version("2.0"));
+		icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION "//EN"));
 	}
 	
 	HRESULT hr = HrFbBlock2ICal(lpsFbblk, ulBlocks, tStart, tEnd,
@@ -205,7 +190,7 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
 		return hr;
 
 	m_icMethod = ICAL_METHOD_PUBLISH;
-	icalcomponent_add_component(m_lpicCalender,icFbComponent);
+	icalcomponent_add_component(m_lpicCalender.get(), icFbComponent);
 	return hrSuccess;
 }
 
@@ -230,7 +215,7 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 
 	// TODO: make flags force a publish method
 	if (m_icMethod != ICAL_METHOD_NONE)
-		icalcomponent_add_property(m_lpicCalender, icalproperty_new_method(m_icMethod));
+		icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_method(m_icMethod));
 	
 	// no timezone block in VFREEBUSY data.
 	if ((ulFlags & M2IC_NO_VTIMEZONE) == 0)
@@ -238,12 +223,12 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 		for (auto &tzp : m_tzMap) {
 			hr = HrCreateVTimeZone(tzp.first, tzp.second, &lpVTZComp);
 			if (hr == hrSuccess)
-				icalcomponent_add_component(m_lpicCalender, lpVTZComp);
+				icalcomponent_add_component(m_lpicCalender.get(), lpVTZComp);
 		}
 		hr = hrSuccess;
 	}
 
-	ics.reset(icalcomponent_as_ical_string_r(m_lpicCalender));
+	ics.reset(icalcomponent_as_ical_string_r(m_lpicCalender.get()));
 	if (ics == nullptr)
 		return MAPI_E_CALL_FAILED;
 	if (strMethod)
@@ -262,11 +247,7 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 HRESULT MapiToICalImpl::ResetObject()
 {
 	// no need to remove named properties
-	
-	if (m_lpicCalender)
-		icalcomponent_free(m_lpicCalender);
-	m_lpicCalender = NULL;
-
+	m_lpicCalender.reset();
 	m_icMethod = ICAL_METHOD_NONE;
 	m_tzMap.clear();
 	m_ulEvents = 0;

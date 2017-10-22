@@ -19,8 +19,10 @@
 #define ICALMAPI_ICALITEM_H
 
 #include <list>
+#include <memory>
 #include <string>
 #include <mapidefs.h>
+#include <kopano/memory.hpp>
 #include "recurrence.h"
 
 namespace KC {
@@ -39,13 +41,13 @@ struct icalrecip {
 };
 
 struct icalitem {
-	void *base;					/* pointer on which we use MAPIAllocateMore, to only need to free this pointer */
+	KCHL::memory_ptr<char> base; /* pointer on which we use MAPIAllocateMore, to only need to free this pointer */
 	eIcalType eType;
 	time_t tLastModified;
 	SPropValue sBinGuid;
 	TIMEZONE_STRUCT tTZinfo;
 	ULONG ulFbStatus;
-	recurrence *lpRecurrence;
+	std::unique_ptr<recurrence> lpRecurrence;
 	std::list<SPropValue> lstMsgProps; /* all objects are allocated more on icalitem pointer */
 	std::list<ULONG> lstDelPropTags; /* properties to delete from message */
 	std::list<icalrecip> lstRecips;	/* list of all recipients */	
