@@ -71,14 +71,8 @@ const mediaType mapiTextPart::getType() const
 
 size_t mapiTextPart::getPartCount() const
 {
-	int count = 0;
-	if (!m_plainText->isEmpty())
-		++count;
-	if (!m_text->isEmpty())
-		++count;
-	if (!m_otherText->isEmpty())
-		++count;
-	return count;
+	return !m_plainText->isEmpty() + !m_text->isEmpty() +
+	       !m_otherText->isEmpty();
 }
 
 void mapiTextPart::generateIn(vmime::shared_ptr<bodyPart> /* message */,
@@ -416,18 +410,11 @@ const string mapiTextPart::addObject(vmime::shared_ptr<vmime::contentHandler> da
 // static
 const string mapiTextPart::cleanId(const string& id)
 {
-	if (id.length() >= 4 &&
-	    (id[0] == 'c' || id[0] == 'C') &&
-	    (id[1] == 'i' || id[1] == 'I') &&
-	    (id[2] == 'd' || id[2] == 'D') &&
-	    id[3] == ':')
-	{
+	auto s = reinterpret_cast<const unsigned char *>(id.c_str());
+	if (id.length() >= 4 && tolower(s[0]) == 'c' &&
+	    tolower(s[1]) == 'i' && tolower(s[2]) == 'd' && s[3] == ':')
 		return id.substr(4);
-	}
-	else
-	{
-		return id;
-	}
+	return id;
 }
 
 //
