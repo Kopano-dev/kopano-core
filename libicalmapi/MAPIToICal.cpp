@@ -111,7 +111,6 @@ HRESULT MapiToICalImpl::HrInitializeVCal()
  */
 HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSrvTZ, ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
 	std::unique_ptr<VConverter> lpVEC;
 	std::list<icalcomponent*> lstEvents;
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
@@ -125,11 +124,11 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (m_lpNamedProps == NULL) {
-		hr = HrLookupNames(lpMessage, &~m_lpNamedProps);
+		auto hr = HrLookupNames(lpMessage, &~m_lpNamedProps);
 		if (hr != hrSuccess)
 			return hr;
 	}
-	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
+	auto hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
 	if (hr != hrSuccess)
 		return hr;
 	if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Task") == 0) {
@@ -206,7 +205,6 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
  */
 HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::string *strIcal)
 {
-	HRESULT hr = hrSuccess;
 	icalmem_ptr ics;
 	icalcomponent *lpVTZComp = NULL;
 
@@ -221,11 +219,10 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 	if ((ulFlags & M2IC_NO_VTIMEZONE) == 0)
 	{
 		for (auto &tzp : m_tzMap) {
-			hr = HrCreateVTimeZone(tzp.first, tzp.second, &lpVTZComp);
+			auto hr = HrCreateVTimeZone(tzp.first, tzp.second, &lpVTZComp);
 			if (hr == hrSuccess)
 				icalcomponent_add_component(m_lpicCalender.get(), lpVTZComp);
 		}
-		hr = hrSuccess;
 	}
 
 	ics.reset(icalcomponent_as_ical_string_r(m_lpicCalender.get()));
@@ -236,7 +233,7 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 
 	if (strIcal)
 		*strIcal = ics.get();
-	return hr;
+	return hrSuccess;
 }
 
 /** 

@@ -56,13 +56,8 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
     const SPropTagArray *lpNamedProps, icalitem *lpIcalItem)
 {
 	HRESULT hr = hrSuccess;
-	std::unique_ptr<recurrence> lpRec;
-	icalproperty *lpicProp = NULL;
-	icalrecurrencetype icRRule;
 	int i = 0;
 	ULONG ulWeekDays = 0;	
-	time_t dtUTCStart = 0;
-	time_t dtLocalStart = 0;
 	time_t dtUTCEnd = 0;
 	time_t dtUTCUntil = 0;
 	time_t exUTCDate = 0;
@@ -70,22 +65,19 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	SPropValue sPropVal = {0};
 	struct tm tm = {0};
 
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RRULE_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RRULE_PROPERTY);
 	if (lpicProp == NULL)
 		return hr;
-
-	icRRule = icalproperty_get_rrule(lpicProp);
-
+	auto icRRule = icalproperty_get_rrule(lpicProp);
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 	if (lpicProp == nullptr)
 		return MAPI_E_NOT_FOUND;
 	
 	// use localtime for calculating weekday as in UTC time 
 	// the weekday can change to previous day for time 00:00 am
-	dtLocalStart = icaltime_as_timet(icalproperty_get_dtstart(lpicProp));
+	auto dtLocalStart = icaltime_as_timet(icalproperty_get_dtstart(lpicProp));
 	gmtime_safe(&dtLocalStart, &tm);
-	
-	dtUTCStart = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
+	auto dtUTCStart = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTEND_PROPERTY);
 	if (!lpicProp) {
@@ -103,7 +95,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 	}
 
-	lpRec.reset(new recurrence);
+	std::unique_ptr<recurrence> lpRec(new recurrence);
 	// recurrence class contains LOCAL times only, so convert UTC -> LOCAL
 	lpRec->setStartDateTime(dtLocalStart);
 
@@ -326,26 +318,13 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
     SPropTagArray *lpNamedProps, const std::string &strCharset,
     icalitem::exception *lpEx)
 {
-	HRESULT hr;
-	icalproperty *lpicProp = NULL;
-	time_t ttStartLocalTime = 0;
-	time_t ttEndLocalTime = 0;
-	time_t ttStartUtcTime = 0;
-	time_t ttEndUtcTime = 0;
-	time_t ttOriginalUtcTime = 0;
-	time_t ttOriginalLocalTime = 0;
 	ULONG ulId = 0;
-	ULONG i = 0;
 	SPropValue sPropVal;
-	std::wstring strIcalProp;
 	bool bXMS = false;
-	icalcomponent *lpicAlarm = NULL;
 	LONG ulRemindBefore = 0;
 	time_t ttReminderTime = 0;
 	bool bReminderSet = false;
 	convert_context converter;
-	const char *lpszProp;
-
 	bool abOldPresent[8] = {false};
 	bool abNewPresent[8] = {false};
 	SizedSPropTagArray(8, sptaCopy) = { 8, {
@@ -360,30 +339,29 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	} };
 	bool bOldIsAllDay = false;
 
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RECURRENCEID_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RECURRENCEID_PROPERTY);
 	if (lpicProp == NULL)
 		// you tricked me! it's not an exception at all!
 		return MAPI_E_NOT_FOUND;
-	ttOriginalUtcTime = ICalTimeTypeToUTC(lpEventRoot, lpicProp);
-	ttOriginalLocalTime = icaltime_as_timet(icalvalue_get_datetime(icalproperty_get_value(lpicProp)));
-	
+	auto ttOriginalUtcTime = ICalTimeTypeToUTC(lpEventRoot, lpicProp);
+	auto ttOriginalLocalTime = icaltime_as_timet(icalvalue_get_datetime(icalproperty_get_value(lpicProp)));
+
 	lpEx->tBaseDate = ttOriginalUtcTime;
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 	if (lpicProp == NULL)
 		return MAPI_E_NOT_FOUND;
-	ttStartUtcTime = ICalTimeTypeToUTC(lpEventRoot, lpicProp);
-	ttStartLocalTime = icaltime_as_timet(icalvalue_get_datetime(icalproperty_get_value(lpicProp)));
+	auto ttStartUtcTime = ICalTimeTypeToUTC(lpEventRoot, lpicProp);
+	auto ttStartLocalTime = icaltime_as_timet(icalvalue_get_datetime(icalproperty_get_value(lpicProp)));
 
 	lpEx->tStartDate = ttStartUtcTime;
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTEND_PROPERTY);
 	if (lpicProp == NULL)
 		return MAPI_E_NOT_FOUND;
-	ttEndUtcTime = ICalTimeTypeToUTC(lpEventRoot, lpicProp);
-	ttEndLocalTime = icaltime_as_timet(icalvalue_get_datetime(icalproperty_get_value(lpicProp)));
-
-	hr = lpIcalItem->lpRecurrence->addModifiedException(ttStartLocalTime, ttEndLocalTime, ttOriginalLocalTime, &ulId);
+	auto ttEndUtcTime = ICalTimeTypeToUTC(lpEventRoot, lpicProp);
+	auto ttEndLocalTime = icaltime_as_timet(icalvalue_get_datetime(icalproperty_get_value(lpicProp)));
+	auto hr = lpIcalItem->lpRecurrence->addModifiedException(ttStartLocalTime, ttEndLocalTime, ttOriginalLocalTime, &ulId);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -457,7 +435,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 
 	// copy properties to exception and test if changed
 	for (const auto &prop : lpIcalItem->lstMsgProps)
-		for (i = 0; i < sptaCopy.cValues; ++i) {
+		for (ULONG i = 0; i < sptaCopy.cValues; ++i) {
 			if (sptaCopy.aulPropTag[i] == prop.ulPropTag) {
 				abOldPresent[i] = true;
 				if (sptaCopy.aulPropTag[i] != PR_BODY) // no need to copy body
@@ -474,9 +452,9 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	while (lpicProp) {
 
 		switch (icalproperty_isa(lpicProp)) {
-		case ICAL_SUMMARY_PROPERTY:
-			lpszProp = icalproperty_get_summary(lpicProp);
-			strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
+		case ICAL_SUMMARY_PROPERTY: {
+			auto lpszProp = icalproperty_get_summary(lpicProp);
+			auto strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
 			hr = lpIcalItem->lpRecurrence->setModifiedSubject(ulId, strIcalProp.c_str());
 			if (hr != hrSuccess)
 				return hr;
@@ -485,9 +463,10 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 			lpEx->lstMsgProps.emplace_back(sPropVal);
 			abNewPresent[0] = true;
 			break;
-		case ICAL_LOCATION_PROPERTY:
-			lpszProp = icalproperty_get_location(lpicProp);
-			strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
+		}
+		case ICAL_LOCATION_PROPERTY: {
+			auto lpszProp = icalproperty_get_location(lpicProp);
+			auto strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
 			hr = lpIcalItem->lpRecurrence->setModifiedLocation(ulId, strIcalProp.c_str());
 			if (hr != hrSuccess)
 				return hr;
@@ -496,6 +475,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 			lpEx->lstMsgProps.emplace_back(sPropVal);
 			abNewPresent[1] = true;
 			break;
+		}
 		case ICAL_TRANSP_PROPERTY:
 			if (!bXMS) {
 				ULONG ulBusyStatus = 2;	// default busy
@@ -540,9 +520,9 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 				abNewPresent[7] = true;
 			}
 			break;
-		case ICAL_DESCRIPTION_PROPERTY:
-			lpszProp = icalproperty_get_description(lpicProp);
-			strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
+		case ICAL_DESCRIPTION_PROPERTY: {
+			auto lpszProp = icalproperty_get_description(lpicProp);
+			auto strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
 			hr = lpIcalItem->lpRecurrence->setModifiedBody(ulId);
 			if (hr != hrSuccess)
 				return hr;
@@ -551,6 +531,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 			lpEx->lstMsgProps.emplace_back(sPropVal);
 			abNewPresent[2] = true;
 			break;
+		}
 		default:
 			// ignore property
 			break;
@@ -562,7 +543,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	// make sure these are not removed :| (body, label, reminderset, reminder minutes)
 	abNewPresent[2] = abNewPresent[3] = abNewPresent[4] = abNewPresent[5] = true;
 	// test if properties were just removed
-	for (i = 0; i < sptaCopy.cValues; ++i) {
+	for (ULONG i = 0; i < sptaCopy.cValues; ++i) {
 		if (abOldPresent[i] == true && abNewPresent[i] == false) {
 			auto iProp = find(lpEx->lstMsgProps.begin(), lpEx->lstMsgProps.end(), sptaCopy.aulPropTag[i]);
 			if (iProp != lpEx->lstMsgProps.cend()) {
@@ -626,7 +607,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	
 
 	// reminderset (flip reminder on/off) and reminderdelta (offset time change) in vevent component of this item
-	lpicAlarm = icalcomponent_get_first_component(lpicEvent, ICAL_VALARM_COMPONENT);
+	auto lpicAlarm = icalcomponent_get_first_component(lpicEvent, ICAL_VALARM_COMPONENT);
 	if (lpicAlarm) {
 		hr = HrParseVAlarm(lpicAlarm, &ulRemindBefore, &ttReminderTime, &bReminderSet);
 		if (hr == hrSuccess) {
@@ -677,13 +658,12 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
  */
 HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTagArray lpNamedProps, LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<char> lpRecBlob;
 	unsigned int ulRecBlob = 0;
 	memory_ptr<SPropValue> lpsPropRecPattern;
 	std::string strHRS;
 
-	hr = lpRecurrence->HrGetRecurrenceState(&~lpRecBlob, &ulRecBlob);
+	auto hr = lpRecurrence->HrGetRecurrenceState(&~lpRecBlob, &ulRecBlob);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpRecurrence->HrGetHumanReadableString(&strHRS);
@@ -750,7 +730,6 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(const TIMEZONE_STRUCT &sTimeZone,
     bool bIsAllDay, recurrence *lpRecurrence, icalcomponent *lpicEvent)
 {
 	icalrecurrencetype icRRule;
-	std::list<time_t> lstExceptions;
 	icaltimetype ittExDate;
 	TIMEZONE_STRUCT sTZgmt = {0};
 
@@ -761,7 +740,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(const TIMEZONE_STRUCT &sTimeZone,
 	icalcomponent_add_property(lpicEvent, icalproperty_new_rrule(icRRule));
 
 	// all delete exceptions are in the delete list,
-	lstExceptions = lpRecurrence->getDeletedExceptions();
+	auto lstExceptions = lpRecurrence->getDeletedExceptions();
 	if (!lstExceptions.empty()) {
 		// add EXDATE props
 		for (const auto &exc : lstExceptions) {
@@ -909,9 +888,9 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(const TIMEZONE_STRUCT &sTimeZ
  */
 HRESULT ICalRecurrence::WeekDaysToICalArray(ULONG ulWeekDays, struct icalrecurrencetype *lpRec)
 {
-	int i = 0, j = 0;
+	int j = 0;
 
-	for (i = 0; i < 7; ++i)
+	for (int i = 0; i < 7; ++i)
 		if ((ulWeekDays >> i) & 1)
 			lpRec->by_day[j++] = i+1;
 	lpRec->by_day[j] = ICAL_RECURRENCE_ARRAY_MAX;
@@ -927,14 +906,9 @@ HRESULT ICalRecurrence::WeekDaysToICalArray(ULONG ulWeekDays, struct icalrecurre
  */
 HRESULT ICalRecurrence::HrMakeICalException(icalcomponent *lpicEvent, icalcomponent **lppicException)
 {
-	HRESULT hr = hrSuccess;
-	icalcomponent *lpicException = NULL;
-	icalproperty *lpicProp = NULL;
-	
-	lpicException = icalcomponent_new_clone(lpicEvent);
-
+	auto lpicException = icalcomponent_new_clone(lpicEvent);
 	// these are always different in an exception
-	lpicProp = icalcomponent_get_first_property(lpicException, ICAL_DTSTART_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicException, ICAL_DTSTART_PROPERTY);
 	if (lpicProp) {
 		icalcomponent_remove_property(lpicException, lpicProp);
 		icalproperty_free(lpicProp);
@@ -966,8 +940,7 @@ HRESULT ICalRecurrence::HrMakeICalException(icalcomponent *lpicEvent, icalcompon
 	}
 
 	*lppicException = lpicException;
-
-	return hr;
+	return hrSuccess;
 }
 
 } /* namespace */
