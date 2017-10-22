@@ -178,13 +178,8 @@ void MAPISMTPTransport::connect()
 		catch (exceptions::command_error&)
 		{
 			if (tlsRequired)
-			{
 				throw;
-			}
-			else
-			{
-				// TLS is not required, so don't bother
-			}
+			/* else: TLS is not required, so do not bother */
 		}
 		// Fatal error
 		catch (...)
@@ -296,10 +291,7 @@ void MAPISMTPTransport::authenticate()
 				internalDisconnect();
 				throw e;
 			}
-			else
-			{
-				// Ignore, will try normal authentication
-			}
+			/* else: Ignore, will try normal authentication */
 		}
 		catch (exception& e)
 		{
@@ -513,8 +505,6 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 		throw exceptions::no_expeditor();
 
 	// Emit the "MAIL" command
-	vmime::shared_ptr<SMTPResponse> resp;
-	string strSend;
 	bool bDSN = m_bDSNRequest;
 	
 	if(bDSN && m_extensions.find("DSN") == m_extensions.end()) {
@@ -522,7 +512,7 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 		bDSN = false; // Disable DSN because the server does not support this.
 	}
 
-	strSend = "MAIL FROM: <" + expeditor.getEmail().toString() + ">";
+	auto strSend = "MAIL FROM: <" + expeditor.getEmail().toString() + ">";
 	if (bDSN) {
 		strSend += " RET=HDRS";
 		if (!m_strDSNTrackid.empty())
@@ -530,8 +520,7 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 	}
 
 	sendRequest(strSend);
-
-	resp = readResponse();
+	auto resp = readResponse();
 	if (resp->getCode() / 10 != 25) {
 		internalDisconnect();
 		throw exceptions::command_error("MAIL", resp->getText());
@@ -615,7 +604,6 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 	{
 		internalDisconnect();
 		throw exceptions::command_error("DATA", format("%d %s", resp->getCode(), resp->getText().c_str()));
-		return;
 	}
 	// postfix: 2.0.0 Ok: queued as B36E73608E
 	// qmail: ok 1295860788 qp 29154

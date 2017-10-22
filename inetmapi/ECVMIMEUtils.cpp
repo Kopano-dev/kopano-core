@@ -178,7 +178,6 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
     vmime::mailboxList &recipients, std::set<std::wstring> &setGroups,
     std::set<std::wstring> &setRecips, bool bAllowEveryone)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IDistList> lpGroup;
 	ULONG ulType = 0;
 	object_ptr<IMAPITable> lpTable;
@@ -191,7 +190,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 			return MAPI_E_NOT_FOUND;
 
 		rowset_ptr lpRows;
-		hr = MAPIAllocateBuffer(CbNewSRowSet(1), &~lpRows);
+		auto hr = MAPIAllocateBuffer(CbNewSRowSet(1), &~lpRows);
 		if (hr != hrSuccess)
 			return hr;
 		lpRows->cRows = 1;
@@ -218,7 +217,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 		if (hr != hrSuccess)
 			return hr;
 	}
-	hr = HrGetOneProp(lpGroup, PR_EMAIL_ADDRESS_W, &~lpEmailAddress);
+	auto hr = HrGetOneProp(lpGroup, PR_EMAIL_ADDRESS_W, &~lpEmailAddress);
 	if(hr != hrSuccess)
 		return hr;
 	if (setGroups.find(lpEmailAddress->Value.lpszW) != setGroups.end())
@@ -239,14 +238,13 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
     vmime::mailboxList &recipients, bool bAllowEveryone,
     bool bAlwaysExpandDistrList)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpRTable;
 	bool bResend = false;
 	std::set<std::wstring> setGroups; // Set of groups to make sure we don't get into an expansion-loop
 	std::set<std::wstring> setRecips; // Set of recipients to make sure we don't send two identical RCPT TOs
 	memory_ptr<SPropValue> lpMessageFlags;
 	
-	hr = HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpMessageFlags);
+	auto hr = HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpMessageFlags);
 	if (hr != hrSuccess)
 		return hr;
 	if(lpMessageFlags->Value.ul & MSGFLAG_RESEND)
@@ -281,9 +279,6 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 	HRESULT hr = hrSuccess;
 	vmime::mailbox expeditor;
 	vmime::mailboxList recipients;
-	vmime::shared_ptr<vmime::messaging::session> vmSession;
-	vmime::shared_ptr<vmime::messaging::transport> vmTransport;
-	vmime::shared_ptr<vmime::net::smtp::MAPISMTPTransport> mapiTransport;
 
 	if (lpMessage == NULL || vmMessage == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -293,16 +288,16 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 
 	try {
 		// Session initialization (global properties)
-		vmSession = vmime::net::session::create();
+		auto vmSession = vmime::net::session::create();
 
 		// set the server address and port, plus type of service by use of url
 		// and get our special mapismtp mailer
 		vmime::utility::url url("mapismtp", smtphost, smtpport);
-		vmTransport = vmSession->getTransport(url);
+		auto vmTransport = vmSession->getTransport(url);
 		vmTransport->setTimeoutHandlerFactory(vmime::make_shared<mapiTimeoutHandlerFactory>());
 
 		/* cast to access interface extras */
-		mapiTransport = vmime::dynamicCast<vmime::net::smtp::MAPISMTPTransport>(vmTransport);
+		auto mapiTransport = vmime::dynamicCast<vmime::net::smtp::MAPISMTPTransport>(vmTransport);
 
 		// get expeditor for 'mail from:' smtp command
 		if (vmMessage->getHeader()->hasField(vmime::fields::FROM))

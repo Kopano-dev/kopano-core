@@ -30,7 +30,6 @@ FILETIME vmimeDatetimeToFiletime(vmime::datetime dt) {
 	FILETIME sFiletime;
 	struct tm when;
 	int iYear, iMonth, iDay, iHour, iMinute, iSecond, iZone;
-	time_t lTmpTime;
 
 	dt.getDate( iYear, iMonth, iDay );	
 	dt.getTime( iHour, iMinute, iSecond, iZone );
@@ -42,9 +41,7 @@ FILETIME vmimeDatetimeToFiletime(vmime::datetime dt) {
 	when.tm_mday	= iDay;	
 	when.tm_year	= iYear - 1900;
 	when.tm_isdst	= -1;		// ignore dst
-
-	lTmpTime = timegm(&when);
-
+	auto lTmpTime = timegm(&when);
 	UnixTimeToFileTime(lTmpTime, &sFiletime);
 	return sFiletime;
 }
