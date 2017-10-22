@@ -215,7 +215,6 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v)
  */
 HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 {
-	HRESULT hr = hrSuccess;
 	auto v = Parse_MIME(ical.c_str(), ical.length());
 	if (v == nullptr)
 		return MAPI_E_CORRUPT_DATA;
@@ -231,40 +230,40 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			continue;
 
 		if (strcmp(name, VCNameProp) == 0) {
-			hr = handle_N(v);
+			auto hr = handle_N(v);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strcmp(name, VCFullNameProp) == 0) {
-			hr = vobject_to_prop(v, s, PR_DISPLAY_NAME);
+			auto hr = vobject_to_prop(v, s, PR_DISPLAY_NAME);
 			if (hr != hrSuccess)
 				return hr;
 			props.emplace_back(s);
 		} else if (strcmp(name, VCTitleProp) == 0) {
-			hr = vobject_to_prop(v, s, PR_TITLE);
+			auto hr = vobject_to_prop(v, s, PR_TITLE);
 			if (hr != hrSuccess)
 				return hr;
 			props.emplace_back(s);
 		} else if (strcmp(name, VCOrgProp) == 0) {
-			hr = vobject_to_prop(v, s, PR_COMPANY_NAME);
+			auto hr = vobject_to_prop(v, s, PR_COMPANY_NAME);
 			if (hr != hrSuccess)
 				return hr;
 			props.emplace_back(s);
 		} else if (strcmp(name, VCTelephoneProp) == 0) {
-			hr = handle_TEL(v);
+			auto hr = handle_TEL(v);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strcmp(name, VCEmailAddressProp) == 0) {
-			hr = handle_EMAIL(v);
+			auto hr = handle_EMAIL(v);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strcmp(name, VCAdrProp) == 0) {
-			hr = handle_ADR(v);
+			auto hr = handle_ADR(v);
 			if (hr != hrSuccess)
 				return hr;
 		}
 	}
 	cleanVObject(v_orig);
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT vcftomapi_impl::vobject_to_prop(VObject *v, SPropValue &s, ULONG proptype)
@@ -295,7 +294,6 @@ HRESULT vcftomapi_impl::vobject_to_prop(VObject *v, SPropValue &s, ULONG proptyp
 HRESULT vcftomapi_impl::vobject_to_named_prop(VObject *v, SPropValue &s,
     ULONG named_proptype)
 {
-	HRESULT hr;
         MAPINAMEID name;
 	MAPINAMEID *namep = &name;
 	memory_ptr<SPropTagArray> proptag;
@@ -303,7 +301,7 @@ HRESULT vcftomapi_impl::vobject_to_named_prop(VObject *v, SPropValue &s,
 	name.lpguid = const_cast<GUID *>(&PSETID_Address);
 	name.ulKind = MNID_ID;
 	name.Kind.lID = named_proptype;
-	hr = m_propobj->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
+	auto hr = m_propobj->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
 	if (hr != hrSuccess)
 		return hr;
 	return vobject_to_prop(v, s, proptag->aulPropTag[0]);
