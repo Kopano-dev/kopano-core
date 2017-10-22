@@ -39,9 +39,8 @@ time_t icaltime_as_timet_with_server_zone(const struct icaltimetype &tt)
 	struct tm stm;
 
 	/* If the time is the special null time, return 0. */
-	if (icaltime_is_null_time(tt)) {
+	if (icaltime_is_null_time(tt))
 		return 0;
-	}
 
 	/* Copy the icaltimetype to a struct tm. */
 	memset (&stm, 0, sizeof (struct tm));

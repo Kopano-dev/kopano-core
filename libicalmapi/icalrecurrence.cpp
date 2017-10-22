@@ -80,10 +80,9 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	auto dtUTCStart = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTEND_PROPERTY);
-	if (!lpicProp) {
+	if (lpicProp == nullptr)
 		/* check for the task's DUE property. */
 		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DUE_PROPERTY);
-	}
 	if (!lpicProp)
 	{
 		// check for duration property

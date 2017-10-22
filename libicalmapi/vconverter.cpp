@@ -765,15 +765,14 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 	}
 
 	// Only process for Meeting Req from dagent
-	if((m_bNoRecipients && icMethod == ICAL_METHOD_REQUEST) || m_ulUserStatus == 5) {
+	if ((m_bNoRecipients && icMethod == ICAL_METHOD_REQUEST) || m_ulUserStatus == 5)
 	    // Meeting requests always have a BusyStatus of 1 (tentative), since this is the status of
 	    // the meeting which will be placed in your calendar when it has been processed but not accepted
 	    // The busy status of meeting responses is less important but seems to be 2 (Busy) in Outlook.
 		// If the attendee is editing the entry through caldav then if the PARTSTAT param is NEEDS-ACTION
 		// then the meeting is marked as tentative.
-		
 		sPropVal.Value.ul = 1;
-	}
+
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	// save fbstatus in icalitem
 	lpIcalItem->ulFbStatus = sPropVal.Value.ul;
@@ -1624,11 +1623,9 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 		 * to consider timezones here again.
 		 */
 		gmtime_r(&tStamp, &date);
-		
-		if (date.tm_hour >= 11) {
+		if (date.tm_hour >= 11)
 			// Move timestamp up one day so that later conversion to date-only will be correct
 			tStamp += 86400;
-		}
 	}
 	
 	if (!bDateOnly && lpicTZinfo != NULL)
@@ -2666,9 +2663,8 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			icalcomponent_add_property(lpicException.get(), icalproperty_new_summary(m_converter.convert_to<string>(m_strCharset.c_str(), wstrTmp, rawsize(wstrTmp), CHARSET_WCHAR).c_str()));
 		}
 
-		if (ulModifications & ARO_MEETINGTYPE) {
-			// make this in invite, cancel, ... ?
-		}
+		if (ulModifications & ARO_MEETINGTYPE)
+			;// make this in invite, cancel, ... ?
 
 		if (ulModifications & ARO_REMINDERDELTA && !(ulModifications & ARO_REMINDERSET))
 			HrUpdateReminderTime(lpicException.get(), cRecurrence.getModifiedReminderDelta(i));
@@ -2735,13 +2731,10 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			HrSetBusyStatus(lpException, cRecurrence.getModifiedBusyStatus(i), lpicException.get());
 		}
 
-		if (ulModifications & ARO_ATTACHMENT) {
-			// ..?
-		}
-
-		if (ulModifications & ARO_APPTCOLOR) {
-			// should never happen, according to the specs
-		}
+		if (ulModifications & ARO_ATTACHMENT)
+			;// ..?
+		if (ulModifications & ARO_APPTCOLOR)
+			;// should never happen, according to the specs
 
 		if (ulModifications & ARO_EXCEPTIONAL_BODY) {
 			auto lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_DESCRIPTION_PROPERTY);
