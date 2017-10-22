@@ -42,8 +42,7 @@ private:
 
 	vmime::word m_filename;
 	std::string m_contentid;
-
-	bool m_hasCharset;
+	bool m_hasCharset = false;
 	vmime::charset m_charset;
 
 	void generatePart(vmime::shared_ptr<vmime::bodyPart> part) const _kc_override;

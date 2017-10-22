@@ -43,7 +43,7 @@ protected:
 	std::string smtphost;
 	int smtpport;
 	std::wstring error;
-	int smtpresult;
+	int smtpresult = 0;
 
 	std::vector<sFailedRecip> mTemporaryFailedRecipients;
 	std::vector<sFailedRecip> mPermanentFailedRecipients;

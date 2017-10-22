@@ -55,12 +55,9 @@ using std::wstring;
 
 namespace KC {
 
-ECSender::ECSender(const std::string &strSMTPHost, int port)
-{
-	smtpresult = 0;
-	smtphost = strSMTPHost;
-	smtpport = port;
-}
+ECSender::ECSender(const std::string &strSMTPHost, int port) :
+	smtphost(strSMTPHost), smtpport(port)
+{}
 
 void ECSender::setError(const std::string &newError) {
 	error = convert_to<wstring>(newError);

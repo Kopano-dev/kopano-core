@@ -58,9 +58,7 @@ mapiTextPart::mapiTextPart()
 	: m_plainText(vmime::make_shared<emptyContentHandler>()),
 	  m_text(vmime::make_shared<emptyContentHandler>()),
 	  m_otherText(vmime::make_shared<emptyContentHandler>())
-{
-	m_bHaveOtherCharset = false;
-}
+{}
 
 const mediaType mapiTextPart::getType() const
 {

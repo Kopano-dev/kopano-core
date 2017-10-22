@@ -27,13 +27,9 @@ mapiAttachment::mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> da
     const vmime::encoding &enc, const vmime::mediaType &type,
     const std::string &contentid, const vmime::word &filename,
     const vmime::text &desc, const vmime::word &name) :
-	defaultAttachment(data, enc, type, desc, name)
-{
-	m_filename = filename;
-	m_contentid = contentid;
-
-	m_hasCharset = false;
-}
+	defaultAttachment(data, enc, type, desc, name),
+	m_filename(filename), m_contentid(contentid)
+{}
 
 void mapiAttachment::addCharset(vmime::charset ch) {
 	m_hasCharset = true;
