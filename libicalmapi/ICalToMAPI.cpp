@@ -188,14 +188,15 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	m_ulErrorCount = icalcomponent_count_errors(lpicCalendar.get());
 
 	/* Find all timezones, place in map. */
-	auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
-	while (lpicComponent) {
+	for (auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
+	     lpicComponent != nullptr;
+	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT))
+	{
 		auto hr = HrParseVTimeZone(lpicComponent, &strTZID, &ttTimeZone);
 		if (hr != hrSuccess)
 			/* log warning? */ ;
 		else
 			tzMap[strTZID] = ttTimeZone;
-		lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
 	}
 
 	// ICal file did not send any timezone information
@@ -207,11 +208,12 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	}
 
 	// find all "messages" vevent, vtodo, vjournal, ...?
-	lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
-	while (lpicComponent) {
+	for (auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
+	     lpicComponent != nullptr;
+	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_ANY_COMPONENT))
+	{
 		std::unique_ptr<VConverter> lpVEC;
 		auto type = icalcomponent_isa(lpicComponent);
-		HRESULT hr = hrSuccess;
 		switch (type) {
 		case ICAL_VEVENT_COMPONENT:
 			static_assert(std::is_polymorphic<VEventConverter>::value, "VEventConverter needs to be polymorphic for unique_ptr to work");
@@ -225,9 +227,10 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 			break;
 		case ICAL_VJOURNAL_COMPONENT:
 		default:
-			goto next;
+			continue;
 		};
 
+		HRESULT hr = hrSuccess;
 		switch (type) {
 		case ICAL_VFREEBUSY_COMPONENT:
 			hr = HrGetFbInfo(lpicComponent, &m_tFbStart, &m_tFbEnd, &m_strUID, &m_lstUsers);
@@ -247,8 +250,6 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 			m_vMessages.emplace_back(item);
 			previtem = item;
 		}
-next:
-		lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
 	}
 
 	// TODO: sort m_vMessages on sBinGuid in icalitem struct, so caldav server can use optimized algorithm for finding the same items in MAPI

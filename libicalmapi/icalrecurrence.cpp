@@ -241,15 +241,13 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// find EXDATE properties, add to delete exceptions
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_EXDATE_PROPERTY);
-	while (lpicProp != NULL)
+	for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_EXDATE_PROPERTY);
+	     lpicProp != nullptr; lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_EXDATE_PROPERTY))
 	{
 		exUTCDate = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 		exLocalDate = UTCToLocal(exUTCDate, sTimeZone);
 
 		lpRec->addDeletedException(exLocalDate);
-
-		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_EXDATE_PROPERTY);
 	}
 
 	// now that we have a full recurrence object, recalculate the end time, see ZCP-9143
@@ -448,9 +446,10 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 
 	// find exceptional properties
 	// TODO: should actually look at original message, and check for differences
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ANY_PROPERTY);
-	while (lpicProp) {
-
+	for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ANY_PROPERTY);
+	     lpicProp != nullptr;
+	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_ANY_PROPERTY))
+	{
 		switch (icalproperty_isa(lpicProp)) {
 		case ICAL_SUMMARY_PROPERTY: {
 			auto lpszProp = icalproperty_get_summary(lpicProp);
@@ -536,8 +535,6 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 			// ignore property
 			break;
 		};
-
-		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_ANY_PROPERTY);
 	}
 
 	// make sure these are not removed :| (body, label, reminderset, reminder minutes)

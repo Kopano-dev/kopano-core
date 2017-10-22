@@ -792,13 +792,13 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 		sPropVal.Value.ul = -1;
 	} else {
 		// X-MICROSOFT-CDO-INTENDEDBUSYSTATUS is used to set IntendedBusyStatus
-		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
-		while (lpicProp) {
+		for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
+		     lpicProp != nullptr;
+		     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
+		{
 			// X-MICROSOFT-CDO-INTENDEDBUSYSTATUS:FREE
-			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-INTENDEDSTATUS") != 0) {
-				lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
+			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-INTENDEDSTATUS") != 0)
 				continue;
-			}
 			const char *lpVal = icalproperty_get_x(lpicProp);
 			if (lpVal == NULL)
 				sPropVal.Value.ul = 2; /* like else case */
@@ -951,11 +951,9 @@ HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_STRING8));
 		return hrSuccess;
 	}
-
-	while (lpicProp != NULL && (lpszCategories = icalproperty_get_categories(lpicProp)) != NULL) {
+	for (; lpicProp != nullptr && (lpszCategories = icalproperty_get_categories(lpicProp)) != nullptr;
+	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_CATEGORIES_PROPERTY))
 		vCategories.emplace_back(lpszCategories);
-		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_CATEGORIES_PROPERTY);
-	}
 
 	HRESULT hr = MAPIAllocateMore(vCategories.size() * sizeof(LPSTR),
 	            lpIcalItem->base, reinterpret_cast<void **>(&sPropVal.Value.MVszA.lppszA));
@@ -1320,8 +1318,10 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 	// Handle Sunbird's dismiss/snooze, see: https://wiki.mozilla.org/Calendar:Feature_Implementations:Alarms
 	// X-MOZ-SNOOZE-TIME-1231250400000000:20090107T132846Z
 	// X-MOZ-LASTACK:20090107T132846Z
-	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
-	while (lpicProp) {
+	for (auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
+	     lpicProp != nullptr;
+	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
+	{
 		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-LASTACK") == 0){
 			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
 			auto ttMozLastAck = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL);
@@ -1364,7 +1364,6 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 			icalvalue_free(lpicValue);
 		}
 
-		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
 	}
 
 	if (bHasMozAck) { // save X-MOZ-LAST-ACK if found in request.
@@ -1460,16 +1459,15 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 	if (hr != hrSuccess)
 		return hr;
 
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
-	while (lpicProp) {
+	for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
+	     lpicProp != nullptr;
+	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
 		if (strcmp(icalproperty_get_x_name(lpicProp), "X-ZARAFA-REC-PATTERN") == 0 ||
 		    strcmp(icalproperty_get_x_name(lpicProp), "X-KOPANO-REC-PATTERN") == 0) {
 			spSpropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_UNICODE);
 			HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalproperty_get_x(lpicProp), &spSpropVal.Value.lpszW);
 			lpIcalItem->lstMsgProps.emplace_back(spSpropVal);
 		}
-		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
-	}
 	return hrSuccess;
 }
 
@@ -1730,11 +1728,12 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 		icalproperty_free(lpicProp);
 	}
 	
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
-	while (lpicProp) {
+	for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
+	     lpicProp != nullptr;
+	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
+	{
 		icalcomponent_remove_property(lpicEvent, lpicProp);
 		icalproperty_free(lpicProp);
-		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
 	}
 
 	// PR_SENT_REPRESENTING_ENTRYID is the owner of the meeting.
@@ -2948,15 +2947,13 @@ HRESULT VConverter::HrRetrieveAlldayStatus(icalcomponent *lpicEvent, bool *lpblI
 		*lpblIsAllday = false;
 		return hrSuccess;
 	}
-
-	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
-	while (lpicProp) {
+	for (auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
+	     lpicProp != nullptr;
+	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
 		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ALLDAYEVENT") == 0){
 			*lpblIsAllday = strcmp(icalproperty_get_x(lpicProp), "TRUE") == 0;
 			break;
 		}
-		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
-	}
 	return hrSuccess;
 }
 
