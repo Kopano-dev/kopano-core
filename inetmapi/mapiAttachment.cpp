@@ -44,13 +44,10 @@ void mapiAttachment::generatePart(vmime::shared_ptr<vmime::bodyPart> part) const
 	ctf->getParameter("name")->setValue(m_filename);
 	if (m_hasCharset)
 		ctf->setCharset(vmime::charset(m_charset));
-
-	
-	if (m_contentid != "") {
+	if (m_contentid != "")
 		// Field is created when accessed through ContentId, so don't create if we have no
 		// content-id to set
 		part->getHeader()->ContentId()->setValue(vmime::messageId("<" + m_contentid + ">"));
-	}
 }
 
 } /* namespace */

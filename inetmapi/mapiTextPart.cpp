@@ -264,9 +264,7 @@ void mapiTextPart::parse(vmime::shared_ptr<const vmime::bodyPart> message,
 
 	// Extract plain text, if any.
 	if (!findPlainTextPart(*message, *parent, *textPart))
-	{
 		m_plainText = vmime::make_shared<vmime::emptyContentHandler>();
-	}
 }
 
 bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& parent, const bodyPart& textPart)

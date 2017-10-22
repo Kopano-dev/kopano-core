@@ -126,11 +126,9 @@ const char *ext_to_mime_type(const char *ext, const char *def)
 
 const char *mime_type_to_ext(const char *mime_type, const char *def)
 {
-	for (const auto &elem : mime_types) {
+	for (const auto &elem : mime_types)
 		if (strcasecmp(mime_type, elem.mime_type) == 0)
 			return elem.ext;
-	}
-
 	return def;
 }
 
