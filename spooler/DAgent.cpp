@@ -3314,23 +3314,20 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 		hr = HrGetSession(lpArgs, KOPANO_SYSTEM_USER_W, &~lpSession, !lpArgs->bResolveAddress);
 		if (hr == hrSuccess) {
 			hr = OpenResolveAddrFolder(lpSession, &~lpAdrBook, &~lpAddrDir);
-			if (hr != hrSuccess) {
-				kc_perrorf("OpenResolveAddrFolder failed", hr);
-				goto exit;
-			}
+			if (hr != hrSuccess)
+				return kc_perrorf("OpenResolveAddrFolder failed", hr);
 			hr = ResolveUser(lpAddrDir, &single_recip);
 			if (hr != hrSuccess) {
-				kc_perrorf("ResolveUser failed", hr);
 				if (hr == MAPI_E_NOT_FOUND)
 					g_bTempfail = false;
-				goto exit;
+				return kc_perrorf("ResolveUser failed", hr);
 			}
 		}
 		
 		else if (lpArgs->bResolveAddress) {
 			// Failure to open the admin session will only result in error if resolve was requested.
 			// Non fatal, so when config is changes the message can be delivered.
-			goto exit;
+			return hr;
 		}
 		else {
 			// set commandline user in resolved name to deliver without resolve function
@@ -3344,7 +3341,6 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 	
 	hr = HrGetSession(lpArgs, single_recip.wstrUsername.c_str(), &~lpSession);
 	if (hr != hrSuccess) {
-		kc_perrorf("HrGetSession failed", hr);
 		if (hr == MAPI_E_LOGON_FAILED)
 			// This is a hard failure, two things could have happened
 			// * strUsername does not exist
@@ -3352,14 +3348,11 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 			// Since we cannot detect the difference, we're handling both of these situations
 			// as hard errors
 			g_bTempfail = false;
-		goto exit;
+		return kc_perrorf("HrGetSession failed", hr);
 	}
 	hr = OpenResolveAddrFolder(lpSession, &~lpAdrBook, &~lpAddrDir);
-	if (hr != hrSuccess) {
-		kc_perrorf("OpenResolveAddrFolder failed", hr);
-		goto exit;
-	}
-	
+	if (hr != hrSuccess)
+		return kc_perrorf("OpenResolveAddrFolder failed", hr);
 	lRCPT.emplace(&single_recip);
 	hr = ProcessDeliveryToSingleRecipient(lppyMapiPlugin, lpSession, lpAdrBook, fpMail, lRCPT, lpArgs);
 
@@ -3369,8 +3362,6 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 
 	// Save copy of the raw message
 	SaveRawMessage(fpMail, recipient);
-
-exit:
 	return hr;
 }
 
