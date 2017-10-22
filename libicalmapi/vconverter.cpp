@@ -160,61 +160,59 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 	// also sets strUid in icalitem struct
 	hr = HrAddUids(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Handles RECURRENCE-ID tag for exception update
 	hr = HrAddRecurrenceID(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrAddStaticProps(icMethod, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrAddSimpleHeaders(lpEvent, lpIcalItem.get()); // subject, location, ...
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrAddXHeaders(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrAddCategories(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (icMethod == ICAL_METHOD_REPLY)
 		hr = HrAddReplyRecipients(lpEvent, lpIcalItem.get());
 	else						// CANCEL, REQUEST, PUBLISH
 		hr = HrAddRecipients(lpEvent, lpIcalItem.get(), &lpIcalItem->lstMsgProps, &lpIcalItem->lstRecips);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	hr = HrResolveUser(lpIcalItem->base, &(lpIcalItem->lstRecips));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// This function uses m_ulUserStatus set by HrResolveUser.
 	hr = HrAddBaseProperties(icMethod, lpEvent, lpIcalItem->base, false, &lpIcalItem->lstMsgProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrAddBusyStatus(lpEvent, icMethod, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	// Important: m_iCurrentTimeZone will be set by this function, because of the possible recurrence lateron
 	hr = HrAddTimes(icMethod, lpEventRoot, lpEvent, bIsAllday, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Set reminder / alarm
 	hr = HrAddReminder(lpEventRoot, lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Set recurrence.
 	hr = HrAddRecurrence(lpEventRoot, lpEvent, bIsAllday, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lppRet = lpIcalItem.release();
-exit:
 	return hr;
 }
 
