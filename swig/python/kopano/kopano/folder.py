@@ -106,6 +106,8 @@ class Folder(Base):
         if _check_mapiobj: # raise error for specific key
             self.mapiobj
 
+        self._iter = None
+
     @property
     def mapiobj(self):
         if self._mapiobj:
@@ -741,7 +743,16 @@ class Folder(Base):
         return not self == f
 
     def __iter__(self):
-        return self.items()
+        self._iter = self.items()
+        return self
+
+    def __next__(self):
+        if not self._iter:
+            self._iter = self.items()
+        return next(self._iter)
+
+    def next(self):
+        return self.__next__()
 
     def __unicode__(self): # XXX associated?
         return u'Folder(%s)' % self.name
