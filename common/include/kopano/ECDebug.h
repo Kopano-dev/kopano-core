@@ -59,17 +59,6 @@ std::string RowSetToString(const SRowSet *lpRows);
 std::string AdrRowSetToString(const ADRLIST *lpAdrList, const FlagList *lpFlagList);
 std::string RowEntryToString(const ROWENTRY *lpRowEntry);
 std::string RowListToString(const ROWLIST *lprowList);
-const char *ActionToString(const ACTION *);
-
-std::string SortOrderToString(const SSortOrder *lpSort);
-std::string SortOrderSetToString(const SSortOrderSet *lpSortCriteria);
-
-std::string NotificationToString(ULONG cNotification, const NOTIFICATION *lpNotification);
-
-std::string ProblemArrayToString(const SPropProblemArray *lpProblemArray);
-
-const char *MsgServiceContextToString(ULONG ulContext);
-const char *ResourceTypeToString(ULONG ulResourceType);
 
 //Internal used only
 extern _kc_export const char *RelationalOperatorToString(ULONG relop);
