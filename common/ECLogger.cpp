@@ -1031,11 +1031,6 @@ ECLogger *ec_log_get(void)
 	return ec_log_target;
 }
 
-bool ec_log_has_target(void)
-{
-	return ec_log_target != &ec_log_fallback_target;
-}
-
 void ec_log(unsigned int level, const char *fmt, ...)
 {
 	if (!ec_log_target->Log(level))

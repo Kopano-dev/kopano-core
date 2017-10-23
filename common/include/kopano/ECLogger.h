@@ -322,7 +322,6 @@ class _kc_export ECLogger_Tee _kc_final : public ECLogger {
 		void AddLogger(ECLogger *lpLogger);
 };
 
-extern _kc_export bool ec_log_has_target(void);
 extern _kc_export ECLogger *ec_log_get(void);
 extern _kc_export void ec_log_set(ECLogger *);
 extern _kc_export void ec_log(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
