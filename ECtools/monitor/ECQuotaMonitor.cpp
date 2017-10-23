@@ -67,22 +67,6 @@ ECQuotaMonitor::ECQuotaMonitor(ECTHREADMONITOR *lpThreadMonitor,
 	m_lpThreadMonitor(lpThreadMonitor),
 	m_lpMAPIAdminSession(lpMAPIAdminSession), m_lpMDBAdmin(lpMDBAdmin)
 {
-	if(lpMAPIAdminSession)
-		lpMAPIAdminSession->AddRef();
-	if(lpMDBAdmin)
-		lpMDBAdmin->AddRef();
-}
-
-/**
- * Releases references to passed MAPI objects.
- */
-ECQuotaMonitor::~ECQuotaMonitor()
-{
-	if(m_lpMDBAdmin)
-		m_lpMDBAdmin->Release();
-
-	if(m_lpMAPIAdminSession)
-		m_lpMAPIAdminSession->Release();
 }
 
 /** Creates ECQuotaMonitor object and calls
@@ -93,23 +77,20 @@ ECQuotaMonitor::~ECQuotaMonitor()
  */
 void* ECQuotaMonitor::Create(void* lpVoid)
 {
-	HRESULT				hr = hrSuccess;
 	auto lpThreadMonitor = static_cast<ECTHREADMONITOR *>(lpVoid);
 	std::unique_ptr<ECQuotaMonitor> lpecQuotaMonitor;
 	object_ptr<IMAPISession> lpMAPIAdminSession;
 	object_ptr<IMsgStore> lpMDBAdmin;
-	time_t				tmStart = 0;
-	time_t				tmEnd = 0;
 
 	const char *lpPath = lpThreadMonitor->lpConfig->GetSetting("server_socket");
 
 	lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Quota monitor starting");
 
 	//Open admin session
-	hr = HrOpenECAdminSession(&~lpMAPIAdminSession, "monitor:create",
-	     PROJECT_VERSION, lpPath, 0,
-	     lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", NULL),
-	     lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", NULL));
+	auto hr = HrOpenECAdminSession(&~lpMAPIAdminSession, "monitor:create",
+	          PROJECT_VERSION, lpPath, 0,
+	          lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", nullptr),
+	          lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", nullptr));
 	if (hr != hrSuccess) {
 		lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open an admin session. Error 0x%X", hr);
 		return NULL;
@@ -127,10 +108,9 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 	lpecQuotaMonitor.reset(new ECQuotaMonitor(lpThreadMonitor, lpMAPIAdminSession, lpMDBAdmin));
 
 	// Check the quota of all stores
-	tmStart = GetProcessTime();
+	auto tmStart = GetProcessTime();
 	hr = lpecQuotaMonitor->CheckQuota();
-	tmEnd = GetProcessTime();
-
+	auto tmEnd = GetProcessTime();
 	if(hr != hrSuccess)
 		lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Quota monitor failed");
 	else
@@ -147,8 +127,6 @@ void* ECQuotaMonitor::Create(void* lpVoid)
  */
 HRESULT ECQuotaMonitor::CheckQuota()
 {
-	HRESULT 			hr = hrSuccess;
-
 	/* Service object */
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<SPropValue> lpsObject;
@@ -165,7 +143,7 @@ HRESULT ECQuotaMonitor::CheckQuota()
 	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
 
 	/* Obtain Service object */
-	hr = HrGetOneProp(m_lpMDBAdmin, PR_EC_OBJECT, &~lpsObject);
+	auto hr = HrGetOneProp(m_lpMDBAdmin, PR_EC_OBJECT, &~lpsObject);
 	if(hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get internal object, error code: 0x%08X", hr);
 		return hr;
@@ -240,7 +218,6 @@ check_stores:
  */
 HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 {
-	HRESULT				hr = hrSuccess;
 	/* Service object */
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<SPropValue> lpsObject;
@@ -249,7 +226,6 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 	ULONG				cUsers = 0;
 
 	set<string> setServers;
-	const char *lpszServersConfig;
 	std::set<string, strcasecmp_comparison> setServersConfig;
 	memory_ptr<char> lpszConnection;
 	bool bIsPeer = false;
@@ -257,7 +233,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Checking quota for company %s", (char*)lpecCompany->lpszCompanyname);
 
 	/* Obtain Service object */
-	hr = HrGetOneProp(m_lpMDBAdmin, PR_EC_OBJECT, &~lpsObject);
+	auto hr = HrGetOneProp(m_lpMDBAdmin, PR_EC_OBJECT, &~lpsObject);
 	if(hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get internal object, error code: 0x%08X", hr);
 		return hr;
@@ -289,7 +265,8 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 		}
 		return hrSuccess;
 	}
-	lpszServersConfig = m_lpThreadMonitor->lpConfig->GetSetting("servers","",NULL);
+
+	auto lpszServersConfig = m_lpThreadMonitor->lpConfig->GetSetting("servers", "", nullptr);
 	if(lpszServersConfig) {
 		// split approach taken from kopano-backup/backup.cpp
 		std::vector<std::string> ddv = tokenize(lpszServersConfig, "\t ");
@@ -362,7 +339,6 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
     ECCOMPANY *lpecCompany, LPMDB lpAdminStore)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sRestrictProp;
 	object_ptr<IMAPITable> lpTable;
 	ECQUOTASTATUS sQuotaStatus;
@@ -372,7 +348,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 		PR_QUOTA_WARNING_THRESHOLD, PR_QUOTA_SEND_THRESHOLD,
 		PR_QUOTA_RECEIVE_THRESHOLD}};
 
-	hr = lpAdminStore->OpenProperty(PR_EC_STATSTABLE_USERS, &IID_IMAPITable, 0, 0, &~lpTable);
+	auto hr = lpAdminStore->OpenProperty(PR_EC_STATSTABLE_USERS, &IID_IMAPITable, 0, 0, &~lpTable);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open stats table for quota sizes, error 0x%08X", hr);
 		return hr;
@@ -477,12 +453,8 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string *lpstrSubject, string *lpstrBody)
 {
 	string strTemplateConfig;
-	const char *lpszTemplate = NULL;
-	FILE *fp = NULL;
 	char cBuffer[TEMPLATE_LINE_LENGTH];
-	string strLine;
-	string strSubject;
-	string strBody;
+	std::string strSubject, strBody;
 	size_t pos;
 
 	string strVariables[7][2] = {
@@ -526,10 +498,11 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 		}
 	}
 
-	lpszTemplate = m_lpThreadMonitor->lpConfig->GetSetting(strTemplateConfig.c_str());
+	auto lpszTemplate = m_lpThreadMonitor->lpConfig->GetSetting(strTemplateConfig.c_str());
 
 	/* Start reading the template mail */
-	if((fp = fopen(lpszTemplate, "rt")) == NULL) {
+	auto fp = fopen(lpszTemplate, "rt");
+	if (fp == nullptr) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open template email: %s", lpszTemplate);
 		return MAPI_E_NOT_FOUND;
 	}
@@ -540,8 +513,7 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 		if (!fgets(cBuffer, sizeof(cBuffer), fp))
 			break;
 
-		strLine = string(cBuffer);
-
+		std::string strLine(cBuffer);
 		/* If this is the subject line, don't attach it to the mail */
 		if (strLine.compare(0, strlen("Subject:"), "Subject:") == 0)
 			strSubject = strLine.substr(strLine.find_first_not_of(" ", strlen("Subject:")));
@@ -614,7 +586,6 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
     ECUSER *lpecFromUser, const std::string &strSubject,
     const std::string &strBody, ULONG *lpcPropSize, LPSPropValue *lppPropArray)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropArray;
 	ULONG cbFromEntryid = 0;
 	memory_ptr<ENTRYID> lpFromEntryid, lpToEntryid;
@@ -629,7 +600,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	convert_context converter;
 
 	/* We are almost there, we have the mail and the recipients. Now we should create the Message */
-	hr = MAPIAllocateBuffer(sizeof(SPropValue)  * ulPropArrayMax, &~lpPropArray);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * ulPropArrayMax, &~lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
 	if (TryConvert(converter, (char*)lpecToUser->lpszFullName, name) != hrSuccess) {
@@ -845,14 +816,13 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
     LPADRLIST *lppAddrList)
 {
-	HRESULT hr = hrSuccess;
 	adrlist_ptr lpAddrList;
 	ULONG cbUserEntryid = 0;
 	memory_ptr<ENTRYID> lpUserEntryid;
 	ULONG cbUserSearchKey = 0;
 	memory_ptr<unsigned char> lpUserSearchKey;
 
-	hr = MAPIAllocateBuffer(CbNewADRLIST(cToUsers), &~lpAddrList);
+	auto hr = MAPIAllocateBuffer(CbNewADRLIST(cToUsers), &~lpAddrList);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -930,7 +900,6 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
  */
 HRESULT ECQuotaMonitor::SendQuotaWarningMail(IMsgStore* lpMDB, ULONG cPropSize, LPSPropValue lpPropArray, LPADRLIST lpAddrList)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpMessage;
 	ULONG cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
@@ -938,7 +907,7 @@ HRESULT ECQuotaMonitor::SendQuotaWarningMail(IMsgStore* lpMDB, ULONG cPropSize, 
 	ULONG ulObjType;
 
 	/* Get the entry id of the inbox */
-	hr = lpMDB->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
+	auto hr = lpMDB->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to resolve incoming folder, error code: 0x%08X", hr);
 		return hr;
@@ -996,13 +965,11 @@ HRESULT ECQuotaMonitor::CreateQuotaWarningMail(TemplateVariables *lpVars,
     IMsgStore* lpMDB, ECUSER *lpecToUser, ECUSER *lpecFromUser,
     LPADRLIST lpAddrList)
 {
-	HRESULT hr = hrSuccess;
 	ULONG cPropSize = 0;
 	memory_ptr<SPropValue> lpPropArray;
-	string strSubject;
-	string strBody;
+	std::string strSubject, strBody;
 
-	hr = CreateMailFromTemplate(lpVars, &strSubject, &strBody);
+	auto hr = CreateMailFromTemplate(lpVars, &strSubject, &strBody);
 	if (hr != hrSuccess)
 		return hr;
 	hr = CreateMessageProperties(lpecToUser, lpecFromUser, strSubject, strBody, &cPropSize, &~lpPropArray);
@@ -1025,13 +992,12 @@ HRESULT ECQuotaMonitor::CreateQuotaWarningMail(TemplateVariables *lpVars,
  */
 HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass, LPMDB *lppStore)
 {
-	HRESULT hr;
 	ExchangeManageStorePtr ptrEMS;
 	ULONG cbUserStoreEntryID = 0;
 	EntryIdPtr ptrUserStoreEntryID;
 	MsgStorePtr ptrStore;
 
-	hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);
+	auto hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrEMS->CreateStoreEntryID((LPTSTR)"", szStoreName,
@@ -1063,15 +1029,12 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
  */
 HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage, bool *lpbTimeout)
 {
-	HRESULT hr;
 	MessagePtr ptrMessage;
 	SPropValuePtr ptrProp;
-	const char *lpResendInterval = NULL;
-	ULONG ulResendInterval = 0;
 	FILETIME ft;
 	FILETIME ftNextRun;
 
-	hr = GetConfigMessage(lpStore, QUOTA_CONFIG_MSG, &~ptrMessage);
+	auto hr = GetConfigMessage(lpStore, QUOTA_CONFIG_MSG, &~ptrMessage);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrMessage, PR_EC_QUOTA_MAIL_TIME, &~ptrProp);
@@ -1084,8 +1047,8 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
 		return hr;
 
 	/* Determine when the last warning mail was send, and if a new one should be sent. */
-	lpResendInterval = m_lpThreadMonitor->lpConfig->GetSetting("mailquota_resend_interval");
-	ulResendInterval = (lpResendInterval && atoui(lpResendInterval) > 0) ? atoui(lpResendInterval) : 1;
+	auto lpResendInterval = m_lpThreadMonitor->lpConfig->GetSetting("mailquota_resend_interval");
+	ULONG ulResendInterval = (lpResendInterval && atoui(lpResendInterval) > 0) ? atoui(lpResendInterval) : 1;
 	GetSystemTimeAsFileTime(&ft);
 
 	UnixTimeToFileTime(FileTimeToUnixTime(ptrProp->Value.ft.dwHighDateTime, ptrProp->Value.ft.dwLowDateTime) +
@@ -1107,7 +1070,6 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
  */
 HRESULT ECQuotaMonitor::UpdateQuotaTimestamp(LPMESSAGE lpMessage)
 {
-	HRESULT hr;
 	SPropValue sPropTime;
 	FILETIME ft;
 
@@ -1115,16 +1077,13 @@ HRESULT ECQuotaMonitor::UpdateQuotaTimestamp(LPMESSAGE lpMessage)
 
 	sPropTime.ulPropTag = PR_EC_QUOTA_MAIL_TIME;
 	sPropTime.Value.ft = ft;
-
-	hr = HrSetOneProp(lpMessage, &sPropTime);
+	auto hr = HrSetOneProp(lpMessage, &sPropTime);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to save config message, error code: 0x%08X", hr);
-		return hr;
-	}
-	return hrSuccess;
+	return hr;
 }
 
 /**
@@ -1140,7 +1099,6 @@ HRESULT ECQuotaMonitor::UpdateQuotaTimestamp(LPMESSAGE lpMessage)
 HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
     ECQUOTASTATUS *lpecQuotaStatus, LPMDB lpStore)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	MsgStorePtr ptrRecipStore;
 	MAPIFolderPtr ptrRoot;
@@ -1156,7 +1114,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 	struct TemplateVariables sVars;
 
 	// check if we need to send the actual email
-	hr = CheckQuotaInterval(lpStore, &~ptrQuotaTSMessage, &bTimeout);
+	auto hr = CheckQuotaInterval(lpStore, &~ptrQuotaTSMessage, &bTimeout);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to query mail timeout value: 0x%08X", hr);
 		return hr;

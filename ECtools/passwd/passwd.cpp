@@ -81,9 +81,7 @@ static void print_help(const char *name)
 static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
     const char *lpPassword, const char *lpNewPassword)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPISession> lpSession;
-	object_ptr<IUnknown> lpECMsgStore;
 	object_ptr<IMsgStore> lpMsgStore;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG cbUserId = 0;
@@ -99,10 +97,10 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	else
 		lpLogger = new ECLogger_Null();
 	ec_log_set(lpLogger);
-	hr = HrOpenECSession(&~lpSession, "passwd", PROJECT_VERSION,
-	     strwUsername.c_str(), strwPassword.c_str(), lpPath,
-	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
-	     NULL, NULL);
+	auto hr = HrOpenECSession(&~lpSession, "passwd", PROJECT_VERSION,
+	          strwUsername.c_str(), strwPassword.c_str(), lpPath,
+	          EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	          nullptr, nullptr);
 	lpLogger->Release();
 	if(hr != hrSuccess) {
 		cerr << "Wrong username or password." << endl;
@@ -116,10 +114,9 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue);
 	if(hr != hrSuccess || !lpPropValue)
 		return hr;
-	lpECMsgStore.reset(reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA), false);
+	object_ptr<IUnknown> lpECMsgStore(reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA));
 	if(!lpECMsgStore)
 		return hr;
-	lpECMsgStore->AddRef();
 	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if(hr != hrSuccess)
 		return hr;
@@ -139,16 +136,13 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	lpECUser->lpszPassword = (LPTSTR)lpNewPassword;
 
 	hr = lpServiceAdmin->SetUser(lpECUser, 0);
-	if(hr != hrSuccess) {
+	if (hr != hrSuccess)
 		cerr << "Unable to update user password." << endl;
-		return hr;
-	}
-	return hrSuccess;
+	return hr;
 }
 
 int main(int argc, char* argv[])
 {
-	HRESULT hr = hrSuccess;
 	const char *username = NULL;
 	const char *newpassword = NULL;
 	std::string szOldPassword, szNewPassword;
@@ -165,9 +159,8 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	int c;
 	while (1) {
-		c = getopt_long(argc, argv, "u:Pp:h:o:Vv", long_options, NULL);
+		auto c = getopt_long(argc, argv, "u:Pp:h:o:Vv", long_options, NULL);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -227,7 +220,7 @@ int main(int argc, char* argv[])
 	}
 
 	//Init mapi
-	hr = MAPIInitialize(NULL);
+	auto hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
 		cerr << "Unable to initialize" << endl;
 		goto exit;
