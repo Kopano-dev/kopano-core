@@ -18,6 +18,7 @@
 #include <kopano/zcdefs.h>
 #include <new>
 #include <utility>
+#include <kopano/memory.hpp>
 #include <kopano/platform.h>
 #include <kopano/userutil.h>
 #include "ArchiveStateCollector.h"
@@ -39,23 +40,16 @@ namespace details {
 	class MailboxDataCollector _kc_final : public DataCollector {
 	public:
 		MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, ECLogger *lpLogger);
-		~MailboxDataCollector();
 		HRESULT GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const _kc_override;
 		HRESULT CollectData(LPMAPITABLE lpStoreTable) _kc_override;
 
 	private:
 		ArchiveStateCollector::ArchiveInfoMap &m_mapArchiveInfo;
-		ECLogger *m_lpLogger;
+		KCHL::object_ptr<ECLogger> m_lpLogger;
 	};
 
 	MailboxDataCollector::MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, ECLogger *lpLogger): m_mapArchiveInfo(mapArchiveInfo), m_lpLogger(lpLogger)
 	{
-		m_lpLogger->AddRef();
-	}
-
-	MailboxDataCollector::~MailboxDataCollector()
-	{
-		m_lpLogger->Release();
 	}
 
 	HRESULT MailboxDataCollector::GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const
@@ -85,13 +79,11 @@ namespace details {
 
 	HRESULT MailboxDataCollector::CollectData(LPMAPITABLE lpStoreTable)
 	{
-		HRESULT hr;
-		SRowSetPtr ptrRows;
-
 		enum {IDX_ENTRYID, IDX_MAILBOX_OWNER_ENTRYID, IDX_STORE_ENTRYIDS, IDX_ITEM_ENTRYIDS, IDX_MAX};
 
 		while (true) {
-			hr = lpStoreTable->QueryRows(50, 0, &ptrRows);
+			SRowSetPtr ptrRows;
+			auto hr = lpStoreTable->QueryRows(50, 0, &ptrRows);
 			if (hr != hrSuccess)
 				return hr;
 
@@ -167,11 +159,6 @@ ArchiveStateCollector::ArchiveStateCollector(const ArchiverSessionPtr &ptrSessio
 , m_lpLogger(new ECArchiverLogger(lpLogger))
 { }
 
-ArchiveStateCollector::~ArchiveStateCollector()
-{
-	m_lpLogger->Release();
-}
-
 /**
  * Return an ArchiveStateUpdater instance that can update the current state
  * to the required state.
@@ -179,10 +166,8 @@ ArchiveStateCollector::~ArchiveStateCollector()
  */
 HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater)
 {
-	HRESULT hr;
 	details::MailboxDataCollector mdc(m_mapArchiveInfo, m_lpLogger);
-
-	hr = PopulateUserList();
+	auto hr = PopulateUserList();
 	if (hr != hrSuccess)
 		return hr;
 
@@ -209,10 +194,9 @@ HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lp
  */
 HRESULT ArchiveStateCollector::PopulateUserList()
 {
-	HRESULT hr;
 	ABContainerPtr ptrABContainer;
 
-	hr = m_ptrSession->GetGAL(&~ptrABContainer);
+	auto hr = m_ptrSession->GetGAL(&~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
 	hr = PopulateFromContainer(ptrABContainer);
@@ -242,7 +226,6 @@ HRESULT ArchiveStateCollector::PopulateUserList()
  */
 HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 {
-	HRESULT hr;
 	SPropValue sPropObjType;
 	SPropValue sPropDispType;
 	MAPITablePtr ptrTable;
@@ -258,7 +241,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	sPropDispType.ulPropTag = PR_DISPLAY_TYPE;
 	sPropDispType.Value.ul = DT_MAILUSER;;
 
-	hr = lpContainer->GetContentsTable(0, &~ptrTable);
+	auto hr = lpContainer->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->SetColumns(sptaUserProps, TBL_BATCH);

@@ -48,12 +48,6 @@ Copier::Helper::Helper(ArchiverSessionPtr ptrSession, ECLogger *lpLogger,
 	// do an AddRef so we don't take ownership of the folder
 	m_ptrMapper(ptrMapper)
 {
-	m_lpLogger->AddRef();
-}
-
-Copier::Helper::~Helper(void)
-{
-	m_lpLogger->Release();
 }
 
 HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectEntry &archiveEntry, const SObjectEntry &refMsgEntry, LPMESSAGE *lppArchivedMsg, PostSaveActionPtr *lpptrPSAction)

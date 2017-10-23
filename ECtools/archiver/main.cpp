@@ -208,8 +208,6 @@ static inline const char *yesno(bool bValue) { return bValue ? "yes" : "no"; }
  */
 int main(int argc, char *argv[])
 {
-    eResult	r = Success;
-
     modes mode = MODE_INVALID;
     tstring strUser;
     const char *lpszArchive = NULL;
@@ -222,8 +220,6 @@ int main(int argc, char *argv[])
     unsigned ulAttachFlags = 0;
 	std::unique_ptr<Archiver> ptrArchiver;
     convert_context converter;
-    std::list<configsetting_t> lSettings;
-
     ULONG ulFlags = 0;
 
     const char *lpszConfig = Archiver::GetConfigPath();
@@ -235,9 +231,8 @@ int main(int argc, char *argv[])
 
     setlocale(LC_CTYPE, "");
 
-    int c;
     while (1) {
-        c = getopt_long(argc, argv, "u:c:lLACwa:d:D:f:s:N", long_options, NULL);
+		auto c = getopt_long(argc, argv, "u:c:lLACwa:d:D:f:s:N", long_options, NULL);
         if (c == -1)
             break;
         switch (c) {
@@ -435,7 +430,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    r = Archiver::Create(&ptrArchiver);
+	auto r = Archiver::Create(&ptrArchiver);
     if (r != Success) {
         cerr << "Failed to instantiate archiver object" << endl;
         return 1;
@@ -453,8 +448,7 @@ int main(int argc, char *argv[])
 
 	ec_log_crit("Startup command: %s", kc_join(argc, argv, "\" \"").c_str());
 	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Version %s", PROJECT_VERSION);
-    lSettings = ptrArchiver->GetConfig()->GetAllSettings();
-
+	auto lSettings = ptrArchiver->GetConfig()->GetAllSettings();
     ECLogger* filelogger = ptrArchiver->GetLogger(Archiver::LogOnly);
     ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Config settings:");
 	for (const auto &s : lSettings)

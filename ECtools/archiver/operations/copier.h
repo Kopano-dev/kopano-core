@@ -19,6 +19,7 @@
 #define copier_INCLUDED
 
 #include <memory>
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "operations.h"
 #include "postsaveaction.h"
@@ -63,7 +64,6 @@ public:
 	class _kc_export Helper { // For lack of a better name
 	public:
 		Helper(ArchiverSessionPtr, ECLogger *, const InstanceIdMapperPtr &, const SPropTagArray *exclprop, LPMAPIFOLDER folder);
-		~Helper(void);
 
 		/**
 		 * Create a copy of a message in the archive, effectively archiving the message.
@@ -107,7 +107,7 @@ public:
 		ArchiveFolderMap m_mapArchiveFolders;
 
 		ArchiverSessionPtr m_ptrSession;
-		ECLogger *m_lpLogger;
+		KCHL::object_ptr<ECLogger> m_lpLogger;
 		const SPropTagArray *m_lpExcludeProps;
 		MAPIFolderPtr m_ptrFolder;
 		InstanceIdMapperPtr m_ptrMapper;

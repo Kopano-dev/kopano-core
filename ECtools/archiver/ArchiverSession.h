@@ -18,6 +18,7 @@
 #ifndef ARCHIVERSESSION_H_INCLUDED
 #define ARCHIVERSESSION_H_INCLUDED
 
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "ArchiverSessionPtr.h"
 #include <kopano/mapi_ptr.h>
@@ -37,7 +38,6 @@ public:
 	static HRESULT Create(ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession);
 	static HRESULT Create(const MAPISessionPtr &ptrSession, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession);
 	_kc_hidden static HRESULT Create(const MAPISessionPtr &, ECConfig *, ECLogger *, ArchiverSessionPtr *);
-	_kc_hidden ~ArchiverSession(void);
 	HRESULT OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore);
 	_kc_hidden HRESULT OpenStore(const entryid_t &eid, ULONG flags, LPMDB *ret);
 	HRESULT OpenStore(const entryid_t &eid, LPMDB *ret);
@@ -64,8 +64,7 @@ private:
 
 	MAPISessionPtr	m_ptrSession;
 	MsgStorePtr		m_ptrAdminStore;
-	ECLogger		*m_lpLogger;
-	
+	KCHL::object_ptr<ECLogger> m_lpLogger;
 	std::string		m_strSslPath;
 	std::string		m_strSslPass;
 };

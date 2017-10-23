@@ -21,8 +21,11 @@
 #ifndef ARCHIVERIMPL_H_INCLUDED
 #define ARCHIVERIMPL_H_INCLUDED
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/automapi.hpp>
+#include <kopano/ECLogger.h>
+#include <kopano/memory.hpp>
 #include "Archiver.h"               // for declaration of class Archiver
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
@@ -30,14 +33,11 @@ namespace KC {
 
 class ArchiverImpl _kc_final : public Archiver {
 public:
-	ArchiverImpl(void) = default;
-	ArchiverImpl(const ArchiverImpl &) = delete;
-	~ArchiverImpl();
 	eResult Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags) _kc_override;
 	eResult GetControl(ArchiveControlPtr *lpptrControl, bool bForceCleanup) _kc_override;
 	eResult GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage) _kc_override;
 	eResult AutoAttach(unsigned int ulFlags) _kc_override;
-	ECConfig *GetConfig(void) const _kc_override { return m_lpsConfig; }
+	ECConfig *GetConfig(void) const _kc_override { return m_lpsConfig.get(); }
 	ECLogger *GetLogger(eLogType which) const _kc_override; // Inherits default (which = DefaultLog) from Archiver::GetLogger
 
 private:
@@ -45,11 +45,11 @@ private:
 	unsigned CountSettings(const configsetting_t *lpSettings);
 
 	KCHL::AutoMAPI m_MAPI;
-	ECConfig *m_lpsConfig = nullptr;
-	ECLogger *m_lpLogger = nullptr;
-	ECLogger *m_lpLogLogger = nullptr; // Logs only to the log specified in the config
+	std::unique_ptr<ECConfig> m_lpsConfig;
+	KCHL::object_ptr<ECLogger> m_lpLogger;
+	KCHL::object_ptr<ECLogger> m_lpLogLogger; // Logs only to the log specified in the config
 	ArchiverSessionPtr 		m_ptrSession;
-	configsetting_t	*m_lpDefaults = nullptr;
+	std::unique_ptr<configsetting_t[]> m_lpDefaults;
 };
 
 } /* namespace */

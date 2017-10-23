@@ -18,6 +18,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 
@@ -26,7 +27,6 @@ namespace KC {
 class _kc_export ECArchiverLogger _kc_final : public ECLogger {
 public:
 	ECArchiverLogger(ECLogger *lpLogger);
-	_kc_hidden ~ECArchiverLogger(void);
 	_kc_hidden tstring SetUser(tstring = tstring());
 	tstring SetFolder(tstring strFolder = tstring());
 	_kc_hidden const tstring &GetUser(void) const { return m_strUser; }
@@ -42,7 +42,7 @@ private:
 	ECArchiverLogger(const ECArchiverLogger &) = delete;
 	ECArchiverLogger &operator=(const ECArchiverLogger &) = delete;
 
-	ECLogger	*m_lpLogger;
+	KCHL::object_ptr<ECLogger> m_lpLogger;
 	tstring		m_strUser;
 	tstring		m_strFolder;
 };

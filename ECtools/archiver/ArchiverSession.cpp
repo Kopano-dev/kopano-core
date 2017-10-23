@@ -14,7 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include <memory>
 #include <new>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ArchiverSession.h"
@@ -44,22 +46,16 @@ namespace KC {
  */
 HRESULT ArchiverSession::Create(ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
 {
-	HRESULT hr;
-	ArchiverSession *lpSession = NULL;
-
 	if (!lpConfig || !lpLogger)
 		return MAPI_E_INVALID_PARAMETER;
-	lpSession = new(std::nothrow) ArchiverSession(lpLogger);
+	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(lpLogger));
 	if (lpSession == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpSession->Init(lpConfig);
-	if (FAILED(hr)) {
-		delete lpSession;
+	auto hr = lpSession->Init(lpConfig);
+	if (FAILED(hr))
 		return hr;
-	}
-	
-	lpptrSession->reset(lpSession);
-	return hr;
+	*lpptrSession = std::move(lpSession);
+	return hrSuccess;
 }
 
 /**
@@ -95,8 +91,6 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECLogger *lpLo
  */
 HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
 {
-	HRESULT hr = hrSuccess;
-	ArchiverSession *lpSession = NULL;
 	KCHL::object_ptr<ECLogger> lpLocalLogger;
 	const char *lpszSslKeyFile = NULL;
 	const char *lpszSslKeyPass = NULL;
@@ -111,25 +105,18 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpCo
 		lpszSslKeyPass = lpConfig->GetSetting("sslkey_pass", "", NULL);
 	}
 
-	lpSession = new ArchiverSession(lpLocalLogger);
-	hr = lpSession->Init(ptrSession, lpszSslKeyFile, lpszSslKeyPass);
-	if (FAILED(hr)) {
-		delete lpSession;
+	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(lpLocalLogger));
+	if (lpSession == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	auto hr = lpSession->Init(ptrSession, lpszSslKeyFile, lpszSslKeyPass);
+	if (FAILED(hr))
 		return hr;
-	}
-
-	lpptrSession->reset(lpSession);
-	return hr;
-}
-
-ArchiverSession::~ArchiverSession()
-{
-	m_lpLogger->Release();
+	*lpptrSession = std::move(lpSession);
+	return hrSuccess;
 }
 
 ArchiverSession::ArchiverSession(ECLogger *lpLogger): m_lpLogger(lpLogger)
 {
-	m_lpLogger->AddRef();
 }
 
 /**
@@ -159,12 +146,10 @@ HRESULT ArchiverSession::Init(ECConfig *lpConfig)
  */
 HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPath, const char *lpszSslPass)
 {
-	HRESULT hr;
-	
-	hr = HrOpenECAdminSession(&~m_ptrSession, "archiver:system",
-	     PROJECT_VERSION, const_cast<char *>(lpszServerPath),
-	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS, const_cast<char *>(lpszSslPath),
-	     const_cast<char *>(lpszSslPass));
+	auto hr = HrOpenECAdminSession(&~m_ptrSession, "archiver:system",
+	          PROJECT_VERSION, const_cast<char *>(lpszServerPath),
+	          EC_PROFILE_FLAGS_NO_NOTIFICATIONS, const_cast<char *>(lpszSslPath),
+	          const_cast<char *>(lpszSslPass));
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to open Admin ArchiverSession.");
 		switch (hr) {
@@ -206,11 +191,8 @@ HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPat
  */
 HRESULT ArchiverSession::Init(const MAPISessionPtr &ptrSession, const char *lpszSslPath, const char *lpszSslPass)
 {
-	HRESULT hr;
-
 	m_ptrSession = ptrSession;
-
-	hr = HrOpenDefaultStore(m_ptrSession, &~m_ptrAdminStore);
+	auto hr = HrOpenDefaultStore(m_ptrSession, &~m_ptrAdminStore);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -234,13 +216,12 @@ HRESULT ArchiverSession::Init(const MAPISessionPtr &ptrSession, const char *lpsz
  */ 
 HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore)
 {
-	HRESULT hr;
 	ExchangeManageStorePtr ptrEMS;
 	MsgStorePtr ptrUserStore;
 	ULONG cbEntryId = 0;
 	EntryIdPtr ptrEntryId;
 	
-	hr = m_ptrAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
+	auto hr = m_ptrAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to get EMS interface (hr=%s).", stringify(hr, true).c_str());
 		return hr;
@@ -273,12 +254,11 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
  */ 
 HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPMDB *lppMsgStore)
 {
-	HRESULT hr;
 	MsgStorePtr ptrUserStore;
 	ArchiverSessionPtr ptrSession;
 	
 	if (!sEntryId.isWrapped()) {
-		hr = m_ptrSession->OpenMsgStore(0, sEntryId.size(), sEntryId, &iid_of(ptrUserStore), ulFlags, &~ptrUserStore);
+		auto hr = m_ptrSession->OpenMsgStore(0, sEntryId.size(), sEntryId, &iid_of(ptrUserStore), ulFlags, &~ptrUserStore);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open store. (entryid=%s, hr=%s)", sEntryId.tostring().c_str(), stringify(hr, true).c_str());
 			return hr;
@@ -290,7 +270,7 @@ HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPM
 	std::string strPath;
 	sTempEntryId.unwrap(&strPath);
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive store entryid is wrapped.");
-	hr = CreateRemote(strPath.c_str(), m_lpLogger, &ptrSession);
+	auto hr = CreateRemote(strPath.c_str(), m_lpLogger, &ptrSession);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to create ArchiverSession on '%s' (hr=%s)", strPath.c_str(), stringify(hr, true).c_str());
 		return hr;
@@ -346,13 +326,12 @@ HRESULT ArchiverSession::OpenReadOnlyStore(const entryid_t &sEntryId, LPMDB *lpp
  */
 HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEntryId, tstring *lpstrFullname, bool *lpbAclCapable)
 {
-	HRESULT hr;
 	MsgStorePtr ptrStore;
 	ECServiceAdminPtr ptrServiceAdmin;
 	ULONG cbEntryId = 0;
 	EntryIdPtr ptrEntryId;
 
-	hr = HrOpenDefaultStore(m_ptrSession, &~ptrStore);
+	auto hr = HrOpenDefaultStore(m_ptrSession, &~ptrStore);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open default store (hr=%s)", stringify(hr, true).c_str());
 		return hr;
@@ -417,7 +396,6 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 
 HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstrUser, tstring *lpstrFullname)
 {
-	HRESULT hr;
 	ULONG ulType = 0;
 	MAPIPropPtr ptrUser;
 	ULONG cUserProps = 0;
@@ -426,7 +404,7 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 		{2, {PR_ACCOUNT, PR_DISPLAY_NAME}};
 	enum {IDX_ACCOUNT, IDX_DISPLAY_NAME};
 
-	hr = m_ptrSession->OpenEntry(sEntryId.size(), sEntryId, &iid_of(ptrUser), MAPI_DEFERRED_ERRORS, &ulType, &~ptrUser);
+	auto hr = m_ptrSession->OpenEntry(sEntryId.size(), sEntryId, &iid_of(ptrUser), MAPI_DEFERRED_ERRORS, &ulType, &~ptrUser);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrUser->GetProps(sptaUserProps, 0, &cUserProps, &~ptrUserProps);
@@ -458,7 +436,6 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
  */
 HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 {
-	HRESULT hr;
 	AddrBookPtr		ptrAdrBook;
 	ABContainerPtr	ptrABRootContainer;
 	ABContainerPtr	ptrGAL;
@@ -468,7 +445,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue			  sGALPropVal = {0};
 
-	hr = m_ptrSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
+	auto hr = m_ptrSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrAdrBook->OpenEntry(0, nullptr, &iid_of(ptrABRootContainer), MAPI_BEST_ACCESS, &ulType, &~ptrABRootContainer);
@@ -519,12 +496,11 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
  */					
 HRESULT ArchiverSession::CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore, bool *lpbResult)
 {
-	HRESULT hr;
 	SPropValuePtr ptrUserStoreEntryId;
 	SPropValuePtr ptrArchiveStoreEntryId;
 	ULONG ulResult = 0;
 
-	hr = HrGetOneProp(lpUserStore, PR_ENTRYID, &~ptrUserStoreEntryId);
+	auto hr = HrGetOneProp(lpUserStore, PR_ENTRYID, &~ptrUserStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(lpArchiveStore, PR_ENTRYID, &~ptrArchiveStoreEntryId);
@@ -554,12 +530,9 @@ HRESULT ArchiverSession::CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore
  */					
 HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entryid_t &sEntryId2, bool *lpbResult)
 {
-	HRESULT hr;
 	ULONG ulResult = 0;
-
-	hr = m_ptrSession->CompareEntryIDs(sEntryId1.size(), sEntryId1,
-					   sEntryId2.size(), sEntryId2,
-					   0, &ulResult);
+	auto hr = m_ptrSession->CompareEntryIDs(sEntryId1.size(), sEntryId1,
+	          sEntryId2.size(), sEntryId2, 0, &ulResult);
 	if (hr != hrSuccess)
 		return hr;
 		
@@ -578,25 +551,23 @@ HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entry
  */
 HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
 {
-	auto lpSession = new ArchiverSession(lpLogger);
+	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(lpLogger));
+	if (lpSession == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	HRESULT hr = lpSession->Init(lpszServerPath, m_strSslPath.c_str(), m_strSslPass.c_str());
-	if (FAILED(hr)) {
-		delete lpSession;
+	if (FAILED(hr))
 		return hr;
-	}
-	
-	lpptrSession->reset(lpSession);
-	return hr;
+	*lpptrSession = std::move(lpSession);
+	return hrSuccess;
 }
 
 HRESULT ArchiverSession::OpenMAPIProp(ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPIPROP *lppProp)
 {
-	HRESULT hr;
 	ULONG ulType = 0;
 	MAPIPropPtr ptrMapiProp;
 
-	hr = m_ptrSession->OpenEntry(cbEntryID, lpEntryID, &iid_of(ptrMapiProp),
-	     MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &~ptrMapiProp);
+	auto hr = m_ptrSession->OpenEntry(cbEntryID, lpEntryID, &iid_of(ptrMapiProp),
+	          MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &~ptrMapiProp);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -614,13 +585,12 @@ const char *ArchiverSession::GetSSLPass() const {
 
 HRESULT ArchiverSession::OpenOrCreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore)
 {
-	HRESULT hr;
 	ECServiceAdminPtr ptrServiceAdmin;
 	ULONG cbStoreId;
 	EntryIdPtr ptrStoreId;
 	MsgStorePtr ptrArchiveStore;
 
-	hr = m_ptrAdminStore.QueryInterface(ptrServiceAdmin);
+	auto hr = m_ptrAdminStore.QueryInterface(ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &~ptrStoreId);
@@ -637,12 +607,11 @@ HRESULT ArchiverSession::OpenOrCreateArchiveStore(const tstring& strUserName, co
 
 HRESULT ArchiverSession::GetArchiveStoreEntryId(const tstring& strUserName, const tstring& strServerName, entryid_t *lpArchiveId)
 {
-	HRESULT hr;
 	ECServiceAdminPtr ptrServiceAdmin;
 	ULONG cbStoreId;
 	EntryIdPtr ptrStoreId;
 
-	hr = m_ptrAdminStore.QueryInterface(ptrServiceAdmin);
+	auto hr = m_ptrAdminStore.QueryInterface(ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &~ptrStoreId);
@@ -655,7 +624,6 @@ HRESULT ArchiverSession::GetArchiveStoreEntryId(const tstring& strUserName, cons
 
 HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore)
 {
-	HRESULT hr;
 	MsgStorePtr ptrRemoteAdminStore;
 	ECServiceAdminPtr ptrRemoteServiceAdmin;
 	abentryid_t userId;
@@ -669,7 +637,7 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	MAPIFolderPtr ptrIpmSubtree;
 	SPropValuePtr ptrIpmSubtreeId;
 
-	hr = GetUserInfo(strUserName, &userId, NULL, NULL);
+	auto hr = GetUserInfo(strUserName, &userId, nullptr, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetRemoteAdminStore(m_ptrSession, m_ptrAdminStore, strServerName.c_str(), fMapiUnicode, &~ptrRemoteAdminStore);

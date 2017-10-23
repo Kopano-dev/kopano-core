@@ -19,6 +19,7 @@
 #define ARCHIVECONTROLIMPL_H_INCLUDED
 
 #include <set>
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "operations/operations_fwd.h"
 #include "helpers/ArchiveHelper.h"
@@ -115,8 +116,6 @@ public:
 	eResult CleanupAll(bool bLocalOnly) _kc_override;
 	eResult Cleanup(const tstring &strUser) _kc_override;
 
-	~ArchiveControlImpl();
-
 private:
 	class ReferenceLessCompare {
 	public:
@@ -168,7 +167,7 @@ private:
 
 	ArchiverSessionPtr m_ptrSession;
 	ECConfig *m_lpConfig = nullptr;
-	ECArchiverLogger *m_lpLogger = nullptr;
+	KCHL::object_ptr<ECArchiverLogger> m_lpLogger;
 	FILETIME m_ftCurrent = {0, 0};
 	bool m_bArchiveEnable = true;
 	int m_ulArchiveAfter = 30;
