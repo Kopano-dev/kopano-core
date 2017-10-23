@@ -18,19 +18,14 @@
 #ifndef ECGetText_INCLUDED
 #define ECGetText_INCLUDED
 
-#ifndef NO_GETTEXT
-#	include <kopano/zcdefs.h>
-	#include <libintl.h>
-#	define KC_A(string) dcgettext("kopano", string, LC_MESSAGES)
-#	define KC_W(string) kopano_dcgettext_wide("kopano", string)
+#include <kopano/zcdefs.h>
+#include <libintl.h>
+#define KC_A(string) dcgettext("kopano", string, LC_MESSAGES)
+#define KC_W(string) kopano_dcgettext_wide("kopano", string)
 
 namespace KC {
 	extern _kc_export LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid);
 }
-#else
-#	define KC_A(string) string
-#	define KC_W(string) KC_T(string)
-#endif
 
 // This must go. Obviously someone was trying to be clever, but a macro named _
 // can cause all sorts of mischief that can be hard to trace. Unfortunately

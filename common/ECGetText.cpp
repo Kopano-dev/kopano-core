@@ -107,9 +107,7 @@ LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid)
 {
 	const char *lpsz = msgid;
 
-#ifndef NO_GETTEXT
 	lpsz = dcgettext(domainname, msgid, LC_MESSAGES);
-#endif
 	return const_cast<wchar_t *>(detail::converter::getInstance()->convert(lpsz));
 }
 
