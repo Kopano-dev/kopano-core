@@ -1424,6 +1424,22 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 			strListProps = strAction + " (";
 			if (!iFld->bMailFolder)
 				strListProps += "\\Noselect ";
+			if (!bSubscribedOnly && iFld->bSpecialFolder) {
+				switch (iFld->ulSpecialFolderType) {
+				case PR_IPM_SENTMAIL_ENTRYID:
+					strListProps += "\\Sent ";
+					break;
+				case PR_IPM_WASTEBASKET_ENTRYID:
+					strListProps += "\\Trash ";
+					break;
+				case PR_IPM_DRAFTS_ENTRYID:
+					strListProps += "\\Drafts ";
+					break;
+				case PR_IPM_FAKEJUNK_ENTRYID:
+					strListProps += "\\Junk ";
+					break;
+				}
+			}
 			if (!bSubscribedOnly) {
 				// don't list flag on LSUB command
 				if (iFld->bHasSubfolders)
@@ -2983,14 +2999,14 @@ HRESULT IMAP::HrMakeSpecialsList() {
 		return hr;
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayStore[i].ulPropTag) == PT_BINARY)
-			lstSpecialEntryIDs.emplace(lpPropArrayStore[i].Value.bin.lpb, lpPropArrayStore[i].Value.bin.cb);
+			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayStore[i].Value.bin.lpb, lpPropArrayStore[i].Value.bin.cb), lpPropArrayStore[i].ulPropTag);
 
 	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess)
 		return hr;
 
 	// inbox is special too
-	lstSpecialEntryIDs.emplace(reinterpret_cast<unsigned char *>(lpEntryID.get()), cbEntryID);
+	lstSpecialEntryIDs.emplace(BinaryArray(reinterpret_cast<unsigned char *>(lpEntryID.get()), cbEntryID), 0);
 	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess)
 		return hr;
@@ -2999,15 +3015,15 @@ HRESULT IMAP::HrMakeSpecialsList() {
 		return hr;
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayInbox[i].ulPropTag) == PT_BINARY)
-			lstSpecialEntryIDs.emplace(lpPropArrayInbox[i].Value.bin.lpb, lpPropArrayInbox[i].Value.bin.cb);
+			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayInbox[i].Value.bin.lpb, lpPropArrayInbox[i].Value.bin.cb), lpPropArrayInbox[i].ulPropTag);
 
 	if (HrGetOneProp(lpInbox, PR_ADDITIONAL_REN_ENTRYIDS, &~lpPropVal) == hrSuccess &&
 	    lpPropVal->Value.MVbin.cValues >= 5 && lpPropVal->Value.MVbin.lpbin[4].cb != 0)
-		lstSpecialEntryIDs.emplace(lpPropVal->Value.MVbin.lpbin[4].lpb, lpPropVal->Value.MVbin.lpbin[4].cb);
+		lstSpecialEntryIDs.emplace(BinaryArray(lpPropVal->Value.MVbin.lpbin[4].lpb, lpPropVal->Value.MVbin.lpbin[4].cb), PR_IPM_FAKEJUNK_ENTRYID);
 	if(!lpPublicStore)
 		return hrSuccess;
 	if (HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropVal) == hrSuccess)
-		lstSpecialEntryIDs.emplace(lpPropVal->Value.bin.lpb, lpPropVal->Value.bin.cb);
+		lstSpecialEntryIDs.emplace(BinaryArray(lpPropVal->Value.bin.lpb, lpPropVal->Value.bin.cb), 0);
 	return hrSuccess;
 }
 
@@ -3022,6 +3038,14 @@ HRESULT IMAP::HrMakeSpecialsList() {
 bool IMAP::IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID) {
 	return lstSpecialEntryIDs.find(BinaryArray(reinterpret_cast<BYTE *>(lpEntryID), cbEntryID, true)) !=
 	       lstSpecialEntryIDs.end();
+}
+
+bool IMAP::IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID, ULONG &folder_type) {
+	auto iter = lstSpecialEntryIDs.find(BinaryArray(reinterpret_cast<BYTE *>(lpEntryID), cbEntryID, true));
+	if(iter == lstSpecialEntryIDs.cend())
+		return false;
+	folder_type = (*iter).second;
+	return true;
 }
 
 /** 
@@ -3255,7 +3279,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 
 	SFolder sfolder;
 	sfolder.bActive = true;
-	sfolder.bSpecialFolder = IsSpecialFolder(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb));
+	sfolder.bSpecialFolder = IsSpecialFolder(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), sfolder.ulSpecialFolderType);
 	sfolder.bMailFolder = false;
 	sfolder.lpParentFolder = parent_folder;
 	sfolder.strFolderName = in_folder_name;
@@ -3317,7 +3341,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 				}
 				auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), BinaryArray(entry_id));
 				sfolder.bActive = subscribed_iter != m_vSubscriptions.cend();
-				sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb(), entry_id.lpb());
+				sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb(), entry_id.lpb(), sfolder.ulSpecialFolderType);
 				sfolder.bMailFolder = mailfolder;
 				sfolder.lpParentFolder = tmp_parent_folder;
 				sfolder.strFolderName = foldername;

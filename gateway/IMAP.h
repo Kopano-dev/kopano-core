@@ -253,6 +253,7 @@ private:
 		bool bActive;			// Subscribed folder
 		bool bMailFolder;		// E-mail type folder
 		bool bSpecialFolder;	// 'special' folder (eg inbox)
+		ULONG ulSpecialFolderType;
 		bool bHasSubfolders;	// Has child folders
 		std::list<SFolder>::const_iterator lpParentFolder;
 	};
@@ -289,8 +290,9 @@ private:
 	std::vector<SMail> lstFolderMailEIDs;
 	KCHL::object_ptr<IMsgStore> lpStore, lpPublicStore;
 
+	enum { PR_IPM_FAKEJUNK_ENTRYID = PR_ADDITIONAL_REN_ENTRYIDS };
 	// special folder entryids (not able to move/delete inbox and such ...)
-	std::set<BinaryArray, lessBinaryArray> lstSpecialEntryIDs;
+	std::map<BinaryArray, ULONG, lessBinaryArray> lstSpecialEntryIDs;
 
 	// Message cache
 	std::string m_strCache;
@@ -327,6 +329,7 @@ private:
 	HRESULT HrFindSubFolder(IMAPIFolder *lpFolder, const std::wstring &folder, ULONG *eid_size, LPENTRYID *eid);
 	bool IsSpecialFolder(IMAPIFolder *lpFolder);
 	bool IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID);
+	bool IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID, ULONG &folder_type);
 	bool IsMailFolder(IMAPIFolder *lpFolder);
 	bool IsSentItemFolder(IMAPIFolder *lpFolder);
 	HRESULT HrOpenParentFolder(ULONG cbEntryID, LPENTRYID lpEntryID, IMAPIFolder **lppFolder);
