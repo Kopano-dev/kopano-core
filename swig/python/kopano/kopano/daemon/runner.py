@@ -136,7 +136,7 @@ class DaemonRunner(object):
         pid = self.pidfile.read_pid()
         try:
             os.kill(pid, signal.SIGTERM)
-        except OSError, exc:
+        except OSError as exc:
             raise DaemonRunnerStopFailureError(
                 "Failed to terminate %(pid)d: %(exc)s" % vars())
 
@@ -221,7 +221,7 @@ def is_pidfile_stale(pidfile):
     if pidfile_pid is not None:
         try:
             os.kill(pidfile_pid, signal.SIG_DFL)
-        except OSError, exc:
+        except OSError as exc:
             if exc.errno == errno.ESRCH:
                 # The specified PID does not exist
                 result = True
