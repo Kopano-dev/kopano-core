@@ -31,7 +31,6 @@
 
 HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	KCHL::memory_ptr<SPropValue> lpPropertyArray;
 
 	enum {
@@ -57,7 +56,7 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 
 	std::string result[TAG_COUNT];
 
-	hr = ReadProperties(lpMessage, TAG_COUNT, ulTags, &~lpPropertyArray);
+	auto hr = ReadProperties(lpMessage, TAG_COUNT, ulTags, &~lpPropertyArray);
 	/* Ignore error, we are going to fix this :) */
 	if (!lpPropertyArray)
 		return hr;
@@ -66,7 +65,7 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		if (PROP_TYPE(lpPropertyArray[i].ulPropTag) != PT_ERROR &&
 		    lpPropertyArray[i].Value.lpszA &&
 		    strlen(lpPropertyArray[i].Value.lpszA))
-			result[i] = std::string(lpPropertyArray[i].Value.lpszA);
+			result[i] = lpPropertyArray[i].Value.lpszA;
 
 	/* Generate fullname based on remaining fields */
 	if (result[E_FULLNAME].empty()) {
@@ -126,10 +125,8 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 	 * to use the same algorithm as Outlook: The first word is always the first name any words
 	 * after it are the last name. Ok perhaps not litteraly the same, but it should be somewhat
 	 * sufficient */
-	size_t pos;
-
 	/* Strip leading spaces*/
-	pos = result[E_FULLNAME].find_first_not_of(" ");
+	auto pos = result[E_FULLNAME].find_first_not_of(" ");
 	result[E_FULLNAME].erase(0, pos);
 
 	/* Determine first namee */
@@ -154,16 +151,13 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 HRESULT FsckContact::ValidateItem(LPMESSAGE lpMessage,
     const std::string &strClass)
 {
-	HRESULT hr = hrSuccess;
-
 	if (strClass != "IPM.Contact" && strClass != "IPM.DistList") {
 		std::cout << "Illegal class: \"" << strClass << "\"" << std::endl;
 		return E_INVALIDARG;
 	}
 
 	if (strClass == "IPM.Contact")
-		hr = ValidateContactNames(lpMessage);
+		return ValidateContactNames(lpMessage);
 	// else: @todo distlist validation
-
-	return hr;
+	return hrSuccess;
 }
