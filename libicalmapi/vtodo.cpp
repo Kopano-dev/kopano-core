@@ -74,7 +74,6 @@ HRESULT VTodoConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *l
 HRESULT VTodoConverter::HrAddBaseProperties(icalproperty_method icMethod, icalcomponent *lpicEvent, void *base, bool bIsException, std::list<SPropValue> *lplstMsgProps)
 {
 	SPropValue sPropVal;
-	icalproperty *lpicProp = NULL;
 	bool bComplete = false;
 	ULONG ulStatus = 0;
 
@@ -91,7 +90,7 @@ HRESULT VTodoConverter::HrAddBaseProperties(icalproperty_method icMethod, icalco
 	// 2: olTaskComplete
 	// 3: olTaskWaiting (on someone else)
 	// 4: olTaskDeferred
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_STATUS_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_STATUS_PROPERTY);
 	if (lpicProp) {
 		switch (icalproperty_get_status(lpicProp)) {
 		case ICAL_STATUS_NEEDSACTION:
@@ -165,16 +164,14 @@ HRESULT VTodoConverter::HrAddBaseProperties(icalproperty_method icMethod, icalco
  */
 HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
-	icalproperty* lpicProp = NULL;
 	time_t timeDTStart = 0;
 	time_t timeDue = 0;
 
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 	if (lpicProp) {
 		// Take the timezone from DTSTART and set that as the item timezone
-		hr = HrAddTimeZone(lpicProp, lpIcalItem);
+		auto hr = HrAddTimeZone(lpicProp, lpIcalItem);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -198,7 +195,7 @@ HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DUE_PROPERTY);
 	if (lpicProp) {
 		// Take the timezone from DUE and set that as the item timezone
-		hr = HrAddTimeZone(lpicProp, lpIcalItem);
+		auto hr = HrAddTimeZone(lpicProp, lpIcalItem);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -322,7 +319,6 @@ HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsg
  */
 HRESULT VTodoConverter::HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, icalcomponent *lpicEvent)
 {
-	HRESULT hr = hrSuccess;
 	double pc = 0.0;
 	ULONG ulStatus = 0;
 
@@ -349,8 +345,7 @@ HRESULT VTodoConverter::HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, 
 		icalcomponent_add_property(lpicEvent, icalproperty_new_status(ICAL_STATUS_CANCELLED));
 		break;
 	}
-
-	return hr;
+	return hrSuccess;
 }
 
 } /* namespace */

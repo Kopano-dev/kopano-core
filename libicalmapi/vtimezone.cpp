@@ -34,10 +34,9 @@ namespace KC {
  * @param[in]	tt		icaltimetype
  * @return		Unix timestamp
  */
-time_t icaltime_as_timet_with_server_zone(const struct icaltimetype tt)
+time_t icaltime_as_timet_with_server_zone(const struct icaltimetype &tt)
 {
 	struct tm stm;
-	time_t t;
 
 	/* If the time is the special null time, return 0. */
 	if (icaltime_is_null_time(tt)) {
@@ -59,10 +58,7 @@ time_t icaltime_as_timet_with_server_zone(const struct icaltimetype tt)
 	stm.tm_mon = tt.month-1;
 	stm.tm_year = tt.year-1900;
 	stm.tm_isdst = -1;
-
-	t = mktime(&stm);
-
-	return t;
+	return mktime(&stm);
 }
 
 // time only, not date!
@@ -94,20 +90,15 @@ static SYSTEMTIME TMToSystemTime(const struct tm &t)
  */
 time_t ICalTimeTypeToUTC(icalcomponent *lpicRoot, icalproperty *lpicProp)
 {
-	time_t tRet = 0;
-	icalparameter *lpicTZParam = NULL;
 	const char *lpszTZID = NULL;
 	icaltimezone *lpicTimeZone = NULL;
 
-	lpicTZParam = icalproperty_get_first_parameter(lpicProp, ICAL_TZID_PARAMETER);
+	auto lpicTZParam = icalproperty_get_first_parameter(lpicProp, ICAL_TZID_PARAMETER);
 	if (lpicTZParam) {
 		lpszTZID = icalparameter_get_tzid(lpicTZParam);
 		lpicTimeZone = icalcomponent_get_timezone(lpicRoot, lpszTZID);
 	}
-
-	tRet = icaltime_as_timet_with_zone(icalvalue_get_datetime(icalproperty_get_value(lpicProp)), lpicTimeZone);
-
-	return tRet;
+	return icaltime_as_timet_with_zone(icalvalue_get_datetime(icalproperty_get_value(lpicProp)), lpicTimeZone);
 }
 
 /**
@@ -129,7 +120,7 @@ time_t ICalTimeTypeToLocal(icalproperty *lpicProp)
  * @param[in]	tt		icaltimetype time
  * @return		tm structure
  */
-static struct tm UTC_ICalTime2UnixTime(icaltimetype tt)
+static struct tm UTC_ICalTime2UnixTime(const icaltimetype &tt)
 {
 	struct tm stm = {0};
 
@@ -161,19 +152,14 @@ static struct tm UTC_ICalTime2UnixTime(icaltimetype tt)
 static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
     TIMEZONE_STRUCT *lpsTimeZone)
 {
-//	HRESULT hr = hrSuccess;
 	icalcomponent *icComp = NULL;
-	icalcomponent *iterComp = NULL;
-	icalproperty *tzFrom, *tzTo, *rRule, *dtStart;
-	icaltimetype icTime;
 	SYSTEMTIME *lpSysTime = NULL;
 	SYSTEMTIME stRecurTime;
-	icalrecurrencetype recur;
 
 	/* Assumes that definitions are sorted on dtstart, in ascending order. */
-	iterComp = icalcomponent_get_first_component(lpVTZ, kind);
+	auto iterComp = icalcomponent_get_first_component(lpVTZ, kind);
 	while (iterComp != NULL) {
-		icTime = icalcomponent_get_dtstart(iterComp);
+		auto icTime = icalcomponent_get_dtstart(iterComp);
 		icTime.is_utc = 1;
 		struct tm start = UTC_ICalTime2UnixTime(icTime);
 		if (time(NULL) < mktime(&start) && icComp != nullptr)
@@ -184,17 +170,15 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 
 	if (icComp == NULL)
 		return MAPI_E_NOT_FOUND;
-
-	dtStart = icalcomponent_get_first_property(icComp, ICAL_DTSTART_PROPERTY);
-	tzFrom = icalcomponent_get_first_property(icComp, ICAL_TZOFFSETFROM_PROPERTY);
-	tzTo = icalcomponent_get_first_property(icComp, ICAL_TZOFFSETTO_PROPERTY);
-	rRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
+	auto dtStart = icalcomponent_get_first_property(icComp, ICAL_DTSTART_PROPERTY);
+	auto tzFrom = icalcomponent_get_first_property(icComp, ICAL_TZOFFSETFROM_PROPERTY);
+	auto tzTo = icalcomponent_get_first_property(icComp, ICAL_TZOFFSETTO_PROPERTY);
+	auto rRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
 	//rDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
 
 	if (tzFrom == NULL || tzTo == NULL || dtStart == NULL)
 		return MAPI_E_NOT_FOUND;
-
-	icTime = icalcomponent_get_dtstart(icComp);
+	auto icTime = icalcomponent_get_dtstart(icComp);
 	icTime.is_utc = 1;
 
 	if (kind == ICAL_XSTANDARD_COMPONENT) {
@@ -222,7 +206,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 		lpSysTime->wMinute = stRecurTime.wMinute;
 		return hrSuccess;
 	}
-	recur = icalproperty_get_rrule(rRule);
+	auto recur = icalproperty_get_rrule(rRule);
 	// can daylight saving really be !yearly ??
 	if (recur.freq != ICAL_YEARLY_RECURRENCE ||
 	    recur.by_month[0] == ICAL_RECURRENCE_ARRAY_MAX ||
@@ -253,25 +237,20 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
  */
 HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_STRUCT* lpTimeZone)
 {
-	HRESULT hr = hrSuccess;
-	std::string strTZID;
 	TIMEZONE_STRUCT tzRet;
-	icalproperty *icProp = NULL;
 
 	memset(&tzRet, 0, sizeof(TIMEZONE_STRUCT));
-
-	icProp = icalcomponent_get_first_property(lpVTZ, ICAL_TZID_PROPERTY);
+	auto icProp = icalcomponent_get_first_property(lpVTZ, ICAL_TZID_PROPERTY);
 	if (icProp == NULL)
 		return MAPI_E_CALL_FAILED;
 
-	strTZID = icalproperty_get_tzid(icProp);
+	std::string strTZID = icalproperty_get_tzid(icProp);
 	if (strTZID.at(0) == '\"') {
 		// strip "" around timezone name
 		strTZID.erase(0, 1);
 		strTZID.erase(strTZID.size()-1);
 	}
-
-	hr = HrZoneToStruct(ICAL_XSTANDARD_COMPONENT, lpVTZ, &tzRet);
+	auto hr = HrZoneToStruct(ICAL_XSTANDARD_COMPONENT, lpVTZ, &tzRet);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -280,11 +259,10 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
 
 	// unsupported case: only exceptions in the timezone switches, and no base rule (e.g. very old Asia/Kolkata timezone)
 	{
-		icalcomponent *icComp = NULL;
 		icalproperty *tzSTDRule = NULL, *tzDSTRule = NULL;
 		icalproperty *tzSTDDate = NULL, *tzDSTDate = NULL;
 
-		icComp = icalcomponent_get_first_component(lpVTZ, ICAL_XSTANDARD_COMPONENT);
+		auto icComp = icalcomponent_get_first_component(lpVTZ, ICAL_XSTANDARD_COMPONENT);
 		if (icComp) {
 			tzSTDRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
 			tzSTDDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
@@ -318,11 +296,9 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
  * @return		MAPI error code
  * @retval		MAPI_E_INVALID_PARAMETER timezone contains invalid data for a yearly daylightsaving
  */
-HRESULT HrCreateVTimeZone(const std::string &strTZID, TIMEZONE_STRUCT &tsTimeZone, icalcomponent** lppVTZComp)
+HRESULT HrCreateVTimeZone(const std::string &strTZID,
+    const TIMEZONE_STRUCT &tsTimeZone, icalcomponent **lppVTZComp)
 {
-	icalcomponent *icTZComp = NULL;
-	icalcomponent *icComp = NULL;
-	icaltimetype icTime;
 	icalrecurrencetype icRec;
 
 	// wDay in a timezone context means "week in month", 5 for last week in month
@@ -333,12 +309,12 @@ HRESULT HrCreateVTimeZone(const std::string &strTZID, TIMEZONE_STRUCT &tsTimeZon
 		return MAPI_E_INVALID_PARAMETER;
 
 	// make a new timezone
-	icTZComp = icalcomponent_new(ICAL_VTIMEZONE_COMPONENT);
+	auto icTZComp = icalcomponent_new(ICAL_VTIMEZONE_COMPONENT);
 	icalcomponent_add_property(icTZComp, icalproperty_new_tzid(strTZID.c_str()));
 
 	// STD
-	icComp = icalcomponent_new_xstandard();
-	icTime = icaltime_from_timet_with_zone(SystemTimeToUnixTime(tsTimeZone.stStdDate), 0, nullptr);
+	auto icComp = icalcomponent_new_xstandard();
+	auto icTime = icaltime_from_timet_with_zone(SystemTimeToUnixTime(tsTimeZone.stStdDate), 0, nullptr);
 	icalcomponent_add_property(icComp, icalproperty_new_dtstart(icTime));
 	if (tsTimeZone.lStdBias == tsTimeZone.lDstBias || tsTimeZone.stStdDate.wMonth == 0 || tsTimeZone.stDstDate.wMonth == 0) {
 		// std == dst
@@ -409,15 +385,12 @@ HRESULT HrCreateVTimeZone(const std::string &strTZID, TIMEZONE_STRUCT &tsTimeZon
  */
 HRESULT HrGetTzStruct(const std::string &strTimezone, TIMEZONE_STRUCT *ttTimeZone)
 {
-	icaltimezone *lpicTimeZone = NULL;
-	icalcomponent *lpicComponent = NULL;
-	
 	if (strTimezone.empty())
 		return MAPI_E_INVALID_PARAMETER;
-	lpicTimeZone = icaltimezone_get_builtin_timezone(strTimezone.c_str());
+	auto lpicTimeZone = icaltimezone_get_builtin_timezone(strTimezone.c_str());
 	if (lpicTimeZone == NULL)
 		return MAPI_E_NOT_FOUND;
-	lpicComponent = icaltimezone_get_component(lpicTimeZone);
+	auto lpicComponent = icaltimezone_get_component(lpicTimeZone);
 	if (lpicComponent == NULL)
 		return MAPI_E_NOT_FOUND;
 	return HrParseVTimeZone(lpicComponent, NULL, ttTimeZone);

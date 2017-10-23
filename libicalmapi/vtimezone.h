@@ -38,10 +38,9 @@ time_t ICalTimeTypeToLocal(icalproperty *lpicProp);
 
 
 /* converts icaltimetype to local time_t */
-time_t icaltime_as_timet_with_server_zone(const struct icaltimetype tt);
-
+extern time_t icaltime_as_timet_with_server_zone(const struct icaltimetype &tt);
 HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* strTZID, TIMEZONE_STRUCT* lpTimeZone);
-HRESULT HrCreateVTimeZone(const std::string &strTZID, TIMEZONE_STRUCT &tsTimeZone, icalcomponent** lppVTZComp);
+extern HRESULT HrCreateVTimeZone(const std::string &tzid, const TIMEZONE_STRUCT &tz, icalcomponent **vtzcomp);
 
 /* convert Olson timezone name (e.g. Europe/Amsterdam) to internal TIMEZONE_STRUCT */
 HRESULT HrGetTzStruct(const std::string &strTimezone, TIMEZONE_STRUCT *tStruct);

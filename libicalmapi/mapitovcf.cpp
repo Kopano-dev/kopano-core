@@ -78,12 +78,11 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 
 HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpMessageClass;
 
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
+	auto hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
 	if (hr != hrSuccess)
 		return hr;
 	if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Contact") != 0)

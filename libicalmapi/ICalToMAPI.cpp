@@ -50,8 +50,6 @@ public:
 	    - Addressbook (Global AddressBook for looking up users)
 	 */
 	ICalToMapiImpl(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoRecipients);
-	virtual ~ICalToMapiImpl();
-
 	HRESULT ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZ, IMailUser *lpMailUser, ULONG ulFlags) _kc_override;
 	ULONG GetItemCount(void) _kc_override;
 	HRESULT GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t *lptLastModified, SBinary *lpUid) _kc_override;
@@ -64,7 +62,7 @@ private:
 	HRESULT SaveAttendeesString(const std::list<icalrecip> *lplstRecip, LPMESSAGE lpMessage);
 	HRESULT SaveProps(const std::list<SPropValue> *lpPropList, IMAPIProp *, unsigned int flags = 0);
 	HRESULT SaveRecipList(const std::list<icalrecip> *lplstRecip, ULONG ulFlag, LPMESSAGE lpMessage);
-	SPropTagArray *m_lpNamedProps = nullptr;
+	memory_ptr<SPropTagArray> m_lpNamedProps;
 	ULONG m_ulErrorCount = 0;
 	TIMEZONE_STRUCT ttServerTZ;
 	std::string strServerTimeZone;
@@ -72,7 +70,7 @@ private:
 	/* Contains a list of messages after ParseICal
 	 * Use GetItem() to get one of these messages
 	 */
-	std::vector<icalitem*> m_vMessages;
+	std::vector<std::unique_ptr<icalitem>> m_vMessages;
 
 	// freebusy information
 	bool m_bHaveFreeBusy = false;
@@ -113,15 +111,6 @@ ICalToMapiImpl::ICalToMapiImpl(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool b
 }
 
 /** 
- * Frees all used memory of the ICalToMapi class
- */
-ICalToMapiImpl::~ICalToMapiImpl()
-{
-	Clean();
-	MAPIFreeBuffer(m_lpNamedProps);
-}
-
-/** 
  * Frees and resets all used memory of the ICalToMapi class. The class
  * can be reused for another conversion after this call. Named
  * properties are kept, since you cannot switch items from a store.
@@ -129,12 +118,6 @@ ICalToMapiImpl::~ICalToMapiImpl()
 void ICalToMapiImpl::Clean()
 {
 	m_ulErrorCount = 0;
-	for (const auto i : m_vMessages) {
-		if (i->lpRecurrence != NULL)
-			delete i->lpRecurrence;
-		MAPIFreeBuffer(i->base);
-		delete i;
-	}
 	m_vMessages.clear();
 
 	m_bHaveFreeBusy = false;
@@ -159,9 +142,6 @@ void ICalToMapiImpl::Clean()
  */
 HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZparam, IMailUser *lpMailUser, ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-	icalcomp_ptr lpicCalendar;
-	icalcomponent *lpicComponent = NULL;
 	TIMEZONE_STRUCT ttTimeZone = {0};
 	timezone_map tzMap;
 	std::string strTZID;
@@ -170,13 +150,13 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 
 	Clean();
 	if (m_lpNamedProps == NULL) {
-		hr = HrLookupNames(m_lpPropObj, &m_lpNamedProps);
+		auto hr = HrLookupNames(m_lpPropObj, &~m_lpNamedProps);
 		if (hr != hrSuccess)
 			return hr;
 	}
 
 	icalerror_clear_errno();
-	lpicCalendar.reset(icalparser_parse_string(strIcal.c_str()));
+	icalcomp_ptr lpicCalendar(icalparser_parse_string(strIcal.c_str()));
 
 	if (lpicCalendar == NULL || icalerrno != ICAL_NO_ERROR) {
 		switch (icalerrno) {
@@ -208,9 +188,9 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	m_ulErrorCount = icalcomponent_count_errors(lpicCalendar.get());
 
 	/* Find all timezones, place in map. */
-	lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
+	auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
 	while (lpicComponent) {
-		hr = HrParseVTimeZone(lpicComponent, &strTZID, &ttTimeZone);
+		auto hr = HrParseVTimeZone(lpicComponent, &strTZID, &ttTimeZone);
 		if (hr != hrSuccess)
 			/* log warning? */ ;
 		else
@@ -231,28 +211,22 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	while (lpicComponent) {
 		std::unique_ptr<VConverter> lpVEC;
 		auto type = icalcomponent_isa(lpicComponent);
+		HRESULT hr = hrSuccess;
 		switch (type) {
 		case ICAL_VEVENT_COMPONENT:
 			static_assert(std::is_polymorphic<VEventConverter>::value, "VEventConverter needs to be polymorphic for unique_ptr to work");
 			lpVEC.reset(new VEventConverter(m_lpAdrBook, &tzMap, m_lpNamedProps, strCharset, false, m_bNoRecipients, lpMailUser));
-			hr = hrSuccess;
 			break;
 		case ICAL_VTODO_COMPONENT:
 			static_assert(std::is_polymorphic<VTodoConverter>::value, "VTodoConverter needs to be polymorphic for unique_ptr to work");
 			lpVEC.reset(new VTodoConverter(m_lpAdrBook, &tzMap, m_lpNamedProps, strCharset, false, m_bNoRecipients, lpMailUser));
-			hr = hrSuccess;
 			break;
 		case ICAL_VFREEBUSY_COMPONENT:
-			hr = hrSuccess;
 			break;
 		case ICAL_VJOURNAL_COMPONENT:
 		default:
-			hr = MAPI_E_NO_SUPPORT;
-			break;
-		};
-
-		if (hr != hrSuccess)
 			goto next;
+		};
 
 		switch (type) {
 		case ICAL_VFREEBUSY_COMPONENT:
@@ -276,14 +250,13 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 next:
 		lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
 	}
-	hr = hrSuccess;
 
 	// TODO: sort m_vMessages on sBinGuid in icalitem struct, so caldav server can use optimized algorithm for finding the same items in MAPI
 
 	// seems this happens quite fast .. don't know what's wrong with exchange's ical
 // 	if (m_ulErrorCount != 0)
 // 		hr = MAPI_W_ERRORS_RETURNED;
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -367,8 +340,6 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 {
 	HRESULT hr = hrSuccess;
 	ICalRecurrence cRec;
-	icalitem *lpItem = NULL;
-	std::vector<icalitem *>::const_iterator iItem;
 	ULONG ulANr = 0;
 	memory_ptr<SPropTagArray> lpsPTA;
 	object_ptr<IMAPITable> lpAttachTable;
@@ -379,8 +350,8 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	if (ulPosition >= m_vMessages.size() || lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	iItem = m_vMessages.begin() + ulPosition;
-	lpItem = *iItem;
+	auto iItem = m_vMessages.begin() + ulPosition;
+	auto lpItem = iItem->get();
 
 	if ((ulFlags & IC2M_APPEND_ONLY) == 0 && !lpItem->lstDelPropTags.empty()) {
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpItem->lstDelPropTags.size()), &~lpsPTA);
@@ -450,7 +421,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 next:
 	// add recurring properties & add exceptions
 	if (lpItem->lpRecurrence) {
-		hr = cRec.HrMakeMAPIRecurrence(lpItem->lpRecurrence, m_lpNamedProps, lpMessage);
+		hr = cRec.HrMakeMAPIRecurrence(lpItem->lpRecurrence.get(), m_lpNamedProps, lpMessage);
 		// TODO: log error if any?
 		
 		// check if all exceptions are valid
@@ -503,17 +474,15 @@ next:
 HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
     LPMAPIPROP lpMapiProp, unsigned int flags)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpsPropVals;
-	int i;
 
 	// all props to message
-	hr = MAPIAllocateBuffer(lpPropList->size() * sizeof(SPropValue), &~lpsPropVals);
+	auto hr = MAPIAllocateBuffer(lpPropList->size() * sizeof(SPropValue), &~lpsPropVals);
 	if (hr != hrSuccess)
 		return hr;
 
 	// @todo: add exclude list or something? might set props the caller doesn't want (see vevent::HrAddTimes())
-	i = 0;
+	int i = 0;
 	for (const auto &prop : *lpPropList) {
 		if (flags & IC2M_NO_BODY &&
 		    PROP_ID(prop.ulPropTag) == PROP_ID(PR_BODY))
@@ -536,13 +505,12 @@ HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
 HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
     ULONG ulFlag, LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	adrlist_ptr lpRecipients;
 	std::string strSearch;
 	ULONG i = 0;
 	convert_context converter;
 
-	hr = MAPIAllocateBuffer(CbNewADRLIST(lplstRecip->size()), &~lpRecipients);
+	auto hr = MAPIAllocateBuffer(CbNewADRLIST(lplstRecip->size()), &~lpRecipients);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -614,15 +582,8 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
  */
 HRESULT ICalToMapiImpl::SaveAttendeesString(const std::list<icalrecip> *lplstRecip, LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
-	std::wstring strAllAttendees;
-	std::wstring strToAttendees;
-	std::wstring strCCAttendees;
-	memory_ptr<SPropValue> lpsPropValue;
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 3, &~lpsPropValue);
-	if (hr != hrSuccess)
-		return hr;
+	std::wstring strAllAttendees, strToAttendees, strCCAttendees;
+	SPropValue lpsPropValue[3];
 
 	// Create attendees string
 	for (const auto &recip : *lplstRecip) {

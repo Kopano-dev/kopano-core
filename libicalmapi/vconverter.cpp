@@ -121,15 +121,11 @@ VConverter::VConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones, LPSPropT
  */
 HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEvent, icalitem *lpPrevItem, icalitem **lppRet)
 {
-	HRESULT hr = hrSuccess;
-	std::unique_ptr<icalitem> lpIcalItem;
-	icalproperty_method icMethod;
-	icalproperty *lpicLastModified = NULL;
 	icaltimetype icLastModifed;
 	bool bIsAllday;
 
 	// Retrieve the Allday status of the event
-	hr = HrRetrieveAlldayStatus(lpEvent, &bIsAllday);
+	auto hr = HrRetrieveAlldayStatus(lpEvent, &bIsAllday);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -140,16 +136,13 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 			return hrSuccess;
 	}
 
-	lpIcalItem.reset(new icalitem);
-	if ((hr = MAPIAllocateBuffer(sizeof(void*), &lpIcalItem->base)) != hrSuccess)
+	std::unique_ptr<icalitem> lpIcalItem(new icalitem);
+	hr = MAPIAllocateBuffer(sizeof(void *), &~lpIcalItem->base);
+	if (hr != hrSuccess)
 		return hr;
-	lpIcalItem->lpRecurrence = NULL;
 
-	// ---------------------------
-
-	icMethod = icalcomponent_get_method(lpEventRoot);
-
-	lpicLastModified = icalcomponent_get_first_property(lpEvent, ICAL_LASTMODIFIED_PROPERTY);
+	auto icMethod = icalcomponent_get_method(lpEventRoot);
+	auto lpicLastModified = icalcomponent_get_first_property(lpEvent, ICAL_LASTMODIFIED_PROPERTY);
 	if (lpicLastModified)
 		icLastModifed = icalproperty_get_lastmodified(lpicLastModified);
 	else
@@ -160,63 +153,59 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 	// also sets strUid in icalitem struct
 	hr = HrAddUids(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Handles RECURRENCE-ID tag for exception update
 	hr = HrAddRecurrenceID(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrAddStaticProps(icMethod, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrAddSimpleHeaders(lpEvent, lpIcalItem.get()); // subject, location, ...
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrAddXHeaders(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrAddCategories(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (icMethod == ICAL_METHOD_REPLY)
 		hr = HrAddReplyRecipients(lpEvent, lpIcalItem.get());
 	else						// CANCEL, REQUEST, PUBLISH
 		hr = HrAddRecipients(lpEvent, lpIcalItem.get(), &lpIcalItem->lstMsgProps, &lpIcalItem->lstRecips);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	hr = HrResolveUser(lpIcalItem->base, &(lpIcalItem->lstRecips));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// This function uses m_ulUserStatus set by HrResolveUser.
 	hr = HrAddBaseProperties(icMethod, lpEvent, lpIcalItem->base, false, &lpIcalItem->lstMsgProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrAddBusyStatus(lpEvent, icMethod, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	// Important: m_iCurrentTimeZone will be set by this function, because of the possible recurrence lateron
 	hr = HrAddTimes(icMethod, lpEventRoot, lpEvent, bIsAllday, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Set reminder / alarm
 	hr = HrAddReminder(lpEventRoot, lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Set recurrence.
 	hr = HrAddRecurrence(lpEventRoot, lpEvent, bIsAllday, lpIcalItem.get());
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lppRet = lpIcalItem.release();
-exit:
-	if (lpIcalItem != nullptr)
-		MAPIFreeBuffer(lpIcalItem->base);
 	return hr;
 }
 
@@ -230,12 +219,11 @@ exit:
  */
 HRESULT VConverter::HrGetUID(icalcomponent *lpEvent, std::string *strUid)
 {
-	const char *uid = NULL;
 	icalproperty *icProp = icalcomponent_get_first_property(lpEvent,
 	                       ICAL_UID_PROPERTY);
 	if (icProp == NULL)
 		return MAPI_E_NOT_FOUND;
-	uid = icalproperty_get_uid(icProp);
+	auto uid = icalproperty_get_uid(icProp);
 	if (uid == NULL || strcmp(uid,"") == 0)
 		return MAPI_E_NOT_FOUND;
 	*strUid = uid;
@@ -335,7 +323,6 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 		/* no resolution attempted, as done from testsuite. */
 		return hrSuccess;
 
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpUsrEidProp;
 	adrlist_ptr lpAdrList;
 	memory_ptr<ENTRYID> lpDDEntryID;
@@ -343,20 +330,19 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	object_ptr<IABContainer> lpAddrFolder;
 	memory_ptr<FlagList> lpFlagList;
 	icalrecip icalRecipient;
-	ULONG ulRecpCnt = 0;
 	ULONG ulRetn = 0;
 	ULONG ulObjType = 0;
 	ULONG cbEID = 0;
 
 	if (lplstIcalRecip->empty())
-		return hr;
+		return hrSuccess;
 	
 	// ignore error
 	if(m_lpMailUser)
 		HrGetOneProp(m_lpMailUser, PR_ENTRYID, &~lpUsrEidProp);
 
-	ulRecpCnt = lplstIcalRecip->size();
-	hr = MAPIAllocateBuffer(CbNewFlagList(ulRecpCnt), &~lpFlagList);
+	ULONG ulRecpCnt = lplstIcalRecip->size();
+	auto hr = MAPIAllocateBuffer(CbNewFlagList(ulRecpCnt), &~lpFlagList);
 	if (hr != hrSuccess)
 		return hr;
 	lpFlagList->cFlags = ulRecpCnt;
@@ -442,12 +428,11 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
  */
 HRESULT VConverter::HrCompareUids(icalitem *lpIcalItem, icalcomponent *lpicEvent)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropVal;
 	std::string strUid;
 	int res;
 	
-	hr = HrGetUID(lpicEvent, &strUid);
+	auto hr = HrGetUID(lpicEvent, &strUid);
 	if (hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
@@ -530,26 +515,21 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
  */
 HRESULT VConverter::HrHandleExceptionGuid(icalcomponent *lpiEvent, void *base, SPropValue *lpsProp)
 {
-	std::string strUid;
-	std::string strBinUid;
-	icalproperty *icProp = NULL;
-	icaltimetype icTime;
 	char strHexDate[] = "00000000";
 	
 	if (lpsProp == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	icProp = icalcomponent_get_first_property(lpiEvent, ICAL_RECURRENCEID_PROPERTY);
+	auto icProp = icalcomponent_get_first_property(lpiEvent, ICAL_RECURRENCEID_PROPERTY);
 	if (icProp == NULL)
 		return hrSuccess; //ignoring Recurrence-ID.
 
-	strUid = bin2hex(lpsProp->Value.bin.cb, lpsProp->Value.bin.lpb);
-
-	icTime = icaltime_from_timet_with_zone(ICalTimeTypeToUTC(lpiEvent, icProp), 0, nullptr);
+	auto strUid = bin2hex(lpsProp->Value.bin.cb, lpsProp->Value.bin.lpb);
+	auto icTime = icaltime_from_timet_with_zone(ICalTimeTypeToUTC(lpiEvent, icProp), 0, nullptr);
 	sprintf(strHexDate,"%04x%02x%02x", icTime.year, icTime.month, icTime.day);
 
 	// Exception date is stored in GlobalObjectId
 	strUid.replace(32, 8, strHexDate);
-	strBinUid = hex2bin(strUid);
+	auto strBinUid = hex2bin(strUid);
 
 	lpsProp->Value.bin.cb = strBinUid.size();
 	HRESULT hr = MAPIAllocateMore(strBinUid.size(), base,
@@ -619,7 +599,6 @@ HRESULT VConverter::HrAddRecurrenceID(icalcomponent *lpiEvent, icalitem *lpIcalI
  */
 HRESULT VConverter::HrAddStaticProps(icalproperty_method icMethod, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
 
 	// From [MS-OXOCAL].pdf: All Calendar objects SHOULD include the following flags:
@@ -643,8 +622,7 @@ HRESULT VConverter::HrAddStaticProps(icalproperty_method icMethod, icalitem *lpI
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONASSIGN], PT_LONG);
 	sPropVal.Value.ul = 0;
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
-
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -660,17 +638,14 @@ HRESULT VConverter::HrAddStaticProps(icalproperty_method icMethod, icalitem *lpI
  */	
 HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
-	icalproperty *lpicProp = NULL;
-	int lPriority;
 	int lClass = 0;
 
 	// Set subject / SUMMARY
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_SUMMARY_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_SUMMARY_PROPERTY);
 	if (lpicProp){
 		sPropVal.ulPropTag = PR_SUBJECT_W;
-		hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalcomponent_get_summary(lpicEvent), &sPropVal.Value.lpszW);
+		auto hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalcomponent_get_summary(lpicEvent), &sPropVal.Value.lpszW);
 		if (hr != hrSuccess)
 			sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
 		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
@@ -685,7 +660,7 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_COMMENT_PROPERTY);
 	if (lpicProp){
 		sPropVal.ulPropTag = PR_BODY_W;
-		hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalproperty_get_description(lpicProp), &sPropVal.Value.lpszW);
+		auto hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalproperty_get_description(lpicProp), &sPropVal.Value.lpszW);
 		if (hr != hrSuccess)
 			sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
 		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
@@ -696,7 +671,7 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 	// Set location / LOCATION
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_LOCATION_PROPERTY);
 	if (lpicProp) {
-		hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalproperty_get_location(lpicProp), &sPropVal.Value.lpszW);
+		auto hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalproperty_get_location(lpicProp), &sPropVal.Value.lpszW);
 		if (hr != hrSuccess)
 			sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
 
@@ -712,7 +687,7 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 	// Set importance and priority / PRIORITY
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_PRIORITY_PROPERTY);
 	if (lpicProp) {
-		lPriority = icalproperty_get_priority(lpicProp);
+		auto lPriority = icalproperty_get_priority(lpicProp);
 		// @todo: test input and output!
 		if (lPriority == 0)
 			;
@@ -766,9 +741,7 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
  */
 HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_method icMethod, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
-	icalproperty* lpicProp = NULL;
 
 	// default: busy
 	// 0: free
@@ -783,7 +756,7 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 		sPropVal.Value.ul = 2;
 	
 	// caldav clients only uses the TRANSP property to set FreeBusy
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_TRANSP_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_TRANSP_PROPERTY);
 	if (lpicProp) {
 		switch (icalproperty_get_transp(lpicProp)) {
 		case ICAL_TRANSP_TRANSPARENT: // free
@@ -846,7 +819,7 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_INTENDEDBUSYSTATUS], PT_LONG);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -858,11 +831,7 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
  */
 HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
-	icalproperty* lpicProp = NULL;
-	icalvalue *lpicValue = NULL;
-	time_t ttCritcalChange = 0;
 	int ulMaxCounter = 0;
 	bool bHaveCounter = false;
 	bool bOwnerApptID = false;
@@ -876,30 +845,27 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
 	{
 		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ATTENDEE-CRITICAL-CHANGE") == 0){
-
-			lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
+			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
 				continue;
-			ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
+			auto ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ATTENDEECRITICALCHANGE], PT_SYSTIME);
 			UnixTimeToFileTime(ttCritcalChange, &sPropVal.Value.ft);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE") == 0){
-			
-			lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
+			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
 				continue;
-			ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
+			auto ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME);
 			UnixTimeToFileTime(ttCritcalChange, &sPropVal.Value.ft);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-OWNERAPPTID") == 0){
-			
-			lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
+			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
 				continue;
 			sPropVal.ulPropTag = PR_OWNER_APPT_ID;
@@ -909,8 +875,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			icalvalue_free(lpicValue);
 
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-APPT-SEQUENCE") == 0){
-			
-			lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
+			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
 				continue;
 			ulMaxCounter = std::max(ulMaxCounter, icalvalue_get_integer(lpicValue));
@@ -918,8 +883,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			icalvalue_free(lpicValue);
 
 		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-GENERATION") == 0) {
-
-			lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
+			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
 				continue;
 			ulMaxCounter = std::max(ulMaxCounter, icalvalue_get_integer(lpicValue));
@@ -927,8 +891,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			icalvalue_free(lpicValue);
 
 		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-SEND-INVITATIONS") == 0) {
-
-			lpicValue =  icalvalue_new_from_string(ICAL_X_VALUE, icalproperty_get_x(lpicProp));
+			auto lpicValue = icalvalue_new_from_string(ICAL_X_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
 				continue;
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZSENDINVITE], PT_BOOLEAN);
@@ -941,7 +904,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 		}
 	}
 
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_SEQUENCE_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_SEQUENCE_PROPERTY);
 	if (lpicProp) {
 		ulMaxCounter = std::max(ulMaxCounter, icalcomponent_get_sequence(lpicEvent));
 		bHaveCounter = true;
@@ -966,7 +929,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	}
 
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -979,13 +942,11 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 {
 	SPropValue sPropVal;
-	icalproperty *lpicProp = NULL;
 	const char* lpszCategories = NULL;
 	std::vector<std::string> vCategories;
-	int i;
 
 	// Set keywords / CATEGORIES
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_CATEGORIES_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_CATEGORIES_PROPERTY);
 	if (!lpicProp) {
 		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_STRING8));
 		return hrSuccess;
@@ -1001,7 +962,7 @@ HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	if (hr != hrSuccess)
 		return hr;
 
-	i = 0;
+	int i = 0;
 	for (const auto &cat : vCategories) {
 		int length = cat.length() + 1;
 		hr = MAPIAllocateMore(length, lpIcalItem->base, (void **) &sPropVal.Value.MVszA.lppszA[i]);
@@ -1098,8 +1059,6 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	HRESULT hr = hrSuccess;
 	std::wstring strEmail, strName;
 	std::string strType;
-	icalproperty *lpicProp = NULL;
-	icalparameter *lpicParam = NULL;
 	icalrecip icrAttendee = {0};
 	ULONG cbEntryID = 0;
 	LPENTRYID lpEntryID = NULL;
@@ -1107,14 +1066,13 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	memory_ptr<ENTRYID> lpEntryIDOneOff;
 	memory_ptr<SPropValue> lpsPropVal;
 
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
 	if (lpicProp) {
 		const char *tmp = icalproperty_get_organizer(lpicProp);
 		strEmail = m_converter.convert_to<wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
 		if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 			strEmail = strEmail.erase(0, 7);
-
-		lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
+		auto lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
 		tmp = icalparameter_get_cn(lpicParam);
 		if (lpicParam != NULL)
 			strName = m_converter.convert_to<wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
@@ -1190,7 +1148,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	if (hr != hrSuccess)
 		return hr;
 
-	for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
+	for (auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
 		 lpicProp != NULL;
 		 lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_ATTENDEE_PROPERTY))
 	{
@@ -1212,7 +1170,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		if(icrAttendee.strEmail == strEmail) // remove organiser from attendee list.
 			continue;
 		
-		lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
+		auto lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
 		if (lpicParam) {
 			const char *lpszProp = icalparameter_get_cn(lpicParam);
 			icrAttendee.strName = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
@@ -1272,22 +1230,18 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
  */
 HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	wstring strEmail, strName;
-	icalproperty *lpicProp = NULL;
-	icalparameter *lpicParam = NULL;
 	icalrecip icrAttendee;
 	ULONG cbEntryID;
 	memory_ptr<ENTRYID> lpEntryID;
 
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
 	if (lpicProp) {
 		const char *lpszProp = icalproperty_get_organizer(lpicProp);
 		icrAttendee.strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
 		if (wcsncasecmp(icrAttendee.strEmail.c_str(), L"mailto:", 7) == 0)
 			icrAttendee.strEmail.erase(0, 7);
-
-		lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
+		auto lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
 		if (lpicParam != NULL) {
 			lpszProp = icalparameter_get_cn(lpicParam);
 			icrAttendee.strName = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
@@ -1309,14 +1263,14 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 			if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 				strEmail.erase(0, 7);
 
-			lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
+			auto lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
 			if (lpicParam) {
 				lpszProp = icalparameter_get_cn(lpicParam);
 				strName = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
 			}
 		}
 
-		hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
+		auto hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess)
 			return hr;
 		hr = HrAddOrganizer(lpIcalItem, &lpIcalItem->lstMsgProps, strEmail, strName, "SMTP", cbEntryID, lpEntryID);
@@ -1338,20 +1292,14 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 {
 	SPropValue sPropVal;
 	SPropValue sPropMozAck;
-	icalcomponent *lpicAlarm = NULL;
 	LONG ulRemindBefore = 0;
 	time_t ttReminderTime = 0;
 	time_t ttReminderNext = 0;
-	time_t ttMozLastAck = 0;
 	time_t ttMozLastAckMax = 0;
 	bool bReminderSet = false;
 	bool bHasMozAck = false;
-	icalproperty* lpicDTStartProp = NULL;
-	icalproperty* lpicProp = NULL;
-	icalvalue *lpicValue = NULL;
-	std::string strSuffix;
 
-	lpicAlarm = icalcomponent_get_first_component(lpicEvent, ICAL_VALARM_COMPONENT);
+	auto lpicAlarm = icalcomponent_get_first_component(lpicEvent, ICAL_VALARM_COMPONENT);
 	if (lpicAlarm == NULL) {
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN);
 		sPropVal.Value.b = false;
@@ -1372,12 +1320,11 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 	// Handle Sunbird's dismiss/snooze, see: https://wiki.mozilla.org/Calendar:Feature_Implementations:Alarms
 	// X-MOZ-SNOOZE-TIME-1231250400000000:20090107T132846Z
 	// X-MOZ-LASTACK:20090107T132846Z
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 	while (lpicProp) {
 		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-LASTACK") == 0){
-			
-			lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
-			ttMozLastAck = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL);
+			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
+			auto ttMozLastAck = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL);
 			if(ttMozLastAck > ttMozLastAckMax)//save max of X-MOZ-LAST-ACK if present twice.
 				ttMozLastAckMax = ttMozLastAck;
 			icalvalue_free(lpicValue);
@@ -1385,14 +1332,14 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 		}
 		else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-SNOOZE-TIME") == 0) {
 			// x properties always return a char* as value :(
-			lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
+			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
 			ttReminderNext = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone			
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME);
 			UnixTimeToFileTime(ttReminderNext, &sPropVal.Value.ft);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			
 			// X-MOZ-SNOOZE-TIME-1231250400000000
-			strSuffix = icalproperty_get_x_name(lpicProp);
+			std::string strSuffix = icalproperty_get_x_name(lpicProp);
 			if(strSuffix.compare("X-MOZ-SNOOZE-TIME") != 0)
 			{
 				sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZ_SNOOZE_SUFFIX], PT_SYSTIME);
@@ -1403,7 +1350,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 			}
 			icalvalue_free(lpicValue);
 		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-RTF") == 0) {
-			lpicValue =  icalvalue_new_from_string(ICAL_X_VALUE, icalproperty_get_x(lpicProp));
+			auto lpicValue = icalvalue_new_from_string(ICAL_X_VALUE, icalproperty_get_x(lpicProp));
 			string rtf = base64_decode(icalvalue_get_x(lpicValue));
 			sPropVal.ulPropTag = PR_RTF_COMPRESSED;
 			sPropVal.Value.bin.cb = rtf.size();
@@ -1443,7 +1390,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 	if (ttReminderTime == 0) {
 		// get starttime from item
 		// DTSTART must be available
-		lpicDTStartProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
+		auto lpicDTStartProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 		if (lpicDTStartProp == NULL)
 			return MAPI_E_INVALID_PARAMETER;
 		ttReminderTime = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
@@ -1479,10 +1426,8 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
  */
 HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
 {
-	ICalRecurrence icRecClass;
 	SPropValue spSpropVal = {0};
 	TIMEZONE_STRUCT zone;
-	HRESULT hr = hrSuccess;
 	icalproperty *lpicProp = icalcomponent_get_first_property(lpicEvent,
 	                         ICAL_RRULE_PROPERTY);
 	if (lpicProp == NULL) {
@@ -1495,8 +1440,7 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8));
 		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME));
 		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCE_END], PT_SYSTIME));
-		lpIcalItem->lpRecurrence = NULL;
-
+		lpIcalItem->lpRecurrence.reset();
 		// remove all exception attachments from existing message, done in ICal2Mapi.cpp
 		return hrSuccess;
 	}
@@ -1505,14 +1449,14 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 		// if we have an RRULE, we must have a timezone
 		return MAPI_E_CORRUPT_DATA;
 	} else if (m_iCurrentTimeZone == m_mapTimeZones->end()) {
-		hr = HrGetTzStruct("Etc/UTC", &zone);
+		auto hr = HrGetTzStruct("Etc/UTC", &zone);
 		if (hr != hrSuccess)
 			return hr;
 	} else {
 		zone = m_iCurrentTimeZone->second;
 	}
-	hr = icRecClass.HrParseICalRecurrenceRule(zone, lpicEventRoot,
-	     lpicEvent, bIsAllday, m_lpNamedProps, lpIcalItem);
+	auto hr = ICalRecurrence().HrParseICalRecurrenceRule(zone, lpicEventRoot,
+	          lpicEvent, bIsAllday, m_lpNamedProps, lpIcalItem);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1542,12 +1486,8 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
  */
 HRESULT VConverter::HrAddException(icalcomponent *lpEventRoot, icalcomponent *lpEvent, bool bIsAllday, icalitem *lpPrevItem)
 {
-	HRESULT hr;
-	ICalRecurrence cRec;
 	icalitem::exception ex;
-	icalproperty_method icMethod = ICAL_METHOD_NONE;
-
-	hr = HrCompareUids(lpPrevItem, lpEvent);
+	auto hr = HrCompareUids(lpPrevItem, lpEvent);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1555,10 +1495,10 @@ HRESULT VConverter::HrAddException(icalcomponent *lpEventRoot, icalcomponent *lp
 		// can't add exceptions if the previous item did not have an RRULE
 		return MAPI_E_CORRUPT_DATA;
 
-	icMethod = icalcomponent_get_method(lpEventRoot);
+	auto icMethod = icalcomponent_get_method(lpEventRoot);
 
 	// it's the same item, handle exception
-	hr = cRec.HrMakeMAPIException(lpEventRoot, lpEvent, lpPrevItem, bIsAllday, m_lpNamedProps, m_strCharset, &ex);
+	hr = ICalRecurrence().HrMakeMAPIException(lpEventRoot, lpEvent, lpPrevItem, bIsAllday, m_lpNamedProps, m_strCharset, &ex);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrAddRecipients(lpEvent, lpPrevItem, &ex.lstMsgProps, &ex.lstRecips);
@@ -1589,7 +1529,6 @@ HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::str
 {
 	HRESULT hr = hrSuccess;
 	string strTZid;
-	string::size_type pos;
 	TIMEZONE_STRUCT ttTZinfo = {0};
 	icaltimezone *lpicTZinfo = NULL;
 	icalcomponent *lpicComp = NULL;
@@ -1627,8 +1566,7 @@ HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::str
 		// from: (GMT+01:00) Amsterdam, Berlijn, Bern, Rome, Stockholm, Wenen
 		// from: (GMT+01.00) Sarajevo/Warsaw/Zagreb
 		// to: (GMT+01:00) (note: the dot is not converted .. should we?)
-
-		pos = strTZid.rfind(')');
+		auto pos = strTZid.rfind(')');
 		strTZid.erase(pos+1);
 	}
 	ulPos = strTZid.find('+');
@@ -1676,7 +1614,6 @@ done:
 
 HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezone *lpicTZinfo, const std::string &strTZid, icalproperty_kind icalkind, icalproperty *lpicProp)
 {
-	HRESULT hr = hrSuccess;
 	icaltimetype ittStamp;
 
 	// if (bDateOnly && !lpicTZinfo)
@@ -1721,7 +1658,7 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 	if (lpicTZinfo && !bDateOnly)
 		icalproperty_add_parameter(lpicProp, icalparameter_new_from_value_string(ICAL_TZID_PARAMETER, strTZid.c_str()));
 
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1772,17 +1709,13 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
  */
 HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE lpMessage, ULONG ulProps, LPSPropValue lpProps, icalproperty_method *lpicMethod, icalcomponent *lpicEvent)
 {
-	HRESULT hr = hrSuccess;
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
 	wstring strSenderName, strSenderType, strSenderEmailAddr;
 	wstring strReceiverName, strReceiverType, strReceiverEmailAddr;
 	wstring strRepsSenderName, strRepsSenderType, strRepsSenderEmailAddr;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropValue> lpSpropVal;
-	icalproperty *lpicProp = NULL;
 	icalparameter *lpicParam = NULL;
-	string strMessageClass;
-	wstring wstrBuf;
 	ULONG ulMeetingStatus = 0;
 	bool bCounterProposal = false;
 
@@ -1791,7 +1724,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 		bCounterProposal = true;
 	
 	//Remove Organiser & Attendees of Root event for exception.
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
 	if (lpicProp) {
 		icalcomponent_remove_property(lpicEvent, lpicProp);
 		icalproperty_free(lpicProp);
@@ -1799,10 +1732,8 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
 	while (lpicProp) {
-		if (lpicProp) {
-			icalcomponent_remove_property(lpicEvent, lpicProp);
-			icalproperty_free(lpicProp);
-		}
+		icalcomponent_remove_property(lpicEvent, lpicProp);
+		icalproperty_free(lpicProp);
 		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
 	}
 
@@ -1814,7 +1745,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 
 	// Request mail address from addressbook to get the actual email address
 	// use the parent message, OL does not set PR_SENDER_ENTRYID in exception message.
-	hr = HrGetAddress(m_lpAdrBook, lpParentMsg,
+	auto hr = HrGetAddress(m_lpAdrBook, lpParentMsg,
 					  PR_SENDER_ENTRYID, PR_SENDER_NAME, PR_SENDER_ADDRTYPE, PR_SENDER_EMAIL_ADDRESS,
 					  strSenderName, strSenderType, strSenderEmailAddr);
 	if (hr != hrSuccess)
@@ -1825,8 +1756,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	if (lpPropVal == nullptr)
 		return MAPI_E_NOT_FOUND;
 
-	strMessageClass = m_converter.convert_to<std::string>(lpPropVal->Value.lpszW);
-
+	auto strMessageClass = m_converter.convert_to<std::string>(lpPropVal->Value.lpszW);
 	// Set attendee info
 	if (strMessageClass.compare(0, string("IPM.Schedule.Meeting.Resp.").length(), string("IPM.Schedule.Meeting.Resp.")) == 0)
 	{
@@ -1852,7 +1782,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_ACCEPTED);
 
 		// I am the only attendee that is replying
-		wstrBuf = L"mailto:" + (strRepsSenderEmailAddr.empty() ? strSenderEmailAddr : strRepsSenderEmailAddr);
+		auto wstrBuf = L"mailto:" + (strRepsSenderEmailAddr.empty() ? strSenderEmailAddr : strRepsSenderEmailAddr);
 		lpicProp = icalproperty_new_attendee(m_converter.convert_to<string>(wstrBuf).c_str());
 		icalproperty_add_parameter(lpicProp, lpicParam);
 
@@ -1940,7 +1870,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			icalcomponent_add_property(lpicEvent, lpicProp);
 			
 			// I am the Organizer
-			wstrBuf = L"mailto:" + (strRepsSenderEmailAddr.empty()? strSenderEmailAddr : strRepsSenderEmailAddr);
+			auto wstrBuf = L"mailto:" + (strRepsSenderEmailAddr.empty()? strSenderEmailAddr : strRepsSenderEmailAddr);
 			lpicProp = icalproperty_new_organizer(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str());
 
 			wstrBuf = strRepsSenderName.empty()? strSenderName : strRepsSenderName;
@@ -1979,27 +1909,23 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
  */
 HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
-	HRESULT hr = hrSuccess;
-	icalproperty *lpProp = NULL;
-	icaltimetype ittICalTime;
 	bool bHasOwnerCriticalChange = false;
 
 	// Set creation time / CREATED
 	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_CREATION_TIME);
 	if (lpPropVal) {
-		ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0, nullptr);
+		auto ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0, nullptr);
 		ittICalTime.is_utc = 1;
 
-		lpProp = icalproperty_new_created(ittICalTime);
+		auto lpProp = icalproperty_new_created(ittICalTime);
 		icalcomponent_add_property(lpEvent, lpProp);
 	}
 
 	// exchange 2003 is using DTSTAMP for 'X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE'
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME));
 	if (lpPropVal) {
-		ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), false, icaltimezone_get_utc_timezone());
-
-		lpProp = icalproperty_new_dtstamp(ittICalTime);
+		auto ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), false, icaltimezone_get_utc_timezone());
+		auto lpProp = icalproperty_new_dtstamp(ittICalTime);
 		icalcomponent_add_property(lpEvent,lpProp);
 
 		bHasOwnerCriticalChange = true;
@@ -2008,10 +1934,9 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 	// Set modification time / LAST-MODIFIED + DTSTAMP
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_LAST_MODIFICATION_TIME);
 	if (lpPropVal) {
-		ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0, nullptr);
+		auto ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0, nullptr);
 		ittICalTime.is_utc = 1;
-
-		lpProp = icalproperty_new_lastmodified(ittICalTime);
+		auto lpProp = icalproperty_new_lastmodified(ittICalTime);
 		icalcomponent_add_property(lpEvent,lpProp);
 
 		if (!bHasOwnerCriticalChange) {
@@ -2019,8 +1944,7 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 			icalcomponent_add_property(lpEvent,lpProp);
 		}
 	}
-
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -2035,19 +1959,16 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
  */
 HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &strOrganizer, icalcomponent *lpicEvent)
 {
-	HRESULT hr = hrSuccess;
-	icalproperty *lpProp = NULL;
 	icalparameter *lpParam = NULL;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
-	ULONG ulCount = 0;
 	wstring strName, strType, strEmailAddress;
 	static constexpr const SizedSPropTagArray(7, sptaRecipProps) =
 		{7, {PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A,
 		PR_EMAIL_ADDRESS_A, PR_RECIPIENT_FLAGS, PR_RECIPIENT_TYPE,
 		PR_RECIPIENT_TRACKSTATUS}};
 
-	hr = lpMessage->GetRecipientTable(0, &~lpTable);
+	auto hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTable->SetColumns(sptaRecipProps, 0);
@@ -2058,7 +1979,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 		return hr;
 	
 	// Set all recipients into icalcomponent lpicEvent
-	for (ulCount = 0; ulCount < lpRows->cRows; ++ulCount) {
+	for (ULONG ulCount = 0; ulCount < lpRows->cRows; ++ulCount) {
 		// ZARAFA types go correct because of addressbook, (slow?, should use PR_SMTP_ADDRESS?)
 		// SMTP types go correct because of PR_EMAIL_ADDRESS 
 		hr = HrGetAddress(m_lpAdrBook, lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues,
@@ -2093,8 +2014,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 		}
 
 		strEmailAddress.insert(0, L"mailto:");
-
-		lpProp = icalproperty_new_attendee(m_converter.convert_to<string>(m_strCharset.c_str(), strEmailAddress, rawsize(strEmailAddress), CHARSET_WCHAR).c_str());
+		auto lpProp = icalproperty_new_attendee(m_converter.convert_to<string>(m_strCharset.c_str(), strEmailAddress, rawsize(strEmailAddress), CHARSET_WCHAR).c_str());
 		icalproperty_add_parameter(lpProp, lpParam);
 
 		lpPropVal = PCpropFindProp(lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues, PR_RECIPIENT_TRACKSTATUS);
@@ -2137,7 +2057,6 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
  */
 HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, icalcomponent *lpicEvent)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpSpropVal;
 	icalproperty *lpicProp = NULL;
 	
@@ -2149,7 +2068,7 @@ HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, ica
 	icalcomponent_add_property(lpicEvent, lpicProp);
 	
 	// set the X-MICROSOFT-CDO-INTENDEDSTATUS property
-	hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_INTENDEDBUSYSTATUS], PT_LONG), &~lpSpropVal);
+	auto hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_INTENDEDBUSYSTATUS], PT_LONG), &~lpSpropVal);
 	if(hr == hrSuccess && lpSpropVal->Value.ul != (ULONG)-1)
 		ulBusyStatus = lpSpropVal->Value.ul;
 
@@ -2194,14 +2113,7 @@ HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, ica
  */
 HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPMESSAGE lpMessage, icalcomponent *lpEvent)
 {
-	icaltimetype icCriticalChange;
-	icalvalue *lpicValue = NULL;
-	icalproperty *lpProp = NULL;
 	time_t ttCriticalChange = 0;
-	ULONG ulApptSeqNo = 0;
-	ULONG ulOwnerApptID = 0;
-	char *lpszTemp = NULL;
-	bool blIsAllday = false;
 
 	// set X-MICROSOFT-CDO & X-MOZ properties 
 	// X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE
@@ -2211,10 +2123,10 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	else
 		ttCriticalChange = time(NULL);
 
-	icCriticalChange = icaltime_from_timet_with_zone(ttCriticalChange, false, icaltimezone_get_utc_timezone());
-	lpicValue = icalvalue_new_datetime(icCriticalChange);
-	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
-	lpProp = icalproperty_new_x(lpszTemp);
+	auto icCriticalChange = icaltime_from_timet_with_zone(ttCriticalChange, false, icaltimezone_get_utc_timezone());
+	auto lpicValue = icalvalue_new_datetime(icCriticalChange);
+	auto lpszTemp = icalvalue_as_ical_string_r(lpicValue);
+	auto lpProp = icalproperty_new_x(lpszTemp);
 	icalmemory_free_buffer(lpszTemp);
 	icalproperty_set_x_name(lpProp, "X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE");
 	icalcomponent_add_property(lpEvent, lpProp);
@@ -2239,10 +2151,9 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	
 	// X-MICROSOFT-CDO-APPT-SEQUENCE
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSEQNR], PT_LONG));
+	ULONG ulApptSeqNo = 0;
 	if (lpPropVal != nullptr)
 		ulApptSeqNo = lpPropVal->Value.ul;
-	else
-		ulApptSeqNo = 0;
 
 	lpicValue = icalvalue_new_integer(ulApptSeqNo);
 	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
@@ -2254,10 +2165,9 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 
 	// X-MICROSOFT-CDO-OWNERAPPTID
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_OWNER_APPT_ID);
+	ULONG ulOwnerApptID = -1;
 	if (lpPropVal != nullptr)
 		ulOwnerApptID = lpPropVal->Value.ul;
-	else
-		ulOwnerApptID = -1;
 
 	lpicValue = icalvalue_new_integer(ulOwnerApptID);
 	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
@@ -2286,6 +2196,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 
 	// X-MICROSOFT-CDO-ALLDAYEVENT
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
+	bool blIsAllday = false;
 	if (lpPropVal != nullptr)
 		blIsAllday = (lpPropVal->Value.b == TRUE);
 
@@ -2336,14 +2247,11 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
  */
 HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcomponent *lpicEvent)
 {
-	HRESULT hr = hrSuccess;
 	icalcomponent *lpAlarm = NULL;
-	icalproperty *lpicProp = NULL;
 	time_t ttSnooze = 0;
 	time_t ttSnoozeSuffix = 0;
 	bool blxmozgen = false;
 	bool blisItemReccr = false;
-	char *lpszTemp = NULL;
 	LONG lRemindBefore = 0;
 	time_t ttReminderTime = 0;
 	bool bTask = false;
@@ -2361,8 +2269,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 	lpPropVal = PCpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS);
 	if (lpPropVal && _tcsicmp(lpPropVal->Value.LPSZ, KC_T("IPM.Task")) == 0)
 		bTask = true;
-
-	hr = HrParseReminder(lRemindBefore, ttReminderTime, bTask, &lpAlarm);
+	auto hr = HrParseReminder(lRemindBefore, ttReminderTime, bTask, &lpAlarm);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2389,9 +2296,8 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 		FileTimeToUnixTime(lpPropVal->Value.ft, &ttSnooze);
 		icSnooze = icaltime_from_timet_with_zone(ttSnooze, false, icaltimezone_get_utc_timezone());
 		lpicValue = icalvalue_new_datetime(icSnooze);
-
-		lpszTemp = icalvalue_as_ical_string_r(lpicValue);
-		lpicProp = icalproperty_new_x(lpszTemp);
+		auto lpszTemp = icalvalue_as_ical_string_r(lpicValue);
+		auto lpicProp = icalproperty_new_x(lpszTemp);
 		icalmemory_free_buffer(lpszTemp);
 		icalproperty_set_x_name(lpicProp, strSnoozeTime.c_str()); 
 
@@ -2417,9 +2323,8 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 			return hrSuccess;
 		icModTime = icaltime_from_timet_with_zone(ttLastAckTime, false, icaltimezone_get_utc_timezone());
 		lpicValue = icalvalue_new_datetime(icModTime);
-
-		lpszTemp = icalvalue_as_ical_string_r(lpicValue);
-		lpicProp = icalproperty_new_x(lpszTemp);
+		auto lpszTemp = icalvalue_as_ical_string_r(lpicValue);
+		auto lpicProp = icalproperty_new_x(lpszTemp);
 		icalmemory_free_buffer(lpszTemp);
 		icalproperty_set_x_name(lpicProp, "X-MOZ-LASTACK"); 
 		icalcomponent_add_property(lpicEvent, lpicProp);
@@ -2442,13 +2347,11 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
  */
 HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IStream> lpStream;
 	STATSTG sStreamStat;
 	std::wstring strBody;
-	std::unique_ptr<wchar_t[]> lpBody;
 
-	hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
+	auto hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpStream->Stat(&sStreamStat, 0);
@@ -2456,7 +2359,7 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 		return hr;
 	if (sStreamStat.cbSize.LowPart == 0)
 		return MAPI_E_NOT_FOUND;
-	lpBody.reset(new WCHAR[sStreamStat.cbSize.LowPart + sizeof(WCHAR)]);
+	std::unique_ptr<wchar_t[]> lpBody(new WCHAR[sStreamStat.cbSize.LowPart + sizeof(WCHAR)]);
 	memset(lpBody.get(), 0, (sStreamStat.cbSize.LowPart+1) * sizeof(WCHAR));
 
 	hr = lpStream->Read(lpBody.get(), sStreamStat.cbSize.LowPart * sizeof(WCHAR), NULL);
@@ -2503,7 +2406,6 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 {
 	bool bIsSeriesAllDay = false;
 	icaltimetype icTime = {0};
-	std::string strUid;
 	time_t tRecId = 0;
 	ULONG ulRecurStartTime = -1;	// as 0 states start of day
 	ULONG ulRecurEndTime = -1;		// as 0 states start of day	
@@ -2551,7 +2453,7 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 		if (!lpPropVal)
 			return hrSuccess;
 		// @todo don't do this calculation using a std::string
-		strUid = bin2hex(lpPropVal->Value.bin.cb, lpPropVal->Value.bin.lpb);
+		auto strUid = bin2hex(lpPropVal->Value.bin.cb, lpPropVal->Value.bin.lpb);
 		if(!IsOutlookUid(strUid))
 			return hrSuccess;
 		if(strUid.substr(32, 8).compare("00000000") == 0 && ulRecurStartTime == (ULONG)-1)
@@ -2595,10 +2497,8 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
  */
 HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEvent, icaltimezone *lpicTZinfo, const std::string &strTZid, std::list<icalcomponent*> *lpEventList)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulRecurrenceStateTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
 	bool bIsAllDay = false;
-	bool bIsAllDayException = false;
 	memory_ptr<SPropValue> lpSpropArray;
 	LPSPropValue lpSPropRecVal = NULL;
 	recurrence cRecurrence;
@@ -2606,13 +2506,10 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	STATSTG sStreamStat;
 	ICalRecurrence cICalRecurrence;
 	icalcomponent *lpicComp = NULL;
-	icalproperty *lpicProp = NULL;
 	ULONG ulModCount = 0;
 	ULONG ulModifications = 0;
 	ULONG cbsize = 0;
 	ULONG ulFlag = 0;
-	time_t tNewTime = 0;
-	time_t tExceptionStart = 0;
 	std::list<icalcomponent*> lstExceptions;
 	TIMEZONE_STRUCT zone;
 	SizedSPropTagArray(6, proptags) =
@@ -2623,7 +2520,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_STATUS], PT_LONG),
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_RECURRSTATE], PT_BINARY)}};
 
-	hr = lpMessage->GetProps(proptags, 0, &cbsize, &~lpSpropArray);
+	auto hr = lpMessage->GetProps(proptags, 0, &cbsize, &~lpSpropArray);
 	if (FAILED(hr))
 		return hr;
 	
@@ -2645,7 +2542,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 	if (PROP_TYPE(lpSpropArray[1].ulPropTag) != PT_ERROR)
 	{		
-		lpicProp = icalproperty_new_x(m_converter.convert_to<string>(m_strCharset.c_str(), lpSpropArray[1].Value.lpszW, rawsize(lpSpropArray[1].Value.lpszW), CHARSET_WCHAR).c_str());
+		auto lpicProp = icalproperty_new_x(m_converter.convert_to<string>(m_strCharset.c_str(), lpSpropArray[1].Value.lpszW, rawsize(lpSpropArray[1].Value.lpszW), CHARSET_WCHAR).c_str());
 		icalproperty_set_x_name(lpicProp, "X-KOPANO-REC-PATTERN");
 		icalcomponent_add_property(lpicEvent, lpicProp);
 	}
@@ -2704,13 +2601,13 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 		ulModifications = cRecurrence.getModifiedFlags(i);
 
-		bIsAllDayException = bIsAllDay;
+		auto bIsAllDayException = bIsAllDay;
 		hr = cICalRecurrence.HrMakeICalException(lpicEvent, &unique_tie(lpicException));
 		if (hr != hrSuccess)
 			continue;
 
-		tExceptionStart = tNewTime = cRecurrence.getModifiedStartDateTime(i);
-		
+		auto tNewTime = cRecurrence.getModifiedStartDateTime(i);
+		auto tExceptionStart = tNewTime;
 		object_ptr<IMessage> lpException;
 		hr = HrGetExceptionMessage(lpMessage, tExceptionStart, &~lpException);
 		if (hr != hrSuccess)
@@ -2728,14 +2625,10 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 		if (ulModifications & ARO_SUBTYPE)
 		{
-			icalvalue *lpicValue = NULL;
-			char *lpszTemp = NULL;
-			
-			lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
+			auto lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
 			if (lpProp)
 				bIsAllDayException = (lpProp->Value.b == TRUE);
-			
-			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_X_PROPERTY);
+			auto lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_X_PROPERTY);
 			while (lpicProp && (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ALLDAYEVENT") != 0))
 				lpicProp = icalcomponent_get_next_property(lpicException.get(), ICAL_X_PROPERTY);
 			if (lpicProp) {
@@ -2743,8 +2636,8 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 				icalproperty_free(lpicProp);
 			}
 
-			lpicValue = icalvalue_new_x(bIsAllDayException ? "TRUE" : "FALSE");
-			lpszTemp = icalvalue_as_ical_string_r(lpicValue);
+			auto lpicValue = icalvalue_new_x(bIsAllDayException ? "TRUE" : "FALSE");
+			auto lpszTemp = icalvalue_as_ical_string_r(lpicValue);
 			lpicProp = icalproperty_new_x(lpszTemp);
 			icalmemory_free_buffer(lpszTemp);
 			icalproperty_set_x_name(lpicProp, "X-MICROSOFT-CDO-ALLDAYEVENT"); 
@@ -2778,7 +2671,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		// 2. for each (useful?) bit in ulOverrideFlags, set property
 		if (ulModifications & ARO_SUBJECT) {
 			// find the previous value, and remove it
-			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_SUMMARY_PROPERTY);
+			auto lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_SUMMARY_PROPERTY);
 			if (lpicProp) {
 				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
@@ -2829,7 +2722,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		}
 
 		if (ulModifications & ARO_LOCATION) {
-			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_LOCATION_PROPERTY);
+			auto lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_LOCATION_PROPERTY);
 			if (lpicProp) {
 				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
@@ -2841,7 +2734,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 		if (ulModifications & ARO_BUSYSTATUS) {
 			// new X-MICROSOFT-CDO-INTENDEDSTATUS and TRANSP
-			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_TRANSP_PROPERTY);
+			auto lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_TRANSP_PROPERTY);
 			if (lpicProp) {
 				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
@@ -2866,7 +2759,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		}
 
 		if (ulModifications & ARO_EXCEPTIONAL_BODY) {
-			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_DESCRIPTION_PROPERTY);
+			auto lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_DESCRIPTION_PROPERTY);
 			if (lpicProp) {
 				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
@@ -2893,18 +2786,15 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
  */
 HRESULT VConverter::HrUpdateReminderTime(icalcomponent *lpicEvent, LONG lReminder)
 {
-	icalcomponent *lpicAlarm = NULL;
-	icalproperty *lpicProp = NULL;
 	icaltriggertype sittTrigger;
 
-	lpicAlarm = icalcomponent_get_first_component(lpicEvent, ICAL_VALARM_COMPONENT);
+	auto lpicAlarm = icalcomponent_get_first_component(lpicEvent, ICAL_VALARM_COMPONENT);
 	if (lpicAlarm == NULL)
 		return MAPI_E_NOT_FOUND;
 
 	memset(&sittTrigger, 0, sizeof(icaltriggertype));
 	sittTrigger.duration = icaldurationtype_from_int(-1 * lReminder * 60); // set seconds
-
-	lpicProp = icalcomponent_get_first_property(lpicAlarm, ICAL_TRIGGER_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicAlarm, ICAL_TRIGGER_PROPERTY);
 	if (lpicProp) {
 		icalcomponent_remove_property(lpicAlarm, lpicProp);
 		icalproperty_free(lpicProp);
@@ -2925,7 +2815,6 @@ HRESULT VConverter::HrUpdateReminderTime(icalcomponent *lpicEvent, LONG lReminde
  */
 HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LPMESSAGE *lppMessage)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpAttachTable;
 	rowset_ptr lpRows;
 	const SPropValue *lpPropVal = nullptr;
@@ -2938,8 +2827,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	UnixTimeToFileTime(tStart, &sStart.Value.ft);
 	sMethod.ulPropTag = PR_ATTACH_METHOD;
 	sMethod.Value.ul = ATTACH_EMBEDDED_MSG;
-
-	hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
+	auto hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2988,13 +2876,12 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
  */
 HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 {
-	icalparameter* lpicTZParam = NULL;
 	const char *lpszTZID = NULL;
 	std::string strTZ;
 	SPropValue sPropVal;
 
 	// Take the timezone from DTSTART and set that as the item timezone
-	lpicTZParam = icalproperty_get_first_parameter(lpicProp, ICAL_TZID_PARAMETER);
+	auto lpicTZParam = icalproperty_get_first_parameter(lpicProp, ICAL_TZID_PARAMETER);
 	// All day recurring items may not have timezone data.
 	if (lpicTZParam == NULL && lpicProp == NULL)
 		return hrSuccess;
@@ -3044,15 +2931,9 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
  */ 
 HRESULT VConverter::HrRetrieveAlldayStatus(icalcomponent *lpicEvent, bool *lpblIsAllday)
 {
-	icalproperty *lpicProp = NULL;
-	icaltimetype icStart;
-	icaltimetype icEnd;
-	bool blIsAllday = false;
-
 	// Note: we do not set bIsAllDay to true when (END-START)%24h == 0
 	// If the user forced his ICAL client not to set this to 'true', it really wants an item that is a multiple of 24h, but specify the times too.
-
-	icStart = icalcomponent_get_dtstart(lpicEvent);
+	auto icStart = icalcomponent_get_dtstart(lpicEvent);
 	if (icStart.is_date)
 	{
 		*lpblIsAllday = true;
@@ -3061,23 +2942,21 @@ HRESULT VConverter::HrRetrieveAlldayStatus(icalcomponent *lpicEvent, bool *lpblI
 
 	// only assume the X header valid when it's a non-floating timestamp.
 	// also check is_utc and/or zone pointer in DTSTART/DTEND ?
-	icEnd = icalcomponent_get_dtend(lpicEvent);
+	auto icEnd = icalcomponent_get_dtend(lpicEvent);
 	if (icStart.hour + icStart.minute + icStart.second != 0 ||
 	    icEnd.hour + icEnd.minute + icEnd.second != 0) {
 		*lpblIsAllday = false;
 		return hrSuccess;
 	}
 
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
+	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 	while (lpicProp) {
 		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ALLDAYEVENT") == 0){
-			blIsAllday = strcmp(icalproperty_get_x(lpicProp),"TRUE") == 0;
+			*lpblIsAllday = strcmp(icalproperty_get_x(lpicProp), "TRUE") == 0;
 			break;
 		}
 		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
 	}
-	*lpblIsAllday = blIsAllday;
-
 	return hrSuccess;
 }
 
@@ -3092,26 +2971,24 @@ HRESULT VConverter::HrRetrieveAlldayStatus(icalcomponent *lpicEvent, bool *lpblI
  */
 HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMethod, std::list<icalcomponent*> *lpEventList)
 {
-	HRESULT hr = hrSuccess;
 	std::list<icalcomponent*> lstEvents;
 	icalproperty_method icMainMethod = ICAL_METHOD_NONE;
 	icalcomp_ptr lpicEvent;
 	memory_ptr<SPropValue> lpSpropValArray;
 	std::unique_ptr<icaltimezone, icalmapi_delete> lpicTZinfo;
 	std::string strTZid;
-	ULONG cbSize = 0;
 	SizedSPropTagArray(3, proptags) = {3,
 		{CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN),
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISRECURRING], PT_BOOLEAN),
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_ISRECURRING], PT_BOOLEAN)}};
 
 	// handle toplevel
-	hr = HrMAPI2ICal(lpMessage, &icMainMethod, &unique_tie(lpicTZinfo),
-	     &strTZid, &unique_tie(lpicEvent));
+	auto hr = HrMAPI2ICal(lpMessage, &icMainMethod, &unique_tie(lpicTZinfo),
+	          &strTZid, &unique_tie(lpicEvent));
 	if (hr != hrSuccess)
 		return hr;
 
-	cbSize = 0;
+	ULONG cbSize = 0;
 	hr = lpMessage->GetProps(proptags, 0, &cbSize, &~lpSpropValArray);
 	if (FAILED(hr))
 		return hrSuccess;
@@ -3153,10 +3030,8 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
  */
 HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMethod, icaltimezone **lppicTZinfo, std::string *lpstrTZid, icalcomponent *lpEvent)
 {
-	HRESULT hr = hrSuccess;
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
 	icalproperty *lpProp = NULL;
-	const SPropValue *lpPropVal = nullptr;
 	memory_ptr<SPropValue> lpMsgProps;
 	ULONG ulMsgProps = 0;
 	TIMEZONE_STRUCT ttTZinfo = {0};
@@ -3166,7 +3041,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	std::string strUid;
 	std::wstring wstrBuf;
 
-	hr = lpMessage->GetProps(NULL, MAPI_UNICODE, &ulMsgProps, &~lpMsgProps);
+	auto hr = lpMessage->GetProps(NULL, MAPI_UNICODE, &ulMsgProps, &~lpMsgProps);
 	if (FAILED(hr))
 		return hr;
 	hr = HrFindTimezone(ulMsgProps, lpMsgProps, &strTZid, &ttTZinfo, &lpicTZinfo);
@@ -3182,7 +3057,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	}
 
 	// Set show_time_as / TRANSP
-	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG));
+	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG));
 	if (!m_bCensorPrivate && lpPropVal)
 		HrSetBusyStatus(lpMessage, lpPropVal->Value.ul, lpEvent);
 	

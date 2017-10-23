@@ -23,6 +23,8 @@
 
 namespace KC {
 
+const std::string outlook_guid = "040000008200E00074C5B7101A82E008";
+
 /**
  * Check if UID is of outlook format.
  *
@@ -33,8 +35,7 @@ namespace KC {
  */
 bool IsOutlookUid(const std::string &strUid)
 {
-	std::string strByteArrayID = "040000008200E00074C5B7101A82E008";
-	return (strUid.compare(0, strByteArrayID.length(), strByteArrayID) == 0);
+	return strUid.compare(0, outlook_guid.length(), outlook_guid) == 0;
 }
 
 /**
@@ -45,8 +46,6 @@ bool IsOutlookUid(const std::string &strUid)
  */
 HRESULT HrGenerateUid(std::string *lpStrData)
 {
-	std::string strByteArrayID = "040000008200E00074C5B7101A82E008";
-	std::string strBinUid;
 	GUID sGuid;
 	FILETIME ftNow;
 	ULONG ulSize = 1;
@@ -57,7 +56,7 @@ HRESULT HrGenerateUid(std::string *lpStrData)
 	hr = UnixTimeToFileTime(time(NULL), &ftNow);
 	if (hr != hrSuccess)
 		return hr;
-	strBinUid = strByteArrayID;	// Outlook Guid
+	auto strBinUid = outlook_guid;
 	strBinUid += "00000000";	// InstanceDate
 	strBinUid += bin2hex(sizeof(FILETIME), &ftNow);
 	strBinUid += "0000000000000000"; // Padding
@@ -129,15 +128,11 @@ exit:
  */
 HRESULT HrGetICalUidFromBinUid(const SBinary &sBin, std::string *lpStrUid)
 {
-	HRESULT hr = hrSuccess;
-	std::string strUid;
-
 	if (sBin.cb > 0x34 && memcmp(sBin.lpb + 0x28, "vCal-Uid", 8) == 0)
-		strUid = (char*)sBin.lpb + 0x34;
+		*lpStrUid = reinterpret_cast<const char *>(sBin.lpb) + 0x34;
 	else
-		strUid = bin2hex(sBin.cb, sBin.lpb);
-	*lpStrUid = std::move(strUid);
-	return hr;
+		*lpStrUid = bin2hex(sBin.cb, sBin.lpb);
+	return hrSuccess;
 }
 
 /**
@@ -152,11 +147,8 @@ HRESULT HrGetICalUidFromBinUid(const SBinary &sBin, std::string *lpStrUid)
  */
 HRESULT HrMakeBinUidFromICalUid(const std::string &strUid, std::string *lpStrBinUid)
 {
-	HRESULT hr = hrSuccess;
-	std::string strBinUid;
 	uint32_t len = cpu_to_le32(13 + strUid.length());
-
-	strBinUid.insert(0, "\x04\x00\x00\x00\x82\x00\xE0\x00\x74\xC5\xB7\x10\x1A\x82\xE0\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 0x24);
+	std::string strBinUid("\x04\x00\x00\x00\x82\x00\xE0\x00\x74\xC5\xB7\x10\x1A\x82\xE0\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 0x24);
 	strBinUid.append((char*) &len, 4);
 	strBinUid.append("vCal-Uid", 8);
 	len = cpu_to_le32(1); /* this is always 1 */
@@ -164,7 +156,7 @@ HRESULT HrMakeBinUidFromICalUid(const std::string &strUid, std::string *lpStrBin
 	strBinUid.append(strUid);
 	strBinUid.append("\x00", 1);
 	*lpStrBinUid = std::move(strBinUid);
-	return hr;
+	return hrSuccess;
 }
 
 } /* namespace */
