@@ -1315,8 +1315,6 @@ exit:
 
 	SSL_library_cleanup(); //cleanup memory so valgrind is happy
 	kopano_unloadlibrary();
-	rand_free();
-
 	delete g_lpConfig;
 
 	if (g_lpLogger) {

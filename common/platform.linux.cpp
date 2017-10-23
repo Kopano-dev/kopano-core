@@ -202,10 +202,6 @@ int rand_mt() {
 	return dummy % RAND_MAX;
 }
 
-void rand_free() {
-	//Nothing to free
-}
-
 char * get_password(const char *prompt) {
 	return getpass(prompt);
 }
