@@ -104,7 +104,7 @@ static int disconnects = 0;
 static const char *szCommand = NULL;
 static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
 ECConfig *g_lpConfig = NULL;
-ECLogger *g_lpLogger = NULL;
+static ECLogger *g_lpLogger;
 
 // notification
 static bool bMessagesWaiting = false;

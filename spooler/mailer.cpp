@@ -1735,7 +1735,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sopt.always_expand_distr_list = parseBool(g_lpConfig->GetSetting("expand_groups"));
 
 	// Init plugin system
-	hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
+	hr = pyMapiPluginFactory.create_plugin(g_lpConfig, ec_log_get(), "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
 	if (hr != hrSuccess) {
 		ec_log_crit("K-1733: Unable to initialize the spooler plugin system: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
@@ -1826,7 +1826,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	// fatal, all other log messages are otherwise somewhat meaningless
-	if (g_lpLogger->Log(EC_LOGLEVEL_DEBUG))
+	if (ec_log_get()->Log(EC_LOGLEVEL_DEBUG))
 		ec_log_debug("Sending e-mail for user %ls, subject: \"%ls\", size: %d",
 			lpUser->lpszUsername, lpSubject ? lpSubject->Value.lpszW : L"<none>",
 			lpMsgSize ? lpMsgSize->Value.ul : 0);

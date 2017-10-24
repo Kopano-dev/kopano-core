@@ -259,7 +259,7 @@ class kc_icase_equal {
 static bool g_bQuit = false;
 static bool g_bTempfail = true; // Most errors are tempfails
 static unsigned int g_nLMTPThreads = 0;
-ECLogger *g_lpLogger = NULL;
+static ECLogger *g_lpLogger;
 ECConfig *g_lpConfig = NULL;
 
 class sortRecipients {
