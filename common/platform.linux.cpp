@@ -180,6 +180,8 @@ void rand_get(char *p, int n)
 	}
 	
 void rand_init() {
+	if (rand_init_done)
+		return;
 	unsigned int seed = 0;
 	rand_get((char *)&seed, sizeof(seed));
 	srand(seed);
