@@ -954,10 +954,8 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
     LPMDB *lppStore, IMAPIFolder **lppInbox, IMAPIFolder **lppFolder)
 {
 	HRESULT hr = hrSuccess;
-	IMAPIFolder *lpDeliveryFolder;
-	LPMDB lpDeliveryStore = NULL;
-	object_ptr<IMsgStore> lpUserStore, lpPublicStore;
-	object_ptr<IMAPIFolder> lpInbox, lpSubFolder, lpJunkFolder;
+	object_ptr<IMsgStore> lpUserStore, lpPublicStore, lpDeliveryStore;
+	object_ptr<IMAPIFolder> lpInbox, lpSubFolder, lpJunkFolder, lpDeliveryFolder;
 	object_ptr<IExchangeManageStore> lpIEMS;
 	memory_ptr<SPropValue> lpJunkProp, lpWritePerms;
 	ULONG cbUserStoreEntryId = 0;
@@ -988,9 +986,8 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	}
 
 	// set default delivery to inbox, and default entryid for notify
-	lpDeliveryFolder = lpInbox;
-	lpDeliveryStore = lpUserStore;
-
+	lpDeliveryFolder.reset(lpInbox);
+	lpDeliveryStore.reset(lpUserStore);
 	switch (lpArgs->ulDeliveryMode) {
 	case DM_STORE:
 		ec_log_info("Mail will be delivered in Inbox");
@@ -1060,15 +1057,9 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 		lpDeliveryStore = lpUserStore;
 		lpDeliveryFolder = lpInbox;
 	}
-
-	lpDeliveryStore->AddRef();
-	*lppStore = lpDeliveryStore;
-
-	lpInbox->AddRef();
-	*lppInbox = lpInbox;
-
-	lpDeliveryFolder->AddRef();
-	*lppFolder = lpDeliveryFolder;
+	*lppStore  = lpDeliveryStore.release();
+	*lppInbox  = lpInbox.release();
+	*lppFolder = lpDeliveryFolder.release();
 	return hrSuccess;
 }
 
