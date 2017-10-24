@@ -2103,17 +2103,8 @@ class InputValidator {
 		bool m_bFailure = false;
 };
 
-// compare function for set<tstring, ltstr>, fixes default wchar_t compare, and makes it case-insensitive
-// used for PR_EC_*ABLED_FEATURES_A properties from TCHAR* strings in ECUSER struct
-struct lstr {
-	bool operator()(const string &t1, const string &t2) const
-	{
-		return strcasecmp((char*)t1.c_str(), (char*)t2.c_str()) < 0;
-	}
-};
-
 static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
-    std::set<std::string, lstr> &sFeatures, void *lpBase)
+    std::set<std::string, strcasecmp_comparison> &sFeatures, void *lpBase)
 {
 	sECUser.sMVPropmap.lpEntries[index].ulPropId = ulPropTag;
 	sECUser.sMVPropmap.lpEntries[index].cValues = sFeatures.size();
@@ -2197,7 +2188,7 @@ int main(int argc, char* argv[])
 	char *feature = NULL;
 	char *node = NULL;
 	bool bFeature = true;
-	std::set<std::string, lstr> sEnabled, sDisabled;
+	std::set<std::string, strcasecmp_comparison> sEnabled, sDisabled;
 	int quota = -1;
 	long long quotahard = -1;
 	long long quotasoft = -1;
