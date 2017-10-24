@@ -188,14 +188,15 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	m_ulErrorCount = icalcomponent_count_errors(lpicCalendar.get());
 
 	/* Find all timezones, place in map. */
-	auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
-	while (lpicComponent) {
+	for (auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
+	     lpicComponent != nullptr;
+	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT))
+	{
 		auto hr = HrParseVTimeZone(lpicComponent, &strTZID, &ttTimeZone);
 		if (hr != hrSuccess)
 			/* log warning? */ ;
 		else
 			tzMap[strTZID] = ttTimeZone;
-		lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
 	}
 
 	// ICal file did not send any timezone information
@@ -207,11 +208,12 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	}
 
 	// find all "messages" vevent, vtodo, vjournal, ...?
-	lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
-	while (lpicComponent) {
+	for (auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
+	     lpicComponent != nullptr;
+	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_ANY_COMPONENT))
+	{
 		std::unique_ptr<VConverter> lpVEC;
 		auto type = icalcomponent_isa(lpicComponent);
-		HRESULT hr = hrSuccess;
 		switch (type) {
 		case ICAL_VEVENT_COMPONENT:
 			static_assert(std::is_polymorphic<VEventConverter>::value, "VEventConverter needs to be polymorphic for unique_ptr to work");
@@ -225,9 +227,10 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 			break;
 		case ICAL_VJOURNAL_COMPONENT:
 		default:
-			goto next;
+			continue;
 		};
 
+		HRESULT hr = hrSuccess;
 		switch (type) {
 		case ICAL_VFREEBUSY_COMPONENT:
 			hr = HrGetFbInfo(lpicComponent, &m_tFbStart, &m_tFbEnd, &m_strUID, &m_lstUsers);
@@ -247,8 +250,6 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 			m_vMessages.emplace_back(item);
 			previtem = item;
 		}
-next:
-		lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
 	}
 
 	// TODO: sort m_vMessages on sBinGuid in icalitem struct, so caldav server can use optimized algorithm for finding the same items in MAPI
@@ -420,44 +421,43 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 
 next:
 	// add recurring properties & add exceptions
-	if (lpItem->lpRecurrence) {
-		hr = cRec.HrMakeMAPIRecurrence(lpItem->lpRecurrence.get(), m_lpNamedProps, lpMessage);
-		// TODO: log error if any?
-		
-		// check if all exceptions are valid
-		for (const auto &ex : lpItem->lstExceptionAttachments)
-			if (!cRec.HrValidateOccurrence(lpItem, ex))
-				return MAPI_E_INVALID_OBJECT;
-		for (const auto &ex : lpItem->lstExceptionAttachments) {
-			object_ptr<IAttach> lpAttach;
-			object_ptr<IMessage> lpExMsg;
+	if (lpItem->lpRecurrence == nullptr)
+		return hrSuccess;
+	hr = cRec.HrMakeMAPIRecurrence(lpItem->lpRecurrence.get(), m_lpNamedProps, lpMessage);
+	// TODO: log error if any?
+	// check if all exceptions are valid
+	for (const auto &ex : lpItem->lstExceptionAttachments)
+		if (!cRec.HrValidateOccurrence(lpItem, ex))
+			return MAPI_E_INVALID_OBJECT;
+	for (const auto &ex : lpItem->lstExceptionAttachments) {
+		object_ptr<IAttach> lpAttach;
+		object_ptr<IMessage> lpExMsg;
 
-			hr = lpMessage->CreateAttach(nullptr, 0, &ulANr, &~lpAttach);
-			if (hr != hrSuccess)
-				return hr;
-			hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpExMsg);
-			if (hr != hrSuccess)
-				return hr;
-			if (!(ulFlags & IC2M_NO_RECIPIENTS))
-				hr = SaveRecipList(&ex.lstRecips, ulFlags, lpExMsg);
-			if (hr != hrSuccess)
-				return hr;
-			hr = SaveAttendeesString(&ex.lstRecips, lpExMsg);
-			if (hr != hrSuccess)
-				return hr;
-			hr = SaveProps(&ex.lstMsgProps, lpExMsg);
-			if (hr != hrSuccess)
-				return hr;
-			hr = SaveProps(&ex.lstAttachProps, lpAttach);
-			if (hr != hrSuccess)
-				return hr;
-			hr = lpExMsg->SaveChanges(0);
-			if (hr != hrSuccess)
-				return hr;
-			hr = lpAttach->SaveChanges(0);
-			if (hr != hrSuccess)
-				return hr;
-		}
+		hr = lpMessage->CreateAttach(nullptr, 0, &ulANr, &~lpAttach);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpExMsg);
+		if (hr != hrSuccess)
+			return hr;
+		if (!(ulFlags & IC2M_NO_RECIPIENTS))
+			hr = SaveRecipList(&ex.lstRecips, ulFlags, lpExMsg);
+		if (hr != hrSuccess)
+			return hr;
+		hr = SaveAttendeesString(&ex.lstRecips, lpExMsg);
+		if (hr != hrSuccess)
+			return hr;
+		hr = SaveProps(&ex.lstMsgProps, lpExMsg);
+		if (hr != hrSuccess)
+			return hr;
+		hr = SaveProps(&ex.lstAttachProps, lpAttach);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpExMsg->SaveChanges(0);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpAttach->SaveChanges(0);
+		if (hr != hrSuccess)
+			return hr;
 	}
 	return hr;
 }
@@ -527,40 +527,37 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 			return hr;
 		lpRecipients->aEntries[i].cValues = 10;
 
-		lpRecipients->aEntries[i].rgPropVals[0].ulPropTag = PR_RECIPIENT_TYPE;
-		lpRecipients->aEntries[i].rgPropVals[0].Value.ul = recip.ulRecipientType;
-		lpRecipients->aEntries[i].rgPropVals[1].ulPropTag = PR_DISPLAY_NAME_W;
-		lpRecipients->aEntries[i].rgPropVals[1].Value.lpszW = const_cast<wchar_t *>(recip.strName.c_str());
-		lpRecipients->aEntries[i].rgPropVals[2].ulPropTag = PR_SMTP_ADDRESS_W;
-		lpRecipients->aEntries[i].rgPropVals[2].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
-		lpRecipients->aEntries[i].rgPropVals[3].ulPropTag = PR_ENTRYID;
-		lpRecipients->aEntries[i].rgPropVals[3].Value.bin.cb = recip.cbEntryID;
-		hr = MAPIAllocateMore(recip.cbEntryID,
-		     lpRecipients->aEntries[i].rgPropVals,
-		     reinterpret_cast<void **>(&lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb));
+		const auto &rg = lpRecipients->aEntries[i].rgPropVals;
+		rg[0].ulPropTag = PR_RECIPIENT_TYPE;
+		rg[0].Value.ul = recip.ulRecipientType;
+		rg[1].ulPropTag = PR_DISPLAY_NAME_W;
+		rg[1].Value.lpszW = const_cast<wchar_t *>(recip.strName.c_str());
+		rg[2].ulPropTag = PR_SMTP_ADDRESS_W;
+		rg[2].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
+		rg[3].ulPropTag = PR_ENTRYID;
+		rg[3].Value.bin.cb = recip.cbEntryID;
+		hr = MAPIAllocateMore(recip.cbEntryID, rg,
+		     reinterpret_cast<void **>(&rg[3].Value.bin.lpb));
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb, recip.lpEntryID, recip.cbEntryID);
-		
-		lpRecipients->aEntries[i].rgPropVals[4].ulPropTag = PR_ADDRTYPE_W;
-		lpRecipients->aEntries[i].rgPropVals[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-
+		memcpy(rg[3].Value.bin.lpb, recip.lpEntryID, recip.cbEntryID);
+		rg[4].ulPropTag = PR_ADDRTYPE_W;
+		rg[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 		strSearch = strToUpper("SMTP:" + converter.convert_to<std::string>(recip.strEmail));
-		lpRecipients->aEntries[i].rgPropVals[5].ulPropTag = PR_SEARCH_KEY;
-		lpRecipients->aEntries[i].rgPropVals[5].Value.bin.cb = strSearch.size() + 1;
-		if ((hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[i].rgPropVals, (void **)&lpRecipients->aEntries[i].rgPropVals[5].Value.bin.lpb)) != hrSuccess)
+		rg[5].ulPropTag = PR_SEARCH_KEY;
+		rg[5].Value.bin.cb = strSearch.size() + 1;
+		hr = MAPIAllocateMore(strSearch.size() + 1, rg, reinterpret_cast<void **>(&rg[5].Value.bin.lpb));
+		if (hr != hrSuccess)
 			return hr;
-		memcpy(lpRecipients->aEntries[i].rgPropVals[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
-
-		lpRecipients->aEntries[i].rgPropVals[6].ulPropTag = PR_EMAIL_ADDRESS_W;
-		lpRecipients->aEntries[i].rgPropVals[6].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
-		lpRecipients->aEntries[i].rgPropVals[7].ulPropTag = PR_DISPLAY_TYPE;
-		lpRecipients->aEntries[i].rgPropVals[7].Value.ul = DT_MAILUSER;
-
-		lpRecipients->aEntries[i].rgPropVals[8].ulPropTag = PR_RECIPIENT_FLAGS;
-		lpRecipients->aEntries[i].rgPropVals[8].Value.ul = recip.ulRecipientType == MAPI_ORIG? 3 : 1;
-		lpRecipients->aEntries[i].rgPropVals[9].ulPropTag = PR_RECIPIENT_TRACKSTATUS;
-		lpRecipients->aEntries[i].rgPropVals[9].Value.ul = recip.ulTrackStatus;
+		memcpy(rg[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
+		rg[6].ulPropTag = PR_EMAIL_ADDRESS_W;
+		rg[6].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
+		rg[7].ulPropTag = PR_DISPLAY_TYPE;
+		rg[7].Value.ul = DT_MAILUSER;
+		rg[8].ulPropTag = PR_RECIPIENT_FLAGS;
+		rg[8].Value.ul = recip.ulRecipientType == MAPI_ORIG? 3 : 1;
+		rg[9].ulPropTag = PR_RECIPIENT_TRACKSTATUS;
+		rg[9].Value.ul = recip.ulTrackStatus;
 		++lpRecipients->cEntries;
 		++i;
 	}

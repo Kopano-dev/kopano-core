@@ -39,9 +39,8 @@ time_t icaltime_as_timet_with_server_zone(const struct icaltimetype &tt)
 	struct tm stm;
 
 	/* If the time is the special null time, return 0. */
-	if (icaltime_is_null_time(tt)) {
+	if (icaltime_is_null_time(tt))
 		return 0;
-	}
 
 	/* Copy the icaltimetype to a struct tm. */
 	memset (&stm, 0, sizeof (struct tm));
@@ -258,26 +257,22 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
 	HrZoneToStruct(ICAL_XDAYLIGHT_COMPONENT, lpVTZ, &tzRet);
 
 	// unsupported case: only exceptions in the timezone switches, and no base rule (e.g. very old Asia/Kolkata timezone)
-	{
-		icalproperty *tzSTDRule = NULL, *tzDSTRule = NULL;
-		icalproperty *tzSTDDate = NULL, *tzDSTDate = NULL;
-
-		auto icComp = icalcomponent_get_first_component(lpVTZ, ICAL_XSTANDARD_COMPONENT);
-		if (icComp) {
-			tzSTDRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
-			tzSTDDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
-		}
-		icComp = icalcomponent_get_first_component(lpVTZ, ICAL_XDAYLIGHT_COMPONENT);
-		if (icComp) {
-			tzDSTRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
-			tzDSTDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
-		}
-
-		if (tzSTDRule == NULL && tzDSTRule == NULL && tzSTDDate != NULL && tzDSTDate != NULL) {
-			// clear rule data
-			memset(&tzRet.stStdDate, 0, sizeof(SYSTEMTIME));
-			memset(&tzRet.stDstDate, 0, sizeof(SYSTEMTIME));
-		}
+	icalproperty *tzSTDRule = NULL, *tzDSTRule = NULL;
+	icalproperty *tzSTDDate = NULL, *tzDSTDate = NULL;
+	auto icComp = icalcomponent_get_first_component(lpVTZ, ICAL_XSTANDARD_COMPONENT);
+	if (icComp) {
+		tzSTDRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
+		tzSTDDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
+	}
+	icComp = icalcomponent_get_first_component(lpVTZ, ICAL_XDAYLIGHT_COMPONENT);
+	if (icComp) {
+		tzDSTRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
+		tzDSTDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
+	}
+	if (tzSTDRule == NULL && tzDSTRule == NULL && tzSTDDate != NULL && tzDSTDate != NULL) {
+		// clear rule data
+		memset(&tzRet.stStdDate, 0, sizeof(SYSTEMTIME));
+		memset(&tzRet.stDstDate, 0, sizeof(SYSTEMTIME));
 	}
 
 	if (lpstrTZID)
