@@ -1765,8 +1765,17 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		goto exit;
 	}
 
-	HrGetOneProp(lpUserStore, PR_IPM_OUTBOX_ENTRYID, &~outbox_entryid);
-	HrGetOneProp(lpMessage, PR_PARENT_ENTRYID, &~parent_entryid);
+	hr = HrGetOneProp(lpUserStore, PR_IPM_OUTBOX_ENTRYID, &~outbox_entryid);
+	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
+		kc_perror("Unable to get outbox entryid", hr);
+		goto exit;
+	}
+
+	hr = HrGetOneProp(lpMessage, PR_PARENT_ENTRYID, &~parent_entryid);
+	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
+		kc_perror("Unable to get parent entryid", hr);
+		goto exit;
+	}
 
 	if (outbox_entryid && parent_entryid &&
 	    memcmp(outbox_entryid->Value.bin.lpb, parent_entryid->Value.bin.lpb, outbox_entryid->Value.bin.cb) != 0) {
@@ -1776,12 +1785,21 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	/* Get subject for logging - ignore errors, we check for nullptr. */
-	HrGetOneProp(lpMessage, PR_SUBJECT_W, &~lpSubject);
-	HrGetOneProp(lpMessage, PR_MESSAGE_SIZE, &~lpMsgSize);
-	HrGetOneProp(lpMessage, PR_DEFERRED_SEND_TIME, &~lpDeferSendTime);
+	hr = HrGetOneProp(lpMessage, PR_SUBJECT_W, &~lpSubject);
+	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
+		kc_perror("Unable to get subject", hr);
+		goto exit;
+	}
+
+	hr = HrGetOneProp(lpMessage, PR_MESSAGE_SIZE, &~lpMsgSize);
+	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
+		kc_perror("Unable to get message size", hr);
+		goto exit;
+	}
 
 	// do we need to send the message already?
-	if (lpDeferSendTime) {
+	hr = HrGetOneProp(lpMessage, PR_DEFERRED_SEND_TIME, &~lpDeferSendTime);
+	if (hr == hrSuccess) {
 		// check time
 		time_t now = time(NULL);
 		time_t sendat;
@@ -1802,6 +1820,9 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			hr = MAPI_E_WAIT;
 			goto exit;
 		}
+	} else if (hr != MAPI_E_NOT_FOUND) {
+		kc_perror("Unable to get PR_DEFERRED_SEND_TIME", hr);
+		goto exit;
 	}
 
 	// fatal, all other log messages are otherwise somewhat meaningless
