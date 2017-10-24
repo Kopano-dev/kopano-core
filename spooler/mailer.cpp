@@ -55,12 +55,12 @@
 
 #include <list>
 #include <algorithm>
-#include "spmain.h"
 
 using namespace KCHL;
 using std::list;
 using std::string;
 using std::wstring;
+extern KC::ECConfig *g_lpConfig;
 
 /**
  * Expand all rows in the lpTable to normal user recipient

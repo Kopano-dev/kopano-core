@@ -69,7 +69,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <pwd.h>
-#include "spmain.h"
 #include "TmpPath.h"
 
 /*
@@ -260,6 +259,7 @@ static bool g_bQuit = false;
 static bool g_bTempfail = true; // Most errors are tempfails
 static unsigned int g_nLMTPThreads = 0;
 static ECLogger *g_lpLogger;
+extern ECConfig *g_lpConfig;
 ECConfig *g_lpConfig = NULL;
 
 class sortRecipients {

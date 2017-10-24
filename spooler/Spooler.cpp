@@ -81,7 +81,6 @@
 #include "TmpPath.h"
 
 #include <map>
-#include "spmain.h"
 
 using namespace KCHL;
 using std::cout;
@@ -103,6 +102,7 @@ static int nReload = 0;
 static int disconnects = 0;
 static const char *szCommand = NULL;
 static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
+extern ECConfig *g_lpConfig;
 ECConfig *g_lpConfig = NULL;
 static ECLogger *g_lpLogger;
 

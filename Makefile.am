@@ -161,7 +161,7 @@ libkcpyplug_la_LIBADD = \
 kopano_dagent_SOURCES = \
 	spooler/DAgent.cpp spooler/LMTP.cpp spooler/LMTP.h \
 	spooler/archive.cpp spooler/archive.h \
-	spooler/rules.cpp spooler/rules.h spooler/spmain.h
+	spooler/rules.cpp spooler/rules.h
 kopano_dagent_LDADD = \
 	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
 	libkchl.la libkcarchiver.la libkcarchivercore.la \
@@ -231,7 +231,7 @@ kopano_passwd_LDADD = libmapi.la libkcmapi.la libkcutil.la ${PROG_LIBS}
 #
 kopano_spooler_SOURCES = \
 	spooler/Spooler.cpp spooler/archive.cpp spooler/archive.h \
-	spooler/mailer.cpp spooler/mailer.h spooler/spmain.h
+	spooler/mailer.cpp spooler/mailer.h
 kopano_spooler_LDADD = \
 	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
 	libkcarchiver.la libkcarchivercore.la ${PROG_LIBS} ${XML2_LIBS}
