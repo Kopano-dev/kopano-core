@@ -12,10 +12,6 @@ from functools import wraps
 import random
 import sys
 import struct
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 import time
 import traceback
 import warnings
@@ -61,7 +57,7 @@ from MAPI.Tags import (
     PR_START_DATE, PR_END_DATE, PR_OWNER_APPT_ID, PR_RESPONSE_REQUESTED,
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ATTACHMENT_FLAGS,
     PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS,
-    PR_NORMALIZED_SUBJECT_W, PR_ATTACHMENT_CONTACTPHOTO,
+    PR_NORMALIZED_SUBJECT_W,
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
@@ -82,10 +78,11 @@ from .errors import Error, NotFoundError, _DeprecationWarning
 from .attachment import Attachment
 from .body import Body
 from .base import Base
-from .recurrence import Recurrence, Occurrence
 from .meetingrequest import MeetingRequest
 from .address import Address
 from .table import Table
+from .contact import Contact
+from .appointment import Appointment
 
 if sys.hexversion >= 0x03000000:
     from . import folder as _folder
@@ -109,11 +106,6 @@ else:
     import utils as _utils
     import prop as _prop
 
-PidLidEmail1AddressType = 'PT_UNICODE:PSETID_Address:0x8082'
-PidLidEmail1DisplayName = 'PT_UNICODE:PSETID_Address:0x8080'
-PidLidEmail1EmailAddress = 'PT_UNICODE:PSETID_Address:0x8083'
-PidLidEmail1OriginalDisplayName = 'PT_UNICODE:PSETID_Address:0x8084'
-PidLidEmail1OriginalEntryId = 'PT_BINARY:PSETID_Address:0x8085'
 PidLidAppointmentStateFlags = 'PT_LONG:appointment:0x8217'
 
 class PersistentList(list):
@@ -133,7 +125,7 @@ class PersistentList(list):
             return ret
         return _func
 
-class Item(Base):
+class Item(Base, Contact, Appointment):
     """Item class"""
 
     def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None, entryid=None, content_flag=None, save=True):
@@ -707,47 +699,6 @@ class Item(Base):
         return self.recipients(_type=MAPI_BCC)
 
     @property
-    def start(self): # XXX optimize, guid
-        return self.prop('common:34070').value
-
-    @start.setter
-    def start(self, val):
-        self.create_prop('common:34070', val, PT_SYSTIME) # XXX check if exists?
-        self.create_prop('appointment:33293', val, PT_SYSTIME)
-
-    @property
-    def end(self): # XXX optimize, guid
-        return self.prop('common:34071').value
-
-    @end.setter
-    def end(self, val):
-        self.create_prop('common:34071', val, PT_SYSTIME) # XXX check if exists?
-        self.create_prop('appointment:33294', val, PT_SYSTIME)
-
-    @property
-    def location(self):
-        try:
-            return self.prop('appointment:33288').value
-        except NotFoundError:
-            pass
-
-    @property
-    def recurring(self):
-        return self.prop('appointment:33315').value
-
-    @property
-    def recurrence(self):
-        return Recurrence(self)
-
-    def occurrences(self, start=None, end=None):
-        if self.recurring:
-            for occ in self.recurrence.occurrences(start=start, end=end):
-                yield occ
-        else:
-            if (not start or self.end > start) and (not end or self.start < end):
-                yield Occurrence(self, max(self.start, start), min(self.end, end))
-
-    @property
     def meetingrequest(self):
         return MeetingRequest(self)
 
@@ -1090,62 +1041,6 @@ class Item(Base):
         """
 
         return self.copy(folder, _delete=True)
-
-    # IPM.Contact
-
-    @property
-    def email(self):
-        return self.email1
-
-    @email.setter
-    def email(self, addr):
-        self.email1 = addr
-
-    @property
-    def email1(self):
-        if self.address1:
-            return self.address1.email
-
-    @email1.setter
-    def email1(self, addr):
-        self.address1 = addr
-
-    @property
-    def address1(self):
-        return Address(
-            self.server,
-            self.get_value(PidLidEmail1AddressType),
-            self.get_value(PidLidEmail1DisplayName),
-            self.get_value(PidLidEmail1EmailAddress),
-            self.get_value(PidLidEmail1OriginalEntryId),
-        )
-
-    @address1.setter
-    def address1(self, addr):
-        pr_addrtype, pr_dispname, pr_email, pr_entryid = self._addr_props(addr)
-
-        self.set_value(PidLidEmail1AddressType, _unicode(pr_addrtype))
-        self.set_value(PidLidEmail1DisplayName, pr_dispname)
-        self.set_value(PidLidEmail1EmailAddress, pr_email)
-        self.set_value(PidLidEmail1OriginalEntryId, pr_entryid)
-
-    @property
-    def photo(self):
-        for attachment in self.attachments():
-            if attachment.get_value(PR_ATTACHMENT_CONTACTPHOTO):
-                s = StringIO(attachment.data)
-                s.name = attachment.name
-                return s
-
-    @photo.setter
-    def photo(self, f):
-        name, data = f.name, f.read()
-        for attachment in self.attachments():
-            if attachment.get_value(PR_ATTACHMENT_CONTACTPHOTO):
-                self.delete(attachment)
-        attachment = self.create_attachment(name, data)
-        attachment.set_value(PR_ATTACHMENT_CONTACTPHOTO, True)
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX shouldn't be needed?
 
     def __eq__(self, i): # XXX check same store?
         if isinstance(i, Item):
