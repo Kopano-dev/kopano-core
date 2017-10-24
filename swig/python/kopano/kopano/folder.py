@@ -48,7 +48,7 @@ from .base import Base
 from .permission import Permission
 from .rule import Rule
 from .table import Table
-from .prop import Property
+from .property_ import Property
 from .defs import (
     PSETID_Appointment, UNESCAPED_SLASH_RE,
     ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER

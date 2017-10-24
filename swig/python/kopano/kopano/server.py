@@ -47,7 +47,7 @@ from .parser import parser
 from .table import Table
 from .company import Company
 from .group import Group
-from .prop import _proptag_to_name
+from .property_ import _proptag_to_name
 
 from .compat import (
     unhex as _unhex, decode as _decode, repr as _repr,

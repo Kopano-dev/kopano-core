@@ -70,7 +70,7 @@ from .item import Item
 from .log import log_exc, QueueListener
 from .meetingrequest import MeetingRequest
 from .outofoffice import OutOfOffice
-from .prop import Property
+from .property_ import Property
 from .permission import Permission
 from .quota import Quota
 from .recurrence import Recurrence, Occurrence

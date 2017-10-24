@@ -98,13 +98,13 @@ if sys.hexversion >= 0x03000000:
         from . import utils as _utils
     except ImportError:
         _utils = sys.modules[__package__+'.utils']
-    from . import prop as _prop
+    from . import property_ as _prop
 else:
     import folder as _folder
     import store as _store
     import user as _user
     import utils as _utils
-    import prop as _prop
+    import property_ as _prop
 
 PidLidAppointmentStateFlags = 'PT_LONG:appointment:0x8217'
 

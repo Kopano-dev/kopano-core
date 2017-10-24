@@ -51,10 +51,10 @@ if sys.hexversion >= 0x03000000:
         from . import utils as _utils
     except ImportError:
         _utils = sys.modules[__package__+'.utils']
-    from . import prop as _prop
+    from . import property_ as _prop
 else:
     import utils as _utils
-    import prop as _prop
+    import property_ as _prop
 
 # XXX move all pidlids into separate definition file, plus short description of their meanings
 

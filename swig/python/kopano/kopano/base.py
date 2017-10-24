@@ -11,9 +11,9 @@ from .compat import repr as _repr
 from .errors import NotFoundError
 
 if sys.hexversion >= 0x03000000:
-    from . import prop as _prop
+    from . import property_ as _prop
 else:
-    import prop as _prop
+    import property_ as _prop
 
 class Base(object):
 
