@@ -24,31 +24,36 @@
 
 namespace KC {
 
-class ECObjectLockImpl _kc_final {
-public:
-	ECObjectLockImpl(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
-	ECObjectLockImpl(const ECObjectLockImpl &) = delete;
-	~ECObjectLockImpl();
-	void operator=(const ECObjectLockImpl &) = delete;
-	ECRESULT Unlock();
-
-private:
-	std::weak_ptr<ECLockManager> m_ptrLockManager;
-	unsigned int m_ulObjId;
-	ECSESSIONID m_sessionId;
-};
-
-ECObjectLockImpl::ECObjectLockImpl(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId)
+ECObjectLock::ECObjectLock(ECLockManagerPtr ptrLockManager,
+    unsigned int ulObjId, ECSESSIONID sessionId)
 : m_ptrLockManager(ptrLockManager)
 , m_ulObjId(ulObjId)
 , m_sessionId(sessionId)
 { }
 
-ECObjectLockImpl::~ECObjectLockImpl() {
-	Unlock();
+ECObjectLock::ECObjectLock(ECObjectLock &&o) :
+	m_ptrLockManager(std::move(o.m_ptrLockManager)),
+	m_ulObjId(o.m_ulObjId), m_sessionId(o.m_sessionId)
+{
+	/*
+	 * Our Unlock routine depends on m_ptrLockManager being reset, but due
+	 * to LWG DR 2315, weak_ptr(weak_ptr&&) is not implemented in some
+	 * compiler versions and thus did not do that reset.
+	 */
+	o.m_ptrLockManager.reset();
 }
 
-ECRESULT ECObjectLockImpl::Unlock() {
+ECObjectLock &ECObjectLock::operator=(ECObjectLock &&o)
+{
+	m_ptrLockManager = std::move(o.m_ptrLockManager);
+	o.m_ptrLockManager.reset();
+	m_ulObjId = o.m_ulObjId;
+	m_sessionId = o.m_sessionId;
+	return *this;
+}
+
+ECRESULT ECObjectLock::Unlock()
+{
 	ECRESULT er = erSuccess;
 
 	ECLockManagerPtr ptrLockManager = m_ptrLockManager.lock();
@@ -57,18 +62,6 @@ ECRESULT ECObjectLockImpl::Unlock() {
 		if (er == erSuccess)
 			m_ptrLockManager.reset();
 	}
-
-	return er;
-}
-
-ECObjectLock::ECObjectLock(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId)
-: m_ptrImpl(new ECObjectLockImpl(ptrLockManager, ulObjId, sessionId))
-{ }
-
-ECRESULT ECObjectLock::Unlock() {
-	auto er = m_ptrImpl->Unlock();
-	if (er == erSuccess)
-		m_ptrImpl.reset();
 
 	return er;
 }

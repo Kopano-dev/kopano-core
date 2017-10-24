@@ -33,46 +33,20 @@ class ECObjectLockImpl;
 
 typedef std::shared_ptr<ECLockManager> ECLockManagerPtr;
 
-///////////////
-// ECObjectLock
-///////////////
 class ECObjectLock _kc_final {
 public:
-	ECObjectLock(void) = default;
-	ECObjectLock(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
-	ECObjectLock(const ECObjectLock &other);
+	ECObjectLock() = default;
+	ECObjectLock(std::shared_ptr<ECLockManager>, unsigned int obj_id, ECSESSIONID);
 	ECObjectLock(ECObjectLock &&);
-
-	ECObjectLock& operator=(const ECObjectLock &other);
-	void swap(ECObjectLock &other) noexcept;
-
+	~ECObjectLock() { Unlock(); }
+	ECObjectLock &operator=(ECObjectLock &&);
 	ECRESULT Unlock();
 
 private:
-	std::shared_ptr<ECObjectLockImpl> m_ptrImpl;
+	std::weak_ptr<ECLockManager> m_ptrLockManager;
+	unsigned int m_ulObjId;
+	ECSESSIONID m_sessionId;
 };
-
-///////////////////////
-// ECObjectLock inlines
-///////////////////////
-inline ECObjectLock::ECObjectLock(const ECObjectLock &other): m_ptrImpl(other.m_ptrImpl) {}
-
-inline ECObjectLock::ECObjectLock(ECObjectLock &&other) : m_ptrImpl(std::move(other.m_ptrImpl)) {}
-
-inline ECObjectLock& ECObjectLock::operator=(const ECObjectLock &other) {
-	if (&other != this) {
-		ECObjectLock tmp(other);
-		swap(tmp);
-	}
-	return *this;
-}
-
-inline void ECObjectLock::swap(ECObjectLock &other) noexcept
-{
-	m_ptrImpl.swap(other.m_ptrImpl);
-}
-
-
 
 ////////////////
 // ECLockManager
