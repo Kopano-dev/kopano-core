@@ -1,8 +1,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
 import contextlib
@@ -41,7 +41,8 @@ def logger(service, options=None, stdout=False, config=None, name=''):
     logger = logging.getLogger(name or service)
     if logger.handlers:
         return logger
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    formatter = logging.Formatter(fmt)
     log_method = 'file'
     log_file = '/var/log/kopano/%s.log' % service
     if config:
@@ -71,7 +72,8 @@ def logger(service, options=None, stdout=False, config=None, name=''):
     logger.setLevel(log_level)
     return logger
 
-@contextlib.contextmanager # it logs errors, that's all you need to know :-)
+# it logs errors, that's all you need to know :-)
+@contextlib.contextmanager
 def log_exc(log, stats=None):
     """
 Context-manager to log any exception in sub-block to given logger instance
