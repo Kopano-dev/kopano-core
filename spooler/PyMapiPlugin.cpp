@@ -59,7 +59,6 @@ typedef KCHL::memory_ptr<PyObject, kcpy_decref> PyObjectAPtr;
 class PyMapiPlugin _kc_final : public pym_plugin_intf {
 	public:
 	PyMapiPlugin(void) = default;
-	virtual ~PyMapiPlugin(void);
 
 	HRESULT Init(ECLogger *lpLogger, PyObject *lpModMapiPlugin, const char* lpPluginManagerClassName, const char *lpPluginPath);
 	virtual HRESULT MessageProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *result);
@@ -75,7 +74,7 @@ class PyMapiPlugin _kc_final : public pym_plugin_intf {
 
 	private:
 	PyObjectAPtr m_ptrMapiPluginManager{nullptr};
-	ECLogger *m_lpLogger = nullptr;
+	KCHL::object_ptr<ECLogger> m_lpLogger;
 
 	/* Inhibit (accidental) copying */
 	PyMapiPlugin(const PyMapiPlugin &) = delete;
@@ -168,12 +167,6 @@ static HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
 	} \
 }
 
-PyMapiPlugin::~PyMapiPlugin(void)
-{ 
-	if (m_lpLogger != nullptr)
-		m_lpLogger->Release();
-}
-
 /**
  * Initialize the PyMapiPlugin.
  *
@@ -192,9 +185,7 @@ HRESULT PyMapiPlugin::Init(ECLogger *lpLogger, PyObject *lpModMapiPlugin, const 
 
 	if (!lpModMapiPlugin)
 		return S_OK;
-	m_lpLogger = lpLogger;
-	if (m_lpLogger)
-		m_lpLogger->AddRef();
+	m_lpLogger.reset(lpLogger);
 
 	// Init MAPI-swig types
 	BUILD_SWIG_TYPE(type_p_IMessage, "_p_IMessage");
@@ -326,8 +317,6 @@ PyMapiPluginFactory::~PyMapiPluginFactory()
 		m_priv->m_ptrModMapiPlugin = nullptr;
 		Py_Finalize();
 	}
-	if (m_lpLogger != nullptr)
-		m_lpLogger->Release();
 	delete m_priv;
 }
 
@@ -341,10 +330,7 @@ HRESULT PyMapiPluginFactory::create_plugin(ECConfig *lpConfig,
 	PyObjectAPtr	ptrName;
 	PyObjectAPtr	ptrModule;
 
-	m_lpLogger = lpLogger;
-	if (m_lpLogger)
-		m_lpLogger->AddRef();
-
+	m_lpLogger.reset(lpLogger);
 	m_bEnablePlugin = parseBool(lpConfig->GetSetting("plugin_enabled", NULL, "no"));
 	if (m_bEnablePlugin) {
 		m_strPluginPath = lpConfig->GetSetting("plugin_path");
