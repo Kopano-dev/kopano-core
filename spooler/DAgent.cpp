@@ -143,20 +143,22 @@ enum _dt {
 };
 typedef _dt delivery_mode;
 
-class DeliveryArgs {
+class DeliveryArgs final {
 public:
 	DeliveryArgs(void)
 	{
 		imopt_default_delivery_options(&sDeliveryOpts);
 	}
-
-	~DeliveryArgs()
-	{
-		delete lpChannel;
-	}
+	DeliveryArgs(const DeliveryArgs &o) :
+		strPath(o.strPath), strAutorespond(o.strAutorespond),
+		bCreateFolder(o.bCreateFolder), strDeliveryFolder(o.strDeliveryFolder),
+		szPathSeperator(o.szPathSeperator), ulDeliveryMode(o.ulDeliveryMode),
+		sDeliveryOpts(o.sDeliveryOpts), bNewmailNotify(o.bNewmailNotify),
+		bResolveAddress(o.bResolveAddress)
+	{}
 
 	/* Channel for communication from MTA */
-	ECChannel *lpChannel = nullptr;
+	std::unique_ptr<ECChannel> lpChannel;
 
 	/* Connection path to storage server */
 	std::string strPath;
@@ -2812,7 +2814,7 @@ static void add_misc_headers(FILE *tmp, const std::string &helo,
  */
 static void *HandlerLMTP(void *lpArg)
 {
-	auto lpArgs = static_cast<DeliveryArgs *>(lpArg);
+	std::unique_ptr<DeliveryArgs> lpArgs(static_cast<DeliveryArgs *>(lpArg));
 	std::string strMailAddress;
 	companyrecipients_t mapRCPT;
 	std::list<std::string> lOrderedRecipients;
@@ -2824,8 +2826,7 @@ static void *HandlerLMTP(void *lpArg)
 	PyMapiPluginFactory pyMapiPluginFactory;
 	convert_context converter;
 	std::string curFrom = "???", heloName = "???";
-
-	LMTP lmtp(lpArgs->lpChannel, lpArgs->strPath.c_str(), g_lpConfig);
+	LMTP lmtp(lpArgs->lpChannel.get(), lpArgs->strPath.c_str(), g_lpConfig);
 
 	/* For resolving addresses from Address Book */
 	object_ptr<IMAPISession> lpSession;
@@ -2840,7 +2841,7 @@ static void *HandlerLMTP(void *lpArg)
 		Sleep(10000); //wait 10 seconds so you can attach gdb
 		ec_log_info("Starting worker for LMTP request");
 	}
-	hr = HrGetSession(lpArgs, KOPANO_SYSTEM_USER_W, &~lpSession);
+	hr = HrGetSession(lpArgs.get(), KOPANO_SYSTEM_USER_W, &~lpSession);
 	if (hr != hrSuccess) {
 		kc_perrorf("HrGetSession failed", hr);
 		lmtp.HrResponse("421 internal error: GetSession failed");
@@ -2994,7 +2995,7 @@ static void *HandlerLMTP(void *lpArg)
 				break;
 			}
 
-			add_misc_headers(tmp, heloName, curFrom, lpArgs);
+			add_misc_headers(tmp, heloName, curFrom, lpArgs.get());
 			hr = lmtp.HrCommandDATA(tmp);
 			if (hr == hrSuccess) {
 				std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
@@ -3012,7 +3013,7 @@ static void *HandlerLMTP(void *lpArg)
 				// During delivery lpArgs->ulDeliveryMode can be set to DM_JUNK. However it won't reset it
 				// if required. So make sure to reset it here so we can safely reuse the LMTP connection
 				delivery_mode ulDeliveryMode = lpArgs->ulDeliveryMode;
-				ProcessDeliveryToList(ptrPyMapiPlugin.get(), lpSession, tmp, &mapRCPT, lpArgs);
+				ProcessDeliveryToList(ptrPyMapiPlugin.get(), lpSession, tmp, &mapRCPT, lpArgs.get());
 				lpArgs->ulDeliveryMode = ulDeliveryMode;
 			}
 
@@ -3091,7 +3092,6 @@ static void *HandlerLMTP(void *lpArg)
 exit:
 	FreeServerRecipients(&mapRCPT);
 	ec_log_info("LMTP thread exiting");
-	delete lpArgs;
 	return NULL;
 }
 
@@ -3220,14 +3220,14 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		++g_nLMTPThreads;
 
 		// One socket has signalled a new incoming connection
-		std::unique_ptr<DeliveryArgs> lpDeliveryArgs(new DeliveryArgs(*lpArgs));
+		std::unique_ptr<DeliveryArgs> da(new DeliveryArgs(*lpArgs));
 
 		if ((pollfd.revents & (POLLIN | POLLRDHUP)) == 0) {
 			// should not be able to get here because of continues
 			ec_log_err("Incoming traffic was not for me?!");
 			continue;
 		}
-		hr = HrAccept(ulListenLMTP, &lpDeliveryArgs->lpChannel);
+		hr = HrAccept(ulListenLMTP, &unique_tie(da->lpChannel));
 		if (hr != hrSuccess) {
 			kc_perrorf("HrAccept failed", hr);
 			// just keep running
@@ -3235,7 +3235,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			continue;
 		}
 		sc->countInc("DAgent", "incoming_session");
-		if (unix_fork_function(HandlerLMTP, lpDeliveryArgs.get(), nCloseFDs, pCloseFDs) < 0)
+		if (unix_fork_function(HandlerLMTP, da.get(), nCloseFDs, pCloseFDs) < 0)
 			ec_log_err("Can't create LMTP process.");
 			// just keep running
 		// main handler always closes information it doesn't need
