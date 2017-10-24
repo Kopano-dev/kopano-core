@@ -170,10 +170,9 @@ public:
     /** 
      * Returns erSuccess if the folder is a search folder
      *
-     * @param[in] ulStoreId The store id (hierarchyid) of the folder being queried
      * @param[in] ulFolderId The folder id (hierarchyid) of the folder being queried
      */
-	_kc_hidden virtual ECRESULT IsSearchFolder(unsigned int store_id, unsigned int folder_id);
+	_kc_hidden virtual ECRESULT IsSearchFolder(unsigned int folder_id);
 
     /** 
      * Remove a search folder because it has been deleted. Cancels the search before removing the information. It will
@@ -219,11 +218,10 @@ public:
 	 * anything else!
 	 *
 	 * @param[in] lpDatabase Database handle
-	 * @param[in] ulStoreId Store id (hierarchy id) of the searchfolder to write
 	 * @param[in] ulFolderId Folder id (hierarchy id) of the searchfolder to write
 	 * @param[in] lpSearchCriteria Search criteria to write
 	 */
-	_kc_hidden static ECRESULT SaveSearchCriteria(ECDatabase *, unsigned int store_id, unsigned int folder_id, struct searchCriteria *);
+	_kc_hidden static ECRESULT SaveSearchCriteria(ECDatabase *, unsigned int folder_id, struct searchCriteria *);
 
 	/**
 	 * Get the searchfolder statistics
@@ -325,43 +323,39 @@ private:
     /**
      * Reset all results for a searchfolder (removes all results)
      *
-     * @param[in] ulStoreId Store id of the search folder
      * @param[in] ulFolderId Folder id of the search folder
      */
-	_kc_hidden virtual ECRESULT ResetResults(unsigned int store_id, unsigned int folder_id);
+	_kc_hidden virtual ECRESULT ResetResults(unsigned int folder_id);
 
     /**
      * Add a search result to a search folder (one message id with flags)
      *
-     * @param[in] ulStoreId Store id of the search folder
      * @param[in] ulFolderId Folder id of the search folder
      * @param[in] ulObjId Object hierarchy id of the matching message
      * @param[in] ulFlags Flags of the object (this should be in-sync with hierarchy table!). May be 0 or MSGFLAG_READ
      * @param[out] lpfInserted true if a new record was inserted, false if flags were updated in an existing record
      */
-	_kc_hidden virtual ECRESULT AddResults(unsigned int store_id, unsigned int folder_id, unsigned int obj_id, unsigned int flags, bool *inserted);
+	_kc_hidden virtual ECRESULT AddResults(unsigned int folder_id, unsigned int obj_id, unsigned int flags, bool *inserted);
     
     /**
      * Add multiple search results
      *
-     * @param[in] ulStoreId Store id of the search folder
      * @param[in] ulFolderId Folder id of the search folder
      * @param[in] ulObjId Object hierarchy id of the matching message
      * @param[in] ulFlags Flags of the object (this should be in-sync with hierarchy table!). May be 0 or MSGFLAG_READ
      * @param[out] lpulCount Int to be modified with inserted count
      * @param[out] lpulUnread Int to be modified with inserted unread count
      */
-	_kc_hidden virtual ECRESULT AddResults(unsigned int store_id, unsigned int folder_id, std::list<unsigned int> &obj_id, std::list<unsigned int> &flags, int *count, int *unread);
+	_kc_hidden virtual ECRESULT AddResults(unsigned int folder_id, std::list<unsigned int> &obj_id, std::list<unsigned int> &flags, int *count, int *unread);
 
     /**
      * Delete matching results from a search folder
      *
-     * @param[in] ulStoreId Store id of the search folder
      * @param[in] ulFolderId Folder id of the search folder
      * @param[in] ulObjId Object hierarchy id of the matching message
      * @param[out] lpulFlags Flags of the object that was just deleted
      */
-	_kc_hidden virtual ECRESULT DeleteResults(unsigned int store_id, unsigned int folder_id, unsigned int obj_id, unsigned int *flags);
+	_kc_hidden virtual ECRESULT DeleteResults(unsigned int folder_id, unsigned int obj_id, unsigned int *flags);
 
     /**
      * Set the status of a searchfolder
@@ -376,20 +370,18 @@ private:
     /**
      * Load serialized search criteria from database
      *
-     * @param[in] ulStoreId Store id of the search folder
      * @param[in] ulFolderId Folder id of the search folder
      * @param[in] lppSearchCriteria Loaded search criteria
      */
-	_kc_hidden virtual ECRESULT LoadSearchCriteria(unsigned int store_id, unsigned int folder_id, struct searchCriteria **);
+	_kc_hidden virtual ECRESULT LoadSearchCriteria(unsigned int folder_id, struct searchCriteria **);
 
     /**
      * Save serialized search criteria to database
      *
-     * @param[in] ulStoreId Store id of the search folder
      * @param[in] ulFolderId Folder id of the search folder
      * @param[in] lpSearchCriteria Search criteria to save
      */
-	_kc_hidden virtual ECRESULT SaveSearchCriteria(unsigned int store_id, unsigned int folder_id, struct searchCriteria *);
+	_kc_hidden virtual ECRESULT SaveSearchCriteria(unsigned int folder_id, struct searchCriteria *);
 
     /**
      * Main processing thread entrypoint
