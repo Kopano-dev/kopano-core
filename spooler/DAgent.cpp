@@ -806,17 +806,16 @@ static HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips,
 
 	if (lpCompanyRecips == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	// Find or insert
-	auto iterCMP = lpCompanyRecips->emplace(lpRecipient->wstrCompany, serverrecipients_t()).first;
-
-	// Find or insert
-	auto iterSRV = iterCMP->second.emplace(lpRecipient->wstrServerDisplayName, decltype(iterCMP->second)::mapped_type()).first;
-
-	// insert into sorted set
-	auto iterRecip = iterSRV->second.find(lpRecipient);
-	if (iterRecip == iterSRV->second.cend()) {
-		iterSRV->second.emplace(lpRecipient);
+	/*
+	 * emplace yields pair<iterator,bool>, take first;
+	 * iterator deref yields a pair<wstring,mapped_type>, take second.
+	 */
+	auto &srvmap = lpCompanyRecips->emplace(lpRecipient->wstrCompany, serverrecipients_t()).first->second;
+	auto &rcpset = srvmap.emplace(lpRecipient->wstrServerDisplayName, recipients_t()).first->second;
+	/* find yields iterator, deref that yields ECRecipient * */
+	auto iterRecip = rcpset.find(lpRecipient);
+	if (iterRecip == rcpset.cend()) {
+		rcpset.emplace(lpRecipient);
 		// The recipient is in the list, and no longer belongs to the caller
 		*lppRecipient = NULL;
 	} else {
