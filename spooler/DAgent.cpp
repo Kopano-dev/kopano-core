@@ -174,7 +174,7 @@ public:
 	delivery_options sDeliveryOpts;
 
 	/* Generate notifications regarding the new email */
-	bool bNewmailNotify = false;
+	bool bNewmailNotify = true;
 
 	/* Username is email address, resolve it to get username */
 	bool bResolveAddress = false;
@@ -186,10 +186,10 @@ public:
  */
 class ECRecipient {
 public:
-	ECRecipient(const std::wstring &wstrName)
+	ECRecipient(const std::wstring &wstrName) :
+		wstrRCPT(wstrName)
 	{
 		/* strRCPT much match recipient string from LMTP caller */
-		wstrRCPT = wstrName;
 		vwstrRecipients.emplace_back(wstrName);
 		sEntryId.cb = 0;
 		sEntryId.lpb = NULL;
@@ -3429,15 +3429,6 @@ int main(int argc, char *argv[]) {
 	bool bIgnoreUnknownConfigOptions = false;
 
 	DeliveryArgs sDeliveryArgs;
-	sDeliveryArgs.strPath = "";
-	sDeliveryArgs.strAutorespond = "";
-	sDeliveryArgs.bCreateFolder = false;
-	sDeliveryArgs.strDeliveryFolder.clear();
-	sDeliveryArgs.szPathSeperator = '\\';
-	sDeliveryArgs.bResolveAddress = false;
-	sDeliveryArgs.bNewmailNotify = true;
-	sDeliveryArgs.ulDeliveryMode = DM_STORE;
-	imopt_default_delivery_options(&sDeliveryArgs.sDeliveryOpts);
 		const char *szConfig = ECConfig::GetDefaultPath("dagent.cfg");
 
 	enum {
