@@ -16,14 +16,12 @@
  */
 
 #include <kopano/platform.h>
-#include "ServerConfigCheck.h"
+#include "ECConfigCheck.h"
 #include <kopano/stringutil.h>
 
 ServerConfigCheck::ServerConfigCheck(const char *lpszConfigFile) : ECConfigCheck("Server Configuration file", lpszConfigFile)
 {
-	std::string setting;
-
-	setting = getSetting("enable_hosted_kopano");
+	std::string setting = getSetting("enable_hosted_kopano");
 	if (!setting.empty())
 		setHosted(parseBool(setting.c_str()));
 	setting = getSetting("enable_distributed_kopano");
@@ -142,13 +140,12 @@ int ServerConfigCheck::testPluginPath(const config_check_t *check)
 
 int ServerConfigCheck::testStorename(const config_check_t *check)
 {
-	if (!check->hosted) {
-		if (check->value1.find("%c") != std::string::npos) {
-			printError(check->option1, "multi-tenancy disabled, but value contains %c: " + check->value1);
-			return CHECK_ERROR;
-		}
+	if (check->hosted)
+		return CHECK_OK;
+	if (check->value1.find("%c") != std::string::npos) {
+		printError(check->option1, "multi-tenancy disabled, but value contains %c: " + check->value1);
+		return CHECK_ERROR;
 	}
-
 	return CHECK_OK;
 }
 

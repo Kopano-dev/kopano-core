@@ -94,16 +94,64 @@ private:
 	void addCheck(const config_check_t &, unsigned int);
 
 	/* private variables */
-	const char *m_lpszName;
-	const char *m_lpszConfigFile;
-
+	const char *m_lpszName = nullptr, *m_lpszConfigFile = nullptr;
 	std::map<std::string, std::string> m_mSettings;
 	std::list<config_check_t> m_lChecks;
+	bool m_bDirty = false, m_bHosted = false, m_bMulti = false;
+};
 
-	bool m_bDirty;
-	bool m_bHosted;
-	bool m_bMulti;
+class DAgentConfigCheck final : public ECConfigCheck {
+	public:
+	DAgentConfigCheck(const char *file);
+	void loadChecks() override;
+};
+
+class LDAPConfigCheck final : public ECConfigCheck {
+	public:
+	LDAPConfigCheck(const char *file);
+	void loadChecks() override;
+
+	private:
+	static int testLdapScope(const config_check_t *);
+	static int testLdapType(const config_check_t *);
+	static int testLdapQuery(const config_check_t *);
+};
+
+class MonitorConfigCheck final : public ECConfigCheck {
+	public:
+	MonitorConfigCheck(const char *file);
+	void loadChecks() override;
+};
+
+class ServerConfigCheck final : public ECConfigCheck {
+	public:
+	ServerConfigCheck(const char *file);
+	void loadChecks() override;
+
+	private:
+	static int testAttachment(const config_check_t *);
+	static int testPluginConfig(const config_check_t *);
+	static int testAttachmentPath(const config_check_t *);
+	static int testPlugin(const config_check_t *);
+	static int testPluginPath(const config_check_t *);
+	static int testStorename(const config_check_t *);
+	static int testLoginname(const config_check_t *);
+	static int testAuthMethod(const config_check_t *);
+};
+
+class SpoolerConfigCheck final : public ECConfigCheck {
+	public:
+	SpoolerConfigCheck(const char *file);
+	void loadChecks() override;
+};
+
+class UnixConfigCheck final : public ECConfigCheck {
+	public:
+	UnixConfigCheck(const char *file);
+	void loadChecks() override;
+
+	private:
+	static int testId(const config_check_t *);
 };
 
 #endif
-

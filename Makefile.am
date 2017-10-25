@@ -140,15 +140,9 @@ kopano_archiver_LDADD = \
 # kopano-cfgchecker
 #
 kopano_cfgchecker_SOURCES = \
-	ECtools/cfgchecker/DAgentConfigCheck.cpp ECtools/cfgchecker/DAgentConfigCheck.h \
 	ECtools/cfgchecker/ECConfigCheck.cpp ECtools/cfgchecker/ECConfigCheck.h \
-	ECtools/cfgchecker/GatewayConfigCheck.cpp ECtools/cfgchecker/GatewayConfigCheck.h \
-	ECtools/cfgchecker/IcalConfigCheck.cpp ECtools/cfgchecker/IcalConfigCheck.h \
-	ECtools/cfgchecker/LDAPConfigCheck.cpp ECtools/cfgchecker/LDAPConfigCheck.h \
-	ECtools/cfgchecker/MonitorConfigCheck.cpp ECtools/cfgchecker/MonitorConfigCheck.h \
-	ECtools/cfgchecker/ServerConfigCheck.cpp ECtools/cfgchecker/ServerConfigCheck.h \
-	ECtools/cfgchecker/SpoolerConfigCheck.cpp ECtools/cfgchecker/SpoolerConfigCheck.h \
-	ECtools/cfgchecker/UnixConfigCheck.cpp ECtools/cfgchecker/UnixConfigCheck.h \
+	ECtools/cfgchecker/LDAPConfigCheck.cpp \
+	ECtools/cfgchecker/ServerConfigCheck.cpp \
 	ECtools/cfgchecker/cfg.cpp
 kopano_cfgchecker_LDADD = libkcutil.la libkcmapi.la libmapi.la ${PROG_LIBS}
 
