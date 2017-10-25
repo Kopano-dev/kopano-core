@@ -621,7 +621,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
     bool bForwardAsAttachment, IMessage **lppMessage)
 {
 	HRESULT hr = hrSuccess;
-	LPMESSAGE lpFwdMsg = NULL;
+	object_ptr<IMessage> lpFwdMsg;
 	memory_ptr<SPropValue> lpSentMailEntryID, lpOrigSubject;
 	memory_ptr<SPropTagArray> lpExclude;
 	adrlist_ptr filtered_recips;
@@ -668,7 +668,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	hr = HrGetOneProp(lpOrigStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentMailEntryID);
 	if (hr != hrSuccess)
 		return hr;
-	hr = CreateOutboxMessage(lpOrigStore, &lpFwdMsg);
+	hr = CreateOutboxMessage(lpOrigStore, &~lpFwdMsg);
 	if (hr != hrSuccess)
 		return hr;
 
