@@ -356,7 +356,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 	HRESULT hr = hrSuccess;
 	SendData sSendData;
 	bool bErrorMail;
-	map<pid_t, int> finished; // exit status of finished processes
 	int status;
 	// error message creation
 	object_ptr<IAddrBook> lpAddrBook;
@@ -367,7 +366,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 		return hr;
 
 	// copy map contents and clear it, so hMutexFinished can be unlocked again asap
-	finished = mapFinished;
+	auto finished = std::move(mapFinished);
 	mapFinished.clear();
 	lock.unlock();
 	ec_log_debug("Cleaning %zu messages from queue", finished.size());
