@@ -67,7 +67,7 @@
 #include <kopano/ecversion.h>
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
-
+#include <kopano/tie.hpp>
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 #include <edkguid.h>
@@ -359,7 +359,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 	int status;
 	// error message creation
 	object_ptr<IAddrBook> lpAddrBook;
-	ECSender *lpMailer = NULL;
+	std::unique_ptr<ECSender> lpMailer;
 	std::unique_lock<std::mutex> lock(hMutexFinished);
 
 	if (mapFinished.empty())
@@ -428,10 +428,10 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			object_ptr<IMsgStore> lpUserStore;
 			object_ptr<IMessage> lpMessage;
 
-			hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &lpMailer, &~lpUserStore, &~lpMessage);
+			hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &unique_tie(lpMailer), &~lpUserStore, &~lpMessage);
 			if (hr == hrSuccess) {
 				lpMailer->setError(_("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
-				hr = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
+				hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
 				// TODO: if failed, and we have the lpUserStore, create message?
 			}
 			if (hr != hrSuccess)
@@ -455,7 +455,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 		MAPIFreeBuffer(sSendData.lpMessageEntryId);
 		mapSendData.erase(i.first);
 	}
-	delete lpMailer;
 	return hr;
 }
 
