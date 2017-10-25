@@ -36,22 +36,6 @@ class fs_deleter {
 	}
 };
 
-struct popen_rlimit {
-	int resource;
-	struct rlimit limit;
-};
-
-struct popen_rlimit_array {
-	unsigned int cValues;
-	struct popen_rlimit sLimit[1];
-};
-
-#define sized_popen_rlimit_array(_climit, _name) \
-struct _popen_rlimit_array_ ## _name { \
-	unsigned int cValues; \
-	struct popen_rlimit sLimit[_climit]; \
-} _name
-
 extern _kc_export int unix_runas(ECConfig *);
 extern _kc_export int unix_chown(const char *filename, const char *user, const char *group);
 extern _kc_export void unix_coredump_enable(const char *);
