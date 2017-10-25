@@ -235,18 +235,13 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	sSendData.cbStoreEntryId = cbStoreEntryId;
 	HRESULT hr = MAPIAllocateBuffer(cbStoreEntryId,
 	             reinterpret_cast<void **>(&sSendData.lpStoreEntryId));
-	if (hr != hrSuccess) {
-		ec_log_err("StartSpoolerFork(): MAPIAllocateBuffer failed(1) %x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateBuffer failed(1)", hr);
 	memcpy(sSendData.lpStoreEntryId, lpStoreEntryId, cbStoreEntryId);
 	sSendData.cbMessageEntryId = cbMsgEntryId;
 	hr = MAPIAllocateBuffer(cbMsgEntryId, (void**)&sSendData.lpMessageEntryId);
-	if (hr != hrSuccess) {
-		ec_log_err("StartSpoolerFork(): MAPIAllocateBuffer failed(2) %x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("MAPIAllocateBuffer failed(2)", hr);
 	memcpy(sSendData.lpMessageEntryId, lpMsgEntryId, cbMsgEntryId);
 	sSendData.ulFlags = ulFlags;
 	sSendData.strUsername = szUsername;
@@ -316,10 +311,8 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 
 	if (*lppAddrBook == NULL) {
 		hr = lpAdminSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, lppAddrBook);
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to open addressbook for error mail, skipping. Error 0x%08X", hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Unable to open addressbook for error mail (skipping)", hr);
 	}
 
 	if (*lppMailer == NULL) {
@@ -336,20 +329,16 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 
 	if (*lppUserStore == NULL) {
 		hr = lpAdminSession->OpenMsgStore(0, sSendData.cbStoreEntryId, (LPENTRYID)sSendData.lpStoreEntryId, NULL, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppUserStore);
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to open store of user for error mail, skipping. Error 0x%08X", hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Unable to open store of user for error mail (skipping)", hr);
 	}
 
 	if (*lppMessage == NULL) {
 		hr = (*lppUserStore)->OpenEntry(sSendData.cbMessageEntryId, (LPENTRYID)sSendData.lpMessageEntryId, &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, (IUnknown**)lppMessage);
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to open message of user for error mail, skipping. Error 0x%08X", hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Unable to open message of user for error mail (skipping)", hr);
 	}
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -527,7 +516,7 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		rowset_ptr lpsRowSet;
 		hr = lpTable->QueryRows(1, 0, &~lpsRowSet);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to fetch data from table, error code: 0x%08X", hr);
+			kc_perror("Unable to fetch data from table", hr);
 			goto exit;
 		}
 
@@ -614,10 +603,8 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
 	memory_ptr<SPropValue> lpsProp;
 
 	hr = HrOpenDefaultStore(lpAdminSession, &~lpMDB);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to open default store for system account. Error 0x%08X", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to open default store for system account", hr);
 	hr = HrGetOneProp(lpMDB, PR_EC_OBJECT, &~lpsProp);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to get Kopano internal object", hr);
@@ -658,7 +645,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to open admin session. Error 0x%08X", hr);
+		kc_perror("Unable to open admin session", hr);
 		goto exit;
 	}
 
@@ -671,7 +658,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 
 	hr = GetAdminSpooler(lpAdminSession, &~lpSpooler);
 	if (hr != hrSuccess) {
-		ec_log_err("ProcessQueue: GetAdminSpooler failed %x", hr);
+		kc_perrorf("GetAdminSpooler failed", hr);
 		goto exit;
 	}
 

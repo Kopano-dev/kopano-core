@@ -497,15 +497,11 @@ static HRESULT kc_send_fwdabort_notice(KCHL::KStore &&store, const wchar_t *addr
 	prop[nprop].ulPropTag = PR_BODY_W;
 	prop[nprop++].Value.lpszW = const_cast<wchar_t *>(newbody.c_str());
 	auto hr = msg->SetProps(nprop, prop, nullptr);
-	if (hr != hrSuccess) {
-		ec_log_err("K-3283: SetProps: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("K-3283: SetProps", hr);
 	hr = msg->SaveChanges(KEEP_OPEN_READONLY);
-	if (hr != hrSuccess) {
-		ec_log_err("K-3284: commit: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("K-3284: commit", hr);
 	hr = HrNewMailNotification(store, msg);
 	if (hr != hrSuccess)
 		ec_log_warn("K-3285: NewMailNotification: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
@@ -538,15 +534,11 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 	     PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W,
 	     PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
 	     strFromName, strFromType, strFromAddress);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to get from address 0x%08X", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to get from address", hr);
 	hr = MAPIAllocateBuffer(CbNewADRLIST(lpRuleRecipients->cEntries), &~lpRecipients);
-	if (hr != hrSuccess) {
-		ec_log_err("CheckRecipients(): MAPIAllocateBuffer failed %x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateBuffer failed", hr);
 
 	std::vector<std::string> fwd_whitelist =
 		tokenize(g_lpConfig->GetSetting("forward_whitelist_domains"), " ");
@@ -557,10 +549,9 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		hr = HrGetAddress(lpAdrBook, lpRuleRecipients->aEntries[i].rgPropVals, lpRuleRecipients->aEntries[i].cValues, PR_ENTRYID,
 		     CHANGE_PROP_TYPE(PR_DISPLAY_NAME, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_ADDRTYPE, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_SMTP_ADDRESS, PT_UNSPECIFIED),
 		     strRuleName, strRuleType, strRuleAddress);
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to get rule address 0x%08X", hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Unable to get rule address", hr);
+
 		auto rule_addr_std = convert_to<std::string>(strRuleAddress);
 
 		memory_ptr<SPropValue> subject;
@@ -586,10 +577,8 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		// copy recipient
 		hr = Util::HrCopyPropertyArray(lpRuleRecipients->aEntries[i].rgPropVals, lpRuleRecipients->aEntries[i].cValues, &lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, &lpRecipients->aEntries[lpRecipients->cEntries].cValues, true);
 
-		if (hr != hrSuccess) {
-			ec_log_err("CheckRecipients(): Util::HrCopyPropertyArray failed %x", hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perrorf("Util::HrCopyPropertyArray failed", hr);
 
         if(bIncludeAsP1) {
 			auto lpRecipType = PpropFindProp(lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, lpRecipients->aEntries[lpRecipients->cEntries].cValues, PR_RECIPIENT_TYPE);
@@ -921,41 +910,41 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	sc -> countInc("rules", "invocations");
 	hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, &~lpTable);
 	if (hr != hrSuccess) {
-		ec_log_err("HrProcessRules(): OpenProperty failed %x", hr);
+		kc_perrorf("OpenProperty failed", hr);
 		goto exit;
 	}
 	hr = lpTable->QueryInterface(IID_IECExchangeModifyTable, &~lpECModifyTable);
 	if(hr != hrSuccess) {
-		ec_log_err("HrProcessRules(): QueryInterface failed %x", hr);
+		kc_perrorf("QueryInterface failed", hr);
 		goto exit;
 	}
 
 	hr = lpECModifyTable->DisablePushToServer();
 	if(hr != hrSuccess) {
-		ec_log_err("HrProcessRules(): DisablePushToServer failed %x", hr);
+		kc_perrorf("DisablePushToServer failed", hr);
 		goto exit;
 	}
 
 	hr = pyMapiPlugin->RulesProcessing("PreRuleProcess", lpSession, lpAdrBook, lpOrigStore, lpTable, &ulResult);
 	if(hr != hrSuccess) {
-		ec_log_err("HrProcessRules(): RulesProcessing failed %x", hr);
+		kc_perrorf("RulesProcessing failed", hr);
 		goto exit;
 	}
 
 	//TODO do something with ulResults
 	hr = lpTable->GetTable(0, &~lpView);
 	if(hr != hrSuccess) {
-		ec_log_err("HrProcessRules(): GetTable failed %x", hr);
+		kc_perrorf("GetTable failed", hr);
 		goto exit;
 	}
 	hr = lpView->SetColumns(sptaRules, 0);
 	if (hr != hrSuccess) {
-		ec_log_err("HrProcessRules(): SetColumns failed %x", hr);
+		kc_perrorf("SetColumns failed", hr);
 		goto exit;
 	}
 	hr = lpView->SortTable(sosRules, 0);
 	if (hr != hrSuccess) {
-		ec_log_err("HrProcessRules(): SortTable failed %x", hr);
+		kc_perrorf("SortTable failed", hr);
 		goto exit;
 	}
 
@@ -964,7 +953,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		rowset_ptr lpRowSet;
 	        hr = lpView->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
-			ec_log_err("HrProcessRules(): QueryRows failed %x", hr);
+			kc_perrorf("QueryRows failed", hr);
 				goto exit;
 		}
 	        if (lpRowSet->cRows == 0)

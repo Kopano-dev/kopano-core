@@ -1023,7 +1023,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 			sc -> countInc("DAgent", "deliver_public");
 		hr = HrOpenECPublicStore(lpSession, &~lpPublicStore);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to open public store, error code 0x%08X", hr);
+			kc_perror("Unable to open public store", hr);
 			// revert to normal inbox delivery
 			strDeliveryFolder.clear();
 			ec_log_warn("Mail will be delivered in Inbox");
@@ -1052,7 +1052,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	// check if we may write in the selected folder
 	hr = HrGetOneProp(lpDeliveryFolder, PR_ACCESS_LEVEL, &~lpWritePerms);
 	if (FAILED(hr)) {
-		ec_log_err("Unable to read folder properties, error code: 0x%08X", hr);
+		kc_perror("Unable to read folder properties", hr);
 		return hr;
 	}
 	if ((lpWritePerms->Value.ul & MAPI_MODIFY) == 0) {
@@ -1388,7 +1388,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 
 	hr = HrGetAddress(lpAdrBook, lpMessage, PR_SENDER_ENTRYID, PR_SENDER_NAME, PR_SENDER_ADDRTYPE, PR_SENDER_EMAIL_ADDRESS, strFromName, strFromType, strFromEmail);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to get sender e-mail address for autoresponder, error code: 0x%08X",hr);
+		kc_perror("Unable to get sender e-mail address for autoresponder", hr);
 		goto exit;
 	}
 
@@ -1584,11 +1584,8 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
 		lpFolder = lpFallbackFolder;
 		hr = lpFolder->CreateMessage(nullptr, 0, &~lpMessage);
 	}
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to create new message, error code: %08X", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Unable to create new message", hr);
 	hr = lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
 	if (hr != hrSuccess)
 		return kc_perrorf("QueryInterface:message failed", hr);
@@ -1632,13 +1629,13 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 		// create new message
 		hr = lpDeliveryFolder->CreateMessage(nullptr, 0, &~lpFallbackMessage);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to create fallback message, error code: 0x%08X", hr);
+			kc_perror("Unable to create fallback message", hr);
 			goto exit;
 		}
 
 		hr = FallbackDelivery(lpFallbackMessage, strMail);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to deliver fallback message, error code: 0x%08X", hr);
+			kc_perror("Unable to deliver fallback message", hr);
 			goto exit;
 		}
 
@@ -1901,7 +1898,7 @@ static HRESULT HrOverrideFallbackProps(IMessage *lpMessage,
 
 	hr = lpMessage->SetProps(ulPropPos, sPropOverride, NULL);
 	if (hr != hrSuccess)
-		ec_log_err("Unable to set fallback delivery properties: 0x%08X", hr);
+		kc_perror("Unable to set fallback delivery properties", hr);
 	return hr;
 }
 
@@ -1937,11 +1934,9 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
 	sPropReceived[4].Value.bin.lpb = lpRecip->sSearchKey.lpb;
 
 	HRESULT hr = lpMessage->SetProps(5, sPropReceived, NULL);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to set RECEIVED_BY properties: 0x%08X", hr);
-		return hr;
-	}
-	return hrSuccess;
+	if (hr != hrSuccess)
+		kc_perror("Unable to set RECEIVED_BY properties", hr);
+	return hr;
 }
 
 /** 
@@ -2359,7 +2354,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 				// use cerr to avoid quiet mode.
 				fprintf(stderr, "Store of user %ls is over quota limit.\n", lpRecip->wstrUsername.c_str());
 			else
-				ec_log_err("Unable to commit message: 0x%08X", hr);
+				kc_perror("Unable to commit message", hr);
 			return hr;
 		}
 
@@ -2382,20 +2377,14 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 				     g_lpConfig->GetSetting("sslkey_file", "", nullptr),
 				     g_lpConfig->GetSetting("sslkey_pass", "", nullptr));
 			}
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to open admin session for archive access: 0x%08X", hr);
-				return hr;
-			}
-
+			if (hr != hrSuccess)
+				return kc_perror("Unable to open admin session for archive access", hr);
 			hr = Archive::Create(ptrAdminSession, &ptrArchive);
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to instantiate archive object: 0x%08X", hr);
-				return hr;
-			}
-
+			if (hr != hrSuccess)
+				return kc_perror("Unable to instantiate archive object", hr);
 			hr = ptrArchive->HrArchiveMessageForDelivery(lpDeliveryMessage);
 			if (hr != hrSuccess) {
-				ec_log_err("Unable to archive message: 0x%08X", hr);
+				kc_perror("Unable to archive message", hr);
 				Util::HrDeleteMessage(lpSession, lpDeliveryMessage);
 				return hr;
 			}
@@ -2496,8 +2485,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 		     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 		     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess || (hr = HrOpenDefaultStore(lpSession, &~lpStore)) != hrSuccess) {
-		ec_log_err("Unable to open default store for system account, error code: 0x%08X", hr);
-
+		kc_perror("Unable to open default store for system account", hr);
 		// notify LMTP client soft error to try again later
 		for (const auto &recip : listRecipients)
 			// error will be shown in postqueue status in postfix, probably too in other serves and mail syslog service
@@ -2975,7 +2963,7 @@ static void *HandlerLMTP(void *lpArg)
 					lmtp.HrResponse("503 5.1.1 User does not exist");
 				}
 			} else {
-				ec_log_err("Failed to lookup email address, error: 0x%08X", hr);
+				kc_perror("Failed to lookup email address", hr);
 				lmtp.HrResponse("503 5.1.1 Connection error: "+stringify(hr,1));
 			}
 
