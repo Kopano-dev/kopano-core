@@ -27,13 +27,9 @@ mapiAttachment::mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> da
     const vmime::encoding &enc, const vmime::mediaType &type,
     const std::string &contentid, const vmime::word &filename,
     const vmime::text &desc, const vmime::word &name) :
-	defaultAttachment(data, enc, type, desc, name)
-{
-	m_filename = filename;
-	m_contentid = contentid;
-
-	m_hasCharset = false;
-}
+	defaultAttachment(data, enc, type, desc, name),
+	m_filename(filename), m_contentid(contentid)
+{}
 
 void mapiAttachment::addCharset(vmime::charset ch) {
 	m_hasCharset = true;
@@ -48,13 +44,10 @@ void mapiAttachment::generatePart(vmime::shared_ptr<vmime::bodyPart> part) const
 	ctf->getParameter("name")->setValue(m_filename);
 	if (m_hasCharset)
 		ctf->setCharset(vmime::charset(m_charset));
-
-	
-	if (m_contentid != "") {
+	if (m_contentid != "")
 		// Field is created when accessed through ContentId, so don't create if we have no
 		// content-id to set
 		part->getHeader()->ContentId()->setValue(vmime::messageId("<" + m_contentid + ">"));
-	}
 }
 
 } /* namespace */

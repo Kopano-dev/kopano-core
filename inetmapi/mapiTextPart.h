@@ -228,8 +228,7 @@ private:
 	encoding m_otherEncoding;
 	string m_otherMethod;			/* ical special */
 	charset m_otherCharset;
-	bool m_bHaveOtherCharset;
-
+	bool m_bHaveOtherCharset = false;
 	std::vector<vmime::shared_ptr<embeddedObject> > m_objects;
 
 	void findEmbeddedParts(const bodyPart& part, std::vector<vmime::shared_ptr<const bodyPart> > &cidParts, std::vector<vmime::shared_ptr<const bodyPart> > &locParts);

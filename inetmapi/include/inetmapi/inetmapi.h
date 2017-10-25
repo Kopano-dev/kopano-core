@@ -43,7 +43,7 @@ protected:
 	std::string smtphost;
 	int smtpport;
 	std::wstring error;
-	int smtpresult;
+	int smtpresult = 0;
 
 	std::vector<sFailedRecip> mTemporaryFailedRecipients;
 	std::vector<sFailedRecip> mPermanentFailedRecipients;
@@ -51,11 +51,11 @@ protected:
 public:
 	_kc_hidden ECSender(const std::string &smtphost, int port);
 	_kc_hidden virtual ~ECSender(void) = default;
-	_kc_hidden virtual int getSMTPResult(void);
-	_kc_hidden virtual const wchar_t *getErrorString(void);
-	_kc_hidden virtual void setError(const std::wstring &);
+	_kc_hidden virtual int getSMTPResult() const { return smtpresult; }
+	_kc_hidden virtual const wchar_t *getErrorString() const { return error.c_str(); }
+	_kc_hidden virtual void setError(const std::wstring &e) { error = e; }
 	_kc_hidden virtual void setError(const std::string &);
-	_kc_hidden virtual bool haveError(void);
+	_kc_hidden virtual bool haveError() const { return !error.empty(); }
 	_kc_hidden virtual const std::vector<sFailedRecip> &getPermanentFailedRecipients(void) const { return mPermanentFailedRecipients; }
 	_kc_hidden virtual const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
 };

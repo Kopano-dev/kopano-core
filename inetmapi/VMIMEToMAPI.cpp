@@ -64,7 +64,7 @@
 // inetmapi
 #include "ECMapiUtils.h"
 #include "ECVMIMEUtils.h"
-#include "outputStreamMAPIAdapter.h"
+#include "inputStreamMAPIAdapter.h"
 
 // vcal support
 #include "ICalToMAPI.h"
@@ -152,7 +152,6 @@ VMIMEToMAPI::VMIMEToMAPI()
 {
 	imopt_default_delivery_options(&m_dopt);
 	m_dopt.use_received_date = false; // use Date header
-	m_lpAdrBook = NULL;
 	m_dopt.html_safety_filter = false;
 }
 
