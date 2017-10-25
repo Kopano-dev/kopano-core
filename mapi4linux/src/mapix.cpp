@@ -999,7 +999,7 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
 	M4LAddrBook *myAddrBook = nullptr;
 	ULONG abver;
 	LPMAPISUP lpMAPISup = NULL;
-	SPropValue sProps[1];
+	SPropValue sProp;
 
 	lpMAPISup = new(std::nothrow) M4LMAPISupport(this, NULL, NULL);
 	if (!lpMAPISup) {
@@ -1014,10 +1014,9 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
 	}
 
 	// Set default properties
-	sProps[0].ulPropTag = PR_OBJECT_TYPE;
-	sProps[0].Value.ul = MAPI_ADDRBOOK;
-
-	hr = myAddrBook->SetProps(1, sProps, nullptr);
+	sProp.ulPropTag = PR_OBJECT_TYPE;
+	sProp.Value.ul = MAPI_ADDRBOOK;
+	hr = myAddrBook->SetProps(1, &sProp, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetProps failed", hr);
 	hr = myAddrBook->QueryInterface(lpInterface ? *lpInterface : IID_IAddrBook, reinterpret_cast<void **>(lppAdrBook));

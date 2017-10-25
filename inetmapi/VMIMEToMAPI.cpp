@@ -882,30 +882,29 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 		// X-Kopano-Vacation header (TODO: other headers?)
 		if (vmHeader->hasField("X-Kopano-Vacation")) {
-			SPropValue sIcon[1];
-			sIcon[0].ulPropTag = PR_ICON_INDEX;
-			sIcon[0].Value.l = ICON_MAIL_OOF;
+			SPropValue sIcon;
+			sIcon.ulPropTag = PR_ICON_INDEX;
+			sIcon.Value.l = ICON_MAIL_OOF;
 			// exchange sets PR_MESSAGE_CLASS to IPM.Note.Rules.OofTemplate.Microsoft to get the icon
-			hr = lpMessage->SetProps(1, sIcon, NULL);
+			hr = lpMessage->SetProps(1, &sIcon, nullptr);
 			if (hr != hrSuccess)
 				return hr;
 		}
 
 		// Sensitivity header
 		if (vmHeader->hasField("Sensitivity")) {
-			SPropValue sSensitivity[1];
+			SPropValue sSensitivity;
 			auto sensitivity = strToLower(vmHeader->findField("Sensitivity")->getValue()->generate());
-			sSensitivity[0].ulPropTag = PR_SENSITIVITY;
+			sSensitivity.ulPropTag = PR_SENSITIVITY;
 			if (sensitivity.compare("personal") == 0)
-				sSensitivity[0].Value.ul = SENSITIVITY_PERSONAL;
+				sSensitivity.Value.ul = SENSITIVITY_PERSONAL;
 			else if (sensitivity.compare("private") == 0)
-				sSensitivity[0].Value.ul = SENSITIVITY_PRIVATE;
+				sSensitivity.Value.ul = SENSITIVITY_PRIVATE;
 			else if (sensitivity.compare("company-confidential") == 0)
-				sSensitivity[0].Value.ul = SENSITIVITY_COMPANY_CONFIDENTIAL;
+				sSensitivity.Value.ul = SENSITIVITY_COMPANY_CONFIDENTIAL;
 			else
-				sSensitivity[0].Value.ul = SENSITIVITY_NONE;
-
-			hr = lpMessage->SetProps(1, sSensitivity, NULL);
+				sSensitivity.Value.ul = SENSITIVITY_NONE;
+			hr = lpMessage->SetProps(1, &sSensitivity, nullptr);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -993,12 +992,11 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				continue;
 			}
 
-			SPropValue sProp[1];
+			SPropValue sProp;
 			value = field->getValue()->generate();
-			sProp[0].ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(lpPropTags->aulPropTag[0]));
-			sProp[0].Value.lpszA = (char*)value.c_str();
-
-			lpMessage->SetProps(1, sProp, NULL);
+			sProp.ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(lpPropTags->aulPropTag[0]));
+			sProp.Value.lpszA = (char*)value.c_str();
+			lpMessage->SetProps(1, &sProp, nullptr);
 			// in case of error: ignore this x-header as named props then
 		}
 	}

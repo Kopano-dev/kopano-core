@@ -1567,7 +1567,7 @@ static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
 	object_ptr<IMAPIFolder> lpSentItems;
 	ULONG ulObjType;
 	object_ptr<IMessage> lpDestMsg;
-	SPropValue sProp[1];
+	SPropValue sProp;
 
 	auto hr = HrGetOneProp(lpRepStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentItemsEntryID);
 	if (hr != hrSuccess) {
@@ -1597,10 +1597,9 @@ static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
 		return hr;
 	}
 
-	sProp[0].ulPropTag = PR_MESSAGE_FLAGS;
-	sProp[0].Value.ul = MSGFLAG_READ;
-
-	hr = lpDestMsg->SetProps(1, sProp, NULL);
+	sProp.ulPropTag = PR_MESSAGE_FLAGS;
+	sProp.Value.ul = MSGFLAG_READ;
+	hr = lpDestMsg->SetProps(1, &sProp, nullptr);
 	if (hr != hrSuccess) {
 		ec_log_warn("Unable to edit the representee's message: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);

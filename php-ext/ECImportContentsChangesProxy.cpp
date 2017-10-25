@@ -155,21 +155,18 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
     
     zval *pvalFuncName;
     zval *pvalReturn;
-    zval *pvalArgs[1];
+	zval *pvalArgs;
     
     MAKE_STD_ZVAL(pvalFuncName);
     MAKE_STD_ZVAL(pvalReturn);
-    
-    MAKE_STD_ZVAL(pvalArgs[0]);
-
+	MAKE_STD_ZVAL(pvalArgs);
     if (lpStream != nullptr)
-        ZVAL_RESOURCE(pvalArgs[0], (long)lpStream);
+		ZVAL_RESOURCE(pvalArgs, reinterpret_cast<uintptr_t>(lpStream));
     else
-        ZVAL_NULL(pvalArgs[0]);
+		ZVAL_NULL(pvalArgs);
     
     ZVAL_STRING(pvalFuncName, "UpdateState" , 1);
-    
-    if(call_user_function(NULL, &m_lpObj, pvalFuncName, pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
+	if (call_user_function(nullptr, &m_lpObj, pvalFuncName, pvalReturn, 1, &pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "UpdateState method not present on ImportContentsChanges object");
         hr = MAPI_E_CALL_FAILED;
         goto exit;
@@ -182,8 +179,7 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
 exit:
     zval_ptr_dtor(&pvalFuncName);
     zval_ptr_dtor(&pvalReturn);
-    zval_ptr_dtor(&pvalArgs[0]);
-    
+	zval_ptr_dtor(&pvalArgs);
     return hr;
 }
 
@@ -285,16 +281,13 @@ HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElemen
     
     zval *pvalFuncName;
     zval *pvalReturn;
-    zval *pvalArgs[1];
+	zval *pvalArgs;
     
     MAKE_STD_ZVAL(pvalFuncName);
     MAKE_STD_ZVAL(pvalReturn);
-    
-    ReadStateArraytoPHPArray(cElements, lpReadState, &pvalArgs[0] TSRMLS_CC);
-
+	ReadStateArraytoPHPArray(cElements, lpReadState, &pvalArgs TSRMLS_CC);
     ZVAL_STRING(pvalFuncName, "ImportPerUserReadStateChange" , 1);
-    
-    if(call_user_function(NULL, &m_lpObj, pvalFuncName, pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
+	if (call_user_function(nullptr, &m_lpObj, pvalFuncName, pvalReturn, 1, &pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportPerUserReadStateChange method not present on ImportContentsChanges object");
         hr = MAPI_E_CALL_FAILED;
         goto exit;
@@ -307,8 +300,7 @@ HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElemen
 exit:
     zval_ptr_dtor(&pvalFuncName);
     zval_ptr_dtor(&pvalReturn);
-    zval_ptr_dtor(&pvalArgs[0]);
-    
+	zval_ptr_dtor(&pvalArgs);
     return hr;
 }
 

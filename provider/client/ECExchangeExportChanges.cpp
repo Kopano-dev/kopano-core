@@ -1177,12 +1177,10 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 			hr = m_lpImportHierarchy->ImportFolderChange(ulCount, lpPropArray);
 		} else {
 			// Server-wide ICS
-			SPropValue sProps[1];
-
-			sProps[0].ulPropTag = PR_SOURCE_KEY;
-			sProps[0].Value.bin = m_lstChange.at(m_ulStep).sSourceKey;
-
-			hr = m_lpImportHierarchy->ImportFolderChange(1, sProps);
+			SPropValue sProps;
+			sProps.ulPropTag = PR_SOURCE_KEY;
+			sProps.Value.bin = m_lstChange.at(m_ulStep).sSourceKey;
+			hr = m_lpImportHierarchy->ImportFolderChange(1, &sProps);
 		}
 
 		if (hr == SYNC_E_IGNORE){
