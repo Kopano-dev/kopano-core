@@ -1321,7 +1321,8 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	string  unquoted, quoted;
 	std::vector<std::string> cmdline = {strBaseCommand};
 	// Environment
-	const char *env[5];
+	std::unique_ptr<const char *[]> env;
+	size_t s = 0;
 	std::string strToMe;
 	std::string strCcMe, strBccMe;
 	std::string strTmpFile;
@@ -1526,15 +1527,28 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	strToMe = (std::string)"MESSAGE_TO_ME=" + (lpMessageProps[1].ulPropTag == PR_MESSAGE_TO_ME && lpMessageProps[1].Value.b ? "1" : "0");
 	strCcMe = (std::string)"MESSAGE_CC_ME=" + (lpMessageProps[2].ulPropTag == PR_MESSAGE_CC_ME && lpMessageProps[2].Value.b ? "1" : "0");
 	strBccMe = std::string("MESSAGE_BCC_ME=") + (lpMessageProps[4].ulPropTag == PR_EC_MESSAGE_BCC_ME && lpMessageProps[4].Value.b ? "1" : "0");
-	env[0] = strToMe.c_str();
-	env[1] = strCcMe.c_str();
+
+	while (environ[s] != nullptr)
+		s++;
+
+	env.reset(new(std::nothrow) const char *[s + 5]);
+	if(env == nullptr) {
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
+
+	for (size_t i = 0; i < s && environ[i] != nullptr; ++i)
+		env[i] = environ[i];
+
+	env[s] = strToMe.c_str();
+	env[s+1] = strCcMe.c_str();
 	strTmpFileEnv = "MAILHEADERS=" + strTmpFile;
-	env[2] = strTmpFileEnv.c_str();
-	env[3] = strBccMe.c_str();
-	env[4] = NULL;
+	env[s+2] = strTmpFileEnv.c_str();
+	env[s+3] = strBccMe.c_str();
+	env[s+4] = NULL;
 
 	ec_log_info("Starting autoresponder for out-of-office message");
-	if (!unix_system(strBaseCommand.c_str(), cmdline, env))
+	if (!unix_system(strBaseCommand.c_str(), cmdline, env.get()))
 		ec_log_err("Autoresponder failed");
 exit:
 	if (fd != -1)
