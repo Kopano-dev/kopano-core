@@ -160,8 +160,7 @@ static string encodestring(const wchar_t *lpszW) {
  * @return				The original wide string.
  */
 static wstring decodestring(const char *lpszA) {
-	const utf8string u8 = utf8string::from_string(hex2bin(lpszA));
-	return convert_to<wstring>(u8);
+	return convert_to<std::wstring>(utf8string::from_string(hex2bin(lpszA)));
 }
 
 /**
@@ -306,11 +305,10 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
     IMAPISession *lpAdminSession, IAddrBook **lppAddrBook,
     ECSender **lppMailer, IMsgStore **lppUserStore, IMessage **lppMessage)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulObjType = 0;
 
 	if (*lppAddrBook == NULL) {
-		hr = lpAdminSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, lppAddrBook);
+		auto hr = lpAdminSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, lppAddrBook);
 		if (hr != hrSuccess)
 			return kc_perror("Unable to open addressbook for error mail (skipping)", hr);
 	}
@@ -323,18 +321,18 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 		*lppMailer = CreateSender("localhost", 25);
 		if (! (*lppMailer)) {
 			ec_log_err("Unable to create error object for error mail, skipping.");
-			return hr;
+			return hrSuccess;
 		}
 	}
 
 	if (*lppUserStore == NULL) {
-		hr = lpAdminSession->OpenMsgStore(0, sSendData.cbStoreEntryId, (LPENTRYID)sSendData.lpStoreEntryId, NULL, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppUserStore);
+		auto hr = lpAdminSession->OpenMsgStore(0, sSendData.cbStoreEntryId, reinterpret_cast<ENTRYID *>(sSendData.lpStoreEntryId), nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppUserStore);
 		if (hr != hrSuccess)
 			return kc_perror("Unable to open store of user for error mail (skipping)", hr);
 	}
 
 	if (*lppMessage == NULL) {
-		hr = (*lppUserStore)->OpenEntry(sSendData.cbMessageEntryId, (LPENTRYID)sSendData.lpMessageEntryId, &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, (IUnknown**)lppMessage);
+		auto hr = (*lppUserStore)->OpenEntry(sSendData.cbMessageEntryId, reinterpret_cast<ENTRYID *>(sSendData.lpMessageEntryId), &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(lppMessage));
 		if (hr != hrSuccess)
 			return kc_perror("Unable to open message of user for error mail (skipping)", hr);
 	}
@@ -428,7 +426,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			object_ptr<IMsgStore> lpUserStore;
 			object_ptr<IMessage> lpMessage;
 
-			hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &unique_tie(lpMailer), &~lpUserStore, &~lpMessage);
+			hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &KCHL::unique_tie(lpMailer), &~lpUserStore, &~lpMessage);
 			if (hr == hrSuccess) {
 				lpMailer->setError(_("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
 				hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
@@ -478,14 +476,12 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler, IMAPITable *lpTable, const char *szSMTP, int ulPort,
     const char *szPath)
 {
-	HRESULT 	hr				= hrSuccess;
 	unsigned int ulMaxThreads	= 0;
-	unsigned int ulFreeThreads	= 0;
 	ULONG		ulRowCount		= 0;
 	std::wstring strUsername;
 	bool bForceReconnect = false;
 
-	hr = lpTable->GetRowCount(0, &ulRowCount);
+	auto hr = lpTable->GetRowCount(0, &ulRowCount);
 	if (hr != hrSuccess) {
 		kc_perror("Unable to get outgoing queue count", hr);
 		goto exit;
@@ -502,8 +498,7 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		ulMaxThreads = 1;
 
 	while(!bQuit) {
-		ulFreeThreads = ulMaxThreads - mapSendData.size();
-
+		auto ulFreeThreads = ulMaxThreads - mapSendData.size();
 		if (ulFreeThreads == 0) {
 			Sleep(100);
 			// remove enties from mapSendData which are finished
@@ -595,12 +590,11 @@ exit:
 static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
     IECSpooler **lppSpooler)
 {
-	HRESULT		hr = hrSuccess;
 	object_ptr<IECSpooler> lpSpooler;
 	object_ptr<IMsgStore> lpMDB;
 	memory_ptr<SPropValue> lpsProp;
 
-	hr = HrOpenDefaultStore(lpAdminSession, &~lpMDB);
+	auto hr = HrOpenDefaultStore(lpAdminSession, &~lpMDB);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open default store for system account", hr);
 	hr = HrGetOneProp(lpMDB, PR_EC_OBJECT, &~lpsProp);
@@ -626,7 +620,6 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
  */
 static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 {
-	HRESULT				hr				= hrSuccess;
 	object_ptr<IMAPISession> lpAdminSession;
 	object_ptr<IECSpooler> lpSpooler;
 	object_ptr<IMAPITable> lpTable;
@@ -638,10 +631,10 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	static constexpr const SizedSSortOrderSet(1, sSort) =
 		{1, 0, 0, {{PR_EC_HIERARCHYID, TABLE_SORT_ASCEND}}};
 
-	hr = HrOpenECAdminSession(&~lpAdminSession, "spooler:system",
-	     PROJECT_VERSION, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
-	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
-	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
+	auto hr = HrOpenECAdminSession(&~lpAdminSession, "spooler:system",
+	          PROJECT_VERSION, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	          g_lpConfig->GetSetting("sslkey_file", "", nullptr),
+	          g_lpConfig->GetSetting("sslkey_pass", "", nullptr));
 	if (hr != hrSuccess) {
 		kc_perror("Unable to open admin session", hr);
 		goto exit;
@@ -733,8 +726,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 exit:
 	// when we exit, we must make sure all forks started are cleaned
 	if (bQuit) {
-		ULONG ulCount = 0;
-		ULONG ulThreads = 0;
+		ULONG ulCount = 0, ulThreads = 0;
 
 		while (ulCount < 60) {
 			if ((ulCount % 5) == 0) {
@@ -874,7 +866,6 @@ int main(int argc, char *argv[]) {
 	const char *szPath = NULL;
 	const char *szSMTP = NULL;
 	int ulPort = 0;
-	int c;
 	int daemonize = 1;
 	int logfd = -1;
 	bool bForked = false;
@@ -963,8 +954,7 @@ int main(int argc, char *argv[]) {
 	setlocale(LC_MESSAGES, "");
 
 	while(1) {
-		c = my_getopt_long_permissive(argc, argv, "c:h:iuVF", long_options, NULL);
-
+		auto c = my_getopt_long_permissive(argc, argv, "c:h:iuVF", long_options, NULL);
 		if(c == -1)
 			break;
 

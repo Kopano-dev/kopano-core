@@ -68,8 +68,6 @@ LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf)
  */
 HRESULT LMTP::HrGetCommand(const string &strCommand, LMTP_Command &eCommand)
 {
-	HRESULT hr = hrSuccess;
-	
 	if (strncasecmp(strCommand.c_str(), "LHLO", strlen("LHLO")) == 0)
 		eCommand = LMTP_Command_LHLO;
 	else if (strncasecmp(strCommand.c_str(), "MAIL FROM:", strlen("MAIL FROM:")) == 0)
@@ -83,9 +81,8 @@ HRESULT LMTP::HrGetCommand(const string &strCommand, LMTP_Command &eCommand)
 	else if (strncasecmp(strCommand.c_str(), "QUIT", strlen("QUIT")) == 0)
 		eCommand = LMTP_Command_QUIT;
 	else
-		hr = MAPI_E_CALL_FAILED;
-	
-	return hr;
+		return MAPI_E_CALL_FAILED;
+	return hrSuccess;
 }
 
 /** 
@@ -97,10 +94,8 @@ HRESULT LMTP::HrGetCommand(const string &strCommand, LMTP_Command &eCommand)
  */
 HRESULT LMTP::HrResponse(const string &strResponse)
 {
-	HRESULT hr;
-
 	ec_log_debug("< %s", strResponse.c_str());
-	hr = m_lpChannel->HrWriteLine(strResponse);
+	auto hr = m_lpChannel->HrWriteLine(strResponse);
 	if (hr != hrSuccess)
 		kc_perror("LMTP write error", hr);
 	return hr;
@@ -175,13 +170,10 @@ HRESULT LMTP::HrCommandRCPTTO(const string &strTo, string *strUnresolved)
  */
 HRESULT LMTP::HrCommandDATA(FILE *tmp)
 {
-	HRESULT hr;
 	std::string inBuffer;
 	std::string message;
-	int offset;
-	ssize_t ret, to_write;
 
-	hr = HrResponse("354 2.1.5 Start mail input; end with <CRLF>.<CRLF>");
+	auto hr = HrResponse("354 2.1.5 Start mail input; end with <CRLF>.<CRLF>");
 	if (hr != hrSuccess)
 		return kc_perror("Error during DATA communication with client", hr);
 
@@ -193,12 +185,12 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 		if (inBuffer == ".")
 			break;
 
-		offset = 0;
+		int offset = 0;
 		if (inBuffer[0] == '.')
 			offset = 1;			// "remove" escape point, since it wasn't the end of mail marker
 
-		to_write = inBuffer.size() - offset;
-		ret = fwrite((char *)inBuffer.c_str() + offset, 1, to_write, tmp);
+		ssize_t to_write = inBuffer.size() - offset;
+		ssize_t ret = fwrite(inBuffer.c_str() + offset, 1, to_write, tmp);
 		if (ret != to_write) {
 			ec_log_err("Error during DATA communication with client: %s", strerror(errno));
 			return MAPI_E_FAILURE;
@@ -240,18 +232,11 @@ HRESULT LMTP::HrCommandQUIT()
  */
 HRESULT LMTP::HrParseAddress(const std::string &strInput, std::string *strAddress)
 {
-	std::string strAddr;
-	size_t pos1;
-	size_t pos2;
-
-	pos1 = strInput.find('<');
-	pos2 = strInput.find('>', pos1);
-
+	auto pos1 = strInput.find('<');
+	auto pos2 = strInput.find('>', pos1);
 	if (pos1 == std::string::npos || pos2 == std::string::npos)
 		return MAPI_E_NOT_FOUND;
-
-	strAddr = strInput.substr(pos1+1, pos2-pos1-1);
-
+	auto strAddr = strInput.substr(pos1 + 1, pos2 - pos1 - 1);
 	trim(strAddr);
 	*strAddress = std::move(strAddr);
 	return hrSuccess;

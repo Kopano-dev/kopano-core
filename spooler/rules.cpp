@@ -102,7 +102,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		{4, {PR_SENT_REPRESENTING_NAME_W,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_MESSAGE_DELIVERY_TIME,
 		PR_SUBJECT_W}};
-	ULONG ulCharset;
+	ULONG ulCharset = 20127; /* US-ASCII */
 	ULONG cValues;
 	bool bPlain = false;
 	SPropValue sNewBody;
@@ -119,9 +119,6 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		
 	if (PROP_TYPE(ptrBodies[3].ulPropTag) != PT_ERROR)
 		ulCharset = ptrBodies[3].Value.ul;
-	else
-		ulCharset = 20127; // US-ASCII
-
 	if (PROP_TYPE(ptrBodies[0].ulPropTag) == PT_ERROR && PROP_TYPE(ptrBodies[1].ulPropTag) == PT_ERROR)
 		// plain and html not found, check sync flag
 		bPlain = (ptrBodies[2].Value.b == FALSE);
@@ -195,15 +192,12 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	}
 	else {
 		// HTML body (or rtf, but nuts to editing that!)
-		string strFind("<body");
-		const char* pos;
-
 		hr = lpOrigMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrStream);
 		if (hr == hrSuccess)
 			hr = Util::HrStreamToString(ptrStream, strHTML);
 		// icase <body> tag 
-		pos = str_ifind(strHTML.c_str(), strFind.c_str());
-		pos = pos ? pos + strFind.length() : strHTML.c_str();
+		auto pos = str_ifind(strHTML.c_str(), "<body");
+		pos = pos ? pos + strlen("<body") : strHTML.c_str();
 		// if body tag was not found, this will make it be placed after the first tag, probably <html>
 		if ((pos == strHTML.c_str() && *pos == '<') || pos != strHTML.c_str()) {
 			// not all html bodies start actually using tags, so only seek if we find a <, or if we found a body tag starting point.
@@ -258,12 +252,11 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 
 static HRESULT CreateOutboxMessage(LPMDB lpOrigStore, LPMESSAGE *lppMessage)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpOutbox;
 	memory_ptr<SPropValue> lpOutboxEntryID;
 	ULONG ulObjType = 0;
 
-	hr = HrGetOneProp(lpOrigStore, PR_IPM_OUTBOX_ENTRYID, &~lpOutboxEntryID);
+	auto hr = HrGetOneProp(lpOrigStore, PR_IPM_OUTBOX_ENTRYID, &~lpOutboxEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpOrigStore->OpenEntry(lpOutboxEntryID->Value.bin.cb,
@@ -277,7 +270,6 @@ static HRESULT CreateOutboxMessage(LPMDB lpOrigStore, LPMESSAGE *lppMessage)
 static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
     IMAPIProp *lpOrigMessage, LPMESSAGE lpTemplate, LPMESSAGE *lppMessage)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpReplyMessage;
 	memory_ptr<SPropValue> lpProp, lpFrom, lpReplyRecipient;
 	memory_ptr<SPropValue> lpSentMailEntryID;
@@ -293,7 +285,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 		{6, {PR_SENDER_ENTRYID, PR_SENDER_NAME, PR_SENDER_ADDRTYPE,
 		PR_SENDER_EMAIL_ADDRESS, PR_SENDER_SEARCH_KEY, PR_NULL}};
 
-	hr = CreateOutboxMessage(lpOrigStore, &~lpReplyMessage);
+	auto hr = CreateOutboxMessage(lpOrigStore, &~lpReplyMessage);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTemplate->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, lpReplyMessage, 0, NULL);
@@ -524,16 +516,14 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
     IMAPIProp *lpMessage, const ADRLIST *lpRuleRecipients, bool bOpDelegate,
     bool bIncludeAsP1, ADRLIST **lppNewRecipients)
 {
-	HRESULT hr = hrSuccess;
 	adrlist_ptr lpRecipients;
 	memory_ptr<SPropValue> lpMsgClass;
 	std::wstring strFromName, strFromType, strFromAddress;
-	std::wstring strRuleName, strRuleType, strRuleAddress;
 
-	hr = HrGetAddress(lpAdrBook, dynamic_cast<IMessage *>(lpMessage),
-	     PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W,
-	     PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
-	     strFromName, strFromType, strFromAddress);
+	auto hr = HrGetAddress(lpAdrBook, dynamic_cast<IMessage *>(lpMessage),
+	          PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W,
+	          PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
+	          strFromName, strFromType, strFromAddress);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to get from address", hr);
 	hr = MAPIAllocateBuffer(CbNewADRLIST(lpRuleRecipients->cEntries), &~lpRecipients);
@@ -546,6 +536,8 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 	lpRecipients->cEntries = 0;
 
 	for (ULONG i = 0; i < lpRuleRecipients->cEntries; ++i) {
+		std::wstring strRuleName, strRuleType, strRuleAddress;
+
 		hr = HrGetAddress(lpAdrBook, lpRuleRecipients->aEntries[i].rgPropVals, lpRuleRecipients->aEntries[i].cValues, PR_ENTRYID,
 		     CHANGE_PROP_TYPE(PR_DISPLAY_NAME, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_ADDRTYPE, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_SMTP_ADDRESS, PT_UNSPECIFIED),
 		     strRuleName, strRuleType, strRuleAddress);
@@ -610,7 +602,6 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
     bool bOpDelegate, bool bDoPreserveSender, bool bDoNotMunge,
     bool bForwardAsAttachment, IMessage **lppMessage)
 {
-	HRESULT hr = hrSuccess;
 	LPMESSAGE lpFwdMsg = NULL;
 	memory_ptr<SPropValue> lpSentMailEntryID, lpOrigSubject;
 	memory_ptr<SPropTagArray> lpExclude;
@@ -635,9 +626,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	} };
 	static constexpr const SizedSPropTagArray(1, sExcludeFromAttachedForward) =
 		{1, {PR_TRANSPORT_MESSAGE_HEADERS}};
-
 	SPropValue sForwardProps[5];
-	ULONG cfp = 0;
 	wstring strSubject;
 
 	if (lpRecipients == NULL || lpRecipients->cEntries == 0) {
@@ -645,8 +634,8 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
-	hr = CheckRecipients(lpAdrBook, lpOrigStore, lpOrigMessage, lpRecipients,
-	     bOpDelegate, bDoNotMunge, &~filtered_recips);
+	auto hr = CheckRecipients(lpAdrBook, lpOrigStore, lpOrigMessage, lpRecipients,
+	          bOpDelegate, bDoNotMunge, &~filtered_recips);
 	if (hr == MAPI_E_NO_ACCESS) {
 		ec_log_info("K-1904: Forwarding not permitted. Ending rule processing.");
 		return hr;
@@ -731,7 +720,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	if(!bDoNotMunge || bForwardAsAttachment)
 		strSubject.insert(0, L"FW: ");
 
-	cfp = 0;
+	ULONG cfp = 0;
 	sForwardProps[cfp].ulPropTag = PR_AUTO_FORWARDED;
 	sForwardProps[cfp++].Value.b = TRUE;
 
@@ -779,7 +768,6 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 // HRESULT HrDelegateMessage(LPMAPISESSION lpSession, LPEXCHANGEMANAGESTORE lpIEMS, IMAPIProp *lpMessage, LPADRENTRY lpAddress)
 static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sNewProps[6] = {{0}};
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
@@ -791,7 +779,7 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 		{1, {PR_SENTMAIL_ENTRYID}};
 
 	// set PR_RCVD_REPRESENTING on original receiver
-	hr = lpMessage->GetProps(sptaRecipProps, 0, &cValues, &~lpProps);
+	auto hr = lpMessage->GetProps(sptaRecipProps, 0, &cValues, &~lpProps);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -885,7 +873,6 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
     IMAPISession *lpSession, IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
     IMAPIFolder *lpOrigInbox, IMessage **lppMessage, StatsClient *const sc)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IExchangeModifyTable> lpTable;
 	object_ptr<IMAPITable> lpView;
 	LPMESSAGE lpTemplate = NULL;
@@ -908,7 +895,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	ULONG ulResult= 0;
 
 	sc -> countInc("rules", "invocations");
-	hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, &~lpTable);
+	auto hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, &~lpTable);
 	if (hr != hrSuccess) {
 		kc_perrorf("OpenProperty failed", hr);
 		goto exit;
