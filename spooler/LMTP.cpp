@@ -42,12 +42,9 @@
 
 using std::string;
 
-LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf)
-{
-    m_lpChannel = lpChan;
-    m_lpConfig = lpConf;
-    m_strPath = szServerPath;
-}
+LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf) :
+	m_lpChannel(lpChan), m_lpConfig(lpConf), m_strPath(szServerPath)
+{}
 
 /** 
  * Tests the start of the input for the LMTP command. LMTP is case
