@@ -141,8 +141,8 @@ static char *password_encrypt_smd5(const char *data, unsigned int len) {
 	MD5_CTX ctx;
 	unsigned char md5_out[MD5_DIGEST_LENGTH + 4];
 	unsigned char *salt = md5_out + MD5_DIGEST_LENGTH; // salt is at the end of the digest
-	const int base64_len = MD5_DIGEST_LENGTH * 4 / 3 + 4;
-	char b64_out[MD5_DIGEST_LENGTH * 4 / 3 + 4];
+	constexpr size_t base64_len = sizeof(md5_out) * 4 / 3 + 4;
+	char b64_out[base64_len];
 	char *res;
 
 	rand_get(reinterpret_cast<char *>(salt), 4);
