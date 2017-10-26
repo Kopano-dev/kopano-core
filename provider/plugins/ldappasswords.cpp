@@ -217,6 +217,8 @@ static int password_check_ssha(const char *data, unsigned int len, const char *c
 	digest = base64_decode(crypted);
 
 	if (bSalted) {
+		if (digest.size() < SHA_DIGEST_LENGTH + 4)
+			return 1;
 		salt.assign(digest.c_str()+SHA_DIGEST_LENGTH, digest.length()-SHA_DIGEST_LENGTH);
 		pwd += salt;
 	}
