@@ -166,6 +166,8 @@ static int password_check_smd5(const char *data, unsigned int len, const char *c
 	MD5_CTX ctx;
 
 	digest = base64_decode(crypted);
+	if (digest.size() < MD5_DIGEST_LENGTH + 4)
+		return 1;
 	salt.assign(digest.c_str()+MD5_DIGEST_LENGTH, digest.length()-MD5_DIGEST_LENGTH);
 
 	MD5_Init(&ctx);
