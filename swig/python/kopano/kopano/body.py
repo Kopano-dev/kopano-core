@@ -1,8 +1,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - Kopano and its licensors (see LICENSE file)
 
 Deprecated
 """
@@ -56,7 +56,8 @@ class Body(object):
 
     @property
     def type_(self):
-        """ original body type: 'text', 'html', 'rtf' or None if it cannot be determined """
+        """ original body type: 'text', 'html', 'rtf' or *None* if it
+        cannot be determined """
 
         warnings.warn('Body.type_ is deprecated', _DeprecationWarning)
         return self.item.body_type

@@ -1,8 +1,8 @@
 """
 Part of the high-level python bindings for Kopano.
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
 import sys
@@ -58,18 +58,22 @@ class Company(Base):
         self._name = name = _unicode(name)
         if name != u'Default': # XXX
             try:
-                companyid = self.server.sa.ResolveCompanyName(self._name, MAPI_UNICODE)
-                self._eccompany = self.server.sa.GetCompany(companyid, MAPI_UNICODE)
+                id_ = self.server.sa.ResolveCompanyName(name, MAPI_UNICODE)
+                self._eccompany = self.server.sa.GetCompany(id_, MAPI_UNICODE)
             except MAPIErrorNotFound:
                 raise NotFoundError("no such company: '%s'" % name)
 
-        self._public_store = None # XXX cached because GetPublicStore does not see changes.. do we need folder & store notifications (slow)?
+        # XXX cached because GetPublicStore does not see changes..
+        #     do we need folder & store notifications (slow)?
+        self._public_store = None
+
         self._mapiobj = None
 
     @property
     def mapiobj(self):
         if not self._mapiobj:
-            self._mapiobj = self.server.mapisession.OpenEntry(self._eccompany.CompanyID, None, 0)
+            id_ = self._eccompany.CompanyID
+            self._mapiobj = self.server.mapisession.OpenEntry(id_, None, 0)
         return self._mapiobj
 
     @property
@@ -81,7 +85,8 @@ class Company(Base):
     def admin(self):
         """Company :class:`administrator <User>` in multi-tenant mode."""
         if self._name != u'Default':
-            ecuser = self.server.sa.GetUser(self._eccompany.AdministratorID, MAPI_UNICODE)
+            id_ = self._eccompany.AdministratorID
+            ecuser = self.server.sa.GetUser(id_, MAPI_UNICODE)
             return self.server.user(ecuser.Username)
 
     @admin.setter
@@ -110,13 +115,14 @@ class Company(Base):
 
     def store(self, guid):
         """Store for the given GUID
- 
+
         :param guid: store guid
         :return: :class:`store <Store>` with given GUID.
         """
         if guid == 'public':
             if not self.public_store:
-                raise NotFoundError("no public store for company '%s'" % self.name)
+                raise NotFoundError("no public store for company '%s'" % \
+                    self.name)
             return self.public_store
         else:
             return self.server.store(guid)
@@ -125,7 +131,9 @@ class Company(Base):
         """Return all company :class:`stores <Store>`."""
         if self.server.multitenant:
             table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
-            table.Restrict(SPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_W, SPropValue(PR_EC_COMPANY_NAME_W, self.name)), TBL_BATCH)
+            restriction = SPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_W,
+                SPropValue(PR_EC_COMPANY_NAME_W, self.name))
+            table.Restrict(restriction, TBL_BATCH)
             for row in table.QueryRows(-1, 0):
                 prop = PpropFindProp(row, PR_EC_STOREGUID)
                 if prop:
