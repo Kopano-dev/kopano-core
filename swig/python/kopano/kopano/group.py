@@ -14,7 +14,7 @@ from MAPI.Struct import (
 )
 from MAPI.Defs import bin2hex
 
-from .base import Base
+from .properties import Properties
 from .errors import NotFoundError, DuplicateError
 from .compat import fake_unicode as _unicode
 
@@ -31,7 +31,7 @@ else:
     import server as _server
     import user as _user
 
-class Group(Base):
+class Group(Properties):
     """Group class."""
 
     def __init__(self, name, server=None):

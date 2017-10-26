@@ -24,7 +24,7 @@ from MAPI.Tags import (
 )
 
 from .store import Store
-from .base import Base
+from .properties import Properties
 from .group import Group
 from .quota import Quota
 from .defs import (
@@ -42,7 +42,7 @@ else:
     import server as _server
     import company as _company
 
-class User(Base):
+class User(Properties):
     """User class"""
 
     def __init__(self, name=None, server=None, email=None, ecuser=None):

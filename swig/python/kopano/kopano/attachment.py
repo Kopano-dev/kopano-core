@@ -15,7 +15,7 @@ from MAPI.Tags import (
 from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import MAPIErrorNotFound
 
-from .base import Base
+from .properties import Properties
 
 if sys.hexversion >= 0x03000000:
     try:
@@ -25,7 +25,7 @@ if sys.hexversion >= 0x03000000:
 else:
     import utils as _utils
 
-class Attachment(Base):
+class Attachment(Properties):
     """Attachment class"""
 
     def __init__(self, mapiitem=None, entryid=None, mapiobj=None):
