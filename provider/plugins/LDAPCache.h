@@ -88,7 +88,7 @@ public:
 	 *						The objectclass for which the cache is requested
 	 * @return The cache data
 	 */
-	std::unique_ptr<dn_cache_t> getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass);
+	dn_cache_t getObjectDNCache(LDAPUserPlugin *, objectclass_t);
 
 	/**
 	 * Helper function: Search the cache for the direct parent for a DN.
@@ -111,7 +111,7 @@ public:
 	 *					The DN for which the children should be found
 	 * @return The list of children for the DN
 	 */
-	static std::unique_ptr<dn_list_t> getChildrenForDN(const dn_cache_t &, const std::string &dn);
+	static dn_list_t getChildrenForDN(const dn_cache_t &, const std::string &dn);
 
 	/**
 	 * Search the cache to obtain the DN for an object based on the object id.

@@ -52,11 +52,11 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass, dn_cache_t &&lpCache)
 	/*
 	 * Always merge caches rather then overwritting them.
 	 */
-	std::unique_ptr<dn_cache_t> lpTmp = getObjectDNCache(NULL, objclass);
+	auto lpTmp = getObjectDNCache(nullptr, objclass);
 	// cannot use insert() because it does not override existing entries
 	for (const auto &i : lpCache)
-		(*lpTmp)[i.first] = i.second;
-	lpCache = std::move(*lpTmp);
+		lpTmp[i.first] = i.second;
+	lpCache = std::move(lpTmp);
 
 	scoped_rlock biglock(m_hMutex);
 	switch (objclass) {
@@ -85,10 +85,10 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass, dn_cache_t &&lpCache)
 	}
 }
 
-std::unique_ptr<dn_cache_t>
+dn_cache_t
 LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 {
-	std::unique_ptr<dn_cache_t> cache;
+	dn_cache_t cache;
 	scoped_rlock biglock(m_hMutex);
 
 	/* If item was not yet cached, make sure it is done now. */
@@ -102,19 +102,19 @@ LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		cache.reset(new dn_cache_t(m_lpUserCache));
+		cache = m_lpUserCache;
 		break;
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		cache.reset(new dn_cache_t(m_lpGroupCache));
+		cache = m_lpGroupCache;
 		break;
 	case CONTAINER_COMPANY:
-		cache.reset(new dn_cache_t(m_lpCompanyCache));
+		cache = m_lpCompanyCache;
 		break;
 	case CONTAINER_ADDRESSLIST:
-		cache.reset(new dn_cache_t(m_lpAddressListCache));
+		cache = m_lpAddressListCache;
 		break;
 	default:
 		break;
@@ -145,10 +145,10 @@ objectid_t LDAPCache::getParentForDN(const dn_cache_t &lpCache,
 	return entry;
 }
 
-std::unique_ptr<dn_list_t>
+dn_list_t
 LDAPCache::getChildrenForDN(const dn_cache_t &lpCache, const std::string &dn)
 {
-	std::unique_ptr<dn_list_t> list(new dn_list_t());
+	dn_list_t list;
 
 	/* Find al DNs which are hierarchically below the given dn */
 	for (const auto &i : lpCache)
@@ -156,7 +156,7 @@ LDAPCache::getChildrenForDN(const dn_cache_t &lpCache, const std::string &dn)
 		/* If key matches the end of the root dn, we have a positive match */
 		if (i.second.size() > dn.size() &&
 		    strcasecmp(i.second.c_str() + (i.second.size() - dn.size()), dn.c_str()) == 0)
-			list->emplace_back(i.second);
+			list.emplace_back(i.second);
 	return list;
 }
 
