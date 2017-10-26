@@ -52,7 +52,6 @@ static int password_check_crypt(const char *data, unsigned int len, const char *
 	salt[0] = crypted[0] & 0x7F;
 	salt[1] = crypted[1] & 0x7F;
 	salt[2] = 0;
-
 	DES_fcrypt(data, salt, cryptbuf);
 
 	if (!strcmp(cryptbuf, crypted))
@@ -97,15 +96,12 @@ static char *password_encrypt_smd5(const char *data, unsigned int len) {
 }
 
 static int password_check_smd5(const char *data, unsigned int len, const char *crypted) {
-	std::string digest;
-	std::string salt;
 	unsigned char md5_out[MD5_DIGEST_LENGTH];
 	MD5_CTX ctx;
-
-	digest = base64_decode(crypted);
+	auto digest = base64_decode(crypted);
 	if (digest.size() < MD5_DIGEST_LENGTH + 4)
 		return 1;
-	salt.assign(digest.c_str()+MD5_DIGEST_LENGTH, digest.length()-MD5_DIGEST_LENGTH);
+	std::string salt(digest.c_str() + MD5_DIGEST_LENGTH, digest.length() - MD5_DIGEST_LENGTH);
 
 	MD5_Init(&ctx);
 	MD5_Update(&ctx, data, len);
@@ -140,14 +136,10 @@ static char *password_encrypt_ssha(const char *data, unsigned int len, bool bSal
 }
 
 static int password_check_ssha(const char *data, unsigned int len, const char *crypted, bool bSalted) {
-	std::string digest;
 	std::string salt;
-	std::string pwd;
 	unsigned char SHA_out[SHA_DIGEST_LENGTH];
-
-	pwd.assign(data, len);
-
-	digest = base64_decode(crypted);
+	std::string pwd(data, len);
+	auto digest = base64_decode(crypted);
 
 	if (bSalted) {
 		if (digest.size() < SHA_DIGEST_LENGTH + 4)

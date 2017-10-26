@@ -56,7 +56,6 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass, dn_cache_t &&lpCache)
 	// cannot use insert() because it does not override existing entries
 	for (const auto &i : lpCache)
 		lpTmp[i.first] = i.second;
-	lpCache = std::move(lpTmp);
 
 	scoped_rlock biglock(m_hMutex);
 	switch (objclass) {
@@ -66,19 +65,19 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass, dn_cache_t &&lpCache)
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		m_lpUserCache = std::move(lpCache);
+		m_lpUserCache = std::move(lpTmp);
 		break;
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		m_lpGroupCache = std::move(lpCache);
+		m_lpGroupCache = std::move(lpTmp);
 		break;
 	case CONTAINER_COMPANY:
-		m_lpCompanyCache = std::move(lpCache);
+		m_lpCompanyCache = std::move(lpTmp);
 		break;
 	case CONTAINER_ADDRESSLIST:
-		m_lpAddressListCache = std::move(lpCache);
+		m_lpAddressListCache = std::move(lpTmp);
 		break;
 	default:
 		break;
@@ -88,7 +87,6 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass, dn_cache_t &&lpCache)
 dn_cache_t
 LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 {
-	dn_cache_t cache;
 	scoped_rlock biglock(m_hMutex);
 
 	/* If item was not yet cached, make sure it is done now. */
@@ -102,24 +100,19 @@ LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		cache = m_lpUserCache;
-		break;
+		return m_lpUserCache;
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		cache = m_lpGroupCache;
-		break;
+		return m_lpGroupCache;
 	case CONTAINER_COMPANY:
-		cache = m_lpCompanyCache;
-		break;
+		return m_lpCompanyCache;
 	case CONTAINER_ADDRESSLIST:
-		cache = m_lpAddressListCache;
-		break;
+		return m_lpAddressListCache;
 	default:
-		break;
+		return {};
 	}
-	return cache;
 }
 
 objectid_t LDAPCache::getParentForDN(const dn_cache_t &lpCache,

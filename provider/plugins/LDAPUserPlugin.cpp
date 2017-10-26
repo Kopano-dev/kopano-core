@@ -634,11 +634,9 @@ exit:
 
 std::list<std::string> LDAPUserPlugin::GetClasses(const char *lpszClasses)
 {
-	std::vector<std::string> vecClasses = tokenize(lpszClasses, ',');
 	std::list<std::string> lstClasses;
-
-	for (unsigned int i = 0; i < vecClasses.size(); ++i)
-		lstClasses.emplace_back(trim(vecClasses[i]));
+	for (const auto &s : tokenize(lpszClasses, ','))
+		lstClasses.emplace_back(trim(s));
 	return lstClasses;
 }
 
@@ -653,37 +651,27 @@ bool LDAPUserPlugin::MatchClasses(std::set<std::string> setClasses, std::list<st
 std::string LDAPUserPlugin::GetObjectClassFilter(const char *lpszObjectClassAttr, const char *lpszClasses)
 {
 	std::list<std::string> lstObjectClasses = GetClasses(lpszClasses);
-	std::string filter;
 	if(lstObjectClasses.size() == 0) {
-		filter = "";
+		return "";
 	}
 	else if(lstObjectClasses.size() == 1) {
-		filter = (std::string)"(" + lpszObjectClassAttr + "=" + *lstObjectClasses.begin() + ")";
+		return (std::string)"(" + lpszObjectClassAttr + "=" + lstObjectClasses.front() + ")";
 	}
 	else {
-		filter = "(&";
+		std::string filter = "(&";
 		for (const auto &cls : lstObjectClasses)
 			filter += (std::string)"(" + lpszObjectClassAttr + "=" + cls + ")";
 		filter += ")";
+		return filter;
 	}
-
-	return filter;
 }
 
 objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 {
 	list<string>	objclasses;
-	objectclass_t	objclass = OBJECTCLASS_UNKNOWN;
-	string			nonactive_type;
-	string			resource_type;
-	string			security_type;
-
-	string			user_unique;
-	string			group_unique;
-	string			company_unique;
-	string			addresslist_unique;
-	string			dynamicgroup_unique;
-	string			object_uid;
+	std::string nonactive_type, resource_type, security_type;
+	std::string user_unique, group_unique, company_unique;
+	std::string addresslist_unique, dynamicgroup_unique, object_uid;
 
 	const char *class_attr = m_config->GetSetting("ldap_object_type_attribute");
 	const char *nonactive_attr = m_config->GetSetting("ldap_nonactive_attribute");
@@ -736,7 +724,6 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 
 	// List of matching Kopano object classes
 	std::list<std::pair<unsigned int, objectclass_t> > lstMatches;
-	std::list<std::string> lstLDAPObjectClasses;
 	/*
 	 * Find the Kopano object type by looking at the object classes.
 	 *
@@ -750,7 +737,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	for (const auto &i : objclasses)
 		setObjectClasses.emplace(strToUpper(i));
 
-	lstLDAPObjectClasses = GetClasses(class_user_type);
+	auto lstLDAPObjectClasses = GetClasses(class_user_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.emplace_back(lstLDAPObjectClasses.size(), OBJECTCLASS_USER); // Could still be active or nonactive, will resolve later
 
@@ -783,7 +770,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	lstMatches.reverse();
 
 	// Class we want is now at the top of the list (since we sorted by number of matches, then by class id)
-	objclass = lstMatches.begin()->second;
+	auto objclass = lstMatches.begin()->second;
 
 	// Subspecify some generic types now
 	if (objclass == OBJECTCLASS_USER) {
@@ -837,7 +824,6 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 {
 	std::unique_ptr<signatures_t> signatures(new signatures_t());
 	objectid_t				objectid;
-	string					dn;
 	string					signature;
 	std::map<objectclass_t, dn_cache_t> mapDNCache;
 	dn_list_t dnFilter;
@@ -850,10 +836,8 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 	 * Create a filter by requesting all subcompanies for he given company,
 	 * and remove any returned objects which are member of these subcompanies.
 	 */
-	if (m_bHosted && !strCompanyDN.empty()) {
-		auto lpCompanyCache = m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY);
-		dnFilter = m_lpCache->getChildrenForDN(lpCompanyCache, strCompanyDN);
-	}
+	if (m_bHosted && !strCompanyDN.empty())
+		dnFilter = m_lpCache->getChildrenForDN(m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY), strCompanyDN);
 
 	std::unique_ptr<attrArray> request_attrs(new attrArray(15));
 
@@ -875,7 +859,7 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 						  FETCH_ATTR_VALS, res)
 	{
 		FOREACH_ENTRY(res) {
-			dn = GetLDAPEntryDN(entry);
+			auto dn = GetLDAPEntryDN(entry);
 
 			/* Make sure the DN isn't filtered because it is located in the subcontainer */
 			if (m_bHosted && !strCompanyDN.empty() &&
@@ -919,7 +903,6 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 {
 	const char *lpszSearchBase = m_config->GetSetting("ldap_search_base");
-	string search_base;
 
 	if (lpszSearchBase == nullptr)
 		/* GetSetting returns "" for all options it knows.. */
@@ -928,8 +911,7 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 		return lpszSearchBase;
 
 	// find company DN, and use as search_base
-	auto lpCompanyCache = m_lpCache->getObjectDNCache(this, company.objclass);
-	search_base = m_lpCache->getDNForObject(lpCompanyCache, company);
+	auto search_base = m_lpCache->getDNForObject(m_lpCache->getObjectDNCache(this, company.objclass), company);
 	// CHECK: should not be possible to not already know the company
 	if (!search_base.empty())
 		return search_base;
@@ -939,7 +921,6 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 
 string LDAPUserPlugin::getServerSearchFilter()
 {
-	string filter, subfilter;
 	const char *objecttype = m_config->GetSetting("ldap_object_type_attribute", "", NULL);
 	const char *servertype = m_config->GetSetting("ldap_server_type_attribute_value", "", NULL);
 	const char *serverfilter = m_config->GetSetting("ldap_server_search_filter");
@@ -950,15 +931,12 @@ string LDAPUserPlugin::getServerSearchFilter()
 	if (!servertype)
 		throw runtime_error("No server type attribute value defined");
 
-	filter = serverfilter;
-	subfilter = "(" + string(objecttype) + "=" + servertype + ")";
+	std::string filter = serverfilter;
+	auto subfilter = "(" + string(objecttype) + "=" + servertype + ")";
 
 	if (!filter.empty())
-		filter = "(&(|" + filter + ")" + subfilter + ")";
-	else
-		filter = subfilter;
-
-	return filter;
+		return "(&(|" + filter + ")" + subfilter + ")";
+	return subfilter;
 }
 
 string LDAPUserPlugin::getSearchFilter(objectclass_t objclass)
@@ -1067,11 +1045,8 @@ string LDAPUserPlugin::getSearchFilter(objectclass_t objclass)
 	}
 
 	if (!filter.empty())
-		filter = "(&" + filter + subfilter + ")";
-	else
-		filter = subfilter;
-
-	return filter;
+		return "(&" + filter + subfilter + ")";
+	return subfilter;
 }
 
 string LDAPUserPlugin::getSearchFilter(const string &data, const char *attr, const char *attr_type)
@@ -1155,7 +1130,6 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 {
 	auto_free_ldap_message res;
 	string			strData;
-	LDAPMessage*	entry;
 	bool			bDataAttrFound = false;
 
 	string ldap_basedn = getSearchBase();
@@ -1183,7 +1157,7 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 		throw toomanyobjects(string("More than one object returned in search ") + ldap_filter);
 	}
 
-	entry = ldap_first_entry(m_ldap, res);
+	auto entry = ldap_first_entry(m_ldap, res);
 	if (entry == nullptr)
 		throw runtime_error("ldap_dn: broken.");
 
@@ -1255,12 +1229,8 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool
 
 objectsignature_t LDAPUserPlugin::objectDNtoObjectSignature(objectclass_t objclass, const string &dn)
 {
-	std::unique_ptr<signatures_t> signatures;
-	string ldap_filter;
-
-	ldap_filter = getSearchFilter(objclass);
-	signatures = getAllObjectsByFilter(dn, LDAP_SCOPE_BASE, ldap_filter, string(), false);
-
+	auto ldap_filter = getSearchFilter(objclass);
+	auto signatures = getAllObjectsByFilter(dn, LDAP_SCOPE_BASE, ldap_filter, string(), false);
 	if (signatures->empty())
 		throw objectnotfound(dn);
 	else if (signatures->size() != 1)
@@ -1312,16 +1282,13 @@ LDAPUserPlugin::resolveObjectsFromAttributes(objectclass_t objclass,
     const std::list<std::string> &objects, const char **lppAttr,
     const objectid_t &company)
 {
-	string ldap_basedn;
-	string ldap_filter;
 	string companyDN;
 
 	if (lppAttr == NULL || lppAttr[0] == NULL)
 		throw runtime_error("Unable to search for unknown attribute");
 
-	ldap_basedn = getSearchBase(company);
-	ldap_filter = getSearchFilter(objclass);
-
+	auto ldap_basedn = getSearchBase(company);
+	auto ldap_filter = getSearchFilter(objclass);
 	if (!company.id.empty())
 		companyDN = ldap_basedn; // in hosted, companyDN is the same as searchbase?
 
@@ -1336,12 +1303,8 @@ LDAPUserPlugin::resolveObjectsFromAttributes(objectclass_t objclass,
 
 objectsignature_t LDAPUserPlugin::resolveObjectFromAttributeType(objectclass_t objclass, const string &object, const char* lpAttr, const char* lpAttrType, const objectid_t &company)
 {
-	std::unique_ptr<signatures_t> signatures;
-	list<string> objects;
-
-	objects.emplace_back(object);
-	signatures = resolveObjectsFromAttributeType(objclass, objects, lpAttr, lpAttrType, company);
-
+	auto signatures = resolveObjectsFromAttributeType(objclass,
+		std::list<std::string>{object}, lpAttr, lpAttrType, company);
 	if (!signatures.get() || signatures->empty())
 		throw objectnotfound(object+" not found in LDAP");
 	return signatures->front();
@@ -1386,10 +1349,7 @@ LDAPUserPlugin::resolveObjectsFromAttributesType(objectclass_t objclass,
 
 objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const string &name, const objectid_t &company)
 {
-	list<string> objects;
 	std::unique_ptr<attrArray> attrs(new attrArray(6));
-	std::unique_ptr<signatures_t> signatures;
-
 	const char *loginname_attr = m_config->GetSetting("ldap_loginname_attribute", "", NULL);
 	const char *groupname_attr = m_config->GetSetting("ldap_groupname_attribute", "", NULL);
 	const char *dyngroupname_attr = m_config->GetSetting("ldap_dynamicgroupname_attribute", "", NULL);
@@ -1461,9 +1421,9 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const stri
 
 	if (attrs->empty())
 		throw runtime_error(string("Unable to resolve name with no attributes"));
-	objects.emplace_back(m_iconvrev->convert(name));
-	signatures = resolveObjectsFromAttributes(objclass, objects, attrs->get(), company);
-
+	auto signatures = resolveObjectsFromAttributes(objclass,
+		std::list<std::string>{m_iconvrev->convert(name)},
+		attrs->get(), company);
 	if (!signatures.get() || signatures->empty())
 		throw objectnotfound(name+" not found in LDAP");
 
@@ -1482,7 +1442,6 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 	struct timeval tstart, tend;
 	const char *authmethod = m_config->GetSetting("ldap_authentication_method");
 	objectsignature_t id;
-	LONGLONG	llelapsedtime;
 
 	gettimeofday(&tstart, NULL);
 
@@ -1497,8 +1456,7 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 	}
 
 	gettimeofday(&tend, NULL);
-	llelapsedtime = difftimeval(&tstart,&tend);
-
+	LONGLONG llelapsedtime = difftimeval(&tstart,&tend);
 	m_lpStatsCollector->Increment(SCN_LDAP_AUTH_LOGINS);
 	m_lpStatsCollector->Increment(SCN_LDAP_AUTH_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_AUTH_TIME_MAX, llelapsedtime);
@@ -1510,7 +1468,6 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, const string &password, const objectid_t &company)
 {
 	LDAP*		ld = NULL;
-	string		dn;
 	objectsignature_t	signature;
 
 	try {
@@ -1519,8 +1476,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 		 * ZCP-11720: When looking for users, explicitly request
 		 * skipping the cache.
 		 */
-		dn = objectUniqueIDtoObjectDN(signature.id, false);
-
+		auto dn = objectUniqueIDtoObjectDN(signature.id, false);
 		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str());
 	} catch (std::exception &e) {
 		throw login_error((string)"Trying to authenticate failed: " + e.what() + (string)"; username = " + username);
@@ -1537,11 +1493,6 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 {
 	auto_free_ldap_message res;
 	objectdetails_t	d;
-	LDAPMessage*	entry = NULL;
-	string			ldap_basedn;
-	string			ldap_filter;
-	string			strCryptedpw;
-	string			strPasswordConverted;
 	objectsignature_t signature;
 
 	std::unique_ptr<attrArray> request_attrs(new attrArray(4));
@@ -1549,9 +1500,8 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	CONFIG_TO_ATTR(request_attrs, password_attr, "ldap_password_attribute");
 	CONFIG_TO_ATTR(request_attrs, unique_attr, "ldap_user_unique_attribute");
 	CONFIG_TO_ATTR(request_attrs, nonactive_attr, "ldap_nonactive_attribute");
-
-	ldap_basedn = getSearchBase(company);
-	ldap_filter = getObjectSearchFilter(objectid_t(m_iconvrev->convert(username), ACTIVE_USER), loginname_attr);
+	auto ldap_basedn = getSearchBase(company);
+	auto ldap_filter = getObjectSearchFilter(objectid_t(m_iconvrev->convert(username), ACTIVE_USER), loginname_attr);
 
 	/* LDAP filter does not exist, user does not exist, user cannot login */
 	if (ldap_filter.empty())
@@ -1571,7 +1521,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 		throw login_error("Trying to authenticate failed: unknown error");
 	}
 
-	entry = ldap_first_entry(m_ldap, res);
+	auto entry = ldap_first_entry(m_ldap, res);
 	if (entry == nullptr)
 		throw runtime_error("ldap_dn: broken.");
 
@@ -1591,10 +1541,8 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	}
 	END_FOREACH_ATTR
 
-	strCryptedpw = d.GetPropString(OB_PROP_S_PASSWORD);
-
-	strPasswordConverted = m_iconvrev->convert(password).c_str();
-
+	auto strCryptedpw = d.GetPropString(OB_PROP_S_PASSWORD);
+	auto strPasswordConverted = m_iconvrev->convert(password);
 	if (strCryptedpw.empty())
 		throw login_error("Trying to authenticate failed: password field is empty or unreadable");
 	if (signature.id.id.empty())
@@ -1640,10 +1588,7 @@ LDAPUserPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
 
 string LDAPUserPlugin::getLDAPAttributeValue(char *attribute, LDAPMessage *entry) {
 	list<string> l = getLDAPAttributeValues(attribute, entry);
-	if (!l.empty())
-		return *(l.begin());
-	else
-		return string();
+	return !l.empty() ? l.front() : std::string();
 }
 
 list<string> LDAPUserPlugin::getLDAPAttributeValues(char *attribute, LDAPMessage *entry) {
@@ -1661,12 +1606,10 @@ list<string> LDAPUserPlugin::getLDAPAttributeValues(char *attribute, LDAPMessage
 
 std::string LDAPUserPlugin::GetLDAPEntryDN(LDAPMessage *entry)
 {
-	std::string dn;
 	auto_free_ldap_attribute ptrDN(ldap_get_dn(m_ldap, entry));
-
 	if (*ptrDN != '\0')
-		dn = ptrDN;
-	return dn;
+		return ptrDN.get();
+	return {};
 }
 
 struct postaction {
@@ -1694,10 +1637,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 	bool			bCutOff = false;
 	dn_cache_t lpCompanyCache;
-	string						ldap_filter;
-	string						ldap_basedn;
-	string						ldap_attr;
-	list<string>				ldap_attrs;
+	std::string ldap_filter;
 	string						strDN;
 
 	list<postaction> lPostActions;
@@ -1755,7 +1695,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	if (m_bHosted)
 		lpCompanyCache = m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY);
 
-	ldap_basedn = getSearchBase();
+	auto ldap_basedn = getSearchBase();
 
 	/*
 	 * Optimize the filter, by sorting the objectids we made sure that all
@@ -1865,7 +1805,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			 * because an attribute can be used in multiple config options
 			 */
 			if (ldap_addressbook_hide_attr && !strcasecmp(att, ldap_addressbook_hide_attr)) {
-				ldap_attr = getLDAPAttributeValue(att, entry);
+				auto ldap_attr = getLDAPAttributeValue(att, entry);
 				sObjDetails.SetPropBool(OB_PROP_B_AB_HIDDEN, parseBool(ldap_attr.c_str()));
 			}
 
@@ -1959,8 +1899,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					lPostActions.emplace_back(std::move(p));
 					break;
                 }
-				default:
-					ldap_attrs = getLDAPAttributeValues(att, entry);
+				default: {
+					auto ldap_attrs = getLDAPAttributeValues(att, entry);
 
 					if ((ulPropTag & 0xFFFE) == 0x1E) // if (PROP_TYPE(ulPropTag) == PT_STRING8 || PT_UNICODE)
 						for (auto &i : ldap_attrs)
@@ -1972,6 +1912,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 						sObjDetails.SetPropString((property_key_t)ulPropTag, ldap_attrs.front());
 					break;
 				}
+				}
 			}
 
 			/* Objectclass specific properties */
@@ -1982,47 +1923,47 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			case NONACTIVE_EQUIPMENT:
 			case NONACTIVE_CONTACT:
 				if (loginname_attr && !strcasecmp(att, loginname_attr)) {
-					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
+					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 				}
 
 				if (user_fullname_attr && !strcasecmp(att, user_fullname_attr)) {
-					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
+					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
 				}
 
 				if (password_attr && !strcasecmp(att, password_attr)) {
-					ldap_attr = getLDAPAttributeValue(att, entry);
+					auto ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropString(OB_PROP_S_PASSWORD, ldap_attr);
 				}
 
 				if (emailaddress_attr && !strcasecmp(att, emailaddress_attr)) {
-					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
+					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
 				}
 
 				if (emailaliases_attr && !strcasecmp(att, emailaliases_attr)) {
-					ldap_attrs = getLDAPAttributeValues(att, entry);
+					auto ldap_attrs = getLDAPAttributeValues(att, entry);
 					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, ldap_attrs);
 				}
 
 				if (isadmin_attr && !strcasecmp(att, isadmin_attr)) {
-					ldap_attr = getLDAPAttributeValue(att, entry);
+					auto ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropInt(OB_PROP_I_ADMINLEVEL, std::min(2, atoi(ldap_attr.c_str())));
 				}
 
 				if (resource_type_attr && !strcasecmp(att, resource_type_attr)) {
-					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
+					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_RESOURCE_DESCRIPTION, ldap_attr);
 				}
 
 				if (resource_capacity_attr && !strcasecmp(att, resource_capacity_attr)) {
-					ldap_attr = getLDAPAttributeValue(att, entry);
+					auto ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropInt(OB_PROP_I_RESOURCE_CAPACITY, atoi(ldap_attr.c_str()));
 				}
 
 				if (usercert_attr && !strcasecmp(att, usercert_attr)) {
-					ldap_attrs = getLDAPAttributeValues(att, entry);
+					auto ldap_attrs = getLDAPAttributeValues(att, entry);
 					sObjDetails.SetPropListString(OB_PROP_LS_CERTIFICATE, ldap_attrs);
 				}
 
@@ -2044,25 +1985,25 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					lPostActions.emplace_back(std::move(p));
 				}
 				if (user_server_attr && !strcasecmp(att, user_server_attr)) {
-					ldap_attr = getLDAPAttributeValue(att, entry);
+					auto ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropString(OB_PROP_S_SERVERNAME, ldap_attr);
 				}
 				break;
 			case DISTLIST_GROUP:
 			case DISTLIST_SECURITY:
 				if (group_fullname_attr && !strcasecmp(att, group_fullname_attr)) {
-					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
+					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
 				}
 
 				if (emailaddress_attr && !strcasecmp(att, emailaddress_attr)) {
-					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
+					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
 				}
 
 				if (emailaliases_attr && !strcasecmp(att, emailaliases_attr)) {
-					ldap_attrs = getLDAPAttributeValues(att, entry);
+					auto ldap_attrs = getLDAPAttributeValues(att, entry);
 					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, ldap_attrs);
 				}
 
@@ -2086,29 +2027,29 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				break;
 			case DISTLIST_DYNAMIC:
 				if (dynamicgroup_name_attr && !strcasecmp(att, dynamicgroup_name_attr)) {
-					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
+					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
 				}
 
 				if (emailaddress_attr && !strcasecmp(att, emailaddress_attr)) {
-					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
+					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
 				}
 
 				if (emailaliases_attr && !strcasecmp(att, emailaliases_attr)) {
-					ldap_attrs = getLDAPAttributeValues(att, entry);
+					auto ldap_attrs = getLDAPAttributeValues(att, entry);
 					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, ldap_attrs);
 				}
 				break;
 			case CONTAINER_COMPANY:
 				if (company_fullname_attr && !strcasecmp(att, company_fullname_attr)) {
-					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
+					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
 				}
 				if (company_server_attr && !strcasecmp(att, company_server_attr)) {
-					ldap_attr = getLDAPAttributeValue(att, entry);
+					auto ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropString(OB_PROP_S_SERVERNAME, ldap_attr);
 				}
 				if (sysadmin_attr && !strcasecmp(att, sysadmin_attr)) {
@@ -2127,7 +2068,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				break;
 			case CONTAINER_ADDRESSLIST:
 				if (addresslist_name_attr && !strcasecmp(att, addresslist_name_attr)) {
-					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
+					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
 				}
@@ -2220,11 +2161,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 std::unique_ptr<objectdetails_t>
 LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 {
-	std::unique_ptr<std::map<objectid_t, objectdetails_t> > mapDetails;
-    list<objectid_t> objectids;
-
-	objectids.emplace_back(id);
-    mapDetails = getObjectDetails(objectids);
+	auto mapDetails = getObjectDetails(std::list<objectid_t>{id});
 	auto iterDetails = mapDetails->find(id);
 	if (iterDetails == mapDetails->cend())
 		throw objectnotfound("No details for "+id.id);
@@ -2253,16 +2190,11 @@ static LDAPMod *newLDAPModification(char *attribute, const list<string> &values)
 static LDAPMod *newLDAPModification(char *attribute, const char *value) {
 	// Pretty lame function, all it does is use newLDAPModification
 	// with a list with only one element.
-	list<string> values;
-	values.emplace_back(value);
-	return newLDAPModification(attribute, std::move(values));
+	return newLDAPModification(attribute, std::list<std::string>{value});
 }
 
 int LDAPUserPlugin::changeAttribute(const char *dn, char *attribute, const char *value) {
-	LDAPMod *mods[2];
-
-	mods[0] = newLDAPModification(attribute, value);
-	mods[1] = NULL;
+	LDAPMod *mods[] = {newLDAPModification(attribute, value), nullptr};
 
 	// Actual LDAP call
 	int rc = ldap_modify_s(m_ldap, const_cast<char *>(dn), mods);
@@ -2278,10 +2210,7 @@ int LDAPUserPlugin::changeAttribute(const char *dn, char *attribute, const char 
 }
 
 int LDAPUserPlugin::changeAttribute(const char *dn, char *attribute, const std::list<std::string> &values) {
-	LDAPMod *mods[2];
-
-	mods[0] = newLDAPModification(attribute, values);
-	mods[1] = NULL;
+	LDAPMod *mods[] = {newLDAPModification(attribute, values), nullptr};
 
 	// Actual LDAP call
 	int rc = ldap_modify_s(m_ldap, const_cast<char *>(dn), mods);
@@ -2323,15 +2252,10 @@ std::unique_ptr<signatures_t>
 LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
     const objectid_t &childobject)
 {
-	string				ldap_filter;
 	string				member_data;
 	objectclass_t		parentobjclass = OBJECTCLASS_UNKNOWN;
-
-	string ldap_basedn;
-	const char *unique_attr = NULL;
-	const char *member_attr = NULL;
-	const char *member_attr_type = NULL;
-	const char *member_attr_rel = NULL;
+	const char *unique_attr = nullptr, *member_attr = nullptr;
+	const char *member_attr_type = nullptr, *member_attr_rel = nullptr;
 
 	switch (childobject.objclass) {
 	case OBJECTCLASS_USER:
@@ -2407,8 +2331,8 @@ LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 		break;
 	}
 
-	ldap_basedn = getSearchBase();
-	ldap_filter = getSearchFilter(parentobjclass);
+	auto ldap_basedn = getSearchBase();
+	auto ldap_filter = getSearchFilter(parentobjclass);
 
 	if(member_attr_rel == NULL  || strlen(member_attr_rel) == 0)
 		member_attr_rel = unique_attr;
@@ -2440,19 +2364,11 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	list<string>			memberlist;
 
 	auto_free_ldap_message res;
-
-	string			dn;
-	string			ldap_basedn;
-	string			ldap_filter;
-	string			ldap_member_filter;
+	std::string dn, ldap_member_filter, companyDN;
 	objectid_t		companyid;
-	string			companyDN;
 	objectclass_t	childobjclass = OBJECTCLASS_UNKNOWN;
-
-	const char *unique_attr = NULL;
-	const char *unique_attr_type = NULL;
-	const char *member_attr = NULL;
-	const char *member_attr_type = NULL;
+	const char *unique_attr = nullptr, *unique_attr_type = nullptr;
+	const char *member_attr = nullptr, *member_attr_type = nullptr;
 	const char *base_attr = NULL;
 
 	std::unique_ptr<attrArray> member_attr_rel(new attrArray(5));
@@ -2566,8 +2482,8 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	};
 
 	//Get group DN from unique id
-	ldap_basedn = getSearchBase();
-	ldap_filter = getObjectSearchFilter(sExternId, unique_attr, unique_attr_type);
+	auto ldap_basedn = getSearchBase();
+	auto ldap_filter = getObjectSearchFilter(sExternId, unique_attr, unique_attr_type);
 
 	/* LDAP filter empty, parent does not exist */
 	if (ldap_filter.empty())
@@ -2637,20 +2553,16 @@ void LDAPUserPlugin::deleteSubObjectRelation(userobject_relation_t relation, con
 std::unique_ptr<signatures_t>
 LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 {
-	std::unique_ptr<signatures_t> signatures;
-	string escMatch;
-	string ldap_basedn;
-	string ldap_filter;
 	string search_filter;
 	size_t pos;
 
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
-	ldap_basedn = getSearchBase();
-	ldap_filter = getSearchFilter();
+	auto ldap_basedn = getSearchBase();
+	auto ldap_filter = getSearchFilter();
 
 	// Escape match string
-	escMatch = StringEscapeSequence(m_iconvrev->convert(match));
+	auto escMatch = StringEscapeSequence(m_iconvrev->convert(match));
 
 	if (! (ulFlags & EMS_AB_ADDRESS_LOOKUP)) {
 		try {
@@ -2683,7 +2595,7 @@ LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	}
 	ldap_filter = "(&" + ldap_filter + search_filter + ")";
 
-	signatures = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, string(), false);
+	auto signatures = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, string(), false);
 	if (signatures->empty())
 		throw objectnotfound(ldap_filter);
 
@@ -2693,9 +2605,6 @@ LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 {
 	auto_free_ldap_message res;
-	LDAPMessage *entry = NULL;
-	string ldap_basedn;
-	string search_filter;
 	std::unique_ptr<objectdetails_t> details(new objectdetails_t(CONTAINER_COMPANY));
 
 	if (!m_bDistributed)
@@ -2704,9 +2613,8 @@ std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	const char *publicstore_attr = m_config->GetSetting("ldap_server_contains_public_attribute", "", NULL);
-
-	ldap_basedn = getSearchBase();
-	search_filter = getServerSearchFilter();
+	auto ldap_basedn = getSearchBase();
+	auto search_filter = getServerSearchFilter();
 
 	if (publicstore_attr)
 		search_filter = "(&" + search_filter + "(" + publicstore_attr + "=1))";
@@ -2731,7 +2639,7 @@ std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 		throw toomanyobjects("public store server");
 	}
 
-	entry = ldap_first_entry(m_ldap, res);
+	auto entry = ldap_first_entry(m_ldap, res);
 	if (entry == nullptr)
 		throw runtime_error("ldap_dn: broken.");
 
@@ -2747,19 +2655,14 @@ std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
 {
 	auto_free_ldap_message res;
-	string ldap_basedn;
-	string search_filter;
 	std::unique_ptr<serverlist_t> serverlist(new serverlist_t());
 
 	if (!m_bDistributed)
 		throw objectnotfound("Distributed not enabled");
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
-	ldap_basedn = getSearchBase();
-	search_filter =
-		"(&" +
-		getServerSearchFilter() +
-		")";
+	auto ldap_basedn = getSearchBase();
+	auto search_filter = "(&" + getServerSearchFilter() + ")";
 
 	std::unique_ptr<attrArray> request_attrs(new attrArray(1));
 	CONFIG_TO_ATTR(request_attrs, name_attr, "ldap_server_unique_attribute");
@@ -2786,9 +2689,6 @@ std::unique_ptr<serverdetails_t>
 LDAPUserPlugin::getServerDetails(const std::string &server)
 {
 	auto_free_ldap_message res;
-	LDAPMessage *entry = NULL;
-	string ldap_basedn;
-	string search_filter;
 
 	if (!m_bDistributed)
 		throw objectnotfound("Distributed not enabled for" +server);
@@ -2796,14 +2696,9 @@ LDAPUserPlugin::getServerDetails(const std::string &server)
 	LOG_PLUGIN_DEBUG("%s for server %s", __FUNCTION__, server.c_str());
 
 	std::unique_ptr<serverdetails_t> serverDetails(new serverdetails_t(server));
-	string strAddress;
-	string strHttpPort;
-	string strSslPort;
-	string strFilePath;
-	string strProxyPath;
-
-	ldap_basedn = getSearchBase();
-	search_filter =
+	std::string strAddress, strHttpPort, strSslPort, strFilePath, strProxyPath;
+	auto ldap_basedn = getSearchBase();
+	auto search_filter =
 		"(&" +
 		getServerSearchFilter() +
 		getSearchFilter(server, m_config->GetSetting("ldap_server_unique_attribute")) +
@@ -2836,7 +2731,7 @@ LDAPUserPlugin::getServerDetails(const std::string &server)
 		throw toomanyobjects(server);
 	}
 
-	entry = ldap_first_entry(m_ldap, res);
+	auto entry = ldap_first_entry(m_ldap, res);
 	if (entry == nullptr)
 		throw runtime_error("ldap_dn: broken.");
 
@@ -2882,11 +2777,10 @@ static std::string toHex(unsigned char n)
 
 HRESULT LDAPUserPlugin::BintoEscapeSequence(const char* lpdata, size_t size, string* lpEscaped)
 {
-	HRESULT hr = 0;
 	lpEscaped->clear();
 	for (size_t t = 0; t < size; ++t)
 		lpEscaped->append("\\"+toHex(lpdata[t]));
-	return hr;
+	return 0;
 }
 
 std::string LDAPUserPlugin::StringEscapeSequence(const string &strData)
@@ -2912,7 +2806,6 @@ std::unique_ptr<quotadetails_t> LDAPUserPlugin::getQuota(const objectid_t &id,
     bool bGetUserDefault)
 {
 	auto_free_ldap_message res;
-	string dn;
 	std::unique_ptr<quotadetails_t> quotaDetails(new quotadetails_t());
 
 	const char *multiplier_s = m_config->GetSetting("ldap_quota_multiplier");
@@ -2987,10 +2880,9 @@ void LDAPUserPlugin::setQuota(const objectid_t &id, const quotadetails_t &quotad
 std::unique_ptr<abprops_t> LDAPUserPlugin::getExtraAddressbookProperties(void)
 {
 	std::unique_ptr<abprops_t> lProps(new abprops_t());
-	list<configsetting_t> lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
-	for (const auto &cs : lExtraAttrs)
+	for (const auto &cs : m_config->GetSettingGroup(CONFIGGROUP_PROPMAP))
 		lProps->emplace_back(xtoi(cs.szName));
 	return lProps;
 }
