@@ -76,7 +76,7 @@ public:
 	 * @param[in]	lpCache
 	 *					The data to add to the cache.
 	 */
-	void setObjectDNCache(objectclass_t objclass, std::unique_ptr<dn_cache_t> lpCache);
+	void setObjectDNCache(objectclass_t objclass, dn_cache_t &&);
 
 	/**
 	 * Obtain the cached data

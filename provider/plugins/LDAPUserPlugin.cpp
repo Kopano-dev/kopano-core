@@ -845,7 +845,7 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 	objectid_t				objectid;
 	string					dn;
 	string					signature;
-	std::map<objectclass_t, dn_cache_t *> mapDNCache;
+	std::map<objectclass_t, dn_cache_t> mapDNCache;
 	std::unique_ptr<dn_list_t> dnFilter;
 
 	auto_free_ldap_message res;
@@ -908,11 +908,9 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 			}
 			signatures->emplace_back(objectid, signature);
 			if (bCache) {
-				auto retval = mapDNCache.emplace(objectid.objclass, nullptr);
-				if (retval.second)
-					retval.first->second = new dn_cache_t();
+				auto retval = mapDNCache.emplace(objectid.objclass, dn_cache_t());
 				auto iterDNCache = retval.first;
-				iterDNCache->second->emplace(objectid, dn);
+				iterDNCache->second.emplace(objectid, dn);
 			}
 		}
 		END_FOREACH_ENTRY
@@ -920,8 +918,8 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 	END_FOREACH_LDAP_PAGING
 
 	/* Update cache */
-	for (const auto &p : mapDNCache)
-		m_lpCache->setObjectDNCache(p.first, std::unique_ptr<dn_cache_t>(p.second));
+	for (auto &p : mapDNCache)
+		m_lpCache->setObjectDNCache(p.first, std::move(p.second));
 	return signatures;
 }
 

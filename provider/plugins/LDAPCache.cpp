@@ -47,17 +47,16 @@ bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 	}
 }
 
-void LDAPCache::setObjectDNCache(objectclass_t objclass,
-    std::unique_ptr<dn_cache_t> lpCache)
+void LDAPCache::setObjectDNCache(objectclass_t objclass, dn_cache_t &&lpCache)
 {
 	/*
 	 * Always merge caches rather then overwritting them.
 	 */
 	std::unique_ptr<dn_cache_t> lpTmp = getObjectDNCache(NULL, objclass);
 	// cannot use insert() because it does not override existing entries
-	for (const auto &i : *lpCache)
+	for (const auto &i : lpCache)
 		(*lpTmp)[i.first] = i.second;
-	lpCache = std::move(lpTmp);
+	lpCache = std::move(*lpTmp);
 
 	scoped_rlock biglock(m_hMutex);
 	switch (objclass) {
@@ -67,19 +66,19 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass,
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		m_lpUserCache = std::move(*lpCache);
+		m_lpUserCache = std::move(lpCache);
 		break;
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		m_lpGroupCache = std::move(*lpCache);
+		m_lpGroupCache = std::move(lpCache);
 		break;
 	case CONTAINER_COMPANY:
-		m_lpCompanyCache = std::move(*lpCache);
+		m_lpCompanyCache = std::move(lpCache);
 		break;
 	case CONTAINER_ADDRESSLIST:
-		m_lpAddressListCache = std::move(*lpCache);
+		m_lpAddressListCache = std::move(lpCache);
 		break;
 	default:
 		break;
