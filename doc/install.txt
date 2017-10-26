@@ -45,4 +45,5 @@ The following additional noteworthy configure options are available:
 	  Installs an init script and environment definitions for that.
 	  Not useful for systemd-based systems.
 	* --enable-debug: adds -DDEBUG to set some very unusual debug values.
+	  This does not enable CXXFLAGS=-ggdb3 which is separate!
 	* --enable-release: adds -O2 -fno-strict-aliasing and disables asserts.

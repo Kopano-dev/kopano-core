@@ -12,6 +12,7 @@ Enhancements:
 * client: add API for dump+restore of MAPI session profile data so libmapi
   users can skip provider reinitialization at program startup [KC-67,KC-165]
 * gateway: add option to ignore commands during IDLE
+* gateway: will now warn about IMAP clients using wrong sequence ranges
 * php: copy back improvements from the Z-Push project's bundled copy [KC-463]
 * search: make searchfolder creation in shared stores configurable [KC-565]
 * mapi: disable very slow RTF compression [KC-622]
@@ -31,12 +32,15 @@ Enhancements:
 * backup: merge store-level metadata [KC-627]
 Fixes:
 * spooler: do not run mr-process before mr-accept [KC-498]
-* Coverity reports on absent return value checks [KC-595];
+* spooler: do not send deleted send-later mails [KC-848]
+* Coverity reports on absent return value checks [KC-595]
 * freebusy: avoid potential divison by zero when trying to determine the end
   date of a non-recurring recurrence. [KC-595]
 * libserver: ensure same endianess for SOURCEKEYs [KC-628]
 * server plugins: more escaping in SQL commands [KC-620]
 * gateway: set PR_FOLLOWUP_ICON for WebApp [KC-653]
+* gateway: cure slow folder access [KC-853]
+* gateway: resolve accessing invalid pointer [KC-817]
 * server: avoid crash when NTLM subprocess gives no newline [KC-656]
 * pyko: avoid hang on shutdown of Python services with logging [KC-643]
 * server: disable reminders from shared stores [KC-728]
@@ -48,6 +52,9 @@ Changes:
   changed from select(2) to poll(2) [ZCP-13065]
 * server: the sync_log_all_changes is obsolete [KC-527]
 * server: use SQL autocommit=0 during transactions
+* server: stop relying on NO_UNSIGNED_SUBTRACTIONS
+  and avoid use of hexadecimal numbers [KC-841]
+* server: avoid UB during hostname lookup when host is IPv6-only
 * gateway: ignore missing (lost) attachments [KC-363]
 * dagent: turn on PHP7 SCL on RHEL6 [KC-621]
 * pyko/backup: change error into warning for 'missing' attachments
