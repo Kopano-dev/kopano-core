@@ -901,7 +901,7 @@ std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 			"ON op.objectid = o.id "
 		"WHERE o.externid = '" + m_lpDatabase->Escape(id.id) + "' "
 			"AND o.objectclass = " + stringify(id.objclass) + " "
-			"AND op.propname = '" + OP_MODTIME + "'";
+			"AND op.propname = '" + OP_MODTIME + "' LIMIT 1";
 
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)

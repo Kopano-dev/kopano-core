@@ -335,7 +335,7 @@ ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
 	std::string strQuery = "SELECT 1 FROM information_schema.COLUMNS "
 				"WHERE TABLE_SCHEMA = '" + std::string(m_lpConfig->GetSetting("mysql_database")) + "' "
 				"AND TABLE_NAME = '" + strTable + "' "
-				"AND COLUMN_NAME = '" + strColumn + "'";
+				"AND COLUMN_NAME = '" + strColumn + "' LIMIT 1";
 	auto er = DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;

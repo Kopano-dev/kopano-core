@@ -696,7 +696,7 @@ ECRESULT GetDatabaseSettingAsInteger(ECDatabase *lpDatabase, const std::string &
 {
 	DB_RESULT lpDBResult;
 
-	std::string strQuery = "SELECT `value` FROM settings WHERE `name` = '" + lpDatabase->Escape(strSettings) + "'";
+	std::string strQuery = "SELECT `value` FROM settings WHERE `name` = '" + lpDatabase->Escape(strSettings) + "' LIMIT 1";
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
