@@ -859,7 +859,7 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 	 */
 	if (m_bHosted && !strCompanyDN.empty()) {
 		std::unique_ptr<dn_cache_t> lpCompanyCache = m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY);
-		dnFilter = m_lpCache->getChildrenForDN(lpCompanyCache, strCompanyDN);
+		dnFilter = m_lpCache->getChildrenForDN(*lpCompanyCache, strCompanyDN);
 	}
 
 	std::unique_ptr<attrArray> request_attrs(new attrArray(15));
@@ -886,7 +886,7 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 
 			/* Make sure the DN isn't filtered because it is located in the subcontainer */
 			if (m_bHosted && !strCompanyDN.empty() &&
-			    m_lpCache->isDNInList(dnFilter, dn))
+			    m_lpCache->isDNInList(*dnFilter, dn))
 				continue;
 
 			FOREACH_ATTR(entry) {
@@ -936,7 +936,7 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 
 	// find company DN, and use as search_base
 	std::unique_ptr<dn_cache_t> lpCompanyCache = m_lpCache->getObjectDNCache(this, company.objclass);
-	search_base = m_lpCache->getDNForObject(lpCompanyCache, company);
+	search_base = m_lpCache->getDNForObject(*lpCompanyCache, company);
 	// CHECK: should not be possible to not already know the company
 	if (!search_base.empty())
 		return search_base;
@@ -1220,7 +1220,7 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool
 	 * In the rare case that the cache didn't contain the entry, check LDAP.
 	 */
 	if (cache) {
-		dn = m_lpCache->getDNForObject(lpCache, uniqueid);
+		dn = m_lpCache->getDNForObject(*lpCache, uniqueid);
 		if (!dn.empty())
 			return dn;
 	}
@@ -2152,7 +2152,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		END_FOREACH_ATTR
 
 		if (m_bHosted && sObjDetails.GetClass() != CONTAINER_COMPANY) {
-			objectid_t company = m_lpCache->getParentForDN(lpCompanyCache, strDN);
+			objectid_t company = m_lpCache->getParentForDN(*lpCompanyCache, strDN);
 			sObjDetails.SetPropObject(OB_PROP_O_COMPANYID, company);
 		}
 
@@ -2618,8 +2618,8 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		if(!ldap_member_filter.empty()) {
 			if(m_bHosted) {
 				std::unique_ptr<dn_cache_t> lpCompanyCache = m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY);
-				companyid = m_lpCache->getParentForDN(lpCompanyCache, dn);
-				companyDN = m_lpCache->getDNForObject(lpCompanyCache, companyid);
+				companyid = m_lpCache->getParentForDN(*lpCompanyCache, dn);
+				companyDN = m_lpCache->getDNForObject(*lpCompanyCache, companyid);
 			}
 
 			// Use the filter to get all members matching the specified search filter

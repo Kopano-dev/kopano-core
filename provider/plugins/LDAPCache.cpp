@@ -122,17 +122,17 @@ LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 	return cache;
 }
 
-objectid_t LDAPCache::getParentForDN(const std::unique_ptr<dn_cache_t> &lpCache,
+objectid_t LDAPCache::getParentForDN(const dn_cache_t &lpCache,
     const std::string &dn)
 {
 	objectid_t entry;
 	std::string parent_dn;
 
-	if (lpCache->empty())
+	if (lpCache.empty())
 		return entry; /* empty */
 
 	// @todo make sure we find the largest DN match
-	for (const auto &i : *lpCache)
+	for (const auto &i : lpCache)
 		/* Key should be larger then current guess, but has to be smaller then the userobject dn */
 		/* If key matches the end of the userobject dn, we have a positive match */
 		if (i.second.size() > parent_dn.size() && i.second.size() < dn.size() &&
@@ -146,13 +146,12 @@ objectid_t LDAPCache::getParentForDN(const std::unique_ptr<dn_cache_t> &lpCache,
 }
 
 std::unique_ptr<dn_list_t>
-LDAPCache::getChildrenForDN(const std::unique_ptr<dn_cache_t> &lpCache,
-    const std::string &dn)
+LDAPCache::getChildrenForDN(const dn_cache_t &lpCache, const std::string &dn)
 {
 	std::unique_ptr<dn_list_t> list(new dn_list_t());
 
 	/* Find al DNs which are hierarchically below the given dn */
-	for (const auto &i : *lpCache)
+	for (const auto &i : lpCache)
 		/* Key should be larger then root DN */
 		/* If key matches the end of the root dn, we have a positive match */
 		if (i.second.size() > dn.size() &&
@@ -162,18 +161,16 @@ LDAPCache::getChildrenForDN(const std::unique_ptr<dn_cache_t> &lpCache,
 }
 
 std::string
-LDAPCache::getDNForObject(const std::unique_ptr<dn_cache_t> &lpCache,
-    const objectid_t &externid)
+LDAPCache::getDNForObject(const dn_cache_t &lpCache, const objectid_t &externid)
 {
-	dn_cache_t::const_iterator it = lpCache->find(externid);
-	return it == lpCache->cend() ? std::string() : it->second;
+	dn_cache_t::const_iterator it = lpCache.find(externid);
+	return it == lpCache.cend() ? std::string() : it->second;
 }
 
-bool LDAPCache::isDNInList(const std::unique_ptr<dn_list_t> &lpList,
-    const std::string &dn)
+bool LDAPCache::isDNInList(const dn_list_t &lpList, const std::string &dn)
 {
 	/* We were given a DN, check if a parent of that dn is listed as filterd */
-	for (const auto &i : *lpList)
+	for (const auto &i : lpList)
 		/* Key should be larger or equal then user DN */
 		/* If key matches the end of the user dn, we have a positive match */
 		if (i.size() <= dn.size() &&

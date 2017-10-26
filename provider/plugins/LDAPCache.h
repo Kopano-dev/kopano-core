@@ -100,7 +100,7 @@ public:
 	 *					The DN for which the parent should be found.
 	 * @return The cache entry of the parent. Contents will be empty if no parent was found.
 	 */
-	static objectid_t getParentForDN(const std::unique_ptr<dn_cache_t> &lpCache, const std::string &dn);
+	static objectid_t getParentForDN(const dn_cache_t &, const std::string &dn);
 
 	/**
 	 * Helper function: List all DNs which are hierarchially below the given DN.
@@ -111,7 +111,7 @@ public:
 	 *					The DN for which the children should be found
 	 * @return The list of children for the DN
 	 */
-	static std::unique_ptr<dn_list_t> getChildrenForDN(const std::unique_ptr<dn_cache_t> &lpCache, const std::string &dn);
+	static std::unique_ptr<dn_list_t> getChildrenForDN(const dn_cache_t &, const std::string &dn);
 
 	/**
 	 * Search the cache to obtain the DN for an object based on the object id.
@@ -122,7 +122,7 @@ public:
 	 *					The objectid which should be found in the cache
 	 * @return the DN for the object id
 	 */
-	static std::string getDNForObject(const std::unique_ptr<dn_cache_t> &lpCache, const objectid_t &externid);
+	static std::string getDNForObject(const dn_cache_t &, const objectid_t &externid);
 
 	/**
 	 * Check if the given DN is present in the DN list
@@ -133,7 +133,7 @@ public:
 	 *					The DN which should be found in the list
 	 * @return TRUE if the DN is found in the list
 	 */
-	static bool isDNInList(const std::unique_ptr<dn_list_t> &lpList, const std::string &dn);
+	static bool isDNInList(const dn_list_t &, const std::string &dn);
 };
 
 /** @} */
