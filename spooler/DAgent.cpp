@@ -2157,8 +2157,10 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	// do not send vacation message for junk messages
 	if (lpArgs->ulDeliveryMode != DM_JUNK &&
 	// do not send vacation message on delegated messages
-	    (HrGetOneProp(*lppMessage, PR_DELEGATED_BY_RULE, &~ptrProp) != hrSuccess || ptrProp->Value.b == FALSE))
-		SendOutOfOffice(lpAdrBook, lpStore, *lppMessage, lpRecip, lpArgs->strAutorespond);
+	    (HrGetOneProp(*lppMessage, PR_DELEGATED_BY_RULE, &~ptrProp) != hrSuccess || ptrProp->Value.b == FALSE)) {
+		auto autoresponder = lpArgs->strAutorespond.size() > 0 ? lpArgs->strAutorespond : g_lpConfig->GetSetting("autoresponder");
+		SendOutOfOffice(lpAdrBook, lpStore, *lppMessage, lpRecip, autoresponder);
+	}
 	return hr;
 }
 
@@ -3446,7 +3448,7 @@ int main(int argc, char *argv[]) {
 
 	DeliveryArgs sDeliveryArgs;
 	sDeliveryArgs.strPath = "";
-	sDeliveryArgs.strAutorespond = "/usr/sbin/kopano-autorespond";
+	sDeliveryArgs.strAutorespond = "";
 	sDeliveryArgs.bCreateFolder = false;
 	sDeliveryArgs.strDeliveryFolder.clear();
 	sDeliveryArgs.szPathSeperator = '\\';
@@ -3514,6 +3516,7 @@ int main(int argc, char *argv[]) {
 		{ "archive_on_delivery", "no", CONFIGSETTING_RELOADABLE },
 		{ "mr_autoaccepter", "/usr/sbin/kopano-mr-accept", CONFIGSETTING_RELOADABLE },
 		{ "mr_autoprocessor", "/usr/sbin/kopano-mr-process", CONFIGSETTING_RELOADABLE },
+		{ "autoresponder", "/usr/sbin/kopano-autorespond", CONFIGSETTING_RELOADABLE },
 		{ "plugin_enabled", "yes" },
 		{ "plugin_path", "/var/lib/kopano/dagent/plugins" },
 		{ "plugin_manager_path", "/usr/share/kopano-dagent/python" },
