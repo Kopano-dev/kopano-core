@@ -274,7 +274,7 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 			return erSuccess;
 		if (lpszColon - lpPropVal->Value.lpszA <= 1 || lpszColon - lpPropVal->Value.lpszA >= 4)
 			return erSuccess;
-		char *c = lpPropVal->Value.lpszA;
+		const char *c = lpPropVal->Value.lpszA;
 		while (c < lpszColon && isdigit(*c))
 			++c; // test for all digits prefix
 		if (c == lpszColon)
