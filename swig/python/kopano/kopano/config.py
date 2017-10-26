@@ -66,8 +66,8 @@ Configuration class
 Example::
 
     config = Config({
-        'some_str': Config.String(default='blah'),
-        'number': Config.Integer(),
+        'some_str': Config.string(default='blah'),
+        'number': Config.integer(),
         'filesize': Config.size(), # understands '5MB' etc
     })
 
