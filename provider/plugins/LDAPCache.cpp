@@ -21,14 +21,6 @@
 #include "LDAPUserPlugin.h"
 #include <kopano/stringutil.h>
 
-LDAPCache::LDAPCache()
-{
-	m_lpCompanyCache.reset(new dn_cache_t());
-	m_lpGroupCache.reset(new dn_cache_t());
-	m_lpUserCache.reset(new dn_cache_t());
-	m_lpAddressListCache.reset(new dn_cache_t());
-}
-
 bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 {
 	scoped_rlock biglock(m_hMutex);
@@ -40,16 +32,16 @@ bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		return !m_lpUserCache->empty();
+		return !m_lpUserCache.empty();
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		return !m_lpGroupCache->empty();
+		return !m_lpGroupCache.empty();
 	case CONTAINER_COMPANY:
-		return !m_lpCompanyCache->empty();
+		return !m_lpCompanyCache.empty();
 	case CONTAINER_ADDRESSLIST:
-		return !m_lpAddressListCache->empty();
+		return !m_lpAddressListCache.empty();
 	default:
 		return false;
 	}
@@ -75,19 +67,19 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass,
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		m_lpUserCache = std::move(lpCache);
+		m_lpUserCache = std::move(*lpCache);
 		break;
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		m_lpGroupCache = std::move(lpCache);
+		m_lpGroupCache = std::move(*lpCache);
 		break;
 	case CONTAINER_COMPANY:
-		m_lpCompanyCache = std::move(lpCache);
+		m_lpCompanyCache = std::move(*lpCache);
 		break;
 	case CONTAINER_ADDRESSLIST:
-		m_lpAddressListCache = std::move(lpCache);
+		m_lpAddressListCache = std::move(*lpCache);
 		break;
 	default:
 		break;
@@ -111,19 +103,19 @@ LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		cache.reset(new dn_cache_t(*m_lpUserCache.get()));
+		cache.reset(new dn_cache_t(m_lpUserCache));
 		break;
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		cache.reset(new dn_cache_t(*m_lpGroupCache.get()));
+		cache.reset(new dn_cache_t(m_lpGroupCache));
 		break;
 	case CONTAINER_COMPANY:
-		cache.reset(new dn_cache_t(*m_lpCompanyCache.get()));
+		cache.reset(new dn_cache_t(m_lpCompanyCache));
 		break;
 	case CONTAINER_ADDRESSLIST:
-		cache.reset(new dn_cache_t(*m_lpAddressListCache.get()));
+		cache.reset(new dn_cache_t(m_lpAddressListCache));
 		break;
 	default:
 		break;

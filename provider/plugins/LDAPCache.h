@@ -53,14 +53,12 @@ class LDAPCache _kc_final {
 private:
 	/* Protect mutex from being overriden */
 	std::recursive_mutex m_hMutex;
-	std::unique_ptr<dn_cache_t> m_lpCompanyCache;		/* CONTAINER_COMPANY */
-	std::unique_ptr<dn_cache_t> m_lpGroupCache;		/* OBJECTCLASS_DISTLIST */
-	std::unique_ptr<dn_cache_t> m_lpUserCache;		/* OBJECTCLASS_USER */
-	std::unique_ptr<dn_cache_t> m_lpAddressListCache; /* CONTAINER_ADDRESSLIST */
+	dn_cache_t m_lpCompanyCache; /* CONTAINER_COMPANY */
+	dn_cache_t m_lpGroupCache; /* OBJECTCLASS_DISTLIST */
+	dn_cache_t m_lpUserCache; /* OBJECTCLASS_USER */
+	dn_cache_t m_lpAddressListCache; /* CONTAINER_ADDRESSLIST */
 
 public:
-	LDAPCache();
-
 	/**
 	 * Check if the requested objclass class is cached.
 	 *
