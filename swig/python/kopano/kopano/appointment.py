@@ -60,3 +60,10 @@ class Appointment(object):
                 start = max(self.start, start) if start else self.start
                 end = min(self.end, end) if end else self.end
                 yield Occurrence(self, start, end)
+
+    @property
+    def rrule(self): # XXX including timezone!
+        if self.recurring: # XXX rrule for non-recurring makes sense?
+            return self.recurrence.recurrences
+
+    # XXX rrule setter!
