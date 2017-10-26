@@ -60,7 +60,7 @@ Packager notes:
 * python/swig is now optional [KC-753]
 
 
-Release notes for 8.3.5 (2017-09-25)
+Release notes for 8.3.5 (unreleased)
 ====================================
 Fixes:
 * server: complete signal blocking [KC-779]
@@ -74,6 +74,7 @@ Fixes:
 * server: admin user is to always open shared reminders [KC-813]
 * gateway: fix infinite loop when UID ranges are inverted [KS-38641]
 * extra nullptr checks in Util::HrCopyProperty [KC-826]
+* server: removing user from folder permission broke [KC-844]
 
 
 Release notes for 8.3.4 (2017-09-01)
