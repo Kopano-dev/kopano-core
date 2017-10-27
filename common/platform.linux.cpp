@@ -180,6 +180,8 @@ void rand_get(char *p, int n)
 	}
 	
 void rand_init() {
+	if (rand_init_done)
+		return;
 	unsigned int seed = 0;
 	rand_get((char *)&seed, sizeof(seed));
 	srand(seed);
@@ -200,10 +202,6 @@ int rand_mt() {
 	// also RAND_MAX is never returned which the
 	// regular rand() does do
 	return dummy % RAND_MAX;
-}
-
-void rand_free() {
-	//Nothing to free
 }
 
 char * get_password(const char *prompt) {

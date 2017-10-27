@@ -90,7 +90,6 @@ extern _kc_export int CreatePath(const char *);
 // Random-number generators
 extern _kc_export void rand_init(void);
 extern _kc_export int rand_mt(void);
-extern _kc_export void rand_free(void);
 extern _kc_export void rand_get(char *p, int n);
 extern _kc_export char *get_password(const char *prompt);
 
