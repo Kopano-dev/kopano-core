@@ -117,22 +117,27 @@ static int password_check_smd5(const char *data, unsigned int len, const char *c
 }
 
 static char *password_encrypt_ssha(const char *data, unsigned int len, bool bSalted) {
-	unsigned char SHA_out[SHA_DIGEST_LENGTH];
-	const int base64_len = SHA_DIGEST_LENGTH * 4 / 3 + 4;
+	unsigned char SHA_out[SHA_DIGEST_LENGTH+4];
+	unsigned char *salt = SHA_out + SHA_DIGEST_LENGTH;
+	constexpr size_t base64_len = sizeof(SHA_out) * 4 / 3 + 4;
+	std::string b64_out;
 	char *res;
-	unsigned char salt[4];
-	std::string pwd;
 
-	pwd.assign(data, len);
-	if (bSalted) {
-		rand_get(reinterpret_cast<char *>(salt), sizeof(salt));
-		pwd.append(reinterpret_cast<const char *>(salt), sizeof(salt));
+	if (!bSalted) {
+		SHA1(reinterpret_cast<const unsigned char *>(data), len, SHA_out);
+		b64_out = base64_encode(SHA_out, SHA_DIGEST_LENGTH);
+	} else {
+		SHA_CTX ctx;
+		SHA1_Init(&ctx);
+		rand_get(reinterpret_cast<char *>(salt), 4);
+		SHA1_Update(&ctx, data, len);
+		SHA1_Update(&ctx, salt, 4);
+		SHA1_Final(SHA_out, &ctx);
+		b64_out = base64_encode(SHA_out, SHA_DIGEST_LENGTH + 4);
 	}
 
-	SHA1((const unsigned char*)pwd.c_str(), pwd.length(), SHA_out);
 	res = new char[base64_len + 12];
-	snprintf(res, base64_len + 11, "{%s}%s", bSalted ? "SSHA" : "SHA",
-	         base64_encode(SHA_out, SHA_DIGEST_LENGTH).c_str());
+	snprintf(res, base64_len + 11, "{%s}%s", bSalted ? "SSHA" : "SHA", b64_out.c_str());
 	return res;
 }
 
