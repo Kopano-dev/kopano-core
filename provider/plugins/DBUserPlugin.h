@@ -154,7 +154,7 @@ public:
 	 * @return The server details
 	 * @throw notsupported Always when this function is called
 	 */
-	virtual std::unique_ptr<serverdetails_t> getServerDetails(const std::string &server);
+	virtual serverdetails_t getServerDetails(const std::string &server) override;
 
 	/**
 	 * Obtain server list

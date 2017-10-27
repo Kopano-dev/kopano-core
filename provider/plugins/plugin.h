@@ -268,7 +268,7 @@ public:
 	 * @return The server details
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<serverdetails_t> getServerDetails(const std::string &server) = 0;
+	virtual serverdetails_t getServerDetails(const std::string &server) = 0;
 
 	/**
 	 * Obtain server list

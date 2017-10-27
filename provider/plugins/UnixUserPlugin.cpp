@@ -819,8 +819,7 @@ std::unique_ptr<objectdetails_t> UnixUserPlugin::getPublicStoreDetails(void)
 	throw notsupported("public store details");
 }
 
-std::unique_ptr<serverdetails_t>
-UnixUserPlugin::getServerDetails(const std::string &server)
+serverdetails_t UnixUserPlugin::getServerDetails(const std::string &server)
 {
 	throw notsupported("server details");
 }

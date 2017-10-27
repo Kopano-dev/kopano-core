@@ -4242,7 +4242,7 @@ ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
 
 ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, serverdetails_t *lpDetails)
 {
-	std::unique_ptr<serverdetails_t> details;
+	serverdetails_t details;
 	UserPlugin *lpPlugin = NULL;
 
 	// Try the cache first
@@ -4256,7 +4256,7 @@ ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, server
 
 	try {
 		details = lpPlugin->getServerDetails(strServer);
-		cache->SetServerDetails(strServer, *details);
+		cache->SetServerDetails(strServer, details);
 	} catch (objectnotfound &) {
 		return KCERR_NOT_FOUND;
 	} catch (notsupported &) {
@@ -4266,7 +4266,7 @@ ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, server
 		return KCERR_NOT_FOUND;
 	}
 
-	*lpDetails = *details;
+	*lpDetails = std::move(details);
 	return erSuccess;
 }
 

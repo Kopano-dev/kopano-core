@@ -283,8 +283,7 @@ std::unique_ptr<objectdetails_t> DBUserPlugin::getPublicStoreDetails(void)
 	throw notsupported("public store details");
 }
 
-std::unique_ptr<serverdetails_t>
-DBUserPlugin::getServerDetails(const std::string &server)
+serverdetails_t DBUserPlugin::getServerDetails(const std::string &server)
 {
 	throw notsupported("server details");
 }

@@ -210,7 +210,7 @@ public:
 	 * @throw objectnotfound When no server has been found with the given name
 	 * @throw toomanyobjects When more then one server have been found with the given name
 	 */
-	virtual std::unique_ptr<serverdetails_t> getServerDetails(const std::string &server);
+	virtual serverdetails_t getServerDetails(const std::string &server) override;
 
 	/**
 	 * Obtain server list

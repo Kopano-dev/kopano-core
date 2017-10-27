@@ -2679,8 +2679,7 @@ serverlist_t LDAPUserPlugin::getServers()
 	return serverlist;
 }
 
-std::unique_ptr<serverdetails_t>
-LDAPUserPlugin::getServerDetails(const std::string &server)
+serverdetails_t LDAPUserPlugin::getServerDetails(const std::string &server)
 {
 	auto_free_ldap_message res;
 
@@ -2688,8 +2687,7 @@ LDAPUserPlugin::getServerDetails(const std::string &server)
 		throw objectnotfound("Distributed not enabled for" +server);
 
 	LOG_PLUGIN_DEBUG("%s for server %s", __FUNCTION__, server.c_str());
-
-	std::unique_ptr<serverdetails_t> serverDetails(new serverdetails_t(server));
+	serverdetails_t serverDetails(server);
 	std::string strAddress, strHttpPort, strSslPort, strFilePath, strProxyPath;
 	auto ldap_basedn = getSearchBase();
 	auto search_filter =
@@ -2748,12 +2746,11 @@ LDAPUserPlugin::getServerDetails(const std::string &server)
 	if (strHttpPort.empty())
 		throw runtime_error("obligatory http port missing for server '" + server + "'");
 
-	serverDetails->SetHostAddress(strAddress);
-	serverDetails->SetHttpPort(atoi(strHttpPort.c_str()));
-	serverDetails->SetSslPort(atoi(strSslPort.c_str()));
-	serverDetails->SetFilePath(strFilePath);
-	serverDetails->SetProxyPath(strProxyPath);
-
+	serverDetails.SetHostAddress(strAddress);
+	serverDetails.SetHttpPort(atoi(strHttpPort.c_str()));
+	serverDetails.SetSslPort(atoi(strSslPort.c_str()));
+	serverDetails.SetFilePath(strFilePath);
+	serverDetails.SetProxyPath(strProxyPath);
 	return serverDetails;
 }
 
