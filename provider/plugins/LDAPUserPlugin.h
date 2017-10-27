@@ -321,7 +321,7 @@ public:
 	 *					Boolean to indicate if the userdefault quota must be requested.
 	 * @throw runtime_error When the LDAP query failed
 	 */	 
-	virtual std::unique_ptr<quotadetails_t> getQuota(const objectid_t &id, bool bGetUserDefault);
+	virtual quotadetails_t getQuota(const objectid_t &, bool get_user_default) override;
 
     /**
 	 * Set quota information on object

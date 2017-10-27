@@ -707,7 +707,7 @@ std::unique_ptr<signatures_t> DBPlugin::searchObjects(const std::string &match,
 	return lpSignatures;
 }
 
-std::unique_ptr<quotadetails_t> DBPlugin::getQuota(const objectid_t &objectid,
+quotadetails_t DBPlugin::getQuota(const objectid_t &objectid,
     bool bGetUserDefault)
 {
 	DB_RESULT lpResult;
@@ -724,8 +724,8 @@ std::unique_ptr<quotadetails_t> DBPlugin::getQuota(const objectid_t &objectid,
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
-	std::unique_ptr<quotadetails_t> lpDetails(new quotadetails_t);
-	lpDetails->bIsUserDefaultQuota = bGetUserDefault;
+	quotadetails_t lpDetails;
+	lpDetails.bIsUserDefaultQuota = bGetUserDefault;
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL)
@@ -733,22 +733,22 @@ std::unique_ptr<quotadetails_t> DBPlugin::getQuota(const objectid_t &objectid,
 
 		if (bGetUserDefault) {
 			if (objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_UD_HARDQUOTA) == 0)
-				lpDetails->llHardSize = atoll(lpDBRow[1]);
+				lpDetails.llHardSize = atoll(lpDBRow[1]);
 			else if(objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_UD_SOFTQUOTA) == 0)
-				lpDetails->llSoftSize = atoll(lpDBRow[1]);
+				lpDetails.llSoftSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_UD_WARNQUOTA) == 0)
-				lpDetails->llWarnSize = atoll(lpDBRow[1]);
+				lpDetails.llWarnSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_UD_USEDEFAULTQUOTA) == 0)
-				lpDetails->bUseDefaultQuota = !!atoi(lpDBRow[1]);
+				lpDetails.bUseDefaultQuota = !!atoi(lpDBRow[1]);
 		} else {
 			if (objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_HARDQUOTA) == 0)
-				lpDetails->llHardSize = atoll(lpDBRow[1]);
+				lpDetails.llHardSize = atoll(lpDBRow[1]);
 			else if(objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_SOFTQUOTA) == 0)
-				lpDetails->llSoftSize = atoll(lpDBRow[1]);
+				lpDetails.llSoftSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_WARNQUOTA) == 0)
-				lpDetails->llWarnSize = atoll(lpDBRow[1]);
+				lpDetails.llWarnSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_USEDEFAULTQUOTA) == 0)
-				lpDetails->bUseDefaultQuota = !!atoi(lpDBRow[1]);
+				lpDetails.bUseDefaultQuota = !!atoi(lpDBRow[1]);
 		}
 	}
 

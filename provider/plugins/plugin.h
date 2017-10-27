@@ -380,7 +380,7 @@ public:
 	 *					Boolean to indicate if the userdefault quota must be requested.
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<quotadetails_t> getQuota(const objectid_t &id, bool bGetUserDefault) = 0;
+	virtual quotadetails_t getQuota(const objectid_t &, bool get_user_default) = 0;
 
 	/**
 	 * Set quota information on object

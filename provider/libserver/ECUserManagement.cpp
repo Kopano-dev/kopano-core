@@ -1464,7 +1464,7 @@ ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetail
 		return KCERR_NO_SUPPORT;
 
 	try {
-		details = *lpPlugin->getQuota(userid, bGetUserDefault);
+		details = lpPlugin->getQuota(userid, bGetUserDefault);
 	} catch(objectnotfound &) {
 		MoveOrDeleteLocalObject(ulId, userid.objclass);
 		return KCERR_NOT_FOUND;

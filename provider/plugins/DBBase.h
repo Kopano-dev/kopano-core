@@ -240,7 +240,7 @@ public:
 	 * @return The quota details
 	 * @throw runtime_error when SQL problems occur
 	 */
-	virtual std::unique_ptr<quotadetails_t> getQuota(const objectid_t &id, bool bGetUserDefault);
+	virtual quotadetails_t getQuota(const objectid_t &, bool get_user_default) override;
 
 	/**
 	 * Update object with quota information

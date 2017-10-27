@@ -2796,11 +2796,11 @@ std::string LDAPUserPlugin::StringEscapeSequence(const char* lpdata, size_t size
 	return strEscaped;
 }
 
-std::unique_ptr<quotadetails_t> LDAPUserPlugin::getQuota(const objectid_t &id,
+quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
     bool bGetUserDefault)
 {
 	auto_free_ldap_message res;
-	std::unique_ptr<quotadetails_t> quotaDetails(new quotadetails_t());
+	quotadetails_t quotaDetails;
 
 	const char *multiplier_s = m_config->GetSetting("ldap_quota_multiplier");
 	long long multiplier = 1L;
@@ -2841,8 +2841,7 @@ std::unique_ptr<quotadetails_t> LDAPUserPlugin::getQuota(const objectid_t &id,
 			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 			 (char *)ldap_filter.c_str(), (char **)request_attrs->get(),
 			 FETCH_ATTR_VALS, &~res);
-
-	quotaDetails->bIsUserDefaultQuota = bGetUserDefault;
+	quotaDetails.bIsUserDefaultQuota = bGetUserDefault;
 
 	// Get the DN for each of the returned entries
 	// ldap_first_message would work too, but that needs much more
@@ -2851,13 +2850,13 @@ std::unique_ptr<quotadetails_t> LDAPUserPlugin::getQuota(const objectid_t &id,
 		FOREACH_ATTR(entry) {
 			if (usedefaults_attr != nullptr && strcasecmp(att, usedefaults_attr) == 0)
 				// Workarround quotaoverride == !usedefaultquota
-				quotaDetails->bUseDefaultQuota = !parseBool(getLDAPAttributeValue(att, entry).c_str());
+				quotaDetails.bUseDefaultQuota = !parseBool(getLDAPAttributeValue(att, entry).c_str());
 			else if (warnquota_attr != nullptr && strcasecmp(att, warnquota_attr) == 0)
-				quotaDetails->llWarnSize = fromstring<string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
+				quotaDetails.llWarnSize = fromstring<std::string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
 			else if (id.objclass != CONTAINER_COMPANY && softquota_attr != nullptr && strcasecmp(att, softquota_attr) == 0)
-				quotaDetails->llSoftSize = fromstring<string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
+				quotaDetails.llSoftSize = fromstring<std::string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
 			else if (id.objclass != CONTAINER_COMPANY && hardquota_attr != nullptr && strcasecmp(att, hardquota_attr) == 0)
-				quotaDetails->llHardSize = fromstring<string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
+				quotaDetails.llHardSize = fromstring<std::string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
 		}
 		END_FOREACH_ATTR
 	}
