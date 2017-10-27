@@ -38,19 +38,6 @@ enum {
 };
 
 /**
- * Encrypt passwird using requested encryption type
- *
- * The returned array must be deleted with delete []
- *
- * @param[in]	type
- *					The encryption type (CRYPT, MD5, SMD5, SSHA)
- * @param[in]	password
- *					The password which should be encrypted
- * @return The encrypted password
- */
-extern char *encryptPassword(int type, const char *password);
-
-/**
  * Compare unencrypted password with encrypted password with the
  * requested encryption type
  *
