@@ -215,7 +215,7 @@ public:
 	 * @return list of servers
 	 * @throw runtime_error LDAP query failure
 	 */
-	virtual std::unique_ptr<serverlist_t> getServers(void);
+	virtual serverlist_t getServers() override;
 
 	/**
 	 * Create object in plugin

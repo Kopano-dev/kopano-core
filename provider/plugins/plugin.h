@@ -276,7 +276,7 @@ public:
 	 * @return list of servers
 	 * @throw runtime_error LDAP query failure
 	 */
-	virtual std::unique_ptr<serverlist_t> getServers(void) = 0;
+	virtual serverlist_t getServers() = 0;
 
 	/**
 	 * Update an object with new details

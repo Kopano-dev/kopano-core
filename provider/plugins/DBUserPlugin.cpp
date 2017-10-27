@@ -289,7 +289,7 @@ DBUserPlugin::getServerDetails(const std::string &server)
 	throw notsupported("server details");
 }
 
-std::unique_ptr<serverlist_t> DBUserPlugin::getServers(void)
+serverlist_t DBUserPlugin::getServers()
 {
 	throw notsupported("server list");
 }

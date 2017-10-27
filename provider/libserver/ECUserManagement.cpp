@@ -4283,7 +4283,6 @@ ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, server
  */
 ECRESULT ECUserManagement::GetServerList(serverlist_t *lpServerList)
 {
-	std::unique_ptr<serverlist_t> list;
 	UserPlugin *lpPlugin = NULL;
 	
 	auto er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
@@ -4291,13 +4290,11 @@ ECRESULT ECUserManagement::GetServerList(serverlist_t *lpServerList)
 		return er;
 
 	try {
-		list = lpPlugin->getServers();
+		*lpServerList = lpPlugin->getServers();
 	} catch (std::exception &e) {
 		ec_log_warn("K-1540: Unable to get server list: %s", e.what());
 		return KCERR_NOT_FOUND;
 	}
-
-	*lpServerList = *list;
 	return erSuccess;
 }
 

@@ -2646,10 +2646,10 @@ std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 	return details;
 }
 
-std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
+serverlist_t LDAPUserPlugin::getServers()
 {
 	auto_free_ldap_message res;
-	std::unique_ptr<serverlist_t> serverlist(new serverlist_t());
+	serverlist_t serverlist;
 
 	if (!m_bDistributed)
 		throw objectnotfound("Distributed not enabled");
@@ -2670,7 +2670,7 @@ std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
     {
     	FOREACH_ATTR(entry) {
 			if (name_attr != nullptr && strcasecmp(att, name_attr) == 0)
-				serverlist->emplace_back(m_iconv->convert(getLDAPAttributeValue(att, entry)));
+				serverlist.emplace_back(m_iconv->convert(getLDAPAttributeValue(att, entry)));
         }
         END_FOREACH_ATTR
     }

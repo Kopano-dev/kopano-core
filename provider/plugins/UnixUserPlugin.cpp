@@ -825,7 +825,7 @@ UnixUserPlugin::getServerDetails(const std::string &server)
 	throw notsupported("server details");
 }
 
-std::unique_ptr<serverlist_t> UnixUserPlugin::getServers(void)
+serverlist_t UnixUserPlugin::getServers()
 {
 	throw notsupported("server list");
 }
