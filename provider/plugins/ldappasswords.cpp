@@ -81,6 +81,8 @@ static void b64_encode(char *out, const unsigned char *in, unsigned int len) {
 static char *password_encrypt_crypt(const char *data, unsigned int len) {
 	char salt[3];
 	rand_get(salt, 2);
+	salt[0] &= 0x7F;
+	salt[1] &= 0x7F;
 	salt[2] = '\0';
 
 	char cryptbuf[32];
@@ -94,9 +96,8 @@ static char *password_encrypt_crypt(const char *data, unsigned int len) {
 static int password_check_crypt(const char *data, unsigned int len, const char *crypted) {
 	char salt[3];
 	char cryptbuf[32];
-
-	salt[0] = crypted[0];
-	salt[1] = crypted[1];
+	salt[0] = crypted[0] & 0x7F;
+	salt[1] = crypted[1] & 0x7F;
 	salt[2] = 0;
 
 	DES_fcrypt(data, salt, cryptbuf);
