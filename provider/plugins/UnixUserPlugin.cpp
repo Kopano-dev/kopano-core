@@ -104,17 +104,11 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
 		throw notsupported("Distributed Kopano not supported when using the Unix Plugin");
 }
 
-UnixUserPlugin::~UnixUserPlugin()
-{
-	delete m_iconv;
-}
-
 void UnixUserPlugin::InitPlugin() {
 	DBPlugin::InitPlugin();
 
 	// we only need unix_charset -> kopano charset
-	m_iconv = new ECIConv("utf-8", m_config->GetSetting("fullname_charset"));
-
+	m_iconv.reset(new ECIConv("utf-8", m_config->GetSetting("fullname_charset")));
 	if (!m_iconv -> canConvert())
 		throw runtime_error(string("Cannot setup charset converter, check \"fullname_charset\" in cfg"));
 }
