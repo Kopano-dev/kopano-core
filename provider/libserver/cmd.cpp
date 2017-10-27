@@ -8940,7 +8940,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 	unsigned int    	ulTypeId = 0;
 	ECDatabase*			lpDatabase = NULL;
 	objectid_t			sExternId;
-	std::unique_ptr<abprops_t> lExtraProps;
+	abprops_t lExtraProps;
 	const unsigned int *lpProps = nullptr;
 	unsigned int		ulProps = 0;
 	int		i = 0;
@@ -8982,8 +8982,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 	} catch (...) { }
 
 	ptaProps.__size = ulProps;
-	if (lExtraProps.get())
-		ptaProps.__size += lExtraProps->size();
+	ptaProps.__size += lExtraProps.size();
 	ptaProps.__ptr = s_alloc<unsigned int>(soap, ptaProps.__size);
 
 	/* Copy fixed properties */
@@ -8991,35 +8990,33 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 	i = ulProps;
 
 	/* Copy extra properties */
-	if (lExtraProps.get()) {
-		for (const auto &prop : *lExtraProps) {
-			ptaProps.__ptr[i] = prop;
-			/* The client requires some properties with non-standard types */
-			switch ( PROP_ID(ptaProps.__ptr[i]) ) {
-			case PROP_ID(PR_MANAGER_NAME):
-			case PROP_ID(PR_EMS_AB_MANAGER):
-				/* Rename PR_MANAGER_NAME to PR_EMS_AB_MANAGER and provide the PT_BINARY version with the entryid */
-				ptaProps.__ptr[i] = CHANGE_PROP_TYPE(PR_EMS_AB_MANAGER, PT_BINARY);
-				break;
-			case PROP_ID(PR_EMS_AB_REPORTS):
-				ptaProps.__ptr[i] = CHANGE_PROP_TYPE(PR_EMS_AB_REPORTS, PT_MV_BINARY);
-				break;
-			case PROP_ID(PR_EMS_AB_OWNER):
-				/* Also provide the PT_BINARY version with the entryid */
-				ptaProps.__ptr[i] = CHANGE_PROP_TYPE(PR_EMS_AB_OWNER, PT_BINARY);
-				break;
-			default:
-				// @note plugin most likely returns PT_STRING8 and PT_MV_STRING8 types
-				// Since CopyDatabasePropValToSOAPPropVal() always returns PT_UNICODE types, we will convert these here too
-				// Therefore, the sProps / sPropsContainerRoot must contain PT_UNICODE types only!
-				if (PROP_TYPE(ptaProps.__ptr[i]) == PT_MV_STRING8)
-					ptaProps.__ptr[i] = CHANGE_PROP_TYPE(ptaProps.__ptr[i], PT_MV_UNICODE);
-				else if (PROP_TYPE(ptaProps.__ptr[i]) == PT_STRING8)
-					ptaProps.__ptr[i] = CHANGE_PROP_TYPE(ptaProps.__ptr[i], PT_UNICODE);
-				break;
-			}
-			++i;
+	for (const auto &prop : lExtraProps) {
+		ptaProps.__ptr[i] = prop;
+		/* The client requires some properties with non-standard types */
+		switch (PROP_ID(ptaProps.__ptr[i])) {
+		case PROP_ID(PR_MANAGER_NAME):
+		case PROP_ID(PR_EMS_AB_MANAGER):
+			/* Rename PR_MANAGER_NAME to PR_EMS_AB_MANAGER and provide the PT_BINARY version with the entryid */
+			ptaProps.__ptr[i] = CHANGE_PROP_TYPE(PR_EMS_AB_MANAGER, PT_BINARY);
+			break;
+		case PROP_ID(PR_EMS_AB_REPORTS):
+			ptaProps.__ptr[i] = CHANGE_PROP_TYPE(PR_EMS_AB_REPORTS, PT_MV_BINARY);
+			break;
+		case PROP_ID(PR_EMS_AB_OWNER):
+			/* Also provide the PT_BINARY version with the entryid */
+			ptaProps.__ptr[i] = CHANGE_PROP_TYPE(PR_EMS_AB_OWNER, PT_BINARY);
+			break;
+		default:
+			// @note plugin most likely returns PT_STRING8 and PT_MV_STRING8 types
+			// Since CopyDatabasePropValToSOAPPropVal() always returns PT_UNICODE types, we will convert these here too
+			// Therefore, the sProps / sPropsContainerRoot must contain PT_UNICODE types only!
+			if (PROP_TYPE(ptaProps.__ptr[i]) == PT_MV_STRING8)
+				ptaProps.__ptr[i] = CHANGE_PROP_TYPE(ptaProps.__ptr[i], PT_MV_UNICODE);
+			else if (PROP_TYPE(ptaProps.__ptr[i]) == PT_STRING8)
+				ptaProps.__ptr[i] = CHANGE_PROP_TYPE(ptaProps.__ptr[i], PT_UNICODE);
+			break;
 		}
+		++i;
 	}
 
 	/* Update the total size, the previously set value might not be accurate */

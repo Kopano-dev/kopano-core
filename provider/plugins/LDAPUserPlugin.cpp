@@ -2871,13 +2871,13 @@ void LDAPUserPlugin::setQuota(const objectid_t &id, const quotadetails_t &quotad
 	throw notimplemented("set quota is not supported when using the LDAP user plugin.");
 }
 
-std::unique_ptr<abprops_t> LDAPUserPlugin::getExtraAddressbookProperties(void)
+abprops_t LDAPUserPlugin::getExtraAddressbookProperties()
 {
-	std::unique_ptr<abprops_t> lProps(new abprops_t());
+	abprops_t lProps;
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 	for (const auto &cs : m_config->GetSettingGroup(CONFIGGROUP_PROPMAP))
-		lProps->emplace_back(xtoi(cs.szName));
+		lProps.emplace_back(xtoi(cs.szName));
 	return lProps;
 }
 

@@ -836,9 +836,9 @@ void DBPlugin::addSendAsToDetails(const objectid_t &objectid, objectdetails_t *l
 		lpDetails->AddPropObject(OB_PROP_LO_SENDAS, objlist.id);
 }
 
-std::unique_ptr<abprops_t> DBPlugin::getExtraAddressbookProperties(void)
+abprops_t DBPlugin::getExtraAddressbookProperties()
 {
-	std::unique_ptr<abprops_t> proplist(new abprops_t());
+	abprops_t proplist;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	std::string strTable[2] = {DB_OBJECTPROPERTY_TABLE, DB_OBJECTMVPROPERTY_TABLE};
@@ -858,7 +858,7 @@ std::unique_ptr<abprops_t> DBPlugin::getExtraAddressbookProperties(void)
 		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
 				continue;
-			proplist->emplace_back(xtoi(lpDBRow[0]));
+			proplist.emplace_back(xtoi(lpDBRow[0]));
 		}
 	}
 

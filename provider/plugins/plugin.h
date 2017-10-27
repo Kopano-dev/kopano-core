@@ -403,7 +403,7 @@ public:
 	 * @return	a list of properties
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<abprops_t> getExtraAddressbookProperties(void) = 0;
+	virtual abprops_t getExtraAddressbookProperties() = 0;
 
 	/**
 	 * Reset entire plugin - use with care - this deletes (almost) all entries in the user database

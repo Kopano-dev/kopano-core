@@ -261,7 +261,7 @@ public:
 	 * @return	a empty list of properties
 	 * @throw runtime_error when SQL problems occur
 	 */
-	virtual std::unique_ptr<abprops_t> getExtraAddressbookProperties(void);
+	virtual abprops_t getExtraAddressbookProperties() override;
 	
 	virtual void removeAllObjects(objectid_t except);
 

@@ -44,7 +44,7 @@ namespace KC {
  *
  * @todo update documentation with the right exception, some function can throw more exceptions!
  */
-class LDAPUserPlugin: public UserPlugin {
+class LDAPUserPlugin final : public UserPlugin {
 public:
 	/** 
 	 * Create a connection to the LDAP server and do some
@@ -343,7 +343,7 @@ public:
 	 *
 	 * @return	a list of properties
 	 */
-	virtual std::unique_ptr<abprops_t> getExtraAddressbookProperties(void);
+	virtual abprops_t getExtraAddressbookProperties() override;
 
 	virtual void removeAllObjects(objectid_t except);
 
