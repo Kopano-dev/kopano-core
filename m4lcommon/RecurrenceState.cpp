@@ -100,7 +100,6 @@ public:
 			DEBUGPRINT("%s ", bin2hex(len > m_ulLen - m_ulCursor ? m_ulLen - m_ulCursor : len, m_lpData+m_ulCursor).c_str());
         
         lpData->assign(&m_lpData[m_ulCursor], reallen);
-        lpData->substr(0, reallen);
         
         m_ulCursor+=reallen;
         
