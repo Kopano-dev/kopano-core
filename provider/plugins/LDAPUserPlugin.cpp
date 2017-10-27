@@ -1374,23 +1374,17 @@ LDAPUserPlugin::resolveObjectsFromAttributesType(objectclass_t objclass,
     const std::list<std::string> &objects, const char **lppAttr,
     const char *lpAttrType, const objectid_t &company)
 {
-	std::unique_ptr<signatures_t> signatures;
-
 	/* When the relation attribute the is the DN, we cannot perform any optimizations
 	 * and we must incur the penalty of having to resolve each entry one by one.
 	 * When the relation attribute is not the DN, we can optimize the lookup
 	 * by creating a single query that obtains all the required data in a single query. */
-	if (lpAttrType && strcasecmp(lpAttrType, LDAP_DATA_TYPE_DN) == 0) {
-		signatures = objectDNtoObjectSignatures(objclass, objects);
-	} else {
-		/* We have the full member list, create a new query that
-		 * will request the unique modification attributes for all
-		 * members in a single shot. With this data we can construct
-		 * the list of object signatures */
-		signatures = resolveObjectsFromAttributes(objclass, objects, lppAttr, company);
-	}
-
-	return signatures;
+	if (lpAttrType && strcasecmp(lpAttrType, LDAP_DATA_TYPE_DN) == 0)
+		return objectDNtoObjectSignatures(objclass, objects);
+	/* We have the full member list, create a new query that
+	 * will request the unique modification attributes for all
+	 * members in a single shot. With this data we can construct
+	 * the list of object signatures */
+	return resolveObjectsFromAttributes(objclass, objects, lppAttr, company);
 }
 
 objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const string &name, const objectid_t &company)

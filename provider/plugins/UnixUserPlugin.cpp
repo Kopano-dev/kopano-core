@@ -324,23 +324,15 @@ bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, uns
 
 	auto email = std::string(pw->pw_name) + "@" + m_config->GetSetting("default_domain");
 	if(ulFlags & EMS_AB_ADDRESS_LOOKUP)
-		matched = (email == match);
-	else
-		matched = (strncasecmp((char*)email.c_str(), (char*)match.c_str(), match.size()) == 0);
-
-	return matched;
+		return email == match;
+	return strncasecmp(email.c_str(), match.c_str(), match.size()) == 0;
 }
 
 bool UnixUserPlugin::matchGroupObject(struct group *gr, const string &match, unsigned int ulFlags)
 {
-	bool matched = false;
-
 	if(ulFlags & EMS_AB_ADDRESS_LOOKUP)
-		matched = strcasecmp(gr->gr_name, (char*)match.c_str()) == 0;
-	else
-		matched = strncasecmp(gr->gr_name, (char*)match.c_str(), match.size()) == 0;
-
-	return matched;
+		return strcasecmp(gr->gr_name, match.c_str()) == 0;
+	return strncasecmp(gr->gr_name, match.c_str(), match.size()) == 0;
 }
 
 std::unique_ptr<signatures_t>
