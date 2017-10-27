@@ -177,11 +177,7 @@ static int password_check_smd5(const char *data, unsigned int len, const char *c
 	MD5_Final(md5_out, &ctx);
 
 	b64_encode(b64_out, md5_out, MD5_DIGEST_LENGTH);
-
-	if (!strncmp(b64_out, crypted, MD5_DIGEST_LENGTH))
-		return 0;
-	else
-		return 1;
+	return strcmp(b64_out, crypted);
 }
 
 static char *password_encrypt_ssha(const char *data, unsigned int len, bool bSalted) {
