@@ -37,18 +37,16 @@ static char *password_encrypt_crypt(const char *data, unsigned int len) {
 	salt[0] &= 0x7F;
 	salt[1] &= 0x7F;
 	salt[2] = '\0';
-
-	char cryptbuf[32];
+	char cryptbuf[14];
 	DES_fcrypt(data, salt, cryptbuf);
-
-	auto res = new char[32];
-	snprintf(res, 32, "{CRYPT}%s", cryptbuf);
+	auto res = new char[20];
+	snprintf(res, 20, "{CRYPT}%s", cryptbuf);
 	return res;
 }
 
 static int password_check_crypt(const char *data, unsigned int len, const char *crypted) {
 	char salt[3];
-	char cryptbuf[32];
+	char cryptbuf[14];
 	salt[0] = crypted[0] & 0x7F;
 	salt[1] = crypted[1] & 0x7F;
 	salt[2] = 0;
@@ -66,8 +64,8 @@ static char *password_encrypt_md5(const char *data, unsigned int len) {
 	char *res;
 
 	MD5((unsigned char *) data, len, md5_out);
-	res = new char[base64_len + 12];
-	snprintf(res, base64_len + 11, "{MD5}%s", base64_encode(md5_out, sizeof(md5_out)).c_str());
+	res = new char[base64_len+6];
+	snprintf(res, base64_len + 6, "{MD5}%s", base64_encode(md5_out, sizeof(md5_out)).c_str());
 	return res;
 }
 
@@ -90,8 +88,8 @@ static char *password_encrypt_smd5(const char *data, unsigned int len) {
 	MD5_Update(&ctx, data, len);
 	MD5_Update(&ctx, salt, 4);
 	MD5_Final(md5_out, &ctx);	// writes upto the salt
-	res = new char[base64_len + 12];
-	snprintf(res, base64_len + 11, "{SMD5}%s", base64_encode(md5_out, sizeof(md5_out)).c_str());
+	res = new char[base64_len+7];
+	snprintf(res, base64_len + 7, "{SMD5}%s", base64_encode(md5_out, sizeof(md5_out)).c_str());
 	return res;
 }
 
