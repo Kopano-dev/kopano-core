@@ -248,8 +248,7 @@ std::unique_ptr<LDAPCache> LDAPUserPlugin::m_lpCache(new LDAPCache());
 
 LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
-	UserPlugin(pluginlock, shareddata), m_ldap(NULL), m_iconv(NULL),
-	m_iconvrev(NULL), ldapServerIndex(0)
+	UserPlugin(pluginlock, shareddata), m_ldap(NULL), ldapServerIndex(0)
 {
 	// LDAP Defaults
 	const configsetting_t lpDefaults[] = {
@@ -424,11 +423,10 @@ void LDAPUserPlugin::InitPlugin()
 	m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw);
 
 	const char *ldap_server_charset = m_config->GetSetting("ldap_server_charset");
-	m_iconv = new ECIConv("UTF-8", ldap_server_charset);
+	m_iconv.reset(new ECIConv("UTF-8", ldap_server_charset));
 	if (!m_iconv -> canConvert())
 		throw ldap_error(format("Cannot convert %s to UTF8", ldap_server_charset));
-
-	m_iconvrev = new ECIConv(m_config->GetSetting("ldap_server_charset"), "UTF-8");
+	m_iconvrev.reset(new ECIConv(m_config->GetSetting("ldap_server_charset"), "UTF-8"));
 	if (!m_iconvrev -> canConvert())
 		throw ldap_error(format("Cannot convert UTF-8 to %s", ldap_server_charset));
 }
@@ -535,10 +533,6 @@ LDAPUserPlugin::~LDAPUserPlugin() {
 		if (ldap_unbind_s(m_ldap) == -1)
 			ec_log_err("LDAP unbind failed");
 	}
-
-	delete m_iconv;
-
-	delete m_iconvrev;
 }
 
 void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char *attrs[], int attrsonly, LDAPMessage **lppres, LDAPControl **serverControls)

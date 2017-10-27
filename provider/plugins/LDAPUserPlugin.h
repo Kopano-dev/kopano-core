@@ -356,12 +356,12 @@ protected:
 	/**
 	 * converter FROM ldap TO kopano-server
 	 */
-	ECIConv *m_iconv;
+	std::unique_ptr<ECIConv> m_iconv;
 
 	/**
 	 * converter FROM kopano-server TO ldap
 	 */
-	ECIConv *m_iconvrev;
+	std::unique_ptr<ECIConv> m_iconvrev;
 
 	static std::unique_ptr<LDAPCache> m_lpCache;
 
