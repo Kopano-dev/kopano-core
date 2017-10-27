@@ -55,12 +55,12 @@
 
 #include <list>
 #include <algorithm>
-#include "spmain.h"
 
 using namespace KCHL;
 using std::list;
 using std::string;
 using std::wstring;
+extern KC::ECConfig *g_lpConfig;
 
 /**
  * Expand all rows in the lpTable to normal user recipient
@@ -80,14 +80,13 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
     LPSRestriction lpEntryRestriction, ULONG ulRecipType,
     list<SBinary> *lpExpandedGroups, bool recurrence = true)
 {
-	HRESULT			hr = hrSuccess;
 	ULONG			ulObj = 0;
 	bool			bExpandSub = recurrence;
 	static constexpr const SizedSPropTagArray(7, sptaColumns) =
 		{7, {PR_ROWID, PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W,
 		PR_RECIPIENT_TYPE, PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_ENTRYID}};
 
-	hr = lpTable->SetColumns(sptaColumns, 0);
+	auto hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetColumns failed", hr);
 
@@ -225,14 +224,13 @@ remove_group:
  */
 static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SRestriction> lpRestriction, lpEntryRestriction;
 	/*
 	 * Setup group restriction:
 	 * PR_OBJECT_TYPE == MAPI_DISTLIST && PR_ADDR_TYPE == "ZARAFA"
 	 */
-	hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpRestriction);
+	auto hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpRestriction);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
 	hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes);
@@ -312,14 +310,12 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
     IMessage *lpMessage)
 {
-	HRESULT		hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropTagArray> lpRecipColumns;
 
 	const char	*const lpszFaxDomain = g_lpConfig->GetSetting("fax_domain");
 	const char	*const lpszFaxInternational = g_lpConfig->GetSetting("fax_international");
 	string		strFaxMail;
-	wstring		wstrFaxMail, wstrOldFaxMail;
 	ULONG		ulObjType;
 	ULONG		cValues;
 
@@ -329,8 +325,8 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		PR_PRIMARY_FAX_NUMBER_A}};
 
 	if (!lpszFaxDomain || strcmp(lpszFaxDomain, "") == 0)
-		return hr;
-	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTable);
+		return hrSuccess;
+	auto hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetRecipientTable failed", hr);
 
@@ -415,8 +411,8 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		if (strFaxMail[0] == '+' && lpszFaxInternational != nullptr)
 			strFaxMail = lpszFaxInternational + strFaxMail.substr(1, strFaxMail.length());
 
-		wstrFaxMail = convert_to<wstring>(strFaxMail);
-		wstrOldFaxMail = lpEmailAddress->Value.lpszW; // keep old string for logging
+		auto wstrFaxMail = convert_to<std::wstring>(strFaxMail);
+		std::wstring wstrOldFaxMail = lpEmailAddress->Value.lpszW; // keep old string for logging
 		// hack values in lpRowSet
 		lpEmailAddress->Value.lpszW = (WCHAR*)wstrFaxMail.c_str();
 		lpAddrType->Value.lpszW = const_cast<wchar_t *>(L"SMTP");
@@ -445,7 +441,6 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
  */
 static HRESULT UniqueRecipients(IMessage *lpMessage)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	string			strEmail;
 	ULONG			ulRecipType = 0;
@@ -458,7 +453,7 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 		}
 	};
 
-	hr = lpMessage->GetRecipientTable(0, &~lpTable);
+	auto hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTable->SetColumns(sptaColumns, 0);
@@ -498,13 +493,11 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 
 static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-	wstring			strEmail;
 	static constexpr const SizedSPropTagArray(3, sptaColumns) =
 		{3, {PR_ROWID, PR_EMAIL_ADDRESS_W, PR_RECIPIENT_TYPE}};
 
-	hr = lpMessage->GetRecipientTable(0, &~lpTable);
+	auto hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetRecipientTable failed", hr);
 	hr = lpTable->SetColumns(sptaColumns, 0);
@@ -525,18 +518,19 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 		if (!lpEmailAddress || !lpRecipType)
 			continue;
    
-        strEmail = lpEmailAddress->Value.lpszW;
-        if((strEmail[0] == '\'' && strEmail[strEmail.size()-1] == '\'') ||
-           (strEmail[0] == '"' && strEmail[strEmail.size()-1] == '"')) {
+		std::wstring strEmail = lpEmailAddress->Value.lpszW;
+		bool quoted = (strEmail[0] == '\'' && strEmail[strEmail.size()-1] == '\'') ||
+		              (strEmail[0] == '"' && strEmail[strEmail.size()-1] == '"');
+		if (!quoted)
+			continue;
 
-            ec_log_info("Rewrite quoted recipient: %ls", strEmail.c_str());
-            strEmail = strEmail.substr(1, strEmail.size()-2);
-            lpEmailAddress->Value.lpszW = (WCHAR *)strEmail.c_str();
-			hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
-			     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
-			if (hr != hrSuccess)
-				return kc_perrorf("Failed to rewrite quoted recipient", hr);
-		}
+		ec_log_info("Rewrite quoted recipient: %ls", strEmail.c_str());
+		strEmail = strEmail.substr(1, strEmail.size() - 2);
+		lpEmailAddress->Value.lpszW = (WCHAR *)strEmail.c_str();
+		hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
+		     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
+		if (hr != hrSuccess)
+			return kc_perrorf("Failed to rewrite quoted recipient", hr);
 	}
 	return hrSuccess;
 }
@@ -548,7 +542,6 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
  */
 static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
 	SPropValue sPropRestrict;
@@ -556,7 +549,7 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 	sPropRestrict.ulPropTag = PR_RECIPIENT_TYPE;
 	sPropRestrict.Value.ul = MAPI_P1;
 
-	hr = lpMessage->GetRecipientTable(0, &~lpTable);
+	auto hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetRecipientTable failed", hr);
 	hr = ECPropertyRestriction(RELOP_EQ, PR_RECIPIENT_TYPE,
@@ -589,7 +582,6 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
     IMessage *lpMessage)
 {
-	HRESULT		hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpInbox;
 	object_ptr<IMessage> lpErrorMsg;
 	memory_ptr<ENTRYID> lpEntryID;
@@ -606,7 +598,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	object_ptr<IMAPITable> lpTableMods;
 	ULONG			ulRows = 0;
 	ULONG			cEntries = 0;
-	string			strName, strType, strEmail;
 
 	/* CopyTo() vars */
 	unsigned int	ulPropAttachPos;
@@ -644,7 +635,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	};
 
 	// open inbox
-	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
+	auto hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess) {
 		ec_log_warn("Unable to resolve incoming folder: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -1036,7 +1027,6 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
     ULONG cbEntryId, const ENTRYID *lpEntryId, ULONG *eid_size,
     LPENTRYID *eidp)
 {
-	HRESULT hr = hrSuccess;
 	auto lpContabEntryID = reinterpret_cast<const CONTAB_ENTRYID *>(lpEntryId);
 	auto guid = reinterpret_cast<const GUID *>(&lpContabEntryID->muid);
 	ULONG ulObjType;
@@ -1052,8 +1042,8 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	    lpContabEntryID->email_offset > 2)
 		return MAPI_E_NOT_FOUND;
 
-	hr = lpUserStore->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(const_cast<BYTE *>(lpContabEntryID->abeid)),
-	     &iid_of(lpContact), 0, &ulObjType, &~lpContact);
+	auto hr = lpUserStore->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(const_cast<BYTE *>(lpContabEntryID->abeid)),
+	          &iid_of(lpContact), 0, &ulObjType, &~lpContact);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open contact entryid", hr);
 	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID) * 3, &~lpNames);
@@ -1114,7 +1104,6 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
     const ENTRYID *lpSMTPEID, ULONG *eid_size, LPENTRYID *eidp)
 {
-	HRESULT hr = hrSuccess;
 	wstring wstrName, wstrType, wstrEmailAddress;
 	adrlist_ptr lpAList;
 	const SPropValue *lpSpoofEID;
@@ -1124,7 +1113,7 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 	// we then always should have yourself as the sender, otherwise: denied
 	if (ECParseOneOff(lpSMTPEID, ulSMTPEID, wstrName, wstrType, wstrEmailAddress) != hrSuccess)
 		return MAPI_E_NOT_FOUND;
-	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAList);
+	auto hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAList);
 	if (hr != hrSuccess)
 		return hrSuccess;
 	lpAList->cEntries = 1;
@@ -1167,7 +1156,6 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
     LPENTRYID lpOwnerEID, ULONG ulDistListCB, LPENTRYID lpDistListEID,
     ULONG *lpulCmp, int level = 0)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulCmp = 0;
 	ULONG ulObjType = 0;
 	object_ptr<IDistList> lpDistList;
@@ -1178,12 +1166,12 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 	if (lpulCmp == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (level > 10) {
-		hr = MAPI_E_TOO_COMPLEX;
+		HRESULT hr = MAPI_E_TOO_COMPLEX;
 		ec_log_err("HrFindUserInGroup(): level too big %d: %s (%x)",
 			level, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	hr = lpAdrBook->OpenEntry(ulDistListCB, lpDistListEID, &iid_of(lpDistList), 0, &ulObjType, &~lpDistList);
+	auto hr = lpAdrBook->OpenEntry(ulDistListCB, lpDistListEID, &iid_of(lpDistList), 0, &ulObjType, &~lpDistList);
 	if (hr != hrSuccess)
 		return kc_perrorf("OpenEntry failed", hr);
 	hr = lpDistList->GetContentsTable(0, &~lpMembersTable);
@@ -1236,7 +1224,6 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
     IMsgStore *lpUserStore, IMAPISession *lpAdminSession, ULONG ulRepresentCB,
     LPENTRYID lpRepresentEID, LPMDB *lppRepStore)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulObjType = 0;
 	object_ptr<IMAPIProp> lpRepresenting;
 	memory_ptr<SPropValue> lpRepAccount;
@@ -1245,7 +1232,7 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
 	memory_ptr<ENTRYID> lpRepStoreEID;
 	object_ptr<IMsgStore> lpRepStore;
 
-	hr = lpAddrBook->OpenEntry(ulRepresentCB, lpRepresentEID, &iid_of(lpRepresenting), 0, &ulObjType, &~lpRepresenting);
+	auto hr = lpAddrBook->OpenEntry(ulRepresentCB, lpRepresentEID, &iid_of(lpRepresenting), 0, &ulObjType, &~lpRepresenting);
 	if (hr != hrSuccess) {
 		ec_log_info("Unable to open representing user in addressbook: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -1356,7 +1343,6 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
     LPENTRYID lpOwnerEID, ULONG ulRepresentCB, LPENTRYID lpRepresentEID,
     bool *lpbAllowed, LPMDB *lppRepStore)
 {
-	HRESULT hr = hrSuccess;
 	bool bAllowed = false;
 	bool bHasStore = false;
 	ULONG ulObjType;
@@ -1369,7 +1355,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		PR_DISPLAY_TYPE}};
 	ULONG cValues = 0;
 
-	hr = SMTPToZarafa(lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
+	auto hr = SMTPToZarafa(lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, reinterpret_cast<ENTRYID **>(&sSpoofEID.Value.bin.lpb));
 	if (hr != hrSuccess)
 		hr = ContactToKopano(lpUserStore, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
 	if (hr == hrSuccess) {
@@ -1476,7 +1462,6 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
     ULONG ulRepresentCB, LPENTRYID lpRepresentEID, bool *lpbAllowed,
     LPMDB *lppRepStore)
 {
-	HRESULT hr = hrSuccess;
 	bool bAllowed = false;
 	ULONG ulObjType;
 	object_ptr<IMsgStore> lpRepStore;
@@ -1486,7 +1471,7 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	object_ptr<IMessage> lpRepFBMessage;
 	SPropValue sSpoofEID = {0};
 
-	hr = SMTPToZarafa(lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
+	auto hr = SMTPToZarafa(lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, reinterpret_cast<ENTRYID **>(&sSpoofEID.Value.bin.lpb));
 	if (hr != hrSuccess)
 		hr = ContactToKopano(lpUserStore, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
 	if (hr == hrSuccess) {
@@ -1578,14 +1563,13 @@ exit:
 static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
     LPMDB lpRepStore, LPMESSAGE *lppRepMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpSentItemsEntryID;
 	object_ptr<IMAPIFolder> lpSentItems;
 	ULONG ulObjType;
 	object_ptr<IMessage> lpDestMsg;
 	SPropValue sProp[1];
 
-	hr = HrGetOneProp(lpRepStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentItemsEntryID);
+	auto hr = HrGetOneProp(lpRepStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentItemsEntryID);
 	if (hr != hrSuccess) {
 		ec_log_warn("Unable to find the representee's Sent Items folder: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -1640,11 +1624,10 @@ static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
 static HRESULT PostSendProcessing(ULONG cbEntryId, const ENTRYID *lpEntryId,
     IMsgStore *lpMsgStore)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpObject;
 	object_ptr<IECSpooler> lpSpooler;
 	
-	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpObject);
+	auto hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpObject);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to get PR_EC_OBJECT in post-send processing", hr);
 	hr = reinterpret_cast<IUnknown *>(lpObject->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
@@ -1682,7 +1665,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
     ECSender *lpMailer, ULONG cbMsgEntryId, LPENTRYID lpMsgEntryId,
     IMessage **lppMessage, bool &doSentMail)
 {
-	HRESULT 		hr 				= hrSuccess;
 	object_ptr<IMessage> lpMessage;
 	ULONG			ulObjType		= 0;
 
@@ -1735,7 +1717,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sopt.always_expand_distr_list = parseBool(g_lpConfig->GetSetting("expand_groups"));
 
 	// Init plugin system
-	hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
+	auto hr = pyMapiPluginFactory.create_plugin(g_lpConfig, ec_log_get(), "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
 	if (hr != hrSuccess) {
 		ec_log_crit("K-1733: Unable to initialize the spooler plugin system: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
@@ -1826,7 +1808,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	// fatal, all other log messages are otherwise somewhat meaningless
-	if (g_lpLogger->Log(EC_LOGLEVEL_DEBUG))
+	if (ec_log_get()->Log(EC_LOGLEVEL_DEBUG))
 		ec_log_debug("Sending e-mail for user %ls, subject: \"%ls\", size: %d",
 			lpUser->lpszUsername, lpSubject ? lpSubject->Value.lpszW : L"<none>",
 			lpMsgSize ? lpMsgSize->Value.ul : 0);

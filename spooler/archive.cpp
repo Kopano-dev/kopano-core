@@ -23,6 +23,7 @@
 
 #include <kopano/ECLogger.h>
 #include <kopano/ECGetText.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapi_ptr.h>
 
@@ -271,7 +272,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to obtain list of attached archives. hr=0x%08x", hr);
+		kc_perror("Unable to obtain list of attached archives", hr);
 		SetErrorMessage(hr, _("Unable to obtain list of attached archives."));
 		goto exit;
 	}
@@ -318,13 +319,13 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		}
 		hr = ptrArchiveHelper->GetOutgoingFolder(&~ptrArchiveFolder);
 		if (hr != hrSuccess) {
-			ec_log_err("Failed to get outgoing archive folder. hr=0x%08x", hr);
+			kc_perror("Failed to get outgoing archive folder", hr);
 			SetErrorMessage(hr, _("Unable to get outgoing archive folder."));
 			goto exit;
 		}
 		hr = ptrArchiveFolder->CreateMessage(&iid_of(ptrArchivedMsg), 0, &~ptrArchivedMsg);
 		if (hr != hrSuccess) {
-			ec_log_err("Failed to create message in outgoing archive folder. hr=0x%08x", hr);
+			kc_perror("Failed to create message in outgoing archive folder", hr);
 			SetErrorMessage(hr, _("Unable to create archive message in outgoing archive folder."));
 			goto exit;
 		}
@@ -343,7 +344,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	for (const auto &msg : lstArchivedMessages) {
 		hr = msg.first->SaveChanges(KEEP_OPEN_READONLY);
 		if (hr != hrSuccess) {
-			ec_log_err("Failed to save message in archive. hr=0x%08x", hr);
+			kc_perror("Failed to save message in archive", hr);
 			SetErrorMessage(hr, _("Unable to save archived message."));
 			goto exit;
 		}
