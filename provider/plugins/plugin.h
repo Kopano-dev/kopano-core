@@ -256,7 +256,7 @@ public:
 	 * @return The public store details
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<objectdetails_t> getPublicStoreDetails(void) = 0;
+	virtual objectdetails_t getPublicStoreDetails() = 0;
 
 	/**
 	 * Obtain the objectdetails for a server

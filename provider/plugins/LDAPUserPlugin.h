@@ -198,7 +198,7 @@ public:
 	 * @throw objectnotfound When no public store was found
 	 * @throw toomanyobjects When more then one public store has been found
 	 */
-	virtual std::unique_ptr<objectdetails_t> getPublicStoreDetails(void);
+	virtual objectdetails_t getPublicStoreDetails() override;
 
 	/**
 	 * Obtain the objectdetails for a server

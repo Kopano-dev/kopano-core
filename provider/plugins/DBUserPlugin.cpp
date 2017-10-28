@@ -278,7 +278,7 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 	DBPlugin::setQuota(objectid, quotadetails);
 }
 
-std::unique_ptr<objectdetails_t> DBUserPlugin::getPublicStoreDetails(void)
+objectdetails_t DBUserPlugin::getPublicStoreDetails()
 {
 	throw notsupported("public store details");
 }

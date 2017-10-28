@@ -814,7 +814,7 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	return objectlist;
 }
 
-std::unique_ptr<objectdetails_t> UnixUserPlugin::getPublicStoreDetails(void)
+objectdetails_t UnixUserPlugin::getPublicStoreDetails()
 {
 	throw notsupported("public store details");
 }

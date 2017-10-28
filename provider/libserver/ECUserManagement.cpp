@@ -4207,7 +4207,7 @@ ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)
 
 ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
 {
-	std::unique_ptr<objectdetails_t> details;
+	objectdetails_t details;
 	UserPlugin *lpPlugin = NULL;
 
 	/* We pretend that the Public store is a company. So request (and later store) it as such. */
@@ -4234,9 +4234,8 @@ ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
 	/* Update cache so we don't have to bug the plugin until the data has changed.
 	 * Note that we don't care if the update succeeded, if it fails we will retry
 	 * when the user details are requested for a second time. */
-	if (details != nullptr)
-		cache->SetUserDetails(KOPANO_UID_EVERYONE, *details);
-	*lpDetails = *details;
+	cache->SetUserDetails(KOPANO_UID_EVERYONE, details);
+	*lpDetails = std::move(details);
 	return erSuccess;
 }
 

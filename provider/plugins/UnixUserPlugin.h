@@ -195,7 +195,7 @@ public:
 	 * @return The public store details
 	 * @throw notsupported Always when this function is called
 	 */
-	virtual std::unique_ptr<objectdetails_t> getPublicStoreDetails(void);
+	virtual objectdetails_t getPublicStoreDetails() override;
 
 	/**
 	 * Obtain the objectdetails for a server

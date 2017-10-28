@@ -2596,10 +2596,10 @@ LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	return signatures;
 }
 
-std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
+objectdetails_t LDAPUserPlugin::getPublicStoreDetails()
 {
 	auto_free_ldap_message res;
-	std::unique_ptr<objectdetails_t> details(new objectdetails_t(CONTAINER_COMPANY));
+	objectdetails_t details(CONTAINER_COMPANY);
 
 	if (!m_bDistributed)
 		throw objectnotfound("public store");
@@ -2639,7 +2639,7 @@ std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 
 	FOREACH_ATTR(entry) {
 		if (unique_attr && !strcasecmp(att, unique_attr))
-			details->SetPropString(OB_PROP_S_SERVERNAME, m_iconv->convert(getLDAPAttributeValue(att, entry)));
+			details.SetPropString(OB_PROP_S_SERVERNAME, m_iconv->convert(getLDAPAttributeValue(att, entry)));
 	}
 	END_FOREACH_ATTR
 
