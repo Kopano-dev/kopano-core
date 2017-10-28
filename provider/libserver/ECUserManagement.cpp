@@ -357,8 +357,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 			lpDetails->emplace_back(ulObjectId, objectdetails_t(ext_det.second.GetClass()));
 		else
 			lpDetails->emplace_back(ulObjectId, ext_det.second);
-
-		cache->SetUserDetails(ulObjectId, &ext_det.second);
+		cache->SetUserDetails(ulObjectId, ext_det.second);
 	}
 	return erSuccess;
 }
@@ -1207,7 +1206,8 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 	/* Update cache so we don't have to bug the plugin until the data has changed.
 	 * Note that we don't care if the update succeeded, if it fails we will retry
 	 * when the user details are requested for a second time. */
-	cache->SetUserDetails(ulId, details.get());
+	if (details != nullptr)
+		cache->SetUserDetails(ulId, *details);
 	if (! IsInternalObject(ulId)) {
 		er = UpdateUserDetailsToClient(details.get());
 		if (er != erSuccess)
@@ -1730,7 +1730,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 				continue;
 
 			// Add data to the cache
-			cache->SetUserDetails(iterObjectId->second, &eod.second);
+			cache->SetUserDetails(iterObjectId->second, eod.second);
 		}
 		/* We convert user and companyname to loginname later this function */
 	} catch (objectnotfound &) {
@@ -4234,7 +4234,8 @@ ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
 	/* Update cache so we don't have to bug the plugin until the data has changed.
 	 * Note that we don't care if the update succeeded, if it fails we will retry
 	 * when the user details are requested for a second time. */
-	cache->SetUserDetails(KOPANO_UID_EVERYONE, details.get());
+	if (details != nullptr)
+		cache->SetUserDetails(KOPANO_UID_EVERYONE, *details);
 	*lpDetails = *details;
 	return erSuccess;
 }

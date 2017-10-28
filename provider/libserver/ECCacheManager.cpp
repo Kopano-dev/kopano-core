@@ -682,7 +682,7 @@ ECRESULT ECCacheManager::GetUserDetails(unsigned int ulUserId, objectdetails_t *
 }
 
 ECRESULT ECCacheManager::SetUserDetails(unsigned int ulUserId,
-    const objectdetails_t *details)
+    const objectdetails_t &details)
 {
 	return I_AddUserObjectDetails(ulUserId, details);
 }
@@ -902,18 +902,13 @@ ECRESULT ECCacheManager::I_DelUserObject(unsigned int ulUserId)
 }
 
 ECRESULT ECCacheManager::I_AddUserObjectDetails(unsigned int ulUserId,
-    const objectdetails_t *details)
+    const objectdetails_t &details)
 {
 	ECsUserObjectDetails sObjectDetails;
 
 	scoped_rlock lock(m_hCacheMutex);
-
-	if (details == NULL)
-		return KCERR_INVALID_PARAMETER;
-
-	LOG_USERCACHE_DEBUG("_Add user details. userid %d, %s", ulUserId, details->ToStr().c_str() );
-
-	sObjectDetails.sDetails = *details;
+	LOG_USERCACHE_DEBUG("_Add user details. userid %d, %s", ulUserId, details.ToStr().c_str());
+	sObjectDetails.sDetails = details;
 	return m_UserObjectDetailsCache.AddCacheItem(ulUserId, sObjectDetails);
 }
 
@@ -1056,8 +1051,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 	else
 	    memset(lpRights, 0, sizeof *lpRights);
 
-    SetACLs(ulObjId, lpRights);
-
+	SetACLs(ulObjId, *lpRights);
     *lppRights = lpRights;
 	return erSuccess;
 }
@@ -1096,21 +1090,20 @@ ECRESULT ECCacheManager::I_GetACLs(unsigned int ulObjId, struct rightsArray **lp
 }
 
 ECRESULT ECCacheManager::SetACLs(unsigned int ulObjId,
-    const struct rightsArray *lpRights)
+    const struct rightsArray &lpRights)
 {
     ECsACLs sACLs;
 
 	LOG_USERCACHE_DEBUG("Set ACLs for objectid %d", ulObjId);
-
-    sACLs.ulACLs = lpRights->__size;
-	sACLs.aACL.reset(new ECsACLs::ACL[lpRights->__size]);
-
-    for (gsoap_size_t i = 0; i < lpRights->__size; ++i) {
-        sACLs.aACL[i].ulType = lpRights->__ptr[i].ulType;
-        sACLs.aACL[i].ulMask = lpRights->__ptr[i].ulRights;
-        sACLs.aACL[i].ulUserId = lpRights->__ptr[i].ulUserid;
-
-		LOG_USERCACHE_DEBUG("Set ACLs for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
+	sACLs.ulACLs = lpRights.__size;
+	sACLs.aACL.reset(new ECsACLs::ACL[lpRights.__size]);
+	for (gsoap_size_t i = 0; i < lpRights.__size; ++i) {
+		sACLs.aACL[i].ulType   = lpRights.__ptr[i].ulType;
+		sACLs.aACL[i].ulMask   = lpRights.__ptr[i].ulRights;
+		sACLs.aACL[i].ulUserId = lpRights.__ptr[i].ulUserid;
+		LOG_USERCACHE_DEBUG("Set ACLs for objectid %d: userid %d, type %d, permissions %d",
+			ulObjId, lpRights.__ptr[i].ulUserid,
+			lpRights.__ptr[i].ulType, lpRights.__ptr[i].ulRights);
     }
 
 	scoped_rlock lock(m_hCacheMutex);
@@ -1478,19 +1471,18 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int ul
 	return erSuccess;
 }
 
-ECRESULT ECCacheManager::I_AddIndexData(const ECsIndexObject *lpObject,
-    const ECsIndexProp *lpProp)
+ECRESULT ECCacheManager::I_AddIndexData(const ECsIndexObject &lpObject,
+    const ECsIndexProp &lpProp)
 {
 	scoped_rlock lock(m_hCacheIndPropMutex);
 
     // Remove any pre-existing references to this data
-    RemoveIndexData(PROP_TAG(PT_UNSPECIFIED, lpObject->ulTag), lpObject->ulObjId);
-    RemoveIndexData(PROP_TAG(PT_UNSPECIFIED, lpProp->ulTag), lpProp->cbData, lpProp->lpData);
-    
-	auto er = m_PropToObjectCache.AddCacheItem(*lpProp, *lpObject);
+	RemoveIndexData(PROP_TAG(PT_UNSPECIFIED, lpObject.ulTag), lpObject.ulObjId);
+	RemoveIndexData(PROP_TAG(PT_UNSPECIFIED, lpProp.ulTag), lpProp.cbData, lpProp.lpData);
+	auto er = m_PropToObjectCache.AddCacheItem(lpProp, lpObject);
 	if(er != erSuccess)
 		return er;
-	return m_ObjectToPropCache.AddCacheItem(*lpObject, *lpProp);
+	return m_ObjectToPropCache.AddCacheItem(lpObject, lpProp);
 }
 
 ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulObjId, struct soap *soap, unsigned int* lpcbData, unsigned char** lppData)
@@ -1544,7 +1536,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 	}
 
 	sNewObject.SetValue(ulTag, (unsigned char*) lpDBRow[0], (unsigned int) lpDBLenths[0]);
-	er = I_AddIndexData(&sObjectKey, &sNewObject);
+	er = I_AddIndexData(sObjectKey, sNewObject);
 	if(er != erSuccess)
 		goto exit;
 
@@ -1607,7 +1599,7 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
 	sObject.ulTag = ulTag;
 	sObject.cbData = cbData;
 	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
-	er = I_AddIndexData(&sNewIndexObject, &sObject);
+	er = I_AddIndexData(sNewIndexObject, sObject);
 	if (er != erSuccess)
 		goto exit;
 	*lpulObjId = sNewIndexObject.ulObjId;
@@ -1662,7 +1654,7 @@ ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData, 
     sObject.ulObjId = ulObjId;
     
     sProp.SetValue(ulTag, lpData, cbData);
-	er = I_AddIndexData(&sObject, &sProp);
+	er = I_AddIndexData(sObject, sProp);
 	LOG_CACHE_DEBUG("Set object prop tag 0x%04X, data %s, objectid %d", ulTag, bin2hex(cbData, lpData).c_str(), ulObjId);
     return er;
 }
