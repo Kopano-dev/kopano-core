@@ -196,7 +196,7 @@ public:
 	 * @return The objectdetails for the given objectid
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<objectdetails_t> getObjectDetails(const objectid_t &objectid) = 0;
+	virtual objectdetails_t getObjectDetails(const objectid_t &) = 0;
 
 	/**
 	 * Obtain the object details for the given objects

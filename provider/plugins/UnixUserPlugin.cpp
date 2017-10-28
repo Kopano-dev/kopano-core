@@ -296,9 +296,8 @@ objectsignature_t UnixUserPlugin::authenticateUser(const string &username, const
 		throw login_error("Non-active user disallowed to login");
 
 	auto ud = objectdetailsFromPwent(pw);
-	auto crpw = crypt_r(password.c_str(), ud->GetPropString(OB_PROP_S_PASSWORD).c_str(), cryptdata.get());
-
-	if (!crpw || strcmp(crpw, ud->GetPropString(OB_PROP_S_PASSWORD).c_str()))
+	auto crpw = crypt_r(password.c_str(), ud.GetPropString(OB_PROP_S_PASSWORD).c_str(), cryptdata.get());
+	if (crpw == nullptr || strcmp(crpw, ud.GetPropString(OB_PROP_S_PASSWORD).c_str()) != 0)
 		throw login_error("Trying to authenticate failed: wrong username or password");
 
 	objectid_t objectid{tostring(pw->pw_uid), ACTIVE_USER};
@@ -547,11 +546,10 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	return objectlist;
 }
 
-std::unique_ptr<objectdetails_t>
-UnixUserPlugin::getObjectDetails(const objectid_t &externid)
+objectdetails_t UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 {
 	char buffer[PWBUFSIZE];
-	std::unique_ptr<objectdetails_t> ud;
+	objectdetails_t ud;
 	struct passwd pws;
 	struct group grp;
 	DB_RESULT lpResult;
@@ -595,7 +593,7 @@ UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 		throw runtime_error(externid.id);
 
 	try {
-		ud->MergeFrom(*DBPlugin::getObjectDetails(externid));
+		ud.MergeFrom(DBPlugin::getObjectDetails(externid));
 	} catch (...) { } // ignore errors; we'll try with just the information we have from Pwent
 
 	return ud;
@@ -833,21 +831,17 @@ std::unique_ptr<std::map<objectid_t, objectdetails_t> >
 UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
 	std::unique_ptr<std::map<objectid_t, objectdetails_t>> mapdetails(new std::map<objectid_t, objectdetails_t>);
-	std::unique_ptr<objectdetails_t> uDetails;
-	objectdetails_t details;
 
 	if (objectids.empty())
 		return mapdetails;
 
 	for (const auto &id : objectids) {
 		try {
-			uDetails = this->getObjectDetails(id);
+			(*mapdetails)[id] = this->getObjectDetails(id);
 		}
 		catch (objectnotfound &e) {
 			// ignore not found error
-			continue;
 		}
-		(*mapdetails)[id] = (*uDetails.get());
 	}
     
     return mapdetails;
@@ -857,21 +851,20 @@ UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 // private
 // -------------
 
-std::unique_ptr<objectdetails_t>
-UnixUserPlugin::objectdetailsFromPwent(struct passwd *pw)
+objectdetails_t UnixUserPlugin::objectdetailsFromPwent(const struct passwd *pw)
 {
-	std::unique_ptr<objectdetails_t> ud(new objectdetails_t());
+	objectdetails_t ud;
 
-	ud->SetPropString(OB_PROP_S_LOGIN, string(pw->pw_name));
-	ud->SetClass(shell_to_class(m_config, pw->pw_shell));
+	ud.SetPropString(OB_PROP_S_LOGIN, pw->pw_name);
+	ud.SetClass(shell_to_class(m_config, pw->pw_shell));
 	auto gecos = m_iconv->convert(pw->pw_gecos);
 
 	// gecos may contain room/phone number etc. too
 	auto comma = gecos.find(",");
 	if (comma != string::npos)
-		ud->SetPropString(OB_PROP_S_FULLNAME, gecos.substr(0,comma));
+		ud.SetPropString(OB_PROP_S_FULLNAME, gecos.substr(0, comma));
 	else
-		ud->SetPropString(OB_PROP_S_FULLNAME, gecos);
+		ud.SetPropString(OB_PROP_S_FULLNAME, gecos);
 
 	if (!strcmp(pw->pw_passwd, "x")) {
 		// shadow password entry
@@ -881,36 +874,32 @@ UnixUserPlugin::objectdetailsFromPwent(struct passwd *pw)
 		if (getspnam_r(pw->pw_name, &spws, sbuffer, PWBUFSIZE, &spw) != 0) {
 			ec_log_warn("getspname_r: %s", strerror(errno));
 			/* set invalid password entry, cannot login without a password */
-			ud->SetPropString(OB_PROP_S_PASSWORD, std::string("x"));
+			ud.SetPropString(OB_PROP_S_PASSWORD, "x");
 		} else if (spw == NULL) {
 			// invalid entry, must have a shadow password set in this case
 			// throw objectnotfound(ud->id);
 			// too bad that the password couldn't be found, but it's not that critical
 			ec_log_warn("Warning: unable to find password for user \"%s\": %s", pw->pw_name, strerror(errno));
-			ud->SetPropString(OB_PROP_S_PASSWORD, string("x"));	// set invalid password entry, cannot login without a password
+			ud.SetPropString(OB_PROP_S_PASSWORD, "x"); // set invalid password entry, cannot login without a password
 		} else {
-			ud->SetPropString(OB_PROP_S_PASSWORD, string(spw->sp_pwdp));
+			ud.SetPropString(OB_PROP_S_PASSWORD, spw->sp_pwdp);
 		}
 	} else if (!strcmp(pw->pw_passwd, "*") || !strcmp(pw->pw_passwd, "!")){
 		throw objectnotfound(string());
 	} else {
-		ud->SetPropString(OB_PROP_S_PASSWORD, string(pw->pw_passwd));
+		ud.SetPropString(OB_PROP_S_PASSWORD, pw->pw_passwd);
 	}
 	
 	// This may be overridden by settings in the database
-	ud->SetPropString(OB_PROP_S_EMAIL, string(pw->pw_name) + "@" + m_config->GetSetting("default_domain"));
-
+	ud.SetPropString(OB_PROP_S_EMAIL, std::string(pw->pw_name) + "@" + m_config->GetSetting("default_domain"));
 	return ud;
 }
 
-std::unique_ptr<objectdetails_t>
-UnixUserPlugin::objectdetailsFromGrent(struct group *gr)
+objectdetails_t UnixUserPlugin::objectdetailsFromGrent(const struct group *gr)
 {
-	std::unique_ptr<objectdetails_t> gd(new objectdetails_t(DISTLIST_SECURITY));
-
-	gd->SetPropString(OB_PROP_S_LOGIN, string(gr->gr_name));
-	gd->SetPropString(OB_PROP_S_FULLNAME, string(gr->gr_name));
-
+	objectdetails_t gd(DISTLIST_SECURITY);
+	gd.SetPropString(OB_PROP_S_LOGIN, gr->gr_name);
+	gd.SetPropString(OB_PROP_S_FULLNAME, gr->gr_name);
 	return gd;
 }
 

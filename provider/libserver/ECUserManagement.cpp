@@ -1161,8 +1161,7 @@ ECRESULT ECUserManagement::GetLocalObjectDetails(unsigned int ulId, objectdetail
 // Get remote details
 ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdetails_t *lpDetails)
 {
-	std::unique_ptr<objectdetails_t> details;
-	objectdetails_t detailscached;
+	objectdetails_t details, detailscached;
 	objectid_t externid;
 	UserPlugin *lpPlugin = NULL;
 
@@ -1206,15 +1205,13 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 	/* Update cache so we don't have to bug the plugin until the data has changed.
 	 * Note that we don't care if the update succeeded, if it fails we will retry
 	 * when the user details are requested for a second time. */
-	if (details != nullptr)
-		cache->SetUserDetails(ulId, *details);
+	cache->SetUserDetails(ulId, details);
 	if (! IsInternalObject(ulId)) {
-		er = UpdateUserDetailsToClient(details.get());
+		er = UpdateUserDetailsToClient(&details);
 		if (er != erSuccess)
 			return er;
 	}
-
-	*lpDetails = *details;
+	*lpDetails = std::move(details);
 	return erSuccess;
 }
 
@@ -2361,8 +2358,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	ec_log_info("Auto-creating %s from external source", ObjectClassToName(signature.id.objclass));
 
 	try {
-		details = *lpPlugin->getObjectDetails(signature.id);
-
+		details = lpPlugin->getObjectDetails(signature.id);
 		/*
 		 * The property OB_PROP_S_LOGIN is mandatory, when that property is an empty string
 		 * somebody (aka: system administrator) has messed up its LDAP tree or messed around
@@ -2500,7 +2496,7 @@ ECRESULT ECUserManagement::CreateLocalObjectSimple(const objectsignature_t &sign
 		goto exit;
 
 	try {
-		details = *lpPlugin->getObjectDetails(signature.id);
+		details = lpPlugin->getObjectDetails(signature.id);
 		/* No need to convert the user and company name to login, since we are not using
 		 * the loginname in this function. */
 	} catch (objectnotfound &) {

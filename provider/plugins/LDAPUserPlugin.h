@@ -135,7 +135,7 @@ public:
 	 * @return The objectdetails for the given objectid
 	 * @throw objectnotfound When the object was not found
 	 */
-	virtual std::unique_ptr<objectdetails_t> getObjectDetails(const objectid_t &objectid);
+	virtual objectdetails_t getObjectDetails(const objectid_t &) override;
 
 	/**
 	 * Obtain the object details for the given objects

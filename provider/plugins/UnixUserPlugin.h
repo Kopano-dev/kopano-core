@@ -123,7 +123,7 @@ public:
 	 * @return The objectdetails for the given objectid
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<objectdetails_t> getObjectDetails(const objectid_t &objectid);
+	virtual objectdetails_t getObjectDetails(const objectid_t &) override;
 
     /**
 	 * Obtain the object details for the given objects
@@ -447,7 +447,7 @@ private:
 	 *					Pointer to struct pw from which the details must be collected
 	 * @return The objectdetails which were collected from pw
 	 */
-	std::unique_ptr<objectdetails_t> objectdetailsFromPwent(struct passwd *pw); // PAM part
+	objectdetails_t objectdetailsFromPwent(const struct passwd *); // PAM part
 
 	/**
 	 * Copy object details from struct group to objectdetails
@@ -456,7 +456,7 @@ private:
 	 *					Pointer to struct group from which the details must be collected
 	 * @return The objectdetails which were collected from gr
 	 */
-	std::unique_ptr<objectdetails_t> objectdetailsFromGrent(struct group *gr);
+	objectdetails_t objectdetailsFromGrent(const struct group *);
 
 	/**
 	 * Query the Database to obtain the signature for the objectid.

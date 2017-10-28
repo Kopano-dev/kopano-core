@@ -2152,15 +2152,13 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	return mapdetails;
 }
 
-std::unique_ptr<objectdetails_t>
-LDAPUserPlugin::getObjectDetails(const objectid_t &id)
+objectdetails_t LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 {
 	auto mapDetails = getObjectDetails(std::list<objectid_t>{id});
 	auto iterDetails = mapDetails->find(id);
 	if (iterDetails == mapDetails->cend())
 		throw objectnotfound("No details for "+id.id);
-
-    return std::unique_ptr<objectdetails_t>(new objectdetails_t(iterDetails->second));
+	return iterDetails->second;
 }
 
 static LDAPMod *newLDAPModification(char *attribute, const list<string> &values) {

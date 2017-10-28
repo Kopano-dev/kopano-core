@@ -72,14 +72,12 @@ DBPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
 	return CreateSignatureList(strQuery);
 }
 
-std::unique_ptr<objectdetails_t>
-DBPlugin::getObjectDetails(const objectid_t &objectid)
+objectdetails_t DBPlugin::getObjectDetails(const objectid_t &objectid)
 {
 	std::unique_ptr<std::map<objectid_t, objectdetails_t>> objectdetails(DBPlugin::getObjectDetails(std::list<objectid_t>{objectid}));
 	if (objectdetails->size() != 1)
 		throw objectnotfound(objectid.id);
-
-	return std::unique_ptr<objectdetails_t>(new objectdetails_t(objectdetails->begin()->second));
+	return objectdetails->begin()->second;
 }
 
 std::unique_ptr<std::map<objectid_t, objectdetails_t> >
