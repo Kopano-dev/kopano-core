@@ -332,7 +332,7 @@ protected:
 	 * @return The list of object signatures which match the search term
 	 * @throw objectnotfound when no results have been found
 	 */
-	virtual std::unique_ptr<signatures_t> searchObjects(const std::string &match, const char *const *search_props, const char *return_prop, unsigned int ulFlags);
+	virtual signatures_t searchObjects(const std::string &match, const char *const *search_props, const char *return_prop, unsigned int flags) final;
 
 	/**
 	 * Update objectdetails with sendas information.

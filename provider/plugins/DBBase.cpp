@@ -650,7 +650,7 @@ void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const obj
 		throw objectnotfound("db_user: relation " + parentobject.id);
 }
 
-std::unique_ptr<signatures_t> DBPlugin::searchObjects(const std::string &match,
+signatures_t DBPlugin::searchObjects(const std::string &match,
     const char *const *search_props, const char *return_prop,
     unsigned int ulFlags)
 {
@@ -698,8 +698,8 @@ std::unique_ptr<signatures_t> DBPlugin::searchObjects(const std::string &match,
 	 * if you have 2 objects, one have a match of 99% and one 50%
 	 * use the one with 99%
 	 */
-	auto lpSignatures = CreateSignatureList(strQuery);
-	if (lpSignatures->empty())
+	auto lpSignatures = std::move(*CreateSignatureList(strQuery));
+	if (lpSignatures.empty())
 		throw objectnotfound("db_user: no match: " + match);
 
 	return lpSignatures;

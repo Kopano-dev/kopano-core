@@ -771,42 +771,39 @@ void UnixUserPlugin::deleteSubObjectRelation(userobject_relation_t relation, con
 	DBPlugin::deleteSubObjectRelation(relation, id, member);
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 {
 	char buffer[PWBUFSIZE];
 	struct passwd pws, *pw = NULL;
-	std::unique_ptr<signatures_t> objectlist(new signatures_t());
+	signatures_t objectlist;
 
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
 	ulock_normal biglock(m_plugin_lock);
-	objectlist->merge(*getAllUserObjects(match, ulFlags));
-	objectlist->merge(*getAllGroupObjects(match, ulFlags));
+	objectlist.merge(std::move(*getAllUserObjects(match, ulFlags)));
+	objectlist.merge(std::move(*getAllGroupObjects(match, ulFlags)));
 	biglock.unlock();
 
 	// See if we get matches based on database details as well
 	try {
 		static constexpr const char *const search_props[] = {OP_EMAILADDRESS, nullptr};
-		auto objects = DBPlugin::searchObjects(match, search_props, nullptr, ulFlags);
-
-		for (const auto &sig : *objects) {
+		for (const auto &sig : DBPlugin::searchObjects(match, search_props, nullptr, ulFlags)) {
 			// the DBPlugin returned the DB signature, so we need to prepend this with the gecos signature
 			int ret = getpwuid_r(atoi(sig.id.id.c_str()), &pws, buffer, PWBUFSIZE, &pw);
 			if (ret != 0)
 				errnoCheck(sig.id.id, ret);
 			if (pw == NULL)	// object not found anymore
 				continue;
-			objectlist->emplace_back(sig.id, sig.signature + pw->pw_gecos + pw->pw_name);
+			objectlist.emplace_back(sig.id, sig.signature + pw->pw_gecos + pw->pw_name);
 		}
 	} catch (objectnotfound &e) {
 			// Ignore exception, we will check lObjects.empty() later.
 	} // All other exceptions should be thrown further up the chain.
 
-	objectlist->sort();
-	objectlist->unique();
-
-	if (objectlist->empty())
+	objectlist.sort();
+	objectlist.unique();
+	if (objectlist.empty())
 		throw objectnotfound(string("unix_plugin: no match: ") + match);
 
 	return objectlist;

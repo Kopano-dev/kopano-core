@@ -185,7 +185,7 @@ public:
 	 * @return List of object signatures which match the given string
 	 * @throw objectnotfound When no object was found
 	 */
-	virtual std::unique_ptr<signatures_t> searchObject(const std::string &match, unsigned int ulFlags);
+	virtual signatures_t searchObject(const std::string &match, unsigned int flags) override;
 
     /**
 	 * Obtain details for the public store

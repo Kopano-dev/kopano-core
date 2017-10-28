@@ -235,7 +235,7 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 	throw login_error("Trying to authenticate failed: wrong username or password");
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 DBUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 {
 	const char *search_props[] =
@@ -247,8 +247,7 @@ DBUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	};
 
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
-
-	return searchObjects(match.c_str(), search_props, NULL, ulFlags);
+	return searchObjects(match.c_str(), search_props, nullptr, ulFlags);
 }
 
 void DBUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &newId)

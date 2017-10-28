@@ -1481,7 +1481,7 @@ ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetail
 ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsigned int ulFlags, unsigned int *lpulID)
 {
 	objectsignature_t objectsignature;
-	std::unique_ptr<signatures_t> lpObjectsignatures;
+	signatures_t lpObjectsignatures;
 	unsigned int ulId = 0;
 	string strUsername;
 	string strCompanyname;
@@ -1562,8 +1562,8 @@ ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsig
 				 * entry is a 100% match and doesn't need to try to resolve any other
 				 * object type. (IMPORTANT: when doing this, make sure we still check
 				 * if the returned object is actually visible to the user or not!) */
-				lpObjectsignatures.reset(new signatures_t());
-				lpObjectsignatures->emplace_back(resolved);
+				lpObjectsignatures.clear();
+				lpObjectsignatures.emplace_back(resolved);
 				goto done;
 			}
 			catch (...) {
@@ -1586,17 +1586,17 @@ ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsig
 		return KCERR_PLUGIN_ERROR;
 	}
 
-	if (lpObjectsignatures->empty())
+	if (lpObjectsignatures.empty())
 		return KCERR_NOT_FOUND;
-	lpObjectsignatures->sort();
-	lpObjectsignatures->unique();
+	lpObjectsignatures.sort();
+	lpObjectsignatures.unique();
 
 done:
 	/* Check each returned entry to see which one we are allowed to view
 	 * TODO: check with a point system,
 	 * if you have 2 objects, one have a match of 99% and one 50%
 	 * use the one with 99% */
-	for (const auto &sig : *lpObjectsignatures) {
+	for (const auto &sig : lpObjectsignatures) {
 		unsigned int ulIdTmp = 0;
 
 		er = GetLocalObjectIdOrCreate(sig, &ulIdTmp);

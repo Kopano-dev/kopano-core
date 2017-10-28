@@ -246,7 +246,7 @@ public:
 	 * @return List of object signatures which match the given string
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<signatures_t> searchObject(const std::string &match, unsigned int ulFlags) = 0;
+	virtual signatures_t searchObject(const std::string &match, unsigned int flags) = 0;
 
 	/**
 	 * Obtain details for the public store

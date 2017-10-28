@@ -2542,7 +2542,7 @@ void LDAPUserPlugin::deleteSubObjectRelation(userobject_relation_t relation, con
 	throw notimplemented("Delete object relations is not supported when using the LDAP user plugin.");
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 {
 	string search_filter;
@@ -2587,8 +2587,8 @@ LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	}
 	ldap_filter = "(&" + ldap_filter + search_filter + ")";
 
-	auto signatures = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, string(), false);
-	if (signatures->empty())
+	auto signatures = std::move(*getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, string(), false));
+	if (signatures.empty())
 		throw objectnotfound(ldap_filter);
 
 	return signatures;
