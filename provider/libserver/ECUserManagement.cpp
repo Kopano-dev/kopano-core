@@ -288,8 +288,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 
 	// Extern details
 	list<objectid_t> lstExternIds;
-	std::unique_ptr<map<objectid_t, objectdetails_t> > lpExternDetails;
-
+	std::map<objectid_t, objectdetails_t> lpExternDetails;
 	objectdetails_t details;
 	unsigned int ulObjectId = 0;
 
@@ -344,7 +343,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 		return KCERR_PLUGIN_ERROR;
 	}
 
-	for (const auto &ext_det : *lpExternDetails) {
+	for (const auto &ext_det : lpExternDetails) {
 		auto iterExternLocal = mapExternToLocal.find(ext_det.first);
 		if (iterExternLocal == mapExternToLocal.cend())
 			continue;
@@ -1664,8 +1663,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 
 	list<objectid_t> lstObjects;
 	map<objectid_t, objectdetails_t> mapAllObjectDetails;
-
-	std::unique_ptr<map<objectid_t, objectdetails_t> > mapExternObjectDetails;
+	std::map<objectid_t, objectdetails_t> mapExternObjectDetails;
 	map<objectid_t, unsigned int> mapExternIdToRowId;
 	map<objectid_t, unsigned int> mapExternIdToObjectId;
 	objectdetails_t details;
@@ -1716,9 +1714,8 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 
 	// Do one request to the plugin for each type of object requested
 	try {
-		mapExternObjectDetails = lpPlugin->getObjectDetails(lstObjects);
 		// Copy each item over
-		for (const auto &eod : *mapExternObjectDetails) {
+		for (const auto &eod : lpPlugin->getObjectDetails(lstObjects)) {
 			mapAllObjectDetails.emplace(eod.first, eod.second);
 
 			// Get the local object id for the item

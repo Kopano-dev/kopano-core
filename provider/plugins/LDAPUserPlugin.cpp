@@ -1617,10 +1617,10 @@ struct postaction {
 	std::string result_attr;	//!< optional: attribute to use from resulting object(s), if none then unique id
 };
 
-std::unique_ptr<std::map<objectid_t, objectdetails_t> >
+std::map<objectid_t, objectdetails_t>
 LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
-	std::unique_ptr<std::map<objectid_t, objectdetails_t> > mapdetails(new std::map<objectid_t, objectdetails_t>);
+	std::map<objectid_t, objectdetails_t> mapdetails;
 	auto_free_ldap_message res;
 
 	LOG_PLUGIN_DEBUG("%s N=%d", __FUNCTION__, (int)objectids.size() );
@@ -2084,7 +2084,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		}
 
 		if (!objectid.id.empty())
-			(*mapdetails)[objectid] = sObjDetails;
+			mapdetails[objectid] = sObjDetails;
 	}
 	END_FOREACH_ENTRY
 	}
@@ -2092,8 +2092,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 	// paged loop ended, so now we can process the postactions.
 	for (const auto &p : lPostActions) {
-		auto o = mapdetails->find(p.objectid);
-		if (o == mapdetails->cend()) {
+		auto o = mapdetails.find(p.objectid);
+		if (o == mapdetails.cend()) {
 			// this should never happen, but only some details will be missing, not the end of the world.
 			ec_log_crit("No object \"%s\" found for postaction", p.objectid.id.c_str());
 			continue;
@@ -2155,8 +2155,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 objectdetails_t LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 {
 	auto mapDetails = getObjectDetails(std::list<objectid_t>{id});
-	auto iterDetails = mapDetails->find(id);
-	if (iterDetails == mapDetails->cend())
+	auto iterDetails = mapDetails.find(id);
+	if (iterDetails == mapDetails.cend())
 		throw objectnotfound("No details for "+id.id);
 	return iterDetails->second;
 }

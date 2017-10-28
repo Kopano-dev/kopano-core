@@ -827,17 +827,17 @@ serverlist_t UnixUserPlugin::getServers()
 	throw notsupported("server list");
 }
 
-std::unique_ptr<std::map<objectid_t, objectdetails_t> >
+std::map<objectid_t, objectdetails_t>
 UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
-	std::unique_ptr<std::map<objectid_t, objectdetails_t>> mapdetails(new std::map<objectid_t, objectdetails_t>);
+	std::map<objectid_t, objectdetails_t> mapdetails;
 
 	if (objectids.empty())
 		return mapdetails;
 
 	for (const auto &id : objectids) {
 		try {
-			(*mapdetails)[id] = this->getObjectDetails(id);
+			mapdetails[id] = this->getObjectDetails(id);
 		}
 		catch (objectnotfound &e) {
 			// ignore not found error

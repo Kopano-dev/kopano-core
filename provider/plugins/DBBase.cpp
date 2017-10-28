@@ -74,16 +74,16 @@ DBPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
 
 objectdetails_t DBPlugin::getObjectDetails(const objectid_t &objectid)
 {
-	std::unique_ptr<std::map<objectid_t, objectdetails_t>> objectdetails(DBPlugin::getObjectDetails(std::list<objectid_t>{objectid}));
-	if (objectdetails->size() != 1)
+	auto objectdetails = DBPlugin::getObjectDetails(std::list<objectid_t>{objectid});
+	if (objectdetails.size() != 1)
 		throw objectnotfound(objectid.id);
-	return objectdetails->begin()->second;
+	return objectdetails.begin()->second;
 }
 
-std::unique_ptr<std::map<objectid_t, objectdetails_t> >
+std::map<objectid_t, objectdetails_t>
 DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
-	auto mapdetails = new std::map<objectid_t, objectdetails_t>;
+	std::map<objectid_t, objectdetails_t> mapdetails;
 	std::map<objectclass_t, std::string> objectstrings;
 	string strSubQuery;
 	DB_RESULT lpResult;
@@ -92,7 +92,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	objectid_t lastid;
 
 	if(objectids.empty())
-		return std::unique_ptr<std::map<objectid_t, objectdetails_t> >(mapdetails);
+		return mapdetails;
 
 	LOG_PLUGIN_DEBUG("%s N=%d", __FUNCTION__, (int)objectids.size());
 
@@ -134,7 +134,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		if (lastid != curid && !lastid.id.empty()) {
 			details.SetClass(lastid.objclass);
 			addSendAsToDetails(lastid, &details);
-			(*mapdetails)[lastid] = details;
+			mapdetails[lastid] = details;
 
 			// clear details for new object
 			details = objectdetails_t((objectclass_t)atoi(lpDBRow[1]));
@@ -182,7 +182,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	if(!lastid.id.empty()) {
 		details.SetClass(lastid.objclass);
 		addSendAsToDetails(lastid, &details);
-		(*mapdetails)[lastid] = details;
+		mapdetails[lastid] = details;
 	}
 
 	/* Reset lastid */
@@ -211,8 +211,8 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 		auto curid = objectid_t(string(lpDBRow[2], lpDBLen[2]), (objectclass_t)atoi(lpDBRow[3]));
 		if (lastid != curid) {
-			iterDetails = mapdetails->find(curid);
-			if (iterDetails == mapdetails->cend())
+			iterDetails = mapdetails.find(curid);
+			if (iterDetails == mapdetails.cend())
 				continue;
 		}
 
@@ -227,7 +227,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		}
 	}
 
-	return std::unique_ptr<std::map<objectid_t, objectdetails_t> >(mapdetails);
+	return mapdetails;
 }
 
 std::unique_ptr<signatures_t>

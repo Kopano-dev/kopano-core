@@ -136,7 +136,7 @@ public:
 	 * @return A map of objectid with the matching objectdetails
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<std::map<objectid_t, objectdetails_t> > getObjectDetails(const std::list<objectid_t> &objectids);
+	virtual std::map<objectid_t, objectdetails_t> getObjectDetails(const std::list<objectid_t> &objectids) override;
 
     /**
 	 * Get all children for a parent for a given relation type.

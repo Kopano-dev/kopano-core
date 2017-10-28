@@ -148,7 +148,7 @@ public:
 	 * @remarks The methode returns a whole set of objectdetails but user may be missing if the user
 	 * 			details cannot be retrieved for some reason.
 	 */
-	virtual std::unique_ptr<std::map<objectid_t, objectdetails_t> > getObjectDetails(const std::list<objectid_t> &objectids);
+	virtual std::map<objectid_t, objectdetails_t> getObjectDetails(const std::list<objectid_t> &objectids) override;
 
 	/**
 	 * Get all children for a parent for a given relation type.
