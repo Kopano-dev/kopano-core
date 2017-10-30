@@ -658,7 +658,7 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>());
 
 	// Extern ids
-	std::unique_ptr<signatures_t> lpSignatures;
+	signatures_t lpSignatures;
 
 	// Extern -> Local
 	map<objectid_t, unsigned int> mapExternIdToLocal;
@@ -701,10 +701,10 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 			return KCERR_PLUGIN_ERROR;
 		}
 
-		er = GetLocalObjectsIdsOrCreate(*lpSignatures, &mapExternIdToLocal);
+		er = GetLocalObjectsIdsOrCreate(lpSignatures, &mapExternIdToLocal);
 		if (er != erSuccess)
 			return er;
-		er = GetLocalObjectListFromSignatures(*lpSignatures, mapExternIdToLocal, ulFlags, lpObjects.get());
+		er = GetLocalObjectListFromSignatures(lpSignatures, mapExternIdToLocal, ulFlags, lpObjects.get());
 		if (er != erSuccess)
 			return er;
 	}

@@ -631,11 +631,11 @@ void UnixUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &n
 	throw notimplemented("Modifying objectid is not supported when using the Unix user plugin.");
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
     const objectid_t &childid)
 {
-	std::unique_ptr<signatures_t> objectlist(new signatures_t());
+	signatures_t objectlist;
 	char buffer[PWBUFSIZE];
 	struct passwd pws;
 	struct group grs, *gr = NULL;
@@ -654,7 +654,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 
 	try {
 		findGroupID(tostring(pws.pw_gid), &grs, buffer);
-		objectlist->emplace_back(objectid_t(tostring(grs.gr_gid), DISTLIST_SECURITY), grs.gr_name);
+		objectlist.emplace_back(objectid_t(tostring(grs.gr_gid), DISTLIST_SECURITY), grs.gr_name);
 	} catch (std::exception &e) {
 		// Ignore error
 	}	
@@ -680,7 +680,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 
 		for (int i = 0; gr->gr_mem[i] != NULL; ++i)
 			if (strcmp(username.c_str(), gr->gr_mem[i]) == 0) {
-				objectlist->emplace_back(objectid_t(tostring(gr->gr_gid), DISTLIST_SECURITY), gr->gr_name);
+				objectlist.emplace_back(objectid_t(tostring(gr->gr_gid), DISTLIST_SECURITY), gr->gr_name);
 				break;
 			}
 	}
@@ -688,9 +688,8 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	biglock.unlock();
 
 	// because users can be explicitly listed in their default group
-	objectlist->sort();
-	objectlist->unique();
-
+	objectlist.sort();
+	objectlist.unique();
 	return objectlist;
 }
 

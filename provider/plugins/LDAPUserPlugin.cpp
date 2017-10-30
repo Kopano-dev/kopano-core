@@ -2240,7 +2240,7 @@ void LDAPUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &n
  * @note Missing one group: with linux you have one group id on the user and other objectid on every possible group.
  *  this function checks all groups from searchfilter for an existing objectid.
  */
-std::unique_ptr<signatures_t>
+signatures_t
 LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
     const objectid_t &childobject)
 {
@@ -2342,8 +2342,7 @@ LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	}
 
 	ldap_filter = "(&" + ldap_filter + "(" + member_attr + "=" + StringEscapeSequence(member_data) + "))";
-
-	return getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, string(), false);
+	return std::move(*getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, string(), false));
 }
 
 std::unique_ptr<signatures_t>

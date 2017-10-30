@@ -168,7 +168,7 @@ public:
 	 * @return A list of object signatures of the parents of the child.
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<signatures_t> getParentObjectsForObject(userobject_relation_t relation, const objectid_t &childobject);
+	virtual signatures_t getParentObjectsForObject(userobject_relation_t, const objectid_t &childobject) override;
 
 	/**
 	 * Search for all objects which match the given string,

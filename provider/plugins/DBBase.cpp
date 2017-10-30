@@ -253,7 +253,7 @@ DBPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	return CreateSignatureList(strQuery);
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 DBPlugin::getParentObjectsForObject(userobject_relation_t relation,
     const objectid_t &childobject)
 {
@@ -272,8 +272,7 @@ DBPlugin::getParentObjectsForObject(userobject_relation_t relation,
 			"AND " + OBJECTCLASS_COMPARE_SQL("c.objectclass", childobject.objclass);
 
 	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
-
-	return CreateSignatureList(strQuery);
+	return std::move(*CreateSignatureList(strQuery));
 }
 
 struct props {
