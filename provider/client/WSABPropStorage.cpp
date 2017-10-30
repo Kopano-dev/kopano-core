@@ -252,7 +252,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = hrSuccess;
 	MAPIOBJECT  *mo = NULL;
-	LPSPropValue lpProp = NULL;
+	ecmem_ptr<SPropValue> lpProp;
 	struct readPropsResponse sResponse;
 	convert_context	converter;
 
@@ -276,7 +276,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	 * This is only done to have a base for AllocateMore, otherwise a local
 	 * automatic variable would have sufficed.
 	 */
-	hr = ECAllocateBuffer(sizeof(SPropValue), (void **)&lpProp);
+	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpProp);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -302,10 +302,6 @@ exit:
 
 	if (hr != hrSuccess && mo)
 		FreeMapiObject(mo);
-
-	if (lpProp)
-		ECFreeBuffer(lpProp);
-
 	return hr;
 }
 
