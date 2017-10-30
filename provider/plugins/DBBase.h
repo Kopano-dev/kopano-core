@@ -281,7 +281,7 @@ private:
 	 * @return The list of object signatures which were returned by the SQL query
 	 * @throw runtime_error when SQL problems occur
 	 */
-	virtual std::unique_ptr<signatures_t> CreateSignatureList(const std::string &query);
+	virtual signatures_t CreateSignatureList(const std::string &query) final;
 
 	/**
 	 * Convert a string to MD5Hash

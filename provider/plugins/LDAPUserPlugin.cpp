@@ -817,12 +817,11 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	return objectid_t(object_uid, objclass);
 }
 
-std::unique_ptr<signatures_t>
-LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
-    const std::string &search_filter, const std::string &strCompanyDN,
-    bool bCache)
+signatures_t LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn,
+    int scope, const std::string &search_filter,
+    const std::string &strCompanyDN, bool bCache)
 {
-	std::unique_ptr<signatures_t> signatures(new signatures_t());
+	signatures_t signatures;
 	objectid_t				objectid;
 	string					signature;
 	std::map<objectclass_t, dn_cache_t> mapDNCache;
@@ -883,7 +882,7 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 				ec_log_warn("Unique id not found for DN: %s", dn.c_str());
 				continue;
 			}
-			signatures->emplace_back(objectid, signature);
+			signatures.emplace_back(objectid, signature);
 			if (bCache) {
 				auto retval = mapDNCache.emplace(objectid.objclass, dn_cache_t());
 				auto iterDNCache = retval.first;
@@ -1231,23 +1230,22 @@ objectsignature_t LDAPUserPlugin::objectDNtoObjectSignature(objectclass_t objcla
 {
 	auto ldap_filter = getSearchFilter(objclass);
 	auto signatures = getAllObjectsByFilter(dn, LDAP_SCOPE_BASE, ldap_filter, string(), false);
-	if (signatures->empty())
+	if (signatures.empty())
 		throw objectnotfound(dn);
-	else if (signatures->size() != 1)
+	else if (signatures.size() != 1)
 		throw toomanyobjects("More than one object returned in search for DN " + dn);
-
-	return signatures->front();
+	return signatures.front();
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 LDAPUserPlugin::objectDNtoObjectSignatures(objectclass_t objclass,
     const std::list<std::string> &dn)
 {
-	std::unique_ptr<signatures_t> signatures(new signatures_t());
+	signatures_t signatures;
 
 	for (const auto &i : dn) {
 		try {
-			signatures->emplace_back(objectDNtoObjectSignature(objclass, i));
+			signatures.emplace_back(objectDNtoObjectSignature(objclass, i));
 		} catch (objectnotfound &e) {
 			// resolve failed, drop entry
 			continue;
@@ -1264,7 +1262,7 @@ LDAPUserPlugin::objectDNtoObjectSignatures(objectclass_t objclass,
 	return signatures;
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 LDAPUserPlugin::resolveObjectsFromAttribute(objectclass_t objclass,
     const std::list<std::string> &objects, const char *lpAttr,
     const objectid_t &company)
@@ -1277,7 +1275,7 @@ LDAPUserPlugin::resolveObjectsFromAttribute(objectclass_t objclass,
 	return resolveObjectsFromAttributes(objclass, objects, lpAttrs, company);
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 LDAPUserPlugin::resolveObjectsFromAttributes(objectclass_t objclass,
     const std::list<std::string> &objects, const char **lppAttr,
     const objectid_t &company)
@@ -1305,12 +1303,12 @@ objectsignature_t LDAPUserPlugin::resolveObjectFromAttributeType(objectclass_t o
 {
 	auto signatures = resolveObjectsFromAttributeType(objclass,
 		std::list<std::string>{object}, lpAttr, lpAttrType, company);
-	if (!signatures.get() || signatures->empty())
+	if (signatures.empty())
 		throw objectnotfound(object+" not found in LDAP");
-	return signatures->front();
+	return signatures.front();
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 LDAPUserPlugin::resolveObjectsFromAttributeType(objectclass_t objclass,
     const std::list<std::string> &objects, const char *lpAttr,
     const char *lpAttrType, const objectid_t &company)
@@ -1323,7 +1321,7 @@ LDAPUserPlugin::resolveObjectsFromAttributeType(objectclass_t objclass,
 	return resolveObjectsFromAttributesType(objclass, objects, lpAttrs, lpAttrType, company);
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 LDAPUserPlugin::resolveObjectsFromAttributesType(objectclass_t objclass,
     const std::list<std::string> &objects, const char **lppAttr,
     const char *lpAttrType, const objectid_t &company)
@@ -1418,17 +1416,15 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const stri
 	auto signatures = resolveObjectsFromAttributes(objclass,
 		std::list<std::string>{m_iconvrev->convert(name)},
 		attrs->get(), company);
-	if (!signatures.get() || signatures->empty())
+	if (signatures.empty())
 		throw objectnotfound(name+" not found in LDAP");
 
 	// we can only resolve one name. caller should be more specific
-	if (signatures->size() > 1)
-		throw collision_error(name + " found " + stringify(signatures->size()) + " times in LDAP");
-
-	if (!OBJECTCLASS_COMPARE(signatures->front().id.objclass, objclass))
+	if (signatures.size() > 1)
+		throw collision_error(name + " found " + stringify(signatures.size()) + " times in LDAP");
+	if (!OBJECTCLASS_COMPARE(signatures.front().id.objclass, objclass))
 		throw objectnotfound("No object has been found with name " + name);
-
-	return signatures->front();
+	return signatures.front();
 }
 
 objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const string &password, const objectid_t &company)
@@ -1577,7 +1573,8 @@ LDAPUserPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
 	} else {
 		LOG_PLUGIN_DEBUG("%s Class %x", __FUNCTION__, objclass);
 	}
-	return std::move(*getAllObjectsByFilter(getSearchBase(company), LDAP_SCOPE_SUBTREE, getSearchFilter(objclass), companyDN, true));
+	return getAllObjectsByFilter(getSearchBase(company), LDAP_SCOPE_SUBTREE,
+	       getSearchFilter(objclass), companyDN, true);
 }
 
 string LDAPUserPlugin::getLDAPAttributeValue(char *attribute, LDAPMessage *entry) {
@@ -2105,12 +2102,12 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			    // Currently not supported for multivalued arrays. This would require multiple calls to objectUniqueIDtoAttributeData
 			    // which is inefficient, and it is currently unused.
 				assert(p.result_attr.empty());
-				std::unique_ptr<signatures_t> lstSignatures = resolveObjectsFromAttributeType(p.objclass, p.ldap_attrs, p.relAttr, p.relAttrType);
-				if (lstSignatures->size() != p.ldap_attrs.size()) {
+				auto lstSignatures = resolveObjectsFromAttributeType(p.objclass, p.ldap_attrs, p.relAttr, p.relAttrType);
+				if (lstSignatures.size() != p.ldap_attrs.size()) {
 					// try to rat out the object causing the failed ldap query
 					ec_log_err("Not all objects in relation found for object \"%s\"", o->second.GetPropString(OB_PROP_S_LOGIN).c_str());
 				}
-				for (const auto &sig : *lstSignatures)
+				for (const auto &sig : lstSignatures)
 					o->second.AddPropObject(p.propname, sig.id);
 			} catch (ldap_error &e) {
 				if(!LDAP_NAME_ERROR(e.GetLDAPError()))
@@ -2342,7 +2339,8 @@ LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	}
 
 	ldap_filter = "(&" + ldap_filter + "(" + member_attr + "=" + StringEscapeSequence(member_data) + "))";
-	return std::move(*getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, string(), false));
+	return getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE,
+	       ldap_filter, string(), false);
 }
 
 signatures_t
@@ -2496,7 +2494,7 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		END_FOREACH_ENTRY
 
 		if (!memberlist.empty())
-			members = std::move(*resolveObjectsFromAttributesType(childobjclass, memberlist, member_attr_rel->get(), member_attr_type));
+			members = resolveObjectsFromAttributesType(childobjclass, memberlist, member_attr_rel->get(), member_attr_type);
 	} else {
 		// Members are specified by a filter
 		FOREACH_ENTRY(res) {
@@ -2524,7 +2522,7 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 			if (ldap_basedn.empty())
 				ldap_basedn = getSearchBase();
 			ldap_filter = "(&" + getSearchFilter(childobjclass) + ldap_member_filter + ")";
-			members = std::move(*getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, companyDN, false));
+			members = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, companyDN, false);
 		}
 	}
 
@@ -2583,8 +2581,8 @@ LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 			")";
 	}
 	ldap_filter = "(&" + ldap_filter + search_filter + ")";
-
-	auto signatures = std::move(*getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, string(), false));
+	auto signatures = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE,
+	                  ldap_filter, string(), false);
 	if (signatures.empty())
 		throw objectnotfound(ldap_filter);
 

@@ -334,11 +334,10 @@ bool UnixUserPlugin::matchGroupObject(struct group *gr, const string &match, uns
 	return strncasecmp(gr->gr_name, match.c_str(), match.size()) == 0;
 }
 
-std::unique_ptr<signatures_t>
-UnixUserPlugin::getAllUserObjects(const std::string &match,
+signatures_t UnixUserPlugin::getAllUserObjects(const std::string &match,
     unsigned int ulFlags)
 {
-	std::unique_ptr<signatures_t> objectlist(new signatures_t());
+	signatures_t objectlist;
 	char buffer[PWBUFSIZE];
 	struct passwd pws, *pw = NULL;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
@@ -366,18 +365,17 @@ UnixUserPlugin::getAllUserObjects(const std::string &match,
 		if (!match.empty() && !matchUserObject(pw, match, ulFlags))
 			continue;
 		objectid_t objectid{tostring(pw->pw_uid), shell_to_class(forbid_sh, pw->pw_shell)};
-		objectlist->emplace_back(objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name);
+		objectlist.emplace_back(objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name);
 	}
 	endpwent();
 
 	return objectlist;
 }
 
-std::unique_ptr<signatures_t>
-UnixUserPlugin::getAllGroupObjects(const std::string &match,
+signatures_t UnixUserPlugin::getAllGroupObjects(const std::string &match,
     unsigned int ulFlags)
 {
-	std::unique_ptr<signatures_t> objectlist(new signatures_t());
+	signatures_t objectlist;
 	char buffer[PWBUFSIZE];
 	struct group grs, *gr = NULL;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
@@ -403,7 +401,7 @@ UnixUserPlugin::getAllGroupObjects(const std::string &match,
 
 		if (!match.empty() && !matchGroupObject(gr, match, ulFlags))
 			continue;
-		objectlist->emplace_back(objectid_t(tostring(gr->gr_gid), DISTLIST_SECURITY), gr->gr_name);
+		objectlist.emplace_back(objectid_t(tostring(gr->gr_gid), DISTLIST_SECURITY), gr->gr_name);
 	}
 	endgrent();
 
@@ -429,14 +427,14 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	ulock_normal biglock(m_plugin_lock);
 	switch (OBJECTCLASS_TYPE(objclass)) {
 	case OBJECTTYPE_UNKNOWN:
-		objectlist.merge(std::move(*getAllUserObjects()));
-		objectlist.merge(std::move(*getAllGroupObjects()));
+		objectlist.merge(getAllUserObjects());
+		objectlist.merge(getAllGroupObjects());
 		break;
 	case OBJECTTYPE_MAILUSER:
-		objectlist.merge(std::move(*getAllUserObjects()));
+		objectlist.merge(getAllUserObjects());
 		break;
 	case OBJECTTYPE_DISTLIST:
-		objectlist.merge(std::move(*getAllGroupObjects()));
+		objectlist.merge(getAllGroupObjects());
 		break;
 	case OBJECTTYPE_CONTAINER:
 		throw notsupported("objecttype not supported " + stringify(objclass));
@@ -774,8 +772,8 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
 	ulock_normal biglock(m_plugin_lock);
-	objectlist.merge(std::move(*getAllUserObjects(match, ulFlags)));
-	objectlist.merge(std::move(*getAllGroupObjects(match, ulFlags)));
+	objectlist.merge(getAllUserObjects());
+	objectlist.merge(getAllGroupObjects());
 	biglock.unlock();
 
 	// See if we get matches based on database details as well

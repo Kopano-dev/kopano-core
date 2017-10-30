@@ -426,7 +426,7 @@ private:
 	 *					match the name or email address otherwise a partial match is allowed.
 	 * @return List of objectsignatures
 	 */
-	std::unique_ptr<signatures_t> getAllUserObjects(const std::string &match = std::string(), unsigned int ulFlags = 0);
+	signatures_t getAllUserObjects(const std::string &match = std::string(), unsigned int flags = 0);
 
 	/**
 	 * Create a list containing all groups which optionally match the search term.
@@ -438,7 +438,7 @@ private:
 	 *					match the name or email address otherwise a partial match is allowed.
 	 * @return List of objectsignatures
 	 */
-	std::unique_ptr<signatures_t> getAllGroupObjects(const std::string &match = std::string(), unsigned int ulFlags = 0);
+	signatures_t getAllGroupObjects(const std::string &match = std::string(), unsigned int flags = 0);
 
 	/**
 	 * Copy object details from struct passwd to objectdetails

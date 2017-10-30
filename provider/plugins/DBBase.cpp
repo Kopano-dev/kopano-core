@@ -69,7 +69,7 @@ DBPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
 	} else if (objclass != OBJECTCLASS_UNKNOWN)
 		strQuery += " WHERE " + OBJECTCLASS_COMPARE_SQL("om.objectclass", objclass);
 
-	return std::move(*CreateSignatureList(strQuery));
+	return CreateSignatureList(strQuery);
 }
 
 objectdetails_t DBPlugin::getObjectDetails(const objectid_t &objectid)
@@ -249,7 +249,7 @@ DBPlugin::getSubObjectsForObject(userobject_relation_t relation,
 			"AND " + OBJECTCLASS_COMPARE_SQL("p.objectclass", parentobject.objclass);
 
 	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
-	return std::move(*CreateSignatureList(strQuery));
+	return CreateSignatureList(strQuery);
 }
 
 signatures_t
@@ -271,7 +271,7 @@ DBPlugin::getParentObjectsForObject(userobject_relation_t relation,
 			"AND " + OBJECTCLASS_COMPARE_SQL("c.objectclass", childobject.objclass);
 
 	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
-	return std::move(*CreateSignatureList(strQuery));
+	return CreateSignatureList(strQuery);
 }
 
 struct props {
@@ -696,7 +696,7 @@ signatures_t DBPlugin::searchObjects(const std::string &match,
 	 * if you have 2 objects, one have a match of 99% and one 50%
 	 * use the one with 99%
 	 */
-	auto lpSignatures = std::move(*CreateSignatureList(strQuery));
+	auto lpSignatures = CreateSignatureList(strQuery);
 	if (lpSignatures.empty())
 		throw objectnotfound("db_user: no match: " + match);
 
@@ -776,10 +776,9 @@ void DBPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &quotad
 		throw runtime_error(string("db_query: ") + strerror(er));
 }
 
-std::unique_ptr<signatures_t>
-DBPlugin::CreateSignatureList(const std::string &query)
+signatures_t DBPlugin::CreateSignatureList(const std::string &query)
 {
-	std::unique_ptr<signatures_t> objectlist(new signatures_t());
+	signatures_t objectlist;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	string signature;
@@ -799,7 +798,7 @@ DBPlugin::CreateSignatureList(const std::string &query)
 		assert(lpDBLen != NULL);
 		if (lpDBLen[0] == 0)
 			throw runtime_error(string("db_row_failed: object empty"));
-		objectlist->emplace_back(objectid_t({lpDBRow[0], lpDBLen[0]}, objclass), signature);
+		objectlist.emplace_back(objectid_t({lpDBRow[0], lpDBLen[0]}, objclass), signature);
 	}
 
 	return objectlist;

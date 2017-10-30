@@ -514,7 +514,7 @@ private:
 	 *					List of DNs
 	 * @return The list of objectsignatures
 	 */
-	std::unique_ptr<signatures_t> objectDNtoObjectSignatures(objectclass_t objclass, const std::list<std::string> &dn);
+	signatures_t objectDNtoObjectSignatures(objectclass_t, const std::list<std::string> &dn);
 
 	/**
 	 * Escape binary data to escaped string
@@ -622,7 +622,7 @@ private:
 	 *					Optional argument, The company where the possible object should belong.
 	 * @return The list of object signatures which were found
 	 */
-	std::unique_ptr<signatures_t> resolveObjectsFromAttribute(objectclass_t objclass, const std::list<std::string> &objects, const char *lpAttr, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
+	signatures_t resolveObjectsFromAttribute(objectclass_t, const std::list<std::string> &objects, const char *attr, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
 
 	/**
 	 * Resolve objects from attribute data by checking if the data contains
@@ -641,7 +641,7 @@ private:
 	 *					Optional argument, The company where the possible object should belong.
 	 * @return The list of object signatures which were found
 	 */
-	std::unique_ptr<signatures_t> resolveObjectsFromAttributes(objectclass_t objclass, const std::list<std::string> &objects, const char **lppAttr, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
+	signatures_t resolveObjectsFromAttributes(objectclass_t, const std::list<std::string> &objects, const char **attr, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
 
 	/**
 	 * Resolve object from attribute data depending on the attribute type
@@ -683,7 +683,7 @@ private:
 	 *					Optional argument, The company where the possible object should belong.
 	 * @return The list of object signatures which were found
 	 */
-	std::unique_ptr<signatures_t> resolveObjectsFromAttributeType(objectclass_t objclass, const std::list<std::string> &objects, const char *lpAttr, const char *lpAttrType, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
+	signatures_t resolveObjectsFromAttributeType(objectclass_t, const std::list<std::string> &objects, const char *attr, const char *attr_type, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
 
 	/**
 	 * Resolve objects from attribute data by checking if the data contains
@@ -705,7 +705,7 @@ private:
 	 *					Optional argument, The company where the possible object should belong.
 	 * @return The list of object signatures which were found
 	 */
-	std::unique_ptr<signatures_t> resolveObjectsFromAttributesType(objectclass_t objclass, const std::list<std::string> &objects, const char **lppAttr, const char *lpAttrType, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
+	signatures_t resolveObjectsFromAttributesType(objectclass_t, const std::list<std::string> &objects, const char **attr, const char *attr_type, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
 
 	/**
 	 * Determine attribute data for a specific object id
@@ -740,7 +740,7 @@ private:
 	 * @return The list of object signatures for all found objects
 	 * @throw runtime_error When the LDAP query failed
 	 */
-	std::unique_ptr<signatures_t> getAllObjectsByFilter(const std::string &basedn, int scope, const std::string &search_filter, const std::string &strCompanyDN, bool bCache);
+	signatures_t getAllObjectsByFilter(const std::string &basedn, int scope, const std::string &search_filter, const std::string &company_dn, bool cache);
 
 	/**
 	 * Detecmine object id from LDAP result entry
