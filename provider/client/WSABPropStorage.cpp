@@ -252,7 +252,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = hrSuccess;
 	MAPIOBJECT  *mo = NULL;
-	LPSPropValue lpProp = NULL;
+	ecmem_ptr<SPropValue> lpProp;
 	struct readPropsResponse sResponse;
 	convert_context	converter;
 
@@ -271,8 +271,12 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	// Convert the property tags to a MAPIOBJECT
 	//(type,objectid)
 	AllocNewMapiObject(0, 0, 0, &mo);
-	
-	hr = ECAllocateBuffer(sizeof(SPropValue) * sResponse.aPropVal.__size, (void **)&lpProp);
+
+	/*
+	 * This is only done to have a base for AllocateMore, otherwise a local
+	 * automatic variable would have sufficed.
+	 */
+	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpProp);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -280,9 +284,14 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		mo->lstAvailable.emplace_back(sResponse.aPropTag.__ptr[i]);
 
 	for (gsoap_size_t i = 0; i < sResponse.aPropVal.__size; ++i) {
+		/* can call AllocateMore on lpProp */
 		hr = CopySOAPPropValToMAPIPropVal(lpProp, &sResponse.aPropVal.__ptr[i], lpProp, &converter);
 		if (hr != hrSuccess)
 			goto exit;
+		/*
+		 * The ECRecipient ctor makes a deep copy of *lpProp, so it is
+		 * ok to have *lpProp overwritten on the next iteration.
+		 */
 		mo->lstProperties.emplace_back(lpProp);
 	}
 
@@ -293,10 +302,6 @@ exit:
 
 	if (hr != hrSuccess && mo)
 		FreeMapiObject(mo);
-
-	if (lpProp)
-		ECFreeBuffer(lpProp);
-
 	return hr;
 }
 
