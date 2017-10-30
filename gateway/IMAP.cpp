@@ -36,10 +36,12 @@
 #include <mapiutil.h>
 #include <mapiguid.h>
 #include <kopano/ECDefs.h>
+#include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECTags.h>
 #include <kopano/ECIConv.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/Util.h>
 #include <kopano/lockhelper.hpp>
 #include <inetmapi/inetmapi.h>
@@ -1464,63 +1466,69 @@ IMAP::HrCmdList(const std::string &tag, const std::vector<std::string> &args)
 	return HrCmdList(tag, args, sub_only);
 }
 
-HRESULT IMAP::get_uid_next(KFolder &folder, const std::string &tag,
-    ULONG &uid_next)
+HRESULT IMAP::get_uid_next2(IMAPIFolder *folder, ULONG &uid_next)
 {
 	static constexpr const SizedSPropTagArray(1, cols) = {1, {PR_EC_IMAP_ID}};
 	static constexpr const SizedSSortOrderSet(1, sortuid) =
 		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_DESCEND}}};
-	HRESULT hr = hrSuccess;
-
-	try {
-		auto table = folder.get_contents_table(MAPI_DEFERRED_ERRORS);
-		hr = table->SetColumns(cols, TBL_BATCH);
-		if (hr != hrSuccess)
-			return kc_perror("K-2385", hr);
-		hr = table->SortTable(sortuid, TBL_BATCH);
-		if (hr != hrSuccess)
-			return kc_perror("K-2386", hr);
-		auto rows = table.rows(1, 0);
-		uid_next = rows.count() > 0 ? (rows[0][0].ul() + 1) : 1;
-	}
-	catch (const KMAPIError &e) {
-		hr = e.code();
-		HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
-	}
-
-	return hr;
+	object_ptr<IMAPITable> table;
+	auto ret = folder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~table);
+	if (ret != hrSuccess)
+		return kc_perror("K-2387", ret);
+	ret = table->SetColumns(cols, TBL_BATCH);
+	if (ret != hrSuccess)
+		return kc_perror("K-2385", ret);
+	ret = table->SortTable(sortuid, TBL_BATCH);
+	if (ret != hrSuccess)
+		return kc_perror("K-2386", ret);
+	rowset_ptr rowset;
+	ret = table->QueryRows(1, 0, &~rowset);
+	if (ret != hrSuccess)
+		return kc_perror("K-2388", ret);
+	uid_next = rowset->cRows == 0 ? 1 : rowset->aRow[0].lpProps[0].Value.ul + 1;
+	return hrSuccess;
 }
 
-HRESULT IMAP::get_recent(KFolder &folder, const std::string &tag,
+HRESULT IMAP::get_uid_next(IMAPIFolder *folder, const std::string &tag,
+    ULONG &uid_next)
+{
+	auto ret = get_uid_next2(folder, uid_next);
+	if (ret != hrSuccess)
+		HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
+	return ret;
+}
+
+HRESULT IMAP::get_recent2(IMAPIFolder *folder, ULONG &recent, const ULONG &messages)
+{
+	memory_ptr<SPropValue> max_id;
+	auto ret = HrGetOneProp(folder, PR_EC_IMAP_MAX_ID, &~max_id);
+	if (ret != hrSuccess && ret != MAPI_E_NOT_FOUND)
+		return kc_perror("K-2390", ret);
+	if (max_id == nullptr) {
+		recent = messages;
+		return hrSuccess;
+	}
+	object_ptr<IMAPITable> table;
+	ret = folder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~table);
+	if (ret != hrSuccess)
+		return kc_perror("K-2391", ret);
+	ret = ECPropertyRestriction(RELOP_GT, PR_EC_IMAP_ID, max_id, ECRestriction::Cheap)
+	      .RestrictTable(table, TBL_BATCH);
+	if (ret != hrSuccess)
+		return kc_perror("K-2392", ret);
+	ret = table->GetRowCount(0, &recent);
+	if (ret != hrSuccess)
+		return kc_perror("K-2393", ret);
+	return hrSuccess;
+}
+
+HRESULT IMAP::get_recent(IMAPIFolder *folder, const std::string &tag,
     ULONG &recent, const ULONG &messages)
 {
-	HRESULT hr = hrSuccess;
-
-	try {
-		KProp max_id = nullptr;
-		try {
-			max_id = folder.get_prop(PR_EC_IMAP_MAX_ID);
-		}
-		catch (const KMAPIError &e) {
-			if (e.code() != MAPI_E_NOT_FOUND)
-				throw;
-		}
-
-		if (max_id != nullptr) {
-			auto table = folder.get_contents_table(MAPI_DEFERRED_ERRORS);
-			auto restr = ECPropertyRestriction(RELOP_GT, PR_EC_IMAP_ID, max_id, ECRestriction::Cheap);
-			hr = restr.RestrictTable(table, TBL_BATCH);
-			recent = table.count();
-		}
-		else
-			recent = messages;
-	}
-	catch (const KMAPIError &e) {
-		hr = e.code();
+	auto ret = get_recent2(folder, recent, messages);
+	if (ret != hrSuccess)
 		HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
-	}
-
-	return hr;
+	return ret;
 }
 
 /** 
