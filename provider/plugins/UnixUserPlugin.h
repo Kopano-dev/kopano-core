@@ -152,7 +152,7 @@ public:
 	 * @return A list of object signatures of the children of the parent.
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<signatures_t> getSubObjectsForObject(userobject_relation_t relation, const objectid_t &parentobject);
+	virtual signatures_t getSubObjectsForObject(userobject_relation_t, const objectid_t &parentobject) override;
 
     /**
 	 * Request all parents for a childobject for a given relation type.

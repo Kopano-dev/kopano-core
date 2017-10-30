@@ -693,11 +693,11 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	return objectlist;
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
     const objectid_t &parentid)
 {
-	std::unique_ptr<signatures_t> objectlist(new signatures_t());
+	signatures_t objectlist;
 	char buffer[PWBUFSIZE];
 	struct passwd pws, *pw = NULL;
 	struct group grp;
@@ -717,7 +717,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	findGroupID(parentid.id, &grp, buffer);
 	for (unsigned int i = 0; grp.gr_mem[i] != NULL; ++i)
 		try {
-			objectlist->emplace_back(resolveUserName(grp.gr_mem[i]));
+			objectlist.emplace_back(resolveUserName(grp.gr_mem[i]));
 		} catch (std::exception &e) {
 			// Ignore error
 		}
@@ -744,15 +744,14 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		if (pw->pw_gid != grp.gr_gid || pw->pw_gid < mingid || pw->pw_gid >= maxgid)
 			continue;
 		objectid_t objectid{tostring(pw->pw_uid), shell_to_class(forbid_sh, pw->pw_shell)};
-		objectlist->emplace_back(objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name);
+		objectlist.emplace_back(objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name);
 	}
 	endpwent();
 	biglock.unlock();
 
 	// because users can be explicitly listed in their default group
-	objectlist->sort();
-	objectlist->unique();
-
+	objectlist.sort();
+	objectlist.unique();
 	return objectlist;
 }
 

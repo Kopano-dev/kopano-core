@@ -230,7 +230,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	return mapdetails;
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 DBPlugin::getSubObjectsForObject(userobject_relation_t relation,
     const objectid_t &parentobject)
 {
@@ -249,8 +249,7 @@ DBPlugin::getSubObjectsForObject(userobject_relation_t relation,
 			"AND " + OBJECTCLASS_COMPARE_SQL("p.objectclass", parentobject.objclass);
 
 	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
-
-	return CreateSignatureList(strQuery);
+	return std::move(*CreateSignatureList(strQuery));
 }
 
 signatures_t
@@ -828,8 +827,7 @@ ECRESULT DBPlugin::CreateMD5Hash(const std::string &strData, std::string* lpstrR
 
 void DBPlugin::addSendAsToDetails(const objectid_t &objectid, objectdetails_t *lpDetails)
 {
-	std::unique_ptr<signatures_t> sendas = getSubObjectsForObject(OBJECTRELATION_USER_SENDAS, objectid);
-	for (const auto &objlist : *sendas)
+	for (const auto &objlist : getSubObjectsForObject(OBJECTRELATION_USER_SENDAS, objectid))
 		lpDetails->AddPropObject(OB_PROP_LO_SENDAS, objlist.id);
 }
 

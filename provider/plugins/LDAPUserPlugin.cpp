@@ -2345,13 +2345,12 @@ LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	return std::move(*getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, string(), false));
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
     const objectid_t &sExternId)
 {
 	enum LISTTYPE { MEMBERS, FILTER } ulType = MEMBERS;
-
-	std::unique_ptr<signatures_t> members(new signatures_t());
+	signatures_t members;
 	list<string>			memberlist;
 
 	auto_free_ldap_message res;
@@ -2497,7 +2496,7 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		END_FOREACH_ENTRY
 
 		if (!memberlist.empty())
-			members = resolveObjectsFromAttributesType(childobjclass, memberlist, member_attr_rel->get(), member_attr_type);
+			members = std::move(*resolveObjectsFromAttributesType(childobjclass, memberlist, member_attr_rel->get(), member_attr_type));
 	} else {
 		// Members are specified by a filter
 		FOREACH_ENTRY(res) {
@@ -2525,8 +2524,7 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 			if (ldap_basedn.empty())
 				ldap_basedn = getSearchBase();
 			ldap_filter = "(&" + getSearchFilter(childobjclass) + ldap_member_filter + ")";
-
-			members = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, companyDN, false);
+			members = std::move(*getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, companyDN, false));
 		}
 	}
 
