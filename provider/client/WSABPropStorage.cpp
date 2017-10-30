@@ -276,7 +276,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	 * This is only done to have a base for AllocateMore, otherwise a local
 	 * automatic variable would have sufficed.
 	 */
-	hr = ECAllocateBuffer(sizeof(SPropValue) * sResponse.aPropVal.__size, (void **)&lpProp);
+	hr = ECAllocateBuffer(sizeof(SPropValue), (void **)&lpProp);
 	if (hr != hrSuccess)
 		goto exit;
 
