@@ -186,7 +186,7 @@ public:
 	 * @return The list of object signatures of all objects which were found
 	 * @throw std::exception
 	 */
-	virtual std::unique_ptr<signatures_t> getAllObjects(const objectid_t &company, objectclass_t objclass) = 0;
+	virtual signatures_t getAllObjects(const objectid_t &company, objectclass_t) = 0;
 
 	/**
 	 * Obtain the object details for the given object

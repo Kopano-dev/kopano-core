@@ -1567,7 +1567,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	return signature;
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 LDAPUserPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
 {
 	string companyDN;
@@ -1577,7 +1577,7 @@ LDAPUserPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
 	} else {
 		LOG_PLUGIN_DEBUG("%s Class %x", __FUNCTION__, objclass);
 	}
-	return getAllObjectsByFilter(getSearchBase(company), LDAP_SCOPE_SUBTREE, getSearchFilter(objclass), companyDN, true);
+	return std::move(*getAllObjectsByFilter(getSearchBase(company), LDAP_SCOPE_SUBTREE, getSearchFilter(objclass), companyDN, true));
 }
 
 string LDAPUserPlugin::getLDAPAttributeValue(char *attribute, LDAPMessage *entry) {

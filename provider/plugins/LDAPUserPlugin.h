@@ -123,7 +123,7 @@ public:
 	 *					The objectclass can be partially unknown (OBJECTCLASS_UNKNOWN, MAILUSER_UNKNOWN, ...)
 	 * @return The list of object signatures of all objects which were found
 	 */
-	virtual std::unique_ptr<signatures_t> getAllObjects(const objectid_t &company, objectclass_t objclass);
+	virtual signatures_t getAllObjects(const objectid_t &company, objectclass_t) override;
 
 	/**
 	 * Obtain the object details for the given object

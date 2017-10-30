@@ -387,7 +387,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	std::unique_ptr<std::list<unsigned int> > lpLocalIds;
 
 	// Extern ids
-	std::unique_ptr<signatures_t> lpExternSignatures;
+	signatures_t lpExternSignatures;
 
 	// Extern -> Local
 	std::map<objectid_t, unsigned int> mapExternIdToLocal;
@@ -467,7 +467,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		}
 
 		// Loop through all the external signatures, adding them to the lpUsers list which we're going to be returning
-		for (const auto &ext_sig : *lpExternSignatures) {
+		for (const auto &ext_sig : lpExternSignatures) {
 			auto iterSignatureIdToLocal = mapSignatureIdToLocal.find(ext_sig.id);
 			if (iterSignatureIdToLocal == mapSignatureIdToLocal.cend()) {
 				// User is in external user database, but not in local, so add
@@ -507,23 +507,23 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	} else {
 		if (bIsSafeMode)
 			ec_log_info("user_safe_mode: skipping retrieve/sync users from LDAP");
-		lpExternSignatures.reset(new signatures_t());
+		lpExternSignatures.clear();
 		// Dont sync, just use whatever is in the local user database
 		for (const auto &sil : mapSignatureIdToLocal) {
-			lpExternSignatures->emplace_back(sil.first, sil.second.second);
+			lpExternSignatures.emplace_back(sil.first, sil.second.second);
 			mapExternIdToLocal.emplace(sil.first, sil.second.first);
 		}
 		
 	}
 
-	er = GetLocalObjectListFromSignatures(*lpExternSignatures, mapExternIdToLocal, ulFlags, lpObjects.get());
+	er = GetLocalObjectListFromSignatures(lpExternSignatures, mapExternIdToLocal, ulFlags, lpObjects.get());
 	if (er != erSuccess)
 		return er;
 
 	// mapSignatureIdToLocal is now a map of objects that were NOT in the external user database
 	if(bSync) {
 		if (bIsSafeMode)
-			ec_log_err("user_safe_mode: would normally now delete %zu local users (you may see this message more often as the delete is now omitted)", mapExternIdToLocal.size() - lpExternSignatures->size());
+			ec_log_err("user_safe_mode: would normally now delete %zu local users (you may see this message more often as the delete is now omitted)", mapExternIdToLocal.size() - lpExternSignatures.size());
 		else
 		for (const auto &sil : mapSignatureIdToLocal)
 			/* second == map value, first == id */

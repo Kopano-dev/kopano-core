@@ -410,12 +410,11 @@ UnixUserPlugin::getAllGroupObjects(const std::string &match,
 	return objectlist;
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 UnixUserPlugin::getAllObjects(const objectid_t &companyid,
     objectclass_t objclass)
 {
-	std::unique_ptr<signatures_t> objectlist(new signatures_t());
-	std::unique_ptr<signatures_t> objects;
+	signatures_t objectlist;
 	std::map<objectclass_t, std::string> objectstrings;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
@@ -430,18 +429,14 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	ulock_normal biglock(m_plugin_lock);
 	switch (OBJECTCLASS_TYPE(objclass)) {
 	case OBJECTTYPE_UNKNOWN:
-		objects = getAllUserObjects();
-		objectlist->merge(*objects.get());
-		objects = getAllGroupObjects();
-		objectlist->merge(*objects.get());
+		objectlist.merge(std::move(*getAllUserObjects()));
+		objectlist.merge(std::move(*getAllGroupObjects()));
 		break;
 	case OBJECTTYPE_MAILUSER:
-		objects = getAllUserObjects();
-		objectlist->merge(*objects.get());
+		objectlist.merge(std::move(*getAllUserObjects()));
 		break;
 	case OBJECTTYPE_DISTLIST:
-		objects = getAllGroupObjects();
-		objectlist->merge(*objects.get());
+		objectlist.merge(std::move(*getAllGroupObjects()));
 		break;
 	case OBJECTTYPE_CONTAINER:
 		throw notsupported("objecttype not supported " + stringify(objclass));
@@ -451,11 +446,11 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	biglock.unlock();
 
 	// Cleanup old entries from deleted users/groups
-	if (objectlist->empty())
+	if (objectlist.empty())
 		return objectlist;
 
 	// Distribute all objects over the various types
-	for (const auto &obj : *objectlist) {
+	for (const auto &obj : objectlist) {
 		if (!objectstrings[obj.id.objclass].empty())
 			objectstrings[obj.id.objclass] += ", ";
 		objectstrings[obj.id.objclass] += m_lpDatabase->Escape(obj.id.id);

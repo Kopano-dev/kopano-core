@@ -48,7 +48,7 @@ void DBPlugin::InitPlugin() {
 	    throw runtime_error(string("db_init: cannot get handle to database"));
 }
 
-std::unique_ptr<signatures_t>
+signatures_t
 DBPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
 {
 	string strQuery =
@@ -69,7 +69,7 @@ DBPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
 	} else if (objclass != OBJECTCLASS_UNKNOWN)
 		strQuery += " WHERE " + OBJECTCLASS_COMPARE_SQL("om.objectclass", objclass);
 
-	return CreateSignatureList(strQuery);
+	return std::move(*CreateSignatureList(strQuery));
 }
 
 objectdetails_t DBPlugin::getObjectDetails(const objectid_t &objectid)
