@@ -455,53 +455,6 @@ HRESULT KTable::restrict(const SRestriction &r, unsigned int flags)
 	return m_table->Restrict(const_cast<SRestriction *>(&r), flags);
 }
 
-void KTable::columns(std::initializer_list<unsigned int> props, unsigned int flags)
-{
-	size_t len = props.size();
-	memory_ptr<SPropTagArray> array;
-
-	HRESULT ret = MAPIAllocateBuffer(CbNewSPropTagArray(len), &~array);
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-
-	array->cValues = len;
-
-	int i = 0;
-	for (const auto &prop : props) {
-		array->aulPropTag[i] = prop;
-		i++;
-	}
-
-	ret = m_table->SetColumns(array, flags);
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-}
-
-void KTable::sort(std::initializer_list<std::pair<unsigned int, KTable::SortOrder> > sort_order, unsigned int flags)
-{
-	size_t len = sort_order.size();
-	memory_ptr<SSortOrderSet> array;
-
-	auto ret = MAPIAllocateBuffer(CbNewSSortOrderSet(len), &~array);
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-
-	array->cCategories = 0;
-	array->cExpanded = 0;
-	array->cSorts = len;
-
-	size_t i = 0;
-	for (const auto &pair : sort_order) {
-		array->aSort[i].ulPropTag = pair.first;
-		array->aSort[i].ulOrder = pair.second;
-		++i;
-	}
-
-	ret = m_table->SortTable(array, flags);
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-}
-
 KRowSet KTable::rows(unsigned int size, unsigned int offset)
 {
 	rowset_ptr rowset;

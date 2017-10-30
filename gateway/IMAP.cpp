@@ -26,7 +26,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
-#include <kopano/hl.hpp>
+#include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/hl.hpp>
 #include <mapi.h>
@@ -1467,12 +1467,19 @@ IMAP::HrCmdList(const std::string &tag, const std::vector<std::string> &args)
 HRESULT IMAP::get_uid_next(KFolder &folder, const std::string &tag,
     ULONG &uid_next)
 {
+	static constexpr const SizedSPropTagArray(1, cols) = {1, {PR_EC_IMAP_ID}};
+	static constexpr const SizedSSortOrderSet(1, sortuid) =
+		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_DESCEND}}};
 	HRESULT hr = hrSuccess;
 
 	try {
 		auto table = folder.get_contents_table(MAPI_DEFERRED_ERRORS);
-		table.columns({PR_EC_IMAP_ID});
-		table.sort({{PR_EC_IMAP_ID, KTable::DESCEND}});
+		hr = table->SetColumns(cols, TBL_BATCH);
+		if (hr != hrSuccess)
+			return kc_perror("K-2385", hr);
+		hr = table->SortTable(sortuid, TBL_BATCH);
+		if (hr != hrSuccess)
+			return kc_perror("K-2386", hr);
 		auto rows = table.rows(1, 0);
 		uid_next = rows.count() > 0 ? (rows[0][0].ul() + 1) : 1;
 	}
@@ -3095,14 +3102,22 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 	if (lpulUIDValidity && lpFolderIDs[1].ulPropTag == PR_EC_HIERARCHYID)
 		*lpulUIDValidity = lpFolderIDs[1].Value.ul;
 
+	static constexpr const SizedSPropTagArray(7, cols) =
+		{7, {PR_ENTRYID, PR_INSTANCE_KEY, PR_EC_IMAP_ID,
+		PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS,
+		PR_LAST_VERB_EXECUTED}};
+	static constexpr const SizedSSortOrderSet(1, sortuid) =
+		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_ASCEND}}};
 	auto folder = KFolder(lpFolder.release());
 	auto table = KTable(nullptr);
 	try {
 		table = folder.get_contents_table(MAPI_DEFERRED_ERRORS);
-		table.columns({PR_ENTRYID, PR_INSTANCE_KEY, PR_EC_IMAP_ID,
-					PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS,
-					PR_LAST_VERB_EXECUTED}, TBL_BATCH);
-		table.sort({{PR_EC_IMAP_ID, KTable::ASCEND}}, TBL_BATCH);
+		hr = table->SetColumns(cols, TBL_BATCH);
+		if (hr != hrSuccess)
+			return kc_perror("K-2387", hr);
+		hr = table->SortTable(sortuid, TBL_BATCH);
+		if (hr != hrSuccess)
+			return kc_perror("K-2388", hr);
 	}
 	catch (const KMAPIError &e) {
 		return e.code();
@@ -3289,11 +3304,21 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 	parent_folder = folders.cbegin();
 
 	enum { EID, PEID, NAME, IMAPID, SUBFOLDERS, CONTAINERCLASS, NUM_COLS };
+	static constexpr const SizedSPropTagArray(6, cols) =
+		{6, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W,
+		PR_EC_IMAP_ID, PR_SUBFOLDERS, PR_CONTAINER_CLASS_A}};
+	static constexpr const SizedSSortOrderSet(1, mapi_sort_criteria) =
+		{1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
+
 	try {
 		KFolder folder = mapi_folder.release();
 		KTable table = folder.get_hierarchy_table(CONVENIENT_DEPTH);
-		table.columns({PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W, PR_EC_IMAP_ID, PR_SUBFOLDERS, PR_CONTAINER_CLASS_A});
-		table.sort({{PR_DEPTH, KTable::ASCEND}});
+		auto hr = table->SetColumns(cols, TBL_BATCH);
+		if (hr != hrSuccess)
+			return kc_perror("K-2389", hr);
+		hr = table->SortTable(mapi_sort_criteria, TBL_BATCH);
+		if (hr != hrSuccess)
+			return kc_perror("K-2390", hr);
 		KRowSet rows = table.rows(-1, 0);
 
 		for (unsigned int i = 0; i < rows.count(); ++i) {

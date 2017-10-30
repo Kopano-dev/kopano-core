@@ -219,8 +219,6 @@ class _kc_export KTable _kc_final {
 	operator IMAPITable *(void) { return m_table; }
 
 	HRESULT restrict(const SRestriction &, unsigned int = 0);
-	void columns(std::initializer_list<unsigned int>, unsigned int = 0);
-	void sort(std::initializer_list<std::pair<unsigned int, SortOrder> >, unsigned int = 0);
 	KRowSet rows(unsigned int, unsigned int);
 	unsigned int count(unsigned int = 0);
 
