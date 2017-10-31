@@ -84,8 +84,7 @@ int StatsClient::startup(const std::string &collectorSocket)
 		return -errno; /* maybe log a bit */
 	}
 
-	srand(time(NULL));
-
+	rand_init();
 	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient binding socket");
 
 	for (unsigned int retry = 3; retry > 0; --retry) {

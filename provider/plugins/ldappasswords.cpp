@@ -31,54 +31,11 @@
 
 namespace KC {
 
-static const char b64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-/** 
- * Encode string in base-64
- *
- * @param[out] out the buffer to which the result will be written.
- * @param[in] in the input string, not necessarily 0-terminated.
- * @param[in] len the number of bytes from \c in to encode.
- * 
- * The buffer \c out must be large enough to hold the result, which is
- * \c len / 3 * 4 + 4 (approximately).
- */
-static void b64_encode(char *out, const unsigned char *in, unsigned int len) {
-	unsigned int i, j;
-	unsigned char bytes[3];
-
-	for (i = j = 0; i < len / 3 * 3 + 3; i += 3) {
-		bytes[0] = in[i];
-		out[j++] = b64chars[(bytes[0] >> 2) & 0x3f];
-
-		if (i + 1 >= len)
-			bytes[1] = 0;
-		else
-			bytes[1] = in[i + 1];
-
-		out[j++] = b64chars[((bytes[0] << 4) & 0x30) | ((bytes[1] >> 4) & 0x0f)];
-
-		if (i + 2 >= len)
-			bytes[2] = 0;
-		else
-			bytes[2] = in[i + 2];
-
-		if (i + 1 < len)
-			out[j++] = b64chars[((bytes[1] << 2) & 0x3c) | ((bytes[2] >> 6) & 0x03)];
-		else
-			out[j++] = '=';
-		if (i + 2 < len)
-			out[j++] = b64chars[bytes[2] & 0x3f];
-		else
-			out[j++] = '=';
-	}
-
-	out[j++] = 0;
-}
-
 static char *password_encrypt_crypt(const char *data, unsigned int len) {
 	char salt[3];
 	rand_get(salt, 2);
+	salt[0] &= 0x7F;
+	salt[1] &= 0x7F;
 	salt[2] = '\0';
 
 	char cryptbuf[32];
@@ -92,9 +49,8 @@ static char *password_encrypt_crypt(const char *data, unsigned int len) {
 static int password_check_crypt(const char *data, unsigned int len, const char *crypted) {
 	char salt[3];
 	char cryptbuf[32];
-
-	salt[0] = crypted[0];
-	salt[1] = crypted[1];
+	salt[0] = crypted[0] & 0x7F;
+	salt[1] = crypted[1] & 0x7F;
 	salt[2] = 0;
 
 	DES_fcrypt(data, salt, cryptbuf);
@@ -108,29 +64,18 @@ static int password_check_crypt(const char *data, unsigned int len, const char *
 static char *password_encrypt_md5(const char *data, unsigned int len) {
 	unsigned char md5_out[MD5_DIGEST_LENGTH];
 	const int base64_len = MD5_DIGEST_LENGTH * 4 / 3 + 4;
-	char b64_out[MD5_DIGEST_LENGTH * 4 / 3 + 4];
 	char *res;
 
 	MD5((unsigned char *) data, len, md5_out);
-	b64_encode(b64_out, md5_out, MD5_DIGEST_LENGTH);
-
 	res = new char[base64_len + 12];
-	snprintf(res, base64_len + 11, "{MD5}%s", b64_out);
-
+	snprintf(res, base64_len + 11, "{MD5}%s", base64_encode(md5_out, sizeof(md5_out)).c_str());
 	return res;
 }
 
 static int password_check_md5(const char *data, unsigned int len, const char *crypted) {
 	unsigned char md5_out[MD5_DIGEST_LENGTH];
-	char b64_out[MD5_DIGEST_LENGTH * 4 / 3 + 4];
-
 	MD5((unsigned char *) data, len, md5_out);
-	b64_encode(b64_out, md5_out, MD5_DIGEST_LENGTH);
-
-	if (!strcmp(b64_out, crypted))
-		return 0;
-	else
-		return 1;
+	return strcmp(crypted, base64_encode(md5_out, sizeof(md5_out)).c_str());
 }
 
 // md5sum + salt at the end. md5sum length == 16, salt length == 4
@@ -138,8 +83,7 @@ static char *password_encrypt_smd5(const char *data, unsigned int len) {
 	MD5_CTX ctx;
 	unsigned char md5_out[MD5_DIGEST_LENGTH + 4];
 	unsigned char *salt = md5_out + MD5_DIGEST_LENGTH; // salt is at the end of the digest
-	const int base64_len = MD5_DIGEST_LENGTH * 4 / 3 + 4;
-	char b64_out[MD5_DIGEST_LENGTH * 4 / 3 + 4];
+	constexpr size_t base64_len = sizeof(md5_out) * 4 / 3 + 4;
 	char *res;
 
 	rand_get(reinterpret_cast<char *>(salt), 4);
@@ -147,12 +91,8 @@ static char *password_encrypt_smd5(const char *data, unsigned int len) {
 	MD5_Update(&ctx, data, len);
 	MD5_Update(&ctx, salt, 4);
 	MD5_Final(md5_out, &ctx);	// writes upto the salt
-
-	b64_encode(b64_out, md5_out, MD5_DIGEST_LENGTH + 4);
-
 	res = new char[base64_len + 12];
-	snprintf(res, base64_len + 11, "{SMD5}%s", b64_out);
-
+	snprintf(res, base64_len + 11, "{SMD5}%s", base64_encode(md5_out, sizeof(md5_out)).c_str());
 	return res;
 }
 
@@ -160,45 +100,42 @@ static int password_check_smd5(const char *data, unsigned int len, const char *c
 	std::string digest;
 	std::string salt;
 	unsigned char md5_out[MD5_DIGEST_LENGTH];
-	char b64_out[MD5_DIGEST_LENGTH * 4 / 3 + 4];
 	MD5_CTX ctx;
 
 	digest = base64_decode(crypted);
+	if (digest.size() < MD5_DIGEST_LENGTH + 4)
+		return 1;
 	salt.assign(digest.c_str()+MD5_DIGEST_LENGTH, digest.length()-MD5_DIGEST_LENGTH);
 
 	MD5_Init(&ctx);
 	MD5_Update(&ctx, data, len);
 	MD5_Update(&ctx, salt.c_str(), salt.length());
 	MD5_Final(md5_out, &ctx);
-
-	b64_encode(b64_out, md5_out, MD5_DIGEST_LENGTH);
-
-	if (!strncmp(b64_out, crypted, MD5_DIGEST_LENGTH))
-		return 0;
-	else
-		return 1;
+	return strcmp(crypted, base64_encode(md5_out, sizeof(md5_out)).c_str());
 }
 
 static char *password_encrypt_ssha(const char *data, unsigned int len, bool bSalted) {
-	unsigned char SHA_out[SHA_DIGEST_LENGTH];
-	const int base64_len = SHA_DIGEST_LENGTH * 4 / 3 + 4;
-	char b64_out[SHA_DIGEST_LENGTH * 4 / 3 + 4];
+	unsigned char SHA_out[SHA_DIGEST_LENGTH+4];
+	unsigned char *salt = SHA_out + SHA_DIGEST_LENGTH;
+	constexpr size_t base64_len = sizeof(SHA_out) * 4 / 3 + 4;
+	std::string b64_out;
 	char *res;
-	unsigned char salt[4];
-	std::string pwd;
 
-	pwd.assign(data, len);
-	if (bSalted) {
-		rand_get(reinterpret_cast<char *>(salt), sizeof(salt));
-		pwd.append(reinterpret_cast<const char *>(salt), sizeof(salt));
+	if (!bSalted) {
+		SHA1(reinterpret_cast<const unsigned char *>(data), len, SHA_out);
+		b64_out = base64_encode(SHA_out, SHA_DIGEST_LENGTH);
+	} else {
+		SHA_CTX ctx;
+		SHA1_Init(&ctx);
+		rand_get(reinterpret_cast<char *>(salt), 4);
+		SHA1_Update(&ctx, data, len);
+		SHA1_Update(&ctx, salt, 4);
+		SHA1_Final(SHA_out, &ctx);
+		b64_out = base64_encode(SHA_out, SHA_DIGEST_LENGTH + 4);
 	}
 
-	SHA1((const unsigned char*)pwd.c_str(), pwd.length(), SHA_out);
-	b64_encode(b64_out, SHA_out, SHA_DIGEST_LENGTH);
-
 	res = new char[base64_len + 12];
-	snprintf(res, base64_len + 11, "{%s}%s", bSalted ? "SSHA" : "SHA", b64_out);
-
+	snprintf(res, base64_len + 11, "{%s}%s", bSalted ? "SSHA" : "SHA", b64_out.c_str());
 	return res;
 }
 
@@ -213,6 +150,8 @@ static int password_check_ssha(const char *data, unsigned int len, const char *c
 	digest = base64_decode(crypted);
 
 	if (bSalted) {
+		if (digest.size() < SHA_DIGEST_LENGTH + 4)
+			return 1;
 		salt.assign(digest.c_str()+SHA_DIGEST_LENGTH, digest.length()-SHA_DIGEST_LENGTH);
 		pwd += salt;
 	}
