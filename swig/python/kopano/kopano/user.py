@@ -348,10 +348,16 @@ class User(Properties):
         )
         self._name = username
 
-    def __getattr__(self, x): # XXX add __setattr__, e.g. for 'user.archive_store = None'
+    def __getattr__(self, x):
         store = self.store
         if store:
             try:
                 return getattr(store, x)
             except AttributeError:
                 raise AttributeError("'User' object has no attribute '%s'" % x)
+
+    def __setattr__(self, x, val):
+        if x not in User.__dict__ and x in Store.__dict__:
+            setattr(self.store, x, val)
+        else:
+            super(User, self).__setattr__(x, val)
