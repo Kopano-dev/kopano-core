@@ -8915,7 +8915,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 {
 	// FIXME: when props are PT_ERROR, they should not be sent to the client
 	// now we have properties in the client which are MAPI_E_NOT_ENOUGH_MEMORY,
-	// while they shouldn't be present (or atleast MAPI_E_NOT_FOUND)
+	// while they shouldn't be present (or at least MAPI_E_NOT_FOUND)
 
 	// These properties must be of type PT_UNICODE for string properties
 	unsigned int sProps[] = {

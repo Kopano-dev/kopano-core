@@ -397,7 +397,7 @@ private:
      * Process candidate rows and add them to search folder results
      *
      * This function processes the list of rows provides against the restriction provides, and
-     * adds rows to the given folder's result set if the rows match. Each row is evaluated seperately.
+     * adds rows to the given folder's result set if the rows match. Each row is evaluated separately.
      *
      * @param[in] lpDatabase Database handle
      * @param[in] lpSession Session handle

@@ -834,7 +834,7 @@ HRESULT M4LMAPISession::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR
 
 /**
  * Get a list of all message stores in this session. With Kopano in
- * Linux, this is always atleast your own and the public where
+ * Linux, this is always at least your own and the public where
  * available.
  *
  * @param[in]	ulFlags		Unused in Linux.

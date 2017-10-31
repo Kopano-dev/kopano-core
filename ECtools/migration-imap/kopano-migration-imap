@@ -4151,12 +4151,13 @@ sub imap2_folder_name {
 		return( $h2_fold ) ;
 	}
 
-	$h2_fold = prefix_seperator_invertion( $h1_fold ) ;
+	$h2_fold = prefix_separator_invertion($h1_fold);
 	$h2_fold = regextrans2( $h2_fold ) ;
 	return( $h2_fold ) ;
 }
 
-sub prefix_seperator_invertion {
+sub prefix_separator_invertion
+{
 	my ( $h1_fold ) = @_ ;
 	my ( $h2_fold ) ;
 
