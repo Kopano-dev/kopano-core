@@ -996,18 +996,17 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
     ULONG ulFlags, LPADRBOOK *lppAdrBook)
 {
 	HRESULT hr = hrSuccess;
-	M4LAddrBook *myAddrBook = nullptr;
+	object_ptr<M4LAddrBook> myAddrBook;
 	ULONG abver;
-	LPMAPISUP lpMAPISup = NULL;
+	object_ptr<IMAPISupport> lpMAPISup;
 	SPropValue sProp;
 
-	lpMAPISup = new(std::nothrow) M4LMAPISupport(this, NULL, NULL);
+	lpMAPISup.reset(new(std::nothrow) M4LMAPISupport(this, nullptr, nullptr));
 	if (!lpMAPISup) {
 		ec_log_crit("M4LMAPISession::OpenAddressBook(): ENOMEM");
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
-
-	myAddrBook = new(std::nothrow) M4LAddrBook(serviceAdmin, lpMAPISup);
+	myAddrBook.reset(new(std::nothrow) M4LAddrBook(serviceAdmin, lpMAPISup));
 	if (myAddrBook == nullptr) {
 		ec_log_crit("M4LMAPISession::OpenAddressBook(): ENOMEM(2)");
 		return MAPI_E_NOT_ENOUGH_MEMORY;
