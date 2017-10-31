@@ -327,18 +327,14 @@ HRESULT recurrence::setEndType(term_type t)
 
 ULONG recurrence::getInterval() const
 {
-	ULONG rv;
-
 	if (m_sRecState.ulPatternType == PT_DAY)
 		// day pattern type, period stored in minutes per day
-		rv = m_sRecState.ulPeriod / (60*24);
+		return m_sRecState.ulPeriod / (60 * 24);
 	else if (getFrequency() == recurrence::YEARLY)
 		// yearly stored in months
-		rv = m_sRecState.ulPeriod / 12;
-	else
-		// either weeks or months, no conversion required
-		rv = m_sRecState.ulPeriod;
-	return rv;
+		return m_sRecState.ulPeriod / 12;
+	// either weeks or months, no conversion required
+	return m_sRecState.ulPeriod;
 }
 
 // Note: Frequency must be set before the interval!
@@ -370,9 +366,7 @@ HRESULT recurrence::setFirstDOW(ULONG ulFirstDOW)
 UCHAR recurrence::getWeekDays() const
 {
 	// valid ulPatternTypes: 1 2 4 a c
-	if (m_sRecState.ulPatternType == PT_DAY)
-		return 0;
-	return m_sRecState.ulWeekDays;
+	return m_sRecState.ulPatternType == PT_DAY ? 0 : m_sRecState.ulWeekDays;
 }
 
 HRESULT recurrence::setWeekDays(UCHAR d)
@@ -499,9 +493,8 @@ ULONG recurrence::getModifiedCount() const
 
 ULONG recurrence::getModifiedFlags(ULONG id) const
 {
-	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return 0;
-	return m_sRecState.lstExceptions[id].ulOverrideFlags;
+	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
+	       m_sRecState.lstExceptions[id].ulOverrideFlags;
 }
 
 time_t recurrence::getModifiedStartDateTime(ULONG id) const
@@ -539,58 +532,50 @@ time_t recurrence::getModifiedOriginalDateTime(ULONG id) const
 
 std::wstring recurrence::getModifiedSubject(ULONG id) const
 {
-	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return {};
-	return m_sRecState.lstExtendedExceptions[id].strWideCharSubject;
+	return id >= m_sRecState.ulModifiedInstanceCount ? std::wstring() :
+	       m_sRecState.lstExtendedExceptions[id].strWideCharSubject;
 }
 
 ULONG recurrence::getModifiedMeetingType(ULONG id) const
 {
-	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return 0;
-	return m_sRecState.lstExceptions[id].ulApptStateFlags;
+	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
+	       m_sRecState.lstExceptions[id].ulApptStateFlags;
 }
 
 LONG recurrence::getModifiedReminderDelta(ULONG id) const
 {
-	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return 0;
-	return m_sRecState.lstExceptions[id].ulReminderDelta;
+	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
+	       m_sRecState.lstExceptions[id].ulReminderDelta;
 }
 
 ULONG recurrence::getModifiedReminder(ULONG id) const
 {
-	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return 0;
-	return m_sRecState.lstExceptions[id].ulReminderSet;
+	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
+	       m_sRecState.lstExceptions[id].ulReminderSet;
 }
 
 std::wstring recurrence::getModifiedLocation(ULONG id) const
 {
-	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return {};
-	return m_sRecState.lstExtendedExceptions[id].strWideCharLocation;
+	return id >= m_sRecState.ulModifiedInstanceCount ? std::wstring() :
+	       m_sRecState.lstExtendedExceptions[id].strWideCharLocation;
 }
 
 ULONG recurrence::getModifiedBusyStatus(ULONG id) const
 {
-	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return 0;
-	return m_sRecState.lstExceptions[id].ulBusyStatus;
+	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
+	       m_sRecState.lstExceptions[id].ulBusyStatus;
 }
 
 ULONG recurrence::getModifiedAttachment(ULONG id) const
 {
-	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return 0;
-	return m_sRecState.lstExceptions[id].ulAttachment;
+	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
+	       m_sRecState.lstExceptions[id].ulAttachment;
 }
 
 ULONG recurrence::getModifiedSubType(ULONG id) const
 {
-	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return 0;
-	return m_sRecState.lstExceptions[id].ulSubType;
+	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
+	       m_sRecState.lstExceptions[id].ulSubType;
 }
 
 HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOriginalStart, ULONG *lpid)
@@ -1102,7 +1087,7 @@ ULONG recurrence::Time2Minutes(time_t time)
 
 ULONG recurrence::Minutes2Month(ULONG minutes)
 {
-	return (ULONG)ceil((double)minutes / (31.0*24.0*60.0)) + 1;
+	return ceil(minutes / (31.0 * 24.0 * 60.0)) + 1;
 }
 
 time_t recurrence::StartOfDay(time_t t)
@@ -1418,10 +1403,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 	}
 	}
 	
-	lstExceptions = m_sRecState.lstExceptions;
-	
-	while(lstExceptions.size() != 0)
-	{
+	for (lstExceptions = m_sRecState.lstExceptions; lstExceptions.size() != 0; lstExceptions.pop_back()) {
 		OccrInfo sOccrInfo;
 
 		lpException = lstExceptions.back();
@@ -1431,7 +1413,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		tsOccStart = LocalToUTC(tsOccStart, ttZinfo);
 		if(tsOccStart > tsEnd) {									// tsStart, tsEnd == gmtime
 			ec_log_debug("Skipping exception start match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
-			goto next;
+			continue;
 		}
 		UnixTimeToRTime(tsOccStart, &sOccrInfo.fbBlock.m_tmStart);	// gmtime in rtime, is this correct?
 
@@ -1440,7 +1422,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		tsOccEnd = LocalToUTC(tsOccEnd, ttZinfo);
 		if(tsOccEnd < tsStart) {
 			ec_log_debug("Skipping exception end match: %lu ==> %s", tsOccEnd, ctime(&tsOccEnd));
-			goto next;
+			continue;
 		}
 		UnixTimeToRTime(tsOccEnd, &sOccrInfo.fbBlock.m_tmEnd);
 
@@ -1451,8 +1433,6 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		RTimeToUnixTime(lpException.ulOriginalStartDate, &sOccrInfo.tBaseDate);
 		ec_log_debug("Adding exception match: %lu ==> %s", sOccrInfo.tBaseDate, ctime(&sOccrInfo.tBaseDate));
 		hr = HrAddFBBlock(sOccrInfo, &lpOccrInfoAll, lpcValues);
-next:
-		lstExceptions.pop_back();
 	}
 
 	*lppOccrInfo = lpOccrInfoAll;
@@ -1514,17 +1494,13 @@ bool recurrence::isException(time_t tsOccDate) const
 
 ULONG recurrence::countDaysOfMonth(time_t tsDate) const
 {
-	ULONG ulDays = 0;
 	static const ULONG ulDaysArray[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 	
 	auto ulYear = this->YearFromTime(tsDate);
 	auto ulMonth = this->MonthFromTime(tsDate);
 	if(this->isLeapYear(ulYear)  && ulMonth == 2 )
-		ulDays = 29;
-	else
-		ulDays = ulDaysArray[ulMonth -1];
-
-	return ulDays;
+		return 29;
+	return ulDaysArray[ulMonth -1];
 }
 
 ULONG recurrence::DaysTillMonth(time_t tsDate, ULONG ulMonth) const

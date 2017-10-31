@@ -29,6 +29,7 @@
 #include "freebusytags.h"
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
+#include "recurrence.h"
 
 using namespace KCHL;
 
@@ -54,11 +55,6 @@ struct sfbEvent {
 #define FB_YEARMONTH(year, month)	(((static_cast<unsigned short>(year) << 4) & 0xFFF0) | static_cast<unsigned short>(month))
 #define FB_YEAR(yearmonth)		(static_cast<unsigned short>(yearmonth) >> 4)
 #define FB_MONTH(yearmonth)		(static_cast<unsigned short>(yearmonth) & 0x000F)
-
-static bool leapyear(short year)
-{
-	return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0); 
-}
 
 static HRESULT getMaxMonthMinutes(short year, short month, short *minutes)
 {
@@ -86,7 +82,7 @@ static HRESULT getMaxMonthMinutes(short year, short month, short *minutes)
 		break;
 	case 2:
 		days = 28;
-		if(leapyear(year))
+		if (recurrence::isLeapYear(year))
 			++days;
 		break;
 	}
@@ -411,33 +407,22 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 		if(hr != hrSuccess)
 			return hr;
 	}
-
-	if (lpPropArrayFBData[FBDATA_START_RANGE].ulPropTag == PR_FREEBUSY_START_RANGE)
-		*lprtmStart = lpPropArrayFBData[FBDATA_START_RANGE].Value.ul;
-	else 
-		*lprtmStart = 0;
-
-	if (lpPropArrayFBData[FBDATA_END_RANGE].ulPropTag == PR_FREEBUSY_END_RANGE)
-		*lprtmEnd = lpPropArrayFBData[FBDATA_END_RANGE].Value.ul;
-	else 
-		*lprtmEnd = 0;
+	*lprtmStart = lpPropArrayFBData[FBDATA_START_RANGE].ulPropTag == PR_FREEBUSY_START_RANGE ?
+	              lpPropArrayFBData[FBDATA_START_RANGE].Value.ul : 0;
+	*lprtmEnd = lpPropArrayFBData[FBDATA_END_RANGE].ulPropTag == PR_FREEBUSY_END_RANGE ?
+	            lpPropArrayFBData[FBDATA_END_RANGE].Value.ul : 0;
 	return hr;
 }
 
 unsigned int DiffYearMonthToMonth( struct tm *tm1, struct tm *tm2)
 {
-	unsigned int months = 0;
-
 	if(tm1->tm_year == tm2->tm_year)
-		months = tm2->tm_mon - tm1->tm_mon;
+		return tm2->tm_mon - tm1->tm_mon;
 	else if(tm2->tm_year > tm1->tm_year && tm2->tm_mon >= tm1->tm_mon)
-		months = (12 * (tm2->tm_year - tm1->tm_year)) + tm2->tm_mon - tm1->tm_mon;
+		return 12 * (tm2->tm_year - tm1->tm_year) + tm2->tm_mon - tm1->tm_mon;
 	else if(tm2->tm_year > tm1->tm_year && tm2->tm_mon < tm1->tm_mon)
-		months = (12 * (tm2->tm_year - tm1->tm_year -1)) + (tm2->tm_mon+1) + (11-tm1->tm_mon);
-	else
-		months = 0;
-
-	return months;
+		return 12 * (tm2->tm_year - tm1->tm_year - 1) + tm2->tm_mon + 1 + (11 - tm1->tm_mon);
+	return 0;
 }
 
 HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULONG ulPropEvents, ECFBBlockList* lpfbBlockList, LPSPropValue* lppPropFBDataArray)
@@ -586,22 +571,6 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 }
 
 /**
- * Copies a array of occurrence to another array
- * @param[out]	lpDest		destination array 
- * @param[in]	lpSrc		source array
- * @param[in]	ulcValues	number of occurrence in source array
- *
- * @return		HRESULT
- */
-static HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, const OccrInfo *lpSrc,
-    ULONG ulcValues)
-{
-	for (ULONG i = 0; i < ulcValues; ++i)
-		lpDest[i] = lpSrc[i];
-	return hrSuccess;
-}
-
-/**
  * Adds a occurrence to the occurrence array
  * @param[in]		sOccrInfo		occurrence to be added to array
  * @param[in,out]	lppsOccrInfo	array to which occurrence is added
@@ -617,9 +586,9 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 	HRESULT hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal, &~lpsNewOccrInfo);
 	if (hr != hrSuccess)
 		return hr;
-	
-	if(lpsInputOccrInfo)
-		hr = HrCopyFBBlockSet(lpsNewOccrInfo, lpsInputOccrInfo, ulModVal);
+	if (lpsInputOccrInfo != nullptr)
+		for (ULONG i = 0; i < ulModVal; ++i)
+			lpsNewOccrInfo[i] = lpsInputOccrInfo[i];
 	if (hr != hrSuccess)
 		return hr;
 	if (lpcValues != NULL)
