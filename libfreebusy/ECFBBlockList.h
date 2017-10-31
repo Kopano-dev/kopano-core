@@ -39,15 +39,14 @@ public:
 	ECFBBlockList(void);
 	ECFBBlockList(const ECFBBlockList &);
 	void operator=(const ECFBBlockList &) = delete; /* not implemented */
-	HRESULT Add(FBBlock_1* lpFBBlock);
+	HRESULT Add(const FBBlock_1 &);
 	HRESULT Next(FBBlock_1* pblk);
 	HRESULT Reset();
 	HRESULT Skip(LONG items);
 	HRESULT Restrict(LONG tmStart, LONG tmEnd);
 	void Clear();
 	ULONG Size();
-
-	HRESULT Merge(FBBlock_1* lpFBBlock);
+	HRESULT Merge(const FBBlock_1 &);
 	HRESULT GetEndTime(LONG *rtmEnd);
 private:
 	mapFB			m_FBMap;

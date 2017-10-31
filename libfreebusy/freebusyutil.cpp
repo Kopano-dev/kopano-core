@@ -353,9 +353,9 @@ static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,
 			fbBlock.m_tmEnd = rtmEnd;
 
 			if (bMerge)
-				lpfbBlockList->Merge(&fbBlock);
+				lpfbBlockList->Merge(fbBlock);
 			else
-				lpfbBlockList->Add(&fbBlock);
+				lpfbBlockList->Add(fbBlock);
 		}
 	}
 	return S_OK;

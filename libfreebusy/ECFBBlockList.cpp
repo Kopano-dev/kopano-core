@@ -30,24 +30,19 @@ ECFBBlockList::ECFBBlockList(const ECFBBlockList &o) :
 	Restrict(o.m_tmRestictStart, o.m_tmRestictEnd);
 }
 
-HRESULT ECFBBlockList::Add(FBBlock_1* lpFBBlock)
+HRESULT ECFBBlockList::Add(const FBBlock_1 &o)
 {
-	if (lpFBBlock == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	m_FBMap.emplace(lpFBBlock->m_tmStart, *lpFBBlock);
+	m_FBMap.emplace(o.m_tmStart, o);
 	return hrSuccess;
 }
 
-HRESULT ECFBBlockList::Merge(FBBlock_1* lpFBBlock)
+HRESULT ECFBBlockList::Merge(const FBBlock_1 &o)
 {
-	if (lpFBBlock == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
 	auto FBIter = m_FBMap.begin();
 	for (; FBIter != m_FBMap.cend(); ++FBIter)
-		if(FBIter->second.m_tmEnd == lpFBBlock->m_tmStart)
+		if (FBIter->second.m_tmEnd == o.m_tmStart)
 		{
-			FBIter->second.m_tmEnd = lpFBBlock->m_tmEnd;
+			FBIter->second.m_tmEnd = o.m_tmEnd;
 			break;
 		}
 

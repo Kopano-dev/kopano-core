@@ -53,12 +53,12 @@ HRESULT ECFreeBusyUpdate::QueryInterface(REFIID refiid, void** lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ECFreeBusyUpdate::PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks)
+HRESULT ECFreeBusyUpdate::PublishFreeBusy(const FBBlock_1 *lpBlocks, ULONG nBlocks)
 {
 	if(nBlocks > 0 && lpBlocks == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	for (ULONG i = 0; i < nBlocks; ++i)
-		m_fbBlockList.Add(&lpBlocks[i]);
+		m_fbBlockList.Add(lpBlocks[i]);
 	return S_OK;
 }
 

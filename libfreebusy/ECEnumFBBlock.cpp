@@ -32,7 +32,7 @@ ECEnumFBBlock::ECEnumFBBlock(ECFBBlockList* lpFBBlock)
 	lpFBBlock->Reset();
 
 	while(lpFBBlock->Next(&sBlock) == hrSuccess)
-		m_FBBlock.Add(&sBlock);
+		m_FBBlock.Add(sBlock);
 }
 
 /**

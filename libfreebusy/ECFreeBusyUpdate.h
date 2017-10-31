@@ -51,7 +51,7 @@ public:
 	static HRESULT Create(IMessage* lpMessage, ECFreeBusyUpdate **lppECFreeBusyUpdate);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Reload(void) { return S_OK; }
-	virtual HRESULT PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks);
+	virtual HRESULT PublishFreeBusy(const FBBlock_1 *, ULONG nblks);
 	virtual HRESULT RemoveAppt(void) { return S_OK; }
 	virtual HRESULT ResetPublishedFreeBusy();
 	virtual HRESULT ChangeAppt(void) { return S_OK; }

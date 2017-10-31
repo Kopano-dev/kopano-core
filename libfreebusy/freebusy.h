@@ -161,7 +161,7 @@ public:
 	 * @param lpBlocks an array of free/busy blocks to publish
 	 * @param nBlocks Number of freebusy blocks
 	 */
-	virtual HRESULT PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks) = 0;
+	virtual HRESULT PublishFreeBusy(const FBBlock_1 *b, ULONG nblks) = 0;
 
 	/**
 	 * Unknown function, this member not supported

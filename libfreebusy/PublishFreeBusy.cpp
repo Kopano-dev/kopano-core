@@ -48,7 +48,7 @@ class PublishFreeBusy _kc_final {
 	HRESULT HrGetResctItems(IMAPITable **);
 	HRESULT HrProcessTable(IMAPITable *, FBBlock_1 **, ULONG *nvals);
 	HRESULT HrMergeBlocks(FBBlock_1 **, ULONG *nvals);
-	HRESULT HrPublishFBblocks(FBBlock_1 *, ULONG nvals);
+	HRESULT HrPublishFBblocks(const FBBlock_1 *, ULONG nvals);
 
 	private:
 	IMAPISession *m_lpSession;
@@ -446,7 +446,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
  * 
  * @return MAPI Error code
  */
-HRESULT PublishFreeBusy::HrPublishFBblocks(FBBlock_1 *lpfbBlocks, ULONG cValues)
+HRESULT PublishFreeBusy::HrPublishFBblocks(const FBBlock_1 *lpfbBlocks, ULONG cValues)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<ECFreeBusyUpdate> lpFBUpdate;
