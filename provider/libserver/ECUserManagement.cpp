@@ -1648,7 +1648,7 @@ done:
 			ec_log_info("Resolved multiple users for search \"%s\".", szSearchString);
 			return KCERR_COLLISION;
 		}
-		ulId = *mapMatches.begin()->second.begin();
+		ulId = mapMatches.begin()->second.front();
 	}
 
 	if(ulId == 0)

@@ -40,8 +40,8 @@ static void mpt_stat_dump(int s = 0)
 	size_t z = mpt_stat_list.size();
 	if (z == 0)
 		return;
-	const struct mpt_stat_entry &first = *mpt_stat_list.begin();
-	const struct mpt_stat_entry &last  = *mpt_stat_list.rbegin();
+	const struct mpt_stat_entry &first = mpt_stat_list.front();
+	const struct mpt_stat_entry &last  = mpt_stat_list.back();
 	typedef std::chrono::seconds sec;
 	typedef std::chrono::nanoseconds nsec;
 	auto dt = std::chrono::duration<double>(

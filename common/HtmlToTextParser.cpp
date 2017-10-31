@@ -162,7 +162,7 @@ void CHtmlToTextParser::addChar(WCHAR c) {
 
 void CHtmlToTextParser::addSpace(bool force) {
 	
-	if(force || (!strText.empty() && *strText.rbegin() != ' ') )
+	if (force || (!strText.empty() && strText.back() != ' '))
 		addChar(' ');
 }
 

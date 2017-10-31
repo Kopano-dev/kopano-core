@@ -1043,7 +1043,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 
 	// Remove search results for deleted folders
 	if (ulFlags & EC_DELETE_STORE)
-		lpSearchFolders->RemoveSearchFolder(*lpsObjectList->begin());
+		lpSearchFolders->RemoveSearchFolder(lpsObjectList->front());
 	else
 		for (const auto &di : lstDeleteItems)
 			if (di.ulObjType == MAPI_FOLDER &&
