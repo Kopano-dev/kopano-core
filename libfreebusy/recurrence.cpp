@@ -803,90 +803,86 @@ time_t recurrence::calcStartDate() const
 				if (tm.tm_mday < static_cast<int>(m_sRecState.ulDayOfMonth))
 					tStart -= tm.tm_mday * 24 * 60 *60;
 			}
-		} else if (m_sRecState.ulPatternType == PT_MONTH_NTH) {
+			break;
+		}
+		if (m_sRecState.ulPatternType != PT_MONTH_NTH)
+			break;
 
-			// seek to the begin of the month
-			tStart -= (tm.tm_mday-1) * 24*60*60;
-			
-			// See to the end of the month when every last n Day of the month
-			if (m_sRecState.ulWeekNumber == 5) 
-				tStart += MonthInSeconds(tm.tm_year + 1900, tm.tm_mon+1) - (24*60*60);
+		// seek to the begin of the month
+		tStart -= (tm.tm_mday - 1) * 24 * 60 * 60;
 		
-			// Find the first valid day (from the original start date)
-			int day = -1;
-			bool bMoveMonth = false;
-			for (int i = 0; i < 7; ++i) {
-				if (m_sRecState.ulWeekNumber == 5 && (1<< (tm.tm_wday - i)%7) & m_sRecState.ulWeekDays) {
-					day = DaysInMonth(tm.tm_year+1900, tm.tm_mon+1) - i;
-					if (day < tm.tm_mday)
-						 bMoveMonth = true;
-					break;
-				} else if (m_sRecState.ulWeekNumber != 5 && (1<< (tm.tm_wday + i)%7) & m_sRecState.ulWeekDays) {
-					int maxweekday = m_sRecState.ulWeekNumber * 7;
-					day = tm.tm_mday+i;
-					if (day > maxweekday)
-						bMoveMonth = true;
-					break;
-				}
-			}
+		// See to the end of the month when every last n Day of the month
+		if (m_sRecState.ulWeekNumber == 5)
+			tStart += MonthInSeconds(tm.tm_year + 1900, tm.tm_mon + 1) - (24 * 60 * 60);
 
-			// Move to the right month
-			if (m_sRecState.ulRecurFrequency == RF_YEARLY) {
-				unsigned int count = 0;
-				if (getMonth() - 1 < tm.tm_mon || (getMonth() - 1 == tm.tm_mon && bMoveMonth))
-					count = 12 - tm.tm_mon + (getMonth()-1);
-				else
-					count = (getMonth()-1) - tm.tm_mon;
-
-				int curmonth = tm.tm_mon + 1;
-				int curyear = tm.tm_year + 1900;
-				for (unsigned int i = 0; i < count; ++i) {
-					tStart += MonthInSeconds(curyear, curmonth); 
-					if (curmonth == 12) {
-						curmonth = 0;
-						++curyear;
-					}
-					++curmonth;
-				}
-
-			} else {
-				// Check you exist in the right month
-				if(bMoveMonth) {
-		            int curmonth = tm.tm_mon + 1;
-		            int curyear = tm.tm_year + 1900;
-					if (m_sRecState.ulWeekNumber == 5) {
-						if (curmonth == 12) {
-							curmonth = 0;
-							++curyear;
-						}
-						++curmonth;
-					}
-
-					for (unsigned int i = 0; i < m_sRecState.ulPeriod; ++i) {
-						tStart += MonthInSeconds(curyear, curmonth);
-						if (curmonth == 12) {
-							curmonth = 0;
-							++curyear;
-						}
-						++curmonth;
-					}
-				}
-
-			}
-
-			// Seek to the right day (tStart should be the first day or the last day of the month.
-			gmtime_safe(&tStart, &tm);
-			for (int i = 0; i < 7; ++i) {
-				if (m_sRecState.ulWeekNumber == 5 && (1<< (tm.tm_wday - i)%7) & m_sRecState.ulWeekDays) {
-					tStart -= i * 24 * 60 *60;
-					break;
-				} else if (m_sRecState.ulWeekNumber != 5 && (1<< (tm.tm_wday + i)%7) & m_sRecState.ulWeekDays) {
-					tStart += (((m_sRecState.ulWeekNumber-1) * 7 + (i+1))- 1) * 24 * 60 *60;
-					break;
-				}
+		// Find the first valid day (from the original start date)
+		int day = -1;
+		bool bMoveMonth = false;
+		for (int i = 0; i < 7; ++i) {
+			if (m_sRecState.ulWeekNumber == 5 && (1 << (tm.tm_wday - i) % 7) & m_sRecState.ulWeekDays) {
+				day = DaysInMonth(tm.tm_year + 1900, tm.tm_mon + 1) - i;
+				if (day < tm.tm_mday)
+					 bMoveMonth = true;
+				break;
+			} else if (m_sRecState.ulWeekNumber != 5 && (1 << (tm.tm_wday + i) % 7) & m_sRecState.ulWeekDays) {
+				int maxweekday = m_sRecState.ulWeekNumber * 7;
+				day = tm.tm_mday + i;
+				if (day > maxweekday)
+					bMoveMonth = true;
+				break;
 			}
 		}
 
+		// Move to the right month
+		if (m_sRecState.ulRecurFrequency == RF_YEARLY) {
+			unsigned int count = 0;
+			if (getMonth() - 1 < tm.tm_mon || (getMonth() - 1 == tm.tm_mon && bMoveMonth))
+				count = 12 - tm.tm_mon + (getMonth() - 1);
+			else
+				count = (getMonth() - 1) - tm.tm_mon;
+
+			int curmonth = tm.tm_mon + 1;
+			int curyear = tm.tm_year + 1900;
+			for (unsigned int i = 0; i < count; ++i) {
+				tStart += MonthInSeconds(curyear, curmonth);
+				if (curmonth == 12) {
+					curmonth = 0;
+					++curyear;
+				}
+				++curmonth;
+			}
+		} else if (bMoveMonth) {
+			// Check you exist in the right month
+			int curmonth = tm.tm_mon + 1;
+			int curyear = tm.tm_year + 1900;
+			if (m_sRecState.ulWeekNumber == 5) {
+				if (curmonth == 12) {
+					curmonth = 0;
+					++curyear;
+				}
+				++curmonth;
+			}
+			for (unsigned int i = 0; i < m_sRecState.ulPeriod; ++i) {
+				tStart += MonthInSeconds(curyear, curmonth);
+				if (curmonth == 12) {
+					curmonth = 0;
+					++curyear;
+				}
+				++curmonth;
+			}
+		}
+
+		// Seek to the right day (tStart should be the first day or the last day of the month.
+		gmtime_safe(&tStart, &tm);
+		for (int i = 0; i < 7; ++i) {
+			if (m_sRecState.ulWeekNumber == 5 && (1<< (tm.tm_wday - i)%7) & m_sRecState.ulWeekDays) {
+				tStart -= i * 24 * 60 *60;
+				break;
+			} else if (m_sRecState.ulWeekNumber != 5 && (1<< (tm.tm_wday + i)%7) & m_sRecState.ulWeekDays) {
+				tStart += (((m_sRecState.ulWeekNumber-1) * 7 + (i+1))- 1) * 24 * 60 *60;
+				break;
+			}
+		}
 		break;
 	}
 	return tStart;
@@ -904,12 +900,11 @@ time_t recurrence::calcEndDate() const
 
 	switch (m_sRecState.ulRecurFrequency) {
 	case RF_DAILY:
-		if (m_sRecState.ulPatternType == PT_DAY) {
+		if (m_sRecState.ulPatternType == PT_DAY)
 			// really daily, not every weekday
 			// -1 because the first day already counts (from 1-1-1980 to 1-1-1980 is 1 occurrence)
 			tEnd += ((m_sRecState.ulPeriod * 60) * (m_sRecState.ulOccurrenceCount - 1) );
-			break;
-		}
+		break;
 	case RF_WEEKLY: {
 		// $forwardcount is the maximum number of week occurrences we can go ahead after the first occurrence that
 		// is still inside the recurrence. We subtract one to make sure that the last week is never forwarded over
@@ -976,26 +971,26 @@ time_t recurrence::calcEndDate() const
 				else
 					tEnd += (DaysInMonth(tm.tm_year, tm.tm_mon) - tm.tm_mday) * 24 * 60 * 60;
 			}
-		} else if (m_sRecState.ulPatternType == PT_MONTH_NTH) {
-			// month Nth
-			if (m_sRecState.ulWeekNumber == 5)
-				// last day of month
-				tEnd += (DaysInMonth(tm.tm_year, tm.tm_mon) - tm.tm_mday) * 24 * 60 * 60;
-			else
-				tEnd -= (tm.tm_mday-1) * 24 * 60 * 60;
-
-			for (int daycount = 0; daycount < 7; ++daycount) {
-				gmtime_safe(&tEnd, &tm);
-				tm.tm_year += 1900;
-				++tm.tm_mon;
-
-				if (m_sRecState.ulWeekNumber == 5 && (1 << (tm.tm_wday - daycount) % 7) & m_sRecState.ulWeekDays)
-					tEnd -= tm.tm_mday * 24 * 60 * 60;
-				else if (m_sRecState.ulWeekNumber != 5 && (1 << (tm.tm_wday + daycount) % 7) & m_sRecState.ulWeekDays)
-					tEnd += (daycount + ((m_sRecState.ulWeekNumber-1)*7)) * 24 * 60 * 60;
-			}
+			break;
 		}
+		if (m_sRecState.ulPatternType != PT_MONTH_NTH)
+			break;
+		// month Nth
+		if (m_sRecState.ulWeekNumber == 5)
+			// last day of month
+			tEnd += (DaysInMonth(tm.tm_year, tm.tm_mon) - tm.tm_mday) * 24 * 60 * 60;
+		else
+			tEnd -= (tm.tm_mday-1) * 24 * 60 * 60;
 
+		for (int daycount = 0; daycount < 7; ++daycount) {
+			gmtime_safe(&tEnd, &tm);
+			tm.tm_year += 1900;
+			++tm.tm_mon;
+			if (m_sRecState.ulWeekNumber == 5 && (1 << (tm.tm_wday - daycount) % 7) & m_sRecState.ulWeekDays)
+				tEnd -= tm.tm_mday * 24 * 60 * 60;
+			else if (m_sRecState.ulWeekNumber != 5 && (1 << (tm.tm_wday + daycount) % 7) & m_sRecState.ulWeekDays)
+				tEnd += (daycount + ((m_sRecState.ulWeekNumber - 1) * 7)) * 24 * 60 * 60;
+		}
 		break;
 	}
 	}

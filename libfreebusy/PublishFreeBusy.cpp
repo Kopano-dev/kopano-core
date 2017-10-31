@@ -310,15 +310,14 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 		}
 	}
 	
-	if (lpcValues != 0 && lpOccrInfo != NULL) {
-		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)* (*lpcValues), (void**)&lpfbBlocks);
-		if(hr != hrSuccess)
-			return hr;
-		for (ULONG i = 0 ; i < *lpcValues; ++i)
-			lpfbBlocks[i]  = lpOccrInfo[i].fbBlock;
-
-		*lppfbBlocks = lpfbBlocks;
-	}
+	if (lpcValues == 0 || lpOccrInfo == nullptr)
+		return hrSuccess;
+	hr = MAPIAllocateBuffer(sizeof(FBBlock_1)* (*lpcValues), (void**)&lpfbBlocks);
+	if (hr != hrSuccess)
+		return hr;
+	for (ULONG i = 0 ; i < *lpcValues; ++i)
+		lpfbBlocks[i]  = lpOccrInfo[i].fbBlock;
+	*lppfbBlocks = lpfbBlocks;
 	return hrSuccess;
 }
 
