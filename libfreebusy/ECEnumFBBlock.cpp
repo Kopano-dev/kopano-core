@@ -82,18 +82,6 @@ HRESULT ECEnumFBBlock::Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch)
 	return cEltFound == 0;
 }
 
-/*! @copydoc IEnumFBBlock::Skip */
-HRESULT ECEnumFBBlock::Skip(LONG celt)
-{
-	return m_FBBlock.Skip(celt);
-}
-
-/*! @copydoc IEnumFBBlock::Reset */
-HRESULT ECEnumFBBlock::Reset()
-{
-	return m_FBBlock.Reset();
-}
-
 /*! @copydoc IEnumFBBlock::Restrict */
 HRESULT ECEnumFBBlock::Restrict(FILETIME ftmStart, FILETIME ftmEnd)
 {
