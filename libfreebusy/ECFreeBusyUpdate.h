@@ -33,6 +33,7 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapidefs.h>
 
@@ -46,7 +47,6 @@ namespace KC {
 class ECFreeBusyUpdate _kc_final : public ECUnknown, public IFreeBusyUpdate {
 private:
 	ECFreeBusyUpdate(IMessage* lpMessage);
-	~ECFreeBusyUpdate(void);
 public:
 	static HRESULT Create(IMessage* lpMessage, ECFreeBusyUpdate **lppECFreeBusyUpdate);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
@@ -60,7 +60,7 @@ public:
 	virtual HRESULT Intersect(void) { return S_OK; }
 
 private:
-	IMessage*		m_lpMessage; /**< Pointer to the free/busy message received from GetFreeBusyMessage */
+	KCHL::object_ptr<IMessage> m_lpMessage; /**< Pointer to the free/busy message received from GetFreeBusyMessage */
 	ECFBBlockList	m_fbBlockList; /**< Freebusy time blocks */
 	ALLOC_WRAP_FRIEND;
 };

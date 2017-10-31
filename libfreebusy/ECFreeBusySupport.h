@@ -38,6 +38,7 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include "ECFBBlockList.h"
 
 namespace KC {
@@ -50,7 +51,6 @@ class _kc_export ECFreeBusySupport _kc_final :
     public IFreeBusySupportOutlook2000 {
 private:
 	_kc_hidden ECFreeBusySupport(void);
-	_kc_hidden ~ECFreeBusySupport(void);
 public:
 	static HRESULT Create(ECFreeBusySupport** lppFreeBusySupport);
 
@@ -82,9 +82,9 @@ public:
 		_kc_hidden virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
 
 private:
-	IMAPISession *m_lpSession = nullptr;
-	IMsgStore *m_lpPublicStore = nullptr, *m_lpUserStore = nullptr;
-	IMAPIFolder *m_lpFreeBusyFolder = nullptr;
+	KCHL::object_ptr<IMAPISession> m_lpSession;
+	KCHL::object_ptr<IMsgStore> m_lpPublicStore, m_lpUserStore;
+	KCHL::object_ptr<IMAPIFolder> m_lpFreeBusyFolder;
 	unsigned int	m_ulOutlookVersion;
 	ALLOC_WRAP_FRIEND;
 };

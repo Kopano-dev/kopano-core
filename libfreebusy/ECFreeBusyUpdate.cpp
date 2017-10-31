@@ -28,16 +28,7 @@ namespace KC {
 
 ECFreeBusyUpdate::ECFreeBusyUpdate(IMessage *lpMessage) :
 	m_lpMessage(lpMessage)
-{
-	if(m_lpMessage)
-		m_lpMessage->AddRef();
-}
-
-ECFreeBusyUpdate::~ECFreeBusyUpdate(void)
-{
-	if(m_lpMessage)
-		m_lpMessage->Release();
-}
+{}
 
 HRESULT ECFreeBusyUpdate::Create(IMessage* lpMessage, ECFreeBusyUpdate **lppECFreeBusyUpdate)
 {

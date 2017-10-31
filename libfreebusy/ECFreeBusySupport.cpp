@@ -37,21 +37,6 @@ ECFreeBusySupport::ECFreeBusySupport(void)
 	GetClientVersion(&m_ulOutlookVersion);
 }
 
-ECFreeBusySupport::~ECFreeBusySupport(void)
-{
-	if(m_lpFreeBusyFolder)
-		m_lpFreeBusyFolder->Release();
-
-	if(m_lpUserStore)
-		m_lpUserStore->Release();
-
-	if(m_lpPublicStore)
-		m_lpPublicStore->Release();
-
-	if(m_lpSession)
-		m_lpSession->Release();
-}
-
 HRESULT ECFreeBusySupport::Create(ECFreeBusySupport **lppECFreeBusySupport)
 {
 	return alloc_wrap<ECFreeBusySupport>().put(lppECFreeBusySupport);
@@ -83,7 +68,7 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 
 	// Hold the mapisession, the session will be released by function 'close' or 
 	// on delete the class
-	hr = lpMAPISession->QueryInterface(IID_IMAPISession, (void**)&m_lpSession);
+	hr = lpMAPISession->QueryInterface(IID_IMAPISession, &~m_lpSession);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -91,13 +76,13 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 	hr = HrOpenECPublicStoreOnline(lpMAPISession, &~lpPublicStore);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpPublicStore->QueryInterface(IID_IMsgStore, (void**)&m_lpPublicStore);
+	hr = lpPublicStore->QueryInterface(IID_IMsgStore, &~m_lpPublicStore);
 	if(hr != hrSuccess)
 		return hr;
 
 	if(lpMsgStore) {
 		//Hold the use store for update freebusy
-		hr = lpMsgStore->QueryInterface(IID_IMsgStore, (void**)&m_lpUserStore);
+		hr = lpMsgStore->QueryInterface(IID_IMsgStore, &~m_lpUserStore);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -106,24 +91,9 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 
 HRESULT ECFreeBusySupport::Close()
 {
-	if(m_lpSession)
-	{
-		m_lpSession->Release();
-		m_lpSession = NULL;
-	}
-
-	if(m_lpPublicStore)
-	{
-		m_lpPublicStore->Release();
-		m_lpPublicStore = NULL;
-	}
-
-	if(m_lpUserStore)
-	{
-		m_lpUserStore->Release();
-		m_lpUserStore = NULL;
-	}
-
+	m_lpSession.reset();
+	m_lpPublicStore.reset();
+	m_lpUserStore.reset();
 	return S_OK;
 }
 
