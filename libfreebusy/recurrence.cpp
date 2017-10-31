@@ -35,10 +35,6 @@
 
 namespace KC {
 
-recurrence::recurrence() {
-	m_ulMonth = 0x0;
-}
-
 /**
  * Load recurrence from blob property data
  *

@@ -139,13 +139,9 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
  */
 PublishFreeBusy::PublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore,
     time_t tsStart, ULONG ulMonths) :
-	m_propmap(7)
+	m_lpSession(lpSession), m_lpDefStore(lpDefStore), m_tsStart(tsStart),
+	m_tsEnd(tsStart + ulMonths * 30 * 24 * 60 * 60), m_propmap(7)
 {
-	m_lpSession = lpSession;
-	m_lpDefStore = lpDefStore;
-	m_tsStart = tsStart;
-	m_tsEnd = tsStart + (ulMonths * (30*24*60*60));
-
 	UnixTimeToFileTime(m_tsStart, &m_ftStart);
 	UnixTimeToFileTime(m_tsEnd , &m_ftEnd);
 }

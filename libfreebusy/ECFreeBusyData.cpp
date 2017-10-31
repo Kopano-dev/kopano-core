@@ -23,21 +23,10 @@
 
 namespace KC {
 
-ECFreeBusyData::ECFreeBusyData(void)
+ECFreeBusyData::ECFreeBusyData(LONG rtmStart, LONG rtmEnd,
+    const ECFBBlockList &lpfbBlockList) :
+	m_fbBlockList(lpfbBlockList), m_rtmStart(rtmStart), m_rtmEnd(rtmEnd)
 {
-	m_rtmStart = 0;
-	m_rtmEnd = 0;
-}
-
-HRESULT ECFreeBusyData::Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBlockList)
-{
-	if(lpfbBlockList == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	m_rtmStart = rtmStart;
-	m_rtmEnd = rtmEnd;
-
-	m_fbBlockList.Copy(lpfbBlockList);
-
 	// Update the start time if missing.
 	if (m_rtmStart == 0) {
 		FBBlock_1 blk;
@@ -49,12 +38,12 @@ HRESULT ECFreeBusyData::Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBloc
 	// Update the end time if missing.
 	if (m_rtmEnd == 0)
 		m_fbBlockList.GetEndTime(&m_rtmEnd);
-	return hrSuccess;
 }
 
-HRESULT ECFreeBusyData::Create(ECFreeBusyData **lppECFreeBusyData)
+HRESULT ECFreeBusyData::Create(LONG start, LONG end,
+    const ECFBBlockList &bl, ECFreeBusyData **out)
 {
-	return alloc_wrap<ECFreeBusyData>().put(lppECFreeBusyData);
+	return alloc_wrap<ECFreeBusyData>(start, end, bl).put(out);
 }
 
 HRESULT ECFreeBusyData::QueryInterface(REFIID refiid, void** lppInterface)

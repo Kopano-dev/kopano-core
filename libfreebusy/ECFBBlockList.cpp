@@ -20,18 +20,14 @@
 
 namespace KC {
 
-ECFBBlockList::ECFBBlockList(void)
-{
-	m_bInitIter = false;
-	m_FBIter = m_FBMap.end();
-	m_tmRestictStart = 0;
-	m_tmRestictEnd = 0;
-}
+ECFBBlockList::ECFBBlockList() :
+	m_FBIter(m_FBMap.end())
+{}
 
-void ECFBBlockList::Copy(ECFBBlockList *lpfbBlkList)
+ECFBBlockList::ECFBBlockList(const ECFBBlockList &o) :
+	m_FBMap(o.m_FBMap)
 {
-	this->m_FBMap = lpfbBlkList->m_FBMap;
-	this->Restrict(lpfbBlkList->m_tmRestictStart, lpfbBlkList->m_tmRestictEnd);
+	Restrict(o.m_tmRestictStart, o.m_tmRestictEnd);
 }
 
 HRESULT ECFBBlockList::Add(FBBlock_1* lpFBBlock)

@@ -37,8 +37,8 @@ typedef std::map<LONG, FBBlock_1>mapFB;
 class ECFBBlockList _kc_final {
 public:
 	ECFBBlockList(void);
-	void Copy(ECFBBlockList *lpfbBlkList);
-
+	ECFBBlockList(const ECFBBlockList &);
+	void operator=(const ECFBBlockList &) = delete; /* not implemented */
 	HRESULT Add(FBBlock_1* lpFBBlock);
 	HRESULT Next(FBBlock_1* pblk);
 	HRESULT Reset();
@@ -52,9 +52,8 @@ public:
 private:
 	mapFB			m_FBMap;
 	mapFB::iterator	m_FBIter;
-	LONG			m_tmRestictStart;
-	LONG			m_tmRestictEnd;
-	bool			m_bInitIter;
+	LONG m_tmRestictStart = 0, m_tmRestictEnd = 0;
+	bool m_bInitIter = false;
 };
 
 } /* namespace */

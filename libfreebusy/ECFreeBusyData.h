@@ -42,12 +42,8 @@ namespace KC {
  * Implementatie of the IFreeBusyData interface
  */
 class ECFreeBusyData _kc_final : public ECUnknown, public IFreeBusyData {
-private:
-	ECFreeBusyData();
 public:
-	static HRESULT Create(ECFreeBusyData **lppECFreeBusyData);
-
-	HRESULT Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBlockList);
+	static HRESULT Create(LONG start, LONG end, const ECFBBlockList &, ECFreeBusyData **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Reload(void *) { return E_NOTIMPL; }
 	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd);
@@ -60,9 +56,10 @@ public:
 	virtual HRESULT GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd);
 
 private:
+	ECFreeBusyData(LONG start, LONG end, const ECFBBlockList &);
+
 	ECFBBlockList	m_fbBlockList;
-	LONG			m_rtmStart; // PR_FREEBUSY_START_RANGE
-	LONG			m_rtmEnd; // PR_FREEBUSY_END_RANGE
+	LONG m_rtmStart = 0, m_rtmEnd = 0; /* PR_FREEBUSY_START_RANGE, PR_FREEBUSY_END_RANGE */
 	ALLOC_WRAP_FRIEND;
 };
 

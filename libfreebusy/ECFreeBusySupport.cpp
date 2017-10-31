@@ -143,9 +143,6 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 		object_ptr<IMessage> lpMessage;
 
 		if (GetFreeBusyMessage(m_lpSession, m_lpPublicStore, nullptr, rgfbuser[i].m_cbEid, rgfbuser[i].m_lpEid, false, &~lpMessage) == hrSuccess) {
-			object_ptr<ECFreeBusyData> lpECFreeBusyData;
-			ECFreeBusyData::Create(&~lpECFreeBusyData);
-
 			fbBlockList.Clear();
 
 			hr = GetFreeBusyMessageData(lpMessage, &rtmStart, &rtmEnd, &fbBlockList);
@@ -153,7 +150,8 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 				return hr;
 
 			// Add fbdata
-			lpECFreeBusyData->Init(rtmStart, rtmEnd, &fbBlockList);
+			object_ptr<ECFreeBusyData> lpECFreeBusyData;
+			ECFreeBusyData::Create(rtmStart, rtmEnd, fbBlockList, &~lpECFreeBusyData);
 			hr = lpECFreeBusyData->QueryInterface(IID_IFreeBusyData, (void**)&prgfbdata[i]);
 			if(hr != hrSuccess)
 				return hr;
