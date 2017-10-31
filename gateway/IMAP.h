@@ -327,11 +327,11 @@ private:
 	HRESULT HrFindFolderEntryID(const std::wstring &folder, ULONG *eid_size, LPENTRYID *eid);
 	HRESULT HrFindFolderPartial(const std::wstring &folder, IMAPIFolder **, std::wstring *notfound);
 	HRESULT HrFindSubFolder(IMAPIFolder *lpFolder, const std::wstring &folder, ULONG *eid_size, LPENTRYID *eid);
-	bool IsSpecialFolder(IMAPIFolder *lpFolder);
-	bool IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID);
-	bool IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID, ULONG &folder_type);
-	bool IsMailFolder(IMAPIFolder *lpFolder);
-	bool IsSentItemFolder(IMAPIFolder *lpFolder);
+	bool IsSpecialFolder(IMAPIFolder *) const;
+	bool IsSpecialFolder(ULONG eid_size, ENTRYID *) const;
+	bool IsSpecialFolder(ULONG eid_size, ENTRYID *, ULONG &folder_type) const;
+	bool IsMailFolder(IMAPIFolder *) const;
+	bool IsSentItemFolder(IMAPIFolder *) const;
 	HRESULT HrOpenParentFolder(ULONG cbEntryID, LPENTRYID lpEntryID, IMAPIFolder **lppFolder);
 	HRESULT HrOpenParentFolder(IMAPIFolder *lpFolder, IMAPIFolder **lppFolder);
 	HRESULT HrGetFolderList(std::list<SFolder> &);

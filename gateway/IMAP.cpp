@@ -3034,12 +3034,15 @@ HRESULT IMAP::HrMakeSpecialsList() {
  * 
  * @return is a special folder (true) or a custom user folder (false)
  */
-bool IMAP::IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID) {
+bool IMAP::IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID) const
+{
 	return lstSpecialEntryIDs.find(BinaryArray(reinterpret_cast<BYTE *>(lpEntryID), cbEntryID, true)) !=
 	       lstSpecialEntryIDs.end();
 }
 
-bool IMAP::IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID, ULONG &folder_type) {
+bool IMAP::IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID,
+    ULONG &folder_type) const
+{
 	auto iter = lstSpecialEntryIDs.find(BinaryArray(reinterpret_cast<BYTE *>(lpEntryID), cbEntryID, true));
 	if(iter == lstSpecialEntryIDs.cend())
 		return false;
@@ -6130,7 +6133,7 @@ HRESULT IMAP::HrFindFolderPartial(const wstring& strFolder, IMAPIFolder **lppFol
  * 
  * @return Special (true) or not (false)
  */
-bool IMAP::IsSpecialFolder(IMAPIFolder *lpFolder)
+bool IMAP::IsSpecialFolder(IMAPIFolder *lpFolder) const
 {
 	memory_ptr<SPropValue> lpProp;
 	if (HrGetOneProp(lpFolder, PR_ENTRYID, &~lpProp) != hrSuccess)
@@ -6145,7 +6148,7 @@ bool IMAP::IsSpecialFolder(IMAPIFolder *lpFolder)
  * 
  * @return may contain e-mail (true) or not (false)
  */
-bool IMAP::IsMailFolder(IMAPIFolder *lpFolder)
+bool IMAP::IsMailFolder(IMAPIFolder *lpFolder) const
 {
 	memory_ptr<SPropValue> lpProp;
 	if (HrGetOneProp(lpFolder, PR_CONTAINER_CLASS_A, &~lpProp) != hrSuccess)
@@ -6155,7 +6158,7 @@ bool IMAP::IsMailFolder(IMAPIFolder *lpFolder)
 	       strcasecmp(lpProp->Value.lpszA, "IPF.NOTE") == 0;
 }
 
-bool IMAP::IsSentItemFolder(IMAPIFolder *lpFolder)
+bool IMAP::IsSentItemFolder(IMAPIFolder *lpFolder) const
 {
     ULONG ulResult = FALSE;
 	memory_ptr<SPropValue> lpProp, lpPropStore;
