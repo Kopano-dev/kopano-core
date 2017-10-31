@@ -943,7 +943,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	hr = lpSession->OpenMsgStore(0, cbUserStoreEntryId, lpUserStoreEntryId, nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpUserStore);
 	if (hr != hrSuccess)
 		return kc_perrorf("OpenMsgStore failed", hr);
-	hr = lpUserStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryId, &~lpEntryId, NULL);
+	hr = lpUserStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryId, &~lpEntryId, nullptr);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to resolve incoming folder", hr);
 	

@@ -907,7 +907,7 @@ HRESULT ECQuotaMonitor::SendQuotaWarningMail(IMsgStore* lpMDB, ULONG cPropSize, 
 	ULONG ulObjType;
 
 	/* Get the entry id of the inbox */
-	auto hr = lpMDB->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, nullptr);
+	auto hr = lpMDB->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to resolve incoming folder, error code: 0x%08X", hr);
 		return hr;

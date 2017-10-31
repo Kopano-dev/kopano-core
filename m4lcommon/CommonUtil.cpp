@@ -2174,7 +2174,7 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 	   && bCreateIfMissing) {
 		
 		// Open the inbox
-		hr = lpMsgStore->GetReceiveFolder((LPTSTR)"", 0, &cbEntryIDInbox, &~lpEntryIDInbox, &~lpszExplicitClass);
+		hr = lpMsgStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>(""), 0, &cbEntryIDInbox, &~lpEntryIDInbox, &~lpszExplicitClass);
 		if(hr != hrSuccess)
 			return hr;
 		hr = lpMsgStore->OpenEntry(cbEntryIDInbox, lpEntryIDInbox, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, &~lpInbox);

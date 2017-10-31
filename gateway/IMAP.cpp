@@ -2820,7 +2820,7 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 	hr = HrGetSubTree(lstFolders, false, lstFolders.end());
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
+	hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	// find the inbox, and name it INBOX
@@ -2861,7 +2861,7 @@ HRESULT IMAP::HrGetSubscribedList() {
 	ULONG cb = 0;
 	
 	m_vSubscriptions.clear();
-	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
+	hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpInbox);
@@ -2909,7 +2909,7 @@ HRESULT IMAP::HrSetSubscribedList() {
 	ULONG size;
 	ULARGE_INTEGER liZero = {{0, 0}};
 
-	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
+	hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpSession->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, &~lpInbox);
@@ -3000,8 +3000,7 @@ HRESULT IMAP::HrMakeSpecialsList() {
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayStore[i].ulPropTag) == PT_BINARY)
 			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayStore[i].Value.bin.lpb, lpPropArrayStore[i].Value.bin.cb), lpPropArrayStore[i].ulPropTag);
-
-	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
+	hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -6003,7 +6002,7 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
     if(lpFolder == NULL) {
         if(wcscasecmp(strFolder.c_str(), L"INBOX") == 0) {
             // Inbox request, we know where that is.
-			return lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, lpcbEntryID, lppEntryID, nullptr);
+			return lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, lpcbEntryID, lppEntryID, nullptr);
         } else if(wcscasecmp(strFolder.c_str(), PUBLIC_FOLDERS_NAME) == 0) {
             // Public folders requested, we know where that is too
 			if (lpPublicStore == nullptr)

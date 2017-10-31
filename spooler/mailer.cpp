@@ -635,7 +635,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	};
 
 	// open inbox
-	auto hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, nullptr);
+	auto hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess) {
 		ec_log_warn("Unable to resolve incoming folder: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
