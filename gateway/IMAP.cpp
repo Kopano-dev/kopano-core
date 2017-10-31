@@ -3600,11 +3600,10 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
         }
         
         // Fetch the row data
-        if (HrPropertyFetchRow(lpProps, cValues, strResponse, mail_idx, (lpProp != NULL), lstDataItems) != hrSuccess) {
+		if (HrPropertyFetchRow(lpProps, cValues, strResponse, mail_idx, lpProp != nullptr, lstDataItems) != hrSuccess)
             lpLogger->Log(EC_LOGLEVEL_WARNING, "{?} Error fetching mail");
-        } else {
+		else
 			HrResponse(RESP_UNTAGGED, strResponse);
-        }
 	}
 
 	if (lpEntryList && lpEntryList->cValues) {

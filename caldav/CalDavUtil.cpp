@@ -235,10 +235,8 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	hr = lpHichyTable->QueryRows(1, 0, &~lpRows);
 	if (hr != hrSuccess)
 		return hr;
-
-	if (lpRows->cRows != 1) {
+	if (lpRows->cRows != 1)
 		return MAPI_E_NOT_FOUND;
-	}
 	sbEid = lpRows[0].lpProps[0].Value.bin;
 	hr = lpMsgStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
 	     &iid_of(lpUsrFld), MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(&lpUsrFld));
