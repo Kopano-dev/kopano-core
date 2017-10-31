@@ -1204,7 +1204,9 @@ HRESULT ECMsgStore::GetWrappedServerStoreEntryID(ULONG cbEntryId, LPBYTE lpEntry
  * @retval	MAPI_E_UNABLE_TO_COMPLETE	A second redirect was returned. This usually indicates a system configuration error.
  * @retval	MAPI_E_INVALID_PARAMETER	One of the parameters is invalid. This includes absent for obligatory parameters.
  */
-HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
+    const TCHAR *lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID,
+    ENTRYID **lppEntryID)
 {
 	HRESULT		hr = hrSuccess;
 	ULONG		cbStoreEntryID = 0;
@@ -1275,8 +1277,9 @@ HRESULT ECMsgStore::CreateStoreEntryID2(ULONG cValues, LPSPropValue lpProps, ULO
 
 	if (lpMsgStoreDN == NULL || lpMailboxDN == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	return CreateStoreEntryID((LPTSTR)lpMsgStoreDN->Value.lpszA, (LPTSTR)lpMailboxDN->Value.lpszA, ulFlags & ~MAPI_UNICODE, lpcbEntryID, lppEntryID);
+	return CreateStoreEntryID(reinterpret_cast<const TCHAR *>(lpMsgStoreDN->Value.lpszA),
+	       reinterpret_cast<const TCHAR *>(lpMailboxDN->Value.lpszA),
+	       ulFlags & ~MAPI_UNICODE, lpcbEntryID, lppEntryID);
 }
 
 HRESULT ECMsgStore::EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)

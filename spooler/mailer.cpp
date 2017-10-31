@@ -1251,7 +1251,7 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	hr = lpExchangeManageStore->CreateStoreEntryID(NULL, lpRepAccount->Value.LPSZ, fMapiUnicode, &ulRepStoreCB, &~lpRepStoreEID);
+	hr = lpExchangeManageStore->CreateStoreEntryID(nullptr, lpRepAccount->Value.LPSZ, fMapiUnicode, &ulRepStoreCB, &~lpRepStoreEID);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to create store entryid for representing user \"" TSTRING_PRINTF "\": %s (%x)",
 			lpRepAccount->Value.LPSZ, GetMAPIErrorMessage(hr), hr);

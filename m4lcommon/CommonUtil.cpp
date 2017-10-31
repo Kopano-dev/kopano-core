@@ -1774,7 +1774,7 @@ static HRESULT HrOpenUserMsgStore(IMAPISession *lpSession, IMsgStore *lpStore,
 	hr = lpStore->QueryInterface(IID_IExchangeManageStore, &~lpExchManageStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpExchManageStore->CreateStoreEntryID(NULL, (LPTSTR)lpszUser, MAPI_UNICODE, &cbStoreEntryID, &~lpStoreEntryID);
+	hr = lpExchManageStore->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(lpszUser), MAPI_UNICODE, &cbStoreEntryID, &~lpStoreEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpSession->OpenMsgStore(0, cbStoreEntryID, lpStoreEntryID, &IID_IMsgStore, MDB_WRITE, &~lpMsgStore);
@@ -2392,10 +2392,10 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 		return hr;
 	if (ulFlags & MAPI_UNICODE) {
 		std::wstring strMsgStoreDN = std::wstring(L"cn=") + (LPCWSTR)lpszServerName + L"/cn=Microsoft Private MDB";
-		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)L"SYSTEM", MAPI_UNICODE|OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
+		hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(strMsgStoreDN.c_str()), reinterpret_cast<const TCHAR *>(L"SYSTEM"), MAPI_UNICODE | OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
 	} else {
 		std::string strMsgStoreDN = std::string("cn=") + (LPCSTR)lpszServerName + "/cn=Microsoft Private MDB";
-		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)"SYSTEM", OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
+		hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(strMsgStoreDN.c_str()), reinterpret_cast<const TCHAR *>("SYSTEM"), OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
 	}
 	if (hr != hrSuccess)
 		return hr;

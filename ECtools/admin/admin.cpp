@@ -1169,7 +1169,7 @@ static HRESULT GetPublicStore(LPMAPISESSION lpSession, LPMDB lpMsgStore,
 	auto hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)strCompanyname.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
+	hr = lpIEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(L""), reinterpret_cast<const TCHAR *>(strCompanyname.c_str()), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	return lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, lppPublicStore);
@@ -1366,7 +1366,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 			cerr << "Unable to get admin interface." << endl;
 			return hr;
 		}
-		hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", lpECCompany->lpszCompanyname, 0, &cbEntryID, &~lpEntryID);
+		hr = lpIEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(""), lpECCompany->lpszCompanyname, 0, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess) {
 			cerr << "Unable to get company store entry id. Company possibly has no store." << endl;
 			return hr;
@@ -1436,7 +1436,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 			cerr << "Unable to get admin interface." << endl;
 			return hr;
 		}
-		hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", lpECUser->lpszUsername, 0, &cbEntryID, &~lpEntryID);
+		hr = lpIEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(""), lpECUser->lpszUsername, 0, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess) {
 			cerr << "WARNING: Unable to get user store entry id. User possibly has no store." << endl << endl;
 			lpStore.reset();
@@ -1706,7 +1706,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	auto hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrEMS->CreateStoreEntryID((LPTSTR)lpszHomeMDB, (LPTSTR)lpszAccount, 0, &cbEntryID, &~ptrEntryID);
+	hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(lpszHomeMDB), reinterpret_cast<const TCHAR *>(lpszAccount), 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, NULL, MDB_WRITE|MAPI_DEFERRED_ERRORS, &~ptrUserStore);
@@ -2012,7 +2012,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	auto hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrEMS->CreateStoreEntryID(NULL, (LPTSTR)lpszAccount, 0, &cbEntryID, &~ptrEntryID);
+	hr = ptrEMS->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(lpszAccount), 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess) {
 		cerr << "Unable to resolve store for '" << lpszAccount << "'." << endl;
 		return hr;
@@ -3364,7 +3364,7 @@ int main(int argc, char* argv[])
 					goto exit;
 
 				// do not redirect to another server, unhook works on the server it's connected to
-				hr = lpIEMS->CreateStoreEntryID(NULL, reinterpret_cast<LPTSTR>(username), OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~lpStoreId);
+				hr = lpIEMS->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(username), OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~lpStoreId);
 				if (hr != hrSuccess) {
 					if (hr == MAPI_E_NOT_FOUND)
 						cout << "Unable to unhook store. User '" << username << "' has no store attached." << endl;
@@ -3525,7 +3525,7 @@ int main(int argc, char* argv[])
 				cerr << "Unable to get admin interface." << endl;
 				goto exit;
 			}
-			hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", (LPTSTR)username, 0, &cbEntryID, &~lpEntryID);
+			hr = lpIEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(""), reinterpret_cast<const TCHAR *>(username), 0, &cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess) {
 				cerr << "Unable to get user store entry id. User has possibly has not store." << endl;
 				goto exit;

@@ -1000,7 +1000,7 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 	auto hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrEMS->CreateStoreEntryID((LPTSTR)"", szStoreName,
+	hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(""), szStoreName,
 	     OPENSTORE_HOME_LOGON, &cbUserStoreEntryID, &~ptrUserStoreEntryID);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_NOT_FOUND)

@@ -1813,7 +1813,7 @@ ZEND_FUNCTION(mapi_msgstore_createentryid)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "IExchangeManageStore interface was not supported by given store.");
 		goto exit;
 	}
-	MAPI_G(hr) = lpEMS->CreateStoreEntryID((LPTSTR)"", (LPTSTR)sMailboxDN, 0, &cbEntryID, &~lpEntryID);
+	MAPI_G(hr) = lpEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(""), reinterpret_cast<const TCHAR *>(sMailboxDN), 0, &cbEntryID, &~lpEntryID);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 

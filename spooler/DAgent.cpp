@@ -937,7 +937,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	auto hr = lpAdminStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 	if (hr != hrSuccess)
 		return kc_perrorf("QueryInterface failed", hr);
-	hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)lpRecip->wstrUsername.c_str(), MAPI_UNICODE | OPENSTORE_HOME_LOGON, &cbUserStoreEntryId, &~lpUserStoreEntryId);
+	hr = lpIEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(L""), reinterpret_cast<const TCHAR *>(lpRecip->wstrUsername.c_str()), MAPI_UNICODE | OPENSTORE_HOME_LOGON, &cbUserStoreEntryId, &~lpUserStoreEntryId);
 	if (hr != hrSuccess)
 		return kc_perrorf("CreateStoreEntry failed", hr);
 	hr = lpSession->OpenMsgStore(0, cbUserStoreEntryId, lpUserStoreEntryId, nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpUserStore);
