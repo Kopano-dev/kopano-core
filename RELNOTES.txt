@@ -82,6 +82,10 @@ Fixes:
 * gateway: fix infinite loop when UID ranges are inverted [KS-38641]
 * extra nullptr checks in Util::HrCopyProperty [KC-826]
 * server: removing user from folder permission broke [KC-844]
+* ldapplugin: fix out-of-bounds reads in SMD5 and SSHA password check
+* ldapplugin: avoid triggering crash in DES_fcrypt
+* ldapplugin: fix truncated SMD5 hash comparison
+* ldapplugin: fix out-of-bounds in b64_encode
 
 
 Release notes for 8.3.4 (2017-09-01)
