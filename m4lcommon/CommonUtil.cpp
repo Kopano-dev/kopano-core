@@ -149,9 +149,8 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 		ec_log_crit("CreateProfileTemp(): MAPIAdminProfiles failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
-
-	lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
-	hr = lpProfAdmin->CreateProfile((LPTSTR)szProfName, (LPTSTR)"", 0, 0);
+	lpProfAdmin->DeleteProfile(reinterpret_cast<const TCHAR *>(szProfName), 0);
+	hr = lpProfAdmin->CreateProfile(reinterpret_cast<const TCHAR *>(szProfName), reinterpret_cast<const TCHAR *>(""), 0, 0);
 	if (hr != hrSuccess) {
 		ec_log_crit("CreateProfileTemp(): CreateProfile failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
@@ -240,7 +239,7 @@ static HRESULT DeleteProfileTemp(const char *szProfName)
 	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
 	if (hr != hrSuccess)
 		return hr;
-	return lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
+	return lpProfAdmin->DeleteProfile(reinterpret_cast<const TCHAR *>(szProfName), 0);
 }
 
 HRESULT HrOpenECAdminSession(IMAPISession **lppSession,
