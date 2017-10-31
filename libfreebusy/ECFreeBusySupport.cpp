@@ -53,7 +53,6 @@ HRESULT ECFreeBusySupport::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgStore, BOOL bStore)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMsgStore> lpPublicStore;
 
 	if(lpMAPISession == NULL)
@@ -68,7 +67,7 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 
 	// Hold the mapisession, the session will be released by function 'close' or 
 	// on delete the class
-	hr = lpMAPISession->QueryInterface(IID_IMAPISession, &~m_lpSession);
+	auto hr = lpMAPISession->QueryInterface(IID_IMAPISession, &~m_lpSession);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -79,13 +78,9 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 	hr = lpPublicStore->QueryInterface(IID_IMsgStore, &~m_lpPublicStore);
 	if(hr != hrSuccess)
 		return hr;
-
-	if(lpMsgStore) {
+	if (lpMsgStore != nullptr)
 		//Hold the use store for update freebusy
 		hr = lpMsgStore->QueryInterface(IID_IMsgStore, &~m_lpUserStore);
-		if(hr != hrSuccess)
-			return hr;
-	}
 	return hr;
 }
 
@@ -99,7 +94,6 @@ HRESULT ECFreeBusySupport::Close()
 
 HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata, HRESULT *phrStatus, ULONG *pcRead)
 {
-	HRESULT			hr = S_OK;
 	ULONG			ulFindUsers = 0;
 	ECFBBlockList	fbBlockList;
 	LONG			rtmStart = 0;
@@ -114,8 +108,7 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 
 		if (GetFreeBusyMessage(m_lpSession, m_lpPublicStore, nullptr, rgfbuser[i].m_cbEid, rgfbuser[i].m_lpEid, false, &~lpMessage) == hrSuccess) {
 			fbBlockList.Clear();
-
-			hr = GetFreeBusyMessageData(lpMessage, &rtmStart, &rtmEnd, &fbBlockList);
+			auto hr = GetFreeBusyMessageData(lpMessage, &rtmStart, &rtmEnd, &fbBlockList);
 			if(hr != hrSuccess)
 				return hr;
 
@@ -134,8 +127,7 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 
 	if(pcRead)
 		*pcRead = ulFindUsers;
-
-	return hr;
+	return S_OK;
 }
 
 HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4)
@@ -174,7 +166,6 @@ HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFr
 
 HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IFreeBusyData> lpFBData;
 	HRESULT ulStatus = 0;
 	ULONG ulRead = 0;
@@ -298,7 +289,7 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 	// doesn't seem to matter when booking resources, so it looks like these values are ignored.
 
 	// We'll get the values anyway just to be sure.
-	hr = LoadFreeBusyData(1, &sFBUser, &~lpFBData, &ulStatus, &ulRead);
+	auto hr = LoadFreeBusyData(1, &sFBUser, &~lpFBData, &ulStatus, &ulRead);
 	if(hr != hrSuccess)
 		return hr;
 	if (ulRead != 1)
