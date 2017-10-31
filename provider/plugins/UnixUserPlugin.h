@@ -47,7 +47,7 @@ namespace KC {
  * Extra attributes, such as email addresses, are stored in the objectproperty
  * tables, which are always present. It's exactly the same as the DBUserPlugin.
  */
-class UnixUserPlugin: public DBPlugin {
+class UnixUserPlugin final : public DBPlugin {
 public:
     /**
 	 * @param[in]	pluginlock
@@ -58,7 +58,6 @@ public:
 	 * @throw notsupported When multi-server or multi-company support is enabled.
 	 */
 	UnixUserPlugin(std::mutex &, ECPluginSharedData *lpSharedData);
-	virtual ~UnixUserPlugin();
 
     /**
 	 * Initialize plugin
@@ -311,7 +310,7 @@ public:
 										 const objectid_t &parentobject, const objectid_t &childobject);
 
 private:
-	ECIConv *m_iconv = nullptr;
+	std::unique_ptr<ECIConv> m_iconv;
 
 	/**
 	 * Find a user with specific name

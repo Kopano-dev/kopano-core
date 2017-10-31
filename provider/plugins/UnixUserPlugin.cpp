@@ -104,17 +104,11 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
 		throw notsupported("Distributed Kopano not supported when using the Unix Plugin");
 }
 
-UnixUserPlugin::~UnixUserPlugin()
-{
-	delete m_iconv;
-}
-
 void UnixUserPlugin::InitPlugin() {
 	DBPlugin::InitPlugin();
 
 	// we only need unix_charset -> kopano charset
-	m_iconv = new ECIConv("utf-8", m_config->GetSetting("fullname_charset"));
-
+	m_iconv.reset(new ECIConv("utf-8", m_config->GetSetting("fullname_charset")));
 	if (!m_iconv -> canConvert())
 		throw runtime_error(string("Cannot setup charset converter, check \"fullname_charset\" in cfg"));
 }
@@ -125,7 +119,6 @@ void UnixUserPlugin::findUserID(const string &id, struct passwd *pwd, char *buff
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
 	auto exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
-	objectid_t objectid;
 	int ret = getpwuid_r(atoi(id.c_str()), pwd, buffer, PWBUFSIZE, &pw);
 	if (ret != 0)
 		errnoCheck(id, ret);
@@ -146,7 +139,6 @@ void UnixUserPlugin::findUser(const string &name, struct passwd *pwd, char *buff
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
 	auto exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
-	objectid_t objectid;
 	int ret = getpwnam_r(name.c_str(), pwd, buffer, PWBUFSIZE, &pw);
 	if (ret != 0)
 		errnoCheck(name, ret);
@@ -167,7 +159,6 @@ void UnixUserPlugin::findGroupID(const string &id, struct group *grp, char *buff
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
 	auto exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
-	objectid_t objectid;
 	int ret = getgrgid_r(atoi(id.c_str()), grp, buffer, PWBUFSIZE, &gr);
 	if (ret != 0)
 		errnoCheck(id, ret);
@@ -188,7 +179,6 @@ void UnixUserPlugin::findGroup(const string &name, struct group *grp, char *buff
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
 	auto exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
-	objectid_t objectid;
 	int ret = getgrnam_r(name.c_str(), grp, buffer, PWBUFSIZE, &gr);
 	if (ret != 0)
 		errnoCheck(name, ret);
@@ -227,12 +217,9 @@ objectsignature_t UnixUserPlugin::resolveGroupName(const string &name)
 {
 	char buffer[PWBUFSIZE];
 	struct group grp;
-	objectid_t objectid;
   
 	findGroup(name, &grp, buffer);
-
-	objectid = objectid_t(tostring(grp.gr_gid), DISTLIST_SECURITY);
-	return objectsignature_t(objectid, grp.gr_name);
+	return objectsignature_t(objectid_t(tostring(grp.gr_gid), DISTLIST_SECURITY), grp.gr_name);
 }
 
 objectsignature_t UnixUserPlugin::resolveName(objectclass_t objclass, const string &name, const objectid_t &company)
@@ -289,9 +276,6 @@ objectsignature_t UnixUserPlugin::authenticateUser(const string &username, const
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
 	auto exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
 	std::unique_ptr<struct crypt_data> cryptdata;
-	std::unique_ptr<objectdetails_t> ud;
-	objectid_t objectid;
-	const char *crpw = NULL;
 
 	cryptdata.reset(new struct crypt_data); // malloc because it is > 128K !
 	memset(cryptdata.get(), 0, sizeof(struct crypt_data));
@@ -311,19 +295,18 @@ objectsignature_t UnixUserPlugin::authenticateUser(const string &username, const
 	if (shell_to_class(m_config, pw->pw_shell) != ACTIVE_USER)
 		throw login_error("Non-active user disallowed to login");
 
-	ud = objectdetailsFromPwent(pw);
-	crpw = crypt_r(password.c_str(), ud->GetPropString(OB_PROP_S_PASSWORD).c_str(), cryptdata.get());
+	auto ud = objectdetailsFromPwent(pw);
+	auto crpw = crypt_r(password.c_str(), ud->GetPropString(OB_PROP_S_PASSWORD).c_str(), cryptdata.get());
 
 	if (!crpw || strcmp(crpw, ud->GetPropString(OB_PROP_S_PASSWORD).c_str()))
 		throw login_error("Trying to authenticate failed: wrong username or password");
 
-	objectid = objectid_t(tostring(pw->pw_uid), ACTIVE_USER);
+	objectid_t objectid{tostring(pw->pw_uid), ACTIVE_USER};
 	return objectsignature_t(objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name);
 }
 
 bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, unsigned int ulFlags)
 {
-	string email;
 	bool matched = false;
 
 	// username or fullname
@@ -339,25 +322,17 @@ bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, uns
 	if (matched)
 		return matched;
 
-	email = string(pw->pw_name) + "@" + m_config->GetSetting("default_domain");
+	auto email = std::string(pw->pw_name) + "@" + m_config->GetSetting("default_domain");
 	if(ulFlags & EMS_AB_ADDRESS_LOOKUP)
-		matched = (email == match);
-	else
-		matched = (strncasecmp((char*)email.c_str(), (char*)match.c_str(), match.size()) == 0);
-
-	return matched;
+		return email == match;
+	return strncasecmp(email.c_str(), match.c_str(), match.size()) == 0;
 }
 
 bool UnixUserPlugin::matchGroupObject(struct group *gr, const string &match, unsigned int ulFlags)
 {
-	bool matched = false;
-
 	if(ulFlags & EMS_AB_ADDRESS_LOOKUP)
-		matched = strcasecmp(gr->gr_name, (char*)match.c_str()) == 0;
-	else
-		matched = strncasecmp(gr->gr_name, (char*)match.c_str(), match.size()) == 0;
-
-	return matched;
+		return strcasecmp(gr->gr_name, match.c_str()) == 0;
+	return strncasecmp(gr->gr_name, match.c_str(), match.size()) == 0;
 }
 
 std::unique_ptr<signatures_t>
@@ -372,7 +347,6 @@ UnixUserPlugin::getAllUserObjects(const std::string &match,
 	auto forbid_sh = tokenize(m_config->GetSetting("non_login_shell"), ' ', true);
 	auto exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
 	std::set<uid_t> exceptuidset;
-	objectid_t objectid;
 
 	transform(exceptuids.begin(), exceptuids.end(), inserter(exceptuidset, exceptuidset.begin()), fromstring<const std::string,uid_t>);
 
@@ -441,14 +415,11 @@ std::unique_ptr<signatures_t>
 UnixUserPlugin::getAllObjects(const objectid_t &companyid,
     objectclass_t objclass)
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<signatures_t> objectlist(new signatures_t());
 	std::unique_ptr<signatures_t> objects;
 	std::map<objectclass_t, std::string> objectstrings;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
-	string strQuery;
-	string strSubQuery;
 	unsigned int ulRows = 0;
 
 	if (companyid.id.empty())
@@ -492,7 +463,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	}
 
 	// make list of obsolete objects
-	strQuery = "SELECT id, objectclass FROM " + (string)DB_OBJECT_TABLE + " WHERE ";
+	auto strQuery = "SELECT id, objectclass FROM " + std::string(DB_OBJECT_TABLE) + " WHERE ";
 	for (auto iterStrings = objectstrings.cbegin();
 	     iterStrings != objectstrings.cend(); ++iterStrings) {
 		if (iterStrings != objectstrings.cbegin())
@@ -502,7 +473,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 			 "AND " + OBJECTCLASS_COMPARE_SQL("objectclass", iterStrings->first) + ")";
 	}
 
-	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
+	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
 		ec_log_err("Unix plugin: Unable to cleanup old entries");
 		return objectlist;
@@ -539,7 +510,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	}
 
 	// Create subquery to select all ids which will be deleted
-	strSubQuery =
+	auto strSubQuery =
 		"SELECT o.id "
 		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
 		"WHERE ";
@@ -579,14 +550,11 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 std::unique_ptr<objectdetails_t>
 UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 {
-	ECRESULT er = erSuccess;
 	char buffer[PWBUFSIZE];
 	std::unique_ptr<objectdetails_t> ud;
 	struct passwd pws;
 	struct group grp;
 	DB_RESULT lpResult;
-	DB_ROW lpRow = NULL;
-	string strQuery;
 
 	LOG_PLUGIN_DEBUG("%s for externid %s, class %d", __FUNCTION__, bin2hex(externid.id).c_str(), externid.objclass);
 
@@ -611,12 +579,11 @@ UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 
 	auto id = m_lpDatabase->Escape(externid.id);
 	auto objclass = stringify(externid.objclass);
-
-	strQuery = "SELECT id FROM " + (string)DB_OBJECT_TABLE + " WHERE externid = '" + id + "' AND objectclass = " + objclass;
-	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
+	auto strQuery = "SELECT id FROM " + std::string(DB_OBJECT_TABLE) + " WHERE externid = '" + id + "' AND objectclass = " + objclass;
+	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(externid.id);
-	lpRow = lpResult.fetch_row();
+	auto lpRow = lpResult.fetch_row();
 	if (lpRow && lpRow[0]) {
 		strQuery = "UPDATE " + (string)DB_OBJECT_TABLE + " SET externid='" + id + "',objectclass=" + objclass + " WHERE id=" + lpRow[0];
 		er = m_lpDatabase->DoUpdate(strQuery);
@@ -678,7 +645,6 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
 	auto exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
 	std::set<gid_t> exceptgidset;
-	string username;
 
 	if (relation != OBJECTRELATION_GROUP_MEMBER)
 		return DBPlugin::getParentObjectsForObject(relation, childid);
@@ -686,7 +652,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	LOG_PLUGIN_DEBUG("%s Relation: Group member", __FUNCTION__);
 
 	findUserID(childid.id, &pws, buffer);
-	username = pws.pw_name; // make sure we have a _copy_ of the string, not just another pointer
+	std::string username = pws.pw_name; // make sure we have a _copy_ of the string, not just another pointer
 
 	try {
 		findGroupID(tostring(pws.pw_gid), &grs, buffer);
@@ -813,21 +779,18 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	char buffer[PWBUFSIZE];
 	struct passwd pws, *pw = NULL;
 	std::unique_ptr<signatures_t> objectlist(new signatures_t());
-	std::unique_ptr<signatures_t> objects;
 
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
 	ulock_normal biglock(m_plugin_lock);
-	objects = getAllUserObjects(match, ulFlags);
-	objectlist->merge(*objects.get());
-	objects = getAllGroupObjects(match, ulFlags);
-	objectlist->merge(*objects.get());
+	objectlist->merge(*getAllUserObjects(match, ulFlags));
+	objectlist->merge(*getAllGroupObjects(match, ulFlags));
 	biglock.unlock();
 
 	// See if we get matches based on database details as well
 	try {
 		static constexpr const char *const search_props[] = {OP_EMAILADDRESS, nullptr};
-		objects = DBPlugin::searchObjects(match, search_props, NULL, ulFlags);
+		auto objects = DBPlugin::searchObjects(match, search_props, nullptr, ulFlags);
 
 		for (const auto &sig : *objects) {
 			// the DBPlugin returned the DB signature, so we need to prepend this with the gecos signature
@@ -899,15 +862,13 @@ std::unique_ptr<objectdetails_t>
 UnixUserPlugin::objectdetailsFromPwent(struct passwd *pw)
 {
 	std::unique_ptr<objectdetails_t> ud(new objectdetails_t());
-	string gecos;
-	size_t comma;
 
 	ud->SetPropString(OB_PROP_S_LOGIN, string(pw->pw_name));
 	ud->SetClass(shell_to_class(m_config, pw->pw_shell));
-	gecos = m_iconv->convert(pw->pw_gecos);
+	auto gecos = m_iconv->convert(pw->pw_gecos);
 
 	// gecos may contain room/phone number etc. too
-	comma = gecos.find(",");
+	auto comma = gecos.find(",");
 	if (comma != string::npos)
 		ud->SetPropString(OB_PROP_S_FULLNAME, gecos.substr(0,comma));
 	else
@@ -956,12 +917,8 @@ UnixUserPlugin::objectdetailsFromGrent(struct group *gr)
 
 std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 {
-	string strQuery;
 	DB_RESULT lpResult;
-	DB_ROW lpDBRow = NULL;
-	ECRESULT er = erSuccess;
-
-	strQuery =
+	auto strQuery =
 		"SELECT op.value "
 		"FROM " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
 		"JOIN " + (string)DB_OBJECT_TABLE + " AS o "
@@ -970,10 +927,10 @@ std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 			"AND o.objectclass = " + stringify(id.objclass) + " "
 			"AND op.propname = '" + OP_MODTIME + "'";
 
-	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
+	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		return string();
-	lpDBRow = lpResult.fetch_row();
+	auto lpDBRow = lpResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL)
 		return string();
 
@@ -985,8 +942,7 @@ void UnixUserPlugin::errnoCheck(const std::string &user, int e) const
 	if (e == 0)
 		return;
 	char buffer[256];
-	char *retbuf;
-	retbuf = strerror_r(e, buffer, 256);
+	auto retbuf = strerror_r(e, buffer, sizeof(buffer));
 
 	// from the getpwnam() man page: (notice the last or...)
 	//  ERRORS

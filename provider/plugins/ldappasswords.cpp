@@ -38,11 +38,7 @@ static int password_check_crypt(const char *data, unsigned int len, const char *
 	salt[1] = crypted[1] & 0x7F;
 	salt[2] = 0;
 	DES_fcrypt(data, salt, cryptbuf);
-
-	if (!strcmp(cryptbuf, crypted))
-		return 0;
-	else
-		return 1;
+	return strcmp(cryptbuf, crypted);
 }
 
 static int password_check_md5(const char *data, unsigned int len, const char *crypted) {

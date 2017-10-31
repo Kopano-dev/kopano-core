@@ -492,11 +492,9 @@ public:
 
 	// Cache user information
 	ECRESULT GetUserDetails(unsigned int ulUserId, objectdetails_t *details);
-	ECRESULT SetUserDetails(unsigned int, const objectdetails_t *);
-
+	ECRESULT SetUserDetails(unsigned int, const objectdetails_t &);
 	ECRESULT GetACLs(unsigned int ulObjId, struct rightsArray **lppRights);
-	ECRESULT SetACLs(unsigned int ulObjId, const struct rightsArray *);
-
+	ECRESULT SetACLs(unsigned int ulObjId, const struct rightsArray &);
 	ECRESULT GetQuota(unsigned int ulUserId, bool bIsDefaultQuota, quotadetails_t *quota);
 	ECRESULT SetQuota(unsigned int ulUserId, bool bIsDefaultQuota, const quotadetails_t &);
 
@@ -557,7 +555,7 @@ private:
 	ECRESULT I_AddUEIdObject(const std::string &ext_id, const objectclass_t &, unsigned int company_id, unsigned int user_id, const std::string &signature);
 	ECRESULT I_GetUEIdObject(const std::string &ext_id, objectclass_t, unsigned int *company_id, unsigned int *user_id, std::string *signature);
 	ECRESULT I_DelUEIdObject(const std::string &ext_id, objectclass_t);
-	ECRESULT I_AddUserObjectDetails(unsigned int, const objectdetails_t *);
+	ECRESULT I_AddUserObjectDetails(unsigned int, const objectdetails_t &);
 	ECRESULT I_GetUserObjectDetails(unsigned int user_id, objectdetails_t *);
 	ECRESULT I_DelUserObjectDetails(unsigned int user_id);
 	ECRESULT I_DelCell(unsigned int obj_id);
@@ -565,7 +563,7 @@ private:
 	ECRESULT I_DelQuota(unsigned int user_id, bool bIsDefaultQuota);
 
 	// Cache Index properties
-	ECRESULT I_AddIndexData(const ECsIndexObject *, const ECsIndexProp *);
+	ECRESULT I_AddIndexData(const ECsIndexObject &, const ECsIndexProp &);
 
 	ECDatabaseFactory*	m_lpDatabaseFactory;
 	std::recursive_mutex m_hCacheMutex; /* Store, Object, User, ACL, server cache */
