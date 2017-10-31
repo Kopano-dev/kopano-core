@@ -5523,7 +5523,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 		goto exit;
 
 	// Check if there's already a store for the user or group
-	strQuery = "SELECT 0 FROM stores WHERE (type="+stringify(ulStoreType)+" AND user_id="+stringify(ulUserId)+") OR guid="+lpDatabase->EscapeBinary((unsigned char*)&guidStore , sizeof(GUID)) + " LIMIT 1";
+	strQuery = "SELECT 0 FROM stores WHERE (type=" + stringify(ulStoreType) + " AND user_id=" + stringify(ulUserId) + ") OR guid=" + lpDatabase->EscapeBinary(&guidStore, sizeof(GUID)) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
@@ -5615,7 +5615,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 		stringify(ulStoreType) + ", " +
 		"'" + lpDatabase->Escape(userDetails.GetPropString(OB_PROP_S_LOGIN)) + "', " +
 		stringify(ulCompanyId) + ", " +
-		lpDatabase->EscapeBinary((unsigned char*)&guidStore , sizeof(GUID))+")";
+		lpDatabase->EscapeBinary(&guidStore, sizeof(GUID)) + ")";
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		goto exit;
@@ -8785,7 +8785,7 @@ SOAP_ENTRY_START(removeStore, *result, struct xsd__base64Binary sStoreGuid, unsi
 		goto exit;
 
 	// Remove the store entry
-	strQuery = "DELETE FROM stores WHERE guid=" + lpDatabase->EscapeBinary((unsigned char*)lpDBRow[1], lpDBLen[1]);
+	strQuery = "DELETE FROM stores WHERE guid=" + lpDatabase->EscapeBinary(lpDBRow[1], lpDBLen[1]);
 	er = lpDatabase->DoDelete(strQuery);
 	if(er != erSuccess)
 		goto exit;

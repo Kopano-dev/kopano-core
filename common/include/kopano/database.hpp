@@ -82,7 +82,7 @@ class _kc_export KDatabase {
 	virtual ECRESULT DoSequence(const std::string &seq, unsigned int count, unsigned long long *first_id);
 	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affect = nullptr);
 	std::string Escape(const std::string &);
-	std::string EscapeBinary(const unsigned char *, size_t);
+	std::string EscapeBinary(const void *, size_t);
 	std::string EscapeBinary(const std::string &);
 	const char *GetError(void);
 	DB_ERROR GetLastError(void);

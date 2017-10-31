@@ -398,7 +398,7 @@ std::string KDatabase::Escape(const std::string &s)
 	return esc.get();
 }
 
-std::string KDatabase::EscapeBinary(const unsigned char *data, size_t len)
+std::string KDatabase::EscapeBinary(const void *data, size_t len)
 {
 	auto size = len * 2 + 1;
 	std::unique_ptr<char[]> esc(new char[size]);

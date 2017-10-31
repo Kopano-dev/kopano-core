@@ -298,8 +298,8 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	// Check the database
 	strQuery = 
 		"SELECT id FROM names "
-			"WHERE nameid=" + stringify(ulNameId) +
-			" AND guid=" + m_lpDatabase->EscapeBinary((unsigned char*)&guid, sizeof(guid));
+		"WHERE nameid=" + stringify(ulNameId) +
+		" AND guid=" + m_lpDatabase->EscapeBinary(&guid, sizeof(guid));
 
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
@@ -317,8 +317,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 		// Create the named property
 		strQuery = 
 			"INSERT INTO names (nameid, guid) "
-				"VALUES(" + stringify(ulNameId) + "," + m_lpDatabase->EscapeBinary((unsigned char*)&guid, sizeof(guid)) + ")";
-		
+			"VALUES(" + stringify(ulNameId) + "," + m_lpDatabase->EscapeBinary(&guid, sizeof(guid)) + ")";
 		er = m_lpDatabase->DoInsert(strQuery, lpulId);
 		if (er != erSuccess)
 			return er;
@@ -348,9 +347,8 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	// Check the database
 	strQuery = 
 		"SELECT id FROM names "
-			"WHERE namestring='" + m_lpDatabase->Escape(strNameString) + "'"
-			" AND guid=" + m_lpDatabase->EscapeBinary((unsigned char*)&guid, sizeof(guid));
-
+		"WHERE namestring='" + m_lpDatabase->Escape(strNameString) + "'"
+		" AND guid=" + m_lpDatabase->EscapeBinary(&guid, sizeof(guid));
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		return er;
@@ -367,8 +365,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 		// Create the named property
 		strQuery = 
 			"INSERT INTO names (namestring, guid) "
-				"VALUES('" + m_lpDatabase->Escape(strNameString) + "'," + m_lpDatabase->EscapeBinary((unsigned char*)&guid, sizeof(guid)) + ")";
-		
+			"VALUES('" + m_lpDatabase->Escape(strNameString) + "'," + m_lpDatabase->EscapeBinary(&guid, sizeof(guid)) + ")";
 		er = m_lpDatabase->DoInsert(strQuery, lpulId);
 		if (er != erSuccess)
 			return er;

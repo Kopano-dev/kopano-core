@@ -4337,7 +4337,7 @@ ECRESULT ECUserManagement::ProcessModification(unsigned int ulId, const std::str
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->DoUpdate("UPDATE users SET signature=" + lpDatabase->EscapeBinary((unsigned char *)newsignature.c_str(), newsignature.size()) + " WHERE id=" + stringify(ulId));
+	er = lpDatabase->DoUpdate("UPDATE users SET signature=" + lpDatabase->EscapeBinary(newsignature.c_str(), newsignature.size()) + " WHERE id=" + stringify(ulId));
 	if(er != erSuccess)
 		return er;
 	return m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulId);
