@@ -251,10 +251,10 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
 	ulock_normal biglock(m_hMutex);
 	if (!fNonBlock) {
 		while (m_lstNotifs.empty() && !m_bExit && (timeout == 0 || GetTimeOfDay() < now))
-			if (timeout > 0)
-				m_hCond.wait_for(biglock, std::chrono::milliseconds(timeout));
-			else
+			if (timeout == 0)
 				m_hCond.wait(biglock);
+			else if (m_hCond.wait_for(biglock, std::chrono::milliseconds(timeout)) == std::cv_status::timeout)
+				/* ignore status, we only wanted to wait */;
 	}
     
 	memory_ptr<NOTIFICATION> lpNotifications;

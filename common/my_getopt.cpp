@@ -41,8 +41,8 @@ int my_getopt_long_permissive(int argc, char **argv, const char *shortopts,
 	// Show error
 	if (c == '?') {
 		optind = saved_optind;
-
-		getopt_long(argc, argv, shortopts, longopts, longind);
+		if (getopt_long(argc, argv, shortopts, longopts, longind) != 0)
+			/* ignore return value */;
 	}
 
 	return c;
