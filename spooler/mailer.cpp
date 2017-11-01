@@ -1949,7 +1949,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	HrGetOneProp(lpMessage, PR_PARENT_ENTRYID, &~parent_entryid);
 
 	if (outbox_entryid && parent_entryid &&
-	    memcmp(outbox_entryid->Value.bin.lpb, parent_entryid->Value.bin.lpb, outbox_entryid->Value.bin.cb) != 0) {
+	    (outbox_entryid->Value.bin.cb != parent_entryid->Value.bin.cb ||
+	    memcmp(outbox_entryid->Value.bin.lpb, parent_entryid->Value.bin.lpb, outbox_entryid->Value.bin.cb) != 0)) {
 		ec_log_err("Message is not in outbox, will not send");
 		doSentMail = false;
 		goto exit;
