@@ -1,5 +1,5 @@
-Release notes for 8.4.1
-=======================
+Release notes for 8.4.1 (2017-11-01)
+====================================
 Fixes:
 * Avoid calling srand with 1-second-granular time
 * inetmapi: handle empty/invalid Sender in RFC2822 mails [KC-263]
@@ -75,8 +75,8 @@ Packager notes:
 * python/swig is now optional [KC-753]
 
 
-Release notes for 8.3.5 (unreleased)
-====================================
+Release notes for 8.3.5 (unreleased/state of 2017-10-31)
+========================================================
 Fixes:
 * server: complete signal blocking [KC-779]
 * ical: avoid freeing garbage pointers [KC-803]
