@@ -1623,11 +1623,15 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 			snprintf(szBuffer, 10, "%u", ulMessages);
 			strResponse += szBuffer;
 		} else if (strData.compare("RECENT") == 0) {
-			get_recent(lpStatusFolder, strTag, ulRecent, ulMessages);
+			hr = get_recent(lpStatusFolder, strTag, ulRecent, ulMessages);
+			if (hr != hrSuccess)
+				return hr;
 			snprintf(szBuffer, 10, "%u", ulRecent);
 			strResponse += szBuffer;
 		} else if (strData.compare("UIDNEXT") == 0) {
-			get_uid_next(lpStatusFolder, strTag, ulUIDNext);
+			hr = get_uid_next(lpStatusFolder, strTag, ulUIDNext);
+			if (hr != hrSuccess)
+				return hr;
 			snprintf(szBuffer, 10, "%u", ulUIDNext);
 			strResponse += szBuffer;
 		} else if (strData.compare("UIDVALIDITY") == 0) {

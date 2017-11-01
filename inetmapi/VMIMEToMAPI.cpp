@@ -742,7 +742,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			// The original sender of the mail account (if non sender exist then the FROM)
 			strSenderEmail = vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getEmail().toString();
 			if (vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName().isEmpty() &&
-			    (strSenderEmail.empty() || strSenderEmail == "@")) {
+			    (strSenderEmail.empty() || strSenderEmail == "@" || strSenderEmail == "invalid@invalid")) {
 				// Fallback on the original from address
 				wstrSenderName = wstrFromName;
 				strSenderEmail = strFromEmail;

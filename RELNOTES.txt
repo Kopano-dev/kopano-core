@@ -1,5 +1,13 @@
-Release notes for 8.4.0
-=======================
+Release notes for 8.4.1 (2017-11-01)
+====================================
+Fixes:
+* Avoid calling srand with 1-second-granular time
+* inetmapi: handle empty/invalid Sender in RFC2822 mails [KC-263]
+* spooler: for send-later mails, check trash, not outbox [KC-848,KC-863]
+
+
+Release notes for 8.4.0 (2017-10-30)
+====================================
 Enhancements:
 * dagent, gateway: whitelist-based HTML filter [ZCP-13472]
 * New scripts/utilities: kopano-fix-ipm-subtree, kopano-localize-folders,
@@ -67,8 +75,8 @@ Packager notes:
 * python/swig is now optional [KC-753]
 
 
-Release notes for 8.3.5 (unreleased)
-====================================
+Release notes for 8.3.5 (unreleased/state of 2017-10-31)
+========================================================
 Fixes:
 * server: complete signal blocking [KC-779]
 * ical: avoid freeing garbage pointers [KC-803]
