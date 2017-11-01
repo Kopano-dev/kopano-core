@@ -532,7 +532,8 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 
 	std::vector<std::string> fwd_whitelist =
 		tokenize(g_lpConfig->GetSetting("forward_whitelist_domains"), " ");
-	HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass); //ignore errors
+	if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) != hrSuccess)
+		/* ignore error - will check for pointer instead */;
 	lpRecipients->cEntries = 0;
 
 	for (ULONG i = 0; i < lpRuleRecipients->cEntries; ++i) {
