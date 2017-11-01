@@ -27,11 +27,6 @@ cbs4_initscript_files = \
 	kopano-gateway.init.cbs4 kopano-monitor.init.cbs4 \
 	kopano-ical.init.cbs4 kopano-dagent.init.cbs4 kopano-search.init.cbs4 \
 	kopano-presence.init.cbs4
-debian_initscript_files = \
-	kopano-server.init.debi kopano-spooler.init.debi \
-	kopano-gateway.init.debi kopano-monitor.init.debi \
-	kopano-ical.init.debi kopano-dagent.init.debi kopano-search.init.debi \
-	kopano-presence.init.debi
 
 data_configdir = ${docdir}/example-config
 dist_data_config_DATA = ${config_files} ldap.cfg
@@ -79,8 +74,7 @@ sysconf_bcdir = ${sysconfdir}/bash_completion.d
 dist_sysconf_bc_DATA = kopano-bash-completion.sh
 
 EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
-	$(rhel_initscript_files) $(cbs4_initscript_files) \
-	${debian_initscript_files} sysconfig.txt
+	$(rhel_initscript_files) $(cbs4_initscript_files) sysconfig.txt
 
 install-data-hook:
 	install -d -m 755 ${DESTDIR}/${sysconfdir}/kopano/license
