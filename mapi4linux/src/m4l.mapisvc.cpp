@@ -191,14 +191,10 @@ const inf_section *INFLoader::GetSection(const std::string &strSectionName) cons
  */
 std::vector<std::string> INFLoader::GetINFPaths()
 {
-	std::vector<std::string> ret;
 	const char *env = getenv("MAPI_CONFIG_PATH");
 	if (env)
-		ret = tokenize(env, ':', true);
-	else
-	// @todo, load both, or just one?
-		ret.emplace_back(MAPICONFIGDIR);
-	return ret;
+		return tokenize(env, ':', true);
+	return tokenize(MAPICONFIGDIR, ':', true);
 }
 
 /** 

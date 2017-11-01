@@ -14,7 +14,7 @@ endif
 
 
 AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
-	-DMAPICONFIGDIR=\"${MAPICONFIGDIR}\" -DPKGLIBDIR='"${pkglibdir}"' \
+	-DMAPICONFIGDIR=\"${prefix}/lib/mapi.d:${sysconfdir}/mapi.d\" -DPKGLIBDIR='"${pkglibdir}"' \
 	-DSOAP_CMAC='__attribute__((visibility("default")))' \
 	-DSOAP_FMAC3=SOAP_CMAC -DSOAP_FMAC5=SOAP_CMAC -DSOAP_NMAC=SOAP_CMAC \
 	-Iprovider/soap \
@@ -106,10 +106,8 @@ pkginclude_HEADERS = \
 noinst_HEADERS =
 pkgconfdir = ${libdir}/pkgconfig
 pkgconf_DATA = common/kopano.pc
-sysconf_configdir = ${MAPICONFIGDIR}
-dist_sysconf_config_DATA = provider/client/kopano.inf provider/contacts/zcontacts.inf
-sampleconfdir = ${docdir}/example-config
-sampleconf_DATA = provider/client/kopano.inf provider/contacts/zcontacts.inf
+mapiinfdir = ${prefix}/lib/mapi.d
+dist_mapiinf_DATA = provider/client/kopano.inf provider/contacts/zcontacts.inf
 BUILT_SOURCES =
 CLEANFILES = ${noinst_DATA}
 EXTRA_DIST = autoconf/1126.h php-ext/mapi.sym
