@@ -367,7 +367,6 @@ private:
 	HRESULT HrCopy(const std::list<ULONG> &mails, const std::string &folder, bool move);
 	HRESULT HrSearchNU(const std::vector<std::string> &cond, ULONG startcond, std::list<ULONG> &mailnr);
 	HRESULT HrSearch(std::vector<std::string> &&cond, ULONG startcond, std::list<ULONG> &mailnr);
-	std::string GetHeaderValue(const std::string &msg, const std::string &hdr, const std::string &dfl);
 	HRESULT HrGetBodyStructure(bool ext, std::string &body_structure, const std::string &msg);
 	HRESULT HrGetEmailAddress(LPSPropValue props, ULONG addr_type, ULONG eid, ULONG name, ULONG email, std::string header_name, std::string *hdrs);
 

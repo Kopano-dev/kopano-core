@@ -5413,31 +5413,6 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 }
 
 /** 
- * Lookup a header value in a full message
- * 
- * @param[in] strMessage The message to find the header in
- * @param[in] strHeader The header to find in the header part of the message
- * @param[in] strDefault The default value of the header if it wasn't found
- * 
- * @return The header value from the message enclosed in quotes, or the given default
- */
-string IMAP::GetHeaderValue(const string &strMessage, const string &strHeader, const string &strDefault) {
-	string::size_type posStart, posEnd;
-
-	posStart = strMessage.find(strHeader);
-	if (posStart == string::npos)
-		return strDefault;
-
-	posStart += strHeader.length();
-	posEnd = strMessage.find("\r\n", posStart);
-	if (posEnd == string::npos)
-		return strDefault;
-
-	// don't care about uppercase, it's all good.
-	return "\"" + strMessage.substr(posStart, posEnd - posStart) + "\"";
-}
-
-/** 
  * Create a bodystructure (RFC 3501). Since this is parsed from a
  * VMIME generated message, this function has alot of assumptions. It
  * will still fail to correctly generate a body structure in the case
