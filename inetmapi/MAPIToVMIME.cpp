@@ -618,10 +618,8 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 		if (sopt.alternate_boundary != nullptr)
 			setBoundaries(vmMessage->getHeader(), vmMessage->getBody(), sopt.alternate_boundary);
 
-		HrGetOneProp(lpMessage, PR_MESSAGE_DELIVERY_TIME, &~lpDeliveryDate);
-
 		// If we're sending a msg-in-msg, use the original date of that message
-		if (sopt.msg_in_msg && lpDeliveryDate != nullptr)
+		if (sopt.msg_in_msg && HrGetOneProp(lpMessage, PR_MESSAGE_DELIVERY_TIME, &~lpDeliveryDate) == hrSuccess)
 			vmHeader->Date()->setValue(FiletimeTovmimeDatetime(lpDeliveryDate->Value.ft));
 		
 		// Regenerate some headers if available (basically a copy of the headers in

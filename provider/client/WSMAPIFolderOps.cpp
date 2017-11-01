@@ -15,6 +15,7 @@
  *
  */
 #include <new>
+#include <stdexcept>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "WSMAPIFolderOps.h"
@@ -49,8 +50,9 @@ WSMAPIFolderOps::WSMAPIFolderOps(KCmd *lpCmd, std::recursive_mutex &data_lock,
 	this->lpCmd = lpCmd;
 	this->ecSessionId = ecSessionId;
 	lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
-
-	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
+	auto ret = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
+	if (ret != hrSuccess)
+		throw std::runtime_error("CopyMAPIEntryIdToSOAPEntryId");
 }
 
 WSMAPIFolderOps::~WSMAPIFolderOps()
