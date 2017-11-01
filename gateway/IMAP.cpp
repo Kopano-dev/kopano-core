@@ -3389,24 +3389,6 @@ HRESULT IMAP::HrGetDataItems(string strMsgDataItemNames, vector<string> &lstData
 }
 
 /** 
- * Replaces all ; characters in the input to , characters.
- * 
- * @param[in] strData The string to modify
- * 
- * @return hrSuccess
- */
-HRESULT IMAP::HrSemicolonToComma(string &strData) {
-	string::size_type ulPos = strData.find(";");
-
-	while (ulPos != string::npos) {
-		strData.replace(ulPos, 1, ",");
-		ulPos = strData.find(";", ulPos + 1);
-	}
-
-	return hrSuccess;
-}
-
-/** 
  * Do a FETCH based on table data for a specific list of
  * messages. Replies directly to the IMAP client with the result for
  * each mail given.

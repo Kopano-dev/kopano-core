@@ -348,7 +348,6 @@ private:
 	HRESULT HrGetSubTree(std::list<SFolder> &folders, bool public_folders, std::list<SFolder>::const_iterator parent_folder);
 	HRESULT HrGetFolderPath(std::list<SFolder>::const_iterator lpFolder, const std::list<SFolder> &lstFolder, std::wstring &path);
 	HRESULT HrGetDataItems(std::string msgdata_itemnames, std::vector<std::string> &data_items);
-	HRESULT HrSemicolonToComma(std::string &data);
 
 	// fetch calls another fetch depending on the data items requested
 	HRESULT HrPropertyFetch(std::list<ULONG> &mails, std::vector<std::string> &data_items);
