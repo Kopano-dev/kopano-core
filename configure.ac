@@ -138,7 +138,7 @@ AC_MSG_CHECKING([specified Linux distribution name])
 AC_ARG_WITH([distro], AS_HELP_STRING([--with-distro], [set distribution name, used for sysconfig and initscripts only. available: rhel, suse or sles]),
   [with_distro=${withval}],[with_distro=rhel])
 if test "$with_distro" != "rhel" -a "$with_distro" != "suse" -a \
-   "$with_distro" != "sles" -a "$with_distro" != "cbs4"; then
+   "$with_distro" != "sles"; then
 	AC_MSG_ERROR([no initscript for $with_distro known])
 else
 	AC_MSG_RESULT([$with_distro])
