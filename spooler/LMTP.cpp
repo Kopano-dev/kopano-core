@@ -209,16 +209,6 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 }
 
 /** 
- * Handle the very difficult QUIT command.
- * 
- * @return always hrSuccess
- */
-HRESULT LMTP::HrCommandQUIT()
-{
-	return hrSuccess;
-}
-
-/** 
  * Parse an address given in a MAIL FROM or RCPT TO command.
  * 
  * @param[in]  strInput a full MAIL FROM or RCPT TO command

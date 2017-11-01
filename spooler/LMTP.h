@@ -36,7 +36,6 @@ public:
 	HRESULT HrCommandMAILFROM(const std::string &strFrom, std::string *const strAddress);
 	HRESULT HrCommandRCPTTO(const std::string &to_address, std::string *mail_address_unsolved);
 	HRESULT HrCommandDATA(FILE *tmp);
-	HRESULT HrCommandQUIT();
 
 private:
 	HRESULT HrParseAddress(const std::string &strAddress, std::string *strEmail);
