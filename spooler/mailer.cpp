@@ -1883,7 +1883,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	object_ptr<IMessage> lpRepMessage;
 	memory_ptr<SPropValue> lpRepEntryID, lpSubject, lpMsgSize;
 	memory_ptr<SPropValue> lpAutoForward, lpMsgClass, lpDeferSendTime;
-	memory_ptr<SPropValue> outbox_entryid, parent_entryid;
+	memory_ptr<SPropValue> trash_eid, parent_entryid;
 
 	PyMapiPluginFactory pyMapiPluginFactory;
 	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
@@ -1945,12 +1945,12 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		goto exit;
 	}
 
-	HrGetOneProp(lpUserStore, PR_IPM_OUTBOX_ENTRYID, &~outbox_entryid);
+	HrGetOneProp(lpUserStore, PR_IPM_WASTEBASKET_ENTRYID, &~trash_eid);
 	HrGetOneProp(lpMessage, PR_PARENT_ENTRYID, &~parent_entryid);
-
-	if (outbox_entryid && parent_entryid &&
-	    memcmp(outbox_entryid->Value.bin.lpb, parent_entryid->Value.bin.lpb, outbox_entryid->Value.bin.cb) != 0) {
-		ec_log_err("Message is not in outbox, will not send");
+	if (trash_eid != nullptr && parent_entryid != nullptr &&
+	    trash_eid->Value.bin.cb == parent_entryid->Value.bin.cb &&
+	    memcmp(trash_eid->Value.bin.lpb, parent_entryid->Value.bin.lpb, trash_eid->Value.bin.cb) == 0) {
+		ec_log_err("Message is in Trash, will not send");
 		doSentMail = false;
 		goto exit;
 	}
