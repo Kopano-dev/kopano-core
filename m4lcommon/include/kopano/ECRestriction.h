@@ -104,7 +104,6 @@ protected:
 
 	_kc_hidden ECRestriction(void) = default;
 	_kc_hidden static HRESULT CopyProp(SPropValue *src, void *base, ULONG flags, SPropValue **dst);
-	_kc_hidden static HRESULT CopyPropArray(ULONG nvals, SPropValue *src, void *base, ULONG flags, SPropValue **dst);
 	_kc_hidden static void DummyFree(LPVOID);
 };
 
