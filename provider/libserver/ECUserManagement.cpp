@@ -1532,7 +1532,7 @@ ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsig
 	 *  server.cfg settings. Because of that we need to check if we can convert
 	 *  the search string into a username & companyname which will tell us if
 	 *  we are indeed received a string of type (3) and should use resolveName().
-	 *  However it is common that '@' is used as seperation character, which could
+	 *  However it is common that '@' is used as separation character, which could
 	 *  mean that email addresses are also identified as (3). So as fallback we
 	 *  should still call searchObject() if the search string contains an '@'.
 	 */
@@ -1644,7 +1644,7 @@ done:
 			ec_log_info("Resolved multiple users for search \"%s\".", szSearchString);
 			return KCERR_COLLISION;
 		}
-		ulId = *mapMatches.begin()->second.begin();
+		ulId = mapMatches.begin()->second.front();
 	}
 
 	if(ulId == 0)
@@ -1891,9 +1891,7 @@ ECRESULT ECUserManagement::GetUserAndCompanyFromLoginName(const std::string &str
 	auto middle = format.substr(pos_a + 2, pos_b - pos_a - 2);
 	auto end = format.substr(pos_b + 2, string::npos);
 
-	/*
-	 * There must be some sort of seperator between username and companyname.
-	 */
+	/* There must be some sort of separator between username and companyname. */
 	if (middle.empty())
 		return KCERR_INVALID_PARAMETER;
 
@@ -4328,7 +4326,7 @@ ECRESULT ECUserManagement::ProcessModification(unsigned int ulId, const std::str
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->DoUpdate("UPDATE users SET signature=" + lpDatabase->EscapeBinary((unsigned char *)newsignature.c_str(), newsignature.size()) + " WHERE id=" + stringify(ulId));
+	er = lpDatabase->DoUpdate("UPDATE users SET signature=" + lpDatabase->EscapeBinary(newsignature.c_str(), newsignature.size()) + " WHERE id=" + stringify(ulId));
 	if(er != erSuccess)
 		return er;
 	return m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulId);

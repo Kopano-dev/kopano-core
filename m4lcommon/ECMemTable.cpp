@@ -733,8 +733,8 @@ HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin,
 		if (sRowList.empty())
 			return MAPI_E_NOT_FOUND;
 		if(TestRestriction(lpRestriction, 
-		    this->lpMemTable->mapRows[sRowList.begin()->ulObjId].cValues,
-		    this->lpMemTable->mapRows[sRowList.begin()->ulObjId].lpsPropVal,
+		    this->lpMemTable->mapRows[sRowList.front().ulObjId].cValues,
+		    this->lpMemTable->mapRows[sRowList.front().ulObjId].lpsPropVal,
 		    m_locale) == hrSuccess) {
 			if (ulFlags & DIR_BACKWARD)
 				er = SeekRow(BOOKMARK_CURRENT, 1, NULL);

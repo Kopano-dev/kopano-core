@@ -770,7 +770,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	lstMatches.reverse();
 
 	// Class we want is now at the top of the list (since we sorted by number of matches, then by class id)
-	auto objclass = lstMatches.begin()->second;
+	auto objclass = lstMatches.front().second;
 
 	// Subspecify some generic types now
 	if (objclass == OBJECTCLASS_USER) {

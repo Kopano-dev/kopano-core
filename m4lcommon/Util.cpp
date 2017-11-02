@@ -3246,7 +3246,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 				// stream
 				// Not being able to open the source message is not an error: it may just not be there
 				if (((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
-					// While dragging and dropping, Outlook 2007 (atleast) returns an internal MAPI object to CopyTo as destination
+					// While dragging and dropping, Outlook 2007 (at least) returns an internal MAPI object to CopyTo as destination
 					// The internal MAPI object is unable to make a stream STGM_TRANSACTED, so we retry the action without that flag
 					// to get the stream without the transaction feature.
 					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);

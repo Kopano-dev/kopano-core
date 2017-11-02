@@ -384,7 +384,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         setMailboxFolderPermissions(store, inboxid, members, listfolderrights.get('inbox', ecRightsNone))
 
         if fbrights == ecRightsNone and listfolderrights.get('inbox', ecRightsNone) != ecRightsNone:
-            fbrights = ecRightsTemplateReadOnly; # need atleast read-only rights to be a delegate
+            fbrights = ecRightsTemplateReadOnly; # need at least read-only rights to be a delegate
 
         # Journal
         setMailboxFolderPermissions(store, inboxprops[2].Value, members, listfolderrights.get('journal', ecRightsNone))

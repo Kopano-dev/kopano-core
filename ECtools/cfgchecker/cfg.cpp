@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
 			check.emplace_back(new ServerConfigCheck(optarg));
 			/* Check if hosted is enabled, make sure we don't overwrite commandline */
 			if (strHosted.empty())
-				strHosted = (*check.rbegin())->getSetting("enable_hosted_kopano");
+				strHosted = check.back()->getSetting("enable_hosted_kopano");
 			break;
 		case 'g':
 		case 'i':

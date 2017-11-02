@@ -834,7 +834,7 @@ HRESULT M4LMAPISession::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR
 
 /**
  * Get a list of all message stores in this session. With Kopano in
- * Linux, this is always atleast your own and the public where
+ * Linux, this is always at least your own and the public where
  * available.
  *
  * @param[in]	ulFlags		Unused in Linux.
@@ -996,28 +996,26 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
     ULONG ulFlags, LPADRBOOK *lppAdrBook)
 {
 	HRESULT hr = hrSuccess;
-	M4LAddrBook *myAddrBook = nullptr;
+	object_ptr<M4LAddrBook> myAddrBook;
 	ULONG abver;
-	LPMAPISUP lpMAPISup = NULL;
-	SPropValue sProps[1];
+	object_ptr<IMAPISupport> lpMAPISup;
+	SPropValue sProp;
 
-	lpMAPISup = new(std::nothrow) M4LMAPISupport(this, NULL, NULL);
+	lpMAPISup.reset(new(std::nothrow) M4LMAPISupport(this, nullptr, nullptr));
 	if (!lpMAPISup) {
 		ec_log_crit("M4LMAPISession::OpenAddressBook(): ENOMEM");
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
-
-	myAddrBook = new(std::nothrow) M4LAddrBook(serviceAdmin, lpMAPISup);
+	myAddrBook.reset(new(std::nothrow) M4LAddrBook(serviceAdmin, lpMAPISup));
 	if (myAddrBook == nullptr) {
 		ec_log_crit("M4LMAPISession::OpenAddressBook(): ENOMEM(2)");
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
 
 	// Set default properties
-	sProps[0].ulPropTag = PR_OBJECT_TYPE;
-	sProps[0].Value.ul = MAPI_ADDRBOOK;
-
-	hr = myAddrBook->SetProps(1, sProps, nullptr);
+	sProp.ulPropTag = PR_OBJECT_TYPE;
+	sProp.Value.ul = MAPI_ADDRBOOK;
+	hr = myAddrBook->SetProps(1, &sProp, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetProps failed", hr);
 	hr = myAddrBook->QueryInterface(lpInterface ? *lpInterface : IID_IAddrBook, reinterpret_cast<void **>(lppAdrBook));

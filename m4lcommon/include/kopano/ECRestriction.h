@@ -179,12 +179,12 @@ public:
 	ECRestriction *operator+=(const ECRestriction &restriction)
 	{
 		m_lstRestrictions.emplace_back(restriction.Clone());
-		return m_lstRestrictions.rbegin()->get();
+		return m_lstRestrictions.back().get();
 	}
 	ECRestriction *operator+=(ECRestriction &&o)
 	{
 		m_lstRestrictions.emplace_back(std::move(o).Clone());
-		return m_lstRestrictions.rbegin()->get();
+		return m_lstRestrictions.back().get();
 	}
 
 	void operator+=(const ECRestrictionList &list);
@@ -208,12 +208,12 @@ public:
 	ECRestriction *operator+=(const ECRestriction &restriction)
 	{
 		m_lstRestrictions.emplace_back(restriction.Clone());
-		return m_lstRestrictions.rbegin()->get();
+		return m_lstRestrictions.back().get();
 	}
 	ECRestriction *operator+=(ECRestriction &&o)
 	{
 		m_lstRestrictions.emplace_back(std::move(o).Clone());
-		return m_lstRestrictions.rbegin()->get();
+		return m_lstRestrictions.back().get();
 	}
 
 	void operator+=(const ECRestrictionList &list);

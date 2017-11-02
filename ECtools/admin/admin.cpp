@@ -1858,11 +1858,11 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	ULONG ulLicensedUsers = (ULONG)-1;	//!< active users allowed by license
 	ULONG ulActiveUsers = (ULONG)-1;	//!< used active users
 	ULONG ulNonActiveTotal = (ULONG)-1;	//!< used non-active users
-	ULONG ulNonActiveUsers = (ULONG)-1;	//!< used sharedstores, subset of used non-active users
+	ULONG ulNonActiveUsers = (ULONG)-1;	//!< used shared stores, subset of used non-active users
 	ULONG ulRooms = (ULONG)-1;			//!< used rooms, subset of used non-active users
 	ULONG ulEquipment = (ULONG)-1;		//!< used equipment, subset of used non-active users
 	ULONG ulMaxTotal = 0;				//!< complete total of user objects allowed by license, aka ulNonActiveHigh limit
-	ULONG ulNonActiveLow = 0;			//!< atleast non-active users allowed
+	ULONG ulNonActiveLow = 0; //!< at least non-active users allowed
 	ULONG ulActiveAsNonActive = 0;		//!< non-active users taken from active count
 	ConsoleTable ct(3, 4);
 	ULONG ulExtraRow = 0;

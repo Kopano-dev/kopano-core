@@ -103,7 +103,7 @@ int LDAPConfigCheck::testLdapQuery(const config_check_t *check)
 	 * note that this check will pass '(a=1)(b=2)' as correct,
 	 * we will block this in the for loop.
 	 */
-	if (*check->value1.begin() != '(' || *check->value1.rbegin() != ')')
+	if (check->value1.front() != '(' || check->value1.back() != ')')
 		goto error_exit;
 
 	/* Since we already checked the first character, we can add it to the stack */
@@ -127,9 +127,8 @@ int LDAPConfigCheck::testLdapQuery(const config_check_t *check)
 		case '(':
 			if (contains_data)
 				goto error_exit;
-			if (*stack.rbegin() != '|' &&
-				*stack.rbegin() != '&')
-					goto error_exit;
+			if (stack.back() != '|' && stack.back() != '&')
+				goto error_exit;
 			stack += *i;
 			break;
 		case ')':
@@ -152,9 +151,8 @@ int LDAPConfigCheck::testLdapQuery(const config_check_t *check)
 			contains_check = true;
 			break;
 		default:
-			if (*stack.rbegin() == '|' ||
-				*stack.rbegin() == '&')
-					goto error_exit;
+			if (stack.back() == '|' || stack.back() == '&')
+				goto error_exit;
 			contains_data = true;
 			break;
 		}

@@ -151,7 +151,7 @@ public:
 	DeliveryArgs(const DeliveryArgs &o) :
 		strPath(o.strPath), strAutorespond(o.strAutorespond),
 		bCreateFolder(o.bCreateFolder), strDeliveryFolder(o.strDeliveryFolder),
-		szPathSeperator(o.szPathSeperator), ulDeliveryMode(o.ulDeliveryMode),
+		szPathSeparator(o.szPathSeparator), ulDeliveryMode(o.ulDeliveryMode),
 		sDeliveryOpts(o.sDeliveryOpts), bNewmailNotify(o.bNewmailNotify),
 		bResolveAddress(o.bResolveAddress)
 	{}
@@ -168,7 +168,7 @@ public:
 	/* Options for delivery into special subfolder */
 	bool bCreateFolder = false;
 	std::wstring strDeliveryFolder;
-	WCHAR szPathSeperator = '\\';
+	WCHAR szPathSeparator = '\\';
 
 	/* Delivery options */
 	delivery_mode ulDeliveryMode = DM_STORE;
@@ -1003,7 +1003,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 
 	if (!strDeliveryFolder.empty() && lpArgs->ulDeliveryMode != DM_JUNK) {
 		hr = OpenSubFolder(lpDeliveryStore, strDeliveryFolder.c_str(),
-		     lpArgs->szPathSeperator, bPublicStore,
+		     lpArgs->szPathSeparator, bPublicStore,
 		     lpArgs->bCreateFolder, &~lpSubFolder);
 		if (hr != hrSuccess) {
 			ec_log_warn("Subfolder not found, using normal Inbox. Error code 0x%08X", hr);
@@ -3529,7 +3529,7 @@ int main(int argc, char *argv[]) {
 			sDeliveryArgs.strDeliveryFolder = convert_to<wstring>(optarg);
 			break;
 		case 'p':
-			sDeliveryArgs.szPathSeperator = optarg[0];
+			sDeliveryArgs.szPathSeparator = optarg[0];
 			break;
 		case OPT_CREATE:
 		case 'C':

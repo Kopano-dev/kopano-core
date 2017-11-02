@@ -38,7 +38,7 @@ ECFifoBuffer::ECFifoBuffer(size_type ulMaxSize)
  * @retval	erSuccess					The data was successfully written.
  * @retval	KCERR_INVALID_PARAMETER	lpBuf is NULL.
  * @retval	KCERR_NOT_ENOUGH_MEMORY	There was not enough memory available to store the data.
- * @retval	KCERR_TIMEOUT			Not all data was writting within the specified time limit.
+ * @retval	KCERR_TIMEOUT			Not all data was written within the specified time limit.
  *										The amount of data that was written is returned in lpcbWritten.
  * @retval	KCERR_NETWORK_ERROR		The buffer was closed prior to this call.
  */
@@ -112,7 +112,7 @@ exit:
  *
  * @retval	erSuccess					The data was successfully written.
  * @retval	KCERR_INVALID_PARAMETER	lpBuf is NULL.
- * @retval	KCERR_TIMEOUT			Not all data was writting within the specified time limit.
+ * @retval	KCERR_TIMEOUT			Not all data was written within the specified time limit.
  *										The amount of data that was written is returned in lpcbWritten.
  */
 ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbRead)

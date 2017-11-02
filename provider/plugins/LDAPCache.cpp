@@ -49,13 +49,11 @@ bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 
 void LDAPCache::setObjectDNCache(objectclass_t objclass, dn_cache_t &&lpCache)
 {
-	/*
-	 * Always merge caches rather then overwritting them.
-	 */
+	/* Always merge caches rather then overwriting them. */
 	auto lpTmp = getObjectDNCache(nullptr, objclass);
 	// cannot use insert() because it does not override existing entries
 	for (const auto &i : lpCache)
-		lpTmp[i.first] = i.second;
+		lpTmp[i.first] = std::move(i.second);
 
 	scoped_rlock biglock(m_hMutex);
 	switch (objclass) {

@@ -39,9 +39,7 @@ class LDAPUserPlugin;
  */
 
 
-/**
- * Cache type, std::string is LDAP DN sting
- */
+/* Cache type, std::string is LDAP DN string */
 typedef std::map<objectid_t, std::string> dn_cache_t;
 typedef std::list<std::string> dn_list_t;
 
