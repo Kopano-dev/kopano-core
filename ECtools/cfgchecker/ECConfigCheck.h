@@ -115,6 +115,7 @@ class LDAPConfigCheck final : public ECConfigCheck {
 	static int testLdapScope(const config_check_t *);
 	static int testLdapType(const config_check_t *);
 	static int testLdapQuery(const config_check_t *);
+	static bool verifyLDAPQuery(const config_check_t *);
 };
 
 class MonitorConfigCheck final : public ECConfigCheck {

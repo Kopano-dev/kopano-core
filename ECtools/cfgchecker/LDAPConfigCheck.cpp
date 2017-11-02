@@ -83,12 +83,64 @@ int LDAPConfigCheck::testLdapType(const config_check_t *check)
 	return CHECK_ERROR;
 }
 
+bool LDAPConfigCheck::verifyLDAPQuery(const config_check_t *check)
+{
+	std::string stack = check->value1.substr(0,1);
+	bool contains_data = false;     /* '(' was followed by attribute comparison */
+	bool contains_check = false;    /* '=' found */
+
+	/* Loop through the string, the following queries must be marked broken:
+	 *      (a=1)(a=2)      => Must be enclosed by '(' and ')'
+	 *      ((a=1)          => Requires equal number '(' and ')'
+	 *      (a=1))          => Requires equal number '(' and ')'
+	 *      (a)             => A check consists of attribute=value comparison
+	 *      ((a=1)(a=2))    => Requires '|' or '&' to combine the 2 queries
+	 *      (&a=1)          => '|' and '&' should only be present in front of '('
+	 */
+	for (auto i = check->value1.cbegin() + 1; i != check->value1.cend(); ++i) {
+		if (stack.empty())
+			return false;
+
+		switch (*i) {
+		case '(':
+			if (contains_data)
+				return false;
+			if (stack.back() != '|' && stack.back() != '&')
+				return false;
+			stack += *i;
+			break;
+		case ')':
+			if (!contains_data || !contains_check)
+				return false;
+			stack.erase(stack.end() - 1);
+			contains_data = false;
+			contains_check = false;
+			break;
+		case '|':
+		case '&':
+			if (contains_data)
+				return false;
+			stack += *i;
+			break;
+		case '=':
+			if (!contains_data)
+				return false;
+			contains_check = true;
+			break;
+		default:
+			if (stack.back() == '|' || stack.back() == '&')
+				return false;
+			contains_data = true;
+			break;
+		}
+	}
+
+	return true;
+}
+
+
 int LDAPConfigCheck::testLdapQuery(const config_check_t *check)
 {
-	std::string stack;
-	bool contains_data;     /* '(' was followed by attribute comparison */
-	bool contains_check;    /* '=' found */
-
 	/* Empty queries are always correct */
 	if (check->value1.empty())
 		return CHECK_OK;
@@ -103,65 +155,15 @@ int LDAPConfigCheck::testLdapQuery(const config_check_t *check)
 	 * note that this check will pass '(a=1)(b=2)' as correct,
 	 * we will block this in the for loop.
 	 */
-	if (check->value1.front() != '(' || check->value1.back() != ')')
-		goto error_exit;
-
+	if (check->value1.front() != '(' || check->value1.back() != ')') {
+		printError(check->option1, "contains malformatted string: \"" + check->value1 + "\"");
+		return CHECK_ERROR;
+	}
 	/* Since we already checked the first character, we can add it to the stack */
-	stack += check->value1[0];
-	contains_data = false;
-	contains_check = false;
-
-	/* Loop through the string, the following queries must be marked broken:
-	 *      (a=1)(a=2)      => Must be enclosed by '(' and ')'
-	 *      ((a=1)          => Requires equal number '(' and ')'
-	 *      (a=1))          => Requires equal number '(' and ')'
-	 *      (a)             => A check consists of attribute=value comparison
-	 *      ((a=1)(a=2))    => Requires '|' or '&' to combine the 2 queries
-	 *      (&a=1)          => '|' and '&' should only be present in front of '('
-	 */
-	for (auto i = check->value1.cbegin() + 1; i != check->value1.cend(); ++i) {
-		if (stack.empty())
-			goto error_exit;
-
-		switch (*i) {
-		case '(':
-			if (contains_data)
-				goto error_exit;
-			if (stack.back() != '|' && stack.back() != '&')
-				goto error_exit;
-			stack += *i;
-			break;
-		case ')':
-			if (!contains_data || !contains_check)
-				goto error_exit;
-
-			stack.erase(stack.end() - 1);
-			contains_data = false;
-			contains_check = false;
-			break;
-		case '|':
-		case '&':
-			if (contains_data)
-				goto error_exit;
-			stack += *i;
-			break;
-		case '=':
-			if (!contains_data)
-				goto error_exit;
-			contains_check = true;
-			break;
-		default:
-			if (stack.back() == '|' || stack.back() == '&')
-				goto error_exit;
-			contains_data = true;
-			break;
-		}
+	if (!verifyLDAPQuery(check)) {
+		printError(check->option1, "contains malformatted string: \"" + check->value1 + "\"");
+		return CHECK_ERROR;
 	}
 
 	return CHECK_OK;
-
-error_exit:
-	printError(check->option1, "contains malformatted string: \"" + check->value1 + "\"");
-	return CHECK_ERROR;
 }
-
