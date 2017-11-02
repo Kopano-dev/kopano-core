@@ -2065,7 +2065,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 				"JOIN hierarchy FORCE INDEX (parenttypeflags) "
 			        "ON properties.hierarchyid=hierarchy.id ";
 
-		strQuery += "LEFT JOIN names ON properties.tag=names.id+34049 ";
+		strQuery += "LEFT JOIN names ON properties.tag-34049=names.id ";
 		if (ulObjId)
 			strQuery += "WHERE hierarchyid=" + stringify(ulObjId);
 		else
@@ -2169,7 +2169,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 				"JOIN hierarchy "
 				    "ON mvproperties.hierarchyid=hierarchy.id ";
 
-		strQuery += "LEFT JOIN names ON mvproperties.tag=names.id+34049 ";
+		strQuery += "LEFT JOIN names ON mvproperties.tag-34049=names.id ";
         if (ulObjId != 0)
             strQuery +=	"WHERE hierarchyid=" + stringify(ulObjId) +
 				" AND (tag <= 34048 OR names.id IS NOT NULL) "

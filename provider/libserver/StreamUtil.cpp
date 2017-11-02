@@ -955,11 +955,11 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			strMode = "2";
 		
 		strQuery = "SELECT " PROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM properties "
-			"LEFT JOIN names ON properties.tag=names.id+34049 WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 34048 OR names.id IS NOT NULL) "
+			"LEFT JOIN names ON properties.tag-34049=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 34048 OR names.id IS NOT NULL) "
 			"AND (tag NOT IN (4105, 4115) OR " + strMode + " = 0 OR (" + strMode + " = 1 AND tag = " + strBestBody + ")) "
 			"UNION "
 			"SELECT " MVPROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM mvproperties "
-			"LEFT JOIN names ON mvproperties.tag=names.id+34049 WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 34048 OR names.id IS NOT NULL) "
+			"LEFT JOIN names ON mvproperties.tag-34049=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 34048 OR names.id IS NOT NULL) "
 			"GROUP BY tag, mvproperties.type"
 			;
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
