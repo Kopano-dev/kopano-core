@@ -62,9 +62,6 @@ public:
 
 	// Get MSEMS emulator config
 	static HRESULT GetConfigPath(std::string *lpConfigPath);
-	// Convert MSEMS profile properties into ZARAFA profile properties
-	static HRESULT ConvertMSEMSProps(ULONG niprop, const SPropValue *iprop, ULONG *noprop, SPropValue **oprop);
-
 };
 
 extern HRESULT HrCreateEntryId(const GUID &store_guid, unsigned int obj_type, ULONG *eid_size, ENTRYID **eid);
