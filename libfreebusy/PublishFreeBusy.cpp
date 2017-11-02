@@ -271,19 +271,19 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 			TIMEZONE_STRUCT ttzInfo = {0};
 			ULONG ulFbStatus = 0;
 
-			if (lpRowSet->aRow[i].lpProps[3].ulPropTag != PROP_APPT_ISRECURRING ||
-			    !lpRowSet->aRow[i].lpProps[3].Value.b)
+			if (lpRowSet[i].lpProps[3].ulPropTag != PROP_APPT_ISRECURRING ||
+			    !lpRowSet[i].lpProps[3].Value.b)
 			{
 				OccrInfo sOccrBlock;
 
-				if (lpRowSet->aRow[i].lpProps[0].ulPropTag == PROP_APPT_STARTWHOLE)
-					FileTimeToRTime(&lpRowSet->aRow[i].lpProps[0].Value.ft, &sOccrBlock.fbBlock.m_tmStart);
-				if (lpRowSet->aRow[i].lpProps[1].ulPropTag == PROP_APPT_ENDWHOLE) {
-					FileTimeToRTime(&lpRowSet->aRow[i].lpProps[1].Value.ft, &sOccrBlock.fbBlock.m_tmEnd);
-					FileTimeToUnixTime(lpRowSet->aRow[i].lpProps[1].Value.ft, &sOccrBlock.tBaseDate);
+				if (lpRowSet[i].lpProps[0].ulPropTag == PROP_APPT_STARTWHOLE)
+					FileTimeToRTime(&lpRowSet[i].lpProps[0].Value.ft, &sOccrBlock.fbBlock.m_tmStart);
+				if (lpRowSet[i].lpProps[1].ulPropTag == PROP_APPT_ENDWHOLE) {
+					FileTimeToRTime(&lpRowSet[i].lpProps[1].Value.ft, &sOccrBlock.fbBlock.m_tmEnd);
+					FileTimeToUnixTime(lpRowSet[i].lpProps[1].Value.ft, &sOccrBlock.tBaseDate);
 				}
-				if (lpRowSet->aRow[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
-					sOccrBlock.fbBlock.m_fbstatus = (FBStatus)lpRowSet->aRow[i].lpProps[2].Value.ul;
+				if (lpRowSet[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
+					sOccrBlock.fbBlock.m_fbstatus = (FBStatus)lpRowSet[i].lpProps[2].Value.ul;
 				hr = HrAddFBBlock(sOccrBlock, &+lpOccrInfo, lpcValues);
 				if (hr != hrSuccess) {
 					ec_log_debug("Error adding occurrence block to list, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
@@ -291,17 +291,17 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 				}
 				continue;
 			}
-			if (lpRowSet->aRow[i].lpProps[4].ulPropTag != PROP_APPT_RECURRINGSTATE)
+			if (lpRowSet[i].lpProps[4].ulPropTag != PROP_APPT_RECURRINGSTATE)
 				continue;
-			hr = lpRecurrence.HrLoadRecurrenceState((char *)(lpRowSet->aRow[i].lpProps[4].Value.bin.lpb),lpRowSet->aRow[i].lpProps[4].Value.bin.cb, 0);
+			hr = lpRecurrence.HrLoadRecurrenceState(reinterpret_cast<const char *>(lpRowSet[i].lpProps[4].Value.bin.lpb), lpRowSet[i].lpProps[4].Value.bin.cb, 0);
 			if (FAILED(hr)) {
 				kc_perror("Error loading recurrence state", hr);
 				continue;
 			}
-			if (lpRowSet->aRow[i].lpProps[6].ulPropTag == PROP_APPT_TIMEZONESTRUCT)
-				ttzInfo = *(TIMEZONE_STRUCT*)lpRowSet->aRow[i].lpProps[6].Value.bin.lpb;
-			if (lpRowSet->aRow[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
-				ulFbStatus = lpRowSet->aRow[i].lpProps[2].Value.ul;
+			if (lpRowSet[i].lpProps[6].ulPropTag == PROP_APPT_TIMEZONESTRUCT)
+				ttzInfo = *reinterpret_cast<TIMEZONE_STRUCT *>(lpRowSet[i].lpProps[6].Value.bin.lpb);
+			if (lpRowSet[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
+				ulFbStatus = lpRowSet[i].lpProps[2].Value.ul;
 			hr = lpRecurrence.HrGetItems(m_tsStart, m_tsEnd, ttzInfo, ulFbStatus, &+lpOccrInfo, lpcValues);
 			if (hr != hrSuccess || !lpOccrInfo) {
 				kc_perror("Error expanding items for recurring item", hr);

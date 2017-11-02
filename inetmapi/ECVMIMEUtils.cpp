@@ -98,12 +98,11 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 
 	// Get all recipients from the group
 	for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
-		auto lpPropObjectType = lpRowSet->aRow[i].cfind(PR_OBJECT_TYPE);
+		auto lpPropObjectType = lpRowSet[i].cfind(PR_OBJECT_TYPE);
 
 		// see if there's an e-mail address associated with the list
 		// if that's the case, then we send to that address and not all individual recipients in that list
-		bool bAddrFetchSuccess = HrGetAddress(lpAdrBook, lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, strName, strType, strEmail) == hrSuccess && !strEmail.empty();
-
+		bool bAddrFetchSuccess = HrGetAddress(lpAdrBook, lpRowSet[i].lpProps, lpRowSet[i].cValues, PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, strName, strType, strEmail) == hrSuccess && !strEmail.empty();
 		bool bItemIsAUser = lpPropObjectType == NULL || lpPropObjectType->Value.ul == MAPI_MAILUSER;
 
 		if (bAddrFetchSuccess && bItemIsAUser) {
@@ -119,8 +118,8 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 			continue;
 
 		// Group
-		auto lpGroupName = lpRowSet->aRow[i].cfind(PR_EMAIL_ADDRESS_W);
-		auto lpGroupEntryID = lpRowSet->aRow[i].cfind(PR_ENTRYID);
+		auto lpGroupName = lpRowSet[i].cfind(PR_EMAIL_ADDRESS_W);
+		auto lpGroupEntryID = lpRowSet[i].cfind(PR_ENTRYID);
 		if (lpGroupName == nullptr || lpGroupEntryID == nullptr)
 			return MAPI_E_NOT_FOUND;
 	
@@ -197,13 +196,12 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpRows->aRow[0].lpProps)) != hrSuccess)
 			return hr;
 		lpRows->aRow[0].cValues = 1;
-		
 		lpRows->aRow[0].lpProps[0].ulPropTag = PR_DISPLAY_NAME_W;
-		lpRows->aRow[0].lpProps[0].Value.lpszW = lpGroupName->Value.lpszW;
+		lpRows[0].lpProps[0].Value.lpszW = lpGroupName->Value.lpszW;
 		hr = lpAdrBook->ResolveName(0, MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, NULL, reinterpret_cast<ADRLIST *>(lpRows.get()));
 		if(hr != hrSuccess)
 			return hr;
-		lpGroupEntryID = lpRows->aRow[0].cfind(PR_ENTRYID);
+		lpGroupEntryID = lpRows[0].cfind(PR_ENTRYID);
 		if (lpGroupEntryID == nullptr)
 			return MAPI_E_NOT_FOUND;
 

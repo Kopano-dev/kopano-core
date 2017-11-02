@@ -160,11 +160,10 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
  	if(hr != hrSuccess)
 		return hr;
 
-	if(lpRows->cRows == 1 && lpRows->aRow[0].lpProps[FBPOS_ENTRYID].ulPropTag == PR_ENTRYID)
-	{
+	if (lpRows->cRows == 1 && lpRows[0].lpProps[FBPOS_ENTRYID].ulPropTag == PR_ENTRYID) {
 		// Open freebusy data
-		hr = lpPublicStore->OpenEntry(lpRows->aRow[0].lpProps[FBPOS_ENTRYID].Value.bin.cb,
-		     reinterpret_cast<ENTRYID *>(lpRows->aRow[0].lpProps[FBPOS_ENTRYID].Value.bin.lpb),
+		hr = lpPublicStore->OpenEntry(lpRows[0].lpProps[FBPOS_ENTRYID].Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(lpRows[0].lpProps[FBPOS_ENTRYID].Value.bin.lpb),
 		     &IID_IMessage, MAPI_MODIFY, &ulObjType, &~lpMessage);
 		if(hr != hrSuccess)
 			return hr;
