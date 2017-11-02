@@ -631,7 +631,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				}
 			}
 			if (ptrStoreProps[IDX_STORE_RECORD_KEY].ulPropTag == PR_STORE_RECORD_KEY)
-				entry.StoreGuid = bin2hex(ptrStoreProps[IDX_STORE_RECORD_KEY].Value.bin.cb, ptrStoreProps[IDX_STORE_RECORD_KEY].Value.bin.lpb);
+				entry.StoreGuid = bin2hex(ptrStoreProps[IDX_STORE_RECORD_KEY].Value.bin);
 		}
 
 		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);

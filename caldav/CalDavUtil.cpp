@@ -85,7 +85,7 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 			hr = HrGetOneProp(lpMapiProp, PR_ENTRYID, &~lpMsgProp);
 			if(hr != hrSuccess)
 				return hr;
-			wstrProperty->assign(convert_to<std::wstring>(bin2hex(lpMsgProp->Value.bin.cb, lpMsgProp->Value.bin.lpb)));
+			wstrProperty->assign(convert_to<std::wstring>(bin2hex(lpMsgProp->Value.bin)));
 		}
 	} else if (hr == hrSuccess)
 		wstrProperty->assign(lpMsgProp->Value.lpszW);

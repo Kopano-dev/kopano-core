@@ -514,8 +514,7 @@ HRESULT VConverter::HrHandleExceptionGuid(icalcomponent *lpiEvent, void *base, S
 	auto icProp = icalcomponent_get_first_property(lpiEvent, ICAL_RECURRENCEID_PROPERTY);
 	if (icProp == NULL)
 		return hrSuccess; //ignoring Recurrence-ID.
-
-	auto strUid = bin2hex(lpsProp->Value.bin.cb, lpsProp->Value.bin.lpb);
+	auto strUid = bin2hex(lpsProp->Value.bin);
 	auto icTime = icaltime_from_timet_with_zone(ICalTimeTypeToUTC(lpiEvent, icProp), 0, nullptr);
 	sprintf(strHexDate,"%04x%02x%02x", icTime.year, icTime.month, icTime.day);
 
@@ -2435,7 +2434,7 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 		if (!lpPropVal)
 			return hrSuccess;
 		// @todo don't do this calculation using a std::string
-		auto strUid = bin2hex(lpPropVal->Value.bin.cb, lpPropVal->Value.bin.lpb);
+		auto strUid = bin2hex(lpPropVal->Value.bin);
 		if(!IsOutlookUid(strUid))
 			return hrSuccess;
 		if(strUid.substr(32, 8).compare("00000000") == 0 && ulRecurStartTime == (ULONG)-1)
@@ -3184,7 +3183,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		if (hr == E_ACCESSDENIED) {
 			lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_ENTRYID);
 			if (lpPropVal)
-				strUid = bin2hex(lpPropVal->Value.bin.cb,lpPropVal->Value.bin.lpb);
+				strUid = bin2hex(lpPropVal->Value.bin);
 		}
 		hr = hrSuccess;
 	} else {

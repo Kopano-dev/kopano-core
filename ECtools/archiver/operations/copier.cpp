@@ -116,7 +116,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder: %s", props[0].Value.lpszA);
 		else
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder: has no name");
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder entryid: %s", bin2hex(props[1].Value.bin.cb, props[1].Value.bin.lpb).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder entryid: %s", bin2hex(props[1].Value.bin).c_str());
 	}
 	return ptrArchiveFolder->QueryInterface(IID_IMAPIFolder,
 		reinterpret_cast<LPVOID *>(lppArchiveFolder));
@@ -470,7 +470,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 	refObjectEntry.sStoreEntryId.assign(lpStoreEntryId->Value.bin);
 	refObjectEntry.sItemEntryId.assign(lpEntryId->Value.bin);
 
-	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin.cb, lpEntryId->Value.bin.lpb).c_str());
+	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
 	hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_MODIFY|fMapiDeferredErrors, &ulType, &~ptrMessageRaw);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open message. (hr=%s)", stringify(hr, true).c_str());

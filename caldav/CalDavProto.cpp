@@ -395,7 +395,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 				{
 					// @todo shouldn't we use PR_ENTRYID in the first place? Saving items in a read-only command is a serious no-no.
 					// use PR_ENTRYID since we couldn't create a new guid for the item
-					strConvVal = bin2hex(lpRowSet->aRow[ulRowCntr].lpProps[2].Value.bin.cb, lpRowSet->aRow[ulRowCntr].lpProps[2].Value.bin.lpb);
+					strConvVal = bin2hex(lpRowSet->aRow[ulRowCntr].lpProps[2].Value.bin);
 					hr = hrSuccess;
 				}
 				else if (hr != hrSuccess) {
@@ -1163,7 +1163,7 @@ HRESULT CalDAV::CreateAndGetGuid(SBinary sbEid, ULONG ulPropTag, std::string *lp
 		ec_log_debug("CalDAV::CreateAndGetGuid SaveChanges failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
-	*lpstrGuid = bin2hex(lpProp->Value.bin.cb, lpProp->Value.bin.lpb);
+	*lpstrGuid = bin2hex(lpProp->Value.bin);
 	return hrSuccess;
 }
 

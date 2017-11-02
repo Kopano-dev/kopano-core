@@ -76,8 +76,7 @@ HRESULT Stubber::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSProp
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
 	}
-
-	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin.cb, lpEntryId->Value.bin.lpb).c_str());
+	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
 	hr = lpFolder->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_BEST_ACCESS, &ulType, &~ptrMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Failed to open message. This can happen if the search folder is lagging.");

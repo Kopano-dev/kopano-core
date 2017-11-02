@@ -805,7 +805,8 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 				ScopedFolderLogging sfl(m_lpLogger, ptrFolderRows[i].lpProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME ? ptrFolderRows[i].lpProps[IDX_DISPLAY_NAME].Value.LPSZ : KC_T("<Unnamed>"));
 				hr = PurgeArchiveFolder(ptrArchiveStore, ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin, lpRestriction);
 				if (hr != hrSuccess) {
-					m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to purge archive folder. (entryid=%s, hr=%s)", bin2hex(ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin.cb, ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin.lpb).c_str(), stringify(hr, true).c_str());
+					m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to purge archive folder. (entryid=%s, hr=%s)",
+						bin2hex(ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin).c_str(), stringify(hr, true).c_str());
 					bErrorOccurred = true;
 				}
 			}

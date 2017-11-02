@@ -591,8 +591,7 @@ HRESULT POP3::HrCmdUidl() {
 	for (size_t i = 0; i < lstMails.size(); ++i) {
 		snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u ", (ULONG)i + 1);
 		strResponse = szResponse;
-		strResponse += bin2hex(lstMails[i].sbEntryID.cb, lstMails[i].sbEntryID.lpb);
-
+		strResponse += bin2hex(lstMails[i].sbEntryID);
 		hr = lpChannel->HrWriteLine(strResponse);
 		if (hr != hrSuccess)
 			return hr;
@@ -624,7 +623,7 @@ HRESULT POP3::HrCmdUidl(unsigned int ulMailNr) {
 
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u ", ulMailNr);
 	strResponse = szResponse;
-	strResponse += bin2hex(lstMails[ulMailNr - 1].sbEntryID.cb, lstMails[ulMailNr - 1].sbEntryID.lpb);
+	strResponse += bin2hex(lstMails[ulMailNr-1].sbEntryID);
 	return HrResponse(POP3_RESP_OK, strResponse);
 }
 

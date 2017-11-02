@@ -1279,7 +1279,7 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 				ct.AddColumn(0, strUsername);
 				continue;
 			}
-			ct.AddColumn(0, bin2hex(lpStoreGuid->Value.bin.cb, lpStoreGuid->Value.bin.lpb));
+			ct.AddColumn(0, bin2hex(lpStoreGuid->Value.bin));
 			ct.AddColumn(1, strUsername);
 			if (lpModTime)
 				ct.AddColumn(2, FiletimeToString(lpModTime->Value.ft));

@@ -157,7 +157,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 		}
 		
 		if (nResult != 0) {
-			Logger()->Log(EC_LOGLEVEL_DEBUG, "Leaving folder (%s)", bin2hex(m_ptrCurFolderEntryId->Value.bin.cb, m_ptrCurFolderEntryId->Value.bin.lpb).c_str());
+			Logger()->Log(EC_LOGLEVEL_DEBUG, "Leaving folder (%s)", bin2hex(m_ptrCurFolderEntryId->Value.bin).c_str());
 			Logger()->SetFolder(KC_T(""));
 			hr = LeaveFolder();
 			if (hr != hrSuccess) {
@@ -173,7 +173,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 		return DoProcessEntry(cProps, lpProps);
 
 	SPropValuePtr ptrPropValue;
-	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening folder (%s)", bin2hex(lpFolderEntryId->Value.bin.cb, lpFolderEntryId->Value.bin.lpb).c_str());
+	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening folder (%s)", bin2hex(lpFolderEntryId->Value.bin).c_str());
 	hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(lpFolderEntryId->Value.bin.lpb),
 	     &iid_of(m_ptrCurFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors,

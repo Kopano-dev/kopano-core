@@ -415,8 +415,7 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrGetOneProp failed", hr);
-		
-	strEntryID = bin2hex(lpEntryID->Value.bin.cb, lpEntryID->Value.bin.lpb);
+	strEntryID = bin2hex(lpEntryID->Value.bin);
 
 	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
 	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
@@ -478,7 +477,7 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess)
 		kc_perrorf("HrGetOneProp failed", hr);
-	auto strEntryID = bin2hex(lpEntryID->Value.bin.cb, lpEntryID->Value.bin.lpb);
+	auto strEntryID = bin2hex(lpEntryID->Value.bin);
 
 	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
 	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
