@@ -6765,28 +6765,6 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(isMessageInQueue, *result, entryId sEntryId, unsigned int *result)
-{
-	unsigned int	ulObjId = 0;
-	USE_DATABASE();
-
-	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
-	if(er != erSuccess)
-		return er;
-
-	// Checks if message is unsent
-	strQuery = "SELECT hierarchy_id FROM outgoingqueue WHERE hierarchy_id=" + stringify(ulObjId) + " AND flags & " + stringify(EC_SUBMIT_MASTER) + " LIMIT 1";
-
-	if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
-		ec_log_err("isMessageInQueue(): select failed");
-		return KCERR_DATABASE_ERROR;
-	}
-	if (lpDBResult.get_num_rows() == 0)
-		return KCERR_NOT_FOUND;
-	return erSuccess;
-}
-SOAP_ENTRY_END()
-
 SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreGuid, struct resolveUserStoreResponse *lpsResponse)
 {
 	USE_DATABASE();
