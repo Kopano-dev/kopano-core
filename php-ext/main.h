@@ -267,9 +267,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish);
 ZEND_FUNCTION(mapi_freebusyupdate_reset);
 ZEND_FUNCTION(mapi_freebusyupdate_savechanges);
 
-// Favorite functions
-ZEND_FUNCTION(mapi_favorite_add);
-
 // ICS functions
 ZEND_FUNCTION(mapi_exportchanges_config);
 ZEND_FUNCTION(mapi_exportchanges_synchronize);
