@@ -91,7 +91,6 @@ tstring		g_strManufacturer;
 tstring		g_strProductName;
 tstring		g_strProductNameShort;
 bool		g_isOEM;
-ULONG		g_ulLoadsim;
 
 // Map of msprovider with Profilename as key
 ECMapProvider	g_mapProviders;
@@ -104,7 +103,6 @@ public:
 		g_strManufacturer = KC_T("Kopano");
 		g_strProductName = KC_T("Kopano Core");
 		g_isOEM = false;
-		g_ulLoadsim = FALSE;
 
 		// FIXME for offline
 		// - g_strUserLocalAppDataKopano = ~/kopano ?

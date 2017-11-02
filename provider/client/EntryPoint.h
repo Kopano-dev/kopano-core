@@ -43,7 +43,6 @@ extern tstring		g_strManufacturer;
 extern tstring		g_strProductName;
 extern tstring		g_strProductNameShort;
 extern bool g_isOEM;
-extern ULONG g_ulLoadsim;
 
 
 #endif // ENTRYPOINT_H
