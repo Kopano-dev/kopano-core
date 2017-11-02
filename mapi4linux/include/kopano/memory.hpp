@@ -289,8 +289,18 @@ class rowset_delete {
 	void operator()(ROWLIST *x) const { FreeProws(reinterpret_cast<SRowSet *>(x)); }
 };
 
+class rowset_ptr : public memory_ptr<SRowSet, rowset_delete> {
+	public:
+	typedef unsigned int size_type;
+	rowset_ptr() = default;
+	rowset_ptr(SRowSet *p) : memory_ptr(p) {}
+	SRowSet **operator&() { return &~*this; }
+	size_type size() const { return (*this)->cRows; }
+	const SRow &operator[](size_t i) const { return (*this)->aRow[i]; }
+	bool empty() const { return *this == nullptr || (*this)->cRows == 0; }
+};
+
 typedef memory_ptr<ADRLIST, rowset_delete> adrlist_ptr;
-typedef memory_ptr<SRowSet, rowset_delete> rowset_ptr;
 typedef memory_ptr<ROWLIST, rowset_delete> rowlist_ptr;
 
 template<typename T> inline void
