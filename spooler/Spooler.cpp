@@ -515,13 +515,12 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 
 		if (lpsRowSet->cRows == 0)		// All rows done
 			goto exit;
-
-		if (lpsRowSet->aRow[0].lpProps[4].ulPropTag == PR_DEFERRED_SEND_TIME) {
+		if (lpsRowSet[0].lpProps[4].ulPropTag == PR_DEFERRED_SEND_TIME) {
 			// check time
 			time_t now = time(NULL);
 			time_t sendat;
 			
-			FileTimeToUnixTime(lpsRowSet->aRow[0].lpProps[4].Value.ft, &sendat);
+			FileTimeToUnixTime(lpsRowSet[0].lpProps[4].Value.ft, &sendat);
 			if (now < sendat) {
 				// if we ever add logging here, it should trigger just once for this mail
 				++later_mails;
@@ -530,20 +529,19 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		}
 
 		// Check whether the row contains the entryid and store id
-		if (lpsRowSet->aRow[0].lpProps[0].ulPropTag != PR_EC_MAILBOX_OWNER_ACCOUNT_W ||
-			lpsRowSet->aRow[0].lpProps[1].ulPropTag != PR_STORE_ENTRYID ||
-		    lpsRowSet->aRow[0].lpProps[2].ulPropTag != PR_ENTRYID ||
-		    lpsRowSet->aRow[0].lpProps[3].ulPropTag != PR_EC_OUTGOING_FLAGS)
+		if (lpsRowSet[0].lpProps[0].ulPropTag != PR_EC_MAILBOX_OWNER_ACCOUNT_W ||
+		    lpsRowSet[0].lpProps[1].ulPropTag != PR_STORE_ENTRYID ||
+		    lpsRowSet[0].lpProps[2].ulPropTag != PR_ENTRYID ||
+		    lpsRowSet[0].lpProps[3].ulPropTag != PR_EC_OUTGOING_FLAGS)
 		{
 			// Client was quick enough to remove message from queue before we could read it
 			ec_log_notice("Empty row in OutgoingQueue");
 
-			if (lpsRowSet->aRow[0].lpProps[2].ulPropTag == PR_ENTRYID && lpsRowSet->aRow[0].lpProps[3].ulPropTag == PR_EC_OUTGOING_FLAGS) {
+			if (lpsRowSet[0].lpProps[2].ulPropTag == PR_ENTRYID &&
+			    lpsRowSet[0].lpProps[3].ulPropTag == PR_EC_OUTGOING_FLAGS) {
 				// we can remove this message
 				ec_log_warn("Removing invalid entry from OutgoingQueue");
-
-				hr = lpSpooler->DeleteFromMasterOutgoingTable(lpsRowSet->aRow[0].lpProps[2].Value.bin.cb, (LPENTRYID)lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, lpsRowSet->aRow[0].lpProps[3].Value.ul);
-
+				hr = lpSpooler->DeleteFromMasterOutgoingTable(lpsRowSet[0].lpProps[2].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsRowSet[0].lpProps[2].Value.bin.lpb), lpsRowSet[0].lpProps[3].Value.ul);
 				if (hr != hrSuccess) {
 					ec_log_warn("Could not remove invalid message from queue, error code: 0x%08X", hr);
 					// since we have an error, we will reconnect to the server to fully reload the table
@@ -558,12 +556,12 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 			continue;
 		}
 
-		strUsername = lpsRowSet->aRow[0].lpProps[0].Value.lpszW;
+		strUsername = lpsRowSet[0].lpProps[0].Value.lpszW;
 		// Check if there is already an active process for this message
 		bool bMatch = false;
 		for (const auto &i : mapSendData)
-			if (i.second.cbMessageEntryId == lpsRowSet->aRow[0].lpProps[2].Value.bin.cb &&
-			    memcmp(i.second.lpMessageEntryId, lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, i.second.cbMessageEntryId) == 0) {
+			if (i.second.cbMessageEntryId == lpsRowSet[0].lpProps[2].Value.bin.cb &&
+			    memcmp(i.second.lpMessageEntryId, lpsRowSet[0].lpProps[2].Value.bin.lpb, i.second.cbMessageEntryId) == 0) {
 				bMatch = true;
 				break;
 			}
@@ -571,7 +569,10 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 			continue;
 
 		// Start new process to send the mail
-		hr = StartSpoolerFork(strUsername.c_str(), szSMTP, ulPort, szPath, lpsRowSet->aRow[0].lpProps[1].Value.bin.cb, lpsRowSet->aRow[0].lpProps[1].Value.bin.lpb, lpsRowSet->aRow[0].lpProps[2].Value.bin.cb, lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, lpsRowSet->aRow[0].lpProps[3].Value.ul);
+		hr = StartSpoolerFork(strUsername.c_str(), szSMTP, ulPort, szPath,
+		     lpsRowSet[0].lpProps[1].Value.bin.cb, lpsRowSet[0].lpProps[1].Value.bin.lpb,
+		     lpsRowSet[0].lpProps[2].Value.bin.cb, lpsRowSet[0].lpProps[2].Value.bin.lpb,
+		     lpsRowSet[0].lpProps[3].Value.ul);
 		if (hr != hrSuccess) {
 			ec_log_warn("ProcessAllEntries(): Failed starting spooler: %x", hr);
 			goto exit;

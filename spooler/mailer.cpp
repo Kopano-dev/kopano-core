@@ -105,13 +105,13 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		/* From this point on we use 'continue' when something fails,
 		 * since all errors are related to the current entry and we should
 		 * make sure we resolve as many recipients as possible. */
-		auto lpRowId = lpsRowSet->aRow[0].cfind(PR_ROWID);
-		auto lpEntryId = lpsRowSet->aRow[0].cfind(PR_ENTRYID);
-		auto lpDisplayType = lpsRowSet->aRow[0].cfind(PR_DISPLAY_TYPE);
-		auto lpObjectType = lpsRowSet->aRow[0].cfind(PR_OBJECT_TYPE);
-		auto lpRecipType = lpsRowSet->aRow[0].cfind(PR_RECIPIENT_TYPE);
-		auto lpDisplayName = lpsRowSet->aRow[0].cfind(PR_DISPLAY_NAME_W);
-		auto lpEmailAddress = lpsRowSet->aRow[0].cfind(PR_SMTP_ADDRESS_W);
+		auto lpRowId = lpsRowSet[0].cfind(PR_ROWID);
+		auto lpEntryId = lpsRowSet[0].cfind(PR_ENTRYID);
+		auto lpDisplayType = lpsRowSet[0].cfind(PR_DISPLAY_TYPE);
+		auto lpObjectType = lpsRowSet[0].cfind(PR_OBJECT_TYPE);
+		auto lpRecipType = lpsRowSet[0].cfind(PR_RECIPIENT_TYPE);
+		auto lpDisplayName = lpsRowSet[0].cfind(PR_DISPLAY_NAME_W);
+		auto lpEmailAddress = lpsRowSet[0].cfind(PR_SMTP_ADDRESS_W);
 
 		/* lpRowId, lpRecipType, and lpDisplayType are optional.
 		 * lpEmailAddress is only mandatory for MAPI_MAILUSER */
@@ -346,10 +346,10 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			return kc_perrorf("QueryRows failed", hr);
 		if (lpRowSet->cRows == 0)
 			break;
-		auto lpEmailAddress = lpRowSet->aRow[0].find(PR_EMAIL_ADDRESS_W);
-		auto lpEmailName = lpRowSet->aRow[0].cfind(PR_DISPLAY_NAME_W);
-		auto lpAddrType = lpRowSet->aRow[0].find(PR_ADDRTYPE_W);
-		auto lpEntryID = lpRowSet->aRow[0].find(PR_ENTRYID);
+		auto lpEmailAddress = lpRowSet[0].find(PR_EMAIL_ADDRESS_W);
+		auto lpEmailName = lpRowSet[0].cfind(PR_DISPLAY_NAME_W);
+		auto lpAddrType = lpRowSet[0].find(PR_ADDRTYPE_W);
+		auto lpEntryID = lpRowSet[0].find(PR_ENTRYID);
 		if (!(lpEmailAddress && lpAddrType && lpEntryID && lpEmailName))
 			continue;
 
@@ -469,8 +469,8 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 			return hr;
 		if (lpRowSet->cRows == 0)
 			break;
-		auto lpEmailAddress = lpRowSet->aRow[0].cfind(PR_SMTP_ADDRESS_A);
-		auto lpRecipType = lpRowSet->aRow[0].cfind(PR_RECIPIENT_TYPE);
+		auto lpEmailAddress = lpRowSet[0].cfind(PR_SMTP_ADDRESS_A);
+		auto lpRecipType = lpRowSet[0].cfind(PR_RECIPIENT_TYPE);
 		if (!lpEmailAddress || !lpRecipType)
 			continue;
 
@@ -508,8 +508,8 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 			return kc_perrorf("QueryRows failed", hr);
 		if (lpRowSet->cRows == 0)
 			break;
-		auto lpEmailAddress = lpRowSet->aRow[0].find(PR_EMAIL_ADDRESS_W);
-		auto lpRecipType = lpRowSet->aRow[0].cfind(PR_RECIPIENT_TYPE);
+		auto lpEmailAddress = lpRowSet[0].find(PR_EMAIL_ADDRESS_W);
+		auto lpRecipType = lpRowSet[0].cfind(PR_RECIPIENT_TYPE);
 		if (!lpEmailAddress || !lpRecipType)
 			continue;
    
@@ -1185,17 +1185,16 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 			return kc_perrorf("QueryRows failed", hr);
 		if (lpRowSet->cRows == 0)
 			break;
-
-		if (lpRowSet->aRow[0].lpProps[0].ulPropTag != PR_ENTRYID || lpRowSet->aRow[0].lpProps[1].ulPropTag != PR_OBJECT_TYPE)
+		if (lpRowSet[0].lpProps[0].ulPropTag != PR_ENTRYID ||
+		    lpRowSet[0].lpProps[1].ulPropTag != PR_OBJECT_TYPE)
 			continue;
-
-		if (lpRowSet->aRow[0].lpProps[1].Value.ul == MAPI_MAILUSER)
+		if (lpRowSet[0].lpProps[1].Value.ul == MAPI_MAILUSER)
 			hr = lpAdrBook->CompareEntryIDs(ulOwnerCB, lpOwnerEID,
-			     lpRowSet->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[0].Value.bin.lpb,
+			     lpRowSet[0].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRowSet[0].lpProps[0].Value.bin.lpb),
 			     0, &ulCmp);
-		else if (lpRowSet->aRow[0].lpProps[1].Value.ul == MAPI_DISTLIST)
+		else if (lpRowSet[0].lpProps[1].Value.ul == MAPI_DISTLIST)
 			hr = HrFindUserInGroup(lpAdrBook, ulOwnerCB, lpOwnerEID, 
-			     lpRowSet->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[0].Value.bin.lpb,
+			     lpRowSet[0].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRowSet[0].lpProps[0].Value.bin.lpb),
 			     &ulCmp, level+1);
 		if (hr == hrSuccess && ulCmp == TRUE)
 			break;

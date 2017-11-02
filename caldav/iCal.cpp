@@ -205,20 +205,20 @@ HRESULT iCal::HrHandleIcalPost()
 			break;
 
 		for (ULONG i = 0; i < lpRows->cRows; ++i) {
-			if (lpRows->aRow[i].lpProps[0].ulPropTag != PR_ENTRYID)
+			if (lpRows[i].lpProps[0].ulPropTag != PR_ENTRYID)
 				continue;
-			if (lpRows->aRow[i].lpProps[2].ulPropTag == ulProptag)
-				sbUid = lpRows->aRow[i].lpProps[2].Value.bin;
+			if (lpRows[i].lpProps[2].ulPropTag == ulProptag)
+				sbUid = lpRows[i].lpProps[2].Value.bin;
 			else
 				continue; // skip new entries
-			sbEid.cb = lpRows->aRow[i].lpProps[0].Value.bin.cb;
+			sbEid.cb = lpRows[i].lpProps[0].Value.bin.cb;
 			if ((hr = MAPIAllocateBuffer(sbEid.cb, (void **)&sbEid.lpb)) != hrSuccess)
 				goto exit;
-			memcpy(sbEid.lpb, lpRows->aRow[i].lpProps[0].Value.bin.lpb, sbEid.cb);
+			memcpy(sbEid.lpb, lpRows[i].lpProps[0].Value.bin.lpb, sbEid.cb);
 			strUidString = bin2hex(sbUid);
 			mpSrvEntries[strUidString] = sbEid;
-			if (lpRows->aRow[i].lpProps[1].ulPropTag == PR_LAST_MODIFICATION_TIME)
-				mpSrvTimes[strUidString] = lpRows->aRow[i].lpProps[1].Value.ft;				
+			if (lpRows[i].lpProps[1].ulPropTag == PR_LAST_MODIFICATION_TIME)
+				mpSrvTimes[strUidString] = lpRows[i].lpProps[1].Value.ft;
 		}
 	}
 
@@ -515,11 +515,9 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 		for (ULONG i = 0; i < lpRows->cRows; ++i) {
 			blCensor = blCensorPrivate; // reset censor flag for next message
 			ulFlag = 0;
-
-			if (lpRows->aRow[i].lpProps[0].ulPropTag != PR_ENTRYID)
+			if (lpRows[i].lpProps[0].ulPropTag != PR_ENTRYID)
 				continue;
-
-			sbEid = lpRows->aRow[i].lpProps[0].Value.bin;
+			sbEid = lpRows[i].lpProps[0].Value.bin;
 
 			object_ptr<IMessage> lpMessage;
 			hr = m_lpUsrFld->OpenEntry(sbEid.cb, (LPENTRYID)sbEid.lpb,

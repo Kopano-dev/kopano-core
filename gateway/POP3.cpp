@@ -810,22 +810,21 @@ HRESULT POP3::HrMakeMailList() {
 
 	lstMails.clear();
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
-		if (PROP_TYPE(lpRows->aRow[i].lpProps[EID].ulPropTag) == PT_ERROR) {
+		if (PROP_TYPE(lpRows[i].lpProps[EID].ulPropTag) == PT_ERROR) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Missing EntryID in message table for message %d", i);
 			continue;
 		}
-
-		if (PROP_TYPE(lpRows->aRow[i].lpProps[SIZE].ulPropTag) == PT_ERROR) {
+		if (PROP_TYPE(lpRows[i].lpProps[SIZE].ulPropTag) == PT_ERROR) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Missing size in message table for message %d", i);
 			continue;
 		}
 
 		MailListItem sMailListItem;
-		sMailListItem.sbEntryID.cb = lpRows->aRow[i].lpProps[EID].Value.bin.cb;
-		sMailListItem.sbEntryID.lpb = new BYTE[lpRows->aRow[i].lpProps[EID].Value.bin.cb];
-		memcpy(sMailListItem.sbEntryID.lpb, lpRows->aRow[i].lpProps[EID].Value.bin.lpb, lpRows->aRow[i].lpProps[EID].Value.bin.cb);
+		sMailListItem.sbEntryID.cb = lpRows[i].lpProps[EID].Value.bin.cb;
+		sMailListItem.sbEntryID.lpb = new BYTE[lpRows[i].lpProps[EID].Value.bin.cb];
+		memcpy(sMailListItem.sbEntryID.lpb, lpRows[i].lpProps[EID].Value.bin.lpb, lpRows[i].lpProps[EID].Value.bin.cb);
 		sMailListItem.bDeleted = false;
-		sMailListItem.ulSize = lpRows->aRow[i].lpProps[SIZE].Value.l;
+		sMailListItem.ulSize = lpRows[i].lpProps[SIZE].Value.l;
 		lstMails.emplace_back(std::move(sMailListItem));
 	}
 	return hrSuccess;
