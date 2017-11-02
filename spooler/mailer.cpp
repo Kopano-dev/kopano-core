@@ -344,11 +344,10 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			return kc_perrorf("QueryRows failed", hr);
 		if (lpRowSet->cRows == 0)
 			break;
-		auto lpEmailAddress = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_EMAIL_ADDRESS_W);
+		auto lpEmailAddress = lpRowSet->aRow[0].find(PR_EMAIL_ADDRESS_W);
 		auto lpEmailName = lpRowSet->aRow[0].cfind(PR_DISPLAY_NAME_W);
-		auto lpAddrType = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ADDRTYPE_W);
-		auto lpEntryID = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ENTRYID);
-
+		auto lpAddrType = lpRowSet->aRow[0].find(PR_ADDRTYPE_W);
+		auto lpEntryID = lpRowSet->aRow[0].find(PR_ENTRYID);
 		if (!(lpEmailAddress && lpAddrType && lpEntryID && lpEmailName))
 			continue;
 
@@ -507,8 +506,7 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 			return kc_perrorf("QueryRows failed", hr);
 		if (lpRowSet->cRows == 0)
 			break;
-
-		auto lpEmailAddress = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_EMAIL_ADDRESS_W);
+		auto lpEmailAddress = lpRowSet->aRow[0].find(PR_EMAIL_ADDRESS_W);
 		auto lpRecipType = lpRowSet->aRow[0].cfind(PR_RECIPIENT_TYPE);
 		if (!lpEmailAddress || !lpRecipType)
 			continue;

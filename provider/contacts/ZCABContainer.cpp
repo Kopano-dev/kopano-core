@@ -747,7 +747,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 			for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 				// use PR_STORE_ENTRYID field to set instance key, since that is always MAPI_E_NOT_FOUND (see above)
-				auto lpProp = PpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, CHANGE_PROP_TYPE(PR_STORE_ENTRYID, PT_ERROR));
+				auto lpProp = ptrRows[i].find(CHANGE_PROP_TYPE(PR_STORE_ENTRYID, PT_ERROR));
 				if (lpProp == nullptr)
 					continue;
 				lpProp->ulPropTag = PR_ROWID;

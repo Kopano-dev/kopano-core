@@ -1585,7 +1585,7 @@ HRESULT ECMessage::SaveRecips()
 		AllocNewMapiObject(lpRowId->Value.ul, lpObjIDs[i].Value.ul, ulRealObjType, &mo);
 
 		// Move any PR_ENTRYIDs to PR_EC_CONTACT_ENTRYID
-		auto lpEntryID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);
+		auto lpEntryID = lpRowSet->aRow[i].find(PR_ENTRYID);
 		if(lpEntryID)
 			lpEntryID->ulPropTag = PR_EC_CONTACT_ENTRYID;
 

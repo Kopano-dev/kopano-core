@@ -497,6 +497,7 @@ struct SRow {
     ULONG           ulAdrEntryPad;
     ULONG           cValues;
     LPSPropValue    lpProps;
+	inline SPropValue *find(ULONG tag) const;
 	inline const SPropValue *cfind(ULONG tag) const;
 };
 typedef struct SRow *LPSRow;
