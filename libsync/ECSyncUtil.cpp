@@ -128,35 +128,4 @@ HRESULT CreateNullStatusStream(LPSTREAM *lppStream)
 	       reinterpret_cast<LPVOID *>(lppStream));
 }
 
-HRESULT HrGetOneBinProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPropValue)
-{
-	HRESULT hr = hrSuccess;
-	object_ptr<IStream> lpStream;
-	memory_ptr<SPropValue> lpPropValue;
-	STATSTG sStat;
-	ULONG ulRead = 0;
-
-	if (lpProp == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, 0, 0, &~lpStream);
-	if(hr != hrSuccess)
-		return hr;
-	hr = lpStream->Stat(&sStat, 0);
-	if(hr != hrSuccess)
-		return hr;
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
-	if(hr != hrSuccess)
-		return hr;
-	hr = MAPIAllocateMore(sStat.cbSize.LowPart, lpPropValue, (void **) &lpPropValue->Value.bin.lpb);
-	if(hr != hrSuccess)
-		return hr;
-	hr = lpStream->Read(lpPropValue->Value.bin.lpb, sStat.cbSize.LowPart, &ulRead);
-	if(hr != hrSuccess)
-		return hr;
-	lpPropValue->Value.bin.cb = ulRead;
-
-	*lppPropValue = lpPropValue.release();
-	return hrSuccess;
-}
-
 } /* namespace */

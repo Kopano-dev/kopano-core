@@ -108,41 +108,6 @@ HRESULT ECRestriction::CopyProp(SPropValue *lpPropSrc, void *lpBase,
 	return hr;
 }
 
-/**
- * Copy a property array  into a newly allocated SPropValue array.
- * @param[in]	cValues		The size of the array.
- * @param[in]	lpPropSrc	The source property array.
- * @param[in]	lpBase		An optional base pointer for MAPIAllocateMore.
- * @param[out]	lppPropDst	Pointer to an SPropValue pointer that will be set to 
- *							the address of the newly allocated SPropValue array.
- * @retval	MAPI_E_INVALID_PARAMETER	lpPropSrc or lppPropDst is NULL.
- */
-HRESULT ECRestriction::CopyPropArray(ULONG cValues, SPropValue *lpPropSrc,
-    void *lpBase, ULONG ulFlags, SPropValue **lppPropDst)
-{
-	HRESULT hr = hrSuccess;
-	memory_ptr<SPropValue> lpPropDst;
-
-	if (lpPropSrc == nullptr || lppPropDst == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-	if (lpBase == NULL)
-		hr = MAPIAllocateBuffer(cValues * sizeof *lpPropDst, &~lpPropDst);
-	else
-		hr = MAPIAllocateMore(cValues * sizeof *lpPropDst, lpBase, &~lpPropDst);
-	if (hr != hrSuccess)
-		return hr;
-	if (ulFlags & Shallow)
-		hr = Util::HrCopyPropertyArrayByRef(lpPropSrc, cValues, lpPropDst);
-	else
-		hr = Util::HrCopyPropertyArray(lpPropSrc, cValues, lpPropDst, lpBase ? lpBase : lpPropDst);
-	if (hr != hrSuccess)
-		return hr;
-
-	*lppPropDst = lpPropDst.release();
-
-	return hr;
-}
-
 inline void ECRestriction::DummyFree(LPVOID) {}
 
 /**
