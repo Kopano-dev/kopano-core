@@ -910,8 +910,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 		return hr;
 	if (lpAdrList->cEntries != 1)
 		return MAPI_E_NOT_FOUND;
-    
-    lpEntryID = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ENTRYID);
+	lpEntryID = lpAdrList->aEntries[0].cfind(PR_ENTRYID);
 	if (lpEntryID == nullptr)
 		return MAPI_E_NOT_FOUND;
     hr = lpAdrBook->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb), &IID_IMAPIProp, 0, &ulType, &~lpMailUser);

@@ -470,6 +470,7 @@ struct ADRENTRY {
     ULONG           ulReserved1;
     ULONG           cValues;
     LPSPropValue    rgPropVals;
+	inline const SPropValue *cfind(ULONG tag) const;
 };
 typedef struct ADRENTRY *LPADRENTRY;
 

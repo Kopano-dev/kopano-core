@@ -999,9 +999,8 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 			return hr;
 
 		for (i = 0; i < lpAdrList->cEntries; ++i) {
-			auto lpDisplayNameA = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_A);
-			auto lpDisplayNameW = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_W);
-
+			auto lpDisplayNameA = lpAdrList->aEntries[i].cfind(PR_DISPLAY_NAME_A);
+			auto lpDisplayNameW = lpAdrList->aEntries[i].cfind(PR_DISPLAY_NAME_W);
 			if (!lpDisplayNameA && !lpDisplayNameW)
 				continue;
 

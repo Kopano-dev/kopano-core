@@ -75,6 +75,11 @@ extern _kc_export HRESULT CreateStreamOnHGlobal(void *global, BOOL delete_on_rel
 
 } // EXTERN "C"
 
+inline const SPropValue *ADRENTRY::cfind(ULONG tag) const
+{
+	return PCpropFindProp(rgPropVals, cValues, tag);
+}
+
 inline SPropValue *SRow::find(ULONG tag) const
 {
 	return PpropFindProp(lpProps, cValues, tag);

@@ -371,13 +371,13 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	     ulRecpCnt < lplstIcalRecip->size(); ++ulRecpCnt) {
 		if (lpFlagList->ulFlag[ulRecpCnt] == MAPI_RESOLVED)
 		{
-			auto lpMappedProp = PCpropFindProp(lpAdrList->aEntries[ulRecpCnt].rgPropVals, lpAdrList->aEntries[ulRecpCnt].cValues, PR_DISPLAY_NAME_W);
+			auto lpMappedProp = lpAdrList->aEntries[ulRecpCnt].cfind(PR_DISPLAY_NAME_W);
 			if (lpMappedProp)
 				icalRecipient.strName = lpMappedProp->Value.lpszW;
 		}
 		
 		//save the logged in user's satus , used in setting FB status  
-		auto lpMappedProp = PCpropFindProp(lpAdrList->aEntries[ulRecpCnt].rgPropVals, lpAdrList->aEntries[ulRecpCnt].cValues, PR_ENTRYID);
+		auto lpMappedProp = lpAdrList->aEntries[ulRecpCnt].cfind(PR_ENTRYID);
 		if (lpMappedProp && lpUsrEidProp)
 			hr = m_lpAdrBook->CompareEntryIDs(lpUsrEidProp->Value.bin.cb, (LPENTRYID)lpUsrEidProp->Value.bin.lpb, lpMappedProp->Value.bin.cb, (LPENTRYID)lpMappedProp->Value.bin.lpb , 0 , &ulRetn);
 		if (hr == hrSuccess && ulRetn == TRUE)

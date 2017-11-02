@@ -1660,9 +1660,9 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
 
 	// Resolve local items
 	for (unsigned int i = 0; i < lpAdrList->cEntries; ++i) {
-		auto lpDisplay = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_A);
-		auto lpDisplayW = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_W);
-		auto lpEntryID = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_ENTRYID);
+		auto lpDisplay  = lpAdrList->aEntries[i].cfind(PR_DISPLAY_NAME_A);
+		auto lpDisplayW = lpAdrList->aEntries[i].cfind(PR_DISPLAY_NAME_W);
+		auto lpEntryID  = lpAdrList->aEntries[i].cfind(PR_ENTRYID);
 		std::wstring strwDisplay, strwType, strwAddress;
 
 		if(lpEntryID != NULL) {
@@ -1998,7 +1998,7 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 	for (unsigned int i = 0; i < lpRecipList->cEntries; ++i) {
 		object_ptr<IMailUser> lpMailUser;
 		memory_ptr<SPropValue> lpProps;
-		auto lpEntryId = PCpropFindProp(lpRecipList->aEntries[i].rgPropVals, lpRecipList->aEntries[i].cValues, PR_ENTRYID);
+		auto lpEntryId = lpRecipList->aEntries[i].cfind(PR_ENTRYID);
 		if(lpEntryId == NULL)
 			continue;
 		hr = OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IMailUser, 0, &ulType, &~lpMailUser);
