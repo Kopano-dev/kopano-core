@@ -37,24 +37,22 @@ typedef std::map<LONG, FBBlock_1>mapFB;
 class ECFBBlockList _kc_final {
 public:
 	ECFBBlockList(void);
-	void Copy(ECFBBlockList *lpfbBlkList);
-
-	HRESULT Add(FBBlock_1* lpFBBlock);
+	ECFBBlockList(const ECFBBlockList &);
+	void operator=(const ECFBBlockList &) = delete; /* not implemented */
+	HRESULT Add(const FBBlock_1 &);
 	HRESULT Next(FBBlock_1* pblk);
 	HRESULT Reset();
 	HRESULT Skip(LONG items);
 	HRESULT Restrict(LONG tmStart, LONG tmEnd);
 	void Clear();
 	ULONG Size();
-
-	HRESULT Merge(FBBlock_1* lpFBBlock);
+	HRESULT Merge(const FBBlock_1 &);
 	HRESULT GetEndTime(LONG *rtmEnd);
 private:
 	mapFB			m_FBMap;
 	mapFB::iterator	m_FBIter;
-	LONG			m_tmRestictStart;
-	LONG			m_tmRestictEnd;
-	bool			m_bInitIter;
+	LONG m_tmRestictStart = 0, m_tmRestictEnd = 0;
+	bool m_bInitIter = false;
 };
 
 } /* namespace */

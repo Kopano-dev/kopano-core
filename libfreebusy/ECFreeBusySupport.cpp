@@ -37,21 +37,6 @@ ECFreeBusySupport::ECFreeBusySupport(void)
 	GetClientVersion(&m_ulOutlookVersion);
 }
 
-ECFreeBusySupport::~ECFreeBusySupport(void)
-{
-	if(m_lpFreeBusyFolder)
-		m_lpFreeBusyFolder->Release();
-
-	if(m_lpUserStore)
-		m_lpUserStore->Release();
-
-	if(m_lpPublicStore)
-		m_lpPublicStore->Release();
-
-	if(m_lpSession)
-		m_lpSession->Release();
-}
-
 HRESULT ECFreeBusySupport::Create(ECFreeBusySupport **lppECFreeBusySupport)
 {
 	return alloc_wrap<ECFreeBusySupport>().put(lppECFreeBusySupport);
@@ -68,7 +53,6 @@ HRESULT ECFreeBusySupport::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgStore, BOOL bStore)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMsgStore> lpPublicStore;
 
 	if(lpMAPISession == NULL)
@@ -83,7 +67,7 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 
 	// Hold the mapisession, the session will be released by function 'close' or 
 	// on delete the class
-	hr = lpMAPISession->QueryInterface(IID_IMAPISession, (void**)&m_lpSession);
+	auto hr = lpMAPISession->QueryInterface(IID_IMAPISession, &~m_lpSession);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -91,45 +75,25 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 	hr = HrOpenECPublicStoreOnline(lpMAPISession, &~lpPublicStore);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpPublicStore->QueryInterface(IID_IMsgStore, (void**)&m_lpPublicStore);
+	hr = lpPublicStore->QueryInterface(IID_IMsgStore, &~m_lpPublicStore);
 	if(hr != hrSuccess)
 		return hr;
-
-	if(lpMsgStore) {
+	if (lpMsgStore != nullptr)
 		//Hold the use store for update freebusy
-		hr = lpMsgStore->QueryInterface(IID_IMsgStore, (void**)&m_lpUserStore);
-		if(hr != hrSuccess)
-			return hr;
-	}
+		hr = lpMsgStore->QueryInterface(IID_IMsgStore, &~m_lpUserStore);
 	return hr;
 }
 
 HRESULT ECFreeBusySupport::Close()
 {
-	if(m_lpSession)
-	{
-		m_lpSession->Release();
-		m_lpSession = NULL;
-	}
-
-	if(m_lpPublicStore)
-	{
-		m_lpPublicStore->Release();
-		m_lpPublicStore = NULL;
-	}
-
-	if(m_lpUserStore)
-	{
-		m_lpUserStore->Release();
-		m_lpUserStore = NULL;
-	}
-
+	m_lpSession.reset();
+	m_lpPublicStore.reset();
+	m_lpUserStore.reset();
 	return S_OK;
 }
 
 HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata, HRESULT *phrStatus, ULONG *pcRead)
 {
-	HRESULT			hr = S_OK;
 	ULONG			ulFindUsers = 0;
 	ECFBBlockList	fbBlockList;
 	LONG			rtmStart = 0;
@@ -141,33 +105,27 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 
 	for (i = 0; i < cMax; ++i) {
 		object_ptr<IMessage> lpMessage;
-
-		if (GetFreeBusyMessage(m_lpSession, m_lpPublicStore, nullptr, rgfbuser[i].m_cbEid, rgfbuser[i].m_lpEid, false, &~lpMessage) == hrSuccess) {
-			object_ptr<ECFreeBusyData> lpECFreeBusyData;
-			ECFreeBusyData::Create(&~lpECFreeBusyData);
-
-			fbBlockList.Clear();
-
-			hr = GetFreeBusyMessageData(lpMessage, &rtmStart, &rtmEnd, &fbBlockList);
-			if(hr != hrSuccess)
-				return hr;
-
-			// Add fbdata
-			lpECFreeBusyData->Init(rtmStart, rtmEnd, &fbBlockList);
-			hr = lpECFreeBusyData->QueryInterface(IID_IFreeBusyData, (void**)&prgfbdata[i]);
-			if(hr != hrSuccess)
-				return hr;
-
-			++ulFindUsers;
-		}// else No free busy information, gives the empty class
-		else
-			prgfbdata[i] = NULL;
+		if (GetFreeBusyMessage(m_lpSession, m_lpPublicStore, nullptr, rgfbuser[i].m_cbEid, rgfbuser[i].m_lpEid, false, &~lpMessage) != hrSuccess) {
+			/* No free busy information, gives the empty class. */
+			prgfbdata[i] = nullptr;
+			continue;
+		}
+		fbBlockList.Clear();
+		auto hr = GetFreeBusyMessageData(lpMessage, &rtmStart, &rtmEnd, &fbBlockList);
+		if (hr != hrSuccess)
+			return hr;
+		// Add fbdata
+		object_ptr<ECFreeBusyData> lpECFreeBusyData;
+		ECFreeBusyData::Create(rtmStart, rtmEnd, fbBlockList, &~lpECFreeBusyData);
+		hr = lpECFreeBusyData->QueryInterface(IID_IFreeBusyData, (void**)&prgfbdata[i]);
+		if (hr != hrSuccess)
+			return hr;
+		++ulFindUsers;
 	}
 
 	if(pcRead)
 		*pcRead = ulFindUsers;
-
-	return hr;
+	return S_OK;
 }
 
 HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4)
@@ -206,7 +164,6 @@ HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFr
 
 HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IFreeBusyData> lpFBData;
 	HRESULT ulStatus = 0;
 	ULONG ulRead = 0;
@@ -228,7 +185,7 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		ULONG fDoesRejectConflict;
 
 		ULONG ulReserved11;			/* always 0 -- unknown -- not present in OL2K */
-	} *lpStatusOlk2k3;
+	};
 
 	struct StatusOL2K7 {
 		ULONG ulResourceType;		/* 0x68410003 PR_SCHDINFO_RESOURCE_TYPE always 0*/
@@ -246,8 +203,7 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		ULONG fDoesAutoAccept;
 		ULONG fDoesRejectRecurring;
 		ULONG fDoesRejectConflict;
-
-	} *lpStatus;
+	};
 
 	struct StatusOL2K {
 		ULONG ulResourceType;		/* always 0 */
@@ -263,7 +219,7 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		ULONG fDoesAutoAccept;
 		ULONG fDoesRejectRecurring;
 		ULONG fDoesRejectConflict;
-	} *lpStatusOlk2K;
+	};
 
 	bool bAutoAccept = true, bDeclineConflict = true, bDeclineRecurring = true;
 	ULONG ulObjType = 0;
@@ -280,56 +236,58 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 
 	switch (m_ulOutlookVersion) {
 	case CLIENT_VERSION_OLK2000:
-	case CLIENT_VERSION_OLK2002:
-		lpStatusOlk2K = (StatusOL2K*)lpulStatus;
-		memset(lpStatusOlk2K, 0, sizeof(StatusOL2K));
+	case CLIENT_VERSION_OLK2002: {
+		StatusOL2K k;
+		memset(&k, 0, sizeof(k));
 
-		lpStatusOlk2K->ulReserved1 = 1;
-		lpStatusOlk2K->ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
-		lpStatusOlk2K->ulBossWantsInfo = 1;
-		lpStatusOlk2K->ulDontEmailDelegates = 1;
+		k.ulReserved1 = 1;
+		k.ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
+		k.ulBossWantsInfo = 1;
+		k.ulDontEmailDelegates = 1;
 
 		// They don't seem to have much effect, as outlook will always plan the resource.
-		lpStatusOlk2K->fDoesAutoAccept = bAutoAccept;
-		lpStatusOlk2K->fDoesRejectConflict = bDeclineConflict;
-		lpStatusOlk2K->fDoesRejectRecurring = bDeclineRecurring;
-
+		k.fDoesAutoAccept = bAutoAccept;
+		k.fDoesRejectConflict = bDeclineConflict;
+		k.fDoesRejectRecurring = bDeclineRecurring;
+		memcpy(lpulStatus, &k, sizeof(k));
 		break;
-	case CLIENT_VERSION_OLK2003:
-		lpStatusOlk2k3 = (StatusOL2K3*)lpulStatus;
-		memset(lpStatusOlk2k3, 0, sizeof(StatusOL2K3));
+	}
+	case CLIENT_VERSION_OLK2003: {
+		StatusOL2K3 k;
+		memset(&k, 0, sizeof(k));
+		k.ulReserved1 = 0;
+		k.ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
+		k.ulBossWantsInfo = 1;
+		k.ulDontEmailDelegates = 1;
 
-		lpStatusOlk2k3->ulReserved1 = 0;
-		lpStatusOlk2k3->ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
-		lpStatusOlk2k3->ulBossWantsInfo = 1;
-		lpStatusOlk2k3->ulDontEmailDelegates = 1;
-
-		lpStatusOlk2k3->fDoesAutoAccept = bAutoAccept;
-		lpStatusOlk2k3->fDoesRejectConflict = bDeclineConflict;
-		lpStatusOlk2k3->fDoesRejectRecurring = bDeclineRecurring;
-
+		k.fDoesAutoAccept = bAutoAccept;
+		k.fDoesRejectConflict = bDeclineConflict;
+		k.fDoesRejectRecurring = bDeclineRecurring;
+		memcpy(lpulStatus, &k, sizeof(k));
 		break;
-	default:
-		lpStatus = (StatusOL2K7*)lpulStatus;
-		memset(lpStatus, 0, sizeof(StatusOL2K7));
-
-		lpStatus->ulReserved1 = 0;
-		lpStatus->ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
-		lpStatus->ulBossWantsInfo = 1;
-		lpStatus->ulDontEmailDelegates = 1;
+	}
+	default: {
+		StatusOL2K7 k;
+		memset(&k, 0, sizeof(k));
+		k.ulReserved1 = 0;
+		k.ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
+		k.ulBossWantsInfo = 1;
+		k.ulDontEmailDelegates = 1;
 
 		// Atleast Outlook 2007 should be able to correctly use these, if you restart outlook.
-		lpStatus->fDoesAutoAccept = bAutoAccept;
-		lpStatus->fDoesRejectConflict = bDeclineConflict;
-		lpStatus->fDoesRejectRecurring = bDeclineRecurring;
+		k.fDoesAutoAccept = bAutoAccept;
+		k.fDoesRejectConflict = bDeclineConflict;
+		k.fDoesRejectRecurring = bDeclineRecurring;
+		memcpy(lpulStatus, &k, sizeof(k));
 		break;
+	}
 	};
 
 	// These two dates seem to be the published range in RTimes for the specified user. However, just specifying zero
 	// doesn't seem to matter when booking resources, so it looks like these values are ignored.
 
 	// We'll get the values anyway just to be sure.
-	hr = LoadFreeBusyData(1, &sFBUser, &~lpFBData, &ulStatus, &ulRead);
+	auto hr = LoadFreeBusyData(1, &sFBUser, &~lpFBData, &ulStatus, &ulRead);
 	if(hr != hrSuccess)
 		return hr;
 	if (ulRead != 1)

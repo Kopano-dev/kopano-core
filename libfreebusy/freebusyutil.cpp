@@ -29,6 +29,7 @@
 #include "freebusytags.h"
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
+#include "recurrence.h"
 
 using namespace KCHL;
 
@@ -54,11 +55,6 @@ struct sfbEvent {
 #define FB_YEARMONTH(year, month)	(((static_cast<unsigned short>(year) << 4) & 0xFFF0) | static_cast<unsigned short>(month))
 #define FB_YEAR(yearmonth)		(static_cast<unsigned short>(yearmonth) >> 4)
 #define FB_MONTH(yearmonth)		(static_cast<unsigned short>(yearmonth) & 0x000F)
-
-static bool leapyear(short year)
-{
-	return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0); 
-}
 
 static HRESULT getMaxMonthMinutes(short year, short month, short *minutes)
 {
@@ -86,7 +82,7 @@ static HRESULT getMaxMonthMinutes(short year, short month, short *minutes)
 		break;
 	case 2:
 		days = 28;
-		if(leapyear(year))
+		if (recurrence::isLeapYear(year))
 			++days;
 		break;
 	}
@@ -98,7 +94,6 @@ static HRESULT getMaxMonthMinutes(short year, short month, short *minutes)
 static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
     IMAPIFolder **lppFreeBusyFolder)
 {
-	HRESULT			hr = S_OK;
 	ULONG			cValuesFreeBusy = 0;
 	memory_ptr<SPropValue> lpPropArrayFreeBusy;
 	object_ptr<IMAPIFolder> lpMapiFolder;
@@ -108,7 +103,7 @@ static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
 	enum eFreeBusyPos{ FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID};
 
 	// Get freebusy properies
-	hr = lpPublicStore->GetProps(sPropsFreeBusy, 0, &cValuesFreeBusy, &~lpPropArrayFreeBusy);
+	auto hr = lpPublicStore->GetProps(sPropsFreeBusy, 0, &cValuesFreeBusy, &~lpPropArrayFreeBusy);
 	if (FAILED(hr))
 		return hr;
 	if(lpPropArrayFreeBusy[FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID].ulPropTag != PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID)
@@ -125,19 +120,15 @@ static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
 
 HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IMsgStore* lpUserStore, ULONG cbUserEntryID, LPENTRYID lpUserEntryID, BOOL bCreateIfNotExist, IMessage** lppMessage)
 {
-	HRESULT			hr = S_OK;
 	object_ptr<IMAPIFolder> lpFreeBusyFolder;
 	object_ptr<IMAPITable> lpMapiTable;
 	SPropValue		sPropUser;
 	rowset_ptr lpRows;
-	ULONG			ulObjType = 0;
+	ULONG ulObjType = 0, cbInBoxEntry = 0, i;
 	object_ptr<IMessage> lpMessage;
-	ULONG			ulMvItems = 0;
-	ULONG			i;
 	memory_ptr<SPropValue> lpPropfbEntryids;
 	memory_ptr<SPropValue> lpPropfbEntryidsNew, lpPropFBMessage;
 	memory_ptr<SPropValue> lpPropName, lpPropEmail;
-	ULONG			cbInBoxEntry = 0;
 	memory_ptr<ENTRYID> lpInboxEntry;
 	static constexpr const SizedSPropTagArray(1, sPropsFreebusyTable) = {1, {PR_ENTRYID}};
 	enum eFreeBusyTablePos{ FBPOS_ENTRYID};
@@ -148,7 +139,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		return MAPI_E_INVALID_ENTRYID;
 
 	// GetFreeBusyFolder  
-	hr = GetFreeBusyFolder(lpPublicStore, &~lpFreeBusyFolder);
+	auto hr = GetFreeBusyFolder(lpPublicStore, &~lpFreeBusyFolder);
  	if(hr != hrSuccess)
 		return hr;
 	hr = lpFreeBusyFolder->GetContentsTable(0, &~lpMapiTable);
@@ -248,7 +239,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	if (hr != hrSuccess)
 		return hr;
 
-	ulMvItems = 4;
+	ULONG ulMvItems = 4;
 	// Get current freebusy entryid array
 	if (HrGetOneProp(lpFolder, PR_FREEBUSY_ENTRYIDS, &~lpPropfbEntryids) == hrSuccess)
 		ulMvItems = (lpPropfbEntryids->Value.MVbin.cValues > ulMvItems) ? lpPropfbEntryids->Value.MVbin.cValues : ulMvItems;
@@ -302,13 +293,9 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,
     LPSPropValue lpEvent, ECFBBlockList *lpfbBlockList)
 {
-	ULONG		cEvents;
-	sfbEvent*	lpfbEvents = NULL;
 	struct tm	tmTmp;
-	time_t		tmUnix;
 	LONG		rtmStart;
 	LONG		rtmEnd;
-	bool		bMerge;
 	FBBlock_1	fbBlock;
 
 	// Check varibales
@@ -322,8 +309,8 @@ static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,
 		if(lpEvent->Value.MVbin.lpbin[i].cb == 0) // notting to do
 			continue;
 
-		cEvents = lpEvent->Value.MVbin.lpbin[i].cb / sizeof(sfbEvent);
-		lpfbEvents = (sfbEvent*)lpEvent->Value.MVbin.lpbin[i].lpb;
+		ULONG cEvents = lpEvent->Value.MVbin.lpbin[i].cb / sizeof(sfbEvent);
+		auto lpfbEvents = reinterpret_cast<sfbEvent *>(lpEvent->Value.MVbin.lpbin[i].lpb);
 
 		for (ULONG j = 0; j < cEvents; ++j) {
 			memset(&tmTmp, 0, sizeof(struct tm));
@@ -332,8 +319,7 @@ static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,
 			tmTmp.tm_mday = 1;
 			tmTmp.tm_min = (int)(unsigned short)lpfbEvents[j].rtmStart;
 			tmTmp.tm_isdst = -1;
-
-			tmUnix = timegm(&tmTmp);
+			auto tmUnix = timegm(&tmTmp);
 			UnixTimeToRTime(tmUnix, &rtmStart);
 
 			memset(&tmTmp, 0, sizeof(struct tm));
@@ -342,20 +328,19 @@ static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,
 			tmTmp.tm_mday = 1;
 			tmTmp.tm_min = (int)(unsigned short)lpfbEvents[j].rtmEnd;
 			tmTmp.tm_isdst = -1;
-
 			tmUnix = timegm(&tmTmp);
 			UnixTimeToRTime(tmUnix, &rtmEnd);
 			
 			// Don't reset fbBlock.m_tmEnd
-			bMerge = fbBlock.m_tmEnd == rtmStart;
+			auto bMerge = fbBlock.m_tmEnd == rtmStart;
 			fbBlock.m_fbstatus = fbSts;
 			fbBlock.m_tmStart = rtmStart;
 			fbBlock.m_tmEnd = rtmEnd;
 
 			if (bMerge)
-				lpfbBlockList->Merge(&fbBlock);
+				lpfbBlockList->Merge(fbBlock);
 			else
-				lpfbBlockList->Add(&fbBlock);
+				lpfbBlockList->Add(fbBlock);
 		}
 	}
 	return S_OK;
@@ -363,8 +348,6 @@ static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,
 
 HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprtmEnd, ECFBBlockList	*lpfbBlockList)
 {
-	HRESULT hr = S_OK;
-
 	ULONG			cValuesFBData = 0;
 	memory_ptr<SPropValue> lpPropArrayFBData;
 	static constexpr const SizedSPropTagArray(9, sPropsFreeBusyData) = {
@@ -394,7 +377,7 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 
 	if(lpMessage == NULL || lprtmStart == NULL || lprtmEnd == NULL || lpfbBlockList == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpMessage->GetProps(sPropsFreeBusyData, 0, &cValuesFBData, &~lpPropArrayFBData);
+	auto hr = lpMessage->GetProps(sPropsFreeBusyData, 0, &cValuesFBData, &~lpPropArrayFBData);
 	if(FAILED(hr))
 		return hr;
 
@@ -424,53 +407,32 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 		if(hr != hrSuccess)
 			return hr;
 	}
-
-	if (lpPropArrayFBData[FBDATA_START_RANGE].ulPropTag == PR_FREEBUSY_START_RANGE)
-		*lprtmStart = lpPropArrayFBData[FBDATA_START_RANGE].Value.ul;
-	else 
-		*lprtmStart = 0;
-
-	if (lpPropArrayFBData[FBDATA_END_RANGE].ulPropTag == PR_FREEBUSY_END_RANGE)
-		*lprtmEnd = lpPropArrayFBData[FBDATA_END_RANGE].Value.ul;
-	else 
-		*lprtmEnd = 0;
+	*lprtmStart = lpPropArrayFBData[FBDATA_START_RANGE].ulPropTag == PR_FREEBUSY_START_RANGE ?
+	              lpPropArrayFBData[FBDATA_START_RANGE].Value.ul : 0;
+	*lprtmEnd = lpPropArrayFBData[FBDATA_END_RANGE].ulPropTag == PR_FREEBUSY_END_RANGE ?
+	            lpPropArrayFBData[FBDATA_END_RANGE].Value.ul : 0;
 	return hr;
 }
 
 unsigned int DiffYearMonthToMonth( struct tm *tm1, struct tm *tm2)
 {
-	unsigned int months = 0;
-
 	if(tm1->tm_year == tm2->tm_year)
-		months = tm2->tm_mon - tm1->tm_mon;
+		return tm2->tm_mon - tm1->tm_mon;
 	else if(tm2->tm_year > tm1->tm_year && tm2->tm_mon >= tm1->tm_mon)
-		months = (12 * (tm2->tm_year - tm1->tm_year)) + tm2->tm_mon - tm1->tm_mon;
+		return 12 * (tm2->tm_year - tm1->tm_year) + tm2->tm_mon - tm1->tm_mon;
 	else if(tm2->tm_year > tm1->tm_year && tm2->tm_mon < tm1->tm_mon)
-		months = (12 * (tm2->tm_year - tm1->tm_year -1)) + (tm2->tm_mon+1) + (11-tm1->tm_mon);
-	else
-		months = 0;
-
-	return months;
+		return 12 * (tm2->tm_year - tm1->tm_year - 1) + tm2->tm_mon + 1 + (11 - tm1->tm_mon);
+	return 0;
 }
 
 HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULONG ulPropEvents, ECFBBlockList* lpfbBlockList, LPSPropValue* lppPropFBDataArray)
 {
-	HRESULT			hr = hrSuccess;
-	ULONG			ulMaxItemDataSize = 0;
-	int				i = 0;
-	int				ulDiffMonths = 0;
-	struct tm		tmStart;
-	struct tm		tmEnd;
-	struct tm		tmTmp;
-	int				ulLastMonth = 0;
-	int				ulLastYear = 0;
-	LONG			iMonth = -1;
+	struct tm tmStart, tmEnd;
+	int ulLastMonth = 0, ulLastYear = 0;
 	sfbEvent		fbEvent;
 	FBBlock_1		fbBlk;
-	bool			bFound;
 	memory_ptr<SPropValue> lpPropFBDataArray;
-	time_t			tmUnixStart = 0;
-	time_t			tmUnixEnd = 0;
+	time_t tmUnixStart = 0, tmUnixEnd = 0;
 
 	//Check of propertys are mv
 	if(lpfbBlockList == NULL || lppPropFBDataArray == NULL)
@@ -478,13 +440,13 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 
 	// Set the list on the begin
 	lpfbBlockList->Reset();
-	ulMaxItemDataSize = (lpfbBlockList->Size() + 1 ) * sizeof(sfbEvent); // +1 block, for free/busy in two months
+	ULONG ulMaxItemDataSize = (lpfbBlockList->Size() + 1) * sizeof(sfbEvent); // +1 block, for free/busy in two months
 
 	/*
 		First item is Months
 		Second item is the Freebusy data
 	*/
-	hr = MAPIAllocateBuffer(2 * sizeof(SPropValue), &~lpPropFBDataArray);
+	auto hr = MAPIAllocateBuffer(2 * sizeof(SPropValue), &~lpPropFBDataArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -504,10 +466,8 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 
 	lpPropFBDataArray[0].ulPropTag = ulPropMonths;
 	lpPropFBDataArray[1].ulPropTag = ulPropEvents;
-
-	iMonth = -1;
-
-	bFound = false;
+	LONG iMonth = -1;
+	bool bFound = false;
 
 	while (lpfbBlockList->Next(&fbBlk) == hrSuccess &&
 	       iMonth < static_cast<LONG>(ulMonths))
@@ -543,14 +503,12 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 				memcpy(fbd.lpbin[iMonth].lpb+fbd.lpbin[iMonth].cb, &fbEvent, sizeof(sfbEvent));
 				fbd.lpbin[iMonth].cb += sizeof(sfbEvent);
 				assert(fbd.lpbin[iMonth].cb <= ulMaxItemDataSize);
-				ulDiffMonths = DiffYearMonthToMonth(&tmStart, &tmEnd);
-
-				tmTmp = tmStart;
+				auto ulDiffMonths = DiffYearMonthToMonth(&tmStart, &tmEnd);
+				auto tmTmp = tmStart;
 
 				// Set the day on the begin of the month because: if mday is 31 and the next month is 30 then you get the wrong month
 				tmTmp.tm_mday = 1;
-				
-				for (i = 1; i < ulDiffMonths && xmo.cValues < ulMonths; ++i) {
+				for (int i = 1; i < ulDiffMonths && xmo.cValues < ulMonths; ++i) {
 					++iMonth;
 					tmTmp.tm_isdst = -1;
 					++tmTmp.tm_mon;
@@ -613,25 +571,6 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 }
 
 /**
- * Copies a array of occurrence to another array
- * @param[out]	lpDest		destination array 
- * @param[in]	lpSrc		source array
- * @param[in]	ulcValues	number of occurrence in source array
- *
- * @return		HRESULT
- */
-static HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, const OccrInfo *lpSrc,
-    ULONG ulcValues)
-{
-	HRESULT hr = hrSuccess;	
-	ULONG i = 0;
-
-	for (i = 0; i < ulcValues; ++i)
-		lpDest[i] = lpSrc[i];
-	return hr;
-}
-
-/**
  * Adds a occurrence to the occurrence array
  * @param[in]		sOccrInfo		occurrence to be added to array
  * @param[in,out]	lppsOccrInfo	array to which occurrence is added
@@ -647,9 +586,9 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 	HRESULT hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal, &~lpsNewOccrInfo);
 	if (hr != hrSuccess)
 		return hr;
-	
-	if(lpsInputOccrInfo)
-		hr = HrCopyFBBlockSet(lpsNewOccrInfo, lpsInputOccrInfo, ulModVal);
+	if (lpsInputOccrInfo != nullptr)
+		for (ULONG i = 0; i < ulModVal; ++i)
+			lpsNewOccrInfo[i] = lpsInputOccrInfo[i];
 	if (hr != hrSuccess)
 		return hr;
 	if (lpcValues != NULL)

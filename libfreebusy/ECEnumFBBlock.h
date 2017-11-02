@@ -48,8 +48,8 @@ public:
 	static HRESULT Create(ECFBBlockList* lpFBBlock, ECEnumFBBlock **lppECEnumFBBlock);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch);
-	virtual HRESULT Skip(LONG celt);
-	virtual HRESULT Reset();
+	virtual HRESULT Skip(LONG celt) { return m_FBBlock.Skip(celt); }
+	virtual HRESULT Reset() { return m_FBBlock.Reset(); }
 	virtual HRESULT Clone(IEnumFBBlock **) { return E_NOTIMPL; }
 	virtual HRESULT Restrict(FILETIME ftmStart, FILETIME ftmEnd);
 

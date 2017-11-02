@@ -32,7 +32,7 @@ ECEnumFBBlock::ECEnumFBBlock(ECFBBlockList* lpFBBlock)
 	lpFBBlock->Reset();
 
 	while(lpFBBlock->Next(&sBlock) == hrSuccess)
-		m_FBBlock.Add(&sBlock);
+		m_FBBlock.Add(sBlock);
 }
 
 /**
@@ -80,18 +80,6 @@ HRESULT ECEnumFBBlock::Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch)
 	if(pcfetch)
 		*pcfetch = cEltFound;
 	return cEltFound == 0;
-}
-
-/*! @copydoc IEnumFBBlock::Skip */
-HRESULT ECEnumFBBlock::Skip(LONG celt)
-{
-	return m_FBBlock.Skip(celt);
-}
-
-/*! @copydoc IEnumFBBlock::Reset */
-HRESULT ECEnumFBBlock::Reset()
-{
-	return m_FBBlock.Reset();
 }
 
 /*! @copydoc IEnumFBBlock::Restrict */

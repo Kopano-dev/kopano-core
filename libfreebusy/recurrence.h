@@ -32,7 +32,6 @@ namespace KC {
 
 class _kc_export recurrence _kc_final {
 public:
-	recurrence();
 	HRESULT HrLoadRecurrenceState(const char *lpData, unsigned int ulLen, ULONG ulFlags);
 	HRESULT HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, void *base = NULL);
 
@@ -134,8 +133,7 @@ public:
 
 private:
 	RecurrenceState m_sRecState;
-	unsigned int m_ulMonth;       // yearly, 1...12 (Not stored in the struct)
-
+	unsigned int m_ulMonth = 0; // yearly, 1...12 (Not stored in the struct)
 	std::vector<std::wstring> vExceptionsSubject;
 	std::vector<std::wstring> vExceptionsLocation;
 

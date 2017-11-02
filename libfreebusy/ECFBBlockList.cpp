@@ -20,38 +20,29 @@
 
 namespace KC {
 
-ECFBBlockList::ECFBBlockList(void)
+ECFBBlockList::ECFBBlockList() :
+	m_FBIter(m_FBMap.end())
+{}
+
+ECFBBlockList::ECFBBlockList(const ECFBBlockList &o) :
+	m_FBMap(o.m_FBMap)
 {
-	m_bInitIter = false;
-	m_FBIter = m_FBMap.end();
-	m_tmRestictStart = 0;
-	m_tmRestictEnd = 0;
+	Restrict(o.m_tmRestictStart, o.m_tmRestictEnd);
 }
 
-void ECFBBlockList::Copy(ECFBBlockList *lpfbBlkList)
+HRESULT ECFBBlockList::Add(const FBBlock_1 &o)
 {
-	this->m_FBMap = lpfbBlkList->m_FBMap;
-	this->Restrict(lpfbBlkList->m_tmRestictStart, lpfbBlkList->m_tmRestictEnd);
-}
-
-HRESULT ECFBBlockList::Add(FBBlock_1* lpFBBlock)
-{
-	if (lpFBBlock == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	m_FBMap.emplace(lpFBBlock->m_tmStart, *lpFBBlock);
+	m_FBMap.emplace(o.m_tmStart, o);
 	return hrSuccess;
 }
 
-HRESULT ECFBBlockList::Merge(FBBlock_1* lpFBBlock)
+HRESULT ECFBBlockList::Merge(const FBBlock_1 &o)
 {
-	if (lpFBBlock == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
 	auto FBIter = m_FBMap.begin();
 	for (; FBIter != m_FBMap.cend(); ++FBIter)
-		if(FBIter->second.m_tmEnd == lpFBBlock->m_tmStart)
+		if (FBIter->second.m_tmEnd == o.m_tmStart)
 		{
-			FBIter->second.m_tmEnd = lpFBBlock->m_tmEnd;
+			FBIter->second.m_tmEnd = o.m_tmEnd;
 			break;
 		}
 

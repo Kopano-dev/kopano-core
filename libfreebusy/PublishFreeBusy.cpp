@@ -48,15 +48,13 @@ class PublishFreeBusy _kc_final {
 	HRESULT HrGetResctItems(IMAPITable **);
 	HRESULT HrProcessTable(IMAPITable *, FBBlock_1 **, ULONG *nvals);
 	HRESULT HrMergeBlocks(FBBlock_1 **, ULONG *nvals);
-	HRESULT HrPublishFBblocks(FBBlock_1 *, ULONG nvals);
+	HRESULT HrPublishFBblocks(const FBBlock_1 *, ULONG nvals);
 
 	private:
 	IMAPISession *m_lpSession;
 	IMsgStore *m_lpDefStore;
-	FILETIME m_ftStart;
-	FILETIME m_ftEnd;
-	time_t m_tsStart;
-	time_t m_tsEnd;
+	FILETIME m_ftStart, m_ftEnd;
+	time_t m_tsStart, m_tsEnd;
 
 	PROPMAP_DECL()
 	PROPMAP_DEF_NAMED_ID(APPT_STARTWHOLE)
@@ -69,9 +67,8 @@ class PublishFreeBusy _kc_final {
 };
 
 struct TSARRAY {
-	ULONG ulType;
+	ULONG ulType, ulStatus;
 	time_t tsTime;
-	ULONG ulStatus;
 };
 
 #define START_TIME 0
@@ -90,15 +87,13 @@ struct TSARRAY {
 HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
     time_t tsStart, ULONG ulMonths)
 {
-	HRESULT hr = hrSuccess;
-	std::unique_ptr<PublishFreeBusy> lpFreeBusy;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<FBBlock_1> lpFBblocks;
 	ULONG cValues = 0;
 
 	ec_log_debug("current time %d", (int)tsStart);
-	lpFreeBusy.reset(new PublishFreeBusy(lpSession, lpDefStore, tsStart, ulMonths));
-	hr = lpFreeBusy->HrInit();
+	std::unique_ptr<PublishFreeBusy> lpFreeBusy(new PublishFreeBusy(lpSession, lpDefStore, tsStart, ulMonths));
+	auto hr = lpFreeBusy->HrInit();
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpFreeBusy->HrGetResctItems(&~lpTable);
@@ -139,13 +134,9 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
  */
 PublishFreeBusy::PublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore,
     time_t tsStart, ULONG ulMonths) :
-	m_propmap(7)
+	m_lpSession(lpSession), m_lpDefStore(lpDefStore), m_tsStart(tsStart),
+	m_tsEnd(tsStart + ulMonths * 30 * 24 * 60 * 60), m_propmap(7)
 {
-	m_lpSession = lpSession;
-	m_lpDefStore = lpDefStore;
-	m_tsStart = tsStart;
-	m_tsEnd = tsStart + (ulMonths * (30*24*60*60));
-
 	UnixTimeToFileTime(m_tsStart, &m_ftStart);
 	UnixTimeToFileTime(m_tsEnd , &m_ftEnd);
 }
@@ -186,15 +177,11 @@ HRESULT PublishFreeBusy::HrInit()
  */
 HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpDefCalendar;
 	object_ptr<IMAPITable> lpTable;
-	SPropValue lpsPropStart;
-	SPropValue lpsPropEnd;
-	SPropValue lpsPropIsRecc;
-	SPropValue lpsPropReccEnd;
-		
-	hr = HrOpenDefaultCalendar(m_lpDefStore, &~lpDefCalendar);
+	SPropValue lpsPropStart, lpsPropEnd, lpsPropIsRecc, lpsPropReccEnd;
+
+	auto hr = HrOpenDefaultCalendar(m_lpDefStore, &~lpDefCalendar);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpDefCalendar->GetContentsTable(0, &~lpTable);
@@ -258,17 +245,15 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
  */
 HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBlocks, ULONG *lpcValues)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<OccrInfo> lpOccrInfo;
 	FBBlock_1 *lpfbBlocks = NULL;
 	recurrence lpRecurrence;
-	ULONG ulFbStatus = 0;
 	SizedSPropTagArray(7, proptags) =
 		{7, {PROP_APPT_STARTWHOLE, PROP_APPT_ENDWHOLE,
 		PROP_APPT_FBSTATUS, PROP_APPT_ISRECURRING,
 		PROP_APPT_RECURRINGSTATE, PROP_APPT_CLIPEND,
 		PROP_APPT_TIMEZONESTRUCT}};
-	hr = lpTable->SetColumns(proptags, 0);
+	auto hr = lpTable->SetColumns(proptags, 0);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -284,8 +269,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 		
 		for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
 			TIMEZONE_STRUCT ttzInfo = {0};
-
-			ulFbStatus = 0;
+			ULONG ulFbStatus = 0;
 
 			if (lpRowSet->aRow[i].lpProps[3].ulPropTag != PROP_APPT_ISRECURRING ||
 			    !lpRowSet->aRow[i].lpProps[3].Value.b)
@@ -326,16 +310,14 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 		}
 	}
 	
-	if (lpcValues != 0 && lpOccrInfo != NULL) {
-		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)* (*lpcValues), (void**)&lpfbBlocks);
-		if(hr != hrSuccess)
-			return hr;
-		for (ULONG i = 0 ; i < *lpcValues; ++i)
-			lpfbBlocks[i]  = lpOccrInfo[i].fbBlock;
-
-		*lppfbBlocks = lpfbBlocks;
-		lpfbBlocks = NULL;
-	}
+	if (lpcValues == 0 || lpOccrInfo == nullptr)
+		return hrSuccess;
+	hr = MAPIAllocateBuffer(sizeof(FBBlock_1)* (*lpcValues), (void**)&lpfbBlocks);
+	if (hr != hrSuccess)
+		return hr;
+	for (ULONG i = 0 ; i < *lpcValues; ++i)
+		lpfbBlocks[i]  = lpOccrInfo[i].fbBlock;
+	*lppfbBlocks = lpfbBlocks;
 	return hrSuccess;
 }
 
@@ -349,9 +331,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
  */
 HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues)
 {
-	FBBlock_1 *lpFbBlocks = NULL;
-	ULONG cValues = *lpcValues;
-	ULONG ulLevel = 0;
+	ULONG cValues = *lpcValues, ulLevel = 0;
 	time_t tsLastTime = 0;
 	TSARRAY sTsitem = {0,0,0};
 	std::map<time_t , TSARRAY> mpTimestamps;
@@ -361,7 +341,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 
 	ec_log_debug("Input blocks %ul", cValues);
 
-	lpFbBlocks = *lppfbBlocks;
+	auto lpFbBlocks = *lppfbBlocks;
 	for (ULONG i = 0; i < cValues; ++i) {
 		sTsitem.ulType = START_TIME;
 		sTsitem.ulStatus = lpFbBlocks[i].m_fbstatus;
@@ -422,11 +402,8 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	}
 
 	// Free previously allocated memory
-	if (*lppfbBlocks != NULL) {
+	if (*lppfbBlocks != NULL)
 		MAPIFreeBuffer(*lppfbBlocks);
-		*lppfbBlocks = NULL;
-	}
-
 	HRESULT hr = MAPIAllocateBuffer(sizeof(FBBlock_1) * vcFBblocks.size(),
 	             reinterpret_cast<void **>(&lpFbBlocks));
 	if (hr != hrSuccess)
@@ -450,16 +427,15 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
  * 
  * @return MAPI Error code
  */
-HRESULT PublishFreeBusy::HrPublishFBblocks(FBBlock_1 *lpfbBlocks, ULONG cValues)
+HRESULT PublishFreeBusy::HrPublishFBblocks(const FBBlock_1 *lpfbBlocks, ULONG cValues)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECFreeBusyUpdate> lpFBUpdate;
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IMsgStore> lpPubStore;
 	memory_ptr<SPropValue> lpsPrpUsrMEid;
 	time_t tsStart = 0;
 
-	hr = HrOpenECPublicStore(m_lpSession, &~lpPubStore);
+	auto hr = HrOpenECPublicStore(m_lpSession, &~lpPubStore);
 	if(hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(m_lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpsPrpUsrMEid);

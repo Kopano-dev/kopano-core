@@ -23,21 +23,10 @@
 
 namespace KC {
 
-ECFreeBusyData::ECFreeBusyData(void)
+ECFreeBusyData::ECFreeBusyData(LONG rtmStart, LONG rtmEnd,
+    const ECFBBlockList &lpfbBlockList) :
+	m_fbBlockList(lpfbBlockList), m_rtmStart(rtmStart), m_rtmEnd(rtmEnd)
 {
-	m_rtmStart = 0;
-	m_rtmEnd = 0;
-}
-
-HRESULT ECFreeBusyData::Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBlockList)
-{
-	if(lpfbBlockList == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	m_rtmStart = rtmStart;
-	m_rtmEnd = rtmEnd;
-
-	m_fbBlockList.Copy(lpfbBlockList);
-
 	// Update the start time if missing.
 	if (m_rtmStart == 0) {
 		FBBlock_1 blk;
@@ -49,12 +38,12 @@ HRESULT ECFreeBusyData::Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBloc
 	// Update the end time if missing.
 	if (m_rtmEnd == 0)
 		m_fbBlockList.GetEndTime(&m_rtmEnd);
-	return hrSuccess;
 }
 
-HRESULT ECFreeBusyData::Create(ECFreeBusyData **lppECFreeBusyData)
+HRESULT ECFreeBusyData::Create(LONG start, LONG end,
+    const ECFBBlockList &bl, ECFreeBusyData **out)
 {
-	return alloc_wrap<ECFreeBusyData>().put(lppECFreeBusyData);
+	return alloc_wrap<ECFreeBusyData>(start, end, bl).put(out);
 }
 
 HRESULT ECFreeBusyData::QueryInterface(REFIID refiid, void** lppInterface)
@@ -68,7 +57,6 @@ HRESULT ECFreeBusyData::QueryInterface(REFIID refiid, void** lppInterface)
 
 HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd)
 {
-	HRESULT			hr = S_OK;
 	LONG			rtmStart = 0;
 	LONG			rtmEnd = 0;
 	KCHL::object_ptr<ECEnumFBBlock> lpECEnumFBBlock;
@@ -78,8 +66,7 @@ HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, F
 
 	FileTimeToRTime(&ftmStart, &rtmStart);
 	FileTimeToRTime(&ftmEnd, &rtmEnd);
-
-	hr = m_fbBlockList.Restrict(rtmStart, rtmEnd);
+	auto hr = m_fbBlockList.Restrict(rtmStart, rtmEnd);
 	if(hr != hrSuccess)
 		return hr;
 	hr = ECEnumFBBlock::Create(&m_fbBlockList, &~lpECEnumFBBlock);
@@ -113,7 +100,6 @@ HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, F
  */
 HRESULT ECFreeBusyData::FindFreeBlock(LONG ulBegin, LONG ulMinutes, LONG ulNumber, BOOL bA, LONG ulEnd, LONG ulUnknown, LONG ulMinutesPerDay, FBBlock_1 *lpBlock)
 {
-	HRESULT hr;
 	FBBlock_1 sBlock;
 	BOOL bOverlap = false;
 
@@ -125,7 +111,7 @@ HRESULT ECFreeBusyData::FindFreeBlock(LONG ulBegin, LONG ulMinutes, LONG ulNumbe
 
 	// Loop through FB data to find if there is a block that overlaps the requested slot
 	while(TRUE) {
-		hr = m_fbBlockList.Next(&sBlock);
+		auto hr = m_fbBlockList.Next(&sBlock);
 		if(hr != hrSuccess)
 			break;
 
