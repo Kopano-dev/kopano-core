@@ -42,7 +42,6 @@ struct sGlobalProfileProps {
 	std::string		strProxyUserName;
 	std::string		strProxyPassword;
 	tstring			strOfflinePath;
-	bool			bIsEMS;
 	std::string		strClientAppVersion;
 	std::string		strClientAppMisc;
 };

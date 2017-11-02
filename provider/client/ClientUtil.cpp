@@ -578,35 +578,17 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlob
 HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, struct sGlobalProfileProps* lpsProfileProps)
 {
 	HRESULT			hr = hrSuccess;
-	memory_ptr<SPropValue> lpsPropArray, lpsEMSPropArray, lpPropEMS;
+	memory_ptr<SPropValue> lpsPropArray;
 	ULONG			cValues = 0;
-	ULONG			cEMSValues = 0;
 	const SPropValue *lpProp = NULL;
-	bool			bIsEMS = false;
 
 	if (lpGlobalProfSect == nullptr || lpsProfileProps == nullptr)
 		return MAPI_E_INVALID_OBJECT;
-	if (HrGetOneProp(lpGlobalProfSect, PR_PROFILE_UNRESOLVED_NAME, &~lpPropEMS) == hrSuccess || g_ulLoadsim)
-		bIsEMS = true;
 
-	if(bIsEMS) {
-		static constexpr const SizedSPropTagArray(4, sptaEMSProfile) =
-			{4, {PR_PROFILE_NAME_A, PR_PROFILE_UNRESOLVED_SERVER,
-			PR_PROFILE_UNRESOLVED_NAME, PR_PROFILE_USER}};
-
-		// This is an emulated MSEMS store. Get the properties we need and convert them to ZARAFA-style properties
-		hr = lpGlobalProfSect->GetProps(sptaEMSProfile, 0, &cEMSValues, &~lpsEMSPropArray);
-		if(FAILED(hr))
-			return hr;
-		hr = ConvertMSEMSProps(cEMSValues, lpsEMSPropArray, &cValues, &~lpsPropArray);
-		if(FAILED(hr))
-			return hr;
-	} else {
-		// Get the properties we need directly from the global profile section
-		hr = lpGlobalProfSect->GetProps(sptaKopanoProfile, 0, &cValues, &~lpsPropArray);
-		if(FAILED(hr))
-			return hr;
-	}
+	// Get the properties we need directly from the global profile section
+	hr = lpGlobalProfSect->GetProps(sptaKopanoProfile, 0, &cValues, &~lpsPropArray);
+	if(FAILED(hr))
+		return hr;
 
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PATH)) != NULL)
 		lpsProfileProps->strServerPath = lpProp->Value.lpszA;
@@ -659,7 +641,6 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC)) != NULL)
 		lpsProfileProps->strClientAppMisc = lpProp->Value.lpszA;
 
-	lpsProfileProps->bIsEMS = bIsEMS;
 	return hrSuccess;
 }
 
