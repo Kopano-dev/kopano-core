@@ -184,6 +184,12 @@ class Store(Properties):
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
+    @inbox.setter
+    def inbox(self, folder):
+        # XXX can we get a list of current 'filters', or override all somehow?
+        for messageclass in (u'', u'IPM', u'REPORT.IPM'):
+            self.mapiobj.SetReceiveFolder(messageclass, MAPI_UNICODE, _unhex(folder.entryid))
+
     @property
     def junk(self):
         """:class:`Folder` designated as junk."""
