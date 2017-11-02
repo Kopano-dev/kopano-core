@@ -204,7 +204,7 @@ static const char szGetProps[] =
 "  END IF;\n"
   
 "  SELECT 0, tag, properties.type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo, 0, names.nameid, names.namestring, names.guid\n"
-"    FROM properties LEFT JOIN names ON properties.tag=names.id+34049 WHERE hierarchyid=hid AND (tag <= 34048 OR names.id IS NOT NULL) AND (tag NOT IN (4105, 4115) OR mode = 0 OR (mode = 1 AND tag = bestbody))\n"
+"    FROM properties LEFT JOIN names ON properties.tag-34049=names.id WHERE hierarchyid=hid AND (tag <= 34048 OR names.id IS NOT NULL) AND (tag NOT IN (4105, 4115) OR mode = 0 OR (mode = 1 AND tag = bestbody))\n"
 "  UNION\n"
 "  SELECT count(*), tag, mvproperties.type, \n"
 "          group_concat(length(mvproperties.val_ulong),':', mvproperties.val_ulong ORDER BY mvproperties.orderid SEPARATOR ''), \n"
@@ -215,14 +215,14 @@ static const char szGetProps[] =
 "          group_concat(length(mvproperties.val_hi),':', mvproperties.val_hi ORDER BY mvproperties.orderid SEPARATOR ''), \n"
 "          group_concat(length(mvproperties.val_lo),':', mvproperties.val_lo ORDER BY mvproperties.orderid SEPARATOR ''), \n"
 "          0, names.nameid, names.namestring, names.guid \n"
-"    FROM mvproperties LEFT JOIN names ON mvproperties.tag=names.id+34049 WHERE hierarchyid=hid AND (tag <= 34048 OR names.id IS NOT NULL) GROUP BY tag, mvproperties.type; \n"
+"    FROM mvproperties LEFT JOIN names ON mvproperties.tag-34049=names.id WHERE hierarchyid=hid AND (tag <= 34048 OR names.id IS NOT NULL) GROUP BY tag, mvproperties.type; \n"
 "END;\n";
 
 static const char szPrepareGetProps[] =
 "CREATE PROCEDURE PrepareGetProps(IN hid integer)\n"
 "BEGIN\n"
 "  SELECT 0, tag, properties.type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo, hierarchy.id, names.nameid, names.namestring, names.guid\n"
-"    FROM properties JOIN hierarchy ON properties.hierarchyid=hierarchy.id LEFT JOIN names ON properties.tag=names.id+34049 WHERE hierarchy.parent=hid AND (tag <= 34048 OR names.id IS NOT NULL);\n"
+"    FROM properties JOIN hierarchy ON properties.hierarchyid=hierarchy.id LEFT JOIN names ON properties.tag-34049=names.id WHERE hierarchy.parent=hid AND (tag <= 34048 OR names.id IS NOT NULL);\n"
 "  SELECT count(*), tag, mvproperties.type, \n"
 "          group_concat(length(mvproperties.val_ulong),':', mvproperties.val_ulong ORDER BY mvproperties.orderid SEPARATOR ''), \n"
 "          group_concat(length(mvproperties.val_string),':', mvproperties.val_string ORDER BY mvproperties.orderid SEPARATOR ''), \n"
@@ -232,7 +232,7 @@ static const char szPrepareGetProps[] =
 "          group_concat(length(mvproperties.val_hi),':', mvproperties.val_hi ORDER BY mvproperties.orderid SEPARATOR ''), \n"
 "          group_concat(length(mvproperties.val_lo),':', mvproperties.val_lo ORDER BY mvproperties.orderid SEPARATOR ''), \n"
 "          hierarchy.id, names.nameid, names.namestring, names.guid \n"
-"    FROM mvproperties JOIN hierarchy ON mvproperties.hierarchyid=hierarchy.id LEFT JOIN names ON mvproperties.tag=names.id+34049 WHERE hierarchy.parent=hid AND (tag <= 34048 OR names.id IS NOT NULL) GROUP BY tag, mvproperties.type; \n"
+"    FROM mvproperties JOIN hierarchy ON mvproperties.hierarchyid=hierarchy.id LEFT JOIN names ON mvproperties.tag-34049=names.id WHERE hierarchy.parent=hid AND (tag <= 34048 OR names.id IS NOT NULL) GROUP BY tag, mvproperties.type; \n"
 "END;\n";
 
 static const char szGetBestBody[] =

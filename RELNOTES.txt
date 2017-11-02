@@ -1,3 +1,8 @@
+Release notes for 8.4.2
+=======================
+* server: revert NO_UNSIGNED_SUBTRACTIONS [KC-841,KC-869]
+
+
 Release notes for 8.4.1 (2017-11-01)
 ====================================
 Fixes:
