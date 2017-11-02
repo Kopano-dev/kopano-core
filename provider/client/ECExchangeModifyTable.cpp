@@ -396,9 +396,9 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 		else if (lpulStatus[i] == ECROW_MODIFIED)
 			lpECPermissions[cECPerm].ulState |= RIGHT_MODIFY;
 
-		auto lpMemberID = lpRowSet->aRow[i].cfind(PR_MEMBER_ID);
-		auto lpMemberEntryID = lpRowSet->aRow[i].cfind(PR_MEMBER_ENTRYID);
-		auto lpMemberRights = lpRowSet->aRow[i].cfind(PR_MEMBER_RIGHTS);
+		auto lpMemberID = lpRowSet[i].cfind(PR_MEMBER_ID);
+		auto lpMemberEntryID = lpRowSet[i].cfind(PR_MEMBER_ENTRYID);
+		auto lpMemberRights = lpRowSet[i].cfind(PR_MEMBER_RIGHTS);
 		if (lpMemberID == NULL || lpMemberRights == NULL || (lpMemberID->Value.ul != 0 && lpMemberEntryID == NULL))
 			continue;
 
@@ -535,7 +535,7 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 		//       Information placed in the HighPart of this PT_I8 is lost!
 		sRowId.ulPropTag = PR_RULE_ID;
 		sRowId.Value.li.QuadPart = ulHighestRuleID++;
-		hr = Util::HrAddToPropertyArray(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, &sRowId, &~lpProps, &cValues);
+		hr = Util::HrAddToPropertyArray(lpsRowSet[i].lpProps, lpsRowSet[i].cValues, &sRowId, &~lpProps, &cValues);
 		if(hr != hrSuccess)
 			goto exit;
 

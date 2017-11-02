@@ -851,9 +851,9 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		}
 
 		for (ulCount = 0; ulCount < lpRows->cRows; ++ulCount) {
-			hr = lpDestMessage->DeleteAttach(lpRows->aRow[ulCount].lpProps[0].Value.ul, 0, NULL, 0);
+			hr = lpDestMessage->DeleteAttach(lpRows[ulCount].lpProps[0].Value.ul, 0, nullptr, 0);
 			if(hr != hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Unable to delete destination's attachment number %d", lpRows->aRow[ulCount].lpProps[0].Value.ul);
+				ZLOG_DEBUG(m_lpLogger, "Unable to delete destination's attachment number %d", lpRows[ulCount].lpProps[0].Value.ul);
 				goto exit;
 			}
 		}
@@ -871,9 +871,9 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 
 		for (ulCount = 0; ulCount < lpRows->cRows; ++ulCount) {
 			object_ptr<IAttach> lpSourceAttach, lpDestAttach;
-			hr = lpSourceMessage->OpenAttach(lpRows->aRow[ulCount].lpProps[0].Value.ul, &IID_IAttachment, 0, &~lpSourceAttach);
+			hr = lpSourceMessage->OpenAttach(lpRows[ulCount].lpProps[0].Value.ul, &IID_IAttachment, 0, &~lpSourceAttach);
 			if(hr !=  hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Unable to open attachment %d in source message", lpRows->aRow[ulCount].lpProps[0].Value.ul);
+				ZLOG_DEBUG(m_lpLogger, "Unable to open attachment %d in source message", lpRows[ulCount].lpProps[0].Value.ul);
 				goto exit;
 			}
 			hr = lpDestMessage->CreateAttach(&IID_IAttachment, 0, &ulObjType, &~lpDestAttach);
