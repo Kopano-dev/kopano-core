@@ -2603,7 +2603,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
 		object_ptr<IAttach> lpDestAttach, lpSrcAttach;
-		auto lpAttachNum = lpRows->aRow[i].cfind(PR_ATTACH_NUM);
+		auto lpAttachNum = lpRows[i].cfind(PR_ATTACH_NUM);
 		if (!lpAttachNum) {
 			bPartial = true;
 			continue;
@@ -2692,12 +2692,12 @@ static HRESULT CopyHierarchy(IMAPIFolder *lpSrc, IMAPIFolder *lpDest,
 			return hr;
 		if (lpRowSet->cRows == 0)
 			break;
-		hr = lpSrc->OpenEntry(lpRowSet->aRow[0].lpProps[1].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRowSet->aRow[0].lpProps[1].Value.bin.lpb), &IID_IMAPIFolder, 0, &ulObj, &~lpSrcFolder);
+		hr = lpSrc->OpenEntry(lpRowSet[0].lpProps[1].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRowSet[0].lpProps[1].Value.bin.lpb), &IID_IMAPIFolder, 0, &ulObj, &~lpSrcFolder);
 		if (hr != hrSuccess) {
 			bPartial = true;
 			continue;
 		}
-		hr = lpDest->CreateFolder(FOLDER_GENERIC, (LPTSTR)lpRowSet->aRow[0].lpProps[0].Value.lpszW, NULL, &IID_IMAPIFolder,
+		hr = lpDest->CreateFolder(FOLDER_GENERIC, reinterpret_cast<const TCHAR *>(lpRowSet[0].lpProps[0].Value.lpszW), nullptr, &IID_IMAPIFolder,
 		     MAPI_UNICODE | (ulFlags & MAPI_NOREPLACE ? 0 : OPEN_IF_EXISTS), &~lpDestFolder);
 		if (hr != hrSuccess) {
 			bPartial = true;
@@ -2713,7 +2713,7 @@ static HRESULT CopyHierarchy(IMAPIFolder *lpSrc, IMAPIFolder *lpDest,
 		}
 
 		if (ulFlags & MAPI_MOVE)
-			lpSrc->DeleteFolder(lpRowSet->aRow[0].lpProps[1].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[1].Value.bin.lpb, 0, NULL, 0);
+			lpSrc->DeleteFolder(lpRowSet[0].lpProps[1].Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpRowSet[0].lpProps[1].Value.bin.lpb), 0, nullptr, 0);
 	}
 
 	if (bPartial)
@@ -2771,7 +2771,7 @@ static HRESULT CopyContents(ULONG ulWhat, IMAPIFolder *lpSrc,
 		for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
 			object_ptr<IMessage> lpSrcMessage, lpDestMessage;
 
-			hr = lpSrc->OpenEntry(lpRowSet->aRow[i].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRowSet->aRow[i].lpProps[0].Value.bin.lpb), &IID_IMessage, 0, &ulObj, &~lpSrcMessage);
+			hr = lpSrc->OpenEntry(lpRowSet[i].lpProps[0].Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpRowSet[i].lpProps[0].Value.bin.lpb), &IID_IMessage, 0, &ulObj, &~lpSrcMessage);
 			if (hr != hrSuccess) {
 				bPartial = true;
 				continue;
@@ -2794,8 +2794,8 @@ static HRESULT CopyContents(ULONG ulWhat, IMAPIFolder *lpSrc,
 			if (hr != hrSuccess) {
 				bPartial = true;
 			} else if (ulFlags & MAPI_MOVE) {
-				lpDeleteEntries->lpbin[lpDeleteEntries->cValues].cb = lpRowSet->aRow[i].lpProps[0].Value.bin.cb;
-				lpDeleteEntries->lpbin[lpDeleteEntries->cValues].lpb = lpRowSet->aRow[i].lpProps[0].Value.bin.lpb;
+				lpDeleteEntries->lpbin[lpDeleteEntries->cValues].cb  = lpRowSet[i].lpProps[0].Value.bin.cb;
+				lpDeleteEntries->lpbin[lpDeleteEntries->cValues].lpb = lpRowSet[i].lpProps[0].Value.bin.lpb;
 				++lpDeleteEntries->cValues;
 			}
 		}

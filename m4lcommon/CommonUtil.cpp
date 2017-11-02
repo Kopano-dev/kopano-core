@@ -329,17 +329,17 @@ static HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession,
 		if (hr != hrSuccess || lpRows->cRows != 1)
 			return MAPI_E_NOT_FOUND;
 		if (bPublic) {
-			auto lpStoreProp = lpRows->aRow[0].cfind(PR_MDB_PROVIDER);
+			auto lpStoreProp = lpRows[0].cfind(PR_MDB_PROVIDER);
 			if (lpStoreProp != NULL && memcmp(lpStoreProp->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0 )
 				break;
 		} else {
-			auto lpStoreProp = lpRows->aRow[0].cfind(PR_RESOURCE_FLAGS);
+			auto lpStoreProp = lpRows[0].cfind(PR_RESOURCE_FLAGS);
 			if (lpStoreProp != NULL && lpStoreProp->Value.ul & STATUS_DEFAULT_STORE)
 				break;
 		}
 	}
 
-	lpEntryIDProp = lpRows->aRow[0].cfind(PR_ENTRYID);
+	lpEntryIDProp = lpRows[0].cfind(PR_ENTRYID);
 	if (lpEntryIDProp == nullptr)
 		return MAPI_E_NOT_FOUND;
 
@@ -1555,8 +1555,7 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			// there aren't any subobjects under the subobjects .. unless we count
 			// messages in PR_ATTACH_DATA_OBJ under attachments... Well we don't support
 			// that in any case ...)
-
-			hr = TestRestriction(lpCondition->res.resSub.lpRes, lpRowSet->aRow[0].cValues, lpRowSet->aRow[0].lpProps, locale, ulLevel+1);
+			hr = TestRestriction(lpCondition->res.resSub.lpRes, lpRowSet[0].cValues, lpRowSet[0].lpProps, locale, ulLevel+1);
 			if(hr == hrSuccess) {
 				fMatch = true;
 				break;
@@ -1626,9 +1625,9 @@ static HRESULT FindFolder(IMAPITable *lpTable, const wchar_t *folder,
 			break;
 		if (lpRowSet->cRows == 0)
 			return MAPI_E_NOT_FOUND;
-		if (wcscasecmp(lpRowSet->aRow[0].lpProps[0].Value.lpszW, folder) == 0)
+		if (wcscasecmp(lpRowSet[0].lpProps[0].Value.lpszW, folder) == 0)
 			// found the folder
-			return Util::HrCopyPropertyArray(&lpRowSet->aRow[0].lpProps[1], 1, lppFolderProp, &nValues);
+			return Util::HrCopyPropertyArray(&lpRowSet[0].lpProps[1], 1, lppFolderProp, &nValues);
 	}
 	return hr;
 }

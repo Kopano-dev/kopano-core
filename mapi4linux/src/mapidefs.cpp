@@ -854,11 +854,9 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 				return hr;
 			if (lpsRows->cRows == 0)
 				break;
-
-			lpsRows->aRow[0].lpProps[stProps.size()].ulPropTag = PR_ROWID;
-			lpsRows->aRow[0].lpProps[stProps.size()].Value.ul = n++;
-
-			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpsRows->aRow[0].lpProps, lpsRows->aRow[0].cValues);
+			lpsRows[0].lpProps[stProps.size()].ulPropTag = PR_ROWID;
+			lpsRows[0].lpProps[stProps.size()].Value.ul  = n++;
+			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, nullptr, lpsRows[0].lpProps, lpsRows[0].cValues);
 			if(hr != hrSuccess)
 				return hr;
 		}
