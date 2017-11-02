@@ -396,10 +396,9 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 		else if (lpulStatus[i] == ECROW_MODIFIED)
 			lpECPermissions[cECPerm].ulState |= RIGHT_MODIFY;
 
-		auto lpMemberID = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_ID);
-		auto lpMemberEntryID = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_ENTRYID);
-		auto lpMemberRights = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_RIGHTS);
-
+		auto lpMemberID = lpRowSet->aRow[i].cfind(PR_MEMBER_ID);
+		auto lpMemberEntryID = lpRowSet->aRow[i].cfind(PR_MEMBER_ENTRYID);
+		auto lpMemberRights = lpRowSet->aRow[i].cfind(PR_MEMBER_RIGHTS);
 		if (lpMemberID == NULL || lpMemberRights == NULL || (lpMemberID->Value.ul != 0 && lpMemberEntryID == NULL))
 			continue;
 

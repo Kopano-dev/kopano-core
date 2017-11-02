@@ -530,7 +530,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 	// Scan the rows for message stores
 	for (ULONG curRow = 0; curRow < ptrRows.size(); ++curRow) {
 		//Get de UID of the provider to open the profile section
-		auto lpsProviderUID = PCpropFindProp(ptrRows[curRow].lpProps, ptrRows[curRow].cValues, PR_PROVIDER_UID);
+		auto lpsProviderUID = ptrRows[curRow].cfind(PR_PROVIDER_UID);
 		if(lpsProviderUID == NULL || lpsProviderUID->Value.bin.cb == 0) {
 			// Provider without a provider uid,  just move to the next
 			assert(false);

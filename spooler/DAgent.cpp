@@ -1722,7 +1722,7 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 
 		bRecipMe = (lpsRows->cRows == 1);
 		if (bRecipMe) {
-			auto lpProp = PCpropFindProp(lpsRows->aRow[0].lpProps, lpsRows->aRow[0].cValues, PR_RECIPIENT_TYPE);
+			auto lpProp = lpsRows->aRow[0].cfind(PR_RECIPIENT_TYPE);
 			if (lpProp) {
 				bToMe = (lpProp->Value.ul == MAPI_TO);
 				bCcMe = (lpProp->Value.ul == MAPI_CC);

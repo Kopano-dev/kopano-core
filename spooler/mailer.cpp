@@ -103,14 +103,13 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		/* From this point on we use 'continue' when something fails,
 		 * since all errors are related to the current entry and we should
 		 * make sure we resolve as many recipients as possible. */
-
-		auto lpRowId = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_ROWID);
-		auto lpEntryId = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_ENTRYID);
-		auto lpDisplayType = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_DISPLAY_TYPE);
-		auto lpObjectType = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_OBJECT_TYPE);
-		auto lpRecipType = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_RECIPIENT_TYPE);
-		auto lpDisplayName = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_DISPLAY_NAME_W);
-		auto lpEmailAddress = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_SMTP_ADDRESS_W);
+		auto lpRowId = lpsRowSet->aRow[0].cfind(PR_ROWID);
+		auto lpEntryId = lpsRowSet->aRow[0].cfind(PR_ENTRYID);
+		auto lpDisplayType = lpsRowSet->aRow[0].cfind(PR_DISPLAY_TYPE);
+		auto lpObjectType = lpsRowSet->aRow[0].cfind(PR_OBJECT_TYPE);
+		auto lpRecipType = lpsRowSet->aRow[0].cfind(PR_RECIPIENT_TYPE);
+		auto lpDisplayName = lpsRowSet->aRow[0].cfind(PR_DISPLAY_NAME_W);
+		auto lpEmailAddress = lpsRowSet->aRow[0].cfind(PR_SMTP_ADDRESS_W);
 
 		/* lpRowId, lpRecipType, and lpDisplayType are optional.
 		 * lpEmailAddress is only mandatory for MAPI_MAILUSER */
@@ -345,9 +344,8 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			return kc_perrorf("QueryRows failed", hr);
 		if (lpRowSet->cRows == 0)
 			break;
-
 		auto lpEmailAddress = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_EMAIL_ADDRESS_W);
-		auto lpEmailName = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_DISPLAY_NAME_W);
+		auto lpEmailName = lpRowSet->aRow[0].cfind(PR_DISPLAY_NAME_W);
 		auto lpAddrType = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ADDRTYPE_W);
 		auto lpEntryID = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ENTRYID);
 
@@ -470,10 +468,8 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 			return hr;
 		if (lpRowSet->cRows == 0)
 			break;
-
-		auto lpEmailAddress = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_SMTP_ADDRESS_A);
-		auto lpRecipType = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RECIPIENT_TYPE);
-
+		auto lpEmailAddress = lpRowSet->aRow[0].cfind(PR_SMTP_ADDRESS_A);
+		auto lpRecipType = lpRowSet->aRow[0].cfind(PR_RECIPIENT_TYPE);
 		if (!lpEmailAddress || !lpRecipType)
 			continue;
 
@@ -513,8 +509,7 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 			break;
 
 		auto lpEmailAddress = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_EMAIL_ADDRESS_W);
-		auto lpRecipType = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RECIPIENT_TYPE);
-
+		auto lpRecipType = lpRowSet->aRow[0].cfind(PR_RECIPIENT_TYPE);
 		if (!lpEmailAddress || !lpRecipType)
 			continue;
    

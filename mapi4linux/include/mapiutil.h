@@ -75,4 +75,9 @@ extern _kc_export HRESULT CreateStreamOnHGlobal(void *global, BOOL delete_on_rel
 
 } // EXTERN "C"
 
+inline const SPropValue *SRow::cfind(ULONG tag) const
+{
+	return PCpropFindProp(lpProps, cValues, tag);
+}
+
 #endif /* _MAPIUTIL_H_ */

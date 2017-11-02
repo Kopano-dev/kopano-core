@@ -2603,7 +2603,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
 		object_ptr<IAttach> lpDestAttach, lpSrcAttach;
-		auto lpAttachNum = PCpropFindProp(lpRows->aRow[i].lpProps, lpRows->aRow[i].cValues, PR_ATTACH_NUM);
+		auto lpAttachNum = lpRows->aRow[i].cfind(PR_ATTACH_NUM);
 		if (!lpAttachNum) {
 			bPartial = true;
 			continue;

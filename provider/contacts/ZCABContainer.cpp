@@ -960,7 +960,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 
 		for (i = 0; i < ptrRows.size(); ++i) {
 			ABContainerPtr ptrContainer;
-			auto lpEntryID = PCpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, PR_ENTRYID);
+			auto lpEntryID = ptrRows[i].cfind(PR_ENTRYID);
 			ULONG ulObjType;
 
 			if (!lpEntryID)

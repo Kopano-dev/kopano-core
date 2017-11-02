@@ -249,8 +249,8 @@ static void showtop(LPMDB lpStore)
         dblLast = GetTimeOfDay();
             
         for (ULONG i = 0; i < lpsRowSet->cRows; ++i) {
-		auto lpName = PCpropFindProp(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_DISPLAY_NAME_A);
-		auto lpValue = PCpropFindProp(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SYSTEM_VALUE);
+		auto lpName  = lpsRowSet->aRow[i].cfind(PR_DISPLAY_NAME_A);
+		auto lpValue = lpsRowSet->aRow[i].cfind(PR_EC_STATS_SYSTEM_VALUE);
             if(lpName && lpValue) {
                 mapDiffStats[lpName->Value.lpszA] = atof(lpValue->Value.lpszA) - atof(mapStats[lpName->Value.lpszA].c_str());
                 mapStats[lpName->Value.lpszA] = lpValue->Value.lpszA;

@@ -1057,14 +1057,13 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 		return hr;
 	if (ptrRowSet.empty())
 		return MAPI_E_NOT_FOUND;
-
-	auto lpsName = PCpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_DISPLAY_NAME_W);
+	auto lpsName = ptrRowSet[0].cfind(PR_DISPLAY_NAME_W);
 	if (lpsName != nullptr)
 		strUsername = lpsName->Value.lpszW;
-	lpsName = PCpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_EC_COMPANY_NAME_W);
+	lpsName = ptrRowSet[0].cfind(PR_EC_COMPANY_NAME_W);
 	if (lpsName != nullptr)
 		strCompanyName = lpsName->Value.lpszW;
-	auto lpsPropEntryId = PCpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_STORE_ENTRYID);
+	auto lpsPropEntryId = ptrRowSet[0].cfind(PR_STORE_ENTRYID);
 	if (lpsPropEntryId == NULL)
 		return MAPI_E_NOT_FOUND;
 
@@ -1246,18 +1245,17 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 			break;
 
 		for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
-			auto lpStoreGuid = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_STOREGUID);
-			auto lpUserName = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_USERNAME_A);
-			auto lpModTime = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_LAST_MODIFICATION_TIME);
-			auto lpStoreSize = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MESSAGE_SIZE_EXTENDED);
-			auto lpStoreType = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_STORETYPE);
-
+			auto lpStoreGuid = lpRowSet->aRow[i].cfind(PR_EC_STOREGUID);
+			auto lpUserName  = lpRowSet->aRow[i].cfind(PR_EC_USERNAME_A);
+			auto lpModTime   = lpRowSet->aRow[i].cfind(PR_LAST_MODIFICATION_TIME);
+			auto lpStoreSize = lpRowSet->aRow[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
+			auto lpStoreType = lpRowSet->aRow[i].cfind(PR_EC_STORETYPE);
 			if (lpStoreGuid && lpUserName)
 				continue;
 
 			if (!lpUserName) {
 				// find "guessed" named
-				lpUserName = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_DISPLAY_NAME_A);
+				lpUserName = lpRowSet->aRow[i].cfind(PR_DISPLAY_NAME_A);
 				if (lpUserName)
 					strUsername = lpUserName->Value.lpszA;
 				else

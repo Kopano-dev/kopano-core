@@ -390,8 +390,7 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 			return hr;
 		if (lpRows->cRows == 0)
 			break;
-
-		auto lpPropDepth = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_DEPTH);
+		auto lpPropDepth = lpRows->aRow[0].cfind(PR_DEPTH);
 		if (lpPropDepth == nullptr)
 			return MAPI_E_CORRUPT_DATA; // Break the action
 

@@ -329,17 +329,17 @@ static HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession,
 		if (hr != hrSuccess || lpRows->cRows != 1)
 			return MAPI_E_NOT_FOUND;
 		if (bPublic) {
-			auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_MDB_PROVIDER);
+			auto lpStoreProp = lpRows->aRow[0].cfind(PR_MDB_PROVIDER);
 			if (lpStoreProp != NULL && memcmp(lpStoreProp->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0 )
 				break;
 		} else {
-			auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_RESOURCE_FLAGS);
+			auto lpStoreProp = lpRows->aRow[0].cfind(PR_RESOURCE_FLAGS);
 			if (lpStoreProp != NULL && lpStoreProp->Value.ul & STATUS_DEFAULT_STORE)
 				break;
 		}
 	}
 
-	lpEntryIDProp = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ENTRYID);
+	lpEntryIDProp = lpRows->aRow[0].cfind(PR_ENTRYID);
 	if (lpEntryIDProp == nullptr)
 		return MAPI_E_NOT_FOUND;
 
@@ -2462,7 +2462,7 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 
 	if (!ptrRows.empty()) {
 		// message found, open it
-		auto lpEntryID = PCpropFindProp(ptrRows[0].lpProps, ptrRows[0].cValues, PR_ENTRYID);
+		auto lpEntryID = ptrRows[0].cfind(PR_ENTRYID);
 		if (lpEntryID == NULL)
 			return MAPI_E_INVALID_ENTRYID;
 		hr = ptrFolder->OpenEntry(lpEntryID->Value.bin.cb,

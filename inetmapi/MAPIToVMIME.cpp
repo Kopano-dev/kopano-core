@@ -208,13 +208,13 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 
 	try {
 		for (ULONG i = 0; i < pRows->cRows; ++i) {
-			auto pPropRecipType = PCpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_RECIPIENT_TYPE);
+			auto pPropRecipType = pRows->aRow[i].cfind(PR_RECIPIENT_TYPE);
 
 			if(pPropRecipType == NULL) {
 				// getMailBox properties
-				auto pPropDispl = PCpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_DISPLAY_NAME_W);
-				auto pPropAType = PCpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_ADDRTYPE_W);
-				auto pPropEAddr = PCpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_EMAIL_ADDRESS_W);
+				auto pPropDispl = pRows->aRow[i].cfind(PR_DISPLAY_NAME_W);
+				auto pPropAType = pRows->aRow[i].cfind(PR_ADDRTYPE_W);
+				auto pPropEAddr = pRows->aRow[i].cfind(PR_EMAIL_ADDRESS_W);
 				ec_log_err("No recipient type set for recipient. DisplayName: %ls, AddrType: %ls, Email: %ls",
 					pPropDispl ? pPropDispl->Value.lpszW : L"(none)",
 					pPropAType ? pPropAType->Value.lpszW : L"(none)",
@@ -305,7 +305,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	std::string		strBoundary;
 	bool			bSendBinary = true;
 
-	auto pPropAttachNum = PCpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_NUM);
+	auto pPropAttachNum = lpRow->cfind(PR_ATTACH_NUM);
 	if (pPropAttachNum == NULL) {
 		ec_log_err("Attachment in table not correct, no attachment number present.");
 		return MAPI_E_NOT_FOUND;
@@ -315,7 +315,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 	// check PR_ATTACH_METHOD to determine Attachment or email
 	ulAttachmentMethod = ATTACH_BY_VALUE;
-	pPropAttachType	= PCpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_METHOD);
+	pPropAttachType	= lpRow->cfind(PR_ATTACH_METHOD);
 	if (pPropAttachType == NULL)
 		ec_log_warn("Attachment method not present for attachment %d, assuming default value", ulAttachmentNum);
 	else
@@ -960,11 +960,10 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 
 		if (lpRows->cRows != 1)
 			goto normal;
-
-		lpPropAttach = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ATTACH_MIME_TAG);
+		lpPropAttach = lpRows->aRow[0].cfind(PR_ATTACH_MIME_TAG);
 		if (!lpPropAttach)
 			goto normal;
-		lpPropAttach = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ATTACH_NUM);
+		lpPropAttach = lpRows->aRow[0].cfind(PR_ATTACH_NUM);
 		if (!lpPropAttach)
 			goto normal;
 		hr = lpMessage->OpenAttach(lpPropAttach->Value.ul, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
@@ -1170,7 +1169,7 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 		return hr;
 	}
 
-	auto pPropObjectType = PCpropFindProp(lpRow->lpProps, lpRow->cValues, PR_OBJECT_TYPE);
+	auto pPropObjectType = lpRow->cfind(PR_OBJECT_TYPE);
 	if (strName.empty() && !strEmail.empty()) {
 		// email address only
 		vmMailboxNew = vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail));

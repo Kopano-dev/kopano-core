@@ -714,7 +714,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 
 		for (ULONG i = 0; i < lpValRows->cRows; ++i) {
 			WEBDAVVALUE sWebDavVal;
-			auto lpsPropVal = PCpropFindProp(lpValRows->aRow[i].lpProps, lpValRows->aRow[i].cValues, PR_ACCOUNT_W);
+			auto lpsPropVal = lpValRows->aRow[i].cfind(PR_ACCOUNT_W);
 			if (!lpsPropVal)
 				continue;		// user without account name is useless
 
