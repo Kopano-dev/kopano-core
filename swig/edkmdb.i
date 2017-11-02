@@ -46,7 +46,7 @@ public:
 
 class IExchangeManageStore : public virtual IUnknown {
 public:
-	virtual HRESULT CreateStoreEntryID(LPCTSTR store_dn, LPCTSTR mbox_dn, ULONG flags, ULONG *OUTPUT, ENTRYID **OUTPUT) = 0;
+	virtual HRESULT CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *OUTPUT,	LPENTRYID *OUTPUT) = 0;
 	virtual HRESULT EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *OUTPUT, LPENTRYID *OUTPUT) = 0;
 	virtual HRESULT GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID,	ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulRights) = 0;
 	virtual HRESULT GetMailboxTable(LPTSTR lpszServerName, IMAPITable **OUTPUT /*lppTable*/, ULONG ulFlags) = 0;
