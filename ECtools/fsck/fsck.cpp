@@ -356,10 +356,10 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 		return hr;
         }
 
-        hr = lpIEMS->CreateStoreEntryID(const_cast<wchar_t *>(L""),
-             (LPTSTR)strwAltUsername.c_str(),
-             MAPI_UNICODE | OPENSTORE_HOME_LOGON, &cbUserStoreEntryID,
-	     &~lpUserStoreEntryID);
+		hr = lpIEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(L""),
+		     reinterpret_cast<const TCHAR *>(strwAltUsername.c_str()),
+		     MAPI_UNICODE | OPENSTORE_HOME_LOGON, &cbUserStoreEntryID,
+		     &~lpUserStoreEntryID);
         if (hr != hrSuccess) {
             cout << "Cannot get user store id for user" << endl;
 		return hr;

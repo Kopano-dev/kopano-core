@@ -50,10 +50,9 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 		return hr;
 	}
 
-	lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
-
+	lpProfAdmin->DeleteProfile(reinterpret_cast<const TCHAR *>(szProfName), 0);
 	// Create a profile that we can use (empty now)
-	hr = lpProfAdmin->CreateProfile((LPTSTR)szProfName, (LPTSTR)"", 0, 0);
+	hr = lpProfAdmin->CreateProfile(reinterpret_cast<const TCHAR *>(szProfName), reinterpret_cast<const TCHAR *>(""), 0, 0);
 
 	if(hr != hrSuccess) {
 		last_error = "Unable to create new profile";
@@ -103,7 +102,7 @@ HRESULT mapi_util_deleteprof(const char *szProfName)
 		return hr;
 	}
 
-	lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
+	lpProfAdmin->DeleteProfile(reinterpret_cast<const TCHAR *>(szProfName), 0);
 	return hrSuccess;
 }
 

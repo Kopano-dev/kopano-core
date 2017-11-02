@@ -821,12 +821,6 @@ M4LMAPISession::M4LMAPISession(const TCHAR *pn, M4LMsgServiceAdmin *sa) :
 {
 }
 
-M4LMAPISession::~M4LMAPISession() {
-	for (const auto &p : mapStores)
-		p.second->Release();
-	MAPIFreeBuffer(m_lpPropsStatus);
-}
-
 HRESULT M4LMAPISession::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
     *lppMAPIError = NULL;
     return hrSuccess;
@@ -1100,7 +1094,6 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	GUID guidProvider;
 	bool bStoreEntryID = false;
 	MAPIUID muidOneOff = {MAPI_ONE_OFF_UID};
-	std::map<GUID, IMsgStore *>::const_iterator iterStores;
 
     if (lpEntryID == NULL) {
 	ec_log_err("M4LMAPISession::OpenEntry() invalid parameters");
@@ -1129,7 +1122,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	memcpy(&guidProvider, &lpEntryID->ab, sizeof(GUID));
         
 	// See if we already have the store open
-	iterStores = mapStores.find(guidProvider);
+	decltype(mapStores)::const_iterator iterStores = mapStores.find(guidProvider);
 	if (iterStores != mapStores.cend()) {
 		if (bStoreEntryID == true) {
 			hr = iterStores->second->QueryInterface(IID_IMsgStore, (void**)lppUnk);
@@ -1194,7 +1187,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 					return kc_perrorf("OpenMsgStore failed", hr);
                   
 			// Keep the store open in case somebody else needs it later (only via this function)
-			mapStores.emplace(guidProvider, lpMDB);
+			mapStores.emplace(guidProvider, object_ptr<IMsgStore>(lpMDB));
 			if(bStoreEntryID == true) {
 				hr = lpMDB->QueryInterface(IID_IMsgStore, (void**)lppUnk);
 				if (hr == hrSuccess)
@@ -1377,11 +1370,8 @@ HRESULT M4LMAPISession::QueryInterface(REFIID refiid, void **lpvoid) {
 HRESULT M4LMAPISession::setStatusRow(ULONG cValues, LPSPropValue lpProps)
 {
 	scoped_lock l_status(m_mutexStatusRow);
-	MAPIFreeBuffer(m_lpPropsStatus);
-	m_lpPropsStatus = NULL;
 	m_cValuesStatus = 0;
-
-	HRESULT hr = Util::HrCopyPropertyArray(lpProps, cValues, &m_lpPropsStatus, &m_cValuesStatus, true);
+	HRESULT hr = Util::HrCopyPropertyArray(lpProps, cValues, &~m_lpPropsStatus, &m_cValuesStatus, true);
 	if (hr != hrSuccess)
 		kc_perrorf("Util::HrCopyPropertyArray failed", hr);
 	return hr;
@@ -1393,15 +1383,11 @@ HRESULT M4LMAPISession::setStatusRow(ULONG cValues, LPSPropValue lpProps)
 M4LAddrBook::M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin,
     LPMAPISUP newlpMAPISup) :
 	m_lpMAPISup(newlpMAPISup)
-{
-	m_lpMAPISup->AddRef();
-}
+{}
 
 M4LAddrBook::~M4LAddrBook() {
 	for (const auto &i : m_lABProviders)
 		i.lpABLogon->Logoff(0);
-	if(m_lpMAPISup)
-		m_lpMAPISup->Release();
 	if (m_lpSavedSearchPath)
 		FreeProws(m_lpSavedSearchPath);
 }

@@ -3025,7 +3025,7 @@ exit:
 	return er;
 }
 
-bool ECUserManagement::IsInternalObject(unsigned int ulUserId)
+bool ECUserManagement::IsInternalObject(unsigned int ulUserId) const
 {
 	return ulUserId == KOPANO_UID_SYSTEM || ulUserId == KOPANO_UID_EVERYONE;
 }

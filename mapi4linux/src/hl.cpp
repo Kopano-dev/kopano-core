@@ -360,7 +360,7 @@ KEntryId KStore::get_receive_folder(const char *cls, char **xcls)
 {
 	ULONG eid_size = 0;
 	ENTRYID *raw_eid = nullptr;
-	auto ret = m_store->GetReceiveFolder(reinterpret_cast<TCHAR *>(const_cast<char *>(cls)),
+	auto ret = m_store->GetReceiveFolder(reinterpret_cast<const TCHAR *>(cls),
 	           0, &eid_size, &raw_eid, reinterpret_cast<TCHAR **>(xcls));
 	KEntryId eid(raw_eid, eid_size); /* stuff into RAII object before throw */
 	if (ret != hrSuccess)

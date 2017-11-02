@@ -130,7 +130,6 @@ private:
 
 public:
 	M4LMAPISession(const TCHAR *profname, M4LMsgServiceAdmin *);
-	virtual ~M4LMAPISession();
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, LPMDB *lppMDB);
@@ -153,10 +152,10 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 
 private:
-    std::map<GUID, IMsgStore *> mapStores;
+	std::map<GUID, KCHL::object_ptr<IMsgStore>> mapStores;
 	/* @todo need a status row per provider */
 	ULONG m_cValuesStatus = 0;
-	SPropValue *m_lpPropsStatus = nullptr;
+	KCHL::memory_ptr<SPropValue> m_lpPropsStatus;
 	std::mutex m_mutexStatusRow;
 
 public:
@@ -189,8 +188,7 @@ public:
 
 private:
 	// variables
-	LPMAPISUP m_lpMAPISup;
-
+	KCHL::object_ptr<IMAPISupport> m_lpMAPISup;
 	std::list<abEntry> m_lABProviders;
 	SRowSet *m_lpSavedSearchPath = nullptr;
 	HRESULT getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath);

@@ -166,7 +166,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 
 	// Hack Alert #47 -- get Inbox and Outbox as special folders
 	if (wstrFldId.compare(L"Inbox") == 0) {
-		hr = lpMsgStore->GetReceiveFolder(const_cast<TCHAR *>(KC_T("IPM")), fMapiUnicode, &cbEntryID, &~lpEntryID, NULL);
+		hr = lpMsgStore->GetReceiveFolder(KC_T("IPM"), fMapiUnicode, &cbEntryID, &~lpEntryID, nullptr);
 		if (hr != hrSuccess) {
 			ec_log_err("Cannot open Inbox Folder, no Receive Folder EntryID: 0x%08X", hr);
 			return hr;

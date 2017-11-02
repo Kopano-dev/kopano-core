@@ -86,8 +86,8 @@ public:
 
 	// lpParent is public because it is always thread-safe and valid
 	ECUnknown *lpParent = nullptr;
-	virtual BOOL IsParentOf(const ECUnknown *lpObject);
-	virtual BOOL IsChildOf(const ECUnknown *lpObject);
+	virtual BOOL IsParentOf(const ECUnknown *) const;
+	virtual BOOL IsChildOf(const ECUnknown *) const;
 
 protected:
 	// Called by AddChild

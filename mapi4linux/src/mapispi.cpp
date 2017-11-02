@@ -30,14 +30,10 @@
 
 using namespace KCHL;
 
-M4LMAPIGetSession::M4LMAPIGetSession(LPMAPISESSION new_session) {
+M4LMAPIGetSession::M4LMAPIGetSession(IMAPISession *new_session) :
+	session(new_session)
+{
 	assert(new_session != NULL);
-	session = new_session;
-	session->AddRef();
-}
-
-M4LMAPIGetSession::~M4LMAPIGetSession() {
-	session->Release();
 }
 
 HRESULT M4LMAPIGetSession::GetMAPISession(LPUNKNOWN *lppSession)
@@ -65,15 +61,12 @@ M4LMAPISupport::M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID lpUid,
 	session(new_session), service(lpService)
 {
 	if(lpUid) {
-    	this->lpsProviderUID = new MAPIUID;
-        memcpy(this->lpsProviderUID, lpUid, sizeof(MAPIUID));
-		return;
+		lpsProviderUID.reset(new MAPIUID);
+		memcpy(lpsProviderUID.get(), lpUid, sizeof(MAPIUID));
 	}
-        this->lpsProviderUID = NULL;
 }
 
 M4LMAPISupport::~M4LMAPISupport() {
-	delete lpsProviderUID;
 	for (const auto &i : m_advises)
 		MAPIFreeBuffer(i.second.lpKey);
 }
@@ -141,7 +134,7 @@ HRESULT M4LMAPISupport::OpenProfileSection(const MAPIUID *lpUid, ULONG ulFlags,
     IProfSect **lppProfileObj)
 {
 	if (lpUid == NULL)
-		lpUid = lpsProviderUID;
+		lpUid = lpsProviderUID.get();
 	return session->OpenProfileSection(lpUid, nullptr, ulFlags, lppProfileObj);
 }
 

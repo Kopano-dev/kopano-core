@@ -754,7 +754,7 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 		hr = MAPI_E_LOGON_FAILED;
 		goto exit;
 	}
-	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
+	hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to find receive folder of store");
 		goto exit;

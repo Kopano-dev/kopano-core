@@ -197,7 +197,7 @@ public:
 	_kc_hidden ECRESULT CheckUserLicense(unsigned int *licstatus);
 
 	// Returns true if ulId is an internal ID (so either SYSTEM or EVERYONE)
-	bool		IsInternalObject(unsigned int ulId);
+	bool IsInternalObject(unsigned int id) const;
 
 	// Create a v1 based AB SourceKey
 	_kc_hidden ECRESULT GetABSourceKeyV1(unsigned int user_id, SOURCEKEY *);

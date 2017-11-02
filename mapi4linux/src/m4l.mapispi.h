@@ -18,8 +18,10 @@
 #ifndef __M4L_MAPISPI_IMPL_H
 #define __M4L_MAPISPI_IMPL_H
 
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include <map>
+#include <memory>
 #include <mutex>
 #include "m4l.common.h"
 #include "m4l.mapisvc.h"
@@ -61,11 +63,10 @@ struct findKey {
 
 class M4LMAPIGetSession : public M4LUnknown, public IMAPIGetSession {
 private:
-	LPMAPISESSION		session;
+	KCHL::object_ptr<IMAPISession> session;
 
 public:
 	M4LMAPIGetSession(LPMAPISESSION new_session);
-	virtual ~M4LMAPIGetSession();
 
 	// IMAPIGetSession
 	virtual HRESULT GetMAPISession(LPUNKNOWN *lppSession) _kc_override;
@@ -75,7 +76,7 @@ public:
 class M4LMAPISupport : public M4LUnknown, public IMAPISupport {
 private:
 	LPMAPISESSION		session;
-	LPMAPIUID			lpsProviderUID;
+	std::unique_ptr<MAPIUID> lpsProviderUID;
 	SVCService*			service;
 	std::mutex m_advises_mutex;
 	M4LSUPPORTADVISES	m_advises;

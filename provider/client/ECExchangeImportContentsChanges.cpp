@@ -577,7 +577,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 		ZLOG_DEBUG(m_lpLogger, "Failed to open root folder, hr = 0x%08x", hr);
 		return hr;
 	}
-	hr = m_lpFolder->GetMsgStore()->GetReceiveFolder((TCHAR*)"IPM", 0, &cbEntryId, &~lpEntryId, NULL);
+	hr = m_lpFolder->GetMsgStore()->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryId, &~lpEntryId, nullptr);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to get 'IPM' receive folder id, hr = 0x%08x", hr);
 		return hr;

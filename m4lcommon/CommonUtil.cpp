@@ -149,9 +149,8 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 		ec_log_crit("CreateProfileTemp(): MAPIAdminProfiles failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
-
-	lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
-	hr = lpProfAdmin->CreateProfile((LPTSTR)szProfName, (LPTSTR)"", 0, 0);
+	lpProfAdmin->DeleteProfile(reinterpret_cast<const TCHAR *>(szProfName), 0);
+	hr = lpProfAdmin->CreateProfile(reinterpret_cast<const TCHAR *>(szProfName), reinterpret_cast<const TCHAR *>(""), 0, 0);
 	if (hr != hrSuccess) {
 		ec_log_crit("CreateProfileTemp(): CreateProfile failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
@@ -240,7 +239,7 @@ static HRESULT DeleteProfileTemp(const char *szProfName)
 	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
 	if (hr != hrSuccess)
 		return hr;
-	return lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
+	return lpProfAdmin->DeleteProfile(reinterpret_cast<const TCHAR *>(szProfName), 0);
 }
 
 HRESULT HrOpenECAdminSession(IMAPISession **lppSession,
@@ -1774,7 +1773,7 @@ static HRESULT HrOpenUserMsgStore(IMAPISession *lpSession, IMsgStore *lpStore,
 	hr = lpStore->QueryInterface(IID_IExchangeManageStore, &~lpExchManageStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpExchManageStore->CreateStoreEntryID(NULL, (LPTSTR)lpszUser, MAPI_UNICODE, &cbStoreEntryID, &~lpStoreEntryID);
+	hr = lpExchManageStore->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(lpszUser), MAPI_UNICODE, &cbStoreEntryID, &~lpStoreEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpSession->OpenMsgStore(0, cbStoreEntryID, lpStoreEntryID, &IID_IMsgStore, MDB_WRITE, &~lpMsgStore);
@@ -2174,7 +2173,7 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 	   && bCreateIfMissing) {
 		
 		// Open the inbox
-		hr = lpMsgStore->GetReceiveFolder((LPTSTR)"", 0, &cbEntryIDInbox, &~lpEntryIDInbox, &~lpszExplicitClass);
+		hr = lpMsgStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>(""), 0, &cbEntryIDInbox, &~lpEntryIDInbox, &~lpszExplicitClass);
 		if(hr != hrSuccess)
 			return hr;
 		hr = lpMsgStore->OpenEntry(cbEntryIDInbox, lpEntryIDInbox, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, &~lpInbox);
@@ -2392,10 +2391,10 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 		return hr;
 	if (ulFlags & MAPI_UNICODE) {
 		std::wstring strMsgStoreDN = std::wstring(L"cn=") + (LPCWSTR)lpszServerName + L"/cn=Microsoft Private MDB";
-		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)L"SYSTEM", MAPI_UNICODE|OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
+		hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(strMsgStoreDN.c_str()), reinterpret_cast<const TCHAR *>(L"SYSTEM"), MAPI_UNICODE | OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
 	} else {
 		std::string strMsgStoreDN = std::string("cn=") + (LPCSTR)lpszServerName + "/cn=Microsoft Private MDB";
-		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)"SYSTEM", OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
+		hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(strMsgStoreDN.c_str()), reinterpret_cast<const TCHAR *>("SYSTEM"), OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
 	}
 	if (hr != hrSuccess)
 		return hr;

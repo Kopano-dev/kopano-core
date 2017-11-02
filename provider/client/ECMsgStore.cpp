@@ -702,7 +702,7 @@ HRESULT ECMsgStore::SetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULO
 }
 
 // If the open store a publicstore
-BOOL ECMsgStore::IsPublicStore()
+BOOL ECMsgStore::IsPublicStore() const
 {
 	BOOL fPublicStore = FALSE;
 
@@ -713,7 +713,7 @@ BOOL ECMsgStore::IsPublicStore()
 }
 
 // As the store is a delegate store
-BOOL ECMsgStore::IsDelegateStore()
+BOOL ECMsgStore::IsDelegateStore() const
 {
 	BOOL fDelegateStore = FALSE;
 
@@ -723,7 +723,9 @@ BOOL ECMsgStore::IsDelegateStore()
 	return fDelegateStore;
 }
 
-HRESULT ECMsgStore::GetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID, LPTSTR *lppszExplicitClass)
+HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
+    ULONG ulFlags, ULONG *lpcbEntryID, ENTRYID **lppEntryID,
+    TCHAR **lppszExplicitClass)
 {
 	HRESULT hr;
 	ULONG		cbEntryID = 0;
@@ -1202,7 +1204,9 @@ HRESULT ECMsgStore::GetWrappedServerStoreEntryID(ULONG cbEntryId, LPBYTE lpEntry
  * @retval	MAPI_E_UNABLE_TO_COMPLETE	A second redirect was returned. This usually indicates a system configuration error.
  * @retval	MAPI_E_INVALID_PARAMETER	One of the parameters is invalid. This includes absent for obligatory parameters.
  */
-HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
+    const TCHAR *lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID,
+    ENTRYID **lppEntryID)
 {
 	HRESULT		hr = hrSuccess;
 	ULONG		cbStoreEntryID = 0;
@@ -1273,8 +1277,9 @@ HRESULT ECMsgStore::CreateStoreEntryID2(ULONG cValues, LPSPropValue lpProps, ULO
 
 	if (lpMsgStoreDN == NULL || lpMailboxDN == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	return CreateStoreEntryID((LPTSTR)lpMsgStoreDN->Value.lpszA, (LPTSTR)lpMailboxDN->Value.lpszA, ulFlags & ~MAPI_UNICODE, lpcbEntryID, lppEntryID);
+	return CreateStoreEntryID(reinterpret_cast<const TCHAR *>(lpMsgStoreDN->Value.lpszA),
+	       reinterpret_cast<const TCHAR *>(lpMailboxDN->Value.lpszA),
+	       ulFlags & ~MAPI_UNICODE, lpcbEntryID, lppEntryID);
 }
 
 HRESULT ECMsgStore::EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
@@ -2779,7 +2784,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Unadvise, (ULONG, ulConnect
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, CompareEntryIDs, (ULONG, cbEntryID1), (const ENTRYID *, lpEntryID1), (ULONG, cbEntryID2), (const ENTRYID *, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenEntry, (ULONG, cbEntryID), (const ENTRYID *, lpEntryID), (const IID *, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (IUnknown **, lppUnk))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SetReceiveFolder, (LPTSTR, lpszMessageClass), (ULONG, ulFlags), (ULONG, cbEntryID), (LPENTRYID, lpEntryID))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetReceiveFolder, (LPTSTR, lpszMessageClass), (ULONG, ulFlags), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID), (LPTSTR *, lppszExplicitClass))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetReceiveFolder, (const TCHAR *, cls), (ULONG, flags), (ULONG *, eid_size), (ENTRYID **, eid), (TCHAR **, exp_class))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetReceiveFolderTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, StoreLogoff, (ULONG *, lpulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AbortSubmit, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulFlags))

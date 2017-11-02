@@ -111,7 +111,8 @@ HRESULT ECUnknown::SetParent(ECUnknown *lpParent) {
  * 
  * @return this is a parent of lpObject, or not
  */
-BOOL ECUnknown::IsParentOf(const ECUnknown *lpObject) {
+BOOL ECUnknown::IsParentOf(const ECUnknown *lpObject) const
+{
 	while (lpObject && lpObject->lpParent) {
 		if (lpObject->lpParent == this)
 			return TRUE;
@@ -127,7 +128,8 @@ BOOL ECUnknown::IsParentOf(const ECUnknown *lpObject) {
  * 
  * @return lpObject is a parent of this, or not
  */
-BOOL ECUnknown::IsChildOf(const ECUnknown *lpObject) {
+BOOL ECUnknown::IsChildOf(const ECUnknown *lpObject) const
+{
 	if (lpObject) {
 		for (auto p : lpObject->lstChildren) {
 			if (this == p)

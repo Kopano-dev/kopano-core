@@ -73,7 +73,7 @@ public:
 	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result);
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
 	virtual HRESULT SetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID);
-	virtual HRESULT GetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID, LPTSTR *lppszExplicitClass);
+	virtual HRESULT GetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG *eid_size, ENTRYID **eid, TCHAR **exp_class) override;
 	virtual HRESULT GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT StoreLogoff(ULONG *lpulFlags);
 	virtual HRESULT AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags);
@@ -82,8 +82,7 @@ public:
 	virtual HRESULT FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID);
 	virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification);
 
-
-	virtual HRESULT CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
+	virtual HRESULT CreateStoreEntryID(const TCHAR *store_dn, const TCHAR *mbox_dn, ULONG flags, ULONG *eid_size, ENTRYID **eid);
 	virtual HRESULT CreateStoreEntryID2(ULONG cValues, LPSPropValue lpProps, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	virtual HRESULT EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	virtual HRESULT GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulRights);
@@ -181,11 +180,11 @@ protected:
 	HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, const IMessageFactory &, ULONG *obj_type, IUnknown **);
 
 public:
-	BOOL IsSpooler(){ return m_fIsSpooler; }
-	BOOL IsDefaultStore() { return m_fIsDefaultStore; }
-	BOOL IsPublicStore();
-	BOOL IsDelegateStore();
-	BOOL IsOfflineStore() { return m_bOfflineStore; }
+	BOOL IsSpooler() const { return m_fIsSpooler; }
+	BOOL IsDefaultStore() const { return m_fIsDefaultStore; }
+	BOOL IsPublicStore() const;
+	BOOL IsDelegateStore() const;
+	BOOL IsOfflineStore() const { return m_bOfflineStore; }
 	LPCSTR GetProfileName() const { return m_strProfname.c_str(); }
 
 	const GUID& GetStoreGuid();
@@ -217,7 +216,7 @@ public:
 		virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result);
 		virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
 		virtual HRESULT SetReceiveFolder(LPTSTR lpszMessageClass, ULONG flags, ULONG cbEntryID, LPENTRYID lpEntryID) _kc_override;
-		virtual HRESULT GetReceiveFolder(LPTSTR lpszMessageClass, ULONG flags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID, LPTSTR *lppszExplicitClass) _kc_override;
+		virtual HRESULT GetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG *eid_size, ENTRYID **eid, TCHAR **exp_class) override;
 		virtual HRESULT GetReceiveFolderTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 		virtual HRESULT StoreLogoff(ULONG *lpulFlags) _kc_override;
 		virtual HRESULT AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG flags) _kc_override;
