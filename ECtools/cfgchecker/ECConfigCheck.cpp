@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <iconv.h>
 #include <kopano/stringutil.h>
 #include "ECConfigCheck.h"
 
@@ -228,28 +229,14 @@ int ECConfigCheck::testUsedWithoutMultiServer(const config_check_t *check)
 
 int ECConfigCheck::testCharset(const config_check_t *check)
 {
-	/* When grepping iconv output, all lines have '//' appended,
-	 * additionally all charsets are uppercase */
-	auto v1 = strToUpper(check->value1);
-	auto fp = popen(("iconv -l | grep -x \"" + v1 + "//\"").c_str(), "r");
-
-	if (fp == nullptr) {
-		printWarning(check->option1, "Failed to validate charset");
-		return CHECK_WARNING;
-	}
-
-	char buffer[50];
-	memset(buffer, 0, sizeof(buffer));
-	if (fgets(buffer, sizeof(buffer), fp) == nullptr) {
-		printWarning(check->option1, "unable to validate charset: \"" + v1 + "\"");
-		pclose(fp);
-		return CHECK_WARNING;
-	}
-	pclose(fp);
-	if (std::string(buffer).find(v1) == std::string::npos) {
-		printError(check->option1, "contains unknown chartype \"" + v1 + "\"");
+	iconv_t cd = iconv_open("WCHAR_T", check->value1.c_str());
+	if (cd == reinterpret_cast<iconv_t>(-1)) {
+		printError(check->option1, "contains unknown charset \"" + check->value1 + "\"");
+		iconv_close(cd);
 		return CHECK_ERROR;
 	}
+
+	iconv_close(cd);
 	return CHECK_OK;
 }
 
