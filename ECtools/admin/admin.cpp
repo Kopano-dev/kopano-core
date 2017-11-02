@@ -1052,7 +1052,7 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->QueryRows(1, 0, &ptrRowSet);
+	hr = ptrTable->QueryRows(1, 0, &~ptrRowSet);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrRowSet.empty())
@@ -1763,7 +1763,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	     .RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->QueryRows(1, 0, &ptrRows);
+	hr = ptrTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrRows.size() != 1 || ptrRows[0].lpProps[0].ulPropTag != PR_ENTRYID)
@@ -1793,7 +1793,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 		return hr;
 
 	while (true) {
-		hr = ptrTable->QueryRows(50, 0, &ptrRows);
+		hr = ptrTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1884,7 +1884,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	hr = ptrSystemTable->SetColumns(sptaStatsProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrSystemTable->QueryRows(0xffff, 0, &ptrRows);
+	hr = ptrSystemTable->QueryRows(0xffff, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2043,7 +2043,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = HrQueryAllRows(ptrTable, sptaTableProps, NULL, NULL, 0, &ptrRows);
+	hr = HrQueryAllRows(ptrTable, sptaTableProps, nullptr, nullptr, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		goto exit;
 

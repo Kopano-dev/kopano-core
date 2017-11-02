@@ -64,7 +64,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 		return hr;
 		
 	while(1) {
-		hr = ptrRecips->QueryRows(1, 0, &ptrRows);
+		hr = ptrRecips->QueryRows(1, 0, &~ptrRows);
 		if(hr != hrSuccess)
 			return hr;
 			

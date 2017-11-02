@@ -796,7 +796,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	     .FindRowIn(ptrACLTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrACLTable->QueryRows(1, 0, &ptrRows);
+	hr = ptrACLTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 

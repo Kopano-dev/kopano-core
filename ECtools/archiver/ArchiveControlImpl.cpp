@@ -335,7 +335,8 @@ ArchiveControlImpl::purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& st
 	unsigned int totalfound = 0;
 	do {
 		SRowSetPtr rowSet;
-		if ((hr = table->QueryRows(100, 0, &rowSet)) != hrSuccess) {
+		hr = table->QueryRows(100, 0, &~rowSet);
+		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from table. (hr=%s)", stringify(hr, true).c_str());
 			continue;
 		}
@@ -690,7 +691,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 	}
 
 	do {
-		hr = ptrTable->QueryRows(50, 0, &ptrRowSet);
+		hr = ptrTable->QueryRows(50, 0, &~ptrRowSet);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from table. (hr=%s)", stringify(hr, true).c_str());
 			goto exit;
@@ -795,7 +796,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 		}
 
 		while (true) {
-			hr = ptrFolderTable->QueryRows(50, 0, &ptrFolderRows);
+			hr = ptrFolderTable->QueryRows(50, 0, &~ptrFolderRows);
 			if (hr != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from folder table. (hr=%s)", stringify(hr, true).c_str());
 				return hr;
@@ -862,7 +863,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 	}
 
 	while (true) {
-		hr = ptrContentsTable->QueryRows(50, 0, &ptrRows);
+		hr = ptrContentsTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from contents table. (hr=%s)", stringify(hr, true).c_str());
 			return hr;
@@ -1070,7 +1071,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 			SRowSetPtr ptrRows;
 			const ULONG batch_size = 128;
 			
-			hr = ptrTable->QueryRows(batch_size, 0, &ptrRows);
+			hr = ptrTable->QueryRows(batch_size, 0, &~ptrRows);
 			if (hr != hrSuccess)
 				return hr;
 			
@@ -1189,7 +1190,7 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 		SRowSetPtr ptrRows;
 		const ULONG batch_size = 128;
 		
-		hr = ptrTable->QueryRows(batch_size, 0, &ptrRows);
+		hr = ptrTable->QueryRows(batch_size, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		
@@ -1249,7 +1250,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	while (true) {
 		SRowSetPtr ptrRows;
 		
-		hr = ptrTable->QueryRows(64, 0, &ptrRows);
+		hr = ptrTable->QueryRows(64, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRows.empty())
@@ -1536,7 +1537,7 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
 	while (true) {
 		SRowSetPtr ptrRows;
 		
-		hr = ptrTable->QueryRows(128, 0, &ptrRows);
+		hr = ptrTable->QueryRows(128, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRows.empty())

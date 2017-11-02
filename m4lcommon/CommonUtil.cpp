@@ -2454,7 +2454,7 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	hr = ECPropertyRestriction(RELOP_EQ, PR_SUBJECT_A, &propSubject, ECRestriction::Cheap)
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {
-		hr = ptrTable->QueryRows(1, 0, &ptrRows);
+		hr = ptrTable->QueryRows(1, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 	}

@@ -150,7 +150,7 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 	while (true) {
 		SRowSetPtr ptrRows;
 
-		HRESULT hr = lpStoreTable->QueryRows(50, 0, &ptrRows);
+		HRESULT hr = lpStoreTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -282,7 +282,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		}
 
 		/* multi-tenancy, loop through all subcontainers to find all users */
-		hr = ptrHierarchyTable->QueryRows(ulCompanyCount, 0, &ptrRows);
+		hr = ptrHierarchyTable->QueryRows(ulCompanyCount, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		
@@ -489,7 +489,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	}
 
 	while (true) {
-		hr = ptrTable->QueryRows(50, 0, &ptrRows);
+		hr = ptrTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRows.empty())

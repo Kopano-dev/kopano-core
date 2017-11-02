@@ -3618,7 +3618,7 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 	HRESULT hr = lpMsg->GetAttachmentTable(0, &~ptrAttachTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrQueryAllRows(ptrAttachTable, sptaAttachNum, NULL, NULL, 0, &ptrRows);
+	hr = HrQueryAllRows(ptrAttachTable, sptaAttachNum, nullptr, nullptr, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -3641,7 +3641,7 @@ HRESULT Util::HrDeleteRecipients(LPMESSAGE lpMsg)
 	HRESULT hr = lpMsg->GetRecipientTable(0, &~ptrRecipTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrQueryAllRows(ptrRecipTable, sptaRowId, NULL, NULL, 0, &ptrRows);
+	hr = HrQueryAllRows(ptrRecipTable, sptaRowId, nullptr, nullptr, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	return lpMsg->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRows.get());

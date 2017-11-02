@@ -426,7 +426,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		MAPITablePtr ptrMemberTable;
 		SRowSetPtr ptrMembers;
 
-		hr = ptrRecipientTable->QueryRows(1, 0L, &ptrRow);
+		hr = ptrRecipientTable->QueryRows(1, 0L, &~ptrRow);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRow.size() == 0)
@@ -469,7 +469,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 
 		// Get all recipients in distlist, and add to message.
 		// If another distlist is here, it will expand in the next loop.
-		hr = ptrMemberTable->QueryRows(-1, fMapiUnicode, &ptrMembers);
+		hr = ptrMemberTable->QueryRows(-1, fMapiUnicode, &~ptrMembers);
 		if (hr != hrSuccess)
 			continue;
 

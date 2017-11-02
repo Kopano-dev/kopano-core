@@ -72,7 +72,7 @@ HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true */)
 	HRESULT hr = lpTable->QueryColumns(0, &~ptrColumns);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryRows(-1, 0, &ptrRows);
+	hr = lpTable->QueryRows(-1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
         

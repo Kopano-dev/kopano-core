@@ -83,7 +83,7 @@ namespace details {
 
 		while (true) {
 			SRowSetPtr ptrRows;
-			auto hr = lpStoreTable->QueryRows(50, 0, &ptrRows);
+			auto hr = lpStoreTable->QueryRows(50, 0, &~ptrRows);
 			if (hr != hrSuccess)
 				return hr;
 
@@ -259,7 +259,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 		return hr;
 
 	while (true) {
-		hr = ptrTable->QueryRows(50, 0, &ptrRows);
+		hr = ptrTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 

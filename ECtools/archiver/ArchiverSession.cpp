@@ -466,7 +466,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	     .RestrictTable(ptrABRCTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrABRCTable->QueryRows(1, 0, &ptrRows);
+	hr = ptrABRCTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrRows.size() != 1 || ptrRows[0].lpProps[0].ulPropTag != PR_ENTRYID)

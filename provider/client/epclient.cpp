@@ -519,7 +519,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 		return hr;
 
 	// Get the rows
-	hr = ptrTable->QueryRows(0xFF, 0, &ptrRows);
+	hr = ptrTable->QueryRows(0xFF, 0, &~ptrRows);
 	if(hr != hrSuccess)
 		return hr;
 

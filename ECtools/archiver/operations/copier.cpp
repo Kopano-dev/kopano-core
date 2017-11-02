@@ -256,7 +256,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 		SRowSetPtr ptrSourceRows;
 		SRowSetPtr ptrDestRows;
 
-		hr = ptrSourceTable->QueryRows(16, 0, &ptrSourceRows);
+		hr = ptrSourceTable->QueryRows(16, 0, &~ptrSourceRows);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to query source rows. hr=0x%08x", hr);
 			return hr;
@@ -264,8 +264,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 
 		if (ptrSourceRows.empty())
 			break;
-
-		hr = ptrDestTable->QueryRows(16, 0, &ptrDestRows);
+		hr = ptrDestTable->QueryRows(16, 0, &~ptrDestRows);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to query source rows. hr=0x%08x", hr);
 			return hr;

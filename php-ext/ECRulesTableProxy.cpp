@@ -140,7 +140,7 @@ HRESULT ECRulesTableProxy::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *l
 {
 	SRowSetPtr ptrRows;
 	convert_context converter;
-	HRESULT hr = m_lpTable->QueryRows(lRowCount, ulFlags, &ptrRows);
+	HRESULT hr = m_lpTable->QueryRows(lRowCount, ulFlags, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	

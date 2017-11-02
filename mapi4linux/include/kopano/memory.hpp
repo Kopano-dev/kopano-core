@@ -294,7 +294,7 @@ class rowset_ptr : public memory_ptr<SRowSet, rowset_delete> {
 	typedef unsigned int size_type;
 	rowset_ptr() = default;
 	rowset_ptr(SRowSet *p) : memory_ptr(p) {}
-	SRowSet **operator&() { return &~*this; }
+	void operator&() = delete;
 	size_type size() const { return (*this)->cRows; }
 	const SRow &operator[](size_t i) const { return (*this)->aRow[i]; }
 	bool empty() const { return *this == nullptr || (*this)->cRows == 0; }

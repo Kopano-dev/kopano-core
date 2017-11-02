@@ -311,7 +311,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 	j = 0;
 	while (true) {
-		hr = ptrContents->QueryRows(256, 0, &ptrRows);
+		hr = ptrContents->QueryRows(256, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRows.empty())
@@ -741,7 +741,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			hr = ptrContainer->GetHierarchyTable(ulFlags, &~ptrTable);
 			if (hr != hrSuccess)
 				return hr;
-			hr = ptrTable->QueryRows(-1, 0, &ptrRows);
+			hr = ptrTable->QueryRows(-1, 0, &~ptrRows);
 			if (hr != hrSuccess)
 				return hr;
 
@@ -954,7 +954,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 		hr = this->GetHierarchyTable(0, &~ptrHierarchy);
 		if (hr != hrSuccess)
 			return hr;
-		hr = ptrHierarchy->QueryRows(m_lpFolders->size(), 0, &ptrRows);
+		hr = ptrHierarchy->QueryRows(m_lpFolders->size(), 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1019,7 +1019,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 			hr = resFind.RestrictTable(ptrContents, 0);
 			if (hr != hrSuccess)
 				return hr;
-			hr = ptrContents->QueryRows(-1, MAPI_UNICODE, &ptrRows);
+			hr = ptrContents->QueryRows(-1, MAPI_UNICODE, &~ptrRows);
 			if (hr != hrSuccess)
 				return hr;
 
