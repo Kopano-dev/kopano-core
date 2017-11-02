@@ -29,7 +29,7 @@ namespace KC { namespace operations {
 class Stubber _kc_final : public ArchiveOperationBase {
 public:
 	Stubber(ECArchiverLogger *lpLogger, ULONG ulptStubbed, int ulAge, bool bProcessUnread);
-	HRESULT ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps);
+	HRESULT ProcessEntry(IMAPIFolder *, const SRow &proprow) override;
 	HRESULT ProcessEntry(LPMESSAGE lpMessage);
 	
 private:

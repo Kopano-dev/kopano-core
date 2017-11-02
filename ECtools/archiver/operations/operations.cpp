@@ -131,7 +131,8 @@ ArchiveOperationBaseEx::ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int u
  * @param[in]	lpProps
  *					Pointer to an array of properties that are used by the Operation object.
  */
-HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
+HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
+    const SRow &proprow)
 {
 	HRESULT hr;
 	bool bReloadFolder = false;
@@ -140,8 +141,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 	assert(lpFolder != NULL);
 	if (lpFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	
-	auto lpFolderEntryId = PCpropFindProp(lpProps, cProps, PR_PARENT_ENTRYID);
+	auto lpFolderEntryId = proprow.cfind(PR_PARENT_ENTRYID);
 	if (lpFolderEntryId == NULL) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_PARENT_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
@@ -170,7 +170,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 	}
 
 	if (m_ptrCurFolderEntryId != nullptr && !bReloadFolder)
-		return DoProcessEntry(cProps, lpProps);
+		return DoProcessEntry(proprow);
 
 	SPropValuePtr ptrPropValue;
 	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening folder (%s)", bin2hex(lpFolderEntryId->Value.bin).c_str());
@@ -198,7 +198,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to enter folder. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
 	}
-	return DoProcessEntry(cProps, lpProps);
+	return DoProcessEntry(proprow);
 }
 
 }} /* namespace */

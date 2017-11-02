@@ -436,7 +436,7 @@ HRESULT Copier::LeaveFolder()
 	return hrSuccess;
 }
 
-HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
+HRESULT Copier::DoProcessEntry(const SRow &proprow)
 {
 	HRESULT hr;
 	SObjectEntry refObjectEntry;
@@ -454,13 +454,12 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 	if (!m_ptrMapper)
 		return MAPI_E_UNCONFIGURED;
 
-	auto lpEntryId = PCpropFindProp(lpProps, cProps, PR_ENTRYID);
+	auto lpEntryId = proprow.cfind(PR_ENTRYID);
 	if (lpEntryId == NULL) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
 	}
-
-	auto lpStoreEntryId = PCpropFindProp(lpProps, cProps, PR_STORE_ENTRYID);
+	auto lpStoreEntryId = proprow.cfind(PR_STORE_ENTRYID);
 	if (lpStoreEntryId == NULL) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_STORE_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
@@ -634,8 +633,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		if (hrTmp != hrSuccess)
 			Logger()->Log(EC_LOGLEVEL_ERROR, "Failed to remove old archives. (hr=0x%08x)", hrTmp);
 	}
-	
-	hrTemp = ExecuteSubOperations(ptrMessageRaw, CurrentFolder(), cProps, lpProps);
+	hrTemp = ExecuteSubOperations(ptrMessageRaw, CurrentFolder(), proprow);
 	if (hrTemp != hrSuccess)
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Unable to execute next operation, hr=%08x. The operation is postponed, not cancelled", hrTemp);
 	return hrSuccess;
@@ -887,7 +885,8 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	return hrSuccess;
 }
 
-HRESULT Copier::ExecuteSubOperations(LPMESSAGE lpMessage, LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
+HRESULT Copier::ExecuteSubOperations(IMessage *lpMessage,
+    IMAPIFolder *lpFolder, const SRow &proprow)
 {
 	HRESULT hr = hrSuccess;
 	assert(lpMessage != NULL);
@@ -904,7 +903,7 @@ HRESULT Copier::ExecuteSubOperations(LPMESSAGE lpMessage, LPMAPIFOLDER lpFolder,
 		hr = m_ptrDeleteOp->VerifyRestriction(lpMessage);
 		if (hr == hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_DEBUG, "Executing delete operation.");
-			hr = m_ptrDeleteOp->ProcessEntry(lpFolder, cProps, lpProps);
+			hr = m_ptrDeleteOp->ProcessEntry(lpFolder, proprow);
 			if (hr != hrSuccess)
 				Logger()->Log(EC_LOGLEVEL_WARNING, "Delete operation failed, postponing next attempt. hr=0x%08x", hr);
 			else

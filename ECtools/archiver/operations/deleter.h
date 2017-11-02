@@ -36,7 +36,7 @@ public:
 private:
 	HRESULT EnterFolder(LPMAPIFOLDER)_kc_override { return hrSuccess; }
 	HRESULT LeaveFolder(void) _kc_override;
-	HRESULT DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps) _kc_override;
+	HRESULT DoProcessEntry(const SRow &proprow) override;
 	HRESULT PurgeQueuedMessages();
 	
 	std::list<entryid_t> m_lstEntryIds;

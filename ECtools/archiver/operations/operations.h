@@ -51,7 +51,7 @@ public:
 	 * @param[in]	lpProps
 	 *					Pointer to an array of properties that are used by the Operation object.
 	 */
-	virtual HRESULT ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps) = 0;
+	virtual HRESULT ProcessEntry(IMAPIFolder *, const SRow &proprow) = 0;
 
 	/**
 	 * Obtain the restriction the messages need to match in order to be processed by this operation.
@@ -109,7 +109,7 @@ private:
 class ArchiveOperationBaseEx : public ArchiveOperationBase {
 public:
 	ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
-	HRESULT ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps) _kc_override;
+	HRESULT ProcessEntry(IMAPIFolder *, const SRow &proprow) override;
 	
 protected:
 	/**
@@ -140,10 +140,10 @@ private:
 	 *
 	 * @param[in]	cProps
 	 *					The number op properties pointed to by lpProps.
-	 * @param[in]	lpProps
-	 *					Pointer to an array of properties that are used by the Operation object.
+	 * @param[in]	proprow
+	 *					A list of properties that are used by the Operation object.
 	 */
-	virtual HRESULT DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps) = 0;
+	virtual HRESULT DoProcessEntry(const SRow &proprow) = 0;
 	
 	SPropValuePtr m_ptrCurFolderEntryId;
 	MAPIFolderPtr m_ptrCurFolder;
