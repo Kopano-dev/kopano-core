@@ -351,8 +351,8 @@ ArchiveControlImpl::purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& st
 			continue;
 		ptrEntryList->cValues = 1;
 		for (unsigned int i = 0; i < found; ++i) {
-			ptrEntryList->lpbin[0].cb  = rowSet->aRow[i].lpProps[0].Value.bin.cb;
-			ptrEntryList->lpbin[0].lpb = rowSet->aRow[i].lpProps[0].Value.bin.lpb;
+			ptrEntryList->lpbin[0].cb  = rowSet[i].lpProps[0].Value.bin.cb;
+			ptrEntryList->lpbin[0].lpb = rowSet[i].lpProps[0].Value.bin.lpb;
 			if ((hr = folder->DeleteMessages(ptrEntryList, 0, NULL, DELETE_HARD_DELETE)) != hrSuccess)
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to delete message. (hr=%s)", stringify(hr, true).c_str());
 		}

@@ -142,7 +142,7 @@ static HRESULT DetectFolderEntryDetails(LPMESSAGE lpMessage, string *lpName,
 }
 
 static HRESULT ProcessFolderEntry(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
-    LPSRow lpRow)
+    const SRow *lpRow)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpMessage;
@@ -214,7 +214,7 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 			break;
 
 		for (ULONG i = 0; i < lpRows->cRows; ++i) {
-			hr = ProcessFolderEntry(lpFsck, lpFolder, &lpRows->aRow[i]);
+			hr = ProcessFolderEntry(lpFsck, lpFolder, &lpRows[i]);
 			if (hr != hrSuccess)
 				// Move along, nothing to see.
 				cout << "Failed to validate entry." << endl;
@@ -354,14 +354,14 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 			break;
 
 		for (unsigned int i = 0; i < pRows->cRows; ++i) {
-			if (pRows->aRow[i].lpProps[1].ulPropTag != PR_ATTACH_METHOD ||
-			    pRows->aRow[i].lpProps[1].Value.ul != ATTACH_EMBEDDED_MSG)
+			if (pRows[i].lpProps[1].ulPropTag != PR_ATTACH_METHOD ||
+			    pRows[i].lpProps[1].Value.ul != ATTACH_EMBEDDED_MSG)
 				continue;
 
 			object_ptr<IAttach> lpAttach;
 			object_ptr<IMessage> lpSubMessage;
 			bSubChanged = false;
-			hr = lpMessage->OpenAttach(pRows->aRow[i].lpProps[0].Value.ul, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
+			hr = lpMessage->OpenAttach(pRows[i].lpProps[0].Value.ul, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
 			if (hr != hrSuccess)
 				return hr;
 			hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_MODIFY, &~lpSubMessage);
@@ -420,24 +420,29 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 			break;
 
 		for (unsigned int i = 0; i < pRows->cRows; ++i) {
-			if (pRows->aRow[i].lpProps[1].ulPropTag != PR_DISPLAY_NAME_A && pRows->aRow[i].lpProps[2].ulPropTag != PR_EMAIL_ADDRESS_A) {
-				mapiReciptDel.emplace_back(pRows->aRow[i].lpProps[0].Value.ul);
+			if (pRows[i].lpProps[1].ulPropTag != PR_DISPLAY_NAME_A &&
+			    pRows[i].lpProps[2].ulPropTag != PR_EMAIL_ADDRESS_A) {
+				mapiReciptDel.emplace_back(pRows[i].lpProps[0].Value.ul);
 				continue;
 			}
 
 			// Invalid or missing entryid 
-			if (pRows->aRow[i].lpProps[4].ulPropTag != PR_ENTRYID || pRows->aRow[i].lpProps[4].Value.bin.cb == 0) {
-				mapiReciptDel.emplace_back(pRows->aRow[i].lpProps[0].Value.ul);
+			if (pRows[i].lpProps[4].ulPropTag != PR_ENTRYID ||
+			    pRows[i].lpProps[4].Value.bin.cb == 0) {
+				mapiReciptDel.emplace_back(pRows[i].lpProps[0].Value.ul);
 				continue;
 			}
 
 			std::string strData;
-			if (pRows->aRow[i].lpProps[1].ulPropTag == PR_DISPLAY_NAME_A)   strData += pRows->aRow[i].lpProps[1].Value.lpszA;
-			if (pRows->aRow[i].lpProps[2].ulPropTag == PR_EMAIL_ADDRESS_A)  strData += pRows->aRow[i].lpProps[2].Value.lpszA;
-			if (pRows->aRow[i].lpProps[3].ulPropTag == PR_RECIPIENT_TYPE)   strData += stringify(pRows->aRow[i].lpProps[3].Value.ul);
+			if (pRows[i].lpProps[1].ulPropTag == PR_DISPLAY_NAME_A)
+				strData += pRows[i].lpProps[1].Value.lpszA;
+			if (pRows[i].lpProps[2].ulPropTag == PR_EMAIL_ADDRESS_A)
+				strData += pRows[i].lpProps[2].Value.lpszA;
+			if (pRows[i].lpProps[3].ulPropTag == PR_RECIPIENT_TYPE)
+				strData += stringify(pRows[i].lpProps[3].Value.ul);
 			auto res = mapRecip.emplace(std::move(strData));
 			if (res.second == false)
-				mapiReciptDel.emplace_back(pRows->aRow[i].lpProps[0].Value.ul);
+				mapiReciptDel.emplace_back(pRows[i].lpProps[0].Value.ul);
 		}
 	}
 	// modify
