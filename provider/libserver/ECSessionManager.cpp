@@ -282,8 +282,8 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	ec_log_info("Shutdown all current sessions");
 
-	auto iIterSession = m_mapSessions.begin();
-	while (iIterSession != m_mapSessions.cend()) {
+	for (auto iIterSession = m_mapSessions.begin();
+	     iIterSession != m_mapSessions.cend(); ) {
 		if (iIterSession->first == sessionIDException) {
 			++iIterSession;
 			continue;
@@ -684,8 +684,8 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		auto lCurTime = GetProcessTime();
 		
 		// Find a session that has timed out
-		auto iIterator = lpSessionManager->m_mapSessions.begin();
-		while (iIterator != lpSessionManager->m_mapSessions.cend()) {
+		for (auto iIterator = lpSessionManager->m_mapSessions.begin();
+		     iIterator != lpSessionManager->m_mapSessions.cend(); ) {
 			bool del = iIterator->second->GetSessionTime() < lCurTime &&
 			           !lpSessionManager->IsSessionPersistent(iIterator->first);
 			if (!del) {

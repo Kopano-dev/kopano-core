@@ -426,12 +426,11 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 			for (auto dfr : lstDeferred) {
 				sKey.ulObjId = dfr;
 				sKey.ulOrderId = 0;
-				auto iterIncomplete = mapIncompleteRows.lower_bound(sKey);
-				while (iterIncomplete != mapIncompleteRows.cend() &&
-				       iterIncomplete->first.ulObjId == dfr) {
+				for (auto iterIncomplete = mapIncompleteRows.lower_bound(sKey);
+				     iterIncomplete != mapIncompleteRows.cend() && iterIncomplete->first.ulObjId == dfr;
+				     ++iterIncomplete) {
 					g_lpStatsCollector->Increment(SCN_DATABASE_DEFERRED_FETCHES);
 					mapRows[iterIncomplete->first] = iterIncomplete->second;
-					++iterIncomplete;
 				}
 			}
 		}
@@ -893,10 +892,9 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 			// WARNING. For PT_UNICODE columns, ulTag contains PT_STRING8, since that is the tag in the database. We rely
 			// on PT_UNICODE = PT_STRING8 + 1 here since we do a lower_bound to scan for either PT_STRING8 or PT_UNICODE
 			// and then use CompareDBPropTag to check the actual type in the while loop later. Same goes for PT_MV_UNICODE.
-			auto iterColumns = mapColumns.lower_bound(PROP_TAG(ulType, ulTag));
-			while (iterColumns != mapColumns.cend() &&
-			       CompareDBPropTag(iterColumns->first, PROP_TAG(ulType, ulTag))) {
-
+			for (auto iterColumns = mapColumns.lower_bound(PROP_TAG(ulType, ulTag));
+			     iterColumns != mapColumns.cend() && CompareDBPropTag(iterColumns->first, PROP_TAG(ulType, ulTag));
+			     ++iterColumns) {
 				// free prop if we're not allocing by soap
 				if(soap == NULL && lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag != 0) {
 					FreePropVal(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], false);
@@ -920,7 +918,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 				else if ((lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
 					lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
 				setDone.emplace(iterObjIds->second, iterColumns->second);
-				++iterColumns;
 			}
 			
 			// We may have more than one row to fill in an MVI table; if we're handling a non-MVI property, then we have to duplicate that

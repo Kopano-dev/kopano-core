@@ -147,9 +147,9 @@ ECTableManager::~ECTableManager()
 {
 	scoped_rlock lock(hListMutex);
 
-	auto iterTables = mapTable.cbegin();
 	// Clean up tables, if CloseTable(..) isn't called 
-	while (iterTables != mapTable.cend()) {
+	for (auto iterTables = mapTable.cbegin();
+	     iterTables != mapTable.cend(); ) {
 		auto iterNext = iterTables;
 		++iterNext;
 		CloseTable(iterTables->first);

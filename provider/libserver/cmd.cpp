@@ -345,8 +345,7 @@ static ECRESULT PeerIsServer(struct soap *soap,
 			if (getaddrinfo(strHost.c_str(), NULL, &sHint, &lpsAddrInfo) != 0)
 				return KCERR_NOT_FOUND;
 
-			lpsAddrIter = lpsAddrInfo;
-			while (lpsAddrIter && bResult == false) {
+			for (lpsAddrIter = lpsAddrInfo; lpsAddrIter != nullptr && !bResult; lpsAddrIter = lpsAddrIter->ai_next) {
 				if (soap->peerlen >= sizeof(sockaddr) && lpsAddrIter->ai_family == ((sockaddr*)&soap->peer)->sa_family) {
 					switch (lpsAddrIter->ai_family) {
 					case AF_INET:
@@ -367,8 +366,6 @@ static ECRESULT PeerIsServer(struct soap *soap,
 						break;
 					}
 				}
-
-				lpsAddrIter = lpsAddrIter->ai_next;
 			}
 			freeaddrinfo(lpsAddrInfo);
 		}

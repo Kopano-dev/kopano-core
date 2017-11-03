@@ -1488,8 +1488,9 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 
                 // get old mvprops count
                 cMVOld = 0;
-                auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
-                while (iterMapObject != this->mapObjects.cend()) {
+				for (auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
+				     iterMapObject != this->mapObjects.cend();
+				     ++iterMapObject) {
                     if (iterMapObject->first.ulObjId == obj_id) {
                         ++cMVOld;
                         if(cMVOld > cMVNew && (ulFlags&OBJECTTABLE_NOTIFY) == OBJECTTABLE_NOTIFY) {
@@ -1506,7 +1507,6 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
                         }//if(cMVOld > cMVNew)
                     } else if (iterMapObject->first.ulObjId != obj_id)
                         break;
-                    ++iterMapObject;
                 }
                 
                 sRow = sObjectTableKey(obj_id, 0);
@@ -2576,7 +2576,6 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
     sObjectTableKey sPrevRow(0,0);
     ECLeafMap::const_iterator iterLeafs;
     ECKeyTable::UpdateType ulAction;
-    ECCategory *lpCategory = NULL;
     ECCategory *lpParent = NULL;
     bool fModified = false;
     bool fHidden = false;
@@ -2592,10 +2591,9 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
         goto exit;
     }
     
-    lpCategory = iterLeafs->second.lpCategory;
-
     // Loop through this category and all its parents
-    while(lpCategory) {
+	for (auto lpCategory = iterLeafs->second.lpCategory;
+	     lpCategory != nullptr; lpCategory = lpParent) {
     	ulDepth = lpCategory->m_ulDepth;
     	
         lpParent = lpCategory->m_lpParent;
@@ -2691,8 +2689,6 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
                 AddTableNotif(ECKeyTable::TABLE_ROW_MODIFY, sCatRow, &sPrevRow);
             }
         }
-        
-        lpCategory = lpParent;
     }
 
     // Remove the leaf from the leaf map

@@ -620,10 +620,9 @@ ECRESULT ECDatabase::DoSequence(const std::string &strSeqName,
 std::string ECDatabase::FilterBMP(const std::string &strToFilter)
 {
 	const char *c = strToFilter.c_str();
-	std::string::size_type pos = 0;
 	std::string strFiltered;
 
-	while(pos < strToFilter.size()) {
+	for (size_t pos = 0; pos < strToFilter.size(); ) {
 		// Copy 1, 2, and 3-byte UTF-8 sequences
 		int len;
 		
