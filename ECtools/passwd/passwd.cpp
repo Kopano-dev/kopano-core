@@ -47,7 +47,7 @@ using std::endl;
 static bool verbose = false;
 
 enum modes {
-	MODE_INVALID = 0, MODE_CHANGE_PASSWD, MODE_HELP
+	MODE_INVALID = 0, MODE_CHANGE_PASSWD,
 };
 
 enum {
@@ -186,8 +186,8 @@ static int main2(int argc, char **argv)
 			verbose = true;
 			break;
 		case OPT_HELP:
-			mode = MODE_HELP;
-			break;
+			print_help(*argv);
+			return 0;
 		default:
 			break;
 		};
@@ -202,11 +202,6 @@ static int main2(int argc, char **argv)
 	if (mode == MODE_INVALID) {
 		cerr << "No correct command given." << endl;
 		return 1;
-	}
-
-	if (mode == MODE_HELP) {
-		print_help(argv[0]);
-		return 0;
 	}
 	if ((newpassword == nullptr && passprompt == 0) ||
 	    username == nullptr || (oldpassword == nullptr && passprompt == 0)) {
