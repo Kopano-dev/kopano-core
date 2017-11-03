@@ -133,32 +133,6 @@ HRESULT WSTransport::HrClone(WSTransport **lppTransport)
 	return hrSuccess;
 }
 
-HRESULT WSTransport::HrOpenTransport(LPMAPISUP lpMAPISup, WSTransport **lppTransport, BOOL bOffline)
-{
-	HRESULT			hr = hrSuccess;
-	object_ptr<WSTransport> lpTransport;
-	sGlobalProfileProps	sProfileProps;
-
-		// Get the username and password from the profile settings
-	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
-	if(hr != hrSuccess)
-		return hr;
-
-	// TODO: check usernameand serverpath
-	
-	// Create a transport for this user
-	hr = WSTransport::Create(MDB_NO_DIALOG, &~lpTransport);
-	if(hr != hrSuccess)
-		return hr;
-
-	// Log on the transport to the server
-	hr = lpTransport->HrLogon(sProfileProps);
-	if(hr != hrSuccess) 
-		return hr;
-	*lppTransport = lpTransport.release();
-	return hrSuccess;
-}
-
 HRESULT WSTransport::LockSoap()
 {
 	m_hDataLock.lock();
@@ -1596,29 +1570,6 @@ HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID)
 	START_SOAP_CALL
 	{
 		if(SOAP_OK != m_lpCmd->ns__abortSubmit(m_ecSessionId, sEntryId, &er))
-			er = KCERR_NETWORK_ERROR;
-	}
-	END_SOAP_CALL
- exitm:
-	UnLockSoap();
-
-	return hr;
-}
-
-HRESULT WSTransport::HrIsMessageInQueue(ULONG cbEntryID, LPENTRYID lpEntryID)
-{
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
-	entryId sEntryId; // Do not free
-	LockSoap();
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
-	if(hr != hrSuccess)
-		goto exitm;
-
-	START_SOAP_CALL
-	{
-		if(SOAP_OK != m_lpCmd->ns__isMessageInQueue(m_ecSessionId, sEntryId, &er))
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -4436,13 +4387,6 @@ sGlobalProfileProps WSTransport::GetProfileProps()
     return m_sProfileProps;
 }
 
-HRESULT WSTransport::GetLicenseFlags(unsigned long long *lpllFlags)
-{
-    *lpllFlags = m_llFlags;
-    
-    return hrSuccess;
-}
-
 HRESULT WSTransport::GetServerGUID(LPGUID lpsServerGuid)
 {
 	if (m_sServerGuid == GUID_NULL)
@@ -4556,25 +4500,6 @@ std::string WSTransport::GetAppName()
 	else
 		m_strAppName = basename((char *)s.c_str());
     return m_strAppName;
-}
-
-/**
- * Ensure that the session is still active
- *
- * This function simply calls a random transport request, which will check the session
- * validity. Since it doesn't matter which call we run, we'll use the normally-disabled
- * testGet function. Any failed session will automatically be reloaded by the autodetection
- * code. 
- */
-HRESULT WSTransport::HrEnsureSession()
-{
-    HRESULT hr = hrSuccess;
-	memory_ptr<char> szValue;
-    
-	hr = HrTestGet("ensure_transaction", &~szValue);
-    if(hr != MAPI_E_NETWORK_ERROR && hr != MAPI_E_END_OF_SESSION)
-        hr = hrSuccess;
-    return hr;
 }
 
 HRESULT WSTransport::HrResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates)

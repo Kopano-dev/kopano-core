@@ -78,8 +78,6 @@ public:
 
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
-	static	HRESULT	HrOpenTransport(LPMAPISUP lpMAPISup, WSTransport **lppTransport, BOOL bOffline = FALSE);
-
 	virtual HRESULT HrLogon2(const struct sGlobalProfileProps &);
 	virtual HRESULT HrLogon(const struct sGlobalProfileProps &);
 	virtual HRESULT HrReLogon();
@@ -149,7 +147,6 @@ public:
 	// Outgoing Queue Finished message
 	virtual HRESULT HrFinishedMessage(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags);
 	virtual HRESULT HrAbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID);
-	virtual HRESULT HrIsMessageInQueue(ULONG cbEntryID, LPENTRYID lpEntryID);
 
 	// Get user information
 	virtual HRESULT HrResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
@@ -269,9 +266,6 @@ public:
 
 	/* expose capabilities */
 	virtual HRESULT HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult);
-	
-	/* Get flags received on logon */
-	virtual HRESULT GetLicenseFlags(unsigned long long *lpllFlags);
 
 	/* Test protocol */
 	virtual HRESULT HrTestPerform(const char *cmd, unsigned int argc, char **args);
@@ -294,9 +288,6 @@ public:
 	/* notifications */
 	virtual HRESULT HrGetNotify(struct notificationArray **lppsArrayNotifications);
 	virtual HRESULT HrCancelIO();
-	
-	/* Check session and relogon if needed */
-	virtual HRESULT HrEnsureSession();
 
 	virtual HRESULT HrResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates);
 

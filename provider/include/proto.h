@@ -1036,7 +1036,6 @@ int ns__tableMulti(ULONG64 ulSessionId, struct tableMultiRequest sRequest, struc
 int ns__submitMessage(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags, unsigned int *result);
 int ns__finishedMessage(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags, unsigned int *result);
 int ns__abortSubmit(ULONG64 ulSessionId, entryId sEntryId, unsigned int *result);
-int ns__isMessageInQueue(ULONG64 ulSessionId, entryId sEntryId, unsigned int *result);
 
 // Get user ID / store for username (username == NULL for current user)
 int ns__resolveStore(ULONG64 ulSessionId, struct xsd__base64Binary sStoreGuid, struct ns:resolveUserStoreResponse *lpsResponse);
