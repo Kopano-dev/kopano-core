@@ -446,7 +446,7 @@ zend_function_entry mapi_functions[] =
 
 	ZEND_FE(mapi_inetmapi_imtoinet, NULL)
 	ZEND_FE(mapi_inetmapi_imtomapi, NULL)
-	
+
 	ZEND_FE(mapi_icaltomapi, nullptr)
 	ZEND_FE(mapi_mapitoical, nullptr)
 
@@ -548,7 +548,7 @@ static int LoadSettingsFile(void)
 		const char *temp = cfg->GetSetting(CE_PHP_MAPI_PERFORMANCE_TRACE_FILE);
 		if (temp != NULL) {
 			perf_measure_file = strdup(temp);
-			lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI Performance measuring enabled");
+			lpLogger->Log(EC_LOGLEVEL_INFO, "Performance measuring enabled");
 		}
 
 		temp = cfg->GetSetting(CE_PHP_MAPI_DEBUG);
@@ -829,7 +829,6 @@ ZEND_FUNCTION(mapi_createoneoff)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "CreateOneOff address conversion failed");
 		goto exit;
 	}
-
 	MAPI_G(hr) = ECCreateOneOff((LPTSTR)name.c_str(), (LPTSTR)type.c_str(), (LPTSTR)email.c_str(), MAPI_UNICODE | ulFlags, &cbEntryID, &~lpEntryID);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "CreateOneOff failed");
@@ -930,9 +929,9 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|ssslss",
-							 &username, &username_len, &password, &password_len, &server, &server_len,
-							&sslcert, &sslcert_len, &sslpass, &sslpass_len, &ulFlags,
-							&wa_version, &wa_version_len, &misc_version, &misc_version_len) == FAILURE) return;
+		&username, &username_len, &password, &password_len, &server, &server_len,
+		&sslcert, &sslcert_len, &sslpass, &sslpass_len, &ulFlags,
+		&wa_version, &wa_version_len, &misc_version, &misc_version_len) == FAILURE) return;
 
 	if (!server) {
 		server = "http://localhost:236/";
@@ -2591,7 +2590,7 @@ ZEND_FUNCTION(mapi_msgstore_openmultistoretable)
 
 	MAPI_G(hr) = GetECObject(lpMDB, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano object");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano object");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECMultiStoreTable, &~lpECMST);
@@ -4107,7 +4106,7 @@ ZEND_FUNCTION(mapi_zarafa_createuser)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4167,7 +4166,7 @@ ZEND_FUNCTION(mapi_zarafa_setuser)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4227,7 +4226,7 @@ ZEND_FUNCTION(mapi_zarafa_deleteuser)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4281,7 +4280,7 @@ ZEND_FUNCTION(mapi_zarafa_createstore)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4337,11 +4336,11 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECSecurity, &~lpSecurity);
-	if(MAPI_G(hr) != hrSuccess)
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 	MAPI_G(hr) = lpSecurity->GetUserList(cbCompanyId, lpCompanyId, 0, &nUsers, &~lpUsers);
 	if (MAPI_G(hr) != hrSuccess)
@@ -4399,7 +4398,7 @@ ZEND_FUNCTION(mapi_zarafa_getquota)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4457,7 +4456,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4540,7 +4539,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4603,7 +4602,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4654,7 +4653,7 @@ ZEND_FUNCTION(mapi_zarafa_creategroup)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4699,7 +4698,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroup)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4746,7 +4745,7 @@ ZEND_FUNCTION(mapi_zarafa_addgroupmember)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4788,7 +4787,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroupmember)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4832,7 +4831,7 @@ ZEND_FUNCTION(mapi_zarafa_setgroup)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4878,7 +4877,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4903,16 +4902,16 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
 	LOG_BEGIN();
 	// params
 	zval			*res = NULL;
-	LPMDB			lpMsgStore = NULL;
 	char			*lpszGroupname = NULL;
 	php_stringsize_t ulGroupname;
-	memory_ptr<ENTRYID> lpGroupId;
-	unsigned int	cbGroupId = 0;
-	// return value
 	// locals
+	LPMDB lpMsgStore = NULL;
 	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECGROUP> lpsGroup;
+	// return value
+	memory_ptr<ENTRYID> lpGroupId;
+	unsigned int cbGroupId = 0;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -4924,7 +4923,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -4975,7 +4974,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5028,7 +5027,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5082,7 +5081,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5138,7 +5137,7 @@ ZEND_FUNCTION(mapi_zarafa_createcompany)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5182,7 +5181,7 @@ ZEND_FUNCTION(mapi_zarafa_deletecompany)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		 php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		 php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		 goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5230,7 +5229,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_id)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5277,7 +5276,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_name)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5326,7 +5325,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECSecurity, &~lpSecurity);
@@ -5375,7 +5374,7 @@ ZEND_FUNCTION(mapi_zarafa_add_company_remote_viewlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5417,7 +5416,7 @@ ZEND_FUNCTION(mapi_zarafa_del_company_remote_viewlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5461,7 +5460,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5510,7 +5509,7 @@ ZEND_FUNCTION(mapi_zarafa_add_user_remote_adminlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5552,7 +5551,7 @@ ZEND_FUNCTION(mapi_zarafa_del_user_remote_adminlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5596,7 +5595,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5646,7 +5645,7 @@ ZEND_FUNCTION(mapi_zarafa_add_quota_recipient)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5689,7 +5688,7 @@ ZEND_FUNCTION(mapi_zarafa_del_quota_recipient)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5733,7 +5732,7 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -5801,7 +5800,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 
 	MAPI_G(hr) = GetECObject(lpMapiProp, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano object");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano object");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECSecurity, &~lpSecurity);
@@ -5872,7 +5871,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 
 	MAPI_G(hr) = GetECObject(lpMapiProp, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano object");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano object");
 		goto exit;
 	}
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECSecurity, &~lpSecurity);
@@ -6074,7 +6073,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 			rid = ZEND_REGISTER_RESOURCE(NULL, lppFBData[i], le_freebusy_data);
 			// Add item to return list
 			add_next_index_resource(return_value, rid);
-		}else {
+		} else {
 			// Add empty item to return list
 			add_next_index_null(return_value);
 		}
@@ -6153,7 +6152,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 			rid = ZEND_REGISTER_RESOURCE(NULL, lppFBUpdate[i], le_freebusy_update);
 			// Add item to return list
 			add_next_index_resource(return_value, rid);
-		}else {
+		} else {
 			// Add empty item to return list
 			add_next_index_null(return_value);
 		}
@@ -7203,6 +7202,8 @@ exit:
 
 ZEND_FUNCTION(mapi_icaltomapi)
 {
+	PMEASURE_FUNC;
+	LOG_BEGIN();
 	zval *resSession;
 	zval *resStore;
 	zval *resAddrBook;
@@ -7236,7 +7237,6 @@ ZEND_FUNCTION(mapi_icaltomapi)
 		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
-
 	// Set the default timezone to UTC if none is set, replicating the
 	// behaviour of VMIMEToMAPI.
 	MAPI_G(hr) = lpIcalToMapi->ParseICal(icalMsg, "utf-8", "UTC", nullptr, 0);

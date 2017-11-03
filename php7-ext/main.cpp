@@ -619,7 +619,6 @@ PHP_MINIT_FUNCTION(mapi) {
 	le_mapi_exportchanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeExportChanges>, nullptr, const_cast<char *>(name_mapi_exportchanges), module_number);
 	le_mapi_importhierarchychanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeImportHierarchyChanges>, nullptr, const_cast<char *>(name_mapi_importhierarchychanges), module_number);
 	le_mapi_importcontentschanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeImportContentsChanges>, nullptr, const_cast<char *>(name_mapi_importcontentschanges), module_number);
-
 	MAPIINIT_0 MAPIINIT = { 0, MAPI_MULTITHREAD_NOTIFICATIONS };
 
 	// There is also a MAPI_NT_SERVICE flag, see help page for MAPIInitialize
@@ -812,9 +811,7 @@ ZEND_FUNCTION(mapi_createoneoff)
 	memory_ptr<ENTRYID> lpEntryID;
 	ULONG cbEntryID = 0;
 	// local
-	wstring name;
-	wstring type;
-	wstring email;
+	std::wstring name, type, email;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -936,7 +933,7 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	// local
 	ULONG		ulProfNum = rand_mt();
 	char		szProfName[MAX_PATH];
-	SPropValue	sPropZarafa[8];
+	SPropValue	sPropOur[8];
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -947,33 +944,33 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 		&wa_version, &wa_version_len, &misc_version, &misc_version_len) == FAILURE) return;
 
 	if (!server) {
-		server = "http://localhost:236/zarafa";
+		server = "http://localhost:236/";
 		server_len = strlen(server);
 	}
 
 	snprintf(szProfName, MAX_PATH-1, "www-profile%010u", ulProfNum);
 
-	sPropZarafa[0].ulPropTag = PR_EC_PATH;
-	sPropZarafa[0].Value.lpszA = const_cast<char *>(server);
-	sPropZarafa[1].ulPropTag = PR_EC_USERNAME_A;
-	sPropZarafa[1].Value.lpszA = const_cast<char *>(username);
-	sPropZarafa[2].ulPropTag = PR_EC_USERPASSWORD_A;
-	sPropZarafa[2].Value.lpszA = const_cast<char *>(password);
-	sPropZarafa[3].ulPropTag = PR_EC_FLAGS;
-	sPropZarafa[3].Value.ul = ulFlags;
+	sPropOur[0].ulPropTag = PR_EC_PATH;
+	sPropOur[0].Value.lpszA = const_cast<char *>(server);
+	sPropOur[1].ulPropTag = PR_EC_USERNAME_A;
+	sPropOur[1].Value.lpszA = const_cast<char *>(username);
+	sPropOur[2].ulPropTag = PR_EC_USERPASSWORD_A;
+	sPropOur[2].Value.lpszA = const_cast<char *>(password);
+	sPropOur[3].ulPropTag = PR_EC_FLAGS;
+	sPropOur[3].Value.ul = ulFlags;
 
-	// unused by zarafa if PR_EC_PATH isn't https
-	sPropZarafa[4].ulPropTag = PR_EC_SSLKEY_FILE;
-	sPropZarafa[4].Value.lpszA = const_cast<char *>(sslcert);
-	sPropZarafa[5].ulPropTag = PR_EC_SSLKEY_PASS;
-	sPropZarafa[5].Value.lpszA = const_cast<char *>(sslpass);
+	// unused if PR_EC_PATH is not https
+	sPropOur[4].ulPropTag = PR_EC_SSLKEY_FILE;
+	sPropOur[4].Value.lpszA = const_cast<char *>(sslcert);
+	sPropOur[5].ulPropTag = PR_EC_SSLKEY_PASS;
+	sPropOur[5].Value.lpszA = const_cast<char *>(sslpass);
 
-	sPropZarafa[6].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION;
-	sPropZarafa[6].Value.lpszA = const_cast<char *>(wa_version);
-	sPropZarafa[7].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
-	sPropZarafa[7].Value.lpszA = const_cast<char *>(misc_version);
+	sPropOur[6].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION;
+	sPropOur[6].Value.lpszA = const_cast<char *>(wa_version);
+	sPropOur[7].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
+	sPropOur[7].Value.lpszA = const_cast<char *>(misc_version);
 
-	MAPI_G(hr) = mapi_util_createprof(szProfName, "ZARAFA6", 8, sPropZarafa);
+	MAPI_G(hr) = mapi_util_createprof(szProfName, "ZARAFA6", 8, sPropOur);
 	if (MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", mapi_util_getlasterror().c_str());
 		goto exit; // error already displayed in mapi_util_createprof
@@ -1029,8 +1026,7 @@ ZEND_FUNCTION(mapi_openentry)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
 
-        ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
-
+	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
 	MAPI_G(hr) = lpSession->OpenEntry(cbEntryID, lpEntryID,
 	             &iid_of(lpUnknown), ulFlags, &ulObjType, &~lpUnknown);
 	if (FAILED(MAPI_G(hr)))
@@ -4321,9 +4317,9 @@ exit:
 }
 
 /**
-* Retrieve a list of users from zarafa
+* Retrieve a list of users
 * @param  logged on msgstore
-* @param  zarafa company entryid
+* @param  company entryid
 * @return array(username => array(fullname, emaladdress, userid, admin));
 */
 ZEND_FUNCTION(mapi_zarafa_getuserlist)
@@ -4384,7 +4380,7 @@ exit:
 }
 
 /**
- * Retrieve quota values of a users from zarafa
+ * Retrieve quota values of a users
  * @param  logged on msgstore
  * @param  user entryid to get quota information from
  * @return array(usedefault, isuserdefault, warnsize, softsize, hardsize);
@@ -4535,7 +4531,7 @@ exit:
 }
 
 /**
-* Retrieve user information from zarafa
+* Retrieve user information
 * @param  logged on msgstore
 * @param  username
 * @return array(fullname, emailaddress, userid, admin);
@@ -4600,7 +4596,7 @@ exit:
 }
 
 /**
-* Retrieve user information from zarafa
+* Retrieve user information
 * @param  logged on msgstore
 * @param  userid
 * @return array(fullname, emailaddress, userid, admin);
@@ -5996,7 +5992,7 @@ ZEND_FUNCTION(mapi_freebusysupport_open)
 		ZEND_FETCH_RESOURCE_C(lpUserStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
 	}
 
-	// Create the zarafa freebusy support object
+	// Create the freebusy support object
 	MAPI_G(hr) = ECFreeBusySupport::Create(&~lpecFBSupport);
 	if( MAPI_G(hr) != hrSuccess)
 		goto exit;
@@ -6184,7 +6180,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
                         rid = zend_register_resource(lppFBUpdate[i], le_freebusy_update);
 			// Add item to return list
 			add_next_index_resource(return_value, rid);
-		}else {
+		} else {
 			// Add empty item to return list
 			add_next_index_null(return_value);
 		}
@@ -7290,7 +7286,7 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	RETVAL_TRUE;
  exit:
 	LOG_END();
-    	THROW_ON_ERROR();
+	THROW_ON_ERROR();
 	return;
 }
 
