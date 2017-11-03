@@ -34,7 +34,6 @@
 
 #include <mapidefs.h>
 #include <mapitags.h>
-#include "ECConversion.h"
 #include "SOAPUtils.h"
 #include "ECSearchFolders.h"
 

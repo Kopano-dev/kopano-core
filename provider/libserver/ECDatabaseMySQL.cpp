@@ -35,7 +35,6 @@
 #include <kopano/ecversion.h>
 
 #include <mapidefs.h>
-#include "ECConversion.h"
 #include "ECDatabase.h"
 #include "SOAPUtils.h"
 #include "ECSearchFolders.h"
