@@ -94,12 +94,9 @@ ECRESULT kopano_unloadlibrary(void)
 
 	// Remove all exist database objects
 	ulock_normal l_obj(g_hMutexDBObjectList);
-	auto iterDBObject = g_lpDBObjectList.cbegin();
-	while (iterDBObject != g_lpDBObjectList.cend())
-	{
-		delete (*iterDBObject);
-		iterDBObject = g_lpDBObjectList.erase(iterDBObject);
-	}
+	for (auto o = g_lpDBObjectList.cbegin(); o != g_lpDBObjectList.cend();
+	     o = g_lpDBObjectList.erase(o))
+		delete *o;
 	l_obj.unlock();
 
 	// remove mutex for database object list

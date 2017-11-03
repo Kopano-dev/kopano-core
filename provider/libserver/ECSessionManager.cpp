@@ -91,12 +91,9 @@ ECSessionManager::~ECSessionManager()
 
 	/* Clean up all sessions */
 	std::lock_guard<KC::shared_mutex> l_cache(m_hCacheRWLock);
-	auto iSession = m_mapSessions.begin();
-	while (iSession != m_mapSessions.cend()) {
-		delete iSession->second;
-		iSession = m_mapSessions.erase(iSession);
-	}
-	
+	for (auto s = m_mapSessions.begin(); s != m_mapSessions.end();
+	     s = m_mapSessions.erase(s))
+		delete s->second;
 	delete m_lpNotificationManager;
 //#ifdef DEBUG
 	// Clearing the cache takes too long while shutting down
@@ -261,20 +258,14 @@ BTSession* ECSessionManager::GetSession(ECSESSIONID sessionID, bool fLockSession
 // Clean up all current sessions
 ECRESULT ECSessionManager::RemoveAllSessions()
 {
-	BTSession		*lpSession = NULL;
 	std::list<BTSession *> lstSessions;
 	
 	// Lock the session map since we're going to remove all the sessions.
 	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	ec_log_info("Shutdown all current sessions");
-
-	auto iIterSession = m_mapSessions.begin();
-	while (iIterSession != m_mapSessions.cend()) {
-		lpSession = iIterSession->second;
-		iIterSession = m_mapSessions.erase(iIterSession);
-		lstSessions.emplace_back(lpSession);
-	}
-
+	for (auto s = m_mapSessions.cbegin(); s != m_mapSessions.cend();
+	     s = m_mapSessions.erase(s))
+		lstSessions.emplace_back(s->second);
 	l_cache.unlock();
 	// Do the actual session deletes, while the session map is not locked (!)
 	for (auto sesp : lstSessions)
@@ -625,13 +616,11 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 
 	// Send notification to subscribed sessions
 	ulock_normal l_sub(m_mutexObjectSubscriptions);
-	auto iterObjectSubscription = m_mapObjectSubscriptions.lower_bound(ulStore);
-	while (iterObjectSubscription != m_mapObjectSubscriptions.cend() &&
-	       iterObjectSubscription->first == ulStore) {
+	for (auto sub = m_mapObjectSubscriptions.lower_bound(ulStore);
+	     sub != m_mapObjectSubscriptions.cend() && sub->first == ulStore;
+	     ++sub)
 		// Send a notification only once to a session group, even if it has subscribed multiple times
-		setGroups.emplace(iterObjectSubscription->second);
-		++iterObjectSubscription;
-	}
+		setGroups.emplace(sub->second);
 	l_sub.unlock();
 
 	// Send each subscribed session group one notification
@@ -781,13 +770,9 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
 		
     // Find out which sessions our interested in this event by looking at our subscriptions
 	ulock_normal l_sub(m_mutexTableSubscriptions);
-    
-	auto iterSubscriptions = m_mapTableSubscriptions.find(sSubscription);
-	while (iterSubscriptions != m_mapTableSubscriptions.cend() &&
-	       iterSubscriptions->first == sSubscription) {
-		setSessions.emplace(iterSubscriptions->second);
-        ++iterSubscriptions;
-    }
+	for (auto sub = m_mapTableSubscriptions.find(sSubscription);
+	     sub != m_mapTableSubscriptions.cend() && sub->first == sSubscription; ++sub)
+		setSessions.emplace(sub->second);
 	l_sub.unlock();
 
     // We now have a set of sessions that are interested in the notification. This list is normally quite small since not that many

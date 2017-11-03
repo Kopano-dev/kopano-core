@@ -178,13 +178,9 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	lstFolders.sort();
 	
 	// ... and put the data into the row system
-
-	for (iterFolders = lstFolders.begin(); iterFolders != lstFolders.end(); ++iterFolders) {
-		if(iterFolders->ulFolderId == m_ulFolderId)
-			continue;
-		lstObjIds.emplace_back(iterFolders->ulFolderId);
-    }
-    
+	for (const auto &f : lstFolders)
+		if (f.ulFolderId != m_ulFolderId)
+			lstObjIds.emplace_back(f.ulFolderId);
     LoadRows(&lstObjIds, 0);
 	return erSuccess;
 }

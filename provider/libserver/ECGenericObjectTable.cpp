@@ -1461,14 +1461,9 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	case ECKeyTable::TABLE_ROW_DELETE:
 		// Delete the object ID from our object list, and all items with that object ID (including various order IDs)
 		for (const auto &obj_id : *lstObjId) {
-			auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
-			while (iterMapObject != this->mapObjects.cend()) {
-				if (iterMapObject->first.ulObjId == obj_id)
-					ecRowsItem.emplace_back(iterMapObject->first);
-				else if (iterMapObject->first.ulObjId != obj_id)
-                    break;
-                ++iterMapObject;
-            }
+			for (auto mo = this->mapObjects.find(sObjectTableKey(obj_id, 0));
+			     mo != this->mapObjects.cend() && mo->first.ulObjId == obj_id; ++mo)
+				ecRowsItem.emplace_back(mo->first);
             
 		for (const auto &row : ecRowsItem) {
 			this->mapObjects.erase(row);
