@@ -16,6 +16,7 @@
  */
 #include <new>
 #include <string>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
@@ -158,12 +159,11 @@ ECTableManager::~ECTableManager()
 	mapTable.clear();
 }
 
-void ECTableManager::AddTableEntry(TABLE_ENTRY *lpEntry, unsigned int *lpulTableId)
+void ECTableManager::AddTableEntry(std::unique_ptr<TABLE_ENTRY> &&lpEntry,
+    unsigned int *lpulTableId)
 {
 	scoped_rlock lock(hListMutex);
-
-	mapTable[ulNextTableId] = lpEntry;
-
+	mapTable[ulNextTableId] = std::move(lpEntry);
 	lpEntry->lpTable->AddRef();
 
 	*lpulTableId = ulNextTableId;
@@ -252,7 +252,7 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE;
 	lpEntry->sTable.sOutgoingQueue.ulStoreId = ulStoreId;
 	lpEntry->sTable.sOutgoingQueue.ulFlags = ulStoreId ? EC_SUBMIT_LOCAL : EC_SUBMIT_MASTER;
-	AddTableEntry(lpEntry.release(), lpulTableId);
+	AddTableEntry(std::move(lpEntry), lpulTableId);
 	if (lpTable->GetColumns(NULL, TBL_ALL_COLUMNS, &lpsPropTags) == erSuccess)
 		lpTable->SetColumns(lpsPropTags, false);
 	lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
@@ -283,7 +283,7 @@ ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int 
 	er = lpTable->SetColumns(&sPropTagArrayUserStores, true);
 	if (er != erSuccess)
 		return er;
-	AddTableEntry(lpEntry.release(), lpulTableId);
+	AddTableEntry(std::move(lpEntry), lpulTableId);
 	return erSuccess;
 }
 
@@ -304,7 +304,7 @@ ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned in
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_MULTISTORE;
 	memset(&lpEntry->sTable, 0, sizeof(lpEntry->sTable));
-	AddTableEntry(lpEntry.release(), lpulTableId);
+	AddTableEntry(std::move(lpEntry), lpulTableId);
 	return er;
 }
 
@@ -355,7 +355,7 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 
 	// First, add table to internal list of tables. This means we can already start
 	// receiving notifications on this table
-	AddTableEntry(lpEntry.release(), lpulTableId);
+	AddTableEntry(std::move(lpEntry), lpulTableId);
 
 	// Load a default column set
 	if (ulObjType == MAPI_MESSAGE)
@@ -464,7 +464,7 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	memset(&lpEntry->sTable, 0, sizeof(lpEntry->sTable));
-	AddTableEntry(lpEntry.release(), lpulTableId);
+	AddTableEntry(std::move(lpEntry), lpulTableId);
 	return erSuccess;
 }
 
@@ -489,7 +489,7 @@ ECRESULT ECTableManager::OpenMailBoxTable(unsigned int ulflags, unsigned int *lp
 	er = lpTable->SetColumns(&sPropTagArrayUserStores, true);
 	if (er != erSuccess)
 		return er;
-	AddTableEntry(lpEntry.release(), lpulTableId);
+	AddTableEntry(std::move(lpEntry), lpulTableId);
 	return erSuccess;
 }
 
@@ -519,7 +519,7 @@ ECRESULT ECTableManager::OpenABTable(unsigned int ulParent, unsigned int ulParen
 	lpEntry->sTable.sGeneric.ulObjectFlags = ulFlags & (MAPI_ASSOCIATED | MSGFLAG_DELETED); // MSGFLAG_DELETED because of conversion in ns__tableOpen
 	lpEntry->sTable.sGeneric.ulObjectType = ulObjType;
 	lpEntry->sTable.sGeneric.ulParentId = ulParent;
-	AddTableEntry(lpEntry.release(), lpulTableId);
+	AddTableEntry(std::move(lpEntry), lpulTableId);
 	if (ulObjType == MAPI_ABCONT || ulObjType == MAPI_DISTLIST)
 		lpTable->SetColumns(&sPropTagArrayABHierarchy, true);
 	else
@@ -545,14 +545,13 @@ ECRESULT ECTableManager::GetTable(unsigned int ulTableId, ECGenericObjectTable *
 ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 {
 	ECRESULT er = erSuccess;
-	TABLE_ENTRY *lpEntry = NULL;
 	ulock_rec lk(hListMutex);
 	auto iterTables = mapTable.find(ulTableId);
 	if (iterTables == mapTable.cend())
 		return er;
 
 	// Remember the table entry struct
-	lpEntry = iterTables->second;
+	auto &lpEntry = iterTables->second;
 
 	// Unsubscribe if needed
 	switch (lpEntry->ulTableType) {
@@ -578,7 +577,7 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 
 	// Free table data and threads running
 	lpEntry->lpTable->Release();
-	delete lpEntry;
+	lpEntry.reset();
 	return er;
 }
 
@@ -684,7 +683,6 @@ ECRESULT ECTableManager::GetStats(unsigned int *lpulTables, unsigned int *lpulOb
 
 	unsigned int ulTables = mapTable.size();
 	unsigned int ulSize = MEMORY_USAGE_MAP(ulTables, TABLEENTRYMAP);
-
 	for (const auto &e : mapTable)
 		if (e.second->ulTableType != TABLE_ENTRY::TABLE_TYPE_SYSTEMSTATS)
 			/* Skip system stats since it would recursively include itself */
