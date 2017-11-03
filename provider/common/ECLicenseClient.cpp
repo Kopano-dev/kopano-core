@@ -57,38 +57,15 @@ ECRESULT ECLicenseClient::GetCapabilities(unsigned int ulServiceType, std::vecto
 	er = ServiceTypeToServiceTypeString(ulServiceType, strServiceType);
 	if (er != erSuccess)
 		return er;
-
-	lstCapabilities.clear();
-	if (ulServiceType == 0) {
-		lstCapabilities.emplace_back("DEFAULT");
-		lstCapabilities.emplace_back("OUTLOOK");
-		lstCapabilities.emplace_back("OLENABLED");
-		lstCapabilities.emplace_back("BACKUP");
-		lstCapabilities.emplace_back("GATEWAY");
-		lstCapabilities.emplace_back("ICAL");
-		lstCapabilities.emplace_back("REPORT");
-		lstCapabilities.emplace_back("MIGRATION");
-		lstCapabilities.emplace_back("WA-ADVANCED-CALENDAR");
-		lstCapabilities.emplace_back("BES");
-		lstCapabilities.emplace_back("MULTISERVER");
-		lstCapabilities.emplace_back("UPDATER");
-		lstCapabilities.emplace_back("EWS");
+	if (ulServiceType != 0) {
+		lstCapabilities.clear();
+		return erSuccess;
 	}
-	return erSuccess;
-}
-
-ECRESULT ECLicenseClient::GetSerial(unsigned int ulServiceType, std::string &strSerial, std::vector<std::string> &lstCALs)
-{
-	ECRESULT er;
-	std::string strServiceType;
-
-	er = ServiceTypeToServiceTypeString(ulServiceType, strServiceType);
-	if (er != erSuccess)
-		return er;
-
-	strSerial = "";
-	lstCALs.clear();
-
+	lstCapabilities = std::vector<std::string>{
+		"DEFAULT", "OUTLOOK", "OLENABLED", "BACKUP", "GATEWAY", "ICAL",
+		"REPORT", "MIGRATION", "WA-ADVANCED-CALENDAR", "BES",
+		"MULTISERVER", "UPDATER", "EWS"
+	};
 	return erSuccess;
 }
 
@@ -103,29 +80,6 @@ ECRESULT ECLicenseClient::GetInfo(unsigned int ulServiceType, unsigned int *lpul
 
 	*lpulUserCount = 65535;
 	return erSuccess;
-}
-
-struct LICENSERESPONSE {
-	unsigned int ulVersion;			// Current: LICENSERESPONSE_VERSION
-	unsigned int ulTrackingId;
-	unsigned long long llFlags;
-	unsigned int ulStatus;
-	char szPadding[4];				// Make sure the struct is padded to a multiple of 8 bytes
-};
-
-ECRESULT ECLicenseClient::Auth(const unsigned char *lpData,
-    unsigned int ulSize, void **lppResponse, unsigned int *lpulResponseSize)
-{
-	*lppResponse = calloc(1, sizeof(LICENSERESPONSE));
-	*lpulResponseSize = sizeof(LICENSERESPONSE);
-	return erSuccess;
-}
-
-ECRESULT ECLicenseClient::SetSerial(unsigned int ulServiceType, const std::string &strSerial, const std::vector<std::string> &lstCALs)
-{
-	std::string strServiceType;
-
-	return ServiceTypeToServiceTypeString(ulServiceType, strServiceType);
 }
 
 } /* namespace */
