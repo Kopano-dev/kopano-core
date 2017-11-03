@@ -208,9 +208,8 @@ static int main2(int argc, char **argv)
 		print_help(argv[0]);
 		return 0;
 	}
-
-	if (mode == MODE_CHANGE_PASSWD && ((newpassword == NULL && passprompt == 0) ||
-		username == NULL || (oldpassword == NULL && passprompt == 0)) ) {
+	if ((newpassword == nullptr && passprompt == 0) ||
+	    username == nullptr || (oldpassword == nullptr && passprompt == 0)) {
 		cerr << "Missing information to update user password." << endl;
 		return 1;
 	}
@@ -222,47 +221,31 @@ static int main2(int argc, char **argv)
 		cerr << "Unable to initialize" << endl;
 		return 1;
 	}
-
-	
-	// fully logged on, action!
-
-	switch(mode) {
-	case MODE_CHANGE_PASSWD:
-		
-		if(passprompt)
-		{
-			char *tmp = get_password("Enter old password:");
-			if (tmp == nullptr) {
-				cerr << "Wrong old password" << endl;
-				return hr;
-			}
-			szOldPassword = tmp; /* tmp is a static buffer */
-			oldpassword = szOldPassword.c_str();
-			tmp = get_password("Enter new password:");
-			if (tmp == nullptr) {
-				cerr << "Wrong new password" << endl;
-				return hr;
-			}
-			szNewPassword = tmp;
-			newpassword = szNewPassword.c_str();
-			tmp = get_password("Re-Enter password:");
-			if (tmp == nullptr) {
-				cerr << "Wrong new password" << endl;
-				return hr;
-			}
-			if (szNewPassword != std::string(tmp))
-				cerr << "Passwords don't match" << endl;
-		}
-
-		hr = UpdatePassword(path, username, oldpassword, newpassword);
-		if (hr != hrSuccess)
+	if (passprompt)
+	{
+		char *tmp = get_password("Enter old password:");
+		if (tmp == nullptr) {
+			cerr << "Wrong old password" << endl;
 			return hr;
-	case MODE_INVALID:
-	case MODE_HELP:
-		// happy compiler
-		break;
-	};
-	return hr;
+		}
+		szOldPassword = tmp; /* tmp is a static buffer */
+		oldpassword = szOldPassword.c_str();
+		tmp = get_password("Enter new password:");
+		if (tmp == nullptr) {
+			cerr << "Wrong new password" << endl;
+			return hr;
+		}
+		szNewPassword = tmp;
+		newpassword = szNewPassword.c_str();
+		tmp = get_password("Re-Enter password:");
+		if (tmp == nullptr) {
+			cerr << "Wrong new password" << endl;
+			return hr;
+		}
+		if (szNewPassword != std::string(tmp))
+			cerr << "Passwords don't match" << endl;
+	}
+	return UpdatePassword(path, username, oldpassword, newpassword);
 }
 
 int main(int argc, char **argv)
