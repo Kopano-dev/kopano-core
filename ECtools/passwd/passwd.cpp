@@ -33,6 +33,7 @@
 #include <kopano/ECTags.h>
 #include <kopano/ECGuid.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/automapi.hpp>
 #include <kopano/ecversion.h>
 #include <kopano/stringutil.h>
 #include <kopano/MAPIErrors.h>
@@ -141,7 +142,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	return hr;
 }
 
-int main(int argc, char* argv[])
+static int main2(int argc, char **argv)
 {
 	const char *username = NULL;
 	const char *newpassword = NULL;
@@ -220,10 +221,11 @@ int main(int argc, char* argv[])
 	}
 
 	//Init mapi
-	auto hr = MAPIInitialize(NULL);
+	AutoMAPI mapiinit;
+	auto hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		cerr << "Unable to initialize" << endl;
-		goto exit;
+		return 1;
 	}
 
 	
@@ -237,7 +239,7 @@ int main(int argc, char* argv[])
 			char *tmp = get_password("Enter old password:");
 			if (tmp == nullptr) {
 				cerr << "Wrong old password" << endl;
-				goto exit;
+				return hr;
 			}
 			
 			cout << endl;
@@ -246,7 +248,7 @@ int main(int argc, char* argv[])
 			tmp = get_password("Enter new password:");
 			if (tmp == nullptr) {
 				cerr << "Wrong new password" << endl;
-				goto exit;
+				return hr;
 			}
 
 			cout << endl;
@@ -255,7 +257,7 @@ int main(int argc, char* argv[])
 			tmp = get_password("Re-Enter password:");
 			if (tmp == nullptr) {
 				cerr << "Wrong new password" << endl;
-				goto exit;
+				return hr;
 			}
 			if (szNewPassword != std::string(tmp))
 				cerr << "Passwords don't match" << endl;
@@ -264,19 +266,16 @@ int main(int argc, char* argv[])
 
 		hr = UpdatePassword(path, username, oldpassword, newpassword);
 		if (hr != hrSuccess)
-			goto exit;		
-
+			return hr;
 	case MODE_INVALID:
 	case MODE_HELP:
 		// happy compiler
 		break;
 	};
-
-exit:
-	MAPIUninitialize();
-	if (hr == hrSuccess)
-		return 0;
-	else
-		return 1;
+	return hr;
 }
 
+int main(int argc, char **argv)
+{
+	return !!main2(argc, argv);
+}
