@@ -330,7 +330,6 @@ EXTRA_libkcarchivercore_la_DEPENDENCIES = ${default_sym}
 #
 libkcclient_la_SOURCES = \
 	provider/client/ClientUtil.cpp provider/client/ClientUtil.h \
-	provider/client/DLLGlobal.h \
 	provider/client/ECABContainer.cpp provider/client/ECABContainer.h \
 	provider/client/ECABLogon.cpp provider/client/ECABLogon.h \
 	provider/client/ECABProp.cpp provider/client/ECABProp.h \

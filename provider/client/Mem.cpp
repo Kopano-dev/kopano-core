@@ -21,9 +21,6 @@
 #include <mapicode.h>
 #include "Mem.h"
 
-// We don't want that here
-#undef ECAllocateBuffer
-
 LPMALLOC			_pmalloc;
 LPALLOCATEBUFFER	_pfnAllocBuf;
 LPALLOCATEMORE		_pfnAllocMore;
