@@ -758,7 +758,6 @@ bool ECDatabase::SuppressLockErrorLogging(bool bSuppress)
 
 ECRESULT ECDatabase::Begin(void)
 {
-	Query("SET autocommit=0;");
 	auto er = KDatabase::Begin();
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
@@ -777,7 +776,6 @@ ECRESULT ECDatabase::Begin(void)
 ECRESULT ECDatabase::Commit(void)
 {
 	auto er = KDatabase::Commit();
-	Query("SET autocommit=1;");
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
 	ec_log_debug("%08X: COMMIT", &m_lpMySQL);
@@ -795,7 +793,6 @@ ECRESULT ECDatabase::Commit(void)
 ECRESULT ECDatabase::Rollback(void)
 {
 	auto er = KDatabase::Rollback();
-	Query("SET autocommit=1;");
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
 	ec_log_debug("%08X: ROLLBACK", &m_lpMySQL);
