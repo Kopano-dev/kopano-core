@@ -7285,7 +7285,7 @@ ZEND_FUNCTION(mapi_mapitoical)
 	IMAPISession *lpMAPISession = nullptr;
 	IAddrBook *lpAddrBook = nullptr;
 	IMessage *lpMessage = nullptr;
-	MapiToICal *lpMtIcal = nullptr;
+	std::unique_ptr<MapiToICal> lpMtIcal;
 	std::string strical("");
 	std::string method("");
 
@@ -7299,7 +7299,7 @@ ZEND_FUNCTION(mapi_mapitoical)
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
 	// set HR
-	CreateMapiToICal(lpAddrBook, "utf-8", &lpMtIcal);
+	CreateMapiToICal(lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
 	if (lpMtIcal == nullptr) {
 		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -7310,7 +7310,6 @@ ZEND_FUNCTION(mapi_mapitoical)
 	MAPI_G(hr) = lpMtIcal->Finalize(0, &method, &strical);
 	RETVAL_STRING(strical.c_str(), sizeof(strical.c_str()));
  exit:
-	delete lpMtIcal;
 	LOG_END();
 	THROW_ON_ERROR();
 }
