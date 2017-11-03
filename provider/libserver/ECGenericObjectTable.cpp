@@ -1479,42 +1479,36 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 		for (const auto &obj_id : *lstObjId) {
 			/* Add the object to our list of objects */
 			ecRowsItem.emplace_back(obj_id, 0);
+			if (!IsMVSet())
+				continue;
+			// get new mvprop count
+			er = GetMVRowCount(obj_id, &cMVNew);
+			if (er != erSuccess)
+				assert(false); // What now???
 
-            if(IsMVSet() == true) {
-                // get new mvprop count
-                er = GetMVRowCount(obj_id, &cMVNew);
-                if (er != erSuccess)
-                    assert(false);// What now???
-
-                // get old mvprops count
-                cMVOld = 0;
-				for (auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
-				     iterMapObject != this->mapObjects.cend();
-				     ++iterMapObject) {
-                    if (iterMapObject->first.ulObjId == obj_id) {
-                        ++cMVOld;
-                        if(cMVOld > cMVNew && (ulFlags&OBJECTTABLE_NOTIFY) == OBJECTTABLE_NOTIFY) {
-
-                            auto iterToDelete = iterMapObject;
-                            --iterMapObject;
-                            sRow = iterToDelete->first;
-                            //Delete of map
-                            this->mapObjects.erase(iterToDelete->first);
-                            
-                            DeleteRow(sRow, ulFlags);
-                            
-                            RemoveCategoryAfterRemoveRow(sRow, ulFlags);
-                        }//if(cMVOld > cMVNew)
-                    } else if (iterMapObject->first.ulObjId != obj_id)
-                        break;
-                }
-                
-                sRow = sObjectTableKey(obj_id, 0);
-                for (i = 1; i < cMVNew; ++i) { // 0 already added
-                    sRow.ulOrderId = i;
-					ecRowsItem.emplace_back(sRow);
-                }
-            }
+			// get old mvprops count
+			cMVOld = 0;
+			for (auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
+			     iterMapObject != this->mapObjects.cend();
+			     ++iterMapObject) {
+				if (iterMapObject->first.ulObjId != obj_id)
+					break;
+				++cMVOld;
+				if (cMVOld <= cMVNew || !(ulFlags & OBJECTTABLE_NOTIFY))
+					continue;
+				auto iterToDelete = iterMapObject;
+				--iterMapObject;
+				sRow = iterToDelete->first;
+				// Delete of map
+				this->mapObjects.erase(iterToDelete->first);
+				DeleteRow(sRow, ulFlags);
+				RemoveCategoryAfterRemoveRow(sRow, ulFlags);
+			}
+			sRow = sObjectTableKey(obj_id, 0);
+			for (i = 1; i < cMVNew; ++i) { // 0 already added
+				sRow.ulOrderId = i;
+				ecRowsItem.emplace_back(sRow);
+			}
         }
         
         // Remember that the specified row is available		
@@ -2651,44 +2645,39 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 			}
 		}
             
-        if(lpCategory->GetCount() == 0) {
-            // The category row is empty and must be removed
-            ECTableRow *lpRow = NULL; // reference to the row in the keytable
-            
-            er = lpKeyTable->GetRow(&sCatRow, &lpRow);
-            if(er != erSuccess) {
-		assert(false);
-            	goto exit;
+		if (lpCategory->GetCount() != 0) {
+			if (ulFlags & OBJECTTABLE_NOTIFY) {
+				// The category row has changed; the counts have updated, send a notification
+				if (lpKeyTable->GetPreviousRow(&sCatRow, &sPrevRow) != erSuccess)
+					sPrevRow.ulOrderId = sPrevRow.ulObjId = 0;
+				AddTableNotif(ECKeyTable::TABLE_ROW_MODIFY, sCatRow, &sPrevRow);
 			}
-        	
-        	// Remove the category from the sorted categories map
-        	m_mapSortedCategories.erase(lpCategory->iSortedCategory);
-        	
-        	// Remove the category from the keytable
-			lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, &sCatRow, {}, nullptr, false, &ulAction);
+			continue;
+		}
+		// The category row is empty and must be removed
+		ECTableRow *lpRow = NULL; // reference to the row in the keytable
+		er = lpKeyTable->GetRow(&sCatRow, &lpRow);
+		if (er != erSuccess) {
+			assert(false);
+			goto exit;
+		}
 
-            // Remove the category from the category map
-            assert(m_mapCategories.find(sCatRow) != m_mapCategories.end());
-            m_mapCategories.erase(sCatRow);
-            
-            // Free the category itself
-            delete lpCategory;
-            
-            // Send the notification
-            if (ulAction == ECKeyTable::TABLE_ROW_DELETE && (ulFlags & OBJECTTABLE_NOTIFY))
+		// Remove the category from the sorted categories map
+		m_mapSortedCategories.erase(lpCategory->iSortedCategory);
+
+		// Remove the category from the keytable
+		lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, &sCatRow, {}, nullptr, false, &ulAction);
+
+		// Remove the category from the category map
+		assert(m_mapCategories.find(sCatRow) != m_mapCategories.end());
+		m_mapCategories.erase(sCatRow);
+
+		// Free the category itself
+		delete lpCategory;
+
+		// Send the notification
+		if (ulAction == ECKeyTable::TABLE_ROW_DELETE && (ulFlags & OBJECTTABLE_NOTIFY))
                 AddTableNotif(ulAction, sCatRow, NULL);
-        } else {    
-            if(ulFlags & OBJECTTABLE_NOTIFY) {
-                // The category row has changed; the counts have updated, send a notification
-                
-                if(lpKeyTable->GetPreviousRow(&sCatRow, &sPrevRow) != erSuccess) {
-                    sPrevRow.ulOrderId = 0;
-                    sPrevRow.ulObjId = 0;
-                }
-                
-                AddTableNotif(ECKeyTable::TABLE_ROW_MODIFY, sCatRow, &sPrevRow);
-            }
-        }
     }
 
     // Remove the leaf from the leaf map

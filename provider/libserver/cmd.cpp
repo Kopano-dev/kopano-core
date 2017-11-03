@@ -311,66 +311,63 @@ static ECRESULT PeerIsServer(struct soap *soap,
 
 	// First check if we are connecting through Unix socket/named pipe and if the request URL matches this server
 	if (SOAP_CONNECTION_TYPE_NAMED_PIPE(soap) &&
-			strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
-		bResult = true;
-
-	else
-	{
-		const std::string *lpstrPath = &strHttpPath;
-		if (lpstrPath->empty())
-			lpstrPath = &strSslPath;
-		if (!lpstrPath->empty())
-		{
-			std::string		strHost;
-			std::string::size_type ulHostStart = 0;
-			std::string::size_type ulHostEnd = 0;
-			struct addrinfo	sHint = {0};
-			struct addrinfo *lpsAddrInfo = NULL;
-			struct addrinfo *lpsAddrIter = NULL;
-			
-			ulHostStart = lpstrPath->find("://");
-			if (ulHostStart == std::string::npos)
-				return KCERR_INVALID_PARAMETER;
-			ulHostStart += 3;	// Skip the '://'
-
-			ulHostEnd = lpstrPath->find(':', ulHostStart);
-			if (ulHostEnd == std::string::npos)
-				return KCERR_INVALID_PARAMETER;
-
-			strHost = lpstrPath->substr(ulHostStart, ulHostEnd - ulHostStart);
-
-			sHint.ai_family = AF_UNSPEC;
-			sHint.ai_socktype = SOCK_STREAM;
-
-			if (getaddrinfo(strHost.c_str(), NULL, &sHint, &lpsAddrInfo) != 0)
-				return KCERR_NOT_FOUND;
-
-			for (lpsAddrIter = lpsAddrInfo; lpsAddrIter != nullptr && !bResult; lpsAddrIter = lpsAddrIter->ai_next) {
-				if (soap->peerlen >= sizeof(sockaddr) && lpsAddrIter->ai_family == ((sockaddr*)&soap->peer)->sa_family) {
-					switch (lpsAddrIter->ai_family) {
-					case AF_INET:
-					{
-						auto lpsLeft = reinterpret_cast<struct sockaddr_in *>(lpsAddrIter->ai_addr);
-						auto lpsRight = reinterpret_cast<struct sockaddr_in *>(&soap->peer);
-						bResult = (memcmp(&lpsLeft->sin_addr, &lpsRight->sin_addr, sizeof(lpsLeft->sin_addr)) == 0);
-						break;
-					}
-					case AF_INET6:
-					{
-						auto lpsLeft = reinterpret_cast<struct sockaddr_in6 *>(lpsAddrIter->ai_addr);
-						auto lpsRight = reinterpret_cast<struct sockaddr_in6 *>(&soap->peer);
-						bResult = (memcmp(&lpsLeft->sin6_addr, &lpsRight->sin6_addr, sizeof(lpsLeft->sin6_addr)) == 0);
-						break;
-					}
-					default:
-						break;
-					}
-				}
-			}
-			freeaddrinfo(lpsAddrInfo);
-		}
+	    strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0) {
+		*lpbResult = true;
+		return hrSuccess;
 	}
 
+	const std::string *lpstrPath = &strHttpPath;
+	if (lpstrPath->empty())
+		lpstrPath = &strSslPath;
+	if (lpstrPath->empty()) {
+		*lpbResult = false;
+		return erSuccess;
+	}
+
+	std::string strHost;
+	std::string::size_type ulHostStart = 0;
+	std::string::size_type ulHostEnd = 0;
+	struct addrinfo	sHint = {0};
+	struct addrinfo *lpsAddrInfo = NULL;
+	struct addrinfo *lpsAddrIter = NULL;
+
+	ulHostStart = lpstrPath->find("://");
+	if (ulHostStart == std::string::npos)
+		return KCERR_INVALID_PARAMETER;
+	ulHostStart += 3;	// Skip the '://'
+	ulHostEnd = lpstrPath->find(':', ulHostStart);
+	if (ulHostEnd == std::string::npos)
+		return KCERR_INVALID_PARAMETER;
+	strHost = lpstrPath->substr(ulHostStart, ulHostEnd - ulHostStart);
+	sHint.ai_family = AF_UNSPEC;
+	sHint.ai_socktype = SOCK_STREAM;
+	if (getaddrinfo(strHost.c_str(), NULL, &sHint, &lpsAddrInfo) != 0)
+		return KCERR_NOT_FOUND;
+
+	for (lpsAddrIter = lpsAddrInfo; lpsAddrIter != nullptr && !bResult; lpsAddrIter = lpsAddrIter->ai_next) {
+		if (soap->peerlen < sizeof(sockaddr) ||
+		    lpsAddrIter->ai_family != reinterpret_cast<const struct sockaddr *>(&soap->peer)->sa_family)
+			continue;
+		switch (lpsAddrIter->ai_family) {
+		case AF_INET:
+		{
+			auto lpsLeft = reinterpret_cast<struct sockaddr_in *>(lpsAddrIter->ai_addr);
+			auto lpsRight = reinterpret_cast<struct sockaddr_in *>(&soap->peer);
+			bResult = (memcmp(&lpsLeft->sin_addr, &lpsRight->sin_addr, sizeof(lpsLeft->sin_addr)) == 0);
+			break;
+		}
+		case AF_INET6:
+		{
+			auto lpsLeft = reinterpret_cast<struct sockaddr_in6 *>(lpsAddrIter->ai_addr);
+			auto lpsRight = reinterpret_cast<struct sockaddr_in6 *>(&soap->peer);
+			bResult = (memcmp(&lpsLeft->sin6_addr, &lpsRight->sin6_addr, sizeof(lpsLeft->sin6_addr)) == 0);
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	freeaddrinfo(lpsAddrInfo);
 	*lpbResult = bResult;
 	return erSuccess;
 }
