@@ -504,7 +504,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 	hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(lpszService), ulFlags, &service);
 	if (hr == MAPI_E_NOT_FOUND) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): get service \"%s\" failed: %s (%x). "
-			"Does /etc/mapi exist and have a config file for the service?",
+			"Does a config file exist for the service? (/usr/lib/mapi.d, /etc/mapi.d)",
 			lpszService, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	} else if (hr != hrSuccess) {

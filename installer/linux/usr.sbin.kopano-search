@@ -35,9 +35,10 @@
   /bin/rm Pix,
   /sbin/ldconfig Pix,
 
-  /etc/mapi/ r,
-  /etc/mapi/kopano.inf r,
-  /etc/mapi/zcontacts.inf r,
+  /etc/mapi.d/ r,
+  /etc/mapi.d/*.inf r,
+  /usr/lib/mapi.d/ r,
+  /usr/lib/mapi.d/*.inf r,
 
   /run/kopano/search.pid rw,
   /run/kopano/search.pid.lock lrw,

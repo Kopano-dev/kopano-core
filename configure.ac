@@ -188,12 +188,6 @@ AC_ARG_ENABLE(coverage,
 	  fi
     ])
 
-# MAPI config files
-AC_ARG_WITH(mapi-configdir,
-  AS_HELP_STRING([--with-mapi-configdir=PATH], [path to install the libmapi config (provider) files (default /etc/mapi)]),
-  [MAPICONFIGDIR=${withval}],[MAPICONFIGDIR='${sysconfdir}/mapi'])
-AC_SUBST(MAPICONFIGDIR)
-
 # user create scripts location
 AC_ARG_WITH(userscript-prefix,
   AS_HELP_STRING([--with-userscript-prefix=PATH], [path to install the userscripts in (default SYSCONFDIR/kopano/userscripts)]),
@@ -785,7 +779,6 @@ $LN_TFSV "$abs_top_srcdir" "@"
 
 AC_MSG_RESULT([
 Install prefix	:	$prefix
-Mapiconfig dir	:	$MAPICONFIGDIR
 Userscript dir	:	$USERSCRIPTDIR
 Quota dir	:	$QUOTATEMPLATEDIR
 Search scripts dir	:	$SEARCHSCRIPTSDIR
