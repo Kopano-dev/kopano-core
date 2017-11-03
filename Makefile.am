@@ -519,7 +519,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECCacheManager.cpp provider/libserver/ECCacheManager.h \
 	provider/libserver/ECConvenientDepthObjectTable.cpp \
 	provider/libserver/ECConvenientDepthObjectTable.h \
-	provider/libserver/ECConversion.cpp provider/libserver/ECConversion.h \
 	provider/libserver/ECDBDef.h \
 	provider/libserver/ECDatabase.h \
 	provider/libserver/ECDatabaseFactory.cpp provider/libserver/ECDatabaseFactory.h \
