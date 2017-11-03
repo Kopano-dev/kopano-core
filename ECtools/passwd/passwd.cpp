@@ -135,11 +135,9 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 
 static int main2(int argc, char **argv)
 {
-	const char *username = NULL;
-	const char *newpassword = NULL;
+	const char *username = nullptr, *newpassword = nullptr;
 	std::string szOldPassword, szNewPassword;
-	const char *oldpassword = NULL;
-	const char *path = NULL;
+	const char *oldpassword = nullptr, *path = nullptr;
 	int		passprompt = 1;
 
 	setlocale(LC_MESSAGES, "");
