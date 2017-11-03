@@ -14,9 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <iostream>
 #include <memory>
 #include <string>
@@ -124,9 +122,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 		cerr << "Unable to get user details: " << getMapiCodeString(hr, lpUsername) << endl;
 		return hr;
 	}
-
 	lpECUser->lpszPassword = (LPTSTR)lpNewPassword;
-
 	hr = lpServiceAdmin->SetUser(lpECUser, 0);
 	if (hr != hrSuccess)
 		cerr << "Unable to update user password." << endl;
@@ -142,7 +138,6 @@ static int main2(int argc, char **argv)
 
 	setlocale(LC_MESSAGES, "");
 	setlocale(LC_CTYPE, "");
-
 	if(argc < 2) {
 		print_help(argv[0]);
 		return 1;
