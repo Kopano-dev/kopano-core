@@ -92,17 +92,12 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	convert_context converter;
 	auto strwUsername = converter.convert_to<std::wstring>(lpUsername);
 	auto strwPassword = converter.convert_to<std::wstring>(lpPassword);
-	ECLogger *lpLogger = NULL;
-	if (verbose)
-		lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false);
-	else
-		lpLogger = new ECLogger_Null();
-	ec_log_set(lpLogger);
+	if (!verbose)
+		ec_log_get()->SetLoglevel(0);
 	auto hr = HrOpenECSession(&~lpSession, "passwd", PROJECT_VERSION,
 	          strwUsername.c_str(), strwPassword.c_str(), lpPath,
 	          EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 	          nullptr, nullptr);
-	lpLogger->Release();
 	if(hr != hrSuccess) {
 		cerr << "Wrong username or password." << endl;
 		return hr;
