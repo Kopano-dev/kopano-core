@@ -225,28 +225,6 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		er = sResponse.er;
 	}
 
-	// If the user was denied, and the server did not support encryption, and the password was encrypted, decrypt it now
-	// so that we support older servers. If the password was not encrypted, then it was just wrong, and if the server supported encryption
-	// then the password was also simply wrong.
-	if (er == KCERR_LOGON_FAILED &&
-	    SymmetricIsCrypted(sProfileProps.strPassword.c_str()) &&
-	    !(sResponse.ulCapabilities & KOPANO_CAP_CRYPT)) {
-		// Login with username and password
-		if (SOAP_OK != lpCmd->ns__logon(const_cast<char *>(strUserName.c_str()),
-		    const_cast<char *>(SymmetricDecrypt(sProfileProps.strPassword.c_str()).c_str()),
-		    const_cast<char *>(strImpersonateUser.c_str()),
-		    const_cast<char *>(PROJECT_VERSION),
-		    ulCapabilities, ulLogonFlags, sLicenseRequest,
-		    m_ecSessionGroupId,
-		    const_cast<char *>(GetAppName().c_str()),
-		    const_cast<char *>(sProfileProps.strClientAppVersion.c_str()),
-		    const_cast<char *>(sProfileProps.strClientAppMisc.c_str()),
-		    &sResponse))
-			er = KCERR_SERVER_NOT_RESPONDING;
-		else
-			er = sResponse.er;
-	}
-
 	hr = kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
 	if (hr != hrSuccess)
 		goto exit;
