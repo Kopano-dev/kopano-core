@@ -7235,7 +7235,6 @@ ZEND_FUNCTION(mapi_inetmapi_imtomapi)
 exit:
 	LOG_END();
     THROW_ON_ERROR();
-    return;
 }    
 
 ZEND_FUNCTION(mapi_icaltomapi)
@@ -7287,7 +7286,6 @@ ZEND_FUNCTION(mapi_icaltomapi)
  exit:
 	LOG_END();
 	THROW_ON_ERROR();
-	return;
 }
 
 ZEND_FUNCTION(mapi_mapitoical)
@@ -7369,7 +7367,6 @@ ZEND_FUNCTION(mapi_vcftomapi)
  exit:
 	LOG_END();
 	THROW_ON_ERROR();
-	return;
 }
 
 ZEND_FUNCTION(mapi_mapitovcf)
@@ -7426,7 +7423,6 @@ ZEND_FUNCTION(mapi_enable_exceptions)
     }
     
 	LOG_END();
-    return;
 }
 
 // Can be queried by client applications to check whether certain API features are supported or not.
@@ -7448,7 +7444,6 @@ ZEND_FUNCTION(mapi_feature)
             break;
 	}
     LOG_END();
-    return;
 }
 
 ZEND_FUNCTION(kc_session_save)
