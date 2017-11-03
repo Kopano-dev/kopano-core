@@ -236,8 +236,6 @@ static int main2(int argc, char **argv)
 				cerr << "Wrong old password" << endl;
 				return hr;
 			}
-			
-			cout << endl;
 			szOldPassword = tmp; /* tmp is a static buffer */
 			oldpassword = szOldPassword.c_str();
 			tmp = get_password("Enter new password:");
@@ -245,8 +243,6 @@ static int main2(int argc, char **argv)
 				cerr << "Wrong new password" << endl;
 				return hr;
 			}
-
-			cout << endl;
 			szNewPassword = tmp;
 			newpassword = szNewPassword.c_str();
 			tmp = get_password("Re-Enter password:");
@@ -256,7 +252,6 @@ static int main2(int argc, char **argv)
 			}
 			if (szNewPassword != std::string(tmp))
 				cerr << "Passwords don't match" << endl;
-			cout << endl;
 		}
 
 		hr = UpdatePassword(path, username, oldpassword, newpassword);
