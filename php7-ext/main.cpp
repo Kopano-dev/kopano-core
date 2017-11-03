@@ -5678,7 +5678,7 @@ ZEND_FUNCTION(mapi_zarafa_add_quota_recipient)
 
 	/* Locals */
 	IUnknown *lpUnknown = nullptr;
-	IECServiceAdmin	*lpServiceAdmin = NULL;
+	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore		*lpMsgStore = NULL;
 
 	RETVAL_FALSE;
@@ -5694,8 +5694,7 @@ ZEND_FUNCTION(mapi_zarafa_add_quota_recipient)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
-
-	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, (void**)&lpServiceAdmin);
+	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
@@ -5723,7 +5722,7 @@ ZEND_FUNCTION(mapi_zarafa_del_quota_recipient)
 
 	/* Locals */
 	IUnknown *lpUnknown = nullptr;
-	IECServiceAdmin	*lpServiceAdmin = NULL;
+	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore		*lpMsgStore = NULL;
 
 	RETVAL_FALSE;
@@ -5739,8 +5738,7 @@ ZEND_FUNCTION(mapi_zarafa_del_quota_recipient)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
-
-	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, (void**)&lpServiceAdmin);
+	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
@@ -5766,7 +5764,7 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
 	/* Locals */
 	zval			zval_data_value;
 	IUnknown *lpUnknown = nullptr;
-	IECServiceAdmin	*lpServiceAdmin = NULL;
+	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore		*lpMsgStore = NULL;
 	ULONG			ulUsers = 0;
 	memory_ptr<ECUSER> lpsUsers;
@@ -5784,8 +5782,7 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
 		goto exit;
 	}
-
-	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, (void**)&lpServiceAdmin);
+	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 	MAPI_G(hr) = lpServiceAdmin->GetQuotaRecipients(cbObjectId, lpObjectId, 0, &ulUsers, &~lpsUsers);
@@ -5823,7 +5820,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 	// local
 	int type = -1;
 	IUnknown *lpUnknown = nullptr;
-	IECSecurity *lpSecurity = NULL;
+	object_ptr<IECSecurity> lpSecurity;
 	ULONG i;
 
 	RETVAL_FALSE;
@@ -5852,8 +5849,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano object");
 		goto exit;
 	}
-
-	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECSecurity, (void**)&lpSecurity);
+	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 	MAPI_G(hr) = lpSecurity->GetPermissionRules(ulType, &cPerms, &~lpECPerms);
