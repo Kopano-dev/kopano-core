@@ -46,10 +46,6 @@ using std::endl;
 
 static bool verbose = false;
 
-enum modes {
-	MODE_INVALID = 0, MODE_CHANGE_PASSWD,
-};
-
 enum {
 	OPT_HELP = UCHAR_MAX + 1, // high to avoid clashes with modes
 	OPT_HOST
@@ -144,7 +140,6 @@ static int main2(int argc, char **argv)
 	std::string szOldPassword, szNewPassword;
 	const char *oldpassword = NULL;
 	const char *path = NULL;
-	modes	mode = MODE_INVALID;
 	int		passprompt = 1;
 
 	setlocale(LC_MESSAGES, "");
@@ -161,7 +156,6 @@ static int main2(int argc, char **argv)
 			break;
 		switch (c) {
 		case 'u':
-			mode = MODE_CHANGE_PASSWD;
 			username = optarg;
 			break;
 		case 'p':
@@ -198,13 +192,12 @@ static int main2(int argc, char **argv)
 		cerr << "Too many options given." << endl;
 		return 1;
 	}
-
-	if (mode == MODE_INVALID) {
+	if (username == nullptr) {
 		cerr << "No correct command given." << endl;
 		return 1;
 	}
 	if ((newpassword == nullptr && passprompt == 0) ||
-	    username == nullptr || (oldpassword == nullptr && passprompt == 0)) {
+	    (oldpassword == nullptr && passprompt == 0)) {
 		cerr << "Missing information to update user password." << endl;
 		return 1;
 	}
