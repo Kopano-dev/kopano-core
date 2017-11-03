@@ -335,7 +335,8 @@ ArchiveControlImpl::purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& st
 	unsigned int totalfound = 0;
 	do {
 		SRowSetPtr rowSet;
-		if ((hr = table->QueryRows(100, 0, &rowSet)) != hrSuccess) {
+		hr = table->QueryRows(100, 0, &~rowSet);
+		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from table. (hr=%s)", stringify(hr, true).c_str());
 			continue;
 		}
@@ -690,7 +691,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 	}
 
 	do {
-		hr = ptrTable->QueryRows(50, 0, &ptrRowSet);
+		hr = ptrTable->QueryRows(50, 0, &~ptrRowSet);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from table. (hr=%s)", stringify(hr, true).c_str());
 			goto exit;
@@ -698,7 +699,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing batch of %u messages", ptrRowSet.size());
 		for (ULONG i = 0; i < ptrRowSet.size(); ++i) {
-			hr = ptrArchiveOperation->ProcessEntry(ptrFolder, ptrRowSet[i].cValues, ptrRowSet[i].lpProps);
+			hr = ptrArchiveOperation->ProcessEntry(ptrFolder, ptrRowSet[i]);
 			if (hr != hrSuccess) {
 				bHaveErrors = true;
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to process entry. (hr=%s)", stringify(hr, true).c_str());
@@ -795,7 +796,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 		}
 
 		while (true) {
-			hr = ptrFolderTable->QueryRows(50, 0, &ptrFolderRows);
+			hr = ptrFolderTable->QueryRows(50, 0, &~ptrFolderRows);
 			if (hr != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from folder table. (hr=%s)", stringify(hr, true).c_str());
 				return hr;
@@ -805,7 +806,8 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 				ScopedFolderLogging sfl(m_lpLogger, ptrFolderRows[i].lpProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME ? ptrFolderRows[i].lpProps[IDX_DISPLAY_NAME].Value.LPSZ : KC_T("<Unnamed>"));
 				hr = PurgeArchiveFolder(ptrArchiveStore, ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin, lpRestriction);
 				if (hr != hrSuccess) {
-					m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to purge archive folder. (entryid=%s, hr=%s)", bin2hex(ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin.cb, ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin.lpb).c_str(), stringify(hr, true).c_str());
+					m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to purge archive folder. (entryid=%s, hr=%s)",
+						bin2hex(ptrFolderRows[i].lpProps[IDX_ENTRYID].Value.bin).c_str(), stringify(hr, true).c_str());
 					bErrorOccurred = true;
 				}
 			}
@@ -861,7 +863,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 	}
 
 	while (true) {
-		hr = ptrContentsTable->QueryRows(50, 0, &ptrRows);
+		hr = ptrContentsTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from contents table. (hr=%s)", stringify(hr, true).c_str());
 			return hr;
@@ -1069,7 +1071,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 			SRowSetPtr ptrRows;
 			const ULONG batch_size = 128;
 			
-			hr = ptrTable->QueryRows(batch_size, 0, &ptrRows);
+			hr = ptrTable->QueryRows(batch_size, 0, &~ptrRows);
 			if (hr != hrSuccess)
 				return hr;
 			
@@ -1188,7 +1190,7 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 		SRowSetPtr ptrRows;
 		const ULONG batch_size = 128;
 		
-		hr = ptrTable->QueryRows(batch_size, 0, &ptrRows);
+		hr = ptrTable->QueryRows(batch_size, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		
@@ -1248,7 +1250,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	while (true) {
 		SRowSetPtr ptrRows;
 		
-		hr = ptrTable->QueryRows(64, 0, &ptrRows);
+		hr = ptrTable->QueryRows(64, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRows.empty())
@@ -1535,7 +1537,7 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
 	while (true) {
 		SRowSetPtr ptrRows;
 		
-		hr = ptrTable->QueryRows(128, 0, &ptrRows);
+		hr = ptrTable->QueryRows(128, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRows.empty())

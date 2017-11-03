@@ -300,7 +300,7 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 		auto iterNotifiedSyncId = m_mapNotifiedSyncIds.find(sSyncState.ulSyncId);
 		if (iterNotifiedSyncId == m_mapNotifiedSyncIds.cend()) {
 			*lpulSteps = 0;
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=yes, steps=0 (unsignalled)", bin2hex(lpSourceKey->cb, lpSourceKey->lpb).c_str(), sSyncState.ulSyncId);
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=yes, steps=0 (unsignalled)", bin2hex(*lpSourceKey).c_str(), sSyncState.ulSyncId);
 			lk.unlock();
 			return hr;
 		}
@@ -349,7 +349,9 @@ fallback:
 	}
 
 	*lpulSteps = ulChangeCount;
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=%s, steps=%u", bin2hex(lpSourceKey->cb, lpSourceKey->lpb).c_str(), sSyncState.ulSyncId, (bNotified ? "yes" : "no"), *lpulSteps);
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=%s, steps=%u",
+		bin2hex(*lpSourceKey).c_str(), sSyncState.ulSyncId,
+		(bNotified ? "yes" : "no"), *lpulSteps);
 	return hrSuccess;
 }
 
@@ -467,8 +469,8 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 		if (ulSize < 8 || ulPos + ulSize > lpsSyncState->cb)
 			return MAPI_E_CORRUPT_DATA;
 
-		ZLOG_DEBUG(m_lpLogger, "  Stream %u: size=%u, sourcekey=%s", ulStatusNumber, ulSize, bin2hex(strSourceKey.size(), strSourceKey.data()).c_str());
-
+		ZLOG_DEBUG(m_lpLogger, "  Stream %u: size=%u, sourcekey=%s",
+			ulStatusNumber, ulSize, bin2hex(strSourceKey).c_str());
 		HRESULT hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, ulSize), true, &lpStream);
 		if (hr != hrSuccess)
 			return hr;

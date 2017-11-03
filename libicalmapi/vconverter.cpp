@@ -371,13 +371,13 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	     ulRecpCnt < lplstIcalRecip->size(); ++ulRecpCnt) {
 		if (lpFlagList->ulFlag[ulRecpCnt] == MAPI_RESOLVED)
 		{
-			auto lpMappedProp = PCpropFindProp(lpAdrList->aEntries[ulRecpCnt].rgPropVals, lpAdrList->aEntries[ulRecpCnt].cValues, PR_DISPLAY_NAME_W);
+			auto lpMappedProp = lpAdrList->aEntries[ulRecpCnt].cfind(PR_DISPLAY_NAME_W);
 			if (lpMappedProp)
 				icalRecipient.strName = lpMappedProp->Value.lpszW;
 		}
 		
 		//save the logged in user's satus , used in setting FB status  
-		auto lpMappedProp = PCpropFindProp(lpAdrList->aEntries[ulRecpCnt].rgPropVals, lpAdrList->aEntries[ulRecpCnt].cValues, PR_ENTRYID);
+		auto lpMappedProp = lpAdrList->aEntries[ulRecpCnt].cfind(PR_ENTRYID);
 		if (lpMappedProp && lpUsrEidProp)
 			hr = m_lpAdrBook->CompareEntryIDs(lpUsrEidProp->Value.bin.cb, (LPENTRYID)lpUsrEidProp->Value.bin.lpb, lpMappedProp->Value.bin.cb, (LPENTRYID)lpMappedProp->Value.bin.lpb , 0 , &ulRetn);
 		if (hr == hrSuccess && ulRetn == TRUE)
@@ -514,8 +514,7 @@ HRESULT VConverter::HrHandleExceptionGuid(icalcomponent *lpiEvent, void *base, S
 	auto icProp = icalcomponent_get_first_property(lpiEvent, ICAL_RECURRENCEID_PROPERTY);
 	if (icProp == NULL)
 		return hrSuccess; //ignoring Recurrence-ID.
-
-	auto strUid = bin2hex(lpsProp->Value.bin.cb, lpsProp->Value.bin.lpb);
+	auto strUid = bin2hex(lpsProp->Value.bin);
 	auto icTime = icaltime_from_timet_with_zone(ICalTimeTypeToUTC(lpiEvent, icProp), 0, nullptr);
 	sprintf(strHexDate,"%04x%02x%02x", icTime.year, icTime.month, icTime.day);
 
@@ -1973,11 +1972,10 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 			continue;
 
 		// flags set to 3 is organizer, so skip that entry
-		auto lpPropVal = PCpropFindProp(lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues, PR_RECIPIENT_FLAGS);
+		auto lpPropVal = lpRows->aRow[ulCount].cfind(PR_RECIPIENT_FLAGS);
 		if (lpPropVal != NULL && lpPropVal->Value.ul == 3)
 			continue;
-
-		lpPropVal = PCpropFindProp(lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues, PR_RECIPIENT_TYPE);
+		lpPropVal = lpRows->aRow[ulCount].cfind(PR_RECIPIENT_TYPE);
 		if (lpPropVal == NULL)
 			continue;
 
@@ -1998,8 +1996,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 		strEmailAddress.insert(0, L"mailto:");
 		auto lpProp = icalproperty_new_attendee(m_converter.convert_to<string>(m_strCharset.c_str(), strEmailAddress, rawsize(strEmailAddress), CHARSET_WCHAR).c_str());
 		icalproperty_add_parameter(lpProp, lpParam);
-
-		lpPropVal = PCpropFindProp(lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues, PR_RECIPIENT_TRACKSTATUS);
+		lpPropVal = lpRows->aRow[ulCount].cfind(PR_RECIPIENT_TRACKSTATUS);
 		if (lpPropVal != NULL) {
 			if (lpPropVal->Value.ul == 2)
 				icalproperty_add_parameter(lpProp, icalparameter_new_partstat(ICAL_PARTSTAT_TENTATIVE));
@@ -2435,7 +2432,7 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 		if (!lpPropVal)
 			return hrSuccess;
 		// @todo don't do this calculation using a std::string
-		auto strUid = bin2hex(lpPropVal->Value.bin.cb, lpPropVal->Value.bin.lpb);
+		auto strUid = bin2hex(lpPropVal->Value.bin);
 		if(!IsOutlookUid(strUid))
 			return hrSuccess;
 		if(strUid.substr(32, 8).compare("00000000") == 0 && ulRecurStartTime == (ULONG)-1)
@@ -2827,8 +2824,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	if (lpRows->cRows == 0)
 		// if this is a cancel message, no exceptions are present, so ignore.
 		return MAPI_E_NOT_FOUND;
-
-	lpPropVal = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ATTACH_NUM);
+	lpPropVal = lpRows->aRow[0].cfind(PR_ATTACH_NUM);
 	if (lpPropVal == nullptr)
 		return MAPI_E_NOT_FOUND;
 	hr = lpMessage->OpenAttach(lpPropVal->Value.ul, nullptr, 0, &~lpAttach);
@@ -3184,7 +3180,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		if (hr == E_ACCESSDENIED) {
 			lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_ENTRYID);
 			if (lpPropVal)
-				strUid = bin2hex(lpPropVal->Value.bin.cb,lpPropVal->Value.bin.lpb);
+				strUid = bin2hex(lpPropVal->Value.bin);
 		}
 		hr = hrSuccess;
 	} else {

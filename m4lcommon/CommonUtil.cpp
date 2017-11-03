@@ -329,17 +329,17 @@ static HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession,
 		if (hr != hrSuccess || lpRows->cRows != 1)
 			return MAPI_E_NOT_FOUND;
 		if (bPublic) {
-			auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_MDB_PROVIDER);
+			auto lpStoreProp = lpRows->aRow[0].cfind(PR_MDB_PROVIDER);
 			if (lpStoreProp != NULL && memcmp(lpStoreProp->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0 )
 				break;
 		} else {
-			auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_RESOURCE_FLAGS);
+			auto lpStoreProp = lpRows->aRow[0].cfind(PR_RESOURCE_FLAGS);
 			if (lpStoreProp != NULL && lpStoreProp->Value.ul & STATUS_DEFAULT_STORE)
 				break;
 		}
 	}
 
-	lpEntryIDProp = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ENTRYID);
+	lpEntryIDProp = lpRows->aRow[0].cfind(PR_ENTRYID);
 	if (lpEntryIDProp == nullptr)
 		return MAPI_E_NOT_FOUND;
 
@@ -910,8 +910,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 		return hr;
 	if (lpAdrList->cEntries != 1)
 		return MAPI_E_NOT_FOUND;
-    
-    lpEntryID = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ENTRYID);
+	lpEntryID = lpAdrList->aEntries[0].cfind(PR_ENTRYID);
 	if (lpEntryID == nullptr)
 		return MAPI_E_NOT_FOUND;
     hr = lpAdrBook->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb), &IID_IMAPIProp, 0, &ulType, &~lpMailUser);
@@ -2455,14 +2454,14 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	hr = ECPropertyRestriction(RELOP_EQ, PR_SUBJECT_A, &propSubject, ECRestriction::Cheap)
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {
-		hr = ptrTable->QueryRows(1, 0, &ptrRows);
+		hr = ptrTable->QueryRows(1, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 	}
 
 	if (!ptrRows.empty()) {
 		// message found, open it
-		auto lpEntryID = PCpropFindProp(ptrRows[0].lpProps, ptrRows[0].cValues, PR_ENTRYID);
+		auto lpEntryID = ptrRows[0].cfind(PR_ENTRYID);
 		if (lpEntryID == NULL)
 			return MAPI_E_INVALID_ENTRYID;
 		hr = ptrFolder->OpenEntry(lpEntryID->Value.bin.cb,

@@ -410,7 +410,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 		return hr;
 
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
-		auto lpPropVal = PCpropFindProp(lpRows->aRow[i].lpProps, lpRows->aRow[i].cValues, PR_ATTACH_NUM);
+		auto lpPropVal = lpRows->aRow[i].cfind(PR_ATTACH_NUM);
 		if (lpPropVal == NULL)
 			continue;
 

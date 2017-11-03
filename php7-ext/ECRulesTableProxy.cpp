@@ -142,19 +142,19 @@ HRESULT ECRulesTableProxy::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *l
 	SRowSetPtr ptrRows;
 	convert_context converter;
 
-	hr = m_lpTable->QueryRows(lRowCount, ulFlags, &ptrRows);
+	hr = m_lpTable->QueryRows(lRowCount, ulFlags, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	
 	// table PR_RULE_ACTIONS and PR_RULE_CONDITION contain PT_UNICODE data, which we must convert to local charset PT_STRING8
 	// so we update the rows before we return them to the caller.
 	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-		auto lpRuleProp = PCpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, PR_RULE_CONDITION);
+		auto lpRuleProp = ptrRows[i].cfind(PR_RULE_CONDITION);
 		if (lpRuleProp)
 			hr = ConvertUnicodeToString8((LPSRestriction)lpRuleProp->Value.lpszA, ptrRows[i].lpProps, converter);
 		if (hr != hrSuccess)
 			return hr;
-		lpRuleProp = PCpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, PR_RULE_ACTIONS);
+		lpRuleProp = ptrRows[i].cfind(PR_RULE_ACTIONS);
 		if (lpRuleProp)
 			hr = ConvertUnicodeToString8((ACTIONS*)lpRuleProp->Value.lpszA, ptrRows[i].lpProps, converter);
 		if (hr != hrSuccess)

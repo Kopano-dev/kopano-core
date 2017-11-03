@@ -353,15 +353,18 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 						m_lstHardDelete.erase(iterLastChange->second);
 					iterLastChange->second = iterNewChange;
 
-					ZLOG_DEBUG(m_lpLogger, "Got an ICS_NEW change for a previously deleted object. I converted it to a change. sourcekey=%s", bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
+					ZLOG_DEBUG(m_lpLogger, "Got an ICS_NEW change for a previously deleted object. I converted it to a change. sourcekey=%s",
+						bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
 				} else
-					ZLOG_DEBUG(m_lpLogger, "Got an ICS_NEW change for an object we've seen before. prev_change=%04x, sourcekey=%s", iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
+					ZLOG_DEBUG(m_lpLogger, "Got an ICS_NEW change for an object we've seen before. prev_change=%04x, sourcekey=%s",
+						iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
 				break;
 
 			case ICS_CHANGE:
 				// Any change is allowed as the previous change except a change.
 				if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_CHANGE)
-					ZLOG_DEBUG(m_lpLogger, "Got an ICS_CHANGE on an object for which we just saw an ICS_CHANGE. sourcekey=%s", bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
+					ZLOG_DEBUG(m_lpLogger, "Got an ICS_CHANGE on an object for which we just saw an ICS_CHANGE. sourcekey=%s",
+						bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
 				// A previous delete is allowed for the same reason as in ICS_NEW.
 				if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE || ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_HARD_DELETE) {
 					if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE)
@@ -369,20 +372,25 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 					else
 						m_lstHardDelete.erase(iterLastChange->second);
 					iterLastChange->second = lstChange.emplace(lstChange.end(), m_lpChanges[ulStep]);
-					ZLOG_DEBUG(m_lpLogger, "Got an ICS_CHANGE change for a previously deleted object. sourcekey=%s", bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
+					ZLOG_DEBUG(m_lpLogger, "Got an ICS_CHANGE change for a previously deleted object. sourcekey=%s",
+						bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
 				} else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_FLAG) {
 					m_lstFlag.erase(iterLastChange->second);
 					iterLastChange->second = lstChange.emplace(lstChange.end(), m_lpChanges[ulStep]);
-					ZLOG_DEBUG(m_lpLogger, "Upgraded a previous ICS_FLAG to ICS_CHANGED. sourcekey=%s", bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
+					ZLOG_DEBUG(m_lpLogger, "Upgraded a previous ICS_FLAG to ICS_CHANGED. sourcekey=%s",
+						bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
 				} else
-					ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_CHANGE due to a previous change. prev_change=%04x, sourcekey=%s", iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
+					ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_CHANGE due to a previous change. prev_change=%04x, sourcekey=%s",
+						iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
 				break;
 
 			case ICS_FLAG:
 				// This is only allowed after an ICS_NEW and ICS_CHANGE. It will be ignored in any case.
 				if (ICS_ACTION(iterLastChange->second->ulChangeType) != ICS_NEW && ICS_ACTION(iterLastChange->second->ulChangeType) != ICS_CHANGE)
-					ZLOG_DEBUG(m_lpLogger, "Got an ICS_FLAG with something else than a ICS_NEW or ICS_CHANGE as the previous changes. prev_change=%04x, sourcekey=%s", iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
-				ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_FLAG due to previous ICS_NEW or ICS_CHANGE. prev_change=%04x, sourcekey=%s", iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
+					ZLOG_DEBUG(m_lpLogger, "Got an ICS_FLAG with something else than a ICS_NEW or ICS_CHANGE as the previous changes. prev_change=%04x, sourcekey=%s",
+						iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+				ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_FLAG due to previous ICS_NEW or ICS_CHANGE. prev_change=%04x, sourcekey=%s",
+					iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
 				break;
 
 			case ICS_SOFT_DELETE:
@@ -390,7 +398,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 				// We'll ignore the previous change and replace it with this delete. We won't write it now as
 				// we could get an add for the same object. But because of the reordering (deletes after all adds/changes) we would delete
 				// the new object. Therefore we'll make a change out of a delete - add/change.
-				ZLOG_DEBUG(m_lpLogger, "Replacing previous change with current ICS_xxxx_DELETE. prev_change=%04x, sourcekey=%s", iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
+				ZLOG_DEBUG(m_lpLogger, "Replacing previous change with current ICS_xxxx_DELETE. prev_change=%04x, sourcekey=%s",
+					iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
 				if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_NEW || ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_CHANGE)
 					lstChange.erase(iterLastChange->second);
 				else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_FLAG)
@@ -406,7 +415,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 					iterLastChange->second = m_lstHardDelete.emplace(m_lstHardDelete.end(), m_lpChanges[ulStep]);
 				break;
 			default:
-				ZLOG_DEBUG(m_lpLogger, "Got an unknown change. change=%04x, sourcekey=%s", m_lpChanges[ulStep].ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
+				ZLOG_DEBUG(m_lpLogger, "Got an unknown change. change=%04x, sourcekey=%s",
+					m_lpChanges[ulStep].ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
 				break;
 			}
 		}
@@ -715,10 +725,10 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				hr = hrSuccess;
 				goto next;
 			}
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
 
 			if(hr != hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
+				ZLOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
 				goto exit;
 			}
 			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, MAPI_MODIFY, &ulObjType, &~lpSourceMessage);
@@ -1151,7 +1161,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 				hr = hrSuccess;
 				goto next;
 			}
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
 			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 			if(hr != hrSuccess){
 				hr = hrSuccess;
@@ -1388,6 +1398,6 @@ void ECExchangeExportChanges::LogMessageProps(int loglevel, ULONG cValues, LPSPr
 		lpPropHierarchyId != NULL ? lpPropHierarchyId->Value.ul : 0,
 		lpPropParentId != NULL ? lpPropParentId->Value.ul : 0,
 		lpPropFlags != NULL ? lpPropFlags->Value.ul : 0,
-		lpPropEntryID != NULL ? bin2hex(lpPropEntryID->Value.bin.cb, lpPropEntryID->Value.bin.lpb).c_str() : "<Unknown>",
-		lpPropSK != NULL ? bin2hex(lpPropSK->Value.bin.cb, lpPropSK->Value.bin.lpb).c_str() : "<Unknown>");
+		lpPropEntryID != NULL ? bin2hex(lpPropEntryID->Value.bin).c_str() : "<Unknown>",
+		lpPropSK != NULL ? bin2hex(lpPropSK->Value.bin).c_str() : "<Unknown>");
 }

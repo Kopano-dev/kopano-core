@@ -67,7 +67,7 @@ void ECHierarchyIteratorBase::increment()
 	}
 
 	if (!m_ptrRows.get()) {
-		auto hr = m_ptrTable->QueryRows(32, 0, &m_ptrRows);
+		auto hr = m_ptrTable->QueryRows(32, 0, &~m_ptrRows);
 		if (hr != hrSuccess)
 			throw HrException(hr);
 		if (m_ptrRows.empty()) {

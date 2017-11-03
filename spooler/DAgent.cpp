@@ -415,8 +415,7 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrGetOneProp failed", hr);
-		
-	strEntryID = bin2hex(lpEntryID->Value.bin.cb, lpEntryID->Value.bin.lpb);
+	strEntryID = bin2hex(lpEntryID->Value.bin);
 
 	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
 	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
@@ -478,7 +477,7 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess)
 		kc_perrorf("HrGetOneProp failed", hr);
-	auto strEntryID = bin2hex(lpEntryID->Value.bin.cb, lpEntryID->Value.bin.lpb);
+	auto strEntryID = bin2hex(lpEntryID->Value.bin);
 
 	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
 	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
@@ -663,14 +662,13 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 		}
 
 		/* Yay, resolved the address, get it */
-		auto lpEntryIdProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_ENTRYID);
-		auto lpFullNameProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_DISPLAY_NAME_W);
-		auto lpAccountProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_ACCOUNT_W);
-		auto lpSMTPProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_SMTP_ADDRESS_A);
-		auto lpObjectProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_OBJECT_TYPE);
+		auto lpEntryIdProp  = lpAdrList->aEntries[ulRCPT].cfind(PR_ENTRYID);
+		auto lpFullNameProp = lpAdrList->aEntries[ulRCPT].cfind(PR_DISPLAY_NAME_W);
+		auto lpAccountProp  = lpAdrList->aEntries[ulRCPT].cfind(PR_ACCOUNT_W);
+		auto lpSMTPProp     = lpAdrList->aEntries[ulRCPT].cfind(PR_SMTP_ADDRESS_A);
+		auto lpObjectProp   = lpAdrList->aEntries[ulRCPT].cfind(PR_OBJECT_TYPE);
 		// the only property that is allowed NULL in this list
-		auto lpDisplayProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_DISPLAY_TYPE);
-
+		auto lpDisplayProp  = lpAdrList->aEntries[ulRCPT].cfind(PR_DISPLAY_TYPE);
 		if(!lpEntryIdProp || !lpFullNameProp || !lpAccountProp || !lpSMTPProp || !lpObjectProp) {
 			ec_log_err("Not all properties found for %ls", recip->wstrRCPT.c_str());
 			continue;
@@ -688,13 +686,12 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 		ec_log_notice("Resolved recipient %ls as user %ls", recip->wstrRCPT.c_str(), lpAccountProp->Value.lpszW);
 
 		/* The following are allowed to be NULL */
-		auto lpCompanyProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_EC_COMPANY_NAME_W);
-		auto lpServerProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_EC_HOMESERVER_NAME_W);
-		auto lpAdminProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_EC_ADMINISTRATOR);
-		auto lpAddrTypeProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_ADDRTYPE_A);
-		auto lpEmailProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_EMAIL_ADDRESS_W);
-		auto lpSearchKeyProp = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_SEARCH_KEY);
-
+		auto lpCompanyProp   = lpAdrList->aEntries[ulRCPT].cfind(PR_EC_COMPANY_NAME_W);
+		auto lpServerProp    = lpAdrList->aEntries[ulRCPT].cfind(PR_EC_HOMESERVER_NAME_W);
+		auto lpAdminProp     = lpAdrList->aEntries[ulRCPT].cfind(PR_EC_ADMINISTRATOR);
+		auto lpAddrTypeProp  = lpAdrList->aEntries[ulRCPT].cfind(PR_ADDRTYPE_A);
+		auto lpEmailProp     = lpAdrList->aEntries[ulRCPT].cfind(PR_EMAIL_ADDRESS_W);
+		auto lpSearchKeyProp = lpAdrList->aEntries[ulRCPT].cfind(PR_SEARCH_KEY);
 		recip->wstrUsername.assign(lpAccountProp->Value.lpszW);
 		recip->wstrFullname.assign(lpFullNameProp->Value.lpszW);
 		recip->strSMTP.assign(lpSMTPProp->Value.lpszA);
@@ -738,7 +735,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 			memcpy(recip->sSearchKey.lpb, key.c_str(), recip->sSearchKey.cb);
 		}
 
-		auto lpFeatureList = PCpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_EC_ENABLED_FEATURES_W);
+		auto lpFeatureList = lpAdrList->aEntries[ulRCPT].cfind(PR_EC_ENABLED_FEATURES_W);
 		recip->bHasIMAP = lpFeatureList && hasFeature(L"imap", lpFeatureList) == hrSuccess;
 		++ulRCPT;
 	}
@@ -1723,7 +1720,7 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 
 		bRecipMe = (lpsRows->cRows == 1);
 		if (bRecipMe) {
-			auto lpProp = PCpropFindProp(lpsRows->aRow[0].lpProps, lpsRows->aRow[0].cValues, PR_RECIPIENT_TYPE);
+			auto lpProp = lpsRows->aRow[0].cfind(PR_RECIPIENT_TYPE);
 			if (lpProp) {
 				bToMe = (lpProp->Value.ul == MAPI_TO);
 				bCcMe = (lpProp->Value.ul == MAPI_CC);

@@ -245,7 +245,7 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 	string strClass;
 	ULONG ulFolderType = 0;
 
-	auto lpItemProperty = PCpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ENTRYID);
+	auto lpItemProperty = lpRow->cfind(PR_ENTRYID);
 	if (!lpItemProperty) {
 		cout << "Row does not contain an EntryID." << endl;
 		return hrSuccess;

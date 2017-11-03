@@ -1570,13 +1570,13 @@ HRESULT ECMessage::SaveRecips()
 		MAPIOBJECT *mo = NULL;
 
 		// Get the right object type for a DistList
-		auto lpObjType = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_OBJECT_TYPE);
+		auto lpObjType = lpRowSet->aRow[i].cfind(PR_OBJECT_TYPE);
 		if(lpObjType != NULL)
 			ulRealObjType = lpObjType->Value.ul; // MAPI_MAILUSER or MAPI_DISTLIST
 		else
 			ulRealObjType = MAPI_MAILUSER; // add in list?
 
-		auto lpRowId = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ROWID); // unique value of recipient
+		auto lpRowId = lpRowSet->aRow[i].cfind(PR_ROWID); /* unique value of recipient */
 		if (!lpRowId) {
 			assert(lpRowId != NULL);
 			continue;
@@ -1585,7 +1585,7 @@ HRESULT ECMessage::SaveRecips()
 		AllocNewMapiObject(lpRowId->Value.ul, lpObjIDs[i].Value.ul, ulRealObjType, &mo);
 
 		// Move any PR_ENTRYIDs to PR_EC_CONTACT_ENTRYID
-		auto lpEntryID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);
+		auto lpEntryID = lpRowSet->aRow[i].find(PR_ENTRYID);
 		if(lpEntryID)
 			lpEntryID->ulPropTag = PR_EC_CONTACT_ENTRYID;
 
@@ -1670,12 +1670,10 @@ HRESULT ECMessage::SyncAttachments()
 	for (i = 0; i < lpRowSet->cRows; ++i) {
 		if (lpulStatus[i] != ECROW_DELETED)
 			continue;
-
-		auto lpObjType = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_OBJECT_TYPE);
+		auto lpObjType = lpRowSet->aRow[i].cfind(PR_OBJECT_TYPE);
 		if(lpObjType == NULL || lpObjType->Value.ul != MAPI_ATTACH)
 			continue;
-
-		auto lpAttachNum = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ATTACH_NUM); // unique value of attachment
+		auto lpAttachNum = lpRowSet->aRow[i].cfind(PR_ATTACH_NUM); /* unique value of attachment */
 		if (!lpAttachNum) {
 			assert(lpAttachNum != NULL);
 			continue;

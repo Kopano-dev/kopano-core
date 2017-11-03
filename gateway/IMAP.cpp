@@ -3582,7 +3582,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		    if(lpRow) {
 				// possebly add message to mark-as-read
 				if (bMarkAsRead) {
-					lpProp = PCpropFindProp(lpRow->lpProps, lpRow->cValues, PR_MESSAGE_FLAGS);
+					lpProp = lpRow->cfind(PR_MESSAGE_FLAGS);
 					if (!lpProp || (lpProp->Value.ul & MSGFLAG_READ) == 0) {
 						lpEntryList->lpbin[lpEntryList->cValues].cb = lstFolderMailEIDs[mail_idx].sEntryID.cb;
 						lpEntryList->lpbin[lpEntryList->cValues].lpb = lstFolderMailEIDs[mail_idx].sEntryID.lpb;

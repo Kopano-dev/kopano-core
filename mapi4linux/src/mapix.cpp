@@ -1660,9 +1660,9 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
 
 	// Resolve local items
 	for (unsigned int i = 0; i < lpAdrList->cEntries; ++i) {
-		auto lpDisplay = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_A);
-		auto lpDisplayW = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_W);
-		auto lpEntryID = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_ENTRYID);
+		auto lpDisplay  = lpAdrList->aEntries[i].cfind(PR_DISPLAY_NAME_A);
+		auto lpDisplayW = lpAdrList->aEntries[i].cfind(PR_DISPLAY_NAME_W);
+		auto lpEntryID  = lpAdrList->aEntries[i].cfind(PR_ENTRYID);
 		std::wstring strwDisplay, strwType, strwAddress;
 
 		if(lpEntryID != NULL) {
@@ -1756,8 +1756,7 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
 		return kc_perrorf("GetSearchPath failed", hr);
 
 	for (ULONG c = 0; bContinue && c < lpSearchRows->cRows; ++c) {
-		auto lpEntryID = PCpropFindProp(lpSearchRows->aRow[c].lpProps,
-			lpSearchRows->aRow[c].cValues, PR_ENTRYID);
+		auto lpEntryID = lpSearchRows->aRow[c].cfind(PR_ENTRYID);
 		if (!lpEntryID)
 			continue;
 
@@ -1883,8 +1882,7 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	}
 
 	// get entry id from table, use it.
-	lpProp = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ENTRYID);
-
+	lpProp = lpRowSet->aRow[0].cfind(PR_ENTRYID);
 no_hierarchy:
 
 	if (!lpProp) {
@@ -2000,7 +1998,7 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 	for (unsigned int i = 0; i < lpRecipList->cEntries; ++i) {
 		object_ptr<IMailUser> lpMailUser;
 		memory_ptr<SPropValue> lpProps;
-		auto lpEntryId = PCpropFindProp(lpRecipList->aEntries[i].rgPropVals, lpRecipList->aEntries[i].cValues, PR_ENTRYID);
+		auto lpEntryId = lpRecipList->aEntries[i].cfind(PR_ENTRYID);
 		if(lpEntryId == NULL)
 			continue;
 		hr = OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IMailUser, 0, &ulType, &~lpMailUser);
@@ -2452,7 +2450,7 @@ HRESULT kc_session_save(IMAPISession *ses, std::string &serout)
 			return ret;
 		if (rows->cRows == 0)
 			break;
-		auto provuid_prop = PCpropFindProp(rows->aRow[0].lpProps, rows->aRow[0].cValues, PR_PROVIDER_UID);
+		auto provuid_prop = rows->aRow[0].cfind(PR_PROVIDER_UID);
 		if (provuid_prop == nullptr)
 			continue;
 		serout += "P"; /* provider start marker */

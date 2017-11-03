@@ -98,7 +98,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 
 	// Get all recipients from the group
 	for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
-		auto lpPropObjectType = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_OBJECT_TYPE);
+		auto lpPropObjectType = lpRowSet->aRow[i].cfind(PR_OBJECT_TYPE);
 
 		// see if there's an e-mail address associated with the list
 		// if that's the case, then we send to that address and not all individual recipients in that list
@@ -119,8 +119,8 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 			continue;
 
 		// Group
-		auto lpGroupName = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EMAIL_ADDRESS_W);
-		auto lpGroupEntryID = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);
+		auto lpGroupName = lpRowSet->aRow[i].cfind(PR_EMAIL_ADDRESS_W);
+		auto lpGroupEntryID = lpRowSet->aRow[i].cfind(PR_ENTRYID);
 		if (lpGroupName == nullptr || lpGroupEntryID == nullptr)
 			return MAPI_E_NOT_FOUND;
 	
@@ -203,7 +203,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 		hr = lpAdrBook->ResolveName(0, MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, NULL, reinterpret_cast<ADRLIST *>(lpRows.get()));
 		if(hr != hrSuccess)
 			return hr;
-		lpGroupEntryID = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ENTRYID);
+		lpGroupEntryID = lpRows->aRow[0].cfind(PR_ENTRYID);
 		if (lpGroupEntryID == nullptr)
 			return MAPI_E_NOT_FOUND;
 

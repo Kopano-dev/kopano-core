@@ -27,6 +27,7 @@
 #include <kopano/ECIConv.h>
 #include <kopano/ECLogger.h>
 #include <openssl/md5.h>
+#include <mapidefs.h>
 
 namespace KC {
 
@@ -306,6 +307,11 @@ std::string bin2hex(size_t inLength, const void *vinput)
 std::string bin2hex(const std::string &input)
 {
 	return bin2hex(input.size(), input.c_str());
+}
+
+std::string bin2hex(const SBinary &b)
+{
+	return bin2hex(b.cb, b.lpb);
 }
 
 /** 

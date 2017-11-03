@@ -1052,19 +1052,18 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->QueryRows(1, 0, &ptrRowSet);
+	hr = ptrTable->QueryRows(1, 0, &~ptrRowSet);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrRowSet.empty())
 		return MAPI_E_NOT_FOUND;
-
-	auto lpsName = PCpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_DISPLAY_NAME_W);
+	auto lpsName = ptrRowSet[0].cfind(PR_DISPLAY_NAME_W);
 	if (lpsName != nullptr)
 		strUsername = lpsName->Value.lpszW;
-	lpsName = PCpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_EC_COMPANY_NAME_W);
+	lpsName = ptrRowSet[0].cfind(PR_EC_COMPANY_NAME_W);
 	if (lpsName != nullptr)
 		strCompanyName = lpsName->Value.lpszW;
-	auto lpsPropEntryId = PCpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_STORE_ENTRYID);
+	auto lpsPropEntryId = ptrRowSet[0].cfind(PR_STORE_ENTRYID);
 	if (lpsPropEntryId == NULL)
 		return MAPI_E_NOT_FOUND;
 
@@ -1246,18 +1245,17 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 			break;
 
 		for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
-			auto lpStoreGuid = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_STOREGUID);
-			auto lpUserName = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_USERNAME_A);
-			auto lpModTime = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_LAST_MODIFICATION_TIME);
-			auto lpStoreSize = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MESSAGE_SIZE_EXTENDED);
-			auto lpStoreType = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_STORETYPE);
-
+			auto lpStoreGuid = lpRowSet->aRow[i].cfind(PR_EC_STOREGUID);
+			auto lpUserName  = lpRowSet->aRow[i].cfind(PR_EC_USERNAME_A);
+			auto lpModTime   = lpRowSet->aRow[i].cfind(PR_LAST_MODIFICATION_TIME);
+			auto lpStoreSize = lpRowSet->aRow[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
+			auto lpStoreType = lpRowSet->aRow[i].cfind(PR_EC_STORETYPE);
 			if (lpStoreGuid && lpUserName)
 				continue;
 
 			if (!lpUserName) {
 				// find "guessed" named
-				lpUserName = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_DISPLAY_NAME_A);
+				lpUserName = lpRowSet->aRow[i].cfind(PR_DISPLAY_NAME_A);
 				if (lpUserName)
 					strUsername = lpUserName->Value.lpszA;
 				else
@@ -1279,7 +1277,7 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 				ct.AddColumn(0, strUsername);
 				continue;
 			}
-			ct.AddColumn(0, bin2hex(lpStoreGuid->Value.bin.cb, lpStoreGuid->Value.bin.lpb));
+			ct.AddColumn(0, bin2hex(lpStoreGuid->Value.bin));
 			ct.AddColumn(1, strUsername);
 			if (lpModTime)
 				ct.AddColumn(2, FiletimeToString(lpModTime->Value.ft));
@@ -1765,7 +1763,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	     .RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->QueryRows(1, 0, &ptrRows);
+	hr = ptrTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrRows.size() != 1 || ptrRows[0].lpProps[0].ulPropTag != PR_ENTRYID)
@@ -1795,7 +1793,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 		return hr;
 
 	while (true) {
-		hr = ptrTable->QueryRows(50, 0, &ptrRows);
+		hr = ptrTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1886,7 +1884,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	hr = ptrSystemTable->SetColumns(sptaStatsProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrSystemTable->QueryRows(0xffff, 0, &ptrRows);
+	hr = ptrSystemTable->QueryRows(0xffff, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2045,7 +2043,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = HrQueryAllRows(ptrTable, sptaTableProps, NULL, NULL, 0, &ptrRows);
+	hr = HrQueryAllRows(ptrTable, sptaTableProps, nullptr, nullptr, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		goto exit;
 

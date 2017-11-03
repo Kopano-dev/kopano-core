@@ -140,10 +140,9 @@ static bool sort_app(const SESSION &a, const SESSION &b) { return a.strClientApp
 typedef bool(*SortFuncPtr)(const SESSION&, const SESSION&);
 static SortFuncPtr sortfunc;
 
-static std::string GetString(LPSPropValue lpProps, ULONG cValues,
-    ULONG ulPropTag)
+static std::string GetString(const SRow &row, ULONG ulPropTag)
 {
-	auto lpProp = PCpropFindProp(lpProps, cValues, ulPropTag);
+	auto lpProp = row.cfind(ulPropTag);
     if(lpProp == NULL)
         return "";
         
@@ -167,10 +166,9 @@ static std::string GetString(LPSPropValue lpProps, ULONG cValues,
     return "";
 }
 
-static unsigned long long GetLongLong(LPSPropValue lpProps, ULONG cValues,
-    ULONG ulPropTag)
+static unsigned long long GetLongLong(const SRow &row, ULONG ulPropTag)
 {
-	auto lpProp = PCpropFindProp(lpProps, cValues, ulPropTag);
+	auto lpProp = row.cfind(ulPropTag);
     if(lpProp == NULL)
         return -1;
         
@@ -182,9 +180,9 @@ static unsigned long long GetLongLong(LPSPropValue lpProps, ULONG cValues,
     return 0;
 }
 
-static double GetDouble(LPSPropValue lpProps, ULONG cValues, ULONG ulPropTag)
+static double GetDouble(const SRow &row, ULONG ulPropTag)
 {
-	auto lpProp = PCpropFindProp(lpProps, cValues, ulPropTag);
+	auto lpProp = row.cfind(ulPropTag);
     if(lpProp == NULL)
         return 0;
         
@@ -249,8 +247,8 @@ static void showtop(LPMDB lpStore)
         dblLast = GetTimeOfDay();
             
         for (ULONG i = 0; i < lpsRowSet->cRows; ++i) {
-		auto lpName = PCpropFindProp(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_DISPLAY_NAME_A);
-		auto lpValue = PCpropFindProp(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SYSTEM_VALUE);
+		auto lpName  = lpsRowSet->aRow[i].cfind(PR_DISPLAY_NAME_A);
+		auto lpValue = lpsRowSet->aRow[i].cfind(PR_EC_STATS_SYSTEM_VALUE);
             if(lpName && lpValue) {
                 mapDiffStats[lpName->Value.lpszA] = atof(lpValue->Value.lpszA) - atof(mapStats[lpName->Value.lpszA].c_str());
                 mapStats[lpName->Value.lpszA] = lpValue->Value.lpszA;
@@ -273,25 +271,24 @@ static void showtop(LPMDB lpStore)
         for (ULONG i = 0; i < lpsRowSet->cRows; ++i) {
             SESSION session;
 
-            session.strUser = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_USERNAME_A);
-            session.strIP = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_IPADDRESS);
-            session.strBusy = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_BUSYSTATES);
-            session.strState = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_PROCSTATES);
-            session.strClientVersion = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CLIENT_VERSION);
-            session.strClientApp = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION);
-            session.strClientAppVersion = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION);
-            session.strClientAppMisc = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC);
-
-            session.ulPeerPid = GetLongLong(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_PEER_PID);
-            session.times.ulRequests = GetLongLong(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_REQUESTS);
-            session.ullSessionId = GetLongLong(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_ID);
-            session.ullSessionGroupId = GetLongLong(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_GROUP_ID);
+            session.strUser = GetString(lpsRowSet->aRow[i], PR_EC_USERNAME_A);
+            session.strIP = GetString(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_IPADDRESS);
+            session.strBusy = GetString(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_BUSYSTATES);
+            session.strState = GetString(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_PROCSTATES);
+            session.strClientVersion = GetString(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_CLIENT_VERSION);
+            session.strClientApp = GetString(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_CLIENT_APPLICATION);
+            session.strClientAppVersion = GetString(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION);
+            session.strClientAppMisc = GetString(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC);
+            session.ulPeerPid = GetLongLong(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_PEER_PID);
+            session.times.ulRequests = GetLongLong(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_REQUESTS);
+            session.ullSessionId = GetLongLong(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_ID);
+            session.ullSessionGroupId = GetLongLong(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_GROUP_ID);
 			if (session.ulPeerPid != 0)
 				session.strPeer = stringify(session.ulPeerPid);
 
-            session.times.dblUser = GetDouble(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CPU_USER);
-            session.times.dblSystem = GetDouble(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CPU_SYSTEM);
-            session.times.dblReal = GetDouble(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CPU_REAL);
+            session.times.dblUser = GetDouble(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_CPU_USER);
+            session.times.dblSystem = GetDouble(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_CPU_SYSTEM);
+            session.times.dblReal = GetDouble(lpsRowSet->aRow[i], PR_EC_STATS_SESSION_CPU_REAL);
 
             auto iterTimes = mapLastTimes.find(session.ullSessionId);
             if (iterTimes != mapLastTimes.cend()) {

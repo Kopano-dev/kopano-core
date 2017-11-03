@@ -53,7 +53,7 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 	hr = ptrTable->SeekRow(BOOKMARK_BEGINNING, m_ulDestAttachIdx, NULL);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->QueryRows(1, 0, &ptrRows);
+	hr = ptrTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrRows.empty())

@@ -85,7 +85,7 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 			hr = HrGetOneProp(lpMapiProp, PR_ENTRYID, &~lpMsgProp);
 			if(hr != hrSuccess)
 				return hr;
-			wstrProperty->assign(convert_to<std::wstring>(bin2hex(lpMsgProp->Value.bin.cb, lpMsgProp->Value.bin.lpb)));
+			wstrProperty->assign(convert_to<std::wstring>(bin2hex(lpMsgProp->Value.bin)));
 		}
 	} else if (hr == hrSuccess)
 		wstrProperty->assign(lpMsgProp->Value.lpszW);
@@ -762,7 +762,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	for (cUsers = 0; cUsers < lpAdrList->cEntries; ++cUsers) {
 		const SPropValue *lpEntryID = nullptr;
 		if (ptrFlagList->ulFlag[cUsers] == MAPI_RESOLVED)
-			lpEntryID = PpropFindProp(lpAdrList->aEntries[cUsers].rgPropVals, lpAdrList->aEntries[cUsers].cValues, PR_ENTRYID);
+			lpEntryID = lpAdrList->aEntries[cUsers].cfind(PR_ENTRYID);
 		if (lpEntryID == nullptr) {
 			lpUsers[cUsers].m_cbEid = 0;
 			lpUsers[cUsers].m_lpEid = NULL;

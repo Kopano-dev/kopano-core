@@ -116,7 +116,7 @@ public:
 private:
 	_kc_hidden HRESULT EnterFolder(LPMAPIFOLDER) _kc_override;
 	_kc_hidden HRESULT LeaveFolder(void) _kc_override;
-	_kc_hidden HRESULT DoProcessEntry(ULONG n, const LPSPropValue &prop) _kc_override;
+	_kc_hidden HRESULT DoProcessEntry(const SRow &proprow) override;
 
 	/**
 	 * Perform an initial archive of a message. This will be used to archive
@@ -176,10 +176,9 @@ private:
 	 *
 	 * @param[in]	lpMessage		The message to process
 	 * @param[in]	lpFolder		The parent folder
-	 * @param[in]	cProps			The amount of props found in lpProps
-	 * @param[in]	lpProps			A list of properties containing the information to open the correct message.
+	 * @param[in]	row			A list of properties containing the information to open the correct message.
 	 */
-	_kc_hidden HRESULT ExecuteSubOperations(LPMESSAGE, LPMAPIFOLDER, ULONG n, const LPSPropValue props);
+	_kc_hidden HRESULT ExecuteSubOperations(IMessage *, IMAPIFolder *, const SRow &);
 
 	/**
 	 * Move an archive message to the special history folder.

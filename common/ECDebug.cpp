@@ -1591,7 +1591,7 @@ std::string PropValueToString(const SPropValue *lpPropValue)
 		return "PT_STRING8: " + (lpPropValue->Value.lpszA ? (std::string)lpPropValue->Value.lpszA : std::string("NULL"));
 	case PT_BINARY:
 		return "PT_BINARY: cb=" + stringify(lpPropValue->Value.bin.cb) +
-			" Data=" + (lpPropValue->Value.bin.lpb ? bin2hex(lpPropValue->Value.bin.cb, lpPropValue->Value.bin.lpb) : std::string("NULL"));
+		       " Data=" + (lpPropValue->Value.bin.lpb ? bin2hex(lpPropValue->Value.bin) : std::string("NULL"));
 	case PT_CLSID:
 		return "PT_CLSID: (Skip)";
 	case PT_NULL:

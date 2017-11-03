@@ -426,19 +426,17 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		MAPITablePtr ptrMemberTable;
 		SRowSetPtr ptrMembers;
 
-		hr = ptrRecipientTable->QueryRows(1, 0L, &ptrRow);
+		hr = ptrRecipientTable->QueryRows(1, 0L, &~ptrRow);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRow.size() == 0)
 			break;
-
-		lpAddrType = PCpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ADDRTYPE);
+		lpAddrType = ptrRow[0].cfind(PR_ADDRTYPE);
 		if (!lpAddrType)
 			continue;
 		if (_tcscmp(lpAddrType->Value.LPSZ, KC_T("MAPIPDL")))
 			continue;
-
-		lpDLEntryID = PCpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ENTRYID);
+		lpDLEntryID = ptrRow[0].cfind(PR_ENTRYID);
 		if (!lpDLEntryID)
 			continue;
 
@@ -471,7 +469,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 
 		// Get all recipients in distlist, and add to message.
 		// If another distlist is here, it will expand in the next loop.
-		hr = ptrMemberTable->QueryRows(-1, fMapiUnicode, &ptrMembers);
+		hr = ptrMemberTable->QueryRows(-1, fMapiUnicode, &~ptrMembers);
 		if (hr != hrSuccess)
 			continue;
 
@@ -483,7 +481,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 					continue;
 
 				// prop is unknown, find prop in recip, and copy value
-				auto lpRecipProp = PCpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, CHANGE_PROP_TYPE(ptrMembers[c].lpProps[i].ulPropTag, PT_UNSPECIFIED));
+				auto lpRecipProp = ptrRow[0].cfind(CHANGE_PROP_TYPE(ptrMembers[c].lpProps[i].ulPropTag, PT_UNSPECIFIED));
 				if (lpRecipProp)
 					ptrMembers[c].lpProps[i] = *lpRecipProp;
 				// else: leave property unknown
