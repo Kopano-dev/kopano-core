@@ -242,30 +242,30 @@ int main(int argc, char* argv[])
 		
 		if(passprompt)
 		{
-			std::unique_ptr<char[], cstdlib_deleter> tmp(get_password("Enter old password:"));
+			char *tmp = get_password("Enter old password:");
 			if (tmp == nullptr) {
 				cerr << "Wrong old password" << endl;
 				goto exit;
 			}
 			
 			cout << endl;
-			szOldPassword = tmp.get();
+			szOldPassword = tmp; /* tmp is a static buffer */
 			oldpassword = szOldPassword.c_str();
-			tmp.reset(get_password("Enter new password:"));
+			tmp = get_password("Enter new password:");
 			if (tmp == nullptr) {
 				cerr << "Wrong new password" << endl;
 				goto exit;
 			}
 
 			cout << endl;
-			szNewPassword = tmp.get();
+			szNewPassword = tmp;
 			newpassword = szNewPassword.c_str();
-			tmp.reset(get_password("Re-Enter password:"));
+			tmp = get_password("Re-Enter password:");
 			if (tmp == nullptr) {
 				cerr << "Wrong new password" << endl;
 				goto exit;
 			}
-			if (szNewPassword != tmp.get())
+			if (szNewPassword != std::string(tmp))
 				cerr << "Passwords don't match" << endl;
 			cout << endl;
 		}
