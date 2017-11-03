@@ -32,7 +32,6 @@
 #include "kcore.hpp"
 #include "Mem.h"
 
-#include "DLLGlobal.h"
 #include "ECMSProvider.h"
 #include "ECABProvider.h"
 #include <iostream>
@@ -58,6 +57,12 @@
 #include <kopano/charset/convstring.h>
 
 using namespace KCHL;
+
+extern LPMALLOC _pmalloc;
+extern LPALLOCATEBUFFER _pfnAllocBuf;
+extern LPALLOCATEMORE _pfnAllocMore;
+extern LPFREEBUFFER _pfnFreeBuf;
+extern HINSTANCE _hInstance;
 
 struct initprov {
 	IProviderAdmin *provadm;

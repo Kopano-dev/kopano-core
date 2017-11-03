@@ -35,7 +35,6 @@
 #include "ECArchiveAwareMsgStore.h"
 #include "ECMsgStorePublic.h"
 #include <kopano/charset/convstring.h>
-#include "DLLGlobal.h"
 #include "EntryPoint.h"
 #include "ProviderUtil.h"
 

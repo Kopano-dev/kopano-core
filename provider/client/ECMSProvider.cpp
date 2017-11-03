@@ -45,7 +45,6 @@
 #include <cwchar>
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
-#include "DLLGlobal.h"
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
 #include <csignal>
