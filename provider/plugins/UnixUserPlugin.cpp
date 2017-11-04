@@ -860,7 +860,7 @@ objectdetails_t UnixUserPlugin::objectdetailsFromPwent(const struct passwd *pw)
 		char sbuffer[PWBUFSIZE];
 
 		if (getspnam_r(pw->pw_name, &spws, sbuffer, PWBUFSIZE, &spw) != 0) {
-			ec_log_warn("getspname_r: %s", strerror(errno));
+			ec_log_warn("getspnam_r: %s", strerror(errno));
 			/* set invalid password entry, cannot login without a password */
 			ud.SetPropString(OB_PROP_S_PASSWORD, "x");
 		} else if (spw == NULL) {

@@ -147,27 +147,24 @@ public:
 	// Authenticate a user
 	_kc_hidden virtual ECRESULT AuthUserAndSync(const char *user, const char *pass, unsigned int *user_id);
 
-	// Get data for an object, with on-the-fly delete of the specified object id
+	/* Get data for an object, with on-the-fly deletion of the specified object id. */
 	virtual ECRESULT GetObjectDetails(unsigned int obj_id, objectdetails_t *ret);
 	// Get quota details for a user object
 	_kc_hidden virtual ECRESULT GetQuotaDetailsAndSync(unsigned int obj_id, quotadetails_t *ret, bool get_user_default = false);
 	// Set quota details for a user object
 	_kc_hidden virtual ECRESULT SetQuotaDetailsAndSync(unsigned int obj_id, const quotadetails_t &);
-	// Get (typed) objectlist for company, or list of all companies, with on-the-fly delete/create of users and groups
+	/* Get (typed) objectlist for company, or list of all companies, with on-the-fly deletion/creation of users and groups. */
 	_kc_hidden virtual ECRESULT GetCompanyObjectListAndSync(objectclass_t, unsigned int company_id, std::list<localobjectdetails_t> **objs, unsigned int flags = 0);
-	// Get subobjects in an object, with on-the-fly delete of the specified parent object
+	/* Get subobjects in an object, with on-the-fly deletion of the specified parent object. */
 	_kc_hidden virtual ECRESULT GetSubObjectsOfObjectAndSync(userobject_relation_t, unsigned int parent_id, std::list<localobjectdetails_t> **objs, unsigned int flags = 0);
-	// Get parent to which an object belongs, with on-the-fly delete of the specified child object id
+	/* Get parent for an object, with on-the-fly deletion of the specified child object id. */
 	_kc_hidden virtual ECRESULT GetParentObjectsOfObjectAndSync(userobject_relation_t, unsigned int child_id, std::list<localobjectdetails_t> **groups, unsigned int flags = 0);
-
-	// Set data for a single user, with on-the-fly delete of the specified user id
+	/* Set data for a single user, with on-the-fly deletion of the specified user id. */
 	_kc_hidden virtual ECRESULT SetObjectDetailsAndSync(unsigned int obj_id, const objectdetails_t &, std::list<std::string> *remove_props);
-
-	// Add a member to a group, with on-the-fly delete of the specified group id
+	/* Add a member to a group, with on-the-fly deletion of the specified group id. */
 	_kc_hidden virtual ECRESULT AddSubObjectToObjectAndSync(userobject_relation_t, unsigned int parent_id, unsigned int child_id);
 	_kc_hidden virtual ECRESULT DeleteSubObjectFromObjectAndSync(userobject_relation_t, unsigned int parent_id, unsigned int child_id);
-
-	// Resolve a user name to a user id, with on-the-fly create of the specified user
+	/* Resolve a user name to a user id, with on-the-fly creation of the specified user. */
 	_kc_hidden virtual ECRESULT ResolveObjectAndSync(objectclass_t, const char *name, unsigned int *obj_id);
 
 	// Get a local object ID for a part of a name
@@ -179,8 +176,7 @@ public:
 	_kc_hidden virtual ECRESULT DeleteObjectAndSync(unsigned int obj_id);
 	// Either modify or create an object with a specific object id and type (used for synchronize)
 	_kc_hidden virtual ECRESULT CreateOrModifyObject(const objectid_t &extern_id, const objectdetails_t &, unsigned int pref_id, std::list<std::string> *remove_props);
-
-	// Get MAPI property data for a group or user/group/company id, with on-the-fly delete of the specified user/group/company
+	/* Get MAPI property data for a group or user/group/company id, with on-the-fly deletion of the specified user/group/company. */
 	_kc_hidden virtual ECRESULT GetProps(struct soap *, unsigned int obj_id, struct propTagArray *, struct propValArray *);
 	_kc_hidden virtual ECRESULT GetContainerProps(struct soap *, unsigned int obj_id, struct propTagArray *, struct propValArray *);
 	// Do the same for a whole set of items

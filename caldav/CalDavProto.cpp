@@ -768,7 +768,7 @@ HRESULT CalDAV::HrHandleDelete()
 	m_lpRequest->HrGetUrl(&strUrl);
 	bisFolder = m_ulUrlFlag & REQ_COLLECTION;
 
-	// deny delete of default folder
+	/* Deny deletion of the default folder. */
 	if (!m_blFolderAccess && bisFolder)
 	{
 		hr = MAPI_E_NO_ACCESS;

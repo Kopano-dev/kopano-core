@@ -538,7 +538,7 @@ ECRESULT ECKeyTable::Clear()
 
 	lpRow = lpRoot;
 
-	// Depth-first delete of all nodes (excluding root)
+	/* Depth-first deletion of all nodes (excluding root) */
 	while(lpRow) {
 		if(lpRow->lpLeft) 
 			lpRow = lpRow->lpLeft;
