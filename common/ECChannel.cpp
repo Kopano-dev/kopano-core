@@ -44,8 +44,7 @@ Creating a self-signed test certificate:
 openssl req -new -x509 -key privkey.pem -out cacert.pem -days 1095
 */
 
-// because of statics
-SSL_CTX* ECChannel::lpCTX = NULL;
+std::atomic<SSL_CTX *> ECChannel::lpCTX{nullptr};
 
 HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 {
@@ -54,7 +53,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		return MAPI_E_CALL_FAILED;
 	}
 
-	HRESULT hr = hrSuccess;
+	HRESULT hr = MAPI_E_CALL_FAILED;
 	const char *szFile = nullptr, *szPath = nullptr;;
 	auto cert_file = lpConfig->GetSetting("ssl_certificate_file");
 	auto key_file = lpConfig->GetSetting("ssl_private_key_file");
@@ -85,20 +84,17 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	}
 	fclose(cert_fh);
 
-	if (lpCTX) {
-		SSL_CTX_free(lpCTX);
-		lpCTX = NULL;
+	if (lpCTX == nullptr) {
+		SSL_library_init();
+		SSL_load_error_strings();
 	}
 
-	SSL_library_init();
-	SSL_load_error_strings();
-
 	// enable *all* server methods, not just ssl2 and ssl3, but also tls1 and tls1.1
-	lpCTX = SSL_CTX_new(SSLv23_server_method());
+	auto newctx = SSL_CTX_new(SSLv23_server_method());
 #ifndef SSL_OP_NO_RENEGOTIATION
 #	define SSL_OP_NO_RENEGOTIATION 0 /* unavailable in openSSL 1.0 */
 #endif
-	SSL_CTX_set_options(lpCTX, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION);
+	SSL_CTX_set_options(newctx, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION);
 	ssl_name = strtok(ssl_protocols.get(), " ");
 	while(ssl_name != NULL) {
 		int ssl_proto = 0;
@@ -131,7 +127,6 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 #endif
 		else if (!ssl_neg) {
 			ec_log_err("Unknown protocol \"%s\" in ssl_protocols setting", ssl_name);
-			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
 
@@ -165,66 +160,64 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		ssl_op |= SSL_OP_NO_TLSv1_3;
 #endif
 	if (ssl_protocols)
-		SSL_CTX_set_options(lpCTX, ssl_op);
+		SSL_CTX_set_options(newctx, ssl_op);
 
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
 	if (ecdh != NULL) {
 		/* SINGLE_ECDH_USE = renegotiate exponent for each handshake */
-		SSL_CTX_set_options(lpCTX, SSL_OP_SINGLE_ECDH_USE);
-		SSL_CTX_set_tmp_ecdh(lpCTX, ecdh);
+		SSL_CTX_set_options(newctx, SSL_OP_SINGLE_ECDH_USE);
+		SSL_CTX_set_tmp_ecdh(newctx, ecdh);
 		EC_KEY_free(ecdh);
 	}
 #endif
-
-	if (ssl_ciphers && SSL_CTX_set_cipher_list(lpCTX, ssl_ciphers) != 1) {
+	if (ssl_ciphers && SSL_CTX_set_cipher_list(newctx, ssl_ciphers) != 1) {
 		ec_log_err("Can not set SSL cipher list to \"%s\": %s", ssl_ciphers, ERR_error_string(ERR_get_error(), 0));
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	if (parseBool(lpConfig->GetSetting("ssl_prefer_server_ciphers")))
-		SSL_CTX_set_options(lpCTX, SSL_OP_CIPHER_SERVER_PREFERENCE);
+		SSL_CTX_set_options(newctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
 #if !defined(OPENSSL_NO_ECDH) && defined(SSL_CTX_set1_curves_list)
-	if (ssl_curves && SSL_CTX_set1_curves_list(lpCTX, ssl_curves) != 1) {
+	if (ssl_curves && SSL_CTX_set1_curves_list(newctx, ssl_curves) != 1) {
 		ec_log_err("Can not set SSL curve list to \"%s\": %s", ssl_curves, ERR_error_string(ERR_get_error(), 0));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
-	SSL_CTX_set_ecdh_auto(lpCTX, 1);
+	SSL_CTX_set_ecdh_auto(newctx, 1);
 #endif
 
-	SSL_CTX_set_default_verify_paths(lpCTX);
-	if (SSL_CTX_use_certificate_chain_file(lpCTX, cert_file) != 1) {
+	SSL_CTX_set_default_verify_paths(newctx);
+	if (SSL_CTX_use_certificate_chain_file(newctx, cert_file) != 1) {
 		ec_log_err("SSL CTX certificate file error: %s", ERR_error_string(ERR_get_error(), 0));
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-	if (SSL_CTX_use_PrivateKey_file(lpCTX, key_file, SSL_FILETYPE_PEM) != 1) {
+	if (SSL_CTX_use_PrivateKey_file(newctx, key_file, SSL_FILETYPE_PEM) != 1) {
 		ec_log_err("SSL CTX private key file error: %s", ERR_error_string(ERR_get_error(), 0));
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-	if (SSL_CTX_check_private_key(lpCTX) != 1) {
+	if (SSL_CTX_check_private_key(newctx) != 1) {
 		ec_log_err("SSL CTX check private key error: %s", ERR_error_string(ERR_get_error(), 0));
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 	if (strcmp(lpConfig->GetSetting("ssl_verify_client"), "yes") == 0)
-		SSL_CTX_set_verify(lpCTX, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, 0);
+		SSL_CTX_set_verify(newctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, 0);
 	else
-		SSL_CTX_set_verify(lpCTX, SSL_VERIFY_NONE, 0);
+		SSL_CTX_set_verify(newctx, SSL_VERIFY_NONE, 0);
 
 	if (lpConfig->GetSetting("ssl_verify_file")[0])
 		szFile = lpConfig->GetSetting("ssl_verify_file");
 	if (lpConfig->GetSetting("ssl_verify_path")[0])
 		szPath = lpConfig->GetSetting("ssl_verify_path");
-	if ((szFile || szPath) && SSL_CTX_load_verify_locations(lpCTX, szFile, szPath) != 1)
+	if ((szFile != nullptr || szPath != nullptr) &&
+	    SSL_CTX_load_verify_locations(newctx, szFile, szPath) != 1)
 		ec_log_err("SSL CTX error loading verify locations: %s", ERR_error_string(ERR_get_error(), 0));
+
+	lpCTX = std::move(newctx);
 exit:
 	if (hr != hrSuccess)
-		HrFreeCtx();
+		SSL_CTX_free(newctx);
 	return hr;
 }
 
