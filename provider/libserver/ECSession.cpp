@@ -102,7 +102,6 @@ BTSession::BTSession(const char *src_addr, ECSESSIONID sessionID,
 	m_lpSessionManager(lpSessionManager),
 	m_ulClientCapabilities(ulCapabilities)
 {
-	m_ulRefCount = 0;
 	m_sessionTime = GetProcessTime();
 
 	m_ulSessionTimeout = 300;

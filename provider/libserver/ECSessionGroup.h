@@ -23,6 +23,7 @@
 #define ECSESSIONGROUP
 
 #include <kopano/zcdefs.h>
+#include <atomic>
 #include <condition_variable>
 #include <list>
 #include <map>
@@ -143,7 +144,7 @@ private:
 	ECSESSIONID m_getNotifySession = 0;
 
 	/* Thread safety mutex/event */
-	unsigned int m_ulRefCount = 0;
+	std::atomic<unsigned int> m_ulRefCount{0};
 	std::mutex m_hThreadReleasedMutex;
 	std::condition_variable m_hThreadReleased;
 

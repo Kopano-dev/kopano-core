@@ -23,6 +23,7 @@
 #define ECSESSION
 
 #include <kopano/zcdefs.h>
+#include <atomic>
 #include <condition_variable>
 #include <list>
 #include <map>
@@ -105,8 +106,7 @@ public:
 	    METHOD_NONE, METHOD_USERPASSWORD, METHOD_SOCKET, METHOD_SSO, METHOD_SSL_CERT
 	};
 protected:
-	unsigned int		m_ulRefCount;
-
+	std::atomic<unsigned int> m_ulRefCount{0};
 	std::string		m_strSourceAddr;
 	ECSESSIONID		m_sessionID;
 	bool			m_bCheckIP;
