@@ -61,16 +61,6 @@ inline double difftimeval(struct timeval *ptstart, struct timeval *ptend) {
 }
 
 extern _kc_export struct tm *gmtime_safe(const time_t *timer, struct tm *result);
-
-/**
- * Creates the deadline timespec, which is the current time plus the specified
- * amount of milliseconds.
- *
- * @param[in]	ulTimeoutMs		The timeout in ms.
- * @return		The required timespec.
- */
-struct timespec GetDeadline(unsigned int ulTimeoutMs);
-
 extern _kc_export double timespec2dbl(const struct timespec &);
 extern bool operator==(const FILETIME &, const FILETIME &) noexcept;
 extern _kc_export bool operator >(const FILETIME &, const FILETIME &) noexcept;

@@ -20,8 +20,6 @@
 #include <kopano/ECScheduler.h>
 #include <kopano/lockhelper.hpp>
 #include <cerrno>
-#include <sys/time.h> /* gettimeofday */
-
 #define SCHEDULER_POLL_FREQUENCY	5
 
 namespace KC {
