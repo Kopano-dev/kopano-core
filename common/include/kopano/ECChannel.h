@@ -6,6 +6,7 @@
 #ifndef ECCHANNEL_H
 #define ECCHANNEL_H
 
+#include <atomic>
 #include <set>
 #include <string>
 #include <utility>
@@ -55,7 +56,7 @@ public:
 private:
 	int fd;
 	SSL *lpSSL = nullptr;
-	static SSL_CTX *lpCTX;
+	static std::atomic<SSL_CTX *> lpCTX;
 	char peer_atxt[256+16];
 	struct sockaddr_storage peer_sockaddr;
 	socklen_t peer_salen = 0;
