@@ -412,7 +412,6 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
     bool fAllowUidAuth)
 {
 	std::unique_ptr<ECAuthSession> lpAuthSession;
-	ECSession		*lpSession	= NULL;
 	const char		*method = "error";
 	std::string		from;
 	CONNECTION_TYPE ulType = SOAP_CONNECTION_TYPE(soap);
@@ -428,7 +427,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 
 	auto er = this->CreateAuthSession(soap, ulCapabilities, lpSessionID, &unique_tie(lpAuthSession), false, false);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	if (szClientApp == nullptr)
 		szClientApp = "<unknown>";
 
@@ -457,14 +456,13 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	ZLOG_AUDIT(m_lpAudit, "authenticate failed user='%s' from='%s' program='%s'",
 		szName, from.c_str(), szClientApp);
 
-	er = KCERR_LOGON_FAILED;			
 	g_lpStatsCollector->Increment(SCN_LOGIN_DENIED);
-	goto exit;
+	return KCERR_LOGON_FAILED;
 
 authenticated:
 	er = RegisterSession(lpAuthSession.get(), sessionGroupID,
 	     szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc,
-	     lpSessionID, &lpSession, fLockSession);
+	     lpSessionID, lppSession, fLockSession);
 	if (er != erSuccess) {
 		if (er == KCERR_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
 			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\": %s (0x%x)", szImpersonateUser, szName, GetMAPIErrorMessage(er), er);
@@ -475,7 +473,7 @@ authenticated:
 			ZLOG_AUDIT(m_lpAudit, "authenticate ok, session failed: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\"",
 				from.c_str(), szImpersonateUser, szName, method, szClientApp);
 		}
-		goto exit;
+		return er;
 	}
 	if (!szImpersonateUser || *szImpersonateUser == '\0')
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok: from=\"%s\" user=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
@@ -483,10 +481,7 @@ authenticated:
 	else
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok, impersonate ok: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
 			from.c_str(), szImpersonateUser, szName, method, szClientApp, static_cast<unsigned long long>(*lpSessionID));
-exit:
-	*lppSession = lpSession;
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
@@ -522,19 +517,16 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 
 	CreateSessionID(KOPANO_CAP_LARGE_SESSIONID, &newSID);
 
-	auto lpSession = new(std::nothrow) ECSession("<internal>", newSID, 0,
-	                 m_lpDatabaseFactory.get(), this, 0, ECSession::METHOD_NONE, 0,
-	                "internal", "kopano-server", "", "");
+	std::unique_ptr<ECSession> lpSession(new(std::nothrow) ECSession("<internal>",
+		newSID, 0, m_lpDatabaseFactory.get(), this, 0,
+		ECSession::METHOD_NONE, 0, "internal", "kopano-server", "", ""));
 	if (lpSession == NULL)
 		return KCERR_LOGON_FAILED;
 	auto er = lpSession->GetSecurity()->SetUserContext(ulUserId, EC_NO_IMPERSONATOR);
-	if (er != erSuccess) {
-		delete lpSession;
+	if (er != erSuccess)
 		return er;
-	}
 	g_lpStatsCollector->Increment(SCN_SESSIONS_INTERNAL_CREATED);
-
-	*lppSession = lpSession;
+	*lppSession = lpSession.release();
 	return erSuccess;
 }
 
