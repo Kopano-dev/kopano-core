@@ -320,7 +320,7 @@ struct FILETIME {
     DWORD dwHighDateTime;
 };
 typedef struct FILETIME *LPFILETIME;
-#define NANOSECS_BETWEEN_EPOCHS 116444736000000000LL
+#define NANOSECS_BETWEEN_EPOCHS 116444736000000000LL /* units of 100 ns! */
 
 /* made up .. seems correct */
 union LARGE_INTEGER {

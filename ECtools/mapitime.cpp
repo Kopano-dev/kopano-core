@@ -23,10 +23,11 @@
 #endif
 
 struct mpt_stat_entry {
-	struct timespec start, stop;
+	KC::time_point start, stop;
 };
 
 using namespace KCHL;
+using clk = std::chrono::steady_clock;
 
 static std::list<struct mpt_stat_entry> mpt_stat_list;
 static std::wstring mpt_userw, mpt_passw;
@@ -40,16 +41,10 @@ static void mpt_stat_dump(int s = 0)
 	size_t z = mpt_stat_list.size();
 	if (z == 0)
 		return;
-	const struct mpt_stat_entry &first = mpt_stat_list.front();
-	const struct mpt_stat_entry &last  = mpt_stat_list.back();
-	typedef std::chrono::seconds sec;
-	typedef std::chrono::nanoseconds nsec;
-	auto dt = std::chrono::duration<double>(
-	          sec(last.stop.tv_sec) + nsec(last.stop.tv_nsec) -
-	          (sec(first.start.tv_sec) + nsec(first.start.tv_nsec)));
+	auto dt = mpt_stat_list.back().stop - mpt_stat_list.front().start;
 	if (dt.count() == 0)
 		return;
-	printf("\r\x1b\x5b""2K%.1f per second", z / dt.count());
+	printf("\r\x1b\x5b""2K%.1f per second", z / std::chrono::duration_cast<std::chrono::duration<double>>(dt).count());
 	fflush(stdout);
 }
 
@@ -100,11 +95,11 @@ static int mpt_main_init(void)
 		return EXIT_FAILURE;
 	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
-		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		dp.start = clk::now();
 		HRESULT ret = MAPIInitialize(NULL);
 		if (ret == erSuccess)
 			MAPIUninitialize();
-		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		dp.stop = clk::now();
 		mpt_stat_record(dp);
 	}
 	return EXIT_SUCCESS;
@@ -145,11 +140,11 @@ static int mpt_main_login(bool with_lo, bool with_ping)
 
 	while (mpt_repeat-- > 0) {
 		object_ptr<IMAPISession> ses;
-		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		dp.start = clk::now();
 		ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
 		      mpt_socket, 0, NULL, NULL);
 		if (!with_lo)
-			clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+			dp.stop = clk::now();
 		if (ret != hrSuccess) {
 			fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
 			sleep(1);
@@ -159,7 +154,7 @@ static int mpt_main_login(bool with_lo, bool with_ping)
 			if (with_ping)
 				mpt_ping(ses);
 			ses.reset();
-			clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+			dp.stop = clk::now();
 		}
 		mpt_stat_record(dp);
 	}
@@ -191,7 +186,7 @@ static int mpt_main_lsr(bool with_ping)
 
 	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
-		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		dp.start = clk::now();
 		std::string data;
 		ret = kc_session_save(ses, data);
 		if (ret != hrSuccess) {
@@ -205,7 +200,7 @@ static int mpt_main_lsr(bool with_ping)
 		}
 		if (with_ping)
 			mpt_ping(ses);
-		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		dp.stop = clk::now();
 		mpt_stat_record(dp);
 	}
 	return EXIT_SUCCESS;
@@ -232,9 +227,9 @@ static int mpt_main_pagetime(int argc, char **argv)
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, static_cast<curl_write_callback>([](char *, size_t, size_t n, void *) { return n; }));
 	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
-		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		dp.start = clk::now();
 		curl_easy_perform(curl);
-		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		dp.stop = clk::now();
 		mpt_stat_record(dp);
 	}
 	return EXIT_SUCCESS;
@@ -258,10 +253,10 @@ static int mpt_main_exectime(int argc, char **argv)
 		pid_t pid;
 		int st;
 
-		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		dp.start = clk::now();
 		if (posix_spawn(&pid, argv[0], nullptr, nullptr, const_cast<char **>(argv), nullptr) == 0)
 			wait(&st);
-		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		dp.stop = clk::now();
 		mpt_stat_record(dp);
 	}
 	return EXIT_SUCCESS;
@@ -291,20 +286,20 @@ static int mpt_main_cast(bool which)
 		while (mpt_repeat-- > 0) {
 			struct mpt_stat_entry dp;
 			unsigned int rep = 100000;
-			clock_gettime(CLOCK_MONOTONIC, &dp.start);
+			dp.start = clk::now();
 			while (rep-- > 0)
 				unk->QueryInterface(IID_IProfAdmin, &~profadm);
-			clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+			dp.stop = clk::now();
 			mpt_stat_record(dp);
 		}
 	} else if (which == 1) { /* dycast */
 		while (mpt_repeat-- > 0) {
 			struct mpt_stat_entry dp;
 			unsigned int rep = 100000;
-			clock_gettime(CLOCK_MONOTONIC, &dp.start);
+			dp.start = clk::now();
 			while (rep-- > 0)
 				profadm.reset(dynamic_cast<IProfAdmin *>(unk.get()));
-			clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+			dp.stop = clk::now();
 			mpt_stat_record(dp);
 		}
 	}
@@ -319,7 +314,7 @@ static int mpt_main_malloc(void)
 		return EXIT_FAILURE;
 
 	while (mpt_repeat-- > 0) {
-		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		dp.start = clk::now();
 		memory_ptr<MAPIUID> base;
 		auto ret = MAPIAllocateBuffer(sizeof(MAPIUID), &~base);
 		if (ret != hrSuccess)
@@ -331,7 +326,7 @@ static int mpt_main_malloc(void)
 				return EXIT_FAILURE;
 		}
 		base.reset();
-		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		dp.stop = clk::now();
 		mpt_stat_record(dp);
 	}
 	return EXIT_SUCCESS;
@@ -348,9 +343,9 @@ static int mpt_main_bin2hex()
 	std::unique_ptr<char[]> temp(new char[bufsize]);
 	memset(temp.get(), 0, bufsize);
 	while (mpt_repeat-- > 0) {
-		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		dp.start = clk::now();
 		bin2hex(bufsize, reinterpret_cast<const unsigned char *>(temp.get()));
-		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		dp.stop = clk::now();
 		mpt_stat_record(dp);
 	}
 	return EXIT_SUCCESS;
