@@ -67,6 +67,34 @@ class _kc_export DB_RESULT _kc_final {
 	KDatabase *m_db = nullptr;
 };
 
+class kt_completion {
+	public:
+	virtual ECRESULT Commit() = 0;
+	virtual ECRESULT Rollback() = 0;
+};
+
+/**
+ * kd_trans is an explicit variable wrapper around a database transaction.
+ * The transaction's scope is bounded by the scope of a certain kd_trans.
+ * Essentially, this gives the programmer an implicit rollback whenever
+ * a kd_trans did not have commit() called.
+ */
+class _kc_export kd_trans final {
+	public:
+	kd_trans();
+	kd_trans(kt_completion &d, ECRESULT &r) : m_db(&d), m_result(&r) {}
+	kd_trans(kd_trans &&);
+	~kd_trans();
+	kd_trans &operator=(kd_trans &&);
+	ECRESULT commit();
+	ECRESULT rollback();
+
+	private:
+	kt_completion *m_db;
+	ECRESULT *m_result;
+	bool m_done = false;
+};
+
 class _kc_export KDatabase {
 	public:
 	KDatabase(void);
