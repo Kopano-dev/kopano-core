@@ -48,18 +48,14 @@ namespace KC {
 
 ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
     bool bHostedKopano, bool bDistributedKopano) :
-	m_lpConfig(lpConfig), m_lpAudit(lpAudit),
-	m_bHostedKopano(bHostedKopano),
-	m_bDistributedKopano(bDistributedKopano)
+	m_lpConfig(lpConfig), m_bHostedKopano(bHostedKopano),
+	m_bDistributedKopano(bDistributedKopano), m_lpAudit(lpAudit)
 {
-	if (m_lpAudit)
-		m_lpAudit->AddRef();
-
-	m_lpDatabaseFactory = new ECDatabaseFactory(lpConfig);
-	m_lpPluginFactory = new ECPluginFactory(lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano);
-	m_lpECCacheManager = new ECCacheManager(lpConfig, m_lpDatabaseFactory);
-	m_lpSearchFolders = new ECSearchFolders(this, m_lpDatabaseFactory);
-	m_lpTPropsPurge = new ECTPropsPurge(lpConfig, m_lpDatabaseFactory);
+	m_lpPluginFactory.reset(new ECPluginFactory(lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano));
+	m_lpDatabaseFactory.reset(new ECDatabaseFactory(lpConfig));
+	m_lpSearchFolders.reset(new ECSearchFolders(this, m_lpDatabaseFactory.get()));
+	m_lpECCacheManager.reset(new ECCacheManager(lpConfig, m_lpDatabaseFactory.get()));
+	m_lpTPropsPurge.reset(new ECTPropsPurge(lpConfig, m_lpDatabaseFactory.get()));
 	m_ptrLockManager = ECLockManager::Create();
 	
 	// init SSL randomness for session IDs
@@ -72,7 +68,7 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	if (err != 0)
 		ec_log_crit("Unable to spawn thread for session cleaner! Sessions will live forever!: %s", strerror(err));
 
-	m_lpNotificationManager = new ECNotificationManager();
+	m_lpNotificationManager.reset(new ECNotificationManager());
 }
 
 ECSessionManager::~ECSessionManager()
@@ -81,9 +77,9 @@ ECSessionManager::~ECSessionManager()
 	bExit = TRUE;
 	m_hExitSignal.notify_one();
 	l_exit.unlock();
-	delete m_lpTPropsPurge;
-	delete m_lpDatabase;
-	delete m_lpDatabaseFactory;
+	m_lpTPropsPurge.reset();
+	m_lpDatabase.reset();
+	m_lpDatabaseFactory.reset();
 		
 	int err = pthread_join(m_hSessionCleanerThread, NULL);
 	if (err != 0)
@@ -94,16 +90,7 @@ ECSessionManager::~ECSessionManager()
 	for (auto s = m_mapSessions.begin(); s != m_mapSessions.end();
 	     s = m_mapSessions.erase(s))
 		delete s->second;
-	delete m_lpNotificationManager;
-//#ifdef DEBUG
 	// Clearing the cache takes too long while shutting down
-	delete m_lpECCacheManager;
-//#endif
-	delete m_lpSearchFolders;
-	delete m_lpPluginFactory;
-	delete m_lpServerGuid;
-	if (m_lpAudit != NULL)
-		m_lpAudit->Release();
 }
 
 ECRESULT ECSessionManager::LoadSettings(){
@@ -112,7 +99,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 
 	if (m_lpServerGuid != nullptr)
 		return KCERR_BAD_VALUE;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &lpDatabase);
 	if(er != erSuccess)
 		return er;
 
@@ -126,9 +113,8 @@ ECRESULT ECSessionManager::LoadSettings(){
 	    lpDBLenths == nullptr || lpDBLenths[0] != sizeof(GUID))
 		return KCERR_NOT_FOUND;
 
-	m_lpServerGuid = new GUID;
-
-	memcpy(m_lpServerGuid, lpDBRow[0], sizeof(GUID));
+	m_lpServerGuid.reset(new GUID);
+	memcpy(m_lpServerGuid.get(), lpDBRow[0], sizeof(GUID));
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment'";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
@@ -399,7 +385,8 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 
 	CreateSessionID(ulCapabilities, &newSessionID);
 
-	auto lpAuthSession = new(std::nothrow) ECAuthSession(GetSourceAddr(soap), newSessionID, m_lpDatabaseFactory, this, ulCapabilities);
+	auto lpAuthSession = new(std::nothrow) ECAuthSession(GetSourceAddr(soap),
+		newSessionID, m_lpDatabaseFactory.get(), this, ulCapabilities);
 	if (lpAuthSession == NULL)
 		return KCERR_NOT_ENOUGH_MEMORY;
 	if (bLockSession)
@@ -536,7 +523,7 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 	CreateSessionID(KOPANO_CAP_LARGE_SESSIONID, &newSID);
 
 	auto lpSession = new(std::nothrow) ECSession("<internal>", newSID, 0,
-	                 m_lpDatabaseFactory, this, 0, ECSession::METHOD_NONE, 0,
+	                 m_lpDatabaseFactory.get(), this, 0, ECSession::METHOD_NONE, 0,
 	                "internal", "kopano-server", "", "");
 	if (lpSession == NULL)
 		return KCERR_LOGON_FAILED;
@@ -676,7 +663,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		return 0;
 
 	ECDatabase *db = NULL;
-	if (GetThreadLocalDatabase(lpSessionManager->m_lpDatabaseFactory, &db) != erSuccess)
+	if (GetThreadLocalDatabase(lpSessionManager->m_lpDatabaseFactory.get(), &db) != erSuccess)
 		ec_log_err("GTLD failed in SessionCleaner");
 
 	while(true){
@@ -1153,7 +1140,7 @@ ECRESULT ECSessionManager::GetLicensedUsers(unsigned int ulServiceType, unsigned
 ECRESULT ECSessionManager::GetServerGUID(GUID* lpServerGuid){
 	if (lpServerGuid == NULL)
 		return KCERR_INVALID_PARAMETER;
-	memcpy(lpServerGuid, m_lpServerGuid, sizeof(GUID));
+	memcpy(lpServerGuid, m_lpServerGuid.get(), sizeof(GUID));
 	return erSuccess;
 }
 
@@ -1253,7 +1240,7 @@ ECRESULT ECSessionManager::CreateDatabaseConnection()
     
 	if (m_lpDatabase != nullptr)
 		return erSuccess;
-	auto er = m_lpDatabaseFactory->CreateDatabaseObject(&m_lpDatabase, strError);
+	auto er = m_lpDatabaseFactory->CreateDatabaseObject(&unique_tie(m_lpDatabase), strError);
 	if (er != erSuccess)
 		ec_log_crit("Unable to open connection to database: %s", strError.c_str());
 	return er;
@@ -1338,7 +1325,7 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 
 	if (lpLcid == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &lpDatabase);
 	if(er != erSuccess)
 		return er;
 

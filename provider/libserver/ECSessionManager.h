@@ -162,11 +162,11 @@ public:
 	_kc_hidden LPCSTR GetDefaultSortLocaleID(void);
 	_kc_hidden ULONG GetSortLCID(ULONG store_id);
 	_kc_hidden ECLocale GetSortLocale(ULONG store_id);
-	_kc_hidden ECCacheManager *GetCacheManager(void) { return m_lpECCacheManager; }
-	_kc_hidden ECSearchFolders *GetSearchFolders(void) { return m_lpSearchFolders; }
+	_kc_hidden ECCacheManager *GetCacheManager(void) { return m_lpECCacheManager.get(); }
+	_kc_hidden ECSearchFolders *GetSearchFolders(void) { return m_lpSearchFolders.get(); }
 	_kc_hidden ECConfig *GetConfig(void) { return m_lpConfig; }
 	_kc_hidden ECLogger *GetAudit(void) { return m_lpAudit; }
-	_kc_hidden ECPluginFactory *GetPluginFactory(void) { return m_lpPluginFactory; }
+	_kc_hidden ECPluginFactory *GetPluginFactory(void) { return m_lpPluginFactory.get(); }
 	_kc_hidden ECLockManager *GetLockManager(void) { return m_ptrLockManager.get(); }
 
 protected:
@@ -187,18 +187,11 @@ protected:
 	bool				m_bTerminateThread;
 	ECConfig*			m_lpConfig;
 	bool bExit = false;
-	ECCacheManager*		m_lpECCacheManager;
-	ECLogger*			m_lpAudit;
-	ECDatabaseFactory*	m_lpDatabaseFactory;
-	ECPluginFactory*	m_lpPluginFactory;
-	ECSearchFolders*	m_lpSearchFolders;
 	bool				m_bHostedKopano;
 	bool				m_bDistributedKopano;
-	GUID *m_lpServerGuid = nullptr;
 	unsigned long long m_ullSourceKeyAutoIncrement = 0;
 	unsigned int m_ulSourceKeyQueue = 0;
 	std::mutex m_hSourceKeyAutoIncrementMutex;
-	ECDatabase *m_lpDatabase = nullptr;
 
 	std::mutex m_mutexPersistent;
 	PERSISTENTBYSESSION m_mapPersistentBySession; ///< map of all persistent sessions mapped to their connection id
@@ -211,14 +204,21 @@ protected:
 	std::mutex m_mutexObjectSubscriptions;
 	OBJECTSUBSCRIPTIONSMULTIMAP	m_mapObjectSubscriptions;	///< Maps an object notification subscription (store id) to the subscriber
 
-	ECNotificationManager *m_lpNotificationManager;
-	ECTPropsPurge		*m_lpTPropsPurge;
-	ECLockManagerPtr	m_ptrLockManager;
-
 	// Sequences
 	std::mutex m_hSeqMutex;
 	unsigned long long m_ulSeqIMAP = 0;
 	unsigned int m_ulSeqIMAPQueue = 0;
+
+	KCHL::object_ptr<ECLogger> m_lpAudit;
+	std::unique_ptr<GUID> m_lpServerGuid;
+	std::unique_ptr<ECPluginFactory> m_lpPluginFactory;
+	std::unique_ptr<ECSearchFolders> m_lpSearchFolders;
+	std::unique_ptr<ECDatabaseFactory> m_lpDatabaseFactory;
+	std::unique_ptr<ECCacheManager> m_lpECCacheManager;
+	std::unique_ptr<ECTPropsPurge> m_lpTPropsPurge;
+	ECLockManagerPtr m_ptrLockManager;
+	std::unique_ptr<ECNotificationManager> m_lpNotificationManager;
+	std::unique_ptr<ECDatabase> m_lpDatabase;
 };
 
 extern _kc_export ECSessionManager *g_lpSessionManager;
