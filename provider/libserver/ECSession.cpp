@@ -106,8 +106,6 @@ BTSession::BTSession(const char *src_addr, ECSESSIONID sessionID,
 
 	m_ulSessionTimeout = 300;
 	m_bCheckIP = true;
-
-	m_lpUserManagement = NULL;
 	m_ulRequests = 0;
 
 	m_ulLastRequestPort = 0;
@@ -245,7 +243,7 @@ ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
 	m_ecSessionGroupId(ecSessionGroupId), m_strClientVersion(cl_ver),
 	m_ulClientVersion(KOPANO_VERSION_UNKNOWN), m_strClientApp(cl_app)
 {
-	m_lpTableManager		= new ECTableManager(this);
+	m_lpTableManager.reset(new ECTableManager(this));
 	m_strClientApplicationVersion   = cl_app_ver;
 	m_strClientApplicationMisc	= cl_app_misc;
 
@@ -259,8 +257,8 @@ ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
 	m_bCheckIP = strcmp(lpSessionManager->GetConfig()->GetSetting("session_ip_check"), "no") != 0;
 
 	// Offline implements its own versions of these objects
-	m_lpUserManagement = new ECUserManagement(this, m_lpSessionManager->GetPluginFactory(), m_lpSessionManager->GetConfig());
-	m_lpEcSecurity = new ECSecurity(this, m_lpSessionManager->GetConfig(), m_lpSessionManager->GetAudit());
+	m_lpUserManagement.reset(new ECUserManagement(this, m_lpSessionManager->GetPluginFactory(), m_lpSessionManager->GetConfig()));
+	m_lpEcSecurity.reset(new ECSecurity(this, m_lpSessionManager->GetConfig(), m_lpSessionManager->GetAudit()));
 
 	// Atomically get and AddSession() on the sessiongroup. Needs a ReleaseSession() on the session group to clean up.
 	m_lpSessionManager->GetSessionGroup(ecSessionGroupId, this, &m_lpSessionGroup);
@@ -279,9 +277,6 @@ ECSession::~ECSession()
 		m_lpSessionGroup->ReleaseSession(this);
     	m_lpSessionManager->DeleteIfOrphaned(m_lpSessionGroup);
 	}
-	delete m_lpTableManager;
-	delete m_lpUserManagement;
-	delete m_lpEcSecurity;
 }
 
 /**
@@ -606,7 +601,7 @@ ECAuthSession::ECAuthSession(const char *src_addr, ECSESSIONID sessionID,
 	    ulCapabilities)
 {
 	m_ulSessionTimeout = 30;	// authenticate within 30 seconds, or else!
-	m_lpUserManagement = new ECUserManagement(this, m_lpSessionManager->GetPluginFactory(), m_lpSessionManager->GetConfig());
+	m_lpUserManagement.reset(new ECUserManagement(this, m_lpSessionManager->GetPluginFactory(), m_lpSessionManager->GetConfig()));
 #ifdef HAVE_GSSAPI
 	m_gssServerCreds = GSS_C_NO_CREDENTIAL;
 	m_gssContext = GSS_C_NO_CONTEXT;
@@ -660,7 +655,6 @@ ECAuthSession::~ECAuthSession()
 #endif
 		}
 	}
-	delete m_lpUserManagement;
 }
 
 ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
