@@ -28,7 +28,6 @@
 
 #include <sys/stat.h>
 #include <sys/syscall.h>
-#include <sys/time.h> /* gettimeofday */
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include "TmpPath.h"
@@ -256,15 +255,6 @@ int CreatePath(const char *createpath)
 		return -1;
 	// Create the actual directory
 	return mkdir(createpath, 0700);
-}
-
-double GetTimeOfDay()
-{
-	struct timeval tv;
-
-	gettimeofday(&tv, NULL);
-
-	return (double)tv.tv_sec + ((double)tv.tv_usec / 1000000); // usec = microsec = 1 millionth of a second
 }
 
 void set_thread_name(pthread_t tid, const std::string & name)

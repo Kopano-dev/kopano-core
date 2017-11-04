@@ -50,7 +50,7 @@ struct s3_cdw {
 };
 
 struct s3_cache_entry {
-	std::chrono::time_point<std::chrono::steady_clock> valid_until;
+	KC::time_point valid_until;
 	size_t size;
 };
 #define S3_NEGATIVE_ENTRY SIZE_MAX

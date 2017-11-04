@@ -434,7 +434,7 @@ ECRESULT ECSession::GetNotifyItems(struct soap *soap, struct notifyResponse *not
 }
 
 void ECSession::AddBusyState(pthread_t threadId, const char *lpszState,
-    const struct timespec &threadstart, double start)
+    const struct timespec &threadstart, const KC::time_point &start)
 {
 	if (!lpszState) {		
 		ec_log_err("Invalid argument \"lpszState\" in call to ECSession::AddBusyState()");
@@ -473,7 +473,7 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 	// Since the specified thread is done now, record how much work it has done for us
 	if(pthread_getcpuclockid(threadId, &clock) == 0) {
 		clock_gettime(clock, &end);
-		AddClocks(timespec2dbl(end) - timespec2dbl(i->second.threadstart), 0, GetTimeOfDay() - i->second.start);
+		AddClocks(timespec2dbl(end) - timespec2dbl(i->second.threadstart), 0, dur2dbl(decltype(i->second.start)::clock::now() - i->second.start));
 	} else {
 		assert(false);
 	}

@@ -515,7 +515,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 			throw ldap_error("Failure connecting any of the LDAP servers");
 	}
 
-	llelapsedtime = dur2ms(std::chrono::steady_clock::now() - tstart);
+	llelapsedtime = dur2ms(decltype(tstart)::clock::now() - tstart);
 	m_lpStatsCollector->Increment(SCN_LDAP_CONNECTS);
 	m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_CONNECT_TIME_MAX, llelapsedtime);
@@ -599,7 +599,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		goto exit;
 	}
 
-	llelapsedtime = dur2ms(std::chrono::steady_clock::now() - tstart);
+	llelapsedtime = dur2ms(decltype(tstart)::clock::now() - tstart);
 	LOG_PLUGIN_DEBUG("ldaptiming [%08.2f] (\"%s\" \"%s\" %s), results: %d", llelapsedtime/1000000.0, base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
 
 	*lppres = res.release(); // deref the pointer from object
@@ -1439,7 +1439,7 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 		throw;
 	}
 
-	auto llelapsedtime = dur2ms(std::chrono::steady_clock::now() - tstart);
+	auto llelapsedtime = dur2ms(decltype(tstart)::clock::now() - tstart);
 	m_lpStatsCollector->Increment(SCN_LDAP_AUTH_LOGINS);
 	m_lpStatsCollector->Increment(SCN_LDAP_AUTH_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_AUTH_TIME_MAX, llelapsedtime);

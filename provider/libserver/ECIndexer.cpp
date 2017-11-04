@@ -311,7 +311,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
     ECRESULT er = erSuccess;
 	std::unique_ptr<ECSearchClient> lpSearchClient;
 	std::set<unsigned int> setExcludePropTags;
-	std::chrono::time_point<std::chrono::steady_clock> tstart;
+	KC::time_point tstart;
 	LONGLONG	llelapsedtime;
 	struct restrictTable *lpOptimizedRestrict = NULL;
 	std::list<SIndexedTerm> lstMultiSearches;

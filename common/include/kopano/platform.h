@@ -28,6 +28,7 @@ enum {
   #include "config.h"
   #endif
   #include <kopano/platform.linux.h>
+#include <chrono>
 #include <string>
 #include <type_traits>
 #include <cstddef>
@@ -54,7 +55,6 @@ void	RTimeToFileTime(LONG rtime, FILETIME *pft);
 extern _kc_export void FileTimeToRTime(const FILETIME *, LONG *rtime);
 extern _kc_export HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime);
 extern _kc_export HRESULT RTimeToUnixTime(LONG rtime, time_t *unixtime);
-extern _kc_export double GetTimeOfDay(void);
 extern _kc_export struct tm *gmtime_safe(const time_t *timer, struct tm *result);
 extern _kc_export double timespec2dbl(const struct timespec &);
 extern bool operator==(const FILETIME &, const FILETIME &) noexcept;
@@ -111,6 +111,13 @@ template<typename T> constexpr const IID &iid_of();
 template<typename T> static inline constexpr const IID &iid_of(const T &)
 {
 	return iid_of<typename std::remove_cv<typename std::remove_pointer<T>::type>::type>();
+}
+
+using time_point = std::chrono::time_point<std::chrono::steady_clock>;
+
+template<typename T> static constexpr inline double dur2dbl(const T &t)
+{
+	return std::chrono::duration_cast<std::chrono::duration<double>>(t).count();
 }
 
 #if (defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN) || \

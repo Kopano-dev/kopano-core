@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <chrono>
 #include <memory>
 #include <new>
 #include <kopano/tie.hpp>
@@ -337,7 +338,7 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 			
 		clock_gettime(clock, &now);
 		sd.dblUser += timespec2dbl(now) - timespec2dbl(bs.threadstart);
-		sd.dblReal += GetTimeOfDay() - bs.start;
+		sd.dblReal += dur2dbl(decltype(bs.start)::clock::now() - bs.start);
 	}
 	lpThis->m_mapSessionData[lpThis->id] = sd;
 	++lpThis->id;
