@@ -26,7 +26,6 @@
 
 #include <set>
 #include <ldap.h>
-#define LDAP_TIMEVAL struct timeval
 #include "plugin.h"
 #include "LDAPCache.h"
 
@@ -364,8 +363,7 @@ protected:
 	std::unique_ptr<ECIConv> m_iconvrev;
 
 	static std::unique_ptr<LDAPCache> m_lpCache;
-
-	LDAP_TIMEVAL m_timeout;
+	struct timeval m_timeout;
 
 private:
 	/**

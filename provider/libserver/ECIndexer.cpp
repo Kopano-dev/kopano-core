@@ -311,7 +311,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
     ECRESULT er = erSuccess;
 	std::unique_ptr<ECSearchClient> lpSearchClient;
 	std::set<unsigned int> setExcludePropTags;
-	struct timeval tstart, tend;
+	std::chrono::time_point<std::chrono::steady_clock> tstart;
 	LONGLONG	llelapsedtime;
 	struct restrictTable *lpOptimizedRestrict = NULL;
 	std::list<SIndexedTerm> lstMultiSearches;
@@ -361,10 +361,9 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	}
 
 	ec_log_debug("Using index, %zu index queries", lstMultiSearches.size());
-	gettimeofday(&tstart, NULL);
+	tstart = decltype(tstart)::clock::now();
 	er = lpSearchClient->Query(guidServer, guidStore, lstFolders, lstMultiSearches, lstMatches, suggestion);
-	gettimeofday(&tend, NULL);
-	llelapsedtime = difftimeval(&tstart,&tend);
+	llelapsedtime = std::chrono::duration_cast<std::chrono::milliseconds>(decltype(tstart)::clock::now() - tstart).count();
 	g_lpStatsCollector->Max(SCN_INDEXER_SEARCH_MAX, llelapsedtime);
 	g_lpStatsCollector->Avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
 
