@@ -2793,33 +2793,25 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	bool bTransaction = false;
 	SOURCEKEY sSourceKey;
 
-	if(IsInternalObject(ulObjectId)) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
-
-	if (objclass == CONTAINER_COMPANY) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
-
+	if (IsInternalObject(ulObjectId))
+		return KCERR_NO_ACCESS;
+	if (objclass == CONTAINER_COMPANY)
+		return KCERR_NO_ACCESS;
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
 		ec_log_crit("user_safe_mode: Would move %s %d to company %d", ObjectClassToName(objclass), ulObjectId, ulCompanyId);
-		goto exit;
+		return erSuccess;
 	}
 
 	ec_log_info("Auto-moving %s to different company from external source", ObjectClassToName(objclass));
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	bTransaction = true;
 
 	er = lpDatabase->Begin();
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	/*
 	 * Moving a user to a different company consists of the following tasks:
 	 * 1) Change 'company' column in 'users' table

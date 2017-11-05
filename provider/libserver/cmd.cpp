@@ -1621,18 +1621,16 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 	if(ulObjId == 0) {
         er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
         if (er != erSuccess)
-            goto exit;
-            
+			return er;
     }
     
 	// Check permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityRead);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->Begin();
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if (ulPropTag != PR_ATTACH_DATA_BIN && ulPropTag != PR_EC_IMAP_EMAIL) {
 		if (ulPropTag & MV_FLAG)
@@ -2709,13 +2707,10 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 
 	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpAttachmentStorage->Begin();
 	if (er != erSuccess)
-		goto exit;
-
-	
+		return er;
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
 		goto exit;
@@ -3486,19 +3481,15 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, entryId sParentId,
 	unsigned int	ulFolderId = 0;
 	USE_DATABASE();
 
-	if(szName == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (szName == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	// Fixup the input strings
 	szName = STRIN_FIX(szName);
 	szComment = STRIN_FIX(szComment);
 
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpecSession->GetObjectFromEntryId(&sParentId, &ulParentId);
 	if (er != erSuccess)
 		goto exit;
@@ -4389,11 +4380,8 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 	unsigned int	ulLastId = 0;
     USE_DATABASE();
 
-	if(lpsNamedProps == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpsNamedProps == nullptr)
+		return KCERR_INVALID_PARAMETER;
 	lpsResponse->lpsPropTags.__ptr = s_alloc<unsigned int>(soap, lpsNamedProps->__size);
 	lpsResponse->lpsPropTags.__size = 0;
 
@@ -4428,8 +4416,7 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i)
 		lpsResponse->lpsPropTags.__ptr[i] = 0;
 
@@ -4456,11 +4443,13 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 		}
 	}
 
-	if (!(ulFlags & MAPI_CREATE))
-		goto done;
+	if (!(ulFlags & MAPI_CREATE)) {
+		lpsResponse->lpsPropTags.__size = lpsNamedProps->__size;
+		return erSuccess;
+	}
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
 		if (lpsResponse->lpsPropTags.__ptr[i] != 0)
@@ -4497,7 +4486,6 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 	er = lpDatabase->Commit();
 	if (er != erSuccess)
 		goto exit;
-done:
 	// Everything is done, now set the size
 	lpsResponse->lpsPropTags.__size = lpsNamedProps->__size;
 
@@ -4593,7 +4581,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId,
 
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check, lpsEntryId and lpszMessageClass can't both be empty or 0
 	if(lpsEntryId == NULL && (lpszMessageClass == NULL || *lpszMessageClass == '\0')){
@@ -4746,13 +4734,10 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	//NOTE: either lpMessageList may be NULL or lpsEntryId may be NULL
 
 	if(ulFlags & GENERATE_RECEIPT_ONLY)
-		goto exit;
-
-    if(lpMessageList == NULL && lpsEntryId == NULL) {
+		return er;
+	if (lpMessageList == nullptr && lpsEntryId == nullptr)
         // Bad input
-        er = KCERR_INVALID_PARAMETER;
-        goto exit;
-    }
+		return KCERR_INVALID_PARAMETER;
 	if (lpMessageList != nullptr)
 		// Ignore errors
 		g_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(lpMessageList, &lHierarchyIDs);
@@ -4779,12 +4764,10 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	}
 	if (ulFlagsRemove == 0 && ulFlagsAdd == 0)
 		// Nothing to update
-		goto exit;
-
+		return er;
 	er = lpDatabase->Begin();
-	if(er != erSuccess)
-		goto exit;
-
+	if (er != erSuccess)
+		return er;
 	if(lpMessageList == NULL) {
 	    // No message list passed, so 'mark all items (un)read'
         er = lpecSession->GetObjectFromEntryId(lpsEntryId, &ulFolderId);
@@ -6404,48 +6387,41 @@ SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags,
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 	er = cache->GetStore(ulObjId, &ulStoreId, nullptr);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
     er = cache->GetObject(ulObjId, &ulParentId, nullptr, &ulMsgFlags, nullptr);
     if(er != erSuccess)
-        goto exit;
+		return er;
     er = cache->GetObject(ulStoreId, nullptr, &ulStoreOwner, nullptr, nullptr);
     if(er != erSuccess)
-        goto exit;
-     
+		return er;
     er = lpecSession->GetUserManagement()->GetObjectDetails(ulStoreOwner, &details);
     if(er != erSuccess)
-        goto exit;
+		return er;
          
     // Cannot submit a message in a public store   
-    if(OBJECTCLASS_TYPE(details.GetClass()) != OBJECTTYPE_MAILUSER) {
-        er = KCERR_NO_ACCESS;
-        goto exit;
-    }
+	if (OBJECTCLASS_TYPE(details.GetClass()) != OBJECTTYPE_MAILUSER)
+		return KCERR_NO_ACCESS;
 
 	// Check permission
 	er = sec->CheckPermission(ulStoreId, ecSecurityOwner);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Quota check
 	er = sec->GetStoreSize(ulStoreId, &llStoreSize);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 	er = sec->CheckQuota(ulStoreId, llStoreSize, &QuotaStatus);
 	if(er != erSuccess)
-		goto exit;
-
-	if(QuotaStatus == QUOTA_SOFTLIMIT || QuotaStatus == QUOTA_HARDLIMIT) {
-		er = KCERR_STORE_FULL;
-		goto exit;
-	}
-
+		return er;
+	if (QuotaStatus == QUOTA_SOFTLIMIT || QuotaStatus == QUOTA_HARDLIMIT)
+		return KCERR_STORE_FULL;
 	er = lpDatabase->Begin();
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Set PR_MESSAGE_FLAGS to MSGFLAG_SUBMIT|MSGFLAG_UNSENT
 	if(!(ulFlags & EC_SUBMIT_MASTER)) {
@@ -6516,8 +6492,7 @@ SOAP_ENTRY_START(finishedMessage, *result,  entryId sEntryId, unsigned int ulFla
 
 	er = lpDatabase->Begin();
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
 	    goto exit;
@@ -6652,24 +6627,23 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 	er = gcache->GetParent(ulObjId, &ulParentId);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityOwner);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	//Get storeid
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL);
 	if(er != erSuccess)
-		goto exit;
-		
+		return er;
 	er = lpDatabase->Begin();
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Get storeid and check if the message into the queue
 	strQuery = "SELECT store_id, flags FROM outgoingqueue WHERE hierarchy_id="+stringify(ulObjId) + " LIMIT 2";
@@ -7774,23 +7748,23 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: CreateAttachmentStorage failed: %s (%x)", GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 	er = cache->GetStore(ulDestFolderId, &ulDestStoreId, nullptr);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: GetStore for %u (from cache) failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 	er = cache->GetStore(ulFolderFrom, &ulSourceStoreId, nullptr);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: GetStore for %u (from cache) failed: %s (%x)", ulFolderFrom, GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	er = lpAttachmentStorage->Begin();
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: Begin() on attachment storage failed: %s (%x)", GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	er = lpDatabase->Begin();
@@ -8490,15 +8464,10 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId
 		goto exit;
 
 	if (ulUserId == 0 || ulUserId == KOPANO_UID_SYSTEM || !ECSTORE_TYPE_ISVALID(ulStoreType))
-	{
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+		return KCERR_INVALID_PARAMETER;
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	strQuery = "SELECT guid FROM stores WHERE user_id=" + stringify(ulUserId) + " AND type=" + stringify(ulStoreType) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
@@ -9429,17 +9398,15 @@ SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, entryId sEntryId, unsigned 
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	//Check security
 	er = lpecSession->GetSecurity()->CheckPermission(ulId, ecSecurityEdit);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->Begin();
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = g_lpSessionManager->GetCacheManager()->GetObject(ulId, &ulParent, NULL, &ulObjFlags);
 	if(er != erSuccess)
 		goto exit;
@@ -9523,8 +9490,7 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er, struct xsd__base64Binary sSourc
 
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
     if(sSourceKey.size()) {
     	er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sSourceKey.size(), sSourceKey, &ulFolderId);
     	if(er != erSuccess)

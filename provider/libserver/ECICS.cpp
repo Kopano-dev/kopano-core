@@ -472,11 +472,10 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
     // Get database object
 	auto er = lpSession->GetDatabase(&lpDatabase);
     if (er != erSuccess)
-        goto exit;
-
+		return er;
     er = lpDatabase->Begin();
     if (er != erSuccess)
-		goto exit;
+		return er;
 
     // CHeck if the client understands the new ABEID.
 	if (lpSession->GetCapabilities() & KOPANO_CAP_MULTI_SERVER)
