@@ -3345,10 +3345,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	unsigned int nMaxThreads;
 	int nCloseFDs = 0, pCloseFDs[1] = {0};
 	struct pollfd pollfd;
-    stack_t st;
-    struct sigaction act;
-    memset(&st, 0, sizeof(st));
-    memset(&act, 0, sizeof(act));
 
 	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));
 	if (nMaxThreads == 0 || nMaxThreads == INT_MAX)
@@ -3375,30 +3371,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	// Setup signals
 	signal(SIGTERM, sigterm);
 	signal(SIGINT, sigterm);
-
-	signal(SIGHUP, sighup);		// logrotate
 	signal(SIGCHLD, sigchld);
-	signal(SIGPIPE, SIG_IGN);
-
-	// SIGSEGV backtrace support
-    st.ss_sp = malloc(65536);
-    st.ss_flags = 0;
-    st.ss_size = 65536;
-	act.sa_sigaction = sigsegv;
-	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
-	sigemptyset(&act.sa_mask);
-	sigaltstack(&st, NULL);
-	sigaction(SIGSEGV, &act, NULL);
-	sigaction(SIGBUS, &act, NULL);
-	sigaction(SIGABRT, &act, NULL);
-
-	struct rlimit file_limit;
-	file_limit.rlim_cur = KC_DESIRED_FILEDES;
-	file_limit.rlim_max = KC_DESIRED_FILEDES;
-
-	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
-		ec_log_err("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors (%s)", KC_DESIRED_FILEDES, getdtablesize(), strerror(errno));
-	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
@@ -3496,7 +3469,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 
 exit:
 	ECChannel::HrFreeCtx();
-	free(st.ss_sp);
 	return hr;
 }
 
@@ -3664,6 +3636,9 @@ int main(int argc, char *argv[]) {
 	int loglevel = EC_LOGLEVEL_WARNING;	// normally, log warnings and up
 	bool strip_email = false;
 	bool bIgnoreUnknownConfigOptions = false;
+	stack_t st;
+	struct sigaction act;
+	struct rlimit file_limit;
 
 	DeliveryArgs sDeliveryArgs;
 	sDeliveryArgs.strPath = "";
@@ -3946,6 +3921,29 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	signal(SIGHUP, sighup);		// logrotate
+	signal(SIGPIPE, SIG_IGN);
+
+	// SIGSEGV backtrace support
+	memset(&st, 0, sizeof(st));
+	memset(&act, 0, sizeof(act));
+	st.ss_sp = malloc(65536);
+	st.ss_flags = 0;
+	st.ss_size = 65536;
+	act.sa_sigaction = sigsegv;
+	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
+	sigemptyset(&act.sa_mask);
+	sigaltstack(&st, NULL);
+	sigaction(SIGSEGV, &act, NULL);
+	sigaction(SIGBUS, &act, NULL);
+	sigaction(SIGABRT, &act, NULL);
+	file_limit.rlim_cur = KC_DESIRED_FILEDES;
+	file_limit.rlim_max = KC_DESIRED_FILEDES;
+
+	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
+		ec_log_err("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors (%s)", KC_DESIRED_FILEDES, getdtablesize(), strerror(errno));
+	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
+
 	if (bListenLMTP) {
 		/* MAPIInitialize done inside running_service */
 		hr = running_service(argv[0], bDaemonize, &sDeliveryArgs);
@@ -3990,7 +3988,7 @@ exit:
 	DeleteLogger(g_lpLogger);
 
 	delete g_lpConfig;
-
+	free(st.ss_sp);
 	if (hr == hrSuccess || bListenLMTP)
 		return EX_OK;			// 0
 
