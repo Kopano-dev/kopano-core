@@ -1421,8 +1421,7 @@ PyObject *List_from_LPSRowSet(const SRowSet *s)
 
 SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags, void *lpBase)
 {
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
+	pyobj_ptr iter;
 	Py_ssize_t len = 0;
 	LPSRowSet lpsRowSet = NULL;
 	int i = 0;
@@ -1431,8 +1430,7 @@ SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags, void *lpBase)
 		goto exit;
 
 	len = PyObject_Length(list);
-
-	iter = PyObject_GetIter(list);
+	iter.reset(PyObject_GetIter(list));
 	if(!iter)
 		goto exit;
 
@@ -1442,25 +1440,19 @@ SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags, void *lpBase)
 		goto exit;
 
 	memset(lpsRowSet, 0, CbNewSRowSet(len));
-
-	while((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		lpsRowSet->aRow[i].lpProps = List_to_LPSPropValue(elem, &lpsRowSet->aRow[i].cValues, ulFlags, lpBase);
 
 		if(PyErr_Occurred())
 			goto exit;
-
-		Py_DECREF(elem);
-		elem = NULL;
 		++i;
-	}
-
+	} while (true);
 	lpsRowSet->cRows = i;
 
 exit:
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (iter != nullptr)
-		Py_DECREF(iter);
 	if(PyErr_Occurred()) {
 		if(lpsRowSet)
 			FreeProws(lpsRowSet);
@@ -1520,65 +1512,43 @@ PyObject *		Object_from_LPSPropProblem(LPSPropProblem lpProblem)
 
 void	Object_to_LPSPropProblem(PyObject *object, LPSPropProblem lpProblem)
 {
-	PyObject *scode = NULL;
-	PyObject *ulIndex = NULL;
-	PyObject *ulPropTag = NULL;
-
-	scode = PyObject_GetAttrString(object, "scode");
-	ulIndex = PyObject_GetAttrString(object, "ulIndex");
-	ulPropTag = PyObject_GetAttrString(object, "ulPropTag");
+	pyobj_ptr scode(PyObject_GetAttrString(object, "scode"));
+	pyobj_ptr ulIndex(PyObject_GetAttrString(object, "ulIndex"));
+	pyobj_ptr ulPropTag(PyObject_GetAttrString(object, "ulPropTag"));
 
 	lpProblem->scode = PyLong_AsUnsignedLong(scode);
 	lpProblem->ulIndex = PyLong_AsUnsignedLong(ulIndex);
 	lpProblem->ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
-
-	if(scode)
-		Py_DECREF(scode);
-	if(ulIndex)
-		Py_DECREF(ulIndex);
-	if(ulPropTag)
-		Py_DECREF(ulPropTag);
 }
 
 PyObject *		List_from_LPSPropProblemArray(LPSPropProblemArray lpProblemArray)
 {
-	PyObject *list = NULL;
-	PyObject *elem = NULL;
+	pyobj_ptr list;
 
 	if(lpProblemArray == NULL) {
 		Py_INCREF(Py_None);
-		list = Py_None;
+		list.reset(Py_None);
 		goto exit;
 	}
 
-	list = PyList_New(0);
-
+	list.reset(PyList_New(0));
 	for (unsigned int i = 0; i < lpProblemArray->cProblem; ++i) {
-		elem = Object_from_LPSPropProblem(&lpProblemArray->aProblem[i]);
-
+		pyobj_ptr elem(Object_from_LPSPropProblem(&lpProblemArray->aProblem[i]));
 		if(PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, elem);
-		Py_DECREF(elem);
-		elem = NULL;
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		if (list != nullptr)
-			Py_DECREF(list);
-		list = NULL;
-	}
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*/)
 {
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
+	pyobj_ptr iter;
 	Py_ssize_t len = 0;
 	LPSPropProblemArray lpsProblems = NULL;
 	int i = 0;
@@ -1587,8 +1557,7 @@ LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*
 		goto exit;
 
 	len = PyObject_Length(list);
-
-	iter = PyObject_GetIter(list);
+	iter.reset(PyObject_GetIter(list));
 	if(!iter)
 		goto exit;
 
@@ -1597,24 +1566,19 @@ LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*
 
 	memset(lpsProblems, 0, CbNewSPropProblemArray(len));
 
-	while((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		Object_to_LPSPropProblem(elem, &lpsProblems->aProblem[i]);
 
 		if(PyErr_Occurred())
 			goto exit;
-
-		Py_DECREF(elem);
-		elem = NULL;
 		++i;
-	}
-
+	} while (true);
 	lpsProblems->cProblem = i;
 
 exit:
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (iter != nullptr)
-		Py_DECREF(iter);
 	if(PyErr_Occurred()) {
 		MAPIFreeBuffer(lpsProblems);
 		lpsProblems = NULL;
@@ -1626,51 +1590,32 @@ exit:
 PyObject * Object_from_LPMAPINAMEID(LPMAPINAMEID lpMAPINameId)
 {
 	PyObject *elem = NULL;
-	PyObject *guid = NULL;
-
 	if(lpMAPINameId == NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
 
-	guid = PyString_FromStringAndSize((char *)lpMAPINameId->lpguid, sizeof(GUID));
-
+	pyobj_ptr guid(PyString_FromStringAndSize(reinterpret_cast<char *>(lpMAPINameId->lpguid), sizeof(GUID)));
 	if(lpMAPINameId->ulKind == MNID_ID)
-		elem = PyObject_CallFunction(PyTypeMAPINAMEID, "(Oll)", guid, MNID_ID, lpMAPINameId->Kind.lID);
-	else
-		elem = PyObject_CallFunction(PyTypeMAPINAMEID, "(Olu)", guid, MNID_STRING, lpMAPINameId->Kind.lpwstrName);
-	if (guid != nullptr)
-		Py_DECREF(guid);
-	return elem;
+		return PyObject_CallFunction(PyTypeMAPINAMEID, "(Oll)", guid.get(), MNID_ID, lpMAPINameId->Kind.lID);
+	return PyObject_CallFunction(PyTypeMAPINAMEID, "(Olu)", guid.get(), MNID_STRING, lpMAPINameId->Kind.lpwstrName);
 }
 
 PyObject * List_from_LPMAPINAMEID(LPMAPINAMEID *lppMAPINameId, ULONG cNames)
 {
-	PyObject *list = NULL;
-	PyObject *elem = NULL;
-
-	list = PyList_New(0);
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cNames; ++i) {
-		elem = Object_from_LPMAPINAMEID(lppMAPINameId[i]);
-
+		pyobj_ptr elem(Object_from_LPMAPINAMEID(lppMAPINameId[i]));
 		if(PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, elem);
-
-		Py_DECREF(elem);
-		elem = NULL;
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		Py_DECREF(list);
-		list = NULL;
-	}
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
