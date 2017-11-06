@@ -212,8 +212,6 @@ ZEND_END_ARG_INFO()
 //Freebusy includes
 #include "ECFreeBusySupport.h"
 
-#include "favoritesutil.h"
-
 // at last, the php-plugin extension headers
 #include "main.h"
 #include "typeconversion.h"
@@ -422,8 +420,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_freebusyupdate_publish, NULL)
 	ZEND_FE(mapi_freebusyupdate_reset, NULL)
 	ZEND_FE(mapi_freebusyupdate_savechanges, NULL)
-
-	ZEND_FE(mapi_favorite_add, NULL)
 
 	ZEND_FE(mapi_exportchanges_config, NULL)
 	ZEND_FE(mapi_exportchanges_synchronize, NULL)
@@ -6543,45 +6539,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_savechanges)
 	UnixTimeToFileTime(ulUnixEnd, &ftmEnd);
 
 	MAPI_G(hr) = lpFBUpdate->SaveChanges(ftmStart, ftmEnd);
-	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-
-	RETVAL_TRUE;
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
-}
-
-ZEND_FUNCTION(mapi_favorite_add)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval *				resSession = NULL;
-	zval *				resFolder = NULL;
-	IMAPISession		*lpSession = NULL;
-	LPMAPIFOLDER		lpFolder = NULL;
-	long				ulFlags = 0;
-	// local
-	object_ptr<IMAPIFolder> lpShortCutFolder;
-	ULONG				cbAliasName = 0;
-	LPSTR				lpszAliasName = NULL;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rr|sl", &resSession, &resFolder, &lpszAliasName, &cbAliasName, &ulFlags) == FAILURE) return;
-
-	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
-	ZEND_FETCH_RESOURCE_C(lpFolder, LPMAPIFOLDER, &resFolder, -1, name_mapi_folder, le_mapi_folder);
-	
-	if(cbAliasName == 0)
-		lpszAliasName = NULL;
-	MAPI_G(hr) = GetShortcutFolder(lpSession, nullptr, nullptr, MAPI_CREATE, &~lpShortCutFolder); // use english language
-	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-
-	MAPI_G(hr) = AddFavoriteFolder(lpShortCutFolder, lpFolder, (LPCTSTR) lpszAliasName, ulFlags);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
