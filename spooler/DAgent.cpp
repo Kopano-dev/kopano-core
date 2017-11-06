@@ -425,7 +425,7 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 		convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
 		g_lpConfig->GetSettingsPath(), strEntryID
 	};
-	ec_log_debug("Starting autoaccept with command line \"%s\"", kc_join(cmdline, "\" \"").c_str());
+	ec_log_debug("Starting autoaccept");
 	if (!unix_system(autoresponder, cmdline, const_cast<const char **>(environ))) {
 		hr = MAPI_E_CALL_FAILED;
 		kc_perrorf("Invoking autoaccept script failed", hr);
@@ -487,7 +487,7 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 		convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
 		g_lpConfig->GetSettingsPath(), strEntryID
 	};
-	ec_log_debug("Starting autoaccept with command line \"%s\"", kc_join(cmdline, "\" \"").c_str());
+	ec_log_debug("Starting autoaccept");
 	if (!unix_system(autoprocessor, cmdline, const_cast<const char **>(environ)))
 		hr = MAPI_E_CALL_FAILED;
 
