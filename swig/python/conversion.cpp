@@ -1621,9 +1621,7 @@ exit:
 void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 {
 	LPMAPINAMEID lpName = NULL;
-	PyObject *kind = NULL;
-	PyObject *id = NULL;
-	PyObject *guid = NULL;
+	pyobj_ptr kind, id, guid;
 	ULONG ulKind = 0;
 	Py_ssize_t len = 0;
 
@@ -1632,11 +1630,9 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 		goto exit;
 	}
 	memset(lpName, 0, sizeof(MAPINAMEID));
-
-	kind = PyObject_GetAttrString(elem, "kind");
-	id = PyObject_GetAttrString(elem, "id");
-	guid = PyObject_GetAttrString(elem, "guid");
-
+	kind.reset(PyObject_GetAttrString(elem, "kind"));
+	id.reset(PyObject_GetAttrString(elem, "id"));
+	guid.reset(PyObject_GetAttrString(elem, "guid"));
 	if(!guid || !id) {
 		PyErr_SetString(PyExc_RuntimeError, "Missing id or guid on MAPINAMEID object");
 		goto exit;
@@ -1680,23 +1676,15 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 exit:
 	if (PyErr_Occurred() && lpBase == nullptr)
 		MAPIFreeBuffer(lpName);
-	if (guid != nullptr)
-		Py_DECREF(guid);
-	if (id != nullptr)
-		Py_DECREF(id);
-	if (kind != nullptr)
-		Py_DECREF(kind);
 }
 
 LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*ulFlags*/)
 {
 	LPMAPINAMEID *lpNames = NULL;
 	Py_ssize_t len = 0;
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
 	unsigned int i = 0;
 
-	iter = PyObject_GetIter(list);
+	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		goto exit;
 
@@ -1706,17 +1694,16 @@ LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*u
 		goto exit;
 
 	memset(lpNames, 0, sizeof(LPMAPINAMEID) * len);
-
-	while((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		Object_to_LPMAPINAMEID(elem, &lpNames[i], lpNames);
 
 		if(PyErr_Occurred())
 			goto exit;
 		++i;
-		Py_DECREF(elem);
-		elem = NULL;
-	}
-
+	} while (true);
 	*lpcNames = i;
 
 exit:
@@ -1724,10 +1711,6 @@ exit:
 		MAPIFreeBuffer(lpNames);
 		lpNames = NULL;
 	}
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (iter != nullptr)
-		Py_DECREF(iter);
 	return lpNames;
 }
 
@@ -1735,14 +1718,11 @@ LPENTRYLIST		List_to_LPENTRYLIST(PyObject *list)
 {
 	LPENTRYLIST lpEntryList = NULL;
 	Py_ssize_t len = 0;
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
 	unsigned int i = 0;
 
 	if(list == Py_None)
 		return NULL;
-
-	iter = PyObject_GetIter(list);
+	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		goto exit;
 
@@ -1755,8 +1735,10 @@ LPENTRYLIST		List_to_LPENTRYLIST(PyObject *list)
 		goto exit;
 
 	lpEntryList->cValues = len;
-
-	while((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		char *ptr;
 		Py_ssize_t strlen;
 
@@ -1769,50 +1751,32 @@ LPENTRYLIST		List_to_LPENTRYLIST(PyObject *list)
 			goto exit;
 		memcpy(lpEntryList->lpbin[i].lpb, ptr, strlen);
 		++i;
-		Py_DECREF(elem);
-		elem = NULL;
-	}
-
+	} while (true);
 exit:
 	if(PyErr_Occurred()) {
 		MAPIFreeBuffer(lpEntryList);
 		lpEntryList = NULL;
 	}
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (iter != nullptr)
-		Py_DECREF(iter);
 	return lpEntryList;
 }
 
 PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList)
 {
-	PyObject *list = NULL;
-	PyObject *elem = NULL;
-
-	list = PyList_New(0);
-
+	pyobj_ptr list(PyList_New(0));
 	if (lpEntryList) {
 		for (unsigned int i = 0; i < lpEntryList->cValues; ++i) {
-			elem = PyString_FromStringAndSize((const char*)lpEntryList->lpbin[i].lpb, lpEntryList->lpbin[i].cb);
+			pyobj_ptr elem(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpEntryList->lpbin[i].lpb), lpEntryList->lpbin[i].cb));
 			if(PyErr_Occurred())
 				goto exit;
 
 			PyList_Append(list, elem);
-
-			Py_DECREF(elem);
-			elem = NULL;
 		}
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		Py_DECREF(list);
-		list = NULL;
-	}
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 LPNOTIFICATION	List_to_LPNOTIFICATION(PyObject *, ULONG *lpcNotifs)
@@ -1823,29 +1787,19 @@ LPNOTIFICATION	List_to_LPNOTIFICATION(PyObject *, ULONG *lpcNotifs)
 
 PyObject *		List_from_LPNOTIFICATION(LPNOTIFICATION lpNotif, ULONG cNotifs)
 {
-	PyObject *list = PyList_New(0);
-	PyObject *item = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cNotifs; ++i) {
-		item = Object_from_LPNOTIFICATION(&lpNotif[i]);
+		pyobj_ptr item(Object_from_LPNOTIFICATION(&lpNotif[i]));
 		if(PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, item);
-
-		Py_DECREF(item);
-		item = NULL;
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		if (list != nullptr)
-			Py_DECREF(list);
-		list = NULL;
-	}
-	if (item != nullptr)
-		Py_DECREF(item);
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
