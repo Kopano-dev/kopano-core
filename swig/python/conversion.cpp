@@ -1365,24 +1365,16 @@ exit:;
 
 SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
 {
-	PyObject *aSort = NULL;
-	PyObject *cCategories = NULL;
-	PyObject *cExpanded = NULL;
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
-	PyObject *ulPropTag = NULL;
-	PyObject *ulOrder = NULL;
+	pyobj_ptr aSort, cCategories, cExpanded, iter;
 	SSortOrderSet *lpsSortOrderSet = NULL;
 	Py_ssize_t len = 0;
 	unsigned int i = 0;
 
 	if(object == Py_None)
 		goto exit;
-
-	aSort = PyObject_GetAttrString(object, "aSort");
-	cCategories = PyObject_GetAttrString(object, "cCategories");
-	cExpanded = PyObject_GetAttrString(object, "cExpanded");
-
+	aSort.reset(PyObject_GetAttrString(object, "aSort"));
+	cCategories.reset(PyObject_GetAttrString(object, "cCategories"));
+	cExpanded.reset(PyObject_GetAttrString(object, "cExpanded"));
 	if(!aSort || !cCategories || !cExpanded) {
 		PyErr_SetString(PyExc_RuntimeError, "Missing aSort, cCategories or cExpanded for sort order");
 		goto exit;
@@ -1396,15 +1388,15 @@ SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
 
 	if (MAPIAllocateBuffer(CbNewSSortOrderSet(len), (void **)&lpsSortOrderSet) != hrSuccess)
 		goto exit;
-
-	iter = PyObject_GetIter(aSort);
+	iter.reset(PyObject_GetIter(aSort));
 	if(iter == NULL)
 		goto exit;
-
-	while((elem = PyIter_Next(iter))) {
-		ulOrder = PyObject_GetAttrString(elem, "ulOrder");
-		ulPropTag = PyObject_GetAttrString(elem, "ulPropTag");
-
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
+		pyobj_ptr ulOrder(PyObject_GetAttrString(elem, "ulOrder"));
+		pyobj_ptr ulPropTag(PyObject_GetAttrString(elem, "ulPropTag"));
 		if(!ulOrder || !ulPropTag) {
 			PyErr_SetString(PyExc_RuntimeError, "ulOrder or ulPropTag missing for sort order");
 			goto exit;
@@ -1413,8 +1405,7 @@ SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
 		lpsSortOrderSet->aSort[i].ulOrder = PyLong_AsUnsignedLong(ulOrder);
 		lpsSortOrderSet->aSort[i].ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		++i;
-		Py_DECREF(elem);
-	}
+	} while (true);
 
 	lpsSortOrderSet->cSorts = i;
 	lpsSortOrderSet->cCategories = PyLong_AsUnsignedLong(cCategories);
@@ -1425,92 +1416,47 @@ exit:
 		MAPIFreeBuffer(lpsSortOrderSet);
 		lpsSortOrderSet = NULL;
 	}
-
-	if (ulOrder != nullptr)
-		Py_DECREF(ulOrder);
-	if (ulPropTag != nullptr)
-		Py_DECREF(ulPropTag);
-	if (iter != nullptr)
-		Py_DECREF(iter);
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (aSort != nullptr)
-		Py_DECREF(aSort);
-	if (cCategories != nullptr)
-		Py_DECREF(cCategories);
-	if (cExpanded != nullptr)
-		Py_DECREF(cExpanded);
 	return lpsSortOrderSet;
 }
 
 PyObject *Object_from_SSortOrderSet(const SSortOrderSet *lpSortOrderSet)
 {
-	PyObject *sort = NULL;
-	PyObject *sorts = NULL;
-	PyObject *result = NULL;
-
 	if(lpSortOrderSet == NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
 
-	sorts = PyList_New(0);
-
+	pyobj_ptr result, sorts(PyList_New(0));
 	for (unsigned int i = 0; i < lpSortOrderSet->cSorts; ++i) {
-		sort = PyObject_CallFunction(PyTypeSSort, "(ll)", lpSortOrderSet->aSort[i].ulPropTag, lpSortOrderSet->aSort[i].ulOrder);
-
+		pyobj_ptr sort(PyObject_CallFunction(PyTypeSSort, "(ll)", lpSortOrderSet->aSort[i].ulPropTag, lpSortOrderSet->aSort[i].ulOrder));
 		if(PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(sorts,sort);
-
-		Py_DECREF(sort);
-		sort = NULL;
 	}
 
-	result = PyObject_CallFunction(PyTypeSSortOrderSet, "(Oll)", sorts, lpSortOrderSet->cCategories, lpSortOrderSet->cExpanded);
-
+	result.reset(PyObject_CallFunction(PyTypeSSortOrderSet, "(Oll)", sorts.get(), lpSortOrderSet->cCategories, lpSortOrderSet->cExpanded));
 exit:
-	if (sorts != nullptr)
-		Py_DECREF(sorts);
-	if (sort != nullptr)
-		Py_DECREF(sort);
-	if(PyErr_Occurred()) {
-		if (result != nullptr)
-			Py_DECREF(result);
-		result = NULL;
-	}
-
-	return result;
+	if (PyErr_Occurred())
+		result.reset();
+	return result.release();
 }
 
 PyObject *List_from_SRowSet(const SRowSet *lpRowSet)
 {
-	PyObject *list = PyList_New(0);
-	PyObject *item = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < lpRowSet->cRows; ++i) {
-		item = List_from_LPSPropValue(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues);
-
+		pyobj_ptr item(List_from_LPSPropValue(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues));
 		if(PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, item);
-
-		Py_DECREF(item);
-		item = NULL;
 	}
 
 exit:
-	if (item != nullptr)
-		Py_DECREF(item);
-	if(PyErr_Occurred()) {
-		if (list != nullptr)
-			Py_DECREF(list);
-		list = NULL;
-	}
-
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 PyObject *List_from_LPSRowSet(const SRowSet *s)
