@@ -841,18 +841,13 @@ PyObject *List_from_LPSPropTagArray(const SPropTagArray *a)
 
 void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, void *lpBase)
 {
-	PyObject *rt = NULL;
-	PyObject *iter = NULL;
-	PyObject *sub = NULL;
-	PyObject *elem = NULL;
-	PyObject *ulPropTag = NULL, *ulPropTag2 = NULL, *ulMask = NULL, *cb = NULL, *ulFuzzyLevel = NULL, *relop = NULL, *lpProp = NULL;
+	pyobj_ptr iter;
 	Py_ssize_t len;
 	int n = 0;
 
 	if(lpBase == NULL)
 		lpBase = lpsRestriction;
-
-	rt = PyObject_GetAttrString(object, "rt");
+	pyobj_ptr rt(PyObject_GetAttrString(object, "rt"));
 	if(!rt) {
 		PyErr_SetString(PyExc_RuntimeError, "rt (type) missing for restriction");
 		goto exit;
@@ -862,8 +857,8 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 
 	switch(lpsRestriction->rt) {
 	case RES_AND:
-	case RES_OR:
-		sub = PyObject_GetAttrString(object, "lpRes");
+	case RES_OR: {
+		pyobj_ptr sub(PyObject_GetAttrString(object, "lpRes"));
 		if(!sub) {
 			PyErr_SetString(PyExc_RuntimeError, "lpRes missing for restriction");
 			goto exit;
@@ -875,26 +870,25 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 			goto exit;
 		}
-
-		iter = PyObject_GetIter(sub);
+		iter.reset(PyObject_GetIter(sub));
 		if(iter == NULL)
 			goto exit;
 
-		while((elem = PyIter_Next(iter))) {
+		do {
+			pyobj_ptr elem(PyIter_Next(iter));
+			if (elem == nullptr)
+				break;
 			Object_to_LPSRestriction(elem, &lpsRestriction->res.resAnd.lpRes[n], lpBase);
 
 			if(PyErr_Occurred())
 				goto exit;
 			++n;
-			Py_DECREF(elem);
-			elem = NULL;
-		}
-
+		} while (true);
 		lpsRestriction->res.resAnd.cRes = n;
 		break;
-
-	case RES_NOT:
-		sub = PyObject_GetAttrString(object, "lpRes");
+	}
+	case RES_NOT: {
+		pyobj_ptr sub(PyObject_GetAttrString(object, "lpRes"));
 		if(!sub) {
 			PyErr_SetString(PyExc_RuntimeError, "lpRes missing for restriction");
 			goto exit;
@@ -910,12 +904,11 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 		if(PyErr_Occurred())
 			goto exit;
 		break;
-
-	case RES_CONTENT:
-		ulFuzzyLevel = PyObject_GetAttrString(object, "ulFuzzyLevel");
-		ulPropTag = PyObject_GetAttrString(object, "ulPropTag");
-		sub = PyObject_GetAttrString(object, "lpProp");
-
+	}
+	case RES_CONTENT: {
+		pyobj_ptr ulFuzzyLevel(PyObject_GetAttrString(object, "ulFuzzyLevel"));
+		pyobj_ptr ulPropTag(PyObject_GetAttrString(object, "ulPropTag"));
+		pyobj_ptr sub(PyObject_GetAttrString(object, "lpProp"));
 		if(!ulFuzzyLevel || ! ulPropTag || !sub) {
 			PyErr_SetString(PyExc_RuntimeError, "ulFuzzyLevel, ulPropTag or lpProp missing for RES_CONTENT restriction");
 			goto exit;
@@ -925,12 +918,11 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 		lpsRestriction->res.resContent.ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		lpsRestriction->res.resContent.lpProp = Object_to_LPSPropValue(sub, CONV_COPY_SHALLOW, lpBase);
 		break;
-
-	case RES_PROPERTY:
-		relop = PyObject_GetAttrString(object, "relop");
-		ulPropTag = PyObject_GetAttrString(object, "ulPropTag");
-		sub = PyObject_GetAttrString(object, "lpProp");
-
+	}
+	case RES_PROPERTY: {
+		pyobj_ptr relop(PyObject_GetAttrString(object, "relop"));
+		pyobj_ptr ulPropTag(PyObject_GetAttrString(object, "ulPropTag"));
+		pyobj_ptr sub(PyObject_GetAttrString(object, "lpProp"));
 		if(!relop || !ulPropTag || !sub) {
 			PyErr_SetString(PyExc_RuntimeError, "relop, ulPropTag or lpProp missing for RES_PROPERTY restriction");
 			goto exit;
@@ -940,12 +932,11 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 		lpsRestriction->res.resProperty.ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		lpsRestriction->res.resProperty.lpProp = Object_to_LPSPropValue(sub, CONV_COPY_SHALLOW, lpBase);
 		break;
-
-	case RES_COMPAREPROPS:
-		relop = PyObject_GetAttrString(object, "relop");
-		ulPropTag = PyObject_GetAttrString(object, "ulPropTag1");
-		ulPropTag2 = PyObject_GetAttrString(object, "ulPropTag2");
-
+	}
+	case RES_COMPAREPROPS: {
+		pyobj_ptr relop(PyObject_GetAttrString(object, "relop"));
+		pyobj_ptr ulPropTag(PyObject_GetAttrString(object, "ulPropTag1"));
+		pyobj_ptr ulPropTag2(PyObject_GetAttrString(object, "ulPropTag2"));
 		if(!relop || !ulPropTag || !ulPropTag2) {
 			PyErr_SetString(PyExc_RuntimeError, "relop, ulPropTag1 or ulPropTag2 missing for RES_COMPAREPROPS restriction");
 			goto exit;
@@ -955,12 +946,11 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 		lpsRestriction->res.resCompareProps.ulPropTag1 = PyLong_AsUnsignedLong(ulPropTag);
 		lpsRestriction->res.resCompareProps.ulPropTag2 = PyLong_AsUnsignedLong(ulPropTag2);
 		break;
-
-	case RES_BITMASK:
-		relop = PyObject_GetAttrString(object, "relBMR");
-		ulPropTag = PyObject_GetAttrString(object, "ulPropTag");
-		ulMask = PyObject_GetAttrString(object, "ulMask");
-
+	}
+	case RES_BITMASK: {
+		pyobj_ptr relop(PyObject_GetAttrString(object, "relBMR"));
+		pyobj_ptr ulPropTag(PyObject_GetAttrString(object, "ulPropTag"));
+		pyobj_ptr ulMask(PyObject_GetAttrString(object, "ulMask"));
 		if(!relop || !ulPropTag || !ulMask) {
 			PyErr_SetString(PyExc_RuntimeError, "relBMR, ulPropTag or ulMask missing for RES_BITMASK restriction");
 			goto exit;
@@ -970,12 +960,11 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 		lpsRestriction->res.resBitMask.ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		lpsRestriction->res.resBitMask.ulMask = PyLong_AsUnsignedLong(ulMask);
 		break;
-
-	case RES_SIZE:
-		relop = PyObject_GetAttrString(object, "relop");
-		ulPropTag = PyObject_GetAttrString(object, "ulPropTag");
-		cb = PyObject_GetAttrString(object, "cb");
-
+	}
+	case RES_SIZE: {
+		pyobj_ptr relop(PyObject_GetAttrString(object, "relop"));
+		pyobj_ptr ulPropTag(PyObject_GetAttrString(object, "ulPropTag"));
+		pyobj_ptr cb(PyObject_GetAttrString(object, "cb"));
 		if(!relop || !ulPropTag || !cb) {
 			PyErr_SetString(PyExc_RuntimeError, "relop, ulPropTag or cb missing from RES_SIZE restriction");
 			goto exit;
@@ -985,10 +974,9 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 		lpsRestriction->res.resSize.ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		lpsRestriction->res.resSize.cb = PyLong_AsUnsignedLong(cb);
 		break;
-
-	case RES_EXIST:
-		ulPropTag = PyObject_GetAttrString(object, "ulPropTag");
-
+	}
+	case RES_EXIST: {
+		pyobj_ptr ulPropTag(PyObject_GetAttrString(object, "ulPropTag"));
 		if(!ulPropTag) {
 			PyErr_SetString(PyExc_RuntimeError, "ulPropTag missing from RES_EXIST restriction");
 			goto exit;
@@ -996,11 +984,10 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 
 		lpsRestriction->res.resExist.ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		break;
-
-	case RES_SUBRESTRICTION:
-		ulPropTag = PyObject_GetAttrString(object, "ulSubObject");
-		sub = PyObject_GetAttrString(object, "lpRes");
-
+	}
+	case RES_SUBRESTRICTION: {
+		pyobj_ptr ulPropTag(PyObject_GetAttrString(object, "ulSubObject"));
+		pyobj_ptr sub(PyObject_GetAttrString(object, "lpRes"));
 		if(!ulPropTag || !sub) {
 			PyErr_SetString(PyExc_RuntimeError, "ulSubObject or lpRes missing from RES_SUBRESTRICTION restriction");
 			goto exit;
@@ -1016,11 +1003,10 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 		if(PyErr_Occurred())
 			goto exit;
 		break;
-
-	case RES_COMMENT:
-		lpProp = PyObject_GetAttrString(object, "lpProp");
-		sub = PyObject_GetAttrString(object, "lpRes");
-
+	}
+	case RES_COMMENT: {
+		pyobj_ptr lpProp(PyObject_GetAttrString(object, "lpProp"));
+		pyobj_ptr sub(PyObject_GetAttrString(object, "lpRes"));
 		if(!lpProp || !sub) {
 			PyErr_SetString(PyExc_RuntimeError, "lpProp or sub missing from RES_COMMENT restriction");
 			goto exit;
@@ -1038,35 +1024,13 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 
 		lpsRestriction->res.resComment.lpProp = List_to_LPSPropValue(lpProp, &lpsRestriction->res.resComment.cValues, CONV_COPY_SHALLOW, lpBase);
 		break;
-
+	}
 	default:
 		PyErr_Format(PyExc_RuntimeError, "Bad restriction type %d", lpsRestriction->rt);
 		goto exit;
 	}
 
-exit:
-	if (lpProp != nullptr)
-		Py_DECREF(lpProp);
-	if (ulPropTag2 != nullptr)
-		Py_DECREF(ulPropTag2);
-	if (ulPropTag != nullptr)
-		Py_DECREF(ulPropTag);
-	if (relop != nullptr)
-		Py_DECREF(relop);
-	if (cb != nullptr)
-		Py_DECREF(cb);
-	if (ulMask != nullptr)
-		Py_DECREF(ulMask);
-	if (ulFuzzyLevel != nullptr)
-		Py_DECREF(ulFuzzyLevel);
-	if (rt != nullptr)
-		Py_DECREF(rt);
-	if (iter != nullptr)
-		Py_DECREF(iter);
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (sub != nullptr)
-		Py_DECREF(sub);
+exit:;
 }
 
 LPSRestriction	Object_to_LPSRestriction(PyObject *object, void *lpBase)
