@@ -295,15 +295,15 @@ PKG_CHECK_MODULES([XML2], [libxml-2.0])
 # Checks for MySQL 4.1 or better
 AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
   AC_PATH_PROGS([MYSQL_CONFIG], [mysql_config mariadb_config])
-  AC_ARG_WITH([mysql-config], AS_HELP_STRING([--with-mysql-config=PATH], [path to the mysql-config script of mysql 4.1]),
+  AC_ARG_WITH([mysql-config], AS_HELP_STRING([--with-mysql-config=PATH], [path to the mysql-config script of mysql]),
     [MYSQL_CONFIG="$withval"])
-
+  AS_IF([test -z "$MYSQL_CONFIG"], [AC_MSG_ERROR([mysql config program not found])])
   MYSQL_INCLUDES=`$MYSQL_CONFIG --include`
   MYSQL_LIBS=`$MYSQL_CONFIG --libs`
-  MYSQL_VERSION=`$MYSQL_CONFIG --version`
+  MYSQL_VERSION=`$MYSQL_CONFIG --version` # see if it's there
 
   if test -z "$MYSQL_VERSION"; then
-    AC_MSG_ERROR(Cannot find mysql_config. Please use --with-mysql-config=PATH or install libmysqlclient-dev)
+    AC_MSG_ERROR([Cannot find a mysql installation. Please use --with-mysql-config=PATH or install libmysqlclient-dev.])
   fi
 
   AC_SUBST(MYSQL_INCLUDES)
