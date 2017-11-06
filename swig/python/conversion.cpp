@@ -1054,12 +1054,7 @@ LPSRestriction	Object_to_LPSRestriction(PyObject *object, void *lpBase)
 
 PyObject *		Object_from_LPSRestriction(LPSRestriction lpsRestriction)
 {
-	PyObject *sub = NULL;
-	PyObject *subs = NULL;
-	PyObject *result = NULL;
-	PyObject *propval = NULL;
-	PyObject *proplist = NULL;
-
+	pyobj_ptr result;
 	if (lpsRestriction == NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -1067,107 +1062,85 @@ PyObject *		Object_from_LPSRestriction(LPSRestriction lpsRestriction)
 
 	switch(lpsRestriction->rt) {
 	case RES_AND:
-	case RES_OR:
-		subs = PyList_New(0);
-
+	case RES_OR: {
+		pyobj_ptr subs(PyList_New(0));
 		for (ULONG i = 0; i < lpsRestriction->res.resAnd.cRes; ++i) {
-			sub = Object_from_LPSRestriction(lpsRestriction->res.resAnd.lpRes + i);
+			pyobj_ptr sub(Object_from_LPSRestriction(lpsRestriction->res.resAnd.lpRes + i));
 			if (!sub)
 				goto exit;
 
 			PyList_Append(subs, sub);
-
-			Py_DECREF(sub);
-			sub = NULL;
 		}
 
 		if (lpsRestriction->rt == RES_AND)
-			result = PyObject_CallFunction(PyTypeSAndRestriction, "O", subs);
+			result.reset(PyObject_CallFunction(PyTypeSAndRestriction, "O", subs.get()));
 		else
-			result = PyObject_CallFunction(PyTypeSOrRestriction, "O", subs);
+			result.reset(PyObject_CallFunction(PyTypeSOrRestriction, "O", subs.get()));
 		break;
-
-	case RES_NOT:
-		sub = Object_from_LPSRestriction(lpsRestriction->res.resNot.lpRes);
+	}
+	case RES_NOT: {
+		pyobj_ptr sub(Object_from_LPSRestriction(lpsRestriction->res.resNot.lpRes));
 		if(!sub)
 			goto exit;
-
-		result = PyObject_CallFunction(PyTypeSNotRestriction, "O", sub);
+		result.reset(PyObject_CallFunction(PyTypeSNotRestriction, "O", sub.get()));
 		break;
-
-	case RES_CONTENT:
-		propval = Object_from_LPSPropValue(lpsRestriction->res.resContent.lpProp);
+	}
+	case RES_CONTENT: {
+		pyobj_ptr propval(Object_from_LPSPropValue(lpsRestriction->res.resContent.lpProp));
 		if (!propval)
 			goto exit;
-
-		result = PyObject_CallFunction(PyTypeSContentRestriction, "kkO", lpsRestriction->res.resContent.ulFuzzyLevel, lpsRestriction->res.resContent.ulPropTag, propval);
+		result.reset(PyObject_CallFunction(PyTypeSContentRestriction, "kkO", lpsRestriction->res.resContent.ulFuzzyLevel, lpsRestriction->res.resContent.ulPropTag, propval.get()));
 		break;
-
-	case RES_PROPERTY:
-		propval = Object_from_LPSPropValue(lpsRestriction->res.resProperty.lpProp);
+	}
+	case RES_PROPERTY: {
+		pyobj_ptr propval(Object_from_LPSPropValue(lpsRestriction->res.resProperty.lpProp));
 		if (!propval)
 			goto exit;
-
-		result = PyObject_CallFunction(PyTypeSPropertyRestriction, "kkO", lpsRestriction->res.resProperty.relop, lpsRestriction->res.resProperty.ulPropTag, propval);
+		result.reset(PyObject_CallFunction(PyTypeSPropertyRestriction, "kkO", lpsRestriction->res.resProperty.relop, lpsRestriction->res.resProperty.ulPropTag, propval.get()));
 		break;
-
+	}
 	case RES_COMPAREPROPS:
-		result = PyObject_CallFunction(PyTypeSComparePropsRestriction, "kkk", lpsRestriction->res.resCompareProps.relop, lpsRestriction->res.resCompareProps.ulPropTag1, lpsRestriction->res.resCompareProps.ulPropTag2);
+		result.reset(PyObject_CallFunction(PyTypeSComparePropsRestriction, "kkk", lpsRestriction->res.resCompareProps.relop, lpsRestriction->res.resCompareProps.ulPropTag1, lpsRestriction->res.resCompareProps.ulPropTag2));
 		break;
 
 	case RES_BITMASK:
-		result = PyObject_CallFunction(PyTypeSBitMaskRestriction, "kkk", lpsRestriction->res.resBitMask.relBMR, lpsRestriction->res.resBitMask.ulPropTag, lpsRestriction->res.resBitMask.ulMask);
+		result.reset(PyObject_CallFunction(PyTypeSBitMaskRestriction, "kkk", lpsRestriction->res.resBitMask.relBMR, lpsRestriction->res.resBitMask.ulPropTag, lpsRestriction->res.resBitMask.ulMask));
 		break;
 
 	case RES_SIZE:
-		result = PyObject_CallFunction(PyTypeSSizeRestriction, "kkk", lpsRestriction->res.resSize.relop, lpsRestriction->res.resSize.ulPropTag, lpsRestriction->res.resSize.cb);
+		result.reset(PyObject_CallFunction(PyTypeSSizeRestriction, "kkk", lpsRestriction->res.resSize.relop, lpsRestriction->res.resSize.ulPropTag, lpsRestriction->res.resSize.cb));
 		break;
 
 	case RES_EXIST:
-		result = PyObject_CallFunction(PyTypeSExistRestriction, "k", lpsRestriction->res.resExist.ulPropTag);
+		result.reset(PyObject_CallFunction(PyTypeSExistRestriction, "k", lpsRestriction->res.resExist.ulPropTag));
 		break;
 
-	case RES_SUBRESTRICTION:
-		sub = Object_from_LPSRestriction(lpsRestriction->res.resSub.lpRes);
+	case RES_SUBRESTRICTION: {
+		pyobj_ptr sub(Object_from_LPSRestriction(lpsRestriction->res.resSub.lpRes));
 		if (!sub)
 			goto exit;
-
-		result = PyObject_CallFunction(PyTypeSSubRestriction, "kO", lpsRestriction->res.resSub.ulSubObject, sub);
+		result.reset(PyObject_CallFunction(PyTypeSSubRestriction, "kO", lpsRestriction->res.resSub.ulSubObject, sub.get()));
 		break;
-
-	case RES_COMMENT:
-		sub = Object_from_LPSRestriction(lpsRestriction->res.resComment.lpRes);
+	}
+	case RES_COMMENT: {
+		pyobj_ptr sub(Object_from_LPSRestriction(lpsRestriction->res.resComment.lpRes));
 		if (!sub)
 			goto exit;
-
-		proplist = List_from_LPSPropValue(lpsRestriction->res.resComment.lpProp, lpsRestriction->res.resComment.cValues);
+		pyobj_ptr proplist(List_from_LPSPropValue(lpsRestriction->res.resComment.lpProp, lpsRestriction->res.resComment.cValues));
 		if (!proplist)
 			goto exit;
-
-		result = PyObject_CallFunction(PyTypeSCommentRestriction, "OO", sub, proplist);
+		result.reset(PyObject_CallFunction(PyTypeSCommentRestriction, "OO", sub.get(), proplist.get()));
 		break;
-
+	}
 	default:
 		PyErr_Format(PyExc_RuntimeError, "Bad restriction type %d", lpsRestriction->rt);
 		goto exit;
 	}
 
 exit:
-	if (sub != nullptr)
-		Py_DECREF(sub);
-	if (subs != nullptr)
-		Py_DECREF(subs);
-	if (propval != nullptr)
-		Py_DECREF(propval);
-	if (proplist != nullptr)
-		Py_DECREF(proplist);
-	if(PyErr_Occurred()) {
-		if (result != nullptr)
-			Py_DECREF(result);
-		result = NULL;
-	}
-
-	return result;
+	if (PyErr_Occurred())
+		result.reset();
+	return result.release();
 }
 
 PyObject *		Object_from_LPACTION(LPACTION lpAction)
