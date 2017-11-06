@@ -406,42 +406,28 @@ PyObject *List_from_LPSPropValue(const SPropValue *props, ULONG vals)
 
 PyObject *	  List_from_wchar_t(wchar_t **lpStrings, ULONG cElements)
 {
-	PyObject *list = PyList_New(0);
-	PyObject *item = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cElements; ++i) {
-		item = PyUnicode_FromWideChar(lpStrings[i], wcslen(lpStrings[i]));
+		pyobj_ptr item(PyUnicode_FromWideChar(lpStrings[i], wcslen(lpStrings[i])));
 		if(PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, item);
-
-		Py_DECREF(item);
-		item = NULL;
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		if (list != nullptr)
-			Py_DECREF(list);
-		list = NULL;
-	}
-	if (item != nullptr)
-		Py_DECREF(item);
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
     ULONG ulFlags, void *lpBase)
 {
-	PyObject *ulPropTag = NULL;
-	PyObject *Value = NULL;
 	char *lpstr = NULL;
 	Py_ssize_t size = 0;
-
-	ulPropTag = PyObject_GetAttrString(object, "ulPropTag");
-	Value = PyObject_GetAttrString(object, "Value");
-
+	pyobj_ptr ulPropTag(PyObject_GetAttrString(object, "ulPropTag"));
+	pyobj_ptr Value(PyObject_GetAttrString(object, "Value"));
 	if(!ulPropTag || !Value) {
 		PyErr_SetString(PyExc_RuntimeError, "ulPropTag or Value missing from SPropValue");
 		goto exit;
@@ -541,21 +527,20 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 #define PT_MV_CASE(MVname,MVelem,As,Sub) \
 	{ \
 		Py_ssize_t len = PyObject_Size(Value); \
-		PyObject *iter = PyObject_GetIter(Value); \
-		PyObject *elem = NULL; \
+		pyobj_ptr iter(PyObject_GetIter(Value)); \
 		int n = 0; \
 		\
 		if (len) { \
 			if (MAPIAllocateMore(sizeof(*lpProp->Value.MV##MVname.lp##MVelem) * len, lpBase, (void **)&lpProp->Value.MV##MVname.lp##MVelem) != hrSuccess) \
 				goto exit; \
-			while ((elem = PyIter_Next(iter))) {						\
+			do { \
+				pyobj_ptr elem(PyIter_Next(iter)); \
+				if (elem == nullptr) break; \
 				Sub(lpProp->Value.MV##MVname.lp##MVelem[n]) = As(elem); \
-				Py_DECREF(elem);									\
 				++n;												\
-			}														\
+			} while (true); \
 		}															\
 		lpProp->Value.MV##MVname.cValues = n; \
-		Py_DECREF(iter); \
 		break; \
 	}
 	case PT_MV_SHORT:
@@ -575,31 +560,33 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 	case PT_MV_SYSTIME:
 	{
 		Py_ssize_t len = PyObject_Size(Value);
-		PyObject *iter = PyObject_GetIter(Value);
-		PyObject *elem = NULL;
+		pyobj_ptr iter(PyObject_GetIter(Value));
 		int n = 0;
 
 		if (MAPIAllocateMore(sizeof(SDateTimeArray) * len, lpBase, (void **)&lpProp->Value.MVft.lpft) != hrSuccess)
 			goto exit;
-		while ((elem = PyIter_Next(iter))) {
+		do {
+			pyobj_ptr elem(PyIter_Next(iter));
+			if (elem == nullptr)
+				break;
 			lpProp->Value.MVft.lpft[n] = Object_to_FILETIME(elem);
-			Py_DECREF(elem);
 			++n;
-		}
+		} while (true);
 		lpProp->Value.MVft.cValues = n;
-		Py_DECREF(iter);
 		break;
 	}
 	case PT_MV_STRING8:
 	{
 		Py_ssize_t len = PyObject_Size(Value);
-		PyObject *iter = PyObject_GetIter(Value);
-		PyObject *elem = NULL;
+		pyobj_ptr iter(PyObject_GetIter(Value));
 		int n = 0;
 
 		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszA.lppszA) * len, lpBase, (LPVOID *)&lpProp->Value.MVszA.lppszA) != hrSuccess)
 			goto exit;
-		while ((elem = PyIter_Next(iter))) {
+		do {
+			pyobj_ptr elem(PyIter_Next(iter));
+			if (elem == nullptr)
+				break;
 			if (ulFlags == CONV_COPY_SHALLOW)
 				lpProp->Value.MVszA.lppszA[n] = PyString_AsString(elem);
 			else {
@@ -608,23 +595,23 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 					goto exit;
 				memcpy(lpProp->Value.MVszA.lppszA[n], lpstr, size+1);
 			}
-			Py_DECREF(elem);
 			++n;
-		}
+		} while (true);
 		lpProp->Value.MVszA.cValues = n;
-		Py_DECREF(iter);
 		break;
 	}
 	case PT_MV_BINARY:
 	{
 		Py_ssize_t len = PyObject_Size(Value);
-		PyObject *iter = PyObject_GetIter(Value);
-		PyObject *elem = NULL;
+		pyobj_ptr iter(PyObject_GetIter(Value));
 		int n = 0;
 
 		if (MAPIAllocateMore(sizeof(SBinaryArray) * len, lpBase, (void **)&lpProp->Value.MVbin.lpbin) != hrSuccess)
 			goto exit;
-		while ((elem = PyIter_Next(iter))) {
+		do {
+			pyobj_ptr elem(PyIter_Next(iter));
+			if (elem == nullptr)
+				break;
 			if (PyString_AsStringAndSize(elem, &lpstr, &size) < 0)
 				goto exit;
 			if (ulFlags == CONV_COPY_SHALLOW)
@@ -635,45 +622,45 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 				memcpy(lpProp->Value.MVbin.lpbin[n].lpb, lpstr, size);
 			}
 			lpProp->Value.MVbin.lpbin[n].cb = size;
-			Py_DECREF(elem);
 			++n;
-		}
+		} while (true);
 		lpProp->Value.MVbin.cValues = n;
-		Py_DECREF(iter);
 		break;
 	}
 	case PT_MV_UNICODE:
 	{
 		Py_ssize_t len = PyObject_Size(Value);
-		PyObject *iter = PyObject_GetIter(Value);
-		PyObject *elem = NULL;
+		pyobj_ptr iter(PyObject_GetIter(Value));
 		int n = 0;
 
 		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszW.lppszW) * len, lpBase, (LPVOID *)&lpProp->Value.MVszW.lppszW) != hrSuccess)
 			goto exit;
-		while((elem = PyIter_Next(iter))) {
+		do {
+			pyobj_ptr elem(PyIter_Next(iter));
+			if (elem == nullptr)
+				break;
 			if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
 				lpProp->Value.MVszW.lppszW[n] = (WCHAR*)PyUnicode_AsUnicode(elem);
 			else
 				CopyPyUnicode(&lpProp->Value.MVszW.lppszW[n], Value, lpBase);
-			Py_DECREF(elem);
 			++n;
-		}
+		} while (true);
 		lpProp->Value.MVszW.cValues = n;
-		Py_DECREF(iter);
 		break;
 	}
 	case PT_MV_CLSID:
 	{
 		Py_ssize_t len = PyObject_Size(Value);
-		PyObject *iter = PyObject_GetIter(Value);
-		PyObject *elem = NULL;
+		pyobj_ptr iter(PyObject_GetIter(Value));
 		int n = 0;
 		char *guid;
 
 		if (MAPIAllocateMore(sizeof(GUID) * len, lpBase, (void **)&lpProp->Value.MVguid.lpguid) != hrSuccess)
 			goto exit;
-		while ((elem = PyIter_Next(iter))) {
+		do {
+			pyobj_ptr elem(PyIter_Next(iter));
+			if (elem == nullptr)
+				break;
 			if (PyString_AsStringAndSize(elem, &guid, &size) < 0)
 				goto exit;
 			if (size != sizeof(GUID)) {
@@ -681,11 +668,9 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 				break;
 			}
 			memcpy(&lpProp->Value.MVguid.lpguid[n], guid, size);
-			Py_DECREF(elem);
 			++n;
-		}
+		} while (true);
 		lpProp->Value.MVguid.cValues = n;
-		Py_DECREF(iter);
 		break;
 	}
 	default:
@@ -693,11 +678,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		break;
 	}
 
-exit:
-	if (ulPropTag)
-		Py_DECREF(ulPropTag);
-	if (Value)
-		Py_DECREF(Value);
+exit:;
 }
 
 void Object_to_LPSPropValue(PyObject *object, SPropValue *prop,
@@ -742,16 +723,13 @@ SPropValue *List_to_p_SPropValue(PyObject *object, ULONG *cValues,
 	Py_ssize_t size = 0;
 	LPSPropValue lpProps = NULL;
 	LPSPropValue lpResult = NULL;
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
 	int i = 0;
 
 	if(object == Py_None) {
 		*cValues = 0;
 		return NULL;
 	}
-
-	iter = PyObject_GetIter(object);
+	pyobj_ptr iter(PyObject_GetIter(object));
 	if(!iter)
 		goto exit;
 
@@ -761,27 +739,21 @@ SPropValue *List_to_p_SPropValue(PyObject *object, ULONG *cValues,
 		goto exit;
 
 	memset(lpProps, 0, sizeof(SPropValue)*size);
-
-	while((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		Object_to_LPSPropValue(elem, &lpProps[i], ulFlags, lpBase != nullptr? lpBase : lpProps);
 		if(PyErr_Occurred())
 			goto exit;
-
-		Py_DECREF(elem);
-		elem = NULL;
 		++i;
-	}
-
+	} while (true);
 	lpResult = lpProps;
 	*cValues = size;
 
 exit:
 	if (PyErr_Occurred() && lpBase == nullptr)
 		MAPIFreeBuffer(lpProps);
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (iter != nullptr)
-		Py_DECREF(iter);
 	return lpResult;
 }
 
