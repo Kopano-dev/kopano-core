@@ -2456,10 +2456,7 @@ PyObject *Object_from_LPECUSERCLIENTUPDATESTATUS(ECUSERCLIENTUPDATESTATUS *lpECU
 
 LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 {
-	PyObject *elem = NULL;
-	PyObject *iter = NULL;
-	PyObject *rowflags = NULL;
-	PyObject *props = NULL;
+	pyobj_ptr iter;
 	Py_ssize_t len = 0;
 	LPROWLIST lpRowList = NULL;
 	int n = 0;
@@ -2475,34 +2472,24 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 
 	if (MAPIAllocateBuffer(CbNewROWLIST(len), (void **)&lpRowList) != hrSuccess)
 		goto exit;
-
-	iter = PyObject_GetIter(object);
+	iter.reset(PyObject_GetIter(object));
 	if (iter == NULL)
 		goto exit;
-
-	while ((elem = PyIter_Next(iter))) {
-		rowflags = PyObject_GetAttrString(elem, "ulRowFlags");
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
+		pyobj_ptr rowflags(PyObject_GetAttrString(elem, "ulRowFlags"));
 		if (rowflags == NULL)
 			goto exit;
-
-		props = PyObject_GetAttrString(elem, "rgPropVals");
+		pyobj_ptr props(PyObject_GetAttrString(elem, "rgPropVals"));
 		if (props == NULL)
 			goto exit;
 
 		lpRowList->aEntries[n].ulRowFlags = (ULONG)PyLong_AsUnsignedLong(rowflags);
 		lpRowList->aEntries[n].rgPropVals = List_to_LPSPropValue(props, &lpRowList->aEntries[n].cValues, ulFlags);
-
-		Py_DECREF(props);
-		props = NULL;
-
-		Py_DECREF(rowflags);
-		rowflags = NULL;
-
-		Py_DECREF(elem);
-		elem = NULL;
 		++n;
-	}
-
+	} while (true);
 	lpRowList->cEntries = n;
 
 exit:
@@ -2510,79 +2497,52 @@ exit:
 		MAPIFreeBuffer(lpRowList);
 		lpRowList = NULL;
 	}
-	if (props)
-		Py_DECREF(props);
-	if (rowflags)
-		Py_DECREF(rowflags);
-	if (elem)
-		Py_DECREF(elem);
-	if (iter)
-		Py_DECREF(iter);
-
 	return lpRowList;
 }
 
 void DoException(HRESULT hr)
 {
 #if PY_VERSION_HEX >= 0x02040300	// 2.4.3
-	PyObject *hrObj = Py_BuildValue("I", (unsigned int)hr);
+	pyobj_ptr hrObj(Py_BuildValue("I", static_cast<unsigned int>(hr)));
 #else
 	// Python 2.4.2 and earlier don't support the "I" format so create a
 	// PyLong object instead.
-	PyObject *hrObj = PyLong_FromUnsignedLong((unsigned int)hr);
+	pyobj_ptr hrObj(PyLong_FromUnsignedLong(static_cast<unsigned int>(hr)));
 #endif
 
 	#if PY_MAJOR_VERSION >= 3
-		PyObject *attr_name = PyUnicode_FromString("_errormap");
+	pyobj_ptr attr_name(PyUnicode_FromString("_errormap"));
 	#else
-		PyObject *attr_name = PyString_FromString("_errormap");
+	pyobj_ptr attr_name(PyString_FromString("_errormap"));
 	#endif
-	PyObject *errormap = PyObject_GetAttr(PyTypeMAPIError, attr_name);
-	PyObject *errortype = NULL;
-	PyObject *ex = NULL;
+	pyobj_ptr errormap(PyObject_GetAttr(PyTypeMAPIError, attr_name)), ex;
+	PyObject *errortype;
 	if (errormap != NULL) {
 		errortype = PyDict_GetItem(errormap, hrObj);
 		if (errortype)
-			ex = PyObject_CallFunction(errortype, NULL);
+			ex.reset(PyObject_CallFunction(errortype, nullptr));
 	}
 	if (!errortype) {
 		errortype = PyTypeMAPIError;
-		ex = PyObject_CallFunction(PyTypeMAPIError, "O", hrObj);
+		ex.reset(PyObject_CallFunction(PyTypeMAPIError, "O", hrObj.get()));
 	}
 
 	PyErr_SetObject(errortype, ex);
-	if (ex)
-		Py_DECREF(ex);
-	if (errormap)
-		Py_DECREF(errormap);
-	if (attr_name)
-		Py_DECREF(attr_name);
-	if (hrObj)
-		Py_DECREF(hrObj);
 }
 
 int GetExceptionError(PyObject *object, HRESULT *lphr)
 {
 	if (!PyErr_GivenExceptionMatches(object, PyTypeMAPIError))
 		return 0;
-
-	PyObject *type = NULL, *value = NULL, *traceback = NULL;
-	PyErr_Fetch(&type, &value, &traceback);
-
-	PyObject *hr = PyObject_GetAttrString(value, "hr");
+	pyobj_ptr type, value, traceback;
+	PyErr_Fetch(&~type, &~value, &~traceback);
+	pyobj_ptr hr(PyObject_GetAttrString(value, "hr"));
 	if (!hr) {
 		PyErr_SetString(PyExc_RuntimeError, "hr or Value missing from MAPIError");
 		return -1;
 	}
 
 	*lphr = (HRESULT)PyLong_AsUnsignedLong(hr);
-	Py_DECREF(hr);
-	if (type != nullptr)
-		Py_DECREF(type);
-	if (value != nullptr)
-		Py_DECREF(value);
-	if (traceback != nullptr)
-		Py_DECREF(traceback);
 	return 1;
 }
 
