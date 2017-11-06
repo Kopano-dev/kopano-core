@@ -951,7 +951,7 @@ EXTRA_DIST += version versionheader.sh \
 	common/include/kopano/ecversion.h
 
 BUILT_SOURCES += source-moved-check common/include/kopano/ecversion.h
-CLEANFILES += common/include/kopano/ecversion.h version
+CLEANFILES += common/include/kopano/ecversion.h
 
 dist_sbin_SCRIPTS += tools/python-scripts/kopano-cachestat
 gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
@@ -964,7 +964,7 @@ source-moved-check:
 	@${top_srcdir}/pwdcheck.sh "${abs_top_builddir}"
 
 version:
-	touch $@
+	echo "@PACKAGE_VERSION@" >version
 
 common/include/kopano/ecversion.h: version versionheader.sh
 	${MKDIR_P} common/include/kopano

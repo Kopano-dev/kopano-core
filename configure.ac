@@ -21,8 +21,9 @@ AC_PROG_INSTALL
 AC_PROG_SED
 PKG_PROG_PKG_CONFIG
 
+# configure may rerun as part of git-checking out a different version,
+# so remove stale version
 rm -f version
-echo "$PACKAGE_VERSION" >version
 AC_SUBST([PACKAGE_ABI])
 abs_top_srcdir=`cd $srcdir; pwd`
 abs_top_builddir=`pwd`
