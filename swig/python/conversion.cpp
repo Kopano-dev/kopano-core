@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <kopano/memory.hpp>
 #include <kopano/platform.h>
 #include <mapix.h>
 #include <mapidefs.h>
@@ -27,7 +27,7 @@
 #include "pymem.hpp"
 #include "scl.h"
 
-using KCHL::pyobj_ptr;
+using namespace KCHL;
 
 // From Structs.py
 static PyObject *PyTypeSPropValue;
@@ -716,7 +716,7 @@ SPropTagArray *List_to_p_SPropTagArray(PyObject *object, ULONG /*ulFlags*/)
 {
 	pyobj_ptr iter;
 	Py_ssize_t len = 0;
-	LPSPropTagArray lpPropTagArray = NULL;
+	memory_ptr<SPropTagArray> lpPropTagArray;
 	int n = 0;
 
 	if(object == Py_None)
@@ -727,8 +727,7 @@ SPropTagArray *List_to_p_SPropTagArray(PyObject *object, ULONG /*ulFlags*/)
 		PyErr_Format(PyExc_TypeError, "Invalid list passed as property list");
 		goto exit;
 	}
-
-	if (MAPIAllocateBuffer(CbNewSPropTagArray(len), (void **)&lpPropTagArray) != hrSuccess)
+	if (MAPIAllocateBuffer(CbNewSPropTagArray(len), &~lpPropTagArray) != hrSuccess)
 		goto exit;
 	iter.reset(PyObject_GetIter(object));
 	if(iter == NULL)
@@ -743,11 +742,9 @@ SPropTagArray *List_to_p_SPropTagArray(PyObject *object, ULONG /*ulFlags*/)
 	lpPropTagArray->cValues = n;
 
 exit:
-	if(PyErr_Occurred()) {
-		MAPIFreeBuffer(lpPropTagArray);
-		lpPropTagArray = NULL;
-	}
-	return lpPropTagArray;
+	if (PyErr_Occurred())
+		lpPropTagArray.reset();
+	return lpPropTagArray.release();
 }
 
 PyObject *List_from_SPropTagArray(const SPropTagArray *lpPropTagArray)
@@ -1298,7 +1295,7 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
 {
 	pyobj_ptr aSort, cCategories, cExpanded, iter;
-	SSortOrderSet *lpsSortOrderSet = NULL;
+	memory_ptr<SSortOrderSet> lpsSortOrderSet;
 	Py_ssize_t len = 0;
 	unsigned int i = 0;
 
@@ -1317,8 +1314,7 @@ SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
 		PyErr_SetString(PyExc_RuntimeError, "aSort is not a sequence");
 		goto exit;
 	}
-
-	if (MAPIAllocateBuffer(CbNewSSortOrderSet(len), (void **)&lpsSortOrderSet) != hrSuccess)
+	if (MAPIAllocateBuffer(CbNewSSortOrderSet(len), &~lpsSortOrderSet) != hrSuccess)
 		goto exit;
 	iter.reset(PyObject_GetIter(aSort));
 	if(iter == NULL)
@@ -1344,11 +1340,9 @@ SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
 	lpsSortOrderSet->cExpanded = PyLong_AsUnsignedLong(cExpanded);
 
 exit:
-	if(PyErr_Occurred()) {
-		MAPIFreeBuffer(lpsSortOrderSet);
-		lpsSortOrderSet = NULL;
-	}
-	return lpsSortOrderSet;
+	if (PyErr_Occurred())
+		lpsSortOrderSet.reset();
+	return lpsSortOrderSet.release();
 }
 
 PyObject *Object_from_SSortOrderSet(const SSortOrderSet *lpSortOrderSet)
@@ -1391,7 +1385,7 @@ SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags, void *lpBase)
 {
 	pyobj_ptr iter;
 	Py_ssize_t len = 0;
-	LPSRowSet lpsRowSet = NULL;
+	rowset_ptr lpsRowSet;
 	int i = 0;
 
 	if (list == Py_None)
@@ -1404,7 +1398,7 @@ SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags, void *lpBase)
 
 	// Zero out the whole struct so that failures halfway don't leave the struct
 	// in an uninitialized state for FreeProws()
-	if (MAPIAllocateMore(CbNewSRowSet(len), lpBase, (void **)&lpsRowSet) != hrSuccess)
+	if (MAPIAllocateMore(CbNewSRowSet(len), lpBase, &~lpsRowSet) != hrSuccess)
 		goto exit;
 
 	memset(lpsRowSet, 0, CbNewSRowSet(len));
@@ -1421,13 +1415,9 @@ SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags, void *lpBase)
 	lpsRowSet->cRows = i;
 
 exit:
-	if(PyErr_Occurred()) {
-		if(lpsRowSet)
-			FreeProws(lpsRowSet);
-		lpsRowSet = NULL;
-	}
-
-	return lpsRowSet;
+	if (PyErr_Occurred())
+		lpsRowSet.reset();
+	return lpsRowSet.release();
 }
 
 SRowSet *List_to_LPSRowSet(PyObject *obj, ULONG flags, void *lpBase)
@@ -1512,7 +1502,7 @@ LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*
 {
 	pyobj_ptr iter;
 	Py_ssize_t len = 0;
-	LPSPropProblemArray lpsProblems = NULL;
+	memory_ptr<SPropProblemArray> lpsProblems;
 	int i = 0;
 
 	if (list == Py_None)
@@ -1522,8 +1512,7 @@ LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*
 	iter.reset(PyObject_GetIter(list));
 	if(!iter)
 		goto exit;
-
-	if (MAPIAllocateBuffer(CbNewSPropProblemArray(len), (void **)&lpsProblems) != hrSuccess)
+	if (MAPIAllocateBuffer(CbNewSPropProblemArray(len), &~lpsProblems) != hrSuccess)
 		goto exit;
 
 	memset(lpsProblems, 0, CbNewSPropProblemArray(len));
@@ -1541,12 +1530,9 @@ LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*
 	lpsProblems->cProblem = i;
 
 exit:
-	if(PyErr_Occurred()) {
-		MAPIFreeBuffer(lpsProblems);
-		lpsProblems = NULL;
-	}
-
-	return lpsProblems;
+	if (PyErr_Occurred())
+		lpsProblems.reset();
+	return lpsProblems.release();
 }
 
 PyObject * Object_from_LPMAPINAMEID(LPMAPINAMEID lpMAPINameId)
@@ -1637,7 +1623,7 @@ exit:
 
 LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*ulFlags*/)
 {
-	LPMAPINAMEID *lpNames = NULL;
+	memory_ptr<MAPINAMEID *> lpNames;
 	Py_ssize_t len = 0;
 	unsigned int i = 0;
 
@@ -1646,8 +1632,7 @@ LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*u
 		goto exit;
 
 	len = PyObject_Length(list);
-
-	if (MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * len, (void **)&lpNames) != hrSuccess)
+	if (MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * len, &~lpNames) != hrSuccess)
 		goto exit;
 
 	memset(lpNames, 0, sizeof(LPMAPINAMEID) * len);
@@ -1664,16 +1649,14 @@ LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*u
 	*lpcNames = i;
 
 exit:
-	if(PyErr_Occurred()) {
-		MAPIFreeBuffer(lpNames);
-		lpNames = NULL;
-	}
-	return lpNames;
+	if (PyErr_Occurred())
+		lpNames.reset();
+	return lpNames.release();
 }
 
 LPENTRYLIST		List_to_LPENTRYLIST(PyObject *list)
 {
-	LPENTRYLIST lpEntryList = NULL;
+	memory_ptr<ENTRYLIST> lpEntryList;
 	Py_ssize_t len = 0;
 	unsigned int i = 0;
 
@@ -1684,8 +1667,7 @@ LPENTRYLIST		List_to_LPENTRYLIST(PyObject *list)
 		goto exit;
 
 	len = PyObject_Length(list);
-
-	if (MAPIAllocateBuffer(sizeof(*lpEntryList), (void **)&lpEntryList) != hrSuccess)
+	if (MAPIAllocateBuffer(sizeof(*lpEntryList), &~lpEntryList) != hrSuccess)
 		goto exit;
 
 	if (MAPIAllocateMore(len * sizeof *lpEntryList->lpbin, lpEntryList, (void**)&lpEntryList->lpbin) != hrSuccess)
@@ -1710,11 +1692,9 @@ LPENTRYLIST		List_to_LPENTRYLIST(PyObject *list)
 		++i;
 	} while (true);
 exit:
-	if(PyErr_Occurred()) {
-		MAPIFreeBuffer(lpEntryList);
-		lpEntryList = NULL;
-	}
-	return lpEntryList;
+	if (PyErr_Occurred())
+		lpEntryList.reset();
+	return lpEntryList.release();
 }
 
 PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList)
@@ -1815,12 +1795,10 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 
 NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 {
-	LPNOTIFICATION lpNotif = NULL;
-
+	memory_ptr<NOTIFICATION> lpNotif;
 	if(obj == Py_None)
 		return NULL;
-
-	if (MAPIAllocateBuffer(sizeof(NOTIFICATION), (void**)&lpNotif) != hrSuccess)
+	if (MAPIAllocateBuffer(sizeof(NOTIFICATION), &~lpNotif) != hrSuccess)
 		goto exit;
 
 	memset(lpNotif, 0, sizeof(NOTIFICATION));
@@ -1892,25 +1870,22 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		MAPIFreeBuffer(lpNotif);
-		lpNotif = NULL;
-	}
-	return lpNotif;
+	if (PyErr_Occurred())
+		lpNotif.reset();
+	return lpNotif.release();
 }
 
 LPFlagList		List_to_LPFlagList(PyObject *list)
 {
 	Py_ssize_t len = 0;
-	LPFlagList lpList = NULL;
+	memory_ptr<FlagList> lpList;
 	int i = 0;
 	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		goto exit;
 
 	len = PyObject_Length(list);
-
-	if (MAPIAllocateBuffer(CbNewFlagList(len), (void **)&lpList) != hrSuccess)
+	if (MAPIAllocateBuffer(CbNewFlagList(len), &~lpList) != hrSuccess)
 		goto exit;
 	do {
 		pyobj_ptr elem(PyIter_Next(iter));
@@ -1925,11 +1900,9 @@ LPFlagList		List_to_LPFlagList(PyObject *list)
 	lpList->cFlags = i;
 
 exit:
-	if(PyErr_Occurred()) {
-		MAPIFreeBuffer(lpList);
-		lpList = NULL;
-	}
-	return lpList;
+	if (PyErr_Occurred())
+		lpList.reset();
+	return lpList.release();
 }
 
 PyObject *		List_from_LPFlagList(LPFlagList lpFlags)
@@ -1959,15 +1932,14 @@ LPMAPIERROR		Object_to_LPMAPIERROR(PyObject *)
 LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 {
 	Py_ssize_t len = 0;
-	LPREADSTATE lpList = NULL;
+	memory_ptr<READSTATE> lpList;
 	int i = 0;
 	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		goto exit;
 
 	len = PyObject_Length(list);
-
-	if (MAPIAllocateBuffer(len * sizeof *lpList, (void **)&lpList) != hrSuccess)
+	if (MAPIAllocateBuffer(len * sizeof(*lpList), &~lpList) != hrSuccess)
 		goto exit;
 
 	do {
@@ -2005,11 +1977,9 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 	*lpcElements = len;
 
 exit:
-	if(PyErr_Occurred()) {
-		MAPIFreeBuffer(lpList);
-		lpList = NULL;
-	}
-	return lpList;
+	if (PyErr_Occurred())
+		lpList.reset();
+	return lpList.release();
 }
 
 PyObject *		List_from_LPREADSTATE(LPREADSTATE lpReadState, ULONG cElements)
@@ -2030,7 +2000,7 @@ PyObject *		List_from_LPREADSTATE(LPREADSTATE lpReadState, ULONG cElements)
 LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 {
 	Py_ssize_t len = 0;
-	LPIID lpList = NULL;
+	memory_ptr<IID> lpList;
 	int i = 0;
 
 	if(list == Py_None) {
@@ -2042,8 +2012,7 @@ LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 		goto exit;
 
 	len = PyObject_Length(list);
-
-	if (MAPIAllocateBuffer(len * sizeof *lpList, (void **)&lpList) != hrSuccess)
+	if (MAPIAllocateBuffer(len * sizeof(*lpList), &~lpList) != hrSuccess)
 		goto exit;
 	do {
 		pyobj_ptr elem(PyIter_Next(iter));
@@ -2067,11 +2036,9 @@ LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 	*cInterfaces = len;
 
 exit:
-	if(PyErr_Occurred()) {
-		MAPIFreeBuffer(lpList);
-		lpList = NULL;
-	}
-	return lpList;
+	if (PyErr_Occurred())
+		lpList.reset();
+	return lpList.release();
 }
 
 PyObject *List_from_LPCIID(LPCIID iids, ULONG cElements)
@@ -2380,7 +2347,7 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 {
 	pyobj_ptr iter;
 	Py_ssize_t len = 0;
-	LPROWLIST lpRowList = NULL;
+	memory_ptr<ROWLIST> lpRowList;
 	int n = 0;
 
 	if (object == Py_None)
@@ -2391,8 +2358,7 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 		PyErr_Format(PyExc_TypeError, "Invalid list passed as row list");
 		goto exit;
 	}
-
-	if (MAPIAllocateBuffer(CbNewROWLIST(len), (void **)&lpRowList) != hrSuccess)
+	if (MAPIAllocateBuffer(CbNewROWLIST(len), &~lpRowList) != hrSuccess)
 		goto exit;
 	iter.reset(PyObject_GetIter(object));
 	if (iter == NULL)
@@ -2415,11 +2381,9 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 	lpRowList->cEntries = n;
 
 exit:
-	if (PyErr_Occurred()) {
-		MAPIFreeBuffer(lpRowList);
-		lpRowList = NULL;
-	}
-	return lpRowList;
+	if (PyErr_Occurred())
+		lpRowList.reset();
+	return lpRowList.release();
 }
 
 void DoException(HRESULT hr)
@@ -2517,7 +2481,7 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 	HRESULT hr = hrSuccess;
 	Py_ssize_t len = 0;
 	pyobj_ptr iter;
-	ECSVRNAMELIST *lpSvrNameList = NULL;
+	memory_ptr<ECSVRNAMELIST> lpSvrNameList;
 
 	if (object == Py_None)
 		goto exit;
@@ -2527,8 +2491,7 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 		PyErr_Format(PyExc_TypeError, "Invalid list passed as servername list");
 		goto exit;
 	}
-
-	if (MAPIAllocateBuffer(sizeof(ECSVRNAMELIST) + (sizeof(ECSERVER *) * len), reinterpret_cast<void **>(&lpSvrNameList)) != hrSuccess)
+	if (MAPIAllocateBuffer(sizeof(ECSVRNAMELIST) + (sizeof(ECSERVER *) * len), &~lpSvrNameList) != hrSuccess)
 		goto exit;
 
 	memset(lpSvrNameList, 0, sizeof(ECSVRNAMELIST) + (sizeof(ECSERVER *) * len) );
@@ -2556,11 +2519,9 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 		++lpSvrNameList->cServers;
 	} while (true);
 exit:
-	if(PyErr_Occurred()) {
-		MAPIFreeBuffer(lpSvrNameList);
-		lpSvrNameList = NULL;
-	}
-	return lpSvrNameList;
+	if (PyErr_Occurred())
+		lpSvrNameList.reset();
+	return lpSvrNameList.release();
 }
 
 PyObject *Object_from_LPECSERVER(ECSERVER *lpServer)
