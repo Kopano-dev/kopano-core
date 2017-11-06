@@ -1805,11 +1805,6 @@ exit:
 PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 {
 	PyObject *elem = NULL;
-	PyObject *proptags = NULL;
-	PyObject *index = NULL;
-	PyObject *prior = NULL;
-	PyObject *row = NULL;
-
 	if(lpNotif == NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -1821,9 +1816,8 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 	case fnevObjectDeleted:
 	case fnevObjectModified:
 	case fnevObjectMoved:
-	case fnevSearchComplete:
-		proptags = List_from_LPSPropTagArray(lpNotif->info.obj.lpPropTagArray);
-
+	case fnevSearchComplete: {
+		pyobj_ptr proptags(List_from_LPSPropTagArray(lpNotif->info.obj.lpPropTagArray));
 		if (!proptags)
 			return NULL;
 #if PY_VERSION_HEX >= 0x03000000	// 3.0.0
@@ -1837,24 +1831,22 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 			lpNotif->info.obj.lpParentID, lpNotif->info.obj.cbParentID,
 			lpNotif->info.obj.lpOldID, lpNotif->info.obj.cbOldID,
 			lpNotif->info.obj.lpOldParentID, lpNotif->info.obj.cbOldParentID,
-			proptags);
-		Py_DECREF(proptags);
+			proptags.get());
 		break;
-	case fnevTableModified:
-		index = Object_from_LPSPropValue(&lpNotif->info.tab.propIndex);
+	}
+	case fnevTableModified: {
+		pyobj_ptr index(Object_from_LPSPropValue(&lpNotif->info.tab.propIndex));
 		if (!index)
 			return NULL;
-		prior = Object_from_LPSPropValue(&lpNotif->info.tab.propPrior);
+		pyobj_ptr prior(Object_from_LPSPropValue(&lpNotif->info.tab.propPrior));
 		if (!prior)
 			return NULL;
-		row = List_from_LPSPropValue(lpNotif->info.tab.row.lpProps, lpNotif->info.tab.row.cValues);
+		pyobj_ptr row(List_from_LPSPropValue(lpNotif->info.tab.row.lpProps, lpNotif->info.tab.row.cValues));
 		if (!row)
 			return NULL;
-		elem = PyObject_CallFunction(PyTypeTABLE_NOTIFICATION, "(lIOOO)", lpNotif->info.tab.ulTableEvent, lpNotif->info.tab.hResult, index, prior, row);
-		Py_DECREF(index);
-		Py_DECREF(prior);
-		Py_DECREF(row);
+		elem = PyObject_CallFunction(PyTypeTABLE_NOTIFICATION, "(lIOOO)", lpNotif->info.tab.ulTableEvent, lpNotif->info.tab.hResult, index.get(), prior.get(), row.get());
 		break;
+	}
 	case fnevNewMail:
 #if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		elem = PyObject_CallFunction(PyTypeNEWMAIL_NOTIFICATION, "(y#y#lsl)",
@@ -1876,7 +1868,6 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 
 NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 {
-	PyObject *oTmp = NULL;
 	LPNOTIFICATION lpNotif = NULL;
 
 	if(obj == Py_None)
@@ -1892,7 +1883,7 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 		lpNotif->ulEventType = fnevNewMail;
 
 		Py_ssize_t size;
-		oTmp = PyObject_GetAttrString(obj, "lpEntryID");
+		pyobj_ptr oTmp(PyObject_GetAttrString(obj, "lpEntryID"));
 		if(!oTmp) {
 			PyErr_SetString(PyExc_RuntimeError, "lpEntryID missing for newmail notification");
 	   		goto exit;
@@ -1904,9 +1895,7 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 			lpNotif->info.newmail.cbEntryID = size;
 		}
 
-		Py_DECREF(oTmp);
-
-		oTmp = PyObject_GetAttrString(obj, "lpParentID");
+		oTmp.reset(PyObject_GetAttrString(obj, "lpParentID"));
 			if(!oTmp) {
 				PyErr_SetString(PyExc_RuntimeError, "lpParentID missing for newmail notification");
 				goto exit;
@@ -1918,9 +1907,7 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 			lpNotif->info.newmail.cbParentID = size;
 		 }
 
-			Py_DECREF(oTmp);
-
-			oTmp = PyObject_GetAttrString(obj, "ulFlags");
+		oTmp.reset(PyObject_GetAttrString(obj, "ulFlags"));
 			if(!oTmp) {
 				PyErr_SetString(PyExc_RuntimeError, "ulFlags missing for newmail notification");
 				goto exit;
@@ -1930,9 +1917,7 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 				lpNotif->info.newmail.ulFlags = (ULONG)PyLong_AsUnsignedLong(oTmp);
 			}
 
-			Py_DECREF(oTmp);
-
-			oTmp = PyObject_GetAttrString(obj, "ulMessageFlags");
+		oTmp.reset(PyObject_GetAttrString(obj, "ulMessageFlags"));
 			if(!oTmp) {
 				PyErr_SetString(PyExc_RuntimeError, "ulMessageFlags missing for newmail notification");
 				goto exit;
@@ -1941,10 +1926,9 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 			if (oTmp != Py_None) {
 				lpNotif->info.newmail.ulMessageFlags = (ULONG)PyLong_AsUnsignedLong(oTmp);
 			}
-			Py_DECREF(oTmp);
 
 			// MessageClass
-			oTmp= PyObject_GetAttrString(obj, "lpszMessageClass");
+		oTmp.reset(PyObject_GetAttrString(obj, "lpszMessageClass"));
 			if(!oTmp) {
 				PyErr_SetString(PyExc_RuntimeError, "lpszMessageClass missing for newmail notification");
 				goto exit;
@@ -1956,10 +1940,6 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 				else if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpszMessageClass), nullptr) == -1)
 					goto exit;
 			}
-
-			Py_DECREF(oTmp);
-			oTmp = NULL;
-
 	} else {
 		PyErr_Format(PyExc_RuntimeError, "Bad object type %p", obj->ob_type);
 	}
@@ -1969,22 +1949,15 @@ exit:
 		MAPIFreeBuffer(lpNotif);
 		lpNotif = NULL;
 	}
-
-	if(oTmp)
-		Py_DECREF(oTmp);
-
 	return lpNotif;
 }
 
 LPFlagList		List_to_LPFlagList(PyObject *list)
 {
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
 	Py_ssize_t len = 0;
 	LPFlagList lpList = NULL;
 	int i = 0;
-
-	iter = PyObject_GetIter(list);
+	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		goto exit;
 
@@ -1992,17 +1965,16 @@ LPFlagList		List_to_LPFlagList(PyObject *list)
 
 	if (MAPIAllocateBuffer(CbNewFlagList(len), (void **)&lpList) != hrSuccess)
 		goto exit;
-
-	while((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		lpList->ulFlag[i] = PyLong_AsUnsignedLong(elem);
 
 		if(PyErr_Occurred())
 			goto exit;
 		++i;
-		Py_DECREF(elem);
-		elem = NULL;
-	}
-
+	} while (true);
 	lpList->cFlags = i;
 
 exit:
@@ -2010,27 +1982,17 @@ exit:
 		MAPIFreeBuffer(lpList);
 		lpList = NULL;
 	}
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (iter != nullptr)
-		Py_DECREF(iter);
 	return lpList;
 }
 
 PyObject *		List_from_LPFlagList(LPFlagList lpFlags)
 {
-	PyObject *list = PyList_New(0);
-	PyObject *elem = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < lpFlags->cFlags; ++i) {
-		elem = PyLong_FromUnsignedLong(lpFlags->ulFlag[i]);
+		pyobj_ptr elem(PyLong_FromUnsignedLong(lpFlags->ulFlag[i]));
 		PyList_Append(list, elem);
-
-		Py_DECREF(elem);
-		elem = NULL;
 	}
-
-	return list;
+	return list.release();
 }
 
 PyObject *		Object_from_LPMAPIERROR(LPMAPIERROR lpMAPIError)
@@ -2049,15 +2011,10 @@ LPMAPIERROR		Object_to_LPMAPIERROR(PyObject *)
 
 LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 {
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
-	PyObject *sourcekey = NULL;
-	PyObject *flags = NULL;
 	Py_ssize_t len = 0;
 	LPREADSTATE lpList = NULL;
 	int i = 0;
-
-	iter = PyObject_GetIter(list);
+	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		goto exit;
 
@@ -2066,12 +2023,14 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 	if (MAPIAllocateBuffer(len * sizeof *lpList, (void **)&lpList) != hrSuccess)
 		goto exit;
 
-	while((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		HRESULT hr;
 
-		sourcekey = PyObject_GetAttrString(elem, "SourceKey");
-		flags = PyObject_GetAttrString(elem, "ulFlags");
-
+		pyobj_ptr sourcekey(PyObject_GetAttrString(elem, "SourceKey"));
+		pyobj_ptr flags(PyObject_GetAttrString(elem, "ulFlags"));
 		if (!sourcekey || !flags)
 			continue;
 
@@ -2095,16 +2054,7 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 		memcpy(lpList[i].pbSourceKey, ptr, len);
 		lpList[i].cbSourceKey = len;
 		++i;
-		Py_DECREF(flags);
-		flags = NULL;
-
-		Py_DECREF(sourcekey);
-		sourcekey = NULL;
-
-		Py_DECREF(elem);
-		elem = NULL;
-	}
-
+	} while (true);
 	*lpcElements = len;
 
 exit:
@@ -2112,14 +2062,6 @@ exit:
 		MAPIFreeBuffer(lpList);
 		lpList = NULL;
 	}
-	if (flags != nullptr)
-		Py_DECREF(flags);
-	if (sourcekey != nullptr)
-		Py_DECREF(sourcekey);
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (iter != nullptr)
-		Py_DECREF(iter);
 	return lpList;
 }
 
