@@ -477,7 +477,7 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
     const char *szPath)
 {
 	unsigned int ulMaxThreads	= 0;
-	ULONG		ulRowCount		= 0;
+	ULONG ulRowCount = 0, later_mails = 0;
 	std::wstring strUsername;
 	bool bForceReconnect = false;
 
@@ -522,9 +522,11 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 			time_t sendat;
 			
 			FileTimeToUnixTime(lpsRowSet->aRow[0].lpProps[4].Value.ft, &sendat);
-			if (now < sendat)
+			if (now < sendat) {
 				// if we ever add logging here, it should trigger just once for this mail
+				++later_mails;
 				continue;
+			}
 		}
 
 		// Check whether the row contains the entryid and store id
@@ -577,6 +579,8 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 	}
 
 exit:
+	if (ulRowCount != 0)
+		ec_log_debug("Messages with delayed delivery: %d", later_mails);
 	return bForceReconnect ? MAPI_E_NETWORK_ERROR : hr;
 }
 

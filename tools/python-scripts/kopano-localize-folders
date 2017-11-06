@@ -10,7 +10,7 @@ import sys
 
 
 def opt_args():
-    parser = kopano.parser('skpfucm')
+    parser = kopano.parser('skpfuc')
 
     parser.add_option("--lang", dest="lang", action="store", help="A <lang> could be: nl_NL.UTF-8")
     parser.add_option("--reset", dest="reset", action="store_true", help="Reset the folder names to default: English")
