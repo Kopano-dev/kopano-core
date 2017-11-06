@@ -493,8 +493,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		if (ulFlags == CONV_COPY_SHALLOW)
 			lpProp->Value.lpszA = PyString_AsString(Value);
 		else {
-			PyString_AsStringAndSize(Value, &lpstr, &size);
-			if (MAPIAllocateMore(size + 1, lpBase, (LPVOID *)&lpProp->Value.lpszA) != hrSuccess)
+			if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0 ||
+			    MAPIAllocateMore(size + 1, lpBase, (LPVOID *)&lpProp->Value.lpszA) != hrSuccess)
 				goto exit;
 			memcpy(lpProp->Value.lpszA, lpstr, size + 1);
 		}
@@ -536,7 +536,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		lpProp->Value.ft = Object_to_FILETIME(Value);
 		break;
 	case PT_CLSID:
-		PyString_AsStringAndSize(Value, &lpstr, &size);
+		if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0)
+			goto exit;
 		if (size == sizeof(GUID)) {
 			if (ulFlags == CONV_COPY_SHALLOW)
 				lpProp->Value.lpguid = (LPGUID)lpstr;
@@ -550,7 +551,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			PyErr_Format(PyExc_TypeError, "PT_CLSID Value must be exactly %d bytes", (int)sizeof(GUID));
 		break;
 	case PT_BINARY:
-		PyString_AsStringAndSize(Value, &lpstr, &size);
+		if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0)
+			goto exit;
 		if (ulFlags == CONV_COPY_SHALLOW)
 			lpProp->Value.bin.lpb = (LPBYTE)lpstr;
 		else {
@@ -637,8 +639,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			if (ulFlags == CONV_COPY_SHALLOW)
 				lpProp->Value.MVszA.lppszA[n] = PyString_AsString(elem);
 			else {
-				PyString_AsStringAndSize(elem, &lpstr, &size);
-				if (MAPIAllocateMore(size+1, lpBase, (LPVOID *)&lpProp->Value.MVszA.lppszA[n]) != hrSuccess)
+				if (PyString_AsStringAndSize(elem, &lpstr, &size) < 0 ||
+				    MAPIAllocateMore(size+1, lpBase, (LPVOID *)&lpProp->Value.MVszA.lppszA[n]) != hrSuccess)
 					goto exit;
 				memcpy(lpProp->Value.MVszA.lppszA[n], lpstr, size+1);
 			}
@@ -659,7 +661,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		if (MAPIAllocateMore(sizeof(SBinaryArray) * len, lpBase, (void **)&lpProp->Value.MVbin.lpbin) != hrSuccess)
 			goto exit;
 		while ((elem = PyIter_Next(iter))) {
-			PyString_AsStringAndSize(elem, &lpstr, &size);
+			if (PyString_AsStringAndSize(elem, &lpstr, &size) < 0)
+				goto exit;
 			if (ulFlags == CONV_COPY_SHALLOW)
 				lpProp->Value.MVbin.lpbin[n].lpb = (LPBYTE)lpstr;
 			else {
@@ -707,7 +710,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		if (MAPIAllocateMore(sizeof(GUID) * len, lpBase, (void **)&lpProp->Value.MVguid.lpguid) != hrSuccess)
 			goto exit;
 		while ((elem = PyIter_Next(iter))) {
-			PyString_AsStringAndSize(elem, &guid, &size);
+			if (PyString_AsStringAndSize(elem, &guid, &size) < 0)
+				goto exit;
 			if (size != sizeof(GUID)) {
 				PyErr_Format(PyExc_TypeError, "PT_CLSID Value must be exactly %d bytes", (int)sizeof(GUID));
 				break;
@@ -1407,9 +1411,11 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 		PyObject *poStore = PyObject_GetAttrString(poActObject, "StoreEntryId");
 		PyObject *poFolder = PyObject_GetAttrString(poActObject, "FldEntryId");
 		Py_ssize_t size;
-		PyString_AsStringAndSize(poStore, (char**)&lpAction->actMoveCopy.lpStoreEntryId, &size);
+		if (PyString_AsStringAndSize(poStore, reinterpret_cast<char **>(&lpAction->actMoveCopy.lpStoreEntryId), &size) < 0)
+			break;
 		lpAction->actMoveCopy.cbStoreEntryId = size;
-		PyString_AsStringAndSize(poFolder, (char**)&lpAction->actMoveCopy.lpFldEntryId, &size);
+		if (PyString_AsStringAndSize(poFolder, reinterpret_cast<char **>(&lpAction->actMoveCopy.lpFldEntryId), &size) < 0)
+			break;
 		lpAction->actMoveCopy.cbFldEntryId = size;
 		Py_DECREF(poFolder);
 		Py_DECREF(poStore);
@@ -1422,9 +1428,11 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 		PyObject *poGuid = PyObject_GetAttrString(poActObject, "guidReplyTemplate");
 		char *ptr;
 		Py_ssize_t size;
-		PyString_AsStringAndSize(poEntryId, (char**)&lpAction->actReply.lpEntryId, &size);
+		if (PyString_AsStringAndSize(poEntryId, reinterpret_cast<char **>(&lpAction->actReply.lpEntryId), &size) < 0)
+			break;
 		lpAction->actReply.cbEntryId = size;
-		PyString_AsStringAndSize(poGuid, &ptr, &size);
+		if (PyString_AsStringAndSize(poGuid, &ptr, &size) < 0)
+			break;
 		if (size == sizeof(GUID))
 			memcpy(&lpAction->actReply.guidReplyTemplate, ptr, size);
 		else
@@ -1437,7 +1445,8 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 	{
 		PyObject *poData = PyObject_GetAttrString(poActObject, "data");
 		Py_ssize_t size;
-		PyString_AsStringAndSize(poData, (char**)&lpAction->actDeferAction.pbData, &size);
+		if (PyString_AsStringAndSize(poData, reinterpret_cast<char **>(&lpAction->actDeferAction.pbData), &size) < 0)
+			break;
 		lpAction->actDeferAction.cbData = size;
 		Py_DECREF(poData);
 		break;
@@ -2283,7 +2292,8 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 		}
 
 		if (oTmp != Py_None) {
-			PyString_AsStringAndSize(oTmp, (char**)&lpNotif->info.newmail.lpEntryID, &size);
+			if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpEntryID), &size) < 0)
+				goto exit;
 			lpNotif->info.newmail.cbEntryID = size;
 		}
 
@@ -2296,7 +2306,8 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 			}
 
 		 if (oTmp != Py_None) {
-			PyString_AsStringAndSize(oTmp, (char**)&lpNotif->info.newmail.lpParentID, &size);
+			if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpParentID), &size) < 0)
+				goto exit;
 			lpNotif->info.newmail.cbParentID = size;
 		 }
 
