@@ -33,6 +33,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/librosie \
 	-I${top_srcdir}/ECtools/archiver \
 	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
+	${jsoncpp_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${popt_CFLAGS} \
 	${SSL_CFLAGS} \
 	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
@@ -43,7 +44,7 @@ AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
 #
 # target programs
 #
-bin_PROGRAMS = kopano-fsck kopano-passwd kopano-stats
+bin_PROGRAMS = kopano-fsck kopano-oof kopano-passwd kopano-stats
 dist_bin_SCRIPTS = ECtools/migration-imap/kopano-migration-imap \
 	ECtools/utils/kopano-set-oof
 sbin_PROGRAMS = \
@@ -216,6 +217,10 @@ kopano_monitor_SOURCES = \
 	ECtools/monitor/ECQuotaMonitor.cpp ECtools/monitor/ECQuotaMonitor.h \
 	ECtools/monitor/monitor.cpp
 kopano_monitor_LDADD = libmapi.la libkcmapi.la libkcutil.la ${PROG_LIBS}
+
+
+kopano_oof_SOURCES = ECtools/oof.cpp
+kopano_oof_LDADD = ${jsoncpp_LIBS} ${popt_LIBS} libmapi.la libkcmapi.la libkcutil.la
 
 
 #
@@ -888,7 +893,7 @@ dist_man_MANS = \
 	doc/kopano-ldap.cfg.5 \
 	doc/kopano-mailbox-permissions.8 \
 	doc/kopano-monitor.8 doc/kopano-monitor.cfg.5 \
-	doc/kopano-passwd.1 \
+	doc/kopano-oof.1 doc/kopano-passwd.1 \
 	doc/kopano-search.8 doc/kopano-search.cfg.5 \
 	doc/kopano-server.8 doc/kopano-server.cfg.5 \
 	doc/kopano-set-oof.1 \

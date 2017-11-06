@@ -418,6 +418,7 @@ CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
 AC_CHECK_HEADERS([gperftools/malloc_extension.h google/malloc_extension.h])
 CPPFLAGS="$CPPFLAGS_system"
 PKG_CHECK_MODULES([VMIME], [vmime >= 0.9.2])
+PKG_CHECK_MODULES([jsoncpp], [jsoncpp >= 1.4.0])
 
 
 #

@@ -1,0 +1,134 @@
+.TH kopano\-oof 1 2018-01-11 "Kopano 8" "Kopano Core user reference"
+.SH NAME
+kopano\-oof \(em Control a user/store's Out Of Office settings
+.SH SYNOPSIS
+.PP
+\fBkopano\-oof\fP [\fB\-Px\fP] [\fB\-h\fP \fIuri\fP] [\fB\-m\fP
+{\fB0\fP|\fB1\fP}] [\fB\-n\fP \fImsgfile\fP] [\fB\-s\fP \fIsslkeyfile\fP]
+[\fB\-t\fP \fIsubject\fP] [\fB\-u\fP \fIusername\fP] [\fB\-\-from\fP
+\fIiso8601\fP] [\fB\-\-until\fP \fIiso8601\fP]
+.SH Description
+.PP
+This program can be used to change and/or display a user's Out Of Office
+("OOF") settings. These settings control whether kopano\-dagent(8) will, within
+a certain timeframe, send an automated reply to all incoming messages.
+kopano\-spooler(8) can also use the OOF settings to apply special handling,
+such as forwarding a message to an alternate account if the original recipient
+has OOF active. The storage server must be running for \fBkopano\-oof\fP to
+function.
+.PP
+After potentially updating OOF settings with \fB\-m\fP, \fB\-\-from\fP etc.,
+kopano\-oof will always output the current/new state of OOF settings in JSON
+format.
+.SH Options
+.TP
+\fB\-h\fP \fIuri\fP
+Connect to the given storage server. By default, the local standard Kopano
+instance is contacted.
+.TP
+\fB\-m\fP, \fB\-\-mode\fP {\fB0\fP|\fB1\fP}
+Clears or sets the Out Of Office flag of the user store. 0 disables it, 1
+enables it. When enabled, daemons like kopano\-dagent(8) and kopano\-spooler(8)
+will, when processing a message, evaluate the OOF time constraints
+(independetly set with further options).
+.TP
+\fB\-n\fP, \fB\-\-message\fP \fIfile\fP
+Update the message body for Out Of Office messages to the contents of the
+specified file. The encoding of the file is expected to be in the current
+environment's charset (LC_CTYPE variable).
+.TP
+\fB\-s\fP, \fB\-\-sslkey\-file\fP \fIfile\fP
+Read the specified certificate file and use it during connecting to the storage
+server.
+.TP
+\fB\-t\fP, \fB\-\-subject\fP \fItext\fP
+Update the subject line for Out Of Office messages to the given text.
+The encoding of the text is expected to be in the environment's charset.
+.TP
+\fB\-P\fP
+Interactively prompt for the SSL keyfile password. If neither \fB\-P\fP nor
+\fP\-p\fP are specified, kopano\-oof will look for a password in the
+OOF_SSL_PASSWORD environment variable.
+.TP
+\fB\-p\fP \fIpassword\fP
+This option is provided for compatibility with kopano\-set\-oof(1). You should
+use the \fBOOF_SSL_PASSWORD\fP environment variable instead to pass the SSL
+certificate password, because passwords may be visisble in the output of ps(1).
+.TP
+\fB\-u\fP, \fB\-\-user\fP \fIusername\fP
+Edit the Out Of Office settings for the user's default store.
+.TP
+\fB\-x\fP
+Prompt for the user account password. If this option is not specified,
+kopano\-oof will look for a password in the \fBOOF_PASSWORD\fP environment
+variable. If no password was specified in any way (\fB\-x\fP, \fB\-p\fP,
+environment variables), kopano\-oof will log in with the "SYSTEM" account,
+which requires appropriate privileges. Confer with the "local_admin_users"
+directive in kopano-server.cfg(5).
+.TP
+\fB\-\-dump\-json\fP
+This option is ignored for compatibility with kopano\-set\-oof(1). JSON data is
+always emitted, both when the settings have changed and when they are
+unmodified.
+.TP
+\fB\-\-from\fP \fIYYYY-mm-dd HH:MM\fP
+Limit the Out Of Office mechanism such that it is not active if the time of
+processing a message is before the specified timepoint. The format to use as
+argument is to be in the form of "2015\-04\-01 23:50" (ISO\-8601\-like). The
+timepoint is interpreted to be in the current environment's timezone (TZ
+variable).
+.TP
+\fB\-\-to\fP \fIYYYY\-mm\-dd HH:MM\fP
+Limit the Out Of Office mechanism such that it is not active if the time of
+processing a message is after this timepoint. The format is the same as for
+\fB\-\-from\fP. Alternatively, the special value "\fBinfinite\fP" may be used
+to denote that OOF is open-ended.
+.SH JSON output
+.PP
+.nf
+{
+        "active" : false,
+        "from" : "2019-01-01 00:00:00",
+        "set" : true,
+        "subject" : "outtahere",
+        "until" : "infinite"
+}
+.fi
+.PP
+\fBset\fP represents whether the Out Of Office feature has been enabled at all.
+\fBfrom\fP and \fBuntil\fP specify the time range in which OOF will be
+considered active (if and only if it is enabled) by dagent, spooler, and so on.
+The special value "infinite" expresses that it is open-ended. The \fBactive\fP
+flag indicates whether OOF is active right now given these conditions.
+\fBsubject\fP and \fBmessage\fP contain the OOF message subject and body data.
+.SH Usage examples
+.PP
+Non-SSL login with password, and enabling OOF over a certain period,
+sourcing the body text from a file:
+.PP
+.RS 4
+.nf
+OOF_PASSWORD=xfoo kopano\-oof -u foo -m 1 -t "Outta here for a while" --from
+"2017-12-23 00:00" --until "2018-01-02 00:00" --message long_explanation.txt
+.fi
+.RE
+.PP
+Pseudo-disablement of one's mailbox:
+.PP
+.RS 4
+.nf
+kopano\-oof -u foo -m 1 -t "Dunno when I return" --from "2019-01-01 00:00"
+--until infinite
+.fi
+.RE
+.PP
+Enable out of office message of mailbox user1 with subject "test" and body from
+file /tmp/oof-message in a multi-server-environment:
+.PP
+.RS 4
+.nf
+OOF_SSL_PASSWORD=password kopano\-oof \-u user1 \-m 1 \-t test --message
+/tmp/oof-message --host https://localhost:237/ --sslkey-file
+/etc/kopano/ssl/client.pem
+.fi
+.RE
