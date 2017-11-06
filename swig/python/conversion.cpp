@@ -1157,14 +1157,10 @@ PyObject *		Object_from_LPACTIONS(ACTIONS *lpsActions)
 	for (UINT i = 0; i < lpsActions->cActions; ++i) {
 		pyobj_ptr sub(Object_from_LPACTION(&lpsActions->lpAction[i]));
 		if (!sub)
-			goto exit;
-
+			return nullptr;
 		PyList_Append(subs, sub);
 	}
 	result.reset(PyObject_CallFunction(PyTypeACTIONS, "lO", lpsActions->ulVersion, subs.get()));
-exit:
-	if (PyErr_Occurred())
-		result.reset();
 	return result.release();
 }
 
@@ -1260,38 +1256,36 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 	unsigned int i = 0;
 
 	if(object == Py_None)
-		goto exit;
-
+		return;
 	if (lpBase == NULL)
 		lpBase = lpActions;
 	poVersion.reset(PyObject_GetAttrString(object, "ulVersion"));
 	poAction.reset(PyObject_GetAttrString(object, "lpAction"));
 	if(!poVersion || !poAction) {
 		PyErr_SetString(PyExc_RuntimeError, "Missing ulVersion or lpAction for ACTIONS struct");
-		goto exit;
+		return;
 	}
 
 	len = PyObject_Length(poAction);
 	if (len == 0) {
 		PyErr_SetString(PyExc_RuntimeError, "No actions found in ACTIONS struct");
-		goto exit;
+		return;
 	} else if (len == -1) {
 		PyErr_SetString(PyExc_RuntimeError, "No action array found in ACTIONS struct");
-		goto exit;
+		return;
 	}
 
 	hr = MAPIAllocateMore(sizeof(ACTION)*len, lpBase, (void**)&lpActions->lpAction);
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
-		goto exit;
+		return;
 	}
 
 	lpActions->ulVersion = PyLong_AsUnsignedLong(poVersion); // EDK_RULES_VERSION
 	lpActions->cActions = len;
 	iter.reset(PyObject_GetIter(poAction));
 	if(iter == NULL)
-		goto exit;
-
+		return;
 	i = 0;
 	do {
 		pyobj_ptr elem(PyIter_Next(iter));
@@ -1299,7 +1293,6 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 			break;
 		Object_to_LPACTION(elem, &lpActions->lpAction[i++], lpBase != nullptr? lpBase : lpActions);
 	} while (true);
-exit:;
 }
 
 SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
@@ -1369,15 +1362,11 @@ PyObject *Object_from_SSortOrderSet(const SSortOrderSet *lpSortOrderSet)
 	for (unsigned int i = 0; i < lpSortOrderSet->cSorts; ++i) {
 		pyobj_ptr sort(PyObject_CallFunction(PyTypeSSort, "(ll)", lpSortOrderSet->aSort[i].ulPropTag, lpSortOrderSet->aSort[i].ulOrder));
 		if(PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(sorts,sort);
 	}
 
 	result.reset(PyObject_CallFunction(PyTypeSSortOrderSet, "(Oll)", sorts.get(), lpSortOrderSet->cCategories, lpSortOrderSet->cExpanded));
-exit:
-	if (PyErr_Occurred())
-		result.reset();
 	return result.release();
 }
 
@@ -1387,14 +1376,9 @@ PyObject *List_from_SRowSet(const SRowSet *lpRowSet)
 	for (unsigned int i = 0; i < lpRowSet->cRows; ++i) {
 		pyobj_ptr item(List_from_LPSPropValue(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues));
 		if(PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, item);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
@@ -1511,22 +1495,16 @@ PyObject *		List_from_LPSPropProblemArray(LPSPropProblemArray lpProblemArray)
 
 	if(lpProblemArray == NULL) {
 		Py_INCREF(Py_None);
-		list.reset(Py_None);
-		goto exit;
+		return Py_None;
 	}
 
 	list.reset(PyList_New(0));
 	for (unsigned int i = 0; i < lpProblemArray->cProblem; ++i) {
 		pyobj_ptr elem(Object_from_LPSPropProblem(&lpProblemArray->aProblem[i]));
 		if(PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, elem);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
@@ -1591,14 +1569,9 @@ PyObject * List_from_LPMAPINAMEID(LPMAPINAMEID *lppMAPINameId, ULONG cNames)
 	for (unsigned int i = 0; i < cNames; ++i) {
 		pyobj_ptr elem(Object_from_LPMAPINAMEID(lppMAPINameId[i]));
 		if(PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, elem);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
@@ -1751,15 +1724,10 @@ PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList)
 		for (unsigned int i = 0; i < lpEntryList->cValues; ++i) {
 			pyobj_ptr elem(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpEntryList->lpbin[i].lpb), lpEntryList->lpbin[i].cb));
 			if(PyErr_Occurred())
-				goto exit;
-
+				return nullptr;
 			PyList_Append(list, elem);
 		}
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
@@ -1775,14 +1743,9 @@ PyObject *		List_from_LPNOTIFICATION(LPNOTIFICATION lpNotif, ULONG cNotifs)
 	for (unsigned int i = 0; i < cNotifs; ++i) {
 		pyobj_ptr item(Object_from_LPNOTIFICATION(&lpNotif[i]));
 		if(PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, item);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
@@ -2055,17 +2018,12 @@ PyObject *		List_from_LPREADSTATE(LPREADSTATE lpReadState, ULONG cElements)
 	for (unsigned int i = 0; i < cElements; ++i) {
 		pyobj_ptr sourcekey(PyString_FromStringAndSize(reinterpret_cast<char *>(lpReadState[i].pbSourceKey), lpReadState[i].cbSourceKey));
 		if (PyErr_Occurred())
-			goto exit;
+			return nullptr;
 		pyobj_ptr elem(PyObject_CallFunction(PyTypeREADSTATE, "(Ol)", sourcekey.get(), lpReadState[i].ulFlags));
 		if (PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, elem);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
@@ -2127,14 +2085,9 @@ PyObject *List_from_LPCIID(LPCIID iids, ULONG cElements)
 	for (unsigned int i = 0; i < cElements; ++i) {
 		pyobj_ptr iid(PyString_FromStringAndSize(reinterpret_cast<const char *>(&iids[i]), sizeof(IID)));
 		if (PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, iid);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
@@ -2296,14 +2249,9 @@ PyObject *List_from_LPECUSER(ECUSER *lpUser, ULONG cElements, ULONG ulFlags)
 	for (unsigned int i = 0; i < cElements; ++i) {
 		pyobj_ptr item(Object_from_LPECUSER(&lpUser[i], ulFlags));
 		if (PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, item);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
@@ -2357,14 +2305,9 @@ PyObject *List_from_LPECGROUP(ECGROUP *lpGroup, ULONG cElements, ULONG ulFlags)
 	for (unsigned int i = 0; i < cElements; ++i) {
 		pyobj_ptr item(Object_from_LPECGROUP(&lpGroup[i], ulFlags));
 		if (PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, item);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
@@ -2421,14 +2364,9 @@ PyObject *List_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG cElements,
 	for (unsigned int i = 0; i < cElements; ++i) {
 		pyobj_ptr item(Object_from_LPECCOMPANY(&lpCompany[i], ulFlags));
 		if (PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, item);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
@@ -2636,14 +2574,9 @@ PyObject *List_from_LPECSERVERLIST(ECSERVERLIST *lpServerList)
 	for (unsigned int i = 0; i < lpServerList->cServers; ++i) {
 		pyobj_ptr item(Object_from_LPECSERVER(&lpServerList->lpsaServer[i]));
 		if (PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, item);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 
 }
@@ -2654,18 +2587,16 @@ void Object_to_STATSTG(PyObject *object, STATSTG *stg)
 
 	if(object == Py_None) {
 		PyErr_Format(PyExc_TypeError, "Invalid None passed for STATSTG");
-		goto exit;
+		return;
 	}
 
 	cbSize.reset(PyObject_GetAttrString(object, "cbSize"));
 	if(!cbSize) {
 		PyErr_Format(PyExc_TypeError, "STATSTG does not contain cbSize");
-		goto exit;
+		return;
 	}
 
 	stg->cbSize.QuadPart = PyLong_AsINT64(cbSize);
-
-exit:;
 }
 
 PyObject *Object_from_STATSTG(STATSTG *lpStatStg)
