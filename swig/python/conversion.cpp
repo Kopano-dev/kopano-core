@@ -2067,41 +2067,26 @@ exit:
 
 PyObject *		List_from_LPREADSTATE(LPREADSTATE lpReadState, ULONG cElements)
 {
-	PyObject *list = PyList_New(0);
-	PyObject *elem = NULL;
-	PyObject *sourcekey = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cElements; ++i) {
-		sourcekey = PyString_FromStringAndSize((char*)lpReadState[i].pbSourceKey, lpReadState[i].cbSourceKey);
+		pyobj_ptr sourcekey(PyString_FromStringAndSize(reinterpret_cast<char *>(lpReadState[i].pbSourceKey), lpReadState[i].cbSourceKey));
 		if (PyErr_Occurred())
 			goto exit;
-
-		elem = PyObject_CallFunction(PyTypeREADSTATE, "(Ol)", sourcekey, lpReadState[i].ulFlags);
+		pyobj_ptr elem(PyObject_CallFunction(PyTypeREADSTATE, "(Ol)", sourcekey.get(), lpReadState[i].ulFlags));
 		if (PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, elem);
-
-		Py_DECREF(sourcekey);
-		sourcekey = NULL;
-
-		Py_DECREF(elem);
-		elem = NULL;
 	}
 
 exit:
-	if (PyErr_Occurred()) {
-		Py_DECREF(list);
-		list = NULL;
-	}
-
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 {
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
 	Py_ssize_t len = 0;
 	LPIID lpList = NULL;
 	int i = 0;
@@ -2110,8 +2095,7 @@ LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 		cInterfaces = 0;
 		return NULL;
 	}
-
-	iter = PyObject_GetIter(list);
+	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		goto exit;
 
@@ -2119,8 +2103,10 @@ LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 
 	if (MAPIAllocateBuffer(len * sizeof *lpList, (void **)&lpList) != hrSuccess)
 		goto exit;
-
-	while((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		char *ptr = NULL;
 		Py_ssize_t strlen = 0;
 
@@ -2135,10 +2121,7 @@ LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 
 		memcpy(&lpList[i], ptr, sizeof(*lpList));
 		++i;
-		Py_DECREF(elem);
-		elem = NULL;
-	}
-
+	} while (true);
 	*cInterfaces = len;
 
 exit:
@@ -2146,10 +2129,6 @@ exit:
 		MAPIFreeBuffer(lpList);
 		lpList = NULL;
 	}
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (iter != nullptr)
-		Py_DECREF(iter);
 	return lpList;
 }
 
@@ -2160,49 +2139,36 @@ PyObject *List_from_LPCIID(LPCIID iids, ULONG cElements)
 		return(Py_None);
 	}
 
-	PyObject *list = PyList_New(0);
-	PyObject *iid = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cElements; ++i) {
-		iid = PyString_FromStringAndSize((char*)&iids[i], sizeof(IID));
+		pyobj_ptr iid(PyString_FromStringAndSize(reinterpret_cast<const char *>(&iids[i]), sizeof(IID)));
 		if (PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, iid);
-
-		Py_DECREF(iid);
-		iid = NULL;
 	}
 
 exit:
-	if (PyErr_Occurred()) {
-		Py_DECREF(list);
-		list = NULL;
-	}
-
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 template<typename T> void
 Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-	PyObject *MVPropMaps, *Item, *PropID, *ListItem, *Values;
+	PyObject *Item, *ListItem;
 	int ValuesLength, MVPropMapsSize = 0;
 
 	/* Multi-Value PropMap support. */
-	MVPropMaps = PyObject_GetAttrString(elem, "MVPropMap");
-
-	if (MVPropMaps == NULL || !PyList_Check(MVPropMaps)) {
-		Py_XDECREF(MVPropMaps);
+	pyobj_ptr MVPropMaps(PyObject_GetAttrString(elem, "MVPropMap"));
+	if (MVPropMaps == nullptr || !PyList_Check(MVPropMaps))
 		return;
-	}
-
 	MVPropMapsSize = PyList_Size(MVPropMaps);
 	/* No PropMaps - bail out */
 	if (MVPropMapsSize != 2) {
 		PyErr_SetString(PyExc_TypeError, "MVPropMap should contain two entries");
-		Py_DECREF(MVPropMaps);
 		return;
 	}
 
@@ -2212,15 +2178,11 @@ Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 
 	for (int i = 0; i < MVPropMapsSize; ++i) {
 		Item = PyList_GetItem(MVPropMaps, i);
-		PropID = PyObject_GetAttrString(Item, "ulPropId");
-		Values = PyObject_GetAttrString(Item, "Values");
+		pyobj_ptr PropID(PyObject_GetAttrString(Item, "ulPropId"));
+		pyobj_ptr Values(PyObject_GetAttrString(Item, "Values"));
 
 		if (PropID == NULL || Values == NULL || !PyList_Check(Values)) {
 			PyErr_SetString(PyExc_TypeError, "ulPropId or Values is empty or values is not a list");
-
-			Py_XDECREF(PropID);
-			Py_XDECREF(Values);
-			Py_DECREF(MVPropMaps);
 			return;
 		}
 
@@ -2237,9 +2199,6 @@ Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 			hr = MAPIAllocateMore(sizeof(LPTSTR) * lpObj->sMVPropmap.lpEntries[i].cValues, lpObj, reinterpret_cast<void **>(&lpObj->sMVPropmap.lpEntries[i].lpszValues));
 			if (hr != hrSuccess) {
 				PyErr_SetString(PyExc_RuntimeError, "Out of memory");
-				Py_DECREF(PropID);
-				Py_DECREF(Values);
-				Py_DECREF(MVPropMaps);
 				return;
 			}
 		}
@@ -2255,12 +2214,7 @@ Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 					CopyPyUnicode(&lpObj->sMVPropmap.lpEntries[i].lpszValues[j], ListItem, lpObj);
 			}
 		}
-
-		Py_DECREF(PropID);
-		Py_DECREF(Values);
 	}
-
-	Py_DECREF(MVPropMaps);
 }
 
 PyObject *Object_from_MVPROPMAP(MVPROPMAP propmap, ULONG ulFlags)
@@ -2279,12 +2233,10 @@ PyObject *Object_from_MVPROPMAP(MVPROPMAP propmap, ULONG ulFlags)
 	 * to either disabled or enabled according to the default set in the
 	 * server configuration.
 	 */
-	PyObject *MVProps = PyList_New(0);
-	PyObject *MVPropMap, *MVPropValue = NULL;
-
+	pyobj_ptr MVProps(PyList_New(0));
 	MVPROPMAP *lpMVPropmap = &propmap;
 	for (unsigned int i = 0; i < lpMVPropmap->cEntries; ++i) {
-		PyObject *MVPropValues = PyList_New(0);
+		pyobj_ptr MVPropValues(PyList_New(0));
 
 		for (unsigned int j = 0; j < lpMVPropmap->lpEntries[i].cValues; ++j) {
 			LPTSTR strval = lpMVPropmap->lpEntries[i].lpszValues[j];
@@ -2292,25 +2244,18 @@ PyObject *Object_from_MVPROPMAP(MVPROPMAP propmap, ULONG ulFlags)
 
 			if (str.empty())
 				continue;
+			pyobj_ptr MVPropValue;
 			if (ulFlags & MAPI_UNICODE)
-				MVPropValue = PyUnicode_FromWideChar(strval, wcslen(strval));
+				MVPropValue.reset(PyUnicode_FromWideChar(strval, wcslen(strval)));
 			else
-				MVPropValue = PyString_FromStringAndSize(str.c_str(), str.length());
-
+				MVPropValue.reset(PyString_FromStringAndSize(str.c_str(), str.length()));
 			PyList_Append(MVPropValues, MVPropValue);
-			Py_DECREF(MVPropValue);
-			MVPropValue = NULL;
 		}
 
-		MVPropMap = PyObject_CallFunction(PyTypeMVPROPMAP, "(lO)", lpMVPropmap->lpEntries[i].ulPropId, MVPropValues);
-		Py_DECREF(MVPropValues);
+		pyobj_ptr MVPropMap(PyObject_CallFunction(PyTypeMVPROPMAP, "(lO)", lpMVPropmap->lpEntries[i].ulPropId, MVPropValues.get()));
 		PyList_Append(MVProps, MVPropMap);
-		Py_DECREF(MVPropMap);
-		MVPropMap = NULL;
-		MVPropValues = NULL;
 	}
-
-	return MVProps;
+	return MVProps.release();
 }
 
 ECUSER *Object_to_LPECUSER(PyObject *elem, ULONG ulFlags)
