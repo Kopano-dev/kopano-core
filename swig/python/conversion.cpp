@@ -772,8 +772,7 @@ PyObject *		List_from_LPTSTRPtr(LPTSTR *lpStrings, ULONG cValues)
 
 SPropTagArray *List_to_p_SPropTagArray(PyObject *object, ULONG /*ulFlags*/)
 {
-	PyObject *elem = NULL;
-	PyObject *iter = NULL;
+	pyobj_ptr iter;
 	Py_ssize_t len = 0;
 	LPSPropTagArray lpPropTagArray = NULL;
 	int n = 0;
@@ -789,17 +788,16 @@ SPropTagArray *List_to_p_SPropTagArray(PyObject *object, ULONG /*ulFlags*/)
 
 	if (MAPIAllocateBuffer(CbNewSPropTagArray(len), (void **)&lpPropTagArray) != hrSuccess)
 		goto exit;
-
-	iter = PyObject_GetIter(object);
+	iter.reset(PyObject_GetIter(object));
 	if(iter == NULL)
 		goto exit;
-
-	while((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		lpPropTagArray->aulPropTag[n] = (ULONG)PyLong_AsUnsignedLong(elem);
-		Py_DECREF(elem);
 		++n;
-	}
-
+	} while (true);
 	lpPropTagArray->cValues = n;
 
 exit:
@@ -807,41 +805,28 @@ exit:
 		MAPIFreeBuffer(lpPropTagArray);
 		lpPropTagArray = NULL;
 	}
-	if (iter != nullptr)
-		Py_DECREF(iter);
 	return lpPropTagArray;
 }
 
 PyObject *List_from_SPropTagArray(const SPropTagArray *lpPropTagArray)
 {
-	PyObject *list = NULL;
-	PyObject *elem = NULL;
-
 	if(lpPropTagArray == NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
 
-	list = PyList_New(0);
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < lpPropTagArray->cValues; ++i) {
-		elem = PyLong_FromUnsignedLong(lpPropTagArray->aulPropTag[i]);
+		pyobj_ptr elem(PyLong_FromUnsignedLong(lpPropTagArray->aulPropTag[i]));
 		PyList_Append(list, elem);
 		if(PyErr_Occurred())
 			goto exit;
-
-		Py_DECREF(elem);
-		elem = NULL;
 	}
 
 exit:
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if(PyErr_Occurred()) {
-		Py_DECREF(list);
-		list = NULL;
-	}
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 SPropTagArray *List_to_LPSPropTagArray(PyObject *obj, ULONG flags)
